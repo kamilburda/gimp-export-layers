@@ -89,36 +89,36 @@ Advanced Settings
 
 **File extensions in layer names**
 
-* "No special handling" - No special action is performed.
-* "Export only layers matching file format" - Export only layers with file extensions
+* *No special handling* - No special action is performed.
+* *Export only layers matching file format* - Export only layers with file extensions
 that match the file format in the "File format" text field.
-* "Use as file formats" - Every layer that has a valid file extension will be
+* *Use as file formats* - Every layer that has a valid file extension will be
 exported with that file format. File format dialog will be displayed once
 for each file format. For layers with invalid or no file extension,
 the file format in the "File format" text field will be used.
 
 **Additional options to "File extensions in layer names"**
 
-- "Always strip file extension" - Strip (remove) file extension from all layer names.
+- *Always strip file extension* - Strip (remove) file extension from all layer names.
 This does not apply to layer names in [square brackets] if "Remove square brackets" is disabled.
-- "Strip identical to file format" - Remove file extension from the layer names that
+- *Strip identical to file format* - Remove file extension from the layer names that
 match the file format in the "File format" text field.
-- "Never strip file extension" - Don't strip file extension from layer names.
+- *Never strip file extension* - Don't strip file extension from layer names.
 
 **Layer names in [square brackets]**
 
-* "Treat as normal layers" - Layer names starting with "[" and ending with "]"
+* *Treat as normal layers* - Layer names starting with "[" and ending with "]"
 will be exported as any other layer.
-* "Treat as background layers" - These layers will be used as a background
+* *Treat as background layers* - These layers will be used as a background
 for all other layers and will not be exported separately.
-* "Ignore" - These layers will not be exported (and will not serve as background layers).
-* "Ignore other layers" - All other layers will not be exported.
+* *Ignore* - These layers will not be exported (and will not serve as background layers).
+* *Ignore other layers* - All other layers will not be exported.
 
 **Additional options to "Layer names in [square brackets]"**
 
-- "Remove square brackets" - Removes the [square brackets] from layer names before being exported.
+- *Remove square brackets* - Removes the [square brackets] from layer names before being exported.
 This setting is visible only if "Treat as normal layers" or "Ignore other layers" is selected.
-- "Crop to layer" - If enabled, layers will be cropped to the size of the background
+- *Crop to layer* - If enabled, layers will be cropped to the size of the background
 layers instead of their own size. This setting is visible only if "Treat as background layers"
 is selected.
 
