@@ -84,6 +84,16 @@ within the image. If layers are partially outside the image canvas,
 they will be cut off. If you want to export the entire layer,
 leave this setting disabled.
 
+**Save Settings**
+
+Current settings in the Export Layers window are permanently saved to a file.
+If you re-open GIMP, the saved settings will be loaded from the file when
+Export Layers is first opened.
+
+**Reset Settings**
+
+Settings will be reset to their default values.
+
 Advanced Settings
 -----------------
 
@@ -130,16 +140,6 @@ of each merged layer is the name of the corresponding top-level layer group.
 **Create empty subdirectories**
 
 If enabled, empty subdirectories from empty layers groups are created.
-
-**Save Settings**
-
-Current settings in the Export Layers window are permanently saved to a file.
-If you re-open GIMP, the saved settings will be loaded from the file when
-Export Layers is first opened.
-
-**Reset Settings**
-
-Settings will be reset to their default values.
 
 Known Issues
 ------------
