@@ -132,8 +132,6 @@ Settings will be reset to their default values.
 Known Issues
 ------------
 
-File format dialog is displayed behind the dialog while exporting.
-
 The following file formats are not working properly with this plug-in:
 * colored XHTML (.xhtml) - does not save images at all,
 * KISS CEL (.cel) - throws error/warning messages, but saves images anyway.
@@ -146,6 +144,8 @@ not just the first layer:
 * HTML (.html, .htm).
 
 In Export Layers To, JPG format always displays the file format dialog for the first layer.
+
+File format dialog is displayed behind the small dialog while exporting.
 
 Only ASCII letters, digits and certain special characters are allowed in filenames.
 Other characters are deleted (from filenames only, they still remain in the layer names).
