@@ -62,18 +62,22 @@ Settings
 --------
 
 Treat layer groups as directories:
+
 If enabled, layers will be exported to subdirectories corresponding to the layer groups.
 If disabled, all layers will be exported to the output directory on the same level
 and no subdirectories will be created.
 
 Ignore invisible layers:
+
 If enabled, invisible layers will not be exported. Visible layers within
 invisible layer groups will also not be exported.
 
 Autocrop layers:
+
 If enabled, layers will be autocropped before being exported.
 
 Use image size instead of layer size:
+
 If enabled, layers will be resized (but not scaled) to the image size. This is
 useful if you want to keep the size of the image canvas and the layer position
 within the image. If layers are partially outside the image canvas,
@@ -84,6 +88,7 @@ Advanced Settings
 -----------------
 
 File extensions in layer names:
+
 * "No special handling" - No special action is performed.
 * "Export only layers matching file format" - Export only layers with file extensions
 that match the file format in the "File format" text field.
@@ -93,6 +98,7 @@ for each file format. For layers with invalid or no file extension,
 the file format in the "File format" text field will be used.
 
 Additional options to "File extensions in layer names":
+
 - "Always strip file extension" - Strip (remove) file extension from all layer names.
 This does not apply to layer names in [square brackets] if "Remove square brackets" is disabled.
 - "Strip identical to file format" - Remove file extension from the layer names that
@@ -100,6 +106,7 @@ match the file format in the "File format" text field.
 - "Never strip file extension" - Don't strip file extension from layer names.
 
 Layer names in [square brackets]:
+
 * "Treat as normal layers" - Layer names starting with "[" and ending with "]"
 will be exported as any other layer.
 * "Treat as background layers" - These layers will be used as a background
@@ -108,6 +115,7 @@ for all other layers and will not be exported separately.
 * "Ignore other layers" - All other layers will not be exported.
 
 Additional options to "Layer names in [square brackets]":
+
 - "Remove square brackets" - Removes the [square brackets] from layer names before being exported.
 This setting is visible only if "Treat as normal layers" or "Ignore other layers" is selected.
 - "Crop to layer" - If enabled, layers will be cropped to the size of the background
@@ -115,18 +123,22 @@ layers instead of their own size. This setting is visible only if "Treat as back
 is selected.
 
 Merge layer groups:
+
 If enabled, each top-level layer group is merged into one layer. The name
 of each merged layer is the name of the corresponding top-level layer group.
 
 Create empty subdirectories:
+
 If enabled, empty subdirectories from empty layers groups are created.
 
 Save Settings:
+
 Current settings in the Export Layers window are permanently saved to a file.
 If you re-open GIMP, the saved settings will be loaded from the file when
 Export Layers is first opened.
 
 Reset Settings:
+
 Settings will be reset to their default values.
 
 Known Issues
