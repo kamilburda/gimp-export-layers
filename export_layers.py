@@ -28,7 +28,7 @@ import gimpplugin
 import gimpenums
 
 from export_layers import constants
-from export_layers import tee_plugin
+#from export_layers import tee_plugin
 from export_layers import exportlayers
 from export_layers import settings
 from export_layers import settings_plugin
@@ -38,7 +38,7 @@ from export_layers import gui_plugin
 #===============================================================================
 
 # Log stdout and stderr for testing purposes.
-tee_plugin.tee_plugin(constants.PLUGIN_TITLE)
+#tee_plugin.tee_plugin(constants.PLUGIN_TITLE)
 
 #===============================================================================
 

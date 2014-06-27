@@ -153,7 +153,7 @@ Other characters are deleted (from filenames only, they still remain in the laye
 Changelog
 ---------
 
-2.0
+2.0, June 27, 2014
 
 Implemented advanced settings, including the following:
 * export only layers whose names match the file format
@@ -221,3 +221,13 @@ License
 
 This plug-in is licensed under the GNU GPLv3, which can be found on the following page:
 http://www.gnu.org/licenses/gpl-3.0.html
+
+Support, Contact
+----------------
+
+You can report issues on the following pages:
+http://registry.gimp.org/node/28268
+https://github.com/khalim19/gimp-plugin-export-layers
+
+To ask questions, request new features or simply talk about the plug-in,
+go to http://registry.gimp.org/node/28268.
