@@ -218,7 +218,7 @@ class Setting(object):
     """
     Adjust attributes of this setting based on the attributes of other settings or arguments.
     Return a list of changed settings. A setting is considered changed if at least one of the
-    following attributes were changed:
+    following attributes were assigned a value:
     * `value`
     * `ui_enabled`
     * `ui_visible`
