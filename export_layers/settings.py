@@ -579,7 +579,7 @@ class SettingContainer(container.Container):
   
   def streamline(self, force=False):
     """
-    Streamline all Settings objects in this container.
+    Streamline all Setting objects in this container.
     
     If force is True, streamline settings even if the values of the other
     settings were not changed. This is useful e.g. for setting proper values and
