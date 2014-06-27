@@ -216,8 +216,12 @@ class Setting(object):
   
   def streamline(self, force=False):
     """
-    Adjust value of this setting based on the value of other settings or arguments.
-    Return a list of settings whose value has been changed.
+    Adjust attributes of this setting based on the attributes of other settings or arguments.
+    Return a list of changed settings. A setting is considered changed if at least one of the
+    following attributes were changed:
+    * `value`
+    * `ui_enabled`
+    * `ui_visible`
     
     If force is True, streamline settings even if the values of the other
     settings were not changed. This is useful when initializing GUI elements -
