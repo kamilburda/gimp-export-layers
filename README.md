@@ -204,7 +204,6 @@ Changes to the GUI:
   - _Export Layers
   - _Cancel
   - _Advanced Settings
-  
 * If the plug-in encounters an unexpected error, an error dialog (with details) is displayed.
 * Adjusted spacing, padding and border width of components.
 
