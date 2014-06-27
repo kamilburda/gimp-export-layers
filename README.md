@@ -200,12 +200,11 @@ Changes to the GUI:
 * Error messages are now in bold text. Removed the icon next to the error message
   as it didn't look good and didn't serve much purpose.
 * Added tooltips to most of the settings.
-* Added mnemonics (keyboard shortcuts) to the following components in the dialog:
+* Added mnemonics (keyboard shortcuts) to the following components in the dialog (use Alt + the key after the underscore to activate the component, e.g. Alt+E for the "Export Layers" button):
   - _Export Layers
   - _Cancel
   - _Advanced Settings
-  Use Alt + the key after the underscore to activate the component
-  (e.g. Alt+E for the "Export Layers" button).
+  
 * If the plug-in encounters an unexpected error, an error dialog (with details) is displayed.
 * Adjusted spacing, padding and border width of components.
 
