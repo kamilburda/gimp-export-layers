@@ -226,8 +226,8 @@ Support, Contact
 ----------------
 
 You can report issues on the following pages:
-http://registry.gimp.org/node/28268
-https://github.com/khalim19/gimp-plugin-export-layers
+* http://registry.gimp.org/node/28268
+* https://github.com/khalim19/gimp-plugin-export-layers
 
 To ask questions, request new features or simply talk about the plug-in,
 go to http://registry.gimp.org/node/28268.
