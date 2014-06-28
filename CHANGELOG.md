@@ -1,5 +1,5 @@
-2.0 (Jun 27, 2014)
-------------------
+2.0 (June 27, 2014)
+-------------------
 
 Implemented advanced settings, including the following:
 * export only layers whose names match the file format
@@ -54,10 +54,10 @@ Bug fixes:
 Misc. changes:
 * Layers exported with the "raw" file format will now have the ".raw" file extension added.
 
-1.1 (Sep 08, 2013)
-------------------
+1.1 (September 08, 2013)
+-------------------
 * Added "Export Layers to" menu entry, repeating the export with last used settings.
 
-1.0 (Jul 01, 2013)
-------------------
+1.0 (July 01, 2013)
+-------------------
 * Initial release.
