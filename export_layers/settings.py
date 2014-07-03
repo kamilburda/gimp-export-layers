@@ -128,17 +128,6 @@ class Setting(object):
     # hence it must be cleared.
     self._changed_attributes.clear()
   
-  def __hash__(self):
-    # Setting name is read-only and never changes during the object's lifetime,
-    # making it convenient to be used in hashing.
-    return hash(self.name)
-  
-  def __eq__(self, other):
-    if isinstance(other, Setting):
-      return self.name == other.name
-    else:
-      return self.name == other
-  
   def __setattr__(self, name, value):
     super(Setting, self).__setattr__(name, value)
     if name in self._attrs_that_trigger_change:
@@ -981,5 +970,5 @@ class SettingPresenterContainer(container.Container):
     """
     for setting, changed_attributes in changed_settings.items():
       for attr in changed_attributes:
-        setattr(self[setting], self._SETTING_ATTRIBUTES[attr], getattr(setting, attr))
+        setattr(self[setting.name], self._SETTING_ATTRIBUTES[attr], getattr(setting, attr))
   
