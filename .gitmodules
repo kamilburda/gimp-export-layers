@@ -1,0 +1,3 @@
+[submodule "export_layers/libgimpplugin"]
+	path = export_layers/libgimpplugin
+	url = git://github.com/khalim19/libgimpplugin.git
