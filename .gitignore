@@ -3,6 +3,7 @@
 #################
 
 export_layers/export_layers.json
+*.log
 
 #################
 ## Eclipse
