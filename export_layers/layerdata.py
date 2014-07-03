@@ -228,7 +228,12 @@ class LayerData(object):
 class _LayerDataElement(object):
   
   """
-  This class wraps a gimp.Layer object and defines the following custom layer attributes:
+  This class wraps a gimp.Layer object and defines custom layer attributes.
+  
+  Note that the attributes will not be up to date if changes were made to the
+  original gimp.Layer objects.
+  
+  Attributes:
   
   * layer: gimp.Layer object
   
@@ -255,9 +260,6 @@ class _LayerDataElement(object):
   
   * file_extension (read-only): File extension of the layer name. If the layer has
     no extension, empty string is returned.
-  
-  Note that the attributes will not be up to date if changes were made to the
-  original gimp.Layer objects.
   """
   
   def __init__(self, layer, parents=None):

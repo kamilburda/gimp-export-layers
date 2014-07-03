@@ -27,13 +27,14 @@ import gimp
 import gimpplugin
 import gimpenums
 
+from export_layers import settings
+from export_layers import overwrite
+
 from export_layers import constants
 #from export_layers import tee_plugin
-from export_layers import exportlayers
-from export_layers import settings
 from export_layers import settings_plugin
-from export_layers import overwrite
 from export_layers import gui_plugin
+from export_layers import exportlayers
 
 #===============================================================================
 
@@ -139,7 +140,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
   def _run_export_layers_interactive(self, image):
     gui_plugin.export_layers_gui(image, self.main_settings, self.special_settings,
                                  self.gimpshelf_stream, self.config_file_stream)
-    
+  
   def _run_export_layers_to_interactive(self, image):
     gui_plugin.export_layers_to_gui(image, self.main_settings, self.setting_persistor)
   
