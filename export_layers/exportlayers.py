@@ -34,7 +34,8 @@ import string
 import gimp
 import gimpenums
 
-import libgimpplugin
+import libfiles
+import libimage
 import layerdata
 import objectfilter
 import progress
@@ -185,8 +186,8 @@ class LayerExporter(object):
     
     self._export_status = self._NOT_EXPORTED_YET
     
-    self._string_validator = libgimpplugin.StringValidator(self.ALLOWED_FILENAME_CHARS)
-    self._dirname_validator = libgimpplugin.DirnameValidator()
+    self._string_validator = libfiles.StringValidator(self.ALLOWED_FILENAME_CHARS)
+    self._dirname_validator = libfiles.DirnameValidator()
     
     self._layerdata_to_export = []
     self._background_layerdata = []
@@ -303,14 +304,14 @@ class LayerExporter(object):
     if not self._layer_data:
       return
     
-    libgimpplugin.make_dirs(self._output_directory)
+    libfiles.make_dirs(self._output_directory)
     
     if self.main_settings['empty_directories'].value:
       for layerdata_elem in self._empty_groups_layerdata:
         directory = layerdata_elem.get_filename(self._output_directory,
                                                 file_format=None,
                                                 include_layer_path=True)
-        libgimpplugin.make_dirs(directory)
+        libfiles.make_dirs(directory)
     
     self.progress_updater.num_total_tasks = len(self._layer_data)
     
@@ -329,7 +330,7 @@ class LayerExporter(object):
           pdb.gimp_image_insert_layer(self._image_copy, bg_layer_copy, None, i)
           pdb.gimp_item_set_visible(bg_layer_copy, True)
           if pdb.gimp_item_is_group(bg_layer_copy):
-            bg_layer_copy = libgimpplugin.merge_layer_group(self._image_copy, bg_layer_copy)
+            bg_layer_copy = libimage.merge_layer_group(self._image_copy, bg_layer_copy)
         if self.main_settings['use_image_size'].value:
           self._background_layer_merged = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
       
@@ -338,7 +339,7 @@ class LayerExporter(object):
       # This is necessary for file formats which flatten the image (such as JPG).
       pdb.gimp_item_set_visible(layer_copy, True)
       if pdb.gimp_item_is_group(layer_copy):
-        layer_copy = libgimpplugin.merge_layer_group(self._image_copy, layer_copy)
+        layer_copy = libimage.merge_layer_group(self._image_copy, layer_copy)
       
       self._image_copy.active_layer = layer_copy
       
@@ -504,7 +505,7 @@ class LayerExporter(object):
         pass
       elif self.overwrite_chooser.overwrite_mode in (self.main_settings['overwrite_mode'].options['rename_new'],
                                                      self.main_settings['overwrite_mode'].options['rename_existing']):
-        uniq_output_filename = libgimpplugin.uniquify_filename(output_filename)
+        uniq_output_filename = libfiles.uniquify_filename(output_filename)
         if self.overwrite_chooser.overwrite_mode == self.main_settings['overwrite_mode'].options['rename_new']:
           output_filename = uniq_output_filename
         else:
@@ -522,7 +523,7 @@ class LayerExporter(object):
     self.progress_updater.update(text="Saving '" + output_filename + "'")
     
     if not is_skip:
-      libgimpplugin.make_dirs(os.path.dirname(output_filename))
+      libfiles.make_dirs(os.path.dirname(output_filename))
       self._export_layer(self._file_export_func, image, layer, output_filename)
   
   def _export_layer(self, file_export_function, image, layer, output_filename):

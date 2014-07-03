@@ -34,7 +34,7 @@ from collections import namedtuple
 
 import gimp
 
-import libgimpplugin
+import libfiles
 import objectfilter
 
 #===============================================================================
@@ -153,7 +153,7 @@ class LayerData(object):
     def _uniquify(layerdata):
       layer_paths = set()
       for layerdata_elem in layerdata:
-        layerdata_elem.layer_name = libgimpplugin.uniquify_string(
+        layerdata_elem.layer_name = libfiles.uniquify_string(
           layerdata_elem.layer_name, layer_paths, place_before_file_extension=place_before_file_extension)
         layerdata_elem.path_components = layerdata_elem.update_path_components()
         layer_paths.add(layerdata_elem.layer_name)
@@ -280,7 +280,7 @@ class _LayerDataElement(object):
   
   @property
   def file_extension(self):
-    return libgimpplugin.get_file_extension(self.layer_name)
+    return libfiles.get_file_extension(self.layer_name)
   
   def get_filename(self, output_directory, file_format, include_layer_path=True):
     """
