@@ -28,14 +28,6 @@ This module:
 
 import string
 import os
-from contextlib import contextmanager
-
-import gimp
-import gimpenums
-
-#===============================================================================
-
-pdb = gimp.pdb
 
 #===============================================================================
 
@@ -202,45 +194,3 @@ class DirnameValidator(StringValidator):
     tail = tail.translate(None, self._delete_table)
     
     return os.path.normpath(os.path.join(drive, tail))
-
-#===============================================================================
-
-@contextmanager
-def undo_group(image):
-  pdb.gimp_image_undo_group_start(image)
-  try:
-    yield
-  finally:
-    pdb.gimp_image_undo_group_end(image)
-
-
-def merge_layer_group(image, layer_group):
-  """
-  Merge the specified layer group into a layer.
-  """
-  
-  if not pdb.gimp_item_is_group(layer_group):
-    raise TypeError("layer is not a layer group")
-  
-  with undo_group(image):
-    orig_parent_and_pos = ()
-    if layer_group.parent is not None:
-      # Nested layer group
-      orig_parent_and_pos = (layer_group.parent, pdb.gimp_image_get_item_position(image, layer_group))
-      pdb.gimp_image_reorder_item(image, layer_group, None, 0)
-    
-    orig_layer_visibility = [layer.visible for layer in image.layers]
-    
-    for layer in image.layers:
-      layer.visible = False
-    layer_group.visible = True
-    
-    merged_layer_group = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
-    
-    for layer, orig_visible in zip(image.layers, orig_layer_visibility):
-      layer.visible = orig_visible
-  
-    if orig_parent_and_pos:
-      pdb.gimp_image_reorder_item(image, merged_layer_group, orig_parent_and_pos[0], orig_parent_and_pos[1])
-  
-  return merged_layer_group
