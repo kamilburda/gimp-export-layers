@@ -26,9 +26,8 @@ import sys
 from StringIO import StringIO
 import unittest
 
-from export_layers.lib import mock
-
-from export_layers import tee
+from ..lib import mock
+from .. import tee
 
 #===============================================================================
 

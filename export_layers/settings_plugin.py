@@ -29,7 +29,7 @@ This module:
 import gimp
 import gimpenums
 
-import settings
+from export_layers.libgimpplugin import settings
 
 #===============================================================================
 

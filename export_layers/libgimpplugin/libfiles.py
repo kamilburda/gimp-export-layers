@@ -21,7 +21,7 @@
 
 """
 This module:
-* is a library of functions for GIMP plug-ins
+* contains functions dealing with files, directories, filenames and strings
 """
 
 #=============================================================================== 

@@ -26,19 +26,41 @@ from collections import OrderedDict
 
 import unittest
 
-from export_layers.lib import mock
-
-from export_layers import layerdata
-from export_layers.exportlayers import LayerFilters
+from ..lib import mock
+from .. import layerdata
 
 import gimpmocks
 
 #===============================================================================
 
-@mock.patch('export_layers.layerdata.pdb', new=gimpmocks.MockPDB())
+LIB_NAME = '.'.join(__name__.split('.')[:-2])
+
+#===============================================================================
+
+class LayerFilters(object):
+  
+  @staticmethod
+  def is_layer(layerdata_elem):
+    return not layerdata_elem.is_group
+  
+  @staticmethod
+  def is_layer_or_empty_group(layerdata_elem):
+    return not layerdata_elem.is_group or layerdata_elem.is_empty
+  
+  @staticmethod
+  def is_path_visible(layerdata_elem):
+    return layerdata_elem.path_visible
+  
+  @staticmethod
+  def has_matching_file_format(layerdata_elem, file_format):
+    return layerdata_elem.layer_name.endswith('.' + file_format)
+
+#===============================================================================
+
+@mock.patch(LIB_NAME + '.layerdata.pdb', new=gimpmocks.MockPDB())
 class TestLayerData(unittest.TestCase):
 
-  @mock.patch('export_layers.layerdata.pdb', new=gimpmocks.MockPDB())
+  @mock.patch(LIB_NAME + '.layerdata.pdb', new=gimpmocks.MockPDB())
   def setUp(self):
     super(TestLayerData, self).setUp()
     

@@ -27,8 +27,8 @@ import gimp
 import gimpplugin
 import gimpenums
 
-from export_layers import settings
-from export_layers import overwrite
+from export_layers.libgimpplugin import settings
+from export_layers.libgimpplugin import overwrite
 
 from export_layers import constants
 #from export_layers import tee_plugin

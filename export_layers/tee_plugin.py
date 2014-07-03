@@ -29,8 +29,9 @@ This module:
 import sys
 import os
 
-import tee
-import constants
+from export_layers.libgimpplugin import tee
+
+from export_layers import constants
 
 #===============================================================================
 

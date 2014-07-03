@@ -39,11 +39,12 @@ import gimp
 import gimpenums
 import gimpui
 
-import constants
-import settings
-import overwrite
-import exportlayers
-import gui
+from export_layers.libgimpplugin import settings
+from export_layers.libgimpplugin import overwrite
+from export_layers.libgimpplugin import gui
+
+from export_layers import exportlayers
+from export_layers import constants
 
 #===============================================================================
 

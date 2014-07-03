@@ -23,7 +23,7 @@
 
 import unittest
 
-from export_layers import progress
+from .. import progress
 
 #===============================================================================
 

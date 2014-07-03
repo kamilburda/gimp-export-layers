@@ -34,11 +34,11 @@ import string
 import gimp
 import gimpenums
 
-import libfiles
-import libimage
-import layerdata
-import objectfilter
-import progress
+from export_layers.libgimpplugin import libfiles
+from export_layers.libgimpplugin import libimage
+from export_layers.libgimpplugin import layerdata
+from export_layers.libgimpplugin import objectfilter
+from export_layers.libgimpplugin import progress
 
 #===============================================================================
 

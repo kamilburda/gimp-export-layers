@@ -26,43 +26,43 @@ import os
 
 import unittest
 
-from export_layers import libgimpplugin
+from .. import libfiles
 
 #===============================================================================
 
 class TestUniquifyString(unittest.TestCase):
   
   def test_uniquify_string(self):
-    self.assertEqual('one (1)', libgimpplugin.uniquify_string('one', ['one', 'two', 'three']))
-    self.assertEqual('one (2)', libgimpplugin.uniquify_string('one', ['one', 'one (1)', 'three']))
-    self.assertEqual('one (1).jpg', libgimpplugin.uniquify_string('one.jpg', ['one.jpg', 'two', 'three'],
+    self.assertEqual('one (1)', libfiles.uniquify_string('one', ['one', 'two', 'three']))
+    self.assertEqual('one (2)', libfiles.uniquify_string('one', ['one', 'one (1)', 'three']))
+    self.assertEqual('one (1).jpg', libfiles.uniquify_string('one.jpg', ['one.jpg', 'two', 'three'],
                                                                   place_before_file_extension=True))
-    self.assertEqual('one (2).jpg', libgimpplugin.uniquify_string('one.jpg', ['one.jpg', 'one (1).jpg', 'three'],
+    self.assertEqual('one (2).jpg', libfiles.uniquify_string('one.jpg', ['one.jpg', 'one (1).jpg', 'three'],
                                                                   place_before_file_extension=True))
-    self.assertEqual('one (1)', libgimpplugin.uniquify_string('one', ['one', 'two', 'three'],
+    self.assertEqual('one (1)', libfiles.uniquify_string('one', ['one', 'two', 'three'],
                                                               place_before_file_extension=True))
-    self.assertEqual('one. (1)', libgimpplugin.uniquify_string('one.', ['one.', 'two', 'three'],
+    self.assertEqual('one. (1)', libfiles.uniquify_string('one.', ['one.', 'two', 'three'],
                                                                place_before_file_extension=True))
-    self.assertEqual('one. (1)', libgimpplugin.uniquify_string('one.', ['one.', 'two', 'three']))
-    self.assertEqual('one (1) (1)', libgimpplugin.uniquify_string('one (1)', ['one (1)', 'two', 'three']))
-    self.assertEqual('one (1) (1)', libgimpplugin.uniquify_string('one (1)', ['one (1)', 'one (2)', 'three']))
-    self.assertEqual('one (1) (1).jpg', libgimpplugin.uniquify_string('one (1).jpg', ['one (1).jpg', 'two', 'three'],
+    self.assertEqual('one. (1)', libfiles.uniquify_string('one.', ['one.', 'two', 'three']))
+    self.assertEqual('one (1) (1)', libfiles.uniquify_string('one (1)', ['one (1)', 'two', 'three']))
+    self.assertEqual('one (1) (1)', libfiles.uniquify_string('one (1)', ['one (1)', 'one (2)', 'three']))
+    self.assertEqual('one (1) (1).jpg', libfiles.uniquify_string('one (1).jpg', ['one (1).jpg', 'two', 'three'],
                                                                       place_before_file_extension=True))
 
 class TestGetFileExtension(unittest.TestCase):
   
   def test_get_file_extension(self):
-    self.assertEqual("jpg", libgimpplugin.get_file_extension("picture.jpg"))
-    self.assertEqual("jpg", libgimpplugin.get_file_extension("picture.JPG"))
-    self.assertEqual("jpg", libgimpplugin.get_file_extension("picture.jPg"))
-    self.assertEqual("", libgimpplugin.get_file_extension("picture."))
-    self.assertEqual("", libgimpplugin.get_file_extension("picture"))
+    self.assertEqual("jpg", libfiles.get_file_extension("picture.jpg"))
+    self.assertEqual("jpg", libfiles.get_file_extension("picture.JPG"))
+    self.assertEqual("jpg", libfiles.get_file_extension("picture.jPg"))
+    self.assertEqual("", libfiles.get_file_extension("picture."))
+    self.assertEqual("", libfiles.get_file_extension("picture"))
 
 class TestStringValidator(unittest.TestCase):
   
   def setUp(self):
     self.allowed_characters = string.ascii_letters + string.digits + " "
-    self.validator = libgimpplugin.StringValidator(self.allowed_characters)
+    self.validator = libfiles.StringValidator(self.allowed_characters)
   
   def test_validate(self):
     self.assertFalse(self.validator.is_valid("H:%#$#i *\There"))
@@ -71,7 +71,7 @@ class TestStringValidator(unittest.TestCase):
 class TestDirnameValidator(unittest.TestCase):
   
   def setUp(self):
-    self.validator = libgimpplugin.DirnameValidator()
+    self.validator = libfiles.DirnameValidator()
   
   def test_validate(self):
     if os.name == 'nt':

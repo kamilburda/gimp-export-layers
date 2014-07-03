@@ -23,7 +23,7 @@
 
 import unittest
 
-from export_layers.objectfilter import ObjectFilter
+from ..objectfilter import ObjectFilter
 
 #===============================================================================
 
