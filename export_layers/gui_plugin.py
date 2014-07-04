@@ -84,7 +84,6 @@ def display_message_dialog(text, message_type=gtk.MESSAGE_INFO, parent=None):
 class ExportDialog(object):
   
   _HBOX_HORIZONTAL_SPACING = 8
-  _STOP_BUTTON_WIDTH = 85
   _DIALOG_WIDTH = 500
   
   def __init__(self, stop_event):
@@ -102,12 +101,14 @@ class ExportDialog(object):
     
     self._stop_button = gtk.Button()
     self._stop_button.set_label("Stop")
-    self._stop_button.set_size_request(self._STOP_BUTTON_WIDTH, -1)
+    
+    self._buttonbox = gtk.HButtonBox()
+    self._buttonbox.pack_start(self._stop_button, expand=False, fill=True)
     
     self._hbox_action_area = gtk.HBox(homogeneous=False)
     self._hbox_action_area.set_spacing(self._HBOX_HORIZONTAL_SPACING)
     self._hbox_action_area.pack_start(self._progress_bar, expand=True, fill=True)
-    self._hbox_action_area.pack_end(self._stop_button, expand=False, fill=True)
+    self._hbox_action_area.pack_end(self._buttonbox, expand=False, fill=True)
     
     self._dialog.vbox.pack_end(self._hbox_action_area, expand=False, fill=False)
     
