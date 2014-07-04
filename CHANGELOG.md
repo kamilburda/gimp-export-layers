@@ -7,6 +7,7 @@ Implemented advanced settings, including the following:
 * use layers with names in [square brackets] as a background for all other layers
 * merge each top-level layer group into one layer
 * permanently save settings in the Export Layers window to a file
+
 For details and more settings, see the "Advanced Settings" section.
 
 Major code rewrite.
