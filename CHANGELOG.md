@@ -8,8 +8,6 @@ Implemented advanced settings, including the following:
 * merge each top-level layer group into one layer
 * permanently save settings in the Export Layers window to a file
 
-For details and more settings, see the "Advanced Settings" section.
-
 Major code rewrite.
 * Split the file into several separate modules. Written unit tests for most of these modules.
 * Implemented API for plug-in settings for easier management.
