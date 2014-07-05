@@ -163,9 +163,9 @@ class TestSetting(unittest.TestCase):
   
   def test_can_streamline(self):
     self.setting.set_streamline_func(streamline_file_format)
-    self.assertTrue(self.setting.can_streamline())
+    self.assertTrue(self.setting.can_streamline)
     self.setting.remove_streamline_func()
-    self.assertFalse(self.setting.can_streamline())
+    self.assertFalse(self.setting.can_streamline)
   
   def test_streamline(self):
     ignore_invisible = settings.BoolSetting('ignore_invisible', False)

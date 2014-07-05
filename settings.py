@@ -261,6 +261,7 @@ class Setting(object):
     self._streamline_func = None
     self._streamline_args = []
   
+  @property
   def can_streamline(self):
     return self._streamline_func is not None
 
@@ -605,7 +606,7 @@ class SettingContainer(container.Container):
     
     changed_settings = {}
     for setting in self:
-      if setting.can_streamline():
+      if setting.can_streamline:
         changed = setting.streamline(force=force)
         for setting, changed_attrs in changed.items():
           if setting not in changed_settings:
