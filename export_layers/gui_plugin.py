@@ -312,7 +312,7 @@ class _ExportLayersGui(object):
     self.dialog.connect("delete-event", self.close)
     
     self.create_setting_presenters()
-    self.create_tooltips()
+    self.setting_presenters.set_tooltips()
     
     self.dialog.vbox.show_all()
     
@@ -393,20 +393,14 @@ class _ExportLayersGui(object):
       gui.GtkCheckButtonPresenter(
         self.main_settings['empty_directories'],
         self.advanced_settings_empty_directories))
-    
-  
-  def create_tooltips(self):
-    for setting_presenter in self.setting_presenters:
-      if setting_presenter.setting.description is not None and setting_presenter.setting.description:
-        setting_presenter.element.set_tooltip_text(setting_presenter.setting.description)
   
   def connect_events_for_settings(self):
     for setting_presenter in self.setting_presenters:
       if setting_presenter.value_changed_signal is not None:
         if setting_presenter.setting.can_streamline():
-          setting_presenter.connect(self.on_element_value_change_streamline)
+          setting_presenter.connect_event(self.on_element_value_change_streamline)
         else:
-          setting_presenter.connect(self.on_element_value_change)
+          setting_presenter.connect_event(self.on_element_value_change)
   
   
   def on_element_value_change_streamline(self, widget, *args):
