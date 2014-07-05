@@ -397,7 +397,7 @@ class _ExportLayersGui(object):
   def connect_events_for_settings(self):
     for setting_presenter in self.setting_presenters:
       if setting_presenter.value_changed_signal is not None:
-        if setting_presenter.setting.can_streamline():
+        if setting_presenter.setting.can_streamline:
           setting_presenter.connect_event(self.on_element_value_change_streamline)
         else:
           setting_presenter.connect_event(self.on_element_value_change)
