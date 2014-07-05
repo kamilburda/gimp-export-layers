@@ -137,12 +137,17 @@ class _ExportLayersGui(object):
   
   BUTTON_HORIZONTAL_PADDING = 6
   BUTTON_VERTICAL_PADDING = 2
+  
+  HBOX_HORIZONTAL_SPACING = 8
+  
   ADVANCED_SETTINGS_HORIZONTAL_SPACING = 12
   ADVANCED_SETTINGS_VERTICAL_SPACING = 6
-  HBOX_HORIZONTAL_SPACING = 8
-  DIALOG_SIZE = (850, 660)
-  ACTION_AREA_BORDER_WIDTH = 4
   ADVANCED_SETTINGS_LEFT_MARGIN = 15
+  
+  DIALOG_SIZE = (850, 660)
+  DIALOG_BORDER_WIDTH = 8
+  DIALOG_VBOX_SPACING = 5
+  ACTION_AREA_BORDER_WIDTH = 4
   
   MESSAGE_TYPES = INFO, ERROR = (0, 1)
   
@@ -166,7 +171,6 @@ class _ExportLayersGui(object):
     self.setting_persistor.read_setting_streams.pop()
     
     self.setting_presenters = settings.SettingPresenterContainer()
-    self.close_event_handler_id = None
     self.layer_exporter = None
     
     self._init_gui()
@@ -179,7 +183,7 @@ class _ExportLayersGui(object):
     self.dialog.set_transient()
     
     self.dialog.set_default_size(*self.DIALOG_SIZE)
-    self.dialog.set_border_width(8)
+    self.dialog.set_border_width(self.DIALOG_BORDER_WIDTH)
     
     self.directory_chooser_label = gtk.Label()
     self.directory_chooser_label.set_markup("<b>Save in folder:</b>")
@@ -277,9 +281,9 @@ class _ExportLayersGui(object):
     self.expander_advanced_settings.add(self.alignment_advanced_settings)
     
     
-    self.cancel_button = self.dialog.add_button("_Cancel", gtk.RESPONSE_CANCEL)
     self.export_layers_button = self.dialog.add_button("_Export Layers", gtk.RESPONSE_OK)
     self.export_layers_button.grab_default()
+    self.cancel_button = self.dialog.add_button("_Cancel", gtk.RESPONSE_CANCEL)
     self.dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
     
     self.save_settings_button = gtk.Button()
@@ -292,7 +296,7 @@ class _ExportLayersGui(object):
     self.dialog.action_area.set_child_secondary(self.reset_settings_button, True)
     
     
-    self.dialog.vbox.set_spacing(5)
+    self.dialog.vbox.set_spacing(self.DIALOG_VBOX_SPACING)
     self.dialog.vbox.pack_start(self.directory_chooser_label, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.directory_chooser, padding=5)
     self.dialog.vbox.pack_start(self.hbox_file_format, expand=False, fill=False)
@@ -305,7 +309,7 @@ class _ExportLayersGui(object):
     
     self.export_layers_button.connect("clicked", self.on_export_click)
     self.cancel_button.connect("clicked", self.cancel)
-    self.close_event_handler_id = self.dialog.connect("delete-event", self.close)
+    self.dialog.connect("delete-event", self.close)
     
     self.create_setting_presenters()
     self.create_tooltips()
