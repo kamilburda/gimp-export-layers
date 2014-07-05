@@ -20,10 +20,12 @@
 #-------------------------------------------------------------------------------
 
 """
-This module:
-* defines GTK overwrite dialog
-* defines GTK progress updater
-* defines wrappers for GTK elements (used for SettingPresenter objects)
+This module defines:
+* GTK overwrite dialog
+* GTK progress updater
+* exception dialog
+* warning dialog
+* SettingPresenter wrappers for GTK elements
 """
 
 #=============================================================================== 
@@ -41,6 +43,8 @@ import settings
 import overwrite
 import progress
 
+#===============================================================================
+# Overwrite Chooser
 #===============================================================================
 
 class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
@@ -112,6 +116,8 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
   def _on_apply_to_all_changed(self, widget):
     self._is_apply_to_all = self._apply_to_all_checkbox.get_active()
 
+#===============================================================================
+# Dialog Messages
 #===============================================================================
 
 def display_exception_message(plugin_title, exc_message, report_uri_list, parent=None):
@@ -202,6 +208,8 @@ def display_warning_message(title, message, parent=None):
   dialog.destroy()
 
 #===============================================================================
+# Progress Updater
+#===============================================================================
 
 class GtkProgressUpdater(progress.ProgressUpdater):
   def _fill_progress_bar(self):
@@ -217,6 +225,8 @@ class GtkProgressUpdater(progress.ProgressUpdater):
     while gtk.events_pending():
       gtk.main_iteration()
 
+#===============================================================================
+# Setting Presenters
 #===============================================================================
   
 class GtkSettingPresenter(settings.SettingPresenter):
