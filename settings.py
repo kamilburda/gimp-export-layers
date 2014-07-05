@@ -584,7 +584,7 @@ class SettingContainer(container.Container):
        things could get messy...
     """
     pass
-    
+  
   def _add(self, setting):
     self._items[setting.name] = setting
   
@@ -944,6 +944,10 @@ class SettingPresenter(object):
   @abc.abstractmethod
   def connect_event(self, *args):
     pass
+  
+  @abc.abstractmethod
+  def set_tooltip(self):
+    pass
 
 
 class SettingPresenterContainer(container.Container):
@@ -1001,3 +1005,6 @@ class SettingPresenterContainer(container.Container):
       for attr in changed_attributes:
         setattr(self[setting.name], self._SETTING_ATTRIBUTES[attr], getattr(setting, attr))
   
+  def set_tooltips(self):
+    for presenter in self:
+      presenter.set_tooltip()

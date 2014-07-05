@@ -242,7 +242,11 @@ class GtkSettingPresenter(settings.SettingPresenter):
       return self._element.connect(self.value_changed_signal, *args)
     else:
       raise TypeError("cannot connect signal if value_changed_signal is None")
-
+  
+  def set_tooltip(self):
+    if self._setting.description is not None and self._setting.description:
+      self._element.set_tooltip_text(self._setting.description)
+  
 #-------------------------------------------------------------------------------
 
 class GtkCheckButtonPresenter(GtkSettingPresenter):

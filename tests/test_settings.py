@@ -74,7 +74,10 @@ class MockSettingPresenter(settings.SettingPresenter):
   def visible(self, val):
     self._element.visible = val
 
-  def connect(self, *args):
+  def connect_event(self, *args):
+    pass
+  
+  def set_tooltip(self):
     pass
 
 
