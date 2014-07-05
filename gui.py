@@ -237,7 +237,7 @@ class GtkSettingPresenter(settings.SettingPresenter):
   def visible(self, value):
     self._element.set_visible(value)
   
-  def connect(self, *args):
+  def connect_event(self, *args):
     if self.value_changed_signal is not None:
       return self._element.connect(self.value_changed_signal, *args)
     else:

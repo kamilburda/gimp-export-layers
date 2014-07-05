@@ -489,6 +489,34 @@ class ImageSetting(Setting):
     super(ImageSetting, self)._set_value(image)
 
 
+class DrawableSetting(Setting):
+  
+  """
+  Error messages:
+  
+  * invalid_value: Used if a value assigned is invalid.
+  """
+  
+  def __init__(self, name, default_value):
+    super(DrawableSetting, self).__init__(name, default_value)
+    
+    self._allowed_pdb_types = [gimpenums.PDB_DRAWABLE]
+    self.gimp_pdb_type = gimpenums.PDB_DRAWABLE
+    
+    self.error_messages['invalid_value'] = "invalid drawable"
+  
+  @property
+  def value(self):
+    return self._value
+  
+  @value.setter
+  def value(self, drawable):
+    if not pdb.gimp_item_is_valid(drawable):
+      raise ValueError(self.error_messages['invalid_value'])
+    
+    super(DrawableSetting, self)._set_value(drawable)
+
+
 class StringSetting(Setting):
   
   def __init__(self, name, default_value):
@@ -890,6 +918,7 @@ class SettingPresenter(object):
   def __init__(self, setting, element):
     self._setting = setting
     self._element = element
+    
     self.value_changed_signal = None
   
   @property
@@ -913,7 +942,7 @@ class SettingPresenter(object):
     pass
 
   @abc.abstractmethod
-  def connect(self, *args):
+  def connect_event(self, *args):
     pass
 
 
