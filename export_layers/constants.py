@@ -43,5 +43,7 @@ PLUGIN_PATH = os.path.join(PLUGINS_DIRECTORY, PLUGIN_DIRNAME)
 SHELF_PREFIX = PLUGIN_PROGRAM_NAME + "_"
 CONFIG_FILE = os.path.join(PLUGIN_PATH, PLUGIN_PROGRAM_NAME + ".json")
 
-BUG_REPORT_URI_LIST = [("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),
-                       ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers")]
+BUG_REPORT_URI_LIST = [
+                        ("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),
+                        ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers")
+]

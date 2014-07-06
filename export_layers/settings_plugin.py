@@ -47,8 +47,9 @@ class SpecialSettings(settings.SettingContainer):
         'run_mode', 'non_interactive',
         [('interactive', "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
          ('non_interactive', "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
-         ('run_with_last_vals', "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)])
+         ('run_with_last_vals', "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)]
       )
+    )
     self['run_mode'].display_name = "The run mode"
     
     self._add(settings.ImageSetting('image', None))
@@ -58,7 +59,8 @@ class SpecialSettings(settings.SettingContainer):
     self['first_run'].can_be_registered_to_pdb = False
     self['first_run'].description = (
       "True if the plug-in is successfully run for the first time "
-      "in one GIMP session, False for subsequent runs.")
+      "in one GIMP session, False for subsequent runs."
+    )
 
 class MainSettings(settings.SettingContainer):
   
@@ -68,7 +70,8 @@ class MainSettings(settings.SettingContainer):
     self['file_format'].display_name = "File format"
     self['file_format'].description = (
       "Type in file extension, with or without the leading dot. "
-      "To export in raw format, type \"raw\".")
+      "To export in raw format, type \"raw\"."
+    )
     
     self._add(settings.StringSetting('output_directory', gimp.user_directory(1)))   # Documents directory
     self['output_directory'].display_name = "Output directory"
@@ -78,25 +81,27 @@ class MainSettings(settings.SettingContainer):
     self['layer_groups_as_directories'].description = (
       "If enabled, layers will be exported to subdirectories corresponding to the layer groups.\n"
       "If disabled, all layers will be exported to the output directory on the same level "
-      "and no subdirectories will be created.")
+      "and no subdirectories will be created."
+    )
     
     self._add(settings.BoolSetting('ignore_invisible', False))
     self['ignore_invisible'].display_name = "Ignore invisible layers"
     self['ignore_invisible'].description = (
       "If enabled, invisible layers will not be exported. Visible layers within "
-      "invisible layer groups will also not be exported.")
+      "invisible layer groups will also not be exported."
+    )
     
     self._add(settings.BoolSetting('autocrop', False))
     self['autocrop'].display_name = "Autocrop layers"
-    self['autocrop'].description = (
-      "If enabled, layers will be autocropped before being exported.")
+    self['autocrop'].description = "If enabled, layers will be autocropped before being exported."
     
     self._add(settings.BoolSetting('use_image_size', False))
     self['use_image_size'].display_name = "Use image size instead of layer size"
     self['use_image_size'].description = (
       "If enabled, layers will be resized to the image size. If layers are "
       "partially outside the image canvas, they will be cut off. If you want to "
-      "export the entire layer, leave this setting disabled.")
+      "export the entire layer, leave this setting disabled."
+    )
     
     self._add(
       settings.EnumSetting(
@@ -105,20 +110,23 @@ class MainSettings(settings.SettingContainer):
         ('skip', "Skip"),
         ('rename_new', "Rename new file"),
         ('rename_existing', "Rename existing file"),
-        ('cancel', "Cancel")])
+        ('cancel', "Cancel")]
       )
+    )
     self['overwrite_mode'].display_name = "Overwrite mode (non-interactive run mode only)"
     self['overwrite_mode'].description = (
       "Indicates how to handle conflicting files. Skipped layers "
-      "will not be regarded as exported.")
+      "will not be regarded as exported."
+    )
     
     self._add(
       settings.EnumSetting(
         'file_ext_mode', 'no_handling',
         [('no_handling', "No special handling"),
          ('only_matching_file_format', "Export only layers matching file format"),
-         ('use_as_file_format', "Use as file formats")])
+         ('use_as_file_format', "Use as file formats")]
       )
+    )
     self['file_ext_mode'].display_name = "File extensions in layer names"
     
     self._add(
@@ -126,8 +134,9 @@ class MainSettings(settings.SettingContainer):
         'strip_mode', 'identical',
         [('always', "Always strip file extension"),
          ('identical', "Strip identical to file format"),
-         ('never', "Never strip file extension")])
+         ('never', "Never strip file extension")]
       )
+    )
     self['strip_mode'].display_name = "File extension stripping"
     
     self._add(
@@ -136,25 +145,29 @@ class MainSettings(settings.SettingContainer):
         [('normal', "Treat as normal layers"),
          ('background', "Treat as background layers"),
          ('ignore', "Ignore"),
-         ('ignore_other', "Ignore other layers")])
+         ('ignore_other', "Ignore other layers")]
       )
+    )
     self['square_bracketed_mode'].display_name = "Layer names in [square brackets]"
     
     self._add(settings.BoolSetting('remove_square_brackets', False))
     self['remove_square_brackets'].display_name = "Remove square brackets"
     self['remove_square_brackets'].description = (
-      "If enabled, [square brackets] will be removed from the layer names before being exported.")
+      "If enabled, [square brackets] will be removed from the layer names before being exported."
+    )
     
     self._add(settings.BoolSetting('crop_to_background', False))
     self['crop_to_background'].display_name = "Crop to background"
     self['crop_to_background'].description = (
-      "If enabled, layers will be cropped to the size of the background layers instead of their own size.")
+      "If enabled, layers will be cropped to the size of the background layers instead of their own size."
+    )
     
     self._add(settings.BoolSetting('merge_layer_groups', False))
     self['merge_layer_groups'].display_name = "Merge layer groups"
     self['merge_layer_groups'].description = (
       "If enabled, each top-level layer group is merged into one layer. The name "
-      "of each merged layer is the name of the corresponding top-level layer group.")
+      "of each merged layer is the name of the corresponding top-level layer group."
+    )
     
     self._add(settings.BoolSetting('empty_directories', False))
     self['empty_directories'].display_name = "Create directories for empty layer groups"
@@ -164,7 +177,7 @@ class MainSettings(settings.SettingContainer):
       'If "' + self['file_ext_mode'].options_display_names['use_as_file_format'] + '" is selected, '
       '"' + self['file_format'].display_name + '" must still be specified '
       '(for layers with invalid or no file extension).'
-      )
+    )
     self['square_bracketed_mode'].description = (
       '"' + self['square_bracketed_mode'].options_display_names['background'] + '": '
       'these layers will be used as a background for all other layers and will not be exported separately.\n'
@@ -172,23 +185,26 @@ class MainSettings(settings.SettingContainer):
       'these layers will not be exported (and will not be treated as background layers).\n'
       '"' + self['square_bracketed_mode'].options_display_names['ignore_other'] + '": '
       'all other layers will not be exported.'
-      )
+    )
     self['strip_mode'].description = (
       "Determines when to strip "
       "file extension from layer names (including the dot character).\n"
       "\"" + self['strip_mode'].options_display_names['always'] + "\" "
       "does not apply to layer names in [square brackets] if \"" +
       self['remove_square_brackets'].display_name + "\" is disabled."
-      )
+    )
     
     self['file_format'].error_messages['not_specified'] = "file format not specified"
     self['file_format'].error_messages['default_needed'] = (
-      "you need to specify default file format for layers with invalid or no format")
+      "you need to specify default file format for layers with invalid or no format"
+    )
     self['file_format'].error_messages['invalid_chars'] = (
-      "file format contains the following invalid characters: ")
+      "file format contains the following invalid characters: "
+    )
     
     self['output_directory'].error_messages['invalid_chars'] = (
-      "output directory contains the following invalid characters: ")
+      "output directory contains the following invalid characters: "
+    )
     
     #---------------------------------------------------------------------------
     
@@ -248,16 +264,17 @@ class MainSettings(settings.SettingContainer):
         crop_to_background.ui_enabled = False
     
     self['layer_groups_as_directories'].set_streamline_func(
-      streamline_layer_groups_as_directories, self['empty_directories'], self['merge_layer_groups'])
-    
+      streamline_layer_groups_as_directories, self['empty_directories'], self['merge_layer_groups']
+    )
     self['file_ext_mode'].set_streamline_func(
-      streamline_file_ext_mode, self['file_format'], self['strip_mode'])
-    
+      streamline_file_ext_mode, self['file_format'], self['strip_mode']
+    )
     self['square_bracketed_mode'].set_streamline_func(
-      streamline_square_bracketed_mode, self['remove_square_brackets'], self['crop_to_background'])
-    
+      streamline_square_bracketed_mode, self['remove_square_brackets'], self['crop_to_background']
+    )
     self['merge_layer_groups'].set_streamline_func(
-      streamline_merge_layer_groups, self['layer_groups_as_directories'])
-    
+      streamline_merge_layer_groups, self['layer_groups_as_directories']
+    )
     self['autocrop'].set_streamline_func(
-      streamline_autocrop, self['crop_to_background'])
+      streamline_autocrop, self['crop_to_background']
+    )

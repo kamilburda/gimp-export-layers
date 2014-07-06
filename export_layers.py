@@ -118,7 +118,6 @@ class ExportLayersPlugin(gimpplugin.plugin):
     else:
       self._run_with_last_vals(image)
   
-  
   def _run_noninteractive(self, image, args):
     # Start with the third parameter - run_mode and image are already set.
     for setting, arg in zip(self.export_layers_settings[2:], args[2:]):
@@ -135,7 +134,6 @@ class ExportLayersPlugin(gimpplugin.plugin):
       print self.setting_persistor.status_message
     
     self._run_plugin_noninteractive(gimpenums.RUN_WITH_LAST_VALS, image)
-  
   
   def _run_export_layers_interactive(self, image):
     gui_plugin.export_layers_gui(image, self.main_settings, self.special_settings,
@@ -164,7 +162,6 @@ class ExportLayersPlugin(gimpplugin.plugin):
     
     self.special_settings['first_run'].value = False
     self.setting_persistor.save(self.main_settings, [self.special_settings['first_run']])
-  
   
   def _create_plugin_params(self, settings):
     return [self._create_plugin_param(setting) for setting in settings]

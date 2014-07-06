@@ -48,5 +48,3 @@ def tee_plugin(log_header):
   file_stderr = open(os.path.join(constants.PLUGIN_PATH, PLUGINS_STDERR_FILENAME), 'a')
   _tee_stdout = tee.Tee(sys.stdout, file_stdout, log_header_title=log_header, flush_file=True)
   _tee_stderr = tee.Tee(sys.stderr, file_stderr, log_header_title=log_header, flush_file=True)
-
-#===============================================================================

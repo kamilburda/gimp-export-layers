@@ -49,6 +49,7 @@ pdb = gimp.pdb
 class ExportLayersError(Exception):
   pass
 
+
 class ExportLayersCancelError(ExportLayersError):
   pass
 
@@ -291,14 +292,12 @@ class LayerExporter(object):
            self._layer_data.filter['layer_types'].add_rule_temp(LayerFilters.is_empty_group):
         self._empty_groups_layerdata = list(self._layer_data)
   
-  
   def _export_layers(self):
     self._setup()
     try:
       self._do_export_layers()
     finally:
       self._cleanup()
-  
   
   def _do_export_layers(self):
     if not self._layer_data:
@@ -357,7 +356,6 @@ class LayerExporter(object):
       self.progress_updater.update(num_tasks=1)
       self._layer_file_format_properties[self._file_format].processed_count += 1
       pdb.gimp_image_remove_layer(self._image_copy, layer_copy)
-  
   
   def _setup(self):
     # Save context just in case. No need for undo groups or undo freeze here.

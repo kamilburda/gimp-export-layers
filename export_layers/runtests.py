@@ -69,25 +69,11 @@ TESTS_PACKAGE_NAME = "tests"
 
 #===============================================================================
 
-def _fix_streams_for_unittest():
-  # In the GIMP Python-Fu console, sys.stdout and sys.stderr are missing
-  # the 'flush' method. The method needs to be defined in order for the unittest
-  # module to work properly.
-  def flush(self):
-    pass
-  
-  streams = [sys.stdout, sys.stderr]
-  for stream in streams:
-    flush_func = getattr(stream, 'flush', None)
-    if flush_func is None or not callable(stream.flush):
-      stream.flush = types.MethodType(flush, stream)
-
-#===============================================================================
-
 def run_test(module, stream=sys.stderr):
   test_suite = unittest.TestLoader().loadTestsFromModule(module)
   test_runner = unittest.TextTestRunner(stream=stream)
   test_runner.run(test_suite)
+
 
 def load_module(module_name):
   """
@@ -102,9 +88,24 @@ def load_module(module_name):
   
   return module
 
+
+def _fix_streams_for_unittest():
+  # In the GIMP Python-Fu console, sys.stdout and sys.stderr are missing
+  # the 'flush' method. The method needs to be defined in order for the unittest
+  # module to work properly.
+  def flush(self):
+    pass
+  
+  for stream in [sys.stdout, sys.stderr]:
+    flush_func = getattr(stream, 'flush', None)
+    if flush_func is None or not callable(stream.flush):
+      stream.flush = types.MethodType(flush, stream)
+
 #===============================================================================
 
 def run_tests(stream=sys.stderr):
+  _fix_streams_for_unittest()
+
   # The parent of the package had to be specified, otherwise
   # walk_packages would not yield modules inside subpackages for some reason...
   
@@ -123,9 +124,3 @@ def run_tests(stream=sys.stderr):
     parts = module_name.split('.')
     if parts[-1].startswith(TEST_MODULE_NAME_PREFIX):
       run_test(module, stream=stream)
-
-#===============================================================================
-
-_fix_streams_for_unittest()
-
-#===============================================================================
