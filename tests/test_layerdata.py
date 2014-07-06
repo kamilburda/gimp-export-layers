@@ -27,9 +27,10 @@ from collections import OrderedDict
 import unittest
 
 from ..lib import mock
+
 from .. import layerdata
 
-import gimpmocks
+from . import gimpmocks
 
 #===============================================================================
 
@@ -170,16 +171,19 @@ class TestLayerData(unittest.TestCase):
     
     self.assertEqual(layerdata_elem.get_filename(output_directory, file_format),
                      os.path.join(output_directory, "Corners", "Layer Group ##1",
-                                  layerdata_elem.layer_name) + "." + file_format)
+                                  layerdata_elem.layer_name) +
+                       "." + file_format)
     self.assertEqual(layerdata_elem.get_filename(output_directory, file_format, include_layer_path=False),
-                     os.path.join(output_directory,
-                                  layerdata_elem.layer_name) + "." + file_format)
+                     os.path.join(output_directory, layerdata_elem.layer_name) +
+                       "." + file_format)
     self.assertEqual(layerdata_elem.get_filename("testgimp", file_format),
                      os.path.join(os.getcwd(), "testgimp", "Corners", "Layer Group ##1",
-                                  layerdata_elem.layer_name) + "." + file_format)
+                                  layerdata_elem.layer_name) +
+                       "." + file_format)
     self.assertEqual(layerdata_elem.get_filename(None, file_format),
                      os.path.join(os.getcwd(), "Corners", "Layer Group ##1",
-                                  layerdata_elem.layer_name) + "." + file_format)
+                                  layerdata_elem.layer_name) +
+                       "." + file_format)
     self.assertEqual(layerdata_elem.get_filename(output_directory, None),
                      os.path.join(output_directory, "Corners", "Layer Group ##1",
                                   layerdata_elem.layer_name))
@@ -191,14 +195,11 @@ class TestLayerData(unittest.TestCase):
     self.assertEqual(layerdata_with_file_ext.get_filename(output_directory, file_format),
                      layerdata_with_file_ext.get_filename(output_directory, file_format,
                                                           include_layer_path=False))
-    self.assertTrue(layerdata_with_file_ext
-                    .get_filename(output_directory, "png")
+    self.assertTrue(layerdata_with_file_ext.get_filename(output_directory, "png")
                     .endswith(".jpg.png"))
-    self.assertTrue(layerdata_with_file_ext
-                    .get_filename(output_directory, "jpg")
+    self.assertTrue(layerdata_with_file_ext.get_filename(output_directory, "jpg")
                     .endswith(".jpg.jpg"))
-    self.assertTrue(layerdata_with_file_ext
-                    .get_filename(output_directory, None)
+    self.assertTrue(layerdata_with_file_ext.get_filename(output_directory, None)
                     .endswith(".jpg"))
     
     layerdata_empty_layer_group = self.layer_data['[Layer Group #2]']
@@ -312,16 +313,39 @@ class TestLayerData(unittest.TestCase):
     layer_names['Layer Group ####4']              = ["Layer Group 4"]
     layer_names['Layer Group #3']                 = ["Corners", "Layer Group 3"]
     layer_names['Layer Group ##3']                = ["Corners", "Layer Group 3 (1)"]
-    layer_names['bottom-right-corner']            = ["Corners", "Layer Group 1", "bottom-right-corner"]
-    layer_names['bottom-left-corner']             = ["Corners", "Layer Group 1", "bottom-left-corner"]
+    layer_names['bottom-right-corner']            = ["Corners",
+                                                     "Layer Group 1",
+                                                     "bottom-right-corner"]
+    layer_names['bottom-left-corner']             = ["Corners",
+                                                     "Layer Group 1",
+                                                     "bottom-left-corner"]
     layer_names['right-frame#']                   = ["Frames", "right-frame (1)"]
     layer_names['[Layer Group #2]']               = ["Frames", "[Layer Group 2]"]
-    layer_names['Layer Group ###4']               = ["Frames", "Layer Group 1", "Layer Group 4 (3)"]
-    layer_names['right-frame# copy']              = ["Frames", "Layer Group 1", "Layer Group 4", "right-frame copy"]
-    layer_names['bottom-frame copy #1']           = ["Frames", "Layer Group 1", "Layer Group 4 (1)", "bottom-frame copy 1"]
-    layer_names['bottom-frame #1']                = ["Frames", "Layer Group 1", "Layer Group 4 (1)", "Layer Group 7", "bottom-frame 1"]
-    layer_names['bottom-frame copy']              = ["Frames", "Layer Group 1", "Layer Group 4 (2)", "bottom-frame copy"]
-    layer_names['bottom-frame']                   = ["Frames", "Layer Group 1", "Layer Group 4 (2)", "Layer Group 4", "bottom-frame"]
+    layer_names['Layer Group ###4']               = ["Frames",
+                                                     "Layer Group 1",
+                                                     "Layer Group 4 (3)"]
+    layer_names['right-frame# copy']              = ["Frames",
+                                                     "Layer Group 1",
+                                                     "Layer Group 4",
+                                                     "right-frame copy"]
+    layer_names['bottom-frame copy #1']           = ["Frames",
+                                                     "Layer Group 1",
+                                                     "Layer Group 4 (1)",
+                                                     "bottom-frame copy 1"]
+    layer_names['bottom-frame #1']                = ["Frames",
+                                                     "Layer Group 1",
+                                                     "Layer Group 4 (1)",
+                                                     "Layer Group 7",
+                                                     "bottom-frame 1"]
+    layer_names['bottom-frame copy']              = ["Frames",
+                                                     "Layer Group 1",
+                                                     "Layer Group 4 (2)",
+                                                     "bottom-frame copy"]
+    layer_names['bottom-frame']                   = ["Frames",
+                                                     "Layer Group 1",
+                                                     "Layer Group 4 (2)",
+                                                     "Layer Group 4",
+                                                     "bottom-frame"]
     
     self.compare_uniquified_with_parents(self.layer_data, layer_names)
     
@@ -366,16 +390,39 @@ class TestLayerData(unittest.TestCase):
     layer_names['Layer Group ####4']              = ["Layer Group 4"]
     layer_names['Layer Group #3']                 = ["Corners", "Layer Group 3"]
     layer_names['Layer Group ##3']                = ["Corners", "Layer Group 3 (1)"]
-    layer_names['bottom-right-corner']            = ["Corners", "Layer Group 1", "bottom-right-corner"]
-    layer_names['bottom-left-corner']             = ["Corners", "Layer Group 1", "bottom-left-corner"]
+    layer_names['bottom-right-corner']            = ["Corners",
+                                                     "Layer Group 1",
+                                                     "bottom-right-corner"]
+    layer_names['bottom-left-corner']             = ["Corners",
+                                                     "Layer Group 1",
+                                                     "bottom-left-corner"]
     layer_names['right-frame#']                   = ["Frames", "right-frame (1)"]
     layer_names['[Layer Group #2]']               = ["Frames", "[Layer Group 2]"]
-    layer_names['Layer Group ###4']               = ["Frames", "Layer Group 1", "Layer Group 4 (2)"]
-    layer_names['right-frame# copy']              = ["Frames", "Layer Group 1", "Layer Group 4", "right-frame copy"]
-    layer_names['bottom-frame copy #1']           = ["Frames", "Layer Group 1", "Layer Group 4", "bottom-frame copy 1"]
-    layer_names['bottom-frame #1']                = ["Frames", "Layer Group 1", "Layer Group 4", "Layer Group 7", "bottom-frame 1"]
-    layer_names['bottom-frame copy']              = ["Frames", "Layer Group 1", "Layer Group 4 (1)", "bottom-frame copy"]
-    layer_names['bottom-frame']                   = ["Frames", "Layer Group 1", "Layer Group 4 (1)", "Layer Group 4", "bottom-frame"]
+    layer_names['Layer Group ###4']               = ["Frames",
+                                                     "Layer Group 1",
+                                                     "Layer Group 4 (2)"]
+    layer_names['right-frame# copy']              = ["Frames",
+                                                     "Layer Group 1",
+                                                     "Layer Group 4",
+                                                     "right-frame copy"]
+    layer_names['bottom-frame copy #1']           = ["Frames",
+                                                     "Layer Group 1",
+                                                     "Layer Group 4",
+                                                     "bottom-frame copy 1"]
+    layer_names['bottom-frame #1']                = ["Frames",
+                                                     "Layer Group 1",
+                                                     "Layer Group 4",
+                                                     "Layer Group 7",
+                                                     "bottom-frame 1"]
+    layer_names['bottom-frame copy']              = ["Frames",
+                                                     "Layer Group 1",
+                                                     "Layer Group 4 (1)",
+                                                     "bottom-frame copy"]
+    layer_names['bottom-frame']                   = ["Frames",
+                                                     "Layer Group 1",
+                                                     "Layer Group 4 (1)",
+                                                     "Layer Group 4",
+                                                     "bottom-frame"]
     
     self.compare_uniquified_with_parents(self.layer_data, layer_names)
   

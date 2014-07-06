@@ -61,6 +61,7 @@ class OverwriteChooser(object):
   def overwrite_mode(self):
     pass
 
+
 class NoninteractiveOverwriteChooser(OverwriteChooser):
   
   """
@@ -79,7 +80,8 @@ class NoninteractiveOverwriteChooser(OverwriteChooser):
   @property
   def overwrite_mode(self):
     return self._overwrite_mode
-  
+
+
 class InteractiveOverwriteChooser(OverwriteChooser):
   
   """

@@ -36,18 +36,19 @@ class TestUniquifyString(unittest.TestCase):
     self.assertEqual('one (1)', libfiles.uniquify_string('one', ['one', 'two', 'three']))
     self.assertEqual('one (2)', libfiles.uniquify_string('one', ['one', 'one (1)', 'three']))
     self.assertEqual('one (1).jpg', libfiles.uniquify_string('one.jpg', ['one.jpg', 'two', 'three'],
-                                                                  place_before_file_extension=True))
+                                                             place_before_file_extension=True))
     self.assertEqual('one (2).jpg', libfiles.uniquify_string('one.jpg', ['one.jpg', 'one (1).jpg', 'three'],
-                                                                  place_before_file_extension=True))
+                                                             place_before_file_extension=True))
     self.assertEqual('one (1)', libfiles.uniquify_string('one', ['one', 'two', 'three'],
-                                                              place_before_file_extension=True))
+                                                         place_before_file_extension=True))
     self.assertEqual('one. (1)', libfiles.uniquify_string('one.', ['one.', 'two', 'three'],
-                                                               place_before_file_extension=True))
+                                                          place_before_file_extension=True))
     self.assertEqual('one. (1)', libfiles.uniquify_string('one.', ['one.', 'two', 'three']))
     self.assertEqual('one (1) (1)', libfiles.uniquify_string('one (1)', ['one (1)', 'two', 'three']))
     self.assertEqual('one (1) (1)', libfiles.uniquify_string('one (1)', ['one (1)', 'one (2)', 'three']))
     self.assertEqual('one (1) (1).jpg', libfiles.uniquify_string('one (1).jpg', ['one (1).jpg', 'two', 'three'],
-                                                                      place_before_file_extension=True))
+                                                                 place_before_file_extension=True))
+
 
 class TestGetFileExtension(unittest.TestCase):
   
@@ -58,6 +59,7 @@ class TestGetFileExtension(unittest.TestCase):
     self.assertEqual("", libfiles.get_file_extension("picture."))
     self.assertEqual("", libfiles.get_file_extension("picture"))
 
+
 class TestStringValidator(unittest.TestCase):
   
   def setUp(self):
@@ -67,7 +69,8 @@ class TestStringValidator(unittest.TestCase):
   def test_validate(self):
     self.assertFalse(self.validator.is_valid("H:%#$#i *\There"))
     self.assertEqual(self.validator.validate("H:%#$#i *\There"), "Hi There")
-  
+
+
 class TestDirnameValidator(unittest.TestCase):
   
   def setUp(self):
@@ -86,4 +89,3 @@ class TestDirnameValidator(unittest.TestCase):
       invalid_dirname = os.path.join(os.sep, "/\\Progr:*?am Files", "test")
       valid_dirname = os.path.join(os.sep, "\\Program Files", "test")
       self.assertEqual(self.validator.validate(invalid_dirname), valid_dirname)
-  

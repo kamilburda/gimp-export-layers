@@ -29,9 +29,10 @@ import json
 import gimpenums
 
 from ..lib import mock
+
 from .. import settings
 
-import gimpmocks
+from . import gimpmocks
 
 #===============================================================================
 
@@ -81,21 +82,11 @@ class MockSettingPresenter(settings.SettingPresenter):
     pass
 
 
-def streamline_file_format(file_format, ignore_invisible):
-  if ignore_invisible.value:
-    file_format.value = "png"
-    file_format.ui_enabled = False
-  else:
-    file_format.value = "jpg"
-    file_format.ui_enabled = True
+class MockSettingPresenterContainer(settings.SettingPresenterContainer):
+  
+  def connect_value_changed_events(self):
+    pass
 
-def streamline_overwrite_mode(overwrite_mode, ignore_invisible, file_format):
-  if ignore_invisible.value:
-    overwrite_mode.value = overwrite_mode.options['skip']
-    file_format.error_messages['custom'] = "custom error message"
-  else:
-    overwrite_mode.value = overwrite_mode.options['replace']
-    file_format.error_messages['custom'] = "different custom error message"
 
 class SettingContainerTest(settings.SettingContainer):
   
@@ -114,6 +105,24 @@ class SettingContainerTest(settings.SettingContainer):
     
     self['file_format'].set_streamline_func(streamline_file_format, self['ignore_invisible'])
     self['overwrite_mode'].set_streamline_func(streamline_overwrite_mode, self['ignore_invisible'], self['file_format'])
+
+
+def streamline_file_format(file_format, ignore_invisible):
+  if ignore_invisible.value:
+    file_format.value = "png"
+    file_format.ui_enabled = False
+  else:
+    file_format.value = "jpg"
+    file_format.ui_enabled = True
+
+
+def streamline_overwrite_mode(overwrite_mode, ignore_invisible, file_format):
+  if ignore_invisible.value:
+    overwrite_mode.value = overwrite_mode.options['skip']
+    file_format.error_messages['custom'] = "custom error message"
+  else:
+    overwrite_mode.value = overwrite_mode.options['replace']
+    file_format.error_messages['custom'] = "different custom error message"
 
 #===============================================================================
 
@@ -189,6 +198,7 @@ class TestSetting(unittest.TestCase):
     changed_settings = self.setting.streamline(force=True)
     self.assertTrue(self.setting in changed_settings)
 
+
 class TestIntSetting(unittest.TestCase):
   
   def setUp(self):
@@ -203,6 +213,7 @@ class TestIntSetting(unittest.TestCase):
   def test_above_max(self):
     with self.assertRaises(ValueError):
       self.setting.value = 200
+
 
 class TestFloatSetting(unittest.TestCase):
   
@@ -228,6 +239,7 @@ class TestFloatSetting(unittest.TestCase):
       self.setting.value = 100.0
     except ValueError:
       self.fail("ValueError should not be raised")
+
 
 class TestEnumSetting(unittest.TestCase):
   
@@ -290,6 +302,7 @@ class TestEnumSetting(unittest.TestCase):
     self.assertEqual(option_display_names_and_values,
                      ["Skip", 0, "Replace", 1])
 
+
 class TestImageSetting(unittest.TestCase):
   
   def setUp(self):
@@ -302,6 +315,7 @@ class TestImageSetting(unittest.TestCase):
     pdb.gimp_image_delete(image)
     with self.assertRaises(ValueError):
       self.setting.value = image
+
 
 class TestNonEmptyStringSetting(unittest.TestCase):
   
@@ -325,10 +339,6 @@ class TestSettingContainer(unittest.TestCase):
     with self.assertRaises(KeyError):
       self.settings['invalid_key']
   
-  def test_set_setting(self):
-    with self.assertRaises(TypeError):
-      self.settings['overwrite_mode'] = 'assignment is not allowed'
-  
   def test_streamline(self):
     self.settings.streamline(force=True)
     self.assertEqual(self.settings['file_format'].value, "jpg")
@@ -349,24 +359,17 @@ class TestSettingContainer(unittest.TestCase):
 class TestSettingPresenterContainer(unittest.TestCase):
   
   def setUp(self):
-    self.setting = settings.Setting('file_format', "")
+    self.settings = SettingContainerTest()
     self.element = MockGuiWidget("")
-    self.setting_presenter = MockSettingPresenter(self.setting, self.element)
-    self.presenter_container = settings.SettingPresenterContainer()
+    self.setting_presenter = MockSettingPresenter(self.settings['file_format'], self.element)
+    
+    self.presenter_container = MockSettingPresenterContainer()
+    self.presenter_container.add(self.setting_presenter)
+    self.presenter_container.add(MockSettingPresenter(self.settings['overwrite_mode'], self.element))
+    self.presenter_container.add(MockSettingPresenter(self.settings['ignore_invisible'], self.element))
   
   def test_get_item(self):
-    self.presenter_container.add(self.setting_presenter)
-    self.assertEqual(self.presenter_container['file_format'], self.setting_presenter)
-    self.assertEqual(self.presenter_container[self.setting_presenter.element], self.setting_presenter)
-  
-  def test_replace_item(self):
-    self.presenter_container.add(self.setting_presenter)
-    with self.assertRaises(TypeError):
-      self.presenter_container['file_format'] = self.setting_presenter
-  
-  def test_delete_item(self):
-    with self.assertRaises(TypeError):
-      del self.presenter_container['file_format']
+    self.assertEqual(self.presenter_container[self.settings['file_format']], self.setting_presenter)
 
 #===============================================================================
 
@@ -406,6 +409,7 @@ class TestShelfSettingStream(unittest.TestCase):
     self.stream.write([setting_with_invalid_value])
     self.stream.read([setting_with_invalid_value])
     self.assertEqual(setting_with_invalid_value.value, setting_with_invalid_value.default_value)
+
 
 @mock.patch('__builtin__.open')
 class TestJSONFileSettingStream(unittest.TestCase):

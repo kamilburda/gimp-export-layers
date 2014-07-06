@@ -20,7 +20,7 @@
 #-------------------------------------------------------------------------------
 
 """
-This module contains mock objects for GIMP objects, classes, etc.,
+This module contains mock objects for GIMP objects, classes, etc.
 that can be used in unit tests.
 """
 
@@ -58,6 +58,7 @@ class MockPDB(object):
   def gimp_item_set_visible(self, item, visible):
     item.visible = visible
 
+
 class MockImage(object):
   
   def __init__(self, name=""):
@@ -70,6 +71,7 @@ class MockImage(object):
     self.filename = ""
     self.uri = ""
     self.valid = True
+
 
 class MockItem(object):
   
@@ -84,12 +86,14 @@ class MockItem(object):
     self.image = None
     self.children = []
 
+
 class MockLayer(MockItem):
   
   def __init__(self, *args, **kwargs):
     super(MockLayer, self).__init__(*args, **kwargs)
     
     self.parent = None
+
 
 class MockLayerGroup(MockLayer):
   
@@ -103,6 +107,7 @@ class MockLayerGroup(MockLayer):
   @layers.setter
   def layers(self, val):
     self.children = val
+
 
 class MockGimpShelf(object):
   

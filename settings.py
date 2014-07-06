@@ -40,7 +40,7 @@ import gimp
 from gimpshelf import shelf
 import gimpenums
 
-import container
+from . import container
 
 #===============================================================================
 
@@ -51,6 +51,11 @@ pdb = gimp.pdb
 class Setting(object):
   
   """
+  This class is used to hold data about a plug-in setting.
+  
+  Preferably use one of the subclasses for a setting. If there is no appropriate
+  subclass, use this class.
+  
   Attributes:
   
   * name (read-only): Setting name to uniquely identify a setting.
@@ -95,6 +100,8 @@ class Setting(object):
     Currently, it can contain the following attribute names: `value`, `ui_enabled` or `ui_visible`.
     Assigning to any of the attributes causes the corresponding attribute name
     to be added to the set. `changed_attributes` is cleared if streamline() is called.
+  
+  * can_streamline: True if a streamline function was set, False otherwise.
   """
   
   def __init__(self, name, default_value):
@@ -319,9 +326,14 @@ class IntSetting(NumericSetting):
     self.gimp_pdb_type = gimpenums.PDB_INT32
 
 
-# Use BoolSetting to indicate that a setting is a boolean.
-# No need for a separate subclass, since the functionality is the same as IntSetting.
-BoolSetting = IntSetting
+class BoolSetting(IntSetting):
+  
+  """
+  This class behaves the same as IntSetting.
+  Use this class to indicate that a setting is a boolean.
+  """
+  
+  pass
 
 
 class FloatSetting(NumericSetting):
@@ -372,7 +384,7 @@ class EnumSetting(Setting):
     * name: Setting name.
     
     * default_value: Option name (identifier). Unlike other Setting classes, where
-      the value is specified directly, EnumSetting accepts a valid option
+      the default value is specified directly, EnumSetting accepts a valid option
       identifier instead.
     
     * options: A list of either (option name, option display name) tuples
@@ -391,9 +403,12 @@ class EnumSetting(Setting):
     self._options_display_names = OrderedDict()
     self._option_values = set()
     
-    self.error_messages['wrong_options_len'] = "Wrong number of tuple elements in options - must be 2 or 3"
-    self.error_messages['duplicate_option_value'] = ("Cannot set the same value for multiple options "
-                                                     "- they must be unique")
+    self.error_messages['wrong_options_len'] = (
+      "Wrong number of tuple elements in options - must be 2 or 3"
+    )
+    self.error_messages['duplicate_option_value'] = (
+      "Cannot set the same value for multiple options - they must be unique"
+    )
     
     if len(options[0]) == 2:
       for i, (option_name, option_display_name) in enumerate(options):
@@ -411,9 +426,13 @@ class EnumSetting(Setting):
     else:
       raise ValueError(self.error_messages['wrong_options_len'])
     
-    self.error_messages['invalid_value'] = "invalid option value; valid values: " + str(list(self._option_values))
-    self.error_messages['invalid_default_value'] = ("invalid identifier for the default value; "
-                                                    "must be one of " + str(self._options.keys()))
+    self.error_messages['invalid_value'] = (
+      "invalid option value; valid values: " + str(list(self._option_values))
+    )
+    self.error_messages['invalid_default_value'] = (
+      "invalid identifier for the default value; "
+      "must be one of " + str(self._options.keys())
+    )
     
     if default_value in self._options:
       self.default_value = self._options[default_value]
@@ -674,17 +693,22 @@ class SettingStream(object):
 class SettingStreamError(Exception):
   pass
 
+
 class SettingsNotFoundInStreamError(SettingStreamError):
   pass
+
 
 class SettingStreamFileNotFoundError(SettingStreamError):
   pass
 
+
 class SettingStreamReadError(SettingStreamError):
   pass
 
+
 class SettingStreamInvalidFormatError(SettingStreamError):
   pass
+
 
 class SettingStreamWriteError(SettingStreamError):
   pass
@@ -718,8 +742,10 @@ class GimpShelfSettingStream(SettingStream):
           setting.reset()
     
     if self._settings_not_found:
-      raise SettingsNotFoundInStreamError("The following settings could not be found in any sources: " +
-                                          str([setting.name for setting in self._settings_not_found]))
+      raise SettingsNotFoundInStreamError(
+        "The following settings could not be found in any sources: " +
+        str([setting.name for setting in self._settings_not_found])
+      )
   
   def write(self, settings):
     for setting in settings:
@@ -745,15 +771,21 @@ class JSONFileSettingStream(SettingStream):
         settings_from_file = json.load(json_file)
     except (IOError, OSError) as e:
       if e.errno == errno.ENOENT:
-        raise SettingStreamFileNotFoundError("Could not find file with settings \"" + self.filename + "\".")
+        raise SettingStreamFileNotFoundError(
+          "Could not find file with settings \"" + self.filename + "\"."
+        )
       else:
-        raise SettingStreamReadError(("Could not read settings from file \"" + self.filename + "\". "
-                                      "Make sure the file can be accessed to."))
+        raise SettingStreamReadError(
+          "Could not read settings from file \"" + self.filename + "\". "
+          "Make sure the file can be accessed to."
+        )
     except ValueError as e:
-      raise SettingStreamInvalidFormatError(("File with settings \"" + self.filename + "\" is corrupt. "
-                                             "This could happen if the file was edited manually.\n"
-                                             "To fix this, save the settings again (to overwrite the file) "
-                                             "or delete the file."))
+      raise SettingStreamInvalidFormatError(
+        "File with settings \"" + self.filename + "\" is corrupt. "
+        "This could happen if the file was edited manually.\n"
+        "To fix this, save the settings again (to overwrite the file) "
+        "or delete the file."
+      )
     
     for setting in settings:
       try:
@@ -767,8 +799,10 @@ class JSONFileSettingStream(SettingStream):
           setting.reset()
     
     if self._settings_not_found:
-      raise SettingsNotFoundInStreamError("The following settings could not be found in any sources: " +
-                                          str([setting.name for setting in self._settings_not_found]))
+      raise SettingsNotFoundInStreamError(
+        "The following settings could not be found in any sources: " +
+        str([setting.name for setting in self._settings_not_found])
+      )
   
   def write(self, settings):
     settings_dict = self._to_dict(settings)
@@ -777,8 +811,10 @@ class JSONFileSettingStream(SettingStream):
       with open(self.filename, 'w') as json_file:
         json.dump(settings_dict, json_file)
     except (IOError, OSError):
-      raise SettingStreamWriteError("Could not write settings to file \"" + self.filename + "\". "
-                                    "Make sure the file can be accessed to.")
+      raise SettingStreamWriteError(
+        "Could not write settings to file \"" + self.filename + "\". "
+        "Make sure the file can be accessed to."
+      )
   
   def _to_dict(self, settings):
     settings_dict = OrderedDict()
@@ -950,12 +986,22 @@ class SettingPresenter(object):
   def set_tooltip(self):
     pass
 
+#===============================================================================
 
 class SettingPresenterContainer(container.Container):
+  
   """
-  This class:
-  * groups SettingPresenter objects together
+  This class groups SettingPresenter objects together.
+  
+  You can access individual SettingPresenter objects by the corresponding Setting object.
+  
+  Q: Why can't we access by Setting.name (like in SettingContainer)?
+  A: Because SettingPresenterContainer is independent of SettingContainer
+     and this object may contain settings from multiple SettingContainer
+     objects with the same name.
   """
+  
+  __metaclass__ = abc.ABCMeta
   
   _SETTING_ATTRIBUTES = {'value' : 'value', 
                          'ui_enabled' : 'enabled',
@@ -963,26 +1009,12 @@ class SettingPresenterContainer(container.Container):
   
   def __init__(self):
     super(SettingPresenterContainer, self).__init__()
-    
-    self._items_gui_elements = OrderedDict()
-  
-  def __getitem__(self, key):
-    """
-    Get SettingPresenter object.
-    
-    Key can be Setting name or a GUI element.
-    """
-    value = None
-    try:
-      value = self._items[key]
-    except KeyError:
-      value = self._items_gui_elements[key]
-    
-    return value
   
   def __setitem__(self, key, value):
-    raise TypeError("replacing a SettingPresenter object or creating a new one is not allowed; "
-                    "use the add() method instead")
+    raise TypeError(
+      "replacing a SettingPresenter object or creating a new one is not allowed; "
+      "use the add() method instead"
+    )
   
   def __delitem__(self, key):
     raise TypeError("deleting a SettingPresenter object is not allowed")
@@ -990,11 +1022,59 @@ class SettingPresenterContainer(container.Container):
   def add(self, setting_presenter):
     """
     Add a SettingPresenter object to the container.
-    
-    The object can then be accessed by SettingPresenter.Setting.name or SettingPresenter.element.
     """
-    self._items[setting_presenter.setting.name] = setting_presenter
-    self._items_gui_elements[setting_presenter.element] = setting_presenter
+    self._items[setting_presenter.setting] = setting_presenter
+  
+  def assign_setting_values_to_elements(self):
+    for presenter in self:
+      presenter.value = presenter.setting.value
+    
+    changed_settings = self.streamline(force=True)
+    self.apply_changed_settings(changed_settings)
+  
+  def assign_element_values_to_settings(self):
+    exception_message = ""
+    
+    for presenter in self.setting_presenters:
+      try:
+        presenter.setting.value = presenter.value
+      except ValueError as e:
+        if not exception_message:
+          exception_message += e.message + '\n'
+    
+    if exception_message:
+      exception_message = exception_message.rstrip('\n')
+      raise ValueError(exception_message)
+  
+  @abc.abstractmethod
+  def connect_value_changed_events(self):
+    pass
+  
+  def set_tooltips(self):
+    for presenter in self:
+      presenter.set_tooltip()
+  
+  def streamline(self, force=False):
+    """
+    Streamline all Setting objects in this container.
+    
+    If force is True, streamline settings even if the values of the other
+    settings were not changed. This is useful e.g. for setting proper values and
+    enabled state when initializing GUI elements.
+    """
+    
+    changed_settings = {}
+    for presenter in self:
+      setting = presenter.setting
+      if setting.can_streamline:
+        changed = setting.streamline(force=force)
+        for setting, changed_attrs in changed.items():
+          if setting not in changed_settings:
+            changed_settings[setting] = changed_attrs
+          else:
+            changed_settings[setting].update(changed_attrs)
+    
+    return changed_settings
   
   def apply_changed_settings(self, changed_settings):
     """
@@ -1004,8 +1084,4 @@ class SettingPresenterContainer(container.Container):
     """
     for setting, changed_attributes in changed_settings.items():
       for attr in changed_attributes:
-        setattr(self[setting.name], self._SETTING_ATTRIBUTES[attr], getattr(setting, attr))
-  
-  def set_tooltips(self):
-    for presenter in self:
-      presenter.set_tooltip()
+        setattr(self[setting], self._SETTING_ATTRIBUTES[attr], getattr(setting, attr))

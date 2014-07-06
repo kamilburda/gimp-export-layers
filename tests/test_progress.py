@@ -33,6 +33,7 @@ class MockProgressBar(object):
     self.text = ""
     self.fraction = 0.0
 
+
 class MockProgressUpdater(progress.ProgressUpdater):
   
   def _update_progress_bar(self):

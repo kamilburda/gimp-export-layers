@@ -69,6 +69,7 @@ def uniquify_string(str_, existing_strings, place_before_file_extension=False):
     else:
       return _uniquify_without_extension(str_, existing_strings)
 
+
 def uniquify_filename(filename):
   """
   If a file with a specified filename already exists, return a unique filename.
@@ -89,6 +90,7 @@ def uniquify_filename(filename):
 
 def get_file_extension(str_):
   return os.path.splitext(str_)[1].lstrip('.').lower()
+
 
 # Taken from StackOverflow: http://stackoverflow.com/
 # Question: http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
@@ -156,6 +158,7 @@ class StringValidator(object):
   @property
   def invalid_characters(self):
     return list(self._invalid_chars)
+
 
 class DirnameValidator(StringValidator):
   

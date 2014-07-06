@@ -80,5 +80,3 @@ class ProgressUpdater(object):
   
   def _set_text_progress_bar(self, text):
     pass
-
-#===============================================================================

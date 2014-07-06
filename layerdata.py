@@ -34,8 +34,8 @@ from collections import namedtuple
 
 import gimp
 
-import libfiles
-import objectfilter
+from . import libfiles
+from . import objectfilter
 
 #===============================================================================
 
@@ -76,7 +76,7 @@ class LayerData(object):
     # Filters applied to all layers in self._layerdata
     self._filter = objectfilter.ObjectFilter()
     
-    # Contains all layers (including groups) in the layer tree.
+    # Contains all layers (including layer groups) in the layer tree.
     # key: gimp.Layer.name (gimp.Layer names are unique)
     # value: _LayerDataElement object
     self._layerdata = OrderedDict()

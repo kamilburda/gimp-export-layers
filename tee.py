@@ -41,26 +41,28 @@ class Tee(object):
   """
   This class copies stdout or stderr output to a specified file,
   much like the Unix "tee" command.
-  
-  Parameters:
-  
-  * stream: Either sys.stdout or sys.stderr. Other object are invalid
-    and ValueError will be raised.
-  
-  * file_object: File or file-like object to write to.
-  
-  * log_header_title: Header text to write when writing into the file
-    for the first time.
-  
-  * start: If True, start Tee upon instantiation, otherwise don't.
-    To start later, pass start=False and call the start() method.
-  
-  * flush_file: If True, force the file to flush after each write.
   """
   
   _STATES = _RUNNING_FIRST_TIME, _RUNNING, _NOT_RUNNING = (0, 1, 2)
   
   def __init__(self, stream, file_object, log_header_title=None, start=True, flush_file=False):
+    
+    """
+    Parameters:
+    
+    * stream: Either sys.stdout or sys.stderr. Other object are invalid
+      and ValueError will be raised.
+    
+    * file_object: File or file-like object to write to.
+    
+    * log_header_title: Header text to write when writing into the file
+      for the first time.
+    
+    * start: If True, start Tee upon instantiation, otherwise don't.
+      To start later, pass start=False and call the start() method.
+    
+    * flush_file: If True, force the file to flush after each write.
+    """
   
     self._streams = { sys.stdout : 'stdout', sys.stderr : 'stderr' }
     

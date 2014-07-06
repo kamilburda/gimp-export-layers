@@ -27,6 +27,7 @@ from StringIO import StringIO
 import unittest
 
 from ..lib import mock
+
 from .. import tee
 
 #===============================================================================

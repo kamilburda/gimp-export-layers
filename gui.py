@@ -39,12 +39,10 @@ import gtk
 
 import gimpui
 
-import settings
-import overwrite
-import progress
+from . import settings
+from . import overwrite
+from . import progress
 
-#===============================================================================
-# Overwrite Chooser
 #===============================================================================
 
 class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
@@ -117,8 +115,6 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     self._is_apply_to_all = self._apply_to_all_checkbox.get_active()
 
 #===============================================================================
-# Dialog Messages
-#===============================================================================
 
 def display_exception_message(plugin_title, exc_message, report_uri_list, parent=None):
   
@@ -130,9 +126,13 @@ def display_exception_message(plugin_title, exc_message, report_uri_list, parent
       linkbutton.connect("clicked", open_browser)
   
   dialog = gtk.MessageDialog(parent, type=gtk.MESSAGE_ERROR, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
-  dialog.set_markup("<span font_size=\"large\"><b>Oops! Something went wrong.</b></span>")
-  dialog.format_secondary_markup((plugin_title + " encountered an unexpected error and has to close. "
-                                  "Sorry about that!"))
+  dialog.set_markup(
+    "<span font_size=\"large\"><b>Oops! Something went wrong.</b></span>"
+  )
+  dialog.format_secondary_markup(
+    plugin_title + " encountered an unexpected error and has to close. "
+    "Sorry about that!"
+  )
   
   expander = gtk.Expander()
   expander.set_use_markup(True)
@@ -158,8 +158,10 @@ def display_exception_message(plugin_title, exc_message, report_uri_list, parent
   
   vbox_labels_report = gtk.VBox(homogeneous=False)
   
-  label_report_header = gtk.Label(("To help fix this error, send a report containing the text "
-                                   "in the details above to one of the following sites:"))
+  label_report_header = gtk.Label(
+    "To help fix this error, send a report containing the text "
+    "in the details above to one of the following sites:"
+  )
   label_report_header.set_alignment(0, 0.5)
   label_report_header.set_padding(3, 3)
   label_report_header.set_line_wrap(True)
@@ -189,6 +191,7 @@ def display_exception_message(plugin_title, exc_message, report_uri_list, parent
   dialog.run()
   dialog.destroy()
 
+
 def display_warning_message(title, message, parent=None):
   dialog = gtk.MessageDialog(parent=parent, type=gtk.MESSAGE_WARNING,
                              flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -208,10 +211,9 @@ def display_warning_message(title, message, parent=None):
   dialog.destroy()
 
 #===============================================================================
-# Progress Updater
-#===============================================================================
 
 class GtkProgressUpdater(progress.ProgressUpdater):
+  
   def _fill_progress_bar(self):
     self.progress_bar.set_fraction(float(self._num_finished_tasks) / float(self.num_total_tasks))
   
@@ -226,8 +228,6 @@ class GtkProgressUpdater(progress.ProgressUpdater):
       gtk.main_iteration()
 
 #===============================================================================
-# Setting Presenters
-#===============================================================================
   
 class GtkSettingPresenter(settings.SettingPresenter):
   
@@ -236,6 +236,7 @@ class GtkSettingPresenter(settings.SettingPresenter):
   @property
   def enabled(self):
     return self._element.get_sensitive()
+  
   @enabled.setter
   def enabled(self, value):
     self._element.set_sensitive(value)
@@ -243,6 +244,7 @@ class GtkSettingPresenter(settings.SettingPresenter):
   @property
   def visible(self):
     return self._element.get_visible()
+  
   @visible.setter
   def visible(self, value):
     self._element.set_visible(value)
@@ -269,20 +271,24 @@ class GtkCheckButtonPresenter(GtkSettingPresenter):
   @property
   def value(self):
     return self._element.get_active()
+  
   @value.setter
   def value(self, value_):
     self._element.set_active(value_)
+
 
 class GtkEntryPresenter(GtkSettingPresenter):
   
   @property
   def value(self):
     return self._element.get_text()
+  
   @value.setter
   def value(self, value_):
     self._element.set_text(value_)
     # Place the cursor at the end of the widget.
     self._element.set_position(-1)
+
 
 class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
   
@@ -294,9 +300,11 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
   @property
   def value(self):
     return self._element.get_active()
+  
   @value.setter
   def value(self, value_):
     self._element.set_active(value_)
+
 
 class GtkDirectoryChooserWidgetPresenter(GtkSettingPresenter):
   
@@ -309,6 +317,7 @@ class GtkDirectoryChooserWidgetPresenter(GtkSettingPresenter):
   @property
   def value(self):
     return self._element.get_current_folder()
+  
   @value.setter
   def value(self, value_):
     if value_ is not None:
@@ -319,3 +328,45 @@ class GtkDirectoryChooserWidgetPresenter(GtkSettingPresenter):
       else:
         self._element.set_current_folder(self.default_directory)
 
+
+class GtkWindowPositionPresenter(GtkSettingPresenter):
+  
+  @property
+  def value(self):
+    return self._element.get_position()
+  
+  @value.setter
+  def value(self, value_):
+    if value_ is not None and len(value_) == 2:
+      self._element.move(*value_)
+
+
+class GtkExpanderPresenter(GtkSettingPresenter):
+  
+  @property
+  def value(self):
+    return self._element.get_expanded()
+  
+  @value.setter
+  def value(self, value_):
+    self._element.set_expanded(value_)
+
+#===============================================================================
+
+class GtkSettingPresenterContainer(settings.SettingPresenterContainer):
+  
+  def connect_value_changed_events(self):
+    for presenter in self:
+      if presenter.value_changed_signal is not None:
+        if not presenter.setting.can_streamline:
+          presenter.connect_event(self._on_element_value_change, presenter)
+        else:
+          presenter.connect_event(self._on_element_value_change_streamline, presenter)
+  
+  def _on_element_value_change(self, widget, presenter, *args):
+    presenter.setting.value = presenter.value
+  
+  def _on_element_value_change_streamline(self, widget, presenter, *args):
+    presenter.setting.value = presenter.value
+    changed_settings = presenter.setting.streamline()
+    self.apply_changed_settings(changed_settings)
