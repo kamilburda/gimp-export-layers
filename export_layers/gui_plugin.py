@@ -72,6 +72,7 @@ def display_exception_message(exception_message, parent=None):
     parent=parent
     )
 
+
 def display_message_dialog(text, message_type=gtk.MESSAGE_INFO, parent=None):
   message_dialog = gtk.MessageDialog(parent=parent, type=message_type, buttons=gtk.BUTTONS_OK)
   message_dialog.set_transient_for(parent)
@@ -135,9 +136,6 @@ class ExportDialog(object):
 
 class _ExportLayersGui(object):
   
-  BUTTON_HORIZONTAL_PADDING = 6
-  BUTTON_VERTICAL_PADDING = 2
-  
   HBOX_HORIZONTAL_SPACING = 8
   
   ADVANCED_SETTINGS_HORIZONTAL_SPACING = 12
@@ -170,7 +168,7 @@ class _ExportLayersGui(object):
       gui.display_warning_message(constants.PLUGIN_TITLE, self.setting_persistor.status_message)
     self.setting_persistor.read_setting_streams.pop()
     
-    self.setting_presenters = settings.SettingPresenterContainer()
+    self.setting_presenters = gui.GtkSettingPresenterContainer()
     self.layer_exporter = None
     
     self._init_gui()
@@ -304,23 +302,22 @@ class _ExportLayersGui(object):
     self.dialog.vbox.pack_start(self.expander_advanced_settings, expand=False, fill=False)
     self.dialog.vbox.pack_start(gtk.HSeparator(), expand=False, fill=True)
     
-    self.save_settings_button.connect("clicked", self.on_save_settings)
-    self.reset_settings_button.connect("clicked", self.on_reset_settings)
-    
     self.export_layers_button.connect("clicked", self.on_export_click)
     self.cancel_button.connect("clicked", self.cancel)
     self.dialog.connect("delete-event", self.close)
     
+    self.save_settings_button.connect("clicked", self.on_save_settings)
+    self.reset_settings_button.connect("clicked", self.on_reset_settings)
+    
     self.create_setting_presenters()
-    self.setting_presenters.set_tooltips()
     
     self.dialog.vbox.show_all()
     
-    self.assign_values_from_settings_to_gui_elements()
-    self.connect_events_for_settings()
+    self.setting_presenters.set_tooltips()
+    self.setting_presenters.assign_setting_values_to_elements()
+    self.setting_presenters.connect_value_changed_events()
     
     self.dialog.set_focus(self.file_format_entry)
-    self.display_message_label(None)
     
     self.dialog.show()
     
@@ -393,39 +390,16 @@ class _ExportLayersGui(object):
       gui.GtkCheckButtonPresenter(
         self.main_settings['empty_directories'],
         self.advanced_settings_empty_directories))
-  
-  def connect_events_for_settings(self):
-    for setting_presenter in self.setting_presenters:
-      if setting_presenter.value_changed_signal is not None:
-        if setting_presenter.setting.can_streamline:
-          setting_presenter.connect_event(self.on_element_value_change_streamline)
-        else:
-          setting_presenter.connect_event(self.on_element_value_change)
-  
-  
-  def on_element_value_change_streamline(self, widget, *args):
-    presenter = self.setting_presenters[widget]
-    presenter.setting.value = presenter.value
-    changed_settings = presenter.setting.streamline()
-    self.setting_presenters.apply_changed_settings(changed_settings)
-  
-  def on_element_value_change(self, widget, *args):
-    presenter = self.setting_presenters[widget]
-    presenter.setting.value = presenter.value
-  
-  
-  def assign_values_from_settings_to_gui_elements(self):
-    for presenter in self.setting_presenters:
-      presenter.value = presenter.setting.value
     
-    changed_settings = self.main_settings.streamline(force=True)
-    self.setting_presenters.apply_changed_settings(changed_settings)
+    self.setting_presenters.add(
+      gui.GtkWindowPositionPresenter(
+        self.gui_settings['dialog_position'],
+        self.dialog))
     
-    dialog_position = self.gui_settings['dialog_position'].value
-    if dialog_position is not None and len(dialog_position) == 2:
-      self.dialog.move(*dialog_position)
-    
-    self.expander_advanced_settings.set_expanded(self.gui_settings['advanced_settings_expanded'].value)
+    self.setting_presenters.add(
+      gui.GtkExpanderPresenter(
+        self.gui_settings['advanced_settings_expanded'],
+        self.expander_advanced_settings))
   
   def assign_values_from_gui_elements_to_settings(self):
     exception_message = ""
@@ -440,9 +414,6 @@ class _ExportLayersGui(object):
         # Settings are continuously streamlined. Clear the changed attributes
         # to prevent streamline() from changing the settings unnecessarily.
         presenter.setting.changed_attributes.clear()
-    
-    self.gui_settings['dialog_position'].value = self.dialog.get_position()
-    self.gui_settings['advanced_settings_expanded'].value = self.expander_advanced_settings.get_expanded()
     
     if exception_message:
       raise ValueError(exception_message)
@@ -473,10 +444,9 @@ class _ExportLayersGui(object):
   
   def on_reset_settings(self, widget):
     self.reset_settings()
-    self.assign_values_from_settings_to_gui_elements()
+    self.setting_presenters.assign_setting_values_to_elements()
     self.save_settings()
     self.display_message_label("Settings reset", message_type=self.INFO)
-  
   
   def on_export_click(self, widget):
     try:
@@ -630,6 +600,7 @@ class _ExportLayersToGui(object):
 
 def export_layers_gui(image, main_settings, special_settings, gimpshelf_stream, config_file_stream):
   _ExportLayersGui(image, main_settings, special_settings, gimpshelf_stream, config_file_stream)
+
 
 def export_layers_to_gui(image, main_settings, setting_persistor):
   _ExportLayersToGui(image, main_settings, setting_persistor)
