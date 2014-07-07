@@ -1,5 +1,13 @@
+2.1 (Upcoming)
+------------------------
+
+* Fixed a bug that caused the file format dialog to not appear if the user chose
+  Skip in the overwrite dialog for the first file (or the first and subsequent files).
+* Removed unneeded files from the package.
+* Code refactoring and cleanup.
+
 2.0 (June 27, 2014)
--------------------
+------------------------
 
 Implemented advanced settings, including the following:
 * export only layers whose names match the file format
@@ -54,9 +62,9 @@ Misc. changes:
 * Layers exported with the "raw" file format will now have the ".raw" file extension added.
 
 1.1 (September 08, 2013)
--------------------
+------------------------
 * Added "Export Layers to" menu entry, repeating the export with last used settings.
 
 1.0 (July 01, 2013)
--------------------
+------------------------
 * Initial release.
