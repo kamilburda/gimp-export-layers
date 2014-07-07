@@ -113,26 +113,26 @@ class LayerExporter(object):
   
   Attributes:
   
-  * initial_run_mode: The run mode to use for the first layer exported.
-    For subsequent layers, RUN_WITH_LAST_VALS is used. If the file format
-    in which the layer is exported to can't handle RUN_WITH_LAST_VALS,
-    RUN_INTERACTIVE is used.
+  * `initial_run_mode` - The run mode to use for the first layer exported.
+    For subsequent layers, `gimpenums.RUN_WITH_LAST_VALS` is used. If the file
+    format in which the layer is exported to can't handle
+    `gimpenums.RUN_WITH_LAST_VALS`, `gimpenums.RUN_INTERACTIVE` is used.
   
-  * image: GIMP image to export layers from.
+  * `image` - GIMP image to export layers from.
   
-  * main_settings: MainSettings instance containing the main settings of the plug-in.
-    This class treats them as read-only.
+  * `main_settings` - `MainSettings` instance containing the main settings of
+    the plug-in. This class treats them as read-only.
   
-  * overwrite_chooser: OverwriteChooser instance that is invoked if a file
+  * `overwrite_chooser` - `OverwriteChooser` instance that is invoked if a file
     with the same name already exists.
   
-  * progress_updater: ProgressUpdater instance that indicates the number of
+  * `progress_updater` - `ProgressUpdater` instance that indicates the number of
     layers exported. If no progress update is desired, pass None.
   
-  * should_stop: Can be used to stop the export prematurely. If True,
+  * `should_stop` - Can be used to stop the export prematurely. If True,
     the export is stopped after exporting the currently processed layer.
   
-  * exported_layers: List of layers that were successfully exported. Includes
+  * `exported_layers` - List of layers that were successfully exported. Includes
     layers which were skipped (when files with the same names already exist).
   """
   
@@ -186,6 +186,7 @@ class LayerExporter(object):
     self._file_export_func = pdb.gimp_file_save
     
     self._export_status = self._NOT_EXPORTED_YET
+    self._is_current_layer_skipped = False
     
     self._string_validator = libfiles.StringValidator(self.ALLOWED_FILENAME_CHARS)
     self._dirname_validator = libfiles.DirnameValidator()
@@ -198,7 +199,7 @@ class LayerExporter(object):
   def _process_export_layers_args(self):
     """
     Process and validate arguments (user input) passed when calling
-    the export_layers method.
+    the `export_layers()` method.
     
     Set layer filters according to the main settings.
     """
@@ -351,11 +352,12 @@ class LayerExporter(object):
       if self._export_status == self._USE_DEFAULT_FILE_FORMAT:
         self._export(layerdata_elem, self._image_copy, layer_copy)
       
-      # Append the original layer, not the copy, since the copy is destroyed.
-      self._exported_layers.append(layer)
       self.progress_updater.update(num_tasks=1)
-      self._layer_file_format_properties[self._file_format].processed_count += 1
       pdb.gimp_image_remove_layer(self._image_copy, layer_copy)
+      if not self._is_current_layer_skipped:
+        # Append the original layer, not the copy, since the copy was destroyed.
+        self._exported_layers.append(layer)
+        self._layer_file_format_properties[self._file_format].processed_count += 1
   
   def _setup(self):
     # Save context just in case. No need for undo groups or undo freeze here.
@@ -492,12 +494,12 @@ class LayerExporter(object):
         return gimpenums.RUN_WITH_LAST_VALS
   
   def _handle_overwrite(self, output_filename):
-    is_skip = False
+    should_skip = False
     if os.path.exists(output_filename):
       self.overwrite_chooser.filename = os.path.basename(output_filename)
       self.overwrite_chooser.choose()
       if self.overwrite_chooser.overwrite_mode == self.main_settings['overwrite_mode'].options['skip']:
-        is_skip = True
+        should_skip = True
       elif self.overwrite_chooser.overwrite_mode == self.main_settings['overwrite_mode'].options['replace']:
         # Nothing needs to be done here.
         pass
@@ -511,16 +513,16 @@ class LayerExporter(object):
       elif self.overwrite_chooser.overwrite_mode == self.main_settings['overwrite_mode'].options['cancel']:
         raise ExportLayersCancelError("cancelled")
     
-    return is_skip, output_filename
+    return should_skip, output_filename
   
   def _export(self, layerdata_elem, image, layer):
     self._set_file_format(layerdata_elem)
     output_filename = self._get_filename(layerdata_elem)
     
-    is_skip, output_filename = self._handle_overwrite(output_filename)
+    self._is_current_layer_skipped, output_filename = self._handle_overwrite(output_filename)
     self.progress_updater.update(text="Saving '" + output_filename + "'")
     
-    if not is_skip:
+    if not self._is_current_layer_skipped:
       libfiles.make_dirs(os.path.dirname(output_filename))
       self._export_layer(self._file_export_func, image, layer, output_filename)
   
