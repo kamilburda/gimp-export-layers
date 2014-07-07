@@ -309,18 +309,17 @@ class _ExportLayersGui(object):
     self.save_settings_button.connect("clicked", self.on_save_settings)
     self.reset_settings_button.connect("clicked", self.on_reset_settings)
     
-    self.create_setting_presenters()
-    
+    # Don't show the whole dialog just yet, because some elements may be disabled
+    # or made invisible by the setting presenters.
     self.dialog.vbox.show_all()
     
+    self.create_setting_presenters()
     self.setting_presenters.set_tooltips()
     self.setting_presenters.assign_setting_values_to_elements()
     self.setting_presenters.connect_value_changed_events()
     
     self.dialog.set_focus(self.file_format_entry)
-    
     self.dialog.show()
-    
     self.dialog.action_area.set_border_width(self.ACTION_AREA_BORDER_WIDTH)
   
   def create_setting_presenters(self):
@@ -401,23 +400,6 @@ class _ExportLayersGui(object):
         self.gui_settings['advanced_settings_expanded'],
         self.expander_advanced_settings))
   
-  def assign_values_from_gui_elements_to_settings(self):
-    exception_message = ""
-    
-    for presenter in self.setting_presenters:
-      try:
-        presenter.setting.value = presenter.value
-      except ValueError as e:
-        if not exception_message:
-          exception_message = e.message
-      finally:
-        # Settings are continuously streamlined. Clear the changed attributes
-        # to prevent streamline() from changing the settings unnecessarily.
-        presenter.setting.changed_attributes.clear()
-    
-    if exception_message:
-      raise ValueError(exception_message)
-  
   def reset_settings(self):
     for setting_container in [self.main_settings, self.gui_settings]:
       setting_container.reset()
@@ -434,7 +416,7 @@ class _ExportLayersGui(object):
   
   def on_save_settings(self, widget):
     try:
-      self.assign_values_from_gui_elements_to_settings()
+      self.setting_presenters.assign_element_values_to_settings()
     except ValueError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       return
@@ -450,7 +432,7 @@ class _ExportLayersGui(object):
   
   def on_export_click(self, widget):
     try:
-      self.assign_values_from_gui_elements_to_settings()
+      self.setting_presenters.assign_element_values_to_settings()
     except ValueError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       return
