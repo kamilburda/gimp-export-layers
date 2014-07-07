@@ -370,6 +370,8 @@ class TestSettingPresenterContainer(unittest.TestCase):
   
   def test_get_item(self):
     self.assertEqual(self.presenter_container[self.settings['file_format']], self.setting_presenter)
+  
+  #TODO: add tests for assign_element_values_to_settings and assign_setting_values_to_elements
 
 #===============================================================================
 

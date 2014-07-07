@@ -231,6 +231,10 @@ class GtkProgressUpdater(progress.ProgressUpdater):
   
 class GtkSettingPresenter(settings.SettingPresenter):
   
+  """
+  This class is a SettingPresenter subclass suitable for GTK GUI elements.
+  """
+  
   __metaclass__ = abc.ABCMeta
   
   @property
@@ -263,6 +267,12 @@ class GtkSettingPresenter(settings.SettingPresenter):
 
 class GtkCheckButtonPresenter(GtkSettingPresenter):
   
+  """
+  This class is a `SettingPresenter` for `gtk.CheckButton` elements.
+  
+  Value: Checked state of the checkbox (checked/unchecked).
+  """
+  
   def __init__(self, setting, element):
     super(GtkCheckButtonPresenter, self).__init__(setting, element)
     
@@ -279,6 +289,12 @@ class GtkCheckButtonPresenter(GtkSettingPresenter):
 
 class GtkEntryPresenter(GtkSettingPresenter):
   
+  """
+  This class is a `SettingPresenter` for `gtk.Entry` elements (text fields).
+  
+  Value: Text in the text field.
+  """
+  
   @property
   def value(self):
     return self._element.get_text()
@@ -291,6 +307,12 @@ class GtkEntryPresenter(GtkSettingPresenter):
 
 
 class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
+  
+  """
+  This class is a `SettingPresenter` for `gimpui.IntComboBox` elements.
+  
+  Value: Option selected in the combobox.
+  """
   
   def __init__(self, setting, element):
     super(GimpUiIntComboBoxPresenter, self).__init__(setting, element)
@@ -308,6 +330,21 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
 
 class GtkDirectoryChooserWidgetPresenter(GtkSettingPresenter):
   
+  """
+  This class is a `SettingPresenter` for `gtk.FileChooserWidget` elements
+  used as directory choosers (`gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER` flag is
+  set).
+  
+  Value: Current directory.
+  
+  Attributes:
+  
+  * `image` - Current gimp.Image object.
+  
+  * `default_directory` - Default directory. Used if there is no other value
+    to assign to the GUI element.
+  """
+  
   def __init__(self, setting, element, image, default_directory):
     super(GtkDirectoryChooserWidgetPresenter, self).__init__(setting, element)
     
@@ -320,6 +357,12 @@ class GtkDirectoryChooserWidgetPresenter(GtkSettingPresenter):
   
   @value.setter
   def value(self, value_):
+    """
+    Set current directory.
+    
+    If `value_` is None, use the file path from which the image was loaded.
+    If the file path is None, use `default_directory`.
+    """
     if value_ is not None:
       self._element.set_current_folder(value_)
     else:
@@ -331,17 +374,36 @@ class GtkDirectoryChooserWidgetPresenter(GtkSettingPresenter):
 
 class GtkWindowPositionPresenter(GtkSettingPresenter):
   
+  """
+  This class is a `SettingPresenter` for window or dialog elements
+  (`gtk.Window`, `gtk.Dialog`) to get/set its position.
+  
+  Value: Current position of the window.
+  """
+  
   @property
   def value(self):
     return self._element.get_position()
   
   @value.setter
   def value(self, value_):
+    """
+    Set the current position of the window.
+    
+    If the position to be assigned is None or does not have two elements,
+    window is not moved.
+    """
     if value_ is not None and len(value_) == 2:
       self._element.move(*value_)
 
 
 class GtkExpanderPresenter(GtkSettingPresenter):
+  
+  """
+  This class is a `SettingPresenter` for `gtk.Expander` elements.
+  
+  Value: Expanded state of the expander (expanded/collapsed).
+  """
   
   @property
   def value(self):
@@ -355,6 +417,15 @@ class GtkExpanderPresenter(GtkSettingPresenter):
 
 class GtkSettingPresenterContainer(settings.SettingPresenterContainer):
   
+  """
+  This class can be used to store `SettingPresenter` objects in a GTK environment.
+  """
+  
+  def __init__(self):
+    super(GtkSettingPresenterContainer, self).__init__()
+    
+    self._is_events_connected = False
+  
   def connect_value_changed_events(self):
     for presenter in self:
       if presenter.value_changed_signal is not None:
@@ -362,6 +433,8 @@ class GtkSettingPresenterContainer(settings.SettingPresenterContainer):
           presenter.connect_event(self._on_element_value_change, presenter)
         else:
           presenter.connect_event(self._on_element_value_change_streamline, presenter)
+    
+    self._is_events_connected = True
   
   def _on_element_value_change(self, widget, presenter, *args):
     presenter.setting.value = presenter.value
@@ -369,4 +442,17 @@ class GtkSettingPresenterContainer(settings.SettingPresenterContainer):
   def _on_element_value_change_streamline(self, widget, presenter, *args):
     presenter.setting.value = presenter.value
     changed_settings = presenter.setting.streamline()
-    self.apply_changed_settings(changed_settings)
+    self._apply_changed_settings(changed_settings)
+  
+  def assign_element_values_to_settings(self):
+    try:
+      super(GtkSettingPresenterContainer, self).assign_element_values_to_settings()
+    finally:
+      if self._is_events_connected:
+        # Settings are continuously streamlined. Since this method changes the
+        # `value` attribute, clear `changed_attributes` to prevent streamline()
+        # from changing settings unnecessarily.
+        for presenter in self:
+          presenter.setting.changed_attributes.clear()
+      else:
+        self._streamline()

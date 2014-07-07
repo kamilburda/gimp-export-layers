@@ -40,8 +40,6 @@ import gimp
 from gimpshelf import shelf
 import gimpenums
 
-from . import container
-
 #===============================================================================
 
 pdb = gimp.pdb
@@ -51,60 +49,92 @@ pdb = gimp.pdb
 class Setting(object):
   
   """
-  This class is used to hold data about a plug-in setting.
+  This class holds data about a plug-in setting.
   
-  Preferably use one of the subclasses for a setting. If there is no appropriate
-  subclass, use this class.
+  Attributes and methods in this class can be used in multiple scenarios, such as:
+  * variables used in the main ("business"?) logic of plug-ins
+  * parameters registered to plug-ins
+  * properties of GUI elements (values, labels, tooltips, etc.)
+  
+  It is recommended to use an appropriate subclass for a setting. If there is no
+  appropriate subclass, use this class.
   
   Attributes:
   
-  * name (read-only): Setting name to uniquely identify a setting.
+  * `name` (read-only) - Setting name (string) that uniquely identifies a setting.
   
-  * default_value: Default value of a setting when the setting is instantiated
-    or when the reset() method was called.
+  * `default_value` - Default value of a setting assigned upon its instantiation
+    or when the `reset()` method was called.
   
-  * value: The setting value. Subclasses of Setting can override the value.setter
-    property to e.g. validate input value and raise ValueError if the value assigned is invalid.
+  * `value` - The setting value. Subclasses of `Setting` can override the `value.setter`
+    property to e.g. validate input value and raise `ValueError` if the value assigned is invalid.
+    `value` is initially set to `default_value`.
   
-  * gimp_pdb_type: GIMP Procedural Database (PDB) type, used when registering
+  * `gimp_pdb_type` - GIMP Procedural Database (PDB) type, used when registering
     parameters in plug-ins. `_allowed_pdb_types` list, which is class-specific, determines
     whether the PDB type assigned is valid. `_allowed_pdb_types` in this class is None,
     which means that any PDB type can be assigned.
   
-  * can_be_registered_to_pdb: Indicates whether a setting can be registered
-    as a parameter to a plug-in. Automatically set to True if gimp_pdb_type is
+  * `can_be_registered_to_pdb` - Indicates whether a setting can be registered
+    as a parameter to a plug-in. Automatically set to True if `gimp_pdb_type` is
     assigned to a valid value that is not None.
   
-  * display_name: Setting name in human-readable format. Useful as GUI labels.
+  * `display_name` - Setting name in human-readable format. Useful as GUI labels.
   
-  * short_description (read-only): Usually `display_name` plus additional information
+  * `short_description` (read-only) - Usually `display_name` plus additional information
     in parentheses. Useful as setting description when registering parameters in plug-ins.
   
-  * description: Describes a setting in more detail. Useful for documentation
+  * `description` - Describes a setting in more detail. Useful for documentation
     purposes as well as GUI tooltips.
   
-  * error_messages: A dict of error messages, which can be used e.g. when a value
+  * `error_messages` - A dict of error messages, which can be used e.g. if a value
     assigned to a setting is invalid. You can add your own error messages and
     assign them to one of the "default" error messages (such as 'invalid_value'
-    in ImageSetting) depending on the context in which the value assigned is invalid.
+    in several `Setting` subclasses) depending on the context in which the value
+    assigned is invalid.
   
-  * ui_enabled: Indicates whether a setting should be enabled (respond to user input)
-    in the GUI. True by default.
+  * `ui_enabled` - Indicates whether a setting should be enabled (respond to user input)
+    in the GUI. True by default. This attribute is only an indication, it does
+    not modify a GUI element (use the appropriate `SettingPresenter` subclass for that purpose).
   
-  * ui_visible: Indicates whether a setting should be visible in the GUI. True by default.
+  * `ui_visible` - Indicates whether a setting should be visible in the GUI. True by default.
+    This attribute is only an indication, it does not modify a GUI element
+    (use the appropriate `SettingPresenter` subclass for that purpose).
   
-  * can_be_reset_by_container: If True, setting is reset to its default value if
-    the reset() method from the corresponding SettingContainer is called. False by default.
+  * `can_be_reset_by_container` - If True, setting is reset to its default value if
+    the `reset()` method from the corresponding `SettingContainer` is called. False by default.
     
-  * changed_attributes (read-only): Contains a set of Setting attribute names that were changed.
-    Currently, it can contain the following attribute names: `value`, `ui_enabled` or `ui_visible`.
-    Assigning to any of the attributes causes the corresponding attribute name
-    to be added to the set. `changed_attributes` is cleared if streamline() is called.
+  * `changed_attributes` (read-only) - Contains a set of Setting attribute names that were changed.
+    This attribute is used in the `streamline()` method.
+    If any of the following attributes are assigned a value, they are added to the set:
+    * `value`
+    * `ui_enabled`
+    * `ui_visible`
+    `changed_attributes` is cleared if `streamline()` is called.
   
-  * can_streamline: True if a streamline function was set, False otherwise.
+  * `can_streamline` - True if a streamline function is set, False otherwise.
+  
+  Methods:
+  
+  * `streamline()` - Change attributes of this and other settings based on the value
+    of this and the other settings.
+  
+  * `set_streamline_func()` - Set a streamline function (to be called when `streamline()`
+    is called).
+  
+  * `remove_streamline_func()` - Remove a streamline function.
+  
+  * `reset()` - Reset setting value to its default value.
   """
   
   def __init__(self, name, default_value):
+    
+    """
+    Parameters:
+    
+    * `name` - Setting name as a string.
+    * `default_value` - Default value of the setting.
+    """
     
     self._attrs_that_trigger_change = { 'value', 'ui_enabled', 'ui_visible' }
     self._changed_attributes = set()
@@ -136,6 +166,10 @@ class Setting(object):
     self._changed_attributes.clear()
   
   def __setattr__(self, name, value):
+    """
+    Set attribute value. If the attribute is one of the attributes in
+    `_attrs_that_trigger_change`, add it to `changed_attributes`.
+    """
     super(Setting, self).__setattr__(name, value)
     if name in self._attrs_that_trigger_change:
       self._changed_attributes.add(name)
@@ -171,7 +205,8 @@ class Setting(object):
   @can_be_registered_to_pdb.setter
   def can_be_registered_to_pdb(self, value):
     if value and self._gimp_pdb_type is None:
-      raise ValueError("setting cannot be registered to PDB because it has no PDB type set (attribute gimp_pdb_type)")
+      raise ValueError("setting cannot be registered to PDB because it has no "
+                       "PDB type set (attribute gimp_pdb_type)")
     self._can_be_registered_to_pdb = value
   
   @property
@@ -200,28 +235,28 @@ class Setting(object):
   def error_messages(self):
     return self._error_messages
   
-  def reset(self):
-    """
-    Set the setting value to its default value.
-    
-    This is different from
-      setting.value = setting.default_value
-    in that this method does not raise an exception if the default value is invalid.
-    """
-    self._value = self.default_value
+  @property
+  def can_streamline(self):
+    return self._streamline_func is not None
   
   def streamline(self, force=False):
     """
-    Adjust attributes of this setting based on the attributes of other settings or arguments.
-    Return a list of changed settings. A setting is considered changed if at least one of the
-    following attributes were assigned a value:
-    * `value`
-    * `ui_enabled`
-    * `ui_visible`
+    Change attributes of this and other settings based on the value
+    of this setting, the other settings or additional arguments.
     
-    If force is True, streamline settings even if the values of the other
-    settings were not changed. This is useful when initializing GUI elements -
-    setting up proper values, enabled/disabled state or visibility.
+    Parameters:
+    
+    * `force` - If True, streamline settings even if the values of the other
+      settings were not changed. This is useful when initializing GUI elements -
+      setting up proper values, enabled/disabled state or visibility.
+    
+    Returns:
+    
+    * `changed_settings` - Set of changed settings. A setting is considered changed
+      if at least one of the following attributes were assigned a value:
+      * `value`
+      * `ui_enabled`
+      * `ui_visible`
     """
     
     if self._streamline_func is None:
@@ -246,13 +281,18 @@ class Setting(object):
   
   def set_streamline_func(self, streamline_func, *streamline_args):
     """
-    Set a function to be called by the streamline() method.
-    
-    streamline_args are additional arguments to the streamline function.
+    Set a function to be called by the `streamline()` method.
     
     A streamline function must always contain at least one argument. The first
     argument is the setting from which the streamline function is invoked.
-    This argument should not be specified in streamline_args.
+    This argument should therefore not be specified in `streamline_args`.
+    
+    Parameters:
+    
+    * `streamline_func` - Streamline function to be called by `streamline()`.
+    
+    * `streamline_args` - Additional arguments to `streamline_func`. Can be
+      any arguments, including `Setting` objects.
     """
     
     if not callable(streamline_func):
@@ -262,34 +302,52 @@ class Setting(object):
     self._streamline_args = streamline_args
   
   def remove_streamline_func(self):
+    """
+    Remove streamline function set by the `set_streamline_func()` method.
+    """
     if self._streamline_func is None:
       raise TypeError("no streamline function was previously set")
     
     self._streamline_func = None
     self._streamline_args = []
   
-  @property
-  def can_streamline(self):
-    return self._streamline_func is not None
+  def reset(self):
+    """
+    Reset setting value to its default value.
+    
+    This is different from
+    
+      setting.value = setting.default_value
+    
+    in that this method does not raise an exception if the default value is invalid.
+    """
+    self._value = self.default_value
 
 
 class NumericSetting(Setting):
   
   """
+  This is an abstract class for numeric settings - integers and floats.
+  
+  When assigning a value, it checks for the upper and lower bounds if they are set.
+  
   Additional attributes:
   
-  * min_value: Minimum numeric value. If not None and the value assigned is less
-    than min_value, ValueError is raised.
-    
-  * max_value: Maximum numeric value. If not None and the value assigned is greater
-    than max_value, ValueError is raised.
+  * `min_value`: Minimum numeric value.
   
+  * `max_value`: Maximum numeric value.
+  
+  Raises:
+  
+  * `ValueError`: If `min_value` is not None and the value assigned is less
+    than `min_value`, or if `max_value` is not None and the value assigned is
+    greater than `max_value`.
   
   Error messages:
   
-  * below_min: Used if a value assigned is less than min_value.
+  * `below_min`: The value assigned is less than `min_value`.
   
-  * above_max: Used if a value assigned is greater than min_value.
+  * `above_max`: The value assigned is greater than `max_value`.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -319,6 +377,17 @@ class NumericSetting(Setting):
 
 class IntSetting(NumericSetting):
   
+  """
+  This class can be used for integer settings.
+  
+  Default GIMP PDB type: PDB_INT32
+  
+  Allowed GIMP PDB types:
+  * PDB_INT8
+  * PDB_INT16
+  * PDB_INT32
+  """
+  
   def __init__(self, name, default_value):
     super(IntSetting, self).__init__(name, default_value)
     
@@ -338,6 +407,15 @@ class BoolSetting(IntSetting):
 
 class FloatSetting(NumericSetting):
   
+  """
+  This class can be used for float settings.
+  
+  Default GIMP PDB type: PDB_FLOAT
+  
+  Allowed GIMP PDB types:
+  * PDB_FLOAT
+  """
+  
   def __init__(self, name, default_value):
     super(FloatSetting, self).__init__(name, default_value)
     
@@ -348,14 +426,22 @@ class FloatSetting(NumericSetting):
 class EnumSetting(Setting):
   
   """
-  This class can be used for settings with a limited number of values.
+  This class can be used for settings with a limited number of values,
+  resembling `enum`s from the C language.
+  
+  Default GIMP PDB type: PDB_INT32
+  
+  Allowed GIMP PDB types:
+  * PDB_INT8
+  * PDB_INT16
+  * PDB_INT32
   
   Additional attributes:
   
-  * options (read-only): A dict of <option name, option value> pairs. Option name
+  * `options` (read-only) - A dict of <option name, option value> pairs. Option name
     uniquely identifies each option. Option value is the corresponding integer value.
   
-  * options_display_names (read-only): A dict of <option name, option display name> pairs.
+  * `options_display_names` (read-only) - A dict of <option name, option display name> pairs.
     Option display names can be used e.g. as combo box items in the GUI.
   
   To access an option value:
@@ -364,16 +450,24 @@ class EnumSetting(Setting):
   To access an option display name:
     setting.options_display_names[option name]
   
+  Raises:
+  
+  * `ValueError` - See "Error messages" below.
+  
+  * `KeyError` - Invalid key to `options` or `options_display_names`.
   
   Error messages:
   
-  * invalid_value: Used if a value assigned is invalid.
+  * `invalid_value` - The value assigned is not one of the options in this setting.
   
-  * invalid_default_value: Option name is invalid (not found in the `options` parameter).
+  * `invalid_default_value` - Option name is invalid (not found in the `options` parameter
+    when instantiating the object).
   
-  * wrong_options_len: Wrong number of elements in tuples in the `options` parameter.
+  * `wrong_options_len` - Wrong number of elements in tuples in the `options` parameter
+    when instantiating the object.
   
-  * duplicate_option_value: Some option values in the 3-element tuples were specified multiple times.
+  * `duplicate_option_value` - When the object was being instantiated, some
+    option values in the 3-element tuples were specified multiple times.
   """
   
   def __init__(self, name, default_value, options):
@@ -381,15 +475,17 @@ class EnumSetting(Setting):
     """
     Parameters:
     
-    * name: Setting name.
+    * `name` - Setting name.
     
-    * default_value: Option name (identifier). Unlike other Setting classes, where
+    * `default_value` - Option name (identifier). Unlike other Setting classes, where
       the default value is specified directly, EnumSetting accepts a valid option
       identifier instead.
     
-    * options: A list of either (option name, option display name) tuples
+    * `options` - A list of either (option name, option display name) tuples
       or (option name, option display name, option value) tuples.
+      
       For 2-element tuples, option values are assigned automatically, starting with 0.
+      
       Use 3-element tuples to assign explicit option values. Values must be unique
       and specified in each tuple.
     """
@@ -484,9 +580,16 @@ class EnumSetting(Setting):
 class ImageSetting(Setting):
   
   """
+  This class can be used for gimp.Image objects.
+  
+  Default GIMP PDB type: PDB_IMAGE
+  
+  Allowed GIMP PDB types:
+  * PDB_IMAGE
+  
   Error messages:
   
-  * invalid_value: Used if a value assigned is invalid.
+  * invalid_value: The image assigned is invalid.
   """
   
   def __init__(self, name, default_value):
@@ -512,9 +615,17 @@ class ImageSetting(Setting):
 class DrawableSetting(Setting):
   
   """
+  This class can be used for gimp.Drawable, gimp.Layer, gimp.GroupLayer or
+  gimp.Channel objects.
+  
+  Default GIMP PDB type: PDB_DRAWABLE
+  
+  Allowed GIMP PDB types:
+  * PDB_DRAWABLE
+  
   Error messages:
   
-  * invalid_value: Used if a value assigned is invalid.
+  * invalid_value: The drawable assigned is invalid.
   """
   
   def __init__(self, name, default_value):
@@ -539,6 +650,15 @@ class DrawableSetting(Setting):
 
 class StringSetting(Setting):
   
+  """
+  This class can be used for string settings.
+  
+  Default GIMP PDB type: PDB_STRING
+  
+  Allowed GIMP PDB types:
+  * PDB_STRING
+  """
+  
   def __init__(self, name, default_value):
     super(StringSetting, self).__init__(name, default_value)
     
@@ -549,9 +669,16 @@ class StringSetting(Setting):
 class NonEmptyStringSetting(StringSetting):
   
   """
+  This class can be used for string settings which must not be empty or None.
+  
+  Default GIMP PDB type: PDB_STRING
+  
+  Allowed GIMP PDB types:
+  * PDB_STRING
+  
   Error messages:
   
-  * invalid_value: Used if a value assigned is invalid.
+  * invalid_value: The string assigned is empty or None.
   """
   
   def __init__(self, name, default_value):
@@ -572,11 +699,58 @@ class NonEmptyStringSetting(StringSetting):
   
 #===============================================================================
 
-class SettingContainer(container.Container):
+class Container(object):
+  
+  """
+  This class is an ordered, `dict`-like container to store items.
+  
+  Unlike `dict`, this object iterates over values (when `__iter__` is called).
+  """
+  
+  def __init__(self):
+    self._items = OrderedDict()
+  
+  def __getitem__(self, key):
+    return self._items[key]
+  
+  def __setitem__(self, key, value):
+    self._items[key] = value
+  
+  def __contains__(self, key):
+    return key in self._items[key]
+  
+  def __delitem__(self, key):
+    del self._items[key]
+  
+  def __iter__(self):
+    """
+    Iterate over values (unlike `dict`, which iterates over keys).
+    """
+    for item in self._items.values():
+      yield item
+  
+  def __len__(self):
+    return len(self._items)
+
+#-------------------------------------------------------------------------------
+
+class SettingContainer(Container):
   """
   This class:
-  * groups Setting objects together
-  * can perform operations on all settings at once, such as streamline() or reset()
+  * groups related `Setting` objects together,
+  * can perform operations on all settings at once.
+  
+  This class is an interface for setting containers. Create a subclass from this
+  class to create settings.
+  
+  Methods:
+  
+  * `streamline()` - Call `streamline()` for each setting in this container.
+  
+  * `reset()` - Reset all settings in this container. Ignore settings whose
+    attribute `can_be_reset_by_container` is False.
+  
+  * `__iter__()` - Iterate over the settings (in the order they were created).
   """
   
   __metaclass__ = abc.ABCMeta
@@ -589,15 +763,24 @@ class SettingContainer(container.Container):
   @abc.abstractmethod
   def _create_settings(self):
     """
-    Override this method in subclasses to create settings.
+    Create and initialize settings.
     
-    To create a setting, instantiate a Setting object and then call the _add() method.
+    Override this method in subclasses to instantiate `Setting` objects,
+    set up their attributes, custom error messages and streamline functions if desired.
+    
+    To create a setting, instantiate a `Setting` object and then call the `_add()` method:
+      
+      self._add(Setting(<setting name>, <default value>))
     
     To adjust setting attributes (after creating the setting):
       self[<setting name>].<attribute> = <value>
     
+    Settings are stored in the container in the order they were added.
+    
     Q: Why can't we simply do
+    
          self[<setting name>] = Setting(<setting name>, args...)
+         
        to create settings?
     A: Because it's error-prone. <setting name>, which must be the same in both places,
        would have to be typed twice. If, by accident, they were different strings,
@@ -618,9 +801,16 @@ class SettingContainer(container.Container):
     """
     Streamline all Setting objects in this container.
     
-    If force is True, streamline settings even if the values of the other
-    settings were not changed. This is useful e.g. for setting proper values and
-    enabled state when initializing GUI elements.
+    Parameters:
+    
+    * `force` - If True, streamline settings even if the values of the other
+      settings were not changed. This is useful when initializing GUI elements -
+      setting up proper values, enabled/disabled state or visibility.
+    
+    Returns:
+    
+    * `changed_settings` - Set of changed settings. See the `streamline()` method
+      in the `Setting` object for more information.
     """
     
     changed_settings = {}
@@ -653,7 +843,18 @@ class SettingStream(object):
   This class provides an interface for reading and writing settings to
   permanent or semi-permanent sources.
   
-  For easier usage, use the SettingPersistor class instead.
+  For easier usage, use the `SettingPersistor` class instead.
+  
+  Attributes:
+  
+  * `_settings_not_found` - List of settings not found in stream when the `read()`
+    method is called.
+  
+  Methods:
+  
+  * `read()` - Read setting values from the stream to the settings.
+  
+  * `write()` - Write setting values from the settings to the stream.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -664,24 +865,34 @@ class SettingStream(object):
   @abc.abstractmethod
   def read(self, settings):
     """
-    Read setting values from the stream and write the values to the settings
+    Read setting values from the stream and assign them to the settings
     specified in the `settings` iterable.
     
-    If any of the specified settings is not found in the stream,
-    SettingsNotFoundInStreamError will be raised.
+    If a setting value from the stream is invalid, the setting will be reset to
+    its default value.
     
-    All settings that were not found in the stream will be stored in the
-    `settings_not_found` list. This list is cleared on each read() call.
+    Parameters:
     
-    If a setting value from the stream is invalid,
-    the setting will be reset to its default value.
+    * `settings` - Any iterable sequence containing `Setting` objects.
+    
+    Raises:
+    
+    * `SettingsNotFoundInStreamError` - At least one of the settings is not
+      found in the stream. All settings that were not found in the stream will be
+      stored in the `settings_not_found` list. This list is cleared on each read()
+      call.
     """
     pass
   
   @abc.abstractmethod
   def write(self, settings):
     """
-    Write setting values from settings specified in the `settings` iterable into the stream.
+    Write setting values from settings specified in the `settings` iterable
+    to the stream.
+    
+    Parameters:
+    
+    * `settings` - Any iterable sequence containing `Setting` objects.
     """
     pass
 
@@ -718,8 +929,15 @@ class SettingStreamWriteError(SettingStreamError):
 class GimpShelfSettingStream(SettingStream):
   
   """
-  This setting stream reads settings from/writes settings to the GIMP shelf,
+  This class reads settings from/writes settings to the GIMP shelf,
   persisting during one GIMP session.
+  
+  This class stores the setting name and value in the GIMP shelf.
+  
+  Attributes:
+  
+  * `shelf_prefix` - Prefix used to distinguish entries in the GIMP shelf
+    to avoid overwriting existing entries which belong to different plug-ins.
   """
   
   def __init__(self, shelf_prefix):
@@ -755,7 +973,10 @@ class GimpShelfSettingStream(SettingStream):
 class JSONFileSettingStream(SettingStream):
   
   """
-  This setting stream reads setting values from/writes settings to a JSON file.
+  This class reads settings from/writes settings to a JSON file.
+  
+  This class provides a persistent storage for settings. It stores
+  the setting name and value in the file.
   """
   
   def __init__(self, filename):
@@ -764,6 +985,20 @@ class JSONFileSettingStream(SettingStream):
     self.filename = filename
   
   def read(self, settings):
+    """
+    Raises:
+    
+    * `SettingsNotFoundInStreamError` - see the `SettingStream` class.
+    
+    * `SettingStreamFileNotFoundError` - Could not find the specified file.
+    
+    * `SettingStreamReadError` - Could not read from the specified file (IOError
+      or OSError was raised).
+    
+    * `SettingStreamInvalidFormatError` - Specified file has invalid format, i.e.
+      it is not recognized as a valid JSON file.
+    """
+    
     self._settings_not_found = []
     
     try:
@@ -805,6 +1040,15 @@ class JSONFileSettingStream(SettingStream):
       )
   
   def write(self, settings):
+    """
+    Write the name and value of the settings from the `settings` iterable to the
+    file. 
+    
+    Raises:
+    
+    * `SettingStreamWriteError` - Could not write to the specified file (IOError
+      or OSError was raised).
+    """
     settings_dict = self._to_dict(settings)
     
     try:
@@ -817,6 +1061,10 @@ class JSONFileSettingStream(SettingStream):
       )
   
   def _to_dict(self, settings):
+    """
+    Format the setting name and value to a dict, which the `json` module can
+    properly serialize and de-serialize.
+    """
     settings_dict = OrderedDict()
     for setting in settings:
       settings_dict[setting.name] = setting.value
@@ -830,13 +1078,26 @@ class SettingPersistor(object):
   """
   This class:
   * serves as a wrapper for SettingStream classes to read from or
-    write to multiple settings streams (SettingStream instances) at once,
-  * reads from/writes to multiple setting containers or iterables.
+    write to multiple settings streams (`SettingStream` objects) at once,
+  * reads from/writes to multiple `SettingContainer` objects or `Setting`
+    iterables.
   
   Attributes:
   
-  * status_message (read-only): Status message describing status returned from
-    load() or save() methods in more detail.
+  * `read_setting_streams` - List of `SettingStream` objects the settings are
+    loaded from.
+  
+  * `write_setting_streams` - List of `SettingStream` objects the settings are
+    saved to.
+  
+  * `status_message` (read-only) - Status message describing the status returned
+    from the `load()` or `save()` methods in more detail.
+  
+  Methods:
+  
+  * `load()` - Load setting values from stream(s) to settings.
+  
+  * `save()` - Save setting values from settings to all streams.
   """
   
   _STATUSES = SUCCESS, READ_FAIL, WRITE_FAIL, NOT_ALL_SETTINGS_FOUND = (0, 1, 2, 3)
@@ -853,29 +1114,35 @@ class SettingPersistor(object):
   
   def load(self, *setting_containers):
     """
-    Load settings from streams in `read_setting_streams` to specified setting
-    containers or iterables.
+    Load setting values from streams in `read_setting_streams` to specified
+    `setting_containers`.
     
     The order of streams in the `read_setting_streams` list indicates the preference
     of the streams, beginning with the first stream in the list. If not all settings
     could be found in the first stream, the second stream is read to assign values
     to the remaining settings. This continues until all settings are read.
     
+    If settings have invalid values, their default values will be assigned.
+    
     If some settings could not be found in any of the streams,
-    their default values are used.
+    their default values will be used.
     
-    Return values:
+    Parameters:
     
-    * status:
-      - SUCCESS: Settings successfully loaded. If settings had invalid values,
-        their default values were assigned.
+    * `*setting_containers` - `SettingContainer` objects or `Setting` iterables
+      to load values into from the streams.
+    
+    Returns:
+    
+    * `status`
       
-      - NOT_ALL_SETTINGS_FOUND: Could not load all specified settings from any of
-        the streams. Default values are assigned to these settings.
+      - SUCCESS - Settings successfully loaded.
       
-      - READ_FAIL: Could not read data from the first stream where this error occurred.
-        For files, this means that IOError or OSError exception was raised, or
-        the file has invalid format.
+      - NOT_ALL_SETTINGS_FOUND - Could not find some settings from
+        any of the streams. Default values are assigned to these settings.
+      
+      - READ_FAIL - Could not read data from the first stream where this error
+        occurred. May occur for file streams with e.g. denied read permission.
     """
     
     if not setting_containers or self.read_setting_streams is None or not self.read_setting_streams:
@@ -905,16 +1172,22 @@ class SettingPersistor(object):
   
   def save(self, *setting_containers):
     """
-    Save settings from specified setting containers or iterables to all streams
-    specified in write_setting_streams.
+    Save setting values from specified setting containers or iterables to all
+    streams specified in write_setting_streams.
     
-    Return values:
+    Parameters:
     
-    * status:
-      - SUCCESS: Settings successfully saved.
+    * `*setting_containers` - `SettingContainer` objects or `Setting` iterables
+      whose values are saved to the streams.
+    
+    Returns:
+    
+    * `status`
       
-      - WRITE_FAIL: Could not write data to the first stream where this error occurred.
-        For files, this means that IOError or OSError exception was raised.
+      - SUCCESS - Settings successfully saved.
+      
+      - WRITE_FAIL - Could not write data to the first stream where this error
+        occurred. May occur for file streams with e.g. denied write permission.
     """
     
     if not setting_containers or self.write_setting_streams is None or not self.write_setting_streams:
@@ -943,11 +1216,39 @@ class SettingPersistor(object):
 class SettingPresenter(object):
   
   """
-  This class wraps a Setting object and a GUI element together.
+  This class wraps a `Setting` object and a GUI element together.
   
   Various GUI elements have different attributes or methods to access their
   properties. This class wraps some of these attributes/methods so that they can
   be accessed with the same name.
+  
+  Attributes:
+  
+  * `setting (read-only)` - Setting object.
+  
+  * `element (read-only)` - GUI element object.
+  
+  * `value_changed_signal` - Object that indicates the type of event to assign
+    to the GUI element that changes one of its properties.
+  
+  * `value` - Value of the GUI element. Does not have to be a "direct" value
+    of a GUI element, e.g. the checked state of a checkbox, but also
+    e.g. the current dialog position. Check the `SettingPresenter` subclasses
+    in the `gui` module for better clarity.
+  
+  * `enabled` - Enabled/disabled state of the GUI element. True if the GUI
+    element responds to user input, False otherwise (the element is usually
+    grayed out).
+  
+  * `visible` - Visible/invisible state of the GUI element. True if the GUI
+    element is displayed, False if the GUI element is hidden (not visible).
+  
+  Methods:
+  
+  * `connect_event()` - Assign an event handler to the GUI element that is meant
+    to change the `value` attribute.
+  
+  * `set_tooltip()` - Set tooltip text for the GUI element.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -980,32 +1281,59 @@ class SettingPresenter(object):
 
   @abc.abstractmethod
   def connect_event(self, *args):
+    """
+    Assign an event handler to the GUI element that is meant
+    to change the `value` attribute.
+    """
     pass
   
   @abc.abstractmethod
   def set_tooltip(self):
+    """
+    Set tooltip text for the GUI element.
+    
+    `Setting.description` string is used as the tooltip.
+    """
     pass
 
 #===============================================================================
 
-class SettingPresenterContainer(container.Container):
+class SettingPresenterContainer(Container):
   
   """
-  This class groups SettingPresenter objects together.
+  This class groups `SettingPresenter` objects together.
   
-  You can access individual SettingPresenter objects by the corresponding Setting object.
+  You can access individual `SettingPresenter` objects by the corresponding
+  `Setting` objects.
   
-  Q: Why can't we access by Setting.name (like in SettingContainer)?
-  A: Because SettingPresenterContainer is independent of SettingContainer
-     and this object may contain settings from multiple SettingContainer
+  Q: Why can't we access by `Setting.name` (like in `SettingContainer`)?
+  A: Because `SettingPresenterContainer` is independent of `SettingContainer`
+     and this object may contain settings from multiple `SettingContainer`
      objects with the same name.
+  
+  Methods:
+  
+  * `add()` - Add a `SettingPresenter` object to the container.
+  
+  * `assign_setting_values_to_elements()` - Assign values from settings to GUI
+    elements.
+    
+  * `assign_element_values_to_settings()` - Assign values from GUI elements to
+    settings.
+  
+  * `connect_value_changed_events()` - Assign event handlers to GUI elements
+    triggered whenever their value is changed.
+  
+  * `set_tooltips()` - Set tooltips for all GUI elements.
   """
   
   __metaclass__ = abc.ABCMeta
   
-  _SETTING_ATTRIBUTES = {'value' : 'value', 
-                         'ui_enabled' : 'enabled',
-                         'ui_visible' : 'visible'}
+  _SETTING_ATTRIBUTES = {
+                          'value' : 'value', 
+                          'ui_enabled' : 'enabled',
+                          'ui_visible' : 'visible'
+  }
   
   def __init__(self):
     super(SettingPresenterContainer, self).__init__()
@@ -1021,21 +1349,40 @@ class SettingPresenterContainer(container.Container):
   
   def add(self, setting_presenter):
     """
-    Add a SettingPresenter object to the container.
+    Add a `SettingPresenter` object to the container.
     """
     self._items[setting_presenter.setting] = setting_presenter
   
   def assign_setting_values_to_elements(self):
+    """
+    Assign values from settings to GUI elements.
+    
+    Streamline all setting values along the way.
+    
+    This method is useful when it is desired to assign correct values to the GUI
+    elements when initializing or resetting the GUI.
+    """
+    
     for presenter in self:
       presenter.value = presenter.setting.value
     
-    changed_settings = self.streamline(force=True)
-    self.apply_changed_settings(changed_settings)
+    changed_settings = self._streamline(force=True)
+    self._apply_changed_settings(changed_settings)
   
   def assign_element_values_to_settings(self):
+    """
+    Assign values from GUI elements to settings.
+    
+    Raises:
+    
+    * `ValueError` - Value assigned to one or more settings is invalid. If there
+      are multiple settings that raise ValueError upon value assignment, the
+      exception message contains messages from all these settings.
+    """
+    
     exception_message = ""
     
-    for presenter in self.setting_presenters:
+    for presenter in self:
       try:
         presenter.setting.value = presenter.value
       except ValueError as e:
@@ -1048,19 +1395,25 @@ class SettingPresenterContainer(container.Container):
   
   @abc.abstractmethod
   def connect_value_changed_events(self):
+    """
+    Assign event handlers to GUI elements triggered whenever their value is
+    changed.
+    
+    For settings with streamline function assigned, use a different event
+    handler that also streamlines the settings.
+    """
     pass
   
   def set_tooltips(self):
     for presenter in self:
       presenter.set_tooltip()
   
-  def streamline(self, force=False):
+  def _streamline(self, force=False):
     """
-    Streamline all Setting objects in this container.
+    Streamline all `Setting` objects in this container.
     
-    If force is True, streamline settings even if the values of the other
-    settings were not changed. This is useful e.g. for setting proper values and
-    enabled state when initializing GUI elements.
+    See the description for the `streamline()` method in the `SettingContainer`
+    class for further information.
     """
     
     changed_settings = {}
@@ -1076,11 +1429,15 @@ class SettingPresenterContainer(container.Container):
     
     return changed_settings
   
-  def apply_changed_settings(self, changed_settings):
+  def _apply_changed_settings(self, changed_settings):
     """
-    After streamline() is called on a Setting or a SettingContainer object,
-    apply changed attributes of Setting objects in `changed_settings`
-    to GUI elements.
+    After `streamline()` is called on a `Setting` or `SettingContainer` object,
+    apply changed attributes of settings to their associated GUI elements.
+    
+    Parameters:
+    
+    * `changed_settings` - Set of changed attributes of settings to apply to the
+      GUI elements.
     """
     for setting, changed_attributes in changed_settings.items():
       for attr in changed_attributes:
