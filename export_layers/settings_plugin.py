@@ -93,14 +93,18 @@ class MainSettings(settings.SettingContainer):
     
     self._add(settings.BoolSetting('autocrop', False))
     self['autocrop'].display_name = "Autocrop layers"
-    self['autocrop'].description = "If enabled, layers will be autocropped before being exported."
+    self['autocrop'].description = (
+      "If enabled, layers will be autocropped before being exported."
+    )
     
     self._add(settings.BoolSetting('use_image_size', False))
     self['use_image_size'].display_name = "Use image size instead of layer size"
     self['use_image_size'].description = (
-      "If enabled, layers will be resized to the image size. If layers are "
-      "partially outside the image canvas, they will be cut off. If you want to "
-      "export the entire layer, leave this setting disabled."
+      "If enabled, layers will be resized (but not scaled) to the image size. This is "
+      "useful if you want to keep the size of the image canvas and the layer position "
+      "within the image. If layers are partially outside the image canvas, "
+      "they will be cut off. If you want to export the entire layer, "
+      "leave this setting disabled."
     )
     
     self._add(
@@ -171,6 +175,10 @@ class MainSettings(settings.SettingContainer):
     
     self._add(settings.BoolSetting('empty_directories', False))
     self['empty_directories'].display_name = "Create directories for empty layer groups"
+    self['empty_directories'].description = (
+      "If enabled, empty subdirectories from empty layers groups are created."
+    )
+    
     self._add(settings.BoolSetting('ignore_layer_modes', False))
     self['ignore_layer_modes'].display_name = "Ignore layer modes"
     self['ignore_layer_modes'].description = (

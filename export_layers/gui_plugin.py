@@ -64,21 +64,22 @@ class GuiSettings(settings.SettingContainer):
 
 #===============================================================================
 
-def display_exception_message(exception_message, parent=None):
-  gui.display_exception_message(
-    constants.PLUGIN_TITLE,
-    exception_message,
-    report_uri_list=constants.BUG_REPORT_URI_LIST,
+def display_message(message, message_type, parent=None):
+  gui.display_message(
+    message,
+    message_type,
+    title=constants.PLUGIN_TITLE,
     parent=parent
   )
 
 
-def display_message_dialog(text, message_type=gtk.MESSAGE_INFO, parent=None):
-  message_dialog = gtk.MessageDialog(parent=parent, type=message_type, buttons=gtk.BUTTONS_OK)
-  message_dialog.set_transient_for(parent)
-  message_dialog.set_markup(text)
-  message_dialog.run()
-  message_dialog.destroy()
+def display_exception_message(exception_message, parent=None):
+  gui.display_exception_message(
+    exception_message,
+    plugin_title=constants.PLUGIN_TITLE,
+    report_uri_list=constants.BUG_REPORT_URI_LIST,
+    parent=parent
+  )
 
 #===============================================================================
 
@@ -164,14 +165,15 @@ class _ExportLayersGui(object):
     
     status = self.setting_persistor.load(self.main_settings, self.gui_settings)
     if status == settings.SettingPersistor.READ_FAIL:
-      gui.display_warning_message(constants.PLUGIN_TITLE, self.setting_persistor.status_message)
+      gui.display_message(self.setting_persistor.status_message, gtk.MESSAGE_WARNING,
+                          title=constants.PLUGIN_TITLE)
     self.setting_persistor.read_setting_streams.pop()
     
     self.setting_presenters = gui.GtkSettingPresenterContainer()
     self.layer_exporter = None
     
     self._init_gui()
-    self.export_dialog = ExportDialog(self.stop)
+    self._export_dialog = ExportDialog(self.stop)
     
     gtk.main()
   
@@ -196,25 +198,10 @@ class _ExportLayersGui(object):
     self.label_message = gtk.Label()
     self.label_message.set_alignment(0.0, 0.5)
     
-    self.hbox_file_format_entry = gtk.HBox(homogeneous=False)
-    self.hbox_file_format_entry.set_spacing(30)
-    self.hbox_file_format_entry.pack_start(self.file_format_label, expand=False, fill=True)
-    self.hbox_file_format_entry.pack_start(self.file_format_entry, expand=False, fill=True)
-    
-    self.hbox_file_format = gtk.HBox(homogeneous=False)
-    self.hbox_file_format.set_spacing(self.HBOX_HORIZONTAL_SPACING)
-    self.hbox_file_format.pack_start(self.hbox_file_format_entry, expand=False, fill=True)
-    self.hbox_file_format.pack_start(self.label_message, expand=False, fill=True)
-    
     self.export_settings_layer_groups = gtk.CheckButton(self.main_settings['layer_groups_as_directories'].display_name)
     self.export_settings_ignore_invisible = gtk.CheckButton(self.main_settings['ignore_invisible'].display_name)
     self.export_settings_autocrop = gtk.CheckButton(self.main_settings['autocrop'].display_name)
     self.export_settings_use_image_size = gtk.CheckButton(self.main_settings['use_image_size'].display_name)
-    self.hbox_export_settings = gtk.HBox(homogeneous=False)
-    self.hbox_export_settings.pack_start(self.export_settings_layer_groups)
-    self.hbox_export_settings.pack_start(self.export_settings_ignore_invisible)
-    self.hbox_export_settings.pack_start(self.export_settings_autocrop)
-    self.hbox_export_settings.pack_start(self.export_settings_use_image_size)
     
     self.advanced_settings_file_ext_mode_label = gtk.Label(self.main_settings['file_ext_mode'].display_name + ":")
     self.advanced_settings_file_ext_mode_label.set_alignment(0, 0.5)
@@ -232,6 +219,27 @@ class _ExportLayersGui(object):
       self.main_settings['remove_square_brackets'].display_name)
     self.advanced_settings_crop_to_background = gtk.CheckButton(
       self.main_settings['crop_to_background'].display_name)
+    
+    self.advanced_settings_merge_layer_groups = gtk.CheckButton(self.main_settings['merge_layer_groups'].display_name)
+    self.advanced_settings_empty_directories = gtk.CheckButton(self.main_settings['empty_directories'].display_name)
+    self.advanced_settings_ignore_layer_modes = gtk.CheckButton(self.main_settings['ignore_layer_modes'].display_name)
+    
+    
+    self.hbox_file_format_entry = gtk.HBox(homogeneous=False)
+    self.hbox_file_format_entry.set_spacing(30)
+    self.hbox_file_format_entry.pack_start(self.file_format_label, expand=False, fill=True)
+    self.hbox_file_format_entry.pack_start(self.file_format_entry, expand=False, fill=True)
+    
+    self.hbox_file_format = gtk.HBox(homogeneous=False)
+    self.hbox_file_format.set_spacing(self.HBOX_HORIZONTAL_SPACING)
+    self.hbox_file_format.pack_start(self.hbox_file_format_entry, expand=False, fill=True)
+    self.hbox_file_format.pack_start(self.label_message, expand=False, fill=True)
+    
+    self.hbox_export_settings = gtk.HBox(homogeneous=False)
+    self.hbox_export_settings.pack_start(self.export_settings_layer_groups)
+    self.hbox_export_settings.pack_start(self.export_settings_ignore_invisible)
+    self.hbox_export_settings.pack_start(self.export_settings_autocrop)
+    self.hbox_export_settings.pack_start(self.export_settings_use_image_size)
     
     self.table_labels = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_labels.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
@@ -255,17 +263,16 @@ class _ExportLayersGui(object):
     self.hbox_tables.pack_start(self.table_combo_boxes, expand=False, fill=True)
     self.hbox_tables.pack_start(self.table_additional_elems, expand=False, fill=True)
     
-    self.advanced_settings_merge_layer_groups = gtk.CheckButton(self.main_settings['merge_layer_groups'].display_name)
-    self.advanced_settings_empty_directories = gtk.CheckButton(self.main_settings['empty_directories'].display_name)
-    self.hbox_advanced_layer_group_settings = gtk.HBox(homogeneous=False)
-    self.hbox_advanced_layer_group_settings.set_spacing(self.ADVANCED_SETTINGS_HORIZONTAL_SPACING)
-    self.hbox_advanced_layer_group_settings.pack_start(self.advanced_settings_merge_layer_groups, expand=False, fill=True)
-    self.hbox_advanced_layer_group_settings.pack_start(self.advanced_settings_empty_directories, expand=False, fill=True)
+    self.hbox_advanced_settings_checkbuttons = gtk.HBox(homogeneous=False)
+    self.hbox_advanced_settings_checkbuttons.set_spacing(self.ADVANCED_SETTINGS_HORIZONTAL_SPACING)
+    self.hbox_advanced_settings_checkbuttons.pack_start(self.advanced_settings_merge_layer_groups, expand=False, fill=True)
+    self.hbox_advanced_settings_checkbuttons.pack_start(self.advanced_settings_empty_directories, expand=False, fill=True)
+    self.hbox_advanced_settings_checkbuttons.pack_start(self.advanced_settings_ignore_layer_modes, expand=False, fill=True)
     
     self.vbox_advanced_settings = gtk.VBox(homogeneous=False)
     self.vbox_advanced_settings.set_spacing(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
     self.vbox_advanced_settings.pack_start(self.hbox_tables, expand=False, fill=False)
-    self.vbox_advanced_settings.pack_start(self.hbox_advanced_layer_group_settings, expand=False, fill=False)
+    self.vbox_advanced_settings.pack_start(self.hbox_advanced_settings_checkbuttons, expand=False, fill=False)
     
     self.alignment_advanced_settings = gtk.Alignment()
     self.alignment_advanced_settings.set_padding(0, 0, self.ADVANCED_SETTINGS_LEFT_MARGIN, 0)
@@ -276,6 +283,14 @@ class _ExportLayersGui(object):
     self.expander_advanced_settings.set_spacing(self.ADVANCED_SETTINGS_VERTICAL_SPACING // 2)
     self.alignment_advanced_settings.add(self.vbox_advanced_settings)
     self.expander_advanced_settings.add(self.alignment_advanced_settings)
+    
+    self.dialog.vbox.set_spacing(self.DIALOG_VBOX_SPACING)
+    self.dialog.vbox.pack_start(self.directory_chooser_label, expand=False, fill=False)
+    self.dialog.vbox.pack_start(self.directory_chooser, padding=5)
+    self.dialog.vbox.pack_start(self.hbox_file_format, expand=False, fill=False)
+    self.dialog.vbox.pack_start(self.hbox_export_settings, expand=False, fill=False)
+    self.dialog.vbox.pack_start(self.expander_advanced_settings, expand=False, fill=False)
+    self.dialog.vbox.pack_start(gtk.HSeparator(), expand=False, fill=True)
     
     
     self.export_layers_button = self.dialog.add_button("_Export Layers", gtk.RESPONSE_OK)
@@ -292,14 +307,6 @@ class _ExportLayersGui(object):
     self.dialog.action_area.set_child_secondary(self.save_settings_button, True)
     self.dialog.action_area.set_child_secondary(self.reset_settings_button, True)
     
-    
-    self.dialog.vbox.set_spacing(self.DIALOG_VBOX_SPACING)
-    self.dialog.vbox.pack_start(self.directory_chooser_label, expand=False, fill=False)
-    self.dialog.vbox.pack_start(self.directory_chooser, padding=5)
-    self.dialog.vbox.pack_start(self.hbox_file_format, expand=False, fill=False)
-    self.dialog.vbox.pack_start(self.hbox_export_settings, expand=False, fill=False)
-    self.dialog.vbox.pack_start(self.expander_advanced_settings, expand=False, fill=False)
-    self.dialog.vbox.pack_start(gtk.HSeparator(), expand=False, fill=True)
     
     self.export_layers_button.connect("clicked", self.on_export_click)
     self.cancel_button.connect("clicked", self.cancel)
@@ -413,8 +420,9 @@ class _ExportLayersGui(object):
     
     status = self.setting_persistor.save(self.main_settings, self.gui_settings)
     if status == self.setting_persistor.WRITE_FAIL:
-      gui.display_warning_message(constants.PLUGIN_TITLE, self.setting_persistor.status_message,
-                                  parent=self.dialog)
+      gui.display_message(gtk.MESSAGE_WARNING, self.setting_persistor.status_message,
+                          title=constants.PLUGIN_TITLE,
+                          parent=self.dialog)
     
     self.setting_persistor.write_setting_streams.pop()
   
@@ -442,7 +450,7 @@ class _ExportLayersGui(object):
       return
     
     self.dialog.hide()
-    self.export_dialog.show()
+    self._export_dialog.show()
     self.display_message_label(None)
     pdb.gimp_progress_init("", None)
     should_quit = True
@@ -454,7 +462,7 @@ class _ExportLayersGui(object):
       default_value=self.main_settings['overwrite_mode'].options['replace'],
       default_response=self.main_settings['overwrite_mode'].options['cancel'],
       title=constants.PLUGIN_TITLE)
-    progress_updater = gui.GtkProgressUpdater(self.export_dialog.progress_bar)
+    progress_updater = gui.GtkProgressUpdater(self._export_dialog.progress_bar)
     
     # Make the enabled GUI components more responsive(-ish) by periodically checking
     # whether the GUI has something to do.
@@ -466,23 +474,22 @@ class _ExportLayersGui(object):
       self.layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError as e:
       should_quit = False
+    except exportlayers.ExportLayersNoLayersToExport as e:
+      gui.display_message(e.message, gtk.MESSAGE_INFO, parent=self._export_dialog.dialog)
+      should_quit = False
     except exportlayers.ExportLayersError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       should_quit = False
     except Exception as e:
-      display_exception_message(traceback.format_exc(), parent=self.export_dialog.dialog)
+      display_exception_message(traceback.format_exc(), parent=self._export_dialog.dialog)
     else:
-      if self.layer_exporter.exported_layers:
-        self.special_settings['first_run'].value = False
-        self.setting_persistor.save([self.special_settings['first_run']])
-      else:
-        display_message_dialog("There are no layers to export.", parent=self.export_dialog.dialog)
-        should_quit = False
+      self.special_settings['first_run'].value = False
+      self.setting_persistor.save([self.special_settings['first_run']])
     finally:
       gobject.source_remove(refresh_event_id)
       progress_updater.reset()
       pdb.gimp_progress_end()
-      self.export_dialog.hide()
+      self._export_dialog.hide()
     
     self.main_settings['overwrite_mode'].value = overwrite_chooser.overwrite_mode
     self.setting_persistor.save(self.main_settings, self.gui_settings)
@@ -556,13 +563,12 @@ class _ExportLayersToGui(object):
       self.layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError:
       pass
+    except exportlayers.ExportLayersNoLayersToExport as e:
+      gui.display_message(e.message, gtk.MESSAGE_INFO, parent=self._export_dialog.dialog)
     except exportlayers.ExportLayersError:
       pass
     except Exception:
       display_exception_message(traceback.format_exc(), parent=self._export_dialog.dialog)
-    else:
-      if not self.layer_exporter.exported_layers:
-        display_message_dialog("There are no layers to export.", parent=self._export_dialog.dialog)
     finally:
       gobject.source_remove(refresh_event_id)
       pdb.gimp_progress_end()

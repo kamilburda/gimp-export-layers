@@ -126,11 +126,10 @@ for all other layers and will not be exported separately.
 
 **Additional options to "Layer names in [square brackets]"**
 
-- *Remove square brackets* - Removes the [square brackets] from layer names before being exported.
-This setting is visible only if "Treat as normal layers" or "Ignore other layers" is selected.
+- *Remove square brackets* - If enabled, [square brackets] will be removed from
+the layer names before being exported.
 - *Crop to layer* - If enabled, layers will be cropped to the size of the background
-layers instead of their own size. This setting is visible only if "Treat as background layers"
-is selected.
+layers instead of their own size.
 
 **Merge layer groups**
 
@@ -142,7 +141,7 @@ of each merged layer is the name of the corresponding top-level layer group.
 If enabled, empty subdirectories from empty layers groups are created.
 
 **Ignore layer modes**
-Sets the layer mode to Normal for each layer. This is useful for layers with opacity
+Sets the layer mode for each layer to Normal. This is useful for layers with opacity
 less than 100% and a layer mode different than Normal or Dissolve, which would
 normally be completely invisible if a file format supporting alpha channel is used
 (such as PNG).

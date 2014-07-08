@@ -53,6 +53,9 @@ class ExportLayersError(Exception):
 class ExportLayersCancelError(ExportLayersError):
   pass
 
+class ExportLayersNoLayersToExport(ExportLayersError):
+  pass
+
 #===============================================================================
 
 class LayerFilters(object):
@@ -185,7 +188,7 @@ class LayerExporter(object):
     self._layer_data = layerdata.LayerData(self.image, is_filtered=True)
     self._file_export_func = pdb.gimp_file_save
     
-    self._export_status = self._NOT_EXPORTED_YET
+    self._current_layer_export_status = self._NOT_EXPORTED_YET
     self._is_current_layer_skipped = False
     
     self._string_validator = libfiles.StringValidator(self.ALLOWED_FILENAME_CHARS)
@@ -302,7 +305,7 @@ class LayerExporter(object):
   
   def _do_export_layers(self):
     if not self._layer_data:
-      return
+      raise ExportLayersNoLayersToExport("There are no layers to export.")
     
     libfiles.make_dirs(self._output_directory)
     
@@ -320,7 +323,7 @@ class LayerExporter(object):
     for layerdata_elem in self._layer_data:
       
       if self.should_stop:
-        raise ExportLayersCancelError("export stopped by user")
+        raise ExportLayersCancelError("Export stopped by user.")
       
       layer = layerdata_elem.layer
       
@@ -352,7 +355,7 @@ class LayerExporter(object):
       layer_copy = self._crop_and_merge(layer_copy)
       
       self._export(layerdata_elem, self._image_copy, layer_copy)
-      if self._export_status == self._USE_DEFAULT_FILE_FORMAT:
+      if self._current_layer_export_status == self._USE_DEFAULT_FILE_FORMAT:
         self._export(layerdata_elem, self._image_copy, layer_copy)
       
       self.progress_updater.update(num_tasks=1)
@@ -534,14 +537,14 @@ class LayerExporter(object):
     self._export_layer_once(file_export_function, run_mode,
                             image, layer, output_filename)
     
-    if self._export_status == self._FORCE_INTERACTIVE:
+    if self._current_layer_export_status == self._FORCE_INTERACTIVE:
       self._export_layer_once(file_export_function, gimpenums.RUN_INTERACTIVE,
                               image, layer, output_filename)
   
   def _export_layer_once(self, file_export_function, run_mode,
                          image, layer, output_filename):
     
-    self._export_status = self._NOT_EXPORTED_YET
+    self._current_layer_export_status = self._NOT_EXPORTED_YET
     
     try:
       file_export_function(image, layer, output_filename, os.path.basename(output_filename),
@@ -555,16 +558,16 @@ class LayerExporter(object):
         if self._file_format != self._default_file_format:
           self._layer_file_format_properties[self._file_format].is_valid = False
           self._file_format = self._default_file_format
-          self._export_status = self._USE_DEFAULT_FILE_FORMAT
+          self._current_layer_export_status = self._USE_DEFAULT_FILE_FORMAT
         else:
           # Try again, this time forcing the interactive mode if the non-interactive mode
           # failed (certain file types do not allow the non-interactive mode).
           if run_mode in (gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE):
-            self._export_status = self._FORCE_INTERACTIVE
+            self._current_layer_export_status = self._FORCE_INTERACTIVE
           else:
             error_message = 'Error: "' + self._file_format + '": ' + e.message
             if not e.message.endswith('.'):
               error_message += '.'
             raise ExportLayersError(error_message)
     else:
-      self._export_status = self._EXPORT_SUCCESSFUL
+      self._current_layer_export_status = self._EXPORT_SUCCESSFUL
