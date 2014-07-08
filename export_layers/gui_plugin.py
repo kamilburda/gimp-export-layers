@@ -390,6 +390,11 @@ class _ExportLayersGui(object):
         self.advanced_settings_empty_directories))
     
     self.setting_presenters.add(
+      gui.GtkCheckButtonPresenter(
+        self.main_settings['ignore_layer_modes'],
+        self.advanced_settings_ignore_layer_modes))
+    
+    self.setting_presenters.add(
       gui.GtkWindowPositionPresenter(
         self.gui_settings['dialog_position'],
         self.dialog))

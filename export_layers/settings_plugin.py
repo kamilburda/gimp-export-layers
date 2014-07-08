@@ -171,6 +171,14 @@ class MainSettings(settings.SettingContainer):
     
     self._add(settings.BoolSetting('empty_directories', False))
     self['empty_directories'].display_name = "Create directories for empty layer groups"
+    self._add(settings.BoolSetting('ignore_layer_modes', False))
+    self['ignore_layer_modes'].display_name = "Ignore layer modes"
+    self['ignore_layer_modes'].description = (
+      "Sets the layer mode of each layer to Normal. This is useful for layers "
+      "with opacity less than 100% and a layer mode different than Normal or "
+      "Dissolve, which would normally be completely invisible if a file format "
+      "supporting alpha channel is used (such as PNG)."
+    )
     
     
     self['file_ext_mode'].description = (

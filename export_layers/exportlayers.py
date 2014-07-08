@@ -341,6 +341,9 @@ class LayerExporter(object):
       if pdb.gimp_item_is_group(layer_copy):
         layer_copy = libimage.merge_layer_group(self._image_copy, layer_copy)
       
+      if self.main_settings['ignore_layer_modes'].value:
+        layer_copy.mode = gimpenums.NORMAL_MODE
+      
       self._image_copy.active_layer = layer_copy
       
       # GIMP automatically adds the " copy" suffix to copied layers,
