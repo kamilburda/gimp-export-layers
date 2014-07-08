@@ -1433,30 +1433,12 @@ class SettingPresenterContainer(Container):
     for presenter in self:
       if presenter.value_changed_signal is not None:
         if not presenter.setting.can_streamline:
-          presenter.connect_event(self._on_element_value_change, presenter)
+          presenter.connect_event(self._gui_on_element_value_change, presenter)
         else:
-          presenter.connect_event(self._on_element_value_change_streamline,
+          presenter.connect_event(self._gui_on_element_value_change_streamline,
                                   presenter)
     
     self._is_events_connected = True
-  
-  def _on_element_value_change(self, presenter):
-    """
-    Assign value from the GUI element to the setting when the user changed the
-    value of the GUI element.
-    """
-    presenter.setting.value = presenter.value
-  
-  def _on_element_value_change_streamline(self, presenter):
-    """
-    Assign value from the GUI element to the setting when the user changed the
-    value of the GUI element.
-    
-    Streamline the setting and change other affected GUI elements if necessary.
-    """
-    presenter.setting.value = presenter.value
-    changed_settings = presenter.setting.streamline()
-    self._apply_changed_settings(changed_settings)
   
   @abc.abstractmethod
   def _gui_on_element_value_change(self, *args):
@@ -1480,6 +1462,24 @@ class SettingPresenterContainer(Container):
     framework invokes the event with the correct arguments in the correct order.
     """
     pass
+  
+  def _on_element_value_change(self, presenter):
+    """
+    Assign value from the GUI element to the setting when the user changed the
+    value of the GUI element.
+    """
+    presenter.setting.value = presenter.value
+  
+  def _on_element_value_change_streamline(self, presenter):
+    """
+    Assign value from the GUI element to the setting when the user changed the
+    value of the GUI element.
+    
+    Streamline the setting and change other affected GUI elements if necessary.
+    """
+    presenter.setting.value = presenter.value
+    changed_settings = presenter.setting.streamline()
+    self._apply_changed_settings(changed_settings)
   
   def set_tooltips(self):
     for presenter in self:

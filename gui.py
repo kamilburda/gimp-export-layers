@@ -425,4 +425,4 @@ class GtkSettingPresenterContainer(settings.SettingPresenterContainer):
     self._on_element_value_change(presenter)
   
   def _gui_on_element_value_change_streamline(self, widget, presenter, *args):
-    self._on_element_value_change(presenter)
+    self._on_element_value_change_streamline(presenter)
