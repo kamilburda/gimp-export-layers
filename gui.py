@@ -28,7 +28,11 @@ This module defines:
 * SettingPresenter wrappers for GTK elements
 """
 
-#=============================================================================== 
+#===============================================================================
+
+import sys
+import traceback
+from contextlib import contextmanager 
 
 import abc
 import webbrowser
@@ -116,14 +120,40 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
 
 #===============================================================================
 
-def display_exception_message(plugin_title, exc_message, report_uri_list, parent=None):
+def display_exception_message(plugin_title, exc_message, report_uri_list=None, parent=None):
   
-  def connect_linkbuttons():
+  """
+  This function displays an error message for exceptions unhandled by the
+  plug-in.
+  
+  The message also displays the exception message in the Details box, which
+  is collapsed by default.
+  
+  Optionally, the dialog can contain links to sites where the users can report
+  this error, copying the exception message to better track the error down.
+  
+  Parameters:
+  
+  * `plugin_title` - Name of the plug-in (string) used as the message title and
+    in the message contents.
+  
+  * `exc_message` - Exception message (usually traceback) to display in the
+    Details box.
+  
+  * `report_uri_list` - List of (name, URL) tuples where the user can report
+    the error. If no report list is desired, pass None or an empty sequence.
+  
+  * `parent` - Parent GUI element.
+  """
+  
+  def connect_linkbuttons(report_linkbuttons):
+    
     def open_browser(linkbutton):
       webbrowser.open_new_tab(linkbutton.get_uri())
     
     for linkbutton in report_linkbuttons:
       linkbutton.connect("clicked", open_browser)
+  
   
   dialog = gtk.MessageDialog(parent, type=gtk.MESSAGE_ERROR, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
   dialog.set_markup(
@@ -133,6 +163,7 @@ def display_exception_message(plugin_title, exc_message, report_uri_list, parent
     plugin_title + " encountered an unexpected error and has to close. "
     "Sorry about that!"
   )
+  dialog.set_title(plugin_title)
   
   expander = gtk.Expander()
   expander.set_use_markup(True)
@@ -158,34 +189,38 @@ def display_exception_message(plugin_title, exc_message, report_uri_list, parent
   
   vbox_labels_report = gtk.VBox(homogeneous=False)
   
-  label_report_header = gtk.Label(
-    "To help fix this error, send a report containing the text "
-    "in the details above to one of the following sites:"
-  )
-  label_report_header.set_alignment(0, 0.5)
-  label_report_header.set_padding(3, 3)
-  label_report_header.set_line_wrap(True)
-  label_report_header.set_line_wrap_mode(gtk.WRAP_WORD)
+  if report_uri_list is not None and report_uri_list:
+    label_report_header = gtk.Label(
+      "To help fix this error, send a report containing the text "
+      "in the details above to one of the following sites:"
+    )
+    label_report_header.set_alignment(0, 0.5)
+    label_report_header.set_padding(3, 3)
+    label_report_header.set_line_wrap(True)
+    label_report_header.set_line_wrap_mode(gtk.WRAP_WORD)
+    
+    report_linkbuttons = []
+    for name, uri in report_uri_list:
+      linkbutton = gtk.LinkButton(uri, label=name)
+      linkbutton.set_alignment(0, 0.5)
+      report_linkbuttons.append(linkbutton)
+    
+    vbox_labels_report.pack_start(label_report_header, expand=False, fill=True)
+    for linkbutton in report_linkbuttons:
+      vbox_labels_report.pack_start(linkbutton, expand=False, fill=True)
   
-  report_linkbuttons = []
-  for name, uri in report_uri_list:
-    linkbutton = gtk.LinkButton(uri, label=name)
-    linkbutton.set_alignment(0, 0.5)
-    report_linkbuttons.append(linkbutton)
-  
-  vbox_labels_report.pack_start(label_report_header, expand=False, fill=True)
-  for linkbutton in report_linkbuttons:
-    vbox_labels_report.pack_start(linkbutton, expand=False, fill=True)
+    dialog.vbox.pack_end(vbox_labels_report, expand=False, fill=True)
   
   dialog.vbox.pack_start(expander, expand=False, fill=True)
-  dialog.vbox.pack_start(vbox_labels_report, expand=False, fill=True)
   
   button_ok = dialog.add_button(gtk.STOCK_OK, gtk.RESPONSE_OK)
   
   dialog.set_focus(button_ok)
   
-  # Apparently, GTK doesn't know how to open URLs on Windows, hence the custom solution. 
-  connect_linkbuttons()
+  if report_uri_list is not None and report_uri_list:
+    # Apparently, GTK doesn't know how to open URLs on Windows, hence the custom
+    # solution. 
+    connect_linkbuttons(report_linkbuttons)
   
   dialog.show_all()
   dialog.run()
@@ -209,6 +244,56 @@ def display_warning_message(title, message, parent=None):
   dialog.show_all()
   dialog.run()
   dialog.destroy()
+
+#===============================================================================
+
+@contextmanager
+def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
+  
+  """
+  Modify `sys.excepthook` to display an error dialog for unhandled exceptions.
+  
+  Don't display the dialog for exceptions which are not subclasses of
+  `Exception` (such as `SystemExit or `KeyboardInterrupt`).
+  
+  Use this function as a context manager:
+    
+    with set_gui_excepthook():
+      # do stuff
+  
+  Parameters:
+  
+  * `plugin_title` - Name of the plug-in (string) used as the dialog title and
+    in the dialog contents.
+  
+  * `report_uri_list` - List of (name, URL) tuples where the user can report
+    the error. If no report list is desired, pass None or an empty sequence.
+  
+  * `parent` - Parent GUI element.
+  """
+  
+  def _gui_excepthook(exc_type, exc_value, exc_traceback):
+    
+    if issubclass(exc_type, Exception):
+      exception_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+      display_exception_message(plugin_title, exception_message,
+                                report_uri_list=report_uri_list, parent=parent)
+      if gtk.main_level() > 0:
+        gtk.main_quit()
+    
+    _orig_sys_excepthook(exc_type, exc_value, exc_traceback)
+  
+  
+  _orig_sys_excepthook = sys.excepthook
+  sys.excepthook = _gui_excepthook
+  
+  # Unlike other functions or methods with the `contextmanager` decorator,
+  # here the `yield` keyword must not be wrapped in a try-finally block.
+  # I don't understand why, though. Somehow, the `finally` block would be
+  # executed before `_gui_excepthook` had a chance to kick in.
+  yield
+  
+  sys.excepthook = _orig_sys_excepthook
 
 #===============================================================================
 
