@@ -57,6 +57,7 @@ class MockSettingPresenter(settings.SettingPresenter):
   @property
   def value(self):
     return self._element.value
+  
   @value.setter
   def value(self, val):
     self._element.value = val
@@ -64,6 +65,7 @@ class MockSettingPresenter(settings.SettingPresenter):
   @property
   def enabled(self):
     return self._element.enabled
+  
   @enabled.setter
   def enabled(self, val):
     self._element.enabled = val
@@ -71,11 +73,12 @@ class MockSettingPresenter(settings.SettingPresenter):
   @property
   def visible(self):
     return self._element.visible
+  
   @visible.setter
   def visible(self, val):
     self._element.visible = val
-
-  def connect_event(self, *args):
+  
+  def connect_event(self, event_func, *event_args):
     pass
   
   def set_tooltip(self):
@@ -84,8 +87,11 @@ class MockSettingPresenter(settings.SettingPresenter):
 
 class MockSettingPresenterContainer(settings.SettingPresenterContainer):
   
-  def connect_value_changed_events(self):
-    pass
+  def _gui_on_element_value_change(self, presenter):
+    self._on_element_value_change(presenter)
+  
+  def _gui_on_element_value_change_streamline(self, presenter):
+    self._on_element_value_change(presenter)
 
 
 class SettingContainerTest(settings.SettingContainer):
@@ -363,15 +369,42 @@ class TestSettingPresenterContainer(unittest.TestCase):
     self.element = MockGuiWidget("")
     self.setting_presenter = MockSettingPresenter(self.settings['file_format'], self.element)
     
-    self.presenter_container = MockSettingPresenterContainer()
-    self.presenter_container.add(self.setting_presenter)
-    self.presenter_container.add(MockSettingPresenter(self.settings['overwrite_mode'], self.element))
-    self.presenter_container.add(MockSettingPresenter(self.settings['ignore_invisible'], self.element))
+    self.presenters = MockSettingPresenterContainer()
+    self.presenters.add(self.setting_presenter)
+    self.presenters.add(MockSettingPresenter(self.settings['overwrite_mode'],
+                                             MockGuiWidget(self.settings['overwrite_mode'].options['skip'])))
+    self.presenters.add(MockSettingPresenter(self.settings['ignore_invisible'], MockGuiWidget(False)))
   
-  def test_get_item(self):
-    self.assertEqual(self.presenter_container[self.settings['file_format']], self.setting_presenter)
+  def test_assign_setting_values_to_elements(self):
+    self.settings['file_format'].value = "png"
+    self.settings['ignore_invisible'].value = True
+    
+    self.presenters.assign_setting_values_to_elements()
+    
+    self.assertEqual(self.presenters[self.settings['file_format']].value, "png")
+    self.assertEqual(self.presenters[self.settings['file_format']].enabled, False)
+    self.assertEqual(self.presenters[self.settings['ignore_invisible']].value, True)
   
-  #TODO: add tests for assign_element_values_to_settings and assign_setting_values_to_elements
+  def test_assign_element_values_to_settings_with_streamline(self):
+    self.presenters[self.settings['file_format']].value = "jpg"
+    self.presenters[self.settings['ignore_invisible']].value = True
+    
+    self.presenters.assign_element_values_to_settings()
+    
+    self.assertEqual(self.settings['file_format'].value, "png")
+    self.assertEqual(self.settings['file_format'].ui_enabled, False)
+  
+  def test_assign_element_values_to_settings_no_streamline(self):
+    # `value_changed_signal` is None, so no event handlers are invoked.
+    self.presenters.connect_value_changed_events()
+    
+    self.presenters[self.settings['file_format']].value = "jpg"
+    self.presenters[self.settings['ignore_invisible']].value = True
+    
+    self.presenters.assign_element_values_to_settings()
+    
+    self.assertEqual(self.settings['file_format'].value, "jpg")
+    self.assertEqual(self.settings['file_format'].ui_enabled, True)
 
 #===============================================================================
 

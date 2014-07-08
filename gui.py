@@ -253,9 +253,9 @@ class GtkSettingPresenter(settings.SettingPresenter):
   def visible(self, value):
     self._element.set_visible(value)
   
-  def connect_event(self, *args):
+  def connect_event(self, event_func, *event_args):
     if self.value_changed_signal is not None:
-      return self._element.connect(self.value_changed_signal, *args)
+      return self._element.connect(self.value_changed_signal, event_func, *event_args)
     else:
       raise TypeError("cannot connect signal if value_changed_signal is None")
   
@@ -341,7 +341,7 @@ class GtkDirectoryChooserWidgetPresenter(GtkSettingPresenter):
   
   * `image` - Current gimp.Image object.
   
-  * `default_directory` - Default directory. Used if there is no other value
+  * `default_directory` - Default directory. Used if there is no other directory
     to assign to the GUI element.
   """
   
@@ -418,41 +418,11 @@ class GtkExpanderPresenter(GtkSettingPresenter):
 class GtkSettingPresenterContainer(settings.SettingPresenterContainer):
   
   """
-  This class can be used to store `SettingPresenter` objects in a GTK environment.
+  This class is used to store `SettingPresenter` objects in a GTK environment.
   """
   
-  def __init__(self):
-    super(GtkSettingPresenterContainer, self).__init__()
-    
-    self._is_events_connected = False
+  def _gui_on_element_value_change(self, widget, presenter, *args):
+    self._on_element_value_change(presenter)
   
-  def connect_value_changed_events(self):
-    for presenter in self:
-      if presenter.value_changed_signal is not None:
-        if not presenter.setting.can_streamline:
-          presenter.connect_event(self._on_element_value_change, presenter)
-        else:
-          presenter.connect_event(self._on_element_value_change_streamline, presenter)
-    
-    self._is_events_connected = True
-  
-  def _on_element_value_change(self, widget, presenter, *args):
-    presenter.setting.value = presenter.value
-  
-  def _on_element_value_change_streamline(self, widget, presenter, *args):
-    presenter.setting.value = presenter.value
-    changed_settings = presenter.setting.streamline()
-    self._apply_changed_settings(changed_settings)
-  
-  def assign_element_values_to_settings(self):
-    try:
-      super(GtkSettingPresenterContainer, self).assign_element_values_to_settings()
-    finally:
-      if self._is_events_connected:
-        # Settings are continuously streamlined. Since this method changes the
-        # `value` attribute, clear `changed_attributes` to prevent streamline()
-        # from changing settings unnecessarily.
-        for presenter in self:
-          presenter.setting.changed_attributes.clear()
-      else:
-        self._streamline()
+  def _gui_on_element_value_change_streamline(self, widget, presenter, *args):
+    self._on_element_value_change(presenter)

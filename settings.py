@@ -1280,10 +1280,23 @@ class SettingPresenter(object):
     pass
 
   @abc.abstractmethod
-  def connect_event(self, *args):
+  def connect_event(self, event_func, *event_args):
     """
-    Assign an event handler to the GUI element that is meant
+    Assign the specified event handler to the GUI element that is meant
     to change the `value` attribute.
+    
+    The `value_changed_signal` attribute is used to assign the event handler to
+    the GUI element.
+    
+    Parameters:
+    
+    * `event_func` - Event handler (function) to assign to the GUI element.
+    
+    * `*event_args` - Additional arguments to the event handler if needed.
+    
+    Raises:
+    
+    * `TypeError` - `value_changed_signal` is None.
     """
     pass
   
@@ -1292,7 +1305,7 @@ class SettingPresenter(object):
     """
     Set tooltip text for the GUI element.
     
-    `Setting.description` string is used as the tooltip.
+    `Setting.description` attribute is used as the tooltip.
     """
     pass
 
@@ -1322,7 +1335,7 @@ class SettingPresenterContainer(Container):
     settings.
   
   * `connect_value_changed_events()` - Assign event handlers to GUI elements
-    triggered whenever their value is changed.
+    triggered when the user changes their value.
   
   * `set_tooltips()` - Set tooltips for all GUI elements.
   """
@@ -1337,11 +1350,13 @@ class SettingPresenterContainer(Container):
   
   def __init__(self):
     super(SettingPresenterContainer, self).__init__()
+    
+    self._is_events_connected = False
   
   def __setitem__(self, key, value):
     raise TypeError(
-      "replacing a SettingPresenter object or creating a new one is not allowed; "
-      "use the add() method instead"
+      "replacing a SettingPresenter object or creating a new one "
+      "is not allowed; use the add() method instead"
     )
   
   def __delitem__(self, key):
@@ -1373,11 +1388,15 @@ class SettingPresenterContainer(Container):
     """
     Assign values from GUI elements to settings.
     
+    If `connect_value_changed_events()` was called, don't streamline. Otherwise
+    do.
+    
     Raises:
     
     * `ValueError` - Value assigned to one or more settings is invalid. If there
       are multiple settings that raise ValueError upon value assignment, the
-      exception message contains messages from all these settings.
+      exception message contains messages from all these settings. In such case,
+      settings are not streamlined.
     """
     
     exception_message = ""
@@ -1389,11 +1408,20 @@ class SettingPresenterContainer(Container):
         if not exception_message:
           exception_message += e.message + '\n'
     
+    if self._is_events_connected:
+      # Settings are continuously streamlined. Since this method changes the
+      # `value` attribute, clear `changed_attributes` to prevent `streamline()`
+      # from changing settings unnecessarily.
+      for presenter in self:
+        presenter.setting.changed_attributes.clear()
+    else:
+      if not exception_message:
+        self._streamline()
+    
     if exception_message:
       exception_message = exception_message.rstrip('\n')
       raise ValueError(exception_message)
   
-  @abc.abstractmethod
   def connect_value_changed_events(self):
     """
     Assign event handlers to GUI elements triggered whenever their value is
@@ -1401,6 +1429,55 @@ class SettingPresenterContainer(Container):
     
     For settings with streamline function assigned, use a different event
     handler that also streamlines the settings.
+    """
+    for presenter in self:
+      if presenter.value_changed_signal is not None:
+        if not presenter.setting.can_streamline:
+          presenter.connect_event(self._on_element_value_change, presenter)
+        else:
+          presenter.connect_event(self._on_element_value_change_streamline,
+                                  presenter)
+    
+    self._is_events_connected = True
+  
+  def _on_element_value_change(self, presenter):
+    """
+    Assign value from the GUI element to the setting when the user changed the
+    value of the GUI element.
+    """
+    presenter.setting.value = presenter.value
+  
+  def _on_element_value_change_streamline(self, presenter):
+    """
+    Assign value from the GUI element to the setting when the user changed the
+    value of the GUI element.
+    
+    Streamline the setting and change other affected GUI elements if necessary.
+    """
+    presenter.setting.value = presenter.value
+    changed_settings = presenter.setting.streamline()
+    self._apply_changed_settings(changed_settings)
+  
+  @abc.abstractmethod
+  def _gui_on_element_value_change(self, *args):
+    """
+    Override this method in a subclass to call `_on_element_value_change()`.
+    
+    Since event handling is dependent on the GUI framework used, a method
+    separate from `_on_element_value_change()` has to be defined so that the
+    framework invokes the event with the correct arguments in the correct order.
+    """
+    pass
+  
+  @abc.abstractmethod
+  def _gui_on_element_value_change_streamline(self, *args):
+    """
+    Override this method in a subclass to call
+    `_on_element_value_change_streamline()`.
+    
+    Since event handling is dependent on the GUI framework used, a method
+    separate from `_on_element_value_change()` has to be defined so that the
+    framework invokes the event with the correct arguments in the correct order.
     """
     pass
   
