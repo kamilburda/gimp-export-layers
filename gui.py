@@ -120,11 +120,11 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
 
 #===============================================================================
 
-def display_exception_message(plugin_title, exc_message, report_uri_list=None, parent=None):
+def display_exception_message(exception_message, plugin_title=None,
+                              report_uri_list=None, parent=None):
   
   """
-  This function displays an error message for exceptions unhandled by the
-  plug-in.
+  Display an error message for exceptions unhandled by the plug-in.
   
   The message also displays the exception message in the Details box, which
   is collapsed by default.
@@ -134,11 +134,11 @@ def display_exception_message(plugin_title, exc_message, report_uri_list=None, p
   
   Parameters:
   
+  * `exception_message` - Exception message (usually traceback) to display in
+    the Details box.
+  
   * `plugin_title` - Name of the plug-in (string) used as the message title and
     in the message contents.
-  
-  * `exc_message` - Exception message (usually traceback) to display in the
-    Details box.
   
   * `report_uri_list` - List of (name, URL) tuples where the user can report
     the error. If no report list is desired, pass None or an empty sequence.
@@ -182,7 +182,7 @@ def display_exception_message(plugin_title, exc_message, report_uri_list=None, p
   exception_text_view.set_pixels_inside_wrap(0)
   exception_text_view.set_left_margin(5)
   exception_text_view.set_right_margin(5)
-  exception_text_view.get_buffer().set_text(exc_message)
+  exception_text_view.get_buffer().set_text(exception_message)
   
   scrolled_window.add(exception_text_view)
   expander.add(scrolled_window)
@@ -227,14 +227,30 @@ def display_exception_message(plugin_title, exc_message, report_uri_list=None, p
   dialog.destroy()
 
 
-def display_warning_message(title, message, parent=None):
-  dialog = gtk.MessageDialog(parent=parent, type=gtk.MESSAGE_WARNING,
+def display_message(message, message_type, title=None, parent=None):
+  
+  """
+  Display a generic message.
+  
+  Parameters:
+  
+  * `message` - The message to display.
+  
+  * `message_type` - GTK message type (gtk.INFO, gtk.WARNING, etc.).
+  
+  * `title` - Message title.
+  
+  * `parent` - Parent GUI element.
+  """
+  
+  dialog = gtk.MessageDialog(parent=parent, type=message_type,
                              flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                              buttons=gtk.BUTTONS_OK)
-  dialog.set_title(title)
+  if title is not None:
+    dialog.set_title(title)
+  dialog.set_transient_for(parent)
   
   messages = message.split('\n', 1)
-  
   if len(messages) > 1:
     dialog.set_markup(messages[0])
     dialog.format_secondary_markup(messages[1])
@@ -276,7 +292,7 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
     
     if issubclass(exc_type, Exception):
       exception_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-      display_exception_message(plugin_title, exception_message,
+      display_exception_message(exception_message, plugin_title=plugin_title,
                                 report_uri_list=report_uri_list, parent=parent)
       if gtk.main_level() > 0:
         gtk.main_quit()
