@@ -25,7 +25,7 @@ This module:
 * defines GUI-specific settings
 """
 
-#=============================================================================== 
+#===============================================================================
 
 import traceback
 
@@ -70,7 +70,7 @@ def display_exception_message(exception_message, parent=None):
     exception_message,
     report_uri_list=constants.BUG_REPORT_URI_LIST,
     parent=parent
-    )
+  )
 
 
 def display_message_dialog(text, message_type=gtk.MESSAGE_INFO, parent=None):
@@ -152,7 +152,6 @@ class _ExportLayersGui(object):
   _GUI_REFRESH_INTERVAL_MILLISECONDS = 500
   
   def __init__(self, image, main_settings, special_settings, gimpshelf_stream, config_file_stream):
-    
     self.image = image
     self.main_settings = main_settings
     self.special_settings = special_settings
@@ -527,7 +526,6 @@ class _ExportLayersToGui(object):
   _GUI_REFRESH_INTERVAL_MILLISECONDS = 500
   
   def __init__(self, image, main_settings, setting_persistor):
-    
     self.image = image
     self.main_settings = main_settings
     self.setting_persistor = setting_persistor
@@ -536,15 +534,15 @@ class _ExportLayersToGui(object):
     
     self.layer_exporter = None
     
-    self._dialog = ExportDialog(self.stop)
+    self._export_dialog = ExportDialog(self.stop)
     
     gtk.main_iteration()
-    self._dialog.show()
+    self._export_dialog.show()
     self._export_layers()
   
   def _export_layers(self):
     overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(self.main_settings['overwrite_mode'].value)
-    progress_updater = gui.GtkProgressUpdater(self._dialog.progress_bar)
+    progress_updater = gui.GtkProgressUpdater(self._export_dialog.progress_bar)
     pdb.gimp_progress_init("", None)
     refresh_event_id = gobject.timeout_add(self._GUI_REFRESH_INTERVAL_MILLISECONDS, self.refresh_ui)
     try:
@@ -556,10 +554,10 @@ class _ExportLayersToGui(object):
     except exportlayers.ExportLayersError:
       pass
     except Exception:
-      display_exception_message(traceback.format_exc(), parent=self._dialog.dialog)
+      display_exception_message(traceback.format_exc(), parent=self._export_dialog.dialog)
     else:
       if not self.layer_exporter.exported_layers:
-        display_message_dialog("There are no layers to export.", parent=self._dialog.dialog)
+        display_message_dialog("There are no layers to export.", parent=self._export_dialog.dialog)
     finally:
       gobject.source_remove(refresh_event_id)
       pdb.gimp_progress_end()
@@ -581,8 +579,10 @@ class _ExportLayersToGui(object):
 #===============================================================================
 
 def export_layers_gui(image, main_settings, special_settings, gimpshelf_stream, config_file_stream):
-  _ExportLayersGui(image, main_settings, special_settings, gimpshelf_stream, config_file_stream)
+  with gui.set_gui_excepthook(constants.PLUGIN_TITLE, report_uri_list=constants.BUG_REPORT_URI_LIST):
+    _ExportLayersGui(image, main_settings, special_settings, gimpshelf_stream, config_file_stream)
 
 
 def export_layers_to_gui(image, main_settings, setting_persistor):
-  _ExportLayersToGui(image, main_settings, setting_persistor)
+  with gui.set_gui_excepthook(constants.PLUGIN_TITLE, report_uri_list=constants.BUG_REPORT_URI_LIST):
+    _ExportLayersToGui(image, main_settings, setting_persistor)
