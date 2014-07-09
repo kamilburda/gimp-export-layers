@@ -487,7 +487,11 @@ class _ExportLayersGui(object):
       pdb.gimp_progress_end()
       self.export_dialog.hide()
     
-    self.main_settings['overwrite_mode'].value = overwrite_chooser.overwrite_mode
+    if self.main_settings['overwrite_mode'].value != self.main_settings['overwrite_mode'].options['skip']:
+      # Don't save Skip. Rationale: Export Layers To (or non-interactive
+      # Export Layers) would skim through the layers and process nothing,
+      # which, I presume, is not what the user really wants.
+      self.main_settings['overwrite_mode'].value = overwrite_chooser.overwrite_mode
     self.setting_persistor.save(self.main_settings, self.gui_settings)
     
     if should_quit:
