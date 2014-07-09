@@ -20,8 +20,7 @@
 #-------------------------------------------------------------------------------
 
 """
-This module:
-* contains functions dealing with GIMP objects - images, layers, etc.
+This module contains functions dealing with GIMP objects - images, layers, etc.
 """
 
 #=============================================================================== 
@@ -39,6 +38,14 @@ pdb = gimp.pdb
 
 @contextmanager
 def undo_group(image):
+  """
+  Wrap the enclosing block of code into one GIMP undo group.
+  
+  Use this function as a context manager:
+    
+    with undo_group(image):
+      # do stuff
+  """
   pdb.gimp_image_undo_group_start(image)
   try:
     yield
@@ -49,6 +56,8 @@ def undo_group(image):
 def merge_layer_group(image, layer_group):
   """
   Merge the specified layer group into a layer.
+  
+  This function can handle both top-level and nested layer groups.
   """
   
   if not pdb.gimp_item_is_group(layer_group):

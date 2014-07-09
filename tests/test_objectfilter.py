@@ -64,7 +64,8 @@ def invalid_rule_func():
 class TestObjectFilter(unittest.TestCase):
   
   def setUp(self):
-    self.filter = ObjectFilter()
+    self.filter = ObjectFilter(match_type=ObjectFilter.MATCH_ALL)
+    self.filter_match_any = ObjectFilter(match_type=ObjectFilter.MATCH_ANY)
   
   def test_has_rule(self):
     self.assertFalse(self.filter.has_rule(has_uppercase_letters))
@@ -164,8 +165,6 @@ class TestObjectFilter(unittest.TestCase):
     self.assertTrue(self.filter.has_subfilter('layer_types'))
   
   def test_match_all(self):
-    self.filter.match_type = self.filter.MATCH_ALL
-    
     self.filter.add_rule(has_uppercase_letters)
     self.filter.add_rule(is_object_id_even)
     
@@ -175,21 +174,17 @@ class TestObjectFilter(unittest.TestCase):
     self.assertFalse(self.filter.is_match(FilterableObject(1, "hi there")))
   
   def test_match_any(self):
-    self.filter.match_type = self.filter.MATCH_ANY
+    self.filter_match_any.add_rule(has_uppercase_letters)
+    self.filter_match_any.add_rule(is_object_id_even)
     
-    self.filter.add_rule(has_uppercase_letters)
-    self.filter.add_rule(is_object_id_even)
-    
-    self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There")))
-    self.assertTrue(self.filter.is_match(FilterableObject(1, "Hi There")))
-    self.assertTrue(self.filter.is_match(FilterableObject(2, "hi there")))
-    self.assertFalse(self.filter.is_match(FilterableObject(1, "hi there")))
+    self.assertTrue(self.filter_match_any.is_match(FilterableObject(2, "Hi There")))
+    self.assertTrue(self.filter_match_any.is_match(FilterableObject(1, "Hi There")))
+    self.assertTrue(self.filter_match_any.is_match(FilterableObject(2, "hi there")))
+    self.assertFalse(self.filter_match_any.is_match(FilterableObject(1, "hi there")))
   
   def test_match_empty_filter(self):
-    self.filter.match_type = self.filter.MATCH_ALL
     self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There")))
-    self.filter.match_type = self.filter.MATCH_ANY
-    self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There")))
+    self.assertTrue(self.filter_match_any.is_match(FilterableObject(2, "Hi There")))
   
   def test_match_custom_args(self):
     self.filter.add_rule(has_matching_file_format, 'jpg')
@@ -220,7 +215,6 @@ class TestObjectFilter(unittest.TestCase):
         # * rule
         # * rule
     
-    self.filter.match_type = self.filter.MATCH_ALL
     self.filter.add_subfilter('obj_properties', ObjectFilter(self.filter.MATCH_ANY))
     self.filter['obj_properties'].add_rule(is_empty)
     self.filter['obj_properties'].add_rule(is_object_id_even)
@@ -242,7 +236,6 @@ class TestObjectFilter(unittest.TestCase):
           # * rule
           # * rule
     
-    self.filter.match_type = self.filter.MATCH_ALL
     self.filter.add_rule(is_object_id_even)
     self.filter.add_subfilter('obj_properties', ObjectFilter(self.filter.MATCH_ANY))
     self.filter['obj_properties'].add_rule(is_empty)

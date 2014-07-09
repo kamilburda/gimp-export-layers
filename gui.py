@@ -23,9 +23,11 @@
 This module defines:
 * GTK overwrite dialog
 * GTK progress updater
-* exception dialog
-* warning dialog
+* GTK exception message
+* GTK generic message
+* context manager for `sys.excepthook` that displays GTK exception message on exception
 * SettingPresenter wrappers for GTK elements
+* SettingPresenterContainer for GTK
 """
 
 #===============================================================================
@@ -99,9 +101,9 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     
     self._dialog.set_focus(self._buttons[self.default_value])
   
-  def _choose(self):
-    if self.filename is not None:
-      text_filename = "named \"" + self.filename + "\""
+  def _choose(self, filename):
+    if filename is not None:
+      text_filename = "named \"" + filename + "\""
     else:
       text_filename = "with the same name"
     self._dialog_text.set_markup("<span font_size=\"large\"><b>A file " + text_filename +
@@ -294,7 +296,9 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
       exception_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
       display_exception_message(exception_message, plugin_title=plugin_title,
                                 report_uri_list=report_uri_list, parent=parent)
-      if gtk.main_level() > 0:
+      # Make sure to quit the plug-in altogether since unhandled exceptions
+      # can mess up the plug-in state.
+      while gtk.main_level() > 0:
         gtk.main_quit()
     
     _orig_sys_excepthook(exc_type, exc_value, exc_traceback)
@@ -317,12 +321,13 @@ class GtkProgressUpdater(progress.ProgressUpdater):
   
   def _fill_progress_bar(self):
     self.progress_bar.set_fraction(float(self._num_finished_tasks) / float(self.num_total_tasks))
+    self._force_update()
   
   def _set_text_progress_bar(self, text):
     self.progress_bar.set_text(text)
+    self._force_update()
   
-  def update(self, num_tasks=0, text=None):
-    super(GtkProgressUpdater, self).update(num_tasks, text)
+  def _force_update(self):
     # This is necessary for the GTK progress bar to be updated properly.
     # See http://faq.pygtk.org/index.py?req=show&file=faq23.020.htp
     while gtk.events_pending():

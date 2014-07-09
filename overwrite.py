@@ -20,9 +20,8 @@
 #-------------------------------------------------------------------------------
 
 """
-This module:
-* defines "overwrite chooser" - an indication on how to handle existing files
-  (e.g. skip, replace, rename, etc.)
+This module defines "overwrite chooser" - an indication on how to handle
+existing files (skip, replace, rename, etc.).
 """
 
 #===============================================================================
@@ -36,29 +35,33 @@ class OverwriteChooser(object):
   __metaclass__ = abc.ABCMeta
   
   """
+  This class is an interface to indicate how to handle existing files.
+  
   Attributes:
   
-  * filename: Filename conflicting with an existing file, displayed to the user.
-  
-  * overwrite_mode (read-only): Overwrite mode chosen by the user.
+  * `overwrite_mode` (read-only) - Overwrite mode chosen by the user.
   """
-  
-  def __init__(self):
-    self.filename = None
-  
-  @abc.abstractmethod
-  def choose(self, *args, **kwargs):
-    """
-    Return a value indicating how to handle conflicting files outside this class
-    by letting the user choose the value.
-    
-    The actual implementation of handling conflicting files is left
-    to the programmer using the return value provided by this method.
-    """
-    pass
   
   @abc.abstractmethod
   def overwrite_mode(self):
+    pass
+  
+  @abc.abstractmethod
+  def choose(self, filename=None):
+    """
+    Return a value indicating how to handle the conflicting file
+    by letting the user choose the value.
+    
+    The actual overwrite modes (possible values one of which the user chooses)
+    and the implementation of handling conflicting files are left to the
+    programmer using the return value provided by this method.
+    
+    Parameters:
+    
+    * `filename` - Filename that conflicts with an existing file.
+      `OverwriteChooser` use the filename to simply display it to the user.
+      Defaults to None.
+    """
     pass
 
 
@@ -74,11 +77,11 @@ class NoninteractiveOverwriteChooser(OverwriteChooser):
     super(NoninteractiveOverwriteChooser, self).__init__()
     self._overwrite_mode = overwrite_mode
   
-  def choose(self):
-    return self._overwrite_mode
-  
   @property
   def overwrite_mode(self):
+    return self._overwrite_mode
+  
+  def choose(self, filename=None):
     return self._overwrite_mode
 
 
@@ -90,17 +93,17 @@ class InteractiveOverwriteChooser(OverwriteChooser):
   
   Additional attributes:
   
-  * values_and_display_names: List of (value, display name) tuples which
+  * `values_and_display_names` - List of (value, display name) tuples which
     define overwrite modes and their human-readable names.
   
-  * default_selection: Default selection. Must be one of the values in the
-    values_and_display_names list.
+  * `default_selection` - Default selection. Must be one of the values in the
+    `values_and_display_names` list.
   
-  * default_response: Default value to return if the user made a choice that
+  * `default_response` - Default value to return if the user made a choice that
     returns a value not in `values_and_display_names`. `default_response`
     does not have to be any of the values in `values_and_display_names`.
   
-  * is_apply_to_all (read-only): Whether the user-made choice applies to the
+  * `is_apply_to_all` (read-only) - Whether the user-made choice applies to the
     current file (False) or to the current and all subsequent files (True).
   """
   
@@ -116,22 +119,6 @@ class InteractiveOverwriteChooser(OverwriteChooser):
     self._overwrite_mode = self.default_value
     self._is_apply_to_all = False
   
-  def choose(self, filename=None):
-    if self._overwrite_mode is None or not self._is_apply_to_all:
-      return self._choose()
-    else:
-      return self._overwrite_mode
-  
-  @abc.abstractmethod
-  def _choose(self):
-    """
-    Let the user choose the overwrite mode and return the overwrite mode.
-    
-    If the choice results in a value that is not in `values_and_display_names`,
-    return `default_response`.
-    """
-    pass
-  
   @property
   def overwrite_mode(self):
     return self._overwrite_mode
@@ -139,3 +126,19 @@ class InteractiveOverwriteChooser(OverwriteChooser):
   @property
   def is_apply_to_all(self):
     return self._is_apply_to_all
+  
+  def choose(self, filename=None):
+    if self._overwrite_mode is None or not self._is_apply_to_all:
+      return self._choose(filename)
+    else:
+      return self._overwrite_mode
+  
+  @abc.abstractmethod
+  def _choose(self, filename):
+    """
+    Let the user choose the overwrite mode and return it.
+    
+    If the choice results in a value that is not in `values_and_display_names`,
+    return `default_response`.
+    """
+    pass

@@ -33,7 +33,7 @@ class MockInteractiveOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     
     self._values = [value for value, _ in self.values_and_display_names]
   
-  def _choose(self):
+  def _choose(self, filename):
     if self._overwrite_mode not in self._values:
       self._overwrite_mode = self.default_response
     

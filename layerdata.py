@@ -20,9 +20,10 @@
 #-------------------------------------------------------------------------------
 
 """
-This module:
-* defines an associative container that stores all layers and layer groups
-* defines custom attributes for layers derived from the original attributes
+This module defines the following classes:
+* `LayerData` - an associative container that stores all layers and layer groups
+* `_LayerDataElement` - wrapper for gimp.Layer objects containing custom attributes
+  derived from the original gimp.Layer attributes
 """
 
 #=============================================================================== 
@@ -58,13 +59,13 @@ class LayerData(object):
   
   Attributes:
   
-  * image: GIMP image to get layers from.
+  * `image` - GIMP image to get layer data from.
   
-  * is_filtered: If True, ignore layers that do not match the filter
-    (ObjectFilter) in this object when iterating.
+  * `is_filtered` - If True, ignore layers that do not match the filter
+    (`ObjectFilter`) in this object when iterating.
   
-  * filter (read-only): ObjectFilter instance where you can add or remove filter
-    rules.
+  * `filter` (read-only) - `ObjectFilter` instance where you can add or remove
+    filter rules or subfilters to filter layers.
   """
   
   def __init__(self, image, is_filtered=False):
@@ -97,6 +98,16 @@ class LayerData(object):
     return len([layerdata_elem for layerdata_elem in self])
   
   def __iter__(self):
+    
+    """
+    If not filtered, iterate over all layers. If filtered, iterate only over
+    layers that match the filter in this object.
+    
+    Yields:
+    
+    * `layerdata_elem` - The current `_LayerDataElement` object.
+    """
+    
     if not self.is_filtered:
       for layerdata_elem in self._layerdata.values():
         yield layerdata_elem
@@ -105,7 +116,32 @@ class LayerData(object):
         if self._filter.is_match(layerdata_elem):
           yield layerdata_elem
   
-  def get_file_format_properties(self, default_file_format):
+  def get_file_extension_properties(self, default_file_extension):
+    
+    """
+    Get data about file extensions in layer names for each file extension.
+    
+    For layers with no file extension, fill the data for `default_file_extension`.
+    
+    Parameters:
+    
+    * `default_file_extension` - Default file format to use for layers with no
+      file extension.
+    
+    Returns:
+    
+      Dict of <file extension, `LayerFileExtensionProperties` object> pairs.
+      `LayerFileExtensionProperties` objects contain the following attributes:
+      
+      * `count` - Number of layers having the file extension
+      
+      * `processed_count` - Number of layers processed so far. Initially set to 0.
+        Can be used by other functions when processing layers.
+      
+      * `is_valid` - If True, file extension is considered valid.
+        If False, it is considered invalid. Initially set to True.
+        Can also be used by other functions when processing layers.
+    """
     
     class LayerFileExtensionProperties(object):
       def __init__(self):
@@ -118,36 +154,37 @@ class LayerData(object):
     for layerdata_elem in self:
       file_format = layerdata_elem.file_extension
       if not file_format:
-        file_format = default_file_format
+        file_format = default_file_extension
       
       if file_format not in layer_file_ext_properties:
         layer_file_ext_properties[file_format] = LayerFileExtensionProperties()
       layer_file_ext_properties[file_format].count += 1
     
-    if default_file_format not in layer_file_ext_properties:
-      layer_file_ext_properties[default_file_format] = LayerFileExtensionProperties()
+    if default_file_extension not in layer_file_ext_properties:
+      layer_file_ext_properties[default_file_extension] = LayerFileExtensionProperties()
     
     return layer_file_ext_properties
   
   def uniquify_layer_names(self, include_layer_path=True, place_before_file_extension=False):
     """
-    Make the names of layers and layer groups unique so that
-    all filenames or directory names on the same directory level are unique.
+    Make the names of layers and layer groups unique to make sure that
+    all filenames or directory names on the same directory level will be unique.
     
-    This is necessary in case the layer names in the _LayerDataElement objects
+    This is necessary in case the layer names in the `_LayerDataElement` objects
     had their characters invalid in filenames removed, which may result in
     multiple layers or layer groups having the same name.
     
     To achieve uniquification, a string in the form of " (<number>)" is inserted
-    at the end of the names.
+    at the end of the layer names.
     
     Parameters:
     
-    * include_layer_path: If True, take layer path into account when uniquifying.
+    * `include_layer_path` - If True, take the layer path into account when
+      uniquifying.
       
-    * place_before_file_extension: Uniquify such that the " (<number>)" string
-      that makes the names unique is placed before the file extension
-      if the layer name has one.
+    * `place_before_file_extension` - If True, uniquify such that the
+      " (<number>)" string that makes the names unique is placed before the file
+      extension if the layer name has one.
     """
     
     def _uniquify(layerdata):
@@ -203,8 +240,8 @@ class LayerData(object):
   
   def _fill_layer_data(self):
     """
-    Fill the _layerdata dictionary,
-    containing <gimp.Layer.name, _LayerDataElement> pairs.
+    Fill the _layerdata dictionary, containing
+    <gimp.Layer.name, _LayerDataElement> pairs.
     """
     
     _LayerTreeNode = namedtuple('_LayerTreeNode', ['layers', 'parents'])
@@ -228,37 +265,38 @@ class LayerData(object):
 class _LayerDataElement(object):
   
   """
-  This class wraps a gimp.Layer object and defines custom layer attributes.
+  This class wraps a `gimp.Layer` object and defines custom layer attributes.
   
   Note that the attributes will not be up to date if changes were made to the
-  original gimp.Layer objects.
+  original `gimp.Layer` objects.
   
   Attributes:
   
-  * layer: gimp.Layer object
+  * `layer` - `gimp.Layer` object
   
-  * parents: List of _LayerDataElement parents for this layer, sorted from the
+  * `parents` - List of `_LayerDataElement` parents for this layer, sorted from the
     bottommost (immediate) parent to the topmost parent.
   
-  * level: Integer indicating at which level in the layer tree is the layer positioned.
-    0 means the layer is at the top level.
+  * `level` - Integer indicating at which level in the layer tree is the layer
+    positioned. 0 means the layer is at the top level.
   
-  * layer_name: Layer name. Modify this attribute instead of gimp.Layer.name
+  * `layer_name` - Layer name. Modify this attribute instead of `gimp.Layer.name`
     to avoid modifying the original layer.
   
-  * is_group: If True, layer is a layer group. If False, layer is gimp.Layer.
+  * `is_group` - If True, layer is a layer group (`gimp.GroupLayer`). If False,
+    layer is `gimp.Layer`.
   
-  * is_empty: If True, layer is an empty layer group.
+  * `is_empty` - If True, layer is an empty layer group.
   
-  * path_components: List of all parents' names for this layer, sorted from the
-    topmost to the bottommost parent. This attribute can be used in determining
+  * `path_components` - List of all parents' names for this layer, sorted from the
+    topmost to the bottommost parent. This attribute can be used in creating
     the filename of the layer if layer groups are treated as directories.
   
-  * path_visible: Visibility of all layer's parents and this layer. If all layers
-    are visible, path_visible is True. If at least one of these layers is invisible,
-    path_visible is False.
+  * `path_visible` - Visibility of all layer's parents and this layer. If all layers
+    are visible, `path_visible` is True. If at least one of these layers is invisible,
+    `path_visible` is False.
   
-  * file_extension (read-only): File extension of the layer name. If the layer has
+  * `file_extension` (read-only) - File extension of the layer name. If the layer has
     no extension, empty string is returned.
   """
   
@@ -282,13 +320,24 @@ class _LayerDataElement(object):
   def file_extension(self):
     return libfiles.get_file_extension(self.layer_name)
   
-  def get_filename(self, output_directory, file_format, include_layer_path=True):
+  def get_filename(self, output_directory, file_extension, include_layer_path=True):
     """
-    If include_layer_path is True, get layer filename in the following format:
-    <output directory>/<layer path>/<layer name>.<file format>
+    Create layer filename.
     
-    If include_layer_path is False, get layer filename in the following format:
-    <output directory>/<layer name>.<file format>
+    If `include_layer_path` is True, get layer filename in the following format:
+    <output directory>/<layer path>/<layer name>.<file extension>
+    
+    If `include_layer_path` is False, get layer filename in the following format:
+    <output directory>/<layer name>.<file extension>
+    
+    Parameters:
+    
+    * `output_directory` - Output directory.
+    
+    * `file_extension` - File extension for the filename.
+    
+    * `include_layer_path` - If True, insert the `path_components` attribute
+      into the file path after the output directory.
     """
     
     if output_directory is None:
@@ -299,15 +348,29 @@ class _LayerDataElement(object):
       path = os.path.join(path, os.path.join(*self.path_components))
     path = os.path.join(path, self.layer_name)
     
-    if file_format is not None and file_format and not self.is_empty:
-      path += '.' + file_format
+    if file_extension is not None and file_extension and not self.is_empty:
+      path += '.' + file_extension
     
     return path
   
   def update_path_components(self):
+    """
+    Re-create and return the `path_components` attribute.
+    
+    This method should be called if `layer_name` for non-empty layer groups
+    was changed.
+    """
     return [parent.layer_name for parent in reversed(self.parents)]
   
   def validate_name(self, string_validator):
+    """
+    Validate `layer_name` and `path_components` attributes by deleting
+    characters invalid in filenames.
+    
+    Parameters:
+    
+    * `string_validator` - `libfiles.StringValidator` object.
+    """
     self.layer_name = string_validator.validate(self.layer_name)
     self.path_components = [string_validator.validate(path_component)
                             for path_component in self.path_components]

@@ -252,8 +252,8 @@ class Setting(object):
     
     Returns:
     
-    * `changed_settings` - Set of changed settings. A setting is considered changed
-      if at least one of the following attributes were assigned a value:
+      `changed_settings` - Set of changed settings. A setting is considered
+      changed if at least one of the following attributes were assigned a value:
       * `value`
       * `ui_enabled`
       * `ui_visible`
@@ -305,6 +305,7 @@ class Setting(object):
     """
     Remove streamline function set by the `set_streamline_func()` method.
     """
+    
     if self._streamline_func is None:
       raise TypeError("no streamline function was previously set")
     
@@ -321,6 +322,7 @@ class Setting(object):
     
     in that this method does not raise an exception if the default value is invalid.
     """
+    
     self._value = self.default_value
 
 
@@ -726,6 +728,7 @@ class Container(object):
     """
     Iterate over values (unlike `dict`, which iterates over keys).
     """
+    
     for item in self._items.values():
       yield item
   
@@ -809,8 +812,8 @@ class SettingContainer(Container):
     
     Returns:
     
-    * `changed_settings` - Set of changed settings. See the `streamline()` method
-      in the `Setting` object for more information.
+      `changed_settings` - Set of changed settings. See the `streamline()`
+      method in the `Setting` object for more information.
     """
     
     changed_settings = {}
@@ -831,6 +834,7 @@ class SettingContainer(Container):
     
     Ignore settings whose attribute `can_be_reset_by_container` is False.
     """
+    
     for setting in self:
       if setting.can_be_reset_by_container:
         setting.reset()
@@ -1049,6 +1053,7 @@ class JSONFileSettingStream(SettingStream):
     * `SettingStreamWriteError` - Could not write to the specified file (IOError
       or OSError was raised).
     """
+    
     settings_dict = self._to_dict(settings)
     
     try:
@@ -1065,6 +1070,7 @@ class JSONFileSettingStream(SettingStream):
     Format the setting name and value to a dict, which the `json` module can
     properly serialize and de-serialize.
     """
+    
     settings_dict = OrderedDict()
     for setting in settings:
       settings_dict[setting.name] = setting.value
@@ -1134,14 +1140,14 @@ class SettingPersistor(object):
     
     Returns:
     
-    * `status`
+      Load status:
       
-      - SUCCESS - Settings successfully loaded.
+      * `SUCCESS` - Settings successfully loaded.
       
-      - NOT_ALL_SETTINGS_FOUND - Could not find some settings from
+      * `NOT_ALL_SETTINGS_FOUND` - Could not find some settings from
         any of the streams. Default values are assigned to these settings.
       
-      - READ_FAIL - Could not read data from the first stream where this error
+      * `READ_FAIL` - Could not read data from the first stream where this error
         occurred. May occur for file streams with e.g. denied read permission.
     """
     
@@ -1182,11 +1188,11 @@ class SettingPersistor(object):
     
     Returns:
     
-    * `status`
+      Save status:
       
-      - SUCCESS - Settings successfully saved.
+      * `SUCCESS` - Settings successfully saved.
       
-      - WRITE_FAIL - Could not write data to the first stream where this error
+      * `WRITE_FAIL` - Could not write data to the first stream where this error
         occurred. May occur for file streams with e.g. denied write permission.
     """
     
@@ -1430,6 +1436,7 @@ class SettingPresenterContainer(Container):
     For settings with streamline function assigned, use a different event
     handler that also streamlines the settings.
     """
+    
     for presenter in self:
       if presenter.value_changed_signal is not None:
         if not presenter.setting.can_streamline:
@@ -1468,6 +1475,7 @@ class SettingPresenterContainer(Container):
     Assign value from the GUI element to the setting when the user changed the
     value of the GUI element.
     """
+    
     presenter.setting.value = presenter.value
   
   def _on_element_value_change_streamline(self, presenter):
@@ -1477,6 +1485,7 @@ class SettingPresenterContainer(Container):
     
     Streamline the setting and change other affected GUI elements if necessary.
     """
+    
     presenter.setting.value = presenter.value
     changed_settings = presenter.setting.streamline()
     self._apply_changed_settings(changed_settings)
@@ -1516,6 +1525,7 @@ class SettingPresenterContainer(Container):
     * `changed_settings` - Set of changed attributes of settings to apply to the
       GUI elements.
     """
+    
     for setting, changed_attributes in changed_settings.items():
       for attr in changed_attributes:
         setattr(self[setting], self._SETTING_ATTRIBUTES[attr], getattr(setting, attr))

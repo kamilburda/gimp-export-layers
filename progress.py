@@ -20,8 +20,7 @@
 #-------------------------------------------------------------------------------
 
 """
-This module:
-* defines the interface to update the progress of the work done so far
+This module defines the interface to update the progress of the work done so far.
 """
 
 #===============================================================================
@@ -29,10 +28,28 @@ This module:
 class ProgressUpdater(object):
   
   """
+  This class wraps the behavior of a progress bar used in GUIs.
+  
   This class in particular can be used if no progress update is desired.
   
-  To use this e.g. in the GUI for a progress bar, one needs to subclass this class
-  and define _fill_progress_bar and _set_text_progress_bar methods.
+  To use this in the GUI for a progress bar, subclass this class and override
+  the `_fill_progress_bar()` and `_set_text_progress_bar()` methods.
+  
+  Attributes:
+  
+  * `progress_bar` - Progress bar (GUI element).
+  
+  * `num_total_tasks` - Number of total tasks to complete.
+  
+  * `num_finished_tasks` (read-only) - Number of tasks finished so far.
+  
+  Methods:
+  
+  * `update_tasks()` - Advance the progress bar by a number of finished tasks.
+  
+  * `update_text()` - Update text in the progress bar.
+  
+  * `reset()` - Empty the progress bar and remove its text.
   """
   
   def __init__(self, progress_bar, num_total_tasks=0):
@@ -45,28 +62,41 @@ class ProgressUpdater(object):
   def num_finished_tasks(self):
     return self._num_finished_tasks
   
-  def update(self, num_tasks=0, text=None):
+  def update_tasks(self, num_tasks):
     """
-    Advance the progress bar by a given number of finished tasks.
+    Advance the progress bar by a given number of tasks finished.
     
-    If text is not None, set new text on the progress bar.
-    If text is None, the text on the progress bar is preserved.
+    Raises:
+    
+    * `ValueError` - Number of finished tasks exceeds the number of total tasks.
     """
-    if num_tasks != 0:
-      if self._num_finished_tasks + num_tasks > self.num_total_tasks:
-        raise ValueError("Number of finished tasks exceeds the number of total tasks")
-      else:
-        self._num_finished_tasks += num_tasks
-      
-      self._fill_progress_bar()
     
-    self._set_text(text)
+    if self._num_finished_tasks + num_tasks > self.num_total_tasks:
+      raise ValueError("Number of finished tasks exceeds the number of total tasks")
+    
+    self._num_finished_tasks += num_tasks
+    
+    self._fill_progress_bar()
+  
+  def update_text(self, text):
+    """
+    Update text in the progress bar. Use None or empty string to remove the
+    text.
+    """
+    
+    if text is None:
+      text = ""
+    self._set_text_progress_bar(text)
   
   def reset(self):
+    """
+    Empty the progress bar and remove its text.
+    """
+    
     self._num_finished_tasks = 0
     if self.num_total_tasks > 0:
       self._fill_progress_bar()
-    self._set_text("")
+    self._set_text_progress_bar("")
   
   def _set_text(self, text):
     if text is not None:
@@ -74,7 +104,7 @@ class ProgressUpdater(object):
   
   def _fill_progress_bar(self):
     """
-    Fill in _num_finished_tasks/num_total_tasks fraction of the progress bar.
+    Fill in `num_finished_tasks`/`num_total_tasks` fraction of the progress bar.
     """
     pass
   

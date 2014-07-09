@@ -52,34 +52,27 @@ class TestProgressUpdater(unittest.TestCase):
     self.progress_bar = MockProgressBar()
     self.progress_updater = MockProgressUpdater(self.progress_bar, num_total_tasks=10)
   
-  def test_update_no_params(self):
-    self.progress_updater.update()
-    self.assertEqual(self.progress_updater.progress_bar.fraction, 0)
+  def test_update_tasks(self):
+    self.progress_updater.update_tasks(self.num_total_tasks / 2)
+    self.assertEqual(self.progress_updater.num_finished_tasks, self.num_total_tasks / 2)
+    self.progress_updater.update_tasks(2)
+    self.assertEqual(self.progress_updater.num_finished_tasks, self.num_total_tasks / 2 + 2)
+  
+  def test_update_text(self):
+    self.progress_updater.update_text("Hi there")
+    self.assertEqual(self.progress_updater.progress_bar.text, "Hi there")
+    self.progress_updater.update_text(None)
     self.assertEqual(self.progress_updater.progress_bar.text, "")
   
-  def test_update_with_params(self):
-    self.progress_updater.update(self.num_total_tasks / 2, "Hi there")
-    self.assertEqual(self.progress_updater.num_finished_tasks, self.num_total_tasks / 2)
-    self.assertEqual(self.progress_updater.progress_bar.text, "Hi there")
-    
-    self.progress_updater.update(2)
-    self.assertEqual(self.progress_updater.num_finished_tasks, self.num_total_tasks / 2 + 2)
-    self.assertEqual(self.progress_updater.progress_bar.text, "Hi there")
-    
   def test_update_with_num_finished_tasks_greater_than_num_tasks(self):
     with self.assertRaises(ValueError):
-      self.progress_updater.update(self.num_total_tasks + 1)
+      self.progress_updater.update_tasks(self.num_total_tasks + 1)
   
   def test_reset(self):
-    self.progress_updater.update(5, "Hi there")
-    
+    self.progress_updater.update_text("Hi there")
+    self.progress_updater.update_tasks(2)
     self.progress_updater.reset()
     
     self.assertEqual(self.progress_updater.num_finished_tasks, 0)
     self.assertEqual(self.progress_updater.progress_bar.text, "")
-  
-  def test_text_is_none(self):
-    self.progress_updater.update(0, "Hi there")
-    self.progress_updater.update(1, None)
-    self.assertEqual(self.progress_updater.progress_bar.text, "Hi there")
   

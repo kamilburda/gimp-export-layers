@@ -216,11 +216,11 @@ class TestLayerData(unittest.TestCase):
                      layerdata_empty_layer_group_no_parents.get_filename(output_directory, file_format,
                                                                          include_layer_path=False))
   
-  def test_get_file_format_properties(self):
+  def test_get_file_extension_properties(self):
     self.layer_data.is_filtered = True
     
     with self.layer_data.filter.add_rule_temp(LayerFilters.is_layer):
-      layer_file_extensions = self.layer_data.get_file_format_properties('jpg')
+      layer_file_extensions = self.layer_data.get_file_extension_properties('jpg')
       
       for file_ext in layer_file_extensions:
         self.assertEqual(layer_file_extensions[file_ext].is_valid, True)

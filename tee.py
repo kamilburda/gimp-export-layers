@@ -20,8 +20,8 @@
 #-------------------------------------------------------------------------------
 
 """
-This module:
-* defines a class to log stdout or stderr output to a specified file
+This module defines a class to log stdout or stderr output to a specified file,
+much like the Unix "tee" command.
 """
 
 #===============================================================================
@@ -41,6 +41,29 @@ class Tee(object):
   """
   This class copies stdout or stderr output to a specified file,
   much like the Unix "tee" command.
+  
+  Attributes:
+  
+  * `stream` - Either `sys.stdout` or `sys.stderr`. Other objects are invalid
+    and raise `ValueError`.
+    
+  * `log_header_title` - Header text to write when writing into the file
+    for the first time.
+  
+  Methods:
+  
+  * `start()` - Start `Tee` if not started when the object was instantiated.
+  
+  * `stop()` - Stop `Tee`, i.e. stop writing to file.
+  
+  * `is_running()` - True if `Tee` is running (i.e. writing to file),
+    False otherwise.
+  
+  * `write()` - Used by `sys.stdout`, `sys.stderr` and file-like objects to
+    write output to stream or file.
+  
+  * `flush()` - Used by `sys.stdout`, `sys.stderr` and file-like objects to
+    flush output.
   """
   
   _STATES = _RUNNING_FIRST_TIME, _RUNNING, _NOT_RUNNING = (0, 1, 2)
@@ -50,18 +73,13 @@ class Tee(object):
     """
     Parameters:
     
-    * stream: Either sys.stdout or sys.stderr. Other object are invalid
-      and ValueError will be raised.
+    * `file_object` - File or file-like object to write to.
     
-    * file_object: File or file-like object to write to.
+    * `start` - If True, start `Tee` upon instantiation, otherwise don't.
+      To start later, pass `start=False` and call the `start()` method when
+      desired.
     
-    * log_header_title: Header text to write when writing into the file
-      for the first time.
-    
-    * start: If True, start Tee upon instantiation, otherwise don't.
-      To start later, pass start=False and call the start() method.
-    
-    * flush_file: If True, force the file to flush after each write.
+    * `flush_file` - If True, flush the file after each write.
     """
   
     self._streams = { sys.stdout : 'stdout', sys.stderr : 'stderr' }
@@ -98,6 +116,13 @@ class Tee(object):
       raise ValueError("invalid stream; must be sys.stdout or sys.stderr")
   
   def start(self, file_object):
+    """
+    Start `Tee` if not started when the object was instantiated.
+    
+    Parameters:
+    
+    * `file_object` - File or file-like object to write to.
+    """
     self._orig_stream = self.stream
     setattr(sys, self._stream_name, self)
     
@@ -108,6 +133,9 @@ class Tee(object):
     setattr(sys, self._stream_name, self._orig_stream)
     self._file.close()
     self._state = self._NOT_RUNNING
+  
+  def is_running(self):
+    return self._state != self._NOT_RUNNING
   
   def write(self, data):
     if self._state == self._RUNNING_FIRST_TIME:
@@ -120,13 +148,6 @@ class Tee(object):
       else:
         self.write = self._write_with_flush
   
-  def is_running(self):
-    return self._state != self._NOT_RUNNING
-  
-  def flush(self):
-    self._file.flush()
-    self._stream.flush()
-  
   def _write(self, data):
     self._file.write(data)
     self._stream.write(data)
@@ -135,6 +156,10 @@ class Tee(object):
     self._file.write(data)
     self._stream.write(data)
     self._file.flush()
+  
+  def flush(self):
+    self._file.flush()
+    self._stream.flush()
 
   def _get_log_header(self):
     return '\n'.join(('', '=' * 80, self.log_header_title, str(datetime.now()), '\n'))
