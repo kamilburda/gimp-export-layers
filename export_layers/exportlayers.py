@@ -318,7 +318,7 @@ class LayerExporter(object):
     
     self.progress_updater.num_total_tasks = len(self._layer_data)
     
-    self._layer_file_format_properties = self._layer_data.get_file_format_properties(self._default_file_format)
+    self._layer_file_format_properties = self._layer_data.get_file_extension_properties(self._default_file_format)
     
     for layerdata_elem in self._layer_data:
       
@@ -358,7 +358,7 @@ class LayerExporter(object):
       if self._current_layer_export_status == self._USE_DEFAULT_FILE_FORMAT:
         self._export(layerdata_elem, self._image_copy, layer_copy)
       
-      self.progress_updater.update(num_tasks=1)
+      self.progress_updater.update_tasks(1)
       pdb.gimp_image_remove_layer(self._image_copy, layer_copy)
       if not self._is_current_layer_skipped:
         # Append the original layer, not the copy, since the copy was destroyed.
@@ -502,8 +502,7 @@ class LayerExporter(object):
   def _handle_overwrite(self, output_filename):
     should_skip = False
     if os.path.exists(output_filename):
-      self.overwrite_chooser.filename = os.path.basename(output_filename)
-      self.overwrite_chooser.choose()
+      self.overwrite_chooser.choose(filename=os.path.basename(output_filename))
       if self.overwrite_chooser.overwrite_mode == self.main_settings['overwrite_mode'].options['skip']:
         should_skip = True
       elif self.overwrite_chooser.overwrite_mode == self.main_settings['overwrite_mode'].options['replace']:
@@ -526,7 +525,7 @@ class LayerExporter(object):
     output_filename = self._get_filename(layerdata_elem)
     
     self._is_current_layer_skipped, output_filename = self._handle_overwrite(output_filename)
-    self.progress_updater.update(text="Saving '" + output_filename + "'")
+    self.progress_updater.update_text("Saving '" + output_filename + "'")
     
     if not self._is_current_layer_skipped:
       libfiles.make_dirs(os.path.dirname(output_filename))

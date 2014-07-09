@@ -165,15 +165,14 @@ class _ExportLayersGui(object):
     
     status = self.setting_persistor.load(self.main_settings, self.gui_settings)
     if status == settings.SettingPersistor.READ_FAIL:
-      gui.display_message(self.setting_persistor.status_message, gtk.MESSAGE_WARNING,
-                          title=constants.PLUGIN_TITLE)
+      display_message(self.setting_persistor.status_message, gtk.MESSAGE_WARNING)
     self.setting_persistor.read_setting_streams.pop()
     
     self.setting_presenters = gui.GtkSettingPresenterContainer()
     self.layer_exporter = None
     
     self._init_gui()
-    self._export_dialog = ExportDialog(self.stop)
+    self.export_dialog = ExportDialog(self.stop)
     
     gtk.main()
   
@@ -420,10 +419,8 @@ class _ExportLayersGui(object):
     
     status = self.setting_persistor.save(self.main_settings, self.gui_settings)
     if status == self.setting_persistor.WRITE_FAIL:
-      gui.display_message(gtk.MESSAGE_WARNING, self.setting_persistor.status_message,
-                          title=constants.PLUGIN_TITLE,
-                          parent=self.dialog)
-    
+      display_message(self.setting_persistor.status_message, gtk.MESSAGE_WARNING,
+                      parent=self.dialog)
     self.setting_persistor.write_setting_streams.pop()
   
   def on_save_settings(self, widget):
@@ -450,7 +447,7 @@ class _ExportLayersGui(object):
       return
     
     self.dialog.hide()
-    self._export_dialog.show()
+    self.export_dialog.show()
     self.display_message_label(None)
     pdb.gimp_progress_init("", None)
     should_quit = True
@@ -462,7 +459,7 @@ class _ExportLayersGui(object):
       default_value=self.main_settings['overwrite_mode'].options['replace'],
       default_response=self.main_settings['overwrite_mode'].options['cancel'],
       title=constants.PLUGIN_TITLE)
-    progress_updater = gui.GtkProgressUpdater(self._export_dialog.progress_bar)
+    progress_updater = gui.GtkProgressUpdater(self.export_dialog.progress_bar)
     
     # Make the enabled GUI components more responsive(-ish) by periodically checking
     # whether the GUI has something to do.
@@ -475,21 +472,20 @@ class _ExportLayersGui(object):
     except exportlayers.ExportLayersCancelError as e:
       should_quit = False
     except exportlayers.ExportLayersNoLayersToExport as e:
-      gui.display_message(e.message, gtk.MESSAGE_INFO, parent=self._export_dialog.dialog)
+      display_message(e.message, gtk.MESSAGE_INFO, parent=self.export_dialog.dialog)
       should_quit = False
     except exportlayers.ExportLayersError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       should_quit = False
     except Exception as e:
-      display_exception_message(traceback.format_exc(), parent=self._export_dialog.dialog)
+      display_exception_message(traceback.format_exc(), parent=self.export_dialog.dialog)
     else:
       self.special_settings['first_run'].value = False
       self.setting_persistor.save([self.special_settings['first_run']])
     finally:
       gobject.source_remove(refresh_event_id)
-      progress_updater.reset()
       pdb.gimp_progress_end()
-      self._export_dialog.hide()
+      self.export_dialog.hide()
     
     self.main_settings['overwrite_mode'].value = overwrite_chooser.overwrite_mode
     self.setting_persistor.save(self.main_settings, self.gui_settings)
@@ -497,6 +493,7 @@ class _ExportLayersGui(object):
     if should_quit:
       gtk.main_quit()
     else:
+      progress_updater.reset()
       self.dialog.show()
   
   def close(self, widget, event):
@@ -546,15 +543,15 @@ class _ExportLayersToGui(object):
     
     self.layer_exporter = None
     
-    self._export_dialog = ExportDialog(self.stop)
+    self.export_dialog = ExportDialog(self.stop)
     
     gtk.main_iteration()
-    self._export_dialog.show()
-    self._export_layers()
+    self.export_dialog.show()
+    self.export_layers()
   
-  def _export_layers(self):
+  def export_layers(self):
     overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(self.main_settings['overwrite_mode'].value)
-    progress_updater = gui.GtkProgressUpdater(self._export_dialog.progress_bar)
+    progress_updater = gui.GtkProgressUpdater(self.export_dialog.progress_bar)
     pdb.gimp_progress_init("", None)
     refresh_event_id = gobject.timeout_add(self._GUI_REFRESH_INTERVAL_MILLISECONDS, self.refresh_ui)
     try:
@@ -564,15 +561,14 @@ class _ExportLayersToGui(object):
     except exportlayers.ExportLayersCancelError:
       pass
     except exportlayers.ExportLayersNoLayersToExport as e:
-      gui.display_message(e.message, gtk.MESSAGE_INFO, parent=self._export_dialog.dialog)
+      display_message(e.message, gtk.MESSAGE_INFO, parent=self.export_dialog.dialog)
     except exportlayers.ExportLayersError:
       pass
     except Exception:
-      display_exception_message(traceback.format_exc(), parent=self._export_dialog.dialog)
+      display_exception_message(traceback.format_exc(), parent=self.export_dialog.dialog)
     finally:
       gobject.source_remove(refresh_event_id)
       pdb.gimp_progress_end()
-      progress_updater.reset()
   
   def stop(self, widget, *args):
     if self.layer_exporter is not None:
