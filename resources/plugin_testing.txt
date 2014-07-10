@@ -1,4 +1,7 @@
-Testing criteria:
+================================================================================
+Testing criteria
+---------------------
+
 * platforms
    * Windows
    * Ubuntu
@@ -19,9 +22,15 @@ Testing criteria:
    * indexed
 * settings
    * not all combinations, only those settings that relate to each other
+* layer names and filenames
+   * valid and invalid characters in filenames and directory names
+   * Unicode characters
 
----------------------------------------------------------------
+================================================================================
+
 Export Layers
+---------------------
+
 * interactive
    - load settings from GIMP shelf and config file
    - save settings to GIMP shelf after export
@@ -39,8 +48,10 @@ image = gimp.image_list()[0]
 pdb.plug_in_export_layers(image, 'jpg', "D:\\testgimp\\test_export_layers", False, False, False, False, 0, 0, 0, 0, False, False, True, False, run_mode=RUN_WITH_LAST_VALS)
 pdb.plug_in_export_layers_to(image)
 
----------------------------------------------------------------
+
 Export Layers To
+---------------------
+
 * interactive
    - load settings from GIMP shelf and config file
    - first run
@@ -53,8 +64,9 @@ Export Layers To
    - load settings from GIMP shelf and config file
    - save settings to GIMP shelf after export
 
----------------------------------------------------------------
+
 Settings
+---------------------
 
 * Output directory
    - root directory
@@ -100,8 +112,11 @@ Settings
 * square_bracketed_mode - Ignore other layers - Remove square brackets
    - Create directories for empty layer groups
 
----------------------------------------------------------------
+* ignore layer modes
+
+
 Platforms
+---------------------
 
 * Windows
    - test everything

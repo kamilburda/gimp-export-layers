@@ -1,10 +1,7 @@
 2.1 (Upcoming)
 ------------------------
 
-* Added Ignore Layer Mode setting, which sets the layer mode to Normal for each layer.
-  This is useful for layers with opacity less than 100% and a layer mode different
-  than Normal or Dissolve, which would normally be completely invisible if a file
-  format supporting alpha channel is used (such as PNG).
+* Added "Ignore Layer Mode" setting, which sets the layer mode to Normal for each layer..
 * Fixed a bug that caused the file format dialog to not appear if the user chose
   Skip in the overwrite dialog for the first file (or the first and subsequent files).
 * Removed unneeded files from the package.
