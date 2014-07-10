@@ -21,7 +21,14 @@
 #
 #-------------------------------------------------------------------------------
 
-#=============================================================================== 
+#===============================================================================
+
+from __future__ import absolute_import
+from __future__ import print_function
+#from __future__ import unicode_literals
+from __future__ import division
+
+#===============================================================================
 
 import gimp
 import gimpplugin
@@ -131,7 +138,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
     self.setting_persistor.read_setting_streams.pop()
     
     if status == self.setting_persistor.READ_FAIL:
-      print self.setting_persistor.status_message
+      print(self.setting_persistor.status_message)
     
     self._run_plugin_noninteractive(gimpenums.RUN_WITH_LAST_VALS, image)
   
@@ -155,9 +162,9 @@ class ExportLayersPlugin(gimpplugin.plugin):
     try:
       layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError as e:
-      print e.message
+      print(e.message)
     except exportlayers.ExportLayersError as e:
-      print e.message
+      print(e.message)
       raise
     
     self.special_settings['first_run'].value = False
