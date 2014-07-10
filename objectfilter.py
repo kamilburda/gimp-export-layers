@@ -25,6 +25,13 @@ This module defines a class to filter objects according to specified filter rule
 
 #===============================================================================
 
+from __future__ import absolute_import
+from __future__ import print_function
+#from __future__ import unicode_literals
+from __future__ import division
+
+#===============================================================================
+
 import inspect
 from contextlib import contextmanager
 
@@ -79,7 +86,7 @@ class ObjectFilter(object):
       at least one argument - the object to match (used by the `is_match()`
       method).
     
-    * *rule_func_args` - Arguments for the `rule_func` function.
+    * `*rule_func_args` - Arguments for the `rule_func` function.
     
     Raises:
     
@@ -135,7 +142,7 @@ class ObjectFilter(object):
       at least one argument - the object to match (used by the `is_match()`
       method).
     
-    * *rule_func_args` - Arguments for the `rule_func` function.
+    * `*rule_func_args` - Arguments for the `rule_func` function.
     
     Raises:
     

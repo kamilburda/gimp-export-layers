@@ -23,6 +23,13 @@
 This module contains functions dealing with GIMP objects - images, layers, etc.
 """
 
+#===============================================================================
+
+from __future__ import absolute_import
+from __future__ import print_function
+#from __future__ import unicode_literals
+from __future__ import division
+
 #=============================================================================== 
 
 from contextlib import contextmanager

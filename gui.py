@@ -25,10 +25,18 @@ This module defines:
 * GTK progress updater
 * GTK exception message
 * GTK generic message
-* context manager for `sys.excepthook` that displays GTK exception message on exception
-* SettingPresenter wrappers for GTK elements
-* SettingPresenterContainer for GTK
+* context manager for `sys.excepthook` that displays GTK exception message when
+  an unhandled exception is raised
+* SettingPresenter subclasses for GTK elements
+* SettingPresenterContainer subclass for GTK elements
 """
+
+#===============================================================================
+
+from __future__ import absolute_import
+from __future__ import print_function
+#from __future__ import unicode_literals
+from __future__ import division
 
 #===============================================================================
 
@@ -320,7 +328,7 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
 class GtkProgressUpdater(progress.ProgressUpdater):
   
   def _fill_progress_bar(self):
-    self.progress_bar.set_fraction(float(self._num_finished_tasks) / float(self.num_total_tasks))
+    self.progress_bar.set_fraction(self._num_finished_tasks / self.num_total_tasks)
     self._force_update()
   
   def _set_text_progress_bar(self, text):
@@ -484,7 +492,7 @@ class GtkWindowPositionPresenter(GtkSettingPresenter):
   This class is a `SettingPresenter` for window or dialog elements
   (`gtk.Window`, `gtk.Dialog`) to get/set its position.
   
-  Value: Current position of the window.
+  Value: Current position of the window as a tuple with 2 integers.
   """
   
   @property
@@ -494,12 +502,11 @@ class GtkWindowPositionPresenter(GtkSettingPresenter):
   @value.setter
   def value(self, value_):
     """
-    Set the current position of the window.
+    Set new position of the window (i.e. move the window).
     
-    If the position to be assigned is None or does not have two elements,
-    window is not moved.
+    Don't move the window if `value_` is None or empty.
     """
-    if value_ is not None and len(value_) == 2:
+    if value_ and value_ is not None:
       self._element.move(*value_)
 
 

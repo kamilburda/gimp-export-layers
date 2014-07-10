@@ -26,6 +26,13 @@ that can be used in unit tests.
 
 #===============================================================================
 
+from __future__ import absolute_import
+from __future__ import print_function
+#from __future__ import unicode_literals
+from __future__ import division
+
+#===============================================================================
+
 class MockPDB(object):
   
   def __init__(self):

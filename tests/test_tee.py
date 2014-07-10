@@ -21,6 +21,13 @@
 
 #===============================================================================
 
+from __future__ import absolute_import
+from __future__ import print_function
+#from __future__ import unicode_literals
+from __future__ import division
+
+#===============================================================================
+
 import sys
 
 from StringIO import StringIO
@@ -41,26 +48,26 @@ class TestTee(unittest.TestCase):
   def test_write(self):
     tee.Tee(sys.stdout, self.string_file, log_header_title="Test Header")
     
-    print "Hello"
+    print("Hello")
     self.assertTrue(self.string_file.getvalue().endswith("Hello\n"))
     self.assertTrue("Test Header" in self.string_file.getvalue())
     
-    print "Hi There Again"
+    print("Hi There Again")
     self.assertTrue(self.string_file.getvalue().endswith("Hello\nHi There Again\n"))
   
   def test_start_and_stop(self):
     tee_stdout = tee.Tee(sys.stdout, self.string_file, log_header_title="Test Header", start=False)
     
-    print "Hi There"
+    print("Hi There")
     self.assertFalse(self.string_file.getvalue().endswith("Hi There\n"))
     
     tee_stdout.start(self.string_file)
-    print "Hello"
+    print("Hello")
     self.assertTrue(self.string_file.getvalue().endswith("Hello\n"))
     
     string_value = self.string_file.getvalue()
     tee_stdout.stop()
-    print "Hi There Again"
+    print("Hi There Again")
     self.assertFalse(string_value.endswith("Hi There Again\n"))
   
   def test_invalid_stream(self):

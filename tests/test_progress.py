@@ -19,6 +19,13 @@
 #
 #-------------------------------------------------------------------------------
 
+#===============================================================================
+
+from __future__ import absolute_import
+from __future__ import print_function
+#from __future__ import unicode_literals
+from __future__ import division
+
 #=============================================================================== 
 
 import unittest
@@ -37,7 +44,7 @@ class MockProgressBar(object):
 class MockProgressUpdater(progress.ProgressUpdater):
   
   def _update_progress_bar(self):
-    self.progress_bar.fraction = float(self._num_finished_tasks) / self.num_total_tasks
+    self.progress_bar.fraction = self._num_finished_tasks / self.num_total_tasks
   
   def _set_text_progress_bar(self, text):
     self.progress_bar.text = text
