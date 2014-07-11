@@ -46,9 +46,9 @@ import gimp
 import gimpenums
 import gimpui
 
-from export_layers.libgimpplugin import settings
-from export_layers.libgimpplugin import overwrite
-from export_layers.libgimpplugin import gui
+from export_layers.pylibgimpplugin import settings
+from export_layers.pylibgimpplugin import overwrite
+from export_layers.pylibgimpplugin import gui
 
 from export_layers import exportlayers
 from export_layers import constants

@@ -36,7 +36,7 @@ from __future__ import division
 import sys
 import os
 
-from export_layers.libgimpplugin import tee
+from export_layers.pylibgimpplugin import tee
 
 from export_layers import constants
 

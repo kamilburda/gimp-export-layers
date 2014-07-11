@@ -41,11 +41,11 @@ import string
 import gimp
 import gimpenums
 
-from export_layers.libgimpplugin import libfiles
-from export_layers.libgimpplugin import pylibgimp
-from export_layers.libgimpplugin import layerdata
-from export_layers.libgimpplugin import objectfilter
-from export_layers.libgimpplugin import progress
+from export_layers.pylibgimpplugin import libfiles
+from export_layers.pylibgimpplugin import pylibgimp
+from export_layers.pylibgimpplugin import layerdata
+from export_layers.pylibgimpplugin import objectfilter
+from export_layers.pylibgimpplugin import progress
 
 #===============================================================================
 

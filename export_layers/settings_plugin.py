@@ -36,7 +36,7 @@ from __future__ import division
 import gimp
 import gimpenums
 
-from export_layers.libgimpplugin import settings
+from export_layers.pylibgimpplugin import settings
 
 #===============================================================================
 
