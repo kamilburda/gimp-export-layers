@@ -20,14 +20,17 @@
 #-------------------------------------------------------------------------------
 
 """
-This module contains functions dealing with GIMP objects - images, layers, etc.
+This module:
+* defines functions dealing with GIMP objects - images, layers, etc. not defined
+  in the Python API for GIMP plug-ins
+* defines GIMP-specific constants
 """
 
 #===============================================================================
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
 
 #=============================================================================== 
@@ -41,6 +44,8 @@ import gimpenums
 
 pdb = gimp.pdb
 
+#===============================================================================
+# Functions
 #===============================================================================
 
 @contextmanager

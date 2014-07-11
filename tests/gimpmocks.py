@@ -28,7 +28,7 @@ that can be used in unit tests.
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
 
 #===============================================================================
@@ -36,7 +36,7 @@ from __future__ import division
 class MockPDB(object):
   
   def __init__(self):
-    self._attr_name = ""
+    self._attr_name = b""
   
   def __getattr__(self, name):
     self._attr_name = name
@@ -68,28 +68,28 @@ class MockPDB(object):
 
 class MockImage(object):
   
-  def __init__(self, name=""):
+  def __init__(self, name=None):
     self.ID = 0
     self.width = 0
     self.height = 0
     self.image_type = None
     self.layers = []
-    self.name = name
-    self.filename = ""
-    self.uri = ""
+    self.name = name.encode() if name is not None else b""
+    self.filename = b""
+    self.uri = b""
     self.valid = True
 
 
 class MockItem(object):
   
-  def __init__(self, name="", visible=True):
+  def __init__(self, name=None, visible=True):
     self.ID = 0
     self.width = 0
     self.height = 0
     self.valid = True
     self.visible = visible
     self.offsets = (0, 0)
-    self.name = name
+    self.name = name.encode() if name is not None else b""
     self.image = None
     self.children = []
 
@@ -128,7 +128,7 @@ class MockGimpShelf(object):
     self._shelf[key] = value
   
   def __delitem__(self, key):
-    self._shelf[key] = ''
+    self._shelf[key] = b''
   
   def has_key(self, key):
     return key in self._shelf

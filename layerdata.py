@@ -198,7 +198,8 @@ class LayerData(object):
       layer_paths = set()
       for layerdata_elem in layerdata:
         layerdata_elem.layer_name = libfiles.uniquify_string(
-          layerdata_elem.layer_name, layer_paths, place_before_file_extension=place_before_file_extension)
+          layerdata_elem.layer_name, layer_paths, place_before_file_extension=place_before_file_extension
+        )
         layerdata_elem.path_components = layerdata_elem.update_path_components()
         layer_paths.add(layerdata_elem.layer_name)
     
@@ -288,7 +289,8 @@ class _LayerDataElement(object):
     positioned. 0 means the layer is at the top level.
   
   * `layer_name` - Layer name. Modify this attribute instead of `gimp.Layer.name`
-    to avoid modifying the original layer.
+    to avoid modifying the original layer. While `gimp.Layer.name` are bytes
+    encoded in UTF-8, `layer_name` is of type `unicode`.
   
   * `is_group` - If True, layer is a layer group (`gimp.GroupLayer`). If False,
     layer is `gimp.Layer`.
@@ -317,6 +319,7 @@ class _LayerDataElement(object):
     self.level = len(self.parents)
     
     self.layer_name = self.layer.name
+#    self.layer_name = self.layer.name.decode()
     self.is_group = pdb.gimp_item_is_group(self.layer)
     self.is_empty = self.is_group and not self.layer.children
     

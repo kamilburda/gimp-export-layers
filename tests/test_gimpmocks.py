@@ -23,7 +23,7 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
 
 #=============================================================================== 
@@ -46,6 +46,6 @@ class TestMockPDB(unittest.TestCase):
   
   def test_unknown_pdb_func(self):
     self.assertTrue(callable(self.pdb.plug_in_autocrop))
-    self.assertEqual(self.pdb.plug_in_autocrop(), "plug_in_autocrop")
+    self.assertEqual(self.pdb.plug_in_autocrop(), b"plug_in_autocrop")
     self.assertEqual(self.pdb.plug_in_autocrop("some random args", 1, 2, 3),
-                     "plug_in_autocrop")
+                     b"plug_in_autocrop")

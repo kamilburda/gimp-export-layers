@@ -35,6 +35,8 @@ from __future__ import division
 
 import string
 import os
+import re
+import abc
 
 #===============================================================================
 
@@ -140,9 +142,333 @@ def make_dirs(path):
     else:
       raise
 
+
+def split_path(path):
+  """
+  Split the specified path into separate components.
+  """
+  
+  path = os.path.normpath(path)
+  path_components = []
+  
+  head = path
+  while True:
+    head, tail = os.path.split(head)
+    if tail:
+      path_components.insert(0, tail)
+    else:
+      if head:
+        path_components.insert(0, head)
+      break
+  
+  return path_components
+
 #===============================================================================
 
 class StringValidator(object):
+  
+  """
+  This class is an interface to validate strings.
+  
+  Strings are assumed to be Unicode strings.
+  
+  This class does not specify what strings are valid (whether they contain
+  invalid characters, substrings, etc.). This should be handled by subclasses.
+  
+  Methods:
+  
+  * `is_valid()` - Check if the specified string is valid.
+  
+  * `validate()` - Modify the specified string to make it valid.
+  """
+  
+  __metaclass__ = abc.ABCMeta
+  
+  @abc.abstractmethod
+  def is_valid(self, string_to_check):
+    """
+    Check if the specified input string is valid.
+    
+    Returns:
+      
+      * `is_valid` - True if the input string is valid, False otherwise.
+      
+      * `status_message` - If the input string is invalid, `status_message` is
+        a string describing why the input string is invalid.
+    """
+    pass
+  
+  @abc.abstractmethod
+  def validate(self, string_to_validate):
+    """
+    Modify the specified string to make it valid.
+    """
+    pass
+
+
+class FilenameValidator(StringValidator):
+  
+  """
+  This class is used to validate filenames (not their full path, only the
+  name itself, also called "basenames").
+  
+  In this class, filenames are considered valid if they:
+    
+    * don't contain control characters with ordinal numbers 0-31 and 127-159
+    
+    * don't contain the following special characters:
+      
+      <>:"/\|?*~!@'`#$%&=+{}[]
+    
+    * don't start or end with spaces
+    
+    * don't end with one or more periods
+    
+    * don't have invalid names according to the naming conventions for the
+      Windows platform:
+      
+      http://msdn.microsoft.com/en-us/library/aa365247%28VS.85%29
+    
+    * are not empty or None
+  """
+  
+  _INVALID_CHARS_PATTERN = r"[\x00-\x1f\x7f-\x9f<>:\"\\/|?*~!@'`#$%&=+{}\[\]]"
+  
+  # Invalid names for the Windows platform. Taken from:
+  # http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx
+  _INVALID_NAMES = {
+   "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6",
+   "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6",
+   "LPT7", "LPT8", "LPT9"
+  }
+  
+  def is_valid(self, filename):
+    """
+    Check whether the specified filename is valid.
+    
+    See the class description for details about when the filename is valid.
+    """
+    
+    if not filename or filename is None:
+      return False, "Filename is empty."
+    
+    status_message = ""
+    
+    if re.search(self._INVALID_CHARS_PATTERN, filename):
+      status_message += "Filename contains invalid characters.\n"
+    
+    if filename.startswith(" ") or filename.endswith(" "):
+      status_message += "Filename cannot start or end with spaces.\n"
+    
+    if filename.endswith("."):
+      status_message += "Filename cannot end with a period.\n"
+    
+    root, _ = os.path.splitext(filename)
+    if root.upper() in self._INVALID_NAMES:
+      status_message = (
+        "\"" + filename + "\" is a reserved name that cannot be used "
+        "in file paths.\n"
+      )
+    
+    status_message = status_message.rstrip('\n')
+    is_valid = not status_message
+    
+    return is_valid, status_message
+  
+  def validate(self, filename):
+    """
+    Validate the specified filename by removing invalid characters.
+    
+    If the filename is one of the reserved names for the Windows platform,
+    append " (1)" to the filename (before the file extension if it has one).
+    
+    If the filename is truncated to an empty string, return "Untitled".
+    """
+    
+    filename = (
+      re.sub(self._INVALID_CHARS_PATTERN, "", filename)
+        .strip(" ")
+        .rstrip(".")
+    )
+    
+    root, ext = os.path.splitext(filename)
+    # For reserved names, the comparison must be case-insensitive
+    # (because Windows has case-insensitive filenames).
+    if root.upper() in self._INVALID_NAMES:
+      filename = root + " (1)" + ext
+    
+    if not filename:
+      filename = "Untitled"
+    
+    return filename
+
+
+class FilePathValidator(StringValidator):
+  
+  """
+  This class is used to validate file paths (relative or absolute).
+  
+  The same validation rules that apply to filenames in the `FilenameValidator`
+  class apply to file paths in this class, with the following exceptions:
+    
+    * '/' and '\' characters are allowed
+    
+    * ':' character is allowed to appear at the root level (as a part of a drive
+      letter, e.g. "C:\")
+  """
+  
+  _INVALID_CHARS = r"\x00-\x1f\x7f-\x9f<>\"|?*~!@'`#$%&=+{}\[\]"
+  _VALID_DRIVE_CHARS = r':'
+  
+  _INVALID_CHARS_PATTERN_WITHOUT_DRIVE = "[" + _INVALID_CHARS + "]"
+  _INVALID_CHARS_PATTERN = "[" + _INVALID_CHARS + _VALID_DRIVE_CHARS + "]"
+  
+  _INVALID_NAMES = FilenameValidator._INVALID_NAMES
+  
+  __PATH_COMPONENT_STATUSES = _INVALID_CHARS, _HAS_SPACES, _HAS_TRAILING_PERIOD = (0, 1, 2)
+  
+  def is_valid(self, filepath):
+    
+    if not filepath or filepath is None:
+      return False, "File path is empty."
+    
+    status_message = ""
+    statuses = set()
+    filepath = os.path.normpath(filepath)
+    
+    drive, path = os.path.splitdrive(filepath)
+    
+    if drive:
+      if re.search(self._INVALID_CHARS_PATTERN_WITHOUT_DRIVE, drive):
+        status_message += "Drive letter contains invalid characters.\n"
+    
+    path_components = split_path(path)
+    for path_component in path_components:
+      if re.search(self._INVALID_CHARS_PATTERN, path_component):
+        statuses.add(self._INVALID_CHARS)
+      if path_component.startswith(" ") or path_component.endswith(" "):
+        statuses.add(self._HAS_SPACES)
+      if path_component.endswith("."):
+        statuses.add(self._HAS_TRAILING_PERIOD)
+      
+      root, _ = os.path.splitext(path_component)
+      if root.upper() in self._INVALID_NAMES:
+        status_message += (
+          "\"" + path_component + "\" is a reserved name that cannot be used "
+          "in file paths.\n"
+        )
+    
+    if self._INVALID_CHARS in statuses:
+      status_message += (
+        "File path contains invalid characters.\n"
+      )
+    if self._HAS_SPACES in statuses:
+      status_message += (
+        "Path components in the file path cannot start or end with spaces.\n"
+      )
+    if self._HAS_TRAILING_PERIOD in statuses:
+      status_message += (
+        "Path components in the file path cannot end with a period.\n"
+      )
+    
+    status_message = status_message.rstrip('\n')
+    is_valid = not status_message
+    
+    return is_valid, status_message
+  
+  def validate(self, filepath):
+    """
+    Raises:
+    
+    * `ValueError` - A path component in the file path was truncated
+      to an empty string.
+    """
+    
+    filepath = os.path.normpath(filepath)
+    drive, path = os.path.splitdrive(filepath)
+    
+    if drive:
+      drive = re.sub(self._INVALID_CHARS_PATTERN_WITHOUT_DRIVE, "", drive)
+    
+    path_components = split_path(path)
+    for i in range(len(path_components)):
+      path_component = re.sub(self._INVALID_CHARS_PATTERN, "", path_components[i])
+      path_component = path_component.strip(" ").rstrip(".")
+      
+      root, ext = os.path.splitext(path_component)
+      if root.upper() in self._INVALID_NAMES:
+        path_component = root + " (1)" + ext
+    
+      if not path_component:
+        raise ValueError("Path component \"" + repr(path_components[i]) + "\"" +
+                         " was truncated to an empty string.")
+      
+      path_components[i] = path_component
+    
+    filepath = os.path.join(drive, *path_components)
+    
+    return filepath
+
+
+class FileExtensionValidator(StringValidator):
+  
+  """
+  This class is used to validate file extensions.
+  
+  In this class, file extensions are considered valid if they:
+    
+    * don't contain control characters with ordinal numbers 0-31 and 127-159
+    
+    * don't contain the following special characters:
+      
+      <>:"/\|?*~!@'`#$%&=+{}[]
+    
+    * don't end with spaces or periods
+  """
+  
+  _INVALID_CHARS_PATTERN = FilenameValidator._INVALID_CHARS_PATTERN
+  
+  def is_valid(self, file_ext):
+    
+    if not file_ext or file_ext is None:
+      return False, "File extension is empty."
+    
+    status_message = ""
+    
+    if re.search(self._INVALID_CHARS_PATTERN, file_ext):
+      status_message += "File extension contains invalid characters.\n"
+    
+    if file_ext.endswith(" ") or file_ext.endswith("."):
+      status_message += "File extension cannot end with spaces or periods.\n"
+    
+    status_message = status_message.rstrip('\n')
+    is_valid = not status_message
+    
+    return is_valid, status_message
+  
+  def validate(self, file_ext):
+    """
+    Validate the specified file extension by removing invalid characters.
+    
+    Raises:
+    
+    * `ValueError` - File extension is truncated to an empty string.
+    """
+    
+    file_ext = (
+      re.sub(self._INVALID_CHARS_PATTERN, "", file_ext)
+        .rstrip(" ")
+        .rstrip(".")
+    )
+    
+    if not file_ext:
+      raise ValueError("File extension was truncated to an empty string.")
+    
+    return file_ext
+
+#===============================================================================
+
+class OldStringValidator(object):
   
   """
   This class:
@@ -163,6 +489,12 @@ class StringValidator(object):
   * `validate()` - Remove invalid characters from the specified string.
   """
   
+  def __init__(self, allowed_chars):
+    self._delete_table = ""
+    self._invalid_chars = set()
+    
+    self.allowed_characters = allowed_chars
+  
   @property
   def allowed_characters(self):
     return self._allowed_chars
@@ -176,13 +508,6 @@ class StringValidator(object):
   @property
   def invalid_characters(self):
     return list(self._invalid_chars)
-  
-  def __init__(self, allowed_chars):
-    
-    self._delete_table = ""
-    self._invalid_chars = set()
-    
-    self.allowed_characters = allowed_chars
   
   def is_valid(self, string_to_validate):
     """
@@ -215,7 +540,7 @@ class StringValidator(object):
     return string_to_validate.translate(None, self._delete_table)
 
 
-class DirnameValidator(StringValidator):
+class OldDirnameValidator(OldStringValidator):
   
   """
   This class:
@@ -232,7 +557,7 @@ class DirnameValidator(StringValidator):
   _ALLOWED_CHARS_IN_DRIVE = ":" + _ALLOWED_CHARS
   
   def __init__(self):
-    super(DirnameValidator, self).__init__(self._ALLOWED_CHARS)
+    super(OldDirnameValidator, self).__init__(self._ALLOWED_CHARS)
   
   def is_valid(self, dirname):
     self._invalid_chars = set()
