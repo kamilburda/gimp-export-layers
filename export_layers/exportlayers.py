@@ -42,7 +42,7 @@ import gimp
 import gimpenums
 
 from export_layers.libgimpplugin import libfiles
-from export_layers.libgimpplugin import libimage
+from export_layers.libgimpplugin import pylibgimp
 from export_layers.libgimpplugin import layerdata
 from export_layers.libgimpplugin import objectfilter
 from export_layers.libgimpplugin import progress
@@ -59,6 +59,7 @@ class ExportLayersError(Exception):
 
 class ExportLayersCancelError(ExportLayersError):
   pass
+
 
 class ExportLayersNoLayersToExport(ExportLayersError):
   pass
@@ -198,9 +199,6 @@ class LayerExporter(object):
     self._current_layer_export_status = self._NOT_EXPORTED_YET
     self._is_current_layer_skipped = False
     
-    self._string_validator = libfiles.StringValidator(self.ALLOWED_FILENAME_CHARS)
-    self._dirname_validator = libfiles.DirnameValidator()
-    
     self._layerdata_to_export = []
     self._background_layerdata = []
     self._background_layer_merged = None
@@ -214,22 +212,22 @@ class LayerExporter(object):
     Set layer filters according to the main settings.
     """
     
-    if not self._string_validator.is_valid(self._default_file_format):
-      raise ExportLayersError('"' + self._default_file_format + '": ' +
-                              self.main_settings['file_format'].error_messages['invalid_chars'] +
-                              ''.join(self._string_validator.invalid_characters))
+    is_valid, status_message = libfiles.FileExtensionValidator().is_valid(self._default_file_format)
+    if not is_valid:
+      raise ExportLayersError('"' + self._default_file_format + '": ' + status_message)
+    
+    is_valid, status_message = libfiles.FilePathValidator().is_valid(self._output_directory)
+    if not is_valid:
+      raise ExportLayersError('Cannot export to output directory "' + self._output_directory + '": ' +
+                              status_message)
     
     self._default_file_format = self._default_file_format.lstrip('.').lower()
     self._file_export_func = self._get_file_export_func(self._default_file_format)
     self._file_format = self._default_file_format
     
-    if not self._dirname_validator.is_valid(self._output_directory):
-      raise ExportLayersError('Cannot export to "' + self._output_directory + '": ' +
-                              self.main_settings['output_directory'].error_messages['invalid_chars'] +
-                              ''.join(self._dirname_validator.invalid_characters))
-    
+    filename_validator = libfiles.FilenameValidator()
     for layerdata_elem in self._layer_data:
-      layerdata_elem.validate_name(self._string_validator)
+      layerdata_elem.validate_name(filename_validator)
     
     self._layer_data.filter.add_subfilter('layer_types',
                                           objectfilter.ObjectFilter(match_type=objectfilter.ObjectFilter.MATCH_ANY))
@@ -340,7 +338,7 @@ class LayerExporter(object):
           pdb.gimp_image_insert_layer(self._image_copy, bg_layer_copy, None, i)
           pdb.gimp_item_set_visible(bg_layer_copy, True)
           if pdb.gimp_item_is_group(bg_layer_copy):
-            bg_layer_copy = libimage.merge_layer_group(self._image_copy, bg_layer_copy)
+            bg_layer_copy = pylibgimp.merge_layer_group(self._image_copy, bg_layer_copy)
         if self.main_settings['use_image_size'].value:
           self._background_layer_merged = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
       
@@ -349,7 +347,7 @@ class LayerExporter(object):
       # This is necessary for file formats which flatten the image (such as JPG).
       pdb.gimp_item_set_visible(layer_copy, True)
       if pdb.gimp_item_is_group(layer_copy):
-        layer_copy = libimage.merge_layer_group(self._image_copy, layer_copy)
+        layer_copy = pylibgimp.merge_layer_group(self._image_copy, layer_copy)
       
       if self.main_settings['ignore_layer_modes'].value:
         layer_copy.mode = gimpenums.NORMAL_MODE

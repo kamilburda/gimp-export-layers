@@ -221,13 +221,6 @@ class MainSettings(settings.SettingContainer):
     self['file_format'].error_messages['default_needed'] = (
       "you need to specify default file format for layers with invalid or no format"
     )
-    self['file_format'].error_messages['invalid_chars'] = (
-      "file format contains the following invalid characters: "
-    )
-    
-    self['output_directory'].error_messages['invalid_chars'] = (
-      "output directory contains the following invalid characters: "
-    )
     
     #---------------------------------------------------------------------------
     

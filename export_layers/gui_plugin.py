@@ -523,16 +523,22 @@ class _ExportLayersGui(object):
       return True
   
   def display_message_label(self, text, message_type=ERROR):
+    
     if text is None or not text:
       self.label_message.set_text("")
     else:
       text = text[0].upper() + text[1:]
       if not text.endswith("."):
         text += "."
+      
+      # Display literal '&' as intended. Required by the markup.
+      text = text.replace("&", "&amp;")
+      
       if message_type == self.ERROR:
         color = "red"
       else:
         color = "blue"
+      
       self.label_message.set_markup('<span foreground="' + color + '"><b>' + text + '</b></span>')
 
 #===============================================================================
