@@ -183,8 +183,8 @@ class StringValidator(object):
   
   __metaclass__ = abc.ABCMeta
   
-  @abc.abstractmethod
-  def is_valid(self, string_to_check):
+  @classmethod
+  def is_valid(cls, string_to_check):
     """
     Check if the specified input string is valid.
     
@@ -197,8 +197,8 @@ class StringValidator(object):
     """
     pass
   
-  @abc.abstractmethod
-  def validate(self, string_to_validate):
+  @classmethod
+  def validate(cls, string_to_validate):
     """
     Modify the specified string to make it valid.
     """
@@ -241,7 +241,8 @@ class FilenameValidator(StringValidator):
    "LPT7", "LPT8", "LPT9"
   }
   
-  def is_valid(self, filename):
+  @classmethod
+  def is_valid(cls, filename):
     """
     Check whether the specified filename is valid.
     
@@ -253,7 +254,7 @@ class FilenameValidator(StringValidator):
     
     status_message = ""
     
-    if re.search(self._INVALID_CHARS_PATTERN, filename):
+    if re.search(cls._INVALID_CHARS_PATTERN, filename):
       status_message += "Filename contains invalid characters.\n"
     
     if filename.startswith(" ") or filename.endswith(" "):
@@ -263,7 +264,7 @@ class FilenameValidator(StringValidator):
       status_message += "Filename cannot end with a period.\n"
     
     root, _ = os.path.splitext(filename)
-    if root.upper() in self._INVALID_NAMES:
+    if root.upper() in cls._INVALID_NAMES:
       status_message = (
         "\"" + filename + "\" is a reserved name that cannot be used "
         "in file paths.\n"
@@ -274,7 +275,8 @@ class FilenameValidator(StringValidator):
     
     return is_valid, status_message
   
-  def validate(self, filename):
+  @classmethod
+  def validate(cls, filename):
     """
     Validate the specified filename by removing invalid characters.
     
@@ -285,7 +287,7 @@ class FilenameValidator(StringValidator):
     """
     
     filename = (
-      re.sub(self._INVALID_CHARS_PATTERN, "", filename)
+      re.sub(cls._INVALID_CHARS_PATTERN, "", filename)
         .strip(" ")
         .rstrip(".")
     )
@@ -293,7 +295,7 @@ class FilenameValidator(StringValidator):
     root, ext = os.path.splitext(filename)
     # For reserved names, the comparison must be case-insensitive
     # (because Windows has case-insensitive filenames).
-    if root.upper() in self._INVALID_NAMES:
+    if root.upper() in cls._INVALID_NAMES:
       filename = root + " (1)" + ext
     
     if not filename:
@@ -326,7 +328,8 @@ class FilePathValidator(StringValidator):
   
   __PATH_COMPONENT_STATUSES = _INVALID_CHARS, _HAS_SPACES, _HAS_TRAILING_PERIOD = (0, 1, 2)
   
-  def is_valid(self, filepath):
+  @classmethod
+  def is_valid(cls, filepath):
     if not filepath or filepath is None:
       return False, "File path is empty."
     
@@ -337,34 +340,34 @@ class FilePathValidator(StringValidator):
     drive, path = os.path.splitdrive(filepath)
     
     if drive:
-      if re.search(self._INVALID_CHARS_PATTERN_WITHOUT_DRIVE, drive):
+      if re.search(cls._INVALID_CHARS_PATTERN_WITHOUT_DRIVE, drive):
         status_message += "Drive letter contains invalid characters.\n"
     
     path_components = split_path(path)
     for path_component in path_components:
-      if re.search(self._INVALID_CHARS_PATTERN, path_component):
-        statuses.add(self._INVALID_CHARS)
+      if re.search(cls._INVALID_CHARS_PATTERN, path_component):
+        statuses.add(cls._INVALID_CHARS)
       if path_component.startswith(" ") or path_component.endswith(" "):
-        statuses.add(self._HAS_SPACES)
+        statuses.add(cls._HAS_SPACES)
       if path_component.endswith("."):
-        statuses.add(self._HAS_TRAILING_PERIOD)
+        statuses.add(cls._HAS_TRAILING_PERIOD)
       
       root, _ = os.path.splitext(path_component)
-      if root.upper() in self._INVALID_NAMES:
+      if root.upper() in cls._INVALID_NAMES:
         status_message += (
           "\"" + path_component + "\" is a reserved name that cannot be used "
           "in file paths.\n"
         )
     
-    if self._INVALID_CHARS in statuses:
+    if cls._INVALID_CHARS in statuses:
       status_message += (
         "File path contains invalid characters.\n"
       )
-    if self._HAS_SPACES in statuses:
+    if cls._HAS_SPACES in statuses:
       status_message += (
         "Path components in the file path cannot start or end with spaces.\n"
       )
-    if self._HAS_TRAILING_PERIOD in statuses:
+    if cls._HAS_TRAILING_PERIOD in statuses:
       status_message += (
         "Path components in the file path cannot end with a period.\n"
       )
@@ -374,20 +377,21 @@ class FilePathValidator(StringValidator):
     
     return is_valid, status_message
   
-  def validate(self, filepath):
+  @classmethod
+  def validate(cls, filepath):
     filepath = os.path.normpath(filepath)
     drive, path = os.path.splitdrive(filepath)
     
     if drive:
-      drive = re.sub(self._INVALID_CHARS_PATTERN_WITHOUT_DRIVE, "", drive)
+      drive = re.sub(cls._INVALID_CHARS_PATTERN_WITHOUT_DRIVE, "", drive)
     
     path_components = split_path(path)
     for i in range(len(path_components)):
-      path_component = re.sub(self._INVALID_CHARS_PATTERN, "", path_components[i])
+      path_component = re.sub(cls._INVALID_CHARS_PATTERN, "", path_components[i])
       path_component = path_component.strip(" ").rstrip(".")
       
       root, ext = os.path.splitext(path_component)
-      if root.upper() in self._INVALID_NAMES:
+      if root.upper() in cls._INVALID_NAMES:
         path_component = root + " (1)" + ext
       
       path_components[i] = path_component
@@ -417,13 +421,14 @@ class FileExtensionValidator(StringValidator):
   
   _INVALID_CHARS_PATTERN = FilenameValidator._INVALID_CHARS_PATTERN
   
-  def is_valid(self, file_ext):
+  @classmethod
+  def is_valid(cls, file_ext):
     if not file_ext or file_ext is None:
       return False, "File extension is empty."
     
     status_message = ""
     
-    if re.search(self._INVALID_CHARS_PATTERN, file_ext):
+    if re.search(cls._INVALID_CHARS_PATTERN, file_ext):
       status_message += "File extension contains invalid characters.\n"
     
     if file_ext.endswith(" ") or file_ext.endswith("."):
@@ -434,9 +439,10 @@ class FileExtensionValidator(StringValidator):
     
     return is_valid, status_message
   
-  def validate(self, file_ext):
+  @classmethod
+  def validate(cls, file_ext):
     file_ext = (
-      re.sub(self._INVALID_CHARS_PATTERN, "", file_ext)
+      re.sub(cls._INVALID_CHARS_PATTERN, "", file_ext)
         .rstrip(" ")
         .rstrip(".")
     )

@@ -69,7 +69,7 @@ class TestGetFileExtension(unittest.TestCase):
 class TestFilenameValidator(unittest.TestCase):
   
   def setUp(self):
-    self.validator = libfiles.FilenameValidator()
+    self.validator = libfiles.FilenameValidator
   
   def test_checks_if_filename_is_valid(self):
     self.assertEqual(self.validator.is_valid("one"), (True, ""))
@@ -98,7 +98,7 @@ class TestFilenameValidator(unittest.TestCase):
 class TestFilePathValidator(unittest.TestCase):
   
   def setUp(self):
-    self.validator = libfiles.FilePathValidator()
+    self.validator = libfiles.FilePathValidator
   
   def test_checks_if_filepath_is_valid(self):
     self.assertEqual(self.validator.is_valid(os.path.join("one", "two", "three")),
@@ -207,7 +207,7 @@ class TestFilePathValidator(unittest.TestCase):
 class TestFileExtensionValidator(unittest.TestCase):
   
   def setUp(self):
-    self.validator = libfiles.FileExtensionValidator()
+    self.validator = libfiles.FileExtensionValidator
   
   def test_checks_if_filename_is_valid(self):
     self.assertEqual(self.validator.is_valid("jpg"), (True, ""))
