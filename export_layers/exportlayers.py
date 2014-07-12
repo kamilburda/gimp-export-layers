@@ -187,10 +187,8 @@ class LayerExporter(object):
     layers which were skipped (when files with the same names already exist).
   """
   
-  ALLOWED_FILENAME_CHARS = string.ascii_letters + string.digits + r"^&'@{}[],$=!-#()%.+~_ "
-  
   _COPY_SUFFIX = " copy"
-  _EXPORT_STATUSES = _NOT_EXPORTED_YET, _EXPORT_SUCCESSFUL, _FORCE_INTERACTIVE, _USE_DEFAULT_FILE_FORMAT = (0, 1, 2, 3)
+  __EXPORT_STATUSES = _NOT_EXPORTED_YET, _EXPORT_SUCCESSFUL, _FORCE_INTERACTIVE, _USE_DEFAULT_FILE_FORMAT = (0, 1, 2, 3)
   
   def __init__(self, initial_run_mode, image, main_settings, overwrite_chooser, progress_updater):
     
