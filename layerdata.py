@@ -85,9 +85,12 @@ class LayerData(object):
     self._filter = objectfilter.ObjectFilter()
     
     # Contains all layers (including layer groups) in the layer tree.
-    # key: gimp.Layer.name (gimp.Layer names are unique)
-    # value: _LayerDataElement object
+    # key: `gimp.Layer.name` (`gimp.Layer` names are unique)
+    # value: `_LayerDataElement` object
     self._layerdata = OrderedDict()
+    
+    # Contains original elements from `self._layerdata` before caching
+    self._orig_layerdata = None
     
     self._fill_layer_data()
   
@@ -105,7 +108,6 @@ class LayerData(object):
     return len([layerdata_elem for layerdata_elem in self])
   
   def __iter__(self):
-    
     """
     If not filtered, iterate over all layers. If filtered, iterate only over
     layers that match the filter in this object.
@@ -122,6 +124,45 @@ class LayerData(object):
       for layerdata_elem in self._layerdata.values():
         if self._filter.is_match(layerdata_elem):
           yield layerdata_elem
+  
+  def _items(self):
+    """
+    Yield current (`gimp.Layer.name`, `_LayerDataElement` object) tuple.
+    """
+    
+    if not self.is_filtered:
+      for name, layerdata_elem in self._layerdata.items():
+        yield name, layerdata_elem
+    else:
+      for name, layerdata_elem in self._layerdata.items():
+        if self._filter.is_match(layerdata_elem):
+          yield name, layerdata_elem
+  
+  def cache_layers(self):
+    """
+    Cache layers that match the filter in this class. If you remove filters
+    after calling this method and then iterate, this class will iterate over
+    the cached layers only.
+    
+    To clear the layer cache, simply call `clear_cache()`.
+    
+    Calling `cache_layers()` again renews the layer cache.
+    """
+    
+    if self._orig_layerdata is None:
+      self._orig_layerdata = self._layerdata
+    self._layerdata = OrderedDict(self._items())
+  
+  def clear_cache(self):
+    """
+    Clear the layer cache after `cache_layers()` was called.
+    
+    Nothing happens if the cache is empty (since there is nothing to clear).
+    """
+    
+    if self._orig_layerdata is not None:
+      self._layerdata = self._orig_layerdata
+      self._orig_layerdata = None
   
   def get_file_extension_properties(self, default_file_extension):
     

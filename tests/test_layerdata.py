@@ -155,6 +155,7 @@ class TestLayerData(unittest.TestCase):
     self.layer_data = layerdata.LayerData(self.image, is_filtered=False)
     self.layer_count_total = 34
     self.layer_count_only_layers = 17
+    self.layer_count_path_visible = 23
     self.layer_count_empty_groups = 8
     self.layer_count_matches_jpg = 1
   
@@ -165,10 +166,22 @@ class TestLayerData(unittest.TestCase):
     self.layer_data.filter.add_rule(LayerFilters.is_layer)
     self.assertEqual(len(self.layer_data), self.layer_count_only_layers)
   
-  def test_empty_layerdata(self):
+  def test_cache_layers(self):
     self.layer_data.is_filtered = True
-    with self.layer_data.filter.add_rule_temp(LayerFilters.has_matching_file_format, 'nolayerhasthisformat'):
-      self.assertFalse(bool(self.layer_data))
+    
+    with self.layer_data.filter.add_rule_temp(LayerFilters.is_path_visible):
+      self.layer_data.cache_layers()
+    self.assertEqual(len(self.layer_data), self.layer_count_path_visible)
+    self.layer_data.clear_cache()
+    self.assertEqual(len(self.layer_data), self.layer_count_total)
+    
+    # Check if caching multiple times and then clearing restores the original
+    # LayerData.
+    with self.layer_data.filter.add_rule_temp(LayerFilters.is_path_visible):
+      self.layer_data.cache_layers()
+      self.layer_data.cache_layers()
+    self.layer_data.clear_cache()
+    self.assertEqual(len(self.layer_data), self.layer_count_total)
   
   def test_get_filename(self):
     output_directory = os.path.join("D:", os.sep, "testgimp");
