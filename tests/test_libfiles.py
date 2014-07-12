@@ -196,11 +196,12 @@ class TestFilePathValidator(unittest.TestCase):
       os.path.join("one", "NUL (1)", "three")
     )
     
-    with self.assertRaises(ValueError):
-      self.validator.validate("$@#$@%")
-      self.validator.validate("")
-      self.validator.validate(os.path.join("one", "[]{}*#$%", "three"))
-      self.validator.validate(os.path.join("C:$@#$@%" + os.sep + "two", "three"))
+    self.assertEqual(self.validator.validate(""), ".")
+    self.assertEqual(self.validator.validate("$@#$@%"), ".")
+    self.assertEqual(self.validator.validate(os.path.join("one", "[]{}*#$%", "three")),
+                     os.path.join("one", "three"))
+    self.assertEqual(self.validator.validate(os.path.join("C:$@#$@%" + os.sep + "two", "three")),
+                     os.path.join("C:", "two", "three"))
 
 
 class TestFileExtensionValidator(unittest.TestCase):
@@ -225,6 +226,5 @@ class TestFileExtensionValidator(unittest.TestCase):
     self.assertEqual(self.validator.validate(" jpg "), " jpg")
     self.assertEqual(self.validator.validate("jpg."), "jpg")
     
-    with self.assertRaises(ValueError):
-      self.validator.validate("")
+    self.assertEqual(self.validator.validate(""), "")
   

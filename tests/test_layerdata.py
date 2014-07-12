@@ -240,9 +240,8 @@ class TestLayerData(unittest.TestCase):
     for layer_data_elem in layer_data:
       # "#" is removed from layer names so that multiple layers have the same name
       # so that the uniquification can kick in.
-      chars_to_remove_table = { ord("#") : None }
-      layer_data_elem.layer_name = layer_data_elem.layer_name.translate(chars_to_remove_table)
-      layer_data_elem.path_components = [path_component.translate(chars_to_remove_table)
+      layer_data_elem.layer_name = layer_data_elem.layer_name.replace("#", "")
+      layer_data_elem.path_components = [path_component.replace("#", "")
                                          for path_component in layer_data_elem.path_components]
   
   def compare_uniquified_without_parents(self, layer_data, uniquified_layer_names):

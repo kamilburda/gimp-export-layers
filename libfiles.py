@@ -33,7 +33,6 @@ from __future__ import division
 
 #=============================================================================== 
 
-import string
 import os
 import re
 import abc
@@ -109,8 +108,8 @@ def uniquify_filename(filename):
 
 def get_file_extension(str_):
   """
-  Return the file extension from a string in lower case and strip the leading
-  dot. If the string has no file extension, return empty string.
+  Return the file extension from the specified string in lower case and strip
+  the leading period. If the string has no file extension, return empty string.
   
   A string has file extension if it contains a '.' character and a substring
   following this character.
@@ -126,9 +125,9 @@ def get_file_extension(str_):
 #   edited by Craig Ringer: http://stackoverflow.com/users/398670/craig-ringer
 def make_dirs(path):
   """
-  Recursively create directories from specified path.
+  Recursively create directories from the specified path.
   
-  Do not raise exception if the directory already exists.
+  Do not raise exception if the path already exists.
   """
   try:
     os.makedirs(path)
@@ -136,8 +135,8 @@ def make_dirs(path):
     if exc.errno == os.errno.EEXIST and os.path.isdir(path):
       pass
     elif exc.errno == os.errno.EACCES and os.path.isdir(path):
-      # This can happen if os.makedirs is called on a root directory in Windows
-      # (e.g. os.makedirs("C:\\")).
+      # This can happen if `os.makedirs` is called on a root directory
+      # in Windows (e.g. `os.makedirs("C:\\")`).
       pass
     else:
       raise
@@ -145,7 +144,7 @@ def make_dirs(path):
 
 def split_path(path):
   """
-  Split the specified path into separate components.
+  Split the specified path into separate path components.
   """
   
   path = os.path.normpath(path)
@@ -328,7 +327,6 @@ class FilePathValidator(StringValidator):
   __PATH_COMPONENT_STATUSES = _INVALID_CHARS, _HAS_SPACES, _HAS_TRAILING_PERIOD = (0, 1, 2)
   
   def is_valid(self, filepath):
-    
     if not filepath or filepath is None:
       return False, "File path is empty."
     
@@ -377,13 +375,6 @@ class FilePathValidator(StringValidator):
     return is_valid, status_message
   
   def validate(self, filepath):
-    """
-    Raises:
-    
-    * `ValueError` - A path component in the file path was truncated
-      to an empty string.
-    """
-    
     filepath = os.path.normpath(filepath)
     drive, path = os.path.splitdrive(filepath)
     
@@ -398,14 +389,12 @@ class FilePathValidator(StringValidator):
       root, ext = os.path.splitext(path_component)
       if root.upper() in self._INVALID_NAMES:
         path_component = root + " (1)" + ext
-    
-      if not path_component:
-        raise ValueError("Path component \"" + repr(path_components[i]) + "\"" +
-                         " was truncated to an empty string.")
       
       path_components[i] = path_component
     
-    filepath = os.path.join(drive, *path_components)
+    # Normalize again, since the last path component might be truncated to an
+    # empty string, resulting in a trailing slash.
+    filepath = os.path.normpath(os.path.join(drive, *path_components))
     
     return filepath
 
@@ -429,7 +418,6 @@ class FileExtensionValidator(StringValidator):
   _INVALID_CHARS_PATTERN = FilenameValidator._INVALID_CHARS_PATTERN
   
   def is_valid(self, file_ext):
-    
     if not file_ext or file_ext is None:
       return False, "File extension is empty."
     
@@ -447,144 +435,10 @@ class FileExtensionValidator(StringValidator):
     return is_valid, status_message
   
   def validate(self, file_ext):
-    """
-    Validate the specified file extension by removing invalid characters.
-    
-    Raises:
-    
-    * `ValueError` - File extension is truncated to an empty string.
-    """
-    
     file_ext = (
       re.sub(self._INVALID_CHARS_PATTERN, "", file_ext)
         .rstrip(" ")
         .rstrip(".")
     )
     
-    if not file_ext:
-      raise ValueError("File extension was truncated to an empty string.")
-    
     return file_ext
-
-#===============================================================================
-
-class OldStringValidator(object):
-  
-  """
-  This class:
-  * checks for validity of characters in a given string
-  * deletes invalid characters from a given string
-  
-  Attributes:
-  
-  * `allowed_characters` - String of characters allowed in strings.
-  
-  * `invalid_characters` - Set of invalid characters found in the string passed
-    to `is_valid()` or `validate()`.
-  
-  Methods:
-  
-  * `is_valid()` - Check if the specified string contains invalid characters.
-  
-  * `validate()` - Remove invalid characters from the specified string.
-  """
-  
-  def __init__(self, allowed_chars):
-    self._delete_table = ""
-    self._invalid_chars = set()
-    
-    self.allowed_characters = allowed_chars
-  
-  @property
-  def allowed_characters(self):
-    return self._allowed_chars
-  
-  @allowed_characters.setter
-  def allowed_characters(self, chars):
-    self._allowed_chars = chars if chars is not None else ""
-    self._delete_table = string.maketrans(self._allowed_chars, '\x00' * len(self._allowed_chars))
-    self._invalid_chars = set()
-  
-  @property
-  def invalid_characters(self):
-    return list(self._invalid_chars)
-  
-  def is_valid(self, string_to_validate):
-    """
-    Check if the specified string contains invalid characters.
-    
-    All invalid characters found in the string are assigned to the
-    `invalid_characters` attribute.
-    
-    Returns:
-    
-      True if `string_to_validate` is does not contain invalid characters,
-      False otherwise.
-    """
-    self._invalid_chars = set()
-    for char in string_to_validate:
-      if char not in self._allowed_chars:
-        self._invalid_chars.add(char)
-    
-    is_valid = not self._invalid_chars
-    return is_valid
-  
-  def validate(self, string_to_validate):
-    """
-    Remove invalid characters from the specified string.
-    
-    All invalid characters found in the string are assigned to the
-    `invalid_characters` attribute.
-    """
-    self._invalid_chars = set()
-    return string_to_validate.translate(None, self._delete_table)
-
-
-class OldDirnameValidator(OldStringValidator):
-  
-  """
-  This class:
-  * checks for validity of characters in a given directory path
-  * deletes invalid characters from a given directory path
-  
-  This class contains a predefined set of characters allowed in directory paths.
-  While the set of valid characters is platform-dependent, this class attempts
-  to take the smallest set possible, i.e. allow only characters which are valid
-  on all platforms.
-  """
-  
-  _ALLOWED_CHARS = string.ascii_letters + string.digits + r"/\^&'@{}[],$=!-#()%.+~_ "
-  _ALLOWED_CHARS_IN_DRIVE = ":" + _ALLOWED_CHARS
-  
-  def __init__(self):
-    super(OldDirnameValidator, self).__init__(self._ALLOWED_CHARS)
-  
-  def is_valid(self, dirname):
-    self._invalid_chars = set()
-    
-    drive, tail = os.path.splitdrive(dirname)
-    
-    if drive:
-      for char in drive:
-        if char not in self._ALLOWED_CHARS_IN_DRIVE:
-          self._invalid_chars.add(char)
-    
-    for char in tail:
-      if char not in self._allowed_chars:
-        self._invalid_chars.add(char)
-    
-    is_valid = not self._invalid_chars
-    return is_valid
-  
-  def validate(self, dirname):
-    self._invalid_chars = set()
-    
-    drive, tail = os.path.splitdrive(dirname)
-    
-    self.allowed_characters = self._ALLOWED_CHARS_IN_DRIVE
-    drive = drive.translate(None, self._delete_table)
-    
-    self.allowed_characters = self._ALLOWED_CHARS
-    tail = tail.translate(None, self._delete_table)
-    
-    return os.path.normpath(os.path.join(drive, tail))

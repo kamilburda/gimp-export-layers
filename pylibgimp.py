@@ -51,7 +51,8 @@ pdb = gimp.pdb
 @contextmanager
 def undo_group(image):
   """
-  Wrap the enclosing block of code into one GIMP undo group.
+  Wrap the enclosing block of code into one GIMP undo group for the specified
+  image.
   
   Use this function as a context manager:
     
@@ -67,13 +68,14 @@ def undo_group(image):
 
 def merge_layer_group(image, layer_group):
   """
-  Merge the specified layer group into a layer.
+  Merge layers in the specified layer group belonging to the specified image
+  into one layer.
   
   This function can handle both top-level and nested layer groups.
   """
   
   if not pdb.gimp_item_is_group(layer_group):
-    raise TypeError("layer is not a layer group")
+    raise TypeError("not a layer group")
   
   with undo_group(image):
     orig_parent_and_pos = ()
