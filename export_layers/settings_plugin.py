@@ -37,6 +37,7 @@ import gimp
 import gimpenums
 
 from export_layers.pylibgimpplugin import settings
+from export_layers import exportlayers
 
 #===============================================================================
 
@@ -76,7 +77,7 @@ class MainSettings(settings.SettingContainer):
     self._add(settings.NonEmptyStringSetting('file_format', ""))
     self['file_format'].display_name = "File format"
     self['file_format'].description = (
-      "Type in file extension, with or without the leading dot. "
+      "Type in file extension, with or without the leading period. "
       "To export in raw format, type \"raw\"."
     )
     
@@ -117,11 +118,11 @@ class MainSettings(settings.SettingContainer):
     self._add(
       settings.EnumSetting(
        'overwrite_mode', 'rename_new',
-       [('replace', "Replace"),
-        ('skip', "Skip"),
-        ('rename_new', "Rename new file"),
-        ('rename_existing', "Rename existing file"),
-        ('cancel', "Cancel")]
+       [('replace', "Replace", exportlayers.OverwriteHandler.REPLACE),
+        ('skip', "Skip", exportlayers.OverwriteHandler.SKIP),
+        ('rename_new', "Rename new file", exportlayers.OverwriteHandler.RENAME_NEW),
+        ('rename_existing', "Rename existing file", exportlayers.OverwriteHandler.RENAME_EXISTING),
+        ('cancel', "Cancel", exportlayers.OverwriteHandler.CANCEL)]
       )
     )
     self['overwrite_mode'].display_name = "Overwrite mode (non-interactive run mode only)"
@@ -211,7 +212,7 @@ class MainSettings(settings.SettingContainer):
     )
     self['strip_mode'].description = (
       "Determines when to strip "
-      "file extension from layer names (including the dot character).\n"
+      "file extension from layer names (including the period).\n"
       "\"" + self['strip_mode'].options_display_names['always'] + "\" "
       "does not apply to layer names in [square brackets] if \"" +
       self['remove_square_brackets'].display_name + "\" is disabled."

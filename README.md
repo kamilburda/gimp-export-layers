@@ -34,7 +34,7 @@ From the main menu, go to "File -> Export Layers...". A dialog appears, allowing
 you to specify output directory, file format and various other settings.
 
 To specify file format, type the file extension in the File Format
-text field (with or without the leading dot). Any file format is supported,
+text field (with or without the leading period). Any file format is supported,
 with a few exceptions (more information in Known Issues). File formats provided
 by third-party plug-ins should work as well - at the very least,
 GIMP DDS Plugin was tested and works correctly.

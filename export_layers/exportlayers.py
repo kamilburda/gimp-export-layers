@@ -66,6 +66,45 @@ class ExportLayersNoLayersToExport(ExportLayersError):
 
 #===============================================================================
 
+class OverwriteHandler(object):
+  
+  """
+  This class handles conflicting files using the specified `OverwriteChooser`
+  class with the following choices available:
+  
+    * Replace
+    * Skip
+    * Rename new file
+    * Rename existing file
+    * Cancel
+  """
+  
+  __OVERWRITE_MODES = REPLACE, SKIP, RENAME_NEW, RENAME_EXISTING, CANCEL = (0, 1, 2, 3, 4)
+  
+  @classmethod
+  def handle(cls, filename, overwrite_chooser):
+    should_skip = False
+    
+    if os.path.exists(filename):
+      overwrite_chooser.choose(filename=os.path.basename(filename))
+      if overwrite_chooser.overwrite_mode == cls.SKIP:
+        should_skip = True
+      elif overwrite_chooser.overwrite_mode == cls.REPLACE:
+        # Nothing needs to be done here.
+        pass
+      elif overwrite_chooser.overwrite_mode in (cls.RENAME_NEW, cls.RENAME_EXISTING):
+        uniq_filename = libfiles.uniquify_filename(filename)
+        if overwrite_chooser.overwrite_mode == cls.RENAME_NEW:
+          filename = uniq_filename
+        else:
+          os.rename(filename, uniq_filename)
+      elif overwrite_chooser.overwrite_mode == cls.CANCEL:
+        raise ExportLayersCancelError("cancelled")
+    
+    return should_skip, filename
+
+#===============================================================================
+
 class LayerFilters(object):
   
   @staticmethod
@@ -120,7 +159,8 @@ class LayerExporter(object):
   """
   This class:
   * exports layers as separate images
-  * processes and validates user input
+  * validates user input
+  * validates layer names
   
   Attributes:
   
@@ -504,32 +544,11 @@ class LayerExporter(object):
       else:
         return gimpenums.RUN_WITH_LAST_VALS
   
-  def _handle_overwrite(self, output_filename):
-    should_skip = False
-    if os.path.exists(output_filename):
-      self.overwrite_chooser.choose(filename=os.path.basename(output_filename))
-      if self.overwrite_chooser.overwrite_mode == self.main_settings['overwrite_mode'].options['skip']:
-        should_skip = True
-      elif self.overwrite_chooser.overwrite_mode == self.main_settings['overwrite_mode'].options['replace']:
-        # Nothing needs to be done here.
-        pass
-      elif self.overwrite_chooser.overwrite_mode in (self.main_settings['overwrite_mode'].options['rename_new'],
-                                                     self.main_settings['overwrite_mode'].options['rename_existing']):
-        uniq_output_filename = libfiles.uniquify_filename(output_filename)
-        if self.overwrite_chooser.overwrite_mode == self.main_settings['overwrite_mode'].options['rename_new']:
-          output_filename = uniq_output_filename
-        else:
-          os.rename(output_filename, uniq_output_filename)
-      elif self.overwrite_chooser.overwrite_mode == self.main_settings['overwrite_mode'].options['cancel']:
-        raise ExportLayersCancelError("cancelled")
-    
-    return should_skip, output_filename
-  
   def _export(self, layerdata_elem, image, layer):
     self._set_file_format(layerdata_elem)
     output_filename = self._get_filename(layerdata_elem)
     
-    self._is_current_layer_skipped, output_filename = self._handle_overwrite(output_filename)
+    self._is_current_layer_skipped, output_filename = OverwriteHandler.handle(output_filename, self.overwrite_chooser)
     self.progress_updater.update_text("Saving '" + output_filename + "'")
     
     if not self._is_current_layer_skipped:
