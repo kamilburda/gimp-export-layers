@@ -327,7 +327,8 @@ class Setting(object):
     
       setting.value = setting.default_value
     
-    in that this method does not raise an exception if the default value is invalid.
+    in that this method does not raise an exception if the default value is
+    invalid and does not add the `value` attribute to `changed_attributes`.
     """
     
     self._value = self.default_value
