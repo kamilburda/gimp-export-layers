@@ -73,7 +73,7 @@ class Tee(object):
     flush output.
   """
   
-  _STATES = _RUNNING_FIRST_TIME, _RUNNING, _NOT_RUNNING = (0, 1, 2)
+  __STATES = _RUNNING_FIRST_TIME, _RUNNING, _NOT_RUNNING = (0, 1, 2)
   
   def __init__(self, stream, file_object, log_header_title=None, start=True, flush_file=False):
     

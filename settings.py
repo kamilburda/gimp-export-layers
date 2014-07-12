@@ -1113,7 +1113,7 @@ class SettingPersistor(object):
   * `save()` - Save setting values from settings to all streams.
   """
   
-  _STATUSES = SUCCESS, READ_FAIL, WRITE_FAIL, NOT_ALL_SETTINGS_FOUND = (0, 1, 2, 3)
+  __STATUSES = SUCCESS, READ_FAIL, WRITE_FAIL, NOT_ALL_SETTINGS_FOUND = (0, 1, 2, 3)
   
   def __init__(self, read_setting_streams, write_setting_streams):
     self.read_setting_streams = read_setting_streams
