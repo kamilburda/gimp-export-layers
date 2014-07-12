@@ -144,9 +144,12 @@ class LayerData(object):
   
   def cache_layers(self):
     """
-    Cache layers that match the filter in this class. If you remove filters
-    after calling this method and then iterate, this class will iterate over
-    the cached layers only.
+    Cache layers that match the filter in this class.
+    
+    If you remove filters after calling this method and then iterate with
+    `is_filtered=True`, this class will iterate over the cached layers only.
+    If you iterate with `is_filtered=False`, this class will iterate over all
+    layers as usual.
     
     To clear the layer cache, simply call `clear_cache()`.
     
