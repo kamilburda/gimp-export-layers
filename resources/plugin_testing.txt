@@ -107,9 +107,9 @@ Settings
    - no or invalid file extension in layers -> file format must be used
    - invalid file format - empty, non-empty
 
-* square_bracketed_mode - Treat as normal layers - Remove square brackets
+* square_bracketed_mode - Treat as normal layers
 * square_bracketed_mode - Ignore
-* square_bracketed_mode - Ignore other layers - Remove square brackets
+* square_bracketed_mode - Ignore other layers
    - Create directories for empty layer groups
 
 * ignore layer modes

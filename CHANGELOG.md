@@ -1,7 +1,9 @@
 2.1 (Upcoming)
 ------------------------
 
-* Added "Ignore Layer Mode" setting, which sets the layer mode to Normal for each layer..
+* Removed "Remove squared brackets" setting as it served little purpose.
+  [square brackets] will now always be removed from the layer names.
+* Added "Ignore Layer Mode" setting, which sets the layer mode to Normal for each layer.
 * Fixed a bug that caused the file format dialog to not appear if the user chose
   Skip in the overwrite dialog for the first file (or the first and subsequent files).
 * Removed unneeded files from the package.

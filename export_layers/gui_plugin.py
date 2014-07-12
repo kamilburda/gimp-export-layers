@@ -221,8 +221,6 @@ class _ExportLayersGui(object):
     self.advanced_settings_square_bracketed_mode_label.set_alignment(0, 0.5)
     self.advanced_settings_square_bracketed_mode = gimpui.IntComboBox(
        tuple(self.main_settings['square_bracketed_mode'].get_option_display_names_and_values()))
-    self.advanced_settings_remove_square_brackets = gtk.CheckButton(
-      self.main_settings['remove_square_brackets'].display_name)
     self.advanced_settings_crop_to_background = gtk.CheckButton(
       self.main_settings['crop_to_background'].display_name)
     
@@ -260,7 +258,6 @@ class _ExportLayersGui(object):
     self.table_additional_elems = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_additional_elems.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
     self.table_additional_elems.attach(self.advanced_settings_strip_mode, 0, 1, 0, 1, yoptions=0)
-    self.table_additional_elems.attach(self.advanced_settings_remove_square_brackets, 0, 1, 1, 2)
     self.table_additional_elems.attach(self.advanced_settings_crop_to_background, 0, 1, 1, 2)
     
     self.hbox_tables = gtk.HBox(homogeneous=False)
@@ -381,11 +378,6 @@ class _ExportLayersGui(object):
       gui.GimpUiIntComboBoxPresenter(
         self.main_settings['square_bracketed_mode'],
         self.advanced_settings_square_bracketed_mode))
-    
-    self.setting_presenters.add(
-      gui.GtkCheckButtonPresenter(
-        self.main_settings['remove_square_brackets'],
-        self.advanced_settings_remove_square_brackets))
     
     self.setting_presenters.add(
       gui.GtkCheckButtonPresenter(

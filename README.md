@@ -126,10 +126,8 @@ for all other layers and will not be exported separately.
 
 **Additional options to "Layer names in [square brackets]"**
 
-- *Remove square brackets* - If enabled, [square brackets] will be removed from
-the layer names before being exported.
-- *Crop to layer* - If enabled, layers will be cropped to the size of the background
-layers instead of their own size.
+- *Crop to background* - If enabled, layers will be cropped to the size of the
+background layers instead of their own size.
 
 **Merge layer groups**
 

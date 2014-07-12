@@ -80,37 +80,6 @@ class TestMainSettings(unittest.TestCase):
     self.assertEqual(self.main_settings['strip_mode'].ui_enabled, False)
     self.assertEqual(self.main_settings['strip_mode'].value, self.main_settings['strip_mode'].options['never'])
   
-  def test_streamline_square_bracketed(self):
-    square_bracketed_mode = self.main_settings['square_bracketed_mode']
-    
-    square_bracketed_mode.value = square_bracketed_mode.options['normal']
-    changed_settings = self.main_settings['square_bracketed_mode'].streamline()
-    self.assertTrue(self.main_settings['remove_square_brackets'] in changed_settings)
-    self.assertEqual(self.main_settings['remove_square_brackets'].ui_visible, True)
-    self.assertTrue(self.main_settings['crop_to_background'] in changed_settings)
-    self.assertEqual(self.main_settings['crop_to_background'].ui_visible, False)
-    
-    square_bracketed_mode.value = square_bracketed_mode.options['background']
-    changed_settings = self.main_settings['square_bracketed_mode'].streamline()
-    self.assertTrue(self.main_settings['remove_square_brackets'] in changed_settings)
-    self.assertEqual(self.main_settings['remove_square_brackets'].ui_visible, False)
-    self.assertTrue(self.main_settings['crop_to_background'] in changed_settings)
-    self.assertEqual(self.main_settings['crop_to_background'].ui_visible, True)
-    
-    square_bracketed_mode.value = square_bracketed_mode.options['ignore']
-    changed_settings = self.main_settings['square_bracketed_mode'].streamline()
-    self.assertTrue(self.main_settings['remove_square_brackets'] in changed_settings)
-    self.assertEqual(self.main_settings['remove_square_brackets'].ui_visible, False)
-    self.assertTrue(self.main_settings['crop_to_background'] in changed_settings)
-    self.assertEqual(self.main_settings['crop_to_background'].ui_visible, False)
-    
-    square_bracketed_mode.value = square_bracketed_mode.options['ignore_other']
-    changed_settings = self.main_settings['square_bracketed_mode'].streamline()
-    self.assertTrue(self.main_settings['remove_square_brackets'] in changed_settings)
-    self.assertEqual(self.main_settings['remove_square_brackets'].ui_visible, True)
-    self.assertTrue(self.main_settings['crop_to_background'] in changed_settings)
-    self.assertEqual(self.main_settings['crop_to_background'].ui_visible, False)
-  
   def test_streamline_merge_layer_groups(self):
     merge_layer_groups = self.main_settings['merge_layer_groups']
     
@@ -141,14 +110,4 @@ class TestMainSettings(unittest.TestCase):
     self.assertTrue('ui_enabled' in changed_settings[self.main_settings['crop_to_background']])
     self.assertEqual(self.main_settings['crop_to_background'].value, False)
     self.assertEqual(self.main_settings['crop_to_background'].ui_enabled, False)
-  
-  def test_streamline_all(self):
-    changed_settings = self.main_settings.streamline(force=True)
-    
-    self.assertTrue(self.main_settings['crop_to_background'] in changed_settings)
-    self.assertTrue('value' in changed_settings[self.main_settings['crop_to_background']])
-    self.assertTrue('ui_enabled' in changed_settings[self.main_settings['crop_to_background']])
-    self.assertEqual(self.main_settings['crop_to_background'].value, False)
-    self.assertEqual(self.main_settings['crop_to_background'].ui_enabled, False)
-    self.assertEqual(self.main_settings['crop_to_background'].ui_visible, False)
     

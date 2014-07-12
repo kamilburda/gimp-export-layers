@@ -252,11 +252,11 @@ class LayerExporter(object):
     Set layer filters according to the main settings.
     """
     
-    is_valid, status_message = libfiles.FileExtensionValidator().is_valid(self._default_file_format)
+    is_valid, status_message = libfiles.FileExtensionValidator.is_valid(self._default_file_format)
     if not is_valid:
       raise ExportLayersError('"' + self._default_file_format + '": ' + status_message)
     
-    is_valid, status_message = libfiles.FilePathValidator().is_valid(self._output_directory)
+    is_valid, status_message = libfiles.FilePathValidator.is_valid(self._output_directory)
     if not is_valid:
       raise ExportLayersError('Cannot export to output directory "' + self._output_directory + '": ' +
                               status_message)
@@ -265,9 +265,6 @@ class LayerExporter(object):
     self._file_export_func = self._get_file_export_func(self._default_file_format)
     self._file_format = self._default_file_format
     
-    filename_validator = libfiles.FilenameValidator()
-    for layerdata_elem in self._layer_data:
-      layerdata_elem.validate_name(filename_validator)
     
     self._layer_data.filter.add_subfilter('layer_types',
                                           objectfilter.ObjectFilter(match_type=objectfilter.ObjectFilter.MATCH_ANY))
@@ -281,59 +278,46 @@ class LayerExporter(object):
     if self.main_settings['ignore_invisible'].value:
       self._layer_data.filter.add_rule(LayerFilters.is_path_visible)
     
-    
     if (self.main_settings['square_bracketed_mode'].value ==
-        self.main_settings['square_bracketed_mode'].options['normal']):
-    
-      if self.main_settings['remove_square_brackets'].value:
-        if self.main_settings['empty_directories'].value:
-          with self._layer_data.filter['layer_types'].add_rule_temp(LayerFilters.is_empty_group):
-            self._remove_square_brackets(self._layer_data)
-        else:
-          self._remove_square_brackets(self._layer_data)
-    
-    elif (self.main_settings['square_bracketed_mode'].value ==
         self.main_settings['square_bracketed_mode'].options['background']):
-    
       with self._layer_data.filter.add_rule_temp(LayerFilters.is_enclosed_in_square_brackets):
         self._background_layerdata = list(self._layer_data)
       self._layer_data.filter.add_rule(LayerFilters.is_not_enclosed_in_square_brackets)
-    
     elif (self.main_settings['square_bracketed_mode'].value ==
           self.main_settings['square_bracketed_mode'].options['ignore']):
-    
       self._layer_data.filter.add_rule(LayerFilters.is_not_enclosed_in_square_brackets)
-    
     elif (self.main_settings['square_bracketed_mode'].value ==
           self.main_settings['square_bracketed_mode'].options['ignore_other']):
+      self._layer_data.filter.add_rule(LayerFilters.is_enclosed_in_square_brackets)
     
-      if self.main_settings['remove_square_brackets'].value:
-        # Remove square brackets from the layers in [square brackets] so that they are exported,
-        # and add square brackets to other layers so that they are filtered out.
-        
-        if self.main_settings['empty_directories'].value:
-          self._layer_data.filter['layer_types'].add_rule(LayerFilters.is_empty_group)
-        
-        with self._layer_data.filter.add_rule_temp(LayerFilters.is_enclosed_in_square_brackets):
-          square_bracketed_layers = list(self._layer_data)
-        with self._layer_data.filter.add_rule_temp(LayerFilters.is_not_enclosed_in_square_brackets):
-          self._add_square_brackets(self._layer_data)
-        
-        self._remove_square_brackets(square_bracketed_layers)
-        self._layer_data.filter.add_rule(LayerFilters.is_not_enclosed_in_square_brackets)
-        
-        if self.main_settings['empty_directories'].value:
-          self._layer_data.filter['layer_types'].remove_rule(LayerFilters.is_empty_group)
-      else:
-        self._layer_data.filter.add_rule(LayerFilters.is_enclosed_in_square_brackets)
+    # Depending on the filters set, now we may have only layers with square
+    # brackets. After the validation, the square brackets will be removed,
+    # thus getting mixed with the other layers that don't have them.
+    # The solution is to cache the layers that match the current filters.
+    # Temporarily remove the 'layer_types' subfilter so that 'empty_directories'
+    # does not end up with zero empty layer groups if the image has some.
+    with self._layer_data.filter.remove_subfilter_temp('layer_types'):
+      self._layer_data.cache_layers()
     
+    # Remove these filters so that after the validation, layers with square
+    # brackets that match filters are still exported.
+    if self._layer_data.filter.has_rule(LayerFilters.is_enclosed_in_square_brackets):
+      self._layer_data.filter.remove_rule(LayerFilters.is_enclosed_in_square_brackets)
+    if self._layer_data.filter.has_rule(LayerFilters.is_not_enclosed_in_square_brackets):
+      self._layer_data.filter.remove_rule(LayerFilters.is_not_enclosed_in_square_brackets)
+    
+    # Validate every layer. It makes a lot of things easier and doesn't affect
+    # the end result.
+    self._layer_data.is_filtered = False
+    for layerdata_elem in self._layer_data:
+      layerdata_elem.validate_name()
+    self._layer_data.is_filtered = True
     
     if (self.main_settings['file_ext_mode'].value ==
         self.main_settings['file_ext_mode'].options['only_matching_file_format']):
       self._layer_data.filter.add_rule(LayerFilters.has_matching_file_format, self._file_format)
     
     self._handle_file_extension_stripping()
-    
     self._uniquify_layer_names()
     
     if self.main_settings['empty_directories'].value:
@@ -349,6 +333,7 @@ class LayerExporter(object):
       self._cleanup()
   
   def _do_export_layers(self):
+    
     if not self._layer_data:
       raise ExportLayersNoLayersToExport("There are no layers to export.")
     
@@ -356,13 +341,12 @@ class LayerExporter(object):
     
     if self.main_settings['empty_directories'].value:
       for layerdata_elem in self._empty_groups_layerdata:
-        directory = layerdata_elem.get_filename(self._output_directory,
-                                                file_format=None,
-                                                include_layer_path=True)
+        directory = layerdata_elem.get_filename(
+          self._output_directory, file_extension=None, include_layer_path=True
+        )
         libfiles.make_dirs(directory)
     
     self.progress_updater.num_total_tasks = len(self._layer_data)
-    
     self._layer_file_format_properties = self._layer_data.get_file_extension_properties(self._default_file_format)
     
     for layerdata_elem in self._layer_data:
@@ -432,23 +416,10 @@ class LayerExporter(object):
     
     return file_export_func
   
-  def _remove_square_brackets(self, layerdata):
-    for layerdata_elem in layerdata:
-      if LayerFilters.is_enclosed_in_square_brackets(layerdata_elem):
-        layerdata_elem.layer_name = layerdata_elem.layer_name[1:-1]
-  
-  def _add_square_brackets(self, layerdata):
-    for layerdata_elem in layerdata:
-      layerdata_elem.layer_name = '[' + layerdata_elem.layer_name + ']'
-  
   def _handle_file_extension_stripping(self):
     if self.main_settings['strip_mode'].value in (self.main_settings['strip_mode'].options['identical'],
                                                   self.main_settings['strip_mode'].options['always']):
       for layerdata_elem in self._layer_data:
-        
-        if LayerFilters.is_enclosed_in_square_brackets(layerdata_elem):
-          continue
-        
         layer_name_root = os.path.splitext(layerdata_elem.layer_name)[0]
         if layerdata_elem.file_extension:
           if self.main_settings['strip_mode'].value == self.main_settings['strip_mode'].options['identical']:

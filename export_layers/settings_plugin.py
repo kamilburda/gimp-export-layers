@@ -162,12 +162,6 @@ class MainSettings(settings.SettingContainer):
     )
     self['square_bracketed_mode'].display_name = "Layer names in [square brackets]"
     
-    self._add(settings.BoolSetting('remove_square_brackets', False))
-    self['remove_square_brackets'].display_name = "Remove square brackets"
-    self['remove_square_brackets'].description = (
-      "If enabled, [square brackets] will be removed from the layer names before being exported."
-    )
-    
     self._add(settings.BoolSetting('crop_to_background', False))
     self['crop_to_background'].display_name = "Crop to background"
     self['crop_to_background'].description = (
@@ -211,11 +205,7 @@ class MainSettings(settings.SettingContainer):
       'all other layers will not be exported.'
     )
     self['strip_mode'].description = (
-      "Determines when to strip "
-      "file extension from layer names (including the period).\n"
-      "\"" + self['strip_mode'].options_display_names['always'] + "\" "
-      "does not apply to layer names in [square brackets] if \"" +
-      self['remove_square_brackets'].display_name + "\" is disabled."
+      "Determines when to strip file extensions from layer names (including the period)."
     )
     
     self['file_format'].error_messages['not_specified'] = "file format not specified"
@@ -249,23 +239,6 @@ class MainSettings(settings.SettingContainer):
         strip_mode.ui_enabled = False
         file_format.error_messages['invalid_value'] = file_format.error_messages['default_needed']
     
-    def streamline_square_bracketed_mode(square_bracketed_mode,
-                                         remove_square_brackets, crop_to_background):
-      if square_bracketed_mode.value == square_bracketed_mode.options['normal']:
-        remove_square_brackets.ui_visible = True
-        crop_to_background.ui_visible = False
-      elif square_bracketed_mode.value == square_bracketed_mode.options['background']:
-        remove_square_brackets.value = False
-        remove_square_brackets.ui_visible = False
-        crop_to_background.ui_visible = True
-      elif square_bracketed_mode.value == square_bracketed_mode.options['ignore']:
-        remove_square_brackets.value = False
-        remove_square_brackets.ui_visible = False
-        crop_to_background.ui_visible = False
-      elif square_bracketed_mode.value == square_bracketed_mode.options['ignore_other']:
-        remove_square_brackets.ui_visible = True
-        crop_to_background.ui_visible = False
-    
     def streamline_merge_layer_groups(merge_layer_groups, layer_groups_as_directories):
       if merge_layer_groups.value:
         layer_groups_as_directories.value = False
@@ -285,9 +258,6 @@ class MainSettings(settings.SettingContainer):
     )
     self['file_ext_mode'].set_streamline_func(
       streamline_file_ext_mode, self['file_format'], self['strip_mode']
-    )
-    self['square_bracketed_mode'].set_streamline_func(
-      streamline_square_bracketed_mode, self['remove_square_brackets'], self['crop_to_background']
     )
     self['merge_layer_groups'].set_streamline_func(
       streamline_merge_layer_groups, self['layer_groups_as_directories']
