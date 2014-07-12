@@ -89,8 +89,7 @@ class LayerData(object):
     # value: `_LayerDataElement` object
     self._layerdata = OrderedDict()
     
-    # Contains original elements from `self._layerdata` before caching
-    self._orig_layerdata = None
+    self._cached_layerdata = None
     
     self._fill_layer_data()
   
@@ -121,7 +120,12 @@ class LayerData(object):
       for layerdata_elem in self._layerdata.values():
         yield layerdata_elem
     else:
-      for layerdata_elem in self._layerdata.values():
+      if self._cached_layerdata is None:
+        layerdata = self._layerdata
+      else:
+        layerdata = self._cached_layerdata
+      
+      for layerdata_elem in layerdata.values():
         if self._filter.is_match(layerdata_elem):
           yield layerdata_elem
   
@@ -149,9 +153,7 @@ class LayerData(object):
     Calling `cache_layers()` again renews the layer cache.
     """
     
-    if self._orig_layerdata is None:
-      self._orig_layerdata = self._layerdata
-    self._layerdata = OrderedDict(self._items())
+    self._cached_layerdata = OrderedDict(self._items())
   
   def clear_cache(self):
     """
@@ -160,9 +162,8 @@ class LayerData(object):
     Nothing happens if the cache is empty (since there is nothing to clear).
     """
     
-    if self._orig_layerdata is not None:
-      self._layerdata = self._orig_layerdata
-      self._orig_layerdata = None
+    if self._cached_layerdata is not None:
+      self._cached_layerdata = None
   
   def get_file_extension_properties(self, default_file_extension):
     
@@ -413,19 +414,14 @@ class _LayerDataElement(object):
     """
     return [parent.layer_name for parent in reversed(self.parents)]
   
-  def validate_name(self, string_validator):
+  def validate_name(self):
     """
-    Validate `layer_name` and `path_components` attributes by deleting
-    characters invalid in filenames.
-    
-    Parameters:
-    
-    * `string_validator` - `libfiles.StringValidator` object.
+    Validate `layer_name` and `path_components` attributes.
     """
-    self.layer_name = string_validator.validate(self.layer_name)
-    self.path_components = [string_validator.validate(path_component)
+    self.layer_name = libfiles.FilenameValidator.validate(self.layer_name)
+    self.path_components = [libfiles.FilenameValidator.validate(path_component)
                             for path_component in self.path_components]
-  
+
   def _get_layer_visibility(self):
     """
     If the layer and all of its parents are visible, return True,
