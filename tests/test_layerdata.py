@@ -60,8 +60,8 @@ class LayerFilters(object):
     return layerdata_elem.path_visible
   
   @staticmethod
-  def has_matching_file_format(layerdata_elem, file_format):
-    return layerdata_elem.layer_name.endswith('.' + file_format)
+  def has_matching_file_extension(layerdata_elem, file_extension):
+    return layerdata_elem.layer_name.endswith('.' + file_extension)
 
 #===============================================================================
 
@@ -185,35 +185,35 @@ class TestLayerData(unittest.TestCase):
   
   def test_get_filename(self):
     output_directory = os.path.join("D:", os.sep, "testgimp");
-    file_format = 'png'
+    file_extension = 'png'
     # layerdata_elem with parents
     layerdata_elem = self.layer_data['bottom-right-corner']
     
-    self.assertEqual(layerdata_elem.get_filename(output_directory, file_format),
+    self.assertEqual(layerdata_elem.get_filename(output_directory, file_extension),
                      os.path.join(output_directory, "Corners", "Layer Group ##1",
                                   layerdata_elem.layer_name) +
-                       "." + file_format)
-    self.assertEqual(layerdata_elem.get_filename(output_directory, file_format, include_layer_path=False),
+                       "." + file_extension)
+    self.assertEqual(layerdata_elem.get_filename(output_directory, file_extension, include_layer_path=False),
                      os.path.join(output_directory, layerdata_elem.layer_name) +
-                       "." + file_format)
-    self.assertEqual(layerdata_elem.get_filename("testgimp", file_format),
+                       "." + file_extension)
+    self.assertEqual(layerdata_elem.get_filename("testgimp", file_extension),
                      os.path.join(os.getcwd(), "testgimp", "Corners", "Layer Group ##1",
                                   layerdata_elem.layer_name) +
-                       "." + file_format)
-    self.assertEqual(layerdata_elem.get_filename(None, file_format),
+                       "." + file_extension)
+    self.assertEqual(layerdata_elem.get_filename(None, file_extension),
                      os.path.join(os.getcwd(), "Corners", "Layer Group ##1",
                                   layerdata_elem.layer_name) +
-                       "." + file_format)
+                       "." + file_extension)
     self.assertEqual(layerdata_elem.get_filename(output_directory, None),
                      os.path.join(output_directory, "Corners", "Layer Group ##1",
                                   layerdata_elem.layer_name))
     
     # layerdata_elem without parents
     layerdata_with_file_ext = self.layer_data['Overlay - Colorify Create.jpg']
-    self.assertEqual(layerdata_with_file_ext.get_filename(output_directory, file_format),
-                     os.path.join(output_directory, layerdata_with_file_ext.layer_name) + "." + file_format)
-    self.assertEqual(layerdata_with_file_ext.get_filename(output_directory, file_format),
-                     layerdata_with_file_ext.get_filename(output_directory, file_format,
+    self.assertEqual(layerdata_with_file_ext.get_filename(output_directory, file_extension),
+                     os.path.join(output_directory, layerdata_with_file_ext.layer_name) + "." + file_extension)
+    self.assertEqual(layerdata_with_file_ext.get_filename(output_directory, file_extension),
+                     layerdata_with_file_ext.get_filename(output_directory, file_extension,
                                                           include_layer_path=False))
     self.assertTrue(layerdata_with_file_ext.get_filename(output_directory, "png")
                     .endswith(".jpg.png"))
@@ -223,17 +223,17 @@ class TestLayerData(unittest.TestCase):
                     .endswith(".jpg"))
     
     layerdata_empty_layer_group = self.layer_data['[Layer Group #2]']
-    self.assertEqual(layerdata_empty_layer_group.get_filename(output_directory, file_format),
+    self.assertEqual(layerdata_empty_layer_group.get_filename(output_directory, file_extension),
                      os.path.join(output_directory, 'Frames', layerdata_empty_layer_group.layer_name))
-    self.assertEqual(layerdata_empty_layer_group.get_filename(output_directory, file_format,
+    self.assertEqual(layerdata_empty_layer_group.get_filename(output_directory, file_extension,
                                                               include_layer_path=False),
                      os.path.join(output_directory, layerdata_empty_layer_group.layer_name))
     
     layerdata_empty_layer_group_no_parents = self.layer_data['Layer Group']
-    self.assertEqual(layerdata_empty_layer_group_no_parents.get_filename(output_directory, file_format),
+    self.assertEqual(layerdata_empty_layer_group_no_parents.get_filename(output_directory, file_extension),
                      os.path.join(output_directory, layerdata_empty_layer_group_no_parents.layer_name))
-    self.assertEqual(layerdata_empty_layer_group_no_parents.get_filename(output_directory, file_format),
-                     layerdata_empty_layer_group_no_parents.get_filename(output_directory, file_format,
+    self.assertEqual(layerdata_empty_layer_group_no_parents.get_filename(output_directory, file_extension),
+                     layerdata_empty_layer_group_no_parents.get_filename(output_directory, file_extension,
                                                                          include_layer_path=False))
   
   def test_get_file_extension_properties(self):

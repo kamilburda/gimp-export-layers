@@ -48,11 +48,11 @@ def has_uppercase_letters(obj):
 def is_object_id_even(obj):
   return obj.object_id % 2 == 0
 
-def has_matching_file_format(obj, file_format, case_sensitive=False):
+def has_matching_file_extension(obj, file_extension, case_sensitive=False):
   if not case_sensitive:
     obj.name = obj.name.lower()
   
-  return obj.name.endswith('.' + file_format)
+  return obj.name.endswith('.' + file_extension)
 
 def is_empty(obj):
   return obj.is_empty
@@ -96,17 +96,17 @@ class TestObjectFilter(unittest.TestCase):
       self.filter.add_rule(is_object_id_even)
   
   def test_add_rule_temp(self):
-    with self.filter.add_rule_temp(has_matching_file_format, 'jpg'):
-      self.assertTrue(self.filter.has_rule(has_matching_file_format))
-    self.assertFalse(self.filter.has_rule(has_matching_file_format))
+    with self.filter.add_rule_temp(has_matching_file_extension, 'jpg'):
+      self.assertTrue(self.filter.has_rule(has_matching_file_extension))
+    self.assertFalse(self.filter.has_rule(has_matching_file_extension))
   
   def test_add_rule_temp_remove_upon_exception(self):
     try:
-      with self.filter.add_rule_temp(has_matching_file_format):
+      with self.filter.add_rule_temp(has_matching_file_extension):
         raise Exception("testing")
     except Exception:
       pass
-    self.assertFalse(self.filter.has_rule(has_matching_file_format))
+    self.assertFalse(self.filter.has_rule(has_matching_file_extension))
   
   def test_remove_rule_temp(self):
     self.filter.add_rule(is_object_id_even)
@@ -116,23 +116,23 @@ class TestObjectFilter(unittest.TestCase):
     
     self.filter.remove_rule(is_object_id_even)
     with self.assertRaises(ValueError):
-      with self.filter.remove_rule_temp(has_matching_file_format):
+      with self.filter.remove_rule_temp(has_matching_file_extension):
         pass
     
-    self.filter.add_rule(has_matching_file_format, 'jpg')
+    self.filter.add_rule(has_matching_file_extension, 'jpg')
     with self.assertRaises(TypeError):
       # remove_rule_temp must have only 1 argument
-      with self.filter.remove_rule_temp(has_matching_file_format, 'jpg'):
+      with self.filter.remove_rule_temp(has_matching_file_extension, 'jpg'):
         pass
   
   def test_remove_rule_temp_add_upon_exception(self):
-    self.filter.add_rule(has_matching_file_format, 'jpg')
+    self.filter.add_rule(has_matching_file_extension, 'jpg')
     try:
-      with self.filter.remove_rule_temp(has_matching_file_format):
+      with self.filter.remove_rule_temp(has_matching_file_extension):
         raise Exception("testing")
     except Exception:
       pass
-    self.assertTrue(self.filter.has_rule(has_matching_file_format))
+    self.assertTrue(self.filter.has_rule(has_matching_file_extension))
     
     # Check if the filter works properly after the rule is restored.
     self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There.jpg")))
@@ -144,7 +144,7 @@ class TestObjectFilter(unittest.TestCase):
     
     with self.assertRaises(ValueError):
       # Key is not a subfilter
-      self.filter[has_matching_file_format]
+      self.filter[has_matching_file_extension]
   
   def test_add_subfilter(self):
     self.filter.add_subfilter('subfilter', ObjectFilter())
@@ -162,7 +162,7 @@ class TestObjectFilter(unittest.TestCase):
     
     with self.assertRaises(TypeError):
       # Wrong number of arguments
-      with self.filter.add_rule_temp(has_matching_file_format):
+      with self.filter.add_rule_temp(has_matching_file_extension):
         self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There.jpg")))
 
   def test_remove_subfilter_temp(self):
@@ -194,18 +194,18 @@ class TestObjectFilter(unittest.TestCase):
     self.assertTrue(self.filter_match_any.is_match(FilterableObject(2, "Hi There")))
   
   def test_match_custom_args(self):
-    self.filter.add_rule(has_matching_file_format, 'jpg')
+    self.filter.add_rule(has_matching_file_extension, 'jpg')
     self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There.jpg")))
     self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There.Jpg")))
-    self.filter.remove_rule(has_matching_file_format)
+    self.filter.remove_rule(has_matching_file_extension)
     
-    self.filter.add_rule(has_matching_file_format, 'Jpg', True)
+    self.filter.add_rule(has_matching_file_extension, 'Jpg', True)
     self.assertFalse(self.filter.is_match(FilterableObject(2, "Hi There.jpg")))
     self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There.Jpg")))
-    self.filter.remove_rule(has_matching_file_format)
+    self.filter.remove_rule(has_matching_file_extension)
   
   def test_match_add_rule_temp(self):
-    with self.filter.add_rule_temp(has_matching_file_format, 'jpg'):
+    with self.filter.add_rule_temp(has_matching_file_extension, 'jpg'):
       self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There.jpg")))
       self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There.Jpg")))
   

@@ -177,8 +177,8 @@ class LayerData(object):
     
     Parameters:
     
-    * `default_file_extension` - Default file format to use for layers with no
-      file extension.
+    * `default_file_extension` - Default file extension to use for layers with
+      no file extension.
     
     Returns:
     
@@ -204,13 +204,13 @@ class LayerData(object):
     layer_file_ext_properties = {}
     
     for layerdata_elem in self:
-      file_format = layerdata_elem.file_extension
-      if not file_format:
-        file_format = default_file_extension
+      file_extension = layerdata_elem.file_extension
+      if not file_extension:
+        file_extension = default_file_extension
       
-      if file_format not in layer_file_ext_properties:
-        layer_file_ext_properties[file_format] = LayerFileExtensionProperties()
-      layer_file_ext_properties[file_format].count += 1
+      if file_extension not in layer_file_ext_properties:
+        layer_file_ext_properties[file_extension] = LayerFileExtensionProperties()
+      layer_file_ext_properties[file_extension].count += 1
     
     if default_file_extension not in layer_file_ext_properties:
       layer_file_ext_properties[default_file_extension] = LayerFileExtensionProperties()
