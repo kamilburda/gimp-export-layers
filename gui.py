@@ -304,9 +304,9 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
       exception_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
       display_exception_message(exception_message, plugin_title=plugin_title,
                                 report_uri_list=report_uri_list, parent=parent)
-      # Make sure to quit the plug-in altogether since unhandled exceptions
+      # Make sure to quit the plug-in since unhandled exceptions
       # can mess up the plug-in state.
-      while gtk.main_level() > 0:
+      if gtk.main_level() > 0:
         gtk.main_quit()
     
     _orig_sys_excepthook(exc_type, exc_value, exc_traceback)
