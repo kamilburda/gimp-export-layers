@@ -1,12 +1,14 @@
 2.1 (Upcoming)
 ------------------------
 
+* Renamed "File format" to "File extension" since that's what the user actually
+  specifies. Because of this, if you use "Save settings", you'll need to re-save them.
+* Renamed a bunch of options so that they contain "extension" instead of "format".
 * Removed "Remove squared brackets" setting as it served little purpose.
   [square brackets] will now always be removed from the layer names.
 * Added "Ignore Layer Mode" setting, which sets the layer mode to Normal for each layer.
 * Fixed a bug that caused the file format dialog to not appear if the user chose
   Skip in the overwrite dialog for the first file (or the first and subsequent files).
-* Renamed "Strip identical to file format" to "Strip identical file extension".
 * When "No special handling" is selected, file extension strip mode now defaults to
   "Strip identical file extension".
 * Removed unnecessary files from the package.
