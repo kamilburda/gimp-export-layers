@@ -47,8 +47,6 @@ import gimp
 from gimpshelf import shelf
 import gimpenums
 
-from . import libfiles
-
 #===============================================================================
 
 pdb = gimp.pdb
@@ -691,25 +689,49 @@ class StringSetting(Setting):
     self.gimp_pdb_type = gimpenums.PDB_STRING
 
 
-class NonEmptyStringSetting(StringSetting):
+class ValidatableStringSetting(StringSetting):
   
   """
-  This class can be used for string settings which must not be empty or None.
+  This class is an abstract class for string settings which are meant to be
+  validated with one of the `libfiles.StringValidator` subclasses.
   
-  Default GIMP PDB type: PDB_STRING
+  To determine whether the string is valid, the `is_valid()` method from the
+  subclass being used is called.
   
   Allowed GIMP PDB types:
+  
   * PDB_STRING
+  
+  Raises:
+  
+  * `SettingValueError` - The string assigned is invalid.
   
   Error messages:
   
-  * invalid_value: The string assigned is empty or None.
+  This setting contains empty error messages for error statutes from
+  the `libfiles.StringValidator` subclass being used. Normally, if the value
+  (string) assigned is invalid, status messages returned from `is_valid()`
+  are used. If desired, you may fill the error messages with custom messages,
+  overriding the status messages. See `ERROR_STATUSES` in the
+  `libfiles.StringValidator` subclass being used for available error statuses.
   """
   
-  def __init__(self, name, default_value):
-    super(NonEmptyStringSetting, self).__init__(name, default_value)
+  __metaclass__ = abc.ABCMeta
+  
+  def __init__(self, name, default_value, string_validator):
+    """
+    Additional parameters:
     
-    self.error_messages['invalid_value'] = "string is empty or not specified"
+    * `string_validator` - `libfiles.StringValidator` subclass used to validate
+      the value assigned to this object.
+    """
+    
+    super(ValidatableStringSetting, self).__init__(name, default_value)
+    
+    self._string_validator = string_validator
+    
+    for status in self._string_validator.ERROR_STATUSES:
+      self.error_messages[status] = ""
   
   @property
   def value(self):
@@ -717,11 +739,63 @@ class NonEmptyStringSetting(StringSetting):
   
   @value.setter
   def value(self, value_):
-    if value_ is None or not value_:
-      raise ValueError(self.error_messages['invalid_value'])
+    is_valid, status_messages = self._string_validator.is_valid(value_)
+    if not is_valid:
+      new_status_messages = []
+      for status, status_message in status_messages:
+        if self.error_messages[status]:
+          new_status_messages.append(self.error_messages[status])
+        else:
+          new_status_messages.append(status_message)
+      
+      raise SettingValueError(
+        self._value_to_str(value_) + '\n'.join([message for message in new_status_messages])
+      )
     
-    super(NonEmptyStringSetting, self)._set_value(value_)
+    super(ValidatableStringSetting, self)._set_value(value_)
   
+
+class FileExtensionSetting(ValidatableStringSetting):
+  
+  """
+  This class can be used for file extensions.
+  
+  `libfiles.FileExtensionValidator` subclass is used to determine whether
+   the file extension is valid.
+  
+  Allowed GIMP PDB types:
+  
+  * PDB_STRING
+  
+  Raises:
+  
+  * `SettingValueError` - The file extension assigned is invalid.
+  """
+  
+  def __init__(self, name, default_value):
+    super(FileExtensionSetting, self).__init__(name, default_value, libfiles.FileExtensionValidator)
+  
+
+class DirectorySetting(ValidatableStringSetting):
+  
+  """
+  This class can be used for directories.
+  
+  `libfiles.FilePathValidator` subclass is used to determine whether
+   the directory name is valid.
+  
+  Allowed GIMP PDB types:
+  
+  * PDB_STRING
+  
+  Raises:
+  
+  * `SettingValueError` - The directory name assigned is invalid.
+  """
+  
+  def __init__(self, name, default_value):
+    super(DirectorySetting, self).__init__(name, default_value, libfiles.FilePathValidator)
+
 #===============================================================================
 
 class Container(object):

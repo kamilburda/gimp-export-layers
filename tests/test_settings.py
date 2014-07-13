@@ -331,16 +331,18 @@ class TestImageSetting(unittest.TestCase):
       self.setting.value = image
 
 
-class TestNonEmptyStringSetting(unittest.TestCase):
+class TestFileExtensionSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = settings.NonEmptyStringSetting('file_extension', "")
+    self.setting = settings.FileExtensionSetting('file_ext', "png")
   
-  def test_invalid_string(self):
-    with self.assertRaises(ValueError):
+  def test_custom_error_message(self):
+    self.setting.error_messages[libfiles.FileExtensionValidator.IS_EMPTY] = "My Custom Message"
+    
+    try:
       self.setting.value = ""
-    with self.assertRaises(ValueError):
-      self.setting.value = None
+    except settings.SettingValueError as e:
+      self.assertEqual(e.message, "My Custom Message")
 
 #===============================================================================
 
