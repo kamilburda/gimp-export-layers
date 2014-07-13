@@ -158,7 +158,6 @@ class LayerExporter(object):
   """
   This class:
   * exports layers as separate images
-  * validates user input
   * validates layer names
   
   Attributes:
@@ -248,15 +247,6 @@ class LayerExporter(object):
     
     Set layer filters according to the main settings.
     """
-    
-    is_valid, status_message = libfiles.FileExtensionValidator.is_valid(self._default_file_extension)
-    if not is_valid:
-      raise ExportLayersError('"' + self._default_file_extension + '": ' + status_message)
-    
-    is_valid, status_message = libfiles.FilePathValidator.is_valid(self._output_directory)
-    if not is_valid:
-      raise ExportLayersError('Cannot export to output directory "' + self._output_directory + '": ' +
-                              status_message)
     
     self._default_file_extension = self._default_file_extension.lstrip('.').lower()
     self._file_export_func = self._get_file_export_func(self._default_file_extension)
@@ -556,7 +546,7 @@ class LayerExporter(object):
           if run_mode in (gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE):
             self._current_layer_export_status = self._FORCE_INTERACTIVE
           else:
-            error_message = 'Error: "' + self._file_extension + '": ' + e.message
+            error_message = '"' + self._file_extension + '": ' + e.message
             if not e.message.endswith('.'):
               error_message += '.'
             raise ExportLayersError(error_message)

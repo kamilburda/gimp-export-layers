@@ -425,7 +425,7 @@ class _ExportLayersGui(object):
   def on_save_settings(self, widget):
     try:
       self.setting_presenters.assign_element_values_to_settings()
-    except ValueError as e:
+    except settings.SettingValueError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       return
     
@@ -441,7 +441,7 @@ class _ExportLayersGui(object):
   def on_export_click(self, widget):
     try:
       self.setting_presenters.assign_element_values_to_settings()
-    except ValueError as e:
+    except settings.SettingValueError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       return
     

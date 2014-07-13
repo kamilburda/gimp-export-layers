@@ -37,6 +37,7 @@ import gimp
 import gimpenums
 
 from export_layers.pylibgimpplugin import settings
+from export_layers.pylibgimpplugin import libfiles
 from export_layers import exportlayers
 
 #===============================================================================
@@ -74,14 +75,16 @@ class MainSettings(settings.SettingContainer):
   
   def _create_settings(self):
     
-    self._add(settings.NonEmptyStringSetting('file_extension', ""))
+    self._add(settings.FileExtensionSetting('file_extension', ""))
     self['file_extension'].display_name = "File extension"
     self['file_extension'].description = (
       "Type in file extension, with or without the leading period. "
       "To export in raw format, type \"raw\"."
     )
     
-    self._add(settings.StringSetting('output_directory', gimp.user_directory(1)))   # Documents directory
+#    self._add(settings.StringSetting('output_directory', gimp.user_directory(1)))   # Documents directory
+#    self['output_directory'].display_name = "Output directory"
+    self._add(settings.DirectorySetting('output_directory', gimp.user_directory(1)))   # Documents directory
     self['output_directory'].display_name = "Output directory"
     
     self._add(settings.BoolSetting('layer_groups_as_directories', False))
@@ -230,15 +233,17 @@ class MainSettings(settings.SettingContainer):
       if file_ext_mode.value == file_ext_mode.options['no_handling']:
         strip_mode.value = strip_mode.default_value
         strip_mode.ui_enabled = True
-        file_extension.error_messages['invalid_value'] = file_extension.error_messages['not_specified']
+        file_extension.error_messages[libfiles.FileExtensionValidator.IS_EMPTY] = ""
       elif file_ext_mode.value == file_ext_mode.options['only_matching_file_extension']:
         strip_mode.value = strip_mode.options['never']
         strip_mode.ui_enabled = False
-        file_extension.error_messages['invalid_value'] = file_extension.error_messages['not_specified']
+        file_extension.error_messages[libfiles.FileExtensionValidator.IS_EMPTY] = ""
       elif file_ext_mode.value == file_ext_mode.options['use_as_file_extensions']:
         strip_mode.value = strip_mode.options['never']
         strip_mode.ui_enabled = False
-        file_extension.error_messages['invalid_value'] = file_extension.error_messages['default_needed']
+        file_extension.error_messages[libfiles.FileExtensionValidator.IS_EMPTY] = (
+          file_extension.error_messages['default_needed']
+        )
     
     def streamline_merge_layer_groups(merge_layer_groups, layer_groups_as_directories):
       if merge_layer_groups.value:
