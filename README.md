@@ -12,7 +12,7 @@ This plug-in:
 * uses native dialogs for file format export procedures to adjust file format settings
 * uses layer names as filenames for the exported images
 * supports layer groups and optionally treats them as directories
-* can optionally export only layers whose file extension matches specified file format
+* can optionally export only layers whose file extension matches specified file extension
 * can use file extensions in layer names as file formats
 * can use layers with names in [square brackets] as background layers
 
@@ -31,12 +31,11 @@ Usage
 -----
 
 From the main menu, go to "File -> Export Layers...". A dialog appears, allowing
-you to specify output directory, file format and various other settings.
+you to specify output directory, file extension and various other settings.
 
-To specify file format, type the file extension in the File Format
-text field (with or without the leading period). Any file format is supported,
-with a few exceptions (more information in Known Issues). File formats provided
-by third-party plug-ins should work as well - at the very least,
+Type in the desired file extension in the "File extension" text field (with or without
+the leading period). You can type any file extension supported by GIMP. File formats
+provided by third-party plug-ins should work as well - at the very least,
 GIMP DDS Plugin was tested and works correctly.
 
 To export in raw file format (which has no file extension assigned),
@@ -52,7 +51,7 @@ specified in the dialog for the first file. However, some file formats have to
 display the dialog for each file (more info in Known Issues).
 
 If you need to stop the export prematurely, press the Stop button. If an error was
-encountered (such as invalid file format) or the export was stopped, the main window reappears.
+encountered (such as invalid file extension) or the export was stopped, the main window reappears.
 
 If you want to export the layers with the last values used, you can use the
 "File -> Export Layers to" menu entry. The file format dialog will not be displayed -
@@ -100,19 +99,18 @@ Advanced Settings
 **File extensions in layer names**
 
 * *No special handling* - No special action is performed.
-* *Export only layers matching file format* - Export only layers with file extensions
-that match the file format in the "File format" text field.
-* *Use as file formats* - Every layer that has a valid file extension will be
-exported with that file format. File format dialog will be displayed once
-for each file format. For layers with invalid or no file extension,
-the file format in the "File format" text field will be used.
+* *Export only layers matching file extension* - Export only layers whose file
+extensions match the "File extension" text field.
+* *Use as file extensions* - Every layer that has a valid file extension will be
+exported using that file extension. File format dialog will be displayed once
+for each file extension. For layers with invalid or no file extension,
+the extension in the "File extension" text field will be used.
 
 **Additional options to "File extensions in layer names"**
 
 - *Always strip file extension* - Strip (remove) file extension from all layer names.
-This does not apply to layer names in [square brackets] if "Remove square brackets" is disabled.
-- *Strip identical to file format* - Remove file extension from the layer names that
-match the file format in the "File format" text field.
+- *Strip identical file extension* - Remove file extension from the layer names that
+match the "File extension" text field.
 - *Never strip file extension* - Don't strip file extension from layer names.
 
 **Layer names in [square brackets]**
