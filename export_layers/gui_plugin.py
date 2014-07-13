@@ -196,11 +196,11 @@ class _ExportLayersGui(object):
     
     self.directory_chooser = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
     
-    self.file_format_label = gtk.Label()
-    self.file_format_label.set_markup("<b>" + self.main_settings['file_format'].display_name + ":</b>")
-    self.file_format_label.set_alignment(0.0, 0.5)
-    self.file_format_entry = gtk.Entry()
-    self.file_format_entry.set_size_request(100, -1)
+    self.file_extension_label = gtk.Label()
+    self.file_extension_label.set_markup("<b>" + self.main_settings['file_extension'].display_name + ":</b>")
+    self.file_extension_label.set_alignment(0.0, 0.5)
+    self.file_extension_entry = gtk.Entry()
+    self.file_extension_entry.set_size_request(100, -1)
     self.label_message = gtk.Label()
     self.label_message.set_alignment(0.0, 0.5)
     
@@ -229,15 +229,15 @@ class _ExportLayersGui(object):
     self.advanced_settings_ignore_layer_modes = gtk.CheckButton(self.main_settings['ignore_layer_modes'].display_name)
     
     
-    self.hbox_file_format_entry = gtk.HBox(homogeneous=False)
-    self.hbox_file_format_entry.set_spacing(30)
-    self.hbox_file_format_entry.pack_start(self.file_format_label, expand=False, fill=True)
-    self.hbox_file_format_entry.pack_start(self.file_format_entry, expand=False, fill=True)
+    self.hbox_file_extension_entry = gtk.HBox(homogeneous=False)
+    self.hbox_file_extension_entry.set_spacing(30)
+    self.hbox_file_extension_entry.pack_start(self.file_extension_label, expand=False, fill=True)
+    self.hbox_file_extension_entry.pack_start(self.file_extension_entry, expand=False, fill=True)
     
-    self.hbox_file_format = gtk.HBox(homogeneous=False)
-    self.hbox_file_format.set_spacing(self.HBOX_HORIZONTAL_SPACING)
-    self.hbox_file_format.pack_start(self.hbox_file_format_entry, expand=False, fill=True)
-    self.hbox_file_format.pack_start(self.label_message, expand=False, fill=True)
+    self.hbox_file_extension = gtk.HBox(homogeneous=False)
+    self.hbox_file_extension.set_spacing(self.HBOX_HORIZONTAL_SPACING)
+    self.hbox_file_extension.pack_start(self.hbox_file_extension_entry, expand=False, fill=True)
+    self.hbox_file_extension.pack_start(self.label_message, expand=False, fill=True)
     
     self.hbox_export_settings = gtk.HBox(homogeneous=False)
     self.hbox_export_settings.pack_start(self.export_settings_layer_groups)
@@ -290,7 +290,7 @@ class _ExportLayersGui(object):
     self.dialog.vbox.set_spacing(self.DIALOG_VBOX_SPACING)
     self.dialog.vbox.pack_start(self.directory_chooser_label, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.directory_chooser, padding=5)
-    self.dialog.vbox.pack_start(self.hbox_file_format, expand=False, fill=False)
+    self.dialog.vbox.pack_start(self.hbox_file_extension, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.hbox_export_settings, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.expander_advanced_settings, expand=False, fill=False)
     self.dialog.vbox.pack_start(gtk.HSeparator(), expand=False, fill=True)
@@ -327,15 +327,15 @@ class _ExportLayersGui(object):
     self.setting_presenters.assign_setting_values_to_elements()
     self.setting_presenters.connect_value_changed_events()
     
-    self.dialog.set_focus(self.file_format_entry)
+    self.dialog.set_focus(self.file_extension_entry)
     self.dialog.show()
     self.dialog.action_area.set_border_width(self.ACTION_AREA_BORDER_WIDTH)
   
   def create_setting_presenters(self):
     self.setting_presenters.add(
       gui.GtkEntryPresenter(
-        self.main_settings['file_format'],
-        self.file_format_entry))
+        self.main_settings['file_extension'],
+        self.file_extension_entry))
     
     self.setting_presenters.add(
       gui.GtkDirectoryChooserWidgetPresenter(

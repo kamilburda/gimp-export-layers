@@ -33,7 +33,7 @@ import os
 #===============================================================================
 
 def test_export_layers(layer_exporter, main_settings):
-  file_formats = ['raw', 'xcf', 'pix', 'matte', 'mask', 'alpha', 'als', 'fli', 'flc',
+  file_extensions = ['raw', 'xcf', 'pix', 'matte', 'mask', 'alpha', 'als', 'fli', 'flc',
                   'xcf.bz2', 'xcfbz2', 'c', 'h', 'xhtml', 'dds', 'dcm', 'dicom', 'eps',
                   'fit', 'fits', 'gif', 'gbr', 'gih', 'pat', 'xcf.gz', 'xcfgz',
                   'html', 'htm', 'jpg', 'jpeg', 'jpe', 'cel', 'ico', 'mng', 'ora', 'pbm',
@@ -43,7 +43,7 @@ def test_export_layers(layer_exporter, main_settings):
   
   orig_output_directory = main_settings['output_directory'].value
   
-  for file_format in file_formats:
-    main_settings['file_format'].value = file_format
-    main_settings['output_directory'].value = os.path.join(orig_output_directory, file_format)
+  for file_extension in file_extensions:
+    main_settings['file_extension'].value = file_extension
+    main_settings['output_directory'].value = os.path.join(orig_output_directory, file_extension)
     layer_exporter.export_layers()

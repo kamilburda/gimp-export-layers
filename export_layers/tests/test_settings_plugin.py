@@ -68,13 +68,13 @@ class TestMainSettings(unittest.TestCase):
     self.assertEqual(self.main_settings['strip_mode'].ui_enabled, True)
     self.assertEqual(self.main_settings['strip_mode'].value, self.main_settings['strip_mode'].default_value)
     
-    self.main_settings['file_ext_mode'].value = self.main_settings['file_ext_mode'].options['only_matching_file_format']
+    self.main_settings['file_ext_mode'].value = self.main_settings['file_ext_mode'].options['only_matching_file_extension']
     changed_settings = self.main_settings['file_ext_mode'].streamline()
     self.assertTrue(self.main_settings['strip_mode'] in changed_settings)
     self.assertEqual(self.main_settings['strip_mode'].ui_enabled, False)
     self.assertEqual(self.main_settings['strip_mode'].value, self.main_settings['strip_mode'].options['never'])
     
-    self.main_settings['file_ext_mode'].value = self.main_settings['file_ext_mode'].options['use_as_file_format']
+    self.main_settings['file_ext_mode'].value = self.main_settings['file_ext_mode'].options['use_as_file_extensions']
     changed_settings = self.main_settings['file_ext_mode'].streamline()
     self.assertTrue(self.main_settings['strip_mode'] in changed_settings)
     self.assertEqual(self.main_settings['strip_mode'].ui_enabled, False)

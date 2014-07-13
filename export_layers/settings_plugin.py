@@ -74,9 +74,9 @@ class MainSettings(settings.SettingContainer):
   
   def _create_settings(self):
     
-    self._add(settings.NonEmptyStringSetting('file_format', ""))
-    self['file_format'].display_name = "File format"
-    self['file_format'].description = (
+    self._add(settings.NonEmptyStringSetting('file_extension', ""))
+    self['file_extension'].display_name = "File extension"
+    self['file_extension'].description = (
       "Type in file extension, with or without the leading period. "
       "To export in raw format, type \"raw\"."
     )
@@ -135,8 +135,8 @@ class MainSettings(settings.SettingContainer):
       settings.EnumSetting(
         'file_ext_mode', 'no_handling',
         [('no_handling', "No special handling"),
-         ('only_matching_file_format', "Export only layers matching file format"),
-         ('use_as_file_format', "Use as file formats")]
+         ('only_matching_file_extension', "Export only layers matching file extension"),
+         ('use_as_file_extensions', "Use as file extensions")]
       )
     )
     self['file_ext_mode'].display_name = "File extensions in layer names"
@@ -145,7 +145,7 @@ class MainSettings(settings.SettingContainer):
       settings.EnumSetting(
         'strip_mode', 'identical',
         [('always', "Always strip file extension"),
-         ('identical', "Strip identical to file format"),
+         ('identical', "Strip identical file extension"),
          ('never', "Never strip file extension")]
       )
     )
@@ -192,8 +192,8 @@ class MainSettings(settings.SettingContainer):
     
     
     self['file_ext_mode'].description = (
-      'If "' + self['file_ext_mode'].options_display_names['use_as_file_format'] + '" is selected, '
-      '"' + self['file_format'].display_name + '" must still be specified '
+      'If "' + self['file_ext_mode'].options_display_names['use_as_file_extensions'] + '" is selected, '
+      '"' + self['file_extension'].display_name + '" must still be specified '
       '(for layers with invalid or no file extension).'
     )
     self['square_bracketed_mode'].description = (
@@ -208,9 +208,9 @@ class MainSettings(settings.SettingContainer):
       "Determines when to strip file extensions from layer names (including the period)."
     )
     
-    self['file_format'].error_messages['not_specified'] = "file format not specified"
-    self['file_format'].error_messages['default_needed'] = (
-      "you need to specify default file format for layers with invalid or no format"
+    self['file_extension'].error_messages['not_specified'] = "file extension not specified"
+    self['file_extension'].error_messages['default_needed'] = (
+      "you need to specify default file extension for layers with invalid or no extension"
     )
     
     #---------------------------------------------------------------------------
@@ -226,19 +226,19 @@ class MainSettings(settings.SettingContainer):
         merge_layer_groups.ui_enabled = False
         merge_layer_groups.value = False
     
-    def streamline_file_ext_mode(file_ext_mode, file_format, strip_mode):
+    def streamline_file_ext_mode(file_ext_mode, file_extension, strip_mode):
       if file_ext_mode.value == file_ext_mode.options['no_handling']:
         strip_mode.value = strip_mode.default_value
         strip_mode.ui_enabled = True
-        file_format.error_messages['invalid_value'] = file_format.error_messages['not_specified']
-      elif file_ext_mode.value == file_ext_mode.options['only_matching_file_format']:
+        file_extension.error_messages['invalid_value'] = file_extension.error_messages['not_specified']
+      elif file_ext_mode.value == file_ext_mode.options['only_matching_file_extension']:
         strip_mode.value = strip_mode.options['never']
         strip_mode.ui_enabled = False
-        file_format.error_messages['invalid_value'] = file_format.error_messages['not_specified']
-      elif file_ext_mode.value == file_ext_mode.options['use_as_file_format']:
+        file_extension.error_messages['invalid_value'] = file_extension.error_messages['not_specified']
+      elif file_ext_mode.value == file_ext_mode.options['use_as_file_extensions']:
         strip_mode.value = strip_mode.options['never']
         strip_mode.ui_enabled = False
-        file_format.error_messages['invalid_value'] = file_format.error_messages['default_needed']
+        file_extension.error_messages['invalid_value'] = file_extension.error_messages['default_needed']
     
     def streamline_merge_layer_groups(merge_layer_groups, layer_groups_as_directories):
       if merge_layer_groups.value:
@@ -258,7 +258,7 @@ class MainSettings(settings.SettingContainer):
       streamline_layer_groups_as_directories, self['empty_directories'], self['merge_layer_groups']
     )
     self['file_ext_mode'].set_streamline_func(
-      streamline_file_ext_mode, self['file_format'], self['strip_mode']
+      streamline_file_ext_mode, self['file_extension'], self['strip_mode']
     )
     self['merge_layer_groups'].set_streamline_func(
       streamline_merge_layer_groups, self['layer_groups_as_directories']
