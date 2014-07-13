@@ -38,6 +38,7 @@ import gimpenums
 from ..lib import mock
 
 from .. import settings
+from .. import libfiles
 
 from . import gimpmocks
 
@@ -105,7 +106,7 @@ class SettingContainerTest(settings.SettingContainer):
   
   def _create_settings(self):
     
-    self._add(settings.NonEmptyStringSetting('file_extension', ""))
+    self._add(settings.StringSetting('file_extension', ""))
     self._add(settings.BoolSetting('ignore_invisible', False))
     self._add(
       settings.EnumSetting(
@@ -220,11 +221,11 @@ class TestIntSetting(unittest.TestCase):
     self.setting.max_value = 100
   
   def test_below_min(self):
-    with self.assertRaises(ValueError):
+    with self.assertRaises(settings.SettingValueError):
       self.setting.value = -5
   
   def test_above_max(self):
-    with self.assertRaises(ValueError):
+    with self.assertRaises(settings.SettingValueError):
       self.setting.value = 200
 
 
@@ -236,22 +237,22 @@ class TestFloatSetting(unittest.TestCase):
     self.setting.max_value = 100.0
   
   def test_below_min(self):
-    with self.assertRaises(ValueError):
+    with self.assertRaises(settings.SettingValueError):
       self.setting.value = -5.0
     
     try:
       self.setting.value = 0.0
-    except ValueError:
-      self.fail("ValueError should not be raised")
+    except settings.SettingValueError:
+      self.fail("`SettingValueError` should not be raised")
   
   def test_above_max(self):
-    with self.assertRaises(ValueError):
+    with self.assertRaises(settings.SettingValueError):
       self.setting.value = 200.0
     
     try:
       self.setting.value = 100.0
-    except ValueError:
-      self.fail("ValueError should not be raised")
+    except settings.SettingValueError:
+      self.fail("`SettingValueError` should not be raised")
 
 
 class TestEnumSetting(unittest.TestCase):
@@ -294,9 +295,9 @@ class TestEnumSetting(unittest.TestCase):
          ('replace', "Replace")])
   
   def test_set_invalid_option(self):
-    with self.assertRaises(ValueError):
+    with self.assertRaises(settings.SettingValueError):
       self.setting.value = 4
-    with self.assertRaises(ValueError):
+    with self.assertRaises(settings.SettingValueError):
       self.setting.value = -1
   
   def test_get_invalid_option(self):
@@ -326,7 +327,7 @@ class TestImageSetting(unittest.TestCase):
     pdb = gimpmocks.MockPDB()
     image = pdb.gimp_image_new(2, 2, gimpenums.RGB)
     pdb.gimp_image_delete(image)
-    with self.assertRaises(ValueError):
+    with self.assertRaises(settings.SettingValueError):
       self.setting.value = image
 
 
@@ -447,7 +448,8 @@ class TestShelfSettingStream(unittest.TestCase):
   
   @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
   def test_read_invalid_setting_value(self):
-    setting_with_invalid_value = settings.NonEmptyStringSetting('file_extension', "")
+    setting_with_invalid_value = settings.IntSetting('int', -1)
+    setting_with_invalid_value.min_value = 0
     self.stream.write([setting_with_invalid_value])
     self.stream.read([setting_with_invalid_value])
     self.assertEqual(setting_with_invalid_value.value, setting_with_invalid_value.default_value)
@@ -459,7 +461,6 @@ class TestJSONFileSettingStream(unittest.TestCase):
   def setUp(self):
     self.stream = settings.JSONFileSettingStream("/test/file")
     self.settings = SettingContainerTest()
-    self.setting_with_invalid_value = settings.NonEmptyStringSetting('file_extension', "")
   
   def test_write(self, mock_file):
     self.settings['file_extension'].value = "jpg"
@@ -510,14 +511,16 @@ class TestJSONFileSettingStream(unittest.TestCase):
   def test_read_invalid_setting_value(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
-    self.stream.write([self.setting_with_invalid_value])
-    self.stream.read([self.setting_with_invalid_value])
-    self.assertEqual(self.setting_with_invalid_value.value, self.setting_with_invalid_value.default_value)
+    setting_with_invalid_value = settings.IntSetting('int', -1)
+    setting_with_invalid_value.min_value = 0
+    self.stream.write([setting_with_invalid_value])
+    self.stream.read([setting_with_invalid_value])
+    self.assertEqual(setting_with_invalid_value.value, setting_with_invalid_value.default_value)
   
   def test_read_settings_not_found(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
-    self.stream.write([self.setting_with_invalid_value])
+    self.stream.write([settings.IntSetting('int', -1)])
     with self.assertRaises(settings.SettingsNotFoundInStreamError):
       self.stream.read(self.settings)
 

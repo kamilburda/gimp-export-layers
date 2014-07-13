@@ -47,9 +47,20 @@ import gimp
 from gimpshelf import shelf
 import gimpenums
 
+from . import libfiles
+
 #===============================================================================
 
 pdb = gimp.pdb
+
+#===============================================================================
+
+class SettingValueError(Exception):
+  """
+  This exception class is raised when a value assigned to the `value` attribute
+  of a `Setting` object is invalid.
+  """
+  pass
 
 #===============================================================================
 
@@ -110,7 +121,7 @@ class Setting(object):
   
   * `can_be_reset_by_container` - If True, setting is reset to its default value if
     the `reset()` method from the corresponding `SettingContainer` is called. False by default.
-    
+  
   * `changed_attributes` (read-only) - Contains a set of Setting attribute names that were changed.
     This attribute is used in the `streamline()` method.
     If any of the following attributes are assigned a value, they are added to the set:
@@ -119,7 +130,7 @@ class Setting(object):
     * `ui_visible`
     `changed_attributes` is cleared if `streamline()` is called.
   
-  * `can_streamline` - True if a streamline function is set, False otherwise.
+  * `can_streamline` (read-only) - True if a streamline function is set, False otherwise.
   
   Methods:
   
@@ -343,21 +354,21 @@ class NumericSetting(Setting):
   
   Additional attributes:
   
-  * `min_value`: Minimum numeric value.
+  * `min_value` - Minimum numeric value.
   
-  * `max_value`: Maximum numeric value.
+  * `max_value` - Maximum numeric value.
   
   Raises:
   
-  * `ValueError`: If `min_value` is not None and the value assigned is less
-    than `min_value`, or if `max_value` is not None and the value assigned is
-    greater than `max_value`.
+  * `SettingValueError` - If `min_value` is not None and the value assigned is
+    less than `min_value`, or if `max_value` is not None and the value assigned
+    is greater than `max_value`.
   
   Error messages:
   
-  * `below_min`: The value assigned is less than `min_value`.
+  * `'below_min'` - The value assigned is less than `min_value`.
   
-  * `above_max`: The value assigned is greater than `max_value`.
+  * `'above_max'` - The value assigned is greater than `max_value`.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -376,13 +387,13 @@ class NumericSetting(Setting):
     return self._value
 
   @value.setter
-  def value(self, val):
-    if self.min_value is not None and val < self.min_value:
-      raise ValueError(self.error_messages['below_min'])
-    if self.max_value is not None and val > self.max_value:
-      raise ValueError(self.error_messages['above_max'])
+  def value(self, value_):
+    if self.min_value is not None and value_ < self.min_value:
+      raise SettingValueError(self._value_to_str(value_) + self.error_messages['below_min'])
+    if self.max_value is not None and value_ > self.max_value:
+      raise SettingValueError(self._value_to_str(value_) + self.error_messages['above_max'])
     
-    super(NumericSetting, self)._set_value(val)
+    super(NumericSetting, self)._set_value(value_)
 
 
 class IntSetting(NumericSetting):
@@ -390,12 +401,11 @@ class IntSetting(NumericSetting):
   """
   This class can be used for integer settings.
   
-  Default GIMP PDB type: PDB_INT32
-  
   Allowed GIMP PDB types:
+  
   * PDB_INT8
   * PDB_INT16
-  * PDB_INT32
+  * PDB_INT32 (default)
   """
   
   def __init__(self, name, default_value):
@@ -420,9 +430,8 @@ class FloatSetting(NumericSetting):
   """
   This class can be used for float settings.
   
-  Default GIMP PDB type: PDB_FLOAT
-  
   Allowed GIMP PDB types:
+  
   * PDB_FLOAT
   """
   
@@ -439,12 +448,11 @@ class EnumSetting(Setting):
   This class can be used for settings with a limited number of values,
   resembling `enum`s from the C language.
   
-  Default GIMP PDB type: PDB_INT32
-  
   Allowed GIMP PDB types:
+  
   * PDB_INT8
   * PDB_INT16
-  * PDB_INT32
+  * PDB_INT32 (default)
   
   Additional attributes:
   
@@ -462,21 +470,23 @@ class EnumSetting(Setting):
   
   Raises:
   
-  * `ValueError` - See "Error messages" below.
+  * `SettingValueError` - See `'invalid_value'` error message below.
+  
+  * `ValueError` - See the other error messages below.
   
   * `KeyError` - Invalid key to `options` or `options_display_names`.
   
   Error messages:
   
-  * `invalid_value` - The value assigned is not one of the options in this setting.
+  * `'invalid_value'` - The value assigned is not one of the options in this setting.
   
-  * `invalid_default_value` - Option name is invalid (not found in the `options` parameter
+  * `'invalid_default_value'` - Option name is invalid (not found in the `options` parameter
     when instantiating the object).
   
-  * `wrong_options_len` - Wrong number of elements in tuples in the `options` parameter
+  * `'wrong_options_len'` - Wrong number of elements in tuples in the `options` parameter
     when instantiating the object.
   
-  * `duplicate_option_value` - When the object was being instantiated, some
+  * `'duplicate_option_value'` - When the object was being instantiated, some
     option values in the 3-element tuples were specified multiple times.
   """
   
@@ -554,7 +564,7 @@ class EnumSetting(Setting):
   @value.setter
   def value(self, value_):
     if value_ not in self._option_values:
-      raise ValueError(self.error_messages['invalid_value'])
+      raise SettingValueError(self._value_to_str(value_) + self.error_messages['invalid_value'])
     
     super(EnumSetting, self)._set_value(value_)
   
@@ -592,14 +602,17 @@ class ImageSetting(Setting):
   """
   This class can be used for gimp.Image objects.
   
-  Default GIMP PDB type: PDB_IMAGE
-  
   Allowed GIMP PDB types:
+  
   * PDB_IMAGE
+  
+  Raises:
+  
+  * `SettingValueError` - The image assigned is invalid.
   
   Error messages:
   
-  * invalid_value: The image assigned is invalid.
+  * `'invalid_value'` - The image assigned is invalid.
   """
   
   def __init__(self, name, default_value):
@@ -617,7 +630,7 @@ class ImageSetting(Setting):
   @value.setter
   def value(self, image):
     if not pdb.gimp_image_is_valid(image):
-      raise ValueError(self.error_messages['invalid_value'])
+      raise SettingValueError(self._value_to_str(image) + self.error_messages['invalid_value'])
     
     super(ImageSetting, self)._set_value(image)
 
@@ -628,14 +641,17 @@ class DrawableSetting(Setting):
   This class can be used for gimp.Drawable, gimp.Layer, gimp.GroupLayer or
   gimp.Channel objects.
   
-  Default GIMP PDB type: PDB_DRAWABLE
-  
   Allowed GIMP PDB types:
+  
   * PDB_DRAWABLE
+  
+  Raises:
+  
+  * `SettingValueError` - The drawable assigned is invalid.
   
   Error messages:
   
-  * invalid_value: The drawable assigned is invalid.
+  * `'invalid_value'` - The drawable assigned is invalid.
   """
   
   def __init__(self, name, default_value):
@@ -653,7 +669,7 @@ class DrawableSetting(Setting):
   @value.setter
   def value(self, drawable):
     if not pdb.gimp_item_is_valid(drawable):
-      raise ValueError(self.error_messages['invalid_value'])
+      raise SettingValueError(self._value_to_str(drawable) + self.error_messages['invalid_value'])
     
     super(DrawableSetting, self)._set_value(drawable)
 
@@ -663,9 +679,8 @@ class StringSetting(Setting):
   """
   This class can be used for string settings.
   
-  Default GIMP PDB type: PDB_STRING
-  
   Allowed GIMP PDB types:
+  
   * PDB_STRING
   """
   
@@ -968,7 +983,7 @@ class GimpShelfSettingStream(SettingStream):
       else:
         try:
           setting.value = value
-        except ValueError:
+        except SettingValueError:
           setting.reset()
     
     if self._settings_not_found:
@@ -1042,7 +1057,7 @@ class JSONFileSettingStream(SettingStream):
       else:
         try:
           setting.value = value
-        except ValueError:
+        except SettingValueError:
           setting.reset()
     
     if self._settings_not_found:
@@ -1407,10 +1422,10 @@ class SettingPresenterContainer(Container):
     
     Raises:
     
-    * `ValueError` - Value assigned to one or more settings is invalid. If there
-      are multiple settings that raise ValueError upon value assignment, the
-      exception message contains messages from all these settings. In such case,
-      settings are not streamlined.
+    * `SettingValueError` - Value assigned to one or more settings is invalid.
+      If there are multiple settings that raise `SettingValueError` upon value
+      assignment, the exception message contains messages from all these
+      settings. In such case, settings are not streamlined.
     """
     
     exception_message = ""
@@ -1418,7 +1433,7 @@ class SettingPresenterContainer(Container):
     for presenter in self:
       try:
         presenter.setting.value = presenter.value
-      except ValueError as e:
+      except SettingValueError as e:
         if not exception_message:
           exception_message += e.message + '\n'
     
@@ -1434,7 +1449,7 @@ class SettingPresenterContainer(Container):
     
     if exception_message:
       exception_message = exception_message.rstrip('\n')
-      raise ValueError(exception_message)
+      raise SettingValueError(exception_message)
   
   def connect_value_changed_events(self):
     """
