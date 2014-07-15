@@ -92,15 +92,16 @@ class TestObjectFilter(unittest.TestCase):
     
     with self.assertRaises(ValueError):
       self.filter.remove_rule(has_uppercase_letters)
-    
-    self.filter.add_rule(is_object_id_even)
-    with self.assertRaises(ValueError):
-      self.filter.add_rule(is_object_id_even)
   
   def test_add_rule_temp(self):
-    with self.filter.add_rule_temp(has_matching_file_extension, 'jpg'):
-      self.assertTrue(self.filter.has_rule(has_matching_file_extension))
-    self.assertFalse(self.filter.has_rule(has_matching_file_extension))
+    with self.filter.add_rule_temp(has_uppercase_letters):
+      self.assertTrue(self.filter.has_rule(has_uppercase_letters))
+    self.assertFalse(self.filter.has_rule(has_uppercase_letters))
+    
+    self.filter.add_rule(has_uppercase_letters)
+    with self.filter.add_rule_temp(has_uppercase_letters):
+      pass
+    self.assertTrue(self.filter.has_rule(has_uppercase_letters))
   
   def test_add_rule_temp_remove_upon_exception(self):
     try:

@@ -82,6 +82,8 @@ class ObjectFilter(object):
     `remove_rule()` method), pass a named function rather than a lambda
     expression.
     
+    If `rule_func` already exists in the filter, nothing happens.
+    
     Parameters:
     
     * `rule_func` - Function to filter objects by. The function must always have
@@ -94,15 +96,14 @@ class ObjectFilter(object):
     
     * `TypeError` - `rule_func` is not callable.
     
-    * `ValueError` - `rule_func` already exists in the filter or `rule_func`
-      does not have at least one argument.
+    * `ValueError` - `rule_func` does not have at least one argument.
     """
+    
+    if rule_func in self._filter_items:
+      return
     
     if not callable(rule_func):
       raise TypeError("Not a function")
-    
-    if rule_func in self._filter_items:
-      raise ValueError("rule already exists in the filter")
     
     if len(inspect.getargspec(rule_func)[0]) < 1:
       raise TypeError("Function must have at least one argument (the object to match)")
@@ -138,6 +139,8 @@ class ObjectFilter(object):
       with filter.add_rule_temp(rule_func):
         # do stuff
     
+    If `rule_func` already exists in the filter, it will not be removed.
+    
     Parameters:
     
     * `rule_func` - Function to filter objects by. The function must always have
@@ -150,15 +153,17 @@ class ObjectFilter(object):
     
     * `TypeError` - `rule_func` is not callable.
     
-    * `ValueError` - `rule_func` already exists in the filter or `rule_func`
-      does not have at least one argument.
+    * `ValueError` - `rule_func` does not have at least one argument.
     """
     
+    had_rule = self.has_rule(rule_func)
+      
     self.add_rule(rule_func, *rule_func_args)
     try:
       yield
     finally:
-      self.remove_rule(rule_func)
+      if not had_rule:
+        self.remove_rule(rule_func)
   
   @contextmanager
   def remove_rule_temp(self, rule_func):
