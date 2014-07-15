@@ -30,8 +30,10 @@ This module defines the following classes:
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
+
+str = unicode
 
 #=============================================================================== 
 
@@ -85,7 +87,7 @@ class LayerData(object):
     self._filter = objectfilter.ObjectFilter()
     
     # Contains all layers (including layer groups) in the layer tree.
-    # key: `gimp.Layer.name` (`gimp.Layer` names are unique)
+    # key: `gimp.Layer.name` as `unicode` string (`gimp.Layer.name`s are unique)
     # value: `_LayerDataElement` object
     self._layerdata = OrderedDict()
     
@@ -266,7 +268,7 @@ class LayerData(object):
             index += 1
           
           if not self.is_filtered or self._filter.is_match(layerdata_elem):
-            layerdata.append(self._layerdata[layer.name])
+            layerdata.append(self._layerdata[layer.name.decode()])
         
         _uniquify(layerdata)
     else:
@@ -311,8 +313,8 @@ class LayerData(object):
         if pdb.gimp_item_is_group(layer):
           layer_tree.insert(index, _LayerTreeNode(layer.layers, [layerdata_elem] + parents))
           index += 1
-          
-        self._layerdata[layer.name] = layerdata_elem
+        
+        self._layerdata[layer.name.decode()] = layerdata_elem
 
 
 class _LayerDataElement(object):
@@ -363,8 +365,7 @@ class _LayerDataElement(object):
     
     self.level = len(self.parents)
     
-    self.layer_name = self.layer.name
-#    self.layer_name = self.layer.name.decode()
+    self.layer_name = self.layer.name.decode()
     self.is_group = pdb.gimp_item_is_group(self.layer)
     self.is_empty = self.is_group and not self.layer.children
     

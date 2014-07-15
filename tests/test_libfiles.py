@@ -23,8 +23,10 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
+
+str = unicode
 
 #=============================================================================== 
 
@@ -184,7 +186,7 @@ class TestFilePathValidator(unittest.TestCase):
       os.path.join("one", "two", "NUL (1)")
     )
     self.assertEqual(
-      self.validator.validate(os.path.join("one", "two", "NUL.txt")),
+      self.validator.validate(os.path.join("one", "two", "NUL*&#$%@.txt")),
       os.path.join("one", "two", "NUL (1).txt")
     )
     self.assertEqual(

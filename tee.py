@@ -28,8 +28,10 @@ much like the Unix "tee" command.
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
+
+str = unicode
 
 #===============================================================================
 
@@ -146,8 +148,8 @@ class Tee(object):
   
   def write(self, data):
     if self._state == self._RUNNING_FIRST_TIME:
-      self._file.write(self._get_log_header())
-      self._write_with_flush(data + '\n')
+      self._file.write(self._get_log_header().encode())
+      self._write_with_flush(data + b'\n')
       self._state = self._RUNNING
     else:
       if not self.flush_file:

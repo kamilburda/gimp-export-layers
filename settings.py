@@ -33,8 +33,10 @@ This module:
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
+
+str = unicode
 
 #=============================================================================== 
 
@@ -1065,7 +1067,7 @@ class GimpShelfSettingStream(SettingStream):
     
     for setting in settings:
       try:
-        value = shelf[self.shelf_prefix + setting.name]
+        value = shelf[(self.shelf_prefix + setting.name).encode()]
       except KeyError:
         self._settings_not_found.append(setting)
       else:
@@ -1082,7 +1084,7 @@ class GimpShelfSettingStream(SettingStream):
   
   def write(self, settings):
     for setting in settings:
-      shelf[self.shelf_prefix + setting.name] = setting.value
+      shelf[(self.shelf_prefix + setting.name).encode()] = setting.value
 
 
 class JSONFileSettingStream(SettingStream):

@@ -35,15 +35,16 @@ This module defines:
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
+
+str = unicode
 
 #===============================================================================
 
 import sys
 import traceback
-from contextlib import contextmanager 
-
+from contextlib import contextmanager
 import abc
 import webbrowser
 
@@ -57,6 +58,12 @@ from . import settings
 from . import overwrite
 from . import progress
 
+#===============================================================================
+
+GTK_CHARACTER_ENCODING = "utf-8"
+
+#===============================================================================
+# GTK Overwrite Chooser
 #===============================================================================
 
 class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
@@ -128,6 +135,8 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
   def _on_apply_to_all_changed(self, widget):
     self._is_apply_to_all = self._apply_to_all_checkbox.get_active()
 
+#===============================================================================
+# GTK Message Dialogs
 #===============================================================================
 
 def display_exception_message(exception_message, plugin_title=None,
@@ -272,6 +281,8 @@ def display_message(message, message_type, title=None, parent=None):
   dialog.destroy()
 
 #===============================================================================
+# GUI excepthook
+#===============================================================================
 
 @contextmanager
 def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
@@ -324,6 +335,8 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
   sys.excepthook = _orig_sys_excepthook
 
 #===============================================================================
+# GTK Progress Updater
+#===============================================================================
 
 class GtkProgressUpdater(progress.ProgressUpdater):
   
@@ -341,6 +354,8 @@ class GtkProgressUpdater(progress.ProgressUpdater):
     while gtk.events_pending():
       gtk.main_iteration()
 
+#===============================================================================
+# Custom GTK/gimpui Elements
 #===============================================================================
 
 class IntComboBox(gimpui.IntComboBox):
@@ -363,6 +378,9 @@ class IntComboBox(gimpui.IntComboBox):
     
     super(IntComboBox, self).__init__(tuple(labels_and_values))
 
+#===============================================================================
+# GTK Setting Presenters
+#===============================================================================
   
 class GtkSettingPresenter(settings.SettingPresenter):
   
@@ -432,11 +450,11 @@ class GtkEntryPresenter(GtkSettingPresenter):
   
   @property
   def value(self):
-    return self._element.get_text()
+    return self._element.get_text().decode(GTK_CHARACTER_ENCODING)
   
   @value.setter
   def value(self, value_):
-    self._element.set_text(value_)
+    self._element.set_text(value_.encode(GTK_CHARACTER_ENCODING))
     # Place the cursor at the end of the widget.
     self._element.set_position(-1)
 
@@ -488,7 +506,7 @@ class GtkDirectoryChooserWidgetPresenter(GtkSettingPresenter):
   
   @property
   def value(self):
-    return self._element.get_current_folder()
+    return self._element.get_current_folder().decode(GTK_CHARACTER_ENCODING)
   
   @value.setter
   def value(self, value_):
@@ -498,13 +516,14 @@ class GtkDirectoryChooserWidgetPresenter(GtkSettingPresenter):
     If `value_` is None, use the file path from which the image was loaded.
     If the file path is None, use `default_directory`.
     """
+    
     if value_ is not None:
-      self._element.set_current_folder(value_)
+      self._element.set_current_folder(value_.encode(GTK_CHARACTER_ENCODING))
     else:
       if self.image.uri is not None:
         self._element.set_uri(self.image.uri)
       else:
-        self._element.set_current_folder(self.default_directory)
+        self._element.set_current_folder(self.default_directory.encode(GTK_CHARACTER_ENCODING))
 
 
 class GtkWindowPositionPresenter(GtkSettingPresenter):
@@ -527,6 +546,7 @@ class GtkWindowPositionPresenter(GtkSettingPresenter):
     
     Don't move the window if `value_` is None or empty.
     """
+    
     if value_ and value_ is not None:
       self._element.move(*value_)
 
@@ -547,6 +567,8 @@ class GtkExpanderPresenter(GtkSettingPresenter):
   def value(self, value_):
     self._element.set_expanded(value_)
 
+#===============================================================================
+# GTK Setting Presenter Container
 #===============================================================================
 
 class GtkSettingPresenterContainer(settings.SettingPresenterContainer):
