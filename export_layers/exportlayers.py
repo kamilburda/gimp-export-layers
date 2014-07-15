@@ -407,8 +407,9 @@ class LayerExporter(object):
     return file_export_func
   
   def _handle_file_extension_stripping(self):
-    if self.main_settings['strip_mode'].value in (self.main_settings['strip_mode'].options['identical'],
-                                                  self.main_settings['strip_mode'].options['always']):
+    if self.main_settings['strip_mode'].value in (
+         self.main_settings['strip_mode'].options['identical'],
+         self.main_settings['strip_mode'].options['always']):
       for layerdata_elem in self._layer_data:
         layer_name_root = os.path.splitext(layerdata_elem.layer_name)[0]
         if layerdata_elem.file_extension:
@@ -420,15 +421,22 @@ class LayerExporter(object):
   
   def _uniquify_layer_names(self):
     include_layer_path = self.main_settings['layer_groups_as_directories'].value
-    place_before_file_extension = (self.main_settings['file_ext_mode'].value in
-                                   (self.main_settings['file_ext_mode'].options['use_as_file_extensions'],
-                                    self.main_settings['file_ext_mode'].options['only_matching_file_extension']))
+    place_before_file_extension = (
+      self.main_settings['file_ext_mode'].value in (
+        self.main_settings['file_ext_mode'].options['use_as_file_extensions'],
+        self.main_settings['file_ext_mode'].options['only_matching_file_extension'])
+    )
     
     if self.main_settings['empty_directories'].value:
-      with self._layer_data.filter['layer_types'].remove_rule_temp(LayerFilters.is_layer):
+      with self._layer_data.filter.remove_subfilter_temp('layer_types'):
         self._layer_data.uniquify_layer_names(include_layer_path, place_before_file_extension)
     else:
-      self._layer_data.uniquify_layer_names(include_layer_path, place_before_file_extension)
+      with self._layer_data.filter['layer_types'].add_rule_temp(LayerFilters.is_nonempty_group):
+        self._layer_data.uniquify_layer_names(include_layer_path, place_before_file_extension)
+    
+#    with self._layer_data.filter.remove_subfilter_temp('layer_types'):
+#      for elem in self._layer_data:
+#        print(elem.layer_name)
   
   def _remove_copy_suffix(self, layer, layer_copy):
     if layer_copy.name.endswith(self._COPY_SUFFIX) and not layer.name.endswith(self._COPY_SUFFIX):
