@@ -433,10 +433,6 @@ class LayerExporter(object):
     else:
       with self._layer_data.filter['layer_types'].add_rule_temp(LayerFilters.is_nonempty_group):
         self._layer_data.uniquify_layer_names(include_layer_path, place_before_file_extension)
-    
-#    with self._layer_data.filter.remove_subfilter_temp('layer_types'):
-#      for elem in self._layer_data:
-#        print(elem.layer_name)
   
   def _remove_copy_suffix(self, layer, layer_copy):
     if layer_copy.name.endswith(self._COPY_SUFFIX) and not layer.name.endswith(self._COPY_SUFFIX):
