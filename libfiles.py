@@ -96,9 +96,8 @@ def uniquify_filename(filename):
   If a file with a specified filename already exists, return a unique filename.
   """
   
-  root, ext = os.path.splitext(filename)
-  
   if os.path.exists(filename):
+    root, ext = os.path.splitext(filename)
     i = 1
     uniq_filename = ''.join((root, " (", str(i), ")", ext))
     while os.path.exists(uniq_filename):
