@@ -252,12 +252,20 @@ class MainSettings(settings.SettingContainer):
       else:
         layer_groups_as_directories.ui_enabled = True
     
-    def streamline_autocrop(autocrop, crop_to_background):
-      if autocrop.value:
+    def streamline_autocrop(autocrop, square_bracketed_mode, crop_to_background):
+      if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.options['background']:
         crop_to_background.ui_enabled = True
       else:
         crop_to_background.value = False
         crop_to_background.ui_enabled = False
+    
+    def streamline_square_bracketed_mode(square_bracketed_mode, autocrop, crop_to_background):
+      if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.options['background']:
+        crop_to_background.ui_enabled = True
+      else:
+        crop_to_background.value = False
+        crop_to_background.ui_enabled = False
+    
     
     self['layer_groups_as_directories'].set_streamline_func(
       streamline_layer_groups_as_directories, self['empty_directories'], self['merge_layer_groups']
@@ -269,5 +277,8 @@ class MainSettings(settings.SettingContainer):
       streamline_merge_layer_groups, self['layer_groups_as_directories']
     )
     self['autocrop'].set_streamline_func(
-      streamline_autocrop, self['crop_to_background']
+      streamline_autocrop, self['square_bracketed_mode'], self['crop_to_background']
+    )
+    self['square_bracketed_mode'].set_streamline_func(
+      streamline_square_bracketed_mode, self['autocrop'], self['crop_to_background']
     )
