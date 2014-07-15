@@ -342,6 +342,27 @@ class GtkProgressUpdater(progress.ProgressUpdater):
       gtk.main_iteration()
 
 #===============================================================================
+
+class IntComboBox(gimpui.IntComboBox):
+  
+  """
+  This class is a `gimpui.IntComboBox` subclass that encodes unicode strings
+  before initializing `gimpui.IntComboBox`. Apparently, `gimpui.IntComboBox`
+  can only handle bytes, not unicode strings.
+  """
+  
+  def __init__(self, labels_and_values):
+    """
+    Parameters:
+    
+    * `labels_and_values` - List of (`unicode`, `int`) pairs.
+    """
+    
+    for i in range(0, len(labels_and_values), 2):
+      labels_and_values[i] = labels_and_values[i].encode(GTK_CHARACTER_ENCODING)
+    
+    super(IntComboBox, self).__init__(tuple(labels_and_values))
+
   
 class GtkSettingPresenter(settings.SettingPresenter):
   
