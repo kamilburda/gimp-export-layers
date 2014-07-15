@@ -146,7 +146,7 @@ class TestLayerData(unittest.TestCase):
     layers = OrderedDict()
     layers['bottom-frame copy'] = gimpmocks.MockLayer("bottom-frame copy")
     layers['Layer Group ######4'] = gimpmocks.MockLayerGroup("Layer Group ######4")
-    self.all_layers['Layer Group ##4'].children = [layer for layer in layers.values()]
+    self.all_layers['Layer Group ###4'].children = [layer for layer in layers.values()]
     self.all_layers.update(layers)
     
     layers = OrderedDict()
@@ -300,6 +300,7 @@ class TestLayerData(unittest.TestCase):
     self.layer_data.is_filtered = True
     layer_names = self.get_layer_names_without_parents(self.layer_data)
     
+    self.layer_data.filter.add_rule(LayerFilters.is_layer_or_empty_group)
     self.process_layer_data(self.layer_data)
     self.layer_data.uniquify_layer_names(include_layer_path=False)
     
@@ -310,16 +311,10 @@ class TestLayerData(unittest.TestCase):
     layer_names['Layer Group ##3']                = "Layer Group 3 (1)"
     layer_names['right-frame#']                   = "right-frame (1)"
     layer_names['[Layer Group #2]']               = "[Layer Group 2]"
-    layer_names['Layer Group ###4']               = "Layer Group 4 (1)"
+    layer_names['Layer Group ##4']                = "Layer Group 4 (1)"
     layer_names['right-frame# copy']              = "right-frame copy"
     layer_names['bottom-frame copy #1']           = "bottom-frame copy 1"
     layer_names['bottom-frame #1']                = "bottom-frame 1"
-    
-    self.compare_uniquified_without_parents(self.layer_data, layer_names)
-    
-    self.layer_data.is_filtered = False
-    self.layer_data.filter.add_rule(LayerFilters.is_path_visible)
-    self.layer_data.uniquify_layer_names(include_layer_path=False)
     
     self.compare_uniquified_without_parents(self.layer_data, layer_names)
   
@@ -343,9 +338,9 @@ class TestLayerData(unittest.TestCase):
                                                      "bottom-left-corner"]
     layer_names['right-frame#']                   = ["Frames", "right-frame (1)"]
     layer_names['[Layer Group #2]']               = ["Frames", "[Layer Group 2]"]
-    layer_names['Layer Group ###4']               = ["Frames",
+    layer_names['Layer Group ##4']                = ["Frames",
                                                      "Layer Group 1",
-                                                     "Layer Group 4 (3)"]
+                                                     "Layer Group 4 (2)"]
     layer_names['right-frame# copy']              = ["Frames",
                                                      "Layer Group 1",
                                                      "Layer Group 4",
@@ -361,26 +356,21 @@ class TestLayerData(unittest.TestCase):
                                                      "bottom-frame 1"]
     layer_names['bottom-frame copy']              = ["Frames",
                                                      "Layer Group 1",
-                                                     "Layer Group 4 (2)",
+                                                     "Layer Group 4 (3)",
                                                      "bottom-frame copy"]
     layer_names['bottom-frame']                   = ["Frames",
                                                      "Layer Group 1",
-                                                     "Layer Group 4 (2)",
+                                                     "Layer Group 4 (3)",
                                                      "Layer Group 4",
                                                      "bottom-frame"]
     
     self.compare_uniquified_with_parents(self.layer_data, layer_names)
-    
-    self.layer_data.is_filtered = False
-    self.layer_data.filter.add_rule(LayerFilters.is_path_visible)
-    self.layer_data.uniquify_layer_names(include_layer_path=True)
-    
-    self.compare_uniquified_with_parents(self.layer_data, layer_names)
   
-  def test_uniquify_filtered_without_parents(self):
+  def test_uniquify_without_parents_filtered(self):
     self.layer_data.is_filtered = True
     layer_names = self.get_layer_names_without_parents(self.layer_data)
     
+    self.layer_data.filter.add_rule(LayerFilters.is_layer_or_empty_group)
     self.process_layer_data(self.layer_data)
     self.layer_data.filter.add_rule(LayerFilters.is_path_visible)
     self.layer_data.uniquify_layer_names(include_layer_path=False)
@@ -392,14 +382,14 @@ class TestLayerData(unittest.TestCase):
     layer_names['Layer Group ##3']                = "Layer Group 3 (1)"
     layer_names['right-frame#']                   = "right-frame (1)"
     layer_names['[Layer Group #2]']               = "[Layer Group 2]"
-    layer_names['Layer Group ###4']               = "Layer Group 4"
+    layer_names['Layer Group ##4']                = "Layer Group 4"
     layer_names['right-frame# copy']              = "right-frame copy"
     layer_names['bottom-frame copy #1']           = "bottom-frame copy 1"
     layer_names['bottom-frame #1']                = "bottom-frame 1"
     
     self.compare_uniquified_without_parents(self.layer_data, layer_names)
   
-  def test_uniquify_filtered_with_parents(self):
+  def test_uniquify_with_parents_filtered(self):
     self.layer_data.is_filtered = True
     layer_names = self.get_layer_names_with_parents(self.layer_data)
     
@@ -420,9 +410,9 @@ class TestLayerData(unittest.TestCase):
                                                      "bottom-left-corner"]
     layer_names['right-frame#']                   = ["Frames", "right-frame (1)"]
     layer_names['[Layer Group #2]']               = ["Frames", "[Layer Group 2]"]
-    layer_names['Layer Group ###4']               = ["Frames",
+    layer_names['Layer Group ##4']                = ["Frames",
                                                      "Layer Group 1",
-                                                     "Layer Group 4 (2)"]
+                                                     "Layer Group 4 (1)"]
     layer_names['right-frame# copy']              = ["Frames",
                                                      "Layer Group 1",
                                                      "Layer Group 4",
@@ -438,11 +428,11 @@ class TestLayerData(unittest.TestCase):
                                                      "bottom-frame 1"]
     layer_names['bottom-frame copy']              = ["Frames",
                                                      "Layer Group 1",
-                                                     "Layer Group 4 (1)",
+                                                     "Layer Group 4 (2)",
                                                      "bottom-frame copy"]
     layer_names['bottom-frame']                   = ["Frames",
                                                      "Layer Group 1",
-                                                     "Layer Group 4 (1)",
+                                                     "Layer Group 4 (2)",
                                                      "Layer Group 4",
                                                      "bottom-frame"]
     
@@ -452,6 +442,7 @@ class TestLayerData(unittest.TestCase):
     self.layer_data.is_filtered = True
     layer_names = self.get_layer_names_without_parents(self.layer_data)
     
+    self.layer_data.filter.add_rule(LayerFilters.is_layer_or_empty_group)
     self.process_layer_data(self.layer_data)
     self.layer_data.uniquify_layer_names(include_layer_path=False, place_before_file_extension=True)
     
@@ -463,7 +454,7 @@ class TestLayerData(unittest.TestCase):
     layer_names['Layer Group ##3']                = "Layer Group 3 (1)"
     layer_names['right-frame#']                   = "right-frame (1)"
     layer_names['[Layer Group #2]']               = "[Layer Group 2]"
-    layer_names['Layer Group ###4']               = "Layer Group 4 (1)"
+    layer_names['Layer Group ##4']                = "Layer Group 4 (1)"
     layer_names['right-frame# copy']              = "right-frame copy"
     layer_names['bottom-frame copy #1']           = "bottom-frame copy 1"
     layer_names['bottom-frame #1']                = "bottom-frame 1"

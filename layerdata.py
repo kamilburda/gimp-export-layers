@@ -272,26 +272,7 @@ class LayerData(object):
         
         _uniquify(layerdata)
     else:
-      def is_layer_or_empty_group(layerdata_elem):
-        return not layerdata_elem.is_group or layerdata_elem.is_empty
-      
-      # Non-empty layer groups must be filtered out since they are
-      # not exported, and would interfere with the uniquification of
-      # layers and empty layer groups.
-      
-      orig_filter = self._filter
-      orig_is_filtered = self.is_filtered
-      if not orig_is_filtered:
-        self._filter = objectfilter.ObjectFilter()
-        self.is_filtered = True
-      
-      self._filter.add_rule(is_layer_or_empty_group)
       _uniquify(self)
-      self._filter.remove_rule(is_layer_or_empty_group)
-      
-      if not orig_is_filtered:
-        self._filter = orig_filter
-        self.is_filtered = False
   
   def _fill_layer_data(self):
     """
