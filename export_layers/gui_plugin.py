@@ -29,8 +29,10 @@ This module:
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
+
+str = unicode
 
 #===============================================================================
 
@@ -211,18 +213,22 @@ class _ExportLayersGui(object):
     
     self.advanced_settings_file_ext_mode_label = gtk.Label(self.main_settings['file_ext_mode'].display_name + ":")
     self.advanced_settings_file_ext_mode_label.set_alignment(0, 0.5)
-    self.advanced_settings_file_ext_mode = gimpui.IntComboBox(
-      tuple(self.main_settings['file_ext_mode'].get_option_display_names_and_values()))
-    self.advanced_settings_strip_mode = gimpui.IntComboBox(
-      tuple(self.main_settings['strip_mode'].get_option_display_names_and_values()))
+    self.advanced_settings_file_ext_mode = gui.IntComboBox(
+      self.main_settings['file_ext_mode'].get_option_display_names_and_values()
+    )
+    self.advanced_settings_strip_mode = gui.IntComboBox(
+      self.main_settings['strip_mode'].get_option_display_names_and_values()
+    )
     
     self.advanced_settings_square_bracketed_mode_label = gtk.Label(
       self.main_settings['square_bracketed_mode'].display_name + ":")
     self.advanced_settings_square_bracketed_mode_label.set_alignment(0, 0.5)
-    self.advanced_settings_square_bracketed_mode = gimpui.IntComboBox(
-       tuple(self.main_settings['square_bracketed_mode'].get_option_display_names_and_values()))
+    self.advanced_settings_square_bracketed_mode = gui.IntComboBox(
+      self.main_settings['square_bracketed_mode'].get_option_display_names_and_values()
+    )
     self.advanced_settings_crop_to_background = gtk.CheckButton(
-      self.main_settings['crop_to_background'].display_name)
+      self.main_settings['crop_to_background'].display_name
+    )
     
     self.advanced_settings_merge_layer_groups = gtk.CheckButton(self.main_settings['merge_layer_groups'].display_name)
     self.advanced_settings_empty_directories = gtk.CheckButton(self.main_settings['empty_directories'].display_name)
@@ -342,7 +348,7 @@ class _ExportLayersGui(object):
         self.main_settings['output_directory'],
         self.directory_chooser,
         image=self.image,
-        default_directory=None))
+        default_directory=None))  # in GTK, None = recently used directory
     
     self.setting_presenters.add(
       gui.GtkCheckButtonPresenter(
@@ -515,7 +521,6 @@ class _ExportLayersGui(object):
       return True
   
   def display_message_label(self, text, message_type=ERROR):
-    
     if text is None or not text:
       self.label_message.set_text("")
     else:

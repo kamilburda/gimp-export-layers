@@ -28,8 +28,10 @@ This module:
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
+
+str = unicode
 
 #===============================================================================
 
@@ -82,8 +84,6 @@ class MainSettings(settings.SettingContainer):
       "To export in raw format, type \"raw\"."
     )
     
-#    self._add(settings.StringSetting('output_directory', gimp.user_directory(1)))   # Documents directory
-#    self['output_directory'].display_name = "Output directory"
     self._add(settings.DirectorySetting('output_directory', gimp.user_directory(1)))   # Documents directory
     self['output_directory'].display_name = "Output directory"
     

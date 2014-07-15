@@ -1,0 +1,58 @@
+- GIMP uses UTF-8
+- GTK uses UTF-8
+   - more info at:
+      http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html
+
+IMPORTANT:
+----------------------------------------
+
+* `str()` must return string of type `unicode`, not `str`.
+   * best solution for Python 2.x I could come up with: add "str = unicode" boilerplate at the beginning of each module
+   * `bytes` is an alias for `str`, use that for bytes
+* add "from __future__ import unicode_literals" to each module
+
+----------------------------------------
+
+Plug-in:
+----------------------------------------
+
+* gui
+   - `GtkSettingPresenter` subclasses
+      - value.getter - decode to `unicode` with UTF-8
+      - value.setter - GTK handles that automatically, but may not always be reliable,
+        according to
+           http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html
+        - encode with UTF-8
+   - gimpui.IntComboBox - can't handle `unicode`, must pass `str`
+* layerdata
+   - `_LayerDataElement.layer_name` - derived from `gimp.Layer.name` - UTF-8, decode to `unicode`
+   - `LayerData._layerdata` keys are `gimp.Layer.name` - UTF-8, decode to `unicode`
+* libfiles
+   - stand-alone functions don't care about string type or encoding
+   - `uniquify_filename`, `make_dirs` - they use the `os` module, whose functions accept `unicode` strings
+      - not sure if the unicode strings work on Unix systems, though
+   - `StringValidator` subclasses - `unicode`
+* settings
+   - `Setting.name`, `Setting.display_name`, etc. - `unicode`
+   - `GimpShelfSettingStream`
+      - `gimpshelf` uses `pickle`, which can handle unicode strings
+      - shelf key - uses `gimp.set_data()`
+         - it seems to support `unicode`, but I'd still rather encode it (the effect is the same)
+   - `JSONFileSettingStream` - automatically handles unicode strings
+      - `json.dump` with `ensure_ascii=True` and `encoding="utf-8"`, which are the default values
+* tee
+   - `write()` - argument must be encoded (with UTF-8)
+      - don't encode within `_write` or `_write_with_flush`, that should be handled
+        outside this method
+* exportlayers
+   - `OverwriteHandler`
+      - uses `os`, which can handle both `str` and `unicode`
+   - `file_export_function` in `_export_layer_once`
+* tee_plugin
+   - open() - check if it works fine with unicode
+* export_layers
+   - PDB_STRING arguments to PDB functions - UTF-8, decode to `unicode`
+   - PDB parameters - name, description - UTF-8
+* pylibgimp
+   - nothing so far, may change if some functions deal with image or item names
+* other modules - nothing needs to be done

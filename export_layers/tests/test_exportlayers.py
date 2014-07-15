@@ -23,8 +23,10 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
+
+str = unicode
 
 #===============================================================================
 
@@ -32,14 +34,18 @@ import os
 
 #===============================================================================
 
+# This isn't a unit test, but rather a helper function to test the export to
+# all file formats recognized by GIMP (+ GIMP DDS Plugin) at once.
 def test_export_layers(layer_exporter, main_settings):
-  file_extensions = ['raw', 'xcf', 'pix', 'matte', 'mask', 'alpha', 'als', 'fli', 'flc',
-                  'xcf.bz2', 'xcfbz2', 'c', 'h', 'xhtml', 'dds', 'dcm', 'dicom', 'eps',
-                  'fit', 'fits', 'gif', 'gbr', 'gih', 'pat', 'xcf.gz', 'xcfgz',
-                  'html', 'htm', 'jpg', 'jpeg', 'jpe', 'cel', 'ico', 'mng', 'ora', 'pbm',
-                  'pgm', 'psd', 'png', 'pnm', 'pdf', 'ps', 'ppm', 'sgi', 'rgb', 'rgba',
-                  'bw', 'icon', 'im1', 'im8', 'im24', 'im32', 'rs', 'ras', 'tga', 'tif',
-                  'tiff', 'bmp', 'xbm', 'bitmap', 'xpm', 'xwd', 'pcx', 'pcc']
+  file_extensions = [
+    'raw', 'xcf', 'pix', 'matte', 'mask', 'alpha', 'als', 'fli', 'flc',
+    'xcf.bz2', 'xcfbz2', 'c', 'h', 'xhtml', 'dds', 'dcm', 'dicom', 'eps',
+    'fit', 'fits', 'gif', 'gbr', 'gih', 'pat', 'xcf.gz', 'xcfgz',
+    'html', 'htm', 'jpg', 'jpeg', 'jpe', 'cel', 'ico', 'mng', 'ora', 'pbm',
+    'pgm', 'psd', 'png', 'pnm', 'pdf', 'ps', 'ppm', 'sgi', 'rgb', 'rgba',
+    'bw', 'icon', 'im1', 'im8', 'im24', 'im32', 'rs', 'ras', 'tga', 'tif',
+    'tiff', 'bmp', 'xbm', 'bitmap', 'xpm', 'xwd', 'pcx', 'pcc'
+  ]
   
   orig_output_directory = main_settings['output_directory'].value
   

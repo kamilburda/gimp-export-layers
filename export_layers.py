@@ -25,8 +25,10 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
+
+str = unicode
 
 #===============================================================================
 
@@ -69,7 +71,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
     self.export_layers_to_settings = [
       self.special_settings['run_mode'],
       self.special_settings['image'],
-      ]
+    ]
     
     self.export_layers_return_values = []
     self.export_layers_to_return_values = []
@@ -128,6 +130,8 @@ class ExportLayersPlugin(gimpplugin.plugin):
   def _run_noninteractive(self, image, args):
     # Start with the third parameter - run_mode and image are already set.
     for setting, arg in zip(self.export_layers_settings[2:], args[2:]):
+      if isinstance(arg, bytes):
+        arg = arg.decode()
       setting.value = arg
     
     self._run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, image)
@@ -174,7 +178,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
     return [self._create_plugin_param(setting) for setting in settings]
   
   def _create_plugin_param(self, setting):
-    return (setting.gimp_pdb_type, setting.name, setting.short_description)
+    return (setting.gimp_pdb_type, setting.name.encode(), setting.short_description.encode())
 
 #===============================================================================
 

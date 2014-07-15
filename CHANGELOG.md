@@ -1,16 +1,20 @@
 2.1 (Upcoming)
 ------------------------
 
+* Added support for Unicode characters. This means you can now use any character
+in layer names and the output directory, except for most of the special characters.
 * Renamed "File format" to "File extension" since that's what the user actually
-  specifies. Because of this, if you use "Save settings", you'll need to re-save them.
-* Renamed a bunch of options so that they contain "extension" instead of "format".
+  specifies. Also, Renamed a bunch of options so that they contain "extension"
+  instead of "format". Because of this, if you use "Save settings", you'll need to
+  re-save them.
 * Removed "Remove squared brackets" setting as it served little purpose.
-  [square brackets] will now always be removed from the layer names.
+  [square brackets] will now always be removed from layer names.
 * Added "Ignore Layer Mode" setting, which sets the layer mode to Normal for each layer.
 * Fixed a bug that caused the file format dialog to not appear if the user chose
   Skip in the overwrite dialog for the first file (or the first and subsequent files).
 * When "No special handling" is selected, file extension strip mode now defaults to
   "Strip identical file extension".
+* More special characters are now removed from layer names.
 * Removed unnecessary files from the package.
 * More code refactoring and cleanup.
 

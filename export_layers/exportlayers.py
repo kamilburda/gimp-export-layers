@@ -30,8 +30,10 @@ This module:
 
 from __future__ import absolute_import
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 from __future__ import division
+
+str = unicode
 
 #=============================================================================== 
 
@@ -242,8 +244,7 @@ class LayerExporter(object):
   
   def _process_export_layers_args(self):
     """
-    Process and validate arguments (user input) passed when calling
-    the `export_layers()` method.
+    Process the main settings and layer names.
     
     Set layer filters according to the main settings.
     """
@@ -281,8 +282,9 @@ class LayerExporter(object):
     # brackets. After the validation, the square brackets will be removed,
     # thus getting mixed with the other layers that don't have them.
     # The solution is to cache the layers that match the current filters.
-    # Temporarily remove the 'layer_types' subfilter so that 'empty_directories'
-    # does not end up with zero empty layer groups if the image has some.
+    # Also, temporarily remove the 'layer_types' subfilter so that
+    # 'empty_directories' does not end up with zero empty layer groups if
+    # the image has some.
     with self._layer_data.filter.remove_subfilter_temp('layer_types'):
       self._layer_data.cache_layers()
     
@@ -293,8 +295,8 @@ class LayerExporter(object):
     if self._layer_data.filter.has_rule(LayerFilters.is_not_enclosed_in_square_brackets):
       self._layer_data.filter.remove_rule(LayerFilters.is_not_enclosed_in_square_brackets)
     
-    # Validate every layer. It makes a lot of things easier and doesn't affect
-    # the end result.
+    # Validate all layers and groups. It makes a lot of things easier and
+    # doesn't affect the end result.
     self._layer_data.is_filtered = False
     for layerdata_elem in self._layer_data:
       layerdata_elem.validate_name()
@@ -375,11 +377,12 @@ class LayerExporter(object):
         self._export(layerdata_elem, self._image_copy, layer_copy)
       
       self.progress_updater.update_tasks(1)
-      pdb.gimp_image_remove_layer(self._image_copy, layer_copy)
       if not self._is_current_layer_skipped:
-        # Append the original layer, not the copy, since the copy was destroyed.
+        # Append the original layer, not the copy, since the copy is going to be
+        # destroyed.
         self._exported_layers.append(layer)
         self._layer_file_extension_properties[self._file_extension].processed_count += 1
+      pdb.gimp_image_remove_layer(self._image_copy, layer_copy)
   
   def _setup(self):
     # Save context just in case. No need for undo groups or undo freeze here.
@@ -422,7 +425,6 @@ class LayerExporter(object):
                                     self.main_settings['file_ext_mode'].options['only_matching_file_extension']))
     
     if self.main_settings['empty_directories'].value:
-      # If layer_groups_as_directories is True, even non-empty layer groups must be uniquified.
       with self._layer_data.filter['layer_types'].remove_rule_temp(LayerFilters.is_layer):
         self._layer_data.uniquify_layer_names(include_layer_path, place_before_file_extension)
     else:
@@ -431,38 +433,37 @@ class LayerExporter(object):
   def _remove_copy_suffix(self, layer, layer_copy):
     if layer_copy.name.endswith(self._COPY_SUFFIX) and not layer.name.endswith(self._COPY_SUFFIX):
       layer_copy.name = layer_copy.name.rstrip(self._COPY_SUFFIX)
-    
     return layer_copy
   
-  def _crop_and_merge(self, layer_copy):
+  def _crop_and_merge(self, layer):
     if not self.main_settings['use_image_size'].value:
       pdb.gimp_image_resize_to_layers(self._image_copy)
       if self.main_settings['crop_to_background'].value:
         if self._background_layerdata:
-          layer_copy = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
+          layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
         if self.main_settings['autocrop'].value:
-          pdb.plug_in_autocrop(self._image_copy, layer_copy)
+          pdb.plug_in_autocrop(self._image_copy, layer)
       else:
         if self.main_settings['autocrop'].value:
-          pdb.plug_in_autocrop(self._image_copy, layer_copy)
+          pdb.plug_in_autocrop(self._image_copy, layer)
         if self._background_layerdata:
-          layer_copy = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
+          layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
     else:
       if self.main_settings['crop_to_background'].value and self._background_layer_merged is not None:
         if self.main_settings['autocrop'].value:
           self._image_copy.active_layer = self._background_layer_merged
           pdb.plug_in_autocrop_layer(self._image_copy, self._background_layer_merged)
-          self._image_copy.active_layer = layer_copy
+          self._image_copy.active_layer = layer
       else:
         if self.main_settings['autocrop'].value:
-          pdb.plug_in_autocrop_layer(self._image_copy, layer_copy)
+          pdb.plug_in_autocrop_layer(self._image_copy, layer)
       
       if self._background_layerdata:
-        layer_copy = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
+        layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
       
-      pdb.gimp_layer_resize_to_image_size(layer_copy)
+      pdb.gimp_layer_resize_to_image_size(layer)
     
-    return layer_copy
+    return layer
   
   def _set_file_extension(self, layerdata_elem):
     if (self.main_settings['file_ext_mode'].value ==
@@ -510,11 +511,12 @@ class LayerExporter(object):
     self.progress_updater.update_text("Saving '" + output_filename + "'")
     
     if not self._is_current_layer_skipped:
-      libfiles.make_dirs(os.path.dirname(output_filename))
       self._export_layer(self._file_export_func, image, layer, output_filename)
   
   def _export_layer(self, file_export_function, image, layer, output_filename):
     run_mode = self._get_run_mode()
+    libfiles.make_dirs(os.path.dirname(output_filename))
+    
     self._export_layer_once(file_export_function, run_mode,
                             image, layer, output_filename)
     
@@ -528,7 +530,7 @@ class LayerExporter(object):
     self._current_layer_export_status = self._NOT_EXPORTED_YET
     
     try:
-      file_export_function(image, layer, output_filename, os.path.basename(output_filename),
+      file_export_function(image, layer, output_filename.encode(), os.path.basename(output_filename).encode(),
                            run_mode=run_mode)
     except RuntimeError as e:
       # HACK: Since RuntimeError could indicate anything, including pdb.gimp_file_save
