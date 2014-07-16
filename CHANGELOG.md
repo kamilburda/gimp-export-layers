@@ -11,7 +11,7 @@
   re-save them.
 * Removed "Remove squared brackets" setting as it served little purpose.
   [square brackets] will now always be removed from layer names.
-* Added "Ignore Layer Mode" setting, which sets the layer mode to Normal for each layer.
+* Added "Ignore layer mode" setting, which sets the layer mode to Normal for each layer.
 * Fixed a bug that caused the file format dialog to not appear if the user chose
   Skip in the overwrite dialog for the first file (or the first and subsequent files).
 * When "No special handling" is selected, file extension strip mode now defaults to
