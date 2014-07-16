@@ -2,7 +2,9 @@
 ------------------------
 
 * Added support for Unicode characters. This means you can now use any character
-in layer names and the output directory, except for most of the special characters.
+  in layer names and the output directory, except for most of the special characters.
+* Export Layers GUI: Removed the small dialog. Progress bar and the Stop button
+  are now displayed directly in the main dialog.
 * Renamed "File format" to "File extension" since that's what the user actually
   specifies. Also, Renamed a bunch of options so that they contain "extension"
   instead of "format". Because of this, if you use "Save settings", you'll need to

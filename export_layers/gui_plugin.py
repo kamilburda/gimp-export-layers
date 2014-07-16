@@ -181,7 +181,6 @@ class _ExportLayersGui(object):
     self.layer_exporter = None
     
     self._init_gui()
-    self.export_dialog = ExportDialog(self.stop)
     
     gtk.main()
   
@@ -293,6 +292,28 @@ class _ExportLayersGui(object):
     self.alignment_advanced_settings.add(self.vbox_advanced_settings)
     self.expander_advanced_settings.add(self.alignment_advanced_settings)
     
+    self.export_layers_button = self.dialog.add_button("_Export Layers", gtk.RESPONSE_OK)
+    self.export_layers_button.grab_default()
+    self.cancel_button = self.dialog.add_button("_Cancel", gtk.RESPONSE_CANCEL)
+    self.dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
+    
+    self.stop_button = gtk.Button()
+    self.stop_button.set_label("_Stop")
+    
+    self.save_settings_button = gtk.Button()
+    self.save_settings_button.set_label("Save Settings")
+    self.reset_settings_button = gtk.Button()
+    self.reset_settings_button.set_label("Reset Settings")
+    
+    self.progress_bar = gtk.ProgressBar()
+    self.progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+    
+    self.dialog.action_area.pack_end(self.stop_button, expand=False, fill=True)
+    self.dialog.action_area.pack_start(self.save_settings_button, expand=False, fill=True)
+    self.dialog.action_area.pack_start(self.reset_settings_button, expand=False, fill=True)
+    self.dialog.action_area.set_child_secondary(self.save_settings_button, True)
+    self.dialog.action_area.set_child_secondary(self.reset_settings_button, True)
+    
     self.dialog.vbox.set_spacing(self.DIALOG_VBOX_SPACING)
     self.dialog.vbox.pack_start(self.directory_chooser_label, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.directory_chooser, padding=5)
@@ -300,33 +321,24 @@ class _ExportLayersGui(object):
     self.dialog.vbox.pack_start(self.hbox_export_settings, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.expander_advanced_settings, expand=False, fill=False)
     self.dialog.vbox.pack_start(gtk.HSeparator(), expand=False, fill=True)
-    
-    
-    self.export_layers_button = self.dialog.add_button("_Export Layers", gtk.RESPONSE_OK)
-    self.export_layers_button.grab_default()
-    self.cancel_button = self.dialog.add_button("_Cancel", gtk.RESPONSE_CANCEL)
-    self.dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
-    
-    self.save_settings_button = gtk.Button()
-    self.save_settings_button.set_label("Save Settings")
-    self.reset_settings_button = gtk.Button()
-    self.reset_settings_button.set_label("Reset Settings")
-    self.dialog.action_area.pack_start(self.save_settings_button, expand=False, fill=True)
-    self.dialog.action_area.pack_start(self.reset_settings_button, expand=False, fill=True)
-    self.dialog.action_area.set_child_secondary(self.save_settings_button, True)
-    self.dialog.action_area.set_child_secondary(self.reset_settings_button, True)
+    self.dialog.vbox.pack_end(self.progress_bar, expand=False, fill=True)
+    # Move the action area above the progress bar.
+    self.dialog.vbox.reorder_child(self.dialog.action_area, -1)
     
     
     self.export_layers_button.connect("clicked", self.on_export_click)
     self.cancel_button.connect("clicked", self.cancel)
+    self.stop_button.connect("clicked", self.stop)
     self.dialog.connect("delete-event", self.close)
     
     self.save_settings_button.connect("clicked", self.on_save_settings)
     self.reset_settings_button.connect("clicked", self.on_reset_settings)
     
-    # Don't show the whole dialog just yet, because some elements may be disabled
-    # or made invisible by the setting presenters.
+    self.dialog.set_default_response(gtk.RESPONSE_CANCEL)
+    
     self.dialog.vbox.show_all()
+    self.progress_bar.hide()
+    self.stop_button.hide()
     
     self.create_setting_presenters()
     self.setting_presenters.set_tooltips()
@@ -334,6 +346,8 @@ class _ExportLayersGui(object):
     self.setting_presenters.connect_value_changed_events()
     
     self.dialog.set_focus(self.file_extension_entry)
+    self.dialog.set_default(self.export_layers_button)
+    
     self.dialog.show()
     self.dialog.action_area.set_border_width(self.ACTION_AREA_BORDER_WIDTH)
   
@@ -451,11 +465,8 @@ class _ExportLayersGui(object):
       self.display_message_label(e.message, message_type=self.ERROR)
       return
     
-    self.dialog.hide()
-    self.export_dialog.show()
-    self.display_message_label(None)
+    self.setup_gui_before_export()
     pdb.gimp_progress_init("", None)
-    should_quit = True
     
     overwrite_chooser = gui.GtkDialogOverwriteChooser(
       # Don't insert the Cancel option as a button.
@@ -464,7 +475,7 @@ class _ExportLayersGui(object):
       default_value=self.main_settings['overwrite_mode'].options['replace'],
       default_response=self.main_settings['overwrite_mode'].options['cancel'],
       title=constants.PLUGIN_TITLE)
-    progress_updater = gui.GtkProgressUpdater(self.export_dialog.progress_bar)
+    progress_updater = gui.GtkProgressUpdater(self.progress_bar)
     
     # Make the enabled GUI components more responsive(-ish) by periodically checking
     # whether the GUI has something to do.
@@ -472,25 +483,25 @@ class _ExportLayersGui(object):
     
     self.layer_exporter = exportlayers.LayerExporter(gimpenums.RUN_INTERACTIVE, self.image,
                                                      self.main_settings, overwrite_chooser, progress_updater)
+    should_quit = True
     try:
       self.layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError as e:
       should_quit = False
     except exportlayers.ExportLayersNoLayersToExport as e:
-      display_message(e.message, gtk.MESSAGE_INFO, parent=self.export_dialog.dialog)
+      display_message(e.message, gtk.MESSAGE_INFO, parent=self.dialog)
       should_quit = False
     except exportlayers.ExportLayersError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       should_quit = False
     except Exception as e:
-      display_exception_message(traceback.format_exc(), parent=self.export_dialog.dialog)
+      display_exception_message(traceback.format_exc(), parent=self.dialog)
     else:
       self.special_settings['first_run'].value = False
       self.setting_persistor.save([self.special_settings['first_run']])
     finally:
       gobject.source_remove(refresh_event_id)
       pdb.gimp_progress_end()
-      self.export_dialog.hide()
     
     self.main_settings['overwrite_mode'].value = overwrite_chooser.overwrite_mode
     self.setting_persistor.save(self.main_settings, self.gui_settings)
@@ -499,7 +510,30 @@ class _ExportLayersGui(object):
       gtk.main_quit()
     else:
       progress_updater.reset()
-      self.dialog.show()
+      self.restore_gui_after_export()
+  
+  def setup_gui_before_export(self):
+    self.display_message_label(None)
+    self._set_gui_enabled(False)
+    self.dialog.set_focus_on_map(False)
+  
+  def restore_gui_after_export(self):
+    self.progress_bar.set_visible(False)
+    self._set_gui_enabled(True)
+    self.dialog.set_focus_on_map(True)
+  
+  def _set_gui_enabled(self, enabled):
+    self.progress_bar.set_visible(not enabled)
+    self.stop_button.set_visible(not enabled)
+    self.cancel_button.set_visible(enabled)
+    
+    for child in self.dialog.vbox:
+      if child not in (self.dialog.action_area, self.progress_bar):
+        child.set_sensitive(enabled)
+    
+    for button in self.dialog.action_area:
+      if button != self.stop_button:
+        button.set_sensitive(enabled)
   
   def close(self, widget, event):
     gtk.main_quit()

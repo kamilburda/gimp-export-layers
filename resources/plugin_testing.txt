@@ -126,7 +126,7 @@ Use unicode characters in:
 * GTK elements
    * text entry
    * directory chooser
-   * combo boxes, labels, buttons, checkboxes
+   * combo boxes, labels, buttons, checkboxes, tooltips
       - temporarily modify settings in `settings_plugin`
 * `tee_plugin` log filenames
 

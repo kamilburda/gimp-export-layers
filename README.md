@@ -38,20 +38,20 @@ the leading period). You can type any file extension supported by GIMP. File for
 provided by third-party plug-ins should work as well - at the very least,
 GIMP DDS Plugin was tested and works correctly.
 
-To export in raw file format (which has no file extension assigned),
-type "raw" into the text field. The file extension will remain in the files.
+To export in raw file format, type "raw" into the text field. The file extension
+will remain in the files.
 
-To export layers, press the "Export Layers" button. The main window is hidden
-and a small dialog with progress is displayed. For the first layer,
+To export layers, press the "Export Layers" button. For the first layer,
 a dialog corresponding to the file format appears, allowing you to adjust file
-format settings. Not all file formats have settings, so no dialog may appear.
+format settings. Some file formats don't have dialogs.
 
-For subsequent layers, the file export procedure uses the values you
-specified in the dialog for the first file. However, some file formats have to
-display the dialog for each file (more info in Known Issues).
+For subsequent layers, the same settings that you specified in the file format
+dialog are applied. However, some file formats have to display the dialog
+for each file (more info in Known Issues).
 
 If you need to stop the export prematurely, press the Stop button. If an error was
-encountered (such as invalid file extension) or the export was stopped, the main window reappears.
+encountered (such as invalid file extension) or the export was stopped, the main
+dialog remains open.
 
 If you want to export the layers with the last values used, you can use the
 "File -> Export Layers to" menu entry. The file format dialog will not be displayed -
@@ -158,10 +158,7 @@ not just the first layer:
 
 In Export Layers To, JPG format always displays the file format dialog for the first layer.
 
-File format dialog is displayed behind the small dialog while exporting.
-
-Only ASCII letters, digits and certain special characters are allowed in filenames.
-Other characters are deleted (from filenames only, they still remain in the layer names).
+On Windows, the file format dialog is displayed behind the main dialog.
 
 License
 -------
