@@ -51,14 +51,15 @@ To export layers, press the "Export Layers" button. For the first layer, a dialo
 If you want to export the layers with the last values used, you can use the "File -> Export Layers to" menu entry. The file format dialog will not be displayed - instead, the last used values will be used.
 
 <h5><strong>Example</strong></h5>
-<img src="https://lh5.googleusercontent.com/-ayM2yCEi4LE/U62pwZ7ip2I/AAAAAAAAAeQ/zTdxLd5AcAM/s600/Export_Layers_2_0.png" />
+<img src="https://lh4.googleusercontent.com/-s_QPo9lRWRM/U8arsWPksfI/AAAAAAAAAfQ/qoX7lQ-qbM4/s600/export_layers_screenshot_2_1.jpg" />
 
 <h5><strong>Changelog</strong></h5>
-2.0, June 27, 2014
-* Added advanced settings.
-* Major code rewrite.
-* Many GUI adjustments here and there.
-* Fixed JPG and OpenRaster (.ora) export of invisible layers.
+2.1, ???? ??, 2014
+* Added Unicode support.
+* Progress bar and Stop button are now displayed in the main dialog.
+* Removed "Remove square brackets" setting.
+* Added "Ignore layer mode" setting.
+* Renamed "File format" to "File extension" and, accordingly, a bunch of other related settings.
 
 For more information, such as the full list of settings, known issues or the full list of changes, read the <i>README.md</i> file in the package or see the GitHub page for the plug-in:
 https://github.com/khalim19/gimp-plugin-export-layers
