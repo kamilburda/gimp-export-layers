@@ -203,9 +203,6 @@ class Setting(object):
     return self._value
   @value.setter
   def value(self, value_):
-    self._set_value(value_)
-  
-  def _set_value(self, value_):
     self._value = value_
   
   @property
@@ -407,7 +404,7 @@ class NumericSetting(Setting):
     if self.max_value is not None and value_ > self.max_value:
       raise SettingValueError(self._value_to_str(value_) + self.error_messages['above_max'])
     
-    super(NumericSetting, self)._set_value(value_)
+    super(NumericSetting, self.__class__).value.__set__(self, value_)
 
 
 class IntSetting(NumericSetting):
@@ -580,7 +577,7 @@ class EnumSetting(Setting):
     if value_ not in self._option_values:
       raise SettingValueError(self._value_to_str(value_) + self.error_messages['invalid_value'])
     
-    super(EnumSetting, self)._set_value(value_)
+    super(EnumSetting, self.__class__).value.__set__(self, value_)
   
   @property
   def short_description(self):
@@ -646,7 +643,7 @@ class ImageSetting(Setting):
     if not pdb.gimp_image_is_valid(image):
       raise SettingValueError(self._value_to_str(image) + self.error_messages['invalid_value'])
     
-    super(ImageSetting, self)._set_value(image)
+    super(ImageSetting, self.__class__).value.__set__(self, image)
 
 
 class DrawableSetting(Setting):
@@ -685,7 +682,7 @@ class DrawableSetting(Setting):
     if not pdb.gimp_item_is_valid(drawable):
       raise SettingValueError(self._value_to_str(drawable) + self.error_messages['invalid_value'])
     
-    super(DrawableSetting, self)._set_value(drawable)
+    super(DrawableSetting, self.__class__).value.__set__(self, drawable)
 
 
 class StringSetting(Setting):
@@ -768,7 +765,7 @@ class ValidatableStringSetting(StringSetting):
         self._value_to_str(value_) + '\n'.join([message for message in new_status_messages])
       )
     
-    super(ValidatableStringSetting, self)._set_value(value_)
+    super(ValidatableStringSetting, self.__class__).value.__set__(self, value_)
   
 
 class FileExtensionSetting(ValidatableStringSetting):
