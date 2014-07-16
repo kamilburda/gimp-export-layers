@@ -506,7 +506,11 @@ class GtkDirectoryChooserWidgetPresenter(GtkSettingPresenter):
   
   @property
   def value(self):
-    return self._element.get_current_folder().decode(GTK_CHARACTER_ENCODING)
+    current_directory = self._element.get_current_folder()
+    if current_directory is not None:
+      current_directory = current_directory.decode(GTK_CHARACTER_ENCODING)
+    
+    return current_directory
   
   @value.setter
   def value(self, value_):
@@ -521,9 +525,13 @@ class GtkDirectoryChooserWidgetPresenter(GtkSettingPresenter):
       self._element.set_current_folder(value_.encode(GTK_CHARACTER_ENCODING))
     else:
       if self.image.uri is not None:
-        self._element.set_uri(self.image.uri)
+        self._element.set_uri(self.image.uri.encode(GTK_CHARACTER_ENCODING))
       else:
-        self._element.set_current_folder(self.default_directory.encode(GTK_CHARACTER_ENCODING))
+        default_directory = self.default_directory
+        if default_directory is not None:
+          default_directory = default_directory.encode(GTK_CHARACTER_ENCODING)
+        
+        self._element.set_current_folder(default_directory)
 
 
 class GtkWindowPositionPresenter(GtkSettingPresenter):
