@@ -268,7 +268,7 @@ class LayerData(object):
             index += 1
           
           if not self.is_filtered or self._filter.is_match(layerdata_elem):
-            layerdata.append(self._layerdata[layer.name.decode()])
+            layerdata.append(self._layerdata[layerdata_elem.orig_layer_name])
         
         _uniquify(layerdata)
     else:
@@ -308,7 +308,7 @@ class LayerData(object):
           layer_tree.insert(index, _LayerTreeNode(layer.layers, [layerdata_elem] + parents))
           index += 1
         
-        self._layerdata[layer.name.decode()] = layerdata_elem
+        self._layerdata[layerdata_elem.orig_layer_name] = layerdata_elem
 
 
 class _LayerDataElement(object):
@@ -331,7 +331,10 @@ class _LayerDataElement(object):
   
   * `layer_name` - Layer name. Modify this attribute instead of `gimp.Layer.name`
     to avoid modifying the original layer. While `gimp.Layer.name` are bytes
-    encoded in UTF-8, `layer_name` is of type `unicode`.
+    encoded in UTF-8, `layer_name` is a `unicode` string.
+  
+  * `orig_layer_name` (read-only) - original `gimp.Layer.name` as a `unicode`
+    string.
   
   * `is_group` - If True, layer is a layer group (`gimp.GroupLayer`). If False,
     layer is `gimp.Layer`.
@@ -360,11 +363,17 @@ class _LayerDataElement(object):
     self.level = len(self.parents)
     
     self.layer_name = self.layer.name.decode()
+    self._orig_layer_name = self.layer_name
+    
     self.is_group = pdb.gimp_item_is_group(self.layer)
     self.is_empty = self.is_group and not self.layer.children
     
     self.path_components = self.update_path_components()
     self.path_visible = self._get_layer_visibility()
+  
+  @property
+  def orig_layer_name(self):
+    return self._orig_layer_name
   
   @property
   def file_extension(self):
