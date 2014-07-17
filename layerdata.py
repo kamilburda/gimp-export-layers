@@ -87,7 +87,7 @@ class LayerData(object):
     self._filter = objectfilter.ObjectFilter(filter_match_type)
     
     # Contains all layers (including layer groups) in the layer tree.
-    # key: `gimp.Layer.name` as `unicode` string (`gimp.Layer.name`s are unique)
+    # key: `_LayerDataElement.orig_layer_name` (derived from `gimp.Layer.name`, which is unique)
     # value: `_LayerDataElement` object
     self._layerdata = OrderedDict()
     
