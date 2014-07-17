@@ -35,7 +35,6 @@ str = unicode
 
 #=============================================================================== 
 
-import sys
 import os
 import re
 import abc

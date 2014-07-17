@@ -1563,7 +1563,7 @@ class SettingPresenterContainer(Container):
     Override this method in a subclass to call `_on_element_value_change()`.
     
     Since event handling is dependent on the GUI framework used, a method
-    separate from `_on_element_value_change()` has to be defined so that the
+    separate from `_on_element_value_change()` has to be defined so that the GUI
     framework invokes the event with the correct arguments in the correct order.
     """
     pass
@@ -1575,8 +1575,9 @@ class SettingPresenterContainer(Container):
     `_on_element_value_change_streamline()`.
     
     Since event handling is dependent on the GUI framework used, a method
-    separate from `_on_element_value_change()` has to be defined so that the
-    framework invokes the event with the correct arguments in the correct order.
+    separate from `_gui_on_element_value_change_streamline()` has to be defined
+    so that the GUI framework invokes the event with the correct arguments in
+    the correct order.
     """
     pass
   

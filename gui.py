@@ -582,7 +582,7 @@ class GtkExpanderPresenter(GtkSettingPresenter):
 class GtkSettingPresenterContainer(settings.SettingPresenterContainer):
   
   """
-  This class is used to store `SettingPresenter` objects in a GTK environment.
+  This class is used to group `SettingPresenter` objects in a GTK environment.
   """
   
   def _gui_on_element_value_change(self, widget, presenter, *args):

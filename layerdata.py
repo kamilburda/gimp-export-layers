@@ -77,14 +77,14 @@ class LayerData(object):
     filter rules or subfilters to filter layers.
   """
   
-  def __init__(self, image, is_filtered=False):
+  def __init__(self, image, is_filtered=False, filter_match_type=objectfilter.ObjectFilter.MATCH_ALL):
     
     self.image = image
     
     self.is_filtered = is_filtered
     
     # Filters applied to all layers in self._layerdata
-    self._filter = objectfilter.ObjectFilter()
+    self._filter = objectfilter.ObjectFilter(filter_match_type)
     
     # Contains all layers (including layer groups) in the layer tree.
     # key: `gimp.Layer.name` as `unicode` string (`gimp.Layer.name`s are unique)
