@@ -73,8 +73,8 @@ def invalid_rule_func():
 class TestObjectFilter(unittest.TestCase):
   
   def setUp(self):
-    self.filter = ObjectFilter(match_type=ObjectFilter.MATCH_ALL)
-    self.filter_match_any = ObjectFilter(match_type=ObjectFilter.MATCH_ANY)
+    self.filter = ObjectFilter(ObjectFilter.MATCH_ALL)
+    self.filter_match_any = ObjectFilter(ObjectFilter.MATCH_ANY)
   
   def test_has_rule(self):
     self.assertFalse(self.filter.has_rule(has_uppercase_letters))
@@ -92,6 +92,11 @@ class TestObjectFilter(unittest.TestCase):
     
     with self.assertRaises(ValueError):
       self.filter.remove_rule(has_uppercase_letters)
+    
+    try:
+      self.filter.remove_rule(has_uppercase_letters, raise_if_not_found=False)
+    except ValueError:
+      self.fail("ValueError should not be raised if raise_if_not_found=False")
   
   def test_add_rule_temp(self):
     with self.filter.add_rule_temp(has_uppercase_letters):
@@ -122,11 +127,11 @@ class TestObjectFilter(unittest.TestCase):
       with self.filter.remove_rule_temp(has_matching_file_extension):
         pass
     
-    self.filter.add_rule(has_matching_file_extension, 'jpg')
-    with self.assertRaises(TypeError):
-      # remove_rule_temp must have only 1 argument
-      with self.filter.remove_rule_temp(has_matching_file_extension, 'jpg'):
+    try:
+      with self.filter.remove_rule_temp(has_matching_file_extension, raise_if_not_found=False):
         pass
+    except ValueError:
+      self.fail("ValueError should not be raised if raise_if_not_found=False")
   
   def test_remove_rule_temp_add_upon_exception(self):
     self.filter.add_rule(has_matching_file_extension, 'jpg')
@@ -150,26 +155,21 @@ class TestObjectFilter(unittest.TestCase):
       self.filter[has_matching_file_extension]
   
   def test_add_subfilter(self):
-    self.filter.add_subfilter('subfilter', ObjectFilter())
+    self.filter.add_subfilter('subfilter', ObjectFilter(ObjectFilter.MATCH_ALL))
     with self.assertRaises(ValueError):
-      self.filter.add_subfilter('subfilter', ObjectFilter())
+      self.filter.add_subfilter('subfilter', ObjectFilter(ObjectFilter.MATCH_ALL))
   
   def test_remove_subfilter(self):
     with self.assertRaises(ValueError):
       self.filter.remove_subfilter('subfilter_does_not_exist')
   
   def test_add_subfilter_temp(self):
-    with self.filter.add_subfilter_temp('layer_types', ObjectFilter()):
+    with self.filter.add_subfilter_temp('layer_types', ObjectFilter(ObjectFilter.MATCH_ALL)):
       self.assertTrue(self.filter.has_subfilter('layer_types'))
     self.assertFalse(self.filter.has_subfilter('layer_types'))
-    
-    with self.assertRaises(TypeError):
-      # Wrong number of arguments
-      with self.filter.add_rule_temp(has_matching_file_extension):
-        self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There.jpg")))
 
   def test_remove_subfilter_temp(self):
-    self.filter.add_subfilter('layer_types', ObjectFilter())
+    self.filter.add_subfilter('layer_types', ObjectFilter(ObjectFilter.MATCH_ALL))
     with self.filter.remove_subfilter_temp('layer_types'):
       self.assertFalse(self.filter.has_subfilter('layer_types'))
     self.assertTrue(self.filter.has_subfilter('layer_types'))
