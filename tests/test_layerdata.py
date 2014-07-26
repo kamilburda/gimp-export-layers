@@ -36,10 +36,9 @@ from collections import OrderedDict
 import unittest
 
 from ..lib import mock
+from . import gimpmocks
 
 from .. import layerdata
-
-from . import gimpmocks
 
 #===============================================================================
 
@@ -47,15 +46,15 @@ LIB_NAME = '.'.join(__name__.split('.')[:-2])
 
 #===============================================================================
 
-class LayerFilters(object):
+class LayerFilterRules(object):
   
   @staticmethod
   def is_layer(layerdata_elem):
-    return not layerdata_elem.is_group
+    return layerdata_elem.layer_type == layerdata_elem.LAYER
   
   @staticmethod
   def is_layer_or_empty_group(layerdata_elem):
-    return not layerdata_elem.is_group or layerdata_elem.is_empty
+    return layerdata_elem.layer_type in (layerdata_elem.LAYER, layerdata_elem.EMPTY_GROUP)
   
   @staticmethod
   def is_path_visible(layerdata_elem):
@@ -67,396 +66,247 @@ class LayerFilters(object):
 
 #===============================================================================
 
+def _parse_layers(docstring):
+  """
+  From a given docstring containing layer names separated by lines and
+  curly braces (each on a separate line), return an image containing parsed
+  layers.
+  
+  Leading or trailing spaces in each line in the docstring are truncated.
+  """
+  
+  image = gimpmocks.MockImage()
+  
+  docstring = docstring.strip()
+  lines = docstring.splitlines(False)
+  
+  num_lines = len(lines)
+  parents = [image]
+  current_parent = image
+  
+  for i in range(num_lines):
+    current_symbol = lines[i].strip()
+    
+    layer = None
+    
+    if current_symbol.endswith(" {"):
+      layer = gimpmocks.MockLayerGroup(current_symbol.rstrip(" {"))
+      current_parent.layers.append(layer)
+      current_parent = layer
+      parents.append(current_parent)
+    elif current_symbol == "}":
+      parents.pop()
+      current_parent = parents[-1]
+    else:
+      layer = gimpmocks.MockLayer(current_symbol)
+      current_parent.layers.append(layer)
+    
+    if layer is not None:
+      layer.parent = current_parent
+  
+  return image
+
+#===============================================================================
+
 @mock.patch(LIB_NAME + '.layerdata.pdb', new=gimpmocks.MockPDB())
 class TestLayerData(unittest.TestCase):
 
   @mock.patch(LIB_NAME + '.layerdata.pdb', new=gimpmocks.MockPDB())
   def setUp(self):
-    super(TestLayerData, self).setUp()
+    layers_string = """
+      Corners {
+        top-left-corner
+        top-right-corner
+        top-left-corner# {
+        }
+        top-left-corner## {
+          bottom-right-corner
+          bottom-right-corner#
+          bottom-left-corner
+        }
+      }
+      Corners# {
+        top-left-corner###
+      }
+      Frames {
+        top-frame
+      }
+      main-background.jpg
+      main-background.jpg#
+      Overlay {
+      }
+      Corners##
+      top-left-corner####
+      main-background.jpg## {
+        alt-frames
+        alt-corners
+      }
+    """
     
-    self.image = gimpmocks.MockImage()
-    
-    self.all_layers = OrderedDict()
-    
-    layers = OrderedDict()
-    layers['Corners'] = gimpmocks.MockLayerGroup("Corners")
-    layers['Frames'] = gimpmocks.MockLayerGroup("Frames")
-    layers['[Main Background.png]'] = gimpmocks.MockLayer("[Main Background.png]")
-    layers['Overlay - Colorify Create.jpg'] = gimpmocks.MockLayer("Overlay - Colorify Create.jpg", False)
-    layers['Overlay - Colorify Create.jpg#'] = gimpmocks.MockLayer("Overlay - Colorify Create.jpg#", False)
-    layers['Layer Group'] = gimpmocks.MockLayerGroup("Layer Group", False)
-    layers['Layer Group#'] = gimpmocks.MockLayerGroup("Layer Group#", False)
-    layers['Layer Group ####4'] = gimpmocks.MockLayerGroup("Layer Group ####4", False)
-    layers['Layer Group.png'] = gimpmocks.MockLayerGroup("Layer Group.png", False)
-    layers['Overlay - Colorify Convert'] = gimpmocks.MockLayer("Overlay - Colorify Convert", False)
-    layers['Overlay - Darken'] = gimpmocks.MockLayer("Overlay - Darken", False)
-    self.image.layers = [layer for layer in layers.values()]
-    self.all_layers.update(layers)
-    
-    self.top_level_layers = OrderedDict(layers)
-    
-    layers = OrderedDict()
-    layers['top-left-corner'] = gimpmocks.MockLayer("top-left-corner")
-    layers['Layer Group ##1'] = gimpmocks.MockLayerGroup("Layer Group ##1")
-    layers['Layer Group #3'] = gimpmocks.MockLayerGroup("Layer Group #3")
-    layers['Layer Group ##3'] = gimpmocks.MockLayerGroup("Layer Group ##3")
-    layers['top-right-corner'] = gimpmocks.MockLayer("top-right-corner")
-    self.all_layers['Corners'].children = [layer for layer in layers.values()]
-    self.all_layers.update(layers)
-    
-    layers = OrderedDict()
-    layers['bottom-right-corner'] = gimpmocks.MockLayer("bottom-right-corner")
-    layers['bottom-left-corner'] = gimpmocks.MockLayer("bottom-left-corner")
-    self.all_layers['Layer Group ##1'].children = [layer for layer in layers.values()]
-    self.all_layers.update(layers)
-    
-    layers = OrderedDict()
-    layers['top-frame'] = gimpmocks.MockLayer("top-frame")
-    layers['Layer Group #1'] = gimpmocks.MockLayerGroup("Layer Group #1")
-    layers['right-frame'] = gimpmocks.MockLayer("right-frame")
-    layers['right-frame#'] = gimpmocks.MockLayer("right-frame#")
-    layers['[Layer Group #2]'] = gimpmocks.MockLayerGroup("[Layer Group #2]")
-    self.all_layers['Frames'].children = [layer for layer in layers.values()]
-    self.all_layers.update(layers)
-    
-    layers = OrderedDict()
-    layers['Layer Group 4'] = gimpmocks.MockLayerGroup("Layer Group 4", False)
-    layers['Layer Group #4'] = gimpmocks.MockLayerGroup("Layer Group #4")
-    layers['Layer Group ##4'] = gimpmocks.MockLayerGroup("Layer Group ##4")
-    layers['Layer Group ###4'] = gimpmocks.MockLayerGroup("Layer Group ###4")
-    self.all_layers['Layer Group #1'].children = [layer for layer in layers.values()]
-    self.all_layers.update(layers)
-    
-    layers = OrderedDict()
-    layers['right-frame# copy'] = gimpmocks.MockLayer("right-frame# copy")
-    self.all_layers['Layer Group 4'].children = [layer for layer in layers.values()]
-    self.all_layers.update(layers)
-    
-    layers = OrderedDict()
-    layers['bottom-frame copy #1'] = gimpmocks.MockLayer("bottom-frame copy #1")
-    layers['Layer Group #7'] = gimpmocks.MockLayerGroup("Layer Group #7")
-    self.all_layers['Layer Group #4'].children = [layer for layer in layers.values()]
-    self.all_layers.update(layers)
-    
-    layers = OrderedDict()
-    layers['bottom-frame #1'] = gimpmocks.MockLayer("bottom-frame #1", False)
-    self.all_layers['Layer Group #7'].children = [layer for layer in layers.values()]
-    self.all_layers.update(layers)
-    
-    layers = OrderedDict()
-    layers['bottom-frame copy'] = gimpmocks.MockLayer("bottom-frame copy")
-    layers['Layer Group ######4'] = gimpmocks.MockLayerGroup("Layer Group ######4")
-    self.all_layers['Layer Group ###4'].children = [layer for layer in layers.values()]
-    self.all_layers.update(layers)
-    
-    layers = OrderedDict()
-    layers['bottom-frame'] = gimpmocks.MockLayer("bottom-frame")
-    self.all_layers['Layer Group ######4'].children = [layer for layer in layers.values()]
-    self.all_layers.update(layers)
-    
-    self.layer_data = layerdata.LayerData(self.image, is_filtered=False)
-    self.layer_count_total = 34
-    self.layer_count_only_layers = 17
-    self.layer_count_path_visible = 23
-    self.layer_count_empty_groups = 8
-    self.layer_count_matches_jpg = 1
+    image = _parse_layers(layers_string)
+    self.layer_data = layerdata.LayerData(image)
   
   def test_get_len(self):
-    self.assertEqual(len(self.layer_data), self.layer_count_total)
+    layer_count_total = 20
+    layer_count_only_layers = 13
+    
+    self.assertEqual(len(self.layer_data), layer_count_total)
     
     self.layer_data.is_filtered = True
-    self.layer_data.filter.add_rule(LayerFilters.is_layer)
-    self.assertEqual(len(self.layer_data), self.layer_count_only_layers)
+    self.layer_data.filter.add_rule(LayerFilterRules.is_layer)
+    self.assertEqual(len(self.layer_data), layer_count_only_layers)
   
-  def test_cache_layers(self):
-    self.layer_data.is_filtered = True
-    
-    with self.layer_data.filter.add_rule_temp(LayerFilters.is_path_visible):
-      self.layer_data.cache_layers()
-    self.assertEqual(len(self.layer_data), self.layer_count_path_visible)
-    self.layer_data.clear_cache()
-    self.assertEqual(len(self.layer_data), self.layer_count_total)
-    
-    # Check if caching multiple times and then clearing restores the original
-    # LayerData.
-    with self.layer_data.filter.add_rule_temp(LayerFilters.is_path_visible):
-      self.layer_data.cache_layers()
-      self.layer_data.cache_layers()
-    self.layer_data.clear_cache()
-    self.assertEqual(len(self.layer_data), self.layer_count_total)
-  
-  def test_get_filename(self):
+  def test_get_filepath(self):
     output_directory = os.path.join("D:", os.sep, "testgimp");
-    file_extension = 'png'
+    
     # layerdata_elem with parents
     layerdata_elem = self.layer_data['bottom-right-corner']
     
-    self.assertEqual(layerdata_elem.get_filename(output_directory, file_extension),
-                     os.path.join(output_directory, "Corners", "Layer Group ##1",
-                                  layerdata_elem.layer_name) +
-                       "." + file_extension)
-    self.assertEqual(layerdata_elem.get_filename(output_directory, file_extension, include_layer_path=False),
-                     os.path.join(output_directory, layerdata_elem.layer_name) +
-                       "." + file_extension)
-    self.assertEqual(layerdata_elem.get_filename("testgimp", file_extension),
-                     os.path.join(os.getcwd(), "testgimp", "Corners", "Layer Group ##1",
-                                  layerdata_elem.layer_name) +
-                       "." + file_extension)
-    self.assertEqual(layerdata_elem.get_filename(None, file_extension),
-                     os.path.join(os.getcwd(), "Corners", "Layer Group ##1",
-                                  layerdata_elem.layer_name) +
-                       "." + file_extension)
-    self.assertEqual(layerdata_elem.get_filename(output_directory, None),
-                     os.path.join(output_directory, "Corners", "Layer Group ##1",
-                                  layerdata_elem.layer_name))
+    self.assertEqual(
+      layerdata_elem.get_filepath(output_directory),
+      os.path.join(output_directory, "Corners", "top-left-corner##", layerdata_elem.layer_name)
+    )
+    self.assertEqual(
+      layerdata_elem.get_filepath(output_directory, include_layer_path=False),
+      os.path.join(output_directory, layerdata_elem.layer_name)
+    )
+    self.assertEqual(
+      layerdata_elem.get_filepath("testgimp"),
+      os.path.join(os.getcwd(), "testgimp", "Corners", "top-left-corner##", layerdata_elem.layer_name)
+    )
+    self.assertEqual(
+      layerdata_elem.get_filepath(None),
+      os.path.join(os.getcwd(), "Corners", "top-left-corner##", layerdata_elem.layer_name)
+    )
     
-    # layerdata_elem without parents
-    layerdata_with_file_ext = self.layer_data['Overlay - Colorify Create.jpg']
-    self.assertEqual(layerdata_with_file_ext.get_filename(output_directory, file_extension),
-                     os.path.join(output_directory, layerdata_with_file_ext.layer_name) + "." + file_extension)
-    self.assertEqual(layerdata_with_file_ext.get_filename(output_directory, file_extension),
-                     layerdata_with_file_ext.get_filename(output_directory, file_extension,
-                                                          include_layer_path=False))
-    self.assertTrue(layerdata_with_file_ext.get_filename(output_directory, "png")
-                    .endswith(".jpg.png"))
-    self.assertTrue(layerdata_with_file_ext.get_filename(output_directory, "jpg")
-                    .endswith(".jpg.jpg"))
-    self.assertTrue(layerdata_with_file_ext.get_filename(output_directory, None)
-                    .endswith(".jpg"))
+    layerdata_empty_layer_group = self.layer_data['top-left-corner#']
     
-    layerdata_empty_layer_group = self.layer_data['[Layer Group #2]']
-    self.assertEqual(layerdata_empty_layer_group.get_filename(output_directory, file_extension),
-                     os.path.join(output_directory, 'Frames', layerdata_empty_layer_group.layer_name))
-    self.assertEqual(layerdata_empty_layer_group.get_filename(output_directory, file_extension,
-                                                              include_layer_path=False),
-                     os.path.join(output_directory, layerdata_empty_layer_group.layer_name))
+    self.assertEqual(
+      layerdata_empty_layer_group.get_filepath(output_directory),
+      os.path.join(output_directory, 'Corners', layerdata_empty_layer_group.layer_name)
+    )
+    self.assertEqual(
+      layerdata_empty_layer_group.get_filepath(output_directory, include_layer_path=False),
+      os.path.join(output_directory, layerdata_empty_layer_group.layer_name)
+    )
     
-    layerdata_empty_layer_group_no_parents = self.layer_data['Layer Group']
-    self.assertEqual(layerdata_empty_layer_group_no_parents.get_filename(output_directory, file_extension),
-                     os.path.join(output_directory, layerdata_empty_layer_group_no_parents.layer_name))
-    self.assertEqual(layerdata_empty_layer_group_no_parents.get_filename(output_directory, file_extension),
-                     layerdata_empty_layer_group_no_parents.get_filename(output_directory, file_extension,
-                                                                         include_layer_path=False))
+    layerdata_empty_layer_group_no_parents = self.layer_data['Overlay']
+    
+    self.assertEqual(
+      layerdata_empty_layer_group_no_parents.get_filepath(output_directory),
+      os.path.join(output_directory, layerdata_empty_layer_group_no_parents.layer_name)
+    )
+    self.assertEqual(
+      layerdata_empty_layer_group_no_parents.get_filepath(output_directory),
+      layerdata_empty_layer_group_no_parents.get_filepath(output_directory, include_layer_path=False)
+    )
   
-  def test_get_file_extension_properties(self):
-    self.layer_data.is_filtered = True
+  def test_set_file_extension(self):
+    layerdata_elem = self.layer_data['main-background.jpg']
     
-    with self.layer_data.filter.add_rule_temp(LayerFilters.is_layer):
-      layer_file_extensions = self.layer_data.get_file_extension_properties('jpg')
-      
-      for file_ext in layer_file_extensions:
-        self.assertEqual(layer_file_extensions[file_ext].is_valid, True)
-      
-      self.assertEqual(layer_file_extensions['jpg'].count, self.layer_count_only_layers - 2)
-      self.assertEqual(layer_file_extensions['jpg#'].count, 1)
-      self.assertEqual(layer_file_extensions['png]'].count, 1)
+    layerdata_elem.set_file_extension(None)
+    self.assertEqual(layerdata_elem.layer_name, "main-background")
+    layerdata_elem.set_file_extension("png")
+    self.assertEqual(layerdata_elem.layer_name, "main-background.png")
   
-  def process_layer_data(self, layer_data):
-    for layer_data_elem in layer_data:
-      # "#" is removed from layer names so that multiple layers have the same name
-      # so that the uniquification can kick in.
-      layer_data_elem.layer_name = layer_data_elem.layer_name.replace("#", "")
-      layer_data_elem.path_components = [path_component.replace("#", "")
-                                         for path_component in layer_data_elem.path_components]
-  
-  def compare_uniquified_without_parents(self, layer_data, uniquified_layer_names):
+  #-----------------------------------------------------------------------------
+    
+  def _compare_uniquified_without_parents(self, layer_data, uniquified_layer_names):
     for key, layer_name in uniquified_layer_names.items():
-      self.assertEqual(layer_data[key].layer_name, layer_name,
-                       "'" + key + "': '" + str(layer_data[key].layer_name) + "' != '" + str(layer_name) + "'")
+      self.assertEqual(
+        layer_data[key].layer_name, layer_name,
+        "'" + key + "': '" + str(layer_data[key].layer_name) + "' != '" + str(layer_name) + "'"
+      )
   
-  def compare_uniquified_with_parents(self, layer_data, uniquified_layer_names):
+  def _compare_uniquified_with_parents(self, layer_data, uniquified_layer_names):
     for key, layer_path in uniquified_layer_names.items():
       path_components, layer_name = layer_path[:-1], layer_path[-1]
-      self.assertEqual(layer_data[key].path_components, path_components,
-                       ("parents: '" + key + "': '" + str(layer_data[key].path_components) +
-                        "' != '" + str(path_components) + "'"))
-      self.assertEqual(layer_data[key].layer_name, layer_name,
-                       ("layer name: '" + key + "': '" + str(layer_data[key].layer_name) +
-                       "' != '" + str(layer_name) + "'"))
+      self.assertEqual(
+        layer_data[key].get_path_components(), path_components,
+        ("parents: '" + key + "': '" + str(layer_data[key].get_path_components()) +
+         "' != '" + str(path_components) + "'")
+      )
+      self.assertEqual(
+        layer_data[key].layer_name, layer_name,
+        ("layer name: '" + key + "': '" + str(layer_data[key].layer_name) +
+         "' != '" + str(layer_name) + "'")
+      )
   
-  def get_layer_names_without_parents(self, layer_data):
-    layer_names = OrderedDict()
+  def test_uniquifies_without_layer_groups(self):
+    uniquified_layer_names = OrderedDict([
+      ("top-left-corner",      "top-left-corner (1)"),
+      ("top-right-corner",     "top-right-corner"),
+      ("top-left-corner#",     "top-left-corner (2)"),
+      ("bottom-right-corner",  "bottom-right-corner"),
+      ("bottom-right-corner#", "bottom-right-corner (1)"),
+      ("bottom-left-corner",   "bottom-left-corner"),
+      ("top-left-corner###",   "top-left-corner (3)"),
+      ("top-frame",            "top-frame"),
+      ("main-background.jpg",  "main-background.jpg"),
+      ("main-background.jpg#", "main-background.jpg (1)"),
+      ("Corners",              "Corners"),
+      ("top-left-corner####",  "top-left-corner")
+    ])
     
-    orig_is_filtered = layer_data.is_filtered
-    layer_data.is_filtered = True
-    
-    with layer_data.filter.add_rule_temp(LayerFilters.is_layer_or_empty_group):
-      for layerdata_elem in layer_data:
-        layer_names[layerdata_elem.layer_name] = layerdata_elem.layer_name
-    
-    layer_data.is_filtered = orig_is_filtered
-    
-    return layer_names
-  
-  def get_layer_names_with_parents(self, layer_data):
-    layer_names = OrderedDict()
-    with layer_data.filter.add_rule_temp(LayerFilters.is_layer_or_empty_group):
-      for layerdata_elem in layer_data:
-        layer_names[layerdata_elem.layer_name] = layerdata_elem.path_components + [layerdata_elem.layer_name]
-    
-    return layer_names
-  
-  def test_uniquify_without_parents(self):
+    # This is to make the uniquification work properly for these tests. It's not
+    # inside the `uniquify_layer_names` method because the code that uses this
+    # method may need to uniquify non-empty layer groups in some scenarios
+    # (such as when merging non-empty layer groups into layers, which would not
+    # match the filter).
     self.layer_data.is_filtered = True
-    layer_names = self.get_layer_names_without_parents(self.layer_data)
+    self.layer_data.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     
-    self.layer_data.filter.add_rule(LayerFilters.is_layer_or_empty_group)
-    self.process_layer_data(self.layer_data)
-    self.layer_data.uniquify_layer_names(include_layer_path=False)
-    
-    layer_names['Overlay - Colorify Create.jpg#'] = "Overlay - Colorify Create.jpg (1)"
-    layer_names['Layer Group#']                   = "Layer Group (1)"
-    layer_names['Layer Group ####4']              = "Layer Group 4"
-    layer_names['Layer Group #3']                 = "Layer Group 3"
-    layer_names['Layer Group ##3']                = "Layer Group 3 (1)"
-    layer_names['right-frame#']                   = "right-frame (1)"
-    layer_names['[Layer Group #2]']               = "[Layer Group 2]"
-    layer_names['Layer Group ##4']                = "Layer Group 4 (1)"
-    layer_names['right-frame# copy']              = "right-frame copy"
-    layer_names['bottom-frame copy #1']           = "bottom-frame copy 1"
-    layer_names['bottom-frame #1']                = "bottom-frame 1"
-    
-    self.compare_uniquified_without_parents(self.layer_data, layer_names)
+    for layerdata_elem in self.layer_data:
+      layerdata_elem.validate_name()
+      self.layer_data.uniquify_layer_name(layerdata_elem, include_layer_path=False,
+                                          place_before_file_extension=False)
+    self._compare_uniquified_without_parents(self.layer_data, uniquified_layer_names)
   
-  def test_uniquify_with_parents(self):
+  def test_uniquifies_with_layer_groups(self):
+    uniquified_layer_names = OrderedDict([
+      ("Corners",                ["Corners (1)"]),
+      ("top-left-corner",        ["Corners (1)", "top-left-corner"]),
+      ("top-right-corner",       ["Corners (1)", "top-right-corner"]),
+      ("top-left-corner#",       ["Corners (1)", "top-left-corner (1)"]),
+      ("top-left-corner##",      ["Corners (1)", "top-left-corner (2)"]),
+      ("bottom-right-corner",    ["Corners (1)", "top-left-corner (2)", "bottom-right-corner"]),
+      ("bottom-right-corner#",   ["Corners (1)", "top-left-corner (2)", "bottom-right-corner (1)"]),
+      ("bottom-left-corner",     ["Corners (1)", "top-left-corner (2)", "bottom-left-corner"]),
+      ("Corners#",               ["Corners (2)"]),
+      ("top-left-corner###",     ["Corners (2)", "top-left-corner"]),
+      ("Frames",                 ["Frames"]),
+      ("top-frame",              ["Frames", "top-frame"]),
+      ("main-background.jpg",    ["main-background.jpg"]),
+      ("main-background.jpg#",   ["main-background.jpg (1)"]),
+      ("Corners##",              ["Corners"]),
+      ("top-left-corner####",    ["top-left-corner"]),
+      ("main-background.jpg##",  ["main-background.jpg (2)"]),
+      ("alt-frames",             ["main-background.jpg (2)", "alt-frames"]),
+      ("alt-corners",            ["main-background.jpg (2)", "alt-corners"]),
+    ])
+    
     self.layer_data.is_filtered = True
-    layer_names = self.get_layer_names_with_parents(self.layer_data)
+    self.layer_data.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     
-    self.process_layer_data(self.layer_data)
-    self.layer_data.uniquify_layer_names(include_layer_path=True)
-    
-    layer_names['Overlay - Colorify Create.jpg#'] = ["Overlay - Colorify Create.jpg (1)"]
-    layer_names['Layer Group#']                   = ["Layer Group (1)"]
-    layer_names['Layer Group ####4']              = ["Layer Group 4"]
-    layer_names['Layer Group #3']                 = ["Corners", "Layer Group 3"]
-    layer_names['Layer Group ##3']                = ["Corners", "Layer Group 3 (1)"]
-    layer_names['bottom-right-corner']            = ["Corners",
-                                                     "Layer Group 1",
-                                                     "bottom-right-corner"]
-    layer_names['bottom-left-corner']             = ["Corners",
-                                                     "Layer Group 1",
-                                                     "bottom-left-corner"]
-    layer_names['right-frame#']                   = ["Frames", "right-frame (1)"]
-    layer_names['[Layer Group #2]']               = ["Frames", "[Layer Group 2]"]
-    layer_names['Layer Group ##4']                = ["Frames",
-                                                     "Layer Group 1",
-                                                     "Layer Group 4 (2)"]
-    layer_names['right-frame# copy']              = ["Frames",
-                                                     "Layer Group 1",
-                                                     "Layer Group 4",
-                                                     "right-frame copy"]
-    layer_names['bottom-frame copy #1']           = ["Frames",
-                                                     "Layer Group 1",
-                                                     "Layer Group 4 (1)",
-                                                     "bottom-frame copy 1"]
-    layer_names['bottom-frame #1']                = ["Frames",
-                                                     "Layer Group 1",
-                                                     "Layer Group 4 (1)",
-                                                     "Layer Group 7",
-                                                     "bottom-frame 1"]
-    layer_names['bottom-frame copy']              = ["Frames",
-                                                     "Layer Group 1",
-                                                     "Layer Group 4 (3)",
-                                                     "bottom-frame copy"]
-    layer_names['bottom-frame']                   = ["Frames",
-                                                     "Layer Group 1",
-                                                     "Layer Group 4 (3)",
-                                                     "Layer Group 4",
-                                                     "bottom-frame"]
-    
-    self.compare_uniquified_with_parents(self.layer_data, layer_names)
+    for layerdata_elem in self.layer_data:
+      layerdata_elem.validate_name()
+      self.layer_data.uniquify_layer_name(layerdata_elem, include_layer_path=True,
+                                          place_before_file_extension=False)
+    self._compare_uniquified_with_parents(self.layer_data, uniquified_layer_names)
   
-  def test_uniquify_without_parents_filtered(self):
+  def test_uniquifies_with_regards_to_file_extension(self):
+    uniquified_layer_names = OrderedDict([
+      ("main-background.jpg",    ["main-background.jpg"]),
+      ("main-background.jpg#",   ["main-background (1).jpg"]),
+      ("main-background.jpg##",  ["main-background.jpg (1)"])
+    ])
+    
     self.layer_data.is_filtered = True
-    layer_names = self.get_layer_names_without_parents(self.layer_data)
+    self.layer_data.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     
-    self.layer_data.filter.add_rule(LayerFilters.is_layer_or_empty_group)
-    self.process_layer_data(self.layer_data)
-    self.layer_data.filter.add_rule(LayerFilters.is_path_visible)
-    self.layer_data.uniquify_layer_names(include_layer_path=False)
-    
-    layer_names['Overlay - Colorify Create.jpg#'] = "Overlay - Colorify Create.jpg"
-    layer_names['Layer Group#']                   = "Layer Group"
-    layer_names['Layer Group ####4']              = "Layer Group 4"
-    layer_names['Layer Group #3']                 = "Layer Group 3"
-    layer_names['Layer Group ##3']                = "Layer Group 3 (1)"
-    layer_names['right-frame#']                   = "right-frame (1)"
-    layer_names['[Layer Group #2]']               = "[Layer Group 2]"
-    layer_names['Layer Group ##4']                = "Layer Group 4"
-    layer_names['right-frame# copy']              = "right-frame copy"
-    layer_names['bottom-frame copy #1']           = "bottom-frame copy 1"
-    layer_names['bottom-frame #1']                = "bottom-frame 1"
-    
-    self.compare_uniquified_without_parents(self.layer_data, layer_names)
+    for layerdata_elem in self.layer_data:
+      layerdata_elem.validate_name()
+      self.layer_data.uniquify_layer_name(layerdata_elem, include_layer_path=True,
+                                          place_before_file_extension=True)
+    self._compare_uniquified_with_parents(self.layer_data, uniquified_layer_names)
   
-  def test_uniquify_with_parents_filtered(self):
-    self.layer_data.is_filtered = True
-    layer_names = self.get_layer_names_with_parents(self.layer_data)
-    
-    self.process_layer_data(self.layer_data)
-    self.layer_data.filter.add_rule(LayerFilters.is_path_visible)
-    self.layer_data.uniquify_layer_names(include_layer_path=True)
-    
-    layer_names['Overlay - Colorify Create.jpg#'] = ["Overlay - Colorify Create.jpg"]
-    layer_names['Layer Group#']                   = ["Layer Group"]
-    layer_names['Layer Group ####4']              = ["Layer Group 4"]
-    layer_names['Layer Group #3']                 = ["Corners", "Layer Group 3"]
-    layer_names['Layer Group ##3']                = ["Corners", "Layer Group 3 (1)"]
-    layer_names['bottom-right-corner']            = ["Corners",
-                                                     "Layer Group 1",
-                                                     "bottom-right-corner"]
-    layer_names['bottom-left-corner']             = ["Corners",
-                                                     "Layer Group 1",
-                                                     "bottom-left-corner"]
-    layer_names['right-frame#']                   = ["Frames", "right-frame (1)"]
-    layer_names['[Layer Group #2]']               = ["Frames", "[Layer Group 2]"]
-    layer_names['Layer Group ##4']                = ["Frames",
-                                                     "Layer Group 1",
-                                                     "Layer Group 4 (1)"]
-    layer_names['right-frame# copy']              = ["Frames",
-                                                     "Layer Group 1",
-                                                     "Layer Group 4",
-                                                     "right-frame copy"]
-    layer_names['bottom-frame copy #1']           = ["Frames",
-                                                     "Layer Group 1",
-                                                     "Layer Group 4",
-                                                     "bottom-frame copy 1"]
-    layer_names['bottom-frame #1']                = ["Frames",
-                                                     "Layer Group 1",
-                                                     "Layer Group 4",
-                                                     "Layer Group 7",
-                                                     "bottom-frame 1"]
-    layer_names['bottom-frame copy']              = ["Frames",
-                                                     "Layer Group 1",
-                                                     "Layer Group 4 (2)",
-                                                     "bottom-frame copy"]
-    layer_names['bottom-frame']                   = ["Frames",
-                                                     "Layer Group 1",
-                                                     "Layer Group 4 (2)",
-                                                     "Layer Group 4",
-                                                     "bottom-frame"]
-    
-    self.compare_uniquified_with_parents(self.layer_data, layer_names)
-  
-  def test_uniquify_without_parents_place_before_file_extension(self):
-    self.layer_data.is_filtered = True
-    layer_names = self.get_layer_names_without_parents(self.layer_data)
-    
-    self.layer_data.filter.add_rule(LayerFilters.is_layer_or_empty_group)
-    self.process_layer_data(self.layer_data)
-    self.layer_data.uniquify_layer_names(include_layer_path=False, place_before_file_extension=True)
-    
-    layer_names['[Main Background.png]']          = "[Main Background.png]"
-    layer_names['Overlay - Colorify Create.jpg#'] = "Overlay - Colorify Create (1).jpg"
-    layer_names['Layer Group#']                   = "Layer Group (1)"
-    layer_names['Layer Group ####4']              = "Layer Group 4"
-    layer_names['Layer Group #3']                 = "Layer Group 3"
-    layer_names['Layer Group ##3']                = "Layer Group 3 (1)"
-    layer_names['right-frame#']                   = "right-frame (1)"
-    layer_names['[Layer Group #2]']               = "[Layer Group 2]"
-    layer_names['Layer Group ##4']                = "Layer Group 4 (1)"
-    layer_names['right-frame# copy']              = "right-frame copy"
-    layer_names['bottom-frame copy #1']           = "bottom-frame copy 1"
-    layer_names['bottom-frame #1']                = "bottom-frame 1"
-    
-    self.compare_uniquified_without_parents(self.layer_data, layer_names)
