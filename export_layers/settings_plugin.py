@@ -136,8 +136,8 @@ class MainSettings(settings.SettingContainer):
     
     self._add(
       settings.EnumSetting(
-        'file_ext_mode', 'no_handling',
-        [('no_handling', "No special handling"),
+        'file_ext_mode', 'no_special_handling',
+        [('no_special_handling', "No special handling"),
          ('only_matching_file_extension', "Export only layers matching file extension"),
          ('use_as_file_extensions', "Use as file extensions")]
       )
@@ -230,7 +230,7 @@ class MainSettings(settings.SettingContainer):
         merge_layer_groups.value = False
     
     def streamline_file_ext_mode(file_ext_mode, file_extension, strip_mode):
-      if file_ext_mode.value == file_ext_mode.options['no_handling']:
+      if file_ext_mode.value == file_ext_mode.options['no_special_handling']:
         strip_mode.value = strip_mode.default_value
         strip_mode.ui_enabled = True
         file_extension.error_messages[libfiles.FileExtensionValidator.IS_EMPTY] = ""
