@@ -3,21 +3,23 @@
 
 * Added support for Unicode characters. This means you can now use any character
   in layer names and the output directory, except for most of the special characters.
-* Export Layers GUI: Removed the small dialog. Progress bar and the Stop button
+* Export Layers GUI: Removed the small dialog. The progress bar and the Stop button
   are now displayed directly in the main dialog.
 * Renamed "File format" to "File extension" since that's what the user actually
-  specifies. Also, Renamed a bunch of options so that they contain "extension"
+  specifies. Also, renamed a bunch of options so that they contain "extension"
   instead of "format". Because of this, if you use "Save settings", you'll need to
   re-save them.
 * Removed "Remove squared brackets" setting as it served little purpose.
   [square brackets] will now always be removed from layer names.
 * Added "Ignore layer mode" setting, which sets the layer mode to Normal for each layer.
-* Fixed a bug that caused the file format dialog to not appear if the user chose
-  Skip in the overwrite dialog for the first file (or the first and subsequent files).
 * When "No special handling" is selected, file extension strip mode now defaults to
   "Strip identical file extension".
 * More special characters are now removed from layer names.
 * Removed unnecessary files from the package.
+* Fixed a bug that caused the file format dialog to not appear if the user chose
+  Skip in the overwrite dialog for the first file (or the first and subsequent files).
+* Fixed filenames and directory names not being made unique properly, hopefully
+  for real this time.
 * More code refactoring and cleanup.
 
 2.0 (June 27, 2014)
