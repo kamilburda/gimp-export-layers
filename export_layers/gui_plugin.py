@@ -488,9 +488,6 @@ class _ExportLayersGui(object):
       self.layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError as e:
       should_quit = False
-    except exportlayers.ExportLayersNoLayersToExport as e:
-      display_message(e.message, gtk.MESSAGE_INFO, parent=self.dialog)
-      should_quit = False
     except exportlayers.ExportLayersError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       should_quit = False
@@ -499,6 +496,10 @@ class _ExportLayersGui(object):
     else:
       self.special_settings['first_run'].value = False
       self.setting_persistor.save([self.special_settings['first_run']])
+      
+      if not self.layer_exporter.exported_layers:
+        display_message("No layers were exported.", gtk.MESSAGE_INFO, parent=self.dialog)
+        should_quit = False
     finally:
       gobject.source_remove(refresh_event_id)
       pdb.gimp_progress_end()
@@ -604,12 +605,13 @@ class _ExportLayersToGui(object):
       self.layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError:
       pass
-    except exportlayers.ExportLayersNoLayersToExport as e:
-      display_message(e.message, gtk.MESSAGE_INFO, parent=self.export_dialog.dialog)
     except exportlayers.ExportLayersError:
       pass
     except Exception:
       display_exception_message(traceback.format_exc(), parent=self.export_dialog.dialog)
+    else:
+      if not self.layer_exporter.exported_layers:
+        display_message("No layers were exported.", gtk.MESSAGE_INFO, parent=self.export_dialog.dialog)
     finally:
       gobject.source_remove(refresh_event_id)
       pdb.gimp_progress_end()
