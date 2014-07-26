@@ -242,7 +242,9 @@ class LayerExporter(object):
     self._image_copy = None
     self._layer_data = layerdata.LayerData(self.image, is_filtered=True)
     self._background_layerdata = []
-    self._background_layer_merged = None
+    # Layer containing all background layers merged into one. This layer is not
+    # inserted into the image, but rather its copies (for each layer to be exported).
+    self._background_layer = None
     self._empty_groups_layerdata = []
     
     
@@ -363,6 +365,8 @@ class LayerExporter(object):
   def _cleanup(self):
 #    pdb.gimp_display_delete(self._display_id)
     pdb.gimp_image_delete(self._image_copy)
+    if self._background_layer is not None:
+      pdb.gimp_item_delete(self._background_layer)
     pdb.gimp_context_pop()
   
   def _remove_square_brackets(self, layerdata_elem):
@@ -375,15 +379,7 @@ class LayerExporter(object):
     layerdata_elem.layer_name = "[" + layerdata_elem.layer_name + "]"
   
   def _process_layer(self, layer):
-    if self._background_layerdata:
-      for i, bg_layerdata in enumerate(self._background_layerdata):
-        bg_layer_copy = pdb.gimp_layer_new_from_drawable(bg_layerdata.layer, self._image_copy)
-        pdb.gimp_image_insert_layer(self._image_copy, bg_layer_copy, None, i)
-        pdb.gimp_item_set_visible(bg_layer_copy, True)
-        if pdb.gimp_item_is_group(bg_layer_copy):
-          bg_layer_copy = pylibgimp.merge_layer_group(self._image_copy, bg_layer_copy)
-      if self.main_settings['use_image_size'].value:
-        self._background_layer_merged = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
+    background_layer = self._insert_background()
     
     layer_copy = pdb.gimp_layer_new_from_drawable(layer, self._image_copy)
     pdb.gimp_image_insert_layer(self._image_copy, layer_copy, None, 0)
@@ -397,44 +393,73 @@ class LayerExporter(object):
     
     self._image_copy.active_layer = layer_copy
     
-    layer_copy = self._crop_and_merge(layer_copy)
-    
-    self._image_copy.active_layer = layer_copy
+    layer_copy = self._crop_and_merge(layer_copy, background_layer)
     
     return layer_copy
   
-  def _get_file_export_func(self, file_extension):
-    if file_extension == "raw":
-      # Raw format doesn't seem to work with `pdb.gimp_file_save`, hence the
-      # special handling.
-      return pdb.file_raw_save
-    else:
-      return pdb.gimp_file_save
+  def _insert_background(self):
+    if self._background_layerdata:
+      if self._background_layer is None:
+        if self.main_settings['use_image_size'].value:
+          # Remove background layers outside the image canvas, since they wouldn't
+          # be visible anyway and because we need to avoid `RuntimeError`
+          # when `pdb.gimp_image_merge_visible_layers` with the `CLIP_TO_IMAGE`
+          # option tries to merge layers that are all outside the image canvas.
+          self._background_layerdata = [
+            bg_elem for bg_elem in self._background_layerdata
+            if pylibgimp.is_layer_inside_image(self._image_copy, bg_elem.layer)
+          ]
+          
+          if not self._background_layerdata:
+            return
+        
+        for i, bg_elem in enumerate(self._background_layerdata):
+          bg_layer_copy = pdb.gimp_layer_new_from_drawable(bg_elem.layer, self._image_copy)
+          pdb.gimp_image_insert_layer(self._image_copy, bg_layer_copy, None, i)
+          pdb.gimp_item_set_visible(bg_layer_copy, True)
+          if self.main_settings['ignore_layer_modes'].value:
+            bg_layer_copy.mode = gimpenums.NORMAL_MODE
+          if pdb.gimp_item_is_group(bg_layer_copy):
+            bg_layer_copy = pylibgimp.merge_layer_group(self._image_copy, bg_layer_copy)
+        
+        if self.main_settings['use_image_size'].value:
+          background_layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
+        else:
+          background_layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.EXPAND_AS_NECESSARY)
+        
+        self._background_layer = pdb.gimp_layer_copy(background_layer, True)
+        return background_layer
+      else:
+        background_layer_copy = pdb.gimp_layer_copy(self._background_layer, True)
+        pdb.gimp_image_insert_layer(self._image_copy, background_layer_copy, None, 0)
+        return background_layer_copy
+    
+    return None
   
-  def _crop_and_merge(self, layer):
+  def _crop_and_merge(self, layer, background_layer):
     if not self.main_settings['use_image_size'].value:
       pdb.gimp_image_resize_to_layers(self._image_copy)
       if self.main_settings['crop_to_background'].value:
-        if self._background_layerdata:
+        if background_layer is not None:
           layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
         if self.main_settings['autocrop'].value:
           pdb.plug_in_autocrop(self._image_copy, layer)
       else:
         if self.main_settings['autocrop'].value:
           pdb.plug_in_autocrop(self._image_copy, layer)
-        if self._background_layerdata:
+        if background_layer is not None:
           layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
     else:
-      if self.main_settings['crop_to_background'].value and self._background_layer_merged is not None:
+      if self.main_settings['crop_to_background'].value and background_layer is not None:
         if self.main_settings['autocrop'].value:
-          self._image_copy.active_layer = self._background_layer_merged
-          pdb.plug_in_autocrop_layer(self._image_copy, self._background_layer_merged)
+          self._image_copy.active_layer = background_layer
+          pdb.plug_in_autocrop_layer(self._image_copy, background_layer)
           self._image_copy.active_layer = layer
       else:
         if self.main_settings['autocrop'].value:
           pdb.plug_in_autocrop_layer(self._image_copy, layer)
       
-      if self._background_layerdata:
+      if background_layer is not None:
         layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
       
       pdb.gimp_layer_resize_to_image_size(layer)
@@ -470,6 +495,14 @@ class LayerExporter(object):
           self.main_settings['file_ext_mode'].options['no_special_handling']):
       
       layerdata_elem.layer_name += '.' + self._default_file_extension
+  
+  def _get_file_export_func(self, file_extension):
+    if file_extension == "raw":
+      # Raw format doesn't seem to work with `pdb.gimp_file_save`, hence the
+      # special handling.
+      return pdb.file_raw_save
+    else:
+      return pdb.gimp_file_save
   
   def _get_run_mode(self):
     if self._layer_file_extension_properties[self._current_file_extension].is_valid:
