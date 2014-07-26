@@ -101,3 +101,13 @@ def merge_layer_group(image, layer_group):
       pdb.gimp_image_reorder_item(image, merged_layer_group, orig_parent_and_pos[0], orig_parent_and_pos[1])
   
   return merged_layer_group
+
+
+def is_layer_inside_image(image, layer):
+  """
+  Return True if the layer is inside the image canvas (partially or completely).
+  Return False if the layer is completely outside the image canvas.
+  """
+  
+  return ((-image.width < layer.offsets[0] < image.width) and
+          (-image.height < layer.offsets[1] < image.height))
