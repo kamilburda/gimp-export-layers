@@ -108,15 +108,25 @@ def uniquify_filename(filename):
 
 #-------------------------------------------------------------------------------
 
-def get_file_extension(str_):
+def get_file_extension(str_, to_lowercase=True):
   """
   Return the file extension from the specified string in lower case and strip
   the leading period. If the string has no file extension, return empty string.
   
   A string has file extension if it contains a '.' character and a substring
   following this character.
+  
+  Paramters:
+  
+  * `to_lowercase` - If True, convert the file extension to lowercase.
   """
-  return os.path.splitext(str_)[1].lstrip('.').lower()
+  
+  file_ext = os.path.splitext(str_)[1].lstrip('.')
+  
+  if to_lowercase:
+    return file_ext.lower()
+  else:
+    return file_ext
 
 
 # Taken from StackOverflow: http://stackoverflow.com/

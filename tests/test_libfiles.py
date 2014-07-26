@@ -66,6 +66,7 @@ class TestGetFileExtension(unittest.TestCase):
     self.assertEqual("jpg", libfiles.get_file_extension("picture.jPg"))
     self.assertEqual("", libfiles.get_file_extension("picture."))
     self.assertEqual("", libfiles.get_file_extension("picture"))
+    self.assertEqual("JPG", libfiles.get_file_extension("picture.JPG", to_lowercase=False))
 
 
 class TestFilenameValidator(unittest.TestCase):
