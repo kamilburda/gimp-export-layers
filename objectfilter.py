@@ -81,7 +81,7 @@ class ObjectFilter(object):
     
     If `rule_func` already exists in the filter, nothing happens.
     
-    In order to be able to later remove the function from the filter (using the
+    If you need to later remove the rule from the filter (using the
     `remove_rule()` method), pass a named function rather than an inline lambda
     expression. Alternatively, you can use `add_rule_temp()` for temporary
     filters.

@@ -32,17 +32,17 @@ str = unicode
 
 import errno
 from StringIO import StringIO
-import unittest
 import json
+
+import unittest
 
 import gimpenums
 
 from ..lib import mock
+from . import gimpmocks
 
 from .. import settings
 from .. import libfiles
-
-from . import gimpmocks
 
 #===============================================================================
 

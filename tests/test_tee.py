@@ -31,8 +31,8 @@ str = unicode
 #===============================================================================
 
 import sys
-
 from StringIO import StringIO
+
 import unittest
 
 from ..lib import mock
