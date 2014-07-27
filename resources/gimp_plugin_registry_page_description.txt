@@ -31,7 +31,8 @@ This plug-in:
 <li>can use file extensions in layer names as file formats</li>
 <li>can use layers with names in [square brackets] as background layers</li></ul>
 
-<h5><strong><a href="https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.1/export-layers-2.1.zip">Download Export Layers</a></strong></h5>
+<h5><strong>Download Export Layers at:</strong></h5>
+https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.1/export-layers-2.1.zip
 
 <h5><strong>Requirements</strong></h5>
 <ul><li>GIMP 2.8 or later with Python-Fu installed</li></ul>
@@ -42,8 +43,9 @@ to "[home directory]/.gimp-2.8/plug-ins".
 
 On Linux, if necessary, enable the executable flag on the "export_layers.py" file,
 e.g. from the terminal:
-
-<code>chmod u+x "export_layers.py"</code>
+<pre>
+    <code>chmod u+x "export_layers.py"</code>
+</pre>
 
 It should no longer be needed for versions 2.1 and above.
 
@@ -67,4 +69,5 @@ If you want to export the layers with the last values used, you can use the "Fil
 * Added "Ignore layer mode" setting.
 * Renamed "File format" to "File extension" and, accordingly, a bunch of other related settings.
 
-For more information, such as the full list of settings, known issues or the full list of changes, read the <i>Readme.txt</i> and <i>Changelog.txt</i> files in the package or see the <a href="https://github.com/khalim19/gimp-plugin-export-layers">GitHub page for the plug-in</a>.
+For more information, such as the full list of settings, known issues or the full list of changes, read the <i>Readme.txt</i> and <i>Changelog.txt</i> files in the package or see the GitHub page for the plug-in:
+https://github.com/khalim19/gimp-plugin-export-layers
