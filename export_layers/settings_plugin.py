@@ -153,6 +153,9 @@ class MainSettings(settings.SettingContainer):
       )
     )
     self['strip_mode'].display_name = "File extension stripping"
+    self['strip_mode'].description = (
+      "Determines when to strip file extensions from layer names (including the period)."
+    )
     
     self._add(
       settings.EnumSetting(
@@ -207,11 +210,7 @@ class MainSettings(settings.SettingContainer):
       '"' + self['square_bracketed_mode'].options_display_names['ignore_other'] + '": '
       'all other layers will not be exported.'
     )
-    self['strip_mode'].description = (
-      "Determines when to strip file extensions from layer names (including the period)."
-    )
     
-    self['file_extension'].error_messages['not_specified'] = "file extension not specified"
     self['file_extension'].error_messages['default_needed'] = (
       "you need to specify default file extension for layers with invalid or no extension"
     )
