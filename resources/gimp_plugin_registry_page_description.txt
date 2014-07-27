@@ -13,7 +13,7 @@ This plug-in:
 <li>can use layers with names in [square brackets] as background layers</li></ul>
 
 Example:
-<img src="https://lh5.googleusercontent.com/-ayM2yCEi4LE/U62pwZ7ip2I/AAAAAAAAAeQ/zTdxLd5AcAM/s600/Export_Layers_2_0.png" />
+<img src="https://lh4.googleusercontent.com/-s_QPo9lRWRM/U8arsWPksfI/AAAAAAAAAfQ/qoX7lQ-qbM4/s600/export_layers_screenshot_2_1.jpg" />
 
 ================================================================================
 Description
