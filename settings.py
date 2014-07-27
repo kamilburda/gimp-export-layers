@@ -355,6 +355,16 @@ class Setting(object):
       return '"' + str(value) + '": '
     else:
       return ""
+  
+  def _get_mangled_name(self):
+    """
+    Return mangled setting name, useful when using the name in the short
+    description (GIMP PDB automatically mangles setting names, but not
+    descriptions).
+    """
+    
+    return self.name.replace('_', '-')
+    
 
 class NumericSetting(Setting):
   
@@ -405,6 +415,17 @@ class NumericSetting(Setting):
       raise SettingValueError(self._value_to_str(value_) + self.error_messages['above_max'])
     
     super(NumericSetting, self.__class__).value.__set__(self, value_)
+  
+  @property
+  def short_description(self):
+    if self.min_value is not None and self.max_value is None:
+      return self._get_mangled_name() + " >= " + str(self.min_value)
+    elif self.min_value is None and self.max_value is not None:
+      return self._get_mangled_name() + " <= " + str(self.max_value)
+    elif self.min_value is not None and self.max_value is not None:
+      return str(self.min_value) + " <= " + self._get_mangled_name() + " <= " + str(self.max_value)
+    else:
+      return self.display_name
 
 
 class IntSetting(NumericSetting):
