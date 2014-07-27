@@ -41,8 +41,7 @@ https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.1/expo
 From the package, extract the "export_layers.py" file and the "export_layers" directory
 to "[home directory]/.gimp-2.8/plug-ins".
 
-On Linux, if necessary, enable the executable flag on the "export_layers.py" file,
-e.g. from the terminal:
+On Linux, if necessary, enable the executable flag on the "export_layers.py" file, e.g. from the terminal:
 <pre>
     <code>chmod u+x "export_layers.py"</code>
 </pre>
