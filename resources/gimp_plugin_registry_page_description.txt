@@ -43,7 +43,7 @@ to "[home directory]/.gimp-2.8/plug-ins".
 On Linux, if necessary, enable the executable flag on the "export_layers.py" file,
 e.g. from the terminal:
 
-  chmod u+x "export_layers.py"
+<code>chmod u+x "export_layers.py"</code>
 
 It should no longer be needed for versions 2.1 and above.
 
@@ -67,5 +67,4 @@ If you want to export the layers with the last values used, you can use the "Fil
 * Added "Ignore layer mode" setting.
 * Renamed "File format" to "File extension" and, accordingly, a bunch of other related settings.
 
-For more information, such as the full list of settings, known issues or the full list of changes, read the <i>README.md</i> file in the package or see the GitHub page for the plug-in:
-https://github.com/khalim19/gimp-plugin-export-layers
+For more information, such as the full list of settings, known issues or the full list of changes, read the <i>Readme.txt</i> and <i>Changelog.txt</i> files in the package or see the <a href="https://github.com/khalim19/gimp-plugin-export-layers">GitHub page for the plug-in</a>.
