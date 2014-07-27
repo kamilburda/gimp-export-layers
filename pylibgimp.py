@@ -20,10 +20,8 @@
 #-------------------------------------------------------------------------------
 
 """
-This module:
-* defines functions dealing with GIMP objects - images, layers, etc. not defined
-  in the Python API for GIMP plug-ins
-* defines GIMP-specific constants
+This module defines functions dealing with GIMP objects (images, layers, etc.)
+not defined in the Python API for GIMP plug-ins.
 """
 
 #===============================================================================
