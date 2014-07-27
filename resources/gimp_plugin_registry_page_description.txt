@@ -41,6 +41,13 @@ https://github.com/khalim19/gimp-plugin-export-layers/archive/2.0.zip
 From the package, extract the "export_layers.py" file and the "export_layers" directory
 to "[home directory]/.gimp-2.8/plug-ins".
 
+On Linux, if necessary, enable the executable flag on the "export_layers.py" file,
+e.g. from the terminal:
+
+  chmod u+x "export_layers.py"
+
+It should no longer be needed for versions 2.1 and above.
+
 <h5><strong>Usage</strong></h5>
 From the main menu, go to "File -> Export Layers...". A dialog appears, allowing you to specify output directory, file format and various other settings.
 
@@ -54,7 +61,7 @@ If you want to export the layers with the last values used, you can use the "Fil
 <img src="https://lh4.googleusercontent.com/-s_QPo9lRWRM/U8arsWPksfI/AAAAAAAAAfQ/qoX7lQ-qbM4/s600/export_layers_screenshot_2_1.jpg" />
 
 <h5><strong>Changelog</strong></h5>
-2.1, ???? ??, 2014
+2.1, July 27, 2014
 * Added Unicode support.
 * Progress bar and Stop button are now displayed in the main dialog.
 * Removed "Remove square brackets" setting.
