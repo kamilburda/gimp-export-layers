@@ -1,4 +1,4 @@
-2.1 (Upcoming)
+2.1 (July 27, 2014)
 ------------------------
 
 * Added support for Unicode characters. This means you can now use any character
