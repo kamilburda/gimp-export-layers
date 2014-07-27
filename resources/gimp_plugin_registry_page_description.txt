@@ -31,8 +31,7 @@ This plug-in:
 <li>can use file extensions in layer names as file formats</li>
 <li>can use layers with names in [square brackets] as background layers</li></ul>
 
-<h5><strong>Download Export Layers at:</strong></h5>
-https://github.com/khalim19/gimp-plugin-export-layers/archive/2.0.zip
+<h5><strong><a href="https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.1/export-layers-2.1.zip">Download Export Layers</a></strong></h5>
 
 <h5><strong>Requirements</strong></h5>
 <ul><li>GIMP 2.8 or later with Python-Fu installed</li></ul>
