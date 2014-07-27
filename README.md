@@ -27,6 +27,13 @@ Installation
 From the package, extract the "export_layers.py" file and the "export_layers" directory
 to "[home directory]/.gimp-2.8/plug-ins".
 
+On Linux, if necessary, enable the executable flag on the "export_layers.py" file,
+e.g. from the terminal:
+
+  chmod u+x "export_layers.py"
+
+It should no longer be needed for versions 2.1 and above.
+
 Usage
 -----
 
@@ -145,6 +152,8 @@ normally be completely invisible if a file format supporting alpha channel is us
 Known Issues
 ------------
 
+On Windows, the file format dialog is displayed behind the main dialog.
+
 The following file formats are not working properly with this plug-in:
 * colored XHTML (.xhtml) - does not save images at all,
 * KISS CEL (.cel) - throws error/warning messages, but saves images anyway.
@@ -156,9 +165,12 @@ not just the first layer:
 * C source (.c),
 * HTML (.html, .htm).
 
-In Export Layers To, JPG format always displays the file format dialog for the first layer.
+On Windows, the following file formats don't work properly if file paths contain Unicode characters:
+* DDS (.dds),
+* OpenRaster (.ora),
+* X PixMap Image (.xpm).
 
-On Windows, the file format dialog is displayed behind the main dialog.
+In Export Layers To, JPG format always displays the file format dialog for the first layer.
 
 License
 -------
