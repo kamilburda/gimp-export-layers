@@ -426,16 +426,6 @@ class IntSetting(NumericSetting):
     self.gimp_pdb_type = gimpenums.PDB_INT32
 
 
-class BoolSetting(IntSetting):
-  
-  """
-  This class behaves the same as IntSetting.
-  Use this class to indicate that a setting is a boolean.
-  """
-  
-  pass
-
-
 class FloatSetting(NumericSetting):
   
   """
@@ -451,6 +441,34 @@ class FloatSetting(NumericSetting):
     
     self._allowed_pdb_types = [gimpenums.PDB_FLOAT]
     self.gimp_pdb_type = gimpenums.PDB_FLOAT
+    
+
+class BoolSetting(Setting):
+  
+  """
+  This class can be used for boolean settings.
+  
+  Since GIMP does not have a boolean PDB type defined, one of the integer types
+  can be used.
+  
+  Allowed GIMP PDB types:
+  
+  * PDB_INT8
+  * PDB_INT16
+  * PDB_INT32 (default)
+  """
+  
+  @property
+  def value(self):
+    return self._value
+  
+  @value.setter
+  def value(self, value_):
+    self._value = bool(value_)
+  
+  @property
+  def short_description(self):
+    return self.display_name + " (TRUE or FALSE)"
 
 
 class EnumSetting(Setting):
