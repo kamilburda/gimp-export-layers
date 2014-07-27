@@ -30,7 +30,7 @@ to "[home directory]/.gimp-2.8/plug-ins".
 On Linux, if necessary, enable the executable flag on the "export_layers.py" file,
 e.g. from the terminal:
 
-  chmod u+x "export_layers.py"
+    chmod u+x "export_layers.py"
 
 It should no longer be needed for versions 2.1 and above.
 
