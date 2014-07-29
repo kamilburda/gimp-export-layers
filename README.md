@@ -176,13 +176,6 @@ In Export Layers To, JPG format always displays the file format dialog for the f
 Changelog
 ---------
 
-#2.1
-* Added Unicode support.
-* Progress bar and Stop button are now displayed in the main dialog.
-* Removed "Remove square brackets" setting.
-* Added "Ignore layer modes" setting.
-* Renamed "File format" to "File extension" and, accordingly, a bunch of other related settings.
-
 For the full list of changes, see the following page:
 https://github.com/khalim19/gimp-plugin-export-layers/blob/master/CHANGELOG.md
 
