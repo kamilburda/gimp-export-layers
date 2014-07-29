@@ -173,12 +173,6 @@ On Windows, the following file formats don't work properly if file paths contain
 
 In Export Layers To, JPG format always displays the file format dialog for the first layer.
 
-Changelog
----------
-
-For the full list of changes, see the following page:
-https://github.com/khalim19/gimp-plugin-export-layers/blob/master/CHANGELOG.md
-
 License
 -------
 
