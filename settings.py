@@ -1498,9 +1498,9 @@ class SettingPresenterContainer(Container):
   __metaclass__ = abc.ABCMeta
   
   _SETTING_ATTRIBUTES = {
-                          'value' : 'value', 
-                          'ui_enabled' : 'enabled',
-                          'ui_visible' : 'visible'
+    'value' : 'value', 
+    'ui_enabled' : 'enabled',
+    'ui_visible' : 'visible'
   }
   
   def __init__(self):
@@ -1565,8 +1565,8 @@ class SettingPresenterContainer(Container):
     
     if self._is_events_connected:
       # Settings are continuously streamlined. Since this method changes the
-      # `value` attribute, clear `changed_attributes` to prevent `streamline()`
-      # from changing settings unnecessarily.
+      # `value` attribute, clear `changed_attributes` to prevent future
+      # `streamline()` calls from changing settings unnecessarily.
       for presenter in self:
         presenter.setting.changed_attributes.clear()
     else:
