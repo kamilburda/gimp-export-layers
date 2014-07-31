@@ -145,10 +145,10 @@ If enabled, empty subdirectories from empty layers groups are created.
 
 **Ignore layer modes**
 
-Sets the layer mode for each layer to Normal. This is useful for layers with opacity
-less than 100% and a layer mode different than Normal or Dissolve, which would
-normally be completely invisible if a file format supporting alpha channel is used
-(such as PNG).
+If enabled, the layer mode for each layer is set to Normal. This is useful for layers
+with opacity less than 100% and a layer mode different than Normal or Dissolve, which
+would normally be completely invisible if a file format supporting alpha channel
+is used (such as PNG).
 
 Known Issues
 ------------
@@ -161,7 +161,7 @@ The following file formats are not working properly with this plug-in:
 
 The following file formats have to display the file format dialog for each layer,
 not just the first layer:
-* raw (no file extension),
+* raw,
 * FLI (.fli, .flc),
 * C source (.c),
 * HTML (.html, .htm).
