@@ -71,6 +71,14 @@ class GuiSettings(settings.SettingContainer):
     self._add(settings.IntSetting('advanced_settings_expanded', False))
     self['advanced_settings_expanded'].can_be_reset_by_container = False
 
+
+class SessionOnlyGuiSettings(settings.SettingContainer):
+  
+  def _create_settings(self):
+    
+    self._add(settings.Setting('image_ids_and_directories', {}))
+    self['image_ids_and_directories'].can_be_reset_by_container = False
+
 #===============================================================================
 
 def display_message(message, message_type, parent=None):
@@ -169,6 +177,7 @@ class _ExportLayersGui(object):
     self.config_file_stream = config_file_stream
     
     self.gui_settings = GuiSettings()
+    self.session_only_gui_settings = SessionOnlyGuiSettings()
     self.setting_persistor = settings.SettingPersistor([self.gimpshelf_stream, self.config_file_stream],
                                                        [self.gimpshelf_stream])
     
@@ -176,6 +185,8 @@ class _ExportLayersGui(object):
     if status == settings.SettingPersistor.READ_FAIL:
       display_message(self.setting_persistor.status_message, gtk.MESSAGE_WARNING)
     self.setting_persistor.read_setting_streams.pop()
+    
+    self.setting_persistor.load(self.session_only_gui_settings)
     
     self.setting_presenters = gui.GtkSettingPresenterContainer()
     self.layer_exporter = None
@@ -358,11 +369,11 @@ class _ExportLayersGui(object):
         self.file_extension_entry))
     
     self.setting_presenters.add(
-      gui.GtkDirectoryChooserWidgetPresenter(
+      gui.GtkExportDialogDirectoryChooserWidgetPresenter(
         self.main_settings['output_directory'],
         self.directory_chooser,
-        image=self.image,
-        default_directory=None))  # in GTK, None = recently used directory
+        self.session_only_gui_settings['image_ids_and_directories'],
+        self.image))
     
     self.setting_presenters.add(
       gui.GtkCheckButtonPresenter(
@@ -441,6 +452,8 @@ class _ExportLayersGui(object):
       display_message(self.setting_persistor.status_message, gtk.MESSAGE_WARNING,
                       parent=self.dialog)
     self.setting_persistor.write_setting_streams.pop()
+    
+    self.setting_persistor.save(self.session_only_gui_settings)
   
   def on_save_settings(self, widget):
     try:
@@ -505,7 +518,7 @@ class _ExportLayersGui(object):
       pdb.gimp_progress_end()
     
     self.main_settings['overwrite_mode'].value = overwrite_chooser.overwrite_mode
-    self.setting_persistor.save(self.main_settings, self.gui_settings)
+    self.setting_persistor.save(self.main_settings, self.gui_settings, self.session_only_gui_settings)
     
     if should_quit:
       gtk.main_quit()
