@@ -554,7 +554,7 @@ class LayerExporter(object):
           self._current_layer_export_status = self._USE_DEFAULT_FILE_EXTENSION
         else:
           # Try again, this time forcing the interactive mode if the
-          # non-interactive mode failed (certain file types do not allow the
+          # non-interactive mode failed (certain file formats do not allow the
           # non-interactive mode).
           if run_mode in (gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE):
             self._current_layer_export_status = self._FORCE_INTERACTIVE
