@@ -124,7 +124,7 @@ def run_tests(stream=sys.stderr):
   parent_module = os.path.basename(module_dir_path)
   parent_dir_path = os.path.dirname(module_dir_path)
   
-  for _, module_name, _ in pkgutil.walk_packages(path=[parent_dir_path]):
+  for unused_, module_name, unused_ in pkgutil.walk_packages(path=[parent_dir_path]):
     if not module_name.startswith(parent_module):
       continue
     
