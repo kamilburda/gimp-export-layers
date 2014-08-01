@@ -81,7 +81,7 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     super(GtkDialogOverwriteChooser, self).__init__(values_and_display_names, default_value, default_response)
     
     self._title = title
-    self._values = [value for value, _ in self.values_and_display_names]
+    self._values = [value for value, unused_ in self.values_and_display_names]
     
     self._init_gui()
   

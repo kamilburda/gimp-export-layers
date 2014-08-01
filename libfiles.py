@@ -287,7 +287,7 @@ class FilenameValidator(StringValidator):
         (cls.HAS_TRAILING_PERIOD,
          "Filename cannot end with a period."))
     
-    root, _ = os.path.splitext(filename)
+    root, unused_ = os.path.splitext(filename)
     if root.upper() in cls._INVALID_NAMES:
       status_messages.append(
         (cls.HAS_INVALID_NAMES,
@@ -381,7 +381,7 @@ class FilePathValidator(StringValidator):
       if path_component.endswith("."):
         statuses.add(cls.HAS_TRAILING_PERIOD)
       
-      root, _ = os.path.splitext(path_component)
+      root, unused_ = os.path.splitext(path_component)
       if root.upper() in cls._INVALID_NAMES:
         statuses.add(cls.HAS_INVALID_NAMES)
         invalid_names_status_message += (
