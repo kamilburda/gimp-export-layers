@@ -650,7 +650,7 @@ class EnumSetting(Setting):
 class ImageSetting(Setting):
   
   """
-  This class can be used for gimp.Image objects.
+  This setting class can be used for `gimp.Image` objects.
   
   Allowed GIMP PDB types:
   
@@ -688,8 +688,8 @@ class ImageSetting(Setting):
 class DrawableSetting(Setting):
   
   """
-  This class can be used for gimp.Drawable, gimp.Layer, gimp.GroupLayer or
-  gimp.Channel objects.
+  This setting class can be used for `gimp.Drawable`, `gimp.Layer`,
+  `gimp.GroupLayer` or `gimp.Channel` objects.
   
   Allowed GIMP PDB types:
   
@@ -760,12 +760,12 @@ class ValidatableStringSetting(StringSetting):
   
   Error messages:
   
-  This setting contains empty error messages for error statutes from
-  the `libfiles.StringValidator` subclass being used. Normally, if the value
+  This class contains empty messages for error statuses from
+  the specified `libfiles.StringValidator` subclass. Normally, if the value
   (string) assigned is invalid, status messages returned from `is_valid()`
-  are used. If desired, you may fill the error messages with custom messages,
-  overriding the status messages. See `ERROR_STATUSES` in the
-  `libfiles.StringValidator` subclass being used for available error statuses.
+  are used. If desired, you may fill the error messages with custom messages
+  which override the status messages from the method. See `ERROR_STATUSES` in
+  the specified `libfiles.StringValidator` subclass for available error statuses.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -810,7 +810,7 @@ class ValidatableStringSetting(StringSetting):
 class FileExtensionSetting(ValidatableStringSetting):
   
   """
-  This class can be used for file extensions.
+  This setting class can be used for file extensions.
   
   `libfiles.FileExtensionValidator` subclass is used to determine whether
    the file extension is valid.
@@ -831,7 +831,7 @@ class FileExtensionSetting(ValidatableStringSetting):
 class DirectorySetting(ValidatableStringSetting):
   
   """
-  This class can be used for directories.
+  This setting class can be used for directories.
   
   `libfiles.FilePathValidator` subclass is used to determine whether
    the directory name is valid.
@@ -874,10 +874,6 @@ class Container(object):
     del self._items[key]
   
   def __iter__(self):
-    """
-    Iterate over values (unlike `dict`, which iterates over keys).
-    """
-    
     for item in self._items.values():
       yield item
   
@@ -1232,10 +1228,10 @@ class SettingPersistor(object):
   
   """
   This class:
-  * serves as a wrapper for SettingStream classes to read from or
+  * serves as a wrapper for `SettingStream` classes to read from or
     write to multiple settings streams (`SettingStream` objects) at once,
-  * reads from/writes to multiple `SettingContainer` objects or `Setting`
-    iterables.
+  * reads from/writes to multiple `SettingContainer` objects or iterables
+    containing `Setting` objects.
   
   Attributes:
   
@@ -1285,7 +1281,7 @@ class SettingPersistor(object):
     Parameters:
     
     * `*setting_containers` - `SettingContainer` objects or `Setting` iterables
-      to load values into from the streams.
+      whose values are loaded from the streams.
     
     Returns:
     
@@ -1348,7 +1344,7 @@ class SettingPersistor(object):
     if not setting_containers or self.write_setting_streams is None or not self.write_setting_streams:
       return self._status(self.SUCCESS)
     
-    # Put all settings into one list so that the write() method is invoked
+    # Put all settings into one list so that the `write()` method is invoked
     # only once per each stream.
     settings = []
     for container in setting_containers:
@@ -1521,6 +1517,7 @@ class SettingPresenterContainer(Container):
     """
     Add a `SettingPresenter` object to the container.
     """
+    
     self._items[setting_presenter.setting] = setting_presenter
   
   def assign_setting_values_to_elements(self):
