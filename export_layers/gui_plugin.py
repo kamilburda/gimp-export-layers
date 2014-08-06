@@ -85,7 +85,7 @@ def display_message(message, message_type, parent=None):
   gui.display_message(
     message,
     message_type,
-    title=constants.PLUGIN_TITLE,
+    title=_(constants.PLUGIN_TITLE),
     parent=parent
   )
 
@@ -93,7 +93,7 @@ def display_message(message, message_type, parent=None):
 def display_exception_message(exception_message, parent=None):
   gui.display_exception_message(
     exception_message,
-    plugin_title=constants.PLUGIN_TITLE,
+    plugin_title=_(constants.PLUGIN_TITLE),
     report_uri_list=constants.BUG_REPORT_URI_LIST,
     parent=parent
   )
@@ -110,7 +110,7 @@ class ExportDialog(object):
     self._init_gui()
   
   def _init_gui(self):
-    self._dialog = gimpui.Dialog(title=constants.PLUGIN_TITLE, role=None)
+    self._dialog = gimpui.Dialog(title=_(constants.PLUGIN_TITLE), role=None)
     self._dialog.set_transient()
     self._dialog.set_border_width(8)
     self._dialog.set_default_size(self._DIALOG_WIDTH, -1)
@@ -119,7 +119,7 @@ class ExportDialog(object):
     self._progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
     self._stop_button = gtk.Button()
-    self._stop_button.set_label("Stop")
+    self._stop_button.set_label(_("Stop"))
     
     self._buttonbox = gtk.HButtonBox()
     self._buttonbox.pack_start(self._stop_button, expand=False, fill=True)
@@ -196,14 +196,14 @@ class _ExportLayersGui(object):
     gtk.main()
   
   def _init_gui(self):
-    self.dialog = gimpui.Dialog(title=constants.PLUGIN_TITLE, role=None)
+    self.dialog = gimpui.Dialog(title=_(constants.PLUGIN_TITLE), role=None)
     self.dialog.set_transient()
     
     self.dialog.set_default_size(*self.DIALOG_SIZE)
     self.dialog.set_border_width(self.DIALOG_BORDER_WIDTH)
     
     self.directory_chooser_label = gtk.Label()
-    self.directory_chooser_label.set_markup("<b>Save in folder:</b>")
+    self.directory_chooser_label.set_markup("<b>" + _("Save in folder:") + "</b>")
     self.directory_chooser_label.set_alignment(0.0, 0.5)
     
     self.directory_chooser = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
@@ -298,23 +298,23 @@ class _ExportLayersGui(object):
     self.expander_advanced_settings = gtk.Expander()
     self.expander_advanced_settings.set_use_markup(True)
     self.expander_advanced_settings.set_use_underline(True)
-    self.expander_advanced_settings.set_label("<b>_Advanced Settings</b>")
+    self.expander_advanced_settings.set_label("<b>" + _("_Advanced Settings") + "</b>")
     self.expander_advanced_settings.set_spacing(self.ADVANCED_SETTINGS_VERTICAL_SPACING // 2)
     self.alignment_advanced_settings.add(self.vbox_advanced_settings)
     self.expander_advanced_settings.add(self.alignment_advanced_settings)
     
-    self.export_layers_button = self.dialog.add_button("_Export Layers", gtk.RESPONSE_OK)
+    self.export_layers_button = self.dialog.add_button(_("_Export Layers"), gtk.RESPONSE_OK)
     self.export_layers_button.grab_default()
-    self.cancel_button = self.dialog.add_button("_Cancel", gtk.RESPONSE_CANCEL)
+    self.cancel_button = self.dialog.add_button(_("_Cancel"), gtk.RESPONSE_CANCEL)
     self.dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
     
     self.stop_button = gtk.Button()
-    self.stop_button.set_label("_Stop")
+    self.stop_button.set_label(_("_Stop"))
     
     self.save_settings_button = gtk.Button()
-    self.save_settings_button.set_label("Save Settings")
+    self.save_settings_button.set_label(_("Save Settings"))
     self.reset_settings_button = gtk.Button()
-    self.reset_settings_button.set_label("Reset Settings")
+    self.reset_settings_button.set_label(_("Reset Settings"))
     
     self.progress_bar = gtk.ProgressBar()
     self.progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
@@ -463,13 +463,13 @@ class _ExportLayersGui(object):
       return
     
     self.save_settings()
-    self.display_message_label("Settings successfully saved", message_type=self.INFO)
+    self.display_message_label(_("Settings successfully saved."), message_type=self.INFO)
   
   def on_reset_settings(self, widget):
     self.reset_settings()
     self.setting_presenters.assign_setting_values_to_elements()
     self.save_settings()
-    self.display_message_label("Settings reset", message_type=self.INFO)
+    self.display_message_label(_("Settings reset."), message_type=self.INFO)
   
   def on_export_click(self, widget):
     try:
@@ -487,7 +487,7 @@ class _ExportLayersGui(object):
           self.main_settings['overwrite_mode'].options_display_names.values()[:-1]),
       default_value=self.main_settings['overwrite_mode'].options['replace'],
       default_response=self.main_settings['overwrite_mode'].options['cancel'],
-      title=constants.PLUGIN_TITLE)
+      title=_(constants.PLUGIN_TITLE))
     progress_updater = gui.GtkProgressUpdater(self.progress_bar)
     
     # Make the enabled GUI components more responsive(-ish) by periodically checking
@@ -511,7 +511,7 @@ class _ExportLayersGui(object):
       self.setting_persistor.save([self.special_settings['first_run']])
       
       if not self.layer_exporter.exported_layers:
-        display_message("No layers were exported.", gtk.MESSAGE_INFO, parent=self.dialog)
+        display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.dialog)
         should_quit = False
     finally:
       gobject.source_remove(refresh_event_id)
@@ -624,7 +624,7 @@ class _ExportLayersToGui(object):
       display_exception_message(traceback.format_exc(), parent=self.export_dialog.dialog)
     else:
       if not self.layer_exporter.exported_layers:
-        display_message("No layers were exported.", gtk.MESSAGE_INFO, parent=self.export_dialog.dialog)
+        display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.export_dialog.dialog)
     finally:
       gobject.source_remove(refresh_event_id)
       pdb.gimp_progress_end()
@@ -645,10 +645,10 @@ class _ExportLayersToGui(object):
 #===============================================================================
 
 def export_layers_gui(image, main_settings, special_settings, gimpshelf_stream, config_file_stream):
-  with gui.set_gui_excepthook(constants.PLUGIN_TITLE, report_uri_list=constants.BUG_REPORT_URI_LIST):
+  with gui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST):
     _ExportLayersGui(image, main_settings, special_settings, gimpshelf_stream, config_file_stream)
 
 
 def export_layers_to_gui(image, main_settings, setting_persistor):
-  with gui.set_gui_excepthook(constants.PLUGIN_TITLE, report_uri_list=constants.BUG_REPORT_URI_LIST):
+  with gui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST):
     _ExportLayersToGui(image, main_settings, setting_persistor)

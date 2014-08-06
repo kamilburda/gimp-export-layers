@@ -66,6 +66,8 @@ import os
 import sys
 import types
 
+import __builtin__
+
 import importlib
 import pkgutil
 
@@ -75,6 +77,26 @@ import unittest
 
 TEST_MODULE_NAME_PREFIX = "test_"
 TESTS_PACKAGE_NAME = "tests"
+
+#===============================================================================
+
+# For `gettext`-aware modules that use "_()" and "N_()" functions, define dummy
+# functions that simply return the strings, since it's not desired to translate
+# them when unit-testing.
+
+def _(s):
+  return s
+
+
+def N_(s):
+  return s
+
+
+if '_' not in __builtin__.__dict__:
+  __builtin__.__dict__['_'] = _
+
+if 'N_' not in __builtin__.__dict__:
+  __builtin__.__dict__['N_'] = N_
 
 #===============================================================================
 
@@ -99,8 +121,8 @@ def load_module(module_name):
 
 
 def _fix_streams_for_unittest():
-  # In the GIMP Python-Fu console, sys.stdout and sys.stderr are missing
-  # the 'flush' method. The method needs to be defined in order for the unittest
+  # In the GIMP Python-Fu console, `sys.stdout` and `sys.stderr` are missing
+  # the `flush()` method, which needs to be defined in order for the `unittest`
   # module to work properly.
   def flush(self):
     pass
@@ -115,8 +137,8 @@ def _fix_streams_for_unittest():
 def run_tests(stream=sys.stderr):
   _fix_streams_for_unittest()
 
-  # The parent of the package had to be specified, otherwise
-  # walk_packages would not yield modules inside subpackages for some reason...
+  # The parent of the package had to be specified, otherwise `walk_packages`
+  # would not yield modules inside subpackages for some reason...
   
   module_path = os.path.abspath(__file__)
   module_dir_path = os.path.dirname(module_path)

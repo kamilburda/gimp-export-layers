@@ -176,7 +176,6 @@ class LayerExporter(object):
     layers which were skipped (when files with the same names already exist).
   """
   
-  _COPY_SUFFIX = " copy"
   __EXPORT_STATUSES = (
     _NOT_EXPORTED_YET, _EXPORT_SUCCESSFUL, _FORCE_INTERACTIVE,
     _USE_DEFAULT_FILE_EXTENSION
@@ -321,7 +320,7 @@ class LayerExporter(object):
     
     for layerdata_elem in self._layer_data:
       if self.should_stop:
-        raise ExportLayersCancelError("Export stopped by user.")
+        raise ExportLayersCancelError("export stopped by user")
       
       if layerdata_elem.layer_type in (layerdata_elem.LAYER, layerdata_elem.NONEMPTY_GROUP):
         layer = layerdata_elem.layer
@@ -516,7 +515,7 @@ class LayerExporter(object):
   def _export(self, layerdata_elem, image, layer):
     output_filename = layerdata_elem.get_filepath(self._output_directory, self._include_layer_path)
     self._is_current_layer_skipped, output_filename = OverwriteHandler.handle(output_filename, self.overwrite_chooser)
-    self.progress_updater.update_text("Saving '" + output_filename + "'")
+    self.progress_updater.update_text(_("Saving '{0}'").format(output_filename))
     
     if not self._is_current_layer_skipped:
       self._export_layer(self._file_export_func, image, layer, output_filename)

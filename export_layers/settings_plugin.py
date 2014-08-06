@@ -60,14 +60,14 @@ class SpecialSettings(settings.SettingContainer):
          ('run_with_last_vals', "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)]
       )
     )
-    self['run_mode'].display_name = "The run mode"
+    self['run_mode'].display_name = _("The run mode")
     
     self._add(settings.ImageSetting('image', None))
-    self['image'].display_name = "Image"
+    self['image'].display_name = _("Image")
     
     self._add(settings.BoolSetting('first_run', True))
     self['first_run'].can_be_registered_to_pdb = False
-    self['first_run'].description = (
+    self['first_run'].description = _(
       "True if the plug-in is successfully run for the first time "
       "in one GIMP session, False for subsequent runs."
     )
@@ -77,39 +77,39 @@ class MainSettings(settings.SettingContainer):
   def _create_settings(self):
     
     self._add(settings.FileExtensionSetting('file_extension', ""))
-    self['file_extension'].display_name = "File extension"
-    self['file_extension'].description = (
+    self['file_extension'].display_name = _("File extension")
+    self['file_extension'].description = _(
       "Type in file extension, with or without the leading period. "
       "To export in raw format, type \"raw\"."
     )
     
-    self._add(settings.DirectorySetting('output_directory', gimp.user_directory(1)))   # Documents directory
-    self['output_directory'].display_name = "Output directory"
+    self._add(settings.DirectorySetting('output_directory', gimp.user_directory(1)))   # "Documents" directory
+    self['output_directory'].display_name = _("Output directory")
     
     self._add(settings.BoolSetting('layer_groups_as_directories', False))
-    self['layer_groups_as_directories'].display_name = "Treat layer groups as directories"
-    self['layer_groups_as_directories'].description = (
+    self['layer_groups_as_directories'].display_name = _("Treat layer groups as directories")
+    self['layer_groups_as_directories'].description = _(
       "If enabled, layers will be exported to subdirectories corresponding to the layer groups.\n"
       "If disabled, all layers will be exported to the output directory on the same level "
       "and no subdirectories will be created."
     )
     
     self._add(settings.BoolSetting('ignore_invisible', False))
-    self['ignore_invisible'].display_name = "Ignore invisible layers"
-    self['ignore_invisible'].description = (
+    self['ignore_invisible'].display_name = _("Ignore invisible layers")
+    self['ignore_invisible'].description = _(
       "If enabled, invisible layers will not be exported. Visible layers within "
       "invisible layer groups will also not be exported."
     )
     
     self._add(settings.BoolSetting('autocrop', False))
-    self['autocrop'].display_name = "Autocrop layers"
-    self['autocrop'].description = (
+    self['autocrop'].display_name = _("Autocrop layers")
+    self['autocrop'].description = _(
       "If enabled, layers will be autocropped before being exported."
     )
     
     self._add(settings.BoolSetting('use_image_size', False))
-    self['use_image_size'].display_name = "Use image size instead of layer size"
-    self['use_image_size'].description = (
+    self['use_image_size'].display_name = _("Use image size instead of layer size")
+    self['use_image_size'].description = _(
       "If enabled, layers will be resized (but not scaled) to the image size. This is "
       "useful if you want to keep the size of the image canvas and the layer position "
       "within the image. If layers are partially outside the image canvas, "
@@ -120,15 +120,15 @@ class MainSettings(settings.SettingContainer):
     self._add(
       settings.EnumSetting(
        'overwrite_mode', 'rename_new',
-       [('replace', "Replace", exportlayers.OverwriteHandler.REPLACE),
-        ('skip', "Skip", exportlayers.OverwriteHandler.SKIP),
-        ('rename_new', "Rename new file", exportlayers.OverwriteHandler.RENAME_NEW),
-        ('rename_existing', "Rename existing file", exportlayers.OverwriteHandler.RENAME_EXISTING),
-        ('cancel', "Cancel", exportlayers.OverwriteHandler.CANCEL)]
+       [('replace', _("Replace"), exportlayers.OverwriteHandler.REPLACE),
+        ('skip', _("Skip"), exportlayers.OverwriteHandler.SKIP),
+        ('rename_new', _("Rename new file"), exportlayers.OverwriteHandler.RENAME_NEW),
+        ('rename_existing', _("Rename existing file"), exportlayers.OverwriteHandler.RENAME_EXISTING),
+        ('cancel', _("Cancel"), exportlayers.OverwriteHandler.CANCEL)]
       )
     )
-    self['overwrite_mode'].display_name = "Overwrite mode (non-interactive run mode only)"
-    self['overwrite_mode'].description = (
+    self['overwrite_mode'].display_name = _("Overwrite mode (non-interactive run mode only)")
+    self['overwrite_mode'].description = _(
       "Indicates how to handle conflicting files. Skipped layers "
       "will not be regarded as exported."
     )
@@ -136,59 +136,59 @@ class MainSettings(settings.SettingContainer):
     self._add(
       settings.EnumSetting(
         'file_ext_mode', 'no_special_handling',
-        [('no_special_handling', "No special handling"),
-         ('only_matching_file_extension', "Export only layers matching file extension"),
-         ('use_as_file_extensions', "Use as file extensions")]
+        [('no_special_handling', _("No special handling")),
+         ('only_matching_file_extension', _("Export only layers matching file extension")),
+         ('use_as_file_extensions', _("Use as file extensions"))]
       )
     )
-    self['file_ext_mode'].display_name = "File extensions in layer names"
+    self['file_ext_mode'].display_name = _("File extensions in layer names")
     
     self._add(
       settings.EnumSetting(
         'strip_mode', 'identical',
-        [('always', "Always strip file extension"),
-         ('identical', "Strip identical file extension"),
-         ('never', "Never strip file extension")]
+        [('always', _("Always strip file extension")),
+         ('identical', _("Strip identical file extension")),
+         ('never', _("Never strip file extension"))]
       )
     )
-    self['strip_mode'].display_name = "File extension stripping"
-    self['strip_mode'].description = (
+    self['strip_mode'].display_name = _("File extension stripping")
+    self['strip_mode'].description = _(
       "Determines when to strip file extensions from layer names (including the period)."
     )
     
     self._add(
       settings.EnumSetting(
         'square_bracketed_mode', 'normal',
-        [('normal', "Treat as normal layers"),
-         ('background', "Treat as background layers"),
-         ('ignore', "Ignore"),
-         ('ignore_other', "Ignore other layers")]
+        [('normal', _("Treat as normal layers")),
+         ('background', _("Treat as background layers")),
+         ('ignore', _("Ignore")),
+         ('ignore_other', _("Ignore other layers"))]
       )
     )
-    self['square_bracketed_mode'].display_name = "Layer names in [square brackets]"
+    self['square_bracketed_mode'].display_name = _("Layer names in [square brackets]")
     
     self._add(settings.BoolSetting('crop_to_background', False))
-    self['crop_to_background'].display_name = "Crop to background"
-    self['crop_to_background'].description = (
+    self['crop_to_background'].display_name = _("Crop to background")
+    self['crop_to_background'].description = _(
       "If enabled, layers will be cropped to the size of the background layers instead of their own size."
     )
     
     self._add(settings.BoolSetting('merge_layer_groups', False))
-    self['merge_layer_groups'].display_name = "Merge layer groups"
-    self['merge_layer_groups'].description = (
+    self['merge_layer_groups'].display_name = _("Merge layer groups")
+    self['merge_layer_groups'].description = _(
       "If enabled, each top-level layer group is merged into one layer. The name "
       "of each merged layer is the name of the corresponding top-level layer group."
     )
     
     self._add(settings.BoolSetting('empty_directories', False))
-    self['empty_directories'].display_name = "Create directories for empty layer groups"
-    self['empty_directories'].description = (
+    self['empty_directories'].display_name = _("Create directories for empty layer groups")
+    self['empty_directories'].description = _(
       "If enabled, empty subdirectories from empty layers groups are created."
     )
     
     self._add(settings.BoolSetting('ignore_layer_modes', False))
-    self['ignore_layer_modes'].display_name = "Ignore layer modes"
-    self['ignore_layer_modes'].description = (
+    self['ignore_layer_modes'].display_name = _("Ignore layer modes")
+    self['ignore_layer_modes'].description = _(
       "If enabled, the layer mode for each layer is set to Normal. This is "
       "useful for layers with opacity less than 100% and a layer mode different "
       "than Normal or Dissolve, which would normally be completely invisible "
@@ -196,22 +196,24 @@ class MainSettings(settings.SettingContainer):
     )
     
     
-    self['file_ext_mode'].description = (
-      'If "' + self['file_ext_mode'].options_display_names['use_as_file_extensions'] + '" is selected, '
-      '"' + self['file_extension'].display_name + '" must still be specified '
-      '(for layers with invalid or no file extension).'
-    )
-    self['square_bracketed_mode'].description = (
-      '"' + self['square_bracketed_mode'].options_display_names['background'] + '": '
-      'these layers will be used as a background for all other layers and will not be exported separately.\n'
-      '"' + self['square_bracketed_mode'].options_display_names['ignore'] + '": '
-      'these layers will not be exported (and will not be treated as background layers).\n'
-      '"' + self['square_bracketed_mode'].options_display_names['ignore_other'] + '": '
-      'all other layers will not be exported.'
-    )
+    self['file_ext_mode'].description = _(
+      'If "{0}" is selected, "{1}" must still be '
+      'specified (for layers with invalid or no file extension).'
+    ).format(self['file_ext_mode'].options_display_names['use_as_file_extensions'],
+             self['file_extension'].display_name)
     
-    self['file_extension'].error_messages['default_needed'] = (
-      "you need to specify default file extension for layers with invalid or no extension"
+    self['square_bracketed_mode'].description = _(
+      '"{0}": these layers will be used as a background for all other layers '
+      'and will not be exported separately.\n'
+      '"{1}": these layers will not be exported (and will not be treated as '
+      'background layers).\n'
+      '"{2}": all other layers will not be exported.'
+    ).format(self['square_bracketed_mode'].options_display_names['background'],
+             self['square_bracketed_mode'].options_display_names['ignore'],
+             self['square_bracketed_mode'].options_display_names['ignore_other'])
+    
+    self['file_extension'].error_messages['default_needed'] = _(
+      "You need to specify default file extension for layers with invalid or no extension."
     )
     
     #---------------------------------------------------------------------------

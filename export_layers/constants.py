@@ -41,10 +41,15 @@ import gimp
 
 #===============================================================================
 
+def N_(s):
+  return s
+
+#===============================================================================
+
 PLUGINS_DIRECTORY = os.path.join(gimp.directory, 'plug-ins')
 
 PLUGIN_PROGRAM_NAME = "export_layers"
-PLUGIN_TITLE = "Export Layers"
+PLUGIN_TITLE = N_("Export Layers")
 
 PLUGIN_DIRNAME = PLUGIN_PROGRAM_NAME
 PLUGIN_PATH = os.path.join(PLUGINS_DIRECTORY, PLUGIN_DIRNAME)
@@ -56,3 +61,7 @@ BUG_REPORT_URI_LIST = [
   ("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),
   ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
 ]
+
+DOMAIN_NAME = PLUGIN_PROGRAM_NAME
+LOCALE_DIRNAME = "locale"
+LOCALE_PATH = os.path.join(PLUGINS_DIRECTORY, PLUGIN_PROGRAM_NAME, LOCALE_DIRNAME)

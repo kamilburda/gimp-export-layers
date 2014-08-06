@@ -32,6 +32,26 @@ str = unicode
 
 #===============================================================================
 
+import gettext
+
+from export_layers import constants
+
+gettext.install(constants.DOMAIN_NAME, constants.LOCALE_PATH, unicode=True)
+
+
+#import os
+#import sys
+from export_layers import tee_plugin
+
+# Log stdout and stderr for testing purposes.
+tee_plugin.tee_plugin(constants.PLUGIN_TITLE)
+#sys.stdout = open(os.path.join(constants.PLUGIN_PATH, tee_plugin.PLUGINS_STDOUT_FILENAME), 'a')
+
+
+#lang = gettext.translation(constants.DOMAIN_NAME, constants.LOCALE_PATH, languages=['fr'])
+#lang.install(unicode=True)
+
+
 import gimp
 import gimpplugin
 import gimpenums
@@ -39,16 +59,9 @@ import gimpenums
 from export_layers.pylibgimpplugin import settings
 from export_layers.pylibgimpplugin import overwrite
 
-from export_layers import constants
-from export_layers import tee_plugin
 from export_layers import settings_plugin
 from export_layers import gui_plugin
 from export_layers import exportlayers
-
-#===============================================================================
-
-# Log stdout and stderr for testing purposes.
-tee_plugin.tee_plugin(constants.PLUGIN_TITLE)
 
 #===============================================================================
 
@@ -77,32 +90,39 @@ class ExportLayersPlugin(gimpplugin.plugin):
     self.export_layers_to_return_values = []
   
   def query(self):
-    gimp.install_procedure("plug_in_export_layers",
-                           "Export layers as separate images in specified file format to specified directory, "
-                           "using the layer names as filenames.",
-                           "",
-                           "khalim19",
-                           "khalim19",
-                           "2013",
-                           "<Image>/File/Export/E_xport Layers...",
-                           "*",
-                           gimpenums.PLUGIN,
-                           self._create_plugin_params(self.export_layers_settings),
-                           self._create_plugin_params(self.export_layers_return_values)
-                           )
-    gimp.install_procedure("plug_in_export_layers_to",
-                           "Run \"" + constants.PLUGIN_TITLE + "\" with the last values specified.",
-                           ("If the plug-in is run for the first time (i.e. no last values exist), "
-                            "default values will be used."),
-                           "khalim19",
-                           "khalim19",
-                           "2013",
-                           "<Image>/File/Export/Export Layers _to",
-                           "*",
-                           gimpenums.PLUGIN,
-                           self._create_plugin_params(self.export_layers_to_settings),
-                           self._create_plugin_params(self.export_layers_to_return_values)
-                           )
+    gimp.domain_register(constants.DOMAIN_NAME, constants.LOCALE_PATH)
+    
+    gimp.install_procedure(
+      "plug_in_export_layers",
+      _("Export layers as separate images in specified file format to specified directory, "
+        "using the layer names as filenames."),
+      "",
+      "khalim19",
+      "khalim19",
+      "2013",
+      _("E_xport Layers..."),
+      "*",
+      gimpenums.PLUGIN,
+      self._create_plugin_params(self.export_layers_settings),
+      self._create_plugin_params(self.export_layers_return_values)
+    )
+    gimp.install_procedure(
+      "plug_in_export_layers_to",
+      _("Run \"{0}\" with the last values specified.").format("plug-in-export-layers"),
+      _("If the plug-in is run for the first time (i.e. no last values exist), "
+        "default values will be used."),
+      "khalim19",
+      "khalim19",
+      "2013",
+      _("Export Layers _to"),
+      "*",
+      gimpenums.PLUGIN,
+      self._create_plugin_params(self.export_layers_to_settings),
+      self._create_plugin_params(self.export_layers_to_return_values)
+    )
+    
+    gimp.menu_register("plug_in_export_layers", "<Image>/File/Export")
+    gimp.menu_register("plug_in_export_layers_to", "<Image>/File/Export")
   
   def plug_in_export_layers(self, *args):
     run_mode = args[0]
@@ -162,7 +182,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
       self.main_settings,
       overwrite_chooser=overwrite.NoninteractiveOverwriteChooser(self.main_settings['overwrite_mode'].value),
       progress_updater=None
-      )
+    )
     try:
       layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError as e:
