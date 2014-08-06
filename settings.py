@@ -400,8 +400,8 @@ class NumericSetting(Setting):
     self.min_value = None
     self.max_value = None
     
-    self.error_messages['below_min'] = "value cannot be less than the minimum value " + str(self.min_value)
-    self.error_messages['above_max'] = "value cannot be greater than the maximum value " + str(self.max_value)
+    self.error_messages['below_min'] = _("Value cannot be less than {0}.").format(self.min_value)
+    self.error_messages['above_max'] = _("value cannot be greater than {0}.").format(self.max_value)
   
   @property
   def value(self):
@@ -489,7 +489,7 @@ class BoolSetting(Setting):
   
   @property
   def short_description(self):
-    return self.display_name + " (TRUE or FALSE)"
+    return self.display_name + _(" (TRUE or FALSE)")
 
 
 class EnumSetting(Setting):
@@ -593,12 +593,11 @@ class EnumSetting(Setting):
       raise ValueError(self.error_messages['wrong_options_len'])
     
     self.error_messages['invalid_value'] = (
-      "invalid option value; valid values: " + str(list(self._option_values))
+      _("Invalid option value; valid values: {0}").format(list(self._option_values))
     )
     self.error_messages['invalid_default_value'] = (
-      "invalid identifier for the default value; "
-      "must be one of " + str(self._options.keys())
-    )
+      "invalid identifier for the default value; must be one of "
+    ).format(self._options.keys())
     
     if default_value in self._options:
       self.default_value = self._options[default_value]
@@ -641,7 +640,7 @@ class EnumSetting(Setting):
     options_sep = ", "
     
     for value, display_name in zip(self._options.values(), self._options_display_names.values()):
-      options_str += '{0} ({1})'.format(display_name, str(value)) + options_sep
+      options_str += '{0} ({1})'.format(display_name, value) + options_sep
     options_str = options_str[:-len(options_sep)]
     
     return "{ " + options_str + " }"
@@ -671,7 +670,7 @@ class ImageSetting(Setting):
     self._allowed_pdb_types = [gimpenums.PDB_IMAGE]
     self.gimp_pdb_type = gimpenums.PDB_IMAGE
     
-    self.error_messages['invalid_value'] = "invalid image"
+    self.error_messages['invalid_value'] = _("Invalid image.")
   
   @property
   def value(self):
@@ -710,7 +709,7 @@ class DrawableSetting(Setting):
     self._allowed_pdb_types = [gimpenums.PDB_DRAWABLE]
     self.gimp_pdb_type = gimpenums.PDB_DRAWABLE
     
-    self.error_messages['invalid_value'] = "invalid drawable"
+    self.error_messages['invalid_value'] = _("Invalid drawable.")
   
   @property
   def value(self):
@@ -1156,19 +1155,19 @@ class JSONFileSettingStream(SettingStream):
     except (IOError, OSError) as e:
       if e.errno == errno.ENOENT:
         raise SettingStreamFileNotFoundError(
-          "Could not find file with settings \"" + self.filename + "\"."
+          _("Could not find file with settings \"{0}\".").format(self.filename)
         )
       else:
         raise SettingStreamReadError(
-          "Could not read settings from file \"" + self.filename + "\". "
-          "Make sure the file can be accessed to."
+          _("Could not read settings from file \"{0}\". Make sure the file can be "
+            "accessed to.").format(self.filename)
         )
     except ValueError as e:
       raise SettingStreamInvalidFormatError(
-        "File with settings \"" + self.filename + "\" is corrupt. "
-        "This could happen if the file was edited manually.\n"
-        "To fix this, save the settings again (to overwrite the file) "
-        "or delete the file."
+        _("File with settings \"{0}\" is corrupt. This could happen if the file "
+          "was edited manually.\n"
+          "To fix this, save the settings again (to overwrite the file) "
+          "or delete the file.").format(self.filename)
       )
     
     for setting in settings:
@@ -1206,8 +1205,8 @@ class JSONFileSettingStream(SettingStream):
         json.dump(settings_dict, json_file)
     except (IOError, OSError):
       raise SettingStreamWriteError(
-        "Could not write settings to file \"" + self.filename + "\". "
-        "Make sure the file can be accessed to."
+        _("Could not write settings to file \"{0}\". "
+          "Make sure the file can be accessed to.").format(self.filename)
       )
   
   def _to_dict(self, settings):

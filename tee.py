@@ -132,6 +132,7 @@ class Tee(object):
     
     * `file_object` - File or file-like object to write to.
     """
+    
     self._orig_stream = self.stream
     setattr(sys, self._stream_name, self)
     

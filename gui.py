@@ -102,7 +102,7 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     
     self._hbox_apply_to_all = gtk.HBox(homogeneous=False)
     self._hbox_apply_to_all.set_spacing(5)
-    self._apply_to_all_checkbox = gtk.CheckButton(label="Apply action to all files")
+    self._apply_to_all_checkbox = gtk.CheckButton(label=_("Apply action to all files"))
     self._hbox_apply_to_all.pack_start(self._apply_to_all_checkbox, expand=False, fill=False)
     
     self._dialog.vbox.set_spacing(3)
@@ -121,11 +121,10 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
   
   def _choose(self, filename):
     if filename is not None:
-      text_filename = "named \"" + filename + "\""
+      text_filename = _("A file named \"{0}\" already exists.\nWhat would you like to do?").format(filename)
     else:
-      text_filename = "with the same name"
-    self._dialog_text.set_markup("<span font_size=\"large\"><b>A file " + text_filename +
-                                 " already exists.\nWhat would you like to do?</b></span>")
+      text_filename = _("A file with the same name already exists.\nWhat would you like to do?")
+    self._dialog_text.set_markup("<span font_size=\"large\"><b>" + text_filename + "</b></span>")
     self._dialog.show_all()
     self._overwrite_mode = self._dialog.run()
     if self._overwrite_mode not in self._values:
@@ -179,17 +178,16 @@ def display_exception_message(exception_message, plugin_title=None,
   
   dialog = gtk.MessageDialog(parent, type=gtk.MESSAGE_ERROR, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
   dialog.set_markup(
-    "<span font_size=\"large\"><b>Oops! Something went wrong.</b></span>"
+    "<span font_size=\"large\"><b>" + _("Oops! Something went wrong.") + "</b></span>"
   )
   dialog.format_secondary_markup(
-    plugin_title + " encountered an unexpected error and has to close. "
-    "Sorry about that!"
+    _("{0} encountered an unexpected error and has to close. Sorry about that!").format(plugin_title)
   )
   dialog.set_title(plugin_title)
   
   expander = gtk.Expander()
   expander.set_use_markup(True)
-  expander.set_label("<b>Details</b>")
+  expander.set_label("<b>" + _("Details") + "</b>")
   
   scrolled_window = gtk.ScrolledWindow()
   scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -213,8 +211,8 @@ def display_exception_message(exception_message, plugin_title=None,
   
   if report_uri_list is not None and report_uri_list:
     label_report_header = gtk.Label(
-      "To help fix this error, send a report containing the text "
-      "in the details above to one of the following sites:"
+      _("To help fix this error, send a report containing the text "
+        "in the details above to one of the following sites:")
     )
     label_report_header.set_alignment(0, 0.5)
     label_report_header.set_padding(3, 3)
