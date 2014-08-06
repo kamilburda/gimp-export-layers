@@ -1,3 +1,12 @@
+2.2 (Upcoming)
+------------------------
+
+* Changed how the initial output directory in the GUI is determined. It is now
+  remembered separately for each image currently opened in GIMP.
+* Added support for plug-in internationalization and localization. It is now
+  possible to create translations of the plug-in (details in the Translations
+  section in the Readme).
+
 2.1 (July 27, 2014)
 ------------------------
 
