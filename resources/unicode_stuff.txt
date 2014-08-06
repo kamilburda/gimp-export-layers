@@ -3,15 +3,19 @@
    - more info at:
       http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html
 
+
 IMPORTANT:
 ----------------------------------------
 
 * `str()` must return string of type `unicode`, not `str`.
-   * best solution for Python 2.x I could come up with: add "str = unicode" boilerplate at the beginning of each module
+   * best solution for Python 2.x I could come up with: add
+        str = unicode
+     at the beginning of each module
    * `bytes` is an alias for `str`, use that for bytes
-* add "from __future__ import unicode_literals" to each module
+* add
+     from __future__ import unicode_literals
+  to each module
 
-----------------------------------------
 
 Plug-in:
 ----------------------------------------
@@ -22,11 +26,12 @@ Plug-in:
       - value.setter - GTK handles that automatically, but may not always be reliable,
         according to
            http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html
-        - encode with UTF-8
-   - gimpui.IntComboBox - can't handle `unicode`, must pass `str`
+        - encode in UTF-8
+   - `gimpui.IntComboBox` - can't handle `unicode`, must pass `bytes`
 * layerdata
-   - `_LayerDataElement.layer_name` - derived from `gimp.Layer.name` - UTF-8, decode to `unicode`
-   - `LayerData._layerdata` keys are `gimp.Layer.name` - UTF-8, decode to `unicode`
+   - `_LayerDataElement.orig_layer_name` - decoded from `gimp.Layer.name` (which is encoded in UTF-8)
+   - `_LayerDataElement.layer_name` - `unicode`
+   - `LayerData._layerdata` keys are `_LayerDataElement.orig_layer_name`
 * libfiles
    - stand-alone functions don't care about string type or encoding
    - `uniquify_filename`, `make_dirs` - they use the `os` module, whose functions accept `unicode` strings
@@ -41,7 +46,7 @@ Plug-in:
    - `JSONFileSettingStream` - automatically handles unicode strings
       - `json.dump` with `ensure_ascii=True` and `encoding="utf-8"`, which are the default values
 * tee
-   - `write()` - argument must be encoded (with UTF-8)
+   - `write()` - argument must be encoded (in UTF-8)
       - don't encode within `_write` or `_write_with_flush`, that should be handled
         outside this method
 * exportlayers
