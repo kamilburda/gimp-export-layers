@@ -1,11 +1,12 @@
 Export Layers
-=============
+========================
 
 Export Layers is a GIMP plug-in that exports layers as separate images in almost any file
 format supported by GIMP and possibly third-party plug-ins.
 
+
 Feature Summary
----------------
+------------------------
 
 This plug-in:
 * exports layers as separate images in almost any file format supported by GIMP
@@ -16,13 +17,15 @@ This plug-in:
 * can use file extensions in layer names as file formats
 * can use layers with names in [square brackets] as background layers
 
+
 Requirements
-------------
+------------------------
 
 * GIMP 2.8 or later with Python-Fu installed
 
+
 Installation
-------------
+------------------------
 
 From the package, extract the "export_layers.py" file and the "export_layers" directory
 to "[home directory]/.gimp-2.8/plug-ins".
@@ -34,8 +37,9 @@ e.g. from the terminal:
 
 It should no longer be needed for versions 2.1 and above.
 
+
 Usage
------
+------------------------
 
 From the main menu, go to "File -> Export Layers...". A dialog appears, allowing
 you to specify output directory, file extension and various other settings.
@@ -64,8 +68,9 @@ If you want to export the layers with the last values used, you can use the
 "File -> Export Layers to" menu entry. The file format dialog will not be displayed -
 instead, the last used values will be used.
 
+
 Settings
---------
+------------------------
 
 **Treat layer groups as directories**
 
@@ -100,8 +105,9 @@ Export Layers is first opened.
 
 Settings will be reset to their default values.
 
+
 Advanced Settings
------------------
+------------------------
 
 **File extensions in layer names**
 
@@ -150,8 +156,9 @@ with opacity less than 100% and a layer mode different than Normal or Dissolve, 
 would normally be completely invisible if a file format supporting alpha channel
 is used (such as PNG).
 
+
 Known Issues
-------------
+------------------------
 
 On Windows, the file format dialog is displayed behind the main dialog.
 
@@ -173,14 +180,16 @@ On Windows, the following file formats don't work properly if file paths contain
 
 In Export Layers To, JPG format always displays the file format dialog for the first layer.
 
+
 License
--------
+------------------------
 
 This plug-in is licensed under the GNU GPLv3, which can be found on the following page:
 http://www.gnu.org/licenses/gpl-3.0.html
 
+
 Support, Contact
-----------------
+------------------------
 
 You can report issues on the following pages:
 * http://registry.gimp.org/node/28268
