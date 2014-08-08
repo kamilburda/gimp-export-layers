@@ -201,6 +201,7 @@ class Setting(object):
   @property
   def value(self):
     return self._value
+  
   @value.setter
   def value(self, value_):
     self._value = value_
@@ -208,6 +209,7 @@ class Setting(object):
   @property
   def gimp_pdb_type(self):
     return self._gimp_pdb_type
+  
   @gimp_pdb_type.setter
   def gimp_pdb_type(self, value):
     if self._allowed_pdb_types is None or value in self._allowed_pdb_types:
@@ -219,6 +221,7 @@ class Setting(object):
   @property
   def can_be_registered_to_pdb(self):
     return self._can_be_registered_to_pdb
+  
   @can_be_registered_to_pdb.setter
   def can_be_registered_to_pdb(self, value):
     if value and self._gimp_pdb_type is None:
@@ -229,6 +232,7 @@ class Setting(object):
   @property
   def display_name(self):
     return self._display_name
+  
   @display_name.setter
   def display_name(self, value):
     self._display_name = value if value is not None else ""
@@ -236,6 +240,7 @@ class Setting(object):
   @property
   def description(self):
     return self._description
+  
   @description.setter
   def description(self, value):
     self._description = value if value is not None else ""
@@ -592,9 +597,10 @@ class EnumSetting(Setting):
     else:
       raise ValueError(self.error_messages['wrong_options_len'])
     
-    self.error_messages['invalid_value'] = (
-      _("Invalid option value; valid values: {0}").format(list(self._option_values))
-    )
+    self.error_messages['invalid_value'] = _(
+      "Invalid option value; valid values: {0}"
+    ).format(list(self._option_values))
+    
     self.error_messages['invalid_default_value'] = (
       "invalid identifier for the default value; must be one of "
     ).format(self._options.keys())
@@ -610,6 +616,7 @@ class EnumSetting(Setting):
   @property
   def value(self):
     return self._value
+  
   @value.setter
   def value(self, value_):
     if value_ not in self._option_values:
