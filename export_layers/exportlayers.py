@@ -43,6 +43,8 @@ from collections import defaultdict
 import gimp
 import gimpenums
 
+from export_layers import constants
+
 from export_layers.pylibgimpplugin import libfiles
 from export_layers.pylibgimpplugin import pylibgimp
 from export_layers.pylibgimpplugin import layerdata
@@ -332,12 +334,12 @@ class LayerExporter(object):
         self._layer_data.uniquify_layer_name(layerdata_elem, self._include_layer_path,
                                              place_before_file_extension=True)
         
-        self._export(layerdata_elem, self._image_copy, layer_copy)
+        self._export_layer(layerdata_elem, self._image_copy, layer_copy)
         if self._current_layer_export_status == self._USE_DEFAULT_FILE_EXTENSION:
           self._set_file_extension_and_update_file_export_func(layerdata_elem)
           self._layer_data.uniquify_layer_name(layerdata_elem, self._include_layer_path,
                                                place_before_file_extension=True)
-          self._export(layerdata_elem, self._image_copy, layer_copy)
+          self._export_layer(layerdata_elem, self._image_copy, layer_copy)
         
         self.progress_updater.update_tasks(1)
         if not self._is_current_layer_skipped:
@@ -359,10 +361,14 @@ class LayerExporter(object):
     # Perform subsequent operations on a new image so that the original image
     # and its soon-to-be exported layers are left intact.
     self._image_copy = pdb.gimp_image_new(self.image.width, self.image.height, gimpenums.RGB)
-#    self._display_id = pdb.gimp_display_new(self._image_copy)
+    
+    if constants.DEBUG_IMAGE_PROCESSING:
+      self._display_id = pdb.gimp_display_new(self._image_copy)
   
   def _cleanup(self):
-#    pdb.gimp_display_delete(self._display_id)
+    if constants.DEBUG_IMAGE_PROCESSING:
+      pdb.gimp_display_delete(self._display_id)
+    
     pdb.gimp_image_delete(self._image_copy)
     if self._background_layer is not None:
       pdb.gimp_item_delete(self._background_layer)
@@ -512,34 +518,31 @@ class LayerExporter(object):
     else:
       return self.initial_run_mode
   
-  def _export(self, layerdata_elem, image, layer):
+  def _export_layer(self, layerdata_elem, image, layer):
     output_filename = layerdata_elem.get_filepath(self._output_directory, self._include_layer_path)
     self._is_current_layer_skipped, output_filename = OverwriteHandler.handle(output_filename, self.overwrite_chooser)
     self.progress_updater.update_text(_("Saving '{0}'").format(output_filename))
     
     if not self._is_current_layer_skipped:
-      self._export_layer(self._file_export_func, image, layer, output_filename)
+      self._export(image, layer, output_filename)
   
-  def _export_layer(self, file_export_function, image, layer, output_filename):
+  def _export(self, image, layer, output_filename):
     run_mode = self._get_run_mode()
     libfiles.make_dirs(os.path.dirname(output_filename))
     
-    self._export_layer_once(file_export_function, run_mode,
-                            image, layer, output_filename)
+    self._export_once(run_mode, image, layer, output_filename)
     
     if self._current_layer_export_status == self._FORCE_INTERACTIVE:
-      self._export_layer_once(file_export_function, gimpenums.RUN_INTERACTIVE,
-                              image, layer, output_filename)
+      self._export_once(gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
   
-  def _export_layer_once(self, file_export_function, run_mode,
-                         image, layer, output_filename):
+  def _export_once(self, run_mode, image, layer, output_filename):
     
     self._current_layer_export_status = self._NOT_EXPORTED_YET
     
     try:
-      file_export_function(image, layer, output_filename.encode(),
-                           os.path.basename(output_filename).encode(),
-                           run_mode=run_mode)
+      self._file_export_func(image, layer, output_filename.encode(),
+                             os.path.basename(output_filename).encode(),
+                             run_mode=run_mode)
     except RuntimeError as e:
       # HACK: Since `RuntimeError` could indicate anything, including
       # `pdb.gimp_file_save` failure, this is the only way to intercept the

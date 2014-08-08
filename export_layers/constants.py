@@ -46,6 +46,7 @@ def N_(s):
 #===============================================================================
 
 DEBUG = False
+DEBUG_IMAGE_PROCESSING = False
 
 PLUGINS_DIRECTORY = os.path.join(gimp.directory, 'plug-ins')
 
