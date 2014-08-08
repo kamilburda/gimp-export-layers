@@ -77,7 +77,7 @@ class TestFilenameValidator(unittest.TestCase):
   def test_checks_if_filename_is_valid(self):
     self.assertEqual(self.validator.is_valid("one"), (True, []))
     self.assertTrue(self.validator.is_valid("0n3_two_,o_O_;-()three.jpg")[0])
-    self.assertFalse(self.validator.is_valid("one/two\x09\x7f\\[]{}*#$%")[0])
+    self.assertFalse(self.validator.is_valid("one/two\x09\x7f\\:|")[0])
     self.assertFalse(self.validator.is_valid("")[0])
     self.assertFalse(self.validator.is_valid(" one ")[0])
     self.assertFalse(self.validator.is_valid("one.")[0])
@@ -89,7 +89,7 @@ class TestFilenameValidator(unittest.TestCase):
   def test_validates_filename(self):
     self.assertEqual(self.validator.validate("one"), "one")
     self.assertEqual(self.validator.validate("0n3_two_,o_O_;-()three.jpg"), "0n3_two_,o_O_;-()three.jpg")
-    self.assertEqual(self.validator.validate("one/two\x09\x7f\\[]{}*#$%"), "onetwo")
+    self.assertEqual(self.validator.validate("one/two\x09\x7f\\:|"), "onetwo")
     self.assertEqual(self.validator.validate(""), "Untitled")
     self.assertEqual(self.validator.validate(" one "), "one")
     self.assertEqual(self.validator.validate("one."), "one")
@@ -109,13 +109,19 @@ class TestFilePathValidator(unittest.TestCase):
     self.assertTrue(self.validator.is_valid(
       os.path.join("zero", "0n3", "two", ",o_O_;-()" + os.sep + os.sep + os.sep, "three.jpg" + os.sep))[0])
     self.assertFalse(self.validator.is_valid(
-      os.path.join("one", "two", "\x09\x7f", "[]{}*#$%"))[0])
+      os.path.join("one", "two", "\x09\x7f", ":|"))[0])
     self.assertFalse(self.validator.is_valid(
       os.path.join("one", ":two", "three"))[0])
-    self.assertTrue(self.validator.is_valid(
-      os.path.join("C:" + os.sep + "two", "three"))[0])
+    
+    if os.name == 'nt':
+      self.assertTrue(self.validator.is_valid(
+        os.path.join("C:" + os.sep + "two", "three"))[0])
+    else:
+      self.assertFalse(self.validator.is_valid(
+        os.path.join("C:" + os.sep + "two", "three"))[0])
+    
     self.assertFalse(self.validator.is_valid(
-      os.path.join("C:$@#$@%" + os.sep + "two", "three"))[0])
+      os.path.join("C:|" + os.sep + "two", "three"))[0])
     self.assertFalse(self.validator.is_valid(
       os.path.join(" one", "two", "three "))[0])
     self.assertFalse(self.validator.is_valid(
@@ -147,21 +153,37 @@ class TestFilePathValidator(unittest.TestCase):
       os.path.join("zero", "0n3", "two", ",o_O_;-()", "three.jpg")
     )
     self.assertEqual(
-      self.validator.validate(os.path.join("one", "two\x09\x7f", "three[]{}*#$%")),
+      self.validator.validate(os.path.join("one", "two\x09\x7f", "three:|")),
       os.path.join("one", "two", "three")
     )
     self.assertEqual(
       self.validator.validate(os.path.join("one", ":two", "three")),
       os.path.join("one", "two", "three")
     )
-    self.assertEqual(
-      self.validator.validate(os.path.join("C:" + os.sep + "two", "three")),
-      os.path.join("C:" + os.sep + "two", "three")
-    )
-    self.assertEqual(
-      self.validator.validate(os.path.join("C:$@#$@%one" + os.sep + "two", "three")),
-      os.path.join("C:", "one",  "two", "three")
-    )
+    
+    if os.name == 'nt':
+      self.assertEqual(
+        self.validator.validate(os.path.join("C:" + os.sep + "two", "three")),
+        os.path.join("C:" + os.sep + "two", "three")
+      )
+      self.assertEqual(
+        self.validator.validate(os.path.join("C:|one" + os.sep + "two", "three")),
+        os.path.join("C:", "one",  "two", "three")
+      )
+      self.assertEqual(self.validator.validate(os.path.join("C:|" + os.sep + "two", "three")),
+                       os.path.join("C:", "two", "three"))
+    else:
+      self.assertEqual(
+        self.validator.validate(os.path.join("C:" + os.sep + "two", "three")),
+        os.path.join("C" + os.sep + "two", "three")
+      )
+      self.assertEqual(
+        self.validator.validate(os.path.join("C:|one" + os.sep + "two", "three")),
+        os.path.join("Cone",  "two", "three")
+      )
+      self.assertEqual(self.validator.validate(os.path.join("C:|" + os.sep + "two", "three")),
+                       os.path.join("C", "two", "three"))
+    
     self.assertEqual(
       self.validator.validate(os.path.join(" one", "two", "three ")),
       os.path.join("one", "two", "three")
@@ -187,7 +209,7 @@ class TestFilePathValidator(unittest.TestCase):
       os.path.join("one", "two", "NUL (1)")
     )
     self.assertEqual(
-      self.validator.validate(os.path.join("one", "two", "NUL*&#$%@.txt")),
+      self.validator.validate(os.path.join("one", "two", "NUL:|.txt")),
       os.path.join("one", "two", "NUL (1).txt")
     )
     self.assertEqual(
@@ -200,11 +222,9 @@ class TestFilePathValidator(unittest.TestCase):
     )
     
     self.assertEqual(self.validator.validate(""), ".")
-    self.assertEqual(self.validator.validate("$@#$@%"), ".")
-    self.assertEqual(self.validator.validate(os.path.join("one", "[]{}*#$%", "three")),
+    self.assertEqual(self.validator.validate("|"), ".")
+    self.assertEqual(self.validator.validate(os.path.join("one", ":|", "three")),
                      os.path.join("one", "three"))
-    self.assertEqual(self.validator.validate(os.path.join("C:$@#$@%" + os.sep + "two", "three")),
-                     os.path.join("C:", "two", "three"))
 
 
 class TestFileExtensionValidator(unittest.TestCase):
@@ -216,7 +236,7 @@ class TestFileExtensionValidator(unittest.TestCase):
     self.assertEqual(self.validator.is_valid("jpg"), (True, []))
     self.assertTrue(self.validator.is_valid(".jpg")[0])
     self.assertTrue(self.validator.is_valid("tar.gz")[0])
-    self.assertFalse(self.validator.is_valid("one/two\x09\x7f\\[]{}*#$%")[0])
+    self.assertFalse(self.validator.is_valid("one/two\x09\x7f\\:|")[0])
     self.assertFalse(self.validator.is_valid("")[0])
     self.assertFalse(self.validator.is_valid(" jpg ")[0])
     self.assertFalse(self.validator.is_valid("jpg.")[0])
@@ -225,7 +245,7 @@ class TestFileExtensionValidator(unittest.TestCase):
     self.assertEqual(self.validator.validate("jpg"), "jpg")
     self.assertEqual(self.validator.validate(".jpg"), ".jpg")
     self.assertEqual(self.validator.validate("tar.gz"), "tar.gz")
-    self.assertEqual(self.validator.validate("one/two\x09\x7f\\[]{}*#$%"), "onetwo")
+    self.assertEqual(self.validator.validate("one/two\x09\x7f\\:|"), "onetwo")
     self.assertEqual(self.validator.validate(" jpg "), " jpg")
     self.assertEqual(self.validator.validate("jpg."), "jpg")
     

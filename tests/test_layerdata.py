@@ -117,27 +117,27 @@ class TestLayerData(unittest.TestCase):
       Corners {
         top-left-corner
         top-right-corner
-        top-left-corner# {
+        top-left-corner: {
         }
-        top-left-corner## {
+        top-left-corner:: {
           bottom-right-corner
-          bottom-right-corner#
+          bottom-right-corner:
           bottom-left-corner
         }
       }
-      Corners# {
-        top-left-corner###
+      Corners: {
+        top-left-corner:::
       }
       Frames {
         top-frame
       }
       main-background.jpg
-      main-background.jpg#
+      main-background.jpg:
       Overlay {
       }
-      Corners##
-      top-left-corner####
-      main-background.jpg## {
+      Corners::
+      top-left-corner::::
+      main-background.jpg:: {
         alt-frames
         alt-corners
       }
@@ -164,7 +164,7 @@ class TestLayerData(unittest.TestCase):
     
     self.assertEqual(
       layerdata_elem.get_filepath(output_directory),
-      os.path.join(output_directory, "Corners", "top-left-corner##", layerdata_elem.layer_name)
+      os.path.join(output_directory, "Corners", "top-left-corner::", layerdata_elem.layer_name)
     )
     self.assertEqual(
       layerdata_elem.get_filepath(output_directory, include_layer_path=False),
@@ -172,14 +172,14 @@ class TestLayerData(unittest.TestCase):
     )
     self.assertEqual(
       layerdata_elem.get_filepath("testgimp"),
-      os.path.join(os.getcwd(), "testgimp", "Corners", "top-left-corner##", layerdata_elem.layer_name)
+      os.path.join(os.getcwd(), "testgimp", "Corners", "top-left-corner::", layerdata_elem.layer_name)
     )
     self.assertEqual(
       layerdata_elem.get_filepath(None),
-      os.path.join(os.getcwd(), "Corners", "top-left-corner##", layerdata_elem.layer_name)
+      os.path.join(os.getcwd(), "Corners", "top-left-corner::", layerdata_elem.layer_name)
     )
     
-    layerdata_empty_layer_group = self.layer_data['top-left-corner#']
+    layerdata_empty_layer_group = self.layer_data['top-left-corner:']
     
     self.assertEqual(
       layerdata_empty_layer_group.get_filepath(output_directory),
@@ -236,16 +236,16 @@ class TestLayerData(unittest.TestCase):
     uniquified_layer_names = OrderedDict([
       ("top-left-corner",      "top-left-corner (1)"),
       ("top-right-corner",     "top-right-corner"),
-      ("top-left-corner#",     "top-left-corner (2)"),
+      ("top-left-corner:",     "top-left-corner (2)"),
       ("bottom-right-corner",  "bottom-right-corner"),
-      ("bottom-right-corner#", "bottom-right-corner (1)"),
+      ("bottom-right-corner:", "bottom-right-corner (1)"),
       ("bottom-left-corner",   "bottom-left-corner"),
-      ("top-left-corner###",   "top-left-corner (3)"),
+      ("top-left-corner:::",   "top-left-corner (3)"),
       ("top-frame",            "top-frame"),
       ("main-background.jpg",  "main-background.jpg"),
-      ("main-background.jpg#", "main-background.jpg (1)"),
+      ("main-background.jpg:", "main-background.jpg (1)"),
       ("Corners",              "Corners"),
-      ("top-left-corner####",  "top-left-corner")
+      ("top-left-corner::::",  "top-left-corner")
     ])
     
     # This is to make the uniquification work properly for these tests. It's not
@@ -267,20 +267,20 @@ class TestLayerData(unittest.TestCase):
       ("Corners",                ["Corners (1)"]),
       ("top-left-corner",        ["Corners (1)", "top-left-corner"]),
       ("top-right-corner",       ["Corners (1)", "top-right-corner"]),
-      ("top-left-corner#",       ["Corners (1)", "top-left-corner (1)"]),
-      ("top-left-corner##",      ["Corners (1)", "top-left-corner (2)"]),
+      ("top-left-corner:",       ["Corners (1)", "top-left-corner (1)"]),
+      ("top-left-corner::",      ["Corners (1)", "top-left-corner (2)"]),
       ("bottom-right-corner",    ["Corners (1)", "top-left-corner (2)", "bottom-right-corner"]),
-      ("bottom-right-corner#",   ["Corners (1)", "top-left-corner (2)", "bottom-right-corner (1)"]),
+      ("bottom-right-corner:",   ["Corners (1)", "top-left-corner (2)", "bottom-right-corner (1)"]),
       ("bottom-left-corner",     ["Corners (1)", "top-left-corner (2)", "bottom-left-corner"]),
-      ("Corners#",               ["Corners (2)"]),
-      ("top-left-corner###",     ["Corners (2)", "top-left-corner"]),
+      ("Corners:",               ["Corners (2)"]),
+      ("top-left-corner:::",     ["Corners (2)", "top-left-corner"]),
       ("Frames",                 ["Frames"]),
       ("top-frame",              ["Frames", "top-frame"]),
       ("main-background.jpg",    ["main-background.jpg"]),
-      ("main-background.jpg#",   ["main-background.jpg (1)"]),
-      ("Corners##",              ["Corners"]),
-      ("top-left-corner####",    ["top-left-corner"]),
-      ("main-background.jpg##",  ["main-background.jpg (2)"]),
+      ("main-background.jpg:",   ["main-background.jpg (1)"]),
+      ("Corners::",              ["Corners"]),
+      ("top-left-corner::::",    ["top-left-corner"]),
+      ("main-background.jpg::",  ["main-background.jpg (2)"]),
       ("alt-frames",             ["main-background.jpg (2)", "alt-frames"]),
       ("alt-corners",            ["main-background.jpg (2)", "alt-corners"]),
     ])
@@ -297,8 +297,8 @@ class TestLayerData(unittest.TestCase):
   def test_uniquifies_with_regards_to_file_extension(self):
     uniquified_layer_names = OrderedDict([
       ("main-background.jpg",    ["main-background.jpg"]),
-      ("main-background.jpg#",   ["main-background (1).jpg"]),
-      ("main-background.jpg##",  ["main-background.jpg (1)"])
+      ("main-background.jpg:",   ["main-background (1).jpg"]),
+      ("main-background.jpg::",  ["main-background.jpg (1)"])
     ])
     
     self.layer_data.is_filtered = True
