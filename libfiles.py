@@ -230,7 +230,7 @@ class FilenameValidator(StringValidator):
     
     * don't contain the following special characters:
       
-      <>:"/\|?*~!@`#$%&=+{}[]
+      <>:"/\|?*
     
     * don't start or end with spaces
     
@@ -244,7 +244,7 @@ class FilenameValidator(StringValidator):
     * are not empty or None
   """
   
-  _INVALID_CHARS_PATTERN = r"[\x00-\x1f\x7f-\x9f<>:\"\\/|?*~!@`#$%&=+{}\[\]]"
+  _INVALID_CHARS_PATTERN = r"[\x00-\x1f\x7f-\x9f<>:\"\\/|?*]"
   
   # Invalid names for the Windows platform. Taken from:
   # http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx
@@ -340,7 +340,7 @@ class FilePathValidator(StringValidator):
       letter, e.g. "C:\")
   """
   
-  _INVALID_CHARS = r"\x00-\x1f\x7f-\x9f<>\"|?*~!@`#$%&=+{}\[\]"
+  _INVALID_CHARS = r"\x00-\x1f\x7f-\x9f<>\"|?*"
   _VALID_DRIVE_CHARS = r':'
   
   _INVALID_CHARS_PATTERN_WITHOUT_DRIVE = "[" + _INVALID_CHARS + "]"
@@ -445,7 +445,7 @@ class FileExtensionValidator(StringValidator):
     
     * don't contain the following special characters:
       
-      <>:"/\|?*~!@`#$%&=+{}[]
+      <>:"/\|?*
     
     * don't end with spaces or periods
   """
