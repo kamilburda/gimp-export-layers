@@ -580,7 +580,7 @@ class GtkWindowPositionPresenter(GtkSettingPresenter):
     Don't move the window if `value_` is None or empty.
     """
     
-    if value_ and value_ is not None:
+    if value_:
       self._element.move(*value_)
 
 

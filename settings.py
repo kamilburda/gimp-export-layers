@@ -1275,7 +1275,7 @@ class SettingPersistor(object):
     If settings have invalid values, their default values will be assigned.
     
     If some settings could not be found in any of the streams,
-    their default values will be used.
+    their default values will be assigned.
     
     Parameters:
     

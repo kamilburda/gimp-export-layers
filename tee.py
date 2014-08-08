@@ -142,6 +142,8 @@ class Tee(object):
   def stop(self):
     setattr(sys, self._stream_name, self._orig_stream)
     self._file.close()
+    
+    self._file = None
     self._state = self._NOT_RUNNING
   
   def is_running(self):
@@ -164,8 +166,8 @@ class Tee(object):
 
   def _write_with_flush(self, data):
     self._file.write(data)
-    self._stream.write(data)
     self._file.flush()
+    self._stream.write(data)
   
   def flush(self):
     self._file.flush()
