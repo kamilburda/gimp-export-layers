@@ -221,7 +221,7 @@ The following step apply if you want to use Poedit:
    same directory as the .po file).
 7. Move and rename the .mo file to
    
-       [user directory]/.gimp-2.8/plug-ins/export_layers/locale/[language code]/LC_MESSAGES/export_layers.mo
+    [user directory]/.gimp-2.8/plug-ins/export_layers/locale/[language code]/LC_MESSAGES/export_layers.mo
    
    where [language code] is the language code in which you translated the plug-in.
    [language code] is a part of the .po file - e.g. for a file named "fr_FR.po",
@@ -235,7 +235,7 @@ If you don't want to use Poedit, the following steps apply:
    it's "export_layers-2.2.pot").
 3. Open up terminal and run
    
-       msginit --input=[path to .pot file] --locale=[language code]
+    msginit --input=[path to .pot file] --locale=[language code]
    
    where [path to .pot file] is the .pot file you downloaded and [language code]
    is a two-letter code representing a language.
@@ -247,11 +247,11 @@ If you don't want to use Poedit, the following steps apply:
    in the corresponding "msgstr" field.
 5. When done translating, generate the .mo file:
 
-       msgfmt [path to .po file] --output-file=[path to .mo file]
+    msgfmt [path to .po file] --output-file=[path to .mo file]
 
 6. Move and rename the .mo file to
    
-       [user directory]/.gimp-2.8/plug-ins/export_layers/locale/[language code]/LC_MESSAGES/export_layers.mo
+    [user directory]/.gimp-2.8/plug-ins/export_layers/locale/[language code]/LC_MESSAGES/export_layers.mo
    
 
 To test your translation, run GIMP from the terminal as follows:
