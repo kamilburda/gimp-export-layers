@@ -209,7 +209,7 @@ The following step apply if you want to use Poedit:
 
 1. Go to https://github.com/khalim19/gimp-plugin-export-layers/tree/master/resources
    and download the .pot file with the appropriate version (e.g. for version 2.2,
-   it's "export_layers-2.2.pot").
+   it's `export_layers-2.2.pot`).
 2. Open Poedit, select "File -> New from POT/PO file..." and find the .pot file
    for the plug-in.
 3. Set the language of the translation.
@@ -223,28 +223,28 @@ The following step apply if you want to use Poedit:
    
         [user directory]/.gimp-2.8/plug-ins/export_layers/locale/[language code]/LC_MESSAGES/export_layers.mo
    
-   where [language code] is the language code in which you translated the plug-in.
-   [language code] is a part of the .po file - e.g. for a file named "fr_FR.po",
+   where `[language code]` is the language code in which you translated the plug-in.
+   `[language code]` is a part of the .po file - e.g. for a file named "fr_FR.po",
    the language code is "fr_FR".
 
 If you don't want to use Poedit, the following steps apply:
 
-1. Make sure that "msginit" and "msgfmt" commands are installed on your system.
+1. Make sure that `msginit` and `msgfmt` commands are installed on your system.
 2. Go to https://github.com/khalim19/gimp-plugin-export-layers/tree/master/resources
    and download the .pot file with the appropriate version (e.g. for version 2.2,
-   it's "export_layers-2.2.pot").
+   it's `export_layers-2.2.pot`).
 3. Open up terminal and run
    
         msginit --input=[path to .pot file] --locale=[language code]
    
-   where [path to .pot file] is the .pot file you downloaded and [language code]
+   where `[path to .pot file]` is the .pot file you downloaded and `[language code]`
    is a two-letter code representing a language.
    A .po file is generated in the same directory as the current working directory.
    
    If in doubt, you can consult the list of available language codes on the following page:
    https://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html
-4. Open up the .po file and translate each string in the "msgid" field to string
-   in the corresponding "msgstr" field.
+4. Open up the .po file and translate each string in the `msgid` field to string
+   in the corresponding `msgstr` field.
 5. When done translating, generate the .mo file:
 
         msgfmt [path to .po file] --output-file=[path to .mo file]
