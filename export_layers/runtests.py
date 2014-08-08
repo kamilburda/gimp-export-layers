@@ -84,19 +84,14 @@ TESTS_PACKAGE_NAME = "tests"
 # functions that simply return the strings, since it's not desired to translate
 # them when unit-testing.
 
-def _(s):
+def gettext(s):
   return s
-
-
-def N_(s):
-  return s
-
 
 if '_' not in __builtin__.__dict__:
-  __builtin__.__dict__['_'] = _
+  __builtin__.__dict__['_'] = gettext
 
 if 'N_' not in __builtin__.__dict__:
-  __builtin__.__dict__['N_'] = N_
+  __builtin__.__dict__['N_'] = gettext
 
 #===============================================================================
 
