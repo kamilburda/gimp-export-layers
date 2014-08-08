@@ -32,24 +32,26 @@ str = unicode
 
 #===============================================================================
 
-import gettext
-
 from export_layers import constants
 
+
+if constants.DEBUG:
+  from export_layers import tee_plugin
+
+  tee_plugin.tee_plugin(constants.PLUGIN_TITLE)
+  
+#  import os
+#  import sys
+#  sys.stdout = open(os.path.join(constants.PLUGIN_PATH, tee_plugin.PLUGINS_STDOUT_FILENAME), 'a')
+#  sys.stderr = open(os.path.join(constants.PLUGIN_PATH, tee_plugin.PLUGINS_STDERR_FILENAME), 'a')
+#  
+#  lang = gettext.translation(constants.DOMAIN_NAME, constants.LOCALE_PATH, languages=['fr'])
+#  lang.install(unicode=True)
+
+
+import gettext
+
 gettext.install(constants.DOMAIN_NAME, constants.LOCALE_PATH, unicode=True)
-
-
-#import os
-#import sys
-from export_layers import tee_plugin
-
-# Log stdout and stderr for testing purposes.
-tee_plugin.tee_plugin(constants.PLUGIN_TITLE)
-#sys.stdout = open(os.path.join(constants.PLUGIN_PATH, tee_plugin.PLUGINS_STDOUT_FILENAME), 'a')
-
-
-#lang = gettext.translation(constants.DOMAIN_NAME, constants.LOCALE_PATH, languages=['fr'])
-#lang.install(unicode=True)
 
 
 import gimp

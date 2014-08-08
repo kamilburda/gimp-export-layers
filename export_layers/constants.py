@@ -20,8 +20,7 @@
 #-------------------------------------------------------------------------------
 
 """
-This module:
-* defines plug-in constants used in other modules
+This module defines plug-in constants used in other modules.
 """
 
 #===============================================================================
@@ -45,6 +44,8 @@ def N_(s):
   return s
 
 #===============================================================================
+
+DEBUG = False
 
 PLUGINS_DIRECTORY = os.path.join(gimp.directory, 'plug-ins')
 
