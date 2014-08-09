@@ -7,7 +7,7 @@ a translation tool such as Poedit (http://poedit.net) for easier usage.
 Poedit
 ------------------------
 
-The following step apply if you want to use Poedit:
+The following steps apply if you want to use Poedit:
 
 1. Go to https://github.com/khalim19/gimp-plugin-export-layers/tree/master/resources
    and download the .pot file with the appropriate version (e.g. for version 2.2,
