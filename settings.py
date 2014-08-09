@@ -484,6 +484,12 @@ class BoolSetting(Setting):
   * PDB_INT32 (default)
   """
   
+  def __init__(self, name, default_value):
+    super(BoolSetting, self).__init__(name, default_value)
+    
+    self._allowed_pdb_types = [gimpenums.PDB_INT8, gimpenums.PDB_INT16, gimpenums.PDB_INT32]
+    self.gimp_pdb_type = gimpenums.PDB_INT32
+  
   @property
   def value(self):
     return self._value
