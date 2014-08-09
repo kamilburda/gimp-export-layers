@@ -38,18 +38,22 @@ str = unicode
 
 import os
 import sys
+import inspect
 
+import subprocess
 import tempfile
 import shutil
 import zipfile
 
-import argparse
+from export_layers import constants
 
 from export_layers.pylibgimpplugin import libfiles
 
 #===============================================================================
 
-PLUGIN_PATH = os.path.dirname(os.getcwd())
+RESOURCES_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
+PLUGIN_PATH = os.path.dirname(RESOURCES_PATH)
+
 OUTPUT_FILENAME_PREFIX = "export-layers"
 OUTPUT_FILENAME_SUFFIX = ".zip"
 
@@ -70,6 +74,7 @@ LICENSE
 FILENAMES_TO_RENAME = {
   "README.md" : "Readme.txt",
   "CHANGELOG.md" : "Changelog.txt",
+  "Readme for Translators.md" : "Readme for Translators.txt",
 }
 
 #===============================================================================
@@ -132,7 +137,8 @@ def _get_filtered_files(input_directory):
 
 #===============================================================================
 
-def make_package(input_directory, output_file):
+def make_package(input_directory, output_file, version):
+  
   
   def _set_permissions(path, perms):
     """
@@ -144,6 +150,15 @@ def make_package(input_directory, output_file):
         os.chmod(os.path.join(root, dir_), perms)
       for file_ in files:
         os.chmod(os.path.join(root, file_), perms)
+  
+  
+  def _generate_pot_file(version):
+    orig_cwd = os.getcwdu()
+    os.chdir(os.path.join(RESOURCES_PATH, "locale_resources"))
+    
+    subprocess.call(["./generate_pot.sh", version])
+    
+    os.chdir(orig_cwd)
   
   
   files = _get_filtered_files(input_directory)
@@ -165,6 +180,8 @@ def make_package(input_directory, output_file):
   
   _set_permissions(temp_dir, 0o755)
   
+  _generate_pot_file(version)
+  
   with zipfile.ZipFile(output_file, "w", zipfile.ZIP_STORED) as zip_file:
     for temp_file, file_ in zip(temp_files, files_relative_paths):
       zip_file.write(temp_file, file_)
@@ -174,13 +191,12 @@ def make_package(input_directory, output_file):
 #===============================================================================
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description="Create a .zip package for releases from the plug-in source.")
-  parser.add_argument('-v', '--plugin-version', type=str)
-  namespace = parser.parse_args(sys.argv[1:])
+  output_file = OUTPUT_FILENAME_PREFIX +  '-' + constants.PLUGIN_VERSION + OUTPUT_FILENAME_SUFFIX
   
-  if namespace.plugin_version is not None:
-    output_file = OUTPUT_FILENAME_PREFIX +  '-' + namespace.plugin_version + OUTPUT_FILENAME_SUFFIX
-  else:
-    output_file = OUTPUT_FILENAME_PREFIX + OUTPUT_FILENAME_SUFFIX
+  if os.name == 'nt':
+    print(os.path.basename(sys.argv[0]) + ": Error: Script can't run on Windows " +
+          "because Unix-style permissions need to be set",
+          file=sys.stderr)
+    sys.exit(1)
   
-  make_package(PLUGIN_PATH, output_file)
+  make_package(PLUGIN_PATH, output_file, constants.PLUGIN_VERSION)
