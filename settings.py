@@ -500,7 +500,7 @@ class BoolSetting(Setting):
   
   @property
   def short_description(self):
-    return self.display_name + _(" (TRUE or FALSE)")
+    return self.display_name + "?"
 
 
 class EnumSetting(Setting):
