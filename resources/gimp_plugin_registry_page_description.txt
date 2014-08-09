@@ -51,7 +51,7 @@ It should no longer be needed for versions 2.1 and above.
 <h5><strong>Usage</strong></h5>
 From the main menu, go to "File -> Export Layers...". A dialog appears, allowing you to specify output directory, file extension and various other settings.
 
-Type the file extension in the File Extension text field (with or without the leading dot).
+Type the file extension in the File Extension text field (with or without the leading dot). To export in the raw file format, type "raw".
 
 To export layers, press the "Export Layers" button. For the first layer, a dialog corresponding to the file format appears, allowing you to adjust file format settings. Not all file formats have settings, so no dialog may appear. For subsequent layers, the file export procedure uses the values you specified in the dialog for the first file.
 

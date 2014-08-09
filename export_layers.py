@@ -44,14 +44,16 @@ if constants.DEBUG:
 #  import sys
 #  sys.stdout = open(os.path.join(constants.PLUGIN_PATH, tee_plugin.PLUGINS_STDOUT_FILENAME), 'a')
 #  sys.stderr = open(os.path.join(constants.PLUGIN_PATH, tee_plugin.PLUGINS_STDERR_FILENAME), 'a')
-#  
-#  lang = gettext.translation(constants.DOMAIN_NAME, constants.LOCALE_PATH, languages=['fr'])
-#  lang.install(unicode=True)
 
 
 import gettext
 
 gettext.install(constants.DOMAIN_NAME, constants.LOCALE_PATH, unicode=True)
+
+
+if constants.DEBUG:
+  lang = gettext.translation(constants.DOMAIN_NAME, constants.LOCALE_PATH, languages=['fr'], fallback=True)
+  lang.install(unicode=True)
 
 
 import gimp
@@ -96,8 +98,8 @@ class ExportLayersPlugin(gimpplugin.plugin):
     
     gimp.install_procedure(
       "plug_in_export_layers",
-      _("Export layers as separate images in specified file format to specified directory, "
-        "using the layer names as filenames."),
+      _("Export layers as separate images in specified file format to specified "
+        "directory, using the layer names as filenames."),
       "",
       "khalim19",
       "khalim19",

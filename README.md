@@ -27,10 +27,10 @@ Requirements
 Installation
 ------------------------
 
-From the package, extract the "export_layers.py" file and the "export_layers" directory
-to "[home directory]/.gimp-2.8/plug-ins".
+From the package, extract the `export_layers.py` file and the `export_layers` directory
+to `[home directory]/.gimp-2.8/plug-ins`.
 
-On Linux, if necessary, enable the executable flag on the "export_layers.py" file,
+On Linux, if necessary, enable the executable flag on the `export_layers.py` file,
 e.g. from the terminal:
 
     chmod u+x "export_layers.py"
@@ -49,8 +49,8 @@ the leading period). You can type any file extension supported by GIMP. File for
 provided by third-party plug-ins should work as well - at the very least,
 GIMP DDS Plugin was tested and works correctly.
 
-To export in raw file format, type "raw" into the text field. The file extension
-will remain in the files.
+To export in the raw file format, type "raw". The file extension will remain
+in the files.
 
 To export layers, press the "Export Layers" button. For the first layer,
 a dialog corresponding to the file format appears, allowing you to adjust file
@@ -188,73 +188,16 @@ This plug-in is licensed under the GNU GPLv3, which can be found on the followin
 http://www.gnu.org/licenses/gpl-3.0.html
 
 
-Support, Contact
-------------------------
-
-You can report issues on the following pages:
-* http://registry.gimp.org/node/28268
-* https://github.com/khalim19/gimp-plugin-export-layers
-
-To ask questions, request new features or simply talk about the plug-in,
-go to http://registry.gimp.org/node/28268.
-
-
 Translations
 ------------------------
 
-If you want to provide translation(s) for the plug-in, I recommend using
-a translation tool such as Poedit (http://poedit.net) for easier usage.
+If you want to provide translations for the plug-in, see the
+`export_layers/locale/Readme for Translators.txt` file in the package.
 
-The following step apply if you want to use Poedit:
 
-1. Go to https://github.com/khalim19/gimp-plugin-export-layers/tree/master/resources
-   and download the .pot file with the appropriate version (e.g. for version 2.2,
-   it's `export_layers-2.2.pot`).
-2. Open Poedit, select "File -> New from POT/PO file..." and find the .pot file
-   for the plug-in.
-3. Set the language of the translation.
-4. Translate the strings (by filling in the "Translation" text field for each string).
-5. If desired, go to "Catalog -> Properties..." and edit the translation file
-   properties. If you don't do this, warning messages may pop up when saving,
-   but they should be harmless.
-6. When done, save the .po file. An .mo file is generated automatically (in the
-   same directory as the .po file).
-7. Move and rename the .mo file to
-   
-        [user directory]/.gimp-2.8/plug-ins/export_layers/locale/[language code]/LC_MESSAGES/export_layers.mo
-   
-   where `[language code]` is the language code in which you translated the plug-in.
-   `[language code]` is a part of the .po file - e.g. for a file named "fr_FR.po",
-   the language code is "fr_FR".
+Support, Contact
+------------------------
 
-If you don't want to use Poedit, the following steps apply:
-
-1. Make sure that `msginit` and `msgfmt` commands are installed on your system.
-2. Go to https://github.com/khalim19/gimp-plugin-export-layers/tree/master/resources
-   and download the .pot file with the appropriate version (e.g. for version 2.2,
-   it's `export_layers-2.2.pot`).
-3. Open up terminal and run
-   
-        msginit --input=[path to .pot file] --locale=[language code]
-   
-   where `[path to .pot file]` is the .pot file you downloaded and `[language code]`
-   is a two-letter code representing a language.
-   A .po file is generated in the same directory as the current working directory.
-   
-   If in doubt, you can consult the list of available language codes on the following page:
-   https://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html
-4. Open up the .po file and translate each string in the `msgid` field to string
-   in the corresponding `msgstr` field.
-5. When done translating, generate the .mo file:
-
-        msgfmt [path to .po file] --output-file=[path to .mo file]
-
-6. Move and rename the .mo file to
-   
-        [user directory]/.gimp-2.8/plug-ins/export_layers/locale/[language code]/LC_MESSAGES/export_layers.mo
-   
-
-To test your translation, run GIMP from the terminal as follows:
-    
-    export LANG=[language].UTF-8
-    gimp
+You can report issues, ask questions or request new features on the following pages:
+* https://github.com/khalim19/gimp-plugin-export-layers/issues
+* http://registry.gimp.org/node/28268
