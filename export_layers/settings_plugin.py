@@ -72,6 +72,7 @@ class SpecialSettings(settings.SettingContainer):
       "in one GIMP session, False for subsequent runs."
     )
 
+
 class MainSettings(settings.SettingContainer):
   
   def _create_settings(self):
@@ -115,22 +116,6 @@ class MainSettings(settings.SettingContainer):
       "within the image. If layers are partially outside the image canvas, "
       "they will be cut off. If you want to export the entire layer, "
       "leave this setting disabled."
-    )
-    
-    self._add(
-      settings.EnumSetting(
-       'overwrite_mode', 'rename_new',
-       [('replace', _("Replace"), exportlayers.OverwriteHandler.REPLACE),
-        ('skip', _("Skip"), exportlayers.OverwriteHandler.SKIP),
-        ('rename_new', _("Rename new file"), exportlayers.OverwriteHandler.RENAME_NEW),
-        ('rename_existing', _("Rename existing file"), exportlayers.OverwriteHandler.RENAME_EXISTING),
-        ('cancel', _("Cancel"), exportlayers.OverwriteHandler.CANCEL)]
-      )
-    )
-    self['overwrite_mode'].display_name = _("Overwrite mode (non-interactive run mode only)")
-    self['overwrite_mode'].description = _(
-      "Indicates how to handle conflicting files. Skipped layers "
-      "will not be regarded as exported."
     )
     
     self._add(
@@ -193,6 +178,22 @@ class MainSettings(settings.SettingContainer):
       "useful for layers with opacity less than 100% and a layer mode different "
       "than Normal or Dissolve, which would normally be completely invisible "
       "if a file format supporting alpha channel is used (such as PNG)."
+    )
+    
+    self._add(
+      settings.EnumSetting(
+       'overwrite_mode', 'rename_new',
+       [('replace', _("Replace"), exportlayers.OverwriteHandler.REPLACE),
+        ('skip', _("Skip"), exportlayers.OverwriteHandler.SKIP),
+        ('rename_new', _("Rename new file"), exportlayers.OverwriteHandler.RENAME_NEW),
+        ('rename_existing', _("Rename existing file"), exportlayers.OverwriteHandler.RENAME_EXISTING),
+        ('cancel', _("Cancel"), exportlayers.OverwriteHandler.CANCEL)]
+      )
+    )
+    self['overwrite_mode'].display_name = _("Overwrite mode (non-interactive run mode only)")
+    self['overwrite_mode'].description = _(
+      "Indicates how to handle conflicting files. Skipped layers "
+      "will not be regarded as exported."
     )
     
     
