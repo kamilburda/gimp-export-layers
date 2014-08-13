@@ -99,9 +99,9 @@ class ExportLayersPlugin(gimpplugin.plugin):
     gimp.install_procedure(
       "plug_in_export_layers",
       _("Export layers as separate images in specified file format to specified "
-        "directory, using the layer names as filenames."),
+        "directory, using the layer names as filenames"),
       "",
-      "khalim19",
+      "khalim19 <khalim19@gmail.com>",
       "khalim19",
       "2013",
       _("E_xport Layers..."),
@@ -112,10 +112,10 @@ class ExportLayersPlugin(gimpplugin.plugin):
     )
     gimp.install_procedure(
       "plug_in_export_layers_to",
-      _("Run \"{0}\" with the last values specified.").format("plug-in-export-layers"),
+      _("Run \"{0}\" with the last values specified").format(constants.PLUGIN_TITLE),
       _("If the plug-in is run for the first time (i.e. no last values exist), "
         "default values will be used."),
-      "khalim19",
+      "khalim19 <khalim19@gmail.com>",
       "khalim19",
       "2013",
       _("Export Layers _to"),

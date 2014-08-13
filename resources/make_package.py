@@ -139,7 +139,6 @@ def _get_filtered_files(input_directory):
 
 def make_package(input_directory, output_file, version):
   
-  
   def _set_permissions(path, perms):
     """
     Set file permissions on all files and subdirectories in a given path.
@@ -150,7 +149,6 @@ def make_package(input_directory, output_file, version):
         os.chmod(os.path.join(root, dir_), perms)
       for file_ in files:
         os.chmod(os.path.join(root, file_), perms)
-  
   
   def _generate_pot_file(version):
     orig_cwd = os.getcwdu()
