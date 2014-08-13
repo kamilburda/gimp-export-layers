@@ -10,6 +10,7 @@
   
   They can appear even on Windows (which seems to be the most restrictive
   of the popular OSs as far as invalid characters go).
+* Misc. code refactoring and cleanup.
 
 2.1 (July 27, 2014)
 ------------------------
