@@ -164,15 +164,15 @@ class TestObjectFilter(unittest.TestCase):
       self.filter.remove_subfilter('subfilter_does_not_exist')
   
   def test_add_subfilter_temp(self):
-    with self.filter.add_subfilter_temp('layer_types', ObjectFilter(ObjectFilter.MATCH_ALL)):
-      self.assertTrue(self.filter.has_subfilter('layer_types'))
-    self.assertFalse(self.filter.has_subfilter('layer_types'))
+    with self.filter.add_subfilter_temp('item_types', ObjectFilter(ObjectFilter.MATCH_ALL)):
+      self.assertTrue(self.filter.has_subfilter('item_types'))
+    self.assertFalse(self.filter.has_subfilter('item_types'))
 
   def test_remove_subfilter_temp(self):
-    self.filter.add_subfilter('layer_types', ObjectFilter(ObjectFilter.MATCH_ALL))
-    with self.filter.remove_subfilter_temp('layer_types'):
-      self.assertFalse(self.filter.has_subfilter('layer_types'))
-    self.assertTrue(self.filter.has_subfilter('layer_types'))
+    self.filter.add_subfilter('item_types', ObjectFilter(ObjectFilter.MATCH_ALL))
+    with self.filter.remove_subfilter_temp('item_types'):
+      self.assertFalse(self.filter.has_subfilter('item_types'))
+    self.assertTrue(self.filter.has_subfilter('item_types'))
   
   def test_match_all(self):
     self.filter.add_rule(has_uppercase_letters)

@@ -19,6 +19,14 @@
 #
 #-------------------------------------------------------------------------------
 
+"""
+This module tests the `itemdata` module.
+
+Because the public interface to test is identical for all `ItemData` subclasses,
+it is sufficient to test `itemdata` using one of the subclasses. `LayerData` was
+chosen for this purpose.
+"""
+
 #===============================================================================
 
 from __future__ import absolute_import
@@ -38,7 +46,7 @@ import unittest
 from ..lib import mock
 from . import gimpmocks
 
-from .. import layerdata
+from .. import itemdata
 
 #===============================================================================
 
@@ -49,20 +57,20 @@ LIB_NAME = '.'.join(__name__.split('.')[:-2])
 class LayerFilterRules(object):
   
   @staticmethod
-  def is_layer(layerdata_elem):
-    return layerdata_elem.layer_type == layerdata_elem.LAYER
+  def is_layer(layer_elem):
+    return layer_elem.item_type == layer_elem.ITEM
   
   @staticmethod
-  def is_layer_or_empty_group(layerdata_elem):
-    return layerdata_elem.layer_type in (layerdata_elem.LAYER, layerdata_elem.EMPTY_GROUP)
+  def is_layer_or_empty_group(layer_elem):
+    return layer_elem.item_type in (layer_elem.ITEM, layer_elem.EMPTY_GROUP)
   
   @staticmethod
-  def is_path_visible(layerdata_elem):
-    return layerdata_elem.path_visible
+  def is_path_visible(layer_elem):
+    return layer_elem.path_visible
   
   @staticmethod
-  def has_matching_file_extension(layerdata_elem, file_extension):
-    return layerdata_elem.layer_name.endswith('.' + file_extension)
+  def has_matching_file_extension(layer_elem, file_extension):
+    return layer_elem.name.endswith('.' + file_extension)
 
 #===============================================================================
 
@@ -108,10 +116,10 @@ def _parse_layers(docstring):
 
 #===============================================================================
 
-@mock.patch(LIB_NAME + '.layerdata.pdb', new=gimpmocks.MockPDB())
+@mock.patch(LIB_NAME + '.itemdata.pdb', new=gimpmocks.MockPDB())
 class TestLayerData(unittest.TestCase):
 
-  @mock.patch(LIB_NAME + '.layerdata.pdb', new=gimpmocks.MockPDB())
+  @mock.patch(LIB_NAME + '.itemdata.pdb', new=gimpmocks.MockPDB())
   def setUp(self):
     layers_string = """
       Corners {
@@ -144,7 +152,7 @@ class TestLayerData(unittest.TestCase):
     """
     
     image = _parse_layers(layers_string)
-    self.layer_data = layerdata.LayerData(image)
+    self.layer_data = itemdata.LayerData(image)
   
   def test_get_len(self):
     layer_count_total = 20
@@ -159,81 +167,81 @@ class TestLayerData(unittest.TestCase):
   def test_get_filepath(self):
     output_directory = os.path.join("D:", os.sep, "testgimp");
     
-    # layerdata_elem with parents
-    layerdata_elem = self.layer_data['bottom-right-corner']
+    # layer_elem with parents
+    layer_elem = self.layer_data['bottom-right-corner']
     
     self.assertEqual(
-      layerdata_elem.get_filepath(output_directory),
-      os.path.join(output_directory, "Corners", "top-left-corner::", layerdata_elem.layer_name)
+      layer_elem.get_filepath(output_directory),
+      os.path.join(output_directory, "Corners", "top-left-corner::", layer_elem.name)
     )
     self.assertEqual(
-      layerdata_elem.get_filepath(output_directory, include_layer_path=False),
-      os.path.join(output_directory, layerdata_elem.layer_name)
+      layer_elem.get_filepath(output_directory, include_item_path=False),
+      os.path.join(output_directory, layer_elem.name)
     )
     self.assertEqual(
-      layerdata_elem.get_filepath("testgimp"),
-      os.path.join(os.getcwd(), "testgimp", "Corners", "top-left-corner::", layerdata_elem.layer_name)
+      layer_elem.get_filepath("testgimp"),
+      os.path.join(os.getcwd(), "testgimp", "Corners", "top-left-corner::", layer_elem.name)
     )
     self.assertEqual(
-      layerdata_elem.get_filepath(None),
-      os.path.join(os.getcwd(), "Corners", "top-left-corner::", layerdata_elem.layer_name)
-    )
-    
-    layerdata_empty_layer_group = self.layer_data['top-left-corner:']
-    
-    self.assertEqual(
-      layerdata_empty_layer_group.get_filepath(output_directory),
-      os.path.join(output_directory, 'Corners', layerdata_empty_layer_group.layer_name)
-    )
-    self.assertEqual(
-      layerdata_empty_layer_group.get_filepath(output_directory, include_layer_path=False),
-      os.path.join(output_directory, layerdata_empty_layer_group.layer_name)
+      layer_elem.get_filepath(None),
+      os.path.join(os.getcwd(), "Corners", "top-left-corner::", layer_elem.name)
     )
     
-    layerdata_empty_layer_group_no_parents = self.layer_data['Overlay']
+    itemdata_empty_layer_group = self.layer_data['top-left-corner:']
     
     self.assertEqual(
-      layerdata_empty_layer_group_no_parents.get_filepath(output_directory),
-      os.path.join(output_directory, layerdata_empty_layer_group_no_parents.layer_name)
+      itemdata_empty_layer_group.get_filepath(output_directory),
+      os.path.join(output_directory, 'Corners', itemdata_empty_layer_group.name)
     )
     self.assertEqual(
-      layerdata_empty_layer_group_no_parents.get_filepath(output_directory),
-      layerdata_empty_layer_group_no_parents.get_filepath(output_directory, include_layer_path=False)
+      itemdata_empty_layer_group.get_filepath(output_directory, include_item_path=False),
+      os.path.join(output_directory, itemdata_empty_layer_group.name)
+    )
+    
+    itemdata_empty_layer_group_no_parents = self.layer_data['Overlay']
+    
+    self.assertEqual(
+      itemdata_empty_layer_group_no_parents.get_filepath(output_directory),
+      os.path.join(output_directory, itemdata_empty_layer_group_no_parents.name)
+    )
+    self.assertEqual(
+      itemdata_empty_layer_group_no_parents.get_filepath(output_directory),
+      itemdata_empty_layer_group_no_parents.get_filepath(output_directory, include_item_path=False)
     )
   
   def test_set_file_extension(self):
-    layerdata_elem = self.layer_data['main-background.jpg']
+    layer_elem = self.layer_data['main-background.jpg']
     
-    layerdata_elem.set_file_extension(None)
-    self.assertEqual(layerdata_elem.layer_name, "main-background")
-    layerdata_elem.set_file_extension("png")
-    self.assertEqual(layerdata_elem.layer_name, "main-background.png")
+    layer_elem.set_file_extension(None)
+    self.assertEqual(layer_elem.name, "main-background")
+    layer_elem.set_file_extension("png")
+    self.assertEqual(layer_elem.name, "main-background.png")
   
   #-----------------------------------------------------------------------------
     
-  def _compare_uniquified_without_parents(self, layer_data, uniquified_layer_names):
-    for key, layer_name in uniquified_layer_names.items():
+  def _compare_uniquified_without_parents(self, layer_data, uniquified_names):
+    for key, name in uniquified_names.items():
       self.assertEqual(
-        layer_data[key].layer_name, layer_name,
-        "'" + key + "': '" + str(layer_data[key].layer_name) + "' != '" + str(layer_name) + "'"
+        layer_data[key].name, name,
+        "'" + key + "': '" + str(layer_data[key].name) + "' != '" + str(name) + "'"
       )
   
-  def _compare_uniquified_with_parents(self, layer_data, uniquified_layer_names):
-    for key, layer_path in uniquified_layer_names.items():
-      path_components, layer_name = layer_path[:-1], layer_path[-1]
+  def _compare_uniquified_with_parents(self, item_data, uniquified_names):
+    for key, item_path in uniquified_names.items():
+      path_components, name = item_path[:-1], item_path[-1]
       self.assertEqual(
-        layer_data[key].get_path_components(), path_components,
-        ("parents: '" + key + "': '" + str(layer_data[key].get_path_components()) +
+        item_data[key].get_path_components(), path_components,
+        ("parents: '" + key + "': '" + str(item_data[key].get_path_components()) +
          "' != '" + str(path_components) + "'")
       )
       self.assertEqual(
-        layer_data[key].layer_name, layer_name,
-        ("layer name: '" + key + "': '" + str(layer_data[key].layer_name) +
-         "' != '" + str(layer_name) + "'")
+        item_data[key].name, name,
+        ("layer name: '" + key + "': '" + str(item_data[key].name) +
+         "' != '" + str(name) + "'")
       )
   
   def test_uniquifies_without_layer_groups(self):
-    uniquified_layer_names = OrderedDict([
+    uniquified_names = OrderedDict([
       ("top-left-corner",      "top-left-corner (1)"),
       ("top-right-corner",     "top-right-corner"),
       ("top-left-corner:",     "top-left-corner (2)"),
@@ -249,21 +257,21 @@ class TestLayerData(unittest.TestCase):
     ])
     
     # This is to make the uniquification work properly for these tests. It's not
-    # inside the `uniquify_layer_names` method because the code that uses this
+    # inside the `uniquify_names` method because the code that uses this
     # method may need to uniquify non-empty layer groups in some scenarios
     # (such as when merging non-empty layer groups into layers, which would not
     # match the filter).
     self.layer_data.is_filtered = True
     self.layer_data.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     
-    for layerdata_elem in self.layer_data:
-      layerdata_elem.validate_name()
-      self.layer_data.uniquify_layer_name(layerdata_elem, include_layer_path=False,
-                                          place_before_file_extension=False)
-    self._compare_uniquified_without_parents(self.layer_data, uniquified_layer_names)
+    for layer_elem in self.layer_data:
+      layer_elem.validate_name()
+      self.layer_data.uniquify_name(layer_elem, include_item_path=False,
+                                    place_before_file_extension=False)
+    self._compare_uniquified_without_parents(self.layer_data, uniquified_names)
   
   def test_uniquifies_with_layer_groups(self):
-    uniquified_layer_names = OrderedDict([
+    uniquified_names = OrderedDict([
       ("Corners",                ["Corners (1)"]),
       ("top-left-corner",        ["Corners (1)", "top-left-corner"]),
       ("top-right-corner",       ["Corners (1)", "top-right-corner"]),
@@ -288,14 +296,14 @@ class TestLayerData(unittest.TestCase):
     self.layer_data.is_filtered = True
     self.layer_data.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     
-    for layerdata_elem in self.layer_data:
-      layerdata_elem.validate_name()
-      self.layer_data.uniquify_layer_name(layerdata_elem, include_layer_path=True,
+    for layer_elem in self.layer_data:
+      layer_elem.validate_name()
+      self.layer_data.uniquify_name(layer_elem, include_item_path=True,
                                           place_before_file_extension=False)
-    self._compare_uniquified_with_parents(self.layer_data, uniquified_layer_names)
+    self._compare_uniquified_with_parents(self.layer_data, uniquified_names)
   
   def test_uniquifies_with_regards_to_file_extension(self):
-    uniquified_layer_names = OrderedDict([
+    uniquified_names = OrderedDict([
       ("main-background.jpg",    ["main-background.jpg"]),
       ("main-background.jpg:",   ["main-background (1).jpg"]),
       ("main-background.jpg::",  ["main-background.jpg (1)"])
@@ -304,9 +312,9 @@ class TestLayerData(unittest.TestCase):
     self.layer_data.is_filtered = True
     self.layer_data.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     
-    for layerdata_elem in self.layer_data:
-      layerdata_elem.validate_name()
-      self.layer_data.uniquify_layer_name(layerdata_elem, include_layer_path=True,
+    for layer_elem in self.layer_data:
+      layer_elem.validate_name()
+      self.layer_data.uniquify_name(layer_elem, include_item_path=True,
                                           place_before_file_extension=True)
-    self._compare_uniquified_with_parents(self.layer_data, uniquified_layer_names)
+    self._compare_uniquified_with_parents(self.layer_data, uniquified_names)
   
