@@ -7,6 +7,7 @@
   possible to create translations of the plug-in (details in the Translations
   section in the Readme).
 * Allowed again the following special characters in filenames: ~!@`#$%&=+{}[]
+  
   They can appear even on Windows (which seems to be the most restrictive
   of the popular OSs as far as invalid characters go).
 
