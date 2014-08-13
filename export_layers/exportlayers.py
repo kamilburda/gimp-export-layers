@@ -242,12 +242,10 @@ class LayerExporter(object):
     
     self._image_copy = None
     self._layer_data = itemdata.LayerData(self.image, is_filtered=True)
-    self._background_itemdata = []
+    self._background_layer_elems = []
     # Layer containing all background layers merged into one. This layer is not
     # inserted into the image, but rather its copies (for each layer to be exported).
     self._background_layer = None
-    self._empty_groups_itemdata = []
-    
     
     if self.progress_updater is None:
       self.progress_updater = progress.ProgressUpdater(None)
@@ -269,20 +267,20 @@ class LayerExporter(object):
     """
     
     self._layer_data.filter.add_subfilter(
-      'item_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY)
+      'layer_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY)
     )
     
-    self._layer_data.filter['item_types'].add_rule(LayerFilterRules.is_layer)
+    self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_layer)
     
     if self.main_settings['merge_layer_groups'].value:
       self._layer_data.filter.add_rule(LayerFilterRules.is_top_level)
-      self._layer_data.filter['item_types'].add_rule(LayerFilterRules.is_nonempty_group)
+      self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
     
     if self.main_settings['ignore_invisible'].value:
       self._layer_data.filter.add_rule(LayerFilterRules.is_path_visible)
     
     if self.main_settings['empty_directories'].value:
-      self._layer_data.filter['item_types'].add_rule(LayerFilterRules.is_empty_group)
+      self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
     if (self.main_settings['square_bracketed_mode'].value ==
         self.main_settings['square_bracketed_mode'].options['normal']):
@@ -291,7 +289,7 @@ class LayerExporter(object):
     elif (self.main_settings['square_bracketed_mode'].value ==
         self.main_settings['square_bracketed_mode'].options['background']):
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_enclosed_in_square_brackets):
-        self._background_itemdata = list(self._layer_data)
+        self._background_layer_elems = list(self._layer_data)
       self._layer_data.filter.add_rule(LayerFilterRules.is_not_enclosed_in_square_brackets)
     elif (self.main_settings['square_bracketed_mode'].value ==
           self.main_settings['square_bracketed_mode'].options['ignore']):
@@ -314,7 +312,7 @@ class LayerExporter(object):
       self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension, self._default_file_extension)
   
   def _export_layers(self):
-    with self._layer_data.filter['item_types'].remove_rule_temp(LayerFilterRules.is_empty_group,
+    with self._layer_data.filter['layer_types'].remove_rule_temp(LayerFilterRules.is_empty_group,
                                                                  raise_if_not_found=False):
       self.progress_updater.num_total_tasks = len(self._layer_data)
     
@@ -332,13 +330,13 @@ class LayerExporter(object):
         self._strip_file_extension(layer_elem)
         self._set_file_extension_and_update_file_export_func(layer_elem)
         self._layer_data.uniquify_name(layer_elem, self._include_item_path,
-                                             place_before_file_extension=True)
+                                       place_before_file_extension=True)
         
         self._export_layer(layer_elem, self._image_copy, layer_copy)
         if self._current_layer_export_status == self._USE_DEFAULT_FILE_EXTENSION:
           self._set_file_extension_and_update_file_export_func(layer_elem)
           self._layer_data.uniquify_name(layer_elem, self._include_item_path,
-                                               place_before_file_extension=True)
+                                         place_before_file_extension=True)
           self._export_layer(layer_elem, self._image_copy, layer_copy)
         
         self.progress_updater.update_tasks(1)
@@ -351,7 +349,7 @@ class LayerExporter(object):
       else:
         layer_elem.validate_name()
         self._layer_data.uniquify_name(layer_elem, self._include_item_path,
-                                             place_before_file_extension=False)
+                                       place_before_file_extension=False)
         empty_directory = layer_elem.get_filepath(self._output_directory, self._include_item_path)
         libfiles.make_dirs(empty_directory)
   
@@ -403,22 +401,22 @@ class LayerExporter(object):
     return layer_copy
   
   def _insert_background(self):
-    if self._background_itemdata:
+    if self._background_layer_elems:
       if self._background_layer is None:
         if self.main_settings['use_image_size'].value:
           # Remove background layers outside the image canvas, since they wouldn't
           # be visible anyway and because we need to avoid `RuntimeError`
           # when `pdb.gimp_image_merge_visible_layers` with the `CLIP_TO_IMAGE`
           # option tries to merge layers that are all outside the image canvas.
-          self._background_itemdata = [
-            bg_elem for bg_elem in self._background_itemdata
+          self._background_layer_elems = [
+            bg_elem for bg_elem in self._background_layer_elems
             if pylibgimp.is_layer_inside_image(self._image_copy, bg_elem.item)
           ]
           
-          if not self._background_itemdata:
+          if not self._background_layer_elems:
             return
         
-        for i, bg_elem in enumerate(self._background_itemdata):
+        for i, bg_elem in enumerate(self._background_layer_elems):
           bg_layer_copy = pdb.gimp_layer_new_from_drawable(bg_elem.item, self._image_copy)
           pdb.gimp_image_insert_layer(self._image_copy, bg_layer_copy, None, i)
           pdb.gimp_item_set_visible(bg_layer_copy, True)
