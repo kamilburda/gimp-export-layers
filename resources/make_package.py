@@ -52,7 +52,7 @@ from export_layers.pylibgimpplugin import libfiles
 #===============================================================================
 
 RESOURCES_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
-PLUGIN_PATH = os.path.dirname(RESOURCES_PATH)
+PLUGINS_PATH = os.path.dirname(RESOURCES_PATH)
 
 OUTPUT_FILENAME_PREFIX = "export-layers"
 OUTPUT_FILENAME_SUFFIX = ".zip"
@@ -197,4 +197,4 @@ if __name__ == "__main__":
           file=sys.stderr)
     sys.exit(1)
   
-  make_package(PLUGIN_PATH, output_file, constants.PLUGIN_VERSION)
+  make_package(PLUGINS_PATH, output_file, constants.PLUGIN_VERSION)
