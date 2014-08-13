@@ -20,35 +20,39 @@
 #-------------------------------------------------------------------------------
 
 """
-This module can be used to unit-test modules which require GIMP
-to be running.
+This module can be used to unit-test modules which require GIMP to be running.
 
-All modules not starting with "test_" prefix will be loaded/reloaded before
+All modules starting with the "test_" prefix will be executed as unit tests.
+
+All modules not starting with the "test_" prefix will be loaded/reloaded before
 executing the unit tests.
 
-All modules in the 'tests' package starting with "test_" prefix
-will be executed as unit tests.
-
 --------------------------
-To run the unit tests in GIMP:
+
+To run unit tests in GIMP:
+
 * Open up the Python-Fu console (Filters -> Python-Fu -> Console).
-* Run the following commands (you can copy-paste them):
+* Run the following commands (you can copy-paste the lines to the console):
+
 
 import os
 import sys
 sys.path.append(os.path.join(gimp.directory, "plug-ins"))
-from export_layers import runtests
-
-* Run the tests by invoking the following command:
-
+sys.path.append(os.path.join(gimp.directory, "plug-ins", "resources"))
+import runtests
 runtests.run_tests()
 
-* To repeat the tests, simply run the above command again.
---------------------------
 
-If you made changes to this module, you have to reload it manually:
+* To repeat the tests, paste the following to the console:
 
+
+_ = lambda s: s
 reload(runtests)
+_
+runtests.run_tests()
+
+
+The `_` is vital if you're using `gettext` module for internationalization.
 """
 
 #===============================================================================
@@ -65,6 +69,7 @@ str = unicode
 import os
 import sys
 import types
+import inspect
 
 import __builtin__
 
@@ -76,7 +81,9 @@ import unittest
 #===============================================================================
 
 TEST_MODULE_NAME_PREFIX = "test_"
-TESTS_PACKAGE_NAME = "tests"
+
+RESOURCES_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
+PLUGINS_PATH = os.path.dirname(RESOURCES_PATH)
 
 #===============================================================================
 
@@ -103,7 +110,7 @@ def run_test(module, stream=sys.stderr):
 
 def load_module(module_name):
   """
-  If not imported, import module specified by its name.
+  If not imported, import the module specified by its name.
   If already imported, reload the module.
   """
   
@@ -131,20 +138,8 @@ def _fix_streams_for_unittest():
 
 def run_tests(stream=sys.stderr):
   _fix_streams_for_unittest()
-
-  # The parent of the package had to be specified, otherwise `walk_packages`
-  # would not yield modules inside subpackages for some reason...
   
-  module_path = os.path.abspath(__file__)
-  module_dir_path = os.path.dirname(module_path)
-  
-  parent_module = os.path.basename(module_dir_path)
-  parent_dir_path = os.path.dirname(module_dir_path)
-  
-  for unused_, module_name, unused_ in pkgutil.walk_packages(path=[parent_dir_path]):
-    if not module_name.startswith(parent_module):
-      continue
-    
+  for unused_, module_name, unused_ in pkgutil.walk_packages(path=[PLUGINS_PATH]):
     module = load_module(module_name)
     
     parts = module_name.split('.')
