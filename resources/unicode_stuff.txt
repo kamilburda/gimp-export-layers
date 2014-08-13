@@ -28,10 +28,10 @@ Plug-in:
            http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html
         - encode in UTF-8
    - `gimpui.IntComboBox` - can't handle `unicode`, must pass `bytes`
-* layerdata
-   - `_LayerDataElement.orig_layer_name` - decoded from `gimp.Layer.name` (which is encoded in UTF-8)
-   - `_LayerDataElement.layer_name` - `unicode`
-   - `LayerData._layerdata` keys are `_LayerDataElement.orig_layer_name`
+* itemdata
+   - `_ItemDataElement.orig_name` - decoded from `gimp.Layer.name` (which is encoded in UTF-8)
+   - `_ItemDataElement.name` - `unicode`
+   - `LayerData._itemdata` keys are `_ItemDataElement.orig_name`
 * libfiles
    - stand-alone functions don't care about string type or encoding
    - `uniquify_filename`, `make_dirs` - they use the `os` module, whose functions accept `unicode` strings
