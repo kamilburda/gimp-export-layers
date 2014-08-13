@@ -1,12 +1,12 @@
 Export Layers
-========================
+=============
 
 Export Layers is a GIMP plug-in that exports layers as separate images in almost any file
 format supported by GIMP and possibly third-party plug-ins.
 
 
 Feature Summary
-------------------------
+---------------
 
 This plug-in:
 * exports layers as separate images in almost any file format supported by GIMP
@@ -19,13 +19,13 @@ This plug-in:
 
 
 Requirements
-------------------------
+------------
 
 * GIMP 2.8 or later with Python-Fu installed
 
 
 Installation
-------------------------
+------------
 
 From the package, extract the `export_layers.py` file and the `export_layers` directory
 to `[home directory]/.gimp-2.8/plug-ins`.
@@ -39,7 +39,7 @@ It should no longer be needed for versions 2.1 and above.
 
 
 Usage
-------------------------
+-----
 
 From the main menu, go to "File -> Export Layers...". A dialog appears, allowing
 you to specify output directory, file extension and various other settings.
@@ -70,7 +70,7 @@ instead, the last used values will be used.
 
 
 Settings
-------------------------
+--------
 
 **Treat layer groups as directories**
 
@@ -107,7 +107,7 @@ Settings will be reset to their default values.
 
 
 Advanced Settings
-------------------------
+-----------------
 
 **File extensions in layer names**
 
@@ -158,7 +158,7 @@ is used (such as PNG).
 
 
 Known Issues
-------------------------
+------------
 
 On Windows, the file format dialog is displayed behind the main dialog.
 
@@ -182,21 +182,21 @@ In Export Layers To, JPG format always displays the file format dialog for the f
 
 
 License
-------------------------
+-------
 
 This plug-in is licensed under the GNU GPLv3, which can be found on the following page:
 http://www.gnu.org/licenses/gpl-3.0.html
 
 
 Translations
-------------------------
+------------
 
 If you want to provide translations for the plug-in, see the
 `export_layers/locale/Readme for Translators.txt` file in the package.
 
 
 Support, Contact
-------------------------
+----------------
 
 You can report issues, ask questions or request new features on the following pages:
 * https://github.com/khalim19/gimp-plugin-export-layers/issues
