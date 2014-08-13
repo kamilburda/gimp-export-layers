@@ -46,7 +46,7 @@ from collections import OrderedDict
 import json
 
 import gimp
-from gimpshelf import shelf
+import gimpshelf
 import gimpenums
 
 from . import libfiles
@@ -406,7 +406,7 @@ class NumericSetting(Setting):
     self.max_value = None
     
     self.error_messages['below_min'] = _("Value cannot be less than {0}.").format(self.min_value)
-    self.error_messages['above_max'] = _("value cannot be greater than {0}.").format(self.max_value)
+    self.error_messages['above_max'] = _("Value cannot be greater than {0}.").format(self.max_value)
   
   @property
   def value(self):
@@ -474,8 +474,8 @@ class BoolSetting(Setting):
   """
   This class can be used for boolean settings.
   
-  Since GIMP does not have a boolean PDB type defined, one of the integer types
-  can be used.
+  Since GIMP does not have a boolean PDB type defined, use one of the integer
+  types.
   
   Allowed GIMP PDB types:
   
@@ -507,7 +507,7 @@ class EnumSetting(Setting):
   
   """
   This class can be used for settings with a limited number of values,
-  resembling `enum`s from the C language.
+  accessed by their associated names.
   
   Allowed GIMP PDB types:
   
@@ -1111,7 +1111,7 @@ class GimpShelfSettingStream(SettingStream):
     
     for setting in settings:
       try:
-        value = shelf[(self.shelf_prefix + setting.name).encode()]
+        value = gimpshelf.shelf[(self.shelf_prefix + setting.name).encode()]
       except KeyError:
         self._settings_not_found.append(setting)
       else:
@@ -1128,7 +1128,7 @@ class GimpShelfSettingStream(SettingStream):
   
   def write(self, settings):
     for setting in settings:
-      shelf[(self.shelf_prefix + setting.name).encode()] = setting.value
+      gimpshelf.shelf[(self.shelf_prefix + setting.name).encode()] = setting.value
 
 
 class JSONFileSettingStream(SettingStream):

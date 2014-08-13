@@ -422,35 +422,35 @@ class TestSettingPresenterContainer(unittest.TestCase):
 
 class TestShelfSettingStream(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def setUp(self):
     self.prefix = 'prefix'
     self.stream = settings.GimpShelfSettingStream(self.prefix)
     self.settings = SettingContainerTest()
   
-  @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_write(self):
     self.settings['file_extension'].value = "png"
     self.settings['ignore_invisible'].value = True
     self.stream.write(self.settings)
     
-    self.assertEqual(settings.shelf[self.prefix + 'file_extension'], "png")
-    self.assertEqual(settings.shelf[self.prefix + 'ignore_invisible'], True)
+    self.assertEqual(settings.gimpshelf.shelf[self.prefix + 'file_extension'], "png")
+    self.assertEqual(settings.gimpshelf.shelf[self.prefix + 'ignore_invisible'], True)
   
-  @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_read(self):
-    settings.shelf[self.prefix + 'file_extension'] = "png"
-    settings.shelf[self.prefix + 'ignore_invisible'] = True
+    settings.gimpshelf.shelf[self.prefix + 'file_extension'] = "png"
+    settings.gimpshelf.shelf[self.prefix + 'ignore_invisible'] = True
     self.stream.read([self.settings['file_extension'], self.settings['ignore_invisible']])
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
   
-  @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_read_settings_not_found(self):
     with self.assertRaises(settings.SettingsNotFoundInStreamError):
       self.stream.read(self.settings)
   
-  @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_read_invalid_setting_value(self):
     setting_with_invalid_value = settings.IntSetting('int', -1)
     setting_with_invalid_value.min_value = 0
@@ -533,7 +533,7 @@ class TestJSONFileSettingStream(unittest.TestCase):
 @mock.patch('__builtin__.open')
 class TestSettingPersistor(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def setUp(self):
     self.settings = SettingContainerTest()
     self.first_stream = settings.GimpShelfSettingStream('')
@@ -541,7 +541,7 @@ class TestSettingPersistor(unittest.TestCase):
     self.setting_persistor = settings.SettingPersistor([self.first_stream, self.second_stream],
                                                        [self.first_stream, self.second_stream])
   
-  @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_save(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
@@ -559,7 +559,7 @@ class TestSettingPersistor(unittest.TestCase):
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
   
-  @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_combine_settings_from_multiple_streams(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
@@ -580,7 +580,7 @@ class TestSettingPersistor(unittest.TestCase):
       if setting not in [self.settings['file_extension'], self.settings['ignore_invisible']]:
         self.assertEqual(setting.value, setting.default_value)
   
-  @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_settings_file_not_found(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     mock_file.side_effect = IOError("File not found")
@@ -589,7 +589,7 @@ class TestSettingPersistor(unittest.TestCase):
     status = self.setting_persistor.load(self.settings)
     self.assertEqual(status, settings.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
     
-  @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_settings_not_found(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     self.first_stream.write([self.settings['ignore_invisible']])
@@ -598,7 +598,7 @@ class TestSettingPersistor(unittest.TestCase):
     status = self.setting_persistor.load([self.settings['overwrite_mode']])
     self.assertEqual(status, settings.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
-  @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_read_fail(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
@@ -613,7 +613,7 @@ class TestSettingPersistor(unittest.TestCase):
     status = self.setting_persistor.load(self.settings)
     self.assertEqual(status, settings.SettingPersistor.READ_FAIL)
   
-  @mock.patch(LIB_NAME + '.settings.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_save_write_fail(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
