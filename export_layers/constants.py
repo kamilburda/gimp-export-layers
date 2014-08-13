@@ -62,7 +62,7 @@ DEBUG_IMAGE_PROCESSING = False
 #===============================================================================
 
 if is_gimp_module_loaded:
-  PLUGINS_DIRECTORY = os.path.join(gimp.directory, 'plug-ins')
+  PLUGINS_DIRECTORY = os.path.join(gimp.directory, "plug-ins")
 else:
   current_module_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
   PLUGINS_DIRECTORY = os.path.dirname(current_module_path)
@@ -81,3 +81,6 @@ BUG_REPORT_URI_LIST = [
 DOMAIN_NAME = PLUGIN_PROGRAM_NAME
 LOCALE_DIRNAME = "locale"
 LOCALE_PATH = os.path.join(PLUGINS_DIRECTORY, PLUGIN_PROGRAM_NAME, LOCALE_DIRNAME)
+
+PLUGINS_LOG_STDOUT_PATH = os.path.join(PLUGIN_PATH, PLUGIN_PROGRAM_NAME + '.log')
+PLUGINS_LOG_STDERR_PATH = os.path.join(PLUGIN_PATH, PLUGIN_PROGRAM_NAME + '_error.log')

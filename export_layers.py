@@ -36,14 +36,17 @@ from export_layers import constants
 
 
 if constants.DEBUG:
-  from export_layers import tee_plugin
-
-  tee_plugin.tee_plugin(constants.PLUGIN_TITLE)
+  import sys
   
-#  import os
-#  import sys
-#  sys.stdout = open(os.path.join(constants.PLUGIN_PATH, tee_plugin.PLUGINS_STDOUT_FILENAME), 'a')
-#  sys.stderr = open(os.path.join(constants.PLUGIN_PATH, tee_plugin.PLUGINS_STDERR_FILENAME), 'a')
+  from export_layers.pylibgimpplugin import tee
+
+  tee.Tee(sys.stdout, open(constants.PLUGINS_LOG_STDOUT_PATH, 'a'),
+          log_header_title=constants.PLUGIN_TITLE, flush_file=True)
+  tee.Tee(sys.stderr, open(constants.PLUGINS_LOG_STDERR_PATH, 'a'),
+          log_header_title=constants.PLUGIN_TITLE, flush_file=True)
+  
+#  sys.stdout = open(constants.PLUGINS_LOG_STDOUT_PATH, 'a')
+#  sys.stderr = open(constants.PLUGINS_LOG_STDOUT_PATH, 'a')
 
 
 import gettext
