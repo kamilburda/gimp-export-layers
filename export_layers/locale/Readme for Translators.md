@@ -61,10 +61,9 @@ To create a new translation for your language:
    the language code and `CC` is the country code. For example, the French
    language is represented as "fr_FR". If in doubt, you can consult the list of
    available language and country codes on the following pages:
-   
-   https://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html
-   https://www.gnu.org/software/gettext/manual/html_node/Rare-Language-Codes.html
-   https://www.gnu.org/software/gettext/manual/html_node/Country-Codes.html
+   * https://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html
+   * https://www.gnu.org/software/gettext/manual/html_node/Rare-Language-Codes.html
+   * https://www.gnu.org/software/gettext/manual/html_node/Country-Codes.html
    
 4. Open the .po file in a text editor and translate each string in the `msgid`
    field to a string in the corresponding `msgstr` field.
@@ -135,7 +134,7 @@ your translation in GIMP.
 
 If you run Linux, run GIMP from the terminal as follows:
    
-    LANG=[language].UTF-8 gimp
+    LANG="[language].UTF-8" gimp
 
 #### Windows
 
