@@ -191,8 +191,8 @@ http://www.gnu.org/licenses/gpl-3.0.html
 Translations
 ------------
 
-If you want to provide translations for the plug-in, see the
-`Readme for Translators.txt` file in the package.
+If you want to provide translations for the plug-in, see the `Readme for Translators.txt`
+file in the `export_layers/locale` directory in the package.
 
 
 Support, Contact
