@@ -16,7 +16,7 @@ fi
 plugin_version="$1"
 
 INPUT_DIRECTORY='../..'
-OUTPUT_FILE='../../export_layers/locale/'"$PLUGIN_NAME"'-'"$plugin_version"'.pot'
+OUTPUT_FILE='./'"$PLUGIN_NAME"'-'"$plugin_version"'.pot'
 AUTHOR_NAME='khalim19'
 AUTHOR_MAIL='khalim19@gmail.com'
 

@@ -2,15 +2,15 @@
 
 # This script:
 # * generates .mo file from the specified .po file
-# * moves the .mo file to the locale directory ('LOCALE_DIR' defined below).
+# * moves the .mo file to the appropriate directory.
 #
-# The language is determined from the basename of the .po file.
+# The language code is determined from the basename of the .po file.
 
 PROGNAME="$(basename "$0")"
 
 PLUGIN_NAME='export_layers'
 
-LOCALE_DIR='../../'"$PLUGIN_NAME"'/locale'
+LOCALE_DIR='.'
 LC_MESSAGES_DIR='LC_MESSAGES'
 
 if [ ! -f "$1" ]; then
