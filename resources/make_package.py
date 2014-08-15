@@ -150,12 +150,16 @@ def make_package(input_directory, output_file, version):
       for file_ in files:
         os.chmod(os.path.join(root, file_), perms)
   
+  
   def _generate_pot_file(version):
+    for file_ in os.listdir(constants.LOCALE_PATH):
+      if os.path.isfile(os.path.join(constants.LOCALE_PATH, file_)):
+        if file_.endswith(".pot"):
+          os.remove(os.path.join(constants.LOCALE_PATH, file_))
+    
     orig_cwd = os.getcwdu()
-    os.chdir(os.path.join(RESOURCES_PATH, "locale_resources"))
-    
+    os.chdir(constants.LOCALE_PATH)
     subprocess.call(["./generate_pot.sh", version])
-    
     os.chdir(orig_cwd)
   
   
@@ -192,7 +196,7 @@ if __name__ == "__main__":
   output_file = OUTPUT_FILENAME_PREFIX +  '-' + constants.PLUGIN_VERSION + OUTPUT_FILENAME_SUFFIX
   
   if os.name == 'nt':
-    print(os.path.basename(sys.argv[0]) + ": Error: Script can't run on Windows " +
+    print(os.path.basename(sys.argv[0]) + ": Error: Can't run script on Windows " +
           "because Unix-style permissions need to be set",
           file=sys.stderr)
     sys.exit(1)
