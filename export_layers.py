@@ -39,24 +39,16 @@ if constants.DEBUG:
   import sys
   
   from export_layers.pylibgimpplugin import tee
-
+  
   tee.Tee(sys.stdout, open(constants.PLUGINS_LOG_STDOUT_PATH, 'a'),
           log_header_title=constants.PLUGIN_TITLE, flush_file=True)
   tee.Tee(sys.stderr, open(constants.PLUGINS_LOG_STDERR_PATH, 'a'),
           log_header_title=constants.PLUGIN_TITLE, flush_file=True)
-  
-#  sys.stdout = open(constants.PLUGINS_LOG_STDOUT_PATH, 'a')
-#  sys.stderr = open(constants.PLUGINS_LOG_STDOUT_PATH, 'a')
 
 
 import gettext
 
 gettext.install(constants.DOMAIN_NAME, constants.LOCALE_PATH, unicode=True)
-
-
-if constants.DEBUG:
-  lang = gettext.translation(constants.DOMAIN_NAME, constants.LOCALE_PATH, languages=['fr'], fallback=True)
-  lang.install(unicode=True)
 
 
 import gimp
