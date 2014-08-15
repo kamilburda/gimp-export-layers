@@ -1,15 +1,21 @@
-2.2 (Upcoming)
+2.2 (August 15, 2014)
 ------------------------
 
 * Changed how the initial output directory in the GUI is determined. It is now
   remembered separately for each image currently opened in GIMP.
 * Added support for plug-in internationalization and localization. It is now
-  possible to create translations of the plug-in (details in the Translations
-  section in the Readme).
+  possible to create translations of the plug-in (see the
+  "Readme for Translators.txt" file in the package).
 * Allowed again the following special characters in filenames: ~!@`#$%&=+{}[]
   
   They can appear even on Windows (which seems to be the most restrictive
-  of the popular OSs as far as invalid characters go).
+  of the popular OSs as far as invalid characters go). The exceptions are '[' at
+  the beginning and ']' at the end of the layer names, which are still removed,
+  since they have a special meaning in the plug-in.
+* When "No special handling" is selected, file extension strip mode will no
+  longer default to "Strip identical file extension" (because the setting was
+  always overwritten by its default value and thus did not remember the last
+  used value).
 * Misc. code refactoring and cleanup.
 
 2.1 (July 27, 2014)
