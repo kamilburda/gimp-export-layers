@@ -33,7 +33,7 @@ to `[home directory]/.gimp-2.8/plug-ins`.
 On Linux, if necessary, enable the executable flag on the `export_layers.py` file,
 e.g. from the terminal:
 
-    chmod u+x "export_layers.py"
+    chmod +x "export_layers.py"
 
 It should no longer be needed for versions 2.1 and above.
 
@@ -121,10 +121,10 @@ the extension in the "File extension" text field will be used.
 
 **Additional options to "File extensions in layer names"**
 
-- *Always strip file extension* - Strip (remove) file extension from all layer names.
-- *Strip identical file extension* - Remove file extension from the layer names that
+* *Always strip file extension* - Strip (remove) file extension from all layer names.
+* *Strip identical file extension* - Remove file extension from the layer names that
 match the "File extension" text field.
-- *Never strip file extension* - Don't strip file extension from layer names.
+* *Never strip file extension* - Don't strip file extension from layer names.
 
 **Layer names in [square brackets]**
 
@@ -137,7 +137,7 @@ for all other layers and will not be exported separately.
 
 **Additional options to "Layer names in [square brackets]"**
 
-- *Crop to background* - If enabled, layers will be cropped to the size of the
+* *Crop to background* - If enabled, layers will be cropped to the size of the
 background layers instead of their own size.
 
 **Merge layer groups**
@@ -192,7 +192,7 @@ Translations
 ------------
 
 If you want to provide translations for the plug-in, see the
-`export_layers/locale/Readme for Translators.txt` file in the package.
+`Readme for Translators.txt` file in the package.
 
 
 Support, Contact
