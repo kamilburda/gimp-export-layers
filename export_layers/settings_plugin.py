@@ -232,7 +232,6 @@ class MainSettings(settings.SettingContainer):
     
     def streamline_file_ext_mode(file_ext_mode, file_extension, strip_mode):
       if file_ext_mode.value == file_ext_mode.options['no_special_handling']:
-        strip_mode.value = strip_mode.default_value
         strip_mode.ui_enabled = True
         file_extension.error_messages[libfiles.FileExtensionValidator.IS_EMPTY] = ""
       elif file_ext_mode.value == file_ext_mode.options['only_matching_file_extension']:
