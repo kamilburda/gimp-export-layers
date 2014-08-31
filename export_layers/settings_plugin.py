@@ -109,7 +109,7 @@ class MainSettings(settings.SettingContainer):
     )
     
     self._add(settings.BoolSetting('use_image_size', False))
-    self['use_image_size'].display_name = _("Use image size instead of layer size")
+    self['use_image_size'].display_name = _("Use image size")
     self['use_image_size'].description = _(
       "If enabled, layers will be resized (but not scaled) to the image size. This is "
       "useful if you want to keep the size of the image canvas and the layer position "

@@ -87,7 +87,7 @@ invisible layer groups will also not be exported.
 
 If enabled, layers will be autocropped before being exported.
 
-**Use image size instead of layer size**
+**Use image size**
 
 If enabled, layers will be resized (but not scaled) to the image size. This is
 useful if you want to keep the size of the image canvas and the layer position
