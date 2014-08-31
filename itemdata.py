@@ -345,8 +345,18 @@ class _ItemDataElement(object):
     item. If all items are visible, `path_visible` is True. If at least one
     of these items is invisible, `path_visible` is False.
   
-  * `file_extension` (read-only) - File extension of the item name. If the
-    item has no extension, empty string is returned.
+  Methods:
+  
+  * `get_file_extension` - Get file extension from the item name.
+  
+  * `set_file_extension` - Set file extension in the item name.
+  
+  * `get_filepath` - Return file path given the specified directory, item name
+    and names of its parents.
+  
+  * `get_path_components` - Return a list of parent's names.
+  
+  * `validate_name` - Validate item name and names of its parents.
   """
   
   __ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP = (0, 1, 2)

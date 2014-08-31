@@ -81,7 +81,6 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     super(GtkDialogOverwriteChooser, self).__init__(values_and_display_names, default_value, default_response)
     
     self._title = title
-    self._values = [value for value, unused_ in self.values_and_display_names]
     
     self._init_gui()
   
@@ -125,8 +124,10 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     else:
       text_filename = _("A file with the same name already exists.\nWhat would you like to do?")
     self._dialog_text.set_markup("<span font_size=\"large\"><b>" + text_filename + "</b></span>")
+    
     self._dialog.show_all()
     self._overwrite_mode = self._dialog.run()
+    
     if self._overwrite_mode not in self._values:
       self._overwrite_mode = self.default_response
     

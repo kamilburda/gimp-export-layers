@@ -105,7 +105,7 @@ class InteractiveOverwriteChooser(OverwriteChooser):
   * `values_and_display_names` - List of (value, display name) tuples which
     define overwrite modes and their human-readable names.
   
-  * `default_selection` - Default selection. Must be one of the values in the
+  * `default_value` - Default value. Must be one of the values in the
     `values_and_display_names` list.
   
   * `default_response` - Default value to return if the user made a choice that
@@ -122,6 +122,14 @@ class InteractiveOverwriteChooser(OverwriteChooser):
     super(InteractiveOverwriteChooser, self).__init__()
     
     self.values_and_display_names = values_and_display_names
+    self._values = [value for value, unused_ in self.values_and_display_names]
+    
+    if default_value not in self._values:
+      raise ValueError(
+        "invalid default value \"{0}\"; must be one of the following: {1}"
+        .format(default_value, self._values)
+      );
+    
     self.default_value = default_value
     self.default_response = default_response
 
