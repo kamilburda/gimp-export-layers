@@ -32,7 +32,7 @@ This plug-in:
 <li>can use layers with names in [square brackets] as background layers</li></ul>
 
 <h5><strong>Download Export Layers at:</strong></h5>
-https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.1/export-layers-2.1.zip
+https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.2/export-layers-2.2.zip
 
 <h5><strong>Requirements</strong></h5>
 <ul><li>GIMP 2.8 or later with Python-Fu installed</li></ul>
@@ -61,12 +61,11 @@ If you want to export the layers with the last values used, you can use the "Fil
 <img src="https://lh4.googleusercontent.com/-s_QPo9lRWRM/U8arsWPksfI/AAAAAAAAAfQ/qoX7lQ-qbM4/s600/export_layers_screenshot_2_1.jpg" />
 
 <h5><strong>Changelog</strong></h5>
-2.1, July 27, 2014
-* Added Unicode support.
-* Progress bar and Stop button are now displayed in the main dialog.
-* Removed "Remove square brackets" setting.
-* Added "Ignore layer modes" setting.
-* Renamed "File format" to "File extension" and, accordingly, a bunch of other related settings.
+2.2, August 15, 2014
+* Changed how the initial output directory in the GUI is determined. It is now remembered separately for each image currently opened in GIMP.
+* Added support for plug-in internationalization and localization.
+* Allowed again the following special characters in filenames: ~!@`#$%&=+{}[]
+* When "No special handling" is selected, file extension strip mode will no longer default to "Strip identical file extension".
 
 For more information, such as the full list of settings, known issues or the full list of changes, read the <i>Readme.txt</i> and <i>Changelog.txt</i> files in the package or see the GitHub page for the plug-in:
 https://github.com/khalim19/gimp-plugin-export-layers
