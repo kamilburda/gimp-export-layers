@@ -1,3 +1,0 @@
-[submodule "export_layers/pylibgimpplugin"]
-	path = export_layers/pylibgimpplugin
-	url = https://github.com/khalim19/pylibgimpplugin.git
