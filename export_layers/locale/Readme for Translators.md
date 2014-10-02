@@ -2,7 +2,7 @@ Export Layers - Translations
 ============================
 
 If you want to provide translations for the plug-in, I recommend using
-a translation tool such as Poedit (http://poedit.net) for easier usage.
+a translation tool such as [Poedit](http://poedit.net) for easier usage.
 
 
 How do I translate the plug-in?
