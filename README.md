@@ -201,3 +201,5 @@ Support, Contact
 You can report issues, ask questions or request new features on the following pages:
 * https://github.com/khalim19/gimp-plugin-export-layers/issues
 * http://registry.gimp.org/node/28268
+
+You can also contact me via email: khalim19 AT gmail DOT com
