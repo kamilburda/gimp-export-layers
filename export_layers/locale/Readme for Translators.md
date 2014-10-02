@@ -91,8 +91,7 @@ since the last translation was made, you may need to update the translation:
 OK, I have finished the translation. What next?
 --------------------------------------------------
 
-You can send me the translated .po file to my email: `khalim19 AT gmail DOT com`.
-I will add the translation to the plug-in.
+You can send me the translated .po file to my email: khalim19 AT gmail DOT com. I will add the translation to the plug-in.
 
 You can also test your translation to make sure it works correctly.
 
