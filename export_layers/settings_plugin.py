@@ -68,7 +68,7 @@ class SpecialSettings(settings.SettingContainer):
     self._add(settings.BoolSetting('first_run', True))
     self['first_run'].can_be_registered_to_pdb = False
     self['first_run'].description = _(
-      "True if the plug-in is successfully run for the first time "
+      "True if the plug-in successfully ran for the first time "
       "in one GIMP session, False for subsequent runs."
     )
 
@@ -114,8 +114,7 @@ class MainSettings(settings.SettingContainer):
       "If enabled, layers will be resized (but not scaled) to the image size. This is "
       "useful if you want to keep the size of the image canvas and the layer position "
       "within the image. If layers are partially outside the image canvas, "
-      "they will be cut off. If you want to export the entire layer, "
-      "leave this setting disabled."
+      "they will be cut off."
     )
     
     self._add(
