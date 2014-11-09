@@ -109,3 +109,40 @@ def is_layer_inside_image(image, layer):
   
   return ((-image.width < layer.offsets[0] < image.width) and
           (-image.height < layer.offsets[1] < image.height))
+
+
+def remove_all_layers(image):
+  """
+  Remove all layers from the specified image.
+  """
+  
+  for layer in image.layers:
+    pdb.gimp_image_remove_layer(image, layer)
+
+
+def remove_all_channels(image):
+  """
+  Remove all layers from the specified image.
+  """
+  
+  for channel in image.channels:
+    pdb.gimp_image_remove_channel(image, channel)
+
+
+def remove_all_paths(image):
+  """
+  Remove all paths (vectors) from the specified image.
+  """
+  
+  for path in image.vectors:
+    pdb.gimp_image_remove_vectors(image, path)
+
+
+def remove_all_items(image):
+  """
+  Remove all items (layers, channels, paths) from the specified image.
+  """
+  
+  remove_all_layers(image)
+  remove_all_channels(image)
+  remove_all_paths(image)
