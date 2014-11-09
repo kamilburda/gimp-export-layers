@@ -3,17 +3,17 @@
 # This file is part of Export Layers.
 #
 # Copyright (C) 2013, 2014 khalim19 <khalim19@gmail.com>
-# 
+#
 # Export Layers is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # Export Layers is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 #
@@ -35,7 +35,7 @@ from __future__ import division
 
 str = unicode
 
-#=============================================================================== 
+#===============================================================================
 
 import os
 from collections import defaultdict
@@ -287,7 +287,7 @@ class LayerExporter(object):
       for layer_elem in self._layer_data:
         self._remove_square_brackets(layer_elem)
     elif (self.main_settings['square_bracketed_mode'].value ==
-        self.main_settings['square_bracketed_mode'].options['background']):
+          self.main_settings['square_bracketed_mode'].options['background']):
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_enclosed_in_square_brackets):
         self._background_layer_elems = list(self._layer_data)
       self._layer_data.filter.add_rule(LayerFilterRules.is_not_enclosed_in_square_brackets)

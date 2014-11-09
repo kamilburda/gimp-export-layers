@@ -3,17 +3,17 @@
 # This file is part of pylibgimpplugin.
 #
 # Copyright (C) 2014 khalim19 <khalim19@gmail.com>
-# 
+#
 # pylibgimpplugin is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # pylibgimpplugin is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with pylibgimpplugin.  If not, see <http://www.gnu.org/licenses/>.
 #
@@ -36,7 +36,7 @@ from __future__ import division
 
 str = unicode
 
-#=============================================================================== 
+#===============================================================================
 
 import os
 from collections import OrderedDict
@@ -165,7 +165,7 @@ class TestLayerData(unittest.TestCase):
     self.assertEqual(len(self.layer_data), layer_count_only_layers)
   
   def test_get_filepath(self):
-    output_directory = os.path.join("D:", os.sep, "testgimp");
+    output_directory = os.path.join("D:", os.sep, "testgimp")
     
     # layer_elem with parents
     layer_elem = self.layer_data['bottom-right-corner']
@@ -299,7 +299,7 @@ class TestLayerData(unittest.TestCase):
     for layer_elem in self.layer_data:
       layer_elem.validate_name()
       self.layer_data.uniquify_name(layer_elem, include_item_path=True,
-                                          place_before_file_extension=False)
+                                    place_before_file_extension=False)
     self._compare_uniquified_with_parents(self.layer_data, uniquified_names)
   
   def test_uniquifies_with_regards_to_file_extension(self):
@@ -315,6 +315,6 @@ class TestLayerData(unittest.TestCase):
     for layer_elem in self.layer_data:
       layer_elem.validate_name()
       self.layer_data.uniquify_name(layer_elem, include_item_path=True,
-                                          place_before_file_extension=True)
+                                    place_before_file_extension=True)
     self._compare_uniquified_with_parents(self.layer_data, uniquified_names)
   

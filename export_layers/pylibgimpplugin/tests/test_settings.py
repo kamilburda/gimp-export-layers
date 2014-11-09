@@ -3,17 +3,17 @@
 # This file is part of pylibgimpplugin.
 #
 # Copyright (C) 2014 khalim19 <khalim19@gmail.com>
-# 
+#
 # pylibgimpplugin is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # pylibgimpplugin is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with pylibgimpplugin.  If not, see <http://www.gnu.org/licenses/>.
 #
@@ -28,7 +28,7 @@ from __future__ import division
 
 str = unicode
 
-#=============================================================================== 
+#===============================================================================
 
 import errno
 from StringIO import StringIO
@@ -117,7 +117,7 @@ class SettingContainerTest(settings.SettingContainer):
         ('skip', "Skip"),
         ('rename_new', "Rename new file"),
         ('rename_existing', "Rename existing file")])
-      )
+    )
     
     self['file_extension'].set_streamline_func(streamline_file_extension, self['ignore_invisible'])
     self['overwrite_mode'].set_streamline_func(streamline_overwrite_mode, self['ignore_invisible'], self['file_extension'])

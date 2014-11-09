@@ -3,17 +3,17 @@
 # This file is part of pylibgimpplugin.
 #
 # Copyright (C) 2014 khalim19 <khalim19@gmail.com>
-# 
+#
 # pylibgimpplugin is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # pylibgimpplugin is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with pylibgimpplugin.  If not, see <http://www.gnu.org/licenses/>.
 #
@@ -176,7 +176,6 @@ def display_exception_message(exception_message, plugin_title=None,
     for linkbutton in report_linkbuttons:
       linkbutton.connect("clicked", open_browser)
   
-  
   dialog = gtk.MessageDialog(parent, type=gtk.MESSAGE_ERROR, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
   dialog.set_markup(
     "<span font_size=\"large\"><b>" + _("Oops! Something went wrong.") + "</b></span>"
@@ -240,7 +239,7 @@ def display_exception_message(exception_message, plugin_title=None,
   
   if report_uri_list is not None and report_uri_list:
     # Apparently, GTK doesn't know how to open URLs on Windows, hence the custom
-    # solution. 
+    # solution.
     connect_linkbuttons(report_linkbuttons)
   
   dialog.show_all()
@@ -323,7 +322,6 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
         gtk.main_quit()
     
     _orig_sys_excepthook(exc_type, exc_value, exc_traceback)
-  
   
   _orig_sys_excepthook = sys.excepthook
   sys.excepthook = _gui_excepthook

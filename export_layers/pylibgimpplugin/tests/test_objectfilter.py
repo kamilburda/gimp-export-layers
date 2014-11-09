@@ -3,17 +3,17 @@
 # This file is part of pylibgimpplugin.
 #
 # Copyright (C) 2014 khalim19 <khalim19@gmail.com>
-# 
+#
 # pylibgimpplugin is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # pylibgimpplugin is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with pylibgimpplugin.  If not, see <http://www.gnu.org/licenses/>.
 #
@@ -28,7 +28,7 @@ from __future__ import division
 
 str = unicode
 
-#=============================================================================== 
+#===============================================================================
 
 import unittest
 
@@ -44,11 +44,14 @@ class FilterableObject(object):
     self.is_empty = is_empty
     self.colors = colors if colors is not None else set()
 
+
 def has_uppercase_letters(obj):
   return obj.name.lower() != obj.name
 
+
 def is_object_id_even(obj):
   return obj.object_id % 2 == 0
+
 
 def has_matching_file_extension(obj, file_extension, case_sensitive=False):
   if not case_sensitive:
@@ -56,14 +59,18 @@ def has_matching_file_extension(obj, file_extension, case_sensitive=False):
   
   return obj.name.endswith('.' + file_extension)
 
+
 def is_empty(obj):
   return obj.is_empty
+
 
 def has_red_color(obj):
   return "red" in obj.colors
 
+
 def has_green_color(obj):
   return "green" in obj.colors
+
 
 def invalid_rule_func():
   pass

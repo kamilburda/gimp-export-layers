@@ -3,17 +3,17 @@
 # This file is part of pylibgimpplugin.
 #
 # Copyright (C) 2014 khalim19 <khalim19@gmail.com>
-# 
+#
 # pylibgimpplugin is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # pylibgimpplugin is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with pylibgimpplugin.  If not, see <http://www.gnu.org/licenses/>.
 #
@@ -38,7 +38,7 @@ from __future__ import division
 
 str = unicode
 
-#=============================================================================== 
+#===============================================================================
 
 import errno
 import abc
@@ -156,7 +156,7 @@ class Setting(object):
     * `default_value` - Default value of the setting.
     """
     
-    self._attrs_that_trigger_change = { 'value', 'ui_enabled', 'ui_visible' }
+    self._attrs_that_trigger_change = {'value', 'ui_enabled', 'ui_visible'}
     self._changed_attributes = set()
     
     self._name = name
@@ -895,6 +895,7 @@ class Container(object):
 #-------------------------------------------------------------------------------
 
 class SettingContainer(Container):
+  
   """
   This class:
   * groups related `Setting` objects together,
@@ -1203,7 +1204,7 @@ class JSONFileSettingStream(SettingStream):
   def write(self, settings):
     """
     Write the name and value of the settings from the `settings` iterable to the
-    file. 
+    file.
     
     Raises:
     

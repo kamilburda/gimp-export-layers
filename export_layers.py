@@ -5,17 +5,17 @@
 # Export Layers - GIMP plug-in that exports layers as separate images
 #
 # Copyright (C) 2013, 2014 khalim19 <khalim19@gmail.com>
-# 
+#
 # Export Layers is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # Export Layers is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 #
@@ -63,6 +63,7 @@ from export_layers import gui_plugin
 from export_layers import exportlayers
 
 #===============================================================================
+
 
 class ExportLayersPlugin(gimpplugin.plugin):
   

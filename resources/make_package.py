@@ -5,17 +5,17 @@
 # This file is part of Export Layers.
 #
 # Copyright (C) 2013, 2014 khalim19 <khalim19@gmail.com>
-# 
+#
 # Export Layers is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # Export Layers is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 #
@@ -103,7 +103,6 @@ def _get_filtered_files(input_directory):
         return True
     return False
   
-  
   filtered_files = []
   ignored_files, ignored_dirs = _parse_ignore_list(IGNORE_LIST)
   
@@ -150,7 +149,6 @@ def make_package(input_directory, output_file, version):
       for file_ in files:
         os.chmod(os.path.join(root, file_), perms)
   
-  
   def _generate_pot_file(version):
     for file_ in os.listdir(constants.LOCALE_PATH):
       if os.path.isfile(os.path.join(constants.LOCALE_PATH, file_)):
@@ -161,7 +159,6 @@ def make_package(input_directory, output_file, version):
     os.chdir(constants.LOCALE_PATH)
     subprocess.call(["./generate_pot.sh", version])
     os.chdir(orig_cwd)
-  
   
   files = _get_filtered_files(input_directory)
   files_relative_paths = [file_[len(input_directory) + 1:] for file_ in files]
@@ -193,7 +190,7 @@ def make_package(input_directory, output_file, version):
 #===============================================================================
 
 if __name__ == "__main__":
-  output_file = OUTPUT_FILENAME_PREFIX +  '-' + constants.PLUGIN_VERSION + OUTPUT_FILENAME_SUFFIX
+  output_file = OUTPUT_FILENAME_PREFIX + '-' + constants.PLUGIN_VERSION + OUTPUT_FILENAME_SUFFIX
   
   if os.name == 'nt':
     print(os.path.basename(sys.argv[0]) + ": Error: Can't run script on Windows " +
