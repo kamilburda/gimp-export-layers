@@ -146,3 +146,17 @@ def remove_all_items(image):
   remove_all_layers(image)
   remove_all_channels(image)
   remove_all_paths(image)
+
+
+def duplicate(image, remove_items=False):
+  """
+  Duplicate the specified image.
+  
+  If `remove_items` is true, remove all items (layers, channels, paths)
+  from the duplicated image.
+  """
+  
+  image_new = pdb.gimp_image_duplicate(image)
+  remove_all_items(image_new)
+  
+  return image_new
