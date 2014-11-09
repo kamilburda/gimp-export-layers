@@ -366,7 +366,7 @@ class LayerExporter(object):
     pdb.gimp_context_push()
     # Perform subsequent operations on a new image so that the original image
     # and its soon-to-be exported layers are left intact.
-    self._image_copy = pdb.gimp_image_new(self.image.width, self.image.height, gimpenums.RGB)
+    self._image_copy = pylibgimp.duplicate(self.image, remove_items=True)
     
     if constants.DEBUG_IMAGE_PROCESSING:
       self._display_id = pdb.gimp_display_new(self._image_copy)
@@ -537,7 +537,6 @@ class LayerExporter(object):
       self._export_once(gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
   
   def _export_once(self, run_mode, image, layer, output_filename):
-    
     self._current_layer_export_status = self._NOT_EXPORTED_YET
     
     try:
