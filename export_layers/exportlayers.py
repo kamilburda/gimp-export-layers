@@ -183,35 +183,6 @@ class LayerExporter(object):
     _USE_DEFAULT_FILE_EXTENSION
   ) = (0, 1, 2, 3)
   
-  def __init__(self, initial_run_mode, image, main_settings, overwrite_chooser, progress_updater):
-    
-    self.initial_run_mode = initial_run_mode
-    self.image = image
-    self.main_settings = main_settings
-    self.overwrite_chooser = overwrite_chooser
-    self.progress_updater = progress_updater
-    
-    self.should_stop = False
-    self._exported_layers = []
-  
-  @property
-  def exported_layers(self):
-    return self._exported_layers
-  
-  def export_layers(self):
-    """
-    Export layers as separate images from the specified image.
-    """
-    
-    self._init_attributes()
-    self._set_layer_filters()
-    
-    self._setup()
-    try:
-      self._export_layers()
-    finally:
-      self._cleanup()
-  
   class _LayerFileExtensionProperties(object):
     """
     This class contains additional data about a file extension. The file
@@ -230,6 +201,43 @@ class LayerExporter(object):
     def __init__(self):
       self.is_valid = True
       self.processed_count = 0
+  
+  def __init__(self, initial_run_mode, image, main_settings, overwrite_chooser, progress_updater):
+    
+    self.initial_run_mode = initial_run_mode
+    self.image = image
+    self.main_settings = main_settings
+    self.overwrite_chooser = overwrite_chooser
+    self.progress_updater = progress_updater
+    
+    self.should_stop = False
+    self._exported_layers = []
+    
+    # This dict cannot be initialized on the class level, because GIMP would
+    # prevent the plug-in from loading. PDB attributes or methods apparently
+    # can't be accessed when plug-in modules are being imported.
+    self._FILE_EXPORT_PROCEDURES = defaultdict(lambda: pdb.gimp_file_save)
+    # Raw format doesn't seem to work with `pdb.gimp_file_save`, hence the
+    # special handling.
+    self._FILE_EXPORT_PROCEDURES['data'] = pdb.file_raw_save
+  
+  @property
+  def exported_layers(self):
+    return self._exported_layers
+  
+  def export_layers(self):
+    """
+    Export layers as separate images from the specified image.
+    """
+    
+    self._init_attributes()
+    self._set_layer_filters()
+    
+    self._setup()
+    try:
+      self._export_layers()
+    finally:
+      self._cleanup()
   
   def _init_attributes(self):
     self.should_stop = False
@@ -500,12 +508,7 @@ class LayerExporter(object):
       layer_elem.name += '.' + self._default_file_extension
   
   def _get_file_export_func(self, file_extension):
-    if file_extension == "raw":
-      # Raw format doesn't seem to work with `pdb.gimp_file_save`, hence the
-      # special handling.
-      return pdb.file_raw_save
-    else:
-      return pdb.gimp_file_save
+    return self._FILE_EXPORT_PROCEDURES[file_extension]
   
   def _get_run_mode(self):
     if self._layer_file_extension_properties[self._current_file_extension].is_valid:
