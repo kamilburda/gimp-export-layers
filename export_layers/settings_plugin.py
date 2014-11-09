@@ -81,7 +81,7 @@ class MainSettings(settings.SettingContainer):
     self['file_extension'].display_name = _("File extension")
     self['file_extension'].description = _(
       "Type in file extension, with or without the leading period. "
-      "To export in raw format, type \"raw\"."
+      "To export in RAW format, type \"data\"."
     )
     
     self._add(settings.DirectorySetting('output_directory', gimp.user_directory(1)))   # "Documents" directory

@@ -49,7 +49,7 @@ the leading period). You can type any file extension supported by GIMP. File for
 provided by third-party plug-ins should work as well - at the very least,
 GIMP DDS Plugin was tested and works correctly.
 
-To export in the raw file format, type "raw". The file extension will remain
+To export in RAW file format, type "data". The file extension will remain
 in the files.
 
 To export layers, press the "Export Layers" button. For the first layer,
@@ -168,7 +168,7 @@ The following file formats are not working properly with this plug-in:
 
 The following file formats have to display the file format dialog for each layer,
 not just the first layer:
-* raw,
+* RAW,
 * FLI (.fli, .flc),
 * C source (.c),
 * HTML (.html, .htm).
