@@ -79,6 +79,40 @@ FILENAMES_TO_RENAME = {
 
 #===============================================================================
 
+
+def process_readme_file(readme_file):
+  readme_file_copy = readme_file + '.bak'
+  num_leading_spaces = 4
+  
+  shutil.copy2(readme_file, readme_file_copy)
+  
+  with open(readme_file, 'r') as f, \
+       open(readme_file_copy, 'w') as temp_f:
+    line = f.readline()
+    while line:
+      if not line.strip():
+        # Write back the empty/whitespace-only line.
+        temp_f.write(line)
+        
+        # Trim leading spaces from subsequent lines.
+        line = f.readline()
+        while line.startswith(' ' * num_leading_spaces):
+          temp_f.write(line.lstrip(' '))
+          line = f.readline()
+      else:
+        temp_f.write(line)
+        line = f.readline()
+  
+  shutil.copy2(readme_file_copy, readme_file)
+  os.remove(readme_file_copy)
+
+
+FILES_TO_PROCESS = {
+  FILENAMES_TO_RENAME["README.md"] : process_readme_file
+}
+
+#===============================================================================
+
 def _parse_ignore_list(ignore_str):
   ignore_str = ignore_str.strip()
   
@@ -169,7 +203,7 @@ def make_package(input_directory, output_file, version):
       files_relative_paths[i] = os.path.join(os.path.dirname(rel_file_path), FILENAMES_TO_RENAME[filename])
   
   temp_dir = tempfile.mkdtemp()
-  temp_files = [os.path.join(temp_dir, file_) for file_ in files_relative_paths]
+  temp_files = [os.path.join(temp_dir, file_rel_path) for file_rel_path in files_relative_paths]
   
   for src_file, temp_file in zip(files, temp_files):
     dirname = os.path.dirname(temp_file)
@@ -180,6 +214,11 @@ def make_package(input_directory, output_file, version):
   _set_permissions(temp_dir, 0o755)
   
   _generate_pot_file(version)
+  
+  for temp_file in temp_files:
+    filename = os.path.basename(temp_file)
+    if filename in FILES_TO_PROCESS:
+      FILES_TO_PROCESS[filename](temp_file)
   
   with zipfile.ZipFile(output_file, "w", zipfile.ZIP_STORED) as zip_file:
     for temp_file, file_ in zip(temp_files, files_relative_paths):
