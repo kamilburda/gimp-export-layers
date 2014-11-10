@@ -157,6 +157,7 @@ def duplicate(image, remove_items=False):
   """
   
   image_new = pdb.gimp_image_duplicate(image)
-  remove_all_items(image_new)
+  if remove_items:
+    remove_all_items(image_new)
   
   return image_new
