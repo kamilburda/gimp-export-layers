@@ -183,14 +183,14 @@ def make_package(input_directory, output_file, version):
       for file_ in files:
         os.chmod(os.path.join(root, file_), perms)
   
-  def _generate_pot_file(version):
-    for file_ in os.listdir(constants.LOCALE_PATH):
-      if os.path.isfile(os.path.join(constants.LOCALE_PATH, file_)):
+  def _generate_pot_file(source_dir, version):
+    for file_ in os.listdir(source_dir):
+      if os.path.isfile(os.path.join(source_dir, file_)):
         if file_.endswith(".pot"):
-          os.remove(os.path.join(constants.LOCALE_PATH, file_))
-    
+          os.remove(os.path.join(source_dir, file_))
+     
     orig_cwd = os.getcwdu()
-    os.chdir(constants.LOCALE_PATH)
+    os.chdir(source_dir)
     subprocess.call(["./generate_pot.sh", version])
     os.chdir(orig_cwd)
   
@@ -202,6 +202,8 @@ def make_package(input_directory, output_file, version):
     if filename in FILENAMES_TO_RENAME:
       files_relative_paths[i] = os.path.join(os.path.dirname(rel_file_path), FILENAMES_TO_RENAME[filename])
   
+  _generate_pot_file(constants.LOCALE_PATH, version)
+  
   temp_dir = tempfile.mkdtemp()
   temp_files = [os.path.join(temp_dir, file_rel_path) for file_rel_path in files_relative_paths]
   
@@ -212,8 +214,6 @@ def make_package(input_directory, output_file, version):
     shutil.copy2(src_file, temp_file)
   
   _set_permissions(temp_dir, 0o755)
-  
-  _generate_pot_file(version)
   
   for temp_file in temp_files:
     filename = os.path.basename(temp_file)
