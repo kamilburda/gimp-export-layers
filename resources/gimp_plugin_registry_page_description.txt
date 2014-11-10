@@ -19,11 +19,9 @@ Example:
 Description
 ================================================================================
 
-<h5><strong>Introduction</strong></h5>
 Export Layers is a GIMP plug-in that exports layers as separate images in almost any file format supported by GIMP and possibly third-party plug-ins.
 
-<h5><strong>Feature Summary</strong></h5>
-This plug-in:
+Features:
 <ul><li>uses native dialogs for file format export procedures to adjust file format settings</li>
 <li>uses layer names as filenames for the exported images</li>
 <li>supports layer groups and optionally treats them as directories</li>
@@ -32,7 +30,7 @@ This plug-in:
 <li>can use layers with names in [square brackets] as background layers</li></ul>
 
 <h5><strong>Download Export Layers at:</strong></h5>
-https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.2/export-layers-2.2.zip
+https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.2.1/export-layers-2.2.1.zip
 
 <h5><strong>Requirements</strong></h5>
 <ul>
