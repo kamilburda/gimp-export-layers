@@ -1,4 +1,4 @@
-2.2.1 (Upcoming)
+2.2.1 (November 10, 2014)
 ------------------------
 
 * Images in RAW format are saved with '.data' file extension instead of '.raw'.
