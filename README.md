@@ -21,21 +21,46 @@ This plug-in:
 Requirements
 ------------
 
-* GIMP 2.8 or later with Python-Fu installed
+* GIMP 2.8 or later
+* Python 2.7.x
 
 
 Installation
 ------------
 
-From the package, extract the `export_layers.py` file and the `export_layers` directory
-to `[home directory]/.gimp-2.8/plug-ins`.
+**Windows**
 
-On Linux, if necessary, enable the executable flag on the `export_layers.py` file,
-e.g. from the terminal:
+Extract the `export_layers.py` file and the `export_layers` directory to
+`[user directory]/.gimp-2.8/plug-ins`.
+
+
+**Linux**
+
+Extract the `export_layers.py` file and the `export_layers` directory to
+`[home directory]/.gimp-2.8/plug-ins`.
+
+If necessary, make the `export_layers.py` file executable, e.g. from the terminal:
 
     chmod +x "export_layers.py"
 
-It should no longer be needed for versions 2.1 and above.
+
+**OS X**
+
+Extract the `export_layers.py` file and the `export_layers` directory to
+`[home directory]/Library/Application Support/GIMP/2.8/plug-ins`.
+
+If necessary, make the `export_layers.py` file executable, e.g. from the terminal:
+
+    chmod +x "export_layers.py"
+
+GIMP for OS X may have Python 2.6 bundled, which won't work with this plug-in,
+since Python 2.7 is required. Install Python 2.7 (if not already), open
+`/Applications/Gimp.app/Contents/Resources/lib/gimp/2.0/interpreters/pygimp.interp`
+and change its contents to the following:
+
+    python=/usr/bin/python
+    /usr/bin/python=/usr/bin/python
+    :Python:E::py::python:
 
 
 Usage
