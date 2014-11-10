@@ -35,23 +35,15 @@ This plug-in:
 https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.2/export-layers-2.2.zip
 
 <h5><strong>Requirements</strong></h5>
-<ul><li>GIMP 2.8 or later with Python-Fu installed</li></ul>
-
-<h5><strong>Installation</strong></h5>
-From the package, extract the "export_layers.py" file and the "export_layers" directory
-to "[home directory]/.gimp-2.8/plug-ins".
-
-On Linux, if necessary, enable the executable flag on the "export_layers.py" file, e.g. from the terminal:
-<pre>
-    <code>chmod +x "export_layers.py"</code>
-</pre>
-
-It should no longer be needed for versions 2.1 and above.
+<ul>
+<li>GIMP 2.8 or later</li>
+<li>Python 2.7.x</li>
+</ul>
 
 <h5><strong>Usage</strong></h5>
 From the main menu, go to "File -> Export Layers...". A dialog appears, allowing you to specify output directory, file extension and various other settings.
 
-Type the file extension in the File Extension text field (with or without the leading dot). To export in the raw file format, type "raw".
+Type the file extension in the File Extension text field (with or without the leading dot). To export in the RAW file format, type "data".
 
 To export layers, press the "Export Layers" button. For the first layer, a dialog corresponding to the file format appears, allowing you to adjust file format settings. Not all file formats have settings, so no dialog may appear. For subsequent layers, the file export procedure uses the values you specified in the dialog for the first file.
 
@@ -61,11 +53,10 @@ If you want to export the layers with the last values used, you can use the "Fil
 <img src="https://lh4.googleusercontent.com/-s_QPo9lRWRM/U8arsWPksfI/AAAAAAAAAfQ/qoX7lQ-qbM4/s600/export_layers_screenshot_2_1.jpg" />
 
 <h5><strong>Changelog</strong></h5>
-2.2, August 15, 2014
-* Changed how the initial output directory in the GUI is determined. It is now remembered separately for each image currently opened in GIMP.
-* Added support for plug-in internationalization and localization.
-* Allowed again the following special characters in filenames: ~!@`#$%&=+{}[]
-* When "No special handling" is selected, file extension strip mode will no longer default to "Strip identical file extension".
+2.2.1, November 10, 2014
+* Images in RAW format are saved with '.data' file extension instead of '.raw'.
+* Image type is now preserved (if file format allows it) instead of always using the RGB type.
+* Renamed "Use image size instead of layer size" to just "Use image size" for the sake of brevity.
 
-For more information, such as the full list of settings, known issues or the full list of changes, read the <i>Readme.txt</i> and <i>Changelog.txt</i> files in the package or see the GitHub page for the plug-in:
+For more information, such as installation, full list of features or known issues, read the <i>Readme.txt</i> file in the package or see the GitHub page for the plug-in:
 https://github.com/khalim19/gimp-plugin-export-layers
