@@ -1,8 +1,8 @@
 2.2.1 (Upcoming)
 ------------------------
 
-* When exporting in RAW format, '.data' file extension is now used instead of '.raw'.
-* Image type is now preserved instead of exporting all layers in the RGB mode.
+* Images in RAW format are saved with '.data' file extension instead of '.raw'.
+* Image type is now preserved, instead of always using the RGB type.
   E.g. if the image is indexed, the exported layers will be indexed as well.
   File formats that don't support the an image type (such as indexed) will
   automatically convert the type as appropriate (the same way the Export menu does).
