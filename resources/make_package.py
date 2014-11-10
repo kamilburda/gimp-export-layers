@@ -194,6 +194,8 @@ def make_package(input_directory, output_file, version):
     subprocess.call(["./generate_pot.sh", version])
     os.chdir(orig_cwd)
   
+  _generate_pot_file(constants.LOCALE_PATH, version)
+  
   files = _get_filtered_files(input_directory)
   files_relative_paths = [file_[len(input_directory) + 1:] for file_ in files]
   
@@ -201,8 +203,6 @@ def make_package(input_directory, output_file, version):
     filename = os.path.basename(rel_file_path)
     if filename in FILENAMES_TO_RENAME:
       files_relative_paths[i] = os.path.join(os.path.dirname(rel_file_path), FILENAMES_TO_RENAME[filename])
-  
-  _generate_pot_file(constants.LOCALE_PATH, version)
   
   temp_dir = tempfile.mkdtemp()
   temp_files = [os.path.join(temp_dir, file_rel_path) for file_rel_path in files_relative_paths]
