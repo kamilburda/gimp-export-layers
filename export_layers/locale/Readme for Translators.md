@@ -107,8 +107,8 @@ First, make sure you extracted the plug-in to
 
 #### Poedit
 
-If you use Poedit, it automatically generates the .mo file when you save your
-.po file. Move and rename the .mo file to
+Poedit automatically generates the .mo file when you save your .po file. Move
+and rename the .mo file to
 
     [user directory]/.gimp-2.8/plug-ins/export_layers/locale/[language]/LC_MESSAGES/export_layers.mo
    
@@ -118,7 +118,7 @@ If you use Poedit, it automatically generates the .mo file when you save your
 
 #### Terminal
 
-If you use the terminal, generate the .mo file as follows:
+Generate the .mo file as follows:
    
     cd [user directory]/.gimp-2.8/plug-ins/export_layers/locale
     ./generate_mo.sh [path to .po file]
@@ -131,13 +131,13 @@ your translation in GIMP.
 
 #### Linux
 
-If you run Linux, run GIMP from the terminal as follows:
+Run GIMP from the terminal as follows:
    
     LANG="[language].UTF-8" gimp
 
 #### Windows
 
-If you run Windows, run GIMP from the Windows command line as follows:
+Run GIMP from the Windows command line as follows:
    
     set lang=[language].UTF-8
     gimp-2.8.exe
