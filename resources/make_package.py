@@ -23,6 +23,9 @@
 
 """
 This script creates a .zip package for releases from the plug-in source.
+
+This script uses `pathspec` library for matching files using patterns:
+  https://github.com/cpburnz/python-path-specification
 """
 
 #===============================================================================
@@ -45,6 +48,8 @@ import tempfile
 import shutil
 import zipfile
 
+import pathspec
+
 from export_layers import constants
 
 from export_layers.pylibgimpplugin import libfiles
@@ -57,19 +62,7 @@ PLUGINS_PATH = os.path.dirname(RESOURCES_PATH)
 OUTPUT_FILENAME_PREFIX = "export-layers"
 OUTPUT_FILENAME_SUFFIX = ".zip"
 
-IGNORE_LIST = """
-.git*
-.git/
-resources/
-*.pyc
-*.pyo
-*.log
-*.json
-.settings/
-.project
-.pydevproject
-LICENSE
-"""
+INCLUDE_LIST_FILENAME = "./make_package_included_files.txt"
 
 FILENAMES_TO_RENAME = {
   "README.md" : "Readme.txt",
@@ -113,62 +106,15 @@ FILES_TO_PROCESS = {
 
 #===============================================================================
 
-def _parse_ignore_list(ignore_str):
-  ignore_str = ignore_str.strip()
-  
-  ignored_files = []
-  ignored_dirs = []
-  
-  for elem in ignore_str.split('\n'):
-    elem = elem.strip()
-    if elem.endswith('/'):
-      ignored_dirs.append(elem[:-1])
-    else:
-      ignored_files.append(elem)
-  
-  return ignored_files, ignored_dirs
 
-
-def _get_filtered_files(input_directory):
+def _get_filtered_files(directory, pattern_file):
+  with open(pattern_file, 'r') as file_:
+    spec = pathspec.PathSpec.from_lines(pathspec.GitIgnorePattern, file_)
   
-  def _should_ignore_root(root, ignored_dirs):
-    for dir_ in ignored_dirs:
-      if dir_ in libfiles.split_path(root):
-        return True
-    return False
-  
-  filtered_files = []
-  ignored_files, ignored_dirs = _parse_ignore_list(IGNORE_LIST)
-  
-  for root, dirs, files in os.walk(input_directory):
-    if _should_ignore_root(root, ignored_dirs):
-      continue
-    
-    dirs = [dir_ for dir_ in dirs if dir_ not in ignored_dirs]
-    
-    files_ = set(files)
-    for file_ in files:
-      for ignored_file in ignored_files:
-        if ignored_file.startswith("*"):
-          if file_.endswith(ignored_file[1:]):
-            files_.remove(file_)
-            break
-        elif ignored_file.endswith("*"):
-          if file_.startswith(ignored_file[:-1]):
-            files_.remove(file_)
-            break
-        else:
-          if file_ == ignored_file:
-            files_.remove(file_)
-            break
-    
-    files = list(files_)
-    
-    filtered_files.extend([os.path.join(root, file_) for file_ in files])
-  
-  return filtered_files
+  return [os.path.join(directory, match) for match in spec.match_tree(directory)]
 
 #===============================================================================
+
 
 def make_package(input_directory, output_file, version):
   
@@ -196,7 +142,7 @@ def make_package(input_directory, output_file, version):
   
   _generate_pot_file(constants.LOCALE_PATH, version)
   
-  files = _get_filtered_files(input_directory)
+  files = _get_filtered_files(input_directory, INCLUDE_LIST_FILENAME)
   files_relative_paths = [file_[len(input_directory) + 1:] for file_ in files]
   
   for i, rel_file_path in enumerate(files_relative_paths):

@@ -1,0 +1,21 @@
+# This file contains files and directories to include in/exclude from the
+# release package. gitignore-like syntax is used, only reversed.
+
+# Include all files
+*
+
+# Ignore the following files
+!*.pyc
+!*.pyo
+!*.log
+!*.json
+!.git*
+!.project
+!.pydevproject
+!.git/
+!.settings/
+!export_layers/tests/
+!export_layers/pylibgimpplugin/tests/
+!export_layers/pylibgimpplugin/lib/mock*
+!resources/
+!LICENSE
