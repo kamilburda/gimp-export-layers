@@ -211,10 +211,9 @@ class ObjectFilter(object):
   
   def add_subfilter(self, subfilter_name, subfilter):
     """
-    Add the specified subfilter (`ObjectFilter` instance) to the filter, which
-    can be later accessed by the `subfilter_name` string as follows:
+    Add the specified subfilter (`ObjectFilter` instance) to the filter.
     
-      filter['my_subfilter']
+    The subfilter can be later accessed by the `get_subfilter` method.
     
     Raises:
     
@@ -226,7 +225,8 @@ class ObjectFilter(object):
     
     self._filter_items[subfilter_name] = subfilter
   
-  def __getitem__(self, subfilter_name):
+  def get_subfilter(self, subfilter_name):
+#   def __getitem__(self, subfilter_name):
     """
     Get subfilter by its name.
     
