@@ -368,7 +368,7 @@ class _ExportLayersGui(object):
         self.file_extension_entry))
     
     self.setting_presenters.add(
-      gui.GtkExportDialogDirectoryChooserWidgetPresenter(
+      gui.GtkExportDirectoryChooserPresenter(
         self.main_settings['output_directory'],
         self.directory_chooser,
         self.session_only_gui_settings['image_ids_and_directories'],

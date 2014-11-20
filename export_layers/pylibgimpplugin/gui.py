@@ -316,8 +316,8 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
       exception_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
       display_exception_message(exception_message, plugin_title=plugin_title,
                                 report_uri_list=report_uri_list, parent=parent)
-      # Make sure to quit the plug-in since unhandled exceptions
-      # can mess up the plug-in state.
+      # Make sure to quit the application since unhandled exceptions
+      # can mess up the application state.
       if gtk.main_level() > 0:
         gtk.main_quit()
     
@@ -361,9 +361,9 @@ class GtkProgressUpdater(progress.ProgressUpdater):
 class IntComboBox(gimpui.IntComboBox):
   
   """
-  This class is a `gimpui.IntComboBox` subclass that encodes unicode strings
+  This class is a `gimpui.IntComboBox` subclass that encodes `unicode` strings
   before initializing `gimpui.IntComboBox`. Apparently, `gimpui.IntComboBox`
-  can only handle bytes, not unicode strings.
+  can only handle bytes, not `unicode` strings.
   """
   
   def __init__(self, labels_and_values):
@@ -481,7 +481,7 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
     self._element.set_active(value_)
 
 
-class GtkExportDialogDirectoryChooserWidgetPresenter(GtkSettingPresenter):
+class GtkExportDirectoryChooserPresenter(GtkSettingPresenter):
   
   """
   This class is a `SettingPresenter` for `gtk.FileChooserWidget` elements
@@ -507,7 +507,7 @@ class GtkExportDialogDirectoryChooserWidgetPresenter(GtkSettingPresenter):
   """
   
   def __init__(self, setting, element, image_ids_and_directories_setting, current_image):
-    super(GtkExportDialogDirectoryChooserWidgetPresenter, self).__init__(setting, element)
+    super(GtkExportDirectoryChooserPresenter, self).__init__(setting, element)
     
     self._image_ids_and_directories_setting = image_ids_and_directories_setting
     self.current_image = current_image
