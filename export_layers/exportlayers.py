@@ -246,7 +246,7 @@ class LayerExporter(object):
     
     self._output_directory = self.main_settings['output_directory'].value
     self._default_file_extension = self.main_settings['file_extension'].value
-    self._include_item_path = self.main_settings['layer_groups_as_directories'].value
+    self._include_item_path = self.main_settings['layer_groups_as_folders'].value
     
     self._image_copy = None
     self._layer_data = itemdata.LayerData(self.image, is_filtered=True)
@@ -287,7 +287,7 @@ class LayerExporter(object):
     if self.main_settings['ignore_invisible'].value:
       self._layer_data.filter.add_rule(LayerFilterRules.is_path_visible)
     
-    if self.main_settings['empty_directories'].value:
+    if self.main_settings['empty_folders'].value:
       self._layer_data.filter.get_subfilter('layer_types').add_rule(LayerFilterRules.is_empty_group)
     
     if (self.main_settings['square_bracketed_mode'].value ==

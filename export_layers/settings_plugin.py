@@ -87,12 +87,11 @@ class MainSettings(settings.SettingContainer):
     self._add(settings.DirectorySetting('output_directory', gimp.user_directory(1)))   # "Documents" directory
     self['output_directory'].display_name = _("Output directory")
     
-    self._add(settings.BoolSetting('layer_groups_as_directories', False))
-    self['layer_groups_as_directories'].display_name = _("Treat layer groups as directories")
-    self['layer_groups_as_directories'].description = _(
-      "If enabled, layers will be exported to subdirectories corresponding to the layer groups.\n"
-      "If disabled, all layers will be exported to the output directory on the same level "
-      "and no subdirectories will be created."
+    self._add(settings.BoolSetting('layer_groups_as_folders', False))
+    self['layer_groups_as_folders'].display_name = _("Treat layer groups as folders")
+    self['layer_groups_as_folders'].description = _(
+      "If enabled, layers will be exported to subfolders corresponding to the layer groups.\n"
+      "If disabled, all layers will be exported to the output folder on the same level."
     )
     
     self._add(settings.BoolSetting('ignore_invisible', False))
@@ -165,16 +164,16 @@ class MainSettings(settings.SettingContainer):
       "of each merged layer is the name of the corresponding top-level layer group."
     )
     
-    self._add(settings.BoolSetting('empty_directories', False))
-    self['empty_directories'].display_name = _("Create directories for empty layer groups")
-    self['empty_directories'].description = _(
-      "If enabled, empty subdirectories from empty layers groups are created."
+    self._add(settings.BoolSetting('empty_folders', False))
+    self['empty_folders'].display_name = _("Create folders for empty layer groups")
+    self['empty_folders'].description = _(
+      "If enabled, subfolders for empty layer groups will be created."
     )
     
     self._add(settings.BoolSetting('ignore_layer_modes', False))
     self['ignore_layer_modes'].display_name = _("Ignore layer modes")
     self['ignore_layer_modes'].description = _(
-      "If enabled, the layer mode for each layer is set to Normal. This is "
+      "If enabled, the layer mode for each layer will be set to Normal. This is "
       "useful for layers with opacity less than 100% and a layer mode different "
       "than Normal or Dissolve, which would normally be completely invisible "
       "if a file format supporting alpha channel is used (such as PNG)."
@@ -220,14 +219,13 @@ class MainSettings(settings.SettingContainer):
     
     #---------------------------------------------------------------------------
     
-    def streamline_layer_groups_as_directories(layer_groups_as_directories,
-                                               empty_directories, merge_layer_groups):
-      if not layer_groups_as_directories.value:
-        empty_directories.value = False
-        empty_directories.ui_enabled = False
+    def streamline_layer_groups_as_folders(layer_groups_as_folders, empty_folders, merge_layer_groups):
+      if not layer_groups_as_folders.value:
+        empty_folders.value = False
+        empty_folders.ui_enabled = False
         merge_layer_groups.ui_enabled = True
       else:
-        empty_directories.ui_enabled = True
+        empty_folders.ui_enabled = True
         merge_layer_groups.ui_enabled = False
         merge_layer_groups.value = False
     
@@ -246,12 +244,12 @@ class MainSettings(settings.SettingContainer):
           file_extension.error_messages['default_needed']
         )
     
-    def streamline_merge_layer_groups(merge_layer_groups, layer_groups_as_directories):
+    def streamline_merge_layer_groups(merge_layer_groups, layer_groups_as_folders):
       if merge_layer_groups.value:
-        layer_groups_as_directories.value = False
-        layer_groups_as_directories.ui_enabled = False
+        layer_groups_as_folders.value = False
+        layer_groups_as_folders.ui_enabled = False
       else:
-        layer_groups_as_directories.ui_enabled = True
+        layer_groups_as_folders.ui_enabled = True
     
     def streamline_autocrop(autocrop, square_bracketed_mode, crop_to_background):
       if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.options['background']:
@@ -269,14 +267,14 @@ class MainSettings(settings.SettingContainer):
     
     #---------------------------------------------------------------------------
     
-    self['layer_groups_as_directories'].set_streamline_func(
-      streamline_layer_groups_as_directories, self['empty_directories'], self['merge_layer_groups']
+    self['layer_groups_as_folders'].set_streamline_func(
+      streamline_layer_groups_as_folders, self['empty_folders'], self['merge_layer_groups']
     )
     self['file_ext_mode'].set_streamline_func(
       streamline_file_ext_mode, self['file_extension'], self['strip_mode']
     )
     self['merge_layer_groups'].set_streamline_func(
-      streamline_merge_layer_groups, self['layer_groups_as_directories']
+      streamline_merge_layer_groups, self['layer_groups_as_folders']
     )
     self['autocrop'].set_streamline_func(
       streamline_autocrop, self['square_bracketed_mode'], self['crop_to_background']

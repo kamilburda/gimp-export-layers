@@ -76,8 +76,8 @@ class SessionOnlyGuiSettings(settings.SettingContainer):
   
   def _create_settings(self):
     
-    self._add(settings.Setting('image_ids_and_directories', {}))
-    self['image_ids_and_directories'].can_be_reset_by_container = False
+    self._add(settings.Setting('image_ids_and_folders', {}))
+    self['image_ids_and_folders'].can_be_reset_by_container = False
 
 #===============================================================================
 
@@ -202,11 +202,11 @@ class _ExportLayersGui(object):
     self.dialog.set_default_size(*self.DIALOG_SIZE)
     self.dialog.set_border_width(self.DIALOG_BORDER_WIDTH)
     
-    self.directory_chooser_label = gtk.Label()
-    self.directory_chooser_label.set_markup("<b>" + _("Save in folder:") + "</b>")
-    self.directory_chooser_label.set_alignment(0.0, 0.5)
+    self.folder_chooser_label = gtk.Label()
+    self.folder_chooser_label.set_markup("<b>" + _("Save in folder:") + "</b>")
+    self.folder_chooser_label.set_alignment(0.0, 0.5)
     
-    self.directory_chooser = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+    self.folder_chooser = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
     
     self.file_extension_label = gtk.Label()
     self.file_extension_label.set_markup("<b>" + self.main_settings['file_extension'].display_name + ":</b>")
@@ -216,7 +216,7 @@ class _ExportLayersGui(object):
     self.label_message = gtk.Label()
     self.label_message.set_alignment(0.0, 0.5)
     
-    self.export_settings_layer_groups = gtk.CheckButton(self.main_settings['layer_groups_as_directories'].display_name)
+    self.export_settings_layer_groups = gtk.CheckButton(self.main_settings['layer_groups_as_folders'].display_name)
     self.export_settings_ignore_invisible = gtk.CheckButton(self.main_settings['ignore_invisible'].display_name)
     self.export_settings_autocrop = gtk.CheckButton(self.main_settings['autocrop'].display_name)
     self.export_settings_use_image_size = gtk.CheckButton(self.main_settings['use_image_size'].display_name)
@@ -241,7 +241,7 @@ class _ExportLayersGui(object):
     )
     
     self.advanced_settings_merge_layer_groups = gtk.CheckButton(self.main_settings['merge_layer_groups'].display_name)
-    self.advanced_settings_empty_directories = gtk.CheckButton(self.main_settings['empty_directories'].display_name)
+    self.advanced_settings_empty_folders = gtk.CheckButton(self.main_settings['empty_folders'].display_name)
     self.advanced_settings_ignore_layer_modes = gtk.CheckButton(self.main_settings['ignore_layer_modes'].display_name)
     
     
@@ -285,7 +285,7 @@ class _ExportLayersGui(object):
     self.hbox_advanced_settings_checkbuttons = gtk.HBox(homogeneous=False)
     self.hbox_advanced_settings_checkbuttons.set_spacing(self.ADVANCED_SETTINGS_HORIZONTAL_SPACING)
     self.hbox_advanced_settings_checkbuttons.pack_start(self.advanced_settings_merge_layer_groups, expand=False, fill=True)
-    self.hbox_advanced_settings_checkbuttons.pack_start(self.advanced_settings_empty_directories, expand=False, fill=True)
+    self.hbox_advanced_settings_checkbuttons.pack_start(self.advanced_settings_empty_folders, expand=False, fill=True)
     self.hbox_advanced_settings_checkbuttons.pack_start(self.advanced_settings_ignore_layer_modes, expand=False, fill=True)
     
     self.vbox_advanced_settings = gtk.VBox(homogeneous=False)
@@ -326,8 +326,8 @@ class _ExportLayersGui(object):
     self.dialog.action_area.set_child_secondary(self.reset_settings_button, True)
     
     self.dialog.vbox.set_spacing(self.DIALOG_VBOX_SPACING)
-    self.dialog.vbox.pack_start(self.directory_chooser_label, expand=False, fill=False)
-    self.dialog.vbox.pack_start(self.directory_chooser, padding=5)
+    self.dialog.vbox.pack_start(self.folder_chooser_label, expand=False, fill=False)
+    self.dialog.vbox.pack_start(self.folder_chooser, padding=5)
     self.dialog.vbox.pack_start(self.hbox_file_extension, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.hbox_export_settings, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.expander_advanced_settings, expand=False, fill=False)
@@ -368,15 +368,15 @@ class _ExportLayersGui(object):
         self.file_extension_entry))
     
     self.setting_presenters.add(
-      gui.GtkExportDirectoryChooserPresenter(
+      gui.GtkExportFolderChooserPresenter(
         self.main_settings['output_directory'],
-        self.directory_chooser,
-        self.session_only_gui_settings['image_ids_and_directories'],
+        self.folder_chooser,
+        self.session_only_gui_settings['image_ids_and_folders'],
         self.image))
     
     self.setting_presenters.add(
       gui.GtkCheckButtonPresenter(
-        self.main_settings['layer_groups_as_directories'],
+        self.main_settings['layer_groups_as_folders'],
         self.export_settings_layer_groups))
     
     self.setting_presenters.add(
@@ -421,8 +421,8 @@ class _ExportLayersGui(object):
     
     self.setting_presenters.add(
       gui.GtkCheckButtonPresenter(
-        self.main_settings['empty_directories'],
-        self.advanced_settings_empty_directories))
+        self.main_settings['empty_folders'],
+        self.advanced_settings_empty_folders))
     
     self.setting_presenters.add(
       gui.GtkCheckButtonPresenter(

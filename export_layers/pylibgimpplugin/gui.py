@@ -481,60 +481,60 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
     self._element.set_active(value_)
 
 
-class GtkExportDirectoryChooserPresenter(GtkSettingPresenter):
+class GtkExportFolderChooserPresenter(GtkSettingPresenter):
   
   """
   This class is a `SettingPresenter` for `gtk.FileChooserWidget` elements
-  used as directory choosers for export dialogs.
+  used as folder choosers for export dialogs.
   
-  Value: Current directory.
+  Value: Current folder.
   
-  The current directory is determined for each image currently opened in GIMP
+  The current folder is determined for each image currently opened in GIMP
   separately, according to the following priority list:
   
-    1. Last export directory of the current image
+    1. Last export folder of the current image
     2. Import path for the current image
     3. XCF path for the current image
-    4. Last export directory of any image
-    5. The default directory (the OS 'Documents' directory)
+    4. Last export folder of any image
+    5. The 'Documents' folder in user's home folder
   
   Attributes:
   
-  * `image_ids_and_directories_setting` - a `Setting` object whose value is a
-    dict of <`gimp.Image`, directory name> pairs.
+  * `image_ids_and_folders_setting` - a `Setting` object whose value is a
+    dict of <`gimp.Image`, folder name> pairs.
   
   * `current_image` - Current `gimp.Image` object.
   """
   
-  def __init__(self, setting, element, image_ids_and_directories_setting, current_image):
-    super(GtkExportDirectoryChooserPresenter, self).__init__(setting, element)
+  def __init__(self, setting, element, image_ids_and_folders_setting, current_image):
+    super(GtkExportFolderChooserPresenter, self).__init__(setting, element)
     
-    self._image_ids_and_directories_setting = image_ids_and_directories_setting
+    self._image_ids_and_folders_setting = image_ids_and_folders_setting
     self.current_image = current_image
     
-    self._set_image_ids_and_directories()
+    self._set_image_ids_and_folders()
   
   @property
   def value(self):
-    directory = self._element.get_current_folder()
-    if directory is not None:
-      directory = directory.decode(GTK_CHARACTER_ENCODING)
+    folder = self._element.get_current_folder()
+    if folder is not None:
+      folder = folder.decode(GTK_CHARACTER_ENCODING)
     
-    self._image_ids_and_directories_setting.value[self.current_image.ID] = directory
+    self._image_ids_and_folders_setting.value[self.current_image.ID] = folder
     
-    return directory
+    return folder
   
   @value.setter
   def value(self, value_):
     """
-    `value_` parameter will be ignored if there is a value for directories
+    `value_` parameter will be ignored if there is a value for folders
     1., 2. or 3. from the priority list (see the class description).
     """
     
-    directory = self._image_ids_and_directories_setting.value[self.current_image.ID]
+    folder = self._image_ids_and_folders_setting.value[self.current_image.ID]
     
-    if directory is not None:
-      self._element.set_current_folder(directory.encode(GTK_CHARACTER_ENCODING))
+    if folder is not None:
+      self._element.set_current_folder(folder.encode(GTK_CHARACTER_ENCODING))
     else:
       uri = pdb.gimp_image_get_imported_uri(self.current_image)
       if uri is None:
@@ -545,8 +545,8 @@ class GtkExportDirectoryChooserPresenter(GtkSettingPresenter):
       else:
         self._element.set_current_folder(value_.encode(GTK_CHARACTER_ENCODING))
   
-  def _set_image_ids_and_directories(self):
-    setting = self._image_ids_and_directories_setting
+  def _set_image_ids_and_folders(self):
+    setting = self._image_ids_and_folders_setting
     
     current_image_ids = set([image.ID for image in gimp.image_list()])
     setting.value = {
