@@ -94,8 +94,8 @@ class ExportLayersPlugin(gimpplugin.plugin):
     
     gimp.install_procedure(
       "plug_in_export_layers",
-      _("Export layers as separate images in specified file format to specified "
-        "directory, using layer names as filenames"),
+      _("Export layers as separate images in specified file format, "
+        "using layer names as filenames"),
       "",
       "khalim19 <khalim19@gmail.com>",
       "khalim19",
@@ -183,6 +183,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
       overwrite_chooser=overwrite.NoninteractiveOverwriteChooser(self.main_settings['overwrite_mode'].value),
       progress_updater=None
     )
+    
     try:
       layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError as e:
