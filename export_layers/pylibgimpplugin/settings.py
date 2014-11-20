@@ -867,8 +867,10 @@ class Container(object):
   """
   This class is an ordered, `dict`-like container to store items.
   
-  Unlike `dict`, this object iterates over values (when `__iter__` is called).
+  To add an object to the container, override the `_add` method in your subclass.
   """
+  
+  __metaclass__ = abc.ABCMeta
   
   def __init__(self):
     self._items = OrderedDict()
@@ -876,14 +878,8 @@ class Container(object):
   def __getitem__(self, key):
     return self._items[key]
   
-  def __setitem__(self, key, value):
-    self._items[key] = value
-  
   def __contains__(self, key):
     return key in self._items[key]
-  
-  def __delitem__(self, key):
-    del self._items[key]
   
   def __iter__(self):
     for item in self._items.values():
@@ -891,6 +887,15 @@ class Container(object):
   
   def __len__(self):
     return len(self._items)
+  
+  @abc.abstractmethod
+  def _add(self, obj):
+    """
+    Add specified object to the container. It is up to the subclass to
+    determine the key from the object.
+    """
+    
+    pass
 
 #-------------------------------------------------------------------------------
 
@@ -937,26 +942,11 @@ class SettingContainer(Container):
       self[<setting name>].<attribute> = <value>
     
     Settings are stored in the container in the order they were added.
-    
-    Q: Why can't we simply do
-    
-         self[<setting name>] = Setting(<setting name>, args...)
-         
-       to create settings?
-    A: Because it's error-prone. <setting name>, which must be the same in both places,
-       would have to be typed twice. If, by accident, they were different strings,
-       things could get messy...
     """
     pass
   
   def _add(self, setting):
     self._items[setting.name] = setting
-  
-  def __setitem__(self, key, value):
-    raise TypeError("replacing a Setting object or creating a new one is not allowed")
-  
-  def __delitem__(self, key):
-    raise TypeError("deleting a Setting object is not allowed")
   
   def streamline(self, force=False):
     """
@@ -1517,21 +1507,15 @@ class SettingPresenterContainer(Container):
     
     self._is_events_connected = False
   
-  def __setitem__(self, key, value):
-    raise TypeError(
-      "replacing a SettingPresenter object or creating a new one "
-      "is not allowed; use the add() method instead"
-    )
-  
-  def __delitem__(self, key):
-    raise TypeError("deleting a SettingPresenter object is not allowed")
-  
-  def add(self, setting_presenter):
+  def _add(self, setting_presenter):
     """
     Add a `SettingPresenter` object to the container.
     """
     
     self._items[setting_presenter.setting] = setting_presenter
+  
+  # Make `_add` public
+  add = _add
   
   def assign_setting_values_to_elements(self):
     """
