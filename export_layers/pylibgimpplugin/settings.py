@@ -81,66 +81,73 @@ class Setting(object):
   
   Attributes:
   
-  * `name` (read-only) - Setting name (string) that uniquely identifies a setting.
+  * `name` (read-only) - A name (string) that uniquely identifies the setting.
   
-  * `default_value` - Default value of a setting assigned upon its instantiation
-    or when the `reset()` method was called.
+  * `default_value` - Default value of the setting assigned upon its
+    instantiation or after the `reset()` method is called.
   
-  * `value` - The setting value. Subclasses of `Setting` can override the `value.setter`
-    property to e.g. validate input value and raise `ValueError` if the value assigned is invalid.
-    `value` is initially set to `default_value`.
+  * `value` - The setting value. Subclasses of `Setting` can override the
+    `value.setter` property to e.g. validate input value and raise `ValueError`
+    if the value assigned is invalid. `value` is initially set to `default_value`.
   
   * `gimp_pdb_type` - GIMP Procedural Database (PDB) type, used when registering
-    parameters in plug-ins. `_allowed_pdb_types` list, which is class-specific, determines
-    whether the PDB type assigned is valid. `_allowed_pdb_types` in this class is None,
-    which means that any PDB type can be assigned.
+    the setting as a plug-in parameter to the PDB. `_allowed_pdb_types` list,
+    which is class-specific, determines whether the PDB type assigned is valid.
+    `_allowed_pdb_types` in this class is None, which means that any PDB type
+    can be assigned.
   
-  * `can_be_registered_to_pdb` - Indicates whether a setting can be registered
+  * `can_be_registered_to_pdb` - Indicates whether the setting can be registered
     as a parameter to a plug-in. Automatically set to True if `gimp_pdb_type` is
     assigned to a valid value that is not None.
   
   * `display_name` - Setting name in human-readable format. Useful as GUI labels.
   
-  * `short_description` (read-only) - Usually `display_name` plus additional information
-    in parentheses. Useful as setting description when registering parameters in plug-ins.
+  * `short_description` (read-only) - Usually `display_name` plus additional
+    information in parentheses. Useful as setting description when registering
+    the setting as a plug-in parameter to the PDB.
   
-  * `description` - Describes a setting in more detail. Useful for documentation
-    purposes as well as GUI tooltips.
+  * `description` - Describes the setting in more detail. Useful for
+    documentation purposes as well as GUI tooltips.
   
   * `error_messages` - A dict of error messages, which can be used e.g. if a value
-    assigned to a setting is invalid. You can add your own error messages and
+    assigned to the setting is invalid. You can add your own error messages and
     assign them to one of the "default" error messages (such as 'invalid_value'
     in several `Setting` subclasses) depending on the context in which the value
     assigned is invalid.
   
-  * `ui_enabled` - Indicates whether a setting should be enabled (respond to user input)
-    in the GUI. True by default. This attribute is only an indication, it does
-    not modify a GUI element (use the appropriate `SettingPresenter` subclass for that purpose).
+  * `ui_enabled` - Indicates whether the setting should be enabled (respond
+    to user input) in the GUI. True by default. This attribute is only an
+    indication, it does not modify a GUI element (use the appropriate
+    `SettingPresenter` subclass for that purpose).
   
-  * `ui_visible` - Indicates whether a setting should be visible in the GUI. True by default.
-    This attribute is only an indication, it does not modify a GUI element
-    (use the appropriate `SettingPresenter` subclass for that purpose).
+  * `ui_visible` - Indicates whether the setting should be visible in the GUI.
+    True by default. This attribute is only an indication, it does not modify a
+    GUI element (use the appropriate `SettingPresenter` subclass for that purpose).
   
-  * `can_be_reset_by_container` - If True, setting is reset to its default value if
-    the `reset()` method from the corresponding `SettingContainer` is called. False by default.
+  * `can_be_reset_by_container` - If True, the setting is reset to its default
+    value if the `reset()` method from the corresponding `SettingContainer` is
+    called. False by default.
   
-  * `changed_attributes` (read-only) - Contains a set of Setting attribute names that were changed.
-    This attribute is used in the `streamline()` method.
-    If any of the following attributes are assigned a value, they are added to the set:
+  * `changed_attributes` (read-only) - Contains a set of attribute names of the
+    setting object that were changed. This attribute is used in the
+    `streamline()` method. If any of the following attributes are assigned a
+    value, they are added to the set:
     * `value`
     * `ui_enabled`
     * `ui_visible`
+    
     `changed_attributes` is cleared if `streamline()` is called.
   
-  * `can_streamline` (read-only) - True if a streamline function is set, False otherwise.
+  * `can_streamline` (read-only) - True if a streamline function is set, False
+    otherwise.
   
   Methods:
   
-  * `streamline()` - Change attributes of this and other settings based on the value
-    of this and the other settings.
+  * `streamline()` - Change attributes of this and other settings based on the
+    value of this and the other settings.
   
-  * `set_streamline_func()` - Set a streamline function (to be called when `streamline()`
-    is called).
+  * `set_streamline_func()` - Set a streamline function (to be called when
+    `streamline()` is called).
   
   * `remove_streamline_func()` - Remove a streamline function.
   
