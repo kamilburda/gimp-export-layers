@@ -80,7 +80,7 @@ class MainSettings(settings.SettingContainer):
     self._add(settings.FileExtensionSetting('file_extension', ""))
     self['file_extension'].display_name = _("File extension")
     self['file_extension'].description = _(
-      "Type in file extension, with or without the leading period. "
+      "Type in file extension (with or without the leading period). "
       "To export in RAW format, type \"data\"."
     )
     
@@ -154,7 +154,8 @@ class MainSettings(settings.SettingContainer):
     self._add(settings.BoolSetting('crop_to_background', False))
     self['crop_to_background'].display_name = _("Crop to background")
     self['crop_to_background'].description = _(
-      "If enabled, layers will be cropped to the size of the background layers instead of their own size."
+      "If enabled, layers will be cropped to the combined size of the "
+      "background layers instead of their own size."
     )
     
     self._add(settings.BoolSetting('merge_layer_groups', False))
