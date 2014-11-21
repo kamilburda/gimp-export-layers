@@ -20,8 +20,8 @@
 #-------------------------------------------------------------------------------
 
 """
-This module contains functions dealing with files, directories, filenames
-and strings.
+This module contains functions dealing with strings, filenames, files and
+directories.
 """
 
 #===============================================================================
