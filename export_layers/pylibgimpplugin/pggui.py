@@ -55,7 +55,7 @@ import gtk
 import gimp
 import gimpui
 
-from . import settings
+from . import pgsetting
 from . import overwrite
 from . import progress
 
@@ -382,7 +382,7 @@ class IntComboBox(gimpui.IntComboBox):
 # GTK Setting Presenters
 #===============================================================================
   
-class GtkSettingPresenter(settings.SettingPresenter):
+class GtkSettingPresenter(pgsetting.SettingPresenter):
   
   """
   This class is a SettingPresenter subclass suitable for GTK GUI elements.
@@ -603,7 +603,7 @@ class GtkExpanderPresenter(GtkSettingPresenter):
 # GTK Setting Presenter Container
 #===============================================================================
 
-class GtkSettingPresenterContainer(settings.SettingPresenterContainer):
+class GtkSettingPresenterContainer(pgsetting.SettingPresenterContainer):
   
   """
   This class is used to group `SettingPresenter` objects in a GTK environment.

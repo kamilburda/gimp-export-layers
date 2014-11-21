@@ -21,7 +21,7 @@
 
 """
 This module defines functions dealing with GIMP objects (images, layers, etc.)
-not defined in the Python API for GIMP plug-ins.
+not defined in the GIMP procedural database (PDB) or the GIMP Python API.
 """
 
 #===============================================================================

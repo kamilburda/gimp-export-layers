@@ -48,9 +48,9 @@ import gimp
 import gimpenums
 import gimpui
 
-from export_layers.pylibgimpplugin import settings
+from export_layers.pylibgimpplugin import pgsetting
 from export_layers.pylibgimpplugin import overwrite
-from export_layers.pylibgimpplugin import gui
+from export_layers.pylibgimpplugin import pggui
 
 from export_layers import exportlayers
 from export_layers import constants
@@ -61,28 +61,28 @@ pdb = gimp.pdb
 
 #===============================================================================
 
-class GuiSettings(settings.SettingContainer):
+class GuiSettings(pgsetting.SettingContainer):
   
   def _create_settings(self):
     
-    self._add(settings.Setting('dialog_position', ()))
+    self._add(pgsetting.Setting('dialog_position', ()))
     self['dialog_position'].can_be_reset_by_container = False
     
-    self._add(settings.IntSetting('advanced_settings_expanded', False))
+    self._add(pgsetting.IntSetting('advanced_settings_expanded', False))
     self['advanced_settings_expanded'].can_be_reset_by_container = False
 
 
-class SessionOnlyGuiSettings(settings.SettingContainer):
+class SessionOnlyGuiSettings(pgsetting.SettingContainer):
   
   def _create_settings(self):
     
-    self._add(settings.Setting('image_ids_and_folders', {}))
+    self._add(pgsetting.Setting('image_ids_and_folders', {}))
     self['image_ids_and_folders'].can_be_reset_by_container = False
 
 #===============================================================================
 
 def display_message(message, message_type, parent=None):
-  gui.display_message(
+  pggui.display_message(
     message,
     message_type,
     title=_(constants.PLUGIN_TITLE),
@@ -91,7 +91,7 @@ def display_message(message, message_type, parent=None):
 
 
 def display_exception_message(exception_message, parent=None):
-  gui.display_exception_message(
+  pggui.display_exception_message(
     exception_message,
     plugin_title=_(constants.PLUGIN_TITLE),
     report_uri_list=constants.BUG_REPORT_URI_LIST,
@@ -178,17 +178,17 @@ class _ExportLayersGui(object):
     
     self.gui_settings = GuiSettings()
     self.session_only_gui_settings = SessionOnlyGuiSettings()
-    self.setting_persistor = settings.SettingPersistor([self.gimpshelf_stream, self.config_file_stream],
+    self.setting_persistor = pgsetting.SettingPersistor([self.gimpshelf_stream, self.config_file_stream],
                                                        [self.gimpshelf_stream])
     
     status = self.setting_persistor.load(self.main_settings, self.gui_settings)
-    if status == settings.SettingPersistor.READ_FAIL:
+    if status == pgsetting.SettingPersistor.READ_FAIL:
       display_message(self.setting_persistor.status_message, gtk.MESSAGE_WARNING)
     self.setting_persistor.read_setting_streams.pop()
     
     self.setting_persistor.load(self.session_only_gui_settings)
     
-    self.setting_presenters = gui.GtkSettingPresenterContainer()
+    self.setting_presenters = pggui.GtkSettingPresenterContainer()
     self.layer_exporter = None
     
     self._init_gui()
@@ -223,17 +223,17 @@ class _ExportLayersGui(object):
     
     self.advanced_settings_file_ext_mode_label = gtk.Label(self.main_settings['file_ext_mode'].display_name + ":")
     self.advanced_settings_file_ext_mode_label.set_alignment(0, 0.5)
-    self.advanced_settings_file_ext_mode = gui.IntComboBox(
+    self.advanced_settings_file_ext_mode = pggui.IntComboBox(
       self.main_settings['file_ext_mode'].get_option_display_names_and_values()
     )
-    self.advanced_settings_strip_mode = gui.IntComboBox(
+    self.advanced_settings_strip_mode = pggui.IntComboBox(
       self.main_settings['strip_mode'].get_option_display_names_and_values()
     )
     
     self.advanced_settings_square_bracketed_mode_label = gtk.Label(
       self.main_settings['square_bracketed_mode'].display_name + ":")
     self.advanced_settings_square_bracketed_mode_label.set_alignment(0, 0.5)
-    self.advanced_settings_square_bracketed_mode = gui.IntComboBox(
+    self.advanced_settings_square_bracketed_mode = pggui.IntComboBox(
       self.main_settings['square_bracketed_mode'].get_option_display_names_and_values()
     )
     self.advanced_settings_crop_to_background = gtk.CheckButton(
@@ -363,79 +363,79 @@ class _ExportLayersGui(object):
   
   def create_setting_presenters(self):
     self.setting_presenters.add(
-      gui.GtkEntryPresenter(
+      pggui.GtkEntryPresenter(
         self.main_settings['file_extension'],
         self.file_extension_entry))
     
     self.setting_presenters.add(
-      gui.GtkExportFolderChooserPresenter(
+      pggui.GtkExportFolderChooserPresenter(
         self.main_settings['output_directory'],
         self.folder_chooser,
         self.session_only_gui_settings['image_ids_and_folders'],
         self.image))
     
     self.setting_presenters.add(
-      gui.GtkCheckButtonPresenter(
+      pggui.GtkCheckButtonPresenter(
         self.main_settings['layer_groups_as_folders'],
         self.export_settings_layer_groups))
     
     self.setting_presenters.add(
-      gui.GtkCheckButtonPresenter(
+      pggui.GtkCheckButtonPresenter(
         self.main_settings['ignore_invisible'],
         self.export_settings_ignore_invisible))
     
     self.setting_presenters.add(
-      gui.GtkCheckButtonPresenter(
+      pggui.GtkCheckButtonPresenter(
         self.main_settings['autocrop'],
         self.export_settings_autocrop))
     
     self.setting_presenters.add(
-      gui.GtkCheckButtonPresenter(
+      pggui.GtkCheckButtonPresenter(
         self.main_settings['use_image_size'],
         self.export_settings_use_image_size))
     
     self.setting_presenters.add(
-      gui.GimpUiIntComboBoxPresenter(
+      pggui.GimpUiIntComboBoxPresenter(
         self.main_settings['file_ext_mode'],
         self.advanced_settings_file_ext_mode))
     
     self.setting_presenters.add(
-      gui.GimpUiIntComboBoxPresenter(
+      pggui.GimpUiIntComboBoxPresenter(
         self.main_settings['strip_mode'],
         self.advanced_settings_strip_mode))
     
     self.setting_presenters.add(
-      gui.GimpUiIntComboBoxPresenter(
+      pggui.GimpUiIntComboBoxPresenter(
         self.main_settings['square_bracketed_mode'],
         self.advanced_settings_square_bracketed_mode))
     
     self.setting_presenters.add(
-      gui.GtkCheckButtonPresenter(
+      pggui.GtkCheckButtonPresenter(
         self.main_settings['crop_to_background'],
         self.advanced_settings_crop_to_background))
     
     self.setting_presenters.add(
-      gui.GtkCheckButtonPresenter(
+      pggui.GtkCheckButtonPresenter(
         self.main_settings['merge_layer_groups'],
         self.advanced_settings_merge_layer_groups))
     
     self.setting_presenters.add(
-      gui.GtkCheckButtonPresenter(
+      pggui.GtkCheckButtonPresenter(
         self.main_settings['empty_folders'],
         self.advanced_settings_empty_folders))
     
     self.setting_presenters.add(
-      gui.GtkCheckButtonPresenter(
+      pggui.GtkCheckButtonPresenter(
         self.main_settings['ignore_layer_modes'],
         self.advanced_settings_ignore_layer_modes))
     
     self.setting_presenters.add(
-      gui.GtkWindowPositionPresenter(
+      pggui.GtkWindowPositionPresenter(
         self.gui_settings['dialog_position'],
         self.dialog))
     
     self.setting_presenters.add(
-      gui.GtkExpanderPresenter(
+      pggui.GtkExpanderPresenter(
         self.gui_settings['advanced_settings_expanded'],
         self.expander_advanced_settings))
   
@@ -457,7 +457,7 @@ class _ExportLayersGui(object):
   def on_save_settings(self, widget):
     try:
       self.setting_presenters.assign_element_values_to_settings()
-    except settings.SettingValueError as e:
+    except pgsetting.SettingValueError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       return
     
@@ -473,21 +473,21 @@ class _ExportLayersGui(object):
   def on_export_click(self, widget):
     try:
       self.setting_presenters.assign_element_values_to_settings()
-    except settings.SettingValueError as e:
+    except pgsetting.SettingValueError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       return
     
     self.setup_gui_before_export()
     pdb.gimp_progress_init("", None)
     
-    overwrite_chooser = gui.GtkDialogOverwriteChooser(
+    overwrite_chooser = pggui.GtkDialogOverwriteChooser(
       # Don't insert the Cancel option as a button.
       zip(self.main_settings['overwrite_mode'].options.values()[:-1],
           self.main_settings['overwrite_mode'].options_display_names.values()[:-1]),
       default_value=self.main_settings['overwrite_mode'].options['replace'],
       default_response=self.main_settings['overwrite_mode'].options['cancel'],
       title=_(constants.PLUGIN_TITLE))
-    progress_updater = gui.GtkProgressUpdater(self.progress_bar)
+    progress_updater = pggui.GtkProgressUpdater(self.progress_bar)
     
     # Make the enabled GUI components more responsive(-ish) by periodically checking
     # whether the GUI has something to do.
@@ -608,7 +608,7 @@ class _ExportLayersToGui(object):
   
   def export_layers(self):
     overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(self.main_settings['overwrite_mode'].value)
-    progress_updater = gui.GtkProgressUpdater(self.export_dialog.progress_bar)
+    progress_updater = pggui.GtkProgressUpdater(self.export_dialog.progress_bar)
     pdb.gimp_progress_init("", None)
     refresh_event_id = gobject.timeout_add(self._GUI_REFRESH_INTERVAL_MILLISECONDS, self.refresh_ui)
     try:
@@ -644,10 +644,10 @@ class _ExportLayersToGui(object):
 #===============================================================================
 
 def export_layers_gui(image, main_settings, special_settings, gimpshelf_stream, config_file_stream):
-  with gui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST):
+  with pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST):
     _ExportLayersGui(image, main_settings, special_settings, gimpshelf_stream, config_file_stream)
 
 
 def export_layers_to_gui(image, main_settings, setting_persistor):
-  with gui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST):
+  with pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST):
     _ExportLayersToGui(image, main_settings, setting_persistor)

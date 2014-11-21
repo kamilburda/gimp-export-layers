@@ -56,7 +56,7 @@ from collections import namedtuple
 
 import gimp
 
-from . import libfiles
+from . import pgpath
 from . import objectfilter
 
 #===============================================================================
@@ -220,7 +220,7 @@ class ItemData(object):
             else:
               place_before_file_ext = False
             
-            elem.name = libfiles.uniquify_string(
+            elem.name = pgpath.uniquify_string(
               elem.name, item_names, place_before_file_ext
             )
             self._uniquified_itemdata[parent].add(elem)
@@ -231,7 +231,7 @@ class ItemData(object):
       if parent not in self._uniquified_itemdata:
         self._uniquified_itemdata[parent] = set()
       
-      item_elem.name = libfiles.uniquify_string(
+      item_elem.name = pgpath.uniquify_string(
         item_elem.name, self._uniquified_itemdata[parent],
         place_before_file_extension
       )
@@ -421,7 +421,7 @@ class _ItemDataElement(object):
     If `name` has no file extension, return an empty string.
     """
     
-    return libfiles.get_file_extension(self.name)
+    return pgpath.get_file_extension(self.name)
   
   def set_file_extension(self, file_extension):
     """
@@ -478,9 +478,9 @@ class _ItemDataElement(object):
     Validate the `name` attribute of this object and all of its parents.
     """
     
-    self.name = libfiles.FilenameValidator.validate(self.name)
+    self.name = pgpath.FilenameValidator.validate(self.name)
     for parent in self._parents:
-      parent.name = libfiles.FilenameValidator.validate(parent.name)
+      parent.name = pgpath.FilenameValidator.validate(parent.name)
   
   def _get_path_visibility(self):
     """

@@ -52,7 +52,7 @@ import pathspec
 
 from export_layers import constants
 
-from export_layers.pylibgimpplugin import libfiles
+from export_layers.pylibgimpplugin import pgpath
 
 #===============================================================================
 
@@ -156,7 +156,7 @@ def make_package(input_directory, output_file, version):
   for src_file, temp_file in zip(files, temp_files):
     dirname = os.path.dirname(temp_file)
     if not os.path.exists(dirname):
-      libfiles.make_dirs(dirname)
+      pgpath.make_dirs(dirname)
     shutil.copy2(src_file, temp_file)
   
   _set_permissions(temp_dir, 0o755)

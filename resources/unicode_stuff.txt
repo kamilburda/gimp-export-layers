@@ -32,7 +32,7 @@ Plug-in:
    - `_ItemDataElement.orig_name` - decoded from `gimp.Layer.name` (which is encoded in UTF-8)
    - `_ItemDataElement.name` - `unicode`
    - `LayerData._itemdata` keys are `_ItemDataElement.orig_name`
-* libfiles
+* pgpath
    - stand-alone functions don't care about string type or encoding
    - `uniquify_filename`, `make_dirs` - they use the `os` module, whose functions accept `unicode` strings
       - not sure if the unicode strings work on Unix systems, though

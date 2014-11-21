@@ -34,45 +34,45 @@ import os
 
 import unittest
 
-from .. import libfiles
+from .. import pgpath
 
 #===============================================================================
 
 class TestUniquifyString(unittest.TestCase):
   
   def test_uniquify_string(self):
-    self.assertEqual('one (1)', libfiles.uniquify_string('one', ['one', 'two', 'three']))
-    self.assertEqual('one (2)', libfiles.uniquify_string('one', ['one', 'one (1)', 'three']))
-    self.assertEqual('one (1).jpg', libfiles.uniquify_string('one.jpg', ['one.jpg', 'two', 'three'],
+    self.assertEqual('one (1)', pgpath.uniquify_string('one', ['one', 'two', 'three']))
+    self.assertEqual('one (2)', pgpath.uniquify_string('one', ['one', 'one (1)', 'three']))
+    self.assertEqual('one (1).jpg', pgpath.uniquify_string('one.jpg', ['one.jpg', 'two', 'three'],
                                                              place_before_file_extension=True))
-    self.assertEqual('one (2).jpg', libfiles.uniquify_string('one.jpg', ['one.jpg', 'one (1).jpg', 'three'],
+    self.assertEqual('one (2).jpg', pgpath.uniquify_string('one.jpg', ['one.jpg', 'one (1).jpg', 'three'],
                                                              place_before_file_extension=True))
-    self.assertEqual('one (1)', libfiles.uniquify_string('one', ['one', 'two', 'three'],
+    self.assertEqual('one (1)', pgpath.uniquify_string('one', ['one', 'two', 'three'],
                                                          place_before_file_extension=True))
-    self.assertEqual('one. (1)', libfiles.uniquify_string('one.', ['one.', 'two', 'three'],
+    self.assertEqual('one. (1)', pgpath.uniquify_string('one.', ['one.', 'two', 'three'],
                                                           place_before_file_extension=True))
-    self.assertEqual('one. (1)', libfiles.uniquify_string('one.', ['one.', 'two', 'three']))
-    self.assertEqual('one (1) (1)', libfiles.uniquify_string('one (1)', ['one (1)', 'two', 'three']))
-    self.assertEqual('one (1) (1)', libfiles.uniquify_string('one (1)', ['one (1)', 'one (2)', 'three']))
-    self.assertEqual('one (1) (1).jpg', libfiles.uniquify_string('one (1).jpg', ['one (1).jpg', 'two', 'three'],
+    self.assertEqual('one. (1)', pgpath.uniquify_string('one.', ['one.', 'two', 'three']))
+    self.assertEqual('one (1) (1)', pgpath.uniquify_string('one (1)', ['one (1)', 'two', 'three']))
+    self.assertEqual('one (1) (1)', pgpath.uniquify_string('one (1)', ['one (1)', 'one (2)', 'three']))
+    self.assertEqual('one (1) (1).jpg', pgpath.uniquify_string('one (1).jpg', ['one (1).jpg', 'two', 'three'],
                                                                  place_before_file_extension=True))
 
 
 class TestGetFileExtension(unittest.TestCase):
   
   def test_get_file_extension(self):
-    self.assertEqual("jpg", libfiles.get_file_extension("picture.jpg"))
-    self.assertEqual("jpg", libfiles.get_file_extension("picture.JPG"))
-    self.assertEqual("jpg", libfiles.get_file_extension("picture.jPg"))
-    self.assertEqual("", libfiles.get_file_extension("picture."))
-    self.assertEqual("", libfiles.get_file_extension("picture"))
-    self.assertEqual("JPG", libfiles.get_file_extension("picture.JPG", to_lowercase=False))
+    self.assertEqual("jpg", pgpath.get_file_extension("picture.jpg"))
+    self.assertEqual("jpg", pgpath.get_file_extension("picture.JPG"))
+    self.assertEqual("jpg", pgpath.get_file_extension("picture.jPg"))
+    self.assertEqual("", pgpath.get_file_extension("picture."))
+    self.assertEqual("", pgpath.get_file_extension("picture"))
+    self.assertEqual("JPG", pgpath.get_file_extension("picture.JPG", to_lowercase=False))
 
 
 class TestFilenameValidator(unittest.TestCase):
   
   def setUp(self):
-    self.validator = libfiles.FilenameValidator
+    self.validator = pgpath.FilenameValidator
   
   def test_checks_if_filename_is_valid(self):
     self.assertEqual(self.validator.is_valid("one"), (True, []))
@@ -101,7 +101,7 @@ class TestFilenameValidator(unittest.TestCase):
 class TestFilePathValidator(unittest.TestCase):
   
   def setUp(self):
-    self.validator = libfiles.FilePathValidator
+    self.validator = pgpath.FilePathValidator
   
   def test_checks_if_filepath_is_valid(self):
     self.assertEqual(self.validator.is_valid(os.path.join("one", "two", "three")),
@@ -230,7 +230,7 @@ class TestFilePathValidator(unittest.TestCase):
 class TestFileExtensionValidator(unittest.TestCase):
   
   def setUp(self):
-    self.validator = libfiles.FileExtensionValidator
+    self.validator = pgpath.FileExtensionValidator
   
   def test_checks_if_filename_is_valid(self):
     self.assertEqual(self.validator.is_valid("jpg"), (True, []))

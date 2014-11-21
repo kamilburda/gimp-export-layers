@@ -45,9 +45,9 @@ import gimpenums
 
 from export_layers import constants
 
-from export_layers.pylibgimpplugin import libfiles
-from export_layers.pylibgimpplugin import pylibgimp
-from export_layers.pylibgimpplugin import itemdata
+from export_layers.pylibgimpplugin import pgpath
+from export_layers.pylibgimpplugin import pgpdb
+from export_layers.pylibgimpplugin import pgitemdata
 from export_layers.pylibgimpplugin import objectfilter
 from export_layers.pylibgimpplugin import progress
 
@@ -93,7 +93,7 @@ class OverwriteHandler(object):
         # Nothing needs to be done here.
         pass
       elif overwrite_chooser.overwrite_mode in (cls.RENAME_NEW, cls.RENAME_EXISTING):
-        uniq_filename = libfiles.uniquify_filename(filename)
+        uniq_filename = pgpath.uniquify_filename(filename)
         if overwrite_chooser.overwrite_mode == cls.RENAME_NEW:
           filename = uniq_filename
         else:
@@ -249,7 +249,7 @@ class LayerExporter(object):
     self._include_item_path = self.main_settings['layer_groups_as_folders'].value
     
     self._image_copy = None
-    self._layer_data = itemdata.LayerData(self.image, is_filtered=True)
+    self._layer_data = pgitemdata.LayerData(self.image, is_filtered=True)
     self._background_layer_elems = []
     # Layer containing all background layers merged into one. This layer is not
     # inserted into the image, but rather its copies (for each layer to be exported).
@@ -325,7 +325,7 @@ class LayerExporter(object):
     ):
       self.progress_updater.num_total_tasks = len(self._layer_data)
     
-    libfiles.make_dirs(self._output_directory)
+    pgpath.make_dirs(self._output_directory)
     
     for layer_elem in self._layer_data:
       if self.should_stop:
@@ -360,14 +360,14 @@ class LayerExporter(object):
         self._layer_data.uniquify_name(layer_elem, self._include_item_path,
                                        place_before_file_extension=False)
         empty_directory = layer_elem.get_filepath(self._output_directory, self._include_item_path)
-        libfiles.make_dirs(empty_directory)
+        pgpath.make_dirs(empty_directory)
   
   def _setup(self):
     # Save context just in case. No need for undo groups or undo freeze here.
     pdb.gimp_context_push()
     # Perform subsequent operations on a new image so that the original image
     # and its soon-to-be exported layers are left intact.
-    self._image_copy = pylibgimp.duplicate(self.image, remove_items=True)
+    self._image_copy = pgpdb.duplicate(self.image, remove_items=True)
     
     if constants.DEBUG_IMAGE_PROCESSING:
       self._display_id = pdb.gimp_display_new(self._image_copy)
@@ -398,7 +398,7 @@ class LayerExporter(object):
     # This is necessary for file formats which flatten the image (such as JPG).
     pdb.gimp_item_set_visible(layer_copy, True)
     if pdb.gimp_item_is_group(layer_copy):
-      layer_copy = pylibgimp.merge_layer_group(self._image_copy, layer_copy)
+      layer_copy = pgpdb.merge_layer_group(self._image_copy, layer_copy)
     
     if self.main_settings['ignore_layer_modes'].value:
       layer_copy.mode = gimpenums.NORMAL_MODE
@@ -419,7 +419,7 @@ class LayerExporter(object):
           # option tries to merge layers that are all outside the image canvas.
           self._background_layer_elems = [
             bg_elem for bg_elem in self._background_layer_elems
-            if pylibgimp.is_layer_inside_image(self._image_copy, bg_elem.item)
+            if pgpdb.is_layer_inside_image(self._image_copy, bg_elem.item)
           ]
           
           if not self._background_layer_elems:
@@ -432,7 +432,7 @@ class LayerExporter(object):
           if self.main_settings['ignore_layer_modes'].value:
             bg_layer_copy.mode = gimpenums.NORMAL_MODE
           if pdb.gimp_item_is_group(bg_layer_copy):
-            bg_layer_copy = pylibgimp.merge_layer_group(self._image_copy, bg_layer_copy)
+            bg_layer_copy = pgpdb.merge_layer_group(self._image_copy, bg_layer_copy)
         
         if self.main_settings['use_image_size'].value:
           background_layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
@@ -530,7 +530,7 @@ class LayerExporter(object):
   
   def _export(self, image, layer, output_filename):
     run_mode = self._get_run_mode()
-    libfiles.make_dirs(os.path.dirname(output_filename))
+    pgpath.make_dirs(os.path.dirname(output_filename))
     
     self._export_once(run_mode, image, layer, output_filename)
     

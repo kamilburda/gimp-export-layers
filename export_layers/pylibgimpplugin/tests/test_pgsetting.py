@@ -41,8 +41,8 @@ import gimpenums
 from ..lib import mock
 from . import gimpmocks
 
-from .. import settings
-from .. import libfiles
+from .. import pgsetting
+from .. import pgpath
 
 #===============================================================================
 
@@ -62,7 +62,7 @@ class MockGuiWidget(object):
     self.visible = True
 
 
-class MockSettingPresenter(settings.SettingPresenter):
+class MockSettingPresenter(pgsetting.SettingPresenter):
   
   @property
   def value(self):
@@ -95,7 +95,7 @@ class MockSettingPresenter(settings.SettingPresenter):
     pass
 
 
-class MockSettingPresenterContainer(settings.SettingPresenterContainer):
+class MockSettingPresenterContainer(pgsetting.SettingPresenterContainer):
   
   def _gui_on_element_value_change(self, presenter):
     self._on_element_value_change(presenter)
@@ -104,14 +104,14 @@ class MockSettingPresenterContainer(settings.SettingPresenterContainer):
     self._on_element_value_change(presenter)
 
 
-class SettingContainerTest(settings.SettingContainer):
+class SettingContainerTest(pgsetting.SettingContainer):
   
   def _create_settings(self):
     
-    self._add(settings.StringSetting('file_extension', ""))
-    self._add(settings.BoolSetting('ignore_invisible', False))
+    self._add(pgsetting.StringSetting('file_extension', ""))
+    self._add(pgsetting.BoolSetting('ignore_invisible', False))
     self._add(
-      settings.EnumSetting(
+      pgsetting.EnumSetting(
        'overwrite_mode', 'rename_new',
        [('replace', "Replace"),
         ('skip', "Skip"),
@@ -145,7 +145,7 @@ def streamline_overwrite_mode(overwrite_mode, ignore_invisible, file_extension):
 class TestSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = settings.Setting('file_extension', "")
+    self.setting = pgsetting.Setting('file_extension', "")
   
   def test_changed_attributes(self):
     for attr, val in [('value', "png"), ('ui_enabled', False), ('ui_visible', True)]:
@@ -167,7 +167,7 @@ class TestSetting(unittest.TestCase):
       self.setting.can_be_registered_to_pdb = True
   
   def test_reset(self):
-    setting = settings.Setting('file_extension', "")
+    setting = pgsetting.Setting('file_extension', "")
     setting.value = "png"
     setting.reset()
     self.assertEqual(setting.value, "")
@@ -193,7 +193,7 @@ class TestSetting(unittest.TestCase):
     self.assertFalse(self.setting.can_streamline)
   
   def test_streamline(self):
-    ignore_invisible = settings.BoolSetting('ignore_invisible', False)
+    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
     self.setting.value = "gif"
     self.setting.set_streamline_func(streamline_file_extension, ignore_invisible)
     
@@ -205,7 +205,7 @@ class TestSetting(unittest.TestCase):
     self.assertEqual(self.setting.value, "jpg")
   
   def test_streamline_force(self):
-    ignore_invisible = settings.BoolSetting('ignore_invisible', False)
+    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
     self.setting.set_streamline_func(streamline_file_extension, ignore_invisible)
     
     changed_settings = self.setting.streamline()
@@ -218,42 +218,42 @@ class TestSetting(unittest.TestCase):
 class TestIntSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = settings.IntSetting('count', 0)
+    self.setting = pgsetting.IntSetting('count', 0)
     self.setting.min_value = 0
     self.setting.max_value = 100
   
   def test_below_min(self):
-    with self.assertRaises(settings.SettingValueError):
+    with self.assertRaises(pgsetting.SettingValueError):
       self.setting.value = -5
   
   def test_above_max(self):
-    with self.assertRaises(settings.SettingValueError):
+    with self.assertRaises(pgsetting.SettingValueError):
       self.setting.value = 200
 
 
 class TestFloatSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = settings.FloatSetting('clip_percent', 0.0)
+    self.setting = pgsetting.FloatSetting('clip_percent', 0.0)
     self.setting.min_value = 0.0
     self.setting.max_value = 100.0
   
   def test_below_min(self):
-    with self.assertRaises(settings.SettingValueError):
+    with self.assertRaises(pgsetting.SettingValueError):
       self.setting.value = -5.0
     
     try:
       self.setting.value = 0.0
-    except settings.SettingValueError:
+    except pgsetting.SettingValueError:
       self.fail("`SettingValueError` should not be raised")
   
   def test_above_max(self):
-    with self.assertRaises(settings.SettingValueError):
+    with self.assertRaises(pgsetting.SettingValueError):
       self.setting.value = 200.0
     
     try:
       self.setting.value = 100.0
-    except settings.SettingValueError:
+    except pgsetting.SettingValueError:
       self.fail("`SettingValueError` should not be raised")
 
 
@@ -262,7 +262,7 @@ class TestEnumSetting(unittest.TestCase):
   def setUp(self):
     self.setting_display_name = "Overwrite mode (non-interactive only)"
     
-    self.setting = settings.EnumSetting(
+    self.setting = pgsetting.EnumSetting(
       'overwrite_mode', 'replace',
       [('skip', "Skip"),
        ('replace', "Replace")])
@@ -270,7 +270,7 @@ class TestEnumSetting(unittest.TestCase):
   
   def test_explicit_values(self):
     
-    setting = settings.EnumSetting(
+    setting = pgsetting.EnumSetting(
       'overwrite_mode', 'replace',
       [('skip', "Skip", 5),
        ('replace', "Replace", 6)])
@@ -278,28 +278,28 @@ class TestEnumSetting(unittest.TestCase):
     self.assertEqual(setting.options['replace'], 6)
     
     with self.assertRaises(ValueError):
-      settings.EnumSetting(
+      pgsetting.EnumSetting(
         'overwrite_mode', 'replace',
         [('skip', "Skip", 4),
          ('replace', "Replace")])
     
     with self.assertRaises(ValueError):
-      settings.EnumSetting(
+      pgsetting.EnumSetting(
         'overwrite_mode', 'replace',
         [('skip', "Skip", 4),
          ('replace', "Replace", 4)])
   
   def test_invalid_default_value(self):
     with self.assertRaises(ValueError):
-      settings.EnumSetting(
+      pgsetting.EnumSetting(
         'overwrite_mode', 'invalid_default_value',
         [('skip', "Skip"),
          ('replace', "Replace")])
   
   def test_set_invalid_option(self):
-    with self.assertRaises(settings.SettingValueError):
+    with self.assertRaises(pgsetting.SettingValueError):
       self.setting.value = 4
-    with self.assertRaises(settings.SettingValueError):
+    with self.assertRaises(pgsetting.SettingValueError):
       self.setting.value = -1
   
   def test_get_invalid_option(self):
@@ -322,28 +322,28 @@ class TestEnumSetting(unittest.TestCase):
 class TestImageSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = settings.ImageSetting('image', None)
+    self.setting = pgsetting.ImageSetting('image', None)
   
-  @mock.patch(LIB_NAME + '.settings.pdb', new=gimpmocks.MockPDB())
+  @mock.patch(LIB_NAME + '.pgsetting.pdb', new=gimpmocks.MockPDB())
   def test_invalid_image(self):
     pdb = gimpmocks.MockPDB()
     image = pdb.gimp_image_new(2, 2, gimpenums.RGB)
     pdb.gimp_image_delete(image)
-    with self.assertRaises(settings.SettingValueError):
+    with self.assertRaises(pgsetting.SettingValueError):
       self.setting.value = image
 
 
 class TestFileExtensionSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = settings.FileExtensionSetting('file_ext', "png")
+    self.setting = pgsetting.FileExtensionSetting('file_ext', "png")
   
   def test_custom_error_message(self):
-    self.setting.error_messages[libfiles.FileExtensionValidator.IS_EMPTY] = "My Custom Message"
+    self.setting.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = "My Custom Message"
     
     try:
       self.setting.value = ""
-    except settings.SettingValueError as e:
+    except pgsetting.SettingValueError as e:
       self.assertEqual(e.message, "My Custom Message")
 
 #===============================================================================
@@ -422,37 +422,37 @@ class TestSettingPresenterContainer(unittest.TestCase):
 
 class TestShelfSettingStream(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.pgsetting.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def setUp(self):
     self.prefix = 'prefix'
-    self.stream = settings.GimpShelfSettingStream(self.prefix)
+    self.stream = pgsetting.GimpShelfSettingStream(self.prefix)
     self.settings = SettingContainerTest()
   
-  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.pgsetting.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_write(self):
     self.settings['file_extension'].value = "png"
     self.settings['ignore_invisible'].value = True
     self.stream.write(self.settings)
     
-    self.assertEqual(settings.gimpshelf.shelf[self.prefix + 'file_extension'], "png")
-    self.assertEqual(settings.gimpshelf.shelf[self.prefix + 'ignore_invisible'], True)
+    self.assertEqual(pgsetting.gimpshelf.shelf[self.prefix + 'file_extension'], "png")
+    self.assertEqual(pgsetting.gimpshelf.shelf[self.prefix + 'ignore_invisible'], True)
   
-  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.pgsetting.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_read(self):
-    settings.gimpshelf.shelf[self.prefix + 'file_extension'] = "png"
-    settings.gimpshelf.shelf[self.prefix + 'ignore_invisible'] = True
+    pgsetting.gimpshelf.shelf[self.prefix + 'file_extension'] = "png"
+    pgsetting.gimpshelf.shelf[self.prefix + 'ignore_invisible'] = True
     self.stream.read([self.settings['file_extension'], self.settings['ignore_invisible']])
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
   
-  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.pgsetting.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_read_settings_not_found(self):
-    with self.assertRaises(settings.SettingsNotFoundInStreamError):
+    with self.assertRaises(pgsetting.SettingsNotFoundInStreamError):
       self.stream.read(self.settings)
   
-  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.pgsetting.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_read_invalid_setting_value(self):
-    setting_with_invalid_value = settings.IntSetting('int', -1)
+    setting_with_invalid_value = pgsetting.IntSetting('int', -1)
     setting_with_invalid_value.min_value = 0
     self.stream.write([setting_with_invalid_value])
     self.stream.read([setting_with_invalid_value])
@@ -463,7 +463,7 @@ class TestShelfSettingStream(unittest.TestCase):
 class TestJSONFileSettingStream(unittest.TestCase):
   
   def setUp(self):
-    self.stream = settings.JSONFileSettingStream("/test/file")
+    self.stream = pgsetting.JSONFileSettingStream("/test/file")
     self.settings = SettingContainerTest()
   
   def test_write(self, mock_file):
@@ -491,31 +491,31 @@ class TestJSONFileSettingStream(unittest.TestCase):
   
   def test_write_ioerror_oserror(self, mock_file):
     mock_file.side_effect = IOError("Whatever other I/O error it could be")
-    with self.assertRaises(settings.SettingStreamWriteError):
+    with self.assertRaises(pgsetting.SettingStreamWriteError):
       self.stream.write(self.settings)
     
     mock_file.side_effect = OSError("Permission denied or whatever other OS error it could be")
-    with self.assertRaises(settings.SettingStreamWriteError):
+    with self.assertRaises(pgsetting.SettingStreamWriteError):
       self.stream.write(self.settings)
   
   def test_read_ioerror_oserror(self, mock_file):
     mock_file.side_effect = IOError("File not found or whatever other I/O error it could be")
-    with self.assertRaises(settings.SettingStreamReadError):
+    with self.assertRaises(pgsetting.SettingStreamReadError):
       self.stream.read(self.settings)
     
     mock_file.side_effect = OSError("Permission denied or whatever other OS error it could be")
-    with self.assertRaises(settings.SettingStreamReadError):
+    with self.assertRaises(pgsetting.SettingStreamReadError):
       self.stream.read(self.settings)
 
   def test_read_invalid_file_extension(self, mock_file):
     mock_file.side_effect = ValueError("Invalid file format; must be JSON")
-    with self.assertRaises(settings.SettingStreamInvalidFormatError):
+    with self.assertRaises(pgsetting.SettingStreamInvalidFormatError):
       self.stream.read(self.settings)
 
   def test_read_invalid_setting_value(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
-    setting_with_invalid_value = settings.IntSetting('int', -1)
+    setting_with_invalid_value = pgsetting.IntSetting('int', -1)
     setting_with_invalid_value.min_value = 0
     self.stream.write([setting_with_invalid_value])
     self.stream.read([setting_with_invalid_value])
@@ -524,8 +524,8 @@ class TestJSONFileSettingStream(unittest.TestCase):
   def test_read_settings_not_found(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
-    self.stream.write([settings.IntSetting('int', -1)])
-    with self.assertRaises(settings.SettingsNotFoundInStreamError):
+    self.stream.write([pgsetting.IntSetting('int', -1)])
+    with self.assertRaises(pgsetting.SettingsNotFoundInStreamError):
       self.stream.read(self.settings)
 
 #===============================================================================
@@ -533,15 +533,15 @@ class TestJSONFileSettingStream(unittest.TestCase):
 @mock.patch('__builtin__.open')
 class TestSettingPersistor(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.pgsetting.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def setUp(self):
     self.settings = SettingContainerTest()
-    self.first_stream = settings.GimpShelfSettingStream('')
-    self.second_stream = settings.JSONFileSettingStream('filename')
-    self.setting_persistor = settings.SettingPersistor([self.first_stream, self.second_stream],
+    self.first_stream = pgsetting.GimpShelfSettingStream('')
+    self.second_stream = pgsetting.JSONFileSettingStream('filename')
+    self.setting_persistor = pgsetting.SettingPersistor([self.first_stream, self.second_stream],
                                                        [self.first_stream, self.second_stream])
   
-  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.pgsetting.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_save(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
@@ -549,17 +549,17 @@ class TestSettingPersistor(unittest.TestCase):
     self.settings['ignore_invisible'].value = True
     
     status = self.setting_persistor.save(self.settings)
-    self.assertEqual(status, settings.SettingPersistor.SUCCESS)
+    self.assertEqual(status, pgsetting.SettingPersistor.SUCCESS)
     
     self.settings['file_extension'].value = "jpg"
     self.settings['ignore_invisible'].value = False
     
     status = self.setting_persistor.load(self.settings)
-    self.assertEqual(status, settings.SettingPersistor.SUCCESS)
+    self.assertEqual(status, pgsetting.SettingPersistor.SUCCESS)
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
   
-  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.pgsetting.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_combine_settings_from_multiple_streams(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
@@ -580,48 +580,48 @@ class TestSettingPersistor(unittest.TestCase):
       if setting not in [self.settings['file_extension'], self.settings['ignore_invisible']]:
         self.assertEqual(setting.value, setting.default_value)
   
-  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.pgsetting.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_settings_file_not_found(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     mock_file.side_effect = IOError("File not found")
     mock_file.side_effect.errno = errno.ENOENT
     
     status = self.setting_persistor.load(self.settings)
-    self.assertEqual(status, settings.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
+    self.assertEqual(status, pgsetting.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
     
-  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.pgsetting.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_settings_not_found(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     self.first_stream.write([self.settings['ignore_invisible']])
     self.second_stream.write([self.settings['file_extension'], self.settings['ignore_invisible']])
     
     status = self.setting_persistor.load([self.settings['overwrite_mode']])
-    self.assertEqual(status, settings.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
+    self.assertEqual(status, pgsetting.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
-  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.pgsetting.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_read_fail(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
     status = self.setting_persistor.load(self.settings)
-    self.assertEqual(status, settings.SettingPersistor.READ_FAIL)
+    self.assertEqual(status, pgsetting.SettingPersistor.READ_FAIL)
     
     mock_file.side_effect = IOError()
     status = self.setting_persistor.load(self.settings)
-    self.assertEqual(status, settings.SettingPersistor.READ_FAIL)
+    self.assertEqual(status, pgsetting.SettingPersistor.READ_FAIL)
     
     mock_file.side_effect = OSError()
     status = self.setting_persistor.load(self.settings)
-    self.assertEqual(status, settings.SettingPersistor.READ_FAIL)
+    self.assertEqual(status, pgsetting.SettingPersistor.READ_FAIL)
   
-  @mock.patch(LIB_NAME + '.settings.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + '.pgsetting.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_save_write_fail(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
     mock_file.side_effect = IOError()
     status = self.setting_persistor.save(self.settings)
-    self.assertEqual(status, settings.SettingPersistor.WRITE_FAIL)
+    self.assertEqual(status, pgsetting.SettingPersistor.WRITE_FAIL)
     
     mock_file.side_effect = OSError()
     status = self.setting_persistor.save(self.settings)
-    self.assertEqual(status, settings.SettingPersistor.WRITE_FAIL)
+    self.assertEqual(status, pgsetting.SettingPersistor.WRITE_FAIL)
     

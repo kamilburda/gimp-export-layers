@@ -37,13 +37,13 @@ str = unicode
 import gimp
 import gimpenums
 
-from export_layers.pylibgimpplugin import settings
-from export_layers.pylibgimpplugin import libfiles
+from export_layers.pylibgimpplugin import pgsetting
+from export_layers.pylibgimpplugin import pgpath
 from export_layers import exportlayers
 
 #===============================================================================
 
-class SpecialSettings(settings.SettingContainer):
+class SpecialSettings(pgsetting.SettingContainer):
   
   """
   These settings require special handling in the code,
@@ -53,7 +53,7 @@ class SpecialSettings(settings.SettingContainer):
   def _create_settings(self):
     
     self._add(
-      settings.EnumSetting(
+      pgsetting.EnumSetting(
         'run_mode', 'non_interactive',
         [('interactive', "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
          ('non_interactive', "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
@@ -62,10 +62,10 @@ class SpecialSettings(settings.SettingContainer):
     )
     self['run_mode'].display_name = _("The run mode")
     
-    self._add(settings.ImageSetting('image', None))
+    self._add(pgsetting.ImageSetting('image', None))
     self['image'].display_name = _("Image")
     
-    self._add(settings.BoolSetting('first_run', True))
+    self._add(pgsetting.BoolSetting('first_run', True))
     self['first_run'].can_be_registered_to_pdb = False
     self['first_run'].description = _(
       "True if the plug-in successfully ran for the first time "
@@ -73,41 +73,41 @@ class SpecialSettings(settings.SettingContainer):
     )
 
 
-class MainSettings(settings.SettingContainer):
+class MainSettings(pgsetting.SettingContainer):
   
   def _create_settings(self):
     
-    self._add(settings.FileExtensionSetting('file_extension', ""))
+    self._add(pgsetting.FileExtensionSetting('file_extension', ""))
     self['file_extension'].display_name = _("File extension")
     self['file_extension'].description = _(
       "Type in file extension (with or without the leading period). "
       "To export in RAW format, type \"data\"."
     )
     
-    self._add(settings.DirectorySetting('output_directory', gimp.user_directory(1)))   # "Documents" directory
+    self._add(pgsetting.DirectorySetting('output_directory', gimp.user_directory(1)))   # "Documents" directory
     self['output_directory'].display_name = _("Output directory")
     
-    self._add(settings.BoolSetting('layer_groups_as_folders', False))
+    self._add(pgsetting.BoolSetting('layer_groups_as_folders', False))
     self['layer_groups_as_folders'].display_name = _("Treat layer groups as folders")
     self['layer_groups_as_folders'].description = _(
       "If enabled, layers will be exported to subfolders corresponding to the layer groups.\n"
       "If disabled, all layers will be exported to the output folder on the same level."
     )
     
-    self._add(settings.BoolSetting('ignore_invisible', False))
+    self._add(pgsetting.BoolSetting('ignore_invisible', False))
     self['ignore_invisible'].display_name = _("Ignore invisible layers")
     self['ignore_invisible'].description = _(
       "If enabled, invisible layers will not be exported. Visible layers within "
       "invisible layer groups will also not be exported."
     )
     
-    self._add(settings.BoolSetting('autocrop', False))
+    self._add(pgsetting.BoolSetting('autocrop', False))
     self['autocrop'].display_name = _("Autocrop layers")
     self['autocrop'].description = _(
       "If enabled, layers will be autocropped before being exported."
     )
     
-    self._add(settings.BoolSetting('use_image_size', False))
+    self._add(pgsetting.BoolSetting('use_image_size', False))
     self['use_image_size'].display_name = _("Use image size")
     self['use_image_size'].description = _(
       "If enabled, layers will be resized (but not scaled) to the image size. This is "
@@ -117,7 +117,7 @@ class MainSettings(settings.SettingContainer):
     )
     
     self._add(
-      settings.EnumSetting(
+      pgsetting.EnumSetting(
         'file_ext_mode', 'no_special_handling',
         [('no_special_handling', _("No special handling")),
          ('only_matching_file_extension', _("Export only layers matching file extension")),
@@ -127,7 +127,7 @@ class MainSettings(settings.SettingContainer):
     self['file_ext_mode'].display_name = _("File extensions in layer names")
     
     self._add(
-      settings.EnumSetting(
+      pgsetting.EnumSetting(
         'strip_mode', 'identical',
         [('always', _("Always strip file extension")),
          ('identical', _("Strip identical file extension")),
@@ -140,7 +140,7 @@ class MainSettings(settings.SettingContainer):
     )
     
     self._add(
-      settings.EnumSetting(
+      pgsetting.EnumSetting(
         'square_bracketed_mode', 'normal',
         [('normal', _("Treat as normal layers")),
          ('background', _("Treat as background layers")),
@@ -150,27 +150,27 @@ class MainSettings(settings.SettingContainer):
     )
     self['square_bracketed_mode'].display_name = _("Layer names in [square brackets]")
     
-    self._add(settings.BoolSetting('crop_to_background', False))
+    self._add(pgsetting.BoolSetting('crop_to_background', False))
     self['crop_to_background'].display_name = _("Crop to background")
     self['crop_to_background'].description = _(
       "If enabled, layers will be cropped to the combined size of the "
       "background layers instead of their own size."
     )
     
-    self._add(settings.BoolSetting('merge_layer_groups', False))
+    self._add(pgsetting.BoolSetting('merge_layer_groups', False))
     self['merge_layer_groups'].display_name = _("Merge layer groups")
     self['merge_layer_groups'].description = _(
       "If enabled, each top-level layer group is merged into one layer. The name "
       "of each merged layer is the name of the corresponding top-level layer group."
     )
     
-    self._add(settings.BoolSetting('empty_folders', False))
+    self._add(pgsetting.BoolSetting('empty_folders', False))
     self['empty_folders'].display_name = _("Create folders for empty layer groups")
     self['empty_folders'].description = _(
       "If enabled, subfolders for empty layer groups will be created."
     )
     
-    self._add(settings.BoolSetting('ignore_layer_modes', False))
+    self._add(pgsetting.BoolSetting('ignore_layer_modes', False))
     self['ignore_layer_modes'].display_name = _("Ignore layer modes")
     self['ignore_layer_modes'].description = _(
       "If enabled, the layer mode for each layer will be set to Normal. This is "
@@ -180,7 +180,7 @@ class MainSettings(settings.SettingContainer):
     )
     
     self._add(
-      settings.EnumSetting(
+      pgsetting.EnumSetting(
        'overwrite_mode', 'rename_new',
        [('replace', _("Replace"), exportlayers.OverwriteHandler.REPLACE),
         ('skip', _("Skip"), exportlayers.OverwriteHandler.SKIP),
@@ -232,15 +232,15 @@ class MainSettings(settings.SettingContainer):
     def streamline_file_ext_mode(file_ext_mode, file_extension, strip_mode):
       if file_ext_mode.value == file_ext_mode.options['no_special_handling']:
         strip_mode.ui_enabled = True
-        file_extension.error_messages[libfiles.FileExtensionValidator.IS_EMPTY] = ""
+        file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
       elif file_ext_mode.value == file_ext_mode.options['only_matching_file_extension']:
         strip_mode.value = strip_mode.options['never']
         strip_mode.ui_enabled = False
-        file_extension.error_messages[libfiles.FileExtensionValidator.IS_EMPTY] = ""
+        file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
       elif file_ext_mode.value == file_ext_mode.options['use_as_file_extensions']:
         strip_mode.value = strip_mode.options['never']
         strip_mode.ui_enabled = False
-        file_extension.error_messages[libfiles.FileExtensionValidator.IS_EMPTY] = (
+        file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = (
           file_extension.error_messages['default_needed']
         )
     

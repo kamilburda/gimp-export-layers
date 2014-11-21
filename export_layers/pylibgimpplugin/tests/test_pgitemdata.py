@@ -20,10 +20,10 @@
 #-------------------------------------------------------------------------------
 
 """
-This module tests the `itemdata` module.
+This module tests the `pgitemdata` module.
 
 Because the public interface to test is identical for all `ItemData` subclasses,
-it is sufficient to test `itemdata` using one of the subclasses. `LayerData` was
+it is sufficient to test `pgitemdata` using one of the subclasses. `LayerData` was
 chosen for this purpose.
 """
 
@@ -46,7 +46,7 @@ import unittest
 from ..lib import mock
 from . import gimpmocks
 
-from .. import itemdata
+from .. import pgitemdata
 
 #===============================================================================
 
@@ -116,10 +116,10 @@ def _parse_layers(layer_tree_string):
 
 #===============================================================================
 
-@mock.patch(LIB_NAME + '.itemdata.pdb', new=gimpmocks.MockPDB())
+@mock.patch(LIB_NAME + '.pgitemdata.pdb', new=gimpmocks.MockPDB())
 class TestLayerData(unittest.TestCase):
 
-  @mock.patch(LIB_NAME + '.itemdata.pdb', new=gimpmocks.MockPDB())
+  @mock.patch(LIB_NAME + '.pgitemdata.pdb', new=gimpmocks.MockPDB())
   def setUp(self):
     layers_string = """
       Corners {
@@ -152,7 +152,7 @@ class TestLayerData(unittest.TestCase):
     """
     
     image = _parse_layers(layers_string)
-    self.layer_data = itemdata.LayerData(image)
+    self.layer_data = pgitemdata.LayerData(image)
   
   def test_get_len(self):
     layer_count_total = 20

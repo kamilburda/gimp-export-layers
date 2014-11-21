@@ -49,7 +49,7 @@ import gimp
 import gimpshelf
 import gimpenums
 
-from . import libfiles
+from . import pgpath
 
 #===============================================================================
 
@@ -764,7 +764,7 @@ class ValidatableStringSetting(StringSetting):
   
   """
   This class is an abstract class for string settings which are meant to be
-  validated with one of the `libfiles.StringValidator` subclasses.
+  validated with one of the `pgpath.StringValidator` subclasses.
   
   To determine whether the string is valid, the `is_valid()` method from the
   subclass being used is called.
@@ -780,11 +780,11 @@ class ValidatableStringSetting(StringSetting):
   Error messages:
   
   This class contains empty messages for error statuses from
-  the specified `libfiles.StringValidator` subclass. Normally, if the value
+  the specified `pgpath.StringValidator` subclass. Normally, if the value
   (string) assigned is invalid, status messages returned from `is_valid()`
   are used. If desired, you may fill the error messages with custom messages
   which override the status messages from the method. See `ERROR_STATUSES` in
-  the specified `libfiles.StringValidator` subclass for available error statuses.
+  the specified `pgpath.StringValidator` subclass for available error statuses.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -793,7 +793,7 @@ class ValidatableStringSetting(StringSetting):
     """
     Additional parameters:
     
-    * `string_validator` - `libfiles.StringValidator` subclass used to validate
+    * `string_validator` - `pgpath.StringValidator` subclass used to validate
       the value assigned to this object.
     """
     
@@ -831,7 +831,7 @@ class FileExtensionSetting(ValidatableStringSetting):
   """
   This setting class can be used for file extensions.
   
-  `libfiles.FileExtensionValidator` subclass is used to determine whether
+  `pgpath.FileExtensionValidator` subclass is used to determine whether
    the file extension is valid.
   
   Allowed GIMP PDB types:
@@ -844,7 +844,7 @@ class FileExtensionSetting(ValidatableStringSetting):
   """
   
   def __init__(self, name, default_value):
-    super(FileExtensionSetting, self).__init__(name, default_value, libfiles.FileExtensionValidator)
+    super(FileExtensionSetting, self).__init__(name, default_value, pgpath.FileExtensionValidator)
   
 
 class DirectorySetting(ValidatableStringSetting):
@@ -852,7 +852,7 @@ class DirectorySetting(ValidatableStringSetting):
   """
   This setting class can be used for directories.
   
-  `libfiles.FilePathValidator` subclass is used to determine whether
+  `pgpath.FilePathValidator` subclass is used to determine whether
    the directory name is valid.
   
   Allowed GIMP PDB types:
@@ -865,7 +865,7 @@ class DirectorySetting(ValidatableStringSetting):
   """
   
   def __init__(self, name, default_value):
-    super(DirectorySetting, self).__init__(name, default_value, libfiles.FilePathValidator)
+    super(DirectorySetting, self).__init__(name, default_value, pgpath.FilePathValidator)
 
 #===============================================================================
 
