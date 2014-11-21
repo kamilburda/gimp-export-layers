@@ -466,19 +466,7 @@ class TestJSONFileSettingStream(unittest.TestCase):
     self.stream = pgsetting.JSONFileSettingStream("/test/file")
     self.settings = SettingContainerTest()
   
-  def test_write(self, mock_file):
-    self.settings['file_extension'].value = "jpg"
-    self.settings['ignore_invisible'].value = True
-    
-    mock_file.return_value.__enter__.return_value = MockStringIO()
-    file_ = mock_file.return_value.__enter__.return_value
-    
-    self.stream.write(self.settings)
-    settings = json.loads(file_.read())
-    self.assertEqual(self.settings['file_extension'].value, "jpg")
-    self.assertEqual(self.settings['ignore_invisible'].value, True)
-  
-  def test_read(self, mock_file):
+  def test_write_read(self, mock_file):
     self.settings['file_extension'].value = "jpg"
     self.settings['ignore_invisible'].value = True
     
