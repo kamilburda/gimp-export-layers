@@ -77,7 +77,7 @@ class MainSettings(pgsetting.SettingContainer):
   
   def _create_settings(self):
     
-    self._add(pgsetting.FileExtensionSetting('file_extension', ""))
+    self._add(pgsetting.FileExtensionSetting('file_extension', "png"))
     self['file_extension'].display_name = _("File extension")
     self['file_extension'].description = _(
       "Type in file extension (with or without the leading period). "
