@@ -455,7 +455,7 @@ class GtkEntryPresenter(GtkSettingPresenter):
   @value.setter
   def value(self, value_):
     self._element.set_text(value_.encode(GTK_CHARACTER_ENCODING))
-    # Place the cursor at the end of the widget.
+    # Place the cursor at the end of the text entry.
     self._element.set_position(-1)
 
 

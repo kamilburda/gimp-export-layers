@@ -357,6 +357,9 @@ class _ExportLayersGui(object):
     
     self.dialog.set_focus(self.file_extension_entry)
     self.dialog.set_default(self.export_layers_button)
+    self.file_extension_entry.set_activates_default(True)
+    # Place the cursor at the end of the text entry.
+    self.file_extension_entry.set_position(-1)
     
     self.dialog.show()
     self.dialog.action_area.set_border_width(self.ACTION_AREA_BORDER_WIDTH)
