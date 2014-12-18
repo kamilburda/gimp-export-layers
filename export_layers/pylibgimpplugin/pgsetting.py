@@ -1266,12 +1266,6 @@ class SettingPersistor(object):
   def __init__(self, read_setting_streams, write_setting_streams):
     self.read_setting_streams = read_setting_streams
     self.write_setting_streams = write_setting_streams
-    
-    self._status_message = ""
-  
-  @property
-  def status_message(self):
-    return self._status_message
   
   def load(self, *setting_containers):
     """
@@ -1295,15 +1289,17 @@ class SettingPersistor(object):
     
     Returns:
     
-      Load status:
+      * `status`:
       
-      * `SUCCESS` - Settings successfully loaded.
+        * `SUCCESS` - Settings successfully loaded.
+        
+        * `NOT_ALL_SETTINGS_FOUND` - Could not find some settings from
+          any of the streams. Default values are assigned to these settings.
+        
+        * `READ_FAIL` - Could not read data from the first stream where this error
+          occurred. May occur for file streams with e.g. denied read permission.
       
-      * `NOT_ALL_SETTINGS_FOUND` - Could not find some settings from
-        any of the streams. Default values are assigned to these settings.
-      
-      * `READ_FAIL` - Could not read data from the first stream where this error
-        occurred. May occur for file streams with e.g. denied read permission.
+      * `status_message` - Message describing the status in more detail.
     """
     
     if not setting_containers or self.read_setting_streams is None or not self.read_setting_streams:
@@ -1343,12 +1339,14 @@ class SettingPersistor(object):
     
     Returns:
     
-      Save status:
+      * `status`:
       
-      * `SUCCESS` - Settings successfully saved.
+        * `SUCCESS` - Settings successfully saved.
+        
+        * `WRITE_FAIL` - Could not write data to the first stream where this error
+          occurred. May occur for file streams with e.g. denied write permission.
       
-      * `WRITE_FAIL` - Could not write data to the first stream where this error
-        occurred. May occur for file streams with e.g. denied write permission.
+      * `status_message` - Message describing the status in more detail.
     """
     
     if not setting_containers or self.write_setting_streams is None or not self.write_setting_streams:
@@ -1369,8 +1367,7 @@ class SettingPersistor(object):
     return self._status(self.SUCCESS)
   
   def _status(self, status, message=None):
-    self._status_message = message if message is not None else ""
-    return status
+    return status, message if message is not None else ""
 
 #===============================================================================
 

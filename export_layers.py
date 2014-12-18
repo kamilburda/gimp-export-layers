@@ -158,11 +158,11 @@ class ExportLayersPlugin(gimpplugin.plugin):
   
   def _run_with_last_vals(self, image):
     self.setting_persistor.read_setting_streams.append(self.config_file_stream)
-    status = self.setting_persistor.load(self.main_settings)
+    status, status_message = self.setting_persistor.load(self.main_settings)
     self.setting_persistor.read_setting_streams.pop()
     
     if status == self.setting_persistor.READ_FAIL:
-      print(self.setting_persistor.status_message)
+      print(status_message)
     
     self._run_plugin_noninteractive(gimpenums.RUN_WITH_LAST_VALS, image)
   

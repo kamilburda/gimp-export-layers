@@ -179,11 +179,11 @@ class _ExportLayersGui(object):
     self.gui_settings = GuiSettings()
     self.session_only_gui_settings = SessionOnlyGuiSettings()
     self.setting_persistor = pgsetting.SettingPersistor([self.gimpshelf_stream, self.config_file_stream],
-                                                       [self.gimpshelf_stream])
+                                                        [self.gimpshelf_stream])
     
-    status = self.setting_persistor.load(self.main_settings, self.gui_settings)
+    status, status_message = self.setting_persistor.load(self.main_settings, self.gui_settings)
     if status == pgsetting.SettingPersistor.READ_FAIL:
-      display_message(self.setting_persistor.status_message, gtk.MESSAGE_WARNING)
+      display_message(status_message, gtk.MESSAGE_WARNING)
     self.setting_persistor.read_setting_streams.pop()
     
     self.setting_persistor.load(self.session_only_gui_settings)
@@ -449,10 +449,9 @@ class _ExportLayersGui(object):
   def save_settings(self):
     self.setting_persistor.write_setting_streams.append(self.config_file_stream)
     
-    status = self.setting_persistor.save(self.main_settings, self.gui_settings)
+    status, status_message = self.setting_persistor.save(self.main_settings, self.gui_settings)
     if status == self.setting_persistor.WRITE_FAIL:
-      display_message(self.setting_persistor.status_message, gtk.MESSAGE_WARNING,
-                      parent=self.dialog)
+      display_message(status_message, gtk.MESSAGE_WARNING, parent=self.dialog)
     self.setting_persistor.write_setting_streams.pop()
     
     self.setting_persistor.save(self.session_only_gui_settings)
