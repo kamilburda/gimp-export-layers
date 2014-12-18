@@ -1380,6 +1380,11 @@ class SettingPresenter(object):
   properties. This class wraps some of these attributes/methods so that they can
   be accessed with the same name.
   
+  Setting presenters can wrap any attribute of a GUI element into their
+  `get_value()` and `set_value()` methods. The value does not have to be a
+  "direct" value, e.g. the checked state of a checkbox, but also e.g. the label
+  of the checkbox.
+  
   Attributes:
   
   * `setting (read-only)` - Setting object.
@@ -1389,24 +1394,24 @@ class SettingPresenter(object):
   * `value_changed_signal` - Object that indicates the type of event to assign
     to the GUI element that changes one of its properties.
   
-  * `value` - Value of the GUI element. Does not have to be a "direct" value
-    of a GUI element, e.g. the checked state of a checkbox, but also
-    e.g. the current dialog position. Check the `SettingPresenter` subclasses
-    in the `gui` module for better clarity.
-  
-  * `enabled` - Enabled/disabled state of the GUI element. True if the GUI
-    element responds to user input, False otherwise (the element is usually
-    grayed out).
-  
-  * `visible` - Visible/invisible state of the GUI element. True if the GUI
-    element is displayed, False if the GUI element is hidden (not visible).
-  
   Methods:
   
   * `connect_event()` - Assign an event handler to the GUI element that is meant
     to change the `value` attribute.
   
-  * `set_tooltip()` - Set tooltip text for the GUI element.
+  * `set_tooltip()` - Set the tooltip text for the GUI element.
+  
+  * `get_value()` - Return the value of the GUI element.
+  
+  * `set_value()` - Set the value of the GUI element.
+  
+  * `get_enabled()` - Return the enabled/disabled state of the GUI element.
+  
+  * `set_enabled()` - Set the enabled/disabled state of the GUI element.
+  
+  * `get_visible()` - Return the visible/invisible state of the GUI element.
+  
+  * `set_visible()` - Set the visible/invisible state of the GUI element.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -1426,15 +1431,27 @@ class SettingPresenter(object):
     return self._element
   
   @abc.abstractmethod
-  def value(self):
+  def get_value(self):
     pass
   
   @abc.abstractmethod
-  def enabled(self):
+  def set_value(self):
     pass
   
   @abc.abstractmethod
-  def visible(self):
+  def get_enabled(self):
+    pass
+  
+  @abc.abstractmethod
+  def set_enabled(self):
+    pass
+  
+  @abc.abstractmethod
+  def get_visible(self):
+    pass
+  
+  @abc.abstractmethod
+  def set_visible(self):
     pass
 
   @abc.abstractmethod
@@ -1500,10 +1517,10 @@ class SettingPresenterContainer(Container):
   
   __metaclass__ = abc.ABCMeta
   
-  _SETTING_ATTRIBUTES = {
-    'value' : 'value', 
-    'ui_enabled' : 'enabled',
-    'ui_visible' : 'visible'
+  _SETTING_ATTRIBUTES_METHODS = {
+    'value' : 'set_value', 
+    'ui_enabled' : 'set_enabled',
+    'ui_visible' : 'set_visible'
   }
   
   def __init__(self):
@@ -1532,7 +1549,7 @@ class SettingPresenterContainer(Container):
     """
     
     for presenter in self:
-      presenter.value = presenter.setting.value
+      presenter.set_value(presenter.setting.value)
     
     changed_settings = self._streamline(force=True)
     self._apply_changed_settings(changed_settings)
@@ -1556,7 +1573,7 @@ class SettingPresenterContainer(Container):
     
     for presenter in self:
       try:
-        presenter.setting.value = presenter.value
+        presenter.setting.value = presenter.get_value()
       except SettingValueError as e:
         if not exception_message:
           exception_message += e.message + '\n'
@@ -1624,7 +1641,7 @@ class SettingPresenterContainer(Container):
     value of the GUI element.
     """
     
-    presenter.setting.value = presenter.value
+    presenter.setting.value = presenter.get_value()
   
   def _on_element_value_change_streamline(self, presenter):
     """
@@ -1634,7 +1651,7 @@ class SettingPresenterContainer(Container):
     Streamline the setting and change other affected GUI elements if necessary.
     """
     
-    presenter.setting.value = presenter.value
+    presenter.setting.value = presenter.get_value()
     changed_settings = presenter.setting.streamline()
     self._apply_changed_settings(changed_settings)
   
@@ -1675,5 +1692,8 @@ class SettingPresenterContainer(Container):
     """
     
     for setting, changed_attributes in changed_settings.items():
+      presenter = self[setting]
       for attr in changed_attributes:
-        setattr(self[setting], self._SETTING_ATTRIBUTES[attr], getattr(setting, attr))
+        setting_attr = getattr(setting, attr)
+        presenter_method = getattr(presenter, self._SETTING_ATTRIBUTES_METHODS[attr])
+        presenter_method(setting_attr)

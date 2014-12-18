@@ -63,29 +63,23 @@ class MockGuiWidget(object):
 
 class MockSettingPresenter(pgsetting.SettingPresenter):
   
-  @property
-  def value(self):
+  def get_value(self):
     return self._element.value
   
-  @value.setter
-  def value(self, val):
-    self._element.value = val
+  def set_value(self, value):
+    self._element.value = value
 
-  @property
-  def enabled(self):
+  def get_enabled(self):
     return self._element.enabled
   
-  @enabled.setter
-  def enabled(self, val):
-    self._element.enabled = val
+  def set_enabled(self, value):
+    self._element.enabled = value
 
-  @property
-  def visible(self):
+  def get_visible(self):
     return self._element.visible
   
-  @visible.setter
-  def visible(self, val):
-    self._element.visible = val
+  def set_visible(self, value):
+    self._element.visible = value
   
   def connect_event(self, event_func, *event_args):
     pass
@@ -392,13 +386,13 @@ class TestSettingPresenterContainer(unittest.TestCase):
     
     self.presenters.assign_setting_values_to_elements()
     
-    self.assertEqual(self.presenters[self.settings['file_extension']].value, "png")
-    self.assertEqual(self.presenters[self.settings['file_extension']].enabled, False)
-    self.assertEqual(self.presenters[self.settings['ignore_invisible']].value, True)
+    self.assertEqual(self.presenters[self.settings['file_extension']].get_value(), "png")
+    self.assertEqual(self.presenters[self.settings['file_extension']].get_enabled(), False)
+    self.assertEqual(self.presenters[self.settings['ignore_invisible']].get_value(), True)
   
   def test_assign_element_values_to_settings_with_streamline(self):
-    self.presenters[self.settings['file_extension']].value = "jpg"
-    self.presenters[self.settings['ignore_invisible']].value = True
+    self.presenters[self.settings['file_extension']].set_value("jpg")
+    self.presenters[self.settings['ignore_invisible']].set_value(True)
     
     self.presenters.assign_element_values_to_settings()
     
@@ -409,8 +403,8 @@ class TestSettingPresenterContainer(unittest.TestCase):
     # `value_changed_signal` is None, so no event handlers are invoked.
     self.presenters.connect_value_changed_events()
     
-    self.presenters[self.settings['file_extension']].value = "jpg"
-    self.presenters[self.settings['ignore_invisible']].value = True
+    self.presenters[self.settings['file_extension']].set_value("jpg")
+    self.presenters[self.settings['ignore_invisible']].set_value(True)
     
     self.presenters.assign_element_values_to_settings()
     

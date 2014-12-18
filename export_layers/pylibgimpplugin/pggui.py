@@ -390,20 +390,16 @@ class GtkSettingPresenter(pgsetting.SettingPresenter):
   
   __metaclass__ = abc.ABCMeta
   
-  @property
-  def enabled(self):
+  def get_enabled(self):
     return self._element.get_sensitive()
   
-  @enabled.setter
-  def enabled(self, value):
+  def set_enabled(self, value):
     self._element.set_sensitive(value)
   
-  @property
-  def visible(self):
+  def get_visible(self):
     return self._element.get_visible()
   
-  @visible.setter
-  def visible(self, value):
+  def set_visible(self, value):
     self._element.set_visible(value)
   
   def connect_event(self, event_func, *event_args):
@@ -431,13 +427,11 @@ class GtkCheckButtonPresenter(GtkSettingPresenter):
     
     self.value_changed_signal = "clicked"
     
-  @property
-  def value(self):
+  def get_value(self):
     return self._element.get_active()
   
-  @value.setter
-  def value(self, value_):
-    self._element.set_active(value_)
+  def set_value(self, value):
+    self._element.set_active(value)
 
 
 class GtkEntryPresenter(GtkSettingPresenter):
@@ -448,13 +442,11 @@ class GtkEntryPresenter(GtkSettingPresenter):
   Value: Text in the text field.
   """
   
-  @property
-  def value(self):
+  def get_value(self):
     return self._element.get_text().decode(GTK_CHARACTER_ENCODING)
   
-  @value.setter
-  def value(self, value_):
-    self._element.set_text(value_.encode(GTK_CHARACTER_ENCODING))
+  def set_value(self, value):
+    self._element.set_text(value.encode(GTK_CHARACTER_ENCODING))
     # Place the cursor at the end of the text entry.
     self._element.set_position(-1)
 
@@ -472,13 +464,11 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
     
     self.value_changed_signal = "changed"
   
-  @property
-  def value(self):
+  def get_value(self):
     return self._element.get_active()
   
-  @value.setter
-  def value(self, value_):
-    self._element.set_active(value_)
+  def set_value(self, value):
+    self._element.set_active(value)
 
 
 class GtkExportFolderChooserPresenter(GtkSettingPresenter):
@@ -514,8 +504,7 @@ class GtkExportFolderChooserPresenter(GtkSettingPresenter):
     
     self._set_image_ids_and_folders()
   
-  @property
-  def value(self):
+  def get_value(self):
     folder = self._element.get_current_folder()
     if folder is not None:
       folder = folder.decode(GTK_CHARACTER_ENCODING)
@@ -524,10 +513,9 @@ class GtkExportFolderChooserPresenter(GtkSettingPresenter):
     
     return folder
   
-  @value.setter
-  def value(self, value_):
+  def set_value(self, value):
     """
-    `value_` parameter will be ignored if there is a value for folders
+    `value` parameter will be ignored if there is a value for folders
     1., 2. or 3. from the priority list (see the class description).
     """
     
@@ -543,7 +531,7 @@ class GtkExportFolderChooserPresenter(GtkSettingPresenter):
       if uri is not None:
         self._element.set_uri(uri.encode(GTK_CHARACTER_ENCODING))
       else:
-        self._element.set_current_folder(value_.encode(GTK_CHARACTER_ENCODING))
+        self._element.set_current_folder(value.encode(GTK_CHARACTER_ENCODING))
   
   def _set_image_ids_and_folders(self):
     setting = self._image_ids_and_folders_setting
@@ -567,20 +555,18 @@ class GtkWindowPositionPresenter(GtkSettingPresenter):
   Value: Current position of the window as a tuple with 2 integers.
   """
   
-  @property
-  def value(self):
+  def get_value(self):
     return self._element.get_position()
   
-  @value.setter
-  def value(self, value_):
+  def set_value(self, value):
     """
     Set new position of the window (i.e. move the window).
     
-    Don't move the window if `value_` is None or empty.
+    Don't move the window if `value` is None or empty.
     """
     
-    if value_:
-      self._element.move(*value_)
+    if value:
+      self._element.move(*value)
 
 
 class GtkExpanderPresenter(GtkSettingPresenter):
@@ -591,13 +577,11 @@ class GtkExpanderPresenter(GtkSettingPresenter):
   Value: Expanded state of the expander (expanded/collapsed).
   """
   
-  @property
-  def value(self):
+  def get_value(self):
     return self._element.get_expanded()
   
-  @value.setter
-  def value(self, value_):
-    self._element.set_expanded(value_)
+  def set_value(self, value):
+    self._element.set_expanded(value)
 
 #===============================================================================
 # GTK Setting Presenter Container
