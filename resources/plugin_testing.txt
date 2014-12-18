@@ -128,7 +128,6 @@ Use unicode characters in:
    * directory chooser
    * combo boxes, labels, buttons, checkboxes, tooltips
       - temporarily modify settings in `settings_plugin`
-* `tee_plugin` log filenames
 
 Also test:
 * exporting more than once in one GIMP session (to test unicode strings in the GIMP shelf)

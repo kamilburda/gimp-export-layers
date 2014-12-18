@@ -20,7 +20,7 @@ IMPORTANT:
 Plug-in:
 ----------------------------------------
 
-* gui
+* pggui
    - `GtkSettingPresenter` subclasses
       - value.getter - decode to `unicode` with UTF-8
       - value.setter - GTK handles that automatically, but may not always be reliable,
@@ -28,7 +28,7 @@ Plug-in:
            http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html
         - encode in UTF-8
    - `gimpui.IntComboBox` - can't handle `unicode`, must pass `bytes`
-* itemdata
+* pgitemdata
    - `_ItemDataElement.orig_name` - decoded from `gimp.Layer.name` (which is encoded in UTF-8)
    - `_ItemDataElement.name` - `unicode`
    - `LayerData._itemdata` keys are `_ItemDataElement.orig_name`
@@ -37,7 +37,7 @@ Plug-in:
    - `uniquify_filename`, `make_dirs` - they use the `os` module, whose functions accept `unicode` strings
       - not sure if the unicode strings work on Unix systems, though
    - `StringValidator` subclasses - `unicode`
-* settings
+* pgsettings
    - `Setting.name`, `Setting.display_name`, etc. - `unicode`
    - `GimpShelfSettingStream`
       - `gimpshelf` uses `pickle`, which can handle unicode strings
@@ -53,11 +53,9 @@ Plug-in:
    - `OverwriteHandler`
       - uses `os`, which can handle both `str` and `unicode`
    - `file_export_function` in `_export_layer_once`
-* tee_plugin
-   - open() - works fine with `unicode`
 * export_layers
    - PDB_STRING arguments to PDB functions - UTF-8, decode to `unicode`
    - PDB parameters - name, description - UTF-8
-* pylibgimp
+* pgpdb
    - nothing so far, may change if some functions deal with image or item names
 * other modules - nothing needs to be done
