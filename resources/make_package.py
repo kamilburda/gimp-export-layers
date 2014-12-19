@@ -24,7 +24,7 @@
 """
 This script creates a .zip package for releases from the plug-in source.
 
-This script uses `pathspec` library for matching files using patterns:
+This script requires `pathspec` library for matching files using patterns:
   https://github.com/cpburnz/python-path-specification
 """
 
@@ -41,6 +41,7 @@ str = unicode
 
 import os
 import sys
+import re
 import inspect
 
 import subprocess
@@ -70,41 +71,90 @@ FILENAMES_TO_RENAME = {
   "Readme for Translators.md" : "Readme for Translators.txt",
 }
 
+NUM_LEADING_SPACES_TO_TRIM = 4
+
 #===============================================================================
 
 
-def process_readme_file(readme_file):
-  readme_file_copy = readme_file + '.bak'
-  num_leading_spaces = 4
-  
-  shutil.copy2(readme_file, readme_file_copy)
-  
-  with open(readme_file, 'r') as f, \
-       open(readme_file_copy, 'w') as temp_f:
-    line = f.readline()
-    while line:
-      if not line.strip():
-        # Write back the empty/whitespace-only line.
-        temp_f.write(line)
-        
-        # Trim leading spaces from subsequent lines.
-        line = f.readline()
-        while line.startswith(' ' * num_leading_spaces):
-          temp_f.write(line.lstrip(' '))
-          line = f.readline()
-      else:
-        temp_f.write(line)
-        line = f.readline()
-  
-  shutil.copy2(readme_file_copy, readme_file)
-  os.remove(readme_file_copy)
+def _prepare_files(file_to_read, file_to_write):
+  file_to_read.seek(0)
+  file_to_write.seek(0)
+  file_to_write.truncate()
 
 
+def _trim_leading_spaces(file_to_read, file_to_write, num_leading_spaces):
+  line = file_to_read.readline()
+  while line:
+    if not line.strip():
+      # Write back the empty/whitespace-only line.
+      file_to_write.write(line)
+      
+      # Trim leading spaces from subsequent lines.
+      line = file_to_read.readline()
+      while line.startswith(' ' * num_leading_spaces):
+        file_to_write.write(line.lstrip(' '))
+        line = file_to_read.readline()
+    else:
+      file_to_write.write(line)
+      line = file_to_read.readline()
+
+
+def _rename_filenames_inside_file(file_to_read, file_to_write, filenames_to_rename):
+  """
+  Rename the filenames inside the file that were or will be renamed using the
+  `filenames_to_rename` dict.
+  """
+  
+  for line in file_to_read:
+    processed_line = line
+    for src_filename, dest_filename in filenames_to_rename.items():
+      src_filename_pattern = src_filename.replace('\\', '\\\\').replace(' ', "\\s")
+      dest_filename_pattern = dest_filename.replace('\\', '\\\\')
+      processed_line = re.sub(src_filename_pattern, dest_filename_pattern, processed_line)
+    file_to_write.write(processed_line)
+
+
+def process_file(filename, *process_functions_and_args):
+  temp_dir = tempfile.mkdtemp()
+  temp_filename_copy = os.path.join(temp_dir, "temp1")
+  shutil.copy2(filename, temp_filename_copy)
+  
+  last_modified_filename = None
+  with open(temp_filename_copy, 'r+') as temp_file_copy, \
+       tempfile.NamedTemporaryFile('r+', dir=temp_dir, delete=False) as temp_file:
+    file_to_read = temp_file_copy
+    file_to_write = temp_file
+    for function_and_args in process_functions_and_args:
+      _prepare_files(file_to_read, file_to_write)
+      
+      process_function = function_and_args[0]
+      process_function_additional_args = function_and_args[1:]
+      process_function(file_to_read, file_to_write, *process_function_additional_args)
+      
+      last_modified_filename = file_to_write.name
+      file_to_read, file_to_write = file_to_write, file_to_read
+  
+  shutil.copy2(last_modified_filename, filename)
+  
+  os.remove(temp_filename_copy)
+  os.remove(temp_file.name)
+  os.rmdir(temp_dir)
+
+
+# key: filename
+# value: list of (function, additional function arguments) as arguments to `process_file`
 FILES_TO_PROCESS = {
-  FILENAMES_TO_RENAME["README.md"] : process_readme_file
+  FILENAMES_TO_RENAME["README.md"] : [
+     (_trim_leading_spaces, NUM_LEADING_SPACES_TO_TRIM),
+     (_rename_filenames_inside_file, FILENAMES_TO_RENAME)
+  ]
 }
 
 #===============================================================================
+
+
+def _print_program_message(message, stream=sys.stdout):
+  print(os.path.basename(sys.argv[0]) + ": " + message, file=stream)
 
 
 def _get_filtered_files(directory, pattern_file):
@@ -112,6 +162,7 @@ def _get_filtered_files(directory, pattern_file):
     spec = pathspec.PathSpec.from_lines(pathspec.GitIgnorePattern, file_)
   
   return [os.path.join(directory, match) for match in spec.match_tree(directory)]
+
 
 #===============================================================================
 
@@ -123,6 +174,10 @@ def make_package(input_directory, output_file, version):
     Set file permissions on all files and subdirectories in a given path.
     """
     
+    if os.name == "nt":
+      _print_program_message("Warning: Cannot set Unix-style permissions on Windows", sys.stderr)
+      return
+    
     for root, dirs, files in os.walk(path):
       for dir_ in dirs:
         os.chmod(os.path.join(root, dir_), perms)
@@ -130,6 +185,10 @@ def make_package(input_directory, output_file, version):
         os.chmod(os.path.join(root, file_), perms)
   
   def _generate_pot_file(source_dir, version):
+    if os.name == "nt":
+      _print_program_message("Warning: Cannot generate .pot file on Windows", sys.stderr)
+      return
+    
     for file_ in os.listdir(source_dir):
       if os.path.isfile(os.path.join(source_dir, file_)):
         if file_.endswith(".pot"):
@@ -164,23 +223,18 @@ def make_package(input_directory, output_file, version):
   for temp_file in temp_files:
     filename = os.path.basename(temp_file)
     if filename in FILES_TO_PROCESS:
-      FILES_TO_PROCESS[filename](temp_file)
+      process_file(temp_file, *FILES_TO_PROCESS[filename])
   
   with zipfile.ZipFile(output_file, "w", zipfile.ZIP_STORED) as zip_file:
     for temp_file, file_ in zip(temp_files, files_relative_paths):
       zip_file.write(temp_file, file_)
   
   shutil.rmtree(temp_dir)
-  
+
+
 #===============================================================================
+
 
 if __name__ == "__main__":
   output_file = OUTPUT_FILENAME_PREFIX + '-' + constants.PLUGIN_VERSION + OUTPUT_FILENAME_SUFFIX
-  
-  if os.name == 'nt':
-    print(os.path.basename(sys.argv[0]) + ": Error: Can't run script on Windows " +
-          "because Unix-style permissions need to be set",
-          file=sys.stderr)
-    sys.exit(1)
-  
   make_package(PLUGINS_PATH, output_file, constants.PLUGIN_VERSION)
