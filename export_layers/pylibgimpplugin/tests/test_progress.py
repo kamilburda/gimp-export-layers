@@ -77,6 +77,13 @@ class TestProgressUpdater(unittest.TestCase):
     with self.assertRaises(ValueError):
       self.progress_updater.update_tasks(self.num_total_tasks + 1)
   
+  def test_update_with_zero_num_finished_tasks(self):
+    self.progress_updater.num_total_tasks = 0
+    # It is the same exception as in the
+    # `test_update_with_num_finished_tasks_greater_than_num_tasks` test case.
+    with self.assertRaises(ValueError):
+      self.progress_updater.update_tasks(1)
+  
   def test_reset(self):
     self.progress_updater.update_text("Hi there")
     self.progress_updater.update_tasks(2)

@@ -62,6 +62,7 @@ class SettingValueError(Exception):
   This exception class is raised when a value assigned to the `value` attribute
   of a `Setting` object is invalid.
   """
+  
   pass
 
 #===============================================================================
@@ -140,18 +141,6 @@ class Setting(object):
   
   * `can_streamline` (read-only) - True if a streamline function is set, False
     otherwise.
-  
-  Methods:
-  
-  * `streamline()` - Change attributes of this and other settings based on the
-    value of this and the other settings.
-  
-  * `set_streamline_func()` - Set a streamline function (to be called when
-    `streamline()` is called).
-  
-  * `remove_streamline_func()` - Remove a streamline function.
-  
-  * `reset()` - Reset setting value to its default value.
   """
   
   def __init__(self, name, default_value):
@@ -889,6 +878,10 @@ class Container(object):
     return key in self._items[key]
   
   def __iter__(self):
+    """
+    Iterate over the objects in the order they were created.
+    """
+    
     for item in self._items.values():
       yield item
   
@@ -915,15 +908,6 @@ class SettingContainer(Container):
   
   This class is an interface for setting containers. Create a subclass from this
   class to create settings.
-  
-  Methods:
-  
-  * `streamline()` - Call `streamline()` for each setting in this container.
-  
-  * `reset()` - Reset all settings in this container. Ignore settings whose
-    attribute `can_be_reset_by_container` is False.
-  
-  * `__iter__()` - Iterate over the settings (in the order they were created).
   """
   
   __metaclass__ = abc.ABCMeta
@@ -950,6 +934,7 @@ class SettingContainer(Container):
     
     Settings are stored in the container in the order they were added.
     """
+    
     pass
   
   def _add(self, setting):
@@ -985,9 +970,8 @@ class SettingContainer(Container):
   
   def reset(self):
     """
-    Reset settings to their default values.
-    
-    Ignore settings whose attribute `can_be_reset_by_container` is False.
+    Reset all settings in this container. Ignore settings whose
+    attribute `can_be_reset_by_container` is False.
     """
     
     for setting in self:
@@ -1008,12 +992,6 @@ class SettingStream(object):
   
   * `_settings_not_found` - List of settings not found in stream when the `read()`
     method is called.
-  
-  Methods:
-  
-  * `read()` - Read setting values from the stream to the settings.
-  
-  * `write()` - Write setting values from the settings to the stream.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -1041,6 +1019,7 @@ class SettingStream(object):
       stored in the `settings_not_found` list. This list is cleared on each read()
       call.
     """
+    
     pass
   
   @abc.abstractmethod
@@ -1053,6 +1032,7 @@ class SettingStream(object):
     
     * `settings` - Any iterable sequence containing `Setting` objects.
     """
+    
     pass
 
   @property
@@ -1253,12 +1233,6 @@ class SettingPersistor(object):
   
   * `status_message` (read-only) - Status message describing the status returned
     from the `load()` or `save()` methods in more detail.
-  
-  Methods:
-  
-  * `load()` - Load setting values from stream(s) to settings.
-  
-  * `save()` - Save setting values from settings to all streams.
   """
   
   __STATUSES = SUCCESS, READ_FAIL, WRITE_FAIL, NOT_ALL_SETTINGS_FOUND = (0, 1, 2, 3)
@@ -1272,10 +1246,11 @@ class SettingPersistor(object):
     Load setting values from streams in `read_setting_streams` to specified
     `setting_containers`.
     
-    The order of streams in the `read_setting_streams` list indicates the preference
-    of the streams, beginning with the first stream in the list. If not all settings
-    could be found in the first stream, the second stream is read to assign values
-    to the remaining settings. This continues until all settings are read.
+    The order of streams in the `read_setting_streams` list indicates the
+    preference of the streams, beginning with the first stream in the list. If
+    not all settings could be found in the first stream, the second stream is
+    read to assign values to the remaining settings. This continues until all
+    settings are read.
     
     If settings have invalid values, their default values will be assigned.
     
@@ -1296,8 +1271,9 @@ class SettingPersistor(object):
         * `NOT_ALL_SETTINGS_FOUND` - Could not find some settings from
           any of the streams. Default values are assigned to these settings.
         
-        * `READ_FAIL` - Could not read data from the first stream where this error
-          occurred. May occur for file streams with e.g. denied read permission.
+        * `READ_FAIL` - Could not read data from the first stream where this
+          error occurred. May occur for file streams with e.g. denied read
+          permission.
       
       * `status_message` - Message describing the status in more detail.
     """
@@ -1343,8 +1319,9 @@ class SettingPersistor(object):
       
         * `SUCCESS` - Settings successfully saved.
         
-        * `WRITE_FAIL` - Could not write data to the first stream where this error
-          occurred. May occur for file streams with e.g. denied write permission.
+        * `WRITE_FAIL` - Could not write data to the first stream where this
+          error occurred. May occur for file streams with e.g. denied write
+          permission.
       
       * `status_message` - Message describing the status in more detail.
     """
@@ -1393,25 +1370,6 @@ class SettingPresenter(object):
   
   * `value_changed_signal` - Object that indicates the type of event to assign
     to the GUI element that changes one of its properties.
-  
-  Methods:
-  
-  * `connect_event()` - Assign an event handler to the GUI element that is meant
-    to change the `value` attribute.
-  
-  * `set_tooltip()` - Set the tooltip text for the GUI element.
-  
-  * `get_value()` - Return the value of the GUI element.
-  
-  * `set_value()` - Set the value of the GUI element.
-  
-  * `get_enabled()` - Return the enabled/disabled state of the GUI element.
-  
-  * `set_enabled()` - Set the enabled/disabled state of the GUI element.
-  
-  * `get_visible()` - Return the visible/invisible state of the GUI element.
-  
-  * `set_visible()` - Set the visible/invisible state of the GUI element.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -1432,33 +1390,57 @@ class SettingPresenter(object):
   
   @abc.abstractmethod
   def get_value(self):
+    """
+    Return the value of the GUI element.
+    """
+    
     pass
   
   @abc.abstractmethod
   def set_value(self):
+    """
+    Set the value of the GUI element.
+    """
+    
     pass
   
   @abc.abstractmethod
   def get_enabled(self):
+    """
+    Return the enabled/disabled state of the GUI element.
+    """
+    
     pass
   
   @abc.abstractmethod
   def set_enabled(self):
+    """
+    Set the enabled/disabled state of the GUI element.
+    """
+    
     pass
   
   @abc.abstractmethod
   def get_visible(self):
+    """
+    Return the visible/invisible state of the GUI element.
+    """
+    
     pass
   
   @abc.abstractmethod
   def set_visible(self):
+    """
+    Set the visible/invisible state of the GUI element.
+    """
+    
     pass
 
   @abc.abstractmethod
   def connect_event(self, event_func, *event_args):
     """
-    Assign the specified event handler to the GUI element that is meant
-    to change the `value` attribute.
+    Assign the specified event handler to the GUI element that is meant to
+    change the `value` attribute.
     
     The `value_changed_signal` attribute is used to assign the event handler to
     the GUI element.
@@ -1473,6 +1455,7 @@ class SettingPresenter(object):
     
     * `TypeError` - `value_changed_signal` is None.
     """
+    
     pass
   
   @abc.abstractmethod
@@ -1482,6 +1465,7 @@ class SettingPresenter(object):
     
     `Setting.description` attribute is used as the tooltip.
     """
+    
     pass
 
 #===============================================================================
@@ -1498,21 +1482,6 @@ class SettingPresenterContainer(Container):
   A: Because `SettingPresenterContainer` is independent of `SettingContainer`
      and this object may contain settings from multiple `SettingContainer`
      objects with the same name.
-  
-  Methods:
-  
-  * `add()` - Add a `SettingPresenter` object to the container.
-  
-  * `assign_setting_values_to_elements()` - Assign values from settings to GUI
-    elements.
-    
-  * `assign_element_values_to_settings()` - Assign values from GUI elements to
-    settings.
-  
-  * `connect_value_changed_events()` - Assign event handlers to GUI elements
-    triggered when the user changes their value.
-  
-  * `set_tooltips()` - Set tooltips for all GUI elements.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -1620,6 +1589,7 @@ class SettingPresenterContainer(Container):
     separate from `_on_element_value_change()` has to be defined so that the GUI
     framework invokes the event with the correct arguments in the correct order.
     """
+    
     pass
   
   @abc.abstractmethod
@@ -1633,6 +1603,7 @@ class SettingPresenterContainer(Container):
     so that the GUI framework invokes the event with the correct arguments in
     the correct order.
     """
+    
     pass
   
   def _on_element_value_change(self, presenter):
@@ -1656,6 +1627,10 @@ class SettingPresenterContainer(Container):
     self._apply_changed_settings(changed_settings)
   
   def set_tooltips(self):
+    """
+    Set tooltips for all GUI elements.
+    """
+    
     for presenter in self:
       presenter.set_tooltip()
   

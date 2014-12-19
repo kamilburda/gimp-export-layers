@@ -55,7 +55,7 @@ class ObjectFilter(object):
     * MATCH_ANY - For `is_match()` to return True, the object must match
       at least one rule.
   
-  For better flexibility, the filter can also contain nested `ObjectFilter`
+  For greater flexibility, the filter can also contain nested `ObjectFilter`
   objects, called "subfilters", each with their own set of rules and match type.
   """
   

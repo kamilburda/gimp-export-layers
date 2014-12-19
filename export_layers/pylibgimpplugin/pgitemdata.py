@@ -93,25 +93,6 @@ class ItemData(object):
   
   * `filter` (read-only) - `ObjectFilter` instance where you can add or remove
     filter rules or subfilters to filter items.
-  
-  Methods:
-  
-  * `__getitem__` - Access an `_ItemDataElement` object by its `orig_name`
-    attribute.
-  
-  * `__contains__` - Return True if an `_ItemDataElement` object, specified by
-    its name, is in the item data, otherwise return False.
-  
-  * `__len__` - Return the number of all items - that is, immediate children of
-    the image and nested children.
-  
-  * `__iter__` - If `is_filtered` is False, iterate over all items. If
-    `is_filtered` is True, iterate only over items that match the filter in this
-    object.
-  
-  * `uniquify_name` - Make the `name` attribute in the specified
-    `_ItemDataElement` object unique among all other, already uniquified
-    `_ItemDataElement` objects.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -141,12 +122,26 @@ class ItemData(object):
     return self._filter
   
   def __getitem__(self, name):
+    """
+    Access an `_ItemDataElement` object by its `orig_name` attribute.
+    """
+    
     return self._itemdata[name]
   
   def __contains__(self, name):
+    """
+    Return True if an `_ItemDataElement` object, specified by its `orig_name`
+    attribute, is in the item data. Otherwise return False.
+    """
+    
     return name in self._itemdata
   
   def __len__(self):
+    """
+    Return the number of all item data elements - that is, all immediate
+    children of the image and all nested children.
+    """
+    
     return len([item_elem for item_elem in self])
   
   def __iter__(self):
@@ -267,6 +262,7 @@ class ItemData(object):
     
     If no child items exist, return an empty list.
     """
+    
     pass
   
   @abc.abstractmethod
@@ -276,6 +272,7 @@ class ItemData(object):
     
     If no child items exist, return an empty list.
     """
+    
     pass
 
 
@@ -343,19 +340,6 @@ class _ItemDataElement(object):
   * `path_visible` (read-only) - Visibility of all item's parents and this
     item. If all items are visible, `path_visible` is True. If at least one
     of these items is invisible, `path_visible` is False.
-  
-  Methods:
-  
-  * `get_file_extension` - Get file extension from the item name.
-  
-  * `set_file_extension` - Set file extension in the item name.
-  
-  * `get_filepath` - Return file path given the specified directory, item name
-    and names of its parents.
-  
-  * `get_path_components` - Return a list of parent's names.
-  
-  * `validate_name` - Validate item name and names of its parents.
   """
   
   __ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP = (0, 1, 2)
@@ -439,6 +423,9 @@ class _ItemDataElement(object):
   
   def get_filepath(self, directory, include_item_path=True):
     """
+    Return file path given the specified directory, item name and names of its
+    parents.
+    
     If `include_item_path` is True, create file path in the following format:
     <directory>/<item path components>/<item name>
     
@@ -468,14 +455,14 @@ class _ItemDataElement(object):
   
   def get_path_components(self):
     """
-    Return item names of all parents as path components.
+    Return a list of names of all parents of this item as path components.
     """
     
     return [parent.name for parent in self.parents]
   
   def validate_name(self):
     """
-    Validate the `name` attribute of this object and all of its parents.
+    Validate the `name` attribute of this item and all of its parents.
     """
     
     self.name = pgpath.FilenameValidator.validate(self.name)

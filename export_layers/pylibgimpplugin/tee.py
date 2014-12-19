@@ -58,21 +58,6 @@ class Tee(object):
     
   * `log_header_title` - Header text to write when writing into the file
     for the first time.
-  
-  Methods:
-  
-  * `start()` - Start `Tee` if not started when the object was instantiated.
-  
-  * `stop()` - Stop `Tee`, i.e. stop writing to file.
-  
-  * `is_running()` - True if `Tee` is running (i.e. writing to file),
-    False otherwise.
-  
-  * `write()` - Used by `sys.stdout`, `sys.stderr` and file-like objects to
-    write output to stream or file.
-  
-  * `flush()` - Used by `sys.stdout`, `sys.stderr` and file-like objects to
-    flush output.
   """
   
   __STATES = _RUNNING_FIRST_TIME, _RUNNING, _NOT_RUNNING = (0, 1, 2)
@@ -126,7 +111,7 @@ class Tee(object):
   
   def start(self, file_object):
     """
-    Start `Tee` if not started when the object was instantiated.
+    Start `Tee` if not started during the object instantiation.
     
     Parameters:
     
@@ -140,6 +125,10 @@ class Tee(object):
     self._state = self._RUNNING_FIRST_TIME
   
   def stop(self):
+    """
+    Stop `Tee`, i.e. stop writing to the file.
+    """
+    
     setattr(sys, self._stream_name, self._orig_stream)
     self._file.close()
     
@@ -147,9 +136,20 @@ class Tee(object):
     self._state = self._NOT_RUNNING
   
   def is_running(self):
+    """
+    True if `Tee` is running (i.e. writing to file), False otherwise.
+    """
+    
     return self._state != self._NOT_RUNNING
   
   def write(self, data):
+    """
+    Write output to the stream and the file specified in this object.
+    
+    This is a method normally used by `sys.stdout`, `sys.stderr` and file-like
+    objects to write output.
+    """
+    
     if self._state == self._RUNNING_FIRST_TIME:
       self._file.write(self._get_log_header().encode())
       self._write_with_flush(data + b'\n')
@@ -170,6 +170,13 @@ class Tee(object):
     self._stream.write(data)
   
   def flush(self):
+    """
+    Flush output.
+    
+    This is a method implemented in `sys.stdout`, `sys.stderr` and file-like
+    objects to flush the internal buffer and force writing output immediately.
+    """
+    
     self._file.flush()
     self._stream.flush()
 

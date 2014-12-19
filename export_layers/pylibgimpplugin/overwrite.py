@@ -71,6 +71,7 @@ class OverwriteChooser(object):
       `OverwriteChooser` use the filename to simply display it to the user.
       Defaults to None.
     """
+    
     pass
 
 
@@ -158,4 +159,5 @@ class InteractiveOverwriteChooser(OverwriteChooser):
     If the choice results in a value that is not in `values_and_display_names`,
     return `default_response`.
     """
+    
     pass

@@ -186,12 +186,6 @@ class StringValidator(object):
   
   This class does not specify what strings are valid (whether they contain
   invalid characters, substrings, etc.). This should be handled by subclasses.
-  
-  Methods:
-  
-  * `is_valid()` - Check if the specified string is valid.
-  
-  * `validate()` - Modify the specified string to make it valid.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -209,6 +203,7 @@ class StringValidator(object):
         a list of (status code, status message) tuples describing why the string
         is invalid. Otherwise it is an empty list.
     """
+    
     pass
   
   @classmethod
@@ -216,6 +211,7 @@ class StringValidator(object):
     """
     Modify the specified string to make it valid.
     """
+    
     pass
 
 

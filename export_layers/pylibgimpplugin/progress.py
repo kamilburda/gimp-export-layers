@@ -51,14 +51,6 @@ class ProgressUpdater(object):
   * `num_total_tasks` - Number of total tasks to complete.
   
   * `num_finished_tasks` (read-only) - Number of tasks finished so far.
-  
-  Methods:
-  
-  * `update_tasks()` - Advance the progress bar by a number of finished tasks.
-  
-  * `update_text()` - Update text in the progress bar.
-  
-  * `reset()` - Empty the progress bar and remove its text.
   """
   
   def __init__(self, progress_bar, num_total_tasks=0):
@@ -89,7 +81,7 @@ class ProgressUpdater(object):
   
   def update_text(self, text):
     """
-    Update text in the progress bar. Use None or empty string to remove the
+    Update text in the progress bar. Use None or an empty string to remove the
     text.
     """
     
@@ -107,15 +99,22 @@ class ProgressUpdater(object):
       self._fill_progress_bar()
     self._set_text_progress_bar("")
   
-  def _set_text(self, text):
-    if text is not None:
-      self._set_text_progress_bar(text)
-  
   def _fill_progress_bar(self):
     """
     Fill in `num_finished_tasks`/`num_total_tasks` fraction of the progress bar.
+    
+    This is a method to be overridden by a subclass that implements a
+    GUI-specific progress updater.
     """
+    
     pass
   
   def _set_text_progress_bar(self, text):
+    """
+    Set the text of the progress bar.
+    
+    This is a method to be overridden by a subclass that implements a
+    GUI-specific progress updater.
+    """
+    
     pass
