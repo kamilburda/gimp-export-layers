@@ -116,23 +116,27 @@ def _rename_filenames_inside_file(file_to_read, file_to_write, filenames_to_rena
 
 def process_file(filename, *process_functions_and_args):
   temp_dir = tempfile.mkdtemp()
-  temp_filename_copy = os.path.join(temp_dir, "temp1")
+  temp_filename_copy = os.path.join(temp_dir, "temp")
   shutil.copy2(filename, temp_filename_copy)
   
+  temp_file_copy = open(temp_filename_copy, 'r+')
+  temp_file = tempfile.NamedTemporaryFile('r+', dir=temp_dir, delete=False)
+  
   last_modified_filename = None
-  with open(temp_filename_copy, 'r+') as temp_file_copy, \
-       tempfile.NamedTemporaryFile('r+', dir=temp_dir, delete=False) as temp_file:
-    file_to_read = temp_file_copy
-    file_to_write = temp_file
-    for function_and_args in process_functions_and_args:
-      _prepare_files(file_to_read, file_to_write)
-      
-      process_function = function_and_args[0]
-      process_function_additional_args = function_and_args[1:]
-      process_function(file_to_read, file_to_write, *process_function_additional_args)
-      
-      last_modified_filename = file_to_write.name
-      file_to_read, file_to_write = file_to_write, file_to_read
+  file_to_read = temp_file_copy
+  file_to_write = temp_file
+  for function_and_args in process_functions_and_args:
+    _prepare_files(file_to_read, file_to_write)
+    
+    process_function = function_and_args[0]
+    process_function_additional_args = function_and_args[1:]
+    process_function(file_to_read, file_to_write, *process_function_additional_args)
+    
+    last_modified_filename = file_to_write.name
+    file_to_read, file_to_write = file_to_write, file_to_read
+  
+  temp_file_copy.close()
+  temp_file.close()
   
   shutil.copy2(last_modified_filename, filename)
   
@@ -145,8 +149,8 @@ def process_file(filename, *process_functions_and_args):
 # value: list of (function, additional function arguments) as arguments to `process_file`
 FILES_TO_PROCESS = {
   FILENAMES_TO_RENAME["README.md"] : [
-     (_trim_leading_spaces, NUM_LEADING_SPACES_TO_TRIM),
-     (_rename_filenames_inside_file, FILENAMES_TO_RENAME)
+    (_trim_leading_spaces, NUM_LEADING_SPACES_TO_TRIM),
+    (_rename_filenames_inside_file, FILENAMES_TO_RENAME)
   ]
 }
 
