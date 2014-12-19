@@ -105,12 +105,15 @@ def _rename_filenames_inside_file(file_to_read, file_to_write, filenames_to_rena
   `filenames_to_rename` dict.
   """
   
+  filenames_to_rename_patterns = {}
+  for src_filename, dest_filename in filenames_to_rename.items():
+    src_filename_pattern = re.escape(src_filename).replace('\\ ', "\\s")
+    filenames_to_rename_patterns[src_filename_pattern] = dest_filename
+  
   for line in file_to_read:
     processed_line = line
-    for src_filename, dest_filename in filenames_to_rename.items():
-      src_filename_pattern = src_filename.replace('\\', '\\\\').replace(' ', "\\s")
-      dest_filename_pattern = dest_filename.replace('\\', '\\\\')
-      processed_line = re.sub(src_filename_pattern, dest_filename_pattern, processed_line)
+    for src_filename_pattern, dest_filename in filenames_to_rename_patterns.items():
+      processed_line = re.sub(src_filename_pattern, lambda match: dest_filename, processed_line)
     file_to_write.write(processed_line)
 
 
