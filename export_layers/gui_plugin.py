@@ -48,9 +48,9 @@ import gimp
 import gimpenums
 import gimpui
 
-from export_layers.pylibgimpplugin import pgsetting
-from export_layers.pylibgimpplugin import overwrite
-from export_layers.pylibgimpplugin import pggui
+from export_layers.pygimplib import pgsetting
+from export_layers.pygimplib import overwrite
+from export_layers.pygimplib import pggui
 
 from export_layers import exportlayers
 from export_layers import constants

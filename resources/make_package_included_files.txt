@@ -15,7 +15,7 @@
 !.git/
 !.settings/
 !export_layers/tests/
-!export_layers/pylibgimpplugin/tests/
-!export_layers/pylibgimpplugin/lib/mock*
+!export_layers/pygimplib/tests/
+!export_layers/pygimplib/lib/mock*
 !resources/
 !LICENSE

@@ -38,7 +38,7 @@ from export_layers import constants
 if constants.DEBUG:
   import sys
   
-  from export_layers.pylibgimpplugin import tee
+  from export_layers.pygimplib import tee
   
   tee.Tee(sys.stdout, open(constants.PLUGINS_LOG_STDOUT_PATH, 'a'),
           log_header_title=constants.PLUGIN_TITLE, flush_file=True)
@@ -55,8 +55,8 @@ import gimp
 import gimpplugin
 import gimpenums
 
-from export_layers.pylibgimpplugin import pgsetting
-from export_layers.pylibgimpplugin import overwrite
+from export_layers.pygimplib import pgsetting
+from export_layers.pygimplib import overwrite
 
 from export_layers import settings_plugin
 from export_layers import gui_plugin

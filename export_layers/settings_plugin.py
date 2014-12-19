@@ -37,8 +37,8 @@ str = unicode
 import gimp
 import gimpenums
 
-from export_layers.pylibgimpplugin import pgsetting
-from export_layers.pylibgimpplugin import pgpath
+from export_layers.pygimplib import pgsetting
+from export_layers.pygimplib import pgpath
 from export_layers import exportlayers
 
 #===============================================================================

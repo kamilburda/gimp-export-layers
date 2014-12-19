@@ -45,11 +45,11 @@ import gimpenums
 
 from export_layers import constants
 
-from export_layers.pylibgimpplugin import pgpath
-from export_layers.pylibgimpplugin import pgpdb
-from export_layers.pylibgimpplugin import pgitemdata
-from export_layers.pylibgimpplugin import objectfilter
-from export_layers.pylibgimpplugin import progress
+from export_layers.pygimplib import pgpath
+from export_layers.pygimplib import pgpdb
+from export_layers.pygimplib import pgitemdata
+from export_layers.pygimplib import objectfilter
+from export_layers.pygimplib import progress
 
 #===============================================================================
 

@@ -53,7 +53,7 @@ import pathspec
 
 from export_layers import constants
 
-from export_layers.pylibgimpplugin import pgpath
+from export_layers.pygimplib import pgpath
 
 #===============================================================================
 
