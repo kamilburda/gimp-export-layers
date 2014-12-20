@@ -47,7 +47,7 @@ def N_(s):
 PLUGIN_PROGRAM_NAME = "export_layers"
 PLUGIN_TITLE = N_("Export Layers")
 
-PLUGIN_VERSION = "2.2.1"
+PLUGIN_VERSION = "2.2.2"
 
 DEBUG = False
 DEBUG_IMAGE_PROCESSING = False

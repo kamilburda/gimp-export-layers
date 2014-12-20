@@ -12,7 +12,7 @@ This plug-in:
 * exports layers as separate images in almost any file format supported by GIMP
 * uses native dialogs for file format export procedures to adjust file format settings
 * uses layer names as filenames for the exported images
-* supports layer groups and optionally treats them as directories
+* supports layer groups and optionally treats them as folders
 * can optionally export only layers whose file extension matches specified file extension
 * can use file extensions in layer names as file formats
 * can use layers with names in [square brackets] as background layers
@@ -70,7 +70,7 @@ Usage
 -----
 
 From the main menu, go to "File -> Export Layers...". A dialog appears, allowing
-you to specify output directory, file extension and various other settings.
+you to specify output folder, file extension and various other settings.
 
 Type in the desired file extension in the "File extension" text field (with or without
 the leading period). You can type any file extension supported by GIMP. File formats
@@ -100,11 +100,11 @@ instead, the last used values will be used.
 Settings
 --------
 
-**Treat layer groups as directories**
+**Treat layer groups as folders**
 
-If enabled, layers will be exported to subdirectories corresponding to the layer groups.
-If disabled, all layers will be exported to the output directory on the same level
-and no subdirectories will be created.
+If enabled, layers will be exported to subfolders corresponding to the layer groups.
+If disabled, all layers will be exported to the output folder on the same level
+and no subfolders will be created.
 
 **Ignore invisible layers**
 
@@ -173,9 +173,9 @@ background layers instead of their own size.
 If enabled, each top-level layer group is merged into one layer. The name
 of each merged layer is the name of the corresponding top-level layer group.
 
-**Create empty subdirectories**
+**Create empty subfolders**
 
-If enabled, empty subdirectories from empty layers groups are created.
+If enabled, empty subfolders from empty layers groups are created.
 
 **Ignore layer modes**
 
