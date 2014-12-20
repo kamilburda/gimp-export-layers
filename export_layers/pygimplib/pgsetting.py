@@ -836,6 +836,31 @@ class DirectorySetting(ValidatableStringSetting):
   def __init__(self, name, default_value):
     super(DirectorySetting, self).__init__(name, default_value, pgpath.FilePathValidator)
 
+
+class IntArraySetting(Setting):
+    
+  """
+  This setting class can be used for integer arrays.
+    
+  Allowed GIMP PDB types:
+    
+  * PDB_INT32ARRAY (default)
+  * PDB_INT16ARRAY
+  * PDB_INT8ARRAY
+    
+  TODO:
+  * validation - value must be an iterable sequence
+    - this applies to any array setting
+  """
+    
+  def __init__(self, name, default_value):
+    super(IntArraySetting, self).__init__(name, default_value)
+     
+    self._allowed_pdb_types = [gimpenums.PDB_INT32ARRAY, gimpenums.PDB_INT16ARRAY, gimpenums.PDB_INT8ARRAY]
+    self.gimp_pdb_type = gimpenums.PDB_INT32ARRAY
+
+
+
 #===============================================================================
 
 
