@@ -31,7 +31,10 @@ Installation
 **Windows**
 
 Extract the `export_layers.py` file and the `export_layers` directory to
-`[user directory]/.gimp-2.8/plug-ins`.
+`[home directory]\.gimp-2.8\plug-ins`.
+
+Alternatively, you can extract the files to the GIMP directory, usually located at
+`C:\Program Files\GIMP 2\lib\gimp\2.0\plug-ins`.
 
 
 **Linux**
@@ -53,7 +56,7 @@ If necessary, make the `export_layers.py` file executable, e.g. from the termina
 
     chmod +x "export_layers.py"
 
-GIMP for OS X may have Python 2.6 bundled, which won't work with this plug-in,
+GIMP for OS X may have Python 2.6 bundled, which will not work with this plug-in,
 since Python 2.7 is required. Install Python 2.7 (if not already), open
 `/Applications/Gimp.app/Contents/Resources/lib/gimp/2.0/interpreters/pygimp.interp`
 and change its contents to the following:
