@@ -13,7 +13,7 @@ This plug-in:
 <li>can use layers with names in [square brackets] as background layers</li></ul>
 
 Example:
-<img src="https://lh4.googleusercontent.com/-s_QPo9lRWRM/U8arsWPksfI/AAAAAAAAAfQ/qoX7lQ-qbM4/s600/export_layers_screenshot_2_1.jpg" />
+<img src="https://lh6.googleusercontent.com/-FrHEw4t32sQ/VJYHtSlagiI/AAAAAAAAAlE/gfe9ri-zo9w/s600/export_layers_screenshot_2_2_2.png" />
 
 ================================================================================
 Description
@@ -30,7 +30,7 @@ Features:
 <li>can use layers with names in [square brackets] as background layers</li></ul>
 
 <h5><strong>Download Export Layers at:</strong></h5>
-https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.2.1/export-layers-2.2.1.zip
+https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.2.2/export-layers-2.2.2.zip
 
 <h5><strong>Requirements</strong></h5>
 <ul>
@@ -46,7 +46,7 @@ To export layers, press the "Export Layers" button. For the first layer, a dialo
 If you want to export the layers with the last values used, you can use the "File -> Export Layers to" menu entry. The file format dialog will not be displayed - instead, the last used values will be used.
 
 <h5><strong>Example</strong></h5>
-<img src="https://lh4.googleusercontent.com/-s_QPo9lRWRM/U8arsWPksfI/AAAAAAAAAfQ/qoX7lQ-qbM4/s600/export_layers_screenshot_2_1.jpg" />
+<img src="https://lh6.googleusercontent.com/-FrHEw4t32sQ/VJYHtSlagiI/AAAAAAAAAlE/gfe9ri-zo9w/s600/export_layers_screenshot_2_2_2.png" />
 
 <h5><strong>Changelog</strong></h5>
 2.2.2 (December 20, 2014)
