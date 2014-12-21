@@ -313,8 +313,14 @@ class _ExportLayersGui(object):
     
     self.save_settings_button = gtk.Button()
     self.save_settings_button.set_label(_("Save Settings"))
+    self.save_settings_button.set_tooltip_text(
+      _("Save settings permanently to a file. "
+        "If you start GIMP again, the saved settings will be loaded from the "
+        "file when {0} is first opened.").format(constants.PLUGIN_TITLE)
+    )
     self.reset_settings_button = gtk.Button()
     self.reset_settings_button.set_label(_("Reset Settings"))
+    self.reset_settings_button.set_tooltip_text(_("Reset settings to their default values."))
     
     self.progress_bar = gtk.ProgressBar()
     self.progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
