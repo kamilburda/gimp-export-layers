@@ -1,3 +1,12 @@
+2.2.2 (December 20, 2014)
+------------------------
+
+* Set PNG as the default file format.
+* Renamed settings containing the word "directory" to contain "folder".
+* Allowed to install the plug-in system-wide (e.g. to
+  `C:\Program Files\GIMP 2\lib\gimp\2.0\plug-ins` on Windows).
+* Pressing Enter while the focus is on the "File extension" text field will now export layers.
+
 2.2.1 (November 10, 2014)
 ------------------------
 

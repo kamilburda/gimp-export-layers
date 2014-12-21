@@ -7,13 +7,13 @@ Export Layers is a GIMP plug-in that exports layers as separate images in almost
 This plug-in:
 <ul><li>uses native dialogs for file format export procedures to adjust file format settings</li>
 <li>uses layer names as filenames for the exported images</li>
-<li>supports layer groups and optionally treats them as directories</li>
+<li>supports layer groups and optionally treats them as folders</li>
 <li>can optionally export only layers whose file extension matches specified file format</li>
 <li>can use file extensions in layer names as file formats</li>
 <li>can use layers with names in [square brackets] as background layers</li></ul>
 
 Example:
-<img src="https://lh4.googleusercontent.com/-s_QPo9lRWRM/U8arsWPksfI/AAAAAAAAAfQ/qoX7lQ-qbM4/s600/export_layers_screenshot_2_1.jpg" />
+<img src="https://lh6.googleusercontent.com/-FrHEw4t32sQ/VJYHtSlagiI/AAAAAAAAAlE/gfe9ri-zo9w/s600/export_layers_screenshot_2_2_2.png" />
 
 ================================================================================
 Description
@@ -24,13 +24,13 @@ Export Layers is a GIMP plug-in that exports layers as separate images in almost
 Features:
 <ul><li>uses native dialogs for file format export procedures to adjust file format settings</li>
 <li>uses layer names as filenames for the exported images</li>
-<li>supports layer groups and optionally treats them as directories</li>
+<li>supports layer groups and optionally treats them as folders</li>
 <li>can optionally export only layers whose file extension matches specified file format</li>
 <li>can use file extensions in layer names as file formats</li>
 <li>can use layers with names in [square brackets] as background layers</li></ul>
 
 <h5><strong>Download Export Layers at:</strong></h5>
-https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.2.1/export-layers-2.2.1.zip
+https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.2.2/export-layers-2.2.2.zip
 
 <h5><strong>Requirements</strong></h5>
 <ul>
@@ -39,22 +39,21 @@ https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.2.1/ex
 </ul>
 
 <h5><strong>Usage</strong></h5>
-From the main menu, go to "File -> Export Layers...". A dialog appears, allowing you to specify output directory, file extension and various other settings.
-
-Type the file extension in the File Extension text field (with or without the leading dot). To export in the RAW file format, type "data".
+From the main menu, go to "File -> Export Layers...". A dialog appears, allowing you to specify the output folder, the file extension and various other settings.
 
 To export layers, press the "Export Layers" button. For the first layer, a dialog corresponding to the file format appears, allowing you to adjust file format settings. Not all file formats have settings, so no dialog may appear. For subsequent layers, the file export procedure uses the values you specified in the dialog for the first file.
 
 If you want to export the layers with the last values used, you can use the "File -> Export Layers to" menu entry. The file format dialog will not be displayed - instead, the last used values will be used.
 
 <h5><strong>Example</strong></h5>
-<img src="https://lh4.googleusercontent.com/-s_QPo9lRWRM/U8arsWPksfI/AAAAAAAAAfQ/qoX7lQ-qbM4/s600/export_layers_screenshot_2_1.jpg" />
+<img src="https://lh6.googleusercontent.com/-FrHEw4t32sQ/VJYHtSlagiI/AAAAAAAAAlE/gfe9ri-zo9w/s600/export_layers_screenshot_2_2_2.png" />
 
 <h5><strong>Changelog</strong></h5>
-2.2.1, November 10, 2014
-* Images in RAW format are saved with '.data' file extension instead of '.raw'.
-* Image type is now preserved (if file format allows it) instead of always using the RGB type.
-* Renamed "Use image size instead of layer size" to just "Use image size" for the sake of brevity.
+2.2.2 (December 20, 2014)
+* Set PNG as the default file format.
+* Renamed settings containing the word "directory" to contain "folder".
+* Allowed to install the plug-in system-wide (e.g. to `C:\Program Files\GIMP 2\lib\gimp\2.0\plug-ins` on Windows).
+* Pressing Enter while the focus is on the "File extension" text field will now export layers.
 
 For more information, such as installation, full list of features or known issues, read the <i>Readme.txt</i> file in the package or see the GitHub page for the plug-in:
 https://github.com/khalim19/gimp-plugin-export-layers

@@ -79,10 +79,10 @@ Settings
    - first layer - display dialog in interactive
    - subsequent layers - use last values (with a few exceptions, where dialog must always be displayed)
 
-* Layer groups as directories
+* Layer groups as folders
    - filenames and directories must be properly uniquified
 * Merge layer groups
-* Create empty subdirectories
+* Create folders for empty layer groups
 
 * Ignore invisible
    - visible layers with invisible parents must also be ignored
@@ -110,7 +110,7 @@ Settings
 * square_bracketed_mode - Treat as normal layers
 * square_bracketed_mode - Ignore
 * square_bracketed_mode - Ignore other layers
-   - Create directories for empty layer groups
+   - Create folders for empty layer groups
 
 * ignore layer modes
 
@@ -125,7 +125,7 @@ Use unicode characters in:
    - use the non-interactive run mode
 * GTK elements
    * text entry
-   * directory chooser
+   * folder chooser
    * combo boxes, labels, buttons, checkboxes, tooltips
       - temporarily modify settings in `settings_plugin`
 

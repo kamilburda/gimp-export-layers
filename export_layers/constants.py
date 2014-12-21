@@ -35,14 +35,7 @@ str = unicode
 #=============================================================================== 
 
 import os
-
-try:
-  import gimp
-except ImportError:
-  import inspect
-  is_gimp_module_loaded = False
-else:
-  is_gimp_module_loaded = True
+import inspect
 
 #===============================================================================
 
@@ -54,19 +47,16 @@ def N_(s):
 PLUGIN_PROGRAM_NAME = "export_layers"
 PLUGIN_TITLE = N_("Export Layers")
 
-PLUGIN_VERSION = "2.2.1"
+PLUGIN_VERSION = "2.2.2"
 
 DEBUG = False
 DEBUG_IMAGE_PROCESSING = False
 
 #===============================================================================
 
-if is_gimp_module_loaded:
-  PLUGINS_DIRECTORY = os.path.join(gimp.directory, "plug-ins")
-else:
-  current_module_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
-  PLUGINS_DIRECTORY = os.path.dirname(current_module_path)
+_current_module_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
 
+PLUGINS_DIRECTORY = os.path.dirname(_current_module_path)
 PLUGIN_DIRNAME = PLUGIN_PROGRAM_NAME
 PLUGIN_PATH = os.path.join(PLUGINS_DIRECTORY, PLUGIN_DIRNAME)
 
