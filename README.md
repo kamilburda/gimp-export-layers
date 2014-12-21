@@ -33,9 +33,6 @@ Installation
 Extract the `export_layers.py` file and the `export_layers` directory to
 `[home directory]\.gimp-2.8\plug-ins`.
 
-Alternatively, you can extract the files to the GIMP directory, usually located at
-`C:\Program Files\GIMP 2\lib\gimp\2.0\plug-ins`.
-
 
 **Linux**
 
