@@ -436,15 +436,15 @@ class IntSetting(NumericSetting):
   
   Allowed GIMP PDB types:
   
-  * PDB_INT8
-  * PDB_INT16
   * PDB_INT32 (default)
+  * PDB_INT16
+  * PDB_INT8
   """
   
   def __init__(self, name, default_value):
     super(IntSetting, self).__init__(name, default_value)
     
-    self._allowed_pdb_types = [gimpenums.PDB_INT8, gimpenums.PDB_INT16, gimpenums.PDB_INT32]
+    self._allowed_pdb_types = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
     self.gimp_pdb_type = gimpenums.PDB_INT32
 
 
@@ -475,15 +475,15 @@ class BoolSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * PDB_INT8
-  * PDB_INT16
   * PDB_INT32 (default)
+  * PDB_INT16
+  * PDB_INT8
   """
   
   def __init__(self, name, default_value):
     super(BoolSetting, self).__init__(name, default_value)
     
-    self._allowed_pdb_types = [gimpenums.PDB_INT8, gimpenums.PDB_INT16, gimpenums.PDB_INT32]
+    self._allowed_pdb_types = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
     self.gimp_pdb_type = gimpenums.PDB_INT32
   
   @property
@@ -507,9 +507,9 @@ class EnumSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * PDB_INT8
-  * PDB_INT16
   * PDB_INT32 (default)
+  * PDB_INT16
+  * PDB_INT8
   
   Additional attributes:
   
@@ -569,7 +569,7 @@ class EnumSetting(Setting):
     
     super(EnumSetting, self).__init__(name, default_value)
     
-    self._allowed_pdb_types = [gimpenums.PDB_INT8, gimpenums.PDB_INT16, gimpenums.PDB_INT32]
+    self._allowed_pdb_types = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
     self.gimp_pdb_type = gimpenums.PDB_INT32
     
     self._options = OrderedDict()
@@ -664,10 +664,6 @@ class ImageSetting(Setting):
   
   * PDB_IMAGE
   
-  Raises:
-  
-  * `SettingValueError` - The image assigned is invalid.
-  
   Error messages:
   
   * `'invalid_value'` - The image assigned is invalid.
@@ -702,10 +698,6 @@ class DrawableSetting(Setting):
   Allowed GIMP PDB types:
   
   * PDB_DRAWABLE
-  
-  Raises:
-  
-  * `SettingValueError` - The drawable assigned is invalid.
   
   Error messages:
   
@@ -761,10 +753,6 @@ class ValidatableStringSetting(StringSetting):
   Allowed GIMP PDB types:
   
   * PDB_STRING
-  
-  Raises:
-  
-  * `SettingValueError` - The string assigned is invalid.
   
   Error messages:
   
@@ -826,10 +814,6 @@ class FileExtensionSetting(ValidatableStringSetting):
   Allowed GIMP PDB types:
   
   * PDB_STRING
-  
-  Raises:
-  
-  * `SettingValueError` - The file extension assigned is invalid.
   """
   
   def __init__(self, name, default_value):
@@ -847,16 +831,37 @@ class DirectorySetting(ValidatableStringSetting):
   Allowed GIMP PDB types:
   
   * PDB_STRING
-  
-  Raises:
-  
-  * `SettingValueError` - The directory name assigned is invalid.
   """
   
   def __init__(self, name, default_value):
     super(DirectorySetting, self).__init__(name, default_value, pgpath.FilePathValidator)
 
+
+class IntArraySetting(Setting):
+    
+  """
+  This setting class can be used for integer arrays.
+    
+  Allowed GIMP PDB types:
+    
+  * PDB_INT32ARRAY (default)
+  * PDB_INT16ARRAY
+  * PDB_INT8ARRAY
+    
+  TODO:
+  * validation - value must be an iterable sequence
+    - this applies to any array setting
+  """
+  
+  def __init__(self, name, default_value):
+    super(IntArraySetting, self).__init__(name, default_value)
+     
+    self._allowed_pdb_types = [gimpenums.PDB_INT32ARRAY, gimpenums.PDB_INT16ARRAY, gimpenums.PDB_INT8ARRAY]
+    self.gimp_pdb_type = gimpenums.PDB_INT32ARRAY
+
+
 #===============================================================================
+
 
 class Container(object):
   
@@ -893,6 +898,8 @@ class Container(object):
     """
     Add specified object to the container. It is up to the subclass to
     determine the key from the object.
+    
+    This method should only be used during the container initialization.
     """
     
     pass
@@ -977,8 +984,10 @@ class SettingContainer(Container):
     for setting in self:
       if setting.can_be_reset_by_container:
         setting.reset()
-  
+
+
 #===============================================================================
+
 
 class SettingStream(object):
   
@@ -1212,7 +1221,9 @@ class JSONFileSettingStream(SettingStream):
     
     return settings_dict
 
+
 #===============================================================================
+
 
 class SettingPersistor(object):
   
@@ -1346,7 +1357,9 @@ class SettingPersistor(object):
   def _status(self, status, message=None):
     return status, message if message is not None else ""
 
+
 #===============================================================================
+
 
 class SettingPresenter(object):
   
@@ -1468,7 +1481,9 @@ class SettingPresenter(object):
     
     pass
 
+
 #===============================================================================
+
 
 class SettingPresenterContainer(Container):
   

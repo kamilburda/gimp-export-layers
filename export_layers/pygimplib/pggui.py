@@ -502,10 +502,16 @@ class GtkExportFolderChooserPresenter(GtkSettingPresenter):
     self._image_ids_and_folders_setting = image_ids_and_folders_setting
     self.current_image = current_image
     
+    self._location_toggle_button = self._get_location_toggle_button()
+    
     self._set_image_ids_and_folders()
   
   def get_value(self):
-    folder = self._element.get_current_folder()
+    if not self._is_location_entry_active():
+      folder = self._element.get_current_folder()
+    else:
+      folder = self._element.get_filename()
+    
     if folder is not None:
       folder = folder.decode(GTK_CHARACTER_ENCODING)
     
@@ -533,6 +539,12 @@ class GtkExportFolderChooserPresenter(GtkSettingPresenter):
       else:
         self._element.set_current_folder(value.encode(GTK_CHARACTER_ENCODING))
   
+  def _get_location_toggle_button(self):
+    return self._element.get_children()[0].get_children()[0].get_children()[0].get_children()[0].get_children()[0]
+  
+  def _is_location_entry_active(self):
+    return self._location_toggle_button.get_active()
+  
   def _set_image_ids_and_folders(self):
     setting = self._image_ids_and_folders_setting
     
@@ -544,7 +556,7 @@ class GtkExportFolderChooserPresenter(GtkSettingPresenter):
     for image_id in current_image_ids:
       if image_id not in setting.value.keys():
         setting.value[image_id] = None
-    
+
 
 class GtkWindowPositionPresenter(GtkSettingPresenter):
   

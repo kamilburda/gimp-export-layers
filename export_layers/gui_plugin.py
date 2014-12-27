@@ -196,7 +196,7 @@ class _ExportLayersGui(object):
     gtk.main()
   
   def _init_gui(self):
-    self.dialog = gimpui.Dialog(title=_(constants.PLUGIN_TITLE), role=None)
+    self.dialog = gimpui.Dialog(title=_(constants.PLUGIN_TITLE), role=constants.PLUGIN_PROGRAM_NAME)
     self.dialog.set_transient()
     
     self.dialog.set_default_size(*self.DIALOG_SIZE)
@@ -313,8 +313,14 @@ class _ExportLayersGui(object):
     
     self.save_settings_button = gtk.Button()
     self.save_settings_button.set_label(_("Save Settings"))
+    self.save_settings_button.set_tooltip_text(
+      _("Save settings permanently to a file. "
+        "If you start GIMP again, the saved settings will be loaded from the "
+        "file when {0} is first opened.").format(constants.PLUGIN_TITLE)
+    )
     self.reset_settings_button = gtk.Button()
     self.reset_settings_button.set_label(_("Reset Settings"))
+    self.reset_settings_button.set_tooltip_text(_("Reset settings to their default values."))
     
     self.progress_bar = gtk.ProgressBar()
     self.progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
@@ -533,9 +539,8 @@ class _ExportLayersGui(object):
     self.dialog.set_focus_on_map(False)
   
   def restore_gui_after_export(self):
-    self.progress_bar.set_visible(False)
-    self._set_gui_enabled(True)
     self.dialog.set_focus_on_map(True)
+    self._set_gui_enabled(True)
   
   def _set_gui_enabled(self, enabled):
     self.progress_bar.set_visible(not enabled)

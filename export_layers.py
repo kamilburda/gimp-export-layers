@@ -94,8 +94,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
     
     gimp.install_procedure(
       "plug_in_export_layers",
-      _("Export layers as separate images in specified file format, "
-        "using layer names as filenames"),
+      _("Export layers as separate images in specified file format"),
       "",
       "khalim19 <khalim19@gmail.com>",
       "khalim19",
