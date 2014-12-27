@@ -65,7 +65,7 @@ class ObjectFilter(object):
     self._match_type = match_type
     
     # Key: function (rule_func)
-    # Value: tuple (rule_func_args)
+    # Value: tuple (rule_func_args) or ObjectFilter instance (a subfilter)
     self._filter_items = {}
   
   @property
@@ -226,9 +226,8 @@ class ObjectFilter(object):
     self._filter_items[subfilter_name] = subfilter
   
   def get_subfilter(self, subfilter_name):
-#   def __getitem__(self, subfilter_name):
     """
-    Get subfilter by its name.
+    Get the subfilter specified by its name.
     
     Raises:
     
