@@ -38,12 +38,13 @@ import gimp
 import gimpenums
 
 from export_layers.pygimplib import pgsetting
+from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgpath
 from export_layers import exportlayers
 
 #===============================================================================
 
-class SpecialSettings(pgsetting.SettingContainer):
+class SpecialSettings(pgsettinggroup.SettingContainer):
   
   """
   These settings require special handling in the code,
@@ -73,7 +74,7 @@ class SpecialSettings(pgsetting.SettingContainer):
     )
 
 
-class MainSettings(pgsetting.SettingContainer):
+class MainSettings(pgsettinggroup.SettingContainer):
   
   def _create_settings(self):
     

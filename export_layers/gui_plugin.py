@@ -49,6 +49,7 @@ import gimpenums
 import gimpui
 
 from export_layers.pygimplib import pgsetting
+from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
 
@@ -61,7 +62,7 @@ pdb = gimp.pdb
 
 #===============================================================================
 
-class GuiSettings(pgsetting.SettingContainer):
+class GuiSettings(pgsettinggroup.SettingContainer):
   
   def _create_settings(self):
     
@@ -72,7 +73,7 @@ class GuiSettings(pgsetting.SettingContainer):
     self['advanced_settings_expanded'].can_be_reset_by_container = False
 
 
-class SessionOnlyGuiSettings(pgsetting.SettingContainer):
+class SessionOnlyGuiSettings(pgsettinggroup.SettingContainer):
   
   def _create_settings(self):
     
@@ -178,11 +179,11 @@ class _ExportLayersGui(object):
     
     self.gui_settings = GuiSettings()
     self.session_only_gui_settings = SessionOnlyGuiSettings()
-    self.setting_persistor = pgsetting.SettingPersistor([self.gimpshelf_stream, self.config_file_stream],
-                                                        [self.gimpshelf_stream])
+    self.setting_persistor = pgsettinggroup.SettingPersistor([self.gimpshelf_stream, self.config_file_stream],
+                                                             [self.gimpshelf_stream])
     
     status, status_message = self.setting_persistor.load(self.main_settings, self.gui_settings)
-    if status == pgsetting.SettingPersistor.READ_FAIL:
+    if status == pgsettinggroup.SettingPersistor.READ_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING)
     self.setting_persistor.read_setting_streams.pop()
     

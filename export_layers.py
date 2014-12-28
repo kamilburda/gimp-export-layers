@@ -55,7 +55,7 @@ import gimp
 import gimpplugin
 import gimpenums
 
-from export_layers.pygimplib import pgsetting
+from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import overwrite
 
 from export_layers import settings_plugin
@@ -71,10 +71,10 @@ class ExportLayersPlugin(gimpplugin.plugin):
     self.special_settings = settings_plugin.SpecialSettings()
     self.main_settings = settings_plugin.MainSettings()
     
-    self.gimpshelf_stream = pgsetting.GimpShelfSettingStream(constants.SHELF_PREFIX)
-    self.config_file_stream = pgsetting.JSONFileSettingStream(constants.CONFIG_FILE)
+    self.gimpshelf_stream = pgsettinggroup.GimpShelfSettingStream(constants.SHELF_PREFIX)
+    self.config_file_stream = pgsettinggroup.JSONFileSettingStream(constants.CONFIG_FILE)
     
-    self.setting_persistor = pgsetting.SettingPersistor([self.gimpshelf_stream], [self.gimpshelf_stream])
+    self.setting_persistor = pgsettinggroup.SettingPersistor([self.gimpshelf_stream], [self.gimpshelf_stream])
     
     self.export_layers_settings = []
     for setting in list(self.special_settings) + list(self.main_settings):
