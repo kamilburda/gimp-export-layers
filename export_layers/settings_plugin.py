@@ -44,7 +44,7 @@ from export_layers import exportlayers
 
 #===============================================================================
 
-class SpecialSettings(pgsettinggroup.SettingContainer):
+class SpecialSettings(pgsettinggroup.SettingGroup):
   
   """
   These settings require special handling in the code,
@@ -74,7 +74,7 @@ class SpecialSettings(pgsettinggroup.SettingContainer):
     )
 
 
-class MainSettings(pgsettinggroup.SettingContainer):
+class MainSettings(pgsettinggroup.SettingGroup):
   
   def _create_settings(self):
     

@@ -120,8 +120,8 @@ class Setting(object):
     True by default. This attribute is only an indication, it does not modify a
     GUI element (use the appropriate `SettingPresenter` subclass for that purpose).
   
-  * `can_be_reset_by_container` - If True, the setting is reset to its default
-    value if the `reset()` method from the corresponding `SettingContainer` is
+  * `can_be_reset_by_group` - If True, the setting is reset to its default
+    value if the `reset()` method from the corresponding `SettingGroup` is
     called. False by default.
   
   * `changed_attributes` (read-only) - Contains a set of attribute names of the
@@ -168,7 +168,7 @@ class Setting(object):
     self.ui_enabled = True
     self.ui_visible = True
     
-    self.can_be_reset_by_container = True
+    self.can_be_reset_by_group = True
     
     self._streamline_func = None
     self._streamline_args = []

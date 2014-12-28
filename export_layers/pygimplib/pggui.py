@@ -28,7 +28,7 @@ This module defines:
 * context manager for `sys.excepthook` that displays GTK exception message when
   an unhandled exception is raised
 * SettingPresenter subclasses for GTK elements
-* SettingPresenterContainer subclass for GTK elements
+* SettingPresenterGroup subclass for GTK elements
 """
 
 #===============================================================================
@@ -68,6 +68,7 @@ GTK_CHARACTER_ENCODING = "utf-8"
 #===============================================================================
 # GTK Overwrite Chooser
 #===============================================================================
+
 
 class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
   
@@ -138,9 +139,11 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
   def _on_apply_to_all_changed(self, widget):
     self._is_apply_to_all = self._apply_to_all_checkbox.get_active()
 
+
 #===============================================================================
 # GTK Message Dialogs
 #===============================================================================
+
 
 def display_exception_message(exception_message, plugin_title=None,
                               report_uri_list=None, parent=None):
@@ -281,9 +284,11 @@ def display_message(message, message_type, title=None, parent=None):
   dialog.run()
   dialog.destroy()
 
+
 #===============================================================================
 # GUI excepthook
 #===============================================================================
+
 
 @contextmanager
 def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
@@ -334,9 +339,11 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
   
   sys.excepthook = _orig_sys_excepthook
 
+
 #===============================================================================
 # GTK Progress Updater
 #===============================================================================
+
 
 class GtkProgressUpdater(progress.ProgressUpdater):
   
@@ -354,9 +361,11 @@ class GtkProgressUpdater(progress.ProgressUpdater):
     while gtk.events_pending():
       gtk.main_iteration()
 
+
 #===============================================================================
 # Custom GTK/gimpui Elements
 #===============================================================================
+
 
 class IntComboBox(gimpui.IntComboBox):
   
@@ -378,10 +387,12 @@ class IntComboBox(gimpui.IntComboBox):
     
     super(IntComboBox, self).__init__(tuple(labels_and_values))
 
+
 #===============================================================================
 # GTK Setting Presenters
 #===============================================================================
-  
+
+
 class GtkSettingPresenter(pgsettinggroup.SettingPresenter):
   
   """
@@ -411,8 +422,10 @@ class GtkSettingPresenter(pgsettinggroup.SettingPresenter):
   def set_tooltip(self):
     if self._setting.description is not None and self._setting.description:
       self._element.set_tooltip_text(self._setting.description)
-  
+
+
 #-------------------------------------------------------------------------------
+
 
 class GtkCheckButtonPresenter(GtkSettingPresenter):
   
@@ -595,11 +608,13 @@ class GtkExpanderPresenter(GtkSettingPresenter):
   def set_value(self, value):
     self._element.set_expanded(value)
 
+
 #===============================================================================
-# GTK Setting Presenter Container
+# GtkSettingPresenterGroup
 #===============================================================================
 
-class GtkSettingPresenterContainer(pgsettinggroup.SettingPresenterContainer):
+
+class GtkSettingPresenterGroup(pgsettinggroup.SettingPresenterGroup):
   
   """
   This class is used to group `SettingPresenter` objects in a GTK environment.

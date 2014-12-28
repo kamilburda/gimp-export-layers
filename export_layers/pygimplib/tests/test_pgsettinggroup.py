@@ -87,7 +87,7 @@ class MockSettingPresenter(pgsettinggroup.SettingPresenter):
     pass
 
 
-class MockSettingPresenterContainer(pgsettinggroup.SettingPresenterContainer):
+class MockSettingPresenterGroup(pgsettinggroup.SettingPresenterGroup):
   
   def _gui_on_element_value_change(self, presenter):
     self._on_element_value_change(presenter)
@@ -96,7 +96,7 @@ class MockSettingPresenterContainer(pgsettinggroup.SettingPresenterContainer):
     self._on_element_value_change(presenter)
 
 
-class SettingContainerTest(pgsettinggroup.SettingContainer):
+class SettingGroupTest(pgsettinggroup.SettingGroup):
   
   def _create_settings(self):
     
@@ -136,10 +136,10 @@ def streamline_overwrite_mode(overwrite_mode, ignore_invisible, file_extension):
 #===============================================================================
 
 
-class TestSettingContainer(unittest.TestCase):
+class TestSettingGroup(unittest.TestCase):
   
   def setUp(self):
-    self.settings = SettingContainerTest()
+    self.settings = SettingGroupTest()
       
   def test_get_setting_invalid_key(self):
     with self.assertRaises(KeyError):
@@ -154,7 +154,7 @@ class TestSettingContainer(unittest.TestCase):
   def test_reset(self):
     self.settings['overwrite_mode'].value = self.settings['overwrite_mode'].options['rename_new']
     self.settings['file_extension'].value = "jpg"
-    self.settings['file_extension'].can_be_reset_by_container = False
+    self.settings['file_extension'].can_be_reset_by_group = False
     self.settings.reset()
     self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].default_value)
     self.assertNotEqual(self.settings['file_extension'].value, self.settings['file_extension'].default_value)
@@ -164,14 +164,14 @@ class TestSettingContainer(unittest.TestCase):
 #===============================================================================
 
 
-class TestSettingPresenterContainer(unittest.TestCase):
+class TestSettingPresenterGroup(unittest.TestCase):
   
   def setUp(self):
-    self.settings = SettingContainerTest()
+    self.settings = SettingGroupTest()
     self.element = MockGuiWidget("")
     self.setting_presenter = MockSettingPresenter(self.settings['file_extension'], self.element)
     
-    self.presenters = MockSettingPresenterContainer()
+    self.presenters = MockSettingPresenterGroup()
     self.presenters.add(self.setting_presenter)
     self.presenters.add(MockSettingPresenter(self.settings['overwrite_mode'],
                                              MockGuiWidget(self.settings['overwrite_mode'].options['skip'])))
@@ -218,7 +218,7 @@ class TestShelfSettingStream(unittest.TestCase):
   def setUp(self):
     self.prefix = 'prefix'
     self.stream = pgsettinggroup.GimpShelfSettingStream(self.prefix)
-    self.settings = SettingContainerTest()
+    self.settings = SettingGroupTest()
   
   @mock.patch(LIB_NAME + '.pgsettinggroup.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_write(self):
@@ -256,7 +256,7 @@ class TestJSONFileSettingStream(unittest.TestCase):
   
   def setUp(self):
     self.stream = pgsettinggroup.JSONFileSettingStream("/test/file")
-    self.settings = SettingContainerTest()
+    self.settings = SettingGroupTest()
   
   def test_write_read(self, mock_file):
     self.settings['file_extension'].value = "jpg"
@@ -317,7 +317,7 @@ class TestSettingPersistor(unittest.TestCase):
   
   @mock.patch(LIB_NAME + '.pgsettinggroup.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def setUp(self):
-    self.settings = SettingContainerTest()
+    self.settings = SettingGroupTest()
     self.shelf_stream = pgsettinggroup.GimpShelfSettingStream('')
     self.json_stream = pgsettinggroup.JSONFileSettingStream('filename')
     self.setting_persistor = pgsettinggroup.SettingPersistor([self.shelf_stream, self.json_stream],

@@ -62,23 +62,23 @@ pdb = gimp.pdb
 
 #===============================================================================
 
-class GuiSettings(pgsettinggroup.SettingContainer):
+class GuiSettings(pgsettinggroup.SettingGroup):
   
   def _create_settings(self):
     
     self._add(pgsetting.Setting('dialog_position', ()))
-    self['dialog_position'].can_be_reset_by_container = False
+    self['dialog_position'].can_be_reset_by_group = False
     
     self._add(pgsetting.IntSetting('advanced_settings_expanded', False))
-    self['advanced_settings_expanded'].can_be_reset_by_container = False
+    self['advanced_settings_expanded'].can_be_reset_by_group = False
 
 
-class SessionOnlyGuiSettings(pgsettinggroup.SettingContainer):
+class SessionOnlyGuiSettings(pgsettinggroup.SettingGroup):
   
   def _create_settings(self):
     
     self._add(pgsetting.Setting('image_ids_and_folders', {}))
-    self['image_ids_and_folders'].can_be_reset_by_container = False
+    self['image_ids_and_folders'].can_be_reset_by_group = False
 
 #===============================================================================
 
@@ -189,7 +189,7 @@ class _ExportLayersGui(object):
     
     self.setting_persistor.load(self.session_only_gui_settings)
     
-    self.setting_presenters = pggui.GtkSettingPresenterContainer()
+    self.setting_presenters = pggui.GtkSettingPresenterGroup()
     self.layer_exporter = None
     
     self._init_gui()
@@ -450,8 +450,8 @@ class _ExportLayersGui(object):
         self.expander_advanced_settings))
   
   def reset_settings(self):
-    for setting_container in [self.main_settings, self.gui_settings]:
-      setting_container.reset()
+    for setting_group in [self.main_settings, self.gui_settings]:
+      setting_group.reset()
   
   def save_settings(self):
     self.setting_persistor.write_setting_streams.append(self.config_file_stream)

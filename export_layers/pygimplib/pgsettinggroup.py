@@ -92,21 +92,21 @@ class Container(object):
 
 #-------------------------------------------------------------------------------
 
-class SettingContainer(Container):
+class SettingGroup(Container):
   
   """
   This class:
   * groups related `Setting` objects together,
   * can perform operations on all settings at once.
   
-  This class is an interface for setting containers. Create a subclass from this
+  This class is an interface for setting groups. Create a subclass from this
   class to create settings.
   """
   
   __metaclass__ = abc.ABCMeta
   
   def __init__(self):
-    super(SettingContainer, self).__init__()
+    super(SettingGroup, self).__init__()
     
     self._create_settings()
   
@@ -125,7 +125,7 @@ class SettingContainer(Container):
     To adjust setting attributes (after creating the setting):
       self[<setting name>].<attribute> = <value>
     
-    Settings are stored in the container in the order they were added.
+    Settings are stored in the group in the order they were added.
     """
     
     pass
@@ -135,7 +135,7 @@ class SettingContainer(Container):
   
   def streamline(self, force=False):
     """
-    Streamline all Setting objects in this container.
+    Streamline all Setting objects in this group.
     
     Parameters:
     
@@ -163,12 +163,12 @@ class SettingContainer(Container):
   
   def reset(self):
     """
-    Reset all settings in this container. Ignore settings whose
-    attribute `can_be_reset_by_container` is False.
+    Reset all settings in this group. Ignore settings whose
+    attribute `can_be_reset_by_group` is False.
     """
     
     for setting in self:
-      if setting.can_be_reset_by_container:
+      if setting.can_be_reset_by_group:
         setting.reset()
 
 
@@ -417,7 +417,7 @@ class SettingPersistor(object):
   This class:
   * serves as a wrapper for `SettingStream` classes to read from or
     write to multiple settings streams (`SettingStream` objects) at once,
-  * reads from/writes to multiple `SettingContainer` objects or iterables
+  * reads from/writes to multiple `SettingGroup` objects or iterables
     containing `Setting` objects.
   
   Attributes:
@@ -438,10 +438,10 @@ class SettingPersistor(object):
     self.read_setting_streams = read_setting_streams
     self.write_setting_streams = write_setting_streams
   
-  def load(self, *setting_containers):
+  def load(self, *setting_groups):
     """
     Load setting values from streams in `read_setting_streams` to specified
-    `setting_containers`.
+    `setting_groups`.
     
     The order of streams in the `read_setting_streams` list indicates the
     preference of the streams, beginning with the first stream in the list. If
@@ -456,7 +456,7 @@ class SettingPersistor(object):
     
     Parameters:
     
-    * `*setting_containers` - `SettingContainer` objects or `Setting` iterables
+    * `*setting_groups` - `SettingGroup` objects or `Setting` iterables
       whose values are loaded from the streams.
     
     Returns:
@@ -475,12 +475,12 @@ class SettingPersistor(object):
       * `status_message` - Message describing the status in more detail.
     """
     
-    if not setting_containers or self.read_setting_streams is None or not self.read_setting_streams:
+    if not setting_groups or self.read_setting_streams is None or not self.read_setting_streams:
       return self._status(self.SUCCESS)
     
     settings = []
-    for container in setting_containers:
-      settings.extend(container)
+    for group in setting_groups:
+      settings.extend(group)
     
     for stream in self.read_setting_streams:
       try:
@@ -500,14 +500,14 @@ class SettingPersistor(object):
     
     return self._status(self.SUCCESS)
   
-  def save(self, *setting_containers):
+  def save(self, *setting_groups):
     """
-    Save setting values from specified setting containers or iterables to all
+    Save setting values from specified setting groups or iterables to all
     streams specified in write_setting_streams.
     
     Parameters:
     
-    * `*setting_containers` - `SettingContainer` objects or `Setting` iterables
+    * `*setting_groups` - `SettingGroup` objects or `Setting` iterables
       whose values are saved to the streams.
     
     Returns:
@@ -523,14 +523,14 @@ class SettingPersistor(object):
       * `status_message` - Message describing the status in more detail.
     """
     
-    if not setting_containers or self.write_setting_streams is None or not self.write_setting_streams:
+    if not setting_groups or self.write_setting_streams is None or not self.write_setting_streams:
       return self._status(self.SUCCESS)
     
     # Put all settings into one list so that the `write()` method is invoked
     # only once per each stream.
     settings = []
-    for container in setting_containers:
-      settings.extend(container)
+    for group in setting_groups:
+      settings.extend(group)
     
     for stream in self.write_setting_streams:
       try:
@@ -671,7 +671,7 @@ class SettingPresenter(object):
 #===============================================================================
 
 
-class SettingPresenterContainer(Container):
+class SettingPresenterGroup(Container):
   
   """
   This class groups `SettingPresenter` objects together.
@@ -679,9 +679,9 @@ class SettingPresenterContainer(Container):
   You can access individual `SettingPresenter` objects by the corresponding
   `Setting` objects.
   
-  Q: Why can't we access by `Setting.name` (like in `SettingContainer`)?
-  A: Because `SettingPresenterContainer` is independent of `SettingContainer`
-     and this object may contain settings from multiple `SettingContainer`
+  Q: Why can't we access by `Setting.name` (like in `SettingGroup`)?
+  A: Because `SettingPresenterGroup` is independent of `SettingGroup`
+     and this object may contain settings from multiple `SettingGroup`
      objects with the same name.
   """
   
@@ -694,13 +694,13 @@ class SettingPresenterContainer(Container):
   }
   
   def __init__(self):
-    super(SettingPresenterContainer, self).__init__()
+    super(SettingPresenterGroup, self).__init__()
     
     self._is_events_connected = False
   
   def _add(self, setting_presenter):
     """
-    Add a `SettingPresenter` object to the container.
+    Add a `SettingPresenter` object to the group.
     """
     
     self._items[setting_presenter.setting] = setting_presenter
@@ -837,9 +837,9 @@ class SettingPresenterContainer(Container):
   
   def _streamline(self, force=False):
     """
-    Streamline all `Setting` objects in this container.
+    Streamline all `Setting` objects in this group.
     
-    See the description for the `streamline()` method in the `SettingContainer`
+    See the description for the `streamline()` method in the `SettingGroup`
     class for further information.
     """
     
@@ -858,7 +858,7 @@ class SettingPresenterContainer(Container):
   
   def _apply_changed_settings(self, changed_settings):
     """
-    After `streamline()` is called on a `Setting` or `SettingContainer` object,
+    After `streamline()` is called on a `Setting` or `SettingGroup` object,
     apply changed attributes of settings to their associated GUI elements.
     
     Parameters:
