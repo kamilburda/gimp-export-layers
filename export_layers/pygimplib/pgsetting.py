@@ -157,8 +157,9 @@ class Setting(object):
     
     self._name = name
     self.default_value = default_value
-    
     self._value = self.default_value
+    
+    self._mangled_name = self._get_mangled_name(self._name)
     
     self._gimp_pdb_type = None
     self._can_be_registered_to_pdb = False
@@ -357,14 +358,14 @@ class Setting(object):
     else:
       return ""
   
-  def _get_mangled_name(self):
+  def _get_mangled_name(self, name):
     """
     Return mangled setting name, useful when using the name in the short
     description (GIMP PDB automatically mangles setting names, but not
     descriptions).
     """
     
-    return self.name.replace('_', '-')
+    return name.replace('_', '-')
     
 
 class NumericSetting(Setting):
@@ -420,11 +421,11 @@ class NumericSetting(Setting):
   @property
   def short_description(self):
     if self.min_value is not None and self.max_value is None:
-      return self._get_mangled_name() + " >= " + str(self.min_value)
+      return self._mangled_name + " >= " + str(self.min_value)
     elif self.min_value is None and self.max_value is not None:
-      return self._get_mangled_name() + " <= " + str(self.max_value)
+      return self._mangled_name + " <= " + str(self.max_value)
     elif self.min_value is not None and self.max_value is not None:
-      return str(self.min_value) + " <= " + self._get_mangled_name() + " <= " + str(self.max_value)
+      return str(self.min_value) + " <= " + self._mangled_name + " <= " + str(self.max_value)
     else:
       return self.display_name
 
