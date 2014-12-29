@@ -562,10 +562,10 @@ class GtkExportFolderChooserPresenter(GtkSettingPresenter):
     setting = self._image_ids_and_folders_setting
     
     current_image_ids = set([image.ID for image in gimp.image_list()])
-    setting.value = {
-      image_id : setting.value[image_id]
-      for image_id in setting.value.keys() if image_id in current_image_ids
-    }
+    setting.set_value(
+      {image_id : setting.value[image_id]
+       for image_id in setting.value.keys() if image_id in current_image_ids}
+    )
     for image_id in current_image_ids:
       if image_id not in setting.value.keys():
         setting.value[image_id] = None

@@ -151,7 +151,7 @@ class SettingGroup(Container):
     
     changed_settings = {}
     for setting in self:
-      if setting.can_streamline:
+      if setting.can_streamline():
         changed = setting.streamline(force=force)
         for setting, changed_attrs in changed.items():
           if setting not in changed_settings:
@@ -289,7 +289,7 @@ class GimpShelfSettingStream(SettingStream):
         self._settings_not_found.append(setting)
       else:
         try:
-          setting.value = value
+          setting.set_value(value)
         except pgsetting.SettingValueError:
           setting.reset()
     
@@ -363,7 +363,7 @@ class JSONFileSettingStream(SettingStream):
         self._settings_not_found.append(setting)
       else:
         try:
-          setting.value = value
+          setting.set_value(value)
         except pgsetting.SettingValueError:
           setting.reset()
     
@@ -688,9 +688,9 @@ class SettingPresenterGroup(Container):
   __metaclass__ = abc.ABCMeta
   
   _SETTING_ATTRIBUTES_METHODS = {
-    'value' : 'set_value', 
-    'ui_enabled' : 'set_enabled',
-    'ui_visible' : 'set_visible'
+    '_value' : 'set_value', 
+    '_ui_enabled' : 'set_enabled',
+    '_ui_visible' : 'set_visible'
   }
   
   def __init__(self):
@@ -743,7 +743,7 @@ class SettingPresenterGroup(Container):
     
     for presenter in self:
       try:
-        presenter.setting.value = presenter.get_value()
+        presenter.setting.set_value(presenter.get_value())
       except pgsetting.SettingValueError as e:
         if not exception_message:
           exception_message += e.message + '\n'
@@ -773,7 +773,7 @@ class SettingPresenterGroup(Container):
     
     for presenter in self:
       if presenter.value_changed_signal is not None:
-        if not presenter.setting.can_streamline:
+        if not presenter.setting.can_streamline():
           presenter.connect_event(self._gui_on_element_value_change, presenter)
         else:
           presenter.connect_event(self._gui_on_element_value_change_streamline,
@@ -813,7 +813,7 @@ class SettingPresenterGroup(Container):
     value of the GUI element.
     """
     
-    presenter.setting.value = presenter.get_value()
+    presenter.setting.set_value(presenter.get_value())
   
   def _on_element_value_change_streamline(self, presenter):
     """
@@ -823,7 +823,7 @@ class SettingPresenterGroup(Container):
     Streamline the setting and change other affected GUI elements if necessary.
     """
     
-    presenter.setting.value = presenter.get_value()
+    presenter.setting.set_value(presenter.get_value())
     changed_settings = presenter.setting.streamline()
     self._apply_changed_settings(changed_settings)
   
@@ -846,7 +846,7 @@ class SettingPresenterGroup(Container):
     changed_settings = {}
     for presenter in self:
       setting = presenter.setting
-      if setting.can_streamline:
+      if setting.can_streamline():
         changed = setting.streamline(force=force)
         for setting, changed_attrs in changed.items():
           if setting not in changed_settings:

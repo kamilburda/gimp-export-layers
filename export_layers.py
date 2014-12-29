@@ -124,8 +124,8 @@ class ExportLayersPlugin(gimpplugin.plugin):
   def plug_in_export_layers(self, *args):
     run_mode = args[0]
     image = args[1]
-    self.special_settings['run_mode'].value = run_mode
-    self.special_settings['image'].value = image
+    self.special_settings['run_mode'].set_value(run_mode)
+    self.special_settings['image'].set_value(image)
     
     if run_mode == gimpenums.RUN_INTERACTIVE:
       self._run_export_layers_interactive(image)
@@ -149,7 +149,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
     for setting, arg in zip(self.export_layers_settings[2:], args[2:]):
       if isinstance(arg, bytes):
         arg = arg.decode()
-      setting.value = arg
+      setting.set_value(arg)
     
     self._run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, image)
   
@@ -188,7 +188,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
       print(e.message)
       raise
     
-    self.special_settings['first_run'].value = False
+    self.special_settings['first_run'].set_value(False)
     pgsettinggroup.SettingPersistor.save([self.main_settings, self.special_settings['first_run']],
                                          [self.gimpshelf_stream])
   

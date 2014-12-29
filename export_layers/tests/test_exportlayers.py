@@ -52,6 +52,6 @@ def test_export_layers(layer_exporter, main_settings):
   orig_output_directory = main_settings['output_directory'].value
   
   for file_extension in file_extensions:
-    main_settings['file_extension'].value = file_extension
-    main_settings['output_directory'].value = os.path.join(orig_output_directory, file_extension)
+    main_settings['file_extension'].set_value(file_extension)
+    main_settings['output_directory'].set_value(os.path.join(orig_output_directory, file_extension))
     layer_exporter.export_layers()

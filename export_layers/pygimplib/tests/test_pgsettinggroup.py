@@ -117,19 +117,19 @@ class SettingGroupTest(pgsettinggroup.SettingGroup):
 
 def streamline_file_extension(file_extension, ignore_invisible):
   if ignore_invisible.value:
-    file_extension.value = "png"
+    file_extension.set_value("png")
     file_extension.ui_enabled = False
   else:
-    file_extension.value = "jpg"
+    file_extension.set_value("jpg")
     file_extension.ui_enabled = True
 
 
 def streamline_overwrite_mode(overwrite_mode, ignore_invisible, file_extension):
   if ignore_invisible.value:
-    overwrite_mode.value = overwrite_mode.options['skip']
+    overwrite_mode.set_value(overwrite_mode.options['skip'])
     file_extension.error_messages['custom'] = "custom error message"
   else:
-    overwrite_mode.value = overwrite_mode.options['replace']
+    overwrite_mode.set_value(overwrite_mode.options['replace'])
     file_extension.error_messages['custom'] = "different custom error message"
 
 
@@ -152,8 +152,8 @@ class TestSettingGroup(unittest.TestCase):
     self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].options['replace'])
   
   def test_reset(self):
-    self.settings['overwrite_mode'].value = self.settings['overwrite_mode'].options['rename_new']
-    self.settings['file_extension'].value = "jpg"
+    self.settings['overwrite_mode'].set_value(self.settings['overwrite_mode'].options['rename_new'])
+    self.settings['file_extension'].set_value("jpg")
     self.settings['file_extension'].resettable_by_group = False
     self.settings.reset()
     self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].default_value)
@@ -178,8 +178,8 @@ class TestSettingPresenterGroup(unittest.TestCase):
     self.presenters.add(MockSettingPresenter(self.settings['ignore_invisible'], MockGuiWidget(False)))
   
   def test_assign_setting_values_to_elements(self):
-    self.settings['file_extension'].value = "png"
-    self.settings['ignore_invisible'].value = True
+    self.settings['file_extension'].set_value("png")
+    self.settings['ignore_invisible'].set_value(True)
     
     self.presenters.assign_setting_values_to_elements()
     
@@ -222,8 +222,8 @@ class TestShelfSettingStream(unittest.TestCase):
   
   @mock.patch(LIB_NAME + '.pgsettinggroup.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_write(self):
-    self.settings['file_extension'].value = "png"
-    self.settings['ignore_invisible'].value = True
+    self.settings['file_extension'].set_value("png")
+    self.settings['ignore_invisible'].set_value(True)
     self.stream.write(self.settings)
     
     self.assertEqual(pgsettinggroup.gimpshelf.shelf[self.prefix + 'file_extension'], "png")
@@ -259,8 +259,8 @@ class TestJSONFileSettingStream(unittest.TestCase):
     self.settings = SettingGroupTest()
   
   def test_write_read(self, mock_file):
-    self.settings['file_extension'].value = "jpg"
-    self.settings['ignore_invisible'].value = True
+    self.settings['file_extension'].set_value("jpg")
+    self.settings['ignore_invisible'].set_value(True)
     
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
@@ -325,14 +325,14 @@ class TestSettingPersistor(unittest.TestCase):
   def test_load_save(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
-    self.settings['file_extension'].value = "png"
-    self.settings['ignore_invisible'].value = True
+    self.settings['file_extension'].set_value("png")
+    self.settings['ignore_invisible'].set_value(True)
     
     status, unused_ = pgsettinggroup.SettingPersistor.save([self.settings], [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettinggroup.SettingPersistor.SUCCESS)
     
-    self.settings['file_extension'].value = "jpg"
-    self.settings['ignore_invisible'].value = False
+    self.settings['file_extension'].set_value("jpg")
+    self.settings['ignore_invisible'].set_value(False)
     
     status, unused_ = pgsettinggroup.SettingPersistor.load([self.settings], [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettinggroup.SettingPersistor.SUCCESS)
@@ -343,13 +343,13 @@ class TestSettingPersistor(unittest.TestCase):
   def test_load_combine_settings_from_multiple_streams(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
-    self.settings['file_extension'].value = "png"
-    self.settings['ignore_invisible'].value = True
+    self.settings['file_extension'].set_value("png")
+    self.settings['ignore_invisible'].set_value(True)
     self.shelf_stream.write([self.settings['file_extension']])
-    self.settings['file_extension'].value = "jpg"
+    self.settings['file_extension'].set_value("jpg")
     self.json_stream.write([self.settings['ignore_invisible'], self.settings['file_extension']])
-    self.settings['file_extension'].value = "gif"
-    self.settings['ignore_invisible'].value = False
+    self.settings['file_extension'].set_value("gif")
+    self.settings['ignore_invisible'].set_value(False)
     
     pgsettinggroup.SettingPersistor.load([self.settings], [self.shelf_stream, self.json_stream])
     

@@ -224,24 +224,24 @@ class MainSettings(pgsettinggroup.SettingGroup):
     
     def streamline_layer_groups_as_folders(layer_groups_as_folders, empty_folders, merge_layer_groups):
       if not layer_groups_as_folders.value:
-        empty_folders.value = False
+        empty_folders.set_value(False)
         empty_folders.ui_enabled = False
         merge_layer_groups.ui_enabled = True
       else:
         empty_folders.ui_enabled = True
         merge_layer_groups.ui_enabled = False
-        merge_layer_groups.value = False
+        merge_layer_groups.set_value(False)
     
     def streamline_file_ext_mode(file_ext_mode, file_extension, strip_mode):
       if file_ext_mode.value == file_ext_mode.options['no_special_handling']:
         strip_mode.ui_enabled = True
         file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
       elif file_ext_mode.value == file_ext_mode.options['only_matching_file_extension']:
-        strip_mode.value = strip_mode.options['never']
+        strip_mode.set_value(strip_mode.options['never'])
         strip_mode.ui_enabled = False
         file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
       elif file_ext_mode.value == file_ext_mode.options['use_as_file_extensions']:
-        strip_mode.value = strip_mode.options['never']
+        strip_mode.set_value(strip_mode.options['never'])
         strip_mode.ui_enabled = False
         file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = (
           file_extension.error_messages['default_needed']
@@ -249,7 +249,7 @@ class MainSettings(pgsettinggroup.SettingGroup):
     
     def streamline_merge_layer_groups(merge_layer_groups, layer_groups_as_folders):
       if merge_layer_groups.value:
-        layer_groups_as_folders.value = False
+        layer_groups_as_folders.set_value(False)
         layer_groups_as_folders.ui_enabled = False
       else:
         layer_groups_as_folders.ui_enabled = True
@@ -258,14 +258,14 @@ class MainSettings(pgsettinggroup.SettingGroup):
       if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.options['background']:
         crop_to_background.ui_enabled = True
       else:
-        crop_to_background.value = False
+        crop_to_background.set_value(False)
         crop_to_background.ui_enabled = False
     
     def streamline_square_bracketed_mode(square_bracketed_mode, autocrop, crop_to_background):
       if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.options['background']:
         crop_to_background.ui_enabled = True
       else:
-        crop_to_background.value = False
+        crop_to_background.set_value(False)
         crop_to_background.ui_enabled = False
     
     #---------------------------------------------------------------------------

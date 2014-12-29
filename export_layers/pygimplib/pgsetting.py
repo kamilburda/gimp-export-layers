@@ -79,9 +79,8 @@ class Setting(object):
   
   * `name` (read-only) - A name (string) that uniquely identifies the setting.
   
-  * `value` - The setting value. Subclasses of `Setting` can override the
-    `value.setter` property to e.g. validate input value and raise `ValueError`
-    if the value assigned is invalid. `value` is initially set to `default_value`.
+  * `value` (read-only) - The setting value. To set the value, call the
+    `set_value()` method. `value` is initially set to `default_value`.
   
   * `default_value` (read-only) - Default value of the setting assigned upon its
     initialization or after the `reset()` method is called.
@@ -134,9 +133,6 @@ class Setting(object):
     * `ui_visible`
     
     `changed_attributes` is cleared if `streamline()` is called.
-  
-  * `can_streamline` (read-only) - True if a streamline function is set, False
-    otherwise.
   """
   
   def __init__(self, name, default_value):
@@ -148,7 +144,7 @@ class Setting(object):
     * `default_value` - Default value of the setting.
     """
     
-    self._attrs_that_trigger_change = {'value', 'ui_enabled', 'ui_visible'}
+    self._attrs_that_trigger_change = {'_value', '_ui_enabled', '_ui_visible'}
     self._changed_attributes = set()
     
     self._name = name
@@ -184,7 +180,9 @@ class Setting(object):
     Set attribute value. If the attribute is one of the attributes in
     `_attrs_that_trigger_change`, add it to `changed_attributes`.
     """
+    
     super(Setting, self).__setattr__(name, value)
+    
     if name in self._attrs_that_trigger_change:
       self._changed_attributes.add(name)
   
@@ -196,9 +194,18 @@ class Setting(object):
   def value(self):
     return self._value
   
-  @value.setter
-  def value(self, value_):
-    self._value = value_
+  def set_value(self, value):
+    """
+    Set the setting value.
+    
+    This is a method and not a property because the subclasses of `Setting`
+    override `set_value()` and perform additional operations than mere value
+    assignment, such as value validation.
+    
+    `value` still remains a property for the sake of brevity.
+    """
+    
+    self._value = value
   
   @property
   def default_value(self):
@@ -279,17 +286,13 @@ class Setting(object):
   def error_messages(self):
     return self._error_messages
   
-  @property
-  def can_streamline(self):
-    return self._streamline_func is not None
-  
   def reset(self):
     """
     Reset setting value to its default value.
     
     This is different from
     
-      setting.value = setting.default_value
+      setting.set_value(setting.default_value)
     
     in that this method does not raise an exception if the default value is
     invalid and does not add the `value` attribute to `changed_attributes`.
@@ -370,6 +373,13 @@ class Setting(object):
     self._streamline_func = None
     self._streamline_args = []
   
+  def can_streamline(self):
+    """
+    Return True if a streamline function is set, False otherwise.
+    """
+    
+    return self._streamline_func is not None
+  
   def _value_to_str(self, value):
     """
     Use this method in subclasses to prepend `value` to an error message
@@ -391,7 +401,10 @@ class Setting(object):
     """
     
     return name.replace('_', '-')
-    
+
+
+#-------------------------------------------------------------------------------
+
 
 class NumericSetting(Setting):
   
@@ -431,19 +444,6 @@ class NumericSetting(Setting):
     self.error_messages['above_max'] = _("Value cannot be greater than {0}.").format(self.max_value)
   
   @property
-  def value(self):
-    return self._value
-
-  @value.setter
-  def value(self, value_):
-    if self.min_value is not None and value_ < self.min_value:
-      raise SettingValueError(self._value_to_str(value_) + self.error_messages['below_min'])
-    if self.max_value is not None and value_ > self.max_value:
-      raise SettingValueError(self._value_to_str(value_) + self.error_messages['above_max'])
-    
-    super(NumericSetting, self.__class__).value.__set__(self, value_)
-  
-  @property
   def short_description(self):
     if self.min_value is not None and self.max_value is None:
       return self._mangled_name + " >= " + str(self.min_value)
@@ -453,6 +453,14 @@ class NumericSetting(Setting):
       return str(self.min_value) + " <= " + self._mangled_name + " <= " + str(self.max_value)
     else:
       return self.display_name
+  
+  def set_value(self, value):
+    if self.min_value is not None and value < self.min_value:
+      raise SettingValueError(self._value_to_str(value) + self.error_messages['below_min'])
+    if self.max_value is not None and value > self.max_value:
+      raise SettingValueError(self._value_to_str(value) + self.error_messages['above_max'])
+    
+    super(NumericSetting, self).set_value(value)
 
 
 class IntSetting(NumericSetting):
@@ -513,16 +521,11 @@ class BoolSetting(Setting):
     self.gimp_pdb_type = gimpenums.PDB_INT32
   
   @property
-  def value(self):
-    return self._value
-  
-  @value.setter
-  def value(self, value_):
-    self._value = bool(value_)
-  
-  @property
   def short_description(self):
     return self.display_name + "?"
+  
+  def set_value(self, value):
+    self._value = bool(value)
 
 
 class EnumSetting(Setting):
@@ -642,17 +645,6 @@ class EnumSetting(Setting):
     self._options_str = self._stringify_options()
   
   @property
-  def value(self):
-    return self._value
-  
-  @value.setter
-  def value(self, value_):
-    if value_ not in self._option_values:
-      raise SettingValueError(self._value_to_str(value_) + self.error_messages['invalid_value'])
-    
-    super(EnumSetting, self.__class__).value.__set__(self, value_)
-  
-  @property
   def short_description(self):
     return self.display_name + " " + self._options_str
   
@@ -663,6 +655,12 @@ class EnumSetting(Setting):
   @property
   def options_display_names(self):
     return self._options_display_names
+  
+  def set_value(self, value):
+    if value not in self._option_values:
+      raise SettingValueError(self._value_to_str(value) + self.error_messages['invalid_value'])
+    
+    super(EnumSetting, self).set_value(value)
   
   def get_option_display_names_and_values(self):
     display_names_and_values = []
@@ -703,16 +701,11 @@ class ImageSetting(Setting):
     
     self.error_messages['invalid_value'] = _("Invalid image.")
   
-  @property
-  def value(self):
-    return self._value
-  
-  @value.setter
-  def value(self, image):
+  def set_value(self, image):
     if not pdb.gimp_image_is_valid(image):
       raise SettingValueError(self._value_to_str(image) + self.error_messages['invalid_value'])
     
-    super(ImageSetting, self.__class__).value.__set__(self, image)
+    super(ImageSetting, self).set_value(image)
 
 
 class DrawableSetting(Setting):
@@ -738,16 +731,11 @@ class DrawableSetting(Setting):
     
     self.error_messages['invalid_value'] = _("Invalid drawable.")
   
-  @property
-  def value(self):
-    return self._value
-  
-  @value.setter
-  def value(self, drawable):
+  def set_value(self, drawable):
     if not pdb.gimp_item_is_valid(drawable):
       raise SettingValueError(self._value_to_str(drawable) + self.error_messages['invalid_value'])
     
-    super(DrawableSetting, self.__class__).value.__set__(self, drawable)
+    super(DrawableSetting, self).set_value(drawable)
 
 
 class StringSetting(Setting):
@@ -807,13 +795,8 @@ class ValidatableStringSetting(StringSetting):
     for status in self._string_validator.ERROR_STATUSES:
       self.error_messages[status] = ""
   
-  @property
-  def value(self):
-    return self._value
-  
-  @value.setter
-  def value(self, value_):
-    is_valid, status_messages = self._string_validator.is_valid(value_)
+  def set_value(self, value):
+    is_valid, status_messages = self._string_validator.is_valid(value)
     if not is_valid:
       new_status_messages = []
       for status, status_message in status_messages:
@@ -823,10 +806,10 @@ class ValidatableStringSetting(StringSetting):
           new_status_messages.append(status_message)
       
       raise SettingValueError(
-        self._value_to_str(value_) + '\n'.join([message for message in new_status_messages])
+        self._value_to_str(value) + '\n'.join([message for message in new_status_messages])
       )
     
-    super(ValidatableStringSetting, self.__class__).value.__set__(self, value_)
+    super(ValidatableStringSetting, self).set_value(value)
   
 
 class FileExtensionSetting(ValidatableStringSetting):

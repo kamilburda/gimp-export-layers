@@ -49,10 +49,10 @@ LIB_NAME = '.'.join(__name__.split('.')[:-2])
 
 def streamline_file_extension(file_extension, ignore_invisible):
   if ignore_invisible.value:
-    file_extension.value = "png"
+    file_extension.set_value("png")
     file_extension.ui_enabled = False
   else:
-    file_extension.value = "jpg"
+    file_extension.set_value("jpg")
     file_extension.ui_enabled = True
 
 
@@ -64,11 +64,17 @@ class TestSetting(unittest.TestCase):
   def setUp(self):
     self.setting = pgsetting.Setting('file_extension', "")
   
+  def test_value_invalid_assignment_operation(self):
+    with self.assertRaises(AttributeError):
+      self.setting.value = "png"
+  
   def test_changed_attributes(self):
-    for attr, val in [('value', "png"), ('ui_enabled', False), ('ui_visible', True)]:
+    # TODO: The code needs to be rewritten since encapsulation is broken.
+    
+    for attr, val in [('_value', "png"), ('_ui_enabled', False), ('_ui_visible', True)]:
       setattr(self.setting, attr, val)
     
-    for attr in ['value', 'ui_enabled', 'ui_visible']:
+    for attr in ['_value', '_ui_enabled', '_ui_visible']:
       self.assertTrue(attr in self.setting.changed_attributes,
                       msg=("'" + attr + "' not in " + str(self.setting.changed_attributes)))
   
@@ -85,7 +91,7 @@ class TestSetting(unittest.TestCase):
   
   def test_reset(self):
     setting = pgsetting.Setting('file_extension', "")
-    setting.value = "png"
+    setting.set_value("png")
     setting.reset()
     self.assertEqual(setting.value, "")
   
@@ -105,19 +111,19 @@ class TestSetting(unittest.TestCase):
   
   def test_can_streamline(self):
     self.setting.set_streamline_func(streamline_file_extension)
-    self.assertTrue(self.setting.can_streamline)
+    self.assertTrue(self.setting.can_streamline())
     self.setting.remove_streamline_func()
-    self.assertFalse(self.setting.can_streamline)
+    self.assertFalse(self.setting.can_streamline())
   
   def test_streamline(self):
     ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    self.setting.value = "gif"
+    self.setting.set_value("gif")
     self.setting.set_streamline_func(streamline_file_extension, ignore_invisible)
     
     changed_settings = self.setting.streamline()
     self.assertTrue(self.setting in changed_settings)
-    self.assertTrue('ui_enabled' in changed_settings[self.setting])
-    self.assertTrue('value' in changed_settings[self.setting])
+    self.assertTrue('_ui_enabled' in changed_settings[self.setting])
+    self.assertTrue('_value' in changed_settings[self.setting])
     self.assertEqual(self.setting.ui_enabled, True)
     self.assertEqual(self.setting.value, "jpg")
   
@@ -141,11 +147,11 @@ class TestIntSetting(unittest.TestCase):
   
   def test_below_min(self):
     with self.assertRaises(pgsetting.SettingValueError):
-      self.setting.value = -5
+      self.setting.set_value(-5)
   
   def test_above_max(self):
     with self.assertRaises(pgsetting.SettingValueError):
-      self.setting.value = 200
+      self.setting.set_value(200)
 
 
 class TestFloatSetting(unittest.TestCase):
@@ -157,19 +163,19 @@ class TestFloatSetting(unittest.TestCase):
   
   def test_below_min(self):
     with self.assertRaises(pgsetting.SettingValueError):
-      self.setting.value = -5.0
+      self.setting.set_value(-5.0)
     
     try:
-      self.setting.value = 0.0
+      self.setting.set_value(0.0)
     except pgsetting.SettingValueError:
       self.fail("`SettingValueError` should not be raised")
   
   def test_above_max(self):
     with self.assertRaises(pgsetting.SettingValueError):
-      self.setting.value = 200.0
+      self.setting.set_value(200.0)
     
     try:
-      self.setting.value = 100.0
+      self.setting.set_value(100.0)
     except pgsetting.SettingValueError:
       self.fail("`SettingValueError` should not be raised")
 
@@ -215,9 +221,9 @@ class TestEnumSetting(unittest.TestCase):
   
   def test_set_invalid_option(self):
     with self.assertRaises(pgsetting.SettingValueError):
-      self.setting.value = 4
+      self.setting.set_value(4)
     with self.assertRaises(pgsetting.SettingValueError):
-      self.setting.value = -1
+      self.setting.set_value(-1)
   
   def test_get_invalid_option(self):
     with self.assertRaises(KeyError):
@@ -247,7 +253,7 @@ class TestImageSetting(unittest.TestCase):
     image = pdb.gimp_image_new(2, 2, gimpenums.RGB)
     pdb.gimp_image_delete(image)
     with self.assertRaises(pgsetting.SettingValueError):
-      self.setting.value = image
+      self.setting.set_value(image)
 
 
 class TestFileExtensionSetting(unittest.TestCase):
@@ -259,7 +265,7 @@ class TestFileExtensionSetting(unittest.TestCase):
     self.setting.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = "My Custom Message"
     
     try:
-      self.setting.value = ""
+      self.setting.set_value("")
     except pgsetting.SettingValueError as e:
       self.assertEqual(e.message, "My Custom Message")
 

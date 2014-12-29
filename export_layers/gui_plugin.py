@@ -495,7 +495,7 @@ class _ExportLayersGui(object):
     except Exception as e:
       display_exception_message(traceback.format_exc(), parent=self.dialog)
     else:
-      self.special_settings['first_run'].value = False
+      self.special_settings['first_run'].set_value(False)
       pgsettinggroup.SettingPersistor.save([self.special_settings['first_run']], [self.gimpshelf_stream])
       
       if not self.layer_exporter.exported_layers:
@@ -505,7 +505,7 @@ class _ExportLayersGui(object):
       gobject.source_remove(refresh_event_id)
       pdb.gimp_progress_end()
     
-    self.main_settings['overwrite_mode'].value = overwrite_chooser.overwrite_mode
+    self.main_settings['overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
     pgsettinggroup.SettingPersistor.save([self.main_settings, self.gui_settings, self.session_only_gui_settings],
                                          [self.gimpshelf_stream])
     
