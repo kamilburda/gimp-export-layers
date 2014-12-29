@@ -79,8 +79,8 @@ class Setting(object):
   
   * `name` (read-only) - A name (string) that uniquely identifies the setting.
   
-  * `default_value` - Default value of the setting assigned upon its
-    instantiation or after the `reset()` method is called.
+  * `default_value` (read-only) - Default value of the setting assigned upon its
+    initialization or after the `reset()` method is called.
   
   * `value` - The setting value. Subclasses of `Setting` can override the
     `value.setter` property to e.g. validate input value and raise `ValueError`
@@ -151,8 +151,8 @@ class Setting(object):
     self._changed_attributes = set()
     
     self._name = name
-    self.default_value = default_value
-    self._value = self.default_value
+    self._default_value = default_value
+    self._value = self._default_value
     
     self._mangled_name = self._get_mangled_name(self._name)
     
@@ -197,6 +197,10 @@ class Setting(object):
   @value.setter
   def value(self, value_):
     self._value = value_
+  
+  @property
+  def default_value(self):
+    return self._default_value
   
   @property
   def gimp_pdb_type(self):
@@ -265,7 +269,7 @@ class Setting(object):
     invalid and does not add the `value` attribute to `changed_attributes`.
     """
     
-    self._value = self.default_value
+    self._value = self._default_value
   
   def streamline(self, force=False):
     """
@@ -604,8 +608,8 @@ class EnumSetting(Setting):
     ).format(self._options.keys())
     
     if default_value in self._options:
-      self.default_value = self._options[default_value]
-      self._value = self.default_value
+      self._default_value = self._options[default_value]
+      self._value = self._default_value
     else:
       raise ValueError(self.error_messages['invalid_default_value'])
     
