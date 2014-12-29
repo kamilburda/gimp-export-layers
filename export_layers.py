@@ -76,7 +76,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
     
     self.export_layers_settings = []
     for setting in list(self.special_settings) + list(self.main_settings):
-      if setting.can_be_registered_to_pdb:
+      if setting.registrable_to_pdb:
         self.export_layers_settings.append(setting)
     
     self.export_layers_to_settings = [

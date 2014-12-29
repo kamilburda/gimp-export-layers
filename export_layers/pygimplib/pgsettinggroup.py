@@ -164,11 +164,11 @@ class SettingGroup(Container):
   def reset(self):
     """
     Reset all settings in this group. Ignore settings whose
-    attribute `can_be_reset_by_group` is False.
+    attribute `resettable_by_group` is False.
     """
     
     for setting in self:
-      if setting.can_be_reset_by_group:
+      if setting.resettable_by_group:
         setting.reset()
 
 

@@ -92,7 +92,7 @@ class Setting(object):
     `_allowed_pdb_types` in this class is None, which means that any PDB type
     can be assigned.
   
-  * `can_be_registered_to_pdb` - Indicates whether the setting can be registered
+  * `registrable_to_pdb` - Indicates whether the setting can be registered
     as a parameter to a plug-in. Automatically set to True if `gimp_pdb_type` is
     assigned to a valid value that is not None.
   
@@ -120,7 +120,7 @@ class Setting(object):
     True by default. This attribute is only an indication, it does not modify a
     GUI element (use the appropriate `SettingPresenter` subclass for that purpose).
   
-  * `can_be_reset_by_group` - If True, the setting is reset to its default
+  * `resettable_by_group` - If True, the setting is reset to its default
     value if the `reset()` method from the corresponding `SettingGroup` is
     called. False by default.
   
@@ -157,7 +157,7 @@ class Setting(object):
     self._mangled_name = self._get_mangled_name(self._name)
     
     self._gimp_pdb_type = None
-    self._can_be_registered_to_pdb = False
+    self._registrable_to_pdb = False
     self._allowed_pdb_types = None
     
     self._display_name = ""
@@ -168,7 +168,7 @@ class Setting(object):
     self.ui_enabled = True
     self.ui_visible = True
     
-    self.can_be_reset_by_group = True
+    self.resettable_by_group = True
     
     self._streamline_func = None
     self._streamline_args = []
@@ -206,20 +206,20 @@ class Setting(object):
   def gimp_pdb_type(self, value):
     if self._allowed_pdb_types is None or value in self._allowed_pdb_types:
       self._gimp_pdb_type = value
-      self.can_be_registered_to_pdb = value is not None
+      self.registrable_to_pdb = value is not None
     else:
       raise ValueError("GIMP PDB type " + str(value) + " not allowed")
   
   @property
-  def can_be_registered_to_pdb(self):
-    return self._can_be_registered_to_pdb
+  def registrable_to_pdb(self):
+    return self._registrable_to_pdb
   
-  @can_be_registered_to_pdb.setter
-  def can_be_registered_to_pdb(self, value):
+  @registrable_to_pdb.setter
+  def registrable_to_pdb(self, value):
     if value and self._gimp_pdb_type is None:
       raise ValueError("setting cannot be registered to PDB because it has no "
                        "PDB type set (attribute gimp_pdb_type)")
-    self._can_be_registered_to_pdb = value
+    self._registrable_to_pdb = value
   
   @property
   def display_name(self):
@@ -252,6 +252,20 @@ class Setting(object):
   @property
   def can_streamline(self):
     return self._streamline_func is not None
+  
+  def reset(self):
+    """
+    Reset setting value to its default value.
+    
+    This is different from
+    
+      setting.value = setting.default_value
+    
+    in that this method does not raise an exception if the default value is
+    invalid and does not add the `value` attribute to `changed_attributes`.
+    """
+    
+    self._value = self.default_value
   
   def streamline(self, force=False):
     """
@@ -325,20 +339,6 @@ class Setting(object):
     
     self._streamline_func = None
     self._streamline_args = []
-  
-  def reset(self):
-    """
-    Reset setting value to its default value.
-    
-    This is different from
-    
-      setting.value = setting.default_value
-    
-    in that this method does not raise an exception if the default value is
-    invalid and does not add the `value` attribute to `changed_attributes`.
-    """
-    
-    self._value = self.default_value
   
   def _value_to_str(self, value):
     """

@@ -154,7 +154,7 @@ class TestSettingGroup(unittest.TestCase):
   def test_reset(self):
     self.settings['overwrite_mode'].value = self.settings['overwrite_mode'].options['rename_new']
     self.settings['file_extension'].value = "jpg"
-    self.settings['file_extension'].can_be_reset_by_group = False
+    self.settings['file_extension'].resettable_by_group = False
     self.settings.reset()
     self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].default_value)
     self.assertNotEqual(self.settings['file_extension'].value, self.settings['file_extension'].default_value)

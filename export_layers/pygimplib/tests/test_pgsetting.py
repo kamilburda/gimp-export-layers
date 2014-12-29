@@ -72,16 +72,16 @@ class TestSetting(unittest.TestCase):
       self.assertTrue(attr in self.setting.changed_attributes,
                       msg=("'" + attr + "' not in " + str(self.setting.changed_attributes)))
   
-  def test_can_be_registered_to_pdb(self):
+  def test_registrable_to_pdb(self):
     self.setting.gimp_pdb_type = gimpenums.PDB_INT32
-    self.assertEqual(self.setting.can_be_registered_to_pdb, True)
+    self.assertEqual(self.setting.registrable_to_pdb, True)
     
     self.setting.gimp_pdb_type = None
-    self.assertEqual(self.setting.can_be_registered_to_pdb, False)
+    self.assertEqual(self.setting.registrable_to_pdb, False)
     
     with self.assertRaises(ValueError):
       self.setting.gimp_pdb_type = None
-      self.setting.can_be_registered_to_pdb = True
+      self.setting.registrable_to_pdb = True
   
   def test_reset(self):
     setting = pgsetting.Setting('file_extension', "")
