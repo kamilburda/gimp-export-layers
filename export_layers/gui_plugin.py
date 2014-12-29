@@ -62,10 +62,10 @@ pdb = gimp.pdb
 
 #===============================================================================
 
+
 class GuiSettings(pgsettinggroup.SettingGroup):
   
   def _create_settings(self):
-    
     self._add(pgsetting.Setting('dialog_position', ()))
     self['dialog_position'].can_be_reset_by_group = False
     
@@ -76,11 +76,12 @@ class GuiSettings(pgsettinggroup.SettingGroup):
 class SessionOnlyGuiSettings(pgsettinggroup.SettingGroup):
   
   def _create_settings(self):
-    
     self._add(pgsetting.Setting('image_ids_and_folders', {}))
     self['image_ids_and_folders'].can_be_reset_by_group = False
 
+
 #===============================================================================
+
 
 def display_message(message, message_type, parent=None):
   pggui.display_message(
@@ -99,7 +100,9 @@ def display_exception_message(exception_message, parent=None):
     parent=parent
   )
 
+
 #===============================================================================
+
 
 class ExportDialog(object):
   
@@ -151,7 +154,9 @@ class ExportDialog(object):
   def hide(self):
     self._dialog.hide()
 
+
 #===============================================================================
+
 
 class _ExportLayersGui(object):
   
@@ -179,15 +184,12 @@ class _ExportLayersGui(object):
     
     self.gui_settings = GuiSettings()
     self.session_only_gui_settings = SessionOnlyGuiSettings()
-    self.setting_persistor = pgsettinggroup.SettingPersistor([self.gimpshelf_stream, self.config_file_stream],
-                                                             [self.gimpshelf_stream])
     
-    status, status_message = self.setting_persistor.load(self.main_settings, self.gui_settings)
+    status, status_message = pgsettinggroup.SettingPersistor.load([self.main_settings, self.gui_settings],
+                                                                  [self.gimpshelf_stream, self.config_file_stream])
     if status == pgsettinggroup.SettingPersistor.READ_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING)
-    self.setting_persistor.read_setting_streams.pop()
-    
-    self.setting_persistor.load(self.session_only_gui_settings)
+    pgsettinggroup.SettingPersistor.load([self.session_only_gui_settings], [self.gimpshelf_stream])
     
     self.setting_presenters = pggui.GtkSettingPresenterGroup()
     self.layer_exporter = None
@@ -454,14 +456,11 @@ class _ExportLayersGui(object):
       setting_group.reset()
   
   def save_settings(self):
-    self.setting_persistor.write_setting_streams.append(self.config_file_stream)
-    
-    status, status_message = self.setting_persistor.save(self.main_settings, self.gui_settings)
-    if status == self.setting_persistor.WRITE_FAIL:
+    status, status_message = pgsettinggroup.SettingPersistor.save([self.main_settings, self.gui_settings],
+                                                                  [self.gimpshelf_stream, self.config_file_stream])
+    if status == pgsettinggroup.SettingPersistor.WRITE_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING, parent=self.dialog)
-    self.setting_persistor.write_setting_streams.pop()
-    
-    self.setting_persistor.save(self.session_only_gui_settings)
+    pgsettinggroup.SettingPersistor.save([self.session_only_gui_settings], [self.gimpshelf_stream])
   
   def on_save_settings(self, widget):
     try:
@@ -516,7 +515,7 @@ class _ExportLayersGui(object):
       display_exception_message(traceback.format_exc(), parent=self.dialog)
     else:
       self.special_settings['first_run'].value = False
-      self.setting_persistor.save([self.special_settings['first_run']])
+      pgsettinggroup.SettingPersistor.save([self.special_settings['first_run']], [self.gimpshelf_stream])
       
       if not self.layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.dialog)
@@ -526,7 +525,8 @@ class _ExportLayersGui(object):
       pdb.gimp_progress_end()
     
     self.main_settings['overwrite_mode'].value = overwrite_chooser.overwrite_mode
-    self.setting_persistor.save(self.main_settings, self.gui_settings, self.session_only_gui_settings)
+    pgsettinggroup.SettingPersistor.save([self.main_settings, self.gui_settings, self.session_only_gui_settings],
+                                         [self.gimpshelf_stream])
     
     if should_quit:
       gtk.main_quit()
@@ -593,18 +593,21 @@ class _ExportLayersGui(object):
       
       self.label_message.set_markup('<span foreground="' + color + '"><b>' + text + '</b></span>')
 
+
 #===============================================================================
+
 
 class _ExportLayersToGui(object):
   
   _GUI_REFRESH_INTERVAL_MILLISECONDS = 500
   
-  def __init__(self, image, main_settings, setting_persistor):
+  def __init__(self, image, main_settings, gimpshelf_stream, config_file_stream):
     self.image = image
     self.main_settings = main_settings
-    self.setting_persistor = setting_persistor
+    self.gimpshelf_stream = gimpshelf_stream
+    self.config_file_stream = config_file_stream
     
-    self.setting_persistor.load(self.main_settings)
+    pgsettinggroup.SettingPersistor.load([self.main_settings], [self.gimpshelf_stream])
     
     self.layer_exporter = None
     
@@ -649,13 +652,15 @@ class _ExportLayersToGui(object):
     else:
       return True
 
+
 #===============================================================================
+
 
 def export_layers_gui(image, main_settings, special_settings, gimpshelf_stream, config_file_stream):
   with pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST):
     _ExportLayersGui(image, main_settings, special_settings, gimpshelf_stream, config_file_stream)
 
 
-def export_layers_to_gui(image, main_settings, setting_persistor):
+def export_layers_to_gui(image, main_settings, gimpshelf_stream, config_file_stream):
   with pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST):
-    _ExportLayersToGui(image, main_settings, setting_persistor)
+    _ExportLayersToGui(image, main_settings, gimpshelf_stream, config_file_stream)
