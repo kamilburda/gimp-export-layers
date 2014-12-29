@@ -79,12 +79,22 @@ class Setting(object):
   
   * `name` (read-only) - A name (string) that uniquely identifies the setting.
   
-  * `default_value` (read-only) - Default value of the setting assigned upon its
-    initialization or after the `reset()` method is called.
-  
   * `value` - The setting value. Subclasses of `Setting` can override the
     `value.setter` property to e.g. validate input value and raise `ValueError`
     if the value assigned is invalid. `value` is initially set to `default_value`.
+  
+  * `default_value` (read-only) - Default value of the setting assigned upon its
+    initialization or after the `reset()` method is called.
+  
+  * `display_name` - Setting name in human-readable format. Useful as GUI labels.
+  
+  * `description` - Describes the setting in more detail. Useful for
+    documentation purposes as well as GUI tooltips.
+  
+  * `short_description` (read-only) - Usually `display_name` plus additional
+    information in parentheses (such as boundaries for numeric values). Useful
+    as setting description when registering the setting as a plug-in parameter
+    to the PDB.
   
   * `gimp_pdb_type` - GIMP Procedural Database (PDB) type, used when registering
     the setting as a plug-in parameter to the PDB. `_allowed_pdb_types` list,
@@ -96,20 +106,9 @@ class Setting(object):
     as a parameter to a plug-in. Automatically set to True if `gimp_pdb_type` is
     assigned to a valid value that is not None.
   
-  * `display_name` - Setting name in human-readable format. Useful as GUI labels.
-  
-  * `short_description` (read-only) - Usually `display_name` plus additional
-    information in parentheses. Useful as setting description when registering
-    the setting as a plug-in parameter to the PDB.
-  
-  * `description` - Describes the setting in more detail. Useful for
-    documentation purposes as well as GUI tooltips.
-  
-  * `error_messages` - A dict of error messages, which can be used e.g. if a value
-    assigned to the setting is invalid. You can add your own error messages and
-    assign them to one of the "default" error messages (such as 'invalid_value'
-    in several `Setting` subclasses) depending on the context in which the value
-    assigned is invalid.
+  * `resettable_by_group` - If True, the setting is reset to its default
+    value if the `reset()` method from the corresponding `SettingGroup` is
+    called. False by default.
   
   * `ui_enabled` - Indicates whether the setting should be enabled (respond
     to user input) in the GUI. True by default. This attribute is only an
@@ -120,9 +119,11 @@ class Setting(object):
     True by default. This attribute is only an indication, it does not modify a
     GUI element (use the appropriate `SettingPresenter` subclass for that purpose).
   
-  * `resettable_by_group` - If True, the setting is reset to its default
-    value if the `reset()` method from the corresponding `SettingGroup` is
-    called. False by default.
+  * `error_messages` - A dict of error messages, which can be used e.g. if a value
+    assigned to the setting is invalid. You can add your own error messages and
+    assign them to one of the "default" error messages (such as 'invalid_value'
+    in several `Setting` subclasses) depending on the context in which the value
+    assigned is invalid.
   
   * `changed_attributes` (read-only) - Contains a set of attribute names of the
     setting object that were changed. This attribute is used in the
@@ -151,24 +152,25 @@ class Setting(object):
     self._changed_attributes = set()
     
     self._name = name
+    
     self._default_value = default_value
     self._value = self._default_value
     
     self._mangled_name = self._get_mangled_name(self._name)
     
+    self._display_name = ""
+    self._description = ""
+    
     self._gimp_pdb_type = None
     self._registrable_to_pdb = False
     self._allowed_pdb_types = None
     
-    self._display_name = ""
-    self._description = ""
+    self._resettable_by_group = True
     
     self._error_messages = {}
     
-    self.ui_enabled = True
-    self.ui_visible = True
-    
-    self.resettable_by_group = True
+    self._ui_enabled = True
+    self._ui_visible = True
     
     self._streamline_func = None
     self._streamline_args = []
@@ -203,6 +205,26 @@ class Setting(object):
     return self._default_value
   
   @property
+  def display_name(self):
+    return self._display_name
+  
+  @display_name.setter
+  def display_name(self, value):
+    self._display_name = value if value is not None else ""
+  
+  @property
+  def description(self):
+    return self._description
+  
+  @description.setter
+  def description(self, value):
+    self._description = value if value is not None else ""
+  
+  @property
+  def short_description(self):
+    return self.display_name
+  
+  @property
   def gimp_pdb_type(self):
     return self._gimp_pdb_type
   
@@ -226,28 +248,32 @@ class Setting(object):
     self._registrable_to_pdb = value
   
   @property
-  def display_name(self):
-    return self._display_name
+  def resettable_by_group(self):
+    return self._resettable_by_group
   
-  @display_name.setter
-  def display_name(self, value):
-    self._display_name = value if value is not None else ""
+  @resettable_by_group.setter
+  def resettable_by_group(self, value):
+    self._resettable_by_group = value
   
   @property
-  def description(self):
-    return self._description
+  def ui_enabled(self):
+    return self._ui_enabled
   
-  @description.setter
-  def description(self, value):
-    self._description = value if value is not None else ""
+  @ui_enabled.setter
+  def ui_enabled(self, value):
+    self._ui_enabled = value
+  
+  @property
+  def ui_visible(self):
+    return self._ui_visible
+  
+  @ui_visible.setter
+  def ui_visible(self, value):
+    self._ui_visible = value
   
   @property
   def changed_attributes(self):
     return self._changed_attributes
-  
-  @property
-  def short_description(self):
-    return self.display_name
   
   @property
   def error_messages(self):
