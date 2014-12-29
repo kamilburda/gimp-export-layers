@@ -44,6 +44,7 @@ from export_layers import exportlayers
 
 #===============================================================================
 
+
 class SpecialSettings(pgsettinggroup.SettingGroup):
   
   """
@@ -52,7 +53,6 @@ class SpecialSettings(pgsettinggroup.SettingGroup):
   """
   
   def _create_settings(self):
-    
     self._add(
       pgsetting.EnumSetting(
         'run_mode', 'non_interactive',
@@ -74,10 +74,12 @@ class SpecialSettings(pgsettinggroup.SettingGroup):
     )
 
 
+#===============================================================================
+
+
 class MainSettings(pgsettinggroup.SettingGroup):
   
   def _create_settings(self):
-    
     self._add(pgsetting.FileExtensionSetting('file_extension', "png"))
     self['file_extension'].display_name = _("File extension")
     self['file_extension'].description = _(
@@ -283,3 +285,28 @@ class MainSettings(pgsettinggroup.SettingGroup):
     self['square_bracketed_mode'].set_streamline_func(
       streamline_square_bracketed_mode, self['autocrop'], self['crop_to_background']
     )
+
+
+#===============================================================================
+
+
+class GuiSettings(pgsettinggroup.SettingGroup):
+  
+  def _create_settings(self):
+    self._add(pgsetting.Setting('dialog_position', ()))
+    self['dialog_position'].can_be_reset_by_group = False
+    
+    self._add(pgsetting.IntSetting('advanced_settings_expanded', False))
+    self['advanced_settings_expanded'].can_be_reset_by_group = False
+
+
+#===============================================================================
+
+
+class SessionOnlyGuiSettings(pgsettinggroup.SettingGroup):
+  
+  def _create_settings(self):
+    self._add(pgsetting.Setting('image_ids_and_folders', {}))
+    self['image_ids_and_folders'].can_be_reset_by_group = False
+
+

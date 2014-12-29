@@ -53,32 +53,13 @@ from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
 
+from export_layers import settings_plugin
 from export_layers import exportlayers
 from export_layers import constants
 
 #===============================================================================
 
 pdb = gimp.pdb
-
-#===============================================================================
-
-
-class GuiSettings(pgsettinggroup.SettingGroup):
-  
-  def _create_settings(self):
-    self._add(pgsetting.Setting('dialog_position', ()))
-    self['dialog_position'].can_be_reset_by_group = False
-    
-    self._add(pgsetting.IntSetting('advanced_settings_expanded', False))
-    self['advanced_settings_expanded'].can_be_reset_by_group = False
-
-
-class SessionOnlyGuiSettings(pgsettinggroup.SettingGroup):
-  
-  def _create_settings(self):
-    self._add(pgsetting.Setting('image_ids_and_folders', {}))
-    self['image_ids_and_folders'].can_be_reset_by_group = False
-
 
 #===============================================================================
 
@@ -182,8 +163,8 @@ class _ExportLayersGui(object):
     self.gimpshelf_stream = gimpshelf_stream
     self.config_file_stream = config_file_stream
     
-    self.gui_settings = GuiSettings()
-    self.session_only_gui_settings = SessionOnlyGuiSettings()
+    self.gui_settings = settings_plugin.GuiSettings()
+    self.session_only_gui_settings = settings_plugin.SessionOnlyGuiSettings()
     
     status, status_message = pgsettinggroup.SettingPersistor.load([self.main_settings, self.gui_settings],
                                                                   [self.gimpshelf_stream, self.config_file_stream])
