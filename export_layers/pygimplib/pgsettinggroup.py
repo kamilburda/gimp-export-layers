@@ -422,10 +422,8 @@ class SettingPersistor(object):
   
   __STATUSES = SUCCESS, READ_FAIL, WRITE_FAIL, NOT_ALL_SETTINGS_FOUND = (0, 1, 2, 3)
   
-  def __init__(self):
-    pass
-  
-  def load(self, settings_or_groups, setting_streams):
+  @classmethod
+  def load(cls, settings_or_groups, setting_streams):
     """
     Load setting values from the specified list of setting streams
     (`setting_streams`) to specified list of settings or setting groups
@@ -467,9 +465,9 @@ class SettingPersistor(object):
     """
     
     if not settings_or_groups or not setting_streams:
-      return self._status(self.SUCCESS)
+      return cls._status(cls.SUCCESS)
     
-    settings = self._list_settings(settings_or_groups)
+    settings = cls._list_settings(settings_or_groups)
     
     for stream in setting_streams:
       try:
@@ -479,17 +477,18 @@ class SettingPersistor(object):
           settings = stream.settings_not_found
         
         if stream == setting_streams[-1]:
-          return self._status(self.NOT_ALL_SETTINGS_FOUND, e.message)
+          return cls._status(cls.NOT_ALL_SETTINGS_FOUND, e.message)
         else:
           continue
       except (SettingStreamReadError, SettingStreamInvalidFormatError) as e:
-        return self._status(self.READ_FAIL, e.message)
+        return cls._status(cls.READ_FAIL, e.message)
       else:
         break
     
-    return self._status(self.SUCCESS)
+    return cls._status(cls.SUCCESS)
   
-  def save(self, settings_or_groups, setting_streams):
+  @classmethod
+  def save(cls, settings_or_groups, setting_streams):
     """
     Save setting values from specified list of settings or setting groups
     (`settings_or_groups`) to the specified list of setting streams
@@ -517,22 +516,24 @@ class SettingPersistor(object):
     """
     
     if not settings_or_groups or not setting_streams:
-      return self._status(self.SUCCESS)
+      return cls._status(cls.SUCCESS)
     
-    settings = self._list_settings(settings_or_groups)
+    settings = cls._list_settings(settings_or_groups)
     
     for stream in setting_streams:
       try:
         stream.write(settings)
       except SettingStreamWriteError as e:
-        return self._status(self.WRITE_FAIL, e.message)
+        return cls._status(cls.WRITE_FAIL, e.message)
     
-    return self._status(self.SUCCESS)
+    return cls._status(cls.SUCCESS)
   
-  def _status(self, status, message=None):
+  @classmethod
+  def _status(cls, status, message=None):
     return status, message if message is not None else ""
   
-  def _list_settings(self, settings_or_groups):
+  @classmethod
+  def _list_settings(cls, settings_or_groups):
     # Put all settings into one list so that the `read()` and `write()` methods
     # are invoked only once per each stream.
     settings = []

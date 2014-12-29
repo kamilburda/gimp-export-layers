@@ -320,7 +320,6 @@ class TestSettingPersistor(unittest.TestCase):
     self.settings = SettingGroupTest()
     self.shelf_stream = pgsettinggroup.GimpShelfSettingStream('')
     self.json_stream = pgsettinggroup.JSONFileSettingStream('filename')
-    self.setting_persistor = pgsettinggroup.SettingPersistor()
   
   @mock.patch(LIB_NAME + '.pgsettinggroup.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_save(self, mock_file):
@@ -329,13 +328,13 @@ class TestSettingPersistor(unittest.TestCase):
     self.settings['file_extension'].value = "png"
     self.settings['ignore_invisible'].value = True
     
-    status, unused_ = self.setting_persistor.save([self.settings], [self.shelf_stream, self.json_stream])
+    status, unused_ = pgsettinggroup.SettingPersistor.save([self.settings], [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettinggroup.SettingPersistor.SUCCESS)
     
     self.settings['file_extension'].value = "jpg"
     self.settings['ignore_invisible'].value = False
     
-    status, unused_ = self.setting_persistor.load([self.settings], [self.shelf_stream, self.json_stream])
+    status, unused_ = pgsettinggroup.SettingPersistor.load([self.settings], [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettinggroup.SettingPersistor.SUCCESS)
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
@@ -352,7 +351,7 @@ class TestSettingPersistor(unittest.TestCase):
     self.settings['file_extension'].value = "gif"
     self.settings['ignore_invisible'].value = False
     
-    self.setting_persistor.load([self.settings], [self.shelf_stream, self.json_stream])
+    pgsettinggroup.SettingPersistor.load([self.settings], [self.shelf_stream, self.json_stream])
     
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
@@ -367,7 +366,7 @@ class TestSettingPersistor(unittest.TestCase):
     mock_file.side_effect = IOError("File not found")
     mock_file.side_effect.errno = errno.ENOENT
     
-    status, unused_ = self.setting_persistor.load([self.settings], [self.shelf_stream, self.json_stream])
+    status, unused_ = pgsettinggroup.SettingPersistor.load([self.settings], [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettinggroup.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
     
   @mock.patch(LIB_NAME + '.pgsettinggroup.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
@@ -376,22 +375,23 @@ class TestSettingPersistor(unittest.TestCase):
     self.shelf_stream.write([self.settings['ignore_invisible']])
     self.json_stream.write([self.settings['file_extension'], self.settings['ignore_invisible']])
     
-    status, unused_ = self.setting_persistor.load([self.settings['overwrite_mode']], [self.shelf_stream, self.json_stream])
+    status, unused_ = pgsettinggroup.SettingPersistor.load([self.settings['overwrite_mode']],
+                                                           [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettinggroup.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
   @mock.patch(LIB_NAME + '.pgsettinggroup.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_read_fail(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
-    status, unused_ = self.setting_persistor.load([self.settings], [self.shelf_stream, self.json_stream])
+    status, unused_ = pgsettinggroup.SettingPersistor.load([self.settings], [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettinggroup.SettingPersistor.READ_FAIL)
     
     mock_file.side_effect = IOError()
-    status, unused_ = self.setting_persistor.load([self.settings], [self.shelf_stream, self.json_stream])
+    status, unused_ = pgsettinggroup.SettingPersistor.load([self.settings], [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettinggroup.SettingPersistor.READ_FAIL)
     
     mock_file.side_effect = OSError()
-    status, unused_ = self.setting_persistor.load([self.settings], [self.shelf_stream, self.json_stream])
+    status, unused_ = pgsettinggroup.SettingPersistor.load([self.settings], [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettinggroup.SettingPersistor.READ_FAIL)
   
   @mock.patch(LIB_NAME + '.pgsettinggroup.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
@@ -399,10 +399,10 @@ class TestSettingPersistor(unittest.TestCase):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
     mock_file.side_effect = IOError()
-    status, unused_ = self.setting_persistor.save([self.settings], [self.shelf_stream, self.json_stream])
+    status, unused_ = pgsettinggroup.SettingPersistor.save([self.settings], [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettinggroup.SettingPersistor.WRITE_FAIL)
     
     mock_file.side_effect = OSError()
-    status, unused_ = self.setting_persistor.save([self.settings], [self.shelf_stream, self.json_stream])
+    status, unused_ = pgsettinggroup.SettingPersistor.save([self.settings], [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettinggroup.SettingPersistor.WRITE_FAIL)
     
