@@ -415,39 +415,27 @@ class SettingPersistor(object):
   
   """
   This class:
-  * serves as a wrapper for `SettingStream` classes to read from or
-    write to multiple settings streams (`SettingStream` objects) at once,
-  * reads from/writes to multiple `SettingGroup` objects or iterables
-    containing `Setting` objects.
-  
-  Attributes:
-  
-  * `read_setting_streams` - List of `SettingStream` objects the settings are
-    loaded from.
-  
-  * `write_setting_streams` - List of `SettingStream` objects the settings are
-    saved to.
-  
-  * `status_message` (read-only) - Status message describing the status returned
-    from the `load()` or `save()` methods in more detail.
+  * serves as a wrapper for `SettingStream` classes
+  * reads settings from multiple setting streams
+  * write settings to multiple setting streams
   """
   
   __STATUSES = SUCCESS, READ_FAIL, WRITE_FAIL, NOT_ALL_SETTINGS_FOUND = (0, 1, 2, 3)
   
-  def __init__(self, read_setting_streams, write_setting_streams):
-    self.read_setting_streams = read_setting_streams
-    self.write_setting_streams = write_setting_streams
+  def __init__(self):
+    pass
   
-  def load(self, *setting_groups):
+  def load(self, settings_or_groups, setting_streams):
     """
-    Load setting values from streams in `read_setting_streams` to specified
-    `setting_groups`.
+    Load setting values from the specified list of setting streams
+    (`setting_streams`) to specified list of settings or setting groups
+    (`settings_or_groups`).
     
-    The order of streams in the `read_setting_streams` list indicates the
-    preference of the streams, beginning with the first stream in the list. If
-    not all settings could be found in the first stream, the second stream is
-    read to assign values to the remaining settings. This continues until all
-    settings are read.
+    The order of streams in the `setting_streams` list indicates the preference
+    of the streams, beginning with the first stream in the list. If not all
+    settings could be found in the first stream, the second stream is read to
+    assign values to the remaining settings. This continues until all settings
+    are read.
     
     If settings have invalid values, their default values will be assigned.
     
@@ -456,14 +444,17 @@ class SettingPersistor(object):
     
     Parameters:
     
-    * `*setting_groups` - `SettingGroup` objects or `Setting` iterables
-      whose values are loaded from the streams.
+    * `settings_or_groups` - list of `Setting` or `SettingGroup` objects whose
+      values are loaded from `setting_streams`.
+    
+    * `setting_streams` - list of `SettingStream` instances to read from.
     
     Returns:
     
       * `status`:
       
-        * `SUCCESS` - Settings successfully loaded.
+        * `SUCCESS` - Settings successfully loaded. This status is also returned
+          if `settings_or_groups` or `setting_streams` is empty.
         
         * `NOT_ALL_SETTINGS_FOUND` - Could not find some settings from
           any of the streams. Default values are assigned to these settings.
@@ -472,24 +463,22 @@ class SettingPersistor(object):
           error occurred. May occur for file streams with e.g. denied read
           permission.
       
-      * `status_message` - Message describing the status in more detail.
+      * `status_message` - Message describing the returned status in more detail.
     """
     
-    if not setting_groups or self.read_setting_streams is None or not self.read_setting_streams:
+    if not settings_or_groups or not setting_streams:
       return self._status(self.SUCCESS)
     
-    settings = []
-    for group in setting_groups:
-      settings.extend(group)
+    settings = self._list_settings(settings_or_groups)
     
-    for stream in self.read_setting_streams:
+    for stream in setting_streams:
       try:
         stream.read(settings)
       except (SettingsNotFoundInStreamError, SettingStreamFileNotFoundError) as e:
         if type(e) == SettingsNotFoundInStreamError:
           settings = stream.settings_not_found
         
-        if stream == self.read_setting_streams[-1]:
+        if stream == setting_streams[-1]:
           return self._status(self.NOT_ALL_SETTINGS_FOUND, e.message)
         else:
           continue
@@ -500,21 +489,25 @@ class SettingPersistor(object):
     
     return self._status(self.SUCCESS)
   
-  def save(self, *setting_groups):
+  def save(self, settings_or_groups, setting_streams):
     """
-    Save setting values from specified setting groups or iterables to all
-    streams specified in write_setting_streams.
+    Save setting values from specified list of settings or setting groups
+    (`settings_or_groups`) to the specified list of setting streams
+    (`setting_streams`).
     
     Parameters:
     
-    * `*setting_groups` - `SettingGroup` objects or `Setting` iterables
-      whose values are saved to the streams.
+    * `settings_or_groups` - list of `Setting` or `SettingGroup` objects whose
+      values are saved to `setting_streams`.
+    
+    * `setting_streams` - list of `SettingStream` instances to write to.
     
     Returns:
     
       * `status`:
       
-        * `SUCCESS` - Settings successfully saved.
+        * `SUCCESS` - Settings successfully saved. This status is also returned
+          if `settings_or_groups` or `setting_streams` is empty.
         
         * `WRITE_FAIL` - Could not write data to the first stream where this
           error occurred. May occur for file streams with e.g. denied write
@@ -523,16 +516,12 @@ class SettingPersistor(object):
       * `status_message` - Message describing the status in more detail.
     """
     
-    if not setting_groups or self.write_setting_streams is None or not self.write_setting_streams:
+    if not settings_or_groups or not setting_streams:
       return self._status(self.SUCCESS)
     
-    # Put all settings into one list so that the `write()` method is invoked
-    # only once per each stream.
-    settings = []
-    for group in setting_groups:
-      settings.extend(group)
+    settings = self._list_settings(settings_or_groups)
     
-    for stream in self.write_setting_streams:
+    for stream in setting_streams:
       try:
         stream.write(settings)
       except SettingStreamWriteError as e:
@@ -542,7 +531,17 @@ class SettingPersistor(object):
   
   def _status(self, status, message=None):
     return status, message if message is not None else ""
-
+  
+  def _list_settings(self, settings_or_groups):
+    # Put all settings into one list so that the `read()` and `write()` methods
+    # are invoked only once per each stream.
+    settings = []
+    for setting_or_group in settings_or_groups:
+      if isinstance(setting_or_group, pgsetting.Setting):
+        settings.append(setting_or_group)
+      else:
+        settings.extend(setting_or_group)
+    return settings
 
 #===============================================================================
 
