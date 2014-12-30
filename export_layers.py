@@ -73,19 +73,6 @@ class ExportLayersPlugin(gimpplugin.plugin):
     
     self.gimpshelf_stream = pgsettinggroup.GimpShelfSettingStream(constants.SHELF_PREFIX)
     self.config_file_stream = pgsettinggroup.JSONFileSettingStream(constants.CONFIG_FILE)
-    
-    self.export_layers_settings = []
-    for setting in list(self.special_settings) + list(self.main_settings):
-      if setting.registrable_to_pdb:
-        self.export_layers_settings.append(setting)
-    
-    self.export_layers_to_settings = [
-      self.special_settings['run_mode'],
-      self.special_settings['image'],
-    ]
-    
-    self.export_layers_return_values = []
-    self.export_layers_to_return_values = []
   
   def query(self):
     gimp.domain_register(constants.DOMAIN_NAME, constants.LOCALE_PATH)
@@ -100,8 +87,9 @@ class ExportLayersPlugin(gimpplugin.plugin):
       _("E_xport Layers..."),
       "*",
       gimpenums.PLUGIN,
-      self._create_plugin_params(self.export_layers_settings),
-      self._create_plugin_params(self.export_layers_return_values)
+      pgsettinggroup.PdbParamCreator.create_params(self.special_settings['run_mode'], self.special_settings['image'],
+                                                   self.main_settings),
+      []
     )
     gimp.install_procedure(
       "plug_in_export_layers_to",
@@ -114,8 +102,8 @@ class ExportLayersPlugin(gimpplugin.plugin):
       _("Export Layers _to"),
       "*",
       gimpenums.PLUGIN,
-      self._create_plugin_params(self.export_layers_to_settings),
-      self._create_plugin_params(self.export_layers_to_return_values)
+      pgsettinggroup.PdbParamCreator.create_params(self.special_settings['run_mode'], self.special_settings['image']),
+      []
     )
     
     gimp.menu_register("plug_in_export_layers", "<Image>/File/Export")
@@ -191,12 +179,6 @@ class ExportLayersPlugin(gimpplugin.plugin):
     self.special_settings['first_run'].set_value(False)
     pgsettinggroup.SettingPersistor.save([self.main_settings, self.special_settings['first_run']],
                                          [self.gimpshelf_stream])
-  
-  def _create_plugin_params(self, settings):
-    return [self._create_plugin_param(setting) for setting in settings]
-  
-  def _create_plugin_param(self, setting):
-    return (setting.gimp_pdb_type, setting.name.encode(), setting.short_description.encode())
 
 #===============================================================================
 
