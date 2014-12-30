@@ -35,6 +35,8 @@ from StringIO import StringIO
 
 import unittest
 
+import gimpenums
+
 from ..lib import mock
 from . import gimpmocks
 
@@ -405,4 +407,47 @@ class TestSettingPersistor(unittest.TestCase):
     mock_file.side_effect = OSError()
     status, unused_ = pgsettinggroup.SettingPersistor.save([self.settings], [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettinggroup.SettingPersistor.WRITE_FAIL)
+
+
+#===============================================================================
+
+
+class TestPdbParamCreator(unittest.TestCase):
+  
+  def setUp(self):
+    self.file_ext_setting = pgsetting.FileExtensionSetting("autocrop", False)
+    self.file_ext_setting.display_name = "Autocrop"
     
+    self.unregistrable_setting = pgsetting.IntSetting("num_exported_layers", 0)
+    self.unregistrable_setting.registrable_to_pdb = False
+    
+    self.settings = SettingGroupTest()
+  
+  def test_create_one_param_successfully(self):
+    params = pgsettinggroup.PdbParamCreator.create_params(self.file_ext_setting)
+    # There's only one parameter returned.
+    param = params[0]
+    
+    self.assertTrue(len(param), 3)
+    self.assertEqual(param[0], gimpenums.PDB_STRING)
+    self.assertEqual(param[1], "autocrop".encode())
+    self.assertEqual(param[2], "Autocrop".encode())
+  
+  def test_create_params_invalid_argument(self):
+    with self.assertRaises(TypeError):
+      pgsettinggroup.PdbParamCreator.create_params([self.file_ext_setting])
+  
+  def test_create_multiple_params(self):
+    params = pgsettinggroup.PdbParamCreator.create_params(self.file_ext_setting, self.settings)
+    
+    self.assertTrue(len(params), 1 + len(self.settings))
+    
+    self.assertEqual(params[0], (self.file_ext_setting.gimp_pdb_type, self.file_ext_setting.name.encode(),
+                                 self.file_ext_setting.short_description.encode()))
+    for param, setting in zip(params[1:], self.settings):
+      self.assertEqual(param, (setting.gimp_pdb_type, setting.name.encode(),
+                               setting.short_description.encode()))
+  
+  def test_create_params_with_unregistrable_setting(self):
+    params = pgsettinggroup.PdbParamCreator.create_params(self.unregistrable_setting)
+    self.assertEqual(params, [])

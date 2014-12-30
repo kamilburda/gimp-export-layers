@@ -873,3 +873,37 @@ class SettingPresenterGroup(Container):
         setting_attr = getattr(setting, attr)
         presenter_method = getattr(presenter, self._SETTING_ATTRIBUTES_METHODS[attr])
         presenter_method(setting_attr)
+
+
+#===============================================================================
+
+
+class PdbParamCreator(object):
+  
+  """
+  This class creates GIMP PDB (procedural database) parameters for plug-ins
+  (plug-in procedures) from `Setting` objects.
+  """
+  
+  @classmethod
+  def create_params(cls, *settings_or_groups):
+    """
+    Return a list of GIMP PDB parameters from the specified `Setting` or
+    `SettingGroup` objects.
+    """
+    
+    settings = []
+    for setting_or_group in settings_or_groups:
+      if isinstance(setting_or_group, pgsetting.Setting):
+        settings.append(setting_or_group)
+      elif isinstance(setting_or_group, SettingGroup):
+        settings.extend(setting_or_group)
+      else:
+        raise TypeError("not a Setting or a SettingGroup object")
+    
+    return [cls._create_param(setting) for setting in settings if setting.registrable_to_pdb]
+  
+  @classmethod
+  def _create_param(cls, setting):
+    return (setting.gimp_pdb_type, setting.name.encode(), setting.short_description.encode())
+
