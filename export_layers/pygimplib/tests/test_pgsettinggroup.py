@@ -102,7 +102,7 @@ class SettingGroupTest(pgsettinggroup.SettingGroup):
   
   def _create_settings(self):
     
-    self._add(pgsetting.StringSetting('file_extension', ""))
+    self._add(pgsetting.StringSetting('file_extension', "bmp"))
     self._add(pgsetting.BoolSetting('ignore_invisible', False))
     self._add(
       pgsetting.EnumSetting(
@@ -415,8 +415,8 @@ class TestSettingPersistor(unittest.TestCase):
 class TestPdbParamCreator(unittest.TestCase):
   
   def setUp(self):
-    self.file_ext_setting = pgsetting.FileExtensionSetting("autocrop", False)
-    self.file_ext_setting.display_name = "Autocrop"
+    self.file_ext_setting = pgsetting.FileExtensionSetting("file_extension", "png")
+    self.file_ext_setting.display_name = "File extension"
     
     self.unregistrable_setting = pgsetting.IntSetting("num_exported_layers", 0)
     self.unregistrable_setting.registrable_to_pdb = False
@@ -425,13 +425,13 @@ class TestPdbParamCreator(unittest.TestCase):
   
   def test_create_one_param_successfully(self):
     params = pgsettinggroup.PdbParamCreator.create_params(self.file_ext_setting)
-    # There's only one parameter returned.
+    # There's only one PDB parameter returned.
     param = params[0]
     
     self.assertTrue(len(param), 3)
     self.assertEqual(param[0], gimpenums.PDB_STRING)
-    self.assertEqual(param[1], "autocrop".encode())
-    self.assertEqual(param[2], "Autocrop".encode())
+    self.assertEqual(param[1], "file_extension".encode())
+    self.assertEqual(param[2], "File extension".encode())
   
   def test_create_params_invalid_argument(self):
     with self.assertRaises(TypeError):
