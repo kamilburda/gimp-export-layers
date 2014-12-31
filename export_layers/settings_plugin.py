@@ -63,7 +63,7 @@ class SpecialSettings(pgsettinggroup.SettingGroup):
     )
     self['run_mode'].display_name = _("The run mode")
     
-    self._add(pgsetting.ImageSetting('image', None))
+    self._add(pgsetting.ImageSetting('image', None, validate_default_value=False))
     self['image'].display_name = _("Image")
     
     self._add(pgsetting.BoolSetting('first_run', True))
