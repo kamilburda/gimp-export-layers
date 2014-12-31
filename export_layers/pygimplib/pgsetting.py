@@ -204,6 +204,10 @@ class Setting(object):
     return self._name
   
   @property
+  def mangled_name(self):
+    return self._mangled_name
+  
+  @property
   def value(self):
     return self._value
   
