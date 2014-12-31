@@ -59,6 +59,23 @@ class SettingValueError(Exception):
   pass
 
 
+class SettingDefaultValueError(SettingValueError):
+  """
+  This exception class is raised when the default value specified during the
+  `Setting` object initialization is invalid.
+  """
+  
+  def __init__(self, message):
+    self._message_invalid_default_value = _(
+      "If you need to turn off validation of the default value, "
+      "pass `validate_default_value=False` when creating a Setting object."
+    )
+    self.message = '\n'.join((message,self._message_invalid_default_value))
+    
+  def __str__(self):
+    return self.message
+
+
 #===============================================================================
 
 
@@ -135,21 +152,30 @@ class Setting(object):
     `changed_attributes` is cleared if `streamline()` is called.
   """
   
-  def __init__(self, name, default_value):
+  def __init__(self, name, default_value, validate_default_value=True):
     
     """
     Parameters:
     
     * `name` - Setting name as a string.
+    
     * `default_value` - Default value of the setting.
-    """
     
     self._attrs_that_trigger_change = {'_value', '_ui_enabled', '_ui_visible'}
     self._changed_attributes = set()
+    * `validate_default_value` - If True, check whether the default value of the
+       setting is valid. If it is invalid, raise `SettingDefaultValueError`. If
+       you need to skip the validation, e.g. because you need to specify an
+       "empty" value as the default value (e.g. an empty string for
+       FileExtensionSetting), set this to False.
+    """
     
     self._name = name
-    
     self._default_value = default_value
+    
+    if validate_default_value:
+      self._validate_default_value()
+    
     self._value = self._default_value
     
     self._mangled_name = self._get_mangled_name(self._name)
@@ -205,6 +231,7 @@ class Setting(object):
     `value` still remains a property for the sake of brevity.
     """
     
+    self._validate(value)
     self._value = value
   
   @property
@@ -380,6 +407,25 @@ class Setting(object):
     
     return self._streamline_func is not None
   
+  def _validate(self, value):
+    """
+    Check whether the specified value is valid. If the value is invalid, raise
+    `SettingValueError`.
+    """
+    
+    pass
+  
+  def _validate_default_value(self):
+    """
+    Check whether the default value of the setting is valid. If the default
+    value is invalid, raise `SettingDefaultValueError`.
+    """
+    
+    try:
+      self._validate(self._default_value)
+    except SettingValueError as e:
+      raise SettingDefaultValueError(e.message)
+  
   def _value_to_str(self, value):
     """
     Use this method in subclasses to prepend `value` to an error message
@@ -434,11 +480,11 @@ class NumericSetting(Setting):
   
   __metaclass__ = abc.ABCMeta
   
-  def __init__(self, name, default_value):
-    super(NumericSetting, self).__init__(name, default_value)
-    
+  def __init__(self, name, default_value, **kwargs):
     self.min_value = None
     self.max_value = None
+    
+    super(NumericSetting, self).__init__(name, default_value, **kwargs)
     
     self.error_messages['below_min'] = _("Value cannot be less than {0}.").format(self.min_value)
     self.error_messages['above_max'] = _("Value cannot be greater than {0}.").format(self.max_value)
@@ -454,13 +500,11 @@ class NumericSetting(Setting):
     else:
       return self.display_name
   
-  def set_value(self, value):
+  def _validate(self, value):
     if self.min_value is not None and value < self.min_value:
       raise SettingValueError(self._value_to_str(value) + self.error_messages['below_min'])
     if self.max_value is not None and value > self.max_value:
       raise SettingValueError(self._value_to_str(value) + self.error_messages['above_max'])
-    
-    super(NumericSetting, self).set_value(value)
 
 
 class IntSetting(NumericSetting):
@@ -475,8 +519,8 @@ class IntSetting(NumericSetting):
   * PDB_INT8
   """
   
-  def __init__(self, name, default_value):
-    super(IntSetting, self).__init__(name, default_value)
+  def __init__(self, name, default_value, **kwargs):
+    super(IntSetting, self).__init__(name, default_value, **kwargs)
     
     self._allowed_pdb_types = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
     self.gimp_pdb_type = gimpenums.PDB_INT32
@@ -492,8 +536,8 @@ class FloatSetting(NumericSetting):
   * PDB_FLOAT
   """
   
-  def __init__(self, name, default_value):
-    super(FloatSetting, self).__init__(name, default_value)
+  def __init__(self, name, default_value, **kwargs):
+    super(FloatSetting, self).__init__(name, default_value, **kwargs)
     
     self._allowed_pdb_types = [gimpenums.PDB_FLOAT]
     self.gimp_pdb_type = gimpenums.PDB_FLOAT
@@ -514,8 +558,8 @@ class BoolSetting(Setting):
   * PDB_INT8
   """
   
-  def __init__(self, name, default_value):
-    super(BoolSetting, self).__init__(name, default_value)
+  def __init__(self, name, default_value, **kwargs):
+    super(BoolSetting, self).__init__(name, default_value, **kwargs)
     
     self._allowed_pdb_types = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
     self.gimp_pdb_type = gimpenums.PDB_INT32
@@ -525,7 +569,8 @@ class BoolSetting(Setting):
     return self.display_name + "?"
   
   def set_value(self, value):
-    self._value = bool(value)
+    value = bool(value)
+    super(BoolSetting, self).set_value(value)
 
 
 class EnumSetting(Setting):
@@ -570,77 +615,63 @@ class EnumSetting(Setting):
     when instantiating the object).
   
   * `'wrong_options_len'` - Wrong number of elements in tuples in the `options` parameter
-    when instantiating the object.
+    when initializing the object.
   
-  * `'duplicate_option_value'` - When the object was being instantiated, some
+  * `'duplicate_option_value'` - When the object was being initialized, some
     option values in the 3-element tuples were specified multiple times.
   """
   
-  def __init__(self, name, default_value, options):
+  def __init__(self, name, default_value, options, validate_default_value=True, **kwargs):
     
     """
-    Parameters:
+    Additional parameters:
     
-    * `name` - Setting name.
-    
-    * `default_value` - Option name (identifier). Unlike other Setting classes, where
-      the default value is specified directly, EnumSetting accepts a valid option
-      identifier instead.
+    * `default_value` - Option name (identifier). Unlike other Setting classes,
+      where the default value is specified directly, EnumSetting accepts a valid
+      option name instead.
     
     * `options` - A list of either (option name, option display name) tuples
       or (option name, option display name, option value) tuples.
       
-      For 2-element tuples, option values are assigned automatically, starting with 0.
-      
-      Use 3-element tuples to assign explicit option values. Values must be unique
-      and specified in each tuple.
+      For 2-element tuples, option values are assigned automatically, starting
+      with 0. Use 3-element tuples to assign explicit option values. Values must be
+      unique and specified in each tuple. You cannot combine 2- and 3- element
+      tuples - use only 2- or only 3-element tuples.
     """
     
-    super(EnumSetting, self).__init__(name, default_value)
+    orig_validate_default_value = validate_default_value
+    
+    super(EnumSetting, self).__init__(name, default_value, validate_default_value=False, **kwargs)
     
     self._allowed_pdb_types = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
     self.gimp_pdb_type = gimpenums.PDB_INT32
     
-    self._options = OrderedDict()
-    self._options_display_names = OrderedDict()
-    self._option_values = set()
-    
     self.error_messages['wrong_options_len'] = (
-      "Wrong number of tuple elements in options - must be 2 or 3"
+      "Wrong number of tuple elements in options - must be only 2- or only 3-element tuples"
     )
     self.error_messages['duplicate_option_value'] = (
       "Cannot set the same value for multiple options - they must be unique"
     )
     
-    if len(options[0]) == 2:
-      for i, (option_name, option_display_name) in enumerate(options):
-        self._options[option_name] = i
-        self._options_display_names[option_name] = option_display_name
-        self._option_values.add(i)
-    elif len(options[0]) == 3:
-      for option_name, option_display_name, option_value in options:
-        if option_value in self._option_values:
-          raise ValueError(self.error_messages['duplicate_option_value'])
-        
-        self._options[option_name] = option_value
-        self._options_display_names[option_name] = option_display_name
-        self._option_values.add(option_value)
-    else:
-      raise ValueError(self.error_messages['wrong_options_len'])
+    self._options, self._options_display_names, self._option_values = self._create_option_attributes(options)
     
     self.error_messages['invalid_value'] = _(
       "Invalid option value; valid values: {0}"
     ).format(list(self._option_values))
     
     self.error_messages['invalid_default_value'] = (
-      "invalid identifier for the default value; must be one of "
+      "invalid identifier for the default value; must be one of {0}"
     ).format(self._options.keys())
     
     if default_value in self._options:
       self._default_value = self._options[default_value]
       self._value = self._default_value
     else:
-      raise ValueError(self.error_messages['invalid_default_value'])
+      if orig_validate_default_value:
+        raise SettingDefaultValueError(self.error_messages['invalid_default_value'])
+      else:
+        self._default_value = default_value
+        self._value = self._default_value
     
     self._options_str = self._stringify_options()
   
@@ -656,24 +687,49 @@ class EnumSetting(Setting):
   def options_display_names(self):
     return self._options_display_names
   
-  def set_value(self, value):
-    if value not in self._option_values:
-      raise SettingValueError(self._value_to_str(value) + self.error_messages['invalid_value'])
-    
-    super(EnumSetting, self).set_value(value)
-  
   def get_option_display_names_and_values(self):
+    """
+    Return a list of (option display name, option value) pairs.
+    """
+    
     display_names_and_values = []
     for option_name, option_value in zip(self._options_display_names.values(), self._options.values()):
       display_names_and_values.extend((option_name, option_value))
     return display_names_and_values
+  
+  def _validate(self, value):
+    if value not in self._option_values:
+      raise SettingValueError(self._value_to_str(value) + self.error_messages['invalid_value'])
+  
+  def _create_option_attributes(self, input_options):
+    options = OrderedDict()
+    options_display_names = OrderedDict()
+    option_values = set()
+    
+    if all(len(elem) == 2 for elem in input_options):
+      for i, (option_name, option_display_name) in enumerate(input_options):
+        options[option_name] = i
+        options_display_names[option_name] = option_display_name
+        option_values.add(i)
+    elif all(len(elem) == 3 for elem in input_options):
+      for option_name, option_display_name, option_value in input_options:
+        if option_value in option_values:
+          raise ValueError(self.error_messages['duplicate_option_value'])
+        
+        options[option_name] = option_value
+        options_display_names[option_name] = option_display_name
+        option_values.add(option_value)
+    else:
+      raise ValueError(self.error_messages['wrong_options_len'])
+    
+    return options, options_display_names, option_values
   
   def _stringify_options(self):
     options_str = ""
     options_sep = ", "
     
     for value, display_name in zip(self._options.values(), self._options_display_names.values()):
-      options_str += '{0} ({1})'.format(display_name, value) + options_sep
+      options_str += '{0} ({1}){2}'.format(display_name, value, options_sep)
     options_str = options_str[:-len(options_sep)]
     
     return "{ " + options_str + " }"
@@ -693,19 +749,17 @@ class ImageSetting(Setting):
   * `'invalid_value'` - The image assigned is invalid.
   """
   
-  def __init__(self, name, default_value):
-    super(ImageSetting, self).__init__(name, default_value)
+  def __init__(self, name, default_value, **kwargs):
+    super(ImageSetting, self).__init__(name, default_value, **kwargs)
     
     self._allowed_pdb_types = [gimpenums.PDB_IMAGE]
     self.gimp_pdb_type = gimpenums.PDB_IMAGE
     
     self.error_messages['invalid_value'] = _("Invalid image.")
   
-  def set_value(self, image):
+  def _validate(self, image):
     if not pdb.gimp_image_is_valid(image):
       raise SettingValueError(self._value_to_str(image) + self.error_messages['invalid_value'])
-    
-    super(ImageSetting, self).set_value(image)
 
 
 class DrawableSetting(Setting):
@@ -723,19 +777,17 @@ class DrawableSetting(Setting):
   * `'invalid_value'` - The drawable assigned is invalid.
   """
   
-  def __init__(self, name, default_value):
-    super(DrawableSetting, self).__init__(name, default_value)
+  def __init__(self, name, default_value, **kwargs):
+    super(DrawableSetting, self).__init__(name, default_value, **kwargs)
     
     self._allowed_pdb_types = [gimpenums.PDB_DRAWABLE]
     self.gimp_pdb_type = gimpenums.PDB_DRAWABLE
     
     self.error_messages['invalid_value'] = _("Invalid drawable.")
   
-  def set_value(self, drawable):
+  def _validate(self, drawable):
     if not pdb.gimp_item_is_valid(drawable):
       raise SettingValueError(self._value_to_str(drawable) + self.error_messages['invalid_value'])
-    
-    super(DrawableSetting, self).set_value(drawable)
 
 
 class StringSetting(Setting):
@@ -748,8 +800,8 @@ class StringSetting(Setting):
   * PDB_STRING
   """
   
-  def __init__(self, name, default_value):
-    super(StringSetting, self).__init__(name, default_value)
+  def __init__(self, name, default_value, **kwargs):
+    super(StringSetting, self).__init__(name, default_value, **kwargs)
     
     self._allowed_pdb_types = [gimpenums.PDB_STRING]
     self.gimp_pdb_type = gimpenums.PDB_STRING
@@ -780,7 +832,7 @@ class ValidatableStringSetting(StringSetting):
   
   __metaclass__ = abc.ABCMeta
   
-  def __init__(self, name, default_value, string_validator):
+  def __init__(self, name, default_value, string_validator, validate_default_value=True, **kwargs):
     """
     Additional parameters:
     
@@ -788,14 +840,19 @@ class ValidatableStringSetting(StringSetting):
       the value assigned to this object.
     """
     
-    super(ValidatableStringSetting, self).__init__(name, default_value)
+    orig_validate_default_value = validate_default_value
+    
+    super(ValidatableStringSetting, self).__init__(name, default_value, validate_default_value=False, **kwargs)
     
     self._string_validator = string_validator
     
     for status in self._string_validator.ERROR_STATUSES:
       self.error_messages[status] = ""
+    
+    if orig_validate_default_value:
+      self._validate_default_value()
   
-  def set_value(self, value):
+  def _validate(self, value):
     is_valid, status_messages = self._string_validator.is_valid(value)
     if not is_valid:
       new_status_messages = []
@@ -808,8 +865,6 @@ class ValidatableStringSetting(StringSetting):
       raise SettingValueError(
         self._value_to_str(value) + '\n'.join([message for message in new_status_messages])
       )
-    
-    super(ValidatableStringSetting, self).set_value(value)
   
 
 class FileExtensionSetting(ValidatableStringSetting):
@@ -825,8 +880,8 @@ class FileExtensionSetting(ValidatableStringSetting):
   * PDB_STRING
   """
   
-  def __init__(self, name, default_value):
-    super(FileExtensionSetting, self).__init__(name, default_value, pgpath.FileExtensionValidator)
+  def __init__(self, name, default_value, **kwargs):
+    super(FileExtensionSetting, self).__init__(name, default_value, pgpath.FileExtensionValidator, **kwargs)
   
 
 class DirectorySetting(ValidatableStringSetting):
@@ -842,8 +897,8 @@ class DirectorySetting(ValidatableStringSetting):
   * PDB_STRING
   """
   
-  def __init__(self, name, default_value):
-    super(DirectorySetting, self).__init__(name, default_value, pgpath.FilePathValidator)
+  def __init__(self, name, default_value, **kwargs):
+    super(DirectorySetting, self).__init__(name, default_value, pgpath.FilePathValidator, **kwargs)
 
 
 class IntArraySetting(Setting):
@@ -862,8 +917,8 @@ class IntArraySetting(Setting):
     - this applies to any array setting
   """
   
-  def __init__(self, name, default_value):
-    super(IntArraySetting, self).__init__(name, default_value)
+  def __init__(self, name, default_value, **kwargs):
+    super(IntArraySetting, self).__init__(name, default_value, **kwargs)
      
     self._allowed_pdb_types = [gimpenums.PDB_INT32ARRAY, gimpenums.PDB_INT16ARRAY, gimpenums.PDB_INT8ARRAY]
     self.gimp_pdb_type = gimpenums.PDB_INT32ARRAY

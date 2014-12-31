@@ -47,6 +47,13 @@ LIB_NAME = '.'.join(__name__.split('.')[:-2])
 #===============================================================================
 
 
+class MockSetting(pgsetting.Setting):
+  
+  def _validate(self, value):
+    if value is None:
+      raise pgsetting.SettingValueError("value cannot be None")
+
+
 def streamline_file_extension(file_extension, ignore_invisible):
   if ignore_invisible.value:
     file_extension.set_value("png")
@@ -62,11 +69,21 @@ def streamline_file_extension(file_extension, ignore_invisible):
 class TestSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.Setting('file_extension', "")
+    self.setting = pgsetting.Setting('file_extension', "png")
+  
+  def test_invalid_default_value_raises_error(self):
+    with self.assertRaises(pgsetting.SettingDefaultValueError):
+      MockSetting('setting', None)
+  
+  def test_default_value_without_validation(self):
+    try:
+      MockSetting('setting', None, validate_default_value=False)
+    except pgsetting.SettingDefaultValueError:
+      self.fail("SettingDefaultValueError should not be raised, default value validation is turned off")
   
   def test_value_invalid_assignment_operation(self):
     with self.assertRaises(AttributeError):
-      self.setting.value = "png"
+      self.setting.value = "jpg"
   
   def test_changed_attributes(self):
     # TODO: The code needs to be rewritten since encapsulation is broken.
@@ -84,16 +101,17 @@ class TestSetting(unittest.TestCase):
     
     self.setting.gimp_pdb_type = None
     self.assertEqual(self.setting.registrable_to_pdb, False)
-    
+  
+  def test_invalid_pdb_type_and_registrable_to_pdb_raises_error(self):
     with self.assertRaises(ValueError):
       self.setting.gimp_pdb_type = None
       self.setting.registrable_to_pdb = True
   
   def test_reset(self):
-    setting = pgsetting.Setting('file_extension', "")
-    setting.set_value("png")
+    setting = pgsetting.Setting('file_extension', "png")
+    setting.set_value("jpg")
     setting.reset()
-    self.assertEqual(setting.value, "")
+    self.assertEqual(setting.value, "png")
   
   def test_set_remove_streamline_func(self):
     with self.assertRaises(TypeError):
@@ -192,7 +210,6 @@ class TestEnumSetting(unittest.TestCase):
     self.setting.display_name = self.setting_display_name
   
   def test_explicit_values(self):
-    
     setting = pgsetting.EnumSetting(
       'overwrite_mode', 'replace',
       [('skip', "Skip", 5),
@@ -213,11 +230,45 @@ class TestEnumSetting(unittest.TestCase):
          ('replace', "Replace", 4)])
   
   def test_invalid_default_value(self):
-    with self.assertRaises(ValueError):
+    with self.assertRaises(pgsetting.SettingDefaultValueError):
       pgsetting.EnumSetting(
         'overwrite_mode', 'invalid_default_value',
         [('skip', "Skip"),
          ('replace', "Replace")])
+  
+  def test_default_value_no_validation(self):
+    try:
+      pgsetting.EnumSetting(
+        'overwrite_mode', None,
+        [('skip', "Skip"),
+         ('replace', "Replace")],
+        validate_default_value=False)
+    except pgsetting.SettingDefaultValueError:
+      self.fail("SettingDefaultValueError should not be raised, default value validation is turned off")
+  
+  def test_invalid_options_length_varying(self):
+    with self.assertRaises(ValueError):
+      pgsetting.EnumSetting(
+          'overwrite_mode', None,
+          [('skip', "Skip", 1),
+           ('replace', "Replace")]
+      )
+  
+  def test_invalid_options_length_too_many_elements(self):
+    with self.assertRaises(ValueError):
+      pgsetting.EnumSetting(
+          'overwrite_mode', None,
+          [('skip', "Skip", 1, 1),
+           ('replace', "Replace", 1, 1)]
+      )
+  
+  def test_invalid_options_length_too_few_elements(self):
+    with self.assertRaises(ValueError):
+      pgsetting.EnumSetting(
+          'overwrite_mode', None,
+          [('skip'),
+           ('replace')]
+      )
   
   def test_set_invalid_option(self):
     with self.assertRaises(pgsetting.SettingValueError):
@@ -228,9 +279,6 @@ class TestEnumSetting(unittest.TestCase):
   def test_get_invalid_option(self):
     with self.assertRaises(KeyError):
       self.setting.options['invalid_option']
-  
-  def test_display_name(self):
-    self.assertEqual(self.setting.display_name, self.setting_display_name)
   
   def test_short_description(self):
     self.assertEqual(self.setting.short_description,
@@ -245,7 +293,7 @@ class TestEnumSetting(unittest.TestCase):
 class TestImageSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.ImageSetting('image', None)
+    self.setting = pgsetting.ImageSetting('image', None, validate_default_value=False)
   
   @mock.patch(LIB_NAME + '.pgsetting.pdb', new=gimpmocks.MockPDB())
   def test_invalid_image(self):
