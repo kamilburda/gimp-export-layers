@@ -161,8 +161,6 @@ class Setting(object):
     
     * `default_value` - Default value of the setting.
     
-    self._attrs_that_trigger_change = {'_value', '_ui_enabled', '_ui_visible'}
-    self._changed_attributes = set()
     * `validate_default_value` - If True, check whether the default value of the
        setting is valid. If it is invalid, raise `SettingDefaultValueError`. If
        you need to skip the validation, e.g. because you need to specify an
@@ -194,23 +192,10 @@ class Setting(object):
     self._ui_enabled = True
     self._ui_visible = True
     
+    self._changed_attributes = set()
+    
     self._streamline_func = None
     self._streamline_args = []
-    
-    # Some attributes may now be in _changed_attributes because of __setattr__,
-    # hence it must be cleared.
-    self._changed_attributes.clear()
-  
-  def __setattr__(self, name, value):
-    """
-    Set attribute value. If the attribute is one of the attributes in
-    `_attrs_that_trigger_change`, add it to `changed_attributes`.
-    """
-    
-    super(Setting, self).__setattr__(name, value)
-    
-    if name in self._attrs_that_trigger_change:
-      self._changed_attributes.add(name)
   
   @property
   def name(self):
@@ -233,6 +218,7 @@ class Setting(object):
     
     self._validate(value)
     self._value = value
+    self._changed_attributes.add('value')
   
   @property
   def default_value(self):
@@ -296,6 +282,7 @@ class Setting(object):
   @ui_enabled.setter
   def ui_enabled(self, value):
     self._ui_enabled = value
+    self._changed_attributes.add('ui_enabled')
   
   @property
   def ui_visible(self):
@@ -304,6 +291,7 @@ class Setting(object):
   @ui_visible.setter
   def ui_visible(self, value):
     self._ui_visible = value
+    self._changed_attributes.add('ui_visible')
   
   @property
   def changed_attributes(self):

@@ -86,12 +86,11 @@ class TestSetting(unittest.TestCase):
       self.setting.value = "jpg"
   
   def test_changed_attributes(self):
-    # TODO: The code needs to be rewritten since encapsulation is broken.
+    self.setting.set_value("jpg")
+    self.setting.ui_enabled = False
+    self.setting.ui_visible = True
     
-    for attr, val in [('_value', "png"), ('_ui_enabled', False), ('_ui_visible', True)]:
-      setattr(self.setting, attr, val)
-    
-    for attr in ['_value', '_ui_enabled', '_ui_visible']:
+    for attr in ['value', 'ui_enabled', 'ui_visible']:
       self.assertTrue(attr in self.setting.changed_attributes,
                       msg=("'" + attr + "' not in " + str(self.setting.changed_attributes)))
   
@@ -140,8 +139,8 @@ class TestSetting(unittest.TestCase):
     
     changed_settings = self.setting.streamline()
     self.assertTrue(self.setting in changed_settings)
-    self.assertTrue('_ui_enabled' in changed_settings[self.setting])
-    self.assertTrue('_value' in changed_settings[self.setting])
+    self.assertTrue('ui_enabled' in changed_settings[self.setting])
+    self.assertTrue('value' in changed_settings[self.setting])
     self.assertEqual(self.setting.ui_enabled, True)
     self.assertEqual(self.setting.value, "jpg")
   
