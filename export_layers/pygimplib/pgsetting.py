@@ -112,14 +112,14 @@ class Setting(object):
     as setting description when registering the setting as a plug-in parameter
     to the PDB.
   
-  * `gimp_pdb_type` - GIMP Procedural Database (PDB) type, used when registering
+  * `pdb_type` - GIMP Procedural Database (PDB) type, used when registering
     the setting as a plug-in parameter to the PDB. `_allowed_pdb_types` list,
     which is class-specific, determines whether the PDB type assigned is valid.
     `_allowed_pdb_types` in this class is None, which means that any PDB type
     can be assigned.
   
-  * `registrable_to_pdb` - Indicates whether the setting can be registered
-    as a parameter to a plug-in. Automatically set to True if `gimp_pdb_type` is
+  * `pdb_registration_mode` - Indicates whether the setting can be registered
+    as a parameter to a plug-in. Automatically set to True if `pdb_type` is
     assigned to a valid value that is not None.
   
   * `resettable_by_group` - If True, the setting is reset to its default
@@ -152,7 +152,14 @@ class Setting(object):
     `changed_attributes` is cleared if `streamline()` is called.
   """
   
-  def __init__(self, name, default_value, validate_default_value=True):
+  PDB_REGISTRATION_MODES = AUTOMATIC, REGISTER, DO_NOT_REGISTER = (0, 1, 2)
+  
+  _ALLOWED_PDB_TYPES = None
+  
+  def __init__(self, name, default_value, validate_default_value=True,
+               display_name="", description="",
+               pdb_type=None, pdb_registration_mode=AUTOMATIC,
+               resettable_by_group=True):
     
     """
     Parameters:
@@ -170,22 +177,15 @@ class Setting(object):
     
     self._name = name
     self._default_value = default_value
-    
-    if validate_default_value:
-      self._validate_default_value()
+    self._display_name = display_name if not None else ""
+    self._description = description if not None else ""
+    self._pdb_type = self._get_pdb_type(pdb_type)
+    self._pdb_registration_mode = self._get_pdb_registration_mode(pdb_registration_mode)
+    self._resettable_by_group = resettable_by_group
     
     self._value = self._default_value
     
     self._mangled_name = self._get_mangled_name(self._name)
-    
-    self._display_name = ""
-    self._description = ""
-    
-    self._gimp_pdb_type = None
-    self._registrable_to_pdb = False
-    self._allowed_pdb_types = None
-    
-    self._resettable_by_group = True
     
     self._error_messages = {}
     
@@ -193,9 +193,11 @@ class Setting(object):
     self._ui_visible = True
     
     self._changed_attributes = set()
-    
     self._streamline_func = None
     self._streamline_args = []
+    
+    if validate_default_value:
+      self._validate_default_value()
   
   @property
   def name(self):
@@ -228,60 +230,33 @@ class Setting(object):
   def display_name(self):
     return self._display_name
   
-  @display_name.setter
-  def display_name(self, value):
-    self._display_name = value if value is not None else ""
-  
   @property
   def description(self):
     return self._description
-  
-  @description.setter
-  def description(self, value):
-    self._description = value if value is not None else ""
   
   @property
   def short_description(self):
     return self.display_name
   
   @property
-  def gimp_pdb_type(self):
-    return self._gimp_pdb_type
-  
-  @gimp_pdb_type.setter
-  def gimp_pdb_type(self, value):
-    if self._allowed_pdb_types is None or value in self._allowed_pdb_types:
-      self._gimp_pdb_type = value
-      self.registrable_to_pdb = value is not None
-    else:
-      raise ValueError("GIMP PDB type " + str(value) + " not allowed")
+  def pdb_type(self):
+    return self._pdb_type
   
   @property
-  def registrable_to_pdb(self):
-    return self._registrable_to_pdb
-  
-  @registrable_to_pdb.setter
-  def registrable_to_pdb(self, value):
-    if value and self._gimp_pdb_type is None:
-      raise ValueError("setting cannot be registered to PDB because it has no "
-                       "PDB type set (attribute gimp_pdb_type)")
-    self._registrable_to_pdb = value
+  def pdb_registration_mode(self):
+    return self._pdb_registration_mode
   
   @property
   def resettable_by_group(self):
     return self._resettable_by_group
-  
-  @resettable_by_group.setter
-  def resettable_by_group(self, value):
-    self._resettable_by_group = value
   
   @property
   def ui_enabled(self):
     return self._ui_enabled
   
   @ui_enabled.setter
-  def ui_enabled(self, value):
-    self._ui_enabled = value
+  def ui_enabled(self, ui_enabled):
+    self._ui_enabled = ui_enabled
     self._changed_attributes.add('ui_enabled')
   
   @property
@@ -289,8 +264,8 @@ class Setting(object):
     return self._ui_visible
   
   @ui_visible.setter
-  def ui_visible(self, value):
-    self._ui_visible = value
+  def ui_visible(self, ui_visible):
+    self._ui_visible = ui_visible
     self._changed_attributes.add('ui_visible')
   
   @property
@@ -414,6 +389,41 @@ class Setting(object):
     except SettingValueError as e:
       raise SettingDefaultValueError(e.message)
   
+  def _is_any_pdb_type_allowed(self):
+    return self._ALLOWED_PDB_TYPES is None
+  
+  def _get_pdb_type(self, pdb_type):
+    if self._is_any_pdb_type_allowed() or pdb_type in self._ALLOWED_PDB_TYPES:
+      return pdb_type
+    else:
+      raise ValueError("GIMP PDB type " + str(pdb_type) + " not allowed")
+  
+  def _get_pdb_registration_mode(self, registration_mode):
+    if registration_mode == self.AUTOMATIC:
+      if self._pdb_type is not None:
+        return self.REGISTER
+      else:
+        return self.DO_NOT_REGISTER
+    elif registration_mode == self.REGISTER:
+      if self._pdb_type is not None:
+        return self.REGISTER
+      else:
+        raise ValueError("setting cannot be registered to the GIMP PDB because "
+                         "it has no PDB type set")
+    elif registration_mode == self.DO_NOT_REGISTER:
+      return self.DO_NOT_REGISTER
+    else:
+      raise ValueError("invalid PDB registration mode")
+  
+  def _get_mangled_name(self, name):
+    """
+    Return mangled setting name, useful when using the name in the short
+    description (GIMP PDB automatically mangles setting names, but not
+    descriptions).
+    """
+    
+    return name.replace('_', '-')
+  
   def _value_to_str(self, value):
     """
     Use this method in subclasses to prepend `value` to an error message
@@ -426,15 +436,6 @@ class Setting(object):
       return '"' + str(value) + '": '
     else:
       return ""
-  
-  def _get_mangled_name(self, name):
-    """
-    Return mangled setting name, useful when using the name in the short
-    description (GIMP PDB automatically mangles setting names, but not
-    descriptions).
-    """
-    
-    return name.replace('_', '-')
 
 
 #-------------------------------------------------------------------------------
@@ -468,30 +469,38 @@ class NumericSetting(Setting):
   
   __metaclass__ = abc.ABCMeta
   
-  def __init__(self, name, default_value, **kwargs):
-    self.min_value = None
-    self.max_value = None
+  def __init__(self, name, default_value, min_value=None, max_value=None, **kwargs):
+    self._min_value = min_value
+    self._max_value = max_value
     
     super(NumericSetting, self).__init__(name, default_value, **kwargs)
     
-    self.error_messages['below_min'] = _("Value cannot be less than {0}.").format(self.min_value)
-    self.error_messages['above_max'] = _("Value cannot be greater than {0}.").format(self.max_value)
+    self.error_messages['below_min'] = _("Value cannot be less than {0}.").format(self._min_value)
+    self.error_messages['above_max'] = _("Value cannot be greater than {0}.").format(self._max_value)
+  
+  @property
+  def min_value(self):
+    return self._min_value
+  
+  @property
+  def max_value(self):
+    return self._max_value
   
   @property
   def short_description(self):
-    if self.min_value is not None and self.max_value is None:
-      return self._mangled_name + " >= " + str(self.min_value)
-    elif self.min_value is None and self.max_value is not None:
-      return self._mangled_name + " <= " + str(self.max_value)
-    elif self.min_value is not None and self.max_value is not None:
-      return str(self.min_value) + " <= " + self._mangled_name + " <= " + str(self.max_value)
+    if self._min_value is not None and self._max_value is None:
+      return self._mangled_name + " >= " + str(self._min_value)
+    elif self._min_value is None and self._max_value is not None:
+      return self._mangled_name + " <= " + str(self._max_value)
+    elif self._min_value is not None and self._max_value is not None:
+      return str(self._min_value) + " <= " + self._mangled_name + " <= " + str(self._max_value)
     else:
-      return self.display_name
+      return self._display_name
   
   def _validate(self, value):
-    if self.min_value is not None and value < self.min_value:
+    if self._min_value is not None and value < self._min_value:
       raise SettingValueError(self._value_to_str(value) + self.error_messages['below_min'])
-    if self.max_value is not None and value > self.max_value:
+    if self._max_value is not None and value > self._max_value:
       raise SettingValueError(self._value_to_str(value) + self.error_messages['above_max'])
 
 
@@ -507,11 +516,13 @@ class IntSetting(NumericSetting):
   * PDB_INT8
   """
   
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  
   def __init__(self, name, default_value, **kwargs):
-    super(IntSetting, self).__init__(name, default_value, **kwargs)
+    if 'pdb_type' not in kwargs:
+      kwargs['pdb_type'] = gimpenums.PDB_INT32
     
-    self._allowed_pdb_types = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-    self.gimp_pdb_type = gimpenums.PDB_INT32
+    super(IntSetting, self).__init__(name, default_value, **kwargs)
 
 
 class FloatSetting(NumericSetting):
@@ -524,11 +535,13 @@ class FloatSetting(NumericSetting):
   * PDB_FLOAT
   """
   
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_FLOAT]
+  
   def __init__(self, name, default_value, **kwargs):
-    super(FloatSetting, self).__init__(name, default_value, **kwargs)
+    if 'pdb_type' not in kwargs:
+      kwargs['pdb_type'] = gimpenums.PDB_FLOAT
     
-    self._allowed_pdb_types = [gimpenums.PDB_FLOAT]
-    self.gimp_pdb_type = gimpenums.PDB_FLOAT
+    super(FloatSetting, self).__init__(name, default_value, **kwargs)
     
 
 class BoolSetting(Setting):
@@ -546,11 +559,13 @@ class BoolSetting(Setting):
   * PDB_INT8
   """
   
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  
   def __init__(self, name, default_value, **kwargs):
-    super(BoolSetting, self).__init__(name, default_value, **kwargs)
+    if 'pdb_type' not in kwargs:
+      kwargs['pdb_type'] = gimpenums.PDB_INT32
     
-    self._allowed_pdb_types = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-    self.gimp_pdb_type = gimpenums.PDB_INT32
+    super(BoolSetting, self).__init__(name, default_value, **kwargs)
   
   @property
   def short_description(self):
@@ -609,6 +624,8 @@ class EnumSetting(Setting):
     option values in the 3-element tuples were specified multiple times.
   """
   
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  
   def __init__(self, name, default_value, options, validate_default_value=True, **kwargs):
     
     """
@@ -627,12 +644,12 @@ class EnumSetting(Setting):
       tuples - use only 2- or only 3-element tuples.
     """
     
+    if 'pdb_type' not in kwargs:
+      kwargs['pdb_type'] = gimpenums.PDB_INT32
+    
     orig_validate_default_value = validate_default_value
     
     super(EnumSetting, self).__init__(name, default_value, validate_default_value=False, **kwargs)
-    
-    self._allowed_pdb_types = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-    self.gimp_pdb_type = gimpenums.PDB_INT32
     
     self.error_messages['wrong_options_len'] = (
       "Wrong number of tuple elements in options - must be only 2- or only 3-element tuples"
@@ -737,11 +754,13 @@ class ImageSetting(Setting):
   * `'invalid_value'` - The image assigned is invalid.
   """
   
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_IMAGE]
+  
   def __init__(self, name, default_value, **kwargs):
-    super(ImageSetting, self).__init__(name, default_value, **kwargs)
+    if 'pdb_type' not in kwargs:
+      kwargs['pdb_type'] = gimpenums.PDB_IMAGE
     
-    self._allowed_pdb_types = [gimpenums.PDB_IMAGE]
-    self.gimp_pdb_type = gimpenums.PDB_IMAGE
+    super(ImageSetting, self).__init__(name, default_value, **kwargs)
     
     self.error_messages['invalid_value'] = _("Invalid image.")
   
@@ -765,11 +784,13 @@ class DrawableSetting(Setting):
   * `'invalid_value'` - The drawable assigned is invalid.
   """
   
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_DRAWABLE]
+  
   def __init__(self, name, default_value, **kwargs):
-    super(DrawableSetting, self).__init__(name, default_value, **kwargs)
+    if 'pdb_type' not in kwargs:
+      kwargs['pdb_type'] = gimpenums.PDB_DRAWABLE
     
-    self._allowed_pdb_types = [gimpenums.PDB_DRAWABLE]
-    self.gimp_pdb_type = gimpenums.PDB_DRAWABLE
+    super(DrawableSetting, self).__init__(name, default_value, **kwargs)
     
     self.error_messages['invalid_value'] = _("Invalid drawable.")
   
@@ -788,11 +809,13 @@ class StringSetting(Setting):
   * PDB_STRING
   """
   
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_STRING]
+  
   def __init__(self, name, default_value, **kwargs):
-    super(StringSetting, self).__init__(name, default_value, **kwargs)
+    if 'pdb_type' not in kwargs:
+      kwargs['pdb_type'] = gimpenums.PDB_STRING
     
-    self._allowed_pdb_types = [gimpenums.PDB_STRING]
-    self.gimp_pdb_type = gimpenums.PDB_STRING
+    super(StringSetting, self).__init__(name, default_value, **kwargs)
 
 
 class ValidatableStringSetting(StringSetting):
@@ -905,8 +928,10 @@ class IntArraySetting(Setting):
     - this applies to any array setting
   """
   
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32ARRAY, gimpenums.PDB_INT16ARRAY, gimpenums.PDB_INT8ARRAY]
+  
   def __init__(self, name, default_value, **kwargs):
+    if 'pdb_type' not in kwargs:
+      kwargs['pdb_type'] = gimpenums.PDB_INT32ARRAY
+    
     super(IntArraySetting, self).__init__(name, default_value, **kwargs)
-     
-    self._allowed_pdb_types = [gimpenums.PDB_INT32ARRAY, gimpenums.PDB_INT16ARRAY, gimpenums.PDB_INT8ARRAY]
-    self.gimp_pdb_type = gimpenums.PDB_INT32ARRAY

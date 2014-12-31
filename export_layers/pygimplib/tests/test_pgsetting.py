@@ -94,17 +94,17 @@ class TestSetting(unittest.TestCase):
       self.assertTrue(attr in self.setting.changed_attributes,
                       msg=("'" + attr + "' not in " + str(self.setting.changed_attributes)))
   
-  def test_registrable_to_pdb(self):
-    self.setting.gimp_pdb_type = gimpenums.PDB_INT32
-    self.assertEqual(self.setting.registrable_to_pdb, True)
-    
-    self.setting.gimp_pdb_type = None
-    self.assertEqual(self.setting.registrable_to_pdb, False)
+  def test_pdb_registration_mode_automatic_is_registrable(self):
+    setting = pgsetting.Setting('file_extension', "png", pdb_type=gimpenums.PDB_STRING)
+    self.assertEqual(setting.pdb_registration_mode, pgsetting.Setting.REGISTER)
   
-  def test_invalid_pdb_type_and_registrable_to_pdb_raises_error(self):
+  def test_pdb_registration_mode_automatic_is_not_registrable(self):
+    setting = pgsetting.Setting('file_extension', "png", pdb_type=None)
+    self.assertEqual(setting.pdb_registration_mode, pgsetting.Setting.DO_NOT_REGISTER)
+  
+  def test_invalid_pdb_type_and_registration_mode_raises_error(self):
     with self.assertRaises(ValueError):
-      self.setting.gimp_pdb_type = None
-      self.setting.registrable_to_pdb = True
+      pgsetting.Setting('file_extension', "png", pdb_type=None, pdb_registration_mode=pgsetting.Setting.REGISTER)
   
   def test_reset(self):
     setting = pgsetting.Setting('file_extension', "png")
@@ -158,55 +158,62 @@ class TestSetting(unittest.TestCase):
 class TestIntSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.IntSetting('count', 0)
-    self.setting.min_value = 0
-    self.setting.max_value = 100
+    self.setting = pgsetting.IntSetting('count', 0, min_value=0, max_value=100)
   
-  def test_below_min(self):
+  def test_value_is_below_min(self):
     with self.assertRaises(pgsetting.SettingValueError):
       self.setting.set_value(-5)
   
-  def test_above_max(self):
+  def test_minimum_value_does_not_raise_error(self):
+    try:
+      self.setting.set_value(0)
+    except pgsetting.SettingValueError:
+      self.fail("SettingValueError should not be raised")
+  
+  def test_value_is_above_max(self):
     with self.assertRaises(pgsetting.SettingValueError):
       self.setting.set_value(200)
+  
+  def test_maximum_value_does_not_raise_error(self):
+    try:
+      self.setting.set_value(100)
+    except pgsetting.SettingValueError:
+      self.fail("SettingValueError should not be raised")
 
 
 class TestFloatSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.FloatSetting('clip_percent', 0.0)
-    self.setting.min_value = 0.0
-    self.setting.max_value = 100.0
+    self.setting = pgsetting.FloatSetting('clip_percent', 0.0, min_value=0.0, max_value=100.0)
   
-  def test_below_min(self):
+  def test_value_below_min(self):
     with self.assertRaises(pgsetting.SettingValueError):
       self.setting.set_value(-5.0)
-    
+  
+  def test_minimum_value_does_not_raise_error(self):
     try:
       self.setting.set_value(0.0)
     except pgsetting.SettingValueError:
-      self.fail("`SettingValueError` should not be raised")
+      self.fail("SettingValueError should not be raised")
   
-  def test_above_max(self):
+  def test_value_above_max(self):
     with self.assertRaises(pgsetting.SettingValueError):
       self.setting.set_value(200.0)
-    
+  
+  def test_maximum_value_does_not_raise_error(self):
     try:
       self.setting.set_value(100.0)
     except pgsetting.SettingValueError:
-      self.fail("`SettingValueError` should not be raised")
+      self.fail("SettingValueError should not be raised")
 
 
 class TestEnumSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting_display_name = "Overwrite mode (non-interactive only)"
-    
     self.setting = pgsetting.EnumSetting(
       'overwrite_mode', 'replace',
-      [('skip', "Skip"),
-       ('replace', "Replace")])
-    self.setting.display_name = self.setting_display_name
+      [('skip', "Skip"), ('replace', "Replace")],
+      display_name="Overwrite mode (non-interactive only)")
   
   def test_explicit_values(self):
     setting = pgsetting.EnumSetting(
@@ -250,24 +257,21 @@ class TestEnumSetting(unittest.TestCase):
       pgsetting.EnumSetting(
           'overwrite_mode', None,
           [('skip', "Skip", 1),
-           ('replace', "Replace")]
-      )
+           ('replace', "Replace")])
   
   def test_invalid_options_length_too_many_elements(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
           'overwrite_mode', None,
           [('skip', "Skip", 1, 1),
-           ('replace', "Replace", 1, 1)]
-      )
+           ('replace', "Replace", 1, 1)])
   
   def test_invalid_options_length_too_few_elements(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
           'overwrite_mode', None,
           [('skip'),
-           ('replace')]
-      )
+           ('replace')])
   
   def test_set_invalid_option(self):
     with self.assertRaises(pgsetting.SettingValueError):
@@ -281,12 +285,10 @@ class TestEnumSetting(unittest.TestCase):
   
   def test_short_description(self):
     self.assertEqual(self.setting.short_description,
-                     self.setting_display_name + " { Skip (0), Replace (1) }")
+                     self.setting.display_name + " { Skip (0), Replace (1) }")
   
   def test_get_option_display_names_and_values(self):
-    option_display_names_and_values = self.setting.get_option_display_names_and_values()
-    self.assertEqual(option_display_names_and_values,
-                     ["Skip", 0, "Replace", 1])
+    self.assertEqual(self.setting.get_option_display_names_and_values(), ["Skip", 0, "Replace", 1])
 
 
 class TestImageSetting(unittest.TestCase):

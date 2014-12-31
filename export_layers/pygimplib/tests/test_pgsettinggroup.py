@@ -102,8 +102,10 @@ class SettingGroupTest(pgsettinggroup.SettingGroup):
   
   def _create_settings(self):
     
-    self._add(pgsetting.StringSetting('file_extension', "bmp"))
+    self._add(pgsetting.FileExtensionSetting('file_extension', "bmp", resettable_by_group=False))
+    
     self._add(pgsetting.BoolSetting('ignore_invisible', False))
+    
     self._add(
       pgsetting.EnumSetting(
        'overwrite_mode', 'rename_new',
@@ -111,6 +113,38 @@ class SettingGroupTest(pgsettinggroup.SettingGroup):
         ('skip', "Skip"),
         ('rename_new', "Rename new file"),
         ('rename_existing', "Rename existing file")])
+    )
+    
+    self['file_extension'].set_streamline_func(streamline_file_extension, self['ignore_invisible'])
+    self['overwrite_mode'].set_streamline_func(streamline_overwrite_mode, self['ignore_invisible'], self['file_extension'])
+
+
+class NewSettingGroupTest(pgsettinggroup.SettingGroup):
+   
+  def _create_settings(self):
+     
+    self._add(
+      pgsetting.FileExtensionSetting,
+      name='file_extension',
+      default_value='bmp',
+      resettable_by_group=False
+    )
+    
+    self._add(
+      pgsetting.BoolSetting,
+      name='ignore_invisible',
+      default_value=False,
+      display_name="Ignore invisible"
+    )
+    
+    self._add(
+      pgsetting.EnumSetting,
+      name='overwrite_mode',
+      default_value='rename_new',
+      options=[('replace', "Replace"),
+               ('skip', "Skip"),
+               ('rename_new', "Rename new file"),
+               ('rename_existing', "Rename existing file")],
     )
     
     self['file_extension'].set_streamline_func(streamline_file_extension, self['ignore_invisible'])
@@ -156,11 +190,30 @@ class TestSettingGroup(unittest.TestCase):
   def test_reset(self):
     self.settings['overwrite_mode'].set_value(self.settings['overwrite_mode'].options['rename_new'])
     self.settings['file_extension'].set_value("jpg")
-    self.settings['file_extension'].resettable_by_group = False
     self.settings.reset()
     self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].default_value)
     self.assertNotEqual(self.settings['file_extension'].value, self.settings['file_extension'].default_value)
     self.assertEqual(self.settings['file_extension'].value, "jpg")
+
+
+#===============================================================================
+
+
+# class TestSettingAttributeSubstitutor(unittest.TestCase):
+#   
+#   def test_substitute_attributes(self):
+#     description=("If this setting is enabled, \"{0}\" will be, for some reason, "
+#                    "set to \"{1}\".").format(self._get_setting_property('file_extension', 'display_name'),
+#                                              self._get_setting_property('file_extension', 'default_value'))
+#     
+#     description=("If this setting is enabled, {0} will be, for some reason, "
+#                  "set to {1} " + self._get_setting_property('file_extension', 'display_name'))
+#     description=("If this setting is enabled, {} will be, for some reason, "
+#                  "set to {} " + self._get_setting_property('file_extension', 'display_name'))
+#     description=("If this setting is enabled, {{}} {0} will be, for some reason, "
+#                  "set to {{}} ".format(self._get_setting_property('file_extension', 'display_name')))
+#     temp_str = "If this setting is enabled, {} {} will be, for some reason, set to {} "
+#     final_str = "If this setting is enabled, File extension {} will be, for some reason, set to {} "
 
 
 #===============================================================================
@@ -246,8 +299,7 @@ class TestShelfSettingStream(unittest.TestCase):
   
   @mock.patch(LIB_NAME + '.pgsettinggroup.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_read_invalid_setting_value(self):
-    setting_with_invalid_value = pgsetting.IntSetting('int', -1)
-    setting_with_invalid_value.min_value = 0
+    setting_with_invalid_value = pgsetting.IntSetting('int', -1, min_value=0)
     self.stream.write([setting_with_invalid_value])
     self.stream.read([setting_with_invalid_value])
     self.assertEqual(setting_with_invalid_value.value, setting_with_invalid_value.default_value)
@@ -297,8 +349,7 @@ class TestJSONFileSettingStream(unittest.TestCase):
   def test_read_invalid_setting_value(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
-    setting_with_invalid_value = pgsetting.IntSetting('int', -1)
-    setting_with_invalid_value.min_value = 0
+    setting_with_invalid_value = pgsetting.IntSetting('int', -1, min_value=0)
     self.stream.write([setting_with_invalid_value])
     self.stream.read([setting_with_invalid_value])
     self.assertEqual(setting_with_invalid_value.value, setting_with_invalid_value.default_value)
@@ -415,12 +466,10 @@ class TestSettingPersistor(unittest.TestCase):
 class TestPdbParamCreator(unittest.TestCase):
   
   def setUp(self):
-    self.file_ext_setting = pgsetting.FileExtensionSetting("file_extension", "png")
-    self.file_ext_setting.display_name = "File extension"
-    
-    self.unregistrable_setting = pgsetting.IntSetting("num_exported_layers", 0)
-    self.unregistrable_setting.registrable_to_pdb = False
-    
+    self.file_ext_setting = pgsetting.FileExtensionSetting("file_extension", "png",
+                                                           display_name="File extension")
+    self.unregistrable_setting = pgsetting.IntSetting("num_exported_layers", 0,
+                                                      pdb_registration_mode=pgsetting.Setting.DO_NOT_REGISTER)
     self.settings = SettingGroupTest()
   
   def test_create_one_param_successfully(self):
@@ -442,10 +491,10 @@ class TestPdbParamCreator(unittest.TestCase):
     
     self.assertTrue(len(params), 1 + len(self.settings))
     
-    self.assertEqual(params[0], (self.file_ext_setting.gimp_pdb_type, self.file_ext_setting.name.encode(),
+    self.assertEqual(params[0], (self.file_ext_setting.pdb_type, self.file_ext_setting.name.encode(),
                                  self.file_ext_setting.short_description.encode()))
     for param, setting in zip(params[1:], self.settings):
-      self.assertEqual(param, (setting.gimp_pdb_type, setting.name.encode(),
+      self.assertEqual(param, (setting.pdb_type, setting.name.encode(),
                                setting.short_description.encode()))
   
   def test_create_params_with_unregistrable_setting(self):

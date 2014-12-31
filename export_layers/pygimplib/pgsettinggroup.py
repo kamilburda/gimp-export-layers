@@ -901,9 +901,10 @@ class PdbParamCreator(object):
       else:
         raise TypeError("not a Setting or a SettingGroup object")
     
-    return [cls._create_param(setting) for setting in settings if setting.registrable_to_pdb]
+    return [cls._create_param(setting) for setting in settings
+            if setting.pdb_registration_mode == pgsetting.Setting.REGISTER]
   
   @classmethod
   def _create_param(cls, setting):
-    return (setting.gimp_pdb_type, setting.name.encode(), setting.short_description.encode())
+    return (setting.pdb_type, setting.name.encode(), setting.short_description.encode())
 
