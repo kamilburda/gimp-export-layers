@@ -96,15 +96,16 @@ class TestSetting(unittest.TestCase):
   
   def test_pdb_registration_mode_automatic_is_registrable(self):
     setting = pgsetting.Setting('file_extension', "png", pdb_type=gimpenums.PDB_STRING)
-    self.assertEqual(setting.pdb_registration_mode, pgsetting.Setting.REGISTER)
+    self.assertEqual(setting.pdb_registration_mode, pgsetting.PdbRegistrationModes.registrable)
   
   def test_pdb_registration_mode_automatic_is_not_registrable(self):
     setting = pgsetting.Setting('file_extension', "png", pdb_type=None)
-    self.assertEqual(setting.pdb_registration_mode, pgsetting.Setting.DO_NOT_REGISTER)
+    self.assertEqual(setting.pdb_registration_mode, pgsetting.PdbRegistrationModes.not_registrable)
   
   def test_invalid_pdb_type_and_registration_mode_raises_error(self):
     with self.assertRaises(ValueError):
-      pgsetting.Setting('file_extension', "png", pdb_type=None, pdb_registration_mode=pgsetting.Setting.REGISTER)
+      pgsetting.Setting('file_extension', "png", pdb_type=None,
+                        pdb_registration_mode=pgsetting.PdbRegistrationModes.registrable)
   
   def test_reset(self):
     setting = pgsetting.Setting('file_extension', "png")

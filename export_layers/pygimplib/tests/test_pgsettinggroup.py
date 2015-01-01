@@ -469,7 +469,7 @@ class TestPdbParamCreator(unittest.TestCase):
     self.file_ext_setting = pgsetting.FileExtensionSetting("file_extension", "png",
                                                            display_name="File extension")
     self.unregistrable_setting = pgsetting.IntSetting("num_exported_layers", 0,
-                                                      pdb_registration_mode=pgsetting.Setting.DO_NOT_REGISTER)
+                                                      pdb_registration_mode=pgsetting.PdbRegistrationModes.not_registrable)
     self.settings = SettingGroupTest()
   
   def test_create_one_param_successfully(self):

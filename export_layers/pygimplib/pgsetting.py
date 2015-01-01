@@ -41,11 +41,22 @@ from collections import OrderedDict
 import gimp
 import gimpenums
 
+from .lib import enum
+
 from . import pgpath
 
 #===============================================================================
 
 pdb = gimp.pdb
+
+#===============================================================================
+
+
+class PdbRegistrationModes(enum.Enum):
+  automatic = 0
+  registrable = 1
+  not_registrable = 2
+
 
 #===============================================================================
 
@@ -156,13 +167,11 @@ class Setting(object):
     `changed_attributes` is cleared if `streamline()` is called.
   """
   
-  PDB_REGISTRATION_MODES = AUTOMATIC, REGISTER, DO_NOT_REGISTER = (0, 1, 2)
-  
   _ALLOWED_PDB_TYPES = None
   
   def __init__(self, name, default_value, validate_default_value=True,
                display_name="", description="",
-               pdb_type=None, pdb_registration_mode=AUTOMATIC,
+               pdb_type=None, pdb_registration_mode=PdbRegistrationModes.automatic,
                resettable_by_group=True):
     
     """
@@ -399,19 +408,19 @@ class Setting(object):
     return self._ALLOWED_PDB_TYPES is None
   
   def _get_pdb_registration_mode(self, registration_mode):
-    if registration_mode == self.AUTOMATIC:
+    if registration_mode == PdbRegistrationModes.automatic:
       if self._pdb_type is not None:
-        return self.REGISTER
+        return PdbRegistrationModes.registrable
       else:
-        return self.DO_NOT_REGISTER
-    elif registration_mode == self.REGISTER:
+        return PdbRegistrationModes.not_registrable
+    elif registration_mode == PdbRegistrationModes.registrable:
       if self._pdb_type is not None:
-        return self.REGISTER
+        return PdbRegistrationModes.registrable
       else:
         raise ValueError("setting cannot be registered to the GIMP PDB because "
                          "it has no PDB type set")
-    elif registration_mode == self.DO_NOT_REGISTER:
-      return self.DO_NOT_REGISTER
+    elif registration_mode == PdbRegistrationModes.not_registrable:
+      return PdbRegistrationModes.not_registrable
     else:
       raise ValueError("invalid PDB registration mode")
   
