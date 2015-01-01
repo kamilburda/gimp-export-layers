@@ -196,6 +196,9 @@ class Setting(object):
     self._streamline_func = None
     self._streamline_args = []
     
+    self._error_messages = {}
+    self._init_error_messages()
+    
     if validate_default_value:
       self._validate_default_value()
   
@@ -428,6 +431,13 @@ class Setting(object):
     
     return name.replace('_', '-')
   
+  def _init_error_messages(self):
+    """
+    Initialize custom error messages in the `error_messages` dict.
+    """
+    
+    pass
+  
   def _value_to_str(self, value):
     """
     Use this method in subclasses to prepend `value` to an error message
@@ -478,7 +488,8 @@ class NumericSetting(Setting):
     self._max_value = max_value
     
     super(NumericSetting, self).__init__(name, default_value, **kwargs)
-    
+  
+  def _init_error_messages(self):
     self.error_messages['below_min'] = _("Value cannot be less than {0}.").format(self._min_value)
     self.error_messages['above_max'] = _("Value cannot be greater than {0}.").format(self._max_value)
   
@@ -766,6 +777,7 @@ class ImageSetting(Setting):
     
     super(ImageSetting, self).__init__(name, default_value, **kwargs)
     
+  def _init_error_messages(self):
     self.error_messages['invalid_value'] = _("Invalid image.")
   
   def _validate(self, image):
@@ -796,6 +808,7 @@ class DrawableSetting(Setting):
     
     super(DrawableSetting, self).__init__(name, default_value, **kwargs)
     
+  def _init_error_messages(self):
     self.error_messages['invalid_value'] = _("Invalid drawable.")
   
   def _validate(self, drawable):
