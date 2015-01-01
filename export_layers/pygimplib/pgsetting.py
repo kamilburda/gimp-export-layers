@@ -404,9 +404,6 @@ class Setting(object):
     except SettingValueError as e:
       raise SettingDefaultValueError(e.message)
   
-  def _is_any_pdb_type_allowed(self):
-    return self._ALLOWED_PDB_TYPES is None
-  
   def _get_pdb_registration_mode(self, registration_mode):
     if registration_mode == PdbRegistrationModes.automatic:
       if self._pdb_type is not None:
@@ -425,10 +422,24 @@ class Setting(object):
       raise ValueError("invalid PDB registration mode")
   
   def _get_pdb_type(self, pdb_type):
-    if self._is_any_pdb_type_allowed() or pdb_type in self._ALLOWED_PDB_TYPES:
-      return pdb_type
+    if not self._is_any_pdb_type_allowed():
+      if pdb_type is None:
+        return self._get_default_pdb_type()
+      elif pdb_type in self._ALLOWED_PDB_TYPES:
+        return pdb_type
+      else:
+        raise ValueError("GIMP PDB type " + str(pdb_type) + " not allowed")
     else:
-      raise ValueError("GIMP PDB type " + str(pdb_type) + " not allowed")
+      return pdb_type
+  
+  def _is_any_pdb_type_allowed(self):
+    return self._ALLOWED_PDB_TYPES is None
+  
+  def _get_default_pdb_type(self):
+    if self._ALLOWED_PDB_TYPES:
+      return self._ALLOWED_PDB_TYPES[0]
+    else:
+      return None
   
   def _get_pdb_name(self, name):
     """
@@ -540,12 +551,6 @@ class IntSetting(NumericSetting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-  
-  def __init__(self, name, default_value, **kwargs):
-    if 'pdb_type' not in kwargs:
-      kwargs['pdb_type'] = gimpenums.PDB_INT32
-    
-    super(IntSetting, self).__init__(name, default_value, **kwargs)
 
 
 class FloatSetting(NumericSetting):
@@ -559,12 +564,6 @@ class FloatSetting(NumericSetting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_FLOAT]
-  
-  def __init__(self, name, default_value, **kwargs):
-    if 'pdb_type' not in kwargs:
-      kwargs['pdb_type'] = gimpenums.PDB_FLOAT
-    
-    super(FloatSetting, self).__init__(name, default_value, **kwargs)
     
 
 class BoolSetting(Setting):
@@ -583,12 +582,6 @@ class BoolSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-  
-  def __init__(self, name, default_value, **kwargs):
-    if 'pdb_type' not in kwargs:
-      kwargs['pdb_type'] = gimpenums.PDB_INT32
-    
-    super(BoolSetting, self).__init__(name, default_value, **kwargs)
   
   @property
   def short_description(self):
@@ -666,9 +659,6 @@ class EnumSetting(Setting):
       unique and specified in each tuple. You cannot combine 2- and 3- element
       tuples - use only 2- or only 3-element tuples.
     """
-    
-    if 'pdb_type' not in kwargs:
-      kwargs['pdb_type'] = gimpenums.PDB_INT32
     
     orig_validate_default_value = validate_default_value
     
@@ -778,12 +768,6 @@ class ImageSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_IMAGE]
-  
-  def __init__(self, name, default_value, **kwargs):
-    if 'pdb_type' not in kwargs:
-      kwargs['pdb_type'] = gimpenums.PDB_IMAGE
-    
-    super(ImageSetting, self).__init__(name, default_value, **kwargs)
     
   def _init_error_messages(self):
     self.error_messages['invalid_value'] = _("Invalid image.")
@@ -809,12 +793,6 @@ class DrawableSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_DRAWABLE]
-  
-  def __init__(self, name, default_value, **kwargs):
-    if 'pdb_type' not in kwargs:
-      kwargs['pdb_type'] = gimpenums.PDB_DRAWABLE
-    
-    super(DrawableSetting, self).__init__(name, default_value, **kwargs)
     
   def _init_error_messages(self):
     self.error_messages['invalid_value'] = _("Invalid drawable.")
@@ -835,12 +813,6 @@ class StringSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_STRING]
-  
-  def __init__(self, name, default_value, **kwargs):
-    if 'pdb_type' not in kwargs:
-      kwargs['pdb_type'] = gimpenums.PDB_STRING
-    
-    super(StringSetting, self).__init__(name, default_value, **kwargs)
 
 
 class ValidatableStringSetting(StringSetting):
@@ -950,9 +922,3 @@ class IntArraySetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32ARRAY, gimpenums.PDB_INT16ARRAY, gimpenums.PDB_INT8ARRAY]
-  
-  def __init__(self, name, default_value, **kwargs):
-    if 'pdb_type' not in kwargs:
-      kwargs['pdb_type'] = gimpenums.PDB_INT32ARRAY
-    
-    super(IntArraySetting, self).__init__(name, default_value, **kwargs)
