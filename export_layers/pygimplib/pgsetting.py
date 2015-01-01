@@ -102,40 +102,44 @@ class Setting(object):
   * `default_value` (read-only) - Default value of the setting assigned upon its
     initialization or after the `reset()` method is called.
   
-  * `display_name` - Setting name in human-readable format. Useful as GUI labels.
+  * `display_name` (read-only) - Setting name in human-readable format. Useful
+    e.g. as GUI labels.
   
-  * `description` - Describes the setting in more detail. Useful for
+  * `description` (read-only) - Describes the setting in more detail. Useful for
     documentation purposes as well as GUI tooltips.
   
   * `short_description` (read-only) - Usually `display_name` plus additional
     information in parentheses (such as boundaries for numeric values). Useful
-    as setting description when registering the setting as a plug-in parameter
+    as a setting description when registering the setting as a plug-in parameter
     to the PDB.
   
-  * `pdb_type` - GIMP Procedural Database (PDB) type, used when registering
+  * `pdb_registration_mode` (read-only) - Indicates whether the setting can be registered
+    as a parameter to a plug-in. Automatically set to True if `pdb_type` is
+    assigned to a valid value that is not None.
+  
+  * `pdb_type` (read-only) - GIMP Procedural Database (PDB) type, used when registering
     the setting as a plug-in parameter to the PDB. `_allowed_pdb_types` list,
     which is class-specific, determines whether the PDB type assigned is valid.
     `_allowed_pdb_types` in this class is None, which means that any PDB type
     can be assigned.
   
-  * `pdb_registration_mode` - Indicates whether the setting can be registered
-    as a parameter to a plug-in. Automatically set to True if `pdb_type` is
-    assigned to a valid value that is not None.
+  * `pdb_name` (read-only) - Setting name as it appears in the GIMP PDB as
+    a PDB parameter name.
   
-  * `resettable_by_group` - If True, the setting is reset to its default
+  * `resettable_by_group` (read-only) - If True, the setting is reset to its default
     value if the `reset()` method from the corresponding `SettingGroup` is
     called. False by default.
   
-  * `ui_enabled` - Indicates whether the setting should be enabled (respond
+  * `ui_enabled` (read-only) - Indicates whether the setting should be enabled (respond
     to user input) in the GUI. True by default. This attribute is only an
     indication, it does not modify a GUI element (use the appropriate
     `SettingPresenter` subclass for that purpose).
   
-  * `ui_visible` - Indicates whether the setting should be visible in the GUI.
+  * `ui_visible` (read-only) - Indicates whether the setting should be visible in the GUI.
     True by default. This attribute is only an indication, it does not modify a
     GUI element (use the appropriate `SettingPresenter` subclass for that purpose).
   
-  * `error_messages` - A dict of error messages, which can be used e.g. if a value
+  * `error_messages` (read-only) - A dict of error messages, which can be used e.g. if a value
     assigned to the setting is invalid. You can add your own error messages and
     assign them to one of the "default" error messages (such as 'invalid_value'
     in several `Setting` subclasses) depending on the context in which the value
@@ -162,11 +166,8 @@ class Setting(object):
                resettable_by_group=True):
     
     """
-    Parameters:
-    
-    * `name` - Setting name as a string.
-    
-    * `default_value` - Default value of the setting.
+    Parameters (described are only those parameters that do not correspond to
+    any attribute in this class):
     
     * `validate_default_value` - If True, check whether the default value of the
        setting is valid. If it is invalid, raise `SettingDefaultValueError`. If
@@ -185,9 +186,7 @@ class Setting(object):
     
     self._value = self._default_value
     
-    self._mangled_name = self._get_mangled_name(self._name)
-    
-    self._error_messages = {}
+    self._pdb_name = self._get_pdb_name(self._name)
     
     self._ui_enabled = True
     self._ui_visible = True
@@ -205,10 +204,6 @@ class Setting(object):
   @property
   def name(self):
     return self._name
-  
-  @property
-  def mangled_name(self):
-    return self._mangled_name
   
   @property
   def value(self):
@@ -252,6 +247,10 @@ class Setting(object):
   @property
   def pdb_registration_mode(self):
     return self._pdb_registration_mode
+  
+  @property
+  def pdb_name(self):
+    return self._pdb_name
   
   @property
   def resettable_by_group(self):
@@ -399,12 +398,6 @@ class Setting(object):
   def _is_any_pdb_type_allowed(self):
     return self._ALLOWED_PDB_TYPES is None
   
-  def _get_pdb_type(self, pdb_type):
-    if self._is_any_pdb_type_allowed() or pdb_type in self._ALLOWED_PDB_TYPES:
-      return pdb_type
-    else:
-      raise ValueError("GIMP PDB type " + str(pdb_type) + " not allowed")
-  
   def _get_pdb_registration_mode(self, registration_mode):
     if registration_mode == self.AUTOMATIC:
       if self._pdb_type is not None:
@@ -422,7 +415,13 @@ class Setting(object):
     else:
       raise ValueError("invalid PDB registration mode")
   
-  def _get_mangled_name(self, name):
+  def _get_pdb_type(self, pdb_type):
+    if self._is_any_pdb_type_allowed() or pdb_type in self._ALLOWED_PDB_TYPES:
+      return pdb_type
+    else:
+      raise ValueError("GIMP PDB type " + str(pdb_type) + " not allowed")
+  
+  def _get_pdb_name(self, name):
     """
     Return mangled setting name, useful when using the name in the short
     description (GIMP PDB automatically mangles setting names, but not
@@ -504,11 +503,11 @@ class NumericSetting(Setting):
   @property
   def short_description(self):
     if self._min_value is not None and self._max_value is None:
-      return self._mangled_name + " >= " + str(self._min_value)
+      return self._pdb_name + " >= " + str(self._min_value)
     elif self._min_value is None and self._max_value is not None:
-      return self._mangled_name + " <= " + str(self._max_value)
+      return self._pdb_name + " <= " + str(self._max_value)
     elif self._min_value is not None and self._max_value is not None:
-      return str(self._min_value) + " <= " + self._mangled_name + " <= " + str(self._max_value)
+      return str(self._min_value) + " <= " + self._pdb_name + " <= " + str(self._max_value)
     else:
       return self._display_name
   
