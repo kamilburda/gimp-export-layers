@@ -299,7 +299,7 @@ class TestShelfSettingStream(unittest.TestCase):
   
   @mock.patch(LIB_NAME + '.pgsettinggroup.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_read_invalid_setting_value(self):
-    setting_with_invalid_value = pgsetting.IntSetting('int', -1, min_value=0)
+    setting_with_invalid_value = pgsetting.IntSetting('int', -1, min_value=0, validate_default_value=False)
     self.stream.write([setting_with_invalid_value])
     self.stream.read([setting_with_invalid_value])
     self.assertEqual(setting_with_invalid_value.value, setting_with_invalid_value.default_value)
@@ -349,7 +349,7 @@ class TestJSONFileSettingStream(unittest.TestCase):
   def test_read_invalid_setting_value(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
-    setting_with_invalid_value = pgsetting.IntSetting('int', -1, min_value=0)
+    setting_with_invalid_value = pgsetting.IntSetting('int', -1, min_value=0, validate_default_value=False)
     self.stream.write([setting_with_invalid_value])
     self.stream.read([setting_with_invalid_value])
     self.assertEqual(setting_with_invalid_value.value, setting_with_invalid_value.default_value)
