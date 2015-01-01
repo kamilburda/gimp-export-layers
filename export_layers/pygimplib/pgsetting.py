@@ -868,7 +868,7 @@ class ValidatableStringSetting(StringSetting):
   
   __metaclass__ = abc.ABCMeta
   
-  def __init__(self, name, default_value, string_validator, validate_default_value=True, **kwargs):
+  def __init__(self, name, default_value, string_validator, **kwargs):
     """
     Additional parameters:
     
@@ -876,17 +876,13 @@ class ValidatableStringSetting(StringSetting):
       the value assigned to this object.
     """
     
-    orig_validate_default_value = validate_default_value
-    
-    super(ValidatableStringSetting, self).__init__(name, default_value, validate_default_value=False, **kwargs)
-    
     self._string_validator = string_validator
     
+    super(ValidatableStringSetting, self).__init__(name, default_value, **kwargs)
+    
+  def _init_error_messages(self):
     for status in self._string_validator.ERROR_STATUSES:
       self.error_messages[status] = ""
-    
-    if orig_validate_default_value:
-      self._validate_default_value()
   
   def _validate(self, value):
     is_valid, status_messages = self._string_validator.is_valid(value)

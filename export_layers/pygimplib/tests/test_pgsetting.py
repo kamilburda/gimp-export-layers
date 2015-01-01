@@ -311,6 +311,10 @@ class TestFileExtensionSetting(unittest.TestCase):
   def setUp(self):
     self.setting = pgsetting.FileExtensionSetting('file_ext', "png")
   
+  def test_invalid_default_value(self):
+    with self.assertRaises(pgsetting.SettingDefaultValueError):
+      pgsetting.FileExtensionSetting('file_ext', None)
+  
   def test_custom_error_message(self):
     self.setting.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = "My Custom Message"
     
