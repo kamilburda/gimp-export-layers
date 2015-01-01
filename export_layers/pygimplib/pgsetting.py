@@ -96,12 +96,16 @@ class Setting(object):
   This class holds data about a plug-in setting.
   
   Attributes and methods in this class can be used in multiple scenarios, such as:
-  * variables used in the main ("business"?) logic of plug-ins
-  * parameters registered to plug-ins
-  * properties of GUI elements (values, labels, tooltips, etc.)
+  * using setting values as variables in the main logic of plug-ins
+  * registering GIMP Procedural Database (PDB) parameters to plug-ins
+  * GUI element properties (values, labels, tooltips, etc.)
   
-  It is recommended to use an appropriate subclass for a setting. If there is no
-  appropriate subclass, use this class.
+  It is recommended to use an appropriate subclass for a setting, e.g. for
+  automatic validation of input values. If there is no appropriate subclass, you
+  may use this class.
+  
+  This class allows to use any PDB type or no type. It is up to the developer to
+  validate input values if needed.
   
   Attributes:
   
@@ -122,39 +126,50 @@ class Setting(object):
   * `short_description` (read-only) - Usually `display_name` plus additional
     information in parentheses (such as boundaries for numeric values). Useful
     as a setting description when registering the setting as a plug-in parameter
-    to the PDB.
+    to the GIMP Procedural Database (PDB).
   
-  * `pdb_registration_mode` (read-only) - Indicates whether the setting can be registered
-    as a parameter to a plug-in. Automatically set to True if `pdb_type` is
-    assigned to a valid value that is not None.
+  * `pdb_type` (read-only) - GIMP PDB type, used when
+    registering the setting as a plug-in parameter to the PDB. In the Setting
+    class, any PDB type can be assigned. In Setting subclasses, only
+    specific PDB types are allowed. Refer to the documentation of the subclasses
+    for the list of allowed PDB types.
   
-  * `pdb_type` (read-only) - GIMP Procedural Database (PDB) type, used when registering
-    the setting as a plug-in parameter to the PDB. `_allowed_pdb_types` list,
-    which is class-specific, determines whether the PDB type assigned is valid.
-    `_allowed_pdb_types` in this class is None, which means that any PDB type
-    can be assigned.
+  * `pdb_registration_mode` (read-only) - Indicates how to register the setting
+    as a PDB parameter. Possible values:
+      
+      * `PdbRegistrationModes.automatic` - automatically determine whether the
+        setting can be registered based on `pdb_type`, if `pdb_type` is not None,
+        allow the setting to be registered, otherwise disallow it.
+        
+      * `PdbRegistrationModes.registrable` - allow the setting to be registered.
+        If this attribute is set to `registrable` and `pdb_type` is None, this
+        is an error.
+      
+      * `PdbRegistrationModes.not_registrable` - do not allow the setting to be
+      registered.
   
   * `pdb_name` (read-only) - Setting name as it appears in the GIMP PDB as
     a PDB parameter name.
   
-  * `resettable_by_group` (read-only) - If True, the setting is reset to its default
-    value if the `reset()` method from the corresponding `SettingGroup` is
-    called. False by default.
+  * `resettable_by_group` (read-only) - If True, the setting is allowed to be
+    reset to its default value if the `reset()` method from the corresponding
+    `SettingGroup` is called. False by default.
   
-  * `ui_enabled` (read-only) - Indicates whether the setting should be enabled (respond
-    to user input) in the GUI. True by default. This attribute is only an
-    indication, it does not modify a GUI element (use the appropriate
+  * `ui_enabled` (read-only) - Indicates whether the setting should be enabled
+    (i.e. responding to user input) in the GUI. True by default. This attribute
+    is only an indication, it does not modify a GUI element (use the appropriate
     `SettingPresenter` subclass for that purpose).
   
-  * `ui_visible` (read-only) - Indicates whether the setting should be visible in the GUI.
-    True by default. This attribute is only an indication, it does not modify a
-    GUI element (use the appropriate `SettingPresenter` subclass for that purpose).
+  * `ui_visible` (read-only) - Indicates whether the setting should be visible
+    in the GUI. True by default. This attribute is only an indication, it does
+    not modify a GUI element (use the appropriate `SettingPresenter` subclass
+    for that purpose).
   
-  * `error_messages` (read-only) - A dict of error messages, which can be used e.g. if a value
-    assigned to the setting is invalid. You can add your own error messages and
-    assign them to one of the "default" error messages (such as 'invalid_value'
-    in several `Setting` subclasses) depending on the context in which the value
-    assigned is invalid.
+  * `error_messages` (read-only) - A dict of error messages, which can be used
+    e.g. if a value assigned to the setting is invalid. You can add your own
+    error messages and assign them to one of the "default" error messages (such
+    as 'invalid_value' in several `Setting` subclasses) depending on the context
+    in which the value assigned is invalid.
   
   * `changed_attributes` (read-only) - Contains a set of attribute names of the
     setting object that were changed. This attribute is used in the
@@ -175,14 +190,20 @@ class Setting(object):
                resettable_by_group=True):
     
     """
-    Parameters (described are only those parameters that do not correspond to
-    any attribute in this class):
+    Described are only those parameters that do not correspond to
+    any attribute in this class, or parameters requiring additional information.
+    
+    Parameters:
     
     * `validate_default_value` - If True, check whether the default value of the
        setting is valid. If it is invalid, raise `SettingDefaultValueError`. If
        you need to skip the validation, e.g. because you need to specify an
        "empty" value as the default value (e.g. an empty string for
        FileExtensionSetting), set this to False.
+         
+    * `pdb_type` - If None and this is a Setting subclass, assign the default
+      PDB type from the list of allowed PDB types. If None and this is the
+      Setting class, use None.
     """
     
     self._name = name
@@ -220,12 +241,10 @@ class Setting(object):
   
   def set_value(self, value):
     """
-    Set the setting value.
+    Set the setting value. Validate the value before assignment. If the value is
+    invalid, raise `SettingValueError`.
     
-    This is a method and not a property because the subclasses of `Setting`
-    override `set_value()` and perform additional operations than mere value
-    assignment, such as value validation.
-    
+    This is a method and not a property because of the validation overhead.
     `value` still remains a property for the sake of brevity.
     """
     
@@ -393,6 +412,13 @@ class Setting(object):
     
     pass
   
+  def _init_error_messages(self):
+    """
+    Initialize custom error messages in the `error_messages` dict.
+    """
+    
+    pass
+  
   def _validate_default_value(self):
     """
     Check whether the default value of the setting is valid. If the default
@@ -428,7 +454,9 @@ class Setting(object):
       elif pdb_type in self._ALLOWED_PDB_TYPES:
         return pdb_type
       else:
-        raise ValueError("GIMP PDB type " + str(pdb_type) + " not allowed")
+        raise ValueError("GIMP PDB type " + str(pdb_type) + " not allowed; "
+                         "for the list of allowed PDB types, refer to "
+                         "the documentation of the appropriate Setting class")
     else:
       return pdb_type
   
@@ -449,13 +477,6 @@ class Setting(object):
     """
     
     return name.replace('_', '-')
-  
-  def _init_error_messages(self):
-    """
-    Initialize custom error messages in the `error_messages` dict.
-    """
-    
-    pass
   
   def _value_to_str(self, value):
     """
@@ -483,9 +504,9 @@ class NumericSetting(Setting):
   
   Additional attributes:
   
-  * `min_value` - Minimum numeric value.
+  * `min_value` - Minimum allowed numeric value.
   
-  * `max_value` - Maximum numeric value.
+  * `max_value` - Maximum allowed numeric value.
   
   Raises:
   
@@ -915,10 +936,10 @@ class IntArraySetting(Setting):
   * PDB_INT32ARRAY (default)
   * PDB_INT16ARRAY
   * PDB_INT8ARRAY
-    
-  TODO:
-  * validation - value must be an iterable sequence
-    - this applies to any array setting
   """
+  
+  #TODO:
+  # - validation - value must be an iterable sequence
+  #   - this applies to any array setting
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32ARRAY, gimpenums.PDB_INT16ARRAY, gimpenums.PDB_INT8ARRAY]
