@@ -67,7 +67,7 @@ class SpecialSettings(pgsettinggroup.SettingGroup):
     self['image'].display_name = _("Image")
     
     self._add(pgsetting.BoolSetting('first_run', True))
-    self['first_run'].registrable_to_pdb = False
+    self['first_run'].pdb_registration_mode = pgsetting.PdbRegistrationModes.not_registrable
     self['first_run'].description = _(
       "True if the plug-in successfully ran for the first time "
       "in one GIMP session, False for subsequent runs."
