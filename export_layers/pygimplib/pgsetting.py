@@ -208,8 +208,8 @@ class Setting(object):
     
     self._name = name
     self._default_value = default_value
-    self._display_name = display_name if not None else ""
-    self._description = description if not None else ""
+    self._display_name = display_name if display_name is not None else ""
+    self._description = description if description is not None else ""
     self._pdb_type = self._get_pdb_type(pdb_type)
     self._pdb_registration_mode = self._get_pdb_registration_mode(pdb_registration_mode)
     self._resettable_by_group = resettable_by_group
