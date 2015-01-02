@@ -99,35 +99,15 @@ class MockSettingPresenterGroup(pgsettinggroup.SettingPresenterGroup):
 
 
 class SettingGroupTest(pgsettinggroup.SettingGroup):
-  
-  def _create_settings(self):
-    
-    self._add(pgsetting.FileExtensionSetting('file_extension', "bmp", resettable_by_group=False))
-    
-    self._add(pgsetting.BoolSetting('ignore_invisible', False))
-    
-    self._add(
-      pgsetting.EnumSetting(
-       'overwrite_mode', 'rename_new',
-       [('replace', "Replace"),
-        ('skip', "Skip"),
-        ('rename_new', "Rename new file"),
-        ('rename_existing', "Rename existing file")])
-    )
-    
-    self['file_extension'].set_streamline_func(streamline_file_extension, self['ignore_invisible'])
-    self['overwrite_mode'].set_streamline_func(streamline_overwrite_mode, self['ignore_invisible'], self['file_extension'])
-
-
-class NewSettingGroupTest(pgsettinggroup.SettingGroup):
    
   def _create_settings(self):
-     
+    
     self._add(
       pgsetting.FileExtensionSetting,
       name='file_extension',
       default_value='bmp',
-      resettable_by_group=False
+      resettable_by_group=False,
+      display_name="File extension"
     )
     
     self._add(
@@ -147,6 +127,12 @@ class NewSettingGroupTest(pgsettinggroup.SettingGroup):
                ('rename_existing', "Rename existing file")],
     )
     
+    self['ignore_invisible'].description = (
+      "If enabled, \"{0}\" is set to \"png\" for some reason. If disabled, "
+      "\"{0}\" is set to \"jpg\""
+    ).format(self['file_extension'].display_name)
+  
+  def _set_streamline_functions(self):
     self['file_extension'].set_streamline_func(streamline_file_extension, self['ignore_invisible'])
     self['overwrite_mode'].set_streamline_func(streamline_overwrite_mode, self['ignore_invisible'], self['file_extension'])
 

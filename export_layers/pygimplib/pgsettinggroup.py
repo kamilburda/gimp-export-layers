@@ -78,19 +78,10 @@ class Container(object):
   
   def __len__(self):
     return len(self._items)
-  
-  @abc.abstractmethod
-  def _add(self, obj):
-    """
-    Add specified object to the container. It is up to the subclass to
-    determine the key from the object.
-    
-    This method should only be used during the container initialization.
-    """
-    
-    pass
+
 
 #-------------------------------------------------------------------------------
+
 
 class SettingGroup(Container):
   
@@ -99,39 +90,80 @@ class SettingGroup(Container):
   * groups related `Setting` objects together,
   * can perform operations on all settings at once.
   
-  This class is an interface for setting groups. Create a subclass from this
+  This class is an interface for setting groups. Define a subclass from this
   class to create settings.
   """
   
   __metaclass__ = abc.ABCMeta
   
+  
+  class _TempSettingData(object):
+    
+    def __init__(self, **kwargs):
+      for key, value in kwargs.items():
+        setattr(self, key, value)
+    
+    def instantiate_setting(self):
+      setting_type = self.setting_type
+      
+      setting_args = dict(self.__dict__)
+      del setting_args['setting_type']
+      
+      return setting_type(**setting_args)
+  
+  
   def __init__(self):
     super(SettingGroup, self).__init__()
     
-    self._create_settings()
+    self.__create_settings()
   
   @abc.abstractmethod
   def _create_settings(self):
     """
     Create and initialize settings.
     
-    Override this method in subclasses to instantiate `Setting` objects,
-    set up their attributes, custom error messages and streamline functions if desired.
+    Override this method in subclasses to create and initialize `Setting` objects,
+    set up their attributes, and custom error messages.
     
-    To create a setting, instantiate a `Setting` object and then call the `_add()` method:
+    To create a setting, call the `_add()` method:
       
-      self._add(Setting(<setting name>, <default value>))
+      self._add(<setting type>, <name>, <default value>, <additional keyword arguments to the Setting classes>)
     
-    To adjust setting attributes (after creating the setting):
+    `<setting type>`, `<name>` and `<default value>` are mandatory arguments.
+    
+    You may also set the attributes outside the `_add()` method  (after creating
+    the setting), but only within `create_settings()`:
+    
       self[<setting name>].<attribute> = <value>
     
-    Settings are stored in the group in the order they were added.
+    Settings are stored in the group in the order they were created.
+    
+    To set up streamline functions, override the `_set_streamline_functions()`
+    method.
     """
     
     pass
   
-  def _add(self, setting):
-    self._items[setting.name] = setting
+  def _add(self, setting_type, name, default_value, **kwargs):
+    self._items[name] = self._TempSettingData(setting_type=setting_type, name=name, default_value=default_value, **kwargs)
+  
+  def _set_streamline_functions(self):
+    """
+    Set streamline functions for settings.
+    
+    In this method, unlike `_create_settings()`, the Setting objects are already instantiated.
+    """
+    
+    pass
+  
+  def __create_settings(self):
+    self._create_settings()
+    self.__instantiate_settings()
+    self._set_streamline_functions()
+  
+  def __instantiate_settings(self):
+    for setting_name, setting_data in self._items.items():
+      self._items[setting_name] = setting_data.instantiate_setting()
   
   def streamline(self, force=False):
     """
@@ -698,15 +730,12 @@ class SettingPresenterGroup(Container):
     
     self._is_events_connected = False
   
-  def _add(self, setting_presenter):
+  def add(self, setting_presenter):
     """
     Add a `SettingPresenter` object to the group.
     """
     
     self._items[setting_presenter.setting] = setting_presenter
-  
-  # Make `_add` public
-  add = _add
   
   def assign_setting_values_to_elements(self):
     """
