@@ -165,11 +165,12 @@ class Setting(object):
     not modify a GUI element (use the appropriate `SettingPresenter` subclass
     for that purpose).
   
-  * `error_messages` (read-only) - A dict of error messages, which can be used
-    e.g. if a value assigned to the setting is invalid. You can add your own
-    error messages and assign them to one of the "default" error messages (such
-    as 'invalid_value' in several `Setting` subclasses) depending on the context
-    in which the value assigned is invalid.
+  * `error_messages` (read-only) - A dict of error messages containing
+    (message name, message contents) pairs, which can be used e.g. if a value
+    assigned to the setting is invalid. You can add your own error messages and
+    assign them to one of the "default" error messages (such as 'invalid_value'
+    in several `Setting` subclasses) depending on the context in which the value
+    assigned is invalid.
   
   * `changed_attributes` (read-only) - Contains a set of attribute names of the
     setting object that were changed. This attribute is used in the
@@ -188,7 +189,7 @@ class Setting(object):
                display_name="", description="",
                pdb_type=None, pdb_registration_mode=PdbRegistrationModes.automatic,
                resettable_by_group=True,
-               custom_error_messages=None):
+               error_messages=None):
     
     """
     Described are only those parameters that do not correspond to
@@ -205,6 +206,10 @@ class Setting(object):
     * `pdb_type` - If None and this is a Setting subclass, assign the default
       PDB type from the list of allowed PDB types. If None and this is the
       Setting class, use None.
+    
+    * `error_messages` - A dict containing (message name, message contents)
+      pairs. Use this to pass custom error messages. This way, you may also
+      override default error messages defined in classes.
     """
     
     self._name = name
@@ -214,7 +219,6 @@ class Setting(object):
     self._pdb_type = self._get_pdb_type(pdb_type)
     self._pdb_registration_mode = self._get_pdb_registration_mode(pdb_registration_mode)
     self._resettable_by_group = resettable_by_group
-    self._custom_error_messages = custom_error_messages
     
     self._value = self._default_value
     
@@ -229,8 +233,8 @@ class Setting(object):
     
     self._error_messages = {}
     self._init_error_messages()
-    if self._custom_error_messages is not None:
-      self._error_messages.update(self._custom_error_messages)
+    if error_messages is not None:
+      self._error_messages.update(error_messages)
     
     if validate_default_value:
       self._validate_default_value()

@@ -92,8 +92,8 @@ class TestSetting(unittest.TestCase):
     setting = MockSetting('setting', "")
     
     setting_with_custom_error_messages = MockSetting(
-      'setting', "", custom_error_messages={'value_is_none' : 'this should override the original error message',
-                                            'invalid_value' : 'value is invalid'})
+      'setting', "", error_messages={'value_is_none' : 'this should override the original error message',
+                                     'invalid_value' : 'value is invalid'})
     self.assertIn('invalid_value', setting_with_custom_error_messages.error_messages)
     self.assertNotEqual(setting.error_messages['value_is_none'],
                         setting_with_custom_error_messages.error_messages['value_is_none'])
