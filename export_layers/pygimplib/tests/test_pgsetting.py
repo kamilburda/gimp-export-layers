@@ -49,9 +49,12 @@ LIB_NAME = '.'.join(__name__.split('.')[:-2])
 
 class MockSetting(pgsetting.Setting):
   
+  def _init_error_messages(self):
+    self._error_messages['value_is_none'] = "value cannot be None"
+  
   def _validate(self, value):
     if value is None:
-      raise pgsetting.SettingValueError("value cannot be None")
+      raise pgsetting.SettingValueError(self._error_messages['value_is_none'])
 
 
 def streamline_file_extension(file_extension, ignore_invisible):
@@ -84,6 +87,16 @@ class TestSetting(unittest.TestCase):
   def test_value_invalid_assignment_operation(self):
     with self.assertRaises(AttributeError):
       self.setting.value = "jpg"
+  
+  def test_custom_error_messages(self):
+    setting = MockSetting('setting', "")
+    
+    setting_with_custom_error_messages = MockSetting(
+      'setting', "", custom_error_messages={'value_is_none' : 'this should override the original error message',
+                                            'invalid_value' : 'value is invalid'})
+    self.assertIn('invalid_value', setting_with_custom_error_messages.error_messages)
+    self.assertNotEqual(setting.error_messages['value_is_none'],
+                        setting_with_custom_error_messages.error_messages['value_is_none'])
   
   def test_changed_attributes(self):
     self.setting.set_value("jpg")

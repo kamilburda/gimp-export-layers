@@ -187,7 +187,8 @@ class Setting(object):
   def __init__(self, name, default_value, validate_default_value=True,
                display_name="", description="",
                pdb_type=None, pdb_registration_mode=PdbRegistrationModes.automatic,
-               resettable_by_group=True):
+               resettable_by_group=True,
+               custom_error_messages=None):
     
     """
     Described are only those parameters that do not correspond to
@@ -213,6 +214,7 @@ class Setting(object):
     self._pdb_type = self._get_pdb_type(pdb_type)
     self._pdb_registration_mode = self._get_pdb_registration_mode(pdb_registration_mode)
     self._resettable_by_group = resettable_by_group
+    self._custom_error_messages = custom_error_messages
     
     self._value = self._default_value
     
@@ -227,6 +229,8 @@ class Setting(object):
     
     self._error_messages = {}
     self._init_error_messages()
+    if self._custom_error_messages is not None:
+      self._error_messages.update(self._custom_error_messages)
     
     if validate_default_value:
       self._validate_default_value()
