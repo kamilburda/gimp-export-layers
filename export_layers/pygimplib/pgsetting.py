@@ -229,7 +229,7 @@ class Setting(object):
     
     self._changed_attributes = set()
     self._streamline_func = None
-    self._streamline_args = []
+    self._streamline_func_args = []
     
     self._error_messages = {}
     self._init_error_messages()
@@ -358,33 +358,33 @@ class Setting(object):
     changed_settings = OrderedDict()
     
     if self._changed_attributes or force:
-      self._streamline_func(self, *self._streamline_args)
+      self._streamline_func(self, *self._streamline_func_args)
       
       # Create copies of the changed attributes since the sets are cleared
       # in the objects afterwards.
       changed_settings[self] = set(self._changed_attributes)
       self._changed_attributes.clear()
       
-      for arg in self._streamline_args:
+      for arg in self._streamline_func_args:
         if isinstance(arg, Setting) and arg.changed_attributes:
           changed_settings[arg] = set(arg.changed_attributes)
           arg.changed_attributes.clear()
     
     return changed_settings
   
-  def set_streamline_func(self, streamline_func, *streamline_args):
+  def set_streamline_func(self, streamline_func, *streamline_func_args):
     """
     Set a function to be called by the `streamline()` method.
     
     A streamline function must always contain at least one argument. The first
     argument is the setting from which the streamline function is invoked.
-    This argument should therefore not be specified in `streamline_args`.
+    This argument should therefore not be specified in `streamline_func_args`.
     
     Parameters:
     
     * `streamline_func` - Streamline function to be called by `streamline()`.
     
-    * `streamline_args` - Additional arguments to `streamline_func`. Can be
+    * `streamline_func_args` - Additional arguments to `streamline_func`. Can be
       any arguments, including `Setting` objects.
     """
     
@@ -392,7 +392,7 @@ class Setting(object):
       raise TypeError("not a function")
     
     self._streamline_func = streamline_func
-    self._streamline_args = streamline_args
+    self._streamline_func_args = streamline_func_args
   
   def remove_streamline_func(self):
     """
@@ -403,7 +403,7 @@ class Setting(object):
       raise TypeError("no streamline function was previously set")
     
     self._streamline_func = None
-    self._streamline_args = []
+    self._streamline_func_args = []
   
   def can_streamline(self):
     """
