@@ -186,7 +186,7 @@ class Setting(object):
   _ALLOWED_PDB_TYPES = None
   
   def __init__(self, name, default_value, validate_default_value=True,
-               display_name="", description="",
+               display_name=None, description=None,
                pdb_type=None, pdb_registration_mode=PdbRegistrationModes.automatic,
                resettable_by_group=True,
                error_messages=None):
@@ -438,23 +438,6 @@ class Setting(object):
     except SettingValueError as e:
       raise SettingDefaultValueError(e.message)
   
-  def _get_pdb_registration_mode(self, registration_mode):
-    if registration_mode == PdbRegistrationModes.automatic:
-      if self._pdb_type is not None:
-        return PdbRegistrationModes.registrable
-      else:
-        return PdbRegistrationModes.not_registrable
-    elif registration_mode == PdbRegistrationModes.registrable:
-      if self._pdb_type is not None:
-        return PdbRegistrationModes.registrable
-      else:
-        raise ValueError("setting cannot be registered to the GIMP PDB because "
-                         "it has no PDB type set")
-    elif registration_mode == PdbRegistrationModes.not_registrable:
-      return PdbRegistrationModes.not_registrable
-    else:
-      raise ValueError("invalid PDB registration mode")
-  
   def _get_pdb_type(self, pdb_type):
     if not self._is_any_pdb_type_allowed():
       if pdb_type is None:
@@ -476,6 +459,23 @@ class Setting(object):
       return self._ALLOWED_PDB_TYPES[0]
     else:
       return None
+  
+  def _get_pdb_registration_mode(self, registration_mode):
+    if registration_mode == PdbRegistrationModes.automatic:
+      if self._pdb_type is not None:
+        return PdbRegistrationModes.registrable
+      else:
+        return PdbRegistrationModes.not_registrable
+    elif registration_mode == PdbRegistrationModes.registrable:
+      if self._pdb_type is not None:
+        return PdbRegistrationModes.registrable
+      else:
+        raise ValueError("setting cannot be registered to the GIMP PDB because "
+                         "it has no PDB type set")
+    elif registration_mode == PdbRegistrationModes.not_registrable:
+      return PdbRegistrationModes.not_registrable
+    else:
+      raise ValueError("invalid PDB registration mode")
   
   def _get_pdb_name(self, name):
     """
