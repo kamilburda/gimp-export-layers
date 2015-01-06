@@ -37,6 +37,7 @@ str = unicode
 
 #===============================================================================
 
+import inspect
 import errno
 import abc
 from collections import OrderedDict
@@ -89,81 +90,33 @@ class SettingGroup(Container):
   This class:
   * groups related `Setting` objects together,
   * can perform operations on all settings at once.
-  
-  This class is an interface for setting groups. Define a subclass from this
-  class to create settings.
   """
   
-  __metaclass__ = abc.ABCMeta
-  
-  
-  class _TempSettingData(object):
+  def __init__(self, setting_list):
+    """
+    Create settings (Setting objects) from the specified list.
     
-    def __init__(self, **kwargs):
-      for key, value in kwargs.items():
-        setattr(self, key, value)
+    Each list element must contain a dictionary, which contains
+    (setting_attribute, value) pairs.
     
-    def instantiate_setting(self):
-      setting_type = self.setting_type
-      
-      setting_args = dict(self.__dict__)
-      del setting_args['setting_type']
-      
-      return setting_type(**setting_args)
-  
-  
-  def __init__(self):
+    `setting_attribute` is a string that denotes an argument passed when
+    instantiating the appropriate Setting class.
+    
+    The following setting attributes must always be specified:
+      * 'type' - type of the Setting object to instantiate.
+      * 'name' - setting name.
+      * 'default_value' - default value of the setting.
+    
+    For more attributes, check the documentation of the Setting classes. There
+    may also be more mandatory attributes for specific setting types.
+    
+    Settings are stored in the group in the order they are specified in the list.
+    """
+    
     super(SettingGroup, self).__init__()
     
-    self.__create_settings()
-  
-  @abc.abstractmethod
-  def _create_settings(self):
-    """
-    Create and initialize settings.
-    
-    Override this method in subclasses to create and initialize `Setting` objects,
-    set up their attributes, and custom error messages.
-    
-    To create a setting, call the `_add()` method:
-      
-      self._add(<setting type>, <name>, <default value>, <additional keyword arguments to the Setting classes>)
-    
-    `<setting type>`, `<name>` and `<default value>` are mandatory arguments.
-    
-    You may also set the attributes outside the `_add()` method  (after creating
-    the setting), but only within `create_settings()`:
-    
-      self[<setting name>].<attribute> = <value>
-    
-    Settings are stored in the group in the order they were created.
-    
-    To set up streamline functions, override the `_set_streamline_functions()`
-    method.
-    """
-    
-    pass
-  
-  def _add(self, setting_type, name, default_value, **kwargs):
-    self._items[name] = self._TempSettingData(setting_type=setting_type, name=name, default_value=default_value, **kwargs)
-  
-  def _set_streamline_functions(self):
-    """
-    Set streamline functions for settings.
-    
-    In this method, unlike `_create_settings()`, the Setting objects are already instantiated.
-    """
-    
-    pass
-  
-  def __create_settings(self):
-    self._create_settings()
-    self.__instantiate_settings()
-    self._set_streamline_functions()
-  
-  def __instantiate_settings(self):
-    for setting_name, setting_data in self._items.items():
-      self._items[setting_name] = setting_data.instantiate_setting()
+    for setting_data in setting_list:
+      self._create_setting(setting_data)
   
   def streamline(self, force=False):
     """
@@ -202,6 +155,42 @@ class SettingGroup(Container):
     for setting in self:
       if setting.resettable_by_group:
         setting.reset()
+  
+  def _create_setting(self, setting_data):
+    try:
+      setting_type = setting_data['type']
+    except KeyError:
+      raise TypeError(self._get_missing_mandatory_attributes_message(['type']))
+    
+    del setting_data['type']
+    
+    try:
+      self._items[setting_data['name']] = setting_type(**setting_data)
+    except TypeError as e:
+      missing_mandatory_arguments = self._get_missing_mandatory_arguments(setting_type, setting_data)
+      if missing_mandatory_arguments:
+        message = self._get_missing_mandatory_attributes_message(missing_mandatory_arguments)
+      else:
+        message = e.message
+      raise TypeError(message)
+  
+  def _get_missing_mandatory_arguments(self, setting_type, setting_data):
+    mandatory_arg_names = self._get_mandatory_argument_names(setting_type.__init__)
+    return [arg_name for arg_name in mandatory_arg_names if arg_name not in setting_data]
+  
+  def _get_mandatory_argument_names(self, func):
+    arg_spec = inspect.getargspec(func)
+    arg_default_values = arg_spec[3] if arg_spec[3] is not None else []
+    num_mandatory_args = len(arg_spec[0]) - len(arg_default_values)
+    
+    mandatory_args = arg_spec[0][0:num_mandatory_args]
+    if mandatory_args[0] == 'self':
+      del mandatory_args[0]
+    
+    return mandatory_args
+  
+  def _get_missing_mandatory_attributes_message(self, attribute_names):
+    return "missing the following mandatory setting attributes: {0}".format(', '.join(attribute_names))
 
 
 #===============================================================================

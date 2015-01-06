@@ -98,43 +98,46 @@ class MockSettingPresenterGroup(pgsettinggroup.SettingPresenterGroup):
     self._on_element_value_change(presenter)
 
 
-class SettingGroupTest(pgsettinggroup.SettingGroup):
-   
-  def _create_settings(self):
-    
-    self._add(
-      pgsetting.FileExtensionSetting,
-      name='file_extension',
-      default_value='bmp',
-      resettable_by_group=False,
-      display_name="File extension"
-    )
-    
-    self._add(
-      pgsetting.BoolSetting,
-      name='ignore_invisible',
-      default_value=False,
-      display_name="Ignore invisible"
-    )
-    
-    self._add(
-      pgsetting.EnumSetting,
-      name='overwrite_mode',
-      default_value='rename_new',
-      options=[('replace', "Replace"),
-               ('skip', "Skip"),
-               ('rename_new', "Rename new file"),
-               ('rename_existing', "Rename existing file")],
-    )
-    
-    self['ignore_invisible'].description = (
-      "If enabled, \"{0}\" is set to \"png\" for some reason. If disabled, "
-      "\"{0}\" is set to \"jpg\""
-    ).format(self['file_extension'].display_name)
+#===============================================================================
+
+
+def create_test_settings():
+  file_extension_display_name = "File extension"
   
-  def _set_streamline_functions(self):
-    self['file_extension'].set_streamline_func(streamline_file_extension, self['ignore_invisible'])
-    self['overwrite_mode'].set_streamline_func(streamline_overwrite_mode, self['ignore_invisible'], self['file_extension'])
+  settings = pgsettinggroup.SettingGroup([
+    {
+      'type': pgsetting.FileExtensionSetting,
+      'name': 'file_extension',
+      'default_value': 'bmp',
+      'resettable_by_group': False,
+      'display_name': file_extension_display_name
+    },
+    {
+      'type': pgsetting.BoolSetting,
+      'name': 'ignore_invisible',
+      'default_value': False,
+      'display_name': "Ignore invisible",
+      'description': (
+        "If enabled, \"{0}\" is set to \"png\" for some reason. If disabled, \"{0}\" is set to \"jpg\"."
+      ).format(file_extension_display_name)
+    },
+    {
+      'type': pgsetting.EnumSetting,
+      'name': 'overwrite_mode',
+      'default_value': 'rename_new',
+      'resettable_by_group': False,
+      'options': [('replace', "Replace"),
+                  ('skip', "Skip"),
+                  ('rename_new', "Rename new file"),
+                  ('rename_existing', "Rename existing file")],
+    },
+  ])
+  
+  settings['file_extension'].set_streamline_func(streamline_file_extension, settings['ignore_invisible'])
+  settings['overwrite_mode'].set_streamline_func(streamline_overwrite_mode,
+                                                 settings['ignore_invisible'], settings['file_extension'])
+  
+  return settings
 
 
 def streamline_file_extension(file_extension, ignore_invisible):
@@ -158,10 +161,50 @@ def streamline_overwrite_mode(overwrite_mode, ignore_invisible, file_extension):
 #===============================================================================
 
 
+class TestSettingGroupCreation(unittest.TestCase):
+  
+  def test_raise_type_error_for_missing_type_attribute(self):
+    with self.assertRaises(TypeError):
+      pgsettinggroup.SettingGroup([
+        {
+         'name': 'file_extension',
+         'default_value': 'bmp',
+        }
+      ])
+  
+  def test_raise_type_error_for_missing_single_mandatory_attribute(self):
+    with self.assertRaises(TypeError):
+      pgsettinggroup.SettingGroup([
+        {
+         'type': pgsetting.FileExtensionSetting,
+         'default_value': 'bmp',
+        }
+      ])
+  
+  def test_raise_type_error_for_missing_multiple_mandatory_attributes(self):
+    with self.assertRaises(TypeError):
+      pgsettinggroup.SettingGroup([
+        {
+         'type': pgsetting.EnumSetting,
+        }
+      ])
+  
+  def test_raise_type_error_for_non_existent_attribute(self):
+    with self.assertRaises(TypeError):
+      pgsettinggroup.SettingGroup([
+        {
+         'type': pgsetting.FileExtensionSetting,
+         'name': 'file_extension',
+         'default_value': 'bmp',
+         'non_existent_attribute': None
+        }
+      ])
+
+
 class TestSettingGroup(unittest.TestCase):
   
   def setUp(self):
-    self.settings = SettingGroupTest()
+    self.settings = create_test_settings()
       
   def test_get_setting_invalid_key(self):
     with self.assertRaises(KeyError):
@@ -185,30 +228,10 @@ class TestSettingGroup(unittest.TestCase):
 #===============================================================================
 
 
-# class TestSettingAttributeSubstitutor(unittest.TestCase):
-#   
-#   def test_substitute_attributes(self):
-#     description=("If this setting is enabled, \"{0}\" will be, for some reason, "
-#                    "set to \"{1}\".").format(self._get_setting_property('file_extension', 'display_name'),
-#                                              self._get_setting_property('file_extension', 'default_value'))
-#     
-#     description=("If this setting is enabled, {0} will be, for some reason, "
-#                  "set to {1} " + self._get_setting_property('file_extension', 'display_name'))
-#     description=("If this setting is enabled, {} will be, for some reason, "
-#                  "set to {} " + self._get_setting_property('file_extension', 'display_name'))
-#     description=("If this setting is enabled, {{}} {0} will be, for some reason, "
-#                  "set to {{}} ".format(self._get_setting_property('file_extension', 'display_name')))
-#     temp_str = "If this setting is enabled, {} {} will be, for some reason, set to {} "
-#     final_str = "If this setting is enabled, File extension {} will be, for some reason, set to {} "
-
-
-#===============================================================================
-
-
 class TestSettingPresenterGroup(unittest.TestCase):
   
   def setUp(self):
-    self.settings = SettingGroupTest()
+    self.settings = create_test_settings()
     self.element = MockGuiWidget("")
     self.setting_presenter = MockSettingPresenter(self.settings['file_extension'], self.element)
     
@@ -259,7 +282,7 @@ class TestShelfSettingStream(unittest.TestCase):
   def setUp(self):
     self.prefix = 'prefix'
     self.stream = pgsettinggroup.GimpShelfSettingStream(self.prefix)
-    self.settings = SettingGroupTest()
+    self.settings = create_test_settings()
   
   @mock.patch(LIB_NAME + '.pgsettinggroup.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_write(self):
@@ -296,7 +319,7 @@ class TestJSONFileSettingStream(unittest.TestCase):
   
   def setUp(self):
     self.stream = pgsettinggroup.JSONFileSettingStream("/test/file")
-    self.settings = SettingGroupTest()
+    self.settings = create_test_settings()
   
   def test_write_read(self, mock_file):
     self.settings['file_extension'].set_value("jpg")
@@ -356,7 +379,7 @@ class TestSettingPersistor(unittest.TestCase):
   
   @mock.patch(LIB_NAME + '.pgsettinggroup.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def setUp(self):
-    self.settings = SettingGroupTest()
+    self.settings = create_test_settings()
     self.shelf_stream = pgsettinggroup.GimpShelfSettingStream('')
     self.json_stream = pgsettinggroup.JSONFileSettingStream('filename')
   
@@ -456,7 +479,7 @@ class TestPdbParamCreator(unittest.TestCase):
                                                            display_name="File extension")
     self.unregistrable_setting = pgsetting.IntSetting("num_exported_layers", 0,
                                                       pdb_registration_mode=pgsetting.PdbRegistrationModes.not_registrable)
-    self.settings = SettingGroupTest()
+    self.settings = create_test_settings()
   
   def test_create_one_param_successfully(self):
     params = pgsettinggroup.PdbParamCreator.create_params(self.file_ext_setting)
