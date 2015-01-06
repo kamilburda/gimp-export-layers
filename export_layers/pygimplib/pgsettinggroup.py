@@ -162,6 +162,9 @@ class SettingGroup(Container):
     except KeyError:
       raise TypeError(self._get_missing_mandatory_attributes_message(['type']))
     
+    if isinstance(setting_type, pgsetting.SettingTypes):
+      setting_type = setting_type.value
+    
     del setting_data['type']
     
     try:

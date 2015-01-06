@@ -106,14 +106,14 @@ def create_test_settings():
   
   settings = pgsettinggroup.SettingGroup([
     {
-      'type': pgsetting.FileExtensionSetting,
+      'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
       'default_value': 'bmp',
       'resettable_by_group': False,
       'display_name': file_extension_display_name
     },
     {
-      'type': pgsetting.BoolSetting,
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'ignore_invisible',
       'default_value': False,
       'display_name': "Ignore invisible",
@@ -122,7 +122,7 @@ def create_test_settings():
       ).format(file_extension_display_name)
     },
     {
-      'type': pgsetting.EnumSetting,
+      'type': pgsetting.SettingTypes.enumerated,
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
       'resettable_by_group': False,
@@ -176,7 +176,7 @@ class TestSettingGroupCreation(unittest.TestCase):
     with self.assertRaises(TypeError):
       pgsettinggroup.SettingGroup([
         {
-         'type': pgsetting.FileExtensionSetting,
+         'type': pgsetting.SettingTypes.file_extension,
          'default_value': 'bmp',
         }
       ])
@@ -185,7 +185,7 @@ class TestSettingGroupCreation(unittest.TestCase):
     with self.assertRaises(TypeError):
       pgsettinggroup.SettingGroup([
         {
-         'type': pgsetting.EnumSetting,
+         'type': pgsetting.SettingTypes.enumerated,
         }
       ])
   
@@ -193,7 +193,7 @@ class TestSettingGroupCreation(unittest.TestCase):
     with self.assertRaises(TypeError):
       pgsettinggroup.SettingGroup([
         {
-         'type': pgsetting.FileExtensionSetting,
+         'type': pgsetting.SettingTypes.file_extension,
          'name': 'file_extension',
          'default_value': 'bmp',
          'non_existent_attribute': None

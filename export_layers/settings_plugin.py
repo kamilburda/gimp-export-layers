@@ -57,7 +57,7 @@ def create_special_settings():
   
   return pgsettinggroup.SettingGroup([
     {
-      'type': pgsetting.EnumSetting,
+      'type': pgsetting.SettingTypes.enumerated,
       'name': 'run_mode',
       'default_value': 'non_interactive',
       'options': [('interactive', "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
@@ -66,14 +66,14 @@ def create_special_settings():
       'display_name': _("The run mode")
     },
     {
-      'type': pgsetting.ImageSetting,
+      'type': pgsetting.SettingTypes.image,
       'name': 'image',
       'default_value': None,
       'validate_default_value': False,
       'display_name': _("Image")
     },
     {
-      'type': pgsetting.BoolSetting,
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'first_run',
       'default_value': True,
       'pdb_registration_mode': pgsetting.PdbRegistrationModes.not_registrable,
@@ -104,7 +104,7 @@ def create_main_settings():
   
   main_settings = pgsettinggroup.SettingGroup([
     {
-      'type': pgsetting.FileExtensionSetting,
+      'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
       'default_value': "png",
       'display_name': file_extension_display_name,
@@ -114,13 +114,13 @@ def create_main_settings():
       )
     },
     {
-      'type': pgsetting.DirectorySetting,
+      'type': pgsetting.SettingTypes.directory,
       'name': 'output_directory',
       'default_value': gimp.user_directory(1),   # "Documents" directory
       'display_name': _("Output directory")
     },
     {
-      'type': pgsetting.BoolSetting,
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'layer_groups_as_folders',
       'default_value': False,
       'display_name': _("Treat layer groups as folders"),
@@ -130,7 +130,7 @@ def create_main_settings():
       )
     },
     {
-      'type': pgsetting.BoolSetting,
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'ignore_invisible',
       'default_value': False,
       'display_name': _("Ignore invisible layers"),
@@ -140,7 +140,7 @@ def create_main_settings():
       )
     },
     {
-      'type': pgsetting.BoolSetting,
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'autocrop',
       'default_value': False,
       'display_name': _("Autocrop layers"),
@@ -149,7 +149,7 @@ def create_main_settings():
       )
     },
     {
-      'type': pgsetting.BoolSetting,
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'use_image_size',
       'default_value': False,
       'display_name': _("Use image size"),
@@ -161,7 +161,7 @@ def create_main_settings():
       )
     },
     {
-      'type': pgsetting.EnumSetting,
+      'type': pgsetting.SettingTypes.enumerated,
       'name': 'file_ext_mode',
       'default_value': 'no_special_handling',
       'options': file_ext_mode_options.items(),
@@ -172,7 +172,7 @@ def create_main_settings():
       ).format(file_ext_mode_options['use_as_file_extensions'], file_extension_display_name)
     },
     {
-      'type': pgsetting.EnumSetting,
+      'type': pgsetting.SettingTypes.enumerated,
       'name': 'strip_mode',
       'default_value': 'identical',
       'options': [('always', _("Always strip file extension")),
@@ -184,7 +184,7 @@ def create_main_settings():
       )
     },
     {
-      'type': pgsetting.EnumSetting,
+      'type': pgsetting.SettingTypes.enumerated,
       'name': 'square_bracketed_mode',
       'default_value': 'normal',
       'options': square_bracketed_mode_options.items(),
@@ -200,7 +200,7 @@ def create_main_settings():
                square_bracketed_mode_options['ignore_other'])
     },
     {
-      'type': pgsetting.BoolSetting,
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'crop_to_background',
       'default_value': False,
       'display_name': _("Crop to background"),
@@ -210,7 +210,7 @@ def create_main_settings():
       )
     },
     {
-      'type': pgsetting.BoolSetting,
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'merge_layer_groups',
       'default_value': False,
       'display_name': _("Merge layer groups"),
@@ -220,7 +220,7 @@ def create_main_settings():
       )
     },
     {
-      'type': pgsetting.BoolSetting,
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'empty_folders',
       'default_value': False,
       'display_name': _("Create folders for empty layer groups"),
@@ -229,7 +229,7 @@ def create_main_settings():
       )
     },
     {
-      'type': pgsetting.BoolSetting,
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'ignore_layer_modes',
       'default_value': False,
       'display_name': _("Ignore layer modes"),
@@ -241,7 +241,7 @@ def create_main_settings():
       )
     },
     {
-      'type': pgsetting.EnumSetting,
+      'type': pgsetting.SettingTypes.enumerated,
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
       'options': [('replace', _("Replace"), exportlayers.OverwriteHandler.REPLACE),
@@ -340,13 +340,13 @@ def create_main_settings():
 def create_gui_settings():
   return pgsettinggroup.SettingGroup([
     {
-      'type': pgsetting.Setting,
+      'type': pgsetting.SettingTypes.generic,
       'name': 'dialog_position',
       'default_value': (),
       'resettable_by_group': False
     },
     {
-      'type': pgsetting.IntSetting,
+      'type': pgsetting.SettingTypes.integer,
       'name': 'advanced_settings_expanded',
       'default_value': False,
       'resettable_by_group': False
@@ -354,17 +354,13 @@ def create_gui_settings():
   ])
 
 
-#===============================================================================
-
-
 def create_session_only_gui_settings():
   return pgsettinggroup.SettingGroup([
     {
-      'type': pgsetting.Setting,
+      'type': pgsetting.SettingTypes.generic,
       'name': 'image_ids_and_folders',
       'default_value': {},
       'resettable_by_group': False
     },
   ])
-
 

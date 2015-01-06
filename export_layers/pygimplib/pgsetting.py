@@ -951,3 +951,24 @@ class IntArraySetting(Setting):
   #   - this applies to any array setting
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32ARRAY, gimpenums.PDB_INT16ARRAY, gimpenums.PDB_INT8ARRAY]
+
+#===============================================================================
+
+
+class SettingTypes(enum.Enum):
+  
+  """
+  This enum maps Setting classes to more human-readable names.
+  """
+  
+  generic = Setting
+  integer = IntSetting
+  float = FloatSetting
+  boolean = BoolSetting
+  enumerated = EnumSetting
+  image = ImageSetting
+  drawable = DrawableSetting
+  string = StringSetting
+  file_extension = FileExtensionSetting
+  directory = DirectorySetting
+  integer_array = IntArraySetting
