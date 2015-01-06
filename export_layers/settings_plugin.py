@@ -346,7 +346,7 @@ def create_gui_settings():
       'resettable_by_group': False
     },
     {
-      'type': pgsetting.SettingTypes.integer,
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'advanced_settings_expanded',
       'default_value': False,
       'resettable_by_group': False
