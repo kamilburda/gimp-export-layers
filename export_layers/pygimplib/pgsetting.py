@@ -214,7 +214,7 @@ class Setting(object):
     
     self._name = name
     self._default_value = default_value
-    self._display_name = display_name if display_name is not None else ""
+    self._display_name = self._get_display_name(display_name)
     self._description = description if description is not None else ""
     self._pdb_type = self._get_pdb_type(pdb_type)
     self._pdb_registration_mode = self._get_pdb_registration_mode(pdb_registration_mode)
@@ -437,6 +437,15 @@ class Setting(object):
       self._validate(self._default_value)
     except SettingValueError as e:
       raise SettingDefaultValueError(e.message)
+  
+  def _get_display_name(self, display_name):
+    if display_name is not None:
+      return display_name
+    else:
+      return self._generate_display_name()
+  
+  def _generate_display_name(self):
+    return self.name.replace('_', ' ').capitalize()
   
   def _get_pdb_type(self, pdb_type):
     if not self._is_any_pdb_type_allowed():

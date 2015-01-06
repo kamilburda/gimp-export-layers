@@ -88,6 +88,9 @@ class TestSetting(unittest.TestCase):
     with self.assertRaises(AttributeError):
       self.setting.value = "jpg"
   
+  def test_auto_generated_display_name(self):
+    self.assertEqual(pgsetting.Setting('this_is_a_setting', "png").display_name, "This is a setting")
+  
   def test_custom_error_messages(self):
     setting = MockSetting('setting', "")
     
