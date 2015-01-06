@@ -163,8 +163,8 @@ class _ExportLayersGui(object):
     self.gimpshelf_stream = gimpshelf_stream
     self.config_file_stream = config_file_stream
     
-    self.gui_settings = settings_plugin.GuiSettings()
-    self.session_only_gui_settings = settings_plugin.SessionOnlyGuiSettings()
+    self.gui_settings = settings_plugin.create_gui_settings()
+    self.session_only_gui_settings = settings_plugin.create_session_only_gui_settings()
     
     status, status_message = pgsettinggroup.SettingPersistor.load([self.main_settings, self.gui_settings],
                                                                   [self.gimpshelf_stream, self.config_file_stream])

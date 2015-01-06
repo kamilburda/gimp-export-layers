@@ -162,8 +162,8 @@ class LayerExporter(object):
   
   * `image` - GIMP image to export layers from.
   
-  * `main_settings` - `MainSettings` instance containing the main settings of
-    the plug-in. This class treats them as read-only.
+  * `main_settings` - the main settings of the plug-in. This class treats them
+    as read-only.
   
   * `overwrite_chooser` - `OverwriteChooser` instance that is invoked if a file
     with the same name already exists.

@@ -68,8 +68,8 @@ from export_layers import exportlayers
 class ExportLayersPlugin(gimpplugin.plugin):
   
   def __init__(self):
-    self.special_settings = settings_plugin.SpecialSettings()
-    self.main_settings = settings_plugin.MainSettings()
+    self.special_settings = settings_plugin.create_special_settings()
+    self.main_settings = settings_plugin.create_main_settings()
     
     self.gimpshelf_stream = pgsettinggroup.GimpShelfSettingStream(constants.SHELF_PREFIX)
     self.config_file_stream = pgsettinggroup.JSONFileSettingStream(constants.CONFIG_FILE)
