@@ -30,6 +30,8 @@ str = unicode
 
 #===============================================================================
 
+import os
+
 import unittest
 
 import gimpenums
@@ -333,9 +335,73 @@ class TestFileExtensionSetting(unittest.TestCase):
   
   def test_custom_error_message(self):
     self.setting.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = "My Custom Message"
-    
     try:
       self.setting.set_value("")
     except pgsetting.SettingValueError as e:
       self.assertEqual(e.message, "My Custom Message")
 
+
+
+class TestImageIDsAndDirectoriesSetting(unittest.TestCase):
+  
+  def setUp(self):
+    self.setting = pgsetting.ImageIDsAndDirectoriesSetting('image_ids_and_directories', {})
+    
+    self.image_ids_and_filenames = [(0, None), (1, "C:\\image.png"), (2, "/test/test.jpg"), (4, "/test/another_test.gif")]
+    self.image_list = self._create_image_list(self.image_ids_and_filenames)
+    self.image_ids_and_directories = self._create_image_ids_and_directories(self.image_list)
+    
+    self.setting.set_value(self.image_ids_and_directories)
+  
+  def get_image_list(self):
+    # `self.image_list` is wrapped into a method so that `mock.patch.object` can be called on it.
+    return self.image_list
+  
+  def _create_image_list(self, image_ids_and_filenames):
+    return [self._create_image(image_id, filename) for image_id, filename in image_ids_and_filenames]
+  
+  def _create_image(self, image_id, filename):
+    image = gimpmocks.MockImage()
+    image.ID = image_id
+    image.filename = filename
+    return image
+  
+  def _create_image_ids_and_directories(self, image_list):
+    image_ids_and_directories = {}
+    for image in image_list:
+      directory = os.path.dirname(image.filename) if image.filename is not None else None
+      image_ids_and_directories[image.ID] = directory
+    return image_ids_and_directories
+  
+  def test_update_image_ids_and_directories_add_new_images(self):
+    self.image_list.extend(self._create_image_list([(5, "/test/new_image.png"), (6, None)]))
+    
+    with mock.patch(LIB_NAME + '.pgsetting.gimp.image_list', new=self.get_image_list):
+      self.setting.update_image_ids_and_directories()
+    
+    self.assertEqual(self.setting.value, self._create_image_ids_and_directories(self.image_list))
+  
+  def test_update_image_ids_and_directories_remove_closed_images(self):
+    self.image_list.pop(1)
+    
+    with mock.patch(LIB_NAME + '.pgsetting.gimp.image_list', new=self.get_image_list):
+      self.setting.update_image_ids_and_directories()
+    
+    self.assertEqual(self.setting.value, self._create_image_ids_and_directories(self.image_list))
+  
+  def test_update_directory(self):
+    directory = "test_directory"
+    self.setting.update_directory(1, directory)
+    self.assertEqual(self.setting.value[1], directory)
+  
+  def test_update_directory_invalid_image_id(self):
+    with self.assertRaises(KeyError):
+      self.setting.update_directory(-1, "test_directory")
+  
+  def test_value_setitem_does_not_change_setting_value(self):
+    image_id_to_test = 1
+    test_directory = "test_directory"
+    self.setting.value[image_id_to_test] = test_directory
+    self.assertNotEqual(self.setting.value[image_id_to_test], test_directory)
+    self.assertEqual(self.setting.value[image_id_to_test], self.image_ids_and_directories[image_id_to_test])
+  

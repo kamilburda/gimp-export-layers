@@ -35,6 +35,7 @@ str = unicode
 
 #===============================================================================
 
+import os
 import abc
 from collections import OrderedDict
 
@@ -202,7 +203,7 @@ class Setting(object):
        you need to skip the validation, e.g. because you need to specify an
        "empty" value as the default value (e.g. an empty string for
        FileExtensionSetting), set this to False.
-         
+    
     * `pdb_type` - If None and this is a Setting subclass, assign the default
       PDB type from the list of allowed PDB types. If None and this is the
       Setting class, use None.
@@ -914,8 +915,8 @@ class FileExtensionSetting(ValidatableStringSetting):
   """
   This setting class can be used for file extensions.
   
-  `pgpath.FileExtensionValidator` subclass is used to determine whether
-   the file extension is valid.
+  `pgpath.FileExtensionValidator` subclass is used to determine whether the file
+  extension is valid.
   
   Allowed GIMP PDB types:
   
@@ -931,8 +932,8 @@ class DirectorySetting(ValidatableStringSetting):
   """
   This setting class can be used for directories.
   
-  `pgpath.FilePathValidator` subclass is used to determine whether
-   the directory name is valid.
+  `pgpath.FilePathValidator` subclass is used to determine whether the directory
+  name is valid.
   
   Allowed GIMP PDB types:
   
@@ -941,6 +942,66 @@ class DirectorySetting(ValidatableStringSetting):
   
   def __init__(self, name, default_value, **kwargs):
     super(DirectorySetting, self).__init__(name, default_value, pgpath.FilePathValidator, **kwargs)
+
+
+#-------------------------------------------------------------------------------
+
+
+class ImageIDsAndDirectoriesSetting(Setting):
+  
+  """
+  This setting class stores the list of currently opened images and their import
+  directories as a dictionary of (image ID, import directory) pairs.
+  Import directory is None if image has no import directory.
+  
+  This setting cannot be registered to the PDB as no corresponding PDB type exists.
+  """
+  
+  @property
+  def value(self):
+    # Return a copy to prevent modifying the dictionary indirectly, e.g. via
+    # setting individual entries (setting.value[image.ID] = directory).
+    return dict(self._value)
+  
+  def update_image_ids_and_directories(self):
+    """
+    Remove all (image ID, import directory) pairs for images no longer opened in
+    GIMP. Add (image ID, import directory) pairs for new images opened in GIMP.
+    """
+    
+    # Get the list of images currently opened in GIMP
+    current_images = gimp.image_list()
+    current_image_ids = set([image.ID for image in current_images])
+    
+    # Remove images no longer opened in GIMP
+    self._value = { image_id: self._value[image_id]
+                    for image_id in self._value.keys() if image_id in current_image_ids }
+    
+    # Add new images opened in GIMP
+    for image in current_images:
+      if image.ID not in self._value.keys():
+        self._value[image.ID] = self._get_imported_image_path(image)
+  
+  def update_directory(self, image_id, directory):
+    """
+    Assign a new directory to the specified image ID.
+    
+    If the image ID does not exist in the setting, raise KeyError. 
+    """
+    
+    if image_id not in self._value:
+      raise KeyError(image_id)
+    
+    self._value[image_id] = directory
+  
+  def _get_imported_image_path(self, image):
+    if image.filename is not None:
+      return os.path.dirname(image.filename)
+    else:
+      return None
+
+
+#-------------------------------------------------------------------------------
 
 
 class IntArraySetting(Setting):
@@ -961,6 +1022,7 @@ class IntArraySetting(Setting):
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32ARRAY, gimpenums.PDB_INT16ARRAY, gimpenums.PDB_INT8ARRAY]
 
+
 #===============================================================================
 
 
@@ -980,4 +1042,5 @@ class SettingTypes(enum.Enum):
   string = StringSetting
   file_extension = FileExtensionSetting
   directory = DirectorySetting
-  integer_array = IntArraySetting
+  image_IDs_and_directories = ImageIDsAndDirectoriesSetting
+  array_integer = IntArraySetting
