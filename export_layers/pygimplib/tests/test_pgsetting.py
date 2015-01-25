@@ -341,6 +341,33 @@ class TestFileExtensionSetting(unittest.TestCase):
       self.assertEqual(e.message, "My Custom Message")
 
 
+class TestDirectorySetting(unittest.TestCase):
+  
+  def setUp(self):
+    self.setting = pgsetting.DirectorySetting('output_directory', 'C:\\')
+  
+  def test_update_current_directory_with_current_image_filename(self):
+    image = gimpmocks.MockImage()
+    filename = "/test/image.png"
+    image.filename = filename
+    self.setting.update_current_directory(image, None)
+    self.assertEqual(self.setting.value, os.path.dirname(filename))
+  
+  def test_update_current_directory_with_custom_directory(self):
+    image = gimpmocks.MockImage()
+    
+    custom_directory = "/custom/directory"
+    image.filename = None
+    self.setting.update_current_directory(image, custom_directory)
+    self.assertEqual(self.setting.value, custom_directory)
+    
+    image.filename = "/test/image.png"
+    self.setting.update_current_directory(image, custom_directory)
+    self.assertEqual(self.setting.value, custom_directory)
+
+
+#-------------------------------------------------------------------------------
+
 
 class TestImageIDsAndDirectoriesSetting(unittest.TestCase):
   
