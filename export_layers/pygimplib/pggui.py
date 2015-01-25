@@ -484,40 +484,19 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
     self._element.set_active(value)
 
 
-class GtkExportFolderChooserPresenter(GtkSettingPresenter):
+class GtkFolderChooserPresenter(GtkSettingPresenter):
   
   """
   This class is a `SettingPresenter` for `gtk.FileChooserWidget` elements
-  used as folder choosers for export dialogs.
+  used as folder choosers.
   
   Value: Current folder.
-  
-  The current folder is determined for each image currently opened in GIMP
-  separately, according to the following priority list:
-  
-    1. Last export folder of the current image
-    2. Import path for the current image
-    3. XCF path for the current image
-    4. Last export folder of any image
-    5. The 'Documents' folder in user's home folder
-  
-  Attributes:
-  
-  * `image_ids_and_folders_setting` - a `Setting` object whose value is a
-    dict of <`gimp.Image`, folder name> pairs.
-  
-  * `current_image` - Current `gimp.Image` object.
   """
   
-  def __init__(self, setting, element, image_ids_and_folders_setting, current_image):
-    super(GtkExportFolderChooserPresenter, self).__init__(setting, element)
-    
-    self._image_ids_and_folders_setting = image_ids_and_folders_setting
-    self.current_image = current_image
+  def __init__(self, setting, element):
+    super(GtkFolderChooserPresenter, self).__init__(setting, element)
     
     self._location_toggle_button = self._get_location_toggle_button()
-    
-    self._set_image_ids_and_folders()
   
   def get_value(self):
     if not self._is_location_entry_active():
@@ -526,49 +505,23 @@ class GtkExportFolderChooserPresenter(GtkSettingPresenter):
       folder = self._element.get_filename()
     
     if folder is not None:
-      folder = folder.decode(GTK_CHARACTER_ENCODING)
-    
-    self._image_ids_and_folders_setting.value[self.current_image.ID] = folder
-    
-    return folder
-  
-  def set_value(self, value):
-    """
-    `value` parameter will be ignored if there is a value for folders
-    1., 2. or 3. from the priority list (see the class description).
-    """
-    
-    folder = self._image_ids_and_folders_setting.value[self.current_image.ID]
-    
-    if folder is not None:
-      self._element.set_current_folder(folder.encode(GTK_CHARACTER_ENCODING))
+      return folder.decode(GTK_CHARACTER_ENCODING)
     else:
-      uri = pdb.gimp_image_get_imported_uri(self.current_image)
-      if uri is None:
-        uri = pdb.gimp_image_get_xcf_uri(self.current_image)
-      
-      if uri is not None:
-        self._element.set_uri(uri.encode(GTK_CHARACTER_ENCODING))
-      else:
-        self._element.set_current_folder(value.encode(GTK_CHARACTER_ENCODING))
+      return None
+  
+  def set_value(self, folder):
+    if folder is not None:
+      encoded_folder = folder.encode(GTK_CHARACTER_ENCODING)
+    else:
+      encoded_folder = None
+    
+    self._element.set_current_folder(encoded_folder)
   
   def _get_location_toggle_button(self):
     return self._element.get_children()[0].get_children()[0].get_children()[0].get_children()[0].get_children()[0]
   
   def _is_location_entry_active(self):
     return self._location_toggle_button.get_active()
-  
-  def _set_image_ids_and_folders(self):
-    setting = self._image_ids_and_folders_setting
-    
-    current_image_ids = set([image.ID for image in gimp.image_list()])
-    setting.set_value(
-      {image_id : setting.value[image_id]
-       for image_id in setting.value.keys() if image_id in current_image_ids}
-    )
-    for image_id in current_image_ids:
-      if image_id not in setting.value.keys():
-        setting.value[image_id] = None
 
 
 class GtkWindowPositionPresenter(GtkSettingPresenter):
