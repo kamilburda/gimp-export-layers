@@ -54,8 +54,6 @@ class Container(object):
   
   """
   This class is an ordered, `dict`-like container to store items.
-  
-  To add an object to the container, override the `_add` method in your subclass.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -282,7 +280,9 @@ class SettingStreamInvalidFormatError(SettingStreamError):
 class SettingStreamWriteError(SettingStreamError):
   pass
 
+
 #-------------------------------------------------------------------------------
+
 
 class GimpShelfSettingStream(SettingStream):
   
