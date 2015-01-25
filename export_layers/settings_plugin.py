@@ -357,8 +357,8 @@ def create_gui_settings():
 def create_session_only_gui_settings():
   return pgsettinggroup.SettingGroup([
     {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'image_ids_and_folders',
+      'type': pgsetting.SettingTypes.image_IDs_and_directories,
+      'name': 'image_ids_and_directories',
       'default_value': {},
       'resettable_by_group': False
     },

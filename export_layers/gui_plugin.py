@@ -170,7 +170,9 @@ class _ExportLayersGui(object):
                                                                   [self.gimpshelf_stream, self.config_file_stream])
     if status == pgsettinggroup.SettingPersistor.READ_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING)
+    
     pgsettinggroup.SettingPersistor.load([self.session_only_gui_settings], [self.gimpshelf_stream])
+    self._setup_output_directory_and_image_ids_and_directories()
     
     self.setting_presenters = pggui.GtkSettingPresenterGroup()
     self.layer_exporter = None
@@ -178,6 +180,30 @@ class _ExportLayersGui(object):
     self._init_gui()
     
     gtk.main()
+  
+  def _setup_output_directory_and_image_ids_and_directories(self):
+    """
+    Priority:
+    
+      1. Last export directory of the current image
+      2. Import directory of the current image
+      3. Last export directory of any image (i.e. the current value of this setting)
+      4. The default directory (default value) for this setting
+    
+    Directory 3. is implicitly set upon loading the setting from a persistent source.
+    Directory 4. is implicitly set upon setting instantiation.
+    """
+    
+    self.session_only_gui_settings['image_ids_and_directories'].update_image_ids_and_directories()
+    self.main_settings['output_directory'].update_current_directory(
+      self.image, self.session_only_gui_settings['image_ids_and_directories'].value[self.image.ID])
+    
+    #TODO: Once `SettingPresenter` instances are contained in Settings and the streamlining is revised, resolve this
+#     self.main_settings['output_directory'].set_streamline_func(
+#       lambda output_directory, image_ids_and_directories, current_image_id:
+#          image_ids_and_directories.update_directory(current_image_id, output_directory.value),
+#       self.session_only_gui_settings['image_ids_and_directories'], self.image.ID
+#     )
   
   def _init_gui(self):
     self.dialog = gimpui.Dialog(title=_(constants.PLUGIN_TITLE), role=constants.PLUGIN_PROGRAM_NAME)
@@ -361,11 +387,9 @@ class _ExportLayersGui(object):
         self.file_extension_entry))
     
     self.setting_presenters.add(
-      pggui.GtkExportFolderChooserPresenter(
+      pggui.GtkFolderChooserPresenter(
         self.main_settings['output_directory'],
-        self.folder_chooser,
-        self.session_only_gui_settings['image_ids_and_folders'],
-        self.image))
+        self.folder_chooser))
     
     self.setting_presenters.add(
       pggui.GtkCheckButtonPresenter(
@@ -450,6 +474,9 @@ class _ExportLayersGui(object):
       self.display_message_label(e.message, message_type=self.ERROR)
       return
     
+    self.session_only_gui_settings['image_ids_and_directories'].update_directory(
+      self.image.ID, self.main_settings['output_directory'].value)
+    
     self.save_settings()
     self.display_message_label(_("Settings successfully saved."), message_type=self.INFO)
   
@@ -465,6 +492,9 @@ class _ExportLayersGui(object):
     except pgsetting.SettingValueError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       return
+    
+    self.session_only_gui_settings['image_ids_and_directories'].update_directory(
+      self.image.ID, self.main_settings['output_directory'].value)
     
     self.setup_gui_before_export()
     pdb.gimp_progress_init("", None)
