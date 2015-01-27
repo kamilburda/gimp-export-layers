@@ -157,16 +157,6 @@ class Setting(object):
     reset to its default value if the `reset()` method from the corresponding
     `SettingGroup` is called. False by default.
   
-  * `ui_enabled` (read-only) - Indicates whether the setting should be enabled
-    (i.e. responding to user input) in the GUI. True by default. This attribute
-    is only an indication, it does not modify a GUI element (use the appropriate
-    `SettingPresenter` subclass for that purpose).
-  
-  * `ui_visible` (read-only) - Indicates whether the setting should be visible
-    in the GUI. True by default. This attribute is only an indication, it does
-    not modify a GUI element (use the appropriate `SettingPresenter` subclass
-    for that purpose).
-  
   * `error_messages` (read-only) - A dict of error messages containing
     (message name, message contents) pairs, which can be used e.g. if a value
     assigned to the setting is invalid. You can add your own error messages and
@@ -179,8 +169,6 @@ class Setting(object):
     `streamline()` method. If any of the following attributes are assigned a
     value, they are added to the set:
     * `value`
-    * `ui_enabled`
-    * `ui_visible`
     
     `changed_attributes` is cleared if `streamline()` is called.
   """
@@ -227,9 +215,6 @@ class Setting(object):
     self._gui = pgsettingpresenter.NullSettingPresenter(self)
     
     self._pdb_name = self._get_pdb_name(self._name)
-    
-    self._ui_enabled = True
-    self._ui_visible = True
     
     self._changed_attributes = set()
     self._streamline_func = None
@@ -305,24 +290,6 @@ class Setting(object):
     return self._resettable_by_group
   
   @property
-  def ui_enabled(self):
-    return self._ui_enabled
-  
-  @ui_enabled.setter
-  def ui_enabled(self, ui_enabled):
-    self._ui_enabled = ui_enabled
-    self._changed_attributes.add('ui_enabled')
-  
-  @property
-  def ui_visible(self):
-    return self._ui_visible
-  
-  @ui_visible.setter
-  def ui_visible(self, ui_visible):
-    self._ui_visible = ui_visible
-    self._changed_attributes.add('ui_visible')
-  
-  @property
   def changed_attributes(self):
     return self._changed_attributes
   
@@ -360,8 +327,6 @@ class Setting(object):
       `changed_settings` - Set of changed settings. A setting is considered
       changed if at least one of the following attributes were assigned a value:
       * `value`
-      * `ui_enabled`
-      * `ui_visible`
     """
     
     if self._streamline_func is None:

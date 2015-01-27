@@ -144,10 +144,10 @@ def create_test_settings():
 def streamline_file_extension(file_extension, ignore_invisible):
   if ignore_invisible.value:
     file_extension.set_value("png")
-    file_extension.ui_enabled = False
+    file_extension.gui.set_enabled(False)
   else:
     file_extension.set_value("jpg")
-    file_extension.ui_enabled = True
+    file_extension.gui.set_enabled(True)
 
 
 def streamline_overwrite_mode(overwrite_mode, ignore_invisible, file_extension):
@@ -214,7 +214,6 @@ class TestSettingGroup(unittest.TestCase):
   def test_streamline(self):
     self.settings.streamline(force=True)
     self.assertEqual(self.settings['file_extension'].value, "jpg")
-    self.assertEqual(self.settings['file_extension'].ui_enabled, True)
     self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].options['replace'])
   
   def test_reset(self):
@@ -259,7 +258,6 @@ class TestSettingPresenterGroup(unittest.TestCase):
     self.presenters.assign_element_values_to_settings()
     
     self.assertEqual(self.settings['file_extension'].value, "png")
-    self.assertEqual(self.settings['file_extension'].ui_enabled, False)
   
   def test_assign_element_values_to_settings_no_streamline(self):
     # `value_changed_signal` is None, so no event handlers are invoked.
@@ -271,7 +269,6 @@ class TestSettingPresenterGroup(unittest.TestCase):
     self.presenters.assign_element_values_to_settings()
     
     self.assertEqual(self.settings['file_extension'].value, "jpg")
-    self.assertEqual(self.settings['file_extension'].ui_enabled, True)
 
 
 #===============================================================================

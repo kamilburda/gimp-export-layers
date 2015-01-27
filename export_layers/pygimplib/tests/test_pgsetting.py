@@ -62,10 +62,10 @@ class MockSetting(pgsetting.Setting):
 def streamline_file_extension(file_extension, ignore_invisible):
   if ignore_invisible.value:
     file_extension.set_value("png")
-    file_extension.ui_enabled = False
+    file_extension.gui.set_enabled(False)
   else:
     file_extension.set_value("jpg")
-    file_extension.ui_enabled = True
+    file_extension.gui.set_enabled(True)
 
 
 #===============================================================================
@@ -103,14 +103,10 @@ class TestSetting(unittest.TestCase):
     self.assertNotEqual(setting.error_messages['value_is_none'],
                         setting_with_custom_error_messages.error_messages['value_is_none'])
   
-  def test_changed_attributes(self):
+  def test_value_is_changed(self):
     self.setting.set_value("jpg")
-    self.setting.ui_enabled = False
-    self.setting.ui_visible = True
-    
-    for attr in ['value', 'ui_enabled', 'ui_visible']:
-      self.assertTrue(attr in self.setting.changed_attributes,
-                      msg=("'" + attr + "' not in " + str(self.setting.changed_attributes)))
+    self.assertTrue('value' in self.setting.changed_attributes,
+                    msg=("'value' not in " + str(self.setting.changed_attributes)))
   
   def test_pdb_registration_mode_automatic_is_registrable(self):
     setting = pgsetting.Setting('file_extension', "png", pdb_type=gimpenums.PDB_STRING)
@@ -158,9 +154,7 @@ class TestSetting(unittest.TestCase):
     
     changed_settings = self.setting.streamline()
     self.assertTrue(self.setting in changed_settings)
-    self.assertTrue('ui_enabled' in changed_settings[self.setting])
     self.assertTrue('value' in changed_settings[self.setting])
-    self.assertEqual(self.setting.ui_enabled, True)
     self.assertEqual(self.setting.value, "jpg")
   
   def test_streamline_force(self):

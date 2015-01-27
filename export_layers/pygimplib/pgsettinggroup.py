@@ -588,11 +588,7 @@ class SettingPresenterGroup(Container):
   
   __metaclass__ = abc.ABCMeta
   
-  _SETTING_ATTRIBUTES_METHODS = {
-    'value' : 'set_value', 
-    'ui_enabled' : 'set_enabled',
-    'ui_visible' : 'set_visible'
-  }
+  _SETTING_ATTRIBUTES_METHODS = { 'value' : 'set_value' }
   
   def __init__(self):
     super(SettingPresenterGroup, self).__init__()
