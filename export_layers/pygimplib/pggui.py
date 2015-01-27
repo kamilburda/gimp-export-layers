@@ -56,6 +56,7 @@ import gimp
 import gimpui
 
 from . import pgsettinggroup
+from . import pgsettingpresenter
 from . import overwrite
 from . import progress
 
@@ -393,7 +394,7 @@ class IntComboBox(gimpui.IntComboBox):
 #===============================================================================
 
 
-class GtkSettingPresenter(pgsettinggroup.SettingPresenter):
+class GtkSettingPresenter(pgsettingpresenter.SettingPresenter):
   
   """
   This class is a SettingPresenter subclass suitable for GTK GUI elements.

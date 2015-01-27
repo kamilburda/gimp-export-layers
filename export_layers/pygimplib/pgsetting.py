@@ -45,6 +45,7 @@ import gimpenums
 from .lib import enum
 
 from . import pgpath
+from . import pgsettingpresenter
 
 #===============================================================================
 
@@ -223,6 +224,8 @@ class Setting(object):
     
     self._value = self._default_value
     
+    self._gui = pgsettingpresenter.NullSettingPresenter(self)
+    
     self._pdb_name = self._get_pdb_name(self._name)
     
     self._ui_enabled = True
@@ -260,6 +263,14 @@ class Setting(object):
     self._validate(value)
     self._value = value
     self._changed_attributes.add('value')
+  
+  @property
+  def gui(self):
+    return self._gui
+  
+  @gui.setter
+  def gui(self, gui):
+    self._gui = gui
   
   @property
   def default_value(self):
