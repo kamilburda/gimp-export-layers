@@ -498,10 +498,10 @@ class Setting(object):
   
   def _value_to_str(self, value):
     """
-    Use this method in subclasses to prepend `value` to an error message
-    if `value` that is meant to be assigned to a setting is invalid.
+    Prepend `value` to an error message if `value` that is meant to be assigned
+    to this setting is invalid.
     
-    Don't prepend anything if the value is empty.
+    Don't prepend anything if `value` is empty or None.
     """
     
     if value:
