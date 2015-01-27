@@ -69,6 +69,9 @@ class SettingPresenter(object):
   
   def __init__(self, setting, element):
     self._setting = setting
+    # FIXME: This is only temporary until the redesign of settings is finished
+    self._setting.gui = self
+    
     self._element = element
     
     self.value_changed_signal = None
@@ -90,7 +93,7 @@ class SettingPresenter(object):
     pass
   
   @abc.abstractmethod
-  def set_value(self):
+  def set_value(self, value):
     """
     Set the value of the GUI element.
     """
@@ -106,7 +109,7 @@ class SettingPresenter(object):
     pass
   
   @abc.abstractmethod
-  def set_enabled(self):
+  def set_enabled(self, enabled):
     """
     Set the enabled/disabled state of the GUI element.
     """
@@ -122,7 +125,7 @@ class SettingPresenter(object):
     pass
   
   @abc.abstractmethod
-  def set_visible(self):
+  def set_visible(self, visible):
     """
     Set the visible/invisible state of the GUI element.
     """
@@ -174,22 +177,25 @@ class NullSettingPresenter(SettingPresenter):
   `SettingPresenter` object specified upon its instantiation.
   """
   
+  def __init__(self, setting):
+    super(NullSettingPresenter, self).__init__(setting, None)
+  
   def get_value(self):
     pass
   
-  def set_value(self):
+  def set_value(self, value):
     pass
   
   def get_enabled(self):
     pass
   
-  def set_enabled(self):
+  def set_enabled(self, enabled):
     pass
   
   def get_visible(self):
     pass
   
-  def set_visible(self):
+  def set_visible(self, visible):
     pass
   
   def connect_event(self, event_func, *event_args):
