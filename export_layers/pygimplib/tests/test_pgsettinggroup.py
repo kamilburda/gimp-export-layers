@@ -42,6 +42,7 @@ from . import gimpmocks
 
 from .. import pgsetting
 from .. import pgsettinggroup
+from .. import pgsettingpresenter
 
 #===============================================================================
 
@@ -62,7 +63,7 @@ class MockGuiWidget(object):
     self.visible = True
 
 
-class MockSettingPresenter(pgsettinggroup.SettingPresenter):
+class MockSettingPresenter(pgsettingpresenter.SettingPresenter):
   
   def get_value(self):
     return self._element.value
