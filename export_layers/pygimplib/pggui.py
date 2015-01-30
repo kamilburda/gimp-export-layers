@@ -397,7 +397,7 @@ class IntComboBox(gimpui.IntComboBox):
 class GtkSettingPresenter(pgsettingpresenter.SettingPresenter):
   
   """
-  This class is a SettingPresenter subclass suitable for GTK GUI elements.
+  This class is a SettingPresenter subclass for GTK GUI elements.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -414,14 +414,11 @@ class GtkSettingPresenter(pgsettingpresenter.SettingPresenter):
   def set_visible(self, value):
     self._element.set_visible(value)
   
-  def connect_event(self, event_func, *event_args):
-    if self.value_changed_signal is not None:
-      return self._element.connect(self.value_changed_signal, event_func, *event_args)
-    else:
-      raise TypeError("cannot connect signal if value_changed_signal is None")
+  def _connect_value_changed_event(self):
+    self._element.connect(self._VALUE_CHANGED_SIGNAL, self._on_value_changed)
   
   def set_tooltip(self):
-    if self._setting.description is not None and self._setting.description:
+    if self._setting.description:
       self._element.set_tooltip_text(self._setting.description)
 
 
@@ -436,15 +433,12 @@ class GtkCheckButtonPresenter(GtkSettingPresenter):
   Value: Checked state of the checkbox (checked/unchecked).
   """
   
-  def __init__(self, setting, element):
-    super(GtkCheckButtonPresenter, self).__init__(setting, element)
+  _VALUE_CHANGED_SIGNAL = "clicked"
     
-    self.value_changed_signal = "clicked"
-    
-  def get_value(self):
+  def _get_value(self):
     return self._element.get_active()
   
-  def set_value(self, value):
+  def _set_value(self, value):
     self._element.set_active(value)
 
 
@@ -456,10 +450,10 @@ class GtkEntryPresenter(GtkSettingPresenter):
   Value: Text in the text field.
   """
   
-  def get_value(self):
+  def _get_value(self):
     return self._element.get_text().decode(GTK_CHARACTER_ENCODING)
   
-  def set_value(self, value):
+  def _set_value(self, value):
     self._element.set_text(value.encode(GTK_CHARACTER_ENCODING))
     # Place the cursor at the end of the text entry.
     self._element.set_position(-1)
@@ -473,15 +467,12 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
   Value: Option selected in the combobox.
   """
   
-  def __init__(self, setting, element):
-    super(GimpUiIntComboBoxPresenter, self).__init__(setting, element)
-    
-    self.value_changed_signal = "changed"
+  _VALUE_CHANGED_SIGNAL = "changed"
   
-  def get_value(self):
+  def _get_value(self):
     return self._element.get_active()
   
-  def set_value(self, value):
+  def _set_value(self, value):
     self._element.set_active(value)
 
 
@@ -494,12 +485,12 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
   Value: Current folder.
   """
   
-  def __init__(self, setting, element):
-    super(GtkFolderChooserPresenter, self).__init__(setting, element)
+  def __init__(self, *args, **kwargs):
+    super(GtkFolderChooserPresenter, self).__init__(*args, **kwargs)
     
     self._location_toggle_button = self._get_location_toggle_button()
   
-  def get_value(self):
+  def _get_value(self):
     if not self._is_location_entry_active():
       folder = self._element.get_current_folder()
     else:
@@ -510,7 +501,7 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
     else:
       return None
   
-  def set_value(self, folder):
+  def _set_value(self, folder):
     if folder is not None:
       encoded_folder = folder.encode(GTK_CHARACTER_ENCODING)
     else:
@@ -534,10 +525,10 @@ class GtkWindowPositionPresenter(GtkSettingPresenter):
   Value: Current position of the window as a tuple with 2 integers.
   """
   
-  def get_value(self):
+  def _get_value(self):
     return self._element.get_position()
   
-  def set_value(self, value):
+  def _set_value(self, value):
     """
     Set new position of the window (i.e. move the window).
     
@@ -553,29 +544,12 @@ class GtkExpanderPresenter(GtkSettingPresenter):
   """
   This class is a `SettingPresenter` for `gtk.Expander` elements.
   
-  Value: Expanded state of the expander (expanded/collapsed).
+  Value: True if the expander is expanded, False if collapsed.
   """
   
-  def get_value(self):
+  def _get_value(self):
     return self._element.get_expanded()
   
-  def set_value(self, value):
+  def _set_value(self, value):
     self._element.set_expanded(value)
 
-
-#===============================================================================
-# GtkSettingPresenterGroup
-#===============================================================================
-
-
-class GtkSettingPresenterGroup(pgsettinggroup.SettingPresenterGroup):
-  
-  """
-  This class is used to group `SettingPresenter` objects in a GTK environment.
-  """
-  
-  def _gui_on_element_value_change(self, widget, presenter, *args):
-    self._on_element_value_change(presenter)
-  
-  def _gui_on_element_value_change_streamline(self, widget, presenter, *args):
-    self._on_element_value_change_streamline(presenter)

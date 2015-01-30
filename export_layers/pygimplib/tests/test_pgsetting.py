@@ -19,6 +19,10 @@
 #
 #-------------------------------------------------------------------------------
 
+"""
+This module tests the `pgsetting` and `pgsettingpresenter` modules.
+"""
+
 #===============================================================================
 
 from __future__ import absolute_import
@@ -40,6 +44,7 @@ from ..lib import mock
 from . import gimpmocks
 
 from .. import pgsetting
+from .. import pgsettingpresenter
 from .. import pgpath
 
 #===============================================================================
@@ -59,13 +64,70 @@ class MockSetting(pgsetting.Setting):
       raise pgsetting.SettingValueError(self._error_messages['value_is_none'])
 
 
-def streamline_file_extension(file_extension, ignore_invisible):
-  if ignore_invisible.value:
-    file_extension.set_value("png")
-    file_extension.gui.set_enabled(False)
+def on_file_extension_changed(file_extension, ignore_invisible):
+  if file_extension.value == "png":
+    ignore_invisible.set_value(False)
+    ignore_invisible.gui.set_enabled(True)
   else:
+    ignore_invisible.set_value(True)
+    ignore_invisible.gui.set_enabled(False)
+
+
+def on_autocrop_changed(autocrop, file_extension):
+  if autocrop.value:
     file_extension.set_value("jpg")
-    file_extension.gui.set_enabled(True)
+
+
+class MockGuiWidget(object):
+  
+  def __init__(self, value):
+    self.value = value
+    self.enabled = True
+    self.visible = True
+    
+    self._signal = None
+    self._event_handler = None
+  
+  def connect(self, signal, event_handler):
+    self._signal = signal
+    self._event_handler = event_handler
+  
+  def set_value(self, value):
+    self.value = value
+    if self._event_handler is not None:
+      self._event_handler()
+  
+
+class MockSettingPresenter(pgsettingpresenter.SettingPresenter):
+
+  def get_enabled(self):
+    return self._element.enabled
+  
+  def set_enabled(self, value):
+    self._element.enabled = value
+
+  def get_visible(self):
+    return self._element.visible
+  
+  def set_visible(self, value):
+    self._element.visible = value
+  
+  def _get_value(self):
+    return self._element.value
+  
+  def _set_value(self, value):
+    self._element.value = value
+  
+  def _connect_value_changed_event(self):
+    self._element.connect(self._VALUE_CHANGED_SIGNAL, self._on_value_changed)
+  
+  def set_tooltip(self):
+    pass
+
+
+class MockSettingPresenterWithValueChangedSignal(MockSettingPresenter):
+  
+  _VALUE_CHANGED_SIGNAL = "changed"
 
 
 #===============================================================================
@@ -90,6 +152,45 @@ class TestSetting(unittest.TestCase):
     with self.assertRaises(AttributeError):
       self.setting.value = "jpg"
   
+  def test_connect_value_changed_event_argument_is_not_callable(self):
+    with self.assertRaises(TypeError):
+      self.setting.connect_value_changed_event(None)
+  
+  def test_value_changed_event(self):
+    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
+    self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
+    
+    self.setting.set_value("jpg")
+    self.assertEqual(ignore_invisible.value, True)
+    self.assertEqual(ignore_invisible.gui.get_enabled(), False)
+  
+  def test_value_changed_event_nested(self):
+    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
+    self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
+    
+    autocrop = pgsetting.BoolSetting('autocrop', False)
+    autocrop.connect_value_changed_event(on_autocrop_changed, self.setting)
+    
+    autocrop.set_value(True)
+    
+    self.assertEqual(self.setting.value, "jpg")
+    self.assertEqual(ignore_invisible.value, True)
+    self.assertEqual(ignore_invisible.gui.get_enabled(), False)
+  
+  def test_remove_value_changed_event(self):
+    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
+    self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
+    self.setting.remove_value_changed_event()
+    
+    self.setting.set_value("jpg")
+    # `ignore_invisible` should not change
+    self.assertEqual(ignore_invisible.value, ignore_invisible.default_value)
+    self.assertEqual(ignore_invisible.gui.get_enabled(), True)
+  
+  def test_remove_value_changed_event_no_previous_event_handler_set(self):
+    with self.assertRaises(TypeError):
+      self.setting.remove_value_changed_event()
+  
   def test_auto_generated_display_name(self):
     self.assertEqual(pgsetting.Setting('this_is_a_setting', "png").display_name, "This is a setting")
   
@@ -102,11 +203,6 @@ class TestSetting(unittest.TestCase):
     self.assertIn('invalid_value', setting_with_custom_error_messages.error_messages)
     self.assertNotEqual(setting.error_messages['value_is_none'],
                         setting_with_custom_error_messages.error_messages['value_is_none'])
-  
-  def test_value_is_changed(self):
-    self.setting.set_value("jpg")
-    self.assertTrue('value' in self.setting.changed_attributes,
-                    msg=("'value' not in " + str(self.setting.changed_attributes)))
   
   def test_pdb_registration_mode_automatic_is_registrable(self):
     setting = pgsetting.Setting('file_extension', "png", pdb_type=gimpenums.PDB_STRING)
@@ -121,51 +217,79 @@ class TestSetting(unittest.TestCase):
       pgsetting.Setting('file_extension', "png", pdb_type=None,
                         pdb_registration_mode=pgsetting.PdbRegistrationModes.registrable)
   
-  def test_reset(self):
-    setting = pgsetting.Setting('file_extension', "png")
-    setting.set_value("jpg")
-    setting.reset()
-    self.assertEqual(setting.value, "png")
+  def test_reset_resets_setting_to_default_value(self):
+    self.setting.set_value("jpg")
+    self.setting.reset()
+    self.assertEqual(self.setting.value, "png")
   
-  def test_set_remove_streamline_func(self):
-    with self.assertRaises(TypeError):
-      self.setting.remove_streamline_func()
-    
-    with self.assertRaises(TypeError):
-      self.setting.set_streamline_func(None)
-    
-    with self.assertRaises(TypeError):
-      self.setting.set_streamline_func("this is not a function")
-  
-  def test_invalid_streamline(self):
-    with self.assertRaises(TypeError):
-      self.setting.streamline()
-  
-  def test_can_streamline(self):
-    self.setting.set_streamline_func(streamline_file_extension)
-    self.assertTrue(self.setting.can_streamline())
-    self.setting.remove_streamline_func()
-    self.assertFalse(self.setting.can_streamline())
-  
-  def test_streamline(self):
+  def test_reset_triggers_value_changed_event(self):
     ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    self.setting.set_value("gif")
-    self.setting.set_streamline_func(streamline_file_extension, ignore_invisible)
+    self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
     
-    changed_settings = self.setting.streamline()
-    self.assertTrue(self.setting in changed_settings)
-    self.assertTrue('value' in changed_settings[self.setting])
+    self.setting.set_value("jpg")
+    self.setting.reset()
+    self.assertEqual(ignore_invisible.value, ignore_invisible.default_value)
+    self.assertEqual(ignore_invisible.gui.get_enabled(), True)
+
+
+class TestSettingGui(unittest.TestCase):
+  
+  def setUp(self):
+    self.setting = pgsetting.Setting('file_extension', "png")
+    self.widget = MockGuiWidget("")
+  
+  def test_set_gui_updates_gui_value(self):
+    self.setting.set_gui(MockSettingPresenter, self.widget)
+    self.assertEqual(self.widget.value, "png")
+  
+  def test_setting_set_value_updates_gui(self):
+    self.setting.set_gui(MockSettingPresenter, self.widget)
+    self.setting.set_value("gif")
+    self.assertEqual(self.widget.value, "gif")
+  
+  def test_set_gui_preserves_gui_state(self):
+    self.setting.gui.set_enabled(False)
+    self.setting.gui.set_visible(False)
+    self.setting.set_value("gif")
+    
+    self.setting.set_gui(MockSettingPresenter, self.widget)
+    
+    self.assertEqual(self.setting.gui.get_enabled(), False)
+    self.assertEqual(self.setting.gui.get_visible(), False)
+    self.assertEqual(self.widget.value, "gif")
+  
+  def test_update_setting_value_manually(self):
+    self.setting.set_gui(MockSettingPresenter, self.widget)
+    self.widget.set_value("jpg")
+    self.assertEqual(self.setting.value, "png")
+    
+    self.setting.gui.update_setting_value()
     self.assertEqual(self.setting.value, "jpg")
   
-  def test_streamline_force(self):
+  def test_update_setting_value_automatically(self):
+    self.setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
+    self.widget.set_value("jpg")
+    self.assertEqual(self.setting.value, "jpg")
+  
+  def test_update_setting_value_triggers_event(self):
+    self.setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
+    
     ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    self.setting.set_streamline_func(streamline_file_extension, ignore_invisible)
+    self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
     
-    changed_settings = self.setting.streamline()
-    self.assertEqual({}, changed_settings)
-    
-    changed_settings = self.setting.streamline(force=True)
-    self.assertTrue(self.setting in changed_settings)
+    self.widget.set_value("jpg")
+    self.assertEqual(self.setting.value, "jpg")
+    self.assertEqual(ignore_invisible.value, True)
+    self.assertEqual(ignore_invisible.gui.get_enabled(), False)
+  
+  def test_reset_updates_gui(self):
+    self.setting.set_gui(MockSettingPresenter, self.widget)
+    self.setting.set_value("jpg")
+    self.setting.reset()
+    self.assertEqual(self.widget.value, "png")
+
+
+#-------------------------------------------------------------------------------
 
 
 class TestIntSetting(unittest.TestCase):
@@ -177,7 +301,7 @@ class TestIntSetting(unittest.TestCase):
     with self.assertRaises(pgsetting.SettingValueError):
       self.setting.set_value(-5)
   
-  def test_minimum_value_does_not_raise_error(self):
+  def test_min_value_does_not_raise_error(self):
     try:
       self.setting.set_value(0)
     except pgsetting.SettingValueError:
@@ -187,7 +311,7 @@ class TestIntSetting(unittest.TestCase):
     with self.assertRaises(pgsetting.SettingValueError):
       self.setting.set_value(200)
   
-  def test_maximum_value_does_not_raise_error(self):
+  def test_max_value_does_not_raise_error(self):
     try:
       self.setting.set_value(100)
     except pgsetting.SettingValueError:

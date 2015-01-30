@@ -42,7 +42,6 @@ from . import gimpmocks
 
 from .. import pgsetting
 from .. import pgsettinggroup
-from .. import pgsettingpresenter
 
 #===============================================================================
 
@@ -54,49 +53,6 @@ LIB_NAME = '.'.join(__name__.split('.')[:-2])
 class MockStringIO(StringIO):
   def read(self):
     return self.getvalue()
-
-
-class MockGuiWidget(object):
-  def __init__(self, value):
-    self.value = value
-    self.enabled = True
-    self.visible = True
-
-
-class MockSettingPresenter(pgsettingpresenter.SettingPresenter):
-  
-  def get_value(self):
-    return self._element.value
-  
-  def set_value(self, value):
-    self._element.value = value
-
-  def get_enabled(self):
-    return self._element.enabled
-  
-  def set_enabled(self, value):
-    self._element.enabled = value
-
-  def get_visible(self):
-    return self._element.visible
-  
-  def set_visible(self, value):
-    self._element.visible = value
-  
-  def connect_event(self, event_func, *event_args):
-    pass
-  
-  def set_tooltip(self):
-    pass
-
-
-class MockSettingPresenterGroup(pgsettinggroup.SettingPresenterGroup):
-  
-  def _gui_on_element_value_change(self, presenter):
-    self._on_element_value_change(presenter)
-  
-  def _gui_on_element_value_change_streamline(self, presenter):
-    self._on_element_value_change(presenter)
 
 
 #===============================================================================
@@ -134,29 +90,7 @@ def create_test_settings():
     },
   ])
   
-  settings['file_extension'].set_streamline_func(streamline_file_extension, settings['ignore_invisible'])
-  settings['overwrite_mode'].set_streamline_func(streamline_overwrite_mode,
-                                                 settings['ignore_invisible'], settings['file_extension'])
-  
   return settings
-
-
-def streamline_file_extension(file_extension, ignore_invisible):
-  if ignore_invisible.value:
-    file_extension.set_value("png")
-    file_extension.gui.set_enabled(False)
-  else:
-    file_extension.set_value("jpg")
-    file_extension.gui.set_enabled(True)
-
-
-def streamline_overwrite_mode(overwrite_mode, ignore_invisible, file_extension):
-  if ignore_invisible.value:
-    overwrite_mode.set_value(overwrite_mode.options['skip'])
-    file_extension.error_messages['custom'] = "custom error message"
-  else:
-    overwrite_mode.set_value(overwrite_mode.options['replace'])
-    file_extension.error_messages['custom'] = "different custom error message"
 
 
 #===============================================================================
@@ -207,68 +141,9 @@ class TestSettingGroup(unittest.TestCase):
   def setUp(self):
     self.settings = create_test_settings()
       
-  def test_get_setting_invalid_key(self):
+  def test_get_setting_invalid_name(self):
     with self.assertRaises(KeyError):
-      self.settings['invalid_key']
-  
-  def test_streamline(self):
-    self.settings.streamline(force=True)
-    self.assertEqual(self.settings['file_extension'].value, "jpg")
-    self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].options['replace'])
-  
-  def test_reset(self):
-    self.settings['overwrite_mode'].set_value(self.settings['overwrite_mode'].options['rename_new'])
-    self.settings['file_extension'].set_value("jpg")
-    self.settings.reset()
-    self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].default_value)
-    self.assertNotEqual(self.settings['file_extension'].value, self.settings['file_extension'].default_value)
-    self.assertEqual(self.settings['file_extension'].value, "jpg")
-
-
-#===============================================================================
-
-
-class TestSettingPresenterGroup(unittest.TestCase):
-  
-  def setUp(self):
-    self.settings = create_test_settings()
-    self.element = MockGuiWidget("")
-    self.setting_presenter = MockSettingPresenter(self.settings['file_extension'], self.element)
-    
-    self.presenters = MockSettingPresenterGroup()
-    self.presenters.add(self.setting_presenter)
-    self.presenters.add(MockSettingPresenter(self.settings['overwrite_mode'],
-                                             MockGuiWidget(self.settings['overwrite_mode'].options['skip'])))
-    self.presenters.add(MockSettingPresenter(self.settings['ignore_invisible'], MockGuiWidget(False)))
-  
-  def test_assign_setting_values_to_elements(self):
-    self.settings['file_extension'].set_value("png")
-    self.settings['ignore_invisible'].set_value(True)
-    
-    self.presenters.assign_setting_values_to_elements()
-    
-    self.assertEqual(self.presenters[self.settings['file_extension']].get_value(), "png")
-    self.assertEqual(self.presenters[self.settings['file_extension']].get_enabled(), False)
-    self.assertEqual(self.presenters[self.settings['ignore_invisible']].get_value(), True)
-  
-  def test_assign_element_values_to_settings_with_streamline(self):
-    self.presenters[self.settings['file_extension']].set_value("jpg")
-    self.presenters[self.settings['ignore_invisible']].set_value(True)
-    
-    self.presenters.assign_element_values_to_settings()
-    
-    self.assertEqual(self.settings['file_extension'].value, "png")
-  
-  def test_assign_element_values_to_settings_no_streamline(self):
-    # `value_changed_signal` is None, so no event handlers are invoked.
-    self.presenters.connect_value_changed_events()
-    
-    self.presenters[self.settings['file_extension']].set_value("jpg")
-    self.presenters[self.settings['ignore_invisible']].set_value(True)
-    
-    self.presenters.assign_element_values_to_settings()
-    
-    self.assertEqual(self.settings['file_extension'].value, "jpg")
+      self.settings['invalid_name']
 
 
 #===============================================================================

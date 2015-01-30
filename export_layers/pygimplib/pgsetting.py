@@ -65,8 +65,8 @@ class PdbRegistrationModes(enum.Enum):
 
 class SettingValueError(Exception):
   """
-  This exception class is raised when a value assigned to the `value` attribute
-  of a `Setting` object is invalid.
+  This exception class is raised when a value assigned to a `Setting` object is
+  invalid.
   """
   
   pass
@@ -97,17 +97,24 @@ class Setting(object):
   """
   This class holds data about a plug-in setting.
   
-  Attributes and methods in this class can be used in multiple scenarios, such as:
+  Properties and methods in this class can be used in multiple scenarios, such as:
   * using setting values as variables in the main logic of plug-ins
   * registering GIMP Procedural Database (PDB) parameters to plug-ins
-  * GUI element properties (values, labels, tooltips, etc.)
+  * managing GUI element properties (values, labels, tooltips, etc.)
   
-  It is recommended to use an appropriate subclass for a setting, e.g. for
-  automatic validation of input values. If there is no appropriate subclass, you
-  may use this class.
+  It is recommended to use an appropriate subclass for a setting, as they offer
+  the following features:
+  * automatic validation of input values
+  * readily available GUI element, keeping the GUI and the setting value in sync
   
-  This class allows to use any PDB type or no type. It is up to the developer to
-  validate input values if needed.
+  It is also possible to attach an event handler to the setting when the value
+  of the setting changes (i.e. when `set_value()` method is called). This way,
+  other settings and their GUI elements can be adjusted automatically.
+  
+  This class in particular:
+  * allows to use any PDB type or no type
+  * does not validate input values
+  * does not have a GUI element assigned
   
   Attributes:
   
@@ -118,6 +125,10 @@ class Setting(object):
   
   * `default_value` (read-only) - Default value of the setting assigned upon its
     initialization or after the `reset()` method is called.
+  
+  * `gui` (read-only) - `SettingPresenter` instance acting as a wrapper of a GUI
+    element. With `gui`, you may modify GUI-specific attributes, such as
+    visibility or sensitivity (enabled/disabled).
   
   * `display_name` (read-only) - Setting name in human-readable format. Useful
     e.g. as GUI labels.
@@ -163,14 +174,6 @@ class Setting(object):
     assign them to one of the "default" error messages (such as 'invalid_value'
     in several `Setting` subclasses) depending on the context in which the value
     assigned is invalid.
-  
-  * `changed_attributes` (read-only) - Contains a set of attribute names of the
-    setting object that were changed. This attribute is used in the
-    `streamline()` method. If any of the following attributes are assigned a
-    value, they are added to the set:
-    * `value`
-    
-    `changed_attributes` is cleared if `streamline()` is called.
   """
   
   _ALLOWED_PDB_TYPES = None
@@ -211,14 +214,15 @@ class Setting(object):
     self._resettable_by_group = resettable_by_group
     
     self._value = self._default_value
-    
-    self._gui = pgsettingpresenter.NullSettingPresenter(self)
-    
     self._pdb_name = self._get_pdb_name(self._name)
     
-    self._changed_attributes = set()
-    self._streamline_func = None
-    self._streamline_func_args = []
+    self._value_changed_event_handler = None
+    self._value_changed_event_handler_args = []
+    
+    self._setting_value_synchronizer = pgsettingpresenter.SettingValueSynchronizer()
+    self._setting_value_synchronizer.apply_gui_value_to_setting = self._apply_gui_value_to_setting
+    
+    self._gui = pgsettingpresenter.NullSettingPresenter(self, self._setting_value_synchronizer)
     
     self._error_messages = {}
     self._init_error_messages()
@@ -236,30 +240,13 @@ class Setting(object):
   def value(self):
     return self._value
   
-  def set_value(self, value):
-    """
-    Set the setting value. Validate the value before assignment. If the value is
-    invalid, raise `SettingValueError`.
-    
-    This is a method and not a property because of the validation overhead.
-    `value` still remains a property for the sake of brevity.
-    """
-    
-    self._validate(value)
-    self._value = value
-    self._changed_attributes.add('value')
+  @property
+  def default_value(self):
+    return self._default_value
   
   @property
   def gui(self):
     return self._gui
-  
-  @gui.setter
-  def gui(self, gui):
-    self._gui = gui
-  
-  @property
-  def default_value(self):
-    return self._default_value
   
   @property
   def display_name(self):
@@ -290,12 +277,41 @@ class Setting(object):
     return self._resettable_by_group
   
   @property
-  def changed_attributes(self):
-    return self._changed_attributes
-  
-  @property
   def error_messages(self):
     return self._error_messages
+  
+  def set_value(self, value):
+    """
+    Set the setting value.
+    
+    Before the assignment, validate the value. If the value is invalid, raise
+    `SettingValueError`.
+    
+    Update the value of the GUI element. Even if the setting has no GUI element
+    assigned, the value is recorded. Once a GUI element is assigned to the
+    setting, the recorded value is copied over to the GUI element.
+    
+    If an event handler is connected (via `connect_value_changed_event()`), call
+    the event handler.
+    
+    Note: This is a method and not a property because of the additional overhead
+    introduced by validation, GUI updating and event handling. `value` still
+    remains a property for the sake of brevity.
+    """
+    
+    self._assign_and_validate_value(value)
+    self._setting_value_synchronizer.apply_setting_value_to_gui(value)
+    if self._is_value_changed_event_connected():
+      self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
+  
+  def _assign_and_validate_value(self, value):
+    self._validate(value)
+    self._value = value
+  
+  def _apply_gui_value_to_setting(self, value):
+    self._assign_and_validate_value(value)
+    if self._is_value_changed_event_connected():
+      self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
   
   def reset(self):
     """
@@ -305,89 +321,68 @@ class Setting(object):
     
       setting.set_value(setting.default_value)
     
-    in that this method does not raise an exception if the default value is
-    invalid and does not add the `value` attribute to `changed_attributes`.
+    in that `reset()` does not validate the default value.
+    
+    `reset()` also updates the GUI and calls the event handler.
     """
     
     self._value = self._default_value
+    self._setting_value_synchronizer.apply_setting_value_to_gui(self._default_value)
+    if self._is_value_changed_event_connected():
+      self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
   
-  def streamline(self, force=False):
+  def set_gui(self, gui_type, gui_element):
     """
-    Change attributes of this and other settings based on the value
-    of this setting, the other settings or additional arguments.
+    Assign new GUI object for this setting. The state of the previous GUI object
+    is copied to the new GUI object (such as its value, visibility and
+    sensitivity).
     
     Parameters:
     
-    * `force` - If True, streamline settings even if the values of the other
-      settings were not changed. This is useful when initializing GUI elements -
-      setting up proper values, enabled/disabled state or visibility.
+    * `gui_type` - `SettingPresenter` type to wrap `gui_element` around.
     
-    Returns:
-    
-      `changed_settings` - Set of changed settings. A setting is considered
-      changed if at least one of the following attributes were assigned a value:
-      * `value`
+    * `gui_element` - A GUI element.
     """
     
-    if self._streamline_func is None:
-      raise TypeError("streamline() cannot be called because there is no streamline function set")
-    
-    changed_settings = OrderedDict()
-    
-    if self._changed_attributes or force:
-      self._streamline_func(self, *self._streamline_func_args)
-      
-      # Create copies of the changed attributes since the sets are cleared
-      # in the objects afterwards.
-      changed_settings[self] = set(self._changed_attributes)
-      self._changed_attributes.clear()
-      
-      for arg in self._streamline_func_args:
-        if isinstance(arg, Setting) and arg.changed_attributes:
-          changed_settings[arg] = set(arg.changed_attributes)
-          arg.changed_attributes.clear()
-    
-    return changed_settings
+    self._gui = gui_type(self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,
+                         old_setting_presenter=self._gui)
   
-  def set_streamline_func(self, streamline_func, *streamline_func_args):
+  def connect_value_changed_event(self, event_handler, *event_handler_args):
     """
-    Set a function to be called by the `streamline()` method.
+    Connect an event handler that triggers when `set_value()` is called.
     
-    A streamline function must always contain at least one argument. The first
-    argument is the setting from which the streamline function is invoked.
-    This argument should therefore not be specified in `streamline_func_args`.
+    The `event_handler` (a function) must always contain at least one argument.
+    The first argument must be the setting from which the event handler is
+    invoked.
     
     Parameters:
     
-    * `streamline_func` - Streamline function to be called by `streamline()`.
+    * `event_handler` - Function to be called when `set_value()` from this
+      setting is called.
     
-    * `streamline_func_args` - Additional arguments to `streamline_func`. Can be
+    * `*event_handler_args` - Additional arguments to `event_handler`. Can be
       any arguments, including `Setting` objects.
     """
     
-    if not callable(streamline_func):
+    if not callable(event_handler):
       raise TypeError("not a function")
     
-    self._streamline_func = streamline_func
-    self._streamline_func_args = streamline_func_args
+    self._value_changed_event_handler = event_handler
+    self._value_changed_event_handler_args = event_handler_args
   
-  def remove_streamline_func(self):
+  def remove_value_changed_event(self):
     """
-    Remove streamline function set by the `set_streamline_func()` method.
+    Remove the event handler set by the `connect_value_changed_event()` method.
     """
     
-    if self._streamline_func is None:
-      raise TypeError("no streamline function was previously set")
+    if self._value_changed_event_handler is None:
+      raise TypeError("no event handler was previously set")
     
-    self._streamline_func = None
-    self._streamline_func_args = []
+    self._value_changed_event_handler = None
+    self._value_changed_event_handler_args = []
   
-  def can_streamline(self):
-    """
-    Return True if a streamline function is set, False otherwise.
-    """
-    
-    return self._streamline_func is not None
+  def _is_value_changed_event_connected(self):
+    return self._value_changed_event_handler is not None
   
   def _validate(self, value):
     """
@@ -647,12 +642,6 @@ class EnumSetting(Setting):
   
   * `'invalid_default_value'` - Option name is invalid (not found in the `options` parameter
     when instantiating the object).
-  
-  * `'wrong_options_len'` - Wrong number of elements in tuples in the `options` parameter
-    when initializing the object.
-  
-  * `'duplicate_option_value'` - When the object was being initialized, some
-    option values in the 3-element tuples were specified multiple times.
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
@@ -675,18 +664,18 @@ class EnumSetting(Setting):
       tuples - use only 2- or only 3-element tuples.
     """
     
+    self._options, self._options_display_names, self._option_values = self._create_option_attributes(options)
+    
     orig_validate_default_value = validate_default_value
     
-    super(EnumSetting, self).__init__(name, default_value, validate_default_value=False, **kwargs)
+    if default_value in self._options:
+      # `default_value` is a string, not an integer. In order to properly
+      # initialize the setting, the actual default value must be passed.
+      param_default_value = self._options[default_value]
+    else:
+      param_default_value = default_value
     
-    self.error_messages['wrong_options_len'] = (
-      "Wrong number of tuple elements in options - must be only 2- or only 3-element tuples"
-    )
-    self.error_messages['duplicate_option_value'] = (
-      "Cannot set the same value for multiple options - they must be unique"
-    )
-    
-    self._options, self._options_display_names, self._option_values = self._create_option_attributes(options)
+    super(EnumSetting, self).__init__(name, param_default_value, validate_default_value=False, **kwargs)
     
     self.error_messages['invalid_value'] = _(
       "Invalid option value; valid values: {0}"
@@ -696,15 +685,9 @@ class EnumSetting(Setting):
       "invalid identifier for the default value; must be one of {0}"
     ).format(self._options.keys())
     
-    if default_value in self._options:
-      self._default_value = self._options[default_value]
-      self._value = self._default_value
-    else:
+    if default_value not in self._options:
       if orig_validate_default_value:
         raise SettingDefaultValueError(self.error_messages['invalid_default_value'])
-      else:
-        self._default_value = default_value
-        self._value = self._default_value
     
     self._options_str = self._stringify_options()
   
@@ -734,6 +717,16 @@ class EnumSetting(Setting):
     if value not in self._option_values:
       raise SettingValueError(self._value_to_str(value) + self.error_messages['invalid_value'])
   
+  def _stringify_options(self):
+    options_str = ""
+    options_sep = ", "
+    
+    for value, display_name in zip(self._options.values(), self._options_display_names.values()):
+      options_str += '{0} ({1}){2}'.format(display_name, value, options_sep)
+    options_str = options_str[:-len(options_sep)]
+    
+    return "{ " + options_str + " }"
+  
   def _create_option_attributes(self, input_options):
     options = OrderedDict()
     options_display_names = OrderedDict()
@@ -747,25 +740,15 @@ class EnumSetting(Setting):
     elif all(len(elem) == 3 for elem in input_options):
       for option_name, option_display_name, option_value in input_options:
         if option_value in option_values:
-          raise ValueError(self.error_messages['duplicate_option_value'])
+          raise ValueError("Cannot set the same value for multiple options - they must be unique")
         
         options[option_name] = option_value
         options_display_names[option_name] = option_display_name
         option_values.add(option_value)
     else:
-      raise ValueError(self.error_messages['wrong_options_len'])
+      raise ValueError("Wrong number of tuple elements in options - must be only 2- or only 3-element tuples")
     
     return options, options_display_names, option_values
-  
-  def _stringify_options(self):
-    options_str = ""
-    options_sep = ", "
-    
-    for value, display_name in zip(self._options.values(), self._options_display_names.values()):
-      options_str += '{0} ({1}){2}'.format(display_name, value, options_sep)
-    options_str = options_str[:-len(options_sep)]
-    
-    return "{ " + options_str + " }"
 
 
 class ImageSetting(Setting):

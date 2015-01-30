@@ -21,9 +21,8 @@
 
 """
 This module:
-* defines the means to load and save settings:
-  * persistently - using a JSON file
-  * "session-persistently" (settings persist during one GIMP session) - using the GIMP shelf
+* defines classes used to update GUI elements and keep them in sync with their
+  associated settings
 """
 
 #===============================================================================
@@ -41,19 +40,34 @@ import abc
 
 #===============================================================================
 
+
+class SettingValueSynchronizer(object):
+  
+  """
+  This class allows the `Setting` and `SettingPresenter` classes to keep the
+  `Setting` and `SettingPresenter` values in sync.
+  """
+  
+  def __init__(self):
+    self.apply_setting_value_to_gui = None
+    self.apply_gui_value_to_setting = None
+
+
+#===============================================================================
+
+
 class SettingPresenter(object):
   
   """
-  This class wraps a `Setting` object and a GUI element together.
+  This class wraps a GUI element (widget, dialog, etc.).
   
   Various GUI elements have different attributes or methods to access their
   properties. This class wraps some of these attributes/methods so that they can
   be accessed with the same name.
   
-  Setting presenters can wrap any attribute of a GUI element into their
-  `get_value()` and `set_value()` methods. The value does not have to be a
-  "direct" value, e.g. the checked state of a checkbox, but also e.g. the label
-  of the checkbox.
+  Subclasses can wrap any attribute of a GUI element into their `_get_value()`
+  and `_set_value()` methods. The value does not have to be a "direct" value,
+  e.g. the checked state of a checkbox, but also e.g. the label of the checkbox.
   
   Attributes:
   
@@ -61,20 +75,44 @@ class SettingPresenter(object):
   
   * `element (read-only)` - GUI element object.
   
-  * `value_changed_signal` - Object that indicates the type of event to assign
-    to the GUI element that changes one of its properties.
+  * `_VALUE_CHANGED_SIGNAL` - Object that indicates the type of event to
+    connect to the GUI element. Once the event is triggered, it assigns the GUI
+    element value to the setting value. If this attribute is None, no event is
+    connected.
   """
   
   __metaclass__ = abc.ABCMeta
+    
+  _VALUE_CHANGED_SIGNAL = None
   
-  def __init__(self, setting, element):
+  def __init__(self, setting, element, setting_value_synchronizer=None,
+               old_setting_presenter=None):
+    """
+    Parameters:
+    
+    * `setting_value_synchronizer` - `SettingValueSynchronizer` instance to
+      synchronize values between `setting` and this object.
+    
+    * `old_setting_presenter` - `SettingPresenter` object that was previously
+      assigned to `setting` (as the `setting.gui` attribute). The state
+      from that `SettingPresenter` object will be copied to this object. If
+      `old_setting_presenter` is None, only `setting.value` will be copied to
+      this object.
+    """
+    
     self._setting = setting
-    # FIXME: This is only temporary until the redesign of settings is finished
-    self._setting.gui = self
-    
     self._element = element
+    self._setting_value_synchronizer = setting_value_synchronizer
     
-    self.value_changed_signal = None
+    self._setting_value_synchronizer.apply_setting_value_to_gui = self._apply_setting_value_to_gui
+    
+    if old_setting_presenter is not None:
+      self._copy_state(old_setting_presenter)
+    else:
+      self._setting_value_synchronizer.apply_setting_value_to_gui(self._setting.value)
+    
+    if self._VALUE_CHANGED_SIGNAL is not None:
+      self._connect_value_changed_event()
   
   @property
   def setting(self):
@@ -83,22 +121,6 @@ class SettingPresenter(object):
   @property
   def element(self):
     return self._element
-  
-  @abc.abstractmethod
-  def get_value(self):
-    """
-    Return the value of the GUI element.
-    """
-    
-    pass
-  
-  @abc.abstractmethod
-  def set_value(self, value):
-    """
-    Set the value of the GUI element.
-    """
-    
-    pass
   
   @abc.abstractmethod
   def get_enabled(self):
@@ -133,28 +155,6 @@ class SettingPresenter(object):
     pass
   
   @abc.abstractmethod
-  def connect_event(self, event_func, *event_args):
-    """
-    Assign the specified event handler to the GUI element that is meant to
-    change the `value` attribute.
-    
-    The `value_changed_signal` attribute is used to assign the event handler to
-    the GUI element.
-    
-    Parameters:
-    
-    * `event_func` - Event handler (function) to assign to the GUI element.
-    
-    * `*event_args` - Additional arguments to the event handler if needed.
-    
-    Raises:
-    
-    * `TypeError` - `value_changed_signal` is None.
-    """
-    
-    pass
-  
-  @abc.abstractmethod
   def set_tooltip(self):
     """
     Set tooltip text for the GUI element.
@@ -163,7 +163,74 @@ class SettingPresenter(object):
     """
     
     pass
-
+  
+  def update_setting_value(self):
+    """
+    Manually assign the GUI element value, entered by the user, to the setting
+    value.
+    
+    This method will not have any effect if this object updates its setting
+    value automatically.
+    """
+    
+    if self._VALUE_CHANGED_SIGNAL is None:
+      self._update_setting_value()
+  
+  @abc.abstractmethod
+  def _get_value(self):
+    """
+    Return the value of the GUI element.
+    """
+    
+    pass
+  
+  @abc.abstractmethod
+  def _set_value(self, value):
+    """
+    Set the value of the GUI element.
+    """
+    
+    pass
+  
+  def _copy_state(self, old_setting_presenter):
+    self._set_value(old_setting_presenter._get_value())
+    self.set_enabled(old_setting_presenter.get_enabled())
+    self.set_visible(old_setting_presenter.get_visible())
+  
+  def _update_setting_value(self):
+    """
+    Assign the GUI element value, entered by the user, to the setting value.
+    """
+    
+    self._setting_value_synchronizer.apply_gui_value_to_setting(self._get_value())
+  
+  @abc.abstractmethod
+  def _connect_value_changed_event(self):
+    """
+    Connect the `_on_value_changed` event handler to the GUI element,
+    using the `_VALUE_CHANGED_SIGNAL` attribute.
+    
+    Because the way event handlers are connected varies in each GUI framework,
+    subclass this class and override this method for the GUI framework you use. 
+    """
+    
+    pass
+  
+  def _on_value_changed(self, *args):
+    """
+    This is an event handler that automatically updates the value of the
+    setting. It is triggered when the user changes the value of the GUI element.
+    """
+    
+    self._update_setting_value()
+  
+  def _apply_setting_value_to_gui(self, value):
+    """
+    Assign the setting value to the GUI element. Used by the setting when its
+    `set_value()` method is called.
+    """
+    
+    self._set_value(value)
 
 #-------------------------------------------------------------------------------
 
@@ -173,32 +240,36 @@ class NullSettingPresenter(SettingPresenter):
   """
   This class acts as an empty `SettingPresenter` object whose methods do nothing.
   
-  `NullSettingPresenter` is attached to `Setting` objects with no
+  `NullSettingPresenter` may be attached to `Setting` objects with no
   `SettingPresenter` object specified upon its instantiation.
   """
   
-  def __init__(self, setting):
-    super(NullSettingPresenter, self).__init__(setting, None)
-  
-  def get_value(self):
-    pass
-  
-  def set_value(self, value):
-    pass
+  def __init__(self, setting, *args, **kwargs):
+    self._value = None
+    self._enabled = True
+    self._visible = True
+    
+    super(NullSettingPresenter, self).__init__(setting, None, *args, **kwargs)
   
   def get_enabled(self):
-    pass
+    return self._enabled
   
   def set_enabled(self, enabled):
-    pass
+    self._enabled = enabled
   
   def get_visible(self):
-    pass
+    return self._visible
   
   def set_visible(self, visible):
-    pass
+    self._visible = visible
   
-  def connect_event(self, event_func, *event_args):
+  def _get_value(self):
+    return self._value
+  
+  def _set_value(self, value):
+    self._value = value
+  
+  def _connect_value_changed_event(self):
     pass
   
   def set_tooltip(self):

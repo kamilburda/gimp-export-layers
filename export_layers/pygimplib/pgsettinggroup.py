@@ -21,9 +21,10 @@
 
 """
 This module:
+* defines a class to group settings together for easier management
 * defines the means to load and save settings:
-  * persistently - using a JSON file
-  * "session-persistently" (settings persist during one GIMP session) - using the GIMP shelf
+  * persistently
+  * "semi-persistently" - settings persist during one GIMP session
 """
 
 #===============================================================================
@@ -50,109 +51,84 @@ from . import pgsetting
 #===============================================================================
 
 
-class Container(object):
+class SettingGroup(object):
   
   """
-  This class is an ordered, `dict`-like container to store items.
-  """
-  
-  __metaclass__ = abc.ABCMeta
-  
-  def __init__(self):
-    self._items = OrderedDict()
-  
-  def __getitem__(self, key):
-    return self._items[key]
-  
-  def __contains__(self, key):
-    return key in self._items[key]
-  
-  def __iter__(self):
-    """
-    Iterate over the objects in the order they were created.
-    """
-    
-    for item in self._items.values():
-      yield item
-  
-  def __len__(self):
-    return len(self._items)
-
-
-#-------------------------------------------------------------------------------
-
-
-class SettingGroup(Container):
-  
-  """
-  This class:
-  * groups related `Setting` objects together,
-  * can perform operations on all settings at once.
+  This class
+  * allows to create a group of related settings (`Setting` objects),
+  * can perform certain operations on all settings at once.
   """
   
   def __init__(self, setting_list):
     """
-    Create settings (Setting objects) from the specified list.
+    Create settings (`Setting` objects) from the specified list.
     
     Each list element must contain a dictionary, which contains
     (setting_attribute, value) pairs.
     
     `setting_attribute` is a string that denotes an argument passed when
-    instantiating the appropriate Setting class.
+    instantiating the appropriate `Setting` class.
     
     The following setting attributes must always be specified:
       * 'type' - type of the Setting object to instantiate.
       * 'name' - setting name.
       * 'default_value' - default value of the setting.
     
-    For more attributes, check the documentation of the Setting classes. There
+    For more attributes, check the documentation of the `Setting` classes. There
     may also be more mandatory attributes for specific setting types.
     
     Settings are stored in the group in the order they are specified in the list.
     """
     
-    super(SettingGroup, self).__init__()
+    self._settings = OrderedDict()
     
     for setting_data in setting_list:
       self._create_setting(setting_data)
   
-  def streamline(self, force=False):
+  def __getitem__(self, key):
+    return self._settings[key]
+  
+  def __contains__(self, key):
+    return key in self._settings[key]
+  
+  def __iter__(self):
     """
-    Streamline all Setting objects in this group.
-    
-    Parameters:
-    
-    * `force` - If True, streamline settings even if the values of the other
-      settings were not changed. This is useful when initializing GUI elements -
-      setting up proper values, enabled/disabled state or visibility.
-    
-    Returns:
-    
-      `changed_settings` - Set of changed settings. See the `streamline()`
-      method in the `Setting` object for more information.
+    Iterate over the objects in the order they were created.
     """
     
-    changed_settings = {}
-    for setting in self:
-      if setting.can_streamline():
-        changed = setting.streamline(force=force)
-        for setting, changed_attrs in changed.items():
-          if setting not in changed_settings:
-            changed_settings[setting] = changed_attrs
-          else:
-            changed_settings[setting].update(changed_attrs)
-    
-    return changed_settings
+    for item in self._settings.values():
+      yield item
+  
+  def __len__(self):
+    return len(self._settings)
   
   def reset(self):
     """
-    Reset all settings in this group. Ignore settings whose
-    attribute `resettable_by_group` is False.
+    Reset all settings in this group. Ignore settings whose attribute
+    `resettable_by_group` is False.
     """
     
     for setting in self:
       if setting.resettable_by_group:
         setting.reset()
+  
+  def set_gui_tooltips(self):
+    for setting in self:
+      setting.gui.set_tooltip()
+  
+  def update_setting_values(self):
+    exception_message = ""
+    
+    for setting in self:
+      try:
+        setting.gui.update_setting_value()
+      except pgsetting.SettingValueError as e:
+        if not exception_message:
+          exception_message += e.message + '\n'
+    
+    if exception_message:
+      exception_message = exception_message.rstrip('\n')
+      raise pgsetting.SettingValueError(exception_message)
   
   def _create_setting(self, setting_data):
     try:
@@ -166,7 +142,7 @@ class SettingGroup(Container):
     del setting_data['type']
     
     try:
-      self._items[setting_data['name']] = setting_type(**setting_data)
+      self._settings[setting_data['name']] = setting_type(**setting_data)
     except TypeError as e:
       missing_mandatory_arguments = self._get_missing_mandatory_arguments(setting_type, setting_data)
       if missing_mandatory_arguments:
@@ -567,206 +543,6 @@ class SettingPersistor(object):
       else:
         settings.extend(setting_or_group)
     return settings
-
-
-#===============================================================================
-
-
-class SettingPresenterGroup(Container):
-  
-  """
-  This class groups `SettingPresenter` objects together.
-  
-  You can access individual `SettingPresenter` objects by the corresponding
-  `Setting` objects.
-  
-  Q: Why can't we access by `Setting.name` (like in `SettingGroup`)?
-  A: Because `SettingPresenterGroup` is independent of `SettingGroup`
-     and this object may contain settings from multiple `SettingGroup`
-     objects with the same name.
-  """
-  
-  __metaclass__ = abc.ABCMeta
-  
-  _SETTING_ATTRIBUTES_METHODS = { 'value' : 'set_value' }
-  
-  def __init__(self):
-    super(SettingPresenterGroup, self).__init__()
-    
-    self._is_events_connected = False
-  
-  def add(self, setting_presenter):
-    """
-    Add a `SettingPresenter` object to the group.
-    """
-    
-    self._items[setting_presenter.setting] = setting_presenter
-  
-  def assign_setting_values_to_elements(self):
-    """
-    Assign values from settings to GUI elements.
-    
-    Streamline all setting values along the way.
-    
-    This method is useful when it is desired to assign correct values to the GUI
-    elements when initializing or resetting the GUI.
-    """
-    
-    for presenter in self:
-      presenter.set_value(presenter.setting.value)
-    
-    changed_settings = self._streamline(force=True)
-    self._apply_changed_settings(changed_settings)
-  
-  def assign_element_values_to_settings(self):
-    """
-    Assign values from GUI elements to settings.
-    
-    If `connect_value_changed_events()` was called, don't streamline. Otherwise
-    do.
-    
-    Raises:
-    
-    * `SettingValueError` - Value assigned to one or more settings is invalid.
-      If there are multiple settings that raise `SettingValueError` upon value
-      assignment, the exception message contains messages from all these
-      settings. In such case, settings are not streamlined.
-    """
-    
-    exception_message = ""
-    
-    for presenter in self:
-      try:
-        presenter.setting.set_value(presenter.get_value())
-      except pgsetting.SettingValueError as e:
-        if not exception_message:
-          exception_message += e.message + '\n'
-    
-    if self._is_events_connected:
-      # Settings are continuously streamlined. Since this method changes the
-      # `value` attribute, clear `changed_attributes` to prevent future
-      # `streamline()` calls from changing settings unnecessarily.
-      for presenter in self:
-        presenter.setting.changed_attributes.clear()
-    else:
-      if not exception_message:
-        self._streamline()
-    
-    if exception_message:
-      exception_message = exception_message.rstrip('\n')
-      raise pgsetting.SettingValueError(exception_message)
-  
-  def connect_value_changed_events(self):
-    """
-    Assign event handlers to GUI elements triggered whenever their value is
-    changed.
-    
-    For settings with streamline function assigned, use a different event
-    handler that also streamlines the settings.
-    """
-    
-    for presenter in self:
-      if presenter.value_changed_signal is not None:
-        if not presenter.setting.can_streamline():
-          presenter.connect_event(self._gui_on_element_value_change, presenter)
-        else:
-          presenter.connect_event(self._gui_on_element_value_change_streamline,
-                                  presenter)
-    
-    self._is_events_connected = True
-  
-  @abc.abstractmethod
-  def _gui_on_element_value_change(self, *args):
-    """
-    Override this method in a subclass to call `_on_element_value_change()`.
-    
-    Since event handling is dependent on the GUI framework used, a method
-    separate from `_on_element_value_change()` has to be defined so that the GUI
-    framework invokes the event with the correct arguments in the correct order.
-    """
-    
-    pass
-  
-  @abc.abstractmethod
-  def _gui_on_element_value_change_streamline(self, *args):
-    """
-    Override this method in a subclass to call
-    `_on_element_value_change_streamline()`.
-    
-    Since event handling is dependent on the GUI framework used, a method
-    separate from `_gui_on_element_value_change_streamline()` has to be defined
-    so that the GUI framework invokes the event with the correct arguments in
-    the correct order.
-    """
-    
-    pass
-  
-  def _on_element_value_change(self, presenter):
-    """
-    Assign value from the GUI element to the setting when the user changed the
-    value of the GUI element.
-    """
-    
-    presenter.setting.set_value(presenter.get_value())
-  
-  def _on_element_value_change_streamline(self, presenter):
-    """
-    Assign value from the GUI element to the setting when the user changed the
-    value of the GUI element.
-    
-    Streamline the setting and change other affected GUI elements if necessary.
-    """
-    
-    presenter.setting.set_value(presenter.get_value())
-    changed_settings = presenter.setting.streamline()
-    self._apply_changed_settings(changed_settings)
-  
-  def set_tooltips(self):
-    """
-    Set tooltips for all GUI elements.
-    """
-    
-    for presenter in self:
-      presenter.set_tooltip()
-  
-  def _streamline(self, force=False):
-    """
-    Streamline all `Setting` objects in this group.
-    
-    See the description for the `streamline()` method in the `SettingGroup`
-    class for further information.
-    """
-    
-    changed_settings = {}
-    for presenter in self:
-      setting = presenter.setting
-      if setting.can_streamline():
-        changed = setting.streamline(force=force)
-        for setting, changed_attrs in changed.items():
-          if setting not in changed_settings:
-            changed_settings[setting] = changed_attrs
-          else:
-            changed_settings[setting].update(changed_attrs)
-    
-    return changed_settings
-  
-  def _apply_changed_settings(self, changed_settings):
-    """
-    After `streamline()` is called on a `Setting` or `SettingGroup` object,
-    apply changed attributes of settings to their associated GUI elements.
-    
-    Parameters:
-    
-    * `changed_settings` - Set of changed attributes of settings to apply to the
-      GUI elements.
-    """
-    
-    for setting, changed_attributes in changed_settings.items():
-      presenter = self[setting]
-      for attr in changed_attributes:
-        setting_attr = getattr(setting, attr)
-        presenter_method = getattr(presenter, self._SETTING_ATTRIBUTES_METHODS[attr])
-        presenter_method(setting_attr)
 
 
 #===============================================================================
