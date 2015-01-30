@@ -158,8 +158,6 @@ class ExportLayersPlugin(gimpplugin.plugin):
                                     self.gimpshelf_stream, self.config_file_stream)
   
   def _run_plugin_noninteractive(self, run_mode, image):
-    self.main_settings.streamline(force=True)
-    
     layer_exporter = exportlayers.LayerExporter(
       run_mode,
       image,

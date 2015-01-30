@@ -265,7 +265,7 @@ def create_main_settings():
   
   #-----------------------------------------------------------------------------
   
-  def streamline_layer_groups_as_folders(layer_groups_as_folders, empty_folders, merge_layer_groups):
+  def on_layer_groups_as_folders_changed(layer_groups_as_folders, empty_folders, merge_layer_groups):
     if not layer_groups_as_folders.value:
       empty_folders.set_value(False)
       empty_folders.gui.set_enabled(False)
@@ -275,7 +275,7 @@ def create_main_settings():
       merge_layer_groups.gui.set_enabled(False)
       merge_layer_groups.set_value(False)
   
-  def streamline_file_ext_mode(file_ext_mode, file_extension, strip_mode):
+  def on_file_ext_mode_changed(file_ext_mode, file_extension, strip_mode):
     if file_ext_mode.value == file_ext_mode.options['no_special_handling']:
       strip_mode.gui.set_enabled(True)
       file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
@@ -290,43 +290,39 @@ def create_main_settings():
         file_extension.error_messages['default_needed']
       )
   
-  def streamline_merge_layer_groups(merge_layer_groups, layer_groups_as_folders):
+  def on_merge_layer_groups_changed(merge_layer_groups, layer_groups_as_folders):
     if merge_layer_groups.value:
       layer_groups_as_folders.set_value(False)
       layer_groups_as_folders.gui.set_enabled(False)
     else:
       layer_groups_as_folders.gui.set_enabled(True)
   
-  def streamline_autocrop(autocrop, square_bracketed_mode, crop_to_background):
+  def on_autocrop_changed(autocrop, square_bracketed_mode, crop_to_background):
     if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.options['background']:
       crop_to_background.gui.set_enabled(True)
     else:
       crop_to_background.set_value(False)
       crop_to_background.gui.set_enabled(False)
   
-  def streamline_square_bracketed_mode(square_bracketed_mode, autocrop, crop_to_background):
-    if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.options['background']:
-      crop_to_background.gui.set_enabled(True)
-    else:
-      crop_to_background.set_value(False)
-      crop_to_background.gui.set_enabled(False)
+  def on_square_bracketed_mode_changed(square_bracketed_mode, autocrop, crop_to_background):
+    on_autocrop_changed(autocrop, square_bracketed_mode, crop_to_background)
   
   #-----------------------------------------------------------------------------
   
-  main_settings['layer_groups_as_folders'].set_streamline_func(
-    streamline_layer_groups_as_folders, main_settings['empty_folders'], main_settings['merge_layer_groups']
+  main_settings['layer_groups_as_folders'].connect_value_changed_event(
+    on_layer_groups_as_folders_changed, main_settings['empty_folders'], main_settings['merge_layer_groups']
   )
-  main_settings['file_ext_mode'].set_streamline_func(
-    streamline_file_ext_mode, main_settings['file_extension'], main_settings['strip_mode']
+  main_settings['file_ext_mode'].connect_value_changed_event(
+    on_file_ext_mode_changed, main_settings['file_extension'], main_settings['strip_mode']
   )
-  main_settings['merge_layer_groups'].set_streamline_func(
-    streamline_merge_layer_groups, main_settings['layer_groups_as_folders']
+  main_settings['merge_layer_groups'].connect_value_changed_event(
+    on_merge_layer_groups_changed, main_settings['layer_groups_as_folders']
   )
-  main_settings['autocrop'].set_streamline_func(
-    streamline_autocrop, main_settings['square_bracketed_mode'], main_settings['crop_to_background']
+  main_settings['autocrop'].connect_value_changed_event(
+    on_autocrop_changed, main_settings['square_bracketed_mode'], main_settings['crop_to_background']
   )
-  main_settings['square_bracketed_mode'].set_streamline_func(
-    streamline_square_bracketed_mode, main_settings['autocrop'], main_settings['crop_to_background']
+  main_settings['square_bracketed_mode'].connect_value_changed_event(
+    on_square_bracketed_mode_changed, main_settings['autocrop'], main_settings['crop_to_background']
   )
   
   #-----------------------------------------------------------------------------

@@ -174,7 +174,6 @@ class _ExportLayersGui(object):
     pgsettinggroup.SettingPersistor.load([self.session_only_gui_settings], [self.gimpshelf_stream])
     self._setup_output_directory_and_image_ids_and_directories()
     
-    self.setting_presenters = pggui.GtkSettingPresenterGroup()
     self.layer_exporter = None
     
     self._init_gui()
@@ -198,8 +197,8 @@ class _ExportLayersGui(object):
     self.main_settings['output_directory'].update_current_directory(
       self.image, self.session_only_gui_settings['image_ids_and_directories'].value[self.image.ID])
     
-    #TODO: Once `SettingPresenter` instances are contained in Settings and the streamlining is revised, resolve this
-#     self.main_settings['output_directory'].set_streamline_func(
+    #TODO: Once `SettingPresenter` instances are contained in Settings and the event handling is revised, resolve this
+#     self.main_settings['output_directory'].connect_value_changed_event(
 #       lambda output_directory, image_ids_and_directories, current_image_id:
 #          image_ids_and_directories.update_directory(current_image_id, output_directory.value),
 #       self.session_only_gui_settings['image_ids_and_directories'], self.image.ID
@@ -366,10 +365,8 @@ class _ExportLayersGui(object):
     self.progress_bar.hide()
     self.stop_button.hide()
     
-    self.create_setting_presenters()
-    self.setting_presenters.set_tooltips()
-    self.setting_presenters.assign_setting_values_to_elements()
-    self.setting_presenters.connect_value_changed_events()
+    self.set_gui_for_settings()
+    self.main_settings.set_gui_tooltips()
     
     self.dialog.set_focus(self.file_extension_entry)
     self.dialog.set_default(self.export_layers_button)
@@ -380,81 +377,38 @@ class _ExportLayersGui(object):
     self.dialog.show()
     self.dialog.action_area.set_border_width(self.ACTION_AREA_BORDER_WIDTH)
   
-  def create_setting_presenters(self):
-    self.setting_presenters.add(
-      pggui.GtkEntryPresenter(
-        self.main_settings['file_extension'],
-        self.file_extension_entry))
+  def set_gui_for_settings(self):
+    self.main_settings['file_extension'].set_gui(
+      pggui.GtkEntryPresenter, self.file_extension_entry)
+    self.main_settings['output_directory'].set_gui(
+      pggui.GtkFolderChooserPresenter, self.folder_chooser)
+    self.main_settings['layer_groups_as_folders'].set_gui(
+      pggui.GtkCheckButtonPresenter, self.export_settings_layer_groups)
+    self.main_settings['ignore_invisible'].set_gui(
+      pggui.GtkCheckButtonPresenter, self.export_settings_ignore_invisible)
+    self.main_settings['autocrop'].set_gui(
+      pggui.GtkCheckButtonPresenter, self.export_settings_autocrop)
+    self.main_settings['use_image_size'].set_gui(
+      pggui.GtkCheckButtonPresenter, self.export_settings_use_image_size)
+    self.main_settings['file_ext_mode'].set_gui(
+      pggui.GimpUiIntComboBoxPresenter, self.advanced_settings_file_ext_mode)
+    self.main_settings['strip_mode'].set_gui(
+      pggui.GimpUiIntComboBoxPresenter, self.advanced_settings_strip_mode)
+    self.main_settings['square_bracketed_mode'].set_gui(
+      pggui.GimpUiIntComboBoxPresenter, self.advanced_settings_square_bracketed_mode)
+    self.main_settings['crop_to_background'].set_gui(
+      pggui.GtkCheckButtonPresenter, self.advanced_settings_crop_to_background)
+    self.main_settings['merge_layer_groups'].set_gui(
+      pggui.GtkCheckButtonPresenter, self.advanced_settings_merge_layer_groups)
+    self.main_settings['empty_folders'].set_gui(
+      pggui.GtkCheckButtonPresenter, self.advanced_settings_empty_folders)
+    self.main_settings['ignore_layer_modes'].set_gui(
+      pggui.GtkCheckButtonPresenter, self.advanced_settings_ignore_layer_modes)
     
-    self.setting_presenters.add(
-      pggui.GtkFolderChooserPresenter(
-        self.main_settings['output_directory'],
-        self.folder_chooser))
-    
-    self.setting_presenters.add(
-      pggui.GtkCheckButtonPresenter(
-        self.main_settings['layer_groups_as_folders'],
-        self.export_settings_layer_groups))
-    
-    self.setting_presenters.add(
-      pggui.GtkCheckButtonPresenter(
-        self.main_settings['ignore_invisible'],
-        self.export_settings_ignore_invisible))
-    
-    self.setting_presenters.add(
-      pggui.GtkCheckButtonPresenter(
-        self.main_settings['autocrop'],
-        self.export_settings_autocrop))
-    
-    self.setting_presenters.add(
-      pggui.GtkCheckButtonPresenter(
-        self.main_settings['use_image_size'],
-        self.export_settings_use_image_size))
-    
-    self.setting_presenters.add(
-      pggui.GimpUiIntComboBoxPresenter(
-        self.main_settings['file_ext_mode'],
-        self.advanced_settings_file_ext_mode))
-    
-    self.setting_presenters.add(
-      pggui.GimpUiIntComboBoxPresenter(
-        self.main_settings['strip_mode'],
-        self.advanced_settings_strip_mode))
-    
-    self.setting_presenters.add(
-      pggui.GimpUiIntComboBoxPresenter(
-        self.main_settings['square_bracketed_mode'],
-        self.advanced_settings_square_bracketed_mode))
-    
-    self.setting_presenters.add(
-      pggui.GtkCheckButtonPresenter(
-        self.main_settings['crop_to_background'],
-        self.advanced_settings_crop_to_background))
-    
-    self.setting_presenters.add(
-      pggui.GtkCheckButtonPresenter(
-        self.main_settings['merge_layer_groups'],
-        self.advanced_settings_merge_layer_groups))
-    
-    self.setting_presenters.add(
-      pggui.GtkCheckButtonPresenter(
-        self.main_settings['empty_folders'],
-        self.advanced_settings_empty_folders))
-    
-    self.setting_presenters.add(
-      pggui.GtkCheckButtonPresenter(
-        self.main_settings['ignore_layer_modes'],
-        self.advanced_settings_ignore_layer_modes))
-    
-    self.setting_presenters.add(
-      pggui.GtkWindowPositionPresenter(
-        self.gui_settings['dialog_position'],
-        self.dialog))
-    
-    self.setting_presenters.add(
-      pggui.GtkExpanderPresenter(
-        self.gui_settings['advanced_settings_expanded'],
-        self.expander_advanced_settings))
+    self.gui_settings['dialog_position'].set_gui(
+      pggui.GtkWindowPositionPresenter, self.dialog)
+    self.gui_settings['advanced_settings_expanded'].set_gui(
+      pggui.GtkExpanderPresenter, self.expander_advanced_settings)
   
   def reset_settings(self):
     for setting_group in [self.main_settings, self.gui_settings]:
@@ -469,7 +423,8 @@ class _ExportLayersGui(object):
   
   def on_save_settings(self, widget):
     try:
-      self.setting_presenters.assign_element_values_to_settings()
+      self.main_settings.update_setting_values()
+      self.gui_settings.update_setting_values()
     except pgsetting.SettingValueError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       return
@@ -482,13 +437,13 @@ class _ExportLayersGui(object):
   
   def on_reset_settings(self, widget):
     self.reset_settings()
-    self.setting_presenters.assign_setting_values_to_elements()
     self.save_settings()
     self.display_message_label(_("Settings reset."), message_type=self.INFO)
   
   def on_export_click(self, widget):
     try:
-      self.setting_presenters.assign_element_values_to_settings()
+      self.main_settings.update_setting_values()
+      self.gui_settings.update_setting_values()
     except pgsetting.SettingValueError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       return
