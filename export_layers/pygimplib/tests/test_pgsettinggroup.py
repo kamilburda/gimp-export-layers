@@ -94,12 +94,39 @@ def create_test_settings():
 
 class TestSettingGroupCreation(unittest.TestCase):
   
+  def test_pass_existing_setting_group(self):
+    special_settings = pgsettinggroup.SettingGroup([
+      {
+       'type': pgsetting.SettingTypes.image,
+       'name': 'image',
+       'default_value': None,
+       'validate_default_value': False
+      }
+    ])
+    
+    settings = pgsettinggroup.SettingGroup([
+      {
+       'type': pgsetting.SettingTypes.boolean,
+       'name': 'ignore_invisible',
+       'default_value': False,
+      },
+      ('special', special_settings),
+      {
+        'type': pgsetting.SettingTypes.boolean,
+        'name': 'autocrop',
+        'default_value': False
+      },
+    ])
+    
+    self.assertIn('special', settings)
+    self.assertEqual(settings['special'], special_settings)
+  
   def test_raise_type_error_for_missing_type_attribute(self):
     with self.assertRaises(TypeError):
       pgsettinggroup.SettingGroup([
         {
-         'name': 'file_extension',
-         'default_value': 'bmp',
+         'name': 'autocrop',
+         'default_value': False,
         }
       ])
   
@@ -107,8 +134,8 @@ class TestSettingGroupCreation(unittest.TestCase):
     with self.assertRaises(TypeError):
       pgsettinggroup.SettingGroup([
         {
-         'type': pgsetting.SettingTypes.file_extension,
-         'default_value': 'bmp',
+         'type': pgsetting.SettingTypes.boolean,
+         'default_value': False,
         }
       ])
   
@@ -124,10 +151,25 @@ class TestSettingGroupCreation(unittest.TestCase):
     with self.assertRaises(TypeError):
       pgsettinggroup.SettingGroup([
         {
-         'type': pgsetting.SettingTypes.file_extension,
-         'name': 'file_extension',
-         'default_value': 'bmp',
+         'type': pgsetting.SettingTypes.boolean,
+         'name': 'autocrop',
+         'default_value': False,
          'non_existent_attribute': None
+        }
+      ])
+  
+  def test_raise_key_error_if_name_already_exists(self):
+    with self.assertRaises(KeyError):
+      pgsettinggroup.SettingGroup([
+        {
+         'type': pgsetting.SettingTypes.boolean,
+         'name': 'autocrop',
+         'default_value': False,
+        },
+        {
+         'type': pgsetting.SettingTypes.boolean,
+         'name': 'autocrop',
+         'default_value': False,
         }
       ])
 
@@ -136,10 +178,73 @@ class TestSettingGroup(unittest.TestCase):
   
   def setUp(self):
     self.settings = create_test_settings()
+    self.special_settings = pgsettinggroup.SettingGroup([
+      {
+       'type': pgsetting.SettingTypes.image,
+       'name': 'image',
+       'default_value': None,
+       'validate_default_value': False
+      }
+    ])
       
-  def test_get_setting_invalid_name(self):
+  def test_get_setting_raise_key_error_if_invalid_name(self):
     with self.assertRaises(KeyError):
       self.settings['invalid_name']
+  
+  def test_add_settings(self):
+    self.settings.add([
+      {
+       'type': pgsetting.SettingTypes.boolean,
+       'name': 'autocrop',
+       'default_value': False
+      },
+      ('special', self.special_settings),             
+    ])
+    
+    self.assertIn('special', self.settings)
+    self.assertEqual(self.settings['special'], self.special_settings)
+    self.assertIn('autocrop', self.settings)
+    self.assertIsInstance(self.settings['autocrop'], pgsetting.BoolSetting)
+  
+  def test_add_setting_raise_key_error_if_name_already_exists(self):
+    with self.assertRaises(KeyError):
+      self.settings.add([
+        {
+         'type': pgsetting.SettingTypes.boolean,
+         'name': 'file_extension',
+         'default_value': "",
+         'validate_default_value': False
+        }
+      ])
+    
+  def test_add_nested_setting_group_raise_key_error_if_name_already_exists(self):
+    self.settings.add([('special', self.special_settings)])
+    with self.assertRaises(KeyError):
+      self.settings.add([('special', self.special_settings)])
+  
+  def test_remove_settings(self):
+    self.settings.remove(['file_extension', 'ignore_invisible'])
+    self.assertNotIn('file_extension', self.settings)
+    self.assertNotIn('ignore_invisible', self.settings)
+    self.assertIn('overwrite_mode', self.settings)
+  
+  def test_remove_settings_nested_group(self):
+    self.settings.add([('special', self.special_settings)])
+    
+    self.settings['special'].remove(['image'])
+    self.assertNotIn('image', self.settings['special'])
+    
+    self.settings.remove(['special'])
+    self.assertNotIn('special', self.settings)
+  
+  def test_remove_settings_raise_key_error_if_invalid_name(self):
+    with self.assertRaises(KeyError):
+      self.settings.remove(['file_extension', 'invalid_setting'])
+  
+  def test_remove_settings_raise_key_error_if_already_removed(self):
+    self.settings.remove(['file_extension'])
+    with self.assertRaises(KeyError):
+      self.settings.remove(['file_extension'])
 
 
 #===============================================================================
