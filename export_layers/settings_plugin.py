@@ -47,15 +47,16 @@ from export_layers import exportlayers
 #===============================================================================
 
 
-def create_special_settings():
-  """
-  Create "special" plug-in settings.
+def create_settings():
   
-  These settings require special handling in the code, hence their separation
-  from the other settings.
-  """
+  #-----------------------------------------------------------------------------
+  # Special settings
+  #-----------------------------------------------------------------------------
   
-  return pgsettinggroup.SettingGroup([
+  # These settings require special handling in the code, hence their separation
+  # from the other settings.
+  
+  special_settings = pgsettinggroup.SettingGroup([
     {
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'run_mode',
@@ -83,12 +84,11 @@ def create_special_settings():
       )
     },
   ])
-
-
-#===============================================================================
-
-
-def create_main_settings():
+  
+  #-----------------------------------------------------------------------------
+  # Main settings
+  #-----------------------------------------------------------------------------
+  
   file_extension_display_name = _("File extension")
   file_ext_mode_options = OrderedDict(
     [('no_special_handling', _("No special handling")),
@@ -327,14 +327,20 @@ def create_main_settings():
   
   #-----------------------------------------------------------------------------
   
-  return main_settings
+  settings = pgsettinggroup.SettingGroup([
+    ('special', special_settings),
+    ('main', main_settings),
+  ])
+  
+  return settings
 
 
 #===============================================================================
 
 
-def create_gui_settings():
-  return pgsettinggroup.SettingGroup([
+def add_gui_settings(settings):
+  
+  gui_settings = pgsettinggroup.SettingGroup([
     {
       'type': pgsetting.SettingTypes.generic,
       'name': 'dialog_position',
@@ -348,10 +354,8 @@ def create_gui_settings():
       'resettable_by_group': False
     },
   ])
-
-
-def create_session_only_gui_settings():
-  return pgsettinggroup.SettingGroup([
+  
+  session_only_gui_settings = pgsettinggroup.SettingGroup([
     {
       'type': pgsetting.SettingTypes.image_IDs_and_directories,
       'name': 'image_ids_and_directories',
@@ -359,4 +363,10 @@ def create_session_only_gui_settings():
       'resettable_by_group': False
     },
   ])
-
+  
+  #-----------------------------------------------------------------------------
+  
+  settings.add([
+    ('gui', gui_settings),
+    ('gui_session', session_only_gui_settings)
+  ])

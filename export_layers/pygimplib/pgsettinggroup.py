@@ -93,6 +93,10 @@ class SettingGroup(object):
     self.add(setting_list)
   
   def __getitem__(self, setting_name):
+    """
+    Access the setting or group by its name (string).
+    """
+    
     return self._settings[setting_name]
   
   def __contains__(self, setting_name):
