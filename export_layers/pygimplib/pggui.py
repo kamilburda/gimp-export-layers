@@ -55,7 +55,6 @@ import gtk
 import gimp
 import gimpui
 
-from . import pgsettinggroup
 from . import pgsettingpresenter
 from . import overwrite
 from . import progress
