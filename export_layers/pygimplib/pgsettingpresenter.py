@@ -263,6 +263,13 @@ class NullSettingPresenter(SettingPresenter):
   def set_visible(self, visible):
     self._visible = visible
   
+  def update_setting_value(self):
+    """
+    This method does nothing.
+    """
+    
+    pass
+  
   def _get_value(self):
     return self._value
   
