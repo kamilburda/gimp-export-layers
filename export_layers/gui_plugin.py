@@ -36,6 +36,7 @@ str = unicode
 
 #===============================================================================
 
+import functools
 import traceback
 
 import gobject
@@ -134,6 +135,32 @@ class ExportDialog(object):
   
   def hide(self):
     self._dialog.hide()
+
+
+#===============================================================================
+
+
+def update_setting_values(func):
+  """
+  This is a decorator for `SettingGroup.update_setting_values()` that prevents
+  the decorated function from being executed if there are invalid setting
+  values. For the invalid values, an error message is displayed.
+  
+  This decorator is meant to be used in the `_ExportLayersGui` class.
+  """
+  
+  @functools.wraps(func)
+  def func_wrapper(self, *args, **kwargs):
+    try:
+      self.main_settings.update_setting_values()
+      self.gui_settings.update_setting_values()
+    except pgsetting.SettingValueError as e:
+      self.display_message_label(e.message, message_type=self.ERROR)
+      return
+    
+    func(self, *args, **kwargs)
+  
+  return func_wrapper
 
 
 #===============================================================================
@@ -421,14 +448,8 @@ class _ExportLayersGui(object):
       display_message(status_message, gtk.MESSAGE_WARNING, parent=self.dialog)
     pgsettinggroup.SettingPersistor.save([self.session_only_gui_settings], [self.gimpshelf_stream])
   
+  @update_setting_values
   def on_save_settings(self, widget):
-    try:
-      self.main_settings.update_setting_values()
-      self.gui_settings.update_setting_values()
-    except pgsetting.SettingValueError as e:
-      self.display_message_label(e.message, message_type=self.ERROR)
-      return
-    
     self.session_only_gui_settings['image_ids_and_directories'].update_directory(
       self.image.ID, self.main_settings['output_directory'].value)
     
@@ -440,14 +461,8 @@ class _ExportLayersGui(object):
     self.save_settings()
     self.display_message_label(_("Settings reset."), message_type=self.INFO)
   
+  @update_setting_values
   def on_export_click(self, widget):
-    try:
-      self.main_settings.update_setting_values()
-      self.gui_settings.update_setting_values()
-    except pgsetting.SettingValueError as e:
-      self.display_message_label(e.message, message_type=self.ERROR)
-      return
-    
     self.session_only_gui_settings['image_ids_and_directories'].update_directory(
       self.image.ID, self.main_settings['output_directory'].value)
     
