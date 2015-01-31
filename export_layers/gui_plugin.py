@@ -51,6 +51,7 @@ import gimpui
 
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
+from export_layers.pygimplib import pgsettingpersistor
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
 
@@ -193,12 +194,13 @@ class _ExportLayersGui(object):
     self.gui_settings = settings_plugin.create_gui_settings()
     self.session_only_gui_settings = settings_plugin.create_session_only_gui_settings()
     
-    status, status_message = pgsettinggroup.SettingPersistor.load([self.main_settings, self.gui_settings],
-                                                                  [self.gimpshelf_stream, self.config_file_stream])
-    if status == pgsettinggroup.SettingPersistor.READ_FAIL:
+    status, status_message = pgsettingpersistor.SettingPersistor.load(
+      [self.main_settings, self.gui_settings], [self.gimpshelf_stream, self.config_file_stream])
+    if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING)
     
-    pgsettinggroup.SettingPersistor.load([self.session_only_gui_settings], [self.gimpshelf_stream])
+    pgsettingpersistor.SettingPersistor.load([self.session_only_gui_settings], [self.gimpshelf_stream])
+    
     self._setup_output_directory_and_image_ids_and_directories()
     
     self.layer_exporter = None
@@ -442,11 +444,12 @@ class _ExportLayersGui(object):
       setting_group.reset()
   
   def save_settings(self):
-    status, status_message = pgsettinggroup.SettingPersistor.save([self.main_settings, self.gui_settings],
-                                                                  [self.gimpshelf_stream, self.config_file_stream])
-    if status == pgsettinggroup.SettingPersistor.WRITE_FAIL:
+    status, status_message = pgsettingpersistor.SettingPersistor.save(
+      [self.main_settings, self.gui_settings], [self.gimpshelf_stream, self.config_file_stream])
+    if status == pgsettingpersistor.SettingPersistor.WRITE_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING, parent=self.dialog)
-    pgsettinggroup.SettingPersistor.save([self.session_only_gui_settings], [self.gimpshelf_stream])
+    
+    pgsettingpersistor.SettingPersistor.save([self.session_only_gui_settings], [self.gimpshelf_stream])
   
   @update_setting_values
   def on_save_settings(self, widget):
@@ -496,7 +499,7 @@ class _ExportLayersGui(object):
       display_exception_message(traceback.format_exc(), parent=self.dialog)
     else:
       self.special_settings['first_run'].set_value(False)
-      pgsettinggroup.SettingPersistor.save([self.special_settings['first_run']], [self.gimpshelf_stream])
+      pgsettingpersistor.SettingPersistor.save([self.special_settings['first_run']], [self.gimpshelf_stream])
       
       if not self.layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.dialog)
@@ -506,8 +509,8 @@ class _ExportLayersGui(object):
       pdb.gimp_progress_end()
     
     self.main_settings['overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
-    pgsettinggroup.SettingPersistor.save([self.main_settings, self.gui_settings, self.session_only_gui_settings],
-                                         [self.gimpshelf_stream])
+    pgsettingpersistor.SettingPersistor.save(
+      [self.main_settings, self.gui_settings, self.session_only_gui_settings], [self.gimpshelf_stream])
     
     if should_quit:
       gtk.main_quit()
@@ -588,7 +591,7 @@ class _ExportLayersToGui(object):
     self.gimpshelf_stream = gimpshelf_stream
     self.config_file_stream = config_file_stream
     
-    pgsettinggroup.SettingPersistor.load([self.main_settings], [self.gimpshelf_stream])
+    pgsettingpersistor.SettingPersistor.load([self.main_settings], [self.gimpshelf_stream])
     
     self.layer_exporter = None
     
