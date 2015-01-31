@@ -117,6 +117,19 @@ class SettingGroup(object):
       setting.gui.set_tooltip()
   
   def update_setting_values(self):
+    """
+    Manually assign the GUI element values, entered by the user, to the setting
+    values.
+    
+    This method will not have any effect on settings with automatic
+    GUI-to-setting value updating.
+    
+    Raises:
+    
+    * `SettingValueError` - One or more values are invalid. The exception
+    message contains messages from all invalid settings.
+    """
+    
     exception_message = ""
     
     for setting in self:

@@ -240,8 +240,12 @@ class NullSettingPresenter(SettingPresenter):
   """
   This class acts as an empty `SettingPresenter` object whose methods do nothing.
   
-  `NullSettingPresenter` may be attached to `Setting` objects with no
-  `SettingPresenter` object specified upon its instantiation.
+  This class is attached to `Setting` objects with no `SettingPresenter` object
+  specified upon its instantiation.
+  
+  This class also records the GUI state. In case a proper `SettingPresenter`
+  object is assigned to the setting, the GUI state is copied over to the new
+  object.
   """
   
   def __init__(self, setting, *args, **kwargs):
@@ -263,6 +267,9 @@ class NullSettingPresenter(SettingPresenter):
   def set_visible(self, visible):
     self._visible = visible
   
+  def set_tooltip(self):
+    pass
+  
   def update_setting_value(self):
     """
     This method does nothing.
@@ -277,8 +284,5 @@ class NullSettingPresenter(SettingPresenter):
     self._value = value
   
   def _connect_value_changed_event(self):
-    pass
-  
-  def set_tooltip(self):
     pass
 
