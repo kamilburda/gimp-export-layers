@@ -108,7 +108,7 @@ class Setting(object):
   * readily available GUI element, keeping the GUI and the setting value in sync
   
   It is also possible to attach an event handler to the setting when the value
-  of the setting changes (i.e. when `set_value()` method is called). This way,
+  of the setting changes (e.g. when `set_value()` method is called). This way,
   other settings and their GUI elements can be adjusted automatically.
   
   This class in particular:
