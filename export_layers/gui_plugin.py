@@ -164,6 +164,33 @@ def update_setting_values(func):
   return func_wrapper
 
 
+def _setup_image_ids_and_directories_and_output_directory(settings, current_image):
+  """
+  Set up the initial output directory for the current image according to the
+  following priority list:
+  
+    1. Last export directory of the current image
+    2. Import directory of the current image
+    3. Last export directory of any image (i.e. the current value of 'main/output_directory')
+    4. The default directory (default value) for 'main/output_directory'
+  
+  Notes:
+  
+    Directory 3. is set upon loading 'main/output_directory' from a persistent source.
+    Directory 4. is set upon the instantiation of 'main/output_directory'.
+  """
+  
+  settings['gui_session']['image_ids_and_directories'].update_image_ids_and_directories()
+  settings['main']['output_directory'].update_current_directory(
+      current_image, settings['gui_session']['image_ids_and_directories'].value[current_image.ID])
+  
+  def on_output_directory_changed(output_directory, image_ids_and_directories, current_image_id):
+    image_ids_and_directories.update_directory(current_image_id, output_directory.value)
+  
+  settings['main']['output_directory'].connect_value_changed_event(
+    on_output_directory_changed, settings['gui_session']['image_ids_and_directories'], current_image.ID)
+
+
 #===============================================================================
 
 
@@ -199,37 +226,13 @@ class _ExportLayersGui(object):
     
     pgsettingpersistor.SettingPersistor.load([self.settings['gui_session']], [self.gimpshelf_stream])
     
-    self._setup_output_directory_and_image_ids_and_directories()
+    _setup_image_ids_and_directories_and_output_directory(self.settings, self.image)
     
     self.layer_exporter = None
     
     self._init_gui()
     
     gtk.main()
-  
-  def _setup_output_directory_and_image_ids_and_directories(self):
-    """
-    Priority:
-    
-      1. Last export directory of the current image
-      2. Import directory of the current image
-      3. Last export directory of any image (i.e. the current value of this setting)
-      4. The default directory (default value) for this setting
-    
-    Directory 3. is implicitly set upon loading the setting from a persistent source.
-    Directory 4. is implicitly set upon setting instantiation.
-    """
-    
-    self.settings['gui_session']['image_ids_and_directories'].update_image_ids_and_directories()
-    self.settings['main']['output_directory'].update_current_directory(
-      self.image, self.settings['gui_session']['image_ids_and_directories'].value[self.image.ID])
-    
-    #TODO: Once `SettingPresenter` instances are contained in Settings and the event handling is revised, resolve this
-#     self.settings['main']['output_directory'].connect_value_changed_event(
-#       lambda output_directory, image_ids_and_directories, current_image_id:
-#          image_ids_and_directories.update_directory(current_image_id, output_directory.value),
-#       self.settings['gui_session']['image_ids_and_directories'], self.image.ID
-#     )
   
   def _init_gui(self):
     self.dialog = gimpui.Dialog(title=_(constants.PLUGIN_TITLE), role=constants.PLUGIN_PROGRAM_NAME)
@@ -451,9 +454,6 @@ class _ExportLayersGui(object):
   
   @update_setting_values
   def on_save_settings(self, widget):
-    self.settings['gui_session']['image_ids_and_directories'].update_directory(
-      self.image.ID, self.settings['main']['output_directory'].value)
-    
     self.save_settings()
     self.display_message_label(_("Settings successfully saved."), message_type=self.INFO)
   
@@ -464,9 +464,6 @@ class _ExportLayersGui(object):
   
   @update_setting_values
   def on_export_click(self, widget):
-    self.settings['gui_session']['image_ids_and_directories'].update_directory(
-      self.image.ID, self.settings['main']['output_directory'].value)
-    
     self.setup_gui_before_export()
     pdb.gimp_progress_init("", None)
     
