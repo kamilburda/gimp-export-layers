@@ -91,6 +91,9 @@ class SettingGroup(object):
     self._settings = OrderedDict()
     
     self.add(setting_list)
+    
+    # Used in the `_next()` method
+    self._settings_iterator = None
   
   def __getitem__(self, setting_name):
     """
@@ -104,7 +107,10 @@ class SettingGroup(object):
   
   def __iter__(self):
     """
-    Iterate over the settings in the order they were created.
+    Iterate over settings in the order they were created or added.
+    
+    This method does not iterate over nested groups. Use `iterate_all()` in that
+    case.
     """
     
     for setting in self._settings.values():
@@ -112,6 +118,27 @@ class SettingGroup(object):
   
   def __len__(self):
     return len(self._settings)
+  
+  def iterate_all(self):
+    """
+    Iterate over all settings in the group, including the settings in the nested
+    groups.
+    """
+    
+    groups = [self]
+    
+    while groups:
+      try:
+        setting_or_group = groups[0]._next()
+      except StopIteration:
+        groups.pop(0)
+        continue
+      
+      if isinstance(setting_or_group, SettingGroup):
+        groups.insert(0, setting_or_group)
+      else:
+        # It's a setting
+        yield setting_or_group
   
   def add(self, setting_list):
     """
@@ -138,18 +165,17 @@ class SettingGroup(object):
     `resettable_by_group` is False.
     """
     
-    for setting in self:
+    for setting in self.iterate_all():
       if setting.resettable_by_group:
         setting.reset()
   
   def set_gui_tooltips(self):
-    for setting in self:
+    for setting in self.iterate_all():
       setting.gui.set_tooltip()
   
   def update_setting_values(self):
     """
-    Manually assign the GUI element values, entered by the user, to the setting
-    values.
+    Manually assign the GUI element values, entered by the user, to settings.
     
     This method will not have any effect on settings with automatic
     GUI-to-setting value updating.
@@ -162,7 +188,7 @@ class SettingGroup(object):
     
     exception_message = ""
     
-    for setting in self:
+    for setting in self.iterate_all():
       try:
         setting.gui.update_setting_value()
       except pgsetting.SettingValueError as e:
@@ -172,6 +198,23 @@ class SettingGroup(object):
     if exception_message:
       exception_message = exception_message.rstrip('\n')
       raise pgsetting.SettingValueError(exception_message)
+  
+  def _next(self):
+    """
+    Return the next element when iterating the settings. Used by `iterate_all()`.
+    """
+    
+    # Initialize the iterator
+    if self._settings_iterator is None:
+      self._settings_iterator = self._settings.itervalues()
+    
+    try:
+      next_element = self._settings_iterator.next()
+    except StopIteration:
+      self._settings_iterator = None
+      raise StopIteration
+    else:
+      return next_element
   
   def _is_setting_group(self, element):
     return not isinstance(element, dict) and len(element) == 2 and isinstance(element[1], SettingGroup)

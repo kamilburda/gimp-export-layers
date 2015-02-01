@@ -97,10 +97,9 @@ class TestSettingGroupCreation(unittest.TestCase):
   def test_pass_existing_setting_group(self):
     special_settings = pgsettinggroup.SettingGroup([
       {
-       'type': pgsetting.SettingTypes.image,
-       'name': 'image',
-       'default_value': None,
-       'validate_default_value': False
+       'type': pgsetting.SettingTypes.boolean,
+       'name': 'first_run',
+       'default_value': False
       }
     ])
     
@@ -180,10 +179,9 @@ class TestSettingGroup(unittest.TestCase):
     self.settings = create_test_settings()
     self.special_settings = pgsettinggroup.SettingGroup([
       {
-       'type': pgsetting.SettingTypes.image,
-       'name': 'image',
-       'default_value': None,
-       'validate_default_value': False
+       'type': pgsetting.SettingTypes.boolean,
+       'name': 'first_run',
+       'default_value': False
       }
     ])
       
@@ -231,8 +229,8 @@ class TestSettingGroup(unittest.TestCase):
   def test_remove_settings_nested_group(self):
     self.settings.add([('special', self.special_settings)])
     
-    self.settings['special'].remove(['image'])
-    self.assertNotIn('image', self.settings['special'])
+    self.settings['special'].remove(['first_run'])
+    self.assertNotIn('first_run', self.settings['special'])
     
     self.settings.remove(['special'])
     self.assertNotIn('special', self.settings)
@@ -245,6 +243,22 @@ class TestSettingGroup(unittest.TestCase):
     self.settings.remove(['file_extension'])
     with self.assertRaises(KeyError):
       self.settings.remove(['file_extension'])
+  
+  def test_reset_settings_including_nested_groups(self):
+    self.settings.add([('special', self.special_settings)])
+    
+    self.settings['file_extension'].set_value("gif")
+    self.settings['ignore_invisible'].set_value(True)
+    self.settings['overwrite_mode'].set_value(self.settings['overwrite_mode'].options['skip'])
+    self.settings['special']['first_run'].set_value(True)
+    
+    self.settings.reset()
+    
+    # 'file_extension' and 'overwrite_mode' have `resettable_by_group = True`
+    self.assertEqual(self.settings['file_extension'].value, "gif")
+    self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].options['skip'])
+    self.assertEqual(self.settings['ignore_invisible'].value, self.settings['ignore_invisible'].default_value)
+    self.assertEqual(self.settings['special']['first_run'].value, self.settings['special']['first_run'].default_value)
 
 
 #===============================================================================
