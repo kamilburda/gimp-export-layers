@@ -39,6 +39,9 @@ import gimpenums
 from .. import pgsetting
 from .. import pgsettinggroup
 
+from .test_pgsetting import MockGuiWidget
+from .test_pgsetting import MockSettingPresenter
+
 #===============================================================================
 
 LIB_NAME = '.'.join(__name__.split('.')[:-2])
@@ -57,12 +60,11 @@ class MockStringIO(StringIO):
 def create_test_settings():
   file_extension_display_name = "File extension"
   
-  settings = pgsettinggroup.SettingGroup([
+  settings = pgsettinggroup.SettingGroup('main', [
     {
       'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
       'default_value': 'bmp',
-      'resettable_by_group': False,
       'display_name': file_extension_display_name
     },
     {
@@ -78,13 +80,17 @@ def create_test_settings():
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
-      'resettable_by_group': False,
       'options': [('replace', "Replace"),
                   ('skip', "Skip"),
                   ('rename_new', "Rename new file"),
                   ('rename_existing', "Rename existing file")],
     },
   ])
+  
+  settings.set_ignore_tags({
+    'file_extension': ['reset'],
+    'overwrite_mode': ['reset', 'update_setting_values'],
+  })
   
   return settings
 
@@ -95,7 +101,7 @@ def create_test_settings():
 class TestSettingGroupCreation(unittest.TestCase):
   
   def test_pass_existing_setting_group(self):
-    special_settings = pgsettinggroup.SettingGroup([
+    special_settings = pgsettinggroup.SettingGroup('special', [
       {
        'type': pgsetting.SettingTypes.boolean,
        'name': 'first_run',
@@ -103,13 +109,13 @@ class TestSettingGroupCreation(unittest.TestCase):
       }
     ])
     
-    settings = pgsettinggroup.SettingGroup([
+    settings = pgsettinggroup.SettingGroup('main', [
       {
        'type': pgsetting.SettingTypes.boolean,
        'name': 'ignore_invisible',
        'default_value': False,
       },
-      ('special', special_settings),
+      special_settings,
       {
         'type': pgsetting.SettingTypes.boolean,
         'name': 'autocrop',
@@ -122,7 +128,7 @@ class TestSettingGroupCreation(unittest.TestCase):
   
   def test_raise_type_error_for_missing_type_attribute(self):
     with self.assertRaises(TypeError):
-      pgsettinggroup.SettingGroup([
+      pgsettinggroup.SettingGroup('main', [
         {
          'name': 'autocrop',
          'default_value': False,
@@ -131,7 +137,7 @@ class TestSettingGroupCreation(unittest.TestCase):
   
   def test_raise_type_error_for_missing_single_mandatory_attribute(self):
     with self.assertRaises(TypeError):
-      pgsettinggroup.SettingGroup([
+      pgsettinggroup.SettingGroup('main', [
         {
          'type': pgsetting.SettingTypes.boolean,
          'default_value': False,
@@ -140,7 +146,7 @@ class TestSettingGroupCreation(unittest.TestCase):
   
   def test_raise_type_error_for_missing_multiple_mandatory_attributes(self):
     with self.assertRaises(TypeError):
-      pgsettinggroup.SettingGroup([
+      pgsettinggroup.SettingGroup('main', [
         {
          'type': pgsetting.SettingTypes.enumerated,
         }
@@ -148,7 +154,7 @@ class TestSettingGroupCreation(unittest.TestCase):
   
   def test_raise_type_error_for_non_existent_attribute(self):
     with self.assertRaises(TypeError):
-      pgsettinggroup.SettingGroup([
+      pgsettinggroup.SettingGroup('main', [
         {
          'type': pgsetting.SettingTypes.boolean,
          'name': 'autocrop',
@@ -159,7 +165,7 @@ class TestSettingGroupCreation(unittest.TestCase):
   
   def test_raise_key_error_if_name_already_exists(self):
     with self.assertRaises(KeyError):
-      pgsettinggroup.SettingGroup([
+      pgsettinggroup.SettingGroup('main', [
         {
          'type': pgsetting.SettingTypes.boolean,
          'name': 'autocrop',
@@ -177,7 +183,7 @@ class TestSettingGroup(unittest.TestCase):
   
   def setUp(self):
     self.settings = create_test_settings()
-    self.special_settings = pgsettinggroup.SettingGroup([
+    self.special_settings = pgsettinggroup.SettingGroup('special', [
       {
        'type': pgsetting.SettingTypes.boolean,
        'name': 'first_run',
@@ -196,7 +202,7 @@ class TestSettingGroup(unittest.TestCase):
        'name': 'autocrop',
        'default_value': False
       },
-      ('special', self.special_settings),             
+      self.special_settings,             
     ])
     
     self.assertIn('special', self.settings)
@@ -216,9 +222,9 @@ class TestSettingGroup(unittest.TestCase):
       ])
     
   def test_add_nested_setting_group_raise_key_error_if_name_already_exists(self):
-    self.settings.add([('special', self.special_settings)])
+    self.settings.add([self.special_settings])
     with self.assertRaises(KeyError):
-      self.settings.add([('special', self.special_settings)])
+      self.settings.add([self.special_settings])
   
   def test_remove_settings(self):
     self.settings.remove(['file_extension', 'ignore_invisible'])
@@ -227,7 +233,7 @@ class TestSettingGroup(unittest.TestCase):
     self.assertIn('overwrite_mode', self.settings)
   
   def test_remove_settings_nested_group(self):
-    self.settings.add([('special', self.special_settings)])
+    self.settings.add([self.special_settings])
     
     self.settings['special'].remove(['first_run'])
     self.assertNotIn('first_run', self.settings['special'])
@@ -244,8 +250,8 @@ class TestSettingGroup(unittest.TestCase):
     with self.assertRaises(KeyError):
       self.settings.remove(['file_extension'])
   
-  def test_reset_settings_including_nested_groups(self):
-    self.settings.add([('special', self.special_settings)])
+  def test_reset_settings_resets_nested_groups_and_ignores_specified_settings(self):
+    self.settings.add([self.special_settings])
     
     self.settings['file_extension'].set_value("gif")
     self.settings['ignore_invisible'].set_value(True)
@@ -254,12 +260,38 @@ class TestSettingGroup(unittest.TestCase):
     
     self.settings.reset()
     
-    # 'file_extension' and 'overwrite_mode' have `resettable_by_group = True`
+    # `reset()` ignores 'file_extension' and 'overwrite_mode' 
     self.assertEqual(self.settings['file_extension'].value, "gif")
     self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].options['skip'])
     self.assertEqual(self.settings['ignore_invisible'].value, self.settings['ignore_invisible'].default_value)
     self.assertEqual(self.settings['special']['first_run'].value, self.settings['special']['first_run'].default_value)
-
+  
+  def test_reset_ignores_nested_group(self):
+    self.settings.add([self.special_settings])
+    self.settings.set_ignore_tags({ 'special': ['reset'] })
+    
+    self.settings['special']['first_run'].set_value(True)
+    self.settings.reset()
+    self.assertNotEqual(self.settings['special']['first_run'].value, self.settings['special']['first_run'].default_value)
+  
+  def test_update_setting_values_ignores_specified_settings(self):
+    file_extension_widget = MockGuiWidget(None)
+    overwrite_mode_widget = MockGuiWidget(None)
+    ignore_invisible_widget = MockGuiWidget(None)
+    self.settings['file_extension'].set_gui(MockSettingPresenter, file_extension_widget)
+    self.settings['overwrite_mode'].set_gui(MockSettingPresenter, overwrite_mode_widget)
+    self.settings['ignore_invisible'].set_gui(MockSettingPresenter, ignore_invisible_widget)
+    
+    file_extension_widget.set_value("gif")
+    overwrite_mode_widget.set_value(self.settings['overwrite_mode'].options['skip'])
+    ignore_invisible_widget.set_value(True)
+    
+    self.settings.update_setting_values()
+    
+    self.assertEqual(self.settings['file_extension'].value, "gif")
+    self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].default_value)
+    self.assertEqual(self.settings['ignore_invisible'].value, True)
+    
 
 #===============================================================================
 

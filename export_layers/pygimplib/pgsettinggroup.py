@@ -53,13 +53,19 @@ class SettingGroup(object):
   * can perform certain operations on all settings and nested groups at once.
   """
   
-  def __init__(self, setting_list):
+  def __init__(self, name, setting_list):
     """
     Create settings (`Setting` objects) from the specified list. The list can
     also contain existing setting groups (`SettingGroup` objects).
     
     Settings and nested groups are stored in the group in the order they are
     specified in the list.
+    
+    Parameters:
+    
+    * `name` - A name (string) that uniquely identifies the setting group.
+    
+    * `setting_list` - See below.
     
     ---------
     
@@ -78,9 +84,7 @@ class SettingGroup(object):
     
     ---------
     
-    To add a setting group, use a two-element tuple (group name, `SettingGroup`
-    object). "group name" is an arbitrary string that uniquely identifies the
-    group within the parent group.
+    To add a setting group, simply pass an existing `SettingGroup` object).
     
     ---------
     
@@ -88,12 +92,19 @@ class SettingGroup(object):
     this class refers to both `Setting` and `SettingGroup` objects.
     """
     
+    self._name = name
     self._settings = OrderedDict()
     
     self.add(setting_list)
     
+    self._ignored_settings_and_tags = {}
+    
     # Used in the `_next()` method
     self._settings_iterator = None
+  
+  @property
+  def name(self):
+    return self._name
   
   def __getitem__(self, setting_name):
     """
@@ -119,11 +130,27 @@ class SettingGroup(object):
   def __len__(self):
     return len(self._settings)
   
-  def iterate_all(self):
+  def iterate_all(self, ignore_tags=None):
     """
-    Iterate over all settings in the group, including the settings in the nested
+    Iterate over all settings in the group, including the settings in nested
     groups.
+    
+    `ignore_tags` is a list of strings indicating that settings having one of
+    these tags attached are ignored. Ignore tags are attached to the settings by
+    calling the `set_ignore_tags()` method.
     """
+    
+    def _should_ignore_func(setting_or_group, ignore_tags):
+      return (setting_or_group.name in self._ignored_settings_and_tags and
+              any(tag in self._ignored_settings_and_tags[setting_or_group.name] for tag in ignore_tags))
+    
+    def _never_ignore(*args):
+      return False
+    
+    if ignore_tags is not None:
+      _should_ignore = _should_ignore_func
+    else:
+      _should_ignore = _never_ignore
     
     groups = [self]
     
@@ -135,10 +162,15 @@ class SettingGroup(object):
         continue
       
       if isinstance(setting_or_group, SettingGroup):
-        groups.insert(0, setting_or_group)
+        if not _should_ignore(setting_or_group, ignore_tags):
+          groups.insert(0, setting_or_group)
+        else:
+          continue
       else:
-        # It's a setting
-        yield setting_or_group
+        if not _should_ignore(setting_or_group, ignore_tags):
+          yield setting_or_group
+        else:
+          continue
   
   def add(self, setting_list):
     """
@@ -146,36 +178,65 @@ class SettingGroup(object):
     refer to the documentation for the `__init__()` method.
     """
     
-    for element in setting_list:
-      if self._is_setting_group(element):
-        self._add_setting_group(element)
+    for setting_or_group in setting_list:
+      if self._is_setting_group(setting_or_group):
+        self._add_setting_group(setting_or_group)
       else:
-        self._create_setting(element)
+        self._create_setting(setting_or_group)
   
   def remove(self, setting_names):
+    """
+    Remove settings from the group specified by their names.
+    """
+    
     for setting_name in setting_names:
       if setting_name in self._settings:
         del self._settings[setting_name]
       else:
         raise KeyError("setting '{0}' not found".format(setting_name))
   
-  def reset(self):
+  def set_ignore_tags(self, ignored_settings_and_tags):
     """
-    Reset all settings in this group. Ignore settings whose attribute
-    `resettable_by_group` is False.
+    For the specified settings, specify a list of "ignore tags".
+    
+    When the `iterate_all()` method is called and the `ignore_tags` parameter is
+    specified, all settings matching at least one tag from `ignore_tags` will be
+    excluded from the iteration.
+    
+    When the tags match the method names in this class that operate on all
+    settings, such as `reset()` or `update_setting_values()`, the methods ignore
+    those settings.
+    
+    Parameters:
+    
+    * `ignored_settings_and_tags` - A dict of (setting name, tag list) pairs.
     """
     
-    for setting in self.iterate_all():
-      if setting.resettable_by_group:
-        setting.reset()
+    self._ignored_settings_and_tags = {
+      setting_name: set(tags) for setting_name, tags in ignored_settings_and_tags.items() }
+  
+  def reset(self):
+    """
+    Reset all settings in this group. Ignore settings with the 'reset' ignore
+    tag.
+    """
+    
+    for setting in self.iterate_all(ignore_tags=['reset']):
+      setting.reset()
   
   def set_gui_tooltips(self):
-    for setting in self.iterate_all():
+    """
+    Set GUI tooltips in this group. Ignore settings with the 'set_gui_tooltips'
+    ignore tag.
+    """
+    
+    for setting in self.iterate_all(ignore_tags=['set_gui_tooltips']):
       setting.gui.set_tooltip()
   
   def update_setting_values(self):
     """
     Manually assign the GUI element values, entered by the user, to settings.
+    Ignore settings with the 'update_setting_values' ignore tag.
     
     This method will not have any effect on settings with automatic
     GUI-to-setting value updating.
@@ -188,7 +249,7 @@ class SettingGroup(object):
     
     exception_message = ""
     
-    for setting in self.iterate_all():
+    for setting in self.iterate_all(ignore_tags=['update_setting_values']):
       try:
         setting.gui.update_setting_value()
       except pgsetting.SettingValueError as e:
@@ -216,8 +277,8 @@ class SettingGroup(object):
     else:
       return next_element
   
-  def _is_setting_group(self, element):
-    return not isinstance(element, dict) and len(element) == 2 and isinstance(element[1], SettingGroup)
+  def _is_setting_group(self, setting_or_group):
+    return isinstance(setting_or_group, SettingGroup)
   
   def _create_setting(self, setting_data):
     try:
@@ -248,11 +309,11 @@ class SettingGroup(object):
         message = e.message
       raise TypeError(message)
   
-  def _add_setting_group(self, setting_group_data):
-    if setting_group_data[0] in self._settings:
-      raise KeyError("setting group '{0}' already exists".format(setting_group_data[0]))
+  def _add_setting_group(self, setting_group):
+    if setting_group.name in self._settings:
+      raise KeyError("setting group '{0}' already exists".format(setting_group.name))
     
-    self._settings[setting_group_data[0]] = setting_group_data[1]
+    self._settings[setting_group.name] = setting_group
   
   def _get_missing_mandatory_arguments(self, setting_type, setting_data):
     mandatory_arg_names = self._get_mandatory_argument_names(setting_type.__init__)

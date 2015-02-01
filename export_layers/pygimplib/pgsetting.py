@@ -164,10 +164,6 @@ class Setting(object):
   * `pdb_name` (read-only) - Setting name as it appears in the GIMP PDB as
     a PDB parameter name.
   
-  * `resettable_by_group` (read-only) - If True, the setting is allowed to be
-    reset to its default value if the `reset()` method from the corresponding
-    `SettingGroup` is called. False by default.
-  
   * `error_messages` (read-only) - A dict of error messages containing
     (message name, message contents) pairs, which can be used e.g. if a value
     assigned to the setting is invalid. You can add your own error messages and
@@ -181,7 +177,6 @@ class Setting(object):
   def __init__(self, name, default_value, validate_default_value=True,
                display_name=None, description=None,
                pdb_type=None, pdb_registration_mode=PdbRegistrationModes.automatic,
-               resettable_by_group=True,
                error_messages=None):
     
     """
@@ -211,7 +206,6 @@ class Setting(object):
     self._description = description if description is not None else ""
     self._pdb_type = self._get_pdb_type(pdb_type)
     self._pdb_registration_mode = self._get_pdb_registration_mode(pdb_registration_mode)
-    self._resettable_by_group = resettable_by_group
     
     self._value = self._default_value
     self._pdb_name = self._get_pdb_name(self._name)
@@ -271,10 +265,6 @@ class Setting(object):
   @property
   def pdb_name(self):
     return self._pdb_name
-  
-  @property
-  def resettable_by_group(self):
-    return self._resettable_by_group
   
   @property
   def error_messages(self):

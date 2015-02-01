@@ -60,12 +60,11 @@ class MockStringIO(StringIO):
 def create_test_settings():
   file_extension_display_name = "File extension"
   
-  settings = pgsettinggroup.SettingGroup([
+  settings = pgsettinggroup.SettingGroup('main', [
     {
       'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
       'default_value': 'bmp',
-      'resettable_by_group': False,
       'display_name': file_extension_display_name
     },
     {
@@ -81,13 +80,17 @@ def create_test_settings():
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
-      'resettable_by_group': False,
       'options': [('replace', "Replace"),
                   ('skip', "Skip"),
                   ('rename_new', "Rename new file"),
                   ('rename_existing', "Rename existing file")],
     },
   ])
+  
+  settings.set_ignore_tags({
+    'file_extension': ['reset'],
+    'overwrite_mode': ['reset'],
+  })
   
   return settings
 
