@@ -968,28 +968,6 @@ class ImageIDsAndDirectoriesSetting(Setting):
       return None
 
 
-#-------------------------------------------------------------------------------
-
-
-class IntArraySetting(Setting):
-    
-  """
-  This setting class can be used for integer arrays.
-    
-  Allowed GIMP PDB types:
-    
-  * PDB_INT32ARRAY (default)
-  * PDB_INT16ARRAY
-  * PDB_INT8ARRAY
-  """
-  
-  #TODO:
-  # - validation - value must be an iterable sequence
-  #   - this applies to any array setting
-  
-  _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32ARRAY, gimpenums.PDB_INT16ARRAY, gimpenums.PDB_INT8ARRAY]
-
-
 #===============================================================================
 
 
@@ -1010,4 +988,3 @@ class SettingTypes(enum.Enum):
   file_extension = FileExtensionSetting
   directory = DirectorySetting
   image_IDs_and_directories = ImageIDsAndDirectoriesSetting
-  array_integer = IntArraySetting
