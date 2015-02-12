@@ -152,7 +152,8 @@ class Setting(object):
       
       * `PdbRegistrationModes.automatic` - automatically determine whether the
         setting can be registered based on `pdb_type`, if `pdb_type` is not None,
-        allow the setting to be registered, otherwise disallow it.
+        allow the setting to be registered, otherwise disallow it. This is the
+        default.
         
       * `PdbRegistrationModes.registrable` - allow the setting to be registered.
         If this attribute is set to `registrable` and `pdb_type` is None, this
@@ -294,15 +295,6 @@ class Setting(object):
     if self._is_value_changed_event_connected():
       self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
   
-  def _assign_and_validate_value(self, value):
-    self._validate(value)
-    self._value = value
-  
-  def _apply_gui_value_to_setting(self, value):
-    self._assign_and_validate_value(value)
-    if self._is_value_changed_event_connected():
-      self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
-  
   def reset(self):
     """
     Reset setting value to its default value.
@@ -371,20 +363,19 @@ class Setting(object):
     self._value_changed_event_handler = None
     self._value_changed_event_handler_args = []
   
-  def _is_value_changed_event_connected(self):
-    return self._value_changed_event_handler is not None
+  def _assign_and_validate_value(self, value):
+    self._validate(value)
+    self._value = value
+  
+  def _apply_gui_value_to_setting(self, value):
+    self._assign_and_validate_value(value)
+    if self._is_value_changed_event_connected():
+      self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
   
   def _validate(self, value):
     """
     Check whether the specified value is valid. If the value is invalid, raise
     `SettingValueError`.
-    """
-    
-    pass
-  
-  def _init_error_messages(self):
-    """
-    Initialize custom error messages in the `error_messages` dict.
     """
     
     pass
@@ -399,6 +390,16 @@ class Setting(object):
       self._validate(self._default_value)
     except SettingValueError as e:
       raise SettingDefaultValueError(e.message)
+  
+  def _is_value_changed_event_connected(self):
+    return self._value_changed_event_handler is not None
+  
+  def _init_error_messages(self):
+    """
+    Initialize custom error messages in the `error_messages` dict.
+    """
+    
+    pass
   
   def _get_display_name(self, display_name):
     if display_name is not None:
