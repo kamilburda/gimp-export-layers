@@ -482,8 +482,8 @@ class _ExportLayersGui(object):
     # whether the GUI has something to do.
     refresh_event_id = gobject.timeout_add(self._GUI_REFRESH_INTERVAL_MILLISECONDS, self.refresh_ui)
     
-    self.layer_exporter = exportlayers.LayerExporter(gimpenums.RUN_INTERACTIVE, self.image,
-                                                     self.settings['main'], overwrite_chooser, progress_updater)
+    self.layer_exporter = exportlayers.LayerExporter(
+      gimpenums.RUN_INTERACTIVE, self.image, self.settings['main'], overwrite_chooser, progress_updater)
     should_quit = True
     try:
       self.layer_exporter.export_layers()
@@ -495,8 +495,9 @@ class _ExportLayersGui(object):
     except Exception as e:
       display_exception_message(traceback.format_exc(), parent=self.dialog)
     else:
-      self.settings['special']['first_run'].set_value(False)
-      pgsettingpersistor.SettingPersistor.save([self.settings['special']['first_run']], [self.gimpshelf_stream])
+      self.settings['special']['first_plugin_run'].set_value(False)
+      pgsettingpersistor.SettingPersistor.save(
+        [self.settings['special']['first_plugin_run']], [self.gimpshelf_stream])
       
       if not self.layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.dialog)
@@ -604,8 +605,8 @@ class _ExportLayersToGui(object):
     pdb.gimp_progress_init("", None)
     refresh_event_id = gobject.timeout_add(self._GUI_REFRESH_INTERVAL_MILLISECONDS, self.refresh_ui)
     try:
-      self.layer_exporter = exportlayers.LayerExporter(gimpenums.RUN_WITH_LAST_VALS, self.image,
-                                                       self.settings['main'], overwrite_chooser, progress_updater)
+      self.layer_exporter = exportlayers.LayerExporter(
+        gimpenums.RUN_WITH_LAST_VALS, self.image, self.settings['main'], overwrite_chooser, progress_updater)
       self.layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError:
       pass
