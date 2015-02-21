@@ -77,11 +77,7 @@ def create_settings():
       'type': pgsetting.SettingTypes.boolean,
       'name': 'first_run',
       'default_value': True,
-      'pdb_registration_mode': pgsetting.PdbRegistrationModes.not_registrable,
-      'description': _(
-        "True if the plug-in successfully ran for the first time "
-        "in one GIMP session, False for subsequent runs."
-      )
+      'pdb_registration_mode': pgsetting.PdbRegistrationModes.not_registrable
     },
   ])
   
@@ -89,29 +85,12 @@ def create_settings():
   # Main settings
   #-----------------------------------------------------------------------------
   
-  file_extension_display_name = _("File extension")
-  file_ext_mode_items = OrderedDict(
-    [('no_special_handling', _("No special handling")),
-     ('only_matching_file_extension', _("Export only layers matching file extension")),
-     ('use_as_file_extensions', _("Use as file extensions"))]
-  )
-  square_bracketed_mode_items = OrderedDict(
-    [('normal', _("Treat as normal layers")),
-     ('background', _("Treat as background layers")),
-     ('ignore', _("Ignore")),
-     ('ignore_other', _("Ignore other layers"))]
-  )
-  
   main_settings = pgsettinggroup.SettingGroup('main', [
     {
       'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
       'default_value': "png",
-      'display_name': file_extension_display_name,
-      'description': _(
-        "Type in file extension (with or without the leading period). "
-        "To export in RAW format, type \"data\"."
-      )
+      'display_name': "File extension"
     },
     {
       'type': pgsetting.SettingTypes.directory,
@@ -123,53 +102,34 @@ def create_settings():
       'type': pgsetting.SettingTypes.boolean,
       'name': 'layer_groups_as_folders',
       'default_value': False,
-      'display_name': _("Treat layer groups as folders"),
-      'description': _(
-        "If enabled, layers will be exported to subfolders corresponding to the layer groups.\n"
-        "If disabled, all layers will be exported to the output folder on the same level."
-      )
+      'display_name': _("Treat layer groups as folders")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'ignore_invisible',
       'default_value': False,
-      'display_name': _("Ignore invisible layers"),
-      'description': _(
-        "If enabled, invisible layers will not be exported. Visible layers within "
-        "invisible layer groups will also not be exported."
-      )
+      'display_name': _("Ignore invisible layers")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'autocrop',
       'default_value': False,
-      'display_name': _("Autocrop layers"),
-      'description': _(
-        "If enabled, layers will be autocropped before being exported."
-      )
+      'display_name': _("Autocrop layers")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'use_image_size',
       'default_value': False,
-      'display_name': _("Use image size"),
-      'description': _(
-        "If enabled, layers will be resized (but not scaled) to the image size. This is "
-        "useful if you want to keep the size of the image canvas and the layer position "
-        "within the image. If layers are partially outside the image canvas, "
-        "they will be cut off."
-      )
+      'display_name': _("Use image size")
     },
     {
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'file_ext_mode',
       'default_value': 'no_special_handling',
-      'items': file_ext_mode_items.items(),
-      'display_name': _("File extensions in layer names"),
-      'description': _(
-        'If "{0}" is selected, "{1}" must still be '
-        'specified (for layers with invalid or no file extension).'
-      ).format(file_ext_mode_items['use_as_file_extensions'], file_extension_display_name)
+      'items': [('no_special_handling', _("No special handling")),
+                ('only_matching_file_extension', _("Export only layers matching file extension")),
+                ('use_as_file_extensions', _("Use as file extensions"))],
+      'display_name': _("File extensions in layer names")
     },
     {
       'type': pgsetting.SettingTypes.enumerated,
@@ -178,67 +138,41 @@ def create_settings():
       'items': [('always', _("Always strip file extension")),
                 ('identical', _("Strip identical file extension")),
                 ('never', _("Never strip file extension"))],
-      'display_name': _("File extension stripping"),
-      'description': _(
-        "Determines when to strip file extensions from layer names (including the period)."
-      )
+      'display_name': _("File extension stripping")
     },
     {
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'square_bracketed_mode',
       'default_value': 'normal',
-      'items': square_bracketed_mode_items.items(),
-      'display_name': _("Layer names in [square brackets]"),
-      'description': _(
-        '"{0}": these layers will be used as a background for all other layers '
-        'and will not be exported separately.\n'
-        '"{1}": these layers will not be exported (and will not be treated as '
-        'background layers).\n'
-        '"{2}": all other layers will not be exported.'
-      ).format(square_bracketed_mode_items['background'],
-               square_bracketed_mode_items['ignore'],
-               square_bracketed_mode_items['ignore_other'])
+      'items': [('normal', _("Treat as normal layers")),
+                ('background', _("Treat as background layers")),
+                ('ignore', _("Ignore")),
+                ('ignore_other', _("Ignore other layers"))],
+      'display_name': _("Layer names in [square brackets]")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'crop_to_background',
       'default_value': False,
-      'display_name': _("Crop to background"),
-      'description': _(
-        "If enabled, layers will be cropped to the combined size of the "
-        "background layers instead of their own size."
-      )
+      'display_name': _("Crop to background")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'merge_layer_groups',
       'default_value': False,
-      'display_name': _("Merge layer groups"),
-      'description': _(
-        "If enabled, each top-level layer group is merged into one layer. The name "
-        "of each merged layer is the name of the corresponding top-level layer group."
-      )
+      'display_name': _("Merge layer groups")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'empty_folders',
       'default_value': False,
-      'display_name': _("Create folders for empty layer groups"),
-      'description': _(
-        "If enabled, subfolders for empty layer groups will be created."
-      )
+      'display_name': _("Create folders for empty layer groups")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'ignore_layer_modes',
       'default_value': False,
-      'display_name': _("Ignore layer modes"),
-      'description': _(
-        "If enabled, the layer mode for each layer will be set to Normal. This is "
-        "useful for layers with opacity less than 100% and a layer mode different "
-        "than Normal or Dissolve, which would normally be completely invisible "
-        "if a file format supporting alpha channel is used (such as PNG)."
-      )
+      'display_name': _("Ignore layer modes")
     },
     {
       'type': pgsetting.SettingTypes.enumerated,
@@ -249,11 +183,7 @@ def create_settings():
                 ('rename_new', _("Rename new file"), exportlayers.OverwriteHandler.RENAME_NEW),
                 ('rename_existing', _("Rename existing file"), exportlayers.OverwriteHandler.RENAME_EXISTING),
                 ('cancel', _("Cancel"), exportlayers.OverwriteHandler.CANCEL)],
-      'display_name': _("Overwrite mode (non-interactive run mode only)"),
-      'description': _(
-        "Indicates how to handle conflicting files. Skipped layers "
-        "will not be regarded as exported."
-      )
+      'display_name': _("Overwrite mode (non-interactive run mode only)")
     },
   ])
   

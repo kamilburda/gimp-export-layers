@@ -252,6 +252,10 @@ class _ExportLayersGui(object):
     self.file_extension_label.set_alignment(0.0, 0.5)
     self.file_extension_entry = gtk.Entry()
     self.file_extension_entry.set_size_request(100, -1)
+    self.file_extension_entry.set_tooltip_text(_(
+        "Type in file extension (with or without the leading period). "
+        "To export in RAW format, type \"data\"."
+      ))
     self.label_message = gtk.Label()
     self.label_message.set_alignment(0.0, 0.5)
     
@@ -353,13 +357,12 @@ class _ExportLayersGui(object):
     self.save_settings_button = gtk.Button()
     self.save_settings_button.set_label(_("Save Settings"))
     self.save_settings_button.set_tooltip_text(
-      _("Save settings permanently to a file. "
-        "If you start GIMP again, the saved settings will be loaded from the "
-        "file when {0} is first opened.").format(constants.PLUGIN_TITLE)
+      _("Save settings permanently. "
+        "If you start GIMP again, the saved settings will be loaded "
+        "when {0} is first opened.").format(constants.PLUGIN_TITLE)
     )
     self.reset_settings_button = gtk.Button()
     self.reset_settings_button.set_label(_("Reset Settings"))
-    self.reset_settings_button.set_tooltip_text(_("Reset settings to their default values."))
     
     self.progress_bar = gtk.ProgressBar()
     self.progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
@@ -396,7 +399,6 @@ class _ExportLayersGui(object):
     self.stop_button.hide()
     
     self.set_gui_for_settings()
-    self.settings['main'].set_gui_tooltips()
     
     self.dialog.set_focus(self.file_extension_entry)
     self.dialog.set_default(self.export_layers_button)
