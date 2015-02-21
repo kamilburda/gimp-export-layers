@@ -99,7 +99,7 @@ class TestSettingGroupCreation(unittest.TestCase):
     special_settings = pgsettinggroup.SettingGroup('special', [
       {
        'type': pgsetting.SettingTypes.boolean,
-       'name': 'first_run',
+       'name': 'first_plugin_run',
        'default_value': False
       }
     ])
@@ -181,7 +181,7 @@ class TestSettingGroup(unittest.TestCase):
     self.special_settings = pgsettinggroup.SettingGroup('special', [
       {
        'type': pgsetting.SettingTypes.boolean,
-       'name': 'first_run',
+       'name': 'first_plugin_run',
        'default_value': False
       }
     ])
@@ -230,8 +230,8 @@ class TestSettingGroup(unittest.TestCase):
   def test_remove_settings_nested_group(self):
     self.settings.add([self.special_settings])
     
-    self.settings['special'].remove(['first_run'])
-    self.assertNotIn('first_run', self.settings['special'])
+    self.settings['special'].remove(['first_plugin_run'])
+    self.assertNotIn('first_plugin_run', self.settings['special'])
     
     self.settings.remove(['special'])
     self.assertNotIn('special', self.settings)
@@ -251,7 +251,7 @@ class TestSettingGroup(unittest.TestCase):
     self.settings['file_extension'].set_value("gif")
     self.settings['ignore_invisible'].set_value(True)
     self.settings['overwrite_mode'].set_value(self.settings['overwrite_mode'].items['skip'])
-    self.settings['special']['first_run'].set_value(True)
+    self.settings['special']['first_plugin_run'].set_value(True)
     
     self.settings.reset()
     
@@ -259,15 +259,17 @@ class TestSettingGroup(unittest.TestCase):
     self.assertEqual(self.settings['file_extension'].value, "gif")
     self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].items['skip'])
     self.assertEqual(self.settings['ignore_invisible'].value, self.settings['ignore_invisible'].default_value)
-    self.assertEqual(self.settings['special']['first_run'].value, self.settings['special']['first_run'].default_value)
+    self.assertEqual(self.settings['special']['first_plugin_run'].value,
+                     self.settings['special']['first_plugin_run'].default_value)
   
   def test_reset_ignores_nested_group(self):
     self.settings.add([self.special_settings])
     self.settings.set_ignore_tags({ 'special': ['reset'] })
     
-    self.settings['special']['first_run'].set_value(True)
+    self.settings['special']['first_plugin_run'].set_value(True)
     self.settings.reset()
-    self.assertNotEqual(self.settings['special']['first_run'].value, self.settings['special']['first_run'].default_value)
+    self.assertNotEqual(self.settings['special']['first_plugin_run'].value,
+                        self.settings['special']['first_plugin_run'].default_value)
   
   def test_update_setting_values_ignores_specified_settings(self):
     file_extension_widget = MockGuiWidget(None)
@@ -294,10 +296,10 @@ class TestSettingGroup(unittest.TestCase):
 class TestPdbParamCreator(unittest.TestCase):
   
   def setUp(self):
-    self.file_ext_setting = pgsetting.FileExtensionSetting("file_extension", "png",
-                                                           display_name="File extension")
-    self.unregistrable_setting = pgsetting.IntSetting("num_exported_layers", 0,
-                                                      pdb_registration_mode=pgsetting.PdbRegistrationModes.not_registrable)
+    self.file_ext_setting = pgsetting.FileExtensionSetting(
+      "file_extension", "png", display_name="File extension")
+    self.unregistrable_setting = pgsetting.IntSetting(
+      "num_exported_layers", 0, pdb_registration_mode=pgsetting.PdbRegistrationModes.not_registrable)
     self.settings = create_test_settings()
   
   def test_create_one_param_successfully(self):
