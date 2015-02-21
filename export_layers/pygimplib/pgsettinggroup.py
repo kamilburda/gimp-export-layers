@@ -224,15 +224,6 @@ class SettingGroup(object):
     for setting in self.iterate_all(ignore_tags=['reset']):
       setting.reset()
   
-  def set_gui_tooltips(self):
-    """
-    Set GUI tooltips in this group. Ignore settings with the 'set_gui_tooltips'
-    ignore tag.
-    """
-    
-    for setting in self.iterate_all(ignore_tags=['set_gui_tooltips']):
-      setting.gui.set_tooltip()
-  
   def update_setting_values(self):
     """
     Manually assign the GUI element values, entered by the user, to settings.

@@ -100,7 +100,7 @@ class Setting(object):
   Properties and methods in this class can be used in multiple scenarios, such as:
   * using setting values as variables in the main logic of plug-ins
   * registering GIMP Procedural Database (PDB) parameters to plug-ins
-  * managing GUI element properties (values, labels, tooltips, etc.)
+  * managing GUI element properties (values, labels, etc.)
   
   It is recommended to use an appropriate subclass for a setting, as they offer
   the following features:

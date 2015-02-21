@@ -415,10 +415,6 @@ class GtkSettingPresenter(pgsettingpresenter.SettingPresenter):
   
   def _connect_value_changed_event(self):
     self._element.connect(self._VALUE_CHANGED_SIGNAL, self._on_value_changed)
-  
-  def set_tooltip(self):
-    if self._setting.description:
-      self._element.set_tooltip_text(self._setting.description)
 
 
 #-------------------------------------------------------------------------------

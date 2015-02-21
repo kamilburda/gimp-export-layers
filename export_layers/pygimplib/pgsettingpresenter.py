@@ -154,16 +154,6 @@ class SettingPresenter(object):
     
     pass
   
-  @abc.abstractmethod
-  def set_tooltip(self):
-    """
-    Set tooltip text for the GUI element.
-    
-    `Setting.description` attribute is used as the tooltip.
-    """
-    
-    pass
-  
   def update_setting_value(self):
     """
     Manually assign the GUI element value, entered by the user, to the setting
@@ -266,9 +256,6 @@ class NullSettingPresenter(SettingPresenter):
   
   def set_visible(self, visible):
     self._visible = visible
-  
-  def set_tooltip(self):
-    pass
   
   def update_setting_value(self):
     """

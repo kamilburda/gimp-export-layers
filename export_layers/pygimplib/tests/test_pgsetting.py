@@ -120,9 +120,6 @@ class MockSettingPresenter(pgsettingpresenter.SettingPresenter):
   
   def _connect_value_changed_event(self):
     self._element.connect(self._VALUE_CHANGED_SIGNAL, self._on_value_changed)
-  
-  def set_tooltip(self):
-    pass
 
 
 class MockSettingPresenterWithValueChangedSignal(MockSettingPresenter):
