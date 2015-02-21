@@ -357,8 +357,8 @@ class TestEnumSetting(unittest.TestCase):
       'overwrite_mode', 'replace',
       [('skip', "Skip", 5),
        ('replace', "Replace", 6)])
-    self.assertEqual(setting.options['skip'], 5)
-    self.assertEqual(setting.options['replace'], 6)
+    self.assertEqual(setting.items['skip'], 5)
+    self.assertEqual(setting.items['replace'], 6)
     
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
@@ -389,43 +389,43 @@ class TestEnumSetting(unittest.TestCase):
     except pgsetting.SettingDefaultValueError:
       self.fail("SettingDefaultValueError should not be raised, default value validation is turned off")
   
-  def test_invalid_options_length_varying(self):
+  def test_invalid_items_length_varying(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
           'overwrite_mode', None,
           [('skip', "Skip", 1),
            ('replace', "Replace")])
   
-  def test_invalid_options_length_too_many_elements(self):
+  def test_invalid_items_length_too_many_elements(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
           'overwrite_mode', None,
           [('skip', "Skip", 1, 1),
            ('replace', "Replace", 1, 1)])
   
-  def test_invalid_options_length_too_few_elements(self):
+  def test_invalid_items_length_too_few_elements(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
           'overwrite_mode', None,
           [('skip'),
            ('replace')])
   
-  def test_set_invalid_option(self):
+  def test_set_invalid_item(self):
     with self.assertRaises(pgsetting.SettingValueError):
       self.setting.set_value(4)
     with self.assertRaises(pgsetting.SettingValueError):
       self.setting.set_value(-1)
   
-  def test_get_invalid_option(self):
+  def test_get_invalid_item(self):
     with self.assertRaises(KeyError):
-      self.setting.options['invalid_option']
+      self.setting.items['invalid_item']
   
   def test_short_description(self):
     self.assertEqual(self.setting.short_description,
                      self.setting.display_name + " { Skip (0), Replace (1) }")
   
-  def test_get_option_display_names_and_values(self):
-    self.assertEqual(self.setting.get_option_display_names_and_values(), ["Skip", 0, "Replace", 1])
+  def test_get_item_display_names_and_values(self):
+    self.assertEqual(self.setting.get_item_display_names_and_values(), ["Skip", 0, "Replace", 1])
 
 
 class TestImageSetting(unittest.TestCase):

@@ -80,10 +80,10 @@ def create_test_settings():
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
-      'options': [('replace', "Replace"),
-                  ('skip', "Skip"),
-                  ('rename_new', "Rename new file"),
-                  ('rename_existing', "Rename existing file")],
+      'items': [('replace', "Replace"),
+                ('skip', "Skip"),
+                ('rename_new', "Rename new file"),
+                ('rename_existing', "Rename existing file")],
     },
   ])
   

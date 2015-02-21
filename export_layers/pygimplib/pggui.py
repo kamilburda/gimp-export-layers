@@ -463,7 +463,7 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
   """
   This class is a `SettingPresenter` for `gimpui.IntComboBox` elements.
   
-  Value: Option selected in the combobox.
+  Value: Item selected in the combobox.
   """
   
   _VALUE_CHANGED_SIGNAL = "changed"

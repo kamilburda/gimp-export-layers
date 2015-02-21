@@ -607,17 +607,17 @@ class EnumSetting(Setting):
   
   Additional attributes:
   
-  * `options` (read-only) - A dict of <option name, option value> pairs. Option name
-    uniquely identifies each option. Option value is the corresponding integer value.
+  * `items` (read-only) - A dict of <item name, item value> pairs. Item name
+    uniquely identifies each item. Item value is the corresponding integer value.
   
-  * `options_display_names` (read-only) - A dict of <option name, option display name> pairs.
-    Option display names can be used e.g. as combo box items in the GUI.
+  * `items_display_names` (read-only) - A dict of <item name, item display name> pairs.
+    Item display names can be used e.g. as combo box items in the GUI.
   
-  To access an option value:
-    setting.options[option name]
+  To access an item value:
+    setting.items[item name]
   
-  To access an option display name:
-    setting.options_display_names[option name]
+  To access an item display name:
+    setting.items_display_names[item name]
   
   Raises:
   
@@ -625,121 +625,121 @@ class EnumSetting(Setting):
   
   * `ValueError` - See the other error messages below.
   
-  * `KeyError` - Invalid key to `options` or `options_display_names`.
+  * `KeyError` - Invalid key to `items` or `items_display_names`.
   
   Error messages:
   
-  * `'invalid_value'` - The value assigned is not one of the options in this setting.
+  * `'invalid_value'` - The value assigned is not one of the items in this setting.
   
-  * `'invalid_default_value'` - Option name is invalid (not found in the `options` parameter
+  * `'invalid_default_value'` - Item name is invalid (not found in the `items` parameter
     when instantiating the object).
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
   
-  def __init__(self, name, default_value, options, validate_default_value=True, **kwargs):
+  def __init__(self, name, default_value, items, validate_default_value=True, **kwargs):
     
     """
     Additional parameters:
     
-    * `default_value` - Option name (identifier). Unlike other Setting classes,
+    * `default_value` - Item name (identifier). Unlike other Setting classes,
       where the default value is specified directly, EnumSetting accepts a valid
-      option name instead.
+      item name instead.
     
-    * `options` - A list of either (option name, option display name) tuples
-      or (option name, option display name, option value) tuples.
+    * `items` - A list of either (item name, item display name) tuples
+      or (item name, item display name, item value) tuples.
       
-      For 2-element tuples, option values are assigned automatically, starting
-      with 0. Use 3-element tuples to assign explicit option values. Values must be
+      For 2-element tuples, item values are assigned automatically, starting
+      with 0. Use 3-element tuples to assign explicit item values. Values must be
       unique and specified in each tuple. You cannot combine 2- and 3- element
       tuples - use only 2- or only 3-element tuples.
     """
     
-    self._options, self._options_display_names, self._option_values = self._create_option_attributes(options)
+    self._items, self._items_display_names, self._item_values = self._create_item_attributes(items)
     
     orig_validate_default_value = validate_default_value
     
-    if default_value in self._options:
+    if default_value in self._items:
       # `default_value` is a string, not an integer. In order to properly
       # initialize the setting, the actual default value must be passed.
-      param_default_value = self._options[default_value]
+      param_default_value = self._items[default_value]
     else:
       param_default_value = default_value
     
     super(EnumSetting, self).__init__(name, param_default_value, validate_default_value=False, **kwargs)
     
     self.error_messages['invalid_value'] = _(
-      "Invalid option value; valid values: {0}"
-    ).format(list(self._option_values))
+      "Invalid item value; valid values: {0}"
+    ).format(list(self._item_values))
     
     self.error_messages['invalid_default_value'] = (
       "invalid identifier for the default value; must be one of {0}"
-    ).format(self._options.keys())
+    ).format(self._items.keys())
     
-    if default_value not in self._options:
+    if default_value not in self._items:
       if orig_validate_default_value:
         raise SettingDefaultValueError(self.error_messages['invalid_default_value'])
     
-    self._options_str = self._stringify_options()
+    self._items_str = self._stringify_items()
   
   @property
   def short_description(self):
-    return self.display_name + " " + self._options_str
+    return self.display_name + " " + self._items_str
   
   @property
-  def options(self):
-    return self._options
+  def items(self):
+    return self._items
   
   @property
-  def options_display_names(self):
-    return self._options_display_names
+  def items_display_names(self):
+    return self._items_display_names
   
-  def get_option_display_names_and_values(self):
+  def get_item_display_names_and_values(self):
     """
-    Return a list of (option display name, option value) pairs.
+    Return a list of (item display name, item value) pairs.
     """
     
     display_names_and_values = []
-    for option_name, option_value in zip(self._options_display_names.values(), self._options.values()):
-      display_names_and_values.extend((option_name, option_value))
+    for item_name, item_value in zip(self._items_display_names.values(), self._items.values()):
+      display_names_and_values.extend((item_name, item_value))
     return display_names_and_values
   
   def _validate(self, value):
-    if value not in self._option_values:
+    if value not in self._item_values:
       raise SettingValueError(self._value_to_str(value) + self.error_messages['invalid_value'])
   
-  def _stringify_options(self):
-    options_str = ""
-    options_sep = ", "
+  def _stringify_items(self):
+    items_str = ""
+    items_sep = ", "
     
-    for value, display_name in zip(self._options.values(), self._options_display_names.values()):
-      options_str += '{0} ({1}){2}'.format(display_name, value, options_sep)
-    options_str = options_str[:-len(options_sep)]
+    for value, display_name in zip(self._items.values(), self._items_display_names.values()):
+      items_str += '{0} ({1}){2}'.format(display_name, value, items_sep)
+    items_str = items_str[:-len(items_sep)]
     
-    return "{ " + options_str + " }"
+    return "{ " + items_str + " }"
   
-  def _create_option_attributes(self, input_options):
-    options = OrderedDict()
-    options_display_names = OrderedDict()
-    option_values = set()
+  def _create_item_attributes(self, input_items):
+    items = OrderedDict()
+    items_display_names = OrderedDict()
+    item_values = set()
     
-    if all(len(elem) == 2 for elem in input_options):
-      for i, (option_name, option_display_name) in enumerate(input_options):
-        options[option_name] = i
-        options_display_names[option_name] = option_display_name
-        option_values.add(i)
-    elif all(len(elem) == 3 for elem in input_options):
-      for option_name, option_display_name, option_value in input_options:
-        if option_value in option_values:
-          raise ValueError("Cannot set the same value for multiple options - they must be unique")
+    if all(len(elem) == 2 for elem in input_items):
+      for i, (item_name, item_display_name) in enumerate(input_items):
+        items[item_name] = i
+        items_display_names[item_name] = item_display_name
+        item_values.add(i)
+    elif all(len(elem) == 3 for elem in input_items):
+      for item_name, item_display_name, item_value in input_items:
+        if item_value in item_values:
+          raise ValueError("Cannot set the same value for multiple items - they must be unique")
         
-        options[option_name] = option_value
-        options_display_names[option_name] = option_display_name
-        option_values.add(option_value)
+        items[item_name] = item_value
+        items_display_names[item_name] = item_display_name
+        item_values.add(item_value)
     else:
-      raise ValueError("Wrong number of tuple elements in options - must be only 2- or only 3-element tuples")
+      raise ValueError("Wrong number of tuple elements in items - must be only 2- or only 3-element tuples")
     
-    return options, options_display_names, option_values
+    return items, items_display_names, item_values
 
 
 class ImageSetting(Setting):

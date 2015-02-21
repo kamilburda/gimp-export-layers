@@ -80,10 +80,10 @@ def create_test_settings():
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
-      'options': [('replace', "Replace"),
-                  ('skip', "Skip"),
-                  ('rename_new', "Rename new file"),
-                  ('rename_existing', "Rename existing file")],
+      'items': [('replace', "Replace"),
+                ('skip', "Skip"),
+                ('rename_new', "Rename new file"),
+                ('rename_existing', "Rename existing file")],
     },
   ])
   
@@ -255,14 +255,14 @@ class TestSettingGroup(unittest.TestCase):
     
     self.settings['file_extension'].set_value("gif")
     self.settings['ignore_invisible'].set_value(True)
-    self.settings['overwrite_mode'].set_value(self.settings['overwrite_mode'].options['skip'])
+    self.settings['overwrite_mode'].set_value(self.settings['overwrite_mode'].items['skip'])
     self.settings['special']['first_run'].set_value(True)
     
     self.settings.reset()
     
     # `reset()` ignores 'file_extension' and 'overwrite_mode' 
     self.assertEqual(self.settings['file_extension'].value, "gif")
-    self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].options['skip'])
+    self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].items['skip'])
     self.assertEqual(self.settings['ignore_invisible'].value, self.settings['ignore_invisible'].default_value)
     self.assertEqual(self.settings['special']['first_run'].value, self.settings['special']['first_run'].default_value)
   
@@ -283,7 +283,7 @@ class TestSettingGroup(unittest.TestCase):
     self.settings['ignore_invisible'].set_gui(MockSettingPresenter, ignore_invisible_widget)
     
     file_extension_widget.set_value("gif")
-    overwrite_mode_widget.set_value(self.settings['overwrite_mode'].options['skip'])
+    overwrite_mode_widget.set_value(self.settings['overwrite_mode'].items['skip'])
     ignore_invisible_widget.set_value(True)
     
     self.settings.update_setting_values()
