@@ -58,23 +58,20 @@ class MockStringIO(StringIO):
 
 
 def create_test_settings():
-  file_extension_display_name = "File extension"
+  file_extension_display_name = 
   
   settings = pgsettinggroup.SettingGroup('main', [
     {
       'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
       'default_value': 'bmp',
-      'display_name': file_extension_display_name
+      'display_name': "File extension"
     },
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'ignore_invisible',
       'default_value': False,
-      'display_name': "Ignore invisible",
-      'description': (
-        "If enabled, \"{0}\" is set to \"png\" for some reason. If disabled, \"{0}\" is set to \"jpg\"."
-      ).format(file_extension_display_name)
+      'display_name': "Ignore invisible"
     },
     {
       'type': pgsetting.SettingTypes.enumerated,

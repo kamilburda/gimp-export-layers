@@ -58,23 +58,18 @@ class MockStringIO(StringIO):
 
 
 def create_test_settings():
-  file_extension_display_name = "File extension"
-  
   settings = pgsettinggroup.SettingGroup('main', [
     {
       'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
       'default_value': 'bmp',
-      'display_name': file_extension_display_name
+      'display_name': "File extension"
     },
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'ignore_invisible',
       'default_value': False,
       'display_name': "Ignore invisible",
-      'description': (
-        "If enabled, \"{0}\" is set to \"png\" for some reason. If disabled, \"{0}\" is set to \"jpg\"."
-      ).format(file_extension_display_name)
     },
     {
       'type': pgsetting.SettingTypes.enumerated,
@@ -325,10 +320,10 @@ class TestPdbParamCreator(unittest.TestCase):
     self.assertTrue(len(params), 1 + len(self.settings))
     
     self.assertEqual(params[0], (self.file_ext_setting.pdb_type, self.file_ext_setting.name.encode(),
-                                 self.file_ext_setting.short_description.encode()))
+                                 self.file_ext_setting.description.encode()))
     for param, setting in zip(params[1:], self.settings):
       self.assertEqual(param, (setting.pdb_type, setting.name.encode(),
-                               setting.short_description.encode()))
+                               setting.description.encode()))
   
   def test_create_params_with_unregistrable_setting(self):
     params = pgsettinggroup.PdbParamCreator.create_params(self.unregistrable_setting)

@@ -133,10 +133,7 @@ class Setting(object):
   * `display_name` (read-only) - Setting name in human-readable format. Useful
     e.g. as GUI labels.
   
-  * `description` (read-only) - Describes the setting in more detail. Useful for
-    documentation purposes as well as GUI tooltips.
-  
-  * `short_description` (read-only) - Usually `display_name` plus additional
+  * `description` (read-only) - Usually `display_name` plus additional
     information in parentheses (such as boundaries for numeric values). Useful
     as a setting description when registering the setting as a plug-in parameter
     to the GIMP Procedural Database (PDB).
@@ -176,7 +173,7 @@ class Setting(object):
   _ALLOWED_PDB_TYPES = None
   
   def __init__(self, name, default_value, validate_default_value=True,
-               display_name=None, description=None,
+               display_name=None,
                pdb_type=None, pdb_registration_mode=PdbRegistrationModes.automatic,
                error_messages=None):
     
@@ -204,7 +201,6 @@ class Setting(object):
     self._name = name
     self._default_value = default_value
     self._display_name = self._get_display_name(display_name)
-    self._description = description if description is not None else ""
     self._pdb_type = self._get_pdb_type(pdb_type)
     self._pdb_registration_mode = self._get_pdb_registration_mode(pdb_registration_mode)
     
@@ -249,10 +245,6 @@ class Setting(object):
   
   @property
   def description(self):
-    return self._description
-  
-  @property
-  def short_description(self):
     return self.display_name
   
   @property
@@ -451,7 +443,7 @@ class Setting(object):
   
   def _get_pdb_name(self, name):
     """
-    Return mangled setting name, useful when using the name in the short
+    Return mangled setting name, useful when using the name in the setting
     description (GIMP PDB automatically mangles setting names, but not
     descriptions).
     """
@@ -522,7 +514,7 @@ class NumericSetting(Setting):
     return self._max_value
   
   @property
-  def short_description(self):
+  def description(self):
     if self._min_value is not None and self._max_value is None:
       return self._pdb_name + " >= " + str(self._min_value)
     elif self._min_value is None and self._max_value is not None:
@@ -585,7 +577,7 @@ class BoolSetting(Setting):
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
   
   @property
-  def short_description(self):
+  def description(self):
     return self.display_name + "?"
   
   def set_value(self, value):
@@ -683,7 +675,7 @@ class EnumSetting(Setting):
     self._items_str = self._stringify_items()
   
   @property
-  def short_description(self):
+  def description(self):
     return self.display_name + " " + self._items_str
   
   @property

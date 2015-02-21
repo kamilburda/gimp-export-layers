@@ -417,8 +417,8 @@ class TestEnumSetting(unittest.TestCase):
     with self.assertRaises(KeyError):
       self.setting.items['invalid_item']
   
-  def test_short_description(self):
-    self.assertEqual(self.setting.short_description,
+  def test_description(self):
+    self.assertEqual(self.setting.description,
                      self.setting.display_name + " { Skip (0), Replace (1) }")
   
   def test_get_item_display_names_and_values(self):

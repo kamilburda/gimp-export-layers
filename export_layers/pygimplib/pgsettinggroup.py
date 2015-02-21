@@ -356,4 +356,4 @@ class PdbParamCreator(object):
   
   @classmethod
   def _create_param(cls, setting):
-    return (setting.pdb_type, setting.name.encode(), setting.short_description.encode())
+    return (setting.pdb_type, setting.name.encode(), setting.description.encode())
