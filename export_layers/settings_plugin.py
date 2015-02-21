@@ -61,9 +61,9 @@ def create_settings():
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'run_mode',
       'default_value': 'non_interactive',
-      'options': [('interactive', "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
-                  ('non_interactive', "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
-                  ('run_with_last_vals', "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)],
+      'items': [('interactive', "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
+                ('non_interactive', "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
+                ('run_with_last_vals', "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)],
       'display_name': _("The run mode")
     },
     {
@@ -90,12 +90,12 @@ def create_settings():
   #-----------------------------------------------------------------------------
   
   file_extension_display_name = _("File extension")
-  file_ext_mode_options = OrderedDict(
+  file_ext_mode_items = OrderedDict(
     [('no_special_handling', _("No special handling")),
      ('only_matching_file_extension', _("Export only layers matching file extension")),
      ('use_as_file_extensions', _("Use as file extensions"))]
   )
-  square_bracketed_mode_options = OrderedDict(
+  square_bracketed_mode_items = OrderedDict(
     [('normal', _("Treat as normal layers")),
      ('background', _("Treat as background layers")),
      ('ignore', _("Ignore")),
@@ -164,20 +164,20 @@ def create_settings():
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'file_ext_mode',
       'default_value': 'no_special_handling',
-      'options': file_ext_mode_options.items(),
+      'items': file_ext_mode_items.items(),
       'display_name': _("File extensions in layer names"),
       'description': _(
         'If "{0}" is selected, "{1}" must still be '
         'specified (for layers with invalid or no file extension).'
-      ).format(file_ext_mode_options['use_as_file_extensions'], file_extension_display_name)
+      ).format(file_ext_mode_items['use_as_file_extensions'], file_extension_display_name)
     },
     {
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'strip_mode',
       'default_value': 'identical',
-      'options': [('always', _("Always strip file extension")),
-                  ('identical', _("Strip identical file extension")),
-                  ('never', _("Never strip file extension"))],
+      'items': [('always', _("Always strip file extension")),
+                ('identical', _("Strip identical file extension")),
+                ('never', _("Never strip file extension"))],
       'display_name': _("File extension stripping"),
       'description': _(
         "Determines when to strip file extensions from layer names (including the period)."
@@ -187,7 +187,7 @@ def create_settings():
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'square_bracketed_mode',
       'default_value': 'normal',
-      'options': square_bracketed_mode_options.items(),
+      'items': square_bracketed_mode_items.items(),
       'display_name': _("Layer names in [square brackets]"),
       'description': _(
         '"{0}": these layers will be used as a background for all other layers '
@@ -195,9 +195,9 @@ def create_settings():
         '"{1}": these layers will not be exported (and will not be treated as '
         'background layers).\n'
         '"{2}": all other layers will not be exported.'
-      ).format(square_bracketed_mode_options['background'],
-               square_bracketed_mode_options['ignore'],
-               square_bracketed_mode_options['ignore_other'])
+      ).format(square_bracketed_mode_items['background'],
+               square_bracketed_mode_items['ignore'],
+               square_bracketed_mode_items['ignore_other'])
     },
     {
       'type': pgsetting.SettingTypes.boolean,
@@ -244,11 +244,11 @@ def create_settings():
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
-      'options': [('replace', _("Replace"), exportlayers.OverwriteHandler.REPLACE),
-                  ('skip', _("Skip"), exportlayers.OverwriteHandler.SKIP),
-                  ('rename_new', _("Rename new file"), exportlayers.OverwriteHandler.RENAME_NEW),
-                  ('rename_existing', _("Rename existing file"), exportlayers.OverwriteHandler.RENAME_EXISTING),
-                  ('cancel', _("Cancel"), exportlayers.OverwriteHandler.CANCEL)],
+      'items': [('replace', _("Replace"), exportlayers.OverwriteHandler.REPLACE),
+                ('skip', _("Skip"), exportlayers.OverwriteHandler.SKIP),
+                ('rename_new', _("Rename new file"), exportlayers.OverwriteHandler.RENAME_NEW),
+                ('rename_existing', _("Rename existing file"), exportlayers.OverwriteHandler.RENAME_EXISTING),
+                ('cancel', _("Cancel"), exportlayers.OverwriteHandler.CANCEL)],
       'display_name': _("Overwrite mode (non-interactive run mode only)"),
       'description': _(
         "Indicates how to handle conflicting files. Skipped layers "
@@ -276,15 +276,15 @@ def create_settings():
       merge_layer_groups.set_value(False)
   
   def on_file_ext_mode_changed(file_ext_mode, file_extension, strip_mode):
-    if file_ext_mode.value == file_ext_mode.options['no_special_handling']:
+    if file_ext_mode.value == file_ext_mode.items['no_special_handling']:
       strip_mode.gui.set_enabled(True)
       file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
-    elif file_ext_mode.value == file_ext_mode.options['only_matching_file_extension']:
-      strip_mode.set_value(strip_mode.options['never'])
+    elif file_ext_mode.value == file_ext_mode.items['only_matching_file_extension']:
+      strip_mode.set_value(strip_mode.items['never'])
       strip_mode.gui.set_enabled(False)
       file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
-    elif file_ext_mode.value == file_ext_mode.options['use_as_file_extensions']:
-      strip_mode.set_value(strip_mode.options['never'])
+    elif file_ext_mode.value == file_ext_mode.items['use_as_file_extensions']:
+      strip_mode.set_value(strip_mode.items['never'])
       strip_mode.gui.set_enabled(False)
       file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = (
         file_extension.error_messages['default_needed']
@@ -298,7 +298,7 @@ def create_settings():
       layer_groups_as_folders.gui.set_enabled(True)
   
   def on_autocrop_changed(autocrop, square_bracketed_mode, crop_to_background):
-    if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.options['background']:
+    if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.items['background']:
       crop_to_background.gui.set_enabled(True)
     else:
       crop_to_background.set_value(False)

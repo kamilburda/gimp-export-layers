@@ -263,17 +263,17 @@ class _ExportLayersGui(object):
     self.advanced_settings_file_ext_mode_label = gtk.Label(self.settings['main']['file_ext_mode'].display_name + ":")
     self.advanced_settings_file_ext_mode_label.set_alignment(0, 0.5)
     self.advanced_settings_file_ext_mode = pggui.IntComboBox(
-      self.settings['main']['file_ext_mode'].get_option_display_names_and_values()
+      self.settings['main']['file_ext_mode'].get_item_display_names_and_values()
     )
     self.advanced_settings_strip_mode = pggui.IntComboBox(
-      self.settings['main']['strip_mode'].get_option_display_names_and_values()
+      self.settings['main']['strip_mode'].get_item_display_names_and_values()
     )
     
     self.advanced_settings_square_bracketed_mode_label = gtk.Label(
       self.settings['main']['square_bracketed_mode'].display_name + ":")
     self.advanced_settings_square_bracketed_mode_label.set_alignment(0, 0.5)
     self.advanced_settings_square_bracketed_mode = pggui.IntComboBox(
-      self.settings['main']['square_bracketed_mode'].get_option_display_names_and_values()
+      self.settings['main']['square_bracketed_mode'].get_item_display_names_and_values()
     )
     self.advanced_settings_crop_to_background = gtk.CheckButton(
       self.settings['main']['crop_to_background'].display_name
@@ -468,11 +468,11 @@ class _ExportLayersGui(object):
     pdb.gimp_progress_init("", None)
     
     overwrite_chooser = pggui.GtkDialogOverwriteChooser(
-      # Don't insert the Cancel option as a button.
-      zip(self.settings['main']['overwrite_mode'].options.values()[:-1],
-          self.settings['main']['overwrite_mode'].options_display_names.values()[:-1]),
-      default_value=self.settings['main']['overwrite_mode'].options['replace'],
-      default_response=self.settings['main']['overwrite_mode'].options['cancel'],
+      # Don't insert the Cancel item as a button.
+      zip(self.settings['main']['overwrite_mode'].items.values()[:-1],
+          self.settings['main']['overwrite_mode'].items_display_names.values()[:-1]),
+      default_value=self.settings['main']['overwrite_mode'].items['replace'],
+      default_response=self.settings['main']['overwrite_mode'].items['cancel'],
       title=_(constants.PLUGIN_TITLE))
     progress_updater = pggui.GtkProgressUpdater(self.progress_bar)
     
