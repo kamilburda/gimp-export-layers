@@ -133,7 +133,7 @@ class MockSettingPresenterWithValueChangedSignal(MockSettingPresenter):
 class TestSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.Setting('file_extension', "png")
+    self.setting = MockSetting('file_extension', "png")
   
   def test_invalid_default_value_raises_error(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
@@ -189,7 +189,7 @@ class TestSetting(unittest.TestCase):
       self.setting.remove_value_changed_event()
   
   def test_auto_generated_display_name(self):
-    self.assertEqual(pgsetting.Setting('this_is_a_setting', "png").display_name, "This is a setting")
+    self.assertEqual(MockSetting('this_is_a_setting', "png").display_name, "This is a setting")
   
   def test_custom_error_messages(self):
     setting = MockSetting('setting', "")
@@ -202,17 +202,17 @@ class TestSetting(unittest.TestCase):
                         setting_with_custom_error_messages.error_messages['value_is_none'])
   
   def test_pdb_registration_mode_automatic_is_registrable(self):
-    setting = pgsetting.Setting('file_extension', "png", pdb_type=gimpenums.PDB_STRING)
+    setting = pgsetting.StringSetting('file_extension', "png", pdb_type=gimpenums.PDB_STRING)
     self.assertEqual(setting.pdb_registration_mode, pgsetting.PdbRegistrationModes.registrable)
   
   def test_pdb_registration_mode_automatic_is_not_registrable(self):
-    setting = pgsetting.Setting('file_extension', "png", pdb_type=None)
+    setting = MockSetting('file_extension', "png")
     self.assertEqual(setting.pdb_registration_mode, pgsetting.PdbRegistrationModes.not_registrable)
   
   def test_invalid_pdb_type_and_registration_mode_raises_error(self):
     with self.assertRaises(ValueError):
-      pgsetting.Setting('file_extension', "png", pdb_type=None,
-                        pdb_registration_mode=pgsetting.PdbRegistrationModes.registrable)
+      MockSetting('file_extension', "png", pdb_type=gimpenums.PDB_STRING,
+                  pdb_registration_mode=pgsetting.PdbRegistrationModes.registrable)
   
   def test_reset_resets_setting_to_default_value(self):
     self.setting.set_value("jpg")
@@ -232,7 +232,7 @@ class TestSetting(unittest.TestCase):
 class TestSettingGui(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.Setting('file_extension', "png")
+    self.setting = MockSetting('file_extension', "png")
     self.widget = MockGuiWidget("")
   
   def test_set_gui_updates_gui_value(self):

@@ -97,24 +97,20 @@ class Setting(object):
   """
   This class holds data about a plug-in setting.
   
-  Properties and methods in this class can be used in multiple scenarios, such as:
+  Properties and methods in settings can be used in multiple scenarios, such as:
   * using setting values as variables in the main logic of plug-ins
   * registering GIMP Procedural Database (PDB) parameters to plug-ins
   * managing GUI element properties (values, labels, etc.)
   
-  It is recommended to use an appropriate subclass for a setting, as they offer
-  the following features:
+  This setting class in particular can story any data, but it is not allowed to
+  be registered to PDB. It is strongly recommended to use the appropriate subclass
+  for a particular data type, as the subclasses offer the following features:
   * automatic validation of input values
   * readily available GUI element, keeping the GUI and the setting value in sync
   
-  It is also possible to attach an event handler to the setting when the value
+  Settings can contain an event handler that is triggered when the value
   of the setting changes (e.g. when `set_value()` method is called). This way,
   other settings and their GUI elements can be adjusted automatically.
-  
-  This class in particular:
-  * allows to use any PDB type or no type
-  * does not validate input values
-  * does not have a GUI element assigned
   
   Attributes:
   
@@ -138,11 +134,10 @@ class Setting(object):
     as a setting description when registering the setting as a plug-in parameter
     to the GIMP Procedural Database (PDB).
   
-  * `pdb_type` (read-only) - GIMP PDB type, used when
-    registering the setting as a plug-in parameter to the PDB. In the Setting
-    class, any PDB type can be assigned. In Setting subclasses, only
-    specific PDB types are allowed. Refer to the documentation of the subclasses
-    for the list of allowed PDB types.
+  * `pdb_type` (read-only) - GIMP PDB type, used when registering the setting as
+    a plug-in parameter to the PDB. In Setting subclasses, only specific PDB
+    types are allowed. Refer to the documentation of the subclasses for the list
+    of allowed PDB types.
   
   * `pdb_registration_mode` (read-only) - Indicates how to register the setting
     as a PDB parameter. Possible values:
@@ -170,7 +165,7 @@ class Setting(object):
     assigned is invalid.
   """
   
-  _ALLOWED_PDB_TYPES = None
+  _ALLOWED_PDB_TYPES = []
   
   def __init__(self, name, default_value, validate_default_value=True,
                display_name=None,
@@ -403,20 +398,14 @@ class Setting(object):
     return self.name.replace('_', ' ').capitalize()
   
   def _get_pdb_type(self, pdb_type):
-    if not self._is_any_pdb_type_allowed():
-      if pdb_type is None:
-        return self._get_default_pdb_type()
-      elif pdb_type in self._ALLOWED_PDB_TYPES:
-        return pdb_type
-      else:
-        raise ValueError("GIMP PDB type " + str(pdb_type) + " not allowed; "
-                         "for the list of allowed PDB types, refer to "
-                         "the documentation of the appropriate Setting class")
-    else:
+    if pdb_type is None:
+      return self._get_default_pdb_type()
+    elif pdb_type in self._ALLOWED_PDB_TYPES:
       return pdb_type
-  
-  def _is_any_pdb_type_allowed(self):
-    return self._ALLOWED_PDB_TYPES is None
+    else:
+      raise ValueError("GIMP PDB type " + str(pdb_type) + " not allowed; "
+                       "for the list of allowed PDB types, refer to "
+                       "the documentation of the appropriate Setting class")
   
   def _get_default_pdb_type(self):
     if self._ALLOWED_PDB_TYPES:
