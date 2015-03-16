@@ -141,11 +141,11 @@ class ExportDialog(object):
 #===============================================================================
 
 
-def update_setting_values(func):
+def _apply_gui_values_to_settings(func):
   """
-  This is a decorator for `SettingGroup.update_setting_values()` that prevents
-  the decorated function from being executed if there are invalid setting
-  values. For the invalid values, an error message is displayed.
+  This is a decorator for `SettingGroup.apply_gui_values_to_settings()` that
+  prevents the decorated function from being executed if there are invalid
+  setting values. For the invalid values, an error message is displayed.
   
   This decorator is meant to be used in the `_ExportLayersGui` class.
   """
@@ -153,8 +153,8 @@ def update_setting_values(func):
   @functools.wraps(func)
   def func_wrapper(self, *args, **kwargs):
     try:
-      self.settings['main'].update_setting_values()
-      self.settings['gui'].update_setting_values()
+      self.settings['main'].apply_gui_values_to_settings()
+      self.settings['gui'].apply_gui_values_to_settings()
     except pgsetting.SettingValueError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       return
@@ -454,7 +454,7 @@ class _ExportLayersGui(object):
     
     pgsettingpersistor.SettingPersistor.save([self.settings['gui_session']], [self.gimpshelf_stream])
   
-  @update_setting_values
+  @_apply_gui_values_to_settings
   def on_save_settings(self, widget):
     self.save_settings()
     self.display_message_label(_("Settings successfully saved."), message_type=self.INFO)
@@ -464,7 +464,7 @@ class _ExportLayersGui(object):
     self.save_settings()
     self.display_message_label(_("Settings reset."), message_type=self.INFO)
   
-  @update_setting_values
+  @_apply_gui_values_to_settings
   def on_export_click(self, widget):
     self.setup_gui_before_export()
     pdb.gimp_progress_init("", None)

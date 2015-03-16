@@ -204,7 +204,7 @@ class SettingGroup(object):
     excluded from the iteration.
     
     When the tags match the method names in this class that operate on all
-    settings, such as `reset()` or `update_setting_values()`, the methods ignore
+    settings, such as `reset()` or `apply_gui_values_to_settings()`, the methods ignore
     those settings.
     
     Parameters:
@@ -224,10 +224,10 @@ class SettingGroup(object):
     for setting in self.iterate_all(ignore_tags=['reset']):
       setting.reset()
   
-  def update_setting_values(self):
+  def apply_gui_values_to_settings(self):
     """
-    Manually assign the GUI element values, entered by the user, to settings.
-    Ignore settings with the 'update_setting_values' ignore tag.
+    Apply GUI element values, entered by the user, to settings.
+    Ignore settings with the 'apply_gui_values_to_settings' ignore tag.
     
     This method will not have any effect on settings with automatic
     GUI-to-setting value updating.
@@ -240,7 +240,7 @@ class SettingGroup(object):
     
     exception_message = ""
     
-    for setting in self.iterate_all(ignore_tags=['update_setting_values']):
+    for setting in self.iterate_all(ignore_tags=['apply_gui_values_to_settings']):
       try:
         setting.gui.update_setting_value()
       except pgsetting.SettingValueError as e:

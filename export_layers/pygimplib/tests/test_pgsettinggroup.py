@@ -271,7 +271,7 @@ class TestSettingGroup(unittest.TestCase):
     self.assertNotEqual(self.settings['special']['first_plugin_run'].value,
                         self.settings['special']['first_plugin_run'].default_value)
   
-  def test_update_setting_values_ignores_specified_settings(self):
+  def test_apply_gui_values_to_settings_ignores_specified_settings(self):
     file_extension_widget = MockGuiWidget(None)
     overwrite_mode_widget = MockGuiWidget(None)
     ignore_invisible_widget = MockGuiWidget(None)
@@ -283,7 +283,7 @@ class TestSettingGroup(unittest.TestCase):
     overwrite_mode_widget.set_value(self.settings['overwrite_mode'].items['skip'])
     ignore_invisible_widget.set_value(True)
     
-    self.settings.update_setting_values()
+    self.settings.apply_gui_values_to_settings()
     
     self.assertEqual(self.settings['file_extension'].value, "gif")
     self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].default_value)
