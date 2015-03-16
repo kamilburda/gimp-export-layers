@@ -84,8 +84,41 @@ def create_test_settings():
   
   settings.set_ignore_tags({
     'file_extension': ['reset'],
-    'overwrite_mode': ['reset', 'update_setting_values'],
+    'overwrite_mode': ['reset', 'apply_gui_values_to_settings'],
   })
+  
+  return settings
+
+
+def create_test_settings_hierarchical():
+  main_settings = pgsettinggroup.SettingGroup('main', [
+    {
+      'type': pgsetting.SettingTypes.file_extension,
+      'name': 'file_extension',
+      'default_value': 'bmp',
+      'display_name': "File extension"
+    },
+  ])
+  
+  advanced_settings = pgsettinggroup.SettingGroup('advanced', [
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'ignore_invisible',
+      'default_value': False,
+      'display_name': "Ignore invisible",
+    },
+    {
+      'type': pgsetting.SettingTypes.enumerated,
+      'name': 'overwrite_mode',
+      'default_value': 'rename_new',
+      'items': [('replace', "Replace"),
+                ('skip', "Skip"),
+                ('rename_new', "Rename new file"),
+                ('rename_existing', "Rename existing file")],
+    },
+  ])
+  
+  settings = pgsettinggroup.SettingGroup('settings', [main_settings, advanced_settings])
   
   return settings
 
@@ -244,6 +277,43 @@ class TestSettingGroup(unittest.TestCase):
     self.settings.remove(['file_extension'])
     with self.assertRaises(KeyError):
       self.settings.remove(['file_extension'])
+  
+  def test_iterate_all_no_ignore_tags(self):
+    settings = create_test_settings_hierarchical()
+    iterated_settings = list(settings.iterate_all())
+    
+    self.assertIn(settings['main']['file_extension'], iterated_settings)
+    self.assertIn(settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertIn(settings['advanced']['overwrite_mode'], iterated_settings)
+  
+  def test_iterate_all_with_ignore_tag_for_settings(self):
+    settings = create_test_settings_hierarchical()
+    
+    settings['main'].set_ignore_tags({
+      'file_extension': ['reset']
+    })
+    settings['advanced'].set_ignore_tags({
+      'overwrite_mode': ['reset', 'apply_gui_values_to_settings']
+    })
+    
+    iterated_settings = list(settings.iterate_all(['reset']))
+    
+    self.assertNotIn(settings['main']['file_extension'], iterated_settings)
+    self.assertIn(settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertNotIn(settings['advanced']['overwrite_mode'], iterated_settings)
+  
+  def test_iterate_all_with_ignore_tag_for_groups(self):
+    settings = create_test_settings_hierarchical()
+    
+    settings.set_ignore_tags({
+      'advanced': ['apply_gui_values_to_settings']
+    })
+    
+    iterated_settings = list(settings.iterate_all(['apply_gui_values_to_settings']))
+    
+    self.assertIn(settings['main']['file_extension'], iterated_settings)
+    self.assertNotIn(settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertNotIn(settings['advanced']['overwrite_mode'], iterated_settings)
   
   def test_reset_settings_resets_nested_groups_and_ignores_specified_settings(self):
     self.settings.add([self.special_settings])

@@ -132,17 +132,16 @@ class SettingGroup(object):
   
   def iterate_all(self, ignore_tags=None):
     """
-    Iterate over all settings in the group, including the settings in nested
-    groups.
+    Iterate over all settings in the group, including settings in nested groups.
     
     `ignore_tags` is a list of strings indicating that settings having one of
     these tags attached are ignored. Ignore tags are attached to the settings by
     calling the `set_ignore_tags()` method.
     """
     
-    def _should_ignore_func(setting_or_group, ignore_tags):
-      return (setting_or_group.name in self._ignored_settings_and_tags and
-              any(tag in self._ignored_settings_and_tags[setting_or_group.name] for tag in ignore_tags))
+    def _should_ignore_func(setting_or_group, ignored_settings_and_tags, ignore_tags):
+      return (setting_or_group.name in ignored_settings_and_tags and
+              any(tag in ignored_settings_and_tags[setting_or_group.name] for tag in ignore_tags))
     
     def _never_ignore(*args):
       return False
@@ -153,22 +152,26 @@ class SettingGroup(object):
       _should_ignore = _never_ignore
     
     groups = [self]
+    ignored_settings_and_tags = self._ignored_settings_and_tags
     
     while groups:
       try:
         setting_or_group = groups[0]._next()
+        ignored_settings_and_tags = groups[0]._ignored_settings_and_tags
       except StopIteration:
         groups.pop(0)
         continue
       
       if isinstance(setting_or_group, SettingGroup):
-        if not _should_ignore(setting_or_group, ignore_tags):
-          groups.insert(0, setting_or_group)
+        setting_group = setting_or_group
+        if not _should_ignore(setting_group, ignored_settings_and_tags, ignore_tags):
+          groups.insert(0, setting_group)
         else:
           continue
       else:
-        if not _should_ignore(setting_or_group, ignore_tags):
-          yield setting_or_group
+        setting = setting_or_group
+        if not _should_ignore(setting, ignored_settings_and_tags, ignore_tags):
+          yield setting
         else:
           continue
   
