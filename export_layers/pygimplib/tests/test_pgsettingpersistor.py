@@ -58,8 +58,6 @@ class MockStringIO(StringIO):
 
 
 def create_test_settings():
-  file_extension_display_name = 
-  
   settings = pgsettinggroup.SettingGroup('main', [
     {
       'type': pgsetting.SettingTypes.file_extension,

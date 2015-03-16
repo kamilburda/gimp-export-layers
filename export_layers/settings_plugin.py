@@ -34,8 +34,6 @@ str = unicode
 
 #===============================================================================
 
-from collections import OrderedDict
-
 import gimp
 import gimpenums
 

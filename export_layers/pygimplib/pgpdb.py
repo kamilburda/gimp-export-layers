@@ -152,7 +152,7 @@ def duplicate(image, remove_items=False):
   """
   Duplicate the specified image.
   
-  If `remove_items` is true, remove all items (layers, channels, paths)
+  If `remove_items` is True, remove all items (layers, channels, paths)
   from the duplicated image.
   """
   
