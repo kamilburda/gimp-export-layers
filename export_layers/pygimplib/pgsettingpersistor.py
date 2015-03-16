@@ -415,7 +415,9 @@ class SettingPersistor(object):
     settings = []
     for setting_or_group in settings_or_groups:
       if isinstance(setting_or_group, pgsetting.Setting):
-        settings.append(setting_or_group)
+        setting = setting_or_group
+        settings.append(setting)
       else:
-        settings.extend(setting_or_group)
+        group = setting_or_group
+        settings.extend(list(group.iterate_all()))
     return settings

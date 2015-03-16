@@ -90,6 +90,39 @@ def create_test_settings():
   return settings
 
 
+def create_test_settings_hierarchical():
+  main_settings = pgsettinggroup.SettingGroup('main', [
+    {
+      'type': pgsetting.SettingTypes.file_extension,
+      'name': 'file_extension',
+      'default_value': 'bmp',
+      'display_name': "File extension"
+    },
+  ])
+  
+  advanced_settings = pgsettinggroup.SettingGroup('advanced', [
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'ignore_invisible',
+      'default_value': False,
+      'display_name': "Ignore invisible",
+    },
+    {
+      'type': pgsetting.SettingTypes.enumerated,
+      'name': 'overwrite_mode',
+      'default_value': 'rename_new',
+      'items': [('replace', "Replace"),
+                ('skip', "Skip"),
+                ('rename_new', "Rename new file"),
+                ('rename_existing', "Rename existing file")],
+    },
+  ])
+  
+  settings = pgsettinggroup.SettingGroup('settings', [main_settings, advanced_settings])
+  
+  return settings
+
+
 #===============================================================================
 
 
@@ -242,12 +275,28 @@ class TestSettingPersistor(unittest.TestCase):
         self.assertEqual(setting.value, setting.default_value)
   
   @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  def test_load_setting_groups(self, mock_file):
+    settings = create_test_settings_hierarchical()
+    
+    settings['main']['file_extension'].set_value("png")
+    settings['advanced']['ignore_invisible'].set_value(True)
+    self.shelf_stream.write(list(settings.iterate_all()))
+    settings['main']['file_extension'].set_value("gif")
+    settings['advanced']['ignore_invisible'].set_value(False)
+    
+    pgsettingpersistor.SettingPersistor.load([settings], [self.shelf_stream])
+    
+    self.assertEqual(settings['main']['file_extension'].value, "png")
+    self.assertEqual(settings['advanced']['ignore_invisible'].value, True)
+  
+  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_settings_file_not_found(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     mock_file.side_effect = IOError("File not found")
     mock_file.side_effect.errno = errno.ENOENT
     
-    status, unused_ = pgsettingpersistor.SettingPersistor.load([self.settings], [self.shelf_stream, self.json_stream])
+    status, unused_ = pgsettingpersistor.SettingPersistor.load(
+      [self.settings], [self.shelf_stream, self.json_stream])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
     
   @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
