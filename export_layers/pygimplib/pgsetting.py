@@ -102,7 +102,7 @@ class Setting(object):
   * registering GIMP Procedural Database (PDB) parameters to plug-ins
   * managing GUI element properties (values, labels, etc.)
   
-  This setting class in particular can story any data, but it is not allowed to
+  This setting class in particular can store any data, but it is not allowed to
   be registered to PDB. It is strongly recommended to use the appropriate subclass
   for a particular data type, as the subclasses offer the following features:
   * automatic validation of input values
@@ -166,6 +166,7 @@ class Setting(object):
   """
   
   _ALLOWED_PDB_TYPES = []
+  _ALLOWED_EMPTY_VALUES = []
   
   def __init__(self, name, default_value, validate_default_value=True,
                display_name=None,
@@ -533,6 +534,7 @@ class IntSetting(NumericSetting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  _ALLOWED_EMPTY_VALUES = []
 
 
 class FloatSetting(NumericSetting):
@@ -546,6 +548,7 @@ class FloatSetting(NumericSetting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_FLOAT]
+  _ALLOWED_EMPTY_VALUES = []
     
 
 class BoolSetting(Setting):
@@ -564,6 +567,7 @@ class BoolSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  _ALLOWED_EMPTY_VALUES = []
   
   @property
   def description(self):
@@ -617,6 +621,7 @@ class EnumSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  _ALLOWED_EMPTY_VALUES = []
   
   def __init__(self, name, default_value, items, validate_default_value=True, **kwargs):
     
@@ -738,7 +743,8 @@ class ImageSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_IMAGE]
-    
+  _ALLOWED_EMPTY_VALUES = [None]
+  
   def _init_error_messages(self):
     self.error_messages['invalid_value'] = _("Invalid image.")
   
@@ -763,6 +769,7 @@ class DrawableSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_DRAWABLE]
+  _ALLOWED_EMPTY_VALUES = [None]
     
   def _init_error_messages(self):
     self.error_messages['invalid_value'] = _("Invalid drawable.")
@@ -783,6 +790,7 @@ class StringSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_STRING]
+  _ALLOWED_EMPTY_VALUES = []
 
 
 class ValidatableStringSetting(StringSetting):
@@ -854,6 +862,8 @@ class FileExtensionSetting(ValidatableStringSetting):
   * PDB_STRING
   """
   
+  _ALLOWED_EMPTY_VALUES = [""]
+  
   def __init__(self, name, default_value, **kwargs):
     super(FileExtensionSetting, self).__init__(name, default_value, pgpath.FileExtensionValidator, **kwargs)
   
@@ -870,6 +880,8 @@ class DirectorySetting(ValidatableStringSetting):
   
   * PDB_STRING
   """
+  
+  _ALLOWED_EMPTY_VALUES = [None, ""]
   
   def __init__(self, name, default_value, **kwargs):
     super(DirectorySetting, self).__init__(name, default_value, pgpath.FilePathValidator, **kwargs)
@@ -905,6 +917,8 @@ class ImageIDsAndDirectoriesSetting(Setting):
   
   This setting cannot be registered to the PDB as no corresponding PDB type exists.
   """
+  
+  _ALLOWED_EMPTY_VALUES = []
   
   @property
   def value(self):
