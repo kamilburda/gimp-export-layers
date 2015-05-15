@@ -45,8 +45,9 @@ To export layers, press the "Export Layers" button. For the first layer, a dialo
 
 If you want to export the layers with the last values used, you can use the "File -> Export Layers to" menu entry. The file format dialog will not be displayed - instead, the last used values will be used.
 
-<h5><strong>Example</strong></h5>
-<img src="https://lh6.googleusercontent.com/-FrHEw4t32sQ/VJYHtSlagiI/AAAAAAAAAlE/gfe9ri-zo9w/s600/export_layers_screenshot_2_2_2.png" />
+<h5><strong>Examples</strong></h5>
+<img src="https://lh3.googleusercontent.com/-vHYRL9ftpAw/VVZkPgY-UZI/AAAAAAAAA-I/qvJ_UHwI-iY/s0/export_layers_screenshot.png" width="100%" height="100%" />
+<img src="https://lh3.googleusercontent.com/--yCxoygaToA/VVZjgHwCK4I/AAAAAAAAA9s/EUK7Zy9CUUQ/s0/export_layers_screenshot_2.png" width="100%" height="100%" />
 
 <h5><strong>Changelog</strong></h5>
 2.2.2 (December 20, 2014)
