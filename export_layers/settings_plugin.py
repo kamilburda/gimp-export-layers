@@ -132,7 +132,7 @@ def create_settings():
     {
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'strip_mode',
-      'default_value': 'identical',
+      'default_value': 'always',
       'items': [('always', _("Always strip file extension")),
                 ('identical', _("Strip identical file extension")),
                 ('never', _("Never strip file extension"))],
