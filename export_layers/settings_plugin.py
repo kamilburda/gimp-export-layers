@@ -68,7 +68,6 @@ def create_settings():
       'type': pgsetting.SettingTypes.image,
       'name': 'image',
       'default_value': None,
-      'validate_default_value': False,
       'display_name': _("Image")
     },
     {
