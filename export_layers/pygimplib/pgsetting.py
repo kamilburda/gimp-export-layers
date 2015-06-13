@@ -35,8 +35,10 @@ str = unicode
 
 #===============================================================================
 
+
 import os
 import abc
+import inspect
 from collections import OrderedDict
 
 import gimp
@@ -200,6 +202,7 @@ class Setting(object):
     
     self._value = self._default_value
     self._pdb_name = self._get_pdb_name(self._name)
+    self._allowed_empty_values = list(self._ALLOWED_EMPTY_VALUES)
     
     self._value_changed_event_handler = None
     self._value_changed_event_handler_args = []
@@ -363,11 +366,21 @@ class Setting(object):
     self._value_changed_event_handler = None
     self._value_changed_event_handler_args = []
   
+  def is_value_empty(self):
+    """
+    Return True if the setting value is one of the empty values defined for the
+    setting class, otherwise return False.
+    """
+    return self._is_value_empty(self._value)
+  
+  def _is_value_empty(self, value):
+    return value in self._allowed_empty_values
+  
   def _assign_and_validate_value(self, value):
     if not self._allow_empty_values:
       self._validate(value)
     else:
-      if value not in self._ALLOWED_EMPTY_VALUES:
+      if not self._is_value_empty(value):
         self._validate(value)
     
     self._value = value
@@ -386,7 +399,7 @@ class Setting(object):
     pass
   
   def _should_validate_default_value(self):
-    return self._default_value not in self._ALLOWED_EMPTY_VALUES
+    return not self._is_value_empty(self._default_value)
   
   def _validate_default_value(self):
     """
@@ -554,7 +567,6 @@ class IntSetting(NumericSetting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-  _ALLOWED_EMPTY_VALUES = []
 
 
 class FloatSetting(NumericSetting):
@@ -568,7 +580,6 @@ class FloatSetting(NumericSetting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_FLOAT]
-  _ALLOWED_EMPTY_VALUES = []
     
 
 class BoolSetting(Setting):
@@ -587,7 +598,6 @@ class BoolSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-  _ALLOWED_EMPTY_VALUES = []
   
   @property
   def description(self):
@@ -618,6 +628,8 @@ class EnumSetting(Setting):
   * `items_display_names` (read-only) - A dict of <item name, item display name> pairs.
     Item display names can be used e.g. as combo box items in the GUI.
   
+  * `empty_value` (read-only) - Item name designated as the empty value.
+  
   To access an item value:
     setting.items[item name]
   
@@ -641,7 +653,6 @@ class EnumSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-  _ALLOWED_EMPTY_VALUES = []
   
   def __init__(self, name, default_value, items, empty_value=None, **kwargs):
     
@@ -686,6 +697,8 @@ class EnumSetting(Setting):
     super(EnumSetting, self).__init__(name, param_default_value,
                                       error_messages=error_messages, **kwargs)
     
+    self._allowed_empty_values.append(self._empty_value)
+    
     self._items_str = self._stringify_items()
   
   @property
@@ -715,7 +728,7 @@ class EnumSetting(Setting):
     return display_names_and_values
   
   def _validate(self, value):
-    if value not in self._item_values:
+    if value not in self._item_values or (not self._allow_empty_values and self._is_value_empty(value)):
       raise SettingValueError(self._value_to_str(value) + self.error_messages['invalid_value'])
   
   def _stringify_items(self):
@@ -751,10 +764,10 @@ class EnumSetting(Setting):
     
     return items, items_display_names, item_values
   
-  def _get_empty_value(self, empty_value):
-    if empty_value is not None:
-      if empty_value in self._items:
-        return self._items[empty_value]
+  def _get_empty_value(self, empty_value_name):
+    if empty_value_name is not None:
+      if empty_value_name in self._items:
+        return self._items[empty_value_name]
       else:
         raise ValueError(
           "invalid identifier for the empty value; must be one of {0}".format(self._items.keys())
@@ -771,6 +784,10 @@ class ImageSetting(Setting):
   Allowed GIMP PDB types:
   
   * PDB_IMAGE
+  
+  Allowed empty values:
+  
+  * None
   
   Error messages:
   
@@ -797,6 +814,10 @@ class DrawableSetting(Setting):
   Allowed GIMP PDB types:
   
   * PDB_DRAWABLE
+  
+  Allowed empty values:
+  
+  * None
   
   Error messages:
   
@@ -825,7 +846,6 @@ class StringSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_STRING]
-  _ALLOWED_EMPTY_VALUES = []
 
 
 class ValidatableStringSetting(StringSetting):
@@ -895,6 +915,10 @@ class FileExtensionSetting(ValidatableStringSetting):
   Allowed GIMP PDB types:
   
   * PDB_STRING
+  
+  Allowed empty values:
+  
+  * ""
   """
   
   _ALLOWED_EMPTY_VALUES = [""]
@@ -914,6 +938,11 @@ class DirectorySetting(ValidatableStringSetting):
   Allowed GIMP PDB types:
   
   * PDB_STRING
+  
+  Allowed empty values:
+  
+  * None
+  * ""
   """
   
   _ALLOWED_EMPTY_VALUES = [None, ""]
@@ -952,8 +981,6 @@ class ImageIDsAndDirectoriesSetting(Setting):
   
   This setting cannot be registered to the PDB as no corresponding PDB type exists.
   """
-  
-  _ALLOWED_EMPTY_VALUES = []
   
   @property
   def value(self):

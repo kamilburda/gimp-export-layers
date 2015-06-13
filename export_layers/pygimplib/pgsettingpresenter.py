@@ -163,7 +163,9 @@ class SettingPresenter(object):
     value automatically.
     """
     
-    if self._VALUE_CHANGED_SIGNAL is None:
+    # The `is_value_empty` check makes sure that settings with empty values
+    # which are not allowed will be properly invalidated.
+    if self._VALUE_CHANGED_SIGNAL is None or self._setting.is_value_empty():
       self._update_setting_value()
   
   @abc.abstractmethod
@@ -178,6 +180,10 @@ class SettingPresenter(object):
   def _set_value(self, value):
     """
     Set the value of the GUI element.
+    
+    If the value passed is one of the empty values allowed for the corresponding
+    setting and the GUI element cannot handle the value, this method must wrap
+    the empty value into a safe value (that the GUI element can handle).
     """
     
     pass

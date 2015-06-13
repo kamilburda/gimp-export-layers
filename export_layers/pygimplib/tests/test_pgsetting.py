@@ -295,7 +295,18 @@ class TestSettingGui(unittest.TestCase):
     self.setting.set_value("jpg")
     self.setting.reset()
     self.assertEqual(self.widget.value, "png")
-
+  
+  def test_update_setting_value_manually_for_automatically_updated_settings_when_reset_to_disallowed_empty_value(self):
+    setting = MockSetting("file_extension", "")
+    setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
+    setting.set_value("jpg")
+    setting.reset()
+    
+    with self.assertRaises(pgsetting.SettingValueError):
+      # Raise error because setting is reset to an empty value, while empty
+      # values are disallowed (`allow_empty_values` is False).
+      setting.gui.update_setting_value()
+    
 
 #-------------------------------------------------------------------------------
 
@@ -453,6 +464,28 @@ class TestEnumSetting(unittest.TestCase):
   
   def test_get_item_display_names_and_values(self):
     self.assertEqual(self.setting.get_item_display_names_and_values(), ["Skip", 0, "Replace", 1])
+  
+  def test_is_value_empty(self):
+    setting = pgsetting.EnumSetting(
+      'overwrite_mode', 'replace',
+      [('choose', "-Choose Your Mode-"), ('skip', "Skip"), ('replace', "Replace")],
+      empty_value='choose',
+      allow_empty_values=True,
+      display_name="Overwrite mode (non-interactive only)")
+    
+    self.assertEqual(setting.is_value_empty(), False)
+    setting.set_value(setting.items['choose'])
+    self.assertEqual(setting.is_value_empty(), True)
+    
+  def test_set_empty_value_not_allowed(self):
+    setting = pgsetting.EnumSetting(
+      'overwrite_mode', 'replace',
+      [('choose', "-Choose Your Mode-"), ('skip', "Skip"), ('replace', "Replace")],
+      empty_value='choose',
+      display_name="Overwrite mode (non-interactive only)")
+    
+    with self.assertRaises(pgsetting.SettingValueError):
+      setting.set_value(setting.items['choose'])
 
 
 class TestImageSetting(unittest.TestCase):
