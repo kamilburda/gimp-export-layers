@@ -130,7 +130,7 @@ class TestShelfSettingStream(unittest.TestCase):
   
   @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def setUp(self):
-    self.prefix = 'prefix'
+    self.prefix = 'test_settings_'
     self.stream = pgsettingpersistor.GimpShelfSettingStream(self.prefix)
     self.settings = create_test_settings()
   
@@ -157,11 +157,14 @@ class TestShelfSettingStream(unittest.TestCase):
       self.stream.read(self.settings)
   
   @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
-  def test_read_invalid_setting_value(self):
-    setting_with_invalid_value = pgsetting.IntSetting('int', -1, min_value=0, validate_default_value=False)
+  def test_read_invalid_setting_value_set_to_default_value(self):
+    setting_with_invalid_value = pgsetting.IntSetting('int', -1)
     self.stream.write([setting_with_invalid_value])
-    self.stream.read([setting_with_invalid_value])
-    self.assertEqual(setting_with_invalid_value.value, setting_with_invalid_value.default_value)
+    
+    setting = pgsetting.IntSetting('int', 2, min_value=0)
+    self.stream.read([setting])
+    
+    self.assertEqual(setting.value, setting.default_value)
 
 
 @mock.patch('__builtin__.open')
@@ -205,12 +208,15 @@ class TestJSONFileSettingStream(unittest.TestCase):
     with self.assertRaises(pgsettingpersistor.SettingStreamInvalidFormatError):
       self.stream.read(self.settings)
 
-  def test_read_invalid_setting_value(self, mock_file):
+  def test_read_invalid_setting_value_set_to_default_value(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
-    setting_with_invalid_value = pgsetting.IntSetting('int', -1, min_value=0, validate_default_value=False)
+    setting_with_invalid_value = pgsetting.IntSetting('int', -1)
     self.stream.write([setting_with_invalid_value])
-    self.stream.read([setting_with_invalid_value])
+    
+    setting = pgsetting.IntSetting('int', 2, min_value=0)
+    self.stream.read([setting])
+    
     self.assertEqual(setting_with_invalid_value.value, setting_with_invalid_value.default_value)
   
   def test_read_settings_not_found(self, mock_file):

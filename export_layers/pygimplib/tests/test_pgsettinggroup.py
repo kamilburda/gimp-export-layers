@@ -244,8 +244,7 @@ class TestSettingGroup(unittest.TestCase):
         {
          'type': pgsetting.SettingTypes.boolean,
          'name': 'file_extension',
-         'default_value': "",
-         'validate_default_value': False
+         'default_value': ""
         }
       ])
     

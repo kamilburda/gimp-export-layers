@@ -78,15 +78,7 @@ class SettingDefaultValueError(SettingValueError):
   `Setting` object initialization is invalid.
   """
   
-  def __init__(self, message):
-    self._message_invalid_default_value = _(
-      "If you need to turn off validation of the default value, "
-      "pass `validate_default_value=False` when creating a Setting object."
-    )
-    self.message = '\n'.join((message,self._message_invalid_default_value))
-    
-  def __str__(self):
-    return self.message
+  pass
 
 
 #===============================================================================
@@ -168,9 +160,11 @@ class Setting(object):
   _ALLOWED_PDB_TYPES = []
   _ALLOWED_EMPTY_VALUES = []
   
-  def __init__(self, name, default_value, validate_default_value=True,
+  def __init__(self, name, default_value,
+               allow_empty_values=False,
                display_name=None,
-               pdb_type=None, pdb_registration_mode=PdbRegistrationModes.automatic,
+               pdb_type=None,
+               pdb_registration_mode=PdbRegistrationModes.automatic,
                error_messages=None):
     
     """
@@ -179,11 +173,14 @@ class Setting(object):
     
     Parameters:
     
-    * `validate_default_value` - If True, check whether the default value of the
-       setting is valid. If it is invalid, raise `SettingDefaultValueError`. If
-       you need to skip the validation, e.g. because you need to specify an
-       "empty" value as the default value (e.g. an empty string for
-       FileExtensionSetting), set this to False.
+    * `default_value` - During Setting initialization, the default value is
+      validated. If one of the so called "empty values" (specific to each
+      setting class) is passed as the default value, default value validation is
+      not performed.
+    
+    * `allow_empty_values` - If False and an empty value is passed to the
+      `set_value` method, then the value is considered invalid. Otherwise, the
+      value is considered valid.
     
     * `pdb_type` - If None and this is a Setting subclass, assign the default
       PDB type from the list of allowed PDB types. If None and this is the
@@ -196,6 +193,7 @@ class Setting(object):
     
     self._name = name
     self._default_value = default_value
+    self._allow_empty_values = allow_empty_values
     self._display_name = self._get_display_name(display_name)
     self._pdb_type = self._get_pdb_type(pdb_type)
     self._pdb_registration_mode = self._get_pdb_registration_mode(pdb_registration_mode)
@@ -216,8 +214,9 @@ class Setting(object):
     if error_messages is not None:
       self._error_messages.update(error_messages)
     
-    if validate_default_value:
+    if self._should_validate_default_value():
       self._validate_default_value()
+    
   
   @property
   def name(self):
@@ -352,7 +351,12 @@ class Setting(object):
     self._value_changed_event_handler_args = []
   
   def _assign_and_validate_value(self, value):
-    self._validate(value)
+    if not self._allow_empty_values:
+      self._validate(value)
+    else:
+      if value not in self._ALLOWED_EMPTY_VALUES:
+        self._validate(value)
+    
     self._value = value
   
   def _apply_gui_value_to_setting(self, value):
@@ -367,6 +371,9 @@ class Setting(object):
     """
     
     pass
+  
+  def _should_validate_default_value(self):
+    return self._default_value not in self._ALLOWED_EMPTY_VALUES
   
   def _validate_default_value(self):
     """
@@ -623,7 +630,7 @@ class EnumSetting(Setting):
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
   _ALLOWED_EMPTY_VALUES = []
   
-  def __init__(self, name, default_value, items, validate_default_value=True, **kwargs):
+  def __init__(self, name, default_value, items, empty_value=None, **kwargs):
     
     """
     Additional parameters:
@@ -643,28 +650,28 @@ class EnumSetting(Setting):
     
     self._items, self._items_display_names, self._item_values = self._create_item_attributes(items)
     
-    orig_validate_default_value = validate_default_value
+    error_messages = {}
     
-    if default_value in self._items:
-      # `default_value` is a string, not an integer. In order to properly
-      # initialize the setting, the actual default value must be passed.
-      param_default_value = self._items[default_value]
-    else:
-      param_default_value = default_value
-    
-    super(EnumSetting, self).__init__(name, param_default_value, validate_default_value=False, **kwargs)
-    
-    self.error_messages['invalid_value'] = _(
+    error_messages['invalid_value'] = _(
       "Invalid item value; valid values: {0}"
     ).format(list(self._item_values))
     
-    self.error_messages['invalid_default_value'] = (
+    error_messages['invalid_default_value'] = (
       "invalid identifier for the default value; must be one of {0}"
     ).format(self._items.keys())
     
-    if default_value not in self._items:
-      if orig_validate_default_value:
-        raise SettingDefaultValueError(self.error_messages['invalid_default_value'])
+    if default_value in self._items:
+      # `default_value` is passed as a string (identifier). In order to properly
+      # initialize the setting, the actual default value (integer) must be passed
+      # to the Setting initialization proper.
+      param_default_value = self._items[default_value]
+    else:
+      raise SettingDefaultValueError(error_messages['invalid_default_value'])
+    
+    self._empty_value = self._get_empty_value(empty_value)
+    
+    super(EnumSetting, self).__init__(name, param_default_value,
+                                      error_messages=error_messages, **kwargs)
     
     self._items_str = self._stringify_items()
   
@@ -679,6 +686,10 @@ class EnumSetting(Setting):
   @property
   def items_display_names(self):
     return self._items_display_names
+  
+  @property
+  def empty_value(self):
+    return self._empty_value
   
   def get_item_display_names_and_values(self):
     """
@@ -726,6 +737,17 @@ class EnumSetting(Setting):
       raise ValueError("Wrong number of tuple elements in items - must be only 2- or only 3-element tuples")
     
     return items, items_display_names, item_values
+  
+  def _get_empty_value(self, empty_value):
+    if empty_value is not None:
+      if empty_value in self._items:
+        return self._items[empty_value]
+      else:
+        raise ValueError(
+          "invalid identifier for the empty value; must be one of {0}".format(self._items.keys())
+        )
+    else:
+      return None
 
 
 class ImageSetting(Setting):

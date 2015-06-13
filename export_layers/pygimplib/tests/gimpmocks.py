@@ -59,7 +59,10 @@ class MockPDB(object):
     image.valid = False
   
   def gimp_image_is_valid(self, image):
-    return image.valid
+    if image is not None:
+      return image.valid
+    else:
+      return False
   
   def gimp_item_is_group(self, item):
     return type(item) == MockLayerGroup

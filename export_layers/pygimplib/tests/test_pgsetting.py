@@ -56,12 +56,14 @@ LIB_NAME = '.'.join(__name__.split('.')[:-2])
 
 class MockSetting(pgsetting.Setting):
   
+  _ALLOWED_EMPTY_VALUES = [""]
+  
   def _init_error_messages(self):
-    self._error_messages['value_is_none'] = "value cannot be None"
+    self._error_messages['invalid_value'] = "value cannot be None or an empty string"
   
   def _validate(self, value):
-    if value is None:
-      raise pgsetting.SettingValueError(self._error_messages['value_is_none'])
+    if value is None or value == "":
+      raise pgsetting.SettingValueError(self._error_messages['invalid_value'])
 
 
 def on_file_extension_changed(file_extension, ignore_invisible):
@@ -139,11 +141,20 @@ class TestSetting(unittest.TestCase):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
       MockSetting('setting', None)
   
-  def test_default_value_without_validation(self):
+  def test_empty_value_as_default_value(self):
     try:
-      MockSetting('setting', None, validate_default_value=False)
+      MockSetting('setting', "")
     except pgsetting.SettingDefaultValueError:
-      self.fail("SettingDefaultValueError should not be raised, default value validation is turned off")
+      self.fail("SettingDefaultValueError should not be raised - default value is an empty value")
+  
+  def test_assign_empty_value_not_allowed(self):
+    with self.assertRaises(pgsetting.SettingValueError):
+      self.setting.set_value("")
+  
+  def test_assign_empty_value_allowed(self):
+    setting = MockSetting('setting', "", allow_empty_values=True)
+    setting.set_value("")
+    self.assertEqual(setting.value, "")
   
   def test_value_invalid_assignment_operation(self):
     with self.assertRaises(AttributeError):
@@ -195,11 +206,11 @@ class TestSetting(unittest.TestCase):
     setting = MockSetting('setting', "")
     
     setting_with_custom_error_messages = MockSetting(
-      'setting', "", error_messages={'value_is_none' : 'this should override the original error message',
-                                     'invalid_value' : 'value is invalid'})
-    self.assertIn('invalid_value', setting_with_custom_error_messages.error_messages)
-    self.assertNotEqual(setting.error_messages['value_is_none'],
-                        setting_with_custom_error_messages.error_messages['value_is_none'])
+      'setting', "", error_messages={'invalid_value' : 'this should override the original error message',
+                                     'custom_message' : 'custom message'})
+    self.assertIn('custom_message', setting_with_custom_error_messages.error_messages)
+    self.assertNotEqual(setting.error_messages['invalid_value'],
+                        setting_with_custom_error_messages.error_messages['invalid_value'])
   
   def test_pdb_registration_mode_automatic_is_registrable(self):
     setting = pgsetting.StringSetting('file_extension', "png", pdb_type=gimpenums.PDB_STRING)
@@ -341,13 +352,7 @@ class TestFloatSetting(unittest.TestCase):
       self.fail("SettingValueError should not be raised")
 
 
-class TestEnumSetting(unittest.TestCase):
-  
-  def setUp(self):
-    self.setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace',
-      [('skip', "Skip"), ('replace', "Replace")],
-      display_name="Overwrite mode (non-interactive only)")
+class TestEnumSettingInitialization(unittest.TestCase):
   
   def test_explicit_values(self):
     setting = pgsetting.EnumSetting(
@@ -356,13 +361,15 @@ class TestEnumSetting(unittest.TestCase):
        ('replace', "Replace", 6)])
     self.assertEqual(setting.items['skip'], 5)
     self.assertEqual(setting.items['replace'], 6)
-    
+  
+  def test_explicit_values_wrong_number_of_elements(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
         'overwrite_mode', 'replace',
         [('skip', "Skip", 4),
          ('replace', "Replace")])
     
+  def test_invalid_explicit_values(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
         'overwrite_mode', 'replace',
@@ -375,16 +382,6 @@ class TestEnumSetting(unittest.TestCase):
         'overwrite_mode', 'invalid_default_value',
         [('skip', "Skip"),
          ('replace', "Replace")])
-  
-  def test_default_value_no_validation(self):
-    try:
-      pgsetting.EnumSetting(
-        'overwrite_mode', None,
-        [('skip', "Skip"),
-         ('replace', "Replace")],
-        validate_default_value=False)
-    except pgsetting.SettingDefaultValueError:
-      self.fail("SettingDefaultValueError should not be raised, default value validation is turned off")
   
   def test_invalid_items_length_varying(self):
     with self.assertRaises(ValueError):
@@ -407,6 +404,39 @@ class TestEnumSetting(unittest.TestCase):
           [('skip'),
            ('replace')])
   
+  def test_no_empty_value(self):
+    setting = pgsetting.EnumSetting(
+      'overwrite_mode', 'replace',
+      [('skip', "Skip"),
+       ('replace', "Replace")])
+    self.assertEqual(setting.empty_value, None)
+  
+  def test_valid_empty_value(self):
+    setting = pgsetting.EnumSetting(
+      'overwrite_mode', 'replace',
+      [('choose', "Choose your mode"),
+       ('skip', "Skip"),
+       ('replace', "Replace")],
+      empty_value='choose')
+    self.assertEqual(setting.empty_value, setting.items['choose'])
+  
+  def test_invalid_empty_value(self):
+    with self.assertRaises(ValueError):
+      pgsetting.EnumSetting(
+        'overwrite_mode', 'replace',
+        [('skip', "Skip"),
+         ('replace', "Replace")],
+        empty_value='invalid_value')
+  
+
+class TestEnumSetting(unittest.TestCase):
+  
+  def setUp(self):
+    self.setting = pgsetting.EnumSetting(
+      'overwrite_mode', 'replace',
+      [('skip', "Skip"), ('replace', "Replace")],
+      display_name="Overwrite mode (non-interactive only)")
+  
   def test_set_invalid_item(self):
     with self.assertRaises(pgsetting.SettingValueError):
       self.setting.set_value(4)
@@ -427,16 +457,23 @@ class TestEnumSetting(unittest.TestCase):
 
 class TestImageSetting(unittest.TestCase):
   
-  def setUp(self):
-    self.setting = pgsetting.ImageSetting('image', None, validate_default_value=False)
-  
   @mock.patch(LIB_NAME + '.pgsetting.pdb', new=gimpmocks.MockPDB())
-  def test_invalid_image(self):
+  def test_set_invalid_image(self):
     pdb = gimpmocks.MockPDB()
     image = pdb.gimp_image_new(2, 2, gimpenums.RGB)
+    
+    setting = pgsetting.ImageSetting('image', image)
+    
     pdb.gimp_image_delete(image)
     with self.assertRaises(pgsetting.SettingValueError):
-      self.setting.set_value(image)
+      setting.set_value(image)
+  
+  @mock.patch(LIB_NAME + '.pgsetting.pdb', new=gimpmocks.MockPDB())
+  def test_empty_value_as_default_value(self):
+    try:
+      pgsetting.ImageSetting('image', None)
+    except pgsetting.SettingDefaultValueError:
+      self.fail("SettingDefaultValueError should not be raised - default value is an empty value")
 
 
 class TestFileExtensionSetting(unittest.TestCase):
