@@ -331,10 +331,23 @@ class Setting(object):
     
     * `*event_handler_args` - Additional arguments to `event_handler`. Can be
       any arguments, including `Setting` objects.
+    
+    Raises:
+    
+    * `TypeError` - `event_handler` is not a function or the wrong number of
+      arguments was passed in `event_handler_args`.
     """
     
     if not callable(event_handler):
       raise TypeError("not a function")
+    
+    # Subtract 1 because the first argument is always this Setting object.
+    num_required_event_handler_args = len(inspect.getargspec(event_handler)[0]) - 1
+    num_actual_event_handler_args = len(event_handler_args)
+    
+    if num_required_event_handler_args != num_actual_event_handler_args:
+      raise TypeError("Wrong number of arguments to the event handler (required {0}, passed {1})"
+                      .format(num_required_event_handler_args, num_actual_event_handler_args))
     
     self._value_changed_event_handler = event_handler
     self._value_changed_event_handler_args = event_handler_args
