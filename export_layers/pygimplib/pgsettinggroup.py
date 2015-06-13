@@ -220,7 +220,7 @@ class SettingGroup(object):
   
   def reset(self):
     """
-    Reset all settings in this group. Ignore settings with the 'reset' ignore
+    Reset all settings in this group. Ignore settings with the `reset` ignore
     tag.
     """
     
@@ -230,7 +230,7 @@ class SettingGroup(object):
   def apply_gui_values_to_settings(self):
     """
     Apply GUI element values, entered by the user, to settings.
-    Ignore settings with the 'apply_gui_values_to_settings' ignore tag.
+    Ignore settings with the `apply_gui_values_to_settings` ignore tag.
     
     This method will not have any effect on settings with automatic
     GUI-to-setting value updating.
