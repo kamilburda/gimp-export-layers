@@ -684,6 +684,10 @@ class EnumSetting(Setting):
       "invalid identifier for the default value; must be one of {0}"
     ).format(self._items.keys())
     
+    if 'error_messages' in kwargs:
+      error_messages.update(kwargs['error_messages'])
+    kwargs['error_messages'] = error_messages
+    
     if default_value in self._items:
       # `default_value` is passed as a string (identifier). In order to properly
       # initialize the setting, the actual default value (integer) must be passed
@@ -694,8 +698,7 @@ class EnumSetting(Setting):
     
     self._empty_value = self._get_empty_value(empty_value)
     
-    super(EnumSetting, self).__init__(name, param_default_value,
-                                      error_messages=error_messages, **kwargs)
+    super(EnumSetting, self).__init__(name, param_default_value, **kwargs)
     
     self._allowed_empty_values.append(self._empty_value)
     

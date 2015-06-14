@@ -79,6 +79,7 @@ def create_test_settings():
                 ('skip', "Skip"),
                 ('rename_new', "Rename new file"),
                 ('rename_existing', "Rename existing file")],
+     'error_messages': { 'invalid_value': "Invalid value. Something went wrong on our end... we are so sorry!" }
     },
   ])
   
