@@ -204,6 +204,7 @@ def create_settings():
   
   def on_file_ext_mode_changed(file_ext_mode, file_extension, strip_mode):
     if file_ext_mode.value == file_ext_mode.items['no_special_handling']:
+      strip_mode.set_value(strip_mode.default_value)
       strip_mode.gui.set_enabled(True)
       file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
     elif file_ext_mode.value == file_ext_mode.items['only_matching_file_extension']:
