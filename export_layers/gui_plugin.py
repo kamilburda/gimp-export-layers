@@ -50,10 +50,10 @@ import gimpenums
 import gimpui
 
 from export_layers.pygimplib import pgsetting
-from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
+from export_layers.pygimplib import pgsettingpresenters_gtk
 
 from export_layers import settings_plugin
 from export_layers import exportlayers
@@ -411,36 +411,36 @@ class _ExportLayersGui(object):
   
   def set_gui_for_settings(self):
     self.settings['main']['file_extension'].set_gui(
-      pggui.GtkEntryPresenter, self.file_extension_entry)
+      pgsettingpresenters_gtk.GtkEntryPresenter, self.file_extension_entry)
     self.settings['main']['output_directory'].set_gui(
-      pggui.GtkFolderChooserPresenter, self.folder_chooser)
+      pgsettingpresenters_gtk.GtkFolderChooserPresenter, self.folder_chooser)
     self.settings['main']['layer_groups_as_folders'].set_gui(
-      pggui.GtkCheckButtonPresenter, self.export_settings_layer_groups)
+      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.export_settings_layer_groups)
     self.settings['main']['ignore_invisible'].set_gui(
-      pggui.GtkCheckButtonPresenter, self.export_settings_ignore_invisible)
+      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.export_settings_ignore_invisible)
     self.settings['main']['autocrop'].set_gui(
-      pggui.GtkCheckButtonPresenter, self.export_settings_autocrop)
+      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.export_settings_autocrop)
     self.settings['main']['use_image_size'].set_gui(
-      pggui.GtkCheckButtonPresenter, self.export_settings_use_image_size)
+      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.export_settings_use_image_size)
     self.settings['main']['file_ext_mode'].set_gui(
-      pggui.GimpUiIntComboBoxPresenter, self.advanced_settings_file_ext_mode)
+      pgsettingpresenters_gtk.GimpUiIntComboBoxPresenter, self.advanced_settings_file_ext_mode)
     self.settings['main']['strip_mode'].set_gui(
-      pggui.GimpUiIntComboBoxPresenter, self.advanced_settings_strip_mode)
+      pgsettingpresenters_gtk.GimpUiIntComboBoxPresenter, self.advanced_settings_strip_mode)
     self.settings['main']['square_bracketed_mode'].set_gui(
-      pggui.GimpUiIntComboBoxPresenter, self.advanced_settings_square_bracketed_mode)
+      pgsettingpresenters_gtk.GimpUiIntComboBoxPresenter, self.advanced_settings_square_bracketed_mode)
     self.settings['main']['crop_to_background'].set_gui(
-      pggui.GtkCheckButtonPresenter, self.advanced_settings_crop_to_background)
+      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.advanced_settings_crop_to_background)
     self.settings['main']['merge_layer_groups'].set_gui(
-      pggui.GtkCheckButtonPresenter, self.advanced_settings_merge_layer_groups)
+      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.advanced_settings_merge_layer_groups)
     self.settings['main']['empty_folders'].set_gui(
-      pggui.GtkCheckButtonPresenter, self.advanced_settings_empty_folders)
+      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.advanced_settings_empty_folders)
     self.settings['main']['ignore_layer_modes'].set_gui(
-      pggui.GtkCheckButtonPresenter, self.advanced_settings_ignore_layer_modes)
+      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.advanced_settings_ignore_layer_modes)
     
     self.settings['gui']['dialog_position'].set_gui(
-      pggui.GtkWindowPositionPresenter, self.dialog)
+      pgsettingpresenters_gtk.GtkWindowPositionPresenter, self.dialog)
     self.settings['gui']['advanced_settings_expanded'].set_gui(
-      pggui.GtkExpanderPresenter, self.expander_advanced_settings)
+      pgsettingpresenters_gtk.GtkExpanderPresenter, self.expander_advanced_settings)
   
   def reset_settings(self):
     for setting_group in [self.settings['main'], self.settings['gui']]:
