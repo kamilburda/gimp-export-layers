@@ -94,6 +94,10 @@ class MockGuiWidget(object):
     self._signal = signal
     self._event_handler = event_handler
   
+  def disconnect(self):
+    self._signal = None
+    self._event_handler = None
+  
   def set_value(self, value):
     self.value = value
     if self._event_handler is not None:
@@ -122,6 +126,9 @@ class MockSettingPresenter(pgsettingpresenter.SettingPresenter):
   
   def _connect_value_changed_event(self):
     self._element.connect(self._VALUE_CHANGED_SIGNAL, self._on_value_changed)
+  
+  def _disconnect_value_changed_event(self):
+    self._element.disconnect()
 
 
 class MockSettingPresenterWithValueChangedSignal(MockSettingPresenter):
@@ -306,7 +313,57 @@ class TestSettingGui(unittest.TestCase):
       # Raise error because setting is reset to an empty value, while empty
       # values are disallowed (`allow_empty_values` is False).
       setting.gui.update_setting_value()
+  
+  def test_null_setting_presenter_has_automatic_gui(self):
+    setting = MockSetting("file_extension", "")
+    self.assertEqual(setting.gui.gui_update_enabled, True)
+  
+  def test_manual_gui_update_enabled_is_false(self):
+    setting = MockSetting("file_extension", "")
+    setting.set_gui(MockSettingPresenter, self.widget)
+    self.assertEqual(setting.gui.gui_update_enabled, False)
+  
+  def test_automatic_gui_update_enabled_is_true(self):
+    setting = MockSetting("file_extension", "")
+    setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
+    self.assertEqual(setting.gui.gui_update_enabled, True)
     
+    self.widget.set_value("png")
+    self.assertEqual(setting.value, "png")
+  
+  def test_automatic_gui_update_enabled_is_false(self):
+    setting = MockSetting("file_extension", "", enable_gui_update=False)
+    setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
+    self.assertEqual(setting.gui.gui_update_enabled, False)
+    
+    self.widget.set_value("png")
+    self.assertEqual(setting.value, "")
+  
+  def test_set_gui_disable_automatic_setting_value_update(self):
+    setting = MockSetting("file_extension", "")
+    setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget, enable_gui_update=False)
+    self.assertEqual(setting.gui.gui_update_enabled, False)
+    
+    self.widget.set_value("png")
+    self.assertEqual(setting.value, "")
+  
+  def test_enable_gui_update_after_being_disabled(self):
+    setting = MockSetting("file_extension", "", enable_gui_update=False)
+    setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
+    setting.gui.enable_gui_update(True)
+    
+    self.widget.set_value("png")
+    self.assertEqual(setting.value, "png")
+  
+  def test_enable_gui_update_for_manual_gui_raises_value_error(self):
+    setting = MockSetting("file_extension", "")
+    setting.set_gui(MockSettingPresenter, self.widget)
+    
+    self.assertEqual(setting.gui.gui_update_enabled, False)
+    
+    with self.assertRaises(ValueError):
+      setting.gui.enable_gui_update(True)
+
 
 #-------------------------------------------------------------------------------
 

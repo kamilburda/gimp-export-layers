@@ -86,7 +86,7 @@ class SettingPresenter(object):
   _VALUE_CHANGED_SIGNAL = None
   
   def __init__(self, setting, element, setting_value_synchronizer=None,
-               old_setting_presenter=None):
+               old_setting_presenter=None, enable_gui_update=True):
     """
     Parameters:
     
@@ -98,20 +98,34 @@ class SettingPresenter(object):
       from that `SettingPresenter` object will be copied to this object. If
       `old_setting_presenter` is None, only `setting.value` will be copied to
       this object.
+    
+    * `enable_gui_update` - If True, automatically keep GUI and settings
+      updated. This parameter does not have any effect if:
+        
+        * the `SettingPresenter` class cannot provide automatic GUI update,
+        
+        * `old_setting_presenter` is not None and the automatic GUI update was
+          disabled in that presenter.
     """
     
     self._setting = setting
     self._element = element
     self._setting_value_synchronizer = setting_value_synchronizer
     
+    if enable_gui_update:
+      self._value_changed_signal = self._VALUE_CHANGED_SIGNAL
+    else:
+      self._value_changed_signal = None
+    
     self._setting_value_synchronizer.apply_setting_value_to_gui = self._apply_setting_value_to_gui
     
-    if old_setting_presenter is not None:
+    copy_state = old_setting_presenter is not None
+    if copy_state:
       self._copy_state(old_setting_presenter)
     else:
       self._setting_value_synchronizer.apply_setting_value_to_gui(self._setting.value)
     
-    if self._VALUE_CHANGED_SIGNAL is not None:
+    if self._value_changed_signal is not None:
       self._connect_value_changed_event()
   
   @property
@@ -121,6 +135,10 @@ class SettingPresenter(object):
   @property
   def element(self):
     return self._element
+  
+  @property
+  def gui_update_enabled(self):
+    return self._value_changed_signal is not None
   
   @abc.abstractmethod
   def get_enabled(self):
@@ -165,8 +183,27 @@ class SettingPresenter(object):
     
     # The `is_value_empty` check makes sure that settings with empty values
     # which are not allowed will be properly invalidated.
-    if self._VALUE_CHANGED_SIGNAL is None or self._setting.is_value_empty():
+    if self._value_changed_signal is None or self._setting.is_value_empty():
       self._update_setting_value()
+  
+  def enable_gui_update(self, enabled):
+    """
+    Enable or disable automatic GUI update.
+    
+    If `value` is True and the `SettingPresenter` class does not support
+    automatic GUI update, `ValueError` is raised.
+    """
+    
+    if enabled and self._VALUE_CHANGED_SIGNAL is None:
+      raise ValueError("Cannot enable automatic GUI update - {0} class does not "
+                       "support it".format(type(self).__name__))
+    
+    if enabled:
+      self._value_changed_signal = self._VALUE_CHANGED_SIGNAL
+      self._connect_value_changed_event()
+    else:
+      self._value_changed_signal = None
+      self._disconnect_value_changed_event()
   
   @abc.abstractmethod
   def _get_value(self):
@@ -192,6 +229,9 @@ class SettingPresenter(object):
     self._set_value(old_setting_presenter._get_value())
     self.set_enabled(old_setting_presenter.get_enabled())
     self.set_visible(old_setting_presenter.get_visible())
+    
+    if not old_setting_presenter.gui_update_enabled:
+      self._value_changed_signal = None
   
   def _update_setting_value(self):
     """
@@ -203,10 +243,21 @@ class SettingPresenter(object):
   @abc.abstractmethod
   def _connect_value_changed_event(self):
     """
-    Connect the `_on_value_changed` event handler to the GUI element,
-    using the `_VALUE_CHANGED_SIGNAL` attribute.
+    Connect the `_on_value_changed` event handler to the GUI element using the
+    `_value_changed_signal` attribute.
     
     Because the way event handlers are connected varies in each GUI framework,
+    subclass this class and override this method for the GUI framework you use. 
+    """
+    
+    pass
+  
+  @abc.abstractmethod
+  def _disconnect_value_changed_event(self):
+    """
+    Disconnect the `_on_value_changed` event handler from the GUI element.
+    
+    Because the way event handlers are disconnected varies in each GUI framework,
     subclass this class and override this method for the GUI framework you use. 
     """
     
@@ -244,6 +295,9 @@ class NullSettingPresenter(SettingPresenter):
   object.
   """
   
+  # Make `NullSettingPresenter` pretend to update GUI automatically.
+  _VALUE_CHANGED_SIGNAL = "null_signal"
+  
   def __init__(self, setting, *args, **kwargs):
     self._value = None
     self._enabled = True
@@ -277,5 +331,8 @@ class NullSettingPresenter(SettingPresenter):
     self._value = value
   
   def _connect_value_changed_event(self):
+    pass
+  
+  def _disconnect_value_changed_event(self):
     pass
 

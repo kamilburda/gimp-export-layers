@@ -167,6 +167,7 @@ class Setting(object):
                display_name=None,
                pdb_type=None,
                pdb_registration_mode=PdbRegistrationModes.automatic,
+               enable_gui_update=True,
                error_messages=None):
     
     """
@@ -187,6 +188,9 @@ class Setting(object):
     * `pdb_type` - If None and this is a Setting subclass, assign the default
       PDB type from the list of allowed PDB types. If None and this is the
       Setting class, use None.
+    
+    * `enable_gui_update` - See `enable_gui_update` parameter in
+      `pgsettingpresenter.SettingPresenter.__init__`.
     
     * `error_messages` - A dict containing (message name, message contents)
       pairs. Use this to pass custom error messages. This way, you may also
@@ -210,7 +214,8 @@ class Setting(object):
     self._setting_value_synchronizer = pgsettingpresenter.SettingValueSynchronizer()
     self._setting_value_synchronizer.apply_gui_value_to_setting = self._apply_gui_value_to_setting
     
-    self._gui = pgsettingpresenter.NullSettingPresenter(self, self._setting_value_synchronizer)
+    self._gui = pgsettingpresenter.NullSettingPresenter(self, self._setting_value_synchronizer,
+                                                        enable_gui_update=enable_gui_update)
     
     self._error_messages = {}
     self._init_error_messages()
@@ -303,7 +308,7 @@ class Setting(object):
     if self._is_value_changed_event_connected():
       self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
   
-  def set_gui(self, gui_type, gui_element):
+  def set_gui(self, gui_type, gui_element, enable_gui_update=True):
     """
     Assign new GUI object for this setting. The state of the previous GUI object
     is copied to the new GUI object (such as its value, visibility and
@@ -314,10 +319,13 @@ class Setting(object):
     * `gui_type` - `SettingPresenter` type to wrap `gui_element` around.
     
     * `gui_element` - A GUI element.
+    
+    * `enable_gui_update` - See `enable_gui_update` parameter in
+      `pgsettingpresenter.SettingPresenter.__init__`.
     """
     
     self._gui = gui_type(self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,
-                         old_setting_presenter=self._gui)
+                         old_setting_presenter=self._gui, enable_gui_update=enable_gui_update)
   
   def connect_value_changed_event(self, event_handler, *event_handler_args):
     """

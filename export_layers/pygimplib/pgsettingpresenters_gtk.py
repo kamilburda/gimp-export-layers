@@ -57,6 +57,11 @@ class GtkSettingPresenter(pgsettingpresenter.SettingPresenter):
   
   __metaclass__ = abc.ABCMeta
   
+  def __init__(self, *args, **kwargs):
+    self._event_handler_id = None
+    
+    super(GtkSettingPresenter, self).__init__(*args, **kwargs)
+  
   def get_enabled(self):
     return self._element.get_sensitive()
   
@@ -70,8 +75,11 @@ class GtkSettingPresenter(pgsettingpresenter.SettingPresenter):
     self._element.set_visible(value)
   
   def _connect_value_changed_event(self):
-    self._element.connect(self._VALUE_CHANGED_SIGNAL, self._on_value_changed)
-
+    self._event_handler_id = self._element.connect(self._VALUE_CHANGED_SIGNAL, self._on_value_changed)
+  
+  def _disconnect_value_changed_event(self):
+    self._element.disconnect(self._event_handler_id)
+    self._event_handler_id = None
 
 #-------------------------------------------------------------------------------
 
