@@ -36,15 +36,51 @@ str = unicode
 
 import abc
 
+import pygtk
+pygtk.require("2.0")
+import gtk
+
 import gimp
 
 from . import pgsettingpresenter
+from .pggui import IntComboBox
 
 #===============================================================================
 
 pdb = gimp.pdb
 
 GTK_CHARACTER_ENCODING = "utf-8"
+
+#===============================================================================
+
+
+class GtkCheckboxWrapper(pgsettingpresenter.GuiElementWrapper):
+  
+  @classmethod
+  def create(self, setting):
+    return gtk.CheckButton(setting.display_name)
+
+
+class GtkEntryWrapper(pgsettingpresenter.GuiElementWrapper):
+
+  @classmethod
+  def create(self, setting):
+    return gtk.Entry()
+
+
+class GimpUiIntComboBoxWrapper(pgsettingpresenter.GuiElementWrapper):
+
+  @classmethod
+  def create(self, setting):
+    return IntComboBox(setting.get_item_display_names_and_values())
+
+
+class GtkFolderChooserWrapper(pgsettingpresenter.GuiElementWrapper):
+
+  @classmethod
+  def create(self, setting):
+    return gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+
 
 #===============================================================================
 
@@ -81,6 +117,7 @@ class GtkSettingPresenter(pgsettingpresenter.SettingPresenter):
     self._element.disconnect(self._event_handler_id)
     self._event_handler_id = None
 
+
 #-------------------------------------------------------------------------------
 
 
@@ -93,6 +130,7 @@ class GtkCheckButtonPresenter(GtkSettingPresenter):
   """
   
   _VALUE_CHANGED_SIGNAL = "clicked"
+  _GUI_ELEMENT_WRAPPER = GtkCheckboxWrapper
     
   def _get_value(self):
     return self._element.get_active()
@@ -108,6 +146,8 @@ class GtkEntryPresenter(GtkSettingPresenter):
   
   Value: Text in the text field.
   """
+  
+  _GUI_ELEMENT_WRAPPER = GtkEntryWrapper
   
   def _get_value(self):
     return self._element.get_text().decode(GTK_CHARACTER_ENCODING)
@@ -127,6 +167,7 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
   """
   
   _VALUE_CHANGED_SIGNAL = "changed"
+  _GUI_ELEMENT_WRAPPER = GimpUiIntComboBoxWrapper
   
   def _get_value(self):
     return self._element.get_active()
@@ -143,6 +184,8 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
   
   Value: Current folder.
   """
+  
+  _GUI_ELEMENT_WRAPPER = GtkFolderChooserWrapper
   
   def __init__(self, *args, **kwargs):
     super(GtkFolderChooserPresenter, self).__init__(*args, **kwargs)
@@ -211,5 +254,4 @@ class GtkExpanderPresenter(GtkSettingPresenter):
   
   def _set_value(self, value):
     self._element.set_expanded(value)
-
 

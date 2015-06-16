@@ -39,8 +39,9 @@ import gimpenums
 from .. import pgsetting
 from .. import pgsettinggroup
 
-from .test_pgsetting import MockGuiWidget
-from .test_pgsetting import MockSettingPresenter
+from .test_pgsetting import MockGuiWidget, MockCheckbox
+from .test_pgsetting import MockSettingPresenter, MockCheckboxPresenter
+from .test_pgsetting import MockSettingWithGui
 
 #===============================================================================
 
@@ -278,43 +279,6 @@ class TestSettingGroup(unittest.TestCase):
     with self.assertRaises(KeyError):
       self.settings.remove(['file_extension'])
   
-  def test_iterate_all_no_ignore_tags(self):
-    settings = create_test_settings_hierarchical()
-    iterated_settings = list(settings.iterate_all())
-    
-    self.assertIn(settings['main']['file_extension'], iterated_settings)
-    self.assertIn(settings['advanced']['ignore_invisible'], iterated_settings)
-    self.assertIn(settings['advanced']['overwrite_mode'], iterated_settings)
-  
-  def test_iterate_all_with_ignore_tag_for_settings(self):
-    settings = create_test_settings_hierarchical()
-    
-    settings['main'].set_ignore_tags({
-      'file_extension': ['reset']
-    })
-    settings['advanced'].set_ignore_tags({
-      'overwrite_mode': ['reset', 'apply_gui_values_to_settings']
-    })
-    
-    iterated_settings = list(settings.iterate_all(['reset']))
-    
-    self.assertNotIn(settings['main']['file_extension'], iterated_settings)
-    self.assertIn(settings['advanced']['ignore_invisible'], iterated_settings)
-    self.assertNotIn(settings['advanced']['overwrite_mode'], iterated_settings)
-  
-  def test_iterate_all_with_ignore_tag_for_groups(self):
-    settings = create_test_settings_hierarchical()
-    
-    settings.set_ignore_tags({
-      'advanced': ['apply_gui_values_to_settings']
-    })
-    
-    iterated_settings = list(settings.iterate_all(['apply_gui_values_to_settings']))
-    
-    self.assertIn(settings['main']['file_extension'], iterated_settings)
-    self.assertNotIn(settings['advanced']['ignore_invisible'], iterated_settings)
-    self.assertNotIn(settings['advanced']['overwrite_mode'], iterated_settings)
-  
   def test_reset_settings_resets_nested_groups_and_ignores_specified_settings(self):
     self.settings.add([self.special_settings])
     
@@ -340,23 +304,101 @@ class TestSettingGroup(unittest.TestCase):
     self.settings.reset()
     self.assertNotEqual(self.settings['special']['first_plugin_run'].value,
                         self.settings['special']['first_plugin_run'].default_value)
+
+
+class TestSettingGroupIterateAll(unittest.TestCase):
+  
+  def setUp(self):
+    self.settings = create_test_settings_hierarchical()
+  
+  def test_iterate_all_no_ignore_tags(self):
+    self.settings = create_test_settings_hierarchical()
+    iterated_settings = list(self.settings.iterate_all())
+    
+    self.assertIn(self.settings['main']['file_extension'], iterated_settings)
+    self.assertIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
+  
+  def test_iterate_all_with_ignore_tag_for_settings(self):
+    self.settings = create_test_settings_hierarchical()
+    
+    self.settings['main'].set_ignore_tags({
+      'file_extension': ['reset']
+    })
+    self.settings['advanced'].set_ignore_tags({
+      'overwrite_mode': ['reset', 'apply_gui_values_to_settings']
+    })
+    
+    iterated_settings = list(self.settings.iterate_all(['reset']))
+    
+    self.assertNotIn(self.settings['main']['file_extension'], iterated_settings)
+    self.assertIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
+  
+  def test_iterate_all_with_ignore_tag_for_groups(self):
+    self.settings = create_test_settings_hierarchical()
+    
+    self.settings.set_ignore_tags({
+      'advanced': ['apply_gui_values_to_settings']
+    })
+    
+    iterated_settings = list(self.settings.iterate_all(['apply_gui_values_to_settings']))
+    
+    self.assertIn(self.settings['main']['file_extension'], iterated_settings)
+    self.assertNotIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
+
+
+class TestSettingGroupGui(unittest.TestCase):
+
+  def setUp(self):
+    self.settings = pgsettinggroup.SettingGroup('main', [
+      {
+        'type': MockSettingWithGui,
+        'name': 'file_extension',
+        'default_value': 'bmp',
+      },
+      {
+        'type': MockSettingWithGui,
+        'name': 'ignore_invisible',
+        'default_value': False,
+      },
+    ])
+
+  def test_initialize_gui_without_custom_gui(self):
+    self.settings.initialize_gui()
+    
+    self.assertIs(type(self.settings['file_extension'].gui), MockCheckboxPresenter)
+    self.assertIs(type(self.settings['file_extension'].gui.element), MockCheckbox)
+    self.assertIs(type(self.settings['ignore_invisible'].gui), MockCheckboxPresenter)
+    self.assertIs(type(self.settings['ignore_invisible'].gui.element), MockCheckbox)
+  
+  def test_initialize_gui_with_custom_gui(self):
+    file_extension_widget = MockGuiWidget("png")
+    
+    self.settings.initialize_gui(custom_gui={
+      'file_extension': [MockSettingPresenter, file_extension_widget],
+    })
+    
+    self.assertIs(type(self.settings['file_extension'].gui), MockSettingPresenter)
+    self.assertIs(type(self.settings['file_extension'].gui.element), MockGuiWidget)
+    # It's "bmp", not "png", since the setting value overrides the initial GUI element value.
+    self.assertEqual(file_extension_widget.value, "bmp")
+    self.assertIs(type(self.settings['ignore_invisible'].gui), MockCheckboxPresenter)
+    self.assertIs(type(self.settings['ignore_invisible'].gui.element), MockCheckbox)
   
   def test_apply_gui_values_to_settings_ignores_specified_settings(self):
     file_extension_widget = MockGuiWidget(None)
-    overwrite_mode_widget = MockGuiWidget(None)
     ignore_invisible_widget = MockGuiWidget(None)
-    self.settings['file_extension'].set_gui(MockSettingPresenter, file_extension_widget)
-    self.settings['overwrite_mode'].set_gui(MockSettingPresenter, overwrite_mode_widget)
-    self.settings['ignore_invisible'].set_gui(MockSettingPresenter, ignore_invisible_widget)
+    self.settings['file_extension'].create_gui(MockSettingPresenter, file_extension_widget)
+    self.settings['ignore_invisible'].create_gui(MockSettingPresenter, ignore_invisible_widget)
     
     file_extension_widget.set_value("gif")
-    overwrite_mode_widget.set_value(self.settings['overwrite_mode'].items['skip'])
     ignore_invisible_widget.set_value(True)
     
     self.settings.apply_gui_values_to_settings()
     
     self.assertEqual(self.settings['file_extension'].value, "gif")
-    self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].default_value)
     self.assertEqual(self.settings['ignore_invisible'].value, True)
     
 

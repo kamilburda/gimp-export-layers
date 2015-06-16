@@ -56,6 +56,27 @@ class SettingValueSynchronizer(object):
 #===============================================================================
 
 
+class GuiElementWrapper(object):
+  
+  __metaclass__ = abc.ABCMeta
+  
+  @classmethod
+  def create(self, setting):
+    """
+    Instantiate and return a new GUI element using the attributes in the
+    specified `Setting` instance (setting display name as label, etc.).
+    
+    This wrapper is used in SettingPresenter objects. There is no need to set
+    the initial value of the GUI element to the current setting value, as that
+    is handled by the SettingPresenter objects.
+    """
+    
+    pass
+
+
+#===============================================================================
+
+
 class SettingPresenter(object):
   
   """
@@ -77,18 +98,25 @@ class SettingPresenter(object):
   
   * `_VALUE_CHANGED_SIGNAL` - Object that indicates the type of event to
     connect to the GUI element. Once the event is triggered, it assigns the GUI
-    element value to the setting value. If this attribute is None, no event is
-    connected.
+    element value to the setting value. If this attribute is None, no event can
+    be connected.
   """
   
   __metaclass__ = abc.ABCMeta
     
   _VALUE_CHANGED_SIGNAL = None
+  _GUI_ELEMENT_WRAPPER = None
   
-  def __init__(self, setting, element, setting_value_synchronizer=None,
+  def __init__(self, setting, element=None, setting_value_synchronizer=None,
                old_setting_presenter=None, enable_gui_update=True):
     """
     Parameters:
+    
+    * `element` - A GUI element.
+    
+      If `element` is None, create a new GUI element automatically. If the
+      specific `SettingPresenter` class does not support creating a GUI element,
+      pass an existing GUI element.
     
     * `setting_value_synchronizer` - `SettingValueSynchronizer` instance to
       synchronize values between `setting` and this object.
@@ -111,6 +139,15 @@ class SettingPresenter(object):
     self._setting = setting
     self._element = element
     self._setting_value_synchronizer = setting_value_synchronizer
+    
+    if self._element is None:
+      if self._GUI_ELEMENT_WRAPPER:
+        self._element = self._GUI_ELEMENT_WRAPPER.create(setting)
+      else:
+        raise ValueError("Cannot instantiate {0} class: "
+                         "`element` is None and this class does not define a "
+                         "GUI element wrapper from which a GUI element could be instantiated"
+                         .format(type(self).__name__))
     
     if enable_gui_update:
       self._value_changed_signal = self._VALUE_CHANGED_SIGNAL
@@ -279,6 +316,7 @@ class SettingPresenter(object):
     
     self._set_value(value)
 
+
 #-------------------------------------------------------------------------------
 
 
@@ -297,13 +335,18 @@ class NullSettingPresenter(SettingPresenter):
   
   # Make `NullSettingPresenter` pretend to update GUI automatically.
   _VALUE_CHANGED_SIGNAL = "null_signal"
+  _NULL_GUI_ELEMENT = type(b"NullGuiElement", (), {})()
   
-  def __init__(self, setting, *args, **kwargs):
+  def __init__(self, setting, element, *args, **kwargs):
+    """
+    `element` is ignored - its attributes are not read or set.
+    """
+    
     self._value = None
     self._enabled = True
     self._visible = True
     
-    super(NullSettingPresenter, self).__init__(setting, None, *args, **kwargs)
+    super(NullSettingPresenter, self).__init__(setting, self._NULL_GUI_ELEMENT, *args, **kwargs)
   
   def get_enabled(self):
     return self._enabled
@@ -318,10 +361,6 @@ class NullSettingPresenter(SettingPresenter):
     self._visible = visible
   
   def update_setting_value(self):
-    """
-    This method does nothing.
-    """
-    
     pass
   
   def _get_value(self):

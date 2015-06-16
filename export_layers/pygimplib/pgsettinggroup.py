@@ -227,6 +227,37 @@ class SettingGroup(object):
     for setting in self.iterate_all(ignore_tags=['reset']):
       setting.reset()
   
+  def initialize_gui(self, custom_gui=None):
+    """
+    Initialize GUI for all settings.
+    
+    Settings that are not provided with a readily available GUI can have their
+    GUI initialized using the `custom_gui` dict. `custom_gui` contains
+    (setting name, [GUI type, GUI element instance, enable GUI update?]) pairs.
+    The "enable GUI update?" boolean in the list is optional and defaults to
+    True. For more information about parameters in the list, see the
+    `Setting.create_gui` method.
+    
+    Example:
+    
+    file_extension_entry = gtk.Entry()
+    ...
+    main_settings.initialize_gui({
+      'file_extension': [SettingGuiTypes.text_entry, file_extension_entry]
+      ...
+    })
+    """
+    
+    if custom_gui is None:
+      custom_gui = {}
+    
+    for setting in self.iterate_all():
+      if setting.name not in custom_gui:
+        setting.create_gui()
+      else:
+        create_gui_params = custom_gui[setting.name]
+        setting.create_gui(*create_gui_params)
+  
   def apply_gui_values_to_settings(self):
     """
     Apply GUI element values, entered by the user, to settings.

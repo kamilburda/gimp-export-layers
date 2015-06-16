@@ -48,6 +48,7 @@ from .lib import enum
 
 from . import pgpath
 from . import pgsettingpresenter
+from . import pgsettingpresenters_gtk
 
 #===============================================================================
 
@@ -86,6 +87,22 @@ class SettingDefaultValueError(SettingValueError):
 #===============================================================================
 
 
+class SettingGuiTypes(enum.Enum):
+  
+  """
+  This enum maps SettingPresenter classes to more human-readable names.
+  """
+  
+  checkbox = pgsettingpresenters_gtk.GtkCheckButtonPresenter
+  combobox = pgsettingpresenters_gtk.GimpUiIntComboBoxPresenter
+  text_entry = pgsettingpresenters_gtk.GtkEntryPresenter
+  folder_chooser = pgsettingpresenters_gtk.GtkFolderChooserPresenter
+  none = pgsettingpresenter.NullSettingPresenter
+
+
+#===============================================================================
+
+
 class Setting(object):
   
   """
@@ -96,11 +113,12 @@ class Setting(object):
   * registering GIMP Procedural Database (PDB) parameters to plug-ins
   * managing GUI element properties (values, labels, etc.)
   
-  This setting class in particular can store any data, but it is not allowed to
-  be registered to PDB. It is strongly recommended to use the appropriate subclass
-  for a particular data type, as the subclasses offer the following features:
-  * automatic validation of input values
-  * readily available GUI element, keeping the GUI and the setting value in sync
+  This class in particular can story any data. However, it is strongly
+  recommended to use the appropriate `Setting` subclass for a particular data
+  type, as the subclasses offer the following features:
+  * setting can be registered to PDB,
+  * automatic validation of input values,
+  * readily available GUI element, keeping the GUI and the setting value in sync.
   
   Settings can contain an event handler that is triggered when the value
   of the setting changes (e.g. when `set_value()` method is called). This way,
@@ -161,12 +179,14 @@ class Setting(object):
   
   _ALLOWED_PDB_TYPES = []
   _ALLOWED_EMPTY_VALUES = []
+  _ALLOWED_GUI_TYPES = []
   
   def __init__(self, name, default_value,
                allow_empty_values=False,
                display_name=None,
                pdb_type=None,
                pdb_registration_mode=PdbRegistrationModes.automatic,
+               gui_type=None,
                enable_gui_update=True,
                error_messages=None):
     
@@ -188,6 +208,19 @@ class Setting(object):
     * `pdb_type` - If None and this is a Setting subclass, assign the default
       PDB type from the list of allowed PDB types. If None and this is the
       Setting class, use None.
+    
+    * `gui_type` - Type of GUI element to be created by the `create_gui` method.
+    
+      If `gui_type` is `None`, choose the first GUI type from the list of
+      allowed GUI type for the corresponding `Setting` subclass. If there are no
+      allowed GUI types for that subclass, no GUI is created for this setting.
+      
+      If an explicit GUI type is specified, it must be one of the types from the
+      list of allowed GUI types for the corresponding `Setting` subclass. If
+      not, `ValueError` is raised.
+      
+      If the `SettingGuiTypes.none` type is specified, no GUI is created for
+      this setting.
     
     * `enable_gui_update` - See `enable_gui_update` parameter in
       `pgsettingpresenter.SettingPresenter.__init__`.
@@ -214,7 +247,8 @@ class Setting(object):
     self._setting_value_synchronizer = pgsettingpresenter.SettingValueSynchronizer()
     self._setting_value_synchronizer.apply_gui_value_to_setting = self._apply_gui_value_to_setting
     
-    self._gui = pgsettingpresenter.NullSettingPresenter(self, self._setting_value_synchronizer,
+    self._gui_type = self._get_gui_type(gui_type)
+    self._gui = pgsettingpresenter.NullSettingPresenter(self, None, self._setting_value_synchronizer,
                                                         enable_gui_update=enable_gui_update)
     
     self._error_messages = {}
@@ -308,21 +342,50 @@ class Setting(object):
     if self._is_value_changed_event_connected():
       self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
   
-  def set_gui(self, gui_type, gui_element, enable_gui_update=True):
+  def create_gui(self, gui_type=None, gui_element=None, enable_gui_update=True):
     """
-    Assign new GUI object for this setting. The state of the previous GUI object
-    is copied to the new GUI object (such as its value, visibility and
-    sensitivity).
+    Create a new GUI object (`SettingPresenter` instance) for this setting. The
+    state of the previous GUI object is copied to the new GUI object (such as
+    its value, visibility and enabled state).
     
     Parameters:
     
     * `gui_type` - `SettingPresenter` type to wrap `gui_element` around.
+      
+      If `gui_type` is None, create a GUI object of the type specified in the
+      `gui_type` parameter in `__init__`. In other words, GUI is created along
+      with a new GUI element.
+      
+      To specify an existing GUI element, pass a specific `gui_type` and the
+      GUI element in `gui_element`. This is useful if you wish to use the GUI
+      element for multiple settings or for other purposes outside this setting.
+      
+      If `gui_type` is specified and is not any of the allowed GUI types for the
+      setting, raise `ValueError`.
     
-    * `gui_element` - A GUI element.
+    * `gui_element` - A GUI element (wrapped in a `SettingPresenter` instance).
+    
+      If `gui_type` is None, `gui_element` is ignored. If `gui_type` is not
+      None and `gui_element` is None, raise `ValueError`.
     
     * `enable_gui_update` - See `enable_gui_update` parameter in
       `pgsettingpresenter.SettingPresenter.__init__`.
     """
+    
+    if gui_type is not None and gui_element is None:
+      raise ValueError("gui_element cannot be None if gui_type is not None")
+    if gui_type is None and gui_element is not None:
+      raise ValueError("gui_type cannot be None if gui_element is not None")
+    
+    if gui_type is None:
+      gui_type = self._gui_type
+    else:
+      if isinstance(gui_type, SettingGuiTypes):
+        gui_type = gui_type.value
+      
+      if gui_type not in self._ALLOWED_GUI_TYPES:
+        raise ValueError("invalid GUI type; must be one of {0}"
+                         .format([type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
     
     self._gui = gui_type(self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,
                          old_setting_presenter=self._gui, enable_gui_update=enable_gui_update)
@@ -481,6 +544,28 @@ class Setting(object):
     
     return name.replace('_', '-')
   
+  def _get_gui_type(self, gui_type):
+    gui_type_to_return = None
+    
+    if gui_type is None:
+      if self._ALLOWED_GUI_TYPES:
+        gui_type_to_return = self._ALLOWED_GUI_TYPES[0]
+      else:
+        gui_type_to_return = SettingGuiTypes.none
+    else:
+      if gui_type in self._ALLOWED_GUI_TYPES:
+        gui_type_to_return = gui_type
+      elif gui_type in [SettingGuiTypes.none, SettingGuiTypes.none.value, pgsettingpresenter.NullSettingPresenter]:
+        gui_type_to_return = gui_type
+      else:
+        raise ValueError("invalid GUI type; must be one of {0}"
+                         .format([type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
+    
+    if isinstance(gui_type_to_return, SettingGuiTypes):
+      gui_type_to_return = gui_type_to_return.value
+    
+    return gui_type_to_return
+  
   def _value_to_str(self, value):
     """
     Prepend `value` to an error message if `value` that is meant to be assigned
@@ -606,6 +691,7 @@ class BoolSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.checkbox]
   
   @property
   def description(self):
@@ -661,6 +747,7 @@ class EnumSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.combobox]
   
   def __init__(self, name, default_value, items, empty_value=None, **kwargs):
     
@@ -857,6 +944,7 @@ class StringSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_STRING]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
 
 
 class ValidatableStringSetting(StringSetting):
@@ -933,6 +1021,7 @@ class FileExtensionSetting(ValidatableStringSetting):
   """
   
   _ALLOWED_EMPTY_VALUES = [""]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
   
   def __init__(self, name, default_value, **kwargs):
     super(FileExtensionSetting, self).__init__(name, default_value, pgpath.FileExtensionValidator, **kwargs)
@@ -957,6 +1046,7 @@ class DirectorySetting(ValidatableStringSetting):
   """
   
   _ALLOWED_EMPTY_VALUES = [None, ""]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.folder_chooser]
   
   def __init__(self, name, default_value, **kwargs):
     super(DirectorySetting, self).__init__(name, default_value, pgpath.FilePathValidator, **kwargs)
