@@ -49,7 +49,7 @@ from . import pgsetting
 #===============================================================================
 
 
-class SettingStream(object):
+class SettingSource(object):
   
   """
   This class provides an interface for reading and writing settings to
@@ -59,7 +59,7 @@ class SettingStream(object):
   
   Attributes:
   
-  * `_settings_not_found` - List of settings not found in stream when the `read()`
+  * `_settings_not_found` - List of settings not found in source when the `read()`
     method is called.
   """
   
@@ -71,10 +71,10 @@ class SettingStream(object):
   @abc.abstractmethod
   def read(self, settings):
     """
-    Read setting values from the stream and assign them to the settings
+    Read setting values from the source and assign them to the settings
     specified in the `settings` iterable.
     
-    If a setting value from the stream is invalid, the setting will be reset to
+    If a setting value from the source is invalid, the setting will be reset to
     its default value.
     
     Parameters:
@@ -83,8 +83,8 @@ class SettingStream(object):
     
     Raises:
     
-    * `SettingsNotFoundInStreamError` - At least one of the settings is not
-      found in the stream. All settings that were not found in the stream will be
+    * `SettingsNotFoundInSourceError` - At least one of the settings is not
+      found in the source. All settings that were not found in the source will be
       stored in the `settings_not_found` list. This list is cleared on each read()
       call.
     """
@@ -95,7 +95,7 @@ class SettingStream(object):
   def write(self, settings):
     """
     Write setting values from settings specified in the `settings` iterable
-    to the stream.
+    to the source.
     
     Parameters:
     
@@ -109,34 +109,34 @@ class SettingStream(object):
     return self._settings_not_found
 
 
-class SettingStreamError(Exception):
+class SettingSourceError(Exception):
   pass
 
 
-class SettingsNotFoundInStreamError(SettingStreamError):
+class SettingsNotFoundInSourceError(SettingSourceError):
   pass
 
 
-class SettingStreamFileNotFoundError(SettingStreamError):
+class SettingSourceFileNotFoundError(SettingSourceError):
   pass
 
 
-class SettingStreamReadError(SettingStreamError):
+class SettingSourceReadError(SettingSourceError):
   pass
 
 
-class SettingStreamInvalidFormatError(SettingStreamError):
+class SettingSourceInvalidFormatError(SettingSourceError):
   pass
 
 
-class SettingStreamWriteError(SettingStreamError):
+class SettingSourceWriteError(SettingSourceError):
   pass
 
 
 #-------------------------------------------------------------------------------
 
 
-class GimpShelfSettingStream(SettingStream):
+class GimpShelfSettingSource(SettingSource):
   
   """
   This class reads settings from/writes settings to the GIMP shelf,
@@ -151,7 +151,7 @@ class GimpShelfSettingStream(SettingStream):
   """
   
   def __init__(self, shelf_prefix):
-    super(GimpShelfSettingStream, self).__init__()
+    super(GimpShelfSettingSource, self).__init__()
     
     self.shelf_prefix = shelf_prefix
   
@@ -170,7 +170,7 @@ class GimpShelfSettingStream(SettingStream):
           setting.reset()
     
     if self._settings_not_found:
-      raise SettingsNotFoundInStreamError(
+      raise SettingsNotFoundInSourceError(
         "The following settings could not be found in any sources: " +
         str([setting.name for setting in self._settings_not_found])
       )
@@ -180,7 +180,7 @@ class GimpShelfSettingStream(SettingStream):
       gimpshelf.shelf[(self.shelf_prefix + setting.name).encode()] = setting.value
 
 
-class JSONFileSettingStream(SettingStream):
+class JSONFileSettingSource(SettingSource):
   
   """
   This class reads settings from/writes settings to a JSON file.
@@ -190,7 +190,7 @@ class JSONFileSettingStream(SettingStream):
   """
   
   def __init__(self, filename):
-    super(JSONFileSettingStream, self).__init__()
+    super(JSONFileSettingSource, self).__init__()
     
     self.filename = filename
   
@@ -198,14 +198,14 @@ class JSONFileSettingStream(SettingStream):
     """
     Raises:
     
-    * `SettingsNotFoundInStreamError` - see the `SettingStream` class.
+    * `SettingsNotFoundInSourceError` - see the `SettingSource` class.
     
-    * `SettingStreamFileNotFoundError` - Could not find the specified file.
+    * `SettingSourceFileNotFoundError` - Could not find the specified file.
     
-    * `SettingStreamReadError` - Could not read from the specified file (IOError
+    * `SettingSourceReadError` - Could not read from the specified file (IOError
       or OSError was raised).
     
-    * `SettingStreamInvalidFormatError` - Specified file has invalid format, i.e.
+    * `SettingSourceInvalidFormatError` - Specified file has invalid format, i.e.
       it is not recognized as a valid JSON file.
     """
     
@@ -216,16 +216,16 @@ class JSONFileSettingStream(SettingStream):
         settings_from_file = json.load(json_file)
     except (IOError, OSError) as e:
       if e.errno == errno.ENOENT:
-        raise SettingStreamFileNotFoundError(
+        raise SettingSourceFileNotFoundError(
           _("Could not find file with settings \"{0}\".").format(self.filename)
         )
       else:
-        raise SettingStreamReadError(
+        raise SettingSourceReadError(
           _("Could not read settings from file \"{0}\". Make sure the file can be "
             "accessed to.").format(self.filename)
         )
     except ValueError as e:
-      raise SettingStreamInvalidFormatError(
+      raise SettingSourceInvalidFormatError(
         _("File with settings \"{0}\" is corrupt. This could happen if the file "
           "was edited manually.\n"
           "To fix this, save the settings again (to overwrite the file) "
@@ -244,7 +244,7 @@ class JSONFileSettingStream(SettingStream):
           setting.reset()
     
     if self._settings_not_found:
-      raise SettingsNotFoundInStreamError(
+      raise SettingsNotFoundInSourceError(
         "The following settings could not be found in any sources: " +
         str([setting.name for setting in self._settings_not_found])
       )
@@ -256,7 +256,7 @@ class JSONFileSettingStream(SettingStream):
     
     Raises:
     
-    * `SettingStreamWriteError` - Could not write to the specified file (IOError
+    * `SettingSourceWriteError` - Could not write to the specified file (IOError
       or OSError was raised).
     """
     
@@ -266,7 +266,7 @@ class JSONFileSettingStream(SettingStream):
       with open(self.filename, 'w') as json_file:
         json.dump(settings_dict, json_file)
     except (IOError, OSError):
-      raise SettingStreamWriteError(
+      raise SettingSourceWriteError(
         _("Could not write settings to file \"{0}\". "
           "Make sure the file can be accessed to.").format(self.filename)
       )
@@ -291,72 +291,72 @@ class SettingPersistor(object):
   
   """
   This class:
-  * serves as a wrapper for `SettingStream` classes
-  * reads settings from multiple setting streams
-  * write settings to multiple setting streams
+  * serves as a wrapper for `SettingSource` classes
+  * reads settings from multiple setting sources
+  * write settings to multiple setting sources
   """
   
   __STATUSES = SUCCESS, READ_FAIL, WRITE_FAIL, NOT_ALL_SETTINGS_FOUND = (0, 1, 2, 3)
   
   @classmethod
-  def load(cls, settings_or_groups, setting_streams):
+  def load(cls, settings_or_groups, setting_sources):
     """
-    Load setting values from the specified list of setting streams
-    (`setting_streams`) to specified list of settings or setting groups
+    Load setting values from the specified list of setting sources
+    (`setting_sources`) to specified list of settings or setting groups
     (`settings_or_groups`).
     
-    The order of streams in the `setting_streams` list indicates the preference
-    of the streams, beginning with the first stream in the list. If not all
-    settings could be found in the first stream, the second stream is read to
+    The order of sources in the `setting_sources` list indicates the preference
+    of the sources, beginning with the first source in the list. If not all
+    settings could be found in the first source, the second source is read to
     assign values to the remaining settings. This continues until all settings
     are read.
     
     If settings have invalid values, their default values will be assigned.
     
-    If some settings could not be found in any of the streams,
+    If some settings could not be found in any of the sources,
     their default values will be assigned.
     
     Parameters:
     
     * `settings_or_groups` - list of `Setting` or `SettingGroup` objects whose
-      values are loaded from `setting_streams`.
+      values are loaded from `setting_sources`.
     
-    * `setting_streams` - list of `SettingStream` instances to read from.
+    * `setting_sources` - list of `SettingSource` instances to read from.
     
     Returns:
     
       * `status`:
       
         * `SUCCESS` - Settings successfully loaded. This status is also returned
-          if `settings_or_groups` or `setting_streams` is empty.
+          if `settings_or_groups` or `setting_sources` is empty.
         
         * `NOT_ALL_SETTINGS_FOUND` - Could not find some settings from
-          any of the streams. Default values are assigned to these settings.
+          any of the sources. Default values are assigned to these settings.
         
-        * `READ_FAIL` - Could not read data from the first stream where this
-          error occurred. May occur for file streams with e.g. denied read
+        * `READ_FAIL` - Could not read data from the first source where this
+          error occurred. May occur for file sources with e.g. denied read
           permission.
       
       * `status_message` - Message describing the returned status in more detail.
     """
     
-    if not settings_or_groups or not setting_streams:
+    if not settings_or_groups or not setting_sources:
       return cls._status(cls.SUCCESS)
     
     settings = cls._list_settings(settings_or_groups)
     
-    for stream in setting_streams:
+    for source in setting_sources:
       try:
-        stream.read(settings)
-      except (SettingsNotFoundInStreamError, SettingStreamFileNotFoundError) as e:
-        if type(e) == SettingsNotFoundInStreamError:
-          settings = stream.settings_not_found
+        source.read(settings)
+      except (SettingsNotFoundInSourceError, SettingSourceFileNotFoundError) as e:
+        if type(e) == SettingsNotFoundInSourceError:
+          settings = source.settings_not_found
         
-        if stream == setting_streams[-1]:
+        if source == setting_sources[-1]:
           return cls._status(cls.NOT_ALL_SETTINGS_FOUND, e.message)
         else:
           continue
-      except (SettingStreamReadError, SettingStreamInvalidFormatError) as e:
+      except (SettingSourceReadError, SettingSourceInvalidFormatError) as e:
         return cls._status(cls.READ_FAIL, e.message)
       else:
         break
@@ -364,42 +364,42 @@ class SettingPersistor(object):
     return cls._status(cls.SUCCESS)
   
   @classmethod
-  def save(cls, settings_or_groups, setting_streams):
+  def save(cls, settings_or_groups, setting_sources):
     """
     Save setting values from specified list of settings or setting groups
-    (`settings_or_groups`) to the specified list of setting streams
-    (`setting_streams`).
+    (`settings_or_groups`) to the specified list of setting sources
+    (`setting_sources`).
     
     Parameters:
     
     * `settings_or_groups` - list of `Setting` or `SettingGroup` objects whose
-      values are saved to `setting_streams`.
+      values are saved to `setting_sources`.
     
-    * `setting_streams` - list of `SettingStream` instances to write to.
+    * `setting_sources` - list of `SettingSource` instances to write to.
     
     Returns:
     
       * `status`:
       
         * `SUCCESS` - Settings successfully saved. This status is also returned
-          if `settings_or_groups` or `setting_streams` is empty.
+          if `settings_or_groups` or `setting_sources` is empty.
         
-        * `WRITE_FAIL` - Could not write data to the first stream where this
-          error occurred. May occur for file streams with e.g. denied write
+        * `WRITE_FAIL` - Could not write data to the first source where this
+          error occurred. May occur for file sources with e.g. denied write
           permission.
       
       * `status_message` - Message describing the status in more detail.
     """
     
-    if not settings_or_groups or not setting_streams:
+    if not settings_or_groups or not setting_sources:
       return cls._status(cls.SUCCESS)
     
     settings = cls._list_settings(settings_or_groups)
     
-    for stream in setting_streams:
+    for source in setting_sources:
       try:
-        stream.write(settings)
-      except SettingStreamWriteError as e:
+        source.write(settings)
+      except SettingSourceWriteError as e:
         return cls._status(cls.WRITE_FAIL, e.message)
     
     return cls._status(cls.SUCCESS)
@@ -411,7 +411,7 @@ class SettingPersistor(object):
   @classmethod
   def _list_settings(cls, settings_or_groups):
     # Put all settings into one list so that the `read()` and `write()` methods
-    # are invoked only once per each stream.
+    # are invoked only once per each source.
     settings = []
     for setting_or_group in settings_or_groups:
       if isinstance(setting_or_group, pgsetting.Setting):
