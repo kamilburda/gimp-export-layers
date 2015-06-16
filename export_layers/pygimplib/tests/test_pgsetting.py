@@ -179,7 +179,7 @@ def on_autocrop_changed(autocrop, file_extension):
 
 class MockSettingWithGui(MockSetting):
   
-  _ALLOWED_GUI_TYPES = [MockCheckboxPresenter, MockSettingPresenter,
+  _GUI_TYPES = [MockCheckboxPresenter, MockSettingPresenter,
                         MockSettingPresenterWithValueChangedSignal,
                         MockSettingPresenterWithoutGuiElementWrapper]
 
@@ -358,10 +358,9 @@ class TestSettingGui(unittest.TestCase):
     with self.assertRaises(ValueError):
       setting.create_gui(gui_element=MockGuiWidget)
   
-  def test_create_gui_gui_type_is_invalid_raise_value_error(self):
+  def test_create_gui_manual_gui_type(self):
     setting = MockSettingWithGui("ignore_invisible", False)
-    with self.assertRaises(ValueError):
-      setting.create_gui(gui_type=MockYesNoToggleButtonPresenter)
+    setting.create_gui(gui_type=MockYesNoToggleButtonPresenter, gui_element=MockGuiWidget)
   
   def test_create_gui_gui_element_is_none_presenter_has_no_wrapper_raise_value_error(self):
     setting = MockSettingWithGui("ignore_invisible", False,

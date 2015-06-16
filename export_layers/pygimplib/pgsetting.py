@@ -163,7 +163,7 @@ class Setting(object):
   
   _ALLOWED_PDB_TYPES = []
   _ALLOWED_EMPTY_VALUES = []
-  _ALLOWED_GUI_TYPES = []
+  _GUI_TYPES = []
   
   def __init__(self, name, default_value,
                allow_empty_values=False,
@@ -366,15 +366,6 @@ class Setting(object):
     else:
       if isinstance(gui_type, SettingGuiTypes):
         gui_type = gui_type.value
-        
-      allowed_gui_types = ([type_ for type_ in self._ALLOWED_GUI_TYPES
-                           if not isinstance(type_, SettingGuiTypes)] +
-                           [type_.value for type_ in self._ALLOWED_GUI_TYPES
-                           if isinstance(type_, SettingGuiTypes)])
-      
-      if gui_type not in allowed_gui_types:
-        raise ValueError("invalid GUI type; must be one of {0}"
-                         .format([type_.__name__ for type_ in allowed_gui_types]))
     
     self._gui = gui_type(self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,
                          old_setting_presenter=self._gui, enable_gui_update=enable_gui_update)
@@ -537,18 +528,18 @@ class Setting(object):
     gui_type_to_return = None
     
     if gui_type is None:
-      if self._ALLOWED_GUI_TYPES:
-        gui_type_to_return = self._ALLOWED_GUI_TYPES[0]
+      if self._GUI_TYPES:
+        gui_type_to_return = self._GUI_TYPES[0]
       else:
         gui_type_to_return = SettingGuiTypes.none
     else:
-      if gui_type in self._ALLOWED_GUI_TYPES:
+      if gui_type in self._GUI_TYPES:
         gui_type_to_return = gui_type
       elif gui_type in [SettingGuiTypes.none, SettingGuiTypes.none.value, pgsettingpresenter.NullSettingPresenter]:
         gui_type_to_return = gui_type
       else:
         raise ValueError("invalid GUI type; must be one of {0}"
-                         .format([type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
+                         .format([type_.__name__ for type_ in self._GUI_TYPES]))
     
     if isinstance(gui_type_to_return, SettingGuiTypes):
       gui_type_to_return = gui_type_to_return.value
@@ -680,7 +671,7 @@ class BoolSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-  _ALLOWED_GUI_TYPES = [SettingGuiTypes.checkbox]
+  _GUI_TYPES = [SettingGuiTypes.checkbox]
   
   @property
   def description(self):
@@ -736,7 +727,7 @@ class EnumSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-  _ALLOWED_GUI_TYPES = [SettingGuiTypes.combobox]
+  _GUI_TYPES = [SettingGuiTypes.combobox]
   
   def __init__(self, name, default_value, items, empty_value=None, **kwargs):
     
@@ -933,7 +924,7 @@ class StringSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [gimpenums.PDB_STRING]
-  _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
+  _GUI_TYPES = [SettingGuiTypes.text_entry]
 
 
 class ValidatableStringSetting(StringSetting):
@@ -1010,7 +1001,7 @@ class FileExtensionSetting(ValidatableStringSetting):
   """
   
   _ALLOWED_EMPTY_VALUES = [""]
-  _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
+  _GUI_TYPES = [SettingGuiTypes.text_entry]
   
   def __init__(self, name, default_value, **kwargs):
     super(FileExtensionSetting, self).__init__(name, default_value, pgpath.FileExtensionValidator, **kwargs)
@@ -1035,7 +1026,7 @@ class DirectorySetting(ValidatableStringSetting):
   """
   
   _ALLOWED_EMPTY_VALUES = [None, ""]
-  _ALLOWED_GUI_TYPES = [SettingGuiTypes.folder_chooser]
+  _GUI_TYPES = [SettingGuiTypes.folder_chooser]
   
   def __init__(self, name, default_value, **kwargs):
     super(DirectorySetting, self).__init__(name, default_value, pgpath.FilePathValidator, **kwargs)
