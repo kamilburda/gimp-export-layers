@@ -42,6 +42,8 @@ import gtk
 
 import gimp
 
+from .lib import enum
+
 from . import pgsettingpresenter
 from .pggui import IntComboBox
 
@@ -254,4 +256,21 @@ class GtkExpanderPresenter(GtkSettingPresenter):
   
   def _set_value(self, value):
     self._element.set_expanded(value)
+
+
+
+#===============================================================================
+
+
+class SettingGuiTypes(enum.Enum):
+  
+  """
+  This enum maps SettingPresenter classes to more human-readable names.
+  """
+  
+  checkbox = GtkCheckButtonPresenter
+  combobox = GimpUiIntComboBoxPresenter
+  text_entry = GtkEntryPresenter
+  folder_chooser = GtkFolderChooserPresenter
+  none = pgsettingpresenter.NullSettingPresenter
 

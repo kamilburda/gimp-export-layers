@@ -48,7 +48,7 @@ from .lib import enum
 
 from . import pgpath
 from . import pgsettingpresenter
-from . import pgsettingpresenters_gtk
+from .pgsettingpresenters_gtk import SettingGuiTypes
 
 #===============================================================================
 
@@ -82,22 +82,6 @@ class SettingDefaultValueError(SettingValueError):
   """
   
   pass
-
-
-#===============================================================================
-
-
-class SettingGuiTypes(enum.Enum):
-  
-  """
-  This enum maps SettingPresenter classes to more human-readable names.
-  """
-  
-  checkbox = pgsettingpresenters_gtk.GtkCheckButtonPresenter
-  combobox = pgsettingpresenters_gtk.GimpUiIntComboBoxPresenter
-  text_entry = pgsettingpresenters_gtk.GtkEntryPresenter
-  folder_chooser = pgsettingpresenters_gtk.GtkFolderChooserPresenter
-  none = pgsettingpresenter.NullSettingPresenter
 
 
 #===============================================================================
