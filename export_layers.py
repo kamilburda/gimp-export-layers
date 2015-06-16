@@ -71,8 +71,8 @@ class ExportLayersPlugin(gimpplugin.plugin):
   def __init__(self):
     self.settings = settings_plugin.create_settings()
     
-    self.gimpshelf_stream = pgsettingpersistor.GimpShelfSettingStream(constants.SHELF_PREFIX)
-    self.config_file_stream = pgsettingpersistor.JSONFileSettingStream(constants.CONFIG_FILE)
+    self.gimpshelf_source = pgsettingpersistor.GimpShelfSettingSource(constants.SHELF_PREFIX)
+    self.config_file_source = pgsettingpersistor.JSONFileSettingSource(constants.CONFIG_FILE)
   
   def query(self):
     gimp.domain_register(constants.DOMAIN_NAME, constants.LOCALE_PATH)
@@ -126,7 +126,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
   def plug_in_export_layers_to(self, run_mode, image):
     if run_mode == gimpenums.RUN_INTERACTIVE:
       pgsettingpersistor.SettingPersistor.load(
-        [self.settings['special']['first_plugin_run']], [self.gimpshelf_stream])
+        [self.settings['special']['first_plugin_run']], [self.gimpshelf_source])
       if self.settings['special']['first_plugin_run'].value:
         self._run_export_layers_interactive(image)
       else:
@@ -145,7 +145,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
   
   def _run_with_last_vals(self, image):
     status, status_message = pgsettingpersistor.SettingPersistor.load(
-      [self.settings['main']], [self.gimpshelf_stream, self.config_file_stream])
+      [self.settings['main']], [self.gimpshelf_source, self.config_file_source])
     if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
       print(status_message)
     
@@ -153,11 +153,11 @@ class ExportLayersPlugin(gimpplugin.plugin):
   
   def _run_export_layers_interactive(self, image):
     gui_plugin.export_layers_gui(
-      image, self.settings, self.gimpshelf_stream, self.config_file_stream)
+      image, self.settings, self.gimpshelf_source, self.config_file_source)
   
   def _run_export_layers_to_interactive(self, image):
     gui_plugin.export_layers_to_gui(
-      image, self.settings, self.gimpshelf_stream, self.config_file_stream)
+      image, self.settings, self.gimpshelf_source, self.config_file_source)
   
   def _run_plugin_noninteractive(self, run_mode, image):
     layer_exporter = exportlayers.LayerExporter(
@@ -176,7 +176,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
     
     self.settings['special']['first_plugin_run'].set_value(False)
     pgsettingpersistor.SettingPersistor.save(
-      [self.settings['main'], self.settings['special']['first_plugin_run']], [self.gimpshelf_stream])
+      [self.settings['main'], self.settings['special']['first_plugin_run']], [self.gimpshelf_source])
 
 #===============================================================================
 
