@@ -410,36 +410,36 @@ class _ExportLayersGui(object):
     self.dialog.action_area.set_border_width(self.ACTION_AREA_BORDER_WIDTH)
   
   def set_gui_for_settings(self):
-    self.settings['main']['file_extension'].set_gui(
+    self.settings['main']['file_extension'].create_gui(
       pgsettingpresenters_gtk.GtkEntryPresenter, self.file_extension_entry)
-    self.settings['main']['output_directory'].set_gui(
+    self.settings['main']['output_directory'].create_gui(
       pgsettingpresenters_gtk.GtkFolderChooserPresenter, self.folder_chooser)
-    self.settings['main']['layer_groups_as_folders'].set_gui(
+    self.settings['main']['layer_groups_as_folders'].create_gui(
       pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.export_settings_layer_groups)
-    self.settings['main']['ignore_invisible'].set_gui(
+    self.settings['main']['ignore_invisible'].create_gui(
       pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.export_settings_ignore_invisible)
-    self.settings['main']['autocrop'].set_gui(
+    self.settings['main']['autocrop'].create_gui(
       pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.export_settings_autocrop)
-    self.settings['main']['use_image_size'].set_gui(
+    self.settings['main']['use_image_size'].create_gui(
       pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.export_settings_use_image_size)
-    self.settings['main']['file_ext_mode'].set_gui(
+    self.settings['main']['file_ext_mode'].create_gui(
       pgsettingpresenters_gtk.GimpUiIntComboBoxPresenter, self.advanced_settings_file_ext_mode)
-    self.settings['main']['strip_mode'].set_gui(
+    self.settings['main']['strip_mode'].create_gui(
       pgsettingpresenters_gtk.GimpUiIntComboBoxPresenter, self.advanced_settings_strip_mode)
-    self.settings['main']['square_bracketed_mode'].set_gui(
+    self.settings['main']['square_bracketed_mode'].create_gui(
       pgsettingpresenters_gtk.GimpUiIntComboBoxPresenter, self.advanced_settings_square_bracketed_mode)
-    self.settings['main']['crop_to_background'].set_gui(
+    self.settings['main']['crop_to_background'].create_gui(
       pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.advanced_settings_crop_to_background)
-    self.settings['main']['merge_layer_groups'].set_gui(
+    self.settings['main']['merge_layer_groups'].create_gui(
       pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.advanced_settings_merge_layer_groups)
-    self.settings['main']['empty_folders'].set_gui(
+    self.settings['main']['empty_folders'].create_gui(
       pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.advanced_settings_empty_folders)
-    self.settings['main']['ignore_layer_modes'].set_gui(
+    self.settings['main']['ignore_layer_modes'].create_gui(
       pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.advanced_settings_ignore_layer_modes)
     
-    self.settings['gui']['dialog_position'].set_gui(
+    self.settings['gui']['dialog_position'].create_gui(
       pgsettingpresenters_gtk.GtkWindowPositionPresenter, self.dialog)
-    self.settings['gui']['advanced_settings_expanded'].set_gui(
+    self.settings['gui']['advanced_settings_expanded'].create_gui(
       pgsettingpresenters_gtk.GtkExpanderPresenter, self.expander_advanced_settings)
   
   def reset_settings(self):
