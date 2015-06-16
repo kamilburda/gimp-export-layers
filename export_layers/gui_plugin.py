@@ -211,16 +211,16 @@ class _ExportLayersGui(object):
   
   _GUI_REFRESH_INTERVAL_MILLISECONDS = 500
   
-  def __init__(self, image, settings, session_source, config_file_source):
+  def __init__(self, image, settings, session_source, persistent_source):
     self.image = image
     self.settings = settings
     self.session_source = session_source
-    self.config_file_source = config_file_source
+    self.persistent_source = persistent_source
     
     settings_plugin.add_gui_settings(settings)
     
     status, status_message = pgsettingpersistor.SettingPersistor.load(
-      [self.settings['main'], self.settings['gui']], [self.session_source, self.config_file_source])
+      [self.settings['main'], self.settings['gui']], [self.session_source, self.persistent_source])
     if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING)
     
@@ -408,7 +408,7 @@ class _ExportLayersGui(object):
   
   def save_settings(self):
     status, status_message = pgsettingpersistor.SettingPersistor.save(
-      [self.settings['main'], self.settings['gui']], [self.session_source, self.config_file_source])
+      [self.settings['main'], self.settings['gui']], [self.session_source, self.persistent_source])
     if status == pgsettingpersistor.SettingPersistor.WRITE_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING, parent=self.dialog)
     
@@ -543,11 +543,11 @@ class _ExportLayersToGui(object):
   
   _GUI_REFRESH_INTERVAL_MILLISECONDS = 500
   
-  def __init__(self, image, settings, session_source, config_file_source):
+  def __init__(self, image, settings, session_source, persistent_source):
     self.image = image
     self.settings = settings
     self.session_source = session_source
-    self.config_file_source = config_file_source
+    self.persistent_source = persistent_source
     
     pgsettingpersistor.SettingPersistor.load([self.settings['main']], [self.session_source])
     
@@ -598,11 +598,11 @@ class _ExportLayersToGui(object):
 #===============================================================================
 
 
-def export_layers_gui(image, settings, session_source, config_file_source):
+def export_layers_gui(image, settings, session_source, persistent_source):
   with pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST):
-    _ExportLayersGui(image, settings, session_source, config_file_source)
+    _ExportLayersGui(image, settings, session_source, persistent_source)
 
 
-def export_layers_to_gui(image, settings, session_source, config_file_source):
+def export_layers_to_gui(image, settings, session_source, persistent_source):
   with pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST):
-    _ExportLayersToGui(image, settings, session_source, config_file_source)
+    _ExportLayersToGui(image, settings, session_source, persistent_source)
