@@ -181,17 +181,21 @@ class SessionPersistentSettingSource(SettingSource):
       gimpshelf.shelf[(self.source_name + setting.name).encode()] = setting.value
 
 
-class JSONFileSettingSource(SettingSource):
+class PersistentSettingSource(SettingSource):
   
   """
-  This class reads settings from/writes settings to a JSON file.
+  This class reads settings from/writes settings to a persistent source.
   
-  This class provides a persistent storage for settings. It stores
-  the setting name and value in the file.
+  This class storage settings in a JSON file, containing the name and last used
+  value of each setting.
+  
+  Attributes:
+  
+  * `filename` - Filename of the persistent source.
   """
   
   def __init__(self, filename):
-    super(JSONFileSettingSource, self).__init__()
+    super(PersistentSettingSource, self).__init__()
     
     self.filename = filename
   
