@@ -366,10 +366,15 @@ class Setting(object):
     else:
       if isinstance(gui_type, SettingGuiTypes):
         gui_type = gui_type.value
+        
+      allowed_gui_types = ([type_ for type_ in self._ALLOWED_GUI_TYPES
+                           if not isinstance(type_, SettingGuiTypes)] +
+                           [type_.value for type_ in self._ALLOWED_GUI_TYPES
+                           if isinstance(type_, SettingGuiTypes)])
       
-      if gui_type not in self._ALLOWED_GUI_TYPES:
+      if gui_type not in allowed_gui_types:
         raise ValueError("invalid GUI type; must be one of {0}"
-                         .format([type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
+                         .format([type_.__name__ for type_ in allowed_gui_types]))
     
     self._gui = gui_type(self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,
                          old_setting_presenter=self._gui, enable_gui_update=enable_gui_update)
