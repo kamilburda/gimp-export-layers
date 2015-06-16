@@ -136,31 +136,32 @@ class SettingSourceWriteError(SettingSourceError):
 #-------------------------------------------------------------------------------
 
 
-class GimpShelfSettingSource(SettingSource):
+class SessionPersistentSettingSource(SettingSource):
   
   """
-  This class reads settings from/writes settings to the GIMP shelf,
-  persisting during one GIMP session.
+  This class reads settings from/writes settings to a source that persists
+  during one GIMP session.
   
-  This class stores the setting name and value in the GIMP shelf.
+  GIMP shelf is used as the session-persistent source and contains the
+  name and last used value of each setting.
   
   Attributes:
   
-  * `shelf_prefix` - Prefix used to distinguish entries in the GIMP shelf
-    to avoid overwriting existing entries which belong to different plug-ins.
+  * `source_name` - Unique identifier to distinguish entries from different
+    plug-ins in this source.
   """
   
-  def __init__(self, shelf_prefix):
-    super(GimpShelfSettingSource, self).__init__()
+  def __init__(self, source_name):
+    super(SessionPersistentSettingSource, self).__init__()
     
-    self.shelf_prefix = shelf_prefix
+    self.source_name = source_name
   
   def read(self, settings):
     self._settings_not_found = []
     
     for setting in settings:
       try:
-        value = gimpshelf.shelf[(self.shelf_prefix + setting.name).encode()]
+        value = gimpshelf.shelf[(self.source_name + setting.name).encode()]
       except KeyError:
         self._settings_not_found.append(setting)
       else:
@@ -177,7 +178,7 @@ class GimpShelfSettingSource(SettingSource):
   
   def write(self, settings):
     for setting in settings:
-      gimpshelf.shelf[(self.shelf_prefix + setting.name).encode()] = setting.value
+      gimpshelf.shelf[(self.source_name + setting.name).encode()] = setting.value
 
 
 class JSONFileSettingSource(SettingSource):

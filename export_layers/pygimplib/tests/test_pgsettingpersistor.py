@@ -126,12 +126,12 @@ def create_test_settings_hierarchical():
 #===============================================================================
 
 
-class TestShelfSettingSource(unittest.TestCase):
+class TestSessionPersistentSettingSource(unittest.TestCase):
   
   @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def setUp(self):
-    self.prefix = 'test_settings_'
-    self.source = pgsettingpersistor.GimpShelfSettingSource(self.prefix)
+    self.source_name = 'test_settings_'
+    self.source = pgsettingpersistor.SessionPersistentSettingSource(self.source_name)
     self.settings = create_test_settings()
   
   @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
@@ -140,13 +140,13 @@ class TestShelfSettingSource(unittest.TestCase):
     self.settings['ignore_invisible'].set_value(True)
     self.source.write(self.settings)
     
-    self.assertEqual(pgsettingpersistor.gimpshelf.shelf[self.prefix + 'file_extension'], "png")
-    self.assertEqual(pgsettingpersistor.gimpshelf.shelf[self.prefix + 'ignore_invisible'], True)
+    self.assertEqual(pgsettingpersistor.gimpshelf.shelf[self.source_name + 'file_extension'], "png")
+    self.assertEqual(pgsettingpersistor.gimpshelf.shelf[self.source_name + 'ignore_invisible'], True)
   
   @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_read(self):
-    pgsettingpersistor.gimpshelf.shelf[self.prefix + 'file_extension'] = "png"
-    pgsettingpersistor.gimpshelf.shelf[self.prefix + 'ignore_invisible'] = True
+    pgsettingpersistor.gimpshelf.shelf[self.source_name + 'file_extension'] = "png"
+    pgsettingpersistor.gimpshelf.shelf[self.source_name + 'ignore_invisible'] = True
     self.source.read([self.settings['file_extension'], self.settings['ignore_invisible']])
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
@@ -236,7 +236,7 @@ class TestSettingPersistor(unittest.TestCase):
   @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def setUp(self):
     self.settings = create_test_settings()
-    self.shelf_source = pgsettingpersistor.GimpShelfSettingSource('')
+    self.session_source = pgsettingpersistor.SessionPersistentSettingSource('')
     self.json_source = pgsettingpersistor.JSONFileSettingSource('filename')
   
   @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
@@ -247,14 +247,14 @@ class TestSettingPersistor(unittest.TestCase):
     self.settings['ignore_invisible'].set_value(True)
     
     status, unused_ = pgsettingpersistor.SettingPersistor.save(
-      [self.settings], [self.shelf_source, self.json_source])
+      [self.settings], [self.session_source, self.json_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
     
     self.settings['file_extension'].set_value("jpg")
     self.settings['ignore_invisible'].set_value(False)
     
     status, unused_ = pgsettingpersistor.SettingPersistor.load(
-      [self.settings], [self.shelf_source, self.json_source])
+      [self.settings], [self.session_source, self.json_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
@@ -265,13 +265,13 @@ class TestSettingPersistor(unittest.TestCase):
     
     self.settings['file_extension'].set_value("png")
     self.settings['ignore_invisible'].set_value(True)
-    self.shelf_source.write([self.settings['file_extension']])
+    self.session_source.write([self.settings['file_extension']])
     self.settings['file_extension'].set_value("jpg")
     self.json_source.write([self.settings['ignore_invisible'], self.settings['file_extension']])
     self.settings['file_extension'].set_value("gif")
     self.settings['ignore_invisible'].set_value(False)
     
-    pgsettingpersistor.SettingPersistor.load([self.settings], [self.shelf_source, self.json_source])
+    pgsettingpersistor.SettingPersistor.load([self.settings], [self.session_source, self.json_source])
     
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
@@ -286,11 +286,11 @@ class TestSettingPersistor(unittest.TestCase):
     
     settings['main']['file_extension'].set_value("png")
     settings['advanced']['ignore_invisible'].set_value(True)
-    self.shelf_source.write(list(settings.iterate_all()))
+    self.session_source.write(list(settings.iterate_all()))
     settings['main']['file_extension'].set_value("gif")
     settings['advanced']['ignore_invisible'].set_value(False)
     
-    pgsettingpersistor.SettingPersistor.load([settings], [self.shelf_source])
+    pgsettingpersistor.SettingPersistor.load([settings], [self.session_source])
     
     self.assertEqual(settings['main']['file_extension'].value, "png")
     self.assertEqual(settings['advanced']['ignore_invisible'].value, True)
@@ -302,17 +302,17 @@ class TestSettingPersistor(unittest.TestCase):
     mock_file.side_effect.errno = errno.ENOENT
     
     status, unused_ = pgsettingpersistor.SettingPersistor.load(
-      [self.settings], [self.shelf_source, self.json_source])
+      [self.settings], [self.session_source, self.json_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
     
   @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
   def test_load_settings_not_found(self, mock_file):
     mock_file.return_value.__enter__.return_value = MockStringIO()
-    self.shelf_source.write([self.settings['ignore_invisible']])
+    self.session_source.write([self.settings['ignore_invisible']])
     self.json_source.write([self.settings['file_extension'], self.settings['ignore_invisible']])
     
     status, unused_ = pgsettingpersistor.SettingPersistor.load(
-      [self.settings['overwrite_mode']], [self.shelf_source, self.json_source])
+      [self.settings['overwrite_mode']], [self.session_source, self.json_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
   @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
@@ -320,17 +320,17 @@ class TestSettingPersistor(unittest.TestCase):
     mock_file.return_value.__enter__.return_value = MockStringIO()
     
     status, unused_ = pgsettingpersistor.SettingPersistor.load(
-      [self.settings], [self.shelf_source, self.json_source])
+      [self.settings], [self.session_source, self.json_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
     
     mock_file.side_effect = IOError()
     status, unused_ = pgsettingpersistor.SettingPersistor.load(
-      [self.settings], [self.shelf_source, self.json_source])
+      [self.settings], [self.session_source, self.json_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
     
     mock_file.side_effect = OSError()
     status, unused_ = pgsettingpersistor.SettingPersistor.load(
-      [self.settings], [self.shelf_source, self.json_source])
+      [self.settings], [self.session_source, self.json_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
   
   @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
@@ -339,11 +339,11 @@ class TestSettingPersistor(unittest.TestCase):
     
     mock_file.side_effect = IOError()
     status, unused_ = pgsettingpersistor.SettingPersistor.save(
-      [self.settings], [self.shelf_source, self.json_source])
+      [self.settings], [self.session_source, self.json_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.WRITE_FAIL)
     
     mock_file.side_effect = OSError()
     status, unused_ = pgsettingpersistor.SettingPersistor.save(
-      [self.settings], [self.shelf_source, self.json_source])
+      [self.settings], [self.session_source, self.json_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.WRITE_FAIL)
 
