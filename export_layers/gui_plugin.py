@@ -253,40 +253,36 @@ class _ExportLayersGui(object):
     self.file_extension_entry = gtk.Entry()
     self.file_extension_entry.set_size_request(100, -1)
     self.file_extension_entry.set_tooltip_text(_(
-        "Type in file extension (with or without the leading period). "
-        "To export in RAW format, type \"data\"."
-      ))
+      "Type in file extension (with or without the leading period). "
+      "To export in RAW format, type \"data\"."
+    ))
     self.label_message = gtk.Label()
     self.label_message.set_alignment(0.0, 0.5)
     
-    self.export_settings_layer_groups = gtk.CheckButton(self.settings['main']['layer_groups_as_folders'].display_name)
-    self.export_settings_ignore_invisible = gtk.CheckButton(self.settings['main']['ignore_invisible'].display_name)
-    self.export_settings_autocrop = gtk.CheckButton(self.settings['main']['autocrop'].display_name)
-    self.export_settings_use_image_size = gtk.CheckButton(self.settings['main']['use_image_size'].display_name)
+    self.expander_advanced_settings = gtk.Expander()
+    self.expander_advanced_settings.set_use_markup(True)
+    self.expander_advanced_settings.set_use_underline(True)
+    self.expander_advanced_settings.set_label("<b>" + _("_Advanced Settings") + "</b>")
+    self.expander_advanced_settings.set_spacing(self.ADVANCED_SETTINGS_VERTICAL_SPACING // 2)
     
-    self.advanced_settings_file_ext_mode_label = gtk.Label(self.settings['main']['file_ext_mode'].display_name + ":")
+    self.advanced_settings_file_ext_mode_label = gtk.Label(
+      self.settings['main']['file_ext_mode'].display_name + ":")
     self.advanced_settings_file_ext_mode_label.set_alignment(0, 0.5)
-    self.advanced_settings_file_ext_mode = pggui.IntComboBox(
-      self.settings['main']['file_ext_mode'].get_item_display_names_and_values()
-    )
-    self.advanced_settings_strip_mode = pggui.IntComboBox(
-      self.settings['main']['strip_mode'].get_item_display_names_and_values()
-    )
     
     self.advanced_settings_square_bracketed_mode_label = gtk.Label(
       self.settings['main']['square_bracketed_mode'].display_name + ":")
     self.advanced_settings_square_bracketed_mode_label.set_alignment(0, 0.5)
-    self.advanced_settings_square_bracketed_mode = pggui.IntComboBox(
-      self.settings['main']['square_bracketed_mode'].get_item_display_names_and_values()
-    )
-    self.advanced_settings_crop_to_background = gtk.CheckButton(
-      self.settings['main']['crop_to_background'].display_name
-    )
     
-    self.advanced_settings_merge_layer_groups = gtk.CheckButton(self.settings['main']['merge_layer_groups'].display_name)
-    self.advanced_settings_empty_folders = gtk.CheckButton(self.settings['main']['empty_folders'].display_name)
-    self.advanced_settings_ignore_layer_modes = gtk.CheckButton(self.settings['main']['ignore_layer_modes'].display_name)
-    
+    self.settings.initialize_gui({
+      'file_extension': [
+         pgsettingpresenters_gtk.GtkEntryPresenter, self.file_extension_entry],
+      'output_directory': [
+         pgsettingpresenters_gtk.GtkFolderChooserPresenter, self.folder_chooser],
+      'dialog_position': [
+         pgsettingpresenters_gtk.GtkWindowPositionPresenter, self.dialog],
+      'advanced_settings_expanded': [
+         pgsettingpresenters_gtk.GtkExpanderPresenter, self.expander_advanced_settings],
+    })
     
     self.hbox_file_extension_entry = gtk.HBox(homogeneous=False)
     self.hbox_file_extension_entry.set_spacing(30)
@@ -299,10 +295,10 @@ class _ExportLayersGui(object):
     self.hbox_file_extension.pack_start(self.label_message, expand=False, fill=True)
     
     self.hbox_export_settings = gtk.HBox(homogeneous=False)
-    self.hbox_export_settings.pack_start(self.export_settings_layer_groups)
-    self.hbox_export_settings.pack_start(self.export_settings_ignore_invisible)
-    self.hbox_export_settings.pack_start(self.export_settings_autocrop)
-    self.hbox_export_settings.pack_start(self.export_settings_use_image_size)
+    self.hbox_export_settings.pack_start(self.settings['main']['layer_groups_as_folders'].gui.element)
+    self.hbox_export_settings.pack_start(self.settings['main']['ignore_invisible'].gui.element)
+    self.hbox_export_settings.pack_start(self.settings['main']['autocrop'].gui.element)
+    self.hbox_export_settings.pack_start(self.settings['main']['use_image_size'].gui.element)
     
     self.table_labels = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_labels.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
@@ -311,13 +307,14 @@ class _ExportLayersGui(object):
     
     self.table_combo_boxes = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_combo_boxes.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
-    self.table_combo_boxes.attach(self.advanced_settings_file_ext_mode, 0, 1, 0, 1, yoptions=0)
-    self.table_combo_boxes.attach(self.advanced_settings_square_bracketed_mode, 0, 1, 1, 2, yoptions=0)
+    self.table_combo_boxes.attach(self.settings['main']['file_ext_mode'].gui.element, 0, 1, 0, 1, yoptions=0)
+    self.table_combo_boxes.attach(
+      self.settings['main']['square_bracketed_mode'].gui.element, 0, 1, 1, 2, yoptions=0)
     
     self.table_additional_elems = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_additional_elems.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
-    self.table_additional_elems.attach(self.advanced_settings_strip_mode, 0, 1, 0, 1, yoptions=0)
-    self.table_additional_elems.attach(self.advanced_settings_crop_to_background, 0, 1, 1, 2)
+    self.table_additional_elems.attach(self.settings['main']['strip_mode'].gui.element, 0, 1, 0, 1, yoptions=0)
+    self.table_additional_elems.attach(self.settings['main']['crop_to_background'].gui.element, 0, 1, 1, 2)
     
     self.hbox_tables = gtk.HBox(homogeneous=False)
     self.hbox_tables.set_spacing(self.ADVANCED_SETTINGS_HORIZONTAL_SPACING)
@@ -327,9 +324,12 @@ class _ExportLayersGui(object):
     
     self.hbox_advanced_settings_checkbuttons = gtk.HBox(homogeneous=False)
     self.hbox_advanced_settings_checkbuttons.set_spacing(self.ADVANCED_SETTINGS_HORIZONTAL_SPACING)
-    self.hbox_advanced_settings_checkbuttons.pack_start(self.advanced_settings_merge_layer_groups, expand=False, fill=True)
-    self.hbox_advanced_settings_checkbuttons.pack_start(self.advanced_settings_empty_folders, expand=False, fill=True)
-    self.hbox_advanced_settings_checkbuttons.pack_start(self.advanced_settings_ignore_layer_modes, expand=False, fill=True)
+    self.hbox_advanced_settings_checkbuttons.pack_start(
+      self.settings['main']['merge_layer_groups'].gui.element, expand=False, fill=True)
+    self.hbox_advanced_settings_checkbuttons.pack_start(
+      self.settings['main']['empty_folders'].gui.element, expand=False, fill=True)
+    self.hbox_advanced_settings_checkbuttons.pack_start(
+      self.settings['main']['ignore_layer_modes'].gui.element, expand=False, fill=True)
     
     self.vbox_advanced_settings = gtk.VBox(homogeneous=False)
     self.vbox_advanced_settings.set_spacing(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
@@ -338,11 +338,6 @@ class _ExportLayersGui(object):
     
     self.alignment_advanced_settings = gtk.Alignment()
     self.alignment_advanced_settings.set_padding(0, 0, self.ADVANCED_SETTINGS_LEFT_MARGIN, 0)
-    self.expander_advanced_settings = gtk.Expander()
-    self.expander_advanced_settings.set_use_markup(True)
-    self.expander_advanced_settings.set_use_underline(True)
-    self.expander_advanced_settings.set_label("<b>" + _("_Advanced Settings") + "</b>")
-    self.expander_advanced_settings.set_spacing(self.ADVANCED_SETTINGS_VERTICAL_SPACING // 2)
     self.alignment_advanced_settings.add(self.vbox_advanced_settings)
     self.expander_advanced_settings.add(self.alignment_advanced_settings)
     
@@ -398,8 +393,6 @@ class _ExportLayersGui(object):
     self.progress_bar.hide()
     self.stop_button.hide()
     
-    self.set_gui_for_settings()
-    
     self.dialog.set_focus(self.file_extension_entry)
     self.dialog.set_default(self.export_layers_button)
     self.file_extension_entry.set_activates_default(True)
@@ -408,39 +401,6 @@ class _ExportLayersGui(object):
     
     self.dialog.show()
     self.dialog.action_area.set_border_width(self.ACTION_AREA_BORDER_WIDTH)
-  
-  def set_gui_for_settings(self):
-    self.settings['main']['file_extension'].create_gui(
-      pgsettingpresenters_gtk.GtkEntryPresenter, self.file_extension_entry)
-    self.settings['main']['output_directory'].create_gui(
-      pgsettingpresenters_gtk.GtkFolderChooserPresenter, self.folder_chooser)
-    self.settings['main']['layer_groups_as_folders'].create_gui(
-      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.export_settings_layer_groups)
-    self.settings['main']['ignore_invisible'].create_gui(
-      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.export_settings_ignore_invisible)
-    self.settings['main']['autocrop'].create_gui(
-      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.export_settings_autocrop)
-    self.settings['main']['use_image_size'].create_gui(
-      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.export_settings_use_image_size)
-    self.settings['main']['file_ext_mode'].create_gui(
-      pgsettingpresenters_gtk.GimpUiIntComboBoxPresenter, self.advanced_settings_file_ext_mode)
-    self.settings['main']['strip_mode'].create_gui(
-      pgsettingpresenters_gtk.GimpUiIntComboBoxPresenter, self.advanced_settings_strip_mode)
-    self.settings['main']['square_bracketed_mode'].create_gui(
-      pgsettingpresenters_gtk.GimpUiIntComboBoxPresenter, self.advanced_settings_square_bracketed_mode)
-    self.settings['main']['crop_to_background'].create_gui(
-      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.advanced_settings_crop_to_background)
-    self.settings['main']['merge_layer_groups'].create_gui(
-      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.advanced_settings_merge_layer_groups)
-    self.settings['main']['empty_folders'].create_gui(
-      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.advanced_settings_empty_folders)
-    self.settings['main']['ignore_layer_modes'].create_gui(
-      pgsettingpresenters_gtk.GtkCheckButtonPresenter, self.advanced_settings_ignore_layer_modes)
-    
-    self.settings['gui']['dialog_position'].create_gui(
-      pgsettingpresenters_gtk.GtkWindowPositionPresenter, self.dialog)
-    self.settings['gui']['advanced_settings_expanded'].create_gui(
-      pgsettingpresenters_gtk.GtkExpanderPresenter, self.expander_advanced_settings)
   
   def reset_settings(self):
     for setting_group in [self.settings['main'], self.settings['gui']]:
