@@ -186,7 +186,7 @@ class PersistentSettingSource(SettingSource):
   """
   This class reads settings from/writes settings to a persistent source.
   
-  This class storage settings in a JSON file, containing the name and last used
+  This class stores settings in a JSON file, containing the name and last used
   value of each setting.
   
   Attributes:
