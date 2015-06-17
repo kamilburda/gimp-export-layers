@@ -20,9 +20,7 @@
 #-------------------------------------------------------------------------------
 
 """
-This module:
-* defines GUI for the plug-in
-* defines GUI-specific settings
+This module defines the GUI for the plug-in.
 """
 
 #===============================================================================
