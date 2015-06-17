@@ -20,7 +20,8 @@
 #-------------------------------------------------------------------------------
 
 """
-This module defines the interface to update the progress of the work done so far.
+This module defines the interface to update the progress of the work done so
+far.
 """
 
 #===============================================================================

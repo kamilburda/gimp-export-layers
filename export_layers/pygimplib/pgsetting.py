@@ -20,8 +20,8 @@
 #-------------------------------------------------------------------------------
 
 """
-This module:
-* defines setting classes that can be used to create plug-in settings
+This module defines API that can be used to create plug-in settings and GUI
+elements associated with the settings.
 """
 
 #===============================================================================

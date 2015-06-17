@@ -20,7 +20,8 @@
 #-------------------------------------------------------------------------------
 
 """
-This module defines a class to filter objects according to specified filter rules.
+This module defines a class to filter objects according to specified filter
+rules.
 """
 
 #===============================================================================
