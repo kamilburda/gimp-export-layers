@@ -52,7 +52,7 @@ _
 runtests.run_tests()
 
 
-The `_` is vital if you're using `gettext` module for internationalization.
+The `_` is vital if you're using the `gettext` module for internationalization.
 """
 
 #===============================================================================

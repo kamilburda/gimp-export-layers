@@ -23,7 +23,7 @@
 This module:
 * defines the means to load and save settings:
   * persistently
-  * "session-persistently" - settings persist during one GIMP session
+  * "session-persistently" - i.e. settings persist during one GIMP session
 """
 
 #===============================================================================
