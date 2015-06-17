@@ -341,9 +341,6 @@ class TestSettingGui(unittest.TestCase):
       MockSettingWithGui("ignore_invisible", False, gui_type=MockYesNoToggleButtonPresenter)
   
   def test_setting_null_gui_type(self):
-    # FIXME: Why doesn't `pgsetting.SettingGuiTypes.none.value` equal `pgsettingpresenter.NullSettingPresenter`?
-    # Possible cause: `pgsettingpresenter` is imported multiple times and in each case, the
-    # `NullSettingPresenter` class has a different `id` and thus `issubclass` and `isinstance` fail.
     setting = MockSettingWithGui("ignore_invisible", False, gui_type=pgsettingpresenter.NullSettingPresenter)
     setting.create_gui()
     self.assertIs(type(setting.gui), pgsettingpresenter.NullSettingPresenter)
@@ -672,11 +669,11 @@ class TestFileExtensionSetting(unittest.TestCase):
       pgsetting.FileExtensionSetting('file_ext', None)
   
   def test_custom_error_message(self):
-    self.setting.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = "My Custom Message"
+    self.setting.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = "my custom message"
     try:
       self.setting.set_value("")
     except pgsetting.SettingValueError as e:
-      self.assertEqual(e.message, "My Custom Message")
+      self.assertEqual(e.message, "my custom message")
 
 
 class TestDirectorySetting(unittest.TestCase):

@@ -145,7 +145,7 @@ class SettingPresenter(object):
       if self._GUI_ELEMENT_WRAPPER:
         self._element = self._GUI_ELEMENT_WRAPPER.create(setting)
       else:
-        raise ValueError("Cannot instantiate {0} class: "
+        raise ValueError("cannot instantiate \"{0}\" class: "
                          "`element` is None and this class does not define a "
                          "GUI element wrapper from which a GUI element could be instantiated"
                          .format(type(self).__name__))
@@ -233,7 +233,7 @@ class SettingPresenter(object):
     """
     
     if enabled and self._VALUE_CHANGED_SIGNAL is None:
-      raise ValueError("Cannot enable automatic GUI update - {0} class does not "
+      raise ValueError("cannot enable automatic GUI update - \"{0}\" class does not "
                        "support it".format(type(self).__name__))
     
     if enabled:

@@ -74,7 +74,7 @@ class ProgressUpdater(object):
     """
     
     if self._num_finished_tasks + num_tasks > self.num_total_tasks:
-      raise ValueError("Number of finished tasks exceeds the number of total tasks")
+      raise ValueError("number of finished tasks exceeds the number of total tasks")
     
     self._num_finished_tasks += num_tasks
     

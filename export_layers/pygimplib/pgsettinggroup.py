@@ -196,7 +196,7 @@ class SettingGroup(object):
       if setting_name in self._settings:
         del self._settings[setting_name]
       else:
-        raise KeyError("setting '{0}' not found".format(setting_name))
+        raise KeyError("setting \"{0}\" not found".format(setting_name))
   
   def set_ignore_tags(self, ignored_settings_and_tags):
     """
@@ -322,7 +322,7 @@ class SettingGroup(object):
       raise TypeError(self._get_missing_mandatory_attributes_message(['name']))
     
     if setting_data['name'] in self._settings:
-      raise KeyError("setting '{0}' already exists".format(setting_data['name']))
+      raise KeyError("setting \"{0}\" already exists".format(setting_data['name']))
     
     try:
       self._settings[setting_data['name']] = setting_type(**setting_data)
@@ -336,7 +336,7 @@ class SettingGroup(object):
   
   def _add_setting_group(self, setting_group):
     if setting_group.name in self._settings:
-      raise KeyError("setting group '{0}' already exists".format(setting_group.name))
+      raise KeyError("setting group \"{0}\" already exists".format(setting_group.name))
     
     self._settings[setting_group.name] = setting_group
   
