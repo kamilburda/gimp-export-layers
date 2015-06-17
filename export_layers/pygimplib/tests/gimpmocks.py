@@ -20,8 +20,8 @@
 #-------------------------------------------------------------------------------
 
 """
-This module contains mock objects for GIMP objects, classes, etc.
-that can be used in unit tests.
+This module contains mock objects for GIMP objects, classes, etc. that can be
+used in unit tests.
 """
 
 #===============================================================================

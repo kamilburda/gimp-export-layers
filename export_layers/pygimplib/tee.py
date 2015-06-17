@@ -20,8 +20,8 @@
 #-------------------------------------------------------------------------------
 
 """
-This module defines a class to log stdout or stderr output to a specified file,
-much like the Unix "tee" command.
+This module defines a class to log "stdout" and "stderr" output to the specified
+file, much like the Unix "tee" command.
 """
 
 #===============================================================================

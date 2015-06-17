@@ -23,8 +23,8 @@
 This module tests the `pgitemdata` module.
 
 Because the public interface to test is identical for all `ItemData` subclasses,
-it is sufficient to test `pgitemdata` using one of the subclasses. `LayerData` was
-chosen for this purpose.
+it is sufficient to test `pgitemdata` using one of the subclasses. `LayerData`
+was chosen for this purpose.
 """
 
 #===============================================================================

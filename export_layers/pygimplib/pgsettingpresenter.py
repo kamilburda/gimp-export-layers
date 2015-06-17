@@ -20,9 +20,8 @@
 #-------------------------------------------------------------------------------
 
 """
-This module:
-* defines classes used to update GUI elements and keep them in sync with their
-  associated settings
+This module defines classes to keep GUI elements and their associated settings
+in sync.
 """
 
 #===============================================================================

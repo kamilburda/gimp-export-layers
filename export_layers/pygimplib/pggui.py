@@ -23,10 +23,10 @@
 This module defines:
 * GTK overwrite dialog
 * GTK progress updater
-* GTK exception message
-* GTK generic message
-* context manager for `sys.excepthook` that displays GTK exception message when
-  an unhandled exception is raised
+* GTK exception dialog
+* GTK generic message dialog
+* wrapper for `sys.excepthook` that displays the GTK exception dialog when an
+  unhandled exception is raised
 """
 
 #===============================================================================

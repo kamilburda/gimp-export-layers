@@ -21,7 +21,8 @@
 
 """
 This module:
-* defines a class to group settings together for easier management
+* defines a class to group settings together for easier creation and management
+  of settings
 * defines a class to format settings as GIMP PDB parameters
 """
 
