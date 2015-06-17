@@ -156,17 +156,17 @@ class TestObjectFilter(unittest.TestCase):
   def test_get_subfilter(self):
     with self.assertRaises(ValueError):
       self.filter.get_subfilter('subfilter_does_not_exist')
-    
-    with self.assertRaises(ValueError):
-      # Key is not a subfilter
-      self.filter.get_subfilter(has_matching_file_extension)
   
-  def test_add_subfilter(self):
+  def test_add_subfilter_invalid_type(self):
+    with self.assertRaises(ValueError):
+      self.filter.add_subfilter('subfilter', has_matching_file_extension)
+  
+  def test_add_subfilter_already_exists(self):
     self.filter.add_subfilter('subfilter', ObjectFilter(ObjectFilter.MATCH_ALL))
     with self.assertRaises(ValueError):
       self.filter.add_subfilter('subfilter', ObjectFilter(ObjectFilter.MATCH_ALL))
   
-  def test_remove_subfilter(self):
+  def test_remove_subfilter_does_not_exist(self):
     with self.assertRaises(ValueError):
       self.filter.remove_subfilter('subfilter_does_not_exist')
   

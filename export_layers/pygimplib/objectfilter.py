@@ -223,6 +223,9 @@ class ObjectFilter(object):
     if self.has_subfilter(subfilter_name):
       raise ValueError("subfilter named \"" + str(subfilter_name) + "\" already exists in the filter")
     
+    if not isinstance(subfilter, ObjectFilter):
+      raise ValueError("subfilter named \"" + str(subfilter_name) + "\" is not a subfilter")
+    
     self._filter_items[subfilter_name] = subfilter
   
   def get_subfilter(self, subfilter_name):
@@ -239,9 +242,6 @@ class ObjectFilter(object):
       raise ValueError("subfilter named \"" + str(subfilter_name) + "\" not found in filter")
     
     item = self._filter_items[subfilter_name]
-    
-    if not isinstance(item, ObjectFilter):
-      raise ValueError("subfilter named \"" + str(subfilter_name) + "\" is invalid - value is not a subfilter")
     
     return item
   
