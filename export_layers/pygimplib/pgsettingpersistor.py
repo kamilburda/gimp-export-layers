@@ -37,11 +37,16 @@ str = unicode
 
 #===============================================================================
 
-import errno
 import abc
 from collections import OrderedDict
-import json
 
+try:
+  import cPickle as pickle
+except ImportError:
+  import pickle
+
+import gimp
+import gimpenums
 import gimpshelf
 
 from . import pgsetting
@@ -158,7 +163,7 @@ class SettingsNotFoundInSourceError(SettingSourceError):
   pass
 
 
-class SettingSourceFileNotFoundError(SettingSourceError):
+class SettingSourceNotFoundError(SettingSourceError):
   pass
 
 
@@ -206,25 +211,29 @@ class SessionPersistentSettingSource(SettingSource):
   
   def _retrieve_setting_value(self, setting_name):
     return gimpshelf.shelf[(self.source_name + setting_name).encode()]
-  
+
 
 class PersistentSettingSource(SettingSource):
   
   """
   This class reads settings from/writes settings to a persistent source.
   
-  This class stores settings in a JSON file, containing the name and last used
-  value of each setting.
+  This class stores settings in what can be referred to as the "globally
+  persistent parasite", which is the `parasiterc` file maintained by GIMP to
+  store persistent data. The file contains the name and the last used value of
+  each setting.
   
   Attributes:
   
-  * `filename` - Filename of the persistent source.
+  * `source_name` - Unique identifier to distinguish entries from different
+    plug-ins in this source.
   """
   
-  def __init__(self, filename):
+  def __init__(self, source_name):
     super(PersistentSettingSource, self).__init__()
     
-    self.filename = filename
+    self.source_name = source_name
+    self._parasite_filename = "parasiterc"
   
   def read(self, settings):
     """
@@ -232,70 +241,45 @@ class PersistentSettingSource(SettingSource):
     
     * `SettingsNotFoundInSourceError` - see the `SettingSource` class.
     
-    * `SettingSourceFileNotFoundError` - Could not find the specified file.
+    * `SettingSourceNotFoundError` - Could not find the specified source.
     
-    * `SettingSourceReadError` - Could not read from the specified file (IOError
-      or OSError was raised).
-    
-    * `SettingSourceInvalidFormatError` - Specified file has invalid format, i.e.
-      it is not recognized as a valid JSON file.
+    * `SettingSourceInvalidFormatError` - Specified source has invalid format.
+      This could happen if the source was edited manually.
     """
     
-    self._settings_from_file = None
+    parasite = gimp.parasite_find(self.source_name)
+    
+    if parasite is None:
+      raise SettingSourceNotFoundError(
+        _("Could not find setting source \"{0}\".").format(self.source_name)
+      )
+    
+    self._settings_from_parasite = None
     
     try:
-      with open(self.filename, 'r') as json_file:
-        self._settings_from_file = json.load(json_file)
-    except (IOError, OSError) as e:
-      if e.errno == errno.ENOENT:
-        raise SettingSourceFileNotFoundError(
-          _("Could not find file with settings \"{0}\".").format(self.filename)
-        )
-      else:
-        raise SettingSourceReadError(
-          _("Could not read settings from file \"{0}\". Make sure the file can be "
-            "accessed to.").format(self.filename)
-        )
-    except ValueError as e:
+      self._settings_from_parasite = pickle.loads(parasite.data)
+    except (pickle.UnpicklingError, AttributeError, EOFError):
       raise SettingSourceInvalidFormatError(
-        _("File with settings \"{0}\" is corrupt. This could happen if the file "
-          "was edited manually.\n"
-          "To fix this, save the settings again (to overwrite the file) "
-          "or delete the file.").format(self.filename)
+        _("Settings for this plug-in stored in the \"{1}\" file are corrupt. "
+          "This could happen if the file was edited manually.\n"
+          "To fix this, save the settings again or reset them."
+        ).format(self.source_name, self._parasite_filename)
       )
     
     self._read(settings)
     
-    del self._settings_from_file
+    del self._settings_from_parasite
   
   def write(self, settings):
-    """
-    Write the name and value of the settings from the `settings` iterable to the
-    file.
-    
-    Raises:
-    
-    * `SettingSourceWriteError` - Could not write to the specified file (IOError
-      or OSError was raised).
-    """
-    
-    settings_dict = self._to_dict(settings)
-    
-    try:
-      with open(self.filename, 'w') as json_file:
-        json.dump(settings_dict, json_file)
-    except (IOError, OSError):
-      raise SettingSourceWriteError(
-        _("Could not write settings to file \"{0}\". "
-          "Make sure the file can be accessed to.").format(self.filename)
-      )
+    settings_data = pickle.dumps(self._to_dict(settings))
+    gimp.parasite_attach(gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, settings_data))
   
   def _retrieve_setting_value(self, setting_name):
-    return self._settings_from_file[setting_name]
+    return self._settings_from_parasite[setting_name]
   
   def _to_dict(self, settings):
     """
-    Format the setting name and value to a dict, which the `json` module can
+    Format the setting name and value to a dict, which the `pickle` module can
     properly serialize and de-serialize.
     """
     
@@ -370,7 +354,7 @@ class SettingPersistor(object):
     for source in setting_sources:
       try:
         source.read(settings)
-      except (SettingsNotFoundInSourceError, SettingSourceFileNotFoundError) as e:
+      except (SettingsNotFoundInSourceError, SettingSourceNotFoundError) as e:
         if type(e) == SettingsNotFoundInSourceError:
           settings = source.settings_not_found
         
