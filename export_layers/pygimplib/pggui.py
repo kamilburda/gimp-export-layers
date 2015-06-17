@@ -215,7 +215,7 @@ def display_exception_message(exception_message, plugin_title=None,
   vbox_labels_report = gtk.VBox(homogeneous=False)
   
   if report_uri_list is not None and report_uri_list:
-    label_report_header_text = _("To help fix this error, send a report containing the text "
+    label_report_header_text = _("You can help fix this error by sending a report with the text "
                                  "in the details above to one of the following sites")
     if not webbrowser_module_found:
       label_report_header_text += " " + _("(right-click to copy link)")
