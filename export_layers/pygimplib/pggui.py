@@ -42,7 +42,7 @@ str = unicode
 
 import sys
 import traceback
-from contextlib import contextmanager
+import functools
 import webbrowser
 
 import pygtk
@@ -289,19 +289,12 @@ def display_message(message, message_type, title=None, parent=None, buttons=gtk.
 #===============================================================================
 
 
-@contextmanager
 def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
-  
   """
   Modify `sys.excepthook` to display an error dialog for unhandled exceptions.
   
   Don't display the dialog for exceptions which are not subclasses of
   `Exception` (such as `SystemExit or `KeyboardInterrupt`).
-  
-  Use this function as a context manager:
-    
-    with set_gui_excepthook():
-      # do stuff
   
   Parameters:
   
@@ -314,29 +307,33 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
   * `parent` - Parent GUI element.
   """
   
-  def _gui_excepthook(exc_type, exc_value, exc_traceback):
+  def real_decorator(func):
     
-    if issubclass(exc_type, Exception):
-      exception_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-      display_exception_message(exception_message, plugin_title=plugin_title,
-                                report_uri_list=report_uri_list, parent=parent)
-      # Make sure to quit the application since unhandled exceptions
-      # can mess up the application state.
-      if gtk.main_level() > 0:
-        gtk.main_quit()
-    
-    _orig_sys_excepthook(exc_type, exc_value, exc_traceback)
+    @functools.wraps(func)
+    def func_wrapper(self, *args, **kwargs):
+      
+      def gui_excepthook(exc_type, exc_value, exc_traceback):
+        if issubclass(exc_type, Exception):
+          exception_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+          display_exception_message(exception_message, plugin_title=plugin_title,
+                                    report_uri_list=report_uri_list, parent=parent)
+          # Make sure to quit the application since unhandled exceptions
+          # can mess up the application state.
+          if gtk.main_level() > 0:
+            gtk.main_quit()
+        
+        orig_sys_excepthook(exc_type, exc_value, exc_traceback)
+      
+      orig_sys_excepthook = sys.excepthook
+      sys.excepthook = gui_excepthook
+      
+      func(self, *args, **kwargs)
+      
+      sys.excepthook = orig_sys_excepthook
   
-  _orig_sys_excepthook = sys.excepthook
-  sys.excepthook = _gui_excepthook
+    return func_wrapper
   
-  # Unlike other functions or methods with the `contextmanager` decorator,
-  # here the `yield` keyword must not be wrapped in a try-finally block.
-  # I don't understand why, though. Somehow, the `finally` block would be
-  # executed before `_gui_excepthook` had a chance to kick in.
-  yield
-  
-  sys.excepthook = _orig_sys_excepthook
+  return real_decorator
 
 
 #===============================================================================
