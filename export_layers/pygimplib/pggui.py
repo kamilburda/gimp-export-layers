@@ -247,7 +247,7 @@ def display_exception_message(exception_message, plugin_title=None,
   dialog.destroy()
 
 
-def display_message(message, message_type, title=None, parent=None):
+def display_message(message, message_type, title=None, parent=None, buttons=gtk.BUTTONS_OK):
   
   """
   Display a generic message.
@@ -265,7 +265,7 @@ def display_message(message, message_type, title=None, parent=None):
   
   dialog = gtk.MessageDialog(parent=parent, type=message_type,
                              flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                             buttons=gtk.BUTTONS_OK)
+                             buttons=buttons)
   if title is not None:
     dialog.set_title(title)
   dialog.set_transient_for(parent)
@@ -278,8 +278,10 @@ def display_message(message, message_type, title=None, parent=None):
     dialog.set_markup(message)
   
   dialog.show_all()
-  dialog.run()
+  response_id = dialog.run()
   dialog.destroy()
+  
+  return response_id
 
 
 #===============================================================================
