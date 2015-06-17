@@ -87,6 +87,7 @@ PLUGINS_PATH = os.path.dirname(RESOURCES_PATH)
 
 #===============================================================================
 
+
 # For `gettext`-aware modules that use "_()" and "N_()" functions, define dummy
 # functions that simply return the strings, since it's not desired to translate
 # them when unit-testing.
@@ -100,7 +101,9 @@ if '_' not in __builtin__.__dict__:
 if 'N_' not in __builtin__.__dict__:
   __builtin__.__dict__['N_'] = gettext
 
+
 #===============================================================================
+
 
 def run_test(module, stream=sys.stderr):
   test_suite = unittest.TestLoader().loadTestsFromModule(module)
@@ -134,7 +137,9 @@ def _fix_streams_for_unittest():
     if flush_func is None or not callable(stream.flush):
       stream.flush = types.MethodType(flush, stream)
 
+
 #===============================================================================
+
 
 def run_tests(stream=sys.stderr):
   _fix_streams_for_unittest()

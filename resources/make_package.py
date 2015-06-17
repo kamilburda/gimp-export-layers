@@ -66,9 +66,9 @@ OUTPUT_FILENAME_SUFFIX = ".zip"
 INCLUDE_LIST_FILENAME = "./make_package_included_files.txt"
 
 FILENAMES_TO_RENAME = {
-  "README.md" : "Readme.txt",
-  "CHANGELOG.md" : "Changelog.txt",
-  "Readme for Translators.md" : "Readme for Translators.txt",
+  "README.md": "Readme.txt",
+  "CHANGELOG.md": "Changelog.txt",
+  "Readme for Translators.md": "Readme for Translators.txt",
 }
 
 NUM_LEADING_SPACES_TO_TRIM = 4
@@ -151,11 +151,12 @@ def process_file(filename, *process_functions_and_args):
 # key: filename
 # value: list of (function, additional function arguments) as arguments to `process_file`
 FILES_TO_PROCESS = {
-  FILENAMES_TO_RENAME["README.md"] : [
+  FILENAMES_TO_RENAME["README.md"]: [
     (_trim_leading_spaces, NUM_LEADING_SPACES_TO_TRIM),
     (_rename_filenames_inside_file, FILENAMES_TO_RENAME)
   ]
 }
+
 
 #===============================================================================
 

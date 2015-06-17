@@ -34,9 +34,9 @@ import os
 
 #===============================================================================
 
+
 # This isn't a unit test, but rather a helper function to test the export to
 # all file formats recognized by GIMP (+ GIMP DDS Plugin) at once.
-
 
 def test_export_layers(layer_exporter, main_settings):
   file_extensions = [

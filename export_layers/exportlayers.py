@@ -57,6 +57,7 @@ pdb = gimp.pdb
 
 #===============================================================================
 
+
 class ExportLayersError(Exception):
   pass
 
@@ -64,7 +65,9 @@ class ExportLayersError(Exception):
 class ExportLayersCancelError(ExportLayersError):
   pass
 
+
 #===============================================================================
+
 
 class OverwriteHandler(object):
   
@@ -103,7 +106,9 @@ class OverwriteHandler(object):
     
     return should_skip, filename
 
+
 #===============================================================================
+
 
 class LayerFilterRules(object):
   
@@ -144,7 +149,9 @@ class LayerFilterRules(object):
   def is_not_enclosed_in_square_brackets(layer_elem):
     return not LayerFilterRules.is_enclosed_in_square_brackets(layer_elem)
 
+
 #===============================================================================
+
 
 class LayerExporter(object):
   
