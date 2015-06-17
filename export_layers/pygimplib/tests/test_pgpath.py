@@ -38,6 +38,7 @@ from .. import pgpath
 
 #===============================================================================
 
+
 class TestUniquifyString(unittest.TestCase):
   
   def test_uniquify_string(self):

@@ -41,10 +41,10 @@ from datetime import datetime
 
 #===============================================================================
 
+
 # Original version:
 # http://mail.python.org/pipermail/python-list/2007-May/438106.html
 # Author: Peter Otten
-
 class Tee(object):
   
   """
@@ -76,7 +76,7 @@ class Tee(object):
     * `flush_file` - If True, flush the file after each write.
     """
   
-    self._streams = {sys.stdout : 'stdout', sys.stderr : 'stderr'}
+    self._streams = {sys.stdout: 'stdout', sys.stderr: 'stderr'}
     
     self.log_header_title = log_header_title if log_header_title is not None else ""
     self.flush_file = flush_file

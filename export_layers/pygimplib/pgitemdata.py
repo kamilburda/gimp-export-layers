@@ -65,6 +65,7 @@ pdb = gimp.pdb
 
 #===============================================================================
 
+
 class ItemData(object):
   
   """
@@ -302,7 +303,9 @@ class PathData(ItemData):
   def _get_children_from_item(self, item):
     return item.children
 
+
 #===============================================================================
+
 
 class _ItemDataElement(object):
   

@@ -36,6 +36,7 @@ from .. import progress
 
 #===============================================================================
 
+
 class MockProgressBar(object):
   
   def __init__(self):
@@ -51,7 +52,9 @@ class MockProgressUpdater(progress.ProgressUpdater):
   def _set_text_progress_bar(self, text):
     self.progress_bar.text = text
 
+
 #===============================================================================
+
 
 class TestProgressUpdater(unittest.TestCase):
   

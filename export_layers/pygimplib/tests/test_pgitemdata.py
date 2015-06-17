@@ -54,6 +54,7 @@ LIB_NAME = '.'.join(__name__.split('.')[:-2])
 
 #===============================================================================
 
+
 class LayerFilterRules(object):
   
   @staticmethod
@@ -72,7 +73,9 @@ class LayerFilterRules(object):
   def has_matching_file_extension(layer_elem, file_extension):
     return layer_elem.name.endswith('.' + file_extension)
 
+
 #===============================================================================
+
 
 def _parse_layers(layer_tree_string):
   """
@@ -114,7 +117,9 @@ def _parse_layers(layer_tree_string):
   
   return image
 
+
 #===============================================================================
+
 
 @mock.patch(LIB_NAME + '.pgitemdata.pdb', new=gimpmocks.MockPDB())
 class TestLayerData(unittest.TestCase):

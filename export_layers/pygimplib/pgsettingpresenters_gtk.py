@@ -258,7 +258,6 @@ class GtkExpanderPresenter(GtkSettingPresenter):
     self._element.set_expanded(value)
 
 
-
 #===============================================================================
 
 
