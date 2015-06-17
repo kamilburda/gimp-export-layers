@@ -55,7 +55,8 @@ import gimp
 import gimpplugin
 import gimpenums
 
-from export_layers.pygimplib import pgsetting
+from export_layers.pygimplib import pgsettinggroup
+from export_layers.pygimplib import pgsettingpersistor
 from export_layers.pygimplib import overwrite
 
 from export_layers import settings_plugin
@@ -68,33 +69,17 @@ from export_layers import exportlayers
 class ExportLayersPlugin(gimpplugin.plugin):
   
   def __init__(self):
-    self.special_settings = settings_plugin.SpecialSettings()
-    self.main_settings = settings_plugin.MainSettings()
+    self.settings = settings_plugin.create_settings()
     
-    self.gimpshelf_stream = pgsetting.GimpShelfSettingStream(constants.SHELF_PREFIX)
-    self.config_file_stream = pgsetting.JSONFileSettingStream(constants.CONFIG_FILE)
-    
-    self.setting_persistor = pgsetting.SettingPersistor([self.gimpshelf_stream], [self.gimpshelf_stream])
-    
-    self.export_layers_settings = []
-    for setting in list(self.special_settings) + list(self.main_settings):
-      if setting.can_be_registered_to_pdb:
-        self.export_layers_settings.append(setting)
-    
-    self.export_layers_to_settings = [
-      self.special_settings['run_mode'],
-      self.special_settings['image'],
-    ]
-    
-    self.export_layers_return_values = []
-    self.export_layers_to_return_values = []
+    self.session_source = pgsettingpersistor.SessionPersistentSettingSource(constants.SESSION_SOURCE_NAME)
+    self.persistent_source = pgsettingpersistor.PersistentSettingSource(constants.PERSISTENT_SOURCE_NAME)
   
   def query(self):
     gimp.domain_register(constants.DOMAIN_NAME, constants.LOCALE_PATH)
     
     gimp.install_procedure(
       "plug_in_export_layers",
-      _("Export layers as separate images in specified file format"),
+      _("Export layers as separate images"),
       "",
       "khalim19 <khalim19@gmail.com>",
       "khalim19",
@@ -102,8 +87,9 @@ class ExportLayersPlugin(gimpplugin.plugin):
       _("E_xport Layers..."),
       "*",
       gimpenums.PLUGIN,
-      self._create_plugin_params(self.export_layers_settings),
-      self._create_plugin_params(self.export_layers_return_values)
+      pgsettinggroup.PdbParamCreator.create_params(
+        self.settings['special']['run_mode'], self.settings['special']['image'], self.settings['main']),
+      []
     )
     gimp.install_procedure(
       "plug_in_export_layers_to",
@@ -116,8 +102,9 @@ class ExportLayersPlugin(gimpplugin.plugin):
       _("Export Layers _to"),
       "*",
       gimpenums.PLUGIN,
-      self._create_plugin_params(self.export_layers_to_settings),
-      self._create_plugin_params(self.export_layers_to_return_values)
+      pgsettinggroup.PdbParamCreator.create_params(
+        self.settings['special']['run_mode'], self.settings['special']['image']),
+      []
     )
     
     gimp.menu_register("plug_in_export_layers", "<Image>/File/Export")
@@ -126,8 +113,8 @@ class ExportLayersPlugin(gimpplugin.plugin):
   def plug_in_export_layers(self, *args):
     run_mode = args[0]
     image = args[1]
-    self.special_settings['run_mode'].value = run_mode
-    self.special_settings['image'].value = image
+    self.settings['special']['run_mode'].set_value(run_mode)
+    self.settings['special']['image'].set_value(image)
     
     if run_mode == gimpenums.RUN_INTERACTIVE:
       self._run_export_layers_interactive(image)
@@ -138,8 +125,9 @@ class ExportLayersPlugin(gimpplugin.plugin):
   
   def plug_in_export_layers_to(self, run_mode, image):
     if run_mode == gimpenums.RUN_INTERACTIVE:
-      self.setting_persistor.load([self.special_settings['first_run']])
-      if self.special_settings['first_run'].value:
+      pgsettingpersistor.SettingPersistor.load(
+        [self.settings['special']['first_plugin_run']], [self.session_source])
+      if self.settings['special']['first_plugin_run'].value:
         self._run_export_layers_interactive(image)
       else:
         self._run_export_layers_to_interactive(image)
@@ -151,35 +139,30 @@ class ExportLayersPlugin(gimpplugin.plugin):
     for setting, arg in zip(self.export_layers_settings[2:], args[2:]):
       if isinstance(arg, bytes):
         arg = arg.decode()
-      setting.value = arg
+      setting.set_value(arg)
     
     self._run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, image)
   
   def _run_with_last_vals(self, image):
-    self.setting_persistor.read_setting_streams.append(self.config_file_stream)
-    status, status_message = self.setting_persistor.load(self.main_settings)
-    self.setting_persistor.read_setting_streams.pop()
-    
-    if status == self.setting_persistor.READ_FAIL:
+    status, status_message = pgsettingpersistor.SettingPersistor.load(
+      [self.settings['main']], [self.session_source, self.persistent_source])
+    if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
       print(status_message)
     
     self._run_plugin_noninteractive(gimpenums.RUN_WITH_LAST_VALS, image)
   
   def _run_export_layers_interactive(self, image):
-    gui_plugin.export_layers_gui(image, self.main_settings, self.special_settings,
-                                 self.gimpshelf_stream, self.config_file_stream)
+    gui_plugin.export_layers_gui(
+      image, self.settings, self.session_source, self.persistent_source)
   
   def _run_export_layers_to_interactive(self, image):
-    gui_plugin.export_layers_to_gui(image, self.main_settings, self.setting_persistor)
+    gui_plugin.export_layers_to_gui(
+      image, self.settings, self.session_source, self.persistent_source)
   
   def _run_plugin_noninteractive(self, run_mode, image):
-    self.main_settings.streamline(force=True)
-    
     layer_exporter = exportlayers.LayerExporter(
-      run_mode,
-      image,
-      self.main_settings,
-      overwrite_chooser=overwrite.NoninteractiveOverwriteChooser(self.main_settings['overwrite_mode'].value),
+      run_mode, image, self.settings['main'],
+      overwrite_chooser=overwrite.NoninteractiveOverwriteChooser(self.settings['main']['overwrite_mode'].value),
       progress_updater=None
     )
     
@@ -191,14 +174,9 @@ class ExportLayersPlugin(gimpplugin.plugin):
       print(e.message)
       raise
     
-    self.special_settings['first_run'].value = False
-    self.setting_persistor.save(self.main_settings, [self.special_settings['first_run']])
-  
-  def _create_plugin_params(self, settings):
-    return [self._create_plugin_param(setting) for setting in settings]
-  
-  def _create_plugin_param(self, setting):
-    return (setting.gimp_pdb_type, setting.name.encode(), setting.short_description.encode())
+    self.settings['special']['first_plugin_run'].set_value(False)
+    pgsettingpersistor.SettingPersistor.save(
+      [self.settings['main'], self.settings['special']['first_plugin_run']], [self.session_source])
 
 #===============================================================================
 

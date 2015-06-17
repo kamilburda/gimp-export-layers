@@ -38,247 +38,265 @@ import gimp
 import gimpenums
 
 from export_layers.pygimplib import pgsetting
+from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgpath
 from export_layers import exportlayers
 
 #===============================================================================
 
-class SpecialSettings(pgsetting.SettingContainer):
+
+def create_settings():
   
-  """
-  These settings require special handling in the code,
-  hence their separation from the main settings.
-  """
+  #-----------------------------------------------------------------------------
+  # Special settings
+  #-----------------------------------------------------------------------------
   
-  def _create_settings(self):
-    
-    self._add(
-      pgsetting.EnumSetting(
-        'run_mode', 'non_interactive',
-        [('interactive', "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
-         ('non_interactive', "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
-         ('run_with_last_vals', "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)]
+  # These settings require special handling in the code, hence their separation
+  # from the other settings.
+  
+  special_settings = pgsettinggroup.SettingGroup('special', [
+    {
+      'type': pgsetting.SettingTypes.enumerated,
+      'name': 'run_mode',
+      'default_value': 'non_interactive',
+      'items': [('interactive', "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
+                ('non_interactive', "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
+                ('run_with_last_vals', "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)],
+      'display_name': _("The run mode")
+    },
+    {
+      'type': pgsetting.SettingTypes.image,
+      'name': 'image',
+      'default_value': None,
+      'display_name': _("Image")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'first_plugin_run',
+      'default_value': True,
+      'pdb_registration_mode': pgsetting.PdbRegistrationModes.not_registrable
+    },
+  ])
+  
+  #-----------------------------------------------------------------------------
+  # Main settings
+  #-----------------------------------------------------------------------------
+  
+  main_settings = pgsettinggroup.SettingGroup('main', [
+    {
+      'type': pgsetting.SettingTypes.file_extension,
+      'name': 'file_extension',
+      'default_value': "png",
+      'display_name': "File extension"
+    },
+    {
+      'type': pgsetting.SettingTypes.directory,
+      'name': 'output_directory',
+      'default_value': gimp.user_directory(1),   # "Documents" directory
+      'display_name': _("Output directory")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'layer_groups_as_folders',
+      'default_value': False,
+      'display_name': _("Treat layer groups as folders")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'ignore_invisible',
+      'default_value': False,
+      'display_name': _("Ignore invisible layers")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'autocrop',
+      'default_value': False,
+      'display_name': _("Autocrop layers")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'use_image_size',
+      'default_value': False,
+      'display_name': _("Use image size")
+    },
+    {
+      'type': pgsetting.SettingTypes.enumerated,
+      'name': 'file_ext_mode',
+      'default_value': 'no_special_handling',
+      'items': [('no_special_handling', _("No special handling")),
+                ('only_matching_file_extension', _("Export only layers matching file extension")),
+                ('use_as_file_extensions', _("Use as file extensions"))],
+      'display_name': _("File extensions in layer names")
+    },
+    {
+      'type': pgsetting.SettingTypes.enumerated,
+      'name': 'strip_mode',
+      'default_value': 'always',
+      'items': [('always', _("Always strip file extension")),
+                ('identical', _("Strip identical file extension")),
+                ('never', _("Never strip file extension"))],
+      'display_name': _("File extension stripping")
+    },
+    {
+      'type': pgsetting.SettingTypes.enumerated,
+      'name': 'square_bracketed_mode',
+      'default_value': 'normal',
+      'items': [('normal', _("Treat as normal layers")),
+                ('background', _("Treat as background layers")),
+                ('ignore', _("Ignore")),
+                ('ignore_other', _("Ignore other layers"))],
+      'display_name': _("Layer names in [square brackets]")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'crop_to_background',
+      'default_value': False,
+      'display_name': _("Crop to background")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'merge_layer_groups',
+      'default_value': False,
+      'display_name': _("Merge layer groups")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'empty_folders',
+      'default_value': False,
+      'display_name': _("Create folders for empty layer groups")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'ignore_layer_modes',
+      'default_value': False,
+      'display_name': _("Ignore layer modes")
+    },
+    {
+      'type': pgsetting.SettingTypes.enumerated,
+      'name': 'overwrite_mode',
+      'default_value': 'rename_new',
+      'items': [('replace', _("Replace"), exportlayers.OverwriteHandler.REPLACE),
+                ('skip', _("Skip"), exportlayers.OverwriteHandler.SKIP),
+                ('rename_new', _("Rename new file"), exportlayers.OverwriteHandler.RENAME_NEW),
+                ('rename_existing', _("Rename existing file"), exportlayers.OverwriteHandler.RENAME_EXISTING),
+                ('cancel', _("Cancel"), exportlayers.OverwriteHandler.CANCEL)],
+      'display_name': _("Overwrite mode (non-interactive run mode only)")
+    },
+  ])
+  
+  #-----------------------------------------------------------------------------
+  
+  main_settings['file_extension'].error_messages['default_needed'] = _(
+    "You need to specify default file extension for layers with invalid or no extension."
+  )
+  
+  #-----------------------------------------------------------------------------
+  
+  def on_layer_groups_as_folders_changed(layer_groups_as_folders, empty_folders, merge_layer_groups):
+    if not layer_groups_as_folders.value:
+      empty_folders.set_value(False)
+      empty_folders.gui.set_enabled(False)
+      merge_layer_groups.gui.set_enabled(True)
+    else:
+      empty_folders.gui.set_enabled(True)
+      merge_layer_groups.gui.set_enabled(False)
+      merge_layer_groups.set_value(False)
+  
+  def on_file_ext_mode_changed(file_ext_mode, file_extension, strip_mode):
+    if file_ext_mode.value == file_ext_mode.items['no_special_handling']:
+      strip_mode.set_value(strip_mode.default_value)
+      strip_mode.gui.set_enabled(True)
+      file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
+    elif file_ext_mode.value == file_ext_mode.items['only_matching_file_extension']:
+      strip_mode.set_value(strip_mode.items['never'])
+      strip_mode.gui.set_enabled(False)
+      file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
+    elif file_ext_mode.value == file_ext_mode.items['use_as_file_extensions']:
+      strip_mode.set_value(strip_mode.items['never'])
+      strip_mode.gui.set_enabled(False)
+      file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = (
+        file_extension.error_messages['default_needed']
       )
-    )
-    self['run_mode'].display_name = _("The run mode")
-    
-    self._add(pgsetting.ImageSetting('image', None))
-    self['image'].display_name = _("Image")
-    
-    self._add(pgsetting.BoolSetting('first_run', True))
-    self['first_run'].can_be_registered_to_pdb = False
-    self['first_run'].description = _(
-      "True if the plug-in successfully ran for the first time "
-      "in one GIMP session, False for subsequent runs."
-    )
+  
+  def on_merge_layer_groups_changed(merge_layer_groups, layer_groups_as_folders):
+    if merge_layer_groups.value:
+      layer_groups_as_folders.set_value(False)
+      layer_groups_as_folders.gui.set_enabled(False)
+    else:
+      layer_groups_as_folders.gui.set_enabled(True)
+  
+  def on_autocrop_changed(autocrop, square_bracketed_mode, crop_to_background):
+    if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.items['background']:
+      crop_to_background.gui.set_enabled(True)
+    else:
+      crop_to_background.set_value(False)
+      crop_to_background.gui.set_enabled(False)
+  
+  def on_square_bracketed_mode_changed(square_bracketed_mode, autocrop, crop_to_background):
+    on_autocrop_changed(autocrop, square_bracketed_mode, crop_to_background)
+  
+  #-----------------------------------------------------------------------------
+  
+  main_settings['layer_groups_as_folders'].connect_value_changed_event(
+    on_layer_groups_as_folders_changed, main_settings['empty_folders'], main_settings['merge_layer_groups']
+  )
+  main_settings['file_ext_mode'].connect_value_changed_event(
+    on_file_ext_mode_changed, main_settings['file_extension'], main_settings['strip_mode']
+  )
+  main_settings['merge_layer_groups'].connect_value_changed_event(
+    on_merge_layer_groups_changed, main_settings['layer_groups_as_folders']
+  )
+  main_settings['autocrop'].connect_value_changed_event(
+    on_autocrop_changed, main_settings['square_bracketed_mode'], main_settings['crop_to_background']
+  )
+  main_settings['square_bracketed_mode'].connect_value_changed_event(
+    on_square_bracketed_mode_changed, main_settings['autocrop'], main_settings['crop_to_background']
+  )
+  
+  #-----------------------------------------------------------------------------
+  
+  main_settings.set_ignore_tags({
+    'output_directory': ['reset'],
+  })
+  
+  #-----------------------------------------------------------------------------
+  
+  settings = pgsettinggroup.SettingGroup('all_settings', [special_settings, main_settings])
+  
+  return settings
 
 
-class MainSettings(pgsetting.SettingContainer):
+#===============================================================================
+
+
+def add_gui_settings(settings):
   
-  def _create_settings(self):
-    
-    self._add(pgsetting.FileExtensionSetting('file_extension', "png"))
-    self['file_extension'].display_name = _("File extension")
-    self['file_extension'].description = _(
-      "Type in file extension (with or without the leading period). "
-      "To export in RAW format, type \"data\"."
-    )
-    
-    self._add(pgsetting.DirectorySetting('output_directory', gimp.user_directory(1)))   # "Documents" directory
-    self['output_directory'].display_name = _("Output directory")
-    
-    self._add(pgsetting.BoolSetting('layer_groups_as_folders', False))
-    self['layer_groups_as_folders'].display_name = _("Treat layer groups as folders")
-    self['layer_groups_as_folders'].description = _(
-      "If enabled, layers will be exported to subfolders corresponding to the layer groups.\n"
-      "If disabled, all layers will be exported to the output folder on the same level."
-    )
-    
-    self._add(pgsetting.BoolSetting('ignore_invisible', False))
-    self['ignore_invisible'].display_name = _("Ignore invisible layers")
-    self['ignore_invisible'].description = _(
-      "If enabled, invisible layers will not be exported. Visible layers within "
-      "invisible layer groups will also not be exported."
-    )
-    
-    self._add(pgsetting.BoolSetting('autocrop', False))
-    self['autocrop'].display_name = _("Autocrop layers")
-    self['autocrop'].description = _(
-      "If enabled, layers will be autocropped before being exported."
-    )
-    
-    self._add(pgsetting.BoolSetting('use_image_size', False))
-    self['use_image_size'].display_name = _("Use image size")
-    self['use_image_size'].description = _(
-      "If enabled, layers will be resized (but not scaled) to the image size. This is "
-      "useful if you want to keep the size of the image canvas and the layer position "
-      "within the image. If layers are partially outside the image canvas, "
-      "they will be cut off."
-    )
-    
-    self._add(
-      pgsetting.EnumSetting(
-        'file_ext_mode', 'no_special_handling',
-        [('no_special_handling', _("No special handling")),
-         ('only_matching_file_extension', _("Export only layers matching file extension")),
-         ('use_as_file_extensions', _("Use as file extensions"))]
-      )
-    )
-    self['file_ext_mode'].display_name = _("File extensions in layer names")
-    
-    self._add(
-      pgsetting.EnumSetting(
-        'strip_mode', 'identical',
-        [('always', _("Always strip file extension")),
-         ('identical', _("Strip identical file extension")),
-         ('never', _("Never strip file extension"))]
-      )
-    )
-    self['strip_mode'].display_name = _("File extension stripping")
-    self['strip_mode'].description = _(
-      "Determines when to strip file extensions from layer names (including the period)."
-    )
-    
-    self._add(
-      pgsetting.EnumSetting(
-        'square_bracketed_mode', 'normal',
-        [('normal', _("Treat as normal layers")),
-         ('background', _("Treat as background layers")),
-         ('ignore', _("Ignore")),
-         ('ignore_other', _("Ignore other layers"))]
-      )
-    )
-    self['square_bracketed_mode'].display_name = _("Layer names in [square brackets]")
-    
-    self._add(pgsetting.BoolSetting('crop_to_background', False))
-    self['crop_to_background'].display_name = _("Crop to background")
-    self['crop_to_background'].description = _(
-      "If enabled, layers will be cropped to the combined size of the "
-      "background layers instead of their own size."
-    )
-    
-    self._add(pgsetting.BoolSetting('merge_layer_groups', False))
-    self['merge_layer_groups'].display_name = _("Merge layer groups")
-    self['merge_layer_groups'].description = _(
-      "If enabled, each top-level layer group is merged into one layer. The name "
-      "of each merged layer is the name of the corresponding top-level layer group."
-    )
-    
-    self._add(pgsetting.BoolSetting('empty_folders', False))
-    self['empty_folders'].display_name = _("Create folders for empty layer groups")
-    self['empty_folders'].description = _(
-      "If enabled, subfolders for empty layer groups will be created."
-    )
-    
-    self._add(pgsetting.BoolSetting('ignore_layer_modes', False))
-    self['ignore_layer_modes'].display_name = _("Ignore layer modes")
-    self['ignore_layer_modes'].description = _(
-      "If enabled, the layer mode for each layer will be set to Normal. This is "
-      "useful for layers with opacity less than 100% and a layer mode different "
-      "than Normal or Dissolve, which would normally be completely invisible "
-      "if a file format supporting alpha channel is used (such as PNG)."
-    )
-    
-    self._add(
-      pgsetting.EnumSetting(
-       'overwrite_mode', 'rename_new',
-       [('replace', _("Replace"), exportlayers.OverwriteHandler.REPLACE),
-        ('skip', _("Skip"), exportlayers.OverwriteHandler.SKIP),
-        ('rename_new', _("Rename new file"), exportlayers.OverwriteHandler.RENAME_NEW),
-        ('rename_existing', _("Rename existing file"), exportlayers.OverwriteHandler.RENAME_EXISTING),
-        ('cancel', _("Cancel"), exportlayers.OverwriteHandler.CANCEL)]
-      )
-    )
-    self['overwrite_mode'].display_name = _("Overwrite mode (non-interactive run mode only)")
-    self['overwrite_mode'].description = _(
-      "Indicates how to handle conflicting files. Skipped layers "
-      "will not be regarded as exported."
-    )
-    
-    #---------------------------------------------------------------------------
-    
-    self['file_ext_mode'].description = _(
-      'If "{0}" is selected, "{1}" must still be '
-      'specified (for layers with invalid or no file extension).'
-    ).format(self['file_ext_mode'].options_display_names['use_as_file_extensions'],
-             self['file_extension'].display_name)
-    
-    self['square_bracketed_mode'].description = _(
-      '"{0}": these layers will be used as a background for all other layers '
-      'and will not be exported separately.\n'
-      '"{1}": these layers will not be exported (and will not be treated as '
-      'background layers).\n'
-      '"{2}": all other layers will not be exported.'
-    ).format(self['square_bracketed_mode'].options_display_names['background'],
-             self['square_bracketed_mode'].options_display_names['ignore'],
-             self['square_bracketed_mode'].options_display_names['ignore_other'])
-    
-    self['file_extension'].error_messages['default_needed'] = _(
-      "You need to specify default file extension for layers with invalid or no extension."
-    )
-    
-    #---------------------------------------------------------------------------
-    
-    def streamline_layer_groups_as_folders(layer_groups_as_folders, empty_folders, merge_layer_groups):
-      if not layer_groups_as_folders.value:
-        empty_folders.value = False
-        empty_folders.ui_enabled = False
-        merge_layer_groups.ui_enabled = True
-      else:
-        empty_folders.ui_enabled = True
-        merge_layer_groups.ui_enabled = False
-        merge_layer_groups.value = False
-    
-    def streamline_file_ext_mode(file_ext_mode, file_extension, strip_mode):
-      if file_ext_mode.value == file_ext_mode.options['no_special_handling']:
-        strip_mode.ui_enabled = True
-        file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
-      elif file_ext_mode.value == file_ext_mode.options['only_matching_file_extension']:
-        strip_mode.value = strip_mode.options['never']
-        strip_mode.ui_enabled = False
-        file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
-      elif file_ext_mode.value == file_ext_mode.options['use_as_file_extensions']:
-        strip_mode.value = strip_mode.options['never']
-        strip_mode.ui_enabled = False
-        file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = (
-          file_extension.error_messages['default_needed']
-        )
-    
-    def streamline_merge_layer_groups(merge_layer_groups, layer_groups_as_folders):
-      if merge_layer_groups.value:
-        layer_groups_as_folders.value = False
-        layer_groups_as_folders.ui_enabled = False
-      else:
-        layer_groups_as_folders.ui_enabled = True
-    
-    def streamline_autocrop(autocrop, square_bracketed_mode, crop_to_background):
-      if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.options['background']:
-        crop_to_background.ui_enabled = True
-      else:
-        crop_to_background.value = False
-        crop_to_background.ui_enabled = False
-    
-    def streamline_square_bracketed_mode(square_bracketed_mode, autocrop, crop_to_background):
-      if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.options['background']:
-        crop_to_background.ui_enabled = True
-      else:
-        crop_to_background.value = False
-        crop_to_background.ui_enabled = False
-    
-    #---------------------------------------------------------------------------
-    
-    self['layer_groups_as_folders'].set_streamline_func(
-      streamline_layer_groups_as_folders, self['empty_folders'], self['merge_layer_groups']
-    )
-    self['file_ext_mode'].set_streamline_func(
-      streamline_file_ext_mode, self['file_extension'], self['strip_mode']
-    )
-    self['merge_layer_groups'].set_streamline_func(
-      streamline_merge_layer_groups, self['layer_groups_as_folders']
-    )
-    self['autocrop'].set_streamline_func(
-      streamline_autocrop, self['square_bracketed_mode'], self['crop_to_background']
-    )
-    self['square_bracketed_mode'].set_streamline_func(
-      streamline_square_bracketed_mode, self['autocrop'], self['crop_to_background']
-    )
+  gui_settings = pgsettinggroup.SettingGroup('gui', [
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'dialog_position',
+      'default_value': ()
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'advanced_settings_expanded',
+      'default_value': False
+    },
+  ])
+  
+  session_only_gui_settings = pgsettinggroup.SettingGroup('gui_session', [
+    {
+      'type': pgsetting.SettingTypes.image_IDs_and_directories,
+      'name': 'image_ids_and_directories',
+      'default_value': {}
+    },
+  ])
+  
+  #-----------------------------------------------------------------------------
+  
+  settings.add([gui_settings, session_only_gui_settings])
+  
+  settings.set_ignore_tags({
+    'gui': ['reset'],
+    'gui_session': ['reset'],
+  })

@@ -59,7 +59,10 @@ class MockPDB(object):
     image.valid = False
   
   def gimp_image_is_valid(self, image):
-    return image.valid
+    if image is not None:
+      return image.valid
+    else:
+      return False
   
   def gimp_item_is_group(self, item):
     return type(item) == MockLayerGroup
@@ -134,3 +137,26 @@ class MockGimpShelf(object):
   
   def has_key(self, key):
     return key in self._shelf
+
+
+class MockGimpParasite(object):
+  
+  class Parasite(object):
+    
+    def __init__(self, name, flags, data):
+      self.name = name
+      self.flags = flags
+      self.data = data
+  
+  def __init__(self):
+    self._parasites = {}
+  
+  def parasite_find(self, name):
+    if name in self._parasites:
+      return self._parasites[name]
+    else:
+      return None
+  
+  def parasite_attach(self, parasite):
+    self._parasites[parasite.name] = parasite
+

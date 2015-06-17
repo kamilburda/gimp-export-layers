@@ -60,8 +60,8 @@ PLUGINS_DIRECTORY = os.path.dirname(_current_module_path)
 PLUGIN_DIRNAME = PLUGIN_PROGRAM_NAME
 PLUGIN_PATH = os.path.join(PLUGINS_DIRECTORY, PLUGIN_DIRNAME)
 
-SHELF_PREFIX = PLUGIN_PROGRAM_NAME + "_"
-CONFIG_FILE = os.path.join(PLUGIN_PATH, PLUGIN_PROGRAM_NAME + ".json")
+SESSION_SOURCE_NAME = "plug_in_" + PLUGIN_PROGRAM_NAME + "_"
+PERSISTENT_SOURCE_NAME = "plug_in_" + PLUGIN_PROGRAM_NAME
 
 BUG_REPORT_URI_LIST = [
   ("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),

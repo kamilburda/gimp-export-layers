@@ -27,8 +27,6 @@ This module defines:
 * GTK generic message
 * context manager for `sys.excepthook` that displays GTK exception message when
   an unhandled exception is raised
-* SettingPresenter subclasses for GTK elements
-* SettingPresenterContainer subclass for GTK elements
 """
 
 #===============================================================================
@@ -45,7 +43,6 @@ str = unicode
 import sys
 import traceback
 from contextlib import contextmanager
-import abc
 import webbrowser
 
 import pygtk
@@ -55,7 +52,6 @@ import gtk
 import gimp
 import gimpui
 
-from . import pgsetting
 from . import overwrite
 from . import progress
 
@@ -68,6 +64,7 @@ GTK_CHARACTER_ENCODING = "utf-8"
 #===============================================================================
 # GTK Overwrite Chooser
 #===============================================================================
+
 
 class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
   
@@ -138,9 +135,11 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
   def _on_apply_to_all_changed(self, widget):
     self._is_apply_to_all = self._apply_to_all_checkbox.get_active()
 
+
 #===============================================================================
 # GTK Message Dialogs
 #===============================================================================
+
 
 def display_exception_message(exception_message, plugin_title=None,
                               report_uri_list=None, parent=None):
@@ -176,7 +175,8 @@ def display_exception_message(exception_message, plugin_title=None,
     for linkbutton in report_linkbuttons:
       linkbutton.connect("clicked", open_browser)
   
-  dialog = gtk.MessageDialog(parent, type=gtk.MESSAGE_ERROR, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
+  dialog = gtk.MessageDialog(parent, type=gtk.MESSAGE_ERROR,
+                             flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
   dialog.set_markup(
     "<span font_size=\"large\"><b>" + _("Oops! Something went wrong.") + "</b></span>"
   )
@@ -247,7 +247,7 @@ def display_exception_message(exception_message, plugin_title=None,
   dialog.destroy()
 
 
-def display_message(message, message_type, title=None, parent=None):
+def display_message(message, message_type, title=None, parent=None, buttons=gtk.BUTTONS_OK):
   
   """
   Display a generic message.
@@ -265,7 +265,7 @@ def display_message(message, message_type, title=None, parent=None):
   
   dialog = gtk.MessageDialog(parent=parent, type=message_type,
                              flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                             buttons=gtk.BUTTONS_OK)
+                             buttons=buttons)
   if title is not None:
     dialog.set_title(title)
   dialog.set_transient_for(parent)
@@ -278,12 +278,16 @@ def display_message(message, message_type, title=None, parent=None):
     dialog.set_markup(message)
   
   dialog.show_all()
-  dialog.run()
+  response_id = dialog.run()
   dialog.destroy()
+  
+  return response_id
+
 
 #===============================================================================
 # GUI excepthook
 #===============================================================================
+
 
 @contextmanager
 def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
@@ -334,9 +338,11 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
   
   sys.excepthook = _orig_sys_excepthook
 
+
 #===============================================================================
 # GTK Progress Updater
 #===============================================================================
+
 
 class GtkProgressUpdater(progress.ProgressUpdater):
   
@@ -354,9 +360,11 @@ class GtkProgressUpdater(progress.ProgressUpdater):
     while gtk.events_pending():
       gtk.main_iteration()
 
+
 #===============================================================================
 # Custom GTK/gimpui Elements
 #===============================================================================
+
 
 class IntComboBox(gimpui.IntComboBox):
   
@@ -377,236 +385,3 @@ class IntComboBox(gimpui.IntComboBox):
       labels_and_values[i] = labels_and_values[i].encode(GTK_CHARACTER_ENCODING)
     
     super(IntComboBox, self).__init__(tuple(labels_and_values))
-
-#===============================================================================
-# GTK Setting Presenters
-#===============================================================================
-  
-class GtkSettingPresenter(pgsetting.SettingPresenter):
-  
-  """
-  This class is a SettingPresenter subclass suitable for GTK GUI elements.
-  """
-  
-  __metaclass__ = abc.ABCMeta
-  
-  def get_enabled(self):
-    return self._element.get_sensitive()
-  
-  def set_enabled(self, value):
-    self._element.set_sensitive(value)
-  
-  def get_visible(self):
-    return self._element.get_visible()
-  
-  def set_visible(self, value):
-    self._element.set_visible(value)
-  
-  def connect_event(self, event_func, *event_args):
-    if self.value_changed_signal is not None:
-      return self._element.connect(self.value_changed_signal, event_func, *event_args)
-    else:
-      raise TypeError("cannot connect signal if value_changed_signal is None")
-  
-  def set_tooltip(self):
-    if self._setting.description is not None and self._setting.description:
-      self._element.set_tooltip_text(self._setting.description)
-  
-#-------------------------------------------------------------------------------
-
-class GtkCheckButtonPresenter(GtkSettingPresenter):
-  
-  """
-  This class is a `SettingPresenter` for `gtk.CheckButton` elements.
-  
-  Value: Checked state of the checkbox (checked/unchecked).
-  """
-  
-  def __init__(self, setting, element):
-    super(GtkCheckButtonPresenter, self).__init__(setting, element)
-    
-    self.value_changed_signal = "clicked"
-    
-  def get_value(self):
-    return self._element.get_active()
-  
-  def set_value(self, value):
-    self._element.set_active(value)
-
-
-class GtkEntryPresenter(GtkSettingPresenter):
-  
-  """
-  This class is a `SettingPresenter` for `gtk.Entry` elements (text fields).
-  
-  Value: Text in the text field.
-  """
-  
-  def get_value(self):
-    return self._element.get_text().decode(GTK_CHARACTER_ENCODING)
-  
-  def set_value(self, value):
-    self._element.set_text(value.encode(GTK_CHARACTER_ENCODING))
-    # Place the cursor at the end of the text entry.
-    self._element.set_position(-1)
-
-
-class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
-  
-  """
-  This class is a `SettingPresenter` for `gimpui.IntComboBox` elements.
-  
-  Value: Option selected in the combobox.
-  """
-  
-  def __init__(self, setting, element):
-    super(GimpUiIntComboBoxPresenter, self).__init__(setting, element)
-    
-    self.value_changed_signal = "changed"
-  
-  def get_value(self):
-    return self._element.get_active()
-  
-  def set_value(self, value):
-    self._element.set_active(value)
-
-
-class GtkExportFolderChooserPresenter(GtkSettingPresenter):
-  
-  """
-  This class is a `SettingPresenter` for `gtk.FileChooserWidget` elements
-  used as folder choosers for export dialogs.
-  
-  Value: Current folder.
-  
-  The current folder is determined for each image currently opened in GIMP
-  separately, according to the following priority list:
-  
-    1. Last export folder of the current image
-    2. Import path for the current image
-    3. XCF path for the current image
-    4. Last export folder of any image
-    5. The 'Documents' folder in user's home folder
-  
-  Attributes:
-  
-  * `image_ids_and_folders_setting` - a `Setting` object whose value is a
-    dict of <`gimp.Image`, folder name> pairs.
-  
-  * `current_image` - Current `gimp.Image` object.
-  """
-  
-  def __init__(self, setting, element, image_ids_and_folders_setting, current_image):
-    super(GtkExportFolderChooserPresenter, self).__init__(setting, element)
-    
-    self._image_ids_and_folders_setting = image_ids_and_folders_setting
-    self.current_image = current_image
-    
-    self._location_toggle_button = self._get_location_toggle_button()
-    
-    self._set_image_ids_and_folders()
-  
-  def get_value(self):
-    if not self._is_location_entry_active():
-      folder = self._element.get_current_folder()
-    else:
-      folder = self._element.get_filename()
-    
-    if folder is not None:
-      folder = folder.decode(GTK_CHARACTER_ENCODING)
-    
-    self._image_ids_and_folders_setting.value[self.current_image.ID] = folder
-    
-    return folder
-  
-  def set_value(self, value):
-    """
-    `value` parameter will be ignored if there is a value for folders
-    1., 2. or 3. from the priority list (see the class description).
-    """
-    
-    folder = self._image_ids_and_folders_setting.value[self.current_image.ID]
-    
-    if folder is not None:
-      self._element.set_current_folder(folder.encode(GTK_CHARACTER_ENCODING))
-    else:
-      uri = pdb.gimp_image_get_imported_uri(self.current_image)
-      if uri is None:
-        uri = pdb.gimp_image_get_xcf_uri(self.current_image)
-      
-      if uri is not None:
-        self._element.set_uri(uri.encode(GTK_CHARACTER_ENCODING))
-      else:
-        self._element.set_current_folder(value.encode(GTK_CHARACTER_ENCODING))
-  
-  def _get_location_toggle_button(self):
-    return self._element.get_children()[0].get_children()[0].get_children()[0].get_children()[0].get_children()[0]
-  
-  def _is_location_entry_active(self):
-    return self._location_toggle_button.get_active()
-  
-  def _set_image_ids_and_folders(self):
-    setting = self._image_ids_and_folders_setting
-    
-    current_image_ids = set([image.ID for image in gimp.image_list()])
-    setting.value = {
-      image_id : setting.value[image_id]
-      for image_id in setting.value.keys() if image_id in current_image_ids
-    }
-    for image_id in current_image_ids:
-      if image_id not in setting.value.keys():
-        setting.value[image_id] = None
-
-
-class GtkWindowPositionPresenter(GtkSettingPresenter):
-  
-  """
-  This class is a `SettingPresenter` for window or dialog elements
-  (`gtk.Window`, `gtk.Dialog`) to get/set its position.
-  
-  Value: Current position of the window as a tuple with 2 integers.
-  """
-  
-  def get_value(self):
-    return self._element.get_position()
-  
-  def set_value(self, value):
-    """
-    Set new position of the window (i.e. move the window).
-    
-    Don't move the window if `value` is None or empty.
-    """
-    
-    if value:
-      self._element.move(*value)
-
-
-class GtkExpanderPresenter(GtkSettingPresenter):
-  
-  """
-  This class is a `SettingPresenter` for `gtk.Expander` elements.
-  
-  Value: Expanded state of the expander (expanded/collapsed).
-  """
-  
-  def get_value(self):
-    return self._element.get_expanded()
-  
-  def set_value(self, value):
-    self._element.set_expanded(value)
-
-#===============================================================================
-# GTK Setting Presenter Container
-#===============================================================================
-
-class GtkSettingPresenterContainer(pgsetting.SettingPresenterContainer):
-  
-  """
-  This class is used to group `SettingPresenter` objects in a GTK environment.
-  """
-  
-  def _gui_on_element_value_change(self, widget, presenter, *args):
-    self._on_element_value_change(presenter)
-  
-  def _gui_on_element_value_change_streamline(self, widget, presenter, *args):
-    self._on_element_value_change_streamline(presenter)

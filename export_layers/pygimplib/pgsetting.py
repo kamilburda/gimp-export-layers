@@ -21,12 +21,7 @@
 
 """
 This module:
-* defines API for settings
-* defines the means to load/save settings:
-  * permanently - to a JSON file
-    - settings persist even after closing GIMP
-  * semi-permanently - to the GIMP shelf
-    - settings persist during one GIMP session
+* defines setting classes that can be used to create plug-in settings
 """
 
 #===============================================================================
@@ -40,16 +35,20 @@ str = unicode
 
 #===============================================================================
 
-import errno
+
+import os
 import abc
+import inspect
 from collections import OrderedDict
-import json
 
 import gimp
-import gimpshelf
 import gimpenums
 
+from .lib import enum
+
 from . import pgpath
+from . import pgsettingpresenter
+from .pgsettingpresenters_gtk import SettingGuiTypes
 
 #===============================================================================
 
@@ -57,138 +56,197 @@ pdb = gimp.pdb
 
 #===============================================================================
 
+
+class PdbRegistrationModes(enum.Enum):
+  automatic = 0
+  registrable = 1
+  not_registrable = 2
+
+
+#===============================================================================
+
+
 class SettingValueError(Exception):
   """
-  This exception class is raised when a value assigned to the `value` attribute
-  of a `Setting` object is invalid.
+  This exception class is raised when a value assigned to a `Setting` object is
+  invalid.
   """
   
   pass
 
+
+class SettingDefaultValueError(SettingValueError):
+  """
+  This exception class is raised when the default value specified during the
+  `Setting` object initialization is invalid.
+  """
+  
+  pass
+
+
 #===============================================================================
+
 
 class Setting(object):
   
   """
   This class holds data about a plug-in setting.
   
-  Attributes and methods in this class can be used in multiple scenarios, such as:
-  * variables used in the main ("business"?) logic of plug-ins
-  * parameters registered to plug-ins
-  * properties of GUI elements (values, labels, tooltips, etc.)
+  Properties and methods in settings can be used in multiple scenarios, such as:
+  * using setting values as variables in the main logic of plug-ins
+  * registering GIMP Procedural Database (PDB) parameters to plug-ins
+  * managing GUI element properties (values, labels, etc.)
   
-  It is recommended to use an appropriate subclass for a setting. If there is no
-  appropriate subclass, use this class.
+  This class in particular can story any data. However, it is strongly
+  recommended to use the appropriate `Setting` subclass for a particular data
+  type, as the subclasses offer the following features:
+  * setting can be registered to PDB,
+  * automatic validation of input values,
+  * readily available GUI element, keeping the GUI and the setting value in sync.
+  
+  Settings can contain an event handler that is triggered when the value
+  of the setting changes (e.g. when `set_value()` method is called). This way,
+  other settings and their GUI elements can be adjusted automatically.
   
   Attributes:
   
   * `name` (read-only) - A name (string) that uniquely identifies the setting.
   
-  * `default_value` - Default value of the setting assigned upon its
-    instantiation or after the `reset()` method is called.
+  * `value` (read-only) - The setting value. To set the value, call the
+    `set_value()` method. `value` is initially set to `default_value`.
   
-  * `value` - The setting value. Subclasses of `Setting` can override the
-    `value.setter` property to e.g. validate input value and raise `ValueError`
-    if the value assigned is invalid. `value` is initially set to `default_value`.
+  * `default_value` (read-only) - Default value of the setting assigned upon its
+    initialization or after the `reset()` method is called.
   
-  * `gimp_pdb_type` - GIMP Procedural Database (PDB) type, used when registering
-    the setting as a plug-in parameter to the PDB. `_allowed_pdb_types` list,
-    which is class-specific, determines whether the PDB type assigned is valid.
-    `_allowed_pdb_types` in this class is None, which means that any PDB type
-    can be assigned.
+  * `gui` (read-only) - `SettingPresenter` instance acting as a wrapper of a GUI
+    element. With `gui`, you may modify GUI-specific attributes, such as
+    visibility or sensitivity (enabled/disabled).
   
-  * `can_be_registered_to_pdb` - Indicates whether the setting can be registered
-    as a parameter to a plug-in. Automatically set to True if `gimp_pdb_type` is
-    assigned to a valid value that is not None.
+  * `display_name` (read-only) - Setting name in human-readable format. Useful
+    e.g. as GUI labels.
   
-  * `display_name` - Setting name in human-readable format. Useful as GUI labels.
+  * `description` (read-only) - Usually `display_name` plus additional
+    information in parentheses (such as boundaries for numeric values). Useful
+    as a setting description when registering the setting as a plug-in parameter
+    to the GIMP Procedural Database (PDB).
   
-  * `short_description` (read-only) - Usually `display_name` plus additional
-    information in parentheses. Useful as setting description when registering
-    the setting as a plug-in parameter to the PDB.
+  * `pdb_type` (read-only) - GIMP PDB type, used when registering the setting as
+    a plug-in parameter to the PDB. In Setting subclasses, only specific PDB
+    types are allowed. Refer to the documentation of the subclasses for the list
+    of allowed PDB types.
   
-  * `description` - Describes the setting in more detail. Useful for
-    documentation purposes as well as GUI tooltips.
+  * `pdb_registration_mode` (read-only) - Indicates how to register the setting
+    as a PDB parameter. Possible values:
+      
+      * `PdbRegistrationModes.automatic` - automatically determine whether the
+        setting can be registered based on `pdb_type`, if `pdb_type` is not None,
+        allow the setting to be registered, otherwise disallow it. This is the
+        default.
+        
+      * `PdbRegistrationModes.registrable` - allow the setting to be registered.
+        If this attribute is set to `registrable` and `pdb_type` is None, this
+        is an error.
+      
+      * `PdbRegistrationModes.not_registrable` - do not allow the setting to be
+      registered.
   
-  * `error_messages` - A dict of error messages, which can be used e.g. if a value
+  * `pdb_name` (read-only) - Setting name as it appears in the GIMP PDB as
+    a PDB parameter name.
+  
+  * `error_messages` (read-only) - A dict of error messages containing
+    (message name, message contents) pairs, which can be used e.g. if a value
     assigned to the setting is invalid. You can add your own error messages and
     assign them to one of the "default" error messages (such as 'invalid_value'
     in several `Setting` subclasses) depending on the context in which the value
     assigned is invalid.
-  
-  * `ui_enabled` - Indicates whether the setting should be enabled (respond
-    to user input) in the GUI. True by default. This attribute is only an
-    indication, it does not modify a GUI element (use the appropriate
-    `SettingPresenter` subclass for that purpose).
-  
-  * `ui_visible` - Indicates whether the setting should be visible in the GUI.
-    True by default. This attribute is only an indication, it does not modify a
-    GUI element (use the appropriate `SettingPresenter` subclass for that purpose).
-  
-  * `can_be_reset_by_container` - If True, the setting is reset to its default
-    value if the `reset()` method from the corresponding `SettingContainer` is
-    called. False by default.
-  
-  * `changed_attributes` (read-only) - Contains a set of attribute names of the
-    setting object that were changed. This attribute is used in the
-    `streamline()` method. If any of the following attributes are assigned a
-    value, they are added to the set:
-    * `value`
-    * `ui_enabled`
-    * `ui_visible`
-    
-    `changed_attributes` is cleared if `streamline()` is called.
-  
-  * `can_streamline` (read-only) - True if a streamline function is set, False
-    otherwise.
   """
   
-  def __init__(self, name, default_value):
+  _ALLOWED_PDB_TYPES = []
+  _ALLOWED_EMPTY_VALUES = []
+  _GUI_TYPES = []
+  
+  def __init__(self, name, default_value,
+               allow_empty_values=False,
+               display_name=None,
+               pdb_type=None,
+               pdb_registration_mode=PdbRegistrationModes.automatic,
+               gui_type=None,
+               auto_update_gui_to_setting=True,
+               error_messages=None):
     
     """
+    Described are only those parameters that do not correspond to
+    any attribute in this class, or parameters requiring additional information.
+    
     Parameters:
     
-    * `name` - Setting name as a string.
-    * `default_value` - Default value of the setting.
-    """
+    * `default_value` - During Setting initialization, the default value is
+      validated. If one of the so called "empty values" (specific to each
+      setting class) is passed as the default value, default value validation is
+      not performed.
     
-    self._attrs_that_trigger_change = {'value', 'ui_enabled', 'ui_visible'}
-    self._changed_attributes = set()
+    * `allow_empty_values` - If False and an empty value is passed to the
+      `set_value` method, then the value is considered invalid. Otherwise, the
+      value is considered valid.
+    
+    * `pdb_type` - If None and this is a Setting subclass, assign the default
+      PDB type from the list of allowed PDB types. If None and this is the
+      Setting class, use None.
+    
+    * `gui_type` - Type of GUI element to be created by the `create_gui` method.
+    
+      If `gui_type` is `None`, choose the first GUI type from the list of
+      allowed GUI type for the corresponding `Setting` subclass. If there are no
+      allowed GUI types for that subclass, no GUI is created for this setting.
+      
+      If an explicit GUI type is specified, it must be one of the types from the
+      list of allowed GUI types for the corresponding `Setting` subclass. If
+      not, `ValueError` is raised.
+      
+      If the `SettingGuiTypes.none` type is specified, no GUI is created for
+      this setting.
+    
+    * `auto_update_gui_to_setting` - If True, automatically update the setting value if
+      the GUI value is updated. If False, the setting must be updated manually
+      by calling `Setting.gui.update_setting_value` when needed.
+      
+      This parameter does not have any effect if the GUI type used in
+      this setting cannot provide automatic GUI-to-setting update.
+    
+    * `error_messages` - A dict containing (message name, message contents)
+      pairs. Use this to pass custom error messages. This way, you may also
+      override default error messages defined in classes.
+    """
     
     self._name = name
-    self.default_value = default_value
+    self._default_value = default_value
+    self._allow_empty_values = allow_empty_values
+    self._display_name = self._get_display_name(display_name)
+    self._pdb_type = self._get_pdb_type(pdb_type)
+    self._pdb_registration_mode = self._get_pdb_registration_mode(pdb_registration_mode)
     
-    self._value = self.default_value
+    self._value = self._default_value
+    self._pdb_name = self._get_pdb_name(self._name)
+    self._allowed_empty_values = list(self._ALLOWED_EMPTY_VALUES)
     
-    self._gimp_pdb_type = None
-    self._can_be_registered_to_pdb = False
-    self._allowed_pdb_types = None
+    self._value_changed_event_handler = None
+    self._value_changed_event_handler_args = []
     
-    self._display_name = ""
-    self._description = ""
+    self._setting_value_synchronizer = pgsettingpresenter.SettingValueSynchronizer()
+    self._setting_value_synchronizer.apply_gui_value_to_setting = self._apply_gui_value_to_setting
+    
+    self._gui_type = self._get_gui_type(gui_type)
+    self._gui = pgsettingpresenter.NullSettingPresenter(
+      self, None, self._setting_value_synchronizer, auto_update_gui_to_setting=auto_update_gui_to_setting)
     
     self._error_messages = {}
+    self._init_error_messages()
+    if error_messages is not None:
+      self._error_messages.update(error_messages)
     
-    self.ui_enabled = True
-    self.ui_visible = True
+    if self._should_validate_default_value():
+      self._validate_default_value()
     
-    self.can_be_reset_by_container = True
-    
-    self._streamline_func = None
-    self._streamline_args = []
-    
-    # Some attributes may now be in _changed_attributes because of __setattr__,
-    # hence it must be cleared.
-    self._changed_attributes.clear()
-  
-  def __setattr__(self, name, value):
-    """
-    Set attribute value. If the attribute is one of the attributes in
-    `_attrs_that_trigger_change`, add it to `changed_attributes`.
-    """
-    super(Setting, self).__setattr__(name, value)
-    if name in self._attrs_that_trigger_change:
-      self._changed_attributes.add(name)
   
   @property
   def name(self):
@@ -198,137 +256,61 @@ class Setting(object):
   def value(self):
     return self._value
   
-  @value.setter
-  def value(self, value_):
-    self._value = value_
+  @property
+  def default_value(self):
+    return self._default_value
   
   @property
-  def gimp_pdb_type(self):
-    return self._gimp_pdb_type
-  
-  @gimp_pdb_type.setter
-  def gimp_pdb_type(self, value):
-    if self._allowed_pdb_types is None or value in self._allowed_pdb_types:
-      self._gimp_pdb_type = value
-      self.can_be_registered_to_pdb = value is not None
-    else:
-      raise ValueError("GIMP PDB type " + str(value) + " not allowed")
-  
-  @property
-  def can_be_registered_to_pdb(self):
-    return self._can_be_registered_to_pdb
-  
-  @can_be_registered_to_pdb.setter
-  def can_be_registered_to_pdb(self, value):
-    if value and self._gimp_pdb_type is None:
-      raise ValueError("setting cannot be registered to PDB because it has no "
-                       "PDB type set (attribute gimp_pdb_type)")
-    self._can_be_registered_to_pdb = value
+  def gui(self):
+    return self._gui
   
   @property
   def display_name(self):
     return self._display_name
   
-  @display_name.setter
-  def display_name(self, value):
-    self._display_name = value if value is not None else ""
-  
   @property
   def description(self):
-    return self._description
-  
-  @description.setter
-  def description(self, value):
-    self._description = value if value is not None else ""
-  
-  @property
-  def changed_attributes(self):
-    return self._changed_attributes
-  
-  @property
-  def short_description(self):
     return self.display_name
+  
+  @property
+  def pdb_type(self):
+    return self._pdb_type
+  
+  @property
+  def pdb_registration_mode(self):
+    return self._pdb_registration_mode
+  
+  @property
+  def pdb_name(self):
+    return self._pdb_name
   
   @property
   def error_messages(self):
     return self._error_messages
   
-  @property
-  def can_streamline(self):
-    return self._streamline_func is not None
-  
-  def streamline(self, force=False):
+  def set_value(self, value):
     """
-    Change attributes of this and other settings based on the value
-    of this setting, the other settings or additional arguments.
+    Set the setting value.
     
-    Parameters:
+    Before the assignment, validate the value. If the value is invalid, raise
+    `SettingValueError`.
     
-    * `force` - If True, streamline settings even if the values of the other
-      settings were not changed. This is useful when initializing GUI elements -
-      setting up proper values, enabled/disabled state or visibility.
+    Update the value of the GUI element. Even if the setting has no GUI element
+    assigned, the value is recorded. Once a GUI element is assigned to the
+    setting, the recorded value is copied over to the GUI element.
     
-    Returns:
+    If an event handler is connected (via `connect_value_changed_event()`), call
+    the event handler.
     
-      `changed_settings` - Set of changed settings. A setting is considered
-      changed if at least one of the following attributes were assigned a value:
-      * `value`
-      * `ui_enabled`
-      * `ui_visible`
+    Note: This is a method and not a property because of the additional overhead
+    introduced by validation, GUI updating and event handling. `value` still
+    remains a property for the sake of brevity.
     """
     
-    if self._streamline_func is None:
-      raise TypeError("streamline() cannot be called because there is no streamline function set")
-    
-    changed_settings = OrderedDict()
-    
-    if self._changed_attributes or force:
-      self._streamline_func(self, *self._streamline_args)
-      
-      # Create copies of the changed attributes since the sets are cleared
-      # in the objects afterwards.
-      changed_settings[self] = set(self._changed_attributes)
-      self._changed_attributes.clear()
-      
-      for arg in self._streamline_args:
-        if isinstance(arg, Setting) and arg.changed_attributes:
-          changed_settings[arg] = set(arg.changed_attributes)
-          arg.changed_attributes.clear()
-    
-    return changed_settings
-  
-  def set_streamline_func(self, streamline_func, *streamline_args):
-    """
-    Set a function to be called by the `streamline()` method.
-    
-    A streamline function must always contain at least one argument. The first
-    argument is the setting from which the streamline function is invoked.
-    This argument should therefore not be specified in `streamline_args`.
-    
-    Parameters:
-    
-    * `streamline_func` - Streamline function to be called by `streamline()`.
-    
-    * `streamline_args` - Additional arguments to `streamline_func`. Can be
-      any arguments, including `Setting` objects.
-    """
-    
-    if not callable(streamline_func):
-      raise TypeError("not a function")
-    
-    self._streamline_func = streamline_func
-    self._streamline_args = streamline_args
-  
-  def remove_streamline_func(self):
-    """
-    Remove streamline function set by the `set_streamline_func()` method.
-    """
-    
-    if self._streamline_func is None:
-      raise TypeError("no streamline function was previously set")
-    
-    self._streamline_func = None
-    self._streamline_args = []
+    self._assign_and_validate_value(value)
+    self._setting_value_synchronizer.apply_setting_value_to_gui(value)
+    if self._is_value_changed_event_connected():
+      self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
   
   def reset(self):
     """
@@ -336,36 +318,255 @@ class Setting(object):
     
     This is different from
     
-      setting.value = setting.default_value
+      setting.set_value(setting.default_value)
     
-    in that this method does not raise an exception if the default value is
-    invalid and does not add the `value` attribute to `changed_attributes`.
+    in that `reset()` does not validate the default value.
+    
+    `reset()` also updates the GUI and calls the event handler.
     """
     
-    self._value = self.default_value
+    self._value = self._default_value
+    self._setting_value_synchronizer.apply_setting_value_to_gui(self._default_value)
+    if self._is_value_changed_event_connected():
+      self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
+  
+  def create_gui(self, gui_type=None, gui_element=None, auto_update_gui_to_setting=True):
+    """
+    Create a new GUI object (`SettingPresenter` instance) for this setting. The
+    state of the previous GUI object is copied to the new GUI object (such as
+    its value, visibility and enabled state).
+    
+    Parameters:
+    
+    * `gui_type` - `SettingPresenter` type to wrap `gui_element` around.
+      
+      If `gui_type` is None, create a GUI object of the type specified in the
+      `gui_type` parameter in `__init__`. In other words, GUI is created along
+      with a new GUI element.
+      
+      To specify an existing GUI element, pass a specific `gui_type` and the
+      GUI element in `gui_element`. This is useful if you wish to use the GUI
+      element for multiple settings or for other purposes outside this setting.
+      
+      If `gui_type` is specified and is not any of the allowed GUI types for the
+      setting, raise `ValueError`.
+    
+    * `gui_element` - A GUI element (wrapped in a `SettingPresenter` instance).
+    
+      If `gui_type` is None, `gui_element` is ignored. If `gui_type` is not
+      None and `gui_element` is None, raise `ValueError`.
+    
+    * `auto_update_gui_to_setting` - See `auto_update_gui_to_setting` parameter in `__init__`.
+    """
+    
+    if gui_type is not None and gui_element is None:
+      raise ValueError("gui_element cannot be None if gui_type is not None")
+    if gui_type is None and gui_element is not None:
+      raise ValueError("gui_type cannot be None if gui_element is not None")
+    
+    if gui_type is None:
+      gui_type = self._gui_type
+    else:
+      if isinstance(gui_type, SettingGuiTypes):
+        gui_type = gui_type.value
+    
+    self._gui = gui_type(
+      self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,
+      old_setting_presenter=self._gui, auto_update_gui_to_setting=auto_update_gui_to_setting)
+  
+  def connect_value_changed_event(self, event_handler, *event_handler_args):
+    """
+    Connect an event handler that triggers when `set_value()` is called.
+    
+    The `event_handler` (a function) must always contain at least one argument.
+    The first argument must be the setting from which the event handler is
+    invoked.
+    
+    Parameters:
+    
+    * `event_handler` - Function to be called when `set_value()` from this
+      setting is called.
+    
+    * `*event_handler_args` - Additional arguments to `event_handler`. Can be
+      any arguments, including `Setting` objects.
+    
+    Raises:
+    
+    * `TypeError` - `event_handler` is not a function or the wrong number of
+      arguments was passed in `event_handler_args`.
+    """
+    
+    if not callable(event_handler):
+      raise TypeError("not a function")
+    
+    # Subtract 1 because the first argument is always this Setting object.
+    num_required_event_handler_args = len(inspect.getargspec(event_handler)[0]) - 1
+    num_actual_event_handler_args = len(event_handler_args)
+    
+    if num_required_event_handler_args != num_actual_event_handler_args:
+      raise TypeError("Wrong number of arguments to the event handler (required {0}, passed {1})"
+                      .format(num_required_event_handler_args, num_actual_event_handler_args))
+    
+    self._value_changed_event_handler = event_handler
+    self._value_changed_event_handler_args = event_handler_args
+  
+  def remove_value_changed_event(self):
+    """
+    Remove the event handler set by the `connect_value_changed_event()` method.
+    """
+    
+    if self._value_changed_event_handler is None:
+      raise TypeError("no event handler was previously set")
+    
+    self._value_changed_event_handler = None
+    self._value_changed_event_handler_args = []
+  
+  def is_value_empty(self):
+    """
+    Return True if the setting value is one of the empty values defined for the
+    setting class, otherwise return False.
+    """
+    return self._is_value_empty(self._value)
+  
+  def _is_value_empty(self, value):
+    return value in self._allowed_empty_values
+  
+  def _assign_and_validate_value(self, value):
+    if not self._allow_empty_values:
+      self._validate(value)
+    else:
+      if not self._is_value_empty(value):
+        self._validate(value)
+    
+    self._value = value
+  
+  def _apply_gui_value_to_setting(self, value):
+    self._assign_and_validate_value(value)
+    if self._is_value_changed_event_connected():
+      self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
+  
+  def _validate(self, value):
+    """
+    Check whether the specified value is valid. If the value is invalid, raise
+    `SettingValueError`.
+    """
+    
+    pass
+  
+  def _should_validate_default_value(self):
+    return not self._is_value_empty(self._default_value)
+  
+  def _validate_default_value(self):
+    """
+    Check whether the default value of the setting is valid. If the default
+    value is invalid, raise `SettingDefaultValueError`.
+    """
+    
+    try:
+      self._validate(self._default_value)
+    except SettingValueError as e:
+      raise SettingDefaultValueError(e.message)
+  
+  def _is_value_changed_event_connected(self):
+    return self._value_changed_event_handler is not None
+  
+  def _init_error_messages(self):
+    """
+    Initialize custom error messages in the `error_messages` dict.
+    """
+    
+    pass
+  
+  def _get_display_name(self, display_name):
+    if display_name is not None:
+      return display_name
+    else:
+      return self._generate_display_name()
+  
+  def _generate_display_name(self):
+    return self.name.replace('_', ' ').capitalize()
+  
+  def _get_pdb_type(self, pdb_type):
+    if pdb_type is None:
+      return self._get_default_pdb_type()
+    elif pdb_type in self._ALLOWED_PDB_TYPES:
+      return pdb_type
+    else:
+      raise ValueError("GIMP PDB type " + str(pdb_type) + " not allowed; "
+                       "for the list of allowed PDB types, refer to "
+                       "the documentation of the appropriate Setting class")
+  
+  def _get_default_pdb_type(self):
+    if self._ALLOWED_PDB_TYPES:
+      return self._ALLOWED_PDB_TYPES[0]
+    else:
+      return None
+  
+  def _get_pdb_registration_mode(self, registration_mode):
+    if registration_mode == PdbRegistrationModes.automatic:
+      if self._pdb_type is not None:
+        return PdbRegistrationModes.registrable
+      else:
+        return PdbRegistrationModes.not_registrable
+    elif registration_mode == PdbRegistrationModes.registrable:
+      if self._pdb_type is not None:
+        return PdbRegistrationModes.registrable
+      else:
+        raise ValueError("setting cannot be registered to the GIMP PDB because "
+                         "it has no PDB type set")
+    elif registration_mode == PdbRegistrationModes.not_registrable:
+      return PdbRegistrationModes.not_registrable
+    else:
+      raise ValueError("invalid PDB registration mode")
+  
+  def _get_pdb_name(self, name):
+    """
+    Return mangled setting name, useful when using the name in the setting
+    description (GIMP PDB automatically mangles setting names, but not
+    descriptions).
+    """
+    
+    return name.replace('_', '-')
+  
+  def _get_gui_type(self, gui_type):
+    gui_type_to_return = None
+    
+    if gui_type is None:
+      if self._GUI_TYPES:
+        gui_type_to_return = self._GUI_TYPES[0]
+      else:
+        gui_type_to_return = SettingGuiTypes.none
+    else:
+      if gui_type in self._GUI_TYPES:
+        gui_type_to_return = gui_type
+      elif gui_type in [SettingGuiTypes.none, SettingGuiTypes.none.value,
+                        pgsettingpresenter.NullSettingPresenter]:
+        gui_type_to_return = gui_type
+      else:
+        raise ValueError("invalid GUI type; must be one of {0}"
+                         .format([type_.__name__ for type_ in self._GUI_TYPES]))
+    
+    if isinstance(gui_type_to_return, SettingGuiTypes):
+      gui_type_to_return = gui_type_to_return.value
+    
+    return gui_type_to_return
   
   def _value_to_str(self, value):
     """
-    Use this method in subclasses to prepend `value` to an error message
-    if `value` that is meant to be assigned to a setting is invalid.
+    Prepend `value` to an error message if `value` that is meant to be assigned
+    to this setting is invalid.
     
-    Don't prepend anything if the value is empty.
+    Don't prepend anything if `value` is empty or None.
     """
     
     if value:
       return '"' + str(value) + '": '
     else:
       return ""
-  
-  def _get_mangled_name(self):
-    """
-    Return mangled setting name, useful when using the name in the short
-    description (GIMP PDB automatically mangles setting names, but not
-    descriptions).
-    """
-    
-    return self.name.replace('_', '-')
-    
+
+
+#-------------------------------------------------------------------------------
+
 
 class NumericSetting(Setting):
   
@@ -376,9 +577,9 @@ class NumericSetting(Setting):
   
   Additional attributes:
   
-  * `min_value` - Minimum numeric value.
+  * `min_value` - Minimum allowed numeric value.
   
-  * `max_value` - Maximum numeric value.
+  * `max_value` - Maximum allowed numeric value.
   
   Raises:
   
@@ -395,38 +596,40 @@ class NumericSetting(Setting):
   
   __metaclass__ = abc.ABCMeta
   
-  def __init__(self, name, default_value):
-    super(NumericSetting, self).__init__(name, default_value)
+  def __init__(self, name, default_value, min_value=None, max_value=None, **kwargs):
+    self._min_value = min_value
+    self._max_value = max_value
     
-    self.min_value = None
-    self.max_value = None
-    
-    self.error_messages['below_min'] = _("Value cannot be less than {0}.").format(self.min_value)
-    self.error_messages['above_max'] = _("Value cannot be greater than {0}.").format(self.max_value)
+    super(NumericSetting, self).__init__(name, default_value, **kwargs)
+  
+  def _init_error_messages(self):
+    self.error_messages['below_min'] = _("Value cannot be less than {0}.").format(self._min_value)
+    self.error_messages['above_max'] = _("Value cannot be greater than {0}.").format(self._max_value)
   
   @property
-  def value(self):
-    return self._value
-
-  @value.setter
-  def value(self, value_):
-    if self.min_value is not None and value_ < self.min_value:
-      raise SettingValueError(self._value_to_str(value_) + self.error_messages['below_min'])
-    if self.max_value is not None and value_ > self.max_value:
-      raise SettingValueError(self._value_to_str(value_) + self.error_messages['above_max'])
-    
-    super(NumericSetting, self.__class__).value.__set__(self, value_)
+  def min_value(self):
+    return self._min_value
   
   @property
-  def short_description(self):
-    if self.min_value is not None and self.max_value is None:
-      return self._get_mangled_name() + " >= " + str(self.min_value)
-    elif self.min_value is None and self.max_value is not None:
-      return self._get_mangled_name() + " <= " + str(self.max_value)
-    elif self.min_value is not None and self.max_value is not None:
-      return str(self.min_value) + " <= " + self._get_mangled_name() + " <= " + str(self.max_value)
+  def max_value(self):
+    return self._max_value
+  
+  @property
+  def description(self):
+    if self._min_value is not None and self._max_value is None:
+      return self._pdb_name + " >= " + str(self._min_value)
+    elif self._min_value is None and self._max_value is not None:
+      return self._pdb_name + " <= " + str(self._max_value)
+    elif self._min_value is not None and self._max_value is not None:
+      return str(self._min_value) + " <= " + self._pdb_name + " <= " + str(self._max_value)
     else:
-      return self.display_name
+      return self._display_name
+  
+  def _validate(self, value):
+    if self._min_value is not None and value < self._min_value:
+      raise SettingValueError(self._value_to_str(value) + self.error_messages['below_min'])
+    if self._max_value is not None and value > self._max_value:
+      raise SettingValueError(self._value_to_str(value) + self.error_messages['above_max'])
 
 
 class IntSetting(NumericSetting):
@@ -441,11 +644,7 @@ class IntSetting(NumericSetting):
   * PDB_INT8
   """
   
-  def __init__(self, name, default_value):
-    super(IntSetting, self).__init__(name, default_value)
-    
-    self._allowed_pdb_types = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-    self.gimp_pdb_type = gimpenums.PDB_INT32
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
 
 
 class FloatSetting(NumericSetting):
@@ -458,11 +657,7 @@ class FloatSetting(NumericSetting):
   * PDB_FLOAT
   """
   
-  def __init__(self, name, default_value):
-    super(FloatSetting, self).__init__(name, default_value)
-    
-    self._allowed_pdb_types = [gimpenums.PDB_FLOAT]
-    self.gimp_pdb_type = gimpenums.PDB_FLOAT
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_FLOAT]
     
 
 class BoolSetting(Setting):
@@ -480,23 +675,16 @@ class BoolSetting(Setting):
   * PDB_INT8
   """
   
-  def __init__(self, name, default_value):
-    super(BoolSetting, self).__init__(name, default_value)
-    
-    self._allowed_pdb_types = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-    self.gimp_pdb_type = gimpenums.PDB_INT32
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  _GUI_TYPES = [SettingGuiTypes.checkbox]
   
   @property
-  def value(self):
-    return self._value
-  
-  @value.setter
-  def value(self, value_):
-    self._value = bool(value_)
-  
-  @property
-  def short_description(self):
+  def description(self):
     return self.display_name + "?"
+  
+  def set_value(self, value):
+    value = bool(value)
+    super(BoolSetting, self).set_value(value)
 
 
 class EnumSetting(Setting):
@@ -513,17 +701,19 @@ class EnumSetting(Setting):
   
   Additional attributes:
   
-  * `options` (read-only) - A dict of <option name, option value> pairs. Option name
-    uniquely identifies each option. Option value is the corresponding integer value.
+  * `items` (read-only) - A dict of <item name, item value> pairs. Item name
+    uniquely identifies each item. Item value is the corresponding integer value.
   
-  * `options_display_names` (read-only) - A dict of <option name, option display name> pairs.
-    Option display names can be used e.g. as combo box items in the GUI.
+  * `items_display_names` (read-only) - A dict of <item name, item display name> pairs.
+    Item display names can be used e.g. as combo box items in the GUI.
   
-  To access an option value:
-    setting.options[option name]
+  * `empty_value` (read-only) - Item name designated as the empty value.
   
-  To access an option display name:
-    setting.options_display_names[option name]
+  To access an item value:
+    setting.items[item name]
+  
+  To access an item display name:
+    setting.items_display_names[item name]
   
   Raises:
   
@@ -531,128 +721,142 @@ class EnumSetting(Setting):
   
   * `ValueError` - See the other error messages below.
   
-  * `KeyError` - Invalid key to `options` or `options_display_names`.
+  * `KeyError` - Invalid key to `items` or `items_display_names`.
   
   Error messages:
   
-  * `'invalid_value'` - The value assigned is not one of the options in this setting.
+  * `'invalid_value'` - The value assigned is not one of the items in this setting.
   
-  * `'invalid_default_value'` - Option name is invalid (not found in the `options` parameter
+  * `'invalid_default_value'` - Item name is invalid (not found in the `items` parameter
     when instantiating the object).
-  
-  * `'wrong_options_len'` - Wrong number of elements in tuples in the `options` parameter
-    when instantiating the object.
-  
-  * `'duplicate_option_value'` - When the object was being instantiated, some
-    option values in the 3-element tuples were specified multiple times.
   """
   
-  def __init__(self, name, default_value, options):
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  _GUI_TYPES = [SettingGuiTypes.combobox]
+  
+  def __init__(self, name, default_value, items, empty_value=None, **kwargs):
     
     """
-    Parameters:
+    Additional parameters:
     
-    * `name` - Setting name.
+    * `default_value` - Item name (identifier). Unlike other Setting classes,
+      where the default value is specified directly, EnumSetting accepts a valid
+      item name instead.
     
-    * `default_value` - Option name (identifier). Unlike other Setting classes, where
-      the default value is specified directly, EnumSetting accepts a valid option
-      identifier instead.
-    
-    * `options` - A list of either (option name, option display name) tuples
-      or (option name, option display name, option value) tuples.
+    * `items` - A list of either (item name, item display name) tuples
+      or (item name, item display name, item value) tuples.
       
-      For 2-element tuples, option values are assigned automatically, starting with 0.
-      
-      Use 3-element tuples to assign explicit option values. Values must be unique
-      and specified in each tuple.
+      For 2-element tuples, item values are assigned automatically, starting
+      with 0. Use 3-element tuples to assign explicit item values. Values must be
+      unique and specified in each tuple. You cannot combine 2- and 3- element
+      tuples - use only 2- or only 3-element tuples.
     """
     
-    super(EnumSetting, self).__init__(name, default_value)
+    self._items, self._items_display_names, self._item_values = self._create_item_attributes(items)
     
-    self._allowed_pdb_types = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
-    self.gimp_pdb_type = gimpenums.PDB_INT32
+    error_messages = {}
     
-    self._options = OrderedDict()
-    self._options_display_names = OrderedDict()
-    self._option_values = set()
+    error_messages['invalid_value'] = _(
+      "Invalid item value; valid values: {0}"
+    ).format(list(self._item_values))
     
-    self.error_messages['wrong_options_len'] = (
-      "Wrong number of tuple elements in options - must be 2 or 3"
-    )
-    self.error_messages['duplicate_option_value'] = (
-      "Cannot set the same value for multiple options - they must be unique"
-    )
+    error_messages['invalid_default_value'] = (
+      "invalid identifier for the default value; must be one of {0}"
+    ).format(self._items.keys())
     
-    if len(options[0]) == 2:
-      for i, (option_name, option_display_name) in enumerate(options):
-        self._options[option_name] = i
-        self._options_display_names[option_name] = option_display_name
-        self._option_values.add(i)
-    elif len(options[0]) == 3:
-      for option_name, option_display_name, option_value in options:
-        if option_value in self._option_values:
-          raise ValueError(self.error_messages['duplicate_option_value'])
-        
-        self._options[option_name] = option_value
-        self._options_display_names[option_name] = option_display_name
-        self._option_values.add(option_value)
+    if 'error_messages' in kwargs:
+      error_messages.update(kwargs['error_messages'])
+    kwargs['error_messages'] = error_messages
+    
+    if default_value in self._items:
+      # `default_value` is passed as a string (identifier). In order to properly
+      # initialize the setting, the actual default value (integer) must be passed
+      # to the Setting initialization proper.
+      param_default_value = self._items[default_value]
     else:
-      raise ValueError(self.error_messages['wrong_options_len'])
+      raise SettingDefaultValueError(error_messages['invalid_default_value'])
     
-    self.error_messages['invalid_value'] = _(
-      "Invalid option value; valid values: {0}"
-    ).format(list(self._option_values))
+    self._empty_value = self._get_empty_value(empty_value)
     
-    self.error_messages['invalid_default_value'] = (
-      "invalid identifier for the default value; must be one of "
-    ).format(self._options.keys())
+    super(EnumSetting, self).__init__(name, param_default_value, **kwargs)
     
-    if default_value in self._options:
-      self.default_value = self._options[default_value]
-      self._value = self.default_value
-    else:
-      raise ValueError(self.error_messages['invalid_default_value'])
+    self._allowed_empty_values.append(self._empty_value)
     
-    self._options_str = self._stringify_options()
+    self._items_str = self._stringify_items()
   
   @property
-  def value(self):
-    return self._value
+  def description(self):
+    return self.display_name + " " + self._items_str
   
-  @value.setter
-  def value(self, value_):
-    if value_ not in self._option_values:
-      raise SettingValueError(self._value_to_str(value_) + self.error_messages['invalid_value'])
+  @property
+  def items(self):
+    return self._items
+  
+  @property
+  def items_display_names(self):
+    return self._items_display_names
+  
+  @property
+  def empty_value(self):
+    return self._empty_value
+  
+  def get_item_display_names_and_values(self):
+    """
+    Return a list of (item display name, item value) pairs.
+    """
     
-    super(EnumSetting, self.__class__).value.__set__(self, value_)
-  
-  @property
-  def short_description(self):
-    return self.display_name + " " + self._options_str
-  
-  @property
-  def options(self):
-    return self._options
-  
-  @property
-  def options_display_names(self):
-    return self._options_display_names
-  
-  def get_option_display_names_and_values(self):
     display_names_and_values = []
-    for option_name, option_value in zip(self._options_display_names.values(), self._options.values()):
-      display_names_and_values.extend((option_name, option_value))
+    for item_name, item_value in zip(self._items_display_names.values(), self._items.values()):
+      display_names_and_values.extend((item_name, item_value))
     return display_names_and_values
   
-  def _stringify_options(self):
-    options_str = ""
-    options_sep = ", "
+  def _validate(self, value):
+    if value not in self._item_values or (not self._allow_empty_values and self._is_value_empty(value)):
+      raise SettingValueError(self._value_to_str(value) + self.error_messages['invalid_value'])
+  
+  def _stringify_items(self):
+    items_str = ""
+    items_sep = ", "
     
-    for value, display_name in zip(self._options.values(), self._options_display_names.values()):
-      options_str += '{0} ({1})'.format(display_name, value) + options_sep
-    options_str = options_str[:-len(options_sep)]
+    for value, display_name in zip(self._items.values(), self._items_display_names.values()):
+      items_str += '{0} ({1}){2}'.format(display_name, value, items_sep)
+    items_str = items_str[:-len(items_sep)]
     
-    return "{ " + options_str + " }"
+    return "{ " + items_str + " }"
+  
+  def _create_item_attributes(self, input_items):
+    items = OrderedDict()
+    items_display_names = OrderedDict()
+    item_values = set()
+    
+    if all(len(elem) == 2 for elem in input_items):
+      for i, (item_name, item_display_name) in enumerate(input_items):
+        items[item_name] = i
+        items_display_names[item_name] = item_display_name
+        item_values.add(i)
+    elif all(len(elem) == 3 for elem in input_items):
+      for item_name, item_display_name, item_value in input_items:
+        if item_value in item_values:
+          raise ValueError("Cannot set the same value for multiple items - they must be unique")
+        
+        items[item_name] = item_value
+        items_display_names[item_name] = item_display_name
+        item_values.add(item_value)
+    else:
+      raise ValueError("Wrong number of tuple elements in items - must be only 2- or only 3-element tuples")
+    
+    return items, items_display_names, item_values
+  
+  def _get_empty_value(self, empty_value_name):
+    if empty_value_name is not None:
+      if empty_value_name in self._items:
+        return self._items[empty_value_name]
+      else:
+        raise ValueError(
+          "invalid identifier for the empty value; must be one of {0}".format(self._items.keys())
+        )
+    else:
+      return None
 
 
 class ImageSetting(Setting):
@@ -664,29 +868,24 @@ class ImageSetting(Setting):
   
   * PDB_IMAGE
   
+  Allowed empty values:
+  
+  * None
+  
   Error messages:
   
   * `'invalid_value'` - The image assigned is invalid.
   """
   
-  def __init__(self, name, default_value):
-    super(ImageSetting, self).__init__(name, default_value)
-    
-    self._allowed_pdb_types = [gimpenums.PDB_IMAGE]
-    self.gimp_pdb_type = gimpenums.PDB_IMAGE
-    
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_IMAGE]
+  _ALLOWED_EMPTY_VALUES = [None]
+  
+  def _init_error_messages(self):
     self.error_messages['invalid_value'] = _("Invalid image.")
   
-  @property
-  def value(self):
-    return self._value
-  
-  @value.setter
-  def value(self, image):
+  def _validate(self, image):
     if not pdb.gimp_image_is_valid(image):
       raise SettingValueError(self._value_to_str(image) + self.error_messages['invalid_value'])
-    
-    super(ImageSetting, self.__class__).value.__set__(self, image)
 
 
 class DrawableSetting(Setting):
@@ -699,29 +898,24 @@ class DrawableSetting(Setting):
   
   * PDB_DRAWABLE
   
+  Allowed empty values:
+  
+  * None
+  
   Error messages:
   
   * `'invalid_value'` - The drawable assigned is invalid.
   """
   
-  def __init__(self, name, default_value):
-    super(DrawableSetting, self).__init__(name, default_value)
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_DRAWABLE]
+  _ALLOWED_EMPTY_VALUES = [None]
     
-    self._allowed_pdb_types = [gimpenums.PDB_DRAWABLE]
-    self.gimp_pdb_type = gimpenums.PDB_DRAWABLE
-    
+  def _init_error_messages(self):
     self.error_messages['invalid_value'] = _("Invalid drawable.")
   
-  @property
-  def value(self):
-    return self._value
-  
-  @value.setter
-  def value(self, drawable):
+  def _validate(self, drawable):
     if not pdb.gimp_item_is_valid(drawable):
       raise SettingValueError(self._value_to_str(drawable) + self.error_messages['invalid_value'])
-    
-    super(DrawableSetting, self.__class__).value.__set__(self, drawable)
 
 
 class StringSetting(Setting):
@@ -734,11 +928,8 @@ class StringSetting(Setting):
   * PDB_STRING
   """
   
-  def __init__(self, name, default_value):
-    super(StringSetting, self).__init__(name, default_value)
-    
-    self._allowed_pdb_types = [gimpenums.PDB_STRING]
-    self.gimp_pdb_type = gimpenums.PDB_STRING
+  _ALLOWED_PDB_TYPES = [gimpenums.PDB_STRING]
+  _GUI_TYPES = [SettingGuiTypes.text_entry]
 
 
 class ValidatableStringSetting(StringSetting):
@@ -766,7 +957,7 @@ class ValidatableStringSetting(StringSetting):
   
   __metaclass__ = abc.ABCMeta
   
-  def __init__(self, name, default_value, string_validator):
+  def __init__(self, name, default_value, string_validator, **kwargs):
     """
     Additional parameters:
     
@@ -774,20 +965,16 @@ class ValidatableStringSetting(StringSetting):
       the value assigned to this object.
     """
     
-    super(ValidatableStringSetting, self).__init__(name, default_value)
-    
     self._string_validator = string_validator
     
+    super(ValidatableStringSetting, self).__init__(name, default_value, **kwargs)
+    
+  def _init_error_messages(self):
     for status in self._string_validator.ERROR_STATUSES:
       self.error_messages[status] = ""
   
-  @property
-  def value(self):
-    return self._value
-  
-  @value.setter
-  def value(self, value_):
-    is_valid, status_messages = self._string_validator.is_valid(value_)
+  def _validate(self, value):
+    is_valid, status_messages = self._string_validator.is_valid(value)
     if not is_valid:
       new_status_messages = []
       for status, status_message in status_messages:
@@ -797,10 +984,8 @@ class ValidatableStringSetting(StringSetting):
           new_status_messages.append(status_message)
       
       raise SettingValueError(
-        self._value_to_str(value_) + '\n'.join([message for message in new_status_messages])
+        self._value_to_str(value) + '\n'.join([message for message in new_status_messages])
       )
-    
-    super(ValidatableStringSetting, self.__class__).value.__set__(self, value_)
   
 
 class FileExtensionSetting(ValidatableStringSetting):
@@ -808,16 +993,23 @@ class FileExtensionSetting(ValidatableStringSetting):
   """
   This setting class can be used for file extensions.
   
-  `pgpath.FileExtensionValidator` subclass is used to determine whether
-   the file extension is valid.
+  `pgpath.FileExtensionValidator` subclass is used to determine whether the file
+  extension is valid.
   
   Allowed GIMP PDB types:
   
   * PDB_STRING
+  
+  Allowed empty values:
+  
+  * ""
   """
   
-  def __init__(self, name, default_value):
-    super(FileExtensionSetting, self).__init__(name, default_value, pgpath.FileExtensionValidator)
+  _ALLOWED_EMPTY_VALUES = [""]
+  _GUI_TYPES = [SettingGuiTypes.text_entry]
+  
+  def __init__(self, name, default_value, **kwargs):
+    super(FileExtensionSetting, self).__init__(name, default_value, pgpath.FileExtensionValidator, **kwargs)
   
 
 class DirectorySetting(ValidatableStringSetting):
@@ -825,865 +1017,118 @@ class DirectorySetting(ValidatableStringSetting):
   """
   This setting class can be used for directories.
   
-  `pgpath.FilePathValidator` subclass is used to determine whether
-   the directory name is valid.
+  `pgpath.FilePathValidator` subclass is used to determine whether the directory
+  name is valid.
   
   Allowed GIMP PDB types:
   
   * PDB_STRING
+  
+  Allowed empty values:
+  
+  * None
+  * ""
   """
   
-  def __init__(self, name, default_value):
-    super(DirectorySetting, self).__init__(name, default_value, pgpath.FilePathValidator)
-
-
-class IntArraySetting(Setting):
-    
-  """
-  This setting class can be used for integer arrays.
-    
-  Allowed GIMP PDB types:
-    
-  * PDB_INT32ARRAY (default)
-  * PDB_INT16ARRAY
-  * PDB_INT8ARRAY
-    
-  TODO:
-  * validation - value must be an iterable sequence
-    - this applies to any array setting
-  """
+  _ALLOWED_EMPTY_VALUES = [None, ""]
+  _GUI_TYPES = [SettingGuiTypes.folder_chooser]
   
-  def __init__(self, name, default_value):
-    super(IntArraySetting, self).__init__(name, default_value)
-     
-    self._allowed_pdb_types = [gimpenums.PDB_INT32ARRAY, gimpenums.PDB_INT16ARRAY, gimpenums.PDB_INT8ARRAY]
-    self.gimp_pdb_type = gimpenums.PDB_INT32ARRAY
-
-
-#===============================================================================
-
-
-class Container(object):
+  def __init__(self, name, default_value, **kwargs):
+    super(DirectorySetting, self).__init__(name, default_value, pgpath.FilePathValidator, **kwargs)
   
-  """
-  This class is an ordered, `dict`-like container to store items.
-  
-  To add an object to the container, override the `_add` method in your subclass.
-  """
-  
-  __metaclass__ = abc.ABCMeta
-  
-  def __init__(self):
-    self._items = OrderedDict()
-  
-  def __getitem__(self, key):
-    return self._items[key]
-  
-  def __contains__(self, key):
-    return key in self._items[key]
-  
-  def __iter__(self):
+  def update_current_directory(self, current_image, directory_for_current_image):
     """
-    Iterate over the objects in the order they were created.
+    Set the directory (setting value) to the value according to the priority list below:
+    
+    1. `directory_for_current_image` if not None
+    2. `current_image` - import path of the current image if not None
+    
+    If both directories are None, do nothing.
     """
     
-    for item in self._items.values():
-      yield item
-  
-  def __len__(self):
-    return len(self._items)
-  
-  @abc.abstractmethod
-  def _add(self, obj):
-    """
-    Add specified object to the container. It is up to the subclass to
-    determine the key from the object.
+    if directory_for_current_image is not None:
+      self.set_value(directory_for_current_image)
+      return
     
-    This method should only be used during the container initialization.
-    """
-    
-    pass
+    if current_image.filename is not None:
+      self.set_value(os.path.dirname(current_image.filename))
+      return
+
 
 #-------------------------------------------------------------------------------
 
-class SettingContainer(Container):
+
+class ImageIDsAndDirectoriesSetting(Setting):
   
   """
-  This class:
-  * groups related `Setting` objects together,
-  * can perform operations on all settings at once.
+  This setting class stores the list of currently opened images and their import
+  directories as a dictionary of (image ID, import directory) pairs.
+  Import directory is None if image has no import directory.
   
-  This class is an interface for setting containers. Create a subclass from this
-  class to create settings.
+  This setting cannot be registered to the PDB as no corresponding PDB type exists.
   """
-  
-  __metaclass__ = abc.ABCMeta
-  
-  def __init__(self):
-    super(SettingContainer, self).__init__()
-    
-    self._create_settings()
-  
-  @abc.abstractmethod
-  def _create_settings(self):
-    """
-    Create and initialize settings.
-    
-    Override this method in subclasses to instantiate `Setting` objects,
-    set up their attributes, custom error messages and streamline functions if desired.
-    
-    To create a setting, instantiate a `Setting` object and then call the `_add()` method:
-      
-      self._add(Setting(<setting name>, <default value>))
-    
-    To adjust setting attributes (after creating the setting):
-      self[<setting name>].<attribute> = <value>
-    
-    Settings are stored in the container in the order they were added.
-    """
-    
-    pass
-  
-  def _add(self, setting):
-    self._items[setting.name] = setting
-  
-  def streamline(self, force=False):
-    """
-    Streamline all Setting objects in this container.
-    
-    Parameters:
-    
-    * `force` - If True, streamline settings even if the values of the other
-      settings were not changed. This is useful when initializing GUI elements -
-      setting up proper values, enabled/disabled state or visibility.
-    
-    Returns:
-    
-      `changed_settings` - Set of changed settings. See the `streamline()`
-      method in the `Setting` object for more information.
-    """
-    
-    changed_settings = {}
-    for setting in self:
-      if setting.can_streamline:
-        changed = setting.streamline(force=force)
-        for setting, changed_attrs in changed.items():
-          if setting not in changed_settings:
-            changed_settings[setting] = changed_attrs
-          else:
-            changed_settings[setting].update(changed_attrs)
-    
-    return changed_settings
-  
-  def reset(self):
-    """
-    Reset all settings in this container. Ignore settings whose
-    attribute `can_be_reset_by_container` is False.
-    """
-    
-    for setting in self:
-      if setting.can_be_reset_by_container:
-        setting.reset()
-
-
-#===============================================================================
-
-
-class SettingStream(object):
-  
-  """
-  This class provides an interface for reading and writing settings to
-  permanent or semi-permanent sources.
-  
-  For easier usage, use the `SettingPersistor` class instead.
-  
-  Attributes:
-  
-  * `_settings_not_found` - List of settings not found in stream when the `read()`
-    method is called.
-  """
-  
-  __metaclass__ = abc.ABCMeta
-  
-  def __init__(self):
-    self._settings_not_found = []
-  
-  @abc.abstractmethod
-  def read(self, settings):
-    """
-    Read setting values from the stream and assign them to the settings
-    specified in the `settings` iterable.
-    
-    If a setting value from the stream is invalid, the setting will be reset to
-    its default value.
-    
-    Parameters:
-    
-    * `settings` - Any iterable sequence containing `Setting` objects.
-    
-    Raises:
-    
-    * `SettingsNotFoundInStreamError` - At least one of the settings is not
-      found in the stream. All settings that were not found in the stream will be
-      stored in the `settings_not_found` list. This list is cleared on each read()
-      call.
-    """
-    
-    pass
-  
-  @abc.abstractmethod
-  def write(self, settings):
-    """
-    Write setting values from settings specified in the `settings` iterable
-    to the stream.
-    
-    Parameters:
-    
-    * `settings` - Any iterable sequence containing `Setting` objects.
-    """
-    
-    pass
-
-  @property
-  def settings_not_found(self):
-    return self._settings_not_found
-
-
-class SettingStreamError(Exception):
-  pass
-
-
-class SettingsNotFoundInStreamError(SettingStreamError):
-  pass
-
-
-class SettingStreamFileNotFoundError(SettingStreamError):
-  pass
-
-
-class SettingStreamReadError(SettingStreamError):
-  pass
-
-
-class SettingStreamInvalidFormatError(SettingStreamError):
-  pass
-
-
-class SettingStreamWriteError(SettingStreamError):
-  pass
-
-#-------------------------------------------------------------------------------
-
-class GimpShelfSettingStream(SettingStream):
-  
-  """
-  This class reads settings from/writes settings to the GIMP shelf,
-  persisting during one GIMP session.
-  
-  This class stores the setting name and value in the GIMP shelf.
-  
-  Attributes:
-  
-  * `shelf_prefix` - Prefix used to distinguish entries in the GIMP shelf
-    to avoid overwriting existing entries which belong to different plug-ins.
-  """
-  
-  def __init__(self, shelf_prefix):
-    super(GimpShelfSettingStream, self).__init__()
-    
-    self.shelf_prefix = shelf_prefix
-  
-  def read(self, settings):
-    self._settings_not_found = []
-    
-    for setting in settings:
-      try:
-        value = gimpshelf.shelf[(self.shelf_prefix + setting.name).encode()]
-      except KeyError:
-        self._settings_not_found.append(setting)
-      else:
-        try:
-          setting.value = value
-        except SettingValueError:
-          setting.reset()
-    
-    if self._settings_not_found:
-      raise SettingsNotFoundInStreamError(
-        "The following settings could not be found in any sources: " +
-        str([setting.name for setting in self._settings_not_found])
-      )
-  
-  def write(self, settings):
-    for setting in settings:
-      gimpshelf.shelf[(self.shelf_prefix + setting.name).encode()] = setting.value
-
-
-class JSONFileSettingStream(SettingStream):
-  
-  """
-  This class reads settings from/writes settings to a JSON file.
-  
-  This class provides a persistent storage for settings. It stores
-  the setting name and value in the file.
-  """
-  
-  def __init__(self, filename):
-    super(JSONFileSettingStream, self).__init__()
-    
-    self.filename = filename
-  
-  def read(self, settings):
-    """
-    Raises:
-    
-    * `SettingsNotFoundInStreamError` - see the `SettingStream` class.
-    
-    * `SettingStreamFileNotFoundError` - Could not find the specified file.
-    
-    * `SettingStreamReadError` - Could not read from the specified file (IOError
-      or OSError was raised).
-    
-    * `SettingStreamInvalidFormatError` - Specified file has invalid format, i.e.
-      it is not recognized as a valid JSON file.
-    """
-    
-    self._settings_not_found = []
-    
-    try:
-      with open(self.filename, 'r') as json_file:
-        settings_from_file = json.load(json_file)
-    except (IOError, OSError) as e:
-      if e.errno == errno.ENOENT:
-        raise SettingStreamFileNotFoundError(
-          _("Could not find file with settings \"{0}\".").format(self.filename)
-        )
-      else:
-        raise SettingStreamReadError(
-          _("Could not read settings from file \"{0}\". Make sure the file can be "
-            "accessed to.").format(self.filename)
-        )
-    except ValueError as e:
-      raise SettingStreamInvalidFormatError(
-        _("File with settings \"{0}\" is corrupt. This could happen if the file "
-          "was edited manually.\n"
-          "To fix this, save the settings again (to overwrite the file) "
-          "or delete the file.").format(self.filename)
-      )
-    
-    for setting in settings:
-      try:
-        value = settings_from_file[setting.name]
-      except KeyError:
-        self._settings_not_found.append(setting)
-      else:
-        try:
-          setting.value = value
-        except SettingValueError:
-          setting.reset()
-    
-    if self._settings_not_found:
-      raise SettingsNotFoundInStreamError(
-        "The following settings could not be found in any sources: " +
-        str([setting.name for setting in self._settings_not_found])
-      )
-  
-  def write(self, settings):
-    """
-    Write the name and value of the settings from the `settings` iterable to the
-    file.
-    
-    Raises:
-    
-    * `SettingStreamWriteError` - Could not write to the specified file (IOError
-      or OSError was raised).
-    """
-    
-    settings_dict = self._to_dict(settings)
-    
-    try:
-      with open(self.filename, 'w') as json_file:
-        json.dump(settings_dict, json_file)
-    except (IOError, OSError):
-      raise SettingStreamWriteError(
-        _("Could not write settings to file \"{0}\". "
-          "Make sure the file can be accessed to.").format(self.filename)
-      )
-  
-  def _to_dict(self, settings):
-    """
-    Format the setting name and value to a dict, which the `json` module can
-    properly serialize and de-serialize.
-    """
-    
-    settings_dict = OrderedDict()
-    for setting in settings:
-      settings_dict[setting.name] = setting.value
-    
-    return settings_dict
-
-
-#===============================================================================
-
-
-class SettingPersistor(object):
-  
-  """
-  This class:
-  * serves as a wrapper for `SettingStream` classes to read from or
-    write to multiple settings streams (`SettingStream` objects) at once,
-  * reads from/writes to multiple `SettingContainer` objects or iterables
-    containing `Setting` objects.
-  
-  Attributes:
-  
-  * `read_setting_streams` - List of `SettingStream` objects the settings are
-    loaded from.
-  
-  * `write_setting_streams` - List of `SettingStream` objects the settings are
-    saved to.
-  
-  * `status_message` (read-only) - Status message describing the status returned
-    from the `load()` or `save()` methods in more detail.
-  """
-  
-  __STATUSES = SUCCESS, READ_FAIL, WRITE_FAIL, NOT_ALL_SETTINGS_FOUND = (0, 1, 2, 3)
-  
-  def __init__(self, read_setting_streams, write_setting_streams):
-    self.read_setting_streams = read_setting_streams
-    self.write_setting_streams = write_setting_streams
-  
-  def load(self, *setting_containers):
-    """
-    Load setting values from streams in `read_setting_streams` to specified
-    `setting_containers`.
-    
-    The order of streams in the `read_setting_streams` list indicates the
-    preference of the streams, beginning with the first stream in the list. If
-    not all settings could be found in the first stream, the second stream is
-    read to assign values to the remaining settings. This continues until all
-    settings are read.
-    
-    If settings have invalid values, their default values will be assigned.
-    
-    If some settings could not be found in any of the streams,
-    their default values will be assigned.
-    
-    Parameters:
-    
-    * `*setting_containers` - `SettingContainer` objects or `Setting` iterables
-      whose values are loaded from the streams.
-    
-    Returns:
-    
-      * `status`:
-      
-        * `SUCCESS` - Settings successfully loaded.
-        
-        * `NOT_ALL_SETTINGS_FOUND` - Could not find some settings from
-          any of the streams. Default values are assigned to these settings.
-        
-        * `READ_FAIL` - Could not read data from the first stream where this
-          error occurred. May occur for file streams with e.g. denied read
-          permission.
-      
-      * `status_message` - Message describing the status in more detail.
-    """
-    
-    if not setting_containers or self.read_setting_streams is None or not self.read_setting_streams:
-      return self._status(self.SUCCESS)
-    
-    settings = []
-    for container in setting_containers:
-      settings.extend(container)
-    
-    for stream in self.read_setting_streams:
-      try:
-        stream.read(settings)
-      except (SettingsNotFoundInStreamError, SettingStreamFileNotFoundError) as e:
-        if type(e) == SettingsNotFoundInStreamError:
-          settings = stream.settings_not_found
-        
-        if stream == self.read_setting_streams[-1]:
-          return self._status(self.NOT_ALL_SETTINGS_FOUND, e.message)
-        else:
-          continue
-      except (SettingStreamReadError, SettingStreamInvalidFormatError) as e:
-        return self._status(self.READ_FAIL, e.message)
-      else:
-        break
-    
-    return self._status(self.SUCCESS)
-  
-  def save(self, *setting_containers):
-    """
-    Save setting values from specified setting containers or iterables to all
-    streams specified in write_setting_streams.
-    
-    Parameters:
-    
-    * `*setting_containers` - `SettingContainer` objects or `Setting` iterables
-      whose values are saved to the streams.
-    
-    Returns:
-    
-      * `status`:
-      
-        * `SUCCESS` - Settings successfully saved.
-        
-        * `WRITE_FAIL` - Could not write data to the first stream where this
-          error occurred. May occur for file streams with e.g. denied write
-          permission.
-      
-      * `status_message` - Message describing the status in more detail.
-    """
-    
-    if not setting_containers or self.write_setting_streams is None or not self.write_setting_streams:
-      return self._status(self.SUCCESS)
-    
-    # Put all settings into one list so that the `write()` method is invoked
-    # only once per each stream.
-    settings = []
-    for container in setting_containers:
-      settings.extend(container)
-    
-    for stream in self.write_setting_streams:
-      try:
-        stream.write(settings)
-      except SettingStreamWriteError as e:
-        return self._status(self.WRITE_FAIL, e.message)
-    
-    return self._status(self.SUCCESS)
-  
-  def _status(self, status, message=None):
-    return status, message if message is not None else ""
-
-
-#===============================================================================
-
-
-class SettingPresenter(object):
-  
-  """
-  This class wraps a `Setting` object and a GUI element together.
-  
-  Various GUI elements have different attributes or methods to access their
-  properties. This class wraps some of these attributes/methods so that they can
-  be accessed with the same name.
-  
-  Setting presenters can wrap any attribute of a GUI element into their
-  `get_value()` and `set_value()` methods. The value does not have to be a
-  "direct" value, e.g. the checked state of a checkbox, but also e.g. the label
-  of the checkbox.
-  
-  Attributes:
-  
-  * `setting (read-only)` - Setting object.
-  
-  * `element (read-only)` - GUI element object.
-  
-  * `value_changed_signal` - Object that indicates the type of event to assign
-    to the GUI element that changes one of its properties.
-  """
-  
-  __metaclass__ = abc.ABCMeta
-  
-  def __init__(self, setting, element):
-    self._setting = setting
-    self._element = element
-    
-    self.value_changed_signal = None
   
   @property
-  def setting(self):
-    return self._setting
+  def value(self):
+    # Return a copy to prevent modifying the dictionary indirectly, e.g. via
+    # setting individual entries (setting.value[image.ID] = directory).
+    return dict(self._value)
   
-  @property
-  def element(self):
-    return self._element
+  def update_image_ids_and_directories(self):
+    """
+    Remove all (image ID, import directory) pairs for images no longer opened in
+    GIMP. Add (image ID, import directory) pairs for new images opened in GIMP.
+    """
+    
+    # Get the list of images currently opened in GIMP
+    current_images = gimp.image_list()
+    current_image_ids = set([image.ID for image in current_images])
+    
+    # Remove images no longer opened in GIMP
+    self._value = { image_id: self._value[image_id]
+                    for image_id in self._value.keys() if image_id in current_image_ids }
+    
+    # Add new images opened in GIMP
+    for image in current_images:
+      if image.ID not in self._value.keys():
+        self._value[image.ID] = self._get_imported_image_path(image)
   
-  @abc.abstractmethod
-  def get_value(self):
+  def update_directory(self, image_id, directory):
     """
-    Return the value of the GUI element.
+    Assign a new directory to the specified image ID.
+    
+    If the image ID does not exist in the setting, raise KeyError. 
     """
     
-    pass
+    if image_id not in self._value:
+      raise KeyError(image_id)
+    
+    self._value[image_id] = directory
   
-  @abc.abstractmethod
-  def set_value(self):
-    """
-    Set the value of the GUI element.
-    """
-    
-    pass
-  
-  @abc.abstractmethod
-  def get_enabled(self):
-    """
-    Return the enabled/disabled state of the GUI element.
-    """
-    
-    pass
-  
-  @abc.abstractmethod
-  def set_enabled(self):
-    """
-    Set the enabled/disabled state of the GUI element.
-    """
-    
-    pass
-  
-  @abc.abstractmethod
-  def get_visible(self):
-    """
-    Return the visible/invisible state of the GUI element.
-    """
-    
-    pass
-  
-  @abc.abstractmethod
-  def set_visible(self):
-    """
-    Set the visible/invisible state of the GUI element.
-    """
-    
-    pass
-
-  @abc.abstractmethod
-  def connect_event(self, event_func, *event_args):
-    """
-    Assign the specified event handler to the GUI element that is meant to
-    change the `value` attribute.
-    
-    The `value_changed_signal` attribute is used to assign the event handler to
-    the GUI element.
-    
-    Parameters:
-    
-    * `event_func` - Event handler (function) to assign to the GUI element.
-    
-    * `*event_args` - Additional arguments to the event handler if needed.
-    
-    Raises:
-    
-    * `TypeError` - `value_changed_signal` is None.
-    """
-    
-    pass
-  
-  @abc.abstractmethod
-  def set_tooltip(self):
-    """
-    Set tooltip text for the GUI element.
-    
-    `Setting.description` attribute is used as the tooltip.
-    """
-    
-    pass
-
-
-#===============================================================================
-
-
-class SettingPresenterContainer(Container):
-  
-  """
-  This class groups `SettingPresenter` objects together.
-  
-  You can access individual `SettingPresenter` objects by the corresponding
-  `Setting` objects.
-  
-  Q: Why can't we access by `Setting.name` (like in `SettingContainer`)?
-  A: Because `SettingPresenterContainer` is independent of `SettingContainer`
-     and this object may contain settings from multiple `SettingContainer`
-     objects with the same name.
-  """
-  
-  __metaclass__ = abc.ABCMeta
-  
-  _SETTING_ATTRIBUTES_METHODS = {
-    'value' : 'set_value', 
-    'ui_enabled' : 'set_enabled',
-    'ui_visible' : 'set_visible'
-  }
-  
-  def __init__(self):
-    super(SettingPresenterContainer, self).__init__()
-    
-    self._is_events_connected = False
-  
-  def _add(self, setting_presenter):
-    """
-    Add a `SettingPresenter` object to the container.
-    """
-    
-    self._items[setting_presenter.setting] = setting_presenter
-  
-  # Make `_add` public
-  add = _add
-  
-  def assign_setting_values_to_elements(self):
-    """
-    Assign values from settings to GUI elements.
-    
-    Streamline all setting values along the way.
-    
-    This method is useful when it is desired to assign correct values to the GUI
-    elements when initializing or resetting the GUI.
-    """
-    
-    for presenter in self:
-      presenter.set_value(presenter.setting.value)
-    
-    changed_settings = self._streamline(force=True)
-    self._apply_changed_settings(changed_settings)
-  
-  def assign_element_values_to_settings(self):
-    """
-    Assign values from GUI elements to settings.
-    
-    If `connect_value_changed_events()` was called, don't streamline. Otherwise
-    do.
-    
-    Raises:
-    
-    * `SettingValueError` - Value assigned to one or more settings is invalid.
-      If there are multiple settings that raise `SettingValueError` upon value
-      assignment, the exception message contains messages from all these
-      settings. In such case, settings are not streamlined.
-    """
-    
-    exception_message = ""
-    
-    for presenter in self:
-      try:
-        presenter.setting.value = presenter.get_value()
-      except SettingValueError as e:
-        if not exception_message:
-          exception_message += e.message + '\n'
-    
-    if self._is_events_connected:
-      # Settings are continuously streamlined. Since this method changes the
-      # `value` attribute, clear `changed_attributes` to prevent future
-      # `streamline()` calls from changing settings unnecessarily.
-      for presenter in self:
-        presenter.setting.changed_attributes.clear()
+  def _get_imported_image_path(self, image):
+    if image.filename is not None:
+      return os.path.dirname(image.filename)
     else:
-      if not exception_message:
-        self._streamline()
-    
-    if exception_message:
-      exception_message = exception_message.rstrip('\n')
-      raise SettingValueError(exception_message)
+      return None
+
+
+#===============================================================================
+
+
+class SettingTypes(enum.Enum):
   
-  def connect_value_changed_events(self):
-    """
-    Assign event handlers to GUI elements triggered whenever their value is
-    changed.
-    
-    For settings with streamline function assigned, use a different event
-    handler that also streamlines the settings.
-    """
-    
-    for presenter in self:
-      if presenter.value_changed_signal is not None:
-        if not presenter.setting.can_streamline:
-          presenter.connect_event(self._gui_on_element_value_change, presenter)
-        else:
-          presenter.connect_event(self._gui_on_element_value_change_streamline,
-                                  presenter)
-    
-    self._is_events_connected = True
+  """
+  This enum maps Setting classes to more human-readable names.
+  """
   
-  @abc.abstractmethod
-  def _gui_on_element_value_change(self, *args):
-    """
-    Override this method in a subclass to call `_on_element_value_change()`.
-    
-    Since event handling is dependent on the GUI framework used, a method
-    separate from `_on_element_value_change()` has to be defined so that the GUI
-    framework invokes the event with the correct arguments in the correct order.
-    """
-    
-    pass
-  
-  @abc.abstractmethod
-  def _gui_on_element_value_change_streamline(self, *args):
-    """
-    Override this method in a subclass to call
-    `_on_element_value_change_streamline()`.
-    
-    Since event handling is dependent on the GUI framework used, a method
-    separate from `_gui_on_element_value_change_streamline()` has to be defined
-    so that the GUI framework invokes the event with the correct arguments in
-    the correct order.
-    """
-    
-    pass
-  
-  def _on_element_value_change(self, presenter):
-    """
-    Assign value from the GUI element to the setting when the user changed the
-    value of the GUI element.
-    """
-    
-    presenter.setting.value = presenter.get_value()
-  
-  def _on_element_value_change_streamline(self, presenter):
-    """
-    Assign value from the GUI element to the setting when the user changed the
-    value of the GUI element.
-    
-    Streamline the setting and change other affected GUI elements if necessary.
-    """
-    
-    presenter.setting.value = presenter.get_value()
-    changed_settings = presenter.setting.streamline()
-    self._apply_changed_settings(changed_settings)
-  
-  def set_tooltips(self):
-    """
-    Set tooltips for all GUI elements.
-    """
-    
-    for presenter in self:
-      presenter.set_tooltip()
-  
-  def _streamline(self, force=False):
-    """
-    Streamline all `Setting` objects in this container.
-    
-    See the description for the `streamline()` method in the `SettingContainer`
-    class for further information.
-    """
-    
-    changed_settings = {}
-    for presenter in self:
-      setting = presenter.setting
-      if setting.can_streamline:
-        changed = setting.streamline(force=force)
-        for setting, changed_attrs in changed.items():
-          if setting not in changed_settings:
-            changed_settings[setting] = changed_attrs
-          else:
-            changed_settings[setting].update(changed_attrs)
-    
-    return changed_settings
-  
-  def _apply_changed_settings(self, changed_settings):
-    """
-    After `streamline()` is called on a `Setting` or `SettingContainer` object,
-    apply changed attributes of settings to their associated GUI elements.
-    
-    Parameters:
-    
-    * `changed_settings` - Set of changed attributes of settings to apply to the
-      GUI elements.
-    """
-    
-    for setting, changed_attributes in changed_settings.items():
-      presenter = self[setting]
-      for attr in changed_attributes:
-        setting_attr = getattr(setting, attr)
-        presenter_method = getattr(presenter, self._SETTING_ATTRIBUTES_METHODS[attr])
-        presenter_method(setting_attr)
+  generic = Setting
+  integer = IntSetting
+  float = FloatSetting
+  boolean = BoolSetting
+  enumerated = EnumSetting
+  image = ImageSetting
+  drawable = DrawableSetting
+  string = StringSetting
+  file_extension = FileExtensionSetting
+  directory = DirectorySetting
+  image_IDs_and_directories = ImageIDsAndDirectoriesSetting
