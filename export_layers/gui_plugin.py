@@ -604,11 +604,12 @@ class _ExportLayersToGui(object):
 #===============================================================================
 
 
+@pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST)
 def export_layers_gui(image, settings, session_source, persistent_source):
-  with pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST):
-    _ExportLayersGui(image, settings, session_source, persistent_source)
+  _ExportLayersGui(image, settings, session_source, persistent_source)
 
 
+@pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST)
 def export_layers_to_gui(image, settings, session_source, persistent_source):
-  with pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST):
-    _ExportLayersToGui(image, settings, session_source, persistent_source)
+  _ExportLayersToGui(image, settings, session_source, persistent_source)
+
