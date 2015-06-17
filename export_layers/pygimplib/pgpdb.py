@@ -48,6 +48,7 @@ pdb = gimp.pdb
 # Functions
 #===============================================================================
 
+
 @contextmanager
 def undo_group(image):
   """

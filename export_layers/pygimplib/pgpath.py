@@ -41,6 +41,7 @@ import abc
 
 #===============================================================================
 
+
 def uniquify_string(str_, existing_strings, place_before_file_extension=False):
   """
   If string `str_` is in the `existing_strings` list, return a unique string
@@ -106,7 +107,9 @@ def uniquify_filename(filename):
   else:
     return filename
 
-#-------------------------------------------------------------------------------
+
+#===============================================================================
+
 
 def get_file_extension(str_, to_lowercase=True):
   """
@@ -175,7 +178,9 @@ def split_path(path):
   
   return path_components
 
+
 #===============================================================================
+
 
 class StringValidator(object):
   

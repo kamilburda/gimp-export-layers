@@ -36,6 +36,7 @@ from ..objectfilter import ObjectFilter
 
 #===============================================================================
 
+
 class FilterableObject(object):
   
   def __init__(self, object_id, name, is_empty=False, colors=None):
@@ -75,7 +76,9 @@ def has_green_color(obj):
 def invalid_rule_func():
   pass
 
+
 #===============================================================================
+
 
 class TestObjectFilter(unittest.TestCase):
   

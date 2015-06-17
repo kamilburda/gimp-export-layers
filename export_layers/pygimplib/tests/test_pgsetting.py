@@ -261,8 +261,8 @@ class TestSetting(unittest.TestCase):
     setting = MockSetting('setting', "")
     
     setting_with_custom_error_messages = MockSetting(
-      'setting', "", error_messages={'invalid_value' : 'this should override the original error message',
-                                     'custom_message' : 'custom message'})
+      'setting', "", error_messages={'invalid_value': 'this should override the original error message',
+                                     'custom_message': 'custom message'})
     self.assertIn('custom_message', setting_with_custom_error_messages.error_messages)
     self.assertNotEqual(setting.error_messages['invalid_value'],
                         setting_with_custom_error_messages.error_messages['invalid_value'])
@@ -459,14 +459,6 @@ class TestSettingGui(unittest.TestCase):
     
     with self.assertRaises(ValueError):
       setting.gui.auto_update_gui_to_setting(True)
-
-
-#===============================================================================
-
-
-# class TestSettingPresenter(object):
-#   
-#   def test_
 
 
 #===============================================================================

@@ -246,7 +246,6 @@ class Setting(object):
     
     if self._should_validate_default_value():
       self._validate_default_value()
-    
   
   @property
   def name(self):

@@ -36,6 +36,7 @@ from .. import overwrite
 
 #===============================================================================
 
+
 class MockInteractiveOverwriteChooser(overwrite.InteractiveOverwriteChooser):
   
   def __init__(self, values_and_display_names, default_value, default_response):
@@ -52,7 +53,9 @@ class MockInteractiveOverwriteChooser(overwrite.InteractiveOverwriteChooser):
   def mock_set_overwrite_mode(self, overwrite_mode):
     self._overwrite_mode = overwrite_mode
 
+
 #===============================================================================
+
 
 class TestInteractiveOverwriteChooser(unittest.TestCase):
   
