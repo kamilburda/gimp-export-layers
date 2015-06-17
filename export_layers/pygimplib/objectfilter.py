@@ -245,6 +245,9 @@ class ObjectFilter(object):
     
     return item
   
+  # Provide alias to `get_subfilter` for easier access.
+  __getitem__ = get_subfilter
+  
   def remove_subfilter(self, subfilter_name, raise_if_not_found=True):
     """
     Remove the subfilter with the corresponding subfilter name.

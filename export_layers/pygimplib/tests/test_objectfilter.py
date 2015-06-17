@@ -153,7 +153,7 @@ class TestObjectFilter(unittest.TestCase):
     self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There.jpg")))
     self.assertFalse(self.filter.is_match(FilterableObject(2, "Hi There.png")))
   
-  def test_get_subfilter(self):
+  def test_get_subfilter_does_not_exist(self):
     with self.assertRaises(ValueError):
       self.filter.get_subfilter('subfilter_does_not_exist')
   
@@ -233,8 +233,8 @@ class TestObjectFilter(unittest.TestCase):
         # * rule
     
     self.filter.add_subfilter('obj_properties', ObjectFilter(self.filter.MATCH_ANY))
-    self.filter.get_subfilter('obj_properties').add_rule(is_empty)
-    self.filter.get_subfilter('obj_properties').add_rule(is_object_id_even)
+    self.filter['obj_properties'].add_rule(is_empty)
+    self.filter['obj_properties'].add_rule(is_object_id_even)
     self.filter.add_rule(has_uppercase_letters)
     
     self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There.jpg", is_empty=True)))
@@ -256,11 +256,11 @@ class TestObjectFilter(unittest.TestCase):
     self.filter.add_rule(is_object_id_even)
     self.filter.add_subfilter('obj_properties', ObjectFilter(self.filter.MATCH_ANY))
     
-    obj_properties_subfilter = self.filter.get_subfilter('obj_properties')
+    obj_properties_subfilter = self.filter['obj_properties']
     obj_properties_subfilter.add_rule(is_empty)
     obj_properties_subfilter.add_subfilter('colors', ObjectFilter(self.filter.MATCH_ALL))
     
-    color_subfilter = obj_properties_subfilter.get_subfilter('colors')
+    color_subfilter = obj_properties_subfilter['colors']
     color_subfilter.add_rule(has_red_color)
     color_subfilter.add_rule(has_green_color)
     
