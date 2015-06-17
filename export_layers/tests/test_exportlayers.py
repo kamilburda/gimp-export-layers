@@ -40,7 +40,7 @@ import os
 
 def test_export_layers(layer_exporter, main_settings):
   file_extensions = [
-    'raw', 'xcf', 'pix', 'matte', 'mask', 'alpha', 'als', 'fli', 'flc',
+    'data', 'xcf', 'pix', 'matte', 'mask', 'alpha', 'als', 'fli', 'flc',
     'xcf.bz2', 'xcfbz2', 'c', 'h', 'xhtml', 'dds', 'dcm', 'dicom', 'eps',
     'fit', 'fits', 'gif', 'gbr', 'gih', 'pat', 'xcf.gz', 'xcfgz',
     'html', 'htm', 'jpg', 'jpeg', 'jpe', 'cel', 'ico', 'mng', 'ora', 'pbm',
