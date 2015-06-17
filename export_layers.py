@@ -34,7 +34,6 @@ str = unicode
 
 from export_layers import constants
 
-
 if constants.DEBUG:
   import sys
   
@@ -45,11 +44,9 @@ if constants.DEBUG:
   tee.Tee(sys.stderr, open(constants.PLUGINS_LOG_STDERR_PATH, 'a'),
           log_header_title=constants.PLUGIN_TITLE, flush_file=True)
 
-
 import gettext
 
 gettext.install(constants.DOMAIN_NAME, constants.LOCALE_PATH, unicode=True)
-
 
 import gimp
 import gimpplugin
@@ -177,6 +174,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
     self.settings['special']['first_plugin_run'].set_value(False)
     pgsettingpersistor.SettingPersistor.save(
       [self.settings['main'], self.settings['special']['first_plugin_run']], [self.session_source])
+
 
 #===============================================================================
 
