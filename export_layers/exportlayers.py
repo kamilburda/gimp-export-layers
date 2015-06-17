@@ -278,17 +278,17 @@ class LayerExporter(object):
       'layer_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY)
     )
     
-    self._layer_data.filter.get_subfilter('layer_types').add_rule(LayerFilterRules.is_layer)
+    self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_layer)
     
     if self.main_settings['merge_layer_groups'].value:
       self._layer_data.filter.add_rule(LayerFilterRules.is_top_level)
-      self._layer_data.filter.get_subfilter('layer_types').add_rule(LayerFilterRules.is_nonempty_group)
+      self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
     
     if self.main_settings['ignore_invisible'].value:
       self._layer_data.filter.add_rule(LayerFilterRules.is_path_visible)
     
     if self.main_settings['empty_folders'].value:
-      self._layer_data.filter.get_subfilter('layer_types').add_rule(LayerFilterRules.is_empty_group)
+      self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
     if (self.main_settings['square_bracketed_mode'].value ==
         self.main_settings['square_bracketed_mode'].items['normal']):
@@ -320,7 +320,7 @@ class LayerExporter(object):
       self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension, self._default_file_extension)
   
   def _export_layers(self):
-    with self._layer_data.filter.get_subfilter('layer_types').remove_rule_temp(
+    with self._layer_data.filter['layer_types'].remove_rule_temp(
       LayerFilterRules.is_empty_group, raise_if_not_found=False
     ):
       self.progress_updater.num_total_tasks = len(self._layer_data)
