@@ -66,12 +66,13 @@ pdb = gimp.pdb
 #===============================================================================
 
 
-def display_message(message, message_type, parent=None):
-  pggui.display_message(
+def display_message(message, message_type, parent=None, buttons=gtk.BUTTONS_OK):
+  return pggui.display_message(
     message,
     message_type,
     title=_(constants.PLUGIN_TITLE),
-    parent=parent
+    parent=parent,
+    buttons=buttons
   )
 
 
@@ -384,8 +385,8 @@ class _ExportLayersGui(object):
     self.stop_button.connect("clicked", self.stop)
     self.dialog.connect("delete-event", self.close)
     
-    self.save_settings_button.connect("clicked", self.on_save_settings)
-    self.reset_settings_button.connect("clicked", self.on_reset_settings)
+    self.save_settings_button.connect("clicked", self.on_save_settings_clicked)
+    self.reset_settings_button.connect("clicked", self.on_reset_settings_clicked)
     
     self.dialog.set_default_response(gtk.RESPONSE_CANCEL)
     
@@ -415,14 +416,19 @@ class _ExportLayersGui(object):
     pgsettingpersistor.SettingPersistor.save([self.settings['gui_session']], [self.session_source])
   
   @_apply_gui_values_to_settings
-  def on_save_settings(self, widget):
+  def on_save_settings_clicked(self, widget):
     self.save_settings()
     self.display_message_label(_("Settings successfully saved."), message_type=self.INFO)
   
-  def on_reset_settings(self, widget):
-    self.reset_settings()
-    self.save_settings()
-    self.display_message_label(_("Settings reset."), message_type=self.INFO)
+  def on_reset_settings_clicked(self, widget):
+    resopnse_id = display_message(_("Do you really want to reset settings?"),
+                                  gtk.MESSAGE_WARNING, parent=self.dialog,
+                                  buttons=gtk.BUTTONS_YES_NO)
+    
+    if resopnse_id == gtk.RESPONSE_YES:
+      self.reset_settings()
+      self.save_settings()
+      self.display_message_label(_("Settings reset."), message_type=self.INFO)
   
   @_apply_gui_values_to_settings
   def on_export_click(self, widget):
