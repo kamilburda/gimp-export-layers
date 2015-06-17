@@ -403,7 +403,7 @@ class Setting(object):
     num_actual_event_handler_args = len(event_handler_args)
     
     if num_required_event_handler_args != num_actual_event_handler_args:
-      raise TypeError("Wrong number of arguments to the event handler (required {0}, passed {1})"
+      raise TypeError("wrong number of arguments to the event handler (required {0}, passed {1})"
                       .format(num_required_event_handler_args, num_actual_event_handler_args))
     
     self._value_changed_event_handler = event_handler
@@ -491,7 +491,7 @@ class Setting(object):
     elif pdb_type in self._ALLOWED_PDB_TYPES:
       return pdb_type
     else:
-      raise ValueError("GIMP PDB type " + str(pdb_type) + " not allowed; "
+      raise ValueError("GIMP PDB type \"" + str(pdb_type) + "\" not allowed; "
                        "for the list of allowed PDB types, refer to "
                        "the documentation of the appropriate Setting class")
   
@@ -836,13 +836,13 @@ class EnumSetting(Setting):
     elif all(len(elem) == 3 for elem in input_items):
       for item_name, item_display_name, item_value in input_items:
         if item_value in item_values:
-          raise ValueError("Cannot set the same value for multiple items - they must be unique")
+          raise ValueError("cannot set the same value for multiple items - they must be unique")
         
         items[item_name] = item_value
         items_display_names[item_name] = item_display_name
         item_values.add(item_value)
     else:
-      raise ValueError("Wrong number of tuple elements in items - must be only 2- or only 3-element tuples")
+      raise ValueError("wrong number of tuple elements in items - must be only 2- or only 3-element tuples")
     
     return items, items_display_names, item_values
   

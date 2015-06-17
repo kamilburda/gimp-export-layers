@@ -106,10 +106,10 @@ class ObjectFilter(object):
       return
     
     if not callable(rule_func):
-      raise TypeError("Not a function")
+      raise TypeError("not a function")
     
     if len(inspect.getargspec(rule_func)[0]) < 1:
-      raise TypeError("Function must have at least one argument (the object to match)")
+      raise TypeError("function must have at least one argument (the object to match)")
     
     self._filter_items[rule_func] = rule_func_args
   
@@ -134,7 +134,7 @@ class ObjectFilter(object):
       del self._filter_items[rule_func]
     else:
       if raise_if_not_found:
-        raise ValueError(str(rule_func) + " not found in filter")
+        raise ValueError("\"" + str(rule_func) + "\" not found in filter")
   
   @contextmanager
   def add_rule_temp(self, rule_func, *rule_func_args):
@@ -196,7 +196,7 @@ class ObjectFilter(object):
     
     if not has_rule:
       if raise_if_not_found:
-        raise ValueError(str(rule_func) + " not found in filter")
+        raise ValueError("\"" + str(rule_func) + "\" not found in filter")
     else:
       rule_func_args = self._filter_items[rule_func]
       self.remove_rule(rule_func)

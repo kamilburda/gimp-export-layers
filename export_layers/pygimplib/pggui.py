@@ -218,7 +218,7 @@ def display_exception_message(exception_message, plugin_title=None,
     label_report_header_text = _("To help fix this error, send a report containing the text "
                                  "in the details above to one of the following sites")
     if not webbrowser_module_found:
-      label_report_header_text += _(" (right-click to copy link)")
+      label_report_header_text += " " + _("(right-click to copy link)")
     label_report_header_text += ":"
     
     label_report_header = gtk.Label(label_report_header_text)
