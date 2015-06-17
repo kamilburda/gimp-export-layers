@@ -133,7 +133,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
   
   def _run_noninteractive(self, image, args):
     # Start with the third parameter - run_mode and image are already set.
-    for setting, arg in zip(self.export_layers_settings[2:], args[2:]):
+    for setting, arg in zip(self.settings['main'], args[2:]):
       if isinstance(arg, bytes):
         arg = arg.decode()
       setting.set_value(arg)
