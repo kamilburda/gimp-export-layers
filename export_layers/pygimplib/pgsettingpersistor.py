@@ -23,7 +23,7 @@
 This module:
 * defines the means to load and save settings:
   * persistently
-  * "semi-persistently" - settings persist during one GIMP session
+  * "session-persistently" - settings persist during one GIMP session
 """
 
 #===============================================================================
@@ -110,26 +110,34 @@ class SettingSource(object):
   
   def _read(self, settings):
     """
-    Read setting values from the source into the settings. Return a list of
-    settings not found in the source.
+    Read setting values from the source into the settings.
     
     To retrieve a single value, `_retrieve_setting_value` is called.
+    
+    Raises:
+    
+    * `SettingsNotFoundInSourceError` - one or more settings could not be found
+      in the source. These settings are stored in the `settings_not_found` list.
     """
     
-    settings_not_found = []
+    self._settings_not_found = []
     
     for setting in settings:
       try:
         value = self._retrieve_setting_value(setting.name)
       except KeyError:
-        settings_not_found.append(setting)
+        self._settings_not_found.append(setting)
       else:
         try:
           setting.set_value(value)
         except pgsetting.SettingValueError:
           setting.reset()
     
-    return settings_not_found
+    if self._settings_not_found:
+      raise SettingsNotFoundInSourceError(
+        "The following settings could not be found in any sources: " +
+        str([setting.name for setting in self._settings_not_found])
+      )
   
   @abc.abstractmethod
   def _retrieve_setting_value(self, setting_name):
@@ -190,13 +198,7 @@ class SessionPersistentSettingSource(SettingSource):
     self.source_name = source_name
   
   def read(self, settings):
-    self._settings_not_found = self._read(settings)
-    
-    if self._settings_not_found:
-      raise SettingsNotFoundInSourceError(
-        "The following settings could not be found in any sources: " +
-        str([setting.name for setting in self._settings_not_found])
-      )
+    self._read(settings)
   
   def write(self, settings):
     for setting in settings:
@@ -262,14 +264,9 @@ class PersistentSettingSource(SettingSource):
           "or delete the file.").format(self.filename)
       )
     
-    self._settings_not_found = self._read(settings)
-    del self._settings_from_file
+    self._read(settings)
     
-    if self._settings_not_found:
-      raise SettingsNotFoundInSourceError(
-        "The following settings could not be found in any sources: " +
-        str([setting.name for setting in self._settings_not_found])
-      )
+    del self._settings_from_file
   
   def write(self, settings):
     """
