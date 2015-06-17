@@ -238,19 +238,19 @@ def create_settings():
   #-----------------------------------------------------------------------------
   
   main_settings['layer_groups_as_folders'].connect_value_changed_event(
-    on_layer_groups_as_folders_changed, main_settings['empty_folders'], main_settings['merge_layer_groups']
+    on_layer_groups_as_folders_changed, [main_settings['empty_folders'], main_settings['merge_layer_groups']]
   )
   main_settings['file_ext_mode'].connect_value_changed_event(
-    on_file_ext_mode_changed, main_settings['file_extension'], main_settings['strip_mode']
+    on_file_ext_mode_changed, [main_settings['file_extension'], main_settings['strip_mode']]
   )
   main_settings['merge_layer_groups'].connect_value_changed_event(
-    on_merge_layer_groups_changed, main_settings['layer_groups_as_folders']
+    on_merge_layer_groups_changed, [main_settings['layer_groups_as_folders']]
   )
   main_settings['autocrop'].connect_value_changed_event(
-    on_autocrop_changed, main_settings['square_bracketed_mode'], main_settings['crop_to_background']
+    on_autocrop_changed, [main_settings['square_bracketed_mode'], main_settings['crop_to_background']]
   )
   main_settings['square_bracketed_mode'].connect_value_changed_event(
-    on_square_bracketed_mode_changed, main_settings['autocrop'], main_settings['crop_to_background']
+    on_square_bracketed_mode_changed, [main_settings['autocrop'], main_settings['crop_to_background']]
   )
   
   #-----------------------------------------------------------------------------
