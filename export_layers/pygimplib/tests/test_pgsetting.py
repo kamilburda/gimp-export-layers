@@ -427,7 +427,7 @@ class TestSettingGui(unittest.TestCase):
     self.assertEqual(setting.value, "png")
   
   def test_automatic_gui_update_enabled_is_false(self):
-    setting = MockSettingWithGui("file_extension", "", enable_gui_update=False)
+    setting = MockSettingWithGui("file_extension", "", auto_update_gui_to_setting=False)
     setting.create_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
     self.assertEqual(setting.gui.gui_update_enabled, False)
     
@@ -436,28 +436,29 @@ class TestSettingGui(unittest.TestCase):
   
   def test_create_gui_disable_automatic_setting_value_update(self):
     setting = MockSettingWithGui("file_extension", "")
-    setting.create_gui(MockSettingPresenterWithValueChangedSignal, self.widget, enable_gui_update=False)
+    setting.create_gui(MockSettingPresenterWithValueChangedSignal, self.widget,
+                       auto_update_gui_to_setting=False)
     self.assertEqual(setting.gui.gui_update_enabled, False)
     
     self.widget.set_value("png")
     self.assertEqual(setting.value, "")
   
-  def test_enable_gui_update_after_being_disabled(self):
-    setting = MockSettingWithGui("file_extension", "", enable_gui_update=False)
+  def test_automatic_gui_update_after_being_disabled(self):
+    setting = MockSettingWithGui("file_extension", "", auto_update_gui_to_setting=False)
     setting.create_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
-    setting.gui.enable_gui_update(True)
+    setting.gui.auto_update_gui_to_setting(True)
     
     self.widget.set_value("png")
     self.assertEqual(setting.value, "png")
   
-  def test_enable_gui_update_for_manual_gui_raises_value_error(self):
+  def test_automatic_gui_update_for_manual_gui_raises_value_error(self):
     setting = MockSettingWithGui("file_extension", "")
     setting.create_gui(MockSettingPresenter, self.widget)
     
     self.assertEqual(setting.gui.gui_update_enabled, False)
     
     with self.assertRaises(ValueError):
-      setting.gui.enable_gui_update(True)
+      setting.gui.auto_update_gui_to_setting(True)
 
 
 #===============================================================================
@@ -719,7 +720,8 @@ class TestImageIDsAndDirectoriesSetting(unittest.TestCase):
   def setUp(self):
     self.setting = pgsetting.ImageIDsAndDirectoriesSetting('image_ids_and_directories', {})
     
-    self.image_ids_and_filenames = [(0, None), (1, "C:\\image.png"), (2, "/test/test.jpg"), (4, "/test/another_test.gif")]
+    self.image_ids_and_filenames = [(0, None), (1, "C:\\image.png"), (2, "/test/test.jpg"),
+                                    (4, "/test/another_test.gif")]
     self.image_list = self._create_image_list(self.image_ids_and_filenames)
     self.image_ids_and_directories = self._create_image_ids_and_directories(self.image_list)
     

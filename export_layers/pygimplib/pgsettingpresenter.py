@@ -108,7 +108,7 @@ class SettingPresenter(object):
   _GUI_ELEMENT_WRAPPER = None
   
   def __init__(self, setting, element=None, setting_value_synchronizer=None,
-               old_setting_presenter=None, enable_gui_update=True):
+               old_setting_presenter=None, auto_update_gui_to_setting=True):
     """
     Parameters:
     
@@ -127,13 +127,14 @@ class SettingPresenter(object):
       `old_setting_presenter` is None, only `setting.value` will be copied to
       this object.
     
-    * `enable_gui_update` - If True, automatically keep GUI and settings
-      updated. This parameter does not have any effect if:
+    * `auto_update_gui_to_setting` - If True, automatically update the setting value if
+      the GUI value is updated. This parameter does not have any effect if:
         
-        * the `SettingPresenter` class cannot provide automatic GUI update,
+        * the `SettingPresenter` class cannot provide automatic GUI-to-setting
+          update,
         
-        * `old_setting_presenter` is not None and the automatic GUI update was
-          disabled in that presenter.
+        * `old_setting_presenter` is not None and the automatic GUI-to-setting
+          update was disabled in that presenter.
     """
     
     self._setting = setting
@@ -149,7 +150,7 @@ class SettingPresenter(object):
                          "GUI element wrapper from which a GUI element could be instantiated"
                          .format(type(self).__name__))
     
-    if enable_gui_update:
+    if auto_update_gui_to_setting:
       self._value_changed_signal = self._VALUE_CHANGED_SIGNAL
     else:
       self._value_changed_signal = None
@@ -223,7 +224,7 @@ class SettingPresenter(object):
     if self._value_changed_signal is None or self._setting.is_value_empty():
       self._update_setting_value()
   
-  def enable_gui_update(self, enabled):
+  def auto_update_gui_to_setting(self, enabled):
     """
     Enable or disable automatic GUI update.
     

@@ -171,7 +171,7 @@ class Setting(object):
                pdb_type=None,
                pdb_registration_mode=PdbRegistrationModes.automatic,
                gui_type=None,
-               enable_gui_update=True,
+               auto_update_gui_to_setting=True,
                error_messages=None):
     
     """
@@ -206,8 +206,12 @@ class Setting(object):
       If the `SettingGuiTypes.none` type is specified, no GUI is created for
       this setting.
     
-    * `enable_gui_update` - See `enable_gui_update` parameter in
-      `pgsettingpresenter.SettingPresenter.__init__`.
+    * `auto_update_gui_to_setting` - If True, automatically update the setting value if
+      the GUI value is updated. If False, the setting must be updated manually
+      by calling `Setting.gui.update_setting_value` when needed.
+      
+      This parameter does not have any effect if the GUI type used in
+      this setting cannot provide automatic GUI-to-setting update.
     
     * `error_messages` - A dict containing (message name, message contents)
       pairs. Use this to pass custom error messages. This way, you may also
@@ -232,8 +236,8 @@ class Setting(object):
     self._setting_value_synchronizer.apply_gui_value_to_setting = self._apply_gui_value_to_setting
     
     self._gui_type = self._get_gui_type(gui_type)
-    self._gui = pgsettingpresenter.NullSettingPresenter(self, None, self._setting_value_synchronizer,
-                                                        enable_gui_update=enable_gui_update)
+    self._gui = pgsettingpresenter.NullSettingPresenter(
+      self, None, self._setting_value_synchronizer, auto_update_gui_to_setting=auto_update_gui_to_setting)
     
     self._error_messages = {}
     self._init_error_messages()
@@ -326,7 +330,7 @@ class Setting(object):
     if self._is_value_changed_event_connected():
       self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
   
-  def create_gui(self, gui_type=None, gui_element=None, enable_gui_update=True):
+  def create_gui(self, gui_type=None, gui_element=None, auto_update_gui_to_setting=True):
     """
     Create a new GUI object (`SettingPresenter` instance) for this setting. The
     state of the previous GUI object is copied to the new GUI object (such as
@@ -352,8 +356,7 @@ class Setting(object):
       If `gui_type` is None, `gui_element` is ignored. If `gui_type` is not
       None and `gui_element` is None, raise `ValueError`.
     
-    * `enable_gui_update` - See `enable_gui_update` parameter in
-      `pgsettingpresenter.SettingPresenter.__init__`.
+    * `auto_update_gui_to_setting` - See `auto_update_gui_to_setting` parameter in `__init__`.
     """
     
     if gui_type is not None and gui_element is None:
@@ -367,8 +370,9 @@ class Setting(object):
       if isinstance(gui_type, SettingGuiTypes):
         gui_type = gui_type.value
     
-    self._gui = gui_type(self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,
-                         old_setting_presenter=self._gui, enable_gui_update=enable_gui_update)
+    self._gui = gui_type(
+      self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,
+      old_setting_presenter=self._gui, auto_update_gui_to_setting=auto_update_gui_to_setting)
   
   def connect_value_changed_event(self, event_handler, *event_handler_args):
     """
@@ -535,7 +539,8 @@ class Setting(object):
     else:
       if gui_type in self._GUI_TYPES:
         gui_type_to_return = gui_type
-      elif gui_type in [SettingGuiTypes.none, SettingGuiTypes.none.value, pgsettingpresenter.NullSettingPresenter]:
+      elif gui_type in [SettingGuiTypes.none, SettingGuiTypes.none.value,
+                        pgsettingpresenter.NullSettingPresenter]:
         gui_type_to_return = gui_type
       else:
         raise ValueError("invalid GUI type; must be one of {0}"
