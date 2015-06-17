@@ -107,6 +107,39 @@ class SettingSource(object):
   @property
   def settings_not_found(self):
     return self._settings_not_found
+  
+  def _read(self, settings):
+    """
+    Read setting values from the source into the settings. Return a list of
+    settings not found in the source.
+    
+    To retrieve a single value, `_retrieve_setting_value` is called.
+    """
+    
+    settings_not_found = []
+    
+    for setting in settings:
+      try:
+        value = self._retrieve_setting_value(setting.name)
+      except KeyError:
+        settings_not_found.append(setting)
+      else:
+        try:
+          setting.set_value(value)
+        except pgsetting.SettingValueError:
+          setting.reset()
+    
+    return settings_not_found
+  
+  @abc.abstractmethod
+  def _retrieve_setting_value(self, setting_name):
+    """
+    Retrieve a single setting value from the source given the setting name.
+    
+    This method must be defined in subclasses.
+    """
+    
+    pass
 
 
 class SettingSourceError(Exception):
@@ -157,18 +190,7 @@ class SessionPersistentSettingSource(SettingSource):
     self.source_name = source_name
   
   def read(self, settings):
-    self._settings_not_found = []
-    
-    for setting in settings:
-      try:
-        value = gimpshelf.shelf[(self.source_name + setting.name).encode()]
-      except KeyError:
-        self._settings_not_found.append(setting)
-      else:
-        try:
-          setting.set_value(value)
-        except pgsetting.SettingValueError:
-          setting.reset()
+    self._settings_not_found = self._read(settings)
     
     if self._settings_not_found:
       raise SettingsNotFoundInSourceError(
@@ -179,7 +201,10 @@ class SessionPersistentSettingSource(SettingSource):
   def write(self, settings):
     for setting in settings:
       gimpshelf.shelf[(self.source_name + setting.name).encode()] = setting.value
-
+  
+  def _retrieve_setting_value(self, setting_name):
+    return gimpshelf.shelf[(self.source_name + setting_name).encode()]
+  
 
 class PersistentSettingSource(SettingSource):
   
@@ -214,11 +239,11 @@ class PersistentSettingSource(SettingSource):
       it is not recognized as a valid JSON file.
     """
     
-    self._settings_not_found = []
+    self._settings_from_file = None
     
     try:
       with open(self.filename, 'r') as json_file:
-        settings_from_file = json.load(json_file)
+        self._settings_from_file = json.load(json_file)
     except (IOError, OSError) as e:
       if e.errno == errno.ENOENT:
         raise SettingSourceFileNotFoundError(
@@ -237,16 +262,8 @@ class PersistentSettingSource(SettingSource):
           "or delete the file.").format(self.filename)
       )
     
-    for setting in settings:
-      try:
-        value = settings_from_file[setting.name]
-      except KeyError:
-        self._settings_not_found.append(setting)
-      else:
-        try:
-          setting.set_value(value)
-        except pgsetting.SettingValueError:
-          setting.reset()
+    self._settings_not_found = self._read(settings)
+    del self._settings_from_file
     
     if self._settings_not_found:
       raise SettingsNotFoundInSourceError(
@@ -275,6 +292,9 @@ class PersistentSettingSource(SettingSource):
         _("Could not write settings to file \"{0}\". "
           "Make sure the file can be accessed to.").format(self.filename)
       )
+  
+  def _retrieve_setting_value(self, setting_name):
+    return self._settings_from_file[setting_name]
   
   def _to_dict(self, settings):
     """
