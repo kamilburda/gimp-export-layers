@@ -55,6 +55,7 @@ import gimpenums
 from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
 from export_layers.pygimplib import overwrite
+from export_layers.pygimplib import pggui
 
 from export_layers import settings_plugin
 from export_layers import gui_plugin
@@ -148,13 +149,13 @@ class ExportLayersPlugin(gimpplugin.plugin):
     
     self._run_plugin_noninteractive(gimpenums.RUN_WITH_LAST_VALS, image)
   
+  @pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST)
   def _run_export_layers_interactive(self, image):
-    gui_plugin.export_layers_gui(
-      image, self.settings, self.session_source, self.persistent_source)
+    gui_plugin.export_layers_gui(image, self.settings, self.session_source, self.persistent_source)
   
+  @pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST)
   def _run_export_layers_to_interactive(self, image):
-    gui_plugin.export_layers_to_gui(
-      image, self.settings, self.session_source, self.persistent_source)
+    gui_plugin.export_layers_to_gui(image, self.settings, self.session_source, self.persistent_source)
   
   def _run_plugin_noninteractive(self, run_mode, image):
     layer_exporter = exportlayers.LayerExporter(
