@@ -33,13 +33,14 @@ str = unicode
 #===============================================================================
 
 from export_layers import constants
-from export_layers import log_output
-
-log_output.log_output(constants.DEBUG)
 
 import gettext
 
 gettext.install(constants.DOMAIN_NAME, constants.LOCALE_PATH, unicode=True)
+
+from export_layers import log_output
+
+log_output.log_output(constants.DEBUG)
 
 import gimp
 import gimpplugin
