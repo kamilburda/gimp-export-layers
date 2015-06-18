@@ -44,11 +44,12 @@ import sys
 import traceback
 import functools
 
-webbrowser_module_found = True
 try:
   import webbrowser
 except ImportError:
-  webbrowser_module_found = False
+  _webbrowser_module_found = False
+else:
+  _webbrowser_module_found = True
 
 import pygtk
 pygtk.require("2.0")
@@ -217,7 +218,7 @@ def display_exception_message(exception_message, plugin_title=None,
   if report_uri_list is not None and report_uri_list:
     label_report_header_text = _("You can help fix this error by sending a report with the text "
                                  "in the details above to one of the following sites")
-    if not webbrowser_module_found:
+    if not _webbrowser_module_found:
       label_report_header_text += " " + _("(right-click to copy link)")
     label_report_header_text += ":"
     
@@ -245,7 +246,7 @@ def display_exception_message(exception_message, plugin_title=None,
   
   dialog.set_focus(button_ok)
   
-  if report_uri_list is not None and report_uri_list and webbrowser_module_found:
+  if report_uri_list is not None and report_uri_list and _webbrowser_module_found:
     # Apparently, GTK doesn't know how to open URLs on Windows, hence the custom
     # solution.
     connect_linkbuttons(report_linkbuttons)
