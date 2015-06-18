@@ -441,6 +441,31 @@ class FilePathValidator(StringValidator):
     return filepath
 
 
+class DirectoryPathValidator(FilePathValidator):
+   
+  """
+  This class is used to validate directory paths (relative or absolute).
+   
+  This class works the same way as the `FilePathValidator`, i.e. the same
+  restrictions apply. The only difference in this class is error messages
+  suited for directory paths.
+  """
+  
+  ERROR_STATUSES = (
+     IS_EMPTY, DRIVE_HAS_INVALID_CHARS, HAS_INVALID_CHARS,
+     HAS_SPACES, HAS_TRAILING_PERIOD, HAS_INVALID_NAMES
+  ) = (0, 1, 2, 3, 4, 5)
+  
+  ERROR_STATUSES_MESSAGES = {
+    IS_EMPTY: _("Directory path is not specified."),
+    DRIVE_HAS_INVALID_CHARS: _("Drive letter contains invalid characters."),
+    HAS_INVALID_CHARS: _("Directory path contains invalid characters."),
+    HAS_SPACES: _("Path components in the directory path cannot start or end with spaces."),
+    HAS_TRAILING_PERIOD: _("Path components in the directory path cannot end with a period."),
+    HAS_INVALID_NAMES: _("\"{0}\" is a reserved name that cannot be used in directory paths.\n"),
+  }
+
+
 class FileExtensionValidator(StringValidator):
   
   """

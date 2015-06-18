@@ -1043,7 +1043,7 @@ class DirectorySetting(ValidatableStringSetting):
   _GUI_TYPES = [SettingGuiTypes.folder_chooser]
   
   def __init__(self, name, default_value, **kwargs):
-    super(DirectorySetting, self).__init__(name, default_value, pgpath.FilePathValidator, **kwargs)
+    super(DirectorySetting, self).__init__(name, default_value, pgpath.DirectoryPathValidator, **kwargs)
   
   def update_current_directory(self, current_image, directory_for_current_image):
     """
