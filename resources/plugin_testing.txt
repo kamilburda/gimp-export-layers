@@ -1,121 +1,148 @@
-================================================================================
 Testing criteria
----------------------
+----------------
 
-* platforms
-   * Windows
-   * Ubuntu
-* plugins
-   * Export Layers
-   * Export Layers To
-* run modes
-   * interactive
-   * non-interactive
-   * run-with-last-vals
-* all file formats
-   * first layer - display dialog in interactive
-   * subsequent layers - use last values (with a few exceptions, where dialog must always be displayed)
-* image types
-   * RGB
-   * RGBA
-   * grayscale
-   * indexed
-* settings
-   * not all combinations, only those settings that relate to each other
-* layer names and filenames
-   * valid and invalid characters in filenames and directory names
-   * Unicode characters
-* Unicode support
+Platforms
+* Windows
+* Ubuntu
 
-================================================================================
+Plugins
+* Export Layers
+* Export Layers To
+
+Run modes
+* interactive
+* non-interactive
+* run-with-last-vals
+
+All file formats
+* first layer - display dialog in interactive
+* subsequent layers - use last values (with a few exceptions, where dialog must always be displayed)
+
+Settings
+* not all combinations, only those settings that relate to each other
+
+Setting persistence
+* no setting source
+* persistent source only
+* session-persistent source only
+* both setting sources
+
+Layer names and filenames
+* valid and invalid characters in filenames and directory names
+* Unicode characters
+
+Image types
+* RGB
+* RGBA
+* grayscale
+* indexed
+
+Unicode support
+
 
 Export Layers
----------------------
+-------------
 
-* interactive
-   - load settings from GIMP shelf and config file
-   - save settings to GIMP shelf after export
-      - even if the export is cancelled or stopped prematurely
-   - users chooses to save settings to config file (Save Settings)
-   - Reset Settings
-* non-interactive
-   - don't load settings
-   - save settings to GIMP shelf after export
-* run-with-last-vals
-   - load settings from GIMP shelf and config file
-   - save settings to GIMP shelf after export
+Interactive
+* load settings from GIMP shelf and config file
+* save settings to GIMP shelf after export
+* save settings to GIMP shelf if the export is cancelled or stopped prematurely
+* users chooses to save settings to config file (Save Settings)
+* Reset Settings
+
+Non-interactive
+* don't load settings
+* save settings to GIMP shelf after export
 
 image = gimp.image_list()[0]
-pdb.plug_in_export_layers(image, 'jpg', "D:\\testgimp\\test_export_layers", False, False, False, False, 0, 0, 0, 0, False, False, True, False, run_mode=RUN_WITH_LAST_VALS)
+pdb.plug_in_export_layers(image, 'jpg', "D:\\testgimp\\test_export_layers", False, False, False, False, 0, 0, 0, False, False, True, False, 0, run_mode=RUN_WITH_LAST_VALS)
+
+Run-with-last-vals
+* load settings from GIMP shelf and config file
+* save settings to GIMP shelf after export
+
+image = gimp.image_list()[0]
+pdb.plug_in_export_layers(image, 'jpg', "D:\\testgimp\\test_export_layers", False, False, False, False, 0, 0, 0, False, False, True, False, 0, run_mode=RUN_WITH_LAST_VALS)
+
 pdb.plug_in_export_layers_to(image)
 
 
 Export Layers To
----------------------
+----------------
 
-* interactive
-   - load settings from GIMP shelf and config file
-   - first run
-      - display Export Layers dialog
-   - subsequent runs
-      - display Export Layers To dialog
-* non-interactive
-   - same as run-with-last-vals
-* run-with-last-vals
-   - load settings from GIMP shelf and config file
-   - save settings to GIMP shelf after export
+Interactive
+* load settings from GIMP shelf and config file
+* first run
+  * display Export Layers dialog
+* subsequent runs
+  * display Export Layers To dialog
+
+Non-interactive
+* same as Run-with-last-vals
+
+Run-with-last-vals
+* load settings from GIMP shelf and config file
+* save settings to GIMP shelf after export
+
 
 Settings
----------------------
+--------
 
-* Output directory
-   - root directory
-   - non-root directory
-   - directory with denied write permission
+Output directory
+* root directory
+* non-root directory
+* directory with denied write permission
 
-* File format
-   - all valid file formats
-   - invalid file format - empty, non-empty
-   - first layer - display dialog in interactive
-   - subsequent layers - use last values (with a few exceptions, where dialog must always be displayed)
+File format
+* all valid file formats
+* invalid file format - empty, non-empty
+* first layer - display dialog in interactive
+* subsequent layers - use last values (with a few exceptions, where dialog must always be displayed)
 
-* Layer groups as folders
-   - filenames and directories must be properly uniquified
-* Merge layer groups
-* Create folders for empty layer groups
+Layer groups as folders
+* filenames and directories must be properly uniquified
 
-* Ignore invisible
-   - visible layers with invisible parents must also be ignored
+Merge layer groups
 
-* Autocrop
-* Use image size instead of layer size
-* square_bracketed_mode - Treat as background layers - Crop to layer
-   - test these three settings with the PNG format since it supports the alpha channel, in which you can clearly see the differences in each setting combination
-   - multiple background layers, in the same and in different places in the layer tree
-   - layer group in [square brackets] - if Merge layer groups is enabled, it should also be treated as a background layer
+Create folders for empty layer groups
 
-* Overwrite mode (non-interactive run mode only)
-   - make sure it uses the last overwrite mode
-   - by default - rename_new
+Ignore invisible
+* visible layers with invisible parents must also be ignored
 
-* file_ext_mode - No special handling - Always strip
-* file_ext_mode - No special handling - Strip identical
-* file_ext_mode - No special handling - Never strip
-* file_ext_mode - Export only layers matching file format
-   - invalid file format - empty, non-empty
-* file_ext_mode - Use as file formats
-   - no or invalid file extension in layers -> file format must be used
-   - invalid file format - empty, non-empty
+Autocrop
 
+Use image size
+
+Layer names in [square brackets] - Treat as background layers - Crop to layer
+* test these three settings with the PNG format since it supports the alpha channel, in which you can clearly see the differences in each setting combination
+* multiple background layers, in the same and in different places in the layer tree
+* layer group in [square brackets] - if Merge layer groups is enabled, it should also be treated as a background layer
+
+Overwrite mode (non-interactive run mode only)
+* make sure it uses the last overwrite mode
+* by default - rename_new
+
+File extensions in layer names
+* No special handling - Always strip
+* No special handling - Strip identical
+* No special handling - Never strip
+* Export only layers matching file format
+  * invalid file format - empty, non-empty
+* Use as file formats
+  * no or invalid file extension in layers -> file format must be used
+  * invalid file format - empty, non-empty
+
+Layer names in [square brackets]
 * square_bracketed_mode - Treat as normal layers
 * square_bracketed_mode - Ignore
 * square_bracketed_mode - Ignore other layers
-   - Create folders for empty layer groups
+* square_bracketed_mode - Ignore other layers + Create folders for empty layer groups
 
-* ignore layer modes
+Ignore layer modes
+
 
 Unicode support
----------------------
+---------------
 
 Use unicode characters in:
 * layers and layer groups
@@ -127,7 +154,7 @@ Use unicode characters in:
    * text entry
    * folder chooser
    * combo boxes, labels, buttons, checkboxes, tooltips
-      - temporarily modify settings in `settings_plugin`
+      * temporarily modify settings in `settings_plugin`
 
 Also test:
 * exporting more than once in one GIMP session (to test unicode strings in the GIMP shelf)
@@ -136,11 +163,12 @@ Also test:
 
 
 Platforms
----------------------
+---------
 
-* Windows
-   - test everything
-* Ubuntu
-   - test all GUI dialogs - Export Layers, Export Layers To, overwrite dialog, exception dialog, warning dialog, info dialog
-   - test Unicode stuff
-   - test a few arbitrarily chosen settings
+Windows
+* test everything
+
+Ubuntu
+* test all GUI dialogs - Export Layers, Export Layers To, overwrite dialog, exception dialog, warning dialog, info dialog
+* test Unicode stuff
+* test a few arbitrarily chosen settings
