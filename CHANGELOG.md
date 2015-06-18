@@ -1,5 +1,15 @@
+2.3 (June 18, 2015)
+-------------------
+
+* Removed tooltips for settings (except File Extension) due to being redundant.
+* Allowed to type in the output directory manually in the directory chooser if the "Location:" label is visible.
+* Changed the default value of the file extension strip mode to "Always strip file extension".
+* Changed the persistent storage of settings from a custom JSON file to the GIMP's native "parasiterc" file. This improves compatibility for certain GIMP builds not bundling some less commonly used Python modules. Users need to re-save settings if they used the "Save Settings" feature.
+* The plug-in now logs unhandled errors (exceptions) to the `export_layers/export_layers_error.log` file for official releases.
+* Major refactoring of the code dealing with settings to make it easier to create and maintain them.
+
 2.2.2 (December 20, 2014)
-------------------------
+-------------------------
 
 * Set PNG as the default file format.
 * Renamed settings containing the word "directory" to contain "folder".
@@ -8,7 +18,7 @@
 * Pressing Enter while the focus is on the "File extension" text field will now export layers.
 
 2.2.1 (November 10, 2014)
-------------------------
+-------------------------
 
 * Images in RAW format are saved with '.data' file extension instead of '.raw'.
 * Image type is now preserved, instead of always using the RGB type.
@@ -18,7 +28,7 @@
 * Renamed "Use image size instead of layer size" to just "Use image size" for the sake of brevity.
 
 2.2 (August 15, 2014)
-------------------------
+---------------------
 
 * Changed how the initial output directory in the GUI is determined. It is now
   remembered separately for each image currently opened in GIMP.
@@ -38,7 +48,7 @@
 * Misc. code refactoring and cleanup.
 
 2.1 (July 27, 2014)
-------------------------
+-------------------
 
 * Added support for Unicode characters. This means you can now use any character
   in layer names and the output directory, except for most of the special characters.
@@ -62,7 +72,7 @@
 * More code refactoring and cleanup.
 
 2.0 (June 27, 2014)
-------------------------
+-------------------
 
 Implemented advanced settings, including the following:
 * export only layers whose names match the file format
@@ -121,5 +131,5 @@ Misc. changes:
 * Added "Export Layers to" menu entry, repeating the export with last used settings.
 
 1.0 (July 01, 2013)
-------------------------
+-------------------
 * Initial release.
