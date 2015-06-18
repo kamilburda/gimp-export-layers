@@ -87,13 +87,20 @@ def create_settings():
       'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
       'default_value': "png",
-      'display_name': "File extension"
+      'display_name': "File extension",
+      'error_messages': {
+         'default_needed': _(
+            "You need to specify default file extension for layers with invalid or no extension.")
+      }
     },
     {
       'type': pgsetting.SettingTypes.directory,
       'name': 'output_directory',
       'default_value': gimp.user_directory(1),   # "Documents" directory
-      'display_name': _("Output directory")
+      'display_name': _("Output directory"),
+      'error_messages': {
+         pgpath.DirectoryPathValidator.IS_EMPTY: _("Output directory is not specified.")
+      }
     },
     {
       'type': pgsetting.SettingTypes.boolean,
@@ -183,12 +190,6 @@ def create_settings():
       'display_name': _("Overwrite mode (non-interactive run mode only)")
     },
   ])
-  
-  #-----------------------------------------------------------------------------
-  
-  main_settings['file_extension'].error_messages['default_needed'] = _(
-    "You need to specify default file extension for layers with invalid or no extension."
-  )
   
   #-----------------------------------------------------------------------------
   
