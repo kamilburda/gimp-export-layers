@@ -2,7 +2,7 @@
 #
 # pygimplib - Collection of modules to improve development of Python GIMP plug-ins
 #
-# Copyright (C) 2014 khalim19 <khalim19@gmail.com>
+# Copyright (C) 2014, 2015 khalim19 <khalim19@gmail.com>
 #
 # pygimplib is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
