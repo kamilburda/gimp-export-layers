@@ -12,8 +12,9 @@ This plug-in:
 <li>can use file extensions in layer names as file formats</li>
 <li>can use layers with names in [square brackets] as background layers</li></ul>
 
-Example:
-<img src="https://lh6.googleusercontent.com/-FrHEw4t32sQ/VJYHtSlagiI/AAAAAAAAAlE/gfe9ri-zo9w/s600/export_layers_screenshot_2_2_2.png" />
+Examples:
+<img src="https://lh3.googleusercontent.com/-PlawB6QbWc8/VYLJWDzYF3I/AAAAAAAABDc/268h_hcwHZ4/s0/Export_layers_2_3.png" width="100%" height="100%" />
+<img src="https://lh3.googleusercontent.com/-pMFMIn7oZzM/VYLJWO4qjeI/AAAAAAAABDg/7engOV5Nne4/s0/Export_layers_2_3_file_format_dialog.png" width="100%" height="100%" />
 
 ================================================================================
 Description
@@ -30,7 +31,7 @@ Features:
 <li>can use layers with names in [square brackets] as background layers</li></ul>
 
 <h5><strong>Download Export Layers at:</strong></h5>
-https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.2.2/export-layers-2.2.2.zip
+https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.3/export-layers-2.3.zip
 
 <h5><strong>Requirements</strong></h5>
 <ul>
@@ -46,15 +47,16 @@ To export layers, press the "Export Layers" button. For the first layer, a dialo
 If you want to export the layers with the last values used, you can use the "File -> Export Layers to" menu entry. The file format dialog will not be displayed - instead, the last used values will be used.
 
 <h5><strong>Examples</strong></h5>
-<img src="https://lh3.googleusercontent.com/-vHYRL9ftpAw/VVZkPgY-UZI/AAAAAAAAA-I/qvJ_UHwI-iY/s0/export_layers_screenshot.png" width="100%" height="100%" />
-<img src="https://lh3.googleusercontent.com/--yCxoygaToA/VVZjgHwCK4I/AAAAAAAAA9s/EUK7Zy9CUUQ/s0/export_layers_screenshot_2.png" width="100%" height="100%" />
+<img src="https://lh3.googleusercontent.com/-PlawB6QbWc8/VYLJWDzYF3I/AAAAAAAABDc/268h_hcwHZ4/s0/Export_layers_2_3.png" width="100%" height="100%" />
+<img src="https://lh3.googleusercontent.com/-pMFMIn7oZzM/VYLJWO4qjeI/AAAAAAAABDg/7engOV5Nne4/s0/Export_layers_2_3_file_format_dialog.png" width="100%" height="100%" />
 
 <h5><strong>Changelog</strong></h5>
-2.2.2 (December 20, 2014)
-* Set PNG as the default file format.
-* Renamed settings containing the word "directory" to contain "folder".
-* Allowed to install the plug-in system-wide (e.g. to `C:\Program Files\GIMP 2\lib\gimp\2.0\plug-ins` on Windows).
-* Pressing Enter while the focus is on the "File extension" text field will now export layers.
+2.3 (June 18, 2015)
+* Removed tooltips for settings (except File Extension) due to being redundant.
+* Allowed to type in the output directory manually in the directory chooser if the "Location:" label is visible.
+* Changed the default value of the file extension strip mode to "Always strip file extension".
+* Changed the persistent storage of settings from a custom JSON file to the GIMP's native "parasiterc" file. This improves compatibility for certain GIMP builds not bundling some less commonly used Python modules. Users need to re-save settings if they used the "Save Settings" feature.
+* Major refactoring of the code dealing with settings to make it easier to create and maintain them.
 
 For more information, such as installation, full list of features or known issues, read the <i>Readme.txt</i> file in the package or see the GitHub page for the plug-in:
 https://github.com/khalim19/gimp-plugin-export-layers
