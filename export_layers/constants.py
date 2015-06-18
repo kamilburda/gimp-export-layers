@@ -37,6 +37,13 @@ str = unicode
 import os
 import inspect
 
+try:
+  import gimp
+except ImportError:
+  _gimp_module_imported = False
+else:
+  _gimp_module_imported = True
+
 #===============================================================================
 
 def N_(s):
@@ -49,7 +56,10 @@ PLUGIN_TITLE = N_("Export Layers")
 
 PLUGIN_VERSION = "2.2.2"
 
+# If False, log only exceptions to an error log file. If True, log all output
+# from `stdout` and `stderr` to separate log files.
 DEBUG = False
+# If True, display each step of image/layer editing in GIMP.
 DEBUG_IMAGE_PROCESSING = False
 
 #===============================================================================
@@ -74,3 +84,21 @@ LOCALE_PATH = os.path.join(PLUGINS_DIRECTORY, PLUGIN_PROGRAM_NAME, LOCALE_DIRNAM
 
 PLUGINS_LOG_STDOUT_PATH = os.path.join(PLUGIN_PATH, PLUGIN_PROGRAM_NAME + '.log')
 PLUGINS_LOG_STDERR_PATH = os.path.join(PLUGIN_PATH, PLUGIN_PROGRAM_NAME + '_error.log')
+
+# These are alternate paths that can be used to log output to the
+# `[user directory]/.gimp-2.8/plug-ins` directory in case the plug-in was
+# installed system-wide (e.g. in `Program Files` on Windows) and there is no
+# permission to create log files there.
+PLUGINS_DIRECTORY_ALTERNATE = None
+PLUGIN_PATH_ALTERNATE = None
+PLUGINS_LOG_STDOUT_PATH_ALTERNATE = None
+PLUGINS_LOG_STDERR_PATH_ALTERNATE = None
+
+if _gimp_module_imported:
+  PLUGINS_DIRECTORY_ALTERNATE = os.path.join(gimp.directory, 'plug-ins')
+  if PLUGINS_DIRECTORY_ALTERNATE != PLUGINS_DIRECTORY:
+    PLUGIN_PATH_ALTERNATE = os.path.join(PLUGINS_DIRECTORY_ALTERNATE, PLUGIN_DIRNAME)
+    PLUGINS_LOG_STDOUT_PATH_ALTERNATE = os.path.join(PLUGIN_PATH_ALTERNATE,
+                                                     PLUGIN_PROGRAM_NAME + '.log')
+    PLUGINS_LOG_STDERR_PATH_ALTERNATE = os.path.join(PLUGIN_PATH_ALTERNATE,
+                                                     PLUGIN_PROGRAM_NAME + '_error.log')

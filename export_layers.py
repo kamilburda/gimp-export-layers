@@ -33,16 +33,9 @@ str = unicode
 #===============================================================================
 
 from export_layers import constants
+from export_layers import log_output
 
-if constants.DEBUG:
-  import sys
-  
-  from export_layers.pygimplib import tee
-  
-  tee.Tee(sys.stdout, open(constants.PLUGINS_LOG_STDOUT_PATH, 'a'),
-          log_header_title=constants.PLUGIN_TITLE, flush_file=True)
-  tee.Tee(sys.stderr, open(constants.PLUGINS_LOG_STDERR_PATH, 'a'),
-          log_header_title=constants.PLUGIN_TITLE, flush_file=True)
+log_output.log_output(constants.DEBUG)
 
 import gettext
 
