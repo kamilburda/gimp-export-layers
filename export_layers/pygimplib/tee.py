@@ -42,6 +42,10 @@ from datetime import datetime
 #===============================================================================
 
 
+def get_log_header(log_header_title):
+  return '\n'.join(('', '=' * 80, log_header_title, str(datetime.now()), '\n'))
+
+
 # Original version:
 # http://mail.python.org/pipermail/python-list/2007-May/438106.html
 # Author: Peter Otten
@@ -151,7 +155,7 @@ class Tee(object):
     """
     
     if self._state == self._RUNNING_FIRST_TIME:
-      self._file.write(self._get_log_header().encode())
+      self._file.write(get_log_header(self.log_header_title).encode())
       self._write_with_flush(data + b'\n')
       self._state = self._RUNNING
     else:
@@ -179,7 +183,4 @@ class Tee(object):
     
     self._file.flush()
     self._stream.flush()
-
-  def _get_log_header(self):
-    return '\n'.join(('', '=' * 80, self.log_header_title, str(datetime.now()), '\n'))
 
