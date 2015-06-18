@@ -19,4 +19,6 @@
 #
 #-------------------------------------------------------------------------------
 
-# empty
+"""
+This package contains external libraries used in the `pygimplib` library.
+"""
