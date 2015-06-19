@@ -344,8 +344,8 @@ class FilePathValidator(StringValidator):
     
     * '/' and '\' characters are allowed
     
-    * ':' character is allowed to appear at the root level (as a part of a drive
-      letter, e.g. "C:\")
+    * ':' character is allowed to appear at the root level only (as a part of a
+      drive letter, e.g. "C:\")
   """
   
   _INVALID_CHARS = r"\x00-\x1f\x7f-\x9f<>\"|?*"
@@ -445,16 +445,17 @@ class DirectoryPathValidator(FilePathValidator):
    
   """
   This class is used to validate directory paths (relative or absolute).
-   
-  This class works the same way as the `FilePathValidator`, i.e. the same
-  restrictions apply. The only difference in this class is error messages
-  suited for directory paths.
+  
+  The same validation rules that apply to file paths in the `FilePathValidator`
+  class apply to directory paths in this class, with the following additions:
+  
+    * the specified path must be a directory
   """
   
   ERROR_STATUSES = (
-     IS_EMPTY, DRIVE_HAS_INVALID_CHARS, HAS_INVALID_CHARS,
-     HAS_SPACES, HAS_TRAILING_PERIOD, HAS_INVALID_NAMES
-  ) = (0, 1, 2, 3, 4, 5)
+     IS_EMPTY, DRIVE_HAS_INVALID_CHARS, HAS_INVALID_CHARS, HAS_SPACES,
+     HAS_TRAILING_PERIOD, HAS_INVALID_NAMES, EXISTS_BUT_IS_NOT_DIR
+  ) = (0, 1, 2, 3, 4, 5, 6)
   
   ERROR_STATUSES_MESSAGES = {
     IS_EMPTY: _("Directory path is not specified."),
@@ -463,8 +464,19 @@ class DirectoryPathValidator(FilePathValidator):
     HAS_SPACES: _("Path components in the directory path cannot start or end with spaces."),
     HAS_TRAILING_PERIOD: _("Path components in the directory path cannot end with a period."),
     HAS_INVALID_NAMES: _("\"{0}\" is a reserved name that cannot be used in directory paths.\n"),
+    EXISTS_BUT_IS_NOT_DIR: _("Specified path is not a directory.")
   }
-
+  
+  @classmethod
+  def is_valid(cls, dirpath):
+    unused_, status_messages = super(DirectoryPathValidator, cls).is_valid(dirpath)
+    
+    if os.path.exists(dirpath) and not os.path.isdir(dirpath):
+      status_messages.append(cls._status_tuple(cls.EXISTS_BUT_IS_NOT_DIR))
+    
+    is_valid = not status_messages
+    return is_valid, status_messages
+  
 
 class FileExtensionValidator(StringValidator):
   
