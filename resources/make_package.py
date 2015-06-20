@@ -261,3 +261,4 @@ def make_package(input_directory, output_file, version):
 if __name__ == "__main__":
   output_file = OUTPUT_FILENAME_PREFIX + '-' + constants.PLUGIN_VERSION + OUTPUT_FILENAME_SUFFIX
   make_package(PLUGINS_PATH, output_file, constants.PLUGIN_VERSION)
+  print("Package successfully created:", os.path.join(PLUGINS_PATH, output_file))
