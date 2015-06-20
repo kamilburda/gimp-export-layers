@@ -37,6 +37,21 @@ from __future__ import division
 
 str = unicode
 
+
+import __builtin__
+
+# For `gettext`-aware modules that use "_()" and "N_()" functions, define dummy
+# functions that simply return the strings.
+
+def gettext(s):
+  return s
+
+if '_' not in __builtin__.__dict__:
+  __builtin__.__dict__['_'] = gettext
+
+if 'N_' not in __builtin__.__dict__:
+  __builtin__.__dict__['N_'] = gettext
+
 #===============================================================================
 
 import os
