@@ -688,7 +688,7 @@ class TestFileExtensionSetting(unittest.TestCase):
 class TestDirectorySetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.DirectorySetting('output_directory', 'C:\\')
+    self.setting = pgsetting.DirectorySetting('output_directory', '/some_dir')
   
   def test_update_current_directory_with_current_image_filename(self):
     image = gimpmocks.MockImage()
