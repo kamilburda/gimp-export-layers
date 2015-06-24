@@ -442,3 +442,16 @@ class TestPdbParamCreator(unittest.TestCase):
   def test_create_params_with_unregistrable_setting(self):
     params = pgsettinggroup.PdbParamCreator.create_params(self.unregistrable_setting)
     self.assertEqual(params, [])
+  
+  def test_list_param_values(self):
+    param_values = pgsettinggroup.PdbParamCreator.list_param_values([self.settings])
+    self.assertEqual(param_values[0], self.settings['main']['file_extension'].value)
+    self.assertEqual(param_values[1], self.settings['advanced']['ignore_invisible'].value)
+    self.assertEqual(param_values[2], self.settings['advanced']['overwrite_mode'].value)
+
+  def test_list_param_values_ignore_run_mode(self):
+    param_values = pgsettinggroup.PdbParamCreator.list_param_values(
+      [pgsetting.IntSetting('run_mode', 0), self.settings])
+    self.assertEqual(len(param_values), len(list(self.settings.iterate_all())))
+    
+  

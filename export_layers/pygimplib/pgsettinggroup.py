@@ -381,6 +381,26 @@ class PdbParamCreator(object):
     return [cls._create_param(setting) for setting in settings
             if setting.pdb_registration_mode == pgsetting.PdbRegistrationModes.registrable]
   
+  @classmethod
+  def list_param_values(cls, settings_or_groups, ignore_run_mode=True):
+    """
+    Return a list of values of settings registrable to PDB.
+    
+    If `ignore_run_mode` is True, ignore setting(s) named 'run_mode'. This makes
+    it possible to call PDB functions with the setting values without manually
+    omitting the 'run_mode' setting.
+    """
+    
+    settings = cls._list_settings(settings_or_groups)
+    
+    if ignore_run_mode:
+      for i, setting in enumerate(settings):
+        if setting.name == 'run_mode':
+          del settings[i]
+          break
+    
+    return [setting.value for setting in settings
+            if setting.pdb_registration_mode == pgsetting.PdbRegistrationModes.registrable]
   
   @classmethod
   def _list_settings(cls, settings_or_groups):
