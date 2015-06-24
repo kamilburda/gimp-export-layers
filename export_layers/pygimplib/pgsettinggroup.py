@@ -377,17 +377,23 @@ class PdbParamCreator(object):
     `SettingGroup` objects.
     """
     
+    settings = cls._list_settings(settings_or_groups)
+    return [cls._create_param(setting) for setting in settings
+            if setting.pdb_registration_mode == pgsetting.PdbRegistrationModes.registrable]
+  
+  
+  @classmethod
+  def _list_settings(cls, settings_or_groups):
     settings = []
     for setting_or_group in settings_or_groups:
       if isinstance(setting_or_group, pgsetting.Setting):
         settings.append(setting_or_group)
       elif isinstance(setting_or_group, SettingGroup):
-        settings.extend(setting_or_group)
+        settings.extend(setting_or_group.iterate_all())
       else:
         raise TypeError("not a Setting or a SettingGroup object")
     
-    return [cls._create_param(setting) for setting in settings
-            if setting.pdb_registration_mode == pgsetting.PdbRegistrationModes.registrable]
+    return settings
   
   @classmethod
   def _create_param(cls, setting):
