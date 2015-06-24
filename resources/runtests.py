@@ -80,8 +80,6 @@ import unittest
 
 #===============================================================================
 
-TEST_MODULE_NAME_PREFIX = "test_"
-
 RESOURCES_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
 PLUGINS_PATH = os.path.dirname(RESOURCES_PATH)
 
@@ -141,12 +139,32 @@ def _fix_streams_for_unittest():
 #===============================================================================
 
 
-def run_tests(stream=sys.stderr):
+def run_tests(path=PLUGINS_PATH, test_module_name_prefix="test_",
+              ignored_modules=None, output_stream=sys.stderr):
+  """
+  Execute all modules containing unit tests located in the `path` directory. The
+  names of the unit test modules start with the specified prefix (`test_` by
+  default).
+  
+  `ignored_modules` is a list of unit test modules or packages to ignore. If a
+  package is specified, all of its underlying modules are ignored.
+  
+  `output_stream` prints the unit test output using the specified output stream
+  (`sys.stderr` by default).
+  """
+  
   _fix_streams_for_unittest()
   
-  for unused_, module_name, unused_ in pkgutil.walk_packages(path=[PLUGINS_PATH]):
+  if ignored_modules is None:
+    ignored_modules = []
+  
+  for unused_, module_name, unused_ in pkgutil.walk_packages(path=[path]):
+    if any(module_name.startswith(ignored_module_name) for ignored_module_name in ignored_modules):
+      continue
+    
     module = load_module(module_name)
     
     parts = module_name.split('.')
-    if parts[-1].startswith(TEST_MODULE_NAME_PREFIX):
-      run_test(module, stream=stream)
+    if parts[-1].startswith(test_module_name_prefix):
+      run_test(module, stream=output_stream)
+

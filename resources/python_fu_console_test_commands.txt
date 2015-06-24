@@ -9,5 +9,13 @@ runtests.run_tests()
 _ = lambda s: s
 reload(runtests)
 _
-runtests.run_tests()
+runtests.run_tests(ignored_modules=["export_layers.tests"])
+
+
+
+_ = lambda s: s
+reload(runtests)
+_
+runtests.run_tests(ignored_modules=["export_layers.pygimplib.tests"])
+
 
