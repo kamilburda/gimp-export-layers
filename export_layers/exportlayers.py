@@ -405,7 +405,7 @@ class LayerExporter(object):
     # This is necessary for file formats which flatten the image (such as JPG).
     pdb.gimp_item_set_visible(layer_copy, True)
     if pdb.gimp_item_is_group(layer_copy):
-      layer_copy = pgpdb.merge_layer_group(self._image_copy, layer_copy)
+      layer_copy = pgpdb.merge_layer_group(layer_copy)
     
     if self.main_settings['ignore_layer_modes'].value:
       layer_copy.mode = gimpenums.NORMAL_MODE
@@ -439,7 +439,7 @@ class LayerExporter(object):
           if self.main_settings['ignore_layer_modes'].value:
             bg_layer_copy.mode = gimpenums.NORMAL_MODE
           if pdb.gimp_item_is_group(bg_layer_copy):
-            bg_layer_copy = pgpdb.merge_layer_group(self._image_copy, bg_layer_copy)
+            bg_layer_copy = pgpdb.merge_layer_group(bg_layer_copy)
         
         if self.main_settings['use_image_size'].value:
           background_layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
