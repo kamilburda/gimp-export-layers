@@ -195,3 +195,18 @@ def load_layers(layer_filenames, image=None, strip_file_extension=False):
   
   return image
 
+
+def copy_and_paste_layer(layer, image, parent=None, position=0):
+  """
+  Copy the specified layer into the specified image, parent layer group and
+  position in the group. Return the copied layer.
+  
+  If `parent` is None, insert the layer in the main stack (outside of any layer
+  group).
+  """
+  
+  layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
+  pdb.gimp_image_insert_layer(image, layer_copy, parent, position)
+  
+  return layer_copy
+  
