@@ -210,3 +210,130 @@ def copy_and_paste_layer(layer, image, parent=None, position=0):
   
   return layer_copy
   
+
+def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
+                   apply_layer_attributes=True, apply_layer_masks=True):
+  """
+  Return True if all layers are identical (i.e. have the same contents), False
+  otherwise. Layer groups are also supported.
+  
+  If `compare_alpha_channels` is True, perform comparison of alpha channels.
+  
+  If `compare_has_alpha` is True, compare the presence of alpha channels in all
+  layers - if some layers have alpha channels and others don't, do not perform
+  full comparison and return False. If `compare_has_alpha` is False, perform
+  full comparison of all layers.
+  
+  If `apply_layer_attributes` is True, take the layer attributes (opacity, mode)
+  into consideration when comparing, otherwise ignore them.
+  
+  If `apply_layer_masks` is True, apply layer masks if they are enabled. If the
+  masks are disabled or `apply_layer_masks` is False, layer masks are ignored.
+  
+  The default values of the optional parameters correspond to how the layers are
+  displayed in the image canvas.
+  """
+  
+  def _copy_layers(image, layers, parent=None, position=0):
+    layer_group = pdb.gimp_layer_group_new(image)
+    pdb.gimp_image_insert_layer(image, layer_group, parent, position)
+    
+    for layer in layers:
+      copy_and_paste_layer(layer, image, parent=layer_group)
+    
+    for layer in layer_group.children:
+      layer.visible = True
+    
+    return layer_group
+  
+  def _process_layers(image, layer_group, apply_layer_attributes, apply_layer_masks):
+    for layer in layer_group.children:
+      if pdb.gimp_item_is_group(layer):
+        layer = merge_layer_group(layer)
+      else:
+        if layer.opacity != 100.0 or layer.mode != gimpenums.NORMAL_MODE:
+          if apply_layer_attributes:
+            layer = _apply_layer_attributes(image, layer, layer_group)
+          else:
+            layer.opacity = 100.0
+            layer.mode = gimpenums.NORMAL_MODE
+        
+        if layer.mask is not None:
+          if apply_layer_masks and pdb.gimp_layer_get_apply_mask(layer):
+            pdb.gimp_layer_remove_mask(layer, gimpenums.MASK_APPLY)
+          else:
+            pdb.gimp_layer_remove_mask(layer, gimpenums.MASK_DISCARD)
+  
+  def _is_identical(layer_group):
+    layer_group.children[0].mode = gimpenums.DIFFERENCE_MODE
+    
+    for layer in layer_group.children[1:]:
+      layer.visible = False
+    
+    for layer in layer_group.children[1:]:
+      layer.visible = True
+      
+      histogram_data = pdb.gimp_histogram(layer_group, gimpenums.HISTOGRAM_VALUE, 1, 255)
+      percentile = histogram_data[5]
+      identical = percentile == 0.0
+      
+      if not identical:
+        return False
+      
+      layer.visible = False
+    
+    return True
+  
+  def _set_mask_to_layer(layer):
+    pdb.gimp_edit_copy(layer.mask)
+    floating_sel = pdb.gimp_edit_paste(layer, True)
+    pdb.gimp_floating_sel_anchor(floating_sel)
+    pdb.gimp_layer_remove_mask(layer, gimpenums.MASK_DISCARD)
+  
+  def _apply_layer_attributes(image, layer, parent_group):
+    temp_group = pdb.gimp_layer_group_new(image)
+    pdb.gimp_image_insert_layer(image, temp_group, parent_group, 0)
+    pdb.gimp_image_reorder_item(image, layer, temp_group, 0)
+    layer = merge_layer_group(temp_group)
+    
+    return layer
+  
+  
+  if (not all(layers[0].width == layer.width for layer in layers[1:])
+      or not all(layers[0].height == layer.height for layer in layers[1:])):
+    return False
+  
+  if compare_has_alpha and not all(layers[0].type == layer.type for layer in layers[1:]):
+    return False
+  
+  image = gimp.Image(1, 1, gimpenums.RGB)
+  layer_group = _copy_layers(image, layers)
+  pdb.gimp_image_resize_to_layers(image)
+  _process_layers(image, layer_group, apply_layer_attributes, apply_layer_masks)
+  
+  has_alpha = False
+  for layer in layer_group.children:
+    if pdb.gimp_drawable_has_alpha(layer):
+      has_alpha = True
+      # Extract alpha channel to the layer mask (to compare alpha channels).
+      mask = pdb.gimp_layer_create_mask(layer, gimpenums.ADD_ALPHA_MASK)
+      pdb.gimp_layer_add_mask(layer, mask)
+      pdb.gimp_layer_set_apply_mask(layer, False)
+      # Remove alpha channel
+      pdb.gimp_layer_flatten(layer)
+  
+  identical = _is_identical(layer_group)
+  
+  if identical and compare_alpha_channels and has_alpha:
+    for layer in layer_group.children:
+      if layer.mask is not None:
+        _set_mask_to_layer(layer)
+      else:
+        pdb.gimp_drawable_fill(layer, gimpenums.WHITE_FILL)
+    
+    identical = identical and _is_identical(layer_group)
+  
+  pdb.gimp_image_delete(image)
+  
+  return identical
+
