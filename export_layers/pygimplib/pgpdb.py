@@ -60,6 +60,7 @@ def undo_group(image):
     with undo_group(image):
       # do stuff
   """
+  
   pdb.gimp_image_undo_group_start(image)
   try:
     yield
@@ -67,7 +68,7 @@ def undo_group(image):
     pdb.gimp_image_undo_group_end(image)
 
 
-def merge_layer_group(image, layer_group):
+def merge_layer_group(layer_group):
   """
   Merge layers in the specified layer group belonging to the specified image
   into one layer.
@@ -76,7 +77,9 @@ def merge_layer_group(image, layer_group):
   """
   
   if not pdb.gimp_item_is_group(layer_group):
-    raise TypeError("not a layer group")
+    raise TypeError("\"{0}\": not a layer group".format(layer_group.name))
+  
+  image = layer_group.image
   
   with undo_group(image):
     orig_parent_and_pos = ()
