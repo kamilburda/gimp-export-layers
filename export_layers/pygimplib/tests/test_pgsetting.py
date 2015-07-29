@@ -179,9 +179,9 @@ def on_autocrop_changed(autocrop, file_extension):
 
 class MockSettingWithGui(MockSetting):
   
-  _GUI_TYPES = [MockCheckboxPresenter, MockSettingPresenter,
-                MockSettingPresenterWithValueChangedSignal,
-                MockSettingPresenterWithoutGuiElementWrapper]
+  _ALLOWED_GUI_TYPES = [MockCheckboxPresenter, MockSettingPresenter,
+                        MockSettingPresenterWithValueChangedSignal,
+                        MockSettingPresenterWithoutGuiElementWrapper]
 
 
 #===============================================================================
