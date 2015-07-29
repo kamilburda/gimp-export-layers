@@ -97,10 +97,10 @@ class Setting(object):
   * registering GIMP Procedural Database (PDB) parameters to plug-ins
   * managing GUI element properties (values, labels, etc.)
   
-  This class in particular can story any data. However, it is strongly
+  This class in particular can store any data. However, it is strongly
   recommended to use the appropriate `Setting` subclass for a particular data
   type, as the subclasses offer the following features:
-  * setting can be registered to PDB,
+  * setting can be registered to GIMP PDB,
   * automatic validation of input values,
   * readily available GUI element, keeping the GUI and the setting value in sync.
   
@@ -139,9 +139,9 @@ class Setting(object):
     as a PDB parameter. Possible values:
       
       * `PdbRegistrationModes.automatic` - automatically determine whether the
-        setting can be registered based on `pdb_type`, if `pdb_type` is not None,
-        allow the setting to be registered, otherwise disallow it. This is the
-        default.
+        setting can be registered based on `pdb_type`. If `pdb_type` is not
+        None, allow the setting to be registered, otherwise disallow it.
+        `automatic` is the default mode.
         
       * `PdbRegistrationModes.registrable` - allow the setting to be registered.
         If this attribute is set to `registrable` and `pdb_type` is None, this
@@ -340,8 +340,7 @@ class Setting(object):
     * `gui_type` - `SettingPresenter` type to wrap `gui_element` around.
       
       If `gui_type` is None, create a GUI object of the type specified in the
-      `gui_type` parameter in `__init__`. In other words, GUI is created along
-      with a new GUI element.
+      `gui_type` parameter in `__init__`.
       
       To specify an existing GUI element, pass a specific `gui_type` and the
       GUI element in `gui_element`. This is useful if you wish to use the GUI
@@ -716,7 +715,8 @@ class EnumSetting(Setting):
   * `items_display_names` (read-only) - A dict of <item name, item display name> pairs.
     Item display names can be used e.g. as combo box items in the GUI.
   
-  * `empty_value` (read-only) - Item name designated as the empty value.
+  * `empty_value` (read-only) - Item name designated as the empty value. By
+    default, the setting does not have an empty value.
   
   To access an item value:
     setting.items[item name]
