@@ -177,6 +177,11 @@ def on_autocrop_changed(autocrop, file_extension):
     file_extension.set_value("jpg")
 
 
+class MockSettingRegistrableToPdb(MockSetting):
+
+  _ALLOWED_PDB_TYPES = [pgsetting.SettingPdbTypes.string]
+
+
 class MockSettingWithGui(MockSetting):
   
   _ALLOWED_GUI_TYPES = [MockCheckboxPresenter, MockSettingPresenter,
@@ -276,18 +281,17 @@ class TestSetting(unittest.TestCase):
     self.assertNotEqual(setting.error_messages['invalid_value'],
                         setting_with_custom_error_messages.error_messages['invalid_value'])
   
-  def test_pdb_registration_mode_automatic_is_registrable(self):
-    setting = pgsetting.StringSetting('file_extension', "png", pdb_type=gimpenums.PDB_STRING)
-    self.assertEqual(setting.pdb_registration_mode, pgsetting.PdbRegistrationModes.registrable)
+  def test_pdb_type_automatic_is_registrable(self):
+    setting = MockSettingRegistrableToPdb('file_extension', "png", pdb_type=pgsetting.SettingPdbTypes.string)
+    self.assertTrue(setting.can_be_registered_to_pdb())
   
-  def test_pdb_registration_mode_automatic_is_not_registrable(self):
+  def test_pdb_type_automatic_is_not_registrable(self):
     setting = MockSetting('file_extension', "png")
-    self.assertEqual(setting.pdb_registration_mode, pgsetting.PdbRegistrationModes.not_registrable)
+    self.assertFalse(setting.can_be_registered_to_pdb())
   
-  def test_invalid_pdb_type_and_registration_mode_raises_error(self):
+  def test_invalid_pdb_type_raises_error(self):
     with self.assertRaises(ValueError):
-      MockSetting('file_extension', "png", pdb_type=gimpenums.PDB_STRING,
-                  pdb_registration_mode=pgsetting.PdbRegistrationModes.registrable)
+      MockSetting('file_extension', "png", pdb_type=pgsetting.SettingPdbTypes.string)
   
   def test_reset_resets_setting_to_default_value(self):
     self.setting.set_value("jpg")
@@ -350,6 +354,9 @@ class TestSettingGui(unittest.TestCase):
       MockSettingWithGui("ignore_invisible", False, gui_type=MockYesNoToggleButtonPresenter)
   
   def test_setting_null_gui_type(self):
+    # For now, don't use `SettingGuiTypes.none`, as it raises TypeError due to
+    # `super()` failing on module reload. For further information, see:
+    # https://thingspython.wordpress.com/2010/09/27/another-super-wrinkle-raising-typeerror/
     setting = MockSettingWithGui("ignore_invisible", False, gui_type=pgsettingpresenter.NullSettingPresenter)
     setting.create_gui()
     self.assertIs(type(setting.gui), pgsettingpresenter.NullSettingPresenter)

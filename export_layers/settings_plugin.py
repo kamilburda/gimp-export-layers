@@ -74,7 +74,7 @@ def create_settings():
       'type': pgsetting.SettingTypes.boolean,
       'name': 'first_plugin_run',
       'default_value': True,
-      'pdb_registration_mode': pgsetting.PdbRegistrationModes.not_registrable
+      'pdb_type': pgsetting.SettingPdbTypes.none
     },
   ])
   

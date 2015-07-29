@@ -411,7 +411,7 @@ class TestPdbParamCreator(unittest.TestCase):
     self.file_ext_setting = pgsetting.FileExtensionSetting(
       "file_extension", "png", display_name="File extension")
     self.unregistrable_setting = pgsetting.IntSetting(
-      "num_exported_layers", 0, pdb_registration_mode=pgsetting.PdbRegistrationModes.not_registrable)
+      "num_exported_layers", 0, pdb_type=pgsetting.SettingPdbTypes.none)
     self.settings = create_test_settings_hierarchical()
   
   def test_create_one_param_successfully(self):
@@ -420,7 +420,7 @@ class TestPdbParamCreator(unittest.TestCase):
     param = params[0]
     
     self.assertTrue(len(param), 3)
-    self.assertEqual(param[0], gimpenums.PDB_STRING)
+    self.assertEqual(param[0], pgsetting.SettingPdbTypes.string)
     self.assertEqual(param[1], "file_extension".encode())
     self.assertEqual(param[2], "File extension".encode())
   

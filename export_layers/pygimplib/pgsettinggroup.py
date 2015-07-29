@@ -312,9 +312,6 @@ class SettingGroup(object):
     except KeyError:
       raise TypeError(self._get_missing_mandatory_attributes_message(['type']))
     
-    if isinstance(setting_type, pgsetting.SettingTypes):
-      setting_type = setting_type.value
-    
     del setting_data['type']
     
     try:
@@ -379,7 +376,7 @@ class PdbParamCreator(object):
     
     settings = cls._list_settings(settings_or_groups)
     return [cls._create_param(setting) for setting in settings
-            if setting.pdb_registration_mode == pgsetting.PdbRegistrationModes.registrable]
+            if setting.can_be_registered_to_pdb()]
   
   @classmethod
   def list_param_values(cls, settings_or_groups, ignore_run_mode=True):
@@ -400,7 +397,7 @@ class PdbParamCreator(object):
           break
     
     return [setting.value for setting in settings
-            if setting.pdb_registration_mode == pgsetting.PdbRegistrationModes.registrable]
+            if setting.can_be_registered_to_pdb()]
   
   @classmethod
   def _list_settings(cls, settings_or_groups):

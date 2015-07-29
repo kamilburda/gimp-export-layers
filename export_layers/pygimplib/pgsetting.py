@@ -44,8 +44,6 @@ from collections import OrderedDict
 import gimp
 import gimpenums
 
-from .lib import enum
-
 from . import pgpath
 from . import pgsettingpresenter
 from .pgsettingpresenters_gtk import SettingGuiTypes
@@ -57,10 +55,36 @@ pdb = gimp.pdb
 #===============================================================================
 
 
-class PdbRegistrationModes(enum.Enum):
-  automatic = 0
-  registrable = 1
-  not_registrable = 2
+class SettingPdbTypes(object):
+  int32 = gimpenums.PDB_INT32
+  int16 = gimpenums.PDB_INT16
+  int8 = gimpenums.PDB_INT8
+  float = gimpenums.PDB_FLOAT
+  string = gimpenums.PDB_STRING
+  color = gimpenums.PDB_COLOR
+  
+  array_int32 = gimpenums.PDB_INT32ARRAY
+  array_int16 = gimpenums.PDB_INT16ARRAY
+  array_int8 = gimpenums.PDB_INT8ARRAY
+  array_float = gimpenums.PDB_FLOATARRAY
+  array_string = gimpenums.PDB_STRINGARRAY
+  array_color = gimpenums.PDB_COLORARRAY
+  
+  image = gimpenums.PDB_IMAGE
+  item = gimpenums.PDB_ITEM
+  drawable = gimpenums.PDB_DRAWABLE
+  layer = gimpenums.PDB_LAYER
+  channel = gimpenums.PDB_CHANNEL
+  selection = gimpenums.PDB_SELECTION
+  vectors = gimpenums.PDB_VECTORS
+  path = gimpenums.PDB_VECTORS       # alias to `vectors`
+  
+  parasite = gimpenums.PDB_PARASITE
+  display = gimpenums.PDB_DISPLAY
+  status = gimpenums.PDB_STATUS
+  
+  none = type(b"DoNotRegisterSettingPdbType", (), {})()
+  automatic = None
 
 
 #===============================================================================
@@ -130,25 +154,10 @@ class Setting(object):
     as a setting description when registering the setting as a plug-in parameter
     to the GIMP Procedural Database (PDB).
   
-  * `pdb_type` (read-only) - GIMP PDB type, used when registering the setting as
-    a plug-in parameter to the PDB. In Setting subclasses, only specific PDB
-    types are allowed. Refer to the documentation of the subclasses for the list
-    of allowed PDB types.
-  
-  * `pdb_registration_mode` (read-only) - Indicates how to register the setting
-    as a PDB parameter. Possible values:
-      
-      * `PdbRegistrationModes.automatic` - automatically determine whether the
-        setting can be registered based on `pdb_type`. If `pdb_type` is not
-        None, allow the setting to be registered, otherwise disallow it.
-        `automatic` is the default mode.
-        
-      * `PdbRegistrationModes.registrable` - allow the setting to be registered.
-        If this attribute is set to `registrable` and `pdb_type` is None, this
-        is an error.
-      
-      * `PdbRegistrationModes.not_registrable` - do not allow the setting to be
-      registered.
+  * `pdb_type` (read-only) - GIMP PDB parameter type, used when registering the
+    setting as a plug-in parameter to the PDB. In Setting subclasses, only
+    specific PDB types are allowed. Refer to the documentation of the subclasses
+    for the list of allowed PDB types.
   
   * `pdb_name` (read-only) - Setting name as it appears in the GIMP PDB as
     a PDB parameter name.
@@ -168,9 +177,8 @@ class Setting(object):
   def __init__(self, name, default_value,
                allow_empty_values=False,
                display_name=None,
-               pdb_type=None,
-               pdb_registration_mode=PdbRegistrationModes.automatic,
-               gui_type=None,
+               pdb_type=SettingPdbTypes.automatic,
+               gui_type=SettingGuiTypes.automatic,
                auto_update_gui_to_setting=True,
                error_messages=None):
     
@@ -189,15 +197,19 @@ class Setting(object):
       `set_value` method, then the value is considered invalid. Otherwise, the
       value is considered valid.
     
-    * `pdb_type` - If None and this is a Setting subclass, assign the default
-      PDB type from the list of allowed PDB types. If None and this is the
-      Setting class, use None.
+    * `pdb_type` - one of the `SettingPdbTypes` items. If set to
+      `SettingPdbTypes.automatic` (the default), the first PDB type in the list
+      of allowed PDB types for a particular Setting subclass is chosen. If no
+      allowed PDB types are defined for that subclass, the setting cannot be
+      registered (None is assigned).
     
     * `gui_type` - Type of GUI element to be created by the `create_gui` method.
+      Use the `SettingGuiTypes` enum to specify the desired GUI type.
     
-      If `gui_type` is `None`, choose the first GUI type from the list of
-      allowed GUI type for the corresponding `Setting` subclass. If there are no
-      allowed GUI types for that subclass, no GUI is created for this setting.
+      If `gui_type` is `SettingGuiTypes.automatic`, choose the first GUI type
+      from the list of allowed GUI type for the corresponding `Setting`
+      subclass. If there are no allowed GUI types for that subclass, no GUI is
+      created for this setting.
       
       If an explicit GUI type is specified, it must be one of the types from the
       list of allowed GUI types for the corresponding `Setting` subclass. If
@@ -206,9 +218,9 @@ class Setting(object):
       If the `SettingGuiTypes.none` type is specified, no GUI is created for
       this setting.
     
-    * `auto_update_gui_to_setting` - If True, automatically update the setting value if
-      the GUI value is updated. If False, the setting must be updated manually
-      by calling `Setting.gui.update_setting_value` when needed.
+    * `auto_update_gui_to_setting` - If True, automatically update the setting
+      value if the GUI value is updated. If False, the setting must be updated
+      manually by calling `Setting.gui.update_setting_value` when needed.
       
       This parameter does not have any effect if the GUI type used in
       this setting cannot provide automatic GUI-to-setting update.
@@ -223,7 +235,6 @@ class Setting(object):
     self._allow_empty_values = allow_empty_values
     self._display_name = self._get_display_name(display_name)
     self._pdb_type = self._get_pdb_type(pdb_type)
-    self._pdb_registration_mode = self._get_pdb_registration_mode(pdb_registration_mode)
     
     self._value = self._default_value
     self._pdb_name = self._get_pdb_name(self._name)
@@ -274,10 +285,6 @@ class Setting(object):
   @property
   def pdb_type(self):
     return self._pdb_type
-  
-  @property
-  def pdb_registration_mode(self):
-    return self._pdb_registration_mode
   
   @property
   def pdb_name(self):
@@ -364,9 +371,6 @@ class Setting(object):
     
     if gui_type is None:
       gui_type = self._gui_type
-    else:
-      if isinstance(gui_type, SettingGuiTypes):
-        gui_type = gui_type.value
     
     self._gui = gui_type(
       self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,
@@ -433,6 +437,14 @@ class Setting(object):
     """
     return self._is_value_empty(self._value)
   
+  def can_be_registered_to_pdb(self):
+    """
+    Return True if setting can be registered as a parameter to GIMP PDB, False
+    otherwise.
+    """
+    
+    return self._pdb_type != SettingPdbTypes.none
+  
   def _is_value_empty(self, value):
     return value in self._allowed_empty_values
   
@@ -495,8 +507,10 @@ class Setting(object):
     return self.name.replace('_', ' ').capitalize()
   
   def _get_pdb_type(self, pdb_type):
-    if pdb_type is None:
+    if pdb_type == SettingPdbTypes.automatic:
       return self._get_default_pdb_type()
+    elif pdb_type == SettingPdbTypes.none:
+      return SettingPdbTypes.none
     elif pdb_type in self._ALLOWED_PDB_TYPES:
       return pdb_type
     else:
@@ -508,24 +522,7 @@ class Setting(object):
     if self._ALLOWED_PDB_TYPES:
       return self._ALLOWED_PDB_TYPES[0]
     else:
-      return None
-  
-  def _get_pdb_registration_mode(self, registration_mode):
-    if registration_mode == PdbRegistrationModes.automatic:
-      if self._pdb_type is not None:
-        return PdbRegistrationModes.registrable
-      else:
-        return PdbRegistrationModes.not_registrable
-    elif registration_mode == PdbRegistrationModes.registrable:
-      if self._pdb_type is not None:
-        return PdbRegistrationModes.registrable
-      else:
-        raise ValueError("setting cannot be registered to the GIMP PDB because "
-                         "it has no PDB type set")
-    elif registration_mode == PdbRegistrationModes.not_registrable:
-      return PdbRegistrationModes.not_registrable
-    else:
-      raise ValueError("invalid PDB registration mode")
+      return SettingPdbTypes.none
   
   def _get_pdb_name(self, name):
     """
@@ -539,7 +536,7 @@ class Setting(object):
   def _get_gui_type(self, gui_type):
     gui_type_to_return = None
     
-    if gui_type is None:
+    if gui_type == SettingGuiTypes.automatic:
       if self._ALLOWED_GUI_TYPES:
         gui_type_to_return = self._ALLOWED_GUI_TYPES[0]
       else:
@@ -547,15 +544,11 @@ class Setting(object):
     else:
       if gui_type in self._ALLOWED_GUI_TYPES:
         gui_type_to_return = gui_type
-      elif gui_type in [SettingGuiTypes.none, SettingGuiTypes.none.value,
-                        pgsettingpresenter.NullSettingPresenter]:
+      elif gui_type in [SettingGuiTypes.none, pgsettingpresenter.NullSettingPresenter]:
         gui_type_to_return = gui_type
       else:
         raise ValueError("invalid GUI type; must be one of {0}"
                          .format([type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
-    
-    if isinstance(gui_type_to_return, SettingGuiTypes):
-      gui_type_to_return = gui_type_to_return.value
     
     return gui_type_to_return
   
@@ -647,12 +640,12 @@ class IntSetting(NumericSetting):
   
   Allowed GIMP PDB types:
   
-  * PDB_INT32 (default)
-  * PDB_INT16
-  * PDB_INT8
+  * SettingPdbTypes.int32 (default)
+  * SettingPdbTypes.int16
+  * SettingPdbTypes.int8
   """
   
-  _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
 
 
 class FloatSetting(NumericSetting):
@@ -662,10 +655,10 @@ class FloatSetting(NumericSetting):
   
   Allowed GIMP PDB types:
   
-  * PDB_FLOAT
+  * SettingPdbTypes.float
   """
   
-  _ALLOWED_PDB_TYPES = [gimpenums.PDB_FLOAT]
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.float]
     
 
 class BoolSetting(Setting):
@@ -678,12 +671,12 @@ class BoolSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * PDB_INT32 (default)
-  * PDB_INT16
-  * PDB_INT8
+  * SettingPdbTypes.int32 (default)
+  * SettingPdbTypes.int16
+  * SettingPdbTypes.int8
   """
   
-  _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.checkbox]
   
   @property
@@ -703,9 +696,9 @@ class EnumSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * PDB_INT32 (default)
-  * PDB_INT16
-  * PDB_INT8
+  * SettingPdbTypes.int32 (default)
+  * SettingPdbTypes.int16
+  * SettingPdbTypes.int8
   
   Additional attributes:
   
@@ -740,7 +733,7 @@ class EnumSetting(Setting):
     when instantiating the object).
   """
   
-  _ALLOWED_PDB_TYPES = [gimpenums.PDB_INT32, gimpenums.PDB_INT16, gimpenums.PDB_INT8]
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.combobox]
   
   def __init__(self, name, default_value, items, empty_value=None, **kwargs):
@@ -875,7 +868,7 @@ class ImageSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * PDB_IMAGE
+  * SettingPdbTypes.image
   
   Allowed empty values:
   
@@ -886,7 +879,7 @@ class ImageSetting(Setting):
   * `'invalid_value'` - The image assigned is invalid.
   """
   
-  _ALLOWED_PDB_TYPES = [gimpenums.PDB_IMAGE]
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.image]
   _ALLOWED_EMPTY_VALUES = [None]
   
   def _init_error_messages(self):
@@ -905,7 +898,7 @@ class DrawableSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * PDB_DRAWABLE
+  * SettingPdbTypes.drawable
   
   Allowed empty values:
   
@@ -916,7 +909,7 @@ class DrawableSetting(Setting):
   * `'invalid_value'` - The drawable assigned is invalid.
   """
   
-  _ALLOWED_PDB_TYPES = [gimpenums.PDB_DRAWABLE]
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.drawable]
   _ALLOWED_EMPTY_VALUES = [None]
     
   def _init_error_messages(self):
@@ -934,10 +927,10 @@ class StringSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * PDB_STRING
+  * SettingPdbTypes.string
   """
   
-  _ALLOWED_PDB_TYPES = [gimpenums.PDB_STRING]
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
 
 
@@ -952,7 +945,7 @@ class ValidatableStringSetting(StringSetting):
   
   Allowed GIMP PDB types:
   
-  * PDB_STRING
+  * SettingPdbTypes.string
   
   Error messages:
   
@@ -1007,7 +1000,7 @@ class FileExtensionSetting(ValidatableStringSetting):
   
   Allowed GIMP PDB types:
   
-  * PDB_STRING
+  * SettingPdbTypes.string
   
   Allowed empty values:
   
@@ -1031,7 +1024,7 @@ class DirectorySetting(ValidatableStringSetting):
   
   Allowed GIMP PDB types:
   
-  * PDB_STRING
+  * SettingPdbTypes.string
   
   Allowed empty values:
   
@@ -1124,10 +1117,10 @@ class ImageIDsAndDirectoriesSetting(Setting):
 #===============================================================================
 
 
-class SettingTypes(enum.Enum):
+class SettingTypes(object):
   
   """
-  This enum maps Setting classes to more human-readable names.
+  This enum maps `Setting` classes to more human-readable names.
   """
   
   generic = Setting
