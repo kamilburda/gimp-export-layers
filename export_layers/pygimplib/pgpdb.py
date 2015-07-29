@@ -217,6 +217,9 @@ def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
   Return True if all layers are identical (i.e. have the same contents), False
   otherwise. Layer groups are also supported.
   
+  The default values of the optional parameters correspond to how the layers are
+  displayed in the image canvas.
+  
   If `compare_alpha_channels` is True, perform comparison of alpha channels.
   
   If `compare_has_alpha` is True, compare the presence of alpha channels in all
@@ -229,9 +232,6 @@ def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
   
   If `apply_layer_masks` is True, apply layer masks if they are enabled. If the
   masks are disabled or `apply_layer_masks` is False, layer masks are ignored.
-  
-  The default values of the optional parameters correspond to how the layers are
-  displayed in the image canvas.
   """
   
   def _copy_layers(image, layers, parent=None, position=0):
