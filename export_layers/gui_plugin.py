@@ -251,10 +251,6 @@ class _ExportLayersGui(object):
     self.file_extension_label.set_alignment(0.0, 0.5)
     self.file_extension_entry = gtk.Entry()
     self.file_extension_entry.set_size_request(100, -1)
-    self.file_extension_entry.set_tooltip_text(_(
-      "Type in file extension (with or without the leading period). "
-      "To export in RAW format, type \"data\"."
-    ))
     self.label_message = gtk.Label()
     self.label_message.set_alignment(0.0, 0.5)
     
