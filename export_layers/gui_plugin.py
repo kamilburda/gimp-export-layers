@@ -479,10 +479,12 @@ class _ExportLayersGui(object):
   def setup_gui_before_export(self):
     self.display_message_label(None)
     self._set_gui_enabled(False)
+    self.dialog.grab_remove()
     self.dialog.set_focus_on_map(False)
   
   def restore_gui_after_export(self):
     self.dialog.set_focus_on_map(True)
+    self.dialog.grab_add()
     self._set_gui_enabled(True)
   
   def _set_gui_enabled(self, enabled):
