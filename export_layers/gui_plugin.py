@@ -605,6 +605,6 @@ def export_layers_gui(image, settings, session_source, persistent_source):
   _ExportLayersGui(image, settings, session_source, persistent_source)
 
 
-def export_layers_to_gui(image, settings, session_source, persistent_source):
+def export_layers_repeat_gui(image, settings, session_source, persistent_source):
   _ExportLayersToGui(image, settings, session_source, persistent_source)
 

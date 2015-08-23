@@ -44,7 +44,7 @@ From the main menu, go to "File -> Export Layers...". A dialog appears, allowing
 
 To export layers, press the "Export Layers" button. For the first layer, a dialog corresponding to the file format appears, allowing you to adjust file format settings. Not all file formats have settings, so no dialog may appear. For subsequent layers, the file export procedure uses the values you specified in the dialog for the first file.
 
-If you want to export the layers with the last values used, you can use the "File -> Export Layers to" menu entry. The file format dialog will not be displayed - instead, the last used values will be used.
+If you want to export the layers with the last values used, you can use the "File -> Export Layers (repeat)" menu entry. The file format dialog will not be displayed - instead, the last used values will be used.
 
 <h5><strong>Examples</strong></h5>
 <img src="https://lh3.googleusercontent.com/-PlawB6QbWc8/VYLJWDzYF3I/AAAAAAAABDc/268h_hcwHZ4/s0/Export_layers_2_3.png" width="100%" height="100%" />

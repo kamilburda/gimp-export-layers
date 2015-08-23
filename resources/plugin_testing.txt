@@ -7,7 +7,7 @@ Platforms
 
 Plugins
 * Export Layers
-* Export Layers To
+* Export Layers (repeat)
 
 Run modes
 * interactive
@@ -64,18 +64,18 @@ Run-with-last-vals
 image = gimp.image_list()[0]
 pdb.plug_in_export_layers(image, 'jpg', r"D:\testgimp\test_export_layers", False, False, False, False, 0, 0, 0, False, False, True, False, 0, run_mode=RUN_WITH_LAST_VALS)
 
-pdb.plug_in_export_layers_to(image)
+pdb.plug_in_export_layers_repeat(image)
 
 
-Export Layers To
-----------------
+Export Layers (repeat)
+----------------------
 
 Interactive
 * load settings from GIMP shelf and config file
 * first run
   * display Export Layers dialog
 * subsequent runs
-  * display Export Layers To dialog
+  * display "Export Layers (repeat)" dialog
 
 Non-interactive
 * same as Run-with-last-vals
@@ -169,6 +169,6 @@ Windows
 * test everything
 
 Ubuntu
-* test all GUI dialogs - Export Layers, Export Layers To, overwrite dialog, exception dialog, warning dialog, info dialog
+* test all GUI dialogs - Export Layers, Export Layers (repeat), overwrite dialog, exception dialog, warning dialog, info dialog
 * test Unicode stuff
 * test a few arbitrarily chosen settings

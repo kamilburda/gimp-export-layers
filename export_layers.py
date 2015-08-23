@@ -84,14 +84,14 @@ class ExportLayersPlugin(gimpplugin.plugin):
       []
     )
     gimp.install_procedure(
-      "plug_in_export_layers_to",
+      "plug_in_export_layers_repeat",
       _("Run \"{0}\" with the last values specified").format(constants.PLUGIN_TITLE),
       _("If the plug-in is run for the first time (i.e. no last values exist), "
         "default values will be used."),
       "khalim19 <khalim19@gmail.com>",
       "khalim19",
       "2013",
-      _("Export Layers _to"),
+      _("E_xport Layers (repeat)"),
       "*",
       gimpenums.PLUGIN,
       pgsettinggroup.PdbParamCreator.create_params(
@@ -100,7 +100,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
     )
     
     gimp.menu_register("plug_in_export_layers", "<Image>/File/Export")
-    gimp.menu_register("plug_in_export_layers_to", "<Image>/File/Export")
+    gimp.menu_register("plug_in_export_layers_repeat", "<Image>/File/Export")
   
   def plug_in_export_layers(self, *args):
     run_mode = args[0]
@@ -115,14 +115,14 @@ class ExportLayersPlugin(gimpplugin.plugin):
     else:
       self._run_noninteractive(image, args)
   
-  def plug_in_export_layers_to(self, run_mode, image):
+  def plug_in_export_layers_repeat(self, run_mode, image):
     if run_mode == gimpenums.RUN_INTERACTIVE:
       pgsettingpersistor.SettingPersistor.load(
         [self.settings['special']['first_plugin_run']], [self.session_source])
       if self.settings['special']['first_plugin_run'].value:
         self._run_export_layers_interactive(image)
       else:
-        self._run_export_layers_to_interactive(image)
+        self._run_export_layers_repeat_interactive(image)
     else:
       self._run_with_last_vals(image)
   
@@ -148,8 +148,8 @@ class ExportLayersPlugin(gimpplugin.plugin):
     gui_plugin.export_layers_gui(image, self.settings, self.session_source, self.persistent_source)
   
   @pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST)
-  def _run_export_layers_to_interactive(self, image):
-    gui_plugin.export_layers_to_gui(image, self.settings, self.session_source, self.persistent_source)
+  def _run_export_layers_repeat_interactive(self, image):
+    gui_plugin.export_layers_repeat_gui(image, self.settings, self.session_source, self.persistent_source)
   
   def _run_plugin_noninteractive(self, run_mode, image):
     layer_exporter = exportlayers.LayerExporter(

@@ -86,7 +86,7 @@ encountered (such as invalid file extension) or the export was stopped, the main
 dialog remains open.
 
 If you want to export the layers with the last values used, you can use the
-"File -> Export Layers to" menu entry. The file format dialog will not be displayed -
+"File -> Export Layers (repeat)" menu entry. The file format dialog will not be displayed -
 instead, the last used values will be used.
 
 
@@ -203,7 +203,7 @@ On Windows, the following file formats don't work properly if file paths contain
 * OpenRaster (.ora),
 * X PixMap Image (.xpm).
 
-In Export Layers To, JPG format always displays the file format dialog for the first layer.
+In "Export Layers (repeat)", JPG format always displays the file format dialog for the first layer.
 
 
 License
