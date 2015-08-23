@@ -46,7 +46,7 @@ from export_layers import constants
 #===============================================================================
 
 
-def _set_logger_handler(logger, log_paths):
+def _logger_add_file_handler(logger, log_paths):
   """
   If the first log path in `log_paths` cannot be used (e.g. due to denied write
   permission), try out subsequent paths.
@@ -79,7 +79,7 @@ def log_output(debug=False):
     logger = logging.getLogger(constants.PLUGIN_PROGRAM_NAME)
     logger.setLevel(logging.DEBUG)
     
-    can_log = _set_logger_handler(
+    can_log = _logger_add_file_handler(
       logger, [constants.PLUGINS_LOG_STDERR_PATH, constants.PLUGINS_LOG_STDERR_PATH_ALTERNATE])
     if can_log:
       # Pass the `logger` instance to the function to make sure it is not None.
