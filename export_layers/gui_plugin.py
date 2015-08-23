@@ -500,6 +500,12 @@ class _ExportLayersGui(object):
     for button in self.dialog.action_area:
       if button != self.stop_button:
         button.set_sensitive(enabled)
+    
+    if enabled:
+      self.dialog.set_focus(self.file_extension_entry)
+      self.file_extension_entry.set_position(-1)
+    else:
+      self.dialog.set_focus(self.stop_button)
   
   def close(self, widget, event):
     gtk.main_quit()
