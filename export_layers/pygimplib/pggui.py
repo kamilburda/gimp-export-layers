@@ -322,6 +322,8 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
     def func_wrapper(self, *args, **kwargs):
       
       def gui_excepthook(exc_type, exc_value, exc_traceback):
+        orig_sys_excepthook(exc_type, exc_value, exc_traceback)
+        
         if issubclass(exc_type, Exception):
           exception_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
           display_exception_message(exception_message, plugin_title=plugin_title,
@@ -330,8 +332,6 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
           # mess up the application state.
           if gtk.main_level() > 0:
             gtk.main_quit()
-        
-        orig_sys_excepthook(exc_type, exc_value, exc_traceback)
       
       orig_sys_excepthook = sys.excepthook
       sys.excepthook = gui_excepthook
