@@ -105,7 +105,7 @@ class ExportDialog(object):
     self._progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
     self._stop_button = gtk.Button()
-    self._stop_button.set_label(_("Stop"))
+    self._stop_button.set_label(_("_Stop"))
     
     self._buttonbox = gtk.HButtonBox()
     self._buttonbox.pack_start(self._stop_button, expand=False, fill=True)
