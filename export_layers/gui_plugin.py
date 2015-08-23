@@ -396,6 +396,9 @@ class _ExportLayersGui(object):
     
     self.dialog.show()
     self.dialog.action_area.set_border_width(self.ACTION_AREA_BORDER_WIDTH)
+    
+    # This may fix the hidden file format dialog bug on Windows.
+    self.dialog.grab_remove()
   
   def reset_settings(self):
     for setting_group in [self.settings['main'], self.settings['gui']]:
@@ -479,12 +482,10 @@ class _ExportLayersGui(object):
   def setup_gui_before_export(self):
     self.display_message_label(None)
     self._set_gui_enabled(False)
-    self.dialog.grab_remove()
     self.dialog.set_focus_on_map(False)
   
   def restore_gui_after_export(self):
     self.dialog.set_focus_on_map(True)
-    self.dialog.grab_add()
     self._set_gui_enabled(True)
   
   def _set_gui_enabled(self, enabled):
