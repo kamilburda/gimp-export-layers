@@ -185,7 +185,7 @@ Several users reported crashes on Windows and OS X when clicking on the menu
 items or when clicking on the "Advanced Settings" expander. If the crashes
 occur to you, try reinstalling GIMP.
 
-On Windows, the file format dialog is displayed behind the main dialog.
+On Windows, the file format dialog may be displayed behind the main dialog.
 
 The following file formats are not working properly with this plug-in:
 * colored XHTML (.xhtml) - does not save images at all,
