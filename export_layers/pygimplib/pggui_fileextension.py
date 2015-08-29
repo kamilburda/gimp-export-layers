@@ -204,12 +204,12 @@ class FileExtensionEntry(gtk.Entry):
     
     self._create_popup(_FILE_FORMATS)
     
-    self.connect("changed", self._on_entry_changed)
     self.connect("button-press-event", self._on_entry_left_mouse_button_press)
+    self.connect("key-press-event", self._on_entry_key_press)
+    self.connect("changed", self._on_entry_changed)
     self.connect("enter-notify-event", self._on_entry_enter_notify_event)
     self.connect("leave-notify-event", self._on_entry_leave_notify_event)
     self.connect("focus-out-event", self._on_entry_focus_out)
-    self.connect("key-press-event", self._on_entry_key_press)
     self.connect("size-allocate", self._on_entry_size_allocate)
     
     self._tree_view.connect("button-press-event", self._on_tree_view_left_mouse_button_press)
@@ -288,12 +288,6 @@ class FileExtensionEntry(gtk.Entry):
     else:
       return False
   
-  def _on_entry_enter_notify_event(self, entry, event):
-    self._mouse_points_at_entry = True   
-  
-  def _on_entry_leave_notify_event(self, entry, event):
-    self._mouse_points_at_entry = False
-  
   def _on_entry_changed(self, entry):
     if self._enable_popup:
       show_popup_first_time = self._show_popup_first_time
@@ -312,6 +306,12 @@ class FileExtensionEntry(gtk.Entry):
       first_row = self._file_formats_filtered.get_iter_first()
       if first_row:
         self._tree_view.get_selection().select_iter(first_row)
+  
+  def _on_entry_enter_notify_event(self, entry, event):
+    self._mouse_points_at_entry = True   
+  
+  def _on_entry_leave_notify_event(self, entry, event):
+    self._mouse_points_at_entry = False
   
   def _on_entry_focus_out(self, entry, event):
     self._hide_popup()
