@@ -110,6 +110,72 @@ _FILE_FORMATS = [
 #===============================================================================
 
 
+class CellRendererTextList(gtk.CellRendererText):
+  
+  """
+  This is a custom text-based cell renderer that can accept a list of strings.
+  """
+  
+  __gproperties__ = {
+    b"text-list": (
+      gobject.TYPE_PYOBJECT,
+      b"list of strings",
+      "List of strings to render, with a text separator",
+      gobject.PARAM_READWRITE
+    ),
+    b"text-list-separator": (
+      gobject.TYPE_STRING,
+      b"separator for list of strings",
+      "Text separator for the list of strings",
+      ", ",     # Default value
+      gobject.PARAM_READWRITE
+    ),
+  }
+  
+  def __init__(self):
+    gtk.CellRendererText.__init__(self)
+    
+    self.text_list = None
+    self.text_list_separator = ", "
+  
+  def do_get_property(self, property_):
+    attr_name = self._property_name_to_attr(property_.name)
+    if hasattr(self, attr_name):
+      return getattr(self, attr_name)
+    else:
+      return gtk.CellRendererText.get_property(self, property_.name)
+  
+  def do_set_property(self, property_, value):
+    attr_name = self._property_name_to_attr(property_.name)
+    if hasattr(self, attr_name):
+      if property_.name == "text-list" and not(isinstance(value, list) or isinstance(value, tuple)):
+        raise AttributeError("not a list or tuple")
+      
+      setattr(self, attr_name, value)
+      
+      if property_.name in ["text-list", "text-list-separator"]:
+        self._evaluate_text_property()
+  
+  def _evaluate_text_property(self):
+    """
+    Change the "text" property according to the value of the "text-list" and
+    "text-list-separator" properties.
+    """
+    
+    if self.text_list is not None:
+      new_text = self.text_list_separator.join(self.text_list)
+      gtk.CellRendererText.set_property(self, "text", new_text)
+  
+  def _property_name_to_attr(self, property_name):
+    return property_name.replace("-", "_")
+
+
+gobject.type_register(CellRendererTextList)
+
+
+#===============================================================================
+
+
 class FileExtensionEntry(gtk.Entry):
   
   # The implementation is loosely based on the implementation of
@@ -122,9 +188,7 @@ class FileExtensionEntry(gtk.Entry):
   _MAX_NUM_VISIBLE_ROWS = 8
   
   _COLUMNS = [_COLUMN_DESCRIPTION, _COLUMN_EXTENSIONS] = (0, 1)
-  _COLUMNS_TYPES = [bytes, bytes]
-  
-  _EXTENSION_SEPARATOR = ", "
+  _COLUMNS_TYPES = [bytes, gobject.TYPE_PYOBJECT]     # [string, list of strings]
   
   _BUTTON_MOUSE_LEFT = 1
   
@@ -313,7 +377,7 @@ class FileExtensionEntry(gtk.Entry):
       return self._entry_text_matches_row(self.get_text(), file_formats, row_iter)
   
   def _entry_text_matches_row(self, entry_text, file_formats, row_iter):
-    extensions = file_formats[row_iter][self._COLUMN_EXTENSIONS].split(self._EXTENSION_SEPARATOR)
+    extensions = file_formats[row_iter][self._COLUMN_EXTENSIONS]
     return any(entry_text.lower() in extension.lower() for extension in extensions)
   
   def _assign_file_extension_from_selected_row(self, tree_selection, entry_text=None):
@@ -321,7 +385,7 @@ class FileExtensionEntry(gtk.Entry):
     if tree_iter is None:     # No row is selected
       return
     
-    extensions = tree_model[tree_iter][self._COLUMN_EXTENSIONS].split(self._EXTENSION_SEPARATOR) 
+    extensions = tree_model[tree_iter][self._COLUMN_EXTENSIONS]
     if entry_text is not None and entry_text in extensions:
       extension = entry_text
     else:
@@ -432,16 +496,14 @@ class FileExtensionEntry(gtk.Entry):
     for file_format in file_formats:
       if len(file_format) == 2 or (len(file_format) > 2 and
                                    pdb.gimp_procedural_db_proc_exists(file_format[2])):
-        self._file_formats.append([
-          file_format[0].encode(GTK_CHARACTER_ENCODING),
-          self._EXTENSION_SEPARATOR.join([extension.encode(GTK_CHARACTER_ENCODING)
-                                          for extension in file_format[1]])
-        ])
+        self._file_formats.append(file_format[0:2])
   
   def _add_file_format_columns(self):
-    cell_renderer = gtk.CellRendererText()
     
-    for column_number in self._COLUMNS:
-      column = gtk.TreeViewColumn("", cell_renderer, text=column_number)
+    def _add_column(column_number, cell_renderer, cell_renderer_property):
+      column = gtk.TreeViewColumn(b"", cell_renderer, **{cell_renderer_property: column_number})
       self._tree_view.append_column(column)
+    
+    _add_column(self._COLUMN_DESCRIPTION, gtk.CellRendererText(), "text")
+    _add_column(self._COLUMN_EXTENSIONS, CellRendererTextList(), "text-list")
   
