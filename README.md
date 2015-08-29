@@ -1,11 +1,10 @@
 Export Layers
 =============
 
-Export Layers is a GIMP plug-in that exports layers as separate images in almost
-any file format supported by GIMP and third-party plug-ins.
+Export Layers is a GIMP plug-in that exports layers as separate images in any
+file format supported by GIMP and third-party plug-ins.
 
-This plug-in:
-* exports layers as separate images in almost any file format supported by GIMP
+Features:
 * uses native dialogs for file format export procedures to adjust file format settings
 * uses layer names as filenames for the exported images
 * supports layer groups and optionally treats them as folders
@@ -65,29 +64,17 @@ Usage
 From the main menu, go to "File -> Export Layers...". A dialog appears, allowing
 you to specify output folder, file extension and various other settings.
 
-Type in the desired file extension in the "File extension" text field (with or without
-the leading period). You can type any file extension supported by GIMP. File formats
-provided by third-party plug-ins should work as well - at the very least,
-GIMP DDS Plugin was tested and works correctly.
+Type or choose your desired file extension in the "File extension" text field.
+You can still enter a file extension not in the dropdown list in case you use a
+file format plug-in that this plug-in does not recognize.
 
-To export in RAW file format, type "data". The file extension will remain
-in the files.
+To export layers, press the "Export Layers" button. A dialog corresponding to
+the file format appears, allowing you to adjust file format settings. Some file
+formats don't have dialogs, while some file formats display the dialog
+for each layer (more information in section Known Issues).
 
-To export layers, press the "Export Layers" button. For the first layer,
-a dialog corresponding to the file format appears, allowing you to adjust file
-format settings. Some file formats don't have dialogs.
-
-For subsequent layers, the same settings that you specified in the file format
-dialog are applied. However, some file formats have to display the dialog
-for each file (more info in Known Issues).
-
-If you need to stop the export prematurely, press the Stop button. If an error was
-encountered (such as invalid file extension) or the export was stopped, the main
-dialog remains open.
-
-If you want to export the layers with the last values used, you can use the
-"File -> Export Layers (repeat)" menu entry. The file format dialog will not be displayed -
-instead, the last used values will be used.
+To export layers with the last values used, you may want to choose
+"File -> Export Layers (repeat)".
 
 
 Settings
@@ -182,7 +169,7 @@ Known Issues
 ------------
 
 Several users reported crashes on Windows and OS X when clicking on the menu
-items or when clicking on the "Advanced Settings" expander. If the crashes
+entries or when clicking on the "Advanced Settings" widget. If the crashes
 occur to you, try reinstalling GIMP.
 
 On Windows, the file format dialog may be displayed behind the main dialog.
@@ -203,7 +190,7 @@ On Windows, the following file formats don't work properly if file paths contain
 * OpenRaster (.ora),
 * X PixMap Image (.xpm).
 
-In "Export Layers (repeat)", JPG format always displays the file format dialog for the first layer.
+In "Export Layers (repeat)", JPEG format displays the file format dialog for the first layer.
 
 
 License
