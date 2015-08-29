@@ -334,6 +334,8 @@ class FileExtensionEntry(gtk.Entry):
       # HACK: When repeatedly clicking on the vertical scroll bar, do not hide
       # the popup. When repeatedly clicking on the inner border of the entry,
       # hide the popup.
+      # It seems that double- or triple- clicking a widget does not return the
+      # widget, but rather its immediate or a more distant parent.
       if event.type in [gtk.gdk._2BUTTON_PRESS, gtk.gdk._3BUTTON_PRESS] and not self._mouse_points_at_entry:
         return True
       
