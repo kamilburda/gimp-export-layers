@@ -44,6 +44,7 @@ import gimp
 
 from . import pgsettingpresenter
 from .pggui import IntComboBox
+from .pggui import FileExtensionEntry
 
 #===============================================================================
 
@@ -68,6 +69,13 @@ class GtkEntryWrapper(pgsettingpresenter.GuiElementWrapper):
     return gtk.Entry()
 
 
+class FileExtensionEntryWrapper(pgsettingpresenter.GuiElementWrapper):
+
+  @classmethod
+  def create(self, setting):
+    return FileExtensionEntry()
+
+
 class GimpUiIntComboBoxWrapper(pgsettingpresenter.GuiElementWrapper):
 
   @classmethod
@@ -88,7 +96,7 @@ class GtkFolderChooserWrapper(pgsettingpresenter.GuiElementWrapper):
 class GtkSettingPresenter(pgsettingpresenter.SettingPresenter):
   
   """
-  This class is a SettingPresenter subclass for GTK GUI elements.
+  This class is a `SettingPresenter` subclass for GTK GUI elements.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -156,6 +164,17 @@ class GtkEntryPresenter(GtkSettingPresenter):
     self._element.set_text(value.encode(GTK_CHARACTER_ENCODING))
     # Place the cursor at the end of the text entry.
     self._element.set_position(-1)
+
+
+class FileExtensionEntryPresenter(GtkSettingPresenter):
+  
+  _GUI_ELEMENT_WRAPPER = FileExtensionEntryWrapper
+  
+  def _get_value(self):
+    return self._element.get_text().decode(GTK_CHARACTER_ENCODING)
+  
+  def _set_value(self, value):
+    self._element.assign_text(value.encode(GTK_CHARACTER_ENCODING))
 
 
 class GimpUiIntComboBoxPresenter(GtkSettingPresenter):

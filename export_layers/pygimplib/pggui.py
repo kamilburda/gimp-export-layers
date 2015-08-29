@@ -61,6 +61,8 @@ import gimpui
 from . import overwrite
 from . import progress
 
+from .pggui_fileextension import FileExtensionEntry
+
 #===============================================================================
 
 pdb = gimp.pdb

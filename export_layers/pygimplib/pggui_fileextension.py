@@ -1,0 +1,447 @@
+#-------------------------------------------------------------------------------
+#
+# This file is part of pygimplib.
+#
+# Copyright (C) 2014, 2015 khalim19 <khalim19@gmail.com>
+#
+# pygimplib is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# pygimplib is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with pygimplib.  If not, see <http://www.gnu.org/licenses/>.
+#
+#-------------------------------------------------------------------------------
+
+"""
+This module defines a custom GUI text entry for file extensions, displaying a
+popup with a list of supported file formats.
+
+One can still enter a file extension not in the list in case an unrecognized
+file format plug-in is used.
+"""
+
+#===============================================================================
+
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
+str = unicode
+
+#===============================================================================
+
+import pygtk
+pygtk.require("2.0")
+import gtk
+
+import gobject
+
+import gimp
+
+#===============================================================================
+
+pdb = gimp.pdb
+
+GTK_CHARACTER_ENCODING = "utf-8"
+
+#===============================================================================
+
+# This is a list of built-in and several third-party file formats supported by GIMP.
+# List elements: (file format description, file extensions, (optional) file save procedure)
+# If the file save procedure is defined, it is used to perform a check that the
+# corresponding file format plug-in is installed.
+_FILE_FORMATS = [
+  ("Alias Pix image", ["pix", "matte", "mask", "alpha", "als"]),
+  ("ASCII art", ["txt", "ansi", "text"], "file-aa-save"),
+  ("AutoDesk FLIC animation", ["fli", "flc"]),
+  ("bzip archive", ["xcf.bz2", "xcfbz2"]),
+  ("Colored XHTML", ["xhtml"]),
+  ("C source code", ["c"]),
+  ("C source code header", ["h"]),
+  ("Digital Imaging and Communications in Medicine image", ["dcm", "dicom"]),
+  # Plug-in can be found at: https://code.google.com/p/gimp-dds/
+  ("DDS image", ["dds"], "file-dds-save"),
+  ("Encapsulated PostScript image", ["eps"]),
+  ("Flexible Image Transport System", ["fit", "fits"]),
+  ("GIF image", ["gif"]),
+  ("GIMP brush", ["gbr"]),
+  ("GIMP brush (animated)", ["gih"]),
+  ("GIMP pattern", ["pat"]),
+  ("gzip archive", ["xcf.gz", "xcfgz"]),
+  ("HTML table", ["html", "htm"]),
+  ("JPEG image", ["jpg", "jpeg", "jpe"]),
+  ("KISS CEL", ["cel"]),
+  ("Microsoft Windows icon", ["ico"]),
+  ("MNG animation", ["mng"]),
+  ("OpenRaster", ["ora"]),
+  ("PBM image", ["pbm"]),
+  ("PGM image", ["pgm"]),
+  ("Photoshop image", ["psd"]),
+  ("PNG image", ["png"]),
+  ("PNM image", ["pnm"]),
+  ("Portable Document Format", ["pdf"]),
+  ("PostScript document", ["ps"]),
+  ("PPM image", ["ppm"]),
+  ("Raw image data", ["raw", "data"]),
+  ("Silicon Graphics IRIS image", ["sgi", "rgb", "rgba", "bw", "icon"]),
+  ("SUN Rasterfile image", ["im1", "im8", "im24", "im32", "rs", "ras"]),
+  ("TarGA image", ["tga"]),
+  ("TIFF image", ["tif", "tiff"]),
+  # Plug-in can be found at: http://registry.gimp.org/node/24882
+  ("Valve Texture Format", ["vtf"], "file-vtf-save"),
+  # Plug-in can be found at: http://registry.gimp.org/node/25874
+  ("WebP image", ["webp"], "file-webp-save"),
+  ("Windows BMP image", ["bmp"]),
+  ("X11 Mouse Cursor", ["xmc"], "file-xmc-save"),
+  ("X BitMap image", ["xbm", "bitmap"]),
+  ("X PixMap image", ["xpm"]),
+  ("X window dump", ["xwd"]),
+  ("ZSoft PCX image", ["pcx", "pcc"]),
+]
+
+#===============================================================================
+
+
+class FileExtensionEntry(gtk.Entry):
+  
+  # The implementation is loosely based on the implementation of
+  # `gtk.EntryCompletion`:
+  # https://github.com/GNOME/gtk/blob/gtk-2-24/gtk/gtkentrycompletion.c
+  
+  _DEFAULT_TREE_VIEW_WIDTH = -1
+  _DEFAULT_TREE_VIEW_HEIGHT = 200
+  
+  _MAX_NUM_VISIBLE_ROWS = 8
+  
+  _COLUMNS = [_COLUMN_DESCRIPTION, _COLUMN_EXTENSIONS] = (0, 1)
+  _COLUMNS_TYPES = [bytes, bytes]
+  
+  _EXTENSION_SEPARATOR = ", "
+  
+  _BUTTON_MOUSE_LEFT = 1
+  
+  def __init__(self, *args, **kwargs):
+    super(FileExtensionEntry, self).__init__(*args, **kwargs)
+    
+    self._enable_popup = True
+    self._clear_filter = False
+    self._show_popup_first_time = True
+    self._mouse_points_at_entry = False
+    
+    self._tree_view_width = None
+    
+    self._create_popup(_FILE_FORMATS)
+    
+    self.connect("changed", self._on_entry_changed)
+    self.connect("button-press-event", self._on_entry_left_mouse_button_press)
+    self.connect("enter-notify-event", self._on_entry_enter_notify_event)
+    self.connect("leave-notify-event", self._on_entry_leave_notify_event)
+    self.connect("focus-out-event", self._on_entry_focus_out)
+    self.connect("key-press-event", self._on_entry_key_press)
+    self.connect("size-allocate", self._on_entry_size_allocate)
+    
+    self._tree_view.connect("button-press-event", self._on_tree_view_left_mouse_button_press)
+    # This sets the correct initial width and height of the tree view.
+    self._tree_view.connect_after("realize", self._on_after_tree_view_realize)
+    
+    self._button_press_emission_hook_id = None
+    self._entry_configure_event_id = None
+    self._toplevel_configure_event_id = None
+  
+  def assign_text(self, text):
+    """
+    Replace the current contents of the entry with the specified text.
+    
+    Unlike `set_text()`, this method prevents the popup with file formats from
+    showing. Additionally, this method places the text cursor at the end of the
+    text.
+    """
+    
+    self._enable_popup = False
+    self.set_text(text)
+    self.set_position(-1)
+    self._enable_popup = True
+  
+  def _on_entry_left_mouse_button_press(self, entry, event):
+    if event.button == self._BUTTON_MOUSE_LEFT:
+      self._clear_filter = True
+      self._file_formats_filtered.refilter()
+      self._clear_filter = False
+      
+      row_iter = self._select_first_matching_row(
+        self.get_text(), current_row_iter=self._tree_view.get_selection().get_selected()[1])
+      if row_iter is not None:
+        self._tree_view.scroll_to_cell(self._file_formats_filtered.get_path(row_iter))
+      
+      show_popup_first_time = self._show_popup_first_time
+      if not show_popup_first_time:
+        self._resize_tree_view(num_rows=len(self._file_formats_filtered))
+      
+      # No need to resize the tree view after showing the popup for the first
+      # time - the "realize" signal handler automatically resizes the tree view.
+      self._show_popup()
+  
+  def _on_entry_key_press(self, entry, event):
+    if self._popup.get_mapped():
+      key_name = gtk.gdk.keyval_name(event.keyval)
+      
+      if key_name in ["Up", "KP_Up"]:
+        tree_path, unused_ = self._tree_view.get_cursor()
+        if tree_path is None or tree_path[0] == 0:
+          # Last row
+          tree_path = (len(self._file_formats_filtered) - 1,)
+        else:
+          # Previous row
+          tree_path = (tree_path[0] - 1,)
+        self._tree_view.set_cursor(tree_path)
+      elif key_name in ["Down", "KP_Down"]:
+        tree_path, unused_ = self._tree_view.get_cursor()
+        if tree_path is None or tree_path[0] == len(self._file_formats_filtered) - 1:
+          # First row
+          tree_path = (0,)
+        else:
+          # Next row
+          tree_path = (tree_path[0] + 1,)
+        self._tree_view.set_cursor(tree_path)
+      elif key_name in ["Return", "KP_Enter"]:
+        self._assign_file_extension_from_selected_row(self._tree_view.get_selection(),
+                                                      entry_text=entry.get_text())
+        self._hide_popup()
+      elif key_name == "Escape":
+        self._hide_popup()
+      else:
+        return False
+      
+      return True
+    else:
+      return False
+  
+  def _on_entry_enter_notify_event(self, entry, event):
+    self._mouse_points_at_entry = True   
+  
+  def _on_entry_leave_notify_event(self, entry, event):
+    self._mouse_points_at_entry = False
+  
+  def _on_entry_changed(self, entry):
+    if self._enable_popup:
+      show_popup_first_time = self._show_popup_first_time
+      if not show_popup_first_time:
+        self._file_formats_filtered.refilter()
+        self._resize_tree_view(num_rows=len(self._file_formats_filtered))
+      
+      self._show_popup()
+      
+      # If the popup is shown for the first time, filtering after showing the
+      # popup makes sure that the correct width is assigned to the tree view.
+      if show_popup_first_time:
+        self._file_formats_filtered.refilter()
+        self._resize_tree_view(num_rows=len(self._file_formats_filtered))
+      
+      first_row = self._file_formats_filtered.get_iter_first()
+      if first_row:
+        self._tree_view.get_selection().select_iter(first_row)
+  
+  def _on_entry_focus_out(self, entry, event):
+    self._hide_popup()
+  
+  def _on_entry_size_allocate(self, entry, allocation):
+    self._hide_popup()
+  
+  def _on_tree_view_left_mouse_button_press(self, tree_view, event):
+    if event.button == self._BUTTON_MOUSE_LEFT:
+      self._assign_file_extension_from_selected_row(tree_view.get_selection())
+      self._hide_popup()
+  
+  def _on_after_tree_view_realize(self, tree_view):
+    self._resize_tree_view(num_rows=len(self._file_formats_filtered))
+  
+  def _on_button_press_emission_hook(self, widget, event):
+    if widget == self:
+      return True
+    else:
+      # HACK: When repeatedly clicking on the vertical scroll bar, do not hide
+      # the popup. When repeatedly clicking on the inner border of the entry,
+      # hide the popup.
+      if event.type in [gtk.gdk._2BUTTON_PRESS, gtk.gdk._3BUTTON_PRESS] and not self._mouse_points_at_entry:
+        return True
+      
+      if widget == self._scrolled_window.get_vscrollbar():
+        return True
+      else:
+        self._hide_popup()
+        return False
+  
+  def _on_toplevel_configure_event(self, toplevel_window, event):
+    self._hide_popup()
+  
+  def _select_first_matching_row(self, text, current_row_iter=None):
+    """
+    Select the first row in the list of file formats matching the specified
+    text. Return the iterator to the first matching row. If there is no matching
+    row, return None.
+    
+    If `current_row_iter` is an iterator pointing to a row and also matches
+    the file formats, return this row instead of the first matching row.
+    """
+    
+    if (current_row_iter is not None and
+        self._entry_text_matches_row(text, self._file_formats_filtered, current_row_iter)):
+      return current_row_iter
+    
+    for row in self._file_formats_filtered:
+      if self._entry_text_matches_row(text, self._file_formats_filtered, row.iter):
+        self._tree_view.get_selection().select_iter(row.iter)
+        return row.iter
+  
+  def _filter_file_formats(self, file_formats, row_iter):
+    """
+    Return True if the text in the entry is a substring of any file extension in
+    the row.
+    """
+    
+    if self._clear_filter:
+      return True
+    else:
+      return self._entry_text_matches_row(self.get_text(), file_formats, row_iter)
+  
+  def _entry_text_matches_row(self, entry_text, file_formats, row_iter):
+    extensions = file_formats[row_iter][self._COLUMN_EXTENSIONS].split(self._EXTENSION_SEPARATOR)
+    return any(entry_text.lower() in extension.lower() for extension in extensions)
+  
+  def _assign_file_extension_from_selected_row(self, tree_selection, entry_text=None):
+    tree_model, tree_iter = tree_selection.get_selected()
+    if tree_iter is None:     # No row is selected
+      return
+    
+    extensions = tree_model[tree_iter][self._COLUMN_EXTENSIONS].split(self._EXTENSION_SEPARATOR) 
+    if entry_text is not None and entry_text in extensions:
+      extension = entry_text
+    else:
+      extension = extensions[0]
+    
+    self.assign_text(extension)
+  
+  def _show_popup(self):
+    if not self._popup.get_mapped() and len(self._file_formats_filtered) > 0:
+      self._update_popup_position()
+      
+      self._button_press_emission_hook_id = gobject.add_emission_hook(
+        self, "button-press-event", self._on_button_press_emission_hook)
+      
+      toplevel_window = self.get_toplevel()
+      if isinstance(toplevel_window, gtk.Window):
+        # As soon as the user starts dragging or resizing the window, hide the
+        # popup. Button presses on the window decoration cannot be intercepted
+        # via "button-press-event" emission hooks, hence this workaround.
+        self._toplevel_configure_event_id = toplevel_window.connect("configure-event",
+                                                                    self._on_toplevel_configure_event)
+      
+      self._popup.set_screen(self.get_screen())
+      
+      self._popup.show()
+      
+      self._show_popup_first_time = False
+  
+  def _hide_popup(self):
+    if self._popup.get_mapped():
+      self._popup.hide()
+      
+      if self._button_press_emission_hook_id is not None:
+        gobject.remove_emission_hook(self, "button-press-event", self._button_press_emission_hook_id)
+      
+      if self._toplevel_configure_event_id is not None:
+        toplevel_window = self.get_toplevel()
+        if isinstance(toplevel_window, gtk.Window):
+          toplevel_window.disconnect(self._toplevel_configure_event_id)
+  
+  def _update_popup_position(self):
+    entry_absolute_position = self.get_window().get_origin()
+    entry_allocation = self.get_allocation()
+    self._popup.move(entry_absolute_position[0],
+                     entry_absolute_position[1] + entry_allocation.height)
+  
+  def _resize_tree_view(self, num_rows):
+    """
+    Resize the tree view.
+    
+    Update the height of the tree view according to the number of rows. If the 
+    number of rows is 0, hide the entire popup.
+    
+    Determine the initial width of the tree view based on the items displayed
+    in the tree view. For subsequent calls of this function, the width of the
+    tree view will remain the same.
+    """
+    
+    cell_height = max(column.cell_get_size()[4] for column in self._tree_view.get_columns())
+    vertical_spacing = self._tree_view.style_get_property("vertical-separator")
+    row_height = cell_height + vertical_spacing
+    num_visible_rows = min(num_rows, self._MAX_NUM_VISIBLE_ROWS)
+    
+    if self._tree_view_width is None:
+      self._tree_view_width = self._tree_view.get_allocation().width
+      if num_rows > self._MAX_NUM_VISIBLE_ROWS:
+        vscrollbar_width = int(self._scrolled_window.get_hadjustment().upper -
+                               self._scrolled_window.get_hadjustment().page_size)
+        self._tree_view_width += vscrollbar_width * 2
+    
+    self._tree_view.set_size_request(self._tree_view_width, row_height * num_visible_rows)
+    
+    if num_rows == 0:
+      self._hide_popup()
+  
+  def _create_popup(self, file_formats):
+    self._file_formats = gtk.ListStore(*self._COLUMNS_TYPES)
+    self._fill_file_formats(file_formats)
+    
+    self._file_formats_filtered = self._file_formats.filter_new()
+    self._file_formats_filtered.set_visible_func(self._filter_file_formats)
+    
+    self._tree_view = gtk.TreeView(model=self._file_formats_filtered)
+    self._tree_view.set_hover_selection(True)
+    self._tree_view.set_headers_visible(False)
+    self._tree_view.set_size_request(self._DEFAULT_TREE_VIEW_WIDTH, self._DEFAULT_TREE_VIEW_HEIGHT)
+    self._add_file_format_columns()
+    
+    self._scrolled_window = gtk.ScrolledWindow()
+    self._scrolled_window.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+    self._scrolled_window.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+    self._scrolled_window.add(self._tree_view)
+    
+    # HACK: Make sure the height of the tree view can be set properly. Source:
+    # https://github.com/GNOME/gtk/blob/gtk-2-24/gtk/gtkentrycompletion.c#L472
+    self._scrolled_window.get_vscrollbar().set_size_request(-1, 0)
+    
+    # Using `gtk.WINDOW_POPUP` prevents the popup from stealing focus from the
+    # text entry.
+    self._popup = gtk.Window(type=gtk.WINDOW_POPUP)
+    self._popup.set_resizable(False)
+    self._popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_COMBO)
+    self._popup.add(self._scrolled_window)
+    
+    self._scrolled_window.show_all()
+  
+  def _fill_file_formats(self, file_formats):
+    for file_format in file_formats:
+      if len(file_format) == 2 or (len(file_format) > 2 and
+                                   pdb.gimp_procedural_db_proc_exists(file_format[2])):
+        self._file_formats.append([
+          file_format[0].encode(GTK_CHARACTER_ENCODING),
+          self._EXTENSION_SEPARATOR.join([extension.encode(GTK_CHARACTER_ENCODING)
+                                          for extension in file_format[1]])
+        ])
+  
+  def _add_file_format_columns(self):
+    cell_renderer = gtk.CellRendererText()
+    
+    for column_number in self._COLUMNS:
+      column = gtk.TreeViewColumn("", cell_renderer, text=column_number)
+      self._tree_view.append_column(column)
+  
