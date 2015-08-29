@@ -249,7 +249,7 @@ class _ExportLayersGui(object):
     self.file_extension_label = gtk.Label()
     self.file_extension_label.set_markup("<b>" + self.settings['main']['file_extension'].display_name + ":</b>")
     self.file_extension_label.set_alignment(0.0, 0.5)
-    self.file_extension_entry = gtk.Entry()
+    self.file_extension_entry = pggui.FileExtensionEntry()
     self.file_extension_entry.set_size_request(100, -1)
     self.label_message = gtk.Label()
     self.label_message.set_alignment(0.0, 0.5)
@@ -270,7 +270,7 @@ class _ExportLayersGui(object):
     
     self.settings.initialize_gui({
       'file_extension': [
-         pgsettingpresenters_gtk.GtkEntryPresenter, self.file_extension_entry],
+         pgsettingpresenters_gtk.FileExtensionEntryPresenter, self.file_extension_entry],
       'output_directory': [
          pgsettingpresenters_gtk.GtkFolderChooserPresenter, self.folder_chooser],
       'dialog_position': [
