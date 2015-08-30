@@ -1053,7 +1053,7 @@ class DirectorySetting(ValidatableStringSetting):
       return
     
     if current_image.filename is not None:
-      self.set_value(os.path.dirname(current_image.filename))
+      self.set_value(os.path.dirname(current_image.filename.decode()))
       return
 
 
@@ -1109,7 +1109,7 @@ class ImageIDsAndDirectoriesSetting(Setting):
   
   def _get_imported_image_path(self, image):
     if image.filename is not None:
-      return os.path.dirname(image.filename)
+      return os.path.dirname(image.filename.decode())
     else:
       return None
 
