@@ -701,6 +701,10 @@ class TestDirectorySetting(unittest.TestCase):
     setting = pgsetting.DirectorySetting('output_directory', b"/some_dir/p\xc5\x88g")
     self.assertIsInstance(setting.value, str)
   
+  def test_set_value_as_bytes_convert_to_unicode(self):
+    self.setting.set_value(b"/some_dir/p\xc5\x88g")
+    self.assertIsInstance(self.setting.value, str)
+  
   def test_update_current_directory_with_current_image_filename(self):
     image = gimpmocks.MockImage()
     filename = "/test/image.png"
