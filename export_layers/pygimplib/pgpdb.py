@@ -140,6 +140,8 @@ def duplicate(image, metadata_only=False):
     unused_, parasite_names = pdb.gimp_image_get_parasite_list(image)
     for name in parasite_names:
       parasite = image.parasite_find(name)
+      # `pdb.gimp_image_parasite_attach` fails for some reason - use
+      # `gimp.Image.parasite_attach` instead.
       new_image.parasite_attach(gimp.Parasite(parasite.name, parasite.flags, parasite.data))
   
   return new_image
