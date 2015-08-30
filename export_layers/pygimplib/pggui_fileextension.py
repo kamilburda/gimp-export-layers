@@ -265,30 +265,26 @@ class FileExtensionEntry(gtk.Entry):
         tree_path, unused_ = self._tree_view.get_cursor()
         if tree_path is None:
           # Last row
-          self._tree_view.set_cursor((len(self._file_formats_filtered) - 1,))
-          self._assign_file_extension_from_selected_row()
+          self._select_and_assign_row(len(self._file_formats_filtered) - 1)
         elif tree_path[0] == 0:
           # No selection
           self._tree_view_unselect()
           self.assign_text(self._last_user_typed_text)
         else:
           # Previous row
-          self._tree_view.set_cursor((tree_path[0] - 1,))
-          self._assign_file_extension_from_selected_row()
+          self._select_and_assign_row(tree_path[0] - 1)
       elif key_name in ["Down", "KP_Down"]:
         tree_path, unused_ = self._tree_view.get_cursor()
         if tree_path is None:
           # First row
-          self._tree_view.set_cursor((0,))
-          self._assign_file_extension_from_selected_row()
+          self._select_and_assign_row(0)
         elif tree_path[0] == len(self._file_formats_filtered) - 1:
           # No selection
           self._tree_view_unselect()
           self.assign_text(self._last_user_typed_text)
         else:
           # Next row
-          self._tree_view.set_cursor((tree_path[0] + 1,))
-          self._assign_file_extension_from_selected_row()
+          self._select_and_assign_row(tree_path[0] + 1)
       elif key_name in ["Return", "KP_Enter", "Escape"]:
         self._hide_popup()
       else:
@@ -357,6 +353,10 @@ class FileExtensionEntry(gtk.Entry):
   
   def _on_toplevel_configure_event(self, toplevel_window, event):
     self._hide_popup()
+  
+  def _select_and_assign_row(self, row_num):
+    self._tree_view.set_cursor((row_num,))
+    self._assign_file_extension_from_selected_row()
   
   def _tree_view_unselect(self):
     self._tree_view.set_cursor((-1,))
