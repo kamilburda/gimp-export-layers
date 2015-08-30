@@ -75,6 +75,7 @@ _FILE_FORMATS = [
   ("GIMP brush", ["gbr"]),
   ("GIMP brush (animated)", ["gih"]),
   ("GIMP pattern", ["pat"]),
+  ("GIMP XCF image", ["xcf"]),
   ("gzip archive", ["xcf.gz", "xcfgz"]),
   ("HTML table", ["html", "htm"]),
   ("JPEG image", ["jpg", "jpeg", "jpe"]),
