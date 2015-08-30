@@ -341,6 +341,9 @@ class LayerExporter(object):
       if layer_elem.item_type in (layer_elem.ITEM, layer_elem.NONEMPTY_GROUP):
         layer = layer_elem.item
         layer_copy = self._process_layer(layer)
+        # Remove the " copy" suffix from the layer name, which is preserved in
+        # formats supporting layers (XCF, PSD, ...).
+        layer_copy.name = layer.name
         
         layer_elem.validate_name()
         self._strip_file_extension(layer_elem)
