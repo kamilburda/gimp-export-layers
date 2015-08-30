@@ -392,10 +392,8 @@ class LayerExporter(object):
     pdb.gimp_context_pop()
   
   def _remove_square_brackets(self, layer_elem):
-    if layer_elem.name.startswith("["):
-      layer_elem.name = layer_elem.name[1:]
-    if layer_elem.name.endswith("]"):
-      layer_elem.name = layer_elem.name[:-1]
+    if layer_elem.name.startswith("[") and layer_elem.name.endswith("]"):
+      layer_elem.name = layer_elem.name[1:-1]
   
   def _add_square_brackets(self, layer_elem):
     layer_elem.name = "[" + layer_elem.name + "]"
