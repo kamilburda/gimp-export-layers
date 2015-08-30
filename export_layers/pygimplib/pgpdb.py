@@ -47,8 +47,6 @@ import gimpenums
 pdb = gimp.pdb
 
 #===============================================================================
-# Functions
-#===============================================================================
 
 
 @contextmanager
@@ -227,7 +225,10 @@ def copy_and_paste_layer(layer, image, parent=None, position=0):
   pdb.gimp_image_insert_layer(image, layer_copy, parent, position)
   
   return layer_copy
-  
+
+
+#-------------------------------------------------------------------------------
+
 
 def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
                    apply_layer_attributes=True, apply_layer_masks=True):
@@ -242,8 +243,7 @@ def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
   
   If `compare_has_alpha` is True, compare the presence of alpha channels in all
   layers - if some layers have alpha channels and others don't, do not perform
-  full comparison and return False. If `compare_has_alpha` is False, perform
-  full comparison of all layers.
+  full comparison and return False.
   
   If `apply_layer_attributes` is True, take the layer attributes (opacity, mode)
   into consideration when comparing, otherwise ignore them.
@@ -315,7 +315,6 @@ def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
     layer = merge_layer_group(temp_group)
     
     return layer
-  
   
   if (not all(layers[0].width == layer.width for layer in layers[1:])
       or not all(layers[0].height == layer.height for layer in layers[1:])):
