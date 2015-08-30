@@ -261,8 +261,9 @@ class FileExtensionEntry(gtk.Entry):
     if self._popup.get_mapped():
       key_name = gtk.gdk.keyval_name(event.keyval)
       
+      tree_path, unused_ = self._tree_view.get_cursor()
+      
       if key_name in ["Up", "KP_Up"]:
-        tree_path, unused_ = self._tree_view.get_cursor()
         if tree_path is None:
           # Last row
           self._select_and_assign_row(len(self._file_formats_filtered) - 1)
@@ -274,7 +275,6 @@ class FileExtensionEntry(gtk.Entry):
           # Previous row
           self._select_and_assign_row(tree_path[0] - 1)
       elif key_name in ["Down", "KP_Down"]:
-        tree_path, unused_ = self._tree_view.get_cursor()
         if tree_path is None:
           # First row
           self._select_and_assign_row(0)
@@ -285,6 +285,22 @@ class FileExtensionEntry(gtk.Entry):
         else:
           # Next row
           self._select_and_assign_row(tree_path[0] + 1)
+      elif key_name == "Home":
+        self._select_and_assign_row(0)
+      elif key_name == "End":
+        self._select_and_assign_row(len(self._file_formats_filtered) - 1)
+      elif key_name == "Page_Up":
+        if tree_path is None:
+          row_num = 0
+        else:
+          row_num = max(tree_path[0] - self._MAX_NUM_VISIBLE_ROWS, 0)
+        self._select_and_assign_row(row_num)
+      elif key_name == "Page_Down":
+        if tree_path is None:
+          row_num = 0
+        else:
+          row_num = min(tree_path[0] + self._MAX_NUM_VISIBLE_ROWS, len(self._file_formats_filtered) - 1)
+        self._select_and_assign_row(row_num)
       elif key_name in ["Return", "KP_Enter"]:
         self._hide_popup()
       elif key_name == "Escape":
