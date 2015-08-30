@@ -374,7 +374,7 @@ class LayerExporter(object):
     pdb.gimp_context_push()
     # Perform subsequent operations on a new image so that the original image
     # and its soon-to-be exported layers are left intact.
-    self._image_copy = pgpdb.duplicate(self.image, remove_items=True)
+    self._image_copy = pgpdb.duplicate(self.image, metadata_only=True)
     
     if constants.DEBUG_IMAGE_PROCESSING:
       self._display_id = pdb.gimp_display_new(self._image_copy)
