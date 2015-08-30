@@ -196,10 +196,12 @@ class FileExtensionEntry(gtk.Entry):
   def __init__(self, *args, **kwargs):
     super(FileExtensionEntry, self).__init__(*args, **kwargs)
     
-    self._enable_popup = True
+    self._trigger_popup = True
     self._clear_filter = False
     self._show_popup_first_time = True
+    
     self._mouse_points_at_entry = False
+    self._last_user_typed_text = ""
     
     self._tree_view_width = None
     
@@ -230,10 +232,10 @@ class FileExtensionEntry(gtk.Entry):
     text.
     """
     
-    self._enable_popup = False
+    self._trigger_popup = False
     self.set_text(text)
     self.set_position(-1)
-    self._enable_popup = True
+    self._trigger_popup = True
   
   def _on_entry_left_mouse_button_press(self, entry, event):
     if event.button == self._BUTTON_MOUSE_LEFT:
@@ -241,8 +243,7 @@ class FileExtensionEntry(gtk.Entry):
       self._file_formats_filtered.refilter()
       self._clear_filter = False
       
-      row_iter = self._select_first_matching_row(
-        self.get_text(), current_row_iter=self._tree_view.get_selection().get_selected()[1])
+      row_iter = self._get_first_matching_row(self.get_text())
       if row_iter is not None:
         self._tree_view.scroll_to_cell(self._file_formats_filtered.get_path(row_iter))
       
@@ -253,6 +254,8 @@ class FileExtensionEntry(gtk.Entry):
       # No need to resize the tree view after showing the popup for the first
       # time - the "realize" signal handler automatically resizes the tree view.
       self._show_popup()
+      
+      self._tree_view_unselect()
   
   def _on_entry_key_press(self, entry, event):
     if self._popup.get_mapped():
@@ -260,27 +263,33 @@ class FileExtensionEntry(gtk.Entry):
       
       if key_name in ["Up", "KP_Up"]:
         tree_path, unused_ = self._tree_view.get_cursor()
-        if tree_path is None or tree_path[0] == 0:
+        if tree_path is None:
           # Last row
-          tree_path = (len(self._file_formats_filtered) - 1,)
+          self._tree_view.set_cursor((len(self._file_formats_filtered) - 1,))
+          self._assign_file_extension_from_selected_row()
+        elif tree_path[0] == 0:
+          # No selection
+          self._tree_view_unselect()
+          self.assign_text(self._last_user_typed_text)
         else:
           # Previous row
-          tree_path = (tree_path[0] - 1,)
-        self._tree_view.set_cursor(tree_path)
+          self._tree_view.set_cursor((tree_path[0] - 1,))
+          self._assign_file_extension_from_selected_row()
       elif key_name in ["Down", "KP_Down"]:
         tree_path, unused_ = self._tree_view.get_cursor()
-        if tree_path is None or tree_path[0] == len(self._file_formats_filtered) - 1:
+        if tree_path is None:
           # First row
-          tree_path = (0,)
+          self._tree_view.set_cursor((0,))
+          self._assign_file_extension_from_selected_row()
+        elif tree_path[0] == len(self._file_formats_filtered) - 1:
+          # No selection
+          self._tree_view_unselect()
+          self.assign_text(self._last_user_typed_text)
         else:
           # Next row
-          tree_path = (tree_path[0] + 1,)
-        self._tree_view.set_cursor(tree_path)
-      elif key_name in ["Return", "KP_Enter"]:
-        self._assign_file_extension_from_selected_row(self._tree_view.get_selection(),
-                                                      entry_text=entry.get_text())
-        self._hide_popup()
-      elif key_name == "Escape":
+          self._tree_view.set_cursor((tree_path[0] + 1,))
+          self._assign_file_extension_from_selected_row()
+      elif key_name in ["Return", "KP_Enter", "Escape"]:
         self._hide_popup()
       else:
         return False
@@ -290,11 +299,15 @@ class FileExtensionEntry(gtk.Entry):
       return False
   
   def _on_entry_changed(self, entry):
-    if self._enable_popup:
+    if self._trigger_popup:
+      self._last_user_typed_text = entry.get_text()
+      
       show_popup_first_time = self._show_popup_first_time
       if not show_popup_first_time:
         self._file_formats_filtered.refilter()
         self._resize_tree_view(num_rows=len(self._file_formats_filtered))
+      
+      self._tree_view_unselect()
       
       self._show_popup()
       
@@ -303,10 +316,6 @@ class FileExtensionEntry(gtk.Entry):
       if show_popup_first_time:
         self._file_formats_filtered.refilter()
         self._resize_tree_view(num_rows=len(self._file_formats_filtered))
-      
-      first_row = self._file_formats_filtered.get_iter_first()
-      if first_row:
-        self._tree_view.get_selection().select_iter(first_row)
   
   def _on_entry_enter_notify_event(self, entry, event):
     self._mouse_points_at_entry = True   
@@ -322,7 +331,7 @@ class FileExtensionEntry(gtk.Entry):
   
   def _on_tree_view_left_mouse_button_press(self, tree_view, event):
     if event.button == self._BUTTON_MOUSE_LEFT:
-      self._assign_file_extension_from_selected_row(tree_view.get_selection())
+      self._assign_file_extension_from_selected_row()
       self._hide_popup()
   
   def _on_after_tree_view_realize(self, tree_view):
@@ -349,23 +358,19 @@ class FileExtensionEntry(gtk.Entry):
   def _on_toplevel_configure_event(self, toplevel_window, event):
     self._hide_popup()
   
-  def _select_first_matching_row(self, text, current_row_iter=None):
+  def _tree_view_unselect(self):
+    self._tree_view.set_cursor((-1,))
+    self._tree_view.get_selection().unselect_all()
+  
+  def _get_first_matching_row(self, text):
     """
-    Select the first row in the list of file formats matching the specified
+    Get the first row in the list of file formats fully matching the specified
     text. Return the iterator to the first matching row. If there is no matching
     row, return None.
-    
-    If `current_row_iter` is an iterator pointing to a row and also matches
-    the file formats, return this row instead of the first matching row.
     """
     
-    if (current_row_iter is not None and
-        self._entry_text_matches_row(text, self._file_formats_filtered, current_row_iter)):
-      return current_row_iter
-    
     for row in self._file_formats_filtered:
-      if self._entry_text_matches_row(text, self._file_formats_filtered, row.iter):
-        self._tree_view.get_selection().select_iter(row.iter)
+      if self._entry_text_matches_row(text, self._file_formats_filtered, row.iter, full_match=True):
         return row.iter
   
   def _filter_file_formats(self, file_formats, row_iter):
@@ -379,22 +384,21 @@ class FileExtensionEntry(gtk.Entry):
     else:
       return self._entry_text_matches_row(self.get_text(), file_formats, row_iter)
   
-  def _entry_text_matches_row(self, entry_text, file_formats, row_iter):
+  def _entry_text_matches_row(self, entry_text, file_formats, row_iter, full_match=False):
     extensions = file_formats[row_iter][self._COLUMN_EXTENSIONS]
-    return any(entry_text.lower() in extension.lower() for extension in extensions)
+    
+    if full_match:
+      return any(entry_text.lower() == extension.lower() for extension in extensions)
+    else:
+      return any(entry_text.lower() in extension.lower() for extension in extensions)
   
-  def _assign_file_extension_from_selected_row(self, tree_selection, entry_text=None):
-    tree_model, tree_iter = tree_selection.get_selected()
+  def _assign_file_extension_from_selected_row(self):
+    tree_model, tree_iter = self._tree_view.get_selection().get_selected()
     if tree_iter is None:     # No row is selected
       return
     
     extensions = tree_model[tree_iter][self._COLUMN_EXTENSIONS]
-    if entry_text is not None and entry_text in extensions:
-      extension = entry_text
-    else:
-      extension = extensions[0]
-    
-    self.assign_text(extension)
+    self.assign_text(extensions[0])
   
   def _show_popup(self):
     if not self._popup.get_mapped() and len(self._file_formats_filtered) > 0:
@@ -405,6 +409,7 @@ class FileExtensionEntry(gtk.Entry):
       
       toplevel_window = self.get_toplevel()
       if isinstance(toplevel_window, gtk.Window):
+        toplevel_window.get_group().add_window(self._popup)
         # As soon as the user starts dragging or resizing the window, hide the
         # popup. Button presses on the window decoration cannot be intercepted
         # via "button-press-event" emission hooks, hence this workaround.
@@ -415,7 +420,9 @@ class FileExtensionEntry(gtk.Entry):
       
       self._popup.show()
       
-      self._show_popup_first_time = False
+      if self._show_popup_first_time:
+        self._last_user_typed_text = self.get_text()
+        self._show_popup_first_time = False
   
   def _hide_popup(self):
     if self._popup.get_mapped():
