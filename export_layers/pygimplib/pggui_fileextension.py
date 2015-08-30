@@ -285,7 +285,10 @@ class FileExtensionEntry(gtk.Entry):
         else:
           # Next row
           self._select_and_assign_row(tree_path[0] + 1)
-      elif key_name in ["Return", "KP_Enter", "Escape"]:
+      elif key_name in ["Return", "KP_Enter"]:
+        self._hide_popup()
+      elif key_name == "Escape":
+        self.assign_text(self._last_user_typed_text)
         self._hide_popup()
       else:
         return False
