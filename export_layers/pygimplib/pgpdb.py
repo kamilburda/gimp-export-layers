@@ -117,6 +117,36 @@ def is_layer_inside_image(image, layer):
           (-image.height < layer.offsets[1] < image.height))
 
 
+#-------------------------------------------------------------------------------
+
+
+def duplicate(image, metadata_only=False):
+  """
+  Duplicate the specified image.
+  
+  If `metadata_only` is True, copy image metadata only, do not copy layers,
+  channels or paths.
+  """
+  
+  if not metadata_only:
+    new_image = pdb.gimp_image_duplicate(image)
+  else:
+    new_image = pdb.gimp_image_new(image.width, image.height, image.base_type)
+    
+    pdb.gimp_image_set_resolution(new_image, *pdb.gimp_image_get_resolution(image))
+    
+    if image.base_type == gimpenums.INDEXED:
+      pdb.gimp_image_set_colormap(new_image, *pdb.gimp_image_get_colormap(image))
+    
+    # Copy image parasites
+    unused_, parasite_names = pdb.gimp_image_get_parasite_list(image)
+    for name in parasite_names:
+      parasite = image.parasite_find(name)
+      new_image.parasite_attach(gimp.Parasite(parasite.name, parasite.flags, parasite.data))
+  
+  return new_image
+
+
 def remove_all_layers(image):
   """
   Remove all layers from the specified image.
@@ -154,19 +184,7 @@ def remove_all_items(image):
   remove_all_paths(image)
 
 
-def duplicate(image, remove_items=False):
-  """
-  Duplicate the specified image.
-  
-  If `remove_items` is True, remove all items (layers, channels, paths)
-  from the duplicated image.
-  """
-  
-  image_new = pdb.gimp_image_duplicate(image)
-  if remove_items:
-    remove_all_items(image_new)
-  
-  return image_new
+#-------------------------------------------------------------------------------
 
 
 def load_layers(layer_filenames, image=None, strip_file_extension=False):
