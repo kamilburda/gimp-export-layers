@@ -1011,7 +1011,16 @@ class FileExtensionSetting(ValidatableStringSetting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
   
   def __init__(self, name, default_value, **kwargs):
+    if isinstance(default_value, bytes):
+      default_value = default_value.decode()
+    
     super(FileExtensionSetting, self).__init__(name, default_value, pgpath.FileExtensionValidator, **kwargs)
+  
+  def set_value(self, value):
+    if isinstance(value, bytes):
+      value = value.decode()
+    
+    super(FileExtensionSetting, self).set_value(value)
   
 
 class DirectorySetting(ValidatableStringSetting):
@@ -1036,7 +1045,16 @@ class DirectorySetting(ValidatableStringSetting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.folder_chooser]
   
   def __init__(self, name, default_value, **kwargs):
+    if isinstance(default_value, bytes):
+      default_value = default_value.decode()
+    
     super(DirectorySetting, self).__init__(name, default_value, pgpath.DirectoryPathValidator, **kwargs)
+  
+  def set_value(self, value):
+    if isinstance(value, bytes):
+      value = value.decode()
+    
+    super(DirectorySetting, self).set_value(value)
   
   def update_current_directory(self, current_image, directory_for_current_image):
     """
