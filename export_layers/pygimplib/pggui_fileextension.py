@@ -243,10 +243,6 @@ class FileExtensionEntry(gtk.Entry):
       self._file_formats_filtered.refilter()
       self._clear_filter = False
       
-      row_iter = self._get_first_matching_row(self.get_text())
-      if row_iter is not None:
-        self._tree_view.scroll_to_cell(self._file_formats_filtered.get_path(row_iter))
-      
       show_popup_first_time = self._show_popup_first_time
       if not show_popup_first_time:
         self._resize_tree_view(num_rows=len(self._file_formats_filtered))
