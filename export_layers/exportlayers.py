@@ -393,7 +393,11 @@ class LayerExporter(object):
   
   def _remove_square_brackets(self, layer_elem):
     if layer_elem.name.startswith("[") and layer_elem.name.endswith("]"):
-      layer_elem.name = layer_elem.name[1:-1]
+      num_left_square_brackets = len(layer_elem.name) - len(layer_elem.name.lstrip("["))
+      num_right_square_brackets = len(layer_elem.name) - len(layer_elem.name.rstrip("]"))
+      num_square_brackets_to_remove = min(num_left_square_brackets, num_right_square_brackets)
+      
+      layer_elem.name = layer_elem.name[num_square_brackets_to_remove:-num_square_brackets_to_remove]
   
   def _add_square_brackets(self, layer_elem):
     layer_elem.name = "[" + layer_elem.name + "]"
