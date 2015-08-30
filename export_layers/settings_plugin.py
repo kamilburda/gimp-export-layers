@@ -96,7 +96,7 @@ def create_settings():
     {
       'type': pgsetting.SettingTypes.directory,
       'name': 'output_directory',
-      'default_value': gimp.user_directory(1).decode(),   # "Documents" directory
+      'default_value': gimp.user_directory(1),   # "Documents" directory
       'display_name': _("Output directory"),
       'error_messages': {
          pgpath.DirectoryPathValidator.IS_EMPTY: _("Output directory is not specified.")
