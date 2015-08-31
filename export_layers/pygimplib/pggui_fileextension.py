@@ -378,7 +378,8 @@ class FileExtensionEntry(gtk.Entry):
     self._assign_file_extension_from_selected_row()
   
   def _tree_view_unselect(self):
-    self._tree_view.set_cursor((-1,))
+    # Select an invalid row so that `get_cursor` returns None on the next call.
+    self._tree_view.set_cursor((len(self._file_formats_filtered),))
     self._tree_view.get_selection().unselect_all()
   
   def _get_first_matching_row(self, text):
