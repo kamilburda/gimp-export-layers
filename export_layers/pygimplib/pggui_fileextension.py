@@ -371,6 +371,10 @@ class FileExtensionEntry(gtk.Entry):
   
   def _select_and_assign_row(self, row_num):
     self._tree_view.set_cursor((row_num,))
+    # HACK: When the mouse points at the tree view and the user navigates with
+    # keys, the selection jumps to the row pointed at. Selecting the row again
+    # fixes this. 
+    self._tree_view.set_cursor((row_num,))
     self._assign_file_extension_from_selected_row()
   
   def _tree_view_unselect(self):
