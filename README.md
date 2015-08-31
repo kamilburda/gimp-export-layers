@@ -5,7 +5,7 @@ Export Layers is a GIMP plug-in that exports layers as separate images in any
 file format supported by GIMP and third-party plug-ins.
 
 Features:
-* uses native dialogs for file format export procedures to adjust file format settings
+* uses native dialogs for file formats to adjust export settings
 * uses layer names as filenames for the exported images
 * supports layer groups and optionally treats them as folders
 * can optionally export only layers whose file extension matches specified file extension
@@ -66,12 +66,12 @@ you to specify output folder, file extension and various other settings.
 
 Type or choose your desired file extension in the "File extension" text field.
 You can still enter a file extension not in the dropdown list in case you use a
-file format plug-in that this plug-in does not recognize.
+file format plug-in not recognized by this plug-in.
 
 To export layers, press the "Export Layers" button. A dialog corresponding to
-the file format appears, allowing you to adjust file format settings. Some file
-formats don't have dialogs, while some file formats display the dialog
-for each layer (more information in section Known Issues).
+the file format appears, allowing you to adjust export settings. Some file
+formats don't have dialogs, while some of them display the dialog for each layer
+(listed in section Known Issues).
 
 To export layers with the last values used, you may want to choose
 "File -> Export Layers (repeat)".
