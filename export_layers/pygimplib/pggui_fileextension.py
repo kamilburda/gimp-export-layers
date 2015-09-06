@@ -284,9 +284,9 @@ class FileExtensionEntry(gtk.Entry):
       self._tree_view_unselect()
   
   def _on_entry_key_press(self, entry, event):
+    key_name = gtk.gdk.keyval_name(event.keyval)
+    
     if self._popup.get_mapped():
-      key_name = gtk.gdk.keyval_name(event.keyval)
-      
       tree_path, unused_ = self._tree_view.get_cursor()
       
       if key_name in ["Up", "KP_Up"]:
@@ -353,6 +353,12 @@ class FileExtensionEntry(gtk.Entry):
       
       return True
     else:
+      if key_name == "space":
+        ctrl_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.CONTROL_MASK
+        if ctrl_key_pressed:
+          self._show_popup()
+          return True
+      
       return False
   
   def _on_entry_changed(self, entry):
