@@ -123,13 +123,19 @@ class CellRendererTextList(gtk.CellRendererText):
     b"text-list": (
       gobject.TYPE_PYOBJECT,
       b"list of strings",
-      "List of strings to render, with a text separator",
+      "List of strings to render",
       gobject.PARAM_READWRITE
+    ),
+    b"markup-list": (
+      gobject.TYPE_PYOBJECT,
+      b"list of strings in markup",
+      "List of strings with markup to render",
+      gobject.PARAM_WRITABLE
     ),
     b"text-list-separator": (
       gobject.TYPE_STRING,
       b"separator for list of strings",
-      "Text separator for the list of strings",
+      'Text separator for the list of strings ("text-list" and "markup-list" properties)',
       ", ",     # Default value
       gobject.PARAM_READWRITE
     ),
@@ -139,6 +145,7 @@ class CellRendererTextList(gtk.CellRendererText):
     gtk.CellRendererText.__init__(self)
     
     self.text_list = None
+    self.markup_list = None
     self.text_list_separator = ", "
   
   def do_get_property(self, property_):
@@ -151,23 +158,39 @@ class CellRendererTextList(gtk.CellRendererText):
   def do_set_property(self, property_, value):
     attr_name = self._property_name_to_attr(property_.name)
     if hasattr(self, attr_name):
-      if property_.name == "text-list" and not(isinstance(value, list) or isinstance(value, tuple)):
+      if (property_.name in ["text-list", "markup-list"] and
+          not(isinstance(value, list) or isinstance(value, tuple))):
         raise AttributeError("not a list or tuple")
       
       setattr(self, attr_name, value)
       
-      if property_.name in ["text-list", "text-list-separator"]:
-        self._evaluate_text_property()
+      self._evaluate_text_property(property_.name)
   
-  def _evaluate_text_property(self):
+  def _evaluate_text_property(self, property_name):
     """
-    Change the "text" property according to the value of the "text-list" and
-    "text-list-separator" properties.
+    Change the "text" or "markup" property according to the value of
+    "text-list", "markup-list" and "text-list-separator" properties.
     """
     
-    if self.text_list is not None:
+    def _set_text():
       new_text = self.text_list_separator.join(self.text_list)
       gtk.CellRendererText.set_property(self, "text", new_text)
+    
+    def _set_markup():
+      new_text = self.text_list_separator.join(self.markup_list)
+      gtk.CellRendererText.set_property(self, "markup", new_text)
+    
+    if property_name == "text-list":
+      _set_text()
+      self.markup_list = None
+    elif property_name == "markup-list":
+      _set_markup()
+      self.text_list = None
+    elif property_name == "text-list-separator":
+      if self.text_list is not None:
+        _set_text()
+      elif self.markup_list is not None:
+        _set_markup()
   
   def _property_name_to_attr(self, property_name):
     return property_name.replace("-", "_")
@@ -207,6 +230,10 @@ class FileExtensionEntry(gtk.Entry):
     
     self._tree_view_width = None
     
+    self._highlighted_extension_row = None
+    self._highlighted_extension_index = None
+    self._highlighted_extension_orig_text = None
+    
     self._create_popup(_FILE_FORMATS)
     
     self.connect("button-press-event", self._on_entry_left_mouse_button_press)
@@ -220,6 +247,7 @@ class FileExtensionEntry(gtk.Entry):
     self._tree_view.connect("button-press-event", self._on_tree_view_left_mouse_button_press)
     # This sets the correct initial width and height of the tree view.
     self._tree_view.connect_after("realize", self._on_after_tree_view_realize)
+    self._tree_view.get_selection().connect("changed", self._on_tree_selection_changed)
     
     self._button_press_emission_hook_id = None
     self._entry_configure_event_id = None
@@ -304,6 +332,22 @@ class FileExtensionEntry(gtk.Entry):
       elif key_name == "Escape":
         self.assign_text(self._last_assigned_text)
         self._hide_popup()
+      elif key_name in ["Left", "KP_Left"]:
+        alt_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.MOD1_MASK
+        if alt_key_pressed:
+          self._highlight_extension_previous(tree_path)
+          self.assign_text(self._highlighted_extension_orig_text)
+          return True
+        else:
+          return False
+      elif key_name in ["Right", "KP_Right"]:
+        alt_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.MOD1_MASK
+        if alt_key_pressed:
+          self._highlight_extension_next(tree_path)
+          self.assign_text(self._highlighted_extension_orig_text)
+          return True
+        else:
+          return False
       else:
         return False
       
@@ -350,6 +394,9 @@ class FileExtensionEntry(gtk.Entry):
   
   def _on_after_tree_view_realize(self, tree_view):
     self._resize_tree_view(num_rows=len(self._file_formats_filtered))
+  
+  def _on_tree_selection_changed(self, tree_selection):
+    self._unhighlight_extension()
   
   def _on_button_press_emission_hook(self, widget, event):
     if widget == self:
@@ -415,13 +462,83 @@ class FileExtensionEntry(gtk.Entry):
     else:
       return any(entry_text.lower() in extension.lower() for extension in extensions)
   
-  def _assign_file_extension_from_selected_row(self):
+  def _assign_file_extension_from_selected_row(self, extension_index=0):
     tree_model, tree_iter = self._tree_view.get_selection().get_selected()
     if tree_iter is None:     # No row is selected
       return
     
     extensions = tree_model[tree_iter][self._COLUMN_EXTENSIONS]
-    self.assign_text(extensions[0])
+    if extension_index > len(extensions):
+      extension_index = len(extensions) - 1
+    self.assign_text(extensions[extension_index])
+  
+  def _highlight_extension_next(self, selected_row_path):
+    def _select_next_extension(selected_row_path, len_extensions):
+      return (self._highlighted_extension_index + 1) % len_extensions
+    
+    self._highlight_extension(selected_row_path, _select_next_extension)
+  
+  def _highlight_extension_previous(self, selected_row_path):
+    def _select_previous_extension(selected_row_path, len_extensions):
+      return (self._highlighted_extension_index - 1) % len_extensions
+    
+    self._highlight_extension(selected_row_path, _select_previous_extension)
+  
+  def _highlight_extension(self, selected_row_path, extension_index_selection_func):
+    if selected_row_path is not None:
+      row_path = self._file_formats_filtered.convert_path_to_child_path(selected_row_path)
+      
+      extensions = self._file_formats[row_path][self._COLUMN_EXTENSIONS]
+      
+      self._highlighted_extension_row = row_path[0]
+      
+      self._unhighlight_extension_proper()
+      
+      if len(extensions) <= 1:
+        # No good reason to highlight the only extension in the row.
+        return
+      
+      if self._highlighted_extension_index is None:
+        self._highlighted_extension_index = 0
+      
+      self._highlighted_extension_index = extension_index_selection_func(
+        self._highlighted_extension_index, len(extensions))
+      
+      self._highlight_extension_proper()
+      
+      self._update_selected_row_display(selected_row_path)
+  
+  def _unhighlight_extension(self):
+    self._unhighlight_extension_proper()
+    
+    self._highlighted_extension_row = None
+    self._highlighted_extension_index = None
+  
+  def _highlight_extension_proper(self):
+    extensions = self._file_formats[self._highlighted_extension_row][self._COLUMN_EXTENSIONS]
+    
+    self._highlighted_extension_orig_text = extensions[self._highlighted_extension_index]
+    
+    bg_color = self._tree_view.style.bg[gtk.STATE_SELECTED]
+    fg_color = self._tree_view.style.fg[gtk.STATE_SELECTED]
+    
+    extensions[self._highlighted_extension_index] = (
+      "<span background='{0}' foreground='{1}'>{2}</span>".format(
+        bg_color.to_string(),
+        fg_color.to_string(),
+        extensions[self._highlighted_extension_index]
+      )
+    )
+  
+  def _unhighlight_extension_proper(self):
+    if self._highlighted_extension_row is not None and self._highlighted_extension_index is not None:
+      extensions = self._file_formats[self._highlighted_extension_row][self._COLUMN_EXTENSIONS]
+      if self._highlighted_extension_orig_text is not None:
+        extensions[self._highlighted_extension_index] = self._highlighted_extension_orig_text
+        self._highlighted_extension_orig_text = None
+  
+  def _update_selected_row_display(self, selected_row_path):
+    self._tree_view.set_cursor(selected_row_path)
   
   def _show_popup(self):
     if not self._popup.get_mapped() and len(self._file_formats_filtered) > 0:
