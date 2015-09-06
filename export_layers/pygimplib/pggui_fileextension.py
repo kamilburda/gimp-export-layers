@@ -203,7 +203,7 @@ class FileExtensionEntry(gtk.Entry):
     self._show_popup_first_time = True
     
     self._mouse_points_at_entry = False
-    self._last_user_typed_text = ""
+    self._last_assigned_text = ""
     
     self._tree_view_width = None
     
@@ -268,7 +268,7 @@ class FileExtensionEntry(gtk.Entry):
         elif tree_path[0] == 0:
           # No selection
           self._tree_view_unselect()
-          self.assign_text(self._last_user_typed_text)
+          self.assign_text(self._last_assigned_text)
         else:
           # Previous row
           self._select_and_assign_row(tree_path[0] - 1)
@@ -279,7 +279,7 @@ class FileExtensionEntry(gtk.Entry):
         elif tree_path[0] == len(self._file_formats_filtered) - 1:
           # No selection
           self._tree_view_unselect()
-          self.assign_text(self._last_user_typed_text)
+          self.assign_text(self._last_assigned_text)
         else:
           # Next row
           self._select_and_assign_row(tree_path[0] + 1)
@@ -302,7 +302,7 @@ class FileExtensionEntry(gtk.Entry):
       elif key_name in ["Return", "KP_Enter"]:
         self._hide_popup()
       elif key_name == "Escape":
-        self.assign_text(self._last_user_typed_text)
+        self.assign_text(self._last_assigned_text)
         self._hide_popup()
       else:
         return False
@@ -313,7 +313,7 @@ class FileExtensionEntry(gtk.Entry):
   
   def _on_entry_changed(self, entry):
     if self._trigger_popup:
-      self._last_user_typed_text = entry.get_text()
+      self._last_assigned_text = self.get_text()
       
       show_popup_first_time = self._show_popup_first_time
       if not show_popup_first_time:
@@ -345,6 +345,7 @@ class FileExtensionEntry(gtk.Entry):
   def _on_tree_view_left_mouse_button_press(self, tree_view, event):
     if event.button == self._BUTTON_MOUSE_LEFT:
       self._assign_file_extension_from_selected_row()
+      self._last_assigned_text = self.get_text()
       self._hide_popup()
   
   def _on_after_tree_view_realize(self, tree_view):
@@ -443,7 +444,7 @@ class FileExtensionEntry(gtk.Entry):
       self._popup.show()
       
       if self._show_popup_first_time:
-        self._last_user_typed_text = self.get_text()
+        self._last_assigned_text = self.get_text()
         self._show_popup_first_time = False
   
   def _hide_popup(self):
