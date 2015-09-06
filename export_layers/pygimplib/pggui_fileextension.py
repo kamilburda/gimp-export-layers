@@ -329,7 +329,7 @@ class FileExtensionEntry(gtk.Entry):
         self._select_and_assign_row(row_num)
       elif key_name in ["Left", "KP_Left"]:
         alt_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.MOD1_MASK
-        if alt_key_pressed:
+        if alt_key_pressed and tree_path is not None:
           self._highlight_extension_previous(tree_path)
           self.assign_text(self._highlighted_extension_orig_text)
           return True
@@ -337,7 +337,7 @@ class FileExtensionEntry(gtk.Entry):
           return False
       elif key_name in ["Right", "KP_Right"]:
         alt_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.MOD1_MASK
-        if alt_key_pressed:
+        if alt_key_pressed and tree_path is not None:
           self._highlight_extension_next(tree_path)
           self.assign_text(self._highlighted_extension_orig_text)
           return True
