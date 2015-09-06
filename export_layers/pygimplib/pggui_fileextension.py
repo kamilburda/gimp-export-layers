@@ -327,17 +327,17 @@ class FileExtensionEntry(gtk.Entry):
         else:
           row_num = min(tree_path[0] + self._MAX_NUM_VISIBLE_ROWS, len(self._file_formats_filtered) - 1)
         self._select_and_assign_row(row_num)
-      elif key_name in ["Left", "KP_Left"]:
+      elif key_name in ["Left", "KP_Left", "Right", "KP_Right"]:
         alt_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.MOD1_MASK
-        if alt_key_pressed and tree_path is not None:
-          self._highlight_extension_previous(tree_path)
-          self.assign_text(self._highlighted_extension_orig_text)
-        else:
-          return False
-      elif key_name in ["Right", "KP_Right"]:
-        alt_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.MOD1_MASK
-        if alt_key_pressed and tree_path is not None:
-          self._highlight_extension_next(tree_path)
+        # `tree_path` can sometimes point at the first row even though no row
+        # is selected, hence the `tree_iter` usage.
+        unused_, tree_iter = self._tree_view.get_selection().get_selected()
+        
+        if alt_key_pressed and tree_iter is not None:
+          if key_name in ["Left", "KP_Left"]:
+            self._highlight_extension_previous(tree_path)
+          elif key_name in ["Right", "KP_Right"]:
+            self._highlight_extension_next(tree_path)
           self.assign_text(self._highlighted_extension_orig_text)
         else:
           return False
