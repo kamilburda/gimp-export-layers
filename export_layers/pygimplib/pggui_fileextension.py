@@ -354,6 +354,7 @@ class FileExtensionEntry(gtk.Entry):
       if key_name == "space":
         ctrl_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.CONTROL_MASK
         if ctrl_key_pressed:
+          self._tree_view_unselect()
           self._show_popup()
           return True
       
