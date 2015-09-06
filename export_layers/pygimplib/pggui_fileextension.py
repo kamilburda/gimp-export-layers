@@ -327,11 +327,6 @@ class FileExtensionEntry(gtk.Entry):
         else:
           row_num = min(tree_path[0] + self._MAX_NUM_VISIBLE_ROWS, len(self._file_formats_filtered) - 1)
         self._select_and_assign_row(row_num)
-      elif key_name in ["Return", "KP_Enter"]:
-        self._hide_popup()
-      elif key_name == "Escape":
-        self.assign_text(self._last_assigned_text)
-        self._hide_popup()
       elif key_name in ["Left", "KP_Left"]:
         alt_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.MOD1_MASK
         if alt_key_pressed:
@@ -348,6 +343,11 @@ class FileExtensionEntry(gtk.Entry):
           return True
         else:
           return False
+      elif key_name in ["Return", "KP_Enter"]:
+        self._hide_popup()
+      elif key_name == "Escape":
+        self.assign_text(self._last_assigned_text)
+        self._hide_popup()
       else:
         return False
       
