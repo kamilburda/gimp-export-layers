@@ -332,7 +332,6 @@ class FileExtensionEntry(gtk.Entry):
         if alt_key_pressed and tree_path is not None:
           self._highlight_extension_previous(tree_path)
           self.assign_text(self._highlighted_extension_orig_text)
-          return True
         else:
           return False
       elif key_name in ["Right", "KP_Right"]:
@@ -340,7 +339,6 @@ class FileExtensionEntry(gtk.Entry):
         if alt_key_pressed and tree_path is not None:
           self._highlight_extension_next(tree_path)
           self.assign_text(self._highlighted_extension_orig_text)
-          return True
         else:
           return False
       elif key_name in ["Return", "KP_Enter"]:
