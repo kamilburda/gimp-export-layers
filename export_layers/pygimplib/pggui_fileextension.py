@@ -533,10 +533,10 @@ class FileExtensionEntry(gtk.Entry):
   
   def _add_file_format_columns(self):
     
-    def _add_column(column_number, cell_renderer, cell_renderer_property):
-      column = gtk.TreeViewColumn(b"", cell_renderer, **{cell_renderer_property: column_number})
+    def _add_column(cell_renderer, cell_renderer_property, column_number, column_title=None):
+      column = gtk.TreeViewColumn(column_title, cell_renderer, **{cell_renderer_property: column_number})
       self._tree_view.append_column(column)
     
-    _add_column(self._COLUMN_DESCRIPTION, gtk.CellRendererText(), "text")
-    _add_column(self._COLUMN_EXTENSIONS, CellRendererTextList(), "text-list")
+    _add_column(gtk.CellRendererText(), "text", self._COLUMN_DESCRIPTION)
+    _add_column(CellRendererTextList(), "markup-list", self._COLUMN_EXTENSIONS)
   
