@@ -496,6 +496,11 @@ class FileExtensionEntry(gtk.Entry):
       
       if len(extensions) <= 1:
         # No good reason to highlight the only extension in the row.
+        if len(extensions) == 1:
+          self._highlighted_extension_orig_text = extensions[0]
+        elif len(extensions) == 0:
+          self._highlighted_extension_orig_text = ""
+        
         return
       
       if self._highlighted_extension_index is None:
