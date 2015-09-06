@@ -79,6 +79,8 @@ _FILE_FORMATS = [
   ("gzip archive", ["xcf.gz", "xcfgz"]),
   ("HTML table", ["html", "htm"]),
   ("JPEG image", ["jpg", "jpeg", "jpe"]),
+  # Plug-in can be found at: http://registry.gimp.org/node/25508
+  ("JPEG XR image", ["jxr"], "file-jxr-save"),
   ("KISS CEL", ["cel"]),
   ("Microsoft Windows icon", ["ico"]),
   ("MNG animation", ["mng"]),
