@@ -51,7 +51,6 @@ from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettingpersistor
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
-from export_layers.pygimplib import pgsettingpresenters_gtk
 
 from export_layers import settings_plugin
 from export_layers import exportlayers
@@ -270,13 +269,13 @@ class _ExportLayersGui(object):
     
     self.settings.initialize_gui({
       'file_extension': [
-         pgsettingpresenters_gtk.FileExtensionEntryPresenter, self.file_extension_entry],
+         pgsetting.SettingGuiTypes.file_extension_entry, self.file_extension_entry],
       'output_directory': [
-         pgsettingpresenters_gtk.GtkFolderChooserPresenter, self.folder_chooser],
+         pgsetting.SettingGuiTypes.folder_chooser, self.folder_chooser],
       'dialog_position': [
-         pgsettingpresenters_gtk.GtkWindowPositionPresenter, self.dialog],
+         pgsetting.SettingGuiTypes.window_position, self.dialog],
       'advanced_settings_expanded': [
-         pgsettingpresenters_gtk.GtkExpanderPresenter, self.expander_advanced_settings],
+         pgsetting.SettingGuiTypes.expander, self.expander_advanced_settings],
     })
     
     self.hbox_file_extension_entry = gtk.HBox(homogeneous=False)
