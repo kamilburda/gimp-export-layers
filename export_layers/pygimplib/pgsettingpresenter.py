@@ -125,7 +125,7 @@ class SettingPresenter(object):
       if not gui_element_creation_supported:
         raise ValueError("cannot instantiate \"{0}\" class: "
                          "`element` is None and this class does not support "
-                         "the creation a GUI element"
+                         "the creation of a GUI element"
                          .format(type(self).__name__))
     
     if auto_update_gui_to_setting:
