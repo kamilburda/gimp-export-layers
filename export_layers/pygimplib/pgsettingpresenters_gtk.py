@@ -287,7 +287,10 @@ class SettingGuiTypes(object):
   checkbox = GtkCheckButtonPresenter
   combobox = GimpUiIntComboBoxPresenter
   text_entry = GtkEntryPresenter
+  file_extension_entry = FileExtensionEntryPresenter
   folder_chooser = GtkFolderChooserPresenter
+  window_position = GtkWindowPositionPresenter
+  expander = GtkExpanderPresenter
   
   none = pgsettingpresenter.NullSettingPresenter
   automatic = None
