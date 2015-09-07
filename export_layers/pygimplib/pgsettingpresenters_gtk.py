@@ -55,44 +55,6 @@ GTK_CHARACTER_ENCODING = "utf-8"
 #===============================================================================
 
 
-class GtkCheckboxWrapper(pgsettingpresenter.GuiElementWrapper):
-  
-  @classmethod
-  def create(cls, setting):
-    return gtk.CheckButton(setting.display_name)
-
-
-class GtkEntryWrapper(pgsettingpresenter.GuiElementWrapper):
-
-  @classmethod
-  def create(cls, setting):
-    return gtk.Entry()
-
-
-class FileExtensionEntryWrapper(pgsettingpresenter.GuiElementWrapper):
-
-  @classmethod
-  def create(cls, setting):
-    return FileExtensionEntry()
-
-
-class GimpUiIntComboBoxWrapper(pgsettingpresenter.GuiElementWrapper):
-
-  @classmethod
-  def create(cls, setting):
-    return IntComboBox(setting.get_item_display_names_and_values())
-
-
-class GtkFolderChooserWrapper(pgsettingpresenter.GuiElementWrapper):
-
-  @classmethod
-  def create(cls, setting):
-    return gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
-
-
-#===============================================================================
-
-
 class GtkSettingPresenter(pgsettingpresenter.SettingPresenter):
   
   """
@@ -138,7 +100,10 @@ class GtkCheckButtonPresenter(GtkSettingPresenter):
   """
   
   _VALUE_CHANGED_SIGNAL = "clicked"
-  _GUI_ELEMENT_WRAPPER = GtkCheckboxWrapper
+  
+  @classmethod
+  def _create(cls, setting):
+    return gtk.CheckButton(setting.display_name)
     
   def _get_value(self):
     return self._element.get_active()
@@ -156,7 +121,10 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
   """
   
   _VALUE_CHANGED_SIGNAL = "changed"
-  _GUI_ELEMENT_WRAPPER = GimpUiIntComboBoxWrapper
+
+  @classmethod
+  def _create(cls, setting):
+    return IntComboBox(setting.get_item_display_names_and_values())
   
   def _get_value(self):
     return self._element.get_active()
@@ -172,8 +140,10 @@ class GtkEntryPresenter(GtkSettingPresenter):
   
   Value: Text in the text field.
   """
-  
-  _GUI_ELEMENT_WRAPPER = GtkEntryWrapper
+
+  @classmethod
+  def _create(cls, setting):
+    return gtk.Entry()
   
   def _get_value(self):
     return self._element.get_text().decode(GTK_CHARACTER_ENCODING)
@@ -186,7 +156,16 @@ class GtkEntryPresenter(GtkSettingPresenter):
 
 class FileExtensionEntryPresenter(GtkSettingPresenter):
   
-  _GUI_ELEMENT_WRAPPER = FileExtensionEntryWrapper
+  """
+  This class is a `SettingPresenter` for `FileExtensionEntry` (text fields
+  containing file extensions).
+  
+  Value: Text (file extension) in the text field.
+  """
+
+  @classmethod
+  def _create(cls, setting):
+    return FileExtensionEntry()
   
   def _get_value(self):
     return self._element.get_text().decode(GTK_CHARACTER_ENCODING)
@@ -204,12 +183,14 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
   Value: Current folder.
   """
   
-  _GUI_ELEMENT_WRAPPER = GtkFolderChooserWrapper
-  
   def __init__(self, *args, **kwargs):
     super(GtkFolderChooserPresenter, self).__init__(*args, **kwargs)
     
     self._location_toggle_button = self._get_location_toggle_button()
+
+  @classmethod
+  def _create(cls, setting):
+    return gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
   
   def _get_value(self):
     if not self._is_location_entry_active():

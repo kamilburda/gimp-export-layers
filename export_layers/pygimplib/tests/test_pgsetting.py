@@ -86,23 +86,7 @@ class MockCheckbox(MockGuiWidget):
   pass
 
 
-class MockGuiWidgetWrapper(pgsettingpresenter.GuiElementWrapper):
-  
-  @classmethod
-  def create(self, setting):
-    return MockGuiWidget(setting.value)
-
-
-class MockCheckboxWrapper(pgsettingpresenter.GuiElementWrapper):
-  
-  @classmethod
-  def create(self, setting):
-    return MockCheckbox(setting.value)
-
-
 class MockSettingPresenter(pgsettingpresenter.SettingPresenter):
-  
-  _GUI_ELEMENT_WRAPPER = MockGuiWidgetWrapper
   
   def get_enabled(self):
     return self._element.enabled
@@ -115,6 +99,10 @@ class MockSettingPresenter(pgsettingpresenter.SettingPresenter):
   
   def set_visible(self, value):
     self._element.visible = value
+  
+  @classmethod
+  def _create(cls, setting):
+    return MockGuiWidget(setting.value)
   
   def _get_value(self):
     return self._element.value
@@ -134,14 +122,18 @@ class MockSettingPresenterWithValueChangedSignal(MockSettingPresenter):
   _VALUE_CHANGED_SIGNAL = "changed"
 
 
-class MockSettingPresenterWithoutGuiElementWrapper(MockSettingPresenter):
+class MockSettingPresenterWithoutGuiElementCreation(MockSettingPresenter):
   
-  _GUI_ELEMENT_WRAPPER = None
+  @classmethod
+  def _create(cls, setting):
+    return None
 
 
 class MockCheckboxPresenter(MockSettingPresenter):
   
-  _GUI_ELEMENT_WRAPPER = MockCheckboxWrapper
+  @classmethod
+  def _create(cls, setting):
+    return MockCheckbox(setting.value)
 
 
 class MockYesNoToggleButtonPresenter(MockSettingPresenter):
@@ -186,7 +178,7 @@ class MockSettingWithGui(MockSetting):
   
   _ALLOWED_GUI_TYPES = [MockCheckboxPresenter, MockSettingPresenter,
                         MockSettingPresenterWithValueChangedSignal,
-                        MockSettingPresenterWithoutGuiElementWrapper]
+                        MockSettingPresenterWithoutGuiElementCreation]
 
 
 #===============================================================================
@@ -377,7 +369,7 @@ class TestSettingGui(unittest.TestCase):
   
   def test_create_gui_gui_element_is_none_presenter_has_no_wrapper_raise_value_error(self):
     setting = MockSettingWithGui("ignore_invisible", False,
-                                 gui_type=MockSettingPresenterWithoutGuiElementWrapper)
+                                 gui_type=MockSettingPresenterWithoutGuiElementCreation)
     with self.assertRaises(ValueError):
       setting.create_gui()
   

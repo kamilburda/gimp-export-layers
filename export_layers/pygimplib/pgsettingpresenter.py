@@ -55,27 +55,6 @@ class SettingValueSynchronizer(object):
 #===============================================================================
 
 
-class GuiElementWrapper(object):
-  
-  __metaclass__ = abc.ABCMeta
-  
-  @classmethod
-  def create(self, setting):
-    """
-    Instantiate and return a new GUI element using the attributes in the
-    specified `Setting` instance (setting display name as label, etc.).
-    
-    This wrapper is used in SettingPresenter objects. There is no need to set
-    the initial value of the GUI element to the current setting value, as that
-    is handled by the SettingPresenter objects.
-    """
-    
-    pass
-
-
-#===============================================================================
-
-
 class SettingPresenter(object):
   
   """
@@ -104,7 +83,6 @@ class SettingPresenter(object):
   __metaclass__ = abc.ABCMeta
     
   _VALUE_CHANGED_SIGNAL = None
-  _GUI_ELEMENT_WRAPPER = None
   
   def __init__(self, setting, element=None, setting_value_synchronizer=None,
                old_setting_presenter=None, auto_update_gui_to_setting=True):
@@ -141,12 +119,13 @@ class SettingPresenter(object):
     self._setting_value_synchronizer = setting_value_synchronizer
     
     if self._element is None:
-      if self._GUI_ELEMENT_WRAPPER:
-        self._element = self._GUI_ELEMENT_WRAPPER.create(setting)
-      else:
+      self._element = self._create(setting)
+      
+      gui_element_creation_supported = self._element is not None
+      if not gui_element_creation_supported:
         raise ValueError("cannot instantiate \"{0}\" class: "
-                         "`element` is None and this class does not define a "
-                         "GUI element wrapper from which a GUI element could be instantiated"
+                         "`element` is None and this class does not support "
+                         "the creation a GUI element"
                          .format(type(self).__name__))
     
     if auto_update_gui_to_setting:
@@ -164,6 +143,18 @@ class SettingPresenter(object):
     
     if self._value_changed_signal is not None:
       self._connect_value_changed_event()
+  
+  @classmethod
+  def _create(cls, setting):
+    """
+    Instantiate and return a new GUI element using the attributes in the
+    specified `Setting` instance (e.g. display name as GUI label).
+    
+    Return None if the `SettingPresenter` subclass does not support GUI element
+    creation.
+    """
+    
+    return None
   
   @property
   def setting(self):
