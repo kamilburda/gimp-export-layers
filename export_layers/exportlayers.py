@@ -325,7 +325,8 @@ class LayerExporter(object):
     
     if (self.main_settings['file_ext_mode'].value ==
         self.main_settings['file_ext_mode'].items['only_matching_file_extension']):
-      self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension, self._default_file_extension)
+      self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension,
+                                       self._default_file_extension)
   
   def _export_layers(self):
     with self._layer_data.filter['layer_types'].remove_rule_temp(
@@ -366,12 +367,15 @@ class LayerExporter(object):
           self._exported_layers.append(layer)
           self._layer_file_extension_properties[self._current_file_extension].processed_count += 1
         pdb.gimp_image_remove_layer(self._image_copy, layer_copy)
-      else:
+      elif layer_elem.item_type == layer_elem.EMPTY_GROUP:
         layer_elem.validate_name()
         self._layer_data.uniquify_name(layer_elem, self._include_item_path,
                                        place_before_file_extension=False)
         empty_directory = layer_elem.get_filepath(self._output_directory, self._include_item_path)
         pgpath.make_dirs(empty_directory)
+      else:
+        raise ValueError("invalid/unsupported item type '{0}' of _ItemDataElement '{1}'"
+                         .format(layer_elem.item_type, layer_elem.name))
   
   def _setup(self):
     # Save context just in case. No need for undo groups or undo freeze here.
@@ -448,9 +452,11 @@ class LayerExporter(object):
             bg_layer_copy = pgpdb.merge_layer_group(bg_layer_copy)
         
         if self.main_settings['use_image_size'].value:
-          background_layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
+          background_layer = pdb.gimp_image_merge_visible_layers(self._image_copy,
+                                                                 gimpenums.CLIP_TO_IMAGE)
         else:
-          background_layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.EXPAND_AS_NECESSARY)
+          background_layer = pdb.gimp_image_merge_visible_layers(self._image_copy,
+                                                                 gimpenums.EXPAND_AS_NECESSARY)
         
         self._background_layer = pdb.gimp_layer_copy(background_layer, True)
         return background_layer
