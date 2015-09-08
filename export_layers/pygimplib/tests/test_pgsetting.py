@@ -100,8 +100,7 @@ class MockSettingPresenter(pgsettingpresenter.SettingPresenter):
   def set_visible(self, value):
     self._element.visible = value
   
-  @classmethod
-  def _create(cls, setting):
+  def _create_gui_element(self, setting):
     return MockGuiWidget(setting.value)
   
   def _get_value(self):
@@ -124,15 +123,13 @@ class MockSettingPresenterWithValueChangedSignal(MockSettingPresenter):
 
 class MockSettingPresenterWithoutGuiElementCreation(MockSettingPresenter):
   
-  @classmethod
-  def _create(cls, setting):
+  def _create_gui_element(self, setting):
     return None
 
 
 class MockCheckboxPresenter(MockSettingPresenter):
   
-  @classmethod
-  def _create(cls, setting):
+  def _create_gui_element(self, setting):
     return MockCheckbox(setting.value)
 
 

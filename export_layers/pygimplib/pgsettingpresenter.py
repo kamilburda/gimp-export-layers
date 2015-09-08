@@ -118,8 +118,15 @@ class SettingPresenter(object):
     self._element = element
     self._setting_value_synchronizer = setting_value_synchronizer
     
+    if auto_update_gui_to_setting:
+      self._value_changed_signal = self._VALUE_CHANGED_SIGNAL
+    else:
+      self._value_changed_signal = None
+    
+    self._setting_value_synchronizer.apply_setting_value_to_gui = self._apply_setting_value_to_gui
+    
     if self._element is None:
-      self._element = self._create(setting)
+      self._element = self._create_gui_element(setting)
       
       gui_element_creation_supported = self._element is not None
       if not gui_element_creation_supported:
@@ -127,13 +134,6 @@ class SettingPresenter(object):
                          "`element` is None and this class does not support "
                          "the creation of a GUI element"
                          .format(type(self).__name__))
-    
-    if auto_update_gui_to_setting:
-      self._value_changed_signal = self._VALUE_CHANGED_SIGNAL
-    else:
-      self._value_changed_signal = None
-    
-    self._setting_value_synchronizer.apply_setting_value_to_gui = self._apply_setting_value_to_gui
     
     copy_state = old_setting_presenter is not None
     if copy_state:
@@ -143,18 +143,6 @@ class SettingPresenter(object):
     
     if self._value_changed_signal is not None:
       self._connect_value_changed_event()
-  
-  @classmethod
-  def _create(cls, setting):
-    """
-    Instantiate and return a new GUI element using the attributes in the
-    specified `Setting` instance (e.g. display name as GUI label).
-    
-    Return None if the `SettingPresenter` subclass does not support GUI element
-    creation.
-    """
-    
-    return None
   
   @property
   def setting(self):
@@ -232,6 +220,17 @@ class SettingPresenter(object):
     else:
       self._value_changed_signal = None
       self._disconnect_value_changed_event()
+  
+  def _create_gui_element(self, setting):
+    """
+    Instantiate and return a new GUI element using the attributes in the
+    specified `Setting` instance (e.g. display name as GUI label).
+    
+    Return None if the `SettingPresenter` subclass does not support GUI element
+    creation.
+    """
+    
+    return None
   
   @abc.abstractmethod
   def _get_value(self):

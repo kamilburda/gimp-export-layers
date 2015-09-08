@@ -101,8 +101,7 @@ class GtkCheckButtonPresenter(GtkSettingPresenter):
   
   _VALUE_CHANGED_SIGNAL = "clicked"
   
-  @classmethod
-  def _create(cls, setting):
+  def _create_gui_element(self, setting):
     return gtk.CheckButton(setting.display_name)
     
   def _get_value(self):
@@ -122,8 +121,7 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
   
   _VALUE_CHANGED_SIGNAL = "changed"
 
-  @classmethod
-  def _create(cls, setting):
+  def _create_gui_element(self, setting):
     return IntComboBox(setting.get_item_display_names_and_values())
   
   def _get_value(self):
@@ -141,8 +139,7 @@ class GtkEntryPresenter(GtkSettingPresenter):
   Value: Text in the text field.
   """
 
-  @classmethod
-  def _create(cls, setting):
+  def _create_gui_element(self, setting):
     return gtk.Entry()
   
   def _get_value(self):
@@ -163,8 +160,7 @@ class FileExtensionEntryPresenter(GtkSettingPresenter):
   Value: Text (file extension) in the text field.
   """
 
-  @classmethod
-  def _create(cls, setting):
+  def _create_gui_element(self, setting):
     return FileExtensionEntry()
   
   def _get_value(self):
@@ -188,8 +184,7 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
     
     self._location_toggle_button = self._get_location_toggle_button()
 
-  @classmethod
-  def _create(cls, setting):
+  def _create_gui_element(self, setting):
     return gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
   
   def _get_value(self):
