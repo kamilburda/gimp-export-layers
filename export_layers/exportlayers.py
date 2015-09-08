@@ -227,6 +227,7 @@ class LayerExporter(object):
     # Raw format doesn't seem to work with `pdb.gimp_file_save`, hence the
     # special handling.
     self._FILE_EXPORT_PROCEDURES['data'] = pdb.file_raw_save
+    self._FILE_EXPORT_PROCEDURES['raw'] = pdb.file_raw_save
   
   @property
   def exported_layers(self):
