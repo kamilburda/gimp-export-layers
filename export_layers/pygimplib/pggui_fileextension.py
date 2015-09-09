@@ -311,10 +311,6 @@ class FileExtensionEntry(gtk.Entry):
         else:
           # Next row
           self._select_and_assign_row(tree_path[0] + 1)
-      elif key_name == "Home":
-        self._select_and_assign_row(0)
-      elif key_name == "End":
-        self._select_and_assign_row(len(self._file_formats_filtered) - 1)
       elif key_name == "Page_Up":
         if tree_path is None:
           row_num = 0
