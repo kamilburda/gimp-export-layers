@@ -42,54 +42,47 @@ import abc
 #===============================================================================
 
 
-def uniquify_string(str_, existing_strings, place_before_file_extension=False):
+def uniquify_string(str_, existing_strings, uniquifier_position=None):
   """
   If string `str_` is in the `existing_strings` list, return a unique string
-  by appending " (<number>)" to `str_`. Otherwise return `str_`.
+  by inserting a unique string ("uniquifier") to `str_` (e.g. " (1)").
+  Otherwise, return `str_`.
   
   Parameters:
   
   * `str_` - String to uniquify.
   
-  * `existing_strings` - List of string to compare against `str_`.
+  * `existing_strings` - List of strings to compare against `str_`.
   
-  * `place_before_file_extension` - If True, place the " (<number>)" string
-  before file extension if `str_` has one.
+  * `uniquifier_position` - Position (index) where the uniquifier is inserted.
+    If the position is None, insert the uniquifier at the end of `str_` (i.e.
+    append it).
   
   Returns:
   
     Uniquified string.
   """
   
-  def _uniquify_without_extension(str_, existing_strings):
-    j = 1
-    uniq_str = '{0} ({1})'.format(str_, j)
-    while uniq_str in existing_strings:
-      j += 1
-      uniq_str = '{0} ({1})'.format(str_, j)
-    return uniq_str
-  
-  def _uniquify_with_extension(root, ext, existing_strings):
-    j = 1
-    uniq_str = '{0} ({1}).{2}'.format(root, j, ext)
-    while uniq_str in existing_strings:
-      j += 1
-      uniq_str = '{0} ({1}).{2}'.format(root, j, ext)
-    return uniq_str
+  def _get_uniquified_string(uniquifier_index):
+    return "{0} ({1}){2}".format(str_[0:uniquifier_position],
+                                 uniquifier_index,
+                                 str_[uniquifier_position:])
   
   if str_ not in existing_strings:
     return str_
   
-  if not place_before_file_extension:
-    return _uniquify_without_extension(str_, existing_strings)
-  else:
-    root, ext = os.path.splitext(str_)
-    ext = ext.lstrip('.')
-    if ext:
-      return _uniquify_with_extension(root, ext, existing_strings)
-    else:
-      return _uniquify_without_extension(str_, existing_strings)
-
+  if uniquifier_position is None:
+    uniquifier_position = len(str_)
+  
+  uniquifier_index = 1
+  uniq_str = _get_uniquified_string(uniquifier_index)
+  
+  while uniq_str in existing_strings:
+    uniquifier_index += 1
+    uniq_str = _get_uniquified_string(uniquifier_index)
+  
+  return uniq_str
+  
 
 def uniquify_filename(filename):
   """
