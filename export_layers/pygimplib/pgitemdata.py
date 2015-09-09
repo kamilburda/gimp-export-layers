@@ -176,13 +176,14 @@ class ItemData(object):
         if self._filter.is_match(item_elem):
           yield name, item_elem
   
-  def uniquify_name(self, item_elem, include_item_path=True, place_before_file_extension=False):
+  def uniquify_name(self, item_elem, include_item_path=True,
+                    uniquifier_position=None, uniquifier_position_parents=None):
     """
     Make the `name` attribute in the specified `_ItemDataElement` object
     unique among all other, already uniquified `_ItemDataElement` objects.
     
-    To achieve uniquification, a string in the form of " (<number>)" is inserted
-    at the end of the item names.
+    To achieve uniquification, a string ("uniquifier") in the form of
+    " (<number>)" is inserted at the end of the item names.
     
     Parameters:
     
@@ -192,10 +193,14 @@ class ItemData(object):
     * `include_item_path` - If True, take the item path into account when
       uniquifying.
       
-    * `place_before_file_extension` - If True, uniquify the item name such that
-      the " (<number>)" string that makes the name unique is placed before the
-      file extension if the item name has one. This parameter does not apply to
-      the item path components (parents).
+    * `uniquifier_position` - Position (index) where the uniquifier is inserted
+      into the current item. If the position is None, insert the uniquifier at
+      the end of the item name (i.e. append it).
+      
+    * `uniquifier_position_parents` - Position (index) where the uniquifier is
+      inserted into the parents of the current item. If the position is None,
+      insert the uniquifier at the end of the name of each parent. This
+      parameter has no effect if `include_item_path` is False.
     """
     
     if include_item_path:
@@ -210,15 +215,12 @@ class ItemData(object):
           if elem.name not in item_names:
             self._uniquified_itemdata[parent].add(elem)
           else:
-            # Don't apply `place_before_file_extension` to any parents.
             if elem == item_elem:
-              place_before_file_ext = place_before_file_extension
+              position = uniquifier_position
             else:
-              place_before_file_ext = False
+              position = uniquifier_position_parents
             
-            elem.name = pgpath.uniquify_string(
-              elem.name, item_names, place_before_file_ext
-            )
+            elem.name = pgpath.uniquify_string(elem.name, item_names, position)
             self._uniquified_itemdata[parent].add(elem)
     else:
       # Use None as the root of the item tree.
@@ -228,9 +230,7 @@ class ItemData(object):
         self._uniquified_itemdata[parent] = set()
       
       item_elem.name = pgpath.uniquify_string(
-        item_elem.name, self._uniquified_itemdata[parent],
-        place_before_file_extension
-      )
+        item_elem.name, self._uniquified_itemdata[parent], uniquifier_position)
       self._uniquified_itemdata[parent].add(item_elem.name)
   
   def _fill_item_data(self):

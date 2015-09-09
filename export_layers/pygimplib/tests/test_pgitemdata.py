@@ -245,7 +245,7 @@ class TestLayerData(unittest.TestCase):
          "' != '" + str(name) + "'")
       )
   
-  def test_uniquifies_without_layer_groups(self):
+  def test_uniquify_without_layer_groups(self):
     uniquified_names = OrderedDict([
       ("top-left-corner",      "top-left-corner (1)"),
       ("top-right-corner",     "top-right-corner"),
@@ -271,11 +271,10 @@ class TestLayerData(unittest.TestCase):
     
     for layer_elem in self.layer_data:
       layer_elem.validate_name()
-      self.layer_data.uniquify_name(layer_elem, include_item_path=False,
-                                    place_before_file_extension=False)
+      self.layer_data.uniquify_name(layer_elem, include_item_path=False)
     self._compare_uniquified_without_parents(self.layer_data, uniquified_names)
   
-  def test_uniquifies_with_layer_groups(self):
+  def test_uniquify_with_layer_groups(self):
     uniquified_names = OrderedDict([
       ("Corners",                ["Corners (1)"]),
       ("top-left-corner",        ["Corners (1)", "top-left-corner"]),
@@ -303,11 +302,16 @@ class TestLayerData(unittest.TestCase):
     
     for layer_elem in self.layer_data:
       layer_elem.validate_name()
-      self.layer_data.uniquify_name(layer_elem, include_item_path=True,
-                                    place_before_file_extension=False)
+      self.layer_data.uniquify_name(layer_elem, include_item_path=True)
     self._compare_uniquified_with_parents(self.layer_data, uniquified_names)
   
-  def test_uniquifies_with_regards_to_file_extension(self):
+  def test_uniquify_with_regards_to_file_extension(self):
+    def _get_file_extension_start_position(str_):
+      position = str_.rfind(".")
+      if position == -1:
+        position = len(str_)
+      return position
+    
     uniquified_names = OrderedDict([
       ("main-background.jpg",    ["main-background.jpg"]),
       ("main-background.jpg:",   ["main-background (1).jpg"]),
@@ -319,7 +323,8 @@ class TestLayerData(unittest.TestCase):
     
     for layer_elem in self.layer_data:
       layer_elem.validate_name()
-      self.layer_data.uniquify_name(layer_elem, include_item_path=True,
-                                    place_before_file_extension=True)
+      self.layer_data.uniquify_name(
+        layer_elem, include_item_path=True,
+        uniquifier_position=_get_file_extension_start_position(layer_elem.name))
     self._compare_uniquified_with_parents(self.layer_data, uniquified_names)
   
