@@ -60,7 +60,7 @@ class TestUniquifyString(unittest.TestCase):
     def _test_uniquify_with_file_extension(input_str, existing_strings, expected_uniquified_str):
       self.assertEqual(expected_uniquified_str, pgpath.uniquify_string(
         input_str, existing_strings,
-        uniquifier_position=_get_file_extension_start_position(input_str)))
+        _get_file_extension_start_position(input_str)))
     
     _test_uniquify_with_file_extension("one.jpg", ["one.jpg", "two", "three"],
                                        "one (1).jpg")
@@ -72,7 +72,12 @@ class TestUniquifyString(unittest.TestCase):
                                        "one (1).")
     _test_uniquify_with_file_extension("one (1).jpg", ["one (1).jpg", "two", "three"],
                                        "one (1) (1).jpg")
-
+  
+  def test_uniquify_string_insert_before_file_extension_with_periods(self):
+    input_str = "one.xcf.gz"
+    self.assertEqual("one (1).xcf.gz",
+                     pgpath.uniquify_string(input_str, [input_str, "two", "three"],
+                                            len(input_str) - len(".xcf.gz")))
 
 class TestGetFileExtension(unittest.TestCase):
   

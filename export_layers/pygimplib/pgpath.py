@@ -57,10 +57,45 @@ def uniquify_string(str_, existing_strings, uniquifier_position=None):
   * `uniquifier_position` - Position (index) where the uniquifier is inserted.
     If the position is None, insert the uniquifier at the end of `str_` (i.e.
     append it).
+  """
   
-  Returns:
+  return uniquify_string_generic(str_,
+                                 lambda str_param: str_param not in existing_strings,
+                                 uniquifier_position)
   
-    Uniquified string.
+
+def uniquify_filename(filename, uniquifier_position=None):
+  """
+  If a file with a specified filename already exists, return a unique filename.
+  
+  Parameters:
+  
+  * `uniquifier_position` - Position (index) where the uniquifier is inserted.
+    If the position is None, insert the uniquifier before the file extension.
+    For example, if the filename is "file.png", the new filename will be
+    "file (1).png".
+  """
+  
+  return uniquify_string_generic(filename,
+                                 lambda filename_param: not os.path.exists(filename_param),
+                                 uniquifier_position)
+
+def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None):
+  """
+  If string `str_` is not unique according to `is_unique_func`, return a unique
+  string by inserting a unique string ("uniquifier") to `str_`. Otherwise,
+  return `str_`.
+  
+  Parameters:
+  
+  * `str_` - String to uniquify.
+  
+  * `is_unique_func` - Function that returns True if `str_` is unique, False
+    otherwise. `is_unique_func` must contain `str_` as its only parameter.
+  
+  * `uniquifier_position` - Position (index) where the uniquifier is inserted.
+    If the position is None, insert the uniquifier at the end of `str_` (i.e.
+    append it).
   """
   
   def _get_uniquified_string(uniquifier_index):
@@ -68,7 +103,7 @@ def uniquify_string(str_, existing_strings, uniquifier_position=None):
                                  uniquifier_index,
                                  str_[uniquifier_position:])
   
-  if str_ not in existing_strings:
+  if is_unique_func(str_):
     return str_
   
   if uniquifier_position is None:
@@ -77,28 +112,11 @@ def uniquify_string(str_, existing_strings, uniquifier_position=None):
   uniquifier_index = 1
   uniq_str = _get_uniquified_string(uniquifier_index)
   
-  while uniq_str in existing_strings:
+  while not is_unique_func(uniq_str):
     uniquifier_index += 1
     uniq_str = _get_uniquified_string(uniquifier_index)
   
   return uniq_str
-  
-
-def uniquify_filename(filename):
-  """
-  If a file with a specified filename already exists, return a unique filename.
-  """
-  
-  if os.path.exists(filename):
-    root, ext = os.path.splitext(filename)
-    i = 1
-    uniq_filename = ''.join((root, " (", str(i), ")", ext))
-    while os.path.exists(uniq_filename):
-      i += 1
-      uniq_filename = ''.join((root, " (", str(i), ")", ext))
-    return uniq_filename
-  else:
-    return filename
 
 
 #===============================================================================
