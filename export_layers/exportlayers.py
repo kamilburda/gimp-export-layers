@@ -85,7 +85,7 @@ class OverwriteHandler(object):
   __OVERWRITE_MODES = REPLACE, SKIP, RENAME_NEW, RENAME_EXISTING, CANCEL = (0, 1, 2, 3, 4)
   
   @classmethod
-  def handle(cls, filename, overwrite_chooser):
+  def handle(cls, filename, overwrite_chooser, uniquifier_position=None):
     should_skip = False
     
     if os.path.exists(filename):
@@ -96,7 +96,7 @@ class OverwriteHandler(object):
         # Nothing needs to be done here.
         pass
       elif overwrite_chooser.overwrite_mode in (cls.RENAME_NEW, cls.RENAME_EXISTING):
-        uniq_filename = pgpath.uniquify_filename(filename)
+        uniq_filename = pgpath.uniquify_filename(filename, uniquifier_position)
         if overwrite_chooser.overwrite_mode == cls.RENAME_NEW:
           filename = uniq_filename
         else:
@@ -351,13 +351,13 @@ class LayerExporter(object):
         self._strip_file_extension(layer_elem)
         self._set_file_extension_and_update_file_export_func(layer_elem)
         self._layer_data.uniquify_name(layer_elem, self._include_item_path,
-                                       self._get_file_extension_start_position(layer_elem))
+                                       self._get_uniquifier_position(layer_elem.name))
         
         self._export_layer(layer_elem, self._image_copy, layer_copy)
         if self._current_layer_export_status == self._USE_DEFAULT_FILE_EXTENSION:
           self._set_file_extension_and_update_file_export_func(layer_elem)
           self._layer_data.uniquify_name(layer_elem, self._include_item_path,
-                                         self._get_file_extension_start_position(layer_elem))
+                                         self._get_uniquifier_position(layer_elem.name))
           self._export_layer(layer_elem, self._image_copy, layer_copy)
         
         self.progress_updater.update_tasks(1)
@@ -526,11 +526,8 @@ class LayerExporter(object):
       
       layer_elem.name += '.' + self._default_file_extension
   
-  def _get_file_extension_start_position(self, layer_elem):
-    position = layer_elem.name.rfind(".")
-    if position == -1:
-      position = len(layer_elem.name)
-    return position
+  def _get_uniquifier_position(self, str_):
+    return len(str_) - len("." + self._current_file_extension)
   
   def _get_file_export_func(self, file_extension):
     return self._FILE_EXPORT_PROCEDURES[file_extension]
@@ -546,7 +543,8 @@ class LayerExporter(object):
   
   def _export_layer(self, layer_elem, image, layer):
     output_filename = layer_elem.get_filepath(self._output_directory, self._include_item_path)
-    self._is_current_layer_skipped, output_filename = OverwriteHandler.handle(output_filename, self.overwrite_chooser)
+    self._is_current_layer_skipped, output_filename = OverwriteHandler.handle(
+      output_filename, self.overwrite_chooser, self._get_uniquifier_position(output_filename))
     self.progress_updater.update_text(_("Saving '{0}'").format(output_filename))
     
     if not self._is_current_layer_skipped:
