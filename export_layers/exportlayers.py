@@ -351,13 +351,13 @@ class LayerExporter(object):
         self._strip_file_extension(layer_elem)
         self._set_file_extension_and_update_file_export_func(layer_elem)
         self._layer_data.uniquify_name(layer_elem, self._include_item_path,
-                                       place_before_file_extension=True)
+                                       self._get_file_extension_start_position(layer_elem))
         
         self._export_layer(layer_elem, self._image_copy, layer_copy)
         if self._current_layer_export_status == self._USE_DEFAULT_FILE_EXTENSION:
           self._set_file_extension_and_update_file_export_func(layer_elem)
           self._layer_data.uniquify_name(layer_elem, self._include_item_path,
-                                         place_before_file_extension=True)
+                                         self._get_file_extension_start_position(layer_elem))
           self._export_layer(layer_elem, self._image_copy, layer_copy)
         
         self.progress_updater.update_tasks(1)
@@ -369,8 +369,7 @@ class LayerExporter(object):
         pdb.gimp_image_remove_layer(self._image_copy, layer_copy)
       elif layer_elem.item_type == layer_elem.EMPTY_GROUP:
         layer_elem.validate_name()
-        self._layer_data.uniquify_name(layer_elem, self._include_item_path,
-                                       place_before_file_extension=False)
+        self._layer_data.uniquify_name(layer_elem, self._include_item_path)
         empty_directory = layer_elem.get_filepath(self._output_directory, self._include_item_path)
         pgpath.make_dirs(empty_directory)
       else:
@@ -526,6 +525,12 @@ class LayerExporter(object):
           self.main_settings['file_ext_mode'].items['no_special_handling']):
       
       layer_elem.name += '.' + self._default_file_extension
+  
+  def _get_file_extension_start_position(self, layer_elem):
+    position = layer_elem.name.rfind(".")
+    if position == -1:
+      position = len(layer_elem.name)
+    return position
   
   def _get_file_export_func(self, file_extension):
     return self._FILE_EXPORT_PROCEDURES[file_extension]
