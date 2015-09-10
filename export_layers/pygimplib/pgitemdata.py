@@ -351,6 +351,10 @@ class _ItemDataElement(object):
     if item is None:
       raise TypeError("item cannot be None")
     
+    self.name = item.name.decode()
+    
+    self._orig_name = self.name
+    
     self._item = item
     self._parents = parents if parents is not None else []
     self._level = len(self._parents)
@@ -367,9 +371,6 @@ class _ItemDataElement(object):
         self._item_type = self.EMPTY_GROUP
     else:
       self._item_type = self.ITEM
-    
-    self.name = self._item.name.decode()
-    self._orig_name = self.name
     
     self._path_visible = self._get_path_visibility()
   
