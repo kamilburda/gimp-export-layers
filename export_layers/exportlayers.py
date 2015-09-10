@@ -133,11 +133,6 @@ class LayerFilterRules(object):
     return layer_elem.path_visible
   
   @staticmethod
-  def has_file_extension(layer_elem):
-    index_ = layer_elem.name.rfind('.')
-    return index_ != -1
-  
-  @staticmethod
   def has_matching_file_extension(layer_elem, file_extension):
     return layer_elem.get_file_extension() == file_extension.lower()
   
@@ -148,6 +143,10 @@ class LayerFilterRules(object):
   @staticmethod
   def is_not_enclosed_in_square_brackets(layer_elem):
     return not LayerFilterRules.is_enclosed_in_square_brackets(layer_elem)
+  
+  @staticmethod
+  def has_tag(layer_elem, tag):
+    return tag in layer_elem.tags
 
 
 #===============================================================================
@@ -312,16 +311,14 @@ class LayerExporter(object):
       self._layer_data.filter.add_rule(LayerFilterRules.is_not_enclosed_in_square_brackets)
     elif (self.main_settings['square_bracketed_mode'].value ==
           self.main_settings['square_bracketed_mode'].items['ignore_other']):
+      filter_tag = "allow_square_bracketed_only"
+      
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_enclosed_in_square_brackets):
-        square_bracketed_layers = list(self._layer_data)
+        for layer_elem in self._layer_data:
+          layer_elem.tags.add(filter_tag)
+          self._remove_square_brackets(layer_elem)
       
-      self._layer_data.filter.add_rule(LayerFilterRules.is_not_enclosed_in_square_brackets)
-      
-      for layer_elem in self._layer_data:
-        self._add_square_brackets(layer_elem)
-      
-      for layer_elem in square_bracketed_layers:
-        self._remove_square_brackets(layer_elem)
+      self._layer_data.filter.add_rule(LayerFilterRules.has_tag, filter_tag)
     
     if (self.main_settings['file_ext_mode'].value ==
         self.main_settings['file_ext_mode'].items['only_matching_file_extension']):
