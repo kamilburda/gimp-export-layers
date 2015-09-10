@@ -400,8 +400,6 @@ class LayerExporter(object):
       
       layer_elem.name = layer_elem.name[num_square_brackets_to_remove:-num_square_brackets_to_remove]
   
-  def _add_square_brackets(self, layer_elem):
-    layer_elem.name = "[" + layer_elem.name + "]"
   
   def _process_layer(self, layer):
     background_layer = self._insert_background()
