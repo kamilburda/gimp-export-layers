@@ -352,6 +352,7 @@ class _ItemDataElement(object):
       raise TypeError("item cannot be None")
     
     self.name = item.name.decode()
+    self.tags = set()
     
     self._orig_name = self.name
     
