@@ -42,11 +42,12 @@ import abc
 #===============================================================================
 
 
-def uniquify_string(str_, existing_strings, uniquifier_position=None):
+def uniquify_string(str_, existing_strings, uniquifier_position=None,
+                    uniquifier_generator=None):
   """
   If string `str_` is in the `existing_strings` list, return a unique string
-  by inserting a unique string ("uniquifier") to `str_` (e.g. " (1)").
-  Otherwise, return `str_`.
+  by inserting a unique string ("uniquifier") to `str_`. Otherwise, return
+  `str_`.
   
   Parameters:
   
@@ -54,33 +55,35 @@ def uniquify_string(str_, existing_strings, uniquifier_position=None):
   
   * `existing_strings` - List of strings to compare against `str_`.
   
-  * `uniquifier_position` - Position (index) where the uniquifier is inserted.
-    If the position is None, insert the uniquifier at the end of `str_` (i.e.
-    append it).
+  * `uniquifier_position` - See `uniquify_string_generic.uniquifier_position`.
+  
+  * `uniquifier_generator` - See `uniquify_string_generic.uniquifier_generator`.
   """
   
   return uniquify_string_generic(str_,
                                  lambda str_param: str_param not in existing_strings,
-                                 uniquifier_position)
+                                 uniquifier_position, uniquifier_generator)
   
 
-def uniquify_filename(filename, uniquifier_position=None):
+def uniquify_filename(filename, uniquifier_position=None, uniquifier_generator=None):
   """
-  If a file with a specified filename already exists, return a unique filename.
+  If a file with the specified filename already exists, return a unique filename.
   
   Parameters:
   
-  * `uniquifier_position` - Position (index) where the uniquifier is inserted.
-    If the position is None, insert the uniquifier before the file extension.
-    For example, if the filename is "file.png", the new filename will be
-    "file (1).png".
+  * `filename` - Filename to uniquify.
+  
+  * `uniquifier_position` - See `uniquify_string_generic.uniquifier_position`.
+  
+  * `uniquifier_generator` - See `uniquify_string_generic.uniquifier_generator`.
   """
   
   return uniquify_string_generic(filename,
                                  lambda filename_param: not os.path.exists(filename_param),
-                                 uniquifier_position)
+                                 uniquifier_position, uniquifier_generator)
 
-def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None):
+def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None,
+                            uniquifier_generator=None):
   """
   If string `str_` is not unique according to `is_unique_func`, return a unique
   string by inserting a unique string ("uniquifier") to `str_`. Otherwise,
@@ -96,12 +99,33 @@ def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None):
   * `uniquifier_position` - Position (index) where the uniquifier is inserted.
     If the position is None, insert the uniquifier at the end of `str_` (i.e.
     append it).
+  
+  * `uniquifier_generator` - A generator object that generates a unique string
+    (uniquifier) in each iteration. If None, the generator yields default
+    strings - " (1)", " (2)", etc.
+    
+    An example of a custom uniquifier generator:
+
+      def _generate_unique_copy_string():
+        uniquifier = " - copy"
+        yield uniquifier
+         
+        uniquifier = " - another copy"
+        yield uniquifier
+         
+        i = 2
+        while True:
+          yield "{0} {1}".format(uniquifier, i)
+          i += 1
+    
+    This generator yields " - copy", " - another copy", " - another copy 2",
+    etc.
   """
   
-  def _get_uniquified_string(uniquifier_index):
-    return "{0} ({1}){2}".format(str_[0:uniquifier_position],
-                                 uniquifier_index,
-                                 str_[uniquifier_position:])
+  def _get_uniquified_string(uniquifier_generator):
+    return "{0}{1}{2}".format(str_[0:uniquifier_position],
+                              next(uniquifier_generator),
+                              str_[uniquifier_position:])
   
   if is_unique_func(str_):
     return str_
@@ -109,14 +133,21 @@ def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None):
   if uniquifier_position is None:
     uniquifier_position = len(str_)
   
-  uniquifier_index = 1
-  uniq_str = _get_uniquified_string(uniquifier_index)
+  if uniquifier_generator is None:
+    uniquifier_generator = _generate_unique_number()
   
+  uniq_str = _get_uniquified_string(uniquifier_generator)
   while not is_unique_func(uniq_str):
-    uniquifier_index += 1
-    uniq_str = _get_uniquified_string(uniquifier_index)
+    uniq_str = _get_uniquified_string(uniquifier_generator)
   
   return uniq_str
+
+
+def _generate_unique_number():
+  i = 1
+  while True:
+    yield " ({0})".format(i)
+    i += 1
 
 
 #===============================================================================
