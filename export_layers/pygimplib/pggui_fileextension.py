@@ -295,44 +295,35 @@ class FileExtensionEntry(gtk.Entry):
       tree_path, unused_ = self._tree_view.get_cursor()
       
       if key_name in ["Up", "KP_Up"]:
-        if tree_path is None:
-          # Last row
-          self._select_and_assign_row(len(self._file_formats_filtered) - 1)
-        elif tree_path[0] == 0:
-          # No selection
-          self._tree_view_unselect()
-          self.assign_text(self._last_assigned_text)
-        else:
-          # Previous row
-          self._select_and_assign_row(tree_path[0] - 1)
+        self._select_and_assign_row_after_key_press(
+          tree_path,
+          next_row=lambda tree_path: tree_path[0] - 1,
+          next_row_if_no_current_selection=len(self._file_formats_filtered) - 1,
+          current_row_before_unselection=0
+        )
       elif key_name in ["Down", "KP_Down"]:
-        if tree_path is None:
-          # First row
-          self._select_and_assign_row(0)
-        elif tree_path[0] == len(self._file_formats_filtered) - 1:
-          # No selection
-          self._tree_view_unselect()
-          self.assign_text(self._last_assigned_text)
-        else:
-          # Next row
-          self._select_and_assign_row(tree_path[0] + 1)
+        self._select_and_assign_row_after_key_press(
+          tree_path,
+          next_row=lambda tree_path: tree_path[0] + 1,
+          next_row_if_no_current_selection=0,
+          current_row_before_unselection=len(self._file_formats_filtered) - 1
+        )
       elif key_name == "Page_Up":
-        if tree_path is None:
-          self._select_and_assign_row(len(self._file_formats_filtered) - 1)
-        elif tree_path[0] == 0:
-          self._tree_view_unselect()
-          self.assign_text(self._last_assigned_text)
-        else:
-          self._select_and_assign_row(max(tree_path[0] - self._MAX_NUM_VISIBLE_ROWS, 0))
+        self._select_and_assign_row_after_key_press(
+          tree_path,
+          next_row=lambda tree_path: max(tree_path[0] - self._MAX_NUM_VISIBLE_ROWS,
+                                         0),
+          next_row_if_no_current_selection=len(self._file_formats_filtered) - 1,
+          current_row_before_unselection=0
+        )
       elif key_name == "Page_Down":
-        if tree_path is None:
-          self._select_and_assign_row(0)
-        elif tree_path[0] == len(self._file_formats_filtered) - 1:
-          self._tree_view_unselect()
-          self.assign_text(self._last_assigned_text)
-        else:
-          self._select_and_assign_row(min(tree_path[0] + self._MAX_NUM_VISIBLE_ROWS,
-                                          len(self._file_formats_filtered) - 1))
+        self._select_and_assign_row_after_key_press(
+          tree_path,
+          next_row=lambda tree_path: min(tree_path[0] + self._MAX_NUM_VISIBLE_ROWS,
+                                         len(self._file_formats_filtered) - 1),
+          next_row_if_no_current_selection=0,
+          current_row_before_unselection=len(self._file_formats_filtered) - 1
+        )
       elif key_name in ["Left", "KP_Left", "Right", "KP_Right"]:
         alt_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.MOD1_MASK
         # `tree_path` can sometimes point at the first row even though no row
@@ -430,6 +421,26 @@ class FileExtensionEntry(gtk.Entry):
     # fixes this. 
     self._tree_view.set_cursor((row_num,))
     self._assign_file_extension_from_selected_row()
+  
+  def _select_and_assign_row_after_key_press(self, tree_path, next_row,
+                                             next_row_if_no_current_selection,
+                                             current_row_before_unselection):
+    # One can use functions in case `tree_path` is None and is used to
+    # compute the other parameters.
+    
+    if tree_path is None:
+      self._select_and_assign_row(next_row_if_no_current_selection)
+    else:
+      if callable(current_row_before_unselection):
+        current_row_before_unselection = current_row_before_unselection(tree_path)
+      
+      if tree_path[0] == current_row_before_unselection:
+        self._tree_view_unselect()
+        self.assign_text(self._last_assigned_text)
+      else:
+        if callable(next_row):
+          next_row = next_row(tree_path)
+        self._select_and_assign_row(next_row)
   
   def _tree_view_unselect(self):
     # Select an invalid row so that `get_cursor` returns None on the next call.
