@@ -318,16 +318,21 @@ class FileExtensionEntry(gtk.Entry):
           self._select_and_assign_row(tree_path[0] + 1)
       elif key_name == "Page_Up":
         if tree_path is None:
-          row_num = 0
+          self._select_and_assign_row(len(self._file_formats_filtered) - 1)
+        elif tree_path[0] == 0:
+          self._tree_view_unselect()
+          self.assign_text(self._last_assigned_text)
         else:
-          row_num = max(tree_path[0] - self._MAX_NUM_VISIBLE_ROWS, 0)
-        self._select_and_assign_row(row_num)
+          self._select_and_assign_row(max(tree_path[0] - self._MAX_NUM_VISIBLE_ROWS, 0))
       elif key_name == "Page_Down":
         if tree_path is None:
-          row_num = 0
+          self._select_and_assign_row(0)
+        elif tree_path[0] == len(self._file_formats_filtered) - 1:
+          self._tree_view_unselect()
+          self.assign_text(self._last_assigned_text)
         else:
-          row_num = min(tree_path[0] + self._MAX_NUM_VISIBLE_ROWS, len(self._file_formats_filtered) - 1)
-        self._select_and_assign_row(row_num)
+          self._select_and_assign_row(min(tree_path[0] + self._MAX_NUM_VISIBLE_ROWS,
+                                          len(self._file_formats_filtered) - 1))
       elif key_name in ["Left", "KP_Left", "Right", "KP_Right"]:
         alt_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.MOD1_MASK
         # `tree_path` can sometimes point at the first row even though no row
