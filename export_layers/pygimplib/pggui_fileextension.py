@@ -286,7 +286,12 @@ class FileExtensionEntry(gtk.Entry):
   def _on_entry_key_press(self, entry, event):
     key_name = gtk.gdk.keyval_name(event.keyval)
     
-    if self._popup.get_mapped():
+    if (key_name in ["Up", "KP_Up", "Down", "KP_Down", "Page_Up", "Page_Down"]
+        and not self._is_popup_shown()):
+      self._show_popup()
+      return True
+    
+    if self._is_popup_shown():
       tree_path, unused_ = self._tree_view.get_cursor()
       
       if key_name in ["Up", "KP_Up"]:
@@ -347,13 +352,6 @@ class FileExtensionEntry(gtk.Entry):
       
       return True
     else:
-      if key_name == "space":
-        ctrl_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.CONTROL_MASK
-        if ctrl_key_pressed:
-          self._tree_view_unselect()
-          self._show_popup()
-          return True
-      
       return False
   
   def _on_entry_changed(self, entry):
@@ -547,7 +545,7 @@ class FileExtensionEntry(gtk.Entry):
     self._tree_view.set_cursor(selected_row_path)
   
   def _show_popup(self):
-    if not self._popup.get_mapped() and len(self._file_formats_filtered) > 0:
+    if not self._is_popup_shown() and len(self._file_formats_filtered) > 0:
       self._update_popup_position()
       
       self._button_press_emission_hook_id = gobject.add_emission_hook(
@@ -571,7 +569,7 @@ class FileExtensionEntry(gtk.Entry):
         self._show_popup_first_time = False
   
   def _hide_popup(self):
-    if self._popup.get_mapped():
+    if self._is_popup_shown():
       self._popup.hide()
       
       if self._button_press_emission_hook_id is not None:
@@ -581,6 +579,9 @@ class FileExtensionEntry(gtk.Entry):
         toplevel_window = self.get_toplevel()
         if isinstance(toplevel_window, gtk.Window):
           toplevel_window.disconnect(self._toplevel_configure_event_id)
+  
+  def _is_popup_shown(self):
+    return self._popup.get_mapped()
   
   def _update_popup_position(self):
     entry_absolute_position = self.get_window().get_origin()
