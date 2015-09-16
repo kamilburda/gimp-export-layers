@@ -226,6 +226,9 @@ class FileExtensionEntry(gtk.Entry):
     self._show_popup_first_time = True
     
     self._mouse_points_at_entry = False
+    self._mouse_points_at_popup = False
+    self._mouse_points_at_vscrollbar = False
+    
     self._last_assigned_text = ""
     
     self._tree_view_width = None
@@ -239,10 +242,19 @@ class FileExtensionEntry(gtk.Entry):
     self.connect("button-press-event", self._on_entry_left_mouse_button_press)
     self.connect("key-press-event", self._on_entry_key_press)
     self.connect("changed", self._on_entry_changed)
-    self.connect("enter-notify-event", self._on_entry_enter_notify_event)
-    self.connect("leave-notify-event", self._on_entry_leave_notify_event)
     self.connect("focus-out-event", self._on_entry_focus_out)
     self.connect("size-allocate", self._on_entry_size_allocate)
+    
+    self.connect("enter-notify-event", self._on_entry_enter_notify_event)
+    self.connect("leave-notify-event", self._on_entry_leave_notify_event)
+    
+    self._popup.connect("enter-notify-event", self._on_popup_enter_notify_event)
+    self._popup.connect("leave-notify-event", self._on_popup_leave_notify_event)
+    
+    self._scrolled_window.get_vscrollbar().connect("enter-notify-event",
+                                                   self._on_vscrollbar_enter_notify_event)
+    self._scrolled_window.get_vscrollbar().connect("leave-notify-event",
+                                                   self._on_vscrollbar_leave_notify_event)
     
     self._tree_view.connect("button-press-event", self._on_tree_view_left_mouse_button_press)
     # This sets the correct initial width and height of the tree view.
@@ -369,17 +381,29 @@ class FileExtensionEntry(gtk.Entry):
         self._file_formats_filtered.refilter()
         self._resize_tree_view(num_rows=len(self._file_formats_filtered))
   
+  def _on_entry_focus_out(self, entry, event):
+    self._hide_popup()
+  
+  def _on_entry_size_allocate(self, entry, allocation):
+    self._hide_popup()
+  
   def _on_entry_enter_notify_event(self, entry, event):
     self._mouse_points_at_entry = True   
   
   def _on_entry_leave_notify_event(self, entry, event):
     self._mouse_points_at_entry = False
   
-  def _on_entry_focus_out(self, entry, event):
-    self._hide_popup()
+  def _on_popup_enter_notify_event(self, entry, event):
+    self._mouse_points_at_popup = True   
   
-  def _on_entry_size_allocate(self, entry, allocation):
-    self._hide_popup()
+  def _on_popup_leave_notify_event(self, popup, event):
+    self._mouse_points_at_popup = False
+  
+  def _on_vscrollbar_enter_notify_event(self, vscrollbar, event):
+    self._mouse_points_at_vscrollbar = True   
+  
+  def _on_vscrollbar_leave_notify_event(self, vscrollbar, event):
+    self._mouse_points_at_vscrollbar = False
   
   def _on_tree_view_left_mouse_button_press(self, tree_view, event):
     if event.button == self._BUTTON_MOUSE_LEFT:
@@ -394,22 +418,12 @@ class FileExtensionEntry(gtk.Entry):
     self._unhighlight_extension()
   
   def _on_button_press_emission_hook(self, widget, event):
-    if widget == self:
+    if (self._mouse_points_at_popup or self._mouse_points_at_vscrollbar or
+        self._mouse_points_at_entry):
       return True
     else:
-      # HACK: When repeatedly clicking on the vertical scroll bar, do not hide
-      # the popup. When repeatedly clicking on the inner border of the entry,
-      # hide the popup.
-      # It seems that double- or triple- clicking a widget does not return the
-      # widget, but rather its immediate or a more distant parent.
-      if event.type in [gtk.gdk._2BUTTON_PRESS, gtk.gdk._3BUTTON_PRESS] and not self._mouse_points_at_entry:
-        return True
-      
-      if widget == self._scrolled_window.get_vscrollbar():
-        return True
-      else:
-        self._hide_popup()
-        return False
+      self._hide_popup()
+      return False
   
   def _on_toplevel_configure_event(self, toplevel_window, event):
     self._hide_popup()
