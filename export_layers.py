@@ -34,13 +34,23 @@ str = unicode
 
 from export_layers import constants
 
+
 import gettext
 
 gettext.install(constants.DOMAIN_NAME, constants.LOCALE_PATH, unicode=True)
 
+
 from export_layers import log_output
 
 log_output.log_output(constants.DEBUG)
+
+
+import os
+
+# Disable overlay scrolling (notably used in Ubuntu) to be consistent with the
+# Export menu.
+os.environ['LIBOVERLAY_SCROLLBAR'] = '0'
+
 
 import gimp
 import gimpplugin
