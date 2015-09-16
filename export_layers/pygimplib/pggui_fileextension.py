@@ -281,6 +281,13 @@ class FileExtensionEntry(gtk.Entry):
   
   def _on_entry_left_mouse_button_press(self, entry, event):
     if event.button == self._BUTTON_MOUSE_LEFT:
+      # If the user clicks on the edge of the entry (where the text cursor isn't
+      # displayed yet), set the focus on the entry, since the popup will be
+      # displayed.
+      if not self.has_focus():
+        self.grab_focus()
+        self.set_position(-1)
+      
       self._clear_filter = True
       self._file_formats_filtered.refilter()
       self._clear_filter = False
