@@ -445,7 +445,8 @@ class FileExtensionEntry(gtk.Entry):
   
   def _select_and_assign_row_after_key_press(self, tree_path, next_row,
                                              next_row_if_no_current_selection,
-                                             current_row_before_unselection):
+                                             current_row_before_unselection,
+                                             row_to_scroll_before_unselection=0):
     # One can pass functions for `next_row` and `current_row_before_unselection`
     # parameters if `tree_path` is None and `tree_path` is used to compute these
     # parameters.
@@ -457,6 +458,7 @@ class FileExtensionEntry(gtk.Entry):
         current_row_before_unselection = current_row_before_unselection(tree_path)
       
       if tree_path[0] == current_row_before_unselection:
+        self._tree_view.scroll_to_cell((row_to_scroll_before_unselection,))
         self._tree_view_unselect()
         self.assign_text(self._last_assigned_text)
       else:
