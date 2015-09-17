@@ -47,9 +47,15 @@ log_output.log_output(constants.DEBUG)
 
 import os
 
-# Disable overlay scrolling (notably used in Ubuntu) to be consistent with the
-# Export menu.
-os.environ['LIBOVERLAY_SCROLLBAR'] = '0'
+try:
+  # Disable overlay scrolling (notably used in Ubuntu) to be consistent with the
+  # Export menu.
+  os.environ['LIBOVERLAY_SCROLLBAR'] = '0'
+except TypeError:
+  raise
+except Exception:
+  # OS does not support setting environment variables
+  pass
 
 
 import gimp
