@@ -43,6 +43,7 @@ pygtk.require("2.0")
 import gtk
 
 import gobject
+import pango
 
 import gimp
 
@@ -232,10 +233,17 @@ class FileExtensionEntry(gtk.Entry):
     self._last_assigned_text = ""
     
     self._tree_view_width = None
+    self._tree_view_columns_rects = []
+    
+    self._cell_renderer_description = None
+    self._cell_renderer_extensions = None
     
     self._highlighted_extension_row = None
     self._highlighted_extension_index = None
-    self._highlighted_extension_orig_text = None
+    self._highlighted_extension = None
+    
+    self._extensions_separator_text_pixel_size = None
+    self._extensions_text_pixel_rects = []
     
     self._create_popup(_FILE_FORMATS)
     
@@ -257,8 +265,11 @@ class FileExtensionEntry(gtk.Entry):
                                                    self._on_vscrollbar_leave_notify_event)
     
     self._tree_view.connect("button-press-event", self._on_tree_view_left_mouse_button_press)
+    self._tree_view.connect("motion-notify-event", self._on_tree_view_motion_notify_event)
+    
     # This sets the correct initial width and height of the tree view.
     self._tree_view.connect_after("realize", self._on_after_tree_view_realize)
+    
     self._tree_view.get_selection().connect("changed", self._on_tree_selection_changed)
     
     self._button_press_emission_hook_id = None
@@ -354,7 +365,7 @@ class FileExtensionEntry(gtk.Entry):
             self._highlight_extension_previous(tree_path)
           elif key_name in ["Right", "KP_Right"]:
             self._highlight_extension_next(tree_path)
-          self.assign_text(self._highlighted_extension_orig_text)
+          self.assign_text(self._highlighted_extension)
         else:
           return False
       elif key_name in ["Return", "KP_Enter"]:
@@ -414,12 +425,50 @@ class FileExtensionEntry(gtk.Entry):
   
   def _on_tree_view_left_mouse_button_press(self, tree_view, event):
     if event.button == self._BUTTON_MOUSE_LEFT:
-      self._assign_file_extension_from_selected_row()
+      if self._highlighted_extension_index is None:
+        self._assign_file_extension_from_selected_row()
+      else:
+        self.assign_text(self._highlighted_extension)
+      
       self._last_assigned_text = self.get_text()
       self._hide_popup()
   
+  def _on_tree_view_motion_notify_event(self, tree_view, event):
+    is_in_extensions_column = int(event.x) >= self._tree_view_columns_rects[self._COLUMN_EXTENSIONS].x
+    if not is_in_extensions_column:
+      if self._highlighted_extension is not None:
+        self._unhighlight_extension()
+      return
+    
+    path_params = self._tree_view.get_path_at_pos(int(event.x), int(event.y))
+    if path_params is None:
+      return
+    
+    selected_path_unfiltered = self._file_formats_filtered.convert_path_to_child_path(path_params[0])
+    extension_index = self._get_extension_index_at_pos(path_params[2], selected_path_unfiltered[0])
+    
+    if extension_index == self._highlighted_extension_index:
+      return
+    
+    if extension_index is not None:
+      self._highlight_extension_at_index(path_params[0], extension_index)
+    else:
+      self._unhighlight_extension()
+  
   def _on_after_tree_view_realize(self, tree_view):
     self._resize_tree_view(num_rows=len(self._file_formats_filtered))
+    
+    self._extensions_separator_text_pixel_size = self._get_text_pixel_size(
+      self._cell_renderer_extensions.get_property("text-list-separator"),
+      pango.Layout(self._tree_view.get_pango_context())
+    )
+    
+    self._fill_extensions_text_pixel_rects()
+    
+    self._tree_view_columns_rects = [
+      self._tree_view.get_cell_area((0,), self._tree_view.get_column(column))
+      for column in self._COLUMNS
+    ]
   
   def _on_tree_selection_changed(self, tree_selection):
     self._unhighlight_extension()
@@ -512,33 +561,31 @@ class FileExtensionEntry(gtk.Entry):
     self.assign_text(extensions[extension_index])
   
   def _highlight_extension_next(self, selected_row_path):
-    def _select_next_extension(selected_row_path, len_extensions):
-      return (self._highlighted_extension_index + 1) % len_extensions
+    def _select_next_extension(highlighted_extension_index, len_extensions):
+      return (highlighted_extension_index + 1) % len_extensions
     
     self._highlight_extension(selected_row_path, _select_next_extension)
   
   def _highlight_extension_previous(self, selected_row_path):
-    def _select_previous_extension(selected_row_path, len_extensions):
-      return (self._highlighted_extension_index - 1) % len_extensions
+    def _select_previous_extension(highlighted_extension_index, len_extensions):
+      return (highlighted_extension_index - 1) % len_extensions
     
     self._highlight_extension(selected_row_path, _select_previous_extension)
   
   def _highlight_extension(self, selected_row_path, extension_index_selection_func):
     if selected_row_path is not None:
-      row_path = self._file_formats_filtered.convert_path_to_child_path(selected_row_path)
-      
-      extensions = self._file_formats[row_path][self._COLUMN_EXTENSIONS]
-      
-      self._highlighted_extension_row = row_path[0]
-      
       self._unhighlight_extension_proper()
       
+      row_path = self._file_formats_filtered.convert_path_to_child_path(selected_row_path)
+      self._highlighted_extension_row = row_path[0]
+      
+      extensions = self._file_formats[row_path][self._COLUMN_EXTENSIONS]
       if len(extensions) <= 1:
         # No good reason to highlight the only extension in the row.
         if len(extensions) == 1:
-          self._highlighted_extension_orig_text = extensions[0]
+          self._highlighted_extension = extensions[0]
         elif len(extensions) == 0:
-          self._highlighted_extension_orig_text = ""
+          self._highlighted_extension = ""
         
         return
       
@@ -552,8 +599,24 @@ class FileExtensionEntry(gtk.Entry):
       
       self._update_selected_row_display(selected_row_path)
   
+  def _highlight_extension_at_index(self, selected_row_path, extension_index):
+    if selected_row_path is not None:
+      self._unhighlight_extension_proper()
+      
+      row_path = self._file_formats_filtered.convert_path_to_child_path(selected_row_path)
+      
+      self._highlighted_extension_row = row_path[0]
+      self._highlighted_extension_index = extension_index
+      
+      self._highlight_extension_proper()
+      
+      self._update_selected_row_display(selected_row_path)
+  
   def _unhighlight_extension(self):
     self._unhighlight_extension_proper()
+    
+    if self._highlighted_extension_row is not None:
+      self._update_selected_row_display((self._highlighted_extension_row,))
     
     self._highlighted_extension_row = None
     self._highlighted_extension_index = None
@@ -561,7 +624,7 @@ class FileExtensionEntry(gtk.Entry):
   def _highlight_extension_proper(self):
     extensions = self._file_formats[self._highlighted_extension_row][self._COLUMN_EXTENSIONS]
     
-    self._highlighted_extension_orig_text = extensions[self._highlighted_extension_index]
+    self._highlighted_extension = extensions[self._highlighted_extension_index]
     
     bg_color = self._tree_view.style.bg[gtk.STATE_SELECTED]
     fg_color = self._tree_view.style.fg[gtk.STATE_SELECTED]
@@ -577,9 +640,9 @@ class FileExtensionEntry(gtk.Entry):
   def _unhighlight_extension_proper(self):
     if self._highlighted_extension_row is not None and self._highlighted_extension_index is not None:
       extensions = self._file_formats[self._highlighted_extension_row][self._COLUMN_EXTENSIONS]
-      if self._highlighted_extension_orig_text is not None:
-        extensions[self._highlighted_extension_index] = self._highlighted_extension_orig_text
-        self._highlighted_extension_orig_text = None
+      if self._highlighted_extension is not None:
+        extensions[self._highlighted_extension_index] = self._highlighted_extension
+        self._highlighted_extension = None
   
   def _update_selected_row_display(self, selected_row_path):
     self._tree_view.set_cursor(selected_row_path)
@@ -691,6 +754,9 @@ class FileExtensionEntry(gtk.Entry):
   
   def _fill_file_formats(self, file_formats):
     for file_format in file_formats:
+      if len(file_format) < 2:
+        raise ValueError("invalid length of file format tuple: {0}".format(file_format))
+      
       if len(file_format) == 2 or (len(file_format) > 2 and
                                    pdb.gimp_procedural_db_proc_exists(file_format[2])):
         self._file_formats.append(file_format[0:2])
@@ -701,6 +767,72 @@ class FileExtensionEntry(gtk.Entry):
       column = gtk.TreeViewColumn(column_title, cell_renderer, **{cell_renderer_property: column_number})
       self._tree_view.append_column(column)
     
-    _add_column(gtk.CellRendererText(), "text", self._COLUMN_DESCRIPTION)
-    _add_column(CellRendererTextList(), "markup-list", self._COLUMN_EXTENSIONS)
+    self._cell_renderer_description = gtk.CellRendererText()
+    self._cell_renderer_extensions = CellRendererTextList()
+    _add_column(self._cell_renderer_description, "text", self._COLUMN_DESCRIPTION)
+    _add_column(self._cell_renderer_extensions, "markup-list", self._COLUMN_EXTENSIONS)
+  
+  def _fill_extensions_text_pixel_rects(self):
+    pango_layout = pango.Layout(self._tree_view.get_pango_context())
+    
+    for file_format in self._file_formats:
+      file_extensions = file_format[1]
+      
+      if len(file_extensions) > 1:
+        text_pixel_rects = self._get_text_pixel_rects(file_extensions, pango_layout,
+                                                      self._extensions_separator_text_pixel_size[0])
+        for rect in text_pixel_rects:
+          rect.x += self._cell_renderer_extensions.get_property("xpad")
+          rect.x += self._tree_view.style_get_property("horizontal-separator")
+          rect.x += self._tree_view.get_column(self._COLUMN_EXTENSIONS).get_spacing()
+          
+          # Occupy the space of the separator so that extension highlighting is
+          # continuous.
+          if rect == text_pixel_rects[0]:
+            rect.width += self._extensions_separator_text_pixel_size[0] // 2
+          elif rect == text_pixel_rects[-1]:
+            rect.x -= self._extensions_separator_text_pixel_size[0] // 2
+            rect.width += self._extensions_separator_text_pixel_size[0] // 2
+          else:
+            rect.x -= self._extensions_separator_text_pixel_size[0] // 2
+            rect.width += self._extensions_separator_text_pixel_size[0]
+          
+        self._extensions_text_pixel_rects.append(text_pixel_rects)
+      else:
+        self._extensions_text_pixel_rects.append([])
+  
+  def _get_text_pixel_rects(self, file_extensions, pango_layout, separator_pixel_width):
+    text_pixel_rects = []
+    
+    extension_x = 0
+    for extension in file_extensions:
+      extension_pixel_size = self._get_text_pixel_size(extension, pango_layout)
+      text_pixel_rects.append(gtk.gdk.Rectangle(extension_x, 0, *extension_pixel_size))
+      
+      extension_x += extension_pixel_size[0] + separator_pixel_width
+    
+    return text_pixel_rects
+  
+  def _get_text_pixel_size(self, text, pango_layout):
+    pango_layout.set_text(text)
+    return pango_layout.get_pixel_size()
+  
+  def _get_extension_index_at_pos(self, cell_x, selected_row):
+    extension_rects = self._extensions_text_pixel_rects[selected_row]
+    
+    if not extension_rects:
+      return None
+    
+    extension_index = 0
+    for extension_rect in extension_rects:
+      if extension_rect.x <= cell_x <= extension_rect.x + extension_rect.width:
+        break
+      extension_index += 1
+    
+    matches_extension = extension_index < len(extension_rects)
+    
+    if matches_extension:
+      return extension_index
+    else:
+      return None
   
