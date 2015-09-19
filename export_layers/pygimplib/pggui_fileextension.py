@@ -434,26 +434,7 @@ class FileExtensionEntry(gtk.Entry):
       self._hide_popup()
   
   def _on_tree_view_motion_notify_event(self, tree_view, event):
-    is_in_extensions_column = int(event.x) >= self._tree_view_columns_rects[self._COLUMN_EXTENSIONS].x
-    if not is_in_extensions_column:
-      if self._highlighted_extension is not None:
-        self._unhighlight_extension()
-      return
-    
-    path_params = self._tree_view.get_path_at_pos(int(event.x), int(event.y))
-    if path_params is None:
-      return
-    
-    selected_path_unfiltered = self._file_formats_filtered.convert_path_to_child_path(path_params[0])
-    extension_index = self._get_extension_index_at_pos(path_params[2], selected_path_unfiltered[0])
-    
-    if extension_index == self._highlighted_extension_index:
-      return
-    
-    if extension_index is not None:
-      self._highlight_extension_at_index(path_params[0], extension_index)
-    else:
-      self._unhighlight_extension()
+    self._highlight_extension_at_pos(int(event.x), int(event.y))
   
   def _on_after_tree_view_realize(self, tree_view):
     self._resize_tree_view(num_rows=len(self._file_formats_filtered))
@@ -560,18 +541,6 @@ class FileExtensionEntry(gtk.Entry):
       extension_index = len(extensions) - 1
     self.assign_text(extensions[extension_index])
   
-  def _highlight_extension_next(self, selected_row_path):
-    def _select_next_extension(highlighted_extension_index, len_extensions):
-      return (highlighted_extension_index + 1) % len_extensions
-    
-    self._highlight_extension(selected_row_path, _select_next_extension)
-  
-  def _highlight_extension_previous(self, selected_row_path):
-    def _select_previous_extension(highlighted_extension_index, len_extensions):
-      return (highlighted_extension_index - 1) % len_extensions
-    
-    self._highlight_extension(selected_row_path, _select_previous_extension)
-  
   def _highlight_extension(self, selected_row_path, extension_index_selection_func):
     if selected_row_path is not None:
       self._unhighlight_extension_proper()
@@ -598,6 +567,40 @@ class FileExtensionEntry(gtk.Entry):
       self._highlight_extension_proper()
       
       self._update_selected_row_display(selected_row_path)
+  
+  def _highlight_extension_next(self, selected_row_path):
+    def _select_next_extension(highlighted_extension_index, len_extensions):
+      return (highlighted_extension_index + 1) % len_extensions
+    
+    self._highlight_extension(selected_row_path, _select_next_extension)
+  
+  def _highlight_extension_previous(self, selected_row_path):
+    def _select_previous_extension(highlighted_extension_index, len_extensions):
+      return (highlighted_extension_index - 1) % len_extensions
+    
+    self._highlight_extension(selected_row_path, _select_previous_extension)
+  
+  def _highlight_extension_at_pos(self, x, y):
+    is_in_extensions_column = x >= self._tree_view_columns_rects[self._COLUMN_EXTENSIONS].x
+    if not is_in_extensions_column:
+      if self._highlighted_extension is not None:
+        self._unhighlight_extension()
+      return
+    
+    path_params = self._tree_view.get_path_at_pos(x, y)
+    if path_params is None:
+      return
+    
+    selected_path_unfiltered = self._file_formats_filtered.convert_path_to_child_path(path_params[0])
+    extension_index = self._get_extension_index_at_pos(path_params[2], selected_path_unfiltered[0])
+    
+    if extension_index == self._highlighted_extension_index:
+      return
+    
+    if extension_index is not None:
+      self._highlight_extension_at_index(path_params[0], extension_index)
+    else:
+      self._unhighlight_extension()
   
   def _highlight_extension_at_index(self, selected_row_path, extension_index):
     if selected_row_path is not None:
