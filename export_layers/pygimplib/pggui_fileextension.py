@@ -645,7 +645,8 @@ class FileExtensionEntry(gtk.Entry):
         self._highlighted_extension = None
   
   def _update_selected_row_display(self, selected_row_path):
-    self._tree_view.set_cursor(selected_row_path)
+    self._file_formats_filtered.emit("row-changed", selected_row_path,
+                                     self._file_formats_filtered.get_iter(selected_row_path))
   
   def _show_popup(self):
     if not self._is_popup_shown() and len(self._file_formats_filtered) > 0:
