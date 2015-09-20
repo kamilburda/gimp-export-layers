@@ -319,7 +319,15 @@ class FileExtensionEntry(gtk.Entry):
     if (key_name in ["Up", "KP_Up", "Down", "KP_Down", "Page_Up", "Page_Down"]
         and not self._is_popup_shown()):
       self._unhighlight_extension()
+      
+      show_popup_first_time = self._show_popup_first_time
+      
       self._show_popup()
+      
+      # This prevents the navigation keys to select the first row. 
+      if show_popup_first_time:
+        self._tree_view_unselect()
+      
       return True
     
     if self._is_popup_shown():
