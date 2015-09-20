@@ -318,6 +318,7 @@ class FileExtensionEntry(gtk.Entry):
     
     if (key_name in ["Up", "KP_Up", "Down", "KP_Down", "Page_Up", "Page_Down"]
         and not self._is_popup_shown()):
+      self._unhighlight_extension()
       self._show_popup()
       return True
     
