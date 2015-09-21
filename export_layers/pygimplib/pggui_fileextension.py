@@ -363,17 +363,17 @@ class FileExtensionEntry(gtk.Entry):
           next_row_if_no_current_selection=0,
           current_row_before_unselection=len(self._file_formats_filtered) - 1
         )
-      elif key_name in ["Left", "KP_Left", "Right", "KP_Right"]:
-        alt_key_pressed = (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.MOD1_MASK
+      elif key_name in ["Tab", "ISO_Left_Tab"]:
         # `tree_path` can sometimes point at the first row even though no row
         # is selected, hence the `tree_iter` usage.
         unused_, tree_iter = self._tree_view.get_selection().get_selected()
         
-        if alt_key_pressed and tree_iter is not None:
-          if key_name in ["Left", "KP_Left"]:
-            self._highlight_extension_previous(tree_path)
-          elif key_name in ["Right", "KP_Right"]:
+        if tree_iter is not None:
+          if key_name == "Tab":
             self._highlight_extension_next(tree_path)
+          elif key_name == "ISO_Left_Tab":    # Shift+Tab
+            self._highlight_extension_previous(tree_path)
+          
           self.assign_text(self._highlighted_extension)
         else:
           return False
