@@ -316,7 +316,8 @@ class FileExtensionEntry(gtk.Entry):
   def _on_entry_key_press(self, entry, event):
     key_name = gtk.gdk.keyval_name(event.keyval)
     
-    if (key_name in ["Up", "KP_Up", "Down", "KP_Down", "Page_Up", "Page_Down"]
+    if (key_name in ["Up", "KP_Up", "Down", "KP_Down",
+                     "Page_Up", "KP_Page_Up", "Page_Down", "KP_Page_Down"]
         and not self._is_popup_shown()):
       self._unhighlight_extension()
       
@@ -347,7 +348,7 @@ class FileExtensionEntry(gtk.Entry):
           next_row_if_no_current_selection=0,
           current_row_before_unselection=len(self._file_formats_filtered) - 1
         )
-      elif key_name == "Page_Up":
+      elif key_name in ["Page_Up", "KP_Page_Up"]:
         self._select_and_assign_row_after_key_press(
           tree_path,
           next_row=lambda tree_path: max(tree_path[0] - self._MAX_NUM_VISIBLE_ROWS,
@@ -355,7 +356,7 @@ class FileExtensionEntry(gtk.Entry):
           next_row_if_no_current_selection=len(self._file_formats_filtered) - 1,
           current_row_before_unselection=0
         )
-      elif key_name == "Page_Down":
+      elif key_name in ["Page_Down", "KP_Page_Down"]:
         self._select_and_assign_row_after_key_press(
           tree_path,
           next_row=lambda tree_path: min(tree_path[0] + self._MAX_NUM_VISIBLE_ROWS,
@@ -363,13 +364,13 @@ class FileExtensionEntry(gtk.Entry):
           next_row_if_no_current_selection=0,
           current_row_before_unselection=len(self._file_formats_filtered) - 1
         )
-      elif key_name in ["Tab", "ISO_Left_Tab"]:
+      elif key_name in ["Tab", "KP_Tab", "ISO_Left_Tab"]:
         # `tree_path` can sometimes point at the first row even though no row
         # is selected, hence the `tree_iter` usage.
         unused_, tree_iter = self._tree_view.get_selection().get_selected()
         
         if tree_iter is not None:
-          if key_name == "Tab":
+          if key_name in ["Tab", "KP_Tab"]:
             self._highlight_extension_next(tree_path)
           elif key_name == "ISO_Left_Tab":    # Shift+Tab
             self._highlight_extension_previous(tree_path)
