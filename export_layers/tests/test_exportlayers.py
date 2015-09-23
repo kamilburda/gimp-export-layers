@@ -242,7 +242,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
 #===============================================================================
 
 
-def test_file_formats(layer_exporter, main_settings):
+def test_file_formats(layer_exporter, export_settings):
   """
   Test all file formats at once.
   """
@@ -257,11 +257,11 @@ def test_file_formats(layer_exporter, main_settings):
     'tiff', 'bmp', 'xbm', 'bitmap', 'xpm', 'xwd', 'pcx', 'pcc'
   ]
   
-  orig_output_directory = main_settings['output_directory'].value
+  orig_output_directory = export_settings['output_directory'].value
   
   for file_extension in file_extensions:
-    main_settings['file_extension'].set_value(file_extension)
-    main_settings['output_directory'].set_value(os.path.join(orig_output_directory, file_extension))
+    export_settings['file_extension'].set_value(file_extension)
+    export_settings['output_directory'].set_value(os.path.join(orig_output_directory, file_extension))
     try:
       layer_exporter.export_layers()
     except exportlayers.ExportLayersError:

@@ -168,8 +168,8 @@ class LayerExporter(object):
   
   * `image` - GIMP image to export layers from.
   
-  * `main_settings` - the main settings of the plug-in. This class treats them
-    as read-only.
+  * `export_settings` - export settings (main settings of the plug-in). This
+    class treats them as read-only.
   
   * `overwrite_chooser` - `OverwriteChooser` instance that is invoked if a file
     with the same name already exists.
@@ -208,11 +208,10 @@ class LayerExporter(object):
       self.is_valid = True
       self.processed_count = 0
   
-  def __init__(self, initial_run_mode, image, main_settings, overwrite_chooser, progress_updater):
-    
+  def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser, progress_updater):
     self.initial_run_mode = initial_run_mode
     self.image = image
-    self.main_settings = main_settings
+    self.export_settings = export_settings
     self.overwrite_chooser = overwrite_chooser
     self.progress_updater = progress_updater
     
@@ -251,9 +250,9 @@ class LayerExporter(object):
     
     self._exported_layers = []
     
-    self._output_directory = self.main_settings['output_directory'].value
-    self._default_file_extension = self.main_settings['file_extension'].value
-    self._include_item_path = self.main_settings['layer_groups_as_folders'].value
+    self._output_directory = self.export_settings['output_directory'].value
+    self._default_file_extension = self.export_settings['file_extension'].value
+    self._include_item_path = self.export_settings['layer_groups_as_folders'].value
     
     self._image_copy = None
     self._layer_data = pgitemdata.LayerData(self.image, is_filtered=True)
@@ -287,30 +286,30 @@ class LayerExporter(object):
     
     self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_layer)
     
-    if self.main_settings['merge_layer_groups'].value:
+    if self.export_settings['merge_layer_groups'].value:
       self._layer_data.filter.add_rule(LayerFilterRules.is_top_level)
       self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
     
-    if self.main_settings['ignore_invisible'].value:
+    if self.export_settings['ignore_invisible'].value:
       self._layer_data.filter.add_rule(LayerFilterRules.is_path_visible)
     
-    if self.main_settings['empty_folders'].value:
+    if self.export_settings['empty_folders'].value:
       self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
-    if (self.main_settings['square_bracketed_mode'].value ==
-        self.main_settings['square_bracketed_mode'].items['normal']):
+    if (self.export_settings['square_bracketed_mode'].value ==
+        self.export_settings['square_bracketed_mode'].items['normal']):
       for layer_elem in self._layer_data:
         self._remove_square_brackets(layer_elem)
-    elif (self.main_settings['square_bracketed_mode'].value ==
-          self.main_settings['square_bracketed_mode'].items['background']):
+    elif (self.export_settings['square_bracketed_mode'].value ==
+          self.export_settings['square_bracketed_mode'].items['background']):
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_enclosed_in_square_brackets):
         self._background_layer_elems = list(self._layer_data)
       self._layer_data.filter.add_rule(LayerFilterRules.is_not_enclosed_in_square_brackets)
-    elif (self.main_settings['square_bracketed_mode'].value ==
-          self.main_settings['square_bracketed_mode'].items['ignore']):
+    elif (self.export_settings['square_bracketed_mode'].value ==
+          self.export_settings['square_bracketed_mode'].items['ignore']):
       self._layer_data.filter.add_rule(LayerFilterRules.is_not_enclosed_in_square_brackets)
-    elif (self.main_settings['square_bracketed_mode'].value ==
-          self.main_settings['square_bracketed_mode'].items['ignore_other']):
+    elif (self.export_settings['square_bracketed_mode'].value ==
+          self.export_settings['square_bracketed_mode'].items['ignore_other']):
       filter_tag = "allow_square_bracketed_only"
       
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_enclosed_in_square_brackets):
@@ -320,8 +319,8 @@ class LayerExporter(object):
       
       self._layer_data.filter.add_rule(LayerFilterRules.has_tag, filter_tag)
     
-    if (self.main_settings['file_ext_mode'].value ==
-        self.main_settings['file_ext_mode'].items['only_matching_file_extension']):
+    if (self.export_settings['file_ext_mode'].value ==
+        self.export_settings['file_ext_mode'].items['only_matching_file_extension']):
       self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension,
                                        self._default_file_extension)
   
@@ -406,7 +405,7 @@ class LayerExporter(object):
     if pdb.gimp_item_is_group(layer_copy):
       layer_copy = pgpdb.merge_layer_group(layer_copy)
     
-    if self.main_settings['ignore_layer_modes'].value:
+    if self.export_settings['ignore_layer_modes'].value:
       layer_copy.mode = gimpenums.NORMAL_MODE
     
     self._image_copy.active_layer = layer_copy
@@ -418,7 +417,7 @@ class LayerExporter(object):
   def _insert_background(self):
     if self._background_layer_elems:
       if self._background_layer is None:
-        if self.main_settings['use_image_size'].value:
+        if self.export_settings['use_image_size'].value:
           # Remove background layers outside the image canvas, since they wouldn't
           # be visible anyway and because we need to avoid `RuntimeError`
           # when `pdb.gimp_image_merge_visible_layers` with the `CLIP_TO_IMAGE`
@@ -435,12 +434,12 @@ class LayerExporter(object):
           bg_layer_copy = pdb.gimp_layer_new_from_drawable(bg_elem.item, self._image_copy)
           pdb.gimp_image_insert_layer(self._image_copy, bg_layer_copy, None, i)
           pdb.gimp_item_set_visible(bg_layer_copy, True)
-          if self.main_settings['ignore_layer_modes'].value:
+          if self.export_settings['ignore_layer_modes'].value:
             bg_layer_copy.mode = gimpenums.NORMAL_MODE
           if pdb.gimp_item_is_group(bg_layer_copy):
             bg_layer_copy = pgpdb.merge_layer_group(bg_layer_copy)
         
-        if self.main_settings['use_image_size'].value:
+        if self.export_settings['use_image_size'].value:
           background_layer = pdb.gimp_image_merge_visible_layers(self._image_copy,
                                                                  gimpenums.CLIP_TO_IMAGE)
         else:
@@ -457,26 +456,26 @@ class LayerExporter(object):
     return None
   
   def _crop_and_merge(self, layer, background_layer):
-    if not self.main_settings['use_image_size'].value:
+    if not self.export_settings['use_image_size'].value:
       pdb.gimp_image_resize_to_layers(self._image_copy)
-      if self.main_settings['crop_to_background'].value:
+      if self.export_settings['crop_to_background'].value:
         if background_layer is not None:
           layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
-        if self.main_settings['autocrop'].value:
+        if self.export_settings['autocrop'].value:
           pdb.plug_in_autocrop(self._image_copy, layer)
       else:
-        if self.main_settings['autocrop'].value:
+        if self.export_settings['autocrop'].value:
           pdb.plug_in_autocrop(self._image_copy, layer)
         if background_layer is not None:
           layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
     else:
-      if self.main_settings['crop_to_background'].value and background_layer is not None:
-        if self.main_settings['autocrop'].value:
+      if self.export_settings['crop_to_background'].value and background_layer is not None:
+        if self.export_settings['autocrop'].value:
           self._image_copy.active_layer = background_layer
           pdb.plug_in_autocrop_layer(self._image_copy, background_layer)
           self._image_copy.active_layer = layer
       else:
-        if self.main_settings['autocrop'].value:
+        if self.export_settings['autocrop'].value:
           pdb.plug_in_autocrop_layer(self._image_copy, layer)
       
       if background_layer is not None:
@@ -487,20 +486,20 @@ class LayerExporter(object):
     return layer
   
   def _strip_file_extension(self, layer_elem):
-    if self.main_settings['strip_mode'].value in (
-         self.main_settings['strip_mode'].items['identical'],
-         self.main_settings['strip_mode'].items['always']):
+    if self.export_settings['strip_mode'].value in (
+         self.export_settings['strip_mode'].items['identical'],
+         self.export_settings['strip_mode'].items['always']):
       file_extension = layer_elem.get_file_extension()
       if file_extension:
-        if self.main_settings['strip_mode'].value == self.main_settings['strip_mode'].items['identical']:
+        if self.export_settings['strip_mode'].value == self.export_settings['strip_mode'].items['identical']:
           if file_extension == self._default_file_extension:
             layer_elem.set_file_extension(None)
         else:
           layer_elem.set_file_extension(None)
   
   def _set_file_extension_and_update_file_export_func(self, layer_elem):
-    if (self.main_settings['file_ext_mode'].value ==
-        self.main_settings['file_ext_mode'].items['use_as_file_extensions']):
+    if (self.export_settings['file_ext_mode'].value ==
+        self.export_settings['file_ext_mode'].items['use_as_file_extensions']):
       
       file_extension = layer_elem.get_file_extension()
       if file_extension and self._layer_file_extension_properties[file_extension].is_valid:
@@ -511,8 +510,8 @@ class LayerExporter(object):
       
       self._file_export_func = self._get_file_export_func(self._current_file_extension)
       
-    elif (self.main_settings['file_ext_mode'].value ==
-          self.main_settings['file_ext_mode'].items['no_special_handling']):
+    elif (self.export_settings['file_ext_mode'].value ==
+          self.export_settings['file_ext_mode'].items['no_special_handling']):
       
       layer_elem.name += '.' + self._default_file_extension
   
