@@ -629,7 +629,7 @@ class FileExtensionEntry(gtk.Entry):
     self._unhighlight_extension_proper()
     
     if self._highlighted_extension_row is not None:
-      self._refresh_row_display((self._highlighted_extension_row,))
+      self._refresh_row_display((self._highlighted_extension_row,), is_path_filtered=False)
     
     self._highlighted_extension_row = None
     self._highlighted_extension_index = None
@@ -657,9 +657,13 @@ class FileExtensionEntry(gtk.Entry):
         extensions[self._highlighted_extension_index] = self._highlighted_extension
         self._highlighted_extension = None
   
-  def _refresh_row_display(self, row_path):
-    self._file_formats_filtered.emit("row-changed", row_path,
-                                     self._file_formats_filtered.get_iter(row_path))
+  def _refresh_row_display(self, row_path, is_path_filtered=True):
+    if not is_path_filtered:
+      row_path = self._file_formats_filtered.convert_child_path_to_path(row_path)
+    
+    if row_path is not None:
+      self._file_formats_filtered.emit("row-changed", row_path,
+                                       self._file_formats_filtered.get_iter(row_path))
   
   def _show_popup(self):
     if not self._is_popup_shown() and len(self._file_formats_filtered) > 0:
