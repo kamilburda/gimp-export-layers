@@ -337,11 +337,12 @@ class LayerExporter(object):
         
         layer_elem.validate_name()
         self._strip_file_extension(layer_elem)
+        
         self._set_file_extension_and_update_file_export_func(layer_elem)
         self._layer_data.uniquify_name(layer_elem, self._include_item_path,
                                        self._get_uniquifier_position(layer_elem.name))
-        
         self._export_layer(layer_elem, self._image_copy, layer_copy)
+        
         if self._current_layer_export_status == self._USE_DEFAULT_FILE_EXTENSION:
           self._set_file_extension_and_update_file_export_func(layer_elem)
           self._layer_data.uniquify_name(layer_elem, self._include_item_path,
@@ -407,45 +408,44 @@ class LayerExporter(object):
     return layer_copy
   
   def _insert_background(self):
-    if self._background_layer_elems:
-      if self._background_layer is None:
-        if self.export_settings['use_image_size'].value:
-          # Remove background layers outside the image canvas, since they wouldn't
-          # be visible anyway and because we need to avoid `RuntimeError`
-          # when `pdb.gimp_image_merge_visible_layers` with the `CLIP_TO_IMAGE`
-          # option tries to merge layers that are all outside the image canvas.
-          self._background_layer_elems = [
-            bg_elem for bg_elem in self._background_layer_elems
-            if pgpdb.is_layer_inside_image(self._image_copy, bg_elem.item)
-          ]
-          
-          if not self._background_layer_elems:
-            return
-        
-        for i, bg_elem in enumerate(self._background_layer_elems):
-          bg_layer_copy = pdb.gimp_layer_new_from_drawable(bg_elem.item, self._image_copy)
-          pdb.gimp_image_insert_layer(self._image_copy, bg_layer_copy, None, i)
-          pdb.gimp_item_set_visible(bg_layer_copy, True)
-          if self.export_settings['ignore_layer_modes'].value:
-            bg_layer_copy.mode = gimpenums.NORMAL_MODE
-          if pdb.gimp_item_is_group(bg_layer_copy):
-            bg_layer_copy = pgpdb.merge_layer_group(bg_layer_copy)
-        
-        if self.export_settings['use_image_size'].value:
-          background_layer = pdb.gimp_image_merge_visible_layers(self._image_copy,
-                                                                 gimpenums.CLIP_TO_IMAGE)
-        else:
-          background_layer = pdb.gimp_image_merge_visible_layers(self._image_copy,
-                                                                 gimpenums.EXPAND_AS_NECESSARY)
-        
-        self._background_layer = pdb.gimp_layer_copy(background_layer, True)
-        return background_layer
+    if not self._background_layer_elems:
+      return None
+
+    if self._background_layer is None:
+      if self.export_settings['use_image_size'].value:
+        # Remove background layers outside the image canvas, since they wouldn't
+        # be visible anyway and because we need to avoid `RuntimeError`
+        # when `pdb.gimp_image_merge_visible_layers` with the `CLIP_TO_IMAGE`
+        # option tries to merge layers that are all outside the image canvas.
+        self._background_layer_elems = [
+          bg_elem for bg_elem in self._background_layer_elems
+          if pgpdb.is_layer_inside_image(self._image_copy, bg_elem.item)
+        ]
+        if not self._background_layer_elems:
+          return None
+      
+      for i, bg_elem in enumerate(self._background_layer_elems):
+        bg_layer_copy = pdb.gimp_layer_new_from_drawable(bg_elem.item, self._image_copy)
+        pdb.gimp_image_insert_layer(self._image_copy, bg_layer_copy, None, i)
+        pdb.gimp_item_set_visible(bg_layer_copy, True)
+        if self.export_settings['ignore_layer_modes'].value:
+          bg_layer_copy.mode = gimpenums.NORMAL_MODE
+        if pdb.gimp_item_is_group(bg_layer_copy):
+          bg_layer_copy = pgpdb.merge_layer_group(bg_layer_copy)
+      
+      if self.export_settings['use_image_size'].value:
+        merge_type = gimpenums.CLIP_TO_IMAGE
       else:
-        background_layer_copy = pdb.gimp_layer_copy(self._background_layer, True)
-        pdb.gimp_image_insert_layer(self._image_copy, background_layer_copy, None, 0)
-        return background_layer_copy
-    
-    return None
+        merge_type = gimpenums.EXPAND_AS_NECESSARY
+      
+      background_layer = pdb.gimp_image_merge_visible_layers(self._image_copy, merge_type)
+      self._background_layer = pdb.gimp_layer_copy(background_layer, True)
+      return background_layer
+    else:
+      # Optimization: copy the already created background layer.
+      background_layer_copy = pdb.gimp_layer_copy(self._background_layer, True)
+      pdb.gimp_image_insert_layer(self._image_copy, background_layer_copy, None, 0)
+      return background_layer_copy
   
   def _crop_and_merge(self, layer, background_layer):
     if not self.export_settings['use_image_size'].value:
