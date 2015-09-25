@@ -45,6 +45,7 @@ import gimpenums
 
 from export_layers import constants
 
+from export_layers.pygimplib import export_formats
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgitemdata
@@ -217,15 +218,6 @@ class LayerExporter(object):
     
     self.should_stop = False
     self._exported_layers = []
-    
-    # This dict cannot be initialized on the class level, because GIMP would
-    # prevent the plug-in from loading. PDB attributes or methods apparently
-    # can't be accessed when plug-in modules are being imported.
-    self._FILE_EXPORT_PROCEDURES = defaultdict(lambda: pdb.gimp_file_save)
-    # Raw format doesn't seem to work with `pdb.gimp_file_save`, hence the
-    # special handling.
-    self._FILE_EXPORT_PROCEDURES['data'] = pdb.file_raw_save
-    self._FILE_EXPORT_PROCEDURES['raw'] = pdb.file_raw_save
   
   @property
   def exported_layers(self):
@@ -519,7 +511,7 @@ class LayerExporter(object):
     return len(str_) - len("." + self._current_file_extension)
   
   def _get_file_export_func(self, file_extension):
-    return self._FILE_EXPORT_PROCEDURES[file_extension]
+    return export_formats.export_formats_dict[file_extension].file_export_procedure_func
   
   def _get_run_mode(self):
     if self._layer_file_extension_properties[self._current_file_extension].is_valid:
@@ -552,9 +544,8 @@ class LayerExporter(object):
     self._current_layer_export_status = self._NOT_EXPORTED_YET
     
     try:
-      self._file_export_func(image, layer, output_filename.encode(),
-                             os.path.basename(output_filename).encode(),
-                             run_mode=run_mode)
+      self._file_export_func(run_mode, image, layer, output_filename.encode(),
+                             os.path.basename(output_filename).encode())
     except RuntimeError as e:
       # HACK: Since `RuntimeError` could indicate anything, including
       # `pdb.gimp_file_save` failure, this is the only way to intercept the
