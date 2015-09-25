@@ -46,8 +46,8 @@ def uniquify_string(str_, existing_strings, uniquifier_position=None,
                     uniquifier_generator=None):
   """
   If string `str_` is in the `existing_strings` list, return a unique string
-  by inserting a unique string ("uniquifier") to `str_`. Otherwise, return
-  `str_`.
+  by inserting a "uniquifier" (a string that makes the whole input string
+  unique) in `str_`. Otherwise, return `str_`.
   
   Parameters:
   
@@ -86,8 +86,8 @@ def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None,
                             uniquifier_generator=None):
   """
   If string `str_` is not unique according to `is_unique_func`, return a unique
-  string by inserting a unique string ("uniquifier") to `str_`. Otherwise,
-  return `str_`.
+  string by inserting a "uniquifier" (a string that makes the whole input string
+  unique) in `str_`. Otherwise, return `str_`.
   
   Parameters:
   
@@ -109,7 +109,7 @@ def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None,
       def _generate_unique_copy_string():
         uniquifier = " - copy"
         yield uniquifier
-         
+        
         uniquifier = " - another copy"
         yield uniquifier
          
