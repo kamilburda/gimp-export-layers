@@ -47,69 +47,11 @@ import pango
 
 import gimp
 
+from . import export_formats
+
 #===============================================================================
 
 pdb = gimp.pdb
-
-GTK_CHARACTER_ENCODING = "utf-8"
-
-#===============================================================================
-
-# This is a list of built-in and several third-party file formats supported by GIMP.
-# List elements: (file format description, file extensions, (optional) file save procedure)
-# If the file save procedure is defined, it is used to perform a check that the
-# corresponding file format plug-in is installed.
-_FILE_FORMATS = [
-  ("Alias Pix image", ["pix", "matte", "mask", "alpha", "als"]),
-  ("ASCII art", ["txt", "ansi", "text"], "file-aa-save"),
-  ("AutoDesk FLIC animation", ["fli", "flc"]),
-  ("bzip archive", ["xcf.bz2", "xcfbz2"]),
-  ("Colored XHTML", ["xhtml"]),
-  ("C source code", ["c"]),
-  ("C source code header", ["h"]),
-  ("Digital Imaging and Communications in Medicine image", ["dcm", "dicom"]),
-  # Plug-in can be found at: https://code.google.com/p/gimp-dds/
-  ("DDS image", ["dds"], "file-dds-save"),
-  ("Encapsulated PostScript image", ["eps"]),
-  ("Flexible Image Transport System", ["fit", "fits"]),
-  ("GIF image", ["gif"]),
-  ("GIMP brush", ["gbr"]),
-  ("GIMP brush (animated)", ["gih"]),
-  ("GIMP pattern", ["pat"]),
-  ("GIMP XCF image", ["xcf"]),
-  ("gzip archive", ["xcf.gz", "xcfgz"]),
-  ("HTML table", ["html", "htm"]),
-  ("JPEG image", ["jpg", "jpeg", "jpe"]),
-  # Plug-in can be found at: http://registry.gimp.org/node/25508
-  ("JPEG XR image", ["jxr"], "file-jxr-save"),
-  ("KISS CEL", ["cel"]),
-  ("Microsoft Windows icon", ["ico"]),
-  ("MNG animation", ["mng"]),
-  ("OpenRaster", ["ora"]),
-  ("PBM image", ["pbm"]),
-  ("PGM image", ["pgm"]),
-  ("Photoshop image", ["psd"]),
-  ("PNG image", ["png"]),
-  ("PNM image", ["pnm"]),
-  ("Portable Document Format", ["pdf"]),
-  ("PostScript document", ["ps"]),
-  ("PPM image", ["ppm"]),
-  ("Raw image data", ["raw", "data"]),
-  ("Silicon Graphics IRIS image", ["sgi", "rgb", "rgba", "bw", "icon"]),
-  ("SUN Rasterfile image", ["im1", "im8", "im24", "im32", "rs", "ras"]),
-  ("TarGA image", ["tga"]),
-  ("TIFF image", ["tif", "tiff"]),
-  # Plug-in can be found at: http://registry.gimp.org/node/24882
-  ("Valve Texture Format", ["vtf"], "file-vtf-save"),
-  # Plug-in can be found at: http://registry.gimp.org/node/25874
-  ("WebP image", ["webp"], "file-webp-save"),
-  ("Windows BMP image", ["bmp"]),
-  ("X11 Mouse Cursor", ["xmc"], "file-xmc-save"),
-  ("X BitMap image", ["xbm", "bitmap"]),
-  ("X PixMap image", ["xpm"]),
-  ("X window dump", ["xwd"]),
-  ("ZSoft PCX image", ["pcx", "pcc"]),
-]
 
 #===============================================================================
 
@@ -245,7 +187,7 @@ class FileExtensionEntry(gtk.Entry):
     self._extensions_separator_text_pixel_size = None
     self._extensions_text_pixel_rects = []
     
-    self._create_popup(_FILE_FORMATS)
+    self._create_popup(export_formats.export_formats)
     
     self.connect("button-press-event", self._on_entry_left_mouse_button_press)
     self.connect("key-press-event", self._on_entry_key_press)
@@ -772,12 +714,13 @@ class FileExtensionEntry(gtk.Entry):
   
   def _fill_file_formats(self, file_formats):
     for file_format in file_formats:
-      if len(file_format) < 2:
-        raise ValueError("invalid length of file format tuple: {0}".format(file_format))
+      can_add_file_format = (
+        file_format.file_export_procedure_name is None or (
+          file_format.file_export_procedure_name is not None and
+          pdb.gimp_procedural_db_proc_exists(file_format.file_export_procedure_name)))
       
-      if len(file_format) == 2 or (len(file_format) > 2 and
-                                   pdb.gimp_procedural_db_proc_exists(file_format[2])):
-        self._file_formats.append(file_format[0:2])
+      if can_add_file_format:
+        self._file_formats.append([file_format.description, file_format.file_extensions])
   
   def _add_file_format_columns(self):
     
