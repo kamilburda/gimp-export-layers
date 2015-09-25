@@ -82,6 +82,19 @@ def _create_export_formats(export_formats_params):
   return [_ExportFormat(*params) for params in export_formats_params]
 
 
+def _create_export_formats_dict(export_formats):
+  export_formats_dict = {}
+  
+  for export_format in export_formats:
+    for file_extension in export_format.file_extensions:
+      # If the same extension appears in multiple formats, only the first format
+      # will be accessed by the extension. 
+      if file_extension not in export_formats_dict:
+        export_formats_dict[file_extension] = export_format
+  
+  return export_formats_dict
+
+
 #===============================================================================
 
 
@@ -140,3 +153,7 @@ export_formats = _create_export_formats([
   ("X window dump", ["xwd"]),
   ("ZSoft PCX image", ["pcx", "pcc"]),
 ])
+
+
+export_formats_dict = _create_export_formats_dict(export_formats)
+
