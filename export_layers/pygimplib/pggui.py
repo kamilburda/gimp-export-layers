@@ -81,11 +81,13 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
   when a file about to be saved has the same name as an already existing file.
   """
   
-  def __init__(self, values_and_display_names, default_value, default_response, title=""):
+  def __init__(self, values_and_display_names, default_value, default_response, title="",
+               use_mnemonics=True):
     
     super(GtkDialogOverwriteChooser, self).__init__(values_and_display_names, default_value, default_response)
     
     self._title = title
+    self._use_mnemonics = use_mnemonics
     
     self._init_gui()
   
@@ -96,17 +98,24 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     self._dialog.set_resizable(False)
     self._dialog.set_title(self._title)
     
-    self._hbox_dialog_contents = gtk.HBox(homogeneous=False)
-    self._hbox_dialog_contents.set_spacing(10)
     self._dialog_icon = gtk.Image()
     self._dialog_icon.set_from_stock(gtk.STOCK_DIALOG_QUESTION, gtk.ICON_SIZE_DIALOG)
     self._dialog_text = gtk.Label("")
+    
+    self._hbox_dialog_contents = gtk.HBox(homogeneous=False)
+    self._hbox_dialog_contents.set_spacing(10)
     self._hbox_dialog_contents.pack_start(self._dialog_icon, expand=False, fill=False)
     self._hbox_dialog_contents.pack_start(self._dialog_text, expand=False, fill=False)
     
+    if self._use_mnemonics:
+      apply_to_all_checkbox_label = _("_Apply action to all files")
+    else:
+      apply_to_all_checkbox_label = _("Apply action to all files")
+    self._apply_to_all_checkbox = gtk.CheckButton(label=apply_to_all_checkbox_label)
+    self._apply_to_all_checkbox.set_use_underline(self._use_mnemonics)
+    
     self._hbox_apply_to_all = gtk.HBox(homogeneous=False)
     self._hbox_apply_to_all.set_spacing(5)
-    self._apply_to_all_checkbox = gtk.CheckButton(label=_("Apply action to all files"))
     self._hbox_apply_to_all.pack_start(self._apply_to_all_checkbox, expand=False, fill=False)
     
     self._dialog.vbox.set_spacing(3)
