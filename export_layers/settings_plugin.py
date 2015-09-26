@@ -182,11 +182,11 @@ def create_settings():
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
-      'items': [('replace', _("Replace"), exportlayers.OverwriteHandler.REPLACE),
-                ('skip', _("Skip"), exportlayers.OverwriteHandler.SKIP),
-                ('rename_new', _("Rename new file"), exportlayers.OverwriteHandler.RENAME_NEW),
-                ('rename_existing', _("Rename existing file"), exportlayers.OverwriteHandler.RENAME_EXISTING),
-                ('cancel', _("Cancel"), exportlayers.OverwriteHandler.CANCEL)],
+      'items': [('replace', _("_Replace"), exportlayers.OverwriteHandler.REPLACE),
+                ('skip', _("_Skip"), exportlayers.OverwriteHandler.SKIP),
+                ('rename_new', _("Rename _new file"), exportlayers.OverwriteHandler.RENAME_NEW),
+                ('rename_existing', _("Rename _existing file"), exportlayers.OverwriteHandler.RENAME_EXISTING),
+                ('cancel', _("_Cancel"), exportlayers.OverwriteHandler.CANCEL)],
       'display_name': _("Overwrite mode (non-interactive run mode only)")
     },
   ])
