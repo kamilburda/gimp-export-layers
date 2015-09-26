@@ -260,6 +260,11 @@ class TestSetting(unittest.TestCase):
   def test_auto_generated_display_name(self):
     self.assertEqual(MockSetting('this_is_a_setting', "png").display_name, "This is a setting")
   
+  def test_description_from_display_name_with_mnemonics(self):
+    setting = MockSetting('setting', "default value", display_name="_Setting")
+    self.assertEqual(setting.display_name, "_Setting")
+    self.assertEqual(setting.description, "Setting")
+  
   def test_custom_error_messages(self):
     setting = MockSetting('setting', "")
     
@@ -466,6 +471,13 @@ class TestSettingGui(unittest.TestCase):
 #===============================================================================
 
 
+class TestBoolSetting(unittest.TestCase):
+  
+  def test_description_from_display_name(self):
+    setting = pgsetting.BoolSetting('ignore_invisible', False, display_name="_Ignore invisible")
+    self.assertEqual(setting.description, "Ignore invisible?")
+
+
 class TestIntSetting(unittest.TestCase):
   
   def setUp(self):
@@ -616,6 +628,13 @@ class TestEnumSetting(unittest.TestCase):
   def test_description(self):
     self.assertEqual(self.setting.description,
                      self.setting.display_name + " { Skip (0), Replace (1) }")
+  
+  def test_description_with_mnemonics_from_item_display_names(self):
+    setting = pgsetting.EnumSetting(
+      'overwrite_mode', 'replace',
+      [('skip', "_Skip"),
+       ('replace', "_Replace")])
+    self.assertEqual(setting.description, setting.display_name + " { Skip (0), Replace (1) }")
   
   def test_get_item_display_names_and_values(self):
     self.assertEqual(self.setting.get_item_display_names_and_values(), ["Skip", 0, "Replace", 1])

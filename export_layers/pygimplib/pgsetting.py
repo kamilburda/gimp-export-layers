@@ -147,12 +147,15 @@ class Setting(object):
     visibility or sensitivity (enabled/disabled).
   
   * `display_name` (read-only) - Setting name in human-readable format. Useful
-    e.g. as GUI labels.
+    e.g. as GUI labels. The display name may contain underscores, which can be
+    interpreted by the GUI as keyboard mnemonics.
   
   * `description` (read-only) - Usually `display_name` plus additional
     information in parentheses (such as boundaries for numeric values). Useful
     as a setting description when registering the setting as a plug-in parameter
-    to the GIMP Procedural Database (PDB).
+    to the GIMP Procedural Database (PDB). If the class uses `display_name` to
+    generate the description and `display_name` contains underscores, they are
+    removed in the description.
   
   * `pdb_type` (read-only) - GIMP PDB parameter type, used when registering the
     setting as a plug-in parameter to the PDB. In Setting subclasses, only
@@ -232,13 +235,17 @@ class Setting(object):
     
     self._name = name
     self._default_value = default_value
-    self._allow_empty_values = allow_empty_values
-    self._display_name = self._get_display_name(display_name)
-    self._pdb_type = self._get_pdb_type(pdb_type)
     
     self._value = self._default_value
-    self._pdb_name = self._get_pdb_name(self._name)
+    
+    self._allow_empty_values = allow_empty_values
     self._allowed_empty_values = list(self._ALLOWED_EMPTY_VALUES)
+    
+    self._display_name = self._get_display_name(display_name)
+    self._description = self._get_description(self._display_name)
+    
+    self._pdb_type = self._get_pdb_type(pdb_type)
+    self._pdb_name = self._get_pdb_name(self._name)
     
     self._value_changed_event_handler = None
     self._value_changed_event_handler_args = []
@@ -280,7 +287,7 @@ class Setting(object):
   
   @property
   def description(self):
-    return self.display_name
+    return self._description
   
   @property
   def pdb_type(self):
@@ -506,6 +513,9 @@ class Setting(object):
   def _generate_display_name(self):
     return self.name.replace('_', ' ').capitalize()
   
+  def _get_description(self, display_name):
+    return display_name.replace('_', '')
+  
   def _get_pdb_type(self, pdb_type):
     if pdb_type == SettingPdbTypes.automatic:
       return self._get_default_pdb_type()
@@ -681,7 +691,7 @@ class BoolSetting(Setting):
   
   @property
   def description(self):
-    return self.display_name + "?"
+    return self._description + "?"
   
   def set_value(self, value):
     value = bool(value)
@@ -705,8 +715,8 @@ class EnumSetting(Setting):
   * `items` (read-only) - A dict of <item name, item value> pairs. Item name
     uniquely identifies each item. Item value is the corresponding integer value.
   
-  * `items_display_names` (read-only) - A dict of <item name, item display name> pairs.
-    Item display names can be used e.g. as combo box items in the GUI.
+  * `items_display_names` (read-only) - A dict of <item name, item display name>
+    pairs. Item display names can be used e.g. as combo box items in the GUI.
   
   * `empty_value` (read-only) - Item name designated as the empty value. By
     default, the setting does not have an empty value.
@@ -727,10 +737,11 @@ class EnumSetting(Setting):
   
   Error messages:
   
-  * `'invalid_value'` - The value assigned is not one of the items in this setting.
+  * `'invalid_value'` - The value assigned is not one of the items in this
+    setting.
   
-  * `'invalid_default_value'` - Item name is invalid (not found in the `items` parameter
-    when instantiating the object).
+  * `'invalid_default_value'` - Item name is invalid (not found in the `items`
+    parameter when instantiating the object).
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
@@ -749,9 +760,9 @@ class EnumSetting(Setting):
       or (item name, item display name, item value) tuples.
       
       For 2-element tuples, item values are assigned automatically, starting
-      with 0. Use 3-element tuples to assign explicit item values. Values must be
-      unique and specified in each tuple. You cannot combine 2- and 3- element
-      tuples - use only 2- or only 3-element tuples.
+      with 0. Use 3-element tuples to assign explicit item values. Values must
+      be unique and specified in each tuple. Use only 2- or only 3-element
+      tuples, they cannot be combined.
     """
     
     self._items, self._items_display_names, self._item_values = self._create_item_attributes(items)
@@ -784,11 +795,11 @@ class EnumSetting(Setting):
     
     self._allowed_empty_values.append(self._empty_value)
     
-    self._items_str = self._stringify_items()
+    self._items_description = self._get_items_description()
   
   @property
   def description(self):
-    return self.display_name + " " + self._items_str
+    return self.display_name + " " + self._items_description
   
   @property
   def items(self):
@@ -816,15 +827,16 @@ class EnumSetting(Setting):
     if value not in self._item_values or (not self._allow_empty_values and self._is_value_empty(value)):
       raise SettingValueError(self._value_to_str(value) + self.error_messages['invalid_value'])
   
-  def _stringify_items(self):
-    items_str = ""
+  def _get_items_description(self):
+    items_description = ""
     items_sep = ", "
     
     for value, display_name in zip(self._items.values(), self._items_display_names.values()):
-      items_str += '{0} ({1}){2}'.format(display_name, value, items_sep)
-    items_str = items_str[:-len(items_sep)]
+      description = self._get_description(display_name)
+      items_description += '{0} ({1}){2}'.format(description, value, items_sep)
+    items_description = items_description[:-len(items_sep)]
     
-    return "{ " + items_str + " }"
+    return "{ " + items_description + " }"
   
   def _create_item_attributes(self, input_items):
     items = OrderedDict()
