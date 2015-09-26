@@ -799,7 +799,7 @@ class EnumSetting(Setting):
   
   @property
   def description(self):
-    return self.display_name + " " + self._items_description
+    return self._description + " " + self._items_description
   
   @property
   def items(self):

@@ -613,7 +613,7 @@ class TestEnumSetting(unittest.TestCase):
     self.setting = pgsetting.EnumSetting(
       'overwrite_mode', 'replace',
       [('skip', "Skip"), ('replace', "Replace")],
-      display_name="Overwrite mode (non-interactive only)")
+      display_name="Overwrite mode")
   
   def test_set_invalid_item(self):
     with self.assertRaises(pgsetting.SettingValueError):
@@ -627,14 +627,15 @@ class TestEnumSetting(unittest.TestCase):
   
   def test_description(self):
     self.assertEqual(self.setting.description,
-                     self.setting.display_name + " { Skip (0), Replace (1) }")
+                     "Overwrite mode { Skip (0), Replace (1) }")
   
   def test_description_with_mnemonics_from_item_display_names(self):
     setting = pgsetting.EnumSetting(
       'overwrite_mode', 'replace',
       [('skip', "_Skip"),
-       ('replace', "_Replace")])
-    self.assertEqual(setting.description, setting.display_name + " { Skip (0), Replace (1) }")
+       ('replace', "_Replace")],
+      display_name="_Overwrite mode")
+    self.assertEqual(setting.description, "Overwrite mode { Skip (0), Replace (1) }")
   
   def test_get_item_display_names_and_values(self):
     self.assertEqual(self.setting.get_item_display_names_and_values(), ["Skip", 0, "Replace", 1])
@@ -644,8 +645,7 @@ class TestEnumSetting(unittest.TestCase):
       'overwrite_mode', 'replace',
       [('choose', "-Choose Your Mode-"), ('skip', "Skip"), ('replace', "Replace")],
       empty_value='choose',
-      allow_empty_values=True,
-      display_name="Overwrite mode (non-interactive only)")
+      allow_empty_values=True)
     
     self.assertEqual(setting.is_value_empty(), False)
     setting.set_value(setting.items['choose'])
@@ -655,8 +655,7 @@ class TestEnumSetting(unittest.TestCase):
     setting = pgsetting.EnumSetting(
       'overwrite_mode', 'replace',
       [('choose', "-Choose Your Mode-"), ('skip', "Skip"), ('replace', "Replace")],
-      empty_value='choose',
-      display_name="Overwrite mode (non-interactive only)")
+      empty_value='choose')
     
     with self.assertRaises(pgsetting.SettingValueError):
       setting.set_value(setting.items['choose'])
