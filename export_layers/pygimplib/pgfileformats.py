@@ -54,14 +54,21 @@ pdb = gimp.pdb
 #===============================================================================
 
 
+def get_default_save_procedure():
+  return _save_image_default
+
+
+def _save_image_default(run_mode, image, layer, filename, raw_filename):
+  pdb.gimp_file_save(image, layer, filename, raw_filename, run_mode=run_mode)
+
+
+#===============================================================================
+
+
 class _FileFormat(object):
   
   def __init__(self, description, file_extensions, save_procedure_name=None,
                save_procedure_func=None, save_procedure_func_args=None):
-    
-    def _save_image_default(run_mode, image, layer, filename, raw_filename):
-      pdb.gimp_file_save(image, layer, filename, raw_filename, run_mode=run_mode)
-    
     self.description = description
     self.file_extensions = file_extensions
     
@@ -70,7 +77,7 @@ class _FileFormat(object):
     if save_procedure_func is not None:
       self.save_procedure_func = save_procedure_func
     else:
-      self.save_procedure_func = _save_image_default
+      self.save_procedure_func = get_default_save_procedure()
     
     if save_procedure_func_args is not None:
       self.save_procedure_func_args = save_procedure_func_args
