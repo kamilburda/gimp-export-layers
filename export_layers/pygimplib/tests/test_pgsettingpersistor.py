@@ -30,7 +30,6 @@ str = unicode
 
 #===============================================================================
 
-import errno
 from StringIO import StringIO
 
 import unittest
@@ -46,7 +45,7 @@ from .test_pgsettinggroup import create_test_settings_hierarchical
 
 #===============================================================================
 
-LIB_NAME = '.'.join(__name__.split('.')[:-2])
+LIB_NAME = ".".join(__name__.split(".")[:-2])
 
 #===============================================================================
 
@@ -61,13 +60,13 @@ class MockStringIO(StringIO):
 
 class TestSessionPersistentSettingSource(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
   def setUp(self):
     self.source_name = 'test_settings_'
     self.source = pgsettingpersistor.SessionPersistentSettingSource(self.source_name)
     self.settings = create_test_settings()
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
   def test_write(self):
     self.settings['file_extension'].set_value("png")
     self.settings['ignore_invisible'].set_value(True)
@@ -76,7 +75,7 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.assertEqual(pgsettingpersistor.gimpshelf.shelf[self.source_name + 'file_extension'], "png")
     self.assertEqual(pgsettingpersistor.gimpshelf.shelf[self.source_name + 'ignore_invisible'], True)
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
   def test_read(self):
     pgsettingpersistor.gimpshelf.shelf[self.source_name + 'file_extension'] = "png"
     pgsettingpersistor.gimpshelf.shelf[self.source_name + 'ignore_invisible'] = True
@@ -84,12 +83,12 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
   def test_read_settings_not_found(self):
     with self.assertRaises(pgsettingpersistor.SettingsNotFoundInSourceError):
       self.source.read(self.settings)
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
   def test_read_invalid_setting_value_set_to_default_value(self):
     setting_with_invalid_value = pgsetting.IntSetting('int', -1)
     self.source.write([setting_with_invalid_value])
@@ -102,13 +101,13 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
 
 class TestPersistentSettingSource(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def setUp(self):
     self.source_name = 'test_settings_'
     self.source = pgsettingpersistor.PersistentSettingSource(self.source_name)
     self.settings = create_test_settings()
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def test_write_read(self):
     self.settings['file_extension'].set_value("jpg")
     self.settings['ignore_invisible'].set_value(True)
@@ -117,18 +116,18 @@ class TestPersistentSettingSource(unittest.TestCase):
     self.assertEqual(self.settings['file_extension'].value, "jpg")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def test_read_source_not_found(self):
     with self.assertRaises(pgsettingpersistor.SettingSourceNotFoundError):
       self.source.read(self.settings)
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def test_read_settings_not_found(self):
     self.source.write([self.settings['file_extension']])
     with self.assertRaises(pgsettingpersistor.SettingsNotFoundInSourceError):
       self.source.read(self.settings)
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def test_read_settings_invalid_format(self):
     self.source.write(self.settings)
     
@@ -140,7 +139,7 @@ class TestPersistentSettingSource(unittest.TestCase):
     with self.assertRaises(pgsettingpersistor.SettingSourceInvalidFormatError):
       self.source.read(self.settings)
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def test_read_invalid_setting_value_set_to_default_value(self):
     setting_with_invalid_value = pgsetting.IntSetting('int', -1)
     self.source.write([setting_with_invalid_value])
@@ -156,15 +155,15 @@ class TestPersistentSettingSource(unittest.TestCase):
 
 class TestSettingPersistor(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def setUp(self):
     self.settings = create_test_settings()
     self.session_source = pgsettingpersistor.SessionPersistentSettingSource('')
     self.persistent_source = pgsettingpersistor.PersistentSettingSource('')
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def test_load_save(self):
     self.settings['file_extension'].set_value("png")
     self.settings['ignore_invisible'].set_value(True)
@@ -182,8 +181,8 @@ class TestSettingPersistor(unittest.TestCase):
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def test_load_combine_settings_from_multiple_sources(self):
     self.settings['file_extension'].set_value("png")
     self.settings['ignore_invisible'].set_value(True)
@@ -202,8 +201,8 @@ class TestSettingPersistor(unittest.TestCase):
       if setting not in [self.settings['file_extension'], self.settings['ignore_invisible']]:
         self.assertEqual(setting.value, setting.default_value)
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def test_load_setting_groups(self):
     settings = create_test_settings_hierarchical()
     
@@ -218,15 +217,15 @@ class TestSettingPersistor(unittest.TestCase):
     self.assertEqual(settings['main']['file_extension'].value, "png")
     self.assertEqual(settings['advanced']['ignore_invisible'].value, True)
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def test_load_settings_source_not_found(self):
     status, unused_ = pgsettingpersistor.SettingPersistor.load(
       [self.settings], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def test_load_settings_not_found(self):
     self.session_source.write([self.settings['ignore_invisible']])
     self.persistent_source.write([self.settings['file_extension'], self.settings['ignore_invisible']])
@@ -235,8 +234,8 @@ class TestSettingPersistor(unittest.TestCase):
       [self.settings['overwrite_mode']], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimpshelf.shelf', new=gimpmocks.MockGimpShelf())
-  @mock.patch(LIB_NAME + '.pgsettingpersistor.gimp', new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def test_load_read_fail(self):
     self.persistent_source.write(self.settings)
     

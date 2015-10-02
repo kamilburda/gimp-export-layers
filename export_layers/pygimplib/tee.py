@@ -43,7 +43,7 @@ from datetime import datetime
 
 
 def get_log_header(log_header_title):
-  return '\n'.join(('', '=' * 80, log_header_title, str(datetime.now()), '\n'))
+  return "\n".join(("", "=" * 80, log_header_title, str(datetime.now()), "\n"))
 
 
 # Original version:
@@ -156,7 +156,7 @@ class Tee(object):
     
     if self._state == self._RUNNING_FIRST_TIME:
       self._file.write(get_log_header(self.log_header_title).encode())
-      self._write_with_flush(data + b'\n')
+      self._write_with_flush(data + b"\n")
       self._state = self._RUNNING
     else:
       if not self.flush_file:

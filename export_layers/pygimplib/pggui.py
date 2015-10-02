@@ -290,7 +290,7 @@ def display_message(message, message_type, title=None, parent=None, buttons=gtk.
     dialog.set_title(title)
   dialog.set_transient_for(parent)
   
-  messages = message.split('\n', 1)
+  messages = message.split("\n", 1)
   if len(messages) > 1:
     dialog.set_markup(messages[0])
     dialog.format_secondary_markup(messages[1])

@@ -42,7 +42,7 @@ from .. import tee
 #===============================================================================
 
 
-@mock.patch('sys.stdout', new=StringIO())
+@mock.patch("sys.stdout", new=StringIO())
 class TestTee(unittest.TestCase):
   
   def setUp(self):

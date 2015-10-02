@@ -451,7 +451,7 @@ class _ItemDataElement(object):
     
     if file_extension:
       file_extension = file_extension.lower()
-      self.name = '.'.join((item_name_without_extension, file_extension))
+      self.name = ".".join((item_name_without_extension, file_extension))
     else:
       self.name = item_name_without_extension
   

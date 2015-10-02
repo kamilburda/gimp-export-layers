@@ -50,7 +50,7 @@ from .. import pgitemdata
 
 #===============================================================================
 
-LIB_NAME = '.'.join(__name__.split('.')[:-2])
+LIB_NAME = ".".join(__name__.split(".")[:-2])
 
 #===============================================================================
 
@@ -71,7 +71,7 @@ class LayerFilterRules(object):
   
   @staticmethod
   def has_matching_file_extension(layer_elem, file_extension):
-    return layer_elem.name.endswith('.' + file_extension)
+    return layer_elem.name.endswith("." + file_extension)
 
 
 #===============================================================================
@@ -121,10 +121,10 @@ def _parse_layers(layer_tree_string):
 #===============================================================================
 
 
-@mock.patch(LIB_NAME + '.pgitemdata.pdb', new=gimpmocks.MockPDB())
+@mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpmocks.MockPDB())
 class TestLayerData(unittest.TestCase):
 
-  @mock.patch(LIB_NAME + '.pgitemdata.pdb', new=gimpmocks.MockPDB())
+  @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpmocks.MockPDB())
   def setUp(self):
     layers_string = """
       Corners {
@@ -196,7 +196,7 @@ class TestLayerData(unittest.TestCase):
     
     self.assertEqual(
       itemdata_empty_layer_group.get_filepath(output_directory),
-      os.path.join(output_directory, 'Corners', itemdata_empty_layer_group.name)
+      os.path.join(output_directory, "Corners", itemdata_empty_layer_group.name)
     )
     self.assertEqual(
       itemdata_empty_layer_group.get_filepath(output_directory, include_item_path=False),
@@ -321,10 +321,10 @@ class TestLayerData(unittest.TestCase):
     self._compare_uniquified_with_parents(self.layer_data, uniquified_names)
 
 
-@mock.patch(LIB_NAME + '.pgitemdata.pdb', new=gimpmocks.MockPDB())
+@mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpmocks.MockPDB())
 class TestLayerDataFileExtensions(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + '.pgitemdata.pdb', new=gimpmocks.MockPDB())
+  @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpmocks.MockPDB())
   def setUp(self):
     image = gimpmocks.MockImage()
     image.layers.append(gimpmocks.MockLayer("main-background.jpg"))

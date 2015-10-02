@@ -134,7 +134,7 @@ class MockGimpShelf(object):
     self._shelf[key] = value
   
   def __delitem__(self, key):
-    self._shelf[key] = b''
+    self._shelf[key] = b""
   
   def has_key(self, key):
     return key in self._shelf

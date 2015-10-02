@@ -134,7 +134,7 @@ class TestFilePathValidator(unittest.TestCase):
     self.assertFalse(self.validator.is_valid(
       os.path.join("one", ":two", "three"))[0])
     
-    if os.name == 'nt':
+    if os.name == "nt":
       self.assertTrue(self.validator.is_valid(
         os.path.join("C:" + os.sep + "two", "three"))[0])
     else:
@@ -182,7 +182,7 @@ class TestFilePathValidator(unittest.TestCase):
       os.path.join("one", "two", "three")
     )
     
-    if os.name == 'nt':
+    if os.name == "nt":
       self.assertEqual(
         self.validator.validate(os.path.join("C:" + os.sep + "two", "three")),
         os.path.join("C:" + os.sep + "two", "three")

@@ -280,10 +280,10 @@ class SettingGroup(object):
         setting.gui.update_setting_value()
       except pgsetting.SettingValueError as e:
         if not exception_message:
-          exception_message += e.message + '\n'
+          exception_message += e.message + "\n"
     
     if exception_message:
-      exception_message = exception_message.rstrip('\n')
+      exception_message = exception_message.rstrip("\n")
       raise pgsetting.SettingValueError(exception_message)
   
   def _next(self):

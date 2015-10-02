@@ -49,7 +49,7 @@ from .. import pgpath
 
 #===============================================================================
 
-LIB_NAME = '.'.join(__name__.split('.')[:-2])
+LIB_NAME = ".".join(__name__.split(".")[:-2])
 
 #===============================================================================
 
@@ -269,8 +269,8 @@ class TestSetting(unittest.TestCase):
     setting = MockSetting('setting', "")
     
     setting_with_custom_error_messages = MockSetting(
-      'setting', "", error_messages={'invalid_value': 'this should override the original error message',
-                                     'custom_message': 'custom message'})
+      'setting', "", error_messages={'invalid_value': "this should override the original error message",
+                                     'custom_message': "custom message"})
     self.assertIn('custom_message', setting_with_custom_error_messages.error_messages)
     self.assertNotEqual(setting.error_messages['invalid_value'],
                         setting_with_custom_error_messages.error_messages['invalid_value'])
@@ -770,7 +770,7 @@ class TestImageIDsAndDirectoriesSetting(unittest.TestCase):
   def test_update_image_ids_and_directories_add_new_images(self):
     self.image_list.extend(self._create_image_list([(5, "/test/new_image.png"), (6, None)]))
     
-    with mock.patch(LIB_NAME + '.pgsetting.gimp.image_list', new=self.get_image_list):
+    with mock.patch(LIB_NAME + ".pgsetting.gimp.image_list", new=self.get_image_list):
       self.setting.update_image_ids_and_directories()
     
     self.assertEqual(self.setting.value, self._create_image_ids_and_directories(self.image_list))
@@ -778,7 +778,7 @@ class TestImageIDsAndDirectoriesSetting(unittest.TestCase):
   def test_update_image_ids_and_directories_remove_closed_images(self):
     self.image_list.pop(1)
     
-    with mock.patch(LIB_NAME + '.pgsetting.gimp.image_list', new=self.get_image_list):
+    with mock.patch(LIB_NAME + ".pgsetting.gimp.image_list", new=self.get_image_list):
       self.setting.update_image_ids_and_directories()
     
     self.assertEqual(self.setting.value, self._create_image_ids_and_directories(self.image_list))

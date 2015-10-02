@@ -158,7 +158,7 @@ def get_file_extension(str_, to_lowercase=True):
   Return the file extension from the specified string in lower case and strip
   the leading period. If the string has no file extension, return empty string.
   
-  A string has file extension if it contains a '.' character and a substring
+  A string has file extension if it contains a "." character and a substring
   following this character.
   
   Paramters:
@@ -166,7 +166,7 @@ def get_file_extension(str_, to_lowercase=True):
   * `to_lowercase` - If True, convert the file extension to lowercase.
   """
   
-  file_ext = os.path.splitext(str_)[1].lstrip('.')
+  file_ext = os.path.splitext(str_)[1].lstrip(".")
   
   if to_lowercase:
     return file_ext.lower()
@@ -384,14 +384,14 @@ class FilePathValidator(StringValidator):
   The same validation rules that apply to filenames in the `FilenameValidator`
   class apply to file paths in this class, with the following exceptions:
     
-    * '/' and '\' characters are allowed
+    * "/" and "\" characters are allowed
     
-    * ':' character is allowed to appear at the root level only (as a part of a
+    * ":" character is allowed to appear at the root level only (as a part of a
       drive letter, e.g. "C:\")
   """
   
   _INVALID_CHARS = r"\x00-\x1f\x7f-\x9f<>\"|?*"
-  _VALID_DRIVE_CHARS = r':'
+  _VALID_DRIVE_CHARS = r":"
   
   _INVALID_CHARS_PATTERN_WITHOUT_DRIVE = "[" + _INVALID_CHARS + "]"
   _INVALID_CHARS_PATTERN = "[" + _INVALID_CHARS + _VALID_DRIVE_CHARS + "]"

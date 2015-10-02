@@ -511,10 +511,10 @@ class Setting(object):
       return self._generate_display_name()
   
   def _generate_display_name(self):
-    return self.name.replace('_', ' ').capitalize()
+    return self.name.replace("_", " ").capitalize()
   
   def _get_description(self, display_name):
-    return display_name.replace('_', '')
+    return display_name.replace("_", "")
   
   def _get_pdb_type(self, pdb_type):
     if pdb_type == SettingPdbTypes.automatic:
@@ -541,7 +541,7 @@ class Setting(object):
     descriptions).
     """
     
-    return name.replace('_', '-')
+    return name.replace("_", "-")
   
   def _get_gui_type(self, gui_type):
     gui_type_to_return = None
@@ -833,7 +833,7 @@ class EnumSetting(Setting):
     
     for value, display_name in zip(self._items.values(), self._items_display_names.values()):
       description = self._get_description(display_name)
-      items_description += '{0} ({1}){2}'.format(description, value, items_sep)
+      items_description += "{0} ({1}){2}".format(description, value, items_sep)
     items_description = items_description[:-len(items_sep)]
     
     return "{ " + items_description + " }"
@@ -998,7 +998,7 @@ class ValidatableStringSetting(StringSetting):
           new_status_messages.append(status_message)
       
       raise SettingValueError(
-        self._value_to_str(value) + '\n'.join([message for message in new_status_messages])
+        self._value_to_str(value) + "\n".join([message for message in new_status_messages])
       )
   
 
