@@ -214,14 +214,6 @@ class TestLayerData(unittest.TestCase):
       itemdata_empty_layer_group_no_parents.get_filepath(output_directory, include_item_path=False)
     )
   
-  def test_set_file_extension(self):
-    layer_elem = self.layer_data['main-background.jpg']
-    
-    layer_elem.set_file_extension(None)
-    self.assertEqual(layer_elem.name, "main-background")
-    layer_elem.set_file_extension("png")
-    self.assertEqual(layer_elem.name, "main-background.png")
-  
   #-----------------------------------------------------------------------------
     
   def _compare_uniquified_without_parents(self, layer_data, uniquified_names):
@@ -327,4 +319,100 @@ class TestLayerData(unittest.TestCase):
         layer_elem, include_item_path=True,
         uniquifier_position=_get_file_extension_start_position(layer_elem.name))
     self._compare_uniquified_with_parents(self.layer_data, uniquified_names)
+
+
+@mock.patch(LIB_NAME + '.pgitemdata.pdb', new=gimpmocks.MockPDB())
+class TestLayerDataFileExtensions(unittest.TestCase):
+  
+  @mock.patch(LIB_NAME + '.pgitemdata.pdb', new=gimpmocks.MockPDB())
+  def setUp(self):
+    image = gimpmocks.MockImage()
+    image.layers.append(gimpmocks.MockLayer("main-background.jpg"))
+    
+    self.layer_data = pgitemdata.LayerData(image)
+  
+  def test_get_file_extension(self):
+    layer_elem = self.layer_data["main-background.jpg"]
+    
+    self.assertEqual(layer_elem.get_file_extension(), "jpg")
+    
+    layer_elem.name = ".jpg"
+    self.assertEqual(layer_elem.get_file_extension(), "jpg")
+  
+  def test_get_file_extension_no_extension(self):
+    layer_elem = self.layer_data["main-background.jpg"]
+    
+    layer_elem.name = "main-background"
+    self.assertEqual(layer_elem.get_file_extension(), "")
+    
+    layer_elem.name = "main-background."
+    self.assertEqual(layer_elem.get_file_extension(), "")
+    
+    layer_elem.name = "."
+    self.assertEqual(layer_elem.get_file_extension(), "")
+  
+  def test_get_file_extension_unrecognized_extension(self):
+    layer_elem = self.layer_data["main-background.jpg"]
+    layer_elem.name = "main-background.aaa"
+    
+    self.assertEqual(layer_elem.get_file_extension(), "aaa")
+    
+    layer_elem.name = ".aaa"
+    self.assertEqual(layer_elem.get_file_extension(), "aaa")
+  
+  def test_get_file_extension_multiple_periods(self):
+    layer_elem = self.layer_data["main-background.jpg"]
+    layer_elem.name = "main-background.xcf.bz2"
+    
+    self.assertEqual(layer_elem.get_file_extension(), "xcf.bz2")
+  
+  def test_get_file_extension_multiple_periods_unrecognized_extension(self):
+    layer_elem = self.layer_data["main-background.jpg"]
+    layer_elem.name = "main-background.aaa.bbb"
+    
+    self.assertEqual(layer_elem.get_file_extension(), "bbb")
+  
+  def test_set_file_extension(self):
+    layer_elem = self.layer_data["main-background.jpg"]
+    
+    layer_elem.set_file_extension("png")
+    self.assertEqual(layer_elem.name, "main-background.png")
+    
+    layer_elem.name = "main-background.jpg"
+    layer_elem.set_file_extension(".png")
+    self.assertEqual(layer_elem.name, "main-background.png")
+    
+    layer_elem.name = "main-background."
+    layer_elem.set_file_extension("png")
+    self.assertEqual(layer_elem.name, "main-background.png")
+  
+  def test_set_file_extension_turn_uppercase_to_lowercase(self):
+    layer_elem = self.layer_data["main-background.jpg"]
+    
+    layer_elem.set_file_extension("PNG")
+    self.assertEqual(layer_elem.name, "main-background.png")
+  
+  def test_set_file_extension_no_extension(self):
+    layer_elem = self.layer_data["main-background.jpg"]
+    
+    layer_elem.set_file_extension(None)
+    self.assertEqual(layer_elem.name, "main-background")
+    
+    layer_elem.name = "main-background.jpg"
+    layer_elem.set_file_extension(".")
+    self.assertEqual(layer_elem.name, "main-background")
+  
+  def test_set_file_extension_from_multiple_periods(self):
+    layer_elem = self.layer_data["main-background.jpg"]
+    layer_elem.name = "main-background.xcf.bz2"
+    
+    layer_elem.set_file_extension("png")
+    self.assertEqual(layer_elem.name, "main-background.png")
+  
+  def test_set_file_extension_from_single_period_within_multiple_periods(self):
+    layer_elem = self.layer_data["main-background.jpg"]
+    layer_elem.name = "main-background.aaa.jpg"
+    
+    layer_elem.set_file_extension("png")
+    self.assertEqual(layer_elem.name, "main-background.aaa.png")
   

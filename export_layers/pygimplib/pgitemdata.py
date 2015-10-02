@@ -56,6 +56,7 @@ from collections import namedtuple
 
 import gimp
 
+from . import pgfileformats
 from . import pgpath
 from . import objectfilter
 
@@ -405,26 +406,54 @@ class _ItemDataElement(object):
   
   def get_file_extension(self):
     """
-    Get file extension from the `name` attribute.
+    Get file extension from the `name` attribute, in lowercase.
     
     If `name` has no file extension, return an empty string.
     """
     
-    return pgpath.get_file_extension(self.name)
+    name_lowercase = self.name.lower()
+    
+    if "." not in name_lowercase:
+      return ""
+    
+    file_extension = name_lowercase
+    
+    while file_extension:
+      next_period_index = file_extension.find(".")
+      if next_period_index == -1:
+        return file_extension
+      
+      file_extension = file_extension[next_period_index+1:]
+      if file_extension in pgfileformats.file_formats_dict:
+        return file_extension
+    
+    return ""
   
   def set_file_extension(self, file_extension):
     """
     Set file extension in the `name` attribute.
     
-    To remove the file extension from `name`, pass an empty string or None.
+    To remove the file extension from `name`, pass an empty string, None, or a
+    period (".").
     """
     
-    root = os.path.splitext(self.name)[0]
+    item_file_extension = self.get_file_extension()
+    
+    if item_file_extension:
+      item_name_without_extension = self.name[0:len(self.name) - len(item_file_extension) - 1]
+    else:
+      item_name_without_extension = self.name
+      if item_name_without_extension.endswith("."):
+        item_name_without_extension = item_name_without_extension.rstrip(".")
+    
+    if file_extension and file_extension.startswith("."):
+      file_extension = file_extension.lstrip(".")
     
     if file_extension:
-      self.name = '.'.join((root, file_extension))
+      file_extension = file_extension.lower()
+      self.name = '.'.join((item_name_without_extension, file_extension))
     else:
-      self.name = root
+      self.name = item_name_without_extension
   
   def get_filepath(self, directory, include_item_path=True):
     """
