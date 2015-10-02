@@ -511,7 +511,10 @@ class LayerExporter(object):
     return len(str_) - len("." + self._current_file_extension)
   
   def _get_file_export_func(self, file_extension):
-    return pgfileformats.file_formats_dict[file_extension].save_procedure_func
+    if file_extension in pgfileformats.file_formats_dict:
+      return pgfileformats.file_formats_dict[file_extension].save_procedure_func
+    else:
+      return pgfileformats.get_default_save_procedure()
   
   def _get_run_mode(self):
     if self._layer_file_extension_properties[self._current_file_extension].is_valid:
