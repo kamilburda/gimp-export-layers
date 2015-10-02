@@ -52,7 +52,7 @@ _
 runtests.run_tests()
 
 
-The `_` is vital if you're using the `gettext` module for internationalization.
+The `_` is vital if you are using the `gettext` module for internationalization.
 """
 
 #===============================================================================
@@ -164,7 +164,7 @@ def run_tests(path=PLUGINS_PATH, test_module_name_prefix="test_",
     
     module = load_module(module_name)
     
-    parts = module_name.split('.')
+    parts = module_name.split(".")
     if parts[-1].startswith(test_module_name_prefix):
       run_test(module, stream=output_stream)
 

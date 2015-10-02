@@ -106,8 +106,8 @@ def _trim_leading_spaces(file_to_read, file_to_write, num_leading_spaces):
       
       # Trim leading spaces from subsequent lines.
       line = file_to_read.readline()
-      while line.startswith(' ' * num_leading_spaces):
-        file_to_write.write(line.lstrip(' '))
+      while line.startswith(" " * num_leading_spaces):
+        file_to_write.write(line.lstrip(" "))
         line = file_to_read.readline()
     else:
       file_to_write.write(line)
@@ -122,7 +122,7 @@ def _rename_filenames_inside_file(file_to_read, file_to_write, filenames_to_rena
   
   filenames_to_rename_patterns = {}
   for src_filename, dest_filename in filenames_to_rename.items():
-    src_filename_pattern = re.escape(src_filename).replace('\\ ', "\\s")
+    src_filename_pattern = re.escape(src_filename).replace("\\ ", "\\s")
     filenames_to_rename_patterns[src_filename_pattern] = dest_filename
   
   for line in file_to_read:
@@ -137,8 +137,8 @@ def process_file(filename, *process_functions_and_args):
   temp_filename_copy = os.path.join(temp_dir, "temp")
   shutil.copy2(filename, temp_filename_copy)
   
-  temp_file_copy = open(temp_filename_copy, 'r+')
-  temp_file = tempfile.NamedTemporaryFile('r+', dir=temp_dir, delete=False)
+  temp_file_copy = open(temp_filename_copy, "r+")
+  temp_file = tempfile.NamedTemporaryFile("r+", dir=temp_dir, delete=False)
   
   last_modified_filename = None
   file_to_read = temp_file_copy
@@ -181,7 +181,7 @@ def _print_program_message(message, stream=sys.stdout):
 
 
 def _get_filtered_files(directory, pattern_file):
-  with open(pattern_file, 'r') as file_:
+  with open(pattern_file, "r") as file_:
     spec = pathspec.PathSpec.from_lines(pathspec.GitIgnorePattern, file_)
   
   return [os.path.join(directory, match) for match in spec.match_tree(directory)]
@@ -259,6 +259,6 @@ def make_package(input_directory, output_file, version):
 
 
 if __name__ == "__main__":
-  output_file = OUTPUT_FILENAME_PREFIX + '-' + constants.PLUGIN_VERSION + OUTPUT_FILENAME_SUFFIX
+  output_file = OUTPUT_FILENAME_PREFIX + "-" + constants.PLUGIN_VERSION + OUTPUT_FILENAME_SUFFIX
   make_package(PLUGINS_PATH, output_file, constants.PLUGIN_VERSION)
   print("Package successfully created:", os.path.join(PLUGINS_PATH, output_file))

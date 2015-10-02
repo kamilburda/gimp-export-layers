@@ -258,7 +258,7 @@ class LayerExporter(object):
     self.progress_updater.reset()
     
     self._layer_file_extension_properties = defaultdict(self._LayerFileExtensionProperties)
-    self._default_file_extension = self._default_file_extension.lstrip('.').lower()
+    self._default_file_extension = self._default_file_extension.lstrip(".").lower()
     self._current_file_extension = self._default_file_extension
     self._file_export_func = self._get_file_export_func(self._default_file_extension)
     self._current_layer_export_status = self._NOT_EXPORTED_YET
@@ -505,7 +505,7 @@ class LayerExporter(object):
     elif (self.export_settings['file_ext_mode'].value ==
           self.export_settings['file_ext_mode'].items['no_special_handling']):
       
-      layer_elem.name += '.' + self._default_file_extension
+      layer_elem.name += "." + self._default_file_extension
   
   def _get_uniquifier_position(self, str_):
     return len(str_) - len("." + self._current_file_extension)
@@ -568,8 +568,8 @@ class LayerExporter(object):
             self._current_layer_export_status = self._FORCE_INTERACTIVE
           else:
             error_message = '"' + self._current_file_extension + '": ' + e.message
-            if not e.message.endswith('.'):
-              error_message += '.'
+            if not e.message.endswith("."):
+              error_message += "."
             raise ExportLayersError(error_message)
     else:
       self._current_layer_export_status = self._EXPORT_SUCCESSFUL

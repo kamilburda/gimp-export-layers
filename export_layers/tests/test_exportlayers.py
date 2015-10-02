@@ -66,7 +66,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def setUpClass(cls):
     pdb.gimp_context_push()
     
-    cls.test_image_filename = os.path.join(TEST_IMAGES_DIR, 'test_export_layers_contents.xcf')
+    cls.test_image_filename = os.path.join(TEST_IMAGES_DIR, "test_export_layers_contents.xcf")
     cls.test_image = pdb.gimp_file_load(cls.test_image_filename, os.path.basename(cls.test_image_filename))
     
     cls.output_directory = OUTPUT_DIR
@@ -248,13 +248,13 @@ def test_file_formats(layer_exporter, export_settings):
   """
   
   file_extensions = [
-    'data', 'xcf', 'pix', 'matte', 'mask', 'alpha', 'als', 'fli', 'flc',
-    'xcf.bz2', 'xcfbz2', 'c', 'h', 'xhtml', 'dds', 'dcm', 'dicom', 'eps',
-    'fit', 'fits', 'gif', 'gbr', 'gih', 'pat', 'xcf.gz', 'xcfgz',
-    'html', 'htm', 'jpg', 'jpeg', 'jpe', 'cel', 'ico', 'mng', 'ora', 'pbm',
-    'pgm', 'psd', 'png', 'pnm', 'pdf', 'ps', 'ppm', 'sgi', 'rgb', 'rgba',
-    'bw', 'icon', 'im1', 'im8', 'im24', 'im32', 'rs', 'ras', 'tga', 'tif',
-    'tiff', 'bmp', 'xbm', 'bitmap', 'xpm', 'xwd', 'pcx', 'pcc'
+    "data", "xcf", "pix", "matte", "mask", "alpha", "als", "fli", "flc",
+    "xcf.bz2", "xcfbz2", "c", "h", "xhtml", "dds", "dcm", "dicom", "eps",
+    "fit", "fits", "gif", "gbr", "gih", "pat", "xcf.gz", "xcfgz",
+    "html", "htm", "jpg", "jpeg", "jpe", "cel", "ico", "mng", "ora", "pbm",
+    "pgm", "psd", "png", "pnm", "pdf", "ps", "ppm", "sgi", "rgb", "rgba",
+    "bw", "icon", "im1", "im8", "im24", "im32", "rs", "ras", "tga", "tif",
+    "tiff", "bmp", "xbm", "bitmap", "xpm", "xwd", "pcx", "pcc"
   ]
   
   orig_output_directory = export_settings['output_directory'].value

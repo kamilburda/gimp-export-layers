@@ -533,7 +533,7 @@ class _ExportLayersGui(object):
       if not text.endswith("."):
         text += "."
       
-      # Display literal '&' as intended. Required by the markup.
+      # Display literal "&" as intended. Required by the markup.
       text = text.replace("&", "&amp;")
       
       if message_type == self.ERROR:
@@ -541,7 +541,7 @@ class _ExportLayersGui(object):
       else:
         color = "blue"
       
-      self.label_message.set_markup('<span foreground="' + color + '"><b>' + text + '</b></span>')
+      self.label_message.set_markup("<span foreground='{0}'><b>{1}</b></span>".format(color, text))
 
 
 #===============================================================================

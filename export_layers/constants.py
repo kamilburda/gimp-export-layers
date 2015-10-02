@@ -82,8 +82,8 @@ DOMAIN_NAME = PLUGIN_PROGRAM_NAME
 LOCALE_DIRNAME = "locale"
 LOCALE_PATH = os.path.join(PLUGINS_DIRECTORY, PLUGIN_PROGRAM_NAME, LOCALE_DIRNAME)
 
-PLUGINS_LOG_STDOUT_PATH = os.path.join(PLUGIN_PATH, PLUGIN_PROGRAM_NAME + '.log')
-PLUGINS_LOG_STDERR_PATH = os.path.join(PLUGIN_PATH, PLUGIN_PROGRAM_NAME + '_error.log')
+PLUGINS_LOG_STDOUT_PATH = os.path.join(PLUGIN_PATH, PLUGIN_PROGRAM_NAME + ".log")
+PLUGINS_LOG_STDERR_PATH = os.path.join(PLUGIN_PATH, PLUGIN_PROGRAM_NAME + "_error.log")
 
 # These are alternate paths that can be used to log output to the
 # `[user directory]/.gimp-2.8/plug-ins` directory in case the plug-in was
@@ -95,10 +95,10 @@ PLUGINS_LOG_STDOUT_PATH_ALTERNATE = None
 PLUGINS_LOG_STDERR_PATH_ALTERNATE = None
 
 if _gimp_module_imported:
-  PLUGINS_DIRECTORY_ALTERNATE = os.path.join(gimp.directory, 'plug-ins')
+  PLUGINS_DIRECTORY_ALTERNATE = os.path.join(gimp.directory, "plug-ins")
   if PLUGINS_DIRECTORY_ALTERNATE != PLUGINS_DIRECTORY:
     PLUGIN_PATH_ALTERNATE = os.path.join(PLUGINS_DIRECTORY_ALTERNATE, PLUGIN_DIRNAME)
     PLUGINS_LOG_STDOUT_PATH_ALTERNATE = os.path.join(PLUGIN_PATH_ALTERNATE,
-                                                     PLUGIN_PROGRAM_NAME + '.log')
+                                                     PLUGIN_PROGRAM_NAME + ".log")
     PLUGINS_LOG_STDERR_PATH_ALTERNATE = os.path.join(PLUGIN_PATH_ALTERNATE,
-                                                     PLUGIN_PROGRAM_NAME + '_error.log')
+                                                     PLUGIN_PROGRAM_NAME + "_error.log")
