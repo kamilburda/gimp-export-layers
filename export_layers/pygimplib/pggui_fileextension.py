@@ -47,7 +47,7 @@ import pango
 
 import gimp
 
-from . import export_formats
+from . import pgfileformats
 
 #===============================================================================
 
@@ -187,7 +187,7 @@ class FileExtensionEntry(gtk.Entry):
     self._extensions_separator_text_pixel_size = None
     self._extensions_text_pixel_rects = []
     
-    self._create_popup(export_formats.export_formats)
+    self._create_popup(pgfileformats.file_formats)
     
     self.connect("button-press-event", self._on_entry_left_mouse_button_press)
     self.connect("key-press-event", self._on_entry_key_press)
@@ -715,9 +715,9 @@ class FileExtensionEntry(gtk.Entry):
   def _fill_file_formats(self, file_formats):
     for file_format in file_formats:
       can_add_file_format = (
-        file_format.file_export_procedure_name is None or (
-          file_format.file_export_procedure_name is not None and
-          pdb.gimp_procedural_db_proc_exists(file_format.file_export_procedure_name)))
+        file_format.save_procedure_name is None or (
+          file_format.save_procedure_name is not None and
+          pdb.gimp_procedural_db_proc_exists(file_format.save_procedure_name)))
       
       if can_add_file_format:
         self._file_formats.append([file_format.description, file_format.file_extensions])

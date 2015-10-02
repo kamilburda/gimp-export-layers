@@ -45,7 +45,7 @@ import gimpenums
 
 from export_layers import constants
 
-from export_layers.pygimplib import export_formats
+from export_layers.pygimplib import pgfileformats
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgitemdata
@@ -511,7 +511,7 @@ class LayerExporter(object):
     return len(str_) - len("." + self._current_file_extension)
   
   def _get_file_export_func(self, file_extension):
-    return export_formats.export_formats_dict[file_extension].file_export_procedure_func
+    return pgfileformats.file_formats_dict[file_extension].save_procedure_func
   
   def _get_run_mode(self):
     if self._layer_file_extension_properties[self._current_file_extension].is_valid:

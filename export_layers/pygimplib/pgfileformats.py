@@ -20,19 +20,18 @@
 #-------------------------------------------------------------------------------
 
 """
-This module contains a list of built-in and several third-party file export
-formats supported by GIMP.
+This module contains a list of built-in and several third-party file formats
+supported by GIMP.
 
 Each element of the list is a tuple:
 
   (file format description, file extensions, (optional) file save procedure)
 
-The file export procedure can be used for multiple purposes, such as:
+The file save procedure can be used for multiple purposes, such as:
 * checking that the corresponding file format plug-in is installed,
-* using that export procedure instead of the default export procedure.
-
-The default export procedure is `pdb.gimp_file_save`, which invokes the correct
-file export procedure based on the file extension of the filename.
+* using that save procedure instead of the default save procedure
+  (`pdb.gimp_file_save`, which invokes the correct file save procedure based on
+  the file extension of the filename).
 """
 
 #===============================================================================
@@ -55,50 +54,51 @@ pdb = gimp.pdb
 #===============================================================================
 
 
-class _ExportFormat(object):
+class _FileFormat(object):
   
-  def __init__(self, description, file_extensions, file_export_procedure_name=None,
-               file_export_procedure_func=None, file_export_procedure_func_args=None):
+  def __init__(self, description, file_extensions, save_procedure_name=None,
+               save_procedure_func=None, save_procedure_func_args=None):
     
-    def _export_image_default(run_mode, image, layer, filename, raw_filename):
+    def _save_image_default(run_mode, image, layer, filename, raw_filename):
       pdb.gimp_file_save(image, layer, filename, raw_filename, run_mode=run_mode)
     
     self.description = description
     self.file_extensions = file_extensions
-    self.file_export_procedure_name = file_export_procedure_name
     
-    if file_export_procedure_func is not None:
-      self.file_export_procedure_func = file_export_procedure_func
-    else:
-      self.file_export_procedure_func = _export_image_default
+    self.save_procedure_name = save_procedure_name
     
-    if file_export_procedure_func_args is not None:
-      self.file_export_procedure_func_args = file_export_procedure_func_args
+    if save_procedure_func is not None:
+      self.save_procedure_func = save_procedure_func
     else:
-      self.file_export_procedure_func_args = []
+      self.save_procedure_func = _save_image_default
+    
+    if save_procedure_func_args is not None:
+      self.save_procedure_func_args = save_procedure_func_args
+    else:
+      self.save_procedure_func_args = []
 
 
-def _create_export_formats(export_formats_params):
-  return [_ExportFormat(*params) for params in export_formats_params]
+def _create_file_formats(file_formats_params):
+  return [_FileFormat(*params) for params in file_formats_params]
 
 
-def _create_export_formats_dict(export_formats):
-  export_formats_dict = {}
+def _create_file_formats_dict(file_formats):
+  file_formats_dict = {}
   
-  for export_format in export_formats:
-    for file_extension in export_format.file_extensions:
+  for file_format in file_formats:
+    for file_extension in file_format.file_extensions:
       # If the same extension appears in multiple formats, only the first format
       # will be accessed by the extension. 
-      if file_extension not in export_formats_dict:
-        export_formats_dict[file_extension] = export_format
+      if file_extension not in file_formats_dict:
+        file_formats_dict[file_extension] = file_format
   
-  return export_formats_dict
+  return file_formats_dict
 
 
 #===============================================================================
 
 
-export_formats = _create_export_formats([
+file_formats = _create_file_formats([
   ("Alias Pix image", ["pix", "matte", "mask", "alpha", "als"]),
   ("ASCII art", ["txt", "ansi", "text"], "file-aa-save"),
   ("AutoDesk FLIC animation", ["fli", "flc"]),
@@ -155,5 +155,5 @@ export_formats = _create_export_formats([
 ])
 
 
-export_formats_dict = _create_export_formats_dict(export_formats)
+file_formats_dict = _create_file_formats_dict(file_formats)
 
