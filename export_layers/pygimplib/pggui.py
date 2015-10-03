@@ -52,7 +52,9 @@ else:
   _webbrowser_module_found = True
 
 import pygtk
+
 pygtk.require("2.0")
+
 import gtk
 
 import gimp

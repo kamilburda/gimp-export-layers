@@ -37,7 +37,9 @@ str = unicode
 import abc
 
 import pygtk
+
 pygtk.require("2.0")
+
 import gtk
 
 import gimp
