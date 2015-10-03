@@ -153,6 +153,24 @@ class LayerFilterRules(object):
 #===============================================================================
 
 
+class _FileExtensionProperties(object):
+  """
+  This class contains additional properties for a file extension.
+  
+  Attributes:
+  
+  * `is_valid` - If True, file extension is valid and can be used in filenames
+    for file export procedures.
+  
+  * `processed_count` - Number of items with the specific file extension that
+    have already been exported.
+  """
+  
+  def __init__(self):
+    self.is_valid = True
+    self.processed_count = 0
+
+
 class LayerExporter(object):
   
   """
@@ -189,25 +207,6 @@ class LayerExporter(object):
     _NOT_EXPORTED_YET, _EXPORT_SUCCESSFUL, _FORCE_INTERACTIVE,
     _USE_DEFAULT_FILE_EXTENSION
   ) = (0, 1, 2, 3)
-  
-  class _LayerFileExtensionProperties(object):
-    """
-    This class contains additional data about a file extension. The file
-    extension is not specified in this class, it is specified as a key to the
-    `_layer_file_extension_properties` dict.
-    
-    Attributes:
-    
-    * `is_valid` - If True, file extension is valid and can be used in filenames
-      for the `pdb.gimp_file_save` procedure.
-    
-    * `processed_count` - Number of layers with the specific file extension that
-      have already been exported.
-    """
-    
-    def __init__(self):
-      self.is_valid = True
-      self.processed_count = 0
   
   def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser, progress_updater):
     self.initial_run_mode = initial_run_mode
@@ -257,12 +256,25 @@ class LayerExporter(object):
       self.progress_updater = progress.ProgressUpdater(None)
     self.progress_updater.reset()
     
-    self._layer_file_extension_properties = defaultdict(self._LayerFileExtensionProperties)
+    self._file_extension_properties = self._prefill_file_extension_properties()
     self._default_file_extension = self._default_file_extension.lstrip(".").lower()
     self._current_file_extension = self._default_file_extension
     self._file_export_func = self._get_file_export_func(self._default_file_extension)
     self._current_layer_export_status = self._NOT_EXPORTED_YET
     self._is_current_layer_skipped = False
+  
+  def _prefill_file_extension_properties(self):
+    file_extension_properties = defaultdict(_FileExtensionProperties)
+    
+    for file_format in pgfileformats.file_formats:
+      # This ensures that the file format dialog will be displayed only once per
+      # file format if multiple file extensions for the same format are used
+      # (e.g. "jpg", "jpeg" or "jpe" for the JPEG format).
+      extension_properties = _FileExtensionProperties()
+      for file_extension in file_format.file_extensions:
+        file_extension_properties[file_extension] = extension_properties
+    
+    return file_extension_properties
   
   def _set_layer_filters(self):
     """
@@ -354,7 +366,7 @@ class LayerExporter(object):
           # Append the original layer, not the copy, since the copy is going to
           # be destroyed.
           self._exported_layers.append(layer)
-          self._layer_file_extension_properties[self._current_file_extension].processed_count += 1
+          self._file_extension_properties[self._current_file_extension].processed_count += 1
         pdb.gimp_image_remove_layer(self._image_copy, layer_copy)
       elif layer_elem.item_type == layer_elem.EMPTY_GROUP:
         layer_elem.validate_name()
@@ -494,7 +506,7 @@ class LayerExporter(object):
         self.export_settings['file_ext_mode'].items['use_as_file_extensions']):
       
       file_extension = layer_elem.get_file_extension()
-      if file_extension and self._layer_file_extension_properties[file_extension].is_valid:
+      if file_extension and self._file_extension_properties[file_extension].is_valid:
         self._current_file_extension = file_extension
       else:
         layer_elem.set_file_extension(self._default_file_extension)
@@ -517,8 +529,8 @@ class LayerExporter(object):
       return pgfileformats.get_default_save_procedure()
   
   def _get_run_mode(self):
-    if self._layer_file_extension_properties[self._current_file_extension].is_valid:
-      if self._layer_file_extension_properties[self._current_file_extension].processed_count == 0:
+    if self._file_extension_properties[self._current_file_extension].is_valid:
+      if self._file_extension_properties[self._current_file_extension].processed_count == 0:
         return self.initial_run_mode
       else:
         return gimpenums.RUN_WITH_LAST_VALS
@@ -557,7 +569,7 @@ class LayerExporter(object):
         raise ExportLayersCancelError(e.message)
       else:
         if self._current_file_extension != self._default_file_extension:
-          self._layer_file_extension_properties[self._current_file_extension].is_valid = False
+          self._file_extension_properties[self._current_file_extension].is_valid = False
           self._current_file_extension = self._default_file_extension
           self._current_layer_export_status = self._USE_DEFAULT_FILE_EXTENSION
         else:
