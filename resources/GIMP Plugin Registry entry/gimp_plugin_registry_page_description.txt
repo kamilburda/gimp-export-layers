@@ -2,15 +2,17 @@
 Summary
 ================================================================================
 
-Export Layers is a GIMP plug-in that exports layers as separate images in almost any file format supported by GIMP and possibly third-party plug-ins.
+Export Layers is a GIMP plug-in exports layers as separate images in any file format supported by GIMP and third-party plug-ins.
 
-This plug-in:
-<ul><li>uses native dialogs for file format export procedures to adjust file format settings</li>
+Features:
+<ul>
+<li>uses native dialogs for file formats to adjust export settings</li>
 <li>uses layer names as filenames for the exported images</li>
-<li>supports layer groups and optionally treats them as folders</li>
-<li>can optionally export only layers whose file extension matches specified file format</li>
+<li>can treat layer groups as folders</li>
+<li>can use layers with names in [square brackets] as background layers</li>
+<li>can optionally export only layers whose file extension matches the specified file extension</li>
 <li>can use file extensions in layer names as file formats</li>
-<li>can use layers with names in [square brackets] as background layers</li></ul>
+</ul>
 
 Examples:
 <img src="https://lh3.googleusercontent.com/-PlawB6QbWc8/VYLJWDzYF3I/AAAAAAAABDc/268h_hcwHZ4/s0/Export_layers_2_3.png" width="100%" height="100%" />
@@ -20,43 +22,35 @@ Examples:
 Description
 ================================================================================
 
-Export Layers is a GIMP plug-in that exports layers as separate images in almost any file format supported by GIMP and possibly third-party plug-ins.
+Export Layers is a GIMP plug-in exports layers as separate images in any file format supported by GIMP and third-party plug-ins.
 
 Features:
-<ul><li>uses native dialogs for file format export procedures to adjust file format settings</li>
-<li>uses layer names as filenames for the exported images</li>
-<li>supports layer groups and optionally treats them as folders</li>
-<li>can optionally export only layers whose file extension matches specified file format</li>
-<li>can use file extensions in layer names as file formats</li>
-<li>can use layers with names in [square brackets] as background layers</li></ul>
-
-<h5><strong>Download Export Layers at:</strong></h5>
-https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.3/export-layers-2.3.zip
-
-<h5><strong>Requirements</strong></h5>
 <ul>
-<li>GIMP 2.8 or later</li>
-<li>Python 2.7.x</li>
+<li>uses native dialogs for file formats to adjust export settings</li>
+<li>uses layer names as filenames for the exported images</li>
+<li>can treat layer groups as folders</li>
+<li>can use layers with names in [square brackets] as background layers</li>
+<li>can optionally export only layers whose file extension matches the specified file extension</li>
+<li>can use file extensions in layer names as file formats</li>
 </ul>
 
-<h5><strong>Usage</strong></h5>
-From the main menu, go to "File -> Export Layers...". A dialog appears, allowing you to specify the output folder, the file extension and various other settings.
+This plug-in requires GIMP 2.8 or later and Python 2.7 or later from the 2.7.x series.
 
-To export layers, press the "Export Layers" button. For the first layer, a dialog corresponding to the file format appears, allowing you to adjust file format settings. Not all file formats have settings, so no dialog may appear. For subsequent layers, the file export procedure uses the values you specified in the dialog for the first file.
+Plug-in can be found at "File -> Export Layers...". A dialog appears, allowing you to specify output folder, file extension and various other settings. To export layers with the last settings used, you may want to choose "File -> Export Layers (repeat)".
 
-If you want to export the layers with the last values used, you can use the "File -> Export Layers (repeat)" menu entry. The file format dialog will not be displayed - instead, the last used values will be used.
+<h5><strong>Download Export Layers at:</strong></h5>
+https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.4/export-layers-2.4.zip
 
 <h5><strong>Examples</strong></h5>
 <img src="https://lh3.googleusercontent.com/-PlawB6QbWc8/VYLJWDzYF3I/AAAAAAAABDc/268h_hcwHZ4/s0/Export_layers_2_3.png" width="100%" height="100%" />
 <img src="https://lh3.googleusercontent.com/-pMFMIn7oZzM/VYLJWO4qjeI/AAAAAAAABDg/7engOV5Nne4/s0/Export_layers_2_3_file_format_dialog.png" width="100%" height="100%" />
 
-<h5><strong>Changelog</strong></h5>
-2.3 (June 18, 2015)
-* Removed tooltips for settings (except File Extension) due to being redundant.
-* Allowed to type in the output directory manually in the directory chooser if the "Location:" label is visible.
-* Changed the default value of the file extension strip mode to "Always strip file extension".
-* Changed the persistent storage of settings from a custom JSON file to the GIMP's native "parasiterc" file. This improves compatibility for certain GIMP builds not bundling some less commonly used Python modules. Users need to re-save settings if they used the "Save Settings" feature.
-* Major refactoring of the code dealing with settings to make it easier to create and maintain them.
+<h5><strong>Release Notes</strong></h5>
+2.4 (October 4, 2015)
+* The "File extension" text field now displays a dropdown list of file formats and associated file extensions (upon clicking or pressing Up/Down keys). Several third-party formats are also listed, provided that the corresponding plug-ins are installed. You can still enter a file extension not in the dropdown list in case you use a different file format plug-in.
+* Renamed "Export Layers to" to "Export Layers (repeat)".
+* Added mnemonics (keyboard shortcuts) to the dialog in "Export Layers (repeat)" and to the overwrite confirmation dialog.
+* Misc. bug fixes and minor adjustments.
 
 For more information, such as installation, full list of features or known issues, read the <i>Readme.txt</i> file in the package or see the GitHub page for the plug-in:
 https://github.com/khalim19/gimp-plugin-export-layers
