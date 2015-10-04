@@ -65,7 +65,7 @@ and change its contents to the following:
 Usage
 -----
 
-From the main menu, go to "File -> Export Layers...". A dialog appears, allowing
+From the main menu, select "File -> Export Layers...". A dialog appears, allowing
 you to specify output folder, file extension and various other settings.
 
 Type or choose your desired file extension in the "File extension" text field.
@@ -77,7 +77,7 @@ the file format appears, allowing you to adjust export settings. Some file
 formats don't have dialogs, while some of them display the dialog for each layer
 (listed in section Known Issues).
 
-To export layers with the last values used, you may want to choose
+To export layers with the last settings used, you may want to choose
 "File -> Export Layers (repeat)".
 
 
