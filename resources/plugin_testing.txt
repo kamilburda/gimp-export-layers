@@ -47,7 +47,7 @@ Interactive
 * load settings from GIMP shelf and config file
 * save settings to GIMP shelf after export
 * save settings to GIMP shelf if the export is cancelled or stopped prematurely
-* users chooses to save settings to config file (Save Settings)
+* user chooses to save settings to config file (Save Settings)
 * Reset Settings
 
 Non-interactive
