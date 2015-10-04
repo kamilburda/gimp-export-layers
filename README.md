@@ -1,16 +1,16 @@
 Export Layers
 =============
 
-Export Layers is a GIMP plug-in that exports layers as separate images in any
-file format supported by GIMP and third-party plug-ins.
+This GIMP plug-in exports layers as separate images in any file format supported
+by GIMP and third-party plug-ins.
 
 Features:
 * uses native dialogs for file formats to adjust export settings
 * uses layer names as filenames for the exported images
-* supports layer groups and optionally treats them as folders
-* can optionally export only layers whose file extension matches specified file extension
-* can use file extensions in layer names as file formats
+* can treat layer groups as folders
 * can use layers with names in [square brackets] as background layers
+* can optionally export only layers whose file extension matches the specified file extension
+* can use file extensions in layer names as file formats
 
 
 Requirements
