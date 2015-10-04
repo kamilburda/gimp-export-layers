@@ -17,7 +17,7 @@ Requirements
 ------------
 
 * GIMP 2.8 or later
-* Python 2.7.x
+* Python 2.7 or later from the 2.7.x series
 
 
 Installation
@@ -25,14 +25,14 @@ Installation
 
 **Windows**
 
-Extract the `export_layers.py` file and the `export_layers` directory to
-`[home directory]\.gimp-2.8\plug-ins`.
+Copy the `export_layers.py` file and the `export_layers` folder to
+`[your home folder]\.gimp-2.8\plug-ins`.
 
 
 **Linux**
 
-Extract the `export_layers.py` file and the `export_layers` directory to
-`[home directory]/.gimp-2.8/plug-ins`.
+Copy the `export_layers.py` file and the `export_layers` folder to
+`[your home folder]/.gimp-2.8/plug-ins`.
 
 If necessary, make the `export_layers.py` file executable, e.g. from the terminal:
 
@@ -41,15 +41,19 @@ If necessary, make the `export_layers.py` file executable, e.g. from the termina
 
 **OS X**
 
-Extract the `export_layers.py` file and the `export_layers` directory to
-`[home directory]/Library/Application Support/GIMP/2.8/plug-ins`.
+Copy the `export_layers.py` file and the `export_layers` folder to
+`[your home folder]/Library/Application Support/GIMP/2.8/plug-ins`.
 
 If necessary, make the `export_layers.py` file executable, e.g. from the terminal:
 
     chmod +x "export_layers.py"
 
 GIMP for OS X may have Python 2.6 bundled, which will not work with this plug-in,
-since Python 2.7 is required. Install Python 2.7 (if not already), open
+since Python 2.7 is required.
+
+To check if the correct version of Python is installed, start GIMP and go to
+Filters -> Python-Fu -> Console. The console must display "Python 2.7" or later
+from the 2.7.x series. If not, install Python 2.7, open
 `/Applications/Gimp.app/Contents/Resources/lib/gimp/2.0/interpreters/pygimp.interp`
 and change its contents to the following:
 
@@ -204,7 +208,7 @@ Translations
 ------------
 
 If you want to provide translations for the plug-in, see the `Readme for Translators.md`
-file in the `export_layers/locale` directory in the package.
+file in the `export_layers/locale` folder in the package.
 
 
 Support, Contact
