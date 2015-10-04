@@ -1,3 +1,16 @@
+2.4 (October 4, 2015)
+---------------------
+
+* The "File extension" text field now displays a dropdown list of file formats and associated file extensions (upon clicking or pressing Up/Down keys). Several third-party formats are also listed, provided that the corresponding plug-ins are installed. You can still enter a file extension not in the dropdown list in case you use a different file format plug-in.
+* Renamed "Export Layers to" to "Export Layers (repeat)".
+* Added mnemonics (keyboard shortcuts) to the dialog in "Export Layers (repeat)" and to the overwrite confirmation dialog.
+* Fixed crash for input images located in folders that contain accented characters.
+* Fixed export of layers with file extensions containing periods (e.g. "xcf.bz2") if files with the same name already exist in the chosen output folder.
+* If "Use as file extensions" is selected and layers contain multiple extensions for the same file format (e.g. "jpeg", "jpg" or "jpe" for the JPEG format), the file format dialog is now displayed only once.
+* If a layer name is enclosed with multiple pairs of square brackets, only the outermost pair is removed upon the export (e.g. a layer named "[[Background]]" is exported as "[Background].png").
+* Removed " copy" suffix from the names of exported layers for formats preserving layer information (e.g. PSD or XCF).
+* On Ubuntu, replaced the overlay scrollbar with the classic scrollbar.
+
 2.3 (June 18, 2015)
 -------------------
 

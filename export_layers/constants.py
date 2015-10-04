@@ -54,7 +54,7 @@ def N_(s):
 PLUGIN_PROGRAM_NAME = "export_layers"
 PLUGIN_TITLE = N_("Export Layers")
 
-PLUGIN_VERSION = "2.3"
+PLUGIN_VERSION = "2.4"
 
 # If False, log only exceptions to an error log file. If True, log all output
 # from `stdout` and `stderr` to separate log files.
