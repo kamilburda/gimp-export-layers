@@ -54,7 +54,6 @@ try:
 except TypeError:
   raise
 except Exception:
-  # OS does not support setting environment variables
   pass
 
 
