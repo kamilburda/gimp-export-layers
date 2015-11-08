@@ -1040,8 +1040,8 @@ class DirectorySetting(ValidatableStringSetting):
   """
   This setting class can be used for directories.
   
-  `pgpath.FilePathValidator` subclass is used to determine whether the directory
-  name is valid.
+  `pgpath.DirectoryPathValidator` subclass is used to determine whether the
+  directory name is valid.
   
   Allowed GIMP PDB types:
   
