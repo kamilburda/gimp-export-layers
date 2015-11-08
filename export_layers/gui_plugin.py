@@ -250,10 +250,13 @@ class _ExportLayersGui(object):
     self.file_extension_label = gtk.Label()
     self.file_extension_label.set_markup("<b>" + self.settings['main']['file_extension'].display_name + ":</b>")
     self.file_extension_label.set_alignment(0.0, 0.5)
+    
     self.file_extension_entry = pggui.FileExtensionEntry()
     self.file_extension_entry.set_size_request(100, -1)
+    
     self.label_message = gtk.Label()
     self.label_message.set_alignment(0.0, 0.5)
+    self.label_message.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
     self.expander_advanced_settings = gtk.Expander()
     self.expander_advanced_settings.set_use_markup(True)
@@ -288,7 +291,7 @@ class _ExportLayersGui(object):
     self.hbox_file_extension = gtk.HBox(homogeneous=False)
     self.hbox_file_extension.set_spacing(self.HBOX_HORIZONTAL_SPACING)
     self.hbox_file_extension.pack_start(self.hbox_file_extension_entry, expand=False, fill=True)
-    self.hbox_file_extension.pack_start(self.label_message, expand=False, fill=True)
+    self.hbox_file_extension.pack_start(self.label_message, expand=True, fill=True)
     
     self.hbox_export_settings = gtk.HBox(homogeneous=False)
     self.hbox_export_settings.pack_start(self.settings['main']['layer_groups_as_folders'].gui.element)
