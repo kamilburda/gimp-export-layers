@@ -982,6 +982,12 @@ class ValidatableStringSetting(StringSetting):
     self._string_validator = string_validator
     
     super(ValidatableStringSetting, self).__init__(name, default_value, **kwargs)
+  
+  def set_value(self, value):
+    if isinstance(value, bytes):
+      value = value.decode()
+    
+    super(ValidatableStringSetting, self).set_value(value)
     
   def _init_error_messages(self):
     for status in self._string_validator.ERROR_STATUSES:
@@ -1028,12 +1034,6 @@ class FileExtensionSetting(ValidatableStringSetting):
     
     super(FileExtensionSetting, self).__init__(name, default_value, pgpath.FileExtensionValidator, **kwargs)
   
-  def set_value(self, value):
-    if isinstance(value, bytes):
-      value = value.decode()
-    
-    super(FileExtensionSetting, self).set_value(value)
-  
 
 class DirectorySetting(ValidatableStringSetting):
   
@@ -1061,12 +1061,6 @@ class DirectorySetting(ValidatableStringSetting):
       default_value = default_value.decode()
     
     super(DirectorySetting, self).__init__(name, default_value, pgpath.DirectoryPathValidator, **kwargs)
-  
-  def set_value(self, value):
-    if isinstance(value, bytes):
-      value = value.decode()
-    
-    super(DirectorySetting, self).set_value(value)
   
   def update_current_directory(self, current_image, directory_for_current_image):
     """
