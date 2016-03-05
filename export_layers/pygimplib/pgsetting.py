@@ -77,7 +77,7 @@ class SettingPdbTypes(object):
   channel = gimpenums.PDB_CHANNEL
   selection = gimpenums.PDB_SELECTION
   vectors = gimpenums.PDB_VECTORS
-  path = gimpenums.PDB_VECTORS       # alias to `vectors`
+  path = vectors
   
   parasite = gimpenums.PDB_PARASITE
   display = gimpenums.PDB_DISPLAY
