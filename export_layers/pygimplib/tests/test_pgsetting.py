@@ -692,7 +692,7 @@ class TestFileExtensionSetting(unittest.TestCase):
       pgsetting.FileExtensionSetting('file_ext', None)
   
   def test_custom_error_message(self):
-    self.setting.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = "my custom message"
+    self.setting.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = "my custom message"
     try:
       self.setting.set_value("")
     except pgsetting.SettingValueError as e:

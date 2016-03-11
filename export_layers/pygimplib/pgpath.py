@@ -224,6 +224,18 @@ def split_path(path):
 #===============================================================================
 
 
+class FileValidatorErrorStatuses(object):
+  ERROR_STATUSES = (
+    IS_EMPTY,
+    HAS_INVALID_CHARS,
+    DRIVE_HAS_INVALID_CHARS,
+    HAS_TRAILING_SPACES,
+    HAS_TRAILING_PERIOD,
+    HAS_INVALID_NAMES,
+    EXISTS_BUT_IS_NOT_DIR
+  ) = range(7)
+
+
 class StringValidator(object):
   
   """
@@ -305,17 +317,13 @@ class FilenameValidator(StringValidator):
    "LPT7", "LPT8", "LPT9"
   }
   
-  ERROR_STATUSES = (
-     IS_EMPTY, HAS_INVALID_CHARS, HAS_TRAILING_SPACES, HAS_TRAILING_PERIOD,
-     HAS_INVALID_NAMES
-  ) = (0, 1, 2, 3, 4)
-  
   ERROR_STATUSES_MESSAGES = {
-    IS_EMPTY: _("Filename is not specified."),
-    HAS_INVALID_CHARS: _("Filename contains invalid characters."),
-    HAS_TRAILING_SPACES: _("Filename cannot end with spaces."),
-    HAS_TRAILING_PERIOD: _("Filename cannot end with a period."),
-    HAS_INVALID_NAMES: _("\"{0}\" is a reserved name that cannot be used in filenames.\n"),
+    FileValidatorErrorStatuses.IS_EMPTY: _("Filename is not specified."),
+    FileValidatorErrorStatuses.HAS_INVALID_CHARS: _("Filename contains invalid characters."),
+    FileValidatorErrorStatuses.HAS_TRAILING_SPACES: _("Filename cannot end with spaces."),
+    FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: _("Filename cannot end with a period."),
+    FileValidatorErrorStatuses.HAS_INVALID_NAMES: _(
+      "\"{0}\" is a reserved name that cannot be used in filenames.\n"),
   }
   
   @classmethod
@@ -327,22 +335,22 @@ class FilenameValidator(StringValidator):
     """
     
     if not filename or filename is None:
-      return False, [cls._status_tuple(cls.IS_EMPTY)]
+      return False, [cls._status_tuple(FileValidatorErrorStatuses.IS_EMPTY)]
     
     status_messages = []
     
     if re.search(cls._INVALID_CHARS_PATTERN, filename):
-      status_messages.append(cls._status_tuple(cls.HAS_INVALID_CHARS))
+      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_INVALID_CHARS))
     
     if filename.endswith(" "):
-      status_messages.append(cls._status_tuple(cls.HAS_TRAILING_SPACES))
+      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_SPACES))
     
     if filename.endswith("."):
-      status_messages.append(cls._status_tuple(cls.HAS_TRAILING_PERIOD))
+      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD))
     
     root, unused_ = os.path.splitext(filename)
     if root.upper() in cls._INVALID_NAMES:
-      status_messages.append(cls._status_tuple(cls.HAS_INVALID_NAMES))
+      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_INVALID_NAMES))
     
     is_valid = not status_messages
     return is_valid, status_messages
@@ -398,24 +406,22 @@ class FilePathValidator(StringValidator):
   
   _INVALID_NAMES = FilenameValidator._INVALID_NAMES
   
-  ERROR_STATUSES = (
-     IS_EMPTY, DRIVE_HAS_INVALID_CHARS, HAS_INVALID_CHARS,
-     HAS_TRAILING_SPACES, HAS_TRAILING_PERIOD, HAS_INVALID_NAMES
-  ) = (0, 1, 2, 3, 4, 5)
-  
   ERROR_STATUSES_MESSAGES = {
-    IS_EMPTY: _("File path is not specified."),
-    DRIVE_HAS_INVALID_CHARS: _("Drive letter contains invalid characters."),
-    HAS_INVALID_CHARS: _("File path contains invalid characters."),
-    HAS_TRAILING_SPACES: _("Path components in the file path cannot end with spaces."),
-    HAS_TRAILING_PERIOD: _("Path components in the file path cannot end with a period."),
-    HAS_INVALID_NAMES: _("\"{0}\" is a reserved name that cannot be used in file paths.\n"),
+    FileValidatorErrorStatuses.IS_EMPTY: _("File path is not specified."),
+    FileValidatorErrorStatuses.DRIVE_HAS_INVALID_CHARS: _("Drive letter contains invalid characters."),
+    FileValidatorErrorStatuses.HAS_INVALID_CHARS: _("File path contains invalid characters."),
+    FileValidatorErrorStatuses.HAS_TRAILING_SPACES: _(
+      "Path components in the file path cannot end with spaces."),
+    FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: _(
+      "Path components in the file path cannot end with a period."),
+    FileValidatorErrorStatuses.HAS_INVALID_NAMES: _(
+      "\"{0}\" is a reserved name that cannot be used in file paths.\n"),
   }
   
   @classmethod
   def is_valid(cls, filepath):
     if not filepath or filepath is None:
-      return False, [cls._status_tuple(cls.IS_EMPTY)]
+      return False, [cls._status_tuple(FileValidatorErrorStatuses.IS_EMPTY)]
     
     status_messages = []
     statuses = set()
@@ -427,32 +433,32 @@ class FilePathValidator(StringValidator):
     
     if drive:
       if re.search(cls._INVALID_CHARS_PATTERN_WITHOUT_DRIVE, drive):
-        status_messages.append(cls._status_tuple(cls.DRIVE_HAS_INVALID_CHARS))
+        status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.DRIVE_HAS_INVALID_CHARS))
     
     path_components = split_path(path)
     for path_component in path_components:
       if re.search(cls._INVALID_CHARS_PATTERN, path_component):
-        statuses.add(cls.HAS_INVALID_CHARS)
+        statuses.add(FileValidatorErrorStatuses.HAS_INVALID_CHARS)
       if path_component.endswith(" "):
-        statuses.add(cls.HAS_TRAILING_SPACES)
+        statuses.add(FileValidatorErrorStatuses.HAS_TRAILING_SPACES)
       if path_component.endswith("."):
-        statuses.add(cls.HAS_TRAILING_PERIOD)
+        statuses.add(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD)
       
       root, unused_ = os.path.splitext(path_component)
       if root.upper() in cls._INVALID_NAMES:
-        statuses.add(cls.HAS_INVALID_NAMES)
+        statuses.add(FileValidatorErrorStatuses.HAS_INVALID_NAMES)
         invalid_names_status_message += (
-          cls.ERROR_STATUSES_MESSAGES[cls.HAS_INVALID_NAMES].format(root))
+          cls.ERROR_STATUSES_MESSAGES[FileValidatorErrorStatuses.HAS_INVALID_NAMES].format(root))
     
-    if cls.HAS_INVALID_CHARS in statuses:
-      status_messages.append(cls._status_tuple(cls.HAS_INVALID_CHARS))
-    if cls.HAS_TRAILING_SPACES in statuses:
-      status_messages.append(cls._status_tuple(cls.HAS_TRAILING_SPACES))
-    if cls.HAS_TRAILING_PERIOD in statuses:
-      status_messages.append(cls._status_tuple(cls.HAS_TRAILING_PERIOD))
-    if cls.HAS_INVALID_NAMES in statuses:
+    if FileValidatorErrorStatuses.HAS_INVALID_CHARS in statuses:
+      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_INVALID_CHARS))
+    if FileValidatorErrorStatuses.HAS_TRAILING_SPACES in statuses:
+      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_SPACES))
+    if FileValidatorErrorStatuses.HAS_TRAILING_PERIOD in statuses:
+      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD))
+    if FileValidatorErrorStatuses.HAS_INVALID_NAMES in statuses:
       invalid_names_status_message = invalid_names_status_message.rstrip("\n")
-      status_messages.append((cls.HAS_INVALID_NAMES, invalid_names_status_message))
+      status_messages.append((FileValidatorErrorStatuses.HAS_INVALID_NAMES, invalid_names_status_message))
     
     is_valid = not status_messages
     return is_valid, status_messages
@@ -494,19 +500,17 @@ class DirectoryPathValidator(FilePathValidator):
     * the specified path must be a directory
   """
   
-  ERROR_STATUSES = (
-     IS_EMPTY, DRIVE_HAS_INVALID_CHARS, HAS_INVALID_CHARS, HAS_TRAILING_SPACES,
-     HAS_TRAILING_PERIOD, HAS_INVALID_NAMES, EXISTS_BUT_IS_NOT_DIR
-  ) = (0, 1, 2, 3, 4, 5, 6)
-  
   ERROR_STATUSES_MESSAGES = {
-    IS_EMPTY: _("Directory path is not specified."),
-    DRIVE_HAS_INVALID_CHARS: _("Drive letter contains invalid characters."),
-    HAS_INVALID_CHARS: _("Directory path contains invalid characters."),
-    HAS_TRAILING_SPACES: _("Path components in the directory path cannot end with spaces."),
-    HAS_TRAILING_PERIOD: _("Path components in the directory path cannot end with a period."),
-    HAS_INVALID_NAMES: _("\"{0}\" is a reserved name that cannot be used in directory paths.\n"),
-    EXISTS_BUT_IS_NOT_DIR: _("Specified path is not a directory.")
+    FileValidatorErrorStatuses.IS_EMPTY: _("Directory path is not specified."),
+    FileValidatorErrorStatuses.DRIVE_HAS_INVALID_CHARS: _("Drive letter contains invalid characters."),
+    FileValidatorErrorStatuses.HAS_INVALID_CHARS: _("Directory path contains invalid characters."),
+    FileValidatorErrorStatuses.HAS_TRAILING_SPACES: _(
+      "Path components in the directory path cannot end with spaces."),
+    FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: _(
+      "Path components in the directory path cannot end with a period."),
+    FileValidatorErrorStatuses.HAS_INVALID_NAMES: _(
+      "\"{0}\" is a reserved name that cannot be used in directory paths.\n"),
+    FileValidatorErrorStatuses.EXISTS_BUT_IS_NOT_DIR: _("Specified path is not a directory.")
   }
   
   @classmethod
@@ -514,7 +518,7 @@ class DirectoryPathValidator(FilePathValidator):
     unused_, status_messages = super(DirectoryPathValidator, cls).is_valid(dirpath)
     
     if os.path.exists(dirpath) and not os.path.isdir(dirpath):
-      status_messages.append(cls._status_tuple(cls.EXISTS_BUT_IS_NOT_DIR))
+      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.EXISTS_BUT_IS_NOT_DIR))
     
     is_valid = not status_messages
     return is_valid, status_messages
@@ -538,28 +542,28 @@ class FileExtensionValidator(StringValidator):
   
   _INVALID_CHARS_PATTERN = FilenameValidator._INVALID_CHARS_PATTERN
   
-  ERROR_STATUSES = (
-    IS_EMPTY, HAS_INVALID_CHARS, ENDS_WITH_SPACES_OR_PERIODS
-  ) = (0, 1, 2)
-  
   ERROR_STATUSES_MESSAGES = {
-    IS_EMPTY: _("File extension is not specified."),
-    HAS_INVALID_CHARS: _("File extension contains invalid characters."),
-    ENDS_WITH_SPACES_OR_PERIODS: _("File extension cannot end with spaces or periods.")
+    FileValidatorErrorStatuses.IS_EMPTY: _("File extension is not specified."),
+    FileValidatorErrorStatuses.HAS_INVALID_CHARS: _("File extension contains invalid characters."),
+    FileValidatorErrorStatuses.HAS_TRAILING_SPACES: _("File extension cannot end with spaces."),
+    FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: _("File extension cannot end with a period.")
   }
   
   @classmethod
   def is_valid(cls, file_ext):
     if not file_ext or file_ext is None:
-      return False, [cls._status_tuple(cls.IS_EMPTY)]
+      return False, [cls._status_tuple(FileValidatorErrorStatuses.IS_EMPTY)]
     
     status_messages = []
     
     if re.search(cls._INVALID_CHARS_PATTERN, file_ext):
-      status_messages.append(cls._status_tuple(cls.HAS_INVALID_CHARS))
+      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_INVALID_CHARS))
     
-    if file_ext.endswith(" ") or file_ext.endswith("."):
-      status_messages.append(cls._status_tuple(cls.ENDS_WITH_SPACES_OR_PERIODS))
+    if file_ext.endswith(" "):
+      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_SPACES))
+      
+    if file_ext.endswith("."):
+      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD))
     
     is_valid = not status_messages
     return is_valid, status_messages

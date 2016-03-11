@@ -965,8 +965,8 @@ class ValidatableStringSetting(StringSetting):
   the specified `pgpath.StringValidator` subclass. Normally, if the value
   (string) assigned is invalid, status messages returned from `is_valid()`
   are used. If desired, you may fill the error messages with custom messages
-  which override the status messages from the method. See `ERROR_STATUSES` in
-  the specified `pgpath.StringValidator` subclass for available error statuses.
+  which override the status messages from the method. See
+  `pgpath.FileValidatorErrorStatuses` for available error statuses.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -990,7 +990,7 @@ class ValidatableStringSetting(StringSetting):
     super(ValidatableStringSetting, self).set_value(value)
     
   def _init_error_messages(self):
-    for status in self._string_validator.ERROR_STATUSES:
+    for status in pgpath.FileValidatorErrorStatuses.ERROR_STATUSES:
       self.error_messages[status] = ""
   
   def _validate(self, value):
