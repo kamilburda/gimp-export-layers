@@ -145,6 +145,8 @@ class TestFilePathValidator(unittest.TestCase):
       os.path.join("C:|" + os.sep + "two", "three"))[0])
     self.assertFalse(self.validator.is_valid(
       os.path.join(" one", "two", "three "))[0])
+    self.assertTrue(self.validator.is_valid(
+      os.path.join("one", " two", "three"))[0])
     self.assertFalse(self.validator.is_valid(
       os.path.join("one", "two ", "three"))[0])
     self.assertFalse(self.validator.is_valid(

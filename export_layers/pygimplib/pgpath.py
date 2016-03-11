@@ -306,14 +306,14 @@ class FilenameValidator(StringValidator):
   }
   
   ERROR_STATUSES = (
-     IS_EMPTY, HAS_INVALID_CHARS, HAS_SPACES, HAS_TRAILING_PERIOD,
+     IS_EMPTY, HAS_INVALID_CHARS, HAS_TRAILING_SPACES, HAS_TRAILING_PERIOD,
      HAS_INVALID_NAMES
   ) = (0, 1, 2, 3, 4)
   
   ERROR_STATUSES_MESSAGES = {
     IS_EMPTY: _("Filename is not specified."),
     HAS_INVALID_CHARS: _("Filename contains invalid characters."),
-    HAS_SPACES: _("Filename cannot start or end with spaces."),
+    HAS_TRAILING_SPACES: _("Filename cannot end with spaces."),
     HAS_TRAILING_PERIOD: _("Filename cannot end with a period."),
     HAS_INVALID_NAMES: _("\"{0}\" is a reserved name that cannot be used in filenames.\n"),
   }
@@ -334,8 +334,8 @@ class FilenameValidator(StringValidator):
     if re.search(cls._INVALID_CHARS_PATTERN, filename):
       status_messages.append(cls._status_tuple(cls.HAS_INVALID_CHARS))
     
-    if filename.startswith(" ") or filename.endswith(" "):
-      status_messages.append(cls._status_tuple(cls.HAS_SPACES))
+    if filename.endswith(" "):
+      status_messages.append(cls._status_tuple(cls.HAS_TRAILING_SPACES))
     
     if filename.endswith("."):
       status_messages.append(cls._status_tuple(cls.HAS_TRAILING_PERIOD))
@@ -400,14 +400,14 @@ class FilePathValidator(StringValidator):
   
   ERROR_STATUSES = (
      IS_EMPTY, DRIVE_HAS_INVALID_CHARS, HAS_INVALID_CHARS,
-     HAS_SPACES, HAS_TRAILING_PERIOD, HAS_INVALID_NAMES
+     HAS_TRAILING_SPACES, HAS_TRAILING_PERIOD, HAS_INVALID_NAMES
   ) = (0, 1, 2, 3, 4, 5)
   
   ERROR_STATUSES_MESSAGES = {
     IS_EMPTY: _("File path is not specified."),
     DRIVE_HAS_INVALID_CHARS: _("Drive letter contains invalid characters."),
     HAS_INVALID_CHARS: _("File path contains invalid characters."),
-    HAS_SPACES: _("Path components in the file path cannot start or end with spaces."),
+    HAS_TRAILING_SPACES: _("Path components in the file path cannot end with spaces."),
     HAS_TRAILING_PERIOD: _("Path components in the file path cannot end with a period."),
     HAS_INVALID_NAMES: _("\"{0}\" is a reserved name that cannot be used in file paths.\n"),
   }
@@ -433,8 +433,8 @@ class FilePathValidator(StringValidator):
     for path_component in path_components:
       if re.search(cls._INVALID_CHARS_PATTERN, path_component):
         statuses.add(cls.HAS_INVALID_CHARS)
-      if path_component.startswith(" ") or path_component.endswith(" "):
-        statuses.add(cls.HAS_SPACES)
+      if path_component.endswith(" "):
+        statuses.add(cls.HAS_TRAILING_SPACES)
       if path_component.endswith("."):
         statuses.add(cls.HAS_TRAILING_PERIOD)
       
@@ -446,8 +446,8 @@ class FilePathValidator(StringValidator):
     
     if cls.HAS_INVALID_CHARS in statuses:
       status_messages.append(cls._status_tuple(cls.HAS_INVALID_CHARS))
-    if cls.HAS_SPACES in statuses:
-      status_messages.append(cls._status_tuple(cls.HAS_SPACES))
+    if cls.HAS_TRAILING_SPACES in statuses:
+      status_messages.append(cls._status_tuple(cls.HAS_TRAILING_SPACES))
     if cls.HAS_TRAILING_PERIOD in statuses:
       status_messages.append(cls._status_tuple(cls.HAS_TRAILING_PERIOD))
     if cls.HAS_INVALID_NAMES in statuses:
@@ -495,7 +495,7 @@ class DirectoryPathValidator(FilePathValidator):
   """
   
   ERROR_STATUSES = (
-     IS_EMPTY, DRIVE_HAS_INVALID_CHARS, HAS_INVALID_CHARS, HAS_SPACES,
+     IS_EMPTY, DRIVE_HAS_INVALID_CHARS, HAS_INVALID_CHARS, HAS_TRAILING_SPACES,
      HAS_TRAILING_PERIOD, HAS_INVALID_NAMES, EXISTS_BUT_IS_NOT_DIR
   ) = (0, 1, 2, 3, 4, 5, 6)
   
@@ -503,7 +503,7 @@ class DirectoryPathValidator(FilePathValidator):
     IS_EMPTY: _("Directory path is not specified."),
     DRIVE_HAS_INVALID_CHARS: _("Drive letter contains invalid characters."),
     HAS_INVALID_CHARS: _("Directory path contains invalid characters."),
-    HAS_SPACES: _("Path components in the directory path cannot start or end with spaces."),
+    HAS_TRAILING_SPACES: _("Path components in the directory path cannot end with spaces."),
     HAS_TRAILING_PERIOD: _("Path components in the directory path cannot end with a period."),
     HAS_INVALID_NAMES: _("\"{0}\" is a reserved name that cannot be used in directory paths.\n"),
     EXISTS_BUT_IS_NOT_DIR: _("Specified path is not a directory.")
