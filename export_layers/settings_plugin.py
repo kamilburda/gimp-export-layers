@@ -99,7 +99,7 @@ def create_settings():
       'default_value': gimp.user_directory(1),   # "Documents" directory
       'display_name': _("Output directory"),
       'error_messages': {
-         pgpath.DirectoryPathValidator.IS_EMPTY: _("Output directory is not specified.")
+         pgpath.FileValidatorErrorStatuses.IS_EMPTY: _("Output directory is not specified.")
       }
     },
     {
@@ -207,15 +207,15 @@ def create_settings():
     if file_ext_mode.value == file_ext_mode.items['no_special_handling']:
       strip_mode.set_value(strip_mode.default_value)
       strip_mode.gui.set_enabled(True)
-      file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
+      file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
     elif file_ext_mode.value == file_ext_mode.items['only_matching_file_extension']:
       strip_mode.set_value(strip_mode.items['never'])
       strip_mode.gui.set_enabled(False)
-      file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = ""
+      file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
     elif file_ext_mode.value == file_ext_mode.items['use_as_file_extensions']:
       strip_mode.set_value(strip_mode.items['never'])
       strip_mode.gui.set_enabled(False)
-      file_extension.error_messages[pgpath.FileExtensionValidator.IS_EMPTY] = (
+      file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = (
         file_extension.error_messages['default_needed']
       )
   
