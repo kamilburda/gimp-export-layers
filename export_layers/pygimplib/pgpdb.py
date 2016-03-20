@@ -318,11 +318,13 @@ def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
     
     return layer
   
-  if (not all(layers[0].width == layer.width for layer in layers[1:])
-      or not all(layers[0].height == layer.height for layer in layers[1:])):
+  all_layers_have_same_size = (all(layers[0].width == layer.width for layer in layers[1:]) and
+                               all(layers[0].height == layer.height for layer in layers[1:]))
+  if not all_layers_have_same_size:
     return False
   
-  if compare_has_alpha and not all(layers[0].type == layer.type for layer in layers[1:]):
+  all_layers_are_same_image_type = all(layers[0].type == layer.type for layer in layers[1:])
+  if compare_has_alpha and not all_layers_are_same_image_type:
     return False
   
   image = gimp.Image(1, 1, gimpenums.RGB)
@@ -350,7 +352,7 @@ def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
       else:
         pdb.gimp_drawable_fill(layer, gimpenums.WHITE_FILL)
     
-    identical = identical and _is_identical(layer_group)
+    identical = _is_identical(layer_group)
   
   pdb.gimp_image_delete(image)
   
