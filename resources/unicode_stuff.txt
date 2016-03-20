@@ -1,61 +1,30 @@
+Plug-in - Unicode Practices
+---------------------------
+
+Plug-in internally uses Unicode strings.
+
+`str()` must return string of type `unicode`, not `str`. Add
+    str = unicode
+at the beginning of each module.
+
+`bytes` is an alias for `str`, use that for bytes.
+
+To support Unicode literals, add
+    from __future__ import unicode_literals
+to each module.
+
+External modules
+----------------
+
 - GIMP uses UTF-8
+  - image name
+  - item name (layer, layer group, channel, path)
+  - PDB parameters - name, description
+  - PDB_STRING arguments to PDB functions
+  - GIMP shelf keys (`gimp.get_data()`) - can apparently handle Unicode, but encode/decode with UTF-8 just in case
+    - GIMP shelf uses the `pickle` module, which can handle Unicode strings
 - GTK uses UTF-8
-   - more info at:
-      http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html
-
-
-IMPORTANT:
-----------------------------------------
-
-* `str()` must return string of type `unicode`, not `str`.
-   * best solution for Python 2.x I could come up with: add
-        str = unicode
-     at the beginning of each module
-   * `bytes` is an alias for `str`, use that for bytes
-* add
-     from __future__ import unicode_literals
-  to each module
-
-
-Plug-in:
-----------------------------------------
-
-* pggui
-   - `GtkSettingPresenter` subclasses
-      - value.getter - decode to `unicode` with UTF-8
-      - value.setter - GTK handles that automatically, but may not always be reliable,
-        according to
-           http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html
-        - encode in UTF-8
-   - `gimpui.IntComboBox` - can't handle `unicode`, must pass `bytes`
-* pgitemdata
-   - `_ItemDataElement.orig_name` - decoded from `gimp.Layer.name` (which is encoded in UTF-8)
-   - `_ItemDataElement.name` - `unicode`
-   - `LayerData._itemdata` keys are `_ItemDataElement.orig_name`
-* pgpath
-   - stand-alone functions don't care about string type or encoding
-   - `uniquify_filename`, `make_dirs` - they use the `os` module, whose functions accept `unicode` strings
-      - not sure if the unicode strings work on Unix systems, though
-   - `StringValidator` subclasses - `unicode`
-* pgsettings
-   - `Setting.name`, `Setting.display_name`, etc. - `unicode`
-   - `GimpShelfSettingStream`
-      - `gimpshelf` uses `pickle`, which can handle unicode strings
-      - shelf key - uses `gimp.set_data()`
-         - it seems to support `unicode`, but I'd still rather encode it (the effect is the same)
-   - `JSONFileSettingStream` - automatically handles unicode strings
-      - `json.dump` with `ensure_ascii=True` and `encoding="utf-8"`, which are the default values
-* tee
-   - `write()` - argument must be encoded (in UTF-8)
-      - don't encode within `_write` or `_write_with_flush`, that should be handled
-        outside this method
-* exportlayers
-   - `OverwriteHandler`
-      - uses `os`, which can handle both `str` and `unicode`
-   - `file_export_function` in `_export_layer_once`
-* export_layers
-   - PDB_STRING arguments to PDB functions - UTF-8, decode to `unicode`
-   - PDB parameters - name, description - UTF-8
-* pgpdb
-   - nothing so far, may change if some functions deal with image or item names
-* other modules - nothing needs to be done
+   - http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html
+   - GTK does not fully support Unicode, better encode strings in UTF-8
+- `os` module can handle both `str` and `unicode` types
+- `write()` for file-like objects - argument must be encoded (in UTF-8)
