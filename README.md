@@ -25,6 +25,8 @@ Installation
 
 **Windows**
 
+Make sure you installed GIMP with support for Python scripting.
+
 Copy the `export_layers.py` file and the `export_layers` folder to
 `[your home folder]\.gimp-2.8\plug-ins`.
 
