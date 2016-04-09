@@ -45,11 +45,12 @@ import gimpenums
 
 from export_layers import constants
 
+from export_layers.pygimplib import objectfilter
+from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pgfileformats
+from export_layers.pygimplib import pgitemdata
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
-from export_layers.pygimplib import pgitemdata
-from export_layers.pygimplib import objectfilter
 from export_layers.pygimplib import progress
 
 #===============================================================================
@@ -65,47 +66,6 @@ class ExportLayersError(Exception):
 
 class ExportLayersCancelError(ExportLayersError):
   pass
-
-
-#===============================================================================
-
-
-class OverwriteHandler(object):
-  
-  """
-  This class handles conflicting files using the specified `OverwriteChooser`
-  class with the following choices available:
-  
-    * Replace
-    * Skip
-    * Rename new file
-    * Rename existing file
-    * Cancel
-  """
-  
-  __OVERWRITE_MODES = REPLACE, SKIP, RENAME_NEW, RENAME_EXISTING, CANCEL = (0, 1, 2, 3, 4)
-  
-  @classmethod
-  def handle(cls, filename, overwrite_chooser, uniquifier_position=None):
-    should_skip = False
-    
-    if os.path.exists(filename):
-      overwrite_chooser.choose(filename=os.path.basename(filename))
-      if overwrite_chooser.overwrite_mode == cls.SKIP:
-        should_skip = True
-      elif overwrite_chooser.overwrite_mode == cls.REPLACE:
-        # Nothing needs to be done here.
-        pass
-      elif overwrite_chooser.overwrite_mode in (cls.RENAME_NEW, cls.RENAME_EXISTING):
-        uniq_filename = pgpath.uniquify_filename(filename, uniquifier_position)
-        if overwrite_chooser.overwrite_mode == cls.RENAME_NEW:
-          filename = uniq_filename
-        else:
-          os.rename(filename, uniq_filename)
-      elif overwrite_chooser.overwrite_mode == cls.CANCEL:
-        raise ExportLayersCancelError("cancelled")
-    
-    return should_skip, filename
 
 
 #===============================================================================
@@ -261,7 +221,7 @@ class LayerExporter(object):
     self._current_file_extension = self._default_file_extension
     self._file_export_func = self._get_file_export_func(self._default_file_extension)
     self._current_layer_export_status = self._NOT_EXPORTED_YET
-    self._is_current_layer_skipped = False
+    self._current_overwrite_mode = None
   
   def _prefill_file_extension_properties(self):
     file_extension_properties = defaultdict(_FileExtensionProperties)
@@ -362,11 +322,11 @@ class LayerExporter(object):
           self._export_layer(layer_elem, self._image_copy, layer_copy)
         
         self.progress_updater.update_tasks(1)
-        if not self._is_current_layer_skipped:
-          # Append the original layer, not the copy, since the copy is going to
-          # be destroyed.
+        
+        if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
           self._exported_layers.append(layer)
           self._file_extension_properties[self._current_file_extension].processed_count += 1
+        
         pdb.gimp_image_remove_layer(self._image_copy, layer_copy)
       elif layer_elem.item_type == layer_elem.EMPTY_GROUP:
         layer_elem.validate_name()
@@ -539,11 +499,16 @@ class LayerExporter(object):
   
   def _export_layer(self, layer_elem, image, layer):
     output_filename = layer_elem.get_filepath(self._output_directory, self._include_item_path)
-    self._is_current_layer_skipped, output_filename = OverwriteHandler.handle(
+    
+    self._current_overwrite_mode, output_filename = overwrite.handle_overwrite(
       output_filename, self.overwrite_chooser, self._get_uniquifier_position(output_filename))
+    
+    if self._current_overwrite_mode == overwrite.OverwriteModes.CANCEL:
+      raise ExportLayersCancelError("cancelled")
+    
     self.progress_updater.update_text(_("Saving '{0}'").format(output_filename))
     
-    if not self._is_current_layer_skipped:
+    if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
       self._export(image, layer, output_filename)
   
   def _export(self, image, layer, output_filename):
@@ -563,8 +528,8 @@ class LayerExporter(object):
                              os.path.basename(output_filename).encode())
     except RuntimeError as e:
       # HACK: Since `RuntimeError` could indicate anything, including
-      # `pdb.gimp_file_save` failure, this is the only way to intercept the
-      # "cancel" operation.
+      # `pdb.gimp_file_save` failure, this is the only way to intercept that
+      # the export was cancelled.
       if "cancelled" in e.message.lower():
         raise ExportLayersCancelError(e.message)
       else:

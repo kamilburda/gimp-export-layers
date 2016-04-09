@@ -37,10 +37,10 @@ str = unicode
 import gimp
 import gimpenums
 
+from export_layers.pygimplib import overwrite
+from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
-from export_layers.pygimplib import pgpath
-from export_layers import exportlayers
 
 #===============================================================================
 
@@ -182,11 +182,11 @@ def create_settings():
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
-      'items': [('replace', _("_Replace"), exportlayers.OverwriteHandler.REPLACE),
-                ('skip', _("_Skip"), exportlayers.OverwriteHandler.SKIP),
-                ('rename_new', _("Rename _new file"), exportlayers.OverwriteHandler.RENAME_NEW),
-                ('rename_existing', _("Rename _existing file"), exportlayers.OverwriteHandler.RENAME_EXISTING),
-                ('cancel', _("_Cancel"), exportlayers.OverwriteHandler.CANCEL)],
+      'items': [('replace', _("_Replace"), overwrite.OverwriteModes.REPLACE),
+                ('skip', _("_Skip"), overwrite.OverwriteModes.SKIP),
+                ('rename_new', _("Rename _new file"), overwrite.OverwriteModes.RENAME_NEW),
+                ('rename_existing', _("Rename _existing file"), overwrite.OverwriteModes.RENAME_EXISTING),
+                ('cancel', _("_Cancel"), overwrite.OverwriteModes.CANCEL)],
       'display_name': _("Overwrite mode (non-interactive run mode only)")
     },
   ])
