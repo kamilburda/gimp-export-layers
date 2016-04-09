@@ -40,7 +40,8 @@ from .. import overwrite
 class MockInteractiveOverwriteChooser(overwrite.InteractiveOverwriteChooser):
   
   def __init__(self, values_and_display_names, default_value, default_response):
-    super(MockInteractiveOverwriteChooser, self).__init__(values_and_display_names, default_value, default_response)
+    super(MockInteractiveOverwriteChooser, self).__init__(values_and_display_names,
+                                                          default_value, default_response)
     
     self._values = [value for value, unused_ in self.values_and_display_names]
   

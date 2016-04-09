@@ -20,8 +20,10 @@
 #-------------------------------------------------------------------------------
 
 """
-This module defines "overwrite chooser" - an indication on how to handle
-existing files (skip, replace, rename, etc.).
+This module defines:
+* overwrite chooser - an indication on how to handle existing files (skip,
+  replace, rename, etc.),
+* `handle_overwrite` convenience function to handle conflicting files.
 """
 
 #===============================================================================
@@ -36,6 +38,9 @@ str = unicode
 #===============================================================================
 
 import abc
+import os
+
+from . import pgpath
 
 #===============================================================================
 
@@ -162,3 +167,54 @@ class InteractiveOverwriteChooser(OverwriteChooser):
     """
     
     pass
+
+
+#===============================================================================
+
+
+class OverwriteModes(object):
+  """
+  This class defines common overwrite modes for convenience.
+  """
+  
+  OVERWRITE_MODES = REPLACE, SKIP, RENAME_NEW, RENAME_EXISTING, CANCEL = (0, 1, 2, 3, 4)
+
+
+def handle_overwrite(filename, overwrite_chooser, uniquifier_position=None):
+  
+  """
+  If a file with the specified filename exists, handle the filename conflict
+  by executing the `overwrite_chooser` (an `OverwriteChooser` instance).
+  `filename` indicates a filename for a new file to be saved.
+  
+  `overwrite_chooser` should support all overwrite modes specified in
+  `OverwriteModes`. `RENAME_NEW` mode renames `filename`.
+  `RENAME_EXISTING` renames the existing file in the file system.
+  
+  If the overwrite mode indicates that the filename should be renamed and
+  `uniquifier_position` is not None, the `uniquifier_position` specifies where
+  in the filename to insert a unique substring (" (number)"). By default, the
+  uniquifier is inserted at the end of the filename to be renamed.
+  
+  Returns:
+  
+    * the overwrite mode as returned by `overwrite_chooser`, which the caller
+      of this function can further use (especially `SKIP` or `CANCEL` values),
+    
+    * the filename passed as the argument, modified if `RENAME_NEW` mode is
+      returned.
+  """
+  
+  if os.path.exists(filename):
+    overwrite_chooser.choose(filename=os.path.basename(filename))
+    
+    if overwrite_chooser.overwrite_mode in (OverwriteModes.RENAME_NEW,
+                                            OverwriteModes.RENAME_EXISTING):
+      uniq_filename = pgpath.uniquify_filename(filename, uniquifier_position)
+      if overwrite_chooser.overwrite_mode == OverwriteModes.RENAME_NEW:
+        filename = uniq_filename
+      else:
+        os.rename(filename, uniq_filename)
+  
+  return overwrite_chooser.overwrite_mode, filename
+
