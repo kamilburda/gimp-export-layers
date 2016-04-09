@@ -1,1 +1,54 @@
+---
+layout: default
+plugin-version: 2.4
+plugin-version-release-date: October 4 2015
+---
 
+<div class="home">
+
+  {% capture markdown-insert %}
+Export Layers is a [GIMP](https://www.gimp.org/) plug-in that lets you export layers as separate images in any file format supported by GIMP and third-party plug-ins.
+  {% endcapture %}
+  {{ markdown-insert | markdownify }}
+
+  <div style="text-align: center">
+    <p>
+      <a class="button download-button" href="https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.4/export-layers-2.4.zip">Download</a>
+    </p>
+  
+    <p>
+      Latest release: {{ page.plugin-version }}, {{ page.plugin-version-release-date }}
+      <span class="vertical-bar-sep">|</span>
+      <a href="https://github.com/khalim19/gimp-plugin-export-layers/releases">Release notes</a>
+      <span class="vertical-bar-sep">|</span>
+      <a href="https://github.com/khalim19/gimp-plugin-export-layers/blob/master/README.md">Documentation</a>
+      <span class="vertical-bar-sep">|</span>
+      <a href="https://github.com/khalim19/gimp-plugin-export-layers">Source code</a>
+    </p>
+  </div>
+
+  <h1>Features</h1>
+  {% capture markdown-insert %}
+* uses native dialogs for file formats to adjust export settings
+* uses layer names as filenames for the exported images
+* can treat layer groups as folders
+* can use layers with names in [square brackets] as background layers
+* can optionally export only layers whose file extension matches the specified file extension
+* can use file extensions in layer names as file formats
+
+For details about features, installation instructions and known issues, see the [documentation](https://github.com/khalim19/gimp-plugin-export-layers/blob/master/README.md).
+  {% endcapture %}
+  {{ markdown-insert | markdownify }}
+  
+  <h1>Examples</h1>
+  <p><img src="/assets/Export_Layers.png" alt="Example of Export Layers usage"></p>
+  <p><img src="/assets/Export_Layers_file_format_dialog.png" alt="Exporting layers with native file format dialog"></p>
+  
+  <h1>Support</h1>
+  {% capture markdown-insert %}
+You can report issues, ask questions or request new features on the [GitHub page](https://github.com/khalim19/gimp-plugin-export-layers/issues) of the plug-in.
+<!-- or on [GIMP Plugin Registry](http://registry.gimp.org/node/28268). -->
+  {% endcapture %}
+  {{ markdown-insert | markdownify }}
+
+</div>
