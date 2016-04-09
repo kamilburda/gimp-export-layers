@@ -202,8 +202,7 @@ In "Export Layers (repeat)", JPEG format displays the file format dialog for the
 License
 -------
 
-This plug-in is licensed under the GNU GPLv3, which can be found on the following page:
-http://www.gnu.org/licenses/gpl-3.0.html
+This plug-in is licensed under the [GNU GPLv3](http://www.gnu.org/licenses/gpl-3.0.html).
 
 
 Translations
@@ -216,8 +215,6 @@ file in the `export_layers/locale` folder in the package.
 Support, Contact
 ----------------
 
-You can report issues, ask questions or request new features on the following pages:
-* https://github.com/khalim19/gimp-plugin-export-layers/issues
-* http://registry.gimp.org/node/28268
+You can report issues, ask questions or request new features on the [GitHub page](https://github.com/khalim19/gimp-plugin-export-layers/issues) or on the [GIMP Plugin Registry page](http://registry.gimp.org/node/28268).
 
 You can also contact me via email: khalim19 AT gmail DOT com
