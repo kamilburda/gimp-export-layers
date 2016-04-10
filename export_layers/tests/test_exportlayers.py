@@ -185,7 +185,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       self.expected_images[expected_results_dir], expected_layers = (
         self._load_layers_from_dir(expected_results_dir))
     else:
-      expected_layers = { layer.name: layer for layer in self.expected_images[expected_results_dir].layers }
+      expected_layers = {layer.name: layer for layer in self.expected_images[expected_results_dir].layers}
     
     param_values = pgsettinggroup.PdbParamCreator.list_param_values([settings])
     pdb.plug_in_export_layers(*param_values)
@@ -214,11 +214,11 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     """
     
     image = pgpdb.load_layers(layers_filenames, image=None, strip_file_extension=True)
-    return image, { layer.name: layer for layer in image.layers }
+    return image, {layer.name: layer for layer in image.layers}
   
   @classmethod
   def _load_layers_from_dir(cls, layers_dir):
-    return cls._load_layers(cls._list_layers_files(layers_dir)) 
+    return cls._load_layers(cls._list_layers_files(layers_dir))
   
   @classmethod
   def _list_layers_files(cls, layers_dir):
