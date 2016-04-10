@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of pygimplib.
 #
@@ -17,40 +16,33 @@
 # You should have received a copy of the GNU General Public License
 # along with pygimplib.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
 
 """
 This module defines SettingPresenter subclasses for GTK elements.
 """
 
-#===============================================================================
-
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
-
-#===============================================================================
 
 import abc
 
 import pygtk
-
 pygtk.require("2.0")
-
 import gtk
 
 import gimp
+
+pdb = gimp.pdb
 
 from . import pgsettingpresenter
 from .pggui import IntComboBox
 from .pggui import FileExtensionEntry
 
 #===============================================================================
-
-pdb = gimp.pdb
 
 GTK_CHARACTER_ENCODING = "utf-8"
 

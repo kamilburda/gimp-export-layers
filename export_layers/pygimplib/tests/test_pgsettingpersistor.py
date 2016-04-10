@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of pygimplib.
 #
@@ -17,29 +16,22 @@
 # You should have received a copy of the GNU General Public License
 # along with pygimplib.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
-
-#===============================================================================
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
 
-#===============================================================================
-
+import unittest
 from StringIO import StringIO
 
-import unittest
-
 from ..lib import mock
-from . import gimpmocks
 
+from . import gimpmocks
 from .. import pgsetting
 from .. import pgsettingpersistor
-
 from .test_pgsettinggroup import create_test_settings
 from .test_pgsettinggroup import create_test_settings_hierarchical
 

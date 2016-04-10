@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of pygimplib.
 #
@@ -17,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with pygimplib.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
 
 """
 This module defines the following classes:
@@ -37,32 +35,25 @@ This module defines the following classes:
   attributes derived from the original `gimp.Item` attributes
 """
 
-#===============================================================================
-
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
 
-#===============================================================================
-
-import os
 import abc
-
-from collections import OrderedDict
+import os
 from collections import namedtuple
+from collections import OrderedDict
 
 import gimp
 
+pdb = gimp.pdb
+
+from . import objectfilter
 from . import pgfileformats
 from . import pgpath
-from . import objectfilter
-
-#===============================================================================
-
-pdb = gimp.pdb
 
 #===============================================================================
 

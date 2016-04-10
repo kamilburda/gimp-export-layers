@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of pygimplib.
 #
@@ -17,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with pygimplib.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
 
 """
 This module tests the `pgitemdata` module.
@@ -27,25 +25,20 @@ it is sufficient to test `pgitemdata` using one of the subclasses. `LayerData`
 was chosen for this purpose.
 """
 
-#===============================================================================
-
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
 
-#===============================================================================
-
 import os
+import unittest
 from collections import OrderedDict
 
-import unittest
-
 from ..lib import mock
-from . import gimpmocks
 
+from . import gimpmocks
 from .. import pgitemdata
 
 #===============================================================================

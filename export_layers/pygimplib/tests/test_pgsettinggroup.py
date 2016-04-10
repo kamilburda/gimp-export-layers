@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of pygimplib.
 #
@@ -17,30 +16,21 @@
 # You should have received a copy of the GNU General Public License
 # along with pygimplib.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
-
-#===============================================================================
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
 
-#===============================================================================
-
-from StringIO import StringIO
-
 import unittest
-
-import gimpenums
+from StringIO import StringIO
 
 from .. import pgsetting
 from .. import pgsettinggroup
-
-from .test_pgsetting import MockGuiWidget, MockCheckbox
-from .test_pgsetting import MockSettingPresenter, MockCheckboxPresenter
+from .test_pgsetting import MockCheckbox, MockGuiWidget
+from .test_pgsetting import MockCheckboxPresenter, MockSettingPresenter
 from .test_pgsetting import MockSettingWithGui
 
 #===============================================================================

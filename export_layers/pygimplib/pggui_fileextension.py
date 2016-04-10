@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of pygimplib.
 #
@@ -17,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with pygimplib.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
 
 """
 This module defines a custom GUI text entry for file extensions, displaying a
@@ -27,33 +25,24 @@ One can still enter a file extension not in the list in case an unrecognized
 file format plug-in is used.
 """
 
-#===============================================================================
-
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
 
-#===============================================================================
-
 import pygtk
-
 pygtk.require("2.0")
-
 import gtk
-
 import gobject
 import pango
 
 import gimp
 
-from . import pgfileformats
-
-#===============================================================================
-
 pdb = gimp.pdb
+
+from . import pgfileformats
 
 #===============================================================================
 

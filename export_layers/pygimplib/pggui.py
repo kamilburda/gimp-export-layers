@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of pygimplib.
 #
@@ -17,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with pygimplib.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
 
 """
 This module defines:
@@ -29,20 +27,16 @@ This module defines:
   unhandled exception is raised
 """
 
-#===============================================================================
-
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
 
-#===============================================================================
-
+import functools
 import sys
 import traceback
-import functools
 
 try:
   import webbrowser
@@ -52,22 +46,19 @@ else:
   _webbrowser_module_found = True
 
 import pygtk
-
 pygtk.require("2.0")
-
 import gtk
 
 import gimp
 import gimpui
 
+pdb = gimp.pdb
+
 from . import overwrite
 from . import progress
-
 from .pggui_fileextension import FileExtensionEntry
 
 #===============================================================================
-
-pdb = gimp.pdb
 
 GTK_CHARACTER_ENCODING = "utf-8"
 

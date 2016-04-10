@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of pygimplib.
 #
@@ -17,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with pygimplib.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
 
 """
 This module contains a list of built-in and several third-party file formats
@@ -34,20 +32,14 @@ The file save procedure can be used for multiple purposes, such as:
   the file extension of the filename).
 """
 
-#===============================================================================
-
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
 
-#===============================================================================
-
 import gimp
-
-#===============================================================================
 
 pdb = gimp.pdb
 
