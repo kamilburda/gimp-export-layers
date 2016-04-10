@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of Export Layers.
 #
@@ -17,6 +16,3 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
-
-# empty

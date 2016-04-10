@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of Export Layers.
 #
@@ -17,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
 
 """
 This module can be used to unit-test modules which require GIMP to be running.
@@ -26,8 +24,6 @@ All modules starting with the "test_" prefix will be executed as unit tests.
 
 All modules not starting with the "test_" prefix will be loaded/reloaded before
 executing the unit tests.
-
---------------------------
 
 To run unit tests in GIMP:
 
@@ -40,6 +36,8 @@ import sys
 sys.path.append(os.path.join(gimp.directory, "plug-ins"))
 sys.path.append(os.path.join(gimp.directory, "plug-ins", "resources"))
 import runtests
+_ = lambda s: s
+_
 runtests.run_tests()
 
 
@@ -55,27 +53,20 @@ runtests.run_tests()
 The `_` is vital if you are using the `gettext` module for internationalization.
 """
 
-#===============================================================================
-
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
 
-#===============================================================================
-
+import __builtin__
+import inspect
+import importlib
 import os
+import pkgutil
 import sys
 import types
-import inspect
-
-import __builtin__
-
-import importlib
-import pkgutil
-
 import unittest
 
 #===============================================================================

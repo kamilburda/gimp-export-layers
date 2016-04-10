@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of Export Layers.
 #
@@ -17,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
 
 """
 This module:
@@ -26,16 +24,12 @@ This module:
 * defines filter rules for layers
 """
 
-#===============================================================================
-
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
-
-#===============================================================================
 
 import os
 from collections import defaultdict
@@ -43,7 +37,7 @@ from collections import defaultdict
 import gimp
 import gimpenums
 
-from export_layers import constants
+pdb = gimp.pdb
 
 from export_layers.pygimplib import objectfilter
 from export_layers.pygimplib import overwrite
@@ -53,9 +47,7 @@ from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import progress
 
-#===============================================================================
-
-pdb = gimp.pdb
+from export_layers import constants
 
 #===============================================================================
 

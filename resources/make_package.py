@@ -1,7 +1,5 @@
 #! /usr/bin/env python
 #
-#-------------------------------------------------------------------------------
-#
 # This file is part of Export Layers.
 #
 # Copyright (C) 2013-2015 khalim19 <khalim19@gmail.com>
@@ -19,25 +17,20 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
 
 """
-This script creates a .zip package for releases from the plug-in source.
+This script creates a ZIP package for releases from the plug-in source.
 
-This script requires `pathspec` library for matching files using patterns:
+This script requires the `pathspec` library (for matching files by patterns):
   https://github.com/cpburnz/python-path-specification
 """
 
-#===============================================================================
-
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
-
-#===============================================================================
 
 import __builtin__
 
@@ -53,23 +46,20 @@ if '_' not in __builtin__.__dict__:
 if 'N_' not in __builtin__.__dict__:
   __builtin__.__dict__['N_'] = gettext
 
-#===============================================================================
-
-import os
-import sys
-import re
 import inspect
-
+import os
+import re
+import shutil
 import subprocess
 import tempfile
-import shutil
+import sys
 import zipfile
 
 import pathspec
 
-from export_layers import constants
-
 from export_layers.pygimplib import pgpath
+
+from export_layers import constants
 
 #===============================================================================
 

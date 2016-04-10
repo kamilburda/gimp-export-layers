@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of Export Layers.
 #
@@ -17,50 +16,41 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
 
 """
 This module defines the GUI for the plug-in.
 """
 
-#===============================================================================
-
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
-
-#===============================================================================
 
 import functools
 import traceback
 
-import gobject
 import pygtk
-
 pygtk.require("2.0")
-
 import gtk
+import gobject
 import pango
 
 import gimp
 import gimpenums
 import gimpui
 
-from export_layers.pygimplib import pgsetting
-from export_layers.pygimplib import pgsettingpersistor
+pdb = gimp.pdb
+
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
+from export_layers.pygimplib import pgsetting
+from export_layers.pygimplib import pgsettingpersistor
 
-from export_layers import settings_plugin
-from export_layers import exportlayers
 from export_layers import constants
-
-#===============================================================================
-
-pdb = gimp.pdb
+from export_layers import exportlayers
+from export_layers import settings_plugin
 
 #===============================================================================
 

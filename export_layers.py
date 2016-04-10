@@ -1,7 +1,5 @@
 #! /usr/bin/env python
 #
-#-------------------------------------------------------------------------------
-#
 # Export Layers - GIMP plug-in that exports layers as separate images
 #
 # Copyright (C) 2013-2015 khalim19 <khalim19@gmail.com>
@@ -19,31 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
-
-#===============================================================================
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
 
-#===============================================================================
-
 from export_layers import constants
 
-
 import gettext
-
 gettext.install(constants.DOMAIN_NAME, constants.LOCALE_PATH, unicode=True)
 
-
 from export_layers import log_output
-
 log_output.log_output(constants.DEBUG)
-
 
 import os
 
@@ -56,19 +44,18 @@ except TypeError:
 except Exception:
   pass
 
-
 import gimp
-import gimpplugin
 import gimpenums
+import gimpplugin
 
-from export_layers.pygimplib import pgsettinggroup
-from export_layers.pygimplib import pgsettingpersistor
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
+from export_layers.pygimplib import pgsettinggroup
+from export_layers.pygimplib import pgsettingpersistor
 
-from export_layers import settings_plugin
-from export_layers import gui_plugin
 from export_layers import exportlayers
+from export_layers import gui_plugin
+from export_layers import settings_plugin
 
 #===============================================================================
 

@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 #
 # This file is part of Export Layers.
 #
@@ -17,22 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
 
 """
 This module defines the plug-in settings.
 """
 
-#===============================================================================
-
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
-
-#===============================================================================
 
 import gimp
 import gimpenums
@@ -47,7 +41,6 @@ from export_layers.pygimplib import pgsettinggroup
 
 def create_settings():
   
-  #-----------------------------------------------------------------------------
   # Special settings
   #-----------------------------------------------------------------------------
   
@@ -78,7 +71,6 @@ def create_settings():
     },
   ])
   
-  #-----------------------------------------------------------------------------
   # Main settings
   #-----------------------------------------------------------------------------
   

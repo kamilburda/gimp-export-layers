@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 #
-#-------------------------------------------------------------------------------
-#
 # This file is part of Export Layers.
 #
 # Copyright (C) 2013-2015 khalim19 <khalim19@gmail.com>
@@ -19,36 +17,31 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 #
-#-------------------------------------------------------------------------------
-
-#===============================================================================
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 
 str = unicode
 
-#===============================================================================
-
+import inspect
 import os
 import shutil
-import inspect
 
 import unittest
 
 import gimp
 
+pdb = gimp.pdb
+
 from ..pygimplib import pgpdb
 from ..pygimplib import pgsettinggroup
 
-from .. import settings_plugin
 from .. import exportlayers
+from .. import settings_plugin
 
 #===============================================================================
-
-pdb = gimp.pdb
 
 _current_module_dir = os.path.dirname(inspect.getfile(inspect.currentframe()))
 RESOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(_current_module_dir)), "resources")
