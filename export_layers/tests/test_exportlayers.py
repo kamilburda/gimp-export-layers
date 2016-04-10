@@ -73,8 +73,6 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     # key: directory containing expected results
     # value: gimp.Image instance
     cls.expected_images = {}
-    
-    cls._backup_plugin_settings_from_before_execution()
   
   @classmethod
   def tearDownClass(cls):
@@ -83,22 +81,6 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       pdb.gimp_image_delete(image)
     
     pdb.gimp_context_pop()
-    
-    cls._restore_plugin_settings_from_before_execution()
-  
-  @classmethod
-  def _backup_plugin_settings_from_before_execution(cls):
-    cls.orig_settings = settings_plugin.create_settings()
-    cls.session_setting_source = pgsettingpersistor.SessionPersistentSettingSource(
-      constants.SESSION_SOURCE_NAME)
-    cls.persistent_setting_source = pgsettingpersistor.PersistentSettingSource(
-      constants.PERSISTENT_SOURCE_NAME)
-    pgsettingpersistor.SettingPersistor.load(
-      [cls.orig_settings], [cls.session_setting_source, cls.persistent_setting_source])
-  
-  @classmethod
-  def _restore_plugin_settings_from_before_execution(cls):
-    pgsettingpersistor.SettingPersistor.save([cls.orig_settings], [cls.session_setting_source])
   
   def setUp(self):
     self.image_with_results = None

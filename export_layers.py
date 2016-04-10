@@ -167,10 +167,6 @@ class ExportLayersPlugin(gimpplugin.plugin):
     except exportlayers.ExportLayersError as e:
       print(e.message)
       raise
-    
-    self.settings['special']['first_plugin_run'].set_value(False)
-    pgsettingpersistor.SettingPersistor.save(
-      [self.settings['main'], self.settings['special']['first_plugin_run']], [self.session_source])
 
 
 #===============================================================================
