@@ -196,6 +196,7 @@ def display_exception_message(exception_message, plugin_title=None,
   dialog.set_title(plugin_title)
   
   expander = gtk.Expander()
+  expander.set_expanded(True)
   expander.set_use_markup(True)
   expander.set_label("<b>" + _("Details") + "</b>")
   
@@ -206,6 +207,7 @@ def display_exception_message(exception_message, plugin_title=None,
   
   exception_text_view = gtk.TextView()
   exception_text_view.set_editable(False)
+  exception_text_view.set_wrap_mode(gtk.WRAP_WORD)
   exception_text_view.set_cursor_visible(False)
   exception_text_view.set_pixels_above_lines(1)
   exception_text_view.set_pixels_below_lines(1)
