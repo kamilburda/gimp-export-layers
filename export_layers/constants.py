@@ -68,7 +68,7 @@ SESSION_SOURCE_NAME = "plug_in_" + PLUGIN_PROGRAM_NAME + "_"
 PERSISTENT_SOURCE_NAME = "plug_in_" + PLUGIN_PROGRAM_NAME
 
 BUG_REPORT_URI_LIST = [
-  ("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),
+  # ("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),
   ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
 ]
 
