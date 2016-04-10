@@ -408,4 +408,3 @@ class TestLayerDataFileExtensions(unittest.TestCase):
     
     layer_elem.set_file_extension("png")
     self.assertEqual(layer_elem.name, "main-background.aaa.png")
-  

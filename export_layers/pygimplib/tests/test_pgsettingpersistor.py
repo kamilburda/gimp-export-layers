@@ -239,4 +239,3 @@ class TestSettingPersistor(unittest.TestCase):
     status, unused_ = pgsettingpersistor.SettingPersistor.load(
       [self.settings], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
-

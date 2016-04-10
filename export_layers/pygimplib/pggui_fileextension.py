@@ -250,15 +250,15 @@ class FileExtensionEntry(gtk.Entry):
     key_name = gtk.gdk.keyval_name(event.keyval)
     
     if (key_name in ["Up", "KP_Up", "Down", "KP_Down",
-                     "Page_Up", "KP_Page_Up", "Page_Down", "KP_Page_Down"]
-        and not self._is_popup_shown()):
+                     "Page_Up", "KP_Page_Up", "Page_Down", "KP_Page_Down"] and
+        not self._is_popup_shown()):
       self._unhighlight_extension()
       
       show_popup_first_time = self._show_popup_first_time
       
       self._show_popup()
       
-      # This prevents the navigation keys to select the first row. 
+      # This prevents the navigation keys to select the first row.
       if show_popup_first_time:
         self._tree_view_unselect()
       
@@ -349,19 +349,19 @@ class FileExtensionEntry(gtk.Entry):
     self._hide_popup()
   
   def _on_entry_enter_notify_event(self, entry, event):
-    self._mouse_points_at_entry = True   
+    self._mouse_points_at_entry = True
   
   def _on_entry_leave_notify_event(self, entry, event):
     self._mouse_points_at_entry = False
   
   def _on_popup_enter_notify_event(self, entry, event):
-    self._mouse_points_at_popup = True   
+    self._mouse_points_at_popup = True
   
   def _on_popup_leave_notify_event(self, popup, event):
     self._mouse_points_at_popup = False
   
   def _on_vscrollbar_enter_notify_event(self, vscrollbar, event):
-    self._mouse_points_at_vscrollbar = True   
+    self._mouse_points_at_vscrollbar = True
   
   def _on_vscrollbar_leave_notify_event(self, vscrollbar, event):
     self._mouse_points_at_vscrollbar = False
@@ -412,7 +412,7 @@ class FileExtensionEntry(gtk.Entry):
     self._tree_view.set_cursor((row_num,))
     # HACK: When the mouse points at the tree view and the user navigates with
     # keys, the selection jumps to the row pointed at. Selecting the row again
-    # fixes this. 
+    # fixes this.
     self._tree_view.set_cursor((row_num,))
     self._assign_file_extension_from_selected_row()
   
@@ -647,7 +647,7 @@ class FileExtensionEntry(gtk.Entry):
     """
     Resize the tree view.
     
-    Update the height of the tree view according to the number of rows. If the 
+    Update the height of the tree view according to the number of rows. If the
     number of rows is 0, hide the entire popup.
     
     Determine the initial width of the tree view based on the items displayed
@@ -787,4 +787,3 @@ class FileExtensionEntry(gtk.Entry):
       return extension_index
     else:
       return None
-  

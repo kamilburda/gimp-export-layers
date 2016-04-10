@@ -156,4 +156,3 @@ class MockGimpParasite(object):
   
   def parasite_attach(self, parasite):
     self._parasites[parasite.name] = parasite
-

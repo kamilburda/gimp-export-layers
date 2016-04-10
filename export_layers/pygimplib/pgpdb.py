@@ -380,4 +380,3 @@ def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
   pdb.gimp_image_delete(image)
   
   return identical
-

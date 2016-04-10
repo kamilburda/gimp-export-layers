@@ -414,7 +414,7 @@ class _ItemDataElement(object):
       if next_period_index == -1:
         return file_extension
       
-      file_extension = file_extension[next_period_index+1:]
+      file_extension = file_extension[next_period_index + 1:]
       if file_extension in pgfileformats.file_formats_dict:
         return file_extension
     

@@ -77,4 +77,3 @@ class TestInteractiveOverwriteChooser(unittest.TestCase):
     self.overwrite_chooser.mock_set_overwrite_mode(-1)
     self.overwrite_chooser.choose()
     self.assertEqual(self.overwrite_chooser.overwrite_mode, self.default_response)
-

@@ -87,7 +87,7 @@ def _create_file_formats_dict(file_formats):
   for file_format in file_formats:
     for file_extension in file_format.file_extensions:
       # If the same extension appears in multiple formats, only the first format
-      # will be accessed by the extension. 
+      # will be accessed by the extension.
       if file_extension not in file_formats_dict:
         file_formats_dict[file_extension] = file_format
   
@@ -155,4 +155,3 @@ file_formats = _create_file_formats([
 
 
 file_formats_dict = _create_file_formats_dict(file_formats)
-

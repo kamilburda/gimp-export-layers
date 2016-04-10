@@ -268,7 +268,7 @@ class SettingPresenter(object):
     `_value_changed_signal` attribute.
     
     Because the way event handlers are connected varies in each GUI framework,
-    subclass this class and override this method for the GUI framework you use. 
+    subclass this class and override this method for the GUI framework you use.
     """
     
     pass
@@ -279,7 +279,7 @@ class SettingPresenter(object):
     Disconnect the `_on_value_changed` event handler from the GUI element.
     
     Because the way event handlers are disconnected varies in each GUI framework,
-    subclass this class and override this method for the GUI framework you use. 
+    subclass this class and override this method for the GUI framework you use.
     """
     
     pass
@@ -358,4 +358,3 @@ class NullSettingPresenter(SettingPresenter):
   
   def _disconnect_value_changed_event(self):
     pass
-

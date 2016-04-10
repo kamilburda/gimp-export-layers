@@ -211,7 +211,7 @@ class SettingGroup(object):
     """
     
     self._ignored_settings_and_tags = {
-      setting_name: set(tags) for setting_name, tags in ignored_settings_and_tags.items() }
+      setting_name: set(tags) for setting_name, tags in ignored_settings_and_tags.items()}
   
   def reset(self):
     """

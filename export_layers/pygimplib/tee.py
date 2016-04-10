@@ -176,4 +176,3 @@ class Tee(object):
     
     self._file.flush()
     self._stream.flush()
-

@@ -256,8 +256,7 @@ class PersistentSettingSource(SettingSource):
       raise SettingSourceInvalidFormatError(
         _("Settings for this plug-in stored in the \"{0}\" file are corrupt. "
           "This could happen if the file was edited manually.\n"
-          "To fix this, save the settings again or reset them."
-        ).format(self._parasite_filename)
+          "To fix this, save the settings again or reset them.").format(self._parasite_filename)
       )
     
     self._read(settings)

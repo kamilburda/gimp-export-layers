@@ -69,4 +69,3 @@ class TestTee(unittest.TestCase):
   def test_invalid_stream(self):
     with self.assertRaises(ValueError):
       tee.Tee('invalid_stream', self.string_file, log_header_title="Test Header", start=False)
-  

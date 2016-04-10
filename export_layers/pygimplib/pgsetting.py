@@ -1102,8 +1102,8 @@ class ImageIDsAndDirectoriesSetting(Setting):
     current_image_ids = set([image.ID for image in current_images])
     
     # Remove images no longer opened in GIMP
-    self._value = { image_id: self._value[image_id]
-                    for image_id in self._value.keys() if image_id in current_image_ids }
+    self._value = {image_id: self._value[image_id]
+                   for image_id in self._value.keys() if image_id in current_image_ids}
     
     # Add new images opened in GIMP
     for image in current_images:
@@ -1114,7 +1114,7 @@ class ImageIDsAndDirectoriesSetting(Setting):
     """
     Assign a new directory to the specified image ID.
     
-    If the image ID does not exist in the setting, raise KeyError. 
+    If the image ID does not exist in the setting, raise KeyError.
     """
     
     if image_id not in self._value:

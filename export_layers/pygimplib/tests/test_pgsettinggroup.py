@@ -70,7 +70,7 @@ def create_test_settings():
                 ('skip', "Skip"),
                 ('rename_new', "Rename new file"),
                 ('rename_existing', "Rename existing file")],
-     'error_messages': { 'invalid_value': "Invalid value. Something went wrong on our end... we are so sorry!" }
+      'error_messages': {'invalid_value': "Invalid value. Something went wrong on our end... we are so sorry!"}
     },
   ])
   
@@ -222,7 +222,7 @@ class TestSettingGroup(unittest.TestCase):
        'name': 'autocrop',
        'default_value': False
       },
-      self.special_settings,             
+      self.special_settings
     ])
     
     self.assertIn('special', self.settings)
@@ -279,7 +279,7 @@ class TestSettingGroup(unittest.TestCase):
     
     self.settings.reset()
     
-    # `reset()` ignores 'file_extension' and 'overwrite_mode' 
+    # `reset()` ignores 'file_extension' and 'overwrite_mode'
     self.assertEqual(self.settings['file_extension'].value, "gif")
     self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].items['skip'])
     self.assertEqual(self.settings['ignore_invisible'].value, self.settings['ignore_invisible'].default_value)
@@ -288,7 +288,7 @@ class TestSettingGroup(unittest.TestCase):
   
   def test_reset_ignores_nested_group(self):
     self.settings.add([self.special_settings])
-    self.settings.set_ignore_tags({ 'special': ['reset'] })
+    self.settings.set_ignore_tags({'special': ['reset']})
     
     self.settings['special']['first_plugin_run'].set_value(True)
     self.settings.reset()
@@ -443,5 +443,3 @@ class TestPdbParamCreator(unittest.TestCase):
     param_values = pgsettinggroup.PdbParamCreator.list_param_values(
       [pgsetting.IntSetting('run_mode', 0), self.settings])
     self.assertEqual(len(param_values), len(list(self.settings.iterate_all())))
-    
-  

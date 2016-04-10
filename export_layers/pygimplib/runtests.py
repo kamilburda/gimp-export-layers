@@ -161,4 +161,3 @@ def run_tests(path, test_module_name_prefix="test_", modules=None, ignored_modul
     module = load_module(module_name)
     if module_name.split(".")[-1].startswith(test_module_name_prefix):
       run_test(module, stream=output_stream)
-

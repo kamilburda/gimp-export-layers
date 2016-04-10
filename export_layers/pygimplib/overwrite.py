@@ -211,4 +211,3 @@ def handle_overwrite(filename, overwrite_chooser, uniquifier_position=None):
         os.rename(filename, uniq_filename)
   
   return overwrite_chooser.overwrite_mode, filename
-

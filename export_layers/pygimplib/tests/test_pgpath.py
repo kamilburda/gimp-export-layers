@@ -266,4 +266,3 @@ class TestFileExtensionValidator(unittest.TestCase):
     self.assertEqual(self.validator.validate("jpg."), "jpg")
     
     self.assertEqual(self.validator.validate(""), "")
-  

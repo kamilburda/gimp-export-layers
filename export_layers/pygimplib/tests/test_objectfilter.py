@@ -273,4 +273,3 @@ class TestObjectFilter(unittest.TestCase):
       FilterableObject(2, "", is_empty=False, colors={"green"})))
     self.assertFalse(self.filter.is_match(
       FilterableObject(1, "", is_empty=True, colors={"red", "green"})))
-    

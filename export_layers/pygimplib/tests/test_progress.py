@@ -86,4 +86,3 @@ class TestProgressUpdater(unittest.TestCase):
     
     self.assertEqual(self.progress_updater.num_finished_tasks, 0)
     self.assertEqual(self.progress_updater.progress_bar.text, "")
-  

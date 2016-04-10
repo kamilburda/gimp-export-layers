@@ -791,4 +791,3 @@ class TestImageIDsAndDirectoriesSetting(unittest.TestCase):
     self.setting.value[image_id_to_test] = test_directory
     self.assertNotEqual(self.setting.value[image_id_to_test], test_directory)
     self.assertEqual(self.setting.value[image_id_to_test], self.image_ids_and_directories[image_id_to_test])
-  
