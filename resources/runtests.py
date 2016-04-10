@@ -94,6 +94,19 @@ if 'N_' not in __builtin__.__dict__:
 #===============================================================================
 
 
+def _fix_streams_for_unittest():
+  # In the GIMP Python-Fu console, `sys.stdout` and `sys.stderr` are missing
+  # the `flush()` method, which needs to be defined in order for the `unittest`
+  # module to work properly.
+  def flush(self):
+    pass
+  
+  for stream in [sys.stdout, sys.stderr]:
+    flush_func = getattr(stream, 'flush', None)
+    if flush_func is None or not callable(stream.flush):
+      stream.flush = types.MethodType(flush, stream)
+
+
 def run_test(module, stream=sys.stderr):
   test_suite = unittest.TestLoader().loadTestsFromModule(module)
   test_runner = unittest.TextTestRunner(stream=stream)
@@ -114,48 +127,45 @@ def load_module(module_name):
   return module
 
 
-def _fix_streams_for_unittest():
-  # In the GIMP Python-Fu console, `sys.stdout` and `sys.stderr` are missing
-  # the `flush()` method, which needs to be defined in order for the `unittest`
-  # module to work properly.
-  def flush(self):
-    pass
-  
-  for stream in [sys.stdout, sys.stderr]:
-    flush_func = getattr(stream, 'flush', None)
-    if flush_func is None or not callable(stream.flush):
-      stream.flush = types.MethodType(flush, stream)
-
-
-#===============================================================================
-
-
 def run_tests(path=PLUGINS_PATH, test_module_name_prefix="test_",
-              ignored_modules=None, output_stream=sys.stderr):
+              modules=None, ignored_modules=None,
+              output_stream=sys.stderr):
   """
   Execute all modules containing unit tests located in the `path` directory. The
-  names of the unit test modules start with the specified prefix (`test_` by
-  default).
+  names of the unit test modules start with the specified prefix.
   
-  `ignored_modules` is a list of unit test modules or packages to ignore. If a
-  package is specified, all of its underlying modules are ignored.
+  `ignored_modules` is a list of prefixes matching unit test modules or packages
+  to ignore.
   
-  `output_stream` prints the unit test output using the specified output stream
-  (`sys.stderr` by default).
+  If `modules` is None, include all modules, except for those specified in
+  `ignored_modules`. If `modules` is not None, include only modules matching the
+  prefixes specified in `modules`. `ignored_modules` can be used to exclude
+  submodules in `modules`.
+  
+  `output_stream` prints the unit test output using the specified output stream.
   """
   
   _fix_streams_for_unittest()
   
+  module_names = []
+  
   if ignored_modules is None:
     ignored_modules = []
   
+  if modules is None:
+    should_append = (lambda module_name:
+      not any(module_name.startswith(ignored_module) for ignored_module in ignored_modules))
+  else:
+    should_append = (lambda module_name:
+      any(module_name.startswith(module) for module in modules) and
+          not any(module_name.startswith(ignored_module) for ignored_module in ignored_modules))
+  
   for unused_, module_name, unused_ in pkgutil.walk_packages(path=[path]):
-    if any(module_name.startswith(ignored_module_name) for ignored_module_name in ignored_modules):
-      continue
-    
+    if should_append(module_name):
+      module_names.append(module_name)
+  
+  for module_name in module_names:
     module = load_module(module_name)
-    
-    parts = module_name.split(".")
-    if parts[-1].startswith(test_module_name_prefix):
+    if module_name.split(".")[-1].startswith(test_module_name_prefix):
       run_test(module, stream=output_stream)
 
