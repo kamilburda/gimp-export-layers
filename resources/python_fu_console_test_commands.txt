@@ -5,19 +5,19 @@ sys.path.append(os.path.join(gimp.directory, "plug-ins - Export Layers", "resour
 import runtests
 _ = lambda s: s
 _
-runtests.run_tests(ignored_modules=["export_layers.tests"])
+runtests.run_tests(modules=["export_layers.pygimplib"])
 
 
 _ = lambda s: s
 reload(runtests)
 _
-runtests.run_tests(ignored_modules=["export_layers.tests"])
+runtests.run_tests(modules=["export_layers.pygimplib"])
 
 
 
 _ = lambda s: s
 reload(runtests)
 _
-runtests.run_tests(ignored_modules=["export_layers.pygimplib.tests"])
+runtests.run_tests(modules=["export_layers"], ignored_modules=["export_layers.pygimplib.tests"])
 
 
