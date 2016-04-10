@@ -187,7 +187,40 @@ def remove_all_items(image):
 #-------------------------------------------------------------------------------
 
 
-def load_layers(layer_filenames, image=None, strip_file_extension=False):
+def load_layer(filename, image, strip_file_extension=False, layer_to_load_index=0):
+  """
+  Load an image as a layer given its `filename` to an existing `image`. Return
+  the layer.
+  
+  The layer is loaded at the end of the image.
+  
+  Layers names are basenames of the corresponding files. If
+  `strip_file_extension` is True, remove the file extension from layer names.
+  
+  If the file contains multiple layers, specify the index of the desired layer
+  to load. Only top-level layers are supported (i.e. not layers inside layer
+  groups). If the index is greater than the number of layers in the loaded
+  image or is negative, load and return the last layer.
+  """
+  
+  loaded_image = pdb.gimp_file_load(filename, os.path.basename(filename))
+  
+  if layer_to_load_index >= len(image.layers) or layer_to_load_index < 0:
+    layer_to_load_index = -1
+  
+  layer = pdb.gimp_layer_new_from_drawable(loaded_image.layers[layer_to_load_index], image)
+  layer.name = os.path.basename(filename)
+  if strip_file_extension:
+    layer.name = os.path.splitext(layer.name)[0]
+  
+  pdb.gimp_image_insert_layer(image, layer, None, len(image.layers))
+  
+  pdb.gimp_image_delete(loaded_image)
+  
+  return layer
+
+
+def load_layers(filenames, image=None, strip_file_extension=False):
   """
   Load multiple layers to one image. Return the image.
   
@@ -207,6 +240,7 @@ def load_layers(layer_filenames, image=None, strip_file_extension=False):
     pdb.gimp_image_insert_layer(image, layer, None, len(image.layers))
     if strip_file_extension:
       layer.name = os.path.splitext(layer.name)[0]
+  for filename in filenames:
   
   if create_new_image:
     pdb.gimp_image_resize_to_layers(image)
