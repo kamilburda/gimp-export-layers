@@ -248,9 +248,9 @@ def display_exception_message(exception_message, plugin_title=None,
   
   dialog.vbox.pack_start(expander, expand=False, fill=True)
   
-  button_ok = dialog.add_button(gtk.STOCK_OK, gtk.RESPONSE_OK)
+  dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
   
-  dialog.set_focus(button_ok)
+  dialog.set_focus(scrolled_window)
   
   if report_uri_list is not None and report_uri_list and _webbrowser_module_found:
     # Apparently, GTK doesn't know how to open URLs on Windows, hence the custom
