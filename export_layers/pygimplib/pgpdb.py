@@ -224,23 +224,21 @@ def load_layers(filenames, image=None, strip_file_extension=False):
   """
   Load multiple layers to one image. Return the image.
   
+  The layers are loaded at the end of the image.
+  
   If `image` is None, create a new image. If `image` is not None, load the
   layers to the specified image.
   
-  If `strip_file_extension` is True, remove the file extension from the names of
-  the loaded layers (GIMP automatically names the layers by their basenames).
+  Layers names are basenames of the corresponding files. If
+  `strip_file_extension` is True, remove the file extension from layer names.
   """
   
   create_new_image = image is None
   if create_new_image:
     image = gimp.Image(1, 1)
   
-  for filename in layer_filenames:
-    layer = pdb.gimp_file_load_layer(image, filename)
-    pdb.gimp_image_insert_layer(image, layer, None, len(image.layers))
-    if strip_file_extension:
-      layer.name = os.path.splitext(layer.name)[0]
   for filename in filenames:
+    load_layer(filename, image, strip_file_extension)
   
   if create_new_image:
     pdb.gimp_image_resize_to_layers(image)
