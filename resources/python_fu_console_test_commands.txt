@@ -3,6 +3,8 @@ import sys
 sys.path.append(os.path.join(gimp.directory, "plug-ins - Export Layers"))
 sys.path.append(os.path.join(gimp.directory, "plug-ins - Export Layers", "resources"))
 import runtests
+_ = lambda s: s
+_
 runtests.run_tests(ignored_modules=["export_layers.tests"])
 
 
