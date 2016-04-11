@@ -470,8 +470,8 @@ class _ExportLayersGui(object):
     if should_quit:
       gtk.main_quit()
     else:
-      progress_updater.reset()
       self.restore_gui_after_export()
+      progress_updater.reset()
   
   def setup_gui_before_export(self):
     self.display_message_label(None)
