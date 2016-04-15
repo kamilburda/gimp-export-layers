@@ -124,7 +124,7 @@ def _setup_image_ids_and_directories_and_output_directory(settings, current_imag
     image_ids_and_directories.update_directory(current_image_id, output_directory.value)
   
   settings['main']['output_directory'].connect_value_changed_event(
-    on_output_directory_changed, [settings['gui_session']['image_ids_and_directories'], current_image.ID])
+    on_output_directory_changed, settings['gui_session']['image_ids_and_directories'], current_image.ID)
 
 
 #===============================================================================
