@@ -374,7 +374,7 @@ class Setting(object):
       self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,
       old_setting_presenter=self._gui, auto_update_gui_to_setting=auto_update_gui_to_setting)
   
-  def connect_value_changed_event(self, event_handler, event_handler_args, trigger_event_now=True):
+  def connect_value_changed_event(self, event_handler, *event_handler_args):
     """
     Connect an event handler that triggers when `set_value()` is called.
     
@@ -387,12 +387,7 @@ class Setting(object):
     * `event_handler` - Function to be called when `set_value()` from this
       setting is called.
     
-    * `event_handler_args` - List of additional arguments to `event_handler`.
-      Arguments can be `Setting` instances or any other objects.
-    
-    * `trigger_event_now` - If True, trigger the event handler upon calling this
-      method. This is useful to ensure that settings have the correct initial
-      values and GUI attributes.
+    * `*event_handler_args` - additional arguments to `event_handler`.
     
     Raises:
     
@@ -413,9 +408,6 @@ class Setting(object):
     
     self._value_changed_event_handler = event_handler
     self._value_changed_event_handler_args = event_handler_args
-    
-    if trigger_event_now:
-      self._trigger_value_changed_event()
   
   def remove_value_changed_event(self):
     """
