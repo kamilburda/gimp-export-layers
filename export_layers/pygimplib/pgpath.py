@@ -170,10 +170,7 @@ def get_file_extension(str_, to_lowercase=True):
 
 # Taken from StackOverflow: http://stackoverflow.com/
 # Question: http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
-#   by SetJmp: http://stackoverflow.com/users/30636/setjmp
 # Answer: http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python/600612#600612
-#   by tzot: http://stackoverflow.com/users/6899/tzot
-#   edited by Craig Ringer: http://stackoverflow.com/users/398670/craig-ringer
 def make_dirs(path):
   """
   Recursively create directories from the specified path.
