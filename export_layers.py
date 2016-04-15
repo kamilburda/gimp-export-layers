@@ -154,11 +154,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
     gui_plugin.export_layers_repeat_gui(image, self.settings, self.session_source, self.persistent_source)
   
   def _run_plugin_noninteractive(self, run_mode, image):
-    layer_exporter = exportlayers.LayerExporter(
-      run_mode, image, self.settings['main'],
-      overwrite_chooser=overwrite.NoninteractiveOverwriteChooser(self.settings['main']['overwrite_mode'].value),
-      progress_updater=None
-    )
+    layer_exporter = exportlayers.LayerExporter(run_mode, image, self.settings['main'])
     
     try:
       layer_exporter.export_layers()

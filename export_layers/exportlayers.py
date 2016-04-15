@@ -143,7 +143,8 @@ class LayerExporter(object):
     class treats them as read-only.
   
   * `overwrite_chooser` - `OverwriteChooser` instance that is invoked if a file
-    with the same name already exists.
+    with the same name already exists. If None is passed during initialization,
+    `overwrite.NoninteractiveOverwriteChooser` is used by default.
   
   * `progress_updater` - `ProgressUpdater` instance that indicates the number of
     layers exported. If no progress update is desired, pass None.
@@ -160,12 +161,20 @@ class LayerExporter(object):
     _USE_DEFAULT_FILE_EXTENSION
   ) = (0, 1, 2, 3)
   
-  def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser, progress_updater):
+  def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser=None, progress_updater=None):
     self.initial_run_mode = initial_run_mode
     self.image = image
     self.export_settings = export_settings
-    self.overwrite_chooser = overwrite_chooser
-    self.progress_updater = progress_updater
+    
+    if overwrite_chooser is None:
+      self.overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(export_settings['overwrite_mode'].value)
+    else:
+      self.overwrite_chooser = overwrite_chooser
+    
+    if progress_updater is None:
+      self.progress_updater = progress.ProgressUpdater(None)
+    else:
+      self.progress_updater = progress_updater
     
     self.should_stop = False
     self._exported_layers = []
@@ -204,8 +213,6 @@ class LayerExporter(object):
     # inserted into the image, but rather its copies (for each layer to be exported).
     self._background_layer = None
     
-    if self.progress_updater is None:
-      self.progress_updater = progress.ProgressUpdater(None)
     self.progress_updater.reset()
     
     self._file_extension_properties = self._prefill_file_extension_properties()
