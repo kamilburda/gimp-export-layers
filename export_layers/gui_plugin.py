@@ -77,60 +77,6 @@ def display_exception_message(exception_message, parent=None):
 #===============================================================================
 
 
-class ExportDialog(object):
-  
-  _HBOX_HORIZONTAL_SPACING = 8
-  _DIALOG_WIDTH = 500
-  
-  def __init__(self, stop_event):
-    self.stop_event = stop_event
-    self._init_gui()
-  
-  def _init_gui(self):
-    self._dialog = gimpui.Dialog(title=_(constants.PLUGIN_TITLE), role=None)
-    self._dialog.set_transient()
-    self._dialog.set_border_width(8)
-    self._dialog.set_default_size(self._DIALOG_WIDTH, -1)
-    
-    self._progress_bar = gtk.ProgressBar()
-    self._progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
-    
-    self._stop_button = gtk.Button()
-    self._stop_button.set_label(_("_Stop"))
-    
-    self._buttonbox = gtk.HButtonBox()
-    self._buttonbox.pack_start(self._stop_button, expand=False, fill=True)
-    
-    self._hbox_action_area = gtk.HBox(homogeneous=False)
-    self._hbox_action_area.set_spacing(self._HBOX_HORIZONTAL_SPACING)
-    self._hbox_action_area.pack_start(self._progress_bar, expand=True, fill=True)
-    self._hbox_action_area.pack_end(self._buttonbox, expand=False, fill=True)
-    
-    self._dialog.vbox.pack_end(self._hbox_action_area, expand=False, fill=False)
-    
-    self._stop_button.connect("clicked", self.stop_event)
-    self._dialog.connect("delete-event", self.stop_event)
-  
-  @property
-  def dialog(self):
-    return self._dialog
-  
-  @property
-  def progress_bar(self):
-    return self._progress_bar
-  
-  def show(self):
-    self._dialog.vbox.show_all()
-    self._dialog.action_area.hide()
-    self._dialog.show()
-  
-  def hide(self):
-    self._dialog.hide()
-
-
-#===============================================================================
-
-
 def _apply_gui_values_to_settings(func):
   """
   This is a decorator for `SettingGroup.apply_gui_values_to_settings()` that
@@ -537,6 +483,60 @@ class _ExportLayersGui(object):
         color = "blue"
       
       self.label_message.set_markup("<span foreground='{0}'><b>{1}</b></span>".format(color, text))
+
+
+#===============================================================================
+
+
+class ExportDialog(object):
+  
+  _HBOX_HORIZONTAL_SPACING = 8
+  _DIALOG_WIDTH = 500
+  
+  def __init__(self, stop_event):
+    self.stop_event = stop_event
+    self._init_gui()
+  
+  def _init_gui(self):
+    self._dialog = gimpui.Dialog(title=_(constants.PLUGIN_TITLE), role=None)
+    self._dialog.set_transient()
+    self._dialog.set_border_width(8)
+    self._dialog.set_default_size(self._DIALOG_WIDTH, -1)
+    
+    self._progress_bar = gtk.ProgressBar()
+    self._progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+    
+    self._stop_button = gtk.Button()
+    self._stop_button.set_label(_("_Stop"))
+    
+    self._buttonbox = gtk.HButtonBox()
+    self._buttonbox.pack_start(self._stop_button, expand=False, fill=True)
+    
+    self._hbox_action_area = gtk.HBox(homogeneous=False)
+    self._hbox_action_area.set_spacing(self._HBOX_HORIZONTAL_SPACING)
+    self._hbox_action_area.pack_start(self._progress_bar, expand=True, fill=True)
+    self._hbox_action_area.pack_end(self._buttonbox, expand=False, fill=True)
+    
+    self._dialog.vbox.pack_end(self._hbox_action_area, expand=False, fill=False)
+    
+    self._stop_button.connect("clicked", self.stop_event)
+    self._dialog.connect("delete-event", self.stop_event)
+  
+  @property
+  def dialog(self):
+    return self._dialog
+  
+  @property
+  def progress_bar(self):
+    return self._progress_bar
+  
+  def show(self):
+    self._dialog.vbox.show_all()
+    self._dialog.action_area.hide()
+    self._dialog.show()
+  
+  def hide(self):
+    self._dialog.hide()
 
 
 #===============================================================================
