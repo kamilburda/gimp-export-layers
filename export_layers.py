@@ -48,7 +48,6 @@ import gimp
 import gimpenums
 import gimpplugin
 
-from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
 from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
