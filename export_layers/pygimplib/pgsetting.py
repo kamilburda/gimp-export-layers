@@ -1044,24 +1044,6 @@ class DirectorySetting(ValidatableStringSetting):
       default_value = default_value.decode()
     
     super(DirectorySetting, self).__init__(name, default_value, pgpath.DirectoryPathValidator, **kwargs)
-  
-  def update_current_directory(self, current_image, directory_for_current_image):
-    """
-    Set the directory (setting value) to the value according to the priority list below:
-    
-    1. `directory_for_current_image` if not None
-    2. `current_image` - import path of the current image if not None
-    
-    If both directories are None, do nothing.
-    """
-    
-    if directory_for_current_image is not None:
-      self.set_value(directory_for_current_image)
-      return
-    
-    if current_image.filename is not None:
-      self.set_value(os.path.dirname(current_image.filename.decode()))
-      return
 
 
 #-------------------------------------------------------------------------------

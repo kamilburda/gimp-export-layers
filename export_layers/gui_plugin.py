@@ -29,6 +29,7 @@ from __future__ import unicode_literals
 str = unicode
 
 import functools
+import os
 import traceback
 
 import pygtk
@@ -77,7 +78,7 @@ def display_exception_message(exception_message, parent=None):
 #===============================================================================
 
 
-def _apply_gui_values_to_settings(func):
+def _set_settings(func):
   """
   This is a decorator for `SettingGroup.apply_gui_values_to_settings()` that
   prevents the decorated function from being executed if there are invalid
@@ -91,6 +92,9 @@ def _apply_gui_values_to_settings(func):
     try:
       self.settings['main'].apply_gui_values_to_settings()
       self.settings['gui'].apply_gui_values_to_settings()
+      
+      self.current_directory_setting.gui.update_setting_value()
+      self.settings['main']['output_directory'].set_value(self.current_directory_setting.value)
     except pgsetting.SettingValueError as e:
       self.display_message_label(e.message, message_type=self.ERROR)
       return
@@ -99,10 +103,34 @@ def _apply_gui_values_to_settings(func):
   
   return func_wrapper
 
-
-def _setup_image_ids_and_directories_and_output_directory(settings, current_image):
+  
+def _update_directory(setting, current_image, directory_for_current_image):
   """
-  Set up the initial output directory for the current image according to the
+  Set the directory to the setting according to the priority list below:
+  
+  1. `directory_for_current_image` if not None
+  2. `current_image` - import path of the current image if not None
+  
+  If update was performed, return True, otherwise return False.
+  """
+  
+  if directory_for_current_image is not None:
+    if isinstance(directory_for_current_image, bytes):
+      directory_for_current_image = directory_for_current_image.decode()
+    
+    setting.set_value(directory_for_current_image)
+    return True
+  
+  if current_image.filename is not None:
+    setting.set_value(os.path.dirname(current_image.filename.decode()))
+    return True
+  
+  return False
+
+
+def _setup_image_ids_and_directories_and_initial_directory(settings, current_directory_setting, current_image):
+  """
+  Set up the initial directory for the current image according to the
   following priority list:
   
     1. Last export directory of the current image
@@ -117,9 +145,17 @@ def _setup_image_ids_and_directories_and_output_directory(settings, current_imag
   """
   
   settings['gui_session']['image_ids_and_directories'].update_image_ids_and_directories()
-  settings['main']['output_directory'].update_current_directory(
-      current_image, settings['gui_session']['image_ids_and_directories'].value[current_image.ID])
   
+  update_performed = _update_directory(
+    current_directory_setting, current_image,
+    settings['gui_session']['image_ids_and_directories'].value[current_image.ID])
+  
+  if not update_performed:
+    current_directory_setting.set_value(settings['main']['output_directory'].value)
+
+
+def _setup_output_directory_changed(settings, current_image):
+
   def on_output_directory_changed(output_directory, image_ids_and_directories, current_image_id):
     image_ids_and_directories.update_directory(current_image_id, output_directory.value)
   
@@ -162,7 +198,13 @@ class _ExportLayersGui(object):
     
     pgsettingpersistor.SettingPersistor.load([self.settings['gui_session']], [self.session_source])
     
-    _setup_image_ids_and_directories_and_output_directory(self.settings, self.image)
+    # Needs to be string to avoid strict directory validation
+    self.current_directory_setting = pgsetting.StringSetting(
+      'current_directory', settings['main']['output_directory'].default_value)
+    
+    _setup_image_ids_and_directories_and_initial_directory(
+      self.settings, self.current_directory_setting, self.image)
+    _setup_output_directory_changed(self.settings, self.image)
     
     self.layer_exporter = None
     
@@ -209,15 +251,12 @@ class _ExportLayersGui(object):
     self.advanced_settings_square_bracketed_mode_label.set_alignment(0, 0.5)
     
     self.settings.initialize_gui({
-      'file_extension': [
-         pgsetting.SettingGuiTypes.file_extension_entry, self.file_extension_entry],
-      'output_directory': [
-         pgsetting.SettingGuiTypes.folder_chooser, self.folder_chooser],
-      'dialog_position': [
-         pgsetting.SettingGuiTypes.window_position, self.dialog],
-      'advanced_settings_expanded': [
-         pgsetting.SettingGuiTypes.expander, self.expander_advanced_settings],
+      'file_extension': [pgsetting.SettingGuiTypes.file_extension_entry, self.file_extension_entry],
+      'dialog_position': [pgsetting.SettingGuiTypes.window_position, self.dialog],
+      'advanced_settings_expanded': [pgsetting.SettingGuiTypes.expander, self.expander_advanced_settings],
     })
+    
+    self.current_directory_setting.create_gui(pgsetting.SettingGuiTypes.folder_chooser, self.folder_chooser)
     
     self.hbox_file_extension_entry = gtk.HBox(homogeneous=False)
     self.hbox_file_extension_entry.set_spacing(30)
@@ -352,7 +391,7 @@ class _ExportLayersGui(object):
     
     pgsettingpersistor.SettingPersistor.save([self.settings['gui_session']], [self.session_source])
   
-  @_apply_gui_values_to_settings
+  @_set_settings
   def on_save_settings_clicked(self, widget):
     self.save_settings()
     self.display_message_label(_("Settings successfully saved."), message_type=self.INFO)
@@ -367,7 +406,7 @@ class _ExportLayersGui(object):
       self.save_settings()
       self.display_message_label(_("Settings reset."), message_type=self.INFO)
   
-  @_apply_gui_values_to_settings
+  @_set_settings
   def on_export_click(self, widget):
     self.setup_gui_before_export()
     pdb.gimp_progress_init("", None)

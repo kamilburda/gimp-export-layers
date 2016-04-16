@@ -695,25 +695,6 @@ class TestDirectorySetting(unittest.TestCase):
   def test_set_value_as_bytes_convert_to_unicode(self):
     self.setting.set_value(b"/some_dir/p\xc5\x88g")
     self.assertIsInstance(self.setting.value, str)
-  
-  def test_update_current_directory_with_current_image_filename(self):
-    image = gimpmocks.MockImage()
-    filename = "/test/image.png"
-    image.filename = filename
-    self.setting.update_current_directory(image, None)
-    self.assertEqual(self.setting.value, os.path.dirname(filename))
-  
-  def test_update_current_directory_with_custom_directory(self):
-    image = gimpmocks.MockImage()
-    
-    custom_directory = "/custom/directory"
-    image.filename = None
-    self.setting.update_current_directory(image, custom_directory)
-    self.assertEqual(self.setting.value, custom_directory)
-    
-    image.filename = "/test/image.png"
-    self.setting.update_current_directory(image, custom_directory)
-    self.assertEqual(self.setting.value, custom_directory)
 
 
 #-------------------------------------------------------------------------------
