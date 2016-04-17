@@ -56,13 +56,15 @@ from export_layers import settings_plugin
 #===============================================================================
 
 
-def display_message(message, message_type, parent=None, buttons=gtk.BUTTONS_OK):
+def display_message(message, message_type, parent=None, buttons=gtk.BUTTONS_OK,
+                    message_in_text_view=False):
   return pggui.display_message(
     message,
     message_type,
     title=_(constants.PLUGIN_TITLE),
     parent=parent,
-    buttons=buttons
+    buttons=buttons,
+    message_in_text_view=message_in_text_view
   )
 
 
@@ -432,7 +434,8 @@ class _ExportLayersGui(object):
     except exportlayers.ExportLayersCancelError as e:
       should_quit = False
     except exportlayers.ExportLayersError as e:
-      self.display_message_label(e.message, message_type=self.ERROR)
+      display_message(self._format_export_error_message(e), message_type=self.ERROR,
+                      parent=self.dialog, message_in_text_view=True)
       should_quit = False
     except Exception as e:
       display_exception_message(traceback.format_exc(), parent=self.dialog)
@@ -522,6 +525,18 @@ class _ExportLayersGui(object):
         color = "blue"
       
       self.label_message.set_markup("<span foreground='{0}'><b>{1}</b></span>".format(color, text))
+  
+  def _format_export_error_message(self, exception):
+    error_message = _("Sorry, but the export was unsuccessful."
+                      " You can try exporting again if you fix the issue described below.")
+    error_message += "\n" + exception.message + "\n"
+    
+    if exception.layer_name:
+      error_message += "\n" + _("Layer:") + " " + exception.layer_name
+    if exception.file_extension:
+      error_message += "\n" + _("File extension:") + " " + exception.file_extension
+    
+    return error_message
 
 
 #===============================================================================

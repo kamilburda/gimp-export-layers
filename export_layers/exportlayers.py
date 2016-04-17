@@ -53,10 +53,25 @@ from export_layers import constants
 
 
 class ExportLayersError(Exception):
-  pass
+  
+  def __init__(self, message="", layer=None, file_extension=None):
+    super(ExportLayersError, self).__init__()
+    
+    self.message = message
+    
+    try:
+      self.layer_name = layer.name
+    except AttributeError:
+      self.layer_name = None
+    
+    self.file_extension = file_extension
 
 
 class ExportLayersCancelError(ExportLayersError):
+  pass
+
+
+class InvalidOutputDirectoryError(ExportLayersError):
   pass
 
 
@@ -199,8 +214,9 @@ class LayerExporter(object):
   
   def _init_attributes(self):
     self.should_stop = False
-    
     self._exported_layers = []
+    
+    self._current_layer_elem = None
     
     self._output_directory = self.export_settings['output_directory'].value
     self._default_file_extension = self.export_settings['file_extension'].value
@@ -293,13 +309,15 @@ class LayerExporter(object):
     ):
       self.progress_updater.num_total_tasks = len(self._layer_data)
     
-    pgpath.make_dirs(self._output_directory)
+    self._make_dirs(self._output_directory)
     
     for layer_elem in self._layer_data:
       if self.should_stop:
         raise ExportLayersCancelError("export stopped by user")
       
       if layer_elem.item_type in (layer_elem.ITEM, layer_elem.NONEMPTY_GROUP):
+        self._current_layer_elem = layer_elem
+        
         layer = layer_elem.item
         layer_copy = self._process_layer(layer)
         # Remove the " copy" suffix from the layer name, which is preserved in
@@ -331,7 +349,7 @@ class LayerExporter(object):
         layer_elem.validate_name()
         self._layer_data.uniquify_name(layer_elem, self._include_item_path)
         empty_directory = layer_elem.get_filepath(self._output_directory, self._include_item_path)
-        pgpath.make_dirs(empty_directory)
+        self._make_dirs(empty_directory)
       else:
         raise ValueError("invalid/unsupported item type '{0}' of _ItemDataElement '{1}'"
                          .format(layer_elem.item_type, layer_elem.name))
@@ -358,6 +376,19 @@ class LayerExporter(object):
   def _remove_square_brackets(self, layer_elem):
     if layer_elem.name.startswith("[") and layer_elem.name.endswith("]"):
       layer_elem.name = layer_elem.name[1:-1]
+  
+  def _make_dirs(self, path):
+    try:
+      pgpath.make_dirs(path)
+    except OSError as e:
+      try:
+        message = e.args[1]
+        if e.filename:
+          message += ": \"{0}\"".format(e.filename)
+      except (IndexError, AttributeError):
+        message = str(e)
+      
+      raise InvalidOutputDirectoryError(message, self._current_layer_elem, self._default_file_extension)
   
   def _process_layer(self, layer):
     background_layer = self._insert_background()
@@ -512,7 +543,7 @@ class LayerExporter(object):
   
   def _export(self, image, layer, output_filename):
     run_mode = self._get_run_mode()
-    pgpath.make_dirs(os.path.dirname(output_filename))
+    self._make_dirs(os.path.dirname(output_filename))
     
     self._export_once(run_mode, image, layer, output_filename)
     
@@ -544,9 +575,6 @@ class LayerExporter(object):
               self.initial_run_mode != gimpenums.RUN_INTERACTIVE):
             self._current_layer_export_status = self._FORCE_INTERACTIVE
           else:
-            error_message = '"' + self._current_file_extension + '": ' + e.message
-            if not e.message.endswith("."):
-              error_message += "."
-            raise ExportLayersError(error_message)
+            raise ExportLayersError(e.message, layer, self._default_file_extension)
     else:
       self._current_layer_export_status = self._EXPORT_SUCCESSFUL
