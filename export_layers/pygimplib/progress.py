@@ -61,7 +61,7 @@ class ProgressUpdater(object):
   def num_finished_tasks(self):
     return self._num_finished_tasks
   
-  def update_tasks(self, num_tasks):
+  def update_tasks(self, num_tasks=1):
     """
     Advance the progress bar by a given number of tasks finished.
     
