@@ -86,7 +86,7 @@ def create_settings():
       }
     },
     {
-      'type': pgsetting.SettingTypes.directory,
+      'type': pgsetting.SettingTypes.string,
       'name': 'output_directory',
       'default_value': gimp.user_directory(1),   # "Documents" directory
       'display_name': _("Output directory"),
