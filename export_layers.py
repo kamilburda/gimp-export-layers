@@ -103,9 +103,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
     gimp.menu_register("plug_in_export_layers", "<Image>/File/Export")
     gimp.menu_register("plug_in_export_layers_repeat", "<Image>/File/Export")
   
-  def plug_in_export_layers(self, *args):
-    run_mode = args[0]
-    image = args[1]
+  def plug_in_export_layers(self, run_mode, image, *args):
     self.settings['special']['run_mode'].set_value(run_mode)
     self.settings['special']['image'].set_value(image)
     
@@ -128,8 +126,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
       self._run_with_last_vals(image)
   
   def _run_noninteractive(self, image, args):
-    # Start with the third parameter - run_mode and image are already set.
-    for setting, arg in zip(self.settings['main'], args[2:]):
+    for setting, arg in zip(self.settings['main'], args):
       if isinstance(arg, bytes):
         arg = arg.decode()
       setting.set_value(arg)
