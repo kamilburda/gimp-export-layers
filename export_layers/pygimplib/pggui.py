@@ -262,7 +262,8 @@ def display_exception_message(exception_message, plugin_title=None,
   dialog.destroy()
 
 
-def display_message(message, message_type, title=None, parent=None, buttons=gtk.BUTTONS_OK):
+def display_message(message, message_type, title=None, parent=None,
+                    buttons=gtk.BUTTONS_OK, message_in_text_view=False):
   
   """
   Display a generic message.
@@ -288,7 +289,28 @@ def display_message(message, message_type, title=None, parent=None, buttons=gtk.
   messages = message.split("\n", 1)
   if len(messages) > 1:
     dialog.set_markup(messages[0])
-    dialog.format_secondary_markup(messages[1])
+    
+    if message_in_text_field:
+      text_view = gtk.TextView()
+      text_view.set_editable(False)
+      text_view.set_wrap_mode(gtk.WRAP_WORD)
+      text_view.set_cursor_visible(False)
+      text_view.set_pixels_above_lines(1)
+      text_view.set_pixels_below_lines(1)
+      text_view.set_pixels_inside_wrap(0)
+      text_view.get_buffer().set_text(messages[1])
+      
+      scrolled_window = gtk.ScrolledWindow()
+      scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+      scrolled_window.set_size_request(-1, 100)
+      scrolled_window.set_shadow_type(gtk.SHADOW_IN)
+      
+      scrolled_window.add(text_view)
+      
+      vbox = dialog.get_message_area()
+      vbox.pack_end(scrolled_window, expand=True, fill=True)
+    else:
+      dialog.format_secondary_markup(messages[1])
   else:
     dialog.set_markup(message)
   
