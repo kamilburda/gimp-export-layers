@@ -320,7 +320,7 @@ class LayerExporter(object):
                                          self._get_uniquifier_position(layer_elem.name))
           self._export_layer(layer_elem, self._image_copy, layer_copy)
         
-        self.progress_updater.update_tasks(1)
+        self.progress_updater.update_tasks()
         
         if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
           self._exported_layers.append(layer)
