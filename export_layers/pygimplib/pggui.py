@@ -75,18 +75,20 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
   """
   
   def __init__(self, values_and_display_names, default_value, default_response, title="",
-               use_mnemonics=True):
+               parent=None, use_mnemonics=True):
     
     super(GtkDialogOverwriteChooser, self).__init__(values_and_display_names, default_value, default_response)
     
     self._title = title
+    self._parent = parent
     self._use_mnemonics = use_mnemonics
     
     self._init_gui()
   
   def _init_gui(self):
-    self._dialog = gimpui.Dialog(title="", role=None)
-    self._dialog.set_transient()
+    self._dialog = gimpui.Dialog(title="", role=None, parent=self._parent,
+                                 flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
+    self._dialog.set_transient_for(self._parent)
     self._dialog.set_border_width(8)
     self._dialog.set_resizable(False)
     self._dialog.set_title(self._title)
