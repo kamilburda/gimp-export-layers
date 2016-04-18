@@ -524,9 +524,16 @@ class LayerExporter(object):
   
   def _get_file_export_func(self, file_extension):
     if file_extension in pgfileformats.file_formats_dict:
-      return pgfileformats.file_formats_dict[file_extension].save_procedure_func
-    else:
-      return pgfileformats.get_default_save_procedure()
+      save_procedure_name = pgfileformats.file_formats_dict[file_extension].save_procedure_name
+      save_procedure_func = pgfileformats.file_formats_dict[file_extension].save_procedure_func
+      
+      if (not save_procedure_name and save_procedure_func):
+        return save_procedure_func
+      elif (save_procedure_name and save_procedure_func):
+        if pdb.gimp_procedural_db_proc_exists(save_procedure_name):
+          return save_procedure_func
+    
+    return pgfileformats.get_default_save_procedure()
   
   def _get_run_mode(self):
     if self._file_extension_properties[self._current_file_extension].is_valid:
