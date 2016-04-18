@@ -419,7 +419,8 @@ class _ExportLayersGui(object):
           self.settings['main']['overwrite_mode'].items_display_names.values()[:-1]),
       default_value=self.settings['main']['overwrite_mode'].items['replace'],
       default_response=self.settings['main']['overwrite_mode'].items['cancel'],
-      title=_(constants.PLUGIN_TITLE))
+      title=_(constants.PLUGIN_TITLE),
+      parent=self.dialog)
     progress_updater = pggui.GtkProgressUpdater(self.progress_bar)
     
     # Make the enabled GUI components more responsive(-ish) by periodically checking
