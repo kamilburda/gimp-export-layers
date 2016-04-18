@@ -572,19 +572,20 @@ class LayerExporter(object):
       # the export was cancelled.
       if "cancelled" in e.message.lower():
         raise ExportLayersCancelError(e.message)
+      # HACK: Try again, this time forcing the interactive mode if the
+      # non-interactive mode failed (certain file formats do not allow the
+      # non-interactive mode).
+      elif "calling error" in e.message.lower():
+        if run_mode in (gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE):
+          self._current_layer_export_status = self._FORCE_INTERACTIVE
+        else:
+          raise ExportLayersError(e.message, layer, self._default_file_extension)
       else:
         if self._current_file_extension != self._default_file_extension:
           self._file_extension_properties[self._current_file_extension].is_valid = False
           self._current_file_extension = self._default_file_extension
           self._current_layer_export_status = self._USE_DEFAULT_FILE_EXTENSION
         else:
-          # Try again, this time forcing the interactive mode if the
-          # non-interactive mode failed (certain file formats do not allow the
-          # non-interactive mode).
-          if (run_mode in (gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE) and
-              self.initial_run_mode != gimpenums.RUN_INTERACTIVE):
-            self._current_layer_export_status = self._FORCE_INTERACTIVE
-          else:
-            raise ExportLayersError(e.message, layer, self._default_file_extension)
+          raise ExportLayersError(e.message, layer, self._default_file_extension)
     else:
       self._current_layer_export_status = self._EXPORT_SUCCESSFUL
