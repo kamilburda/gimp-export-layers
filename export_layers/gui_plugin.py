@@ -592,7 +592,7 @@ class ExportDialog(object):
 #===============================================================================
 
 
-class _ExportLayersToGui(object):
+class _ExportLayersRepeatGui(object):
   
   _GUI_REFRESH_INTERVAL_MILLISECONDS = 500
   
@@ -657,4 +657,4 @@ def export_layers_gui(image, settings, session_source, persistent_source):
 
 
 def export_layers_repeat_gui(image, settings, session_source, persistent_source):
-  _ExportLayersToGui(image, settings, session_source, persistent_source)
+  _ExportLayersRepeatGui(image, settings, session_source, persistent_source)
