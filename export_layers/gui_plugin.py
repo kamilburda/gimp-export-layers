@@ -77,6 +77,13 @@ def display_exception_message(exception_message, parent=None):
   )
 
 
+def _format_export_error_message(exception):
+  error_message = _("Sorry, but the export was unsuccessful."
+                    " You can try exporting again if you fix the issue described below.")
+  error_message += "\n" + str(exception)
+  return error_message
+
+
 #===============================================================================
 
 
@@ -526,12 +533,6 @@ class _ExportLayersGui(object):
         color = "blue"
       
       self.label_message.set_markup("<span foreground='{0}'><b>{1}</b></span>".format(color, text))
-  
-  def _format_export_error_message(self, exception):
-    error_message = _("Sorry, but the export was unsuccessful."
-                      " You can try exporting again if you fix the issue described below.")
-    error_message += "\n" + str(exception)
-    return error_message
 
 
 #===============================================================================
@@ -622,8 +623,9 @@ class _ExportLayersToGui(object):
       self.layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError:
       pass
-    except exportlayers.ExportLayersError:
-      pass
+    except exportlayers.ExportLayersError as e:
+      display_message(_format_export_error_message(e), message_type=gtk.MESSAGE_ERROR,
+                      parent=self.export_dialog.dialog, message_in_text_view=True)
     except Exception:
       display_exception_message(traceback.format_exc(), parent=self.export_dialog.dialog)
     else:
