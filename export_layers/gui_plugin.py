@@ -80,6 +80,8 @@ def display_exception_message(exception_message, parent=None):
 def _format_export_error_message(exception):
   error_message = _("Sorry, but the export was unsuccessful."
                     " You can try exporting again if you fix the issue described below.")
+  if not exception.message.endswith("."):
+    exception.message += "."
   error_message += "\n" + str(exception)
   return error_message
 
