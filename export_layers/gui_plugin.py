@@ -532,13 +532,7 @@ class _ExportLayersGui(object):
   def _format_export_error_message(self, exception):
     error_message = _("Sorry, but the export was unsuccessful."
                       " You can try exporting again if you fix the issue described below.")
-    error_message += "\n" + exception.message + "\n"
-    
-    if exception.layer_name:
-      error_message += "\n" + _("Layer:") + " " + exception.layer_name
-    if exception.file_extension:
-      error_message += "\n" + _("File extension:") + " " + exception.file_extension
-    
+    error_message += "\n" + str(exception)
     return error_message
 
 

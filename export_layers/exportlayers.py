@@ -65,6 +65,16 @@ class ExportLayersError(Exception):
       self.layer_name = None
     
     self.file_extension = file_extension
+  
+  def __str__(self):
+    str_ = self.message
+    
+    if self.layer_name:
+      str_ += "\n" + _("Layer:") + " " + self.layer_name
+    if self.file_extension:
+      str_ += "\n" + _("File extension:") + " " + self.file_extension
+    
+    return str_
 
 
 class ExportLayersCancelError(ExportLayersError):
@@ -383,7 +393,7 @@ class LayerExporter(object):
     except OSError as e:
       try:
         message = e.args[1]
-        if e.filename:
+        if e.filename is not None:
           message += ": \"{0}\"".format(e.filename)
       except (IndexError, AttributeError):
         message = str(e)
