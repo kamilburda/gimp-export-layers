@@ -274,7 +274,7 @@ def display_message(message, message_type, title=None, parent=None,
   
   * `message` - The message to display.
   
-  * `message_type` - GTK message type (gtk.INFO, gtk.WARNING, etc.).
+  * `message_type` - GTK message type (gtk.MESSAGE_INFO, etc.).
   
   * `title` - Message title.
   
