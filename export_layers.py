@@ -177,9 +177,9 @@ class ExportLayersPlugin(gimpplugin.plugin):
     try:
       layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError as e:
-      print(e.message)
+      print(str(e))
     except exportlayers.ExportLayersError as e:
-      print(e.message)
+      print(str(e))
       raise
 
 
