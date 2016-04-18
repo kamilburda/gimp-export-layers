@@ -44,6 +44,9 @@ except TypeError:
 except Exception:
   pass
 
+import functools
+import types
+
 import gimp
 import gimpenums
 import gimpplugin
@@ -66,6 +69,27 @@ class ExportLayersPlugin(gimpplugin.plugin):
     
     self.session_source = pgsettingpersistor.SessionPersistentSettingSource(constants.SESSION_SOURCE_NAME)
     self.persistent_source = pgsettingpersistor.PersistentSettingSource(constants.PERSISTENT_SOURCE_NAME)
+    
+    procedures_to_register = ["plug_in_export_layers", "plug_in_export_layers_repeat"]
+    for procedure_name in procedures_to_register:
+      self._set_gui_excepthook(procedure_name)
+  
+  def _set_gui_excepthook(self, procedure_name):
+    
+    def _set_gui_excepthook_wrapper(procedure):
+      
+      @functools.wraps(procedure)
+      def procedure_wrapper(self, run_mode, *args):
+        if run_mode == gimpenums.RUN_INTERACTIVE:
+          return pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE),
+            report_uri_list=constants.BUG_REPORT_URI_LIST)(procedure)(run_mode, *args)
+        else:
+          return procedure(run_mode, *args)
+      
+      return types.MethodType(procedure_wrapper, self, self.__class__)
+    
+    procedure = getattr(self, procedure_name)
+    setattr(self, procedure_name, _set_gui_excepthook_wrapper(procedure))
   
   def query(self):
     gimp.domain_register(constants.DOMAIN_NAME, constants.LOCALE_PATH)
@@ -84,6 +108,8 @@ class ExportLayersPlugin(gimpplugin.plugin):
         self.settings['special']['run_mode'], self.settings['special']['image'], self.settings['main']),
       []
     )
+    gimp.menu_register("plug_in_export_layers", "<Image>/File/Export")
+    
     gimp.install_procedure(
       "plug_in_export_layers_repeat",
       _("Run \"{0}\" with the last values specified").format(constants.PLUGIN_TITLE),
@@ -99,8 +125,6 @@ class ExportLayersPlugin(gimpplugin.plugin):
         self.settings['special']['run_mode'], self.settings['special']['image']),
       []
     )
-    
-    gimp.menu_register("plug_in_export_layers", "<Image>/File/Export")
     gimp.menu_register("plug_in_export_layers_repeat", "<Image>/File/Export")
   
   def plug_in_export_layers(self, run_mode, image, *args):
@@ -141,11 +165,9 @@ class ExportLayersPlugin(gimpplugin.plugin):
     
     self._run_plugin_noninteractive(gimpenums.RUN_WITH_LAST_VALS, image)
   
-  @pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST)
   def _run_export_layers_interactive(self, image):
     gui_plugin.export_layers_gui(image, self.settings, self.session_source, self.persistent_source)
   
-  @pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE), report_uri_list=constants.BUG_REPORT_URI_LIST)
   def _run_export_layers_repeat_interactive(self, image):
     gui_plugin.export_layers_repeat_gui(image, self.settings, self.session_source, self.persistent_source)
   
