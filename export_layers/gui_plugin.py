@@ -212,6 +212,8 @@ class _ExportLayersGui(object):
     
     self._init_gui()
     
+    pggui.set_gui_excepthook_parent(self.dialog)
+    
     gtk.main()
   
   def _init_gui(self):

@@ -328,6 +328,9 @@ def display_message(message, message_type, title=None, parent=None,
 #===============================================================================
 
 
+_gui_excepthook_parent = None
+
+
 def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
   """
   Modify `sys.excepthook` to display an error dialog for unhandled exceptions.
@@ -346,6 +349,10 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
   * `parent` - Parent GUI element.
   """
   
+  global _gui_excepthook_parent
+  
+  _gui_excepthook_parent = parent
+  
   def real_decorator(func):
     
     @functools.wraps(func)
@@ -357,7 +364,7 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
         if issubclass(exc_type, Exception):
           exception_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
           display_exception_message(exception_message, plugin_title=plugin_title,
-                                    report_uri_list=report_uri_list, parent=parent)
+                                    report_uri_list=report_uri_list, parent=_gui_excepthook_parent)
           # Make sure to quit the application since unhandled exceptions can
           # mess up the application state.
           if gtk.main_level() > 0:
@@ -373,6 +380,19 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
     return func_wrapper
   
   return real_decorator
+
+
+def set_gui_excepthook_parent(parent):
+  """
+  
+  Set the parent GUI element to attach the exception dialog to when using
+  `set_gui_excepthook`. This function allows to modify the parent dynamically
+  even after decorating a function with `set_gui_excepthook`.
+  """
+  
+  global _gui_excepthook_parent
+  
+  _gui_excepthook_parent = parent
 
 
 #===============================================================================
