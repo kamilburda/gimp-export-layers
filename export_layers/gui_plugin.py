@@ -98,7 +98,7 @@ def _set_settings(func):
       self.current_directory_setting.gui.update_setting_value()
       self.settings['main']['output_directory'].set_value(self.current_directory_setting.value)
     except pgsetting.SettingValueError as e:
-      self.display_message_label(e.message, message_type=self.ERROR)
+      self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR)
       return
     
     func(self, *args, **kwargs)
@@ -180,8 +180,6 @@ class _ExportLayersGui(object):
   DIALOG_BORDER_WIDTH = 8
   DIALOG_VBOX_SPACING = 5
   ACTION_AREA_BORDER_WIDTH = 4
-  
-  MESSAGE_TYPES = INFO, ERROR = (0, 1)
   
   _GUI_REFRESH_INTERVAL_MILLISECONDS = 500
   
@@ -398,8 +396,8 @@ class _ExportLayersGui(object):
   @_set_settings
   def on_save_settings_clicked(self, widget):
     self.save_settings()
-    self.display_message_label(_("Settings successfully saved."), message_type=self.INFO)
-  
+    self.display_message_label(_("Settings successfully saved."), message_type=gtk.MESSAGE_INFO)
+ 
   def on_reset_settings_clicked(self, widget):
     resopnse_id = display_message(_("Do you really want to reset settings?"),
                                   gtk.MESSAGE_WARNING, parent=self.dialog,
@@ -408,7 +406,7 @@ class _ExportLayersGui(object):
     if resopnse_id == gtk.RESPONSE_YES:
       self.reset_settings()
       self.save_settings()
-      self.display_message_label(_("Settings reset."), message_type=self.INFO)
+      self.display_message_label(_("Settings reset."), message_type=gtk.MESSAGE_INFO)
   
   @_set_settings
   def on_export_click(self, widget):
@@ -437,7 +435,7 @@ class _ExportLayersGui(object):
     except exportlayers.ExportLayersCancelError as e:
       should_quit = False
     except exportlayers.ExportLayersError as e:
-      display_message(self._format_export_error_message(e), message_type=self.ERROR,
+      display_message(_format_export_error_message(e), message_type=gtk.MESSAGE_WARNING,
                       parent=self.dialog, message_in_text_view=True)
       should_quit = False
     except Exception as e:
@@ -511,7 +509,7 @@ class _ExportLayersGui(object):
     else:
       return True
   
-  def display_message_label(self, text, message_type=ERROR):
+  def display_message_label(self, text, message_type=gtk.MESSAGE_ERROR):
     if text is None or not text:
       self.label_message.set_text("")
     else:
@@ -522,7 +520,7 @@ class _ExportLayersGui(object):
       # Display literal "&" as intended. Required by the markup.
       text = text.replace("&", "&amp;")
       
-      if message_type == self.ERROR:
+      if message_type == gtk.MESSAGE_ERROR:
         color = "red"
       else:
         color = "blue"
