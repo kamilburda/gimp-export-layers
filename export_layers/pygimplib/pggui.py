@@ -290,7 +290,7 @@ def display_message(message, message_type, title=None, parent=None,
   if len(messages) > 1:
     dialog.set_markup(messages[0])
     
-    if message_in_text_field:
+    if message_in_text_view:
       text_view = gtk.TextView()
       text_view.set_editable(False)
       text_view.set_wrap_mode(gtk.WRAP_WORD)
