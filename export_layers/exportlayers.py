@@ -325,9 +325,9 @@ class LayerExporter(object):
       if self.should_stop:
         raise ExportLayersCancelError("export stopped by user")
       
+      self._current_layer_elem = layer_elem
+      
       if layer_elem.item_type in (layer_elem.ITEM, layer_elem.NONEMPTY_GROUP):
-        self._current_layer_elem = layer_elem
-        
         layer = layer_elem.item
         layer_copy = self._process_layer(layer)
         # Remove the " copy" suffix from the layer name, which is preserved in
