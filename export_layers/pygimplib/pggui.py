@@ -89,9 +89,9 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     self._dialog = gimpui.Dialog(title="", role=None, parent=self._parent,
                                  flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
     self._dialog.set_transient_for(self._parent)
+    self._dialog.set_title(self._title)
     self._dialog.set_border_width(8)
     self._dialog.set_resizable(False)
-    self._dialog.set_title(self._title)
     
     self._dialog_icon = gtk.Image()
     self._dialog_icon.set_from_stock(gtk.STOCK_DIALOG_QUESTION, gtk.ICON_SIZE_DIALOG)
@@ -189,13 +189,14 @@ def display_exception_message(exception_message, plugin_title=None,
   
   dialog = gtk.MessageDialog(parent, type=gtk.MESSAGE_ERROR,
                              flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
+  dialog.set_transient_for(parent)
+  dialog.set_title(plugin_title)
   dialog.set_markup(
     "<span font_size=\"large\"><b>" + _("Oops! Something went wrong.") + "</b></span>"
   )
   dialog.format_secondary_markup(
     _("{0} encountered an unexpected error and has to close. Sorry about that!").format(plugin_title)
   )
-  dialog.set_title(plugin_title)
   
   expander = gtk.Expander()
   expander.set_expanded(True)
@@ -284,9 +285,9 @@ def display_message(message, message_type, title=None, parent=None,
   dialog = gtk.MessageDialog(parent=parent, type=message_type,
                              flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                              buttons=buttons)
+  dialog.set_transient_for(parent)
   if title is not None:
     dialog.set_title(title)
-  dialog.set_transient_for(parent)
   
   messages = message.split("\n", 1)
   if len(messages) > 1:
