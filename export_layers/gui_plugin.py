@@ -610,6 +610,8 @@ class _ExportLayersRepeatGui(object):
     
     self.export_dialog = ExportDialog(self.stop)
     
+    pggui.set_gui_excepthook_parent(self.export_dialog.dialog)
+    
     gtk.main_iteration()
     self.export_dialog.show()
     self.export_layers()
@@ -628,8 +630,6 @@ class _ExportLayersRepeatGui(object):
     except exportlayers.ExportLayersError as e:
       display_message(_format_export_error_message(e), message_type=gtk.MESSAGE_WARNING,
                       parent=self.export_dialog.dialog, message_in_text_view=True)
-    except Exception:
-      display_exception_message(traceback.format_exc(), parent=self.export_dialog.dialog)
     else:
       if not self.layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.export_dialog.dialog)
