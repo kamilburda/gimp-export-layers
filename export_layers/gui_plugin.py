@@ -626,7 +626,7 @@ class _ExportLayersRepeatGui(object):
     except exportlayers.ExportLayersCancelError:
       pass
     except exportlayers.ExportLayersError as e:
-      display_message(_format_export_error_message(e), message_type=gtk.MESSAGE_ERROR,
+      display_message(_format_export_error_message(e), message_type=gtk.MESSAGE_WARNING,
                       parent=self.export_dialog.dialog, message_in_text_view=True)
     except Exception:
       display_exception_message(traceback.format_exc(), parent=self.export_dialog.dialog)
