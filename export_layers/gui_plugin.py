@@ -35,7 +35,6 @@ import traceback
 import pygtk
 pygtk.require("2.0")
 import gtk
-import gobject
 import pango
 
 import gimp
@@ -432,10 +431,6 @@ class _ExportLayersGui(object):
       parent=self.dialog)
     progress_updater = pggui.GtkProgressUpdater(self.progress_bar)
     
-    # Make the enabled GUI components more responsive(-ish) by periodically checking
-    # whether the GUI has something to do.
-    refresh_event_id = gobject.timeout_add(self._GUI_REFRESH_INTERVAL_MILLISECONDS, self.refresh_ui)
-    
     self.layer_exporter = exportlayers.LayerExporter(
       gimpenums.RUN_INTERACTIVE, self.image, self.settings['main'], overwrite_chooser, progress_updater)
     should_quit = True
@@ -458,7 +453,6 @@ class _ExportLayersGui(object):
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.dialog)
         should_quit = False
     finally:
-      gobject.source_remove(refresh_event_id)
       pdb.gimp_progress_end()
     
     self.settings['main']['overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
@@ -508,15 +502,6 @@ class _ExportLayersGui(object):
   def stop(self, widget):
     if self.layer_exporter is not None:
       self.layer_exporter.should_stop = True
-  
-  def refresh_ui(self):
-    while gtk.events_pending():
-      gtk.main_iteration()
-    
-    if self.layer_exporter is not None:
-      return not self.layer_exporter.should_stop
-    else:
-      return True
   
   def display_message_label(self, text, message_type=gtk.MESSAGE_ERROR):
     if text is None or not text:
@@ -619,11 +604,12 @@ class _ExportLayersRepeatGui(object):
   def export_layers(self):
     overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(self.settings['main']['overwrite_mode'].value)
     progress_updater = pggui.GtkProgressUpdater(self.export_dialog.progress_bar)
+    
     pdb.gimp_progress_init("", None)
-    refresh_event_id = gobject.timeout_add(self._GUI_REFRESH_INTERVAL_MILLISECONDS, self.refresh_ui)
+    
+    self.layer_exporter = exportlayers.LayerExporter(
+      gimpenums.RUN_WITH_LAST_VALS, self.image, self.settings['main'], overwrite_chooser, progress_updater)
     try:
-      self.layer_exporter = exportlayers.LayerExporter(
-        gimpenums.RUN_WITH_LAST_VALS, self.image, self.settings['main'], overwrite_chooser, progress_updater)
       self.layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError:
       pass
@@ -634,21 +620,11 @@ class _ExportLayersRepeatGui(object):
       if not self.layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.export_dialog.dialog)
     finally:
-      gobject.source_remove(refresh_event_id)
       pdb.gimp_progress_end()
   
   def stop(self, widget, *args):
     if self.layer_exporter is not None:
       self.layer_exporter.should_stop = True
-  
-  def refresh_ui(self):
-    while gtk.events_pending():
-      gtk.main_iteration()
-    
-    if self.layer_exporter is not None:
-      return not self.layer_exporter.should_stop
-    else:
-      return True
 
 
 #===============================================================================
