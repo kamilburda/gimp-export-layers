@@ -28,6 +28,7 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import contextlib
 import functools
 import os
 import traceback
@@ -176,6 +177,33 @@ def _setup_output_directory_changed(settings, current_image):
 #===============================================================================
 
 
+@contextlib.contextmanager
+def _handle_gui_in_export(run_mode, image, layer, output_filename, export_status, window):
+  should_manipulate_window = run_mode == gimpenums.RUN_INTERACTIVE
+  
+  if should_manipulate_window:
+    if os.name != "posix":
+      window.hide()
+    else:
+      window.set_focus_on_map(False)
+  while gtk.events_pending():
+    gtk.main_iteration()
+  
+  try:
+    yield
+  finally:
+    if should_manipulate_window:
+      if os.name != "posix":
+        window.show()
+      else:
+        window.set_focus_on_map(True)
+    while gtk.events_pending():
+      gtk.main_iteration()
+
+
+#===============================================================================
+
+
 class _ExportLayersGui(object):
   
   HBOX_HORIZONTAL_SPACING = 8
@@ -188,8 +216,6 @@ class _ExportLayersGui(object):
   DIALOG_BORDER_WIDTH = 8
   DIALOG_VBOX_SPACING = 5
   ACTION_AREA_BORDER_WIDTH = 4
-  
-  _GUI_REFRESH_INTERVAL_MILLISECONDS = 500
   
   def __init__(self, image, settings, session_source, persistent_source):
     self.image = image
@@ -385,9 +411,6 @@ class _ExportLayersGui(object):
     
     self.dialog.show()
     self.dialog.action_area.set_border_width(self.ACTION_AREA_BORDER_WIDTH)
-    
-    # This may fix the hidden file format dialog bug on Windows.
-    self.dialog.grab_remove()
   
   def reset_settings(self):
     for setting_group in [self.settings['main'], self.settings['gui']]:
@@ -432,7 +455,8 @@ class _ExportLayersGui(object):
     progress_updater = pggui.GtkProgressUpdater(self.progress_bar)
     
     self.layer_exporter = exportlayers.LayerExporter(
-      gimpenums.RUN_INTERACTIVE, self.image, self.settings['main'], overwrite_chooser, progress_updater)
+      gimpenums.RUN_INTERACTIVE, self.image, self.settings['main'], overwrite_chooser, progress_updater,
+      export_context_manager=_handle_gui_in_export, export_context_manager_args=[self.dialog])
     should_quit = True
     try:
       self.layer_exporter.export_layers()
@@ -468,10 +492,8 @@ class _ExportLayersGui(object):
   def setup_gui_before_export(self):
     self.display_message_label(None)
     self._set_gui_enabled(False)
-    self.dialog.set_focus_on_map(False)
   
   def restore_gui_after_export(self):
-    self.dialog.set_focus_on_map(True)
     self._set_gui_enabled(True)
   
   def _set_gui_enabled(self, enabled):
@@ -581,8 +603,6 @@ class ExportDialog(object):
 
 class _ExportLayersRepeatGui(object):
   
-  _GUI_REFRESH_INTERVAL_MILLISECONDS = 500
-  
   def __init__(self, image, settings, session_source, persistent_source):
     self.image = image
     self.settings = settings
@@ -608,7 +628,8 @@ class _ExportLayersRepeatGui(object):
     pdb.gimp_progress_init("", None)
     
     self.layer_exporter = exportlayers.LayerExporter(
-      gimpenums.RUN_WITH_LAST_VALS, self.image, self.settings['main'], overwrite_chooser, progress_updater)
+      gimpenums.RUN_WITH_LAST_VALS, self.image, self.settings['main'], overwrite_chooser, progress_updater,
+      export_context_manager=_handle_gui_in_export, export_context_manager_args=[self.export_dialog.dialog])
     try:
       self.layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError:

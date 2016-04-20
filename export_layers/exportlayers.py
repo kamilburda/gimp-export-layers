@@ -31,6 +31,7 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import contextlib
 import os
 from collections import defaultdict
 
@@ -148,6 +149,12 @@ class _FileExtensionProperties(object):
     self.processed_count = 0
 
 
+class ExportStatuses(object):
+  EXPORT_STATUSES = (
+    NOT_EXPORTED_YET, EXPORT_SUCCESSFUL, FORCE_INTERACTIVE, USE_DEFAULT_FILE_EXTENSION
+  ) = (0, 1, 2, 3)
+
+
 class LayerExporter(object):
   
   """
@@ -179,14 +186,18 @@ class LayerExporter(object):
   
   * `exported_layers` - List of layers that were successfully exported. Includes
     layers which were skipped (when files with the same names already exist).
+  
+  * `export_context_manager` - Context manager that wraps exporting a single
+    layer. This can be used to perform GUI updates before and after export.
+    Required parameters: current run mode, current image, layer to export,
+    output filename of the layer.
+  
+  * `export_context_manager_args` - Additional arguments passed to
+    `export_context_manager`.
   """
   
-  __EXPORT_STATUSES = (
-    _NOT_EXPORTED_YET, _EXPORT_SUCCESSFUL, _FORCE_INTERACTIVE,
-    _USE_DEFAULT_FILE_EXTENSION
-  ) = (0, 1, 2, 3)
-  
-  def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser=None, progress_updater=None):
+  def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser=None, progress_updater=None,
+               export_context_manager=None, export_context_manager_args=None):
     self.initial_run_mode = initial_run_mode
     self.image = image
     self.export_settings = export_settings
@@ -200,6 +211,19 @@ class LayerExporter(object):
       self.progress_updater = progress.ProgressUpdater(None)
     else:
       self.progress_updater = progress_updater
+    
+    if export_context_manager is not None:
+      self.export_context_manager = export_context_manager
+    else:
+      @contextlib.contextmanager
+      def _empty_context(*args, **kwargs):
+        yield
+      self.export_context_manager = _empty_context
+    
+    if export_context_manager_args is not None:
+      self.export_context_manager_args = export_context_manager_args
+    else:
+      self.export_context_manager_args = []
     
     self.should_stop = False
     self._exported_layers = []
@@ -245,7 +269,7 @@ class LayerExporter(object):
     self._default_file_extension = self._default_file_extension.lstrip(".").lower()
     self._current_file_extension = self._default_file_extension
     self._file_export_func = self._get_file_export_func(self._default_file_extension)
-    self._current_layer_export_status = self._NOT_EXPORTED_YET
+    self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
   
   def _prefill_file_extension_properties(self):
@@ -342,7 +366,7 @@ class LayerExporter(object):
                                        self._get_uniquifier_position(layer_elem.name))
         self._export_layer(layer_elem, self._image_copy, layer_copy)
         
-        if self._current_layer_export_status == self._USE_DEFAULT_FILE_EXTENSION:
+        if self._current_layer_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
           self._set_file_extension_and_update_file_export_func(layer_elem)
           self._layer_data.uniquify_name(layer_elem, self._include_item_path,
                                          self._get_uniquifier_position(layer_elem.name))
@@ -562,13 +586,19 @@ class LayerExporter(object):
     run_mode = self._get_run_mode()
     self._make_dirs(os.path.dirname(output_filename))
     
-    self._export_once(run_mode, image, layer, output_filename)
+    self._export_once_wrapper(run_mode, image, layer, output_filename)
     
-    if self._current_layer_export_status == self._FORCE_INTERACTIVE:
-      self._export_once(gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
+    if self._current_layer_export_status == ExportStatuses.FORCE_INTERACTIVE:
+      self._export_once_wrapper(gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
+  
+  def _export_once_wrapper(self, run_mode, image, layer, output_filename):
+    with self.export_context_manager(run_mode, image, layer, output_filename,
+                                     self._current_layer_export_status,
+                                     *self.export_context_manager_args):
+      self._export_once(run_mode, image, layer, output_filename)
   
   def _export_once(self, run_mode, image, layer, output_filename):
-    self._current_layer_export_status = self._NOT_EXPORTED_YET
+    self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     
     try:
       self._file_export_func(run_mode, image, layer, output_filename.encode(),
@@ -584,15 +614,15 @@ class LayerExporter(object):
       # non-interactive mode).
       elif "calling error" in e.message.lower():
         if run_mode in (gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE):
-          self._current_layer_export_status = self._FORCE_INTERACTIVE
+          self._current_layer_export_status = ExportStatuses.FORCE_INTERACTIVE
         else:
           raise ExportLayersError(e.message, layer, self._default_file_extension)
       else:
         if self._current_file_extension != self._default_file_extension:
           self._file_extension_properties[self._current_file_extension].is_valid = False
           self._current_file_extension = self._default_file_extension
-          self._current_layer_export_status = self._USE_DEFAULT_FILE_EXTENSION
+          self._current_layer_export_status = ExportStatuses.USE_DEFAULT_FILE_EXTENSION
         else:
           raise ExportLayersError(e.message, layer, self._default_file_extension)
     else:
-      self._current_layer_export_status = self._EXPORT_SUCCESSFUL
+      self._current_layer_export_status = ExportStatuses.EXPORT_SUCCESSFUL
