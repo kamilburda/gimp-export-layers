@@ -299,7 +299,7 @@ class _ExportLayersGui(object):
     self.table_additional_elems = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_additional_elems.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
     self.table_additional_elems.attach(self.settings['main']['strip_mode'].gui.element, 0, 1, 0, 1, yoptions=0)
-    self.table_additional_elems.attach(self.settings['main']['crop_to_background'].gui.element, 0, 1, 1, 2)
+    self.table_additional_elems.attach(self.settings['main']['crop_mode'].gui.element, 0, 1, 1, 2)
     
     self.hbox_tables = gtk.HBox(homogeneous=False)
     self.hbox_tables.set_spacing(self.ADVANCED_SETTINGS_HORIZONTAL_SPACING)

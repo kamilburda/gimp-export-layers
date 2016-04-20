@@ -144,10 +144,13 @@ def create_settings():
       'display_name': _("Layer names in [square brackets]")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'crop_to_background',
-      'default_value': False,
-      'display_name': _("Crop to background")
+      'type': pgsetting.SettingTypes.enumerated,
+      'name': 'crop_mode',
+      'default_value': 'crop_to_layer',
+      'items': [('crop_to_layer', _("Crop to layer")),
+                ('crop_to_background', _("Crop to background")),
+                ('crop_to_foreground', _("Crop to foreground"))],
+      'display_name': _("Crop mode")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
@@ -215,15 +218,15 @@ def create_settings():
     else:
       layer_groups_as_folders.gui.set_enabled(True)
   
-  def on_autocrop_changed(autocrop, square_bracketed_mode, crop_to_background):
-    if autocrop.value and square_bracketed_mode.value == square_bracketed_mode.items['background']:
-      crop_to_background.gui.set_enabled(True)
+  def on_autocrop_changed(autocrop, square_bracketed_mode, crop_mode):
+    if autocrop.value and square_bracketed_mode.is_item('background'):
+      crop_mode.gui.set_enabled(True)
     else:
-      crop_to_background.set_value(False)
-      crop_to_background.gui.set_enabled(False)
+      crop_mode.set_item('crop_to_layer')
+      crop_mode.gui.set_enabled(False)
   
-  def on_square_bracketed_mode_changed(square_bracketed_mode, autocrop, crop_to_background):
-    on_autocrop_changed(autocrop, square_bracketed_mode, crop_to_background)
+  def on_square_bracketed_mode_changed(square_bracketed_mode, autocrop, crop_mode):
+    on_autocrop_changed(autocrop, square_bracketed_mode, crop_mode)
   
   #-----------------------------------------------------------------------------
   
@@ -237,10 +240,10 @@ def create_settings():
     on_merge_layer_groups_changed, main_settings['layer_groups_as_folders']
   )
   main_settings['autocrop'].connect_value_changed_event(
-    on_autocrop_changed, main_settings['square_bracketed_mode'], main_settings['crop_to_background']
+    on_autocrop_changed, main_settings['square_bracketed_mode'], main_settings['crop_mode']
   )
   main_settings['square_bracketed_mode'].connect_value_changed_event(
-    on_square_bracketed_mode_changed, main_settings['autocrop'], main_settings['crop_to_background']
+    on_square_bracketed_mode_changed, main_settings['autocrop'], main_settings['crop_mode']
   )
   
   #-----------------------------------------------------------------------------

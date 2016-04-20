@@ -130,13 +130,13 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_background(self):
     self.compare({
-                   'square_bracketed_mode': 1   # 1 = "Treat as background layers"
+                   'square_bracketed_mode': 1
                  },
                  expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background'))
   
   def test_background_autocrop(self):
     self.compare({
-                   'square_bracketed_mode': 1,   # 1 = "Treat as background layers"
+                   'square_bracketed_mode': 1,
                    'autocrop': True
                  },
                  [('bottom-frame-semi-transparent', 'bottom-frame-semi-transparent_background_autocrop'),
@@ -144,7 +144,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_background_autocrop_use_image_size(self):
     self.compare({
-                   'square_bracketed_mode': 1,   # 1 = "Treat as background layers"
+                   'square_bracketed_mode': 1,
                    'autocrop': True,
                    'use_image_size': True
                  },
@@ -153,22 +153,22 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_background_autocrop_crop_to_background(self):
     self.compare({
-                   'square_bracketed_mode': 1,   # 1 = "Treat as background layers"
+                   'square_bracketed_mode': 1,
                    'autocrop': True,
-                   'crop_to_background': True
+                   'crop_mode': 1
                  },
                  expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background',
-                                                   'crop_to_background'))
+                                                   'crop_mode'))
   
   def test_background_autocrop_crop_to_background_use_image_size(self):
     self.compare({
-                   'square_bracketed_mode': 1,   # 1 = "Treat as background layers"
+                   'square_bracketed_mode': 1,
                    'autocrop': True,
-                   'crop_to_background': True,
+                   'crop_mode': 1,
                    'use_image_size': True
                  },
                  expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background',
-                                                   'crop_to_background', 'use_image_size'))
+                                                   'crop_mode', 'use_image_size'))
   
   def compare(self, different_settings=None, different_results_and_expected_layers=None,
               expected_results_dir=None):

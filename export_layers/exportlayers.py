@@ -457,7 +457,7 @@ class LayerExporter(object):
   def _crop_and_merge(self, layer, background_layer):
     if not self.export_settings['use_image_size'].value:
       pdb.gimp_image_resize_to_layers(self._image_copy)
-      if self.export_settings['crop_to_background'].value:
+      if self.export_settings['crop_mode'].is_item('crop_to_background'):
         if background_layer is not None:
           layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
         if self.export_settings['autocrop'].value:
@@ -468,7 +468,7 @@ class LayerExporter(object):
         if background_layer is not None:
           layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
     else:
-      if self.export_settings['crop_to_background'].value and background_layer is not None:
+      if self.export_settings['crop_mode'].is_item('crop_to_background') and background_layer is not None:
         if self.export_settings['autocrop'].value:
           self._image_copy.active_layer = background_layer
           pdb.plug_in_autocrop_layer(self._image_copy, background_layer)
