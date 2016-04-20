@@ -28,6 +28,7 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import contextlib
 import functools
 import os
 import traceback
@@ -35,7 +36,6 @@ import traceback
 import pygtk
 pygtk.require("2.0")
 import gtk
-import gobject
 import pango
 
 import gimp
@@ -177,6 +177,33 @@ def _setup_output_directory_changed(settings, current_image):
 #===============================================================================
 
 
+@contextlib.contextmanager
+def _handle_gui_in_export(run_mode, image, layer, output_filename, export_status, window):
+  should_manipulate_window = run_mode == gimpenums.RUN_INTERACTIVE
+  
+  if should_manipulate_window:
+    if os.name != "posix":
+      window.hide()
+    else:
+      window.set_focus_on_map(False)
+  while gtk.events_pending():
+    gtk.main_iteration()
+  
+  try:
+    yield
+  finally:
+    if should_manipulate_window:
+      if os.name != "posix":
+        window.show()
+      else:
+        window.set_focus_on_map(True)
+    while gtk.events_pending():
+      gtk.main_iteration()
+
+
+#===============================================================================
+
+
 class _ExportLayersGui(object):
   
   HBOX_HORIZONTAL_SPACING = 8
@@ -189,8 +216,6 @@ class _ExportLayersGui(object):
   DIALOG_BORDER_WIDTH = 8
   DIALOG_VBOX_SPACING = 5
   ACTION_AREA_BORDER_WIDTH = 4
-  
-  _GUI_REFRESH_INTERVAL_MILLISECONDS = 500
   
   def __init__(self, image, settings, session_source, persistent_source):
     self.image = image
@@ -386,9 +411,6 @@ class _ExportLayersGui(object):
     
     self.dialog.show()
     self.dialog.action_area.set_border_width(self.ACTION_AREA_BORDER_WIDTH)
-    
-    # This may fix the hidden file format dialog bug on Windows.
-    self.dialog.grab_remove()
   
   def reset_settings(self):
     for setting_group in [self.settings['main'], self.settings['gui']]:
@@ -432,12 +454,9 @@ class _ExportLayersGui(object):
       parent=self.dialog)
     progress_updater = pggui.GtkProgressUpdater(self.progress_bar)
     
-    # Make the enabled GUI components more responsive(-ish) by periodically checking
-    # whether the GUI has something to do.
-    refresh_event_id = gobject.timeout_add(self._GUI_REFRESH_INTERVAL_MILLISECONDS, self.refresh_ui)
-    
     self.layer_exporter = exportlayers.LayerExporter(
-      gimpenums.RUN_INTERACTIVE, self.image, self.settings['main'], overwrite_chooser, progress_updater)
+      gimpenums.RUN_INTERACTIVE, self.image, self.settings['main'], overwrite_chooser, progress_updater,
+      export_context_manager=_handle_gui_in_export, export_context_manager_args=[self.dialog])
     should_quit = True
     try:
       self.layer_exporter.export_layers()
@@ -458,7 +477,6 @@ class _ExportLayersGui(object):
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.dialog)
         should_quit = False
     finally:
-      gobject.source_remove(refresh_event_id)
       pdb.gimp_progress_end()
     
     self.settings['main']['overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
@@ -474,10 +492,8 @@ class _ExportLayersGui(object):
   def setup_gui_before_export(self):
     self.display_message_label(None)
     self._set_gui_enabled(False)
-    self.dialog.set_focus_on_map(False)
   
   def restore_gui_after_export(self):
-    self.dialog.set_focus_on_map(True)
     self._set_gui_enabled(True)
   
   def _set_gui_enabled(self, enabled):
@@ -508,15 +524,6 @@ class _ExportLayersGui(object):
   def stop(self, widget):
     if self.layer_exporter is not None:
       self.layer_exporter.should_stop = True
-  
-  def refresh_ui(self):
-    while gtk.events_pending():
-      gtk.main_iteration()
-    
-    if self.layer_exporter is not None:
-      return not self.layer_exporter.should_stop
-    else:
-      return True
   
   def display_message_label(self, text, message_type=gtk.MESSAGE_ERROR):
     if text is None or not text:
@@ -596,8 +603,6 @@ class ExportDialog(object):
 
 class _ExportLayersRepeatGui(object):
   
-  _GUI_REFRESH_INTERVAL_MILLISECONDS = 500
-  
   def __init__(self, image, settings, session_source, persistent_source):
     self.image = image
     self.settings = settings
@@ -610,6 +615,8 @@ class _ExportLayersRepeatGui(object):
     
     self.export_dialog = ExportDialog(self.stop)
     
+    pggui.set_gui_excepthook_parent(self.export_dialog.dialog)
+    
     gtk.main_iteration()
     self.export_dialog.show()
     self.export_layers()
@@ -617,38 +624,28 @@ class _ExportLayersRepeatGui(object):
   def export_layers(self):
     overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(self.settings['main']['overwrite_mode'].value)
     progress_updater = pggui.GtkProgressUpdater(self.export_dialog.progress_bar)
+    
     pdb.gimp_progress_init("", None)
-    refresh_event_id = gobject.timeout_add(self._GUI_REFRESH_INTERVAL_MILLISECONDS, self.refresh_ui)
+    
+    self.layer_exporter = exportlayers.LayerExporter(
+      gimpenums.RUN_WITH_LAST_VALS, self.image, self.settings['main'], overwrite_chooser, progress_updater,
+      export_context_manager=_handle_gui_in_export, export_context_manager_args=[self.export_dialog.dialog])
     try:
-      self.layer_exporter = exportlayers.LayerExporter(
-        gimpenums.RUN_WITH_LAST_VALS, self.image, self.settings['main'], overwrite_chooser, progress_updater)
       self.layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError:
       pass
     except exportlayers.ExportLayersError as e:
       display_message(_format_export_error_message(e), message_type=gtk.MESSAGE_WARNING,
                       parent=self.export_dialog.dialog, message_in_text_view=True)
-    except Exception:
-      display_exception_message(traceback.format_exc(), parent=self.export_dialog.dialog)
     else:
       if not self.layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.export_dialog.dialog)
     finally:
-      gobject.source_remove(refresh_event_id)
       pdb.gimp_progress_end()
   
   def stop(self, widget, *args):
     if self.layer_exporter is not None:
       self.layer_exporter.should_stop = True
-  
-  def refresh_ui(self):
-    while gtk.events_pending():
-      gtk.main_iteration()
-    
-    if self.layer_exporter is not None:
-      return not self.layer_exporter.should_stop
-    else:
-      return True
 
 
 #===============================================================================
