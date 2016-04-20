@@ -193,16 +193,16 @@ def create_settings():
       merge_layer_groups.set_value(False)
   
   def on_file_ext_mode_changed(file_ext_mode, file_extension, strip_mode):
-    if file_ext_mode.value == file_ext_mode.items['no_special_handling']:
+    if file_ext_mode.is_item('no_special_handling'):
       strip_mode.set_value(strip_mode.default_value)
       strip_mode.gui.set_enabled(True)
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
-    elif file_ext_mode.value == file_ext_mode.items['only_matching_file_extension']:
-      strip_mode.set_value(strip_mode.items['never'])
+    elif file_ext_mode.is_item('only_matching_file_extension'):
+      strip_mode.set_item('never')
       strip_mode.gui.set_enabled(False)
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
-    elif file_ext_mode.value == file_ext_mode.items['use_as_file_extensions']:
-      strip_mode.set_value(strip_mode.items['never'])
+    elif file_ext_mode.is_item('use_as_file_extensions'):
+      strip_mode.set_item('never')
       strip_mode.gui.set_enabled(False)
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = (
         file_extension.error_messages['default_needed']

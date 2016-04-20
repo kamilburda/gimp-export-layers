@@ -285,20 +285,16 @@ class LayerExporter(object):
     if self.export_settings['empty_folders'].value:
       self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
-    if (self.export_settings['square_bracketed_mode'].value ==
-        self.export_settings['square_bracketed_mode'].items['normal']):
+    if self.export_settings['square_bracketed_mode'].is_item('normal'):
       for layer_elem in self._layer_data:
         self._remove_square_brackets(layer_elem)
-    elif (self.export_settings['square_bracketed_mode'].value ==
-          self.export_settings['square_bracketed_mode'].items['background']):
+    elif self.export_settings['square_bracketed_mode'].is_item('background'):
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_enclosed_in_square_brackets):
         self._background_layer_elems = list(self._layer_data)
       self._layer_data.filter.add_rule(LayerFilterRules.is_not_enclosed_in_square_brackets)
-    elif (self.export_settings['square_bracketed_mode'].value ==
-          self.export_settings['square_bracketed_mode'].items['ignore']):
+    elif self.export_settings['square_bracketed_mode'].is_item('ignore'):
       self._layer_data.filter.add_rule(LayerFilterRules.is_not_enclosed_in_square_brackets)
-    elif (self.export_settings['square_bracketed_mode'].value ==
-          self.export_settings['square_bracketed_mode'].items['ignore_other']):
+    elif self.export_settings['square_bracketed_mode'].is_item('ignore_other'):
       filter_tag = "allow_square_bracketed_only"
       
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_enclosed_in_square_brackets):
@@ -308,8 +304,7 @@ class LayerExporter(object):
       
       self._layer_data.filter.add_rule(LayerFilterRules.has_tag, filter_tag)
     
-    if (self.export_settings['file_ext_mode'].value ==
-        self.export_settings['file_ext_mode'].items['only_matching_file_extension']):
+    if (self.export_settings['file_ext_mode'].is_item('only_matching_file_extension')):
       self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension,
                                        self._default_file_extension)
   
@@ -490,21 +485,17 @@ class LayerExporter(object):
     return layer
   
   def _strip_file_extension(self, layer_elem):
-    if self.export_settings['strip_mode'].value in (
-         self.export_settings['strip_mode'].items['identical'],
-         self.export_settings['strip_mode'].items['always']):
+    if self.export_settings['strip_mode'].is_item('identical', 'always'):
       file_extension = layer_elem.get_file_extension()
       if file_extension:
-        if self.export_settings['strip_mode'].value == self.export_settings['strip_mode'].items['identical']:
+        if self.export_settings['strip_mode'].is_item('identical'):
           if file_extension == self._default_file_extension:
             layer_elem.set_file_extension(None)
         else:
           layer_elem.set_file_extension(None)
   
   def _set_file_extension_and_update_file_export_func(self, layer_elem):
-    if (self.export_settings['file_ext_mode'].value ==
-        self.export_settings['file_ext_mode'].items['use_as_file_extensions']):
-      
+    if self.export_settings['file_ext_mode'].is_item('use_as_file_extensions'):
       file_extension = layer_elem.get_file_extension()
       if file_extension and self._file_extension_properties[file_extension].is_valid:
         self._current_file_extension = file_extension
@@ -513,10 +504,7 @@ class LayerExporter(object):
         self._current_file_extension = self._default_file_extension
       
       self._file_export_func = self._get_file_export_func(self._current_file_extension)
-      
-    elif (self.export_settings['file_ext_mode'].value ==
-          self.export_settings['file_ext_mode'].items['no_special_handling']):
-      
+    elif self.export_settings['file_ext_mode'].is_item('no_special_handling'):
       layer_elem.name += "." + self._default_file_extension
   
   def _get_uniquifier_position(self, str_):
