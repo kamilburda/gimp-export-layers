@@ -274,7 +274,7 @@ class TestSettingGroup(unittest.TestCase):
     
     self.settings['file_extension'].set_value("gif")
     self.settings['ignore_invisible'].set_value(True)
-    self.settings['overwrite_mode'].set_value(self.settings['overwrite_mode'].items['skip'])
+    self.settings['overwrite_mode'].set_item('skip')
     self.settings['special']['first_plugin_run'].set_value(True)
     
     self.settings.reset()

@@ -796,6 +796,34 @@ class EnumSetting(Setting):
   def empty_value(self):
     return self._empty_value
   
+  def is_item(self, *item_names):
+    """
+    Return True if the setting value is set to one the specified items,
+    otherwise return False.
+    
+    If only one item is specified, this is a more convenient and less verbose
+    alternative to
+      
+      setting.value == setting.items[item_name]
+    
+    If multiple items are specified, this is equivalent to
+    
+      setting.value in (setting.items[item_name1], setting.items[item_name2], ...)
+    """
+    
+    return any(self.value == self.items[item_name] for item_name in item_names)
+  
+  def set_item(self, item_name):
+    """
+    Set the specified item as the setting value.
+    
+    This is a more convenient and less verbose alternative to
+      
+      setting.set_value(setting.items[item_name])
+    """
+    
+    self.set_value(self.items[item_name])
+  
   def get_item_display_names_and_values(self):
     """
     Return a list of (item display name, item value) pairs.
