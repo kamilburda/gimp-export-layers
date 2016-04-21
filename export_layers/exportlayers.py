@@ -581,7 +581,6 @@ class LayerExporter(object):
   
   def _export_once_wrapper(self, run_mode, image, layer, output_filename):
     with self.export_context_manager(run_mode, image, layer, output_filename,
-                                     self._current_layer_export_status,
                                      *self.export_context_manager_args):
       self._export_once(run_mode, image, layer, output_filename)
   

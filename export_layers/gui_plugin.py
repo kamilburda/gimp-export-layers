@@ -178,7 +178,7 @@ def _setup_output_directory_changed(settings, current_image):
 
 
 @contextlib.contextmanager
-def _handle_gui_in_export(run_mode, image, layer, output_filename, export_status, window):
+def _handle_gui_in_export(run_mode, image, layer, output_filename, window):
   should_manipulate_window = run_mode == gimpenums.RUN_INTERACTIVE
   
   if should_manipulate_window:
