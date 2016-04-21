@@ -116,16 +116,24 @@ class LayerFilterRules(object):
     return layer_elem.get_file_extension() == file_extension.lower()
   
   @staticmethod
-  def is_enclosed_in_square_brackets(layer_elem):
+  def is_tagged(layer_elem):
     return layer_elem.name.startswith("[") and layer_elem.name.endswith("]")
   
   @staticmethod
-  def is_not_enclosed_in_square_brackets(layer_elem):
-    return not LayerFilterRules.is_enclosed_in_square_brackets(layer_elem)
+  def is_not_tagged(layer_elem):
+    return not LayerFilterRules.is_tagged(layer_elem)
   
   @staticmethod
   def has_tag(layer_elem, tag):
     return tag in layer_elem.tags
+
+
+#===============================================================================
+
+  
+def _remove_tags(layer_elem):
+  if layer_elem.name.startswith("[") and layer_elem.name.endswith("]"):
+    layer_elem.name = layer_elem.name[1:-1]
 
 
 #===============================================================================
@@ -238,6 +246,7 @@ class LayerExporter(object):
     """
     
     self._init_attributes()
+    self._preprocess_layers()
     self._set_layer_filters()
     
     self._setup()
@@ -263,6 +272,8 @@ class LayerExporter(object):
     # inserted into the image, but rather its copies (for each layer to be exported).
     self._background_layer = None
     
+    self._allow_tagged_only_tag = "allow_tagged_only"
+    
     self.progress_updater.reset()
     
     self._file_extension_properties = self._prefill_file_extension_properties()
@@ -285,14 +296,20 @@ class LayerExporter(object):
     
     return file_extension_properties
   
+  def _preprocess_layers(self):
+    if self.export_settings['tagged_layers_mode'].is_item('normal'):
+      for layer_elem in self._layer_data:
+        _remove_tags(layer_elem)
+    elif self.export_settings['tagged_layers_mode'].is_item('special'):
+      with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_tagged):
+        self._background_layer_elems = list(self._layer_data)
+    elif self.export_settings['tagged_layers_mode'].is_item('ignore_other'):
+      with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_tagged):
+        for layer_elem in self._layer_data:
+          layer_elem.tags.add(self._allow_tagged_only_tag)
+          _remove_tags(layer_elem)
+  
   def _set_layer_filters(self):
-    """
-    Set layer filters according to the main settings.
-    
-    Create a list of background layers (which are not exported, but are used
-    during the layer processing).
-    """
-    
     self._layer_data.filter.add_subfilter(
       'layer_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY)
     )
@@ -309,24 +326,10 @@ class LayerExporter(object):
     if self.export_settings['empty_folders'].value:
       self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
-    if self.export_settings['tagged_layers_mode'].is_item('normal'):
-      for layer_elem in self._layer_data:
-        self._remove_square_brackets(layer_elem)
-    elif self.export_settings['tagged_layers_mode'].is_item('special'):
-      with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_enclosed_in_square_brackets):
-        self._background_layer_elems = list(self._layer_data)
-      self._layer_data.filter.add_rule(LayerFilterRules.is_not_enclosed_in_square_brackets)
-    elif self.export_settings['tagged_layers_mode'].is_item('ignore'):
-      self._layer_data.filter.add_rule(LayerFilterRules.is_not_enclosed_in_square_brackets)
+    if self.export_settings['tagged_layers_mode'].is_item('special', 'ignore'):
+      self._layer_data.filter.add_rule(LayerFilterRules.is_not_tagged)
     elif self.export_settings['tagged_layers_mode'].is_item('ignore_other'):
-      filter_tag = "allow_square_bracketed_only"
-      
-      with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_enclosed_in_square_brackets):
-        for layer_elem in self._layer_data:
-          layer_elem.tags.add(filter_tag)
-          self._remove_square_brackets(layer_elem)
-      
-      self._layer_data.filter.add_rule(LayerFilterRules.has_tag, filter_tag)
+      self._layer_data.filter.add_rule(LayerFilterRules.has_tag, self._allow_tagged_only_tag)
     
     if (self.export_settings['file_extension_mode'].is_item('only_matching_file_extension')):
       self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension,
@@ -401,10 +404,6 @@ class LayerExporter(object):
     if self._background_layer is not None:
       pdb.gimp_item_delete(self._background_layer)
     pdb.gimp_context_pop()
-  
-  def _remove_square_brackets(self, layer_elem):
-    if layer_elem.name.startswith("[") and layer_elem.name.endswith("]"):
-      layer_elem.name = layer_elem.name[1:-1]
   
   def _make_dirs(self, path):
     try:
