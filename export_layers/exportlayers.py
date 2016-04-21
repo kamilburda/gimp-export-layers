@@ -328,7 +328,7 @@ class LayerExporter(object):
       
       self._layer_data.filter.add_rule(LayerFilterRules.has_tag, filter_tag)
     
-    if (self.export_settings['file_ext_mode'].is_item('only_matching_file_extension')):
+    if (self.export_settings['file_extension_mode'].is_item('only_matching_file_extension')):
       self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension,
                                        self._default_file_extension)
   
@@ -519,7 +519,7 @@ class LayerExporter(object):
           layer_elem.set_file_extension(None)
   
   def _set_file_extension_and_update_file_export_func(self, layer_elem):
-    if self.export_settings['file_ext_mode'].is_item('use_as_file_extensions'):
+    if self.export_settings['file_extension_mode'].is_item('use_as_file_extensions'):
       file_extension = layer_elem.get_file_extension()
       if file_extension and self._file_extension_properties[file_extension].is_valid:
         self._current_file_extension = file_extension
@@ -528,7 +528,7 @@ class LayerExporter(object):
         self._current_file_extension = self._default_file_extension
       
       self._file_export_func = self._get_file_export_func(self._current_file_extension)
-    elif self.export_settings['file_ext_mode'].is_item('no_special_handling'):
+    elif self.export_settings['file_extension_mode'].is_item('no_special_handling'):
       layer_elem.name += "." + self._default_file_extension
   
   def _get_uniquifier_position(self, str_):

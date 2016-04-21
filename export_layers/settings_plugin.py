@@ -117,7 +117,7 @@ def create_settings():
     },
     {
       'type': pgsetting.SettingTypes.enumerated,
-      'name': 'file_ext_mode',
+      'name': 'file_extension_mode',
       'default_value': 'no_special_handling',
       'items': [('no_special_handling', _("No special handling")),
                 ('only_matching_file_extension', _("Export only layers matching file extension")),
@@ -195,16 +195,16 @@ def create_settings():
       merge_layer_groups.gui.set_enabled(False)
       merge_layer_groups.set_value(False)
   
-  def on_file_ext_mode_changed(file_ext_mode, file_extension, strip_mode):
-    if file_ext_mode.is_item('no_special_handling'):
+  def on_file_extension_mode_changed(file_extension_mode, file_extension, strip_mode):
+    if file_extension_mode.is_item('no_special_handling'):
       strip_mode.set_value(strip_mode.default_value)
       strip_mode.gui.set_enabled(True)
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
-    elif file_ext_mode.is_item('only_matching_file_extension'):
+    elif file_extension_mode.is_item('only_matching_file_extension'):
       strip_mode.set_item('never')
       strip_mode.gui.set_enabled(False)
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
-    elif file_ext_mode.is_item('use_as_file_extensions'):
+    elif file_extension_mode.is_item('use_as_file_extensions'):
       strip_mode.set_item('never')
       strip_mode.gui.set_enabled(False)
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = (
@@ -233,8 +233,8 @@ def create_settings():
   main_settings['layer_groups_as_folders'].connect_value_changed_event(
     on_layer_groups_as_folders_changed, main_settings['empty_folders'], main_settings['merge_layer_groups']
   )
-  main_settings['file_ext_mode'].connect_value_changed_event(
-    on_file_ext_mode_changed, main_settings['file_extension'], main_settings['strip_mode']
+  main_settings['file_extension_mode'].connect_value_changed_event(
+    on_file_extension_mode_changed, main_settings['file_extension'], main_settings['strip_mode']
   )
   main_settings['merge_layer_groups'].connect_value_changed_event(
     on_merge_layer_groups_changed, main_settings['layer_groups_as_folders']
