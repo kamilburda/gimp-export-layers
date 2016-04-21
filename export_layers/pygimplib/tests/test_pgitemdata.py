@@ -315,96 +315,121 @@ class TestLayerData(unittest.TestCase):
 
 
 @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpmocks.MockPDB())
-class TestLayerDataFileExtensions(unittest.TestCase):
+class TestLayerDataElement(unittest.TestCase):
   
   @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpmocks.MockPDB())
   def setUp(self):
-    image = gimpmocks.MockImage()
-    image.layers.append(gimpmocks.MockLayer("main-background.jpg"))
-    
-    self.layer_data = pgitemdata.LayerData(image)
+    self.layer_elem = pgitemdata._ItemDataElement(gimpmocks.MockLayer("main-background.jpg"))
   
   def test_get_file_extension(self):
-    layer_elem = self.layer_data["main-background.jpg"]
+    self.assertEqual(self.layer_elem.get_file_extension(), "jpg")
     
-    self.assertEqual(layer_elem.get_file_extension(), "jpg")
-    
-    layer_elem.name = ".jpg"
-    self.assertEqual(layer_elem.get_file_extension(), "jpg")
+    self.layer_elem.name = ".jpg"
+    self.assertEqual(self.layer_elem.get_file_extension(), "jpg")
   
   def test_get_file_extension_no_extension(self):
-    layer_elem = self.layer_data["main-background.jpg"]
+    self.layer_elem.name = "main-background"
+    self.assertEqual(self.layer_elem.get_file_extension(), "")
     
-    layer_elem.name = "main-background"
-    self.assertEqual(layer_elem.get_file_extension(), "")
+    self.layer_elem.name = "main-background."
+    self.assertEqual(self.layer_elem.get_file_extension(), "")
     
-    layer_elem.name = "main-background."
-    self.assertEqual(layer_elem.get_file_extension(), "")
-    
-    layer_elem.name = "."
-    self.assertEqual(layer_elem.get_file_extension(), "")
+    self.layer_elem.name = "."
+    self.assertEqual(self.layer_elem.get_file_extension(), "")
   
   def test_get_file_extension_unrecognized_extension(self):
-    layer_elem = self.layer_data["main-background.jpg"]
-    layer_elem.name = "main-background.aaa"
+    self.layer_elem.name = "main-background.aaa"
+    self.assertEqual(self.layer_elem.get_file_extension(), "aaa")
     
-    self.assertEqual(layer_elem.get_file_extension(), "aaa")
-    
-    layer_elem.name = ".aaa"
-    self.assertEqual(layer_elem.get_file_extension(), "aaa")
+    self.layer_elem.name = ".aaa"
+    self.assertEqual(self.layer_elem.get_file_extension(), "aaa")
   
   def test_get_file_extension_multiple_periods(self):
-    layer_elem = self.layer_data["main-background.jpg"]
-    layer_elem.name = "main-background.xcf.bz2"
-    
-    self.assertEqual(layer_elem.get_file_extension(), "xcf.bz2")
+    self.layer_elem.name = "main-background.xcf.bz2"
+    self.assertEqual(self.layer_elem.get_file_extension(), "xcf.bz2")
   
   def test_get_file_extension_multiple_periods_unrecognized_extension(self):
-    layer_elem = self.layer_data["main-background.jpg"]
-    layer_elem.name = "main-background.aaa.bbb"
-    
-    self.assertEqual(layer_elem.get_file_extension(), "bbb")
+    self.layer_elem.name = "main-background.aaa.bbb"
+    self.assertEqual(self.layer_elem.get_file_extension(), "bbb")
   
   def test_set_file_extension(self):
-    layer_elem = self.layer_data["main-background.jpg"]
+    self.layer_elem.set_file_extension("png")
+    self.assertEqual(self.layer_elem.name, "main-background.png")
     
-    layer_elem.set_file_extension("png")
-    self.assertEqual(layer_elem.name, "main-background.png")
+    self.layer_elem.name = "main-background.jpg"
+    self.layer_elem.set_file_extension(".png")
+    self.assertEqual(self.layer_elem.name, "main-background.png")
     
-    layer_elem.name = "main-background.jpg"
-    layer_elem.set_file_extension(".png")
-    self.assertEqual(layer_elem.name, "main-background.png")
-    
-    layer_elem.name = "main-background."
-    layer_elem.set_file_extension("png")
-    self.assertEqual(layer_elem.name, "main-background.png")
+    self.layer_elem.name = "main-background."
+    self.layer_elem.set_file_extension("png")
+    self.assertEqual(self.layer_elem.name, "main-background.png")
   
   def test_set_file_extension_turn_uppercase_to_lowercase(self):
-    layer_elem = self.layer_data["main-background.jpg"]
-    
-    layer_elem.set_file_extension("PNG")
-    self.assertEqual(layer_elem.name, "main-background.png")
+    self.layer_elem.set_file_extension("PNG")
+    self.assertEqual(self.layer_elem.name, "main-background.png")
   
   def test_set_file_extension_no_extension(self):
-    layer_elem = self.layer_data["main-background.jpg"]
+    self.layer_elem.set_file_extension(None)
+    self.assertEqual(self.layer_elem.name, "main-background")
     
-    layer_elem.set_file_extension(None)
-    self.assertEqual(layer_elem.name, "main-background")
-    
-    layer_elem.name = "main-background.jpg"
-    layer_elem.set_file_extension(".")
-    self.assertEqual(layer_elem.name, "main-background")
+    self.layer_elem.name = "main-background.jpg"
+    self.layer_elem.set_file_extension(".")
+    self.assertEqual(self.layer_elem.name, "main-background")
   
   def test_set_file_extension_from_multiple_periods(self):
-    layer_elem = self.layer_data["main-background.jpg"]
-    layer_elem.name = "main-background.xcf.bz2"
-    
-    layer_elem.set_file_extension("png")
-    self.assertEqual(layer_elem.name, "main-background.png")
+    self.layer_elem.name = "main-background.xcf.bz2"
+    self.layer_elem.set_file_extension("png")
+    self.assertEqual(self.layer_elem.name, "main-background.png")
   
   def test_set_file_extension_from_single_period_within_multiple_periods(self):
-    layer_elem = self.layer_data["main-background.jpg"]
-    layer_elem.name = "main-background.aaa.jpg"
+    self.layer_elem.name = "main-background.aaa.jpg"
+    self.layer_elem.set_file_extension("png")
+    self.assertEqual(self.layer_elem.name, "main-background.aaa.png")
+  
+  def _test_parse_tags(self, orig_layer_elem_name, processed_layer_elem_name, parsed_tags):
+    self.layer_elem.name = orig_layer_elem_name
+    self.layer_elem.parse_tags()
+    self.assertEqual(self.layer_elem.name, processed_layer_elem_name)
+    self.assertEquals(self.layer_elem.tags, set(parsed_tags))
+    self.layer_elem.tags.clear()
+  
+  def test_parse_tags(self):
+    self._test_parse_tags("main-background", "main-background", [])
+    self._test_parse_tags("", "", [])
     
-    layer_elem.set_file_extension("png")
-    self.assertEqual(layer_elem.name, "main-background.aaa.png")
+    self._test_parse_tags("[background]main-background", "main-background", ['background'])
+    self._test_parse_tags("[background] main-background", "main-background", ['background'])
+    self._test_parse_tags("[background]    main-background", "main-background", ['background'])
+    self._test_parse_tags("[foreground][background] main-background", "main-background",
+                          ['foreground', 'background'])
+    self._test_parse_tags("[foreground] [background] main-background", "main-background",
+                          ['foreground', 'background'])
+    self._test_parse_tags("[ background] main-background", "main-background", [' background'])
+    self._test_parse_tags("[ background ] main-background", "main-background", [' background '])
+    self._test_parse_tags(" [background] main-background", "main-background", ['background'])
+    self._test_parse_tags("[background]", "", ['background'])
+    
+    self._test_parse_tags("[]main-background", "[]main-background", [])
+    self._test_parse_tags("[] main-background", "[] main-background", [])
+    self._test_parse_tags("[] [background] main-background", "[] [background] main-background", [])
+    self._test_parse_tags("[ ] [background] main-background", "[ ] [background] main-background", [])
+    self._test_parse_tags(" [ ] [background] main-background", " [ ] [background] main-background", [])
+     
+    self._test_parse_tags("main-background[background]", "main-background[background]", [])
+    self._test_parse_tags("main-background [background]", "main-background [background]", [])
+    
+    self._test_parse_tags("[[background]]main-background", "[[background]]main-background", [])
+    self._test_parse_tags(" [[background]]main-background", " [[background]]main-background", [])
+    self._test_parse_tags("[[background]] main-background", "[[background]] main-background", [])
+    self._test_parse_tags("[foreground] [[background]] main-background", "[[background]] main-background",
+                          ['foreground'])
+    self._test_parse_tags("[[foreground]] [some_other_ground] [[background]] main-background",
+                          "[[foreground]] [some_other_ground] [[background]] main-background",
+                          [])
+    self._test_parse_tags("[background]] main-background", "] main-background", ['background'])
+    
+    self._test_parse_tags("[background main-background", "[background main-background", [])
+    self._test_parse_tags("[background main-background]", "", ['background main-background'])
+    self._test_parse_tags("[foreground]some text[background]main-background",
+                          "some text[background]main-background",
+                          ['foreground'])

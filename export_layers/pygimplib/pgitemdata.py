@@ -494,6 +494,61 @@ class _ItemDataElement(object):
     for parent in self._parents:
       parent.name = pgpath.FilenameValidator.validate(parent.name)
   
+  def parse_tags(self):
+    """
+    Parse tags from name. Example:
+    
+      [background] Layer
+    
+    inserts "background" to the set of tags and sets "Layer" as the new item
+    name.
+    
+    Tags are only parsed from the beginning of item name. Whitespace between
+    tags, before the first tag and after the last tag is removed.
+    
+    To prevent a tag from being parsed, surround it by nested square
+    brackets, e.g. "[[background]]".
+    """
+    
+    index = 0
+    start_of_tag_index = 0
+    is_inside_tag = False
+    tag_name = ""
+    tags = []
+    
+    while index < len(self.name):
+      if self.name[index].isspace():
+        if is_inside_tag:
+          tag_name += self.name[index]
+      elif self.name[index] == "[":
+        if not is_inside_tag:
+          is_inside_tag = True
+          start_of_tag_index = index
+        else:
+          index = start_of_tag_index
+          break
+      elif self.name[index] == "]":
+        if not tag_name.strip() and is_inside_tag:
+          index = start_of_tag_index
+          break
+        
+        if is_inside_tag:
+          is_inside_tag = False
+          tags.append(tag_name)
+          tag_name = ""
+        else:
+          break
+      else:
+        if is_inside_tag:
+          tag_name += self.name[index]
+        else:
+          break
+      index += 1
+    
+    if tags:
+      self.name = self.name[index:]
+      self.tags.update(tags)
+  
   def _get_path_visibility(self):
     """
     If this item and all of its parents are visible, return True, otherwise
