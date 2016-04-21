@@ -309,16 +309,16 @@ class LayerExporter(object):
     if self.export_settings['empty_folders'].value:
       self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
-    if self.export_settings['square_bracketed_mode'].is_item('normal'):
+    if self.export_settings['tagged_layers_mode'].is_item('normal'):
       for layer_elem in self._layer_data:
         self._remove_square_brackets(layer_elem)
-    elif self.export_settings['square_bracketed_mode'].is_item('background'):
+    elif self.export_settings['tagged_layers_mode'].is_item('special'):
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_enclosed_in_square_brackets):
         self._background_layer_elems = list(self._layer_data)
       self._layer_data.filter.add_rule(LayerFilterRules.is_not_enclosed_in_square_brackets)
-    elif self.export_settings['square_bracketed_mode'].is_item('ignore'):
+    elif self.export_settings['tagged_layers_mode'].is_item('ignore'):
       self._layer_data.filter.add_rule(LayerFilterRules.is_not_enclosed_in_square_brackets)
-    elif self.export_settings['square_bracketed_mode'].is_item('ignore_other'):
+    elif self.export_settings['tagged_layers_mode'].is_item('ignore_other'):
       filter_tag = "allow_square_bracketed_only"
       
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_enclosed_in_square_brackets):

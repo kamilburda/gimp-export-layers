@@ -276,9 +276,9 @@ class _ExportLayersGui(object):
       self.settings['main']['file_extension_mode'].display_name + ":")
     self.advanced_settings_file_extension_mode_label.set_alignment(0, 0.5)
     
-    self.advanced_settings_square_bracketed_mode_label = gtk.Label(
-      self.settings['main']['square_bracketed_mode'].display_name + ":")
-    self.advanced_settings_square_bracketed_mode_label.set_alignment(0, 0.5)
+    self.advanced_settings_tagged_layers_mode_label = gtk.Label(
+      self.settings['main']['tagged_layers_mode'].display_name + ":")
+    self.advanced_settings_tagged_layers_mode_label.set_alignment(0, 0.5)
     
     self.settings.initialize_gui({
       'file_extension': [pgsetting.SettingGuiTypes.file_extension_entry, self.file_extension_entry],
@@ -307,14 +307,14 @@ class _ExportLayersGui(object):
     self.table_labels = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_labels.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
     self.table_labels.attach(self.advanced_settings_file_extension_mode_label, 0, 1, 0, 1)
-    self.table_labels.attach(self.advanced_settings_square_bracketed_mode_label, 0, 1, 1, 2)
+    self.table_labels.attach(self.advanced_settings_tagged_layers_mode_label, 0, 1, 1, 2)
     
     self.table_combo_boxes = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_combo_boxes.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
     self.table_combo_boxes.attach(
       self.settings['main']['file_extension_mode'].gui.element, 0, 1, 0, 1, yoptions=0)
     self.table_combo_boxes.attach(
-      self.settings['main']['square_bracketed_mode'].gui.element, 0, 1, 1, 2, yoptions=0)
+      self.settings['main']['tagged_layers_mode'].gui.element, 0, 1, 1, 2, yoptions=0)
     
     self.table_additional_elems = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_additional_elems.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
