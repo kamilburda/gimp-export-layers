@@ -182,10 +182,7 @@ def _handle_gui_in_export(run_mode, image, layer, output_filename, export_status
   should_manipulate_window = run_mode == gimpenums.RUN_INTERACTIVE
   
   if should_manipulate_window:
-    if os.name != "posix":
-      window.hide()
-    else:
-      window.set_focus_on_map(False)
+    window.hide()
   while gtk.events_pending():
     gtk.main_iteration()
   
@@ -193,10 +190,7 @@ def _handle_gui_in_export(run_mode, image, layer, output_filename, export_status
     yield
   finally:
     if should_manipulate_window:
-      if os.name != "posix":
-        window.show()
-      else:
-        window.set_focus_on_map(True)
+      window.show()
     while gtk.events_pending():
       gtk.main_iteration()
 
