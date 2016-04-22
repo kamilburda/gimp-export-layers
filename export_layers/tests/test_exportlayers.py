@@ -35,6 +35,7 @@ import gimp
 
 pdb = gimp.pdb
 
+from ..pygimplib import pgfileformats
 from ..pygimplib import pgitemdata
 from ..pygimplib import pgpdb
 from ..pygimplib import pgsettinggroup
@@ -257,27 +258,14 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
 
 
 def test_file_formats(layer_exporter, export_settings):
-  """
-  Test all file formats at once.
-  """
-  
-  file_extensions = [
-    "data", "xcf", "pix", "matte", "mask", "alpha", "als", "fli", "flc",
-    "xcf.bz2", "xcfbz2", "c", "h", "xhtml", "dds", "dcm", "dicom", "eps",
-    "fit", "fits", "gif", "gbr", "gih", "pat", "xcf.gz", "xcfgz",
-    "html", "htm", "jpg", "jpeg", "jpe", "cel", "ico", "mng", "ora", "pbm",
-    "pgm", "psd", "png", "pnm", "pdf", "ps", "ppm", "sgi", "rgb", "rgba",
-    "bw", "icon", "im1", "im8", "im24", "im32", "rs", "ras", "tga", "tif",
-    "tiff", "bmp", "xbm", "bitmap", "xpm", "xwd", "pcx", "pcc"
-  ]
-  
   orig_output_directory = export_settings['output_directory'].value
   
-  for file_extension in file_extensions:
-    export_settings['file_extension'].set_value(file_extension)
-    export_settings['output_directory'].set_value(os.path.join(orig_output_directory, file_extension))
-    try:
-      layer_exporter.export_layers()
-    except exportlayers.ExportLayersError:
-      # Do not stop execution when one file format causes an error.
-      continue
+  for file_format in pgfileformats.file_formats:
+    for file_extension in file_format.file_extensions:
+      export_settings['file_extension'].set_value(file_extension)
+      export_settings['output_directory'].set_value(os.path.join(orig_output_directory, file_extension))
+      try:
+        layer_exporter.export_layers()
+      except exportlayers.ExportLayersError:
+        # Do not stop execution when one file format causes an error.
+        continue
