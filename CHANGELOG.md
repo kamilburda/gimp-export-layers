@@ -1,3 +1,16 @@
+2.5 (April 22, 2016)
+--------------------
+
+* Added a feature to tag layers as foreground layers. To use it, type "[foreground]" before the layer name.
+* Changed the way background layers are specified. Instead of enclosing the layer name in square brackets, type "[background]" before the layer name. If you used background layers, make sure to change the layer names.
+* Changed the setting "Layer names in [square brackets]" to "[Tagged] layers" and several other setting values to reflect the addition of foreground layers.
+* The main dialog now hides again when a file format dialog is about to be displayed, in order to make sure that the file format dialog is not displayed behind the main dialog. The main dialog reappears after the file format dialog is closed by the user.
+* Consolidated error and warning messages displayed when an error during export or an unhandled exception occurred.
+* The plug-in no longer crashes when it doesn't need to for certain errors during export, such as too long filenames.
+* The output directory and input directories of imported images are no longer validated. If the output directory is invalid, a warning message is displayed and the user can try exporting again. This also avoids needless crashes.
+* The plug-in no longer remembers settings in the non-interactive run mode. This behavior is consistent with other GIMP plug-ins.
+* "Export only layers matching file extension" is now applied before tagged layers are processed. This means that when this setting is selected and back/foreground layers don't have a matching file extension, they will no longer form the back/foreground of the exported layer.
+
 2.4 (October 4, 2015)
 ---------------------
 
