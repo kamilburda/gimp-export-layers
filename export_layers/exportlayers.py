@@ -33,6 +33,7 @@ str = unicode
 
 import contextlib
 import os
+import re
 from collections import defaultdict
 
 import gimp
@@ -127,6 +128,20 @@ class LayerFilterRules(object):
 #===============================================================================
 
 
+def _unify_tags(layer_elem, pattern, unified_tag):
+  new_tags = set()
+  for tag in layer_elem.tags:
+    if re.match(pattern, tag):
+      new_tags.add(unified_tag)
+    else:
+      new_tags.add(tag)
+  
+  layer_elem.tags = new_tags
+
+
+#===============================================================================
+
+
 class _FileExtensionProperties(object):
   """
   This class contains additional properties for a file extension.
@@ -199,7 +214,8 @@ class LayerExporter(object):
     self.export_settings = export_settings
     
     if overwrite_chooser is None:
-      self.overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(export_settings['overwrite_mode'].value)
+      self.overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(
+        export_settings['overwrite_mode'].value)
     else:
       self.overwrite_chooser = overwrite_chooser
     
@@ -302,6 +318,8 @@ class LayerExporter(object):
     
     for layer_elem in self._layer_data:
       layer_elem.parse_tags()
+      _unify_tags(layer_elem, r"^(?i)(foreground|fg)$", "foreground")
+      _unify_tags(layer_elem, r"^(?i)(background|bg)$", "background")
     
     if self.export_settings['tagged_layers_mode'].is_item('special'):
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tag, 'background'):
