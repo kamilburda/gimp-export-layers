@@ -169,9 +169,9 @@ class ExportStatuses(object):
 class LayerExporter(object):
   
   """
-  This class:
-  * exports layers as separate images
-  * validates layer names
+  This class exports layers as separate images. Additional operations include:
+  * layer processing - resizing/cropping, inserting back/foreground, merging
+  * layer name processing - validation, file extension manipulation
   
   Attributes:
   
