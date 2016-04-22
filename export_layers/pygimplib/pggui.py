@@ -385,7 +385,6 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
 
 def set_gui_excepthook_parent(parent):
   """
-  
   Set the parent GUI element to attach the exception dialog to when using
   `set_gui_excepthook`. This function allows to modify the parent dynamically
   even after decorating a function with `set_gui_excepthook`.
