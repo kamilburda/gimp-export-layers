@@ -316,6 +316,14 @@ class _ExportLayersGui(object):
     self.table_combo_boxes.attach(
       self.settings['main']['tagged_layers_mode'].gui.element, 0, 1, 1, 2, yoptions=0)
     
+    tagged_layers_description = _(
+      "To use a layer as a background for other layers, type \"[background]\" before the layer name."
+      " For foreground layers, type \"[foreground]\" before the layer name."
+      " To enable handling of tagged layers, select \"Treat specially\".")
+    
+    self.advanced_settings_tagged_layers_mode_label.set_tooltip_text(tagged_layers_description)
+    self.settings['main']['tagged_layers_mode'].gui.element.set_tooltip_text(tagged_layers_description)
+    
     self.table_additional_elems = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_additional_elems.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
     self.table_additional_elems.attach(self.settings['main']['strip_mode'].gui.element, 0, 1, 0, 1, yoptions=0)
