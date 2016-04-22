@@ -260,8 +260,6 @@ class LayerExporter(object):
     # inserted into the image, but rather its copies (for each layer to be exported).
     self._background_layer = None
     
-    self._allow_tagged_only_tag = "allow_tagged_only"
-    
     self.progress_updater.reset()
     
     self._file_extension_properties = self._prefill_file_extension_properties()
