@@ -35,11 +35,10 @@ import gimp
 
 pdb = gimp.pdb
 
+from ..pygimplib import pgitemdata
 from ..pygimplib import pgpdb
 from ..pygimplib import pgsettinggroup
-from ..pygimplib import pgsettingpersistor
 
-from .. import constants
 from .. import exportlayers
 from .. import settings_plugin
 
@@ -62,7 +61,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     pdb.gimp_context_push()
     
     cls.test_image_filename = os.path.join(TEST_IMAGES_DIR, "test_export_layers_contents.xcf")
-    cls.test_image = pdb.gimp_file_load(cls.test_image_filename, os.path.basename(cls.test_image_filename))
+    cls.test_image = cls._load_image()
     
     cls.output_directory = OUTPUT_DIR
     
@@ -132,7 +131,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     self.compare({
                    'tagged_layers_mode': 1
                  },
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'special'))
+                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background'))
   
   def test_background_autocrop(self):
     self.compare({
@@ -149,7 +148,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
                    'use_image_size': True
                  },
                  [('left-frame-with-extra-borders', 'left-frame-with-extra-borders_autocrop_use-image-size')],
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'special'))
+                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background'))
   
   def test_background_autocrop_crop_to_background(self):
     self.compare({
@@ -157,7 +156,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
                    'autocrop': True,
                    'crop_mode': 1
                  },
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'special',
+                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background',
                                                    'crop_mode'))
   
   def test_background_autocrop_crop_to_background_use_image_size(self):
@@ -167,8 +166,20 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
                    'crop_mode': 1,
                    'use_image_size': True
                  },
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'special',
+                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background',
                                                    'crop_mode', 'use_image_size'))
+  
+  def test_foreground(self):
+    layer_data = pgitemdata.LayerData(self.test_image)
+    for layer_elem in layer_data:
+      layer_elem.item.name = layer_elem.item.name.replace("[background]", "[foreground]")
+    
+    self.compare({
+                   'tagged_layers_mode': 1
+                 },
+                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'foreground'))
+    
+    self._reload_image()
   
   def compare(self, different_settings=None, different_results_and_expected_layers=None,
               expected_results_dir=None):
@@ -207,6 +218,14 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
            "processed layer: {0}\n"
            "expected layer: {1}"
            .format(layer.name, expected_layer.name)))
+  
+  @classmethod
+  def _load_image(cls):
+    return pdb.gimp_file_load(cls.test_image_filename, os.path.basename(cls.test_image_filename))
+  
+  @classmethod
+  def _reload_image(cls):
+    cls.test_image = cls._load_image()
   
   @classmethod
   def _load_layers(cls, layers_filenames):
