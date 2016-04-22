@@ -116,12 +116,12 @@ class LayerFilterRules(object):
     return layer_elem.get_file_extension() == file_extension.lower()
   
   @staticmethod
-  def has_tag(layer_elem, tag):
-    return tag in layer_elem.tags
+  def has_tag(layer_elem, *tags):
+    return any(tag for tag in tags if tag in layer_elem.tags)
   
   @staticmethod
-  def has_no_tag(layer_elem, tag):
-    return not LayerFilterRules.has_tag(layer_elem, tag)
+  def has_no_tag(layer_elem, *tags):
+    return not LayerFilterRules.has_tag(layer_elem, *tags)
 
 
 #===============================================================================
@@ -235,7 +235,6 @@ class LayerExporter(object):
     
     self._init_attributes()
     self._preprocess_layers()
-    self._set_layer_filters()
     
     self._setup()
     try:
@@ -255,7 +254,7 @@ class LayerExporter(object):
     
     self._image_copy = None
     self._layer_data = pgitemdata.LayerData(self.image, is_filtered=True)
-    self._background_layer_elems = []
+    self._tagged_layer_elems = defaultdict(list)
     # Layer containing all background layers merged into one. This layer is not
     # inserted into the image, but rather its copies (for each layer to be exported).
     self._background_layer = None
@@ -283,13 +282,8 @@ class LayerExporter(object):
     return file_extension_properties
   
   def _preprocess_layers(self):
-    for layer_elem in self._layer_data:
-      layer_elem.parse_tags()
-  
-  def _set_layer_filters(self):
     self._layer_data.filter.add_subfilter(
-      'layer_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY)
-    )
+      'layer_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY))
     
     self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_layer)
     
@@ -307,14 +301,20 @@ class LayerExporter(object):
       self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension,
                                        self._default_file_extension)
     
+    for layer_elem in self._layer_data:
+      layer_elem.parse_tags()
+    
     if self.export_settings['tagged_layers_mode'].is_item('special'):
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tag, 'background'):
-        self._background_layer_elems = list(self._layer_data)
-      self._layer_data.filter.add_rule(LayerFilterRules.has_no_tag, 'background')
+        self._tagged_layer_elems['background'] = list(self._layer_data)
+      with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tag, 'foreground'):
+        self._tagged_layer_elems['foreground'] = list(self._layer_data)
+      
+      self._layer_data.filter.add_rule(LayerFilterRules.has_no_tag, 'background', 'foreground')
     elif self.export_settings['tagged_layers_mode'].is_item('ignore'):
-      self._layer_data.filter.add_rule(LayerFilterRules.has_no_tag, 'background')
+      self._layer_data.filter.add_rule(LayerFilterRules.has_no_tag, 'background', 'foreground')
     elif self.export_settings['tagged_layers_mode'].is_item('ignore_other'):
-      self._layer_data.filter.add_rule(LayerFilterRules.has_tag, 'background')
+      self._layer_data.filter.add_rule(LayerFilterRules.has_tag, 'background', 'foreground')
   
   def _export_layers(self):
     with self._layer_data.filter['layer_types'].remove_rule_temp(
@@ -419,7 +419,7 @@ class LayerExporter(object):
     return layer_copy
   
   def _insert_background(self):
-    if not self._background_layer_elems:
+    if not self._tagged_layer_elems['background']:
       return None
 
     if self._background_layer is None:
@@ -428,14 +428,14 @@ class LayerExporter(object):
         # be visible anyway and because we need to avoid `RuntimeError`
         # when `pdb.gimp_image_merge_visible_layers` with the `CLIP_TO_IMAGE`
         # option tries to merge layers that are all outside the image canvas.
-        self._background_layer_elems = [
-          bg_elem for bg_elem in self._background_layer_elems
+        self._tagged_layer_elems['background'] = [
+          bg_elem for bg_elem in self._tagged_layer_elems['background']
           if pgpdb.is_layer_inside_image(self._image_copy, bg_elem.item)
         ]
-        if not self._background_layer_elems:
+        if not self._tagged_layer_elems['background']:
           return None
       
-      for i, bg_elem in enumerate(self._background_layer_elems):
+      for i, bg_elem in enumerate(self._tagged_layer_elems['background']):
         bg_layer_copy = pdb.gimp_layer_new_from_drawable(bg_elem.item, self._image_copy)
         pdb.gimp_image_insert_layer(self._image_copy, bg_layer_copy, None, i)
         pdb.gimp_item_set_visible(bg_layer_copy, True)
