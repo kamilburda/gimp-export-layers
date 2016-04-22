@@ -303,6 +303,10 @@ class LayerExporter(object):
     if self.export_settings['empty_folders'].value:
       self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
+    if (self.export_settings['file_extension_mode'].is_item('only_matching_file_extension')):
+      self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension,
+                                       self._default_file_extension)
+    
     if self.export_settings['tagged_layers_mode'].is_item('special'):
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tag, 'background'):
         self._background_layer_elems = list(self._layer_data)
@@ -311,10 +315,6 @@ class LayerExporter(object):
       self._layer_data.filter.add_rule(LayerFilterRules.has_no_tag, 'background')
     elif self.export_settings['tagged_layers_mode'].is_item('ignore_other'):
       self._layer_data.filter.add_rule(LayerFilterRules.has_tag, 'background')
-    
-    if (self.export_settings['file_extension_mode'].is_item('only_matching_file_extension')):
-      self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension,
-                                       self._default_file_extension)
   
   def _export_layers(self):
     with self._layer_data.filter['layer_types'].remove_rule_temp(
