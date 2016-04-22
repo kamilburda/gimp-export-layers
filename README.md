@@ -8,7 +8,7 @@ Features:
 * uses native dialogs for file formats to adjust export settings
 * uses layer names as filenames for the exported images
 * can treat layer groups as folders
-* can use layers with names in [square brackets] as background layers
+* can use tagged layers as background or foreground layers
 * can optionally export only layers whose file extension matches the specified file extension
 * can use file extensions in layer names as file formats
 
@@ -140,26 +140,39 @@ the extension in the "File extension" text field will be used.
 match the "File extension" text field.
 * *Never strip file extension* - Don't strip file extension from layer names.
 
-**Layer names in [square brackets]**
+**[Tagged] layers**
 
-* *Treat as normal layers* - Layer names starting with "[" and ending with "]"
-will be exported as any other layer.
-* *Treat as background layers* - These layers will be used as a background
-for all other layers and will not be exported separately.
-* *Ignore* - These layers will not be exported (and will not serve as background layers).
+Tagged layers contain tags at the beginning of the layer names and can modify how
+layers are handled. For example, a layer named "[background] Layer" can be used
+as a background layer if *Treat specially* is selected.
+
+Currently, the plug-in supports two tags:
+* *background* - use the layer as a background for every exported layer.
+* *foreground* - use the layer as a foreground for every exported layer.
+
+Tags are always stripped from layer names upon their export. You can also specify
+multiple tags in one layer (e.g. "[background] [foreground] Layer", despite these
+two tags being a rather unusual combination).
+
+Options:
+* *Treat as normal layers* - Tagged layers will be exported as any other layer.
+* *Treat specially* - Tagged layers will be processed correspondingly and will
+not be exported separately.
+* *Ignore* - Tagged layers will not be exported and will not be processed.
 * *Ignore other layers* - All other layers will not be exported.
 
-**Additional options to "Layer names in [square brackets]"**
+**Additional options to "[Tagged] layers"**
 
-* *Crop to background* - If enabled, layers will be cropped to the size of the
-background layers instead of their own size.
+* *Crop to layer* - Layers will be cropped to their size.
+* *Crop to background* - Layers will be cropped to the background layers.
+* *Crop to foreground* - Layers will be cropped to the foreground layers.
 
 **Merge layer groups**
 
 If enabled, each top-level layer group is merged into one layer. The name
 of each merged layer is the name of the corresponding top-level layer group.
 
-**Create empty subfolders**
+**Create folders for empty layer groups**
 
 If enabled, empty subfolders from empty layers groups are created.
 
@@ -177,8 +190,6 @@ Known Issues
 Several users reported crashes on Windows and OS X when clicking on the menu
 entries or when clicking on the "Advanced Settings" widget. If the crashes
 occur to you, try reinstalling GIMP.
-
-On Windows, the file format dialog may be displayed behind the main dialog.
 
 The following file formats are not working properly with this plug-in:
 * colored XHTML (.xhtml) - does not save images at all,
