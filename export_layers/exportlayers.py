@@ -116,24 +116,12 @@ class LayerFilterRules(object):
     return layer_elem.get_file_extension() == file_extension.lower()
   
   @staticmethod
-  def is_tagged(layer_elem):
-    return layer_elem.name.startswith("[") and layer_elem.name.endswith("]")
-  
-  @staticmethod
-  def is_not_tagged(layer_elem):
-    return not LayerFilterRules.is_tagged(layer_elem)
-  
-  @staticmethod
   def has_tag(layer_elem, tag):
     return tag in layer_elem.tags
-
-
-#===============================================================================
-
   
-def _remove_tags(layer_elem):
-  if layer_elem.name.startswith("[") and layer_elem.name.endswith("]"):
-    layer_elem.name = layer_elem.name[1:-1]
+  @staticmethod
+  def has_no_tag(layer_elem, tag):
+    return not LayerFilterRules.has_tag(layer_elem, tag)
 
 
 #===============================================================================
@@ -297,17 +285,8 @@ class LayerExporter(object):
     return file_extension_properties
   
   def _preprocess_layers(self):
-    if self.export_settings['tagged_layers_mode'].is_item('normal'):
-      for layer_elem in self._layer_data:
-        _remove_tags(layer_elem)
-    elif self.export_settings['tagged_layers_mode'].is_item('special'):
-      with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_tagged):
-        self._background_layer_elems = list(self._layer_data)
-    elif self.export_settings['tagged_layers_mode'].is_item('ignore_other'):
-      with self._layer_data.filter.add_rule_temp(LayerFilterRules.is_tagged):
-        for layer_elem in self._layer_data:
-          layer_elem.tags.add(self._allow_tagged_only_tag)
-          _remove_tags(layer_elem)
+    for layer_elem in self._layer_data:
+      layer_elem.parse_tags()
   
   def _set_layer_filters(self):
     self._layer_data.filter.add_subfilter(
@@ -326,10 +305,14 @@ class LayerExporter(object):
     if self.export_settings['empty_folders'].value:
       self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
-    if self.export_settings['tagged_layers_mode'].is_item('special', 'ignore'):
-      self._layer_data.filter.add_rule(LayerFilterRules.is_not_tagged)
+    if self.export_settings['tagged_layers_mode'].is_item('special'):
+      with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tag, 'background'):
+        self._background_layer_elems = list(self._layer_data)
+      self._layer_data.filter.add_rule(LayerFilterRules.has_no_tag, 'background')
+    elif self.export_settings['tagged_layers_mode'].is_item('ignore'):
+      self._layer_data.filter.add_rule(LayerFilterRules.has_no_tag, 'background')
     elif self.export_settings['tagged_layers_mode'].is_item('ignore_other'):
-      self._layer_data.filter.add_rule(LayerFilterRules.has_tag, self._allow_tagged_only_tag)
+      self._layer_data.filter.add_rule(LayerFilterRules.has_tag, 'background')
     
     if (self.export_settings['file_extension_mode'].is_item('only_matching_file_extension')):
       self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension,
