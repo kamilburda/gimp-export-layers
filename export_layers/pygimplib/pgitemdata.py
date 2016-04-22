@@ -510,6 +510,13 @@ class _ItemDataElement(object):
     brackets, e.g. "[[background]]".
     """
     
+    tags, index = self._parse_tags()
+    
+    if tags:
+      self.name = self.name[index:]
+      self.tags.update(tags)
+  
+  def _parse_tags(self):
     index = 0
     start_of_tag_index = 0
     is_inside_tag = False
@@ -545,9 +552,7 @@ class _ItemDataElement(object):
           break
       index += 1
     
-    if tags:
-      self.name = self.name[index:]
-      self.tags.update(tags)
+    return tags, index
   
   def _get_path_visibility(self):
     """
