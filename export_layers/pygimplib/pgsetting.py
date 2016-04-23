@@ -87,7 +87,15 @@ class SettingValueError(Exception):
   invalid.
   """
   
-  pass
+  def __init__(self, *args, **kwargs):
+    for kwarg in ['setting', 'settings', 'messages']:
+      if kwarg in kwargs:
+        setattr(self, kwarg, kwargs[kwarg])
+        del kwargs[kwarg]
+      else:
+        setattr(self, kwarg, None)
+    
+    super(SettingValueError, self).__init__(*args, **kwargs)
 
 
 class SettingDefaultValueError(SettingValueError):
@@ -440,10 +448,10 @@ class Setting(object):
   
   def _assign_and_validate_value(self, value):
     if not self._allow_empty_values:
-      self._validate(value)
+      self._validate_setting(value)
     else:
       if not self._is_value_empty(value):
-        self._validate(value)
+        self._validate_setting(value)
     
     self._value = value
   
@@ -451,6 +459,12 @@ class Setting(object):
     self._assign_and_validate_value(value)
     if self._is_value_changed_event_connected():
       self._trigger_value_changed_event()
+  
+  def _validate_setting(self, value):
+    try:
+      self._validate(value)
+    except SettingValueError as e:
+      raise SettingValueError(e.message, setting=self)
   
   def _validate(self, value):
     """
@@ -472,7 +486,7 @@ class Setting(object):
     try:
       self._validate(self._default_value)
     except SettingValueError as e:
-      raise SettingDefaultValueError(e.message)
+      raise SettingDefaultValueError(e.message, setting=self)
   
   def _is_value_changed_event_connected(self):
     return self._value_changed_event_handler is not None
