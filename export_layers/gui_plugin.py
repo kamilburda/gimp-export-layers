@@ -107,14 +107,14 @@ def _set_settings(func):
       self.current_directory_setting.gui.update_setting_value()
       self.settings['main']['output_directory'].set_value(self.current_directory_setting.value)
     except pgsetting.SettingValueError as e:
-      self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR)
+      self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
       return
     
     func(self, *args, **kwargs)
   
   return func_wrapper
 
-  
+
 def _update_directory(setting, current_image, directory_for_current_image):
   """
   Set the directory to the setting according to the priority list below:
@@ -216,6 +216,8 @@ class _ExportLayersGui(object):
     self.settings = settings
     self.session_source = session_source
     self.persistent_source = persistent_source
+    
+    self._message_setting = None
     
     settings_plugin.add_gui_settings(settings)
     
@@ -400,6 +402,8 @@ class _ExportLayersGui(object):
     self.save_settings_button.connect("clicked", self.on_save_settings_clicked)
     self.reset_settings_button.connect("clicked", self.on_reset_settings_clicked)
     
+    self.file_extension_entry.connect("changed", self.on_file_extension_entry_changed)
+    
     self.dialog.set_default_response(gtk.RESPONSE_CANCEL)
     
     self.dialog.vbox.show_all()
@@ -426,6 +430,10 @@ class _ExportLayersGui(object):
       display_message(status_message, gtk.MESSAGE_WARNING, parent=self.dialog)
     
     pgsettingpersistor.SettingPersistor.save([self.settings['gui_session']], [self.session_source])
+  
+  def on_file_extension_entry_changed(self, widget):
+    if self._message_setting == self.settings['main']['file_extension']:
+      self.display_message_label(None)
   
   @_set_settings
   def on_save_settings_clicked(self, widget):
@@ -528,7 +536,9 @@ class _ExportLayersGui(object):
     if self.layer_exporter is not None:
       self.layer_exporter.should_stop = True
   
-  def display_message_label(self, text, message_type=gtk.MESSAGE_ERROR):
+  def display_message_label(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
+    self._message_setting = setting
+    
     if text is None or not text:
       self.label_message.set_text("")
     else:
