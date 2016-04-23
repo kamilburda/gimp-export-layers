@@ -300,6 +300,9 @@ class Setting(object):
   def error_messages(self):
     return self._error_messages
   
+  def __str__(self):
+    return "<{0} '{1}'>".format(type(self).__name__, self.name)
+  
   def set_value(self, value):
     """
     Set the setting value.
