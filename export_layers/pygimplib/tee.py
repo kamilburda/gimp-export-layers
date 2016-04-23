@@ -57,7 +57,7 @@ class Tee(object):
     for the first time.
   """
   
-  __STATES = _RUNNING_FIRST_TIME, _RUNNING, _NOT_RUNNING = (0, 1, 2)
+  __STATES = _RUNNING, _NOT_RUNNING = (0, 1, 2)
   
   def __init__(self, stream, file_object, log_header_title=None, start=True, flush_file=False):
     
@@ -119,7 +119,7 @@ class Tee(object):
     setattr(sys, self._stream_name, self)
     
     self._file = file_object
-    self._state = self._RUNNING_FIRST_TIME
+    self._state = self._RUNNING
   
   def stop(self):
     """
@@ -147,15 +147,14 @@ class Tee(object):
     objects to write output.
     """
     
-    if self._state == self._RUNNING_FIRST_TIME:
-      self._file.write(get_log_header(self.log_header_title).encode())
-      self._write_with_flush(data + b"\n")
-      self._state = self._RUNNING
+    self._file.write(get_log_header(self.log_header_title).encode())
+    
+    self._write_with_flush(data)
+    
+    if not self.flush_file:
+      self.write = self._write
     else:
-      if not self.flush_file:
-        self.write = self._write
-      else:
-        self.write = self._write_with_flush
+      self.write = self._write_with_flush
   
   def _write(self, data):
     self._file.write(data)
