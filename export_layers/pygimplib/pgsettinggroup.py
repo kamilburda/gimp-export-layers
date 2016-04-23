@@ -267,18 +267,20 @@ class SettingGroup(object):
     message contains messages from all invalid settings.
     """
     
-    exception_message = ""
+    exception_messages = []
+    exception_settings = []
     
     for setting in self.iterate_all(ignore_tags=['apply_gui_values_to_settings']):
       try:
         setting.gui.update_setting_value()
       except pgsetting.SettingValueError as e:
-        if not exception_message:
-          exception_message += e.message + "\n"
+        exception_messages.append(e.message)
+        exception_settings.append(e.setting)
     
-    if exception_message:
-      exception_message = exception_message.rstrip("\n")
-      raise pgsetting.SettingValueError(exception_message)
+    if exception_messages:
+      exception_message = "\n".join(exception_messages)
+      raise pgsetting.SettingValueError(exception_message, setting=exception_settings[0],
+                                        messages=exception_messages, settings=exception_settings)
   
   def _next(self):
     """
