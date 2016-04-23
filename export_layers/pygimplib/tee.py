@@ -57,7 +57,7 @@ class Tee(object):
     for the first time.
   """
   
-  __STATES = _RUNNING, _NOT_RUNNING = (0, 1, 2)
+  __STATES = _RUNNING, _NOT_RUNNING = (0, 1)
   
   def __init__(self, stream, file_object, log_header_title=None, start=True, flush_file=False):
     
