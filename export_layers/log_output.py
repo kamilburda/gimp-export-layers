@@ -87,6 +87,6 @@ def log_output(debug=False):
       sys.excepthook = log_exceptions
   else:
     tee.Tee(sys.stdout, open(constants.PLUGINS_LOG_STDOUT_PATH, "a"),
-            log_header_title=constants.PLUGIN_TITLE, flush_file=True)
+            log_header_title=constants.PLUGIN_TITLE, flush_output=True)
     tee.Tee(sys.stderr, open(constants.PLUGINS_LOG_STDERR_PATH, "a"),
-            log_header_title=constants.PLUGIN_TITLE, flush_file=True)
+            log_header_title=constants.PLUGIN_TITLE, flush_output=True)
