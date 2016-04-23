@@ -48,6 +48,8 @@ class Tee(object):
   This class copies stdout or stderr output to a specified file,
   much like the Unix "tee" command.
   
+  This class acts as a file-like object containing `write` and `flush` methods.
+  
   Attributes:
   
   * `stream` - Either `sys.stdout` or `sys.stderr`. Other objects are invalid
@@ -57,9 +59,7 @@ class Tee(object):
     for the first time.
   """
   
-  __STATES = _RUNNING, _NOT_RUNNING = (0, 1)
-  
-  def __init__(self, stream, file_object, log_header_title=None, start=True, flush_file=False):
+  def __init__(self, stream, file_object, log_header_title=None, start=True, flush_output=False):
     
     """
     Parameters:
@@ -70,16 +70,16 @@ class Tee(object):
       To start later, pass `start=False` and call the `start()` method when
       desired.
     
-    * `flush_file` - If True, flush the file after each write.
+    * `flush_output` - If True, flush output after each write.
     """
   
     self._streams = {sys.stdout: 'stdout', sys.stderr: 'stderr'}
     
     self.log_header_title = log_header_title if log_header_title is not None else ""
-    self.flush_file = flush_file
+    self.flush_output = flush_output
     
     self._file = None
-    self._state = self._NOT_RUNNING
+    self._is_running = False
     
     self._orig_stream = None
     self._stream_name = ""
@@ -119,7 +119,7 @@ class Tee(object):
     setattr(sys, self._stream_name, self)
     
     self._file = file_object
-    self._state = self._RUNNING
+    self._is_running = True
   
   def stop(self):
     """
@@ -130,28 +130,29 @@ class Tee(object):
     self._file.close()
     
     self._file = None
-    self._state = self._NOT_RUNNING
+    self._is_running = False
   
   def is_running(self):
     """
-    True if `Tee` is running (i.e. writing to file), False otherwise.
+    Return True if `Tee` is running (i.e. writing to file), False otherwise.
     """
     
-    return self._state != self._NOT_RUNNING
+    return self._is_running
   
   def write(self, data):
     """
-    Write output to the stream and the file specified in this object.
+    Write output to the stream and the specified file.
     
-    This is a method normally used by `sys.stdout`, `sys.stderr` and file-like
-    objects to write output.
+    If `log_header_title` is not empty, write the log header before the first
+    output.
     """
     
-    self._file.write(get_log_header(self.log_header_title).encode())
+    if self.log_header_title:
+      self._file.write(get_log_header(self.log_header_title).encode())
     
     self._write_with_flush(data)
     
-    if not self.flush_file:
+    if not self.flush_output:
       self.write = self._write
     else:
       self.write = self._write_with_flush
@@ -166,12 +167,5 @@ class Tee(object):
     self._stream.write(data)
   
   def flush(self):
-    """
-    Flush output.
-    
-    This is a method implemented in `sys.stdout`, `sys.stderr` and file-like
-    objects to flush the internal buffer and force writing output immediately.
-    """
-    
     self._file.flush()
     self._stream.flush()
