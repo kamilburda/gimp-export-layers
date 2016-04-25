@@ -101,6 +101,9 @@ class SettingGroup(object):
   def name(self):
     return self._name
   
+  def __str__(self):
+    return "<{0} '{1}'>".format(type(self).__name__, self.name)
+  
   def __getitem__(self, setting_name):
     """
     Access the setting or group by its name (string).
