@@ -441,11 +441,11 @@ class _ExportLayersGui(object):
     self.display_message_label(_("Settings successfully saved."), message_type=gtk.MESSAGE_INFO)
  
   def on_reset_settings_clicked(self, widget):
-    resopnse_id = display_message(_("Do you really want to reset settings?"),
+    response_id = display_message(_("Do you really want to reset settings?"),
                                   gtk.MESSAGE_WARNING, parent=self.dialog,
                                   buttons=gtk.BUTTONS_YES_NO)
     
-    if resopnse_id == gtk.RESPONSE_YES:
+    if response_id == gtk.RESPONSE_YES:
       self.reset_settings()
       self.save_settings()
       self.display_message_label(_("Settings reset."), message_type=gtk.MESSAGE_INFO)
