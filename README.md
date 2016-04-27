@@ -226,9 +226,9 @@ If you want to provide translations for the plug-in, see the `Readme for Transla
 file in the `export_layers/locale` folder in the package.
 
 
-Support, Contact
-----------------
+Support
+-------
 
-You can report issues, ask questions or request new features on the [GitHub page](https://github.com/khalim19/gimp-plugin-export-layers/issues) or on the [GIMP Plugin Registry page](http://registry.gimp.org/node/28268).
+You can report issues, ask questions or request new features on the [GitHub page](https://github.com/khalim19/gimp-plugin-export-layers/issues) of the plug-in.
 
 You can also contact me via email: khalim19 AT gmail DOT com
