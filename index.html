@@ -1,5 +1,9 @@
 ---
 layout: default
+
+documentation-url: https://github.com/khalim19/gimp-plugin-export-layers/blob/master/README.md
+release-notes-url: https://github.com/khalim19/gimp-plugin-export-layers/releases
+source-code-url: https://github.com/khalim19/gimp-plugin-export-layers
 ---
 
 <div class="home">
@@ -11,17 +15,17 @@ Export Layers is a [GIMP](https://www.gimp.org/) plug-in that lets you export la
 
   <div style="text-align: center">
     <p>
-      <a class="button download-button" href="https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.5/export-layers-2.5.zip">Download</a>
+      <a class="button download-button" href="https://github.com/khalim19/gimp-plugin-export-layers/releases/download/{{ site.plugin-version }}/export-layers-{{ site.plugin-version }}.zip">Download</a>
     </p>
   
     <p>
-      Latest release: {{ page.plugin-version }}, {{ page.plugin-version-release-date }}
+      Latest release: {{ site.plugin-version }}, {{ site.plugin-version-release-date }}
       <span class="vertical-bar-sep">|</span>
-      <a href="https://github.com/khalim19/gimp-plugin-export-layers/releases">Release notes</a>
+      <a href="{{ page.release-notes-url }}">Release notes</a>
       <span class="vertical-bar-sep">|</span>
-      <a href="https://github.com/khalim19/gimp-plugin-export-layers/blob/master/README.md">Documentation</a>
+      <a href="{{ page.documentation-url }}">Documentation</a>
       <span class="vertical-bar-sep">|</span>
-      <a href="https://github.com/khalim19/gimp-plugin-export-layers">Source code</a>
+      <a href="{{ page.source-code-url }}">Source code</a>
     </p>
   </div>
 
