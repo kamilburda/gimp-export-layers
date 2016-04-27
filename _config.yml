@@ -8,6 +8,9 @@ baseurl: "/gimp-plugin-export-layers"
 url: "https://khalim19.github.io"
 github_username: khalim19
 
+plugin-version: 2.5
+plugin-version-release-date: April 22 2016
+
 gems:
   - jekyll-sitemap
 
