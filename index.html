@@ -9,7 +9,9 @@ source-code-url: https://github.com/khalim19/gimp-plugin-export-layers
 <div class="home">
 
   {% capture markdown-insert %}
-Export Layers is a [GIMP](https://www.gimp.org/) plug-in that lets you export layers as separate images in any file format supported by GIMP and third-party plug-ins.
+
+Export Layers is a [GIMP](https://www.gimp.org/) plug-in that lets you export
+layers as separate images in any file format supported by GIMP and third-party plug-ins.
   {% endcapture %}
   {{ markdown-insert | markdownify }}
 
@@ -39,8 +41,11 @@ Features
 * can use tagged layers as background or foreground layers
 * can optionally export only layers whose file extension matches the specified file extension
 * can use file extensions in layer names as file formats
+  {% endcapture %}
+  {{ markdown-insert | markdownify }}
 
-For details about features, installation instructions and known issues, see the [documentation](https://github.com/khalim19/gimp-plugin-export-layers/blob/master/README.md).
+  {% capture markdown-insert %}
+For details about features, installation instructions and known issues, see the [documentation]({{ page.documentation-url }}).
   {% endcapture %}
   {{ markdown-insert | markdownify }}
   
@@ -49,9 +54,10 @@ For details about features, installation instructions and known issues, see the 
   
   {% capture markdown-insert %}
 Support
---------
+-------
 
 You can report issues, ask questions or request new features on the [GitHub page](https://github.com/khalim19/gimp-plugin-export-layers/issues) of the plug-in.
+
   {% endcapture %}
   {{ markdown-insert | markdownify }}
 
