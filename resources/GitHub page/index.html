@@ -1,0 +1,41 @@
+---
+layout: default
+
+documentation-url: https://github.com/khalim19/gimp-plugin-export-layers/blob/master/README.md
+release-notes-url: https://github.com/khalim19/gimp-plugin-export-layers/releases
+source-code-url: https://github.com/khalim19/gimp-plugin-export-layers
+---
+
+<div class="home">
+
+  {% include-section "README.md/Export Layers"[0][no-header] %}
+
+  <div style="text-align: center">
+    <p>
+      <a class="button download-button" href="https://github.com/khalim19/gimp-plugin-export-layers/releases/download/{{ site.plugin-version }}/export-layers-{{ site.plugin-version }}.zip">Download</a>
+    </p>
+  
+    <p>
+      Latest release: {{ site.plugin-version }}, {{ site.plugin-version-release-date }}
+      <span class="vertical-bar-sep">|</span>
+      <a href="{{ page.release-notes-url }}">Release notes</a>
+      <span class="vertical-bar-sep">|</span>
+      <a href="{{ page.documentation-url }}">Documentation</a>
+      <span class="vertical-bar-sep">|</span>
+      <a href="{{ page.source-code-url }}">Source code</a>
+    </p>
+  </div>
+
+  {% include-section "README.md/Features" %}
+
+  {% capture markdown-insert %}
+For details about features, installation instructions and known issues, see the [documentation]({{ page.documentation-url }}).
+  {% endcapture %}
+  {{ markdown-insert | markdownify }}
+  
+  <h2>Example</h2>
+  <p><img src="{{ "/assets/Export_Layers.png" | prepend: site.baseurl }}" alt="Example of Export Layers usage"></p>
+  
+  {% include-section "README.md/Support"[0] %}
+
+</div>
