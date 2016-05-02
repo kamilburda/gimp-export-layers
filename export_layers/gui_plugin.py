@@ -51,7 +51,6 @@ from export_layers.pygimplib import pgsettingpersistor
 
 from export_layers import constants
 from export_layers import exportlayers
-from export_layers import settings_plugin
 
 #===============================================================================
 
@@ -84,6 +83,45 @@ def _format_export_error_message(exception):
     exception.message += "."
   error_message += "\n" + str(exception)
   return error_message
+
+
+#===============================================================================
+
+
+def add_gui_settings(settings):
+  
+  gui_settings = pgsettinggroup.SettingGroup('gui', [
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'dialog_position',
+      'default_value': ()
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'advanced_settings_expanded',
+      'default_value': False
+    },
+    {
+      'type': pgsetting.SettingTypes.integer,
+      'name': 'export_preview_pane_position',
+      'default_value': 620
+    },
+  ])
+  
+  session_only_gui_settings = pgsettinggroup.SettingGroup('gui_session', [
+    {
+      'type': pgsetting.SettingTypes.image_IDs_and_directories,
+      'name': 'image_ids_and_directories',
+      'default_value': {}
+    },
+  ])
+  
+  settings.add([gui_settings, session_only_gui_settings])
+  
+  settings.set_ignore_tags({
+    'gui': ['reset'],
+    'gui_session': ['reset'],
+  })
 
 
 #===============================================================================
@@ -219,7 +257,7 @@ class _ExportLayersGui(object):
     
     self._message_setting = None
     
-    settings_plugin.add_gui_settings(settings)
+    add_gui_settings(settings)
     
     status, status_message = pgsettingpersistor.SettingPersistor.load(
       [self.settings['main'], self.settings['gui']], [self.session_source, self.persistent_source])
