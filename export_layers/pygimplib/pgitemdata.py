@@ -91,9 +91,7 @@ class ItemData(object):
   __metaclass__ = abc.ABCMeta
   
   def __init__(self, image, is_filtered=False, filter_match_type=objectfilter.ObjectFilter.MATCH_ALL):
-    
     self.image = image
-    
     self.is_filtered = is_filtered
     
     # Filters applied to all items in self._itemdata
@@ -227,8 +225,8 @@ class ItemData(object):
   
   def _fill_item_data(self):
     """
-    Fill the _itemdata dictionary, containing
-    <gimp.Item.name, _ItemDataElement> pairs.
+    Fill the _itemdata dictionary, containing <gimp.Item.name, _ItemDataElement>
+    pairs.
     """
     
     _ItemTreeNode = namedtuple('_ItemTreeNode', ['children', 'parents'])
