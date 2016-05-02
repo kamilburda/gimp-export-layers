@@ -312,7 +312,7 @@ class LayerExporter(object):
     if self.export_settings['empty_folders'].value:
       self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
-    if (self.export_settings['file_extension_mode'].is_item('only_matching_file_extension')):
+    if self.export_settings['file_extension_mode'].is_item('only_matching_file_extension'):
       self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension,
                                        self._default_file_extension)
     
