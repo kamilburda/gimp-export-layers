@@ -31,13 +31,13 @@ Installation
 Make sure you installed GIMP with support for Python scripting.
 
 Copy the `export_layers.py` file and the `export_layers` folder to
-`[your home folder]\.gimp-2.8\plug-ins`.
+`[your home folder]\.gimp-2.8\plug-ins` (usually `C:\Users\[your username]\.gimp-2.8\plug-ins`).
 
 
 **Linux**
 
 Copy the `export_layers.py` file and the `export_layers` folder to
-`[your home folder]/.gimp-2.8/plug-ins`.
+`[your home folder]/.gimp-2.8/plug-ins` (usually `/home/[your username]/.gimp-2.8/plug-ins`).
 
 If necessary, make the `export_layers.py` file executable, e.g. from the terminal:
 
@@ -47,7 +47,7 @@ If necessary, make the `export_layers.py` file executable, e.g. from the termina
 **OS X**
 
 Copy the `export_layers.py` file and the `export_layers` folder to
-`[your home folder]/Library/Application Support/GIMP/2.8/plug-ins`.
+`[your home folder]/Library/Application Support/GIMP/2.8/plug-ins` (usually `/Users/[your username]/Library/Application Support/GIMP/2.8/plug-ins`).
 
 If necessary, make the `export_layers.py` file executable, e.g. from the terminal:
 
