@@ -47,6 +47,7 @@ pdb = gimp.pdb
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
 from export_layers.pygimplib import pgsetting
+from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
 
 from export_layers import constants
