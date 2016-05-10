@@ -32,6 +32,7 @@ from __future__ import unicode_literals
 str = unicode
 
 import contextlib
+import functools
 import os
 import re
 from collections import defaultdict
@@ -126,7 +127,7 @@ class LayerFilterRules(object):
 
 
 #===============================================================================
-
+  
 
 def _unify_tags(layer_elem, pattern, unified_tag):
   new_tags = set()
@@ -244,12 +245,27 @@ class LayerExporter(object):
   def exported_layers(self):
     return self._exported_layers
   
-  def export_layers(self):
+  def export_layers(self, operations=None):
     """
     Export layers as separate images from the specified image.
+    
+    `operations` is a list of tags that constraints the execution of the export.
+    Multiple tags can be specified. The following tags are supported:
+    
+    * 'layer_name' - Perform only operations manipulating layer names and layer
+      tree (but not layer contents). This is useful to preview the names of the
+      exported layers.
+    
+    * 'layer_contents' - Perform only operations manipulating the layer itself,
+      such as cropping, resizing, etc. This is useful to preview the layer(s).
+    
+    * 'export' - Perform only operations that export the layer or create
+      directories for the layer.
+    
+    If `operations` is None or empty, perform normal export.
     """
     
-    self._init_attributes()
+    self._init_attributes(operations)
     self._preprocess_layers()
     
     self._setup()
@@ -258,7 +274,24 @@ class LayerExporter(object):
     finally:
       self._cleanup()
   
-  def _init_attributes(self):
+  def _operation(self, *tags):
+    
+    def _operation_wrapper(func):
+      
+      @functools.wraps(func)
+      def func_wrapper(self, *args, **kwargs):
+        if not self._operation_tags or any(tag in tags for tag in self._operation_tags):
+          return func(self, *args, **kwargs)
+        else:
+          return None
+      
+      return func_wrapper
+      
+    return _operation_wrapper
+  
+  def _init_attributes(self, operations):
+    self._operation_tags = operations if operations is not None else []
+    
     self.should_stop = False
     self._exported_layers = []
     
@@ -279,7 +312,7 @@ class LayerExporter(object):
     self._file_extension_properties = self._prefill_file_extension_properties()
     self._default_file_extension = self._default_file_extension.lstrip(".").lower()
     self._current_file_extension = self._default_file_extension
-    self._file_export_func = self._get_file_export_func(self._default_file_extension)
+    self._file_export_func = pgfileformats.get_save_procedure(self._default_file_extension)
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
   
@@ -334,9 +367,7 @@ class LayerExporter(object):
       self._layer_data.filter.add_rule(LayerFilterRules.has_tag, 'background', 'foreground')
   
   def _export_layers(self):
-    with self._layer_data.filter['layer_types'].remove_rule_temp(
-      LayerFilterRules.is_empty_group, raise_if_not_found=False
-    ):
+    with self._layer_data.filter['layer_types'].remove_rule_temp(LayerFilterRules.is_empty_group, False):
       self.progress_updater.num_total_tasks = len(self._layer_data)
     
     for layer_elem in self._layer_data:
@@ -347,26 +378,10 @@ class LayerExporter(object):
       
       if layer_elem.item_type in (layer_elem.ITEM, layer_elem.NONEMPTY_GROUP):
         layer = layer_elem.item
-        layer_copy = self._process_layer(layer)
-        # Remove the " copy" suffix from the layer name, which is preserved in
-        # formats supporting layers (XCF, PSD, ...).
-        layer_copy.name = layer.name
-        
-        layer_elem.validate_name()
-        self._strip_file_extension(layer_elem)
-        
-        self._set_file_extension(layer_elem)
-        self._update_file_export_func()
-        self._layer_data.uniquify_name(layer_elem, self._include_item_path,
-                                       self._get_uniquifier_position(layer_elem.name))
+        layer_copy = self._process_layer(self._image_copy, layer)
+        self._preprocess_layer_name(layer_elem)
         self._export_layer(layer_elem, self._image_copy, layer_copy)
-        
-        if self._current_layer_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
-          self._set_file_extension(layer_elem)
-          self._update_file_export_func()
-          self._layer_data.uniquify_name(layer_elem, self._include_item_path,
-                                         self._get_uniquifier_position(layer_elem.name))
-          self._export_layer(layer_elem, self._image_copy, layer_copy)
+        self._postprocess_layer(self._image_copy, layer_copy)
         
         self.progress_updater.update_tasks()
         
@@ -374,16 +389,22 @@ class LayerExporter(object):
           self._exported_layers.append(layer)
           self._file_extension_properties[self._current_file_extension].processed_count += 1
         
-        pdb.gimp_image_remove_layer(self._image_copy, layer_copy)
       elif layer_elem.item_type == layer_elem.EMPTY_GROUP:
-        layer_elem.validate_name()
-        self._layer_data.uniquify_name(layer_elem, self._include_item_path)
-        empty_directory = layer_elem.get_filepath(self._output_directory, self._include_item_path)
-        self._make_dirs(empty_directory)
+        self._preprocess_empty_group_name(layer_elem)
+        self._make_dirs(layer_elem.get_filepath(self._output_directory, self._include_item_path))
       else:
         raise ValueError("invalid/unsupported item type '{0}' of _ItemDataElement '{1}'"
                          .format(layer_elem.item_type, layer_elem.name))
   
+  def _export_layer(self, layer_elem, image, layer):
+    self._process_layer_name(layer_elem)
+    self._export(layer_elem, image, layer)
+    
+    if self._current_layer_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
+      self._process_layer_name(layer_elem)
+      self._export(layer_elem, image, layer)
+  
+  @_operation('layer_contents')
   def _setup(self):
     # Save context just in case. No need for undo groups or undo freeze here.
     pdb.gimp_context_push()
@@ -394,6 +415,7 @@ class LayerExporter(object):
     if constants.DEBUG_IMAGE_PROCESSING:
       self._display_id = pdb.gimp_display_new(self._image_copy)
   
+  @_operation('layer_contents')
   def _cleanup(self):
     if constants.DEBUG_IMAGE_PROCESSING:
       pdb.gimp_display_delete(self._display_id)
@@ -406,25 +428,13 @@ class LayerExporter(object):
     
     pdb.gimp_context_pop()
   
-  def _make_dirs(self, path):
-    try:
-      pgpath.make_dirs(path)
-    except OSError as e:
-      try:
-        message = e.args[1]
-        if e.filename is not None:
-          message += ": \"{0}\"".format(e.filename)
-      except (IndexError, AttributeError):
-        message = str(e)
-      
-      raise InvalidOutputDirectoryError(message, self._current_layer_elem, self._default_file_extension)
-  
-  def _process_layer(self, layer):
+  @_operation('layer_contents')
+  def _process_layer(self, image, layer):
     background_layer, self._tagged_layer_copies['background'] = self._insert_layer(
-      self._tagged_layer_elems['background'], self._tagged_layer_copies['background'], insert_index=0)
+      image, self._tagged_layer_elems['background'], self._tagged_layer_copies['background'], insert_index=0)
     
-    layer_copy = pdb.gimp_layer_new_from_drawable(layer, self._image_copy)
-    pdb.gimp_image_insert_layer(self._image_copy, layer_copy, None, 0)
+    layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
+    pdb.gimp_image_insert_layer(image, layer_copy, None, 0)
     # This is necessary for file formats which flatten the image (such as JPG).
     pdb.gimp_item_set_visible(layer_copy, True)
     
@@ -434,16 +444,24 @@ class LayerExporter(object):
     if self.export_settings['ignore_layer_modes'].value:
       layer_copy.mode = gimpenums.NORMAL_MODE
     
-    self._image_copy.active_layer = layer_copy
+    image.active_layer = layer_copy
     
     foreground_layer, self._tagged_layer_copies['foreground'] = self._insert_layer(
-      self._tagged_layer_elems['foreground'], self._tagged_layer_copies['foreground'], insert_index=0)
+      image, self._tagged_layer_elems['foreground'], self._tagged_layer_copies['foreground'], insert_index=0)
     
-    layer_copy = self._crop_and_merge(layer_copy, background_layer, foreground_layer)
+    layer_copy = self._crop_and_merge(image, layer_copy, background_layer, foreground_layer)
+    
+    # Remove the " copy" suffix from the layer name, which is preserved in
+    # formats supporting layers (XCF, PSD, ...).
+    layer_copy.name = layer.name
     
     return layer_copy
   
-  def _insert_layer(self, layer_elems, inserted_layer_copy, insert_index=0):
+  @_operation('layer_contents')
+  def _postprocess_layer(self, image, layer):
+    pdb.gimp_image_remove_layer(image, layer)
+  
+  def _insert_layer(self, image, layer_elems, inserted_layer_copy, insert_index=0):
     if not layer_elems:
       return None, None
     
@@ -454,18 +472,18 @@ class LayerExporter(object):
         # when `pdb.gimp_image_merge_visible_layers` with `CLIP_TO_IMAGE`
         # argument tries to merge layers that are all outside the image canvas.
         for i in range(len(layer_elems)):
-          if not pgpdb.is_layer_inside_image(self._image_copy, layer_elems[i].item):
+          if not pgpdb.is_layer_inside_image(image, layer_elems[i].item):
             layer_elems.pop(i)
         
         if not layer_elems:
           return None, None
       
-      layer_group = pdb.gimp_layer_group_new(self._image_copy)
-      pdb.gimp_image_insert_layer(self._image_copy, layer_group, None, insert_index)
+      layer_group = pdb.gimp_layer_group_new(image)
+      pdb.gimp_image_insert_layer(image, layer_group, None, insert_index)
       
       for i, layer_elem in enumerate(layer_elems):
-        layer_copy = pdb.gimp_layer_new_from_drawable(layer_elem.item, self._image_copy)
-        pdb.gimp_image_insert_layer(self._image_copy, layer_copy, layer_group, i)
+        layer_copy = pdb.gimp_layer_new_from_drawable(layer_elem.item, image)
+        pdb.gimp_image_insert_layer(image, layer_copy, layer_group, i)
         pdb.gimp_item_set_visible(layer_copy, True)
         if self.export_settings['ignore_layer_modes'].value:
           layer_copy.mode = gimpenums.NORMAL_MODE
@@ -481,10 +499,10 @@ class LayerExporter(object):
       return layer, inserted_layer_copy
     else:
       layer_copy = pdb.gimp_layer_copy(inserted_layer_copy, True)
-      pdb.gimp_image_insert_layer(self._image_copy, layer_copy, None, insert_index)
+      pdb.gimp_image_insert_layer(image, layer_copy, None, insert_index)
       return layer_copy, inserted_layer_copy
   
-  def _crop_and_merge(self, layer, background_layer, foreground_layer):
+  def _crop_and_merge(self, image, layer, background_layer, foreground_layer):
     has_inserted_layers = background_layer is not None or foreground_layer is not None
     
     inserted_layer_to_crop_to = None
@@ -494,34 +512,50 @@ class LayerExporter(object):
       inserted_layer_to_crop_to = foreground_layer
     
     if not self.export_settings['use_image_size'].value:
-      pdb.gimp_image_resize_to_layers(self._image_copy)
+      pdb.gimp_image_resize_to_layers(image)
       if self.export_settings['crop_mode'].is_item('crop_to_background', 'crop_to_foreground'):
         if inserted_layer_to_crop_to is not None:
-          layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
+          layer = pdb.gimp_image_merge_visible_layers(image, gimpenums.CLIP_TO_IMAGE)
         if self.export_settings['autocrop'].value:
-          pdb.plug_in_autocrop(self._image_copy, layer)
+          pdb.plug_in_autocrop(image, layer)
       else:
         if self.export_settings['autocrop'].value:
-          pdb.plug_in_autocrop(self._image_copy, layer)
+          pdb.plug_in_autocrop(image, layer)
         if has_inserted_layers:
-          layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
+          layer = pdb.gimp_image_merge_visible_layers(image, gimpenums.CLIP_TO_IMAGE)
     else:
       if (self.export_settings['crop_mode'].is_item('crop_to_background', 'crop_to_foreground') and
           inserted_layer_to_crop_to is not None):
         if self.export_settings['autocrop'].value:
-          self._image_copy.active_layer = inserted_layer_to_crop_to
-          pdb.plug_in_autocrop_layer(self._image_copy, inserted_layer_to_crop_to)
-          self._image_copy.active_layer = layer
+          image.active_layer = inserted_layer_to_crop_to
+          pdb.plug_in_autocrop_layer(image, inserted_layer_to_crop_to)
+          image.active_layer = layer
       else:
         if self.export_settings['autocrop'].value:
-          pdb.plug_in_autocrop_layer(self._image_copy, layer)
+          pdb.plug_in_autocrop_layer(image, layer)
       
       if has_inserted_layers:
-        layer = pdb.gimp_image_merge_visible_layers(self._image_copy, gimpenums.CLIP_TO_IMAGE)
+        layer = pdb.gimp_image_merge_visible_layers(image, gimpenums.CLIP_TO_IMAGE)
       
       pdb.gimp_layer_resize_to_image_size(layer)
     
     return layer
+  
+  @_operation('layer_name')
+  def _preprocess_layer_name(self, layer_elem):
+    layer_elem.validate_name()
+    self._strip_file_extension(layer_elem)
+  
+  @_operation('layer_name')
+  def _preprocess_empty_group_name(self, layer_elem):
+    layer_elem.validate_name()
+    self._layer_data.uniquify_name(layer_elem, self._include_item_path)
+  
+  @_operation('layer_name')
+  def _process_layer_name(self, layer_elem):
+    self._set_file_extension(layer_elem)
+    self._layer_data.uniquify_name(layer_elem, self._include_item_path,
+                                   self._get_uniquifier_position(layer_elem.name))
   
   def _strip_file_extension(self, layer_elem):
     if self.export_settings['strip_mode'].is_item('identical', 'always'):
@@ -543,38 +577,29 @@ class LayerExporter(object):
         self._current_file_extension = self._default_file_extension
     elif self.export_settings['file_extension_mode'].is_item('no_special_handling'):
       layer_elem.name += "." + self._default_file_extension
-  
-  def _update_file_export_func(self):
-    if self.export_settings['file_extension_mode'].is_item('use_as_file_extensions'):
-      self._file_export_func = self._get_file_export_func(self._current_file_extension)
-  
-  def _get_file_export_func(self, file_extension):
-    if file_extension in pgfileformats.file_formats_dict:
-      save_procedure_name = pgfileformats.file_formats_dict[file_extension].save_procedure_name
-      save_procedure_func = pgfileformats.file_formats_dict[file_extension].save_procedure_func
-      
-      if (not save_procedure_name and save_procedure_func):
-        return save_procedure_func
-      elif (save_procedure_name and save_procedure_func):
-        if pdb.gimp_procedural_db_proc_exists(save_procedure_name):
-          return save_procedure_func
-    
-    return pgfileformats.get_default_save_procedure()
-  
-  def _get_run_mode(self):
-    if self._file_extension_properties[self._current_file_extension].is_valid:
-      if self._file_extension_properties[self._current_file_extension].processed_count == 0:
-        return self.initial_run_mode
-      else:
-        return gimpenums.RUN_WITH_LAST_VALS
-    else:
-      return self.initial_run_mode
     
   def _get_uniquifier_position(self, str_):
     return len(str_) - len("." + self._current_file_extension)
   
-  def _export_layer(self, layer_elem, image, layer):
+  @_operation('export')
+  def _make_dirs(self, path):
+    try:
+      pgpath.make_dirs(path)
+    except OSError as e:
+      try:
+        message = e.args[1]
+        if e.filename is not None:
+          message += ": \"{0}\"".format(e.filename)
+      except (IndexError, AttributeError):
+        message = str(e)
+      
+      raise InvalidOutputDirectoryError(message, self._current_layer_elem, self._default_file_extension)
+  
+  @_operation('export')
+  def _export(self, layer_elem, image, layer):
     output_filename = layer_elem.get_filepath(self._output_directory, self._include_item_path)
+    
+    self.progress_updater.update_text(_("Saving '{0}'").format(output_filename))
     
     self._current_overwrite_mode, output_filename = overwrite.handle_overwrite(
       output_filename, self.overwrite_chooser, self._get_uniquifier_position(output_filename))
@@ -582,23 +607,18 @@ class LayerExporter(object):
     if self._current_overwrite_mode == overwrite.OverwriteModes.CANCEL:
       raise ExportLayersCancelError("cancelled")
     
-    self.progress_updater.update_text(_("Saving '{0}'").format(output_filename))
-    
     if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
-      self._export(image, layer, output_filename)
-  
-  def _export(self, image, layer, output_filename):
-    run_mode = self._get_run_mode()
-    self._make_dirs(os.path.dirname(output_filename))
-    
-    self._export_once_wrapper(run_mode, image, layer, output_filename)
-    
-    if self._current_layer_export_status == ExportStatuses.FORCE_INTERACTIVE:
-      self._export_once_wrapper(gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
+      run_mode = self._get_run_mode()
+      self._make_dirs(os.path.dirname(output_filename))
+      
+      self._update_file_export_func()
+      
+      self._export_once_wrapper(run_mode, image, layer, output_filename)
+      if self._current_layer_export_status == ExportStatuses.FORCE_INTERACTIVE:
+        self._export_once_wrapper(gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
   
   def _export_once_wrapper(self, run_mode, image, layer, output_filename):
-    with self.export_context_manager(run_mode, image, layer, output_filename,
-                                     *self.export_context_manager_args):
+    with self.export_context_manager(run_mode, image, layer, output_filename, *self.export_context_manager_args):
       self._export_once(run_mode, image, layer, output_filename)
   
   def _export_once(self, run_mode, image, layer, output_filename):
@@ -630,3 +650,16 @@ class LayerExporter(object):
           raise ExportLayersError(e.message, layer, self._default_file_extension)
     else:
       self._current_layer_export_status = ExportStatuses.EXPORT_SUCCESSFUL
+  
+  def _get_run_mode(self):
+    if self._file_extension_properties[self._current_file_extension].is_valid:
+      if self._file_extension_properties[self._current_file_extension].processed_count == 0:
+        return self.initial_run_mode
+      else:
+        return gimpenums.RUN_WITH_LAST_VALS
+    else:
+      return self.initial_run_mode
+  
+  def _update_file_export_func(self):
+    if self.export_settings['file_extension_mode'].is_item('use_as_file_extensions'):
+      self._file_export_func = pgfileformats.get_save_procedure(self._current_file_extension)
