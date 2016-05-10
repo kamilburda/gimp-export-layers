@@ -50,6 +50,27 @@ def get_default_save_procedure():
   return _save_image_default
 
 
+def get_save_procedure(file_extension):
+  """
+  Return the file save procedure for the given file extension. If the file
+  extension is invalid or does not have a specific save procedure defined,
+  return the default save procedure (as returned by
+  `get_default_save_procedure`).
+  """
+  
+  if file_extension in file_formats_dict:
+    save_procedure_name = file_formats_dict[file_extension].save_procedure_name
+    save_procedure_func = file_formats_dict[file_extension].save_procedure_func
+    
+    if (not save_procedure_name and save_procedure_func):
+      return save_procedure_func
+    elif (save_procedure_name and save_procedure_func):
+      if pdb.gimp_procedural_db_proc_exists(save_procedure_name):
+        return save_procedure_func
+  
+  return get_default_save_procedure()
+
+
 def _save_image_default(run_mode, image, layer, filename, raw_filename):
   pdb.gimp_file_save(image, layer, filename, raw_filename, run_mode=run_mode)
 
@@ -152,6 +173,5 @@ file_formats = _create_file_formats([
   ("X window dump", ["xwd"]),
   ("ZSoft PCX image", ["pcx", "pcc"]),
 ])
-
 
 file_formats_dict = _create_file_formats_dict(file_formats)
