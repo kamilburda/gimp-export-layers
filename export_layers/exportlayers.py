@@ -339,8 +339,6 @@ class LayerExporter(object):
     ):
       self.progress_updater.num_total_tasks = len(self._layer_data)
     
-    self._make_dirs(self._output_directory)
-    
     for layer_elem in self._layer_data:
       if self.should_stop:
         raise ExportLayersCancelError("export stopped by user")
