@@ -357,13 +357,15 @@ class LayerExporter(object):
         layer_elem.validate_name()
         self._strip_file_extension(layer_elem)
         
-        self._set_file_extension_and_update_file_export_func(layer_elem)
+        self._set_file_extension(layer_elem)
+        self._update_file_export_func()
         self._layer_data.uniquify_name(layer_elem, self._include_item_path,
                                        self._get_uniquifier_position(layer_elem.name))
         self._export_layer(layer_elem, self._image_copy, layer_copy)
         
         if self._current_layer_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
-          self._set_file_extension_and_update_file_export_func(layer_elem)
+          self._set_file_extension(layer_elem)
+          self._update_file_export_func()
           self._layer_data.uniquify_name(layer_elem, self._include_item_path,
                                          self._get_uniquifier_position(layer_elem.name))
           self._export_layer(layer_elem, self._image_copy, layer_copy)
@@ -427,6 +429,7 @@ class LayerExporter(object):
     pdb.gimp_image_insert_layer(self._image_copy, layer_copy, None, 0)
     # This is necessary for file formats which flatten the image (such as JPG).
     pdb.gimp_item_set_visible(layer_copy, True)
+    
     if pdb.gimp_item_is_group(layer_copy):
       layer_copy = pgpdb.merge_layer_group(layer_copy)
     
@@ -532,7 +535,7 @@ class LayerExporter(object):
         else:
           layer_elem.set_file_extension(None)
   
-  def _set_file_extension_and_update_file_export_func(self, layer_elem):
+  def _set_file_extension(self, layer_elem):
     if self.export_settings['file_extension_mode'].is_item('use_as_file_extensions'):
       file_extension = layer_elem.get_file_extension()
       if file_extension and self._file_extension_properties[file_extension].is_valid:
@@ -540,13 +543,12 @@ class LayerExporter(object):
       else:
         layer_elem.set_file_extension(self._default_file_extension)
         self._current_file_extension = self._default_file_extension
-      
-      self._file_export_func = self._get_file_export_func(self._current_file_extension)
     elif self.export_settings['file_extension_mode'].is_item('no_special_handling'):
       layer_elem.name += "." + self._default_file_extension
   
-  def _get_uniquifier_position(self, str_):
-    return len(str_) - len("." + self._current_file_extension)
+  def _update_file_export_func(self):
+    if self.export_settings['file_extension_mode'].is_item('use_as_file_extensions'):
+      self._file_export_func = self._get_file_export_func(self._current_file_extension)
   
   def _get_file_export_func(self, file_extension):
     if file_extension in pgfileformats.file_formats_dict:
@@ -569,6 +571,9 @@ class LayerExporter(object):
         return gimpenums.RUN_WITH_LAST_VALS
     else:
       return self.initial_run_mode
+    
+  def _get_uniquifier_position(self, str_):
+    return len(str_) - len("." + self._current_file_extension)
   
   def _export_layer(self, layer_elem, image, layer):
     output_filename = layer_elem.get_filepath(self._output_directory, self._include_item_path)
