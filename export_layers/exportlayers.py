@@ -167,6 +167,22 @@ class ExportStatuses(object):
   ) = (0, 1, 2, 3)
 
 
+def _operation(*tags):
+  
+  def _operation_wrapper(func):
+    
+    @functools.wraps(func)
+    def func_wrapper(self, *args, **kwargs):
+      if not self._operation_tags or any(tag in tags for tag in self._operation_tags):
+        return func(self, *args, **kwargs)
+      else:
+        return None
+    
+    return func_wrapper
+    
+  return _operation_wrapper
+
+
 class LayerExporter(object):
   
   """
@@ -273,21 +289,6 @@ class LayerExporter(object):
       self._export_layers()
     finally:
       self._cleanup()
-  
-  def _operation(self, *tags):
-    
-    def _operation_wrapper(func):
-      
-      @functools.wraps(func)
-      def func_wrapper(self, *args, **kwargs):
-        if not self._operation_tags or any(tag in tags for tag in self._operation_tags):
-          return func(self, *args, **kwargs)
-        else:
-          return None
-      
-      return func_wrapper
-      
-    return _operation_wrapper
   
   def _init_attributes(self, operations):
     self._operation_tags = operations if operations is not None else []
