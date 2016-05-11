@@ -232,18 +232,18 @@ class TestLayerData(unittest.TestCase):
   
   def test_uniquify_without_layer_groups(self):
     uniquified_names = OrderedDict([
-      ("top-left-corner",      "top-left-corner (1)"),
+      ("top-left-corner",      "top-left-corner"),
       ("top-right-corner",     "top-right-corner"),
-      ("top-left-corner:",     "top-left-corner (2)"),
+      ("top-left-corner:",     "top-left-corner (1)"),
       ("bottom-right-corner",  "bottom-right-corner"),
       ("bottom-right-corner:", "bottom-right-corner (1)"),
       ("bottom-left-corner",   "bottom-left-corner"),
-      ("top-left-corner:::",   "top-left-corner (3)"),
+      ("top-left-corner:::",   "top-left-corner (2)"),
       ("top-frame",            "top-frame"),
       ("main-background.jpg",  "main-background.jpg"),
       ("main-background.jpg:", "main-background.jpg (1)"),
       ("Corners",              "Corners"),
-      ("top-left-corner::::",  "top-left-corner")
+      ("top-left-corner::::",  "top-left-corner (3)")
     ])
     
     # This is to make the uniquification work properly for these tests. It's not
@@ -261,21 +261,21 @@ class TestLayerData(unittest.TestCase):
   
   def test_uniquify_with_layer_groups(self):
     uniquified_names = OrderedDict([
-      ("Corners",                ["Corners (1)"]),
-      ("top-left-corner",        ["Corners (1)", "top-left-corner"]),
-      ("top-right-corner",       ["Corners (1)", "top-right-corner"]),
-      ("top-left-corner:",       ["Corners (1)", "top-left-corner (1)"]),
-      ("top-left-corner::",      ["Corners (1)", "top-left-corner (2)"]),
-      ("bottom-right-corner",    ["Corners (1)", "top-left-corner (2)", "bottom-right-corner"]),
-      ("bottom-right-corner:",   ["Corners (1)", "top-left-corner (2)", "bottom-right-corner (1)"]),
-      ("bottom-left-corner",     ["Corners (1)", "top-left-corner (2)", "bottom-left-corner"]),
-      ("Corners:",               ["Corners (2)"]),
-      ("top-left-corner:::",     ["Corners (2)", "top-left-corner"]),
+      ("Corners",                ["Corners"]),
+      ("top-left-corner",        ["Corners", "top-left-corner"]),
+      ("top-right-corner",       ["Corners", "top-right-corner"]),
+      ("top-left-corner:",       ["Corners", "top-left-corner (1)"]),
+      ("top-left-corner::",      ["Corners", "top-left-corner (2)"]),
+      ("bottom-right-corner",    ["Corners", "top-left-corner (2)", "bottom-right-corner"]),
+      ("bottom-right-corner:",   ["Corners", "top-left-corner (2)", "bottom-right-corner (1)"]),
+      ("bottom-left-corner",     ["Corners", "top-left-corner (2)", "bottom-left-corner"]),
+      ("Corners:",               ["Corners (1)"]),
+      ("top-left-corner:::",     ["Corners (1)", "top-left-corner"]),
       ("Frames",                 ["Frames"]),
       ("top-frame",              ["Frames", "top-frame"]),
       ("main-background.jpg",    ["main-background.jpg"]),
       ("main-background.jpg:",   ["main-background.jpg (1)"]),
-      ("Corners::",              ["Corners"]),
+      ("Corners::",              ["Corners (2)"]),
       ("top-left-corner::::",    ["top-left-corner"]),
       ("main-background.jpg::",  ["main-background.jpg (2)"]),
       ("alt-frames",             ["main-background.jpg (2)", "alt-frames"]),
