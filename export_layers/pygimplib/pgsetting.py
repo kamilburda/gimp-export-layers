@@ -246,8 +246,9 @@ class Setting(object):
     self._pdb_type = self._get_pdb_type(pdb_type)
     self._pdb_name = self._get_pdb_name(self._name)
     
-    self._value_changed_event_handler = None
-    self._value_changed_event_handler_args = []
+    # key: event handler ID; value: [event handler, event handler arguments]
+    self._event_handlers = OrderedDict()
+    self._event_handler_id_counter = 0
     
     self._setting_value_synchronizer = pgsettingpresenter.SettingValueSynchronizer()
     self._setting_value_synchronizer.apply_gui_value_to_setting = self._apply_gui_value_to_setting
@@ -324,7 +325,7 @@ class Setting(object):
     
     self._assign_and_validate_value(value)
     self._setting_value_synchronizer.apply_setting_value_to_gui(value)
-    if self._is_value_changed_event_connected():
+    if self._has_events_connected():
       self._trigger_value_changed_event()
   
   def reset(self):
@@ -342,7 +343,7 @@ class Setting(object):
     
     self._value = self._default_value
     self._setting_value_synchronizer.apply_setting_value_to_gui(self._default_value)
-    if self._is_value_changed_event_connected():
+    if self._has_events_connected():
       self._trigger_value_changed_event()
   
   def create_gui(self, gui_type=None, gui_element=None, auto_update_gui_to_setting=True):
@@ -387,11 +388,12 @@ class Setting(object):
   
   def connect_value_changed_event(self, event_handler, *event_handler_args):
     """
-    Connect an event handler that triggers when `set_value()` is called.
+    Connect an event handler that triggers when `set_value()` is called. The
+    `event_handler` function must always contain at least one argument - this
+    setting.
     
-    The `event_handler` (a function) must always contain at least one argument.
-    The first argument must be the setting from which the event handler is
-    invoked.
+    Multiple event handlers can be connected. Each new event handler is
+    executed as the last.
     
     Parameters:
     
@@ -399,6 +401,11 @@ class Setting(object):
       setting is called.
     
     * `*event_handler_args` - additional arguments to `event_handler`.
+    
+    Returns:
+    
+    * `event_id` - Numeric ID of the event handler (can be used to remove the
+      event via `remove_value_changed_event`).
     
     Raises:
     
@@ -417,19 +424,30 @@ class Setting(object):
       raise TypeError("wrong number of arguments to the event handler (required {0}, passed {1})"
                       .format(num_required_event_handler_args, num_actual_event_handler_args))
     
-    self._value_changed_event_handler = event_handler
-    self._value_changed_event_handler_args = event_handler_args
+    self._event_handlers[self._event_handler_id_counter] = [event_handler, event_handler_args]
+    event_id = self._event_handler_id_counter
+    self._event_handler_id_counter += 1
+    
+    return event_id
   
-  def remove_value_changed_event(self):
+  def remove_value_changed_event(self, event_id=None):
     """
-    Remove the event handler set by the `connect_value_changed_event()` method.
+    Remove the event handler set by the `connect_value_changed_event` method.
+    
+    If `event_id` is None, remove the last event handler set. If not None,
+    remove the event handler specified by its ID (returned by
+    `connect_value_changed_event`).
     """
     
-    if self._value_changed_event_handler is None:
+    if not self._has_events_connected():
       raise TypeError("no event handler was previously set")
     
-    self._value_changed_event_handler = None
-    self._value_changed_event_handler_args = []
+    if event_id is not None:
+      if event_id not in self._event_handlers.keys():
+        raise ValueError("event handler with ID {0} does not exist".format(event_id))
+      del self._event_handlers[event_id]
+    else:
+      del self._event_handlers[next(reversed(self._event_handlers.keys()))]
   
   def is_value_empty(self):
     """
@@ -446,6 +464,21 @@ class Setting(object):
     
     return self._pdb_type != SettingPdbTypes.none
   
+  def _validate(self, value):
+    """
+    Check whether the specified value is valid. If the value is invalid, raise
+    `SettingValueError`.
+    """
+    
+    pass
+  
+  def _init_error_messages(self):
+    """
+    Initialize custom error messages in the `error_messages` dict.
+    """
+    
+    pass
+  
   def _is_value_empty(self, value):
     return value in self._allowed_empty_values
   
@@ -460,7 +493,7 @@ class Setting(object):
   
   def _apply_gui_value_to_setting(self, value):
     self._assign_and_validate_value(value)
-    if self._is_value_changed_event_connected():
+    if self._has_events_connected():
       self._trigger_value_changed_event()
   
   def _validate_setting(self, value):
@@ -468,14 +501,6 @@ class Setting(object):
       self._validate(value)
     except SettingValueError as e:
       raise SettingValueError(e.message, setting=self)
-  
-  def _validate(self, value):
-    """
-    Check whether the specified value is valid. If the value is invalid, raise
-    `SettingValueError`.
-    """
-    
-    pass
   
   def _should_validate_default_value(self):
     return not self._is_value_empty(self._default_value)
@@ -491,18 +516,12 @@ class Setting(object):
     except SettingValueError as e:
       raise SettingDefaultValueError(e.message, setting=self)
   
-  def _is_value_changed_event_connected(self):
-    return self._value_changed_event_handler is not None
+  def _has_events_connected(self):
+    return bool(self._event_handlers)
   
   def _trigger_value_changed_event(self):
-    self._value_changed_event_handler(self, *self._value_changed_event_handler_args)
-  
-  def _init_error_messages(self):
-    """
-    Initialize custom error messages in the `error_messages` dict.
-    """
-    
-    pass
+    for event_handler, event_handler_args in self._event_handlers.values():
+      event_handler(self, *event_handler_args)
   
   def _get_display_name(self, display_name):
     if display_name is not None:
