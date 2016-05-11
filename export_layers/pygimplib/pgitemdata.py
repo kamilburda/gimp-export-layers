@@ -229,22 +229,19 @@ class ItemData(object):
     pairs.
     """
     
-    _ItemTreeNode = namedtuple('_ItemTreeNode', ['children', 'parents'])
-    item_tree = [_ItemTreeNode(self._get_children_from_image(self.image), [])]
+    _ItemTreeNode = namedtuple('_ItemTreeNode', ['item', 'parents'])
+    item_tree = [_ItemTreeNode(child_item, []) for child_item in self._get_children_from_image(self.image)]
     
     while item_tree:
       node = item_tree.pop(0)
       
-      index = 0
-      for item in node.children:
-        parents = list(node.parents)
-        item_elem = _ItemDataElement(item, parents)
-        
-        if pdb.gimp_item_is_group(item):
-          item_tree.insert(index, _ItemTreeNode(self._get_children_from_item(item), parents + [item_elem]))
-          index += 1
-        
-        self._itemdata[item_elem.orig_name] = item_elem
+      item_elem_parents = list(node.parents)
+      item_elem = _ItemDataElement(node.item, item_elem_parents)
+      self._itemdata[item_elem.orig_name] = item_elem
+      
+      if pdb.gimp_item_is_group(node.item):
+        for child_item in reversed(self._get_children_from_item(node.item)):
+          item_tree.insert(0, _ItemTreeNode(child_item, item_elem_parents + [item_elem]))
   
   @abc.abstractmethod
   def _get_children_from_image(self, image):
