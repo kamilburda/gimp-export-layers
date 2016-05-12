@@ -609,8 +609,9 @@ class _ExportLayersGui(object):
       self.settings['main']['file_extension'].gui.update_setting_value()
     except pgsetting.SettingValueError as e:
       pggui.timeout_add_strict(100, self.export_name_preview.clear)
-      pggui.timeout_add_strict(100, self.display_message_label, e.message, message_type=gtk.MESSAGE_ERROR,
-                               setting=self.settings['main']['file_extension'])
+      
+      self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR,
+        setting=self.settings['main']['file_extension'])
     else:
       if self._message_setting == self.settings['main']['file_extension']:
         self.display_message_label(None)
