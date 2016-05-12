@@ -245,6 +245,24 @@ class GtkExpanderPresenter(GtkSettingPresenter):
     self._element.set_expanded(value)
 
 
+class GtkPanedPositionPresenter(GtkSettingPresenter):
+  
+  """
+  This class is a `SettingPresenter` for `gtk.Paned` elements.
+  
+  Value: Position of the pane.
+  """
+  
+  def __init__(self, *args, **kwargs):
+    super(GtkPanedPositionPresenter, self).__init__(*args, **kwargs)
+  
+  def _get_value(self):
+    return self._element.get_position()
+  
+  def _set_value(self, value):
+    self._element.set_position(value)
+
+
 #===============================================================================
 
 
@@ -261,6 +279,7 @@ class SettingGuiTypes(object):
   folder_chooser = GtkFolderChooserPresenter
   window_position = GtkWindowPositionPresenter
   expander = GtkExpanderPresenter
+  paned_position = GtkPanedPositionPresenter
   
   none = pgsettingpresenter.NullSettingPresenter
   automatic = None
