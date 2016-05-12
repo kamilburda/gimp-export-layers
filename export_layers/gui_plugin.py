@@ -245,6 +245,7 @@ class ExportNamePreview(object):
   def __init__(self, layer_exporter):
     self._layer_exporter = layer_exporter
      
+    self._update_locked = False
     self._tree_iter_parents = collections.defaultdict(lambda: None)
     
     self._init_gui()
@@ -252,12 +253,16 @@ class ExportNamePreview(object):
     self.widget = self._preview_frame
   
   def update(self):
-    self._tree_model.clear()
-    self._fill_preview()
-    self._tree_view.expand_all()
+    if not self._update_locked:
+      self._tree_model.clear()
+      self._fill_preview()
+      self._tree_view.expand_all()
   
   def clear(self):
     self._tree_model.clear()
+  
+  def lock_update(self, lock):
+    self._update_locked = lock
   
   def _init_gui(self):
     self._tree_model = gtk.TreeStore(gtk.gdk.Pixbuf, bytes)
@@ -612,7 +617,9 @@ class _ExportLayersGui(object):
       
       self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR,
         setting=self.settings['main']['file_extension'])
+      self.export_name_preview.lock_update(True)
     else:
+      self.export_name_preview.lock_update(False)
       if self._message_setting == self.settings['main']['file_extension']:
         self.display_message_label(None)
       
