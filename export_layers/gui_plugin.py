@@ -290,10 +290,28 @@ class ExportNamePreview(object):
     self._preview_frame.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
     self._preview_frame.add(self._vbox)
     
+    self._init_icons()
+    
+  def _init_icons(self):
     self._icons = {}
-    self._icons['layer'] = gtk.gdk.pixbuf_new_from_file_at_size(
-      os.path.join(constants.PLUGIN_PATH, "layer_icon.png"), 16, -1)
     self._icons['layer_group'] = self._tree_view.render_icon(gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
+    self._icons['layer'] = gtk.gdk.pixbuf_new_from_file_at_size(
+      os.path.join(constants.PLUGIN_PATH, "layer_icon.png"), -1, self._icons['layer_group'].props.height)
+    self._icons['merged_layer_group'] = self._icons['layer'].copy()
+    
+    scaling_factor = 0.9
+    width_unscaled = self._icons['layer_group'].props.width
+    width = int(width_unscaled * scaling_factor)
+    height_unscaled = self._icons['layer_group'].props.height
+    height = int(height_unscaled * scaling_factor)
+    x_offset_unscaled = self._icons['merged_layer_group'].props.width - self._icons['layer_group'].props.width
+    x_offset = int(x_offset_unscaled + width_unscaled - width)
+    y_offset_unscaled = self._icons['merged_layer_group'].props.height - self._icons['layer_group'].props.height
+    y_offset = int(y_offset_unscaled + height_unscaled - height)
+    
+    self._icons['layer_group'].composite(self._icons['merged_layer_group'],
+      x_offset, y_offset, width, height, x_offset, y_offset,
+      scaling_factor, scaling_factor, gtk.gdk.INTERP_BILINEAR, 255)
   
   def _fill_preview(self):
     self._layer_exporter.export_layers(operations=['layer_name'])
@@ -324,7 +342,10 @@ class ExportNamePreview(object):
     if item_elem.item_type == item_elem.ITEM:
       return self._icons['layer']
     elif item_elem.item_type in [item_elem.NONEMPTY_GROUP, item_elem.EMPTY_GROUP]:
-      return self._icons['layer_group']
+      if not self._layer_exporter.export_settings['merge_layer_groups'].value:
+        return self._icons['layer_group']
+      else:
+        return self._icons['merged_layer_group']
     else:
       return None
 
