@@ -48,6 +48,7 @@ else:
 import pygtk
 pygtk.require("2.0")
 import gtk
+import gobject
 
 import gimp
 import gimpui
@@ -441,3 +442,32 @@ class IntComboBox(gimpui.IntComboBox):
       labels_and_values[i] = labels_and_values[i].encode(GTK_CHARACTER_ENCODING)
     
     super(IntComboBox, self).__init__(tuple(labels_and_values))
+
+
+#===============================================================================
+
+_timer_id = None
+
+def timeout_add_strict(interval, callback, *callback_args, **callback_kwargs):
+  """
+  This is a wrapper for `gobject.timeout_add`, which calls the specified
+  callback at regular intervals. Additionally if the callback is called again
+  before the timeout, the first invocation will be cancelled.
+  
+  This function also supports for keyword arguments to the callback.
+  """
+  
+  global _timer_id
+  
+  def _callback_wrapper(callback_args, callback_kwargs):
+    retval = callback(*callback_args, **callback_kwargs)
+    _timer_id = None
+    return retval
+  
+  if _timer_id is not None:
+    gobject.source_remove(_timer_id)
+    _timer_id = None
+  
+  _timer_id = gobject.timeout_add(interval, _callback_wrapper, callback_args, callback_kwargs)
+  
+  return _timer_id
