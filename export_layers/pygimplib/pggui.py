@@ -446,28 +446,33 @@ class IntComboBox(gimpui.IntComboBox):
 
 #===============================================================================
 
-_timer_id = None
+_timer_ids = {}
 
 def timeout_add_strict(interval, callback, *callback_args, **callback_kwargs):
   """
   This is a wrapper for `gobject.timeout_add`, which calls the specified
-  callback at regular intervals. Additionally if the callback is called again
-  before the timeout, the first invocation will be cancelled.
+  callback at regular intervals.
+  
+  Additionally, if the same callback is called again before the timeout, the
+  first invocation will be cancelled. If different functions are called before
+  the timeout, they will all be invoked normally.
   
   This function also supports for keyword arguments to the callback.
   """
   
-  global _timer_id
+  global _timer_ids
   
   def _callback_wrapper(callback_args, callback_kwargs):
     retval = callback(*callback_args, **callback_kwargs)
-    _timer_id = None
+    if callback in _timer_ids:
+      del _timer_ids[callback]
+    
     return retval
   
-  if _timer_id is not None:
-    gobject.source_remove(_timer_id)
-    _timer_id = None
+  if callback in _timer_ids:
+    gobject.source_remove(_timer_ids[callback])
+    del _timer_ids[callback]
   
-  _timer_id = gobject.timeout_add(interval, _callback_wrapper, callback_args, callback_kwargs)
+  _timer_ids[callback] = gobject.timeout_add(interval, _callback_wrapper, callback_args, callback_kwargs)
   
-  return _timer_id
+  return _timer_ids[callback]
