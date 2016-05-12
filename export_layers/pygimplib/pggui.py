@@ -457,7 +457,7 @@ def timeout_add_strict(interval, callback, *callback_args, **callback_kwargs):
   first invocation will be cancelled. If different functions are called before
   the timeout, they will all be invoked normally.
   
-  This function also supports for keyword arguments to the callback.
+  This function also supports keyword arguments to the callback.
   """
   
   global _timer_ids
