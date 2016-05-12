@@ -28,6 +28,7 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import collections
 import contextlib
 import functools
 import os
@@ -237,6 +238,100 @@ def _handle_gui_in_export(run_mode, image, layer, output_filename, window):
 #===============================================================================
 
 
+class ExportNamePreview(object):
+  
+  _VBOX_SPACING = 5
+  
+  def __init__(self, layer_exporter):
+    self._layer_exporter = layer_exporter
+     
+    self._tree_iter_parents = collections.defaultdict(lambda: None)
+    
+    self._init_gui()
+    
+    self.widget = self._preview_frame
+  
+  def update(self):
+    self._tree_model.clear()
+    self._fill_preview()
+    self._tree_view.expand_all()
+  
+  def clear(self):
+    self._tree_model.clear()
+  
+  def _init_gui(self):
+    self._tree_model = gtk.TreeStore(gtk.gdk.Pixbuf, bytes)
+    
+    self._tree_view = gtk.TreeView(model=self._tree_model)
+    self._tree_view.set_headers_visible(False)
+    
+    column = gtk.TreeViewColumn(b"")
+    icon_cell_renderer = gtk.CellRendererPixbuf()
+    column.pack_start(icon_cell_renderer, expand=False)
+    column.set_attributes(icon_cell_renderer, pixbuf=0)
+    text_cell_renderer = gtk.CellRendererText()
+    column.pack_start(text_cell_renderer, expand=False)
+    column.set_attributes(text_cell_renderer, text=1)
+    
+    self._tree_view.append_column(column)
+    
+    self._preview_label = gtk.Label(_("Preview"))
+    self._preview_label.set_alignment(0.02, 0.5)
+    
+    self._scrolled_window = gtk.ScrolledWindow()
+    self._scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+    self._scrolled_window.add(self._tree_view)
+    
+    self._vbox = gtk.VBox(homogeneous=False)
+    self._vbox.pack_start(self._preview_label, expand=False, fill=False, padding=self._VBOX_SPACING)
+    self._vbox.pack_start(self._scrolled_window)
+    
+    self._preview_frame = gtk.Frame()
+    self._preview_frame.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+    self._preview_frame.add(self._vbox)
+    
+    self._icons = {}
+    self._icons['layer'] = gtk.gdk.pixbuf_new_from_file_at_size(
+      os.path.join(constants.PLUGIN_PATH, "layer_icon.png"), 16, -1)
+    self._icons['layer_group'] = self._tree_view.render_icon(gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
+  
+  def _fill_preview(self):
+    self._layer_exporter.export_layers(operations=['layer_name'])
+    
+    self._tree_iter_parents.clear()
+    
+    for item_elem in self._layer_exporter.layer_data:
+      if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
+        self._insert_parent_item_elems(item_elem)
+      self._insert_item_elem(item_elem)
+  
+  def _insert_item_elem(self, item_elem):
+    if item_elem.parent:
+      parent_tree_iter = self._tree_iter_parents[item_elem.parent.name]
+    else:
+      parent_tree_iter = None
+    
+    self._tree_iter_parents[item_elem.name] = self._tree_model.append(
+      parent_tree_iter, [self._get_icon_from_item_elem(item_elem),
+                         item_elem.name.encode(pggui.GTK_CHARACTER_ENCODING)])
+  
+  def _insert_parent_item_elems(self, item_elem):
+    for parent_elem in item_elem.parents:
+      if not self._tree_iter_parents[parent_elem.name]:
+        self._insert_item_elem(parent_elem)
+  
+  def _get_icon_from_item_elem(self, item_elem):
+    if item_elem.item_type == item_elem.ITEM:
+      return self._icons['layer']
+    elif item_elem.item_type in [item_elem.NONEMPTY_GROUP, item_elem.EMPTY_GROUP]:
+      return self._icons['layer_group']
+    else:
+      return None
+
+
+#===============================================================================
+
+
 class _ExportLayersGui(object):
   
   HBOX_HORIZONTAL_SPACING = 8
@@ -245,7 +340,7 @@ class _ExportLayersGui(object):
   ADVANCED_SETTINGS_VERTICAL_SPACING = 6
   ADVANCED_SETTINGS_LEFT_MARGIN = 15
   
-  DIALOG_SIZE = (850, 660)
+  DIALOG_SIZE = (900, 660)
   DIALOG_BORDER_WIDTH = 8
   DIALOG_VBOX_SPACING = 5
   ACTION_AREA_BORDER_WIDTH = 4
@@ -296,6 +391,18 @@ class _ExportLayersGui(object):
     
     self.folder_chooser = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
     
+    self.export_name_preview = ExportNamePreview(
+      exportlayers.LayerExporter(gimpenums.RUN_NONINTERACTIVE, self.image, self.settings['main']))
+    
+    self.vbox_folder_chooser = gtk.VBox(homogeneous=False)
+    self.vbox_folder_chooser.set_spacing(self.DIALOG_VBOX_SPACING * 2)
+    self.vbox_folder_chooser.pack_start(self.folder_chooser_label, expand=False, fill=False)
+    self.vbox_folder_chooser.pack_start(self.folder_chooser)
+    
+    self.hpaned_chooser_and_previews = gtk.HPaned()
+    self.hpaned_chooser_and_previews.pack1(self.vbox_folder_chooser, resize=True)
+    self.hpaned_chooser_and_previews.pack2(self.export_name_preview.widget)
+    
     self.file_extension_label = gtk.Label()
     self.file_extension_label.set_markup("<b>" + self.settings['main']['file_extension'].display_name + ":</b>")
     self.file_extension_label.set_alignment(0.0, 0.5)
@@ -325,6 +432,7 @@ class _ExportLayersGui(object):
       'file_extension': [pgsetting.SettingGuiTypes.file_extension_entry, self.file_extension_entry],
       'dialog_position': [pgsetting.SettingGuiTypes.window_position, self.dialog],
       'advanced_settings_expanded': [pgsetting.SettingGuiTypes.expander, self.expander_advanced_settings],
+      'export_preview_pane_position': [pgsetting.SettingGuiTypes.paned_position, self.hpaned_chooser_and_previews],
     })
     
     self.current_directory_setting.create_gui(pgsetting.SettingGuiTypes.folder_chooser, self.folder_chooser)
@@ -423,8 +531,7 @@ class _ExportLayersGui(object):
     self.dialog.action_area.set_child_secondary(self.reset_settings_button, True)
     
     self.dialog.vbox.set_spacing(self.DIALOG_VBOX_SPACING)
-    self.dialog.vbox.pack_start(self.folder_chooser_label, expand=False, fill=False)
-    self.dialog.vbox.pack_start(self.folder_chooser, padding=5)
+    self.dialog.vbox.pack_start(self.hpaned_chooser_and_previews)
     self.dialog.vbox.pack_start(self.hbox_file_extension, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.hbox_export_settings, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.expander_advanced_settings, expand=False, fill=False)
@@ -442,12 +549,18 @@ class _ExportLayersGui(object):
     self.reset_settings_button.connect("clicked", self.on_reset_settings_clicked)
     
     self.file_extension_entry.connect("changed", self.on_file_extension_entry_changed)
+    self.expander_advanced_settings.connect("notify::expanded", self.on_expander_advanced_settings_expanded)
+    
+    self.dialog.connect("notify::is-active", self.on_dialog_is_active)
+    
+    self._connect_setting_changes_to_preview()
     
     self.dialog.set_default_response(gtk.RESPONSE_CANCEL)
     
     self.dialog.vbox.show_all()
     self.progress_bar.hide()
     self.stop_button.hide()
+    self._handle_pane_for_advanced_settings()
     
     self.dialog.set_focus(self.file_extension_entry)
     self.dialog.set_default(self.export_layers_button)
@@ -474,11 +587,35 @@ class _ExportLayersGui(object):
     try:
       self.settings['main']['file_extension'].gui.update_setting_value()
     except pgsetting.SettingValueError as e:
+      pggui.timeout_add_strict(100, self.export_name_preview.clear)
       pggui.timeout_add_strict(100, self.display_message_label, e.message, message_type=gtk.MESSAGE_ERROR,
                                setting=self.settings['main']['file_extension'])
     else:
       if self._message_setting == self.settings['main']['file_extension']:
         self.display_message_label(None)
+      
+      pggui.timeout_add_strict(100, self.export_name_preview.update)
+  
+  def on_expander_advanced_settings_expanded(self, widget, property_spec):
+    self._handle_pane_for_advanced_settings()
+  
+  def _handle_pane_for_advanced_settings(self):
+    if self.expander_advanced_settings.get_expanded():
+      self.export_name_preview.widget.show()
+    else:
+      self.export_name_preview.widget.hide()
+  
+  def on_dialog_is_active(self, widget, property_spec):
+    if self.dialog.is_active():
+      self.export_name_preview.update()
+  
+  def _connect_setting_changes_to_preview(self):
+    def _on_setting_changed(setting, self):
+      pggui.timeout_add_strict(50, self.export_name_preview.update)
+    
+    for setting in self.settings['main']:
+      if setting.name not in ['file_extension', 'output_directory', 'overwrite_mode']:
+        setting.connect_value_changed_event(_on_setting_changed, self)
   
   @_set_settings
   def on_save_settings_clicked(self, widget):

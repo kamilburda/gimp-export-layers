@@ -212,8 +212,11 @@ class LayerExporter(object):
   * `should_stop` - Can be used to stop the export prematurely. If True,
     the export is stopped after exporting the currently processed layer.
   
-  * `exported_layers` - List of layers that were successfully exported. Includes
-    layers which were skipped (when files with the same names already exist).
+  * `layer_data` - `LayerData` instance containing layers to be exported.
+    Defaults to None if no export has been performed yet.
+  
+  * `exported_layers` - List of layers that were successfully exported. Does not
+    include skipped layers (when files with the same names already exist).
   
   * `export_context_manager` - Context manager that wraps exporting a single
     layer. This can be used to perform GUI updates before and after export.
@@ -255,7 +258,13 @@ class LayerExporter(object):
       self.export_context_manager_args = []
     
     self.should_stop = False
+    
+    self._layer_data = None
     self._exported_layers = []
+  
+  @property
+  def layer_data(self):
+    return self._layer_data
   
   @property
   def exported_layers(self):
