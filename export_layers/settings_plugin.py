@@ -208,8 +208,7 @@ def create_settings():
       strip_mode.set_item('never')
       strip_mode.gui.set_enabled(False)
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = (
-        file_extension.error_messages['default_needed']
-      )
+        file_extension.error_messages['default_needed'])
   
   def on_merge_layer_groups_changed(merge_layer_groups, layer_groups_as_folders):
     if merge_layer_groups.value:
