@@ -471,8 +471,14 @@ class _ExportLayersGui(object):
     pgsettingpersistor.SettingPersistor.save([self.settings['gui_session']], [self.session_source])
   
   def on_file_extension_entry_changed(self, widget):
-    if self._message_setting == self.settings['main']['file_extension']:
-      self.display_message_label(None)
+    try:
+      self.settings['main']['file_extension'].gui.update_setting_value()
+    except pgsetting.SettingValueError as e:
+      pggui.timeout_add_strict(100, self.display_message_label, e.message, message_type=gtk.MESSAGE_ERROR,
+                               setting=self.settings['main']['file_extension'])
+    else:
+      if self._message_setting == self.settings['main']['file_extension']:
+        self.display_message_label(None)
   
   @_set_settings
   def on_save_settings_clicked(self, widget):
