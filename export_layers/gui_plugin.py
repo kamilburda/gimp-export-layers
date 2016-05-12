@@ -305,9 +305,9 @@ class ExportNamePreview(object):
     height_unscaled = self._icons['layer_group'].props.height
     height = int(height_unscaled * scaling_factor)
     x_offset_unscaled = self._icons['merged_layer_group'].props.width - self._icons['layer_group'].props.width
-    x_offset = int(x_offset_unscaled + width_unscaled - width)
+    x_offset = x_offset_unscaled + width_unscaled - width
     y_offset_unscaled = self._icons['merged_layer_group'].props.height - self._icons['layer_group'].props.height
-    y_offset = int(y_offset_unscaled + height_unscaled - height)
+    y_offset = y_offset_unscaled + height_unscaled - height
     
     self._icons['layer_group'].composite(self._icons['merged_layer_group'],
       x_offset, y_offset, width, height, x_offset, y_offset,
