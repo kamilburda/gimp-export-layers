@@ -116,6 +116,12 @@ def add_gui_settings(settings):
       'name': 'image_ids_and_directories',
       'default_value': {}
     },
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'export_name_preview_layers_collapsed_state',
+      # key: image ID; value: set of layer names collapsed in the name preview
+      'default_value': collections.defaultdict(set)
+    },
   ])
   
   settings.add([gui_settings, session_only_gui_settings])
@@ -243,14 +249,12 @@ class ExportNamePreview(object):
   _VBOX_SPACING = 5
   _COLUMN_ICON, _COLUMN_TEXT = (0, 1)
   
-  def __init__(self, layer_exporter):
+  def __init__(self, layer_exporter, collapsed_items=None):
     self._layer_exporter = layer_exporter
-     
+    self._collapsed_items = collapsed_items if collapsed_items is not None else set()
+    
     self._update_locked = False
-    
     self._tree_iter_parents = collections.defaultdict(lambda: None)
-    
-    self._collapsed_items = set()
     self._should_handle_row_expand = True
     
     self._init_gui()
@@ -470,7 +474,8 @@ class _ExportLayersGui(object):
     self.folder_chooser = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
     
     self.export_name_preview = ExportNamePreview(
-      exportlayers.LayerExporter(gimpenums.RUN_NONINTERACTIVE, self.image, self.settings['main']))
+      exportlayers.LayerExporter(gimpenums.RUN_NONINTERACTIVE, self.image, self.settings['main']),
+      self.settings['gui_session']['export_name_preview_layers_collapsed_state'].value[self.image.ID])
     
     self.vbox_folder_chooser = gtk.VBox(homogeneous=False)
     self.vbox_folder_chooser.set_spacing(self.DIALOG_VBOX_SPACING * 2)
