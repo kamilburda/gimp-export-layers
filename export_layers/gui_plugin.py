@@ -241,12 +241,17 @@ def _handle_gui_in_export(run_mode, image, layer, output_filename, window):
 class ExportNamePreview(object):
   
   _VBOX_SPACING = 5
+  _COLUMN_ICON, _COLUMN_TEXT = (0, 1)
   
   def __init__(self, layer_exporter):
     self._layer_exporter = layer_exporter
      
     self._update_locked = False
+    
     self._tree_iter_parents = collections.defaultdict(lambda: None)
+    
+    self._collapsed_items = set()
+    self._should_handle_row_expand = True
     
     self._init_gui()
     
@@ -256,7 +261,7 @@ class ExportNamePreview(object):
     if not self._update_locked:
       self._tree_model.clear()
       self._fill_preview()
-      self._tree_view.expand_all()
+      self._set_expanded_items()
   
   def clear(self):
     self._tree_model.clear()
@@ -273,10 +278,10 @@ class ExportNamePreview(object):
     column = gtk.TreeViewColumn(b"")
     icon_cell_renderer = gtk.CellRendererPixbuf()
     column.pack_start(icon_cell_renderer, expand=False)
-    column.set_attributes(icon_cell_renderer, pixbuf=0)
+    column.set_attributes(icon_cell_renderer, pixbuf=self._COLUMN_ICON)
     text_cell_renderer = gtk.CellRendererText()
     column.pack_start(text_cell_renderer, expand=False)
-    column.set_attributes(text_cell_renderer, text=1)
+    column.set_attributes(text_cell_renderer, text=self._COLUMN_TEXT)
     
     self._tree_view.append_column(column)
     
@@ -297,6 +302,9 @@ class ExportNamePreview(object):
     
     self._init_icons()
     
+    self._tree_view.connect("row-collapsed", self._on_tree_view_row_collapsed)
+    self._tree_view.connect("row-expanded", self._on_tree_view_row_expanded)
+  
   def _init_icons(self):
     self._icons = {}
     self._icons['layer_group'] = self._tree_view.render_icon(gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
@@ -318,15 +326,30 @@ class ExportNamePreview(object):
       x_offset, y_offset, width, height, x_offset, y_offset,
       scaling_factor, scaling_factor, gtk.gdk.INTERP_BILINEAR, 255)
   
+  def _on_tree_view_row_collapsed(self, widget, tree_iter, tree_path):
+    self._collapsed_items.add(self._get_layer_name(tree_iter))
+  
+  def _on_tree_view_row_expanded(self, widget, tree_iter, tree_path):
+    if self._should_handle_row_expand:
+      layer_elem_name = self._get_layer_name(tree_iter)
+      if layer_elem_name in self._collapsed_items:
+        self._collapsed_items.remove(layer_elem_name)
+      
+      self._set_expanded_items(tree_path)
+  
+  def _get_layer_name(self, tree_iter):
+    return self._tree_model.get_value(tree_iter, column=self._COLUMN_TEXT).decode(pggui.GTK_CHARACTER_ENCODING)
+  
   def _fill_preview(self):
     self._layer_exporter.export_layers(operations=['layer_name'])
     
     self._tree_iter_parents.clear()
     
-    for item_elem in self._layer_exporter.layer_data:
+    for layer_elem in self._layer_exporter.layer_data:
       if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
-        self._insert_parent_item_elems(item_elem)
-      self._insert_item_elem(item_elem)
+        self._insert_parent_item_elems(layer_elem)
+      
+      self._insert_item_elem(layer_elem)
   
   def _insert_item_elem(self, item_elem):
     if item_elem.parent:
@@ -334,9 +357,11 @@ class ExportNamePreview(object):
     else:
       parent_tree_iter = None
     
-    self._tree_iter_parents[item_elem.name] = self._tree_model.append(
-      parent_tree_iter, [self._get_icon_from_item_elem(item_elem),
-                         item_elem.name.encode(pggui.GTK_CHARACTER_ENCODING)])
+    tree_iter = self._tree_model.append(parent_tree_iter,
+      [self._get_icon_from_item_elem(item_elem), item_elem.name.encode(pggui.GTK_CHARACTER_ENCODING)])
+    self._tree_iter_parents[item_elem.name] = tree_iter
+    
+    return tree_iter
   
   def _insert_parent_item_elems(self, item_elem):
     for parent_elem in item_elem.parents:
@@ -353,6 +378,33 @@ class ExportNamePreview(object):
         return self._icons['merged_layer_group']
     else:
       return None
+  
+  def _set_expanded_items(self, tree_path=None):
+    """
+    Set the expanded state of items in the tree view.
+    
+    If `tree_path` is specified, set the states only for the child elements in
+    the tree path, otherwise set the states in the whole tree view.
+    """
+    
+    self._should_handle_row_expand = False
+    
+    if tree_path is None:
+      self._tree_view.expand_all()
+    else:
+      self._tree_view.expand_row(tree_path, True)
+    
+    self._should_handle_row_expand = True
+    
+    for layer_elem_name in self._collapsed_items:
+      if layer_elem_name in self._tree_iter_parents:
+        layer_elem_tree_iter = self._tree_iter_parents[layer_elem_name]
+        if layer_elem_tree_iter is None:
+          continue
+        
+        layer_elem_tree_path = self._tree_model.get_path(layer_elem_tree_iter)
+        if tree_path is None or self._tree_view.row_expanded(layer_elem_tree_path):
+          self._tree_view.collapse_row(layer_elem_tree_path)
 
 
 #===============================================================================
