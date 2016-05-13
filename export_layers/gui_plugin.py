@@ -256,6 +256,7 @@ class ExportNamePreview(object):
     self._update_locked = False
     self._tree_iter_parents = collections.defaultdict(lambda: None)
     self._should_handle_row_expand = True
+    self._selected_item = None
     
     self._init_gui()
     
@@ -266,6 +267,7 @@ class ExportNamePreview(object):
       self._tree_model.clear()
       self._fill_preview()
       self._set_expanded_items()
+      self._set_selection()
   
   def clear(self):
     self._tree_model.clear()
@@ -308,6 +310,7 @@ class ExportNamePreview(object):
     
     self._tree_view.connect("row-collapsed", self._on_tree_view_row_collapsed)
     self._tree_view.connect("row-expanded", self._on_tree_view_row_expanded)
+    self._tree_view.get_selection().connect("changed", self._on_tree_selection_changed)
   
   def _init_icons(self):
     self._icons = {}
@@ -340,6 +343,11 @@ class ExportNamePreview(object):
         self._collapsed_items.remove(layer_elem_name)
       
       self._set_expanded_items(tree_path)
+  
+  def _on_tree_selection_changed(self, widget):
+    unused_, tree_iter = self._tree_view.get_selection().get_selected()
+    if tree_iter is not None:
+      self._selected_item = self._get_layer_name(tree_iter)
   
   def _get_layer_name(self, tree_iter):
     return self._tree_model.get_value(tree_iter, column=self._COLUMN_TEXT).decode(pggui.GTK_CHARACTER_ENCODING)
@@ -409,6 +417,15 @@ class ExportNamePreview(object):
         layer_elem_tree_path = self._tree_model.get_path(layer_elem_tree_iter)
         if tree_path is None or self._tree_view.row_expanded(layer_elem_tree_path):
           self._tree_view.collapse_row(layer_elem_tree_path)
+  
+  def _set_selection(self):
+    if self._selected_item is not None:
+      if self._selected_item in self._tree_iter_parents:
+        tree_iter = self._tree_iter_parents[self._selected_item]
+        if tree_iter is not None:
+          self._tree_view.get_selection().select_iter(tree_iter)
+      else:
+        self._selected_item = None
 
 
 #===============================================================================
