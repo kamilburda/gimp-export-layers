@@ -505,7 +505,7 @@ class _ExportLayersGui(object):
     self.vbox_folder_chooser.pack_start(self.folder_chooser)
     
     self.hpaned_chooser_and_previews = gtk.HPaned()
-    self.hpaned_chooser_and_previews.pack1(self.vbox_folder_chooser, resize=True)
+    self.hpaned_chooser_and_previews.pack1(self.vbox_folder_chooser, resize=True, shrink=False)
     self.hpaned_chooser_and_previews.pack2(self.export_name_preview.widget)
     
     self.file_extension_label = gtk.Label()
