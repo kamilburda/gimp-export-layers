@@ -316,10 +316,10 @@ class ExportNamePreview(object):
     self._icons = {}
     self._icons['layer_group'] = self._tree_view.render_icon(gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
     self._icons['layer'] = gtk.gdk.pixbuf_new_from_file_at_size(
-      os.path.join(constants.PLUGIN_PATH, "layer_icon.png"), -1, self._icons['layer_group'].props.height)
+      os.path.join(constants.PLUGIN_PATH, "image_icon.png"), -1, self._icons['layer_group'].props.height)
     self._icons['merged_layer_group'] = self._icons['layer'].copy()
     
-    scaling_factor = 0.9
+    scaling_factor = 0.8
     width_unscaled = self._icons['layer_group'].props.width
     width = int(width_unscaled * scaling_factor)
     height_unscaled = self._icons['layer_group'].props.height
