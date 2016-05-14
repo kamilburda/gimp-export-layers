@@ -446,7 +446,9 @@ class IntComboBox(gimpui.IntComboBox):
 
 #===============================================================================
 
+
 _timer_ids = {}
+
 
 def timeout_add_strict(interval, callback, *callback_args, **callback_kwargs):
   """
