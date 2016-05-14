@@ -255,7 +255,7 @@ class ExportNamePreview(object):
     
     self._update_locked = False
     self._tree_iter_parents = collections.defaultdict(lambda: None)
-    self._should_handle_row_expand = True
+    self._row_expand_collapse_interactive = True
     self._selected_item = None
     
     self._init_gui()
@@ -268,6 +268,7 @@ class ExportNamePreview(object):
       self._fill_preview()
       self._set_expanded_items()
       self._set_selection()
+      self._tree_view.columns_autosize()
   
   def clear(self):
     self._tree_model.clear()
@@ -334,15 +335,19 @@ class ExportNamePreview(object):
       scaling_factor, scaling_factor, gtk.gdk.INTERP_BILINEAR, 255)
   
   def _on_tree_view_row_collapsed(self, widget, tree_iter, tree_path):
-    self._collapsed_items.add(self._get_layer_name(tree_iter))
+    if self._row_expand_collapse_interactive:
+      self._collapsed_items.add(self._get_layer_name(tree_iter))
+      self._tree_view.columns_autosize()
   
   def _on_tree_view_row_expanded(self, widget, tree_iter, tree_path):
-    if self._should_handle_row_expand:
+    if self._row_expand_collapse_interactive:
       layer_elem_name = self._get_layer_name(tree_iter)
       if layer_elem_name in self._collapsed_items:
         self._collapsed_items.remove(layer_elem_name)
       
       self._set_expanded_items(tree_path)
+      
+      self._tree_view.columns_autosize()
   
   def _on_tree_selection_changed(self, widget):
     unused_, tree_iter = self._tree_view.get_selection().get_selected()
@@ -399,14 +404,12 @@ class ExportNamePreview(object):
     the tree path, otherwise set the states in the whole tree view.
     """
     
-    self._should_handle_row_expand = False
+    self._row_expand_collapse_interactive = False
     
     if tree_path is None:
       self._tree_view.expand_all()
     else:
       self._tree_view.expand_row(tree_path, True)
-    
-    self._should_handle_row_expand = True
     
     for layer_elem_name in self._collapsed_items:
       if layer_elem_name in self._tree_iter_parents:
@@ -417,6 +420,8 @@ class ExportNamePreview(object):
         layer_elem_tree_path = self._tree_model.get_path(layer_elem_tree_iter)
         if tree_path is None or self._tree_view.row_expanded(layer_elem_tree_path):
           self._tree_view.collapse_row(layer_elem_tree_path)
+    
+    self._row_expand_collapse_interactive = True
   
   def _set_selection(self):
     if self._selected_item is not None:
