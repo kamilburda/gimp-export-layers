@@ -247,7 +247,7 @@ def _handle_gui_in_export(run_mode, image, layer, output_filename, window):
 class ExportNamePreview(object):
   
   _VBOX_SPACING = 5
-  _COLUMN_ICON, _COLUMN_TEXT = (0, 1)
+  _COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME = (0, 1, 2)
   
   def __init__(self, layer_exporter, collapsed_items=None):
     self._layer_exporter = layer_exporter
@@ -277,18 +277,27 @@ class ExportNamePreview(object):
     self._update_locked = lock
   
   def _init_gui(self):
-    self._tree_model = gtk.TreeStore(gtk.gdk.Pixbuf, bytes)
+    self._tree_model = gtk.TreeStore(gtk.gdk.Pixbuf, bool, bytes)
     
     self._tree_view = gtk.TreeView(model=self._tree_model)
     self._tree_view.set_headers_visible(False)
     
+    self._init_icons()
+    
     column = gtk.TreeViewColumn(b"")
-    icon_cell_renderer = gtk.CellRendererPixbuf()
-    column.pack_start(icon_cell_renderer, expand=False)
-    column.set_attributes(icon_cell_renderer, pixbuf=self._COLUMN_ICON)
-    text_cell_renderer = gtk.CellRendererText()
-    column.pack_start(text_cell_renderer, expand=False)
-    column.set_attributes(text_cell_renderer, text=self._COLUMN_TEXT)
+    
+    cell_renderer_icon_layer = gtk.CellRendererPixbuf()
+    column.pack_start(cell_renderer_icon_layer, expand=False)
+    column.set_attributes(cell_renderer_icon_layer, pixbuf=self._COLUMN_ICON_LAYER)
+    
+    cell_renderer_icon_tag = gtk.CellRendererPixbuf()
+    cell_renderer_icon_tag.set_property("pixbuf", self._icons['tag'])
+    column.pack_start(cell_renderer_icon_tag, expand=False)
+    column.set_attributes(cell_renderer_icon_tag, visible=self._COLUMN_ICON_TAG_VISIBLE)
+    
+    cell_renderer_layer_name = gtk.CellRendererText()
+    column.pack_start(cell_renderer_layer_name, expand=False)
+    column.set_attributes(cell_renderer_layer_name, text=self._COLUMN_LAYER_NAME)
     
     self._tree_view.append_column(column)
     
@@ -307,8 +316,6 @@ class ExportNamePreview(object):
     self._preview_frame.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
     self._preview_frame.add(self._vbox)
     
-    self._init_icons()
-    
     self._tree_view.connect("row-collapsed", self._on_tree_view_row_collapsed)
     self._tree_view.connect("row-expanded", self._on_tree_view_row_expanded)
     self._tree_view.get_selection().connect("changed", self._on_tree_selection_changed)
@@ -318,6 +325,9 @@ class ExportNamePreview(object):
     self._icons['layer_group'] = self._tree_view.render_icon(gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
     self._icons['layer'] = gtk.gdk.pixbuf_new_from_file_at_size(
       os.path.join(constants.PLUGIN_PATH, "image_icon.png"), -1, self._icons['layer_group'].props.height)
+    self._icons['tag'] = gtk.gdk.pixbuf_new_from_file_at_size(
+      os.path.join(constants.PLUGIN_PATH, "tag_icon.png"), -1, self._icons['layer_group'].props.height)
+    
     self._icons['merged_layer_group'] = self._icons['layer'].copy()
     
     scaling_factor = 0.8
@@ -355,7 +365,8 @@ class ExportNamePreview(object):
       self._selected_item = self._get_layer_name(tree_iter)
   
   def _get_layer_name(self, tree_iter):
-    return self._tree_model.get_value(tree_iter, column=self._COLUMN_TEXT).decode(pggui.GTK_CHARACTER_ENCODING)
+    return self._tree_model.get_value(tree_iter, column=self._COLUMN_LAYER_NAME).decode(
+      pggui.GTK_CHARACTER_ENCODING)
   
   def _fill_preview(self):
     self._layer_exporter.export_layers(operations=['layer_name'])
@@ -375,7 +386,9 @@ class ExportNamePreview(object):
       parent_tree_iter = None
     
     tree_iter = self._tree_model.append(parent_tree_iter,
-      [self._get_icon_from_item_elem(item_elem), item_elem.name.encode(pggui.GTK_CHARACTER_ENCODING)])
+      [self._get_icon_from_item_elem(item_elem),
+       self._get_icon_tag_visible(item_elem),
+       item_elem.name.encode(pggui.GTK_CHARACTER_ENCODING)])
     self._tree_iter_parents[item_elem.name] = tree_iter
     
     return tree_iter
@@ -395,6 +408,9 @@ class ExportNamePreview(object):
         return self._icons['merged_layer_group']
     else:
       return None
+  
+  def _get_icon_tag_visible(self, item_elem):
+    return bool(item_elem.tags)
   
   def _set_expanded_items(self, tree_path=None):
     """
