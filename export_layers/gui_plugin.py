@@ -247,7 +247,9 @@ def _handle_gui_in_export(run_mode, image, layer, output_filename, window):
 class ExportNamePreview(object):
   
   _VBOX_SPACING = 5
-  _COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME = (0, 1, 2)
+  
+  _COLUMNS = _COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME, _COLUMN_LAYER_ORIG_NAME = (
+     [0, gtk.gdk.Pixbuf], [1, bool], [2, bytes], [3, bytes])
   
   def __init__(self, layer_exporter, collapsed_items=None):
     self._layer_exporter = layer_exporter
@@ -277,7 +279,7 @@ class ExportNamePreview(object):
     self._update_locked = lock
   
   def _init_gui(self):
-    self._tree_model = gtk.TreeStore(gtk.gdk.Pixbuf, bool, bytes)
+    self._tree_model = gtk.TreeStore(*[column[1] for column in self._COLUMNS])
     
     self._tree_view = gtk.TreeView(model=self._tree_model)
     self._tree_view.set_headers_visible(False)
@@ -288,16 +290,16 @@ class ExportNamePreview(object):
     
     cell_renderer_icon_layer = gtk.CellRendererPixbuf()
     column.pack_start(cell_renderer_icon_layer, expand=False)
-    column.set_attributes(cell_renderer_icon_layer, pixbuf=self._COLUMN_ICON_LAYER)
+    column.set_attributes(cell_renderer_icon_layer, pixbuf=self._COLUMN_ICON_LAYER[0])
     
     cell_renderer_icon_tag = gtk.CellRendererPixbuf()
     cell_renderer_icon_tag.set_property("pixbuf", self._icons['tag'])
     column.pack_start(cell_renderer_icon_tag, expand=False)
-    column.set_attributes(cell_renderer_icon_tag, visible=self._COLUMN_ICON_TAG_VISIBLE)
+    column.set_attributes(cell_renderer_icon_tag, visible=self._COLUMN_ICON_TAG_VISIBLE[0])
     
     cell_renderer_layer_name = gtk.CellRendererText()
     column.pack_start(cell_renderer_layer_name, expand=False)
-    column.set_attributes(cell_renderer_layer_name, text=self._COLUMN_LAYER_NAME)
+    column.set_attributes(cell_renderer_layer_name, text=self._COLUMN_LAYER_NAME[0])
     
     self._tree_view.append_column(column)
     
@@ -346,14 +348,14 @@ class ExportNamePreview(object):
   
   def _on_tree_view_row_collapsed(self, widget, tree_iter, tree_path):
     if self._row_expand_collapse_interactive:
-      self._collapsed_items.add(self._get_layer_name(tree_iter))
+      self._collapsed_items.add(self._get_layer_orig_name(tree_iter))
       self._tree_view.columns_autosize()
   
   def _on_tree_view_row_expanded(self, widget, tree_iter, tree_path):
     if self._row_expand_collapse_interactive:
-      layer_elem_name = self._get_layer_name(tree_iter)
-      if layer_elem_name in self._collapsed_items:
-        self._collapsed_items.remove(layer_elem_name)
+      layer_elem_orig_name = self._get_layer_orig_name(tree_iter)
+      if layer_elem_orig_name in self._collapsed_items:
+        self._collapsed_items.remove(layer_elem_orig_name)
       
       self._set_expanded_items(tree_path)
       
@@ -362,10 +364,10 @@ class ExportNamePreview(object):
   def _on_tree_selection_changed(self, widget):
     unused_, tree_iter = self._tree_view.get_selection().get_selected()
     if tree_iter is not None:
-      self._selected_item = self._get_layer_name(tree_iter)
+      self._selected_item = self._get_layer_orig_name(tree_iter)
   
-  def _get_layer_name(self, tree_iter):
-    return self._tree_model.get_value(tree_iter, column=self._COLUMN_LAYER_NAME).decode(
+  def _get_layer_orig_name(self, tree_iter):
+    return self._tree_model.get_value(tree_iter, column=self._COLUMN_LAYER_ORIG_NAME[0]).decode(
       pggui.GTK_CHARACTER_ENCODING)
   
   def _fill_preview(self):
@@ -381,21 +383,22 @@ class ExportNamePreview(object):
   
   def _insert_item_elem(self, item_elem):
     if item_elem.parent:
-      parent_tree_iter = self._tree_iter_parents[item_elem.parent.name]
+      parent_tree_iter = self._tree_iter_parents[item_elem.parent.orig_name]
     else:
       parent_tree_iter = None
     
     tree_iter = self._tree_model.append(parent_tree_iter,
       [self._get_icon_from_item_elem(item_elem),
        self._get_icon_tag_visible(item_elem),
-       item_elem.name.encode(pggui.GTK_CHARACTER_ENCODING)])
-    self._tree_iter_parents[item_elem.name] = tree_iter
+       item_elem.name.encode(pggui.GTK_CHARACTER_ENCODING),
+       item_elem.orig_name.encode(pggui.GTK_CHARACTER_ENCODING)])
+    self._tree_iter_parents[item_elem.orig_name] = tree_iter
     
     return tree_iter
   
   def _insert_parent_item_elems(self, item_elem):
     for parent_elem in item_elem.parents:
-      if not self._tree_iter_parents[parent_elem.name]:
+      if not self._tree_iter_parents[parent_elem.orig_name]:
         self._insert_item_elem(parent_elem)
   
   def _get_icon_from_item_elem(self, item_elem):
@@ -427,9 +430,9 @@ class ExportNamePreview(object):
     else:
       self._tree_view.expand_row(tree_path, True)
     
-    for layer_elem_name in self._collapsed_items:
-      if layer_elem_name in self._tree_iter_parents:
-        layer_elem_tree_iter = self._tree_iter_parents[layer_elem_name]
+    for layer_elem_orig_name in self._collapsed_items:
+      if layer_elem_orig_name in self._tree_iter_parents:
+        layer_elem_tree_iter = self._tree_iter_parents[layer_elem_orig_name]
         if layer_elem_tree_iter is None:
           continue
         
