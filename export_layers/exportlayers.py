@@ -31,11 +31,11 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import collections
 import contextlib
 import functools
 import os
 import re
-from collections import defaultdict
 
 import gimp
 import gimpenums
@@ -314,8 +314,8 @@ class LayerExporter(object):
     self._image_copy = None
     self._layer_data = pgitemdata.LayerData(self.image, is_filtered=True)
     
-    self._tagged_layer_elems = defaultdict(list)
-    self._tagged_layer_copies = defaultdict(lambda: None)
+    self._tagged_layer_elems = collections.defaultdict(list)
+    self._tagged_layer_copies = collections.defaultdict(lambda: None)
     
     self.progress_updater.reset()
     
@@ -327,7 +327,7 @@ class LayerExporter(object):
     self._current_overwrite_mode = None
   
   def _prefill_file_extension_properties(self):
-    file_extension_properties = defaultdict(_FileExtensionProperties)
+    file_extension_properties = collections.defaultdict(_FileExtensionProperties)
     
     for file_format in pgfileformats.file_formats:
       # This ensures that the file format dialog will be displayed only once per
