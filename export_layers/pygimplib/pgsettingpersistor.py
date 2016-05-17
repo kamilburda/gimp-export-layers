@@ -32,7 +32,7 @@ from __future__ import unicode_literals
 str = unicode
 
 import abc
-from collections import OrderedDict
+import collections
 
 try:
   import cPickle as pickle
@@ -276,7 +276,7 @@ class PersistentSettingSource(SettingSource):
     properly serialize and de-serialize.
     """
     
-    settings_dict = OrderedDict()
+    settings_dict = collections.OrderedDict()
     for setting in settings:
       settings_dict[setting.name] = setting.value
     
@@ -295,7 +295,7 @@ class SettingPersistor(object):
   * write settings to multiple setting sources
   """
   
-  __STATUSES = SUCCESS, READ_FAIL, WRITE_FAIL, NOT_ALL_SETTINGS_FOUND = (0, 1, 2, 3)
+  _STATUSES = SUCCESS, READ_FAIL, WRITE_FAIL, NOT_ALL_SETTINGS_FOUND = (0, 1, 2, 3)
   
   @classmethod
   def load(cls, settings_or_groups, setting_sources):

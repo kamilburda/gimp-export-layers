@@ -43,9 +43,8 @@ from __future__ import unicode_literals
 str = unicode
 
 import abc
+import collections
 import os
-from collections import namedtuple
-from collections import OrderedDict
 
 import gimp
 
@@ -100,7 +99,7 @@ class ItemData(object):
     # Contains all items (including item groups) in the item tree.
     # key: `_ItemDataElement.orig_name` (derived from `gimp.Item.name`, which is unique)
     # value: `_ItemDataElement` object
-    self._itemdata = OrderedDict()
+    self._itemdata = collections.OrderedDict()
     
     # key `_ItemDataElement` object (parent) or None (root of the item tree)
     # value: set of `_ItemDataElement` objects
@@ -229,7 +228,7 @@ class ItemData(object):
     pairs.
     """
     
-    _ItemTreeNode = namedtuple('_ItemTreeNode', ['item', 'parents'])
+    _ItemTreeNode = collections.namedtuple('_ItemTreeNode', ['item', 'parents'])
     item_tree = [_ItemTreeNode(child_item, []) for child_item in self._get_children_from_image(self.image)]
     
     while item_tree:
@@ -332,7 +331,7 @@ class _ItemDataElement(object):
     of these items is invisible, `path_visible` is False.
   """
   
-  __ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP = (0, 1, 2)
+  _ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP = (0, 1, 2)
   
   def __init__(self, item, parents=None):
     if item is None:

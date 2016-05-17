@@ -31,8 +31,8 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import collections
 import inspect
-from collections import OrderedDict
 
 from . import pgsetting
 
@@ -88,7 +88,7 @@ class SettingGroup(object):
     """
     
     self._name = name
-    self._settings = OrderedDict()
+    self._settings = collections.OrderedDict()
     
     self.add(setting_list)
     

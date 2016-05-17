@@ -30,9 +30,9 @@ from __future__ import unicode_literals
 str = unicode
 
 import abc
+import collections
 import inspect
 import os
-from collections import OrderedDict
 
 import gimp
 import gimpenums
@@ -247,7 +247,7 @@ class Setting(object):
     self._pdb_name = self._get_pdb_name(self._name)
     
     # key: event handler ID; value: [event handler, event handler arguments]
-    self._event_handlers = OrderedDict()
+    self._event_handlers = collections.OrderedDict()
     self._event_handler_id_counter = 0
     
     self._setting_value_synchronizer = pgsettingpresenter.SettingValueSynchronizer()
@@ -886,8 +886,8 @@ class EnumSetting(Setting):
     return "{ " + items_description + " }"
   
   def _create_item_attributes(self, input_items):
-    items = OrderedDict()
-    items_display_names = OrderedDict()
+    items = collections.OrderedDict()
+    items_display_names = collections.OrderedDict()
     item_values = set()
     
     if all(len(elem) == 2 for elem in input_items):

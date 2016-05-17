@@ -55,7 +55,7 @@ class ObjectFilter(object):
   objects, called "subfilters", each with their own set of rules and match type.
   """
   
-  __MATCH_TYPES = MATCH_ALL, MATCH_ANY = (0, 1)
+  _MATCH_TYPES = MATCH_ALL, MATCH_ANY = (0, 1)
   
   def __init__(self, match_type):
     self._match_type = match_type

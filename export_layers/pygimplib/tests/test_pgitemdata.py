@@ -32,9 +32,9 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import collections
 import os
 import unittest
-from collections import OrderedDict
 
 from ..lib import mock
 
@@ -231,7 +231,7 @@ class TestLayerData(unittest.TestCase):
       )
   
   def test_uniquify_without_layer_groups(self):
-    uniquified_names = OrderedDict([
+    uniquified_names = collections.OrderedDict([
       ("top-left-corner",      "top-left-corner"),
       ("top-right-corner",     "top-right-corner"),
       ("top-left-corner:",     "top-left-corner (1)"),
@@ -260,7 +260,7 @@ class TestLayerData(unittest.TestCase):
     self._compare_uniquified_without_parents(self.layer_data, uniquified_names)
   
   def test_uniquify_with_layer_groups(self):
-    uniquified_names = OrderedDict([
+    uniquified_names = collections.OrderedDict([
       ("Corners",                ["Corners"]),
       ("top-left-corner",        ["Corners", "top-left-corner"]),
       ("top-right-corner",       ["Corners", "top-right-corner"]),
@@ -297,7 +297,7 @@ class TestLayerData(unittest.TestCase):
         position = len(str_)
       return position
     
-    uniquified_names = OrderedDict([
+    uniquified_names = collections.OrderedDict([
       ("main-background.jpg",    ["main-background.jpg"]),
       ("main-background.jpg:",   ["main-background (1).jpg"]),
       ("main-background.jpg::",  ["main-background.jpg (1)"])
