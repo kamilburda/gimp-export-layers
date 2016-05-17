@@ -256,11 +256,12 @@ class ExportNamePreview(object):
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
     
     self._update_locked = False
-    self._tree_iter_parents = collections.defaultdict(lambda: None)
-    self._selected_item = None
+    self._tree_iters = collections.defaultdict(lambda: None)
+    self._selected_items = []
     
     self._row_expand_collapse_interactive = True
     self._toggle_tag_interactive = True
+    self._clearing_preview = False
     
     self._init_gui()
     
@@ -268,14 +269,16 @@ class ExportNamePreview(object):
   
   def update(self):
     if not self._update_locked:
-      self._tree_model.clear()
+      self.clear()
       self._fill_preview()
       self._set_expanded_items()
       self._set_selection()
       self._tree_view.columns_autosize()
   
   def clear(self):
+    self._clearing_preview = True
     self._tree_model.clear()
+    self._clearing_preview = False
   
   def lock_update(self, lock):
     self._update_locked = lock
@@ -285,6 +288,7 @@ class ExportNamePreview(object):
     
     self._tree_view = gtk.TreeView(model=self._tree_model)
     self._tree_view.set_headers_visible(False)
+    self._tree_view.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
     
     self._init_icons()
     
@@ -380,64 +384,84 @@ class ExportNamePreview(object):
       self._tree_view.columns_autosize()
   
   def _on_tree_selection_changed(self, widget):
-    layer_elem_orig_name = self._get_layer_orig_name_in_current_selection()
-    if layer_elem_orig_name is not None:
-      self._selected_item = layer_elem_orig_name
+    if not self._clearing_preview:
+      self._selected_items = self._get_layer_orig_names_in_current_selection()
   
   def _on_tree_view_right_button_press(self, widget, event):
     if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
-      # We can't use `TreeSelection.get_selection()` because this event is fired
-      # before the selection is updated.
-      selection = self._tree_view.get_path_at_pos(int(event.x), int(event.y))
-      if selection is not None:
-        tree_iter = self._tree_model.get_iter(selection[0])
-        
-        layer_elem = self._layer_exporter.layer_data[self._get_layer_orig_name(tree_iter)]
+      layer_elem_orig_names = []
+      stop_event_propagation = False
+      
+      # Get the current selection. We can't use `TreeSelection.get_selection()`
+      # because this event is fired before the selection is updated.
+      selection_at_pos = self._tree_view.get_path_at_pos(int(event.x), int(event.y))
+      
+      if selection_at_pos is not None and self._tree_view.get_selection().count_selected_rows() > 1:
+        layer_elem_orig_names = self._get_layer_orig_names_in_current_selection()
+        stop_event_propagation = True
+      else:
+        if selection_at_pos is not None:
+          tree_iter = self._tree_model.get_iter(selection_at_pos[0])
+          layer_elem_orig_names = [self._get_layer_orig_name(tree_iter)]
+      
+      self._toggle_tag_interactive = False
+      
+      if len(layer_elem_orig_names) == 1:
+        layer_elem_orig_name = layer_elem_orig_names[0]
+        layer_elem = self._layer_exporter.layer_data[layer_elem_orig_name]
         for tag in self._layer_exporter.SUPPORTED_TAGS:
-          self._toggle_tag_interactive = False
           self._tags_menu_items[tag].set_active(tag in layer_elem.tags)
-          self._toggle_tag_interactive = True
-        
+      elif len(layer_elem_orig_names) > 1:
+        layer_elems = [self._layer_exporter.layer_data[layer_elem_orig_name]
+                       for layer_elem_orig_name in layer_elem_orig_names]
+        for tag, tags_menu_item in self._tags_menu_items.items():
+          tags_menu_item.set_active(all(tag in layer_elem.tags for layer_elem in layer_elems))
+      
+      self._toggle_tag_interactive = True
+      
+      if len(layer_elem_orig_names) >= 1:
         self._tags_menu.popup(None, None, None, event.button, event.time)
+      
+      return stop_event_propagation
   
   def _on_tags_menu_item_toggled(self, tags_menu_item):
     if self._toggle_tag_interactive:
-      layer_elem_orig_name = self._get_layer_orig_name_in_current_selection()
-      if layer_elem_orig_name is None:
-        return
+      pdb.gimp_image_undo_group_start(self._layer_exporter.image)
       
-      layer_elem = self._layer_exporter.layer_data[layer_elem_orig_name]
-      tag = self._tags_names[tags_menu_item.get_label()]
-      if tags_menu_item.get_active():
-        new_layer_elem = self._layer_exporter.layer_data.add_tag(layer_elem, tag)
-      else:
-        new_layer_elem = self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
-      self._set_layer_orig_name_in_current_selection(new_layer_elem.orig_name)
-      self._set_value_in_selection(self._COLUMN_ICON_TAG_VISIBLE[0], self._get_icon_tag_visible(new_layer_elem))
+      for layer_elem_orig_name in self._get_layer_orig_names_in_current_selection():
+        layer_elem = self._layer_exporter.layer_data[layer_elem_orig_name]
+        tag = self._tags_names[tags_menu_item.get_label()]
+        
+        if tags_menu_item.get_active():
+          new_layer_elem = self._layer_exporter.layer_data.add_tag(layer_elem, tag)
+        else:
+          new_layer_elem = self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
+        
+        self._set_layer_orig_name(self._tree_iters[layer_elem_orig_name],
+                                  layer_elem_orig_name, new_layer_elem.orig_name)
+        self._tree_model.set_value(self._tree_iters[new_layer_elem.orig_name], self._COLUMN_ICON_TAG_VISIBLE[0],
+                                   self._get_icon_tag_visible(new_layer_elem))
+      
+      pdb.gimp_image_undo_group_end(self._layer_exporter.image)
   
   def _get_layer_orig_name(self, tree_iter):
     return self._tree_model.get_value(tree_iter, column=self._COLUMN_LAYER_ORIG_NAME[0]).decode(
       pggui.GTK_CHARACTER_ENCODING)
   
-  def _get_layer_orig_name_in_current_selection(self):
-    unused_, tree_iter = self._tree_view.get_selection().get_selected()
-    if tree_iter is not None:
-      return self._get_layer_orig_name(tree_iter)
-    else:
-      return None
+  def _set_layer_orig_name(self, tree_iter, old_orig_name, new_orig_name):
+    self._tree_model.set_value(tree_iter, self._COLUMN_LAYER_ORIG_NAME[0],
+                               new_orig_name.encode(pggui.GTK_CHARACTER_ENCODING))
+    del self._tree_iters[old_orig_name]
+    self._tree_iters[new_orig_name] = tree_iter
   
-  def _set_value_in_selection(self, column, value):
-    unused_, tree_iter = self._tree_view.get_selection().get_selected()
-    if tree_iter is not None:
-      self._tree_model.set_value(tree_iter, column, value)
-  
-  def _set_layer_orig_name_in_current_selection(self, orig_name):
-    self._set_value_in_selection(self._COLUMN_LAYER_ORIG_NAME[0], orig_name.encode(pggui.GTK_CHARACTER_ENCODING))
+  def _get_layer_orig_names_in_current_selection(self):
+    unused_, tree_paths = self._tree_view.get_selection().get_selected_rows()
+    return [self._get_layer_orig_name(self._tree_model.get_iter(tree_path)) for tree_path in tree_paths]
   
   def _fill_preview(self):
     self._layer_exporter.export_layers(operations=['layer_name'])
     
-    self._tree_iter_parents.clear()
+    self._tree_iters.clear()
     
     for layer_elem in self._layer_exporter.layer_data:
       if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
@@ -447,7 +471,7 @@ class ExportNamePreview(object):
   
   def _insert_item_elem(self, item_elem):
     if item_elem.parent:
-      parent_tree_iter = self._tree_iter_parents[item_elem.parent.orig_name]
+      parent_tree_iter = self._tree_iters[item_elem.parent.orig_name]
     else:
       parent_tree_iter = None
     
@@ -456,13 +480,13 @@ class ExportNamePreview(object):
        self._get_icon_tag_visible(item_elem),
        item_elem.name.encode(pggui.GTK_CHARACTER_ENCODING),
        item_elem.orig_name.encode(pggui.GTK_CHARACTER_ENCODING)])
-    self._tree_iter_parents[item_elem.orig_name] = tree_iter
+    self._tree_iters[item_elem.orig_name] = tree_iter
     
     return tree_iter
   
   def _insert_parent_item_elems(self, item_elem):
     for parent_elem in item_elem.parents:
-      if not self._tree_iter_parents[parent_elem.orig_name]:
+      if not self._tree_iters[parent_elem.orig_name]:
         self._insert_item_elem(parent_elem)
   
   def _get_icon_from_item_elem(self, item_elem):
@@ -495,8 +519,8 @@ class ExportNamePreview(object):
       self._tree_view.expand_row(tree_path, True)
     
     for layer_elem_orig_name in self._collapsed_items:
-      if layer_elem_orig_name in self._tree_iter_parents:
-        layer_elem_tree_iter = self._tree_iter_parents[layer_elem_orig_name]
+      if layer_elem_orig_name in self._tree_iters:
+        layer_elem_tree_iter = self._tree_iters[layer_elem_orig_name]
         if layer_elem_tree_iter is None:
           continue
         
@@ -507,13 +531,12 @@ class ExportNamePreview(object):
     self._row_expand_collapse_interactive = True
   
   def _set_selection(self):
-    if self._selected_item is not None:
-      if self._selected_item in self._tree_iter_parents:
-        tree_iter = self._tree_iter_parents[self._selected_item]
-        if tree_iter is not None:
-          self._tree_view.get_selection().select_iter(tree_iter)
-      else:
-        self._selected_item = None
+    self._selected_items = [item for item in self._selected_items if item in self._tree_iters]
+    
+    for item in self._selected_items:
+      tree_iter = self._tree_iters[item]
+      if tree_iter is not None:
+        self._tree_view.get_selection().select_iter(tree_iter)
 
 
 #===============================================================================
