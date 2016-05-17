@@ -127,20 +127,6 @@ class LayerFilterRules(object):
 
 
 #===============================================================================
-  
-
-def _unify_tags(layer_elem, pattern, unified_tag):
-  new_tags = set()
-  for tag in layer_elem.tags:
-    if re.match(pattern, tag):
-      new_tags.add(unified_tag)
-    else:
-      new_tags.add(tag)
-  
-  layer_elem.tags = new_tags
-
-
-#===============================================================================
 
 
 class _FileExtensionProperties(object):
@@ -226,6 +212,9 @@ class LayerExporter(object):
   * `export_context_manager_args` - Additional arguments passed to
     `export_context_manager`.
   """
+  
+  SUPPORTED_TAGS = collections.OrderedDict([('background', _("Background")),
+                                            ('foreground', _("Foreground"))])
   
   def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser=None, progress_updater=None,
                export_context_manager=None, export_context_manager_args=None):
@@ -361,8 +350,6 @@ class LayerExporter(object):
     
     for layer_elem in self._layer_data:
       layer_elem.parse_tags()
-      _unify_tags(layer_elem, r"^(?i)(foreground|fg)$", "foreground")
-      _unify_tags(layer_elem, r"^(?i)(background|bg)$", "background")
     
     if self.export_settings['tagged_layers_mode'].is_item('special'):
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tag, 'background'):
