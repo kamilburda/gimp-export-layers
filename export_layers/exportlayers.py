@@ -329,6 +329,9 @@ class LayerExporter(object):
     return file_extension_properties
   
   def _preprocess_layers(self):
+    for layer_elem in self._layer_data:
+      layer_elem.parse_tags()
+    
     self._layer_data.filter.add_subfilter(
       'layer_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY))
     
@@ -347,9 +350,6 @@ class LayerExporter(object):
     if self.export_settings['file_extension_mode'].is_item('only_matching_file_extension'):
       self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension,
                                        self._default_file_extension)
-    
-    for layer_elem in self._layer_data:
-      layer_elem.parse_tags()
     
     if self.export_settings['tagged_layers_mode'].is_item('special'):
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tag, 'background'):
