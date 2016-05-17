@@ -45,6 +45,7 @@ str = unicode
 import abc
 import collections
 import os
+import re
 
 import gimp
 
@@ -222,6 +223,48 @@ class ItemData(object):
         item_elem.name, self._uniquified_itemdata[parent], uniquifier_position)
       self._uniquified_itemdata[parent].add(item_elem.name)
   
+  def add_tag(self, item_elem, tag):
+    """
+    Add the specified tag to the specified item. The tag is also prepended to
+    the original item name. New instance of the item is returned.
+    
+    If the tag already exists, do nothing and return the original item.
+    """
+    
+    if tag in item_elem.tags:
+      return item_elem
+    
+    item_elem.tags.add(tag)
+    
+    item_elem.item.name = "[{0}] {1}".format(tag, item_elem.orig_name).encode()
+    
+    new_item_elem = self._new_item_elem(item_elem)
+    
+    return new_item_elem
+  
+  def remove_tag(self, item_elem, tag):
+    """
+    Remove the specified tag. The tag is also removed from the item name. If the
+    original item name contains the tag multiple times, all of the occurrences
+    of the tag are removed.
+    
+    If the tag does not exist in the item name, raise `ValueError`.
+    """
+    
+    if tag not in item_elem.tags:
+      raise ValueError("tag '{0}' not found in _ItemDataElement '{1}'".format(tag, item_elem.orig_name))
+    
+    item_elem.tags.remove(tag)
+    
+    unused_, index = _parse_tags(item_elem.orig_name)
+    tags_str = item_elem.orig_name[:index]
+    tags_str_processed = re.sub(r"\[" + re.escape(tag) + r"\] *", r"", tags_str)
+    item_elem.item.name = (tags_str_processed + item_elem.orig_name[index:]).encode()
+    
+    new_item_elem = self._new_item_elem(item_elem)
+    
+    return new_item_elem
+  
   def _fill_item_data(self):
     """
     Fill the _itemdata dictionary, containing <gimp.Item.name, _ItemDataElement>
@@ -241,6 +284,16 @@ class ItemData(object):
       if pdb.gimp_item_is_group(node.item):
         for child_item in reversed(self._get_children_from_item(node.item)):
           item_tree.insert(0, _ItemTreeNode(child_item, item_elem_parents + [item_elem]))
+  
+  def _new_item_elem(self, item_elem):
+    new_item_elem = _ItemDataElement(item_elem.item, item_elem.parents)
+    new_item_elem.name = item_elem.name
+    new_item_elem.tags = item_elem.tags
+    
+    del self._itemdata[item_elem.orig_name]
+    self._itemdata[new_item_elem.orig_name] = new_item_elem
+    
+    return new_item_elem
   
   @abc.abstractmethod
   def _get_children_from_image(self, image):
@@ -292,6 +345,48 @@ class PathData(ItemData):
 
 #===============================================================================
 
+  
+def _parse_tags(str_):
+  index = 0
+  start_of_tag_index = 0
+  is_inside_tag = False
+  tag_name = ""
+  tags = []
+  
+  while index < len(str_):
+    if str_[index].isspace():
+      if is_inside_tag:
+        tag_name += str_[index]
+    elif str_[index] == "[":
+      if not is_inside_tag:
+        is_inside_tag = True
+        start_of_tag_index = index
+      else:
+        index = start_of_tag_index
+        break
+    elif str_[index] == "]":
+      if not tag_name.strip() and is_inside_tag:
+        index = start_of_tag_index
+        break
+      
+      if is_inside_tag:
+        is_inside_tag = False
+        tags.append(tag_name)
+        tag_name = ""
+      else:
+        break
+    else:
+      if is_inside_tag:
+        tag_name += str_[index]
+      else:
+        break
+    index += 1
+  
+  return tags, index
+
+
+#===============================================================================
+
 
 class _ItemDataElement(object):
   
@@ -324,11 +419,14 @@ class _ItemDataElement(object):
      attribute. Modify this attribute instead of `gimp.Item.name` to avoid
      modifying the original item.
   
-  * `orig_name` (read-only) - original `gimp.Item.name` as a `unicode` string.
+  * `orig_name` (read-only) - Original `gimp.Item.name` as a `unicode` string.
   
   * `path_visible` (read-only) - Visibility of all item's parents and this
     item. If all items are visible, `path_visible` is True. If at least one
     of these items is invisible, `path_visible` is False.
+  
+  * `tags` - Set of arbitrary strings attached to the item. Tags can also be
+    parsed from the item name by calling `parse_tags`.
   """
   
   _ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP = (0, 1, 2)
@@ -490,7 +588,7 @@ class _ItemDataElement(object):
   
   def parse_tags(self):
     """
-    Parse tags from name. Example:
+    Parse tags from the item name. Example:
     
       [background] Layer
     
@@ -504,49 +602,11 @@ class _ItemDataElement(object):
     brackets, e.g. "[[background]]".
     """
     
-    tags, index = self._parse_tags()
+    tags, index = _parse_tags(self.name)
     
     if tags:
       self.name = self.name[index:]
       self.tags.update(tags)
-  
-  def _parse_tags(self):
-    index = 0
-    start_of_tag_index = 0
-    is_inside_tag = False
-    tag_name = ""
-    tags = []
-    
-    while index < len(self.name):
-      if self.name[index].isspace():
-        if is_inside_tag:
-          tag_name += self.name[index]
-      elif self.name[index] == "[":
-        if not is_inside_tag:
-          is_inside_tag = True
-          start_of_tag_index = index
-        else:
-          index = start_of_tag_index
-          break
-      elif self.name[index] == "]":
-        if not tag_name.strip() and is_inside_tag:
-          index = start_of_tag_index
-          break
-        
-        if is_inside_tag:
-          is_inside_tag = False
-          tags.append(tag_name)
-          tag_name = ""
-        else:
-          break
-      else:
-        if is_inside_tag:
-          tag_name += self.name[index]
-        else:
-          break
-      index += 1
-    
-    return tags, index
   
   def _get_path_visibility(self):
     """
