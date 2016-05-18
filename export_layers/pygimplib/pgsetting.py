@@ -74,8 +74,8 @@ class SettingPdbTypes(object):
   display = gimpenums.PDB_DISPLAY
   status = gimpenums.PDB_STATUS
   
-  none = type(b"DoNotRegisterSettingPdbType", (), {})()
-  automatic = None
+  none = None
+  automatic = type(b"AutomaticSettingPdbType", (), {})()
 
 
 #===============================================================================
@@ -547,7 +547,7 @@ class Setting(object):
   def _get_pdb_type(self, pdb_type):
     if pdb_type == SettingPdbTypes.automatic:
       return self._get_default_pdb_type()
-    elif pdb_type == SettingPdbTypes.none:
+    elif pdb_type is None or pdb_type == SettingPdbTypes.none:
       return SettingPdbTypes.none
     elif pdb_type in self._ALLOWED_PDB_TYPES:
       return pdb_type

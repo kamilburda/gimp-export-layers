@@ -477,7 +477,7 @@ class TestSettingGui(unittest.TestCase):
   def test_set_gui_disable_automatic_setting_value_update(self):
     setting = MockSettingWithGui("file_extension", "")
     setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget,
-                       auto_update_gui_to_setting=False)
+                    auto_update_gui_to_setting=False)
     self.assertEqual(setting.gui.gui_update_enabled, False)
     
     self.widget.set_value("png")
