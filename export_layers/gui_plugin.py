@@ -256,6 +256,8 @@ class ExportNamePreview(object):
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
     
     self._update_locked = False
+    self._lock_keys = set()
+    
     self._tree_iters = collections.defaultdict(lambda: None)
     self._selected_items = []
     
@@ -268,6 +270,11 @@ class ExportNamePreview(object):
     self.widget = self._preview_frame
   
   def update(self):
+    """
+    Update the export preview (add new layers, remove nonexistent layers, modify
+    layer tree, etc.).
+    """
+    
     if not self._update_locked:
       self.clear()
       self._fill_preview()
@@ -276,12 +283,42 @@ class ExportNamePreview(object):
       self._tree_view.columns_autosize()
   
   def clear(self):
+    """
+    Clear the entire export preview.
+    """
+    
     self._clearing_preview = True
     self._tree_model.clear()
     self._clearing_preview = False
   
-  def lock_update(self, lock):
-    self._update_locked = lock
+  def lock_update(self, lock, key=None):
+    """
+    If `lock` is True, calling `update` will have no effect. Passing False to
+    `lock` will enable updating the preview again.
+    
+    If `key` is specified to lock the update, the same key must be specified to
+    unlock the preview. Multiple keys can be used to lock the preview; to unlock
+    the preview, call this method with each of the keys.
+    
+    If `key` is specified and `lock` is False and the key was not used to lock
+    the preview before, nothing happens.
+    
+    If `key` is None, lock/unlock the preview regardless of which function
+    called this method. Passing None also removes previous keys that were used
+    to lock the preview.
+    """
+    
+    if key is None:
+      self._lock_keys.clear()
+      self._update_locked = lock
+    else:
+      if lock:
+        self._lock_keys.add(key)
+      else:
+        if key in self._lock_keys:
+          self._lock_keys.remove(key)
+      
+      self._update_locked = bool(self._lock_keys)
   
   def _init_gui(self):
     self._tree_model = gtk.TreeStore(*[column[1] for column in self._COLUMNS])
@@ -613,6 +650,7 @@ class _ExportLayersGui(object):
     self.hpaned_chooser_and_previews = gtk.HPaned()
     self.hpaned_chooser_and_previews.pack1(self.vbox_folder_chooser, resize=True, shrink=False)
     self.hpaned_chooser_and_previews.pack2(self.export_name_preview.widget)
+    self.hpaned_previous_position = None
     
     self.file_extension_label = gtk.Label()
     self.file_extension_label.set_markup("<b>" + self.settings['main']['file_extension'].display_name + ":</b>")
@@ -763,6 +801,7 @@ class _ExportLayersGui(object):
     self.expander_advanced_settings.connect("notify::expanded", self.on_expander_advanced_settings_expanded)
     
     self.dialog.connect("notify::is-active", self.on_dialog_is_active)
+    self.hpaned_chooser_and_previews.connect("event", self.on_hpaned_left_button_up)
     
     self._connect_setting_changes_to_preview()
     
@@ -802,9 +841,9 @@ class _ExportLayersGui(object):
       
       self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR,
         setting=self.settings['main']['file_extension'])
-      self.export_name_preview.lock_update(True)
+      self.export_name_preview.lock_update(True, self.on_file_extension_entry_changed)
     else:
-      self.export_name_preview.lock_update(False)
+      self.export_name_preview.lock_update(False, self.on_file_extension_entry_changed)
       if self._message_setting == self.settings['main']['file_extension']:
         self.display_message_label(None)
       
@@ -830,6 +869,18 @@ class _ExportLayersGui(object):
     for setting in self.settings['main']:
       if setting.name not in ['file_extension', 'output_directory', 'overwrite_mode']:
         setting.connect_value_changed_event(_on_setting_changed, self)
+  
+  def on_hpaned_left_button_up(self, widget, event):
+    if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:
+      current_position = self.hpaned_chooser_and_previews.get_position()
+      max_position = self.hpaned_chooser_and_previews.get_property("max-position")
+      if (current_position == max_position and self.hpaned_previous_position != current_position):
+        self.export_name_preview.clear()
+        self.export_name_preview.lock_update(True, self.on_hpaned_left_button_up)
+      elif (current_position != max_position and self.hpaned_previous_position == max_position):
+        self.export_name_preview.lock_update(False, self.on_hpaned_left_button_up)
+        self.export_name_preview.update()
+      self.hpaned_previous_position = current_position
   
   @_set_settings
   def on_save_settings_clicked(self, widget):
