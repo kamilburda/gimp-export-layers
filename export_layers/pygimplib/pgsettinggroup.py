@@ -231,10 +231,10 @@ class SettingGroup(object):
     
     Settings that are not provided with a readily available GUI can have their
     GUI initialized using the `custom_gui` dict. `custom_gui` contains
-    (setting name, list of arguments to `pgsetting.Setting.create_gui`) pairs.
-    The "enable GUI update?" boolean in the list is optional and defaults to
-    True. For more information about parameters in the list, see the
-    `Setting.create_gui` method.
+    (setting name, list of arguments to `pgsetting.Setting.set_gui`) pairs. The
+    "enable GUI update?" boolean in the list is optional and defaults to True.
+    For more information about parameters in the list, see the `Setting.set_gui`
+    method.
     
     Example:
     
@@ -251,10 +251,10 @@ class SettingGroup(object):
     
     for setting in self.iterate_all():
       if setting.name not in custom_gui:
-        setting.create_gui()
+        setting.set_gui()
       else:
-        create_gui_args = custom_gui[setting.name]
-        setting.create_gui(*create_gui_args)
+        set_gui_args = custom_gui[setting.name]
+        setting.set_gui(*set_gui_args)
   
   def apply_gui_values_to_settings(self):
     """

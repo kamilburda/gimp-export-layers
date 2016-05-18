@@ -206,7 +206,7 @@ class Setting(object):
       allowed PDB types are defined for that subclass, the setting cannot be
       registered (None is assigned).
     
-    * `gui_type` - Type of GUI element to be created by the `create_gui` method.
+    * `gui_type` - Type of GUI element to be created by the `set_gui` method.
       Use the `SettingGuiTypes` enum to specify the desired GUI type.
     
       If `gui_type` is `SettingGuiTypes.automatic`, choose the first GUI type
@@ -346,11 +346,11 @@ class Setting(object):
     if self._has_events_connected():
       self._trigger_value_changed_event()
   
-  def create_gui(self, gui_type=SettingGuiTypes.automatic, gui_element=None, auto_update_gui_to_setting=True):
+  def set_gui(self, gui_type=SettingGuiTypes.automatic, gui_element=None, auto_update_gui_to_setting=True):
     """
-    Create a new GUI object (`SettingPresenter` instance) for this setting. The
-    state of the previous GUI object is copied to the new GUI object (such as
-    its value, visibility and enabled state).
+    Create a new GUI object (`SettingPresenter` instance) for this setting or
+    remove the GUI. The state of the previous GUI object is copied to the new
+    GUI object (such as its value, visibility and enabled state).
     
     Parameters:
     
@@ -362,6 +362,9 @@ class Setting(object):
       To specify an existing GUI element, pass a specific `gui_type` and the
       GUI element in `gui_element`. This is useful if you wish to use the GUI
       element for multiple settings or for other purposes outside this setting.
+      
+      If `gui_type` is None, remove the GUI and disconnect any events the GUI
+      had. The state of the old GUI is still preserved.
       
       If `gui_type` is not any of the allowed GUI types for the setting, raise
       `ValueError`.
@@ -383,6 +386,10 @@ class Setting(object):
     
     if gui_type == SettingGuiTypes.automatic:
       gui_type = self._gui_type
+    elif gui_type is None:
+      gui_type = pgsettingpresenter.NullSettingPresenter
+      # We need to disconnect the event before removing the GUI.
+      self._gui.auto_update_gui_to_setting(False)
     
     self._gui = gui_type(
       self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,

@@ -380,8 +380,8 @@ class TestSettingGroupGui(unittest.TestCase):
   def test_apply_gui_values_to_settings_ignores_specified_settings(self):
     file_extension_widget = MockGuiWidget(None)
     ignore_invisible_widget = MockGuiWidget(None)
-    self.settings['file_extension'].create_gui(MockSettingPresenter, file_extension_widget)
-    self.settings['ignore_invisible'].create_gui(MockSettingPresenter, ignore_invisible_widget)
+    self.settings['file_extension'].set_gui(MockSettingPresenter, file_extension_widget)
+    self.settings['ignore_invisible'].set_gui(MockSettingPresenter, ignore_invisible_widget)
     
     file_extension_widget.set_value("gif")
     ignore_invisible_widget.set_value(True)
