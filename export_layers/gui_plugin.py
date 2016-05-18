@@ -693,7 +693,7 @@ class _ExportLayersGui(object):
       'export_preview_pane_position': [pgsetting.SettingGuiTypes.paned_position, self.hpaned_chooser_and_previews],
     })
     
-    self.current_directory_setting.create_gui(pgsetting.SettingGuiTypes.folder_chooser, self.folder_chooser)
+    self.current_directory_setting.set_gui(pgsetting.SettingGuiTypes.folder_chooser, self.folder_chooser)
     
     self.hbox_file_extension_entry = gtk.HBox(homogeneous=False)
     self.hbox_file_extension_entry.set_spacing(30)
