@@ -218,8 +218,7 @@ class Setting(object):
       list of allowed GUI types for the corresponding `Setting` subclass. If
       not, `ValueError` is raised.
       
-      If the `SettingGuiTypes.none` type is specified, no GUI is created for
-      this setting.
+      If the `gui_type` is None, no GUI is created for this setting.
     
     * `auto_update_gui_to_setting` - If True, automatically update the setting
       value if the GUI value is updated. If False, the setting must be updated
@@ -347,7 +346,7 @@ class Setting(object):
     if self._has_events_connected():
       self._trigger_value_changed_event()
   
-  def create_gui(self, gui_type=None, gui_element=None, auto_update_gui_to_setting=True):
+  def create_gui(self, gui_type=SettingGuiTypes.automatic, gui_element=None, auto_update_gui_to_setting=True):
     """
     Create a new GUI object (`SettingPresenter` instance) for this setting. The
     state of the previous GUI object is copied to the new GUI object (such as
@@ -357,30 +356,32 @@ class Setting(object):
     
     * `gui_type` - `SettingPresenter` type to wrap `gui_element` around.
       
-      If `gui_type` is None, create a GUI object of the type specified in the
-      `gui_type` parameter in `__init__`.
+      If `gui_type` is `SettingGuiTypes.automatic`, create a GUI object of the
+      type specified in the `gui_type` parameter in `__init__`.
       
       To specify an existing GUI element, pass a specific `gui_type` and the
       GUI element in `gui_element`. This is useful if you wish to use the GUI
       element for multiple settings or for other purposes outside this setting.
       
-      If `gui_type` is specified and is not any of the allowed GUI types for the
-      setting, raise `ValueError`.
+      If `gui_type` is not any of the allowed GUI types for the setting, raise
+      `ValueError`.
     
     * `gui_element` - A GUI element (wrapped in a `SettingPresenter` instance).
     
-      If `gui_type` is None, `gui_element` is ignored. If `gui_type` is not
-      None and `gui_element` is None, raise `ValueError`.
+      If `gui_type` is `SettingGuiTypes.automatic`, `gui_element` is ignored.
+      If `gui_type` is not `SettingGuiTypes.automatic` and `gui_element` is
+      None, raise `ValueError`.
     
-    * `auto_update_gui_to_setting` - See `auto_update_gui_to_setting` parameter in `__init__`.
+    * `auto_update_gui_to_setting` - See `auto_update_gui_to_setting` parameter
+      in `__init__`.
     """
     
-    if gui_type is not None and gui_element is None:
-      raise ValueError("gui_element cannot be None if gui_type is not None")
-    if gui_type is None and gui_element is not None:
-      raise ValueError("gui_type cannot be None if gui_element is not None")
+    if gui_type != SettingGuiTypes.automatic and gui_element is None:
+      raise ValueError("gui_element cannot be None if gui_type is automatic")
+    if gui_type == SettingGuiTypes.automatic and gui_element is not None:
+      raise ValueError("gui_type cannot be automatic if gui_element is not None")
     
-    if gui_type is None:
+    if gui_type == SettingGuiTypes.automatic:
       gui_type = self._gui_type
     
     self._gui = gui_type(
@@ -566,7 +567,9 @@ class Setting(object):
   def _get_gui_type(self, gui_type):
     gui_type_to_return = None
     
-    if gui_type == SettingGuiTypes.automatic:
+    if gui_type is None:
+      gui_type_to_return = SettingGuiTypes.none
+    elif gui_type == SettingGuiTypes.automatic:
       if self._ALLOWED_GUI_TYPES:
         gui_type_to_return = self._ALLOWED_GUI_TYPES[0]
       else:

@@ -379,7 +379,7 @@ class TestSettingGui(unittest.TestCase):
       MockSettingWithGui("ignore_invisible", False, gui_type=MockYesNoToggleButtonPresenter)
   
   def test_setting_null_gui_type(self):
-    # For now, don't use `SettingGuiTypes.none`, as it raises TypeError due to
+    # For now, don't use None or `SettingGuiTypes.none` as it raises TypeError due to
     # `super()` failing on module reload. For further information, see:
     # https://thingspython.wordpress.com/2010/09/27/another-super-wrinkle-raising-typeerror/
     setting = MockSettingWithGui("ignore_invisible", False, gui_type=pgsettingpresenter.NullSettingPresenter)
@@ -398,7 +398,9 @@ class TestSettingGui(unittest.TestCase):
   
   def test_create_gui_manual_gui_type(self):
     setting = MockSettingWithGui("ignore_invisible", False)
-    setting.create_gui(gui_type=MockYesNoToggleButtonPresenter, gui_element=MockGuiWidget)
+    setting.create_gui(gui_type=MockYesNoToggleButtonPresenter, gui_element=MockGuiWidget(None))
+    self.assertIs(type(setting.gui), MockYesNoToggleButtonPresenter)
+    self.assertIs(type(setting.gui.element), MockGuiWidget)
   
   def test_create_gui_gui_element_is_none_presenter_has_no_wrapper_raise_value_error(self):
     setting = MockSettingWithGui("ignore_invisible", False,
