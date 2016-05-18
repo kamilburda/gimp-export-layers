@@ -123,9 +123,10 @@ class Setting(object):
   This class in particular can store any data. However, it is strongly
   recommended to use the appropriate `Setting` subclass for a particular data
   type, as the subclasses offer the following features:
-  * setting can be registered to GIMP PDB,
+  * setting can be registered to the GIMP procedural database (PDB),
   * automatic validation of input values,
-  * readily available GUI element, keeping the GUI and the setting value in sync.
+  * readily available GUI element, keeping the GUI and the setting value in
+    sync.
   
   Settings can contain an event handler that is triggered when the value
   of the setting changes (e.g. when `set_value()` method is called). This way,
