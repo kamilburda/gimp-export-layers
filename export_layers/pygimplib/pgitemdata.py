@@ -225,30 +225,48 @@ class ItemData(object):
   
   def add_tag(self, item_elem, tag):
     """
-    Add the specified tag to the specified item. The tag is also prepended to
-    the original item name. New instance of the item is returned.
+    Add the specified tag to the specified item. Prepend the tag to the original
+    item name as well.
     
     If the tag already exists, do nothing and return the original item.
+    
+    Returns:
+    
+    * `new_item_elem` - a new instance of the item.
+    
+    * `item_name_modified_externally` - whether the original item name was
+      modified externally, e.g. by GIMP in order to ensure that item names are
+      unique.
     """
     
     if tag in item_elem.tags:
-      return item_elem
+      return item_elem, False
     
     item_elem.tags.add(tag)
     
-    item_elem.item.name = "[{0}] {1}".format(tag, item_elem.orig_name).encode()
+    new_item_name = "[{0}] {1}".format(tag, item_elem.orig_name).encode()
+    item_elem.item.name = new_item_name
     
+    item_name_modified_externally = item_elem.item.name != new_item_name
     new_item_elem = self._new_item_elem(item_elem)
     
-    return new_item_elem
+    return new_item_elem, item_name_modified_externally
   
   def remove_tag(self, item_elem, tag):
     """
-    Remove the specified tag. The tag is also removed from the item name. If the
-    original item name contains the tag multiple times, all of the occurrences
-    of the tag are removed.
+    Remove the specified tag from the specified item. Remove the tag from the
+    original item name as well. If the original item name contains the tag
+    multiple times, all of the occurrences of the tag are removed.
     
     If the tag does not exist in the item name, raise `ValueError`.
+    
+    Returns:
+    
+    * `new_item_elem` - a new instance of the item.
+    
+    * `item_name_modified_externally` - whether the original item name was
+      modified externally, e.g. by GIMP in order to ensure that item names are
+      unique.
     """
     
     if tag not in item_elem.tags:
@@ -259,11 +277,14 @@ class ItemData(object):
     unused_, index = _parse_tags(item_elem.orig_name)
     tags_str = item_elem.orig_name[:index]
     tags_str_processed = re.sub(r"\[" + re.escape(tag) + r"\] *", r"", tags_str)
-    item_elem.item.name = (tags_str_processed + item_elem.orig_name[index:]).encode()
     
+    new_item_name = (tags_str_processed + item_elem.orig_name[index:]).encode()
+    item_elem.item.name = new_item_name
+    
+    item_name_modified_externally = item_elem.item.name != new_item_name
     new_item_elem = self._new_item_elem(item_elem)
     
-    return new_item_elem
+    return new_item_elem, item_name_modified_externally
   
   def _fill_item_data(self):
     """
