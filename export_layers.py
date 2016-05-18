@@ -104,8 +104,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
       _("E_xport Layers..."),
       "*",
       gimpenums.PLUGIN,
-      pgsettinggroup.PdbParamCreator.create_params(
-        self.settings['special']['run_mode'], self.settings['special']['image'], self.settings['main']),
+      pgsettinggroup.PdbParamCreator.create_params(self.settings['special'], self.settings['main']),
       []
     )
     gimp.menu_register("plug_in_export_layers", "<Image>/File/Export")
@@ -121,8 +120,7 @@ class ExportLayersPlugin(gimpplugin.plugin):
       _("E_xport Layers (repeat)"),
       "*",
       gimpenums.PLUGIN,
-      pgsettinggroup.PdbParamCreator.create_params(
-        self.settings['special']['run_mode'], self.settings['special']['image']),
+      pgsettinggroup.PdbParamCreator.create_params(self.settings['special'], self.settings['main']),
       []
     )
     gimp.menu_register("plug_in_export_layers_repeat", "<Image>/File/Export")
