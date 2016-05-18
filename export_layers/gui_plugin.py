@@ -659,8 +659,8 @@ class _ExportLayersGui(object):
     self.hpaned_chooser_and_previews = gtk.HPaned()
     self.hpaned_chooser_and_previews.pack1(self.vbox_folder_chooser, resize=True, shrink=False)
     self.hpaned_chooser_and_previews.pack2(self.export_name_preview.widget)
-    self.hpaned_previous_position = None
-    
+    self.hpaned_previous_position = self.settings['gui']['export_preview_pane_position'].value
+        
     self.file_extension_label = gtk.Label()
     self.file_extension_label.set_markup("<b>" + self.settings['main']['file_extension'].display_name + ":</b>")
     self.file_extension_label.set_alignment(0.0, 0.5)
