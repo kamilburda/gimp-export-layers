@@ -761,7 +761,7 @@ class _ExportLayersGui(object):
     self.alignment_advanced_settings.add(self.vbox_advanced_settings)
     self.expander_advanced_settings.add(self.alignment_advanced_settings)
     
-    self.export_layers_button = self.dialog.add_button(_("_Export Layers"), gtk.RESPONSE_OK)
+    self.export_layers_button = self.dialog.add_button(_("_Export"), gtk.RESPONSE_OK)
     self.export_layers_button.grab_default()
     self.cancel_button = self.dialog.add_button(_("_Cancel"), gtk.RESPONSE_CANCEL)
     self.dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
