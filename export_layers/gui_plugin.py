@@ -463,6 +463,8 @@ class ExportNamePreview(object):
   
   def _on_tags_menu_item_toggled(self, tags_menu_item):
     if self._toggle_tag_interactive:
+      any_layer_modified_externally = False
+      
       pdb.gimp_image_undo_group_start(self._layer_exporter.image)
       
       for layer_elem_orig_name in self._get_layer_orig_names_in_current_selection():
@@ -470,9 +472,11 @@ class ExportNamePreview(object):
         tag = self._tags_names[tags_menu_item.get_label()]
         
         if tags_menu_item.get_active():
-          new_layer_elem = self._layer_exporter.layer_data.add_tag(layer_elem, tag)
+          new_layer_elem, modified_externally = self._layer_exporter.layer_data.add_tag(layer_elem, tag)
         else:
-          new_layer_elem = self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
+          new_layer_elem, modified_externally = self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
+        
+        any_layer_modified_externally = any_layer_modified_externally or modified_externally
         
         self._set_layer_orig_name(self._tree_iters[layer_elem_orig_name],
                                   layer_elem_orig_name, new_layer_elem.orig_name)
@@ -480,6 +484,11 @@ class ExportNamePreview(object):
                                    self._get_icon_tag_visible(new_layer_elem))
       
       pdb.gimp_image_undo_group_end(self._layer_exporter.image)
+      
+      if any_layer_modified_externally:
+        # Modifying just one layer could result in renaming other layers differently,
+        # hence update the whole preview.
+        self.update()
   
   def _get_layer_orig_name(self, tree_iter):
     return self._tree_model.get_value(tree_iter, column=self._COLUMN_LAYER_ORIG_NAME[0]).decode(
