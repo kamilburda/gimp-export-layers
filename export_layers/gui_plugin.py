@@ -108,6 +108,12 @@ def add_gui_settings(settings):
       'name': 'export_preview_pane_position',
       'default_value': 620
     },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'export_name_preview_enabled',
+      'default_value': True,
+      'gui_type': None
+    },
   ])
   
   session_only_gui_settings = pgsettinggroup.SettingGroup('gui_session', [
@@ -807,9 +813,9 @@ class _ExportLayersGui(object):
     self.reset_settings_button.connect("clicked", self.on_reset_settings_clicked)
     
     self.file_extension_entry.connect("changed", self.on_file_extension_entry_changed)
-    self.expander_advanced_settings.connect("notify::expanded", self.on_expander_advanced_settings_expanded)
+    self.expander_advanced_settings.connect("notify::expanded", self.on_expander_advanced_settings_expanded_changed)
     
-    self.dialog.connect("notify::is-active", self.on_dialog_is_active)
+    self.dialog.connect("notify::is-active", self.on_dialog_is_active_changed)
     self.hpaned_chooser_and_previews.connect("event", self.on_hpaned_left_button_up)
     
     self._connect_setting_changes_to_preview()
@@ -819,6 +825,10 @@ class _ExportLayersGui(object):
     self.dialog.vbox.show_all()
     self.progress_bar.hide()
     self.stop_button.hide()
+    
+    self.export_name_preview.widget.connect("notify::visible", self.on_preview_visible_changed)
+    if not self.settings['gui']['export_name_preview_enabled'].value:
+      self.export_name_preview.lock_update(True, "preview_enabled")
     self._handle_pane_for_advanced_settings()
     
     self.dialog.set_focus(self.file_extension_entry)
@@ -850,15 +860,15 @@ class _ExportLayersGui(object):
       
       self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR,
         setting=self.settings['main']['file_extension'])
-      self.export_name_preview.lock_update(True, self.on_file_extension_entry_changed)
+      self.export_name_preview.lock_update(True, "invalid_file_extension")
     else:
-      self.export_name_preview.lock_update(False, self.on_file_extension_entry_changed)
+      self.export_name_preview.lock_update(False, "invalid_file_extension")
       if self._message_setting == self.settings['main']['file_extension']:
         self.display_message_label(None)
       
       pggui.timeout_add_strict(100, self.export_name_preview.update)
   
-  def on_expander_advanced_settings_expanded(self, widget, property_spec):
+  def on_expander_advanced_settings_expanded_changed(self, widget, property_spec):
     self._handle_pane_for_advanced_settings()
   
   def _handle_pane_for_advanced_settings(self):
@@ -867,29 +877,39 @@ class _ExportLayersGui(object):
     else:
       self.export_name_preview.widget.hide()
   
-  def on_dialog_is_active(self, widget, property_spec):
+  def on_dialog_is_active_changed(self, widget, property_spec):
     if self.dialog.is_active():
       self.export_name_preview.update()
   
   def _connect_setting_changes_to_preview(self):
-    def _on_setting_changed(setting, self):
+    def _on_setting_changed(setting):
       pggui.timeout_add_strict(50, self.export_name_preview.update)
     
     for setting in self.settings['main']:
       if setting.name not in ['file_extension', 'output_directory', 'overwrite_mode']:
-        setting.connect_value_changed_event(_on_setting_changed, self)
+        setting.connect_value_changed_event(_on_setting_changed)
   
   def on_hpaned_left_button_up(self, widget, event):
     if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:
       current_position = self.hpaned_chooser_and_previews.get_position()
       max_position = self.hpaned_chooser_and_previews.get_property("max-position")
+      
       if (current_position == max_position and self.hpaned_previous_position != current_position):
         self.export_name_preview.clear()
-        self.export_name_preview.lock_update(True, self.on_hpaned_left_button_up)
+        self.settings['gui']['export_name_preview_enabled'].set_value(False)
+        self.export_name_preview.lock_update(True, "preview_enabled")
       elif (current_position != max_position and self.hpaned_previous_position == max_position):
-        self.export_name_preview.lock_update(False, self.on_hpaned_left_button_up)
+        self.export_name_preview.lock_update(False, "preview_enabled")
+        self.settings['gui']['export_name_preview_enabled'].set_value(True)
         self.export_name_preview.update()
+      
       self.hpaned_previous_position = current_position
+  
+  def on_preview_visible_changed(self, widget, property_spec):
+    preview_visible = self.export_name_preview.widget.get_visible()
+    self.export_name_preview.lock_update(not preview_visible, "preview_visible")
+    if preview_visible:
+      self.export_name_preview.update()
   
   @_set_settings
   def on_save_settings_clicked(self, widget):
