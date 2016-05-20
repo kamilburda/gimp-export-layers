@@ -115,9 +115,11 @@ def _parse_layers(layer_tree_string):
 
 
 @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpmocks.MockPDB())
+@mock.patch(LIB_NAME + ".pgitemdata.gimp.GroupLayer", new=gimpmocks.MockLayerGroup)
 class TestLayerData(unittest.TestCase):
 
   @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpmocks.MockPDB())
+  @mock.patch(LIB_NAME + ".pgitemdata.gimp.GroupLayer", new=gimpmocks.MockLayerGroup)
   def setUp(self):
     layers_string = """
       Corners {

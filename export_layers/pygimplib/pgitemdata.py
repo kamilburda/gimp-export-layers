@@ -299,11 +299,16 @@ class ItemData(object):
       node = item_tree.pop(0)
       
       item_elem_parents = list(node.parents)
-      item_elem = _ItemDataElement(node.item, item_elem_parents)
+      if self._is_group(node.item):
+        item_elem_children = self._get_children_from_item(node.item)
+      else:
+        item_elem_children = None
+      
+      item_elem = _ItemDataElement(node.item, item_elem_parents, item_elem_children)
       self._itemdata[item_elem.orig_name] = item_elem
       
-      if pdb.gimp_item_is_group(node.item):
-        for child_item in reversed(self._get_children_from_item(node.item)):
+      if item_elem_children:
+        for child_item in reversed(item_elem_children):
           item_tree.insert(0, _ItemTreeNode(child_item, item_elem_parents + [item_elem]))
   
   def _new_item_elem(self, item_elem):
@@ -326,7 +331,6 @@ class ItemData(object):
     
     pass
   
-  @abc.abstractmethod
   def _get_children_from_item(self, item):
     """
     Return a list of immediate child items from the specified item.
@@ -334,7 +338,10 @@ class ItemData(object):
     If no child items exist, return an empty list.
     """
     
-    pass
+    return item.children
+  
+  def _is_group(self, item):
+    return pdb.gimp_item_is_group(item)
 
 
 class LayerData(ItemData):
@@ -344,24 +351,21 @@ class LayerData(ItemData):
   
   def _get_children_from_item(self, item):
     return item.layers
+  
+  def _is_group(self, item):
+    return isinstance(item, gimp.GroupLayer)
 
 
 class ChannelData(ItemData):
   
   def _get_children_from_image(self, image):
     return image.channels
-  
-  def _get_children_from_item(self, item):
-    return item.children
 
 
 class PathData(ItemData):
   
   def _get_children_from_image(self, image):
     return image.vectors
-  
-  def _get_children_from_item(self, item):
-    return item.children
 
 
 #===============================================================================
@@ -452,7 +456,7 @@ class _ItemDataElement(object):
   
   _ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP = (0, 1, 2)
   
-  def __init__(self, item, parents=None):
+  def __init__(self, item, parents=None, children=None):
     if item is None:
       raise TypeError("item cannot be None")
     
@@ -470,15 +474,17 @@ class _ItemDataElement(object):
     else:
       self._parent = None
     
-    if pdb.gimp_item_is_group(self._item):
-      if self._item.children:
+    self._children = children
+    
+    if self._children is None:
+      self._item_type = self.ITEM
+    else:
+      if self._children:
         self._item_type = self.NONEMPTY_GROUP
       else:
         self._item_type = self.EMPTY_GROUP
-    else:
-      self._item_type = self.ITEM
     
-    self._path_visible = self._get_path_visibility()
+    self._path_visible = None
   
   @property
   def item(self):
@@ -506,6 +512,9 @@ class _ItemDataElement(object):
   
   @property
   def path_visible(self):
+    if self._path_visible is None:
+      self._path_visible = self._get_path_visibility()
+    
     return self._path_visible
   
   def get_file_extension(self):
