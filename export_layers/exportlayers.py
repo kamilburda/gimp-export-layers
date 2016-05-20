@@ -35,7 +35,6 @@ import collections
 import contextlib
 import functools
 import os
-import re
 
 import gimp
 import gimpenums
