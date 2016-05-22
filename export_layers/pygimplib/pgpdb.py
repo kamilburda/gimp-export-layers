@@ -409,8 +409,10 @@ class GimpMessageFile(object):
     pdb.gimp_message_set_handler(self.message_handler)
     
     if not self.message_prefix:
+      self._write(data)
       self.write = self._write
     else:
+      self._write_with_prefix(data)
       self.write = self._write_with_prefix
   
   def _write(self, data):
