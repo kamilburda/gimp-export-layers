@@ -34,6 +34,7 @@ import os
 import sys
 
 from export_layers.pygimplib import pgpath
+from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import tee
 
 from export_layers import constants
@@ -86,7 +87,11 @@ def log_output(debug=False):
       
       sys.excepthook = log_exceptions
   else:
-    tee.Tee(sys.stdout, open(constants.PLUGINS_LOG_STDOUT_PATH, "a"),
-            log_header_title=constants.PLUGIN_TITLE, flush_output=True)
-    tee.Tee(sys.stderr, open(constants.PLUGINS_LOG_STDERR_PATH, "a"),
-            log_header_title=constants.PLUGIN_TITLE, flush_output=True)
+    if debug == constants.DEBUG_FILE:
+      tee.Tee(sys.stdout, open(constants.PLUGINS_LOG_STDOUT_PATH, "a"),
+              log_header_title=constants.PLUGIN_TITLE, flush_output=True)
+      tee.Tee(sys.stderr, open(constants.PLUGINS_LOG_STDERR_PATH, "a"),
+              log_header_title=constants.PLUGIN_TITLE, flush_output=True)
+    elif debug == constants.DEBUG_GIMP_CONSOLE:
+      tee.Tee(sys.stdout, pgpdb.GimpMessageFile(), flush_output=True)
+      tee.Tee(sys.stderr, pgpdb.GimpMessageFile(message_prefix="Error: "), flush_output=True)

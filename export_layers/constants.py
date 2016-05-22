@@ -50,9 +50,15 @@ PLUGIN_TITLE = N_("Export Layers")
 
 PLUGIN_VERSION = "2.4"
 
-# If False, log only exceptions to an error log file. If True, log all output
-# from `stdout` and `stderr` to separate log files.
-DEBUG = False
+#===============================================================================
+
+# Redirect stdout or stderr to:
+# * DEBUG_FILE - log files,
+# * DEBUG_GIMP_CONSOLE - GIMP error console
+_DEBUG_OPTIONS = (DEBUG_NONE, DEBUG_FILE, DEBUG_GIMP_CONSOLE) = (0, 1, 2)
+
+DEBUG = DEBUG_NONE
+
 # If True, display each step of image/layer editing in GIMP.
 DEBUG_IMAGE_PROCESSING = False
 
