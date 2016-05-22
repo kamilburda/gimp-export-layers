@@ -380,3 +380,49 @@ def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
   pdb.gimp_image_delete(image)
   
   return identical
+
+
+#-------------------------------------------------------------------------------
+
+
+class GimpMessageFile(object):
+  
+  """
+  This class provides a file-like way to write output as GIMP messages.
+  
+  You can use this class in conjunction with `tee.Tee` to redirect output or
+  error output to the GIMP console.
+  
+  Parameters:
+  
+  * `message_handler` - Handler to which messages are output. Possible values
+    are the same as for the `pdb.gimp_message_get_handler()` procedure.
+  
+  * `message_prefix` - If not None, prepend this string to each message.
+  """
+  
+  def __init__(self, message_handler=gimpenums.ERROR_CONSOLE, message_prefix=None):
+    self.message_handler = message_handler
+    self.message_prefix = str(message_prefix) if message_prefix is not None else None
+  
+  def write(self, data):
+    pdb.gimp_message_set_handler(self.message_handler)
+    
+    if not self.message_prefix:
+      self.write = self._write
+    else:
+      self.write = self._write_with_prefix
+  
+  def _write(self, data):
+    if data.strip():
+      gimp.message(str(data).encode())
+  
+  def _write_with_prefix(self, data):
+    if data.strip():
+      gimp.message(self.message_prefix + str(data).encode())
+  
+  def flush(self):
+    pass
+  
+  def close(self):
+    pass
