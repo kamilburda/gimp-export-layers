@@ -102,9 +102,11 @@ class ItemData(object):
     # value: `_ItemDataElement` object
     self._itemdata = collections.OrderedDict()
     
-    # key `_ItemDataElement` object (parent) or None (root of the item tree)
+    # key: `_ItemDataElement` object (parent) or None (root of the item tree)
     # value: set of `_ItemDataElement` objects
     self._uniquified_itemdata = {}
+    
+    self._validated_itemdata = set()
     
     self._fill_item_data()
   
@@ -222,6 +224,17 @@ class ItemData(object):
       item_elem.name = pgpath.uniquify_string(
         item_elem.name, self._uniquified_itemdata[parent], uniquifier_position)
       self._uniquified_itemdata[parent].add(item_elem.name)
+  
+  def validate_name(self, item_elem):
+    """
+    Validate the `name` attribute of the specified item and all of its parents
+    if not validated already.
+    """
+    
+    for elem in item_elem.parents + [item_elem]:
+      if elem not in self._validated_itemdata:
+        elem.name = pgpath.FilenameValidator.validate(elem.name)
+        self._validated_itemdata.add(elem)
   
   def add_tag(self, item_elem, tag):
     """
@@ -606,15 +619,6 @@ class _ItemDataElement(object):
     """
     
     return [parent.name for parent in self.parents]
-  
-  def validate_name(self):
-    """
-    Validate the `name` attribute of this item and all of its parents.
-    """
-    
-    self.name = pgpath.FilenameValidator.validate(self.name)
-    for parent in self._parents:
-      parent.name = pgpath.FilenameValidator.validate(parent.name)
   
   def parse_tags(self):
     """

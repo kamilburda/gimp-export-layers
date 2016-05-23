@@ -257,7 +257,7 @@ class TestLayerData(unittest.TestCase):
     self.layer_data.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     
     for layer_elem in self.layer_data:
-      layer_elem.validate_name()
+      self.layer_data.validate_name(layer_elem)
       self.layer_data.uniquify_name(layer_elem, include_item_path=False)
     self._compare_uniquified_without_parents(self.layer_data, uniquified_names)
   
@@ -288,7 +288,7 @@ class TestLayerData(unittest.TestCase):
     self.layer_data.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     
     for layer_elem in self.layer_data:
-      layer_elem.validate_name()
+      self.layer_data.validate_name(layer_elem)
       self.layer_data.uniquify_name(layer_elem, include_item_path=True)
     self._compare_uniquified_with_parents(self.layer_data, uniquified_names)
   
@@ -309,7 +309,7 @@ class TestLayerData(unittest.TestCase):
     self.layer_data.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     
     for layer_elem in self.layer_data:
-      layer_elem.validate_name()
+      self.layer_data.validate_name(layer_elem)
       self.layer_data.uniquify_name(
         layer_elem, include_item_path=True,
         uniquifier_position=_get_file_extension_start_position(layer_elem.name))
