@@ -539,12 +539,12 @@ class LayerExporter(object):
   
   @_operation('layer_name')
   def _preprocess_layer_name(self, layer_elem):
-    layer_elem.validate_name()
+    self._layer_data.validate_name(layer_elem)
     self._strip_file_extension(layer_elem)
   
   @_operation('layer_name')
   def _preprocess_empty_group_name(self, layer_elem):
-    layer_elem.validate_name()
+    self._layer_data.validate_name(layer_elem)
     self._layer_data.uniquify_name(layer_elem, self._include_item_path)
   
   @_operation('layer_name')
