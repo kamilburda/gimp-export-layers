@@ -33,7 +33,6 @@ str = unicode
 
 import collections
 import contextlib
-import functools
 import os
 
 import gimp
@@ -150,22 +149,6 @@ class ExportStatuses(object):
   EXPORT_STATUSES = (
     NOT_EXPORTED_YET, EXPORT_SUCCESSFUL, FORCE_INTERACTIVE, USE_DEFAULT_FILE_EXTENSION
   ) = (0, 1, 2, 3)
-
-
-def _operation(*tags):
-  
-  def _operation_wrapper(func):
-    
-    @functools.wraps(func)
-    def func_wrapper(self, *args, **kwargs):
-      if not self._operation_tags or any(tag in tags for tag in self._operation_tags):
-        return func(self, *args, **kwargs)
-      else:
-        return None
-    
-    return func_wrapper
-    
-  return _operation_wrapper
 
 
 class LayerExporter(object):
@@ -288,7 +271,7 @@ class LayerExporter(object):
       self._cleanup()
   
   def _init_attributes(self, operations):
-    self._operation_tags = operations if operations is not None else []
+    self._enable_disable_operations(operations)
     
     self.should_stop = False
     self._exported_layers = []
@@ -301,7 +284,6 @@ class LayerExporter(object):
     
     self._image_copy = None
     self._layer_data = pgitemdata.LayerData(self.image, is_filtered=True)
-    
     self._tagged_layer_elems = collections.defaultdict(list)
     self._tagged_layer_copies = collections.defaultdict(lambda: None)
     
@@ -313,6 +295,21 @@ class LayerExporter(object):
     self._file_export_func = pgfileformats.get_save_procedure(self._default_file_extension)
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
+  
+  def _enable_disable_operations(self, operations_tags):
+    if not operations_tags:
+      return
+    
+    operations = {
+      'layer_contents': [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
+      'layer_name': [self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name],
+      'export': [self._make_dirs, self._export]
+    }
+    
+    for operation_tag, functions in operations.items():
+      if operation_tag not in operations_tags:
+        for function in functions:
+          setattr(self, function.__name__, lambda *args, **kwargs: None)
   
   def _prefill_file_extension_properties(self):
     file_extension_properties = collections.defaultdict(_FileExtensionProperties)
@@ -400,7 +397,6 @@ class LayerExporter(object):
       self._process_layer_name(layer_elem)
       self._export(layer_elem, image, layer)
   
-  @_operation('layer_contents')
   def _setup(self):
     # Save context just in case. No need for undo groups or undo freeze here.
     pdb.gimp_context_push()
@@ -411,7 +407,6 @@ class LayerExporter(object):
     if constants.DEBUG_IMAGE_PROCESSING:
       self._display_id = pdb.gimp_display_new(self._image_copy)
   
-  @_operation('layer_contents')
   def _cleanup(self):
     if constants.DEBUG_IMAGE_PROCESSING:
       pdb.gimp_display_delete(self._display_id)
@@ -424,7 +419,6 @@ class LayerExporter(object):
     
     pdb.gimp_context_pop()
   
-  @_operation('layer_contents')
   def _process_layer(self, image, layer):
     background_layer, self._tagged_layer_copies['background'] = self._insert_layer(
       image, self._tagged_layer_elems['background'], self._tagged_layer_copies['background'], insert_index=0)
@@ -453,7 +447,6 @@ class LayerExporter(object):
     
     return layer_copy
   
-  @_operation('layer_contents')
   def _postprocess_layer(self, image, layer):
     pdb.gimp_image_remove_layer(image, layer)
   
@@ -537,17 +530,14 @@ class LayerExporter(object):
     
     return layer
   
-  @_operation('layer_name')
   def _preprocess_layer_name(self, layer_elem):
     self._layer_data.validate_name(layer_elem)
     self._strip_file_extension(layer_elem)
   
-  @_operation('layer_name')
   def _preprocess_empty_group_name(self, layer_elem):
     self._layer_data.validate_name(layer_elem)
     self._layer_data.uniquify_name(layer_elem, self._include_item_path)
   
-  @_operation('layer_name')
   def _process_layer_name(self, layer_elem):
     self._set_file_extension(layer_elem)
     self._layer_data.uniquify_name(layer_elem, self._include_item_path,
@@ -577,7 +567,6 @@ class LayerExporter(object):
   def _get_uniquifier_position(self, str_):
     return len(str_) - len("." + self._current_file_extension)
   
-  @_operation('export')
   def _make_dirs(self, path):
     try:
       pgpath.make_dirs(path)
@@ -591,7 +580,6 @@ class LayerExporter(object):
       
       raise InvalidOutputDirectoryError(message, self._current_layer_elem, self._default_file_extension)
   
-  @_operation('export')
   def _export(self, layer_elem, image, layer):
     output_filename = layer_elem.get_filepath(self._output_directory, self._include_item_path)
     
