@@ -232,6 +232,17 @@ class LayerExporter(object):
     
     self._layer_data = None
     self._exported_layers = []
+    
+    self._operations = {
+      'layer_contents': [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
+      'layer_name': [self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name],
+      'export': [self._make_dirs, self._export]
+    }
+    
+    self._operations_functions = {}
+    for functions in self._operations.values():
+      for function in functions:
+        self._operations_functions[function.__name__] = function
   
   @property
   def layer_data(self):
@@ -297,20 +308,16 @@ class LayerExporter(object):
     self._current_overwrite_mode = None
   
   def _enable_disable_operations(self, operations_tags):
-    if not operations_tags:
-      return
+    for functions in self._operations.values():
+      for function in functions:
+        setattr(self, function.__name__, self._operations_functions[function.__name__])
     
-    operations = {
-      'layer_contents': [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
-      'layer_name': [self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name],
-      'export': [self._make_dirs, self._export]
-    }
+    if operations_tags:
+      for operation_tag, functions in self._operations.items():
+        if operation_tag not in operations_tags:
+          for function in functions:
+            setattr(self, function.__name__, lambda *args, **kwargs: None)
     
-    for operation_tag, functions in operations.items():
-      if operation_tag not in operations_tags:
-        for function in functions:
-          setattr(self, function.__name__, lambda *args, **kwargs: None)
-  
   def _prefill_file_extension_properties(self):
     file_extension_properties = collections.defaultdict(_FileExtensionProperties)
     
