@@ -24,8 +24,8 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import StringIO
 import unittest
-from StringIO import StringIO
 
 from .. import pgsetting
 from .. import pgsettinggroup
@@ -40,7 +40,7 @@ LIB_NAME = ".".join(__name__.split(".")[:-2])
 #===============================================================================
 
 
-class MockStringIO(StringIO):
+class MockStringIO(StringIO.StringIO):
   def read(self):
     return self.getvalue()
 

@@ -30,7 +30,7 @@ from __future__ import unicode_literals
 str = unicode
 
 import os
-from contextlib import contextmanager
+import contextlib
 
 import gimp
 import gimpenums
@@ -40,7 +40,7 @@ pdb = gimp.pdb
 #===============================================================================
 
 
-@contextmanager
+@contextlib.contextmanager
 def undo_group(image):
   """
   Wrap the enclosing block of code into one GIMP undo group for the specified

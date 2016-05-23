@@ -30,7 +30,7 @@ from __future__ import unicode_literals
 str = unicode
 
 import inspect
-from contextlib import contextmanager
+import contextlib
 
 #===============================================================================
 
@@ -131,7 +131,7 @@ class ObjectFilter(object):
       if raise_if_not_found:
         raise ValueError("\"" + str(rule_func) + "\" not found in filter")
   
-  @contextmanager
+  @contextlib.contextmanager
   def add_rule_temp(self, rule_func, *rule_func_args):
     """
     Temporarily add a rule. Use as a context manager:
@@ -166,7 +166,7 @@ class ObjectFilter(object):
       if not has_rule_already:
         self.remove_rule(rule_func)
   
-  @contextmanager
+  @contextlib.contextmanager
   def remove_rule_temp(self, rule_func, raise_if_not_found=True):
     """
     Temporarily remove a rule. Use as a context manager:
@@ -267,7 +267,7 @@ class ObjectFilter(object):
       if raise_if_not_found:
         raise ValueError("subfilter named \"" + str(subfilter_name) + "\" not found in filter")
   
-  @contextmanager
+  @contextlib.contextmanager
   def add_subfilter_temp(self, subfilter_name, subfilter):
     """
     Temporarily add a subfilter. Use as a context manager:
@@ -286,7 +286,7 @@ class ObjectFilter(object):
     finally:
       self.remove_subfilter(subfilter_name)
   
-  @contextmanager
+  @contextlib.contextmanager
   def remove_subfilter_temp(self, subfilter_name, raise_if_not_found=True):
     """
     Temporarily remove a subfilter. Use as a context manager:

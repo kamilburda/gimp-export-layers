@@ -29,14 +29,14 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import datetime
 import sys
-from datetime import datetime
 
 #===============================================================================
 
 
 def get_log_header(log_header_title):
-  return "\n".join(("", "=" * 80, log_header_title, str(datetime.now()), "\n"))
+  return "\n".join(("", "=" * 80, log_header_title, str(datetime.datetime.now()), "\n"))
 
 
 # Original version:

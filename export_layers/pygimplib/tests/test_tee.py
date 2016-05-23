@@ -24,9 +24,9 @@ from __future__ import unicode_literals
 
 str = unicode
 
-import unittest
+import StringIO
 import sys
-from StringIO import StringIO
+import unittest
 
 from ..lib import mock
 
@@ -35,11 +35,11 @@ from .. import tee
 #===============================================================================
 
 
-@mock.patch("sys.stdout", new=StringIO())
+@mock.patch("sys.stdout", new=StringIO.StringIO())
 class TestTee(unittest.TestCase):
   
   def setUp(self):
-    self.string_file = StringIO()
+    self.string_file = StringIO.StringIO()
   
   def test_write(self):
     tee.Tee(sys.stdout, self.string_file, log_header_title="Test Header")
