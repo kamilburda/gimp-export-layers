@@ -28,7 +28,6 @@ str = unicode
 import inspect
 import os
 import shutil
-
 import unittest
 
 import gimp
