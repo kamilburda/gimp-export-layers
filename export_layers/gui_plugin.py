@@ -254,8 +254,8 @@ class ExportNamePreview(object):
   
   _VBOX_SPACING = 5
   
-  _COLUMNS = _COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME, _COLUMN_LAYER_ORIG_NAME = (
-     [0, gtk.gdk.Pixbuf], [1, bool], [2, bytes], [3, bytes])
+  _COLUMNS = (_COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME_SENSITIVE, _COLUMN_LAYER_NAME,
+    _COLUMN_LAYER_ORIG_NAME) = ([0, gtk.gdk.Pixbuf], [1, bool], [2, bool], [3, bytes], [4, bytes])
   
   def __init__(self, layer_exporter, collapsed_items=None):
     self._layer_exporter = layer_exporter
@@ -350,7 +350,8 @@ class ExportNamePreview(object):
     
     cell_renderer_layer_name = gtk.CellRendererText()
     column.pack_start(cell_renderer_layer_name, expand=False)
-    column.set_attributes(cell_renderer_layer_name, text=self._COLUMN_LAYER_NAME[0])
+    column.set_attributes(
+      cell_renderer_layer_name, text=self._COLUMN_LAYER_NAME[0], sensitive=self._COLUMN_LAYER_NAME_SENSITIVE[0])
     
     self._tree_view.append_column(column)
     
@@ -469,7 +470,8 @@ class ExportNamePreview(object):
   
   def _on_tags_menu_item_toggled(self, tags_menu_item):
     if self._toggle_tag_interactive:
-      any_layer_modified_externally = False
+      should_update = False
+      treat_tagged_layers_specially = self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special')
       
       pdb.gimp_image_undo_group_start(self._layer_exporter.image)
       
@@ -477,6 +479,7 @@ class ExportNamePreview(object):
         layer_elem = self._layer_exporter.layer_data[layer_elem_orig_name]
         tag = self._tags_names[tags_menu_item.get_label()]
         
+        had_previously_supported_tags = self._has_supported_tags(layer_elem)
         was_selected = self._tree_view.get_selection().iter_is_selected(self._tree_iters[layer_elem_orig_name])
         
         if tags_menu_item.get_active():
@@ -484,18 +487,25 @@ class ExportNamePreview(object):
         else:
           new_layer_elem, modified_externally = self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
         
-        any_layer_modified_externally = any_layer_modified_externally or modified_externally
+        has_supported_tags = self._has_supported_tags(new_layer_elem)
+        should_set_sensitivity = (has_supported_tags != had_previously_supported_tags and
+                                  treat_tagged_layers_specially and new_layer_elem.item_type == new_layer_elem.ITEM)
+        should_update = should_update or modified_externally or should_set_sensitivity
+        
         if was_selected:
           self._selected_items.append(new_layer_elem.orig_name)
         
         self._set_layer_orig_name(self._tree_iters[layer_elem_orig_name],
                                   layer_elem_orig_name, new_layer_elem.orig_name)
         self._tree_model.set_value(self._tree_iters[new_layer_elem.orig_name], self._COLUMN_ICON_TAG_VISIBLE[0],
-                                   self._get_icon_tag_visible(new_layer_elem))
+                                   has_supported_tags)
+        if should_set_sensitivity:
+          self._tree_model.set_value(
+            self._tree_iters[new_layer_elem.orig_name], self._COLUMN_LAYER_NAME_SENSITIVE[0], not has_supported_tags)
       
       pdb.gimp_image_undo_group_end(self._layer_exporter.image)
       
-      if any_layer_modified_externally:
+      if should_update:
         # Modifying just one layer could result in renaming other layers differently,
         # hence update the whole preview.
         self.update()
@@ -519,11 +529,14 @@ class ExportNamePreview(object):
     
     self._tree_iters.clear()
     
+    self._enable_tagged_layers()
+    
     for layer_elem in self._layer_exporter.layer_data:
       if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
         self._insert_parent_item_elems(layer_elem)
-      
       self._insert_item_elem(layer_elem)
+    
+    self._set_sensitive_tagged_layers()
   
   def _insert_item_elem(self, item_elem):
     if item_elem.parent:
@@ -533,7 +546,8 @@ class ExportNamePreview(object):
     
     tree_iter = self._tree_model.append(parent_tree_iter,
       [self._get_icon_from_item_elem(item_elem),
-       self._get_icon_tag_visible(item_elem),
+       self._has_supported_tags(item_elem),
+       True,
        item_elem.name.encode(pggui.GTK_CHARACTER_ENCODING),
        item_elem.orig_name.encode(pggui.GTK_CHARACTER_ENCODING)])
     self._tree_iters[item_elem.orig_name] = tree_iter
@@ -544,6 +558,19 @@ class ExportNamePreview(object):
     for parent_elem in item_elem.parents:
       if not self._tree_iters[parent_elem.orig_name]:
         self._insert_item_elem(parent_elem)
+  
+  def _enable_tagged_layers(self):
+    if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
+      self._layer_exporter.layer_data.filter.remove_rule(
+        exportlayers.LayerFilterRules.has_no_tag, raise_if_not_found=False)
+  
+  def _set_sensitive_tagged_layers(self):
+    if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
+      with self._layer_exporter.layer_data.filter.add_rule_temp(
+             exportlayers.LayerFilterRules.has_tag, *self._layer_exporter.SUPPORTED_TAGS.keys()):
+        for layer_elem in self._layer_exporter.layer_data:
+          self._tree_model.set_value(
+            self._tree_iters[layer_elem.orig_name], self._COLUMN_LAYER_NAME_SENSITIVE[0], False)
   
   def _get_icon_from_item_elem(self, item_elem):
     if item_elem.item_type == item_elem.ITEM:
@@ -556,7 +583,7 @@ class ExportNamePreview(object):
     else:
       return None
   
-  def _get_icon_tag_visible(self, item_elem):
+  def _has_supported_tags(self, item_elem):
     return bool(item_elem.tags) and any(tag in self._layer_exporter.SUPPORTED_TAGS for tag in item_elem.tags)
   
   def _set_expanded_items(self, tree_path=None):
