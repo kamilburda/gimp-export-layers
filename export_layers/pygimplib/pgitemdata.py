@@ -325,7 +325,7 @@ class ItemData(object):
           item_tree.insert(0, _ItemTreeNode(child_item, item_elem_parents + [item_elem]))
   
   def _new_item_elem(self, item_elem):
-    new_item_elem = _ItemDataElement(item_elem.item, item_elem.parents)
+    new_item_elem = _ItemDataElement(item_elem.item, item_elem.parents, item_elem.children)
     new_item_elem.name = item_elem.name
     new_item_elem.tags = item_elem.tags
     
