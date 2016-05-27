@@ -477,12 +477,16 @@ class ExportNamePreview(object):
         layer_elem = self._layer_exporter.layer_data[layer_elem_orig_name]
         tag = self._tags_names[tags_menu_item.get_label()]
         
+        was_selected = self._tree_view.get_selection().iter_is_selected(self._tree_iters[layer_elem_orig_name])
+        
         if tags_menu_item.get_active():
           new_layer_elem, modified_externally = self._layer_exporter.layer_data.add_tag(layer_elem, tag)
         else:
           new_layer_elem, modified_externally = self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
         
         any_layer_modified_externally = any_layer_modified_externally or modified_externally
+        if was_selected:
+          self._selected_items.append(new_layer_elem.orig_name)
         
         self._set_layer_orig_name(self._tree_iters[layer_elem_orig_name],
                                   layer_elem_orig_name, new_layer_elem.orig_name)
