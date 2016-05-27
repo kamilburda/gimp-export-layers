@@ -141,7 +141,7 @@ def create_settings():
                 ('special', _("Treat specially")),
                 ('ignore', _("Ignore")),
                 ('ignore_other', _("Ignore other layers"))],
-      'display_name': _("[Tagged] layers")
+      'display_name': _("Tagged layers")
     },
     {
       'type': pgsetting.SettingTypes.enumerated,

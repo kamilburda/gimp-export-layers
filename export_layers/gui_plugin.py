@@ -730,9 +730,13 @@ class _ExportLayersGui(object):
       self.settings['main']['tagged_layers_mode'].gui.element, 0, 1, 1, 2, yoptions=0)
     
     tagged_layers_description = _(
-      "To use a layer as a background for other layers, type \"[background]\" before the layer name."
-      " For foreground layers, type \"[foreground]\" before the layer name."
-      " To enable handling of tagged layers, select \"Treat specially\".")
+      "To use a layer as a background for other layers, right-click in the preview on the layer "
+      "and select \"{0}\"."
+      "\nFor foreground layers, select \"{1}\"."
+      "\nTo enable handling of tagged layers, select \"{2}\".").format(
+        exportlayers.LayerExporter.SUPPORTED_TAGS['background'],
+        exportlayers.LayerExporter.SUPPORTED_TAGS['foreground'],
+        self.settings['main']['tagged_layers_mode'].items_display_names['special'])
     
     self.advanced_settings_tagged_layers_mode_label.set_tooltip_text(tagged_layers_description)
     self.settings['main']['tagged_layers_mode'].gui.element.set_tooltip_text(tagged_layers_description)
