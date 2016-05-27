@@ -508,6 +508,10 @@ class _ItemDataElement(object):
     return self._parents
   
   @property
+  def children(self):
+    return self._children
+  
+  @property
   def level(self):
     return self._level
   
