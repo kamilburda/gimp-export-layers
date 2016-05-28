@@ -324,6 +324,9 @@ class ItemData(object):
       if child_items is not None:
         item_elem_parents.append(item_elem)
         child_item_elems = [_ItemDataElement(item, item_elem_parents, None) for item in child_items]
+        
+        # We break the convention here and access the `_ItemDataElement._children`
+        # private attribute.
         item_elem._children = child_item_elems
         
         for child_item_elem in reversed(child_item_elems):
