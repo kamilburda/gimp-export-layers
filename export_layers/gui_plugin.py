@@ -483,25 +483,25 @@ class ExportNamePreview(object):
         was_selected = self._tree_view.get_selection().iter_is_selected(self._tree_iters[layer_elem_orig_name])
         
         if tags_menu_item.get_active():
-          new_layer_elem, modified_externally = self._layer_exporter.layer_data.add_tag(layer_elem, tag)
+          modified_externally = self._layer_exporter.layer_data.add_tag(layer_elem, tag)
         else:
-          new_layer_elem, modified_externally = self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
-        
-        has_supported_tags = self._has_supported_tags(new_layer_elem)
-        should_set_sensitivity = (has_supported_tags != had_previously_supported_tags and
-                                  treat_tagged_layers_specially and new_layer_elem.item_type == new_layer_elem.ITEM)
-        should_update = should_update or modified_externally or should_set_sensitivity
-        
-        if was_selected:
-          self._selected_items.append(new_layer_elem.orig_name)
+          modified_externally = self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
         
         self._set_layer_orig_name(self._tree_iters[layer_elem_orig_name],
-                                  layer_elem_orig_name, new_layer_elem.orig_name)
-        self._tree_model.set_value(self._tree_iters[new_layer_elem.orig_name], self._COLUMN_ICON_TAG_VISIBLE[0],
+                                  layer_elem_orig_name, layer_elem.orig_name)
+        
+        has_supported_tags = self._has_supported_tags(layer_elem)
+        should_set_sensitive = (has_supported_tags != had_previously_supported_tags and
+                                treat_tagged_layers_specially and layer_elem.item_type == layer_elem.ITEM)
+        should_update = should_update or modified_externally or should_set_sensitive
+        
+        if was_selected:
+          self._selected_items.append(layer_elem.orig_name)
+        
+        self._tree_model.set_value(self._tree_iters[layer_elem.orig_name], self._COLUMN_ICON_TAG_VISIBLE[0],
                                    has_supported_tags)
-        if should_set_sensitivity:
-          self._tree_model.set_value(
-            self._tree_iters[new_layer_elem.orig_name], self._COLUMN_LAYER_NAME_SENSITIVE[0], not has_supported_tags)
+        if should_set_sensitive:
+          self._set_item_elem_sensitive(layer_elem, not has_supported_tags)
       
       pdb.gimp_image_undo_group_end(self._layer_exporter.image)
       
@@ -569,8 +569,11 @@ class ExportNamePreview(object):
       with self._layer_exporter.layer_data.filter.add_rule_temp(
              exportlayers.LayerFilterRules.has_tag, *self._layer_exporter.SUPPORTED_TAGS.keys()):
         for layer_elem in self._layer_exporter.layer_data:
-          self._tree_model.set_value(
-            self._tree_iters[layer_elem.orig_name], self._COLUMN_LAYER_NAME_SENSITIVE[0], False)
+          self._set_item_elem_sensitive(layer_elem, False)
+  
+  def _set_item_elem_sensitive(self, item_elem, sensitive):
+    self._tree_model.set_value(
+      self._tree_iters[item_elem.orig_name], self._COLUMN_LAYER_NAME_SENSITIVE[0], sensitive)
   
   def _get_icon_from_item_elem(self, item_elem):
     if item_elem.item_type == item_elem.ITEM:
