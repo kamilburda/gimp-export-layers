@@ -492,7 +492,8 @@ class ExportNamePreview(object):
         
         has_supported_tags = self._has_supported_tags(layer_elem)
         should_set_sensitive = (has_supported_tags != had_previously_supported_tags and
-                                treat_tagged_layers_specially and layer_elem.item_type == layer_elem.ITEM)
+                                treat_tagged_layers_specially and
+                                layer_elem.item_type != layer_elem.NONEMPTY_GROUP)
         should_update = should_update or modified_externally or should_set_sensitive
         
         if was_selected:
