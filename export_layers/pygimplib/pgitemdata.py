@@ -437,6 +437,15 @@ class _ItemDataElement(object):
   * `parents` (read-only) - List of `_ItemDataElement` parents for this item,
     sorted from the topmost parent to the bottommost (immediate) parent.
   
+  * `children` (read-only) - List of `_ItemDataElement` children for this item.
+  
+  * `name` - Item name as a `unicode` string, initially equal to the `orig_name`
+     attribute. Modify this attribute instead of `gimp.Item.name` to avoid
+     modifying the original item.
+  
+  * `tags` - Set of arbitrary strings attached to the item. Tags can also be
+    parsed from the item name by calling `parse_tags`.
+  
   * `level` (read-only) - Integer indicating which level in the item tree is
     the item positioned at. 0 means the item is at the top level. The higher
     the level, the deeper the item is in the item tree.
@@ -444,23 +453,16 @@ class _ItemDataElement(object):
   * `parent` (read-only) - Immediate `_ItemDataElement` parent of this object.
     If this object has no parent, return None.
   
+  * `orig_name` (read-only) - Original `gimp.Item.name` as a `unicode` string.
+  
   * `item_type` (read-only) - Item type - one of the following:
       * `ITEM` - normal item,
       * `NONEMPTY_GROUP` - non-empty item group (contains children),
       * `EMPTY_GROUP` - empty item group (contains no children).
   
-  * `name` - Item name as a `unicode` string, initially equal to the `orig_name`
-     attribute. Modify this attribute instead of `gimp.Item.name` to avoid
-     modifying the original item.
-  
-  * `orig_name` (read-only) - Original `gimp.Item.name` as a `unicode` string.
-  
   * `path_visible` (read-only) - Visibility of all item's parents and this
     item. If all items are visible, `path_visible` is True. If at least one
     of these items is invisible, `path_visible` is False.
-  
-  * `tags` - Set of arbitrary strings attached to the item. Tags can also be
-    parsed from the item name by calling `parse_tags`.
   """
   
   _ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP = (0, 1, 2)
