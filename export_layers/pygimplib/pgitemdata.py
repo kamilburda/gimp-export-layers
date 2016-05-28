@@ -239,17 +239,10 @@ class ItemData(object):
   def add_tag(self, item_elem, tag):
     """
     Add the specified tag to the specified item. Prepend the tag to the original
-    item name as well.
+    item name as well. If the tag already exists, do nothing.
     
-    If the tag already exists, do nothing and return the original item.
-    
-    Returns:
-    
-    * `new_item_elem` - a new instance of the item.
-    
-    * `item_name_modified_externally` - whether the original item name was
-      modified externally, e.g. by GIMP in order to ensure that item names are
-      unique.
+    If the original item name was modified externally (by GIMP in order to
+    ensure that item names are unique), return True, otherwise return False.
     """
     
     if tag in item_elem.tags:
@@ -257,13 +250,10 @@ class ItemData(object):
     
     item_elem.tags.add(tag)
     
-    new_item_name = "[{0}] {1}".format(tag, item_elem.orig_name).encode()
-    item_elem.item.name = new_item_name
+    new_item_name = "[{0}] {1}".format(tag, item_elem.orig_name)
     
-    item_name_modified_externally = item_elem.item.name != new_item_name
-    new_item_elem = self._new_item_elem(item_elem)
-    
-    return new_item_elem, item_name_modified_externally
+    item_name_modified_externally = self._rename_item_elem(item_elem, new_item_name)
+    return item_name_modified_externally
   
   def remove_tag(self, item_elem, tag):
     """
@@ -271,15 +261,10 @@ class ItemData(object):
     original item name as well. If the original item name contains the tag
     multiple times, all of the occurrences of the tag are removed.
     
+    If the original item name was modified externally (by GIMP in order to
+    ensure that item names are unique), return True, otherwise return False.
+    
     If the tag does not exist in the item name, raise `ValueError`.
-    
-    Returns:
-    
-    * `new_item_elem` - a new instance of the item.
-    
-    * `item_name_modified_externally` - whether the original item name was
-      modified externally, e.g. by GIMP in order to ensure that item names are
-      unique.
     """
     
     if tag not in item_elem.tags:
@@ -291,13 +276,26 @@ class ItemData(object):
     tags_str = item_elem.orig_name[:index]
     tags_str_processed = re.sub(r"\[" + re.escape(tag) + r"\] *", r"", tags_str)
     
-    new_item_name = (tags_str_processed + item_elem.orig_name[index:]).encode()
-    item_elem.item.name = new_item_name
+    new_item_name = (tags_str_processed + item_elem.orig_name[index:])
     
-    item_name_modified_externally = item_elem.item.name != new_item_name
-    new_item_elem = self._new_item_elem(item_elem)
+    item_name_modified_externally = self._rename_item_elem(item_elem, new_item_name)
+    return item_name_modified_externally
+  
+  def _rename_item_elem(self, item_elem, new_item_name):
+    new_item_name_encoded = new_item_name.encode()
     
-    return new_item_elem, item_name_modified_externally
+    item_elem.item.name = new_item_name_encoded
+    
+    del self._itemdata[item_elem.orig_name]
+    
+    # We break the convention here and access the `_ItemDataElement._orig_name`
+    # private attribute.
+    item_elem._orig_name = new_item_name
+    
+    self._itemdata[new_item_name] = item_elem
+    
+    item_name_modified_externally = item_elem.item.name != new_item_name_encoded
+    return item_name_modified_externally
   
   def _fill_item_data(self):
     """
@@ -331,16 +329,6 @@ class ItemData(object):
         
         for child_item_elem in reversed(child_item_elems):
           item_elem_tree.insert(0, child_item_elem)
-  
-  def _new_item_elem(self, item_elem):
-    new_item_elem = _ItemDataElement(item_elem.item, item_elem.parents, item_elem.children)
-    new_item_elem.name = item_elem.name
-    new_item_elem.tags = item_elem.tags
-    
-    del self._itemdata[item_elem.orig_name]
-    self._itemdata[new_item_elem.orig_name] = new_item_elem
-    
-    return new_item_elem
   
   @abc.abstractmethod
   def _get_children_from_image(self, image):
