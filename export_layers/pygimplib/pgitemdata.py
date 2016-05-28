@@ -305,24 +305,29 @@ class ItemData(object):
     pairs.
     """
     
-    _ItemTreeNode = collections.namedtuple('_ItemTreeNode', ['item', 'parents'])
-    item_tree = [_ItemTreeNode(child_item, []) for child_item in self._get_children_from_image(self.image)]
+    child_items = self._get_children_from_image(self.image)
+    child_item_elems = [_ItemDataElement(item, [], None) for item in child_items]
     
-    while item_tree:
-      node = item_tree.pop(0)
+    item_elem_tree = child_item_elems
+    
+    while item_elem_tree:
+      item_elem = item_elem_tree.pop(0)
       
-      item_elem_parents = list(node.parents)
-      if self._is_group(node.item):
-        item_elem_children = self._get_children_from_item(node.item)
-      else:
-        item_elem_children = None
-      
-      item_elem = _ItemDataElement(node.item, item_elem_parents, item_elem_children)
       self._itemdata[item_elem.orig_name] = item_elem
       
-      if item_elem_children:
-        for child_item in reversed(item_elem_children):
-          item_tree.insert(0, _ItemTreeNode(child_item, item_elem_parents + [item_elem]))
+      item_elem_parents = list(item_elem.parents)
+      if self._is_group(item_elem.item):
+        child_items = self._get_children_from_item(item_elem.item)
+      else:
+        child_items = None
+      
+      if child_items is not None:
+        item_elem_parents.append(item_elem)
+        child_item_elems = [_ItemDataElement(item, item_elem_parents, None) for item in child_items]
+        item_elem._children = child_item_elems
+        
+        for child_item_elem in reversed(child_item_elems):
+          item_elem_tree.insert(0, child_item_elem)
   
   def _new_item_elem(self, item_elem):
     new_item_elem = _ItemDataElement(item_elem.item, item_elem.parents, item_elem.children)
@@ -473,30 +478,19 @@ class _ItemDataElement(object):
     if item is None:
       raise TypeError("item cannot be None")
     
+    self._item = item
+    self._parents = parents if parents is not None else []
+    self._children = children
+    
     self.name = item.name.decode()
     self.tags = set()
     
     self._orig_name = self.name
     
-    self._item = item
-    self._parents = parents if parents is not None else []
     self._level = len(self._parents)
+    self._parent = self._parents[-1] if self._parents else None
     
-    if self._parents:
-      self._parent = self._parents[-1]
-    else:
-      self._parent = None
-    
-    self._children = children
-    
-    if self._children is None:
-      self._item_type = self.ITEM
-    else:
-      if self._children:
-        self._item_type = self.NONEMPTY_GROUP
-      else:
-        self._item_type = self.EMPTY_GROUP
-    
+    self._item_type = None
     self._path_visible = None
   
   @property
@@ -512,6 +506,10 @@ class _ItemDataElement(object):
     return self._children
   
   @property
+  def orig_name(self):
+    return self._orig_name
+  
+  @property
   def level(self):
     return self._level
   
@@ -521,11 +519,16 @@ class _ItemDataElement(object):
   
   @property
   def item_type(self):
+    if self._item_type is None:
+      if self._children is None:
+        self._item_type = self.ITEM
+      else:
+        if self._children:
+          self._item_type = self.NONEMPTY_GROUP
+        else:
+          self._item_type = self.EMPTY_GROUP
+    
     return self._item_type
-  
-  @property
-  def orig_name(self):
-    return self._orig_name
   
   @property
   def path_visible(self):

@@ -154,6 +154,44 @@ class TestLayerData(unittest.TestCase):
     image = _parse_layers(layers_string)
     self.layer_data = pgitemdata.LayerData(image)
   
+  def test_parents_and_children(self):
+    layer_elem_tree = collections.OrderedDict([
+      ("Corners", [[], ["top-left-corner", "top-right-corner", "top-left-corner:", "top-left-corner::"]]),
+      ("top-left-corner", [["Corners"], None]),
+      ("top-right-corner", [["Corners"], None]),
+      ("top-left-corner:", [["Corners"], []]),
+      ("top-left-corner::", [["Corners"], ["bottom-right-corner", "bottom-right-corner:", "bottom-left-corner"]]),
+      ("bottom-right-corner", [["Corners", "top-left-corner::"], None]),
+      ("bottom-right-corner:", [["Corners", "top-left-corner::"], None]),
+      ("bottom-left-corner", [["Corners", "top-left-corner::"], None]),
+      ("Corners:", [[], ["top-left-corner:::"]]),
+      ("top-left-corner:::", [["Corners:"], None]),
+      ("Frames", [[], ["top-frame"]]),
+      ("top-frame", [["Frames"], None]),
+      ("main-background.jpg", [[], None]),
+      ("main-background.jpg:", [[], None]),
+      ("Overlay", [[], []]),
+      ("Corners::", [[], None]),
+      ("top-left-corner::::", [[], None]),
+      ("main-background.jpg::", [[], ["alt-frames", "alt-corners"]]),
+      ("alt-frames", [["main-background.jpg::"], None]),
+      ("alt-corners", [["main-background.jpg::"], None]),
+    ])
+    
+    for layer_elem, orig_name in zip(self.layer_data, layer_elem_tree.keys()):
+      self.assertEqual(layer_elem.orig_name, orig_name)
+    
+    for layer_elem, parents_and_children in zip(self.layer_data, layer_elem_tree.values()):
+      parents = parents_and_children[0]
+      children = parents_and_children[1]
+      
+      self.assertListEqual([parent.orig_name for parent in layer_elem.parents], parents)
+      
+      if children is not None:
+        self.assertListEqual([child.orig_name for child in layer_elem.children], children)
+      else:
+        self.assertIsNone(layer_elem.children)
+  
   def test_get_len(self):
     layer_count_total = 20
     layer_count_only_layers = 13
@@ -162,6 +200,7 @@ class TestLayerData(unittest.TestCase):
     
     self.layer_data.is_filtered = True
     self.layer_data.filter.add_rule(LayerFilterRules.is_layer)
+    
     self.assertEqual(len(self.layer_data), layer_count_only_layers)
   
   def test_get_filepath(self):
@@ -234,18 +273,18 @@ class TestLayerData(unittest.TestCase):
   
   def test_uniquify_without_layer_groups(self):
     uniquified_names = collections.OrderedDict([
-      ("top-left-corner",      "top-left-corner"),
-      ("top-right-corner",     "top-right-corner"),
-      ("top-left-corner:",     "top-left-corner (1)"),
-      ("bottom-right-corner",  "bottom-right-corner"),
+      ("top-left-corner", "top-left-corner"),
+      ("top-right-corner", "top-right-corner"),
+      ("top-left-corner:", "top-left-corner (1)"),
+      ("bottom-right-corner", "bottom-right-corner"),
       ("bottom-right-corner:", "bottom-right-corner (1)"),
-      ("bottom-left-corner",   "bottom-left-corner"),
-      ("top-left-corner:::",   "top-left-corner (2)"),
-      ("top-frame",            "top-frame"),
-      ("main-background.jpg",  "main-background.jpg"),
+      ("bottom-left-corner", "bottom-left-corner"),
+      ("top-left-corner:::", "top-left-corner (2)"),
+      ("top-frame", "top-frame"),
+      ("main-background.jpg", "main-background.jpg"),
       ("main-background.jpg:", "main-background.jpg (1)"),
-      ("Corners",              "Corners"),
-      ("top-left-corner::::",  "top-left-corner (3)")
+      ("Corners", "Corners"),
+      ("top-left-corner::::", "top-left-corner (3)")
     ])
     
     # This is to make the uniquification work properly for these tests. It's not
@@ -263,25 +302,25 @@ class TestLayerData(unittest.TestCase):
   
   def test_uniquify_with_layer_groups(self):
     uniquified_names = collections.OrderedDict([
-      ("Corners",                ["Corners"]),
-      ("top-left-corner",        ["Corners", "top-left-corner"]),
-      ("top-right-corner",       ["Corners", "top-right-corner"]),
-      ("top-left-corner:",       ["Corners", "top-left-corner (1)"]),
-      ("top-left-corner::",      ["Corners", "top-left-corner (2)"]),
-      ("bottom-right-corner",    ["Corners", "top-left-corner (2)", "bottom-right-corner"]),
-      ("bottom-right-corner:",   ["Corners", "top-left-corner (2)", "bottom-right-corner (1)"]),
-      ("bottom-left-corner",     ["Corners", "top-left-corner (2)", "bottom-left-corner"]),
-      ("Corners:",               ["Corners (1)"]),
-      ("top-left-corner:::",     ["Corners (1)", "top-left-corner"]),
-      ("Frames",                 ["Frames"]),
-      ("top-frame",              ["Frames", "top-frame"]),
-      ("main-background.jpg",    ["main-background.jpg"]),
-      ("main-background.jpg:",   ["main-background.jpg (1)"]),
-      ("Corners::",              ["Corners (2)"]),
-      ("top-left-corner::::",    ["top-left-corner"]),
-      ("main-background.jpg::",  ["main-background.jpg (2)"]),
-      ("alt-frames",             ["main-background.jpg (2)", "alt-frames"]),
-      ("alt-corners",            ["main-background.jpg (2)", "alt-corners"]),
+      ("Corners", ["Corners"]),
+      ("top-left-corner", ["Corners", "top-left-corner"]),
+      ("top-right-corner", ["Corners", "top-right-corner"]),
+      ("top-left-corner:", ["Corners", "top-left-corner (1)"]),
+      ("top-left-corner::", ["Corners", "top-left-corner (2)"]),
+      ("bottom-right-corner", ["Corners", "top-left-corner (2)", "bottom-right-corner"]),
+      ("bottom-right-corner:", ["Corners", "top-left-corner (2)", "bottom-right-corner (1)"]),
+      ("bottom-left-corner", ["Corners", "top-left-corner (2)", "bottom-left-corner"]),
+      ("Corners:", ["Corners (1)"]),
+      ("top-left-corner:::", ["Corners (1)", "top-left-corner"]),
+      ("Frames", ["Frames"]),
+      ("top-frame", ["Frames", "top-frame"]),
+      ("main-background.jpg", ["main-background.jpg"]),
+      ("main-background.jpg:", ["main-background.jpg (1)"]),
+      ("Corners::", ["Corners (2)"]),
+      ("top-left-corner::::", ["top-left-corner"]),
+      ("main-background.jpg::", ["main-background.jpg (2)"]),
+      ("alt-frames", ["main-background.jpg (2)", "alt-frames"]),
+      ("alt-corners", ["main-background.jpg (2)", "alt-corners"]),
     ])
     
     self.layer_data.is_filtered = True
@@ -300,9 +339,9 @@ class TestLayerData(unittest.TestCase):
       return position
     
     uniquified_names = collections.OrderedDict([
-      ("main-background.jpg",    ["main-background.jpg"]),
-      ("main-background.jpg:",   ["main-background (1).jpg"]),
-      ("main-background.jpg::",  ["main-background.jpg (1)"])
+      ("main-background.jpg", ["main-background.jpg"]),
+      ("main-background.jpg:", ["main-background (1).jpg"]),
+      ("main-background.jpg::", ["main-background.jpg (1)"])
     ])
     
     self.layer_data.is_filtered = True
