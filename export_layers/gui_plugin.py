@@ -573,7 +573,8 @@ class ExportNamePreview(object):
              exportlayers.LayerFilterRules.has_tag, *self._layer_exporter.SUPPORTED_TAGS.keys()):
         for layer_elem in self._layer_exporter.layer_data:
           self._set_item_elem_sensitive(layer_elem, False)
-          self._set_parent_item_elem_sensitive(layer_elem)
+          if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
+            self._set_parent_item_elem_sensitive(layer_elem)
   
   def _get_item_elem_sensitive(self, item_elem):
     return self._tree_model.get_value(self._tree_iters[item_elem.orig_name], self._COLUMN_LAYER_NAME_SENSITIVE[0])
