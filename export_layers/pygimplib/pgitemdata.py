@@ -290,7 +290,7 @@ class ItemData(object):
     
     # We break the convention here and access the `_ItemDataElement._orig_name`
     # private attribute.
-    item_elem._orig_name = item_elem.item.name.encode()
+    item_elem._orig_name = item_elem.item.name.decode()
     
     self._itemdata[new_item_name] = item_elem
     
