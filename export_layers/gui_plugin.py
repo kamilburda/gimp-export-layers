@@ -497,6 +497,9 @@ class ExportNamePreview(object):
                                   old_layer_elem_orig_name, layer_elem.orig_name)
         if was_selected:
           self._selected_items.append(layer_elem.orig_name)
+        if old_layer_elem_orig_name in self._collapsed_items:
+          self._collapsed_items.remove(old_layer_elem_orig_name)
+          self._collapsed_items.add(layer_elem.orig_name)
         
         self._tree_model.set_value(self._tree_iters[layer_elem.orig_name], self._COLUMN_ICON_TAG_VISIBLE[0],
                                    has_supported_tags)
