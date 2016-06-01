@@ -290,11 +290,11 @@ class ItemData(object):
     
     # We break the convention here and access the `_ItemDataElement._orig_name`
     # private attribute.
-    item_elem._orig_name = new_item_name
+    item_elem._orig_name = item_elem.item.name.encode()
     
     self._itemdata[new_item_name] = item_elem
     
-    item_name_modified_externally = item_elem.item.name != new_item_name_encoded
+    item_name_modified_externally = item_elem._orig_name != new_item_name
     return item_name_modified_externally
   
   def _fill_item_data(self):
