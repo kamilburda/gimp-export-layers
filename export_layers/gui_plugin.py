@@ -475,20 +475,17 @@ class ExportNamePreview(object):
       
       pdb.gimp_image_undo_group_start(self._layer_exporter.image)
       
-      for layer_elem_orig_name in self._get_layer_orig_names_in_current_selection():
-        layer_elem = self._layer_exporter.layer_data[layer_elem_orig_name]
+      for old_layer_elem_orig_name in self._get_layer_orig_names_in_current_selection():
+        layer_elem = self._layer_exporter.layer_data[old_layer_elem_orig_name]
         tag = self._tags_names[tags_menu_item.get_label()]
         
         had_previously_supported_tags = self._has_supported_tags(layer_elem)
-        was_selected = self._tree_view.get_selection().iter_is_selected(self._tree_iters[layer_elem_orig_name])
+        was_selected = self._tree_view.get_selection().iter_is_selected(self._tree_iters[old_layer_elem_orig_name])
         
         if tags_menu_item.get_active():
           modified_externally = self._layer_exporter.layer_data.add_tag(layer_elem, tag)
         else:
           modified_externally = self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
-        
-        self._set_layer_orig_name(self._tree_iters[layer_elem_orig_name],
-                                  layer_elem_orig_name, layer_elem.orig_name)
         
         has_supported_tags = self._has_supported_tags(layer_elem)
         should_set_sensitive = (has_supported_tags != had_previously_supported_tags and
@@ -496,6 +493,8 @@ class ExportNamePreview(object):
                                 layer_elem.item_type != layer_elem.NONEMPTY_GROUP)
         should_update = should_update or modified_externally or should_set_sensitive
         
+        self._set_layer_orig_name(self._tree_iters[old_layer_elem_orig_name],
+                                  old_layer_elem_orig_name, layer_elem.orig_name)
         if was_selected:
           self._selected_items.append(layer_elem.orig_name)
         
