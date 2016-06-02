@@ -642,7 +642,23 @@ class ExportNamePreview(object):
 #===============================================================================
 
 
-class _ExportLayersGui(object):
+class _ExportLayersGenericGui(object):
+  
+  def __init__(self):
+    self.layer_exporter = None
+  
+  def stop(self, *args):
+    if self.layer_exporter is not None:
+      self.layer_exporter.should_stop = True
+      return True
+    else:
+      return False
+
+
+#===============================================================================
+
+
+class _ExportLayersGui(_ExportLayersGenericGui):
   
   HBOX_HORIZONTAL_SPACING = 8
   
@@ -656,6 +672,8 @@ class _ExportLayersGui(object):
   ACTION_AREA_BORDER_WIDTH = 4
   
   def __init__(self, image, settings, session_source, persistent_source):
+    super(_ExportLayersGui, self).__init__()
+    
     self.image = image
     self.settings = settings
     self.session_source = session_source
@@ -679,8 +697,6 @@ class _ExportLayersGui(object):
     _setup_image_ids_and_directories_and_initial_directory(
       self.settings, self.current_directory_setting, self.image)
     _setup_output_directory_changed(self.settings, self.image)
-    
-    self.layer_exporter = None
     
     self._init_gui()
     
@@ -859,6 +875,7 @@ class _ExportLayersGui(object):
     self.export_layers_button.connect("clicked", self.on_export_click)
     self.cancel_button.connect("clicked", self.cancel)
     self.stop_button.connect("clicked", self.stop)
+    self.dialog.connect("key-press-event", self.on_dialog_key_press)
     self.dialog.connect("delete-event", self.close)
     
     self.save_settings_button.connect("clicked", self.on_save_settings_clicked)
@@ -963,6 +980,11 @@ class _ExportLayersGui(object):
     if preview_visible:
       self.export_name_preview.update()
   
+  def on_dialog_key_press(self, widget, event):
+    if gtk.gdk.keyval_name(event.keyval) == "Escape":
+      export_stopped = self.stop()
+      return export_stopped
+  
   @_set_settings
   def on_save_settings_clicked(self, widget):
     self.save_settings()
@@ -1017,6 +1039,7 @@ class _ExportLayersGui(object):
         should_quit = False
     finally:
       pdb.gimp_progress_end()
+      self.layer_exporter = None
     
     self.settings['main']['overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
     pgsettingpersistor.SettingPersistor.save(
@@ -1059,10 +1082,6 @@ class _ExportLayersGui(object):
   
   def cancel(self, widget):
     gtk.main_quit()
-  
-  def stop(self, widget):
-    if self.layer_exporter is not None:
-      self.layer_exporter.should_stop = True
   
   def display_message_label(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
     self._message_setting = setting
