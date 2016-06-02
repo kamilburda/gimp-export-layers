@@ -249,6 +249,35 @@ class TestLayerData(unittest.TestCase):
     )
   
   #-----------------------------------------------------------------------------
+  
+  def _test_add_remove_tag(self, operation, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag):
+    modified_externally = getattr(self.layer_data, operation)(self.layer_data[orig_layer_name], tag)
+    self.assertFalse(modified_externally)
+    self.assertIn(new_layer_name, self.layer_data)
+    self.assertNotIn(incorrect_new_layer_name, self.layer_data)
+  
+  def _test_add_tag(self, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag):
+    self._test_add_remove_tag("add_tag", orig_layer_name, new_layer_name, incorrect_new_layer_name, tag)
+    self.assertIn(tag, self.layer_data[new_layer_name].tags)
+  
+  def _test_remove_tag(self, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag):
+    self._test_add_remove_tag("remove_tag", orig_layer_name, new_layer_name, incorrect_new_layer_name, tag)
+    self.assertNotIn(tag, self.layer_data[new_layer_name].tags)
+  
+  def test_add_remove_tag(self):
+    self._test_add_tag('top-left-corner', '[background] top-left-corner',
+                       'top-left-corner', "background")
+    self._test_add_tag('[background] top-left-corner', '[background] top-left-corner',
+                       '[background] [background] top-left-corner', "background")
+    self._test_add_tag('[background] top-left-corner', '[foreground] [background] top-left-corner',
+                       '[background] top-left-corner', "foreground")
+    
+    self._test_remove_tag('[foreground] [background] top-left-corner', '[foreground] top-left-corner',
+                          '[foreground] [background] top-left-corner', "background")
+    self._test_remove_tag('[foreground] top-left-corner', 'top-left-corner',
+                          '[foreground] top-left-corner', "foreground")
+  
+  #-----------------------------------------------------------------------------
     
   def _compare_uniquified_without_parents(self, layer_data, uniquified_names):
     for key, name in uniquified_names.items():
