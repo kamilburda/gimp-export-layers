@@ -1107,14 +1107,28 @@ class _ExportLayersGui(_ExportLayersGenericGui):
 #===============================================================================
 
 
-class ExportDialog(object):
+class _ExportLayersRepeatGui(_ExportLayersGenericGui):
   
   _HBOX_HORIZONTAL_SPACING = 8
   _DIALOG_WIDTH = 500
   
-  def __init__(self, stop_event):
-    self.stop_event = stop_event
+  def __init__(self, image, settings, session_source, persistent_source):
+    super(_ExportLayersRepeatGui, self).__init__()
+
     self._init_gui()
+    
+    self.image = image
+    self.settings = settings
+    self.session_source = session_source
+    self.persistent_source = persistent_source
+    
+    pgsettingpersistor.SettingPersistor.load([self.settings['main']], [self.session_source])
+    
+    pggui.set_gui_excepthook_parent(self._dialog)
+    
+    gtk.main_iteration()
+    self.show()
+    self.export_layers()
   
   def _init_gui(self):
     self._dialog = gimpui.Dialog(title=_(constants.PLUGIN_TITLE), role=None)
@@ -1138,16 +1152,30 @@ class ExportDialog(object):
     
     self._dialog.vbox.pack_end(self._hbox_action_area, expand=False, fill=False)
     
-    self._stop_button.connect("clicked", self.stop_event)
-    self._dialog.connect("delete-event", self.stop_event)
+    self._stop_button.connect("clicked", self.stop)
+    self._dialog.connect("delete-event", self.stop)
   
-  @property
-  def dialog(self):
-    return self._dialog
-  
-  @property
-  def progress_bar(self):
-    return self._progress_bar
+  def export_layers(self):
+    overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(self.settings['main']['overwrite_mode'].value)
+    progress_updater = pggui.GtkProgressUpdater(self._progress_bar)
+    
+    pdb.gimp_progress_init("", None)
+    
+    self.layer_exporter = exportlayers.LayerExporter(
+      gimpenums.RUN_WITH_LAST_VALS, self.image, self.settings['main'], overwrite_chooser, progress_updater,
+      export_context_manager=_handle_gui_in_export, export_context_manager_args=[self._dialog])
+    try:
+      self.layer_exporter.export_layers()
+    except exportlayers.ExportLayersCancelError:
+      pass
+    except exportlayers.ExportLayersError as e:
+      display_message(_format_export_error_message(e), message_type=gtk.MESSAGE_WARNING,
+                      parent=self._dialog, message_in_text_view=True)
+    else:
+      if not self.layer_exporter.exported_layers:
+        display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self._dialog)
+    finally:
+      pdb.gimp_progress_end()
   
   def show(self):
     self._dialog.vbox.show_all()
@@ -1156,56 +1184,6 @@ class ExportDialog(object):
   
   def hide(self):
     self._dialog.hide()
-
-
-#===============================================================================
-
-
-class _ExportLayersRepeatGui(object):
-  
-  def __init__(self, image, settings, session_source, persistent_source):
-    self.image = image
-    self.settings = settings
-    self.session_source = session_source
-    self.persistent_source = persistent_source
-    
-    pgsettingpersistor.SettingPersistor.load([self.settings['main']], [self.session_source])
-    
-    self.layer_exporter = None
-    
-    self.export_dialog = ExportDialog(self.stop)
-    
-    pggui.set_gui_excepthook_parent(self.export_dialog.dialog)
-    
-    gtk.main_iteration()
-    self.export_dialog.show()
-    self.export_layers()
-  
-  def export_layers(self):
-    overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(self.settings['main']['overwrite_mode'].value)
-    progress_updater = pggui.GtkProgressUpdater(self.export_dialog.progress_bar)
-    
-    pdb.gimp_progress_init("", None)
-    
-    self.layer_exporter = exportlayers.LayerExporter(
-      gimpenums.RUN_WITH_LAST_VALS, self.image, self.settings['main'], overwrite_chooser, progress_updater,
-      export_context_manager=_handle_gui_in_export, export_context_manager_args=[self.export_dialog.dialog])
-    try:
-      self.layer_exporter.export_layers()
-    except exportlayers.ExportLayersCancelError:
-      pass
-    except exportlayers.ExportLayersError as e:
-      display_message(_format_export_error_message(e), message_type=gtk.MESSAGE_WARNING,
-                      parent=self.export_dialog.dialog, message_in_text_view=True)
-    else:
-      if not self.layer_exporter.exported_layers:
-        display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.export_dialog.dialog)
-    finally:
-      pdb.gimp_progress_end()
-  
-  def stop(self, widget, *args):
-    if self.layer_exporter is not None:
-      self.layer_exporter.should_stop = True
 
 
 #===============================================================================
