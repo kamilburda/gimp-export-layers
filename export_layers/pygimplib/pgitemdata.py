@@ -246,7 +246,7 @@ class ItemData(object):
     """
     
     if tag in item_elem.tags:
-      return item_elem, False
+      return False
     
     item_elem.tags.add(tag)
     
