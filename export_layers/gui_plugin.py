@@ -618,6 +618,8 @@ class ExportNamePreview(object):
     else:
       self._tree_view.expand_row(tree_path, True)
     
+    self._remove_no_longer_valid_collapsed_items()
+    
     for layer_elem_orig_name in self._collapsed_items:
       if layer_elem_orig_name in self._tree_iters:
         layer_elem_tree_iter = self._tree_iters[layer_elem_orig_name]
@@ -629,6 +631,15 @@ class ExportNamePreview(object):
           self._tree_view.collapse_row(layer_elem_tree_path)
     
     self._row_expand_collapse_interactive = True
+  
+  def _remove_no_longer_valid_collapsed_items(self):
+    if self._layer_exporter.layer_data is None:
+      return
+    
+    self._layer_exporter.layer_data.is_filtered = False
+    self._collapsed_items = set([collapsed_item for collapsed_item in self._collapsed_items
+                                 if collapsed_item in self._layer_exporter.layer_data])
+    self._layer_exporter.layer_data.is_filtered = True
   
   def _set_selection(self):
     self._selected_items = [item for item in self._selected_items if item in self._tree_iters]
