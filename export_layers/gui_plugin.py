@@ -158,6 +158,9 @@ def _set_settings(func):
       
       self.current_directory_setting.gui.update_setting_value()
       self.settings['main']['output_directory'].set_value(self.current_directory_setting.value)
+      
+      self.settings['gui_session']['export_name_preview_layers_collapsed_state'].value[self.image.ID] = (
+        self.export_name_preview.collapsed_items)
     except pgsetting.SettingValueError as e:
       self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
       return
@@ -325,6 +328,10 @@ class ExportNamePreview(object):
           self._lock_keys.remove(key)
       
       self._update_locked = bool(self._lock_keys)
+  
+  @property
+  def collapsed_items(self):
+    return self._collapsed_items
   
   def _init_gui(self):
     self._tree_model = gtk.TreeStore(*[column[1] for column in self._COLUMNS])
