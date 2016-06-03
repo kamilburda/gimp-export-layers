@@ -100,7 +100,7 @@ and no subfolders will be created.
 If enabled, invisible layers will not be exported. Visible layers within
 invisible layer groups will also not be exported.
 
-**Autocrop layers**
+**Autocrop**
 
 If enabled, layers will be autocropped before being exported.
 

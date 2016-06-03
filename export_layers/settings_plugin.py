@@ -108,7 +108,7 @@ def create_settings():
       'type': pgsetting.SettingTypes.boolean,
       'name': 'autocrop',
       'default_value': False,
-      'display_name': _("Autocrop layers")
+      'display_name': _("Autocrop")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
