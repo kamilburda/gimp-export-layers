@@ -241,31 +241,39 @@ class PersistentSettingSource(SettingSource):
       This could happen if the source was edited manually.
     """
     
-    parasite = gimp.parasite_find(self.source_name)
-    
-    if parasite is None:
-      raise SettingSourceNotFoundError(
-        _("Could not find setting source \"{0}\".").format(self.source_name)
-      )
-    
-    self._settings_from_parasite = None
-    
-    try:
-      self._settings_from_parasite = pickle.loads(parasite.data)
-    except (pickle.UnpicklingError, AttributeError, EOFError):
-      raise SettingSourceInvalidFormatError(
-        _("Settings for this plug-in stored in the \"{0}\" file are corrupt. "
-          "This could happen if the file was edited manually.\n"
-          "To fix this, save the settings again or reset them.").format(self._parasite_filename)
-      )
+    self._settings_from_parasite = self._read_from_parasite(self.source_name)
+    if self._settings_from_parasite is None:
+      raise SettingSourceNotFoundError(_("Could not find setting source \"{0}\".").format(self.source_name))
     
     self._read(settings)
     
     del self._settings_from_parasite
   
   def write(self, settings):
-    settings_data = pickle.dumps(self._to_dict(settings))
+    settings_from_parasite = self._read_from_parasite(self.source_name)
+    if settings_from_parasite is not None:
+      settings_to_write = settings_from_parasite
+      settings_to_write.update(self._to_dict(settings))
+    else:
+      settings_to_write = self._to_dict(settings)
+    
+    settings_data = pickle.dumps(settings_to_write)
     gimp.parasite_attach(gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, settings_data))
+  
+  def _read_from_parasite(self, parasite_name):
+    parasite = gimp.parasite_find(parasite_name)
+    if parasite is None:
+      return None
+    
+    try:
+      settings_from_parasite = pickle.loads(parasite.data)
+    except (pickle.UnpicklingError, AttributeError, EOFError):
+      raise SettingSourceInvalidFormatError(
+        _("Settings for this plug-in stored in the \"{0}\" file are corrupt. "
+          "This could happen if the file was edited manually.\n"
+          "To fix this, save the settings again or reset them.").format(self._parasite_filename))
+    
+    return settings_from_parasite
   
   def _retrieve_setting_value(self, setting_name):
     return self._settings_from_parasite[setting_name]

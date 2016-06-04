@@ -68,6 +68,18 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.assertEqual(pgsettingpersistor.gimpshelf.shelf[self.source_name + 'ignore_invisible'], True)
   
   @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
+  def test_write_multiple_settings_separately(self):
+    self.settings['file_extension'].set_value("jpg")
+    self.source.write([self.settings['file_extension']])
+    self.settings['ignore_invisible'].set_value(True)
+    self.source.write([self.settings['ignore_invisible']])
+    self.source.read([self.settings['file_extension']])
+    self.source.read([self.settings['ignore_invisible']])
+    
+    self.assertEqual(self.settings['file_extension'].value, "jpg")
+    self.assertEqual(self.settings['ignore_invisible'].value, True)
+  
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
   def test_read(self):
     pgsettingpersistor.gimpshelf.shelf[self.source_name + 'file_extension'] = "png"
     pgsettingpersistor.gimpshelf.shelf[self.source_name + 'ignore_invisible'] = True
@@ -105,6 +117,18 @@ class TestPersistentSettingSource(unittest.TestCase):
     self.settings['ignore_invisible'].set_value(True)
     self.source.write(self.settings)
     self.source.read(self.settings)
+    self.assertEqual(self.settings['file_extension'].value, "jpg")
+    self.assertEqual(self.settings['ignore_invisible'].value, True)
+  
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
+  def test_write_multiple_settings_separately(self):
+    self.settings['file_extension'].set_value("jpg")
+    self.source.write([self.settings['file_extension']])
+    self.settings['ignore_invisible'].set_value(True)
+    self.source.write([self.settings['ignore_invisible']])
+    self.source.read([self.settings['file_extension']])
+    self.source.read([self.settings['ignore_invisible']])
+    
     self.assertEqual(self.settings['file_extension'].value, "jpg")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
   
