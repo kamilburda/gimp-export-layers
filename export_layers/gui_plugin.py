@@ -130,7 +130,16 @@ def add_gui_settings(settings):
     },
   ])
   
-  settings.add([gui_settings, session_only_gui_settings])
+  persistent_only_gui_settings = pgsettinggroup.SettingGroup('gui_persistent', [
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'export_name_preview_layers_collapsed_state_persistent',
+      # key: image filename; value: set of layer names collapsed in the name preview
+      'default_value': collections.defaultdict(set)
+    },
+  ])
+  
+  settings.add([gui_settings, session_only_gui_settings, persistent_only_gui_settings])
   
   settings.set_ignore_tags({
     'gui': ['reset'],
@@ -227,6 +236,28 @@ def _setup_output_directory_changed(settings, current_image):
   
   settings['main']['output_directory'].connect_value_changed_event(
     on_output_directory_changed, settings['gui_session']['image_ids_and_directories'], current_image.ID)
+
+
+def _remove_invalid_image_filenames(image_filenames_dict_setting):
+  image_filenames_dict_setting.set_value({image_filename: values
+                                          for image_filename, values in image_filenames_dict_setting.value.items()
+                                          if os.path.isfile(image_filename) and values})
+
+
+def _update_image_filenames(image_filenames_dict_setting, image_ids_dict_setting):
+  current_images = gimp.image_list()
+  
+  for image in current_images:
+    if image.ID in image_ids_dict_setting.value and image.filename:
+      image_filenames_dict_setting.value[os.path.abspath(image.filename)] = image_ids_dict_setting.value[image.ID]
+
+
+def _update_image_ids(image_ids_dict_setting, image_filenames_dict_setting):
+  current_images = gimp.image_list()
+  
+  for image in current_images:
+    if image.ID not in image_ids_dict_setting.value and image.filename in image_filenames_dict_setting.value:
+      image_ids_dict_setting.value[image.ID] = image_filenames_dict_setting.value[os.path.abspath(image.filename)]
 
 
 #===============================================================================
@@ -707,6 +738,13 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       display_message(status_message, gtk.MESSAGE_WARNING)
     
     pgsettingpersistor.SettingPersistor.load([self.settings['gui_session']], [self.session_source])
+    pgsettingpersistor.SettingPersistor.load([self.settings['gui_persistent']], [self.persistent_source])
+    
+    _remove_invalid_image_filenames(
+      self.settings['gui_persistent']['export_name_preview_layers_collapsed_state_persistent'])
+    _update_image_ids(
+      self.settings['gui_session']['export_name_preview_layers_collapsed_state'],
+      self.settings['gui_persistent']['export_name_preview_layers_collapsed_state_persistent'])
     
     # Needs to be string to avoid strict directory validation
     self.current_directory_setting = pgsetting.StringSetting(
@@ -778,7 +816,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       'file_extension': [pgsetting.SettingGuiTypes.file_extension_entry, self.file_extension_entry],
       'dialog_position': [pgsetting.SettingGuiTypes.window_position, self.dialog],
       'advanced_settings_expanded': [pgsetting.SettingGuiTypes.expander, self.expander_advanced_settings],
-      'export_preview_pane_position': [pgsetting.SettingGuiTypes.paned_position, self.hpaned_chooser_and_previews],
+      'export_preview_pane_position': [
+        pgsetting.SettingGuiTypes.paned_position, self.hpaned_chooser_and_previews],
     })
     
     self.current_directory_setting.set_gui(pgsetting.SettingGuiTypes.folder_chooser, self.folder_chooser)
@@ -900,7 +939,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.reset_settings_button.connect("clicked", self.on_reset_settings_clicked)
     
     self.file_extension_entry.connect("changed", self.on_file_extension_entry_changed)
-    self.expander_advanced_settings.connect("notify::expanded", self.on_expander_advanced_settings_expanded_changed)
+    self.expander_advanced_settings.connect(
+      "notify::expanded", self.on_expander_advanced_settings_expanded_changed)
     
     self.dialog.connect("notify::is-active", self.on_dialog_is_active_changed)
     self.hpaned_chooser_and_previews.connect("event", self.on_hpaned_left_button_up)
@@ -938,6 +978,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       display_message(status_message, gtk.MESSAGE_WARNING, parent=self.dialog)
     
     pgsettingpersistor.SettingPersistor.save([self.settings['gui_session']], [self.session_source])
+    
+    _update_image_filenames(
+      self.settings['gui_persistent']['export_name_preview_layers_collapsed_state_persistent'],
+      self.settings['gui_session']['export_name_preview_layers_collapsed_state'])
+    pgsettingpersistor.SettingPersistor.save([self.settings['gui_persistent']], [self.persistent_source])
   
   def on_file_extension_entry_changed(self, widget):
     try:
