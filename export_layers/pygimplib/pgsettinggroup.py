@@ -51,6 +51,8 @@ class SettingGroup(object):
   this class refers to both `Setting` and `SettingGroup` objects.
   """
   
+  _SETTING_PATH_SEPARATOR = "/"
+  
   def __init__(self, name, setting_list):
     """
     Create settings from the specified list. The list can contain both `Setting`
@@ -76,14 +78,17 @@ class SettingGroup(object):
       * 'name' - setting name.
       * 'default_value' - default value of the setting.
     
+    The 'name' attribute must not contain forward slashes ('/') to allow
+    accessing settings via setting paths.
+    
     For more attributes, check the documentation of the setting classes. Some
     subclasses may require specifying additional mandatory attributes.
     
     Multiple settings with the same name and in different nested groups are
     possible. Each such setting can be accessed like any other:
     
-      settings['group1']['setting_name']
-      settings['group2']['setting_name']
+      settings['main']['autocrop']
+      settings['advanced']['autocrop']
     """
     
     self._name = name
@@ -103,15 +108,34 @@ class SettingGroup(object):
   def __str__(self):
     return "<{0} '{1}'>".format(type(self).__name__, self.name)
   
-  def __getitem__(self, setting_name):
+  def __getitem__(self, setting_name_or_path):
     """
     Access the setting or group by its name (string).
+    
+    If a setting is inside a nested group, you can access the setting as follows:
+      
+      settings['main']['autocrop']
+    
+    Or by a setting path:
+    
+      settings['main/autocrop']
     """
     
-    return self._settings[setting_name]
+    if self._SETTING_PATH_SEPARATOR in setting_name_or_path:
+      return self._get_setting_from_path(setting_name_or_path)
+    else:
+      return self._settings[setting_name_or_path]
   
-  def __contains__(self, setting_name):
-    return setting_name in self._settings
+  def __contains__(self, setting_name_or_path):
+    if self._SETTING_PATH_SEPARATOR in setting_name_or_path:
+      try:
+        self._get_setting_from_path(setting_name_or_path)
+      except KeyError:
+        return False
+      else:
+        return True
+    else:
+      return setting_name_or_path in self._settings
   
   def __iter__(self):
     """
@@ -137,8 +161,8 @@ class SettingGroup(object):
     """
     
     def _should_ignore_func(setting_or_group, ignored_settings_and_tags, ignore_tags):
-      return (setting_or_group.name in ignored_settings_and_tags and
-              any(tag in ignored_settings_and_tags[setting_or_group.name] for tag in ignore_tags))
+      return (setting_or_group in ignored_settings_and_tags and
+              any(tag in ignored_settings_and_tags[setting_or_group] for tag in ignore_tags))
     
     def _never_ignore(*args):
       return False
@@ -154,7 +178,7 @@ class SettingGroup(object):
     while groups:
       try:
         setting_or_group = groups[0]._next()
-        ignored_settings_and_tags = groups[0]._ignored_settings_and_tags
+        ignored_settings_and_tags.update(groups[0]._ignored_settings_and_tags)
       except StopIteration:
         groups.pop(0)
         continue
@@ -209,11 +233,17 @@ class SettingGroup(object):
     
     Parameters:
     
-    * `ignored_settings_and_tags` - A dict of (setting name, tag list) pairs.
+    * `ignored_settings_and_tags` - A dict of (setting path, tag list) pairs.
+    
+    Raises:
+    
+    * `KeyError` - Setting does not exist.
     """
     
-    self._ignored_settings_and_tags = {
-      setting_name: set(tags) for setting_name, tags in ignored_settings_and_tags.items()}
+    self._ignored_settings_and_tags.update({
+      self._get_setting_from_path(setting_path): set(tags)
+      for setting_path, tags in ignored_settings_and_tags.items()
+    })
   
   def reset(self):
     """
@@ -314,6 +344,10 @@ class SettingGroup(object):
     except KeyError:
       raise TypeError(self._get_missing_mandatory_attributes_message(['name']))
     
+    if self._SETTING_PATH_SEPARATOR in setting_data['name']:
+      raise ValueError("\"{0}\": setting name must not contain \"{1}\"".format(setting_data['name'],
+                                                                               self._SETTING_PATH_SEPARATOR))
+    
     if setting_data['name'] in self._settings:
       raise KeyError("setting \"{0}\" already exists".format(setting_data['name']))
     
@@ -350,6 +384,22 @@ class SettingGroup(object):
   
   def _get_missing_mandatory_attributes_message(self, attribute_names):
     return "missing the following mandatory setting attributes: {0}".format(', '.join(attribute_names))
+  
+  def _get_setting_from_path(self, setting_path):
+    setting_path_components = setting_path.split(self._SETTING_PATH_SEPARATOR)
+    current_group = self
+    for group_name in setting_path_components[:-1]:
+      if group_name in current_group:
+        current_group = current_group._settings[group_name]
+      else:
+        raise KeyError("group \"{0}\" in path \"{1}\" does not exist".format(group_name, setting_path))
+    
+    try:
+      setting = current_group[setting_path_components[-1]]
+    except KeyError:
+      raise KeyError("setting \"{0}\" not found in path \"{1}\"".format(setting_path_components[-1], setting_path))
+    
+    return setting
 
 
 #===============================================================================

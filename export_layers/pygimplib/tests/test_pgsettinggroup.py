@@ -319,10 +319,43 @@ class TestSettingGroup(unittest.TestCase):
                         self.settings['special']['first_plugin_run'].default_value)
 
 
-class TestSettingGroupIterateAll(unittest.TestCase):
+class TestSettingGroupHierarchical(unittest.TestCase):
   
   def setUp(self):
     self.settings = create_test_settings_hierarchical()
+  
+  def test_get_settings_via_paths(self):
+    self.assertEqual(self.settings['main/file_extension'], self.settings['main']['file_extension'])
+    self.assertEqual(self.settings['advanced/ignore_invisible'], self.settings['advanced']['ignore_invisible'])
+    self.assertEqual(self.settings['advanced/overwrite_mode'], self.settings['advanced']['overwrite_mode'])
+    
+    self.settings['advanced'].add([pgsettinggroup.SettingGroup('expert', [
+      {
+       'type': pgsetting.SettingTypes.integer,
+       'name': 'file_extension_strip_mode',
+       'default_value': 0
+      }
+    ])])
+    
+    self.assertEqual(self.settings['advanced/expert/file_extension_strip_mode'],
+                     self.settings['advanced']['expert']['file_extension_strip_mode'])
+    
+    with self.assertRaises(KeyError):
+      self.settings['advanced/invalid_group/file_extension_strip_mode']
+  
+  def test_contains_via_paths(self):
+    self.assertIn('main/file_extension', self.settings)
+    self.assertNotIn('main/invalid_setting', self.settings)
+  
+  def test_add_setting_with_path_separator(self):
+    with self.assertRaises(ValueError):
+      self.settings.add([
+        {
+         'type': pgsetting.SettingTypes.boolean,
+         'name': 'file/extension',
+         'default_value': ""
+        }
+      ])
   
   def test_iterate_all_no_ignore_tags(self):
     iterated_settings = list(self.settings.iterate_all())
@@ -354,6 +387,32 @@ class TestSettingGroupIterateAll(unittest.TestCase):
     
     self.assertIn(self.settings['main']['file_extension'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
+  
+  def test_iterate_all_with_ignore_tag_multiple_times(self):
+    self.settings['advanced'].set_ignore_tags({
+      'ignore_invisible': ['apply_gui_values_to_settings']
+    })
+    self.settings['advanced'].set_ignore_tags({
+      'overwrite_mode': ['apply_gui_values_to_settings']
+    })
+    
+    iterated_settings = list(self.settings.iterate_all(['apply_gui_values_to_settings']))
+    
+    self.assertIn(self.settings['main']['file_extension'], iterated_settings)
+    self.assertNotIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
+  
+  def test_iterate_all_with_ignore_tag_for_settings_with_paths(self):
+    self.settings.set_ignore_tags({
+      'main/file_extension': ['reset'],
+      'advanced/overwrite_mode': ['reset', 'apply_gui_values_to_settings']
+    })
+    
+    iterated_settings = list(self.settings.iterate_all(['reset']))
+    
+    self.assertNotIn(self.settings['main']['file_extension'], iterated_settings)
+    self.assertIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
 
 
