@@ -205,8 +205,8 @@ class SettingGroup(object):
     excluded from the iteration.
     
     When the tags match the method names in this class that operate on all
-    settings, such as `reset()` or `apply_gui_values_to_settings()`, the methods ignore
-    those settings.
+    settings, such as `reset()` or `apply_gui_values_to_settings()`, the methods
+    ignore those settings.
     
     Parameters:
     
