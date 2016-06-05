@@ -1161,7 +1161,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       else:
         color = "blue"
       
-      self.label_message.set_markup("<span foreground='{0}'><b>{1}</b></span>".format(color, text))
+      self.label_message.set_markup("<span foreground=\"{0}\"><b>{1}</b></span>".format(color, text))
 
 
 #===============================================================================

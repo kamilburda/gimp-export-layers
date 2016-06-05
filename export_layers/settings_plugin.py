@@ -252,10 +252,7 @@ def create_settings():
   
   settings.set_ignore_tags({
     'special': ['reset'],
-  })
-  
-  settings['main'].set_ignore_tags({
-    'output_directory': ['reset'],
+    'main/output_directory': ['reset']
   })
   
   #-----------------------------------------------------------------------------
