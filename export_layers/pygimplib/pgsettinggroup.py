@@ -46,45 +46,44 @@ class SettingGroup(object):
   * allows to create a group of related settings (`Setting` objects),
   * allows to store existing setting groups,
   * can perform certain operations on all settings and nested groups at once.
+    
+  Unless otherwise stated, "settings" in the rest of the documentation for
+  this class refers to both `Setting` and `SettingGroup` objects.
   """
   
   def __init__(self, name, setting_list):
     """
-    Create settings (`Setting` objects) from the specified list. The list can
-    also contain existing setting groups (`SettingGroup` objects).
+    Create settings from the specified list. The list can contain both `Setting`
+    and `SettingGroup` objects.
     
-    Settings and nested groups are stored in the group in the order they are
-    specified in the list.
+    The order of settings in the list corresponds to the order in which the
+    settings are iterated.
     
     Parameters:
     
     * `name` - A name (string) that uniquely identifies the setting group.
     
-    * `setting_list` - See below.
+    * `setting_list` - List of settings (`Setting` or `SettingGroup` objects).
     
     ---------
     
     To add a setting, use a dictionary containing (attribute name, value) pairs.
-    
     "attribute name" is a string that represents an argument passed when
     instantiating the appropriate `Setting` class.
     
-    The following setting attributes must always be specified:
+    The following attributes must always be specified:
       * 'type' - type of the Setting object to instantiate.
       * 'name' - setting name.
       * 'default_value' - default value of the setting.
     
-    For more attributes, check the documentation of the `Setting` classes. There
-    may also be more mandatory attributes for specific setting types.
+    For more attributes, check the documentation of the setting classes. Some
+    subclasses may require specifying additional mandatory attributes.
     
-    ---------
+    Multiple settings with the same name and in different nested groups are
+    possible. Each such setting can be accessed like any other:
     
-    To add a setting group, simply pass an existing `SettingGroup` object).
-    
-    ---------
-    
-    Unless otherwise stated, "settings" in the rest of the documentation for
-    this class refers to both `Setting` and `SettingGroup` objects.
+      settings['group1']['setting_name']
+      settings['group2']['setting_name']
     """
     
     self._name = name
@@ -180,7 +179,7 @@ class SettingGroup(object):
     """
     
     for setting_or_group in setting_list:
-      if self._is_setting_group(setting_or_group):
+      if isinstance(setting_or_group, SettingGroup):
         self._add_setting_group(setting_or_group)
       else:
         self._create_setting(setting_or_group)
@@ -301,9 +300,6 @@ class SettingGroup(object):
       raise StopIteration
     else:
       return next_element
-  
-  def _is_setting_group(self, setting_or_group):
-    return isinstance(setting_or_group, SettingGroup)
   
   def _create_setting(self, setting_data):
     try:

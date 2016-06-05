@@ -197,6 +197,29 @@ class TestSettingGroupCreation(unittest.TestCase):
          'default_value': False,
         }
       ])
+  
+  def test_multiple_settings_with_same_name_in_different_subgroups(self):
+    special_settings = pgsettinggroup.SettingGroup('special', [
+      {
+       'type': pgsetting.SettingTypes.boolean,
+       'name': 'ignore_invisible',
+       'default_value': False,
+      }
+    ])
+    
+    main_settings = pgsettinggroup.SettingGroup('main', [
+      {
+       'type': pgsetting.SettingTypes.boolean,
+       'name': 'ignore_invisible',
+       'default_value': True,
+      }
+    ])
+    
+    settings = pgsettinggroup.SettingGroup('all', [special_settings, main_settings])
+    self.assertIn('ignore_invisible', special_settings)
+    self.assertIn('ignore_invisible', main_settings)
+    self.assertFalse(settings['special']['ignore_invisible'].value)
+    self.assertTrue(settings['main']['ignore_invisible'].value)
 
 
 class TestSettingGroup(unittest.TestCase):
