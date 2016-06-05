@@ -302,7 +302,6 @@ class TestSettingGroupIterateAll(unittest.TestCase):
     self.settings = create_test_settings_hierarchical()
   
   def test_iterate_all_no_ignore_tags(self):
-    self.settings = create_test_settings_hierarchical()
     iterated_settings = list(self.settings.iterate_all())
     
     self.assertIn(self.settings['main']['file_extension'], iterated_settings)
@@ -310,8 +309,6 @@ class TestSettingGroupIterateAll(unittest.TestCase):
     self.assertIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
   
   def test_iterate_all_with_ignore_tag_for_settings(self):
-    self.settings = create_test_settings_hierarchical()
-    
     self.settings['main'].set_ignore_tags({
       'file_extension': ['reset']
     })
@@ -326,8 +323,6 @@ class TestSettingGroupIterateAll(unittest.TestCase):
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
   
   def test_iterate_all_with_ignore_tag_for_groups(self):
-    self.settings = create_test_settings_hierarchical()
-    
     self.settings.set_ignore_tags({
       'advanced': ['apply_gui_values_to_settings']
     })
