@@ -763,7 +763,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   def _init_gui(self):
     self.dialog = gimpui.Dialog(title=_(constants.PLUGIN_TITLE), role=constants.PLUGIN_PROGRAM_NAME)
     self.dialog.set_transient()
-    
     self.dialog.set_default_size(*self.DIALOG_SIZE)
     self.dialog.set_border_width(self.DIALOG_BORDER_WIDTH)
     
