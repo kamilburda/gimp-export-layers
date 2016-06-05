@@ -124,7 +124,7 @@ class SettingPresenter(object):
       
       gui_element_creation_supported = self._element is not None
       if not gui_element_creation_supported:
-        raise ValueError("cannot instantiate \"{0}\" class: "
+        raise ValueError("cannot instantiate '{0}' class: "
                          "`element` is None and this class does not support "
                          "the creation of a GUI element"
                          .format(type(self).__name__))
@@ -205,7 +205,7 @@ class SettingPresenter(object):
     """
     
     if enabled and self._VALUE_CHANGED_SIGNAL is None:
-      raise ValueError("cannot enable automatic GUI update - \"{0}\" class does not "
+      raise ValueError("cannot enable automatic GUI update - '{0}' class does not "
                        "support it".format(type(self).__name__))
     
     if enabled:

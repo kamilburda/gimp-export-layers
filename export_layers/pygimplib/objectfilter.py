@@ -129,7 +129,7 @@ class ObjectFilter(object):
       del self._filter_items[rule_func]
     else:
       if raise_if_not_found:
-        raise ValueError("\"" + str(rule_func) + "\" not found in filter")
+        raise ValueError("'{0}' not found in filter".format(rule_func))
   
   @contextlib.contextmanager
   def add_rule_temp(self, rule_func, *rule_func_args):
@@ -191,7 +191,7 @@ class ObjectFilter(object):
     
     if not has_rule:
       if raise_if_not_found:
-        raise ValueError("\"" + str(rule_func) + "\" not found in filter")
+        raise ValueError("'{0}' not found in filter".format(rule_func))
     else:
       rule_func_args = self._filter_items[rule_func]
       self.remove_rule(rule_func)
@@ -217,10 +217,10 @@ class ObjectFilter(object):
     """
     
     if self.has_subfilter(subfilter_name):
-      raise ValueError("subfilter named \"" + str(subfilter_name) + "\" already exists in the filter")
+      raise ValueError("subfilter named '{0}' already exists in the filter".format(subfilter_name))
     
     if not isinstance(subfilter, ObjectFilter):
-      raise ValueError("subfilter named \"" + str(subfilter_name) + "\" is not a subfilter")
+      raise ValueError("subfilter named '{0}' is not a subfilter".format(subfilter_name))
     
     self._filter_items[subfilter_name] = subfilter
   
@@ -235,7 +235,7 @@ class ObjectFilter(object):
     """
     
     if not self.has_subfilter(subfilter_name):
-      raise ValueError("subfilter named \"" + str(subfilter_name) + "\" not found in filter")
+      raise ValueError("subfilter named '{0}' not found in filter".format(subfilter_name))
     
     item = self._filter_items[subfilter_name]
     
@@ -265,7 +265,7 @@ class ObjectFilter(object):
       del self._filter_items[subfilter_name]
     else:
       if raise_if_not_found:
-        raise ValueError("subfilter named \"" + str(subfilter_name) + "\" not found in filter")
+        raise ValueError("subfilter named '{0}' not found in filter".format(subfilter_name))
   
   @contextlib.contextmanager
   def add_subfilter_temp(self, subfilter_name, subfilter):
@@ -311,7 +311,7 @@ class ObjectFilter(object):
     
     if not has_subfilter:
       if raise_if_not_found:
-        raise ValueError("subfilter named \"" + str(subfilter_name) + "\" not found in filter")
+        raise ValueError("subfilter named '{0}' not found in filter".format(subfilter_name))
     else:
       subfilter = self._filter_items[subfilter_name]
       self.remove_subfilter(subfilter_name)

@@ -560,9 +560,9 @@ class Setting(object):
     elif pdb_type in self._ALLOWED_PDB_TYPES:
       return pdb_type
     else:
-      raise ValueError("GIMP PDB type \"" + str(pdb_type) + "\" not allowed; "
+      raise ValueError("GIMP PDB type '{0}' not allowed; "
                        "for the list of allowed PDB types, refer to "
-                       "the documentation of the appropriate Setting class")
+                       "the documentation of the appropriate Setting class".format(pdb_type))
   
   def _get_default_pdb_type(self):
     if self._ALLOWED_PDB_TYPES:

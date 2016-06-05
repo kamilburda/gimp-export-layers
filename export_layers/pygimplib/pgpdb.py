@@ -68,7 +68,7 @@ def merge_layer_group(layer_group):
   """
   
   if not pdb.gimp_item_is_group(layer_group):
-    raise TypeError("\"{0}\": not a layer group".format(layer_group.name))
+    raise TypeError("'{0}': not a layer group".format(layer_group.name))
   
   image = layer_group.image
   

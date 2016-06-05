@@ -217,7 +217,7 @@ class SettingGroup(object):
       if setting_name in self._settings:
         del self._settings[setting_name]
       else:
-        raise KeyError("setting \"{0}\" not found".format(setting_name))
+        raise KeyError("setting '{0}' not found".format(setting_name))
   
   def set_ignore_tags(self, ignored_settings_and_tags):
     """
@@ -345,11 +345,11 @@ class SettingGroup(object):
       raise TypeError(self._get_missing_mandatory_attributes_message(['name']))
     
     if self._SETTING_PATH_SEPARATOR in setting_data['name']:
-      raise ValueError("\"{0}\": setting name must not contain \"{1}\"".format(setting_data['name'],
-                                                                               self._SETTING_PATH_SEPARATOR))
+      raise ValueError(
+        "'{0}': setting name must not contain '{1}'".format(setting_data['name'], self._SETTING_PATH_SEPARATOR))
     
     if setting_data['name'] in self._settings:
-      raise KeyError("setting \"{0}\" already exists".format(setting_data['name']))
+      raise KeyError("setting '{0}' already exists".format(setting_data['name']))
     
     try:
       self._settings[setting_data['name']] = setting_type(**setting_data)
@@ -363,7 +363,7 @@ class SettingGroup(object):
   
   def _add_setting_group(self, setting_group):
     if setting_group.name in self._settings:
-      raise KeyError("setting group \"{0}\" already exists".format(setting_group.name))
+      raise KeyError("setting group '{0}' already exists".format(setting_group.name))
     
     self._settings[setting_group.name] = setting_group
   
@@ -392,12 +392,12 @@ class SettingGroup(object):
       if group_name in current_group:
         current_group = current_group._settings[group_name]
       else:
-        raise KeyError("group \"{0}\" in path \"{1}\" does not exist".format(group_name, setting_path))
+        raise KeyError("group '{0}' in path '{1}' does not exist".format(group_name, setting_path))
     
     try:
       setting = current_group[setting_path_components[-1]]
     except KeyError:
-      raise KeyError("setting \"{0}\" not found in path \"{1}\"".format(setting_path_components[-1], setting_path))
+      raise KeyError("setting '{0}' not found in path '{1}'".format(setting_path_components[-1], setting_path))
     
     return setting
 
