@@ -132,6 +132,14 @@ class Setting(object):
   of the setting changes (e.g. when `set_value()` method is called). This way,
   other settings and their GUI elements can be adjusted automatically.
   
+  If a setting subclass supports "empty" values, such values will not be
+  considered invalid when used as default values. However, empty values will be
+  treated as invalid when assigning the setting one of such values after
+  instantiation. Examples of empty values include None for an image object,
+  "Choose an item" for an enumerated setting, etc. Empty values are useful when
+  users must choose a different value, yet no valid value is a good candidate
+  for a default value.
+  
   Attributes:
   
   * `name` (read-only) - A name (string) that uniquely identifies the setting.
