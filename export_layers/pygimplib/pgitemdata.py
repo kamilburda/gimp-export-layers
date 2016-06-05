@@ -292,7 +292,7 @@ class ItemData(object):
     # private attribute.
     item_elem._orig_name = item_elem.item.name.decode()
     
-    self._itemdata[new_item_name] = item_elem
+    self._itemdata[item_elem._orig_name] = item_elem
     
     item_name_modified_externally = item_elem._orig_name != new_item_name
     return item_name_modified_externally
