@@ -250,18 +250,23 @@ class TestLayerData(unittest.TestCase):
   
   #-----------------------------------------------------------------------------
   
-  def _test_add_remove_tag(self, operation, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag):
+  def _test_add_remove_tag(self, operation, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag,
+                           expect_modified_externally=False):
     modified_externally = getattr(self.layer_data, operation)(self.layer_data[orig_layer_name], tag)
-    self.assertFalse(modified_externally)
+    self.assertEqual(modified_externally, expect_modified_externally)
     self.assertIn(new_layer_name, self.layer_data)
     self.assertNotIn(incorrect_new_layer_name, self.layer_data)
   
-  def _test_add_tag(self, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag):
-    self._test_add_remove_tag("add_tag", orig_layer_name, new_layer_name, incorrect_new_layer_name, tag)
+  def _test_add_tag(self, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag,
+                    expect_modified_externally=False):
+    self._test_add_remove_tag("add_tag", orig_layer_name, new_layer_name, incorrect_new_layer_name, tag,
+                              expect_modified_externally)
     self.assertIn(tag, self.layer_data[new_layer_name].tags)
   
-  def _test_remove_tag(self, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag):
-    self._test_add_remove_tag("remove_tag", orig_layer_name, new_layer_name, incorrect_new_layer_name, tag)
+  def _test_remove_tag(self, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag,
+                       expect_modified_externally=False):
+    self._test_add_remove_tag("remove_tag", orig_layer_name, new_layer_name, incorrect_new_layer_name, tag,
+                              expect_modified_externally)
     self.assertNotIn(tag, self.layer_data[new_layer_name].tags)
   
   def test_add_remove_tag(self):
@@ -276,6 +281,18 @@ class TestLayerData(unittest.TestCase):
                           '[foreground] [background] top-left-corner', "background")
     self._test_remove_tag('[foreground] top-left-corner', 'top-left-corner',
                           '[foreground] top-left-corner', "foreground")
+    
+    with mock.patch(LIB_NAME + ".pgitemdata._ItemDataElement.item", autospec=True):
+      type(self.layer_data['top-left-corner'].item).name = mock.PropertyMock(
+        return_value=b"[background] top-left-corner #1")
+      self._test_add_tag('top-left-corner', '[background] top-left-corner #1',
+                         '[background] top-left-corner', "background", expect_modified_externally=True)
+    
+    with mock.patch(LIB_NAME + ".pgitemdata._ItemDataElement.item", autospec=True):
+      type(self.layer_data['[background] top-left-corner #1'].item).name = mock.PropertyMock(
+        return_value=b"top-left-corner #2")
+      self._test_remove_tag('[background] top-left-corner #1', 'top-left-corner #2',
+                            'top-left-corner #1', "background", expect_modified_externally=True)
   
   #-----------------------------------------------------------------------------
     
