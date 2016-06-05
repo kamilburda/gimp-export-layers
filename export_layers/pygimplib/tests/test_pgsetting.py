@@ -186,6 +186,9 @@ class TestSetting(unittest.TestCase):
   def setUp(self):
     self.setting = MockSetting('file_extension', "png")
   
+  def test_str(self):
+    self.assertEqual(str(self.setting), "<MockSetting 'file_extension'>")
+  
   def test_invalid_default_value_raises_error(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
       MockSetting('setting', None)
