@@ -248,12 +248,16 @@ def create_settings():
   
   #-----------------------------------------------------------------------------
   
-  main_settings.set_ignore_tags({
+  settings = pgsettinggroup.SettingGroup('all_settings', [special_settings, main_settings])
+  
+  settings.set_ignore_tags({
+    'special': ['reset'],
+  })
+  
+  settings['main'].set_ignore_tags({
     'output_directory': ['reset'],
   })
   
   #-----------------------------------------------------------------------------
-  
-  settings = pgsettinggroup.SettingGroup('all_settings', [special_settings, main_settings])
   
   return settings

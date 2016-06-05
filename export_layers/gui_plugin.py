@@ -141,9 +141,8 @@ def add_gui_settings(settings):
   
   settings.add([gui_settings, session_only_gui_settings, persistent_only_gui_settings])
   
-  settings.set_ignore_tags({
-    'gui': ['reset'],
-    'gui_session': ['reset'],
+  settings['gui_session'].set_ignore_tags({
+    'image_ids_and_directories': ['reset'],
   })
 
 
@@ -967,8 +966,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.dialog.action_area.set_border_width(self.ACTION_AREA_BORDER_WIDTH)
   
   def reset_settings(self):
-    for setting_group in [self.settings['main'], self.settings['gui']]:
-      setting_group.reset()
+    self.settings.reset()
   
   def save_settings(self):
     status, status_message = pgsettingpersistor.SettingPersistor.save(
