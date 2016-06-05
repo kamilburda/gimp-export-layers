@@ -141,10 +141,10 @@ def add_gui_settings(settings):
   
   settings.add([gui_settings, session_only_gui_settings, persistent_only_gui_settings])
   
-  settings['gui_session'].set_ignore_tags({
-    'image_ids_and_directories': ['reset'],
+  settings.set_ignore_tags({
+    'gui_session/image_ids_and_directories': ['reset'],
   })
-
+  
 
 #===============================================================================
 
@@ -165,9 +165,9 @@ def _set_settings(func):
       self.settings['gui'].apply_gui_values_to_settings()
       
       self.current_directory_setting.gui.update_setting_value()
-      self.settings['main']['output_directory'].set_value(self.current_directory_setting.value)
+      self.settings['main/output_directory'].set_value(self.current_directory_setting.value)
       
-      self.settings['gui_session']['export_name_preview_layers_collapsed_state'].value[self.image.ID] = (
+      self.settings['gui_session/export_name_preview_layers_collapsed_state'].value[self.image.ID] = (
         self.export_name_preview.collapsed_items)
     except pgsetting.SettingValueError as e:
       self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
@@ -218,14 +218,14 @@ def _setup_image_ids_and_directories_and_initial_directory(settings, current_dir
     Directory 4. is set upon the instantiation of 'main/output_directory'.
   """
   
-  settings['gui_session']['image_ids_and_directories'].update_image_ids_and_directories()
+  settings['gui_session/image_ids_and_directories'].update_image_ids_and_directories()
   
   update_performed = _update_directory(
     current_directory_setting, current_image,
-    settings['gui_session']['image_ids_and_directories'].value[current_image.ID])
+    settings['gui_session/image_ids_and_directories'].value[current_image.ID])
   
   if not update_performed:
-    current_directory_setting.set_value(settings['main']['output_directory'].value)
+    current_directory_setting.set_value(settings['main/output_directory'].value)
 
 
 def _setup_output_directory_changed(settings, current_image):
@@ -233,8 +233,8 @@ def _setup_output_directory_changed(settings, current_image):
   def on_output_directory_changed(output_directory, image_ids_and_directories, current_image_id):
     image_ids_and_directories.update_directory(current_image_id, output_directory.value)
   
-  settings['main']['output_directory'].connect_value_changed_event(
-    on_output_directory_changed, settings['gui_session']['image_ids_and_directories'], current_image.ID)
+  settings['main/output_directory'].connect_value_changed_event(
+    on_output_directory_changed, settings['gui_session/image_ids_and_directories'], current_image.ID)
 
 
 def _remove_invalid_image_filenames(image_filenames_dict_setting):
@@ -740,14 +740,14 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     pgsettingpersistor.SettingPersistor.load([self.settings['gui_persistent']], [self.persistent_source])
     
     _remove_invalid_image_filenames(
-      self.settings['gui_persistent']['export_name_preview_layers_collapsed_state_persistent'])
+      self.settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'])
     _update_image_ids(
-      self.settings['gui_session']['export_name_preview_layers_collapsed_state'],
-      self.settings['gui_persistent']['export_name_preview_layers_collapsed_state_persistent'])
+      self.settings['gui_session/export_name_preview_layers_collapsed_state'],
+      self.settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'])
     
     # Needs to be string to avoid strict directory validation
     self.current_directory_setting = pgsetting.StringSetting(
-      'current_directory', settings['main']['output_directory'].default_value)
+      'current_directory', settings['main/output_directory'].default_value)
     
     _setup_image_ids_and_directories_and_initial_directory(
       self.settings, self.current_directory_setting, self.image)
@@ -773,7 +773,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self.export_name_preview = ExportNamePreview(
       exportlayers.LayerExporter(gimpenums.RUN_NONINTERACTIVE, self.image, self.settings['main']),
-      self.settings['gui_session']['export_name_preview_layers_collapsed_state'].value[self.image.ID])
+      self.settings['gui_session/export_name_preview_layers_collapsed_state'].value[self.image.ID])
     
     self.vbox_folder_chooser = gtk.VBox(homogeneous=False)
     self.vbox_folder_chooser.set_spacing(self.DIALOG_VBOX_SPACING * 2)
@@ -783,10 +783,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.hpaned_chooser_and_previews = gtk.HPaned()
     self.hpaned_chooser_and_previews.pack1(self.vbox_folder_chooser, resize=True, shrink=False)
     self.hpaned_chooser_and_previews.pack2(self.export_name_preview.widget)
-    self.hpaned_previous_position = self.settings['gui']['export_preview_pane_position'].value
+    self.hpaned_previous_position = self.settings['gui/export_preview_pane_position'].value
         
     self.file_extension_label = gtk.Label()
-    self.file_extension_label.set_markup("<b>" + self.settings['main']['file_extension'].display_name + ":</b>")
+    self.file_extension_label.set_markup("<b>" + self.settings['main/file_extension'].display_name + ":</b>")
     self.file_extension_label.set_alignment(0.0, 0.5)
     
     self.file_extension_entry = pggui.FileExtensionEntry()
@@ -803,11 +803,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.expander_advanced_settings.set_spacing(self.ADVANCED_SETTINGS_VERTICAL_SPACING // 2)
     
     self.advanced_settings_file_extension_mode_label = gtk.Label(
-      self.settings['main']['file_extension_mode'].display_name + ":")
+      self.settings['main/file_extension_mode'].display_name + ":")
     self.advanced_settings_file_extension_mode_label.set_alignment(0, 0.5)
     
     self.advanced_settings_tagged_layers_mode_label = gtk.Label(
-      self.settings['main']['tagged_layers_mode'].display_name + ":")
+      self.settings['main/tagged_layers_mode'].display_name + ":")
     self.advanced_settings_tagged_layers_mode_label.set_alignment(0, 0.5)
     
     self.settings.initialize_gui({
@@ -831,10 +831,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.hbox_file_extension.pack_start(self.label_message, expand=True, fill=True)
     
     self.hbox_export_settings = gtk.HBox(homogeneous=False)
-    self.hbox_export_settings.pack_start(self.settings['main']['layer_groups_as_folders'].gui.element)
-    self.hbox_export_settings.pack_start(self.settings['main']['ignore_invisible'].gui.element)
-    self.hbox_export_settings.pack_start(self.settings['main']['autocrop'].gui.element)
-    self.hbox_export_settings.pack_start(self.settings['main']['use_image_size'].gui.element)
+    self.hbox_export_settings.pack_start(self.settings['main/layer_groups_as_folders'].gui.element)
+    self.hbox_export_settings.pack_start(self.settings['main/ignore_invisible'].gui.element)
+    self.hbox_export_settings.pack_start(self.settings['main/autocrop'].gui.element)
+    self.hbox_export_settings.pack_start(self.settings['main/use_image_size'].gui.element)
     
     self.table_labels = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_labels.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
@@ -844,9 +844,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.table_combo_boxes = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_combo_boxes.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
     self.table_combo_boxes.attach(
-      self.settings['main']['file_extension_mode'].gui.element, 0, 1, 0, 1, yoptions=0)
+      self.settings['main/file_extension_mode'].gui.element, 0, 1, 0, 1, yoptions=0)
     self.table_combo_boxes.attach(
-      self.settings['main']['tagged_layers_mode'].gui.element, 0, 1, 1, 2, yoptions=0)
+      self.settings['main/tagged_layers_mode'].gui.element, 0, 1, 1, 2, yoptions=0)
     
     tagged_layers_description = _(
       "To use a layer as a background for other layers, right-click in the preview on the layer "
@@ -855,15 +855,15 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       "\nTo enable handling of tagged layers, select \"{2}\".").format(
         exportlayers.LayerExporter.SUPPORTED_TAGS['background'],
         exportlayers.LayerExporter.SUPPORTED_TAGS['foreground'],
-        self.settings['main']['tagged_layers_mode'].items_display_names['special'])
+        self.settings['main/tagged_layers_mode'].items_display_names['special'])
     
     self.advanced_settings_tagged_layers_mode_label.set_tooltip_text(tagged_layers_description)
-    self.settings['main']['tagged_layers_mode'].gui.element.set_tooltip_text(tagged_layers_description)
+    self.settings['main/tagged_layers_mode'].gui.element.set_tooltip_text(tagged_layers_description)
     
     self.table_additional_elems = gtk.Table(rows=2, columns=1, homogeneous=False)
     self.table_additional_elems.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
-    self.table_additional_elems.attach(self.settings['main']['strip_mode'].gui.element, 0, 1, 0, 1, yoptions=0)
-    self.table_additional_elems.attach(self.settings['main']['crop_mode'].gui.element, 0, 1, 1, 2)
+    self.table_additional_elems.attach(self.settings['main/strip_mode'].gui.element, 0, 1, 0, 1, yoptions=0)
+    self.table_additional_elems.attach(self.settings['main/crop_mode'].gui.element, 0, 1, 1, 2)
     
     self.hbox_tables = gtk.HBox(homogeneous=False)
     self.hbox_tables.set_spacing(self.ADVANCED_SETTINGS_HORIZONTAL_SPACING)
@@ -874,11 +874,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.hbox_advanced_settings_checkbuttons = gtk.HBox(homogeneous=False)
     self.hbox_advanced_settings_checkbuttons.set_spacing(self.ADVANCED_SETTINGS_HORIZONTAL_SPACING)
     self.hbox_advanced_settings_checkbuttons.pack_start(
-      self.settings['main']['merge_layer_groups'].gui.element, expand=False, fill=True)
+      self.settings['main/merge_layer_groups'].gui.element, expand=False, fill=True)
     self.hbox_advanced_settings_checkbuttons.pack_start(
-      self.settings['main']['empty_folders'].gui.element, expand=False, fill=True)
+      self.settings['main/empty_folders'].gui.element, expand=False, fill=True)
     self.hbox_advanced_settings_checkbuttons.pack_start(
-      self.settings['main']['ignore_layer_modes'].gui.element, expand=False, fill=True)
+      self.settings['main/ignore_layer_modes'].gui.element, expand=False, fill=True)
     
     self.vbox_advanced_settings = gtk.VBox(homogeneous=False)
     self.vbox_advanced_settings.set_spacing(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
@@ -952,7 +952,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.stop_button.hide()
     
     self.export_name_preview.widget.connect("notify::visible", self.on_preview_visible_changed)
-    if not self.settings['gui']['export_name_preview_enabled'].value:
+    if not self.settings['gui/export_name_preview_enabled'].value:
       self.export_name_preview.lock_update(True, "preview_enabled")
     self._handle_pane_for_advanced_settings()
     
@@ -977,22 +977,22 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     pgsettingpersistor.SettingPersistor.save([self.settings['gui_session']], [self.session_source])
     
     _update_image_filenames(
-      self.settings['gui_persistent']['export_name_preview_layers_collapsed_state_persistent'],
-      self.settings['gui_session']['export_name_preview_layers_collapsed_state'])
+      self.settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'],
+      self.settings['gui_session/export_name_preview_layers_collapsed_state'])
     pgsettingpersistor.SettingPersistor.save([self.settings['gui_persistent']], [self.persistent_source])
   
   def on_file_extension_entry_changed(self, widget):
     try:
-      self.settings['main']['file_extension'].gui.update_setting_value()
+      self.settings['main/file_extension'].gui.update_setting_value()
     except pgsetting.SettingValueError as e:
       pggui.timeout_add_strict(100, self.export_name_preview.clear)
       
       self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR,
-        setting=self.settings['main']['file_extension'])
+        setting=self.settings['main/file_extension'])
       self.export_name_preview.lock_update(True, "invalid_file_extension")
     else:
       self.export_name_preview.lock_update(False, "invalid_file_extension")
-      if self._message_setting == self.settings['main']['file_extension']:
+      if self._message_setting == self.settings['main/file_extension']:
         self.display_message_label(None)
       
       pggui.timeout_add_strict(100, self.export_name_preview.update)
@@ -1025,11 +1025,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       
       if (current_position == max_position and self.hpaned_previous_position != current_position):
         self.export_name_preview.clear()
-        self.settings['gui']['export_name_preview_enabled'].set_value(False)
+        self.settings['gui/export_name_preview_enabled'].set_value(False)
         self.export_name_preview.lock_update(True, "preview_enabled")
       elif (current_position != max_position and self.hpaned_previous_position == max_position):
         self.export_name_preview.lock_update(False, "preview_enabled")
-        self.settings['gui']['export_name_preview_enabled'].set_value(True)
+        self.settings['gui/export_name_preview_enabled'].set_value(True)
         self.export_name_preview.update()
       
       self.hpaned_previous_position = current_position
@@ -1067,10 +1067,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     overwrite_chooser = pggui.GtkDialogOverwriteChooser(
       # Don't insert the Cancel item as a button.
-      zip(self.settings['main']['overwrite_mode'].items.values()[:-1],
-          self.settings['main']['overwrite_mode'].items_display_names.values()[:-1]),
-      default_value=self.settings['main']['overwrite_mode'].items['replace'],
-      default_response=self.settings['main']['overwrite_mode'].items['cancel'],
+      zip(self.settings['main/overwrite_mode'].items.values()[:-1],
+          self.settings['main/overwrite_mode'].items_display_names.values()[:-1]),
+      default_value=self.settings['main/overwrite_mode'].items['replace'],
+      default_response=self.settings['main/overwrite_mode'].items['cancel'],
       title=_(constants.PLUGIN_TITLE),
       parent=self.dialog)
     progress_updater = pggui.GtkProgressUpdater(self.progress_bar)
@@ -1090,9 +1090,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     except Exception as e:
       display_exception_message(traceback.format_exc(), parent=self.dialog)
     else:
-      self.settings['special']['first_plugin_run'].set_value(False)
+      self.settings['special/first_plugin_run'].set_value(False)
       pgsettingpersistor.SettingPersistor.save(
-        [self.settings['special']['first_plugin_run']], [self.session_source])
+        [self.settings['special/first_plugin_run']], [self.session_source])
       
       if not self.layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.dialog)
@@ -1101,7 +1101,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       pdb.gimp_progress_end()
       self.layer_exporter = None
     
-    self.settings['main']['overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
+    self.settings['main/overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
     pgsettingpersistor.SettingPersistor.save(
       [self.settings['main'], self.settings['gui'], self.settings['gui_session']], [self.session_source])
     
@@ -1216,7 +1216,7 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
     self._dialog.connect("delete-event", self.stop)
   
   def export_layers(self):
-    overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(self.settings['main']['overwrite_mode'].value)
+    overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(self.settings['main/overwrite_mode'].value)
     progress_updater = pggui.GtkProgressUpdater(self._progress_bar)
     
     pdb.gimp_progress_init("", None)
