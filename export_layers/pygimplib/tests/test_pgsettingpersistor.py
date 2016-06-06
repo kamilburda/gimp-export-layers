@@ -244,3 +244,11 @@ class TestSettingPersistor(unittest.TestCase):
     status, unused_ = pgsettingpersistor.SettingPersistor.load(
       [self.settings], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
+  
+  def test_load_write_fail(self, mock_session_source, mock_persistent_source):
+    with mock.patch(LIB_NAME + ".pgsettingpersistor.gimp") as temp_mock_persistent_source:
+      temp_mock_persistent_source.parasite_find.side_effect = pgsettingpersistor.SettingSourceWriteError
+      status, _unused = pgsettingpersistor.SettingPersistor.save(
+        [self.settings], [self.session_source, self.persistent_source])
+    
+    self.assertEqual(status, pgsettingpersistor.SettingPersistor.WRITE_FAIL)
