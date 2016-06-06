@@ -185,9 +185,6 @@ class Setting(object):
   _ALLOWED_EMPTY_VALUES = []
   _ALLOWED_GUI_TYPES = []
   
-  _EVENT_TYPES = ['value-changed', 'before-load', 'after-load', 'before-save',
-                  'after-save']
-  
   def __init__(self, name, default_value,
                allow_empty_values=False,
                display_name=None,
@@ -258,7 +255,7 @@ class Setting(object):
     self._pdb_name = self._get_pdb_name(self._name)
     
     # key: event type; value: collections.OrderedDict{event handler ID: [event handler, event handler arguments]}
-    self._event_handlers = {event_type: collections.OrderedDict() for event_type in self._EVENT_TYPES}
+    self._event_handlers = collections.defaultdict(collections.OrderedDict)
     # allows faster lookup of events via IDs; key: event handler ID; value: event type
     self._event_handler_ids_and_types = {}
     self._event_handler_id_counter = 0
@@ -408,8 +405,10 @@ class Setting(object):
   
   def connect_event(self, event_type, event_handler, *event_handler_args):
     """
-    Connect an event handler to the setting. `event_type` is a string specifying
-    when the event handler should be invoked. Possible event types include:
+    Connect an event handler to the setting.
+    
+    `event_type` can be an arbitrary string. The following specific event types
+    determine when the event handler is invoked:
     
       * 'value-changed' - invoked after `set_value()` or `reset()` is called,
       
@@ -455,15 +454,10 @@ class Setting(object):
     
     * `TypeError` - `event_handler` is not a function or the wrong number of
       arguments was passed in `event_handler_args`.
-    
-    * `ValueError` - invalid `event_type`.
     """
     
     if not callable(event_handler):
       raise TypeError("not a function")
-    
-    if event_type not in self._EVENT_TYPES:
-      raise ValueError("invalid event type '{0}'".format(event_type))
     
     # Subtract 1 because the first argument is always this Setting object.
     num_required_event_handler_args = len(inspect.getargspec(event_handler)[0]) - 1
@@ -499,9 +493,6 @@ class Setting(object):
     """
     Call all connected event handlers of the specified event type.
     """
-    
-    if event_type not in self._EVENT_TYPES:
-      raise ValueError("invalid event type '{0}'".format(event_type))
     
     for event_handler, event_handler_args in self._event_handlers[event_type].values():
       event_handler(self, *event_handler_args)

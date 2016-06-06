@@ -261,10 +261,6 @@ class TestSettingEvents(unittest.TestCase):
   def test_connect_event_argument_is_not_callable(self):
     with self.assertRaises(TypeError):
       self.setting.connect_event('value-changed', None)
-
-  def test_connect_event_invalid_type(self):
-    with self.assertRaises(ValueError):
-      self.setting.connect_event('invalid-event-type', on_file_extension_changed, None)
   
   def test_connect_value_changed_event(self):
     self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
@@ -328,10 +324,6 @@ class TestSettingEvents(unittest.TestCase):
     self.setting.invoke_event('value-changed')
     self.assertEqual(self.setting.value, "png")
     self.assertEqual(self.ignore_invisible.value, False)
-  
-  def test_invoke_event_invalid_event_type(self):
-    with self.assertRaises(ValueError):
-      self.setting.invoke_event('invalid-event-type')
   
   def test_reset_triggers_value_changed_event(self):
     self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
