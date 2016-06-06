@@ -325,6 +325,18 @@ class TestSettingEvents(unittest.TestCase):
     with self.assertRaises(ValueError):
       self.setting.remove_event(-1)
   
+  def test_invoke_event(self):
+    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', True)
+    self.setting.connect_event('value-changed', on_file_extension_changed, ignore_invisible)
+    
+    self.setting.invoke_event('value-changed')
+    self.assertEqual(self.setting.value, "png")
+    self.assertEqual(ignore_invisible.value, False)
+  
+  def test_invoke_event_invalid_event_type(self):
+    with self.assertRaises(ValueError):
+      self.setting.invoke_event('invalid-event-type')
+  
   def test_reset_triggers_value_changed_event(self):
     ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
     self.setting.connect_event('value-changed', on_file_extension_changed, ignore_invisible)

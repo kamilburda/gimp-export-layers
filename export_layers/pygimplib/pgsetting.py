@@ -338,7 +338,7 @@ class Setting(object):
     
     self._assign_and_validate_value(value)
     self._setting_value_synchronizer.apply_setting_value_to_gui(value)
-    self._trigger_event('value-changed')
+    self.invoke_event('value-changed')
   
   def reset(self):
     """
@@ -355,7 +355,7 @@ class Setting(object):
     
     self._value = self._default_value
     self._setting_value_synchronizer.apply_setting_value_to_gui(self._default_value)
-    self._trigger_event('value-changed')
+    self.invoke_event('value-changed')
   
   def set_gui(self, gui_type=SettingGuiTypes.automatic, gui_element=None, auto_update_gui_to_setting=True):
     """
@@ -482,6 +482,17 @@ class Setting(object):
     del self._event_handlers[event_type][event_id]
     del self._event_handler_ids_and_types[event_id]
   
+  def invoke_event(self, event_type):
+    """
+    Call all connected event handlers of the specified event type.
+    """
+    
+    if event_type not in self._EVENT_TYPES:
+      raise ValueError("invalid event type '{0}'".format(event_type))
+    
+    for event_handler, event_handler_args in self._event_handlers[event_type].values():
+      event_handler(self, *event_handler_args)
+  
   def is_value_empty(self):
     """
     Return True if the setting value is one of the empty values defined for the
@@ -526,7 +537,7 @@ class Setting(object):
   
   def _apply_gui_value_to_setting(self, value):
     self._assign_and_validate_value(value)
-    self._trigger_event('value-changed')
+    self.invoke_event('value-changed')
   
   def _validate_setting(self, value):
     try:
@@ -547,10 +558,6 @@ class Setting(object):
       self._validate(self._default_value)
     except SettingValueError as e:
       raise SettingDefaultValueError(e.message, setting=self)
-  
-  def _trigger_event(self, event_type):
-    for event_handler, event_handler_args in self._event_handlers[event_type].values():
-      event_handler(self, *event_handler_args)
   
   def _get_display_name(self, display_name):
     if display_name is not None:
