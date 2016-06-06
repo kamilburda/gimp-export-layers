@@ -416,7 +416,10 @@ class Setting(object):
       * 'before-load', 'after-load', 'before-save', 'after-save' - invoked
         before/after setting is loaded/saved via
         `pgsettingpersistor.SettingPersistor.load` or
-        `pgsettingpersistor.SettingPersistor.save`.
+        `pgsettingpersistor.SettingPersistor.save`. The 'after-load' and
+        'after-save' events will not be invoked if loading/saving settings
+        failed (i.e. if `SettingPersistor` returned `READ_FAIL` or `SAVE_FAIL`
+        status).
     
     The `event_handler` function must always contain at least one argument -
     this setting.
