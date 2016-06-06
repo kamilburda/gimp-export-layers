@@ -86,7 +86,7 @@ PLUGINS_LOG_STDOUT_PATH = os.path.join(PLUGIN_PATH, PLUGIN_PROGRAM_NAME + ".log"
 PLUGINS_LOG_STDERR_PATH = os.path.join(PLUGIN_PATH, PLUGIN_PROGRAM_NAME + "_error.log")
 
 # These are alternate paths that can be used to log output to the
-# `[user directory]/.gimp-2.8/plug-ins` directory in case the plug-in was
+# `[user directory]/[GIMP directory]/plug-ins` directory in case the plug-in was
 # installed system-wide (e.g. in `Program Files` on Windows) and there is no
 # permission to create log files there.
 PLUGINS_DIRECTORY_ALTERNATE = None
