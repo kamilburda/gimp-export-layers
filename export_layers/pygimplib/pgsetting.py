@@ -409,14 +409,14 @@ class Setting(object):
   def connect_event(self, event_type, event_handler, *event_handler_args):
     """
     Connect an event handler to the setting. `event_type` is a string specifying
-    when the event should be invoked. Possible event types include:
+    when the event handler should be invoked. Possible event types include:
     
-      * 'value-changed' - invoked after `set_value()` is called
+      * 'value-changed' - invoked after `set_value()` or `reset()` is called,
       
       * 'before-load', 'after-load', 'before-save', 'after-save' - invoked
         before/after setting is loaded/saved via
         `pgsettingpersistor.SettingPersistor.load` or
-        `pgsettingpersistor.SettingPersistor.save`
+        `pgsettingpersistor.SettingPersistor.save`.
     
     The `event_handler` function must always contain at least one argument -
     this setting.

@@ -423,7 +423,7 @@ class TestSettingGui(unittest.TestCase):
     self.widget.set_value("jpg")
     self.assertEqual(self.setting.value, "jpg")
   
-  def test_update_setting_value_triggers_event(self):
+  def test_update_setting_value_triggers_value_changed_event(self):
     self.setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
     
     ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
