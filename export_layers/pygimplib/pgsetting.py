@@ -413,12 +413,22 @@ class Setting(object):
     
       * 'value-changed' - invoked after `set_value()` or `reset()` is called,
       
-      * 'before-load', 'after-load', 'before-save', 'after-save' - invoked
-        before/after setting is loaded/saved via
-        `pgsettingpersistor.SettingPersistor.load` or
-        `pgsettingpersistor.SettingPersistor.save`. The 'after-load' and
-        'after-save' events will not be invoked if loading/saving settings
-        failed (i.e. if `SettingPersistor` returned `READ_FAIL` or `SAVE_FAIL`
+      * 'before-load' - invoked before loading a setting via
+        `pgsettingpersistor.SettingPersistor.load`.
+      
+      * 'after-load' - invoked after loading a setting via
+        `pgsettingpersistor.SettingPersistor.load`. Events will not be invoked
+        if loading settings failed (i.e. `SettingPersistor` returns `READ_FAIL`
+        status). Events will be invoked for all settings, even if some of them
+        were not found in setting sources (i.e. `SettingPersistor` returns
+        `NOT_ALL_SETTINGS_FOUND` status).
+      
+      * 'before-save' - invoked before saving a setting via
+      `pgsettingpersistor.SettingPersistor.save`.
+      
+      * 'after-save' - invoked after saving a setting via
+        `pgsettingpersistor.SettingPersistor.save`. Events will not be invoked
+        if saving settings failed (i.e. `SettingPersistor` returns `SAVE_FAIL`
         status).
     
     The `event_handler` function must always contain at least one argument -
