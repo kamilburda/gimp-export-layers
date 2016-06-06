@@ -371,6 +371,10 @@ class ExportNamePreview(object):
       self._update_locked = bool(self._lock_keys)
   
   def set_collapsed_items(self, collapsed_items):
+    """
+    Set the collapsed state of items in the preview.
+    """
+    
     self._collapsed_items = collapsed_items
     self._set_expanded_items()
   
