@@ -31,6 +31,7 @@ str = unicode
 
 import abc
 import collections
+import copy
 import inspect
 import os
 
@@ -243,7 +244,7 @@ class Setting(object):
     self._name = name
     self._default_value = default_value
     
-    self._value = self._default_value
+    self._value = copy.copy(self._default_value)
     
     self._allow_empty_values = allow_empty_values
     self._allowed_empty_values = list(self._ALLOWED_EMPTY_VALUES)
@@ -350,7 +351,7 @@ class Setting(object):
     `reset()` also updates the GUI and calls the 'value-changed' event handlers.
     """
     
-    self._value = self._default_value
+    self._value = copy.copy(self._default_value)
     self._setting_value_synchronizer.apply_setting_value_to_gui(self._default_value)
     self.invoke_event('value-changed')
   

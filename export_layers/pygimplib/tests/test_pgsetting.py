@@ -247,6 +247,18 @@ class TestSetting(unittest.TestCase):
     self.setting.set_value("jpg")
     self.setting.reset()
     self.assertEqual(self.setting.value, "png")
+  
+  def test_reset_default_value_container(self):
+    setting = MockSetting('image_IDs_and_directories', {})
+    setting.value[1] = "image_directory"
+    
+    setting.reset()
+    self.assertEqual(setting.value, {})
+    
+    setting.value[2] = "another_image_directory"
+    
+    setting.reset()
+    self.assertEqual(setting.value, {})
 
 
 #===============================================================================
