@@ -141,6 +141,17 @@ def add_gui_settings(settings):
   
   settings.add([gui_settings, session_only_gui_settings, persistent_only_gui_settings])
   
+  settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'].connect_event(
+    'after-load', _remove_invalid_image_filenames)
+  
+  settings['gui_session/export_name_preview_layers_collapsed_state'].connect_event(
+    'after-load', _update_image_ids,
+    settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'])
+  
+  settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'].connect_event(
+    'before-save', _update_image_filenames,
+    settings['gui_session/export_name_preview_layers_collapsed_state'])
+  
   settings.set_ignore_tags({
     'gui_session/image_ids_and_directories': ['reset'],
   })
@@ -736,14 +747,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING)
     
-    pgsettingpersistor.SettingPersistor.load([self.settings['gui_session']], [self.session_source])
     pgsettingpersistor.SettingPersistor.load([self.settings['gui_persistent']], [self.persistent_source])
-    
-    _remove_invalid_image_filenames(
-      self.settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'])
-    _update_image_ids(
-      self.settings['gui_session/export_name_preview_layers_collapsed_state'],
-      self.settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'])
+    pgsettingpersistor.SettingPersistor.load([self.settings['gui_session']], [self.session_source])
     
     # Needs to be string to avoid strict directory validation
     self.current_directory_setting = pgsetting.StringSetting(
@@ -975,10 +980,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       display_message(status_message, gtk.MESSAGE_WARNING, parent=self.dialog)
     
     pgsettingpersistor.SettingPersistor.save([self.settings['gui_session']], [self.session_source])
-    
-    _update_image_filenames(
-      self.settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'],
-      self.settings['gui_session/export_name_preview_layers_collapsed_state'])
     pgsettingpersistor.SettingPersistor.save([self.settings['gui_persistent']], [self.persistent_source])
   
   def on_file_extension_entry_changed(self, widget):
