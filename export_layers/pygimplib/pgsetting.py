@@ -326,17 +326,22 @@ class Setting(object):
     assigned, the value is recorded. Once a GUI element is assigned to the
     setting, the recorded value is copied over to the GUI element.
     
-    If an event handler is connected via `connect_event('value-changed')`, call
-    the event handler after assigning the value.
+    Invoke event handlers of types 'before-set-value' before assigning the
+    value and 'value-changed' and 'after-set-value' (in this order) after
+    assigning the value.
     
     Note: This is a method and not a property because of the additional overhead
     introduced by validation, GUI updating and event handling. `value` still
     remains a property for the sake of brevity.
     """
     
+    self.invoke_event('before-set-value')
+    
     self._assign_and_validate_value(value)
     self._setting_value_synchronizer.apply_setting_value_to_gui(value)
+    
     self.invoke_event('value-changed')
+    self.invoke_event('after-set-value')
   
   def reset(self):
     """
@@ -348,12 +353,25 @@ class Setting(object):
     
     in that `reset()` does not validate the default value.
     
-    `reset()` also updates the GUI and calls the 'value-changed' event handlers.
+    Invoke event handlers of types 'before-reset' before resetting and
+    'value-changed' and 'after-reset' (in this order) after resetting.
+    
+    `reset()` also updates the GUI.
+    
+    If the default value is an empty container (list, dict, ...), resetting
+    works properly. If the default value is a non-empty container, it is up to
+    you to ensure that the default value does not get modified, for example by
+    connecting a 'before-reset' event that sets the value to the correct
+    default value before resetting.
     """
+    
+    self.invoke_event('before-reset')
     
     self._value = copy.copy(self._default_value)
     self._setting_value_synchronizer.apply_setting_value_to_gui(self._default_value)
+    
     self.invoke_event('value-changed')
+    self.invoke_event('after-reset')
   
   def set_gui(self, gui_type=SettingGuiTypes.automatic, gui_element=None, auto_update_gui_to_setting=True):
     """
@@ -411,7 +429,16 @@ class Setting(object):
     `event_type` can be an arbitrary string. The following specific event types
     determine when the event handler is invoked:
     
-      * 'value-changed' - invoked after `set_value()` or `reset()` is called,
+      * 'value-changed' - invoked after `set_value()` or `reset()` is called and
+        before events of type 'after-set-value' or 'after-reset'.
+      
+      * 'before-set-value' - invoked before `set_value()` is called.
+      
+      * 'after-set-value' - invoked after `set_value()` is called.
+      
+      * 'before-reset' - invoked before `reset()` is called.
+      
+      * 'after-reset' - invoked after `reset()` is called.
       
       * 'before-load' - invoked before loading a setting via
         `pgsettingpersistor.SettingPersistor.load`.
