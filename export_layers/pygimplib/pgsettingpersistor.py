@@ -350,7 +350,12 @@ class SettingPersistor(object):
     if not settings_or_groups or not setting_sources:
       return cls._status(cls.SUCCESS)
     
-    settings = cls._list_settings(settings_or_groups)
+    all_settings = cls._list_settings(settings_or_groups)
+    all_settings_found = True
+    settings = all_settings
+    
+    for setting in all_settings:
+      setting.invoke_event('before-load')
     
     for source in setting_sources:
       try:
@@ -360,7 +365,8 @@ class SettingPersistor(object):
           settings = source.settings_not_found
         
         if source == setting_sources[-1]:
-          return cls._status(cls.NOT_ALL_SETTINGS_FOUND, e.message)
+          all_settings_found = False
+          break
         else:
           continue
       except (SettingSourceReadError, SettingSourceInvalidFormatError) as e:
@@ -368,7 +374,13 @@ class SettingPersistor(object):
       else:
         break
     
-    return cls._status(cls.SUCCESS)
+    for setting in all_settings:
+      setting.invoke_event('after-load')
+    
+    if all_settings_found:
+      return cls._status(cls.SUCCESS)
+    else:
+      return cls._status(cls.NOT_ALL_SETTINGS_FOUND, e.message)
   
   @classmethod
   def save(cls, settings_or_groups, setting_sources):
@@ -403,11 +415,17 @@ class SettingPersistor(object):
     
     settings = cls._list_settings(settings_or_groups)
     
+    for setting in settings:
+      setting.invoke_event('before-save')
+    
     for source in setting_sources:
       try:
         source.write(settings)
       except SettingSourceWriteError as e:
         return cls._status(cls.WRITE_FAIL, e.message)
+    
+    for setting in settings:
+      setting.invoke_event('after-save')
     
     return cls._status(cls.SUCCESS)
   

@@ -39,6 +39,7 @@ from . import gimpmocks
 from .. import pgpath
 from .. import pgsetting
 from .. import pgsettingpresenter
+from .. import pgsettingpersistor
 
 #===============================================================================
 
@@ -339,8 +340,99 @@ class TestSettingEvents(unittest.TestCase):
     self.setting.reset()
     self.assertEqual(self.ignore_invisible.value, self.ignore_invisible.default_value)
     self.assertEqual(self.ignore_invisible.gui.get_enabled(), True)
-  
 
+
+@mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new_callable=gimpmocks.MockGimpShelf)
+class TestSettingLoadSaveEvents(unittest.TestCase):
+  
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
+  def setUp(self):
+    self.setting = MockSettingWithGui('file_extension', "png")
+    self.ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
+    self.session_source = pgsettingpersistor.SessionPersistentSettingSource('')
+  
+  def test_before_load_event(self, mock_session_source):
+    pgsettingpersistor.SettingPersistor.save([self.setting, self.ignore_invisible], [self.session_source])
+    self.setting.set_value("gif")
+    
+    self.setting.connect_event('before-load', on_file_extension_changed, self.ignore_invisible)
+    pgsettingpersistor.SettingPersistor.load([self.setting], [self.session_source])
+    
+    self.assertEqual(self.setting.value, "png")
+    self.assertEqual(self.ignore_invisible.value, True)
+  
+  def test_after_load_event(self, mock_session_source):
+    self.ignore_invisible.set_value(True)
+    pgsettingpersistor.SettingPersistor.save([self.setting, self.ignore_invisible], [self.session_source])
+    
+    self.setting.connect_event('after-load', on_file_extension_changed, self.ignore_invisible)
+    pgsettingpersistor.SettingPersistor.load([self.setting], [self.session_source])
+    
+    self.assertEqual(self.setting.value, "png")
+    self.assertEqual(self.ignore_invisible.value, False)
+  
+  def test_after_load_event_not_all_settings_found_invoke_for_all_settings(self, mock_session_source):
+    self.setting.set_value("gif")
+    pgsettingpersistor.SettingPersistor.save([self.setting], [self.session_source])
+    
+    self.setting.connect_event('after-load', on_file_extension_changed, self.ignore_invisible)
+    pgsettingpersistor.SettingPersistor.load([self.setting, self.ignore_invisible], [self.session_source])
+    
+    self.assertEqual(self.setting.value, "gif")
+    self.assertEqual(self.ignore_invisible.value, True)
+  
+  def test_after_load_event_read_fail(self, mock_session_source):
+    self.ignore_invisible.set_value(True)
+    pgsettingpersistor.SettingPersistor.save([self.setting, self.ignore_invisible], [self.session_source])
+    
+    self.setting.connect_event('after-load', on_file_extension_changed, self.ignore_invisible)
+    
+    with mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf") as temp_mock_session_source:
+      temp_mock_session_source.__getitem__.side_effect = pgsettingpersistor.SettingSourceReadError
+      pgsettingpersistor.SettingPersistor.load([self.setting], [self.session_source])
+    
+    self.assertEqual(self.setting.value, "png")
+    self.assertEqual(self.ignore_invisible.value, True)
+  
+  def test_before_save_event(self, mock_session_source):
+    self.setting.set_value("gif")
+    
+    self.setting.connect_event('before-save', on_file_extension_changed, self.ignore_invisible)
+    pgsettingpersistor.SettingPersistor.save([self.setting, self.ignore_invisible], [self.session_source])
+    
+    self.assertEqual(self.setting.value, "gif")
+    self.assertEqual(self.ignore_invisible.value, True)
+    
+    pgsettingpersistor.SettingPersistor.load([self.setting, self.ignore_invisible], [self.session_source])
+    
+    self.assertEqual(self.setting.value, "gif")
+    self.assertEqual(self.ignore_invisible.value, True)
+  
+  def test_after_save_event(self, mock_session_source):
+    self.setting.set_value("gif")
+    
+    self.setting.connect_event('after-save', on_file_extension_changed, self.ignore_invisible)
+    pgsettingpersistor.SettingPersistor.save([self.setting, self.ignore_invisible], [self.session_source])
+    
+    self.assertEqual(self.setting.value, "gif")
+    self.assertEqual(self.ignore_invisible.value, True)
+    
+    pgsettingpersistor.SettingPersistor.load([self.setting, self.ignore_invisible], [self.session_source])
+    
+    self.assertEqual(self.setting.value, "gif")
+    self.assertEqual(self.ignore_invisible.value, False)
+  
+  def test_after_save_event_write_fail(self, mock_session_source):
+    self.setting.set_value("gif")
+    self.setting.connect_event('after-save', on_file_extension_changed, self.ignore_invisible)
+    
+    with mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf") as temp_mock_session_source:
+      temp_mock_session_source.__setitem__.side_effect = pgsettingpersistor.SettingSourceWriteError
+      pgsettingpersistor.SettingPersistor.save([self.setting], [self.session_source])
+    
+    self.assertEqual(self.ignore_invisible.value, False)
+  
+  
 #===============================================================================
 
 
