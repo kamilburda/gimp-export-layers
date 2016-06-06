@@ -233,7 +233,7 @@ def _setup_output_directory_changed(settings, current_image):
   def on_output_directory_changed(output_directory, image_ids_and_directories, current_image_id):
     image_ids_and_directories.update_directory(current_image_id, output_directory.value)
   
-  settings['main/output_directory'].connect_value_changed_event(
+  settings['main/output_directory'].connect_event('value-changed',
     on_output_directory_changed, settings['gui_session/image_ids_and_directories'], current_image.ID)
 
 
@@ -1016,7 +1016,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     for setting in self.settings['main']:
       if setting.name not in ['file_extension', 'output_directory', 'overwrite_mode']:
-        setting.connect_value_changed_event(_on_setting_changed)
+        setting.connect_event('value-changed', _on_setting_changed)
   
   def on_hpaned_left_button_up(self, widget, event):
     if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:

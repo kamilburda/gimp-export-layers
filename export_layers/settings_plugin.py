@@ -230,21 +230,20 @@ def create_settings():
   
   #-----------------------------------------------------------------------------
   
-  main_settings['layer_groups_as_folders'].connect_value_changed_event(
-    on_layer_groups_as_folders_changed, main_settings['empty_folders'], main_settings['merge_layer_groups']
-  )
-  main_settings['file_extension_mode'].connect_value_changed_event(
-    on_file_extension_mode_changed, main_settings['file_extension'], main_settings['strip_mode']
-  )
-  main_settings['merge_layer_groups'].connect_value_changed_event(
-    on_merge_layer_groups_changed, main_settings['layer_groups_as_folders']
-  )
-  main_settings['autocrop'].connect_value_changed_event(
-    on_autocrop_changed, main_settings['tagged_layers_mode'], main_settings['crop_mode']
-  )
-  main_settings['tagged_layers_mode'].connect_value_changed_event(
-    on_tagged_layers_mode_changed, main_settings['autocrop'], main_settings['crop_mode']
-  )
+  main_settings['layer_groups_as_folders'].connect_event('value-changed',
+    on_layer_groups_as_folders_changed, main_settings['empty_folders'], main_settings['merge_layer_groups'])
+  
+  main_settings['file_extension_mode'].connect_event('value-changed',
+    on_file_extension_mode_changed, main_settings['file_extension'], main_settings['strip_mode'])
+  
+  main_settings['merge_layer_groups'].connect_event('value-changed',
+    on_merge_layer_groups_changed, main_settings['layer_groups_as_folders'])
+  
+  main_settings['autocrop'].connect_event('value-changed',
+    on_autocrop_changed, main_settings['tagged_layers_mode'], main_settings['crop_mode'])
+  
+  main_settings['tagged_layers_mode'].connect_event('value-changed',
+    on_tagged_layers_mode_changed, main_settings['autocrop'], main_settings['crop_mode'])
   
   #-----------------------------------------------------------------------------
   
