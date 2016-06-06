@@ -212,85 +212,6 @@ class TestSetting(unittest.TestCase):
     with self.assertRaises(AttributeError):
       self.setting.value = "jpg"
   
-  def test_connect_value_changed_event_argument_is_not_callable(self):
-    with self.assertRaises(TypeError):
-      self.setting.connect_value_changed_event(None)
-  
-  def test_connect_value_changed_event(self):
-    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
-    
-    self.setting.set_value("jpg")
-    self.assertEqual(ignore_invisible.value, True)
-    self.assertEqual(ignore_invisible.gui.get_enabled(), False)
-  
-  def test_connect_value_changed_event_nested(self):
-    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
-    
-    autocrop = pgsetting.BoolSetting('autocrop', False)
-    autocrop.connect_value_changed_event(on_autocrop_changed, self.setting)
-    
-    autocrop.set_value(True)
-    
-    self.assertEqual(self.setting.value, "jpg")
-    self.assertEqual(ignore_invisible.value, True)
-    self.assertEqual(ignore_invisible.gui.get_enabled(), False)
-  
-  def test_connect_value_changed_event_multiple_events_on_single_setting(self):
-    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
-    
-    autocrop = pgsetting.BoolSetting('autocrop', False)
-    self.setting.connect_value_changed_event(on_file_extension_changed_with_autocrop, autocrop)
-    
-    self.setting.set_value("jpg")
-    self.assertEqual(self.setting.value, "jpg")
-    self.assertEqual(ignore_invisible.value, True)
-    self.assertEqual(autocrop.gui.get_visible(), False)
-  
-  def test_remove_value_changed_event(self):
-    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
-    self.setting.remove_value_changed_event()
-    
-    self.setting.set_value("jpg")
-    # `ignore_invisible` should not change
-    self.assertEqual(ignore_invisible.value, ignore_invisible.default_value)
-    self.assertEqual(ignore_invisible.gui.get_enabled(), True)
-  
-  def test_remove_value_changed_event_no_previous_event_handler_set(self):
-    with self.assertRaises(TypeError):
-      self.setting.remove_value_changed_event()
-  
-  def test_remove_value_changed_event_with_id(self):
-    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    event_id = self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
-    self.setting.remove_value_changed_event(event_id)
-    
-    self.setting.set_value("jpg")
-    self.assertEqual(ignore_invisible.value, ignore_invisible.default_value)
-    self.assertEqual(ignore_invisible.gui.get_enabled(), True)
-  
-  def test_remove_value_changed_event_with_id_non_last_event(self):
-    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    event_id = self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
-    
-    autocrop = pgsetting.BoolSetting('autocrop', False)
-    self.setting.connect_value_changed_event(on_file_extension_changed_with_autocrop, autocrop)
-    
-    self.setting.remove_value_changed_event(event_id)
-    
-    self.setting.set_value("jpg")
-    self.assertEqual(ignore_invisible.value, False)
-    self.assertEqual(autocrop.gui.get_visible(), False)
-  
-  def test_remove_value_changed_event_invalid_event_id(self):
-    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
-    with self.assertRaises(ValueError):
-      self.setting.remove_value_changed_event(-1)
-  
   def test_auto_generated_display_name(self):
     self.assertEqual(MockSetting('this_is_a_setting', "png").display_name, "This is a setting")
   
@@ -325,16 +246,94 @@ class TestSetting(unittest.TestCase):
     self.setting.set_value("jpg")
     self.setting.reset()
     self.assertEqual(self.setting.value, "png")
+
+
+#===============================================================================
+
+
+class TestSettingEvents(unittest.TestCase):
+  
+  def setUp(self):
+    self.setting = MockSetting('file_extension', "png")
+
+  def test_connect_event_argument_is_not_callable(self):
+    with self.assertRaises(TypeError):
+      self.setting.connect_event('value-changed', None)
+
+  def test_connect_event_invalid_type(self):
+    with self.assertRaises(ValueError):
+      self.setting.connect_event('invalid-event-type', on_file_extension_changed, None)
+  
+  def test_connect_value_changed_event(self):
+    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
+    self.setting.connect_event('value-changed', on_file_extension_changed, ignore_invisible)
+    
+    self.setting.set_value("jpg")
+    self.assertEqual(ignore_invisible.value, True)
+    self.assertEqual(ignore_invisible.gui.get_enabled(), False)
+  
+  def test_connect_value_changed_event_nested(self):
+    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
+    self.setting.connect_event('value-changed', on_file_extension_changed, ignore_invisible)
+    
+    autocrop = pgsetting.BoolSetting('autocrop', False)
+    autocrop.connect_event('value-changed', on_autocrop_changed, self.setting)
+    
+    autocrop.set_value(True)
+    
+    self.assertEqual(self.setting.value, "jpg")
+    self.assertEqual(ignore_invisible.value, True)
+    self.assertEqual(ignore_invisible.gui.get_enabled(), False)
+  
+  def test_connect_event_multiple_events_on_single_setting(self):
+    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
+    self.setting.connect_event('value-changed', on_file_extension_changed, ignore_invisible)
+    
+    autocrop = pgsetting.BoolSetting('autocrop', False)
+    self.setting.connect_event('value-changed', on_file_extension_changed_with_autocrop, autocrop)
+    
+    self.setting.set_value("jpg")
+    self.assertEqual(self.setting.value, "jpg")
+    self.assertEqual(ignore_invisible.value, True)
+    self.assertEqual(autocrop.gui.get_visible(), False)
+  
+  def test_remove_event(self):
+    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
+    event_id = self.setting.connect_event('value-changed', on_file_extension_changed, ignore_invisible)
+    self.setting.remove_event(event_id)
+    
+    self.setting.set_value("jpg")
+    self.assertEqual(ignore_invisible.value, ignore_invisible.default_value)
+    self.assertEqual(ignore_invisible.gui.get_enabled(), True)
+  
+  def test_remove_event_with_id_non_last_event(self):
+    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
+    event_id = self.setting.connect_event('value-changed', on_file_extension_changed, ignore_invisible)
+    
+    autocrop = pgsetting.BoolSetting('autocrop', False)
+    self.setting.connect_event('value-changed', on_file_extension_changed_with_autocrop, autocrop)
+    
+    self.setting.remove_event(event_id)
+    
+    self.setting.set_value("jpg")
+    self.assertEqual(ignore_invisible.value, False)
+    self.assertEqual(autocrop.gui.get_visible(), False)
+  
+  def test_remove_event_invalid_id(self):
+    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
+    self.setting.connect_event('value-changed', on_file_extension_changed, ignore_invisible)
+    with self.assertRaises(ValueError):
+      self.setting.remove_event(-1)
   
   def test_reset_triggers_value_changed_event(self):
     ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
+    self.setting.connect_event('value-changed', on_file_extension_changed, ignore_invisible)
     
     self.setting.set_value("jpg")
     self.setting.reset()
     self.assertEqual(ignore_invisible.value, ignore_invisible.default_value)
     self.assertEqual(ignore_invisible.gui.get_enabled(), True)
-
+  
 
 #===============================================================================
 
@@ -428,7 +427,7 @@ class TestSettingGui(unittest.TestCase):
     self.setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
     
     ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    self.setting.connect_value_changed_event(on_file_extension_changed, ignore_invisible)
+    self.setting.connect_event('value-changed', on_file_extension_changed, ignore_invisible)
     
     self.widget.set_value("jpg")
     self.assertEqual(self.setting.value, "jpg")
