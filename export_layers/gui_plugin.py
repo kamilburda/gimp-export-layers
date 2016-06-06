@@ -370,6 +370,10 @@ class ExportNamePreview(object):
       
       self._update_locked = bool(self._lock_keys)
   
+  def set_collapsed_items(self, collapsed_items):
+    self._collapsed_items = collapsed_items
+    self._set_expanded_items()
+  
   @property
   def collapsed_items(self):
     return self._collapsed_items
@@ -1015,9 +1019,15 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     def _on_setting_changed(setting):
       pggui.timeout_add_strict(50, self.export_name_preview.update)
     
+    def _on_collapsed_state_reset(setting):
+      self.export_name_preview.set_collapsed_items(setting.value)
+    
     for setting in self.settings['main']:
       if setting.name not in ['file_extension', 'output_directory', 'overwrite_mode']:
         setting.connect_event('value-changed', _on_setting_changed)
+    
+    self.settings['gui_session/export_name_preview_layers_collapsed_state'].connect_event(
+      'after-reset', _on_collapsed_state_reset)
   
   def on_hpaned_left_button_up(self, widget, event):
     if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:
