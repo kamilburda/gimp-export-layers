@@ -127,3 +127,39 @@ config = _Config()
 
 _init_config(config)
 
+#===============================================================================
+
+if _gimp_dependent_modules_imported:
+  
+  class GimpPlugin(gimpplugin.plugin):
+    
+    def __init__(self):
+      _init_config_builtin(config)
+      _init_config_builtin_derived(config)
+      
+      self.init_additional_config()
+      
+      procedures_to_register = [method_name for method_name in dir(self)
+                                if method_name.startswith("plug_in") and callable(getattr(self, method_name))]
+      for procedure_name in procedures_to_register:
+        self._set_gui_excepthook(procedure_name)
+    
+    def init_additional_config(self):
+      pass
+  
+    def _set_gui_excepthook(self, procedure_name):
+      
+      def _set_gui_excepthook_wrapper(procedure):
+        
+        @functools.wraps(procedure)
+        def procedure_wrapper(self, run_mode, *args):
+          if run_mode == gimpenums.RUN_INTERACTIVE:
+            return pggui.set_gui_excepthook(config.PLUGIN_TITLE,
+              report_uri_list=config.BUG_REPORT_URI_LIST)(procedure)(run_mode, *args)
+          else:
+            return procedure(run_mode, *args)
+        
+        return types.MethodType(procedure_wrapper, self, self.__class__)
+      
+      procedure = getattr(self, procedure_name)
+      setattr(self, procedure_name, _set_gui_excepthook_wrapper(procedure))
