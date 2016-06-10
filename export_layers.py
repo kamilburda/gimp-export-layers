@@ -42,14 +42,11 @@ try:
 except Exception:
   pass
 
-import functools
-import types
-
 import gimp
 import gimpenums
-import gimpplugin
 
-from export_layers.pygimplib import pggui
+import export_layers.pygimplib as pygimplib
+
 from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
 
@@ -60,34 +57,34 @@ from export_layers import settings_plugin
 #===============================================================================
 
 
-class ExportLayersPlugin(gimpplugin.plugin):
+pygimplib.config.PLUGIN_NAME = "export_layers"
+ 
+pygimplib.config.LOCALE_PATH = os.path.join(
+  pygimplib.config.PLUGINS_DIRECTORY, pygimplib.config.PLUGIN_NAME, "locale")
+pygimplib.config.DOMAIN_NAME = "gimp-" + pygimplib.config.PLUGIN_NAME.replace("_", "-")
+ 
+pygimplib.config.PLUGIN_VERSION = "2.5"
+pygimplib.config.BUG_REPORT_URI_LIST = [
+  # ("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),
+  ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
+]
+pygimplib.config.DEBUG = pygimplib.DEBUG_NONE
+
+# If True, display each step of image/layer editing in GIMP.
+pygimplib.config.DEBUG_IMAGE_PROCESSING = False
+
+
+class ExportLayersPlugin(pygimplib.GimpPlugin):
   
   def __init__(self):
-    self.settings = settings_plugin.create_settings()
-    
     self.session_source = pgsettingpersistor.SessionPersistentSettingSource(constants.SESSION_SOURCE_NAME)
     self.persistent_source = pgsettingpersistor.PersistentSettingSource(constants.PERSISTENT_SOURCE_NAME)
+    pygimplib.GimpPlugin.__init__(self)
     
-    procedures_to_register = ["plug_in_export_layers", "plug_in_export_layers_repeat"]
-    for procedure_name in procedures_to_register:
-      self._set_gui_excepthook(procedure_name)
+    self.settings = settings_plugin.create_settings()
   
-  def _set_gui_excepthook(self, procedure_name):
-    
-    def _set_gui_excepthook_wrapper(procedure):
-      
-      @functools.wraps(procedure)
-      def procedure_wrapper(self, run_mode, *args):
-        if run_mode == gimpenums.RUN_INTERACTIVE:
-          return pggui.set_gui_excepthook(_(constants.PLUGIN_TITLE),
-            report_uri_list=constants.BUG_REPORT_URI_LIST)(procedure)(run_mode, *args)
-        else:
-          return procedure(run_mode, *args)
-      
-      return types.MethodType(procedure_wrapper, self, self.__class__)
-    
-    procedure = getattr(self, procedure_name)
-    setattr(self, procedure_name, _set_gui_excepthook_wrapper(procedure))
+  def init_additional_config(self):
+    pygimplib.config.PLUGIN_TITLE = _("Export Layers")
   
   def query(self):
     gimp.domain_register(constants.DOMAIN_NAME, constants.LOCALE_PATH)
