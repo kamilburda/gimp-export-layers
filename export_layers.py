@@ -30,9 +30,6 @@ from export_layers import constants
 import gettext
 gettext.install(constants.DOMAIN_NAME, constants.LOCALE_PATH, unicode=True)
 
-from export_layers import log_output
-log_output.log_output(constants.DEBUG)
-
 import os
 
 try:
@@ -47,6 +44,7 @@ import gimpenums
 
 import export_layers.pygimplib as pygimplib
 
+from export_layers.pygimplib import log_output
 from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
 
@@ -56,11 +54,10 @@ from export_layers import settings_plugin
 
 #===============================================================================
 
-
 pygimplib.config.PLUGIN_NAME = "export_layers"
  
 pygimplib.config.LOCALE_PATH = os.path.join(
-  pygimplib.config.PLUGINS_DIRECTORY, pygimplib.config.PLUGIN_NAME, "locale")
+  pygimplib.config.PLUGIN_PATH, "locale")
 pygimplib.config.DOMAIN_NAME = "gimp-" + pygimplib.config.PLUGIN_NAME.replace("_", "-")
  
 pygimplib.config.PLUGIN_VERSION = "2.5"
@@ -68,7 +65,7 @@ pygimplib.config.BUG_REPORT_URI_LIST = [
   # ("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),
   ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
 ]
-pygimplib.config.DEBUG = pygimplib.DEBUG_NONE
+pygimplib.config.LOG_MODE = log_output.DEBUG_FILE
 
 # If True, display each step of image/layer editing in GIMP.
 pygimplib.config.DEBUG_IMAGE_PROCESSING = False
