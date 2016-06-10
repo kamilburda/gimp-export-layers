@@ -77,8 +77,6 @@ pygimplib.config.DEBUG_IMAGE_PROCESSING = False
 class ExportLayersPlugin(pygimplib.GimpPlugin):
   
   def __init__(self):
-    self.session_source = pgsettingpersistor.SessionPersistentSettingSource(constants.SESSION_SOURCE_NAME)
-    self.persistent_source = pgsettingpersistor.PersistentSettingSource(constants.PERSISTENT_SOURCE_NAME)
     pygimplib.GimpPlugin.__init__(self)
     
     self.settings = settings_plugin.create_settings()
@@ -134,7 +132,7 @@ class ExportLayersPlugin(pygimplib.GimpPlugin):
   def plug_in_export_layers_repeat(self, run_mode, image):
     if run_mode == gimpenums.RUN_INTERACTIVE:
       pgsettingpersistor.SettingPersistor.load(
-        [self.settings['special']['first_plugin_run']], [self.session_source])
+        [self.settings['special']['first_plugin_run']], [pygimplib.config.SOURCE_SESSION])
       if self.settings['special']['first_plugin_run'].value:
         self._run_export_layers_interactive(image)
       else:
@@ -152,17 +150,17 @@ class ExportLayersPlugin(pygimplib.GimpPlugin):
   
   def _run_with_last_vals(self, image):
     status, status_message = pgsettingpersistor.SettingPersistor.load(
-      [self.settings['main']], [self.session_source, self.persistent_source])
+      [self.settings['main']], [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
     if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
       print(status_message)
     
     self._run_plugin_noninteractive(gimpenums.RUN_WITH_LAST_VALS, image)
   
   def _run_export_layers_interactive(self, image):
-    gui_plugin.export_layers_gui(image, self.settings, self.session_source, self.persistent_source)
+    gui_plugin.export_layers_gui(image, self.settings)
   
   def _run_export_layers_repeat_interactive(self, image):
-    gui_plugin.export_layers_repeat_gui(image, self.settings, self.session_source, self.persistent_source)
+    gui_plugin.export_layers_repeat_gui(image, self.settings)
   
   def _run_plugin_noninteractive(self, run_mode, image):
     layer_exporter = exportlayers.LayerExporter(run_mode, image, self.settings['main'])

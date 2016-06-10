@@ -45,6 +45,8 @@ import gimpui
 
 pdb = gimp.pdb
 
+import export_layers.pygimplib as pygimplib
+
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
 from export_layers.pygimplib import pgsetting
@@ -738,25 +740,25 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   DIALOG_VBOX_SPACING = 5
   ACTION_AREA_BORDER_WIDTH = 4
   
-  def __init__(self, image, settings, session_source, persistent_source):
+  def __init__(self, image, settings):
     super(_ExportLayersGui, self).__init__()
     
     self.image = image
     self.settings = settings
-    self.session_source = session_source
-    self.persistent_source = persistent_source
     
     self._message_setting = None
     
     add_gui_settings(settings)
     
     status, status_message = pgsettingpersistor.SettingPersistor.load(
-      [self.settings['main'], self.settings['gui']], [self.session_source, self.persistent_source])
+      [self.settings['main'], self.settings['gui']],
+      [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
     if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING)
     
-    pgsettingpersistor.SettingPersistor.load([self.settings['gui_persistent']], [self.persistent_source])
-    pgsettingpersistor.SettingPersistor.load([self.settings['gui_session']], [self.session_source])
+    pgsettingpersistor.SettingPersistor.load(
+      [self.settings['gui_persistent']], [pygimplib.config.SOURCE_PERSISTENT])
+    pgsettingpersistor.SettingPersistor.load([self.settings['gui_session']], [pygimplib.config.SOURCE_SESSION])
     
     # Needs to be string to avoid strict directory validation
     self.current_directory_setting = pgsetting.StringSetting(
@@ -983,12 +985,15 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   def save_settings(self):
     status, status_message = pgsettingpersistor.SettingPersistor.save(
-      [self.settings['main'], self.settings['gui']], [self.session_source, self.persistent_source])
+      [self.settings['main'], self.settings['gui']],
+      [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
     if status == pgsettingpersistor.SettingPersistor.WRITE_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING, parent=self.dialog)
     
-    pgsettingpersistor.SettingPersistor.save([self.settings['gui_session']], [self.session_source])
-    pgsettingpersistor.SettingPersistor.save([self.settings['gui_persistent']], [self.persistent_source])
+    pgsettingpersistor.SettingPersistor.save(
+      [self.settings['gui_session']], [pygimplib.config.SOURCE_SESSION])
+    pgsettingpersistor.SettingPersistor.save(
+      [self.settings['gui_persistent']], [pygimplib.config.SOURCE_PERSISTENT])
   
   def on_file_extension_entry_changed(self, widget):
     try:
@@ -1107,7 +1112,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     else:
       self.settings['special/first_plugin_run'].set_value(False)
       pgsettingpersistor.SettingPersistor.save(
-        [self.settings['special/first_plugin_run']], [self.session_source])
+        [self.settings['special/first_plugin_run']], [pygimplib.config.SOURCE_SESSION])
       
       if not self.layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.dialog)
@@ -1118,7 +1123,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self.settings['main/overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
     pgsettingpersistor.SettingPersistor.save(
-      [self.settings['main'], self.settings['gui'], self.settings['gui_session']], [self.session_source])
+      [self.settings['main'], self.settings['gui'], self.settings['gui_session']],
+      [pygimplib.config.SOURCE_SESSION])
     
     if should_quit:
       gtk.main_quit()
@@ -1187,17 +1193,15 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
   _HBOX_HORIZONTAL_SPACING = 8
   _DIALOG_WIDTH = 500
   
-  def __init__(self, image, settings, session_source, persistent_source):
+  def __init__(self, image, settings):
     super(_ExportLayersRepeatGui, self).__init__()
 
     self._init_gui()
     
     self.image = image
     self.settings = settings
-    self.session_source = session_source
-    self.persistent_source = persistent_source
     
-    pgsettingpersistor.SettingPersistor.load([self.settings['main']], [self.session_source])
+    pgsettingpersistor.SettingPersistor.load([self.settings['main']], [pygimplib.config.SOURCE_SESSION])
     
     pggui.set_gui_excepthook_parent(self._dialog)
     
@@ -1264,9 +1268,9 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
 #===============================================================================
 
 
-def export_layers_gui(image, settings, session_source, persistent_source):
-  _ExportLayersGui(image, settings, session_source, persistent_source)
+def export_layers_gui(image, settings):
+  _ExportLayersGui(image, settings)
 
 
-def export_layers_repeat_gui(image, settings, session_source, persistent_source):
-  _ExportLayersRepeatGui(image, settings, session_source, persistent_source)
+def export_layers_repeat_gui(image, settings):
+  _ExportLayersRepeatGui(image, settings)
