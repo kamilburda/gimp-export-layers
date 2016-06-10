@@ -68,7 +68,14 @@ class _Config(object):
       raise TypeError("cannot modify plug-in configuration after calling '{0}'".format(self.init_config.__name__))
 
 
-def _init_config(config):
+def _init_config():
+  global config
+  
+  if config is not None:
+    return
+  
+  config = _Config()
+  
   config.PLUGIN_NAME = "gimp_plugin"
   config.PLUGIN_TITLE = "GIMP Plug-in"
   config.PLUGIN_VERSION = "1.0"
@@ -123,9 +130,9 @@ def _init_config_builtin_derived(config):
 
 #===============================================================================
 
-config = _Config()
+config = None
 
-_init_config(config)
+_init_config()
 
 #===============================================================================
 
