@@ -65,7 +65,7 @@ pygimplib.config.BUG_REPORT_URI_LIST = [
   # ("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),
   ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
 ]
-pygimplib.config.LOG_MODE = log_output.DEBUG_FILE
+pygimplib.config.LOG_MODE = log_output.EXCEPTIONS_ONLY
 
 # If True, display each step of image/layer editing in GIMP.
 pygimplib.config.DEBUG_IMAGE_PROCESSING = False
