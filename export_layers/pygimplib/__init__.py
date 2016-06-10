@@ -35,6 +35,7 @@ try:
   import gimpenums
   import gimpplugin
 
+  from . import log_output
   from . import pgsettingpersistor
   from . import pggui
 except ImportError:
@@ -43,15 +44,6 @@ else:
   _gimp_dependent_modules_imported = True
 
 #===============================================================================
-
-# Redirect stdout or stderr to:
-# * DEBUG_FILE - log files,
-# * DEBUG_GIMP_CONSOLE - GIMP error console
-_DEBUG_OPTIONS = (DEBUG_NONE, DEBUG_FILE, DEBUG_GIMP_CONSOLE) = (0, 1, 2)
-
-#===============================================================================
-
-
 
 class _Config(object):
   
@@ -85,42 +77,35 @@ def _init_config():
   
   config.BUG_REPORT_URI_LIST = []
   
-  config.DEBUG = DEBUG_NONE
+  config.LOG_MODE = log_output.EXCEPTIONS_ONLY
   
   _init_config_builtin(config)
 
 
 def _init_config_builtin(config):
-  current_module_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
+  pygimplib_directory = os.path.dirname(inspect.getfile(inspect.currentframe()))
   
-  config.PLUGINS_DIRECTORY = os.path.dirname(current_module_path)
-
-  config.PLUGIN_DIRNAME = config.PLUGIN_NAME
-  config.PLUGIN_PATH = os.path.join(config.PLUGINS_DIRECTORY, config.PLUGIN_DIRNAME)
+  config.PLUGIN_PATH = os.path.dirname(pygimplib_directory)
   
   config.SOURCE_SESSION_NAME = "plug_in_" + config.PLUGIN_NAME + "_"
   config.SOURCE_PERSISTENT_NAME = "plug_in_" + config.PLUGIN_NAME
   
-  config.PLUGINS_LOG_STDOUT_PATH = os.path.join(config.PLUGIN_PATH, config.PLUGIN_NAME + ".log")
-  config.PLUGINS_LOG_STDERR_PATH = os.path.join(config.PLUGIN_PATH, config.PLUGIN_NAME + "_error.log")
-  
-  # These are alternate paths that can be used to log output to the
-  # `[user directory]/[GIMP directory]/plug-ins` directory in case the plug-in was
-  # installed system-wide (e.g. in `Program Files` on Windows) and there is no
-  # permission to create log files there.
-  config.PLUGINS_DIRECTORY_ALTERNATE = None
-  config.PLUGIN_PATH_ALTERNATE = None
-  config.PLUGINS_LOG_STDOUT_PATH_ALTERNATE = None
-  config.PLUGINS_LOG_STDERR_PATH_ALTERNATE = None
+  config.PLUGINS_LOG_DIRNAMES = []
+  config.PLUGINS_LOG_DIRNAMES.append(config.PLUGIN_PATH)
   
   if _gimp_dependent_modules_imported:
-    config.PLUGINS_DIRECTORY_ALTERNATE = os.path.join(gimp.directory, "plug-ins")
-    if config.PLUGINS_DIRECTORY_ALTERNATE != config.PLUGINS_DIRECTORY:
-      config.PLUGIN_PATH_ALTERNATE = os.path.join(config.PLUGINS_DIRECTORY_ALTERNATE, config.PLUGIN_DIRNAME)
-      config.PLUGINS_LOG_STDOUT_PATH_ALTERNATE = os.path.join(
-        config.PLUGIN_PATH_ALTERNATE, config.PLUGIN_NAME + ".log")
-      config.PLUGINS_LOG_STDERR_PATH_ALTERNATE = os.path.join(
-        config.PLUGIN_PATH_ALTERNATE, config.PLUGIN_NAME + "_error.log")
+    plugins_directory_alternate = os.path.join(gimp.directory, "plug-ins")
+    if plugins_directory_alternate != config.PLUGIN_PATH:
+      # Add `[user directory]/[GIMP directory]/plug-ins` as another log path in
+      # case the plug-in was installed system-wide and there is no permission to
+      # create log files there.
+      config.PLUGINS_LOG_DIRNAMES.append(plugins_directory_alternate)
+  
+  config.PLUGINS_LOG_STDOUT_DIRNAME = config.PLUGINS_LOG_DIRNAMES[0]
+  config.PLUGINS_LOG_STDERR_DIRNAME = config.PLUGINS_LOG_DIRNAMES[0]
+  
+  config.PLUGINS_LOG_STDOUT_FILENAME = config.PLUGIN_NAME + ".log"
+  config.PLUGINS_LOG_STDERR_FILENAME = config.PLUGIN_NAME + "_error.log"
 
 
 def _init_config_builtin_derived(config):
@@ -145,6 +130,10 @@ if _gimp_dependent_modules_imported:
       _init_config_builtin_derived(config)
       
       self.init_additional_config()
+      
+      log_output.log_output(
+        config.LOG_MODE, config.PLUGINS_LOG_DIRNAMES, config.PLUGINS_LOG_STDOUT_FILENAME,
+        config.PLUGINS_LOG_STDERR_FILENAME, config.PLUGIN_TITLE)
       
       procedures_to_register = [method_name for method_name in dir(self)
                                 if method_name.startswith("plug_in") and callable(getattr(self, method_name))]
