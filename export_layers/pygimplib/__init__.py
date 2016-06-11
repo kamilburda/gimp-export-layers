@@ -79,7 +79,7 @@ def _init_config():
   config = _Config()
   
   config.PLUGIN_NAME = "gimp_plugin"
-  config.PLUGIN_TITLE = "GIMP Plug-in"
+  config.PLUGIN_TITLE = lambda: config.PLUGIN_NAME
   config.PLUGIN_VERSION = "1.0"
   
   config.DOMAIN_NAME = "gimp20-python"
