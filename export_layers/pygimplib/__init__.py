@@ -45,19 +45,29 @@ else:
 
 #===============================================================================
 
+
 class _Config(object):
   
   def __init__(self):
-    self._can_modify_config = True
-  
-  def init_config(self):
-    self._can_modify_config = False
+    super(_Config, self).__setattr__('_config', {})
+    self._config['_can_modify_config'] = True
   
   def __setattr__(self, name, value):
-    if not hasattr(self, '_can_modify_config') or self._can_modify_config:
-      super(_Config, self).__setattr__(name, value)
+    if self._can_modify_config:
+      self._config[name] = value
     else:
-      raise TypeError("cannot modify plug-in configuration after calling '{0}'".format(self.init_config.__name__))
+      raise TypeError("cannot modify configuration after plug-in initialization")
+  
+  def __getattr__(self, name):
+    if name not in self._config:
+      raise AttributeError("configuration entry '{0}' not found".format(name))
+    
+    attr = self._config[name]
+    
+    if callable(attr):
+      return attr()
+    else:
+      return attr
 
 
 def _init_config():
