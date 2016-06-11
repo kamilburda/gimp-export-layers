@@ -81,22 +81,21 @@ def _init_config():
   config.PLUGIN_NAME = "gimp_plugin"
   config.PLUGIN_TITLE = "GIMP Plug-in"
   config.PLUGIN_VERSION = "1.0"
-
-  config.DOMAIN_NAME = config.PLUGIN_NAME
+  
+  config.DOMAIN_NAME = "gimp20-python"
   config.LOCALE_PATH = gimp.locale_directory
+  
+  config.LOG_MODE = log_output.EXCEPTIONS_ONLY
   
   config.BUG_REPORT_URI_LIST = []
   
-  config.LOG_MODE = log_output.EXCEPTIONS_ONLY
+  pygimplib_directory = os.path.dirname(inspect.getfile(inspect.currentframe()))
+  config.PLUGIN_PATH = os.path.dirname(pygimplib_directory)
   
   _init_config_builtin(config)
 
 
 def _init_config_builtin(config):
-  pygimplib_directory = os.path.dirname(inspect.getfile(inspect.currentframe()))
-  
-  config.PLUGIN_PATH = os.path.dirname(pygimplib_directory)
-  
   config.SOURCE_SESSION_NAME = "plug_in_" + config.PLUGIN_NAME + "_"
   config.SOURCE_PERSISTENT_NAME = "plug_in_" + config.PLUGIN_NAME
   
