@@ -124,12 +124,12 @@ def _init_config_builtin_delayed(config):
 
 #===============================================================================
 
-_is_init_invoked = False
+_is_initialized = False
 
 def init():
-  global _is_init_invoked
+  global _is_initialized
   
-  if _is_init_invoked:
+  if _is_initialized:
     return
   
   _init_config_builtin(config)
