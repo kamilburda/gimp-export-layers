@@ -34,7 +34,7 @@ try:
   import gimp
   import gimpenums
   import gimpplugin
-
+  
   from . import log_output
   from . import pgsettingpersistor
   from . import pggui
@@ -117,9 +117,30 @@ def _init_config_builtin(config):
   config.PLUGINS_LOG_STDERR_FILENAME = config.PLUGIN_NAME + "_error.log"
 
 
-def _init_config_builtin_derived(config):
+def _init_config_builtin_delayed(config):
   config.SOURCE_SESSION = pgsettingpersistor.SessionPersistentSettingSource(config.SOURCE_SESSION_NAME)
   config.SOURCE_PERSISTENT = pgsettingpersistor.PersistentSettingSource(config.SOURCE_PERSISTENT_NAME)
+
+
+#===============================================================================
+
+_is_init_invoked = False
+
+def init():
+  global _is_init_invoked
+  
+  if _is_init_invoked:
+    return
+  
+  _init_config_builtin(config)
+  _init_config_builtin_delayed(config)
+  
+  
+  log_output.log_output(
+    config.LOG_MODE, config.PLUGINS_LOG_DIRNAMES, config.PLUGINS_LOG_STDOUT_FILENAME,
+    config.PLUGINS_LOG_STDERR_FILENAME, config.PLUGIN_TITLE)
+  
+  _is_init_invoked = True
 
 
 #===============================================================================
@@ -135,23 +156,15 @@ if _gimp_dependent_modules_imported:
   class GimpPlugin(gimpplugin.plugin):
     
     def __init__(self):
-      _init_config_builtin(config)
-      _init_config_builtin_derived(config)
-      
-      self.init_additional_config()
-      
-      log_output.log_output(
-        config.LOG_MODE, config.PLUGINS_LOG_DIRNAMES, config.PLUGINS_LOG_STDOUT_FILENAME,
-        config.PLUGINS_LOG_STDERR_FILENAME, config.PLUGIN_TITLE)
+      init()
       
       procedures_to_register = [method_name for method_name in dir(self)
                                 if method_name.startswith("plug_in") and callable(getattr(self, method_name))]
       for procedure_name in procedures_to_register:
         self._set_gui_excepthook(procedure_name)
+      
+      config._can_modify_config = False
     
-    def init_additional_config(self):
-      pass
-  
     def _set_gui_excepthook(self, procedure_name):
       
       def _set_gui_excepthook_wrapper(procedure):
