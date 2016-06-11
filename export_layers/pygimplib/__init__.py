@@ -135,6 +135,7 @@ def init():
   _init_config_builtin(config)
   _init_config_builtin_delayed(config)
   
+  gettext.install(config.DOMAIN_NAME, config.LOCALE_PATH, unicode=True)
   
   log_output.log_output(
     config.LOG_MODE, config.PLUGINS_LOG_DIRNAMES, config.PLUGINS_LOG_STDOUT_FILENAME,
