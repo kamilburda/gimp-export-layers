@@ -64,7 +64,7 @@ def display_message(message, message_type, parent=None, buttons=gtk.BUTTONS_OK,
   return pggui.display_message(
     message,
     message_type,
-    title=_(constants.PLUGIN_TITLE),
+    title=pygimplib.config.PLUGIN_TITLE,
     parent=parent,
     buttons=buttons,
     message_in_text_view=message_in_text_view
@@ -74,7 +74,7 @@ def display_message(message, message_type, parent=None, buttons=gtk.BUTTONS_OK,
 def display_exception_message(exception_message, parent=None):
   pggui.display_exception_message(
     exception_message,
-    plugin_title=_(constants.PLUGIN_TITLE),
+    plugin_title=pygimplib.config.PLUGIN_TITLE,
     report_uri_list=constants.BUG_REPORT_URI_LIST,
     parent=parent
   )
@@ -775,7 +775,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     gtk.main()
   
   def _init_gui(self):
-    self.dialog = gimpui.Dialog(title=_(constants.PLUGIN_TITLE), role=constants.PLUGIN_PROGRAM_NAME)
+    self.dialog = gimpui.Dialog(title=pygimplib.config.PLUGIN_TITLE, role=constants.PLUGIN_PROGRAM_NAME)
     self.dialog.set_transient()
     self.dialog.set_default_size(*self.DIALOG_SIZE)
     self.dialog.set_border_width(self.DIALOG_BORDER_WIDTH)
@@ -918,7 +918,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.save_settings_button.set_tooltip_text(
       _("Save settings permanently. "
         "If you start GIMP again, the saved settings will be loaded "
-        "when {0} is first opened.").format(constants.PLUGIN_TITLE)
+        "when {0} is first opened.").format(pygimplib.config.PLUGIN_TITLE)
     )
     self.reset_settings_button = gtk.Button()
     self.reset_settings_button.set_label(_("Reset Settings"))
@@ -1091,7 +1091,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
           self.settings['main/overwrite_mode'].items_display_names.values()[:-1]),
       default_value=self.settings['main/overwrite_mode'].items['replace'],
       default_response=self.settings['main/overwrite_mode'].items['cancel'],
-      title=_(constants.PLUGIN_TITLE),
+      title=pygimplib.config.PLUGIN_TITLE,
       parent=self.dialog)
     progress_updater = pggui.GtkProgressUpdater(self.progress_bar)
     
@@ -1210,7 +1210,7 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
     self.export_layers()
   
   def _init_gui(self):
-    self._dialog = gimpui.Dialog(title=_(constants.PLUGIN_TITLE), role=None)
+    self._dialog = gimpui.Dialog(title=pygimplib.config.PLUGIN_TITLE, role=None)
     self._dialog.set_transient()
     self._dialog.set_border_width(8)
     self._dialog.set_default_size(self._DIALOG_WIDTH, -1)
