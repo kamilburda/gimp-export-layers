@@ -33,13 +33,10 @@ import logging
 import os
 import sys
 
+from . import constants
 from . import pgpath
 from . import pgpdb
 from . import tee
-
-#===============================================================================
-
-_LOG_MODES = (EXCEPTIONS_ONLY, DEBUG_FILE, DEBUG_GIMP_CONSOLE) = (0, 1, 2)
 
 #===============================================================================
 
@@ -99,7 +96,7 @@ def log_output(log_mode, log_path_dirnames, log_stdout_filename, log_stderr_file
     modes only.
   """
   
-  if log_mode == EXCEPTIONS_ONLY:
+  if log_mode == constants.LOG_EXCEPTIONS_ONLY:
     logger = logging.getLogger(log_stderr_filename)
     logger.setLevel(logging.DEBUG)
     
@@ -115,11 +112,11 @@ def log_output(log_mode, log_path_dirnames, log_stdout_filename, log_stderr_file
       
       sys.excepthook = log_exceptions
   
-  elif log_mode == DEBUG_FILE:
+  elif log_mode == constants.LOG_OUTPUT_FILES:
     tee.Tee(sys.stdout, open(os.path.join(log_path_dirnames[0], log_stdout_filename), "a"),
             log_header_title=log_header_title, flush_output=True)
     tee.Tee(sys.stderr, open(os.path.join(log_path_dirnames[0], log_stderr_filename), "a"),
             log_header_title=log_header_title, flush_output=True)
-  elif log_mode == DEBUG_GIMP_CONSOLE:
+  elif log_mode == constants.LOG_OUTPUT_GIMP_CONSOLE:
     tee.Tee(sys.stdout, pgpdb.GimpMessageFile(), flush_output=True)
     tee.Tee(sys.stderr, pgpdb.GimpMessageFile(message_prefix="Error: "), flush_output=True)
