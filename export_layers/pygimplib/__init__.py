@@ -181,6 +181,16 @@ if _gimp_dependent_modules_imported:
       
       config._can_modify_config = False
     
+    def query(self):
+      gimpplugin.plugin.query(self)
+      
+      gimp.domain_register(config.DOMAIN_NAME, config.LOCALE_PATH)
+      
+      self.register()
+    
+    def register(self):
+      pass
+    
     def _set_gui_excepthook(self, procedure_name):
       
       def _set_gui_excepthook_wrapper(procedure):
@@ -197,3 +207,26 @@ if _gimp_dependent_modules_imported:
       
       procedure = getattr(self, procedure_name)
       setattr(self, procedure_name, _set_gui_excepthook_wrapper(procedure))
+  
+  #=============================================================================
+  
+  def install_plugin(plugin_procedure, blurb="", description="",
+                     author="", copyright_notice="", date="",
+                     menu_name="", menu_path=None, image_types="*",
+                     parameters=None, return_values=None):
+    gimp.install_procedure(
+      plugin_procedure.__name__,
+      blurb,
+      description,
+      author,
+      copyright_notice,
+      date,
+      menu_name,
+      image_types,
+      gimpenums.PLUGIN,
+      parameters if parameters is not None else [],
+      return_values if return_values is not None else []
+    )
+    
+    if menu_path:
+      gimp.menu_register(plugin_procedure.__name__, menu_path)
