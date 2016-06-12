@@ -55,7 +55,7 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
   
   @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
   def setUp(self):
-    self.source_name = 'test_settings_'
+    self.source_name = 'test_settings'
     self.source = pgsettingpersistor.SessionPersistentSettingSource(self.source_name)
     self.settings = create_test_settings()
   
@@ -64,8 +64,8 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.settings['ignore_invisible'].set_value(True)
     self.source.write(self.settings)
     
-    self.assertEqual(pgsettingpersistor.gimpshelf.shelf[self.source_name + 'file_extension'], "png")
-    self.assertEqual(pgsettingpersistor.gimpshelf.shelf[self.source_name + 'ignore_invisible'], True)
+    self.assertEqual(pgsettingpersistor.gimpshelf.shelf[self.source_name + "_" + 'file_extension'], "png")
+    self.assertEqual(pgsettingpersistor.gimpshelf.shelf[self.source_name + "_" + 'ignore_invisible'], True)
   
   def test_write_multiple_settings_separately(self, mock_session_source):
     self.settings['file_extension'].set_value("jpg")
@@ -79,8 +79,8 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.assertEqual(self.settings['ignore_invisible'].value, True)
   
   def test_read(self, mock_session_source):
-    pgsettingpersistor.gimpshelf.shelf[self.source_name + 'file_extension'] = "png"
-    pgsettingpersistor.gimpshelf.shelf[self.source_name + 'ignore_invisible'] = True
+    pgsettingpersistor.gimpshelf.shelf[self.source_name + "_" + 'file_extension'] = "png"
+    pgsettingpersistor.gimpshelf.shelf[self.source_name + "_" + 'ignore_invisible'] = True
     self.source.read([self.settings['file_extension'], self.settings['ignore_invisible']])
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
@@ -104,7 +104,7 @@ class TestPersistentSettingSource(unittest.TestCase):
   
   @mock.patch(LIB_NAME + ".pgsettingpersistor.gimp", new=gimpmocks.MockGimpParasite())
   def setUp(self):
-    self.source_name = 'test_settings_'
+    self.source_name = 'test_settings'
     self.source = pgsettingpersistor.PersistentSettingSource(self.source_name)
     self.settings = create_test_settings()
   
