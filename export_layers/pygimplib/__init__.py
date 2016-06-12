@@ -96,8 +96,14 @@ def _init_config():
 
 
 def _init_config_builtin(config):
-  config.SOURCE_SESSION_NAME = "plug_in_" + config.PLUGIN_NAME + "_"
-  config.SOURCE_PERSISTENT_NAME = "plug_in_" + config.PLUGIN_NAME
+  def _get_setting_source_name():
+    if config.PLUGIN_NAME.startswith("plug_in"):
+      return config.PLUGIN_NAME
+    else:
+      return "plug_in_" + config.PLUGIN_NAME
+  
+  config.SOURCE_SESSION_NAME = _get_setting_source_name() + "_"
+  config.SOURCE_PERSISTENT_NAME = _get_setting_source_name()
   
   config.PLUGINS_LOG_DIRNAMES = []
   config.PLUGINS_LOG_DIRNAMES.append(config.PLUGIN_PATH)
@@ -157,10 +163,14 @@ if _gimp_dependent_modules_imported:
   class GimpPlugin(gimpplugin.plugin):
     
     def __init__(self):
-      init()
-      
       procedures_to_register = [method_name for method_name in dir(self)
                                 if method_name.startswith("plug_in") and callable(getattr(self, method_name))]
+      
+      if config.PLUGIN_NAME == "gimp_plugin" and procedures_to_register:
+        config.PLUGIN_NAME = procedures_to_register[0]
+      
+      init()
+      
       for procedure_name in procedures_to_register:
         self._set_gui_excepthook(procedure_name)
       
