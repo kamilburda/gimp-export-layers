@@ -36,7 +36,7 @@ try:
   import gimpplugin
   
   from . import log_output
-  from . import pgsettingpersistor
+  from . import pgsettingsources
   from . import pggui
 except ImportError:
   _gimp_dependent_modules_imported = False
@@ -128,8 +128,8 @@ def _init_config_builtin(config):
 
 def _init_config_builtin_delayed(config):
   if _gimp_dependent_modules_imported:
-    config.SOURCE_SESSION = pgsettingpersistor.SessionPersistentSettingSource(config.SOURCE_SESSION_NAME)
-    config.SOURCE_PERSISTENT = pgsettingpersistor.PersistentSettingSource(config.SOURCE_PERSISTENT_NAME)
+    config.SOURCE_SESSION = pgsettingsources.SessionPersistentSettingSource(config.SOURCE_SESSION_NAME)
+    config.SOURCE_PERSISTENT = pgsettingsources.PersistentSettingSource(config.SOURCE_PERSISTENT_NAME)
 
 
 #===============================================================================

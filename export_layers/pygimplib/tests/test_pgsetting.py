@@ -40,6 +40,7 @@ from .. import pgpath
 from .. import pgsetting
 from .. import pgsettingpresenter
 from .. import pgsettingpersistor
+from .. import pgsettingsources
 
 #===============================================================================
 
@@ -346,14 +347,14 @@ class TestSettingEvents(unittest.TestCase):
     self.assertEqual(self.ignore_invisible.gui.get_enabled(), True)
 
 
-@mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new_callable=gimpmocks.MockGimpShelf)
+@mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new_callable=gimpmocks.MockGimpShelf)
 class TestSettingLoadSaveEvents(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
   def setUp(self):
     self.setting = MockSettingWithGui('file_extension', "png")
     self.ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    self.session_source = pgsettingpersistor.SessionPersistentSettingSource('')
+    self.session_source = pgsettingsources.SessionPersistentSettingSource('')
   
   def test_before_load_event(self, mock_session_source):
     pgsettingpersistor.SettingPersistor.save([self.setting, self.ignore_invisible], [self.session_source])
@@ -391,7 +392,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     
     self.setting.connect_event('after-load', on_file_extension_changed, self.ignore_invisible)
     
-    with mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf") as temp_mock_session_source:
+    with mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf") as temp_mock_session_source:
       temp_mock_session_source.__getitem__.side_effect = pgsettingpersistor.SettingSourceReadError
       pgsettingpersistor.SettingPersistor.load([self.setting], [self.session_source])
     
@@ -430,7 +431,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     self.setting.set_value("gif")
     self.setting.connect_event('after-save', on_file_extension_changed, self.ignore_invisible)
     
-    with mock.patch(LIB_NAME + ".pgsettingpersistor.gimpshelf.shelf") as temp_mock_session_source:
+    with mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf") as temp_mock_session_source:
       temp_mock_session_source.__setitem__.side_effect = pgsettingpersistor.SettingSourceWriteError
       pgsettingpersistor.SettingPersistor.save([self.setting], [self.session_source])
     
