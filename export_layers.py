@@ -34,7 +34,6 @@ try:
 except Exception:
   pass
 
-import gimp
 import gimpenums
 
 import export_layers.pygimplib as pygimplib
@@ -59,39 +58,28 @@ class ExportLayersPlugin(pygimplib.GimpPlugin):
     
     self.settings = settings_plugin.create_settings()
   
-  def query(self):
-    gimp.domain_register(pygimplib.config.DOMAIN_NAME, pygimplib.config.LOCALE_PATH)
+  def register(self):
+    pygimplib.install_plugin(
+      self.plug_in_export_layers,
+      blurb=_("Export layers as separate images"),
+      author="khalim19 <khalim19@gmail.com>",
+      copyright_notice="khalim19",
+      date="2013-2016",
+      menu_name=_("E_xport Layers..."),
+      menu_path="<Image>/File/Export",
+      parameters=pgsettinggroup.PdbParamCreator.create_params(self.settings['special'], self.settings['main']))
     
-    gimp.install_procedure(
-      "plug_in_export_layers",
-      _("Export layers as separate images"),
-      "",
-      "khalim19 <khalim19@gmail.com>",
-      "khalim19",
-      "2013",
-      _("E_xport Layers..."),
-      "*",
-      gimpenums.PLUGIN,
-      pgsettinggroup.PdbParamCreator.create_params(self.settings['special'], self.settings['main']),
-      []
-    )
-    gimp.menu_register("plug_in_export_layers", "<Image>/File/Export")
-    
-    gimp.install_procedure(
-      "plug_in_export_layers_repeat",
-      _("Run \"{0}\" with the last values specified").format(pygimplib.config.PLUGIN_TITLE),
-      _("If the plug-in is run for the first time (i.e. no last values exist), "
-        "default values will be used."),
-      "khalim19 <khalim19@gmail.com>",
-      "khalim19",
-      "2013",
-      _("E_xport Layers (repeat)"),
-      "*",
-      gimpenums.PLUGIN,
-      pgsettinggroup.PdbParamCreator.create_params(self.settings['special'], self.settings['main']),
-      []
-    )
-    gimp.menu_register("plug_in_export_layers_repeat", "<Image>/File/Export")
+    pygimplib.install_plugin(
+      self.plug_in_export_layers_repeat,
+      blurb=_("Run \"{0}\" with the last values specified").format(pygimplib.config.PLUGIN_TITLE),
+      description=_("If the plug-in is run for the first time (i.e. no last values exist), "
+                    "default values will be used."),
+      author="khalim19 <khalim19@gmail.com>",
+      copyright_notice="khalim19",
+      date="2013-2016",
+      menu_name=_("E_xport Layers (repeat)"),
+      menu_path="<Image>/File/Export",
+      parameters=pgsettinggroup.PdbParamCreator.create_params(self.settings['special'], self.settings['main']))
   
   def plug_in_export_layers(self, run_mode, image, *args):
     self.settings['special']['run_mode'].set_value(run_mode)
