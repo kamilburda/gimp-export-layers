@@ -53,7 +53,6 @@ from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
 
-from export_layers import constants
 from export_layers import exportlayers
 
 #===============================================================================
@@ -75,7 +74,7 @@ def display_exception_message(exception_message, parent=None):
   pggui.display_exception_message(
     exception_message,
     plugin_title=pygimplib.config.PLUGIN_TITLE,
-    report_uri_list=constants.BUG_REPORT_URI_LIST,
+    report_uri_list=pygimplib.config.BUG_REPORT_URI_LIST,
     parent=parent
   )
 
@@ -437,9 +436,9 @@ class ExportNamePreview(object):
     self._icons = {}
     self._icons['layer_group'] = self._tree_view.render_icon(gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
     self._icons['layer'] = gtk.gdk.pixbuf_new_from_file_at_size(
-      os.path.join(constants.PLUGIN_PATH, "image_icon.png"), -1, self._icons['layer_group'].props.height)
+      os.path.join(pygimplib.config.PLUGIN_PATH, "image_icon.png"), -1, self._icons['layer_group'].props.height)
     self._icons['tag'] = gtk.gdk.pixbuf_new_from_file_at_size(
-      os.path.join(constants.PLUGIN_PATH, "tag_icon.png"), -1, self._icons['layer_group'].props.height)
+      os.path.join(pygimplib.config.PLUGIN_PATH, "tag_icon.png"), -1, self._icons['layer_group'].props.height)
     
     self._icons['merged_layer_group'] = self._icons['layer'].copy()
     
@@ -775,7 +774,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     gtk.main()
   
   def _init_gui(self):
-    self.dialog = gimpui.Dialog(title=pygimplib.config.PLUGIN_TITLE, role=constants.PLUGIN_PROGRAM_NAME)
+    self.dialog = gimpui.Dialog(title=pygimplib.config.PLUGIN_TITLE, role=pygimplib.config.PLUGIN_NAME)
     self.dialog.set_transient()
     self.dialog.set_default_size(*self.DIALOG_SIZE)
     self.dialog.set_border_width(self.DIALOG_BORDER_WIDTH)

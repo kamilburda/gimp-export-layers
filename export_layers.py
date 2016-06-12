@@ -25,8 +25,6 @@ from __future__ import unicode_literals
 
 str = unicode
 
-from export_layers import constants
-
 import os
 
 try:
@@ -62,7 +60,7 @@ class ExportLayersPlugin(pygimplib.GimpPlugin):
     self.settings = settings_plugin.create_settings()
   
   def query(self):
-    gimp.domain_register(constants.DOMAIN_NAME, constants.LOCALE_PATH)
+    gimp.domain_register(pygimplib.config.DOMAIN_NAME, pygimplib.config.LOCALE_PATH)
     
     gimp.install_procedure(
       "plug_in_export_layers",
@@ -81,7 +79,7 @@ class ExportLayersPlugin(pygimplib.GimpPlugin):
     
     gimp.install_procedure(
       "plug_in_export_layers_repeat",
-      _("Run \"{0}\" with the last values specified").format(constants.PLUGIN_TITLE),
+      _("Run \"{0}\" with the last values specified").format(pygimplib.config.PLUGIN_TITLE),
       _("If the plug-in is run for the first time (i.e. no last values exist), "
         "default values will be used."),
       "khalim19 <khalim19@gmail.com>",

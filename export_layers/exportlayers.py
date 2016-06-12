@@ -40,6 +40,8 @@ import gimpenums
 
 pdb = gimp.pdb
 
+import export_layers.pygimplib as pygimplib
+
 from export_layers.pygimplib import objectfilter
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pgfileformats
@@ -47,8 +49,6 @@ from export_layers.pygimplib import pgitemdata
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import progress
-
-from export_layers import constants
 
 #===============================================================================
 
@@ -411,11 +411,11 @@ class LayerExporter(object):
     # and its soon-to-be exported layers are left intact.
     self._image_copy = pgpdb.duplicate(self.image, metadata_only=True)
     
-    if constants.DEBUG_IMAGE_PROCESSING:
+    if pygimplib.config.DEBUG_IMAGE_PROCESSING:
       self._display_id = pdb.gimp_display_new(self._image_copy)
   
   def _cleanup(self):
-    if constants.DEBUG_IMAGE_PROCESSING:
+    if pygimplib.config.DEBUG_IMAGE_PROCESSING:
       pdb.gimp_display_delete(self._display_id)
     
     pdb.gimp_image_delete(self._image_copy)

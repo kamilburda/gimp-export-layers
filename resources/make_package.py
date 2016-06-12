@@ -32,20 +32,6 @@ from __future__ import unicode_literals
 
 str = unicode
 
-import __builtin__
-
-# For `gettext`-aware modules that use "_()" and "N_()" functions, define dummy
-# functions that simply return the strings.
-
-def gettext(s):
-  return s
-
-if '_' not in __builtin__.__dict__:
-  __builtin__.__dict__['_'] = gettext
-
-if 'N_' not in __builtin__.__dict__:
-  __builtin__.__dict__['N_'] = gettext
-
 import inspect
 import os
 import re
@@ -57,9 +43,12 @@ import zipfile
 
 import pathspec
 
+import export_layers.pygimplib as pygimplib
+
+import export_layers.config
 from export_layers.pygimplib import pgpath
 
-from export_layers import constants
+pygimplib.init()
 
 #===============================================================================
 
@@ -213,7 +202,7 @@ def make_package(input_directory, output_file, version):
     subprocess.call(["./generate_pot.sh", version])
     os.chdir(orig_cwd)
   
-  _generate_pot_file(constants.LOCALE_PATH, version)
+  _generate_pot_file(pygimplib.config.LOCALE_PATH, version)
   
   files = _get_filtered_files(input_directory, INCLUDE_LIST_FILENAME)
   files_relative_paths = [file_[len(input_directory) + 1:] for file_ in files]
@@ -250,6 +239,6 @@ def make_package(input_directory, output_file, version):
 
 
 if __name__ == "__main__":
-  output_file = OUTPUT_FILENAME_PREFIX + "-" + constants.PLUGIN_VERSION + OUTPUT_FILENAME_SUFFIX
-  make_package(PLUGINS_PATH, output_file, constants.PLUGIN_VERSION)
+  output_file = OUTPUT_FILENAME_PREFIX + "-" + pygimplib.config.PLUGIN_VERSION + OUTPUT_FILENAME_SUFFIX
+  make_package(PLUGINS_PATH, output_file, pygimplib.config.PLUGIN_VERSION)
   print("Package successfully created:", os.path.join(PLUGINS_PATH, output_file))
