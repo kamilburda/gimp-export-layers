@@ -440,10 +440,10 @@ class SettingPersistor(object):
     # are invoked only once per each source.
     settings = []
     for setting_or_group in settings_or_groups:
-      if isinstance(setting_or_group, pgsetting.Setting):
-        setting = setting_or_group
-        settings.append(setting)
-      else:
+      if isinstance(setting_or_group, collections.Iterable):
         group = setting_or_group
         settings.extend(list(group.iterate_all()))
+      else:
+        setting = setting_or_group
+        settings.append(setting)
     return settings
