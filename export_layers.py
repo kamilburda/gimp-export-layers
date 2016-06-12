@@ -40,30 +40,12 @@ import gimp
 import gimpenums
 
 import export_layers.pygimplib as pygimplib
-
-from export_layers.pygimplib import log_output
-from export_layers.pygimplib import pgsettinggroup
-from export_layers.pygimplib import pgsettingpersistor
-
-
-pygimplib.config.PLUGIN_NAME = "export_layers"
-pygimplib.config.LOCALE_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "locale")
-pygimplib.config.DOMAIN_NAME = "gimp-" + pygimplib.config.PLUGIN_NAME.replace("_", "-")
-
-pygimplib.config.LOG_MODE = log_output.DEBUG_FILE
-
-pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
-pygimplib.config.PLUGIN_VERSION = "2.5"
-pygimplib.config.BUG_REPORT_URI_LIST = [
-  # ("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),
-  ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
-]
-
-# If True, display each step of image/layer editing in GIMP.
-pygimplib.config.DEBUG_IMAGE_PROCESSING = False
+import export_layers.config
 
 pygimplib.init()
 
+from export_layers.pygimplib import pgsettinggroup
+from export_layers.pygimplib import pgsettingpersistor
 
 from export_layers import exportlayers
 from export_layers import gui_plugin
