@@ -28,19 +28,13 @@ from __future__ import unicode_literals
 
 str = unicode
 
-import os
-
 import export_layers.pygimplib as pygimplib
-
-from export_layers.pygimplib import log_output
 
 #===============================================================================
 
 pygimplib.config.PLUGIN_NAME = "export_layers"
-pygimplib.config.LOCALE_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "locale")
-pygimplib.config.DOMAIN_NAME = "gimp-" + pygimplib.config.PLUGIN_NAME.replace("_", "-")
 
-pygimplib.config.LOG_MODE = log_output.EXCEPTIONS_ONLY
+pygimplib.config.LOG_MODE = pygimplib.constants.LOG_OUTPUT_FILES
 
 pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
 pygimplib.config.PLUGIN_VERSION = "2.5"
