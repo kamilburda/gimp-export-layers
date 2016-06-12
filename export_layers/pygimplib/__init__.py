@@ -105,7 +105,7 @@ def _init_config_builtin(config):
     else:
       return "plug_in_" + config.PLUGIN_NAME
   
-  config.SOURCE_SESSION_NAME = _get_setting_source_name() + "_"
+  config.SOURCE_SESSION_NAME = _get_setting_source_name()
   config.SOURCE_PERSISTENT_NAME = _get_setting_source_name()
   
   config.PLUGINS_LOG_DIRNAMES = []

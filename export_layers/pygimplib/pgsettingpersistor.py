@@ -195,16 +195,17 @@ class SessionPersistentSettingSource(SettingSource):
     super(SessionPersistentSettingSource, self).__init__()
     
     self.source_name = source_name
+    self._separator = "_"
   
   def read(self, settings):
     self._read(settings)
   
   def write(self, settings):
     for setting in settings:
-      gimpshelf.shelf[(self.source_name + setting.name).encode()] = setting.value
+      gimpshelf.shelf[(self.source_name + self._separator + setting.name).encode()] = setting.value
   
   def _retrieve_setting_value(self, setting_name):
-    return gimpshelf.shelf[(self.source_name + setting_name).encode()]
+    return gimpshelf.shelf[(self.source_name + self._separator + setting_name).encode()]
 
 
 class PersistentSettingSource(SettingSource):
