@@ -43,6 +43,8 @@ except ImportError:
 else:
   _gimp_dependent_modules_imported = True
 
+from . import constants
+
 #===============================================================================
 
 
@@ -82,15 +84,16 @@ def _init_config():
   config.PLUGIN_TITLE = lambda: config.PLUGIN_NAME
   config.PLUGIN_VERSION = "1.0"
   
-  config.DOMAIN_NAME = "gimp20-python"
-  config.LOCALE_PATH = gimp.locale_directory
-  
-  config.LOG_MODE = log_output.EXCEPTIONS_ONLY
+  config.LOCALE_PATH = lambda: os.path.join(config.PLUGIN_PATH, "locale")
+  config.DOMAIN_NAME = lambda: "gimp-plugin-" + config.PLUGIN_NAME.replace("_", "-")
   
   config.BUG_REPORT_URI_LIST = []
   
   pygimplib_directory = os.path.dirname(inspect.getfile(inspect.currentframe()))
   config.PLUGIN_PATH = os.path.dirname(pygimplib_directory)
+  
+  if _gimp_dependent_modules_imported:
+    config.LOG_MODE = constants.LOG_EXCEPTIONS_ONLY
   
   _init_config_builtin(config)
 
@@ -124,8 +127,9 @@ def _init_config_builtin(config):
 
 
 def _init_config_builtin_delayed(config):
-  config.SOURCE_SESSION = pgsettingpersistor.SessionPersistentSettingSource(config.SOURCE_SESSION_NAME)
-  config.SOURCE_PERSISTENT = pgsettingpersistor.PersistentSettingSource(config.SOURCE_PERSISTENT_NAME)
+  if _gimp_dependent_modules_imported:
+    config.SOURCE_SESSION = pgsettingpersistor.SessionPersistentSettingSource(config.SOURCE_SESSION_NAME)
+    config.SOURCE_PERSISTENT = pgsettingpersistor.PersistentSettingSource(config.SOURCE_PERSISTENT_NAME)
 
 
 #===============================================================================
@@ -143,9 +147,10 @@ def init():
   
   gettext.install(config.DOMAIN_NAME, config.LOCALE_PATH, unicode=True)
   
-  log_output.log_output(
-    config.LOG_MODE, config.PLUGINS_LOG_DIRNAMES, config.PLUGINS_LOG_STDOUT_FILENAME,
-    config.PLUGINS_LOG_STDERR_FILENAME, config.PLUGIN_TITLE)
+  if _gimp_dependent_modules_imported:
+    log_output.log_output(
+      config.LOG_MODE, config.PLUGINS_LOG_DIRNAMES, config.PLUGINS_LOG_STDOUT_FILENAME,
+      config.PLUGINS_LOG_STDERR_FILENAME, config.PLUGIN_TITLE)
   
   _is_init_invoked = True
 
