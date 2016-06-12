@@ -34,7 +34,7 @@ import export_layers.pygimplib as pygimplib
 
 pygimplib.config.PLUGIN_NAME = "export_layers"
 
-pygimplib.config.LOG_MODE = pygimplib.constants.LOG_OUTPUT_FILES
+pygimplib.config.LOG_MODE = pygimplib.constants.LOG_EXCEPTIONS_ONLY
 
 pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
 pygimplib.config.PLUGIN_VERSION = "2.5"
