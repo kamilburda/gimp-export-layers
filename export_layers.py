@@ -82,8 +82,8 @@ class ExportLayersPlugin(pygimplib.GimpPlugin):
       parameters=pgsettinggroup.PdbParamCreator.create_params(self.settings['special'], self.settings['main']))
   
   def plug_in_export_layers(self, run_mode, image, *args):
-    self.settings['special']['run_mode'].set_value(run_mode)
-    self.settings['special']['image'].set_value(image)
+    self.settings['special/run_mode'].set_value(run_mode)
+    self.settings['special/image'].set_value(image)
     
     if run_mode == gimpenums.RUN_INTERACTIVE:
       self._run_export_layers_interactive(image)
@@ -95,8 +95,8 @@ class ExportLayersPlugin(pygimplib.GimpPlugin):
   def plug_in_export_layers_repeat(self, run_mode, image):
     if run_mode == gimpenums.RUN_INTERACTIVE:
       pgsettingpersistor.SettingPersistor.load(
-        [self.settings['special']['first_plugin_run']], [pygimplib.config.SOURCE_SESSION])
-      if self.settings['special']['first_plugin_run'].value:
+        [self.settings['special/first_plugin_run']], [pygimplib.config.SOURCE_SESSION])
+      if self.settings['special/first_plugin_run'].value:
         self._run_export_layers_interactive(image)
       else:
         self._run_export_layers_repeat_interactive(image)
