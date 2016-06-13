@@ -434,6 +434,16 @@ class Setting(object):
       old_setting_presenter=self._gui, auto_update_gui_to_setting=auto_update_gui_to_setting)
   
   def load(self, setting_sources=None):
+    """
+    Load setting from the specified setting source(s). See
+    `pgsettingpersistor.SettingPersistor.load` for more information about
+    setting sources.
+    
+    If `setting_sources` is None, use the default setting sources. If
+    `setting_sources` is None and there are no default setting sources, raise
+    `ValueError`.
+    """
+    
     if setting_sources is None:
       setting_sources = self._setting_sources
     if setting_sources is None:
@@ -442,6 +452,16 @@ class Setting(object):
     return pgsettingpersistor.SettingPersistor.load([self], setting_sources)
   
   def save(self, setting_sources=None):
+    """
+    Save setting to the specified setting source(s). See
+    `pgsettingpersistor.SettingPersistor.save` for more information about
+    setting sources.
+    
+    If `setting_sources` is None, use the default setting sources. If
+    `setting_sources` is None and there are no default setting sources, raise
+    `ValueError`.
+    """
+    
     if setting_sources is None:
       setting_sources = self._setting_sources
     if setting_sources is None:
