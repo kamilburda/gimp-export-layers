@@ -260,7 +260,41 @@ class TestSetting(unittest.TestCase):
     
     setting.reset()
     self.assertEqual(setting.value, {})
-
+  
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.SettingPersistor.load")
+  def test_load(self, mock_setting_persistor_load):
+    dummy_setting_source = object()
+    self.setting.load([dummy_setting_source])
+    self.assertTrue(mock_setting_persistor_load.called)
+  
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.SettingPersistor.load")
+  def test_load_default_source(self, mock_setting_persistor_load):
+    dummy_setting_source = object()
+    setting = MockSetting('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source])
+    setting.load()
+    self.assertTrue(mock_setting_persistor_load.called)
+  
+  def test_load_no_default_no_parameter(self):
+    with self.assertRaises(ValueError):
+      self.setting.load()
+  
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.SettingPersistor.save")
+  def test_save(self, mock_setting_persistor_save):
+    dummy_setting_source = object()
+    self.setting.save([dummy_setting_source])
+    self.assertTrue(mock_setting_persistor_save.called)
+  
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.SettingPersistor.save")
+  def test_save_default_source(self, mock_setting_persistor_save):
+    dummy_setting_source = object()
+    setting = MockSetting('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source])
+    setting.save()
+    self.assertTrue(mock_setting_persistor_save.called)
+  
+  def test_save_no_default_no_parameter(self):
+    with self.assertRaises(ValueError):
+      self.setting.save()
+  
 
 #===============================================================================
 

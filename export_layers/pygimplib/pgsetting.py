@@ -41,6 +41,7 @@ import gimpenums
 pdb = gimp.pdb
 
 from . import pgpath
+from . import pgsettingpersistor
 from . import pgsettingpresenter
 from .pgsettingpresenters_gtk import SettingGuiTypes
 
@@ -174,6 +175,9 @@ class Setting(object):
   * `pdb_name` (read-only) - Setting name as it appears in the GIMP PDB as
     a PDB parameter name.
   
+  * `setting_sources` (read-only) - Default setting sources to use when loading
+    or saving the setting. If None, no default sources are specified.
+  
   * `error_messages` (read-only) - A dict of error messages containing
     (message name, message contents) pairs, which can be used e.g. if a value
     assigned to the setting is invalid. You can add your own error messages and
@@ -192,6 +196,7 @@ class Setting(object):
                pdb_type=SettingPdbTypes.automatic,
                gui_type=SettingGuiTypes.automatic,
                auto_update_gui_to_setting=True,
+               setting_sources=None,
                error_messages=None):
     
     """
@@ -255,6 +260,8 @@ class Setting(object):
     self._pdb_type = self._get_pdb_type(pdb_type)
     self._pdb_name = self._get_pdb_name(self._name)
     
+    self._setting_sources = setting_sources
+    
     # key: event type; value: collections.OrderedDict{event handler ID: [event handler, event handler arguments]}
     self._event_handlers = collections.defaultdict(collections.OrderedDict)
     # allows faster lookup of events via IDs; key: event handler ID; value: event type
@@ -307,6 +314,10 @@ class Setting(object):
   @property
   def pdb_name(self):
     return self._pdb_name
+  
+  @property
+  def setting_sources(self):
+    return self._setting_sources
   
   @property
   def error_messages(self):
@@ -421,6 +432,22 @@ class Setting(object):
     self._gui = gui_type(
       self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,
       old_setting_presenter=self._gui, auto_update_gui_to_setting=auto_update_gui_to_setting)
+  
+  def load(self, setting_sources=None):
+    if setting_sources is None:
+      setting_sources = self._setting_sources
+    if setting_sources is None:
+      raise ValueError("no setting sources and no default setting sources specified")
+    
+    return pgsettingpersistor.SettingPersistor.load([self], setting_sources)
+  
+  def save(self, setting_sources=None):
+    if setting_sources is None:
+      setting_sources = self._setting_sources
+    if setting_sources is None:
+      raise ValueError("no setting sources and no default setting sources specified")
+    
+    return pgsettingpersistor.SettingPersistor.save([self], setting_sources)
   
   def connect_event(self, event_type, event_handler, *event_handler_args):
     """
