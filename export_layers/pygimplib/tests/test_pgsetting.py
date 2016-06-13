@@ -274,7 +274,17 @@ class TestSetting(unittest.TestCase):
     setting.load()
     self.assertTrue(mock_setting_persistor_load.called)
   
-  def test_load_no_default_no_parameter(self):
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.SettingPersistor.load")
+  def test_load_default_source_overridden_by_parameter(self, mock_setting_persistor_load):
+    dummy_setting_source_default = object()
+    setting = MockSetting('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source_default])
+    dummy_setting_source_parameter = object()
+    setting.load([dummy_setting_source_parameter])
+    self.assertTrue(mock_setting_persistor_load.called)
+    self.assertIn(dummy_setting_source_parameter, mock_setting_persistor_load.call_args[0][1])
+    self.assertNotIn(dummy_setting_source_default, mock_setting_persistor_load.call_args[0][1])
+  
+  def test_load_no_default_source_no_parameter(self):
     with self.assertRaises(ValueError):
       self.setting.load()
   
@@ -291,7 +301,17 @@ class TestSetting(unittest.TestCase):
     setting.save()
     self.assertTrue(mock_setting_persistor_save.called)
   
-  def test_save_no_default_no_parameter(self):
+  @mock.patch(LIB_NAME + ".pgsettingpersistor.SettingPersistor.save")
+  def test_save_default_source_overridden_by_parameter(self, mock_setting_persistor_save):
+    dummy_setting_source_default = object()
+    setting = MockSetting('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source_default])
+    dummy_setting_source_parameter = object()
+    setting.save([dummy_setting_source_parameter])
+    self.assertTrue(mock_setting_persistor_save.called)
+    self.assertIn(dummy_setting_source_parameter, mock_setting_persistor_save.call_args[0][1])
+    self.assertNotIn(dummy_setting_source_default, mock_setting_persistor_save.call_args[0][1])
+  
+  def test_save_no_default_source_no_parameter(self):
     with self.assertRaises(ValueError):
       self.setting.save()
   
