@@ -35,6 +35,7 @@ import collections
 import inspect
 
 from . import pgsetting
+from . import pgsettingpersistor
 
 #===============================================================================
 
@@ -53,7 +54,7 @@ class SettingGroup(object):
   
   _SETTING_PATH_SEPARATOR = "/"
   
-  def __init__(self, name, setting_list):
+  def __init__(self, name, setting_list, setting_sources=None):
     """
     Create settings from the specified list. The list can contain both `Setting`
     and `SettingGroup` objects.
@@ -66,6 +67,10 @@ class SettingGroup(object):
     * `name` - A name (string) that uniquely identifies the setting group.
     
     * `setting_list` - List of settings (`Setting` or `SettingGroup` objects).
+    
+    * `setting_sources` - List of setting sources (`SettingSource` objects) used
+      for each setting in the group. If None, do not load/save settings in the
+      group. Sources in individual settings override this list.
     
     ---------
     
@@ -92,6 +97,7 @@ class SettingGroup(object):
     """
     
     self._name = name
+    self._setting_sources = setting_sources
     self._settings = collections.OrderedDict()
     
     self.add(setting_list)
@@ -104,6 +110,10 @@ class SettingGroup(object):
   @property
   def name(self):
     return self._name
+  
+  @property
+  def setting_sources(self):
+    return self._setting_sources
   
   def __str__(self):
     return "<{0} '{1}'>".format(type(self).__name__, self.name)
@@ -254,6 +264,38 @@ class SettingGroup(object):
     for setting in self.iterate_all(ignore_tags=['reset']):
       setting.reset()
   
+  def load(self):
+    """
+    Load all settings in this group. Ignore settings with the `load` ignore
+    tag.
+    """
+    
+    return self._load_save('load', pgsettingpersistor.SettingPersistor.load)
+  
+  def save(self):
+    """
+    Save all settings in this group. Ignore settings with the `save` ignore
+    tag.
+    """
+    
+    return self._load_save('save', pgsettingpersistor.SettingPersistor.save)
+  
+  def _load_save(self, load_save_ignore_tag, load_save_func):
+    settings = self.iterate_all(ignore_tags=[load_save_ignore_tag])
+    settings = [setting for setting in settings if setting.setting_sources]
+    
+    settings_per_sources = collections.OrderedDict()
+    
+    for setting in settings:
+      sources = tuple(setting.setting_sources)
+      if sources not in settings_per_sources:
+        settings_per_sources[sources] = []
+      
+      settings_per_sources[sources].append(setting)
+    
+    for sources, settings in settings_per_sources.items():
+      load_save_func(settings, sources)
+  
   def initialize_gui(self, custom_gui=None):
     """
     Initialize GUI for all settings.
@@ -350,6 +392,9 @@ class SettingGroup(object):
     
     if setting_data['name'] in self._settings:
       raise KeyError("setting '{0}' already exists".format(setting_data['name']))
+    
+    if 'setting_sources' not in setting_data and self._setting_sources:
+      setting_data['setting_sources'] = self._setting_sources
     
     try:
       self._settings[setting_data['name']] = setting_type(**setting_data)

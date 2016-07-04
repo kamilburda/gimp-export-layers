@@ -27,6 +27,8 @@ str = unicode
 import StringIO
 import unittest
 
+from ..lib import mock
+
 from .. import pgsetting
 from .. import pgsettinggroup
 from .test_pgsetting import MockCheckbox, MockGuiWidget
@@ -61,6 +63,7 @@ def create_test_settings():
       'name': 'ignore_invisible',
       'default_value': False,
       'display_name': "Ignore invisible",
+      'setting_sources': [object()]
     },
     {
       'type': pgsetting.SettingTypes.enumerated,
@@ -109,6 +112,36 @@ def create_test_settings_hierarchical():
                 ('rename_existing', "Rename existing file")],
     },
   ])
+  
+  settings = pgsettinggroup.SettingGroup('settings', [main_settings, advanced_settings])
+  
+  return settings
+
+
+def create_test_settings_load_save():
+  dummy_session_source, dummy_persistent_source = (object(), object())
+  
+  main_settings = pgsettinggroup.SettingGroup('main', [
+    {
+      'type': pgsetting.SettingTypes.file_extension,
+      'name': 'file_extension',
+      'default_value': 'bmp',
+    },
+  ], setting_sources=[dummy_session_source, dummy_persistent_source])
+  
+  advanced_settings = pgsettinggroup.SettingGroup('advanced', [
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'ignore_invisible',
+      'default_value': False,
+      'setting_sources': [dummy_persistent_source, dummy_session_source]
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'autocrop',
+      'default_value': False
+    },
+  ], setting_sources=[dummy_session_source])
   
   settings = pgsettinggroup.SettingGroup('settings', [main_settings, advanced_settings])
   
@@ -317,7 +350,7 @@ class TestSettingGroup(unittest.TestCase):
     self.settings.reset()
     self.assertNotEqual(self.settings['special']['first_plugin_run'].value,
                         self.settings['special']['first_plugin_run'].default_value)
-
+  
 
 class TestSettingGroupHierarchical(unittest.TestCase):
   
@@ -415,6 +448,38 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.assertIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
 
+
+@mock.patch(LIB_NAME + '.pgsettingpersistor.SettingPersistor.load')
+@mock.patch(LIB_NAME + '.pgsettingpersistor.SettingPersistor.save')
+class TestSettingGroupLoadSave(unittest.TestCase):
+  
+  def setUp(self):
+    self.settings = create_test_settings_load_save()
+  
+  def test_load_save_setting_sources_not_in_group_and_in_settings(self, mock_save, mock_load):
+    settings = create_test_settings()
+    
+    settings.load()
+    self.assertEqual(mock_load.call_count, 1)
+    self.assertEqual([settings['ignore_invisible']], mock_load.call_args[0][0])
+    
+    settings.save()
+    self.assertEqual(mock_save.call_count, 1)
+    self.assertEqual([settings['ignore_invisible']], mock_load.call_args[0][0])
+  
+  def test_load_save_setting_sources_in_group_and_in_settings(self, mock_save, mock_load):
+    self.settings.load()
+    self.assertEqual(mock_load.call_count, 3)
+    self.assertEqual([self.settings['main/file_extension']], mock_load.call_args_list[0][0][0])
+    self.assertEqual([self.settings['advanced/ignore_invisible']], mock_load.call_args_list[1][0][0])
+    self.assertEqual([self.settings['advanced/autocrop']], mock_load.call_args_list[2][0][0])
+    
+    self.settings.save()
+    self.assertEqual(mock_save.call_count, 3)
+    self.assertEqual([self.settings['main/file_extension']], mock_load.call_args_list[0][0][0])
+    self.assertEqual([self.settings['advanced/ignore_invisible']], mock_load.call_args_list[1][0][0])
+    self.assertEqual([self.settings['advanced/autocrop']], mock_load.call_args_list[2][0][0])
+    
 
 class TestSettingGroupGui(unittest.TestCase):
 
