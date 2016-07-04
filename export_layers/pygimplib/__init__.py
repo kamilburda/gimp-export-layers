@@ -152,7 +152,7 @@ def init():
       config.LOG_MODE, config.PLUGINS_LOG_DIRNAMES, config.PLUGINS_LOG_STDOUT_FILENAME,
       config.PLUGINS_LOG_STDERR_FILENAME, config.PLUGIN_TITLE)
   
-  _is_init_invoked = True
+  _is_initialized = True
 
 
 #===============================================================================
