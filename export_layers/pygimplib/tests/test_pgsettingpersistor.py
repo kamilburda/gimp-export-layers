@@ -176,7 +176,7 @@ class TestSettingPersistor(unittest.TestCase):
     self.session_source = pgsettingsources.SessionPersistentSettingSource('')
     self.persistent_source = pgsettingsources.PersistentSettingSource('')
   
-  def test_load_save(self, mock_session_source, mock_persistent_source):
+  def test_load_save(self, mock_persistent_source, mock_session_source):
     self.settings['file_extension'].set_value("png")
     self.settings['ignore_invisible'].set_value(True)
     
@@ -193,7 +193,7 @@ class TestSettingPersistor(unittest.TestCase):
     self.assertEqual(self.settings['file_extension'].value, "png")
     self.assertEqual(self.settings['ignore_invisible'].value, True)
   
-  def test_load_combine_settings_from_multiple_sources(self, mock_session_source, mock_persistent_source):
+  def test_load_combine_settings_from_multiple_sources(self, mock_persistent_source, mock_session_source):
     self.settings['file_extension'].set_value("png")
     self.settings['ignore_invisible'].set_value(True)
     self.session_source.write([self.settings['file_extension']])
@@ -211,7 +211,7 @@ class TestSettingPersistor(unittest.TestCase):
       if setting not in [self.settings['file_extension'], self.settings['ignore_invisible']]:
         self.assertEqual(setting.value, setting.default_value)
   
-  def test_load_setting_groups(self, mock_session_source, mock_persistent_source):
+  def test_load_setting_groups(self, mock_persistent_source, mock_session_source):
     settings = create_test_settings_hierarchical()
     
     settings['main']['file_extension'].set_value("png")
@@ -225,12 +225,12 @@ class TestSettingPersistor(unittest.TestCase):
     self.assertEqual(settings['main']['file_extension'].value, "png")
     self.assertEqual(settings['advanced']['ignore_invisible'].value, True)
   
-  def test_load_settings_source_not_found(self, mock_session_source, mock_persistent_source):
+  def test_load_settings_source_not_found(self, mock_persistent_source, mock_session_source):
     status, unused_ = pgsettingpersistor.SettingPersistor.load(
       [self.settings], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
-  def test_load_settings_not_found(self, mock_session_source, mock_persistent_source):
+  def test_load_settings_not_found(self, mock_persistent_source, mock_session_source):
     self.session_source.write([self.settings['ignore_invisible']])
     self.persistent_source.write([self.settings['file_extension'], self.settings['ignore_invisible']])
     
@@ -238,7 +238,7 @@ class TestSettingPersistor(unittest.TestCase):
       [self.settings['overwrite_mode']], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
-  def test_load_read_fail(self, mock_session_source, mock_persistent_source):
+  def test_load_read_fail(self, mock_persistent_source, mock_session_source):
     self.persistent_source.write(self.settings)
     
     # Simulate formatting error
@@ -250,7 +250,7 @@ class TestSettingPersistor(unittest.TestCase):
       [self.settings], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
   
-  def test_load_write_fail(self, mock_session_source, mock_persistent_source):
+  def test_load_write_fail(self, mock_persistent_source, mock_session_source):
     with mock.patch(LIB_NAME + ".pgsettingsources.gimp") as temp_mock_persistent_source:
       temp_mock_persistent_source.parasite_find.side_effect = pgsettingpersistor.SettingSourceWriteError
       status, _unused = pgsettingpersistor.SettingPersistor.save(
