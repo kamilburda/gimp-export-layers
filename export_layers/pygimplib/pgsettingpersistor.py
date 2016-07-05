@@ -198,6 +198,15 @@ class SettingPersistor(object):
     return cls._status(cls.SUCCESS)
   
   @classmethod
+  def clear(cls, setting_sources):
+    """
+    Remove all settings from all the specified setting sources.
+    """
+    
+    for source in setting_sources:
+      source.clear()
+  
+  @classmethod
   def _status(cls, status, message=None):
     return status, message if message is not None else ""
   

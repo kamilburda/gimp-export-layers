@@ -94,7 +94,8 @@ class SettingSource(object):
   def write(self, settings):
     """
     Write setting values from settings specified in the `settings` iterable
-    to the source.
+    to the source. Settings in the source but not specified in `settings` are
+    kept intact.
     
     Parameters:
     
@@ -102,7 +103,20 @@ class SettingSource(object):
     """
     
     pass
-
+  
+  def clear(self):
+    """
+    Remove all settings from the setting source.
+    
+    This is useful if you rename settings, since the old settings would not be
+    removed and would thus lead to bloating the source.
+    
+    Some `SettingSource` subclasses may not implement this method, in which case
+    calling `clear()` does nothing.
+    """
+    
+    pass
+  
   @property
   def settings_not_found(self):
     return self._settings_not_found
@@ -237,6 +251,13 @@ class PersistentSettingSource(SettingSource):
     
     settings_data = pickle.dumps(settings_to_write)
     gimp.parasite_attach(gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, settings_data))
+  
+  def clear(self):
+    parasite = gimp.parasite_find(self.source_name)
+    if parasite is None:
+      return
+    
+    gimp.parasite_detach(self.source_name)
   
   def _read_from_parasite(self, parasite_name):
     parasite = gimp.parasite_find(parasite_name)

@@ -291,50 +291,6 @@ class SettingGroup(object):
     
     return self._load_save('save', pgsettingpersistor.SettingPersistor.save)
   
-  def _load_save(self, load_save_ignore_tag, load_save_func):
-    
-    def _get_worst_status(status_and_messages):
-      worst_status = pgsettingpersistor.SettingPersistor.SUCCESS
-      
-      if pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND in status_and_messages:
-        worst_status = pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND
-      
-      if pgsettingpersistor.SettingPersistor.READ_FAIL in status_and_messages:
-        worst_status = pgsettingpersistor.SettingPersistor.READ_FAIL
-      elif pgsettingpersistor.SettingPersistor.WRITE_FAIL in status_and_messages:
-        worst_status = pgsettingpersistor.SettingPersistor.WRITE_FAIL
-      
-      return worst_status
-    
-    def _get_status_message(status_and_messages):
-      return_status_message = ""
-      for status_message in status_and_messages.values():
-        if status_message:
-          return_status_message += "\n" + status_message
-      return_status_message = return_status_message.lstrip("\n")
-      
-      return return_status_message
-    
-    settings = self.iterate_all(ignore_tags=[load_save_ignore_tag])
-    settings = [setting for setting in settings if setting.setting_sources]
-    
-    settings_per_sources = collections.OrderedDict()
-    
-    for setting in settings:
-      sources = tuple(setting.setting_sources)
-      if sources not in settings_per_sources:
-        settings_per_sources[sources] = []
-      
-      settings_per_sources[sources].append(setting)
-    
-    status_and_messages = collections.OrderedDict()
-    
-    for sources, settings in settings_per_sources.items():
-      status, message = load_save_func(settings, sources)
-      status_and_messages[status] = message
-    
-    return _get_worst_status(status_and_messages), _get_status_message(status_and_messages)
-  
   def initialize_gui(self, custom_gui=None):
     """
     Initialize GUI for all settings.
@@ -411,6 +367,50 @@ class SettingGroup(object):
       raise StopIteration
     else:
       return next_element
+  
+  def _load_save(self, load_save_ignore_tag, load_save_func):
+    
+    def _get_worst_status(status_and_messages):
+      worst_status = pgsettingpersistor.SettingPersistor.SUCCESS
+      
+      if pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND in status_and_messages:
+        worst_status = pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND
+      
+      if pgsettingpersistor.SettingPersistor.READ_FAIL in status_and_messages:
+        worst_status = pgsettingpersistor.SettingPersistor.READ_FAIL
+      elif pgsettingpersistor.SettingPersistor.WRITE_FAIL in status_and_messages:
+        worst_status = pgsettingpersistor.SettingPersistor.WRITE_FAIL
+      
+      return worst_status
+    
+    def _get_status_message(status_and_messages):
+      return_status_message = ""
+      for status_message in status_and_messages.values():
+        if status_message:
+          return_status_message += "\n" + status_message
+      return_status_message = return_status_message.lstrip("\n")
+      
+      return return_status_message
+    
+    settings = self.iterate_all(ignore_tags=[load_save_ignore_tag])
+    settings = [setting for setting in settings if setting.setting_sources]
+    
+    settings_per_sources = collections.OrderedDict()
+    
+    for setting in settings:
+      sources = tuple(setting.setting_sources)
+      if sources not in settings_per_sources:
+        settings_per_sources[sources] = []
+      
+      settings_per_sources[sources].append(setting)
+    
+    status_and_messages = collections.OrderedDict()
+    
+    for sources, settings in settings_per_sources.items():
+      status, message = load_save_func(settings, sources)
+      status_and_messages[status] = message
+    
+    return _get_worst_status(status_and_messages), _get_status_message(status_and_messages)
   
   def _create_setting(self, setting_data):
     try:

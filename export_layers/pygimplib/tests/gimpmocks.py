@@ -156,3 +156,7 @@ class MockGimpParasite(object):
   
   def parasite_attach(self, parasite):
     self._parasites[parasite.name] = parasite
+  
+  def parasite_detach(self, parasite_name):
+    if parasite_name in self._parasites:
+      del self._parasites[parasite_name]

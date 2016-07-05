@@ -160,6 +160,13 @@ class TestPersistentSettingSource(unittest.TestCase):
     self.source.read([setting])
     
     self.assertEqual(setting.value, setting.default_value)
+  
+  def test_clear(self, mock_persistent_source):
+    self.source.write(self.settings)
+    self.source.clear()
+    
+    with self.assertRaises(pgsettingpersistor.SettingSourceNotFoundError):
+      self.source.read(self.settings)
 
 
 #===============================================================================
