@@ -79,7 +79,7 @@ class ExportLayersPlugin(pygimplib.GimpPlugin):
       date="2013-2016",
       menu_name=_("E_xport Layers (repeat)"),
       menu_path="<Image>/File/Export",
-      parameters=pgsettinggroup.PdbParamCreator.create_params(self.settings['special'], self.settings['main']))
+      parameters=pgsettinggroup.PdbParamCreator.create_params(self.settings['special']))
   
   def plug_in_export_layers(self, run_mode, image, *args):
     self.settings['special/run_mode'].set_value(run_mode)
