@@ -267,7 +267,15 @@ class SettingGroup(object):
   def load(self):
     """
     Load all settings in this group. Ignore settings with the `load` ignore
-    tag.
+    tag. If there are multiple combinations of setting sources within the group
+    (e.g. some settings within this group having their own setting sources),
+    loading is performed for each combination separately.
+    
+    Return the status and the status message as per the
+    `pgsettingpersistor.SettingPersistor.load()` method. For multiple
+    combinations of setting sources, return the "worst" status
+    (`READ_FAIL` or `WRITE_FAIL` > `NOT_ALL_SETTINGS_FOUND` > `SUCCESS`) and
+    a status message containing status messages of all calls to `load()`.
     """
     
     return self._load_save('load', pgsettingpersistor.SettingPersistor.load)
@@ -275,12 +283,38 @@ class SettingGroup(object):
   def save(self):
     """
     Save all settings in this group. Ignore settings with the `save` ignore
-    tag.
+    tag. Return the status and the status message as per the
+    `pgsettingpersistor.SettingPersistor.save()` method.
+    
+    For more information, refer to the `load()` method.
     """
     
     return self._load_save('save', pgsettingpersistor.SettingPersistor.save)
   
   def _load_save(self, load_save_ignore_tag, load_save_func):
+    
+    def _get_worst_status(status_and_messages):
+      worst_status = pgsettingpersistor.SettingPersistor.SUCCESS
+      
+      if pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND in status_and_messages:
+        worst_status = pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND
+      
+      if pgsettingpersistor.SettingPersistor.READ_FAIL in status_and_messages:
+        worst_status = pgsettingpersistor.SettingPersistor.READ_FAIL
+      elif pgsettingpersistor.SettingPersistor.WRITE_FAIL in status_and_messages:
+        worst_status = pgsettingpersistor.SettingPersistor.WRITE_FAIL
+      
+      return worst_status
+    
+    def _get_status_message(status_and_messages):
+      return_status_message = ""
+      for status_message in status_and_messages.values():
+        if status_message:
+          return_status_message += "\n" + status_message
+      return_status_message = return_status_message.lstrip("\n")
+      
+      return return_status_message
+    
     settings = self.iterate_all(ignore_tags=[load_save_ignore_tag])
     settings = [setting for setting in settings if setting.setting_sources]
     
@@ -293,8 +327,13 @@ class SettingGroup(object):
       
       settings_per_sources[sources].append(setting)
     
+    status_and_messages = collections.OrderedDict()
+    
     for sources, settings in settings_per_sources.items():
-      load_save_func(settings, sources)
+      status, message = load_save_func(settings, sources)
+      status_and_messages[status] = message
+    
+    return _get_worst_status(status_and_messages), _get_status_message(status_and_messages)
   
   def initialize_gui(self, custom_gui=None):
     """

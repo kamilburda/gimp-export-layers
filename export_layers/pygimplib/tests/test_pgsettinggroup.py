@@ -31,6 +31,7 @@ from ..lib import mock
 
 from .. import pgsetting
 from .. import pgsettinggroup
+from .. import pgsettingpersistor
 from .test_pgsetting import MockCheckbox, MockGuiWidget
 from .test_pgsetting import MockCheckboxPresenter, MockSettingPresenter
 from .test_pgsetting import MockSettingWithGui
@@ -449,14 +450,16 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
 
 
-@mock.patch(LIB_NAME + '.pgsettingpersistor.SettingPersistor.load')
-@mock.patch(LIB_NAME + '.pgsettingpersistor.SettingPersistor.save')
+@mock.patch(LIB_NAME + '.pgsettingpersistor.SettingPersistor.save',
+            return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
+@mock.patch(LIB_NAME + '.pgsettingpersistor.SettingPersistor.load',
+            return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
 class TestSettingGroupLoadSave(unittest.TestCase):
   
   def setUp(self):
     self.settings = create_test_settings_load_save()
   
-  def test_load_save_setting_sources_not_in_group_and_in_settings(self, mock_save, mock_load):
+  def test_load_save_setting_sources_not_in_group_and_in_settings(self, mock_load, mock_save):
     settings = create_test_settings()
     
     settings.load()
@@ -467,7 +470,7 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     self.assertEqual(mock_save.call_count, 1)
     self.assertEqual([settings['ignore_invisible']], mock_load.call_args[0][0])
   
-  def test_load_save_setting_sources_in_group_and_in_settings(self, mock_save, mock_load):
+  def test_load_save_setting_sources_in_group_and_in_settings(self, mock_load, mock_save):
     self.settings.load()
     self.assertEqual(mock_load.call_count, 3)
     self.assertEqual([self.settings['main/file_extension']], mock_load.call_args_list[0][0][0])
@@ -479,8 +482,41 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     self.assertEqual([self.settings['main/file_extension']], mock_load.call_args_list[0][0][0])
     self.assertEqual([self.settings['advanced/ignore_invisible']], mock_load.call_args_list[1][0][0])
     self.assertEqual([self.settings['advanced/autocrop']], mock_load.call_args_list[2][0][0])
+  
+  def test_load_save_return_statuses(self, mock_load, mock_save):
+    load_save_calls_return_values = [(pgsettingpersistor.SettingPersistor.SUCCESS, ""),
+                                     (pgsettingpersistor.SettingPersistor.SUCCESS, ""),
+                                     (pgsettingpersistor.SettingPersistor.SUCCESS, "")]
     
-
+    mock_load.side_effect = load_save_calls_return_values
+    status, _unused = self.settings.load()
+    self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
+    
+    mock_save.side_effect = load_save_calls_return_values
+    status, _unused = self.settings.save()
+    self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
+    
+    load_save_calls_return_values[1] = (pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND, "")
+    mock_load.side_effect = load_save_calls_return_values
+    status, _unused = self.settings.load()
+    self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
+    
+    load_save_calls_return_values[1] = (pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND, "")
+    mock_save.side_effect = load_save_calls_return_values
+    status, _unused = self.settings.save()
+    self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
+    
+    load_save_calls_return_values[2] = (pgsettingpersistor.SettingPersistor.READ_FAIL, "")
+    mock_load.side_effect = load_save_calls_return_values
+    status, _unused = self.settings.load()
+    self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
+    
+    load_save_calls_return_values[2] = (pgsettingpersistor.SettingPersistor.WRITE_FAIL, "")
+    mock_save.side_effect = load_save_calls_return_values
+    status, _unused = self.settings.save()
+    self.assertEqual(status, pgsettingpersistor.SettingPersistor.WRITE_FAIL)
+    
+    
 class TestSettingGroupGui(unittest.TestCase):
 
   def setUp(self):
