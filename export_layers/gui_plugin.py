@@ -975,6 +975,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   def reset_settings(self):
     self.settings.reset()
+    pgsettingpersistor.SettingPersistor.clear(
+      [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
   
   def save_settings(self):
     status, status_message = self.settings.save()
