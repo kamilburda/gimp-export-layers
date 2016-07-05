@@ -1097,9 +1097,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       display_exception_message(traceback.format_exc(), parent=self.dialog)
     else:
       self.settings['special/first_plugin_run'].set_value(False)
-      pgsettingpersistor.SettingPersistor.save(
-        [self.settings['special/first_plugin_run']], [pygimplib.config.SOURCE_SESSION])
-#       self.settings['special/first_plugin_run'].save()
+      self.settings['special/first_plugin_run'].save()
       
       if not self.layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.dialog)
