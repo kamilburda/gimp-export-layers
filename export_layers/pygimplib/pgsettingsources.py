@@ -221,7 +221,7 @@ class PersistentSettingSource(SettingSource):
     self._settings_from_parasite = self._read_from_parasite(self.source_name)
     if self._settings_from_parasite is None:
       raise pgsettingpersistor.SettingSourceNotFoundError(
-        _("Could not find setting source \"{0}\".").format(self.source_name))
+        _("Could not find persistent setting source \"{0}\".").format(self.source_name))
     
     self._read(settings)
     
