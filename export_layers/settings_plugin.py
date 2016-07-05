@@ -31,6 +31,8 @@ str = unicode
 import gimp
 import gimpenums
 
+import export_layers.pygimplib as pygimplib
+
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgsetting
@@ -67,7 +69,8 @@ def create_settings():
       'type': pgsetting.SettingTypes.boolean,
       'name': 'first_plugin_run',
       'default_value': True,
-      'pdb_type': None
+      'pdb_type': None,
+      'setting_sources': [pygimplib.config.SOURCE_SESSION]
     },
   ])
   
@@ -182,7 +185,7 @@ def create_settings():
                 ('cancel', _("_Cancel"), overwrite.OverwriteModes.CANCEL)],
       'display_name': _("Overwrite mode (non-interactive run mode only)")
     },
-  ])
+  ], setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
   
   #-----------------------------------------------------------------------------
   
@@ -250,7 +253,7 @@ def create_settings():
   settings = pgsettinggroup.SettingGroup('all_settings', [special_settings, main_settings])
   
   settings.set_ignore_tags({
-    'special': ['reset'],
+    'special': ['reset', 'load', 'save'],
     'main/output_directory': ['reset']
   })
   

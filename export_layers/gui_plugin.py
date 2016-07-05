@@ -115,7 +115,7 @@ def add_gui_settings(settings):
       'default_value': True,
       'gui_type': None
     },
-  ])
+  ], setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
   
   session_only_gui_settings = pgsettinggroup.SettingGroup('gui_session', [
     {
@@ -129,7 +129,7 @@ def add_gui_settings(settings):
       # key: image ID; value: set of layer names collapsed in the name preview
       'default_value': collections.defaultdict(set)
     },
-  ])
+  ], setting_sources=[pygimplib.config.SOURCE_SESSION])
   
   persistent_only_gui_settings = pgsettinggroup.SettingGroup('gui_persistent', [
     {
@@ -138,7 +138,7 @@ def add_gui_settings(settings):
       # key: image filename; value: set of layer names collapsed in the name preview
       'default_value': collections.defaultdict(set)
     },
-  ])
+  ], setting_sources=[pygimplib.config.SOURCE_PERSISTENT])
   
   settings.add([gui_settings, session_only_gui_settings, persistent_only_gui_settings])
   
@@ -749,15 +749,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     add_gui_settings(settings)
     
-    status, status_message = pgsettingpersistor.SettingPersistor.load(
-      [self.settings['main'], self.settings['gui']],
-      [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+    status, status_message = self.settings.load()
     if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING)
-    
-    pgsettingpersistor.SettingPersistor.load(
-      [self.settings['gui_persistent']], [pygimplib.config.SOURCE_PERSISTENT])
-    pgsettingpersistor.SettingPersistor.load([self.settings['gui_session']], [pygimplib.config.SOURCE_SESSION])
     
     # Needs to be string to avoid strict directory validation
     self.current_directory_setting = pgsetting.StringSetting(
@@ -983,16 +977,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.settings.reset()
   
   def save_settings(self):
-    status, status_message = pgsettingpersistor.SettingPersistor.save(
-      [self.settings['main'], self.settings['gui']],
-      [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+    status, status_message = self.settings.save()
     if status == pgsettingpersistor.SettingPersistor.WRITE_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING, parent=self.dialog)
-    
-    pgsettingpersistor.SettingPersistor.save(
-      [self.settings['gui_session']], [pygimplib.config.SOURCE_SESSION])
-    pgsettingpersistor.SettingPersistor.save(
-      [self.settings['gui_persistent']], [pygimplib.config.SOURCE_PERSISTENT])
   
   def on_file_extension_entry_changed(self, widget):
     try:
@@ -1112,6 +1099,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self.settings['special/first_plugin_run'].set_value(False)
       pgsettingpersistor.SettingPersistor.save(
         [self.settings['special/first_plugin_run']], [pygimplib.config.SOURCE_SESSION])
+#       self.settings['special/first_plugin_run'].save()
       
       if not self.layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self.dialog)

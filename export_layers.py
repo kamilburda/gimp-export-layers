@@ -94,8 +94,7 @@ class ExportLayersPlugin(pygimplib.GimpPlugin):
   
   def plug_in_export_layers_repeat(self, run_mode, image):
     if run_mode == gimpenums.RUN_INTERACTIVE:
-      pgsettingpersistor.SettingPersistor.load(
-        [self.settings['special/first_plugin_run']], [pygimplib.config.SOURCE_SESSION])
+      self.settings['special/first_plugin_run'].load()
       if self.settings['special/first_plugin_run'].value:
         self._run_export_layers_interactive(image)
       else:
@@ -112,8 +111,7 @@ class ExportLayersPlugin(pygimplib.GimpPlugin):
     self._run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, image)
   
   def _run_with_last_vals(self, image):
-    status, status_message = pgsettingpersistor.SettingPersistor.load(
-      [self.settings['main']], [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+    status, status_message = self.settings['main'].load()
     if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
       print(status_message)
     
