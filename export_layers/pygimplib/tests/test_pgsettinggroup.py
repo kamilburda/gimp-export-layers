@@ -468,7 +468,7 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     
     settings.save()
     self.assertEqual(mock_save.call_count, 1)
-    self.assertEqual([settings['ignore_invisible']], mock_load.call_args[0][0])
+    self.assertEqual([settings['ignore_invisible']], mock_save.call_args[0][0])
   
   def test_load_save_setting_sources_in_group_and_in_settings(self, mock_load, mock_save):
     self.settings.load()
@@ -479,9 +479,9 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     
     self.settings.save()
     self.assertEqual(mock_save.call_count, 3)
-    self.assertEqual([self.settings['main/file_extension']], mock_load.call_args_list[0][0][0])
-    self.assertEqual([self.settings['advanced/ignore_invisible']], mock_load.call_args_list[1][0][0])
-    self.assertEqual([self.settings['advanced/autocrop']], mock_load.call_args_list[2][0][0])
+    self.assertEqual([self.settings['main/file_extension']], mock_save.call_args_list[0][0][0])
+    self.assertEqual([self.settings['advanced/ignore_invisible']], mock_save.call_args_list[1][0][0])
+    self.assertEqual([self.settings['advanced/autocrop']], mock_save.call_args_list[2][0][0])
   
   def test_load_save_return_statuses(self, mock_load, mock_save):
     load_save_calls_return_values = [(pgsettingpersistor.SettingPersistor.SUCCESS, ""),
