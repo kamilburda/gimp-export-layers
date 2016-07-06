@@ -71,12 +71,6 @@ NUM_LEADING_SPACES_TO_TRIM = 4
 #===============================================================================
 
 
-def _prepare_files(file_to_read, file_to_write):
-  file_to_read.seek(0)
-  file_to_write.seek(0)
-  file_to_write.truncate()
-
-
 def _trim_leading_spaces(file_to_read, file_to_write, num_leading_spaces):
   line = file_to_read.readline()
   while line:
@@ -112,7 +106,32 @@ def _rename_filenames_inside_file(file_to_read, file_to_write, filenames_to_rena
     file_to_write.write(processed_line)
 
 
+def _remove_download_link(file_to_read, file_to_write):
+  line = file_to_read.readline()
+  while line:
+    if "download latest release" not in line.lower():
+      file_to_write.write(line)
+    else:
+      break
+    line = file_to_read.readline()
+  
+  # Skip the download link
+  line = file_to_read.readline()
+  # Skip empty line
+  line = file_to_read.readline()
+  
+  while line:
+    file_to_write.write(line)
+    line = file_to_read.readline()
+
+
 def process_file(filename, *process_functions_and_args):
+  
+  def _prepare_files(file_to_read, file_to_write):
+    file_to_read.seek(0)
+    file_to_write.seek(0)
+    file_to_write.truncate()
+  
   temp_dir = tempfile.mkdtemp()
   temp_filename_copy = os.path.join(temp_dir, "temp")
   shutil.copy2(filename, temp_filename_copy)
@@ -148,7 +167,8 @@ def process_file(filename, *process_functions_and_args):
 FILES_TO_PROCESS = {
   FILENAMES_TO_RENAME["README.md"]: [
     (_trim_leading_spaces, NUM_LEADING_SPACES_TO_TRIM),
-    (_rename_filenames_inside_file, FILENAMES_TO_RENAME)
+    (_rename_filenames_inside_file, FILENAMES_TO_RENAME),
+    (_remove_download_link,)
   ]
 }
 
