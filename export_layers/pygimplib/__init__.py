@@ -37,6 +37,8 @@ try:
   import gimpplugin
   
   from . import log_output
+  from . import pgsetting
+  from . import pgsettinggroup
   from . import pgsettingsources
   from . import pggui
 except ImportError:
@@ -185,6 +187,19 @@ if _gimp_dependent_modules_imported:
                      author="", copyright_notice="", date="",
                      menu_name="", menu_path=None, image_types="*",
                      parameters=None, return_values=None):
+    
+    def _get_pdb_params(params):
+      pdb_params = []
+      
+      if params:
+        has_settings = isinstance(params[0], (pgsetting.Setting, pgsettinggroup.SettingGroup))
+        if has_settings:
+          pdb_params = pgsettinggroup.PdbParamCreator.create_params(*params)
+        else:
+          pdb_params = params
+      
+      return pdb_params
+    
     gimp.install_procedure(
       plugin_procedure.__name__,
       blurb,
@@ -195,8 +210,8 @@ if _gimp_dependent_modules_imported:
       menu_name,
       image_types,
       gimpenums.PLUGIN,
-      parameters if parameters is not None else [],
-      return_values if return_values is not None else []
+      _get_pdb_params(parameters),
+      _get_pdb_params(return_values)
     )
     
     if menu_path:
