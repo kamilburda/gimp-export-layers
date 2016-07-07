@@ -41,7 +41,6 @@ import export_layers.config
 
 pygimplib.init()
 
-from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
 
 from export_layers import exportlayers
@@ -61,7 +60,7 @@ settings = settings_plugin.create_settings()
   date="2013-2016",
   menu_name=_("E_xport Layers..."),
   menu_path="<Image>/File/Export",
-  parameters=pgsettinggroup.PdbParamCreator.create_params(settings['special'], settings['main'])
+  parameters=[settings['special'], settings['main']]
 )
 def plug_in_export_layers(run_mode, image, *args):
   settings['special/run_mode'].set_value(run_mode)
@@ -84,7 +83,7 @@ def plug_in_export_layers(run_mode, image, *args):
   date="2013-2016",
   menu_name=_("E_xport Layers (repeat)"),
   menu_path="<Image>/File/Export",
-  parameters=pgsettinggroup.PdbParamCreator.create_params(settings['special'])
+  parameters=[settings['special']]
 )
 def plug_in_export_layers_repeat(run_mode, image):
   if run_mode == gimpenums.RUN_INTERACTIVE:
