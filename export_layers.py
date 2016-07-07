@@ -51,91 +51,89 @@ from export_layers import settings_plugin
 #===============================================================================
 
 
-class ExportLayersPlugin(pygimplib.GimpPlugin):
+settings = settings_plugin.create_settings()
+
+
+@pygimplib.plugin(
+  blurb=_("Export layers as separate images"),
+  author="khalim19 <khalim19@gmail.com>",
+  copyright_notice="khalim19",
+  date="2013-2016",
+  menu_name=_("E_xport Layers..."),
+  menu_path="<Image>/File/Export",
+  parameters=pgsettinggroup.PdbParamCreator.create_params(settings['special'], settings['main'])
+)
+def plug_in_export_layers(run_mode, image, *args):
+  settings['special/run_mode'].set_value(run_mode)
+  settings['special/image'].set_value(image)
   
-  def __init__(self):
-    pygimplib.GimpPlugin.__init__(self)
-    
-    self.settings = settings_plugin.create_settings()
-  
-  def register(self):
-    pygimplib.install_plugin(
-      self.plug_in_export_layers,
-      blurb=_("Export layers as separate images"),
-      author="khalim19 <khalim19@gmail.com>",
-      copyright_notice="khalim19",
-      date="2013-2016",
-      menu_name=_("E_xport Layers..."),
-      menu_path="<Image>/File/Export",
-      parameters=pgsettinggroup.PdbParamCreator.create_params(self.settings['special'], self.settings['main']))
-    
-    pygimplib.install_plugin(
-      self.plug_in_export_layers_repeat,
-      blurb=_("Run \"{0}\" with the last values specified").format(pygimplib.config.PLUGIN_TITLE),
-      description=_("If the plug-in is run for the first time (i.e. no last values exist), "
-                    "default values will be used."),
-      author="khalim19 <khalim19@gmail.com>",
-      copyright_notice="khalim19",
-      date="2013-2016",
-      menu_name=_("E_xport Layers (repeat)"),
-      menu_path="<Image>/File/Export",
-      parameters=pgsettinggroup.PdbParamCreator.create_params(self.settings['special']))
-  
-  def plug_in_export_layers(self, run_mode, image, *args):
-    self.settings['special/run_mode'].set_value(run_mode)
-    self.settings['special/image'].set_value(image)
-    
-    if run_mode == gimpenums.RUN_INTERACTIVE:
-      self._run_export_layers_interactive(image)
-    elif run_mode == gimpenums.RUN_WITH_LAST_VALS:
-      self._run_with_last_vals(image)
+  if run_mode == gimpenums.RUN_INTERACTIVE:
+    _run_export_layers_interactive(image)
+  elif run_mode == gimpenums.RUN_WITH_LAST_VALS:
+    _run_with_last_vals(image)
+  else:
+    _run_noninteractive(image, args)
+
+
+@pygimplib.plugin(
+  blurb=_("Run \"{0}\" with the last values specified").format(pygimplib.config.PLUGIN_TITLE),
+  description=_("If the plug-in is run for the first time (i.e. no last values exist), "
+                "default values will be used."),
+  author="khalim19 <khalim19@gmail.com>",
+  copyright_notice="khalim19",
+  date="2013-2016",
+  menu_name=_("E_xport Layers (repeat)"),
+  menu_path="<Image>/File/Export",
+  parameters=pgsettinggroup.PdbParamCreator.create_params(settings['special'])
+)
+def plug_in_export_layers_repeat(run_mode, image):
+  if run_mode == gimpenums.RUN_INTERACTIVE:
+    settings['special/first_plugin_run'].load()
+    if settings['special/first_plugin_run'].value:
+      _run_export_layers_interactive(image)
     else:
-      self._run_noninteractive(image, args)
+      _run_export_layers_repeat_interactive(image)
+  else:
+    _run_with_last_vals(image)
+
+
+def _run_noninteractive(image, args):
+  for setting, arg in zip(settings['main'], args):
+    if isinstance(arg, bytes):
+      arg = arg.decode()
+    setting.set_value(arg)
   
-  def plug_in_export_layers_repeat(self, run_mode, image):
-    if run_mode == gimpenums.RUN_INTERACTIVE:
-      self.settings['special/first_plugin_run'].load()
-      if self.settings['special/first_plugin_run'].value:
-        self._run_export_layers_interactive(image)
-      else:
-        self._run_export_layers_repeat_interactive(image)
-    else:
-      self._run_with_last_vals(image)
+  _run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, image)
+
+
+def _run_with_last_vals(image):
+  status, status_message = settings['main'].load()
+  if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
+    print(status_message)
   
-  def _run_noninteractive(self, image, args):
-    for setting, arg in zip(self.settings['main'], args):
-      if isinstance(arg, bytes):
-        arg = arg.decode()
-      setting.set_value(arg)
-    
-    self._run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, image)
+  _run_plugin_noninteractive(gimpenums.RUN_WITH_LAST_VALS, image)
+
+
+def _run_export_layers_interactive(image):
+  gui_plugin.export_layers_gui(image, settings)
+
+
+def _run_export_layers_repeat_interactive(image):
+  gui_plugin.export_layers_repeat_gui(image, settings)
+
+
+def _run_plugin_noninteractive(run_mode, image):
+  layer_exporter = exportlayers.LayerExporter(run_mode, image, settings['main'])
   
-  def _run_with_last_vals(self, image):
-    status, status_message = self.settings['main'].load()
-    if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
-      print(status_message)
-    
-    self._run_plugin_noninteractive(gimpenums.RUN_WITH_LAST_VALS, image)
-  
-  def _run_export_layers_interactive(self, image):
-    gui_plugin.export_layers_gui(image, self.settings)
-  
-  def _run_export_layers_repeat_interactive(self, image):
-    gui_plugin.export_layers_repeat_gui(image, self.settings)
-  
-  def _run_plugin_noninteractive(self, run_mode, image):
-    layer_exporter = exportlayers.LayerExporter(run_mode, image, self.settings['main'])
-    
-    try:
-      layer_exporter.export_layers()
-    except exportlayers.ExportLayersCancelError as e:
-      print(str(e))
-    except exportlayers.ExportLayersError as e:
-      print(str(e))
-      raise
+  try:
+    layer_exporter.export_layers()
+  except exportlayers.ExportLayersCancelError as e:
+    print(str(e))
+  except exportlayers.ExportLayersError as e:
+    print(str(e))
+    raise
 
 
 #===============================================================================
 
-if __name__ == "__main__":
-  ExportLayersPlugin().start()
+pygimplib.main()
