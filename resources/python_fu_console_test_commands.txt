@@ -4,14 +4,10 @@ plugin_path = os.path.join(gimp.directory, "plug-ins - Export Layers")
 sys.path.append(plugin_path)
 sys.path.append(os.path.join(plugin_path, "export_layers", "pygimplib"))
 import runtests
-_ = lambda s: s
-_
 runtests.run_tests(path=plugin_path, modules=["export_layers.pygimplib"])
 
 
-_ = lambda s: s
 reload(runtests)
-_
 runtests.run_tests(path=plugin_path, modules=["export_layers.pygimplib"])
 
 
