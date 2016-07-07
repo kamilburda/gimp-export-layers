@@ -537,7 +537,7 @@ class PdbParamCreator(object):
       elif isinstance(setting_or_group, SettingGroup):
         settings.extend(setting_or_group.iterate_all())
       else:
-        raise TypeError("not a Setting or a SettingGroup object")
+        raise TypeError("{0}: not a Setting or a SettingGroup object".format(type(setting_or_group)))
     
     return settings
   
