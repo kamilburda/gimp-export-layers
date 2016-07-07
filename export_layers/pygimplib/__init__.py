@@ -24,6 +24,7 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import collections
 import functools
 import gettext
 import inspect
@@ -165,50 +166,20 @@ _init_config()
 
 if _gimp_dependent_modules_imported:
   
-  class GimpPlugin(gimpplugin.plugin):
-    
-    def __init__(self):
-      procedures_to_register = [method_name for method_name in dir(self)
-                                if method_name.startswith("plug_in") and callable(getattr(self, method_name))]
-      
-      if config.PLUGIN_NAME == "gimp_plugin" and procedures_to_register:
-        config.PLUGIN_NAME = procedures_to_register[0]
-      
-      init()
-      
-      for procedure_name in procedures_to_register:
-        self._set_gui_excepthook(procedure_name)
-      
-      config._can_modify_config = False
-    
-    def query(self):
-      gimpplugin.plugin.query(self)
-      
-      gimp.domain_register(config.DOMAIN_NAME, config.LOCALE_PATH)
-      
-      self.register()
-    
-    def register(self):
-      pass
-    
-    def _set_gui_excepthook(self, procedure_name):
-      
-      def _set_gui_excepthook_wrapper(procedure):
-        
-        @functools.wraps(procedure)
-        def procedure_wrapper(self, run_mode, *args):
-          if run_mode == gimpenums.RUN_INTERACTIVE:
-            return pggui.set_gui_excepthook(config.PLUGIN_TITLE,
-              report_uri_list=config.BUG_REPORT_URI_LIST)(procedure)(run_mode, *args)
-          else:
-            return procedure(run_mode, *args)
-        
-        return types.MethodType(procedure_wrapper, self, self.__class__)
-      
-      procedure = getattr(self, procedure_name)
-      setattr(self, procedure_name, _set_gui_excepthook_wrapper(procedure))
+  _plugins = collections.OrderedDict()
+  _plugins_names = collections.OrderedDict()
   
-  #=============================================================================
+  def plugin(*plugin_args, **plugin_kwargs):
+    
+    def plugin_wrapper(procedure):
+      _plugins[procedure] = (plugin_args, plugin_kwargs)
+      _plugins_names[procedure.__name__] = procedure
+      return procedure
+    
+    return plugin_wrapper
+  
+  def main():
+    gimp.main(None, None, _query, _run)
   
   def install_plugin(plugin_procedure, blurb="", description="",
                      author="", copyright_notice="", date="",
@@ -230,3 +201,27 @@ if _gimp_dependent_modules_imported:
     
     if menu_path:
       gimp.menu_register(plugin_procedure.__name__, menu_path)
+  
+  def _query():
+    gimp.domain_register(config.DOMAIN_NAME, config.LOCALE_PATH)
+    
+    for plugin_procedure, plugin_args_and_kwargs in _plugins.items():
+      install_plugin(plugin_procedure, *plugin_args_and_kwargs[0], **plugin_args_and_kwargs[1])
+  
+  def _run(procedure_name, procedure_params):
+    if config.PLUGIN_NAME == "gimp_plugin":
+      config.PLUGIN_NAME = procedure_name
+    
+    init()
+    
+    config._can_modify_config = False
+    
+    procedure = _set_gui_excepthook(_plugins_names[procedure_name], procedure_params[0])
+    procedure(*procedure_params)
+  
+  def _set_gui_excepthook(procedure, run_mode):
+    if run_mode == gimpenums.RUN_INTERACTIVE:
+      return pggui.set_gui_excepthook(config.PLUGIN_TITLE,
+        report_uri_list=config.BUG_REPORT_URI_LIST)(procedure)
+    else:
+      return procedure
