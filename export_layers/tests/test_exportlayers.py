@@ -34,6 +34,10 @@ import gimp
 
 pdb = gimp.pdb
 
+from .. import pygimplib
+
+pygimplib.init()
+
 from ..pygimplib import pgfileformats
 from ..pygimplib import pgitemdata
 from ..pygimplib import pgpdb
