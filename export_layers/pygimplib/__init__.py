@@ -81,14 +81,21 @@ def _init_config():
   if config is not None:
     return
   
+  def _get_domain_name():
+    if config.PLUGIN_NAME == config._DEFAULT_PLUGIN_NAME:
+      return "gimp20-python"
+    else:
+      return "gimp-plugin-" + config.PLUGIN_NAME.replace("_", "-")
+  
   config = _Config()
   
-  config.PLUGIN_NAME = "gimp_plugin"
+  config._DEFAULT_PLUGIN_NAME = "gimp_plugin"
+  config.PLUGIN_NAME = config._DEFAULT_PLUGIN_NAME
   config.PLUGIN_TITLE = lambda: config.PLUGIN_NAME
   config.PLUGIN_VERSION = "1.0"
   
   config.LOCALE_PATH = lambda: os.path.join(config.PLUGIN_PATH, "locale")
-  config.DOMAIN_NAME = lambda: "gimp-plugin-" + config.PLUGIN_NAME.replace("_", "-")
+  config.DOMAIN_NAME = _get_domain_name
   
   config.BUG_REPORT_URI_LIST = []
   
@@ -98,10 +105,13 @@ def _init_config():
   if _gimp_dependent_modules_imported:
     config.LOG_MODE = constants.LOG_EXCEPTIONS_ONLY
   
+  gettext.install(config.DOMAIN_NAME, config.LOCALE_PATH, unicode=True)
+  
   _init_config_builtin(config)
 
 
 def _init_config_builtin(config):
+  
   def _get_setting_source_name():
     if config.PLUGIN_NAME.startswith("plug_in"):
       return config.PLUGIN_NAME
@@ -224,7 +234,7 @@ if _gimp_dependent_modules_imported:
       install_plugin(plugin_procedure, *plugin_args_and_kwargs[0], **plugin_args_and_kwargs[1])
   
   def _run(procedure_name, procedure_params):
-    if config.PLUGIN_NAME == "gimp_plugin":
+    if config.PLUGIN_NAME == config._DEFAULT_PLUGIN_NAME:
       config.PLUGIN_NAME = procedure_name
     
     init()
