@@ -55,13 +55,10 @@ import gimpui
 
 pdb = gimp.pdb
 
+from . import constants
 from . import overwrite
 from . import progress
 from .pggui_fileextension import FileExtensionEntry
-
-#===============================================================================
-
-GTK_CHARACTER_ENCODING = "utf-8"
 
 #===============================================================================
 # GTK Overwrite Chooser
@@ -439,7 +436,7 @@ class IntComboBox(gimpui.IntComboBox):
     """
     
     for i in range(0, len(labels_and_values), 2):
-      labels_and_values[i] = labels_and_values[i].encode(GTK_CHARACTER_ENCODING)
+      labels_and_values[i] = labels_and_values[i].encode(constants.GTK_CHARACTER_ENCODING)
     
     super(IntComboBox, self).__init__(tuple(labels_and_values))
 

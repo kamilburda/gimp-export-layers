@@ -38,13 +38,10 @@ import gimp
 
 pdb = gimp.pdb
 
+from . import constants
 from . import pgsettingpresenter
 from .pggui import IntComboBox
 from .pggui import FileExtensionEntry
-
-#===============================================================================
-
-GTK_CHARACTER_ENCODING = "utf-8"
 
 #===============================================================================
 
@@ -137,10 +134,10 @@ class GtkEntryPresenter(GtkSettingPresenter):
     return gtk.Entry()
   
   def _get_value(self):
-    return self._element.get_text().decode(GTK_CHARACTER_ENCODING)
+    return self._element.get_text().decode(constants.GTK_CHARACTER_ENCODING)
   
   def _set_value(self, value):
-    self._element.set_text(value.encode(GTK_CHARACTER_ENCODING))
+    self._element.set_text(value.encode(constants.GTK_CHARACTER_ENCODING))
     # Place the cursor at the end of the text entry.
     self._element.set_position(-1)
 
@@ -158,10 +155,10 @@ class FileExtensionEntryPresenter(GtkSettingPresenter):
     return FileExtensionEntry()
   
   def _get_value(self):
-    return self._element.get_text().decode(GTK_CHARACTER_ENCODING)
+    return self._element.get_text().decode(constants.GTK_CHARACTER_ENCODING)
   
   def _set_value(self, value):
-    self._element.assign_text(value.encode(GTK_CHARACTER_ENCODING))
+    self._element.assign_text(value.encode(constants.GTK_CHARACTER_ENCODING))
 
 
 class GtkFolderChooserPresenter(GtkSettingPresenter):
@@ -188,13 +185,13 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
       folder = self._element.get_filename()
     
     if folder is not None:
-      return folder.decode(GTK_CHARACTER_ENCODING)
+      return folder.decode(constants.GTK_CHARACTER_ENCODING)
     else:
       return None
   
   def _set_value(self, folder):
     if folder is not None:
-      encoded_folder = folder.encode(GTK_CHARACTER_ENCODING)
+      encoded_folder = folder.encode(constants.GTK_CHARACTER_ENCODING)
     else:
       encoded_folder = None
     
