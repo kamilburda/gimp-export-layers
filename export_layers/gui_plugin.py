@@ -47,6 +47,7 @@ pdb = gimp.pdb
 
 import export_layers.pygimplib as pygimplib
 
+from export_layers.pygimplib import constants
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
 from export_layers.pygimplib import pgsetting
@@ -572,11 +573,11 @@ class ExportNamePreview(object):
   
   def _get_layer_orig_name(self, tree_iter):
     return self._tree_model.get_value(tree_iter, column=self._COLUMN_LAYER_ORIG_NAME[0]).decode(
-      pggui.GTK_CHARACTER_ENCODING)
+      constants.GTK_CHARACTER_ENCODING)
   
   def _set_layer_orig_name(self, tree_iter, old_orig_name, new_orig_name):
     self._tree_model.set_value(tree_iter, self._COLUMN_LAYER_ORIG_NAME[0],
-                               new_orig_name.encode(pggui.GTK_CHARACTER_ENCODING))
+                               new_orig_name.encode(constants.GTK_CHARACTER_ENCODING))
     del self._tree_iters[old_orig_name]
     self._tree_iters[new_orig_name] = tree_iter
   
@@ -608,8 +609,8 @@ class ExportNamePreview(object):
       [self._get_icon_from_item_elem(item_elem),
        self._has_supported_tags(item_elem),
        True,
-       item_elem.name.encode(pggui.GTK_CHARACTER_ENCODING),
-       item_elem.orig_name.encode(pggui.GTK_CHARACTER_ENCODING)])
+       item_elem.name.encode(constants.GTK_CHARACTER_ENCODING),
+       item_elem.orig_name.encode(constants.GTK_CHARACTER_ENCODING)])
     self._tree_iters[item_elem.orig_name] = tree_iter
     
     return tree_iter
