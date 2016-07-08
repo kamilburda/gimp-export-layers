@@ -35,7 +35,7 @@ import gimpenums
 
 from ..lib import mock
 
-from . import gimpmocks
+from . import gimpstubs
 from .. import pgpath
 from .. import pgsetting
 from .. import pgsettingpresenter
@@ -49,7 +49,7 @@ LIB_NAME = ".".join(__name__.split(".")[:-2])
 #===============================================================================
 
 
-class MockGuiWidget(object):
+class GuiWidgetStub(object):
   
   def __init__(self, value):
     self.value = value
@@ -73,15 +73,11 @@ class MockGuiWidget(object):
       self._event_handler()
 
 
-class MockGuiWidgetAlternate(MockGuiWidget):
+class CheckboxStub(GuiWidgetStub):
   pass
 
 
-class MockCheckbox(MockGuiWidget):
-  pass
-
-
-class MockSettingPresenter(pgsettingpresenter.SettingPresenter):
+class SettingPresenterStub(pgsettingpresenter.SettingPresenter):
   
   def get_enabled(self):
     return self._element.enabled
@@ -96,7 +92,7 @@ class MockSettingPresenter(pgsettingpresenter.SettingPresenter):
     self._element.visible = value
   
   def _create_gui_element(self, setting):
-    return MockGuiWidget(setting.value)
+    return GuiWidgetStub(setting.value)
   
   def _get_value(self):
     return self._element.value
@@ -111,31 +107,31 @@ class MockSettingPresenter(pgsettingpresenter.SettingPresenter):
     self._element.disconnect()
 
 
-class MockSettingPresenterWithValueChangedSignal(MockSettingPresenter):
+class SettingPresenterWithValueChangedSignalStub(SettingPresenterStub):
   
   _VALUE_CHANGED_SIGNAL = "changed"
 
 
-class MockSettingPresenterWithoutGuiElementCreation(MockSettingPresenter):
+class SettingPresenterWithoutGuiElementCreationStub(SettingPresenterStub):
   
   def _create_gui_element(self, setting):
     return None
 
 
-class MockCheckboxPresenter(MockSettingPresenter):
+class CheckboxPresenterStub(SettingPresenterStub):
   
   def _create_gui_element(self, setting):
-    return MockCheckbox(setting.value)
+    return CheckboxStub(setting.value)
 
 
-class MockYesNoToggleButtonPresenter(MockSettingPresenter):
+class YesNoToggleButtonPresenterStub(SettingPresenterStub):
   pass
 
 
 #===============================================================================
 
 
-class MockSetting(pgsetting.Setting):
+class SettingStub(pgsetting.Setting):
   
   _ALLOWED_EMPTY_VALUES = [""]
   
@@ -147,16 +143,16 @@ class MockSetting(pgsetting.Setting):
       raise pgsetting.SettingValueError(self._error_messages['invalid_value'])
 
 
-class MockSettingRegistrableToPdb(MockSetting):
+class SettingRegistrableToPdbStub(SettingStub):
 
   _ALLOWED_PDB_TYPES = [pgsetting.SettingPdbTypes.string]
 
 
-class MockSettingWithGui(MockSetting):
+class SettingWithGuiStub(SettingStub):
   
-  _ALLOWED_GUI_TYPES = [MockCheckboxPresenter, MockSettingPresenter,
-                        MockSettingPresenterWithValueChangedSignal,
-                        MockSettingPresenterWithoutGuiElementCreation]
+  _ALLOWED_GUI_TYPES = [CheckboxPresenterStub, SettingPresenterStub,
+                        SettingPresenterWithValueChangedSignalStub,
+                        SettingPresenterWithoutGuiElementCreationStub]
 
 
 def on_file_extension_changed(file_extension, ignore_invisible):
@@ -186,18 +182,18 @@ def on_autocrop_changed(autocrop, file_extension):
 class TestSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = MockSetting('file_extension', "png")
+    self.setting = SettingStub('file_extension', "png")
   
   def test_str(self):
-    self.assertEqual(str(self.setting), "<MockSetting 'file_extension'>")
+    self.assertEqual(str(self.setting), "<SettingStub 'file_extension'>")
   
   def test_invalid_default_value_raises_error(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
-      MockSetting('setting', None)
+      SettingStub('setting', None)
   
   def test_empty_value_as_default_value(self):
     try:
-      MockSetting('setting', "")
+      SettingStub('setting', "")
     except pgsetting.SettingDefaultValueError:
       self.fail("SettingDefaultValueError should not be raised - default value is an empty value")
   
@@ -206,7 +202,7 @@ class TestSetting(unittest.TestCase):
       self.setting.set_value("")
   
   def test_assign_empty_value_allowed(self):
-    setting = MockSetting('setting', "", allow_empty_values=True)
+    setting = SettingStub('setting', "", allow_empty_values=True)
     setting.set_value("")
     self.assertEqual(setting.value, "")
   
@@ -215,17 +211,17 @@ class TestSetting(unittest.TestCase):
       self.setting.value = "jpg"
   
   def test_auto_generated_display_name(self):
-    self.assertEqual(MockSetting('this_is_a_setting', "png").display_name, "This is a setting")
+    self.assertEqual(SettingStub('this_is_a_setting', "png").display_name, "This is a setting")
   
   def test_description_from_display_name_with_mnemonics(self):
-    setting = MockSetting('setting', "default value", display_name="_Setting")
+    setting = SettingStub('setting', "default value", display_name="_Setting")
     self.assertEqual(setting.display_name, "_Setting")
     self.assertEqual(setting.description, "Setting")
   
   def test_custom_error_messages(self):
-    setting = MockSetting('setting', "")
+    setting = SettingStub('setting', "")
     
-    setting_with_custom_error_messages = MockSetting(
+    setting_with_custom_error_messages = SettingStub(
       'setting', "", error_messages={'invalid_value': "this should override the original error message",
                                      'custom_message': "custom message"})
     self.assertIn('custom_message', setting_with_custom_error_messages.error_messages)
@@ -233,16 +229,16 @@ class TestSetting(unittest.TestCase):
                         setting_with_custom_error_messages.error_messages['invalid_value'])
   
   def test_pdb_type_automatic_is_registrable(self):
-    setting = MockSettingRegistrableToPdb('file_extension', "png", pdb_type=pgsetting.SettingPdbTypes.string)
+    setting = SettingRegistrableToPdbStub('file_extension', "png", pdb_type=pgsetting.SettingPdbTypes.string)
     self.assertTrue(setting.can_be_registered_to_pdb())
   
   def test_pdb_type_automatic_is_not_registrable(self):
-    setting = MockSetting('file_extension', "png")
+    setting = SettingStub('file_extension', "png")
     self.assertFalse(setting.can_be_registered_to_pdb())
   
   def test_invalid_pdb_type_raises_error(self):
     with self.assertRaises(ValueError):
-      MockSetting('file_extension', "png", pdb_type=pgsetting.SettingPdbTypes.string)
+      SettingStub('file_extension', "png", pdb_type=pgsetting.SettingPdbTypes.string)
   
   def test_reset_resets_setting_to_default_value(self):
     self.setting.set_value("jpg")
@@ -250,7 +246,7 @@ class TestSetting(unittest.TestCase):
     self.assertEqual(self.setting.value, "png")
   
   def test_reset_default_value_container(self):
-    setting = MockSetting('image_IDs_and_directories', {})
+    setting = SettingStub('image_IDs_and_directories', {})
     setting.value[1] = "image_directory"
     
     setting.reset()
@@ -270,14 +266,14 @@ class TestSetting(unittest.TestCase):
   @mock.patch(LIB_NAME + ".pgsettingpersistor.SettingPersistor.load")
   def test_load_default_source(self, mock_setting_persistor_load):
     dummy_setting_source = object()
-    setting = MockSetting('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source])
+    setting = SettingStub('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source])
     setting.load()
     self.assertTrue(mock_setting_persistor_load.called)
   
   @mock.patch(LIB_NAME + ".pgsettingpersistor.SettingPersistor.load")
   def test_load_default_source_overridden_by_parameter(self, mock_setting_persistor_load):
     dummy_setting_source_default = object()
-    setting = MockSetting('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source_default])
+    setting = SettingStub('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source_default])
     dummy_setting_source_parameter = object()
     setting.load([dummy_setting_source_parameter])
     self.assertTrue(mock_setting_persistor_load.called)
@@ -297,14 +293,14 @@ class TestSetting(unittest.TestCase):
   @mock.patch(LIB_NAME + ".pgsettingpersistor.SettingPersistor.save")
   def test_save_default_source(self, mock_setting_persistor_save):
     dummy_setting_source = object()
-    setting = MockSetting('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source])
+    setting = SettingStub('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source])
     setting.save()
     self.assertTrue(mock_setting_persistor_save.called)
   
   @mock.patch(LIB_NAME + ".pgsettingpersistor.SettingPersistor.save")
   def test_save_default_source_overridden_by_parameter(self, mock_setting_persistor_save):
     dummy_setting_source_default = object()
-    setting = MockSetting('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source_default])
+    setting = SettingStub('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source_default])
     dummy_setting_source_parameter = object()
     setting.save([dummy_setting_source_parameter])
     self.assertTrue(mock_setting_persistor_save.called)
@@ -322,7 +318,7 @@ class TestSetting(unittest.TestCase):
 class TestSettingEvents(unittest.TestCase):
   
   def setUp(self):
-    self.setting = MockSetting('file_extension', "png")
+    self.setting = SettingStub('file_extension', "png")
     self.ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
 
   def test_connect_event_argument_is_not_callable(self):
@@ -401,12 +397,12 @@ class TestSettingEvents(unittest.TestCase):
     self.assertEqual(self.ignore_invisible.gui.get_enabled(), True)
 
 
-@mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new_callable=gimpmocks.MockGimpShelf)
+@mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new_callable=gimpstubs.ShelfStub)
 class TestSettingLoadSaveEvents(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new=gimpstubs.ShelfStub())
   def setUp(self):
-    self.setting = MockSettingWithGui('file_extension', "png")
+    self.setting = SettingWithGuiStub('file_extension', "png")
     self.ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
     self.session_source = pgsettingsources.SessionPersistentSettingSource('')
   
@@ -498,15 +494,15 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
 class TestSettingGui(unittest.TestCase):
   
   def setUp(self):
-    self.setting = MockSettingWithGui('file_extension', "png")
-    self.widget = MockGuiWidget("")
+    self.setting = SettingWithGuiStub('file_extension', "png")
+    self.widget = GuiWidgetStub("")
   
   def test_set_gui_updates_gui_value(self):
-    self.setting.set_gui(MockSettingPresenter, self.widget)
+    self.setting.set_gui(SettingPresenterStub, self.widget)
     self.assertEqual(self.widget.value, "png")
   
   def test_setting_set_value_updates_gui(self):
-    self.setting.set_gui(MockSettingPresenter, self.widget)
+    self.setting.set_gui(SettingPresenterStub, self.widget)
     self.setting.set_value("gif")
     self.assertEqual(self.widget.value, "gif")
   
@@ -515,60 +511,59 @@ class TestSettingGui(unittest.TestCase):
     self.setting.gui.set_visible(False)
     self.setting.set_value("gif")
     
-    self.setting.set_gui(MockSettingPresenter, self.widget)
+    self.setting.set_gui(SettingPresenterStub, self.widget)
     
     self.assertEqual(self.setting.gui.get_enabled(), False)
     self.assertEqual(self.setting.gui.get_visible(), False)
     self.assertEqual(self.widget.value, "gif")
   
   def test_setting_gui_type(self):
-    setting = MockSettingWithGui("ignore_invisible", False, gui_type=MockCheckboxPresenter)
+    setting = SettingWithGuiStub("ignore_invisible", False, gui_type=CheckboxPresenterStub)
     setting.set_gui()
-    self.assertIs(type(setting.gui), MockCheckboxPresenter)
-    self.assertIs(type(setting.gui.element), MockCheckbox)
+    self.assertIs(type(setting.gui), CheckboxPresenterStub)
+    self.assertIs(type(setting.gui.element), CheckboxStub)
   
   def test_setting_different_gui_type(self):
-    setting = MockSettingWithGui("ignore_invisible", False, gui_type=MockSettingPresenter)
+    setting = SettingWithGuiStub("ignore_invisible", False, gui_type=SettingPresenterStub)
     setting.set_gui()
-    self.assertIs(type(setting.gui), MockSettingPresenter)
-    self.assertIs(type(setting.gui.element), MockGuiWidget)
+    self.assertIs(type(setting.gui), SettingPresenterStub)
+    self.assertIs(type(setting.gui.element), GuiWidgetStub)
   
   def test_setting_invalid_gui_type_raise_value_error(self):
     with self.assertRaises(ValueError):
-      MockSettingWithGui("ignore_invisible", False, gui_type=MockYesNoToggleButtonPresenter)
+      SettingWithGuiStub("ignore_invisible", False, gui_type=YesNoToggleButtonPresenterStub)
   
   def test_setting_null_gui_type(self):
     # For now, don't use None or `SettingGuiTypes.none` as it raises TypeError due to
     # `super()` failing on module reload. For further information, see:
     # https://thingspython.wordpress.com/2010/09/27/another-super-wrinkle-raising-typeerror/
-    setting = MockSettingWithGui("ignore_invisible", False, gui_type=pgsettingpresenter.NullSettingPresenter)
+    setting = SettingWithGuiStub("ignore_invisible", False, gui_type=pgsettingpresenter.NullSettingPresenter)
     setting.set_gui()
     self.assertIs(type(setting.gui), pgsettingpresenter.NullSettingPresenter)
   
   def test_set_gui_gui_type_is_specified_gui_element_is_none_raise_value_error(self):
-    setting = MockSettingWithGui("ignore_invisible", False)
+    setting = SettingWithGuiStub("ignore_invisible", False)
     with self.assertRaises(ValueError):
-      setting.set_gui(gui_type=MockCheckboxPresenter)
+      setting.set_gui(gui_type=CheckboxPresenterStub)
   
   def test_set_gui_gui_type_is_none_gui_element_is_specified_raise_value_error(self):
-    setting = MockSettingWithGui("ignore_invisible", False)
+    setting = SettingWithGuiStub("ignore_invisible", False)
     with self.assertRaises(ValueError):
-      setting.set_gui(gui_element=MockGuiWidget)
+      setting.set_gui(gui_element=GuiWidgetStub)
   
   def test_set_gui_manual_gui_type(self):
-    setting = MockSettingWithGui("ignore_invisible", False)
-    setting.set_gui(gui_type=MockYesNoToggleButtonPresenter, gui_element=MockGuiWidget(None))
-    self.assertIs(type(setting.gui), MockYesNoToggleButtonPresenter)
-    self.assertIs(type(setting.gui.element), MockGuiWidget)
+    setting = SettingWithGuiStub("ignore_invisible", False)
+    setting.set_gui(gui_type=YesNoToggleButtonPresenterStub, gui_element=GuiWidgetStub(None))
+    self.assertIs(type(setting.gui), YesNoToggleButtonPresenterStub)
+    self.assertIs(type(setting.gui.element), GuiWidgetStub)
   
   def test_set_gui_gui_element_is_none_presenter_has_no_wrapper_raise_value_error(self):
-    setting = MockSettingWithGui("ignore_invisible", False,
-                                 gui_type=MockSettingPresenterWithoutGuiElementCreation)
+    setting = SettingWithGuiStub("ignore_invisible", False, gui_type=SettingPresenterWithoutGuiElementCreationStub)
     with self.assertRaises(ValueError):
       setting.set_gui()
   
   def test_update_setting_value_manually(self):
-    self.setting.set_gui(MockSettingPresenter, self.widget)
+    self.setting.set_gui(SettingPresenterStub, self.widget)
     self.widget.set_value("jpg")
     self.assertEqual(self.setting.value, "png")
     
@@ -576,12 +571,12 @@ class TestSettingGui(unittest.TestCase):
     self.assertEqual(self.setting.value, "jpg")
   
   def test_update_setting_value_automatically(self):
-    self.setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
+    self.setting.set_gui(SettingPresenterWithValueChangedSignalStub, self.widget)
     self.widget.set_value("jpg")
     self.assertEqual(self.setting.value, "jpg")
   
   def test_update_setting_value_triggers_value_changed_event(self):
-    self.setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
+    self.setting.set_gui(SettingPresenterWithValueChangedSignalStub, self.widget)
     
     ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
     self.setting.connect_event('value-changed', on_file_extension_changed, ignore_invisible)
@@ -592,14 +587,14 @@ class TestSettingGui(unittest.TestCase):
     self.assertEqual(ignore_invisible.gui.get_enabled(), False)
   
   def test_reset_updates_gui(self):
-    self.setting.set_gui(MockSettingPresenter, self.widget)
+    self.setting.set_gui(SettingPresenterStub, self.widget)
     self.setting.set_value("jpg")
     self.setting.reset()
     self.assertEqual(self.widget.value, "png")
   
   def test_update_setting_value_manually_for_automatically_updated_settings_when_reset_to_disallowed_empty_value(self):
-    setting = MockSettingWithGui("file_extension", "")
-    setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
+    setting = SettingWithGuiStub("file_extension", "")
+    setting.set_gui(SettingPresenterWithValueChangedSignalStub, self.widget)
     setting.set_value("jpg")
     setting.reset()
     
@@ -609,50 +604,49 @@ class TestSettingGui(unittest.TestCase):
       setting.gui.update_setting_value()
   
   def test_null_setting_presenter_has_automatic_gui(self):
-    setting = MockSettingWithGui("file_extension", "")
+    setting = SettingWithGuiStub("file_extension", "")
     self.assertEqual(setting.gui.gui_update_enabled, True)
   
   def test_manual_gui_update_enabled_is_false(self):
-    setting = MockSettingWithGui("file_extension", "")
-    setting.set_gui(MockSettingPresenter, self.widget)
+    setting = SettingWithGuiStub("file_extension", "")
+    setting.set_gui(SettingPresenterStub, self.widget)
     self.assertEqual(setting.gui.gui_update_enabled, False)
   
   def test_automatic_gui_update_enabled_is_true(self):
-    setting = MockSettingWithGui("file_extension", "")
-    setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
+    setting = SettingWithGuiStub("file_extension", "")
+    setting.set_gui(SettingPresenterWithValueChangedSignalStub, self.widget)
     self.assertEqual(setting.gui.gui_update_enabled, True)
     
     self.widget.set_value("png")
     self.assertEqual(setting.value, "png")
   
   def test_automatic_gui_update_enabled_is_false(self):
-    setting = MockSettingWithGui("file_extension", "", auto_update_gui_to_setting=False)
-    setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
+    setting = SettingWithGuiStub("file_extension", "", auto_update_gui_to_setting=False)
+    setting.set_gui(SettingPresenterWithValueChangedSignalStub, self.widget)
     self.assertEqual(setting.gui.gui_update_enabled, False)
     
     self.widget.set_value("png")
     self.assertEqual(setting.value, "")
   
   def test_set_gui_disable_automatic_setting_value_update(self):
-    setting = MockSettingWithGui("file_extension", "")
-    setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget,
-                    auto_update_gui_to_setting=False)
+    setting = SettingWithGuiStub("file_extension", "")
+    setting.set_gui(SettingPresenterWithValueChangedSignalStub, self.widget, auto_update_gui_to_setting=False)
     self.assertEqual(setting.gui.gui_update_enabled, False)
     
     self.widget.set_value("png")
     self.assertEqual(setting.value, "")
   
   def test_automatic_gui_update_after_being_disabled(self):
-    setting = MockSettingWithGui("file_extension", "", auto_update_gui_to_setting=False)
-    setting.set_gui(MockSettingPresenterWithValueChangedSignal, self.widget)
+    setting = SettingWithGuiStub("file_extension", "", auto_update_gui_to_setting=False)
+    setting.set_gui(SettingPresenterWithValueChangedSignalStub, self.widget)
     setting.gui.auto_update_gui_to_setting(True)
     
     self.widget.set_value("png")
     self.assertEqual(setting.value, "png")
   
   def test_automatic_gui_update_for_manual_gui_raises_value_error(self):
-    setting = MockSettingWithGui("file_extension", "")
-    setting.set_gui(MockSettingPresenter, self.widget)
+    setting = SettingWithGuiStub("file_extension", "")
+    setting.set_gui(SettingPresenterStub, self.widget)
     
     self.assertEqual(setting.gui.gui_update_enabled, False)
     
@@ -855,9 +849,9 @@ class TestEnumSetting(unittest.TestCase):
 
 class TestImageSetting(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + '.pgsetting.pdb', new=gimpmocks.MockPDB())
+  @mock.patch(LIB_NAME + '.pgsetting.pdb', new=gimpstubs.PdbStub())
   def test_set_invalid_image(self):
-    pdb = gimpmocks.MockPDB()
+    pdb = gimpstubs.PdbStub()
     image = pdb.gimp_image_new(2, 2, gimpenums.RGB)
     
     setting = pgsetting.ImageSetting('image', image)
@@ -866,7 +860,7 @@ class TestImageSetting(unittest.TestCase):
     with self.assertRaises(pgsetting.SettingValueError):
       setting.set_value(image)
   
-  @mock.patch(LIB_NAME + '.pgsetting.pdb', new=gimpmocks.MockPDB())
+  @mock.patch(LIB_NAME + '.pgsetting.pdb', new=gimpstubs.PdbStub())
   def test_empty_value_as_default_value(self):
     try:
       pgsetting.ImageSetting('image', None)
@@ -928,7 +922,7 @@ class TestImageIDsAndDirectoriesSetting(unittest.TestCase):
     return [self._create_image(image_id, filename) for image_id, filename in image_ids_and_filenames]
   
   def _create_image(self, image_id, filename):
-    image = gimpmocks.MockImage()
+    image = gimpstubs.ImageStub()
     image.ID = image_id
     image.filename = filename
     return image

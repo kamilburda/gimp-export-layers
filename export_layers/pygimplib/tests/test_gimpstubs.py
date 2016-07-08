@@ -26,18 +26,18 @@ str = unicode
 
 import unittest
 
-from . import gimpmocks
+from . import gimpstubs
 
 #===============================================================================
 
 
-class TestMockPDB(unittest.TestCase):
+class TestPdbStub(unittest.TestCase):
   
   def setUp(self):
-    self.pdb = gimpmocks.MockPDB()
+    self.pdb = gimpstubs.PdbStub()
   
   def test_known_pdb_func(self):
-    image = gimpmocks.MockImage()
+    image = gimpstubs.ImageStub()
     image.valid = False
     self.assertFalse(self.pdb.gimp_image_is_valid(image))
   

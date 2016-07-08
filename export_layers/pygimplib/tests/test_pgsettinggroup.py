@@ -24,7 +24,6 @@ from __future__ import unicode_literals
 
 str = unicode
 
-import StringIO
 import unittest
 
 from ..lib import mock
@@ -32,21 +31,13 @@ from ..lib import mock
 from .. import pgsetting
 from .. import pgsettinggroup
 from .. import pgsettingpersistor
-from .test_pgsetting import MockCheckbox, MockGuiWidget
-from .test_pgsetting import MockCheckboxPresenter, MockSettingPresenter
-from .test_pgsetting import MockSettingWithGui
+from .test_pgsetting import CheckboxStub, GuiWidgetStub
+from .test_pgsetting import CheckboxPresenterStub, SettingPresenterStub
+from .test_pgsetting import SettingWithGuiStub
 
 #===============================================================================
 
 LIB_NAME = ".".join(__name__.split(".")[:-2])
-
-#===============================================================================
-
-
-class MockStringIO(StringIO.StringIO):
-  def read(self):
-    return self.getvalue()
-
 
 #===============================================================================
 
@@ -522,12 +513,12 @@ class TestSettingGroupGui(unittest.TestCase):
   def setUp(self):
     self.settings = pgsettinggroup.SettingGroup('main', [
       {
-        'type': MockSettingWithGui,
+        'type': SettingWithGuiStub,
         'name': 'file_extension',
         'default_value': 'bmp',
       },
       {
-        'type': MockSettingWithGui,
+        'type': SettingWithGuiStub,
         'name': 'ignore_invisible',
         'default_value': False,
       },
@@ -536,30 +527,30 @@ class TestSettingGroupGui(unittest.TestCase):
   def test_initialize_gui_without_custom_gui(self):
     self.settings.initialize_gui()
     
-    self.assertIs(type(self.settings['file_extension'].gui), MockCheckboxPresenter)
-    self.assertIs(type(self.settings['file_extension'].gui.element), MockCheckbox)
-    self.assertIs(type(self.settings['ignore_invisible'].gui), MockCheckboxPresenter)
-    self.assertIs(type(self.settings['ignore_invisible'].gui.element), MockCheckbox)
+    self.assertIs(type(self.settings['file_extension'].gui), CheckboxPresenterStub)
+    self.assertIs(type(self.settings['file_extension'].gui.element), CheckboxStub)
+    self.assertIs(type(self.settings['ignore_invisible'].gui), CheckboxPresenterStub)
+    self.assertIs(type(self.settings['ignore_invisible'].gui.element), CheckboxStub)
   
   def test_initialize_gui_with_custom_gui(self):
-    file_extension_widget = MockGuiWidget("png")
+    file_extension_widget = GuiWidgetStub("png")
     
     self.settings.initialize_gui(custom_gui={
-      'file_extension': [MockSettingPresenter, file_extension_widget],
+      'file_extension': [SettingPresenterStub, file_extension_widget],
     })
     
-    self.assertIs(type(self.settings['file_extension'].gui), MockSettingPresenter)
-    self.assertIs(type(self.settings['file_extension'].gui.element), MockGuiWidget)
+    self.assertIs(type(self.settings['file_extension'].gui), SettingPresenterStub)
+    self.assertIs(type(self.settings['file_extension'].gui.element), GuiWidgetStub)
     # It's "bmp", not "png", since the setting value overrides the initial GUI element value.
     self.assertEqual(file_extension_widget.value, "bmp")
-    self.assertIs(type(self.settings['ignore_invisible'].gui), MockCheckboxPresenter)
-    self.assertIs(type(self.settings['ignore_invisible'].gui.element), MockCheckbox)
+    self.assertIs(type(self.settings['ignore_invisible'].gui), CheckboxPresenterStub)
+    self.assertIs(type(self.settings['ignore_invisible'].gui.element), CheckboxStub)
   
   def test_apply_gui_values_to_settings_ignores_specified_settings(self):
-    file_extension_widget = MockGuiWidget(None)
-    ignore_invisible_widget = MockGuiWidget(None)
-    self.settings['file_extension'].set_gui(MockSettingPresenter, file_extension_widget)
-    self.settings['ignore_invisible'].set_gui(MockSettingPresenter, ignore_invisible_widget)
+    file_extension_widget = GuiWidgetStub(None)
+    ignore_invisible_widget = GuiWidgetStub(None)
+    self.settings['file_extension'].set_gui(SettingPresenterStub, file_extension_widget)
+    self.settings['ignore_invisible'].set_gui(SettingPresenterStub, ignore_invisible_widget)
     
     file_extension_widget.set_value("gif")
     ignore_invisible_widget.set_value(True)

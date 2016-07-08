@@ -28,12 +28,11 @@ from __future__ import unicode_literals
 
 str = unicode
 
-import StringIO
 import unittest
 
 from ..lib import mock
 
-from . import gimpmocks
+from . import gimpstubs
 from .. import pgsetting
 from .. import pgsettingpersistor
 from .. import pgsettingsources
@@ -47,18 +46,10 @@ LIB_NAME = ".".join(__name__.split(".")[:-2])
 #===============================================================================
 
 
-class MockStringIO(StringIO.StringIO):
-  def read(self):
-    return self.getvalue()
-
-
-#===============================================================================
-
-
-@mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new_callable=gimpmocks.MockGimpShelf)
+@mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new_callable=gimpstubs.ShelfStub)
 class TestSessionPersistentSettingSource(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
+  @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new=gimpstubs.ShelfStub())
   def setUp(self):
     self.source_name = 'test_settings'
     self.source = pgsettingsources.SessionPersistentSettingSource(self.source_name)
@@ -104,10 +95,10 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.assertEqual(setting.value, setting.default_value)
 
 
-@mock.patch(LIB_NAME + ".pgsettingsources.gimp", new_callable=gimpmocks.MockGimpParasite)
+@mock.patch(LIB_NAME + ".pgsettingsources.gimp", new_callable=gimpstubs.ParasiteStub)
 class TestPersistentSettingSource(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + ".pgsettingsources.gimp", new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingsources.gimp", new=gimpstubs.ParasiteStub())
   def setUp(self):
     self.source_name = 'test_settings'
     self.source = pgsettingsources.PersistentSettingSource(self.source_name)
@@ -172,12 +163,12 @@ class TestPersistentSettingSource(unittest.TestCase):
 #===============================================================================
 
 
-@mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new_callable=gimpmocks.MockGimpShelf)
-@mock.patch(LIB_NAME + ".pgsettingsources.gimp", new_callable=gimpmocks.MockGimpParasite)
+@mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new_callable=gimpstubs.ShelfStub)
+@mock.patch(LIB_NAME + ".pgsettingsources.gimp", new_callable=gimpstubs.ParasiteStub)
 class TestSettingPersistor(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new=gimpmocks.MockGimpShelf())
-  @mock.patch(LIB_NAME + ".pgsettingsources.gimp", new=gimpmocks.MockGimpParasite())
+  @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new=gimpstubs.ShelfStub())
+  @mock.patch(LIB_NAME + ".pgsettingsources.gimp", new=gimpstubs.ParasiteStub())
   def setUp(self):
     self.settings = create_test_settings()
     self.session_source = pgsettingsources.SessionPersistentSettingSource('')

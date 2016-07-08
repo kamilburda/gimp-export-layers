@@ -31,14 +31,14 @@ from .. import progress
 #===============================================================================
 
 
-class MockProgressBar(object):
+class ProgressBarStub(object):
   
   def __init__(self):
     self.text = ""
     self.fraction = 0.0
 
 
-class MockProgressUpdater(progress.ProgressUpdater):
+class ProgressUpdaterStub(progress.ProgressUpdater):
   
   def _update_progress_bar(self):
     self.progress_bar.fraction = self._num_finished_tasks / self.num_total_tasks
@@ -55,8 +55,8 @@ class TestProgressUpdater(unittest.TestCase):
   def setUp(self):
     self.num_total_tasks = 10
     
-    self.progress_bar = MockProgressBar()
-    self.progress_updater = MockProgressUpdater(self.progress_bar, num_total_tasks=10)
+    self.progress_bar = ProgressBarStub()
+    self.progress_updater = ProgressUpdaterStub(self.progress_bar, num_total_tasks=10)
   
   def test_update_tasks(self):
     self.progress_updater.update_tasks(self.num_total_tasks / 2)

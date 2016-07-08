@@ -38,7 +38,7 @@ import unittest
 
 from ..lib import mock
 
-from . import gimpmocks
+from . import gimpstubs
 from .. import pgitemdata
 
 #===============================================================================
@@ -79,7 +79,7 @@ def _parse_layers(layer_tree_string):
   Leading or trailing spaces in each line in the string are truncated.
   """
   
-  image = gimpmocks.MockImage()
+  image = gimpstubs.ImageStub()
   
   layer_tree_string = layer_tree_string.strip()
   lines = layer_tree_string.splitlines(False)
@@ -94,7 +94,7 @@ def _parse_layers(layer_tree_string):
     layer = None
     
     if current_symbol.endswith(" {"):
-      layer = gimpmocks.MockLayerGroup(current_symbol.rstrip(" {"))
+      layer = gimpstubs.LayerGroupStub(current_symbol.rstrip(" {"))
       current_parent.layers.append(layer)
       current_parent = layer
       parents.append(current_parent)
@@ -102,7 +102,7 @@ def _parse_layers(layer_tree_string):
       parents.pop()
       current_parent = parents[-1]
     else:
-      layer = gimpmocks.MockLayer(current_symbol)
+      layer = gimpstubs.LayerStub(current_symbol)
       current_parent.layers.append(layer)
     
     if layer is not None:
@@ -114,12 +114,12 @@ def _parse_layers(layer_tree_string):
 #===============================================================================
 
 
-@mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpmocks.MockPDB())
-@mock.patch(LIB_NAME + ".pgitemdata.gimp.GroupLayer", new=gimpmocks.MockLayerGroup)
+@mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpstubs.PdbStub())
+@mock.patch(LIB_NAME + ".pgitemdata.gimp.GroupLayer", new=gimpstubs.LayerGroupStub)
 class TestLayerData(unittest.TestCase):
 
-  @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpmocks.MockPDB())
-  @mock.patch(LIB_NAME + ".pgitemdata.gimp.GroupLayer", new=gimpmocks.MockLayerGroup)
+  @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpstubs.PdbStub())
+  @mock.patch(LIB_NAME + ".pgitemdata.gimp.GroupLayer", new=gimpstubs.LayerGroupStub)
   def setUp(self):
     layers_string = """
       Corners {
@@ -401,12 +401,12 @@ class TestLayerData(unittest.TestCase):
     self._compare_uniquified_with_parents(self.layer_data, uniquified_names)
 
 
-@mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpmocks.MockPDB())
+@mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpstubs.PdbStub())
 class TestLayerDataElement(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpmocks.MockPDB())
+  @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpstubs.PdbStub())
   def setUp(self):
-    self.layer_elem = pgitemdata._ItemDataElement(gimpmocks.MockLayer("main-background.jpg"))
+    self.layer_elem = pgitemdata._ItemDataElement(gimpstubs.LayerStub("main-background.jpg"))
   
   def test_get_file_extension(self):
     self.assertEqual(self.layer_elem.get_file_extension(), "jpg")
