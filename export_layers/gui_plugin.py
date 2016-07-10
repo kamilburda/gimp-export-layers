@@ -1056,7 +1056,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self.export_name_preview.set_collapsed_items(setting.value)
     
     for setting in self.settings['main']:
-      if setting.name not in ['file_extension', 'output_directory', 'overwrite_mode']:
+      if setting.name not in ['file_extension', 'output_directory', 'overwrite_mode',
+                              'export_only_selected_layers', 'selected_layers']:
         setting.connect_event('value-changed', _on_setting_changed)
     
     self.settings['gui_session/export_name_preview_layers_collapsed_state'].connect_event(
