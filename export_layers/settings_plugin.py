@@ -185,6 +185,20 @@ def create_settings():
                 ('cancel', _("_Cancel"), overwrite.OverwriteModes.CANCEL)],
       'display_name': _("Overwrite mode (non-interactive run mode only)")
     },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'export_only_selected_layers',
+      'default_value': False,
+      'display_name': _("Export only selected layers"),
+      'pdb_type': None
+    },
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'selected_layers',
+      'default_value': set(),
+      'display_name': _("Selected layers"),
+      'pdb_type': None
+    },
   ], setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
   
   #-----------------------------------------------------------------------------

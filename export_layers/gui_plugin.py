@@ -182,6 +182,8 @@ def _set_settings(func):
       
       self.settings['gui_session/export_name_preview_layers_collapsed_state'].value[self.image.ID] = (
         self.export_name_preview.collapsed_items)
+      
+      self.settings['main/selected_layers'].set_value(self.export_name_preview.selected_items)
     except pgsetting.SettingValueError as e:
       self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
       return
@@ -390,6 +392,10 @@ class ExportNamePreview(object):
   def collapsed_items(self):
     return self._collapsed_items
   
+  @property
+  def selected_items(self):
+    return self._selected_items
+  
   def _init_gui(self):
     self._tree_model = gtk.TreeStore(*[column[1] for column in self._COLUMNS])
     
@@ -592,7 +598,14 @@ class ExportNamePreview(object):
     return [self._get_layer_orig_name(self._tree_model.get_iter(tree_path)) for tree_path in tree_paths]
   
   def _fill_preview(self):
+    orig_export_only_selected_layers_value = (
+      self._layer_exporter.export_settings['export_only_selected_layers'].value)
+    self._layer_exporter.export_settings['export_only_selected_layers'].set_value(False)
+    
     self._layer_exporter.export_layers(operations=['layer_name'])
+    
+    self._layer_exporter.export_settings['export_only_selected_layers'].set_value(
+      orig_export_only_selected_layers_value)
     
     self._tree_iters.clear()
     
@@ -892,6 +905,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self.settings['main/empty_folders'].gui.element, expand=False, fill=True)
     self.hbox_more_settings_checkbuttons.pack_start(
       self.settings['main/ignore_layer_modes'].gui.element, expand=False, fill=True)
+    self.hbox_more_settings_checkbuttons.pack_start(
+      self.settings['main/export_only_selected_layers'].gui.element, expand=False, fill=True)
     
     self.vbox_more_settings = gtk.VBox(homogeneous=False)
     self.vbox_more_settings.set_spacing(self.MORE_SETTINGS_VERTICAL_SPACING)

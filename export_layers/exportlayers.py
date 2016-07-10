@@ -122,6 +122,10 @@ class LayerFilterRules(object):
   @staticmethod
   def has_no_tag(layer_elem, *tags):
     return not LayerFilterRules.has_tag(layer_elem, *tags)
+  
+  @staticmethod
+  def is_layer_in_selected_layers(layer_elem, selected_layers):
+    return layer_elem.orig_name in selected_layers
 
 
 #===============================================================================
@@ -365,6 +369,10 @@ class LayerExporter(object):
       self._layer_data.filter.add_rule(LayerFilterRules.has_no_tag, 'background', 'foreground')
     elif self.export_settings['tagged_layers_mode'].is_item('ignore_other'):
       self._layer_data.filter.add_rule(LayerFilterRules.has_tag, 'background', 'foreground')
+    
+    if self.export_settings['export_only_selected_layers'].value:
+      self._layer_data.filter.add_rule(
+        LayerFilterRules.is_layer_in_selected_layers, self.export_settings['selected_layers'].value)
   
   def _export_layers(self):
     with self._layer_data.filter['layer_types'].remove_rule_temp(LayerFilterRules.is_empty_group, False):
