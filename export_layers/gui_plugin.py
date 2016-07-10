@@ -1149,10 +1149,12 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.cancel_button.set_visible(enabled)
     
     for child in self.dialog.vbox:
-      if child not in (self.dialog.action_area, self.progress_bar):
+      if child not in (self.action_area, self.progress_bar):
         child.set_sensitive(enabled)
     
-    for button in self.dialog.action_area:
+    self.show_more_settings_button.set_sensitive(enabled)
+    
+    for button in self.dialog_buttons:
       if button != self.stop_button:
         button.set_sensitive(enabled)
     
