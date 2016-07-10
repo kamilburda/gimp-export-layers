@@ -894,7 +894,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self.export_layers_button = gtk.Button()
     self.export_layers_button.set_label(_("_Export"))
-    self.export_layers_button.grab_default()
     
     self.cancel_button = gtk.Button()
     self.cancel_button.set_label(_("_Cancel"))
@@ -942,7 +941,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.dialog.vbox.pack_start(self.hpaned_chooser_and_previews)
     self.dialog.vbox.pack_start(self.hbox_file_extension, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.hbox_export_settings, expand=False, fill=False)
-    self.dialog.vbox.pack_start(self.show_more_settings_button, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.vbox_more_settings, expand=False, fill=False)
     self.dialog.vbox.pack_start(
       gtk.HSeparator(), expand=False, fill=True, padding=self.DIALOG_BOTTOM_SEPARATOR_PADDING)
@@ -981,7 +979,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._show_hide_more_settings()
     
     self.dialog.set_focus(self.file_extension_entry)
-    self.dialog.set_default(self.export_layers_button)
+    self.export_layers_button.set_flags(gtk.CAN_DEFAULT)
+    self.export_layers_button.grab_default()
     self.file_extension_entry.set_activates_default(True)
     # Place the cursor at the end of the text entry.
     self.file_extension_entry.set_position(-1)
