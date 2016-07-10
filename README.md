@@ -192,6 +192,10 @@ is used (such as PNG).
 Known Issues
 ------------
 
+Sometimes, after you hit the Export button, it may seem as though nothing happens.
+In that case, the file format dialog may be displayed behind GIMP - if so,
+simply select the dialog to bring it up.
+
 Several users reported crashes on Windows and OS X when clicking on the menu
 entries. If the crashes occur to you, try reinstalling GIMP.
 
