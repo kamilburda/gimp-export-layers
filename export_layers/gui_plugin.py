@@ -912,8 +912,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.save_settings_button.set_tooltip_text(
       _("Save settings permanently. "
         "If you start GIMP again, the saved settings will be loaded "
-        "when {0} is first opened.").format(pygimplib.config.PLUGIN_TITLE)
-    )
+        "when {0} is first opened.").format(pygimplib.config.PLUGIN_TITLE))
     self.reset_settings_button = gtk.Button()
     self.reset_settings_button.set_label(_("Reset Settings"))
     
