@@ -125,7 +125,7 @@ Export Layers is first opened.
 Settings will be reset to their default values.
 
 
-Advanced Settings
+More Settings
 -----------------
 
 **File extensions in layer names**
@@ -193,8 +193,7 @@ Known Issues
 ------------
 
 Several users reported crashes on Windows and OS X when clicking on the menu
-entries or when clicking on the "Advanced Settings" widget. If the crashes
-occur to you, try reinstalling GIMP.
+entries. If the crashes occur to you, try reinstalling GIMP.
 
 The following file formats are not working properly with this plug-in:
 * colored XHTML (.xhtml) - does not save images at all,

@@ -102,7 +102,7 @@ def add_gui_settings(settings):
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'advanced_settings_expanded',
+      'name': 'show_more_settings',
       'default_value': False
     },
     {
@@ -731,14 +731,14 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   HBOX_HORIZONTAL_SPACING = 8
   
-  ADVANCED_SETTINGS_HORIZONTAL_SPACING = 12
-  ADVANCED_SETTINGS_VERTICAL_SPACING = 6
-  ADVANCED_SETTINGS_LEFT_MARGIN = 15
+  MORE_SETTINGS_HORIZONTAL_SPACING = 12
+  MORE_SETTINGS_VERTICAL_SPACING = 6
   
-  DIALOG_SIZE = (900, 660)
+  DIALOG_SIZE = (900, 610)
   DIALOG_BORDER_WIDTH = 8
   DIALOG_VBOX_SPACING = 5
-  ACTION_AREA_BORDER_WIDTH = 4
+  DIALOG_BOTTOM_SEPARATOR_PADDING = 5
+  DIALOG_BUTTONS_HORIZONTAL_SPACING = 6
   
   def __init__(self, image, settings):
     super(_ExportLayersGui, self).__init__()
@@ -805,24 +805,22 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.label_message.set_alignment(0.0, 0.5)
     self.label_message.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
-    self.expander_advanced_settings = gtk.Expander()
-    self.expander_advanced_settings.set_use_markup(True)
-    self.expander_advanced_settings.set_use_underline(True)
-    self.expander_advanced_settings.set_label("<b>" + _("_Advanced Settings") + "</b>")
-    self.expander_advanced_settings.set_spacing(self.ADVANCED_SETTINGS_VERTICAL_SPACING // 2)
-    
-    self.advanced_settings_file_extension_mode_label = gtk.Label(
+    self.file_extension_mode_label = gtk.Label(
       self.settings['main/file_extension_mode'].display_name + ":")
-    self.advanced_settings_file_extension_mode_label.set_alignment(0, 0.5)
+    self.file_extension_mode_label.set_alignment(0, 0.5)
     
-    self.advanced_settings_tagged_layers_mode_label = gtk.Label(
+    self.tagged_layers_mode_label = gtk.Label(
       self.settings['main/tagged_layers_mode'].display_name + ":")
-    self.advanced_settings_tagged_layers_mode_label.set_alignment(0, 0.5)
+    self.tagged_layers_mode_label.set_alignment(0, 0.5)
+    
+    self.show_more_settings_button = gtk.CheckButton()
+    self.show_more_settings_button.set_use_underline(True)
+    self.show_more_settings_button.set_label(_("Show _More Settings"))
     
     self.settings.initialize_gui({
       'file_extension': [pgsetting.SettingGuiTypes.file_extension_entry, self.file_extension_entry],
       'dialog_position': [pgsetting.SettingGuiTypes.window_position, self.dialog],
-      'advanced_settings_expanded': [pgsetting.SettingGuiTypes.expander, self.expander_advanced_settings],
+      'show_more_settings': [pgsetting.SettingGuiTypes.checkbox, self.show_more_settings_button],
       'export_preview_pane_position': [
         pgsetting.SettingGuiTypes.paned_position, self.hpaned_chooser_and_previews],
     })
@@ -846,12 +844,12 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.hbox_export_settings.pack_start(self.settings['main/use_image_size'].gui.element)
     
     self.table_labels = gtk.Table(rows=2, columns=1, homogeneous=False)
-    self.table_labels.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
-    self.table_labels.attach(self.advanced_settings_file_extension_mode_label, 0, 1, 0, 1)
-    self.table_labels.attach(self.advanced_settings_tagged_layers_mode_label, 0, 1, 1, 2)
+    self.table_labels.set_row_spacings(self.MORE_SETTINGS_VERTICAL_SPACING)
+    self.table_labels.attach(self.file_extension_mode_label, 0, 1, 0, 1)
+    self.table_labels.attach(self.tagged_layers_mode_label, 0, 1, 1, 2)
     
     self.table_combo_boxes = gtk.Table(rows=2, columns=1, homogeneous=False)
-    self.table_combo_boxes.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
+    self.table_combo_boxes.set_row_spacings(self.MORE_SETTINGS_VERTICAL_SPACING)
     self.table_combo_boxes.attach(
       self.settings['main/file_extension_mode'].gui.element, 0, 1, 0, 1, yoptions=0)
     self.table_combo_boxes.attach(
@@ -866,43 +864,40 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         exportlayers.LayerExporter.SUPPORTED_TAGS['foreground'],
         self.settings['main/tagged_layers_mode'].items_display_names['special'])
     
-    self.advanced_settings_tagged_layers_mode_label.set_tooltip_text(tagged_layers_description)
+    self.tagged_layers_mode_label.set_tooltip_text(tagged_layers_description)
     self.settings['main/tagged_layers_mode'].gui.element.set_tooltip_text(tagged_layers_description)
     
     self.table_additional_elems = gtk.Table(rows=2, columns=1, homogeneous=False)
-    self.table_additional_elems.set_row_spacings(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
+    self.table_additional_elems.set_row_spacings(self.MORE_SETTINGS_VERTICAL_SPACING)
     self.table_additional_elems.attach(self.settings['main/strip_mode'].gui.element, 0, 1, 0, 1, yoptions=0)
     self.table_additional_elems.attach(self.settings['main/crop_mode'].gui.element, 0, 1, 1, 2)
     
     self.hbox_tables = gtk.HBox(homogeneous=False)
-    self.hbox_tables.set_spacing(self.ADVANCED_SETTINGS_HORIZONTAL_SPACING)
+    self.hbox_tables.set_spacing(self.MORE_SETTINGS_HORIZONTAL_SPACING)
     self.hbox_tables.pack_start(self.table_labels, expand=False, fill=True)
     self.hbox_tables.pack_start(self.table_combo_boxes, expand=False, fill=True)
     self.hbox_tables.pack_start(self.table_additional_elems, expand=False, fill=True)
     
-    self.hbox_advanced_settings_checkbuttons = gtk.HBox(homogeneous=False)
-    self.hbox_advanced_settings_checkbuttons.set_spacing(self.ADVANCED_SETTINGS_HORIZONTAL_SPACING)
-    self.hbox_advanced_settings_checkbuttons.pack_start(
+    self.hbox_more_settings_checkbuttons = gtk.HBox(homogeneous=False)
+    self.hbox_more_settings_checkbuttons.set_spacing(self.MORE_SETTINGS_HORIZONTAL_SPACING)
+    self.hbox_more_settings_checkbuttons.pack_start(
       self.settings['main/merge_layer_groups'].gui.element, expand=False, fill=True)
-    self.hbox_advanced_settings_checkbuttons.pack_start(
+    self.hbox_more_settings_checkbuttons.pack_start(
       self.settings['main/empty_folders'].gui.element, expand=False, fill=True)
-    self.hbox_advanced_settings_checkbuttons.pack_start(
+    self.hbox_more_settings_checkbuttons.pack_start(
       self.settings['main/ignore_layer_modes'].gui.element, expand=False, fill=True)
     
-    self.vbox_advanced_settings = gtk.VBox(homogeneous=False)
-    self.vbox_advanced_settings.set_spacing(self.ADVANCED_SETTINGS_VERTICAL_SPACING)
-    self.vbox_advanced_settings.pack_start(self.hbox_tables, expand=False, fill=False)
-    self.vbox_advanced_settings.pack_start(self.hbox_advanced_settings_checkbuttons, expand=False, fill=False)
+    self.vbox_more_settings = gtk.VBox(homogeneous=False)
+    self.vbox_more_settings.set_spacing(self.MORE_SETTINGS_VERTICAL_SPACING)
+    self.vbox_more_settings.pack_start(self.hbox_tables, expand=False, fill=False)
+    self.vbox_more_settings.pack_start(self.hbox_more_settings_checkbuttons, expand=False, fill=False)
     
-    self.alignment_advanced_settings = gtk.Alignment()
-    self.alignment_advanced_settings.set_padding(0, 0, self.ADVANCED_SETTINGS_LEFT_MARGIN, 0)
-    self.alignment_advanced_settings.add(self.vbox_advanced_settings)
-    self.expander_advanced_settings.add(self.alignment_advanced_settings)
-    
-    self.export_layers_button = self.dialog.add_button(_("_Export"), gtk.RESPONSE_OK)
+    self.export_layers_button = gtk.Button()
+    self.export_layers_button.set_label(_("_Export"))
     self.export_layers_button.grab_default()
-    self.cancel_button = self.dialog.add_button(_("_Cancel"), gtk.RESPONSE_CANCEL)
-    self.dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
+    
+    self.cancel_button = gtk.Button()
+    self.cancel_button.set_label(_("_Cancel"))
     
     self.stop_button = gtk.Button()
     self.stop_button.set_label(_("_Stop"))
@@ -917,24 +912,42 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.reset_settings_button = gtk.Button()
     self.reset_settings_button.set_label(_("Reset Settings"))
     
+    self.dialog_buttons = gtk.HButtonBox()
+    self.dialog_buttons.set_layout(gtk.BUTTONBOX_END)
+    self.dialog_buttons.set_spacing(self.DIALOG_BUTTONS_HORIZONTAL_SPACING)
+    
+    if not gtk.alternative_dialog_button_order():
+      main_dialog_buttons = [self.cancel_button, self.export_layers_button]
+    else:
+      main_dialog_buttons = [self.export_layers_button, self.cancel_button]
+    
+    for button in main_dialog_buttons:
+      self.dialog_buttons.pack_end(button, expand=False, fill=True)
+    
+    self.dialog_buttons.pack_end(self.stop_button, expand=False, fill=True)
+    self.dialog_buttons.pack_start(self.save_settings_button, expand=False, fill=True)
+    self.dialog_buttons.pack_start(self.reset_settings_button, expand=False, fill=True)
+    self.dialog_buttons.set_child_secondary(self.save_settings_button, True)
+    self.dialog_buttons.set_child_secondary(self.reset_settings_button, True)
+    
+    self.action_area = gtk.HBox(homogeneous=False)
+    self.action_area.set_spacing(self.HBOX_HORIZONTAL_SPACING)
+    self.action_area.pack_start(self.show_more_settings_button, expand=False, fill=True)
+    self.action_area.pack_start(self.dialog_buttons, expand=True, fill=True)
+    
     self.progress_bar = gtk.ProgressBar()
     self.progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
-    
-    self.dialog.action_area.pack_end(self.stop_button, expand=False, fill=True)
-    self.dialog.action_area.pack_start(self.save_settings_button, expand=False, fill=True)
-    self.dialog.action_area.pack_start(self.reset_settings_button, expand=False, fill=True)
-    self.dialog.action_area.set_child_secondary(self.save_settings_button, True)
-    self.dialog.action_area.set_child_secondary(self.reset_settings_button, True)
     
     self.dialog.vbox.set_spacing(self.DIALOG_VBOX_SPACING)
     self.dialog.vbox.pack_start(self.hpaned_chooser_and_previews)
     self.dialog.vbox.pack_start(self.hbox_file_extension, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.hbox_export_settings, expand=False, fill=False)
-    self.dialog.vbox.pack_start(self.expander_advanced_settings, expand=False, fill=False)
-    self.dialog.vbox.pack_start(gtk.HSeparator(), expand=False, fill=True)
+    self.dialog.vbox.pack_start(self.show_more_settings_button, expand=False, fill=False)
+    self.dialog.vbox.pack_start(self.vbox_more_settings, expand=False, fill=False)
+    self.dialog.vbox.pack_start(
+      gtk.HSeparator(), expand=False, fill=True, padding=self.DIALOG_BOTTOM_SEPARATOR_PADDING)
+    self.dialog.vbox.pack_start(self.action_area, expand=False, fill=True)
     self.dialog.vbox.pack_end(self.progress_bar, expand=False, fill=True)
-    # Move the action area above the progress bar.
-    self.dialog.vbox.reorder_child(self.dialog.action_area, -1)
     
     self.export_layers_button.connect("clicked", self.on_export_click)
     self.cancel_button.connect("clicked", self.cancel)
@@ -946,8 +959,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.reset_settings_button.connect("clicked", self.on_reset_settings_clicked)
     
     self.file_extension_entry.connect("changed", self.on_file_extension_entry_changed)
-    self.expander_advanced_settings.connect(
-      "notify::expanded", self.on_expander_advanced_settings_expanded_changed)
+    self.show_more_settings_button.connect("toggled", self.on_show_more_settings_button_toggled)
     
     self.dialog.connect("notify::is-active", self.on_dialog_is_active_changed)
     self.hpaned_chooser_and_previews.connect("event", self.on_hpaned_left_button_up)
@@ -959,11 +971,14 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.dialog.vbox.show_all()
     self.progress_bar.hide()
     self.stop_button.hide()
+    # Action area is unused and leaves unnecessary empty space.
+    self.dialog.action_area.hide()
     
     self.export_name_preview.widget.connect("notify::visible", self.on_preview_visible_changed)
     if not self.settings['gui/export_name_preview_enabled'].value:
       self.export_name_preview.lock_update(True, "preview_enabled")
-    self._handle_pane_for_advanced_settings()
+    
+    self._show_hide_more_settings()
     
     self.dialog.set_focus(self.file_extension_entry)
     self.dialog.set_default(self.export_layers_button)
@@ -972,7 +987,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.file_extension_entry.set_position(-1)
     
     self.dialog.show()
-    self.dialog.action_area.set_border_width(self.ACTION_AREA_BORDER_WIDTH)
   
   def reset_settings(self):
     self.settings.reset()
@@ -1000,14 +1014,16 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       
       pggui.timeout_add_strict(100, self.export_name_preview.update)
   
-  def on_expander_advanced_settings_expanded_changed(self, widget, property_spec):
-    self._handle_pane_for_advanced_settings()
+  def on_show_more_settings_button_toggled(self, widget):
+    self._show_hide_more_settings()
   
-  def _handle_pane_for_advanced_settings(self):
-    if self.expander_advanced_settings.get_expanded():
+  def _show_hide_more_settings(self):
+    if self.show_more_settings_button.get_active():
       self.export_name_preview.widget.show()
+      self.vbox_more_settings.show()
     else:
       self.export_name_preview.widget.hide()
+      self.vbox_more_settings.hide()
   
   def on_dialog_is_active_changed(self, widget, property_spec):
     if self.dialog.is_active():
