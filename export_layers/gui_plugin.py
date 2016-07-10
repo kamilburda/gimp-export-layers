@@ -191,6 +191,9 @@ def _set_settings(func):
   return func_wrapper
 
 
+#===============================================================================
+
+
 def _update_directory(setting, current_image, directory_for_current_image):
   """
   Set the directory to the setting according to the priority list below:
@@ -248,6 +251,9 @@ def _setup_output_directory_changed(settings, current_image):
   
   settings['main/output_directory'].connect_event('value-changed',
     on_output_directory_changed, settings['gui_session/image_ids_and_directories'], current_image.ID)
+
+
+#===============================================================================
 
 
 def _remove_invalid_image_filenames(image_filenames_dict_setting):
