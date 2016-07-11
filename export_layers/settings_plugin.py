@@ -299,8 +299,8 @@ def create_settings():
 def setup_image_ids_and_filenames_settings(image_ids_dict_setting, image_filenames_dict_setting):
   
   def _remove_invalid_image_filenames(image_filenames_dict_setting):
-    for image_filename in image_filenames_dict_setting.value:
-      if not(os.path.isfile(image_filename) and image_filenames_dict_setting.value[image_filename]):
+    for image_filename, values in list(image_filenames_dict_setting.value.items()):
+      if not(os.path.isfile(image_filename) and values):
         del image_filenames_dict_setting.value[image_filename]
   
   def _update_image_ids(image_ids_dict_setting, image_filenames_dict_setting):
