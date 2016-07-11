@@ -55,6 +55,7 @@ from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
 
 from export_layers import exportlayers
+from export_layers import settings_plugin
 
 #===============================================================================
 
@@ -143,16 +144,9 @@ def add_gui_settings(settings):
   
   settings.add([gui_settings, session_only_gui_settings, persistent_only_gui_settings])
   
-  settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'].connect_event(
-    'after-load', _remove_invalid_image_filenames)
-  
-  settings['gui_session/export_name_preview_layers_collapsed_state'].connect_event(
-    'after-load', _update_image_ids,
+  settings_plugin.setup_image_ids_and_filenames_settings(
+    settings['gui_session/export_name_preview_layers_collapsed_state'],
     settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'])
-  
-  settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'].connect_event(
-    'before-save', _update_image_filenames,
-    settings['gui_session/export_name_preview_layers_collapsed_state'])
   
   settings.set_ignore_tags({
     'gui_session/image_ids_and_directories': ['reset'],
@@ -183,7 +177,7 @@ def _set_settings(func):
       self.settings['gui_session/export_name_preview_layers_collapsed_state'].value[self.image.ID] = (
         self.export_name_preview.collapsed_items)
       
-      self.settings['main/selected_layers'].set_value(self.export_name_preview.selected_items)
+      self.settings['main/selected_layers'].value[self.image.ID] = self.export_name_preview.selected_items
     except pgsetting.SettingValueError as e:
       self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
       return
@@ -258,31 +252,6 @@ def _setup_output_directory_changed(settings, current_image):
 #===============================================================================
 
 
-def _remove_invalid_image_filenames(image_filenames_dict_setting):
-  image_filenames_dict_setting.set_value({image_filename: values
-                                          for image_filename, values in image_filenames_dict_setting.value.items()
-                                          if os.path.isfile(image_filename) and values})
-
-
-def _update_image_filenames(image_filenames_dict_setting, image_ids_dict_setting):
-  current_images = gimp.image_list()
-  
-  for image in current_images:
-    if image.ID in image_ids_dict_setting.value and image.filename:
-      image_filenames_dict_setting.value[os.path.abspath(image.filename)] = image_ids_dict_setting.value[image.ID]
-
-
-def _update_image_ids(image_ids_dict_setting, image_filenames_dict_setting):
-  current_images = gimp.image_list()
-  
-  for image in current_images:
-    if image.ID not in image_ids_dict_setting.value and image.filename in image_filenames_dict_setting.value:
-      image_ids_dict_setting.value[image.ID] = image_filenames_dict_setting.value[os.path.abspath(image.filename)]
-
-
-#===============================================================================
-
-
 @contextlib.contextmanager
 def _handle_gui_in_export(run_mode, image, layer, output_filename, window):
   should_manipulate_window = run_mode == gimpenums.RUN_INTERACTIVE
@@ -311,15 +280,15 @@ class ExportNamePreview(object):
   _COLUMNS = (_COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME_SENSITIVE, _COLUMN_LAYER_NAME,
     _COLUMN_LAYER_ORIG_NAME) = ([0, gtk.gdk.Pixbuf], [1, bool], [2, bool], [3, bytes], [4, bytes])
   
-  def __init__(self, layer_exporter, collapsed_items=None):
+  def __init__(self, layer_exporter, collapsed_items=None, selected_items=None):
     self._layer_exporter = layer_exporter
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
+    self._selected_items = selected_items if selected_items is not None else []
     
     self._update_locked = False
     self._lock_keys = set()
     
     self._tree_iters = collections.defaultdict(lambda: None)
-    self._selected_items = []
     
     self._row_expand_collapse_interactive = True
     self._toggle_tag_interactive = True
@@ -387,6 +356,14 @@ class ExportNamePreview(object):
     
     self._collapsed_items = collapsed_items
     self._set_expanded_items()
+  
+  def set_selected_items(self, selected_items):
+    """
+    Set the selection of items in the preview.
+    """
+    
+    self._selected_items = selected_items
+    self._set_selection()
   
   @property
   def collapsed_items(self):
@@ -801,7 +778,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self.export_name_preview = ExportNamePreview(
       exportlayers.LayerExporter(gimpenums.RUN_NONINTERACTIVE, self.image, self.settings['main']),
-      self.settings['gui_session/export_name_preview_layers_collapsed_state'].value[self.image.ID])
+      self.settings['gui_session/export_name_preview_layers_collapsed_state'].value[self.image.ID],
+      self.settings['main/selected_layers'].value[self.image.ID])
     
     self.vbox_folder_chooser = gtk.VBox(homogeneous=False)
     self.vbox_folder_chooser.set_spacing(self.DIALOG_VBOX_SPACING * 2)
@@ -1052,16 +1030,15 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     def _on_setting_changed(setting):
       pggui.timeout_add_strict(50, self.export_name_preview.update)
     
-    def _on_collapsed_state_reset(setting):
-      self.export_name_preview.set_collapsed_items(setting.value)
-    
     for setting in self.settings['main']:
       if setting.name not in ['file_extension', 'output_directory', 'overwrite_mode',
-                              'export_only_selected_layers', 'selected_layers']:
+                              'export_only_selected_layers', 'selected_layers', 'selected_layers_persistent']:
         setting.connect_event('value-changed', _on_setting_changed)
     
     self.settings['gui_session/export_name_preview_layers_collapsed_state'].connect_event(
-      'after-reset', _on_collapsed_state_reset)
+      'after-reset', lambda setting: self.export_name_preview.set_collapsed_items(setting.value[self.image.ID]))
+    self.settings['main/selected_layers'].connect_event(
+      'after-reset', lambda setting: self.export_name_preview.set_selected_items(setting.value[self.image.ID]))
   
   def on_hpaned_left_button_up(self, widget, event):
     if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:

@@ -28,6 +28,9 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import collections
+import os
+
 import gimp
 import gimpenums
 
@@ -195,9 +198,20 @@ def create_settings():
     {
       'type': pgsetting.SettingTypes.generic,
       'name': 'selected_layers',
-      'default_value': set(),
+      # key: image ID; value: set of selected layer names
+      'default_value': collections.defaultdict(set),
       'display_name': _("Selected layers"),
-      'pdb_type': None
+      'pdb_type': None,
+      'setting_sources': [pygimplib.config.SOURCE_SESSION]
+    },
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'selected_layers_persistent',
+      # key: image filename; value: set of selected layer names
+      'default_value': collections.defaultdict(set),
+      'display_name': _("Selected layers"),
+      'pdb_type': None,
+      'setting_sources': [pygimplib.config.SOURCE_PERSISTENT]
     },
   ], setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
   
@@ -262,6 +276,9 @@ def create_settings():
   main_settings['tagged_layers_mode'].connect_event('value-changed',
     on_tagged_layers_mode_changed, main_settings['autocrop'], main_settings['crop_mode'])
   
+  setup_image_ids_and_filenames_settings(
+    main_settings['selected_layers'], main_settings['selected_layers_persistent'])
+  
   #-----------------------------------------------------------------------------
   
   settings = pgsettinggroup.SettingGroup('all_settings', [special_settings, main_settings])
@@ -274,3 +291,32 @@ def create_settings():
   #-----------------------------------------------------------------------------
   
   return settings
+
+
+#===============================================================================
+
+
+def setup_image_ids_and_filenames_settings(image_ids_dict_setting, image_filenames_dict_setting):
+  
+  def _remove_invalid_image_filenames(image_filenames_dict_setting):
+    for image_filename in image_filenames_dict_setting.value:
+      if not(os.path.isfile(image_filename) and image_filenames_dict_setting.value[image_filename]):
+        del image_filenames_dict_setting.value[image_filename]
+  
+  def _update_image_ids(image_ids_dict_setting, image_filenames_dict_setting):
+    current_images = gimp.image_list()
+    
+    for image in current_images:
+      if image.ID not in image_ids_dict_setting.value and image.filename in image_filenames_dict_setting.value:
+        image_ids_dict_setting.value[image.ID] = image_filenames_dict_setting.value[os.path.abspath(image.filename)]
+  
+  def _update_image_filenames(image_filenames_dict_setting, image_ids_dict_setting):
+    current_images = gimp.image_list()
+    
+    for image in current_images:
+      if image.ID in image_ids_dict_setting.value and image.filename:
+        image_filenames_dict_setting.value[os.path.abspath(image.filename)] = image_ids_dict_setting.value[image.ID]
+  
+  image_filenames_dict_setting.connect_event('after-load-group', _remove_invalid_image_filenames)
+  image_ids_dict_setting.connect_event('after-load-group', _update_image_ids, image_filenames_dict_setting)
+  image_filenames_dict_setting.connect_event('before-save', _update_image_filenames, image_ids_dict_setting)

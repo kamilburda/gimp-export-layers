@@ -372,7 +372,7 @@ class LayerExporter(object):
     
     if self.export_settings['export_only_selected_layers'].value:
       self._layer_data.filter.add_rule(
-        LayerFilterRules.is_layer_in_selected_layers, self.export_settings['selected_layers'].value)
+        LayerFilterRules.is_layer_in_selected_layers, self.export_settings['selected_layers'].value[self.image.ID])
     
     if (self.export_settings['layer_groups_as_folders'].value and
         self.export_settings['export_only_selected_layers'].value):
