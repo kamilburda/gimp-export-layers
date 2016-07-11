@@ -105,6 +105,9 @@ class ItemData(object):
     # key: `_ItemDataElement` object (parent) or None (root of the item tree)
     # value: set of `_ItemDataElement` objects
     self._uniquified_itemdata = {}
+    # key: `_ItemDataElement` object (parent) or None (root of the item tree)
+    # value: set of `_ItemDataElement.name` strings
+    self._uniquified_itemdata_names = {}
     
     self._validated_itemdata = set()
     
@@ -201,29 +204,29 @@ class ItemData(object):
         
         if parent not in self._uniquified_itemdata:
           self._uniquified_itemdata[parent] = set()
+          self._uniquified_itemdata_names[parent] = set()
         
         if elem not in self._uniquified_itemdata[parent]:
-          item_names = set([elem_.name for elem_ in self._uniquified_itemdata[parent]])
-          if elem.name not in item_names:
-            self._uniquified_itemdata[parent].add(elem)
-          else:
+          if elem.name in self._uniquified_itemdata_names[parent]:
             if elem == item_elem:
               position = uniquifier_position
             else:
               position = uniquifier_position_parents
             
-            elem.name = pgpath.uniquify_string(elem.name, item_names, position)
-            self._uniquified_itemdata[parent].add(elem)
+            elem.name = pgpath.uniquify_string(elem.name, self._uniquified_itemdata_names[parent], position)
+          
+          self._uniquified_itemdata[parent].add(elem)
+          self._uniquified_itemdata_names[parent].add(elem.name)
     else:
       # Use None as the root of the item tree.
       parent = None
       
-      if parent not in self._uniquified_itemdata:
-        self._uniquified_itemdata[parent] = set()
+      if parent not in self._uniquified_itemdata_names:
+        self._uniquified_itemdata_names[parent] = set()
       
       item_elem.name = pgpath.uniquify_string(
-        item_elem.name, self._uniquified_itemdata[parent], uniquifier_position)
-      self._uniquified_itemdata[parent].add(item_elem.name)
+        item_elem.name, self._uniquified_itemdata_names[parent], uniquifier_position)
+      self._uniquified_itemdata_names[parent].add(item_elem.name)
   
   def validate_name(self, item_elem):
     """
@@ -235,6 +238,20 @@ class ItemData(object):
       if elem not in self._validated_itemdata:
         elem.name = pgpath.FilenameValidator.validate(elem.name)
         self._validated_itemdata.add(elem)
+  
+  def reset_name(self, item_elem):
+    """
+    Reset the name of the specified item to its original name. In addition,
+    allow the item to be validated or uniquified again (using `validate_name`
+    or `uniquify_name`, respectively).
+    """
+    
+    item_elem.name = item_elem.orig_name
+    
+    if item_elem in self._validated_itemdata:
+      self._validated_itemdata.remove(item_elem)
+    if item_elem.parent in self._uniquified_itemdata:
+      self._uniquified_itemdata[item_elem.parent].remove(item_elem)
   
   def add_tag(self, item_elem, tag):
     """

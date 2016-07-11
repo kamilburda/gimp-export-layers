@@ -399,7 +399,23 @@ class TestLayerData(unittest.TestCase):
         layer_elem, include_item_path=True,
         uniquifier_position=_get_file_extension_start_position(layer_elem.name))
     self._compare_uniquified_with_parents(self.layer_data, uniquified_names)
-
+  
+  def test_reset_name(self):
+    self.layer_data['Corners'].name = "Corners.png"
+    
+    self.layer_data.validate_name(self.layer_data['Corners'])
+    self.layer_data.uniquify_name(self.layer_data['Corners'])
+    
+    self.layer_data.validate_name(self.layer_data['Corners::'])
+    self.layer_data.uniquify_name(self.layer_data['Corners::'])
+    
+    self.layer_data.reset_name(self.layer_data['Corners'])
+    
+    self.layer_data.validate_name(self.layer_data['Corners'])
+    self.layer_data.uniquify_name(self.layer_data['Corners'])
+    
+    self.assertEqual(self.layer_data['Corners::'].name, "Corners")
+    self.assertEqual(self.layer_data['Corners'].name, "Corners (1)")
 
 @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpstubs.PdbStub())
 class TestLayerDataElement(unittest.TestCase):
