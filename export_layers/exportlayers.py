@@ -373,6 +373,10 @@ class LayerExporter(object):
     if self.export_settings['export_only_selected_layers'].value:
       self._layer_data.filter.add_rule(
         LayerFilterRules.is_layer_in_selected_layers, self.export_settings['selected_layers'].value)
+    
+    if (self.export_settings['layer_groups_as_folders'].value and
+        self.export_settings['export_only_selected_layers'].value):
+      self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
   
   def _export_layers(self):
     with self._layer_data.filter['layer_types'].remove_rule_temp(LayerFilterRules.is_empty_group, False):
@@ -390,6 +394,7 @@ class LayerExporter(object):
         self._preprocess_layer_name(layer_elem)
         self._export_layer(layer_elem, self._image_copy, layer_copy)
         self._postprocess_layer(self._image_copy, layer_copy)
+        self._postprocess_layer_name(layer_elem)
         
         self.progress_updater.update_tasks()
         
@@ -557,6 +562,11 @@ class LayerExporter(object):
     self._set_file_extension(layer_elem)
     self._layer_data.uniquify_name(layer_elem, self._include_item_path,
                                    self._get_uniquifier_position(layer_elem.name))
+  
+  def _postprocess_layer_name(self, layer_elem):
+    if (layer_elem.item_type == layer_elem.NONEMPTY_GROUP and
+        self.export_settings['export_only_selected_layers'].value):
+      self.layer_data.reset_name(layer_elem)
   
   def _strip_file_extension(self, layer_elem):
     if self.export_settings['strip_mode'].is_item('identical', 'always'):
