@@ -155,7 +155,7 @@ def get_file_extension(str_, to_lowercase=True):
   A string has file extension if it contains a "." character and a substring
   following this character.
   
-  Paramters:
+  Parameters:
   
   * `to_lowercase` - If True, convert the file extension to lowercase.
   """
