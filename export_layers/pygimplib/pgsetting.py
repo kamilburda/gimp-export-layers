@@ -504,6 +504,22 @@ class Setting(object):
         `pgsettingpersistor.SettingPersistor.save`. Events will not be invoked
         if saving settings failed (i.e. `SettingPersistor` returns `SAVE_FAIL`
         status).
+      
+      * 'before-load-group' - invoked before loading settings in a group via
+        `SettingGroup.load`.
+      
+      * 'after-load-group' - invoked after loading settings in a group via
+        `SettingGroup.load`. This is useful if the group contains settings with
+        different setting sources so that the event is invoked only once after
+        all settings from different sources are loaded. This also applies to
+        other related events ('before-load-group', 'before-save-group',
+        'after-save-group').
+      
+      * 'before-save-group' - invoked before saving settings in a group via
+        `SettingGroup.load`.
+      
+      * 'after-save-group' - invoked after saving settings in a group via
+        `SettingGroup.load`.
     
     The `event_handler` function must always contain at least one argument -
     this setting.

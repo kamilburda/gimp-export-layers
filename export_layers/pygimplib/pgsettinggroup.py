@@ -278,7 +278,15 @@ class SettingGroup(object):
     a status message containing status messages of all calls to `load()`.
     """
     
-    return self._load_save('load', pgsettingpersistor.SettingPersistor.load)
+    for setting in self.iterate_all(ignore_tags=['load']):
+      setting.invoke_event('before-load-group')
+    
+    return_values = self._load_save('load', pgsettingpersistor.SettingPersistor.load)
+    
+    for setting in self.iterate_all(ignore_tags=['load']):
+      setting.invoke_event('after-load-group')
+    
+    return return_values
   
   def save(self):
     """
@@ -289,7 +297,15 @@ class SettingGroup(object):
     For more information, refer to the `load()` method.
     """
     
-    return self._load_save('save', pgsettingpersistor.SettingPersistor.save)
+    for setting in self.iterate_all(ignore_tags=['save']):
+      setting.invoke_event('before-save-group')
+    
+    return_values = self._load_save('save', pgsettingpersistor.SettingPersistor.save)
+    
+    for setting in self.iterate_all(ignore_tags=['save']):
+      setting.invoke_event('after-save-group')
+    
+    return return_values
   
   def initialize_gui(self, custom_gui=None):
     """
