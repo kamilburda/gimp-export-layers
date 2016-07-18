@@ -24,6 +24,7 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import datetime
 import os
 import unittest
 
@@ -72,6 +73,239 @@ class TestUniquifyString(unittest.TestCase):
                      pgpath.uniquify_string(input_str, [input_str, "two", "three"],
                                             len(input_str) - len(".xcf.gz")))
 
+
+#===============================================================================
+
+
+class TestStringPatternGenerator(unittest.TestCase):
+  
+  def _test_generate(self, pattern, *expected_outputs):
+    generator = pgpath.StringPatternGenerator(pattern)
+    for output in expected_outputs:
+      self.assertEqual(generator.generate(), output)
+  
+  def _test_generate_with_field(self, field_name, field_func, pattern, *expected_outputs):
+    generator = pgpath.StringPatternGenerator(pattern, {field_name: field_func})
+    for output in expected_outputs:
+      self.assertEqual(generator.generate(), output)
+  
+  def _test_generate_with_fields(self, fields, pattern, *expected_outputs):
+    generator = pgpath.StringPatternGenerator(pattern, fields)
+    for output in expected_outputs:
+      self.assertEqual(generator.generate(), output)
+  
+  def _test_generate_with_field_generator(self, field_name, field_generator_func, pattern, *expected_outputs):
+    field_generator = field_generator_func()
+    fields = {field_name: lambda: next(field_generator)}
+    generator = pgpath.StringPatternGenerator(pattern, fields)
+    for output in expected_outputs:
+      self.assertEqual(generator.generate(), output)
+  
+  def test_generate_default_number_empty_pattern(self):
+    self._test_generate("", "001", "002", "003", "004", "005", "006", "007", "008", "009", "010")
+
+  def test_generate_default_number(self):
+    self._test_generate("image", "image001", "image002", "image003")
+  
+  def test_generate_number(self):
+    self._test_generate("image1", "image1", "image2")
+    self._test_generate("image01", "image01", "image02")
+    self._test_generate("image001", "image001", "image002")
+    self._test_generate("001", "001", "002")
+    self._test_generate("image005", "image005", "image006")
+    self._test_generate("image9", "image9", "image10")
+    self._test_generate("image09", "image09", "image10")
+    self._test_generate("image_001", "image_001", "image_002")
+    self._test_generate("001image", "001image", "002image")
+    self._test_generate("001_image", "001_image", "002_image")
+    self._test_generate("image_001001", "image_001001", "image_001002")
+    self._test_generate("image_001_001", "image_001_001", "image_001_002")
+    self._test_generate("001_001_image", "001_001_image", "002_001_image")
+    self._test_generate("001_image_001", "001_image_001", "001_image_002")
+    self._test_generate("image_pwn3r_001", "image_pwn3r_001", "image_pwn3r_002")
+    self._test_generate("image_pwn3r", "image_pwn3r001", "image_pwn3r002")
+    self._test_generate("image_pwn3r1337", "image_pwn3r1337", "image_pwn3r1338")
+    self._test_generate("001_image_pwn3r", "001_image_pwn3r", "002_image_pwn3r")
+    self._test_generate("001image_pwn3r", "001image_pwn3r", "002image_pwn3r")
+    self._test_generate("image_001_pwn3r", "image_001_pwn3r001", "image_001_pwn3r002")
+  
+  def test_generate_with_fields(self):
+    def _get_layer_name():
+      for layer_name in ["layer one", "layer two", "layer three"]:
+        yield layer_name
+    
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[layer name]_001",
+      "layer one_001", "layer two_002", "layer three_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[layer name]",
+      "layer one", "layer two", "layer three")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[layer name]_[layer name]_001",
+      "layer one_layer two_001")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[layer name][layer name]_001",
+      "layer onelayer two_001")
+    
+    self._test_generate_with_fields(
+      {"field1": lambda: "value1", "field2": lambda: "value2", "field3": lambda: "value3"},
+      "image_[field1][field2]_[field3]_001",
+      "image_value1value2_value3_001", "image_value1value2_value3_002", "image_value1value2_value3_003")
+    
+    self._test_generate_with_fields(
+      {"field": lambda arg1, arg2: "value" + str(arg1) + str(arg2), "bar": lambda: "another value"},
+      ("Hi there [field, 1, 2][another field][another field]_[another field], "
+       "I am [bar] and [bazbaz] and this is [001] and [baz]"),
+      ("Hi there value12[another field][another field]_[another field], "
+       "I am another value and [bazbaz] and this is 001 and [baz]"),
+      ("Hi there value12[another field][another field]_[another field], "
+       "I am another value and [bazbaz] and this is 002 and [baz]"),
+      ("Hi there value12[another field][another field]_[another field], "
+       "I am another value and [bazbaz] and this is 003 and [baz]"),)
+    
+    self._test_generate_with_field_generator(
+      "different field", _get_layer_name, "[layer name]_001",
+      "[layer name]_001", "[layer name]_002", "[layer name]_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[unrecognized field]_001",
+      "[unrecognized field]_001", "[unrecognized field]_002", "[unrecognized field]_003")
+    self._test_generate_with_field_generator(
+      "[layer name]", _get_layer_name, "[layer name]_001",
+      "[layer name]_001", "[layer name]_002", "[layer name]_003")
+    
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[[layer name]]_001",
+      "[layer name]_001", "[layer name]_002", "[layer name]_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[[layer name]]",
+      "[layer name]001", "[layer name]002", "[layer name]003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[layer name_001",
+      "[layer name_001", "[layer name_002", "[layer name_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[layer [name",
+      "[layer [name001", "[layer [name002", "[layer [name003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, " [layer [name",
+      " [layer [name001", " [layer [name002", " [layer [name003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[[layer name_001",
+      "[layer name_001", "[layer name_002", "[layer name_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[[layer [[name]]_[layer name]_001",
+      "[layer [name]_layer one_001", "[layer [name]_layer two_002", "[layer [name]_layer three_003")
+    
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[[layer name]_001",
+      "[layer name]_001", "[layer name]_002", "[layer name]_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "layer name]_001",
+      "layer name]_001", "layer name]_002", "layer name]_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "layer ]name]",
+      "layer ]name]001", "layer ]name]002", "layer ]name]003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "layer name]]_001",
+      "layer name]_001", "layer name]_002", "layer name]_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[[layer ]]name]]_[layer name]_001",
+      "[layer ]name]_layer one_001", "[layer ]name]_layer two_002", "[layer ]name]_layer three_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[layer name]]_001",
+      "layer one]_001", "layer two]_002", "layer three]_003")
+    
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[layer name[]_001",
+      "[layer name[]_001", "[layer name[]_002", "[layer name[]_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "]layer name[]_001",
+      "]layer name[]_001", "]layer name[]_002", "]layer name[]_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "]layer name][_001",
+      "]layer name][_001", "]layer name][_002", "]layer name][_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[layer name][_001",
+      "layer one[_001", "layer two[_002", "layer three[_003")
+    
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[[layer name]] [[layer name]]_001",
+      "[layer name] [layer name]_001", "[layer name] [layer name]_002", "[layer name] [layer name]_003")
+    self._test_generate_with_field_generator(
+      "layer name", _get_layer_name, "[[layer name] [layer name]]_001",
+      "[layer name] layer one]_001", "[layer name] layer two]_002", "[layer name] layer three]_003")
+  
+  def test_generate_with_number_field(self):
+    self._test_generate_with_fields(
+      {}, "image[001]",
+      "image001", "image002", "image003")
+    self._test_generate_with_fields(
+      {}, "image[001]_2016-07-16",
+      "image001_2016-07-16", "image002_2016-07-16", "image003_2016-07-16")
+    self._test_generate_with_fields(
+      {}, "image[001]_[01]_2016-07-16",
+      "image001_01_2016-07-16", "image002_02_2016-07-16", "image003_03_2016-07-16")
+  
+  def test_generate_with_fields_with_args(self):
+    def _get_date(date_format):
+      return datetime.datetime(2016, 7, 16, hour=23).strftime(date_format)
+    
+    def _get_date_with_default(date_format="%d.%m.%Y"):
+      return datetime.datetime(2016, 7, 16, hour=23).strftime(date_format)
+    
+    def _get_joined_args(separator, *args):
+      return separator.join(args)
+    
+    self._test_generate_with_field(
+      "date", _get_date, "[date, %Y-%m-%d]_001",
+      "2016-07-16_001", "2016-07-16_002", "2016-07-16_003")
+    self._test_generate_with_field(
+      "joined args", _get_joined_args, "[joined args, -, one, two, three]_001",
+      "one-two-three_001", "one-two-three_002", "one-two-three_003")
+    self._test_generate_with_field(
+      "joined args", _get_joined_args, "[joined args, -, [one], [two], [three],]_001",
+      "one-two-three_001", "one-two-three_002", "one-two-three_003")
+    
+    self._test_generate_with_field(
+      "joined args", _get_joined_args, "[joined args, -, [one, ], [two, ], [three, ],]_001",
+      "one, -two, -three, _001", "one, -two, -three, _002", "one, -two, -three, _003")
+    self._test_generate_with_field(
+      "joined args", _get_joined_args, "[joined args, -, [[[one, ]]], [[[two, ]]], [[[three, ]]],]_001",
+      "[one, ]-[two, ]-[three, ]_001", "[one, ]-[two, ]-[three, ]_002", "[one, ]-[two, ]-[three, ]_003")
+    self._test_generate_with_field(
+      "joined args", _get_joined_args, "[joined args, -, [one[, ]_001",
+      "[joined args, -, [one[, ]_001", "[joined args, -, [one[, ]_002", "[joined args, -, [one[, ]_003")
+    self._test_generate_with_field(
+      "joined args", _get_joined_args, "[joined args, -, [on[[e], [t[[w]]o], [thre]]e],]_001",
+      "on[e-t[w]o-thre]e_001", "on[e-t[w]o-thre]e_002", "on[e-t[w]o-thre]e_003")
+    
+    self._test_generate_with_field(
+      "date", _get_date, "[date]_001",
+      "[date]_001", "[date]_002", "[date]_003")
+    self._test_generate_with_field(
+      "date", _get_date, "[date, %Y-%m-%d, more_args]_001",
+      "[date, %Y-%m-%d, more_args]_001", "[date, %Y-%m-%d, more_args]_002", "[date, %Y-%m-%d, more_args]_003")
+    
+    self._test_generate_with_field(
+      "date", _get_date_with_default, "[date, %Y-%m-%d]_001",
+      "2016-07-16_001", "2016-07-16_002", "2016-07-16_003")
+    self._test_generate_with_field(
+      "date", _get_date_with_default, "[date]_001",
+      "16.07.2016_001", "16.07.2016_002", "16.07.2016_003")
+    self._test_generate_with_field(
+      "date", _get_date_with_default, "[date, %Y-%m-%d, more_args]_001",
+      "[date, %Y-%m-%d, more_args]_001", "[date, %Y-%m-%d, more_args]_002", "[date, %Y-%m-%d, more_args]_003")
+  
+  def test_generate_with_fields_invalid_field_function(self):
+    def _get_joined_kwargs_values(separator, **kwargs):
+      return separator.join(list(kwargs.values()))
+    
+    with self.assertRaises(ValueError):
+      pgpath.StringPatternGenerator("[joined kwargs, -]_001", {"joined kwargs": _get_joined_kwargs_values})
+    
+
+#===============================================================================
+
+
 class TestGetFileExtension(unittest.TestCase):
   
   def test_get_file_extension(self):
@@ -81,6 +315,9 @@ class TestGetFileExtension(unittest.TestCase):
     self.assertEqual("", pgpath.get_file_extension("picture."))
     self.assertEqual("", pgpath.get_file_extension("picture"))
     self.assertEqual("JPG", pgpath.get_file_extension("picture.JPG", to_lowercase=False))
+
+
+#===============================================================================
 
 
 class TestFilenameValidator(unittest.TestCase):

@@ -30,8 +30,10 @@ from __future__ import unicode_literals
 str = unicode
 
 import abc
+import inspect
 import os
 import re
+import types
 
 #===============================================================================
 
@@ -120,6 +122,12 @@ def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None,
     return "{0}{1}{2}".format(str_[0:uniquifier_position],
                               next(uniquifier_generator),
                               str_[uniquifier_position:])
+
+  def _generate_unique_number():
+    i = 1
+    while True:
+      yield " ({0})".format(i)
+      i += 1
   
   if is_unique_func(str_):
     return str_
@@ -137,11 +145,276 @@ def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None,
   return uniq_str
 
 
-def _generate_unique_number():
-  i = 1
-  while True:
-    yield " ({0})".format(i)
-    i += 1
+#===============================================================================
+
+
+class StringPatternGenerator(object):
+  
+  """
+  This class generates strings by a given pattern and optionally fields acting
+  as variables in the pattern.
+  
+  To generate a string, create a new instance of `StringPatternGenerator` with
+  the desired pattern and fields and then call `generate()`.
+  
+  `fields` is a dictionary of <field name>: <function> pairs inserted into the
+  pattern. Fields in the pattern are enclosed in square brackets ("[field]").
+  To insert literal square brackets, double the character ("[[", "]]").
+  
+  Field arguments (the number depends on the function in the `fields`
+  dictionary) are separated by commas (","). To insert literal commas in field
+  arguments, enclose the arguments in square brackets. To insert square brackets
+  in field arguments, enclose the arguments in square brackets and double the
+  square brackets (the ones inside the argument, not the enclosing ones). If the
+  last argument is enclosed in square brackets, insert a comma after the
+  argument.
+  
+  If no field is specified or if a number is explicitly specified at the
+  beginning or the end of the pattern, an auto-incrementing number is assigned
+  to each generated string.
+  
+  Examples:
+  
+  * "image" -> "image001", "image002", ...
+  * "image1" -> "image1", "image2", ...
+  * "001_image" -> "001_image", "002_image", ...
+  * "image005" -> "image005", "image006", ...
+  * Suppose `fields` contains field "date" returning current date (requiring a
+    date format as a parameter). Then:
+    "image_[date, %Y-%m-%d]_001" -> "image_2016-07-16_001", "image_2016-07-16_002", ...
+  * Field specified, no explicit number specified:
+    "[date]" -> "2016-07-16", "2016-07-16", ...
+  * "image001_1234" -> "image001_1234", "image001_1235", ...
+  * "image[001]_1234" -> "image001_1234", "image002_1234", ...
+  * "[[image]]" -> "[image]001", "[image]002", ...
+  * "[date, [[[%Y,%m,%d]]],]_001" -> "[2016,07,16]_001", "[2016,07,16]_002", ...
+  """
+  
+  def __init__(self, pattern, fields=None):
+    self._pattern = pattern
+    self._fields = fields if fields is not None else {}
+    
+    self._number_generators = []
+    
+    self._pattern_parts = self._parse_pattern(self._pattern, self._fields)
+  
+  def generate(self):
+    pattern_parts = []
+    for part in self._pattern_parts:
+      if isinstance(part, types.StringTypes):
+        pattern_parts.append(part)
+      else:
+        pattern_parts.append(self._process_field(part))
+    
+    return "".join(pattern_parts)
+  
+  def _parse_pattern(self, pattern, fields):
+    index = 0
+    start_of_field_index = 0
+    last_constant_substring_index = 0
+    has_pattern_number_field = False
+    has_fields = False
+    field_depth = 0
+    
+    pattern_parts = []
+    
+    def _add_substring(end_index=None):
+      start_index = max(last_constant_substring_index, start_of_field_index)
+      if end_index is not None:
+        pattern_parts.append(pattern[start_index:end_index])
+      else:
+        pattern_parts.append(pattern[start_index:])
+    
+    while index < len(pattern):
+      if pattern[index] == "[":
+        is_escaped = self._is_field_symbol_escaped(pattern, index, "[")
+        if field_depth == 0 and is_escaped:
+          _add_substring(index)
+          pattern_parts.append("[")
+          last_constant_substring_index = index + 2
+          index += 2
+          continue
+        elif field_depth == 0 and not is_escaped:
+          _add_substring(index)
+          start_of_field_index = index
+          field_depth += 1
+        elif field_depth == 1:
+          field_depth += 1
+        elif field_depth > 1 and is_escaped:
+          index += 2
+          continue
+        elif field_depth > 1 and not is_escaped:
+          field_depth += 1
+      elif pattern[index] == "]":
+        is_escaped = self._is_field_symbol_escaped(pattern, index, "]")
+        if field_depth == 0 and is_escaped:
+          _add_substring(index)
+          pattern_parts.append("]")
+          last_constant_substring_index = index + 2
+          index += 2
+          continue
+        elif field_depth == 0 and not is_escaped:
+          index += 1
+          continue
+        elif field_depth == 1:
+          field_depth -= 1
+        elif field_depth > 1 and is_escaped:
+          index += 2
+          continue
+        elif field_depth > 1 and not is_escaped:
+          field_depth -= 1
+          index += 1
+          continue
+        
+        field_str = pattern[start_of_field_index + 1:index]
+        field = self._parse_field(field_str)
+        
+        if field[0] in fields and self._is_field_valid(field):
+          has_fields = True
+          pattern_parts.append(field)
+        elif self._is_field_number(field[0]) and not field[1]:
+          has_fields = True
+          has_pattern_number_field = True
+          self._add_number_field(field[0])
+          
+          pattern_parts.append(field)
+        else:
+          _add_substring(index + 1)
+        
+        last_constant_substring_index = index + 1
+      
+      index += 1
+    
+    _add_substring()
+    
+    if not has_pattern_number_field:
+      pattern_parts = self._parse_number(pattern_parts, has_fields)
+    
+    return pattern_parts
+
+  def _parse_field(self, field_str):
+    field_name_end_index = field_str.find(",")
+    if field_name_end_index == -1:
+      return field_str.strip(), []
+    
+    field_name = field_str[:field_name_end_index].strip()
+    field_args_str = field_str[field_name_end_index + 1:]
+    # Make parsing simpler without having to post-process the last argument outside the main loop.
+    field_args_str += ","
+
+    is_in_field_arg = False
+    last_field_arg_end_index = 0
+    index = 0
+    field_args = []
+    
+    def _process_field_args(field_args):
+      processed_field_args = []
+      for field_arg in field_args:
+        if not field_arg:
+          continue
+        
+        processed_arg = field_arg.strip()
+        if processed_arg[0] == "[" and processed_arg[-1] == "]":
+          processed_arg = processed_arg[1:-1]
+        processed_arg = processed_arg.replace("[[", "[").replace("]]", "]")
+        
+        processed_field_args.append(processed_arg)
+      
+      return processed_field_args
+    
+    while index < len(field_args_str):
+      if field_args_str[index] == ",":
+        if is_in_field_arg:
+          index += 1
+          continue
+        else:
+          field_args.append(field_args_str[last_field_arg_end_index:index])
+          last_field_arg_end_index = index + 1
+      elif field_args_str[index] == "[":
+        if self._is_field_symbol_escaped(field_args_str, index, "["):
+          index += 2
+          continue
+        else:
+          is_in_field_arg = True
+      elif field_args_str[index] == "]":
+        if self._is_field_symbol_escaped(field_args_str, index, "]"):
+          index += 2
+          continue
+        else:
+          is_in_field_arg = False
+      
+      index += 1
+    
+    return field_name, _process_field_args(field_args)
+  
+  def _process_field(self, field):
+    return str(self._fields[field[0]](*field[1]))
+  
+  def _is_field_valid(self, field):
+    field_func = self._fields[field[0]]
+    
+    argspec = inspect.getargspec(field_func)
+    
+    if argspec.keywords:
+      raise ValueError("{0}: field functions with variable keyword arguments (**kwargs) are not supported"
+                       .format(field_func.__name__))
+    
+    if not argspec.varargs:
+      num_defaults = len(argspec.defaults) if argspec.defaults is not None else 0
+      num_mandatory_args = len(argspec.args) - num_defaults
+      if len(field[1]) < num_mandatory_args or len(field[1]) > len(argspec.args):
+        return False
+    
+    return True
+  
+  def _is_field_symbol_escaped(self, pattern, index, symbol):
+    return index + 1 < len(pattern) and pattern[index + 1] == symbol
+  
+  def _is_field_number(self, field_name):
+    return bool(re.search(r"^[0-9]+$", field_name))
+  
+  def _parse_number(self, pattern_parts, has_fields):
+    should_create_number_generator = True
+    
+    number_substr_match = re.search(r"[0-9]+$", pattern_parts[-1])
+    if number_substr_match:
+      number_str = number_substr_match.group()
+      pattern_parts[-1] = pattern_parts[-1][:-len(number_str)]
+      pattern_parts.append((number_str, []))
+    else:
+      number_substr_match = re.search(r"^[0-9]+", pattern_parts[0])
+      if number_substr_match:
+        number_str = number_substr_match.group()
+        pattern_parts[0] = pattern_parts[0][len(number_str):]
+        pattern_parts.insert(0, (number_str, []))
+      else:
+        number_str = "001"
+        if has_fields:
+          should_create_number_generator = False
+        else:
+          pattern_parts.append((number_str, []))
+    
+    if should_create_number_generator:
+      self._add_number_field(number_str)
+    
+    return pattern_parts
+  
+  def _add_number_field(self, field_name):
+    number_generator = self._generate_number(padding=len(field_name), initial_number=int(field_name))
+    self._number_generators.append(number_generator)
+    
+    self._fields[field_name] = lambda: next(number_generator)
+  
+  def _generate_number(self, padding, initial_number):
+    i = initial_number
+    while True:
+      str_i = str(i)
+      
+      if len(str_i) < padding:
+        str_i = "0" * (padding - len(str_i)) + str_i
+      
+      yield str_i
+      i += 1
 
 
 #===============================================================================
