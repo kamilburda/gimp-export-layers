@@ -199,6 +199,12 @@ class StringPatternGenerator(object):
     self._pattern_parts = self._parse_pattern(self._pattern, self._fields)
   
   def generate(self):
+    """
+    Generate string from the pattern and fields given in the instance of this
+    class. For more information about string generation, refer to the class
+    documentation.
+    """
+    
     pattern_parts = []
     for part in self._pattern_parts:
       if isinstance(part, types.StringTypes):
