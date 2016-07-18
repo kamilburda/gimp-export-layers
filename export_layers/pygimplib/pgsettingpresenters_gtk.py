@@ -193,7 +193,7 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
     if folder is not None:
       encoded_folder = folder.encode(constants.GTK_CHARACTER_ENCODING)
     else:
-      encoded_folder = None
+      encoded_folder = b""
     
     self._element.set_current_folder(encoded_folder)
   
