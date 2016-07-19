@@ -207,7 +207,7 @@ class StringPatternGenerator(object):
     
     pattern_parts = []
     for part in self._pattern_parts:
-      if isinstance(part, types.StringTypes):
+      if not self._is_field(part):
         pattern_parts.append(part)
       else:
         pattern_parts.append(self._process_field(part))
@@ -297,7 +297,7 @@ class StringPatternGenerator(object):
       pattern_parts = self._parse_number(pattern_parts, has_fields)
     
     return pattern_parts
-
+  
   def _parse_field(self, field_str):
     field_name_end_index = field_str.find(",")
     if field_name_end_index == -1:
@@ -307,7 +307,7 @@ class StringPatternGenerator(object):
     field_args_str = field_str[field_name_end_index + 1:]
     # Make parsing simpler without having to post-process the last argument outside the main loop.
     field_args_str += ","
-
+    
     is_in_field_arg = False
     last_field_arg_end_index = 0
     index = 0
@@ -379,26 +379,26 @@ class StringPatternGenerator(object):
   def _is_field_number(self, field_name):
     return bool(re.search(r"^[0-9]+$", field_name))
   
+  def _is_field(self, pattern_part):
+    return not isinstance(pattern_part, types.StringTypes)
+  
   def _parse_number(self, pattern_parts, has_fields):
     should_create_number_generator = True
     
-    number_substr_match = re.search(r"[0-9]+$", pattern_parts[-1])
-    if number_substr_match:
-      number_str = number_substr_match.group()
+    if not self._is_field(pattern_parts[-1]) and re.search(r"[0-9]+$", pattern_parts[-1]):
+      number_str = re.search(r"[0-9]+$", pattern_parts[-1]).group()
       pattern_parts[-1] = pattern_parts[-1][:-len(number_str)]
       pattern_parts.append((number_str, []))
+    elif not self._is_field(pattern_parts[0]) and re.search(r"^[0-9]+", pattern_parts[0]):
+      number_str = re.search(r"^[0-9]+", pattern_parts[0]).group()
+      pattern_parts[0] = pattern_parts[0][len(number_str):]
+      pattern_parts.insert(0, (number_str, []))
     else:
-      number_substr_match = re.search(r"^[0-9]+", pattern_parts[0])
-      if number_substr_match:
-        number_str = number_substr_match.group()
-        pattern_parts[0] = pattern_parts[0][len(number_str):]
-        pattern_parts.insert(0, (number_str, []))
+      number_str = "001"
+      if has_fields:
+        should_create_number_generator = False
       else:
-        number_str = "001"
-        if has_fields:
-          should_create_number_generator = False
-        else:
-          pattern_parts.append((number_str, []))
+        pattern_parts.append((number_str, []))
     
     if should_create_number_generator:
       self._add_number_field(number_str)

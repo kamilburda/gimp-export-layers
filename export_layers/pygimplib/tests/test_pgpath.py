@@ -128,7 +128,7 @@ class TestStringPatternGenerator(unittest.TestCase):
     self._test_generate("001_image_pwn3r", "001_image_pwn3r", "002_image_pwn3r")
     self._test_generate("001image_pwn3r", "001image_pwn3r", "002image_pwn3r")
     self._test_generate("image_001_pwn3r", "image_001_pwn3r001", "image_001_pwn3r002")
-  
+    
   def test_generate_with_fields(self):
     def _get_layer_name():
       for layer_name in ["layer one", "layer two", "layer three"]:
