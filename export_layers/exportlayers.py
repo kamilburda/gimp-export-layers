@@ -33,6 +33,7 @@ str = unicode
 
 import collections
 import contextlib
+import datetime
 import os
 
 import gimp
@@ -210,7 +211,7 @@ class LayerExporter(object):
     
     if overwrite_chooser is None:
       self.overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(
-        export_settings['overwrite_mode'].value)
+        self.export_settings['overwrite_mode'].value)
     else:
       self.overwrite_chooser = overwrite_chooser
     
@@ -310,6 +311,11 @@ class LayerExporter(object):
     self._file_export_func = pgfileformats.get_save_procedure(self._default_file_extension)
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
+    
+    self._filename_pattern_generator = pgpath.StringPatternGenerator(
+      pattern=self.export_settings['layer_filename_pattern'].value,
+      fields=self._get_fields_for_layer_filename_pattern(),
+      default_field='layer name')
   
   def _enable_disable_operations(self, operations_tags):
     for functions in self._operations.values():
@@ -321,7 +327,44 @@ class LayerExporter(object):
         if operation_tag not in operations_tags:
           for function in functions:
             setattr(self, function.__name__, lambda *args, **kwargs: None)
+  
+  def _get_fields_for_layer_filename_pattern(self):
+    def _get_image_name(keep_extension=False):
+      image_name = self.image.name if self.image.name is not None else _("Untitled")
+      if keep_extension == "keep extension":
+        return image_name
+      else:
+        return pgitemdata.set_file_extension(image_name, "")
     
+    def _get_layer_path(separator="-"):
+      return separator.join([parent.name for parent in self._current_layer_elem.parents] +
+                            [self._current_layer_elem.name])
+    
+    def _get_export_date(date_format="%Y-%m-%d"):
+      return datetime.datetime.now().strftime(date_format)
+    
+    def _get_tags(*tags):
+      tags_to_insert = []
+      
+      if not tags:
+        tags_to_insert = list(self._current_layer_elem.tags)
+      else:
+        for tag in tags:
+          if tag in self._current_layer_elem.tags:
+            tags_to_insert.append(tag)
+      
+      tags_to_insert.sort()
+      tags_to_insert = ["[{0}]".format(tag) for tag in tags_to_insert]
+      return " ".join(tags_to_insert)
+    
+    return {
+      'layer name': lambda: self._current_layer_elem.name,
+      'image name': _get_image_name,
+      'layer path': _get_layer_path,
+      'date': _get_export_date,
+      'tags': _get_tags
+    }
+  
   def _prefill_file_extension_properties(self):
     file_extension_properties = collections.defaultdict(_FileExtensionProperties)
     
@@ -553,6 +596,11 @@ class LayerExporter(object):
   def _preprocess_layer_name(self, layer_elem):
     self._layer_data.validate_name(layer_elem)
     self._strip_file_extension(layer_elem)
+    
+    if (self.export_settings['layer_filename_pattern'].value !=
+        self.export_settings['layer_filename_pattern'].default_value):
+      layer_elem.name = self._filename_pattern_generator.generate()
+      self._layer_data.validate_name(layer_elem, force_validation=True)
   
   def _preprocess_empty_group_name(self, layer_elem):
     self._layer_data.validate_name(layer_elem)
@@ -566,7 +614,7 @@ class LayerExporter(object):
   def _postprocess_layer_name(self, layer_elem):
     if (layer_elem.item_type == layer_elem.NONEMPTY_GROUP and
         self.export_settings['export_only_selected_layers'].value):
-      self.layer_data.reset_name(layer_elem)
+      self._layer_data.reset_name(layer_elem)
   
   def _strip_file_extension(self, layer_elem):
     if self.export_settings['strip_mode'].is_item('identical', 'always'):

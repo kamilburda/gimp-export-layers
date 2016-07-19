@@ -189,6 +189,13 @@ def create_settings():
       'display_name': _("Overwrite mode (non-interactive run mode only)")
     },
     {
+      'type': pgsetting.SettingTypes.string,
+      'name': 'layer_filename_pattern',
+      'default_value': "[layer name]",
+      'display_name': _("Layer filename pattern"),
+      'gui_type': None
+    },
+    {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'export_only_selected_layers',
       'default_value': False,

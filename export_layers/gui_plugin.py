@@ -725,6 +725,8 @@ class _ExportLayersGenericGui(object):
 
 class _ExportLayersGui(_ExportLayersGenericGui):
   
+  HBOX_EXPORT_LABELS_NAME_SPACING = 15
+  HBOX_EXPORT_NAME_ENTRIES_SPACING = 3
   HBOX_HORIZONTAL_SPACING = 8
   
   MORE_SETTINGS_HORIZONTAL_SPACING = 12
@@ -735,6 +737,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   DIALOG_VBOX_SPACING = 5
   DIALOG_BOTTOM_SEPARATOR_PADDING = 5
   DIALOG_BUTTONS_HORIZONTAL_SPACING = 6
+  
+  FILE_EXTENSION_ENTRY_WIDTH = 75
+  FILENAME_PATTERN_ENTRY_WIDTH = 100
   
   def __init__(self, image, settings):
     super(_ExportLayersGui, self).__init__()
@@ -796,7 +801,17 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.file_extension_label.set_alignment(0.0, 0.5)
     
     self.file_extension_entry = pggui.FileExtensionEntry()
-    self.file_extension_entry.set_size_request(100, -1)
+    self.file_extension_entry.set_size_request(self.FILE_EXTENSION_ENTRY_WIDTH, -1)
+    
+    self.save_as_label = gtk.Label()
+    self.save_as_label.set_markup("<b>" + _("Save as") + ":</b>")
+    self.save_as_label.set_alignment(0.0, 0.5)
+    
+    self.dot_label = gtk.Label(".")
+    self.dot_label.set_alignment(0.0, 1.0)
+    
+    self.filename_pattern_entry = gtk.Entry()
+    self.filename_pattern_entry.set_size_request(self.FILENAME_PATTERN_ENTRY_WIDTH, -1)
     
     self.label_message = gtk.Label()
     self.label_message.set_alignment(0.0, 0.5)
@@ -820,19 +835,30 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       'show_more_settings': [pgsetting.SettingGuiTypes.checkbox, self.show_more_settings_button],
       'export_preview_pane_position': [
         pgsetting.SettingGuiTypes.paned_position, self.hpaned_chooser_and_previews],
+      'layer_filename_pattern': [pgsetting.SettingGuiTypes.text_entry, self.filename_pattern_entry]
     })
     
     self.current_directory_setting.set_gui(pgsetting.SettingGuiTypes.folder_chooser, self.folder_chooser)
     
-    self.hbox_file_extension_entry = gtk.HBox(homogeneous=False)
-    self.hbox_file_extension_entry.set_spacing(30)
-    self.hbox_file_extension_entry.pack_start(self.file_extension_label, expand=False, fill=True)
-    self.hbox_file_extension_entry.pack_start(self.file_extension_entry, expand=False, fill=True)
+    self.hbox_export_name_labels = gtk.HBox(homogeneous=False)
+    self.hbox_export_name_labels.pack_start(self.file_extension_label, expand=False, fill=True)
+    self.hbox_export_name_labels.pack_start(self.save_as_label, expand=False, fill=True)
     
-    self.hbox_file_extension = gtk.HBox(homogeneous=False)
-    self.hbox_file_extension.set_spacing(self.HBOX_HORIZONTAL_SPACING)
-    self.hbox_file_extension.pack_start(self.hbox_file_extension_entry, expand=False, fill=True)
-    self.hbox_file_extension.pack_start(self.label_message, expand=True, fill=True)
+    self.hbox_export_name_entries = gtk.HBox(homogeneous=False)
+    self.hbox_export_name_entries.set_spacing(self.HBOX_EXPORT_NAME_ENTRIES_SPACING)
+    self.hbox_export_name_entries.pack_start(self.filename_pattern_entry, expand=False, fill=True)
+    self.hbox_export_name_entries.pack_start(self.dot_label, expand=False, fill=True)
+    self.hbox_export_name_entries.pack_start(self.file_extension_entry, expand=False, fill=True)
+    
+    self.hbox_export_name = gtk.HBox(homogeneous=False)
+    self.hbox_export_name.set_spacing(self.HBOX_EXPORT_LABELS_NAME_SPACING)
+    self.hbox_export_name.pack_start(self.hbox_export_name_labels, expand=False, fill=True)
+    self.hbox_export_name.pack_start(self.hbox_export_name_entries, expand=False, fill=True)
+    
+    self.hbox_export_name_and_message = gtk.HBox(homogeneous=False)
+    self.hbox_export_name_and_message.set_spacing(self.HBOX_HORIZONTAL_SPACING)
+    self.hbox_export_name_and_message.pack_start(self.hbox_export_name, expand=False, fill=True)
+    self.hbox_export_name_and_message.pack_start(self.label_message, expand=True, fill=True)
     
     self.hbox_export_settings = gtk.HBox(homogeneous=False)
     self.hbox_export_settings.pack_start(self.settings['main/layer_groups_as_folders'].gui.element)
@@ -937,7 +963,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self.dialog.vbox.set_spacing(self.DIALOG_VBOX_SPACING)
     self.dialog.vbox.pack_start(self.hpaned_chooser_and_previews)
-    self.dialog.vbox.pack_start(self.hbox_file_extension, expand=False, fill=False)
+    self.dialog.vbox.pack_start(self.hbox_export_name_and_message, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.hbox_export_settings, expand=False, fill=False)
     self.dialog.vbox.pack_start(self.vbox_more_settings, expand=False, fill=False)
     self.dialog.vbox.pack_start(
@@ -954,7 +980,12 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.save_settings_button.connect("clicked", self.on_save_settings_clicked)
     self.reset_settings_button.connect("clicked", self.on_reset_settings_clicked)
     
-    self.file_extension_entry.connect("changed", self.on_file_extension_entry_changed)
+    self.file_extension_entry.connect(
+      "changed", self.on_text_entry_changed,
+      self.settings['main/file_extension'], "invalid_file_extension")
+    self.filename_pattern_entry.connect(
+      "changed", self.on_text_entry_changed,
+      self.settings['main/layer_filename_pattern'], "invalid_layer_filename_pattern")
     self.show_more_settings_button.connect("toggled", self.on_show_more_settings_button_toggled)
     
     self.dialog.connect("notify::is-active", self.on_dialog_is_active_changed)
@@ -995,18 +1026,16 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     if status == pgsettingpersistor.SettingPersistor.WRITE_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING, parent=self.dialog)
   
-  def on_file_extension_entry_changed(self, widget):
+  def on_text_entry_changed(self, widget, setting, name_preview_lock_update_key=None):
     try:
-      self.settings['main/file_extension'].gui.update_setting_value()
+      setting.gui.update_setting_value()
     except pgsetting.SettingValueError as e:
       pggui.timeout_add_strict(100, self.export_name_preview.clear)
-      
-      self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR,
-        setting=self.settings['main/file_extension'])
-      self.export_name_preview.lock_update(True, "invalid_file_extension")
+      self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=setting)
+      self.export_name_preview.lock_update(True, name_preview_lock_update_key)
     else:
-      self.export_name_preview.lock_update(False, "invalid_file_extension")
-      if self._message_setting == self.settings['main/file_extension']:
+      self.export_name_preview.lock_update(False, name_preview_lock_update_key)
+      if self._message_setting == setting:
         self.display_message_label(None)
       
       pggui.timeout_add_strict(100, self.export_name_preview.update)
@@ -1018,9 +1047,19 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     if self.show_more_settings_button.get_active():
       self.export_name_preview.widget.show()
       self.vbox_more_settings.show()
+      
+      self.file_extension_label.hide()
+      self.save_as_label.show()
+      self.dot_label.show()
+      self.filename_pattern_entry.show()
     else:
       self.export_name_preview.widget.hide()
       self.vbox_more_settings.hide()
+      
+      self.file_extension_label.show()
+      self.save_as_label.hide()
+      self.dot_label.hide()
+      self.filename_pattern_entry.hide()
   
   def on_dialog_is_active_changed(self, widget, property_spec):
     if self.dialog.is_active():
@@ -1032,13 +1071,16 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     for setting in self.settings['main']:
       if setting.name not in ['file_extension', 'output_directory', 'overwrite_mode',
-                              'export_only_selected_layers', 'selected_layers', 'selected_layers_persistent']:
+                              'layer_filename_pattern', 'export_only_selected_layers',
+                              'selected_layers', 'selected_layers_persistent']:
         setting.connect_event('value-changed', _on_setting_changed)
     
     self.settings['gui_session/export_name_preview_layers_collapsed_state'].connect_event(
-      'after-reset', lambda setting: self.export_name_preview.set_collapsed_items(setting.value[self.image.ID]))
+      'after-reset',
+      lambda setting: self.export_name_preview.set_collapsed_items(setting.value[self.image.ID]))
     self.settings['main/selected_layers'].connect_event(
-      'after-reset', lambda setting: self.export_name_preview.set_selected_items(setting.value[self.image.ID]))
+      'after-reset',
+      lambda setting: self.export_name_preview.set_selected_items(setting.value[self.image.ID]))
   
   def on_hpaned_left_button_up(self, widget, event):
     if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:
