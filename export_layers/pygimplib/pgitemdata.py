@@ -228,14 +228,14 @@ class ItemData(object):
         item_elem.name, self._uniquified_itemdata_names[parent], uniquifier_position)
       self._uniquified_itemdata_names[parent].add(item_elem.name)
   
-  def validate_name(self, item_elem):
+  def validate_name(self, item_elem, force_validation=False):
     """
     Validate the `name` attribute of the specified item and all of its parents
-    if not validated already.
+    if not validated already or if `force_validation` is True.
     """
     
     for elem in item_elem.parents + [item_elem]:
-      if elem not in self._validated_itemdata:
+      if elem not in self._validated_itemdata or force_validation:
         elem.name = pgpath.FilenameValidator.validate(elem.name)
         self._validated_itemdata.add(elem)
   
