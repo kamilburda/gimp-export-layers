@@ -292,6 +292,9 @@ class TestStringPatternGenerator(unittest.TestCase):
       "date", _get_date_with_default, "[date]_001",
       "16.07.2016_001", "16.07.2016_002", "16.07.2016_003")
     self._test_generate_with_field(
+      "date", _get_date_with_default, "[date, ]_001",
+      "16.07.2016_001", "16.07.2016_002", "16.07.2016_003")
+    self._test_generate_with_field(
       "date", _get_date_with_default, "[date, %Y-%m-%d, more_args]_001",
       "[date, %Y-%m-%d, more_args]_001", "[date, %Y-%m-%d, more_args]_002", "[date, %Y-%m-%d, more_args]_003")
   

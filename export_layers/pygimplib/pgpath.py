@@ -316,10 +316,10 @@ class StringPatternGenerator(object):
     def _process_field_args(field_args):
       processed_field_args = []
       for field_arg in field_args:
-        if not field_arg:
+        processed_arg = field_arg.strip()
+        if not processed_arg:
           continue
         
-        processed_arg = field_arg.strip()
         if processed_arg[0] == "[" and processed_arg[-1] == "]":
           processed_arg = processed_arg[1:-1]
         processed_arg = processed_arg.replace("[[", "[").replace("]]", "]")
