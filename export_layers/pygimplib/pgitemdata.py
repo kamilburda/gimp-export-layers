@@ -439,6 +439,64 @@ def _parse_tags(str_):
 #===============================================================================
 
 
+def get_file_extension(filename):
+  """
+  Get file extension from `filename`, in lowercase.
+  
+  If `filename` has no file extension, return an empty string.
+  """
+  
+  name_lowercase = filename.lower()
+  
+  if "." not in name_lowercase:
+    return ""
+  
+  file_extension = name_lowercase
+  
+  while file_extension:
+    next_period_index = file_extension.find(".")
+    if next_period_index == -1:
+      return file_extension
+    
+    file_extension = file_extension[next_period_index + 1:]
+    if file_extension in pgfileformats.file_formats_dict:
+      return file_extension
+  
+  return ""
+
+
+def set_file_extension(filename, file_extension):
+  """
+  Set file extension in `filename` and return the new filename.
+  
+  To remove the file extension from `filename`, pass an empty string, None, or a
+  period (".").
+  """
+  
+  filename_extension = get_file_extension(filename)
+  
+  if filename_extension:
+    filename_without_extension = filename[0:len(filename) - len(filename_extension) - 1]
+  else:
+    filename_without_extension = filename
+    if filename_without_extension.endswith("."):
+      filename_without_extension = filename_without_extension.rstrip(".")
+  
+  if file_extension and file_extension.startswith("."):
+    file_extension = file_extension.lstrip(".")
+  
+  if file_extension:
+    file_extension = file_extension.lower()
+    new_filename = ".".join((filename_without_extension, file_extension))
+  else:
+    new_filename = filename_without_extension
+  
+  return new_filename
+
+
+#===============================================================================
+
+
 class _ItemDataElement(object):
   
   """
@@ -554,23 +612,7 @@ class _ItemDataElement(object):
     If `name` has no file extension, return an empty string.
     """
     
-    name_lowercase = self.name.lower()
-    
-    if "." not in name_lowercase:
-      return ""
-    
-    file_extension = name_lowercase
-    
-    while file_extension:
-      next_period_index = file_extension.find(".")
-      if next_period_index == -1:
-        return file_extension
-      
-      file_extension = file_extension[next_period_index + 1:]
-      if file_extension in pgfileformats.file_formats_dict:
-        return file_extension
-    
-    return ""
+    return get_file_extension(self.name)
   
   def set_file_extension(self, file_extension):
     """
@@ -580,23 +622,7 @@ class _ItemDataElement(object):
     period (".").
     """
     
-    item_file_extension = self.get_file_extension()
-    
-    if item_file_extension:
-      item_name_without_extension = self.name[0:len(self.name) - len(item_file_extension) - 1]
-    else:
-      item_name_without_extension = self.name
-      if item_name_without_extension.endswith("."):
-        item_name_without_extension = item_name_without_extension.rstrip(".")
-    
-    if file_extension and file_extension.startswith("."):
-      file_extension = file_extension.lstrip(".")
-    
-    if file_extension:
-      file_extension = file_extension.lower()
-      self.name = ".".join((item_name_without_extension, file_extension))
-    else:
-      self.name = item_name_without_extension
+    self.name = set_file_extension(self.name, file_extension)
   
   def get_filepath(self, directory, include_item_path=True):
     """
