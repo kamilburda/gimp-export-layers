@@ -169,9 +169,13 @@ class StringPatternGenerator(object):
   last argument is enclosed in square brackets, insert a comma after the
   argument.
   
-  If no field is specified or if a number is explicitly specified at the
-  beginning or the end of the pattern, an auto-incrementing number is assigned
-  to each generated string.
+  If no field is specified in the pattern, or if a number is explicitly
+  specified at the beginning or the end of the pattern, an auto-incrementing
+  number is assigned to each generated string.
+  
+  If the pattern is empty and no `default_field` is specified, assign an
+  auto-incrementing number to the pattern. If a `default_field` is specified
+  (by its name) and is in `fields`, assign the field value.
   
   Examples:
   
@@ -181,20 +185,30 @@ class StringPatternGenerator(object):
   * "image005" -> "image005", "image006", ...
   * Suppose `fields` contains field "date" returning current date (requiring a
     date format as a parameter). Then:
-    "image_[date, %Y-%m-%d]_001" -> "image_2016-07-16_001", "image_2016-07-16_002", ...
+    "image_[date, %Y-%m-%d]_001" -> "image_2016-07-16_001",
+    "image_2016-07-16_002", ...
   * Field specified, no explicit number specified:
     "[date]" -> "2016-07-16", "2016-07-16", ...
   * "image001_1234" -> "image001_1234", "image001_1235", ...
   * "image[001]_1234" -> "image001_1234", "image002_1234", ...
   * "[[image]]" -> "[image]001", "[image]002", ...
-  * "[date, [[[%Y,%m,%d]]],]_001" -> "[2016,07,16]_001", "[2016,07,16]_002", ...
+  * "[date, [[[%Y,%m,%d]]],]_001" -> "[2016,07,16]_001", "[2016,07,16]_002",
+    ...
+  * (default field: date) "" -> "[2016-07-16]", "[2016-07-16]", ...
   """
   
-  def __init__(self, pattern, fields=None):
+  def __init__(self, pattern, fields=None, default_field=None):
     self._pattern = pattern
     self._fields = fields if fields is not None else {}
+    self._default_field = default_field
+    
+    if self._default_field is not None and self._default_field not in self._fields:
+      raise ValueError("default field \"{0}\" is not in fields".format(self._default_field))
     
     self._number_generators = []
+    
+    # key: id(parsed field); value: field as a substring in the pattern
+    self._field_strings = {}
     
     self._pattern_parts = self._parse_pattern(self._pattern, self._fields)
   
@@ -275,6 +289,8 @@ class StringPatternGenerator(object):
         field_str = pattern[start_of_field_index + 1:index]
         field = self._parse_field(field_str)
         
+        self._field_strings[id(field)] = field_str
+        
         if field[0] in fields and self._is_field_valid(field):
           has_fields = True
           pattern_parts.append(field)
@@ -292,6 +308,11 @@ class StringPatternGenerator(object):
       index += 1
     
     _add_substring()
+    
+    if (self._default_field is not None and
+        (not pattern_parts or (len(pattern_parts) == 1 and not pattern_parts[0]))):
+      self._insert_default_field(pattern_parts)
+      has_fields = True
     
     if not has_pattern_number_field:
       pattern_parts = self._parse_number(pattern_parts, has_fields)
@@ -354,7 +375,14 @@ class StringPatternGenerator(object):
     return field_name, _process_field_args(field_args)
   
   def _process_field(self, field):
-    return str(self._fields[field[0]](*field[1]))
+    field_func = self._fields[field[0]]
+    
+    try:
+      return_value = field_func(*field[1])
+    except Exception:
+      return "[{0}]".format(self._field_strings[id(field)])
+    else:
+      return str(return_value)
   
   def _is_field_valid(self, field):
     field_func = self._fields[field[0]]
@@ -421,6 +449,9 @@ class StringPatternGenerator(object):
       
       yield str_i
       i += 1
+  
+  def _insert_default_field(self, pattern_parts):
+    pattern_parts.append((self._default_field, []))
 
 
 #===============================================================================
