@@ -79,10 +79,10 @@ Type or choose your desired file extension in the "File extension" text field.
 You can still enter a file extension not in the dropdown list in case you use a
 file format plug-in not recognized by this plug-in.
 
-To export layers, press the "Export Layers" button. A dialog corresponding to
-the file format appears, allowing you to adjust export settings. Some file
-formats don't have dialogs, while some of them display the dialog for each layer
-(listed in section Known Issues).
+To export layers, press the "Export" button. A dialog corresponding to the file
+format appears, allowing you to adjust export settings. Some file formats don't
+have dialogs, while some of them display the dialog for each layer (listed in
+section Known Issues).
 
 To export layers with the last settings used, you may want to choose
 "File -> Export Layers (repeat)".
