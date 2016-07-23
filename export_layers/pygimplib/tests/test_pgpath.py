@@ -94,11 +94,6 @@ class TestStringPatternGenerator(unittest.TestCase):
     for output in expected_outputs:
       self.assertEqual(generator.generate(), output)
   
-  def _test_generate_with_fields_and_default_field(self, fields, default_field, pattern, *expected_outputs):
-    generator = pgpath.StringPatternGenerator(pattern, fields, default_field=default_field)
-    for output in expected_outputs:
-      self.assertEqual(generator.generate(), output)
-  
   def _test_generate_with_field_generator(self, field_name, field_generator_func, pattern, *expected_outputs):
     field_generator = field_generator_func()
     fields = {field_name: lambda: next(field_generator)}
@@ -317,31 +312,6 @@ class TestStringPatternGenerator(unittest.TestCase):
     
     with self.assertRaises(ValueError):
       pgpath.StringPatternGenerator("[joined kwargs, -]_001", {"joined kwargs": _get_joined_kwargs_values})
-  
-  def test_generate_with_fields_with_default_field(self):
-    def _get_date_with_default(date_format="%d.%m.%Y"):
-      return datetime.datetime(2016, 7, 16, hour=23).strftime(date_format)
-    
-    def _get_joined_args(separator, *args):
-      return separator.join(args)
-    
-    with self.assertRaises(ValueError):
-      pgpath.StringPatternGenerator("[date, %Y-%m-%d]_001", {}, default_field="invalid default field")
-    
-    with self.assertRaises(ValueError):
-      pgpath.StringPatternGenerator("[date, %Y-%m-%d]_001", {}, default_field="")
-    
-    with self.assertRaises(ValueError):
-      pgpath.StringPatternGenerator(
-        "[date, %Y-%m-%d]_001", {"date": _get_date_with_default, "joined args": _get_joined_args},
-        default_field="invalid default field")
-    
-    self._test_generate_with_fields_and_default_field(
-        {"date": _get_date_with_default}, "date", "",
-        "16.07.2016", "16.07.2016", "16.07.2016")
-    self._test_generate_with_fields_and_default_field(
-        {"date": _get_date_with_default, "joined args": _get_joined_args}, "date", "",
-        "16.07.2016", "16.07.2016", "16.07.2016")
 
 
 #===============================================================================

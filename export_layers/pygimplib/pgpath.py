@@ -173,9 +173,7 @@ class StringPatternGenerator(object):
   specified at the beginning or the end of the pattern, an auto-incrementing
   number is assigned to each generated string.
   
-  If the pattern is empty and no `default_field` is specified, assign an
-  auto-incrementing number to the pattern. If a `default_field` is specified
-  (by its name) and is in `fields`, assign the field value.
+  If the pattern is empty, assign an auto-incrementing number to the pattern.
   
   Examples:
   
@@ -194,16 +192,11 @@ class StringPatternGenerator(object):
   * "[[image]]" -> "[image]001", "[image]002", ...
   * "[date, [[[%Y,%m,%d]]],]_001" -> "[2016,07,16]_001", "[2016,07,16]_002",
     ...
-  * (default field: date) "" -> "[2016-07-16]", "[2016-07-16]", ...
   """
   
-  def __init__(self, pattern, fields=None, default_field=None):
+  def __init__(self, pattern, fields=None):
     self._pattern = pattern
     self._fields = fields if fields is not None else {}
-    self._default_field = default_field
-    
-    if self._default_field is not None and self._default_field not in self._fields:
-      raise ValueError("default field \"{0}\" is not in fields".format(self._default_field))
     
     self._number_generators = []
     
@@ -308,11 +301,6 @@ class StringPatternGenerator(object):
       index += 1
     
     _add_substring()
-    
-    if (self._default_field is not None and
-        (not pattern_parts or (len(pattern_parts) == 1 and not pattern_parts[0]))):
-      self._insert_default_field(pattern_parts)
-      has_fields = True
     
     if not has_pattern_number_field:
       pattern_parts = self._parse_number(pattern_parts, has_fields)
@@ -449,9 +437,6 @@ class StringPatternGenerator(object):
       
       yield str_i
       i += 1
-  
-  def _insert_default_field(self, pattern_parts):
-    pattern_parts.append((self._default_field, []))
 
 
 #===============================================================================
