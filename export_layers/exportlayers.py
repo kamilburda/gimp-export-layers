@@ -312,10 +312,14 @@ class LayerExporter(object):
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
     
+    if self.export_settings['layer_filename_pattern'].value:
+      pattern = self.export_settings['layer_filename_pattern'].value
+    else:
+      pattern = self.export_settings['layer_filename_pattern'].default_value
+    
     self._filename_pattern_generator = pgpath.StringPatternGenerator(
-      pattern=self.export_settings['layer_filename_pattern'].value,
-      fields=self._get_fields_for_layer_filename_pattern(),
-      default_field='layer name')
+      pattern=pattern,
+      fields=self._get_fields_for_layer_filename_pattern())
   
   def _enable_disable_operations(self, operations_tags):
     for functions in self._operations.values():
