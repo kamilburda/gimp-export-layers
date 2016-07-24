@@ -1219,15 +1219,13 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       if not text.endswith("."):
         text += "."
       
-      # Display literal "&" as intended. Required by the markup.
-      text = text.replace("&", "&amp;")
-      
       if message_type == gtk.MESSAGE_ERROR:
         color = "red"
       else:
         color = "blue"
       
-      self.label_message.set_markup("<span foreground=\"{0}\"><b>{1}</b></span>".format(color, text))
+      self.label_message.set_markup("<span foreground=\"{0}\"><b>{1}</b></span>".format(
+        gobject.markup_escape_text(color), gobject.markup_escape_text(text)))
 
 
 #===============================================================================
