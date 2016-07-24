@@ -125,9 +125,9 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
 class GtkEntryPresenter(GtkSettingPresenter):
   
   """
-  This class is a `SettingPresenter` for `gtk.Entry` elements (text fields).
+  This class is a `SettingPresenter` for `gtk.Entry` elements.
   
-  Value: Text in the text field.
+  Value: Text in the entry.
   """
 
   def _create_gui_element(self, setting):
