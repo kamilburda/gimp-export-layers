@@ -91,11 +91,7 @@ class SettingValueError(Exception):
   
   def __init__(self, *args, **kwargs):
     for kwarg in ['setting', 'settings', 'messages']:
-      if kwarg in kwargs:
-        setattr(self, kwarg, kwargs[kwarg])
-        del kwargs[kwarg]
-      else:
-        setattr(self, kwarg, None)
+      setattr(self, kwarg, kwargs.pop(kwarg, None))
     
     super(SettingValueError, self).__init__(*args, **kwargs)
 
