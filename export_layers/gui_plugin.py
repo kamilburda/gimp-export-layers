@@ -37,6 +37,7 @@ import traceback
 import pygtk
 pygtk.require("2.0")
 import gtk
+import gobject
 import pango
 
 import gimp
@@ -739,7 +740,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   DIALOG_BUTTONS_HORIZONTAL_SPACING = 6
   
   FILE_EXTENSION_ENTRY_WIDTH = 75
-  FILENAME_PATTERN_ENTRY_WIDTH = 100
+  FILENAME_PATTERN_ENTRY_MIN_WIDTH = 100
+  FILENAME_PATTERN_ENTRY_MAX_WIDTH = 300
   
   def __init__(self, image, settings):
     super(_ExportLayersGui, self).__init__()
@@ -810,8 +812,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.dot_label = gtk.Label(".")
     self.dot_label.set_alignment(0.0, 1.0)
     
-    self.filename_pattern_entry = gtk.Entry()
-    self.filename_pattern_entry.set_size_request(self.FILENAME_PATTERN_ENTRY_WIDTH, -1)
+    self.filename_pattern_entry = pggui.FilenamePatternEntry(
+      minimum_width=self.FILENAME_PATTERN_ENTRY_MIN_WIDTH, maximum_width=self.FILENAME_PATTERN_ENTRY_MAX_WIDTH)
     
     self.label_message = gtk.Label()
     self.label_message.set_alignment(0.0, 0.5)
