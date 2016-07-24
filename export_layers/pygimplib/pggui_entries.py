@@ -532,6 +532,33 @@ class EntryPopup(object):
   def _on_after_tree_view_realize(self, tree_view):
     # Set the correct initial width and height of the tree view.
     self.resize(num_rows=len(self._rows_filtered))
+  
+
+#===============================================================================
+
+
+class FilenamePatternEntry(gtk.Entry):
+  
+  _COLUMN_TYPES = [bytes]
+  
+  def __init__(self, *args, **kwargs):
+    self._mininum_width = kwargs.pop('minimum_width', -1)
+    self._maximum_width = kwargs.pop('maximum_width', -1)
+    
+    super(FilenamePatternEntry, self).__init__(*args, **kwargs)
+    
+    self.set_size_request(self._mininum_width, -1)
+    
+    self._pango_layout = pango.Layout(self.get_pango_context())
+    
+    self.connect("changed", self._on_entry_changed)
+  
+  def _on_entry_changed(self, widget):
+    # Offset with a few extra characters to make sure the entry resizes properly.
+    self._pango_layout.set_text(self.get_text() + " " * 4)
+    
+    self.set_size_request(
+      max(min(self._pango_layout.get_pixel_size()[0], self._maximum_width), self._mininum_width), -1)
 
 
 #===============================================================================
