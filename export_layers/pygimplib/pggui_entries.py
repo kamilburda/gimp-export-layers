@@ -613,8 +613,6 @@ class FileExtensionEntry(gtk.Entry):
     self._popup.tree_view.connect("motion-notify-event", self._on_tree_view_motion_notify_event)
     self._popup.tree_view.connect_after("realize", self._on_after_tree_view_realize)
     self._popup.tree_view.get_selection().connect("changed", self._on_tree_selection_changed)
-    
-    self._entry_configure_event_id = None
   
   def assign_text(self, text):
     self._popup.assign_text(text)
