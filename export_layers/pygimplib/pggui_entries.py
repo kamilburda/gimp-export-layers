@@ -210,6 +210,9 @@ class EntryPopup(object):
     self._entry.set_text(text)
     self._trigger_popup = True
   
+  def assign_last_value(self):
+    self._assign_last_value_func(self._last_assigned_entry_text)
+  
   def show(self):
     if not self.is_shown() and len(self._rows_filtered) > 0:
       self._update_position()
@@ -335,7 +338,7 @@ class EntryPopup(object):
       if tree_path[0] == current_row_before_unselection:
         self._tree_view.scroll_to_cell((row_to_scroll_before_unselection,))
         self.unselect()
-        self._assign_last_value_func(self._last_assigned_entry_text)
+        self.assign_last_value()
       else:
         if callable(next_row):
           next_row = next_row(tree_path)
@@ -452,7 +455,7 @@ class EntryPopup(object):
       elif key_name in ["Return", "KP_Enter"]:
         self.hide()
       elif key_name == "Escape":
-        self._assign_last_value_func(self._last_assigned_entry_text)
+        self.assign_last_value()
         self.hide()
       else:
         return self._on_entry_key_press_func(key_name, tree_path)
@@ -606,10 +609,10 @@ class FileExtensionEntry(gtk.Entry):
     
     self._popup = EntryPopup(
       self, self._COLUMN_TYPES, self._get_file_formats(pgfileformats.file_formats), self._filter_file_formats,
-      self._assign_from_selected_row, self._assign_last_value, self._on_row_left_mouse_button_press,
+      self._assign_from_selected_row, self.assign_text, self._on_row_left_mouse_button_press,
       self._on_key_press_before_show_popup, self._on_tab_keys_pressed)
     
-    self._add_file_format_columns()
+    self._add_columns()
     
     self._popup.tree_view.connect("motion-notify-event", self._on_tree_view_motion_notify_event)
     self._popup.tree_view.connect_after("realize", self._on_after_tree_view_realize)
@@ -651,9 +654,6 @@ class FileExtensionEntry(gtk.Entry):
     if extension_index > len(extensions):
       extension_index = len(extensions) - 1
     self.assign_text(extensions[extension_index])
-  
-  def _assign_last_value(self, last_value):
-    self.assign_text(last_value)
   
   def _filter_file_formats(self, file_formats, row_iter):
     return self._entry_text_matches_row(self.get_text(), file_formats, row_iter)
@@ -870,7 +870,7 @@ class FileExtensionEntry(gtk.Entry):
     
     return file_formats_to_add
   
-  def _add_file_format_columns(self):
+  def _add_columns(self):
     
     def _add_column(cell_renderer, cell_renderer_property, column_number, column_title=None):
       column = gtk.TreeViewColumn(column_title, cell_renderer, **{cell_renderer_property: column_number})
