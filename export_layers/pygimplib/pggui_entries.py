@@ -152,16 +152,17 @@ class EntryPopup(object):
     self._height = height
     self._max_num_visible_rows = max_num_visible_rows
     self._assign_from_selected_row_func = (
-      assign_from_selected_row_func if assign_from_selected_row_func is not None else lambda: None)
+      assign_from_selected_row_func if assign_from_selected_row_func is not None else lambda *args: None)
     self._assign_last_value_func = (
-      assign_last_value_func if assign_last_value_func is not None else lambda: None)
+      assign_last_value_func if assign_last_value_func is not None else self.assign_text)
     self._on_row_left_mouse_button_press = (
-      on_row_left_mouse_button_press if on_row_left_mouse_button_press is not None else lambda: None)
+      on_row_left_mouse_button_press if on_row_left_mouse_button_press is not None else
+      self.assign_from_selected_row)
     self._on_entry_key_press_before_show_popup_func = (
       on_entry_key_press_before_show_popup_func if on_entry_key_press_before_show_popup_func is not None else
-      lambda: None)
+      lambda *args: None)
     self._on_entry_key_press_func = (
-      on_entry_key_press_func if on_entry_key_press_func is not None else lambda: None)
+      on_entry_key_press_func if on_entry_key_press_func is not None else lambda *args: False)
     
     self._last_assigned_entry_text = ""
     
@@ -198,6 +199,16 @@ class EntryPopup(object):
   @property
   def tree_view(self):
     return self._tree_view
+  
+  def assign_text(self, text):
+    """
+    Replace the current contents of the entry with the specified text. Unlike
+    `set_text()` in the entry, this method prevents the popup from showing.
+    """
+    
+    self._trigger_popup = False
+    self._entry.set_text(text)
+    self._trigger_popup = True
   
   def show(self):
     if not self.is_shown() and len(self._rows_filtered) > 0:
@@ -598,18 +609,8 @@ class FileExtensionEntry(gtk.Entry):
     self._entry_configure_event_id = None
   
   def assign_text(self, text):
-    """
-    Replace the current contents of the entry with the specified text.
-    
-    Unlike `set_text()`, this method prevents the popup with file formats from
-    showing. Additionally, this method places the text cursor at the end of the
-    text.
-    """
-    
-    self._popup._trigger_popup = False
-    self.set_text(text)
+    self._popup.assign_text(text)
     self.set_position(-1)
-    self._popup._trigger_popup = True
   
   def _on_row_left_mouse_button_press(self):
     if self._highlighted_extension_index is None:
