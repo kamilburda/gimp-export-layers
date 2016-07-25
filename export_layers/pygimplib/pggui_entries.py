@@ -563,14 +563,22 @@ class FilenamePatternEntry(gtk.Entry):
     self._pango_layout = pango.Layout(self.get_pango_context())
     
     self.connect("changed", self._on_entry_changed)
+    self.connect_after("realize", self._on_after_entry_realize)
   
-  def _on_entry_changed(self, widget):
+  
+  def _update_entry_width(self):
     # Offset with a few extra characters to make sure the entry resizes properly.
     self._pango_layout.set_text(self.get_text() + " " * 4)
     
     self.set_size_request(
       max(min(self._pango_layout.get_pixel_size()[0], self._maximum_width), self._mininum_width), -1)
-
+  
+  def _on_entry_changed(self, widget):
+    self._update_entry_width()
+  
+  def _on_after_entry_realize(self, widget):
+    self._update_entry_width()
+  
 
 #===============================================================================
 
