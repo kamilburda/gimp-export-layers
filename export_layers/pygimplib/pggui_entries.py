@@ -380,7 +380,6 @@ class EntryPopup(object):
     self._entry.connect("key-press-event", self._on_entry_key_press)
     
     self._entry.connect("focus-out-event", self._on_entry_focus_out)
-    self._entry.connect("size-allocate", self._on_entry_size_allocate)
     
     self._entry.connect("enter-notify-event", self._on_entry_enter_notify_event)
     self._entry.connect("leave-notify-event", self._on_entry_leave_notify_event)
@@ -530,9 +529,6 @@ class EntryPopup(object):
     self._mouse_points_at_vscrollbar = False
   
   def _on_entry_focus_out(self, entry, event):
-    self.hide()
-  
-  def _on_entry_size_allocate(self, entry, allocation):
     self.hide()
   
   def _on_button_press_emission_hook(self, widget, event):
