@@ -191,7 +191,7 @@ def create_settings():
     {
       'type': pgsetting.SettingTypes.string,
       'name': 'layer_filename_pattern',
-      'default_value': "[layer name]",
+      'default_value': "",
       'display_name': _("Layer filename pattern"),
       'gui_type': None
     },
