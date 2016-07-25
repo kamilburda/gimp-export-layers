@@ -261,7 +261,12 @@ class EntryPopup(object):
     tree view will remain the same.
     """
     
-    cell_height = max(column.cell_get_size()[4] for column in self._tree_view.get_columns())
+    columns = self._tree_view.get_columns()
+    if columns:
+      cell_height = max(column.cell_get_size()[4] for column in columns)
+    else:
+      cell_height = 0
+    
     vertical_spacing = self._tree_view.style_get_property("vertical-separator")
     row_height = cell_height + vertical_spacing
     num_visible_rows = min(num_rows, self._max_num_visible_rows)
