@@ -347,7 +347,7 @@ class LayerExporter(object):
       return separator.join([parent.name for parent in self._current_layer_elem.parents] +
                             [self._current_layer_elem.name])
     
-    def _get_export_date(date_format="%Y-%m-%d"):
+    def _get_current_date(date_format="%Y-%m-%d"):
       return datetime.datetime.now().strftime(date_format)
     
     def _get_tags(*tags):
@@ -368,7 +368,7 @@ class LayerExporter(object):
       'layer name': lambda: self._current_layer_elem.name,
       'image name': _get_image_name,
       'layer path': _get_layer_path,
-      'date': _get_export_date,
+      'current date': _get_current_date,
       'tags': _get_tags
     }
   
