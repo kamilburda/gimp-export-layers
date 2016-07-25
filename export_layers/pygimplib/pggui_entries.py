@@ -339,8 +339,8 @@ class EntryPopup(object):
   def _init_gui(self, column_types, rows):
     self._rows = gtk.ListStore(*column_types)
     
-    for file_format in rows:
-      self._rows.append(file_format)
+    for row in rows:
+      self._rows.append(row)
     
     self._rows_filtered = self._rows.filter_new()
     if self._row_filter_func is not None:
