@@ -117,12 +117,15 @@ class LayerFilterRules(object):
     return layer_elem.get_file_extension() == file_extension.lower()
   
   @staticmethod
-  def has_tag(layer_elem, *tags):
-    return any(tag for tag in tags if tag in layer_elem.tags)
+  def has_tags(layer_elem, *tags):
+    if tags:
+      return any(tag for tag in tags if tag in layer_elem.tags)
+    else:
+      return bool(layer_elem.tags)
   
   @staticmethod
-  def has_no_tag(layer_elem, *tags):
-    return not LayerFilterRules.has_tag(layer_elem, *tags)
+  def has_no_tags(layer_elem, *tags):
+    return not LayerFilterRules.has_tags(layer_elem, *tags)
   
   @staticmethod
   def is_layer_in_selected_layers(layer_elem, selected_layers):
@@ -406,16 +409,16 @@ class LayerExporter(object):
                                        self._default_file_extension)
     
     if self.export_settings['tagged_layers_mode'].is_item('special'):
-      with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tag, 'background'):
+      with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tags, 'background'):
         self._tagged_layer_elems['background'] = list(self._layer_data)
-      with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tag, 'foreground'):
+      with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tags, 'foreground'):
         self._tagged_layer_elems['foreground'] = list(self._layer_data)
       
-      self._layer_data.filter.add_rule(LayerFilterRules.has_no_tag, 'background', 'foreground')
+      self._layer_data.filter.add_rule(LayerFilterRules.has_no_tags, 'background', 'foreground')
     elif self.export_settings['tagged_layers_mode'].is_item('ignore'):
-      self._layer_data.filter.add_rule(LayerFilterRules.has_no_tag, 'background', 'foreground')
+      self._layer_data.filter.add_rule(LayerFilterRules.has_no_tags)
     elif self.export_settings['tagged_layers_mode'].is_item('ignore_other'):
-      self._layer_data.filter.add_rule(LayerFilterRules.has_tag, 'background', 'foreground')
+      self._layer_data.filter.add_rule(LayerFilterRules.has_tags)
     
     if self.export_settings['export_only_selected_layers'].value:
       self._layer_data.filter.add_rule(
