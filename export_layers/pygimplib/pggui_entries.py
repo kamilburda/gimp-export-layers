@@ -144,6 +144,7 @@ class EntryPopup(object):
   def __init__(self, entry, column_types, rows, row_filter_func=None,
     assign_from_selected_row_func=None, assign_last_value_func=None, on_row_left_mouse_button_press=None,
     on_entry_key_press_before_show_popup_func=None, on_entry_key_press_func=None,
+    on_entry_changed_show_popup_condition_func=None,
     width=-1, height=200, max_num_visible_rows=8):
     
     self._entry = entry
@@ -163,6 +164,10 @@ class EntryPopup(object):
       lambda *args: None)
     self._on_entry_key_press_func = (
       on_entry_key_press_func if on_entry_key_press_func is not None else lambda *args: False)
+    self._on_entry_changed_show_popup_condition_func = (
+      on_entry_changed_show_popup_condition_func if on_entry_changed_show_popup_condition_func is not None else
+      lambda *args: True
+    )
     
     self._last_assigned_entry_text = ""
     
@@ -199,6 +204,10 @@ class EntryPopup(object):
   @property
   def tree_view(self):
     return self._tree_view
+  
+  @property
+  def last_assigned_entry_text(self):
+    return self._last_assigned_entry_text
   
   def assign_text(self, text):
     """
@@ -468,6 +477,10 @@ class EntryPopup(object):
     if self._trigger_popup:
       self._last_assigned_entry_text = self._entry.get_text()
       
+      if not self._on_entry_changed_show_popup_condition_func():
+        self.hide()
+        return
+      
       show_popup_first_time = self._show_popup_first_time
       if not show_popup_first_time:
         self._rows_filtered.refilter()
@@ -554,21 +567,63 @@ class EntryPopup(object):
 
 class FilenamePatternEntry(gtk.Entry):
   
-  _COLUMN_TYPES = [bytes]
+  _BUTTON_MOUSE_LEFT = 1
   
-  def __init__(self, *args, **kwargs):
+  _COLUMNS = [_COLUMN_ITEM_NAMES, _COLUMN_ITEMS] = (0, 1)
+  _COLUMN_TYPES = [bytes, bytes]
+  
+  def __init__(self, suggested_items, *args, **kwargs):
     self._mininum_width = kwargs.pop('minimum_width', -1)
     self._maximum_width = kwargs.pop('maximum_width', -1)
     
     super(FilenamePatternEntry, self).__init__(*args, **kwargs)
-    
-    self.set_size_request(self._mininum_width, -1)
+
+    self._cursor_position = 0
+    self._cursor_position_before_assigning_from_row = None
     
     self._pango_layout = pango.Layout(self.get_pango_context())
     
+    self.set_size_request(self._mininum_width, -1)
+    
+    self._popup = EntryPopup(
+      self, self._COLUMN_TYPES, suggested_items,
+      assign_from_selected_row_func=self._assign_from_selected_row,
+      assign_last_value_func=self._assign_last_value,
+      on_entry_changed_show_popup_condition_func=self._on_entry_changed_condition)
+    
+    self._add_columns()
+    
+    self.connect("delete-text", self._on_entry_delete_text)
+    self.connect("insert-text", self._on_entry_insert_text)
+    self.connect("notify::cursor-position", self._on_cursor_position_changed)
     self.connect("changed", self._on_entry_changed)
     self.connect_after("realize", self._on_after_entry_realize)
   
+  def assign_text(self, text):
+    self._popup.assign_text(text)
+  
+  def _assign_last_value(self, last_value):
+    self._popup.assign_text(last_value)
+    
+    if self._cursor_position_before_assigning_from_row is not None:
+      self._cursor_position = self._cursor_position_before_assigning_from_row
+    self.set_position(self._cursor_position)
+    self._cursor_position_before_assigning_from_row = None
+  
+  def _assign_from_selected_row(self, tree_model, selected_tree_iter):
+    suggested_item = str(tree_model[selected_tree_iter][self._COLUMN_ITEMS])
+    
+    if self._cursor_position_before_assigning_from_row is None:
+      self._cursor_position_before_assigning_from_row = self._cursor_position
+    cursor_position = self._cursor_position_before_assigning_from_row
+    
+    self.assign_text(
+      self._popup.last_assigned_entry_text[:cursor_position] + suggested_item +
+      self._popup.last_assigned_entry_text[cursor_position:])
+    
+    self.set_position(cursor_position + len(suggested_item))
+    self._cursor_position = self.get_position()
+    self._cursor_position_before_assigning_from_row = cursor_position
   
   def _update_entry_width(self):
     # Offset with a few extra characters to make sure the entry resizes properly.
@@ -577,11 +632,27 @@ class FilenamePatternEntry(gtk.Entry):
     self.set_size_request(
       max(min(self._pango_layout.get_pixel_size()[0], self._maximum_width), self._mininum_width), -1)
   
+  def _on_entry_changed_condition(self):
+    return False
+  
+  def _on_entry_delete_text(self, entry, start, end):
+    self._cursor_position = start
+  
+  def _on_entry_insert_text(self, entry, new_text, new_text_length, position):
+    self._cursor_position = self.get_position() + new_text_length
+  
+  def _on_cursor_position_changed(self, entry, property_spec):
+    self._cursor_position = self.get_position()
+  
   def _on_entry_changed(self, widget):
     self._update_entry_width()
   
   def _on_after_entry_realize(self, widget):
     self._update_entry_width()
+  
+  def _add_columns(self):
+    self._popup.tree_view.append_column(
+      gtk.TreeViewColumn(None, gtk.CellRendererText(), text=self._COLUMN_ITEM_NAMES))
   
 
 #===============================================================================
