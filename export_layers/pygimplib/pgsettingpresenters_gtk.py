@@ -142,7 +142,7 @@ class GtkEntryPresenter(GtkSettingPresenter):
     self._element.set_position(-1)
 
 
-class FileExtensionEntryPresenter(GtkSettingPresenter):
+class ExtendedEntryPresenter(GtkSettingPresenter):
   
   """
   This class is a `SettingPresenter` for `FileExtensionEntry` (text fields
@@ -272,7 +272,7 @@ class SettingGuiTypes(object):
   checkbox = GtkCheckButtonPresenter
   combobox = GimpUiIntComboBoxPresenter
   text_entry = GtkEntryPresenter
-  file_extension_entry = FileExtensionEntryPresenter
+  extended_text_entry = ExtendedEntryPresenter
   folder_chooser = GtkFolderChooserPresenter
   window_position = GtkWindowPositionPresenter
   expander = GtkExpanderPresenter

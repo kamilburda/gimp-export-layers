@@ -203,8 +203,19 @@ class LayerExporter(object):
     `export_context_manager`.
   """
   
-  SUPPORTED_TAGS = collections.OrderedDict([('background', _("Background")),
-                                            ('foreground', _("Foreground"))])
+  SUPPORTED_TAGS = collections.OrderedDict([
+    ('background', _("Background")),
+    ('foreground', _("Foreground"))
+  ])
+  
+  SUGGESTED_LAYER_FILENAME_PATTERNS = [
+    (_("Layer name"), "[layer name]"),
+    (_("Image name"), "[image name]"),
+    (_("Layer path"), "[layer path]"),
+    (_("Current date"), "[current date]"),
+    (_("Tags"), "[tags]"),
+    ("image001", "image001")
+  ]
   
   def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser=None, progress_updater=None,
                export_context_manager=None, export_context_manager_args=None):

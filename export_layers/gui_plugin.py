@@ -813,6 +813,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.dot_label.set_alignment(0.0, 1.0)
     
     self.filename_pattern_entry = pggui.FilenamePatternEntry(
+      exportlayers.LayerExporter.SUGGESTED_LAYER_FILENAME_PATTERNS,
       minimum_width=self.FILENAME_PATTERN_ENTRY_MIN_WIDTH, maximum_width=self.FILENAME_PATTERN_ENTRY_MAX_WIDTH)
     
     self.label_message = gtk.Label()
@@ -832,12 +833,12 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.show_more_settings_button.set_label(_("Show _More Settings"))
     
     self.settings.initialize_gui({
-      'file_extension': [pgsetting.SettingGuiTypes.file_extension_entry, self.file_extension_entry],
+      'file_extension': [pgsetting.SettingGuiTypes.extended_text_entry, self.file_extension_entry],
       'dialog_position': [pgsetting.SettingGuiTypes.window_position, self.dialog],
       'show_more_settings': [pgsetting.SettingGuiTypes.checkbox, self.show_more_settings_button],
       'export_preview_pane_position': [
         pgsetting.SettingGuiTypes.paned_position, self.hpaned_chooser_and_previews],
-      'layer_filename_pattern': [pgsetting.SettingGuiTypes.text_entry, self.filename_pattern_entry]
+      'layer_filename_pattern': [pgsetting.SettingGuiTypes.extended_text_entry, self.filename_pattern_entry]
     })
     
     self.current_directory_setting.set_gui(pgsetting.SettingGuiTypes.folder_chooser, self.folder_chooser)
