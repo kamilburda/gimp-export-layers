@@ -580,6 +580,7 @@ class FilenamePatternEntry(gtk.Entry):
 
     self._cursor_position = 0
     self._cursor_position_before_assigning_from_row = None
+    self._reset_cursor_position_before_assigning_from_row = True
     
     self._pango_layout = pango.Layout(self.get_pango_context())
     
@@ -603,7 +604,9 @@ class FilenamePatternEntry(gtk.Entry):
     self._popup.assign_text(text)
   
   def _assign_last_value(self, last_value):
+    self._reset_cursor_position_before_assigning_from_row = False
     self._popup.assign_text(last_value)
+    self._reset_cursor_position_before_assigning_from_row = True
     
     if self._cursor_position_before_assigning_from_row is not None:
       self._cursor_position = self._cursor_position_before_assigning_from_row
@@ -611,11 +614,13 @@ class FilenamePatternEntry(gtk.Entry):
     self._cursor_position_before_assigning_from_row = None
   
   def _assign_from_selected_row(self, tree_model, selected_tree_iter):
-    suggested_item = str(tree_model[selected_tree_iter][self._COLUMN_ITEMS])
-    
     if self._cursor_position_before_assigning_from_row is None:
       self._cursor_position_before_assigning_from_row = self._cursor_position
     cursor_position = self._cursor_position_before_assigning_from_row
+    
+    suggested_item = str(tree_model[selected_tree_iter][self._COLUMN_ITEMS])
+    if cursor_position > 0 and self._popup.last_assigned_entry_text[cursor_position - 1] == "[":
+      suggested_item = suggested_item[1:]
     
     self.assign_text(
       self._popup.last_assigned_entry_text[:cursor_position] + suggested_item +
@@ -646,6 +651,8 @@ class FilenamePatternEntry(gtk.Entry):
   
   def _on_entry_changed(self, widget):
     self._update_entry_width()
+    if self._reset_cursor_position_before_assigning_from_row:
+      self._cursor_position_before_assigning_from_row = None
   
   def _on_after_entry_realize(self, widget):
     self._update_entry_width()
