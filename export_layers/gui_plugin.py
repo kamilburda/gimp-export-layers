@@ -1014,6 +1014,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.dialog.set_focus(self.file_extension_entry)
     self.export_layers_button.set_flags(gtk.CAN_DEFAULT)
     self.export_layers_button.grab_default()
+    self.filename_pattern_entry.set_activates_default(True)
     self.file_extension_entry.set_activates_default(True)
     # Place the cursor at the end of the text entry.
     self.file_extension_entry.set_position(-1)
