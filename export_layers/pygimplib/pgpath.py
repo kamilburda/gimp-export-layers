@@ -221,6 +221,68 @@ class StringPatternGenerator(object):
     
     return "".join(pattern_parts)
   
+  @classmethod
+  def is_in_field(cls, pattern, position, start_position=0):
+    """
+    Determine if the character at the given position in the pattern is inside a
+    field. Optionally start looking from a different starting position than the
+    beginning of the pattern.
+    """
+    
+    index = start_position
+    field_depth = 0
+    
+    if position < 0 or position > len(pattern):
+      position = len(pattern)
+    
+    while index < position:
+      if pattern[index] == "[":
+        is_escaped = cls._is_field_symbol_escaped(pattern, index, "[")
+        if field_depth == 0 and is_escaped:
+          index += 2
+          continue
+        elif field_depth == 0 and not is_escaped:
+          field_depth += 1
+        elif field_depth == 1:
+          field_depth += 1
+        elif field_depth > 1 and is_escaped:
+          index += 2
+          continue
+        elif field_depth > 1 and not is_escaped:
+          field_depth += 1
+      elif pattern[index] == "]":
+        is_escaped = cls._is_field_symbol_escaped(pattern, index, "]")
+        if field_depth == 0 and is_escaped:
+          index += 2
+          continue
+        elif field_depth == 0 and not is_escaped:
+          index += 1
+          continue
+        elif field_depth == 1:
+          field_depth -= 1
+        elif field_depth > 1 and is_escaped:
+          index += 2
+          continue
+        elif field_depth > 1 and not is_escaped:
+          field_depth -= 1
+          index += 1
+          continue
+      index += 1
+    
+    return field_depth > 0
+  
+  @classmethod
+  def _is_field_symbol_escaped(cls, pattern, index, symbol):
+    return index + 1 < len(pattern) and pattern[index + 1] == symbol
+  
+  @classmethod
+  def _is_field_number(cls, field_name):
+    return bool(re.search(r"^[0-9]+$", field_name))
+  
+  @classmethod
+  def _is_field(cls, pattern_part):
+    return not isinstance(pattern_part, types.StringTypes)
+  
   def _parse_pattern(self, pattern, fields):
     index = 0
     start_of_field_index = 0
@@ -388,15 +450,6 @@ class StringPatternGenerator(object):
         return False
     
     return True
-  
-  def _is_field_symbol_escaped(self, pattern, index, symbol):
-    return index + 1 < len(pattern) and pattern[index + 1] == symbol
-  
-  def _is_field_number(self, field_name):
-    return bool(re.search(r"^[0-9]+$", field_name))
-  
-  def _is_field(self, pattern_part):
-    return not isinstance(pattern_part, types.StringTypes)
   
   def _parse_number(self, pattern_parts, has_fields):
     should_create_number_generator = True

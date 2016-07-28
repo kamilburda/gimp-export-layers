@@ -312,6 +312,40 @@ class TestStringPatternGenerator(unittest.TestCase):
     
     with self.assertRaises(ValueError):
       pgpath.StringPatternGenerator("[joined kwargs, -]_001", {"joined kwargs": _get_joined_kwargs_values})
+  
+  def test_is_in_field(self):
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("", 0))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("image001", 0))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("image001", 5))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("[layer name]", 0))
+    self.assertTrue(pgpath.StringPatternGenerator.is_in_field("[layer name]", 1))
+    self.assertTrue(pgpath.StringPatternGenerator.is_in_field("[layer name]", 5))
+    self.assertTrue(pgpath.StringPatternGenerator.is_in_field("[layer name]", 11))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("[layer name]", 12))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("[[layer name]", 1))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("[[layer name]", 2))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("[[layer name]", 3))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("[[[layer name]", 1))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("[[[layer name]", 2))
+    self.assertTrue(pgpath.StringPatternGenerator.is_in_field("[[[layer name]", 3))
+    
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("layer [name]", 2))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("layer [name]", 6))
+    self.assertTrue(pgpath.StringPatternGenerator.is_in_field("layer [name]", 7))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("layer [[layer [[ name]", 2))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("layer [[layer [[ name]", 6))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("layer [[layer [[ name]", 7))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("layer [[layer [[ name]", 8))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("layer [[layer [[ name]", 14))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("layer [[layer [[ name]", 15))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("layer [[layer [[ name]", 16))
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("layer [[layer [[[name]", 16))
+    self.assertTrue(pgpath.StringPatternGenerator.is_in_field("layer [[layer [[[name]", 17))
+    
+    self.assertFalse(pgpath.StringPatternGenerator.is_in_field("[layer name", 0))
+    self.assertTrue(pgpath.StringPatternGenerator.is_in_field("[layer name", 1))
+    self.assertTrue(pgpath.StringPatternGenerator.is_in_field("[layer [name", 7))
+    self.assertTrue(pgpath.StringPatternGenerator.is_in_field("[layer [name", 8))
 
 
 #===============================================================================
