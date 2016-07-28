@@ -638,7 +638,18 @@ class FilenamePatternEntry(gtk.Entry):
       max(min(self._pango_layout.get_pixel_size()[0], self._maximum_width), self._mininum_width), -1)
   
   def _on_entry_changed_condition(self):
-    return False
+    current_text = self.get_text()
+    
+    if current_text:
+      if len(current_text) > 1:
+        return (
+          current_text[self._cursor_position - 1] == "[" and
+          current_text[self._cursor_position - 2] != "[" and
+          not pgpath.StringPatternGenerator.is_in_field(current_text, self._cursor_position - 1))
+      else:
+        return current_text[0] == "["
+    else:
+      return True
   
   def _on_entry_delete_text(self, entry, start, end):
     self._cursor_position = start
