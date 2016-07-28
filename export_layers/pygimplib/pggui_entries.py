@@ -41,6 +41,7 @@ import gimp
 pdb = gimp.pdb
 
 from . import pgfileformats
+from . import pgpath
 
 #===============================================================================
 
@@ -588,6 +589,7 @@ class FilenamePatternEntry(gtk.Entry):
     
     self._popup = EntryPopup(
       self, self._COLUMN_TYPES, suggested_items,
+      row_filter_func=self._filter_suggested_items,
       assign_from_selected_row_func=self._assign_from_selected_row,
       assign_last_value_func=self._assign_last_value,
       on_entry_changed_show_popup_condition_func=self._on_entry_changed_condition)
@@ -602,6 +604,15 @@ class FilenamePatternEntry(gtk.Entry):
   
   def assign_text(self, text):
     self._popup.assign_text(text)
+  
+  def _filter_suggested_items(self, suggested_items, row_iter):
+    item = suggested_items[row_iter][self._COLUMN_ITEMS]
+    
+    if (self._cursor_position > 0 and
+        self.get_text()[self._cursor_position - 1] == "[" and item and item[0] != "["):
+      return False
+    else:
+      return True
   
   def _assign_last_value(self, last_value):
     self._reset_cursor_position_before_assigning_from_row = False
