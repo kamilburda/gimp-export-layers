@@ -620,12 +620,13 @@ class ExportNamePreview(object):
   def _enable_tagged_layers(self):
     if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
       self._layer_exporter.layer_data.filter.remove_rule(
-        exportlayers.LayerFilterRules.has_no_tag, raise_if_not_found=False)
+        exportlayers.LayerFilterRules.has_no_tags, raise_if_not_found=False)
   
   def _set_sensitive_tagged_layers(self):
     if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
       with self._layer_exporter.layer_data.filter.add_rule_temp(
-             exportlayers.LayerFilterRules.has_tag, *self._layer_exporter.SUPPORTED_TAGS.keys()):
+        exportlayers.LayerFilterRules.has_tags, *self._layer_exporter.SUPPORTED_TAGS.keys()):
+        
         for layer_elem in self._layer_exporter.layer_data:
           self._set_item_elem_sensitive(layer_elem, False)
           if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
