@@ -392,7 +392,7 @@ class EntryPopup(object):
     self._entry.connect("button-press-event", self._on_entry_left_mouse_button_press)
     self._entry.connect("key-press-event", self._on_entry_key_press)
     
-    self._entry.connect("focus-out-event", self._on_entry_focus_out)
+    self._entry.connect("focus-out-event", self._on_entry_focus_out_event)
     
     self._entry.connect("enter-notify-event", self._on_entry_enter_notify_event)
     self._entry.connect("leave-notify-event", self._on_entry_leave_notify_event)
@@ -545,7 +545,7 @@ class EntryPopup(object):
   def _on_vscrollbar_leave_notify_event(self, vscrollbar, event):
     self._mouse_points_at_vscrollbar = False
   
-  def _on_entry_focus_out(self, entry, event):
+  def _on_entry_focus_out_event(self, entry, event):
     self.hide()
   
   def _on_button_press_emission_hook(self, widget, event):
@@ -577,11 +577,25 @@ class FilenamePatternEntry(gtk.Entry):
     self._mininum_width = kwargs.pop('minimum_width', -1)
     self._maximum_width = kwargs.pop('maximum_width', -1)
     
+    self._default_item_value = kwargs.pop('default_item', None)
+    
+    suggested_item_values = [item[1] for item in suggested_items]
+    if self._default_item_value is not None and self._default_item_value not in suggested_item_values:
+      raise ValueError("default item \"{0}\" not in the list of suggested items: {1}".format(
+        self._default_item_value, suggested_item_values))
+    
+    if self._default_item_value is not None:
+      self._default_item_name = suggested_items[suggested_item_values.index(self._default_item_value)][0]
+    else:
+      self._default_item_name = None
+    
     super(FilenamePatternEntry, self).__init__(*args, **kwargs)
 
     self._cursor_position = 0
     self._cursor_position_before_assigning_from_row = None
     self._reset_cursor_position_before_assigning_from_row = True
+    
+    self._has_default_item_assigned = False
     
     self._pango_layout = pango.Layout(self.get_pango_context())
     
@@ -600,10 +614,23 @@ class FilenamePatternEntry(gtk.Entry):
     self.connect("insert-text", self._on_entry_insert_text)
     self.connect("notify::cursor-position", self._on_cursor_position_changed)
     self.connect("changed", self._on_entry_changed)
+    
+    self.connect("focus-in-event", self._on_entry_focus_in_event)
+    self.connect("focus-out-event", self._on_entry_focus_out_event)
+    
     self.connect_after("realize", self._on_after_entry_realize)
   
+  def get_text(self):
+    if not self._has_default_item_assigned:
+      return super(FilenamePatternEntry, self).get_text()
+    else:
+      return ""
+  
   def assign_text(self, text):
-    self._popup.assign_text(text)
+    if self.has_focus() or text:
+      self._popup.assign_text(text)
+    else:
+      self._assign_default_text()
   
   def _filter_suggested_items(self, suggested_items, row_iter):
     item = suggested_items[row_iter][self._COLUMN_ITEMS]
@@ -662,6 +689,30 @@ class FilenamePatternEntry(gtk.Entry):
     else:
       return True
   
+  def _assign_default_text(self):
+    if self._default_item_name is not None:
+      self._has_default_item_assigned = True
+      
+      # The font may be different before widget realization, and modifying the font
+      # now may result in the font not being properly set up after the realization.
+      if self.get_realized():
+        self._modify_font_for_default_text(gtk.STATE_INSENSITIVE, pango.STYLE_ITALIC)
+      
+      self._popup.assign_text(self._default_item_name)
+  
+  def _unassign_default_text(self):
+    if self._has_default_item_assigned:
+      self._has_default_item_assigned = False
+      self._modify_font_for_default_text(gtk.STATE_NORMAL, pango.STYLE_NORMAL)
+      self._popup.assign_text("")
+  
+  def _modify_font_for_default_text(self, state_for_color, style):
+    self.modify_text(gtk.STATE_NORMAL, self.style.fg[state_for_color])
+    
+    font_description = self.get_pango_context().get_font_description()
+    font_description.set_style(style)
+    self.modify_font(font_description)
+
   def _on_entry_delete_text(self, entry, start, end):
     self._cursor_position = start
   
@@ -671,12 +722,21 @@ class FilenamePatternEntry(gtk.Entry):
   def _on_cursor_position_changed(self, entry, property_spec):
     self._cursor_position = self.get_position()
   
-  def _on_entry_changed(self, widget):
+  def _on_entry_changed(self, entry):
     self._update_entry_width()
     if self._reset_cursor_position_before_assigning_from_row:
       self._cursor_position_before_assigning_from_row = None
   
-  def _on_after_entry_realize(self, widget):
+  def _on_entry_focus_in_event(self, entry, event):
+    self._unassign_default_text()
+  
+  def _on_entry_focus_out_event(self, entry, event):
+    if not self.get_text():
+      self._assign_default_text()
+  
+  def _on_after_entry_realize(self, entry):
+    if not self.get_text():
+      self._assign_default_text()
     self._update_entry_width()
   
   def _add_columns(self):
