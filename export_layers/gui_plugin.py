@@ -815,7 +815,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self.filename_pattern_entry = pggui.FilenamePatternEntry(
       exportlayers.LayerExporter.SUGGESTED_LAYER_FILENAME_PATTERNS,
-      minimum_width=self.FILENAME_PATTERN_ENTRY_MIN_WIDTH, maximum_width=self.FILENAME_PATTERN_ENTRY_MAX_WIDTH)
+      minimum_width=self.FILENAME_PATTERN_ENTRY_MIN_WIDTH,
+      maximum_width=self.FILENAME_PATTERN_ENTRY_MAX_WIDTH,
+      default_item="[layer name]")
     
     self.label_message = gtk.Label()
     self.label_message.set_alignment(0.0, 0.5)
