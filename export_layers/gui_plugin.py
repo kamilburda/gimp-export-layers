@@ -740,7 +740,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   DIALOG_BOTTOM_SEPARATOR_PADDING = 5
   DIALOG_BUTTONS_HORIZONTAL_SPACING = 6
   
-  FILE_EXTENSION_ENTRY_WIDTH = 75
+  FILE_EXTENSION_ENTRY_WIDTH = 60
   FILENAME_PATTERN_ENTRY_MIN_WIDTH = 100
   FILENAME_PATTERN_ENTRY_MAX_WIDTH = 300
   
@@ -1014,6 +1014,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.dialog.set_focus(self.file_extension_entry)
     self.export_layers_button.set_flags(gtk.CAN_DEFAULT)
     self.export_layers_button.grab_default()
+    self.filename_pattern_entry.set_activates_default(True)
     self.file_extension_entry.set_activates_default(True)
     # Place the cursor at the end of the text entry.
     self.file_extension_entry.set_position(-1)
