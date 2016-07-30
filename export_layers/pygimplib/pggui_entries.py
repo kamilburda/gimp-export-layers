@@ -576,7 +576,6 @@ class FilenamePatternEntry(gtk.Entry):
   def __init__(self, suggested_items, *args, **kwargs):
     self._mininum_width = kwargs.pop('minimum_width', -1)
     self._maximum_width = kwargs.pop('maximum_width', -1)
-    
     self._default_item_value = kwargs.pop('default_item', None)
     
     suggested_item_values = [item[1] for item in suggested_items]
@@ -590,12 +589,12 @@ class FilenamePatternEntry(gtk.Entry):
       self._default_item_name = None
     
     super(FilenamePatternEntry, self).__init__(*args, **kwargs)
-
+    
     self._cursor_position = 0
     self._cursor_position_before_assigning_from_row = None
     self._reset_cursor_position_before_assigning_from_row = True
     
-    self._has_default_item_assigned = False
+    self._has_placeholder_item_assigned = False
     
     self._pango_layout = pango.Layout(self.get_pango_context())
     
@@ -621,16 +620,16 @@ class FilenamePatternEntry(gtk.Entry):
     self.connect_after("realize", self._on_after_entry_realize)
   
   def get_text(self):
-    if not self._has_default_item_assigned:
+    if not self._has_placeholder_item_assigned:
       return super(FilenamePatternEntry, self).get_text()
     else:
       return ""
   
   def assign_text(self, text):
-    if self.has_focus() or text:
+    if self.has_focus() or not self._should_assign_placeholder_text(text):
       self._popup.assign_text(text)
     else:
-      self._assign_default_text()
+      self._assign_placeholder_text()
   
   def _filter_suggested_items(self, suggested_items, row_iter):
     item = suggested_items[row_iter][self._COLUMN_ITEMS]
@@ -689,30 +688,33 @@ class FilenamePatternEntry(gtk.Entry):
     else:
       return True
   
-  def _assign_default_text(self):
+  def _assign_placeholder_text(self):
     if self._default_item_name is not None:
-      self._has_default_item_assigned = True
+      self._has_placeholder_item_assigned = True
       
       # The font may be different before widget realization, and modifying the font
       # now may result in the font not being properly set up after the realization.
       if self.get_realized():
-        self._modify_font_for_default_text(gtk.STATE_INSENSITIVE, pango.STYLE_ITALIC)
+        self._modify_font_for_placeholder_text(gtk.STATE_INSENSITIVE, pango.STYLE_ITALIC)
       
       self._popup.assign_text(self._default_item_name)
   
-  def _unassign_default_text(self):
-    if self._has_default_item_assigned:
-      self._has_default_item_assigned = False
-      self._modify_font_for_default_text(gtk.STATE_NORMAL, pango.STYLE_NORMAL)
+  def _unassign_placeholder_text(self):
+    if self._has_placeholder_item_assigned:
+      self._has_placeholder_item_assigned = False
+      self._modify_font_for_placeholder_text(gtk.STATE_NORMAL, pango.STYLE_NORMAL)
       self._popup.assign_text("")
   
-  def _modify_font_for_default_text(self, state_for_color, style):
+  def _modify_font_for_placeholder_text(self, state_for_color, style):
     self.modify_text(gtk.STATE_NORMAL, self.style.fg[state_for_color])
     
     font_description = self.get_pango_context().get_font_description()
     font_description.set_style(style)
     self.modify_font(font_description)
-
+  
+  def _should_assign_placeholder_text(self, text):
+    return not text or (self._default_item_value is not None and text == self._default_item_value)
+  
   def _on_entry_delete_text(self, entry, start, end):
     self._cursor_position = start
   
@@ -723,20 +725,23 @@ class FilenamePatternEntry(gtk.Entry):
     self._cursor_position = self.get_position()
   
   def _on_entry_changed(self, entry):
-    self._update_entry_width()
+    if self.get_realized():
+      self._update_entry_width()
+    
     if self._reset_cursor_position_before_assigning_from_row:
       self._cursor_position_before_assigning_from_row = None
   
   def _on_entry_focus_in_event(self, entry, event):
-    self._unassign_default_text()
+    self._unassign_placeholder_text()
   
   def _on_entry_focus_out_event(self, entry, event):
-    if not self.get_text():
-      self._assign_default_text()
+    if self._should_assign_placeholder_text(self.get_text()):
+      self._assign_placeholder_text()
   
   def _on_after_entry_realize(self, entry):
-    if not self.get_text():
-      self._assign_default_text()
+    if self._should_assign_placeholder_text(self.get_text()):
+      self._assign_placeholder_text()
+    
     self._update_entry_width()
   
   def _add_columns(self):
