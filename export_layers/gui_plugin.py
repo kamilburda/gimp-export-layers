@@ -817,7 +817,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       exportlayers.LayerExporter.SUGGESTED_LAYER_FILENAME_PATTERNS,
       minimum_width=self.FILENAME_PATTERN_ENTRY_MIN_WIDTH,
       maximum_width=self.FILENAME_PATTERN_ENTRY_MAX_WIDTH,
-      default_item="[layer name]")
+      default_item=self.settings['main/layer_filename_pattern'].default_value)
     
     self.label_message = gtk.Label()
     self.label_message.set_alignment(0.0, 0.5)
