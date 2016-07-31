@@ -101,6 +101,14 @@ class TestStringPatternGenerator(unittest.TestCase):
     for output in expected_outputs:
       self.assertEqual(generator.generate(), output)
   
+  def _test_reset(self, pattern, *expected_outputs):
+    generator = pgpath.StringPatternGenerator(pattern)
+    for _unused in range(3):
+      generator.generate()
+    generator.reset_numbering()
+    for output in expected_outputs:
+      self.assertEqual(generator.generate(), output)
+  
   def test_generate(self):
     self._test_generate("", "")
     self._test_generate("image", "image")
@@ -187,6 +195,8 @@ class TestStringPatternGenerator(unittest.TestCase):
     self._test_generate_with_fields(
       {}, "image[009]", "image009", "image010", "image011")
     self._test_generate_with_fields(
+      {}, "image[001]_[001]", "image001_002", "image003_004", "image005_006")
+    self._test_generate_with_fields(
       {}, "image[001]_2016-07-16",
       "image001_2016-07-16", "image002_2016-07-16", "image003_2016-07-16")
     self._test_generate_with_fields(
@@ -247,6 +257,13 @@ class TestStringPatternGenerator(unittest.TestCase):
     with self.assertRaises(ValueError):
       pgpath.StringPatternGenerator("[joined kwargs, -]", {"joined kwargs": _get_joined_kwargs_values})
   
+  def test_reset_numbering(self):
+    self._test_reset("image[001]", "image001", "image002")
+    self._test_reset("image[005]", "image005", "image006")
+    self._test_reset("image[999]", "image999", "image1000")
+    self._test_reset("image[001]_[001]", "image001_002", "image003_004")
+    self._test_reset("image[001]_[005]", "image001_005", "image002_006")
+    
   def test_is_in_field(self):
     self.assertFalse(pgpath.StringPatternGenerator.is_in_field("", 0))
     self.assertFalse(pgpath.StringPatternGenerator.is_in_field("image001", 0))

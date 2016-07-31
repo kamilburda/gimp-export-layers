@@ -30,6 +30,7 @@ from __future__ import unicode_literals
 str = unicode
 
 import abc
+import collections
 import inspect
 import os
 import re
@@ -191,7 +192,8 @@ class StringPatternGenerator(object):
     self._pattern = pattern
     self._fields = fields if fields is not None else {}
     
-    self._number_generators = []
+    # key: field name; value: number generator
+    self._number_generators = collections.OrderedDict()
     
     # key: id(parsed field); value: field as a substring in the pattern
     self._field_strings = {}
@@ -213,6 +215,15 @@ class StringPatternGenerator(object):
         pattern_parts.append(self._process_field(part))
     
     return "".join(pattern_parts)
+  
+  def reset_numbering(self):
+    """
+    If the pattern contains number fields, reset the numbering of the fields to
+    their initial value.
+    """
+    
+    for field_name in list(self._number_generators.keys()):
+      self._create_number_field(field_name)
   
   @classmethod
   def is_in_field(cls, pattern, position, start_position=0):
@@ -284,7 +295,7 @@ class StringPatternGenerator(object):
     
     pattern_parts = []
     
-    def _add_substring(end_index=None):
+    def _add_pattern_part(end_index=None):
       start_index = max(last_constant_substring_index, start_of_field_index)
       if end_index is not None:
         pattern_parts.append(pattern[start_index:end_index])
@@ -295,13 +306,13 @@ class StringPatternGenerator(object):
       if pattern[index] == "[":
         is_escaped = self._is_field_symbol_escaped(pattern, index, "[")
         if field_depth == 0 and is_escaped:
-          _add_substring(index)
+          _add_pattern_part(index)
           pattern_parts.append("[")
           last_constant_substring_index = index + 2
           index += 2
           continue
         elif field_depth == 0 and not is_escaped:
-          _add_substring(index)
+          _add_pattern_part(index)
           start_of_field_index = index
           field_depth += 1
         elif field_depth == 1:
@@ -314,7 +325,7 @@ class StringPatternGenerator(object):
       elif pattern[index] == "]":
         is_escaped = self._is_field_symbol_escaped(pattern, index, "]")
         if field_depth == 0 and is_escaped:
-          _add_substring(index)
+          _add_pattern_part(index)
           pattern_parts.append("]")
           last_constant_substring_index = index + 2
           index += 2
@@ -340,17 +351,17 @@ class StringPatternGenerator(object):
         if field[0] in fields and self._is_field_valid(field):
           pattern_parts.append(field)
         elif self._is_field_number(field[0]) and not field[1]:
-          self._add_number_field(field[0])
+          self._create_number_field(field[0])
           
           pattern_parts.append(field)
         else:
-          _add_substring(index + 1)
+          _add_pattern_part(index + 1)
         
         last_constant_substring_index = index + 1
       
       index += 1
     
-    _add_substring()
+    _add_pattern_part()
     
     return pattern_parts
   
@@ -436,10 +447,9 @@ class StringPatternGenerator(object):
     
     return True
   
-  def _add_number_field(self, field_name):
+  def _create_number_field(self, field_name):
     number_generator = self._generate_number(padding=len(field_name), initial_number=int(field_name))
-    self._number_generators.append(number_generator)
-    
+    self._number_generators[field_name] = number_generator
     self._fields[field_name] = lambda: next(number_generator)
   
   def _generate_number(self, padding, initial_number):
