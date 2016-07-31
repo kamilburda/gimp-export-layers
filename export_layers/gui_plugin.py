@@ -518,7 +518,6 @@ class ExportNamePreview(object):
   
   def _on_tags_menu_item_toggled(self, tags_menu_item):
     if self._toggle_tag_interactive:
-      should_update = False
       treat_tagged_layers_specially = self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special')
       
       pdb.gimp_image_undo_group_start(self._layer_exporter.image)
@@ -531,15 +530,14 @@ class ExportNamePreview(object):
         was_selected = self._tree_view.get_selection().iter_is_selected(self._tree_iters[old_layer_elem_orig_name])
         
         if tags_menu_item.get_active():
-          modified_externally = self._layer_exporter.layer_data.add_tag(layer_elem, tag)
+          self._layer_exporter.layer_data.add_tag(layer_elem, tag)
         else:
-          modified_externally = self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
+          self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
         
         has_supported_tags = self._has_supported_tags(layer_elem)
         should_set_sensitive = (has_supported_tags != had_previously_supported_tags and
                                 treat_tagged_layers_specially and
                                 layer_elem.item_type != layer_elem.NONEMPTY_GROUP)
-        should_update = should_update or modified_externally or should_set_sensitive
         
         self._set_layer_orig_name(self._tree_iters[old_layer_elem_orig_name],
                                   old_layer_elem_orig_name, layer_elem.orig_name)
@@ -556,10 +554,9 @@ class ExportNamePreview(object):
       
       pdb.gimp_image_undo_group_end(self._layer_exporter.image)
       
-      if should_update:
-        # Modifying just one layer could result in renaming other layers differently,
-        # hence update the whole preview.
-        self.update()
+      # Modifying just one layer could result in renaming other layers differently,
+      # hence update the whole preview.
+      self.update()
   
   def _get_layer_orig_name(self, tree_iter):
     return self._tree_model.get_value(tree_iter, column=self._COLUMN_LAYER_ORIG_NAME[0]).decode(
