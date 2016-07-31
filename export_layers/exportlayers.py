@@ -612,13 +612,9 @@ class LayerExporter(object):
     return layer
   
   def _preprocess_layer_name(self, layer_elem):
-    self._layer_data.validate_name(layer_elem)
     self._strip_file_extension(layer_elem)
-    
-    if (self.export_settings['layer_filename_pattern'].value !=
-        self.export_settings['layer_filename_pattern'].default_value):
-      layer_elem.name = self._filename_pattern_generator.generate()
-      self._layer_data.validate_name(layer_elem, force_validation=True)
+    self._rename_layer_by_pattern(layer_elem)
+    self._layer_data.validate_name(layer_elem)
   
   def _preprocess_empty_group_name(self, layer_elem):
     self._layer_data.validate_name(layer_elem)
@@ -633,6 +629,11 @@ class LayerExporter(object):
     if (layer_elem.item_type == layer_elem.NONEMPTY_GROUP and
         self.export_settings['export_only_selected_layers'].value):
       self._layer_data.reset_name(layer_elem)
+  
+  def _rename_layer_by_pattern(self, layer_elem):
+    if (self.export_settings['layer_filename_pattern'].value !=
+        self.export_settings['layer_filename_pattern'].default_value):
+      layer_elem.name = self._filename_pattern_generator.generate()
   
   def _strip_file_extension(self, layer_elem):
     if self.export_settings['strip_mode'].is_item('identical', 'always'):
