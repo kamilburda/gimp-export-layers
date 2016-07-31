@@ -161,37 +161,30 @@ class StringPatternGenerator(object):
   pattern. Fields in the pattern are enclosed in square brackets ("[field]").
   To insert literal square brackets, double the character ("[[", "]]").
   
-  Field arguments (the number depends on the function in the `fields`
-  dictionary) are separated by commas (","). To insert literal commas in field
+  Field arguments are separated by commas (","). The number of arguments depends
+  on the function in the `fields` dictionary. To insert literal commas in field
   arguments, enclose the arguments in square brackets. To insert square brackets
   in field arguments, enclose the arguments in square brackets and double the
   square brackets (the ones inside the argument, not the enclosing ones). If the
   last argument is enclosed in square brackets, insert a comma after the
   argument.
   
-  If no field is specified in the pattern, or if a number is explicitly
-  specified at the beginning or the end of the pattern, an auto-incrementing
-  number is assigned to each generated string.
-  
-  If the pattern is empty, assign an auto-incrementing number to the pattern.
+  A special field containing a number (consisting of nothing but digits) can be
+  specified in the pattern. The number auto-increments by 1 after each call to
+  `generate()`.
   
   Examples:
   
-  * "image" -> "image001", "image002", ...
-  * "image1" -> "image1", "image2", ...
-  * "001_image" -> "001_image", "002_image", ...
-  * "image005" -> "image005", "image006", ...
+  * "image" -> "image", "image", ...
+  * "image[001]" -> "image001", "image002", ...
+  * "image[005]" -> "image005", "image006", ...
+  * "image[1]" -> "image1", "image2", ...
+  * "image[001]_1234" -> "image001_1234", "image002_1234", ...
   * Suppose `fields` contains field "date" returning current date (requiring a
     date format as a parameter). Then:
-    "image_[date, %Y-%m-%d]_001" -> "image_2016-07-16_001",
-    "image_2016-07-16_002", ...
-  * Field specified, no explicit number specified:
-    "[date]" -> "2016-07-16", "2016-07-16", ...
-  * "image001_1234" -> "image001_1234", "image001_1235", ...
-  * "image[001]_1234" -> "image001_1234", "image002_1234", ...
-  * "[[image]]" -> "[image]001", "[image]002", ...
-  * "[date, [[[%Y,%m,%d]]],]_001" -> "[2016,07,16]_001", "[2016,07,16]_002",
-    ...
+    "image_[date, %Y-%m-%d]" -> "image_2016-07-16", ...
+  * "[[image]]" -> "[image]", ...
+  * "[date, [[[%Y,%m,%d]]],]" -> "[2016,07,16]", ...
   """
   
   def __init__(self, pattern, fields=None):
@@ -287,8 +280,6 @@ class StringPatternGenerator(object):
     index = 0
     start_of_field_index = 0
     last_constant_substring_index = 0
-    has_pattern_number_field = False
-    has_fields = False
     field_depth = 0
     
     pattern_parts = []
@@ -347,11 +338,8 @@ class StringPatternGenerator(object):
         self._field_strings[id(field)] = field_str
         
         if field[0] in fields and self._is_field_valid(field):
-          has_fields = True
           pattern_parts.append(field)
         elif self._is_field_number(field[0]) and not field[1]:
-          has_fields = True
-          has_pattern_number_field = True
           self._add_number_field(field[0])
           
           pattern_parts.append(field)
@@ -363,9 +351,6 @@ class StringPatternGenerator(object):
       index += 1
     
     _add_substring()
-    
-    if not has_pattern_number_field:
-      pattern_parts = self._parse_number(pattern_parts, has_fields)
     
     return pattern_parts
   
@@ -450,29 +435,6 @@ class StringPatternGenerator(object):
         return False
     
     return True
-  
-  def _parse_number(self, pattern_parts, has_fields):
-    should_create_number_generator = True
-    
-    if not self._is_field(pattern_parts[-1]) and re.search(r"[0-9]+$", pattern_parts[-1]):
-      number_str = re.search(r"[0-9]+$", pattern_parts[-1]).group()
-      pattern_parts[-1] = pattern_parts[-1][:-len(number_str)]
-      pattern_parts.append((number_str, []))
-    elif not self._is_field(pattern_parts[0]) and re.search(r"^[0-9]+", pattern_parts[0]):
-      number_str = re.search(r"^[0-9]+", pattern_parts[0]).group()
-      pattern_parts[0] = pattern_parts[0][len(number_str):]
-      pattern_parts.insert(0, (number_str, []))
-    else:
-      number_str = "001"
-      if has_fields:
-        should_create_number_generator = False
-      else:
-        pattern_parts.append((number_str, []))
-    
-    if should_create_number_generator:
-      self._add_number_field(number_str)
-    
-    return pattern_parts
   
   def _add_number_field(self, field_name):
     number_generator = self._generate_number(padding=len(field_name), initial_number=int(field_name))
