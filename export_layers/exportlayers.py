@@ -209,12 +209,12 @@ class LayerExporter(object):
   ])
   
   SUGGESTED_LAYER_FILENAME_PATTERNS = [
+    ("image001", "image[001]"),
     (_("Layer name"), "[layer name]"),
     (_("Image name"), "[image name]"),
     (_("Layer path"), "[layer path]"),
-    (_("Current date"), "[current date]"),
     (_("Tags"), "[tags]"),
-    ("image001", "image001")
+    (_("Current date"), "[current date]"),
   ]
   
   def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser=None, progress_updater=None,
