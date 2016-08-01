@@ -200,7 +200,8 @@ class SettingPersistor(object):
   @classmethod
   def clear(cls, setting_sources):
     """
-    Remove all settings from all the specified setting sources.
+    Remove all settings from all the specified setting sources. Note that some
+    sources may do nothing because they do not implement this method.
     """
     
     for source in setting_sources:
