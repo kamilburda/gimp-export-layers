@@ -101,11 +101,21 @@ class TestStringPatternGenerator(unittest.TestCase):
     for output in expected_outputs:
       self.assertEqual(generator.generate(), output)
   
-  def _test_reset(self, pattern, *expected_outputs):
+  def _test_reset_numbering(self, pattern, *expected_outputs):
     generator = pgpath.StringPatternGenerator(pattern)
     for _unused in range(3):
       generator.generate()
     generator.reset_numbering()
+    for output in expected_outputs:
+      self.assertEqual(generator.generate(), output)
+  
+  def _test_set_number_generator(self, pattern, *expected_outputs):
+    generator = pgpath.StringPatternGenerator(pattern)
+    for _unused in range(3):
+      generator.generate()
+    number_generators = generator.get_number_generators()
+    generator.reset_numbering()
+    generator.set_number_generators(number_generators)
     for output in expected_outputs:
       self.assertEqual(generator.generate(), output)
   
@@ -258,11 +268,22 @@ class TestStringPatternGenerator(unittest.TestCase):
       pgpath.StringPatternGenerator("[joined kwargs, -]", {"joined kwargs": _get_joined_kwargs_values})
   
   def test_reset_numbering(self):
-    self._test_reset("image[001]", "image001", "image002")
-    self._test_reset("image[005]", "image005", "image006")
-    self._test_reset("image[999]", "image999", "image1000")
-    self._test_reset("image[001]_[001]", "image001_002", "image003_004")
-    self._test_reset("image[001]_[005]", "image001_005", "image002_006")
+    self._test_reset_numbering("image[001]", "image001", "image002")
+    self._test_reset_numbering("image[005]", "image005", "image006")
+    self._test_reset_numbering("image[999]", "image999", "image1000")
+    self._test_reset_numbering("image[001]_[001]", "image001_002", "image003_004")
+    self._test_reset_numbering("image[001]_[005]", "image001_005", "image002_006")
+  
+  def test_set_number_generator(self):
+    self._test_set_number_generator("image[001]", "image004", "image005")
+    self._test_set_number_generator("image[001]_[001]", "image007_008", "image009_010")
+    self._test_set_number_generator("image[001]_[005]", "image004_008", "image005_009")
+  
+    generator = pgpath.StringPatternGenerator("image[001]")
+    with self.assertRaises(ValueError):
+      generator.set_number_generators([])
+    with self.assertRaises(ValueError):
+      generator.set_number_generators([object(), object()])
     
   def test_is_in_field(self):
     self.assertFalse(pgpath.StringPatternGenerator.is_in_field("", 0))

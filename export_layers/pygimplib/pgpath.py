@@ -219,11 +219,38 @@ class StringPatternGenerator(object):
   def reset_numbering(self):
     """
     If the pattern contains number fields, reset the numbering of the fields to
-    their initial value.
+    their initial value. Return the new number generators.
     """
     
+    new_number_generators = []
+    
     for field_name in list(self._number_generators.keys()):
-      self._create_number_field(field_name)
+      number_generator = self._set_number_field(field_name)
+      new_number_generators.append(number_generator)
+    
+    return new_number_generators
+  
+  def get_number_generators(self):
+    """
+    Return generators that generate auto-incrementing numbers in the pattern.
+    """
+    
+    return list(self._number_generators.values())
+  
+  def set_number_generators(self, number_generators):
+    """
+    Set generators that generate auto-incrementing numbers in the pattern. This
+    can be used to resume previous numbering, e.g. after calling
+    `reset_numbering()`.
+    """
+    
+    if len(number_generators) != len(self._number_generators.keys()):
+      raise ValueError(
+        "incorrect number of number generators (got {0}, expected {1})".format(
+          len(number_generators), len(self._number_generators.keys())))
+    
+    for field_name, number_generator in zip(self._number_generators.keys(), number_generators):
+      self._set_number_field(field_name, number_generator)
   
   @classmethod
   def is_in_field(cls, pattern, position, start_position=0):
@@ -351,7 +378,7 @@ class StringPatternGenerator(object):
         if field[0] in fields and self._is_field_valid(field):
           pattern_parts.append(field)
         elif self._is_field_number(field[0]) and not field[1]:
-          self._create_number_field(field[0])
+          self._set_number_field(field[0])
           
           pattern_parts.append(field)
         else:
@@ -447,10 +474,13 @@ class StringPatternGenerator(object):
     
     return True
   
-  def _create_number_field(self, field_name):
-    number_generator = self._generate_number(padding=len(field_name), initial_number=int(field_name))
+  def _set_number_field(self, field_name, number_generator=None):
+    if number_generator is None:
+      number_generator = self._generate_number(padding=len(field_name), initial_number=int(field_name))
     self._number_generators[field_name] = number_generator
     self._fields[field_name] = lambda: next(number_generator)
+    
+    return number_generator
   
   def _generate_number(self, padding, initial_number):
     i = initial_number
