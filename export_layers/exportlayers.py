@@ -334,6 +334,11 @@ class LayerExporter(object):
     self._filename_pattern_generator = pgpath.StringPatternGenerator(
       pattern=pattern,
       fields=self._get_fields_for_layer_filename_pattern())
+    self._has_custom_filename_pattern = (
+      self.export_settings['layer_filename_pattern'].value !=
+      self.export_settings['layer_filename_pattern'].default_value)
+    # key: _ItemDataElement parent original name (None for root); value: list of pattern number generators
+    self._pattern_number_filename_generators = {None: self._filename_pattern_generator.get_number_generators()}
   
   def _enable_disable_operations(self, operations_tags):
     for functions in self._operations.values():
@@ -450,33 +455,30 @@ class LayerExporter(object):
       self._current_layer_elem = layer_elem
       
       if layer_elem.item_type in (layer_elem.ITEM, layer_elem.NONEMPTY_GROUP):
-        layer = layer_elem.item
-        layer_copy = self._process_layer(self._image_copy, layer)
-        self._preprocess_layer_name(layer_elem)
-        self._export_layer(layer_elem, self._image_copy, layer_copy)
-        self._postprocess_layer(self._image_copy, layer_copy)
-        self._postprocess_layer_name(layer_elem)
-        
-        self.progress_updater.update_tasks()
-        
-        if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
-          self._exported_layers.append(layer)
-          self._file_extension_properties[self._current_file_extension].processed_count += 1
-        
+        self._process_and_export_item(layer_elem)
       elif layer_elem.item_type == layer_elem.EMPTY_GROUP:
-        self._preprocess_empty_group_name(layer_elem)
-        self._make_dirs(layer_elem.get_filepath(self._output_directory, self._include_item_path))
+        self._process_and_export_empty_group(layer_elem)
       else:
         raise ValueError("invalid/unsupported item type '{0}' of _ItemDataElement '{1}'"
                          .format(layer_elem.item_type, layer_elem.name))
   
-  def _export_layer(self, layer_elem, image, layer):
-    self._process_layer_name(layer_elem)
-    self._export(layer_elem, image, layer)
+  def _process_and_export_item(self, layer_elem):
+    layer = layer_elem.item
+    layer_copy = self._process_layer(self._image_copy, layer)
+    self._preprocess_layer_name(layer_elem)
+    self._export_layer(layer_elem, self._image_copy, layer_copy)
+    self._postprocess_layer(self._image_copy, layer_copy)
+    self._postprocess_layer_name(layer_elem)
     
-    if self._current_layer_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
-      self._process_layer_name(layer_elem)
-      self._export(layer_elem, image, layer)
+    self.progress_updater.update_tasks()
+    
+    if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
+      self._exported_layers.append(layer)
+      self._file_extension_properties[self._current_file_extension].processed_count += 1
+  
+  def _process_and_export_empty_group(self, layer_elem):
+    self._preprocess_empty_group_name(layer_elem)
+    self._make_dirs(layer_elem.get_filepath(self._output_directory, self._include_item_path))
   
   def _setup(self):
     # Save context just in case. No need for undo groups or undo freeze here.
@@ -631,8 +633,14 @@ class LayerExporter(object):
       self._layer_data.reset_name(layer_elem)
   
   def _rename_layer_by_pattern(self, layer_elem):
-    if (self.export_settings['layer_filename_pattern'].value !=
-        self.export_settings['layer_filename_pattern'].default_value):
+    if self.export_settings['layer_groups_as_folders'].value:
+      parent = layer_elem.parent.orig_name if layer_elem.parent is not None else None
+      if parent not in self._pattern_number_filename_generators:
+        self._pattern_number_filename_generators[parent] = self._filename_pattern_generator.reset_numbering()
+      else:
+        self._filename_pattern_generator.set_number_generators(self._pattern_number_filename_generators[parent])
+    
+    if self._has_custom_filename_pattern:
       layer_elem.name = self._filename_pattern_generator.generate()
   
   def _strip_file_extension(self, layer_elem):
@@ -671,6 +679,14 @@ class LayerExporter(object):
         message = str(e)
       
       raise InvalidOutputDirectoryError(message, self._current_layer_elem, self._default_file_extension)
+  
+  def _export_layer(self, layer_elem, image, layer):
+    self._process_layer_name(layer_elem)
+    self._export(layer_elem, image, layer)
+    
+    if self._current_layer_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
+      self._process_layer_name(layer_elem)
+      self._export(layer_elem, image, layer)
   
   def _export(self, layer_elem, image, layer):
     output_filename = layer_elem.get_filepath(self._output_directory, self._include_item_path)
