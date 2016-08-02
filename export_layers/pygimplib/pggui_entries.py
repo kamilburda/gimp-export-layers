@@ -618,6 +618,7 @@ class FilenamePatternEntry(gtk.Entry):
     self.connect("focus-out-event", self._on_entry_focus_out_event)
     
     self.connect_after("realize", self._on_after_entry_realize)
+    self.connect("size-allocate", self._on_entry_size_allocate)
   
   def get_text(self):
     if not self._has_placeholder_item_assigned:
@@ -668,11 +669,14 @@ class FilenamePatternEntry(gtk.Entry):
     self._cursor_position_before_assigning_from_row = cursor_position
   
   def _update_entry_width(self):
-    # Offset with a few extra characters to make sure the entry resizes properly.
-    self._pango_layout.set_text(self.get_text() + " " * 4)
+    self._pango_layout.set_text(self.get_text())
     
-    self.set_size_request(
-      max(min(self._pango_layout.get_pixel_size()[0], self._maximum_width), self._mininum_width), -1)
+    font_metrics = self.get_pango_context().get_metrics(self.get_pango_context().get_font_description())
+    approximate_char_pixel_width = font_metrics.get_approximate_char_width() / pango.SCALE
+    offset_pixel_width = int(approximate_char_pixel_width * 2) + 1
+    text_pixel_width = self._pango_layout.get_pixel_size()[0] + offset_pixel_width
+    
+    self.set_size_request(max(min(text_pixel_width, self._maximum_width), self._mininum_width), -1)
   
   def _on_entry_changed_condition(self):
     current_text = self.get_text()
@@ -741,7 +745,8 @@ class FilenamePatternEntry(gtk.Entry):
   def _on_after_entry_realize(self, entry):
     if self._should_assign_placeholder_text(self.get_text()):
       self._assign_placeholder_text()
-    
+  
+  def _on_entry_size_allocate(self, entry, allocation):
     self._update_entry_width()
   
   def _add_columns(self):
