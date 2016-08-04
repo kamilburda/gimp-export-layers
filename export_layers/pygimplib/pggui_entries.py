@@ -735,7 +735,7 @@ class FilenamePatternEntry(gtk.Entry):
     
     field_name = (
       pgpath.StringPatternGenerator.get_field_at_position(
-        self.get_text(), self._cursor_position - 1, field_names=self._suggested_fields.keys()))
+        self.get_text(), self._cursor_position, field_names=self._suggested_fields.keys()))
     
     if self._suggested_fields.get(field_name):
       self._show_field_tooltip(self._suggested_fields[field_name], force_modify=True)
