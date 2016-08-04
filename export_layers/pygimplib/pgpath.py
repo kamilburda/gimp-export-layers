@@ -256,7 +256,7 @@ class StringPatternGenerator(object):
     field from `field_names` at the specified position, return None.
     """
     
-    fields = {name: lambda: None for name in field_names} if field_names is not None else None
+    fields = {name: lambda *args: None for name in field_names} if field_names is not None else None
     
     _unused, parsed_fields, _unused = cls._parse_pattern(
       pattern, fields=fields)
