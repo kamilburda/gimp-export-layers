@@ -678,11 +678,8 @@ class FilenamePatternEntry(gtk.Entry):
   def _update_entry_width(self):
     self._pango_layout.set_text(self.get_text())
     
-    font_metrics = self.get_pango_context().get_metrics(self.get_pango_context().get_font_description())
-    approximate_char_pixel_width = font_metrics.get_approximate_char_width() / pango.SCALE
-    offset_pixel_width = int(approximate_char_pixel_width * 2) + 1
+    offset_pixel_width = (self.get_layout_offsets()[0] + self.get_property("scroll-offset")) * 2
     text_pixel_width = self._pango_layout.get_pixel_size()[0] + offset_pixel_width
-    
     self.set_size_request(max(min(text_pixel_width, self._maximum_width), self._mininum_width), -1)
   
   def _on_entry_changed_condition(self):
