@@ -250,7 +250,7 @@ class StringPatternGenerator(object):
   def get_field_at_position(cls, pattern, position, field_names=None):
     """
     If the pattern contains a field at the given character position (starting
-    from 0), return the field name and function, otherwise return None.
+    from 0), return the field name, otherwise return None.
     
     If `field_names` is a list of field names and the pattern does not contain a
     field from `field_names` at the specified position, return None.
