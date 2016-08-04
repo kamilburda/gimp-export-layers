@@ -164,7 +164,8 @@ class EntryPopup(object):
       on_entry_key_press_before_show_popup_func if on_entry_key_press_before_show_popup_func is not None else
       lambda *args: None)
     self._on_entry_key_press_func = (
-      on_entry_key_press_func if on_entry_key_press_func is not None else lambda *args: False)
+      on_entry_key_press_func if on_entry_key_press_func is not None else
+      lambda key_name, tree_path, stop_event_propagation: stop_event_propagation)
     self._on_entry_changed_show_popup_condition_func = (
       on_entry_changed_show_popup_condition_func if on_entry_changed_show_popup_condition_func is not None else
       lambda *args: True
@@ -436,6 +437,7 @@ class EntryPopup(object):
     
     if self.is_shown():
       tree_path, unused_ = self._tree_view.get_cursor()
+      stop_event_propagation = True
       
       if key_name in ["Up", "KP_Up"]:
         self.select_and_assign_row_after_key_press(
@@ -468,9 +470,9 @@ class EntryPopup(object):
         self.assign_last_value()
         self.hide()
       else:
-        return self._on_entry_key_press_func(key_name, tree_path)
+        stop_event_propagation = False
       
-      return True
+      return self._on_entry_key_press_func(key_name, tree_path, stop_event_propagation)
     else:
       return False
   
@@ -570,13 +572,15 @@ class FilenamePatternEntry(gtk.Entry):
   
   _BUTTON_MOUSE_LEFT = 1
   
-  _COLUMNS = [_COLUMN_ITEM_NAMES, _COLUMN_ITEMS] = (0, 1)
-  _COLUMN_TYPES = [bytes, bytes]
+  _COLUMNS = [_COLUMN_ITEM_NAMES, _COLUMN_ITEMS, _COLUMN_ITEM_ARGUMENTS] = (0, 1, 2)
+  _COLUMN_TYPES = [bytes, bytes, gobject.TYPE_PYOBJECT]
   
   def __init__(self, suggested_items, *args, **kwargs):
     self._mininum_width = kwargs.pop('minimum_width', -1)
     self._maximum_width = kwargs.pop('maximum_width', -1)
     self._default_item_value = kwargs.pop('default_item', None)
+    
+    self._suggested_fields = self._get_suggested_fields(suggested_items)
     
     suggested_item_values = [item[1] for item in suggested_items]
     if self._default_item_value is not None and self._default_item_value not in suggested_item_values:
@@ -605,7 +609,10 @@ class FilenamePatternEntry(gtk.Entry):
       row_filter_func=self._filter_suggested_items,
       assign_from_selected_row_func=self._assign_from_selected_row,
       assign_last_value_func=self._assign_last_value,
-      on_entry_changed_show_popup_condition_func=self._on_entry_changed_condition)
+      on_entry_changed_show_popup_condition_func=self._on_entry_changed_condition,
+      on_entry_key_press_func=self._on_entry_key_press)
+    
+    self._create_field_tooltip()
     
     self._add_columns()
     
@@ -686,7 +693,7 @@ class FilenamePatternEntry(gtk.Entry):
         return (
           current_text[self._cursor_position - 1] == "[" and
           current_text[self._cursor_position - 2] != "[" and
-          not pgpath.StringPatternGenerator.is_in_field(current_text, self._cursor_position - 1))
+          not pgpath.StringPatternGenerator.get_field_at_position(current_text, self._cursor_position - 1))
       else:
         return current_text[0] == "["
     else:
@@ -727,6 +734,15 @@ class FilenamePatternEntry(gtk.Entry):
   
   def _on_cursor_position_changed(self, entry, property_spec):
     self._cursor_position = self.get_position()
+    
+    field_name = (
+      pgpath.StringPatternGenerator.get_field_at_position(
+        self.get_text(), self._cursor_position - 1, field_names=self._suggested_fields.keys()))
+    
+    if self._suggested_fields.get(field_name):
+      self._show_field_tooltip(self._suggested_fields[field_name], force_modify=True)
+    else:
+      self._hide_field_tooltip()
   
   def _on_entry_changed(self, entry):
     if self.get_realized():
@@ -741,6 +757,8 @@ class FilenamePatternEntry(gtk.Entry):
   def _on_entry_focus_out_event(self, entry, event):
     if self._should_assign_placeholder_text(self.get_text()):
       self._assign_placeholder_text()
+    
+    self._hide_field_tooltip()
   
   def _on_after_entry_realize(self, entry):
     if self._should_assign_placeholder_text(self.get_text()):
@@ -752,6 +770,65 @@ class FilenamePatternEntry(gtk.Entry):
   def _add_columns(self):
     self._popup.tree_view.append_column(
       gtk.TreeViewColumn(None, gtk.CellRendererText(), text=self._COLUMN_ITEM_NAMES))
+  
+  def _create_field_tooltip(self):
+    self._field_tooltip_window = gtk.Window(type=gtk.WINDOW_POPUP)
+    self._field_tooltip_window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_TOOLTIP)
+    self._field_tooltip_window.set_resizable(False)
+    # This copies the style of GTK tooltips.
+    self._field_tooltip_window.set_name('gtk-tooltips')
+    
+    self._field_tooltip_text = gtk.Label()
+    
+    self._field_tooltip_hbox = gtk.HBox(homogeneous=False)
+    self._field_tooltip_hbox.pack_start(self._field_tooltip_text, fill=False, expand=False)
+    
+    self._field_tooltip_frame = gtk.Frame()
+    self._field_tooltip_frame.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+    self._field_tooltip_frame.add(self._field_tooltip_hbox)
+    self._field_tooltip_frame.show_all()
+    
+    self._field_tooltip_window.add(self._field_tooltip_frame)
+  
+  def _show_field_tooltip(self, tooltip_text=None, force_modify=False):
+    if not self._field_tooltip_window.get_mapped() or force_modify:
+      if tooltip_text is None:
+        tooltip_text = ""
+      self._field_tooltip_text.set_markup(tooltip_text)
+      self._update_field_tooltip_position()
+      self._field_tooltip_window.show()
+  
+  def _hide_field_tooltip(self):
+    if self._field_tooltip_window.get_mapped():
+      self._field_tooltip_window.hide()
+  
+  def _update_field_tooltip_position(self):
+    entry_absolute_position = self.get_window().get_origin()
+    entry_allocation_height = self.get_allocation().height
+    self._field_tooltip_window.move(
+      entry_absolute_position[0], entry_absolute_position[1] - entry_allocation_height)
+  
+  def _get_suggested_fields(self, suggested_items):
+    suggested_fields = {}
+    
+    for item in suggested_items:
+      field_value = item[1]
+      if field_value.startswith("[") and field_value.endswith("]"):
+        if item[2]:
+          suggested_fields[field_value[1:-1]] = "[{0}, {1}]".format(
+            gobject.markup_escape_text(field_value[1:-1]), ", ".join(
+              ["<i>{0}</i>".format(gobject.markup_escape_text(argument)) for argument in item[2]]))
+        else:
+          suggested_fields[field_value[1:-1]] = ""
+    
+    return suggested_fields
+  
+  def _on_entry_key_press(self, key_name, tree_path, stop_event_propagation):
+    if key_name in ["Return", "KP_Enter", "Escape"]:
+      self._hide_field_tooltip()
+      return True
+    
+    return stop_event_propagation
   
 
 #===============================================================================
@@ -778,9 +855,12 @@ class FileExtensionEntry(gtk.Entry):
     self._extensions_text_pixel_rects = []
     
     self._popup = EntryPopup(
-      self, self._COLUMN_TYPES, self._get_file_formats(pgfileformats.file_formats), self._filter_file_formats,
-      self._assign_from_selected_row, self.assign_text, self._on_row_left_mouse_button_press,
-      self._on_key_press_before_show_popup, self._on_tab_keys_pressed)
+      self, self._COLUMN_TYPES, self._get_file_formats(pgfileformats.file_formats),
+      row_filter_func=self._filter_file_formats, assign_from_selected_row_func=self._assign_from_selected_row,
+      assign_last_value_func=self.assign_text,
+      on_row_left_mouse_button_press=self._on_row_left_mouse_button_press,
+      on_entry_key_press_before_show_popup_func=self._on_key_press_before_show_popup,
+      on_entry_key_press_func=self._on_tab_keys_pressed)
     
     self._add_columns()
     
@@ -801,7 +881,7 @@ class FileExtensionEntry(gtk.Entry):
   def _on_key_press_before_show_popup(self):
     self._unhighlight_extension()
   
-  def _on_tab_keys_pressed(self, key_name, selected_tree_path):
+  def _on_tab_keys_pressed(self, key_name, selected_tree_path, stop_event_propagation):
     if key_name in ["Tab", "KP_Tab", "ISO_Left_Tab"]:
       # Tree paths can sometimes point at the first row even though no row is
       # selected, hence the `tree_iter` usage.
@@ -817,7 +897,7 @@ class FileExtensionEntry(gtk.Entry):
         
         return True
     
-    return False
+    return stop_event_propagation
   
   def _assign_from_selected_row(self, tree_model, selected_tree_iter, extension_index=0):
     extensions = tree_model[selected_tree_iter][self._COLUMN_EXTENSIONS]
