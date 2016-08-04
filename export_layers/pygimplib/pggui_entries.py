@@ -465,6 +465,7 @@ class EntryPopup(object):
           next_row_if_no_current_selection=0,
           current_row_before_unselection=len(self._rows_filtered) - 1)
       elif key_name in ["Return", "KP_Enter"]:
+        self._last_assigned_entry_text = self._entry.get_text()
         self.hide()
       elif key_name == "Escape":
         self.assign_last_value()
@@ -523,9 +524,9 @@ class EntryPopup(object):
   
   def _on_tree_view_left_mouse_button_press(self, tree_view, event):
     if event.button == self._BUTTON_MOUSE_LEFT:
-      self._last_assigned_entry_text = self._entry.get_text()
-      
       self._on_row_left_mouse_button_press()
+      
+      self._last_assigned_entry_text = self._entry.get_text()
       
       self.hide()
   
