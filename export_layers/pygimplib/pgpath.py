@@ -192,13 +192,7 @@ class StringPatternGenerator(object):
     self._pattern = pattern
     self._fields = fields if fields is not None else {}
     
-    # key: field name; value: number generator
-    self._number_generators = collections.OrderedDict()
-    
-    # key: id(parsed field); value: field as a substring in the pattern
-    self._field_strings = {}
-    
-    self._pattern_parts = self._parse_pattern(self._pattern, self._fields)
+    self._pattern_parts, _unused, self._number_generators = self._parse_pattern(self._pattern, self._fields)
   
   def generate(self):
     """
@@ -225,7 +219,7 @@ class StringPatternGenerator(object):
     new_number_generators = []
     
     for field_name in list(self._number_generators.keys()):
-      number_generator = self._set_number_field(field_name)
+      number_generator = self._set_number_field(field_name, self._fields, self._number_generators)
       new_number_generators.append(number_generator)
     
     return new_number_generators
@@ -250,77 +244,43 @@ class StringPatternGenerator(object):
           len(number_generators), len(self._number_generators.keys())))
     
     for field_name, number_generator in zip(self._number_generators.keys(), number_generators):
-      self._set_number_field(field_name, number_generator)
+      self._set_number_field(field_name, self._fields, self._number_generators, number_generator)
   
   @classmethod
-  def is_in_field(cls, pattern, position, start_position=0):
+  def get_field_at_position(cls, pattern, position, field_names=None):
     """
-    Determine if the character at the given position in the pattern is inside a
-    field. Optionally start looking from a different starting position than the
-    beginning of the pattern.
+    If the pattern contains a field at the given character position (starting
+    from 0), return the field name and function, otherwise return None.
+    
+    If `field_names` is a list of field names and the pattern does not contain a
+    field from `field_names` at the specified position, return None.
     """
     
-    index = start_position
-    field_depth = 0
+    fields = {name: lambda: None for name in field_names} if field_names is not None else None
     
-    if position < 0 or position > len(pattern):
-      position = len(pattern)
+    _unused, parsed_fields, _unused = cls._parse_pattern(
+      pattern, fields=fields)
     
-    while index < position:
-      if pattern[index] == "[":
-        is_escaped = cls._is_field_symbol_escaped(pattern, index, "[")
-        if field_depth == 0 and is_escaped:
-          index += 2
-          continue
-        elif field_depth == 0 and not is_escaped:
-          field_depth += 1
-        elif field_depth == 1:
-          field_depth += 1
-        elif field_depth > 1 and is_escaped:
-          index += 2
-          continue
-        elif field_depth > 1 and not is_escaped:
-          field_depth += 1
-      elif pattern[index] == "]":
-        is_escaped = cls._is_field_symbol_escaped(pattern, index, "]")
-        if field_depth == 0 and is_escaped:
-          index += 2
-          continue
-        elif field_depth == 0 and not is_escaped:
-          index += 1
-          continue
-        elif field_depth == 1:
-          field_depth -= 1
-        elif field_depth > 1 and is_escaped:
-          index += 2
-          continue
-        elif field_depth > 1 and not is_escaped:
-          field_depth -= 1
-          index += 1
-          continue
-      index += 1
+    for parsed_field in parsed_fields:
+      indices = parsed_field[3]
+      if indices[0] <= position <= indices[1]:
+        return parsed_field[0]
     
-    return field_depth > 0
+    return None
   
   @classmethod
-  def _is_field_symbol_escaped(cls, pattern, index, symbol):
-    return index + 1 < len(pattern) and pattern[index + 1] == symbol
-  
-  @classmethod
-  def _is_field_number(cls, field_name):
-    return bool(re.search(r"^[0-9]+$", field_name))
-  
-  @classmethod
-  def _is_field(cls, pattern_part):
-    return not isinstance(pattern_part, types.StringTypes)
-  
-  def _parse_pattern(self, pattern, fields):
+  def _parse_pattern(cls, pattern, fields=None):
     index = 0
     start_of_field_index = 0
     last_constant_substring_index = 0
     field_depth = 0
     
+    # item: pair of (field name, field arguments) or string
     pattern_parts = []
+    # item: (field name, field arguments, raw field string, (field start index, field end index))
+    parsed_fields = []
+    # key: field name; value: number generator
+    number_generators = collections.OrderedDict()
     
     def _add_pattern_part(end_index=None):
       start_index = max(last_constant_substring_index, start_of_field_index)
@@ -331,7 +291,7 @@ class StringPatternGenerator(object):
     
     while index < len(pattern):
       if pattern[index] == "[":
-        is_escaped = self._is_field_symbol_escaped(pattern, index, "[")
+        is_escaped = cls._is_field_symbol_escaped(pattern, index, "[")
         if field_depth == 0 and is_escaped:
           _add_pattern_part(index)
           pattern_parts.append("[")
@@ -350,7 +310,7 @@ class StringPatternGenerator(object):
         elif field_depth > 1 and not is_escaped:
           field_depth += 1
       elif pattern[index] == "]":
-        is_escaped = self._is_field_symbol_escaped(pattern, index, "]")
+        is_escaped = cls._is_field_symbol_escaped(pattern, index, "]")
         if field_depth == 0 and is_escaped:
           _add_pattern_part(index)
           pattern_parts.append("]")
@@ -371,16 +331,16 @@ class StringPatternGenerator(object):
           continue
         
         field_str = pattern[start_of_field_index + 1:index]
-        field = self._parse_field(field_str)
+        field = list(cls._parse_field(field_str)) + [field_str] + [(start_of_field_index + 1, index)]
         
-        self._field_strings[id(field)] = field_str
-        
-        if field[0] in fields and self._is_field_valid(field):
+        if fields is None or (field[0] in fields and cls._is_field_valid(field, fields)):
           pattern_parts.append(field)
-        elif self._is_field_number(field[0]) and not field[1]:
-          self._set_number_field(field[0])
+          parsed_fields.append(field)
+        elif cls._is_field_number(field[0]) and not field[1]:
+          cls._set_number_field(field[0], fields, number_generators)
           
           pattern_parts.append(field)
+          parsed_fields.append(field)
         else:
           _add_pattern_part(index + 1)
         
@@ -390,9 +350,10 @@ class StringPatternGenerator(object):
     
     _add_pattern_part()
     
-    return pattern_parts
+    return pattern_parts, parsed_fields, number_generators
   
-  def _parse_field(self, field_str):
+  @classmethod
+  def _parse_field(cls, field_str):
     field_name_end_index = field_str.find(",")
     if field_name_end_index == -1:
       return field_str.strip(), []
@@ -431,13 +392,13 @@ class StringPatternGenerator(object):
           field_args.append(field_args_str[last_field_arg_end_index:index])
           last_field_arg_end_index = index + 1
       elif field_args_str[index] == "[":
-        if self._is_field_symbol_escaped(field_args_str, index, "["):
+        if cls._is_field_symbol_escaped(field_args_str, index, "["):
           index += 2
           continue
         else:
           is_in_field_arg = True
       elif field_args_str[index] == "]":
-        if self._is_field_symbol_escaped(field_args_str, index, "]"):
+        if cls._is_field_symbol_escaped(field_args_str, index, "]"):
           index += 2
           continue
         else:
@@ -447,18 +408,21 @@ class StringPatternGenerator(object):
     
     return field_name, _process_field_args(field_args)
   
-  def _process_field(self, field):
-    field_func = self._fields[field[0]]
-    
-    try:
-      return_value = field_func(*field[1])
-    except Exception:
-      return "[{0}]".format(self._field_strings[id(field)])
-    else:
-      return str(return_value)
+  @classmethod
+  def _is_field_symbol_escaped(cls, pattern, index, symbol):
+    return index + 1 < len(pattern) and pattern[index + 1] == symbol
   
-  def _is_field_valid(self, field):
-    field_func = self._fields[field[0]]
+  @classmethod
+  def _is_field_number(cls, field_name):
+    return bool(re.search(r"^[0-9]+$", field_name))
+  
+  @classmethod
+  def _is_field(cls, pattern_part):
+    return not isinstance(pattern_part, types.StringTypes)
+  
+  @classmethod
+  def _is_field_valid(cls, field, fields):
+    field_func = fields[field[0]]
     
     argspec = inspect.getargspec(field_func)
     
@@ -474,15 +438,8 @@ class StringPatternGenerator(object):
     
     return True
   
-  def _set_number_field(self, field_name, number_generator=None):
-    if number_generator is None:
-      number_generator = self._generate_number(padding=len(field_name), initial_number=int(field_name))
-    self._number_generators[field_name] = number_generator
-    self._fields[field_name] = lambda: next(number_generator)
-    
-    return number_generator
-  
-  def _generate_number(self, padding, initial_number):
+  @classmethod
+  def _generate_number(cls, padding, initial_number):
     i = initial_number
     while True:
       str_i = str(i)
@@ -492,6 +449,25 @@ class StringPatternGenerator(object):
       
       yield str_i
       i += 1
+  
+  @classmethod
+  def _set_number_field(cls, field_name, fields, number_generators, number_generator=None):
+    if number_generator is None:
+      number_generator = cls._generate_number(padding=len(field_name), initial_number=int(field_name))
+    number_generators[field_name] = number_generator
+    fields[field_name] = lambda: next(number_generator)
+    
+    return number_generator
+  
+  def _process_field(self, field):
+    field_func = self._fields[field[0]]
+    
+    try:
+      return_value = field_func(*field[1])
+    except Exception:
+      return "[{0}]".format(field[2])
+    else:
+      return str(return_value)
 
 
 #===============================================================================
