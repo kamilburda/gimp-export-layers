@@ -247,19 +247,13 @@ class StringPatternGenerator(object):
       self._set_number_field(field_name, self._fields, self._number_generators, number_generator)
   
   @classmethod
-  def get_field_at_position(cls, pattern, position, field_names=None):
+  def get_field_at_position(cls, pattern, position):
     """
     If the pattern contains a field at the given character position (starting
     from 0), return the field name, otherwise return None.
-    
-    If `field_names` is a list of field names and the pattern does not contain a
-    field from `field_names` at the specified position, return None.
     """
     
-    fields = {name: lambda *args: None for name in field_names} if field_names is not None else None
-    
-    _unused, parsed_fields, _unused = cls._parse_pattern(
-      pattern, fields=fields)
+    _unused, parsed_fields, _unused = cls._parse_pattern(pattern, fields=None)
     
     for parsed_field in parsed_fields:
       indices = parsed_field[3]

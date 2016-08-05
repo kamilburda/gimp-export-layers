@@ -330,11 +330,6 @@ class TestStringPatternGenerator(unittest.TestCase):
     self.assertEqual(pgpath.StringPatternGenerator.get_field_at_position("[layer name", 1), None)
     self.assertEqual(pgpath.StringPatternGenerator.get_field_at_position("[layer [name", 7), None)
     self.assertEqual(pgpath.StringPatternGenerator.get_field_at_position("[layer [name", 8), None)
-    
-    self.assertEqual(
-      pgpath.StringPatternGenerator.get_field_at_position("layer [name][layer] name", 7, ["name"]), "name")
-    self.assertEqual(
-      pgpath.StringPatternGenerator.get_field_at_position("layer [name][layer] name", 7, ["layer"]), None)
 
 
 #===============================================================================
