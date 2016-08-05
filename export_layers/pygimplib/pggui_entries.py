@@ -144,9 +144,10 @@ class EntryPopup(object):
   # https://github.com/GNOME/gtk/blob/gtk-2-24/gtk/gtkentrycompletion.c
   
   def __init__(self, entry, column_types, rows, row_filter_func=None,
-    assign_from_selected_row_func=None, assign_last_value_func=None, on_row_left_mouse_button_press=None,
-    on_entry_key_press_before_show_popup_func=None, on_entry_key_press_func=None,
-    on_entry_changed_show_popup_condition_func=None,
+    assign_from_selected_row_func=None, assign_last_value_func=None,
+    on_row_left_mouse_button_press_func=None, on_entry_left_mouse_button_press_func=None,
+    on_entry_key_press_before_show_popup_func=None,
+    on_entry_key_press_func=None, on_entry_changed_show_popup_condition_func=None,
     width=-1, height=200, max_num_visible_rows=8):
     
     self._entry = entry
@@ -158,9 +159,12 @@ class EntryPopup(object):
       assign_from_selected_row_func if assign_from_selected_row_func is not None else lambda *args: None)
     self._assign_last_value_func = (
       assign_last_value_func if assign_last_value_func is not None else self.assign_text)
-    self._on_row_left_mouse_button_press = (
-      on_row_left_mouse_button_press if on_row_left_mouse_button_press is not None else
+    self._on_row_left_mouse_button_press_func = (
+      on_row_left_mouse_button_press_func if on_row_left_mouse_button_press_func is not None else
       self.assign_from_selected_row)
+    self._on_entry_left_mouse_button_press_func = (
+      on_entry_left_mouse_button_press_func if on_entry_left_mouse_button_press_func is not None else
+      lambda *args: None)
     self._on_entry_key_press_before_show_popup_func = (
       on_entry_key_press_before_show_popup_func if on_entry_key_press_before_show_popup_func is not None else
       lambda *args: None)
@@ -227,8 +231,6 @@ class EntryPopup(object):
   
   def show(self):
     if not self.is_shown() and len(self._rows_filtered) > 0:
-      self._update_position()
-      
       self._button_press_emission_hook_id = gobject.add_emission_hook(
         self._entry, "button-press-event", self._on_button_press_emission_hook)
       
@@ -244,6 +246,8 @@ class EntryPopup(object):
       self._popup.set_screen(self._entry.get_screen())
       
       self._popup.show()
+      
+      self._update_position()
       
       if self._show_popup_first_time:
         self._last_assigned_entry_text = self._entry.get_text()
@@ -522,10 +526,12 @@ class EntryPopup(object):
       self.show()
       
       self.unselect()
+      
+      self._on_entry_left_mouse_button_press_func()
   
   def _on_tree_view_left_mouse_button_press(self, tree_view, event):
     if event.button == self._BUTTON_MOUSE_LEFT:
-      self._on_row_left_mouse_button_press()
+      self._on_row_left_mouse_button_press_func()
       
       self._last_assigned_entry_text = self._entry.get_text()
       
@@ -601,6 +607,8 @@ class FilenamePatternEntry(gtk.Entry):
     self._reset_cursor_position_before_assigning_from_row = True
     
     self._has_placeholder_item_assigned = False
+    
+    self._last_field_name_with_tooltip = ""
     
     self._pango_layout = pango.Layout(self.get_pango_context())
     
@@ -742,7 +750,13 @@ class FilenamePatternEntry(gtk.Entry):
       pgpath.StringPatternGenerator.get_field_at_position(self._get_text_decoded(), self._cursor_position))
     
     if self._suggested_fields.get(field_name):
-      self._show_field_tooltip(self._suggested_fields[field_name], force_modify=True)
+      if field_name != self._last_field_name_with_tooltip:
+        self._last_field_name_with_tooltip = field_name
+        force_update_position = True
+      else:
+        force_update_position = False
+      
+      self._show_field_tooltip(self._suggested_fields[field_name], force_update_position)
     else:
       self._hide_field_tooltip()
   
@@ -773,6 +787,29 @@ class FilenamePatternEntry(gtk.Entry):
     self._popup.tree_view.append_column(
       gtk.TreeViewColumn(None, gtk.CellRendererText(), text=self._COLUMN_ITEM_NAMES))
   
+  def _update_window_position(self, window, move_with_text_cursor=True, place_above=False):
+    entry_absolute_position = self.get_window().get_origin()
+    entry_allocation_height = self.get_allocation().height
+    
+    if move_with_text_cursor:
+      self._pango_layout.set_text(
+        self._get_text_decoded()[:self._cursor_position].encode(constants.GTK_CHARACTER_ENCODING))
+      
+      x_offset = min(
+        self._pango_layout.get_pixel_size()[0] + self.get_layout_offsets()[0],
+        max(self.get_allocation().width - window.get_allocation().width, 0))
+      
+      x = entry_absolute_position[0] + x_offset
+    else:
+      x = entry_absolute_position[0]
+    
+    if not place_above:
+      y = entry_absolute_position[1] + entry_allocation_height
+    else:
+      y = entry_absolute_position[1] - entry_allocation_height
+    
+    window.move(x, y)
+  
   def _create_field_tooltip(self):
     self._field_tooltip_window = gtk.Window(type=gtk.WINDOW_POPUP)
     self._field_tooltip_window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_TOOLTIP)
@@ -792,23 +829,20 @@ class FilenamePatternEntry(gtk.Entry):
     
     self._field_tooltip_window.add(self._field_tooltip_frame)
   
-  def _show_field_tooltip(self, tooltip_text=None, force_modify=False):
-    if not self._field_tooltip_window.get_mapped() or force_modify:
+  def _show_field_tooltip(self, tooltip_text=None, force_update_position=False):
+    if not self._field_tooltip_window.get_mapped() or force_update_position:
       if tooltip_text is None:
         tooltip_text = ""
       self._field_tooltip_text.set_markup(tooltip_text)
-      self._update_field_tooltip_position()
       self._field_tooltip_window.show()
+      self._update_field_tooltip_position()
   
   def _hide_field_tooltip(self):
     if self._field_tooltip_window.get_mapped():
       self._field_tooltip_window.hide()
   
   def _update_field_tooltip_position(self):
-    entry_absolute_position = self.get_window().get_origin()
-    entry_allocation_height = self.get_allocation().height
-    self._field_tooltip_window.move(
-      entry_absolute_position[0], entry_absolute_position[1] - entry_allocation_height)
+    self._update_window_position(self._field_tooltip_window, place_above=True)
   
   def _get_suggested_fields(self, suggested_items):
     suggested_fields = {}
@@ -828,7 +862,6 @@ class FilenamePatternEntry(gtk.Entry):
   def _on_entry_key_press(self, key_name, tree_path, stop_event_propagation):
     if key_name in ["Return", "KP_Enter", "Escape"]:
       self._hide_field_tooltip()
-      return True
     
     return stop_event_propagation
   
@@ -860,7 +893,7 @@ class FileExtensionEntry(gtk.Entry):
       self, self._COLUMN_TYPES, self._get_file_formats(pgfileformats.file_formats),
       row_filter_func=self._filter_file_formats, assign_from_selected_row_func=self._assign_from_selected_row,
       assign_last_value_func=self.assign_text,
-      on_row_left_mouse_button_press=self._on_row_left_mouse_button_press,
+      on_row_left_mouse_button_press_func=self._on_row_left_mouse_button_press,
       on_entry_key_press_before_show_popup_func=self._on_key_press_before_show_popup,
       on_entry_key_press_func=self._on_tab_keys_pressed)
     
