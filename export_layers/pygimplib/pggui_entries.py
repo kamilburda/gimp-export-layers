@@ -40,6 +40,7 @@ import gimp
 
 pdb = gimp.pdb
 
+from . import constants
 from . import pgfileformats
 from . import pgpath
 
@@ -632,7 +633,7 @@ class FilenamePatternEntry(gtk.Entry):
     if not self._has_placeholder_item_assigned:
       return super(FilenamePatternEntry, self).get_text()
     else:
-      return ""
+      return b""
   
   def assign_text(self, text):
     if self.has_focus() or not self._should_assign_placeholder_text(text):
@@ -640,11 +641,14 @@ class FilenamePatternEntry(gtk.Entry):
     else:
       self._assign_placeholder_text()
   
+  def _get_text_decoded(self):
+    return self.get_text().decode(constants.GTK_CHARACTER_ENCODING)
+  
   def _filter_suggested_items(self, suggested_items, row_iter):
     item = suggested_items[row_iter][self._COLUMN_ITEMS]
     
     if (self._cursor_position > 0 and
-        self.get_text()[self._cursor_position - 1] == "[" and item and item[0] != "["):
+        self._get_text_decoded()[self._cursor_position - 1] == "[" and item and item[0] != "["):
       return False
     else:
       return True
@@ -665,12 +669,13 @@ class FilenamePatternEntry(gtk.Entry):
     cursor_position = self._cursor_position_before_assigning_from_row
     
     suggested_item = str(tree_model[selected_tree_iter][self._COLUMN_ITEMS])
-    if cursor_position > 0 and self._popup.last_assigned_entry_text[cursor_position - 1] == "[":
+    last_assigned_entry_text = self._popup.last_assigned_entry_text.decode(constants.GTK_CHARACTER_ENCODING)
+    if cursor_position > 0 and last_assigned_entry_text[cursor_position - 1] == "[":
       suggested_item = suggested_item[1:]
     
     self.assign_text(
-      self._popup.last_assigned_entry_text[:cursor_position] + suggested_item +
-      self._popup.last_assigned_entry_text[cursor_position:])
+      (last_assigned_entry_text[:cursor_position] + suggested_item +
+       last_assigned_entry_text[cursor_position:]).encode(constants.GTK_CHARACTER_ENCODING))
     
     self.set_position(cursor_position + len(suggested_item))
     self._cursor_position = self.get_position()
@@ -684,8 +689,8 @@ class FilenamePatternEntry(gtk.Entry):
     self.set_size_request(max(min(text_pixel_width, self._maximum_width), self._mininum_width), -1)
   
   def _on_entry_changed_condition(self):
-    current_text = self.get_text()
-    
+    current_text = self._get_text_decoded()
+
     if current_text:
       if len(current_text) > 1:
         return (
@@ -712,7 +717,7 @@ class FilenamePatternEntry(gtk.Entry):
     if self._has_placeholder_item_assigned:
       self._has_placeholder_item_assigned = False
       self._modify_font_for_placeholder_text(gtk.STATE_NORMAL, pango.STYLE_NORMAL)
-      self._popup.assign_text("")
+      self._popup.assign_text(b"")
   
   def _modify_font_for_placeholder_text(self, state_for_color, style):
     self.modify_text(gtk.STATE_NORMAL, self.style.fg[state_for_color])
@@ -728,14 +733,14 @@ class FilenamePatternEntry(gtk.Entry):
     self._cursor_position = start
   
   def _on_entry_insert_text(self, entry, new_text, new_text_length, position):
-    self._cursor_position = self.get_position() + new_text_length
+    self._cursor_position = self.get_position() + len(new_text.decode(constants.GTK_CHARACTER_ENCODING))
   
   def _on_cursor_position_changed(self, entry, property_spec):
     self._cursor_position = self.get_position()
     
     field_name = (
       pgpath.StringPatternGenerator.get_field_at_position(
-        self.get_text(), self._cursor_position, field_names=self._suggested_fields.keys()))
+        self._get_text_decoded(), self._cursor_position, field_names=self._suggested_fields.keys()))
     
     if self._suggested_fields.get(field_name):
       self._show_field_tooltip(self._suggested_fields[field_name], force_modify=True)
@@ -753,13 +758,13 @@ class FilenamePatternEntry(gtk.Entry):
     self._unassign_placeholder_text()
   
   def _on_entry_focus_out_event(self, entry, event):
-    if self._should_assign_placeholder_text(self.get_text()):
+    if self._should_assign_placeholder_text(self._get_text_decoded()):
       self._assign_placeholder_text()
     
     self._hide_field_tooltip()
   
   def _on_after_entry_realize(self, entry):
-    if self._should_assign_placeholder_text(self.get_text()):
+    if self._should_assign_placeholder_text(self._get_text_decoded()):
       self._assign_placeholder_text()
   
   def _on_entry_size_allocate(self, entry, allocation):
@@ -870,6 +875,9 @@ class FileExtensionEntry(gtk.Entry):
     self._popup.assign_text(text)
     self.set_position(-1)
   
+  def _get_text_decoded(self):
+    return self.get_text().decode(constants.GTK_CHARACTER_ENCODING)
+  
   def _on_row_left_mouse_button_press(self):
     if self._highlighted_extension_index is None:
       self._popup.assign_from_selected_row()
@@ -904,7 +912,7 @@ class FileExtensionEntry(gtk.Entry):
     self.assign_text(extensions[extension_index])
   
   def _filter_file_formats(self, file_formats, row_iter):
-    return self._entry_text_matches_row(self.get_text(), file_formats, row_iter)
+    return self._entry_text_matches_row(self._get_text_decoded(), file_formats, row_iter)
   
   def _entry_text_matches_row(self, entry_text, file_formats, row_iter, full_match=False):
     """
