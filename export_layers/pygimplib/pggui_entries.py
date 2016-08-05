@@ -619,6 +619,7 @@ class FilenamePatternEntry(gtk.Entry):
       row_filter_func=self._filter_suggested_items,
       assign_from_selected_row_func=self._assign_from_selected_row,
       assign_last_value_func=self._assign_last_value,
+      on_row_left_mouse_button_press_func=self._on_row_left_mouse_button_press,
       on_entry_changed_show_popup_condition_func=self._on_entry_changed_condition,
       on_entry_key_press_func=self._on_entry_key_press)
     
@@ -678,6 +679,7 @@ class FilenamePatternEntry(gtk.Entry):
     
     suggested_item = str(tree_model[selected_tree_iter][self._COLUMN_ITEMS])
     last_assigned_entry_text = self._popup.last_assigned_entry_text.decode(constants.GTK_CHARACTER_ENCODING)
+    
     if cursor_position > 0 and last_assigned_entry_text[cursor_position - 1] == "[":
       suggested_item = suggested_item[1:]
     
@@ -709,6 +711,10 @@ class FilenamePatternEntry(gtk.Entry):
         return current_text[0] == "["
     else:
       return True
+  
+  def _on_row_left_mouse_button_press(self):
+    self._cursor_position_before_assigning_from_row = None
+    self._popup.assign_from_selected_row()
   
   def _assign_placeholder_text(self):
     if self._default_item_name is not None:
@@ -862,6 +868,7 @@ class FilenamePatternEntry(gtk.Entry):
   def _on_entry_key_press(self, key_name, tree_path, stop_event_propagation):
     if key_name in ["Return", "KP_Enter", "Escape"]:
       self._hide_field_tooltip()
+      self._cursor_position_before_assigning_from_row = None
     
     return stop_event_propagation
   
