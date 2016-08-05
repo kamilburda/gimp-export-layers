@@ -150,9 +150,6 @@ class ExtendedEntryPresenter(GtkSettingPresenter):
   
   Value: Text (file extension) in the text field.
   """
-
-  def _create_gui_element(self, setting):
-    return FileExtensionEntry()
   
   def _get_value(self):
     return self._element.get_text().decode(constants.GTK_CHARACTER_ENCODING)
