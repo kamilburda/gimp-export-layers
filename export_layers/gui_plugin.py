@@ -1216,7 +1216,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   def display_message_label(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
     self._message_setting = setting
     
-    if text is None or not text:
+    if not text:
       self.label_message.set_text("")
     else:
       text = text[0].upper() + text[1:]
@@ -1230,6 +1230,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       
       self.label_message.set_markup("<span foreground=\"{0}\"><b>{1}</b></span>".format(
         gobject.markup_escape_text(color), gobject.markup_escape_text(text)))
+      
+      if color == "blue":
+        pggui.timeout_add_strict(10000, self.display_message_label, None)
 
 
 #===============================================================================
