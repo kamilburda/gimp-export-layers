@@ -150,9 +150,9 @@ class SettingRegistrableToPdbStub(SettingStub):
 
 class SettingWithGuiStub(SettingStub):
   
-  _ALLOWED_GUI_TYPES = [CheckboxPresenterStub, SettingPresenterStub,
-                        SettingPresenterWithValueChangedSignalStub,
-                        SettingPresenterWithoutGuiElementCreationStub]
+  _ALLOWED_GUI_TYPES = [
+    CheckboxPresenterStub, SettingPresenterStub, SettingPresenterWithValueChangedSignalStub,
+    SettingPresenterWithoutGuiElementCreationStub]
 
 
 def on_file_extension_changed(file_extension, ignore_invisible):
@@ -222,11 +222,11 @@ class TestSetting(unittest.TestCase):
     setting = SettingStub('setting', "")
     
     setting_with_custom_error_messages = SettingStub(
-      'setting', "", error_messages={'invalid_value': "this should override the original error message",
-                                     'custom_message': "custom message"})
+      'setting', "", error_messages={
+        'invalid_value': "this should override the original error message", 'custom_message': "custom message"})
     self.assertIn('custom_message', setting_with_custom_error_messages.error_messages)
-    self.assertNotEqual(setting.error_messages['invalid_value'],
-                        setting_with_custom_error_messages.error_messages['invalid_value'])
+    self.assertNotEqual(
+      setting.error_messages['invalid_value'], setting_with_custom_error_messages.error_messages['invalid_value'])
   
   def test_pdb_type_automatic_is_registrable(self):
     setting = SettingRegistrableToPdbStub('file_extension', "png", pdb_type=pgsetting.SettingPdbTypes.string)
@@ -719,87 +719,55 @@ class TestFloatSetting(unittest.TestCase):
 class TestEnumSettingInitialization(unittest.TestCase):
   
   def test_explicit_values(self):
-    setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace',
-      [('skip', "Skip", 5),
-       ('replace', "Replace", 6)])
+    setting = pgsetting.EnumSetting('overwrite_mode', 'replace', [('skip', "Skip", 5), ('replace', "Replace", 6)])
     self.assertEqual(setting.items['skip'], 5)
     self.assertEqual(setting.items['replace'], 6)
   
   def test_explicit_values_wrong_number_of_elements(self):
     with self.assertRaises(ValueError):
-      pgsetting.EnumSetting(
-        'overwrite_mode', 'replace',
-        [('skip', "Skip", 4),
-         ('replace', "Replace")])
+      pgsetting.EnumSetting('overwrite_mode', 'replace', [('skip', "Skip", 4), ('replace', "Replace")])
     
   def test_invalid_explicit_values(self):
     with self.assertRaises(ValueError):
-      pgsetting.EnumSetting(
-        'overwrite_mode', 'replace',
-        [('skip', "Skip", 4),
-         ('replace', "Replace", 4)])
+      pgsetting.EnumSetting('overwrite_mode', 'replace', [('skip', "Skip", 4), ('replace', "Replace", 4)])
   
   def test_invalid_default_value(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
-      pgsetting.EnumSetting(
-        'overwrite_mode', 'invalid_default_value',
-        [('skip', "Skip"),
-         ('replace', "Replace")])
+      pgsetting.EnumSetting('overwrite_mode', 'invalid_default_value', [('skip', "Skip"), ('replace', "Replace")])
   
   def test_invalid_items_length_varying(self):
     with self.assertRaises(ValueError):
-      pgsetting.EnumSetting(
-          'overwrite_mode', None,
-          [('skip', "Skip", 1),
-           ('replace', "Replace")])
+      pgsetting.EnumSetting('overwrite_mode', None, [('skip', "Skip", 1), ('replace', "Replace")])
   
   def test_invalid_items_length_too_many_elements(self):
     with self.assertRaises(ValueError):
-      pgsetting.EnumSetting(
-          'overwrite_mode', None,
-          [('skip', "Skip", 1, 1),
-           ('replace', "Replace", 1, 1)])
+      pgsetting.EnumSetting('overwrite_mode', None, [('skip', "Skip", 1, 1), ('replace', "Replace", 1, 1)])
   
   def test_invalid_items_length_too_few_elements(self):
     with self.assertRaises(ValueError):
-      pgsetting.EnumSetting(
-          'overwrite_mode', None,
-          [('skip'),
-           ('replace')])
+      pgsetting.EnumSetting('overwrite_mode', None, [('skip'), ('replace')])
   
   def test_no_empty_value(self):
-    setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace',
-      [('skip', "Skip"),
-       ('replace', "Replace")])
+    setting = pgsetting.EnumSetting('overwrite_mode', 'replace', [('skip', "Skip"), ('replace', "Replace")])
     self.assertEqual(setting.empty_value, None)
   
   def test_valid_empty_value(self):
     setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace',
-      [('choose', "Choose your mode"),
-       ('skip', "Skip"),
-       ('replace', "Replace")],
+      'overwrite_mode', 'replace', [('choose', "Choose your mode"), ('skip', "Skip"), ('replace', "Replace")],
       empty_value='choose')
     self.assertEqual(setting.empty_value, setting.items['choose'])
   
   def test_invalid_empty_value(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
-        'overwrite_mode', 'replace',
-        [('skip', "Skip"),
-         ('replace', "Replace")],
-        empty_value='invalid_value')
+        'overwrite_mode', 'replace', [('skip', "Skip"), ('replace', "Replace")], empty_value='invalid_value')
   
 
 class TestEnumSetting(unittest.TestCase):
   
   def setUp(self):
     self.setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace',
-      [('skip', "Skip"), ('replace', "Replace")],
-      display_name="Overwrite mode")
+      'overwrite_mode', 'replace', [('skip', "Skip"), ('replace', "Replace")], display_name="Overwrite mode")
   
   def test_set_invalid_item(self):
     with self.assertRaises(pgsetting.SettingValueError):
@@ -812,15 +780,11 @@ class TestEnumSetting(unittest.TestCase):
       self.setting.items['invalid_item']
   
   def test_description(self):
-    self.assertEqual(self.setting.description,
-                     "Overwrite mode { Skip (0), Replace (1) }")
+    self.assertEqual(self.setting.description, "Overwrite mode { Skip (0), Replace (1) }")
   
   def test_description_with_mnemonics_from_item_display_names(self):
     setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace',
-      [('skip', "_Skip"),
-       ('replace', "_Replace")],
-      display_name="_Overwrite mode")
+      'overwrite_mode', 'replace', [('skip', "_Skip"), ('replace', "_Replace")], display_name="_Overwrite mode")
     self.assertEqual(setting.description, "Overwrite mode { Skip (0), Replace (1) }")
   
   def test_get_item_display_names_and_values(self):
@@ -828,10 +792,8 @@ class TestEnumSetting(unittest.TestCase):
   
   def test_is_value_empty(self):
     setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace',
-      [('choose', "-Choose Your Mode-"), ('skip', "Skip"), ('replace', "Replace")],
-      empty_value='choose',
-      allow_empty_values=True)
+      'overwrite_mode', 'replace', [('choose', "-Choose Your Mode-"), ('skip', "Skip"), ('replace', "Replace")],
+      empty_value='choose', allow_empty_values=True)
     
     self.assertEqual(setting.is_value_empty(), False)
     setting.set_value(setting.items['choose'])
@@ -839,8 +801,7 @@ class TestEnumSetting(unittest.TestCase):
     
   def test_set_empty_value_not_allowed(self):
     setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace',
-      [('choose', "-Choose Your Mode-"), ('skip', "Skip"), ('replace', "Replace")],
+      'overwrite_mode', 'replace', [('choose', "-Choose Your Mode-"), ('skip', "Skip"), ('replace', "Replace")],
       empty_value='choose')
     
     with self.assertRaises(pgsetting.SettingValueError):
@@ -907,8 +868,8 @@ class TestImageIDsAndDirectoriesSetting(unittest.TestCase):
   def setUp(self):
     self.setting = pgsetting.ImageIDsAndDirectoriesSetting('image_ids_and_directories', {})
     
-    self.image_ids_and_filenames = [(0, None), (1, "C:\\image.png"), (2, "/test/test.jpg"),
-                                    (4, "/test/another_test.gif")]
+    self.image_ids_and_filenames = [
+      (0, None), (1, "C:\\image.png"), (2, "/test/test.jpg"), (4, "/test/another_test.gif")]
     self.image_list = self._create_image_list(self.image_ids_and_filenames)
     self.image_ids_and_directories = self._create_image_ids_and_directories(self.image_list)
     

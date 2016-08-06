@@ -39,8 +39,7 @@ import types
 #===============================================================================
 
 
-def uniquify_string(str_, existing_strings, uniquifier_position=None,
-                    uniquifier_generator=None):
+def uniquify_string(str_, existing_strings, uniquifier_position=None, uniquifier_generator=None):
   """
   If string `str_` is in the `existing_strings` list, return a unique string
   by inserting a "uniquifier" (a string that makes the whole input string
@@ -57,9 +56,8 @@ def uniquify_string(str_, existing_strings, uniquifier_position=None,
   * `uniquifier_generator` - See `uniquify_string_generic.uniquifier_generator`.
   """
   
-  return uniquify_string_generic(str_,
-                                 lambda str_param: str_param not in existing_strings,
-                                 uniquifier_position, uniquifier_generator)
+  return uniquify_string_generic(
+    str_, lambda str_param: str_param not in existing_strings, uniquifier_position, uniquifier_generator)
   
 
 def uniquify_filename(filename, uniquifier_position=None, uniquifier_generator=None):
@@ -75,12 +73,11 @@ def uniquify_filename(filename, uniquifier_position=None, uniquifier_generator=N
   * `uniquifier_generator` - See `uniquify_string_generic.uniquifier_generator`.
   """
   
-  return uniquify_string_generic(filename,
-                                 lambda filename_param: not os.path.exists(filename_param),
-                                 uniquifier_position, uniquifier_generator)
+  return uniquify_string_generic(
+    filename, lambda filename_param: not os.path.exists(filename_param), uniquifier_position, uniquifier_generator)
 
-def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None,
-                            uniquifier_generator=None):
+
+def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None, uniquifier_generator=None):
   """
   If string `str_` is not unique according to `is_unique_func`, return a unique
   string by inserting a "uniquifier" (a string that makes the whole input string
@@ -120,9 +117,7 @@ def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None,
   """
   
   def _get_uniquified_string(uniquifier_generator):
-    return "{0}{1}{2}".format(str_[0:uniquifier_position],
-                              next(uniquifier_generator),
-                              str_[uniquifier_position:])
+    return "{0}{1}{2}".format(str_[0:uniquifier_position], next(uniquifier_generator), str_[uniquifier_position:])
 
   def _generate_unique_number():
     i = 1
@@ -421,8 +416,9 @@ class StringPatternGenerator(object):
     argspec = inspect.getargspec(field_func)
     
     if argspec.keywords:
-      raise ValueError("{0}: field functions with variable keyword arguments (**kwargs) are not supported"
-                       .format(field_func.__name__))
+      raise ValueError(
+        "{0}: field functions with variable keyword arguments (**kwargs) are not supported".format(
+          field_func.__name__))
     
     if not argspec.varargs:
       num_defaults = len(argspec.defaults) if argspec.defaults is not None else 0
@@ -626,9 +622,9 @@ class FilenameValidator(StringValidator):
   # Invalid names for the Windows platform. Taken from:
   # http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx
   _INVALID_NAMES = {
-   "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6",
-   "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6",
-   "LPT7", "LPT8", "LPT9"
+    "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6",
+    "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6",
+    "LPT7", "LPT8", "LPT9"
   }
   
   ERROR_STATUSES_MESSAGES = {
@@ -680,11 +676,7 @@ class FilenameValidator(StringValidator):
     If the filename is truncated to an empty string, return "Untitled".
     """
     
-    filename = (
-      re.sub(cls._INVALID_CHARS_PATTERN, "", filename)
-        .strip(" ")
-        .rstrip(".")
-    )
+    filename = re.sub(cls._INVALID_CHARS_PATTERN, "", filename).strip(" ").rstrip(".")
     
     root, ext = os.path.splitext(filename)
     # For reserved names, the comparison must be case-insensitive
@@ -884,10 +876,4 @@ class FileExtensionValidator(StringValidator):
   
   @classmethod
   def validate(cls, file_ext):
-    file_ext = (
-      re.sub(cls._INVALID_CHARS_PATTERN, "", file_ext)
-        .rstrip(" ")
-        .rstrip(".")
-    )
-    
-    return file_ext
+    return re.sub(cls._INVALID_CHARS_PATTERN, "", file_ext).rstrip(" ").rstrip(".")

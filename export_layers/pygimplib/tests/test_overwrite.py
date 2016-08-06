@@ -56,8 +56,9 @@ class TestInteractiveOverwriteChooser(unittest.TestCase):
   
   def setUp(self):
     self.overwrite_modes = self.SKIP, self.REPLACE, self.RENAME_NEW, self.RENAME_EXISTING = (0, 1, 2, 3)
-    self.values_and_display_names = [(self.SKIP, "Skip"), (self.REPLACE, "Replace"),
-                                     (self.RENAME_NEW, "Rename new"), (self.RENAME_EXISTING, "Rename existing")]
+    self.values_and_display_names = [
+      (self.SKIP, "Skip"), (self.REPLACE, "Replace"),
+      (self.RENAME_NEW, "Rename new"), (self.RENAME_EXISTING, "Rename existing")]
     self.default_value = self.REPLACE
     self.default_response = self.SKIP
     self.overwrite_chooser = InteractiveOverwriteChooserStub(

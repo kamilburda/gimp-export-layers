@@ -84,8 +84,8 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     self._init_gui()
   
   def _init_gui(self):
-    self._dialog = gimpui.Dialog(title="", role=None, parent=self._parent,
-                                 flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
+    self._dialog = gimpui.Dialog(
+      title="", role=None, parent=self._parent, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
     self._dialog.set_transient_for(self._parent)
     self._dialog.set_title(self._title)
     self._dialog.set_border_width(8)
@@ -151,9 +151,7 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
 #===============================================================================
 
 
-def display_exception_message(exception_message, plugin_title=None,
-                              report_uri_list=None, parent=None):
-  
+def display_exception_message(exception_message, plugin_title=None, report_uri_list=None, parent=None):
   """
   Display an error message for exceptions unhandled by the plug-in.
   
@@ -185,16 +183,14 @@ def display_exception_message(exception_message, plugin_title=None,
     for linkbutton in report_linkbuttons:
       linkbutton.connect("clicked", open_browser)
   
-  dialog = gtk.MessageDialog(parent, type=gtk.MESSAGE_ERROR,
-                             flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
+  dialog = gtk.MessageDialog(
+    parent, type=gtk.MESSAGE_ERROR, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
   dialog.set_transient_for(parent)
   dialog.set_title(plugin_title)
   dialog.set_markup(
-    "<span font_size=\"large\"><b>" + _("Oops! Something went wrong.") + "</b></span>"
-  )
+    "<span font_size=\"large\"><b>" + _("Oops! Something went wrong.") + "</b></span>")
   dialog.format_secondary_markup(
-    _("{0} encountered an unexpected error and has to close. Sorry about that!").format(plugin_title)
-  )
+    _("{0} encountered an unexpected error and has to close. Sorry about that!").format(plugin_title))
   
   expander = gtk.Expander()
   expander.set_expanded(True)
@@ -223,8 +219,9 @@ def display_exception_message(exception_message, plugin_title=None,
   vbox_labels_report = gtk.VBox(homogeneous=False)
   
   if report_uri_list is not None and report_uri_list:
-    label_report_header_text = _("You can help fix this error by sending a report with the text "
-                                 "in the details above to one of the following sites")
+    label_report_header_text = _(
+      "You can help fix this error by sending a report with the text "
+      "in the details above to one of the following sites")
     if not _webbrowser_module_found:
       label_report_header_text += " " + _("(right-click to copy link)")
     label_report_header_text += ":"
@@ -254,8 +251,7 @@ def display_exception_message(exception_message, plugin_title=None,
   dialog.set_focus(scrolled_window)
   
   if report_uri_list is not None and report_uri_list and _webbrowser_module_found:
-    # Apparently, GTK doesn't know how to open URLs on Windows, hence the custom
-    # solution.
+    # Apparently, GTK doesn't know how to open URLs on Windows, hence the custom solution.
     connect_linkbuttons(report_linkbuttons)
   
   dialog.show_all()
@@ -280,9 +276,8 @@ def display_message(message, message_type, title=None, parent=None,
   * `parent` - Parent GUI element.
   """
   
-  dialog = gtk.MessageDialog(parent=parent, type=message_type,
-                             flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                             buttons=buttons)
+  dialog = gtk.MessageDialog(
+    parent=parent, type=message_type, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=buttons)
   dialog.set_transient_for(parent)
   if title is not None:
     dialog.set_title(title)
@@ -362,8 +357,9 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
         
         if issubclass(exc_type, Exception):
           exception_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-          display_exception_message(exception_message, plugin_title=plugin_title,
-                                    report_uri_list=report_uri_list, parent=_gui_excepthook_parent)
+          display_exception_message(
+            exception_message, plugin_title=plugin_title, report_uri_list=report_uri_list,
+            parent=_gui_excepthook_parent)
           # Make sure to quit the application since unhandled exceptions can
           # mess up the application state.
           if gtk.main_level() > 0:

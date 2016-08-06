@@ -551,8 +551,9 @@ class Setting(object):
     num_actual_event_handler_args = len(event_handler_args)
     
     if num_required_event_handler_args != num_actual_event_handler_args:
-      raise TypeError("wrong number of arguments to the event handler (required {0}, passed {1})"
-                      .format(num_required_event_handler_args, num_actual_event_handler_args))
+      raise TypeError(
+        "wrong number of arguments to the event handler (required {0}, passed {1})".format(
+          num_required_event_handler_args, num_actual_event_handler_args))
     
     self._event_handlers[event_type][self._event_handler_id_counter] = [event_handler, event_handler_args]
     
@@ -670,9 +671,9 @@ class Setting(object):
     elif pdb_type in self._ALLOWED_PDB_TYPES:
       return pdb_type
     else:
-      raise ValueError("GIMP PDB type '{0}' not allowed; "
-                       "for the list of allowed PDB types, refer to "
-                       "the documentation of the appropriate Setting class".format(pdb_type))
+      raise ValueError(
+        "GIMP PDB type '{0}' not allowed; for the list of allowed PDB types, refer to "
+        "the documentation of the appropriate Setting class".format(pdb_type))
   
   def _get_default_pdb_type(self):
     if self._ALLOWED_PDB_TYPES:
@@ -705,8 +706,8 @@ class Setting(object):
       elif gui_type in [SettingGuiTypes.none, pgsettingpresenter.NullSettingPresenter]:
         gui_type_to_return = gui_type
       else:
-        raise ValueError("invalid GUI type; must be one of {0}"
-                         .format([type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
+        raise ValueError(
+          "invalid GUI type; must be one of {0}".format([type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
     
     return gui_type_to_return
   
@@ -917,13 +918,10 @@ class EnumSetting(Setting):
     
     error_messages = {}
     
-    error_messages['invalid_value'] = _(
-      "Invalid item value; valid values: {0}"
-    ).format(list(self._item_values))
+    error_messages['invalid_value'] = _("Invalid item value; valid values: {0}").format(list(self._item_values))
     
     error_messages['invalid_default_value'] = (
-      "invalid identifier for the default value; must be one of {0}"
-    ).format(self._items.keys())
+      "invalid identifier for the default value; must be one of {0}").format(self._items.keys())
     
     if 'error_messages' in kwargs:
       error_messages.update(kwargs['error_messages'])
@@ -1043,8 +1041,7 @@ class EnumSetting(Setting):
         return self._items[empty_value_name]
       else:
         raise ValueError(
-          "invalid identifier for the empty value; must be one of {0}".format(self._items.keys())
-        )
+          "invalid identifier for the empty value; must be one of {0}".format(self._items.keys()))
     else:
       return None
 
@@ -1180,8 +1177,7 @@ class ValidatableStringSetting(StringSetting):
           new_status_messages.append(status_message)
       
       raise SettingValueError(
-        self._value_to_str(value) + "\n".join([message for message in new_status_messages])
-      )
+        self._value_to_str(value) + "\n".join([message for message in new_status_messages]))
   
 
 class FileExtensionSetting(ValidatableStringSetting):
@@ -1269,8 +1265,8 @@ class ImageIDsAndDirectoriesSetting(Setting):
     current_image_ids = set([image.ID for image in current_images])
     
     # Remove images no longer opened in GIMP
-    self._value = {image_id: self._value[image_id]
-                   for image_id in self._value.keys() if image_id in current_image_ids}
+    self._value = {
+      image_id: self._value[image_id] for image_id in self._value.keys() if image_id in current_image_ids}
     
     # Add new images opened in GIMP
     for image in current_images:

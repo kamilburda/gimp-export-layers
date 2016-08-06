@@ -144,12 +144,11 @@ class EntryPopup(object):
   # https://github.com/GNOME/gtk/blob/gtk-2-24/gtk/gtkentrycompletion.c
   
   def __init__(self, entry, column_types, rows, row_filter_func=None,
-    assign_from_selected_row_func=None, assign_last_value_func=None,
-    on_row_left_mouse_button_press_func=None, on_entry_left_mouse_button_press_func=None,
-    on_entry_key_press_before_show_popup_func=None,
-    on_entry_key_press_func=None, on_entry_changed_show_popup_condition_func=None,
-    width=-1, height=200, max_num_visible_rows=8):
-    
+               assign_from_selected_row_func=None, assign_last_value_func=None,
+               on_row_left_mouse_button_press_func=None, on_entry_left_mouse_button_press_func=None,
+               on_entry_key_press_before_show_popup_func=None,
+               on_entry_key_press_func=None, on_entry_changed_show_popup_condition_func=None,
+               width=-1, height=200, max_num_visible_rows=8):
     self._entry = entry
     self._row_filter_func = row_filter_func
     self._width = width
@@ -1094,8 +1093,8 @@ class FileExtensionEntry(gtk.Entry):
       file_extensions = file_format[1]
       
       if len(file_extensions) > 1:
-        text_pixel_rects = self._get_text_pixel_rects(file_extensions, pango_layout,
-                                                      self._extensions_separator_text_pixel_size[0])
+        text_pixel_rects = self._get_text_pixel_rects(
+          file_extensions, pango_layout, self._extensions_separator_text_pixel_size[0])
         for rect in text_pixel_rects:
           rect.x += self._cell_renderer_extensions.get_property("xpad")
           rect.x += self._popup.tree_view.style_get_property("horizontal-separator")

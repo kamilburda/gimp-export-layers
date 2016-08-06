@@ -340,8 +340,9 @@ class TestSettingGroup(unittest.TestCase):
     
     self.settings['special']['first_plugin_run'].set_value(True)
     self.settings.reset()
-    self.assertNotEqual(self.settings['special']['first_plugin_run'].value,
-                        self.settings['special']['first_plugin_run'].default_value)
+    self.assertNotEqual(
+      self.settings['special']['first_plugin_run'].value,
+      self.settings['special']['first_plugin_run'].default_value)
   
 
 class TestSettingGroupHierarchical(unittest.TestCase):
@@ -354,16 +355,19 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.assertEqual(self.settings['advanced/ignore_invisible'], self.settings['advanced']['ignore_invisible'])
     self.assertEqual(self.settings['advanced/overwrite_mode'], self.settings['advanced']['overwrite_mode'])
     
-    self.settings['advanced'].add([pgsettinggroup.SettingGroup('expert', [
-      {
-       'type': pgsetting.SettingTypes.integer,
-       'name': 'file_extension_strip_mode',
-       'default_value': 0
-      }
-    ])])
+    self.settings['advanced'].add([
+      pgsettinggroup.SettingGroup('expert', [
+        {
+         'type': pgsetting.SettingTypes.integer,
+         'name': 'file_extension_strip_mode',
+         'default_value': 0
+        }
+      ])
+    ])
     
-    self.assertEqual(self.settings['advanced/expert/file_extension_strip_mode'],
-                     self.settings['advanced']['expert']['file_extension_strip_mode'])
+    self.assertEqual(
+      self.settings['advanced/expert/file_extension_strip_mode'],
+      self.settings['advanced']['expert']['file_extension_strip_mode'])
     
     with self.assertRaises(KeyError):
       self.settings['advanced/invalid_group/file_extension_strip_mode']
@@ -441,10 +445,12 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
 
 
-@mock.patch(LIB_NAME + '.pgsettingpersistor.SettingPersistor.save',
-            return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
-@mock.patch(LIB_NAME + '.pgsettingpersistor.SettingPersistor.load',
-            return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
+@mock.patch(
+  LIB_NAME + '.pgsettingpersistor.SettingPersistor.save',
+  return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
+@mock.patch(
+  LIB_NAME + '.pgsettingpersistor.SettingPersistor.load',
+  return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
 class TestSettingGroupLoadSave(unittest.TestCase):
   
   def setUp(self):
@@ -475,9 +481,9 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     self.assertEqual([self.settings['advanced/autocrop']], mock_save.call_args_list[2][0][0])
   
   def test_load_save_return_statuses(self, mock_load, mock_save):
-    load_save_calls_return_values = [(pgsettingpersistor.SettingPersistor.SUCCESS, ""),
-                                     (pgsettingpersistor.SettingPersistor.SUCCESS, ""),
-                                     (pgsettingpersistor.SettingPersistor.SUCCESS, "")]
+    load_save_calls_return_values = [
+      (pgsettingpersistor.SettingPersistor.SUCCESS, ""), (pgsettingpersistor.SettingPersistor.SUCCESS, ""),
+      (pgsettingpersistor.SettingPersistor.SUCCESS, "")]
     
     mock_load.side_effect = load_save_calls_return_values
     status, _unused = self.settings.load()
@@ -591,12 +597,13 @@ class TestPdbParamCreator(unittest.TestCase):
     params = pgsettinggroup.PdbParamCreator.create_params(self.file_ext_setting, self.settings)
     
     self.assertTrue(len(params), 1 + len(self.settings))
+    self.assertEqual(
+      params[0],
+      (self.file_ext_setting.pdb_type, self.file_ext_setting.name.encode(),
+       self.file_ext_setting.description.encode()))
     
-    self.assertEqual(params[0], (self.file_ext_setting.pdb_type, self.file_ext_setting.name.encode(),
-                                 self.file_ext_setting.description.encode()))
     for param, setting in zip(params[1:], self.settings.iterate_all()):
-      self.assertEqual(param, (setting.pdb_type, setting.name.encode(),
-                               setting.description.encode()))
+      self.assertEqual(param, (setting.pdb_type, setting.name.encode(), setting.description.encode()))
   
   def test_create_params_with_unregistrable_setting(self):
     params = pgsettinggroup.PdbParamCreator.create_params(self.unregistrable_setting)

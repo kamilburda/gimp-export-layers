@@ -62,9 +62,9 @@ def get_save_procedure(file_extension):
     save_procedure_name = file_formats_dict[file_extension].save_procedure_name
     save_procedure_func = file_formats_dict[file_extension].save_procedure_func
     
-    if (not save_procedure_name and save_procedure_func):
+    if not save_procedure_name and save_procedure_func:
       return save_procedure_func
-    elif (save_procedure_name and save_procedure_func):
+    elif save_procedure_name and save_procedure_func:
       if pdb.gimp_procedural_db_proc_exists(save_procedure_name):
         return save_procedure_func
   

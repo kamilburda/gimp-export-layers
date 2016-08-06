@@ -103,8 +103,7 @@ def load_module(module_name):
   return module
 
 
-def run_tests(path, test_module_name_prefix="test_", modules=None, ignored_modules=None,
-              output_stream=sys.stderr):
+def run_tests(path, test_module_name_prefix="test_", modules=None, ignored_modules=None, output_stream=sys.stderr):
   """
   Execute all modules containing unit tests located in the `path` directory. The
   names of the unit test modules start with the specified prefix.

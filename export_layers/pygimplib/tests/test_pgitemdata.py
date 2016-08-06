@@ -211,42 +211,34 @@ class TestLayerData(unittest.TestCase):
     
     self.assertEqual(
       layer_elem.get_filepath(output_directory),
-      os.path.join(output_directory, "Corners", "top-left-corner::", layer_elem.name)
-    )
+      os.path.join(output_directory, "Corners", "top-left-corner::", layer_elem.name))
     self.assertEqual(
       layer_elem.get_filepath(output_directory, include_item_path=False),
-      os.path.join(output_directory, layer_elem.name)
-    )
+      os.path.join(output_directory, layer_elem.name))
     self.assertEqual(
       layer_elem.get_filepath("testgimp"),
-      os.path.join(os.getcwd(), "testgimp", "Corners", "top-left-corner::", layer_elem.name)
-    )
+      os.path.join(os.getcwd(), "testgimp", "Corners", "top-left-corner::", layer_elem.name))
     self.assertEqual(
       layer_elem.get_filepath(None),
-      os.path.join(os.getcwd(), "Corners", "top-left-corner::", layer_elem.name)
-    )
+      os.path.join(os.getcwd(), "Corners", "top-left-corner::", layer_elem.name))
     
     itemdata_empty_layer_group = self.layer_data['top-left-corner:']
     
     self.assertEqual(
       itemdata_empty_layer_group.get_filepath(output_directory),
-      os.path.join(output_directory, "Corners", itemdata_empty_layer_group.name)
-    )
+      os.path.join(output_directory, "Corners", itemdata_empty_layer_group.name))
     self.assertEqual(
       itemdata_empty_layer_group.get_filepath(output_directory, include_item_path=False),
-      os.path.join(output_directory, itemdata_empty_layer_group.name)
-    )
+      os.path.join(output_directory, itemdata_empty_layer_group.name))
     
     itemdata_empty_layer_group_no_parents = self.layer_data['Overlay']
     
     self.assertEqual(
       itemdata_empty_layer_group_no_parents.get_filepath(output_directory),
-      os.path.join(output_directory, itemdata_empty_layer_group_no_parents.name)
-    )
+      os.path.join(output_directory, itemdata_empty_layer_group_no_parents.name))
     self.assertEqual(
       itemdata_empty_layer_group_no_parents.get_filepath(output_directory),
-      itemdata_empty_layer_group_no_parents.get_filepath(output_directory, include_item_path=False)
-    )
+      itemdata_empty_layer_group_no_parents.get_filepath(output_directory, include_item_path=False))
   
   #-----------------------------------------------------------------------------
   
@@ -259,40 +251,47 @@ class TestLayerData(unittest.TestCase):
   
   def _test_add_tag(self, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag,
                     expect_modified_externally=False):
-    self._test_add_remove_tag("add_tag", orig_layer_name, new_layer_name, incorrect_new_layer_name, tag,
-                              expect_modified_externally)
+    self._test_add_remove_tag(
+      "add_tag", orig_layer_name, new_layer_name, incorrect_new_layer_name, tag, expect_modified_externally)
     self.assertIn(tag, self.layer_data[new_layer_name].tags)
   
   def _test_remove_tag(self, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag,
                        expect_modified_externally=False):
-    self._test_add_remove_tag("remove_tag", orig_layer_name, new_layer_name, incorrect_new_layer_name, tag,
-                              expect_modified_externally)
+    self._test_add_remove_tag(
+      "remove_tag", orig_layer_name, new_layer_name, incorrect_new_layer_name, tag, expect_modified_externally)
     self.assertNotIn(tag, self.layer_data[new_layer_name].tags)
   
   def test_add_remove_tag(self):
-    self._test_add_tag('top-left-corner', '[background] top-left-corner',
-                       'top-left-corner', "background")
-    self._test_add_tag('[background] top-left-corner', '[background] top-left-corner',
-                       '[background] [background] top-left-corner', "background")
-    self._test_add_tag('[background] top-left-corner', '[foreground] [background] top-left-corner',
-                       '[background] top-left-corner', "foreground")
+    self._test_add_tag(
+      'top-left-corner', '[background] top-left-corner',
+      'top-left-corner', "background")
+    self._test_add_tag(
+      '[background] top-left-corner', '[background] top-left-corner',
+      '[background] [background] top-left-corner', "background")
+    self._test_add_tag(
+      '[background] top-left-corner', '[foreground] [background] top-left-corner',
+      '[background] top-left-corner', "foreground")
     
-    self._test_remove_tag('[foreground] [background] top-left-corner', '[foreground] top-left-corner',
-                          '[foreground] [background] top-left-corner', "background")
-    self._test_remove_tag('[foreground] top-left-corner', 'top-left-corner',
-                          '[foreground] top-left-corner', "foreground")
+    self._test_remove_tag(
+      '[foreground] [background] top-left-corner', '[foreground] top-left-corner',
+      '[foreground] [background] top-left-corner', "background")
+    self._test_remove_tag(
+      '[foreground] top-left-corner', 'top-left-corner',
+      '[foreground] top-left-corner', "foreground")
     
     with mock.patch(LIB_NAME + ".pgitemdata._ItemDataElement.item", autospec=True):
       type(self.layer_data['top-left-corner'].item).name = mock.PropertyMock(
         return_value=b"[background] top-left-corner #1")
-      self._test_add_tag('top-left-corner', '[background] top-left-corner #1',
-                         '[background] top-left-corner', "background", expect_modified_externally=True)
+      self._test_add_tag(
+        'top-left-corner', '[background] top-left-corner #1',
+        '[background] top-left-corner', "background", expect_modified_externally=True)
     
     with mock.patch(LIB_NAME + ".pgitemdata._ItemDataElement.item", autospec=True):
       type(self.layer_data['[background] top-left-corner #1'].item).name = mock.PropertyMock(
         return_value=b"top-left-corner #2")
-      self._test_remove_tag('[background] top-left-corner #1', 'top-left-corner #2',
-                            'top-left-corner #1', "background", expect_modified_externally=True)
+      self._test_remove_tag(
+        '[background] top-left-corner #1', 'top-left-corner #2',
+        'top-left-corner #1', "background", expect_modified_externally=True)
   
   #-----------------------------------------------------------------------------
     
@@ -300,8 +299,7 @@ class TestLayerData(unittest.TestCase):
     for key, name in uniquified_names.items():
       self.assertEqual(
         layer_data[key].name, name,
-        "'" + key + "': '" + str(layer_data[key].name) + "' != '" + str(name) + "'"
-      )
+        "'" + key + "': '" + str(layer_data[key].name) + "' != '" + str(name) + "'")
   
   def _compare_uniquified_with_parents(self, item_data, uniquified_names):
     for key, item_path in uniquified_names.items():
@@ -309,13 +307,11 @@ class TestLayerData(unittest.TestCase):
       self.assertEqual(
         item_data[key].get_path_components(), path_components,
         ("parents: '" + key + "': '" + str(item_data[key].get_path_components()) +
-         "' != '" + str(path_components) + "'")
-      )
+         "' != '" + str(path_components) + "'"))
       self.assertEqual(
         item_data[key].name, name,
         ("layer name: '" + key + "': '" + str(item_data[key].name) +
-         "' != '" + str(name) + "'")
-      )
+         "' != '" + str(name) + "'"))
   
   def test_uniquify_without_layer_groups(self):
     uniquified_names = collections.OrderedDict([
@@ -503,10 +499,10 @@ class TestLayerDataElement(unittest.TestCase):
     self._test_parse_tags("[background]main-background", "main-background", ['background'])
     self._test_parse_tags("[background] main-background", "main-background", ['background'])
     self._test_parse_tags("[background]    main-background", "main-background", ['background'])
-    self._test_parse_tags("[foreground][background] main-background", "main-background",
-                          ['foreground', 'background'])
-    self._test_parse_tags("[foreground] [background] main-background", "main-background",
-                          ['foreground', 'background'])
+    self._test_parse_tags(
+      "[foreground][background] main-background", "main-background", ['foreground', 'background'])
+    self._test_parse_tags(
+      "[foreground] [background] main-background", "main-background", ['foreground', 'background'])
     self._test_parse_tags("[ background] main-background", "main-background", [' background'])
     self._test_parse_tags("[ background ] main-background", "main-background", [' background '])
     self._test_parse_tags(" [background] main-background", "main-background", ['background'])
@@ -524,15 +520,15 @@ class TestLayerDataElement(unittest.TestCase):
     self._test_parse_tags("[[background]]main-background", "[[background]]main-background", [])
     self._test_parse_tags(" [[background]]main-background", " [[background]]main-background", [])
     self._test_parse_tags("[[background]] main-background", "[[background]] main-background", [])
-    self._test_parse_tags("[foreground] [[background]] main-background", "[[background]] main-background",
-                          ['foreground'])
-    self._test_parse_tags("[[foreground]] [some_other_ground] [[background]] main-background",
-                          "[[foreground]] [some_other_ground] [[background]] main-background",
-                          [])
+    self._test_parse_tags(
+      "[foreground] [[background]] main-background", "[[background]] main-background", ['foreground'])
+    self._test_parse_tags(
+      "[[foreground]] [some_other_ground] [[background]] main-background",
+      "[[foreground]] [some_other_ground] [[background]] main-background",
+      [])
     self._test_parse_tags("[background]] main-background", "] main-background", ['background'])
     
     self._test_parse_tags("[background main-background", "[background main-background", [])
     self._test_parse_tags("[background main-background]", "", ['background main-background'])
-    self._test_parse_tags("[foreground]some text[background]main-background",
-                          "some text[background]main-background",
-                          ['foreground'])
+    self._test_parse_tags(
+      "[foreground]some text[background]main-background", "some text[background]main-background", ['foreground'])

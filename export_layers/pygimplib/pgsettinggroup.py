@@ -364,8 +364,8 @@ class SettingGroup(object):
     
     if exception_messages:
       exception_message = "\n".join(exception_messages)
-      raise pgsetting.SettingValueError(exception_message, setting=exception_settings[0],
-                                        messages=exception_messages, settings=exception_settings)
+      raise pgsetting.SettingValueError(
+        exception_message, setting=exception_settings[0], messages=exception_messages, settings=exception_settings)
   
   def _next(self):
     """
@@ -520,8 +520,7 @@ class PdbParamCreator(object):
     """
     
     settings = cls._list_settings(settings_or_groups)
-    return [cls._create_param(setting) for setting in settings
-            if setting.can_be_registered_to_pdb()]
+    return [cls._create_param(setting) for setting in settings if setting.can_be_registered_to_pdb()]
   
   @classmethod
   def list_param_values(cls, settings_or_groups, ignore_run_mode=True):
@@ -541,8 +540,7 @@ class PdbParamCreator(object):
           del settings[i]
           break
     
-    return [setting.value for setting in settings
-            if setting.can_be_registered_to_pdb()]
+    return [setting.value for setting in settings if setting.can_be_registered_to_pdb()]
   
   @classmethod
   def _list_settings(cls, settings_or_groups):

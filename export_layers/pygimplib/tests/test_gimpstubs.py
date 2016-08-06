@@ -44,5 +44,4 @@ class TestPdbStub(unittest.TestCase):
   def test_unknown_pdb_func(self):
     self.assertTrue(callable(self.pdb.plug_in_autocrop))
     self.assertEqual(self.pdb.plug_in_autocrop(), b"plug_in_autocrop")
-    self.assertEqual(self.pdb.plug_in_autocrop("some random args", 1, 2, 3),
-                     b"plug_in_autocrop")
+    self.assertEqual(self.pdb.plug_in_autocrop("some random args", 1, 2, 3), b"plug_in_autocrop")
