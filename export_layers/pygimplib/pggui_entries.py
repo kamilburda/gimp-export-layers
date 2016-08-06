@@ -581,7 +581,7 @@ class FilenamePatternEntry(gtk.Entry):
   _COLUMN_TYPES = [bytes, bytes, gobject.TYPE_PYOBJECT]
   
   def __init__(self, suggested_items, *args, **kwargs):
-    self._mininum_width = kwargs.pop('minimum_width', -1)
+    self._minimum_width = kwargs.pop('minimum_width', -1)
     self._maximum_width = kwargs.pop('maximum_width', -1)
     self._default_item_value = kwargs.pop('default_item', None)
     
@@ -609,7 +609,7 @@ class FilenamePatternEntry(gtk.Entry):
     
     self._pango_layout = pango.Layout(self.get_pango_context())
     
-    self.set_size_request(self._mininum_width, -1)
+    self.set_size_request(self._minimum_width, -1)
     
     self._popup = EntryPopup(
       self, self._COLUMN_TYPES, suggested_items,
@@ -693,7 +693,7 @@ class FilenamePatternEntry(gtk.Entry):
     
     offset_pixel_width = (self.get_layout_offsets()[0] + self.get_property("scroll-offset")) * 2
     text_pixel_width = self._pango_layout.get_pixel_size()[0] + offset_pixel_width
-    self.set_size_request(max(min(text_pixel_width, self._maximum_width), self._mininum_width), -1)
+    self.set_size_request(max(min(text_pixel_width, self._maximum_width), self._minimum_width), -1)
   
   def _on_entry_changed_condition(self):
     current_text = self._get_text_decoded()
