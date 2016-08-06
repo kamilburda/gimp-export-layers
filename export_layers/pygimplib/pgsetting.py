@@ -194,7 +194,6 @@ class Setting(object):
                auto_update_gui_to_setting=True,
                setting_sources=None,
                error_messages=None):
-    
     """
     Described are only those parameters that do not correspond to
     any attribute in this class, or parameters requiring additional information.
@@ -590,6 +589,7 @@ class Setting(object):
     Return True if the setting value is one of the empty values defined for the
     setting class, otherwise return False.
     """
+    
     return self._is_value_empty(self._value)
   
   def can_be_registered_to_pdb(self):
@@ -897,7 +897,6 @@ class EnumSetting(Setting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.combobox]
   
   def __init__(self, name, default_value, items, empty_value=None, **kwargs):
-    
     """
     Additional parameters:
     

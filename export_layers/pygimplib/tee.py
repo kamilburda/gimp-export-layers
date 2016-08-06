@@ -60,7 +60,6 @@ class Tee(object):
   """
   
   def __init__(self, stream, file_object, log_header_title=None, start=True, flush_output=False):
-    
     """
     Parameters:
     

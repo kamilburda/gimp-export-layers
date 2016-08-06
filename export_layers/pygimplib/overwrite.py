@@ -173,7 +173,6 @@ class OverwriteModes(object):
 
 
 def handle_overwrite(filename, overwrite_chooser, uniquifier_position=None):
-  
   """
   If a file with the specified filename exists, handle the filename conflict
   by executing the `overwrite_chooser` (an `OverwriteChooser` instance).

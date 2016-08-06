@@ -261,7 +261,6 @@ def display_exception_message(exception_message, plugin_title=None, report_uri_l
 
 def display_message(message, message_type, title=None, parent=None,
                     buttons=gtk.BUTTONS_OK, message_in_text_view=False):
-  
   """
   Display a generic message.
   

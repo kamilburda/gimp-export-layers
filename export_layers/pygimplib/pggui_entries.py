@@ -331,10 +331,8 @@ class EntryPopup(object):
     self.select_row(row_num)
     self.assign_from_selected_row()
   
-  def select_and_assign_row_after_key_press(self, tree_path, next_row,
-    next_row_if_no_current_selection, current_row_before_unselection,
-    row_to_scroll_before_unselection=0):
-    
+  def select_and_assign_row_after_key_press(self, tree_path, next_row, next_row_if_no_current_selection,
+                                            current_row_before_unselection, row_to_scroll_before_unselection=0):
     """
     After a particular key is pressed, select the row specified by `tree_path`
     and assign the value from the selected row to the entry.
