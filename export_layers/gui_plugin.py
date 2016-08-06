@@ -61,8 +61,7 @@ from export_layers import settings_plugin
 #===============================================================================
 
 
-def display_message(message, message_type, parent=None, buttons=gtk.BUTTONS_OK,
-                    message_in_text_view=False):
+def display_message(message, message_type, parent=None, buttons=gtk.BUTTONS_OK, message_in_text_view=False):
   return pggui.display_message(
     message,
     message_type,
@@ -83,8 +82,8 @@ def display_exception_message(exception_message, parent=None):
 
 
 def _format_export_error_message(exception):
-  error_message = _("Sorry, but the export was unsuccessful."
-                    " You can try exporting again if you fix the issue described below.")
+  error_message = _(
+    "Sorry, but the export was unsuccessful. You can try exporting again if you fix the issue described below.")
   if not exception.message.endswith("."):
     exception.message += "."
   error_message += "\n" + str(exception)
@@ -278,7 +277,8 @@ class ExportNamePreview(object):
   
   _VBOX_SPACING = 5
   
-  _COLUMNS = (_COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME_SENSITIVE, _COLUMN_LAYER_NAME,
+  _COLUMNS = (
+    _COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME_SENSITIVE, _COLUMN_LAYER_NAME,
     _COLUMN_LAYER_ORIG_NAME) = ([0, gtk.gdk.Pixbuf], [1, bool], [2, bool], [3, bytes], [4, bytes])
   
   def __init__(self, layer_exporter, collapsed_items=None, selected_items=None):
@@ -504,8 +504,8 @@ class ExportNamePreview(object):
         for tag in self._layer_exporter.SUPPORTED_TAGS:
           self._tags_menu_items[tag].set_active(tag in layer_elem.tags)
       elif len(layer_elem_orig_names) > 1:
-        layer_elems = [self._layer_exporter.layer_data[layer_elem_orig_name]
-                       for layer_elem_orig_name in layer_elem_orig_names]
+        layer_elems = [
+          self._layer_exporter.layer_data[layer_elem_orig_name] for layer_elem_orig_name in layer_elem_orig_names]
         for tag, tags_menu_item in self._tags_menu_items.items():
           tags_menu_item.set_active(all(tag in layer_elem.tags for layer_elem in layer_elems))
       
@@ -535,20 +535,22 @@ class ExportNamePreview(object):
           self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
         
         has_supported_tags = self._has_supported_tags(layer_elem)
-        should_set_sensitive = (has_supported_tags != had_previously_supported_tags and
-                                treat_tagged_layers_specially and
-                                layer_elem.item_type != layer_elem.NONEMPTY_GROUP)
+        should_set_sensitive = (
+          has_supported_tags != had_previously_supported_tags and treat_tagged_layers_specially and
+          layer_elem.item_type != layer_elem.NONEMPTY_GROUP)
         
-        self._set_layer_orig_name(self._tree_iters[old_layer_elem_orig_name],
-                                  old_layer_elem_orig_name, layer_elem.orig_name)
+        self._set_layer_orig_name(
+          self._tree_iters[old_layer_elem_orig_name], old_layer_elem_orig_name, layer_elem.orig_name)
+        
         if was_selected:
           self._selected_items.append(layer_elem.orig_name)
         if old_layer_elem_orig_name in self._collapsed_items:
           self._collapsed_items.remove(old_layer_elem_orig_name)
           self._collapsed_items.add(layer_elem.orig_name)
         
-        self._tree_model.set_value(self._tree_iters[layer_elem.orig_name], self._COLUMN_ICON_TAG_VISIBLE[0],
-                                   has_supported_tags)
+        self._tree_model.set_value(
+          self._tree_iters[layer_elem.orig_name], self._COLUMN_ICON_TAG_VISIBLE[0], has_supported_tags)
+        
         if should_set_sensitive:
           self._set_item_elem_sensitive(layer_elem, not has_supported_tags)
       
@@ -563,8 +565,8 @@ class ExportNamePreview(object):
       constants.GTK_CHARACTER_ENCODING)
   
   def _set_layer_orig_name(self, tree_iter, old_orig_name, new_orig_name):
-    self._tree_model.set_value(tree_iter, self._COLUMN_LAYER_ORIG_NAME[0],
-                               new_orig_name.encode(constants.GTK_CHARACTER_ENCODING))
+    self._tree_model.set_value(
+      tree_iter, self._COLUMN_LAYER_ORIG_NAME[0], new_orig_name.encode(constants.GTK_CHARACTER_ENCODING))
     del self._tree_iters[old_orig_name]
     self._tree_iters[new_orig_name] = tree_iter
   
@@ -599,7 +601,8 @@ class ExportNamePreview(object):
     else:
       parent_tree_iter = None
     
-    tree_iter = self._tree_model.append(parent_tree_iter,
+    tree_iter = self._tree_model.append(
+      parent_tree_iter,
       [self._get_icon_from_item_elem(item_elem),
        self._has_supported_tags(item_elem),
        True,
@@ -638,8 +641,9 @@ class ExportNamePreview(object):
   
   def _set_parent_item_elem_sensitive(self, item_elem):
     for parent_elem in reversed(item_elem.parents):
-      parent_sensitive = any(self._get_item_elem_sensitive(child_elem)
-                             for child_elem in parent_elem.children if child_elem.orig_name in self._tree_iters)
+      parent_sensitive = any(
+        self._get_item_elem_sensitive(child_elem) for child_elem in parent_elem.children
+        if child_elem.orig_name in self._tree_iters)
       self._set_item_elem_sensitive(parent_elem, parent_sensitive)
   
   def _get_icon_from_item_elem(self, item_elem):
@@ -690,8 +694,9 @@ class ExportNamePreview(object):
       return
     
     self._layer_exporter.layer_data.is_filtered = False
-    self._collapsed_items = set([collapsed_item for collapsed_item in self._collapsed_items
-                                 if collapsed_item in self._layer_exporter.layer_data])
+    self._collapsed_items = set(
+      [collapsed_item for collapsed_item in self._collapsed_items
+       if collapsed_item in self._layer_exporter.layer_data])
     self._layer_exporter.layer_data.is_filtered = True
   
   def _set_selection(self):
@@ -1076,17 +1081,15 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       pggui.timeout_add_strict(50, self.export_name_preview.update)
     
     for setting in self.settings['main']:
-      if setting.name not in ['file_extension', 'output_directory', 'overwrite_mode',
-                              'layer_filename_pattern', 'export_only_selected_layers',
-                              'selected_layers', 'selected_layers_persistent']:
+      if setting.name not in [
+          'file_extension', 'output_directory', 'overwrite_mode', 'layer_filename_pattern',
+          'export_only_selected_layers', 'selected_layers', 'selected_layers_persistent']:
         setting.connect_event('value-changed', _on_setting_changed)
     
     self.settings['gui_session/export_name_preview_layers_collapsed_state'].connect_event(
-      'after-reset',
-      lambda setting: self.export_name_preview.set_collapsed_items(setting.value[self.image.ID]))
+      'after-reset', lambda setting: self.export_name_preview.set_collapsed_items(setting.value[self.image.ID]))
     self.settings['main/selected_layers'].connect_event(
-      'after-reset',
-      lambda setting: self.export_name_preview.set_selected_items(setting.value[self.image.ID]))
+      'after-reset', lambda setting: self.export_name_preview.set_selected_items(setting.value[self.image.ID]))
   
   def on_hpaned_left_button_up(self, widget, event):
     if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:
@@ -1121,9 +1124,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.display_message_label(_("Settings successfully saved."), message_type=gtk.MESSAGE_INFO)
  
   def on_reset_settings_clicked(self, widget):
-    response_id = display_message(_("Do you really want to reset settings?"),
-                                  gtk.MESSAGE_WARNING, parent=self.dialog,
-                                  buttons=gtk.BUTTONS_YES_NO)
+    response_id = display_message(
+      _("Do you really want to reset settings?"), gtk.MESSAGE_WARNING, parent=self.dialog,
+      buttons=gtk.BUTTONS_YES_NO)
     
     if response_id == gtk.RESPONSE_YES:
       self.reset_settings()
@@ -1137,8 +1140,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     overwrite_chooser = pggui.GtkDialogOverwriteChooser(
       # Don't insert the Cancel item as a button.
-      zip(self.settings['main/overwrite_mode'].items.values()[:-1],
-          self.settings['main/overwrite_mode'].items_display_names.values()[:-1]),
+      zip(
+        self.settings['main/overwrite_mode'].items.values()[:-1],
+        self.settings['main/overwrite_mode'].items_display_names.values()[:-1]),
       default_value=self.settings['main/overwrite_mode'].items['replace'],
       default_response=self.settings['main/overwrite_mode'].items['cancel'],
       title=pygimplib.config.PLUGIN_TITLE,
@@ -1154,8 +1158,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     except exportlayers.ExportLayersCancelError as e:
       should_quit = False
     except exportlayers.ExportLayersError as e:
-      display_message(_format_export_error_message(e), message_type=gtk.MESSAGE_WARNING,
-                      parent=self.dialog, message_in_text_view=True)
+      display_message(
+        _format_export_error_message(e), message_type=gtk.MESSAGE_WARNING, parent=self.dialog,
+        message_in_text_view=True)
       should_quit = False
     except Exception as e:
       display_exception_message(traceback.format_exc(), parent=self.dialog)
@@ -1300,8 +1305,9 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
     except exportlayers.ExportLayersCancelError:
       pass
     except exportlayers.ExportLayersError as e:
-      display_message(_format_export_error_message(e), message_type=gtk.MESSAGE_WARNING,
-                      parent=self._dialog, message_in_text_view=True)
+      display_message(
+        _format_export_error_message(e), message_type=gtk.MESSAGE_WARNING, parent=self._dialog,
+        message_in_text_view=True)
     else:
       if not self.layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self._dialog)

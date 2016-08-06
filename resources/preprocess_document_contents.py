@@ -203,10 +203,9 @@ def _preprocess_contents(contents, root_dir):
     token_args = _parse_token_args('include-section', match.group(3), root_dir)
     section = _process_token_args('include-section', token_args)
     
-    dest_contents = ("{% capture markdown-insert %}\n" +
-                     section +
-                     "\n" + match.group(1) + "{% endcapture %}" +
-                     "\n" + match.group(1) + "{{ markdown-insert | markdownify }}")
+    dest_contents = (
+      "{% capture markdown-insert %}\n" + section + "\n" + match.group(1) + "{% endcapture %}" +
+      "\n" + match.group(1) + "{{ markdown-insert | markdownify }}")
     contents = contents.replace(match.group(2), dest_contents, 1)
   
   return contents
@@ -238,12 +237,14 @@ def main():
     if os.path.isfile(os.path.join(PAGE_DIR, resource_file)):
       resource_files_to_process.append(resource_file)
     else:
-      print("Warning: File '{0}' found in resources but not in destination directory"
-            .format(os.path.join(RESOURCES_PAGE_DIR, resource_file)))
+      print(
+        "Warning: File '{0}' found in resources but not in destination directory".format(
+          os.path.join(RESOURCES_PAGE_DIR, resource_file)))
   
-  preprocess_contents([os.path.join(RESOURCES_PAGE_DIR, path) for path in resource_files_to_process],
-                      [os.path.join(PAGE_DIR, path) for path in resource_files_to_process],
-                      PLUGINS_PATH)
+  preprocess_contents(
+    [os.path.join(RESOURCES_PAGE_DIR, path) for path in resource_files_to_process],
+    [os.path.join(PAGE_DIR, path) for path in resource_files_to_process],
+    PLUGINS_PATH)
 
 
 if __name__ == "__main__":

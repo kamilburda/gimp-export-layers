@@ -160,8 +160,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
                    'autocrop': True,
                    'crop_mode': 1
                  },
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background',
-                                                   'crop_mode'))
+                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background', 'crop_mode'))
   
   def test_background_autocrop_crop_to_background_use_image_size(self):
     self.compare({
@@ -170,8 +169,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
                    'crop_mode': 1,
                    'use_image_size': True
                  },
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background',
-                                                   'crop_mode', 'use_image_size'))
+                 expected_results_dir=os.path.join(
+                   self.default_expected_layers_dir, 'background', 'crop_mode', 'use_image_size'))
   
   def test_foreground(self):
     layer_data = pgitemdata.LayerData(self.test_image)
@@ -185,8 +184,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     
     self._reload_image()
   
-  def compare(self, different_settings=None, different_results_and_expected_layers=None,
-              expected_results_dir=None):
+  def compare(self, different_settings=None, different_results_and_expected_layers=None, expected_results_dir=None):
     settings = settings_plugin.create_settings()
     settings['special']['image'].set_value(self.test_image)
     settings['main']['output_directory'].set_value(self.output_directory)
@@ -218,10 +216,9 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def _compare_layers(self, layer, expected_layer):
     self.assertEqual(pgpdb.compare_layers([layer, expected_layer]), True,
-      msg=("Layers are not identical:\n"
-           "processed layer: {0}\n"
-           "expected layer: {1}"
-           .format(layer.name, expected_layer.name)))
+      msg=(
+        "Layers are not identical:\nprocessed layer: {0}\nexpected layer: {1}".format(
+          layer.name, expected_layer.name)))
   
   @classmethod
   def _load_image(cls):

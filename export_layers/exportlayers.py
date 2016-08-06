@@ -361,8 +361,8 @@ class LayerExporter(object):
         return pgitemdata.set_file_extension(image_name, "")
     
     def _get_layer_path(separator="-"):
-      return separator.join([parent.name for parent in self._current_layer_elem.parents] +
-                            [self._current_layer_elem.name])
+      return separator.join(
+        [parent.name for parent in self._current_layer_elem.parents] + [self._current_layer_elem.name])
     
     def _get_current_date(date_format="%Y-%m-%d"):
       return datetime.datetime.now().strftime(date_format)
@@ -422,8 +422,7 @@ class LayerExporter(object):
       self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
     if self.export_settings['file_extension_mode'].is_item('only_matching_file_extension'):
-      self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension,
-                                       self._default_file_extension)
+      self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension, self._default_file_extension)
     
     if self.export_settings['tagged_layers_mode'].is_item('special'):
       with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tags, 'background'):
@@ -460,8 +459,9 @@ class LayerExporter(object):
       elif layer_elem.item_type == layer_elem.EMPTY_GROUP:
         self._process_and_export_empty_group(layer_elem)
       else:
-        raise ValueError("invalid/unsupported item type '{0}' of _ItemDataElement '{1}'"
-                         .format(layer_elem.item_type, layer_elem.name))
+        raise ValueError(
+          "invalid/unsupported item type '{0}' of _ItemDataElement '{1}'".format(
+            layer_elem.item_type, layer_elem.name))
   
   def _process_and_export_item(self, layer_elem):
     layer = layer_elem.item
@@ -630,8 +630,8 @@ class LayerExporter(object):
   
   def _process_layer_name(self, layer_elem):
     self._set_file_extension(layer_elem)
-    self._layer_data.uniquify_name(layer_elem, self._include_item_path,
-                                   self._get_uniquifier_position(layer_elem.name))
+    self._layer_data.uniquify_name(
+      layer_elem, self._include_item_path, self._get_uniquifier_position(layer_elem.name))
   
   def _postprocess_layer_name(self, layer_elem):
     if (layer_elem.item_type == layer_elem.NONEMPTY_GROUP and
@@ -723,8 +723,8 @@ class LayerExporter(object):
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     
     try:
-      self._file_export_func(run_mode, image, layer, output_filename.encode(),
-                             os.path.basename(output_filename).encode())
+      self._file_export_func(
+        run_mode, image, layer, output_filename.encode(), os.path.basename(output_filename).encode())
     except RuntimeError as e:
       # HACK: Since `RuntimeError` could indicate anything, including
       # `pdb.gimp_file_save` failure, this is the only way to intercept that

@@ -76,8 +76,8 @@ def plug_in_export_layers(run_mode, image, *args):
 
 @pygimplib.plugin(
   blurb=_("Run \"{0}\" with the last values specified").format(pygimplib.config.PLUGIN_TITLE),
-  description=_("If the plug-in is run for the first time (i.e. no last values exist), "
-                "default values will be used."),
+  description=_(
+    "If the plug-in is run for the first time (i.e. no last values exist), default values will be used."),
   author="khalim19 <khalim19@gmail.com>",
   copyright_notice="khalim19",
   date="2013-2016",
