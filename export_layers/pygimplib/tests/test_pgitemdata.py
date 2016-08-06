@@ -154,7 +154,7 @@ class TestLayerData(unittest.TestCase):
     image = _parse_layers(layers_string)
     self.layer_data = pgitemdata.LayerData(image)
   
-  def test_parents_and_children(self):
+  def test_get_orig_name_get_parents_get_children(self):
     layer_elem_tree = collections.OrderedDict([
       ("Corners", [[], ["top-left-corner", "top-right-corner", "top-left-corner:", "top-left-corner::"]]),
       ("top-left-corner", [["Corners"], None]),

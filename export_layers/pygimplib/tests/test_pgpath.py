@@ -349,7 +349,7 @@ class TestFilenameValidator(unittest.TestCase):
   def setUp(self):
     self.validator = pgpath.FilenameValidator
   
-  def test_checks_if_filename_is_valid(self):
+  def test_is_valid(self):
     self.assertEqual(self.validator.is_valid("one"), (True, []))
     self.assertTrue(self.validator.is_valid("0n3_two_,o_O_;-()three.jpg")[0])
     self.assertFalse(self.validator.is_valid("one/two\x09\x7f\\:|")[0])
@@ -361,7 +361,7 @@ class TestFilenameValidator(unittest.TestCase):
     self.assertFalse(self.validator.is_valid("NUL.txt")[0])
     self.assertTrue(self.validator.is_valid("NUL (1)")[0])
     
-  def test_validates_filename(self):
+  def test_validate(self):
     self.assertEqual(self.validator.validate("one"), "one")
     self.assertEqual(self.validator.validate("0n3_two_,o_O_;-()three.jpg"), "0n3_two_,o_O_;-()three.jpg")
     self.assertEqual(self.validator.validate("one/two\x09\x7f\\:|"), "onetwo")
@@ -378,7 +378,7 @@ class TestFilePathValidator(unittest.TestCase):
   def setUp(self):
     self.validator = pgpath.FilePathValidator
   
-  def test_checks_if_filepath_is_valid(self):
+  def test_is_valid(self):
     self.assertEqual(self.validator.is_valid(os.path.join("one", "two", "three")), (True, []))
     self.assertTrue(self.validator.is_valid(
       os.path.join("zero", "0n3", "two", ",o_O_;-()" + os.sep + os.sep + os.sep, "three.jpg" + os.sep))[0])
@@ -403,7 +403,7 @@ class TestFilePathValidator(unittest.TestCase):
     self.assertTrue(self.validator.is_valid(os.path.join("one", "NUL (1)", "three"))[0])
     self.assertFalse(self.validator.is_valid("")[0])
   
-  def test_validates_filepath(self):
+  def test_validate(self):
     self.assertEqual(
       self.validator.validate(os.path.join("one", "two", "three")), os.path.join("one", "two", "three"))
     self.assertEqual(
@@ -463,7 +463,7 @@ class TestFileExtensionValidator(unittest.TestCase):
   def setUp(self):
     self.validator = pgpath.FileExtensionValidator
   
-  def test_checks_if_filename_is_valid(self):
+  def test_is_valid(self):
     self.assertEqual(self.validator.is_valid("jpg"), (True, []))
     self.assertTrue(self.validator.is_valid(".jpg")[0])
     self.assertTrue(self.validator.is_valid("tar.gz")[0])
@@ -472,7 +472,7 @@ class TestFileExtensionValidator(unittest.TestCase):
     self.assertFalse(self.validator.is_valid(" jpg ")[0])
     self.assertFalse(self.validator.is_valid("jpg.")[0])
   
-  def test_validates_filename(self):
+  def test_validate(self):
     self.assertEqual(self.validator.validate("jpg"), "jpg")
     self.assertEqual(self.validator.validate(".jpg"), ".jpg")
     self.assertEqual(self.validator.validate("tar.gz"), "tar.gz")

@@ -187,7 +187,7 @@ class TestSetting(unittest.TestCase):
   def test_str(self):
     self.assertEqual(str(self.setting), "<SettingStub 'file_extension'>")
   
-  def test_invalid_default_value_raises_error(self):
+  def test_invalid_default_value(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
       SettingStub('setting', None)
   
@@ -236,16 +236,16 @@ class TestSetting(unittest.TestCase):
     setting = SettingStub('file_extension', "png")
     self.assertFalse(setting.can_be_registered_to_pdb())
   
-  def test_invalid_pdb_type_raises_error(self):
+  def test_invalid_pdb_type(self):
     with self.assertRaises(ValueError):
       SettingStub('file_extension', "png", pdb_type=pgsetting.SettingPdbTypes.string)
   
-  def test_reset_resets_setting_to_default_value(self):
+  def test_reset(self):
     self.setting.set_value("jpg")
     self.setting.reset()
     self.assertEqual(self.setting.value, "png")
   
-  def test_reset_default_value_container(self):
+  def test_reset_with_container_as_default_value(self):
     setting = SettingStub('image_IDs_and_directories', {})
     setting.value[1] = "image_directory"
     
@@ -529,7 +529,7 @@ class TestSettingGui(unittest.TestCase):
     self.assertIs(type(setting.gui), SettingPresenterStub)
     self.assertIs(type(setting.gui.element), GuiWidgetStub)
   
-  def test_setting_invalid_gui_type_raise_value_error(self):
+  def test_setting_invalid_gui_type_raise_error(self):
     with self.assertRaises(ValueError):
       SettingWithGuiStub("ignore_invisible", False, gui_type=YesNoToggleButtonPresenterStub)
   
@@ -541,12 +541,12 @@ class TestSettingGui(unittest.TestCase):
     setting.set_gui()
     self.assertIs(type(setting.gui), pgsettingpresenter.NullSettingPresenter)
   
-  def test_set_gui_gui_type_is_specified_gui_element_is_none_raise_value_error(self):
+  def test_set_gui_gui_type_is_specified_gui_element_is_none_raise_error(self):
     setting = SettingWithGuiStub("ignore_invisible", False)
     with self.assertRaises(ValueError):
       setting.set_gui(gui_type=CheckboxPresenterStub)
   
-  def test_set_gui_gui_type_is_none_gui_element_is_specified_raise_value_error(self):
+  def test_set_gui_gui_type_is_none_gui_element_is_specified_raise_error(self):
     setting = SettingWithGuiStub("ignore_invisible", False)
     with self.assertRaises(ValueError):
       setting.set_gui(gui_element=GuiWidgetStub)
@@ -557,7 +557,7 @@ class TestSettingGui(unittest.TestCase):
     self.assertIs(type(setting.gui), YesNoToggleButtonPresenterStub)
     self.assertIs(type(setting.gui.element), GuiWidgetStub)
   
-  def test_set_gui_gui_element_is_none_presenter_has_no_wrapper_raise_value_error(self):
+  def test_set_gui_gui_element_is_none_presenter_has_no_wrapper_raise_error(self):
     setting = SettingWithGuiStub("ignore_invisible", False, gui_type=SettingPresenterWithoutGuiElementCreationStub)
     with self.assertRaises(ValueError):
       setting.set_gui()

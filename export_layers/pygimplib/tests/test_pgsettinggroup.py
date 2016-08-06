@@ -171,7 +171,7 @@ class TestSettingGroupCreation(unittest.TestCase):
     self.assertIn('special', settings)
     self.assertEqual(settings['special'], special_settings)
   
-  def test_raise_type_error_for_missing_type_attribute(self):
+  def test_raise_error_for_missing_type_attribute(self):
     with self.assertRaises(TypeError):
       pgsettinggroup.SettingGroup('main', [
         {
@@ -180,7 +180,7 @@ class TestSettingGroupCreation(unittest.TestCase):
         }
       ])
   
-  def test_raise_type_error_for_missing_single_mandatory_attribute(self):
+  def test_raise_error_for_missing_single_mandatory_attribute(self):
     with self.assertRaises(TypeError):
       pgsettinggroup.SettingGroup('main', [
         {
@@ -189,7 +189,7 @@ class TestSettingGroupCreation(unittest.TestCase):
         }
       ])
   
-  def test_raise_type_error_for_missing_multiple_mandatory_attributes(self):
+  def test_raise_error_for_missing_multiple_mandatory_attributes(self):
     with self.assertRaises(TypeError):
       pgsettinggroup.SettingGroup('main', [
         {
@@ -197,7 +197,7 @@ class TestSettingGroupCreation(unittest.TestCase):
         }
       ])
   
-  def test_raise_type_error_for_non_existent_attribute(self):
+  def test_raise_error_for_non_existent_attribute(self):
     with self.assertRaises(TypeError):
       pgsettinggroup.SettingGroup('main', [
         {
@@ -208,7 +208,7 @@ class TestSettingGroupCreation(unittest.TestCase):
         }
       ])
   
-  def test_raise_key_error_if_name_already_exists(self):
+  def test_raise_error_if_name_already_exists(self):
     with self.assertRaises(KeyError):
       pgsettinggroup.SettingGroup('main', [
         {
@@ -259,7 +259,7 @@ class TestSettingGroup(unittest.TestCase):
       }
     ])
       
-  def test_get_setting_raise_key_error_if_invalid_name(self):
+  def test_get_setting_raise_error_if_invalid_name(self):
     with self.assertRaises(KeyError):
       self.settings['invalid_name']
   
@@ -278,7 +278,7 @@ class TestSettingGroup(unittest.TestCase):
     self.assertIn('autocrop', self.settings)
     self.assertIsInstance(self.settings['autocrop'], pgsetting.BoolSetting)
   
-  def test_add_setting_raise_key_error_if_name_already_exists(self):
+  def test_add_setting_raise_error_if_name_already_exists(self):
     with self.assertRaises(KeyError):
       self.settings.add([
         {
@@ -288,7 +288,7 @@ class TestSettingGroup(unittest.TestCase):
         }
       ])
     
-  def test_add_nested_setting_group_raise_key_error_if_name_already_exists(self):
+  def test_add_nested_setting_group_raise_error_if_name_already_exists(self):
     self.settings.add([self.special_settings])
     with self.assertRaises(KeyError):
       self.settings.add([self.special_settings])
@@ -308,11 +308,11 @@ class TestSettingGroup(unittest.TestCase):
     self.settings.remove(['special'])
     self.assertNotIn('special', self.settings)
   
-  def test_remove_settings_raise_key_error_if_invalid_name(self):
+  def test_remove_settings_raise_error_if_invalid_name(self):
     with self.assertRaises(KeyError):
       self.settings.remove(['file_extension', 'invalid_setting'])
   
-  def test_remove_settings_raise_key_error_if_already_removed(self):
+  def test_remove_settings_raise_error_if_already_removed(self):
     self.settings.remove(['file_extension'])
     with self.assertRaises(KeyError):
       self.settings.remove(['file_extension'])
