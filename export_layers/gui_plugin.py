@@ -742,9 +742,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   DIALOG_BOTTOM_SEPARATOR_PADDING = 5
   DIALOG_BUTTONS_HORIZONTAL_SPACING = 6
   
-  FILE_EXTENSION_ENTRY_WIDTH = 60
-  FILENAME_PATTERN_ENTRY_MIN_WIDTH = 100
-  FILENAME_PATTERN_ENTRY_MAX_WIDTH = 300
+  FILE_EXTENSION_ENTRY_WIDTH_CHARS = 8
+  FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS = 15
+  FILENAME_PATTERN_ENTRY_MAX_WIDTH_CHARS = 50
   
   def __init__(self, image, settings):
     super(_ExportLayersGui, self).__init__()
@@ -806,7 +806,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.file_extension_label.set_alignment(0.0, 0.5)
     
     self.file_extension_entry = pggui.FileExtensionEntry()
-    self.file_extension_entry.set_size_request(self.FILE_EXTENSION_ENTRY_WIDTH, -1)
+    self.file_extension_entry.set_width_chars(self.FILE_EXTENSION_ENTRY_WIDTH_CHARS)
     
     self.save_as_label = gtk.Label()
     self.save_as_label.set_markup("<b>" + _("Save as") + ":</b>")
@@ -817,8 +817,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self.filename_pattern_entry = pggui.FilenamePatternEntry(
       exportlayers.LayerExporter.SUGGESTED_LAYER_FILENAME_PATTERNS,
-      minimum_width=self.FILENAME_PATTERN_ENTRY_MIN_WIDTH,
-      maximum_width=self.FILENAME_PATTERN_ENTRY_MAX_WIDTH,
+      minimum_width_chars=self.FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS,
+      maximum_width_chars=self.FILENAME_PATTERN_ENTRY_MAX_WIDTH_CHARS,
       default_item=self.settings['main/layer_filename_pattern'].default_value)
     
     self.label_message = gtk.Label()
