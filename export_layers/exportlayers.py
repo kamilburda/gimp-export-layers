@@ -633,14 +633,14 @@ class LayerExporter(object):
       self._layer_data.reset_name(layer_elem)
   
   def _rename_layer_by_pattern(self, layer_elem):
-    if self.export_settings['layer_groups_as_folders'].value:
-      parent = layer_elem.parent.orig_name if layer_elem.parent is not None else None
-      if parent not in self._pattern_number_filename_generators:
-        self._pattern_number_filename_generators[parent] = self._filename_pattern_generator.reset_numbering()
-      else:
-        self._filename_pattern_generator.set_number_generators(self._pattern_number_filename_generators[parent])
-    
     if self._has_custom_filename_pattern:
+      if self.export_settings['layer_groups_as_folders'].value:
+        parent = layer_elem.parent.orig_name if layer_elem.parent is not None else None
+        if parent not in self._pattern_number_filename_generators:
+          self._pattern_number_filename_generators[parent] = self._filename_pattern_generator.reset_numbering()
+        else:
+          self._filename_pattern_generator.set_number_generators(self._pattern_number_filename_generators[parent])
+      
       layer_elem.name = self._filename_pattern_generator.generate()
   
   def _strip_file_extension(self, layer_elem):
