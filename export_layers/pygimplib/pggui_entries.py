@@ -581,8 +581,8 @@ class FilenamePatternEntry(gtk.Entry):
   _COLUMN_TYPES = [bytes, bytes, gobject.TYPE_PYOBJECT]
   
   def __init__(self, suggested_items, *args, **kwargs):
-    self._minimum_width = kwargs.pop('minimum_width', -1)
-    self._maximum_width = kwargs.pop('maximum_width', -1)
+    self._minimum_width_chars = kwargs.pop('minimum_width_chars', -1)
+    self._maximum_width_chars = kwargs.pop('maximum_width_chars', -1)
     self._default_item_value = kwargs.pop('default_item', None)
     
     self._suggested_fields = self._get_suggested_fields(suggested_items)
@@ -609,7 +609,9 @@ class FilenamePatternEntry(gtk.Entry):
     
     self._pango_layout = pango.Layout(self.get_pango_context())
     
-    self.set_size_request(self._minimum_width, -1)
+    self._minimum_width = -1
+    self._maximum_width = -1
+    self.set_width_chars(self._minimum_width_chars)
     
     self._popup = EntryPopup(
       self, self._COLUMN_TYPES, suggested_items,
@@ -784,6 +786,10 @@ class FilenamePatternEntry(gtk.Entry):
       self._assign_placeholder_text()
   
   def _on_entry_size_allocate(self, entry, allocation):
+    if self._minimum_width == -1:
+      self._minimum_width = self.get_allocation().width
+      self._maximum_width = int((self._minimum_width / self._minimum_width_chars) * self._maximum_width_chars) + 1
+    
     self._update_entry_width()
   
   def _add_columns(self):
