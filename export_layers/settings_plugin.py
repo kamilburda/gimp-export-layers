@@ -203,6 +203,12 @@ def create_settings():
       'pdb_type': None
     },
     {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'inherit_transparency_from_groups',
+      'default_value': False,
+      'display_name': _("Inherit transparency from layer groups"),
+    },
+    {
       'type': pgsetting.SettingTypes.generic,
       'name': 'selected_layers',
       # key: image ID; value: set of selected layer names

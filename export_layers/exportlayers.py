@@ -34,6 +34,7 @@ str = unicode
 import collections
 import contextlib
 import datetime
+import functools
 import os
 
 import gimp
@@ -464,7 +465,7 @@ class LayerExporter(object):
   
   def _process_and_export_item(self, layer_elem):
     layer = layer_elem.item
-    layer_copy = self._process_layer(self._image_copy, layer)
+    layer_copy = self._process_layer(layer_elem, self._image_copy, layer)
     self._preprocess_layer_name(layer_elem)
     self._export_layer(layer_elem, self._image_copy, layer_copy)
     self._postprocess_layer(self._image_copy, layer_copy)
@@ -502,7 +503,7 @@ class LayerExporter(object):
     
     pdb.gimp_context_pop()
   
-  def _process_layer(self, image, layer):
+  def _process_layer(self, layer_elem, image, layer):
     background_layer, self._tagged_layer_copies['background'] = self._insert_layer(
       image, self._tagged_layer_elems['background'], self._tagged_layer_copies['background'], insert_index=0)
     
@@ -523,6 +524,11 @@ class LayerExporter(object):
       image, self._tagged_layer_elems['foreground'], self._tagged_layer_copies['foreground'], insert_index=0)
     
     layer_copy = self._crop_and_merge(image, layer_copy, background_layer, foreground_layer)
+    
+    if self.export_settings['inherit_transparency_from_groups'].value:
+      layer_copy.opacity = 100.0 * functools.reduce(
+        lambda layer1_opacity, layer2_opacity: layer1_opacity * layer2_opacity,
+        [parent.item.opacity / 100.0 for parent in layer_elem.parents] + [layer_elem.item.opacity / 100.0])
     
     # Remove the " copy" suffix from the layer name, which is preserved in
     # formats supporting layers (XCF, PSD, ...).

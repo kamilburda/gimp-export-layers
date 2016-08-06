@@ -914,6 +914,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self.settings['main/ignore_layer_modes'].gui.element, expand=False, fill=True)
     self.hbox_more_settings_checkbuttons.pack_start(
       self.settings['main/export_only_selected_layers'].gui.element, expand=False, fill=True)
+    self.hbox_more_settings_checkbuttons.pack_start(
+      self.settings['main/inherit_transparency_from_groups'].gui.element, expand=False, fill=True)
     
     self.vbox_more_settings = gtk.VBox(homogeneous=False)
     self.vbox_more_settings.set_spacing(self.MORE_SETTINGS_VERTICAL_SPACING)
