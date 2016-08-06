@@ -211,7 +211,7 @@ class LayerExporter(object):
   SUGGESTED_LAYER_FILENAME_PATTERNS = [
     ("image001", "image[001]", []),
     (_("Layer name"), "[layer name]", []),
-    (_("Image name"), "[image name]", []),
+    (_("Image name"), "[image name]", ["keep extension"]),
     (_("Layer path"), "[layer path]", ["-"]),
     (_("Tags"), "[tags]", ["specific tags..."]),
     (_("Current date"), "[current date]", ["%Y-%m-%d"]),
