@@ -654,9 +654,10 @@ class FilenamePatternEntry(gtk.Entry):
   
   def _filter_suggested_items(self, suggested_items, row_iter):
     item = suggested_items[row_iter][self._COLUMN_ITEMS]
+    current_text = self._get_text_decoded()
     
-    if (self._cursor_position > 0 and
-        self._get_text_decoded()[self._cursor_position - 1] == "[" and item and item[0] != "["):
+    if (self._cursor_position > 0 and len(current_text) >= self._cursor_position and
+        current_text[self._cursor_position - 1] == "[" and item and item[0] != "["):
       return False
     else:
       return True
@@ -679,7 +680,8 @@ class FilenamePatternEntry(gtk.Entry):
     suggested_item = str(tree_model[selected_tree_iter][self._COLUMN_ITEMS])
     last_assigned_entry_text = self._popup.last_assigned_entry_text.decode(constants.GTK_CHARACTER_ENCODING)
     
-    if cursor_position > 0 and last_assigned_entry_text[cursor_position - 1] == "[":
+    if (cursor_position > 0 and len(last_assigned_entry_text) >= cursor_position and
+        last_assigned_entry_text[cursor_position - 1] == "["):
       suggested_item = suggested_item[1:]
     
     self.assign_text(
@@ -701,7 +703,7 @@ class FilenamePatternEntry(gtk.Entry):
     current_text = self._get_text_decoded()
 
     if current_text:
-      if len(current_text) > 1:
+      if len(current_text) > 1 and len(current_text) >= self._cursor_position:
         return (
           current_text[self._cursor_position - 1] == "[" and
           current_text[self._cursor_position - 2] != "[" and
