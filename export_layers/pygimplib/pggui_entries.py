@@ -249,7 +249,7 @@ class EntryPopup(object):
       self._update_position()
       
       if self._show_popup_first_time:
-        self._last_assigned_entry_text = self._entry.get_text()
+        self._save_last_value()
         self._show_popup_first_time = False
   
   def hide(self):
@@ -422,6 +422,9 @@ class EntryPopup(object):
     else:
       return self._row_filter_func(rows, row_iter)
   
+  def _save_last_value(self):
+    self._last_assigned_entry_text = self._entry.get_text()
+  
   def _on_entry_key_press(self, entry, event):
     key_name = gtk.gdk.keyval_name(event.keyval)
     
@@ -467,7 +470,7 @@ class EntryPopup(object):
           next_row_if_no_current_selection=0,
           current_row_before_unselection=len(self._rows_filtered) - 1)
       elif key_name in ["Return", "KP_Enter"]:
-        self._last_assigned_entry_text = self._entry.get_text()
+        self._save_last_value()
         self.hide()
       elif key_name == "Escape":
         self.assign_last_value()
@@ -481,7 +484,7 @@ class EntryPopup(object):
   
   def _on_entry_changed(self, entry):
     if self._trigger_popup:
-      self._last_assigned_entry_text = self._entry.get_text()
+      self._save_last_value()
       
       if not self._on_entry_changed_show_popup_condition_func():
         self.hide()
@@ -530,7 +533,7 @@ class EntryPopup(object):
     if event.button == self._BUTTON_MOUSE_LEFT:
       self._on_row_left_mouse_button_press_func()
       
-      self._last_assigned_entry_text = self._entry.get_text()
+      self._save_last_value()
       
       self.hide()
   
@@ -553,6 +556,7 @@ class EntryPopup(object):
     self._mouse_points_at_vscrollbar = False
   
   def _on_entry_focus_out_event(self, entry, event):
+    self._save_last_value()
     self.hide()
   
   def _on_button_press_emission_hook(self, widget, event):
