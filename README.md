@@ -200,8 +200,7 @@ Several users reported crashes on Windows and OS X when clicking on the menu
 entries. If the crashes occur to you, try reinstalling GIMP.
 
 The following file formats are not working properly with this plug-in:
-* colored XHTML (.xhtml) - does not save images at all,
-* KISS CEL (.cel) - throws error/warning messages, but saves images anyway.
+* colored XHTML (.xhtml) - does not save images at all.
 
 The following file formats have to display the file format dialog for each layer,
 not just the first layer:
