@@ -272,7 +272,7 @@ class LayerExporter(object):
   def exported_layers(self):
     return self._exported_layers
   
-  def export_layers(self, operations=None):
+  def export_layers(self, operations=None, keep_exported_layers=False):
     """
     Export layers as separate images from the specified image.
     
@@ -290,9 +290,16 @@ class LayerExporter(object):
       directories for the layer.
     
     If `operations` is None or empty, perform normal export.
+    
+    A copy of the image and the layers to be exported are created. These are
+    automatically destroyed after their export. To keep the copy of the image
+    and the processed and exported layers, pass True to `keep_exported_layers`.
+    In that case, this method returns the image copy containing the exported
+    layers. It is up to you to destroy the image, even if this method raises an
+    exception.
     """
     
-    self._init_attributes(operations)
+    self._init_attributes(operations, keep_exported_layers)
     self._preprocess_layers()
     
     self._setup()
@@ -300,8 +307,13 @@ class LayerExporter(object):
       self._export_layers()
     finally:
       self._cleanup()
+    
+    if self._keep_exported_layers:
+      return self._image_copy
+    else:
+      return None
   
-  def _init_attributes(self, operations):
+  def _init_attributes(self, operations, keep_exported_layers):
     self._enable_disable_operations(operations)
     
     self.should_stop = False
@@ -317,6 +329,10 @@ class LayerExporter(object):
     self._layer_data = pgitemdata.LayerData(self.image, is_filtered=True)
     self._tagged_layer_elems = collections.defaultdict(list)
     self._tagged_layer_copies = collections.defaultdict(lambda: None)
+    
+    self._keep_exported_layers = keep_exported_layers
+    self._use_another_image_copy = False
+    self._another_image_copy = None
     
     self.progress_updater.reset()
     
@@ -406,6 +422,18 @@ class LayerExporter(object):
     for layer_elem in self._layer_data:
       layer_elem.parse_tags()
     
+    self._set_layer_filters()
+    
+    with self._layer_data.filter['layer_types'].remove_rule_temp(LayerFilterRules.is_empty_group, False):
+      self.progress_updater.num_total_tasks = len(self._layer_data)
+    
+    if self._keep_exported_layers:
+      if self.progress_updater.num_total_tasks > 1:
+        self._use_another_image_copy = True
+      elif self.progress_updater.num_total_tasks < 1:
+        self._keep_exported_layers = False
+  
+  def _set_layer_filters(self):
     self._layer_data.filter.add_subfilter(
       'layer_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY))
     
@@ -445,9 +473,6 @@ class LayerExporter(object):
       self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
   
   def _export_layers(self):
-    with self._layer_data.filter['layer_types'].remove_rule_temp(LayerFilterRules.is_empty_group, False):
-      self.progress_updater.num_total_tasks = len(self._layer_data)
-    
     for layer_elem in self._layer_data:
       if self.should_stop:
         raise ExportLayersCancelError("export stopped by user")
@@ -488,6 +513,9 @@ class LayerExporter(object):
     # and its soon-to-be exported layers are left intact.
     self._image_copy = pgpdb.duplicate(self.image, metadata_only=True)
     
+    if self._use_another_image_copy:
+      self._another_image_copy = pgpdb.duplicate(self.image, metadata_only=True)
+    
     if pygimplib.config.DEBUG_IMAGE_PROCESSING:
       self._display_id = pdb.gimp_display_new(self._image_copy)
   
@@ -495,7 +523,8 @@ class LayerExporter(object):
     if pygimplib.config.DEBUG_IMAGE_PROCESSING:
       pdb.gimp_display_delete(self._display_id)
     
-    pdb.gimp_image_delete(self._image_copy)
+    if not self._keep_exported_layers or self._use_another_image_copy:
+      pdb.gimp_image_delete(self._image_copy)
     
     for tagged_layer_copy in self._tagged_layer_copies.values():
       if tagged_layer_copy is not None:
@@ -537,7 +566,16 @@ class LayerExporter(object):
     return layer_copy
   
   def _postprocess_layer(self, image, layer):
-    pdb.gimp_image_remove_layer(image, layer)
+    if not self._keep_exported_layers:
+      pdb.gimp_image_remove_layer(image, layer)
+    else:
+      if self._use_another_image_copy:
+        another_layer_copy = pdb.gimp_layer_new_from_drawable(layer, self._another_image_copy)
+        pdb.gimp_image_insert_layer(
+          self._another_image_copy, another_layer_copy, None, len(self._another_image_copy.layers))
+        another_layer_copy.name = layer.name
+        
+        pdb.gimp_image_remove_layer(image, layer)
   
   def _insert_layer(self, image, layer_elems, inserted_layer_copy, insert_index=0):
     if not layer_elems:
