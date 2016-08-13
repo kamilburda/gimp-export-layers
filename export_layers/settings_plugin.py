@@ -310,6 +310,16 @@ def create_settings():
 
 
 def setup_image_ids_and_filenames_settings(image_ids_dict_setting, image_filenames_dict_setting):
+  """
+  Set up a connection between a setting with a dict of (image ID, value) pairs
+  and a setting with a dict of (image filename, value) pairs. This function
+  makes the two settings act like one - the former stored in a
+  session-persistent setting source, and the latter in a persistent setting
+  source.
+  
+  The rationale behind using two settings is that the IDs of images do not
+  change during a GIMP session while the their filenames can.
+  """
   
   def _remove_invalid_image_filenames(image_filenames_dict_setting):
     for image_filename, values in list(image_filenames_dict_setting.value.items()):
