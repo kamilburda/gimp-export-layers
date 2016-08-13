@@ -28,6 +28,7 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import array
 import collections
 import contextlib
 import functools
@@ -51,6 +52,7 @@ import export_layers.pygimplib as pygimplib
 from export_layers.pygimplib import constants
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
+from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
@@ -108,12 +110,23 @@ def add_gui_settings(settings):
     },
     {
       'type': pgsetting.SettingTypes.integer,
-      'name': 'export_preview_pane_position',
+      'name': 'chooser_and_previews_hpane_position',
       'default_value': 620
+    },
+    {
+      'type': pgsetting.SettingTypes.float,
+      'name': 'previews_vpane_position',
+      'default_value': 300
     },
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'export_name_preview_enabled',
+      'default_value': True,
+      'gui_type': None
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'export_image_preview_enabled',
       'default_value': True,
       'gui_type': None
     },
@@ -131,6 +144,12 @@ def add_gui_settings(settings):
       # key: image ID; value: set of layer names collapsed in the name preview
       'default_value': collections.defaultdict(set)
     },
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'export_image_preview_displayed_layers',
+      # key: image ID; value: name of the layer displayed in the preview
+      'default_value': collections.defaultdict(str)
+    },
   ], setting_sources=[pygimplib.config.SOURCE_SESSION])
   
   persistent_only_gui_settings = pgsettinggroup.SettingGroup('gui_persistent', [
@@ -140,6 +159,12 @@ def add_gui_settings(settings):
       # key: image filename; value: set of layer names collapsed in the name preview
       'default_value': collections.defaultdict(set)
     },
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'export_image_preview_displayed_layers_persistent',
+      # key: image filename; value: name of the layer displayed in the preview
+      'default_value': collections.defaultdict(str)
+    },
   ], setting_sources=[pygimplib.config.SOURCE_PERSISTENT])
   
   settings.add([gui_settings, session_only_gui_settings, persistent_only_gui_settings])
@@ -147,6 +172,10 @@ def add_gui_settings(settings):
   settings_plugin.setup_image_ids_and_filenames_settings(
     settings['gui_session/export_name_preview_layers_collapsed_state'],
     settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'])
+  
+  settings_plugin.setup_image_ids_and_filenames_settings(
+    settings['gui_session/export_image_preview_displayed_layers'],
+    settings['gui_persistent/export_image_preview_displayed_layers_persistent'])
   
   settings.set_ignore_tags({
     'gui_session/image_ids_and_directories': ['reset'],
@@ -176,8 +205,9 @@ def _set_settings(func):
       
       self.settings['gui_session/export_name_preview_layers_collapsed_state'].value[self.image.ID] = (
         self.export_name_preview.collapsed_items)
-      
       self.settings['main/selected_layers'].value[self.image.ID] = self.export_name_preview.selected_items
+      self.settings['gui_session/export_image_preview_displayed_layers'].value[self.image.ID] = (
+        self.export_image_preview.layer_name)
     except pgsetting.SettingValueError as e:
       self.display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
       return
@@ -273,53 +303,18 @@ def _handle_gui_in_export(run_mode, image, layer, output_filename, window):
 #===============================================================================
 
 
-class ExportNamePreview(object):
+class ExportPreview(object):
   
-  _VBOX_SPACING = 5
-  
-  _COLUMNS = (
-    _COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME_SENSITIVE, _COLUMN_LAYER_NAME,
-    _COLUMN_LAYER_ORIG_NAME) = ([0, gtk.gdk.Pixbuf], [1, bool], [2, bool], [3, bytes], [4, bytes])
-  
-  def __init__(self, layer_exporter, collapsed_items=None, selected_items=None):
-    self._layer_exporter = layer_exporter
-    self._collapsed_items = collapsed_items if collapsed_items is not None else set()
-    self._selected_items = selected_items if selected_items is not None else []
-    
+  def __init__(self):
     self._update_locked = False
     self._lock_keys = set()
-    
-    self._tree_iters = collections.defaultdict(lambda: None)
-    
-    self._row_expand_collapse_interactive = True
-    self._toggle_tag_interactive = True
-    self._clearing_preview = False
-    
-    self._init_gui()
-    
-    self.widget = self._preview_frame
   
   def update(self):
     """
-    Update the export preview (add new layers, remove nonexistent layers, modify
-    layer tree, etc.).
+    Update the export preview if update is not locked (see `lock_update`).
     """
     
-    if not self._update_locked:
-      self.clear()
-      self._fill_preview()
-      self._set_expanded_items()
-      self._set_selection()
-      self._tree_view.columns_autosize()
-  
-  def clear(self):
-    """
-    Clear the entire export preview.
-    """
-    
-    self._clearing_preview = True
-    self._tree_model.clear()
-    self._clearing_preview = False
+    pass
   
   def lock_update(self, lock, key=None):
     """
@@ -349,6 +344,64 @@ class ExportNamePreview(object):
           self._lock_keys.remove(key)
       
       self._update_locked = bool(self._lock_keys)
+
+
+#===============================================================================
+
+
+class ExportNamePreview(ExportPreview):
+  
+  _VBOX_PADDING = 5
+  
+  _COLUMNS = (
+    _COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME_SENSITIVE, _COLUMN_LAYER_NAME,
+    _COLUMN_LAYER_ORIG_NAME) = ([0, gtk.gdk.Pixbuf], [1, bool], [2, bool], [3, bytes], [4, bytes])
+  
+  def __init__(self, layer_exporter, collapsed_items=None, selected_items=None,
+               on_selection_changed_func=None, on_after_update_func=None):
+    super(ExportNamePreview, self).__init__()
+    
+    self._layer_exporter = layer_exporter
+    self._collapsed_items = collapsed_items if collapsed_items is not None else set()
+    self._selected_items = selected_items if selected_items is not None else []
+    self._on_selection_changed_func = (
+      on_selection_changed_func if on_selection_changed_func is not None else lambda *args: None)
+    self._on_after_update_func = on_after_update_func if on_after_update_func is not None else lambda *args: None
+    
+    self._tree_iters = collections.defaultdict(lambda: None)
+    
+    self._row_expand_collapse_interactive = True
+    self._toggle_tag_interactive = True
+    self._clearing_preview = False
+    self._row_select_interactive = True
+    
+    self._init_gui()
+    
+    self._widget = self._vbox
+  
+  def update(self):
+    """
+    Update the export preview (add new layers, remove nonexistent layers, modify
+    layer tree, etc.).
+    """
+    
+    if not self._update_locked:
+      self.clear()
+      self._fill_preview()
+      self._set_expanded_items()
+      self._set_selection()
+      self._tree_view.columns_autosize()
+      
+      self._on_after_update_func()
+  
+  def clear(self):
+    """
+    Clear the entire export preview.
+    """
+    
+    self._clearing_preview = True
+    self._tree_model.clear()
+    self._clearing_preview = False
   
   def set_collapsed_items(self, collapsed_items):
     """
@@ -365,6 +418,26 @@ class ExportNamePreview(object):
     
     self._selected_items = selected_items
     self._set_selection()
+  
+  def get_layer_elems_from_selected_rows(self):
+    return [self._layer_exporter.layer_data[layer_orig_name]
+            for layer_orig_name in self._get_layer_orig_names_in_current_selection()]
+  
+  def get_layer_elem_from_cursor(self):
+    tree_path, _unused = self._tree_view.get_cursor()
+    if tree_path is not None:
+      layer_orig_name = self._get_layer_orig_name(self._tree_model.get_iter(tree_path))
+      return self._layer_exporter.layer_data[layer_orig_name]
+    else:
+      return None
+  
+  @property
+  def widget(self):
+    return self._widget
+  
+  @property
+  def tree_view(self):
+    return self._tree_view
   
   @property
   def collapsed_items(self):
@@ -411,12 +484,8 @@ class ExportNamePreview(object):
     self._scrolled_window.add(self._tree_view)
     
     self._vbox = gtk.VBox(homogeneous=False)
-    self._vbox.pack_start(self._preview_label, expand=False, fill=False, padding=self._VBOX_SPACING)
+    self._vbox.pack_start(self._preview_label, expand=False, fill=False, padding=self._VBOX_PADDING)
     self._vbox.pack_start(self._scrolled_window)
-    
-    self._preview_frame = gtk.Frame()
-    self._preview_frame.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
-    self._preview_frame.add(self._vbox)
     
     self._tree_view.connect("row-collapsed", self._on_tree_view_row_collapsed)
     self._tree_view.connect("row-expanded", self._on_tree_view_row_expanded)
@@ -476,8 +545,9 @@ class ExportNamePreview(object):
       self._tree_view.columns_autosize()
   
   def _on_tree_selection_changed(self, widget):
-    if not self._clearing_preview:
+    if not self._clearing_preview and self._row_select_interactive:
       self._selected_items = self._get_layer_orig_names_in_current_selection()
+      self._on_selection_changed_func()
   
   def _on_tree_view_right_button_press(self, widget, event):
     if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
@@ -560,6 +630,10 @@ class ExportNamePreview(object):
       # hence update the whole preview.
       self.update()
   
+  def _get_layer_orig_names_in_current_selection(self):
+    unused_, tree_paths = self._tree_view.get_selection().get_selected_rows()
+    return [self._get_layer_orig_name(self._tree_model.get_iter(tree_path)) for tree_path in tree_paths]
+  
   def _get_layer_orig_name(self, tree_iter):
     return self._tree_model.get_value(tree_iter, column=self._COLUMN_LAYER_ORIG_NAME[0]).decode(
       constants.GTK_CHARACTER_ENCODING)
@@ -569,10 +643,6 @@ class ExportNamePreview(object):
       tree_iter, self._COLUMN_LAYER_ORIG_NAME[0], new_orig_name.encode(constants.GTK_CHARACTER_ENCODING))
     del self._tree_iters[old_orig_name]
     self._tree_iters[new_orig_name] = tree_iter
-  
-  def _get_layer_orig_names_in_current_selection(self):
-    unused_, tree_paths = self._tree_view.get_selection().get_selected_rows()
-    return [self._get_layer_orig_name(self._tree_model.get_iter(tree_path)) for tree_path in tree_paths]
   
   def _fill_preview(self):
     orig_export_only_selected_layers_value = (
@@ -700,13 +770,206 @@ class ExportNamePreview(object):
     self._layer_exporter.layer_data.is_filtered = True
   
   def _set_selection(self):
+    self._row_select_interactive = False
+    
     self._selected_items = [item for item in self._selected_items if item in self._tree_iters]
     
     for item in self._selected_items:
       tree_iter = self._tree_iters[item]
       if tree_iter is not None:
         self._tree_view.get_selection().select_iter(tree_iter)
+    
+    self._row_select_interactive = True
 
+
+#===============================================================================
+
+
+class ExportImagePreview(ExportPreview):
+  
+  _BOTTOM_WIDGETS_PADDING = 5
+  _IMAGE_PREVIEW_PADDING = 3
+  
+  _MAX_PREVIEW_SIZE_PIXELS = 1024
+  
+  _PREVIEW_ALPHA_CHECK_SIZE = 4
+  _PREVIEW_ALPHA_CHECK_COLOR_BRIGHT = 0x99999999
+  _PREVIEW_ALPHA_CHECK_COLOR_DARK = 0x66666666
+  
+  def __init__(self, layer_exporter, layer_name=None):
+    super(ExportImagePreview, self).__init__()
+    
+    self._layer_exporter = layer_exporter
+    self._layer_name = layer_name
+    
+    self.layer_elem = None
+    
+    self._is_allocated_size = False
+    
+    self._init_gui()
+    
+    self._preview_image.connect("size-allocate", self._on_preview_image_size_allocate)
+    
+    self._widget = self._vbox
+  
+  def update(self):
+    if self._update_locked:
+      return
+    
+    if self.layer_elem is None:
+      if self._layer_exporter.layer_data is not None and self._layer_name in self._layer_exporter.layer_data:
+        self.layer_elem = self._layer_exporter.layer_data[self._layer_name]
+      else:
+        return
+    
+    if not pdb.gimp_item_is_valid(self.layer_elem.item):
+      self.clear()
+      return
+    
+    self._placeholder_image.hide()
+    self._preview_image.show()
+    
+    self._set_layer_name_label(self.layer_elem.name)
+    
+    # Make sure that the correct size is allocated to the image.
+    while gtk.events_pending():
+      gtk.main_iteration()
+    
+    preview_pixbuf = self._get_in_memory_preview(self.layer_elem.item)
+    self._preview_image.set_from_pixbuf(preview_pixbuf)
+  
+  def clear(self):
+    self.layer_elem = None
+    self._preview_image.clear()
+    self._preview_image.hide()
+    self._show_placeholder_image()
+  
+  def update_layer_elem(self):
+    if (self.layer_elem is not None and
+        self._layer_exporter.layer_data is not None and
+        self.layer_elem.orig_name in self._layer_exporter.layer_data):
+      self.layer_elem = self._layer_exporter.layer_data[self.layer_elem.orig_name]
+      self._set_layer_name_label(self.layer_elem.name)
+  
+  @property
+  def widget(self):
+    return self._widget
+  
+  @property
+  def layer_name(self):
+    if self.layer_elem is not None:
+      return self.layer_elem.orig_name
+    else:
+      return None
+  
+  def _init_gui(self):
+    self._preview_image = gtk.Image()
+    
+    self._placeholder_image = gtk.Image()
+    self._placeholder_image.set_from_stock(gtk.STOCK_DIALOG_QUESTION, gtk.ICON_SIZE_DIALOG)
+    self._placeholder_image.set_no_show_all(True)
+    
+    self._label_layer_name = gtk.Label()
+    self._label_layer_name.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+    
+    self._vbox = gtk.VBox(homogeneous=False)
+    self._vbox.pack_start(self._preview_image, expand=True, fill=True, padding=self._IMAGE_PREVIEW_PADDING)
+    self._vbox.pack_start(self._placeholder_image, expand=True, fill=True, padding=self._IMAGE_PREVIEW_PADDING)
+    self._vbox.pack_start(self._label_layer_name, expand=False, fill=True, padding=self._BOTTOM_WIDGETS_PADDING)
+    
+    self._show_placeholder_image()
+  
+  def _get_in_memory_preview(self, layer):
+    layer_preview_width, layer_preview_height, layer_preview_data = self._get_preview_data(layer)
+    
+    image_preview = pgpdb.duplicate(layer.image, metadata_only=True)
+    image_preview.resize(layer_preview_width, layer_preview_height)
+    
+    layer_preview = gimp.Layer(
+      image_preview, layer.name, layer_preview_width, layer_preview_height, layer.type,
+      layer.opacity, layer.mode)
+    
+    pdb.gimp_image_insert_layer(image_preview, layer_preview, None, 0)
+    pdb.gimp_item_set_visible(layer_preview, True)
+    image_preview.active_layer = layer_preview
+    
+    layer_preview_pixel_region = layer_preview.get_pixel_rgn(0, 0, layer_preview.width, layer_preview.height)
+    layer_preview_pixel_region[:, :] = array.array(b"B", layer_preview_data).tostring()
+    
+    return self._get_preview_pixbuf(image_preview)
+  
+  def _get_preview_pixbuf(self, image_preview):
+    if image_preview.base_type != gimpenums.RGB:
+      pdb.gimp_image_convert_rgb(image_preview)
+    
+    layer_preview = image_preview.layers[0]
+    layer_preview_pixel_region = layer_preview.get_pixel_rgn(0, 0, layer_preview.width, layer_preview.height)
+    layer_preview_array = array.array(b"B", layer_preview_pixel_region[:, :]).tostring()
+    
+    # The following code is largely based on the implementation of `gimp_pixbuf_from_data`
+    # from: https://github.com/GNOME/gimp/blob/gimp-2-8/libgimp/gimppixbuf.c
+    layer_preview_pixbuf = gtk.gdk.pixbuf_new_from_data(
+      layer_preview_array, gtk.gdk.COLORSPACE_RGB, layer_preview.has_alpha, 8, layer_preview.width,
+      layer_preview.height, layer_preview.width * layer_preview.bpp)
+    
+    if layer_preview.has_alpha:
+      layer_preview_pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
+        gtk.gdk.COLORSPACE_RGB, False, 8, layer_preview.width, layer_preview.height)
+      
+      layer_preview_pixbuf.composite_color(
+        layer_preview_pixbuf_with_alpha_background, 0, 0, layer_preview.width, layer_preview.height,
+        0, 0, 1.0, 1.0, gtk.gdk.INTERP_NEAREST, 255, 0, 0, self._PREVIEW_ALPHA_CHECK_SIZE,
+        self._PREVIEW_ALPHA_CHECK_COLOR_DARK, self._PREVIEW_ALPHA_CHECK_COLOR_BRIGHT)
+      
+      layer_preview_pixbuf = layer_preview_pixbuf_with_alpha_background
+      
+    self._cleanup(image_preview)
+    
+    return layer_preview_pixbuf
+  
+  def _cleanup(self, image_preview):
+    pdb.gimp_image_delete(image_preview)
+  
+  def _get_preview_data(self, layer):
+    layer_preview_width, layer_preview_height, _unused, _unused, layer_preview_data = (
+      pdb.gimp_drawable_thumbnail(layer, *self._get_preview_size(layer)))
+    
+    return layer_preview_width, layer_preview_height, layer_preview_data
+  
+  def _get_preview_size(self, layer):
+    image_widget_allocation = self._preview_image.get_allocation()
+    image_widget_width = image_widget_allocation.width
+    image_widget_height = image_widget_allocation.height
+    
+    if image_widget_width > image_widget_height:
+      layer_preview_height = min(
+        image_widget_height, layer.height, self._MAX_PREVIEW_SIZE_PIXELS)
+      layer_preview_width = int(round((layer_preview_height / layer.height) * layer.width))
+      
+      if layer_preview_width > image_widget_width:
+        layer_preview_width = image_widget_width
+        layer_preview_height = int(round((layer_preview_width / layer.width) * layer.height))
+    else:
+      layer_preview_width = min(
+        image_widget_width, layer.width, self._MAX_PREVIEW_SIZE_PIXELS)
+      layer_preview_height = int(round((layer_preview_width / layer.width) * layer.height))
+      
+      if layer_preview_height > image_widget_height:
+        layer_preview_height = image_widget_height
+        layer_preview_width = int(round((layer_preview_height / layer.height) * layer.width))
+    
+    return layer_preview_width, layer_preview_height
+  
+  def _on_preview_image_size_allocate(self, image_widget, allocation):
+    self._is_allocated_size = True
+  
+  def _show_placeholder_image(self):
+    self._placeholder_image.show()
+    self._set_layer_name_label(_("No selection"))
+  
+  def _set_layer_name_label(self, layer_name):
+    self._label_layer_name.set_markup("<i>{0}</i>".format(gobject.markup_escape_text(layer_name)))
+  
 
 #===============================================================================
 
@@ -768,6 +1031,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self.settings, self.current_directory_setting, self.image)
     _setup_output_directory_changed(self.settings, self.image)
     
+    self.hpaned_previous_position = self.settings['gui/chooser_and_previews_hpane_position'].value
+    self.vpaned_previous_position = self.settings['gui/previews_vpane_position'].value
+    
     self._init_gui()
     
     pggui.set_gui_excepthook_parent(self.dialog)
@@ -786,21 +1052,39 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self.folder_chooser = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
     
+    layer_exporter_for_previews = exportlayers.LayerExporter(
+      gimpenums.RUN_NONINTERACTIVE, self.image, self.settings['main'],
+      overwrite_chooser=overwrite.NoninteractiveOverwriteChooser(
+        self.settings['main/overwrite_mode'].items['replace']))
+    
     self.export_name_preview = ExportNamePreview(
-      exportlayers.LayerExporter(gimpenums.RUN_NONINTERACTIVE, self.image, self.settings['main']),
+      layer_exporter_for_previews,
       self.settings['gui_session/export_name_preview_layers_collapsed_state'].value[self.image.ID],
-      self.settings['main/selected_layers'].value[self.image.ID])
+      self.settings['main/selected_layers'].value[self.image.ID],
+      on_selection_changed_func=self.on_name_preview_selection_changed,
+      on_after_update_func=self.on_name_preview_after_update)
+    
+    self.export_image_preview = ExportImagePreview(
+      layer_exporter_for_previews,
+      self.settings['gui_session/export_image_preview_displayed_layers'].value[self.image.ID])
     
     self.vbox_folder_chooser = gtk.VBox(homogeneous=False)
     self.vbox_folder_chooser.set_spacing(self.DIALOG_VBOX_SPACING * 2)
     self.vbox_folder_chooser.pack_start(self.folder_chooser_label, expand=False, fill=False)
     self.vbox_folder_chooser.pack_start(self.folder_chooser)
     
+    self.vpaned_previews = gtk.VPaned()
+    self.vpaned_previews.pack1(self.export_name_preview.widget, resize=True, shrink=True)
+    self.vpaned_previews.pack2(self.export_image_preview.widget, resize=True, shrink=True)
+    
+    self.frame_previews = gtk.Frame()
+    self.frame_previews.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+    self.frame_previews.add(self.vpaned_previews)
+    
     self.hpaned_chooser_and_previews = gtk.HPaned()
     self.hpaned_chooser_and_previews.pack1(self.vbox_folder_chooser, resize=True, shrink=False)
-    self.hpaned_chooser_and_previews.pack2(self.export_name_preview.widget)
-    self.hpaned_previous_position = self.settings['gui/export_preview_pane_position'].value
-        
+    self.hpaned_chooser_and_previews.pack2(self.frame_previews, resize=True, shrink=True)
+    
     self.file_extension_label = gtk.Label()
     self.file_extension_label.set_markup("<b>" + self.settings['main/file_extension'].display_name + ":</b>")
     self.file_extension_label.set_alignment(0.0, 0.5)
@@ -841,8 +1125,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       'file_extension': [pgsetting.SettingGuiTypes.extended_text_entry, self.file_extension_entry],
       'dialog_position': [pgsetting.SettingGuiTypes.window_position, self.dialog],
       'show_more_settings': [pgsetting.SettingGuiTypes.checkbox, self.show_more_settings_button],
-      'export_preview_pane_position': [
+      'chooser_and_previews_hpane_position': [
         pgsetting.SettingGuiTypes.paned_position, self.hpaned_chooser_and_previews],
+      'previews_vpane_position': [
+        pgsetting.SettingGuiTypes.paned_position, self.vpaned_previews],
       'layer_filename_pattern': [pgsetting.SettingGuiTypes.extended_text_entry, self.filename_pattern_entry]
     })
     
@@ -927,8 +1213,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.vbox_more_settings.pack_start(self.hbox_tables, expand=False, fill=False)
     self.vbox_more_settings.pack_start(self.hbox_more_settings_checkbuttons, expand=False, fill=False)
     
-    self.export_layers_button = gtk.Button()
-    self.export_layers_button.set_label(_("_Export"))
+    self.export_button = gtk.Button()
+    self.export_button.set_label(_("_Export"))
     
     self.cancel_button = gtk.Button()
     self.cancel_button.set_label(_("_Cancel"))
@@ -950,9 +1236,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.dialog_buttons.set_spacing(self.DIALOG_BUTTONS_HORIZONTAL_SPACING)
     
     if not gtk.alternative_dialog_button_order():
-      main_dialog_buttons = [self.cancel_button, self.export_layers_button]
+      main_dialog_buttons = [self.cancel_button, self.export_button]
     else:
-      main_dialog_buttons = [self.export_layers_button, self.cancel_button]
+      main_dialog_buttons = [self.export_button, self.cancel_button]
     
     for button in main_dialog_buttons:
       self.dialog_buttons.pack_end(button, expand=False, fill=True)
@@ -981,7 +1267,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self.dialog.vbox.pack_start(self.action_area, expand=False, fill=True)
     self.dialog.vbox.pack_end(self.progress_bar, expand=False, fill=True)
     
-    self.export_layers_button.connect("clicked", self.on_export_click)
+    self.export_button.connect("clicked", self.on_export_click)
     self.cancel_button.connect("clicked", self.cancel)
     self.stop_button.connect("clicked", self.stop)
     self.dialog.connect("key-press-event", self.on_dialog_key_press)
@@ -1000,8 +1286,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self.dialog.connect("notify::is-active", self.on_dialog_is_active_changed)
     self.hpaned_chooser_and_previews.connect("event", self.on_hpaned_left_button_up)
+    self.vpaned_previews.connect("event", self.on_vpaned_left_button_up)
     
-    self._connect_setting_changes_to_preview()
+    self._connect_setting_changes_to_previews()
     
     self.dialog.set_default_response(gtk.RESPONSE_CANCEL)
     
@@ -1011,20 +1298,18 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     # Action area is unused and leaves unnecessary empty space.
     self.dialog.action_area.hide()
     
-    self.export_name_preview.widget.connect("notify::visible", self.on_preview_visible_changed)
-    if not self.settings['gui/export_name_preview_enabled'].value:
-      self.export_name_preview.lock_update(True, "preview_enabled")
+    self._connect_visible_changed_for_previews()
     
     self._show_hide_more_settings()
     
     self.dialog.set_focus(self.file_extension_entry)
-    self.export_layers_button.set_flags(gtk.CAN_DEFAULT)
-    self.export_layers_button.grab_default()
+    self.export_button.set_flags(gtk.CAN_DEFAULT)
+    self.export_button.grab_default()
     self.filename_pattern_entry.set_activates_default(True)
     self.file_extension_entry.set_activates_default(True)
     # Place the cursor at the end of the text entry.
     self.file_extension_entry.set_position(-1)
-    
+
     self.dialog.show()
   
   def reset_settings(self):
@@ -1056,16 +1341,20 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   def _show_hide_more_settings(self):
     if self.show_more_settings_button.get_active():
-      self.export_name_preview.widget.show()
       self.vbox_more_settings.show()
+      self.frame_previews.show()
+      self.export_name_preview.widget.show()
+      self.export_image_preview.widget.show()
       
       self.file_extension_label.hide()
       self.save_as_label.show()
       self.dot_label.show()
       self.filename_pattern_entry.show()
     else:
-      self.export_name_preview.widget.hide()
       self.vbox_more_settings.hide()
+      self.frame_previews.hide()
+      self.export_name_preview.widget.hide()
+      self.export_image_preview.widget.hide()
       
       self.file_extension_label.show()
       self.save_as_label.hide()
@@ -1075,10 +1364,12 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   def on_dialog_is_active_changed(self, widget, property_spec):
     if self.dialog.is_active():
       self.export_name_preview.update()
+      self.export_image_preview.update()
   
-  def _connect_setting_changes_to_preview(self):
+  def _connect_setting_changes_to_previews(self):
     def _on_setting_changed(setting):
       pggui.timeout_add_strict(50, self.export_name_preview.update)
+      pggui.timeout_add_strict(50, self.export_image_preview.update)
     
     for setting in self.settings['main']:
       if setting.name not in [
@@ -1090,28 +1381,96 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       'after-reset', lambda setting: self.export_name_preview.set_collapsed_items(setting.value[self.image.ID]))
     self.settings['main/selected_layers'].connect_event(
       'after-reset', lambda setting: self.export_name_preview.set_selected_items(setting.value[self.image.ID]))
+    
+    def reset_image_in_preview(setting):
+      self.export_image_preview.layer_elem = None
+    
+    self.settings['gui_session/export_image_preview_displayed_layers'].connect_event(
+      'after-reset', reset_image_in_preview)
+  
+  def _connect_visible_changed_for_previews(self):
+    def _connect_visible_changed(preview, setting):
+      preview.widget.connect("notify::visible", self.on_preview_visible_changed, preview)
+      if not setting.value:
+        preview.lock_update(True, "previews_enabled")
+    
+    _connect_visible_changed(self.export_name_preview, self.settings['gui/export_name_preview_enabled'])
+    _connect_visible_changed(self.export_image_preview, self.settings['gui/export_image_preview_enabled'])
+  
+  def on_preview_visible_changed(self, widget, property_spec, preview):
+    preview_visible = preview.widget.get_visible()
+    preview.lock_update(not preview_visible, "preview_visible")
+    if preview_visible:
+      preview.update()
   
   def on_hpaned_left_button_up(self, widget, event):
     if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:
       current_position = self.hpaned_chooser_and_previews.get_position()
       max_position = self.hpaned_chooser_and_previews.get_property("max-position")
       
-      if (current_position == max_position and self.hpaned_previous_position != current_position):
-        self.export_name_preview.clear()
-        self.settings['gui/export_name_preview_enabled'].set_value(False)
-        self.export_name_preview.lock_update(True, "preview_enabled")
+      if (current_position == max_position and self.hpaned_previous_position != max_position):
+        self._disable_preview_on_paned_drag(
+          self.export_name_preview, self.settings['gui/export_name_preview_enabled'], "previews_enabled")
+        self._disable_preview_on_paned_drag(
+          self.export_image_preview, self.settings['gui/export_image_preview_enabled'], "previews_enabled")
       elif (current_position != max_position and self.hpaned_previous_position == max_position):
-        self.export_name_preview.lock_update(False, "preview_enabled")
-        self.settings['gui/export_name_preview_enabled'].set_value(True)
-        self.export_name_preview.update()
+        self._enable_preview_on_paned_drag(
+          self.export_name_preview, self.settings['gui/export_name_preview_enabled'], "previews_enabled")
+        self._enable_preview_on_paned_drag(
+          self.export_image_preview, self.settings['gui/export_image_preview_enabled'], "previews_enabled")
       
       self.hpaned_previous_position = current_position
   
-  def on_preview_visible_changed(self, widget, property_spec):
-    preview_visible = self.export_name_preview.widget.get_visible()
-    self.export_name_preview.lock_update(not preview_visible, "preview_visible")
-    if preview_visible:
-      self.export_name_preview.update()
+  def on_vpaned_left_button_up(self, widget, event):
+    if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:
+      current_position = self.vpaned_previews.get_position()
+      max_position = self.vpaned_previews.get_property("max-position")
+      min_position = self.vpaned_previews.get_property("min-position")
+      
+      if (current_position == max_position and self.vpaned_previous_position != max_position):
+        self._disable_preview_on_paned_drag(
+          self.export_image_preview, self.settings['gui/export_image_preview_enabled'], "vpaned_preview_enabled",
+          clear=False)
+      elif (current_position != max_position and self.vpaned_previous_position == max_position):
+        self._enable_preview_on_paned_drag(
+          self.export_image_preview, self.settings['gui/export_image_preview_enabled'], "vpaned_preview_enabled")
+      elif (current_position == min_position and self.vpaned_previous_position != min_position):
+        self._disable_preview_on_paned_drag(
+          self.export_name_preview, self.settings['gui/export_name_preview_enabled'], "vpaned_preview_enabled")
+      elif (current_position != min_position and self.vpaned_previous_position == min_position):
+        self._enable_preview_on_paned_drag(
+          self.export_name_preview, self.settings['gui/export_name_preview_enabled'], "vpaned_preview_enabled")
+      
+      self.vpaned_previous_position = current_position
+  
+  def _enable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key):
+    preview.lock_update(False, update_lock_key)
+    preview.update()
+    preview_enabled_setting.set_value(True)
+  
+  def _disable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key, clear=True):
+    if clear:
+      preview.clear()
+    preview.lock_update(True, update_lock_key)
+    preview_enabled_setting.set_value(False)
+  
+  def on_name_preview_selection_changed(self):
+    layer_elem_from_cursor = self.export_name_preview.get_layer_elem_from_cursor()
+    if layer_elem_from_cursor is not None:
+      if (self.export_image_preview.layer_elem is None or
+          layer_elem_from_cursor.orig_name != self.export_image_preview.layer_elem.orig_name):
+        self.export_image_preview.layer_elem = layer_elem_from_cursor
+        self.export_image_preview.update()
+    else:
+      layer_elems_from_selected_rows = self.export_name_preview.get_layer_elems_from_selected_rows()
+      if layer_elems_from_selected_rows:
+        self.export_image_preview.layer_elem = layer_elems_from_selected_rows[0]
+        self.export_image_preview.update()
+      else:
+        self.export_image_preview.clear()
+  
+  def on_name_preview_after_update(self):
+    self.export_image_preview.update_layer_elem()
   
   def on_dialog_key_press(self, widget, event):
     if gtk.gdk.keyval_name(event.keyval) == "Escape":
@@ -1122,7 +1481,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   def on_save_settings_clicked(self, widget):
     self.save_settings()
     self.display_message_label(_("Settings successfully saved."), message_type=gtk.MESSAGE_INFO)
- 
+  
   def on_reset_settings_clicked(self, widget):
     response_id = display_message(
       _("Do you really want to reset settings?"), gtk.MESSAGE_WARNING, parent=self.dialog,
@@ -1131,12 +1490,13 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     if response_id == gtk.RESPONSE_YES:
       self.reset_settings()
       self.save_settings()
+      self.export_image_preview.clear()
       self.display_message_label(_("Settings reset."), message_type=gtk.MESSAGE_INFO)
   
   @_set_settings
   def on_export_click(self, widget):
     self.setup_gui_before_export()
-    pdb.gimp_progress_init("", None)
+    gimp.progress_init()
     
     overwrite_chooser = pggui.GtkDialogOverwriteChooser(
       # Don't insert the Cancel item as a button.
