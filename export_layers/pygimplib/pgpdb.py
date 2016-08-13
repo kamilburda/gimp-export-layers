@@ -112,8 +112,8 @@ def duplicate(image, metadata_only=False):
   """
   Duplicate the specified image.
   
-  If `metadata_only` is True, copy image metadata only, do not copy layers,
-  channels or paths.
+  If `metadata_only` is True, copy image metadata only (i.e. do not copy layers,
+  channels or paths).
   """
   
   if not metadata_only:
@@ -122,6 +122,7 @@ def duplicate(image, metadata_only=False):
     new_image = pdb.gimp_image_new(image.width, image.height, image.base_type)
     
     pdb.gimp_image_set_resolution(new_image, *pdb.gimp_image_get_resolution(image))
+    pdb.gimp_image_set_unit(new_image, pdb.gimp_image_get_unit(image))
     
     if image.base_type == gimpenums.INDEXED:
       pdb.gimp_image_set_colormap(new_image, *pdb.gimp_image_get_colormap(image))
