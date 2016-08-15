@@ -547,17 +547,17 @@ class LayerExporter(object):
     if self.export_settings['ignore_layer_modes'].value:
       layer_copy.mode = gimpenums.NORMAL_MODE
     
+    if self.export_settings['inherit_transparency_from_groups'].value:
+      layer_copy.opacity = 100.0 * functools.reduce(
+        lambda layer1_opacity, layer2_opacity: layer1_opacity * layer2_opacity,
+        [parent.item.opacity / 100.0 for parent in layer_elem.parents] + [layer_elem.item.opacity / 100.0])
+    
     image.active_layer = layer_copy
     
     foreground_layer, self._tagged_layer_copies['foreground'] = self._insert_layer(
       image, self._tagged_layer_elems['foreground'], self._tagged_layer_copies['foreground'], insert_index=0)
     
     layer_copy = self._crop_and_merge(image, layer_copy, background_layer, foreground_layer)
-    
-    if self.export_settings['inherit_transparency_from_groups'].value:
-      layer_copy.opacity = 100.0 * functools.reduce(
-        lambda layer1_opacity, layer2_opacity: layer1_opacity * layer2_opacity,
-        [parent.item.opacity / 100.0 for parent in layer_elem.parents] + [layer_elem.item.opacity / 100.0])
     
     # Remove the " copy" suffix from the layer name, which is preserved in
     # formats supporting layers (XCF, PSD, ...).
