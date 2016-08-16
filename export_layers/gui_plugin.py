@@ -634,7 +634,7 @@ class ExportNamePreview(ExportPreview):
       self.update()
   
   def _get_layer_orig_names_in_current_selection(self):
-    unused_, tree_paths = self._tree_view.get_selection().get_selected_rows()
+    _unused, tree_paths = self._tree_view.get_selection().get_selected_rows()
     return [self._get_layer_orig_name(self._tree_model.get_iter(tree_path)) for tree_path in tree_paths]
   
   def _get_layer_orig_name(self, tree_iter):
