@@ -54,17 +54,24 @@ Non-interactive
 * don't load settings
 * save settings to GIMP shelf after export
 
+
+import os
 image = gimp.image_list()[0]
-pdb.plug_in_export_layers(image, 'jpg', r"D:\testgimp\test_export_layers", False, False, False, False, 0, 0, 0, False, False, True, False, 0, run_mode=RUN_NONINTERACTIVE)
+pdb.plug_in_export_layers(image, 'png', os.path.join(gimp.directory, "test_export_layers", "Test"), False, False, False, False, 0, 0, 0, 0, False, False, False, 0, "", False, run_mode=RUN_NONINTERACTIVE)
+
 
 Run-with-last-vals
 * load settings from GIMP shelf and config file
 * save settings to GIMP shelf after export
 
+
+import os
 image = gimp.image_list()[0]
-pdb.plug_in_export_layers(image, 'jpg', r"D:\testgimp\test_export_layers", False, False, False, False, 0, 0, 0, False, False, True, False, 0, run_mode=RUN_WITH_LAST_VALS)
+pdb.plug_in_export_layers(image, 'png', os.path.join(gimp.directory, "test_export_layers", "Test"), False, False, False, False, 0, 0, 0, 0, False, False, False, 0, "", False, run_mode=RUN_WITH_LAST_VALS)
+
 
 pdb.plug_in_export_layers_repeat(image)
+
 
 
 Export Layers (repeat)
