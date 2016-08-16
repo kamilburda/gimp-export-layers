@@ -290,6 +290,10 @@ class EntryPopup(object):
     num_visible_rows = min(num_rows, self._max_num_visible_rows)
     
     if self._tree_view_width is None:
+      # Make sure that the correct width is allocated to the tree view.
+      while gtk.events_pending():
+        gtk.main_iteration()
+      
       self._tree_view_width = self._tree_view.get_allocation().width
       if num_rows > self._max_num_visible_rows:
         vscrollbar_width = int(
