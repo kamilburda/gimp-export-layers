@@ -1335,9 +1335,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
 
     self._dialog.show()
   
-  def _suppress_gimp_progress(self):
-    gimp.progress_install(lambda *args: None, lambda *args: None, lambda *args: None, lambda *args: None)
-  
   def _reset_settings(self):
     self._settings.reset()
     pgsettingpersistor.SettingPersistor.clear(
@@ -1523,6 +1520,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._save_settings()
       self._export_image_preview.clear()
       self._display_message_label(_("Settings reset."), message_type=gtk.MESSAGE_INFO)
+  
+  def _suppress_gimp_progress(self):
+    gimp.progress_install(lambda *args: None, lambda *args: None, lambda *args: None, lambda *args: None)
   
   def _progress_set_value(self, fraction):
     self._progress_bar_individual_operations.set_fraction(fraction)
