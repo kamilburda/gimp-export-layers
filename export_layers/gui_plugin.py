@@ -357,6 +357,9 @@ class ExportNamePreview(ExportPreview):
     _COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME_SENSITIVE, _COLUMN_LAYER_NAME,
     _COLUMN_LAYER_ORIG_NAME) = ([0, gtk.gdk.Pixbuf], [1, bool], [2, bool], [3, bytes], [4, bytes])
   
+  _ICON_IMAGE_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_image.png")
+  _ICON_TAG_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_tag.png")
+  
   def __init__(self, layer_exporter, collapsed_items=None, selected_items=None,
                on_selection_changed_func=None, on_after_update_func=None):
     super(ExportNamePreview, self).__init__()
@@ -496,9 +499,9 @@ class ExportNamePreview(ExportPreview):
     self._icons = {}
     self._icons['layer_group'] = self._tree_view.render_icon(gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
     self._icons['layer'] = gtk.gdk.pixbuf_new_from_file_at_size(
-      os.path.join(pygimplib.config.PLUGIN_PATH, "image_icon.png"), -1, self._icons['layer_group'].props.height)
+      self._ICON_IMAGE_PATH, -1, self._icons['layer_group'].props.height)
     self._icons['tag'] = gtk.gdk.pixbuf_new_from_file_at_size(
-      os.path.join(pygimplib.config.PLUGIN_PATH, "tag_icon.png"), -1, self._icons['layer_group'].props.height)
+      self._ICON_TAG_PATH, -1, self._icons['layer_group'].props.height)
     
     self._icons['merged_layer_group'] = self._icons['layer'].copy()
     
