@@ -178,14 +178,14 @@ class TestSettingPersistor(unittest.TestCase):
     self.settings['file_extension'].set_value("png")
     self.settings['ignore_invisible'].set_value(True)
     
-    status, unused_ = pgsettingpersistor.SettingPersistor.save(
+    status, _unused = pgsettingpersistor.SettingPersistor.save(
       [self.settings], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
     
     self.settings['file_extension'].set_value("jpg")
     self.settings['ignore_invisible'].set_value(False)
     
-    status, unused_ = pgsettingpersistor.SettingPersistor.load(
+    status, _unused = pgsettingpersistor.SettingPersistor.load(
       [self.settings], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
     self.assertEqual(self.settings['file_extension'].value, "png")
@@ -224,7 +224,7 @@ class TestSettingPersistor(unittest.TestCase):
     self.assertEqual(settings['advanced']['ignore_invisible'].value, True)
   
   def test_load_settings_source_not_found(self, mock_persistent_source, mock_session_source):
-    status, unused_ = pgsettingpersistor.SettingPersistor.load(
+    status, _unused = pgsettingpersistor.SettingPersistor.load(
       [self.settings], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
@@ -232,7 +232,7 @@ class TestSettingPersistor(unittest.TestCase):
     self.session_source.write([self.settings['ignore_invisible']])
     self.persistent_source.write([self.settings['file_extension'], self.settings['ignore_invisible']])
     
-    status, unused_ = pgsettingpersistor.SettingPersistor.load(
+    status, _unused = pgsettingpersistor.SettingPersistor.load(
       [self.settings['overwrite_mode']], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
@@ -244,7 +244,7 @@ class TestSettingPersistor(unittest.TestCase):
     parasite.data = parasite.data[:-1]
     pgsettingsources.gimp.parasite_attach(parasite)
     
-    status, unused_ = pgsettingpersistor.SettingPersistor.load(
+    status, _unused = pgsettingpersistor.SettingPersistor.load(
       [self.settings], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
   

@@ -37,7 +37,7 @@ class InteractiveOverwriteChooserStub(overwrite.InteractiveOverwriteChooser):
     super(InteractiveOverwriteChooserStub, self).__init__(
       values_and_display_names, default_value, default_response)
     
-    self._values = [value for value, unused_ in self.values_and_display_names]
+    self._values = [value for value, _unused in self.values_and_display_names]
   
   def _choose(self, filename):
     if self._overwrite_mode not in self._values:

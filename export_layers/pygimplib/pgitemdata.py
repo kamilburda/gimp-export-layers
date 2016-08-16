@@ -289,7 +289,7 @@ class ItemData(object):
     
     item_elem.tags.remove(tag)
     
-    unused_, index = _parse_tags(item_elem.orig_name)
+    _unused, index = _parse_tags(item_elem.orig_name)
     tags_str = item_elem.orig_name[:index]
     tags_str_processed = re.sub(r"\[" + re.escape(tag) + r"\] *", r"", tags_str)
     

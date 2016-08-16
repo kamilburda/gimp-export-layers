@@ -123,7 +123,7 @@ class InteractiveOverwriteChooser(OverwriteChooser):
     super(InteractiveOverwriteChooser, self).__init__()
     
     self.values_and_display_names = values_and_display_names
-    self._values = [value for value, unused_ in self.values_and_display_names]
+    self._values = [value for value, _unused in self.values_and_display_names]
     
     if default_value not in self._values:
       raise ValueError(

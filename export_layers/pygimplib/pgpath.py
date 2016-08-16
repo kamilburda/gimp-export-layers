@@ -658,7 +658,7 @@ class FilenameValidator(StringValidator):
     if filename.endswith("."):
       status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD))
     
-    root, unused_ = os.path.splitext(filename)
+    root, _unused = os.path.splitext(filename)
     if root.upper() in cls._INVALID_NAMES:
       status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_INVALID_NAMES))
     
@@ -750,7 +750,7 @@ class FilePathValidator(StringValidator):
       if path_component.endswith("."):
         statuses.add(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD)
       
-      root, unused_ = os.path.splitext(path_component)
+      root, _unused = os.path.splitext(path_component)
       if root.upper() in cls._INVALID_NAMES:
         statuses.add(FileValidatorErrorStatuses.HAS_INVALID_NAMES)
         invalid_names_status_message += (
@@ -821,7 +821,7 @@ class DirectoryPathValidator(FilePathValidator):
   
   @classmethod
   def is_valid(cls, dirpath):
-    unused_, status_messages = super(DirectoryPathValidator, cls).is_valid(dirpath)
+    _unused, status_messages = super(DirectoryPathValidator, cls).is_valid(dirpath)
     
     if os.path.exists(dirpath) and not os.path.isdir(dirpath):
       status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.EXISTS_BUT_IS_NOT_DIR))

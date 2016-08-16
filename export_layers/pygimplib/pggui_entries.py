@@ -441,7 +441,7 @@ class EntryPopup(object):
       return True
     
     if self.is_shown():
-      tree_path, unused_ = self._tree_view.get_cursor()
+      tree_path, _unused = self._tree_view.get_cursor()
       stop_event_propagation = True
       
       if key_name in ["Up", "KP_Up"]:
@@ -939,7 +939,7 @@ class FileExtensionEntry(gtk.Entry):
     if key_name in ["Tab", "KP_Tab", "ISO_Left_Tab"]:
       # Tree paths can sometimes point at the first row even though no row is
       # selected, hence the `tree_iter` usage.
-      unused_, tree_iter = self._popup.tree_view.get_selection().get_selected()
+      _unused, tree_iter = self._popup.tree_view.get_selection().get_selected()
       
       if tree_iter is not None:
         if key_name in ["Tab", "KP_Tab"]:
