@@ -18,8 +18,9 @@
 #
 
 """
-This module defines functions dealing with GIMP objects (images, layers, etc.)
-not defined in the GIMP procedural database (PDB) or the GIMP Python API.
+This module provides additional functions dealing with GIMP objects (images,
+layers, etc.) not defined in the GIMP procedural database (PDB) or the GIMP
+Python API.
 """
 
 from __future__ import absolute_import
@@ -258,7 +259,7 @@ def copy_and_paste_layer(layer, image, parent=None, position=0):
 def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
                    apply_layer_attributes=True, apply_layer_masks=True):
   """
-  Return True if all layers are identical (i.e. have the same contents), False
+  Return True if the contents of all specified layers are identical, False
   otherwise. Layer groups are also supported.
   
   The default values of the optional parameters correspond to how the layers are
