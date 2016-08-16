@@ -185,103 +185,6 @@ def add_gui_settings(settings):
 #===============================================================================
 
 
-def _set_settings(func):
-  """
-  This is a decorator for `SettingGroup.apply_gui_values_to_settings()` that
-  prevents the decorated function from being executed if there are invalid
-  setting values. For the invalid values, an error message is displayed.
-  
-  This decorator is meant to be used in the `_ExportLayersGui` class.
-  """
-  
-  @functools.wraps(func)
-  def func_wrapper(self, *args, **kwargs):
-    try:
-      self._settings['main'].apply_gui_values_to_settings()
-      self._settings['gui'].apply_gui_values_to_settings()
-      
-      self._current_directory_setting.gui.update_setting_value()
-      self._settings['main/output_directory'].set_value(self._current_directory_setting.value)
-      
-      self._settings['gui_session/export_name_preview_layers_collapsed_state'].value[self._image.ID] = (
-        self._export_name_preview.collapsed_items)
-      self._settings['main/selected_layers'].value[self._image.ID] = self._export_name_preview.selected_items
-      self._settings['gui_session/export_image_preview_displayed_layers'].value[self._image.ID] = (
-        self._export_image_preview.layer_name)
-    except pgsetting.SettingValueError as e:
-      self._display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
-      return
-    
-    func(self, *args, **kwargs)
-  
-  return func_wrapper
-
-
-#===============================================================================
-
-
-def _update_directory(setting, current_image, directory_for_current_image):
-  """
-  Set the directory to the setting according to the priority list below:
-  
-  1. `directory_for_current_image` if not None
-  2. `current_image` - import path of the current image if not None
-  
-  If update was performed, return True, otherwise return False.
-  """
-  
-  if directory_for_current_image is not None:
-    if isinstance(directory_for_current_image, bytes):
-      directory_for_current_image = directory_for_current_image.decode(constants.GTK_CHARACTER_ENCODING)
-    
-    setting.set_value(directory_for_current_image)
-    return True
-  
-  if current_image.filename is not None:
-    setting.set_value(os.path.dirname(current_image.filename.decode(constants.GTK_CHARACTER_ENCODING)))
-    return True
-  
-  return False
-
-
-def _setup_image_ids_and_directories_and_initial_directory(settings, current_directory_setting, current_image):
-  """
-  Set up the initial directory for the current image according to the
-  following priority list:
-  
-    1. Last export directory of the current image
-    2. Import directory of the current image
-    3. Last export directory of any image (i.e. the current value of 'main/output_directory')
-    4. The default directory (default value) for 'main/output_directory'
-  
-  Notes:
-  
-    Directory 3. is set upon loading 'main/output_directory' from a persistent source.
-    Directory 4. is set upon the instantiation of 'main/output_directory'.
-  """
-  
-  settings['gui_session/image_ids_and_directories'].update_image_ids_and_directories()
-  
-  update_performed = _update_directory(
-    current_directory_setting, current_image,
-    settings['gui_session/image_ids_and_directories'].value[current_image.ID])
-  
-  if not update_performed:
-    current_directory_setting.set_value(settings['main/output_directory'].value)
-
-
-def _setup_output_directory_changed(settings, current_image):
-
-  def on_output_directory_changed(output_directory, image_ids_and_directories, current_image_id):
-    image_ids_and_directories.update_directory(current_image_id, output_directory.value)
-  
-  settings['main/output_directory'].connect_event('value-changed',
-    on_output_directory_changed, settings['gui_session/image_ids_and_directories'], current_image.ID)
-
-
-#===============================================================================
-
-
 @contextlib.contextmanager
 def _handle_gui_in_export(run_mode, image, layer, output_filename, window):
   should_manipulate_window = run_mode == gimpenums.RUN_INTERACTIVE
@@ -1010,6 +913,102 @@ class _ExportLayersGenericGui(object):
   def _uninstall_progress(self):
     gimp.progress_uninstall(self._progress_callback)
     del self._progress_callback
+
+
+#===============================================================================
+
+
+def _set_settings(func):
+  """
+  This is a decorator for `SettingGroup.apply_gui_values_to_settings()` that
+  prevents the decorated function from being executed if there are invalid
+  setting values. For the invalid values, an error message is displayed.
+  
+  This decorator is meant to be used in the `_ExportLayersGui` class.
+  """
+  
+  @functools.wraps(func)
+  def func_wrapper(self, *args, **kwargs):
+    try:
+      self._settings['main'].apply_gui_values_to_settings()
+      self._settings['gui'].apply_gui_values_to_settings()
+      
+      self._current_directory_setting.gui.update_setting_value()
+      self._settings['main/output_directory'].set_value(self._current_directory_setting.value)
+      
+      self._settings['gui_session/export_name_preview_layers_collapsed_state'].value[self._image.ID] = (
+        self._export_name_preview.collapsed_items)
+      self._settings['main/selected_layers'].value[self._image.ID] = self._export_name_preview.selected_items
+      self._settings['gui_session/export_image_preview_displayed_layers'].value[self._image.ID] = (
+        self._export_image_preview.layer_name)
+    except pgsetting.SettingValueError as e:
+      self._display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
+      return
+    
+    func(self, *args, **kwargs)
+  
+  return func_wrapper
+
+
+#===============================================================================
+
+
+def _update_directory(setting, current_image, directory_for_current_image):
+  """
+  Set the directory to the setting according to the priority list below:
+  
+  1. `directory_for_current_image` if not None
+  2. `current_image` - import path of the current image if not None
+  
+  If update was performed, return True, otherwise return False.
+  """
+  
+  if directory_for_current_image is not None:
+    if isinstance(directory_for_current_image, bytes):
+      directory_for_current_image = directory_for_current_image.decode(constants.GTK_CHARACTER_ENCODING)
+    
+    setting.set_value(directory_for_current_image)
+    return True
+  
+  if current_image.filename is not None:
+    setting.set_value(os.path.dirname(current_image.filename.decode(constants.GTK_CHARACTER_ENCODING)))
+    return True
+  
+  return False
+
+
+def _setup_image_ids_and_directories_and_initial_directory(settings, current_directory_setting, current_image):
+  """
+  Set up the initial directory for the current image according to the
+  following priority list:
+  
+    1. Last export directory of the current image
+    2. Import directory of the current image
+    3. Last export directory of any image (i.e. the current value of 'main/output_directory')
+    4. The default directory (default value) for 'main/output_directory'
+  
+  Notes:
+  
+    Directory 3. is set upon loading 'main/output_directory' from a persistent source.
+    Directory 4. is set upon the instantiation of 'main/output_directory'.
+  """
+  
+  settings['gui_session/image_ids_and_directories'].update_image_ids_and_directories()
+  
+  update_performed = _update_directory(
+    current_directory_setting, current_image,
+    settings['gui_session/image_ids_and_directories'].value[current_image.ID])
+  
+  if not update_performed:
+    current_directory_setting.set_value(settings['main/output_directory'].value)
+
+
+def _setup_output_directory_changed(settings, current_image):
+  def on_output_directory_changed(output_directory, image_ids_and_directories, current_image_id):
+    image_ids_and_directories.update_directory(current_image_id, output_directory.value)
+  
+  settings['main/output_directory'].connect_event('value-changed',
+    on_output_directory_changed, settings['gui_session/image_ids_and_directories'], current_image.ID)
 
 
 #===============================================================================
