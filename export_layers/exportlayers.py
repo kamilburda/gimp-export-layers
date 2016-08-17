@@ -255,7 +255,9 @@ class LayerExporter(object):
     
     self._operations = {
       'layer_contents': [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
-      'layer_name': [self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name],
+      'layer_name': [
+        self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name,
+        self._postprocess_layer_name],
       'export': [self._make_dirs, self._export]
     }
     
