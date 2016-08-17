@@ -284,15 +284,17 @@ class ExportNamePreview(ExportPreview):
     
     self._widget = self._vbox
   
-  def update(self):
+  def update(self, reset_completely=False):
     """
-    Update the export preview (add new layers, remove nonexistent layers, modify
-    layer tree, etc.).
+    Update the preview (filter layers, modify layer tree, etc.).
+    
+    If `reset_completely` is True, perform full update (add new layers, remove
+    non-existent layers, etc.).
     """
     
     if not self._update_locked:
       self.clear()
-      self._fill_preview()
+      self._fill_preview(reset_completely)
       self._set_expanded_items()
       self._set_selection()
       self._tree_view.columns_autosize()
@@ -301,7 +303,7 @@ class ExportNamePreview(ExportPreview):
   
   def clear(self):
     """
-    Clear the entire export preview.
+    Clear the entire preview.
     """
     
     self._clearing_preview = True
@@ -517,13 +519,17 @@ class ExportNamePreview(ExportPreview):
   def _get_layer_id(self, tree_iter):
     return self._tree_model.get_value(tree_iter, column=self._COLUMN_LAYER_ID[0])
   
-  def _fill_preview(self):
-    if self._layer_exporter.layer_data is not None:
-      self._layer_exporter.layer_data.reset_filter()
-      self._layer_exporter.layer_data.reset_item_elements()
+  def _fill_preview(self, reset_completely=False):
+    if not reset_completely:
+      layer_data = self._layer_exporter.layer_data
+      if self._layer_exporter.layer_data is not None:
+        self._layer_exporter.layer_data.reset_filter()
+        self._layer_exporter.layer_data.reset_item_elements()
+    else:
+      layer_data = None
     
     with self._layer_exporter.modify_export_settings({'export_only_selected_layers': False}):
-      self._layer_exporter.export_layers(operations=['layer_name'], layer_data=self._layer_exporter.layer_data)
+      self._layer_exporter.export_layers(operations=['layer_name'], layer_data=layer_data)
     
     self._tree_iters.clear()
     
@@ -1073,6 +1079,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._image = image
     self._settings = settings
     
+    self._is_exporting = False
+    
     add_gui_settings(settings)
     
     status, status_message = self._settings.load()
@@ -1421,8 +1429,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._filename_pattern_entry.hide()
   
   def _on_dialog_is_active_changed(self, widget, property_spec):
-    if self._dialog.is_active():
-      self._export_name_preview.update()
+    if self._dialog.is_active() and not self._is_exporting:
+      self._export_name_preview.update(reset_completely=True)
       self._export_image_preview.update()
   
   def _connect_setting_changes_to_previews(self):
@@ -1593,7 +1601,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._layer_exporter = exportlayers.LayerExporter(
       gimpenums.RUN_INTERACTIVE, self._image, self._settings['main'], overwrite_chooser, progress_updater,
       export_context_manager=_handle_gui_in_export, export_context_manager_args=[self._dialog])
+    
     should_quit = True
+    self._is_exporting = True
+    
     try:
       self._layer_exporter.export_layers()
     except exportlayers.ExportLayersCancelError as e:
@@ -1615,6 +1626,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     finally:
       self._uninstall_gimp_progress()
       self._layer_exporter = None
+      self._is_exporting = False
     
     self._settings['main/overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
     pgsettingpersistor.SettingPersistor.save(
