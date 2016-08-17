@@ -63,8 +63,8 @@ class ItemData(object):
   """
   This class is an interface to store all items (and item groups) of a certain
   type (e.g. layers, channels or paths) of a GIMP image in an ordered
-  dictionary, allowing to access the items via their names and get various
-  custom attributes derived from the existing item attributes.
+  dictionary, allowing to access the items via their IDs or names and get
+  various custom attributes derived from the existing item attributes.
   
   Use one of the subclasses for items of a certain type:
   
@@ -99,10 +99,13 @@ class ItemData(object):
     # Filters applied to all items in self._itemdata
     self._filter = objectfilter.ObjectFilter(self._filter_match_type)
     
-    # Contains all items (including item groups) in the item tree.
-    # key: `_ItemDataElement.orig_name` (derived from `gimp.Item.name`, which is unique)
+    # Contains all items in the item tree (including item groups).
+    # key: `_ItemDataElement.item.ID`
     # value: `_ItemDataElement` object
     self._itemdata = collections.OrderedDict()
+    # key: `_ItemDataElement.orig_name` (derived from `gimp.Item.name`, which is unique)
+    # value: `_ItemDataElement` object
+    self._itemdata_names = {}
     
     # key: `_ItemDataElement` object (parent) or None (root of the item tree)
     # value: set of `_ItemDataElement` objects
@@ -119,20 +122,27 @@ class ItemData(object):
   def filter(self):
     return self._filter
   
-  def __getitem__(self, name):
+  def __getitem__(self, id_or_name):
     """
-    Access an `_ItemDataElement` object by its `orig_name` attribute.
+    Access an `_ItemDataElement` object by its `_ItemDataElement.item.ID`
+    attribute or its `orig_name` attribute.
     """
     
-    return self._itemdata[name]
+    try:
+      item_elem = self._itemdata[id_or_name]
+    except KeyError:
+      item_elem = self._itemdata_names[id_or_name]
+    
+    return item_elem
   
-  def __contains__(self, name):
+  def __contains__(self, id_or_name):
     """
-    Return True if an `_ItemDataElement` object, specified by its `orig_name`
-    attribute, is in the item data. Otherwise return False.
+    Return True if an `_ItemDataElement` object is in the item data, specified
+    by its `_ItemDataElement.item.ID` attribute or its `orig_name` attribute.
+    Return False otherwise.
     """
     
-    return name in self._itemdata
+    return id_or_name in self._itemdata or id_or_name in self._itemdata_names
   
   def __len__(self):
     """
@@ -327,21 +337,20 @@ class ItemData(object):
     
     item_elem.item.name = new_item_name_encoded
     
-    del self._itemdata[item_elem.orig_name]
+    del self._itemdata_names[item_elem.orig_name]
     
     # We break the convention here and access the `_ItemDataElement._orig_name`
     # private attribute.
     item_elem._orig_name = item_elem.item.name.decode()
     
-    self._itemdata[item_elem._orig_name] = item_elem
+    self._itemdata_names[item_elem.orig_name] = item_elem
     
-    item_name_modified_externally = item_elem._orig_name != new_item_name
+    item_name_modified_externally = item_elem.orig_name != new_item_name
     return item_name_modified_externally
   
   def _fill_item_data(self):
     """
-    Fill the _itemdata dictionary, containing <gimp.Item.name, _ItemDataElement>
-    pairs.
+    Fill the `_itemdata` and `_itemdata_names` dictionaries.
     """
     
     child_items = self._get_children_from_image(self.image)
@@ -352,7 +361,8 @@ class ItemData(object):
     while item_elem_tree:
       item_elem = item_elem_tree.pop(0)
       
-      self._itemdata[item_elem.orig_name] = item_elem
+      self._itemdata[item_elem.item.ID] = item_elem
+      self._itemdata_names[item_elem.orig_name] = item_elem
       
       item_elem_parents = list(item_elem.parents)
       if self._is_group(item_elem.item):

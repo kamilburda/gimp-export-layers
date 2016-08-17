@@ -68,10 +68,21 @@ class PdbStub(object):
     item.visible = visible
 
 
+#===============================================================================
+
+
+_IMAGE_FIRST_AVAILABLE_ID = 0
+_ITEM_FIRST_AVAILABLE_ID = 0
+
+
 class ImageStub(object):
   
+  _IMAGE_FIRST_AVAILABLE_ID = 0
+  
   def __init__(self, name=None):
-    self.ID = 0
+    global _IMAGE_FIRST_AVAILABLE_ID
+    
+    self.ID = _IMAGE_FIRST_AVAILABLE_ID
     self.width = 0
     self.height = 0
     self.image_type = None
@@ -80,12 +91,16 @@ class ImageStub(object):
     self.filename = b""
     self.uri = b""
     self.valid = True
+    
+    _IMAGE_FIRST_AVAILABLE_ID += 1
 
 
 class ItemStub(object):
   
   def __init__(self, name=None, visible=True):
-    self.ID = 0
+    global _ITEM_FIRST_AVAILABLE_ID
+    
+    self.ID = _ITEM_FIRST_AVAILABLE_ID
     self.width = 0
     self.height = 0
     self.valid = True
@@ -94,6 +109,8 @@ class ItemStub(object):
     self.name = name.encode() if name is not None else b""
     self.image = None
     self.children = []
+    
+    _ITEM_FIRST_AVAILABLE_ID += 1
 
 
 class LayerStub(ItemStub):
@@ -116,6 +133,9 @@ class LayerGroupStub(LayerStub):
   @layers.setter
   def layers(self, val):
     self.children = val
+
+
+#===============================================================================
 
 
 class ShelfStub(object):

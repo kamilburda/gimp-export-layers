@@ -206,7 +206,7 @@ class TestLayerData(unittest.TestCase):
   def test_get_filepath(self):
     output_directory = os.path.join("D:", os.sep, "testgimp")
     
-    # layer_elem with parents
+    # `layer_elem` with parents
     layer_elem = self.layer_data['bottom-right-corner']
     
     self.assertEqual(
