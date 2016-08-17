@@ -893,11 +893,11 @@ class _ExportLayersGenericGui(object):
     else:
       return False
   
-  def _install_progress(self, progress_set_value, progress_reset_value):
+  def _install_gimp_progress(self, progress_set_value, progress_reset_value):
     self._progress_callback = gimp.progress_install(
       progress_reset_value, progress_reset_value, lambda *args: None, progress_set_value)
   
-  def _uninstall_progress(self):
+  def _uninstall_gimp_progress(self):
     gimp.progress_uninstall(self._progress_callback)
     del self._progress_callback
 
@@ -1019,6 +1019,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   _FILE_EXTENSION_ENTRY_WIDTH_CHARS = 8
   _FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS = 15
   _FILENAME_PATTERN_ENTRY_MAX_WIDTH_CHARS = 50
+  
+  _DELAY_PREVIEWS_UPDATE_MILLISECONDS = 50
+  _DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS = 100
+  _DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS = 10000
   
   def __init__(self, image, settings):
     super(_ExportLayersGui, self).__init__()
@@ -1336,7 +1340,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     try:
       setting.gui.update_setting_value()
     except pgsetting.SettingValueError as e:
-      pggui.timeout_add_strict(100, self._export_name_preview.clear)
+      pggui.timeout_add_strict(
+        self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS, self._export_name_preview.clear)
       self._display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=setting)
       self._export_name_preview.lock_update(True, name_preview_lock_update_key)
     else:
@@ -1344,7 +1349,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       if self._message_setting == setting:
         self._display_message_label(None)
       
-      pggui.timeout_add_strict(100, self._export_name_preview.update)
+      pggui.timeout_add_strict(
+        self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS, self._export_name_preview.update)
   
   def _on_show_more_settings_button_toggled(self, widget):
     self._show_hide_more_settings()
@@ -1378,8 +1384,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   def _connect_setting_changes_to_previews(self):
     def _on_setting_changed(setting):
-      pggui.timeout_add_strict(50, self._export_name_preview.update)
-      pggui.timeout_add_strict(50, self._export_image_preview.update)
+      pggui.timeout_add_strict(self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_name_preview.update)
+      pggui.timeout_add_strict(self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_image_preview.update)
     
     for setting in self._settings['main']:
       if setting.name not in [
@@ -1528,7 +1534,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   def _on_export_click(self, widget):
     self._setup_gui_before_export()
     
-    self._install_progress(self._progress_set_value, self._progress_reset_value)
+    self._install_gimp_progress(self._progress_set_value, self._progress_reset_value)
     
     overwrite_chooser = pggui.GtkDialogOverwriteChooser(
       # Don't insert the Cancel item as a button.
@@ -1564,7 +1570,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self._dialog)
         should_quit = False
     finally:
-      self._uninstall_progress()
+      self._uninstall_gimp_progress()
       self._layer_exporter = None
     
     self._settings['main/overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
@@ -1631,7 +1637,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         gobject.markup_escape_text(color), gobject.markup_escape_text(text)))
       
       if color == "blue":
-        pggui.timeout_add_strict(10000, self._display_message_label, None)
+        pggui.timeout_add_strict(
+          self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS, self._display_message_label, None)
 
 
 #===============================================================================
@@ -1689,13 +1696,12 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
     self._progress_set_value(0.0)
   
   def export_layers(self):
-    overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(self._settings['main/overwrite_mode'].value)
-    progress_updater = pggui.GtkProgressUpdater(self._progress_bar)
-    
-    self._install_progress(self._progress_set_value, self._progress_reset_value)
+    self._install_gimp_progress(self._progress_set_value, self._progress_reset_value)
     
     self._layer_exporter = exportlayers.LayerExporter(
-      gimpenums.RUN_WITH_LAST_VALS, self._image, self._settings['main'], overwrite_chooser, progress_updater,
+      gimpenums.RUN_WITH_LAST_VALS, self._image, self._settings['main'],
+      overwrite.NoninteractiveOverwriteChooser(self._settings['main/overwrite_mode'].value),
+      pggui.GtkProgressUpdater(self._progress_bar),
       export_context_manager=_handle_gui_in_export, export_context_manager_args=[self._dialog])
     try:
       self._layer_exporter.export_layers()
@@ -1709,7 +1715,7 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
       if not self._layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self._dialog)
     finally:
-      self._uninstall_progress()
+      self._uninstall_gimp_progress()
   
   def show(self):
     self._dialog.vbox.show_all()
