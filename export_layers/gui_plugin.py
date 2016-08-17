@@ -494,26 +494,19 @@ class ExportNamePreview(ExportPreview):
   
   def _on_tags_menu_item_toggled(self, tags_menu_item):
     if self._toggle_tag_interactive:
-      treat_tagged_layers_specially = self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special')
-      
       pdb.gimp_image_undo_group_start(self._layer_exporter.image)
       
       for old_layer_elem_orig_name in self._get_layer_orig_names_in_current_selection():
         layer_elem = self._layer_exporter.layer_data[old_layer_elem_orig_name]
         tag = self._tags_names[tags_menu_item.get_label()]
         
-        had_previously_supported_tags = self._has_supported_tags(layer_elem)
-        was_selected = self._tree_view.get_selection().iter_is_selected(self._tree_iters[old_layer_elem_orig_name])
+        was_selected = self._tree_view.get_selection().iter_is_selected(
+          self._tree_iters[old_layer_elem_orig_name])
         
         if tags_menu_item.get_active():
           self._layer_exporter.layer_data.add_tag(layer_elem, tag)
         else:
           self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
-        
-        has_supported_tags = self._has_supported_tags(layer_elem)
-        should_set_sensitive = (
-          has_supported_tags != had_previously_supported_tags and treat_tagged_layers_specially and
-          layer_elem.item_type != layer_elem.NONEMPTY_GROUP)
         
         self._set_layer_orig_name(
           self._tree_iters[old_layer_elem_orig_name], old_layer_elem_orig_name, layer_elem.orig_name)
@@ -523,12 +516,6 @@ class ExportNamePreview(ExportPreview):
         if old_layer_elem_orig_name in self._collapsed_items:
           self._collapsed_items.remove(old_layer_elem_orig_name)
           self._collapsed_items.add(layer_elem.orig_name)
-        
-        self._tree_model.set_value(
-          self._tree_iters[layer_elem.orig_name], self._COLUMN_ICON_TAG_VISIBLE[0], has_supported_tags)
-        
-        if should_set_sensitive:
-          self._set_item_elem_sensitive(layer_elem, not has_supported_tags)
       
       pdb.gimp_image_undo_group_end(self._layer_exporter.image)
       
