@@ -272,7 +272,8 @@ class LayerExporter(object):
   def exported_layers(self):
     return self._exported_layers
   
-  def export_layers(self, operations=None, keep_exported_layers=False):
+  def export_layers(self, operations=None, layer_data=None, keep_exported_layers=False,
+                    on_after_create_image_copy_func=None, on_after_insert_layer_func=None):
     """
     Export layers as separate images from the specified image.
     
@@ -291,30 +292,52 @@ class LayerExporter(object):
     
     If `operations` is None or empty, perform normal export.
     
-    A copy of the image and the layers to be exported are created. These are
-    automatically destroyed after their export. To keep the copy of the image
-    and the processed and exported layers, pass True to `keep_exported_layers`.
-    In that case, this method returns the image copy containing the exported
-    layers. It is up to you to destroy the image, even if this method raises an
-    exception.
+    A copy of the image and the layers to be exported are created so that the
+    original image and its soon-to-be exported layers are left intact. The
+    copies are automatically destroyed after their export. To keep the copies,
+    pass True to `keep_exported_layers`. In that case, this method returns the
+    image copy containing the exported layers. It is up to you to destroy the
+    image copy. The method returns None if an exception was raised or if no
+    layer was exported; in that case, the image copy is automatically destroyed.
     """
     
-    self._init_attributes(operations, keep_exported_layers)
+    self._init_attributes(
+      operations, layer_data, keep_exported_layers, on_after_create_image_copy_func, on_after_insert_layer_func)
     self._preprocess_layers()
+    
+    exception_occurred = False
     
     self._setup()
     try:
       self._export_layers()
+    except Exception:
+      exception_occurred = True
+      raise
     finally:
-      self._cleanup()
+      self._cleanup(exception_occurred)
     
     if self._keep_exported_layers:
-      return self._image_copy
+      if self._use_another_image_copy:
+        return self._another_image_copy
+      else:
+        return self._image_copy
     else:
       return None
   
-  def _init_attributes(self, operations, keep_exported_layers):
+  def _init_attributes(self, operations, layer_data, keep_exported_layers,
+                       on_after_create_image_copy_func, on_after_insert_layer_func):
     self._enable_disable_operations(operations)
+    
+    if layer_data is not None:
+      self._layer_data = layer_data
+    else:
+      self._layer_data = pgitemdata.LayerData(self.image, is_filtered=True)
+    
+    self._keep_exported_layers = keep_exported_layers
+    self._on_after_create_image_copy_func = (
+      on_after_create_image_copy_func if on_after_create_image_copy_func is not None else lambda *args: None)
+    self._on_after_insert_layer_func = (
+      on_after_insert_layer_func if on_after_insert_layer_func is not None else lambda *args: None)
     
     self.should_stop = False
     self._exported_layers = []
@@ -326,11 +349,9 @@ class LayerExporter(object):
     self._include_item_path = self.export_settings['layer_groups_as_folders'].value
     
     self._image_copy = None
-    self._layer_data = pgitemdata.LayerData(self.image, is_filtered=True)
     self._tagged_layer_elems = collections.defaultdict(list)
     self._tagged_layer_copies = collections.defaultdict(lambda: None)
     
-    self._keep_exported_layers = keep_exported_layers
     self._use_another_image_copy = False
     self._another_image_copy = None
     
@@ -507,24 +528,32 @@ class LayerExporter(object):
     self._make_dirs(layer_elem.get_filepath(self._output_directory, self._include_item_path))
   
   def _setup(self):
-    # Save context just in case. No need for undo groups or undo freeze here.
+    # Save context in case hook functions modify the context without reverting to its original state.
     pdb.gimp_context_push()
-    # Perform subsequent operations on a new image so that the original image
-    # and its soon-to-be exported layers are left intact.
+    
     self._image_copy = pgpdb.duplicate(self.image, metadata_only=True)
+    pdb.gimp_image_undo_freeze(self._image_copy)
+    
+    self._on_after_create_image_copy_func(self._image_copy)
     
     if self._use_another_image_copy:
-      self._another_image_copy = pgpdb.duplicate(self.image, metadata_only=True)
+      self._another_image_copy = pgpdb.duplicate(self._image_copy, metadata_only=True)
+      pdb.gimp_image_undo_freeze(self._another_image_copy)
     
     if pygimplib.config.DEBUG_IMAGE_PROCESSING:
       self._display_id = pdb.gimp_display_new(self._image_copy)
   
-  def _cleanup(self):
+  def _cleanup(self, exception_occurred=False):
     if pygimplib.config.DEBUG_IMAGE_PROCESSING:
       pdb.gimp_display_delete(self._display_id)
     
-    if not self._keep_exported_layers or self._use_another_image_copy:
+    pdb.gimp_image_undo_thaw(self._image_copy)
+    if (not self._keep_exported_layers or self._use_another_image_copy) or exception_occurred:
       pdb.gimp_image_delete(self._image_copy)
+      if self._use_another_image_copy:
+        pdb.gimp_image_undo_thaw(self._another_image_copy)
+        if exception_occurred:
+          pdb.gimp_image_delete(self._another_image_copy)
     
     for tagged_layer_copy in self._tagged_layer_copies.values():
       if tagged_layer_copy is not None:
@@ -537,7 +566,7 @@ class LayerExporter(object):
       image, self._tagged_layer_elems['background'], self._tagged_layer_copies['background'], insert_index=0)
     
     layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
-    pdb.gimp_image_insert_layer(image, layer_copy, None, 0)
+    self._pdb_insert_layer(image, layer_copy, None, 0)
     # This is necessary for file formats which flatten the image (such as JPG).
     pdb.gimp_item_set_visible(layer_copy, True)
     
@@ -571,11 +600,15 @@ class LayerExporter(object):
     else:
       if self._use_another_image_copy:
         another_layer_copy = pdb.gimp_layer_new_from_drawable(layer, self._another_image_copy)
-        pdb.gimp_image_insert_layer(
+        self._pdb_insert_layer(
           self._another_image_copy, another_layer_copy, None, len(self._another_image_copy.layers))
         another_layer_copy.name = layer.name
         
         pdb.gimp_image_remove_layer(image, layer)
+  
+  def _pdb_insert_layer(self, image, layer, parent, position):
+    pdb.gimp_image_insert_layer(image, layer, parent, position)
+    self._on_after_insert_layer_func(layer)
   
   def _insert_layer(self, image, layer_elems, inserted_layer_copy, insert_index=0):
     if not layer_elems:
@@ -595,11 +628,11 @@ class LayerExporter(object):
           return None, None
       
       layer_group = pdb.gimp_layer_group_new(image)
-      pdb.gimp_image_insert_layer(image, layer_group, None, insert_index)
+      self._pdb_insert_layer(image, layer_group, None, insert_index)
       
       for i, layer_elem in enumerate(layer_elems):
         layer_copy = pdb.gimp_layer_new_from_drawable(layer_elem.item, image)
-        pdb.gimp_image_insert_layer(image, layer_copy, layer_group, i)
+        self._pdb_insert_layer(image, layer_copy, layer_group, i)
         pdb.gimp_item_set_visible(layer_copy, True)
         if self.export_settings['ignore_layer_modes'].value:
           layer_copy.mode = gimpenums.NORMAL_MODE
@@ -615,7 +648,7 @@ class LayerExporter(object):
       return layer, inserted_layer_copy
     else:
       layer_copy = pdb.gimp_layer_copy(inserted_layer_copy, True)
-      pdb.gimp_image_insert_layer(image, layer_copy, None, insert_index)
+      self._pdb_insert_layer(image, layer_copy, None, insert_index)
       return layer_copy, inserted_layer_copy
   
   def _crop_and_merge(self, image, layer, background_layer, foreground_layer):
