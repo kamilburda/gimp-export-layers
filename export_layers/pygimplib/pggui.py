@@ -445,7 +445,7 @@ _timer_ids = {}
 def timeout_add_strict(interval, callback, *callback_args, **callback_kwargs):
   """
   This is a wrapper for `gobject.timeout_add`, which calls the specified
-  callback at regular intervals.
+  callback at regular intervals (in milliseconds).
   
   Additionally, if the same callback is called again before the timeout, the
   first invocation will be cancelled. If different functions are called before
