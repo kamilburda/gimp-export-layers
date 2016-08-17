@@ -832,7 +832,6 @@ class ExportImagePreview(ExportPreview):
           on_after_insert_layer_func=self._layer_exporter_on_after_insert_layer)
       except Exception:
         image_preview = None
-        raise
     
     return image_preview
   
