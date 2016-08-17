@@ -52,7 +52,6 @@ import export_layers.pygimplib as pygimplib
 from export_layers.pygimplib import constants
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
-from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
@@ -687,15 +686,21 @@ class ExportImagePreview(ExportPreview):
   _PREVIEW_ALPHA_CHECK_COLOR_BRIGHT = 0x99999999
   _PREVIEW_ALPHA_CHECK_COLOR_DARK = 0x66666666
   
-  def __init__(self, layer_exporter, layer_name=None):
+  def __init__(self, layer_exporter, layer_orig_name=None):
     super(ExportImagePreview, self).__init__()
     
     self._layer_exporter = layer_exporter
-    self._layer_name = layer_name
+    self._layer_orig_name = layer_orig_name
     
     self.layer_elem = None
     
+    self.draw_checkboard_alpha_background = True
+    
     self._is_allocated_size = False
+    
+    self._preview_width = None
+    self._preview_height = None
+    self._preview_scaling_factor = None
     
     self._init_gui()
     
@@ -708,8 +713,8 @@ class ExportImagePreview(ExportPreview):
       return
     
     if self.layer_elem is None:
-      if self._layer_exporter.layer_data is not None and self._layer_name in self._layer_exporter.layer_data:
-        self.layer_elem = self._layer_exporter.layer_data[self._layer_name]
+      if self._layer_exporter.layer_data is not None and self._layer_orig_name in self._layer_exporter.layer_data:
+        self.layer_elem = self._layer_exporter.layer_data[self._layer_orig_name]
       else:
         return
     
@@ -719,15 +724,17 @@ class ExportImagePreview(ExportPreview):
     
     self._placeholder_image.hide()
     self._preview_image.show()
-    
     self._set_layer_name_label(self.layer_elem.name)
     
     # Make sure that the correct size is allocated to the image.
     while gtk.events_pending():
       gtk.main_iteration()
     
-    preview_pixbuf = self._get_in_memory_preview(self.layer_elem.item)
-    self._preview_image.set_from_pixbuf(preview_pixbuf)
+    with self._redirect_messages():
+      preview_pixbuf = self._get_in_memory_preview(self.layer_elem.item)
+    
+    if preview_pixbuf is not None:
+      self._preview_image.set_from_pixbuf(preview_pixbuf)
   
   def clear(self):
     self.layer_elem = None
@@ -747,7 +754,7 @@ class ExportImagePreview(ExportPreview):
     return self._widget
   
   @property
-  def layer_name(self):
+  def layer_orig_name(self):
     if self.layer_elem is not None:
       return self.layer_elem.orig_name
     else:
@@ -771,85 +778,143 @@ class ExportImagePreview(ExportPreview):
     self._show_placeholder_image()
   
   def _get_in_memory_preview(self, layer):
-    layer_preview_width, layer_preview_height, layer_preview_data = self._get_preview_data(layer)
+    self._preview_width, self._preview_height = self._get_preview_size(layer)
+    self._preview_scaling_factor = self._preview_width / layer.width
     
-    image_preview = pgpdb.duplicate(layer.image, metadata_only=True)
-    image_preview.resize(layer_preview_width, layer_preview_height)
+    image_preview = self._get_image_preview()
+    if image_preview is None:
+      return None
     
-    layer_preview = gimp.Layer(
-      image_preview, layer.name, layer_preview_width, layer_preview_height, layer.type,
-      layer.opacity, layer.mode)
-    
-    pdb.gimp_image_insert_layer(image_preview, layer_preview, None, 0)
-    pdb.gimp_item_set_visible(layer_preview, True)
-    image_preview.active_layer = layer_preview
-    
-    layer_preview_pixel_region = layer_preview.get_pixel_rgn(0, 0, layer_preview.width, layer_preview.height)
-    layer_preview_pixel_region[:, :] = array.array(b"B", layer_preview_data).tostring()
-    
-    return self._get_preview_pixbuf(image_preview)
-  
-  def _get_preview_pixbuf(self, image_preview):
     if image_preview.base_type != gimpenums.RGB:
       pdb.gimp_image_convert_rgb(image_preview)
     
     layer_preview = image_preview.layers[0]
-    layer_preview_pixel_region = layer_preview.get_pixel_rgn(0, 0, layer_preview.width, layer_preview.height)
-    layer_preview_array = array.array(b"B", layer_preview_pixel_region[:, :]).tostring()
     
-    # The following code is largely based on the implementation of `gimp_pixbuf_from_data`
-    # from: https://github.com/GNOME/gimp/blob/gimp-2-8/libgimp/gimppixbuf.c
-    layer_preview_pixbuf = gtk.gdk.pixbuf_new_from_data(
-      layer_preview_array, gtk.gdk.COLORSPACE_RGB, layer_preview.has_alpha, 8, layer_preview.width,
-      layer_preview.height, layer_preview.width * layer_preview.bpp)
+    if layer_preview.mask is not None:
+      layer_preview.remove_mask(gimpenums.MASK_APPLY)
     
-    if layer_preview.has_alpha:
-      layer_preview_pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
-        gtk.gdk.COLORSPACE_RGB, False, 8, layer_preview.width, layer_preview.height)
-      
-      layer_preview_pixbuf.composite_color(
-        layer_preview_pixbuf_with_alpha_background, 0, 0, layer_preview.width, layer_preview.height,
-        0, 0, 1.0, 1.0, gtk.gdk.INTERP_NEAREST, 255, 0, 0, self._PREVIEW_ALPHA_CHECK_SIZE,
-        self._PREVIEW_ALPHA_CHECK_COLOR_DARK, self._PREVIEW_ALPHA_CHECK_COLOR_BRIGHT)
-      
-      layer_preview_pixbuf = layer_preview_pixbuf_with_alpha_background
-      
+    # The layer may have been resized during the export, hence recompute the size.
+    self._preview_width, self._preview_height = self._get_preview_size(layer_preview)
+    
+    self._preview_width, self._preview_height, preview_data = self._get_preview_data(
+      layer_preview, self._preview_width, self._preview_height)
+    
+    layer_preview_pixbuf = self._get_preview_pixbuf(
+      layer_preview, self._preview_width, self._preview_height, preview_data)
+    
     self._cleanup(image_preview)
     
     return layer_preview_pixbuf
   
-  def _cleanup(self, image_preview):
-    pdb.gimp_image_delete(image_preview)
-  
-  def _get_preview_data(self, layer):
-    layer_preview_width, layer_preview_height, _unused, _unused, layer_preview_data = (
-      pdb.gimp_drawable_thumbnail(layer, *self._get_preview_size(layer)))
+  @contextlib.contextmanager
+  def _redirect_messages(self, message_handler=gimpenums.ERROR_CONSOLE):
+    orig_message_handler = pdb.gimp_message_get_handler()
+    pdb.gimp_message_set_handler(message_handler)
     
-    return layer_preview_width, layer_preview_height, layer_preview_data
+    try:
+      yield
+    finally:
+      pdb.gimp_message_set_handler(orig_message_handler)
+  
+  def _get_image_preview(self):
+    if self._layer_exporter.layer_data is not None:
+      self._layer_exporter.layer_data.reset_filter()
+    
+    with self._layer_exporter.modify_export_settings(
+      {'export_only_selected_layers': True,
+       'selected_layers': {self._layer_exporter.image.ID: set([self.layer_elem.orig_name])}}):
+      try:
+        image_preview = self._layer_exporter.export_layers(
+          operations=['layer_contents'],
+          layer_data=self._layer_exporter.layer_data,
+          keep_exported_layers=True,
+          on_after_create_image_copy_func=self._layer_exporter_on_after_create_image_copy,
+          on_after_insert_layer_func=self._layer_exporter_on_after_insert_layer)
+      except Exception:
+        image_preview = None
+        raise
+    
+    return image_preview
+  
+  def _layer_exporter_on_after_create_image_copy(self, image_copy):
+    pdb.gimp_image_resize(
+      image_copy,
+      int(round(image_copy.width * self._preview_scaling_factor)),
+      int(round(image_copy.height * self._preview_scaling_factor)),
+      0, 0)
+    
+    pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_NONE)
+  
+  def _layer_exporter_on_after_insert_layer(self, layer):
+    if not isinstance(layer, gimp.GroupLayer):
+      pdb.gimp_layer_scale(
+        layer,
+        int(round(layer.width * self._preview_scaling_factor)),
+        int(round(layer.height * self._preview_scaling_factor)),
+        False)
+  
+  def _get_preview_pixbuf(self, layer, preview_width, preview_height, preview_data):
+    # The following code is largely based on the implementation of `gimp_pixbuf_from_data`
+    # from: https://github.com/GNOME/gimp/blob/gimp-2-8/libgimp/gimppixbuf.c
+    layer_preview_pixbuf = gtk.gdk.pixbuf_new_from_data(
+      preview_data, gtk.gdk.COLORSPACE_RGB, layer.has_alpha, 8, preview_width,
+      preview_height, preview_width * layer.bpp)
+    
+    if layer.has_alpha:
+      if self.draw_checkboard_alpha_background:
+        layer_preview_pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
+          gtk.gdk.COLORSPACE_RGB, False, 8, preview_width, preview_height)
+        
+        layer_preview_pixbuf.composite_color(
+          layer_preview_pixbuf_with_alpha_background, 0, 0, preview_width, preview_height,
+          0, 0, 1.0, 1.0, gtk.gdk.INTERP_NEAREST,
+          int(round((layer.opacity / 100.0) * 255)),
+          0, 0, self._PREVIEW_ALPHA_CHECK_SIZE,
+          self._PREVIEW_ALPHA_CHECK_COLOR_DARK, self._PREVIEW_ALPHA_CHECK_COLOR_BRIGHT)
+      else:
+        layer_preview_pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
+          gtk.gdk.COLORSPACE_RGB, True, 8, preview_width, preview_height)
+        layer_preview_pixbuf_with_alpha_background.fill(0xffffff00)
+        
+        layer_preview_pixbuf.composite(
+          layer_preview_pixbuf_with_alpha_background, 0, 0, preview_width, preview_height,
+          0, 0, 1.0, 1.0, gtk.gdk.INTERP_NEAREST,
+          int(round((layer.opacity / 100.0) * 255)))
+      
+      layer_preview_pixbuf = layer_preview_pixbuf_with_alpha_background
+    
+    return layer_preview_pixbuf
+  
+  def _get_preview_data(self, layer, preview_width, preview_height):
+    actual_preview_width, actual_preview_height, _unused, _unused, preview_data = (
+      pdb.gimp_drawable_thumbnail(layer, preview_width, preview_height))
+    
+    return actual_preview_width, actual_preview_height, array.array(b"B", preview_data).tostring()
   
   def _get_preview_size(self, layer):
-    image_widget_allocation = self._preview_image.get_allocation()
-    image_widget_width = image_widget_allocation.width
-    image_widget_height = image_widget_allocation.height
+    preview_widget_allocation = self._preview_image.get_allocation()
+    preview_widget_width = preview_widget_allocation.width
+    preview_widget_height = preview_widget_allocation.height
     
-    if image_widget_width > image_widget_height:
-      layer_preview_height = min(
-        image_widget_height, layer.height, self._MAX_PREVIEW_SIZE_PIXELS)
+    if preview_widget_width > preview_widget_height:
+      layer_preview_height = min(preview_widget_height, layer.height, self._MAX_PREVIEW_SIZE_PIXELS)
       layer_preview_width = int(round((layer_preview_height / layer.height) * layer.width))
       
-      if layer_preview_width > image_widget_width:
-        layer_preview_width = image_widget_width
+      if layer_preview_width > preview_widget_width:
+        layer_preview_width = preview_widget_width
         layer_preview_height = int(round((layer_preview_width / layer.width) * layer.height))
     else:
-      layer_preview_width = min(
-        image_widget_width, layer.width, self._MAX_PREVIEW_SIZE_PIXELS)
+      layer_preview_width = min(preview_widget_width, layer.width, self._MAX_PREVIEW_SIZE_PIXELS)
       layer_preview_height = int(round((layer_preview_width / layer.width) * layer.height))
       
-      if layer_preview_height > image_widget_height:
-        layer_preview_height = image_widget_height
+      if layer_preview_height > preview_widget_height:
+        layer_preview_height = preview_widget_height
         layer_preview_width = int(round((layer_preview_height / layer.height) * layer.width))
     
     return layer_preview_width, layer_preview_height
+  
+  def _cleanup(self, image_preview):
+    pdb.gimp_image_delete(image_preview)
   
   def _on_preview_image_size_allocate(self, image_widget, allocation):
     self._is_allocated_size = True
@@ -925,7 +990,7 @@ def _set_settings(func):
         self._export_name_preview.collapsed_items)
       self._settings['main/selected_layers'].value[self._image.ID] = self._export_name_preview.selected_items
       self._settings['gui_session/export_image_preview_displayed_layers'].value[self._image.ID] = (
-        self._export_image_preview.layer_name)
+        self._export_image_preview.layer_orig_name)
     except pgsetting.SettingValueError as e:
       self._display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
       return
@@ -1399,7 +1464,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       lambda setting: self._export_name_preview.set_selected_items(setting.value[self._image.ID]))
     
     def _reset_image_in_preview(setting):
-      self._export_image_preview.layer_elem = None
+      self._export_image_preview.clear()
     
     self._settings['gui_session/export_image_preview_displayed_layers'].connect_event(
       'after-reset', _reset_image_in_preview)
