@@ -538,14 +538,12 @@ class ExportNamePreview(ExportPreview):
     self._tree_iters[new_orig_name] = tree_iter
   
   def _fill_preview(self):
-    orig_export_only_selected_layers_value = (
-      self._layer_exporter.export_settings['export_only_selected_layers'].value)
-    self._layer_exporter.export_settings['export_only_selected_layers'].set_value(False)
+    if self._layer_exporter.layer_data is not None:
+      self._layer_exporter.layer_data.reset_filter()
+      self._layer_exporter.layer_data.reset_item_elements()
     
-    self._layer_exporter.export_layers(operations=['layer_name'])
-    
-    self._layer_exporter.export_settings['export_only_selected_layers'].set_value(
-      orig_export_only_selected_layers_value)
+    with self._layer_exporter.modify_export_settings({'export_only_selected_layers': False}):
+      self._layer_exporter.export_layers(operations=['layer_name'], layer_data=self._layer_exporter.layer_data)
     
     self._tree_iters.clear()
     
