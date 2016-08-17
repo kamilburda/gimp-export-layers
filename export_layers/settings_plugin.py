@@ -211,7 +211,7 @@ def create_settings():
     {
       'type': pgsetting.SettingTypes.generic,
       'name': 'selected_layers',
-      # key: image ID; value: set of selected layer names
+      # key: image ID; value: set of selected layer IDs
       'default_value': collections.defaultdict(set),
       'display_name': _("Selected layers"),
       'pdb_type': None,

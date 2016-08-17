@@ -130,7 +130,7 @@ class LayerFilterRules(object):
   
   @staticmethod
   def is_layer_in_selected_layers(layer_elem, selected_layers):
-    return layer_elem.orig_name in selected_layers
+    return layer_elem.item.ID in selected_layers
 
 
 #===============================================================================
@@ -397,7 +397,7 @@ class LayerExporter(object):
     self._has_custom_filename_pattern = (
       self.export_settings['layer_filename_pattern'].value !=
       self.export_settings['layer_filename_pattern'].default_value)
-    # key: _ItemDataElement parent original name (None for root); value: list of pattern number generators
+    # key: _ItemDataElement parent ID (None for root); value: list of pattern number generators
     self._pattern_number_filename_generators = {None: self._filename_pattern_generator.get_number_generators()}
   
   def _enable_disable_operations(self, operations_tags):
@@ -734,7 +734,7 @@ class LayerExporter(object):
   def _rename_layer_by_pattern(self, layer_elem):
     if self._has_custom_filename_pattern:
       if self.export_settings['layer_groups_as_folders'].value:
-        parent = layer_elem.parent.orig_name if layer_elem.parent is not None else None
+        parent = layer_elem.parent.item.ID if layer_elem.parent is not None else None
         if parent not in self._pattern_number_filename_generators:
           self._pattern_number_filename_generators[parent] = self._filename_pattern_generator.reset_numbering()
         else:
