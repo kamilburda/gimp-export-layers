@@ -94,8 +94,10 @@ class ItemData(object):
     self.image = image
     self.is_filtered = is_filtered
     
+    self._filter_match_type = filter_match_type
+    
     # Filters applied to all items in self._itemdata
-    self._filter = objectfilter.ObjectFilter(filter_match_type)
+    self._filter = objectfilter.ObjectFilter(self._filter_match_type)
     
     # Contains all items (including item groups) in the item tree.
     # key: `_ItemDataElement.orig_name` (derived from `gimp.Item.name`, which is unique)
@@ -297,6 +299,28 @@ class ItemData(object):
     
     item_name_modified_externally = self._rename_item_elem(item_elem, new_item_name)
     return item_name_modified_externally
+  
+  def reset_item_elements(self):
+    """
+    Reset `name` and `tags` attributes of all `_ItemDataElement` instances
+    (regardless of instance filtering) and clear cache for already uniquified
+    and validated `_ItemDataElement` instances.
+    """
+    
+    for item_elem in self._itemdata.values():
+      item_elem.name = item_elem.orig_name
+      item_elem.tags.clear()
+    
+    self._uniquified_itemdata.clear()
+    self._uniquified_itemdata_names.clear()
+    self._validated_itemdata.clear()
+  
+  def reset_filter(self):
+    """
+    Reset the filter applied to this object.
+    """
+    
+    self._filter = objectfilter.ObjectFilter(self._filter_match_type)
   
   def _rename_item_elem(self, item_elem, new_item_name):
     new_item_name_encoded = new_item_name.encode()
@@ -554,10 +578,8 @@ class _ItemDataElement(object):
     self.tags = set()
     
     self._orig_name = self.name
-    
     self._level = len(self._parents)
     self._parent = self._parents[-1] if self._parents else None
-    
     self._item_type = None
     self._path_visible = None
   
@@ -604,6 +626,9 @@ class _ItemDataElement(object):
       self._path_visible = self._get_path_visibility()
     
     return self._path_visible
+  
+  def __str__(self):
+    return "<{0} '{1}'>".format(type(self).__name__, self.orig_name)
   
   def get_file_extension(self):
     """

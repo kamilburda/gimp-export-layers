@@ -412,6 +412,29 @@ class TestLayerData(unittest.TestCase):
     
     self.assertEqual(self.layer_data['Corners::'].name, "Corners")
     self.assertEqual(self.layer_data['Corners'].name, "Corners (1)")
+  
+  def test_reset_item_elements(self):
+    self.layer_data['Corners'].name = "Corners.png"
+    self.layer_data['Corners:'].name = "Corners.png:"
+    
+    self.layer_data.validate_name(self.layer_data['Corners'])
+    self.layer_data.uniquify_name(self.layer_data['Corners'])
+    self.layer_data.validate_name(self.layer_data['Corners:'])
+    self.layer_data.uniquify_name(self.layer_data['Corners:'])
+    
+    self.layer_data.reset_item_elements()
+    
+    self.assertEqual(self.layer_data['Corners'].name, "Corners")
+    self.assertEqual(self.layer_data['Corners:'].name, "Corners:")
+  
+  def test_reset_filter(self):
+    self.layer_data.is_filtered = True
+    self.layer_data.filter.add_rule(LayerFilterRules.is_layer)
+    
+    self.layer_data.reset_filter()
+    
+    self.assertEqual(len(self.layer_data), 20)
+
 
 @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpstubs.PdbStub())
 class TestLayerDataElement(unittest.TestCase):
@@ -419,6 +442,9 @@ class TestLayerDataElement(unittest.TestCase):
   @mock.patch(LIB_NAME + ".pgitemdata.pdb", new=gimpstubs.PdbStub())
   def setUp(self):
     self.layer_elem = pgitemdata._ItemDataElement(gimpstubs.LayerStub("main-background.jpg"))
+  
+  def test_str(self):
+    self.assertEqual(str(self.layer_elem), "<_ItemDataElement 'main-background.jpg'>")
   
   def test_get_file_extension(self):
     self.assertEqual(self.layer_elem.get_file_extension(), "jpg")
