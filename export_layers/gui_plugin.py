@@ -91,6 +91,10 @@ def _format_export_error_message(exception):
   return error_message
 
 
+def _return_none_func(*args, **kwargs):
+  return None
+
+
 #===============================================================================
 
 
@@ -140,14 +144,14 @@ def add_gui_settings(settings):
     {
       'type': pgsetting.SettingTypes.generic,
       'name': 'export_name_preview_layers_collapsed_state',
-      # key: image ID; value: set of layer names collapsed in the name preview
+      # key: image ID; value: set of layer IDs collapsed in the name preview
       'default_value': collections.defaultdict(set)
     },
     {
       'type': pgsetting.SettingTypes.generic,
       'name': 'export_image_preview_displayed_layers',
-      # key: image ID; value: name of the layer displayed in the preview
-      'default_value': collections.defaultdict(str)
+      # key: image ID; value: ID of the layer displayed in the preview
+      'default_value': collections.defaultdict(_return_none_func)
     },
   ], setting_sources=[pygimplib.config.SOURCE_SESSION])
   
@@ -162,7 +166,7 @@ def add_gui_settings(settings):
       'type': pgsetting.SettingTypes.generic,
       'name': 'export_image_preview_displayed_layers_persistent',
       # key: image filename; value: name of the layer displayed in the preview
-      'default_value': collections.defaultdict(str)
+      'default_value': collections.defaultdict(_return_none_func)
     },
   ], setting_sources=[pygimplib.config.SOURCE_PERSISTENT])
   
@@ -673,11 +677,11 @@ class ExportImagePreview(ExportPreview):
   _PREVIEW_ALPHA_CHECK_COLOR_BRIGHT = 0x99999999
   _PREVIEW_ALPHA_CHECK_COLOR_DARK = 0x66666666
   
-  def __init__(self, layer_exporter, layer_orig_name=None):
+  def __init__(self, layer_exporter, initial_previered_layer_id=None):
     super(ExportImagePreview, self).__init__()
     
     self._layer_exporter = layer_exporter
-    self._layer_orig_name = layer_orig_name
+    self._initial_previewed_layer_id = initial_previered_layer_id
     
     self.layer_elem = None
     
@@ -700,9 +704,12 @@ class ExportImagePreview(ExportPreview):
       return
     
     if self.layer_elem is None:
-      if self._layer_exporter.layer_data is not None and self._layer_orig_name in self._layer_exporter.layer_data:
-        self.layer_elem = self._layer_exporter.layer_data[self._layer_orig_name]
+      if (self._layer_exporter.layer_data is not None and
+          self._initial_previewed_layer_id in self._layer_exporter.layer_data):
+        self.layer_elem = self._layer_exporter.layer_data[self._initial_previewed_layer_id]
+        self._initial_previewed_layer_id = None
       else:
+        self._initial_previewed_layer_id = None
         return
     
     if not pdb.gimp_item_is_valid(self.layer_elem.item):
@@ -732,20 +739,13 @@ class ExportImagePreview(ExportPreview):
   def update_layer_elem(self):
     if (self.layer_elem is not None and
         self._layer_exporter.layer_data is not None and
-        self.layer_elem.orig_name in self._layer_exporter.layer_data):
-      self.layer_elem = self._layer_exporter.layer_data[self.layer_elem.orig_name]
+        self.layer_elem.item.ID in self._layer_exporter.layer_data):
+      self.layer_elem = self._layer_exporter.layer_data[self.layer_elem.item.ID]
       self._set_layer_name_label(self.layer_elem.name)
   
   @property
   def widget(self):
     return self._widget
-  
-  @property
-  def layer_orig_name(self):
-    if self.layer_elem is not None:
-      return self.layer_elem.orig_name
-    else:
-      return None
   
   def _init_gui(self):
     self._preview_image = gtk.Image()
@@ -976,7 +976,8 @@ def _set_settings(func):
         self._export_name_preview.collapsed_items)
       self._settings['main/selected_layers'].value[self._image.ID] = self._export_name_preview.selected_items
       self._settings['gui_session/export_image_preview_displayed_layers'].value[self._image.ID] = (
-        self._export_image_preview.layer_orig_name)
+        self._export_image_preview.layer_elem.item.ID
+        if self._export_image_preview.layer_elem is not None else None)
     except pgsetting.SettingValueError as e:
       self._display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
       return
@@ -1562,7 +1563,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     if response_id == gtk.RESPONSE_YES:
       self._reset_settings()
       self._save_settings()
-      self._export_image_preview.clear()
       self._display_message_label(_("Settings reset."), message_type=gtk.MESSAGE_INFO)
   
   def _suppress_gimp_progress(self):
