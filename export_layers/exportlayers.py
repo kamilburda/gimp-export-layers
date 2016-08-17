@@ -326,6 +326,26 @@ class LayerExporter(object):
     else:
       return None
   
+  @contextlib.contextmanager
+  def modify_export_settings(self, export_settings_to_modify):
+    """
+    Temporarily modify export settings specified as a dict of
+    (setting name: new setting value) pairs during the `export_layers()` method.
+    After the execution of the method, the settings are restored to their
+    original values.
+    """
+    
+    orig_setting_values = {}
+    for setting_name, new_value in export_settings_to_modify.items():
+      orig_setting_values[setting_name] = self.export_settings[setting_name].value
+      self.export_settings[setting_name].set_value(new_value)
+    
+    try:
+      yield
+    finally:
+      for setting_name, orig_value in orig_setting_values.items():
+        self.export_settings[setting_name].set_value(orig_value)
+  
   def _init_attributes(self, operations, layer_data, keep_exported_layers,
                        on_after_create_image_copy_func, on_after_insert_layer_func):
     self._enable_disable_operations(operations)
