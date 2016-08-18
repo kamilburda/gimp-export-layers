@@ -47,7 +47,7 @@ import export_layers.pygimplib as pygimplib
 from export_layers.pygimplib import objectfilter
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pgfileformats
-from export_layers.pygimplib import pgitemdata
+from export_layers.pygimplib import pgitemtree
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import progress
@@ -189,7 +189,7 @@ class LayerExporter(object):
   * `should_stop` - Can be used to stop the export prematurely. If True,
     the export is stopped after exporting the currently processed layer.
   
-  * `layer_data` - `LayerData` instance containing layers to be exported.
+  * `layer_tree` - `LayerTree` instance containing layers to be exported.
     Defaults to None if no export has been performed yet.
   
   * `exported_layers` - List of layers that were successfully exported. Does not
@@ -219,7 +219,7 @@ class LayerExporter(object):
   ]
   
   def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser=None, progress_updater=None,
-               layer_data=None, export_context_manager=None, export_context_manager_args=None):
+               layer_tree=None, export_context_manager=None, export_context_manager_args=None):
     self.initial_run_mode = initial_run_mode
     self.image = image
     self.export_settings = export_settings
@@ -235,7 +235,7 @@ class LayerExporter(object):
     else:
       self.progress_updater = progress_updater
     
-    self._layer_data = layer_data
+    self._layer_tree = layer_tree
     
     if export_context_manager is not None:
       self.export_context_manager = export_context_manager
@@ -268,14 +268,14 @@ class LayerExporter(object):
         self._operations_functions[function.__name__] = function
   
   @property
-  def layer_data(self):
-    return self._layer_data
+  def layer_tree(self):
+    return self._layer_tree
   
   @property
   def exported_layers(self):
     return self._exported_layers
   
-  def export_layers(self, operations=None, layer_data=None, keep_exported_layers=False,
+  def export_layers(self, operations=None, layer_tree=None, keep_exported_layers=False,
                     on_after_create_image_copy_func=None, on_after_insert_layer_func=None):
     """
     Export layers as separate images from the specified image.
@@ -305,7 +305,7 @@ class LayerExporter(object):
     """
     
     self._init_attributes(
-      operations, layer_data, keep_exported_layers, on_after_create_image_copy_func, on_after_insert_layer_func)
+      operations, layer_tree, keep_exported_layers, on_after_create_image_copy_func, on_after_insert_layer_func)
     self._preprocess_layers()
     
     exception_occurred = False
@@ -347,14 +347,14 @@ class LayerExporter(object):
       for setting_name, orig_value in orig_setting_values.items():
         self.export_settings[setting_name].set_value(orig_value)
   
-  def _init_attributes(self, operations, layer_data, keep_exported_layers,
+  def _init_attributes(self, operations, layer_tree, keep_exported_layers,
                        on_after_create_image_copy_func, on_after_insert_layer_func):
     self._enable_disable_operations(operations)
     
-    if layer_data is not None:
-      self._layer_data = layer_data
+    if layer_tree is not None:
+      self._layer_tree = layer_tree
     else:
-      self._layer_data = pgitemdata.LayerData(self.image, is_filtered=True)
+      self._layer_tree = pgitemtree.LayerTree(self.image, is_filtered=True)
     
     self._keep_exported_layers = keep_exported_layers
     self._on_after_create_image_copy_func = (
@@ -398,7 +398,7 @@ class LayerExporter(object):
     self._has_custom_filename_pattern = (
       self.export_settings['layer_filename_pattern'].value !=
       self.export_settings['layer_filename_pattern'].default_value)
-    # key: _ItemDataElement parent ID (None for root); value: list of pattern number generators
+    # key: _ItemTreeElement parent ID (None for root); value: list of pattern number generators
     self._pattern_number_filename_generators = {None: self._filename_pattern_generator.get_number_generators()}
   
   def _enable_disable_operations(self, operations_tags):
@@ -418,7 +418,7 @@ class LayerExporter(object):
       if keep_extension == "keep extension":
         return image_name
       else:
-        return pgitemdata.set_file_extension(image_name, "")
+        return pgitemtree.set_file_extension(image_name, "")
     
     def _get_layer_path(separator="-"):
       return separator.join(
@@ -463,13 +463,13 @@ class LayerExporter(object):
     return file_extension_properties
   
   def _preprocess_layers(self):
-    for layer_elem in self._layer_data:
+    for layer_elem in self._layer_tree:
       layer_elem.parse_tags()
     
     self._set_layer_filters()
     
-    with self._layer_data.filter['layer_types'].remove_rule_temp(LayerFilterRules.is_empty_group, False):
-      self.progress_updater.num_total_tasks = len(self._layer_data)
+    with self._layer_tree.filter['layer_types'].remove_rule_temp(LayerFilterRules.is_empty_group, False):
+      self.progress_updater.num_total_tasks = len(self._layer_tree)
     
     if self._keep_exported_layers:
       if self.progress_updater.num_total_tasks > 1:
@@ -478,46 +478,46 @@ class LayerExporter(object):
         self._keep_exported_layers = False
   
   def _set_layer_filters(self):
-    self._layer_data.filter.add_subfilter(
+    self._layer_tree.filter.add_subfilter(
       'layer_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY))
     
-    self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_layer)
+    self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_layer)
     
     if self.export_settings['merge_layer_groups'].value:
-      self._layer_data.filter.add_rule(LayerFilterRules.is_top_level)
-      self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
+      self._layer_tree.filter.add_rule(LayerFilterRules.is_top_level)
+      self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
     
     if self.export_settings['ignore_invisible'].value:
-      self._layer_data.filter.add_rule(LayerFilterRules.is_path_visible)
+      self._layer_tree.filter.add_rule(LayerFilterRules.is_path_visible)
     
     if self.export_settings['empty_folders'].value:
-      self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
+      self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
     if self.export_settings['file_extension_mode'].is_item('only_matching_file_extension'):
-      self._layer_data.filter.add_rule(LayerFilterRules.has_matching_file_extension, self._default_file_extension)
+      self._layer_tree.filter.add_rule(LayerFilterRules.has_matching_file_extension, self._default_file_extension)
     
     if self.export_settings['tagged_layers_mode'].is_item('special'):
-      with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tags, 'background'):
-        self._tagged_layer_elems['background'] = list(self._layer_data)
-      with self._layer_data.filter.add_rule_temp(LayerFilterRules.has_tags, 'foreground'):
-        self._tagged_layer_elems['foreground'] = list(self._layer_data)
+      with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags, 'background'):
+        self._tagged_layer_elems['background'] = list(self._layer_tree)
+      with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags, 'foreground'):
+        self._tagged_layer_elems['foreground'] = list(self._layer_tree)
       
-      self._layer_data.filter.add_rule(LayerFilterRules.has_no_tags, 'background', 'foreground')
+      self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags, 'background', 'foreground')
     elif self.export_settings['tagged_layers_mode'].is_item('ignore'):
-      self._layer_data.filter.add_rule(LayerFilterRules.has_no_tags)
+      self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags)
     elif self.export_settings['tagged_layers_mode'].is_item('ignore_other'):
-      self._layer_data.filter.add_rule(LayerFilterRules.has_tags)
+      self._layer_tree.filter.add_rule(LayerFilterRules.has_tags)
     
     if self.export_settings['export_only_selected_layers'].value:
-      self._layer_data.filter.add_rule(
+      self._layer_tree.filter.add_rule(
         LayerFilterRules.is_layer_in_selected_layers, self.export_settings['selected_layers'].value[self.image.ID])
     
     if (self.export_settings['layer_groups_as_folders'].value and
         self.export_settings['export_only_selected_layers'].value):
-      self._layer_data.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
+      self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
   
   def _export_layers(self):
-    for layer_elem in self._layer_data:
+    for layer_elem in self._layer_tree:
       if self.should_stop:
         raise ExportLayersCancelError("export stopped by user")
       
@@ -529,7 +529,7 @@ class LayerExporter(object):
         self._process_and_export_empty_group(layer_elem)
       else:
         raise ValueError(
-          "invalid/unsupported item type '{0}' of _ItemDataElement '{1}'".format(
+          "invalid/unsupported item type '{0}' of _ItemTreeElement '{1}'".format(
             layer_elem.item_type, layer_elem.name))
   
   def _process_and_export_item(self, layer_elem):
@@ -716,21 +716,21 @@ class LayerExporter(object):
   def _preprocess_layer_name(self, layer_elem):
     self._strip_file_extension(layer_elem)
     self._rename_layer_by_pattern(layer_elem)
-    self._layer_data.validate_name(layer_elem)
+    self._layer_tree.validate_name(layer_elem)
   
   def _preprocess_empty_group_name(self, layer_elem):
-    self._layer_data.validate_name(layer_elem)
-    self._layer_data.uniquify_name(layer_elem, self._include_item_path)
+    self._layer_tree.validate_name(layer_elem)
+    self._layer_tree.uniquify_name(layer_elem, self._include_item_path)
   
   def _process_layer_name(self, layer_elem):
     self._set_file_extension(layer_elem)
-    self._layer_data.uniquify_name(
+    self._layer_tree.uniquify_name(
       layer_elem, self._include_item_path, self._get_uniquifier_position(layer_elem.name))
   
   def _postprocess_layer_name(self, layer_elem):
     if (layer_elem.item_type == layer_elem.NONEMPTY_GROUP and
         self.export_settings['export_only_selected_layers'].value):
-      self._layer_data.reset_name(layer_elem)
+      self._layer_tree.reset_name(layer_elem)
   
   def _rename_layer_by_pattern(self, layer_elem):
     if self._has_custom_filename_pattern:

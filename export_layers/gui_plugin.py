@@ -51,7 +51,7 @@ import export_layers.pygimplib as pygimplib
 
 from export_layers.pygimplib import constants
 from export_layers.pygimplib import overwrite
-from export_layers.pygimplib import pgitemdata
+from export_layers.pygimplib import pgitemtree
 from export_layers.pygimplib import pggui
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
@@ -177,12 +177,12 @@ class ExportNamePreview(ExportPreview):
   _ICON_IMAGE_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_image.png")
   _ICON_TAG_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_tag.png")
   
-  def __init__(self, layer_exporter, initial_layer_data=None, collapsed_items=None, selected_items=None,
+  def __init__(self, layer_exporter, initial_layer_tree=None, collapsed_items=None, selected_items=None,
                on_selection_changed_func=None, on_after_update_func=None):
     super(ExportNamePreview, self).__init__()
     
     self._layer_exporter = layer_exporter
-    self._initial_layer_data = initial_layer_data
+    self._initial_layer_tree = initial_layer_tree
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
     self._selected_items = selected_items if selected_items is not None else []
     self._on_selection_changed_func = (
@@ -243,14 +243,14 @@ class ExportNamePreview(ExportPreview):
     self._set_selection()
   
   def get_layer_elems_from_selected_rows(self):
-    return [self._layer_exporter.layer_data[layer_id]
+    return [self._layer_exporter.layer_tree[layer_id]
             for layer_id in self._get_layer_ids_in_current_selection()]
   
   def get_layer_elem_from_cursor(self):
     tree_path, _unused = self._tree_view.get_cursor()
     if tree_path is not None:
       layer_id = self._get_layer_id(self._tree_model.get_iter(tree_path))
-      return self._layer_exporter.layer_data[layer_id]
+      return self._layer_exporter.layer_tree[layer_id]
     else:
       return None
   
@@ -393,12 +393,12 @@ class ExportNamePreview(ExportPreview):
       
       if len(layer_ids) == 1:
         layer_id = layer_ids[0]
-        layer_elem = self._layer_exporter.layer_data[layer_id]
+        layer_elem = self._layer_exporter.layer_tree[layer_id]
         for tag in self._layer_exporter.SUPPORTED_TAGS:
           self._tags_menu_items[tag].set_active(tag in layer_elem.tags)
       elif len(layer_ids) > 1:
         layer_elems = [
-          self._layer_exporter.layer_data[layer_id] for layer_id in layer_ids]
+          self._layer_exporter.layer_tree[layer_id] for layer_id in layer_ids]
         for tag, tags_menu_item in self._tags_menu_items.items():
           tags_menu_item.set_active(all(tag in layer_elem.tags for layer_elem in layer_elems))
       
@@ -414,13 +414,13 @@ class ExportNamePreview(ExportPreview):
       pdb.gimp_image_undo_group_start(self._layer_exporter.image)
       
       for layer_id in self._get_layer_ids_in_current_selection():
-        layer_elem = self._layer_exporter.layer_data[layer_id]
+        layer_elem = self._layer_exporter.layer_tree[layer_id]
         tag = self._tags_names[tags_menu_item.get_label()]
         
         if tags_menu_item.get_active():
-          self._layer_exporter.layer_data.add_tag(layer_elem, tag)
+          self._layer_exporter.layer_tree.add_tag(layer_elem, tag)
         else:
-          self._layer_exporter.layer_data.remove_tag(layer_elem, tag)
+          self._layer_exporter.layer_tree.remove_tag(layer_elem, tag)
       
       pdb.gimp_image_undo_group_end(self._layer_exporter.image)
       
@@ -437,25 +437,25 @@ class ExportNamePreview(ExportPreview):
   
   def _fill_preview(self, reset_completely=False):
     if not reset_completely:
-      if self._initial_layer_data is not None:
-        layer_data = self._initial_layer_data
-        self._initial_layer_data = None
+      if self._initial_layer_tree is not None:
+        layer_tree = self._initial_layer_tree
+        self._initial_layer_tree = None
       else:
-        if self._layer_exporter.layer_data is not None:
-          self._layer_exporter.layer_data.reset_filter()
-          self._layer_exporter.layer_data.reset_item_elements()
-        layer_data = self._layer_exporter.layer_data
+        if self._layer_exporter.layer_tree is not None:
+          self._layer_exporter.layer_tree.reset_filter()
+          self._layer_exporter.layer_tree.reset_item_elements()
+        layer_tree = self._layer_exporter.layer_tree
     else:
-      layer_data = None
+      layer_tree = None
     
     with self._layer_exporter.modify_export_settings({'export_only_selected_layers': False}):
-      self._layer_exporter.export_layers(operations=['layer_name'], layer_data=layer_data)
+      self._layer_exporter.export_layers(operations=['layer_name'], layer_tree=layer_tree)
     
     self._tree_iters.clear()
     
     self._enable_tagged_layers()
     
-    for layer_elem in self._layer_exporter.layer_data:
+    for layer_elem in self._layer_exporter.layer_tree:
       if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
         self._insert_parent_item_elems(layer_elem)
       self._insert_item_elem(layer_elem)
@@ -486,15 +486,15 @@ class ExportNamePreview(ExportPreview):
   
   def _enable_tagged_layers(self):
     if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
-      self._layer_exporter.layer_data.filter.remove_rule(
+      self._layer_exporter.layer_tree.filter.remove_rule(
         exportlayers.LayerFilterRules.has_no_tags, raise_if_not_found=False)
   
   def _set_sensitive_tagged_layers(self):
     if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
-      with self._layer_exporter.layer_data.filter.add_rule_temp(
+      with self._layer_exporter.layer_tree.filter.add_rule_temp(
         exportlayers.LayerFilterRules.has_tags, *self._layer_exporter.SUPPORTED_TAGS.keys()):
         
-        for layer_elem in self._layer_exporter.layer_data:
+        for layer_elem in self._layer_exporter.layer_tree:
           self._set_item_elem_sensitive(layer_elem, False)
           if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
             self._set_parent_item_elem_sensitive(layer_elem)
@@ -557,14 +557,14 @@ class ExportNamePreview(ExportPreview):
     self._row_expand_collapse_interactive = True
   
   def _remove_no_longer_valid_collapsed_items(self):
-    if self._layer_exporter.layer_data is None:
+    if self._layer_exporter.layer_tree is None:
       return
     
-    self._layer_exporter.layer_data.is_filtered = False
+    self._layer_exporter.layer_tree.is_filtered = False
     self._collapsed_items = set(
       [collapsed_item for collapsed_item in self._collapsed_items
-       if collapsed_item in self._layer_exporter.layer_data])
-    self._layer_exporter.layer_data.is_filtered = True
+       if collapsed_item in self._layer_exporter.layer_tree])
+    self._layer_exporter.layer_tree.is_filtered = True
   
   def _set_selection(self):
     self._row_select_interactive = False
@@ -593,11 +593,11 @@ class ExportImagePreview(ExportPreview):
   _PREVIEW_ALPHA_CHECK_COLOR_BRIGHT = 0x99999999
   _PREVIEW_ALPHA_CHECK_COLOR_DARK = 0x66666666
   
-  def __init__(self, layer_exporter, initial_layer_data=None, initial_previered_layer_id=None):
+  def __init__(self, layer_exporter, initial_layer_tree=None, initial_previered_layer_id=None):
     super(ExportImagePreview, self).__init__()
     
     self._layer_exporter = layer_exporter
-    self._initial_layer_data = initial_layer_data
+    self._initial_layer_tree = initial_layer_tree
     self._initial_previewed_layer_id = initial_previered_layer_id
     
     self.layer_elem = None
@@ -621,9 +621,9 @@ class ExportImagePreview(ExportPreview):
       return
     
     if self.layer_elem is None:
-      if (self._layer_exporter.layer_data is not None and
-          self._initial_previewed_layer_id in self._layer_exporter.layer_data):
-        self.layer_elem = self._layer_exporter.layer_data[self._initial_previewed_layer_id]
+      if (self._layer_exporter.layer_tree is not None and
+          self._initial_previewed_layer_id in self._layer_exporter.layer_tree):
+        self.layer_elem = self._layer_exporter.layer_tree[self._initial_previewed_layer_id]
         self._initial_previewed_layer_id = None
       else:
         self._initial_previewed_layer_id = None
@@ -655,9 +655,9 @@ class ExportImagePreview(ExportPreview):
   
   def update_layer_elem(self):
     if (self.layer_elem is not None and
-        self._layer_exporter.layer_data is not None and
-        self.layer_elem.item.ID in self._layer_exporter.layer_data):
-      self.layer_elem = self._layer_exporter.layer_data[self.layer_elem.item.ID]
+        self._layer_exporter.layer_tree is not None and
+        self.layer_elem.item.ID in self._layer_exporter.layer_tree):
+      self.layer_elem = self._layer_exporter.layer_tree[self.layer_elem.item.ID]
       self._set_layer_name_label(self.layer_elem.name)
   
   @property
@@ -721,21 +721,21 @@ class ExportImagePreview(ExportPreview):
       pdb.gimp_message_set_handler(orig_message_handler)
   
   def _get_image_preview(self):
-    if self._layer_exporter.layer_data is not None:
-      self._layer_exporter.layer_data.reset_filter()
+    if self._layer_exporter.layer_tree is not None:
+      self._layer_exporter.layer_tree.reset_filter()
     
-    if self._initial_layer_data is not None:
-      layer_data = self._initial_layer_data
-      self._initial_layer_data = None
+    if self._initial_layer_tree is not None:
+      layer_tree = self._initial_layer_tree
+      self._initial_layer_tree = None
     else:
-      layer_data = self._layer_exporter.layer_data
+      layer_tree = self._layer_exporter.layer_tree
     
     with self._layer_exporter.modify_export_settings(
       {'export_only_selected_layers': True,
        'selected_layers': {self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}}):
       try:
         image_preview = self._layer_exporter.export_layers(
-          operations=['layer_contents'], layer_data=layer_data, keep_exported_layers=True,
+          operations=['layer_contents'], layer_tree=layer_tree, keep_exported_layers=True,
           on_after_create_image_copy_func=self._layer_exporter_on_after_create_image_copy,
           on_after_insert_layer_func=self._layer_exporter_on_after_insert_layer)
       except Exception:
@@ -1077,11 +1077,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   _DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS = 100
   _DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS = 10000
   
-  def __init__(self, initial_layer_data, settings):
+  def __init__(self, initial_layer_tree, settings):
     super(_ExportLayersGui, self).__init__()
     
-    self._initial_layer_data = initial_layer_data
-    self._image = self._initial_layer_data.image
+    self._initial_layer_tree = initial_layer_tree
+    self._image = self._initial_layer_tree.image
     self._settings = settings
     
     self._is_exporting = False
@@ -1092,7 +1092,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       gimpenums.RUN_NONINTERACTIVE, self._image, self._settings['main'],
       overwrite_chooser=overwrite.NoninteractiveOverwriteChooser(
         self._settings['main/overwrite_mode'].items['replace']),
-      layer_data=self._initial_layer_data)
+      layer_tree=self._initial_layer_tree)
     
     self._init_settings()
     
@@ -1111,14 +1111,14 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     settings_plugin.setup_image_ids_and_filenames_settings(
       self._settings['gui_session/export_name_preview_layers_collapsed_state'],
       self._settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'],
-      settings_plugin.convert_set_of_layer_ids_to_names, [self._layer_exporter_for_previews.layer_data],
-      settings_plugin.convert_set_of_layer_names_to_ids, [self._layer_exporter_for_previews.layer_data])
+      settings_plugin.convert_set_of_layer_ids_to_names, [self._layer_exporter_for_previews.layer_tree],
+      settings_plugin.convert_set_of_layer_names_to_ids, [self._layer_exporter_for_previews.layer_tree])
     
     settings_plugin.setup_image_ids_and_filenames_settings(
       self._settings['gui_session/export_image_preview_displayed_layers'],
       self._settings['gui_persistent/export_image_preview_displayed_layers_persistent'],
-      settings_plugin.convert_layer_id_to_name, [self._layer_exporter_for_previews.layer_data],
-      settings_plugin.convert_layer_name_to_id, [self._layer_exporter_for_previews.layer_data])
+      settings_plugin.convert_layer_id_to_name, [self._layer_exporter_for_previews.layer_tree],
+      settings_plugin.convert_layer_name_to_id, [self._layer_exporter_for_previews.layer_tree])
     
     status, status_message = self._settings.load()
     if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
@@ -1147,7 +1147,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._export_name_preview = ExportNamePreview(
       self._layer_exporter_for_previews,
-      self._initial_layer_data,
+      self._initial_layer_tree,
       self._settings['gui_session/export_name_preview_layers_collapsed_state'].value[self._image.ID],
       self._settings['main/selected_layers'].value[self._image.ID],
       on_selection_changed_func=self._on_name_preview_selection_changed,
@@ -1155,7 +1155,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._export_image_preview = ExportImagePreview(
       self._layer_exporter_for_previews,
-      self._initial_layer_data,
+      self._initial_layer_tree,
       self._settings['gui_session/export_image_preview_displayed_layers'].value[self._image.ID])
     
     self._vbox_folder_chooser = gtk.VBox(homogeneous=False)
@@ -1458,8 +1458,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._filename_pattern_entry.hide()
   
   def _on_dialog_is_active_changed(self, widget, property_spec):
-    if self._initial_layer_data is not None:
-      self._initial_layer_data = None
+    if self._initial_layer_tree is not None:
+      self._initial_layer_tree = None
       return
     
     if self._dialog.is_active() and not self._is_exporting:
@@ -1736,13 +1736,13 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
   _HBOX_HORIZONTAL_SPACING = 8
   _DIALOG_WIDTH = 500
   
-  def __init__(self, layer_data, settings):
+  def __init__(self, layer_tree, settings):
     super(_ExportLayersRepeatGui, self).__init__()
 
     self._init_gui()
     
-    self._layer_data = layer_data
-    self._image = self._layer_data.image
+    self._layer_tree = layer_tree
+    self._image = self._layer_tree.image
     self._settings = settings
     
     pgsettingpersistor.SettingPersistor.load([self._settings['main']], [pygimplib.config.SOURCE_SESSION])
@@ -1792,7 +1792,7 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
       pggui.GtkProgressUpdater(self._progress_bar),
       export_context_manager=_handle_gui_in_export, export_context_manager_args=[self._dialog])
     try:
-      self._layer_exporter.export_layers(layer_data=self._layer_data)
+      self._layer_exporter.export_layers(layer_tree=self._layer_tree)
     except exportlayers.ExportLayersCancelError:
       pass
     except exportlayers.ExportLayersError as e:

@@ -39,7 +39,7 @@ from .. import pygimplib
 pygimplib.init()
 
 from ..pygimplib import pgfileformats
-from ..pygimplib import pgitemdata
+from ..pygimplib import pgitemtree
 from ..pygimplib import pgpdb
 from ..pygimplib import pgsettinggroup
 
@@ -173,8 +173,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
                    self.default_expected_layers_dir, 'background', 'crop_mode', 'use_image_size'))
   
   def test_foreground(self):
-    layer_data = pgitemdata.LayerData(self.test_image)
-    for layer_elem in layer_data:
+    layer_tree = pgitemtree.LayerTree(self.test_image)
+    for layer_elem in layer_tree:
       layer_elem.item.name = layer_elem.item.name.replace("[background]", "[foreground]")
     
     self.compare({

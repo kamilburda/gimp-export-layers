@@ -377,28 +377,28 @@ def setup_image_ids_and_filenames_settings(image_ids_dict_setting, image_filenam
 
 
 def convert_set_of_layer_ids_to_names(image_id, image_filename, image_ids_setting,
-                                      image_filenames_setting, layer_data):
+                                      image_filenames_setting, layer_tree):
   image_filenames_setting.value[image_filename] = set(
-    [layer_data[layer_id].orig_name for layer_id in image_ids_setting.value[image_id]
-     if layer_id in layer_data])
+    [layer_tree[layer_id].orig_name for layer_id in image_ids_setting.value[image_id]
+     if layer_id in layer_tree])
 
 
 def convert_set_of_layer_names_to_ids(image_id, image_filename, image_ids_setting,
-                                      image_filenames_setting, layer_data):
+                                      image_filenames_setting, layer_tree):
   image_ids_setting.value[image_id] = set(
-    [layer_data[layer_orig_name].item.ID for layer_orig_name in image_filenames_setting.value[image_filename]
-     if layer_orig_name in layer_data])
+    [layer_tree[layer_orig_name].item.ID for layer_orig_name in image_filenames_setting.value[image_filename]
+     if layer_orig_name in layer_tree])
 
 
 def convert_layer_id_to_name(image_id, image_filename, image_ids_setting,
-                             image_filenames_setting, layer_data):
+                             image_filenames_setting, layer_tree):
   layer_id = image_ids_setting.value[image_id]
   image_filenames_setting.value[image_filename] = (
-    layer_data[layer_id].orig_name if layer_id in layer_data else None)
+    layer_tree[layer_id].orig_name if layer_id in layer_tree else None)
 
 
 def convert_layer_name_to_id(image_id, image_filename, image_ids_setting,
-                             image_filenames_setting, layer_data):
+                             image_filenames_setting, layer_tree):
   layer_orig_name = image_filenames_setting.value[image_filename]
   image_ids_setting.value[image_id] = (
-    layer_data[layer_orig_name].item.ID if layer_orig_name in layer_data else None)
+    layer_tree[layer_orig_name].item.ID if layer_orig_name in layer_tree else None)

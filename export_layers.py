@@ -41,7 +41,7 @@ import export_layers.config
 
 pygimplib.init()
 
-from export_layers.pygimplib import pgitemdata
+from export_layers.pygimplib import pgitemtree
 from export_layers.pygimplib import pgsettingpersistor
 
 from export_layers import exportlayers
@@ -67,15 +67,15 @@ def plug_in_export_layers(run_mode, image, *args):
   settings['special/run_mode'].set_value(run_mode)
   settings['special/image'].set_value(image)
   
-  layer_data = pgitemdata.LayerData(image, is_filtered=True)
-  _setup_settings_additional(settings, layer_data)
+  layer_tree = pgitemtree.LayerTree(image, is_filtered=True)
+  _setup_settings_additional(settings, layer_tree)
   
   if run_mode == gimpenums.RUN_INTERACTIVE:
-    _run_export_layers_interactive(layer_data)
+    _run_export_layers_interactive(layer_tree)
   elif run_mode == gimpenums.RUN_WITH_LAST_VALS:
-    _run_with_last_vals(layer_data)
+    _run_with_last_vals(layer_tree)
   else:
-    _run_noninteractive(layer_data, args)
+    _run_noninteractive(layer_tree, args)
 
 
 @pygimplib.plugin(
@@ -90,56 +90,56 @@ def plug_in_export_layers(run_mode, image, *args):
   parameters=[settings['special']]
 )
 def plug_in_export_layers_repeat(run_mode, image):
-  layer_data = pgitemdata.LayerData(image, is_filtered=True)
-  _setup_settings_additional(settings, layer_data)
+  layer_tree = pgitemtree.LayerTree(image, is_filtered=True)
+  _setup_settings_additional(settings, layer_tree)
   
   if run_mode == gimpenums.RUN_INTERACTIVE:
     settings['special/first_plugin_run'].load()
     if settings['special/first_plugin_run'].value:
-      _run_export_layers_interactive(layer_data)
+      _run_export_layers_interactive(layer_tree)
     else:
-      _run_export_layers_repeat_interactive(layer_data)
+      _run_export_layers_repeat_interactive(layer_tree)
   else:
-    _run_with_last_vals(layer_data)
+    _run_with_last_vals(layer_tree)
 
 
-def _setup_settings_additional(settings, layer_data):
+def _setup_settings_additional(settings, layer_tree):
   settings_plugin.setup_image_ids_and_filenames_settings(
     settings['main/selected_layers'], settings['main/selected_layers_persistent'],
-    settings_plugin.convert_set_of_layer_ids_to_names, [layer_data],
-    settings_plugin.convert_set_of_layer_names_to_ids, [layer_data])
+    settings_plugin.convert_set_of_layer_ids_to_names, [layer_tree],
+    settings_plugin.convert_set_of_layer_names_to_ids, [layer_tree])
 
 
-def _run_noninteractive(layer_data, args):
+def _run_noninteractive(layer_tree, args):
   for setting, arg in zip(settings['main'], args):
     if isinstance(arg, bytes):
       arg = arg.decode()
     setting.set_value(arg)
   
-  _run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, layer_data)
+  _run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, layer_tree)
 
 
-def _run_with_last_vals(layer_data):
+def _run_with_last_vals(layer_tree):
   status, status_message = settings['main'].load()
   if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
     print(status_message)
   
-  _run_plugin_noninteractive(gimpenums.RUN_WITH_LAST_VALS, layer_data)
+  _run_plugin_noninteractive(gimpenums.RUN_WITH_LAST_VALS, layer_tree)
 
 
-def _run_export_layers_interactive(layer_data):
-  gui_plugin.export_layers_gui(layer_data, settings)
+def _run_export_layers_interactive(layer_tree):
+  gui_plugin.export_layers_gui(layer_tree, settings)
 
 
-def _run_export_layers_repeat_interactive(layer_data):
-  gui_plugin.export_layers_repeat_gui(layer_data, settings)
+def _run_export_layers_repeat_interactive(layer_tree):
+  gui_plugin.export_layers_repeat_gui(layer_tree, settings)
 
 
-def _run_plugin_noninteractive(run_mode, layer_data):
-  layer_exporter = exportlayers.LayerExporter(run_mode, layer_data.image, settings['main'])
+def _run_plugin_noninteractive(run_mode, layer_tree):
+  layer_exporter = exportlayers.LayerExporter(run_mode, layer_tree.image, settings['main'])
   
   try:
-    layer_exporter.export_layers(layer_data=layer_data)
+    layer_exporter.export_layers(layer_tree=layer_tree)
   except exportlayers.ExportLayersCancelError as e:
     print(str(e))
   except exportlayers.ExportLayersError as e:
