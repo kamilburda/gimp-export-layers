@@ -91,7 +91,7 @@ class ItemData(object):
   __metaclass__ = abc.ABCMeta
   
   def __init__(self, image, is_filtered=False, filter_match_type=objectfilter.ObjectFilter.MATCH_ALL):
-    self.image = image
+    self._image = image
     self.is_filtered = is_filtered
     
     self._filter_match_type = filter_match_type
@@ -117,6 +117,10 @@ class ItemData(object):
     self._validated_itemdata = set()
     
     self._fill_item_data()
+  
+  @property
+  def image(self):
+    return self._image
   
   @property
   def filter(self):
@@ -353,7 +357,7 @@ class ItemData(object):
     Fill the `_itemdata` and `_itemdata_names` dictionaries.
     """
     
-    child_items = self._get_children_from_image(self.image)
+    child_items = self._get_children_from_image(self._image)
     child_item_elems = [_ItemDataElement(item, [], None) for item in child_items]
     
     item_elem_tree = child_item_elems
