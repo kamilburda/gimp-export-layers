@@ -1458,6 +1458,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._filename_pattern_entry.hide()
   
   def _on_dialog_is_active_changed(self, widget, property_spec):
+    if self._initial_layer_data is not None:
+      self._initial_layer_data = None
+      return
+    
     if self._dialog.is_active() and not self._is_exporting:
       self._export_name_preview.update(reset_completely=True)
       self._export_image_preview.update()
