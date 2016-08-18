@@ -330,9 +330,7 @@ class ItemTree(object):
     
     del self._itemtree_names[item_elem.orig_name]
     
-    # We break the convention here and access the `_ItemTreeElement._orig_name`
-    # private attribute.
-    item_elem._orig_name = item_elem.item.name.decode()
+    item_elem.update_orig_name()
     
     self._itemtree_names[item_elem.orig_name] = item_elem
     
@@ -710,6 +708,14 @@ class _ItemTreeElement(object):
     if tags:
       self.name = self.name[index:]
       self.tags.update(tags)
+  
+  def update_orig_name(self):
+    """
+    Refresh the `orig_name` attribute. This is useful if you need to keep this
+    attribute up-to-date in case `gimp.Item.name` is modified.
+    """
+    
+    self._orig_name = self.item.name.decode()
   
   def _get_path_visibility(self):
     """
