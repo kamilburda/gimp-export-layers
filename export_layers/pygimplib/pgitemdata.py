@@ -174,19 +174,6 @@ class ItemData(object):
         if self._filter.is_match(item_elem):
           yield item_elem
   
-  def _items(self):
-    """
-    Yield current (`gimp.Item.name`, `_ItemDataElement` object) tuple.
-    """
-    
-    if not self.is_filtered:
-      for name, item_elem in self._itemdata.items():
-        yield name, item_elem
-    else:
-      for name, item_elem in self._itemdata.items():
-        if self._filter.is_match(item_elem):
-          yield name, item_elem
-  
   def uniquify_name(self, item_elem, include_item_path=True,
                     uniquifier_position=None, uniquifier_position_parents=None):
     """
