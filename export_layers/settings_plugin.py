@@ -289,9 +289,6 @@ def create_settings():
   main_settings['tagged_layers_mode'].connect_event('value-changed',
     on_tagged_layers_mode_changed, main_settings['autocrop'], main_settings['crop_mode'])
   
-  setup_image_ids_and_filenames_settings(
-    main_settings['selected_layers'], main_settings['selected_layers_persistent'])
-  
   #-----------------------------------------------------------------------------
   
   settings = pgsettinggroup.SettingGroup('all_settings', [special_settings, main_settings])
@@ -309,7 +306,11 @@ def create_settings():
 #===============================================================================
 
 
-def setup_image_ids_and_filenames_settings(image_ids_dict_setting, image_filenames_dict_setting):
+def setup_image_ids_and_filenames_settings(image_ids_dict_setting, image_filenames_dict_setting,
+                                           convert_value_first_second_func=None,
+                                           convert_value_first_second_func_args=None,
+                                           convert_value_second_first_func=None,
+                                           convert_value_second_first_func_args=None):
   """
   Set up a connection between a setting with a dict of (image ID, value) pairs
   and a setting with a dict of (image filename, value) pairs. This function
@@ -319,27 +320,85 @@ def setup_image_ids_and_filenames_settings(image_ids_dict_setting, image_filenam
   
   The rationale behind using two settings is that the IDs of images do not
   change during a GIMP session while the their filenames can.
+  
+  Optionally, instead of direct assignment of values between the settings, you
+  may pass callbacks that convert values (separate callbacks for first setting
+  value to second and vice versa) along with optional arguments. The callbacks
+  must accept at least four arguments - current image ID, current image filename
+  (full path), the first setting and the second setting.
   """
+  
+  def _assign_image_ids_to_filenames(image_id, image_filename, image_ids_setting, image_filenames_setting):
+    image_filenames_setting.value[image_filename] = image_ids_setting.value[image_id]
+  
+  def _assign_image_filenames_to_ids(image_id, image_filename, image_ids_setting, image_filenames_setting):
+    image_ids_setting.value[image_id] = image_filenames_setting.value[image_filename]
+  
+  _first_second_assign_func = (
+    convert_value_first_second_func if convert_value_first_second_func is not None
+    else _assign_image_ids_to_filenames)
+  
+  if convert_value_first_second_func_args is None:
+    convert_value_first_second_func_args = []
+  
+  _second_first_assign_func = (
+    convert_value_second_first_func if convert_value_second_first_func is not None
+    else _assign_image_filenames_to_ids)
+  
+  if convert_value_second_first_func_args is None:
+    convert_value_second_first_func_args = []
   
   def _remove_invalid_image_filenames(image_filenames_dict_setting):
     for image_filename, values in list(image_filenames_dict_setting.value.items()):
       if not(os.path.isfile(image_filename) and values):
         del image_filenames_dict_setting.value[image_filename]
   
-  def _update_image_ids(image_ids_dict_setting, image_filenames_dict_setting):
-    current_images = gimp.image_list()
-    
-    for image in current_images:
-      if image.ID not in image_ids_dict_setting.value and image.filename in image_filenames_dict_setting.value:
-        image_ids_dict_setting.value[image.ID] = image_filenames_dict_setting.value[os.path.abspath(image.filename)]
-  
   def _update_image_filenames(image_filenames_dict_setting, image_ids_dict_setting):
     current_images = gimp.image_list()
     
     for image in current_images:
       if image.ID in image_ids_dict_setting.value and image.filename:
-        image_filenames_dict_setting.value[os.path.abspath(image.filename)] = image_ids_dict_setting.value[image.ID]
+        _first_second_assign_func(
+          image.ID, os.path.abspath(image.filename),
+          image_ids_dict_setting, image_filenames_dict_setting, *convert_value_first_second_func_args)
+  
+  def _update_image_ids(image_ids_dict_setting, image_filenames_dict_setting):
+    current_images = gimp.image_list()
+    
+    for image in current_images:
+      if image.ID not in image_ids_dict_setting.value and image.filename in image_filenames_dict_setting.value:
+        _second_first_assign_func(
+          image.ID, os.path.abspath(image.filename),
+          image_ids_dict_setting, image_filenames_dict_setting, *convert_value_second_first_func_args)
   
   image_filenames_dict_setting.connect_event('after-load-group', _remove_invalid_image_filenames)
-  image_ids_dict_setting.connect_event('after-load-group', _update_image_ids, image_filenames_dict_setting)
   image_filenames_dict_setting.connect_event('before-save', _update_image_filenames, image_ids_dict_setting)
+  image_ids_dict_setting.connect_event('after-load-group', _update_image_ids, image_filenames_dict_setting)
+
+
+def convert_set_of_layer_ids_to_names(image_id, image_filename, image_ids_setting,
+                                      image_filenames_setting, layer_data):
+  image_filenames_setting.value[image_filename] = set(
+    [layer_data[layer_id].orig_name for layer_id in image_ids_setting.value[image_id]
+     if layer_id in layer_data])
+
+
+def convert_set_of_layer_names_to_ids(image_id, image_filename, image_ids_setting,
+                                      image_filenames_setting, layer_data):
+  image_ids_setting.value[image_id] = set(
+    [layer_data[layer_orig_name].item.ID for layer_orig_name in image_filenames_setting.value[image_filename]
+     if layer_orig_name in layer_data])
+
+
+def convert_layer_id_to_name(image_id, image_filename, image_ids_setting,
+                             image_filenames_setting, layer_data):
+  layer_id = image_ids_setting.value[image_id]
+  image_filenames_setting.value[image_filename] = (
+    layer_data[layer_id].orig_name if layer_id in layer_data else None)
+
+
+def convert_layer_name_to_id(image_id, image_filename, image_ids_setting,
+                             image_filenames_setting, layer_data):
+  layer_orig_name = image_filenames_setting.value[image_filename]
+  image_ids_setting.value[image_id] = (
+    layer_data[layer_orig_name].item.ID if layer_orig_name in layer_data else None)

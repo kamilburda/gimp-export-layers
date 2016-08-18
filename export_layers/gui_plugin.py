@@ -51,6 +51,7 @@ import export_layers.pygimplib as pygimplib
 
 from export_layers.pygimplib import constants
 from export_layers.pygimplib import overwrite
+from export_layers.pygimplib import pgitemdata
 from export_layers.pygimplib import pggui
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
@@ -94,96 +95,6 @@ def _format_export_error_message(exception):
 def _return_none_func(*args, **kwargs):
   return None
 
-
-#===============================================================================
-
-
-def add_gui_settings(settings):
-  
-  gui_settings = pgsettinggroup.SettingGroup('gui', [
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'dialog_position',
-      'default_value': ()
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'show_more_settings',
-      'default_value': False
-    },
-    {
-      'type': pgsetting.SettingTypes.integer,
-      'name': 'chooser_and_previews_hpane_position',
-      'default_value': 620
-    },
-    {
-      'type': pgsetting.SettingTypes.float,
-      'name': 'previews_vpane_position',
-      'default_value': 300
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'export_name_preview_enabled',
-      'default_value': True,
-      'gui_type': None
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'export_image_preview_enabled',
-      'default_value': True,
-      'gui_type': None
-    },
-  ], setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
-  
-  session_only_gui_settings = pgsettinggroup.SettingGroup('gui_session', [
-    {
-      'type': pgsetting.SettingTypes.image_IDs_and_directories,
-      'name': 'image_ids_and_directories',
-      'default_value': {}
-    },
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'export_name_preview_layers_collapsed_state',
-      # key: image ID; value: set of layer IDs collapsed in the name preview
-      'default_value': collections.defaultdict(set)
-    },
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'export_image_preview_displayed_layers',
-      # key: image ID; value: ID of the layer displayed in the preview
-      'default_value': collections.defaultdict(_return_none_func)
-    },
-  ], setting_sources=[pygimplib.config.SOURCE_SESSION])
-  
-  persistent_only_gui_settings = pgsettinggroup.SettingGroup('gui_persistent', [
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'export_name_preview_layers_collapsed_state_persistent',
-      # key: image filename; value: set of layer names collapsed in the name preview
-      'default_value': collections.defaultdict(set)
-    },
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'export_image_preview_displayed_layers_persistent',
-      # key: image filename; value: name of the layer displayed in the preview
-      'default_value': collections.defaultdict(_return_none_func)
-    },
-  ], setting_sources=[pygimplib.config.SOURCE_PERSISTENT])
-  
-  settings.add([gui_settings, session_only_gui_settings, persistent_only_gui_settings])
-  
-  settings_plugin.setup_image_ids_and_filenames_settings(
-    settings['gui_session/export_name_preview_layers_collapsed_state'],
-    settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'])
-  
-  settings_plugin.setup_image_ids_and_filenames_settings(
-    settings['gui_session/export_image_preview_displayed_layers'],
-    settings['gui_persistent/export_image_preview_displayed_layers_persistent'])
-  
-  settings.set_ignore_tags({
-    'gui_session/image_ids_and_directories': ['reset'],
-  })
-  
 
 #===============================================================================
 
@@ -266,11 +177,12 @@ class ExportNamePreview(ExportPreview):
   _ICON_IMAGE_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_image.png")
   _ICON_TAG_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_tag.png")
   
-  def __init__(self, layer_exporter, collapsed_items=None, selected_items=None,
+  def __init__(self, layer_exporter, initial_layer_data=None, collapsed_items=None, selected_items=None,
                on_selection_changed_func=None, on_after_update_func=None):
     super(ExportNamePreview, self).__init__()
     
     self._layer_exporter = layer_exporter
+    self._initial_layer_data = initial_layer_data
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
     self._selected_items = selected_items if selected_items is not None else []
     self._on_selection_changed_func = (
@@ -525,10 +437,14 @@ class ExportNamePreview(ExportPreview):
   
   def _fill_preview(self, reset_completely=False):
     if not reset_completely:
-      layer_data = self._layer_exporter.layer_data
-      if self._layer_exporter.layer_data is not None:
-        self._layer_exporter.layer_data.reset_filter()
-        self._layer_exporter.layer_data.reset_item_elements()
+      if self._initial_layer_data is not None:
+        layer_data = self._initial_layer_data
+        self._initial_layer_data = None
+      else:
+        if self._layer_exporter.layer_data is not None:
+          self._layer_exporter.layer_data.reset_filter()
+          self._layer_exporter.layer_data.reset_item_elements()
+        layer_data = self._layer_exporter.layer_data
     else:
       layer_data = None
     
@@ -677,10 +593,11 @@ class ExportImagePreview(ExportPreview):
   _PREVIEW_ALPHA_CHECK_COLOR_BRIGHT = 0x99999999
   _PREVIEW_ALPHA_CHECK_COLOR_DARK = 0x66666666
   
-  def __init__(self, layer_exporter, initial_previered_layer_id=None):
+  def __init__(self, layer_exporter, initial_layer_data=None, initial_previered_layer_id=None):
     super(ExportImagePreview, self).__init__()
     
     self._layer_exporter = layer_exporter
+    self._initial_layer_data = initial_layer_data
     self._initial_previewed_layer_id = initial_previered_layer_id
     
     self.layer_elem = None
@@ -807,14 +724,18 @@ class ExportImagePreview(ExportPreview):
     if self._layer_exporter.layer_data is not None:
       self._layer_exporter.layer_data.reset_filter()
     
+    if self._initial_layer_data is not None:
+      layer_data = self._initial_layer_data
+      self._initial_layer_data = None
+    else:
+      layer_data = self._layer_exporter.layer_data
+    
     with self._layer_exporter.modify_export_settings(
       {'export_only_selected_layers': True,
        'selected_layers': {self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}}):
       try:
         image_preview = self._layer_exporter.export_layers(
-          operations=['layer_contents'],
-          layer_data=self._layer_exporter.layer_data,
-          keep_exported_layers=True,
+          operations=['layer_contents'], layer_data=layer_data, keep_exported_layers=True,
           on_after_create_image_copy_func=self._layer_exporter_on_after_create_image_copy,
           on_after_insert_layer_func=self._layer_exporter_on_after_insert_layer)
       except Exception:
@@ -954,6 +875,88 @@ class _ExportLayersGenericGui(object):
 #===============================================================================
 
 
+def add_gui_settings(settings):
+  
+  gui_settings = pgsettinggroup.SettingGroup('gui', [
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'dialog_position',
+      'default_value': ()
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'show_more_settings',
+      'default_value': False
+    },
+    {
+      'type': pgsetting.SettingTypes.integer,
+      'name': 'chooser_and_previews_hpane_position',
+      'default_value': 620
+    },
+    {
+      'type': pgsetting.SettingTypes.float,
+      'name': 'previews_vpane_position',
+      'default_value': 300
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'export_name_preview_enabled',
+      'default_value': True,
+      'gui_type': None
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'export_image_preview_enabled',
+      'default_value': True,
+      'gui_type': None
+    },
+  ], setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+  
+  session_only_gui_settings = pgsettinggroup.SettingGroup('gui_session', [
+    {
+      'type': pgsetting.SettingTypes.image_IDs_and_directories,
+      'name': 'image_ids_and_directories',
+      'default_value': {}
+    },
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'export_name_preview_layers_collapsed_state',
+      # key: image ID; value: set of layer IDs collapsed in the name preview
+      'default_value': collections.defaultdict(set)
+    },
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'export_image_preview_displayed_layers',
+      # key: image ID; value: ID of the layer displayed in the preview
+      'default_value': collections.defaultdict(_return_none_func)
+    },
+  ], setting_sources=[pygimplib.config.SOURCE_SESSION])
+  
+  persistent_only_gui_settings = pgsettinggroup.SettingGroup('gui_persistent', [
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'export_name_preview_layers_collapsed_state_persistent',
+      # key: image filename; value: set of layer names collapsed in the name preview
+      'default_value': collections.defaultdict(set)
+    },
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'export_image_preview_displayed_layers_persistent',
+      # key: image filename; value: name of the layer displayed in the preview
+      'default_value': collections.defaultdict(_return_none_func)
+    },
+  ], setting_sources=[pygimplib.config.SOURCE_PERSISTENT])
+  
+  settings.add([gui_settings, session_only_gui_settings, persistent_only_gui_settings])
+  
+  settings.set_ignore_tags({
+    'gui_session/image_ids_and_directories': ['reset'],
+  })
+  
+
+#===============================================================================
+
+
 def _set_settings(func):
   """
   This is a decorator for `SettingGroup.apply_gui_values_to_settings()` that
@@ -1074,28 +1077,24 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   _DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS = 100
   _DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS = 10000
   
-  def __init__(self, image, settings):
+  def __init__(self, initial_layer_data, settings):
     super(_ExportLayersGui, self).__init__()
     
-    self._image = image
+    self._initial_layer_data = initial_layer_data
+    self._image = self._initial_layer_data.image
     self._settings = settings
     
     self._is_exporting = False
     
-    add_gui_settings(settings)
+    self._suppress_gimp_progress()
     
-    status, status_message = self._settings.load()
-    if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
-      display_message(status_message, gtk.MESSAGE_WARNING)
+    self._layer_exporter_for_previews = exportlayers.LayerExporter(
+      gimpenums.RUN_NONINTERACTIVE, self._image, self._settings['main'],
+      overwrite_chooser=overwrite.NoninteractiveOverwriteChooser(
+        self._settings['main/overwrite_mode'].items['replace']),
+      layer_data=self._initial_layer_data)
     
-    # Needs to be string to avoid strict directory validation
-    self._current_directory_setting = pgsetting.StringSetting(
-      'current_directory', settings['main/output_directory'].default_value)
-    self._message_setting = None
-    
-    _setup_image_ids_and_directories_and_initial_directory(
-      self._settings, self._current_directory_setting, self._image)
-    _setup_output_directory_changed(self._settings, self._image)
+    self._init_settings()
     
     self._hpaned_previous_position = self._settings['gui/chooser_and_previews_hpane_position'].value
     self._vpaned_previous_position = self._settings['gui/previews_vpane_position'].value
@@ -1104,9 +1103,35 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     pggui.set_gui_excepthook_parent(self._dialog)
     
-    self._suppress_gimp_progress()
-    
     gtk.main()
+  
+  def _init_settings(self):
+    add_gui_settings(self._settings)
+    
+    settings_plugin.setup_image_ids_and_filenames_settings(
+      self._settings['gui_session/export_name_preview_layers_collapsed_state'],
+      self._settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'],
+      settings_plugin.convert_set_of_layer_ids_to_names, [self._layer_exporter_for_previews.layer_data],
+      settings_plugin.convert_set_of_layer_names_to_ids, [self._layer_exporter_for_previews.layer_data])
+    
+    settings_plugin.setup_image_ids_and_filenames_settings(
+      self._settings['gui_session/export_image_preview_displayed_layers'],
+      self._settings['gui_persistent/export_image_preview_displayed_layers_persistent'],
+      settings_plugin.convert_layer_id_to_name, [self._layer_exporter_for_previews.layer_data],
+      settings_plugin.convert_layer_name_to_id, [self._layer_exporter_for_previews.layer_data])
+    
+    status, status_message = self._settings.load()
+    if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
+      display_message(status_message, gtk.MESSAGE_WARNING)
+    
+    # Needs to be string to avoid strict directory validation
+    self._current_directory_setting = pgsetting.StringSetting(
+      'current_directory', self._settings['main/output_directory'].default_value)
+    self._message_setting = None
+    
+    _setup_image_ids_and_directories_and_initial_directory(
+      self._settings, self._current_directory_setting, self._image)
+    _setup_output_directory_changed(self._settings, self._image)
   
   def _init_gui(self):
     self._dialog = gimpui.Dialog(title=pygimplib.config.PLUGIN_TITLE, role=pygimplib.config.PLUGIN_NAME)
@@ -1120,20 +1145,17 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._folder_chooser = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
     
-    layer_exporter_for_previews = exportlayers.LayerExporter(
-      gimpenums.RUN_NONINTERACTIVE, self._image, self._settings['main'],
-      overwrite_chooser=overwrite.NoninteractiveOverwriteChooser(
-        self._settings['main/overwrite_mode'].items['replace']))
-    
     self._export_name_preview = ExportNamePreview(
-      layer_exporter_for_previews,
+      self._layer_exporter_for_previews,
+      self._initial_layer_data,
       self._settings['gui_session/export_name_preview_layers_collapsed_state'].value[self._image.ID],
       self._settings['main/selected_layers'].value[self._image.ID],
       on_selection_changed_func=self._on_name_preview_selection_changed,
       on_after_update_func=self._on_name_preview_after_update)
     
     self._export_image_preview = ExportImagePreview(
-      layer_exporter_for_previews,
+      self._layer_exporter_for_previews,
+      self._initial_layer_data,
       self._settings['gui_session/export_image_preview_displayed_layers'].value[self._image.ID])
     
     self._vbox_folder_chooser = gtk.VBox(homogeneous=False)
@@ -1368,6 +1390,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._show_hide_more_settings()
     
+    self._init_previews()
+    
     self._dialog.set_focus(self._file_extension_entry)
     self._export_button.set_flags(gtk.CAN_DEFAULT)
     self._export_button.grab_default()
@@ -1375,8 +1399,12 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._file_extension_entry.set_activates_default(True)
     # Place the cursor at the end of the text entry.
     self._file_extension_entry.set_position(-1)
-
+    
     self._dialog.show()
+  
+  def _init_previews(self):
+    self._export_name_preview.update()
+    self._export_image_preview.update()
   
   def _reset_settings(self):
     self._settings.reset()
@@ -1704,12 +1732,13 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
   _HBOX_HORIZONTAL_SPACING = 8
   _DIALOG_WIDTH = 500
   
-  def __init__(self, image, settings):
+  def __init__(self, layer_data, settings):
     super(_ExportLayersRepeatGui, self).__init__()
 
     self._init_gui()
     
-    self._image = image
+    self._layer_data = layer_data
+    self._image = self._layer_data.image
     self._settings = settings
     
     pgsettingpersistor.SettingPersistor.load([self._settings['main']], [pygimplib.config.SOURCE_SESSION])
@@ -1759,7 +1788,7 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
       pggui.GtkProgressUpdater(self._progress_bar),
       export_context_manager=_handle_gui_in_export, export_context_manager_args=[self._dialog])
     try:
-      self._layer_exporter.export_layers()
+      self._layer_exporter.export_layers(layer_data=self._layer_data)
     except exportlayers.ExportLayersCancelError:
       pass
     except exportlayers.ExportLayersError as e:

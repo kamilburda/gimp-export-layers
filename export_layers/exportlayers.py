@@ -219,7 +219,7 @@ class LayerExporter(object):
   ]
   
   def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser=None, progress_updater=None,
-               export_context_manager=None, export_context_manager_args=None):
+               layer_data=None, export_context_manager=None, export_context_manager_args=None):
     self.initial_run_mode = initial_run_mode
     self.image = image
     self.export_settings = export_settings
@@ -234,6 +234,8 @@ class LayerExporter(object):
       self.progress_updater = progress.ProgressUpdater(None)
     else:
       self.progress_updater = progress_updater
+    
+    self._layer_data = layer_data
     
     if export_context_manager is not None:
       self.export_context_manager = export_context_manager
@@ -250,7 +252,6 @@ class LayerExporter(object):
     
     self.should_stop = False
     
-    self._layer_data = None
     self._exported_layers = []
     
     self._operations = {
