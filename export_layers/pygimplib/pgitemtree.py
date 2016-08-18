@@ -20,18 +20,18 @@
 """
 This module defines the following classes:
 
-* `ItemData` - an associative container that stores all GIMP items and item
-  groups of a certain type
+* `ItemTree` - an associative, tree-like structure that stores all GIMP items
+  and item groups of a certain type
 
-* subclasses of `ItemData`:
+* subclasses of `ItemTree`:
   
-  * `LayerData` for layers
+  * `LayerTree` for layers
   
-  * `ChannelData` for channels
+  * `ChannelTree` for channels
   
-  * `PathData` for paths
+  * `VectorTree` for vectors (paths)
 
-* `_ItemDataElement` - wrapper for `gimp.Item` objects containing custom
+* `_ItemTreeElement` - wrapper for `gimp.Item` objects containing custom
   attributes derived from the original `gimp.Item` attributes
 """
 
@@ -58,7 +58,7 @@ from . import pgpath
 #===============================================================================
 
 
-class ItemData(object):
+class ItemTree(object):
   
   """
   This class is an interface to store all items (and item groups) of a certain
@@ -68,18 +68,18 @@ class ItemData(object):
   
   Use one of the subclasses for items of a certain type:
   
-    * `LayerData` for layers,
+    * `LayerTree` for layers,
     
-    * `ChannelData` for channels,
+    * `ChannelTree` for channels,
     
-    * `PathData` for paths (vectors).
+    * `VectorTree` for vectors (paths).
   
-  For custom item attributes, see the documentation for the `_ItemDataElement`
-  class. `_ItemDataElement` is common for all `ItemData` subclasses.
+  For custom item attributes, see the documentation for the `_ItemTreeElement`
+  class. `_ItemTreeElement` is common for all `ItemTree` subclasses.
   
   Attributes:
   
-  * `image` - GIMP image to get item data from.
+  * `image` - GIMP image to generate item tree from.
   
   * `is_filtered` - If True, ignore items that do not match the filter
     (`ObjectFilter`) in this object when iterating.
@@ -96,27 +96,27 @@ class ItemData(object):
     
     self._filter_match_type = filter_match_type
     
-    # Filters applied to all items in self._itemdata
+    # Filters applied to all items in self._itemtree
     self._filter = objectfilter.ObjectFilter(self._filter_match_type)
     
     # Contains all items in the item tree (including item groups).
-    # key: `_ItemDataElement.item.ID`
-    # value: `_ItemDataElement` object
-    self._itemdata = collections.OrderedDict()
-    # key: `_ItemDataElement.orig_name` (derived from `gimp.Item.name`, which is unique)
-    # value: `_ItemDataElement` object
-    self._itemdata_names = {}
+    # key: `_ItemTreeElement.item.ID`
+    # value: `_ItemTreeElement` object
+    self._itemtree = collections.OrderedDict()
+    # key: `_ItemTreeElement.orig_name` (derived from `gimp.Item.name`, which is unique)
+    # value: `_ItemTreeElement` object
+    self._itemtree_names = {}
     
-    # key: `_ItemDataElement` object (parent) or None (root of the item tree)
-    # value: set of `_ItemDataElement` objects
-    self._uniquified_itemdata = {}
-    # key: `_ItemDataElement` object (parent) or None (root of the item tree)
-    # value: set of `_ItemDataElement.name` strings
-    self._uniquified_itemdata_names = {}
+    # key: `_ItemTreeElement` object (parent) or None (root of the item tree)
+    # value: set of `_ItemTreeElement` objects
+    self._uniquified_itemtree = {}
+    # key: `_ItemTreeElement` object (parent) or None (root of the item tree)
+    # value: set of `_ItemTreeElement.name` strings
+    self._uniquified_itemtree_names = {}
     
-    self._validated_itemdata = set()
+    self._validated_itemtree = set()
     
-    self._fill_item_data()
+    self._fill_item_tree()
   
   @property
   def image(self):
@@ -128,29 +128,29 @@ class ItemData(object):
   
   def __getitem__(self, id_or_name):
     """
-    Access an `_ItemDataElement` object by its `_ItemDataElement.item.ID`
+    Access an `_ItemTreeElement` object by its `_ItemTreeElement.item.ID`
     attribute or its `orig_name` attribute.
     """
     
     try:
-      item_elem = self._itemdata[id_or_name]
+      item_elem = self._itemtree[id_or_name]
     except KeyError:
-      item_elem = self._itemdata_names[id_or_name]
+      item_elem = self._itemtree_names[id_or_name]
     
     return item_elem
   
   def __contains__(self, id_or_name):
     """
-    Return True if an `_ItemDataElement` object is in the item data, specified
-    by its `_ItemDataElement.item.ID` attribute or its `orig_name` attribute.
+    Return True if an `_ItemTreeElement` object is in the item tree, specified
+    by its `_ItemTreeElement.item.ID` attribute or its `orig_name` attribute.
     Return False otherwise.
     """
     
-    return id_or_name in self._itemdata or id_or_name in self._itemdata_names
+    return id_or_name in self._itemtree or id_or_name in self._itemtree_names
   
   def __len__(self):
     """
-    Return the number of all item data elements - that is, all immediate
+    Return the number of all item tree elements - that is, all immediate
     children of the image and all nested children.
     """
     
@@ -163,29 +163,29 @@ class ItemData(object):
     
     Yields:
     
-    * `item_elem` - The current `_ItemDataElement` object.
+    * `item_elem` - The current `_ItemTreeElement` object.
     """
     
     if not self.is_filtered:
-      for item_elem in self._itemdata.values():
+      for item_elem in self._itemtree.values():
         yield item_elem
     else:
-      for item_elem in self._itemdata.values():
+      for item_elem in self._itemtree.values():
         if self._filter.is_match(item_elem):
           yield item_elem
   
   def uniquify_name(self, item_elem, include_item_path=True,
                     uniquifier_position=None, uniquifier_position_parents=None):
     """
-    Make the `name` attribute in the specified `_ItemDataElement` object
-    unique among all other, already uniquified `_ItemDataElement` objects.
+    Make the `name` attribute in the specified `_ItemTreeElement` object
+    unique among all other, already uniquified `_ItemTreeElement` objects.
     
     To achieve uniquification, a string ("uniquifier") in the form of
     " (<number>)" is inserted at the end of the item names.
     
     Parameters:
     
-    * `item_elem` - `_ItemDataElement` object whose `name` attribute
+    * `item_elem` - `_ItemTreeElement` object whose `name` attribute
       will be uniquified.
     
     * `include_item_path` - If True, take the item path into account when
@@ -205,31 +205,31 @@ class ItemData(object):
       for elem in item_elem.parents + [item_elem]:
         parent = elem.parent
         
-        if parent not in self._uniquified_itemdata:
-          self._uniquified_itemdata[parent] = set()
-          self._uniquified_itemdata_names[parent] = set()
+        if parent not in self._uniquified_itemtree:
+          self._uniquified_itemtree[parent] = set()
+          self._uniquified_itemtree_names[parent] = set()
         
-        if elem not in self._uniquified_itemdata[parent]:
-          if elem.name in self._uniquified_itemdata_names[parent]:
+        if elem not in self._uniquified_itemtree[parent]:
+          if elem.name in self._uniquified_itemtree_names[parent]:
             if elem == item_elem:
               position = uniquifier_position
             else:
               position = uniquifier_position_parents
             
-            elem.name = pgpath.uniquify_string(elem.name, self._uniquified_itemdata_names[parent], position)
+            elem.name = pgpath.uniquify_string(elem.name, self._uniquified_itemtree_names[parent], position)
           
-          self._uniquified_itemdata[parent].add(elem)
-          self._uniquified_itemdata_names[parent].add(elem.name)
+          self._uniquified_itemtree[parent].add(elem)
+          self._uniquified_itemtree_names[parent].add(elem.name)
     else:
       # Use None as the root of the item tree.
       parent = None
       
-      if parent not in self._uniquified_itemdata_names:
-        self._uniquified_itemdata_names[parent] = set()
+      if parent not in self._uniquified_itemtree_names:
+        self._uniquified_itemtree_names[parent] = set()
       
       item_elem.name = pgpath.uniquify_string(
-        item_elem.name, self._uniquified_itemdata_names[parent], uniquifier_position)
-      self._uniquified_itemdata_names[parent].add(item_elem.name)
+        item_elem.name, self._uniquified_itemtree_names[parent], uniquifier_position)
+      self._uniquified_itemtree_names[parent].add(item_elem.name)
   
   def validate_name(self, item_elem, force_validation=False):
     """
@@ -238,9 +238,9 @@ class ItemData(object):
     """
     
     for elem in item_elem.parents + [item_elem]:
-      if elem not in self._validated_itemdata or force_validation:
+      if elem not in self._validated_itemtree or force_validation:
         elem.name = pgpath.FilenameValidator.validate(elem.name)
-        self._validated_itemdata.add(elem)
+        self._validated_itemtree.add(elem)
   
   def reset_name(self, item_elem):
     """
@@ -251,10 +251,10 @@ class ItemData(object):
     
     item_elem.name = item_elem.orig_name
     
-    if item_elem in self._validated_itemdata:
-      self._validated_itemdata.remove(item_elem)
-    if item_elem.parent in self._uniquified_itemdata:
-      self._uniquified_itemdata[item_elem.parent].remove(item_elem)
+    if item_elem in self._validated_itemtree:
+      self._validated_itemtree.remove(item_elem)
+    if item_elem.parent in self._uniquified_itemtree:
+      self._uniquified_itemtree[item_elem.parent].remove(item_elem)
   
   def add_tag(self, item_elem, tag):
     """
@@ -288,7 +288,7 @@ class ItemData(object):
     """
     
     if tag not in item_elem.tags:
-      raise ValueError("tag '{0}' not found in _ItemDataElement '{1}'".format(tag, item_elem.orig_name))
+      raise ValueError("tag '{0}' not found in _ItemTreeElement '{1}'".format(tag, item_elem.orig_name))
     
     item_elem.tags.remove(tag)
     
@@ -303,18 +303,18 @@ class ItemData(object):
   
   def reset_item_elements(self):
     """
-    Reset `name` and `tags` attributes of all `_ItemDataElement` instances
+    Reset `name` and `tags` attributes of all `_ItemTreeElement` instances
     (regardless of instance filtering) and clear cache for already uniquified
-    and validated `_ItemDataElement` instances.
+    and validated `_ItemTreeElement` instances.
     """
     
-    for item_elem in self._itemdata.values():
+    for item_elem in self._itemtree.values():
       item_elem.name = item_elem.orig_name
       item_elem.tags.clear()
     
-    self._uniquified_itemdata.clear()
-    self._uniquified_itemdata_names.clear()
-    self._validated_itemdata.clear()
+    self._uniquified_itemtree.clear()
+    self._uniquified_itemtree_names.clear()
+    self._validated_itemtree.clear()
   
   def reset_filter(self):
     """
@@ -328,32 +328,32 @@ class ItemData(object):
     
     item_elem.item.name = new_item_name_encoded
     
-    del self._itemdata_names[item_elem.orig_name]
+    del self._itemtree_names[item_elem.orig_name]
     
-    # We break the convention here and access the `_ItemDataElement._orig_name`
+    # We break the convention here and access the `_ItemTreeElement._orig_name`
     # private attribute.
     item_elem._orig_name = item_elem.item.name.decode()
     
-    self._itemdata_names[item_elem.orig_name] = item_elem
+    self._itemtree_names[item_elem.orig_name] = item_elem
     
     item_name_modified_externally = item_elem.orig_name != new_item_name
     return item_name_modified_externally
   
-  def _fill_item_data(self):
+  def _fill_item_tree(self):
     """
-    Fill the `_itemdata` and `_itemdata_names` dictionaries.
+    Fill the `_itemtree` and `_itemtree_names` dictionaries.
     """
     
     child_items = self._get_children_from_image(self._image)
-    child_item_elems = [_ItemDataElement(item, [], None) for item in child_items]
+    child_item_elems = [_ItemTreeElement(item, [], None) for item in child_items]
     
     item_elem_tree = child_item_elems
     
     while item_elem_tree:
       item_elem = item_elem_tree.pop(0)
       
-      self._itemdata[item_elem.item.ID] = item_elem
-      self._itemdata_names[item_elem.orig_name] = item_elem
+      self._itemtree[item_elem.item.ID] = item_elem
+      self._itemtree_names[item_elem.orig_name] = item_elem
       
       item_elem_parents = list(item_elem.parents)
       if self._is_group(item_elem.item):
@@ -363,9 +363,9 @@ class ItemData(object):
       
       if child_items is not None:
         item_elem_parents.append(item_elem)
-        child_item_elems = [_ItemDataElement(item, item_elem_parents, None) for item in child_items]
+        child_item_elems = [_ItemTreeElement(item, item_elem_parents, None) for item in child_items]
         
-        # We break the convention here and access the `_ItemDataElement._children`
+        # We break the convention here and access the `_ItemTreeElement._children`
         # private attribute.
         item_elem._children = child_item_elems
         
@@ -395,7 +395,7 @@ class ItemData(object):
     return pdb.gimp_item_is_group(item)
 
 
-class LayerData(ItemData):
+class LayerTree(ItemTree):
   
   def _get_children_from_image(self, image):
     return image.layers
@@ -407,13 +407,13 @@ class LayerData(ItemData):
     return isinstance(item, gimp.GroupLayer)
 
 
-class ChannelData(ItemData):
+class ChannelTree(ItemTree):
   
   def _get_children_from_image(self, image):
     return image.channels
 
 
-class PathData(ItemData):
+class VectorTree(ItemTree):
   
   def _get_children_from_image(self, image):
     return image.vectors
@@ -522,7 +522,7 @@ def set_file_extension(filename, file_extension):
 #===============================================================================
 
 
-class _ItemDataElement(object):
+class _ItemTreeElement(object):
   
   """
   This class wraps a `gimp.Item` object and defines custom item attributes.
@@ -534,10 +534,10 @@ class _ItemDataElement(object):
   
   * `item` (read-only) - `gimp.Item` object.
   
-  * `parents` (read-only) - List of `_ItemDataElement` parents for this item,
+  * `parents` (read-only) - List of `_ItemTreeElement` parents for this item,
     sorted from the topmost parent to the bottommost (immediate) parent.
   
-  * `children` (read-only) - List of `_ItemDataElement` children for this item.
+  * `children` (read-only) - List of `_ItemTreeElement` children for this item.
   
   * `name` - Item name as a `unicode` string, initially equal to the `orig_name`
      attribute. Modify this attribute instead of `gimp.Item.name` to avoid
@@ -550,7 +550,7 @@ class _ItemDataElement(object):
     the item positioned at. 0 means the item is at the top level. The higher
     the level, the deeper the item is in the item tree.
   
-  * `parent` (read-only) - Immediate `_ItemDataElement` parent of this object.
+  * `parent` (read-only) - Immediate `_ItemTreeElement` parent of this object.
     If this object has no parent, return None.
   
   * `orig_name` (read-only) - Original `gimp.Item.name` as a `unicode` string.
