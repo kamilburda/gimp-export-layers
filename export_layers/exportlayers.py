@@ -295,6 +295,10 @@ class LayerExporter(object):
     
     If `operations` is None or empty, perform normal export.
     
+    If `layer_tree` is not None, use an existing instance of
+    `pgitemtree.LayerTree` instead of creating a new one. If the instance had
+    filters set, they will be reset.
+    
     A copy of the image and the layers to be exported are created so that the
     original image and its soon-to-be exported layers are left intact. The
     copies are automatically destroyed after their export. To keep the copies,
@@ -302,6 +306,11 @@ class LayerExporter(object):
     image copy containing the exported layers. It is up to you to destroy the
     image copy. The method returns None if an exception was raised or if no
     layer was exported; in that case, the image copy is automatically destroyed.
+    
+    You may optionally pass hook functions that are called after an image copy
+    was created (`on_after_create_image_copy_func`, takes the image copy as its
+    only argument) and any time after a layer was inserted in the image copy
+    (`on_after_insert_layer_func`, takes the layer as its only argument).
     """
     
     self._init_attributes(
