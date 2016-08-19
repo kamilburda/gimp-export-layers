@@ -51,7 +51,6 @@ import export_layers.pygimplib as pygimplib
 
 from export_layers.pygimplib import constants
 from export_layers.pygimplib import overwrite
-from export_layers.pygimplib import pgitemtree
 from export_layers.pygimplib import pggui
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
@@ -195,6 +194,7 @@ class ExportNamePreview(ExportPreview):
     self._toggle_tag_interactive = True
     self._clearing_preview = False
     self._row_select_interactive = True
+    self._initial_scroll_to_selection = True
     
     self._init_gui()
     
@@ -575,7 +575,17 @@ class ExportNamePreview(ExportPreview):
       if tree_iter is not None:
         self._tree_view.get_selection().select_iter(tree_iter)
     
+    if self._initial_scroll_to_selection:
+      self._set_initial_scroll_to_selection()
+      self._initial_scroll_to_selection = False
+    
     self._row_select_interactive = True
+  
+  def _set_initial_scroll_to_selection(self):
+    if self._selected_items:
+      first_selected_item_path = self._tree_model.get_path(self._tree_iters[self._selected_items[0]])
+      if first_selected_item_path is not None:
+        self._tree_view.scroll_to_cell(first_selected_item_path, None, True, 0.5, 0.0)
 
 
 #===============================================================================
