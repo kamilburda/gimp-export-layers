@@ -68,6 +68,13 @@ class ObjectFilter(object):
   def match_type(self):
     return self._match_type
   
+  def __nonzero__(self):
+    """
+    Return True if the filter is not empty, False otherwise.
+    """
+    
+    return bool(self._filter_items)
+  
   def has_rule(self, rule_func):
     return rule_func in self._filter_items
   
@@ -342,6 +349,14 @@ class ObjectFilter(object):
       return self._is_match_all(object_to_match)
     elif self._match_type == self.MATCH_ANY:
       return self._is_match_any(object_to_match)
+  
+  def reset(self):
+    """
+    Reset the filter, removing all rules and subfilters. The match type is
+    preserved.
+    """
+    
+    self._filter_items.clear()
   
   def _is_match_all(self, object_to_match):
     is_match = True

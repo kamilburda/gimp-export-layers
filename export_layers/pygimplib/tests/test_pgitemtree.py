@@ -426,14 +426,6 @@ class TestLayerTree(unittest.TestCase):
     
     self.assertEqual(self.layer_tree['Corners'].name, "Corners")
     self.assertEqual(self.layer_tree['Corners:'].name, "Corners:")
-  
-  def test_reset_filter(self):
-    self.layer_tree.is_filtered = True
-    self.layer_tree.filter.add_rule(LayerFilterRules.is_layer)
-    
-    self.layer_tree.reset_filter()
-    
-    self.assertEqual(len(self.layer_tree), 20)
 
 
 @mock.patch(LIB_NAME + ".pgitemtree.pdb", new=gimpstubs.PdbStub())

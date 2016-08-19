@@ -316,13 +316,6 @@ class ItemTree(object):
     self._uniquified_itemtree_names.clear()
     self._validated_itemtree.clear()
   
-  def reset_filter(self):
-    """
-    Reset the filter applied to this object.
-    """
-    
-    self._filter = objectfilter.ObjectFilter(self._filter_match_type)
-  
   def _rename_item_elem(self, item_elem, new_item_name):
     new_item_name_encoded = new_item_name.encode()
     

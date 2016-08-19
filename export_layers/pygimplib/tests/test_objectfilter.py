@@ -80,6 +80,11 @@ class TestObjectFilter(unittest.TestCase):
     self.filter = ObjectFilter(ObjectFilter.MATCH_ALL)
     self.filter_match_any = ObjectFilter(ObjectFilter.MATCH_ANY)
   
+  def test_is_filter_nonempty(self):
+    self.assertFalse(bool(self.filter))
+    self.filter.add_rule(has_uppercase_letters)
+    self.assertTrue(bool(self.filter))
+  
   def test_has_rule(self):
     self.assertFalse(self.filter.has_rule(has_uppercase_letters))
     self.filter.add_rule(has_uppercase_letters)
@@ -273,3 +278,12 @@ class TestObjectFilter(unittest.TestCase):
       FilterableObject(2, "", is_empty=False, colors={"green"})))
     self.assertFalse(self.filter.is_match(
       FilterableObject(1, "", is_empty=True, colors={"red", "green"})))
+  
+  def test_reset(self):
+    self.filter.reset()
+    self.assertFalse(bool(self.filter))
+    
+    self.filter.add_rule(is_object_id_even)
+    self.filter.add_rule(has_uppercase_letters)
+    self.filter.reset()
+    self.assertFalse(bool(self.filter))
