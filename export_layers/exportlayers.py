@@ -463,6 +463,9 @@ class LayerExporter(object):
     return file_extension_properties
   
   def _preprocess_layers(self):
+    if self._layer_tree.filter:
+      self._layer_tree.filter.reset()
+    
     for layer_elem in self._layer_tree:
       layer_elem.parse_tags()
     

@@ -442,7 +442,6 @@ class ExportNamePreview(ExportPreview):
         self._initial_layer_tree = None
       else:
         if self._layer_exporter.layer_tree is not None:
-          self._layer_exporter.layer_tree.reset_filter()
           self._layer_exporter.layer_tree.reset_item_elements()
         layer_tree = self._layer_exporter.layer_tree
     else:
@@ -721,9 +720,6 @@ class ExportImagePreview(ExportPreview):
       pdb.gimp_message_set_handler(orig_message_handler)
   
   def _get_image_preview(self):
-    if self._layer_exporter.layer_tree is not None:
-      self._layer_exporter.layer_tree.reset_filter()
-    
     if self._initial_layer_tree is not None:
       layer_tree = self._initial_layer_tree
       self._initial_layer_tree = None
