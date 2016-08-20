@@ -603,12 +603,13 @@ class LayerExporter(object):
       image, self._tagged_layer_elems['background'], self._tagged_layer_copies['background'], insert_index=0)
     
     layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
-    self._pdb_insert_layer(image, layer_copy, None, 0)
-    # This is necessary for file formats which flatten the image (such as JPG).
+    pdb.gimp_image_insert_layer(image, layer_copy, None, 0)
     pdb.gimp_item_set_visible(layer_copy, True)
     
     if pdb.gimp_item_is_group(layer_copy):
       layer_copy = pgpdb.merge_layer_group(layer_copy)
+    
+    self._on_after_insert_layer_func(layer_copy)
     
     if self.export_settings['ignore_layer_modes'].value:
       layer_copy.mode = gimpenums.NORMAL_MODE
@@ -637,44 +638,46 @@ class LayerExporter(object):
     else:
       if self._use_another_image_copy:
         another_layer_copy = pdb.gimp_layer_new_from_drawable(layer, self._another_image_copy)
-        self._pdb_insert_layer(
+        pdb.gimp_image_insert_layer(
           self._another_image_copy, another_layer_copy, None, len(self._another_image_copy.layers))
         another_layer_copy.name = layer.name
         
         pdb.gimp_image_remove_layer(image, layer)
-  
-  def _pdb_insert_layer(self, image, layer, parent, position):
-    pdb.gimp_image_insert_layer(image, layer, parent, position)
-    self._on_after_insert_layer_func(layer)
   
   def _insert_layer(self, image, layer_elems, inserted_layer_copy, insert_index=0):
     if not layer_elems:
       return None, None
     
     if inserted_layer_copy is None:
-      if self.export_settings['use_image_size'].value:
-        # Remove layers outside the image canvas since they won't be visible in
-        # the exported layer and because we need to avoid `RuntimeError`
-        # when `pdb.gimp_image_merge_visible_layers` with `CLIP_TO_IMAGE`
-        # argument tries to merge layers that are all outside the image canvas.
-        for i in range(len(layer_elems)):
-          if not pgpdb.is_layer_inside_image(image, layer_elems[i].item):
-            layer_elems.pop(i)
-        
-        if not layer_elems:
-          return None, None
-      
       layer_group = pdb.gimp_layer_group_new(image)
-      self._pdb_insert_layer(image, layer_group, None, insert_index)
+      pdb.gimp_image_insert_layer(image, layer_group, None, insert_index)
       
-      for i, layer_elem in enumerate(layer_elems):
+      for i, layer_elem in enumerate(list(layer_elems)):
         layer_copy = pdb.gimp_layer_new_from_drawable(layer_elem.item, image)
-        self._pdb_insert_layer(image, layer_copy, layer_group, i)
+        pdb.gimp_image_insert_layer(image, layer_copy, layer_group, i)
         pdb.gimp_item_set_visible(layer_copy, True)
-        if self.export_settings['ignore_layer_modes'].value:
-          layer_copy.mode = gimpenums.NORMAL_MODE
+        
         if pdb.gimp_item_is_group(layer_copy):
           layer_copy = pgpdb.merge_layer_group(layer_copy)
+        
+        self._on_after_insert_layer_func(layer_copy)
+        
+        # Remove the layer if outside the image canvas since it won't be visible
+        # in the exported layer and because we need to avoid `RuntimeError`
+        # when `pdb.gimp_image_merge_visible_layers` with `CLIP_TO_IMAGE`
+        # argument tries to merge layers that are all outside the image canvas.
+        if self.export_settings['use_image_size'].value:
+          if not pgpdb.is_layer_inside_image(image, layer_copy):
+            pdb.gimp_image_remove_layer(image, layer_copy)
+            layer_elems.pop(i)
+            continue
+        
+        if self.export_settings['ignore_layer_modes'].value:
+          layer_copy.mode = gimpenums.NORMAL_MODE
+      
+      if not layer_elems:
+        pdb.gimp_image_remove_layer(image, layer_group)
+        return None, None
       
       layer = pgpdb.merge_layer_group(layer_group)
       
@@ -685,7 +688,7 @@ class LayerExporter(object):
       return layer, inserted_layer_copy
     else:
       layer_copy = pdb.gimp_layer_copy(inserted_layer_copy, True)
-      self._pdb_insert_layer(image, layer_copy, None, insert_index)
+      pdb.gimp_image_insert_layer(image, layer_copy, None, insert_index)
       return layer_copy, inserted_layer_copy
   
   def _crop_and_merge(self, image, layer, background_layer, foreground_layer):
