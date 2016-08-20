@@ -473,7 +473,7 @@ class LayerExporter(object):
   
   def _preprocess_layers(self):
     if self._layer_tree.filter:
-      self._layer_tree.filter.reset()
+      self._layer_tree.reset_filter()
     
     for layer_elem in self._layer_tree:
       layer_elem.parse_tags()

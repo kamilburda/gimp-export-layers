@@ -637,6 +637,9 @@ class ExportImagePreview(ExportPreview):
       else:
         self._initial_previewed_layer_id = None
         return
+  
+    if not self._layer_exporter.layer_tree.filter.is_match(self.layer_elem):
+      return
     
     if not pdb.gimp_item_is_valid(self.layer_elem.item):
       self.clear()
@@ -666,8 +669,10 @@ class ExportImagePreview(ExportPreview):
     if (self.layer_elem is not None and
         self._layer_exporter.layer_tree is not None and
         self.layer_elem.item.ID in self._layer_exporter.layer_tree):
-      self.layer_elem = self._layer_exporter.layer_tree[self.layer_elem.item.ID]
-      self._set_layer_name_label(self.layer_elem.name)
+      layer_elem = self._layer_exporter.layer_tree[self.layer_elem.item.ID]
+      if self._layer_exporter.layer_tree.filter.is_match(layer_elem):
+        self.layer_elem = layer_elem
+        self._set_layer_name_label(self.layer_elem.name)
   
   @property
   def widget(self):
@@ -736,6 +741,8 @@ class ExportImagePreview(ExportPreview):
     else:
       layer_tree = self._layer_exporter.layer_tree
     
+    layer_tree_filter = layer_tree.filter if layer_tree is not None else None
+    
     with self._layer_exporter.modify_export_settings(
       {'export_only_selected_layers': True,
        'selected_layers': {self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}}):
@@ -746,6 +753,9 @@ class ExportImagePreview(ExportPreview):
           on_after_insert_layer_func=self._layer_exporter_on_after_insert_layer)
       except Exception:
         image_preview = None
+    
+    if layer_tree_filter is not None:
+      self._layer_exporter.layer_tree.filter = layer_tree_filter
     
     return image_preview
   
