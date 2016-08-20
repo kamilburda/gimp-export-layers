@@ -84,8 +84,8 @@ class ItemTree(object):
   * `is_filtered` - If True, ignore items that do not match the filter
     (`ObjectFilter`) in this object when iterating.
   
-  * `filter` (read-only) - `ObjectFilter` instance where you can add or remove
-    filter rules or subfilters to filter items.
+  * `filter` - `ObjectFilter` instance where you can add or remove filter rules
+    or subfilters to filter items.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -93,11 +93,10 @@ class ItemTree(object):
   def __init__(self, image, is_filtered=False, filter_match_type=objectfilter.ObjectFilter.MATCH_ALL):
     self._image = image
     self.is_filtered = is_filtered
-    
     self._filter_match_type = filter_match_type
     
-    # Filters applied to all items in self._itemtree
-    self._filter = objectfilter.ObjectFilter(self._filter_match_type)
+    # Filters applied to all items in `self._itemtree`
+    self.filter = objectfilter.ObjectFilter(self._filter_match_type)
     
     # Contains all items in the item tree (including item groups).
     # key: `_ItemTreeElement.item.ID`
@@ -121,10 +120,6 @@ class ItemTree(object):
   @property
   def image(self):
     return self._image
-  
-  @property
-  def filter(self):
-    return self._filter
   
   def __getitem__(self, id_or_name):
     """
@@ -171,7 +166,7 @@ class ItemTree(object):
         yield item_elem
     else:
       for item_elem in self._itemtree.values():
-        if self._filter.is_match(item_elem):
+        if self.filter.is_match(item_elem):
           yield item_elem
   
   def uniquify_name(self, item_elem, include_item_path=True,
@@ -300,6 +295,13 @@ class ItemTree(object):
     
     item_name_modified_externally = self._rename_item_elem(item_elem, new_item_name)
     return item_name_modified_externally
+
+  def reset_filter(self):
+    """
+    Reset the filter, creating a new empty `ObjectFilter`.
+    """
+    
+    self.filter = objectfilter.ObjectFilter(self._filter_match_type)
   
   def reset_item_elements(self):
     """
