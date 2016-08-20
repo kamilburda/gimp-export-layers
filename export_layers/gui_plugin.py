@@ -629,16 +629,11 @@ class ExportImagePreview(ExportPreview):
     if self._update_locked:
       return
     
+    self.layer_elem = self._set_initial_layer_elem(self.layer_elem)
     if self.layer_elem is None:
-      if (self._layer_exporter.layer_tree is not None and
-          self._initial_previewed_layer_id in self._layer_exporter.layer_tree):
-        self.layer_elem = self._layer_exporter.layer_tree[self._initial_previewed_layer_id]
-        self._initial_previewed_layer_id = None
-      else:
-        self._initial_previewed_layer_id = None
-        return
-  
-    if not self._layer_exporter.layer_tree.filter.is_match(self.layer_elem):
+      return
+    
+    if not self._layer_elem_matches_filter(self.layer_elem):
       return
     
     if not pdb.gimp_item_is_valid(self.layer_elem.item):
@@ -694,6 +689,27 @@ class ExportImagePreview(ExportPreview):
     self._vbox.pack_start(self._label_layer_name, expand=False, fill=True, padding=self._BOTTOM_WIDGETS_PADDING)
     
     self._show_placeholder_image()
+  
+  def _set_initial_layer_elem(self, layer_elem):
+    if layer_elem is None:
+      if (self._layer_exporter.layer_tree is not None and
+          self._initial_previewed_layer_id in self._layer_exporter.layer_tree):
+        layer_elem = self._layer_exporter.layer_tree[self._initial_previewed_layer_id]
+        self._initial_previewed_layer_id = None
+        return layer_elem
+      else:
+        self._initial_previewed_layer_id = None
+        return None
+    else:
+      return layer_elem
+  
+  def _layer_elem_matches_filter(self, layer_elem):
+    if self._layer_exporter.export_settings['export_only_selected_layers'].value:
+      with self._layer_exporter.layer_tree.filter['layer_types'].add_rule_temp(
+        exportlayers.LayerFilterRules.is_nonempty_group):
+        return self._layer_exporter.layer_tree.filter.is_match(layer_elem)
+    else:
+      return self._layer_exporter.layer_tree.filter.is_match(layer_elem)
   
   def _get_in_memory_preview(self, layer):
     self._preview_width, self._preview_height = self._get_preview_size(layer)
