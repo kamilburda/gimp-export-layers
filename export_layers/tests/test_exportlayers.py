@@ -84,6 +84,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       pdb.gimp_image_delete(image)
     
     pdb.gimp_context_pop()
+    pdb.gimp_progress_end()
   
   def setUp(self):
     self.image_with_results = None
