@@ -340,9 +340,11 @@ class LayerExporter(object):
   def modify_export_settings(self, export_settings_to_modify):
     """
     Temporarily modify export settings specified as a dict of
-    (setting name: new setting value) pairs during the `export_layers()` method.
-    After the execution of the method, the settings are restored to their
-    original values.
+    (setting name: new setting value) pairs. After the execution of the wrapped
+    block of code, the settings are restored to their original values.
+    
+    Any events connected to the settings triggered by the `set_value` method
+    will be executed.
     """
     
     orig_setting_values = {}
