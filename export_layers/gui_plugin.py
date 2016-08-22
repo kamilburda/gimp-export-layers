@@ -626,7 +626,10 @@ class ExportImagePreview(ExportPreview):
     
     self._init_gui()
     
+    self._placeholder_image_size = gtk.icon_size_lookup(self._placeholder_image.get_property("icon-size"))
+    
     self._preview_image.connect("size-allocate", self._on_preview_image_size_allocate)
+    self._vbox.connect("size-allocate", self._on_vbox_size_allocate)
     
     self._widget = self._vbox
   
@@ -948,6 +951,19 @@ class ExportImagePreview(ExportPreview):
     
     if not self._is_updating and self._preview_image.get_mapped():
       self._resize_preview(allocation, self._preview_pixbuf)
+  
+  def _on_vbox_size_allocate(self, image_widget, allocation):
+    if not self._is_updating and not self._preview_image.get_mapped():
+      preview_widget_allocated_width = allocation.width - self._IMAGE_PREVIEW_PADDING * 2
+      preview_widget_allocated_height = (
+        allocation.height - self._label_layer_name.get_allocation().height -
+        self._BOTTOM_WIDGETS_PADDING * 2 - self._IMAGE_PREVIEW_PADDING * 2)
+      
+      if (preview_widget_allocated_width < self._placeholder_image_size[0] or
+          preview_widget_allocated_height < self._placeholder_image_size[1]):
+        self._placeholder_image.hide()
+      else:
+        self._placeholder_image.show()
   
   def _show_placeholder_image(self):
     self._placeholder_image.show()
