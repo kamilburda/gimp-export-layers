@@ -609,11 +609,16 @@ class ExportImagePreview(ExportPreview):
     self._initial_layer_tree = initial_layer_tree
     self._initial_previewed_layer_id = initial_previered_layer_id
     
-    self.layer_elem = None
+    self._layer_elem = None
+    
+    self._preview_pixbuf = None
+    self._previous_preview_pixbuf_width = None
+    self._previous_preview_pixbuf_height = None
     
     self.draw_checkboard_alpha_background = True
     
     self._is_allocated_size = False
+    self._is_updating = False
     
     self._preview_width = None
     self._preview_height = None
@@ -640,6 +645,8 @@ class ExportImagePreview(ExportPreview):
       self.clear()
       return
     
+    self._is_updating = True
+    
     self._placeholder_image.hide()
     self._preview_image.show()
     self._set_layer_name_label(self.layer_elem.name)
@@ -653,12 +660,31 @@ class ExportImagePreview(ExportPreview):
     
     if preview_pixbuf is not None:
       self._preview_image.set_from_pixbuf(preview_pixbuf)
+    
+    self._is_updating = False
   
   def clear(self):
     self.layer_elem = None
     self._preview_image.clear()
     self._preview_image.hide()
     self._show_placeholder_image()
+  
+  def resize(self, update_when_larger_than_image_size=False):
+    """
+    Resize the preview if the widget is smaller than the previewed image so that
+    the image fits the widget. If the widget is larger than the image and
+    `update_when_larger_than_image_size` is True, call `update()`.
+    """
+    
+    allocation = self._preview_image.get_allocation()
+    
+    if (update_when_larger_than_image_size and
+        (allocation.width > self._preview_pixbuf.get_width() and
+         allocation.height > self._preview_pixbuf.get_height())):
+      self.update()
+    else:
+      if self._preview_image.get_visible() and not self._is_updating:
+        self._resize_preview(allocation, self._preview_pixbuf)
   
   def update_layer_elem(self):
     if (self.layer_elem is not None and
@@ -668,6 +694,18 @@ class ExportImagePreview(ExportPreview):
       if self._layer_exporter.layer_tree.filter.is_match(layer_elem):
         self.layer_elem = layer_elem
         self._set_layer_name_label(self.layer_elem.name)
+  
+  @property
+  def layer_elem(self):
+    return self._layer_elem
+  
+  @layer_elem.setter
+  def layer_elem(self, value):
+    self._layer_elem = value
+    if value is None:
+      self._preview_pixbuf = None
+      self._previous_preview_pixbuf_width = None
+      self._previous_preview_pixbuf_height = None
   
   @property
   def widget(self):
@@ -712,7 +750,7 @@ class ExportImagePreview(ExportPreview):
       return self._layer_exporter.layer_tree.filter.is_match(layer_elem)
   
   def _get_in_memory_preview(self, layer):
-    self._preview_width, self._preview_height = self._get_preview_size(layer)
+    self._preview_width, self._preview_height = self._get_preview_size(layer.width, layer.height)
     self._preview_scaling_factor = self._preview_width / layer.width
     
     image_preview = self._get_image_preview()
@@ -728,7 +766,8 @@ class ExportImagePreview(ExportPreview):
       layer_preview.remove_mask(gimpenums.MASK_APPLY)
     
     # The layer may have been resized during the export, hence recompute the size.
-    self._preview_width, self._preview_height = self._get_preview_size(layer_preview)
+    self._preview_width, self._preview_height = self._get_preview_size(
+      layer_preview.width, layer_preview.height)
     
     self._preview_width, self._preview_height, preview_data = self._get_preview_data(
       layer_preview, self._preview_width, self._preview_height)
@@ -799,30 +838,42 @@ class ExportImagePreview(ExportPreview):
       preview_data, gtk.gdk.COLORSPACE_RGB, layer.has_alpha, 8, preview_width,
       preview_height, preview_width * layer.bpp)
     
+    self._preview_pixbuf = layer_preview_pixbuf
+    
     if layer.has_alpha:
-      if self.draw_checkboard_alpha_background:
-        layer_preview_pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
-          gtk.gdk.COLORSPACE_RGB, False, 8, preview_width, preview_height)
-        
-        layer_preview_pixbuf.composite_color(
-          layer_preview_pixbuf_with_alpha_background, 0, 0, preview_width, preview_height,
-          0, 0, 1.0, 1.0, gtk.gdk.INTERP_NEAREST,
-          int(round((layer.opacity / 100.0) * 255)),
-          0, 0, self._PREVIEW_ALPHA_CHECK_SIZE,
-          self._PREVIEW_ALPHA_CHECK_COLOR_DARK, self._PREVIEW_ALPHA_CHECK_COLOR_BRIGHT)
-      else:
-        layer_preview_pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
-          gtk.gdk.COLORSPACE_RGB, True, 8, preview_width, preview_height)
-        layer_preview_pixbuf_with_alpha_background.fill(0xffffff00)
-        
-        layer_preview_pixbuf.composite(
-          layer_preview_pixbuf_with_alpha_background, 0, 0, preview_width, preview_height,
-          0, 0, 1.0, 1.0, gtk.gdk.INTERP_NEAREST,
-          int(round((layer.opacity / 100.0) * 255)))
-      
-      layer_preview_pixbuf = layer_preview_pixbuf_with_alpha_background
+      layer_preview_pixbuf = self._add_alpha_background_to_pixbuf(
+        layer_preview_pixbuf, layer.opacity, self.draw_checkboard_alpha_background,
+        self._PREVIEW_ALPHA_CHECK_SIZE,
+        self._PREVIEW_ALPHA_CHECK_COLOR_DARK, self._PREVIEW_ALPHA_CHECK_COLOR_BRIGHT)
     
     return layer_preview_pixbuf
+  
+  def _add_alpha_background_to_pixbuf(self, pixbuf, opacity, use_checkboard_background=False, check_size=None,
+                                      check_color_first=None, check_color_second=None):
+    if use_checkboard_background:
+      pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
+        gtk.gdk.COLORSPACE_RGB, False, 8,
+        pixbuf.get_width(), pixbuf.get_height())
+      
+      pixbuf.composite_color(
+        pixbuf_with_alpha_background, 0, 0,
+        pixbuf.get_width(), pixbuf.get_height(),
+        0, 0, 1.0, 1.0, gtk.gdk.INTERP_NEAREST,
+        int(round((opacity / 100.0) * 255)),
+        0, 0, check_size, check_color_first, check_color_second)
+    else:
+      pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
+        gtk.gdk.COLORSPACE_RGB, True, 8,
+        pixbuf.get_width(), pixbuf.get_height())
+      pixbuf_with_alpha_background.fill(0xffffff00)
+      
+      pixbuf.composite(
+        pixbuf_with_alpha_background, 0, 0,
+        pixbuf.get_width(), pixbuf.get_height(),
+        0, 0, 1.0, 1.0, gtk.gdk.INTERP_NEAREST,
+        int(round((opacity / 100.0) * 255)))
+    
+    return pixbuf_with_alpha_background
   
   def _get_preview_data(self, layer, preview_width, preview_height):
     actual_preview_width, actual_preview_height, _unused, _unused, preview_data = (
@@ -830,33 +881,64 @@ class ExportImagePreview(ExportPreview):
     
     return actual_preview_width, actual_preview_height, array.array(b"B", preview_data).tostring()
   
-  def _get_preview_size(self, layer):
+  def _get_preview_size(self, width, height):
     preview_widget_allocation = self._preview_image.get_allocation()
     preview_widget_width = preview_widget_allocation.width
     preview_widget_height = preview_widget_allocation.height
     
     if preview_widget_width > preview_widget_height:
-      layer_preview_height = min(preview_widget_height, layer.height, self._MAX_PREVIEW_SIZE_PIXELS)
-      layer_preview_width = int(round((layer_preview_height / layer.height) * layer.width))
+      preview_height = min(preview_widget_height, height, self._MAX_PREVIEW_SIZE_PIXELS)
+      preview_width = int(round((preview_height / height) * width))
       
-      if layer_preview_width > preview_widget_width:
-        layer_preview_width = preview_widget_width
-        layer_preview_height = int(round((layer_preview_width / layer.width) * layer.height))
+      if preview_width > preview_widget_width:
+        preview_width = preview_widget_width
+        preview_height = int(round((preview_width / width) * height))
     else:
-      layer_preview_width = min(preview_widget_width, layer.width, self._MAX_PREVIEW_SIZE_PIXELS)
-      layer_preview_height = int(round((layer_preview_width / layer.width) * layer.height))
+      preview_width = min(preview_widget_width, width, self._MAX_PREVIEW_SIZE_PIXELS)
+      preview_height = int(round((preview_width / width) * height))
       
-      if layer_preview_height > preview_widget_height:
-        layer_preview_height = preview_widget_height
-        layer_preview_width = int(round((layer_preview_height / layer.height) * layer.width))
+      if preview_height > preview_widget_height:
+        preview_height = preview_widget_height
+        preview_width = int(round((preview_height / height) * width))
     
-    return layer_preview_width, layer_preview_height
+    return preview_width, preview_height
+  
+  def _resize_preview(self, preview_allocation, preview_pixbuf):
+    if preview_pixbuf is None:
+      return
+    
+    if (preview_allocation.width >= preview_pixbuf.get_width() and
+        preview_allocation.height >= preview_pixbuf.get_height()):
+      return
+      
+    scaled_preview_width, scaled_preview_height = self._get_preview_size(
+      preview_pixbuf.get_width(), preview_pixbuf.get_height())
+    
+    if (self._previous_preview_pixbuf_width == scaled_preview_width and
+        self._previous_preview_pixbuf_height == scaled_preview_height):
+      return
+    
+    scaled_preview_pixbuf = preview_pixbuf.scale_simple(
+      scaled_preview_width, scaled_preview_height, gtk.gdk.INTERP_NEAREST)
+    
+    scaled_preview_pixbuf = self._add_alpha_background_to_pixbuf(
+      scaled_preview_pixbuf, self._layer_elem.item.opacity, self.draw_checkboard_alpha_background,
+      self._PREVIEW_ALPHA_CHECK_SIZE,
+      self._PREVIEW_ALPHA_CHECK_COLOR_DARK, self._PREVIEW_ALPHA_CHECK_COLOR_BRIGHT)
+    
+    self._preview_image.set_from_pixbuf(scaled_preview_pixbuf)
+    
+    self._previous_preview_pixbuf_width = scaled_preview_width
+    self._previous_preview_pixbuf_height = scaled_preview_height
   
   def _cleanup(self, image_preview):
     pdb.gimp_image_delete(image_preview)
   
   def _on_preview_image_size_allocate(self, image_widget, allocation):
     self._is_allocated_size = True
+    
+    if self._preview_image.get_visible() and not self._is_updating:
+      self._resize_preview(allocation, self._preview_pixbuf)
   
   def _show_placeholder_image(self):
     self._placeholder_image.show()
@@ -1542,16 +1624,18 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       current_position = self._hpaned_chooser_and_previews.get_position()
       max_position = self._hpaned_chooser_and_previews.get_property("max-position")
       
-      if (current_position == max_position and self._hpaned_previous_position != max_position):
+      if current_position == max_position and self._hpaned_previous_position != max_position:
         self._disable_preview_on_paned_drag(
           self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
         self._disable_preview_on_paned_drag(
           self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
-      elif (current_position != max_position and self._hpaned_previous_position == max_position):
+      elif current_position != max_position and self._hpaned_previous_position == max_position:
         self._enable_preview_on_paned_drag(
           self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
         self._enable_preview_on_paned_drag(
           self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
+      elif current_position != self._hpaned_previous_position:
+        self._export_image_preview.resize(update_when_larger_than_image_size=True)
       
       self._hpaned_previous_position = current_position
   
@@ -1561,22 +1645,24 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       max_position = self._vpaned_previews.get_property("max-position")
       min_position = self._vpaned_previews.get_property("min-position")
       
-      if (current_position == max_position and self._vpaned_previous_position != max_position):
+      if current_position == max_position and self._vpaned_previous_position != max_position:
         self._disable_preview_on_paned_drag(
           self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
           "vpaned_preview_enabled", clear=False)
-      elif (current_position != max_position and self._vpaned_previous_position == max_position):
+      elif current_position != max_position and self._vpaned_previous_position == max_position:
         self._enable_preview_on_paned_drag(
           self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
           "vpaned_preview_enabled")
-      elif (current_position == min_position and self._vpaned_previous_position != min_position):
+      elif current_position == min_position and self._vpaned_previous_position != min_position:
         self._disable_preview_on_paned_drag(
           self._export_name_preview, self._settings['gui/export_name_preview_enabled'],
           "vpaned_preview_enabled")
-      elif (current_position != min_position and self._vpaned_previous_position == min_position):
+      elif current_position != min_position and self._vpaned_previous_position == min_position:
         self._enable_preview_on_paned_drag(
           self._export_name_preview, self._settings['gui/export_name_preview_enabled'],
           "vpaned_preview_enabled")
+      elif current_position != self._vpaned_previous_position:
+        self._export_image_preview.resize(update_when_larger_than_image_size=True)
       
       self._vpaned_previous_position = current_position
   
