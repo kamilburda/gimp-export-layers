@@ -678,12 +678,15 @@ class ExportImagePreview(ExportPreview):
     
     allocation = self._preview_image.get_allocation()
     
+    if self._preview_pixbuf is None:
+      return
+    
     if (update_when_larger_than_image_size and
         (allocation.width > self._preview_pixbuf.get_width() and
          allocation.height > self._preview_pixbuf.get_height())):
       self.update()
     else:
-      if self._preview_image.get_visible() and not self._is_updating:
+      if not self._is_updating and self._preview_image.get_mapped():
         self._resize_preview(allocation, self._preview_pixbuf)
   
   def update_layer_elem(self):
@@ -713,6 +716,7 @@ class ExportImagePreview(ExportPreview):
   
   def _init_gui(self):
     self._preview_image = gtk.Image()
+    self._preview_image.set_no_show_all(True)
     
     self._placeholder_image = gtk.Image()
     self._placeholder_image.set_from_stock(gtk.STOCK_DIALOG_QUESTION, gtk.ICON_SIZE_DIALOG)
@@ -901,6 +905,11 @@ class ExportImagePreview(ExportPreview):
         preview_height = preview_widget_height
         preview_width = int(round((preview_height / height) * width))
     
+    if preview_width == 0:
+      preview_width = 1
+    if preview_height == 0:
+      preview_height = 1
+    
     return preview_width, preview_height
   
   def _resize_preview(self, preview_allocation, preview_pixbuf):
@@ -937,7 +946,7 @@ class ExportImagePreview(ExportPreview):
   def _on_preview_image_size_allocate(self, image_widget, allocation):
     self._is_allocated_size = True
     
-    if self._preview_image.get_visible() and not self._is_updating:
+    if not self._is_updating and self._preview_image.get_mapped():
       self._resize_preview(allocation, self._preview_pixbuf)
   
   def _show_placeholder_image(self):
@@ -1487,7 +1496,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._dialog.connect("notify::is-active", self._on_dialog_is_active_changed)
     self._hpaned_chooser_and_previews.connect("event", self._on_hpaned_left_button_up)
+    self._hpaned_chooser_and_previews.connect("move-handle", self._on_hpaned_move_handle)
     self._vpaned_previews.connect("event", self._on_vpaned_left_button_up)
+    self._vpaned_previews.connect("move-handle", self._on_vpaned_move_handle)
     
     self._connect_setting_changes_to_previews()
     
@@ -1621,50 +1632,62 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   def _on_hpaned_left_button_up(self, widget, event):
     if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:
-      current_position = self._hpaned_chooser_and_previews.get_position()
-      max_position = self._hpaned_chooser_and_previews.get_property("max-position")
-      
-      if current_position == max_position and self._hpaned_previous_position != max_position:
-        self._disable_preview_on_paned_drag(
-          self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
-        self._disable_preview_on_paned_drag(
-          self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
-      elif current_position != max_position and self._hpaned_previous_position == max_position:
-        self._enable_preview_on_paned_drag(
-          self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
-        self._enable_preview_on_paned_drag(
-          self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
-      elif current_position != self._hpaned_previous_position:
-        self._export_image_preview.resize(update_when_larger_than_image_size=True)
-      
-      self._hpaned_previous_position = current_position
+      self._on_hpaned_move(resize=True)
   
   def _on_vpaned_left_button_up(self, widget, event):
     if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:
-      current_position = self._vpaned_previews.get_position()
-      max_position = self._vpaned_previews.get_property("max-position")
-      min_position = self._vpaned_previews.get_property("min-position")
-      
-      if current_position == max_position and self._vpaned_previous_position != max_position:
-        self._disable_preview_on_paned_drag(
-          self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
-          "vpaned_preview_enabled", clear=False)
-      elif current_position != max_position and self._vpaned_previous_position == max_position:
-        self._enable_preview_on_paned_drag(
-          self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
-          "vpaned_preview_enabled")
-      elif current_position == min_position and self._vpaned_previous_position != min_position:
-        self._disable_preview_on_paned_drag(
-          self._export_name_preview, self._settings['gui/export_name_preview_enabled'],
-          "vpaned_preview_enabled")
-      elif current_position != min_position and self._vpaned_previous_position == min_position:
-        self._enable_preview_on_paned_drag(
-          self._export_name_preview, self._settings['gui/export_name_preview_enabled'],
-          "vpaned_preview_enabled")
-      elif current_position != self._vpaned_previous_position:
-        self._export_image_preview.resize(update_when_larger_than_image_size=True)
-      
-      self._vpaned_previous_position = current_position
+      self._on_vpaned_move(resize=True)
+  
+  def _on_hpaned_move_handle(self, widget, scroll_type):
+    self._on_hpaned_move()
+  
+  def _on_vpaned_move_handle(self, widget, scroll_type):
+    self._on_vpaned_move()
+  
+  def _on_hpaned_move(self, resize=False):
+    current_position = self._hpaned_chooser_and_previews.get_position()
+    max_position = self._hpaned_chooser_and_previews.get_property("max-position")
+    
+    if current_position == max_position and self._hpaned_previous_position != max_position:
+      self._disable_preview_on_paned_drag(
+        self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
+      self._disable_preview_on_paned_drag(
+        self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
+    elif current_position != max_position and self._hpaned_previous_position == max_position:
+      self._enable_preview_on_paned_drag(
+        self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
+      self._enable_preview_on_paned_drag(
+        self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
+    elif resize and current_position != self._hpaned_previous_position:
+      self._export_image_preview.resize(update_when_larger_than_image_size=True)
+    
+    self._hpaned_previous_position = current_position
+  
+  def _on_vpaned_move(self, resize=True):
+    current_position = self._vpaned_previews.get_position()
+    max_position = self._vpaned_previews.get_property("max-position")
+    min_position = self._vpaned_previews.get_property("min-position")
+    
+    if current_position == max_position and self._vpaned_previous_position != max_position:
+      self._disable_preview_on_paned_drag(
+        self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
+        "vpaned_preview_enabled", clear=False)
+    elif current_position != max_position and self._vpaned_previous_position == max_position:
+      self._enable_preview_on_paned_drag(
+        self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
+        "vpaned_preview_enabled")
+    elif current_position == min_position and self._vpaned_previous_position != min_position:
+      self._disable_preview_on_paned_drag(
+        self._export_name_preview, self._settings['gui/export_name_preview_enabled'],
+        "vpaned_preview_enabled")
+    elif current_position != min_position and self._vpaned_previous_position == min_position:
+      self._enable_preview_on_paned_drag(
+        self._export_name_preview, self._settings['gui/export_name_preview_enabled'],
+        "vpaned_preview_enabled")
+    elif resize and current_position != self._vpaned_previous_position:
+      self._export_image_preview.resize(update_when_larger_than_image_size=True)
+    
+    self._vpaned_previous_position = current_position
   
   def _enable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key):
     preview.lock_update(False, update_lock_key)
