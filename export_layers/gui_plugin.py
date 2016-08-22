@@ -599,8 +599,6 @@ class ExportImagePreview(ExportPreview):
   _MAX_PREVIEW_SIZE_PIXELS = 1024
   
   _PREVIEW_ALPHA_CHECK_SIZE = 4
-  _PREVIEW_ALPHA_CHECK_COLOR_BRIGHT = 0x99999999
-  _PREVIEW_ALPHA_CHECK_COLOR_DARK = 0x66666666
   
   def __init__(self, layer_exporter, initial_layer_tree=None, initial_previered_layer_id=None):
     super(ExportImagePreview, self).__init__()
@@ -625,6 +623,9 @@ class ExportImagePreview(ExportPreview):
     self._preview_scaling_factor = None
     
     self._init_gui()
+    
+    self._PREVIEW_ALPHA_CHECK_COLOR_FIRST, self._PREVIEW_ALPHA_CHECK_COLOR_SECOND = (
+      int(hex(shade)[2:] * 4, 16) for shade in gimp.checks_get_shades(gimp.check_type()))
     
     self._placeholder_image_size = gtk.icon_size_lookup(self._placeholder_image.get_property("icon-size"))
     
@@ -851,7 +852,7 @@ class ExportImagePreview(ExportPreview):
       layer_preview_pixbuf = self._add_alpha_background_to_pixbuf(
         layer_preview_pixbuf, layer.opacity, self.draw_checkboard_alpha_background,
         self._PREVIEW_ALPHA_CHECK_SIZE,
-        self._PREVIEW_ALPHA_CHECK_COLOR_DARK, self._PREVIEW_ALPHA_CHECK_COLOR_BRIGHT)
+        self._PREVIEW_ALPHA_CHECK_COLOR_FIRST, self._PREVIEW_ALPHA_CHECK_COLOR_SECOND)
     
     return layer_preview_pixbuf
   
@@ -936,7 +937,7 @@ class ExportImagePreview(ExportPreview):
     scaled_preview_pixbuf = self._add_alpha_background_to_pixbuf(
       scaled_preview_pixbuf, self._layer_elem.item.opacity, self.draw_checkboard_alpha_background,
       self._PREVIEW_ALPHA_CHECK_SIZE,
-      self._PREVIEW_ALPHA_CHECK_COLOR_DARK, self._PREVIEW_ALPHA_CHECK_COLOR_BRIGHT)
+      self._PREVIEW_ALPHA_CHECK_COLOR_FIRST, self._PREVIEW_ALPHA_CHECK_COLOR_SECOND)
     
     self._preview_image.set_from_pixbuf(scaled_preview_pixbuf)
     
