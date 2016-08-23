@@ -650,7 +650,7 @@ class ExportImagePreview(ExportPreview):
       return
     
     if not pdb.gimp_item_is_valid(self.layer_elem.item):
-      self.clear()
+      self.clear(use_layer_name=True)
       return
     
     self._is_updating = True
@@ -668,14 +668,16 @@ class ExportImagePreview(ExportPreview):
     
     if preview_pixbuf is not None:
       self._preview_image.set_from_pixbuf(preview_pixbuf)
+    else:
+      self.clear(use_layer_name=True)
     
     self._is_updating = False
   
-  def clear(self):
+  def clear(self, use_layer_name=False):
     self.layer_elem = None
     self._preview_image.clear()
     self._preview_image.hide()
-    self._show_placeholder_image()
+    self._show_placeholder_image(use_layer_name)
   
   def resize(self, update_when_larger_than_image_size=False):
     """
@@ -975,9 +977,10 @@ class ExportImagePreview(ExportPreview):
       else:
         self._placeholder_image.show()
   
-  def _show_placeholder_image(self):
+  def _show_placeholder_image(self, use_layer_name=False):
     self._placeholder_image.show()
-    self._set_layer_name_label(_("No selection"))
+    if not use_layer_name:
+      self._set_layer_name_label(_("No selection"))
   
   def _set_layer_name_label(self, layer_name):
     self._label_layer_name.set_markup("<i>{0}</i>".format(gobject.markup_escape_text(layer_name)))
