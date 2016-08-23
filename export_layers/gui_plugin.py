@@ -177,7 +177,7 @@ class ExportNamePreview(ExportPreview):
   _ICON_TAG_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_tag.png")
   
   def __init__(self, layer_exporter, initial_layer_tree=None, collapsed_items=None, selected_items=None,
-               on_selection_changed_func=None, on_after_update_func=None):
+               on_selection_changed_func=None, on_after_update_func=None, on_after_edit_tags_func=None):
     super(ExportNamePreview, self).__init__()
     
     self._layer_exporter = layer_exporter
@@ -187,6 +187,8 @@ class ExportNamePreview(ExportPreview):
     self._on_selection_changed_func = (
       on_selection_changed_func if on_selection_changed_func is not None else lambda *args: None)
     self._on_after_update_func = on_after_update_func if on_after_update_func is not None else lambda *args: None
+    self._on_after_edit_tags_func = (
+      on_after_edit_tags_func if on_after_edit_tags_func is not None else lambda *args: None)
     
     self._tree_iters = collections.defaultdict(lambda: None)
     
@@ -427,6 +429,8 @@ class ExportNamePreview(ExportPreview):
       # Modifying just one layer could result in renaming other layers differently,
       # hence update the whole preview.
       self.update()
+      
+      self._on_after_edit_tags_func()
   
   def _get_layer_ids_in_current_selection(self):
     _unused, tree_paths = self._tree_view.get_selection().get_selected_rows()
@@ -750,12 +754,17 @@ class ExportImagePreview(ExportPreview):
       return layer_elem
   
   def _layer_elem_matches_filter(self, layer_elem):
-    if self._layer_exporter.export_settings['export_only_selected_layers'].value:
-      with self._layer_exporter.layer_tree.filter['layer_types'].add_rule_temp(
-        exportlayers.LayerFilterRules.is_nonempty_group):
+    def _not_treated_specially_and_has_tags(layer_elem):
+      return not (self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special') and
+                  layer_elem.tags)
+    
+    with self._layer_exporter.layer_tree.filter.add_rule_temp(_not_treated_specially_and_has_tags):
+      if self._layer_exporter.export_settings['export_only_selected_layers'].value:
+        with self._layer_exporter.layer_tree.filter['layer_types'].add_rule_temp(
+          exportlayers.LayerFilterRules.is_nonempty_group):
+          return self._layer_exporter.layer_tree.filter.is_match(layer_elem)
+      else:
         return self._layer_exporter.layer_tree.filter.is_match(layer_elem)
-    else:
-      return self._layer_exporter.layer_tree.filter.is_match(layer_elem)
   
   def _get_in_memory_preview(self, layer):
     self._preview_width, self._preview_height = self._get_preview_size(layer.width, layer.height)
@@ -1291,7 +1300,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._settings['gui_session/export_name_preview_layers_collapsed_state'].value[self._image.ID],
       self._settings['main/selected_layers'].value[self._image.ID],
       on_selection_changed_func=self._on_name_preview_selection_changed,
-      on_after_update_func=self._on_name_preview_after_update)
+      on_after_update_func=self._on_name_preview_after_update,
+      on_after_edit_tags_func=self._on_name_preview_after_edit_tags)
     
     self._export_image_preview = ExportImagePreview(
       self._layer_exporter_for_previews,
@@ -1721,7 +1731,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     layer_elem_from_cursor = self._export_name_preview.get_layer_elem_from_cursor()
     if layer_elem_from_cursor is not None:
       if (self._export_image_preview.layer_elem is None or
-          layer_elem_from_cursor.orig_name != self._export_image_preview.layer_elem.orig_name):
+          layer_elem_from_cursor.item.ID != self._export_image_preview.layer_elem.item.ID):
         self._export_image_preview.layer_elem = layer_elem_from_cursor
         self._export_image_preview.update()
     else:
@@ -1734,6 +1744,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   def _on_name_preview_after_update(self):
     self._export_image_preview.update_layer_elem()
+  
+  def _on_name_preview_after_edit_tags(self):
+    self._on_name_preview_selection_changed()
   
   def _on_dialog_key_press(self, widget, event):
     if gtk.gdk.keyval_name(event.keyval) == "Escape":
