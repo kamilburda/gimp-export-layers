@@ -193,6 +193,7 @@ def create_settings():
       'name': 'layer_filename_pattern',
       'default_value': "[layer name]",
       'display_name': _("Layer filename pattern"),
+      'description': _("Layer filename pattern (empty string = layer name)"),
       'gui_type': None
     },
     {
