@@ -650,7 +650,7 @@ class ExportImagePreview(ExportPreview):
       return
     
     if not pdb.gimp_item_is_valid(self.layer_elem.item):
-      self.clear(use_layer_name=True)
+      self.clear()
       return
     
     self._is_updating = True
