@@ -944,7 +944,7 @@ class ExportImagePreview(ExportPreview):
       scaled_preview_width, scaled_preview_height, gtk.gdk.INTERP_NEAREST)
     
     scaled_preview_pixbuf = self._add_alpha_background_to_pixbuf(
-      scaled_preview_pixbuf, self._layer_elem.item.opacity, self.draw_checkboard_alpha_background,
+      scaled_preview_pixbuf, 100, self.draw_checkboard_alpha_background,
       self._PREVIEW_ALPHA_CHECK_SIZE,
       self._PREVIEW_ALPHA_CHECK_COLOR_FIRST, self._PREVIEW_ALPHA_CHECK_COLOR_SECOND)
     
