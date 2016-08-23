@@ -218,6 +218,11 @@ class TestSetting(unittest.TestCase):
     self.assertEqual(setting.display_name, "_Setting")
     self.assertEqual(setting.description, "Setting")
   
+  def test_custom_description(self):
+    setting = SettingStub('setting', "default value", display_name="_Setting", description="My description")
+    self.assertEqual(setting.display_name, "_Setting")
+    self.assertEqual(setting.description, "My description")
+  
   def test_custom_error_messages(self):
     setting = SettingStub('setting', "")
     

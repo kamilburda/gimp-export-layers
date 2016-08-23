@@ -189,6 +189,7 @@ class Setting(object):
   def __init__(self, name, default_value,
                allow_empty_values=False,
                display_name=None,
+               description=None,
                pdb_type=SettingPdbTypes.automatic,
                gui_type=SettingGuiTypes.automatic,
                auto_update_gui_to_setting=True,
@@ -250,7 +251,7 @@ class Setting(object):
     self._allowed_empty_values = list(self._ALLOWED_EMPTY_VALUES)
     
     self._display_name = self._get_display_name(display_name)
-    self._description = self._get_description(self._display_name)
+    self._description = self._get_description(description, self._display_name)
     
     self._pdb_type = self._get_pdb_type(pdb_type)
     self._pdb_name = self._get_pdb_name(self._name)
@@ -660,8 +661,11 @@ class Setting(object):
   def _generate_display_name(self):
     return self.name.replace("_", " ").capitalize()
   
-  def _get_description(self, display_name):
-    return display_name.replace("_", "")
+  def _get_description(self, description, display_name):
+    if description is not None:
+      return description
+    else:
+      return display_name.replace("_", "")
   
   def _get_pdb_type(self, pdb_type):
     if pdb_type == SettingPdbTypes.automatic:
@@ -1005,7 +1009,7 @@ class EnumSetting(Setting):
     items_sep = ", "
     
     for value, display_name in zip(self._items.values(), self._items_display_names.values()):
-      description = self._get_description(display_name)
+      description = self._get_description(None, display_name)
       items_description += "{0} ({1}){2}".format(description, value, items_sep)
     items_description = items_description[:-len(items_sep)]
     
