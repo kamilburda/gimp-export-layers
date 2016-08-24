@@ -619,7 +619,6 @@ class ExportImagePreview(ExportPreview):
     
     self.draw_checkboard_alpha_background = True
     
-    self._is_allocated_size = False
     self._is_updating = False
     
     self._preview_width = None
@@ -633,7 +632,6 @@ class ExportImagePreview(ExportPreview):
     
     self._placeholder_image_size = gtk.icon_size_lookup(self._placeholder_image.get_property("icon-size"))
     
-    self._preview_image.connect("size-allocate", self._on_preview_image_size_allocate)
     self._vbox.connect("size-allocate", self._on_vbox_size_allocate)
     
     self._widget = self._vbox
@@ -682,22 +680,21 @@ class ExportImagePreview(ExportPreview):
   def resize(self, update_when_larger_than_image_size=False):
     """
     Resize the preview if the widget is smaller than the previewed image so that
-    the image fits the widget. If the widget is larger than the image and
-    `update_when_larger_than_image_size` is True, call `update()`.
+    the image fits the widget.
+    """
+    
+    if not self._is_updating and self._preview_image.get_mapped():
+      self._resize_preview(self._preview_image.get_allocation(), self._preview_pixbuf)
+  
+  def is_larger_than_image(self):
+    """
+    Return True if the preview widget is larger than the image. If no image is
+    previewed, return False.
     """
     
     allocation = self._preview_image.get_allocation()
-    
-    if self._preview_pixbuf is None:
-      return
-    
-    if (update_when_larger_than_image_size and
-        (allocation.width > self._preview_pixbuf.get_width() and
-         allocation.height > self._preview_pixbuf.get_height())):
-      self.update()
-    else:
-      if not self._is_updating and self._preview_image.get_mapped():
-        self._resize_preview(allocation, self._preview_pixbuf)
+    return (self._preview_pixbuf is not None and allocation.width > self._preview_pixbuf.get_width() and
+            allocation.height > self._preview_pixbuf.get_height())
   
   def update_layer_elem(self):
     if (self.layer_elem is not None and
@@ -934,7 +931,7 @@ class ExportImagePreview(ExportPreview):
     if (preview_allocation.width >= preview_pixbuf.get_width() and
         preview_allocation.height >= preview_pixbuf.get_height()):
       return
-      
+    
     scaled_preview_width, scaled_preview_height = self._get_preview_size(
       preview_pixbuf.get_width(), preview_pixbuf.get_height())
     
@@ -957,12 +954,6 @@ class ExportImagePreview(ExportPreview):
   
   def _cleanup(self, image_preview):
     pdb.gimp_image_delete(image_preview)
-  
-  def _on_preview_image_size_allocate(self, image_widget, allocation):
-    self._is_allocated_size = True
-    
-    if not self._is_updating and self._preview_image.get_mapped():
-      self._resize_preview(allocation, self._preview_pixbuf)
   
   def _on_vbox_size_allocate(self, image_widget, allocation):
     if not self._is_updating and not self._preview_image.get_mapped():
@@ -1525,10 +1516,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._show_more_settings_button.connect("toggled", self._on_show_more_settings_button_toggled)
     
     self._dialog.connect("notify::is-active", self._on_dialog_is_active_changed)
-    self._hpaned_chooser_and_previews.connect("event", self._on_hpaned_left_button_up)
-    self._hpaned_chooser_and_previews.connect("move-handle", self._on_hpaned_move_handle)
-    self._vpaned_previews.connect("event", self._on_vpaned_left_button_up)
-    self._vpaned_previews.connect("move-handle", self._on_vpaned_move_handle)
+    self._hpaned_chooser_and_previews.connect("notify::position", self._on_hpaned_position_changed)
+    self._vpaned_previews.connect("notify::position", self._on_vpaned_position_changed)
     
     self._connect_setting_changes_to_previews()
     
@@ -1660,21 +1649,13 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     if preview_visible:
       preview.update()
   
-  def _on_hpaned_left_button_up(self, widget, event):
-    if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:
-      self._on_hpaned_move(resize=True)
-  
-  def _on_vpaned_left_button_up(self, widget, event):
-    if event.type == gtk.gdk.BUTTON_RELEASE and event.button == 1:
-      self._on_vpaned_move(resize=True)
-  
-  def _on_hpaned_move_handle(self, widget, scroll_type):
+  def _on_hpaned_position_changed(self, widget, property_spec):
     self._on_hpaned_move()
   
-  def _on_vpaned_move_handle(self, widget, scroll_type):
+  def _on_vpaned_position_changed(self, widget, property_spec):
     self._on_vpaned_move()
   
-  def _on_hpaned_move(self, resize=False):
+  def _on_hpaned_move(self):
     current_position = self._hpaned_chooser_and_previews.get_position()
     max_position = self._hpaned_chooser_and_previews.get_property("max-position")
     
@@ -1688,12 +1669,16 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
       self._enable_preview_on_paned_drag(
         self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
-    elif resize and current_position != self._hpaned_previous_position:
-      self._export_image_preview.resize(update_when_larger_than_image_size=True)
+    elif current_position != self._hpaned_previous_position:
+      if self._export_image_preview.is_larger_than_image():
+        pggui.timeout_add_strict(500, self._export_image_preview.update)
+      else:
+        pggui.timeout_remove_strict(self._export_image_preview.update)
+        self._export_image_preview.resize()
     
     self._hpaned_previous_position = current_position
   
-  def _on_vpaned_move(self, resize=True):
+  def _on_vpaned_move(self):
     current_position = self._vpaned_previews.get_position()
     max_position = self._vpaned_previews.get_property("max-position")
     min_position = self._vpaned_previews.get_property("min-position")
@@ -1714,14 +1699,18 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._enable_preview_on_paned_drag(
         self._export_name_preview, self._settings['gui/export_name_preview_enabled'],
         "vpaned_preview_enabled")
-    elif resize and current_position != self._vpaned_previous_position:
-      self._export_image_preview.resize(update_when_larger_than_image_size=True)
+    elif current_position != self._vpaned_previous_position:
+      if self._export_image_preview.is_larger_than_image():
+        pggui.timeout_add_strict(500, self._export_image_preview.update)
+      else:
+        pggui.timeout_remove_strict(self._export_image_preview.update)
+        self._export_image_preview.resize()
     
     self._vpaned_previous_position = current_position
   
   def _enable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key):
     preview.lock_update(False, update_lock_key)
-    preview.update()
+    pggui.timeout_add_strict(500, preview.update)
     preview_enabled_setting.set_value(True)
   
   def _disable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key, clear=True):
