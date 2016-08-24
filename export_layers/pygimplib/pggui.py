@@ -130,7 +130,8 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
       text_filename = _("A file named \"{0}\" already exists.\nWhat would you like to do?").format(filename)
     else:
       text_filename = _("A file with the same name already exists.\nWhat would you like to do?")
-    self._dialog_text.set_markup("<span font_size=\"large\"><b>" + text_filename + "</b></span>")
+    self._dialog_text.set_markup(
+      "<span font_size=\"large\"><b>" + gobject.markup_escape_text(text_filename) + "</b></span>")
     
     self._dialog.show_all()
     self._overwrite_mode = self._dialog.run()
@@ -295,7 +296,7 @@ def display_message(message, message_type, title=None, parent=None,
   
   messages = message.split("\n", 1)
   if len(messages) > 1:
-    dialog.set_markup(messages[0])
+    dialog.set_markup(gobject.markup_escape_text(messages[0]))
     
     if message_in_text_view:
       text_view = gtk.TextView()
@@ -317,9 +318,9 @@ def display_message(message, message_type, title=None, parent=None,
       vbox = dialog.get_message_area()
       vbox.pack_end(scrolled_window, expand=True, fill=True)
     else:
-      dialog.format_secondary_markup(messages[1])
+      dialog.format_secondary_markup(gobject.markup_escape_text(messages[1]))
   else:
-    dialog.set_markup(message)
+    dialog.set_markup(gobject.markup_escape_text(message))
   
   dialog.show_all()
   response_id = dialog.run()
