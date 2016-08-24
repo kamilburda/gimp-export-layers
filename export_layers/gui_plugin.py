@@ -64,35 +64,49 @@ from export_layers import settings_plugin
 
 def display_message(message, message_type, parent=None, buttons=gtk.BUTTONS_OK, message_in_text_view=False):
   return pggui.display_message(
-    message,
-    message_type,
-    title=pygimplib.config.PLUGIN_TITLE,
-    parent=parent,
-    buttons=buttons,
-    message_in_text_view=message_in_text_view
-  )
+    message, message_type, title=pygimplib.config.PLUGIN_TITLE, parent=parent,
+    buttons=buttons, message_in_text_view=message_in_text_view)
 
 
-def display_exception_message(exception_message, parent=None):
-  pggui.display_exception_message(
-    exception_message,
-    plugin_title=pygimplib.config.PLUGIN_TITLE,
-    report_uri_list=pygimplib.config.BUG_REPORT_URI_LIST,
-    parent=parent
-  )
-
-
-def _format_export_error_message(exception):
+def display_export_failure_message(exception, parent=None):
   error_message = _(
-    "Sorry, but the export was unsuccessful. You can try exporting again if you fix the issue described below.")
+    "Sorry, but the export was unsuccessful. "
+    "You can try exporting again if you fix the issue described below.")
   if not exception.message.endswith("."):
     exception.message += "."
   error_message += "\n" + str(exception)
-  return error_message
+  
+  display_message(error_message, message_type=gtk.MESSAGE_WARNING, parent=parent, message_in_text_view=True)
 
 
-def _return_none_func(*args, **kwargs):
-  return None
+def display_export_failure_invalid_image_message(details, parent=None):
+  dialog = gtk.MessageDialog(
+    parent=parent, type=gtk.MESSAGE_WARNING, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
+  dialog.set_transient_for(parent)
+  dialog.set_title(pygimplib.config.PLUGIN_TITLE)
+  
+  dialog.set_markup(
+    _("Sorry, but the export was unsuccessful. "
+      "Do not close the image when exporting, keep it open until the export finishes successfully."))
+  
+  dialog.format_secondary_markup(
+    _("If you believe this is a different error, you can help fix it by sending a report with the text "
+      "in the details to one of the sites below."))
+  
+  expander = pggui.get_exception_details_expander(details)
+  dialog.vbox.pack_start(expander, expand=False, fill=True)
+  
+  if pygimplib.config.BUG_REPORT_URI_LIST:
+    vbox_labels_report = pggui.get_report_link_buttons(pygimplib.config.BUG_REPORT_URI_LIST)
+    dialog.vbox.pack_start(vbox_labels_report, expand=False, fill=True)
+  
+  close_button = dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
+  
+  dialog.set_focus(close_button)
+  
+  dialog.show_all()
+  dialog.run()
+  dialog.destroy()
 
 
 #===============================================================================
@@ -1018,6 +1032,10 @@ class _ExportLayersGenericGui(object):
 #===============================================================================
 
 
+def _return_none_func(*args, **kwargs):
+  return None
+
+
 def add_gui_settings(settings):
   
   gui_settings = pgsettinggroup.SettingGroup('gui', [
@@ -1498,11 +1516,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._dialog.vbox.pack_start(self._action_area, expand=False, fill=True)
     self._dialog.vbox.pack_end(self._vbox_progress_bars, expand=False, fill=True)
     
-    self._export_button.connect("clicked", self._on_export_click)
-    self._cancel_button.connect("clicked", self._cancel)
+    self._export_button.connect("clicked", self._on_export_button_clicked)
+    self._cancel_button.connect("clicked", self._on_cancel_button_clicked)
     self._stop_button.connect("clicked", self._stop)
     self._dialog.connect("key-press-event", self._on_dialog_key_press)
-    self._dialog.connect("delete-event", self._close)
+    self._dialog.connect("delete-event", self._on_dialog_delete_event)
     
     self._save_settings_button.connect("clicked", self._on_save_settings_clicked)
     self._reset_settings_button.connect("clicked", self._on_reset_settings_clicked)
@@ -1602,6 +1620,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._filename_pattern_entry.hide()
   
   def _on_dialog_is_active_changed(self, widget, property_spec):
+    if not pdb.gimp_image_is_valid(self._image):
+      gtk.main_quit()
+      return
+    
     if self._initial_layer_tree is not None:
       self._initial_layer_tree = None
       return
@@ -1777,7 +1799,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._progress_set_value(0.0)
   
   @_set_settings
-  def _on_export_click(self, widget):
+  def _on_export_button_clicked(self, widget):
     self._setup_gui_before_export()
     
     self._install_gimp_progress(self._progress_set_value, self._progress_reset_value)
@@ -1805,12 +1827,13 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     except exportlayers.ExportLayersCancelError as e:
       should_quit = False
     except exportlayers.ExportLayersError as e:
-      display_message(
-        _format_export_error_message(e), message_type=gtk.MESSAGE_WARNING, parent=self._dialog,
-        message_in_text_view=True)
+      display_export_failure_message(e, parent=self._dialog)
       should_quit = False
     except Exception as e:
-      display_exception_message(traceback.format_exc(), parent=self._dialog)
+      if pdb.gimp_image_is_valid(self._image):
+        raise
+      else:
+        display_export_failure_invalid_image_message(traceback.format_exc(), parent=self._dialog)
     else:
       self._settings['special/first_plugin_run'].set_value(False)
       self._settings['special/first_plugin_run'].save()
@@ -1862,10 +1885,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     else:
       self._dialog.set_focus(self._stop_button)
   
-  def _close(self, widget, event):
+  def _on_dialog_delete_event(self, widget, event):
     gtk.main_quit()
   
-  def _cancel(self, widget):
+  def _on_cancel_button_clicked(self, widget):
     gtk.main_quit()
   
   def _display_message_label(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
@@ -1959,9 +1982,12 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
     except exportlayers.ExportLayersCancelError:
       pass
     except exportlayers.ExportLayersError as e:
-      display_message(
-        _format_export_error_message(e), message_type=gtk.MESSAGE_WARNING, parent=self._dialog,
-        message_in_text_view=True)
+      display_export_failure_message(e, parent=self._dialog)
+    except Exception as e:
+      if pdb.gimp_image_is_valid(self._image):
+        raise
+      else:
+        display_export_failure_invalid_image_message(traceback.format_exc(), parent=self._dialog)
     else:
       if not self._layer_exporter.exported_layers:
         display_message(_("No layers were exported."), gtk.MESSAGE_INFO, parent=self._dialog)
