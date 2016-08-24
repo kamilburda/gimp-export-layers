@@ -163,8 +163,7 @@ def display_exception_message(exception_message, plugin_title=None, report_uri_l
   
   Parameters:
   
-  * `exception_message` - Exception message (usually traceback) to display in
-    the Details box.
+  * `exception_message` - Exception message to display in the Details box.
   
   * `plugin_title` - Name of the plug-in (string) used as the message title and
     in the message contents.
@@ -175,25 +174,42 @@ def display_exception_message(exception_message, plugin_title=None, report_uri_l
   * `parent` - Parent GUI element.
   """
   
-  def connect_linkbuttons(report_linkbuttons):
-    
-    def open_browser(linkbutton):
-      webbrowser.open_new_tab(linkbutton.get_uri())
-    
-    for linkbutton in report_linkbuttons:
-      linkbutton.connect("clicked", open_browser)
-  
   dialog = gtk.MessageDialog(
     parent, type=gtk.MESSAGE_ERROR, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
   dialog.set_transient_for(parent)
-  dialog.set_title(plugin_title)
-  dialog.set_markup(
-    "<span font_size=\"large\"><b>" + _("Oops! Something went wrong.") + "</b></span>")
-  dialog.format_secondary_markup(
-    _("{0} encountered an unexpected error and has to close. Sorry about that!").format(plugin_title))
+  if plugin_title is not None:
+    dialog.set_title(plugin_title)
   
-  expander = gtk.Expander()
+  dialog.set_markup(
+    "<span font_size=\"large\"><b>" + _("Oops. Something went wrong.") + "</b></span>")
+  dialog.format_secondary_markup(
+    _("{0} encountered an unexpected error and has to close. Sorry about that!").format(
+      gobject.markup_escape_text(plugin_title)))
+  
+  expander = get_exception_details_expander(exception_message)
   expander.set_expanded(True)
+  
+  if report_uri_list:
+    vbox_labels_report = get_report_link_buttons(
+      report_uri_list, report_description=_(
+        "You can help fix this error by sending a report with the text "
+        "in the details above to one of the following sites"))
+    dialog.vbox.pack_end(vbox_labels_report, expand=False, fill=True)
+  
+  dialog.vbox.pack_start(expander, expand=False, fill=True)
+  
+  dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
+  
+  if expander.get_child() is not None:
+    dialog.set_focus(expander.get_child())
+  
+  dialog.show_all()
+  dialog.run()
+  dialog.destroy()
+
+
+def get_exception_details_expander(exception_message):
+  expander = gtk.Expander()
   expander.set_use_markup(True)
   expander.set_label("<b>" + _("Details") + "</b>")
   
@@ -216,47 +232,43 @@ def display_exception_message(exception_message, plugin_title=None, report_uri_l
   scrolled_window.add(exception_text_view)
   expander.add(scrolled_window)
   
-  vbox_labels_report = gtk.VBox(homogeneous=False)
+  return expander
+
+
+def get_report_link_buttons(report_uri_list, report_description=None):
+  if not report_uri_list:
+    return None
   
-  if report_uri_list is not None and report_uri_list:
-    label_report_header_text = _(
-      "You can help fix this error by sending a report with the text "
-      "in the details above to one of the following sites")
+  vbox_link_buttons = gtk.VBox(homogeneous=False)
+  
+  if report_description is not None:
+    label_report_text = report_description
     if not _webbrowser_module_found:
-      label_report_header_text += " " + _("(right-click to copy link)")
-    label_report_header_text += ":"
+      label_report_text += " " + _("(right-click to copy link)")
+    label_report_text += ":"
     
-    label_report_header = gtk.Label(label_report_header_text)
-    label_report_header.set_alignment(0, 0.5)
-    label_report_header.set_padding(3, 3)
-    label_report_header.set_line_wrap(True)
-    label_report_header.set_line_wrap_mode(gtk.WRAP_WORD)
-    
-    report_linkbuttons = []
-    for name, uri in report_uri_list:
-      linkbutton = gtk.LinkButton(uri, label=name)
-      linkbutton.set_alignment(0, 0.5)
-      report_linkbuttons.append(linkbutton)
-    
-    vbox_labels_report.pack_start(label_report_header, expand=False, fill=True)
-    for linkbutton in report_linkbuttons:
-      vbox_labels_report.pack_start(linkbutton, expand=False, fill=True)
+    label_report = gtk.Label(label_report_text)
+    label_report.set_alignment(0, 0.5)
+    label_report.set_padding(3, 3)
+    label_report.set_line_wrap(True)
+    label_report.set_line_wrap_mode(gtk.WRAP_WORD)
+    vbox_link_buttons.pack_start(label_report, expand=False, fill=True)
   
-    dialog.vbox.pack_end(vbox_labels_report, expand=False, fill=True)
+  report_linkbuttons = []
+  for name, uri in report_uri_list:
+    linkbutton = gtk.LinkButton(uri, label=name)
+    linkbutton.set_alignment(0, 0.5)
+    report_linkbuttons.append(linkbutton)
   
-  dialog.vbox.pack_start(expander, expand=False, fill=True)
+  for linkbutton in report_linkbuttons:
+    vbox_link_buttons.pack_start(linkbutton, expand=False, fill=True)
   
-  dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
-  
-  dialog.set_focus(scrolled_window)
-  
-  if report_uri_list is not None and report_uri_list and _webbrowser_module_found:
+  if _webbrowser_module_found:
     # Apparently, GTK doesn't know how to open URLs on Windows, hence the custom solution.
-    connect_linkbuttons(report_linkbuttons)
+    for linkbutton in report_linkbuttons:
+      linkbutton.connect("clicked", lambda linkbutton: webbrowser.open_new_tab(linkbutton.get_uri()))
   
-  dialog.show_all()
-  dialog.run()
-  dialog.destroy()
+  return vbox_link_buttons
 
 
 def display_message(message, message_type, title=None, parent=None,
