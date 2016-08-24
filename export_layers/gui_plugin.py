@@ -1338,7 +1338,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._hpaned_chooser_and_previews.pack2(self._frame_previews, resize=True, shrink=True)
     
     self._file_extension_label = gtk.Label()
-    self._file_extension_label.set_markup("<b>" + self._settings['main/file_extension'].display_name + ":</b>")
+    self._file_extension_label.set_markup(
+      "<b>" + gobject.markup_escape_text(self._settings['main/file_extension'].display_name) + ":</b>")
     self._file_extension_label.set_alignment(0.0, 0.5)
     
     self._file_extension_entry = pggui.FileExtensionEntry()
