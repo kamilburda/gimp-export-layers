@@ -286,6 +286,11 @@ def display_message(message, message_type, title=None, parent=None,
   * `title` - Message title.
   
   * `parent` - Parent GUI element.
+  
+  * `buttons` - Buttons to display in the dialog.
+  
+  * `message_in_text_view` - If True, display text the after the first newline
+    character in a text view.
   """
   
   dialog = gtk.MessageDialog(
