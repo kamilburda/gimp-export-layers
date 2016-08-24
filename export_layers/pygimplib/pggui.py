@@ -463,10 +463,19 @@ def timeout_add_strict(interval, callback, *callback_args, **callback_kwargs):
     
     return retval
   
-  if callback in _timer_ids:
-    gobject.source_remove(_timer_ids[callback])
-    del _timer_ids[callback]
+  timeout_remove_strict(callback)
   
   _timer_ids[callback] = gobject.timeout_add(interval, _callback_wrapper, callback_args, callback_kwargs)
   
   return _timer_ids[callback]
+
+
+def timeout_remove_strict(callback):
+  """
+  Remove a callback scheduled by `timeout_add_strict()`. If no such
+  callback exists, do nothing.
+  """
+  
+  if callback in _timer_ids:
+    gobject.source_remove(_timer_ids[callback])
+    del _timer_ids[callback]
