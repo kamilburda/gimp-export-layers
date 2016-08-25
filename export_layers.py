@@ -42,7 +42,6 @@ import export_layers.config
 pygimplib.init()
 
 from export_layers.pygimplib import pgitemtree
-from export_layers.pygimplib import pgsettingpersistor
 
 from export_layers import exportlayers
 from export_layers import gui_plugin
