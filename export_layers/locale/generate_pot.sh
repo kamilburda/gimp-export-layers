@@ -11,8 +11,6 @@ PLUGIN_NAME='export_layers'
 PACKAGE_NAME=\'"$PLUGIN_NAME"\'
 DOMAIN_NAME='gimp-plugin-export-layers'
 
-COPYRIGHT_YEARS='2014, 2015, 2016'
-
 if [ -z "$1" ]; then
    echo "$PROGNAME: error: version must be specified"
    exit 1
@@ -29,7 +27,6 @@ find "$INPUT_DIRECTORY" -type f -iname '*.py' | \
 xargs xgettext --language=Python --keyword='_' --keyword='N_' --package-name="$PACKAGE_NAME" --package-version="$plugin_version" --copyright-holder="$AUTHOR_NAME" --msgid-bugs-address="$AUTHOR_MAIL" --output="$OUTPUT_FILE" --from-code='UTF-8'
 
 sed -i '
-  s/^\(# Copyright (C) \)YEAR/\1'"$COPYRIGHT_YEARS"'/
   s/^\("Content-Type: text\/plain; charset\)=CHARSET/\1=UTF-8/
 ' "$OUTPUT_FILE"
 
