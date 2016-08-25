@@ -110,7 +110,7 @@ First, make sure you extracted the plug-in to
 Poedit automatically generates the .mo file when you save your .po file. Move
 and rename the .mo file to
 
-    [user directory]/.gimp-2.8/plug-ins/export_layers/locale/[language]/LC_MESSAGES/export_layers.mo
+    [user directory]/.gimp-2.8/plug-ins/export_layers/locale/[language]/LC_MESSAGES/gimp-plugin-export-layers.mo
    
    where `[language]` is the language in which you translated the plug-in.
    `[language]` is a part of the .po file - e.g. for a file named "fr_FR.po",

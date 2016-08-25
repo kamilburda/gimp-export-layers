@@ -8,7 +8,7 @@
 
 PROGNAME="$(basename "$0")"
 
-PLUGIN_NAME='export_layers'
+DOMAIN_NAME='gimp-plugin-export-layers'
 
 LOCALE_DIR='.'
 LC_MESSAGES_DIR='LC_MESSAGES'
@@ -26,4 +26,4 @@ output_dir="$LOCALE_DIR"'/'"$language"'/'"$LC_MESSAGES_DIR"
 
 mkdir -p "$output_dir"
 
-msgfmt "$po_file" --output-file="$output_dir"'/'"$PLUGIN_NAME"'.mo'
+msgfmt "$po_file" --output-file="$output_dir"'/'"$DOMAIN_NAME"'.mo'
