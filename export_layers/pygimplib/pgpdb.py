@@ -36,6 +36,8 @@ import contextlib
 import gimp
 import gimpenums
 
+from . import pgutils
+
 pdb = gimp.pdb
 
 #===============================================================================
@@ -401,32 +403,45 @@ class GimpMessageFile(object):
     are the same as for the `pdb.gimp_message_get_handler()` procedure.
   
   * `message_prefix` - If not None, prepend this string to each message.
+  
+  * `message_delay_milliseconds` - Delay in milliseconds before displaying the
+    output.
   """
   
-  def __init__(self, message_handler=gimpenums.ERROR_CONSOLE, message_prefix=None):
-    self.message_handler = message_handler
-    self.message_prefix = str(message_prefix) if message_prefix is not None else None
+  def __init__(self, message_handler=gimpenums.ERROR_CONSOLE, message_prefix=None,
+               message_delay_milliseconds=100):
+    self._message_handler = message_handler
+    self._message_prefix = str(message_prefix) if message_prefix is not None else ""
+    self._message_delay_milliseconds = message_delay_milliseconds
+    
+    self._buffer_size = 4096
+    
+    self._orig_message_handler = None
+    
+    self._message_buffer = self._message_prefix
   
   def write(self, data):
-    pdb.gimp_message_set_handler(self.message_handler)
+    # Message handler can't be set upon instantiation, because the PDB may not
+    # have been initialized yet.
+    self._orig_message_handler = pdb.gimp_message_get_handler()
+    pdb.gimp_message_set_handler(self._message_handler)
     
-    if not self.message_prefix:
-      self._write(data)
-      self.write = self._write
-    else:
-      self._write_with_prefix(data)
-      self.write = self._write_with_prefix
+    self._write(data)
+    
+    self.write = self._write
   
   def _write(self, data):
-    if data.strip():
-      gimp.message(str(data).encode())
-  
-  def _write_with_prefix(self, data):
-    if data.strip():
-      gimp.message(self.message_prefix + str(data).encode())
+    if len(self._message_buffer) < self._buffer_size:
+      self._message_buffer += data
+      pgutils.timeout_add_strict(self._message_delay_milliseconds, self.flush)
+    else:
+      pgutils.timeout_remove_strict(self.flush)
+      self.flush()
   
   def flush(self):
-    pass
+    gimp.message(self._message_buffer.encode())
+    self._message_buffer = self._message_prefix
   
   def close(self):
-    pass
+    if self._orig_message_handler is not None:
+      pdb.gimp_message_set_handler(self._orig_message_handler)

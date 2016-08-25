@@ -120,5 +120,5 @@ def log_output(log_mode, log_path_dirnames, log_stdout_filename, log_stderr_file
       sys.stderr, open(os.path.join(log_path_dirnames[0], log_stderr_filename), "a"),
       log_header_title=log_header_title, flush_output=True)
   elif log_mode == constants.LOG_OUTPUT_GIMP_CONSOLE:
-    tee.Tee(sys.stdout, pgpdb.GimpMessageFile(), flush_output=True)
-    tee.Tee(sys.stderr, pgpdb.GimpMessageFile(message_prefix="Error: "), flush_output=True)
+    sys.stdout = pgpdb.GimpMessageFile(message_delay_milliseconds=20)
+    sys.stderr = pgpdb.GimpMessageFile(message_prefix="Error: ", message_delay_milliseconds=20)
