@@ -227,6 +227,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   @classmethod
   def _reload_image(cls):
+    pdb.gimp_image_delete(cls.test_image)
     cls.test_image = cls._load_image()
   
   @classmethod
