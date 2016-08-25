@@ -1,7 +1,7 @@
 Export Layers - Translations
 ============================
 
-If you want to provide translations for the plug-in, I recommend using
+If you want to provide translations for the plug-in, it is recommended to use
 a translation tool such as [Poedit](http://poedit.net) for easier usage.
 
 
@@ -40,12 +40,14 @@ since the last translation was made, you may need to update the translation:
 
 ### Terminal
 
-If you don't want to use Poedit, it is assumed you are using the terminal on
-Linux (or a Unix-like environment for Windows, such as Cygwin).
+If you don't want to use Poedit, you may use the terminal on Linux
+(or a Unix-like environment for Windows, such as Cygwin).
 
 To create a new translation for your language:
 
-1. Make sure that the `gettext` package is installed on your system. If not, run
+1. Make sure that the `gettext` package is installed in your system. If not,
+install the `gettext` package - the command varies for different distributions,
+e.g. in Ubuntu:
    
         sudo apt-get install gettext
    
@@ -91,16 +93,19 @@ since the last translation was made, you may need to update the translation:
 OK, I have finished the translation. What next?
 --------------------------------------------------
 
-You can send me the translated .po file to my email: khalim19 AT gmail DOT com. I will add the translation to the plug-in.
+You can send the translated .po file to the following email: khalim19 AT gmail DOT com.
+The translation will be added to the plug-in.
 
-You can also test your translation to make sure it works correctly.
+You can also test your translation to make sure it works correctly, as described
+in the next section.
 
 
 How can I test my translation?
 ------------------------------
 
 First, make sure you extracted the plug-in to
-`[user directory]/.gimp-2.8/plug-ins`. Second, you need to generate an .mo file.
+`[user directory]/.gimp-2.8/plug-ins`. You then need to generate an .mo file
+from the translated .po file.
 
 
 ### Generating .mo file
