@@ -52,6 +52,7 @@ import export_layers.pygimplib as pygimplib
 from export_layers.pygimplib import constants
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pggui
+from export_layers.pygimplib import pgutils
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
@@ -1584,7 +1585,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     try:
       setting.gui.update_setting_value()
     except pgsetting.SettingValueError as e:
-      pggui.timeout_add_strict(
+      pgutils.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS, self._export_name_preview.clear)
       self._display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=setting)
       self._export_name_preview.lock_update(True, name_preview_lock_update_key)
@@ -1593,7 +1594,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       if self._message_setting == setting:
         self._display_message_label(None)
       
-      pggui.timeout_add_strict(
+      pgutils.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS, self._export_name_preview.update)
   
   def _on_show_more_settings_button_toggled(self, widget):
@@ -1636,8 +1637,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   def _connect_setting_changes_to_previews(self):
     def _on_setting_changed(setting):
-      pggui.timeout_add_strict(self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_name_preview.update)
-      pggui.timeout_add_strict(self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_image_preview.update)
+      pgutils.timeout_add_strict(self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_name_preview.update)
+      pgutils.timeout_add_strict(self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_image_preview.update)
     
     for setting in self._settings['main']:
       if setting.name not in [
@@ -1695,9 +1696,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
     elif current_position != self._hpaned_previous_position:
       if self._export_image_preview.is_larger_than_image():
-        pggui.timeout_add_strict(500, self._export_image_preview.update)
+        pgutils.timeout_add_strict(500, self._export_image_preview.update)
       else:
-        pggui.timeout_remove_strict(self._export_image_preview.update)
+        pgutils.timeout_remove_strict(self._export_image_preview.update)
         self._export_image_preview.resize()
     
     self._hpaned_previous_position = current_position
@@ -1725,16 +1726,16 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         "vpaned_preview_enabled")
     elif current_position != self._vpaned_previous_position:
       if self._export_image_preview.is_larger_than_image():
-        pggui.timeout_add_strict(500, self._export_image_preview.update)
+        pgutils.timeout_add_strict(500, self._export_image_preview.update)
       else:
-        pggui.timeout_remove_strict(self._export_image_preview.update)
+        pgutils.timeout_remove_strict(self._export_image_preview.update)
         self._export_image_preview.resize()
     
     self._vpaned_previous_position = current_position
   
   def _enable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key):
     preview.lock_update(False, update_lock_key)
-    pggui.timeout_add_strict(500, preview.update)
+    pgutils.timeout_add_strict(500, preview.update)
     preview_enabled_setting.set_value(True)
   
   def _disable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key, clear=True):
@@ -1912,7 +1913,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         gobject.markup_escape_text(color), gobject.markup_escape_text(text)))
       
       if color == "blue":
-        pggui.timeout_add_strict(
+        pgutils.timeout_add_strict(
           self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS, self._display_message_label, None)
 
 
