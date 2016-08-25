@@ -549,6 +549,11 @@ class LayerExporter(object):
   def _process_and_export_item(self, layer_elem):
     layer = layer_elem.item
     layer_copy = self._process_layer(layer_elem, self._image_copy, layer)
+    
+    if layer_copy is None:
+      self.progress_updater.update_tasks()
+      return
+    
     self._preprocess_layer_name(layer_elem)
     self._export_layer(layer_elem, self._image_copy, layer_copy)
     self._postprocess_layer(self._image_copy, layer_copy)
@@ -598,11 +603,30 @@ class LayerExporter(object):
     
     pdb.gimp_context_pop()
   
+  def _pdb_layer_new_from_drawable(self, layer, image):
+    """
+    Copy `layer` into `image`. Unlike `pdb.gimp_layer_new_from_drawable`, if the
+    layer is invalid (no longer exists), return None.
+    """
+    
+    try:
+      layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
+    except Exception:
+      if not pdb.gimp_item_is_valid(layer):
+        return None
+      else:
+        raise
+    else:
+      return layer_copy
+  
   def _process_layer(self, layer_elem, image, layer):
     background_layer, self._tagged_layer_copies['background'] = self._insert_layer(
       image, self._tagged_layer_elems['background'], self._tagged_layer_copies['background'], insert_index=0)
     
-    layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
+    layer_copy = self._pdb_layer_new_from_drawable(layer, image)
+    if layer_copy is None:
+      return None
+    
     pdb.gimp_image_insert_layer(image, layer_copy, None, 0)
     pdb.gimp_item_set_visible(layer_copy, True)
     
@@ -653,7 +677,10 @@ class LayerExporter(object):
       pdb.gimp_image_insert_layer(image, layer_group, None, insert_index)
       
       for i, layer_elem in enumerate(list(layer_elems)):
-        layer_copy = pdb.gimp_layer_new_from_drawable(layer_elem.item, image)
+        layer_copy = self._pdb_layer_new_from_drawable(layer_elem.item, image)
+        if layer_copy is None:
+          continue
+        
         pdb.gimp_image_insert_layer(image, layer_copy, layer_group, i)
         pdb.gimp_item_set_visible(layer_copy, True)
         
