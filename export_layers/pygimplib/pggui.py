@@ -272,8 +272,8 @@ def get_report_link_buttons(report_uri_list, report_description=None):
   return vbox_link_buttons
 
 
-def display_message(message, message_type, title=None, parent=None,
-                    buttons=gtk.BUTTONS_OK, message_in_text_view=False):
+def display_message(message, message_type, title=None, parent=None, buttons=gtk.BUTTONS_OK,
+                    message_in_text_view=False, button_response_id_to_focus=None):
   """
   Display a generic message.
   
@@ -291,6 +291,9 @@ def display_message(message, message_type, title=None, parent=None,
   
   * `message_in_text_view` - If True, display text the after the first newline
     character in a text view.
+  
+  * `button_response_id_to_focus` - Response ID of the button to set as the
+    focus. If None, the dialog determines which widget gets the focus.
   """
   
   dialog = gtk.MessageDialog(
@@ -326,6 +329,11 @@ def display_message(message, message_type, title=None, parent=None,
       dialog.format_secondary_markup(gobject.markup_escape_text(messages[1]))
   else:
     dialog.set_markup(gobject.markup_escape_text(message))
+  
+  if button_response_id_to_focus is not None:
+    button = dialog.get_widget_for_response(button_response_id_to_focus)
+    if button is not None:
+      dialog.set_focus(button)
   
   dialog.show_all()
   response_id = dialog.run()
