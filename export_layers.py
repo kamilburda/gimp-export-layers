@@ -120,9 +120,7 @@ def _run_noninteractive(layer_tree, args):
 
 
 def _run_with_last_vals(layer_tree):
-  status, status_message = settings['main'].load()
-  if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
-    print(status_message)
+  settings['main'].load()
   
   _run_plugin_noninteractive(gimpenums.RUN_WITH_LAST_VALS, layer_tree)
 
@@ -140,11 +138,8 @@ def _run_plugin_noninteractive(run_mode, layer_tree):
   
   try:
     layer_exporter.export_layers(layer_tree=layer_tree)
-  except exportlayers.ExportLayersCancelError as e:
-    print(str(e))
-  except exportlayers.ExportLayersError as e:
-    print(str(e))
-    raise
+  except exportlayers.ExportLayersCancelError:
+    pass
 
 
 #===============================================================================
