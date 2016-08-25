@@ -226,13 +226,12 @@ This plug-in is licensed under the [GNU GPLv3](http://www.gnu.org/licenses/gpl-3
 Translations
 ------------
 
-If you want to provide translations for the plug-in, see the `Readme for Translators.md`
-file in the `export_layers/locale` folder in the package.
+If you want to provide translations for the plug-in, see `Readme for Translators.md`.
 
 
 Support
 -------
 
-You can report issues, ask questions or request new features on the [GitHub page](https://github.com/khalim19/gimp-plugin-export-layers/issues) of the plug-in.
-
-You can also contact me via email: khalim19 AT gmail DOT com
+You can report issues, ask questions or request new features:
+* on the [GitHub issues page](https://github.com/khalim19/gimp-plugin-export-layers/issues) of the plug-in
+* via email: khalim19 AT gmail DOT com
