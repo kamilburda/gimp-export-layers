@@ -67,7 +67,7 @@ def log_output(log_mode, log_path_dirnames, log_stdout_filename, log_stderr_file
     Applies to `EXCEPTIONS_ONLY` and `DEBUG_FILE` modes only.
   
   * `log_header_title` - optional title in the log header, written before the
-    first write to the log files. Applies to `EXCEPTIONS_ONLY` and `DEBUG_FILE`
+    first output to the log files. Applies to `EXCEPTIONS_ONLY` and `DEBUG_FILE`
     modes only.
   """
   
@@ -88,10 +88,8 @@ def log_output(log_mode, log_path_dirnames, log_stdout_filename, log_stderr_file
       sys.excepthook = log_exceptions
   
   elif log_mode == constants.LOG_OUTPUT_FILES:
-    sys.stdout = SimpleLogger(
-      os.path.join(log_path_dirnames[0], log_stdout_filename), "a", log_header_title=log_header_title)
-    sys.stderr = SimpleLogger(
-      os.path.join(log_path_dirnames[0], log_stderr_filename), "a", log_header_title=log_header_title)
+    sys.stdout = SimpleLogger(os.path.join(log_path_dirnames[0], log_stdout_filename), "a", log_header_title)
+    sys.stderr = SimpleLogger(os.path.join(log_path_dirnames[0], log_stderr_filename), "a", log_header_title)
   elif log_mode == constants.LOG_OUTPUT_GIMP_CONSOLE:
     sys.stdout = pgpdb.GimpMessageFile(message_delay_milliseconds=20)
     sys.stderr = pgpdb.GimpMessageFile(message_prefix="Error: ", message_delay_milliseconds=20)
@@ -134,9 +132,12 @@ def get_log_header(log_header_title):
 
 class SimpleLogger(object):
   
-  def __init__(self, filename, mode, log_header_title=None):
+  """
+  This class wraps a file object to write a header before the first output.
+  """
+  
+  def __init__(self, filename, mode, log_header_title):
     self._log_header_title = log_header_title
-    
     self._log_file = open(filename, mode)
   
   def write(self, data):
