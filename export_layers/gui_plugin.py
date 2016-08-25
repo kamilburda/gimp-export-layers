@@ -62,10 +62,11 @@ from export_layers import settings_plugin
 #===============================================================================
 
 
-def display_message(message, message_type, parent=None, buttons=gtk.BUTTONS_OK, message_in_text_view=False):
+def display_message(message, message_type, parent=None, buttons=gtk.BUTTONS_OK,
+                    message_in_text_view=False, button_response_id_to_focus=None):
   return pggui.display_message(
-    message, message_type, title=pygimplib.config.PLUGIN_TITLE, parent=parent,
-    buttons=buttons, message_in_text_view=message_in_text_view)
+    message, message_type, title=pygimplib.config.PLUGIN_TITLE, parent=parent, buttons=buttons,
+    message_in_text_view=message_in_text_view, button_response_id_to_focus=button_response_id_to_focus)
 
 
 def display_export_failure_message(exception, parent=None):
@@ -1776,7 +1777,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   def _on_reset_settings_clicked(self, widget):
     response_id = display_message(
       _("Do you really want to reset settings?"), gtk.MESSAGE_WARNING, parent=self._dialog,
-      buttons=gtk.BUTTONS_YES_NO)
+      buttons=gtk.BUTTONS_YES_NO, button_response_id_to_focus=gtk.RESPONSE_NO)
     
     if response_id == gtk.RESPONSE_YES:
       self._reset_settings()
