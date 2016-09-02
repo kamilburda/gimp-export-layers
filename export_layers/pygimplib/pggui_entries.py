@@ -374,6 +374,7 @@ class EntryPopup(object):
     self._tree_view = gtk.TreeView(model=self._rows_filtered)
     self._tree_view.set_hover_selection(True)
     self._tree_view.set_headers_visible(False)
+    self._tree_view.set_enable_search(False)
     self._tree_view.set_size_request(self._width, self._height)
     
     self._scrolled_window = gtk.ScrolledWindow()
