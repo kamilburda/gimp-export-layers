@@ -171,9 +171,9 @@ def on_file_extension_changed_with_autocrop(file_extension, autocrop):
     autocrop.gui.set_visible(False)
 
 
-def on_autocrop_changed(autocrop, file_extension):
+def on_autocrop_changed(autocrop, file_extension, file_extension_value="jpg"):
   if autocrop.value:
-    file_extension.set_value("jpg")
+    file_extension.set_value(file_extension_value)
 
 
 #===============================================================================
@@ -329,6 +329,13 @@ class TestSettingEvents(unittest.TestCase):
   def test_connect_event_argument_is_not_callable(self):
     with self.assertRaises(TypeError):
       self.setting.connect_event('value-changed', None)
+  
+  def test_connect_event_keyword_arguments(self):
+    autocrop = pgsetting.BoolSetting('autocrop', False)
+    autocrop.connect_event('value-changed', on_autocrop_changed, self.setting, file_extension_value="tiff")
+    
+    autocrop.set_value(True)
+    self.assertEqual(self.setting.value, "tiff")
   
   def test_connect_value_changed_event(self):
     self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)

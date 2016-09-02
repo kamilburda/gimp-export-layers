@@ -258,8 +258,9 @@ class Setting(object):
     
     self._setting_sources = setting_sources
     
-    # key: event type;
-    # value: collections.OrderedDict{event handler ID: [event handler, arguments, is enabled]}
+    # key: event type
+    # value: collections.OrderedDict{
+    #   event handler ID: [event handler, arguments, keyword arguments, is enabled]}
     self._event_handlers = collections.defaultdict(collections.OrderedDict)
     # allows faster lookup of events via IDs; key: event handler ID; value: event type
     self._event_handler_ids_and_types = {}
@@ -467,7 +468,7 @@ class Setting(object):
     
     return pgsettingpersistor.SettingPersistor.save([self], setting_sources)
   
-  def connect_event(self, event_type, event_handler, *event_handler_args):
+  def connect_event(self, event_type, event_handler, *event_handler_args, **event_handler_kwargs):
     """
     Connect an event handler to the setting.
     
@@ -532,7 +533,9 @@ class Setting(object):
     * `event_handler` - Function to be called when `set_value()` from this
       setting is called.
     
-    * `*event_handler_args` - Additional arguments to `event_handler`.
+    * `*event_handler_args` - Arguments to `event_handler`.
+    
+    * `**event_handler_kwargs` - Keyword arguments to `event_handler`.
     
     Returns:
     
@@ -548,17 +551,8 @@ class Setting(object):
     if not callable(event_handler):
       raise TypeError("not a function")
     
-    # Subtract 1 because the first argument is always this Setting object.
-    num_required_event_handler_args = len(inspect.getargspec(event_handler)[0]) - 1
-    num_actual_event_handler_args = len(event_handler_args)
-    
-    if num_required_event_handler_args != num_actual_event_handler_args:
-      raise TypeError(
-        "wrong number of arguments to the event handler (required {0}, passed {1})".format(
-          num_required_event_handler_args, num_actual_event_handler_args))
-    
     event_id = self._event_handler_id_counter
-    self._event_handlers[event_type][event_id] = [event_handler, event_handler_args, True]
+    self._event_handlers[event_type][event_id] = [event_handler, event_handler_args, event_handler_kwargs, True]
     self._event_handler_ids_and_types[event_id] = event_type
     
     self._event_handler_id_counter += 1
@@ -593,7 +587,7 @@ class Setting(object):
     if not self.has_event(event_id):
       raise ValueError("event ID {0} is invalid".format(event_id))
     
-    self._event_handlers[self._event_handler_ids_and_types[event_id]][event_id][2] = enabled
+    self._event_handlers[self._event_handler_ids_and_types[event_id]][event_id][3] = enabled
   
   def has_event(self, event_id):
     """
@@ -608,9 +602,10 @@ class Setting(object):
     Call all connected event handlers of the specified event type.
     """
     
-    for event_handler, event_handler_args, enabled in self._event_handlers[event_type].values():
+    for (event_handler, event_handler_args,
+         event_handler_kwargs, enabled) in self._event_handlers[event_type].values():
       if enabled:
-        event_handler(self, *event_handler_args)
+        event_handler(self, *event_handler_args, **event_handler_kwargs)
   
   def is_value_empty(self):
     """
