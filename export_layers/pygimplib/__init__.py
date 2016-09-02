@@ -137,6 +137,8 @@ def _init_config_builtin(config):
   
   config.PLUGINS_LOG_STDOUT_FILENAME = config.PLUGIN_NAME + ".log"
   config.PLUGINS_LOG_STDERR_FILENAME = config.PLUGIN_NAME + "_error.log"
+  
+  config.GIMP_CONSOLE_MESSAGE_DELAY_MILLISECONDS = 50
 
 
 def _init_config_builtin_delayed(config):
@@ -169,7 +171,7 @@ def init():
   if _gimp_dependent_modules_imported:
     log_output.log_output(
       config.LOG_MODE, config.PLUGINS_LOG_DIRNAMES, config.PLUGINS_LOG_STDOUT_FILENAME,
-      config.PLUGINS_LOG_STDERR_FILENAME, config.PLUGIN_TITLE)
+      config.PLUGINS_LOG_STDERR_FILENAME, config.PLUGIN_TITLE, config.GIMP_CONSOLE_MESSAGE_DELAY_MILLISECONDS)
   
   _is_initialized = True
 

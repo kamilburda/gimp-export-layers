@@ -43,7 +43,8 @@ from . import pgpdb
 #===============================================================================
 
 
-def log_output(log_mode, log_path_dirnames, log_stdout_filename, log_stderr_filename, log_header_title=""):
+def log_output(log_mode, log_path_dirnames, log_stdout_filename, log_stderr_filename, log_header_title="",
+               gimp_console_message_delay_milliseconds=0):
   """
   Enable logging of output.
   
@@ -91,8 +92,9 @@ def log_output(log_mode, log_path_dirnames, log_stdout_filename, log_stderr_file
     sys.stdout = SimpleLogger(os.path.join(log_path_dirnames[0], log_stdout_filename), "a", log_header_title)
     sys.stderr = SimpleLogger(os.path.join(log_path_dirnames[0], log_stderr_filename), "a", log_header_title)
   elif log_mode == constants.LOG_OUTPUT_GIMP_CONSOLE:
-    sys.stdout = pgpdb.GimpMessageFile(message_delay_milliseconds=20)
-    sys.stderr = pgpdb.GimpMessageFile(message_prefix="Error: ", message_delay_milliseconds=20)
+    sys.stdout = pgpdb.GimpMessageFile(message_delay_milliseconds=gimp_console_message_delay_milliseconds)
+    sys.stderr = pgpdb.GimpMessageFile(
+      message_prefix="Error: ", message_delay_milliseconds=gimp_console_message_delay_milliseconds)
 
 
 def _logger_add_file_handler(logger, log_paths):

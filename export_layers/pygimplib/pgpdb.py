@@ -405,11 +405,12 @@ class GimpMessageFile(object):
   * `message_prefix` - If not None, prepend this string to each message.
   
   * `message_delay_milliseconds` - Delay in milliseconds before displaying the
-    output.
+    output. This is useful to aggregate multiple messages into one in order to
+    avoid printing an excessive number of message headers.
   """
   
   def __init__(self, message_handler=gimpenums.ERROR_CONSOLE, message_prefix=None,
-               message_delay_milliseconds=100):
+               message_delay_milliseconds=0):
     self._message_handler = message_handler
     self._message_prefix = str(message_prefix) if message_prefix is not None else ""
     self._message_delay_milliseconds = message_delay_milliseconds
