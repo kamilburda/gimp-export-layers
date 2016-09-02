@@ -258,10 +258,12 @@ class Setting(object):
     
     self._setting_sources = setting_sources
     
-    # key: event type; value: collections.OrderedDict{event handler ID: [event handler, event handler arguments]}
+    # key: event type;
+    # value: collections.OrderedDict{event handler ID: [event handler, arguments, is enabled]}
     self._event_handlers = collections.defaultdict(collections.OrderedDict)
     # allows faster lookup of events via IDs; key: event handler ID; value: event type
     self._event_handler_ids_and_types = {}
+    
     self._event_handler_id_counter = 0
     
     self._setting_value_synchronizer = pgsettingpresenter.SettingValueSynchronizer()
@@ -525,12 +527,12 @@ class Setting(object):
     
     Parameters:
     
-    * `event_type` - type of event specifying when the event should be invoked.
+    * `event_type` - Type of event specifying when the event should be invoked.
     
     * `event_handler` - Function to be called when `set_value()` from this
       setting is called.
     
-    * `*event_handler_args` - additional arguments to `event_handler`.
+    * `*event_handler_args` - Additional arguments to `event_handler`.
     
     Returns:
     
@@ -555,9 +557,8 @@ class Setting(object):
         "wrong number of arguments to the event handler (required {0}, passed {1})".format(
           num_required_event_handler_args, num_actual_event_handler_args))
     
-    self._event_handlers[event_type][self._event_handler_id_counter] = [event_handler, event_handler_args]
-    
     event_id = self._event_handler_id_counter
+    self._event_handlers[event_type][event_id] = [event_handler, event_handler_args, True]
     self._event_handler_ids_and_types[event_id] = event_type
     
     self._event_handler_id_counter += 1
@@ -577,13 +578,39 @@ class Setting(object):
     del self._event_handlers[event_type][event_id]
     del self._event_handler_ids_and_types[event_id]
   
+  def set_event_enabled(self, event_id, enabled):
+    """
+    Enable or disable the event handler specified by its ID.
+    
+    If the event ID is already enabled and `enabled` is True or is already
+    disabled and `enabled` is False, do nothing.
+    
+    Raises:
+    
+    * `ValueError` - Event ID is invalid.
+    """
+    
+    if not self.has_event(event_id):
+      raise ValueError("event ID {0} is invalid".format(event_id))
+    
+    self._event_handlers[self._event_handler_ids_and_types[event_id]][event_id][2] = enabled
+  
+  def has_event(self, event_id):
+    """
+    Return True if the event handler specified by its ID is connected to the
+    setting, False otherwise.
+    """
+    
+    return event_id in self._event_handler_ids_and_types
+  
   def invoke_event(self, event_type):
     """
     Call all connected event handlers of the specified event type.
     """
     
-    for event_handler, event_handler_args in self._event_handlers[event_type].values():
-      event_handler(self, *event_handler_args)
+    for event_handler, event_handler_args, enabled in self._event_handlers[event_type].values():
+      if enabled:
+        event_handler(self, *event_handler_args)
   
   def is_value_empty(self):
     """
@@ -727,7 +754,6 @@ class Setting(object):
       return '"' + str(value) + '": '
     else:
       return ""
-
 
 #-------------------------------------------------------------------------------
 

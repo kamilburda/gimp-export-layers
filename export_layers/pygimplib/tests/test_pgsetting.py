@@ -385,6 +385,27 @@ class TestSettingEvents(unittest.TestCase):
     with self.assertRaises(ValueError):
       self.setting.remove_event(-1)
   
+  def test_has_event(self):
+    self.assertEqual(self.setting.has_event(-1), False)
+    event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
+    self.assertEqual(self.setting.has_event(event_id), True)
+    self.setting.remove_event(event_id)
+    self.assertEqual(self.setting.has_event(event_id), False)
+  
+  def test_set_event_enabled(self):
+    with self.assertRaises(ValueError):
+      self.setting.set_event_enabled(-1, False)
+    
+    event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
+    
+    self.setting.set_event_enabled(event_id, False)
+    self.setting.set_value("jpg")
+    self.assertEqual(self.ignore_invisible.value, False)
+    
+    self.setting.set_event_enabled(event_id, True)
+    self.setting.set_value("jpg")
+    self.assertEqual(self.ignore_invisible.value, True)
+  
   def test_invoke_event(self):
     self.ignore_invisible.set_value(True)
     self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
