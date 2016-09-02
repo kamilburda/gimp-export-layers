@@ -372,7 +372,6 @@ class SettingGroup(object):
     Return the next element when iterating the settings. Used by `iterate_all()`.
     """
     
-    # Initialize the iterator
     if self._settings_iterator is None:
       self._settings_iterator = self._settings.itervalues()
     
