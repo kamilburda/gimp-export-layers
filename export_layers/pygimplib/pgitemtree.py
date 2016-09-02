@@ -136,9 +136,10 @@ class ItemTree(object):
   
   def __contains__(self, id_or_name):
     """
-    Return True if an `_ItemTreeElement` object is in the item tree, specified
-    by its `_ItemTreeElement.item.ID` attribute or its `orig_name` attribute.
-    Return False otherwise.
+    Return True if an `_ItemTreeElement` object is in the item tree, regardless
+    of filters. Return False otherwise. The `_ItemTreeElement` object is
+    specified by its `_ItemTreeElement.item.ID` attribute or its `orig_name`
+    attribute.
     """
     
     return id_or_name in self._itemtree or id_or_name in self._itemtree_names
@@ -153,8 +154,8 @@ class ItemTree(object):
   
   def __iter__(self):
     """
-    If `is_filtered` is False, iterate over all items. If `is_filtered` is True,
-    iterate only over items that match the filter in this object.
+    If the `is_filtered` attribute is False, iterate over all items. If
+    `is_filtered` is True, iterate only over items that match the filter.
     
     Yields:
     
