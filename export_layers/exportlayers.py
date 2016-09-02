@@ -107,7 +107,7 @@ class LayerFilterRules(object):
   
   @staticmethod
   def is_top_level(layer_elem):
-    return layer_elem.level == 0
+    return layer_elem.depth == 0
   
   @staticmethod
   def is_path_visible(layer_elem):
