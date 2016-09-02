@@ -540,9 +540,9 @@ class _ItemTreeElement(object):
   * `tags` - Set of arbitrary strings attached to the item. Tags can also be
     parsed from the item name by calling `parse_tags`.
   
-  * `level` (read-only) - Integer indicating which level in the item tree is
-    the item positioned at. 0 means the item is at the top level. The higher
-    the level, the deeper the item is in the item tree.
+  * `depth` (read-only) - Integer indicating the depth of the item in the item
+    tree. 0 means the item is at the top level. The greater the depth, the lower
+    the item is in the item tree.
   
   * `parent` (read-only) - Immediate `_ItemTreeElement` parent of this object.
     If this object has no parent, return None.
@@ -573,7 +573,7 @@ class _ItemTreeElement(object):
     self.tags = set()
     
     self._orig_name = self.name
-    self._level = len(self._parents)
+    self._depth = len(self._parents)
     self._parent = self._parents[-1] if self._parents else None
     self._item_type = None
     self._path_visible = None
@@ -595,8 +595,8 @@ class _ItemTreeElement(object):
     return self._orig_name
   
   @property
-  def level(self):
-    return self._level
+  def depth(self):
+    return self._depth
   
   @property
   def parent(self):
