@@ -839,8 +839,8 @@ class LayerExporter(object):
     except RuntimeError as e:
       # HACK: Since `RuntimeError` could indicate anything, including
       # `pdb.gimp_file_save` failure, this is the only way to intercept that
-      # the export was cancelled.
-      if "cancelled" in e.message.lower():
+      # the export was canceled.
+      if any(message in e.message.lower() for message in ["cancelled", "canceled"]):
         raise ExportLayersCancelError(e.message)
       # HACK: Try again, this time forcing the interactive mode if the
       # non-interactive mode failed (certain file formats do not allow the

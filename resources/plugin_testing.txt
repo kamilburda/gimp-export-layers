@@ -46,7 +46,7 @@ Export Layers
 Interactive
 * load settings from GIMP shelf and config file
 * save settings to GIMP shelf after export
-* save settings to GIMP shelf if the export is cancelled or stopped prematurely
+* save settings to GIMP shelf if the export is canceled or stopped prematurely
 * user chooses to save settings to config file (Save Settings)
 * Reset Settings
 
