@@ -43,7 +43,7 @@ def timeout_add_strict(interval, callback, *callback_args, **callback_kwargs):
   callback at regular intervals (in milliseconds).
   
   Additionally, if the same callback is called again before the timeout, the
-  first invocation will be cancelled. If different functions are called before
+  first invocation will be canceled. If different functions are called before
   the timeout, they will all be invoked normally.
   
   This function also supports keyword arguments to the callback.
