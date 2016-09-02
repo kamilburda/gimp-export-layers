@@ -1671,7 +1671,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._dialog.show()
   
   def _init_previews(self):
-    self._export_name_preview.update(reset_items=True)
+    self._export_name_preview.update()
     self._export_image_preview.update()
   
   def _reset_settings(self):
