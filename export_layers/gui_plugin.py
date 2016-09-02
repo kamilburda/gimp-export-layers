@@ -293,6 +293,7 @@ class ExportNamePreview(ExportPreview):
     
     self._tree_view = gtk.TreeView(model=self._tree_model)
     self._tree_view.set_headers_visible(False)
+    self._tree_view.set_enable_search(False)
     self._tree_view.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
     
     self._init_icons()
