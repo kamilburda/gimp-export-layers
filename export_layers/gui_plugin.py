@@ -140,10 +140,23 @@ class ExportPreview(object):
   def __init__(self):
     self._update_locked = False
     self._lock_keys = set()
+    
+    self._settings_events_to_temporarily_disable = {}
   
-  def update(self):
+  def update(self, should_enable_sensitive=False):
     """
     Update the export preview if update is not locked (see `lock_update`).
+    
+    If `should_enable_sensitive` is True, set the sensitive state of the preview
+    to True. Unlike `set_sensitive`, setting the sensitive state is performed
+    only if the update is not locked.
+    """
+    
+    pass
+  
+  def set_sensitive(self, sensitive):
+    """
+    Set the sensitivity of the preview (True = sensitive, False = insensitive).
     """
     
     pass
@@ -176,7 +189,10 @@ class ExportPreview(object):
           self._lock_keys.remove(key)
       
       self._update_locked = bool(self._lock_keys)
-
+  
+  def temporarily_disable_setting_events_on_update(self, settings_and_event_ids):
+    self._settings_events_to_temporarily_disable = settings_and_event_ids
+  
 
 #===============================================================================
 
@@ -218,22 +234,47 @@ class ExportNamePreview(ExportPreview):
     
     self._widget = self._vbox
   
-  def update(self, reset_completely=False):
+  def update(self, should_enable_sensitive=False, reset_items=False, update_existing_contents_only=False):
     """
     Update the preview (filter layers, modify layer tree, etc.).
     
-    If `reset_completely` is True, perform full update (add new layers, remove
-    non-existent layers, etc.).
+    If `reset_items` is True, perform full update - add new layers, remove
+    non-existent layers, etc. Note that setting this to True may introduce a
+    performance penalty for hundreds of items.
+    
+    If `update_existing_contents_only` is True, only update the contents of the
+    existing items. Note that the items will not be reparented,
+    expanded/collapsed or added/removed even if they need to be. This option is
+    useful if you know the item structure will be preserved.
     """
     
-    if not self._update_locked:
+    if self._update_locked:
+      return
+    
+    if should_enable_sensitive:
+      self.set_sensitive(True)
+    
+    if not update_existing_contents_only:
       self.clear()
-      self._fill_preview(reset_completely)
+    
+    self._process_items(reset_items=reset_items)
+    
+    self._enable_filtered_items(enabled=True)
+    
+    if not update_existing_contents_only:
+      self._insert_items()
       self._set_expanded_items()
-      self._set_selection()
-      self._tree_view.columns_autosize()
-      
-      self._on_after_update_func()
+    else:
+      self._update_items()
+    
+    self._set_selection()
+    self._set_items_sensitive()
+    
+    self._enable_filtered_items(enabled=False)
+    
+    self._tree_view.columns_autosize()
+    
+    self._on_after_update_func()
   
   def clear(self):
     """
@@ -242,7 +283,11 @@ class ExportNamePreview(ExportPreview):
     
     self._clearing_preview = True
     self._tree_model.clear()
+    self._tree_iters.clear()
     self._clearing_preview = False
+  
+  def set_sensitive(self, sensitive):
+    self._widget.set_sensitive(sensitive)
   
   def set_collapsed_items(self, collapsed_items):
     """
@@ -388,7 +433,13 @@ class ExportNamePreview(ExportPreview):
   
   def _on_tree_selection_changed(self, widget):
     if not self._clearing_preview and self._row_select_interactive:
+      previous_selected_items = self._selected_items
       self._selected_items = self._get_layer_ids_in_current_selection()
+      
+      if self._layer_exporter.export_settings['export_only_selected_layers'].value:
+        if self._selected_items != previous_selected_items:
+          self.update(update_existing_contents_only=True)
+      
       self._on_selection_changed_func()
   
   def _on_tree_view_right_button_press(self, widget, event):
@@ -445,7 +496,7 @@ class ExportNamePreview(ExportPreview):
       
       # Modifying just one layer could result in renaming other layers differently,
       # hence update the whole preview.
-      self.update()
+      self.update(update_existing_contents_only=True)
       
       self._on_after_edit_tags_func()
   
@@ -456,8 +507,8 @@ class ExportNamePreview(ExportPreview):
   def _get_layer_id(self, tree_iter):
     return self._tree_model.get_value(tree_iter, column=self._COLUMN_LAYER_ID[0])
   
-  def _fill_preview(self, reset_completely=False):
-    if not reset_completely:
+  def _process_items(self, reset_items=False):
+    if not reset_items:
       if self._initial_layer_tree is not None:
         layer_tree = self._initial_layer_tree
         self._initial_layer_tree = None
@@ -468,19 +519,22 @@ class ExportNamePreview(ExportPreview):
     else:
       layer_tree = None
     
-    with self._layer_exporter.modify_export_settings({'export_only_selected_layers': False}):
+    with self._layer_exporter.modify_export_settings(
+      {'selected_layers': {self._layer_exporter.image.ID: self._selected_items}},
+      self._settings_events_to_temporarily_disable):
       self._layer_exporter.export_layers(operations=['layer_name'], layer_tree=layer_tree)
-    
-    self._tree_iters.clear()
-    
-    self._enable_tagged_layers()
-    
+  
+  def _update_items(self):
+    for layer_elem in self._layer_exporter.layer_tree:
+      if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
+        self._update_parent_item_elems(layer_elem)
+      self._update_item_elem(layer_elem)
+  
+  def _insert_items(self):
     for layer_elem in self._layer_exporter.layer_tree:
       if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
         self._insert_parent_item_elems(layer_elem)
       self._insert_item_elem(layer_elem)
-    
-    self._set_sensitive_tagged_layers()
   
   def _insert_item_elem(self, item_elem):
     if item_elem.parent:
@@ -499,25 +553,49 @@ class ExportNamePreview(ExportPreview):
     
     return tree_iter
   
+  def _update_item_elem(self, item_elem):
+    self._tree_model.set(
+      self._tree_iters[item_elem.item.ID],
+      self._COLUMN_ICON_TAG_VISIBLE[0], self._has_supported_tags(item_elem),
+      self._COLUMN_LAYER_NAME_SENSITIVE[0], True,
+      self._COLUMN_LAYER_NAME[0], item_elem.name.encode(constants.GTK_CHARACTER_ENCODING))
+  
   def _insert_parent_item_elems(self, item_elem):
     for parent_elem in item_elem.parents:
       if not self._tree_iters[parent_elem.item.ID]:
         self._insert_item_elem(parent_elem)
   
-  def _enable_tagged_layers(self):
-    if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
-      self._layer_exporter.layer_tree.filter.remove_rule(
-        exportlayers.LayerFilterRules.has_no_tags, raise_if_not_found=False)
+  def _update_parent_item_elems(self, item_elem):
+    for parent_elem in item_elem.parents:
+      self._update_item_elem(parent_elem)
   
-  def _set_sensitive_tagged_layers(self):
+  def _enable_filtered_items(self, enabled):
+    if self._layer_exporter.export_settings['export_only_selected_layers'].value:
+      if not enabled:
+        self._layer_exporter.layer_tree.filter.add_rule(
+          exportlayers.LayerFilterRules.is_layer_in_selected_layers, self._selected_items)
+      else:
+        self._layer_exporter.layer_tree.filter.remove_rule(
+          exportlayers.LayerFilterRules.is_layer_in_selected_layers, raise_if_not_found=False)
+    
+    if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
+      if not enabled:
+        self._layer_exporter.layer_tree.filter.add_rule(exportlayers.LayerFilterRules.has_no_tags)
+      else:
+        self._layer_exporter.layer_tree.filter.remove_rule(
+          exportlayers.LayerFilterRules.has_no_tags, raise_if_not_found=False)
+  
+  def _set_items_sensitive(self):
+    if self._layer_exporter.export_settings['export_only_selected_layers'].value:
+      self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
+      self._set_item_elems_sensitive(
+        [self._layer_exporter.layer_tree[item_id] for item_id in self._selected_items], True)
+    
     if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
       with self._layer_exporter.layer_tree.filter.add_rule_temp(
         exportlayers.LayerFilterRules.has_tags, *self._layer_exporter.SUPPORTED_TAGS.keys()):
         
-        for layer_elem in self._layer_exporter.layer_tree:
-          self._set_item_elem_sensitive(layer_elem, False)
-          if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
-            self._set_parent_item_elem_sensitive(layer_elem)
+        self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
   
   def _get_item_elem_sensitive(self, item_elem):
     return self._tree_model.get_value(self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0])
@@ -532,6 +610,12 @@ class ExportNamePreview(ExportPreview):
         self._get_item_elem_sensitive(child_elem) for child_elem in parent_elem.children
         if child_elem.item.ID in self._tree_iters)
       self._set_item_elem_sensitive(parent_elem, parent_sensitive)
+  
+  def _set_item_elems_sensitive(self, item_elems, sensitive):
+    for item_elem in item_elems:
+      self._set_item_elem_sensitive(item_elem, sensitive)
+      if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
+        self._set_parent_item_elem_sensitive(item_elem)
   
   def _get_icon_from_item_elem(self, item_elem):
     if item_elem.item_type == item_elem.ITEM:
@@ -602,6 +686,14 @@ class ExportNamePreview(ExportPreview):
     
     self._row_select_interactive = True
   
+  def _set_cursor(self, previous_cursor=None):
+    self._row_select_interactive = False
+    
+    if previous_cursor is not None and self._tree_model.get_iter(previous_cursor) is not None:
+      self._tree_view.set_cursor(previous_cursor)
+    
+    self._row_select_interactive = True
+  
   def _set_initial_scroll_to_selection(self):
     if self._selected_items:
       first_selected_item_path = self._tree_model.get_path(self._tree_iters[self._selected_items[0]])
@@ -653,15 +745,20 @@ class ExportImagePreview(ExportPreview):
     
     self._widget = self._vbox
   
-  def update(self):
+  def update(self, should_enable_sensitive=False):
     if self._update_locked:
       return
+    
+    if should_enable_sensitive:
+      self.set_sensitive(True)
     
     self.layer_elem = self._set_initial_layer_elem(self.layer_elem)
     if self.layer_elem is None:
       return
     
     if not self._layer_elem_matches_filter(self.layer_elem):
+      if self._layer_exporter.export_settings['export_only_selected_layers'].value:
+        self.layer_elem = None
       return
     
     if not pdb.gimp_item_is_valid(self.layer_elem.item):
@@ -693,6 +790,9 @@ class ExportImagePreview(ExportPreview):
     self._preview_image.clear()
     self._preview_image.hide()
     self._show_placeholder_image(use_layer_name)
+  
+  def set_sensitive(self, sensitive):
+    self._widget.set_sensitive(sensitive)
   
   def resize(self, update_when_larger_than_image_size=False):
     """
@@ -833,7 +933,8 @@ class ExportImagePreview(ExportPreview):
     
     with self._layer_exporter.modify_export_settings(
       {'export_only_selected_layers': True,
-       'selected_layers': {self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}}):
+       'selected_layers': {self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}},
+      self._settings_events_to_temporarily_disable):
       try:
         image_preview = self._layer_exporter.export_layers(
           operations=['layer_contents'], layer_tree=layer_tree, keep_exported_layers=True,
@@ -1237,7 +1338,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   _FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS = 15
   _FILENAME_PATTERN_ENTRY_MAX_WIDTH_CHARS = 50
   
-  _DELAY_PREVIEWS_UPDATE_MILLISECONDS = 50
+  _DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS = 50
+  _DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS = 500
   _DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS = 100
   _DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS = 10000
   
@@ -1569,7 +1671,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._dialog.show()
   
   def _init_previews(self):
-    self._export_name_preview.update()
+    self._export_name_preview.update(reset_items=True)
     self._export_image_preview.update()
   
   def _reset_settings(self):
@@ -1587,7 +1689,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       setting.gui.update_setting_value()
     except pgsetting.SettingValueError as e:
       pgutils.timeout_add_strict(
-        self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS, self._export_name_preview.clear)
+        self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
+        self._export_name_preview.set_sensitive, False)
       self._display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=setting)
       self._export_name_preview.lock_update(True, name_preview_lock_update_key)
     else:
@@ -1596,7 +1699,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         self._display_message_label(None)
       
       pgutils.timeout_add_strict(
-        self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS, self._export_name_preview.update)
+        self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS, self._export_name_preview.update,
+        should_enable_sensitive=True)
   
   def _on_show_more_settings_button_toggled(self, widget):
     self._show_hide_more_settings()
@@ -1633,19 +1737,28 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       return
     
     if self._dialog.is_active() and not self._is_exporting:
-      self._export_name_preview.update(reset_completely=True)
+      self._export_name_preview.update(reset_items=True)
       self._export_image_preview.update()
   
   def _connect_setting_changes_to_previews(self):
     def _on_setting_changed(setting):
-      pgutils.timeout_add_strict(self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_name_preview.update)
-      pgutils.timeout_add_strict(self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_image_preview.update)
+      pgutils.timeout_add_strict(
+        self._DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS, self._export_name_preview.update)
+      pgutils.timeout_add_strict(
+        self._DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS, self._export_image_preview.update)
     
     for setting in self._settings['main']:
       if setting.name not in [
           'file_extension', 'output_directory', 'overwrite_mode', 'layer_filename_pattern',
           'export_only_selected_layers', 'selected_layers', 'selected_layers_persistent']:
         setting.connect_event('value-changed', _on_setting_changed)
+    
+    event_id = self._settings['main/export_only_selected_layers'].connect_event(
+      'value-changed', _on_setting_changed)
+    self._export_name_preview.temporarily_disable_setting_events_on_update(
+      {'export_only_selected_layers': [event_id]})
+    self._export_image_preview.temporarily_disable_setting_events_on_update(
+      {'export_only_selected_layers': [event_id]})
     
     self._settings['gui_session/export_name_preview_layers_collapsed_state'].connect_event(
       'after-reset',
@@ -1676,12 +1789,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       preview.update()
   
   def _on_hpaned_position_changed(self, widget, property_spec):
-    self._on_hpaned_move()
-  
-  def _on_vpaned_position_changed(self, widget, property_spec):
-    self._on_vpaned_move()
-  
-  def _on_hpaned_move(self):
     current_position = self._hpaned_chooser_and_previews.get_position()
     max_position = self._hpaned_chooser_and_previews.get_property("max-position")
     
@@ -1689,7 +1796,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._disable_preview_on_paned_drag(
         self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
       self._disable_preview_on_paned_drag(
-        self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
+        self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
+        "previews_enabled")
     elif current_position != max_position and self._hpaned_previous_position == max_position:
       self._enable_preview_on_paned_drag(
         self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
@@ -1697,14 +1805,15 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
     elif current_position != self._hpaned_previous_position:
       if self._export_image_preview.is_larger_than_image():
-        pgutils.timeout_add_strict(500, self._export_image_preview.update)
+        pgutils.timeout_add_strict(
+          self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS, self._export_image_preview.update)
       else:
         pgutils.timeout_remove_strict(self._export_image_preview.update)
         self._export_image_preview.resize()
     
     self._hpaned_previous_position = current_position
   
-  def _on_vpaned_move(self):
+  def _on_vpaned_position_changed(self, widget, property_spec):
     current_position = self._vpaned_previews.get_position()
     max_position = self._vpaned_previews.get_property("max-position")
     min_position = self._vpaned_previews.get_property("min-position")
@@ -1712,7 +1821,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     if current_position == max_position and self._vpaned_previous_position != max_position:
       self._disable_preview_on_paned_drag(
         self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
-        "vpaned_preview_enabled", clear=False)
+        "vpaned_preview_enabled")
     elif current_position != max_position and self._vpaned_previous_position == max_position:
       self._enable_preview_on_paned_drag(
         self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
@@ -1727,7 +1836,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         "vpaned_preview_enabled")
     elif current_position != self._vpaned_previous_position:
       if self._export_image_preview.is_larger_than_image():
-        pgutils.timeout_add_strict(500, self._export_image_preview.update)
+        pgutils.timeout_add_strict(
+          self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS, self._export_image_preview.update)
       else:
         pgutils.timeout_remove_strict(self._export_image_preview.update)
         self._export_image_preview.resize()
@@ -1736,13 +1846,13 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   def _enable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key):
     preview.lock_update(False, update_lock_key)
-    pgutils.timeout_add_strict(500, preview.update)
+    # In case the image preview gets resized, the update would be canceled, hence update always.
+    gobject.timeout_add(self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS, preview.update, True)
     preview_enabled_setting.set_value(True)
   
-  def _disable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key, clear=True):
-    if clear:
-      preview.clear()
+  def _disable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key):
     preview.lock_update(True, update_lock_key)
+    preview.set_sensitive(False)
     preview_enabled_setting.set_value(False)
   
   def _on_name_preview_selection_changed(self):

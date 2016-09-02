@@ -256,9 +256,8 @@ class LayerExporter(object):
     
     self._operations = {
       'layer_contents': [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
-      'layer_name': [
-        self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name,
-        self._postprocess_layer_name],
+      'layer_name': [self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name],
+      '_postprocess_layer_name': [self._postprocess_layer_name],
       'export': [self._make_dirs, self._export]
     }
     
@@ -283,12 +282,12 @@ class LayerExporter(object):
     `operations` is a list of tags that constraints the execution of the export.
     Multiple tags can be specified. The following tags are supported:
     
+    * 'layer_contents' - Perform only operations manipulating the layer itself,
+      such as cropping, resizing, etc. This is useful to preview the layer(s).
+    
     * 'layer_name' - Perform only operations manipulating layer names and layer
       tree (but not layer contents). This is useful to preview the names of the
       exported layers.
-    
-    * 'layer_contents' - Perform only operations manipulating the layer itself,
-      such as cropping, resizing, etc. This is useful to preview the layer(s).
     
     * 'export' - Perform only operations that export the layer or create
       directories for the layer.
@@ -337,7 +336,7 @@ class LayerExporter(object):
       return None
   
   @contextlib.contextmanager
-  def modify_export_settings(self, export_settings_to_modify):
+  def modify_export_settings(self, export_settings_to_modify, settings_events_to_temporarily_disable=None):
     """
     Temporarily modify export settings specified as a dict of
     (setting name: new setting value) pairs. After the execution of the wrapped
@@ -345,7 +344,18 @@ class LayerExporter(object):
     
     Any events connected to the settings triggered by the `set_value` method
     will be executed.
+    
+    `settings_events_to_temporarily_disable` is a dict of
+    {setting name: list of event IDs} pairs that temporarily disables events
+    specified by their IDs for the specified settings.
     """
+    
+    if settings_events_to_temporarily_disable is None:
+      settings_events_to_temporarily_disable = {}
+    
+    for setting_name, event_ids in settings_events_to_temporarily_disable.items():
+      for event_id in event_ids:
+        self.export_settings[setting_name].set_event_enabled(event_id, False)
     
     orig_setting_values = {}
     for setting_name, new_value in export_settings_to_modify.items():
@@ -357,6 +367,10 @@ class LayerExporter(object):
     finally:
       for setting_name, orig_value in orig_setting_values.items():
         self.export_settings[setting_name].set_value(orig_value)
+      
+      for setting_name, event_ids in settings_events_to_temporarily_disable.items():
+        for event_id in event_ids:
+          self.export_settings[setting_name].set_event_enabled(event_id, True)
   
   def _init_attributes(self, operations, layer_tree, keep_exported_layers,
                        on_after_create_image_copy_func, on_after_insert_layer_func):
@@ -418,6 +432,9 @@ class LayerExporter(object):
         setattr(self, function.__name__, self._operations_functions[function.__name__])
     
     if operations_tags:
+      if not self.export_settings['export_only_selected_layers'].value and 'layer_name' in operations_tags:
+        operations_tags.append('_postprocess_layer_name')
+      
       for operation_tag, functions in self._operations.items():
         if operation_tag not in operations_tags:
           for function in functions:
@@ -553,7 +570,6 @@ class LayerExporter(object):
     self._export_layer(layer_elem, self._image_copy, layer_copy)
     self._postprocess_layer(self._image_copy, layer_copy)
     self._postprocess_layer_name(layer_elem)
-    
     self.progress_updater.update_tasks()
     
     if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
