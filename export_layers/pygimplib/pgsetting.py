@@ -32,7 +32,6 @@ str = unicode
 import abc
 import collections
 import copy
-import inspect
 import os
 
 import gimp
