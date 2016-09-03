@@ -520,8 +520,8 @@ class ExportNamePreview(ExportPreview):
       layer_tree = None
     
     with self._layer_exporter.modify_export_settings(
-      {'selected_layers': {self._layer_exporter.image.ID: self._selected_items}},
-      self._settings_events_to_temporarily_disable):
+           {'selected_layers': {self._layer_exporter.image.ID: self._selected_items}},
+           self._settings_events_to_temporarily_disable):
       self._layer_exporter.export_layers(operations=['layer_name'], layer_tree=layer_tree)
   
   def _update_items(self):
@@ -925,9 +925,9 @@ class ExportImagePreview(ExportPreview):
     layer_tree_filter = layer_tree.filter if layer_tree is not None else None
     
     with self._layer_exporter.modify_export_settings(
-      {'export_only_selected_layers': True,
-       'selected_layers': {self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}},
-      self._settings_events_to_temporarily_disable):
+           {'export_only_selected_layers': True,
+            'selected_layers': {self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}},
+           self._settings_events_to_temporarily_disable):
       try:
         image_preview = self._layer_exporter.export_layers(
           operations=['layer_contents'], layer_tree=layer_tree, keep_exported_layers=True,
@@ -1085,7 +1085,8 @@ class ExportImagePreview(ExportPreview):
       self._set_layer_name_label(_("No selection"))
   
   def _set_layer_name_label(self, layer_name):
-    self._label_layer_name.set_markup("<i>{0}</i>".format(gobject.markup_escape_text(layer_name)))
+    self._label_layer_name.set_markup(
+      "<i>{0}</i>".format(gobject.markup_escape_text(layer_name.encode(constants.GTK_CHARACTER_ENCODING))))
   
 
 #===============================================================================
