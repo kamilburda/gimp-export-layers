@@ -608,8 +608,9 @@ class ExportNamePreview(ExportPreview):
     return self._tree_model.get_value(self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0])
   
   def _set_item_elem_sensitive(self, item_elem, sensitive):
-    self._tree_model.set_value(
-      self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0], sensitive)
+    if self._tree_iters[item_elem.item.ID] is not None:
+      self._tree_model.set_value(
+        self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0], sensitive)
   
   def _set_parent_item_elems_sensitive(self, item_elem):
     for parent_elem in reversed(item_elem.parents):
