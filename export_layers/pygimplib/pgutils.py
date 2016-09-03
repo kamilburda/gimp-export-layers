@@ -19,7 +19,8 @@
 
 """
 This module:
-* defines custom functions to handle invocation of functions with a delay
+* defines custom functions to handle invocation of functions with a delay,
+* defines an empty context manager.
 """
 
 from __future__ import absolute_import
@@ -74,3 +75,26 @@ def timeout_remove_strict(callback):
   if callback in _timer_ids:
     gobject.source_remove(_timer_ids[callback])
     del _timer_ids[callback]
+
+
+#===============================================================================
+
+
+class _EmptyContext(object):
+  
+  """
+  This class provides an empty context manager that can be used in `with`
+  statements in place of a real context manager if a condition is not met:
+    
+    with context_manager if condition else empty_context:
+      ...
+  """
+  
+  def __enter__(self):
+    pass
+  
+  def __exit__(self, *exc_info):
+    pass
+
+
+empty_context = _EmptyContext()
