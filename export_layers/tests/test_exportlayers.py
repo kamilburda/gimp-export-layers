@@ -35,6 +35,8 @@ import gimp
 pdb = gimp.pdb
 
 from .. import pygimplib
+from .. import config
+reload(config)
 
 pygimplib.init()
 
