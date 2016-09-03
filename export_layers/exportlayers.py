@@ -230,7 +230,7 @@ class LayerExporter(object):
     self.progress_updater = progress_updater if progress_updater is not None else progress.ProgressUpdater(None)
     self._layer_tree = layer_tree
     self.export_context_manager = (
-      export_context_manager if export_context_manager is not None else pgutils.empty_context)
+      export_context_manager if export_context_manager is not None else pgutils.EmptyContext)
     self.export_context_manager_args = (
       export_context_manager_args if export_context_manager_args is not None else [])
     
