@@ -864,8 +864,8 @@ class ExportImagePreview(ExportPreview):
   
   def _set_initial_layer_elem(self, layer_elem):
     if layer_elem is None:
-      if (self._layer_exporter.layer_tree is not None and
-          self._initial_previewed_layer_id in self._layer_exporter.layer_tree):
+      if (self._layer_exporter.layer_tree is not None
+          and self._initial_previewed_layer_id in self._layer_exporter.layer_tree):
         layer_elem = self._layer_exporter.layer_tree[self._initial_previewed_layer_id]
         self._initial_previewed_layer_id = None
         return layer_elem

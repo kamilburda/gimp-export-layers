@@ -453,13 +453,11 @@ class LayerExporter(object):
       tags_to_insert = ["[{0}]".format(tag) for tag in tags_to_insert]
       return " ".join(tags_to_insert)
     
-    return {
-      'layer name': lambda: self._current_layer_elem.name,
-      'image name': _get_image_name,
-      'layer path': _get_layer_path,
-      'current date': _get_current_date,
-      'tags': _get_tags
-    }
+    return {'layer name': lambda: self._current_layer_elem.name,
+            'image name': _get_image_name,
+            'layer path': _get_layer_path,
+            'current date': _get_current_date,
+            'tags': _get_tags}
   
   def _prefill_file_extension_properties(self):
     file_extension_properties = collections.defaultdict(_FileExtensionProperties)
