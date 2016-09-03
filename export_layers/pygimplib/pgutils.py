@@ -80,15 +80,23 @@ def timeout_remove_strict(callback):
 #===============================================================================
 
 
-class _EmptyContext(object):
+class EmptyContext(object):
   
   """
   This class provides an empty context manager that can be used in `with`
   statements in place of a real context manager if a condition is not met:
     
+    with context_manager if condition else EmptyContext():
+      ...
+  
+  Or use the `empty_context` global instance:
+    
     with context_manager if condition else empty_context:
       ...
   """
+  
+  def __init__(self, *args, **kwargs):
+    pass
   
   def __enter__(self):
     pass
@@ -97,4 +105,4 @@ class _EmptyContext(object):
     pass
 
 
-empty_context = _EmptyContext()
+empty_context = EmptyContext()
