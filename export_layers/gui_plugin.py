@@ -823,13 +823,13 @@ class ExportImagePreview(ExportPreview):
     """
     
     allocation = self._preview_image.get_allocation()
-    return (self._preview_pixbuf is not None and allocation.width > self._preview_pixbuf.get_width() and
-            allocation.height > self._preview_pixbuf.get_height())
+    return (self._preview_pixbuf is not None and allocation.width > self._preview_pixbuf.get_width()
+            and allocation.height > self._preview_pixbuf.get_height())
   
   def update_layer_elem(self):
-    if (self.layer_elem is not None and
-        self._layer_exporter.layer_tree is not None and
-        self.layer_elem.item.ID in self._layer_exporter.layer_tree):
+    if (self.layer_elem is not None
+        and self._layer_exporter.layer_tree is not None
+        and self.layer_elem.item.ID in self._layer_exporter.layer_tree):
       layer_elem = self._layer_exporter.layer_tree[self.layer_elem.item.ID]
       if self._layer_exporter.layer_tree.filter.is_match(layer_elem):
         self.layer_elem = layer_elem
@@ -884,8 +884,8 @@ class ExportImagePreview(ExportPreview):
   
   def _layer_elem_matches_filter(self, layer_elem):
     def _not_treated_specially_and_has_tags(layer_elem):
-      return not (self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special') and
-                  layer_elem.tags)
+      return not (self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special')
+                  and layer_elem.tags)
     
     with self._layer_exporter.layer_tree.filter.add_rule_temp(_not_treated_specially_and_has_tags):
       if self._layer_exporter.export_settings['export_only_selected_layers'].value:
@@ -1059,15 +1059,15 @@ class ExportImagePreview(ExportPreview):
     if preview_pixbuf is None:
       return
     
-    if (preview_allocation.width >= preview_pixbuf.get_width() and
-        preview_allocation.height >= preview_pixbuf.get_height()):
+    if (preview_allocation.width >= preview_pixbuf.get_width()
+        and preview_allocation.height >= preview_pixbuf.get_height()):
       return
     
     scaled_preview_width, scaled_preview_height = self._get_preview_size(
       preview_pixbuf.get_width(), preview_pixbuf.get_height())
     
-    if (self._previous_preview_pixbuf_width == scaled_preview_width and
-        self._previous_preview_pixbuf_height == scaled_preview_height):
+    if (self._previous_preview_pixbuf_width == scaled_preview_width
+        and self._previous_preview_pixbuf_height == scaled_preview_height):
       return
     
     scaled_preview_pixbuf = preview_pixbuf.scale_simple(
@@ -1090,11 +1090,11 @@ class ExportImagePreview(ExportPreview):
     if not self._is_updating and not self._preview_image.get_mapped():
       preview_widget_allocated_width = allocation.width - self._IMAGE_PREVIEW_PADDING * 2
       preview_widget_allocated_height = (
-        allocation.height - self._label_layer_name.get_allocation().height -
-        self._BOTTOM_WIDGETS_PADDING * 2 - self._IMAGE_PREVIEW_PADDING * 2)
+        allocation.height - self._label_layer_name.get_allocation().height
+        - self._BOTTOM_WIDGETS_PADDING * 2 - self._IMAGE_PREVIEW_PADDING * 2)
       
-      if (preview_widget_allocated_width < self._placeholder_image_size[0] or
-          preview_widget_allocated_height < self._placeholder_image_size[1]):
+      if (preview_widget_allocated_width < self._placeholder_image_size[0]
+          or preview_widget_allocated_height < self._placeholder_image_size[1]):
         self._placeholder_image.hide()
       else:
         self._placeholder_image.show()
@@ -1871,8 +1871,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   def _on_name_preview_selection_changed(self):
     layer_elem_from_cursor = self._export_name_preview.get_layer_elem_from_cursor()
     if layer_elem_from_cursor is not None:
-      if (self._export_image_preview.layer_elem is None or
-          layer_elem_from_cursor.item.ID != self._export_image_preview.layer_elem.item.ID):
+      if (self._export_image_preview.layer_elem is None
+          or layer_elem_from_cursor.item.ID != self._export_image_preview.layer_elem.item.ID):
         self._export_image_preview.layer_elem = layer_elem_from_cursor
         self._export_image_preview.update()
     else:

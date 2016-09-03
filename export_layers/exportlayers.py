@@ -405,8 +405,8 @@ class LayerExporter(object):
       pattern=pattern,
       fields=self._get_fields_for_layer_filename_pattern())
     self._has_custom_filename_pattern = (
-      self.export_settings['layer_filename_pattern'].value !=
-      self.export_settings['layer_filename_pattern'].default_value)
+      self.export_settings['layer_filename_pattern'].value
+      != self.export_settings['layer_filename_pattern'].default_value)
     # key: _ItemTreeElement parent ID (None for root); value: list of pattern number generators
     self._pattern_number_filename_generators = {None: self._filename_pattern_generator.get_number_generators()}
   
@@ -528,8 +528,8 @@ class LayerExporter(object):
       self._layer_tree.filter.add_rule(
         LayerFilterRules.is_layer_in_selected_layers, self.export_settings['selected_layers'].value[self.image.ID])
     
-    if (self.export_settings['layer_groups_as_folders'].value and
-        self.export_settings['export_only_selected_layers'].value):
+    if (self.export_settings['layer_groups_as_folders'].value
+        and self.export_settings['export_only_selected_layers'].value):
       self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
   
   def _export_layers(self):
@@ -714,8 +714,8 @@ class LayerExporter(object):
         if has_inserted_layers:
           layer = pdb.gimp_image_merge_visible_layers(image, gimpenums.CLIP_TO_IMAGE)
     else:
-      if (self.export_settings['crop_mode'].is_item('crop_to_background', 'crop_to_foreground') and
-          inserted_layer_to_crop_to is not None):
+      if (self.export_settings['crop_mode'].is_item('crop_to_background', 'crop_to_foreground')
+          and inserted_layer_to_crop_to is not None):
         if self.export_settings['autocrop'].value:
           image.active_layer = inserted_layer_to_crop_to
           pdb.plug_in_autocrop_layer(image, inserted_layer_to_crop_to)
@@ -746,8 +746,8 @@ class LayerExporter(object):
       layer_elem, self._include_item_path, self._get_uniquifier_position(layer_elem.name))
   
   def _postprocess_layer_name(self, layer_elem):
-    if (layer_elem.item_type == layer_elem.NONEMPTY_GROUP and
-        self.export_settings['export_only_selected_layers'].value):
+    if (layer_elem.item_type == layer_elem.NONEMPTY_GROUP
+        and self.export_settings['export_only_selected_layers'].value):
       self._layer_tree.reset_name(layer_elem)
   
   def _rename_layer_by_pattern(self, layer_elem):

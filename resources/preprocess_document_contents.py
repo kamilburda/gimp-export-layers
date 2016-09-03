@@ -204,8 +204,8 @@ def _preprocess_contents(contents, root_dir):
     section = _process_token_args('include-section', token_args)
     
     dest_contents = (
-      "{% capture markdown-insert %}\n" + section + "\n" + match.group(1) + "{% endcapture %}" +
-      "\n" + match.group(1) + "{{ markdown-insert | markdownify }}")
+      "{% capture markdown-insert %}\n" + section + "\n" + match.group(1) + "{% endcapture %}"
+      + "\n" + match.group(1) + "{{ markdown-insert | markdownify }}")
     contents = contents.replace(match.group(2), dest_contents, 1)
   
   return contents
