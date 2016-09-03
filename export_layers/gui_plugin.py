@@ -580,8 +580,14 @@ class ExportNamePreview(ExportPreview):
     
     if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
       if not enabled:
+        if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
+          self._layer_exporter.layer_tree.filter['layer_types'].add_rule(
+            exportlayers.LayerFilterRules.is_nonempty_group)
         self._layer_exporter.layer_tree.filter.add_rule(exportlayers.LayerFilterRules.has_no_tags)
       else:
+        if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
+          self._layer_exporter.layer_tree.filter['layer_types'].remove_rule(
+            exportlayers.LayerFilterRules.is_nonempty_group, raise_if_not_found=False)
         self._layer_exporter.layer_tree.filter.remove_rule(
           exportlayers.LayerFilterRules.has_no_tags, raise_if_not_found=False)
   
@@ -593,9 +599,16 @@ class ExportNamePreview(ExportPreview):
     
     if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
       with self._layer_exporter.layer_tree.filter.add_rule_temp(
-        exportlayers.LayerFilterRules.has_tags, *self._layer_exporter.SUPPORTED_TAGS.keys()):
-        
+             exportlayers.LayerFilterRules.has_tags, *self._layer_exporter.SUPPORTED_TAGS.keys()):
         self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
+        
+        if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
+          with self._layer_exporter.layer_tree.filter['layer_types'].add_rule_temp(
+                 exportlayers.LayerFilterRules.is_nonempty_group):
+            with self._layer_exporter.layer_tree.filter['layer_types'].remove_rule_temp(
+                   exportlayers.LayerFilterRules.is_layer):
+              for layer_elem in self._layer_exporter.layer_tree:
+                self._set_item_elem_sensitive(layer_elem, False)
   
   def _get_item_elem_sensitive(self, item_elem):
     return self._tree_model.get_value(self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0])
@@ -604,7 +617,7 @@ class ExportNamePreview(ExportPreview):
     self._tree_model.set_value(
       self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0], sensitive)
   
-  def _set_parent_item_elem_sensitive(self, item_elem):
+  def _set_parent_item_elems_sensitive(self, item_elem):
     for parent_elem in reversed(item_elem.parents):
       parent_sensitive = any(
         self._get_item_elem_sensitive(child_elem) for child_elem in parent_elem.children
@@ -615,7 +628,7 @@ class ExportNamePreview(ExportPreview):
     for item_elem in item_elems:
       self._set_item_elem_sensitive(item_elem, sensitive)
       if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
-        self._set_parent_item_elem_sensitive(item_elem)
+        self._set_parent_item_elems_sensitive(item_elem)
   
   def _get_icon_from_item_elem(self, item_elem):
     if item_elem.item_type == item_elem.ITEM:

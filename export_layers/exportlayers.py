@@ -50,6 +50,7 @@ from export_layers.pygimplib import pgfileformats
 from export_layers.pygimplib import pgitemtree
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
+from export_layers.pygimplib import pgutils
 from export_layers.pygimplib import progress
 
 #===============================================================================
@@ -237,18 +238,10 @@ class LayerExporter(object):
     
     self._layer_tree = layer_tree
     
-    if export_context_manager is not None:
-      self.export_context_manager = export_context_manager
-    else:
-      @contextlib.contextmanager
-      def _empty_context(*args, **kwargs):
-        yield
-      self.export_context_manager = _empty_context
-    
-    if export_context_manager_args is not None:
-      self.export_context_manager_args = export_context_manager_args
-    else:
-      self.export_context_manager_args = []
+    self.export_context_manager = (
+      export_context_manager if export_context_manager is not None else pgutils.empty_context)
+    self.export_context_manager_args = (
+      export_context_manager_args if export_context_manager_args is not None else [])
     
     self.should_stop = False
     
@@ -528,12 +521,13 @@ class LayerExporter(object):
       self._layer_tree.filter.add_rule(LayerFilterRules.has_matching_file_extension, self._default_file_extension)
     
     if self.export_settings['tagged_layers_mode'].is_item('special'):
-      with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags, 'background'):
-        self._tagged_layer_elems['background'] = list(self._layer_tree)
-      with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags, 'foreground'):
-        self._tagged_layer_elems['foreground'] = list(self._layer_tree)
+      with (self._layer_tree.filter['layer_types'].add_rule_temp(LayerFilterRules.is_nonempty_group)
+            if self.export_settings['layer_groups_as_folders'].value else pgutils.empty_context):
+        for tag in self.SUPPORTED_TAGS.keys():
+          with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags, tag):
+            self._tagged_layer_elems[tag] = list(self._layer_tree)
       
-      self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags, 'background', 'foreground')
+      self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags, *self.SUPPORTED_TAGS.keys())
     elif self.export_settings['tagged_layers_mode'].is_item('ignore'):
       self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags)
     elif self.export_settings['tagged_layers_mode'].is_item('ignore_other'):
