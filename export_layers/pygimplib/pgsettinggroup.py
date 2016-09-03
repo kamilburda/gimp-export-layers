@@ -171,8 +171,8 @@ class SettingGroup(object):
     """
     
     def _should_ignore_func(setting_or_group, ignored_settings_and_tags, ignore_tags):
-      return (setting_or_group in ignored_settings_and_tags and
-              any(tag in ignored_settings_and_tags[setting_or_group] for tag in ignore_tags))
+      return (setting_or_group in ignored_settings_and_tags
+              and any(tag in ignored_settings_and_tags[setting_or_group] for tag in ignore_tags))
     
     def _never_ignore(*args):
       return False

@@ -148,8 +148,8 @@ class SettingSource(object):
     
     if self._settings_not_found:
       raise pgsettingpersistor.SettingsNotFoundInSourceError(
-        "the following settings could not be found in any sources: " +
-        str([setting.name for setting in self._settings_not_found])
+        "the following settings could not be found in any sources: "
+        + str([setting.name for setting in self._settings_not_found])
       )
   
   @abc.abstractmethod

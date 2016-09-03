@@ -306,12 +306,12 @@ class TestLayerTree(unittest.TestCase):
       path_components, name = item_path[:-1], item_path[-1]
       self.assertEqual(
         item_tree[key].get_path_components(), path_components,
-        ("parents: '" + key + "': '" + str(item_tree[key].get_path_components()) +
-         "' != '" + str(path_components) + "'"))
+        ("parents: '" + key + "': '" + str(item_tree[key].get_path_components())
+         + "' != '" + str(path_components) + "'"))
       self.assertEqual(
         item_tree[key].name, name,
-        ("layer name: '" + key + "': '" + str(item_tree[key].name) +
-         "' != '" + str(name) + "'"))
+        ("layer name: '" + key + "': '" + str(item_tree[key].name)
+         + "' != '" + str(name) + "'"))
   
   def test_uniquify_without_layer_groups(self):
     uniquified_names = collections.OrderedDict([

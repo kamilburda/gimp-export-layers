@@ -92,8 +92,8 @@ class CellRendererTextList(gtk.CellRendererText):
   def do_set_property(self, property_, value):
     attr_name = self._property_name_to_attr(property_.name)
     if hasattr(self, attr_name):
-      if (property_.name in ["text-list", "markup-list"] and
-          not(isinstance(value, list) or isinstance(value, tuple))):
+      if (property_.name in ["text-list", "markup-list"]
+          and not(isinstance(value, list) or isinstance(value, tuple))):
         raise AttributeError("not a list or tuple")
       
       setattr(self, attr_name, value)
@@ -433,8 +433,8 @@ class EntryPopup(object):
   def _on_entry_key_press(self, entry, event):
     key_name = gtk.gdk.keyval_name(event.keyval)
     
-    if (not self.is_shown() and
-        key_name in ["Up", "KP_Up", "Down", "KP_Down", "Page_Up", "KP_Page_Up", "Page_Down", "KP_Page_Down"]):
+    if (not self.is_shown()
+        and key_name in ["Up", "KP_Up", "Down", "KP_Down", "Page_Up", "KP_Page_Up", "Page_Down", "KP_Page_Down"]):
       self._on_entry_key_press_before_show_popup_func()
       
       show_popup_first_time = self._show_popup_first_time
@@ -665,8 +665,8 @@ class FilenamePatternEntry(gtk.Entry):
     item = suggested_items[row_iter][self._COLUMN_ITEMS]
     current_text = self._get_text_decoded()
     
-    if (self._cursor_position > 0 and len(current_text) >= self._cursor_position and
-        current_text[self._cursor_position - 1] == "[" and item and item[0] != "["):
+    if (self._cursor_position > 0 and len(current_text) >= self._cursor_position
+        and current_text[self._cursor_position - 1] == "[" and item and item[0] != "["):
       return False
     else:
       return True
@@ -689,13 +689,13 @@ class FilenamePatternEntry(gtk.Entry):
     suggested_item = str(tree_model[selected_tree_iter][self._COLUMN_ITEMS])
     last_assigned_entry_text = self._popup.last_assigned_entry_text.decode(constants.GTK_CHARACTER_ENCODING)
     
-    if (cursor_position > 0 and len(last_assigned_entry_text) >= cursor_position and
-        last_assigned_entry_text[cursor_position - 1] == "["):
+    if (cursor_position > 0 and len(last_assigned_entry_text) >= cursor_position
+        and last_assigned_entry_text[cursor_position - 1] == "["):
       suggested_item = suggested_item[1:]
     
     self.assign_text(
-      (last_assigned_entry_text[:cursor_position] + suggested_item +
-       last_assigned_entry_text[cursor_position:]).encode(constants.GTK_CHARACTER_ENCODING))
+      (last_assigned_entry_text[:cursor_position] + suggested_item
+       + last_assigned_entry_text[cursor_position:]).encode(constants.GTK_CHARACTER_ENCODING))
     
     self.set_position(cursor_position + len(suggested_item))
     self._cursor_position = self.get_position()
@@ -714,9 +714,9 @@ class FilenamePatternEntry(gtk.Entry):
     if current_text:
       if len(current_text) > 1 and len(current_text) >= self._cursor_position:
         return (
-          current_text[self._cursor_position - 1] == "[" and
-          current_text[self._cursor_position - 2] != "[" and
-          not pgpath.StringPatternGenerator.get_field_at_position(current_text, self._cursor_position - 1))
+          current_text[self._cursor_position - 1] == "["
+          and current_text[self._cursor_position - 2] != "["
+          and not pgpath.StringPatternGenerator.get_field_at_position(current_text, self._cursor_position - 1))
       else:
         return current_text[0] == "["
     else:
@@ -1170,9 +1170,9 @@ class FileExtensionEntry(gtk.Entry):
     
     for file_format in file_formats:
       can_add_file_format = (
-        file_format.save_procedure_name is None or (
-          file_format.save_procedure_name is not None and
-          pdb.gimp_procedural_db_proc_exists(file_format.save_procedure_name)))
+        file_format.save_procedure_name is None
+        or (file_format.save_procedure_name is not None
+            and pdb.gimp_procedural_db_proc_exists(file_format.save_procedure_name)))
       
       if can_add_file_format:
         file_formats_to_add.append([file_format.description, file_format.file_extensions])

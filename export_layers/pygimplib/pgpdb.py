@@ -345,8 +345,8 @@ def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
     return layer
   
   all_layers_have_same_size = (
-    all(layers[0].width == layer.width for layer in layers[1:]) and
-    all(layers[0].height == layer.height for layer in layers[1:]))
+    all(layers[0].width == layer.width for layer in layers[1:])
+    and all(layers[0].height == layer.height for layer in layers[1:]))
   if not all_layers_have_same_size:
     return False
   
