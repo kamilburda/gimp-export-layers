@@ -580,14 +580,8 @@ class ExportNamePreview(ExportPreview):
     
     if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
       if not enabled:
-        if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
-          self._layer_exporter.layer_tree.filter['layer_types'].add_rule(
-            exportlayers.LayerFilterRules.is_nonempty_group)
         self._layer_exporter.layer_tree.filter.add_rule(exportlayers.LayerFilterRules.has_no_tags)
       else:
-        if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
-          self._layer_exporter.layer_tree.filter['layer_types'].remove_rule(
-            exportlayers.LayerFilterRules.is_nonempty_group, raise_if_not_found=False)
         self._layer_exporter.layer_tree.filter.remove_rule(
           exportlayers.LayerFilterRules.has_no_tags, raise_if_not_found=False)
   
@@ -769,9 +763,8 @@ class ExportImagePreview(ExportPreview):
     if self.layer_elem is None:
       return
     
-    if not self._layer_elem_matches_filter(self.layer_elem):
-      if self._layer_exporter.export_settings['export_only_selected_layers'].value:
-        self.layer_elem = None
+    if not self._layer_exporter.layer_tree.filter.is_match(self.layer_elem):
+      self.layer_elem = None
       return
     
     if not pdb.gimp_item_is_valid(self.layer_elem.item):
@@ -881,19 +874,6 @@ class ExportImagePreview(ExportPreview):
         return None
     else:
       return layer_elem
-  
-  def _layer_elem_matches_filter(self, layer_elem):
-    def _not_treated_specially_and_has_tags(layer_elem):
-      return not (self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special')
-                  and layer_elem.tags)
-    
-    with self._layer_exporter.layer_tree.filter.add_rule_temp(_not_treated_specially_and_has_tags):
-      if self._layer_exporter.export_settings['export_only_selected_layers'].value:
-        with self._layer_exporter.layer_tree.filter['layer_types'].add_rule_temp(
-          exportlayers.LayerFilterRules.is_nonempty_group):
-          return self._layer_exporter.layer_tree.filter.is_match(layer_elem)
-      else:
-        return self._layer_exporter.layer_tree.filter.is_match(layer_elem)
   
   def _get_in_memory_preview(self, layer):
     self._preview_width, self._preview_height = self._get_preview_size(layer.width, layer.height)
