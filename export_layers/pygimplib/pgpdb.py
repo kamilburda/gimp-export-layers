@@ -105,7 +105,7 @@ def is_layer_inside_image(image, layer):
   Return False if the layer is completely outside the image canvas.
   """
   
-  return ((-image.width < layer.offsets[0] < image.width) and (-image.height < layer.offsets[1] < image.height))
+  return (-image.width < layer.offsets[0] < image.width) and (-image.height < layer.offsets[1] < image.height)
 
 
 #-------------------------------------------------------------------------------

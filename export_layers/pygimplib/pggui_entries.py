@@ -713,10 +713,10 @@ class FilenamePatternEntry(gtk.Entry):
 
     if current_text:
       if len(current_text) > 1 and len(current_text) >= self._cursor_position:
-        return (
-          current_text[self._cursor_position - 1] == "["
-          and current_text[self._cursor_position - 2] != "["
-          and not pgpath.StringPatternGenerator.get_field_at_position(current_text, self._cursor_position - 1))
+        return (current_text[self._cursor_position - 1] == "["
+                and current_text[self._cursor_position - 2] != "["
+                and not pgpath.StringPatternGenerator.get_field_at_position(
+                  current_text, self._cursor_position - 1))
       else:
         return current_text[0] == "["
     else:
