@@ -18,7 +18,7 @@
 #
 
 """
-This module contains constants used in other modules.
+This module defines constants used in other modules.
 """
 
 from __future__ import absolute_import
