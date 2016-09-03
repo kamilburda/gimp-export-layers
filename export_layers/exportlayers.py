@@ -224,20 +224,11 @@ class LayerExporter(object):
     self.initial_run_mode = initial_run_mode
     self.image = image
     self.export_settings = export_settings
-    
-    if overwrite_chooser is None:
-      self.overwrite_chooser = overwrite.NoninteractiveOverwriteChooser(
-        self.export_settings['overwrite_mode'].value)
-    else:
-      self.overwrite_chooser = overwrite_chooser
-    
-    if progress_updater is None:
-      self.progress_updater = progress.ProgressUpdater(None)
-    else:
-      self.progress_updater = progress_updater
-    
+    self.overwrite_chooser = (
+      overwrite_chooser if overwrite_chooser is not None
+      else overwrite.NoninteractiveOverwriteChooser(self.export_settings['overwrite_mode'].value))
+    self.progress_updater = progress_updater if progress_updater is not None else progress.ProgressUpdater(None)
     self._layer_tree = layer_tree
-    
     self.export_context_manager = (
       export_context_manager if export_context_manager is not None else pgutils.empty_context)
     self.export_context_manager_args = (
