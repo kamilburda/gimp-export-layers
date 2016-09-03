@@ -598,11 +598,11 @@ class ExportNamePreview(ExportPreview):
         
         if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
           with self._layer_exporter.layer_tree.filter['layer_types'].add_rule_temp(
-                 exportlayers.LayerFilterRules.is_nonempty_group):
-            with self._layer_exporter.layer_tree.filter['layer_types'].remove_rule_temp(
-                   exportlayers.LayerFilterRules.is_layer):
-              for layer_elem in self._layer_exporter.layer_tree:
-                self._set_item_elem_sensitive(layer_elem, False)
+                 exportlayers.LayerFilterRules.is_nonempty_group), \
+               self._layer_exporter.layer_tree.filter['layer_types'].remove_rule_temp(
+                 exportlayers.LayerFilterRules.is_layer):
+            for layer_elem in self._layer_exporter.layer_tree:
+              self._set_item_elem_sensitive(layer_elem, False)
   
   def _get_item_elem_sensitive(self, item_elem):
     return self._tree_model.get_value(self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0])
