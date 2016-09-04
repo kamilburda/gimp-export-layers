@@ -85,11 +85,7 @@ def create_settings():
       'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
       'default_value': "png",
-      'display_name': "File extension",
-      'error_messages': {
-         'default_needed': _(
-            "You need to specify default file extension for layers with invalid or no extension.")
-      }
+      'display_name': "File extension"
     },
     {
       'type': pgsetting.SettingTypes.string,
@@ -123,13 +119,16 @@ def create_settings():
       'display_name': _("Use image size")
     },
     {
-      'type': pgsetting.SettingTypes.enumerated,
-      'name': 'file_extension_mode',
-      'default_value': 'no_special_handling',
-      'items': [('no_special_handling', _("No special handling")),
-                ('only_matching_file_extension', _("Export only layers matching file extension")),
-                ('use_as_file_extensions', _("Use as file extensions"))],
-      'display_name': _("File extensions in layer names")
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'use_file_extensions_in_layer_names',
+      'default_value': False,
+      'display_name': _("Use file extensions in layer names")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'export_only_layers_matching_file_extension',
+      'default_value': False,
+      'display_name': _("Export only layers matching file extension")
     },
     {
       'type': pgsetting.SettingTypes.enumerated,
@@ -232,14 +231,12 @@ def create_settings():
       merge_layer_groups.gui.set_enabled(False)
       merge_layer_groups.set_value(False)
   
-  def on_file_extension_mode_changed(file_extension_mode, file_extension):
-    if file_extension_mode.is_item('no_special_handling'):
+  def on_use_file_extensions_in_layer_names_changed(use_file_extensions_in_layer_names, file_extension):
+    if not use_file_extensions_in_layer_names.value:
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
-    elif file_extension_mode.is_item('only_matching_file_extension'):
-      file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
-    elif file_extension_mode.is_item('use_as_file_extensions'):
-      file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = (
-        file_extension.error_messages['default_needed'])
+    else:
+      file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = _(
+        "You need to specify default file extension for layers with invalid or no extension.")
   
   def on_merge_layer_groups_changed(merge_layer_groups, layer_groups_as_folders):
     if merge_layer_groups.value:
@@ -263,8 +260,8 @@ def create_settings():
   main_settings['layer_groups_as_folders'].connect_event('value-changed',
     on_layer_groups_as_folders_changed, main_settings['empty_folders'], main_settings['merge_layer_groups'])
   
-  main_settings['file_extension_mode'].connect_event('value-changed',
-    on_file_extension_mode_changed, main_settings['file_extension'])
+  main_settings['use_file_extensions_in_layer_names'].connect_event('value-changed',
+    on_use_file_extensions_in_layer_names_changed, main_settings['file_extension'])
   
   main_settings['merge_layer_groups'].connect_event('value-changed',
     on_merge_layer_groups_changed, main_settings['layer_groups_as_folders'])

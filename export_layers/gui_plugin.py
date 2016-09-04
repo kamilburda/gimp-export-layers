@@ -1462,10 +1462,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._label_message.set_alignment(0.0, 0.5)
     self._label_message.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
-    self._file_extension_mode_label = gtk.Label(
-      self._settings['main/file_extension_mode'].display_name + ":")
-    self._file_extension_mode_label.set_alignment(0, 0.5)
-    
     self._tagged_layers_mode_label = gtk.Label(
       self._settings['main/tagged_layers_mode'].display_name + ":")
     self._tagged_layers_mode_label.set_alignment(0, 0.5)
@@ -1515,13 +1511,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._table_labels = gtk.Table(rows=2, columns=1, homogeneous=False)
     self._table_labels.set_row_spacings(self._MORE_SETTINGS_VERTICAL_SPACING)
-    self._table_labels.attach(self._file_extension_mode_label, 0, 1, 0, 1)
     self._table_labels.attach(self._tagged_layers_mode_label, 0, 1, 1, 2)
     
     self._table_combo_boxes = gtk.Table(rows=2, columns=1, homogeneous=False)
     self._table_combo_boxes.set_row_spacings(self._MORE_SETTINGS_VERTICAL_SPACING)
-    self._table_combo_boxes.attach(
-      self._settings['main/file_extension_mode'].gui.element, 0, 1, 0, 1, yoptions=0)
     self._table_combo_boxes.attach(
       self._settings['main/tagged_layers_mode'].gui.element, 0, 1, 1, 2, yoptions=0)
     

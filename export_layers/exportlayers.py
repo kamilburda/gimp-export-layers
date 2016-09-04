@@ -519,7 +519,7 @@ class LayerExporter(object):
     if self.export_settings['empty_folders'].value:
       self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
-    if self.export_settings['file_extension_mode'].is_item('only_matching_file_extension'):
+    if self.export_settings['export_only_layers_matching_file_extension'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_matching_file_extension, self._default_file_extension)
     
     if self.export_settings['tagged_layers_mode'].is_item('special'):
@@ -770,13 +770,13 @@ class LayerExporter(object):
     layer_elem.name = self._filename_pattern_generator.generate()
   
   def _set_file_extension(self, layer_elem):
-    if self.export_settings['file_extension_mode'].is_item('use_as_file_extensions'):
+    if self.export_settings['use_file_extensions_in_layer_names'].value:
       if self._current_file_extension and self._file_extension_properties[self._current_file_extension].is_valid:
         self._file_extension_to_assign = self._current_file_extension
       else:
         self._file_extension_to_assign = self._default_file_extension
       layer_elem.set_file_extension(self._file_extension_to_assign)
-    elif self.export_settings['file_extension_mode'].is_item('only_matching_file_extension', 'no_special_handling'):
+    else:
       layer_elem.name += "." + self._file_extension_to_assign
   
   def _get_uniquifier_position(self, str_):
@@ -869,5 +869,5 @@ class LayerExporter(object):
       return self.initial_run_mode
   
   def _update_file_export_func(self):
-    if self.export_settings['file_extension_mode'].is_item('use_as_file_extensions'):
+    if self.export_settings['use_file_extensions_in_layer_names'].value:
       self._file_export_func = pgfileformats.get_save_procedure(self._file_extension_to_assign)
