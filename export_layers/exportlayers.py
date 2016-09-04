@@ -212,7 +212,7 @@ class LayerExporter(object):
   
   SUGGESTED_LAYER_FILENAME_PATTERNS = [
     ("image001", "image[001]", []),
-    (_("Layer name"), "[layer name]", []),
+    (_("Layer name"), "[layer name]", ["keep extension/keep only identical extension"]),
     (_("Image name"), "[image name]", ["keep extension"]),
     (_("Layer path"), "[layer path]", ["-"]),
     (_("Tags"), "[tags]", ["specific tags..."]),
@@ -372,12 +372,13 @@ class LayerExporter(object):
       on_after_insert_layer_func if on_after_insert_layer_func is not None else lambda *args: None)
     
     self.should_stop = False
+    
     self._exported_layers = []
     
     self._current_layer_elem = None
+    self._current_file_extension = None
     
     self._output_directory = self.export_settings['output_directory'].value
-    self._default_file_extension = self.export_settings['file_extension'].value
     self._include_item_path = self.export_settings['layer_groups_as_folders'].value
     
     self._image_copy = None
@@ -390,8 +391,8 @@ class LayerExporter(object):
     self.progress_updater.reset()
     
     self._file_extension_properties = self._prefill_file_extension_properties()
-    self._default_file_extension = self._default_file_extension.lstrip(".").lower()
-    self._current_file_extension = self._default_file_extension
+    self._default_file_extension = self.export_settings['file_extension'].value.lstrip(".").lower()
+    self._file_extension_to_assign = self._default_file_extension
     self._file_export_func = pgfileformats.get_save_procedure(self._default_file_extension)
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
@@ -404,9 +405,6 @@ class LayerExporter(object):
     self._filename_pattern_generator = pgpath.StringPatternGenerator(
       pattern=pattern,
       fields=self._get_fields_for_layer_filename_pattern())
-    self._has_custom_filename_pattern = (
-      self.export_settings['layer_filename_pattern'].value
-      != self.export_settings['layer_filename_pattern'].default_value)
     # key: _ItemTreeElement parent ID (None for root); value: list of pattern number generators
     self._pattern_number_filename_generators = {None: self._filename_pattern_generator.get_number_generators()}
   
@@ -425,6 +423,21 @@ class LayerExporter(object):
             setattr(self, function.__name__, lambda *args, **kwargs: None)
   
   def _get_fields_for_layer_filename_pattern(self):
+    
+    def _get_layer_name(file_extension_strip_mode=None):
+      layer_elem = self._current_layer_elem
+      
+      if file_extension_strip_mode in ["keep extension", "keep only identical extension"]:
+        file_extension = self._current_file_extension
+        if file_extension:
+          if file_extension_strip_mode == "keep only identical extension":
+            if file_extension == self._default_file_extension:
+              return layer_elem.name
+          else:
+            return layer_elem.name
+      
+      return layer_elem.get_base_name()
+    
     def _get_image_name(keep_extension=False):
       image_name = self.image.name if self.image.name is not None else _("Untitled")
       if keep_extension == "keep extension":
@@ -453,7 +466,7 @@ class LayerExporter(object):
       tags_to_insert = ["[{0}]".format(tag) for tag in tags_to_insert]
       return " ".join(tags_to_insert)
     
-    return {'layer name': lambda: self._current_layer_elem.name,
+    return {'layer name': _get_layer_name,
             'image name': _get_image_name,
             'layer path': _get_layer_path,
             'current date': _get_current_date,
@@ -534,6 +547,7 @@ class LayerExporter(object):
         raise ExportLayersCancelError("export stopped by user")
       
       self._current_layer_elem = layer_elem
+      self._current_file_extension = layer_elem.get_file_extension()
       
       if layer_elem.item_type in (layer_elem.ITEM, layer_elem.NONEMPTY_GROUP):
         self._process_and_export_item(layer_elem)
@@ -555,7 +569,7 @@ class LayerExporter(object):
     
     if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
       self._exported_layers.append(layer)
-      self._file_extension_properties[self._current_file_extension].processed_count += 1
+      self._file_extension_properties[self._file_extension_to_assign].processed_count += 1
   
   def _process_and_export_empty_group(self, layer_elem):
     self._preprocess_empty_group_name(layer_elem)
@@ -728,8 +742,8 @@ class LayerExporter(object):
     return layer
   
   def _preprocess_layer_name(self, layer_elem):
-    self._strip_file_extension(layer_elem)
     self._rename_layer_by_pattern(layer_elem)
+    self._set_file_extension(layer_elem)
     self._layer_tree.validate_name(layer_elem)
   
   def _preprocess_empty_group_name(self, layer_elem):
@@ -737,7 +751,6 @@ class LayerExporter(object):
     self._layer_tree.uniquify_name(layer_elem, self._include_item_path)
   
   def _process_layer_name(self, layer_elem):
-    self._set_file_extension(layer_elem)
     self._layer_tree.uniquify_name(
       layer_elem, self._include_item_path, self._get_uniquifier_position(layer_elem.name))
   
@@ -747,39 +760,27 @@ class LayerExporter(object):
       self._layer_tree.reset_name(layer_elem)
   
   def _rename_layer_by_pattern(self, layer_elem):
-    if self._has_custom_filename_pattern:
-      if self.export_settings['layer_groups_as_folders'].value:
-        parent = layer_elem.parent.item.ID if layer_elem.parent is not None else None
-        if parent not in self._pattern_number_filename_generators:
-          self._pattern_number_filename_generators[parent] = self._filename_pattern_generator.reset_numbering()
-        else:
-          self._filename_pattern_generator.set_number_generators(self._pattern_number_filename_generators[parent])
-      
-      layer_elem.name = self._filename_pattern_generator.generate()
-  
-  def _strip_file_extension(self, layer_elem):
-    if self.export_settings['strip_mode'].is_item('identical', 'always'):
-      file_extension = layer_elem.get_file_extension()
-      if file_extension:
-        if self.export_settings['strip_mode'].is_item('identical'):
-          if file_extension == self._default_file_extension:
-            layer_elem.set_file_extension(None)
-        else:
-          layer_elem.set_file_extension(None)
+    if self.export_settings['layer_groups_as_folders'].value:
+      parent = layer_elem.parent.item.ID if layer_elem.parent is not None else None
+      if parent not in self._pattern_number_filename_generators:
+        self._pattern_number_filename_generators[parent] = self._filename_pattern_generator.reset_numbering()
+      else:
+        self._filename_pattern_generator.set_number_generators(self._pattern_number_filename_generators[parent])
+    
+    layer_elem.name = self._filename_pattern_generator.generate()
   
   def _set_file_extension(self, layer_elem):
     if self.export_settings['file_extension_mode'].is_item('use_as_file_extensions'):
-      file_extension = layer_elem.get_file_extension()
-      if file_extension and self._file_extension_properties[file_extension].is_valid:
-        self._current_file_extension = file_extension
+      if self._current_file_extension and self._file_extension_properties[self._current_file_extension].is_valid:
+        self._file_extension_to_assign = self._current_file_extension
       else:
-        layer_elem.set_file_extension(self._default_file_extension)
-        self._current_file_extension = self._default_file_extension
-    elif self.export_settings['file_extension_mode'].is_item('no_special_handling'):
-      layer_elem.name += "." + self._default_file_extension
-    
+        self._file_extension_to_assign = self._default_file_extension
+      layer_elem.set_file_extension(self._file_extension_to_assign)
+    elif self.export_settings['file_extension_mode'].is_item('only_matching_file_extension', 'no_special_handling'):
+      layer_elem.name += "." + self._file_extension_to_assign
+  
   def _get_uniquifier_position(self, str_):
-    return len(str_) - len("." + self._current_file_extension)
+    return len(str_) - len("." + self._file_extension_to_assign)
   
   def _make_dirs(self, path):
     try:
@@ -799,6 +800,7 @@ class LayerExporter(object):
     self._export(layer_elem, image, layer)
     
     if self._current_layer_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
+      self._set_file_extension(layer_elem)
       self._process_layer_name(layer_elem)
       self._export(layer_elem, image, layer)
   
@@ -848,9 +850,9 @@ class LayerExporter(object):
         else:
           raise ExportLayersError(e.message, layer, self._default_file_extension)
       else:
-        if self._current_file_extension != self._default_file_extension:
-          self._file_extension_properties[self._current_file_extension].is_valid = False
-          self._current_file_extension = self._default_file_extension
+        if self._file_extension_to_assign != self._default_file_extension:
+          self._file_extension_properties[self._file_extension_to_assign].is_valid = False
+          self._file_extension_to_assign = self._default_file_extension
           self._current_layer_export_status = ExportStatuses.USE_DEFAULT_FILE_EXTENSION
         else:
           raise ExportLayersError(e.message, layer, self._default_file_extension)
@@ -858,8 +860,8 @@ class LayerExporter(object):
       self._current_layer_export_status = ExportStatuses.EXPORT_SUCCESSFUL
   
   def _get_run_mode(self):
-    if self._file_extension_properties[self._current_file_extension].is_valid:
-      if self._file_extension_properties[self._current_file_extension].processed_count == 0:
+    if self._file_extension_properties[self._file_extension_to_assign].is_valid:
+      if self._file_extension_properties[self._file_extension_to_assign].processed_count == 0:
         return self.initial_run_mode
       else:
         return gimpenums.RUN_WITH_LAST_VALS
@@ -868,4 +870,4 @@ class LayerExporter(object):
   
   def _update_file_export_func(self):
     if self.export_settings['file_extension_mode'].is_item('use_as_file_extensions'):
-      self._file_export_func = pgfileformats.get_save_procedure(self._current_file_extension)
+      self._file_export_func = pgfileformats.get_save_procedure(self._file_extension_to_assign)
