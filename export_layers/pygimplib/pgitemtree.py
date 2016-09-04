@@ -644,6 +644,17 @@ class _ItemTreeElement(object):
     
     self.name = set_file_extension(self.name, file_extension)
   
+  def get_base_name(self):
+    """
+    Return the item name without its file extension.
+    """
+    
+    file_extension = get_file_extension(self.name)
+    if file_extension:
+      return self.name[:-(len(file_extension) + 1)]
+    else:
+      return self.name
+  
   def get_filepath(self, directory, include_item_path=True):
     """
     Return file path given the specified directory, item name and names of its

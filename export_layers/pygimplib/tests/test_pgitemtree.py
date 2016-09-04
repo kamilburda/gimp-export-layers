@@ -503,6 +503,27 @@ class TestLayerTreeElement(unittest.TestCase):
     self.layer_elem.set_file_extension("png")
     self.assertEqual(self.layer_elem.name, "main-background.aaa.png")
   
+  def test_set_file_extension_multiple_consecutive_periods(self):
+    self.layer_elem.name = "main-background..jpg"
+    self.layer_elem.set_file_extension("png")
+    self.assertEqual(self.layer_elem.name, "main-background..png")
+  
+  def test_get_base_name(self):
+    self.layer_elem.name = "main-background"
+    self.assertEqual(self.layer_elem.get_base_name(), "main-background")
+    self.layer_elem.name = "main-background."
+    self.assertEqual(self.layer_elem.get_base_name(), "main-background.")
+    self.layer_elem.name = "main-background.jpg"
+    self.assertEqual(self.layer_elem.get_base_name(), "main-background")
+    self.layer_elem.name = "main-background..jpg"
+    self.assertEqual(self.layer_elem.get_base_name(), "main-background.")
+    self.layer_elem.name = "..jpg"
+    self.assertEqual(self.layer_elem.get_base_name(), ".")
+    self.layer_elem.name = ".jpg"
+    self.assertEqual(self.layer_elem.get_base_name(), "")
+    self.layer_elem.name = "."
+    self.assertEqual(self.layer_elem.get_base_name(), ".")
+  
   def _test_parse_tags(self, orig_layer_elem_name, processed_layer_elem_name, parsed_tags):
     self.layer_elem.name = orig_layer_elem_name
     self.layer_elem.parse_tags()
