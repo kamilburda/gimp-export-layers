@@ -54,7 +54,7 @@ class SettingGroup(object):
   
   _SETTING_PATH_SEPARATOR = "/"
   
-  def __init__(self, name, setting_list, setting_sources=None):
+  def __init__(self, name, setting_list, **setting_params):
     """
     Create settings from the specified list. The list can contain both `Setting`
     and `SettingGroup` objects.
@@ -68,9 +68,9 @@ class SettingGroup(object):
     
     * `setting_list` - List of settings (`Setting` or `SettingGroup` objects).
     
-    * `setting_sources` - List of setting sources (`SettingSource` objects) used
-      for each setting in the group. If None, do not load/save settings in the
-      group. Sources in individual settings override this list.
+    * `**setting_params` - (setting attribute: value) pairs to assign to
+      each setting in the group. Attributes in individual settings override
+      these attributes.
     
     ---------
     
@@ -97,7 +97,7 @@ class SettingGroup(object):
     """
     
     self._name = name
-    self._setting_sources = setting_sources
+    self._setting_params = setting_params
     self._settings = collections.OrderedDict()
     
     self.add(setting_list)
@@ -110,10 +110,6 @@ class SettingGroup(object):
   @property
   def name(self):
     return self._name
-  
-  @property
-  def setting_sources(self):
-    return self._setting_sources
   
   def __str__(self):
     return "<{0} '{1}'>".format(type(self).__name__, self.name)
@@ -447,8 +443,9 @@ class SettingGroup(object):
     if setting_data['name'] in self._settings:
       raise KeyError("setting '{0}' already exists".format(setting_data['name']))
     
-    if 'setting_sources' not in setting_data and self._setting_sources:
-      setting_data['setting_sources'] = self._setting_sources
+    for setting_attribute, setting_attribute_value in self._setting_params.items():
+      if setting_attribute not in setting_data:
+        setting_data[setting_attribute] = setting_attribute_value
     
     try:
       self._settings[setting_data['name']] = setting_type(**setting_data)

@@ -245,6 +245,62 @@ class TestSettingGroupCreation(unittest.TestCase):
     self.assertIn('ignore_invisible', main_settings)
     self.assertFalse(settings['special']['ignore_invisible'].value)
     self.assertTrue(settings['main']['ignore_invisible'].value)
+  
+  def test_group_level_attributes(self):
+    settings = pgsettinggroup.SettingGroup('main', [
+      {
+       'type': pgsetting.SettingTypes.boolean,
+       'name': 'ignore_invisible',
+       'default_value': False,
+      },
+      {
+       'type': pgsetting.SettingTypes.boolean,
+       'name': 'autocrop',
+       'default_value': False,
+      }
+    ], pdb_type=None)
+    
+    self.assertEqual(settings['ignore_invisible'].pdb_type, None)
+    self.assertEqual(settings['autocrop'].pdb_type, None)
+  
+  def test_group_level_attributes_overridden_by_setting_attributes(self):
+    settings = pgsettinggroup.SettingGroup('main', [
+      {
+       'type': pgsetting.SettingTypes.boolean,
+       'name': 'ignore_invisible',
+       'default_value': False,
+      },
+      {
+       'type': pgsetting.SettingTypes.boolean,
+       'name': 'autocrop',
+       'default_value': False,
+       'pdb_type': pgsetting.SettingPdbTypes.int16
+      }
+    ], pdb_type=None)
+    
+    self.assertEqual(settings['ignore_invisible'].pdb_type, None)
+    self.assertEqual(settings['autocrop'].pdb_type, pgsetting.SettingPdbTypes.int16)
+  
+  def test_group_level_attributes_overridden_by_subgroup_attributes(self):
+    settings = pgsettinggroup.SettingGroup('main', [
+      {
+       'type': pgsetting.SettingTypes.boolean,
+       'name': 'ignore_invisible',
+       'default_value': False,
+      },
+      pgsettinggroup.SettingGroup('additional', [
+        {
+         'type': pgsetting.SettingTypes.boolean,
+         'name': 'autocrop',
+         'default_value': False
+        }
+      ], pdb_type=pgsetting.SettingPdbTypes.int16),
+    ], pdb_type=None, display_name="Setting name")
+    
+    self.assertEqual(settings['ignore_invisible'].pdb_type, None)
+    self.assertEqual(settings['additional/autocrop'].pdb_type, pgsetting.SettingPdbTypes.int16)
+    self.assertEqual(settings['ignore_invisible'].display_name, "Setting name")
+    self.assertEqual(settings['additional/autocrop'].display_name, "Autocrop")
 
 
 class TestSettingGroup(unittest.TestCase):
