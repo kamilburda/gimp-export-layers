@@ -1505,22 +1505,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._hbox_export_settings.pack_start(self._settings['main/autocrop'].gui.element)
     self._hbox_export_settings.pack_start(self._settings['main/use_image_size'].gui.element)
     
-    self._hbox_more_settings_checkbuttons = gtk.HBox(homogeneous=False)
-    self._hbox_more_settings_checkbuttons.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
-    self._hbox_more_settings_checkbuttons.pack_start(
-      self._settings['main/merge_layer_groups'].gui.element, expand=False, fill=True)
-    self._hbox_more_settings_checkbuttons.pack_start(
-      self._settings['main/empty_folders'].gui.element, expand=False, fill=True)
-    self._hbox_more_settings_checkbuttons.pack_start(
-      self._settings['main/ignore_layer_modes'].gui.element, expand=False, fill=True)
-    self._hbox_more_settings_checkbuttons.pack_start(
-      self._settings['main/export_only_selected_layers'].gui.element, expand=False, fill=True)
-    self._hbox_more_settings_checkbuttons.pack_start(
-      self._settings['main/inherit_transparency_from_groups'].gui.element, expand=False, fill=True)
-    
-    self._vbox_more_settings = gtk.VBox(homogeneous=False)
-    self._vbox_more_settings.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)
-    self._vbox_more_settings.pack_start(self._hbox_more_settings_checkbuttons, expand=False, fill=False)
+    self._hbox_more_settings = gtk.HBox(homogeneous=False)
+    self._hbox_more_settings.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
     
     self._export_button = gtk.Button()
     self._export_button.set_label(_("_Export"))
@@ -1567,7 +1553,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._dialog.vbox.pack_start(self._hpaned_chooser_and_previews)
     self._dialog.vbox.pack_start(self._hbox_export_name_and_message, expand=False, fill=False)
     self._dialog.vbox.pack_start(self._hbox_export_settings, expand=False, fill=False)
-    self._dialog.vbox.pack_start(self._vbox_more_settings, expand=False, fill=False)
+    self._dialog.vbox.pack_start(self._hbox_more_settings, expand=False, fill=False)
     self._dialog.vbox.pack_start(
       gtk.HSeparator(), expand=False, fill=True, padding=self._DIALOG_BOTTOM_SEPARATOR_PADDING)
     self._dialog.vbox.pack_start(self._action_area, expand=False, fill=True)
@@ -1658,7 +1644,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   def _show_hide_more_settings(self):
     if self._show_more_settings_button.get_active():
-      self._vbox_more_settings.show()
+      self._hbox_more_settings.show()
       self._frame_previews.show()
       self._export_name_preview.widget.show()
       self._export_image_preview.widget.show()
@@ -1668,7 +1654,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._dot_label.show()
       self._filename_pattern_entry.show()
     else:
-      self._vbox_more_settings.hide()
+      self._hbox_more_settings.hide()
       self._frame_previews.hide()
       self._export_name_preview.widget.hide()
       self._export_image_preview.widget.hide()
