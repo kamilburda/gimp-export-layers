@@ -135,13 +135,13 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_background(self):
     self.compare({
-                   'tagged_layers_mode': 1
+                   'process_tagged_layers': True
                  },
                  expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background'))
   
   def test_background_autocrop(self):
     self.compare({
-                   'tagged_layers_mode': 1,
+                   'process_tagged_layers': True,
                    'autocrop': True
                  },
                  [('overlay', 'overlay_background'),
@@ -150,7 +150,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_background_autocrop_use_image_size(self):
     self.compare({
-                   'tagged_layers_mode': 1,
+                   'process_tagged_layers': True,
                    'autocrop': True,
                    'use_image_size': True
                  },
@@ -159,7 +159,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_background_autocrop_to_background(self):
     self.compare({
-                   'tagged_layers_mode': 1,
+                   'process_tagged_layers': True,
                    'autocrop_to_background': True
                  },
                  expected_results_dir=os.path.join(
@@ -167,7 +167,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_background_autocrop_to_background_use_image_size(self):
     self.compare({
-                   'tagged_layers_mode': 1,
+                   'process_tagged_layers': True,
                    'autocrop_to_background': True,
                    'use_image_size': True
                  },
@@ -180,7 +180,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       layer_elem.item.name = layer_elem.item.name.replace("[background]", "[foreground]")
       
     self.compare({
-                   'tagged_layers_mode': 1
+                   'process_tagged_layers': True
                  },
                  expected_results_dir=os.path.join(self.default_expected_layers_dir, 'foreground'))
       

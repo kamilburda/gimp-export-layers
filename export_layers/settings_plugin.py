@@ -131,14 +131,22 @@ def create_settings():
       'display_name': _("Export only layers matching file extension")
     },
     {
-      'type': pgsetting.SettingTypes.enumerated,
-      'name': 'tagged_layers_mode',
-      'default_value': 'normal',
-      'items': [('normal', _("Treat as normal layers")),
-                ('special', _("Treat specially")),
-                ('ignore', _("Ignore")),
-                ('ignore_other', _("Ignore other layers"))],
-      'display_name': _("Tagged layers")
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'process_tagged_layers',
+      'default_value': False,
+      'display_name': _("Process tagged layers")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'ignore_tagged_layers',
+      'default_value': False,
+      'display_name': _("Ignore tagged layers")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'ignore_non_tagged_layers',
+      'default_value': False,
+      'display_name': _("Ignore non-tagged layers")
     },
     {
       'type': pgsetting.SettingTypes.boolean,

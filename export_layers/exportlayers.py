@@ -522,7 +522,7 @@ class LayerExporter(object):
     if self.export_settings['export_only_layers_matching_file_extension'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_matching_file_extension, self._default_file_extension)
     
-    if self.export_settings['tagged_layers_mode'].is_item('special'):
+    if self.export_settings['process_tagged_layers'].value:
       with (self._layer_tree.filter['layer_types'].add_rule_temp(LayerFilterRules.is_nonempty_group)
             if self.export_settings['layer_groups_as_folders'].value else pgutils.empty_context):
         for tag in self.SUPPORTED_TAGS.keys():
@@ -530,9 +530,11 @@ class LayerExporter(object):
             self._tagged_layer_elems[tag] = list(self._layer_tree)
       
       self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags, *self.SUPPORTED_TAGS.keys())
-    elif self.export_settings['tagged_layers_mode'].is_item('ignore'):
+    
+    if self.export_settings['ignore_tagged_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags)
-    elif self.export_settings['tagged_layers_mode'].is_item('ignore_other'):
+    
+    if self.export_settings['ignore_non_tagged_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_tags)
     
     if self.export_settings['export_only_selected_layers'].value:

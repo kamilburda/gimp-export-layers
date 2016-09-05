@@ -578,7 +578,7 @@ class ExportNamePreview(ExportPreview):
         self._layer_exporter.layer_tree.filter.remove_rule(
           exportlayers.LayerFilterRules.is_layer_in_selected_layers, raise_if_not_found=False)
     
-    if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
+    if self._layer_exporter.export_settings['process_tagged_layers'].value:
       if not enabled:
         self._layer_exporter.layer_tree.filter.add_rule(exportlayers.LayerFilterRules.has_no_tags)
       else:
@@ -591,7 +591,7 @@ class ExportNamePreview(ExportPreview):
       self._set_item_elems_sensitive(
         [self._layer_exporter.layer_tree[item_id] for item_id in self._selected_items], True)
     
-    if self._layer_exporter.export_settings['tagged_layers_mode'].is_item('special'):
+    if self._layer_exporter.export_settings['process_tagged_layers'].value:
       with self._layer_exporter.layer_tree.filter.add_rule_temp(
              exportlayers.LayerFilterRules.has_tags, *self._layer_exporter.SUPPORTED_TAGS.keys()):
         self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
@@ -1462,10 +1462,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._label_message.set_alignment(0.0, 0.5)
     self._label_message.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
-    self._tagged_layers_mode_label = gtk.Label(
-      self._settings['main/tagged_layers_mode'].display_name + ":")
-    self._tagged_layers_mode_label.set_alignment(0, 0.5)
-    
     self._show_more_settings_button = gtk.CheckButton()
     self._show_more_settings_button.set_use_underline(True)
     self._show_more_settings_button.set_label(_("Show _More Settings"))
@@ -1509,32 +1505,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._hbox_export_settings.pack_start(self._settings['main/autocrop'].gui.element)
     self._hbox_export_settings.pack_start(self._settings['main/use_image_size'].gui.element)
     
-    self._table_labels = gtk.Table(rows=2, columns=1, homogeneous=False)
-    self._table_labels.set_row_spacings(self._MORE_SETTINGS_VERTICAL_SPACING)
-    self._table_labels.attach(self._tagged_layers_mode_label, 0, 1, 1, 2)
-    
-    self._table_combo_boxes = gtk.Table(rows=2, columns=1, homogeneous=False)
-    self._table_combo_boxes.set_row_spacings(self._MORE_SETTINGS_VERTICAL_SPACING)
-    self._table_combo_boxes.attach(
-      self._settings['main/tagged_layers_mode'].gui.element, 0, 1, 1, 2, yoptions=0)
-    
-    tagged_layers_description = _(
-      "To use a layer as a background for other layers, right-click in the preview on the layer "
-      "and select \"{0}\"."
-      "\nFor foreground layers, select \"{1}\"."
-      "\nTo enable handling of tagged layers, select \"{2}\".").format(
-        exportlayers.LayerExporter.SUPPORTED_TAGS['background'],
-        exportlayers.LayerExporter.SUPPORTED_TAGS['foreground'],
-        self._settings['main/tagged_layers_mode'].items_display_names['special'])
-    
-    self._tagged_layers_mode_label.set_tooltip_text(tagged_layers_description)
-    self._settings['main/tagged_layers_mode'].gui.element.set_tooltip_text(tagged_layers_description)
-    
-    self._hbox_tables = gtk.HBox(homogeneous=False)
-    self._hbox_tables.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
-    self._hbox_tables.pack_start(self._table_labels, expand=False, fill=True)
-    self._hbox_tables.pack_start(self._table_combo_boxes, expand=False, fill=True)
-    
     self._hbox_more_settings_checkbuttons = gtk.HBox(homogeneous=False)
     self._hbox_more_settings_checkbuttons.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
     self._hbox_more_settings_checkbuttons.pack_start(
@@ -1550,7 +1520,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._vbox_more_settings = gtk.VBox(homogeneous=False)
     self._vbox_more_settings.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)
-    self._vbox_more_settings.pack_start(self._hbox_tables, expand=False, fill=False)
     self._vbox_more_settings.pack_start(self._hbox_more_settings_checkbuttons, expand=False, fill=False)
     
     self._export_button = gtk.Button()
