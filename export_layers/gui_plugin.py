@@ -1645,16 +1645,18 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   def _show_hide_more_settings(self):
     if self._show_more_settings_button.get_active():
       self._hbox_more_settings.show()
-      self._frame_previews.show()
-      self._export_name_preview.widget.show()
-      self._export_image_preview.widget.show()
       
       self._file_extension_label.hide()
       self._save_as_label.show()
       self._dot_label.show()
       self._filename_pattern_entry.show()
+      
+      self._frame_previews.show()
+      self._export_name_preview.widget.show()
+      self._export_image_preview.widget.show()
     else:
       self._hbox_more_settings.hide()
+      
       self._frame_previews.hide()
       self._export_name_preview.widget.hide()
       self._export_image_preview.widget.hide()
