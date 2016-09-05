@@ -1499,11 +1499,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._hbox_export_name_and_message.pack_start(self._hbox_export_name, expand=False, fill=True)
     self._hbox_export_name_and_message.pack_start(self._label_message, expand=True, fill=True)
     
-    self._hbox_export_settings = gtk.HBox(homogeneous=False)
-    self._hbox_export_settings.pack_start(self._settings['main/layer_groups_as_folders'].gui.element)
-    self._hbox_export_settings.pack_start(self._settings['main/ignore_invisible'].gui.element)
-    self._hbox_export_settings.pack_start(self._settings['main/autocrop'].gui.element)
-    self._hbox_export_settings.pack_start(self._settings['main/use_image_size'].gui.element)
+    self._hbox_basic_settings = gtk.HBox(homogeneous=False)
+    self._hbox_basic_settings.pack_start(self._settings['main/layer_groups_as_folders'].gui.element)
+    self._hbox_basic_settings.pack_start(self._settings['main/ignore_invisible'].gui.element)
+    self._hbox_basic_settings.pack_start(self._settings['main/autocrop'].gui.element)
+    self._hbox_basic_settings.pack_start(self._settings['main/use_image_size'].gui.element)
     
     self._hbox_more_settings = gtk.HBox(homogeneous=False)
     self._hbox_more_settings.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
@@ -1552,7 +1552,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._dialog.vbox.set_spacing(self._DIALOG_VBOX_SPACING)
     self._dialog.vbox.pack_start(self._hpaned_chooser_and_previews)
     self._dialog.vbox.pack_start(self._hbox_export_name_and_message, expand=False, fill=False)
-    self._dialog.vbox.pack_start(self._hbox_export_settings, expand=False, fill=False)
+    self._dialog.vbox.pack_start(self._hbox_basic_settings, expand=False, fill=False)
     self._dialog.vbox.pack_start(self._hbox_more_settings, expand=False, fill=False)
     self._dialog.vbox.pack_start(
       gtk.HSeparator(), expand=False, fill=True, padding=self._DIALOG_BOTTOM_SEPARATOR_PADDING)
