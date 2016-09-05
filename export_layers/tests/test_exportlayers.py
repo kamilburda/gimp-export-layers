@@ -102,7 +102,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_ignore_layer_modes(self):
     self.compare({
-                   'ignore_layer_modes': True
+                   'more_operations/ignore_layer_modes': True
                  })
   
   def test_autocrop(self):
@@ -129,9 +129,10 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_merge_layer_groups(self):
     self.compare({
-                   'merge_layer_groups': True
+                   'more_operations/merge_layer_groups': True
                  },
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'merge_layer_groups'))
+                 expected_results_dir=os.path.join(
+                   self.default_expected_layers_dir, 'more_operations/merge_layer_groups'))
   
   def test_background(self):
     self.compare({
@@ -160,7 +161,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def test_background_autocrop_to_background(self):
     self.compare({
                    'process_tagged_layers': True,
-                   'autocrop_to_background': True
+                   'more_operations/autocrop_to_background': True
                  },
                  expected_results_dir=os.path.join(
                    self.default_expected_layers_dir, 'background'))
@@ -168,7 +169,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def test_background_autocrop_to_background_use_image_size(self):
     self.compare({
                    'process_tagged_layers': True,
-                   'autocrop_to_background': True,
+                   'more_operations/autocrop_to_background': True,
                    'use_image_size': True
                  },
                  expected_results_dir=os.path.join(

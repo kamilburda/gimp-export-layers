@@ -177,7 +177,7 @@ class LayerExporter(object):
   
   * `image` - GIMP image to export layers from.
   
-  * `export_settings` - export settings (main settings of the plug-in). This
+  * `export_settings` - `SettingGroup` instance containing export settings. This
     class treats them as read-only.
   
   * `overwrite_chooser` - `OverwriteChooser` instance that is invoked if a file
@@ -509,17 +509,17 @@ class LayerExporter(object):
     
     self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_layer)
     
-    if self.export_settings['merge_layer_groups'].value:
+    if self.export_settings['more_operations/merge_layer_groups'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.is_top_level)
       self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
     
     if self.export_settings['ignore_invisible'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.is_path_visible)
     
-    if self.export_settings['empty_folders'].value:
+    if self.export_settings['more_operations/create_folders_for_empty_groups'].value:
       self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
-    if self.export_settings['export_only_layers_matching_file_extension'].value:
+    if self.export_settings['more_filters/export_only_layers_matching_file_extension'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_matching_file_extension, self._default_file_extension)
     
     if self.export_settings['process_tagged_layers'].value:
@@ -531,10 +531,10 @@ class LayerExporter(object):
       
       self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags, *self.SUPPORTED_TAGS.keys())
     
-    if self.export_settings['ignore_tagged_layers'].value:
+    if self.export_settings['more_filters/ignore_tagged_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags)
     
-    if self.export_settings['ignore_non_tagged_layers'].value:
+    if self.export_settings['more_filters/ignore_non_tagged_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_tags)
     
     if self.export_settings['export_only_selected_layers'].value:
@@ -624,10 +624,10 @@ class LayerExporter(object):
     
     self._on_after_insert_layer_func(layer_copy)
     
-    if self.export_settings['ignore_layer_modes'].value:
+    if self.export_settings['more_operations/ignore_layer_modes'].value:
       layer_copy.mode = gimpenums.NORMAL_MODE
     
-    if self.export_settings['inherit_transparency_from_groups'].value:
+    if self.export_settings['more_operations/inherit_transparency_from_groups'].value:
       layer_copy.opacity = 100.0 * functools.reduce(
         lambda layer1_opacity, layer2_opacity: layer1_opacity * layer2_opacity,
         [parent.item.opacity / 100.0 for parent in layer_elem.parents] + [layer_elem.item.opacity / 100.0])
@@ -680,7 +680,7 @@ class LayerExporter(object):
         
         self._on_after_insert_layer_func(layer_copy)
         
-        if self.export_settings['ignore_layer_modes'].value:
+        if self.export_settings['more_operations/ignore_layer_modes'].value:
           layer_copy.mode = gimpenums.NORMAL_MODE
       
       layer = pgpdb.merge_layer_group(layer_group)
@@ -697,7 +697,8 @@ class LayerExporter(object):
       pdb.plug_in_autocrop_layer(image, layer)
     
     for setting_name, tagged_layer in [
-          ('autocrop_to_background', background_layer), ('autocrop_to_foreground', foreground_layer)]:
+          ('more_operations/autocrop_to_background', background_layer),
+          ('more_operations/autocrop_to_foreground', foreground_layer)]:
       if self.export_settings[setting_name].value and tagged_layer is not None:
         image.active_layer = tagged_layer
         pdb.plug_in_autocrop_layer(image, tagged_layer)
@@ -745,7 +746,7 @@ class LayerExporter(object):
     layer_elem.name = self._filename_pattern_generator.generate()
   
   def _set_file_extension(self, layer_elem):
-    if self.export_settings['use_file_extensions_in_layer_names'].value:
+    if self.export_settings['more_operations/use_file_extensions_in_layer_names'].value:
       if self._current_file_extension and self._file_extension_properties[self._current_file_extension].is_valid:
         self._file_extension_to_assign = self._current_file_extension
       else:
@@ -844,5 +845,5 @@ class LayerExporter(object):
       return self.initial_run_mode
   
   def _update_file_export_func(self):
-    if self.export_settings['use_file_extensions_in_layer_names'].value:
+    if self.export_settings['more_operations/use_file_extensions_in_layer_names'].value:
       self._file_export_func = pgfileformats.get_save_procedure(self._file_extension_to_assign)

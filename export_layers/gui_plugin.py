@@ -629,7 +629,7 @@ class ExportNamePreview(ExportPreview):
     if item_elem.item_type == item_elem.ITEM:
       return self._icons['layer']
     elif item_elem.item_type in [item_elem.NONEMPTY_GROUP, item_elem.EMPTY_GROUP]:
-      if not self._layer_exporter.export_settings['merge_layer_groups'].value:
+      if not self._layer_exporter.export_settings['more_operations/merge_layer_groups'].value:
         return self._icons['layer_group']
       else:
         return self._icons['merged_layer_group']
@@ -1745,7 +1745,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       pgutils.timeout_add_strict(
         self._DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS, self._export_image_preview.update)
     
-    for setting in self._settings['main']:
+    for setting in self._settings['main'].iterate_all():
       if setting.name not in [
           'file_extension', 'output_directory', 'overwrite_mode', 'layer_filename_pattern',
           'export_only_selected_layers', 'selected_layers', 'selected_layers_persistent']:

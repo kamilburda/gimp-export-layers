@@ -119,77 +119,6 @@ def create_settings():
       'display_name': _("Use image size")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'use_file_extensions_in_layer_names',
-      'default_value': False,
-      'display_name': _("Use file extensions in layer names")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'export_only_layers_matching_file_extension',
-      'default_value': False,
-      'display_name': _("Export only layers matching file extension")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'process_tagged_layers',
-      'default_value': False,
-      'display_name': _("Process tagged layers")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'ignore_tagged_layers',
-      'default_value': False,
-      'display_name': _("Ignore tagged layers")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'ignore_non_tagged_layers',
-      'default_value': False,
-      'display_name': _("Ignore non-tagged layers")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'merge_layer_groups',
-      'default_value': False,
-      'display_name': _("Merge layer groups")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'autocrop_to_background',
-      'default_value': False,
-      'display_name': _("Autocrop to background")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'autocrop_to_foreground',
-      'default_value': False,
-      'display_name': _("Autocrop to foreground")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'empty_folders',
-      'default_value': False,
-      'display_name': _("Create folders for empty layer groups")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'ignore_layer_modes',
-      'default_value': False,
-      'display_name': _("Ignore layer modes")
-    },
-    {
-      'type': pgsetting.SettingTypes.enumerated,
-      'name': 'overwrite_mode',
-      'default_value': 'rename_new',
-      'items': [('replace', _("_Replace"), overwrite.OverwriteModes.REPLACE),
-                ('skip', _("_Skip"), overwrite.OverwriteModes.SKIP),
-                ('rename_new', _("Rename _new file"), overwrite.OverwriteModes.RENAME_NEW),
-                ('rename_existing', _("Rename _existing file"), overwrite.OverwriteModes.RENAME_EXISTING),
-                ('cancel', _("_Cancel"), overwrite.OverwriteModes.CANCEL)],
-      'display_name': _("Overwrite mode (non-interactive run mode only)")
-    },
-    {
       'type': pgsetting.SettingTypes.string,
       'name': 'layer_filename_pattern',
       'default_value': "[layer name]",
@@ -199,16 +128,16 @@ def create_settings():
     },
     {
       'type': pgsetting.SettingTypes.boolean,
+      'name': 'process_tagged_layers',
+      'default_value': False,
+      'display_name': _("Process tagged layers")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'export_only_selected_layers',
       'default_value': False,
       'display_name': _("Export only selected layers"),
       'pdb_type': None
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'inherit_transparency_from_groups',
-      'default_value': False,
-      'display_name': _("Inherit transparency from layer groups"),
     },
     {
       'type': pgsetting.SettingTypes.generic,
@@ -228,17 +157,100 @@ def create_settings():
       'pdb_type': None,
       'setting_sources': [pygimplib.config.SOURCE_PERSISTENT]
     },
+    {
+      'type': pgsetting.SettingTypes.enumerated,
+      'name': 'overwrite_mode',
+      'default_value': 'rename_new',
+      'items': [('replace', _("_Replace"), overwrite.OverwriteModes.REPLACE),
+                ('skip', _("_Skip"), overwrite.OverwriteModes.SKIP),
+                ('rename_new', _("Rename _new file"), overwrite.OverwriteModes.RENAME_NEW),
+                ('rename_existing', _("Rename _existing file"), overwrite.OverwriteModes.RENAME_EXISTING),
+                ('cancel', _("_Cancel"), overwrite.OverwriteModes.CANCEL)],
+      'display_name': _("Overwrite mode (non-interactive run mode only)")
+    },
   ], setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+  
+  # Additional settings - operations and filters
+  #-----------------------------------------------------------------------------
+  
+  more_operations_settings = pgsettinggroup.SettingGroup('more_operations', [
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'merge_layer_groups',
+      'default_value': False,
+      'display_name': _("Merge layer groups")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'use_file_extensions_in_layer_names',
+      'default_value': False,
+      'display_name': _("Use file extensions in layer names")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'autocrop_to_background',
+      'default_value': False,
+      'display_name': _("Autocrop to background")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'autocrop_to_foreground',
+      'default_value': False,
+      'display_name': _("Autocrop to foreground")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'create_folders_for_empty_groups',
+      'default_value': False,
+      'display_name': _("Create folders for empty layer groups")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'ignore_layer_modes',
+      'default_value': False,
+      'display_name': _("Ignore layer modes")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'inherit_transparency_from_groups',
+      'default_value': False,
+      'display_name': _("Inherit transparency from layer groups"),
+    },
+  ], pdb_type=None, setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+  
+  more_filters_settings = pgsettinggroup.SettingGroup('more_filters', [
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'export_only_layers_matching_file_extension',
+      'default_value': False,
+      'display_name': _("Export only layers matching file extension")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'ignore_tagged_layers',
+      'default_value': False,
+      'display_name': _("Ignore tagged layers")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'ignore_non_tagged_layers',
+      'default_value': False,
+      'display_name': _("Ignore non-tagged layers")
+    },
+  ], pdb_type=None, setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+  
+  main_settings.add([more_operations_settings, more_filters_settings])
   
   #-----------------------------------------------------------------------------
   
-  def on_layer_groups_as_folders_changed(layer_groups_as_folders, empty_folders, merge_layer_groups):
+  def on_layer_groups_as_folders_changed(layer_groups_as_folders, create_folders_for_empty_groups,
+                                         merge_layer_groups):
     if not layer_groups_as_folders.value:
-      empty_folders.set_value(False)
-      empty_folders.gui.set_enabled(False)
+      create_folders_for_empty_groups.set_value(False)
+      create_folders_for_empty_groups.gui.set_enabled(False)
       merge_layer_groups.gui.set_enabled(True)
     else:
-      empty_folders.gui.set_enabled(True)
+      create_folders_for_empty_groups.gui.set_enabled(True)
       merge_layer_groups.gui.set_enabled(False)
       merge_layer_groups.set_value(False)
   
@@ -259,12 +271,13 @@ def create_settings():
   #-----------------------------------------------------------------------------
   
   main_settings['layer_groups_as_folders'].connect_event('value-changed',
-    on_layer_groups_as_folders_changed, main_settings['empty_folders'], main_settings['merge_layer_groups'])
+    on_layer_groups_as_folders_changed, main_settings['more_operations/create_folders_for_empty_groups'],
+    main_settings['more_operations/merge_layer_groups'])
   
-  main_settings['use_file_extensions_in_layer_names'].connect_event('value-changed',
+  main_settings['more_operations/use_file_extensions_in_layer_names'].connect_event('value-changed',
     on_use_file_extensions_in_layer_names_changed, main_settings['file_extension'])
   
-  main_settings['merge_layer_groups'].connect_event('value-changed',
+  main_settings['more_operations/merge_layer_groups'].connect_event('value-changed',
     on_merge_layer_groups_changed, main_settings['layer_groups_as_folders'])
   
   #-----------------------------------------------------------------------------
