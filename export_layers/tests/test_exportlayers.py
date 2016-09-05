@@ -103,8 +103,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def test_ignore_layer_modes(self):
     self.compare({
                    'ignore_layer_modes': True
-                 },
-                 [('overlay', 'overlay_ignore-layer-modes')])
+                 })
   
   def test_autocrop(self):
     self.compare({
@@ -145,7 +144,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
                    'tagged_layers_mode': 1,
                    'autocrop': True
                  },
-                 [('bottom-frame-semi-transparent', 'bottom-frame-semi-transparent_background_autocrop'),
+                 [('overlay', 'overlay_background'),
+                  ('bottom-frame-semi-transparent', 'bottom-frame-semi-transparent_background_autocrop'),
                   ('left-frame-with-extra-borders', 'left-frame-with-extra-borders_autocrop')])
   
   def test_background_autocrop_use_image_size(self):
@@ -154,37 +154,36 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
                    'autocrop': True,
                    'use_image_size': True
                  },
-                 [('left-frame-with-extra-borders', 'left-frame-with-extra-borders_autocrop_use-image-size')],
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background'))
+                 expected_results_dir=os.path.join(
+                   self.default_expected_layers_dir, 'background', 'autocrop-use_image_size'))
   
-  def test_background_autocrop_crop_to_background(self):
+  def test_background_autocrop_to_background(self):
     self.compare({
                    'tagged_layers_mode': 1,
-                   'autocrop': True,
-                   'crop_mode': 1
+                   'autocrop_to_background': True
                  },
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'background', 'crop_mode'))
+                 expected_results_dir=os.path.join(
+                   self.default_expected_layers_dir, 'background'))
   
-  def test_background_autocrop_crop_to_background_use_image_size(self):
+  def test_background_autocrop_to_background_use_image_size(self):
     self.compare({
                    'tagged_layers_mode': 1,
-                   'autocrop': True,
-                   'crop_mode': 1,
+                   'autocrop_to_background': True,
                    'use_image_size': True
                  },
                  expected_results_dir=os.path.join(
-                   self.default_expected_layers_dir, 'background', 'crop_mode', 'use_image_size'))
+                   self.default_expected_layers_dir, 'background', 'autocrop_to_background-use_image_size'))
   
   def test_foreground(self):
     layer_tree = pgitemtree.LayerTree(self.test_image)
     for layer_elem in layer_tree:
       layer_elem.item.name = layer_elem.item.name.replace("[background]", "[foreground]")
-    
+      
     self.compare({
                    'tagged_layers_mode': 1
                  },
                  expected_results_dir=os.path.join(self.default_expected_layers_dir, 'foreground'))
-    
+      
     self._reload_image()
   
   def compare(self, different_settings=None, different_results_and_expected_layers=None, expected_results_dir=None):

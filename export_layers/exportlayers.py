@@ -635,7 +635,12 @@ class LayerExporter(object):
     foreground_layer, self._tagged_layer_copies['foreground'] = self._insert_layer(
       image, self._tagged_layer_elems['foreground'], self._tagged_layer_copies['foreground'], insert_index=0)
     
-    layer_copy = self._crop_and_merge(image, layer_copy, background_layer, foreground_layer)
+    image.active_layer = layer_copy
+    
+    layer_copy = self._crop_layer(image, layer_copy, background_layer, foreground_layer)
+    layer_copy = self._merge_and_resize_layer(image, layer_copy)
+    
+    image.active_layer = layer_copy
     
     # Remove the " copy" suffix from the layer name, which is preserved in
     # formats supporting layers (XCF, PSD, ...).
@@ -673,27 +678,10 @@ class LayerExporter(object):
         
         self._on_after_insert_layer_func(layer_copy)
         
-        # Remove the layer if outside the image canvas since it won't be visible
-        # in the exported layer and because we need to avoid `RuntimeError`
-        # when `pdb.gimp_image_merge_visible_layers` with `CLIP_TO_IMAGE`
-        # argument tries to merge layers that are all outside the image canvas.
-        if self.export_settings['use_image_size'].value:
-          if not pgpdb.is_layer_inside_image(image, layer_copy):
-            pdb.gimp_image_remove_layer(image, layer_copy)
-            layer_elems.pop(i)
-            continue
-        
         if self.export_settings['ignore_layer_modes'].value:
           layer_copy.mode = gimpenums.NORMAL_MODE
       
-      if not layer_elems:
-        pdb.gimp_image_remove_layer(image, layer_group)
-        return None, None
-      
       layer = pgpdb.merge_layer_group(layer_group)
-      
-      if self.export_settings['use_image_size'].value:
-        pdb.gimp_layer_resize_to_image_size(layer)
       
       inserted_layer_copy = pdb.gimp_layer_copy(layer, True)
       return layer, inserted_layer_copy
@@ -702,42 +690,27 @@ class LayerExporter(object):
       pdb.gimp_image_insert_layer(image, layer_copy, None, insert_index)
       return layer_copy, inserted_layer_copy
   
-  def _crop_and_merge(self, image, layer, background_layer, foreground_layer):
-    has_inserted_layers = background_layer is not None or foreground_layer is not None
+  def _crop_layer(self, image, layer, background_layer, foreground_layer):
+    if self.export_settings['autocrop'].value:
+      pdb.plug_in_autocrop_layer(image, layer)
     
-    inserted_layer_to_crop_to = None
-    if self.export_settings['crop_mode'].is_item('crop_to_background'):
-      inserted_layer_to_crop_to = background_layer
-    elif self.export_settings['crop_mode'].is_item('crop_to_foreground'):
-      inserted_layer_to_crop_to = foreground_layer
+    for setting_name, tagged_layer in [
+          ('autocrop_to_background', background_layer), ('autocrop_to_foreground', foreground_layer)]:
+      if self.export_settings[setting_name].value and tagged_layer is not None:
+        image.active_layer = tagged_layer
+        pdb.plug_in_autocrop_layer(image, tagged_layer)
+        image.active_layer = layer
     
+    return layer
+  
+  def _merge_and_resize_layer(self, image, layer):
     if not self.export_settings['use_image_size'].value:
-      pdb.gimp_image_resize_to_layers(image)
-      if self.export_settings['crop_mode'].is_item('crop_to_background', 'crop_to_foreground'):
-        if inserted_layer_to_crop_to is not None:
-          layer = pdb.gimp_image_merge_visible_layers(image, gimpenums.CLIP_TO_IMAGE)
-        if self.export_settings['autocrop'].value:
-          pdb.plug_in_autocrop(image, layer)
-      else:
-        if self.export_settings['autocrop'].value:
-          pdb.plug_in_autocrop(image, layer)
-        if has_inserted_layers:
-          layer = pdb.gimp_image_merge_visible_layers(image, gimpenums.CLIP_TO_IMAGE)
-    else:
-      if (self.export_settings['crop_mode'].is_item('crop_to_background', 'crop_to_foreground')
-          and inserted_layer_to_crop_to is not None):
-        if self.export_settings['autocrop'].value:
-          image.active_layer = inserted_layer_to_crop_to
-          pdb.plug_in_autocrop_layer(image, inserted_layer_to_crop_to)
-          image.active_layer = layer
-      else:
-        if self.export_settings['autocrop'].value:
-          pdb.plug_in_autocrop_layer(image, layer)
-      
-      if has_inserted_layers:
-        layer = pdb.gimp_image_merge_visible_layers(image, gimpenums.CLIP_TO_IMAGE)
-      
-      pdb.gimp_layer_resize_to_image_size(layer)
+      layer_offset_x, layer_offset_y = layer.offsets
+      pdb.gimp_image_resize(image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
+    
+    layer = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
+    
+    pdb.gimp_layer_resize_to_image_size(layer)
     
     return layer
   

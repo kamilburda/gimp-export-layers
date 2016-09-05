@@ -141,19 +141,22 @@ def create_settings():
       'display_name': _("Tagged layers")
     },
     {
-      'type': pgsetting.SettingTypes.enumerated,
-      'name': 'crop_mode',
-      'default_value': 'crop_to_layer',
-      'items': [('crop_to_layer', _("Crop to layer")),
-                ('crop_to_background', _("Crop to background")),
-                ('crop_to_foreground', _("Crop to foreground"))],
-      'display_name': _("Crop mode")
-    },
-    {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'merge_layer_groups',
       'default_value': False,
       'display_name': _("Merge layer groups")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'autocrop_to_background',
+      'default_value': False,
+      'display_name': _("Autocrop to background")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'autocrop_to_foreground',
+      'default_value': False,
+      'display_name': _("Autocrop to foreground")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
@@ -245,16 +248,6 @@ def create_settings():
     else:
       layer_groups_as_folders.gui.set_enabled(True)
   
-  def on_autocrop_changed(autocrop, tagged_layers_mode, crop_mode):
-    if autocrop.value and tagged_layers_mode.is_item('special'):
-      crop_mode.gui.set_enabled(True)
-    else:
-      crop_mode.set_item('crop_to_layer')
-      crop_mode.gui.set_enabled(False)
-  
-  def on_tagged_layers_mode_changed(tagged_layers_mode, autocrop, crop_mode):
-    on_autocrop_changed(autocrop, tagged_layers_mode, crop_mode)
-  
   #-----------------------------------------------------------------------------
   
   main_settings['layer_groups_as_folders'].connect_event('value-changed',
@@ -265,12 +258,6 @@ def create_settings():
   
   main_settings['merge_layer_groups'].connect_event('value-changed',
     on_merge_layer_groups_changed, main_settings['layer_groups_as_folders'])
-  
-  main_settings['autocrop'].connect_event('value-changed',
-    on_autocrop_changed, main_settings['tagged_layers_mode'], main_settings['crop_mode'])
-  
-  main_settings['tagged_layers_mode'].connect_event('value-changed',
-    on_tagged_layers_mode_changed, main_settings['autocrop'], main_settings['crop_mode'])
   
   #-----------------------------------------------------------------------------
   

@@ -1530,15 +1530,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._tagged_layers_mode_label.set_tooltip_text(tagged_layers_description)
     self._settings['main/tagged_layers_mode'].gui.element.set_tooltip_text(tagged_layers_description)
     
-    self._table_additional_elems = gtk.Table(rows=2, columns=1, homogeneous=False)
-    self._table_additional_elems.set_row_spacings(self._MORE_SETTINGS_VERTICAL_SPACING)
-    self._table_additional_elems.attach(self._settings['main/crop_mode'].gui.element, 0, 1, 1, 2)
-    
     self._hbox_tables = gtk.HBox(homogeneous=False)
     self._hbox_tables.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
     self._hbox_tables.pack_start(self._table_labels, expand=False, fill=True)
     self._hbox_tables.pack_start(self._table_combo_boxes, expand=False, fill=True)
-    self._hbox_tables.pack_start(self._table_additional_elems, expand=False, fill=True)
     
     self._hbox_more_settings_checkbuttons = gtk.HBox(homogeneous=False)
     self._hbox_more_settings_checkbuttons.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
