@@ -1151,12 +1151,12 @@ def add_gui_settings(settings):
     {
       'type': pgsetting.SettingTypes.integer,
       'name': 'chooser_and_previews_hpane_position',
-      'default_value': 620
+      'default_value': 610
     },
     {
       'type': pgsetting.SettingTypes.float,
       'name': 'previews_vpane_position',
-      'default_value': 300
+      'default_value': 320
     },
     {
       'type': pgsetting.SettingTypes.boolean,
