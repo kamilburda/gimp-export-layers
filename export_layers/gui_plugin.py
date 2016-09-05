@@ -1505,8 +1505,32 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._hbox_basic_settings.pack_start(self._settings['main/autocrop'].gui.element)
     self._hbox_basic_settings.pack_start(self._settings['main/use_image_size'].gui.element)
     
-    self._hbox_more_settings = gtk.HBox(homogeneous=False)
+    self._vbox_more_settings_builtin = gtk.VBox(homogeneous=False)
+    self._vbox_more_settings_builtin.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)
+    self._vbox_more_settings_builtin.pack_start(
+      self._settings['main/process_tagged_layers'].gui.element, expand=False, fill=False)
+    self._vbox_more_settings_builtin.pack_start(
+      self._settings['main/export_only_selected_layers'].gui.element, expand=False, fill=False)
+    
+    self._vbox_more_settings_additional_operations_add_label = gtk.Label(_("Add more operations..."))
+    
+    self._vbox_more_settings_additional_operations = gtk.VBox(homogeneous=False)
+    self._vbox_more_settings_additional_operations.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)
+    self._vbox_more_settings_additional_operations.pack_start(
+      self._vbox_more_settings_additional_operations_add_label, expand=False, fill=False)
+    
+    self._vbox_more_settings_additional_filters_add_label = gtk.Label(_("Add more filters..."))
+    
+    self._vbox_more_settings_additional_filters = gtk.VBox(homogeneous=False)
+    self._vbox_more_settings_additional_filters.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)
+    self._vbox_more_settings_additional_filters.pack_start(
+      self._vbox_more_settings_additional_filters_add_label, expand=False, fill=False)
+    
+    self._hbox_more_settings = gtk.HBox(homogeneous=True)
     self._hbox_more_settings.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
+    self._hbox_more_settings.pack_start(self._vbox_more_settings_builtin, expand=True, fill=True)
+    self._hbox_more_settings.pack_start(self._vbox_more_settings_additional_operations, expand=True, fill=True)
+    self._hbox_more_settings.pack_start(self._vbox_more_settings_additional_filters, expand=True, fill=True)
     
     self._export_button = gtk.Button()
     self._export_button.set_label(_("_Export"))
