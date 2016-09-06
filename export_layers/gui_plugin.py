@@ -1095,20 +1095,24 @@ class ExportImagePreview(ExportPreview):
 
 class OperationsBox(object):
   
-  def __init__(self, label_add=None, spacing=0):
+  def __init__(self, label_add=None, spacing=0, settings=None):
+    self._label_add = label_add
     self._operations_spacing = spacing
+    self._settings = settings
     
-    self._init_gui(label_add)
+    self._init_gui()
   
   @property
   def widget(self):
     return self._scrolled_window
   
-  def _init_gui(self, label_add=None):
-    if label_add is None:
+  def _init_gui(self):
+    if self._label_add is None:
       self._add_button = gtk.Button(stock=gtk.STOCK_ADD)
     else:
-      self._add_button = gtk.Button(label=label_add.encode(constants.GTK_CHARACTER_ENCODING))
+      self._add_button = gtk.Button(label=self._label_add.encode(constants.GTK_CHARACTER_ENCODING))
+    
+    self._add_button.get_child().set_alignment(0.0, 0.5)
     
     self._vbox = gtk.VBox(homogeneous=False)
     self._vbox.set_spacing(self._operations_spacing)
@@ -1118,6 +1122,35 @@ class OperationsBox(object):
     self._scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
     self._scrolled_window.add_with_viewport(self._vbox)
     self._scrolled_window.get_child().set_shadow_type(gtk.SHADOW_NONE)
+    
+    self._init_operations_menu_popup()
+    
+    self._add_button.connect("clicked", self._on_add_button_clicked)
+  
+  def _init_operations_menu_popup(self):
+    self._menu_items_and_settings = {}
+    self._displayed_menu_items_and_settings = {}
+    
+    self._operations_menu = gtk.Menu()
+    
+    for setting in self._settings:
+      menu_item = gtk.MenuItem(
+        label=setting.display_name.encode(constants.GTK_CHARACTER_ENCODING), use_underline=False)
+      menu_item.connect("activate", self._on_operations_menu_item_activate)
+      self._operations_menu.append(menu_item)
+      self._menu_items_and_settings[menu_item] = setting
+    
+    self._operations_menu.show_all()
+  
+  def _on_add_button_clicked(self, button):
+    self._operations_menu.popup(None, None, None, 0, 0)
+  
+  def _on_operations_menu_item_activate(self, menu_item):
+    if menu_item not in self._displayed_menu_items_and_settings:
+      setting = self._menu_items_and_settings[menu_item]
+      self._displayed_menu_items_and_settings[menu_item] = setting
+      self._vbox.pack_start(setting.gui.element, fill=False, expand=False)
+      self._vbox.reorder_child(self._add_button, -1)
 
 
 #===============================================================================
@@ -1552,9 +1585,12 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._settings['main/export_only_selected_layers'].gui.element, expand=False, fill=False)
     
     self._box_more_operations = OperationsBox(
-      label_add=_("Add More _Operations..."), spacing=self._MORE_SETTINGS_VERTICAL_SPACING)
+      label_add=_("Add More _Operations..."), spacing=self._MORE_SETTINGS_VERTICAL_SPACING,
+      settings=list(self._settings['main/more_operations'].iterate_all()))
+    
     self._box_more_filters = OperationsBox(
-      label_add=_("Add More _Filters..."), spacing=self._MORE_SETTINGS_VERTICAL_SPACING)
+      label_add=_("Add More _Filters..."), spacing=self._MORE_SETTINGS_VERTICAL_SPACING,
+      settings=list(self._settings['main/more_filters'].iterate_all()))
     
     self._hbox_more_settings = gtk.HBox(homogeneous=True)
     self._hbox_more_settings.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)

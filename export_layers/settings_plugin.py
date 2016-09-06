@@ -182,21 +182,9 @@ def create_settings():
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'use_file_extensions_in_layer_names',
+      'name': 'inherit_transparency_from_groups',
       'default_value': False,
-      'display_name': _("Use file extensions in layer names")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'autocrop_to_background',
-      'default_value': False,
-      'display_name': _("Autocrop to background")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'autocrop_to_foreground',
-      'default_value': False,
-      'display_name': _("Autocrop to foreground")
+      'display_name': _("Inherit transparency from layer groups"),
     },
     {
       'type': pgsetting.SettingTypes.boolean,
@@ -212,9 +200,21 @@ def create_settings():
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'inherit_transparency_from_groups',
+      'name': 'autocrop_to_background',
       'default_value': False,
-      'display_name': _("Inherit transparency from layer groups"),
+      'display_name': _("Autocrop to background")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'autocrop_to_foreground',
+      'default_value': False,
+      'display_name': _("Autocrop to foreground")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'use_file_extensions_in_layer_names',
+      'default_value': False,
+      'display_name': _("Use file extensions in layer names")
     },
   ], pdb_type=None, setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
   
