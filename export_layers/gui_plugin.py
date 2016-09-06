@@ -1093,10 +1093,61 @@ class ExportImagePreview(ExportPreview):
 #===============================================================================
 
 
+class _OperationItem(object):
+  
+  _BUTTON_REMOVE_PADDING = 3
+  
+  def __init__(self, widget):
+    self._widget = widget
+    
+    self._hbox = gtk.HBox(homogeneous=False)
+    self._hbox.pack_start(self._widget, expand=True, fill=True)
+    
+    self._button_remove = gtk.Button()
+    self._button_remove.set_relief(gtk.RELIEF_NONE)
+    
+    self._icon_remove = gtk.image_new_from_pixbuf(
+      self._button_remove.render_icon(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU))
+    self._icon_remove.show()
+    
+    self._button_remove.add(self._icon_remove)
+    
+    self._button_remove.hide()
+    self._button_remove.set_no_show_all(True)
+    
+    self._hbox.pack_start(self._button_remove, expand=False, fill=False, padding=self._BUTTON_REMOVE_PADDING)
+    
+    self._event_box = gtk.EventBox()
+    self._event_box.add(self._hbox)
+    
+    self._event_box.connect("enter-notify-event", self._on_event_box_enter_notify_event)
+    self._event_box.connect("leave-notify-event", self._on_event_box_leave_notify_event)
+    
+    self._event_box.show_all()
+  
+  @property
+  def widget(self):
+    return self._event_box
+  
+  @property
+  def button_remove(self):
+    return self._button_remove
+  
+  def _on_event_box_enter_notify_event(self, event_box, event):
+    if event.detail not in [gtk.gdk.NOTIFY_INFERIOR, gtk.gdk.NOTIFY_ANCESTOR]:
+      self._button_remove.show()
+  
+  def _on_event_box_leave_notify_event(self, event_box, event):
+    if event.detail != gtk.gdk.NOTIFY_INFERIOR:
+      self._button_remove.hide()
+
+
 class OperationsBox(object):
   
-  def __init__(self, label_add=None, spacing=0, settings=None):
-    self._label_add = label_add
+  _BUTTON_HBOX_SPACING = 6
+  
+  def __init__(self, label_add_text=None, spacing=0, settings=None):
+    self.label_add_text = label_add_text
     self._operations_spacing = spacing
     self._settings = settings
     
@@ -1107,12 +1158,22 @@ class OperationsBox(object):
     return self._scrolled_window
   
   def _init_gui(self):
-    if self._label_add is None:
-      self._add_button = gtk.Button(stock=gtk.STOCK_ADD)
+    if self.label_add_text is not None:
+      self._add_button = gtk.Button()
+      button_hbox = gtk.HBox()
+      button_hbox.set_spacing(self._BUTTON_HBOX_SPACING)
+      button_hbox.pack_start(
+        gtk.image_new_from_stock(gtk.STOCK_ADD, gtk.ICON_SIZE_MENU), expand=False, fill=False)
+      
+      label_add = gtk.Label(self.label_add_text.encode(constants.GTK_CHARACTER_ENCODING))
+      label_add.set_use_underline(True)
+      button_hbox.pack_start(label_add, expand=False, fill=False)
+      
+      self._add_button.add(button_hbox)
     else:
-      self._add_button = gtk.Button(label=self._label_add.encode(constants.GTK_CHARACTER_ENCODING))
+      self._add_button = gtk.Button(stock=gtk.STOCK_ADD)
     
-    self._add_button.get_child().set_alignment(0.0, 0.5)
+    self._add_button.set_relief(gtk.RELIEF_NONE)
     
     self._vbox = gtk.VBox(homogeneous=False)
     self._vbox.set_spacing(self._operations_spacing)
@@ -1131,6 +1192,8 @@ class OperationsBox(object):
     self._menu_items_and_settings = {}
     self._displayed_menu_items_and_settings = {}
     
+    self._displayed_operation_items = set()
+    
     self._operations_menu = gtk.Menu()
     
     for setting in self._settings:
@@ -1148,9 +1211,23 @@ class OperationsBox(object):
   def _on_operations_menu_item_activate(self, menu_item):
     if menu_item not in self._displayed_menu_items_and_settings:
       setting = self._menu_items_and_settings[menu_item]
-      self._displayed_menu_items_and_settings[menu_item] = setting
-      self._vbox.pack_start(setting.gui.element, fill=False, expand=False)
-      self._vbox.reorder_child(self._add_button, -1)
+      self._add_operation_item(setting, menu_item)
+  
+  def _add_operation_item(self, setting, menu_item):
+    operation_item = _OperationItem(setting.gui.element)
+    self._vbox.pack_start(operation_item.widget, expand=False, fill=False)
+    self._vbox.reorder_child(self._add_button, -1)
+    
+    operation_item.button_remove.connect(
+      "clicked", lambda *args: self._remove_operation_item(operation_item, menu_item))
+    
+    self._displayed_menu_items_and_settings[menu_item] = setting
+    self._displayed_operation_items.add(operation_item)
+  
+  def _remove_operation_item(self, operation_item, menu_item):
+    self._vbox.remove(operation_item.widget)
+    self._displayed_operation_items.remove(operation_item)
+    del self._displayed_menu_items_and_settings[menu_item]
 
 
 #===============================================================================
@@ -1585,11 +1662,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._settings['main/export_only_selected_layers'].gui.element, expand=False, fill=False)
     
     self._box_more_operations = OperationsBox(
-      label_add=_("Add More _Operations..."), spacing=self._MORE_SETTINGS_VERTICAL_SPACING,
+      label_add_text=_("Add More _Operations..."), spacing=self._MORE_SETTINGS_VERTICAL_SPACING,
       settings=list(self._settings['main/more_operations'].iterate_all()))
     
     self._box_more_filters = OperationsBox(
-      label_add=_("Add More _Filters..."), spacing=self._MORE_SETTINGS_VERTICAL_SPACING,
+      label_add_text=_("Add More _Filters..."), spacing=self._MORE_SETTINGS_VERTICAL_SPACING,
       settings=list(self._settings['main/more_filters'].iterate_all()))
     
     self._hbox_more_settings = gtk.HBox(homogeneous=True)
