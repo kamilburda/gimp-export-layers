@@ -195,9 +195,9 @@ def display_exception_message(exception_message, plugin_title=None, report_uri_l
       report_uri_list, report_description=_(
         "You can help fix this error by sending a report with the text "
         "in the details above to one of the following sites"))
-    dialog.vbox.pack_end(vbox_labels_report, expand=False, fill=True)
+    dialog.vbox.pack_end(vbox_labels_report, expand=False, fill=False)
   
-  dialog.vbox.pack_start(expander, expand=False, fill=True)
+  dialog.vbox.pack_start(expander, expand=False, fill=False)
   
   dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
   
@@ -253,7 +253,7 @@ def get_report_link_buttons(report_uri_list, report_description=None):
     label_report.set_padding(3, 3)
     label_report.set_line_wrap(True)
     label_report.set_line_wrap_mode(gtk.WRAP_WORD)
-    vbox_link_buttons.pack_start(label_report, expand=False, fill=True)
+    vbox_link_buttons.pack_start(label_report, expand=False, fill=False)
   
   report_linkbuttons = []
   for name, uri in report_uri_list:
@@ -262,7 +262,7 @@ def get_report_link_buttons(report_uri_list, report_description=None):
     report_linkbuttons.append(linkbutton)
   
   for linkbutton in report_linkbuttons:
-    vbox_link_buttons.pack_start(linkbutton, expand=False, fill=True)
+    vbox_link_buttons.pack_start(linkbutton, expand=False, fill=False)
   
   if _webbrowser_module_found:
     # Apparently, GTK doesn't know how to open URLs on Windows, hence the custom solution.
