@@ -1120,6 +1120,13 @@ class _OperationItem(object):
     self._event_box.connect("enter-notify-event", self._on_event_box_enter_notify_event)
     self._event_box.connect("leave-notify-event", self._on_event_box_leave_notify_event)
     
+    self._has_button_remove_focus = False
+    
+    self._widget.connect("focus-in-event", self._on_widget_focus_in_event)
+    self._widget.connect("focus-out-event", self._on_widget_focus_out_event)
+    self._button_remove.connect("grab-focus", self._on_button_remove_grab_focus)
+    self._button_remove.connect("focus-out-event", self._on_button_remove_focus_out_event)
+    
     self._is_event_box_allocated_size = False
     self._button_remove_allocation = None
     
@@ -1146,6 +1153,20 @@ class _OperationItem(object):
   def _on_event_box_leave_notify_event(self, event_box, event):
     if event.detail != gtk.gdk.NOTIFY_INFERIOR:
       self._button_remove.hide()
+  
+  def _on_widget_focus_in_event(self, widget, event):
+    self._button_remove.show()
+  
+  def _on_widget_focus_out_event(self, widget, event):
+    if not self._has_button_remove_focus:
+      self._button_remove.hide()
+  
+  def _on_button_remove_grab_focus(self, button_remove):
+    self._has_button_remove_focus = True
+  
+  def _on_button_remove_focus_out_event(self, button_remove, event):
+    self._has_button_remove_focus = False
+    self._button_remove.hide()
   
   def _on_event_box_size_allocate(self, event_box, allocation):
     if self._is_event_box_allocated_size:
