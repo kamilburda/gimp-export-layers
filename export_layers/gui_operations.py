@@ -100,8 +100,7 @@ class OperationsBox(object):
   def _init_operations_menu_popup(self):
     self._menu_items_and_settings = {}
     self._displayed_settings = []
-    
-    self._displayed_operation_items = set()
+    self._displayed_operation_items = []
     
     self._operations_menu = gtk.Menu()
     
@@ -129,15 +128,40 @@ class OperationsBox(object):
     
     operation_item.button_remove.connect(
       "clicked", lambda *args: self._remove_operation_item(operation_item, setting))
+    operation_item.widget.connect(
+      "key-press-event", self._on_operation_item_widget_key_press_event, operation_item)
     
     self._displayed_settings.append(setting)
-    self._displayed_operation_items.add(operation_item)
+    self._displayed_operation_items.append(operation_item)
   
   def _remove_operation_item(self, operation_item, setting):
     self._vbox.remove(operation_item.widget)
     operation_item.remove_widget()
-    self._displayed_operation_items.remove(operation_item)
     self._displayed_settings.remove(setting)
+    self._displayed_operation_items.remove(operation_item)
+  
+  def _reorder_operation_item(self, operation_item, position):
+    position = min(max(position, 0), len(self._displayed_operation_items) - 1)
+    
+    operation_item_position = self._get_operation_item_position(operation_item)
+    
+    (self._displayed_operation_items[operation_item_position],
+     self._displayed_operation_items[position]) = (
+       self._displayed_operation_items[position],
+       self._displayed_operation_items[operation_item_position])
+    
+    self._vbox.reorder_child(operation_item.widget, position)
+    
+  def _get_operation_item_position(self, operation_item):
+    return self._displayed_operation_items.index(operation_item)
+  
+  def _on_operation_item_widget_key_press_event(self, widget, event, operation_item):
+    if event.state & gtk.gdk.MOD1_MASK:     # Alt key
+      key_name = gtk.gdk.keyval_name(event.keyval)
+      if key_name in ["Up", "KP_Up"]:
+        self._reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) - 1)
+      elif key_name in ["Down", "KP_Down"]:
+        self._reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) + 1)
 
 
 #===============================================================================
