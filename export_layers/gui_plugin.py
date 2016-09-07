@@ -1133,6 +1133,9 @@ class _OperationItem(object):
   def button_remove(self):
     return self._button_remove
   
+  def remove_widget(self):
+    self._hbox.remove(self._widget)
+  
   def _on_event_box_enter_notify_event(self, event_box, event):
     if event.detail not in [gtk.gdk.NOTIFY_INFERIOR, gtk.gdk.NOTIFY_ANCESTOR]:
       self._button_remove.show()
@@ -1226,6 +1229,7 @@ class OperationsBox(object):
   
   def _remove_operation_item(self, operation_item, menu_item):
     self._vbox.remove(operation_item.widget)
+    operation_item.remove_widget()
     self._displayed_operation_items.remove(operation_item)
     del self._displayed_menu_items_and_settings[menu_item]
 
