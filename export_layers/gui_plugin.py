@@ -1170,16 +1170,21 @@ class OperationsBox(object):
   
   _BUTTON_HBOX_SPACING = 6
   
-  def __init__(self, label_add_text=None, spacing=0, settings=None):
+  def __init__(self, label_add_text=None, spacing=0, settings=None, displayed_settings_names=None):
     self.label_add_text = label_add_text
     self._operations_spacing = spacing
-    self._settings = settings
+    self._settings = collections.OrderedDict([(setting.name, setting) for setting in settings])
+    self._displayed_settings_names = displayed_settings_names if displayed_settings_names is not None else []
     
     self._init_gui()
   
   @property
   def widget(self):
     return self._scrolled_window
+  
+  @property
+  def displayed_settings(self):
+    return [setting.name for setting in self._displayed_settings]
   
   def _init_gui(self):
     if self.label_add_text is not None:
@@ -1210,17 +1215,20 @@ class OperationsBox(object):
     
     self._init_operations_menu_popup()
     
+    for setting_name in self._displayed_settings_names:
+      self._add_operation_item(self._settings[setting_name])
+    
     self._add_button.connect("clicked", self._on_add_button_clicked)
   
   def _init_operations_menu_popup(self):
     self._menu_items_and_settings = {}
-    self._displayed_menu_items_and_settings = {}
+    self._displayed_settings = []
     
     self._displayed_operation_items = set()
     
     self._operations_menu = gtk.Menu()
     
-    for setting in self._settings:
+    for setting in self._settings.values():
       menu_item = gtk.MenuItem(
         label=setting.display_name.encode(constants.GTK_CHARACTER_ENCODING), use_underline=False)
       menu_item.connect("activate", self._on_operations_menu_item_activate)
@@ -1233,26 +1241,26 @@ class OperationsBox(object):
     self._operations_menu.popup(None, None, None, 0, 0)
   
   def _on_operations_menu_item_activate(self, menu_item):
-    if menu_item not in self._displayed_menu_items_and_settings:
-      setting = self._menu_items_and_settings[menu_item]
-      self._add_operation_item(setting, menu_item)
+    setting = self._menu_items_and_settings[menu_item]
+    if setting not in self._displayed_settings:
+      self._add_operation_item(setting)
   
-  def _add_operation_item(self, setting, menu_item):
+  def _add_operation_item(self, setting):
     operation_item = _OperationItem(setting.gui.element)
     self._vbox.pack_start(operation_item.widget, expand=False, fill=False)
     self._vbox.reorder_child(self._add_button, -1)
     
     operation_item.button_remove.connect(
-      "clicked", lambda *args: self._remove_operation_item(operation_item, menu_item))
+      "clicked", lambda *args: self._remove_operation_item(operation_item, setting))
     
-    self._displayed_menu_items_and_settings[menu_item] = setting
+    self._displayed_settings.append(setting)
     self._displayed_operation_items.add(operation_item)
   
-  def _remove_operation_item(self, operation_item, menu_item):
+  def _remove_operation_item(self, operation_item, setting):
     self._vbox.remove(operation_item.widget)
     operation_item.remove_widget()
     self._displayed_operation_items.remove(operation_item)
-    del self._displayed_menu_items_and_settings[menu_item]
+    self._displayed_settings.remove(setting)
 
 
 #===============================================================================
@@ -1340,6 +1348,18 @@ def add_gui_settings(settings):
       'default_value': True,
       'gui_type': None
     },
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'displayed_builtin_operations',
+      'default_value': [],
+      'gui_type': None
+    },
+    {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'displayed_builtin_filters',
+      'default_value': [],
+      'gui_type': None
+    },
   ], setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
   
   session_only_gui_settings = pgsettinggroup.SettingGroup('gui_session', [
@@ -1411,6 +1431,9 @@ def _set_settings(func):
       self._settings['gui_session/export_image_preview_displayed_layers'].value[self._image.ID] = (
         self._export_image_preview.layer_elem.item.ID
         if self._export_image_preview.layer_elem is not None else None)
+      
+      self._settings['gui/displayed_builtin_operations'].set_value(self._box_more_operations.displayed_settings)
+      self._settings['gui/displayed_builtin_filters'].set_value(self._box_more_filters.displayed_settings)
     except pgsetting.SettingValueError as e:
       self._display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
       return
@@ -1689,11 +1712,13 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._box_more_operations = OperationsBox(
       label_add_text=_("Add _Operations..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
-      settings=list(self._settings['main/more_operations'].iterate_all()))
+      settings=list(self._settings['main/more_operations'].iterate_all()),
+      displayed_settings_names=self._settings['gui/displayed_builtin_operations'].value)
     
     self._box_more_filters = OperationsBox(
       label_add_text=_("Add _Filters..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
-      settings=list(self._settings['main/more_filters'].iterate_all()))
+      settings=list(self._settings['main/more_filters'].iterate_all()),
+      displayed_settings_names=self._settings['gui/displayed_builtin_filters'].value)
     
     self._hbox_more_settings = gtk.HBox(homogeneous=True)
     self._hbox_more_settings.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
