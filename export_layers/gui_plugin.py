@@ -1112,9 +1112,6 @@ class _OperationItem(object):
     
     self._button_remove.add(self._icon_remove)
     
-    self._button_remove.hide()
-    self._button_remove.set_no_show_all(True)
-    
     self._hbox.pack_start(self._button_remove, expand=False, fill=False, padding=self._BUTTON_REMOVE_PADDING)
     
     self._event_box = gtk.EventBox()
@@ -1122,6 +1119,12 @@ class _OperationItem(object):
     
     self._event_box.connect("enter-notify-event", self._on_event_box_enter_notify_event)
     self._event_box.connect("leave-notify-event", self._on_event_box_leave_notify_event)
+    
+    self._is_event_box_allocated_size = False
+    self._button_remove_allocation = None
+    
+    self._event_box.connect("size-allocate", self._on_event_box_size_allocate)
+    self._button_remove.connect("size-allocate", self._on_button_remove_size_allocate)
     
     self._event_box.show_all()
   
@@ -1143,7 +1146,25 @@ class _OperationItem(object):
   def _on_event_box_leave_notify_event(self, event_box, event):
     if event.detail != gtk.gdk.NOTIFY_INFERIOR:
       self._button_remove.hide()
-
+  
+  def _on_event_box_size_allocate(self, event_box, allocation):
+    if self._is_event_box_allocated_size:
+      return
+    
+    self._is_event_box_allocated_size = True
+    
+    # Assign enough height to the HBox to make sure it does not resize when showing the button.
+    if self._button_remove_allocation.height >= allocation.height:
+      self._hbox.set_size_request(-1, allocation.height)
+  
+  def _on_button_remove_size_allocate(self, button, allocation):
+    if self._button_remove_allocation is not None:
+      return
+    
+    self._button_remove_allocation = allocation
+    
+    self._button_remove.hide()
+  
 
 class OperationsBox(object):
   
@@ -1471,6 +1492,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   _MORE_SETTINGS_HORIZONTAL_SPACING = 12
   _MORE_SETTINGS_VERTICAL_SPACING = 6
+  _MORE_SETTINGS_OPERATIONS_SPACING = 4
   
   _DIALOG_SIZE = (900, 610)
   _DIALOG_BORDER_WIDTH = 8
@@ -1666,11 +1688,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._settings['main/export_only_selected_layers'].gui.element, expand=False, fill=False)
     
     self._box_more_operations = OperationsBox(
-      label_add_text=_("Add More _Operations..."), spacing=self._MORE_SETTINGS_VERTICAL_SPACING,
+      label_add_text=_("Add More _Operations..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
       settings=list(self._settings['main/more_operations'].iterate_all()))
     
     self._box_more_filters = OperationsBox(
-      label_add_text=_("Add More _Filters..."), spacing=self._MORE_SETTINGS_VERTICAL_SPACING,
+      label_add_text=_("Add More _Filters..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
       settings=list(self._settings['main/more_filters'].iterate_all()))
     
     self._hbox_more_settings = gtk.HBox(homogeneous=True)
