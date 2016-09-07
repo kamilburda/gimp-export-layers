@@ -1688,11 +1688,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._settings['main/export_only_selected_layers'].gui.element, expand=False, fill=False)
     
     self._box_more_operations = OperationsBox(
-      label_add_text=_("Add More _Operations..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
+      label_add_text=_("Add _Operations..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
       settings=list(self._settings['main/more_operations'].iterate_all()))
     
     self._box_more_filters = OperationsBox(
-      label_add_text=_("Add More _Filters..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
+      label_add_text=_("Add _Filters..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
       settings=list(self._settings['main/more_filters'].iterate_all()))
     
     self._hbox_more_settings = gtk.HBox(homogeneous=True)
