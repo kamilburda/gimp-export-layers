@@ -65,7 +65,7 @@ class OperationsBox(object):
   
   def _init_gui(self):
     if self.label_add_text is not None:
-      self._add_button = gtk.Button()
+      self._button_add = gtk.Button()
       button_hbox = gtk.HBox()
       button_hbox.set_spacing(self._BUTTON_HBOX_SPACING)
       button_hbox.pack_start(
@@ -75,15 +75,15 @@ class OperationsBox(object):
       label_add.set_use_underline(True)
       button_hbox.pack_start(label_add, expand=False, fill=False)
       
-      self._add_button.add(button_hbox)
+      self._button_add.add(button_hbox)
     else:
-      self._add_button = gtk.Button(stock=gtk.STOCK_ADD)
+      self._button_add = gtk.Button(stock=gtk.STOCK_ADD)
     
-    self._add_button.set_relief(gtk.RELIEF_NONE)
+    self._button_add.set_relief(gtk.RELIEF_NONE)
     
     self._vbox = gtk.VBox(homogeneous=False)
     self._vbox.set_spacing(self._operations_spacing)
-    self._vbox.pack_start(self._add_button, expand=False, fill=False)
+    self._vbox.pack_start(self._button_add, expand=False, fill=False)
     
     self._scrolled_window = gtk.ScrolledWindow()
     self._scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -95,7 +95,7 @@ class OperationsBox(object):
     for setting_name in self._displayed_settings_names:
       self._add_operation_item(self._settings[setting_name])
     
-    self._add_button.connect("clicked", self._on_add_button_clicked)
+    self._button_add.connect("clicked", self._on_button_add_clicked)
   
   def _init_operations_menu_popup(self):
     self._menu_items_and_settings = {}
@@ -113,7 +113,7 @@ class OperationsBox(object):
     
     self._operations_menu.show_all()
   
-  def _on_add_button_clicked(self, button):
+  def _on_button_add_clicked(self, button):
     self._operations_menu.popup(None, None, None, 0, 0)
   
   def _on_operations_menu_item_activate(self, menu_item):
@@ -124,7 +124,7 @@ class OperationsBox(object):
   def _add_operation_item(self, setting):
     operation_item = _OperationItem(setting.gui.element)
     self._vbox.pack_start(operation_item.widget, expand=False, fill=False)
-    self._vbox.reorder_child(self._add_button, -1)
+    self._vbox.reorder_child(self._button_add, -1)
     
     operation_item.button_remove.connect(
       "clicked", lambda *args: self._remove_operation_item(operation_item, setting))
@@ -136,7 +136,7 @@ class OperationsBox(object):
   
   def _remove_operation_item(self, operation_item, setting):
     self._vbox.remove(operation_item.widget)
-    operation_item.remove_widget()
+    operation_item.remove_setting()
     self._displayed_settings.remove(setting)
     self._displayed_operation_items.remove(operation_item)
   
@@ -217,7 +217,7 @@ class _OperationItem(object):
   def button_remove(self):
     return self._button_remove
   
-  def remove_widget(self):
+  def remove_setting(self):
     self._hbox.remove(self._widget)
   
   def _on_event_box_enter_notify_event(self, event_box, event):
