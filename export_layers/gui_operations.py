@@ -143,6 +143,13 @@ class OperationsBox(object):
     self._displayed_operation_items.append(operation_item)
   
   def _remove_operation_item(self, operation_item, setting):
+    operation_item_position = self._get_operation_item_position(operation_item)
+    
+    if operation_item_position < len(self._displayed_operation_items) - 1:
+      self._displayed_operation_items[operation_item_position + 1].setting_gui_element.grab_focus()
+    else:
+      self._button_add.grab_focus()
+    
     self._vbox.remove(operation_item.widget)
     operation_item.remove_setting()
     self._displayed_settings.remove(setting)
@@ -171,11 +178,11 @@ class _OperationItem(object):
   
   _BUTTON_REMOVE_PADDING = 3
   
-  def __init__(self, widget):
-    self._widget = widget
+  def __init__(self, setting_gui_element):
+    self._setting_gui_element = setting_gui_element
     
     self._hbox = gtk.HBox(homogeneous=False)
-    self._hbox.pack_start(self._widget, expand=True, fill=True)
+    self._hbox.pack_start(self._setting_gui_element, expand=True, fill=True)
     
     self._button_remove = gtk.Button()
     self._button_remove.set_relief(gtk.RELIEF_NONE)
@@ -195,8 +202,8 @@ class _OperationItem(object):
     self._event_box.connect("leave-notify-event", self._on_event_box_leave_notify_event)
     
     self._has_button_remove_focus = False
-    self._widget.connect("focus-in-event", self._on_widget_focus_in_event)
-    self._widget.connect("focus-out-event", self._on_widget_focus_out_event)
+    self._setting_gui_element.connect("focus-in-event", self._on_setting_gui_element_focus_in_event)
+    self._setting_gui_element.connect("focus-out-event", self._on_setting_gui_element_focus_out_event)
     self._button_remove.connect("grab-focus", self._on_button_remove_grab_focus)
     self._button_remove.connect("focus-out-event", self._on_button_remove_focus_out_event)
     
@@ -212,11 +219,15 @@ class _OperationItem(object):
     return self._event_box
   
   @property
+  def setting_gui_element(self):
+    return self._setting_gui_element
+  
+  @property
   def button_remove(self):
     return self._button_remove
   
   def remove_setting(self):
-    self._hbox.remove(self._widget)
+    self._hbox.remove(self._setting_gui_element)
   
   def _on_event_box_enter_notify_event(self, event_box, event):
     if event.detail not in [gtk.gdk.NOTIFY_INFERIOR, gtk.gdk.NOTIFY_ANCESTOR]:
@@ -226,10 +237,10 @@ class _OperationItem(object):
     if event.detail != gtk.gdk.NOTIFY_INFERIOR:
       self._button_remove.hide()
   
-  def _on_widget_focus_in_event(self, widget, event):
+  def _on_setting_gui_element_focus_in_event(self, setting_gui_element, event):
     self._button_remove.show()
   
-  def _on_widget_focus_out_event(self, widget, event):
+  def _on_setting_gui_element_focus_out_event(self, setting_gui_element, event):
     if not self._has_button_remove_focus:
       self._button_remove.hide()
   
