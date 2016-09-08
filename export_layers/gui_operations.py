@@ -121,6 +121,14 @@ class OperationsBox(object):
     if setting not in self._displayed_settings:
       self._add_operation_item(setting)
   
+  def _on_operation_item_widget_key_press_event(self, widget, event, operation_item):
+    if event.state & gtk.gdk.MOD1_MASK:     # Alt key
+      key_name = gtk.gdk.keyval_name(event.keyval)
+      if key_name in ["Up", "KP_Up"]:
+        self._reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) - 1)
+      elif key_name in ["Down", "KP_Down"]:
+        self._reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) + 1)
+  
   def _add_operation_item(self, setting):
     operation_item = _OperationItem(setting.gui.element)
     self._vbox.pack_start(operation_item.widget, expand=False, fill=False)
@@ -151,17 +159,9 @@ class OperationsBox(object):
        self._displayed_operation_items[operation_item_position])
     
     self._vbox.reorder_child(operation_item.widget, position)
-    
+  
   def _get_operation_item_position(self, operation_item):
     return self._displayed_operation_items.index(operation_item)
-  
-  def _on_operation_item_widget_key_press_event(self, widget, event, operation_item):
-    if event.state & gtk.gdk.MOD1_MASK:     # Alt key
-      key_name = gtk.gdk.keyval_name(event.keyval)
-      if key_name in ["Up", "KP_Up"]:
-        self._reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) - 1)
-      elif key_name in ["Down", "KP_Down"]:
-        self._reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) + 1)
 
 
 #===============================================================================
@@ -195,7 +195,6 @@ class _OperationItem(object):
     self._event_box.connect("leave-notify-event", self._on_event_box_leave_notify_event)
     
     self._has_button_remove_focus = False
-    
     self._widget.connect("focus-in-event", self._on_widget_focus_in_event)
     self._widget.connect("focus-out-event", self._on_widget_focus_out_event)
     self._button_remove.connect("grab-focus", self._on_button_remove_grab_focus)
@@ -203,7 +202,6 @@ class _OperationItem(object):
     
     self._is_event_box_allocated_size = False
     self._button_remove_allocation = None
-    
     self._event_box.connect("size-allocate", self._on_event_box_size_allocate)
     self._button_remove.connect("size-allocate", self._on_button_remove_size_allocate)
     
