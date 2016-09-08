@@ -302,8 +302,10 @@ def _set_settings(func):
         self._export_image_preview.layer_elem.item.ID
         if self._export_image_preview.layer_elem is not None else None)
       
-      self._settings['gui/displayed_builtin_operations'].set_value(self._box_more_operations.displayed_settings)
-      self._settings['gui/displayed_builtin_filters'].set_value(self._box_more_filters.displayed_settings)
+      self._settings['gui/displayed_builtin_operations'].set_value(
+        self._box_more_operations.displayed_settings_names)
+      self._settings['gui/displayed_builtin_filters'].set_value(
+        self._box_more_filters.displayed_settings_names)
     except pgsetting.SettingValueError as e:
       self._display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
       return
