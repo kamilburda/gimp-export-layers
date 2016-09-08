@@ -231,7 +231,7 @@ class EntryPopup(object):
   def show(self):
     if not self.is_shown() and len(self._rows_filtered) > 0:
       self._button_press_emission_hook_id = gobject.add_emission_hook(
-        self._entry, "button-press-event", self._on_button_press_emission_hook)
+        self._entry, "button-press-event", self._on_emission_hook_button_press_event)
       
       toplevel_window = self._entry.get_toplevel()
       if isinstance(toplevel_window, gtk.Window):
@@ -564,7 +564,7 @@ class EntryPopup(object):
     self._save_last_value()
     self.hide()
   
-  def _on_button_press_emission_hook(self, widget, event):
+  def _on_emission_hook_button_press_event(self, widget, event):
     if self._mouse_points_at_popup or self._mouse_points_at_vscrollbar or self._mouse_points_at_entry:
       return True
     else:
