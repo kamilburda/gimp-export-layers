@@ -165,6 +165,9 @@ class OperationsBox(object):
        self._displayed_operation_items[position],
        self._displayed_operation_items[operation_item_position])
     
+    self._displayed_settings[operation_item_position], self._displayed_settings[position] = (
+      self._displayed_settings[position], self._displayed_settings[operation_item_position])
+    
     self._vbox.reorder_child(operation_item.widget, position)
   
   def _get_operation_item_position(self, operation_item):
