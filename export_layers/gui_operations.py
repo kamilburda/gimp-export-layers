@@ -38,9 +38,14 @@ import gimp
 
 pdb = gimp.pdb
 
+from export_layers import pygimplib
 from export_layers.pygimplib import constants
 
+
 #===============================================================================
+
+
+_drag_type_id_counter = 1
 
 
 class OperationsBox(object):
@@ -57,7 +62,7 @@ class OperationsBox(object):
   
   @property
   def widget(self):
-    return self._scrolled_window
+    return self._widget
   
   @property
   def displayed_settings(self):
@@ -94,7 +99,11 @@ class OperationsBox(object):
     self._scrolled_window.add_with_viewport(self._vbox)
     self._scrolled_window.get_child().set_shadow_type(gtk.SHADOW_NONE)
     
+    self._widget = self._scrolled_window
+    
     self._init_operations_menu_popup()
+    
+    self._init_setting_gui_elements_dragging()
     
     for setting_name in self._displayed_settings_names:
       self._add_operation_item(self._settings[setting_name])
@@ -104,6 +113,7 @@ class OperationsBox(object):
   def _init_operations_menu_popup(self):
     self._menu_items_and_settings = {}
     self._displayed_settings = []
+    self._displayed_settings_gui_elements = set()
     self._displayed_operation_items = []
     
     self._operations_menu = gtk.Menu()
@@ -117,6 +127,44 @@ class OperationsBox(object):
     
     self._operations_menu.show_all()
   
+  def _init_setting_gui_elements_dragging(self):
+    # Make sure the drag type is unique for the entire box to prevent drops on
+    # other widgets.
+    drag_type = self._get_drag_type()
+    
+    for setting in self._settings.values():
+      setting.gui.element.connect("drag-data-get", self._on_setting_gui_element_drag_data_get, setting)
+      setting.gui.element.drag_source_set(gtk.gdk.BUTTON1_MASK, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
+      
+      setting.gui.element.connect("drag-data-received", self._on_setting_gui_element_drag_data_received, setting)
+      setting.gui.element.drag_dest_set(gtk.DEST_DEFAULT_ALL, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
+  
+  def _get_drag_type(self):
+    global _drag_type_id_counter
+    
+    drag_type = "{0}_{1}_{2}".format(pygimplib.config.PLUGIN_NAME, self.__class__.__name__, _drag_type_id_counter)
+    _drag_type_id_counter += 1
+    
+    return drag_type
+  
+  def _on_setting_gui_element_drag_data_get(self, setting_gui_element, drag_context,
+                                            selection_data, info, timestamp, setting):
+    selection_data.set(selection_data.target, 8, setting.name)
+  
+  def _on_setting_gui_element_drag_data_received(self, setting_gui_element, drag_context,
+                                                 x, y, selection_data, info, timestamp, setting):
+    dragged_setting_name = selection_data.data
+    if dragged_setting_name not in self._settings:
+      return
+    
+    dragged_setting = self._settings[dragged_setting_name]
+    dragged_item_position = self._displayed_settings.index(dragged_setting)
+    dragged_operation_item = self._displayed_operation_items[dragged_item_position]
+    
+    new_position = self._displayed_settings.index(setting)
+    
+    self._move_operation_item(dragged_operation_item, new_position)
+  
   def _on_button_add_clicked(self, button):
     self._operations_menu.popup(None, None, None, 0, 0)
   
@@ -129,9 +177,9 @@ class OperationsBox(object):
     if event.state & gtk.gdk.MOD1_MASK:     # Alt key
       key_name = gtk.gdk.keyval_name(event.keyval)
       if key_name in ["Up", "KP_Up"]:
-        self._reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) - 1)
+        self._move_operation_item(operation_item, self._get_operation_item_position(operation_item) - 1)
       elif key_name in ["Down", "KP_Down"]:
-        self._reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) + 1)
+        self._move_operation_item(operation_item, self._get_operation_item_position(operation_item) + 1)
   
   def _add_operation_item(self, setting):
     operation_item = _OperationItem(setting.gui.element)
@@ -144,6 +192,7 @@ class OperationsBox(object):
       "key-press-event", self._on_operation_item_widget_key_press_event, operation_item)
     
     self._displayed_settings.append(setting)
+    self._displayed_settings_gui_elements.add(setting.gui.element)
     self._displayed_operation_items.append(operation_item)
   
   def _remove_operation_item(self, operation_item, setting):
@@ -156,21 +205,21 @@ class OperationsBox(object):
     
     self._vbox.remove(operation_item.widget)
     operation_item.remove_setting()
+    
     self._displayed_settings.remove(setting)
+    self._displayed_settings_gui_elements.remove(setting.gui.element)
     self._displayed_operation_items.remove(operation_item)
   
-  def _reorder_operation_item(self, operation_item, position):
+  def _move_operation_item(self, operation_item, position):
     position = min(max(position, 0), len(self._displayed_operation_items) - 1)
     
     operation_item_position = self._get_operation_item_position(operation_item)
     
-    (self._displayed_operation_items[operation_item_position],
-     self._displayed_operation_items[position]) = (
-       self._displayed_operation_items[position],
-       self._displayed_operation_items[operation_item_position])
+    self._displayed_operation_items.pop(operation_item_position)
+    self._displayed_operation_items.insert(position, operation_item)
     
-    self._displayed_settings[operation_item_position], self._displayed_settings[position] = (
-      self._displayed_settings[position], self._displayed_settings[operation_item_position])
+    setting = self._displayed_settings.pop(operation_item_position)
+    self._displayed_settings.insert(position, setting)
     
     self._vbox.reorder_child(operation_item.widget, position)
   
