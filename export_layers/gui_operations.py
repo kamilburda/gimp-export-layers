@@ -61,6 +61,10 @@ class OperationsBox(object):
   
   @property
   def displayed_settings(self):
+    return self._displayed_settings
+  
+  @property
+  def displayed_settings_names(self):
     return [setting.name for setting in self._displayed_settings]
   
   def _init_gui(self):
