@@ -132,12 +132,17 @@ class OperationsBox(object):
     # other widgets.
     drag_type = self._get_drag_type()
     
+    self._last_setting_gui_element_dest_drag = None
+    
     for setting in self._settings.values():
       setting.gui.element.connect("drag-data-get", self._on_setting_gui_element_drag_data_get, setting)
       setting.gui.element.drag_source_set(gtk.gdk.BUTTON1_MASK, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
       
       setting.gui.element.connect("drag-data-received", self._on_setting_gui_element_drag_data_received, setting)
       setting.gui.element.drag_dest_set(gtk.DEST_DEFAULT_ALL, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
+      
+      setting.gui.element.connect("drag-motion", self._on_setting_gui_element_drag_motion)
+      setting.gui.element.connect("drag-failed", self._on_setting_gui_element_drag_failed)
   
   def _get_drag_type(self):
     global _drag_type_id_counter
@@ -164,6 +169,14 @@ class OperationsBox(object):
     new_position = self._displayed_settings.index(setting)
     
     self._move_operation_item(dragged_operation_item, new_position)
+  
+  def _on_setting_gui_element_drag_motion(self, setting_gui_element, drag_context, x, y, timestamp):
+    self._last_setting_gui_element_dest_drag = setting_gui_element
+  
+  def _on_setting_gui_element_drag_failed(self, setting_gui_element, drag_context, result):
+    if self._last_setting_gui_element_dest_drag is not None:
+      self._last_setting_gui_element_dest_drag.drag_unhighlight()
+      self._last_setting_gui_element_dest_drag = None
   
   def _on_button_add_clicked(self, button):
     self._operations_menu.popup(None, None, None, 0, 0)
