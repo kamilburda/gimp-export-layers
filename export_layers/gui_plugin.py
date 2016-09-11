@@ -112,6 +112,28 @@ def display_export_failure_invalid_image_message(details, parent=None):
   dialog.destroy()
 
 
+def display_reset_prompt(parent=None):
+  dialog = gtk.MessageDialog(
+    parent=parent, type=gtk.MESSAGE_WARNING, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+    buttons=gtk.BUTTONS_YES_NO)
+  dialog.set_transient_for(parent)
+  dialog.set_title(pygimplib.config.PLUGIN_TITLE)
+  
+  dialog.set_markup(_("Do you really want to reset settings?"))
+  
+  checkbutton_reset_operations = gtk.CheckButton(label=_("Remove operations"), use_underline=False)
+  
+  dialog.vbox.pack_start(checkbutton_reset_operations, expand=False, fill=False)
+  
+  dialog.set_focus(dialog.get_widget_for_response(gtk.RESPONSE_NO))
+  
+  dialog.show_all()
+  response_id = dialog.run()
+  dialog.destroy()
+  
+  return response_id, checkbutton_reset_operations.get_active()
+
+
 #===============================================================================
 
 
@@ -933,14 +955,24 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._display_message_label(_("Settings successfully saved."), message_type=gtk.MESSAGE_INFO)
   
   def _on_reset_settings_clicked(self, widget):
-    response_id = display_message(
-      _("Do you really want to reset settings?"), gtk.MESSAGE_WARNING, parent=self._dialog,
-      buttons=gtk.BUTTONS_YES_NO, button_response_id_to_focus=gtk.RESPONSE_NO)
+    response_id, reset_operations = display_reset_prompt(parent=self._dialog)
+    
+    if not reset_operations:
+      self._settings.set_ignore_tags({
+        'gui/displayed_builtin_operations': ['reset'],
+        'gui/displayed_builtin_filters': ['reset'],
+      })
     
     if response_id == gtk.RESPONSE_YES:
       self._reset_settings()
       self._save_settings()
       self._display_message_label(_("Settings reset."), message_type=gtk.MESSAGE_INFO)
+    
+    if not reset_operations:
+      self._settings.unset_ignore_tags({
+        'gui/displayed_builtin_operations': ['reset'],
+        'gui/displayed_builtin_filters': ['reset'],
+      })
   
   def _suppress_gimp_progress(self):
     gimp.progress_install(lambda *args: None, lambda *args: None, lambda *args: None, lambda *args: None)
