@@ -575,12 +575,17 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._hbox_settings_checkbuttons.pack_start(self._settings['main/autocrop'].gui.element)
     self._hbox_settings_checkbuttons.pack_start(self._settings['main/use_image_size'].gui.element)
     
-    self._vbox_more_settings = gtk.VBox(homogeneous=False)
-    self._vbox_more_settings.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)
-    self._vbox_more_settings.pack_start(
+    self._vbox_more_settings_builtin = gtk.VBox(homogeneous=False)
+    self._vbox_more_settings_builtin.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)
+    self._vbox_more_settings_builtin.pack_start(
       self._settings['main/process_tagged_layers'].gui.element, expand=False, fill=False)
-    self._vbox_more_settings.pack_start(
+    self._vbox_more_settings_builtin.pack_start(
       self._settings['main/export_only_selected_layers'].gui.element, expand=False, fill=False)
+    
+    self._scrolled_window_more_settings_builtin = gtk.ScrolledWindow()
+    self._scrolled_window_more_settings_builtin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+    self._scrolled_window_more_settings_builtin.add_with_viewport(self._vbox_more_settings_builtin)
+    self._scrolled_window_more_settings_builtin.get_child().set_shadow_type(gtk.SHADOW_NONE)
     
     self._box_more_operations = gui_operations.OperationsBox(
       label_add_text=_("Add _Operations..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
@@ -594,7 +599,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._hbox_more_settings = gtk.HBox(homogeneous=True)
     self._hbox_more_settings.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
-    self._hbox_more_settings.pack_start(self._vbox_more_settings, expand=True, fill=True)
+    self._hbox_more_settings.pack_start(self._scrolled_window_more_settings_builtin, expand=True, fill=True)
     self._hbox_more_settings.pack_start(self._box_more_operations.widget, expand=True, fill=True)
     self._hbox_more_settings.pack_start(self._box_more_filters.widget, expand=True, fill=True)
     
