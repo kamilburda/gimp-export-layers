@@ -499,6 +499,49 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.assertNotIn(self.settings['main']['file_extension'], iterated_settings)
     self.assertIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
+  
+  def test_iterate_all_set_unset_ignore_tags(self):
+    self.settings.set_ignore_tags({
+      'main/file_extension': ['reset'],
+      'advanced/overwrite_mode': ['reset', 'apply_gui_values_to_settings']
+    })
+    
+    self.settings.unset_ignore_tags({
+      'main/file_extension': ['reset']
+    })
+    
+    settings_except_reset = list(self.settings.iterate_all(['reset']))
+    self.assertIn(self.settings['main']['file_extension'], settings_except_reset)
+    self.assertNotIn(self.settings['advanced']['overwrite_mode'], settings_except_reset)
+    
+    self.settings.unset_ignore_tags({
+      'advanced/overwrite_mode': ['apply_gui_values_to_settings']
+    })
+    
+    settings_except_apply_gui = list(self.settings.iterate_all(['apply_gui_values_to_settings']))
+    self.assertIn(self.settings['main']['file_extension'], settings_except_apply_gui)
+    self.assertIn(self.settings['advanced']['overwrite_mode'], settings_except_apply_gui)
+    
+    self.settings.set_ignore_tags({
+      'main/file_extension': ['reset']
+    })
+    
+    self.assertNotIn(self.settings['main']['file_extension'], list(self.settings.iterate_all(['reset'])))
+  
+  def test_iterate_all_unset_ignore_tags_invalid_tags(self):
+    with self.assertRaises(ValueError):
+      self.settings.unset_ignore_tags({
+        'main/file_extension': ['reset']
+      })
+    
+    self.settings.set_ignore_tags({
+      'main/file_extension': ['reset']
+    })
+    
+    with self.assertRaises(ValueError):
+      self.settings.unset_ignore_tags({
+        'main/file_extension': ['apply_gui_values_to_settings']
+      })
 
 
 @mock.patch(

@@ -102,6 +102,7 @@ class SettingGroup(object):
     
     self.add(setting_list)
     
+    # key: `Setting` or `SettingGroup` instance; value: set of ignore tags (strings)
     self._ignored_settings_and_tags = {}
     
     # Used in the `_next()` method
@@ -225,7 +226,7 @@ class SettingGroup(object):
       else:
         raise KeyError("setting '{0}' not found".format(setting_name))
   
-  def set_ignore_tags(self, ignored_settings_and_tags):
+  def set_ignore_tags(self, settings_and_tags):
     """
     For the specified settings, specify a list of "ignore tags".
     
@@ -239,7 +240,7 @@ class SettingGroup(object):
     
     Parameters:
     
-    * `ignored_settings_and_tags` - A dict of (setting path, tag list) pairs.
+    * `settings_and_tags` - A dict of (setting path, tag list) pairs.
     
     Raises:
     
@@ -248,8 +249,45 @@ class SettingGroup(object):
     
     self._ignored_settings_and_tags.update({
       self._get_setting_from_path(setting_path): set(tags)
-      for setting_path, tags in ignored_settings_and_tags.items()
+      for setting_path, tags in settings_and_tags.items()
     })
+  
+  def unset_ignore_tags(self, settings_and_tags):
+    """
+    Unset specified ignore tags for the specified settings. For more
+    information, see the `set_ignore_tags()` method.
+    
+    Parameters:
+    
+    * `settings_and_tags` - A dict of (setting path, tag list) pairs to unset.
+    
+    Raises:
+    
+    * `KeyError` - Setting does not exist.
+    
+    * `ValueError` - Ignore tags were not set for the setting.
+    """
+    
+    def _check_ignore_tags_exist(setting, ignore_tags):
+      if setting not in self._ignored_settings_and_tags:
+        raise ValueError("No tags were set for setting '{0}'".format(setting.name))
+      
+      invalid_ignore_tags = []
+      for tag in ignore_tags:
+        if tag not in self._ignored_settings_and_tags[setting]:
+          invalid_ignore_tags.append(tag)
+      
+      if invalid_ignore_tags:
+        raise ValueError("The following tags were not set for setting '{0}': {1}".format(
+          setting.name, invalid_ignore_tags))
+    
+    for setting_path, ignore_tags in settings_and_tags.items():
+      setting = self._get_setting_from_path(setting_path)
+      _check_ignore_tags_exist(setting, ignore_tags)
+      for tag in ignore_tags:
+        self._ignored_settings_and_tags[setting].remove(tag)
+      if not self._ignored_settings_and_tags[setting]:
+        del self._ignored_settings_and_tags[setting]
   
   def reset(self):
     """
