@@ -681,6 +681,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._vpaned_previews.connect("notify::position", self._on_vpaned_position_changed)
     
     self._connect_setting_changes_to_previews()
+    self._connect_setting_changes_to_operations_boxes()
     
     self._dialog.set_default_response(gtk.RESPONSE_CANCEL)
     
@@ -811,6 +812,12 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._settings['gui_session/export_image_preview_displayed_layers'].connect_event(
       'after-reset', _reset_image_in_preview)
+  
+  def _connect_setting_changes_to_operations_boxes(self):
+    self._settings['gui/displayed_builtin_operations'].connect_event(
+      'after-reset', lambda setting: self._box_more_operations.clear())
+    self._settings['gui/displayed_builtin_filters'].connect_event(
+      'after-reset', lambda setting: self._box_more_filters.clear())
   
   def _connect_visible_changed_for_previews(self):
     def _connect_visible_changed(preview, setting):

@@ -60,6 +60,10 @@ class OperationsBox(object):
     
     self._init_gui()
   
+  def clear(self):
+    for _unused in range(len(self._vbox.get_children()) - 1):
+      self._remove_operation_item(self._displayed_operation_items[0], self._displayed_settings[0])
+  
   @property
   def widget(self):
     return self._widget
@@ -112,6 +116,7 @@ class OperationsBox(object):
   
   def _init_operations_menu_popup(self):
     self._menu_items_and_settings = {}
+    
     self._displayed_settings = []
     self._displayed_settings_gui_elements = set()
     self._displayed_operation_items = []
