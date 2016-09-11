@@ -141,6 +141,7 @@ class OperationsBox(object):
       setting.gui.element.connect("drag-data-received", self._on_setting_gui_element_drag_data_received, setting)
       setting.gui.element.drag_dest_set(gtk.DEST_DEFAULT_ALL, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
       
+      setting.gui.element.connect("drag-begin", self._on_setting_gui_element_drag_begin)
       setting.gui.element.connect("drag-motion", self._on_setting_gui_element_drag_motion)
       setting.gui.element.connect("drag-failed", self._on_setting_gui_element_drag_failed)
   
@@ -170,6 +171,11 @@ class OperationsBox(object):
     
     self._move_operation_item(dragged_operation_item, new_position)
   
+  def _on_setting_gui_element_drag_begin(self, setting_gui_element, drag_context):
+    drag_icon_pixbuf = self._get_drag_icon_pixbuf(setting_gui_element)
+    if drag_icon_pixbuf is not None:
+      drag_context.set_icon_pixbuf(drag_icon_pixbuf, 0, 0)
+  
   def _on_setting_gui_element_drag_motion(self, setting_gui_element, drag_context, x, y, timestamp):
     self._last_setting_gui_element_dest_drag = setting_gui_element
   
@@ -193,6 +199,35 @@ class OperationsBox(object):
         self._move_operation_item(operation_item, self._get_operation_item_position(operation_item) - 1)
       elif key_name in ["Down", "KP_Down"]:
         self._move_operation_item(operation_item, self._get_operation_item_position(operation_item) + 1)
+  
+  def _get_drag_icon_pixbuf(self, widget):
+    if widget.get_window() is None:
+      return
+    
+    # Make sure the focus outline is not displayed in the drag icon.
+    if widget.has_focus():
+      widget.set_can_focus(False)
+    
+    # Add a border to the drag icon.
+    widget.drag_highlight()
+    
+    while gtk.events_pending():
+      gtk.main_iteration()
+    
+    widget_allocation = widget.get_allocation()
+    
+    pixbuf = gtk.gdk.Pixbuf(
+      gtk.gdk.COLORSPACE_RGB, False, 8,
+      widget_allocation.width, widget_allocation.height)
+    
+    widget_pixbuf = pixbuf.get_from_drawable(
+      widget.get_window(), widget.get_colormap(),
+      0, 0, 0, 0, widget_allocation.width, widget_allocation.height)
+    
+    widget.set_can_focus(True)
+    widget.drag_unhighlight()
+    
+    return widget_pixbuf
   
   def _add_operation_item(self, setting):
     operation_item = _OperationItem(setting.gui.element)
