@@ -726,8 +726,8 @@ class FilenamePatternEntry(gtk.Entry):
     if self._default_item_name is not None:
       self._has_placeholder_item_assigned = True
       
-      # The font may be different before widget realization, and modifying the font
-      # now may result in the font not being properly set up after the realization.
+      # Delay font modification until after widget realization as the font may
+      # have been different before the realization.
       if self.get_realized():
         self._modify_font_for_placeholder_text(gtk.STATE_INSENSITIVE, pango.STYLE_ITALIC)
       
