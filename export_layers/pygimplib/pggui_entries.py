@@ -30,6 +30,8 @@ from __future__ import unicode_literals
 
 str = unicode
 
+import collections
+
 import pygtk
 pygtk.require("2.0")
 import gtk
@@ -157,7 +159,7 @@ class EntryPopup(object):
     self._assign_from_selected_row_func = (
       assign_from_selected_row_func if assign_from_selected_row_func is not None else lambda *args: None)
     self._assign_last_value_func = (
-      assign_last_value_func if assign_last_value_func is not None else self.assign_text)
+      assign_last_value_func if assign_last_value_func is not None else self._entry.assign_text)
     self._on_row_left_mouse_button_press_func = (
       on_row_left_mouse_button_press_func if on_row_left_mouse_button_press_func is not None else
       self.assign_from_selected_row)
@@ -175,10 +177,11 @@ class EntryPopup(object):
       lambda *args: True
     )
     
+    self.trigger_popup = True
+    
     self._last_assigned_entry_text = ""
     
     self._show_popup_first_time = True
-    self._trigger_popup = True
     
     self._clear_filter = False
     
@@ -214,16 +217,6 @@ class EntryPopup(object):
   @property
   def last_assigned_entry_text(self):
     return self._last_assigned_entry_text
-  
-  def assign_text(self, text):
-    """
-    Replace the current contents of the entry with the specified text. Unlike
-    `set_text()` in the entry, this method prevents the popup from showing.
-    """
-    
-    self._trigger_popup = False
-    self._entry.set_text(text)
-    self._trigger_popup = True
   
   def assign_last_value(self):
     self._assign_last_value_func(self._last_assigned_entry_text)
@@ -484,7 +477,7 @@ class EntryPopup(object):
       return False
   
   def _on_entry_changed(self, entry):
-    if self._trigger_popup:
+    if self.trigger_popup:
       self.save_last_value()
       
       if not self._on_entry_changed_show_popup_condition_func():
@@ -578,7 +571,268 @@ class EntryPopup(object):
 #===============================================================================
 
 
-class FilenamePatternEntry(gtk.Entry):
+class EntryUndoContext(object):
+  
+  """
+  This class add undo/redo capabilities to a `gtk.Entry` object.
+  
+  Attributes:
+  
+  * `undo_enabled` - If True, add user actions (insert text, delete text) to the
+    undo history.
+  """
+  
+  _ActionData = collections.namedtuple("_ActionData", ["action_type", "position", "text"])
+  
+  def __init__(self, entry):
+    self._entry = entry
+    
+    self.undo_enabled = True
+    
+    self._undo_stack = []
+    self._redo_stack = []
+    
+    self._last_action_group = []
+    self._last_action_type = None
+    
+    self._cursor_changed_by_action = False
+    
+    self._entry.connect("insert-text", self._on_entry_insert_text)
+    self._entry.connect("delete-text", self._on_entry_delete_text)
+    self._entry.connect("notify::cursor-position", self._on_entry_cursor_position_changed)
+    self._entry.connect("key-press-event", self._on_entry_key_press)
+  
+  def undo(self):
+    self._undo_redo(
+      self._undo_stack, self._redo_stack,
+      action_handlers={
+        "insert": lambda action_data: self._entry.delete_text(
+          action_data.position, action_data.position + len(action_data.text)),
+        "delete": lambda action_data: self._entry.insert_text(action_data.text, action_data.position)},
+      action_handlers_get_cursor_position={
+        "insert": lambda last_action_data: last_action_data.position,
+        "delete": lambda last_action_data: last_action_data.position + len(last_action_data.text)},
+      actions_iterator=lambda actions: reversed(actions))
+  
+  def redo(self):
+    self._undo_redo(
+      self._redo_stack, self._undo_stack,
+      action_handlers={
+        "insert": lambda action_data: self._entry.insert_text(action_data.text, action_data.position),
+        "delete": lambda action_data: self._entry.delete_text(
+          action_data.position, action_data.position + len(action_data.text))},
+      action_handlers_get_cursor_position={
+        "insert": lambda last_action_data: last_action_data.position + len(last_action_data.text),
+        "delete": lambda last_action_data: last_action_data.position})
+  
+  def can_undo(self):
+    return bool(self._undo_stack)
+  
+  def can_redo(self):
+    return bool(self._redo_stack)
+  
+  def _on_entry_insert_text(self, entry, new_text, new_text_length, position):
+    if self.undo_enabled and new_text:
+      self._on_entry_action(entry.get_position(), new_text, "insert")
+   
+  def _on_entry_delete_text(self, entry, start, end):
+    if self.undo_enabled:
+      text_to_delete = entry.get_text()[start:end]
+      if text_to_delete:
+        self._on_entry_action(start, text_to_delete, "delete")
+  
+  def _on_entry_cursor_position_changed(self, entry, property_spec):
+    if self._cursor_changed_by_action:
+      self._cursor_changed_by_action = False
+    else:
+      self._undo_stack_push()
+  
+  def _on_entry_key_press(self, entry, event):
+    if (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.CONTROL_MASK:
+      key_name = gtk.gdk.keyval_name(gtk.gdk.keyval_to_lower(event.keyval))
+      if key_name == "z":
+        self.undo()
+        return True
+      elif key_name == "y":
+        self.redo()
+        return True
+  
+  def _on_entry_action(self, position, text, action_type):
+    self._redo_stack = []
+    
+    if self._last_action_type != action_type:
+      self._undo_stack_push()
+    
+    self._last_action_group.append(self._ActionData(action_type, position, text))
+    self._last_action_type = action_type
+    
+    self._cursor_changed_by_action = True
+  
+  def _undo_redo(self, stack_to_pop_from, stack_to_push_to, action_handlers,
+                 action_handlers_get_cursor_position, actions_iterator=None):
+    self._undo_stack_push()
+    
+    if not stack_to_pop_from:
+      return
+    
+    actions = stack_to_pop_from.pop()
+    
+    if actions_iterator is None:
+      actions_list = actions
+    else:
+      actions_list = list(actions_iterator(actions))
+    
+    stack_to_push_to.append(actions)
+    
+    self.undo_enabled = False
+    
+    for action in actions_list:
+      action_handlers[action.action_type](action)
+    
+    self._entry.set_position(action_handlers_get_cursor_position[action.action_type](actions_list[-1]))
+  
+    self.undo_enabled = True
+  
+  def _undo_stack_push(self):
+    if self._last_action_group:
+      self._undo_stack.append(self._last_action_group)
+      self._last_action_group = []
+
+
+#===============================================================================
+
+
+class ExtendedEntry(gtk.Entry):
+  
+  """
+  This class is a text entry with additional capabilities compared to
+  `gtk.Entry`:
+  
+  * undo/redo of text,
+  * placeholder text,
+  * custom popup serving as an entry completion.
+  
+  Attributes:
+  
+  * `undo_context` (read-only) - `EntryUndoContext` instance to handle undo/redo
+    actions.
+  
+  * `popup` (read-only) - `EntryPopup` instance serving as the popup, or None.
+  
+  * `placeholder_text` (read-only) - Placeholder text displayed if the entry is
+    empty or matches the placeholder text. If None, the entry has no placeholder
+    text.
+  """
+  
+  def __init__(self, *args, **kwargs):
+    self._placeholder_text = kwargs.pop('placeholder_text', None)
+    
+    super(ExtendedEntry, self).__init__(*args, **kwargs)
+    
+    self._undo_context = EntryUndoContext(self)
+    self._popup = None
+    
+    self._has_placeholder_text_assigned = False
+    
+    self.connect("focus-in-event", self._on_extended_entry_focus_in_event)
+    self.connect("focus-out-event", self._on_extended_entry_focus_out_event)
+    self.connect_after("realize", self._on_after_extended_entry_realize)
+  
+  @property
+  def popup(self):
+    return self._popup
+  
+  @property
+  def undo_context(self):
+    return self._undo_context
+  
+  def assign_text(self, text, enable_undo=False):
+    """
+    Replace the current contents of the entry with the specified text.
+    
+    If the entry does not have focus and the text is empty or matches the
+    placeholder text, assign the placeholder text.
+     
+    If `enable_undo` is True, add the assignment to the undo history.
+    """
+    
+    if self.has_focus() or not self._should_assign_placeholder_text(text):
+      self._do_assign_text(text, enable_undo)
+    else:
+      self._assign_placeholder_text()
+  
+  def get_text(self):
+    """
+    If the entry text does not match the placeholder text, return the entry
+    text (i.e. what `gtk.Entry.get_text()` would return), otherwise return an
+    empty string.
+    """
+    
+    if not self._has_placeholder_text_assigned:
+      return super(ExtendedEntry, self).get_text()
+    else:
+      return b""
+  
+  def _do_assign_text(self, text, enable_undo=False):
+    if self._popup is not None:
+      self._popup.trigger_popup = False
+    if not enable_undo:
+      self._undo_context.undo_enabled = False
+    
+    self.set_text(text)
+    
+    if not enable_undo:
+      self._undo_context.undo_enabled = True
+    if self._popup is not None:
+      self._popup.trigger_popup = True
+  
+  def _get_text_decoded(self):
+    return self.get_text().decode(constants.GTK_CHARACTER_ENCODING)
+  
+  def _assign_placeholder_text(self):
+    if self._placeholder_text is not None:
+      self._has_placeholder_text_assigned = True
+      
+      # Delay font modification until after widget realization as the font may
+      # have been different before the realization.
+      if self.get_realized():
+        self._modify_font_for_placeholder_text(gtk.STATE_INSENSITIVE, pango.STYLE_ITALIC)
+      
+      self._do_assign_text(self._placeholder_text)
+  
+  def _unassign_placeholder_text(self):
+    if self._has_placeholder_text_assigned:
+      self._has_placeholder_text_assigned = False
+      self._modify_font_for_placeholder_text(gtk.STATE_NORMAL, pango.STYLE_NORMAL)
+      self._do_assign_text(b"")
+      self._popup.save_last_value()
+  
+  def _modify_font_for_placeholder_text(self, state_for_color, style):
+    self.modify_text(gtk.STATE_NORMAL, self.style.fg[state_for_color])
+    
+    font_description = self.get_pango_context().get_font_description()
+    font_description.set_style(style)
+    self.modify_font(font_description)
+  
+  def _should_assign_placeholder_text(self, text):
+    return not text or (self._placeholder_text is not None and text == self._placeholder_text)
+  
+  def _on_extended_entry_focus_in_event(self, entry, event):
+    self._unassign_placeholder_text()
+  
+  def _on_extended_entry_focus_out_event(self, entry, event):
+    if self._should_assign_placeholder_text(self._get_text_decoded()):
+      self._assign_placeholder_text()
+  
+  def _on_after_extended_entry_realize(self, entry):
+    if self._should_assign_placeholder_text(self._get_text_decoded()):
+      self._assign_placeholder_text()
+
+
+#===============================================================================
+
+
+class FilenamePatternEntry(ExtendedEntry):
   
   _BUTTON_MOUSE_LEFT = 1
   
@@ -597,18 +851,15 @@ class FilenamePatternEntry(gtk.Entry):
       raise ValueError("default item \"{0}\" not in the list of suggested items: {1}".format(
         self._default_item_value, suggested_item_values))
     
-    if self._default_item_value is not None:
-      self._default_item_name = suggested_items[suggested_item_values.index(self._default_item_value)][0]
-    else:
-      self._default_item_name = None
+    kwargs['placeholder_text'] = (
+      suggested_items[suggested_item_values.index(self._default_item_value)][0]
+      if self._default_item_value is not None else None)
     
     super(FilenamePatternEntry, self).__init__(*args, **kwargs)
     
     self._cursor_position = 0
     self._cursor_position_before_assigning_from_row = None
     self._reset_cursor_position_before_assigning_from_row = True
-    
-    self._has_placeholder_item_assigned = False
     
     self._last_field_name_with_tooltip = ""
     
@@ -631,31 +882,22 @@ class FilenamePatternEntry(gtk.Entry):
     
     self._add_columns()
     
-    self.connect("delete-text", self._on_entry_delete_text)
     self.connect("insert-text", self._on_entry_insert_text)
-    self.connect("notify::cursor-position", self._on_cursor_position_changed)
+    self.connect("delete-text", self._on_entry_delete_text)
+    self.connect("notify::cursor-position", self._on_entry_cursor_position_changed)
     self.connect("changed", self._on_entry_changed)
     
-    self.connect("focus-in-event", self._on_entry_focus_in_event)
     self.connect("focus-out-event", self._on_entry_focus_out_event)
     
-    self.connect_after("realize", self._on_after_entry_realize)
     self.connect("size-allocate", self._on_entry_size_allocate)
   
-  def get_text(self):
-    if not self._has_placeholder_item_assigned:
-      return super(FilenamePatternEntry, self).get_text()
-    else:
-      return b""
-  
-  def assign_text(self, text):
-    if self.has_focus() or not self._should_assign_placeholder_text(text):
-      self._popup.assign_text(text)
-    else:
-      self._assign_placeholder_text()
-  
-  def _get_text_decoded(self):
-    return self.get_text().decode(constants.GTK_CHARACTER_ENCODING)
+  def _should_assign_placeholder_text(self, text):
+    """
+    Unlike the parent method, use the value of the suggested item rather than
+    its display name to determine whether placeholder text should be assigned.
+    """
+    
+    return not text or (self._default_item_value is not None and text == self._default_item_value)
   
   def _filter_suggested_items(self, suggested_items, row_iter):
     item = suggested_items[row_iter][self._COLUMN_ITEMS]
@@ -669,7 +911,7 @@ class FilenamePatternEntry(gtk.Entry):
   
   def _assign_last_value(self, last_value):
     self._reset_cursor_position_before_assigning_from_row = False
-    self._popup.assign_text(last_value)
+    self._do_assign_text(last_value)
     self._reset_cursor_position_before_assigning_from_row = True
     
     if self._cursor_position_before_assigning_from_row is not None:
@@ -722,41 +964,13 @@ class FilenamePatternEntry(gtk.Entry):
     self._cursor_position_before_assigning_from_row = None
     self._popup.assign_from_selected_row()
   
-  def _assign_placeholder_text(self):
-    if self._default_item_name is not None:
-      self._has_placeholder_item_assigned = True
-      
-      # Delay font modification until after widget realization as the font may
-      # have been different before the realization.
-      if self.get_realized():
-        self._modify_font_for_placeholder_text(gtk.STATE_INSENSITIVE, pango.STYLE_ITALIC)
-      
-      self._popup.assign_text(self._default_item_name)
-  
-  def _unassign_placeholder_text(self):
-    if self._has_placeholder_item_assigned:
-      self._has_placeholder_item_assigned = False
-      self._modify_font_for_placeholder_text(gtk.STATE_NORMAL, pango.STYLE_NORMAL)
-      self._popup.assign_text(b"")
-      self._popup.save_last_value()
-  
-  def _modify_font_for_placeholder_text(self, state_for_color, style):
-    self.modify_text(gtk.STATE_NORMAL, self.style.fg[state_for_color])
-    
-    font_description = self.get_pango_context().get_font_description()
-    font_description.set_style(style)
-    self.modify_font(font_description)
-  
-  def _should_assign_placeholder_text(self, text):
-    return not text or (self._default_item_value is not None and text == self._default_item_value)
-  
   def _on_entry_delete_text(self, entry, start, end):
     self._cursor_position = start
   
   def _on_entry_insert_text(self, entry, new_text, new_text_length, position):
     self._cursor_position = self.get_position() + len(new_text.decode(constants.GTK_CHARACTER_ENCODING))
   
-  def _on_cursor_position_changed(self, entry, property_spec):
+  def _on_entry_cursor_position_changed(self, entry, property_spec):
     self._cursor_position = self.get_position()
     
     field_name = (
@@ -780,18 +994,8 @@ class FilenamePatternEntry(gtk.Entry):
     if self._reset_cursor_position_before_assigning_from_row:
       self._cursor_position_before_assigning_from_row = None
   
-  def _on_entry_focus_in_event(self, entry, event):
-    self._unassign_placeholder_text()
-  
   def _on_entry_focus_out_event(self, entry, event):
-    if self._should_assign_placeholder_text(self._get_text_decoded()):
-      self._assign_placeholder_text()
-    
     self._hide_field_tooltip()
-  
-  def _on_after_entry_realize(self, entry):
-    if self._should_assign_placeholder_text(self._get_text_decoded()):
-      self._assign_placeholder_text()
   
   def _on_entry_size_allocate(self, entry, allocation):
     if self._minimum_width == -1:
@@ -887,7 +1091,7 @@ class FilenamePatternEntry(gtk.Entry):
 #===============================================================================
 
 
-class FileExtensionEntry(gtk.Entry):
+class FileExtensionEntry(ExtendedEntry):
   
   _COLUMNS = [_COLUMN_DESCRIPTION, _COLUMN_EXTENSIONS] = (0, 1)
   _COLUMN_TYPES = [bytes, gobject.TYPE_PYOBJECT]     # [string, list of strings]
@@ -910,7 +1114,7 @@ class FileExtensionEntry(gtk.Entry):
     self._popup = EntryPopup(
       self, self._COLUMN_TYPES, self._get_file_formats(pgfileformats.file_formats),
       row_filter_func=self._filter_file_formats, assign_from_selected_row_func=self._assign_from_selected_row,
-      assign_last_value_func=self.assign_text,
+      assign_last_value_func=self._do_assign_text,
       on_row_left_mouse_button_press_func=self._on_row_left_mouse_button_press,
       on_entry_key_press_before_show_popup_func=self._on_key_press_before_show_popup,
       on_entry_key_press_func=self._on_tab_keys_pressed)
@@ -921,18 +1125,15 @@ class FileExtensionEntry(gtk.Entry):
     self._popup.tree_view.connect_after("realize", self._on_after_tree_view_realize)
     self._popup.tree_view.get_selection().connect("changed", self._on_tree_selection_changed)
   
-  def assign_text(self, text):
-    self._popup.assign_text(text)
+  def _do_assign_text(self, *args):
+    super(FileExtensionEntry, self)._do_assign_text(*args)
     self.set_position(-1)
-  
-  def _get_text_decoded(self):
-    return self.get_text().decode(constants.GTK_CHARACTER_ENCODING)
   
   def _on_row_left_mouse_button_press(self):
     if self._highlighted_extension_index is None:
       self._popup.assign_from_selected_row()
     else:
-      self.assign_text(self._highlighted_extension)
+      self._do_assign_text(self._highlighted_extension)
   
   def _on_key_press_before_show_popup(self):
     self._unhighlight_extension()
@@ -949,7 +1150,7 @@ class FileExtensionEntry(gtk.Entry):
         elif key_name == "ISO_Left_Tab":    # Shift + Tab
           self._highlight_extension_previous(selected_tree_path)
         
-        self.assign_text(self._highlighted_extension)
+        self._do_assign_text(self._highlighted_extension)
         
         return True
     
@@ -959,7 +1160,7 @@ class FileExtensionEntry(gtk.Entry):
     extensions = tree_model[selected_tree_iter][self._COLUMN_EXTENSIONS]
     if extension_index > len(extensions):
       extension_index = len(extensions) - 1
-    self.assign_text(extensions[extension_index])
+    self._do_assign_text(extensions[extension_index])
   
   def _filter_file_formats(self, file_formats, row_iter):
     return self._entry_text_matches_row(self._get_text_decoded(), file_formats, row_iter)

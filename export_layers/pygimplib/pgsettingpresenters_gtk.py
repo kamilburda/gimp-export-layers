@@ -41,7 +41,6 @@ pdb = gimp.pdb
 
 from . import constants
 from . import pgsettingpresenter
-from .pggui import FileExtensionEntry
 
 #===============================================================================
 
@@ -150,10 +149,9 @@ class GtkEntryPresenter(GtkSettingPresenter):
 class ExtendedEntryPresenter(GtkSettingPresenter):
   
   """
-  This class is a `SettingPresenter` for `FileExtensionEntry` (text fields
-  containing file extensions).
+  This class is a `SettingPresenter` for `pggui_entries.ExtendedEntry` elements.
   
-  Value: Text (file extension) in the text field.
+  Value: Text in the entry.
   """
   
   def _get_value(self):
@@ -274,7 +272,7 @@ class SettingGuiTypes(object):
   checkbox = GtkCheckButtonPresenter
   combobox = GimpUiIntComboBoxPresenter
   text_entry = GtkEntryPresenter
-  extended_text_entry = ExtendedEntryPresenter
+  extended_entry = ExtendedEntryPresenter
   folder_chooser = GtkFolderChooserPresenter
   window_position = GtkWindowPositionPresenter
   expander = GtkExpanderPresenter
