@@ -270,7 +270,7 @@ class SettingGroup(object):
     
     def _check_ignore_tags_exist(setting, ignore_tags):
       if setting not in self._ignored_settings_and_tags:
-        raise ValueError("No tags were set for setting '{0}'".format(setting.name))
+        raise ValueError("no tags were set for setting '{0}'".format(setting.name))
       
       invalid_ignore_tags = []
       for tag in ignore_tags:
@@ -278,7 +278,7 @@ class SettingGroup(object):
           invalid_ignore_tags.append(tag)
       
       if invalid_ignore_tags:
-        raise ValueError("The following tags were not set for setting '{0}': {1}".format(
+        raise ValueError("the following tags were not set for setting '{0}': {1}".format(
           setting.name, invalid_ignore_tags))
     
     for setting_path, ignore_tags in settings_and_tags.items():
