@@ -35,12 +35,12 @@ pygtk.require("2.0")
 import gtk
 
 import gimp
+import gimpui
 
 pdb = gimp.pdb
 
 from . import constants
 from . import pgsettingpresenter
-from .pggui import IntComboBox
 from .pggui import FileExtensionEntry
 
 #===============================================================================
@@ -113,7 +113,12 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
   _VALUE_CHANGED_SIGNAL = "changed"
 
   def _create_gui_element(self, setting):
-    return IntComboBox(setting.get_item_display_names_and_values())
+    labels_and_values = setting.get_item_display_names_and_values()
+    
+    for i in range(0, len(labels_and_values), 2):
+      labels_and_values[i] = labels_and_values[i].encode(constants.GTK_CHARACTER_ENCODING)
+    
+    return gimpui.IntComboBox(tuple(labels_and_values))
   
   def _get_value(self):
     return self._element.get_active()
