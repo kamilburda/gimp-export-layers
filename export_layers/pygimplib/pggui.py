@@ -56,10 +56,8 @@ import gimpui
 
 pdb = gimp.pdb
 
-from . import constants
 from . import overwrite
 from . import progress
-from .pggui_entries import FileExtensionEntry, FilenamePatternEntry
 
 #===============================================================================
 # GTK Overwrite Chooser
