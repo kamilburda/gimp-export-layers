@@ -197,7 +197,7 @@ def handle_overwrite(filename, overwrite_chooser, uniquifier_position=None):
   """
   
   if os.path.exists(filename):
-    overwrite_chooser.choose(filename=os.path.basename(filename))
+    overwrite_chooser.choose(filename=os.path.abspath(filename))
     
     if overwrite_chooser.overwrite_mode in (OverwriteModes.RENAME_NEW, OverwriteModes.RENAME_EXISTING):
       uniq_filename = pgpath.uniquify_filename(filename, uniquifier_position)
