@@ -112,7 +112,7 @@ def display_export_failure_invalid_image_message(details, parent=None):
   dialog.destroy()
 
 
-def display_reset_prompt(parent=None):
+def display_reset_prompt(parent=None, more_settings_shown=False):
   dialog = gtk.MessageDialog(
     parent=parent, type=gtk.MESSAGE_WARNING, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
     buttons=gtk.BUTTONS_YES_NO)
@@ -121,9 +121,9 @@ def display_reset_prompt(parent=None):
   
   dialog.set_markup(_("Do you really want to reset settings?"))
   
-  checkbutton_reset_operations = gtk.CheckButton(label=_("Remove operations"), use_underline=False)
-  
-  dialog.vbox.pack_start(checkbutton_reset_operations, expand=False, fill=False)
+  if more_settings_shown:
+    checkbutton_reset_operations = gtk.CheckButton(label=_("Remove operations"), use_underline=False)
+    dialog.vbox.pack_start(checkbutton_reset_operations, expand=False, fill=False)
   
   dialog.set_focus(dialog.get_widget_for_response(gtk.RESPONSE_NO))
   
@@ -131,7 +131,7 @@ def display_reset_prompt(parent=None):
   response_id = dialog.run()
   dialog.destroy()
   
-  return response_id, checkbutton_reset_operations.get_active()
+  return response_id, checkbutton_reset_operations.get_active() if more_settings_shown else False
 
 
 #===============================================================================
@@ -955,7 +955,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._display_message_label(_("Settings successfully saved."), message_type=gtk.MESSAGE_INFO)
   
   def _on_reset_settings_clicked(self, widget):
-    response_id, reset_operations = display_reset_prompt(parent=self._dialog)
+    response_id, reset_operations = display_reset_prompt(
+      parent=self._dialog, more_settings_shown=self._settings['gui/show_more_settings'].value)
     
     if not reset_operations:
       self._settings.set_ignore_tags({
