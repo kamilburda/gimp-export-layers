@@ -72,7 +72,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     cls.output_directory = OUTPUT_DIR
     
     if os.path.exists(cls.output_directory) and os.listdir(cls.output_directory):
-      raise ValueError("Directory for temporary results '{0}' must be empty".format(cls.output_directory))
+      raise ValueError("directory for temporary results '{0}' must be empty".format(cls.output_directory))
     
     cls.default_expected_layers_dir = EXPECTED_RESULTS_DIR
     # key: directory containing expected results
