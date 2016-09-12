@@ -394,8 +394,7 @@ class GimpMessageFile(object):
   """
   This class provides a file-like way to write output as GIMP messages.
   
-  You can use this class in conjunction with `tee.Tee` to redirect output or
-  error output to the GIMP console.
+  You can use this class to redirect output or error output to the GIMP console.
   
   Parameters:
   
