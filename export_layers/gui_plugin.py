@@ -558,7 +558,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._vpaned_settings = gtk.VPaned()
     
     self._settings.initialize_gui({
-      'file_extension': [pgsetting.SettingGuiTypes.extended_text_entry, self._file_extension_entry],
+      'file_extension': [pgsetting.SettingGuiTypes.extended_entry, self._file_extension_entry],
       'dialog_position': [pgsetting.SettingGuiTypes.window_position, self._dialog],
       'show_more_settings': [pgsetting.SettingGuiTypes.checkbox, self._show_more_settings_button],
       'chooser_and_previews_hpane_position': [
@@ -567,7 +567,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         pgsetting.SettingGuiTypes.paned_position, self._vpaned_previews],
       'settings_vpane_position': [
         pgsetting.SettingGuiTypes.paned_position, self._vpaned_settings],
-      'layer_filename_pattern': [pgsetting.SettingGuiTypes.extended_text_entry, self._filename_pattern_entry]
+      'layer_filename_pattern': [pgsetting.SettingGuiTypes.extended_entry, self._filename_pattern_entry]
     })
     
     self._current_directory_setting.set_gui(pgsetting.SettingGuiTypes.folder_chooser, self._folder_chooser)
