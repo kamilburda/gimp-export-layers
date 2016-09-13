@@ -214,8 +214,6 @@ On Windows, the following file formats don't work properly if file paths contain
 * OpenRaster (.ora),
 * X PixMap Image (.xpm).
 
-In "Export Layers (repeat)", JPEG format displays the file format dialog for the first layer.
-
 
 License
 -------
