@@ -705,7 +705,7 @@ class LayerExporter(object):
       return layer_copy, inserted_layer_copy
   
   def _crop_layer(self, image, layer, background_layer, foreground_layer):
-    if self.export_settings['autocrop'].value:
+    if self.export_settings['more_operations/autocrop'].value:
       pdb.plug_in_autocrop_layer(image, layer)
     
     for setting_name, tagged_layer in [

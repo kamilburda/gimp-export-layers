@@ -108,12 +108,6 @@ def create_settings():
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'autocrop',
-      'default_value': False,
-      'display_name': _("Autocrop")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
       'name': 'use_image_size',
       'default_value': False,
       'display_name': _("Use image size")
@@ -197,6 +191,12 @@ def create_settings():
       'name': 'ignore_layer_modes',
       'default_value': False,
       'display_name': _("Ignore layer modes")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'autocrop',
+      'default_value': False,
+      'display_name': _("Autocrop")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
