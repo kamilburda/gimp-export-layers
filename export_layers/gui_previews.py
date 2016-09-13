@@ -531,7 +531,7 @@ class ExportNamePreview(ExportPreview):
         self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0], sensitive)
   
   def _set_parent_item_elems_sensitive(self, item_elem):
-    for parent_elem in reversed(item_elem.parents):
+    for parent_elem in reversed(list(item_elem.parents)):
       parent_sensitive = any(
         self._get_item_elem_sensitive(child_elem) for child_elem in parent_elem.children
         if child_elem.item.ID in self._tree_iters)
