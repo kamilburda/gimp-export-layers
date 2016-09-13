@@ -198,7 +198,7 @@ class ItemTree(object):
     """
     
     if include_item_path:
-      for elem in item_elem.parents + [item_elem]:
+      for elem in list(item_elem.parents) + [item_elem]:
         parent = elem.parent
         
         if parent not in self._uniquified_itemtree:
@@ -233,7 +233,7 @@ class ItemTree(object):
     if not validated already or if `force_validation` is True.
     """
     
-    for elem in item_elem.parents + [item_elem]:
+    for elem in list(item_elem.parents) + [item_elem]:
       if elem not in self._validated_itemtree or force_validation:
         elem.name = pgpath.FilenameValidator.validate(elem.name)
         self._validated_itemtree.add(elem)
@@ -584,11 +584,14 @@ class _ItemTreeElement(object):
   
   @property
   def parents(self):
-    return self._parents
+    return iter(self._parents)
   
   @property
   def children(self):
-    return self._children
+    if self._children is not None:
+      return iter(self._children)
+    else:
+      return None
   
   @property
   def orig_name(self):
