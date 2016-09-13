@@ -597,6 +597,8 @@ class LayerExporter(object):
     if pygimplib.config.DEBUG_IMAGE_PROCESSING:
       pdb.gimp_display_delete(self._display_id)
     
+    self._copy_non_modifying_parasites(self._image_copy, self.image)
+    
     pdb.gimp_image_undo_thaw(self._image_copy)
     if (not self._keep_exported_layers or self._use_another_image_copy) or exception_occurred:
       pdb.gimp_image_delete(self._image_copy)
@@ -610,6 +612,16 @@ class LayerExporter(object):
         pdb.gimp_item_delete(tagged_layer_copy)
     
     pdb.gimp_context_pop()
+  
+  def _copy_non_modifying_parasites(self, src_image, dest_image):
+    for parasite_name in src_image.parasite_list():
+      if dest_image.parasite_find(parasite_name) is None:
+        parasite = src_image.parasite_find(parasite_name)
+        # Don't attach persistent or undoable parasites to avoid modifying `dest_image`.
+        if parasite.flags == 0:
+          dest_image.parasite_attach(parasite)
+    
+          print(dest_image.parasite_list())
   
   def _process_layer(self, layer_elem, image, layer):
     background_layer, self._tagged_layer_copies['background'] = self._insert_layer(
