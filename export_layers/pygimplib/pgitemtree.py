@@ -484,12 +484,15 @@ def get_file_extension(filename):
   return ""
 
 
-def set_file_extension(filename, file_extension):
+def set_file_extension(filename, file_extension, keep_extra_periods=False):
   """
   Set file extension in `filename` and return the new filename.
   
   To remove the file extension from `filename`, pass an empty string, None, or a
   period (".").
+  
+  If `keep_extra_periods` is True, do not remove duplicate periods before the
+  file extension.
   """
   
   filename_extension = get_file_extension(filename)
@@ -498,7 +501,7 @@ def set_file_extension(filename, file_extension):
     filename_without_extension = filename[0:len(filename) - len(filename_extension) - 1]
   else:
     filename_without_extension = filename
-    if filename_without_extension.endswith("."):
+    if filename_without_extension.endswith(".") and not keep_extra_periods:
       filename_without_extension = filename_without_extension.rstrip(".")
   
   if file_extension and file_extension.startswith("."):
@@ -637,15 +640,14 @@ class _ItemTreeElement(object):
     
     return get_file_extension(self.name)
   
-  def set_file_extension(self, file_extension):
+  def set_file_extension(self, file_extension, keep_extra_periods=False):
     """
     Set file extension in the `name` attribute.
     
-    To remove the file extension from `name`, pass an empty string, None, or a
-    period (".").
+    For more information, see the `pgitemtree.set_file_extension()` method.
     """
     
-    self.name = set_file_extension(self.name, file_extension)
+    self.name = set_file_extension(self.name, file_extension, keep_extra_periods)
   
   def get_base_name(self):
     """
