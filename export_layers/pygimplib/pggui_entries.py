@@ -149,7 +149,8 @@ class EntryPopup(object):
                assign_from_selected_row_func=None, assign_last_value_func=None,
                on_row_left_mouse_button_press_func=None, on_entry_left_mouse_button_press_func=None,
                on_entry_key_press_before_show_popup_func=None,
-               on_entry_key_press_func=None, on_entry_changed_show_popup_condition_func=None,
+               on_entry_key_press_func=None, on_entry_after_assign_by_key_press_func=None,
+               on_entry_changed_show_popup_condition_func=None,
                width=-1, height=200, max_num_visible_rows=8):
     self._entry = entry
     self._row_filter_func = row_filter_func
@@ -157,7 +158,7 @@ class EntryPopup(object):
     self._height = height
     self._max_num_visible_rows = max_num_visible_rows
     self._assign_from_selected_row_func = (
-      assign_from_selected_row_func if assign_from_selected_row_func is not None else lambda *args: None)
+      assign_from_selected_row_func if assign_from_selected_row_func is not None else lambda *args: (None, None))
     self._assign_last_value_func = (
       assign_last_value_func if assign_last_value_func is not None else self._entry.assign_text)
     self._on_row_left_mouse_button_press_func = (
@@ -172,6 +173,9 @@ class EntryPopup(object):
     self._on_entry_key_press_func = (
       on_entry_key_press_func if on_entry_key_press_func is not None else
       lambda key_name, tree_path, stop_event_propagation: stop_event_propagation)
+    self._on_entry_after_assign_by_key_press_func = (
+      on_entry_after_assign_by_key_press_func
+      if on_entry_after_assign_by_key_press_func is not None else lambda *args: None)
     self._on_entry_changed_show_popup_condition_func = (
       on_entry_changed_show_popup_condition_func if on_entry_changed_show_popup_condition_func is not None else
       lambda *args: True
@@ -180,6 +184,8 @@ class EntryPopup(object):
     self.trigger_popup = True
     
     self._last_assigned_entry_text = ""
+    self._previous_assigned_entry_text_position = None
+    self._previous_assigned_entry_text = None
     
     self._show_popup_first_time = True
     
@@ -316,13 +322,13 @@ class EntryPopup(object):
   def assign_from_selected_row(self):
     tree_model, tree_iter = self._tree_view.get_selection().get_selected()
     if tree_iter is None:     # No row is selected
-      return
+      return None, None
     
-    self._assign_from_selected_row_func(tree_model, tree_iter)
+    return self._assign_from_selected_row_func(tree_model, tree_iter)
   
   def select_and_assign_row(self, row_num):
     self.select_row(row_num)
-    self.assign_from_selected_row()
+    return self.assign_from_selected_row()
   
   def select_and_assign_row_after_key_press(self, tree_path, next_row, next_row_if_no_current_selection,
                                             current_row_before_unselection, row_to_scroll_before_unselection=0):
@@ -336,7 +342,7 @@ class EntryPopup(object):
     """
     
     if tree_path is None:
-      self.select_and_assign_row(next_row_if_no_current_selection)
+      position, text = self.select_and_assign_row(next_row_if_no_current_selection)
     else:
       if callable(current_row_before_unselection):
         current_row_before_unselection = current_row_before_unselection(tree_path)
@@ -345,10 +351,17 @@ class EntryPopup(object):
         self._tree_view.scroll_to_cell((row_to_scroll_before_unselection,))
         self.unselect()
         self.assign_last_value()
+        
+        position, text = None, None
       else:
         if callable(next_row):
           next_row = next_row(tree_path)
-        self.select_and_assign_row(next_row)
+        position, text = self.select_and_assign_row(next_row)
+    
+    self._on_entry_after_assign_by_key_press_func(
+      self._previous_assigned_entry_text_position, self._previous_assigned_entry_text, position, text)
+    
+    self._previous_assigned_entry_text_position, self._previous_assigned_entry_text = position, text
   
   def save_last_value(self):
     self._last_assigned_entry_text = self._entry.get_text()
@@ -480,6 +493,8 @@ class EntryPopup(object):
     if self.trigger_popup:
       self.save_last_value()
       
+      self._previous_assigned_entry_text_position, self._previous_assigned_entry_text = None, None
+      
       if not self._on_entry_changed_show_popup_condition_func():
         self.hide()
         return
@@ -584,6 +599,8 @@ class EntryUndoContext(object):
   
   _ActionData = collections.namedtuple("_ActionData", ["action_type", "position", "text"])
   
+  _ACTION_TYPES = ["insert", "delete"]
+  
   def __init__(self, entry):
     self._entry = entry
     
@@ -624,6 +641,42 @@ class EntryUndoContext(object):
       action_handlers_get_cursor_position={
         "insert": lambda last_action_data: last_action_data.position + len(last_action_data.text),
         "delete": lambda last_action_data: last_action_data.position})
+  
+  def undo_push(self, undo_push_list):
+    """
+    Manually add changes to the undo history. The changes are treated as one
+    undo group (i.e. a single `undo()` call will undo all specified changes at
+    once).
+    
+    If there are pending changes not yet added to the undo history, they are
+    added first (as a separate undo group), and then the changes specified in
+    this method.
+    
+    Calling this method completely removes the redo history.
+    
+    Parameters:
+    
+    * `undo_push_list` - List of `(action_type, position, text)` tuples to add
+      as one undo action. `action_type` can be "insert" for text insertion or
+      "delete" for text deletion (other values raise `ValueError`). `position`
+      is the starting entry cursor position of the changed text. `text` is the
+      changed text.
+    
+    Raises:
+    
+    * `ValueError` - invalid `action_type`.
+    """
+    
+    self._redo_stack = []
+    
+    self._undo_stack_push()
+    
+    for action_type, position, text in undo_push_list:
+      if action_type not in self._ACTION_TYPES:
+        raise ValueError("invalid action type '{0}'".format(action_type))
+      self._last_action_group.append(self._ActionData(action_type, position, text))
+    
+    self._undo_stack_push()
   
   def can_undo(self):
     return bool(self._undo_stack)
@@ -774,6 +827,11 @@ class ExtendedEntry(gtk.Entry):
       return b""
   
   def _do_assign_text(self, text, enable_undo=False):
+    """
+    Use this method to set text instead of `assign_text` if it is not desired to
+    handle placeholder text assignment.
+    """
+    
     if self._popup is not None:
       self._popup.trigger_popup = False
     if not enable_undo:
@@ -876,7 +934,8 @@ class FilenamePatternEntry(ExtendedEntry):
       assign_last_value_func=self._assign_last_value,
       on_row_left_mouse_button_press_func=self._on_row_left_mouse_button_press,
       on_entry_changed_show_popup_condition_func=self._on_entry_changed_condition,
-      on_entry_key_press_func=self._on_entry_key_press)
+      on_entry_key_press_func=self._on_entry_key_press,
+      on_entry_after_assign_by_key_press_func=self._on_entry_after_assign_by_key_press)
     
     self._create_field_tooltip()
     
@@ -938,6 +997,8 @@ class FilenamePatternEntry(ExtendedEntry):
     self.set_position(cursor_position + len(suggested_item))
     self._cursor_position = self.get_position()
     self._cursor_position_before_assigning_from_row = cursor_position
+    
+    return cursor_position, suggested_item
   
   def _update_entry_width(self):
     self._pango_layout.set_text(self.get_text())
@@ -962,7 +1023,29 @@ class FilenamePatternEntry(ExtendedEntry):
   
   def _on_row_left_mouse_button_press(self):
     self._cursor_position_before_assigning_from_row = None
-    self._popup.assign_from_selected_row()
+    
+    position, text = self._popup.assign_from_selected_row()
+    if position is not None and text:
+      self.undo_context.undo_push([("insert", position, text)])
+  
+  def _on_entry_key_press(self, key_name, tree_path, stop_event_propagation):
+    if key_name in ["Return", "KP_Enter", "Escape"]:
+      self._hide_field_tooltip()
+      self._cursor_position_before_assigning_from_row = None
+    
+    return stop_event_propagation
+  
+  def _on_entry_after_assign_by_key_press(self, previous_position, previous_text, position, text):
+    undo_push_list = []
+    
+    if previous_text:
+      undo_push_list.append(("delete", previous_position, previous_text))
+    
+    if position is not None and text:
+      undo_push_list.append(("insert", position, text))
+    
+    if undo_push_list:
+      self.undo_context.undo_push(undo_push_list)
   
   def _on_entry_delete_text(self, entry, start, end):
     self._cursor_position = start
@@ -1080,13 +1163,6 @@ class FilenamePatternEntry(ExtendedEntry):
     
     return suggested_fields
   
-  def _on_entry_key_press(self, key_name, tree_path, stop_event_propagation):
-    if key_name in ["Return", "KP_Enter", "Escape"]:
-      self._hide_field_tooltip()
-      self._cursor_position_before_assigning_from_row = None
-    
-    return stop_event_propagation
-  
 
 #===============================================================================
 
@@ -1117,7 +1193,8 @@ class FileExtensionEntry(ExtendedEntry):
       assign_last_value_func=self._do_assign_text,
       on_row_left_mouse_button_press_func=self._on_row_left_mouse_button_press,
       on_entry_key_press_before_show_popup_func=self._on_key_press_before_show_popup,
-      on_entry_key_press_func=self._on_tab_keys_pressed)
+      on_entry_key_press_func=self._on_tab_keys_pressed,
+      on_entry_after_assign_by_key_press_func=self._on_entry_after_assign_by_key_press)
     
     self._add_columns()
     
@@ -1125,15 +1202,20 @@ class FileExtensionEntry(ExtendedEntry):
     self._popup.tree_view.connect_after("realize", self._on_after_tree_view_realize)
     self._popup.tree_view.get_selection().connect("changed", self._on_tree_selection_changed)
   
-  def _do_assign_text(self, *args):
-    super(FileExtensionEntry, self)._do_assign_text(*args)
+  def _do_assign_text(self, *args, **kwargs):
+    super(FileExtensionEntry, self)._do_assign_text(*args, **kwargs)
     self.set_position(-1)
   
   def _on_row_left_mouse_button_press(self):
+    previous_position, previous_text = 0, self.get_text()
+    
     if self._highlighted_extension_index is None:
-      self._popup.assign_from_selected_row()
+      position, text = self._popup.assign_from_selected_row()
     else:
       self._do_assign_text(self._highlighted_extension)
+      position, text = 0, self._highlighted_extension
+    
+    self._undo_push(previous_position, previous_text, position, text)
   
   def _on_key_press_before_show_popup(self):
     self._unhighlight_extension()
@@ -1150,17 +1232,26 @@ class FileExtensionEntry(ExtendedEntry):
         elif key_name == "ISO_Left_Tab":    # Shift + Tab
           self._highlight_extension_previous(selected_tree_path)
         
+        previous_position, previous_text = 0, self.get_text()
+        
         self._do_assign_text(self._highlighted_extension)
+        
+        self._on_entry_after_assign_by_key_press(previous_position, previous_text, 0, self._highlighted_extension)
         
         return True
     
     return stop_event_propagation
+  
+  def _on_entry_after_assign_by_key_press(self, previous_position, previous_text, position, text):
+    self._undo_push(previous_position, previous_text, position, text)
   
   def _assign_from_selected_row(self, tree_model, selected_tree_iter, extension_index=0):
     extensions = tree_model[selected_tree_iter][self._COLUMN_EXTENSIONS]
     if extension_index > len(extensions):
       extension_index = len(extensions) - 1
     self._do_assign_text(extensions[extension_index])
+    
+    return 0, extensions[extension_index]
   
   def _filter_file_formats(self, file_formats, row_iter):
     return self._entry_text_matches_row(self._get_text_decoded(), file_formats, row_iter)
@@ -1177,6 +1268,18 @@ class FileExtensionEntry(ExtendedEntry):
       return any(entry_text.lower() == extension.lower() for extension in extensions)
     else:
       return any(entry_text.lower() in extension.lower() for extension in extensions)
+  
+  def _undo_push(self, previous_position, previous_text, position, text):
+    undo_push_list = []
+    
+    if previous_text:
+      undo_push_list.append(("delete", previous_position, previous_text))
+    
+    if position is not None and text:
+      undo_push_list.append(("insert", position, text))
+    
+    if undo_push_list:
+      self.undo_context.undo_push(undo_push_list)
   
   def _on_tree_view_motion_notify_event(self, tree_view, event):
     self._highlight_extension_at_pos(int(event.x), int(event.y))
