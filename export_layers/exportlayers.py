@@ -620,8 +620,6 @@ class LayerExporter(object):
         # Don't attach persistent or undoable parasites to avoid modifying `dest_image`.
         if parasite.flags == 0:
           dest_image.parasite_attach(parasite)
-    
-          print(dest_image.parasite_list())
   
   def _process_layer(self, layer_elem, image, layer):
     background_layer, self._tagged_layer_copies['background'] = self._insert_layer(
