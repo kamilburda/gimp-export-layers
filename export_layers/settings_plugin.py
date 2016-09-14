@@ -102,9 +102,9 @@ def create_settings():
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'ignore_invisible',
+      'name': 'only_visible_layers',
       'default_value': False,
-      'display_name': _("Ignore invisible layers")
+      'display_name': _("Only visible layers")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
@@ -221,21 +221,21 @@ def create_settings():
   more_filters_settings = pgsettinggroup.SettingGroup('more_filters', [
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'export_only_layers_matching_file_extension',
+      'name': 'only_layers_matching_file_extension',
       'default_value': False,
-      'display_name': _("Export only layers matching file extension")
+      'display_name': _("Only layers matching file extension")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'ignore_tagged_layers',
+      'name': 'only_non_tagged_layers',
       'default_value': False,
-      'display_name': _("Ignore tagged layers")
+      'display_name': _("Only non-tagged layers")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'ignore_non_tagged_layers',
+      'name': 'only_tagged_layers',
       'default_value': False,
-      'display_name': _("Ignore non-tagged layers")
+      'display_name': _("Only tagged layers")
     },
   ], pdb_type=None, setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
   

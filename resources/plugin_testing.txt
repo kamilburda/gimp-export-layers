@@ -113,7 +113,7 @@ Merge layer groups
 
 Create folders for empty layer groups
 
-Ignore invisible
+Only visible layers
 * visible layers with invisible parents must also be ignored
 
 Autocrop

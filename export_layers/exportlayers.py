@@ -513,13 +513,13 @@ class LayerExporter(object):
       self._layer_tree.filter.add_rule(LayerFilterRules.is_top_level)
       self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
     
-    if self.export_settings['ignore_invisible'].value:
+    if self.export_settings['only_visible_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.is_path_visible)
     
     if self.export_settings['more_operations/create_folders_for_empty_groups'].value:
       self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
-    if self.export_settings['more_filters/export_only_layers_matching_file_extension'].value:
+    if self.export_settings['more_filters/only_layers_matching_file_extension'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_matching_file_extension, self._default_file_extension)
     
     if self.export_settings['process_tagged_layers'].value:
@@ -531,10 +531,10 @@ class LayerExporter(object):
       
       self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags, *self.SUPPORTED_TAGS.keys())
     
-    if self.export_settings['more_filters/ignore_tagged_layers'].value:
+    if self.export_settings['more_filters/only_non_tagged_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags)
     
-    if self.export_settings['more_filters/ignore_non_tagged_layers'].value:
+    if self.export_settings['more_filters/only_tagged_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_tags)
     
     if self.export_settings['export_only_selected_layers'].value:

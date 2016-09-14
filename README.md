@@ -97,7 +97,7 @@ If enabled, layers will be exported to subfolders corresponding to the layer gro
 If disabled, all layers will be exported to the output folder on the same level
 and no subfolders will be created.
 
-**Ignore invisible layers**
+**Only visible layers**
 
 If enabled, invisible layers will not be exported. Visible layers within
 invisible layer groups will also not be exported.
