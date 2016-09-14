@@ -52,9 +52,9 @@ def create_test_settings():
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'ignore_invisible',
+      'name': 'only_visible_layers',
       'default_value': False,
-      'display_name': "Ignore invisible",
+      'display_name': "Only visible layers",
       'setting_sources': [object()]
     },
     {
@@ -90,9 +90,9 @@ def create_test_settings_hierarchical():
   advanced_settings = pgsettinggroup.SettingGroup('advanced', [
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'ignore_invisible',
+      'name': 'only_visible_layers',
       'default_value': False,
-      'display_name': "Ignore invisible",
+      'display_name': "Only visible layers",
     },
     {
       'type': pgsetting.SettingTypes.enumerated,
@@ -124,7 +124,7 @@ def create_test_settings_load_save():
   advanced_settings = pgsettinggroup.SettingGroup('advanced', [
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'ignore_invisible',
+      'name': 'only_visible_layers',
       'default_value': False,
       'setting_sources': [dummy_persistent_source, dummy_session_source]
     },
@@ -157,7 +157,7 @@ class TestSettingGroupCreation(unittest.TestCase):
     settings = pgsettinggroup.SettingGroup('main', [
       {
        'type': pgsetting.SettingTypes.boolean,
-       'name': 'ignore_invisible',
+       'name': 'only_visible_layers',
        'default_value': False,
       },
       special_settings,
@@ -227,7 +227,7 @@ class TestSettingGroupCreation(unittest.TestCase):
     special_settings = pgsettinggroup.SettingGroup('special', [
       {
        'type': pgsetting.SettingTypes.boolean,
-       'name': 'ignore_invisible',
+       'name': 'only_visible_layers',
        'default_value': False,
       }
     ])
@@ -235,22 +235,22 @@ class TestSettingGroupCreation(unittest.TestCase):
     main_settings = pgsettinggroup.SettingGroup('main', [
       {
        'type': pgsetting.SettingTypes.boolean,
-       'name': 'ignore_invisible',
+       'name': 'only_visible_layers',
        'default_value': True,
       }
     ])
     
     settings = pgsettinggroup.SettingGroup('all', [special_settings, main_settings])
-    self.assertIn('ignore_invisible', special_settings)
-    self.assertIn('ignore_invisible', main_settings)
-    self.assertFalse(settings['special']['ignore_invisible'].value)
-    self.assertTrue(settings['main']['ignore_invisible'].value)
+    self.assertIn('only_visible_layers', special_settings)
+    self.assertIn('only_visible_layers', main_settings)
+    self.assertFalse(settings['special']['only_visible_layers'].value)
+    self.assertTrue(settings['main']['only_visible_layers'].value)
   
   def test_group_level_attributes(self):
     settings = pgsettinggroup.SettingGroup('main', [
       {
        'type': pgsetting.SettingTypes.boolean,
-       'name': 'ignore_invisible',
+       'name': 'only_visible_layers',
        'default_value': False,
       },
       {
@@ -260,14 +260,14 @@ class TestSettingGroupCreation(unittest.TestCase):
       }
     ], pdb_type=None)
     
-    self.assertEqual(settings['ignore_invisible'].pdb_type, None)
+    self.assertEqual(settings['only_visible_layers'].pdb_type, None)
     self.assertEqual(settings['autocrop'].pdb_type, None)
   
   def test_group_level_attributes_overridden_by_setting_attributes(self):
     settings = pgsettinggroup.SettingGroup('main', [
       {
        'type': pgsetting.SettingTypes.boolean,
-       'name': 'ignore_invisible',
+       'name': 'only_visible_layers',
        'default_value': False,
       },
       {
@@ -278,14 +278,14 @@ class TestSettingGroupCreation(unittest.TestCase):
       }
     ], pdb_type=None)
     
-    self.assertEqual(settings['ignore_invisible'].pdb_type, None)
+    self.assertEqual(settings['only_visible_layers'].pdb_type, None)
     self.assertEqual(settings['autocrop'].pdb_type, pgsetting.SettingPdbTypes.int16)
   
   def test_group_level_attributes_overridden_by_subgroup_attributes(self):
     settings = pgsettinggroup.SettingGroup('main', [
       {
        'type': pgsetting.SettingTypes.boolean,
-       'name': 'ignore_invisible',
+       'name': 'only_visible_layers',
        'default_value': False,
       },
       pgsettinggroup.SettingGroup('additional', [
@@ -297,9 +297,9 @@ class TestSettingGroupCreation(unittest.TestCase):
       ], pdb_type=pgsetting.SettingPdbTypes.int16),
     ], pdb_type=None, display_name="Setting name")
     
-    self.assertEqual(settings['ignore_invisible'].pdb_type, None)
+    self.assertEqual(settings['only_visible_layers'].pdb_type, None)
     self.assertEqual(settings['additional/autocrop'].pdb_type, pgsetting.SettingPdbTypes.int16)
-    self.assertEqual(settings['ignore_invisible'].display_name, "Setting name")
+    self.assertEqual(settings['only_visible_layers'].display_name, "Setting name")
     self.assertEqual(settings['additional/autocrop'].display_name, "Autocrop")
 
 
@@ -350,9 +350,9 @@ class TestSettingGroup(unittest.TestCase):
       self.settings.add([self.special_settings])
   
   def test_remove_settings(self):
-    self.settings.remove(['file_extension', 'ignore_invisible'])
+    self.settings.remove(['file_extension', 'only_visible_layers'])
     self.assertNotIn('file_extension', self.settings)
-    self.assertNotIn('ignore_invisible', self.settings)
+    self.assertNotIn('only_visible_layers', self.settings)
     self.assertIn('overwrite_mode', self.settings)
   
   def test_remove_settings_nested_group(self):
@@ -377,7 +377,7 @@ class TestSettingGroup(unittest.TestCase):
     self.settings.add([self.special_settings])
     
     self.settings['file_extension'].set_value("gif")
-    self.settings['ignore_invisible'].set_value(True)
+    self.settings['only_visible_layers'].set_value(True)
     self.settings['overwrite_mode'].set_item('skip')
     self.settings['special']['first_plugin_run'].set_value(True)
     
@@ -386,7 +386,7 @@ class TestSettingGroup(unittest.TestCase):
     # `reset()` ignores 'file_extension' and 'overwrite_mode'
     self.assertEqual(self.settings['file_extension'].value, "gif")
     self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].items['skip'])
-    self.assertEqual(self.settings['ignore_invisible'].value, self.settings['ignore_invisible'].default_value)
+    self.assertEqual(self.settings['only_visible_layers'].value, self.settings['only_visible_layers'].default_value)
     self.assertEqual(self.settings['special']['first_plugin_run'].value,
                      self.settings['special']['first_plugin_run'].default_value)
   
@@ -408,7 +408,7 @@ class TestSettingGroupHierarchical(unittest.TestCase):
   
   def test_get_settings_via_paths(self):
     self.assertEqual(self.settings['main/file_extension'], self.settings['main']['file_extension'])
-    self.assertEqual(self.settings['advanced/ignore_invisible'], self.settings['advanced']['ignore_invisible'])
+    self.assertEqual(self.settings['advanced/only_visible_layers'], self.settings['advanced']['only_visible_layers'])
     self.assertEqual(self.settings['advanced/overwrite_mode'], self.settings['advanced']['overwrite_mode'])
     
     self.settings['advanced'].add([
@@ -446,7 +446,7 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     iterated_settings = list(self.settings.iterate_all())
     
     self.assertIn(self.settings['main']['file_extension'], iterated_settings)
-    self.assertIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
     self.assertIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
   
   def test_iterate_all_with_ignore_tag_for_settings(self):
@@ -460,7 +460,7 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     iterated_settings = list(self.settings.iterate_all(['reset']))
     
     self.assertNotIn(self.settings['main']['file_extension'], iterated_settings)
-    self.assertIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
   
   def test_iterate_all_with_ignore_tag_for_groups(self):
@@ -471,12 +471,12 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     iterated_settings = list(self.settings.iterate_all(['apply_gui_values_to_settings']))
     
     self.assertIn(self.settings['main']['file_extension'], iterated_settings)
-    self.assertNotIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertNotIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
   
   def test_iterate_all_with_ignore_tag_multiple_times(self):
     self.settings['advanced'].set_ignore_tags({
-      'ignore_invisible': ['apply_gui_values_to_settings']
+      'only_visible_layers': ['apply_gui_values_to_settings']
     })
     self.settings['advanced'].set_ignore_tags({
       'overwrite_mode': ['apply_gui_values_to_settings']
@@ -485,7 +485,7 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     iterated_settings = list(self.settings.iterate_all(['apply_gui_values_to_settings']))
     
     self.assertIn(self.settings['main']['file_extension'], iterated_settings)
-    self.assertNotIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertNotIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
   
   def test_iterate_all_with_ignore_tag_for_settings_with_paths(self):
@@ -497,7 +497,7 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     iterated_settings = list(self.settings.iterate_all(['reset']))
     
     self.assertNotIn(self.settings['main']['file_extension'], iterated_settings)
-    self.assertIn(self.settings['advanced']['ignore_invisible'], iterated_settings)
+    self.assertIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
   
   def test_iterate_all_set_unset_ignore_tags(self):
@@ -560,23 +560,23 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     
     settings.load()
     self.assertEqual(mock_load.call_count, 1)
-    self.assertEqual([settings['ignore_invisible']], mock_load.call_args[0][0])
+    self.assertEqual([settings['only_visible_layers']], mock_load.call_args[0][0])
     
     settings.save()
     self.assertEqual(mock_save.call_count, 1)
-    self.assertEqual([settings['ignore_invisible']], mock_save.call_args[0][0])
+    self.assertEqual([settings['only_visible_layers']], mock_save.call_args[0][0])
   
   def test_load_save_setting_sources_in_group_and_in_settings(self, mock_load, mock_save):
     self.settings.load()
     self.assertEqual(mock_load.call_count, 3)
     self.assertEqual([self.settings['main/file_extension']], mock_load.call_args_list[0][0][0])
-    self.assertEqual([self.settings['advanced/ignore_invisible']], mock_load.call_args_list[1][0][0])
+    self.assertEqual([self.settings['advanced/only_visible_layers']], mock_load.call_args_list[1][0][0])
     self.assertEqual([self.settings['advanced/autocrop']], mock_load.call_args_list[2][0][0])
     
     self.settings.save()
     self.assertEqual(mock_save.call_count, 3)
     self.assertEqual([self.settings['main/file_extension']], mock_save.call_args_list[0][0][0])
-    self.assertEqual([self.settings['advanced/ignore_invisible']], mock_save.call_args_list[1][0][0])
+    self.assertEqual([self.settings['advanced/only_visible_layers']], mock_save.call_args_list[1][0][0])
     self.assertEqual([self.settings['advanced/autocrop']], mock_save.call_args_list[2][0][0])
   
   def test_load_save_return_statuses(self, mock_load, mock_save):
@@ -624,7 +624,7 @@ class TestSettingGroupGui(unittest.TestCase):
       },
       {
         'type': SettingWithGuiStub,
-        'name': 'ignore_invisible',
+        'name': 'only_visible_layers',
         'default_value': False,
       },
     ])
@@ -634,8 +634,8 @@ class TestSettingGroupGui(unittest.TestCase):
     
     self.assertIs(type(self.settings['file_extension'].gui), CheckboxPresenterStub)
     self.assertIs(type(self.settings['file_extension'].gui.element), CheckboxStub)
-    self.assertIs(type(self.settings['ignore_invisible'].gui), CheckboxPresenterStub)
-    self.assertIs(type(self.settings['ignore_invisible'].gui.element), CheckboxStub)
+    self.assertIs(type(self.settings['only_visible_layers'].gui), CheckboxPresenterStub)
+    self.assertIs(type(self.settings['only_visible_layers'].gui.element), CheckboxStub)
   
   def test_initialize_gui_with_custom_gui(self):
     file_extension_widget = GuiWidgetStub("png")
@@ -648,22 +648,22 @@ class TestSettingGroupGui(unittest.TestCase):
     self.assertIs(type(self.settings['file_extension'].gui.element), GuiWidgetStub)
     # It's "bmp", not "png", since the setting value overrides the initial GUI element value.
     self.assertEqual(file_extension_widget.value, "bmp")
-    self.assertIs(type(self.settings['ignore_invisible'].gui), CheckboxPresenterStub)
-    self.assertIs(type(self.settings['ignore_invisible'].gui.element), CheckboxStub)
+    self.assertIs(type(self.settings['only_visible_layers'].gui), CheckboxPresenterStub)
+    self.assertIs(type(self.settings['only_visible_layers'].gui.element), CheckboxStub)
   
   def test_apply_gui_values_to_settings_ignores_specified_settings(self):
     file_extension_widget = GuiWidgetStub(None)
-    ignore_invisible_widget = GuiWidgetStub(None)
+    only_visible_layers_widget = GuiWidgetStub(None)
     self.settings['file_extension'].set_gui(SettingPresenterStub, file_extension_widget)
-    self.settings['ignore_invisible'].set_gui(SettingPresenterStub, ignore_invisible_widget)
+    self.settings['only_visible_layers'].set_gui(SettingPresenterStub, only_visible_layers_widget)
     
     file_extension_widget.set_value("gif")
-    ignore_invisible_widget.set_value(True)
+    only_visible_layers_widget.set_value(True)
     
     self.settings.apply_gui_values_to_settings()
     
     self.assertEqual(self.settings['file_extension'].value, "gif")
-    self.assertEqual(self.settings['ignore_invisible'].value, True)
+    self.assertEqual(self.settings['only_visible_layers'].value, True)
     
 
 #===============================================================================
@@ -711,7 +711,7 @@ class TestPdbParamCreator(unittest.TestCase):
   def test_list_param_values(self):
     param_values = pgsettinggroup.PdbParamCreator.list_param_values([self.settings])
     self.assertEqual(param_values[0], self.settings['main']['file_extension'].value)
-    self.assertEqual(param_values[1], self.settings['advanced']['ignore_invisible'].value)
+    self.assertEqual(param_values[1], self.settings['advanced']['only_visible_layers'].value)
     self.assertEqual(param_values[2], self.settings['advanced']['overwrite_mode'].value)
 
   def test_list_param_values_ignore_run_mode(self):

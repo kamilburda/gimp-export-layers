@@ -155,13 +155,13 @@ class SettingWithGuiStub(SettingStub):
     SettingPresenterWithoutGuiElementCreationStub]
 
 
-def on_file_extension_changed(file_extension, ignore_invisible):
+def on_file_extension_changed(file_extension, only_visible_layers):
   if file_extension.value == "png":
-    ignore_invisible.set_value(False)
-    ignore_invisible.gui.set_enabled(True)
+    only_visible_layers.set_value(False)
+    only_visible_layers.gui.set_enabled(True)
   else:
-    ignore_invisible.set_value(True)
-    ignore_invisible.gui.set_enabled(False)
+    only_visible_layers.set_value(True)
+    only_visible_layers.gui.set_enabled(False)
 
 
 def on_file_extension_changed_with_autocrop(file_extension, autocrop):
@@ -324,7 +324,7 @@ class TestSettingEvents(unittest.TestCase):
   
   def setUp(self):
     self.setting = SettingStub('file_extension', "png")
-    self.ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
+    self.only_visible_layers = pgsetting.BoolSetting('only_visible_layers', False)
 
   def test_connect_event_argument_is_not_callable(self):
     with self.assertRaises(TypeError):
@@ -338,14 +338,14 @@ class TestSettingEvents(unittest.TestCase):
     self.assertEqual(self.setting.value, "tiff")
   
   def test_connect_value_changed_event(self):
-    self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
+    self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
     
     self.setting.set_value("jpg")
-    self.assertEqual(self.ignore_invisible.value, True)
-    self.assertEqual(self.ignore_invisible.gui.get_enabled(), False)
+    self.assertEqual(self.only_visible_layers.value, True)
+    self.assertEqual(self.only_visible_layers.gui.get_enabled(), False)
   
   def test_connect_value_changed_event_nested(self):
-    self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
+    self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
     
     autocrop = pgsetting.BoolSetting('autocrop', False)
     autocrop.connect_event('value-changed', on_autocrop_changed, self.setting)
@@ -353,30 +353,30 @@ class TestSettingEvents(unittest.TestCase):
     autocrop.set_value(True)
     
     self.assertEqual(self.setting.value, "jpg")
-    self.assertEqual(self.ignore_invisible.value, True)
-    self.assertEqual(self.ignore_invisible.gui.get_enabled(), False)
+    self.assertEqual(self.only_visible_layers.value, True)
+    self.assertEqual(self.only_visible_layers.gui.get_enabled(), False)
   
   def test_connect_event_multiple_events_on_single_setting(self):
-    self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
+    self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
     
     autocrop = pgsetting.BoolSetting('autocrop', False)
     self.setting.connect_event('value-changed', on_file_extension_changed_with_autocrop, autocrop)
     
     self.setting.set_value("jpg")
     self.assertEqual(self.setting.value, "jpg")
-    self.assertEqual(self.ignore_invisible.value, True)
+    self.assertEqual(self.only_visible_layers.value, True)
     self.assertEqual(autocrop.gui.get_visible(), False)
   
   def test_remove_event(self):
-    event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
+    event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
     self.setting.remove_event(event_id)
     
     self.setting.set_value("jpg")
-    self.assertEqual(self.ignore_invisible.value, self.ignore_invisible.default_value)
-    self.assertEqual(self.ignore_invisible.gui.get_enabled(), True)
+    self.assertEqual(self.only_visible_layers.value, self.only_visible_layers.default_value)
+    self.assertEqual(self.only_visible_layers.gui.get_enabled(), True)
   
   def test_remove_event_with_id_non_last_event(self):
-    event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
+    event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
     
     autocrop = pgsetting.BoolSetting('autocrop', False)
     self.setting.connect_event('value-changed', on_file_extension_changed_with_autocrop, autocrop)
@@ -384,17 +384,17 @@ class TestSettingEvents(unittest.TestCase):
     self.setting.remove_event(event_id)
     
     self.setting.set_value("jpg")
-    self.assertEqual(self.ignore_invisible.value, False)
+    self.assertEqual(self.only_visible_layers.value, False)
     self.assertEqual(autocrop.gui.get_visible(), False)
   
   def test_remove_event_invalid_id(self):
-    self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
+    self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
     with self.assertRaises(ValueError):
       self.setting.remove_event(-1)
   
   def test_has_event(self):
     self.assertEqual(self.setting.has_event(-1), False)
-    event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
+    event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
     self.assertEqual(self.setting.has_event(event_id), True)
     self.setting.remove_event(event_id)
     self.assertEqual(self.setting.has_event(event_id), False)
@@ -403,31 +403,31 @@ class TestSettingEvents(unittest.TestCase):
     with self.assertRaises(ValueError):
       self.setting.set_event_enabled(-1, False)
     
-    event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
+    event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
     
     self.setting.set_event_enabled(event_id, False)
     self.setting.set_value("jpg")
-    self.assertEqual(self.ignore_invisible.value, False)
+    self.assertEqual(self.only_visible_layers.value, False)
     
     self.setting.set_event_enabled(event_id, True)
     self.setting.set_value("jpg")
-    self.assertEqual(self.ignore_invisible.value, True)
+    self.assertEqual(self.only_visible_layers.value, True)
   
   def test_invoke_event(self):
-    self.ignore_invisible.set_value(True)
-    self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
+    self.only_visible_layers.set_value(True)
+    self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
     
     self.setting.invoke_event('value-changed')
     self.assertEqual(self.setting.value, "png")
-    self.assertEqual(self.ignore_invisible.value, False)
+    self.assertEqual(self.only_visible_layers.value, False)
   
   def test_reset_triggers_value_changed_event(self):
-    self.setting.connect_event('value-changed', on_file_extension_changed, self.ignore_invisible)
+    self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
     
     self.setting.set_value("jpg")
     self.setting.reset()
-    self.assertEqual(self.ignore_invisible.value, self.ignore_invisible.default_value)
-    self.assertEqual(self.ignore_invisible.gui.get_enabled(), True)
+    self.assertEqual(self.only_visible_layers.value, self.only_visible_layers.default_value)
+    self.assertEqual(self.only_visible_layers.gui.get_enabled(), True)
 
 
 @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new_callable=gimpstubs.ShelfStub)
@@ -436,89 +436,89 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
   @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new=gimpstubs.ShelfStub())
   def setUp(self):
     self.setting = SettingWithGuiStub('file_extension', "png")
-    self.ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
+    self.only_visible_layers = pgsetting.BoolSetting('only_visible_layers', False)
     self.session_source = pgsettingsources.SessionPersistentSettingSource('')
   
   def test_before_load_event(self, mock_session_source):
-    pgsettingpersistor.SettingPersistor.save([self.setting, self.ignore_invisible], [self.session_source])
+    pgsettingpersistor.SettingPersistor.save([self.setting, self.only_visible_layers], [self.session_source])
     self.setting.set_value("gif")
     
-    self.setting.connect_event('before-load', on_file_extension_changed, self.ignore_invisible)
+    self.setting.connect_event('before-load', on_file_extension_changed, self.only_visible_layers)
     pgsettingpersistor.SettingPersistor.load([self.setting], [self.session_source])
     
     self.assertEqual(self.setting.value, "png")
-    self.assertEqual(self.ignore_invisible.value, True)
+    self.assertEqual(self.only_visible_layers.value, True)
   
   def test_after_load_event(self, mock_session_source):
-    self.ignore_invisible.set_value(True)
-    pgsettingpersistor.SettingPersistor.save([self.setting, self.ignore_invisible], [self.session_source])
+    self.only_visible_layers.set_value(True)
+    pgsettingpersistor.SettingPersistor.save([self.setting, self.only_visible_layers], [self.session_source])
     
-    self.setting.connect_event('after-load', on_file_extension_changed, self.ignore_invisible)
+    self.setting.connect_event('after-load', on_file_extension_changed, self.only_visible_layers)
     pgsettingpersistor.SettingPersistor.load([self.setting], [self.session_source])
     
     self.assertEqual(self.setting.value, "png")
-    self.assertEqual(self.ignore_invisible.value, False)
+    self.assertEqual(self.only_visible_layers.value, False)
   
   def test_after_load_event_not_all_settings_found_invoke_for_all_settings(self, mock_session_source):
     self.setting.set_value("gif")
     pgsettingpersistor.SettingPersistor.save([self.setting], [self.session_source])
     
-    self.setting.connect_event('after-load', on_file_extension_changed, self.ignore_invisible)
-    pgsettingpersistor.SettingPersistor.load([self.setting, self.ignore_invisible], [self.session_source])
+    self.setting.connect_event('after-load', on_file_extension_changed, self.only_visible_layers)
+    pgsettingpersistor.SettingPersistor.load([self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
-    self.assertEqual(self.ignore_invisible.value, True)
+    self.assertEqual(self.only_visible_layers.value, True)
   
   def test_after_load_event_read_fail(self, mock_session_source):
-    self.ignore_invisible.set_value(True)
-    pgsettingpersistor.SettingPersistor.save([self.setting, self.ignore_invisible], [self.session_source])
+    self.only_visible_layers.set_value(True)
+    pgsettingpersistor.SettingPersistor.save([self.setting, self.only_visible_layers], [self.session_source])
     
-    self.setting.connect_event('after-load', on_file_extension_changed, self.ignore_invisible)
+    self.setting.connect_event('after-load', on_file_extension_changed, self.only_visible_layers)
     
     with mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf") as temp_mock_session_source:
       temp_mock_session_source.__getitem__.side_effect = pgsettingpersistor.SettingSourceReadError
       pgsettingpersistor.SettingPersistor.load([self.setting], [self.session_source])
     
     self.assertEqual(self.setting.value, "png")
-    self.assertEqual(self.ignore_invisible.value, True)
+    self.assertEqual(self.only_visible_layers.value, True)
   
   def test_before_save_event(self, mock_session_source):
     self.setting.set_value("gif")
     
-    self.setting.connect_event('before-save', on_file_extension_changed, self.ignore_invisible)
-    pgsettingpersistor.SettingPersistor.save([self.setting, self.ignore_invisible], [self.session_source])
+    self.setting.connect_event('before-save', on_file_extension_changed, self.only_visible_layers)
+    pgsettingpersistor.SettingPersistor.save([self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
-    self.assertEqual(self.ignore_invisible.value, True)
+    self.assertEqual(self.only_visible_layers.value, True)
     
-    pgsettingpersistor.SettingPersistor.load([self.setting, self.ignore_invisible], [self.session_source])
+    pgsettingpersistor.SettingPersistor.load([self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
-    self.assertEqual(self.ignore_invisible.value, True)
+    self.assertEqual(self.only_visible_layers.value, True)
   
   def test_after_save_event(self, mock_session_source):
     self.setting.set_value("gif")
     
-    self.setting.connect_event('after-save', on_file_extension_changed, self.ignore_invisible)
-    pgsettingpersistor.SettingPersistor.save([self.setting, self.ignore_invisible], [self.session_source])
+    self.setting.connect_event('after-save', on_file_extension_changed, self.only_visible_layers)
+    pgsettingpersistor.SettingPersistor.save([self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
-    self.assertEqual(self.ignore_invisible.value, True)
+    self.assertEqual(self.only_visible_layers.value, True)
     
-    pgsettingpersistor.SettingPersistor.load([self.setting, self.ignore_invisible], [self.session_source])
+    pgsettingpersistor.SettingPersistor.load([self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
-    self.assertEqual(self.ignore_invisible.value, False)
+    self.assertEqual(self.only_visible_layers.value, False)
   
   def test_after_save_event_write_fail(self, mock_session_source):
     self.setting.set_value("gif")
-    self.setting.connect_event('after-save', on_file_extension_changed, self.ignore_invisible)
+    self.setting.connect_event('after-save', on_file_extension_changed, self.only_visible_layers)
     
     with mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf") as temp_mock_session_source:
       temp_mock_session_source.__setitem__.side_effect = pgsettingpersistor.SettingSourceWriteError
       pgsettingpersistor.SettingPersistor.save([self.setting], [self.session_source])
     
-    self.assertEqual(self.ignore_invisible.value, False)
+    self.assertEqual(self.only_visible_layers.value, False)
   
   
 #===============================================================================
@@ -551,47 +551,47 @@ class TestSettingGui(unittest.TestCase):
     self.assertEqual(self.widget.value, "gif")
   
   def test_setting_gui_type(self):
-    setting = SettingWithGuiStub("ignore_invisible", False, gui_type=CheckboxPresenterStub)
+    setting = SettingWithGuiStub("only_visible_layers", False, gui_type=CheckboxPresenterStub)
     setting.set_gui()
     self.assertIs(type(setting.gui), CheckboxPresenterStub)
     self.assertIs(type(setting.gui.element), CheckboxStub)
   
   def test_setting_different_gui_type(self):
-    setting = SettingWithGuiStub("ignore_invisible", False, gui_type=SettingPresenterStub)
+    setting = SettingWithGuiStub("only_visible_layers", False, gui_type=SettingPresenterStub)
     setting.set_gui()
     self.assertIs(type(setting.gui), SettingPresenterStub)
     self.assertIs(type(setting.gui.element), GuiWidgetStub)
   
   def test_setting_invalid_gui_type_raise_error(self):
     with self.assertRaises(ValueError):
-      SettingWithGuiStub("ignore_invisible", False, gui_type=YesNoToggleButtonPresenterStub)
+      SettingWithGuiStub("only_visible_layers", False, gui_type=YesNoToggleButtonPresenterStub)
   
   def test_setting_null_gui_type(self):
     # For now, don't use None or `SettingGuiTypes.none` as it raises TypeError due to
     # `super()` failing on module reload. For further information, see:
     # https://thingspython.wordpress.com/2010/09/27/another-super-wrinkle-raising-typeerror/
-    setting = SettingWithGuiStub("ignore_invisible", False, gui_type=pgsettingpresenter.NullSettingPresenter)
+    setting = SettingWithGuiStub("only_visible_layers", False, gui_type=pgsettingpresenter.NullSettingPresenter)
     setting.set_gui()
     self.assertIs(type(setting.gui), pgsettingpresenter.NullSettingPresenter)
   
   def test_set_gui_gui_type_is_specified_gui_element_is_none_raise_error(self):
-    setting = SettingWithGuiStub("ignore_invisible", False)
+    setting = SettingWithGuiStub("only_visible_layers", False)
     with self.assertRaises(ValueError):
       setting.set_gui(gui_type=CheckboxPresenterStub)
   
   def test_set_gui_gui_type_is_none_gui_element_is_specified_raise_error(self):
-    setting = SettingWithGuiStub("ignore_invisible", False)
+    setting = SettingWithGuiStub("only_visible_layers", False)
     with self.assertRaises(ValueError):
       setting.set_gui(gui_element=GuiWidgetStub)
   
   def test_set_gui_manual_gui_type(self):
-    setting = SettingWithGuiStub("ignore_invisible", False)
+    setting = SettingWithGuiStub("only_visible_layers", False)
     setting.set_gui(gui_type=YesNoToggleButtonPresenterStub, gui_element=GuiWidgetStub(None))
     self.assertIs(type(setting.gui), YesNoToggleButtonPresenterStub)
     self.assertIs(type(setting.gui.element), GuiWidgetStub)
   
   def test_set_gui_gui_element_is_none_presenter_has_no_wrapper_raise_error(self):
-    setting = SettingWithGuiStub("ignore_invisible", False, gui_type=SettingPresenterWithoutGuiElementCreationStub)
+    setting = SettingWithGuiStub("only_visible_layers", False, gui_type=SettingPresenterWithoutGuiElementCreationStub)
     with self.assertRaises(ValueError):
       setting.set_gui()
   
@@ -611,13 +611,13 @@ class TestSettingGui(unittest.TestCase):
   def test_update_setting_value_triggers_value_changed_event(self):
     self.setting.set_gui(SettingPresenterWithValueChangedSignalStub, self.widget)
     
-    ignore_invisible = pgsetting.BoolSetting('ignore_invisible', False)
-    self.setting.connect_event('value-changed', on_file_extension_changed, ignore_invisible)
+    only_visible_layers = pgsetting.BoolSetting('only_visible_layers', False)
+    self.setting.connect_event('value-changed', on_file_extension_changed, only_visible_layers)
     
     self.widget.set_value("jpg")
     self.assertEqual(self.setting.value, "jpg")
-    self.assertEqual(ignore_invisible.value, True)
-    self.assertEqual(ignore_invisible.gui.get_enabled(), False)
+    self.assertEqual(only_visible_layers.value, True)
+    self.assertEqual(only_visible_layers.gui.get_enabled(), False)
   
   def test_reset_updates_gui(self):
     self.setting.set_gui(SettingPresenterStub, self.widget)
@@ -693,8 +693,8 @@ class TestSettingGui(unittest.TestCase):
 class TestBoolSetting(unittest.TestCase):
   
   def test_description_from_display_name(self):
-    setting = pgsetting.BoolSetting('ignore_invisible', False, display_name="_Ignore invisible")
-    self.assertEqual(setting.description, "Ignore invisible?")
+    setting = pgsetting.BoolSetting('only_visible_layers', False, display_name="_Only visible layers")
+    self.assertEqual(setting.description, "Only visible layers?")
 
 
 class TestIntSetting(unittest.TestCase):
