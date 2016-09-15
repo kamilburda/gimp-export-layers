@@ -197,10 +197,6 @@ class _ExportLayersGenericGui(object):
 #===============================================================================
 
 
-def _return_none_func(*args, **kwargs):
-  return None
-
-
 def add_gui_settings(settings):
   
   gui_settings = pgsettinggroup.SettingGroup('gui', [
@@ -271,7 +267,7 @@ def add_gui_settings(settings):
       'type': pgsetting.SettingTypes.generic,
       'name': 'export_image_preview_displayed_layers',
       # key: image ID; value: ID of the layer displayed in the preview
-      'default_value': collections.defaultdict(_return_none_func)
+      'default_value': collections.defaultdict(pgutils.empty_func)
     },
   ], setting_sources=[pygimplib.config.SOURCE_SESSION])
   
@@ -286,7 +282,7 @@ def add_gui_settings(settings):
       'type': pgsetting.SettingTypes.generic,
       'name': 'export_image_preview_displayed_layers_persistent',
       # key: image filename; value: name of the layer displayed in the preview
-      'default_value': collections.defaultdict(_return_none_func)
+      'default_value': collections.defaultdict(pgutils.empty_func)
     },
   ], setting_sources=[pygimplib.config.SOURCE_PERSISTENT])
   
