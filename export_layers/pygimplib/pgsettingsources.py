@@ -32,6 +32,7 @@ str = unicode
 
 import abc
 import collections
+import os
 
 try:
   import cPickle as pickle
@@ -217,7 +218,7 @@ class PersistentSettingSource(SettingSource):
     super(PersistentSettingSource, self).__init__()
     
     self.source_name = source_name
-    self._parasite_filename = "parasiterc"
+    self._parasite_file_path = os.path.join(gimp.directory, "parasiterc")
   
   def read(self, settings):
     """
@@ -267,9 +268,9 @@ class PersistentSettingSource(SettingSource):
       settings_from_parasite = pickle.loads(parasite.data)
     except (pickle.UnpicklingError, AttributeError, EOFError):
       raise pgsettingpersistor.SettingSourceInvalidFormatError(
-        _("Settings for this plug-in stored in the \"{0}\" file may be corrupt. "
+        _("Settings for this plug-in stored in \"{0}\" may be corrupt. "
           "This could happen if the file was edited manually.\n"
-          "To fix this, save the settings again or reset them.").format(self._parasite_filename))
+          "To fix this, save the settings again or reset them.").format(self._parasite_file_path))
     
     return settings_from_parasite
   
