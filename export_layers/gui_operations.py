@@ -18,7 +18,8 @@
 #
 
 """
-This module defines the GUI for the plug-in.
+This module defines the means to graphically edit a list of operations executed
+in the plug-in.
 """
 
 from __future__ import absolute_import

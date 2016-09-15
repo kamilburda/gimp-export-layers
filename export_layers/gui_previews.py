@@ -18,7 +18,7 @@
 #
 
 """
-This module defines the GUI for the plug-in.
+This module defines preview widgets used in the plug-in.
 """
 
 from __future__ import absolute_import
