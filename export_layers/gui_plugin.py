@@ -123,7 +123,7 @@ def display_reset_prompt(parent=None, more_settings_shown=False):
   dialog.set_markup(_("Do you really want to reset settings?"))
   
   if more_settings_shown:
-    checkbutton_reset_operations = gtk.CheckButton(label=_("Remove operations"), use_underline=False)
+    checkbutton_reset_operations = gtk.CheckButton(label=_("Remove operations and filters"), use_underline=False)
     dialog.vbox.pack_start(checkbutton_reset_operations, expand=False, fill=False)
   
   dialog.set_focus(dialog.get_widget_for_response(gtk.RESPONSE_NO))
