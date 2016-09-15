@@ -189,7 +189,7 @@ class SettingPersistor(object):
     for source in setting_sources:
       try:
         source.write(settings)
-      except SettingSourceWriteError as e:
+      except SettingSourceError as e:
         return cls._status(cls.WRITE_FAIL, e.message)
     
     for setting in settings:
