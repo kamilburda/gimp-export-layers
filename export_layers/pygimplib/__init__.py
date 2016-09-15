@@ -36,7 +36,7 @@ try:
   import gimpenums
   import gimpplugin
   
-  from . import log_output
+  from . import pglogging
   from . import pgsetting
   from . import pgsettinggroup
   from . import pgsettingsources
@@ -169,7 +169,7 @@ def init():
   gettext.install(config.DOMAIN_NAME, config.LOCALE_PATH, unicode=True)
   
   if _gimp_dependent_modules_imported:
-    log_output.log_output(
+    pglogging.log_output(
       config.LOG_MODE, config.PLUGINS_LOG_DIRNAMES, config.PLUGINS_LOG_STDOUT_FILENAME,
       config.PLUGINS_LOG_STDERR_FILENAME, config.PLUGIN_TITLE, config.GIMP_CONSOLE_MESSAGE_DELAY_MILLISECONDS)
   

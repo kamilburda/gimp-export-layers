@@ -30,7 +30,7 @@ import unittest
 
 from ..lib import mock
 
-from .. import log_output
+from .. import pglogging
 
 #===============================================================================
 
@@ -42,7 +42,7 @@ class TestTee(unittest.TestCase):
     self.string_file = StringIO.StringIO()
   
   def test_write(self):
-    log_output.Tee(sys.stdout, self.string_file, log_header_title="Test Header")
+    pglogging.Tee(sys.stdout, self.string_file, log_header_title="Test Header")
     
     print("Hello")
     self.assertTrue(self.string_file.getvalue().endswith("Hello\n"))
@@ -52,7 +52,7 @@ class TestTee(unittest.TestCase):
     self.assertTrue(self.string_file.getvalue().endswith("Hello\nHi There Again\n"))
   
   def test_start_and_stop(self):
-    tee_stdout = log_output.Tee(sys.stdout, self.string_file, log_header_title="Test Header", start=False)
+    tee_stdout = pglogging.Tee(sys.stdout, self.string_file, log_header_title="Test Header", start=False)
     
     print("Hi There")
     self.assertFalse(self.string_file.getvalue().endswith("Hi There\n"))
@@ -68,4 +68,4 @@ class TestTee(unittest.TestCase):
   
   def test_invalid_stream(self):
     with self.assertRaises(ValueError):
-      log_output.Tee('invalid_stream', self.string_file, log_header_title="Test Header", start=False)
+      pglogging.Tee('invalid_stream', self.string_file, log_header_title="Test Header", start=False)
