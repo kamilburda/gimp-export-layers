@@ -18,9 +18,9 @@
 #
 
 """
-This module:
-* defines custom functions to handle invocation of functions with a delay,
-* defines an empty context manager.
+This module provides various utility functions and classes, such as:
+* function to handle invocation of callbacks with a delay,
+* empty context manager.
 """
 
 from __future__ import absolute_import
@@ -106,3 +106,19 @@ class EmptyContext(object):
 
 
 empty_context = EmptyContext()
+
+
+#===============================================================================
+
+
+def empty_func(*args, **kwargs):
+  """
+  Use this function when an empty function is desired to be passed as a
+  parameter.
+  
+  For example, if you need to serialize a `collections.defaultdict` instance
+  (e.g. via `pickle`) returning None for missing keys, you need to use a named
+  function instead of `lambda: None`.
+  """
+  
+  return None
