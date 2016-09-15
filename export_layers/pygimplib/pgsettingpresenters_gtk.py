@@ -227,6 +227,29 @@ class GtkWindowPositionPresenter(GtkSettingPresenter):
       self._element.move(*value)
 
 
+class GtkWindowSizePresenter(GtkSettingPresenter):
+  
+  """
+  This class is a `SettingPresenter` for window or dialog elements
+  (`gtk.Window`, `gtk.Dialog`) to get/set its size.
+  
+  Value: Current size of the window as a tuple with 2 integers.
+  """
+  
+  def _get_value(self):
+    return self._element.get_size()
+  
+  def _set_value(self, value):
+    """
+    Set new size of the window.
+    
+    Don't resize the window if `value` is None or empty.
+    """
+    
+    if value:
+      self._element.resize(*value)
+
+
 class GtkExpanderPresenter(GtkSettingPresenter):
   
   """
@@ -275,6 +298,7 @@ class SettingGuiTypes(object):
   extended_entry = ExtendedEntryPresenter
   folder_chooser = GtkFolderChooserPresenter
   window_position = GtkWindowPositionPresenter
+  window_size = GtkWindowSizePresenter
   expander = GtkExpanderPresenter
   paned_position = GtkPanedPositionPresenter
   
