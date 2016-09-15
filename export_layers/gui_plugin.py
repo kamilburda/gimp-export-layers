@@ -206,6 +206,11 @@ def add_gui_settings(settings):
       'default_value': ()
     },
     {
+      'type': pgsetting.SettingTypes.generic,
+      'name': 'dialog_size',
+      'default_value': ()
+    },
+    {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'show_more_settings',
       'default_value': False
@@ -556,6 +561,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._settings.initialize_gui({
       'file_extension': [pgsetting.SettingGuiTypes.extended_entry, self._file_extension_entry],
       'dialog_position': [pgsetting.SettingGuiTypes.window_position, self._dialog],
+      'dialog_size': [pgsetting.SettingGuiTypes.window_size, self._dialog],
       'show_more_settings': [pgsetting.SettingGuiTypes.checkbox, self._show_more_settings_button],
       'chooser_and_previews_hpane_position': [
         pgsetting.SettingGuiTypes.paned_position, self._hpaned_chooser_and_previews],
