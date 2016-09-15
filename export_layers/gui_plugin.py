@@ -739,6 +739,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     status, status_message = self._settings.save()
     if status == pgsettingpersistor.SettingPersistor.WRITE_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING, parent=self._dialog)
+      return False
+    else:
+      return True
   
   def _on_text_entry_changed(self, widget, setting, name_preview_lock_update_key=None):
     try:
@@ -947,8 +950,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   @_set_settings
   def _on_save_settings_clicked(self, widget):
-    self._save_settings()
-    self._display_message_label(_("Settings successfully saved."), message_type=gtk.MESSAGE_INFO)
+    save_successful = self._save_settings()
+    if save_successful:
+      self._display_message_label(_("Settings successfully saved."), message_type=gtk.MESSAGE_INFO)
   
   def _on_reset_settings_clicked(self, widget):
     response_id, reset_operations = display_reset_prompt(
