@@ -432,15 +432,6 @@ class SettingGroup(object):
       
       return worst_status
     
-    def _get_status_message(status_and_messages):
-      return_status_message = ""
-      for status_message in status_and_messages.values():
-        if status_message:
-          return_status_message += "\n" + status_message
-      return_status_message = return_status_message.lstrip("\n")
-      
-      return return_status_message
-    
     settings = self.iterate_all(ignore_tags=[load_save_ignore_tag])
     settings = [setting for setting in settings if setting.setting_sources]
     
@@ -459,7 +450,9 @@ class SettingGroup(object):
       status, message = load_save_func(settings, sources)
       status_and_messages[status] = message
     
-    return _get_worst_status(status_and_messages), _get_status_message(status_and_messages)
+    worst_status = _get_worst_status(status_and_messages)
+    
+    return worst_status, status_and_messages.get(worst_status, "")
   
   def _create_setting(self, setting_data):
     try:
