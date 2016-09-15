@@ -148,9 +148,8 @@ class SettingSource(object):
     
     if self._settings_not_found:
       raise pgsettingpersistor.SettingsNotFoundInSourceError(
-        "the following settings could not be found in any sources: "
-        + str([setting.name for setting in self._settings_not_found])
-      )
+        _("The following settings could not be found in any sources:\n{0}").format(
+          "\n".join(setting.name for setting in self._settings_not_found)))
   
   @abc.abstractmethod
   def _retrieve_setting_value(self, setting_name):
@@ -268,7 +267,7 @@ class PersistentSettingSource(SettingSource):
       settings_from_parasite = pickle.loads(parasite.data)
     except (pickle.UnpicklingError, AttributeError, EOFError):
       raise pgsettingpersistor.SettingSourceInvalidFormatError(
-        _("Settings for this plug-in stored in the \"{0}\" file are corrupt. "
+        _("Settings for this plug-in stored in the \"{0}\" file may be corrupt. "
           "This could happen if the file was edited manually.\n"
           "To fix this, save the settings again or reset them.").format(self._parasite_filename))
     
