@@ -60,8 +60,6 @@ from . import overwrite
 from . import progress
 
 #===============================================================================
-# GTK Overwrite Chooser
-#===============================================================================
 
 
 class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
@@ -175,8 +173,6 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
       self._dialog_text.set_size_request(dialog_vbox_allocation.width - dialog_text_allocation.x, -1)
 
 
-#===============================================================================
-# GTK Message Dialogs
 #===============================================================================
 
 
@@ -371,8 +367,6 @@ def display_message(message, message_type, title=None, parent=None, buttons=gtk.
 
 
 #===============================================================================
-# GUI excepthook
-#===============================================================================
 
 
 _gui_excepthook_parent = None
@@ -442,8 +436,6 @@ def set_gui_excepthook_parent(parent):
   _gui_excepthook_parent = parent
 
 
-#===============================================================================
-# GTK Progress Updater
 #===============================================================================
 
 
