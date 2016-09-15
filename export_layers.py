@@ -28,8 +28,7 @@ str = unicode
 import os
 
 try:
-  # Disable overlay scrolling (notably used in Ubuntu) to be consistent with the
-  # Export menu.
+  # Disable overlay scrolling (notably used in Ubuntu) to be consistent with the Export menu.
   os.environ['LIBOVERLAY_SCROLLBAR'] = "0"
 except Exception:
   pass
