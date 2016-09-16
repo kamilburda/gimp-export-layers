@@ -118,6 +118,8 @@ class ExportPreview(object):
 class ExportNamePreview(ExportPreview):
   
   _VBOX_PADDING = 5
+  _ADD_TAG_POPUP_HBOX_SPACING = 5
+  _ADD_TAG_POPUP_BORDER_WIDTH = 5
   
   _COLUMNS = (
     _COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME_SENSITIVE, _COLUMN_LAYER_NAME,
@@ -126,14 +128,16 @@ class ExportNamePreview(ExportPreview):
   _ICON_IMAGE_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_image.png")
   _ICON_TAG_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_tag.png")
   
-  def __init__(self, layer_exporter, initial_layer_tree=None, collapsed_items=None, selected_items=None,
-               on_selection_changed_func=None, on_after_update_func=None, on_after_edit_tags_func=None):
+  def __init__(self, layer_exporter, initial_layer_tree=None, collapsed_items=None,
+               selected_items=None, displayed_tags_setting=None, on_selection_changed_func=None,
+               on_after_update_func=None, on_after_edit_tags_func=None):
     super(ExportNamePreview, self).__init__()
     
     self._layer_exporter = layer_exporter
     self._initial_layer_tree = initial_layer_tree
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
     self._selected_items = selected_items if selected_items is not None else []
+    self._displayed_tags_setting = displayed_tags_setting
     self._on_selection_changed_func = (
       on_selection_changed_func if on_selection_changed_func is not None else lambda *args: None)
     self._on_after_update_func = on_after_update_func if on_after_update_func is not None else lambda *args: None
@@ -189,6 +193,8 @@ class ExportNamePreview(ExportPreview):
     self._set_items_sensitive()
     
     self._enable_filtered_items(enabled=False)
+    
+    self._update_displayed_tags()
     
     self._tree_view.columns_autosize()
     
@@ -322,17 +328,192 @@ class ExportNamePreview(ExportPreview):
       scaling_factor, scaling_factor, gtk.gdk.INTERP_BILINEAR, 255)
   
   def _init_tags_menu(self):
-    self._tags_menu = gtk.Menu()
     self._tags_menu_items = {}
-    self._tags_names = {}
+    self._tags_remove_submenu_items = {}
     
-    for tag, tag_name in self._layer_exporter.SUPPORTED_TAGS.items():
-      self._tags_menu_items[tag] = gtk.CheckMenuItem(tag_name)
-      self._tags_names[tag_name] = tag
-      self._tags_menu_items[tag].connect("toggled", self._on_tags_menu_item_toggled)
-      self._tags_menu.append(self._tags_menu_items[tag])
+    self._tags_menu_relative_position = None
+    
+    self._tags_menu = gtk.Menu()
+    self._tags_remove_submenu = gtk.Menu()
+    
+    self._tags_menu.append(gtk.SeparatorMenuItem())
+    
+    self._menu_item_add_tag = gtk.MenuItem(_("Add tag..."))
+    self._menu_item_add_tag.connect("activate", self._on_tags_menu_item_add_tag_activate)
+    self._tags_menu.append(self._menu_item_add_tag)
+    
+    self._menu_item_remove_tag = gtk.MenuItem(_("Remove tag"))
+    self._menu_item_remove_tag.set_submenu(self._tags_remove_submenu)
+    self._tags_menu.append(self._menu_item_remove_tag)
+    
+    for tag, tag_display_name in self._displayed_tags_setting.default_value.items():
+      self._add_tag_menu_item(tag, tag_display_name)
     
     self._tags_menu.show_all()
+  
+  def _update_displayed_tags(self):
+    self._layer_exporter.layer_tree.is_filtered = False
+    
+    used_tags = set()
+    for layer_elem in self._layer_exporter.layer_tree:
+      for tag in layer_elem.tags:
+        used_tags.add(tag)
+        if tag not in self._tags_menu_items:
+          self._add_tag_menu_item(tag, tag)
+          self._add_remove_tag_menu_item(tag, tag)
+    
+    self._layer_exporter.layer_tree.is_filtered = True
+    
+    for tag, menu_item in self._tags_remove_submenu_items.items():
+      menu_item.set_sensitive(tag not in used_tags)
+    
+    for tag in self._displayed_tags_setting.value:
+      if tag not in self._tags_menu_items:
+        self._add_tag_menu_item(tag, tag)
+        self._add_remove_tag_menu_item(tag, tag)
+    
+    for tag in self._tags_menu_items:
+      if tag not in self._displayed_tags_setting.value:
+        self._displayed_tags_setting.value[tag] = tag
+    
+    self._menu_item_remove_tag.set_sensitive(bool(self._tags_remove_submenu.get_children()))
+    
+    self._displayed_tags_setting.save()
+  
+  def _add_tag_menu_item(self, tag, tag_display_name):
+    self._tags_menu_items[tag] = gtk.CheckMenuItem(tag_display_name)
+    self._tags_menu_items[tag].connect("toggled", self._on_tags_menu_item_toggled, tag)
+    self._tags_menu_items[tag].show()
+    self._tags_menu.prepend(self._tags_menu_items[tag])
+  
+  def _add_remove_tag_menu_item(self, tag, tag_display_name):
+    self._tags_remove_submenu_items[tag] = gtk.MenuItem(tag_display_name)
+    self._tags_remove_submenu_items[tag].connect("activate", self._on_tags_remove_submenu_item_activate, tag)
+    self._tags_remove_submenu_items[tag].show()
+    self._tags_remove_submenu.prepend(self._tags_remove_submenu_items[tag])
+  
+  def _on_tree_view_right_button_press(self, widget, event):
+    if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
+      layer_ids = []
+      stop_event_propagation = False
+      
+      # Get the current selection. We can't use `TreeSelection.get_selection()`
+      # because this event is fired before the selection is updated.
+      selection_at_pos = self._tree_view.get_path_at_pos(int(event.x), int(event.y))
+      
+      if selection_at_pos is not None and self._tree_view.get_selection().count_selected_rows() > 1:
+        layer_ids = self._get_layer_ids_in_current_selection()
+        stop_event_propagation = True
+      else:
+        if selection_at_pos is not None:
+          tree_iter = self._tree_model.get_iter(selection_at_pos[0])
+          layer_ids = [self._get_layer_id(tree_iter)]
+      
+      self._toggle_tag_interactive = False
+      
+      layer_elems = [self._layer_exporter.layer_tree[layer_id] for layer_id in layer_ids]
+      for tag, tags_menu_item in self._tags_menu_items.items():
+        tags_menu_item.set_active(all(tag in layer_elem.tags for layer_elem in layer_elems))
+      
+      self._toggle_tag_interactive = True
+      
+      if len(layer_ids) >= 1:
+        self._tags_menu.popup(None, None, None, event.button, event.time)
+        
+        toplevel_widget = self._widget.get_toplevel()
+        if toplevel_widget.flags() & gtk.TOPLEVEL:
+          self._tags_menu_relative_position = toplevel_widget.get_window().get_pointer()
+      
+      return stop_event_propagation
+  
+  def _on_tags_menu_item_toggled(self, tags_menu_item, tag):
+    if self._toggle_tag_interactive:
+      pdb.gimp_image_undo_group_start(self._layer_exporter.image)
+      
+      for layer_id in self._get_layer_ids_in_current_selection():
+        layer_elem = self._layer_exporter.layer_tree[layer_id]
+        
+        if tags_menu_item.get_active():
+          self._layer_exporter.layer_tree.add_tag(layer_elem, tag)
+        else:
+          self._layer_exporter.layer_tree.remove_tag(layer_elem, tag)
+      
+      pdb.gimp_image_undo_group_end(self._layer_exporter.image)
+      
+      # Modifying just one layer could result in renaming other layers differently,
+      # hence update the whole preview.
+      self.update(update_existing_contents_only=True)
+      
+      self._on_after_edit_tags_func()
+  
+  def _on_tags_menu_item_add_tag_activate(self, menu_item_add_tag):
+    def _on_popup_focus_out_event(popup, event):
+      popup.destroy()
+    
+    def _on_popup_key_press_event(popup, event):
+      key_name = gtk.gdk.keyval_name(event.keyval)
+      if key_name in ["Return", "KP_Enter"]:
+        entry_text = entry_add_tag.get_text()
+        if entry_text and entry_text not in self._tags_menu_items:
+          self._add_tag_menu_item(entry_text, entry_text)
+          self._add_remove_tag_menu_item(entry_text, entry_text)
+        
+        popup.destroy()
+        return True
+      elif key_name == "Escape":
+        popup.destroy()
+        return True
+    
+    def _set_popup_position(popup, window):
+      if self._tags_menu_relative_position is not None:
+        window_absolute_position = window.get_window().get_origin()
+        popup.move(
+          window_absolute_position[0] + self._tags_menu_relative_position[0],
+          window_absolute_position[1] + self._tags_menu_relative_position[1])
+        
+        self._tags_menu_relative_position = None
+    
+    popup_add_tag = gtk.Window(gtk.WINDOW_TOPLEVEL)
+    popup_add_tag.set_decorated(False)
+    popup_add_tag.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_POPUP_MENU)
+    
+    toplevel_widget = self._widget.get_toplevel()
+    if toplevel_widget.flags() & gtk.TOPLEVEL:
+      popup_add_tag.set_transient_for(toplevel_widget)
+    
+    _set_popup_position(popup_add_tag, toplevel_widget)
+    
+    label_tag_name = gtk.Label(_("Tag name:"))
+    
+    entry_add_tag = gtk.Entry()
+    
+    hbox = gtk.HBox()
+    hbox.set_spacing(self._ADD_TAG_POPUP_HBOX_SPACING)
+    hbox.pack_start(label_tag_name, expand=False, fill=False)
+    hbox.pack_start(entry_add_tag, expand=False, fill=False)
+    hbox.set_border_width(self._ADD_TAG_POPUP_BORDER_WIDTH)
+    
+    frame = gtk.Frame()
+    frame.add(hbox)
+    
+    popup_add_tag.add(frame)
+    
+    popup_add_tag.connect("focus-out-event", _on_popup_focus_out_event)
+    popup_add_tag.connect("key-press-event", _on_popup_key_press_event)
+    
+    popup_add_tag.show_all()
+  
+  def _on_tags_remove_submenu_item_activate(self, tags_remove_submenu_item, tag):
+    self._tags_remove_submenu.remove(tags_remove_submenu_item)
+    self._tags_menu.remove(self._tags_menu_items[tag])
+    
+    del self._tags_menu_items[tag]
+    del self._tags_remove_submenu_items[tag]
+    del self._displayed_tags_setting.value[tag]
+    
+    self._menu_item_remove_tag.set_sensitive(bool(self._tags_remove_submenu.get_children()))
+    
+    self._displayed_tags_setting.save()
   
   def _on_tree_view_row_collapsed(self, widget, tree_iter, tree_path):
     if self._row_expand_collapse_interactive:
@@ -359,64 +540,6 @@ class ExportNamePreview(ExportPreview):
           self.update(update_existing_contents_only=True)
       
       self._on_selection_changed_func()
-  
-  def _on_tree_view_right_button_press(self, widget, event):
-    if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
-      layer_ids = []
-      stop_event_propagation = False
-      
-      # Get the current selection. We can't use `TreeSelection.get_selection()`
-      # because this event is fired before the selection is updated.
-      selection_at_pos = self._tree_view.get_path_at_pos(int(event.x), int(event.y))
-      
-      if selection_at_pos is not None and self._tree_view.get_selection().count_selected_rows() > 1:
-        layer_ids = self._get_layer_ids_in_current_selection()
-        stop_event_propagation = True
-      else:
-        if selection_at_pos is not None:
-          tree_iter = self._tree_model.get_iter(selection_at_pos[0])
-          layer_ids = [self._get_layer_id(tree_iter)]
-      
-      self._toggle_tag_interactive = False
-      
-      if len(layer_ids) == 1:
-        layer_id = layer_ids[0]
-        layer_elem = self._layer_exporter.layer_tree[layer_id]
-        for tag in self._layer_exporter.SUPPORTED_TAGS:
-          self._tags_menu_items[tag].set_active(tag in layer_elem.tags)
-      elif len(layer_ids) > 1:
-        layer_elems = [
-          self._layer_exporter.layer_tree[layer_id] for layer_id in layer_ids]
-        for tag, tags_menu_item in self._tags_menu_items.items():
-          tags_menu_item.set_active(all(tag in layer_elem.tags for layer_elem in layer_elems))
-      
-      self._toggle_tag_interactive = True
-      
-      if len(layer_ids) >= 1:
-        self._tags_menu.popup(None, None, None, event.button, event.time)
-      
-      return stop_event_propagation
-  
-  def _on_tags_menu_item_toggled(self, tags_menu_item):
-    if self._toggle_tag_interactive:
-      pdb.gimp_image_undo_group_start(self._layer_exporter.image)
-      
-      for layer_id in self._get_layer_ids_in_current_selection():
-        layer_elem = self._layer_exporter.layer_tree[layer_id]
-        tag = self._tags_names[tags_menu_item.get_label()]
-        
-        if tags_menu_item.get_active():
-          self._layer_exporter.layer_tree.add_tag(layer_elem, tag)
-        else:
-          self._layer_exporter.layer_tree.remove_tag(layer_elem, tag)
-      
-      pdb.gimp_image_undo_group_end(self._layer_exporter.image)
-      
-      # Modifying just one layer could result in renaming other layers differently,
-      # hence update the whole preview.
-      self.update(update_existing_contents_only=True)
-      
-      self._on_after_edit_tags_func()
   
   def _get_layer_ids_in_current_selection(self):
     _unused, tree_paths = self._tree_view.get_selection().get_selected_rows()
@@ -463,7 +586,7 @@ class ExportNamePreview(ExportPreview):
     tree_iter = self._tree_model.append(
       parent_tree_iter,
       [self._get_icon_from_item_elem(item_elem),
-       self._has_supported_tags(item_elem),
+       bool(item_elem.tags),
        True,
        item_elem.name.encode(constants.GTK_CHARACTER_ENCODING),
        item_elem.item.ID])
@@ -474,7 +597,7 @@ class ExportNamePreview(ExportPreview):
   def _update_item_elem(self, item_elem):
     self._tree_model.set(
       self._tree_iters[item_elem.item.ID],
-      self._COLUMN_ICON_TAG_VISIBLE[0], self._has_supported_tags(item_elem),
+      self._COLUMN_ICON_TAG_VISIBLE[0], bool(item_elem.tags),
       self._COLUMN_LAYER_NAME_SENSITIVE[0], True,
       self._COLUMN_LAYER_NAME[0], item_elem.name.encode(constants.GTK_CHARACTER_ENCODING))
   
@@ -510,8 +633,7 @@ class ExportNamePreview(ExportPreview):
         [self._layer_exporter.layer_tree[item_id] for item_id in self._selected_items], True)
     
     if self._layer_exporter.export_settings['process_tagged_layers'].value:
-      with self._layer_exporter.layer_tree.filter.add_rule_temp(
-             exportlayers.LayerFilterRules.has_tags, *self._layer_exporter.SUPPORTED_TAGS.keys()):
+      with self._layer_exporter.layer_tree.filter.add_rule_temp(exportlayers.LayerFilterRules.has_tags):
         self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
         
         if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
@@ -553,9 +675,6 @@ class ExportNamePreview(ExportPreview):
         return self._icons['merged_layer_group']
     else:
       return None
-  
-  def _has_supported_tags(self, item_elem):
-    return bool(item_elem.tags) and any(tag in self._layer_exporter.SUPPORTED_TAGS for tag in item_elem.tags)
   
   def _set_expanded_items(self, tree_path=None):
     """

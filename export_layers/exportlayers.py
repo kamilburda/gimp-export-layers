@@ -205,7 +205,7 @@ class LayerExporter(object):
     `export_context_manager`.
   """
   
-  SUPPORTED_TAGS = collections.OrderedDict([
+  BUILTIN_TAGS = collections.OrderedDict([
     ('background', _("Background")),
     ('foreground', _("Foreground"))
   ])
@@ -525,11 +525,12 @@ class LayerExporter(object):
     if self.export_settings['process_tagged_layers'].value:
       with (self._layer_tree.filter['layer_types'].add_rule_temp(LayerFilterRules.is_nonempty_group)
             if self.export_settings['layer_groups_as_folders'].value else pgutils.empty_context):
-        for tag in self.SUPPORTED_TAGS.keys():
-          with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags, tag):
-            self._tagged_layer_elems[tag] = list(self._layer_tree)
+        with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags):
+          for layer_elem in self._layer_tree:
+            for tag in layer_elem.tags:
+              self._tagged_layer_elems[tag].append(layer_elem)
       
-      self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags, *self.SUPPORTED_TAGS.keys())
+      self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags)
     
     if self.export_settings['more_filters/only_non_tagged_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags)
