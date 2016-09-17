@@ -98,7 +98,7 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
 @mock.patch(LIB_NAME + ".pgsettingsources.gimp", new_callable=gimpstubs.ParasiteStub)
 class TestPersistentSettingSource(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + ".pgsettingsources.gimp", new=gimpstubs.ParasiteStub())
+  @mock.patch(LIB_NAME + ".pgsettingsources.gimp.directory", new="gimp_directory")
   def setUp(self):
     self.source_name = 'test_settings'
     self.source = pgsettingsources.PersistentSettingSource(self.source_name)
@@ -168,7 +168,7 @@ class TestPersistentSettingSource(unittest.TestCase):
 class TestSettingPersistor(unittest.TestCase):
   
   @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new=gimpstubs.ShelfStub())
-  @mock.patch(LIB_NAME + ".pgsettingsources.gimp", new=gimpstubs.ParasiteStub())
+  @mock.patch(LIB_NAME + ".pgsettingsources.gimp.directory", new="gimp_directory")
   def setUp(self):
     self.settings = create_test_settings()
     self.session_source = pgsettingsources.SessionPersistentSettingSource('')
