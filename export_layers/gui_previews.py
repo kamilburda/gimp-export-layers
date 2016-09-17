@@ -372,13 +372,21 @@ class ExportNamePreview(ExportPreview):
         self._add_tag_menu_item(tag, tag)
         self._add_remove_tag_menu_item(tag, tag)
     
+    self._menu_item_remove_tag.set_sensitive(bool(self._tags_remove_submenu.get_children()))
+    
+    self._sort_tags_menu_items()
+    
     for tag in self._tags_menu_items:
       if tag not in self._displayed_tags_setting.value:
         self._displayed_tags_setting.value[tag] = tag
     
-    self._menu_item_remove_tag.set_sensitive(bool(self._tags_remove_submenu.get_children()))
-    
     self._displayed_tags_setting.save()
+  
+  def _sort_tags_menu_items(self):
+    for new_tag_position, tag in enumerate(sorted(self._tags_menu_items, key=lambda tag: tag.lower())):
+      self._tags_menu.reorder_child(self._tags_menu_items[tag], new_tag_position)
+      if tag in self._tags_remove_submenu_items:
+        self._tags_remove_submenu.reorder_child(self._tags_remove_submenu_items[tag], new_tag_position)
   
   def _add_tag_menu_item(self, tag, tag_display_name):
     self._tags_menu_items[tag] = gtk.CheckMenuItem(tag_display_name)

@@ -205,10 +205,10 @@ class LayerExporter(object):
     `export_context_manager`.
   """
   
-  BUILTIN_TAGS = collections.OrderedDict([
-    ('background', _("Background")),
-    ('foreground', _("Foreground"))
-  ])
+  BUILTIN_TAGS = {
+    'background': _("Background"),
+    'foreground': _("Foreground")
+  }
   
   SUGGESTED_LAYER_FILENAME_PATTERNS = [
     ("image001", "image[001]", []),
