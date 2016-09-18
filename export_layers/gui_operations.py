@@ -210,6 +210,9 @@ class OperationsBox(object):
     if widget.get_window() is None:
       return
     
+    if self._scrolled_window.get_hscrollbar() is not None and self._scrolled_window.get_hscrollbar().get_mapped():
+      return None
+    
     # Make sure the focus outline is not displayed in the drag icon.
     if widget.has_focus():
       widget.set_can_focus(False)
