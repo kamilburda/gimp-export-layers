@@ -36,6 +36,11 @@ import collections
 import os
 import unittest
 
+try:
+  import cPickle as pickle
+except ImportError:
+  import pickle
+
 from ..lib import mock
 
 from . import gimpstubs
@@ -239,59 +244,6 @@ class TestLayerTree(unittest.TestCase):
     self.assertEqual(
       itemtree_empty_layer_group_no_parents.get_filepath(output_directory),
       itemtree_empty_layer_group_no_parents.get_filepath(output_directory, include_item_path=False))
-  
-  #-----------------------------------------------------------------------------
-  
-  def _test_add_remove_tag(self, operation, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag,
-                           expect_modified_externally=False):
-    modified_externally = getattr(self.layer_tree, operation)(self.layer_tree[orig_layer_name], tag)
-    self.assertEqual(modified_externally, expect_modified_externally)
-    self.assertIn(new_layer_name, self.layer_tree)
-    self.assertNotIn(incorrect_new_layer_name, self.layer_tree)
-  
-  def _test_add_tag(self, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag,
-                    expect_modified_externally=False):
-    self._test_add_remove_tag(
-      "add_tag", orig_layer_name, new_layer_name, incorrect_new_layer_name, tag, expect_modified_externally)
-    self.assertIn(tag, self.layer_tree[new_layer_name].tags)
-  
-  def _test_remove_tag(self, orig_layer_name, new_layer_name, incorrect_new_layer_name, tag,
-                       expect_modified_externally=False):
-    self._test_add_remove_tag(
-      "remove_tag", orig_layer_name, new_layer_name, incorrect_new_layer_name, tag, expect_modified_externally)
-    self.assertNotIn(tag, self.layer_tree[new_layer_name].tags)
-  
-  def test_add_remove_tag(self):
-    self._test_add_tag(
-      'top-left-corner', '[background] top-left-corner',
-      'top-left-corner', "background")
-    self._test_add_tag(
-      '[background] top-left-corner', '[background] top-left-corner',
-      '[background] [background] top-left-corner', "background")
-    self._test_add_tag(
-      '[background] top-left-corner', '[foreground] [background] top-left-corner',
-      '[background] top-left-corner', "foreground")
-    
-    self._test_remove_tag(
-      '[foreground] [background] top-left-corner', '[foreground] top-left-corner',
-      '[foreground] [background] top-left-corner', "background")
-    self._test_remove_tag(
-      '[foreground] top-left-corner', 'top-left-corner',
-      '[foreground] top-left-corner', "foreground")
-    
-    with mock.patch(LIB_NAME + ".pgitemtree._ItemTreeElement.item", autospec=True):
-      type(self.layer_tree['top-left-corner'].item).name = mock.PropertyMock(
-        return_value=b"[background] top-left-corner #1")
-      self._test_add_tag(
-        'top-left-corner', '[background] top-left-corner #1',
-        '[background] top-left-corner', "background", expect_modified_externally=True)
-    
-    with mock.patch(LIB_NAME + ".pgitemtree._ItemTreeElement.item", autospec=True):
-      type(self.layer_tree['[background] top-left-corner #1'].item).name = mock.PropertyMock(
-        return_value=b"top-left-corner #2")
-      self._test_remove_tag(
-        '[background] top-left-corner #1', 'top-left-corner #2',
-        'top-left-corner #1', "background", expect_modified_externally=True)
   
   #-----------------------------------------------------------------------------
     
@@ -524,50 +476,34 @@ class TestLayerTreeElement(unittest.TestCase):
     self.layer_elem.name = "."
     self.assertEqual(self.layer_elem.get_base_name(), ".")
   
-  def _test_parse_tags(self, orig_layer_elem_name, processed_layer_elem_name, parsed_tags):
-    self.layer_elem.name = orig_layer_elem_name
-    self.layer_elem.parse_tags()
-    self.assertEqual(self.layer_elem.name, processed_layer_elem_name)
-    self.assertEquals(self.layer_elem.tags, set(parsed_tags))
-    self.layer_elem.tags.clear()
+  @mock.patch(LIB_NAME + ".pgitemtree.gimp", new=gimpstubs.GimpModuleStub())
+  def test_add_tag(self):
+    self.assertEqual(self.layer_elem.tags, set())
+    
+    self.layer_elem.add_tag("background")
+    self.assertIn("background", self.layer_elem.tags)
+    
+    self.layer_elem.add_tag("foreground")
+    self.assertIn("background", self.layer_elem.tags)
+    self.assertIn("foreground", self.layer_elem.tags)
   
-  def test_parse_tags(self):
-    self._test_parse_tags("main-background", "main-background", [])
-    self._test_parse_tags("", "", [])
+  @mock.patch(LIB_NAME + ".pgitemtree.gimp", new=gimpstubs.GimpModuleStub())
+  def test_remove_tag(self):
+    self.assertEqual(self.layer_elem.tags, set())
     
-    self._test_parse_tags("[background]main-background", "main-background", ['background'])
-    self._test_parse_tags("[background] main-background", "main-background", ['background'])
-    self._test_parse_tags("[background]    main-background", "main-background", ['background'])
-    self._test_parse_tags(
-      "[foreground][background] main-background", "main-background", ['foreground', 'background'])
-    self._test_parse_tags(
-      "[foreground] [background] main-background", "main-background", ['foreground', 'background'])
-    self._test_parse_tags("[ background] main-background", "main-background", [' background'])
-    self._test_parse_tags("[ background ] main-background", "main-background", [' background '])
-    self._test_parse_tags(" [background] main-background", "main-background", ['background'])
-    self._test_parse_tags("[background]", "", ['background'])
+    with self.assertRaises(ValueError):
+      self.layer_elem.remove_tag("background")
     
-    self._test_parse_tags("[]main-background", "[]main-background", [])
-    self._test_parse_tags("[] main-background", "[] main-background", [])
-    self._test_parse_tags("[] [background] main-background", "[] [background] main-background", [])
-    self._test_parse_tags("[ ] [background] main-background", "[ ] [background] main-background", [])
-    self._test_parse_tags(" [ ] [background] main-background", " [ ] [background] main-background", [])
-     
-    self._test_parse_tags("main-background[background]", "main-background[background]", [])
-    self._test_parse_tags("main-background [background]", "main-background [background]", [])
+    self.layer_elem.add_tag("background")
+    self.layer_elem.remove_tag("background")
+    self.assertNotIn("background", self.layer_elem.tags)
+  
+  @mock.patch(LIB_NAME + ".pgitemtree.gimp", new=gimpstubs.GimpModuleStub())
+  def test_initial_tags(self):
+    layer_elem_tags_source_name = "test"
     
-    self._test_parse_tags("[[background]]main-background", "[[background]]main-background", [])
-    self._test_parse_tags(" [[background]]main-background", " [[background]]main-background", [])
-    self._test_parse_tags("[[background]] main-background", "[[background]] main-background", [])
-    self._test_parse_tags(
-      "[foreground] [[background]] main-background", "[[background]] main-background", ['foreground'])
-    self._test_parse_tags(
-      "[[foreground]] [some_other_ground] [[background]] main-background",
-      "[[foreground]] [some_other_ground] [[background]] main-background",
-      [])
-    self._test_parse_tags("[background]] main-background", "] main-background", ['background'])
+    layer = gimpstubs.LayerStub("layer")
+    layer.parasite_attach(gimpstubs.ParasiteStub(layer_elem_tags_source_name, 0, pickle.dumps(set(["background"]))))
     
-    self._test_parse_tags("[background main-background", "[background main-background", [])
-    self._test_parse_tags("[background main-background]", "", ['background main-background'])
-    self._test_parse_tags(
-      "[foreground]some text[background]main-background", "some text[background]main-background", ['foreground'])
+    layer_elem = pgitemtree._ItemTreeElement(layer, tags_source_name=layer_elem_tags_source_name)
+    self.assertIn("background", layer_elem.tags)

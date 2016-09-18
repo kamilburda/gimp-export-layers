@@ -45,9 +45,14 @@ str = unicode
 import abc
 import collections
 import os
-import re
+
+try:
+  import cPickle as pickle
+except ImportError:
+  import pickle
 
 import gimp
+import gimpenums
 
 pdb = gimp.pdb
 
@@ -79,7 +84,11 @@ class ItemTree(object):
   
   Attributes:
   
-  * `image` - GIMP image to generate item tree from.
+  * `image` (read-only) - GIMP image to generate item tree from.
+  
+  * `name` (read-only) - Optional name of the item tree. The name is currently
+    used as an identifier of the persistent source for tags in items. See
+    `_ItemTreeElement.tags` for more information.
   
   * `is_filtered` - If True, ignore items that do not match the filter
     (`ObjectFilter`) in this object when iterating.
@@ -90,8 +99,9 @@ class ItemTree(object):
   
   __metaclass__ = abc.ABCMeta
   
-  def __init__(self, image, is_filtered=False, filter_match_type=objectfilter.ObjectFilter.MATCH_ALL):
+  def __init__(self, image, name=None, is_filtered=False, filter_match_type=objectfilter.ObjectFilter.MATCH_ALL):
     self._image = image
+    self._name = name
     self.is_filtered = is_filtered
     self._filter_match_type = filter_match_type
     
@@ -120,6 +130,10 @@ class ItemTree(object):
   @property
   def image(self):
     return self._image
+  
+  @property
+  def name(self):
+    return self._name
   
   def __getitem__(self, id_or_name):
     """
@@ -252,51 +266,6 @@ class ItemTree(object):
     if item_elem.parent in self._uniquified_itemtree:
       self._uniquified_itemtree[item_elem.parent].remove(item_elem)
   
-  def add_tag(self, item_elem, tag):
-    """
-    Add the specified tag to the specified item. Prepend the tag to the original
-    item name as well. If the tag already exists, do nothing.
-    
-    If the original item name was modified externally (by GIMP in order to
-    ensure that item names are unique), return True, otherwise return False.
-    """
-    
-    if tag in item_elem.tags:
-      return False
-    
-    item_elem.tags.add(tag)
-    
-    new_item_name = "[{0}] {1}".format(tag, item_elem.orig_name)
-    
-    item_name_modified_externally = self._rename_item_elem(item_elem, new_item_name)
-    return item_name_modified_externally
-  
-  def remove_tag(self, item_elem, tag):
-    """
-    Remove the specified tag from the specified item. Remove the tag from the
-    original item name as well. If the original item name contains the tag
-    multiple times, all of the occurrences of the tag are removed.
-    
-    If the original item name was modified externally (by GIMP in order to
-    ensure that item names are unique), return True, otherwise return False.
-    
-    If the tag does not exist in the item name, raise `ValueError`.
-    """
-    
-    if tag not in item_elem.tags:
-      raise ValueError("tag '{0}' not found in _ItemTreeElement '{1}'".format(tag, item_elem.orig_name))
-    
-    item_elem.tags.remove(tag)
-    
-    _unused, index = _parse_tags(item_elem.orig_name)
-    tags_str = item_elem.orig_name[:index]
-    tags_str_processed = re.sub(r"\[" + re.escape(tag) + r"\] *", r"", tags_str)
-    
-    new_item_name = (tags_str_processed + item_elem.orig_name[index:])
-    
-    item_name_modified_externally = self._rename_item_elem(item_elem, new_item_name)
-    return item_name_modified_externally
-
   def reset_filter(self):
     """
     Reset the filter, creating a new empty `ObjectFilter`.
@@ -306,32 +275,17 @@ class ItemTree(object):
   
   def reset_item_elements(self):
     """
-    Reset `name` and `tags` attributes of all `_ItemTreeElement` instances
-    (regardless of instance filtering) and clear cache for already uniquified
-    and validated `_ItemTreeElement` instances.
+    Reset the `name` attribute of all `_ItemTreeElement` instances (regardless
+    of item filtering) and clear cache for already uniquified and validated
+    `_ItemTreeElement` instances.
     """
     
     for item_elem in self._itemtree.values():
       item_elem.name = item_elem.orig_name
-      item_elem.tags.clear()
     
     self._uniquified_itemtree.clear()
     self._uniquified_itemtree_names.clear()
     self._validated_itemtree.clear()
-  
-  def _rename_item_elem(self, item_elem, new_item_name):
-    new_item_name_encoded = new_item_name.encode()
-    
-    item_elem.item.name = new_item_name_encoded
-    
-    del self._itemtree_names[item_elem.orig_name]
-    
-    item_elem.update_orig_name()
-    
-    self._itemtree_names[item_elem.orig_name] = item_elem
-    
-    item_name_modified_externally = item_elem.orig_name != new_item_name
-    return item_name_modified_externally
   
   def _fill_item_tree(self):
     """
@@ -339,7 +293,7 @@ class ItemTree(object):
     """
     
     child_items = self._get_children_from_image(self._image)
-    child_item_elems = [_ItemTreeElement(item, [], None) for item in child_items]
+    child_item_elems = [_ItemTreeElement(item, [], None, self._name) for item in child_items]
     
     item_elem_tree = child_item_elems
     
@@ -357,7 +311,7 @@ class ItemTree(object):
       
       if child_items is not None:
         item_elem_parents.append(item_elem)
-        child_item_elems = [_ItemTreeElement(item, item_elem_parents, None) for item in child_items]
+        child_item_elems = [_ItemTreeElement(item, item_elem_parents, None, self._name) for item in child_items]
         
         # We break the convention here and access the `_ItemTreeElement._children`
         # private attribute.
@@ -411,48 +365,6 @@ class VectorTree(ItemTree):
   
   def _get_children_from_image(self, image):
     return image.vectors
-
-
-#===============================================================================
-
-  
-def _parse_tags(str_):
-  index = 0
-  start_of_tag_index = 0
-  is_inside_tag = False
-  tag_name = ""
-  tags = []
-  
-  while index < len(str_):
-    if str_[index].isspace():
-      if is_inside_tag:
-        tag_name += str_[index]
-    elif str_[index] == "[":
-      if not is_inside_tag:
-        is_inside_tag = True
-        start_of_tag_index = index
-      else:
-        index = start_of_tag_index
-        break
-    elif str_[index] == "]":
-      if not tag_name.strip() and is_inside_tag:
-        index = start_of_tag_index
-        break
-      
-      if is_inside_tag:
-        is_inside_tag = False
-        tags.append(tag_name)
-        tag_name = ""
-      else:
-        break
-    else:
-      if is_inside_tag:
-        tag_name += str_[index]
-      else:
-        break
-    index += 1
-  
-  return tags, index
 
 
 #===============================================================================
@@ -540,9 +452,6 @@ class _ItemTreeElement(object):
      attribute. Modify this attribute instead of `gimp.Item.name` to avoid
      modifying the original item.
   
-  * `tags` - Set of arbitrary strings attached to the item. Tags can also be
-    parsed from the item name by calling `parse_tags`.
-  
   * `depth` (read-only) - Integer indicating the depth of the item in the item
     tree. 0 means the item is at the top level. The greater the depth, the lower
     the item is in the item tree.
@@ -560,11 +469,20 @@ class _ItemTreeElement(object):
   * `path_visible` (read-only) - Visibility of all item's parents and this
     item. If all items are visible, `path_visible` is True. If at least one
     of these items is invisible, `path_visible` is False.
+  
+  * `tags` - Set of arbitrary strings attached to the item. Tags can be used for
+    a variety of purposes, such as special handling of items with specific tags.
+    Tags are stored persistently in the `gimp.Item` object (`item` attribute) as
+    parasites. The name of the parasite source is given by the
+    `tags_source_name` attribute.
+  
+  * `tags_source_name` - Name of the persistent source for the `tags` attribute.
+    Defaults to "tags" if the source name is None.
   """
   
   _ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP = (0, 1, 2)
   
-  def __init__(self, item, parents=None, children=None):
+  def __init__(self, item, parents=None, children=None, tags_source_name=None):
     if item is None:
       raise TypeError("item cannot be None")
     
@@ -573,13 +491,15 @@ class _ItemTreeElement(object):
     self._children = children
     
     self.name = item.name.decode()
-    self.tags = set()
     
     self._orig_name = self.name
     self._depth = len(self._parents)
     self._parent = self._parents[-1] if self._parents else None
     self._item_type = None
     self._path_visible = None
+    
+    self._tags_source_name = tags_source_name if tags_source_name else "tags"
+    self._tags = self._load_tags()
   
   @property
   def item(self):
@@ -627,6 +547,14 @@ class _ItemTreeElement(object):
       self._path_visible = self._get_path_visibility()
     
     return self._path_visible
+  
+  @property
+  def tags(self):
+    return self._tags
+  
+  @property
+  def tags_source_name(self):
+    return self._tags_source_name
   
   def __str__(self):
     return "<{0} '{1}'>".format(type(self).__name__, self.orig_name)
@@ -699,35 +627,31 @@ class _ItemTreeElement(object):
     
     return [parent.name for parent in self.parents]
   
-  def parse_tags(self):
+  def add_tag(self, tag):
     """
-    Parse tags from the item name. Example:
-    
-      [background] Layer
-    
-    inserts "background" to the set of tags and sets "Layer" as the new item
-    name.
-    
-    Tags are only parsed from the beginning of item name. Whitespace between
-    tags, before the first tag and after the last tag is removed.
-    
-    To prevent a tag from being parsed, surround it by nested square
-    brackets, e.g. "[[background]]".
+    Add the specified tag to the item. If the tag already exists, do nothing.
+    The tag is saved to the item persistently.
     """
     
-    tags, index = _parse_tags(self.name)
+    if tag in self._tags:
+      return
     
-    if tags:
-      self.name = self.name[index:]
-      self.tags.update(tags)
+    self._tags.add(tag)
+    
+    self._save_tags()
   
-  def update_orig_name(self):
+  def remove_tag(self, tag):
     """
-    Refresh the `orig_name` attribute. This is useful if you need to keep this
-    attribute up-to-date in case `gimp.Item.name` is modified.
+    Remove the specified tag from the item. If the tag does not exist, raise
+    `ValueError`.
     """
     
-    self._orig_name = self.item.name.decode()
+    if tag not in self._tags:
+      raise ValueError("tag '{0}' not found in {1}".format(tag, self))
+    
+    self._tags.remove(tag)
+    
+    self._save_tags()
   
   def _get_path_visibility(self):
     """
@@ -744,3 +668,23 @@ class _ItemTreeElement(object):
           path_visible = False
           break
     return path_visible
+  
+  def _save_tags(self):
+    """
+    Save tags persistently to the item.
+    """
+    
+    self._item.parasite_detach(self._tags_source_name)
+    
+    self._item.parasite_attach(
+      gimp.Parasite(
+        self._tags_source_name,
+        gimpenums.PARASITE_PERSISTENT | gimpenums.PARASITE_UNDOABLE,
+        pickle.dumps(self._tags)))
+  
+  def _load_tags(self):
+    parasite = self._item.parasite_find(self._tags_source_name)
+    if parasite:
+      return pickle.loads(parasite.data)
+    else:
+      return set()

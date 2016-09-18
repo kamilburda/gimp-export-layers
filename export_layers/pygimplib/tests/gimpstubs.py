@@ -71,15 +71,50 @@ class PdbStub(object):
 #===============================================================================
 
 
+class ParasiteStub(object):
+  
+  def __init__(self, name, flags, data):
+    self.name = name
+    self.flags = flags
+    self.data = data
+
+
+class ParasiteFunctionsStub(object):
+  
+  def __init__(self):
+    self._parasites = {}
+  
+  def parasite_find(self, name):
+    if name in self._parasites:
+      return self._parasites[name]
+    else:
+      return None
+  
+  def parasite_list(self):
+    return list(self._parasites.keys())
+  
+  def parasite_attach(self, parasite):
+    self._parasites[parasite.name] = parasite
+  
+  def parasite_detach(self, parasite_name):
+    if parasite_name in self._parasites:
+      del self._parasites[parasite_name]
+
+
+#===============================================================================
+
+
 _IMAGE_FIRST_AVAILABLE_ID = 0
 _ITEM_FIRST_AVAILABLE_ID = 0
 
 
-class ImageStub(object):
+class ImageStub(ParasiteFunctionsStub):
   
   _IMAGE_FIRST_AVAILABLE_ID = 0
   
   def __init__(self, name=None):
+    super(ImageStub, self).__init__()
+    
     global _IMAGE_FIRST_AVAILABLE_ID
     
     self.ID = _IMAGE_FIRST_AVAILABLE_ID
@@ -95,9 +130,11 @@ class ImageStub(object):
     _IMAGE_FIRST_AVAILABLE_ID += 1
 
 
-class ItemStub(object):
+class ItemStub(ParasiteFunctionsStub):
   
   def __init__(self, name=None, visible=True):
+    super(ItemStub, self).__init__()
+    
     global _ITEM_FIRST_AVAILABLE_ID
     
     self.ID = _ITEM_FIRST_AVAILABLE_ID
@@ -138,6 +175,19 @@ class LayerGroupStub(LayerStub):
 #===============================================================================
 
 
+class GimpModuleStub(ParasiteFunctionsStub):
+  
+  pdb = PdbStub
+  Parasite = ParasiteStub
+  Image = ImageStub
+  Item = ItemStub
+  Layer = LayerStub
+  GroupLayer = LayerGroupStub
+
+
+#===============================================================================
+
+
 class ShelfStub(object):
   
   def __init__(self):
@@ -154,29 +204,3 @@ class ShelfStub(object):
   
   def has_key(self, key):
     return key in self._shelf
-
-
-class ParasiteStub(object):
-  
-  class Parasite(object):
-    
-    def __init__(self, name, flags, data):
-      self.name = name
-      self.flags = flags
-      self.data = data
-  
-  def __init__(self):
-    self._parasites = {}
-  
-  def parasite_find(self, name):
-    if name in self._parasites:
-      return self._parasites[name]
-    else:
-      return None
-  
-  def parasite_attach(self, parasite):
-    self._parasites[parasite.name] = parasite
-  
-  def parasite_detach(self, parasite_name):
-    if parasite_name in self._parasites:
-      del self._parasites[parasite_name]

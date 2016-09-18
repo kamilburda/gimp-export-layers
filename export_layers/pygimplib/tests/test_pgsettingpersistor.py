@@ -95,7 +95,7 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.assertEqual(setting.value, setting.default_value)
 
 
-@mock.patch(LIB_NAME + ".pgsettingsources.gimp", new_callable=gimpstubs.ParasiteStub)
+@mock.patch(LIB_NAME + ".pgsettingsources.gimp", new_callable=gimpstubs.GimpModuleStub)
 class TestPersistentSettingSource(unittest.TestCase):
   
   @mock.patch(LIB_NAME + ".pgsettingsources.gimp.directory", new="gimp_directory")
@@ -164,7 +164,7 @@ class TestPersistentSettingSource(unittest.TestCase):
 
 
 @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new_callable=gimpstubs.ShelfStub)
-@mock.patch(LIB_NAME + ".pgsettingsources.gimp", new_callable=gimpstubs.ParasiteStub)
+@mock.patch(LIB_NAME + ".pgsettingsources.gimp", new_callable=gimpstubs.GimpModuleStub)
 class TestSettingPersistor(unittest.TestCase):
   
   @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new=gimpstubs.ShelfStub())
