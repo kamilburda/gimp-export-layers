@@ -286,7 +286,7 @@ class OperationsBox(object):
 
 class _OperationItem(object):
   
-  _BUTTON_REMOVE_PADDING = 3
+  _BUTTONS_PADDING = 3
   
   def __init__(self, setting_gui_element):
     self._setting_gui_element = setting_gui_element
@@ -303,7 +303,13 @@ class _OperationItem(object):
     
     self._button_remove.add(self._icon_remove)
     
-    self._hbox.pack_start(self._button_remove, expand=False, fill=False, padding=self._BUTTON_REMOVE_PADDING)
+    self._hbox_buttons = gtk.HBox(homogeneous=False)
+    self._hbox_buttons.pack_start(self._button_remove, expand=False, fill=False)
+    
+    self._event_box_buttons = gtk.EventBox()
+    self._event_box_buttons.add(self._hbox_buttons)
+    
+    self._hbox.pack_start(self._event_box_buttons, expand=False, fill=False, padding=self._BUTTONS_PADDING)
     
     self._event_box = gtk.EventBox()
     self._event_box.add(self._hbox)
@@ -318,9 +324,9 @@ class _OperationItem(object):
     self._button_remove.connect("focus-out-event", self._on_button_remove_focus_out_event)
     
     self._is_event_box_allocated_size = False
-    self._button_remove_allocation = None
+    self._buttons_allocation = None
     self._event_box.connect("size-allocate", self._on_event_box_size_allocate)
-    self._button_remove.connect("size-allocate", self._on_button_remove_size_allocate)
+    self._event_box_buttons.connect("size-allocate", self._on_event_box_buttons_size_allocate)
     
     self._event_box.show_all()
   
@@ -340,7 +346,7 @@ class _OperationItem(object):
     self._hbox.remove(self._setting_gui_element)
   
   def _on_event_box_enter_notify_event(self, event_box, event):
-    if event.detail not in [gtk.gdk.NOTIFY_INFERIOR, gtk.gdk.NOTIFY_ANCESTOR]:
+    if event.detail != gtk.gdk.NOTIFY_INFERIOR:
       self._button_remove.show()
   
   def _on_event_box_leave_notify_event(self, event_box, event):
@@ -368,13 +374,17 @@ class _OperationItem(object):
     self._is_event_box_allocated_size = True
     
     # Assign enough height to the HBox to make sure it does not resize when showing the button.
-    if self._button_remove_allocation.height >= allocation.height:
+    if self._buttons_allocation.height >= allocation.height:
       self._hbox.set_size_request(-1, allocation.height)
   
-  def _on_button_remove_size_allocate(self, button, allocation):
-    if self._button_remove_allocation is not None:
+  def _on_event_box_buttons_size_allocate(self, event_box, allocation):
+    if self._buttons_allocation is not None:
       return
     
-    self._button_remove_allocation = allocation
+    self._buttons_allocation = allocation
+    
+    # Make sure the width allocated to the buttons remains even if the buttons are hidden.
+    # This avoids a problem with unreachable buttons when the horizontal scrollbar is displayed.
+    self._event_box_buttons.set_size_request(self._buttons_allocation.width, -1)
     
     self._button_remove.hide()
