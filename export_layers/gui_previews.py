@@ -990,8 +990,8 @@ class ExportImagePreview(ExportPreview):
   def _layer_exporter_on_after_create_image_copy(self, image_copy):
     pdb.gimp_image_resize(
       image_copy,
-      int(round(image_copy.width * self._preview_scaling_factor)),
-      int(round(image_copy.height * self._preview_scaling_factor)),
+      max(1, int(round(image_copy.width * self._preview_scaling_factor))),
+      max(1, int(round(image_copy.height * self._preview_scaling_factor))),
       0, 0)
     
     pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_NONE)
@@ -1000,8 +1000,8 @@ class ExportImagePreview(ExportPreview):
     if not pdb.gimp_item_is_group(layer):
       pdb.gimp_layer_scale(
         layer,
-        int(round(layer.width * self._preview_scaling_factor)),
-        int(round(layer.height * self._preview_scaling_factor)),
+        max(1, int(round(layer.width * self._preview_scaling_factor))),
+        max(1, int(round(layer.height * self._preview_scaling_factor))),
         False)
   
   def _get_preview_pixbuf(self, layer, preview_width, preview_height, preview_data):
