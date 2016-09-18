@@ -463,9 +463,8 @@ class LayerExporter(object):
           if tag in self._current_layer_elem.tags:
             tags_to_insert.append(tag)
       
-      tags_to_insert.sort()
-      tags_to_insert = ["[{0}]".format(tag) for tag in tags_to_insert]
-      return " ".join(tags_to_insert)
+      tags_to_insert.sort(key=lambda tag: tag.lower())
+      return " ".join(["[{0}]".format(tag) for tag in tags_to_insert])
     
     return {'layer name': _get_layer_name,
             'image name': _get_image_name,
