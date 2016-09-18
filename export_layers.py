@@ -65,7 +65,7 @@ def plug_in_export_layers(run_mode, image, *args):
   settings['special/run_mode'].set_value(run_mode)
   settings['special/image'].set_value(image)
   
-  layer_tree = pgitemtree.LayerTree(image, is_filtered=True)
+  layer_tree = pgitemtree.LayerTree(image, name=pygimplib.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
   _setup_settings_additional(settings, layer_tree)
   
   if run_mode == gimpenums.RUN_INTERACTIVE:
@@ -88,7 +88,7 @@ def plug_in_export_layers(run_mode, image, *args):
   parameters=[settings['special']]
 )
 def plug_in_export_layers_repeat(run_mode, image):
-  layer_tree = pgitemtree.LayerTree(image, is_filtered=True)
+  layer_tree = pgitemtree.LayerTree(image, name=pygimplib.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
   _setup_settings_additional(settings, layer_tree)
   
   if run_mode == gimpenums.RUN_INTERACTIVE:

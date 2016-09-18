@@ -363,7 +363,8 @@ class LayerExporter(object):
     if layer_tree is not None:
       self._layer_tree = layer_tree
     else:
-      self._layer_tree = pgitemtree.LayerTree(self.image, is_filtered=True)
+      self._layer_tree = pgitemtree.LayerTree(
+        self.image, name=pygimplib.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
     
     self._keep_exported_layers = keep_exported_layers
     self._on_after_create_image_copy_func = (
@@ -488,9 +489,6 @@ class LayerExporter(object):
   def _preprocess_layers(self):
     if self._layer_tree.filter:
       self._layer_tree.reset_filter()
-    
-    for layer_elem in self._layer_tree:
-      layer_elem.parse_tags()
     
     self._set_layer_filters()
     

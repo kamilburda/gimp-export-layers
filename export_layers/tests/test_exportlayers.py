@@ -175,9 +175,11 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
                    self.default_expected_layers_dir, 'background', 'autocrop_to_background-use_image_size'))
   
   def test_foreground(self):
-    layer_tree = pgitemtree.LayerTree(self.test_image)
+    layer_tree = pgitemtree.LayerTree(self.test_image, name=pygimplib.config.SOURCE_PERSISTENT_NAME)
     for layer_elem in layer_tree:
-      layer_elem.item.name = layer_elem.item.name.replace("[background]", "[foreground]")
+      if "background" in layer_elem.tags:
+        layer_elem.remove_tag("background")
+        layer_elem.add_tag("foreground")
     
     self.compare({
                    'process_tagged_layers': True

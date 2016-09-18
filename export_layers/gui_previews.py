@@ -442,9 +442,9 @@ class ExportNamePreview(ExportPreview):
         layer_elem = self._layer_exporter.layer_tree[layer_id]
         
         if tags_menu_item.get_active():
-          self._layer_exporter.layer_tree.add_tag(layer_elem, tag)
+          layer_elem.add_tag(tag)
         else:
-          self._layer_exporter.layer_tree.remove_tag(layer_elem, tag)
+          layer_elem.remove_tag(tag)
       
       pdb.gimp_image_undo_group_end(self._layer_exporter.image)
       
