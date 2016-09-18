@@ -456,12 +456,27 @@ class LayerExporter(object):
     def _get_tags(*tags):
       tags_to_insert = []
       
+      def _insert_tag(tag):
+        if tag in self.BUILTIN_TAGS:
+          tag_display_name = self.BUILTIN_TAGS[tag]
+        else:
+          tag_display_name = tag
+        tags_to_insert.append(tag_display_name)
+      
+      def _get_tag_from_tag_display_name(tag_display_name):
+        return list(self.BUILTIN_TAGS.keys())[list(self.BUILTIN_TAGS.values()).index(tag_display_name)]
+      
       if not tags:
-        tags_to_insert = list(self._current_layer_elem.tags)
+        for tag in self._current_layer_elem.tags:
+          _insert_tag(tag)
       else:
         for tag in tags:
+          if tag in self.BUILTIN_TAGS.keys():
+            continue
+          if tag in self.BUILTIN_TAGS.values():
+            tag = _get_tag_from_tag_display_name(tag)
           if tag in self._current_layer_elem.tags:
-            tags_to_insert.append(tag)
+            _insert_tag(tag)
       
       tags_to_insert.sort(key=lambda tag: tag.lower())
       return " ".join(["[{0}]".format(tag) for tag in tags_to_insert])
