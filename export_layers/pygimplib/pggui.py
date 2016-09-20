@@ -109,15 +109,15 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     self._hbox_dialog_contents.pack_start(self._dialog_text_event_box, expand=False, fill=False)
     
     if self._use_mnemonics:
-      apply_to_all_checkbox_label = _("_Apply action to all files")
+      label_apply_to_all = _("_Apply action to all files")
     else:
-      apply_to_all_checkbox_label = _("Apply action to all files")
-    self._apply_to_all_checkbox = gtk.CheckButton(label=apply_to_all_checkbox_label)
-    self._apply_to_all_checkbox.set_use_underline(self._use_mnemonics)
+      label_apply_to_all = _("Apply action to all files")
+    self._checkbutton_apply_to_all = gtk.CheckButton(label=label_apply_to_all)
+    self._checkbutton_apply_to_all.set_use_underline(self._use_mnemonics)
     
     self._dialog.vbox.set_spacing(self._DIALOG_VBOX_SPACING)
     self._dialog.vbox.pack_start(self._hbox_dialog_contents, expand=False, fill=False)
-    self._dialog.vbox.pack_start(self._apply_to_all_checkbox, expand=False, fill=False)
+    self._dialog.vbox.pack_start(self._checkbutton_apply_to_all, expand=False, fill=False)
     
     self._buttons = {}
     for value, display_name in self.values_and_display_names:
@@ -125,7 +125,7 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     
     self._dialog.action_area.set_spacing(self._DIALOG_ACTION_AREA_SPACING)
     
-    self._apply_to_all_checkbox.connect("toggled", self._on_apply_to_all_changed)
+    self._checkbutton_apply_to_all.connect("toggled", self._on_apply_to_all_changed)
     
     self._is_dialog_text_allocated_size = False
     self._dialog_text_event_box.connect("size-allocate", self._on_dialog_text_event_box_size_allocate)
@@ -161,7 +161,7 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
     return self._overwrite_mode
   
   def _on_apply_to_all_changed(self, widget):
-    self._is_apply_to_all = self._apply_to_all_checkbox.get_active()
+    self._is_apply_to_all = self._checkbutton_apply_to_all.get_active()
   
   def _on_dialog_text_event_box_size_allocate(self, dialog_text_event_box, allocation):
     if not self._is_dialog_text_allocated_size:

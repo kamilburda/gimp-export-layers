@@ -86,7 +86,7 @@ class GtkCheckButtonPresenter(GtkSettingPresenter):
   """
   This class is a `SettingPresenter` for `gtk.CheckButton` elements.
   
-  Value: Checked state of the checkbox (checked/unchecked).
+  Value: Checked state of the check button (checked/unchecked).
   """
   
   _VALUE_CHANGED_SIGNAL = "clicked"
@@ -309,7 +309,7 @@ class SettingGuiTypes(object):
   This enum maps `SettingPresenter` classes to more human-readable names.
   """
   
-  checkbox = GtkCheckButtonPresenter
+  check_button = GtkCheckButtonPresenter
   combobox = GimpUiIntComboBoxPresenter
   text_entry = GtkEntryPresenter
   extended_entry = ExtendedEntryPresenter

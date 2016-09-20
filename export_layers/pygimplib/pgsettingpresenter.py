@@ -60,7 +60,8 @@ class SettingPresenter(object):
   
   Subclasses can wrap any attribute of a GUI element into their `_get_value()`
   and `_set_value()` methods. The value does not have to be a "direct" value,
-  e.g. the checked state of a checkbox, but also e.g. the label of the checkbox.
+  e.g. the checked state of a check button, but also e.g. the label of the
+  check button.
   
   Attributes:
   

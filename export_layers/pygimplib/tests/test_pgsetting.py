@@ -73,7 +73,7 @@ class GuiWidgetStub(object):
       self._event_handler()
 
 
-class CheckboxStub(GuiWidgetStub):
+class CheckButtonStub(GuiWidgetStub):
   pass
 
 
@@ -118,10 +118,10 @@ class SettingPresenterWithoutGuiElementCreationStub(SettingPresenterStub):
     return None
 
 
-class CheckboxPresenterStub(SettingPresenterStub):
+class CheckButtonPresenterStub(SettingPresenterStub):
   
   def _create_gui_element(self, setting):
-    return CheckboxStub(setting.value)
+    return CheckButtonStub(setting.value)
 
 
 class YesNoToggleButtonPresenterStub(SettingPresenterStub):
@@ -151,7 +151,7 @@ class SettingRegistrableToPdbStub(SettingStub):
 class SettingWithGuiStub(SettingStub):
   
   _ALLOWED_GUI_TYPES = [
-    CheckboxPresenterStub, SettingPresenterStub, SettingPresenterWithValueChangedSignalStub,
+    CheckButtonPresenterStub, SettingPresenterStub, SettingPresenterWithValueChangedSignalStub,
     SettingPresenterWithoutGuiElementCreationStub]
 
 
@@ -551,10 +551,10 @@ class TestSettingGui(unittest.TestCase):
     self.assertEqual(self.widget.value, "gif")
   
   def test_setting_gui_type(self):
-    setting = SettingWithGuiStub("only_visible_layers", False, gui_type=CheckboxPresenterStub)
+    setting = SettingWithGuiStub("only_visible_layers", False, gui_type=CheckButtonPresenterStub)
     setting.set_gui()
-    self.assertIs(type(setting.gui), CheckboxPresenterStub)
-    self.assertIs(type(setting.gui.element), CheckboxStub)
+    self.assertIs(type(setting.gui), CheckButtonPresenterStub)
+    self.assertIs(type(setting.gui.element), CheckButtonStub)
   
   def test_setting_different_gui_type(self):
     setting = SettingWithGuiStub("only_visible_layers", False, gui_type=SettingPresenterStub)
@@ -577,7 +577,7 @@ class TestSettingGui(unittest.TestCase):
   def test_set_gui_gui_type_is_specified_gui_element_is_none_raise_error(self):
     setting = SettingWithGuiStub("only_visible_layers", False)
     with self.assertRaises(ValueError):
-      setting.set_gui(gui_type=CheckboxPresenterStub)
+      setting.set_gui(gui_type=CheckButtonPresenterStub)
   
   def test_set_gui_gui_type_is_none_gui_element_is_specified_raise_error(self):
     setting = SettingWithGuiStub("only_visible_layers", False)

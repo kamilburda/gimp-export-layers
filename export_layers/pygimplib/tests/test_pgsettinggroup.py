@@ -31,8 +31,8 @@ from ..lib import mock
 from .. import pgsetting
 from .. import pgsettinggroup
 from .. import pgsettingpersistor
-from .test_pgsetting import CheckboxStub, GuiWidgetStub
-from .test_pgsetting import CheckboxPresenterStub, SettingPresenterStub
+from .test_pgsetting import CheckButtonStub, GuiWidgetStub
+from .test_pgsetting import CheckButtonPresenterStub, SettingPresenterStub
 from .test_pgsetting import SettingWithGuiStub
 
 #===============================================================================
@@ -632,10 +632,10 @@ class TestSettingGroupGui(unittest.TestCase):
   def test_initialize_gui_without_custom_gui(self):
     self.settings.initialize_gui()
     
-    self.assertIs(type(self.settings['file_extension'].gui), CheckboxPresenterStub)
-    self.assertIs(type(self.settings['file_extension'].gui.element), CheckboxStub)
-    self.assertIs(type(self.settings['only_visible_layers'].gui), CheckboxPresenterStub)
-    self.assertIs(type(self.settings['only_visible_layers'].gui.element), CheckboxStub)
+    self.assertIs(type(self.settings['file_extension'].gui), CheckButtonPresenterStub)
+    self.assertIs(type(self.settings['file_extension'].gui.element), CheckButtonStub)
+    self.assertIs(type(self.settings['only_visible_layers'].gui), CheckButtonPresenterStub)
+    self.assertIs(type(self.settings['only_visible_layers'].gui.element), CheckButtonStub)
   
   def test_initialize_gui_with_custom_gui(self):
     file_extension_widget = GuiWidgetStub("png")
@@ -648,8 +648,8 @@ class TestSettingGroupGui(unittest.TestCase):
     self.assertIs(type(self.settings['file_extension'].gui.element), GuiWidgetStub)
     # It's "bmp", not "png", since the setting value overrides the initial GUI element value.
     self.assertEqual(file_extension_widget.value, "bmp")
-    self.assertIs(type(self.settings['only_visible_layers'].gui), CheckboxPresenterStub)
-    self.assertIs(type(self.settings['only_visible_layers'].gui.element), CheckboxStub)
+    self.assertIs(type(self.settings['only_visible_layers'].gui), CheckButtonPresenterStub)
+    self.assertIs(type(self.settings['only_visible_layers'].gui.element), CheckButtonStub)
   
   def test_apply_gui_values_to_settings_ignores_specified_settings(self):
     file_extension_widget = GuiWidgetStub(None)
