@@ -422,7 +422,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   _DIALOG_SIZE = (900, 610)
   _DIALOG_BORDER_WIDTH = 8
   _DIALOG_VBOX_SPACING = 5
-  _DIALOG_ACTION_AREA_PADDING = 5
+  _DIALOG_ACTION_AREA_BORDER_WIDTH = 5
   _DIALOG_BUTTONS_HORIZONTAL_SPACING = 6
   
   _FILE_EXTENSION_ENTRY_WIDTH_CHARS = 8
@@ -559,9 +559,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._label_message.set_alignment(0.0, 0.5)
     self._label_message.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
-    self._show_more_settings_button = gtk.CheckButton()
-    self._show_more_settings_button.set_use_underline(True)
-    self._show_more_settings_button.set_label(_("Show _More Settings"))
+    self._menu_item_show_more_settings = gtk.CheckMenuItem(_("Show More Settings"))
     
     self._vpaned_settings = gtk.VPaned()
     
@@ -569,7 +567,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       'file_extension': [pgsetting.SettingGuiTypes.extended_entry, self._file_extension_entry],
       'dialog_position': [pgsetting.SettingGuiTypes.window_position, self._dialog],
       'dialog_size': [pgsetting.SettingGuiTypes.window_size, self._dialog],
-      'show_more_settings': [pgsetting.SettingGuiTypes.checkbox, self._show_more_settings_button],
+      'show_more_settings': [pgsetting.SettingGuiTypes.check_menu_item, self._menu_item_show_more_settings],
       'chooser_and_previews_hpane_position': [
         pgsetting.SettingGuiTypes.paned_position, self._hpaned_chooser_and_previews],
       'previews_vpane_position': [
@@ -643,61 +641,54 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._vpaned_settings.pack1(self._vbox_basic_settings, resize=True, shrink=False)
     self._vpaned_settings.pack2(self._hbox_more_settings, resize=False, shrink=True)
     
-    self._export_button = gtk.Button()
-    self._export_button.set_label(_("_Export"))
+    self._button_export = self._dialog.add_button(_("_Export"), gtk.RESPONSE_OK)
+    self._button_cancel = self._dialog.add_button(_("_Cancel"), gtk.RESPONSE_CANCEL)
+    self._dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
     
-    self._cancel_button = gtk.Button()
-    self._cancel_button.set_label(_("_Cancel"))
+    self._button_stop = gtk.Button()
+    self._button_stop.set_label(_("_Stop"))
     
-    self._stop_button = gtk.Button()
-    self._stop_button.set_label(_("_Stop"))
+    self._label_button_settings = gtk.Label(_("_Settings"))
+    self._label_button_settings.set_use_underline(True)
     
-    self._save_settings_button = gtk.Button()
-    self._save_settings_button.set_label(_("Save Settings"))
-    self._save_settings_button.set_tooltip_text(
-      _("Save settings permanently. "
-        "If you start GIMP again, the saved settings will be loaded "
-        "when {0} is first opened.").format(pygimplib.config.PLUGIN_TITLE))
-    self._reset_settings_button = gtk.Button()
-    self._reset_settings_button.set_label(_("Reset Settings"))
+    self._hbox_button_settings = gtk.HBox()
+    self._hbox_button_settings.pack_start(self._label_button_settings, expand=True, fill=True)
+    self._hbox_button_settings.pack_start(
+      gtk.Arrow(gtk.ARROW_DOWN, gtk.SHADOW_IN), expand=False, fill=False)
     
-    self._dialog_buttons = gtk.HButtonBox()
-    self._dialog_buttons.set_layout(gtk.BUTTONBOX_END)
-    self._dialog_buttons.set_spacing(self._DIALOG_BUTTONS_HORIZONTAL_SPACING)
+    self._button_settings = gtk.Button()
+    self._button_settings.add(self._hbox_button_settings)
     
-    if not gtk.alternative_dialog_button_order():
-      main_dialog_buttons = [self._cancel_button, self._export_button]
-    else:
-      main_dialog_buttons = [self._export_button, self._cancel_button]
-    
-    for button in main_dialog_buttons:
-      self._dialog_buttons.pack_end(button, expand=False, fill=False)
-    
-    self._dialog_buttons.pack_end(self._stop_button, expand=False, fill=False)
-    self._dialog_buttons.pack_start(self._save_settings_button, expand=False, fill=False)
-    self._dialog_buttons.pack_start(self._reset_settings_button, expand=False, fill=False)
-    self._dialog_buttons.set_child_secondary(self._save_settings_button, True)
-    self._dialog_buttons.set_child_secondary(self._reset_settings_button, True)
-    
-    self._action_area = gtk.HBox(homogeneous=False)
-    self._action_area.set_spacing(self._HBOX_HORIZONTAL_SPACING)
-    self._action_area.pack_start(self._show_more_settings_button, expand=False, fill=False)
-    self._action_area.pack_start(self._dialog_buttons, expand=True, fill=True)
+    self._menu_item_save_settings = gtk.MenuItem(_("Save Settings"))
+    self._menu_item_reset_settings = gtk.MenuItem(_("Reset settings"))
+
+    self._menu_settings = gtk.Menu()
+    self._menu_settings.append(self._menu_item_show_more_settings)
+    self._menu_settings.append(self._menu_item_save_settings)
+    self._menu_settings.append(self._menu_item_reset_settings)
+    self._menu_settings.show_all()
+
+    self._dialog.action_area.pack_end(self._button_stop, expand=False, fill=False)
+    self._dialog.action_area.pack_start(self._button_settings, expand=False, fill=False)
+    self._dialog.action_area.set_child_secondary(self._button_settings, True)
     
     self._dialog.vbox.set_spacing(self._DIALOG_VBOX_SPACING)
     self._dialog.vbox.pack_start(self._vpaned_settings, expand=True, fill=True)
-    self._dialog.vbox.pack_start(
-      self._action_area, expand=False, fill=False, padding=self._DIALOG_ACTION_AREA_PADDING)
     self._dialog.vbox.pack_end(self._vbox_progress_bars, expand=False, fill=False)
     
-    self._export_button.connect("clicked", self._on_export_button_clicked)
-    self._cancel_button.connect("clicked", self._on_cancel_button_clicked)
-    self._stop_button.connect("clicked", self._stop)
+    # Move the action area above the progress bar.
+    self._dialog.vbox.reorder_child(self._dialog.action_area, -1)
+    
+    self._button_export.connect("clicked", self._on_button_export_clicked)
+    self._button_cancel.connect("clicked", self._on_button_cancel_clicked)
+    self._button_stop.connect("clicked", self._stop)
     self._dialog.connect("key-press-event", self._on_dialog_key_press)
     self._dialog.connect("delete-event", self._on_dialog_delete_event)
     
-    self._save_settings_button.connect("clicked", self._on_save_settings_clicked)
-    self._reset_settings_button.connect("clicked", self._on_reset_settings_clicked)
+    self._button_settings.connect("clicked", self._on_button_settings_clicked)
+    self._menu_item_show_more_settings.connect("toggled", self._on_menu_item_show_more_settings_toggled)
+    self._menu_item_save_settings.connect("activate", self._on_save_settings_activate)
+    self._menu_item_reset_settings.connect("activate", self._on_reset_settings_activate)
     
     self._file_extension_entry.connect(
       "changed", self._on_text_entry_changed,
@@ -705,7 +696,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._filename_pattern_entry.connect(
       "changed", self._on_text_entry_changed,
       self._settings['main/layer_filename_pattern'], "invalid_layer_filename_pattern")
-    self._show_more_settings_button.connect("toggled", self._on_show_more_settings_button_toggled)
     
     self._dialog.connect("notify::is-active", self._on_dialog_is_active_changed)
     self._hpaned_chooser_and_previews.connect("notify::position", self._on_hpaned_position_changed)
@@ -717,11 +707,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._dialog.set_default_response(gtk.RESPONSE_CANCEL)
     
     self._dialog.vbox.show_all()
-    
     self._vbox_progress_bars.hide()
-    self._stop_button.hide()
-    # Action area is unused and leaves unnecessary empty space.
-    self._dialog.action_area.hide()
+    self._button_stop.hide()
+    
+    self._dialog.action_area.set_border_width(self._DIALOG_ACTION_AREA_BORDER_WIDTH)
     
     self._connect_visible_changed_for_previews()
     
@@ -730,8 +719,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._init_previews()
     
     self._dialog.set_focus(self._file_extension_entry)
-    self._export_button.set_flags(gtk.CAN_DEFAULT)
-    self._export_button.grab_default()
+    self._button_export.set_flags(gtk.CAN_DEFAULT)
+    self._button_export.grab_default()
     self._filename_pattern_entry.set_activates_default(True)
     self._file_extension_entry.set_activates_default(True)
     # Place the cursor at the end of the text entry.
@@ -774,11 +763,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS, self._export_name_preview.update,
         should_enable_sensitive=True)
   
-  def _on_show_more_settings_button_toggled(self, widget):
+  def _on_menu_item_show_more_settings_toggled(self, widget):
     self._show_hide_more_settings()
   
   def _show_hide_more_settings(self):
-    if self._show_more_settings_button.get_active():
+    if self._menu_item_show_more_settings.get_active():
       self._hbox_more_settings.show()
       
       self._file_extension_label.hide()
@@ -961,13 +950,24 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       export_stopped = self._stop()
       return export_stopped
   
+  def _on_button_settings_clicked(self, button):
+    dialog_position = self._dialog.get_window().get_origin()
+    button_allocation = button.get_allocation()
+    self._menu_settings.popup(
+      None, None,
+      lambda menu: (
+        button_allocation.x + dialog_position[0],
+        button_allocation.y + button_allocation.height + dialog_position[1],
+        True),
+      0, 0)
+  
   @_set_settings
-  def _on_save_settings_clicked(self, widget):
+  def _on_save_settings_activate(self, widget):
     save_successful = self._save_settings()
     if save_successful:
       self._display_message_label(_("Settings successfully saved."), message_type=gtk.MESSAGE_INFO)
   
-  def _on_reset_settings_clicked(self, widget):
+  def _on_reset_settings_activate(self, widget):
     response_id, reset_operations = display_reset_prompt(
       parent=self._dialog, more_settings_shown=self._settings['gui/show_more_settings'].value)
     
@@ -1005,7 +1005,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._progress_set_value(0.0)
   
   @_set_settings
-  def _on_export_button_clicked(self, widget):
+  def _on_button_export_clicked(self, widget):
     self._setup_gui_before_export()
     
     self._install_gimp_progress(self._progress_set_value, self._progress_reset_value)
@@ -1072,29 +1072,30 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   def _set_gui_enabled(self, enabled):
     self._vbox_progress_bars.set_visible(not enabled)
-    self._stop_button.set_visible(not enabled)
-    self._cancel_button.set_visible(enabled)
+    self._button_stop.set_visible(not enabled)
+    self._button_cancel.set_visible(enabled)
     
     for child in self._dialog.vbox:
-      if child not in (self._action_area, self._progress_bar, self._progress_bar_individual_operations):
+      if child not in (
+           self._dialog.action_area, self._progress_bar, self._progress_bar_individual_operations):
         child.set_sensitive(enabled)
     
-    self._show_more_settings_button.set_sensitive(enabled)
+    self._button_settings.set_sensitive(enabled)
     
-    for button in self._dialog_buttons:
-      if button != self._stop_button:
+    for button in self._dialog.action_area:
+      if button != self._button_stop:
         button.set_sensitive(enabled)
     
     if enabled:
       self._dialog.set_focus(self._file_extension_entry)
       self._file_extension_entry.set_position(-1)
     else:
-      self._dialog.set_focus(self._stop_button)
+      self._dialog.set_focus(self._button_stop)
   
   def _on_dialog_delete_event(self, widget, event):
     gtk.main_quit()
   
-  def _on_cancel_button_clicked(self, widget):
+  def _on_button_cancel_clicked(self, widget):
     gtk.main_quit()
   
   def _display_message_label(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
@@ -1151,11 +1152,11 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
     self._dialog.set_border_width(8)
     self._dialog.set_default_size(self._DIALOG_WIDTH, -1)
     
-    self._stop_button = gtk.Button()
-    self._stop_button.set_label(_("_Stop"))
+    self._button_stop = gtk.Button()
+    self._button_stop.set_label(_("_Stop"))
     
     self._buttonbox = gtk.HButtonBox()
-    self._buttonbox.pack_start(self._stop_button, expand=False, fill=False)
+    self._buttonbox.pack_start(self._button_stop, expand=False, fill=False)
     
     self._hbox_action_area = gtk.HBox(homogeneous=False)
     self._hbox_action_area.set_spacing(self._HBOX_HORIZONTAL_SPACING)
@@ -1164,7 +1165,7 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
     
     self._dialog.vbox.pack_end(self._hbox_action_area, expand=False, fill=False)
     
-    self._stop_button.connect("clicked", self._stop)
+    self._button_stop.connect("clicked", self._stop)
     self._dialog.connect("delete-event", self._stop)
   
   def _progress_set_value(self, fraction):
