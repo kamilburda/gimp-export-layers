@@ -280,6 +280,26 @@ class GtkPanedPositionPresenter(GtkSettingPresenter):
     self._element.set_position(value)
 
 
+class GtkCheckMenuItemPresenter(GtkSettingPresenter):
+  
+  """
+  This class is a `SettingPresenter` for `gtk.CheckMenuItem` elements.
+  
+  Value: Checked state of the menu item (checked/unchecked).
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "toggled"
+  
+  def _create_gui_element(self, setting):
+    return gtk.CheckMenuItem(setting.display_name)
+  
+  def _get_value(self):
+    return self._element.get_active()
+  
+  def _set_value(self, value):
+    self._element.set_active(value)
+
+
 #===============================================================================
 
 
@@ -298,6 +318,7 @@ class SettingGuiTypes(object):
   window_size = GtkWindowSizePresenter
   expander = GtkExpanderPresenter
   paned_position = GtkPanedPositionPresenter
+  check_menu_item = GtkCheckMenuItemPresenter
   
   automatic = type(b"AutomaticGuiType", (), {})()
   none = pgsettingpresenter.NullSettingPresenter
