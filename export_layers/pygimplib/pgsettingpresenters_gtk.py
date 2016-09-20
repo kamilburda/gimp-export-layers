@@ -273,9 +273,6 @@ class GtkPanedPositionPresenter(GtkSettingPresenter):
   Value: Position of the pane.
   """
   
-  def __init__(self, *args, **kwargs):
-    super(GtkPanedPositionPresenter, self).__init__(*args, **kwargs)
-  
   def _get_value(self):
     return self._element.get_position()
   
