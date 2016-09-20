@@ -392,6 +392,9 @@ class Setting(object):
     
     * `gui_type` - `SettingPresenter` type to wrap `gui_element` around.
       
+      When calling this method, `gui_type` does not have to be one of the
+      allowed GUI types specified in the setting.
+      
       If `gui_type` is `SettingGuiTypes.automatic`, create a GUI object of the
       type specified in the `gui_type` parameter in `__init__`.
       
@@ -401,9 +404,6 @@ class Setting(object):
       
       If `gui_type` is None, remove the GUI and disconnect any events the GUI
       had. The state of the old GUI is still preserved.
-      
-      If `gui_type` is not any of the allowed GUI types for the setting, raise
-      `ValueError`.
     
     * `gui_element` - A GUI element (wrapped in a `SettingPresenter` instance).
     
