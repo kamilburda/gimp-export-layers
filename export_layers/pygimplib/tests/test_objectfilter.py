@@ -26,7 +26,7 @@ str = unicode
 
 import unittest
 
-from ..objectfilter import ObjectFilter
+from .. import objectfilter
 
 #===============================================================================
 
@@ -77,8 +77,8 @@ def invalid_rule_func():
 class TestObjectFilter(unittest.TestCase):
   
   def setUp(self):
-    self.filter = ObjectFilter(ObjectFilter.MATCH_ALL)
-    self.filter_match_any = ObjectFilter(ObjectFilter.MATCH_ANY)
+    self.filter = objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ALL)
+    self.filter_match_any = objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY)
   
   def test_is_filter_nonempty(self):
     self.assertFalse(bool(self.filter))
@@ -164,21 +164,22 @@ class TestObjectFilter(unittest.TestCase):
       self.filter.add_subfilter('subfilter', has_matching_file_extension)
   
   def test_add_subfilter_already_exists(self):
-    self.filter.add_subfilter('subfilter', ObjectFilter(ObjectFilter.MATCH_ALL))
+    self.filter.add_subfilter('subfilter', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ALL))
     with self.assertRaises(ValueError):
-      self.filter.add_subfilter('subfilter', ObjectFilter(ObjectFilter.MATCH_ALL))
+      self.filter.add_subfilter('subfilter', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ALL))
   
   def test_remove_subfilter_does_not_exist(self):
     with self.assertRaises(ValueError):
       self.filter.remove_subfilter('subfilter_does_not_exist')
   
   def test_add_subfilter_temp(self):
-    with self.filter.add_subfilter_temp('item_types', ObjectFilter(ObjectFilter.MATCH_ALL)):
+    with self.filter.add_subfilter_temp(
+           'item_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ALL)):
       self.assertTrue(self.filter.has_subfilter('item_types'))
     self.assertFalse(self.filter.has_subfilter('item_types'))
 
   def test_remove_subfilter_temp(self):
-    self.filter.add_subfilter('item_types', ObjectFilter(ObjectFilter.MATCH_ALL))
+    self.filter.add_subfilter('item_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ALL))
     with self.filter.remove_subfilter_temp('item_types'):
       self.assertFalse(self.filter.has_subfilter('item_types'))
     self.assertTrue(self.filter.has_subfilter('item_types'))
@@ -234,7 +235,7 @@ class TestObjectFilter(unittest.TestCase):
         # * rule
         # * rule
     
-    self.filter.add_subfilter('obj_properties', ObjectFilter(self.filter.MATCH_ANY))
+    self.filter.add_subfilter('obj_properties', objectfilter.ObjectFilter(self.filter.MATCH_ANY))
     self.filter['obj_properties'].add_rule(is_empty)
     self.filter['obj_properties'].add_rule(is_object_id_even)
     self.filter.add_rule(has_uppercase_letters)
@@ -256,11 +257,11 @@ class TestObjectFilter(unittest.TestCase):
           # * rule
     
     self.filter.add_rule(is_object_id_even)
-    self.filter.add_subfilter('obj_properties', ObjectFilter(self.filter.MATCH_ANY))
+    self.filter.add_subfilter('obj_properties', objectfilter.ObjectFilter(self.filter.MATCH_ANY))
     
     obj_properties_subfilter = self.filter['obj_properties']
     obj_properties_subfilter.add_rule(is_empty)
-    obj_properties_subfilter.add_subfilter('colors', ObjectFilter(self.filter.MATCH_ALL))
+    obj_properties_subfilter.add_subfilter('colors', objectfilter.ObjectFilter(self.filter.MATCH_ALL))
     
     color_subfilter = obj_properties_subfilter['colors']
     color_subfilter.add_rule(has_red_color)
