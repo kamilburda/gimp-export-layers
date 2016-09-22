@@ -41,17 +41,15 @@ _ = lambda s: s
 _
 runtests.run_tests(path=plugins_path)
 
+The `_` is vital if you are using the `gettext` module for internationalization.
 
 * To repeat the tests, paste the following to the console:
 
 
-_ = lambda s: s
 reload(runtests)
-_
 runtests.run_tests(path=plugins_path)
 
 
-The `_` is vital if you are using the `gettext` module for internationalization.
 """
 
 from __future__ import absolute_import
