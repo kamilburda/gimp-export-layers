@@ -116,6 +116,14 @@ def inherit_transparency_from_layer_groups(setting, get_current_layer_elem, laye
     return False
 
 
+def autocrop_layer(setting, get_image, layer):
+  if setting.value:
+    pdb.plug_in_autocrop_layer(get_image(), layer)
+    return True
+  else:
+    return False
+
+
 def set_active_layer_after_operation(get_image, layer):
   operation_successful = yield
   
@@ -295,6 +303,11 @@ class LayerExporter(object):
       inherit_transparency_from_layer_groups,
       self.export_settings['more_operations/inherit_transparency_from_layer_groups'],
       lambda: self._current_layer_elem)
+    self._operations_executor.add_operation(
+      ["process_layer"],
+      autocrop_layer,
+      self.export_settings['more_operations/autocrop'],
+      lambda: self._image_copy)
     
     self._operations_executor.add_foreach_operation(
       ["process_layer"], set_active_layer_after_operation, lambda: self._image_copy)
@@ -684,37 +697,29 @@ class LayerExporter(object):
           dest_image.parasite_attach(parasite)
   
   def _process_layer(self, layer_elem, image, layer):
-    background_layer, self._tagged_layer_copies['background'] = self._insert_layer(
-      image, self._tagged_layer_elems['background'], self._tagged_layer_copies['background'], insert_index=0)
+    layer_copy = self._copy_and_insert_layer(image, layer, None, 0)
     
-    layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
-    pdb.gimp_image_insert_layer(image, layer_copy, None, 0)
-    pdb.gimp_item_set_visible(layer_copy, True)
+    image.active_layer = layer_copy
     
-    if pdb.gimp_item_is_group(layer_copy):
-      layer_copy = pgpdb.merge_layer_group(layer_copy)
+    background_layer, self._tagged_layer_copies['background'] = self._insert_tagged_layer(
+      image, self._tagged_layer_elems['background'], self._tagged_layer_copies['background'],
+      positon=len(image.layers))
     
-    self._on_after_insert_layer_func(layer_copy)
+    image.active_layer = layer_copy
+    
+    foreground_layer, self._tagged_layer_copies['foreground'] = self._insert_tagged_layer(
+      image, self._tagged_layer_elems['foreground'], self._tagged_layer_copies['foreground'],
+      positon=0)
+    
+    image.active_layer = layer_copy
     
     self._operations_executor.execute(["process_layer"], layer_copy)
     
-    image.active_layer = layer_copy
-    
-    foreground_layer, self._tagged_layer_copies['foreground'] = self._insert_layer(
-      image, self._tagged_layer_elems['foreground'], self._tagged_layer_copies['foreground'], insert_index=0)
-    
-    image.active_layer = layer_copy
-    
-    if self.export_settings['more_operations/autocrop'].value:
-      pdb.plug_in_autocrop_layer(image, layer_copy)
-    
-    layer_copy = self._crop_layer(image, layer_copy, background_layer, foreground_layer)
+    self._crop_layer(image, layer_copy, background_layer, foreground_layer)
     layer_copy = self._merge_and_resize_layer(image, layer_copy)
     
     image.active_layer = layer_copy
     
-    # Remove the " copy" suffix from the layer name, which is preserved in
-    # formats supporting layers (XCF, PSD, ...).
     layer_copy.name = layer.name
     
     return layer_copy
@@ -731,24 +736,28 @@ class LayerExporter(object):
         
         pdb.gimp_image_remove_layer(image, layer)
   
-  def _insert_layer(self, image, layer_elems, inserted_layer_copy, insert_index=0):
+  def _copy_and_insert_layer(self, image, layer, parent=None, position=0):
+    layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
+    pdb.gimp_image_insert_layer(image, layer_copy, parent, position)
+    pdb.gimp_item_set_visible(layer_copy, True)
+    
+    if pdb.gimp_item_is_group(layer_copy):
+      layer_copy = pgpdb.merge_layer_group(layer_copy)
+    
+    self._on_after_insert_layer_func(layer_copy)
+    
+    return layer_copy
+  
+  def _insert_tagged_layer(self, image, layer_elems, inserted_layer_copy, positon=0):
     if not layer_elems:
       return None, None
     
     if inserted_layer_copy is None:
       layer_group = pdb.gimp_layer_group_new(image)
-      pdb.gimp_image_insert_layer(image, layer_group, None, insert_index)
+      pdb.gimp_image_insert_layer(image, layer_group, None, positon)
       
       for i, layer_elem in enumerate(list(layer_elems)):
-        layer_copy = pdb.gimp_layer_new_from_drawable(layer_elem.item, image)
-        pdb.gimp_image_insert_layer(image, layer_copy, layer_group, i)
-        pdb.gimp_item_set_visible(layer_copy, True)
-        
-        if pdb.gimp_item_is_group(layer_copy):
-          layer_copy = pgpdb.merge_layer_group(layer_copy)
-        
-        self._on_after_insert_layer_func(layer_copy)
-        
+        layer_copy = self._copy_and_insert_layer(image, layer_elem.item, layer_group, i)
         self._operations_executor.execute(["insert_layer"], layer_copy)
       
       layer = pgpdb.merge_layer_group(layer_group)
@@ -757,7 +766,7 @@ class LayerExporter(object):
       return layer, inserted_layer_copy
     else:
       layer_copy = pdb.gimp_layer_copy(inserted_layer_copy, True)
-      pdb.gimp_image_insert_layer(image, layer_copy, None, insert_index)
+      pdb.gimp_image_insert_layer(image, layer_copy, None, positon)
       return layer_copy, inserted_layer_copy
   
   def _crop_layer(self, image, layer, background_layer, foreground_layer):
@@ -768,8 +777,6 @@ class LayerExporter(object):
         image.active_layer = tagged_layer
         pdb.plug_in_autocrop_layer(image, tagged_layer)
         image.active_layer = layer
-    
-    return layer
   
   def _merge_and_resize_layer(self, image, layer):
     if not self.export_settings['use_image_size'].value:
@@ -796,9 +803,9 @@ class LayerExporter(object):
       layer_elem, self._include_item_path, self._get_uniquifier_position(layer_elem.name))
   
   def _postprocess_layer_name(self, layer_elem):
-    if (layer_elem.item_type == layer_elem.NONEMPTY_GROUP
-        and self.export_settings['export_only_selected_layers'].value):
-      self._layer_tree.reset_name(layer_elem)
+    if self.export_settings['export_only_selected_layers'].value:
+      if layer_elem.item_type == layer_elem.NONEMPTY_GROUP:
+        self._layer_tree.reset_name(layer_elem)
   
   def _rename_layer_by_pattern(self, layer_elem):
     if self.export_settings['layer_groups_as_folders'].value:
