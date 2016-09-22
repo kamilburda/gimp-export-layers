@@ -122,12 +122,6 @@ def create_settings():
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'process_tagged_layers',
-      'default_value': False,
-      'display_name': _("Process tagged layers")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
       'name': 'export_only_selected_layers',
       'default_value': False,
       'display_name': _("Export only selected layers"),
@@ -173,6 +167,18 @@ def create_settings():
       'name': 'merge_layer_groups',
       'default_value': False,
       'display_name': _("Merge layer groups")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'insert_background_layers',
+      'default_value': False,
+      'display_name': _("Insert background layers")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'insert_foreground_layers',
+      'default_value': False,
+      'display_name': _("Insert foreground layers")
     },
     {
       'type': pgsetting.SettingTypes.boolean,

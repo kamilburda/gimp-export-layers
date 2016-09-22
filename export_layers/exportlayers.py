@@ -583,13 +583,12 @@ class LayerExporter(object):
     
     self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_layer)
     
-    if self.export_settings['process_tagged_layers'].value:
-      with (self._layer_tree.filter['layer_types'].add_rule_temp(LayerFilterRules.is_nonempty_group)
-            if self.export_settings['layer_groups_as_folders'].value else pgutils.empty_context):
-        with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags):
-          for layer_elem in self._layer_tree:
-            for tag in layer_elem.tags:
-              self._tagged_layer_elems[tag].append(layer_elem)
+    with (self._layer_tree.filter['layer_types'].add_rule_temp(LayerFilterRules.is_nonempty_group)
+          if self.export_settings['layer_groups_as_folders'].value else pgutils.empty_context):
+      with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags):
+        for layer_elem in self._layer_tree:
+          for tag in layer_elem.tags:
+            self._tagged_layer_elems[tag].append(layer_elem)
     
     if self.export_settings['more_operations/merge_layer_groups'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.is_top_level)
@@ -699,15 +698,19 @@ class LayerExporter(object):
     
     image.active_layer = layer_copy
     
-    background_layer, self._tagged_layer_copies['background'] = self._insert_tagged_layer(
-      image, self._tagged_layer_elems['background'], self._tagged_layer_copies['background'],
-      positon=len(image.layers))
+    background_layer = None
+    if self.export_settings['more_operations/insert_background_layers'].value:
+      background_layer, self._tagged_layer_copies['background'] = self._insert_tagged_layer(
+        image, self._tagged_layer_elems['background'], self._tagged_layer_copies['background'],
+        positon=len(image.layers))
     
     image.active_layer = layer_copy
     
-    foreground_layer, self._tagged_layer_copies['foreground'] = self._insert_tagged_layer(
-      image, self._tagged_layer_elems['foreground'], self._tagged_layer_copies['foreground'],
-      positon=0)
+    foreground_layer = None
+    if self.export_settings['more_operations/insert_foreground_layers'].value:
+      foreground_layer, self._tagged_layer_copies['foreground'] = self._insert_tagged_layer(
+        image, self._tagged_layer_elems['foreground'], self._tagged_layer_copies['foreground'],
+        positon=0)
     
     image.active_layer = layer_copy
     

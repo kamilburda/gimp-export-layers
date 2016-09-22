@@ -607,8 +607,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._vbox_more_settings_builtin = gtk.VBox(homogeneous=False)
     self._vbox_more_settings_builtin.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)
     self._vbox_more_settings_builtin.pack_start(
-      self._settings['main/process_tagged_layers'].gui.element, expand=False, fill=False)
-    self._vbox_more_settings_builtin.pack_start(
       self._settings['main/export_only_selected_layers'].gui.element, expand=False, fill=False)
     
     self._scrolled_window_more_settings_builtin = gtk.ScrolledWindow()
