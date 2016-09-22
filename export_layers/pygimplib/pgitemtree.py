@@ -676,11 +676,12 @@ class _ItemTreeElement(object):
     
     self._item.parasite_detach(self._tags_source_name)
     
-    self._item.parasite_attach(
-      gimp.Parasite(
-        self._tags_source_name,
-        gimpenums.PARASITE_PERSISTENT | gimpenums.PARASITE_UNDOABLE,
-        pickle.dumps(self._tags)))
+    if self._tags:
+      self._item.parasite_attach(
+        gimp.Parasite(
+          self._tags_source_name,
+          gimpenums.PARASITE_PERSISTENT | gimpenums.PARASITE_UNDOABLE,
+          pickle.dumps(self._tags)))
   
   def _load_tags(self):
     parasite = self._item.parasite_find(self._tags_source_name)

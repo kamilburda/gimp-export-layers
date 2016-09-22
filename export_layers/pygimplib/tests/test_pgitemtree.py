@@ -496,7 +496,10 @@ class TestLayerTreeElement(unittest.TestCase):
     
     self.layer_elem.add_tag("background")
     self.layer_elem.remove_tag("background")
+    
     self.assertNotIn("background", self.layer_elem.tags)
+    self.assertFalse(bool(self.layer_elem.tags))
+    self.assertFalse(bool(self.layer_elem.item.parasite_list()))
   
   @mock.patch(LIB_NAME + ".pgitemtree.gimp", new=gimpstubs.GimpModuleStub())
   def test_initial_tags(self):
