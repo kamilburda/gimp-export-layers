@@ -102,15 +102,15 @@ def create_settings():
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'only_visible_layers',
-      'default_value': False,
-      'display_name': _("Only visible layers")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
       'name': 'use_image_size',
       'default_value': False,
       'display_name': _("Use image size")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'only_visible_layers',
+      'default_value': False,
+      'display_name': _("Only visible layers")
     },
     {
       'type': pgsetting.SettingTypes.string,
