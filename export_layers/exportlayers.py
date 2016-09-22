@@ -583,6 +583,14 @@ class LayerExporter(object):
     
     self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_layer)
     
+    if self.export_settings['process_tagged_layers'].value:
+      with (self._layer_tree.filter['layer_types'].add_rule_temp(LayerFilterRules.is_nonempty_group)
+            if self.export_settings['layer_groups_as_folders'].value else pgutils.empty_context):
+        with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags):
+          for layer_elem in self._layer_tree:
+            for tag in layer_elem.tags:
+              self._tagged_layer_elems[tag].append(layer_elem)
+    
     if self.export_settings['more_operations/merge_layer_groups'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.is_top_level)
       self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
@@ -595,16 +603,6 @@ class LayerExporter(object):
     
     if self.export_settings['more_filters/only_layers_matching_file_extension'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_matching_file_extension, self._default_file_extension)
-    
-    if self.export_settings['process_tagged_layers'].value:
-      with (self._layer_tree.filter['layer_types'].add_rule_temp(LayerFilterRules.is_nonempty_group)
-            if self.export_settings['layer_groups_as_folders'].value else pgutils.empty_context):
-        with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags):
-          for layer_elem in self._layer_tree:
-            for tag in layer_elem.tags:
-              self._tagged_layer_elems[tag].append(layer_elem)
-      
-      self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags)
     
     if self.export_settings['more_filters/only_non_tagged_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_no_tags)

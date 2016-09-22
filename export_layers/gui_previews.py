@@ -626,31 +626,12 @@ class ExportNamePreview(ExportPreview):
       else:
         self._layer_exporter.layer_tree.filter.remove_rule(
           exportlayers.LayerFilterRules.is_layer_in_selected_layers, raise_if_not_found=False)
-    
-    if self._layer_exporter.export_settings['process_tagged_layers'].value:
-      if not enabled:
-        self._layer_exporter.layer_tree.filter.add_rule(exportlayers.LayerFilterRules.has_no_tags)
-      else:
-        self._layer_exporter.layer_tree.filter.remove_rule(
-          exportlayers.LayerFilterRules.has_no_tags, raise_if_not_found=False)
   
   def _set_items_sensitive(self):
     if self._layer_exporter.export_settings['export_only_selected_layers'].value:
       self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
       self._set_item_elems_sensitive(
         [self._layer_exporter.layer_tree[item_id] for item_id in self._selected_items], True)
-    
-    if self._layer_exporter.export_settings['process_tagged_layers'].value:
-      with self._layer_exporter.layer_tree.filter.add_rule_temp(exportlayers.LayerFilterRules.has_tags):
-        self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
-        
-        if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
-          with self._layer_exporter.layer_tree.filter['layer_types'].add_rule_temp(
-                 exportlayers.LayerFilterRules.is_nonempty_group), \
-               self._layer_exporter.layer_tree.filter['layer_types'].remove_rule_temp(
-                 exportlayers.LayerFilterRules.is_layer):
-            for layer_elem in self._layer_exporter.layer_tree:
-              self._set_item_elem_sensitive(layer_elem, False)
   
   def _get_item_elem_sensitive(self, item_elem):
     return self._tree_model.get_value(self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0])
