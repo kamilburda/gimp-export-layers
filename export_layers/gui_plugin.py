@@ -228,7 +228,7 @@ def add_gui_settings(settings):
     {
       'type': pgsetting.SettingTypes.float,
       'name': 'settings_vpane_position',
-      'default_value': -1
+      'default_value': 450
     },
     {
       'type': pgsetting.SettingTypes.boolean,
@@ -599,18 +599,18 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._hbox_export_name_and_message.pack_start(self._hbox_export_name, expand=False, fill=False)
     self._hbox_export_name_and_message.pack_start(self._label_message, expand=True, fill=True)
     
-    self._hbox_settings_checkbuttons = gtk.HBox(homogeneous=False)
-    self._hbox_settings_checkbuttons.pack_start(self._settings['main/layer_groups_as_folders'].gui.element)
-    self._hbox_settings_checkbuttons.pack_start(self._settings['main/use_image_size'].gui.element)
-    self._hbox_settings_checkbuttons.pack_start(self._settings['main/only_visible_layers'].gui.element)
+    self._hbox_basic_settings = gtk.HBox(homogeneous=False)
+    self._hbox_basic_settings.pack_start(self._settings['main/layer_groups_as_folders'].gui.element)
+    self._hbox_basic_settings.pack_start(self._settings['main/use_image_size'].gui.element)
+    self._hbox_basic_settings.pack_start(self._settings['main/only_visible_layers'].gui.element)
     
-    self._vbox_more_settings_builtin = gtk.VBox(homogeneous=False)
-    self._vbox_more_settings_builtin.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)
+    self._vbox_basic_settings = gtk.VBox(homogeneous=False)
+    self._vbox_basic_settings.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)
     
-    self._scrolled_window_more_settings_builtin = gtk.ScrolledWindow()
-    self._scrolled_window_more_settings_builtin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-    self._scrolled_window_more_settings_builtin.add_with_viewport(self._vbox_more_settings_builtin)
-    self._scrolled_window_more_settings_builtin.get_child().set_shadow_type(gtk.SHADOW_NONE)
+    self._scrolled_window_basic_settings = gtk.ScrolledWindow()
+    self._scrolled_window_basic_settings.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+    self._scrolled_window_basic_settings.add_with_viewport(self._vbox_basic_settings)
+    self._scrolled_window_basic_settings.get_child().set_shadow_type(gtk.SHADOW_NONE)
     
     self._box_more_operations = gui_operations.OperationsBox(
       label_add_text=_("Add _Operations..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
@@ -624,17 +624,17 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._hbox_more_settings = gtk.HBox(homogeneous=True)
     self._hbox_more_settings.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
-    self._hbox_more_settings.pack_start(self._scrolled_window_more_settings_builtin, expand=True, fill=True)
+    self._hbox_more_settings.pack_start(self._scrolled_window_basic_settings, expand=True, fill=True)
     self._hbox_more_settings.pack_start(self._box_more_operations.widget, expand=True, fill=True)
     self._hbox_more_settings.pack_start(self._box_more_filters.widget, expand=True, fill=True)
     
-    self._vbox_basic_settings = gtk.VBox()
-    self._vbox_basic_settings.set_spacing(self._DIALOG_VBOX_SPACING)
-    self._vbox_basic_settings.pack_start(self._hpaned_chooser_and_previews)
-    self._vbox_basic_settings.pack_start(self._hbox_export_name_and_message, expand=False, fill=False)
-    self._vbox_basic_settings.pack_start(self._hbox_settings_checkbuttons, expand=False, fill=False)
+    self._vbox_settings = gtk.VBox()
+    self._vbox_settings.set_spacing(self._DIALOG_VBOX_SPACING)
+    self._vbox_settings.pack_start(self._hpaned_chooser_and_previews)
+    self._vbox_settings.pack_start(self._hbox_export_name_and_message, expand=False, fill=False)
+    self._vbox_settings.pack_start(self._hbox_basic_settings, expand=False, fill=False)
     
-    self._vpaned_settings.pack1(self._vbox_basic_settings, resize=True, shrink=False)
+    self._vpaned_settings.pack1(self._vbox_settings, resize=True, shrink=False)
     self._vpaned_settings.pack2(self._hbox_more_settings, resize=False, shrink=True)
     
     self._button_export = self._dialog.add_button(_("_Export"), gtk.RESPONSE_OK)
@@ -764,6 +764,12 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   def _show_hide_more_settings(self):
     if self._menu_item_show_more_settings.get_active():
+      basic_settings_gui_elements = self._hbox_basic_settings.get_children()
+      for gui_element in basic_settings_gui_elements:
+        self._hbox_basic_settings.remove(gui_element)
+        self._vbox_basic_settings.pack_start(gui_element, expand=False, fill=False)
+      
+      self._hbox_basic_settings.hide()
       self._hbox_more_settings.show()
       
       self._file_extension_label.hide()
@@ -775,6 +781,12 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._export_name_preview.widget.show()
       self._export_image_preview.widget.show()
     else:
+      basic_settings_gui_elements = self._vbox_basic_settings.get_children()
+      for gui_element in basic_settings_gui_elements:
+        self._vbox_basic_settings.remove(gui_element)
+        self._hbox_basic_settings.pack_start(gui_element)
+      
+      self._hbox_basic_settings.show()
       self._hbox_more_settings.hide()
       
       self._frame_previews.hide()
