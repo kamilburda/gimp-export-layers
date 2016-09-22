@@ -122,9 +122,9 @@ def create_settings():
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'export_only_selected_layers',
+      'name': 'only_selected_layers',
       'default_value': False,
-      'display_name': _("Export only selected layers"),
+      'display_name': _("Only layers selected in preview"),
       'pdb_type': None
     },
     {

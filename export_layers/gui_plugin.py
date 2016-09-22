@@ -607,7 +607,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._vbox_more_settings_builtin = gtk.VBox(homogeneous=False)
     self._vbox_more_settings_builtin.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)
     self._vbox_more_settings_builtin.pack_start(
-      self._settings['main/export_only_selected_layers'].gui.element, expand=False, fill=False)
+      self._settings['main/only_selected_layers'].gui.element, expand=False, fill=False)
     
     self._scrolled_window_more_settings_builtin = gtk.ScrolledWindow()
     self._scrolled_window_more_settings_builtin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -811,15 +811,15 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     for setting in self._settings['main'].iterate_all():
       if setting.name not in [
           'file_extension', 'output_directory', 'overwrite_mode', 'layer_filename_pattern',
-          'export_only_selected_layers', 'selected_layers', 'selected_layers_persistent']:
+          'only_selected_layers', 'selected_layers', 'selected_layers_persistent']:
         setting.connect_event('value-changed', _on_setting_changed)
     
-    event_id = self._settings['main/export_only_selected_layers'].connect_event(
+    event_id = self._settings['main/only_selected_layers'].connect_event(
       'value-changed', _on_setting_changed)
     self._export_name_preview.temporarily_disable_setting_events_on_update(
-      {'export_only_selected_layers': [event_id]})
+      {'only_selected_layers': [event_id]})
     self._export_image_preview.temporarily_disable_setting_events_on_update(
-      {'export_only_selected_layers': [event_id]})
+      {'only_selected_layers': [event_id]})
     
     self._settings['gui_session/export_name_preview_layers_collapsed_state'].connect_event(
       'after-reset',

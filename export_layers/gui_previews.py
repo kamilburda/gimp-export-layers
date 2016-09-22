@@ -543,7 +543,7 @@ class ExportNamePreview(ExportPreview):
       previous_selected_items = self._selected_items
       self._selected_items = self._get_layer_ids_in_current_selection()
       
-      if self._layer_exporter.export_settings['export_only_selected_layers'].value:
+      if self._layer_exporter.export_settings['only_selected_layers'].value:
         if self._selected_items != previous_selected_items:
           self.update(update_existing_contents_only=True)
       
@@ -619,7 +619,7 @@ class ExportNamePreview(ExportPreview):
       self._update_item_elem(parent_elem)
   
   def _enable_filtered_items(self, enabled):
-    if self._layer_exporter.export_settings['export_only_selected_layers'].value:
+    if self._layer_exporter.export_settings['only_selected_layers'].value:
       if not enabled:
         self._layer_exporter.layer_tree.filter.add_rule(
           exportlayers.LayerFilterRules.is_layer_in_selected_layers, self._selected_items)
@@ -628,7 +628,7 @@ class ExportNamePreview(ExportPreview):
           exportlayers.LayerFilterRules.is_layer_in_selected_layers, raise_if_not_found=False)
   
   def _set_items_sensitive(self):
-    if self._layer_exporter.export_settings['export_only_selected_layers'].value:
+    if self._layer_exporter.export_settings['only_selected_layers'].value:
       self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
       self._set_item_elems_sensitive(
         [self._layer_exporter.layer_tree[item_id] for item_id in self._selected_items], True)
@@ -952,7 +952,7 @@ class ExportImagePreview(ExportPreview):
     layer_tree_filter = layer_tree.filter if layer_tree is not None else None
     
     with self._layer_exporter.modify_export_settings(
-           {'export_only_selected_layers': True,
+           {'only_selected_layers': True,
             'selected_layers': {self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}},
            self._settings_events_to_temporarily_disable):
       try:
