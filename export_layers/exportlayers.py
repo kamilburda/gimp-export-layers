@@ -477,7 +477,7 @@ class LayerExporter(object):
         setattr(self, function.__name__, self._operation_groups_functions[function.__name__])
     
     if operations_tags:
-      if not self.export_settings['only_selected_layers'].value and 'layer_name' in operations_tags:
+      if not self.export_settings['more_filters/only_selected_layers'].value and 'layer_name' in operations_tags:
         operations_tags.append('_postprocess_layer_name')
       
       for operation_tag, functions in self._operation_groups.items():
@@ -609,7 +609,7 @@ class LayerExporter(object):
     if self.export_settings['more_filters/only_tagged_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.has_tags)
     
-    if self.export_settings['only_selected_layers'].value:
+    if self.export_settings['more_filters/only_selected_layers'].value:
       self._layer_tree.filter.add_rule(
         LayerFilterRules.is_layer_in_selected_layers, self.export_settings['selected_layers'].value[self.image.ID])
       if self.export_settings['layer_groups_as_folders'].value:
@@ -804,7 +804,7 @@ class LayerExporter(object):
       layer_elem, self._include_item_path, self._get_uniquifier_position(layer_elem.name))
   
   def _postprocess_layer_name(self, layer_elem):
-    if self.export_settings['only_selected_layers'].value:
+    if self.export_settings['more_filters/only_selected_layers'].value:
       if layer_elem.item_type == layer_elem.NONEMPTY_GROUP:
         self._layer_tree.reset_name(layer_elem)
   

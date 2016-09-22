@@ -121,13 +121,6 @@ def create_settings():
       'gui_type': None
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'only_selected_layers',
-      'default_value': False,
-      'display_name': _("Only layers selected in preview"),
-      'pdb_type': None
-    },
-    {
       'type': pgsetting.SettingTypes.generic,
       'name': 'selected_layers',
       # key: image ID; value: set of selected layer IDs
@@ -243,6 +236,12 @@ def create_settings():
       'default_value': False,
       'display_name': _("Only tagged layers")
     },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'only_selected_layers',
+      'default_value': False,
+      'display_name': _("Only layers selected in preview")
+    }
   ], pdb_type=None, setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
   
   main_settings.add([more_operations_settings, more_filters_settings])
