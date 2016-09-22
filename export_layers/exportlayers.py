@@ -95,33 +95,31 @@ class InvalidOutputDirectoryError(ExportLayersError):
 # Operations
 
 
-def ignore_layer_modes(setting, layer):
-  if setting.value:
-    layer.mode = gimpenums.NORMAL_MODE
-    return True
-  else:
-    return False
+def execute_operation_only_if_setting(operation, setting):
+  def _execute_operation_only_if_setting(*operation_args, **operation_kwargs):
+    if setting.value:
+      operation(*operation_args, **operation_kwargs)
+      return True
+    else:
+      return False
+  
+  return _execute_operation_only_if_setting
 
 
-def inherit_transparency_from_layer_groups(setting, get_current_layer_elem, layer):
-  if setting.value:
-    layer_elem = get_current_layer_elem()
-    
-    layer.opacity = 100.0 * functools.reduce(
-      lambda layer1_opacity, layer2_opacity: layer1_opacity * layer2_opacity,
-      [parent.item.opacity / 100.0 for parent in layer_elem.parents] + [layer_elem.item.opacity / 100.0])
-    
-    return True
-  else:
-    return False
+def ignore_layer_modes(layer):
+  layer.mode = gimpenums.NORMAL_MODE
 
 
-def autocrop_layer(setting, get_image, layer):
-  if setting.value:
-    pdb.plug_in_autocrop_layer(get_image(), layer)
-    return True
-  else:
-    return False
+def inherit_transparency_from_layer_groups(get_current_layer_elem, layer):
+  layer_elem = get_current_layer_elem()
+  
+  layer.opacity = 100.0 * functools.reduce(
+    lambda layer1_opacity, layer2_opacity: layer1_opacity * layer2_opacity,
+    [parent.item.opacity / 100.0 for parent in layer_elem.parents] + [layer_elem.item.opacity / 100.0])
+
+
+def autocrop_layer(get_image, layer):
+  pdb.plug_in_autocrop_layer(get_image(), layer)
 
 
 def set_active_layer_after_operation(get_image, layer):
@@ -296,17 +294,18 @@ class LayerExporter(object):
     
     self._operations_executor.add_operation(
       ["process_layer", "insert_layer"],
-      ignore_layer_modes,
-      self.export_settings['more_operations/ignore_layer_modes'])
+      execute_operation_only_if_setting(
+        ignore_layer_modes, self.export_settings['more_operations/ignore_layer_modes']))
     self._operations_executor.add_operation(
       ["process_layer"],
-      inherit_transparency_from_layer_groups,
-      self.export_settings['more_operations/inherit_transparency_from_layer_groups'],
+      execute_operation_only_if_setting(
+        inherit_transparency_from_layer_groups,
+        self.export_settings['more_operations/inherit_transparency_from_layer_groups']),
       lambda: self._current_layer_elem)
     self._operations_executor.add_operation(
       ["process_layer"],
-      autocrop_layer,
-      self.export_settings['more_operations/autocrop'],
+      execute_operation_only_if_setting(
+        autocrop_layer, self.export_settings['more_operations/autocrop']),
       lambda: self._image_copy)
     
     self._operations_executor.add_foreach_operation(
@@ -717,6 +716,7 @@ class LayerExporter(object):
     self._operations_executor.execute(["process_layer"], layer_copy)
     
     self._crop_layer(image, layer_copy, background_layer, foreground_layer)
+    
     layer_copy = self._merge_and_resize_layer(image, layer_copy)
     
     image.active_layer = layer_copy
