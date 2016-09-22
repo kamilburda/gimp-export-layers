@@ -45,6 +45,7 @@ pdb = gimp.pdb
 import export_layers.pygimplib as pygimplib
 
 from export_layers.pygimplib import objectfilter
+from export_layers.pygimplib import operations
 from export_layers.pygimplib import overwrite
 from export_layers.pygimplib import pgfileformats
 from export_layers.pygimplib import pgitemtree
@@ -87,6 +88,39 @@ class ExportLayersCancelError(ExportLayersError):
 
 class InvalidOutputDirectoryError(ExportLayersError):
   pass
+
+
+#===============================================================================
+
+# Operations
+
+
+def ignore_layer_modes(setting, layer):
+  if setting.value:
+    layer.mode = gimpenums.NORMAL_MODE
+    return True
+  else:
+    return False
+
+
+def inherit_transparency_from_layer_groups(setting, get_current_layer_elem, layer):
+  if setting.value:
+    layer_elem = get_current_layer_elem()
+    
+    layer.opacity = 100.0 * functools.reduce(
+      lambda layer1_opacity, layer2_opacity: layer1_opacity * layer2_opacity,
+      [parent.item.opacity / 100.0 for parent in layer_elem.parents] + [layer_elem.item.opacity / 100.0])
+    
+    return True
+  else:
+    return False
+
+
+def set_active_layer_after_operation(get_image, layer):
+  operation_successful = yield
+  
+  if operation_successful or operation_successful is None:
+    get_image().active_layer = layer
 
 
 #===============================================================================
@@ -238,17 +272,32 @@ class LayerExporter(object):
     
     self._exported_layers = []
     
-    self._operations = {
+    self._operation_groups = {
       'layer_contents': [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
       'layer_name': [self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name],
       '_postprocess_layer_name': [self._postprocess_layer_name],
       'export': [self._make_dirs, self._export]
     }
     
-    self._operations_functions = {}
-    for functions in self._operations.values():
+    self._operation_groups_functions = {}
+    for functions in self._operation_groups.values():
       for function in functions:
-        self._operations_functions[function.__name__] = function
+        self._operation_groups_functions[function.__name__] = function
+    
+    self._operations_executor = operations.OperationsExecutor()
+    
+    self._operations_executor.add_operation(
+      ["process_layer", "insert_layer"],
+      ignore_layer_modes,
+      self.export_settings['more_operations/ignore_layer_modes'])
+    self._operations_executor.add_operation(
+      ["process_layer"],
+      inherit_transparency_from_layer_groups,
+      self.export_settings['more_operations/inherit_transparency_from_layer_groups'],
+      lambda: self._current_layer_elem)
+    
+    self._operations_executor.add_foreach_operation(
+      ["process_layer"], set_active_layer_after_operation, lambda: self._image_copy)
   
   @property
   def layer_tree(self):
@@ -358,7 +407,7 @@ class LayerExporter(object):
   
   def _init_attributes(self, operations, layer_tree, keep_exported_layers,
                        on_after_create_image_copy_func, on_after_insert_layer_func):
-    self._enable_disable_operations(operations)
+    self._enable_disable_operation_groups(operations)
     
     if layer_tree is not None:
       self._layer_tree = layer_tree
@@ -409,16 +458,16 @@ class LayerExporter(object):
     # key: _ItemTreeElement parent ID (None for root); value: list of pattern number generators
     self._pattern_number_filename_generators = {None: self._filename_pattern_generator.get_number_generators()}
   
-  def _enable_disable_operations(self, operations_tags):
-    for functions in self._operations.values():
+  def _enable_disable_operation_groups(self, operations_tags):
+    for functions in self._operation_groups.values():
       for function in functions:
-        setattr(self, function.__name__, self._operations_functions[function.__name__])
+        setattr(self, function.__name__, self._operation_groups_functions[function.__name__])
     
     if operations_tags:
       if not self.export_settings['export_only_selected_layers'].value and 'layer_name' in operations_tags:
         operations_tags.append('_postprocess_layer_name')
       
-      for operation_tag, functions in self._operations.items():
+      for operation_tag, functions in self._operation_groups.items():
         if operation_tag not in operations_tags:
           for function in functions:
             setattr(self, function.__name__, lambda *args, **kwargs: None)
@@ -647,13 +696,7 @@ class LayerExporter(object):
     
     self._on_after_insert_layer_func(layer_copy)
     
-    if self.export_settings['more_operations/ignore_layer_modes'].value:
-      layer_copy.mode = gimpenums.NORMAL_MODE
-    
-    if self.export_settings['more_operations/inherit_transparency_from_groups'].value:
-      layer_copy.opacity = 100.0 * functools.reduce(
-        lambda layer1_opacity, layer2_opacity: layer1_opacity * layer2_opacity,
-        [parent.item.opacity / 100.0 for parent in layer_elem.parents] + [layer_elem.item.opacity / 100.0])
+    self._operations_executor.execute(["process_layer"], layer_copy)
     
     image.active_layer = layer_copy
     
@@ -661,6 +704,9 @@ class LayerExporter(object):
       image, self._tagged_layer_elems['foreground'], self._tagged_layer_copies['foreground'], insert_index=0)
     
     image.active_layer = layer_copy
+    
+    if self.export_settings['more_operations/autocrop'].value:
+      pdb.plug_in_autocrop_layer(image, layer_copy)
     
     layer_copy = self._crop_layer(image, layer_copy, background_layer, foreground_layer)
     layer_copy = self._merge_and_resize_layer(image, layer_copy)
@@ -703,8 +749,7 @@ class LayerExporter(object):
         
         self._on_after_insert_layer_func(layer_copy)
         
-        if self.export_settings['more_operations/ignore_layer_modes'].value:
-          layer_copy.mode = gimpenums.NORMAL_MODE
+        self._operations_executor.execute(["insert_layer"], layer_copy)
       
       layer = pgpdb.merge_layer_group(layer_group)
       
@@ -716,9 +761,6 @@ class LayerExporter(object):
       return layer_copy, inserted_layer_copy
   
   def _crop_layer(self, image, layer, background_layer, foreground_layer):
-    if self.export_settings['more_operations/autocrop'].value:
-      pdb.plug_in_autocrop_layer(image, layer)
-    
     for setting_name, tagged_layer in [
           ('more_operations/autocrop_to_background', background_layer),
           ('more_operations/autocrop_to_foreground', foreground_layer)]:

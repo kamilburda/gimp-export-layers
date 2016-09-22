@@ -176,7 +176,7 @@ def create_settings():
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'inherit_transparency_from_groups',
+      'name': 'inherit_transparency_from_layer_groups',
       'default_value': False,
       'display_name': _("Inherit transparency from layer groups"),
     },
