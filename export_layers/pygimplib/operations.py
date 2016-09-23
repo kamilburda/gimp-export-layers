@@ -82,9 +82,24 @@ class OperationsExecutor(object):
         print("baz")
     
     first prints "bar", then executes the operation and finally prints "baz".
+    Multiple `yield` statements can be specified to execute the wrapped
+    operation multiple times.
     
     If multiple "for-each" operations are added, they are executed in the order
-    they were added by this method.
+    they were added by this method. For example:
+      
+      def foo1():
+        print("bar1")
+        yield
+        print("baz1")
+      
+      def foo2():
+        print("bar2")
+        yield
+        print("baz2")
+    
+    will print "bar1", "bar2", then execute the operation (only once), and then
+    print "baz1" and "baz2".
     """
     
     for operation_group in operation_groups:
