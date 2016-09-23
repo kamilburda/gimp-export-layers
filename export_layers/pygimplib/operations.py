@@ -164,7 +164,7 @@ class OperationsExecutor(object):
     
     for operation_group in operation_groups:
       if operation_group not in self._operations:
-        raise ValueError("operation group '{0}' does not exist".format(operation_group))
+        self._init_operation_group(operation_group)
       
       for operation, operation_args, operation_kwargs in self._operations[operation_group]:
         if self._foreach_operations[operation_group]:

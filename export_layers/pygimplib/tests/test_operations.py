@@ -86,10 +86,6 @@ class TestOperationsExecutor(unittest.TestCase):
   def setUp(self):
     self.operations_executor = operations.OperationsExecutor()
   
-  def test_execute_no_operation_for_group(self):
-    with self.assertRaises(ValueError):
-      self.operations_executor.execute(["main_processing"])
-  
   def test_execute_single_group_single_operation(self):
     test_list = []
     self.operations_executor.add_operation(["main_processing"], append_test, test_list)
@@ -163,6 +159,12 @@ class TestOperationsExecutor(unittest.TestCase):
     test_dict.clear()
     self.operations_executor.execute(["advanced_processing", "main_processing"])
     self.assertDictEqual(test_dict, {"one": 1, "two": "two", "three": 3})
+  
+  def test_execute_no_operation_for_group(self):
+    try:
+      self.operations_executor.execute(["main_processing"])
+    except Exception:
+      self.fail("executing no operations for given group should not raise exception")
   
   def test_has_operation(self):
     test_list = []
