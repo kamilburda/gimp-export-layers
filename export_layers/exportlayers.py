@@ -346,8 +346,12 @@ class LayerExporter(object):
   def exported_layers(self):
     return self._exported_layers
   
+  @property
+  def operations_executor(self):
+    return self._operations_executor
+  
   def export(self, operations=None, layer_tree=None, keep_exported_layers=False,
-             on_after_create_image_copy_func=None, on_after_insert_layer_func=None):
+             on_after_create_image_copy_func=None):
     """
     Export layers as separate images from the specified image.
     
@@ -378,14 +382,13 @@ class LayerExporter(object):
     image copy. The method returns None if an exception was raised or if no
     layer was exported; in that case, the image copy is automatically destroyed.
     
-    You may optionally pass hook functions that are called after an image copy
-    was created (`on_after_create_image_copy_func`, takes the image copy as its
-    only argument) and any time after a layer was inserted in the image copy
-    (`on_after_insert_layer_func`, takes the layer as its only argument).
+    You may optionally pass a callback that is called after an image copy was
+    created (`on_after_create_image_copy_func`, takes the image copy as its only
+    argument).
     """
     
     self._init_attributes(
-      operations, layer_tree, keep_exported_layers, on_after_create_image_copy_func, on_after_insert_layer_func)
+      operations, layer_tree, keep_exported_layers, on_after_create_image_copy_func)
     self._preprocess_layers()
     
     exception_occurred = False
@@ -445,7 +448,7 @@ class LayerExporter(object):
           self.export_settings[setting_name].set_event_enabled(event_id, True)
   
   def _init_attributes(self, operations, layer_tree, keep_exported_layers,
-                       on_after_create_image_copy_func, on_after_insert_layer_func):
+                       on_after_create_image_copy_func):
     self._enable_disable_operation_groups(operations)
     
     if layer_tree is not None:
@@ -457,8 +460,6 @@ class LayerExporter(object):
     self._keep_exported_layers = keep_exported_layers
     self._on_after_create_image_copy_func = (
       on_after_create_image_copy_func if on_after_create_image_copy_func is not None else lambda *args: None)
-    self._on_after_insert_layer_func = (
-      on_after_insert_layer_func if on_after_insert_layer_func is not None else lambda *args: None)
     
     self.should_stop = False
     
@@ -724,7 +725,7 @@ class LayerExporter(object):
   
   def _process_layer(self, layer_elem, image, layer):
     layer_copy = self._copy_and_insert_layer(image, layer, None, 0)
-    self._on_after_insert_layer_func(layer_copy)
+    self._operations_executor.execute(["after_insert_layer"], layer_copy)
     
     image.active_layer = layer_copy
     
@@ -784,7 +785,7 @@ class LayerExporter(object):
       
       for i, layer_elem in enumerate(list(layer_elems)):
         layer_copy = self._copy_and_insert_layer(image, layer_elem.item, layer_group, i)
-        self._on_after_insert_layer_func(layer_copy)
+        self._operations_executor.execute(["after_insert_layer"], layer_copy)
       
       layer = pgpdb.merge_layer_group(layer_group)
       
