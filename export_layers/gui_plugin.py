@@ -1037,7 +1037,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._is_exporting = True
     
     try:
-      self._layer_exporter.export_layers()
+      self._layer_exporter.export()
     except exportlayers.ExportLayersCancelError as e:
       should_quit = False
     except exportlayers.ExportLayersError as e:
@@ -1193,7 +1193,7 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
       pggui.GtkProgressUpdater(self._progress_bar),
       export_context_manager=_handle_gui_in_export, export_context_manager_args=[self._dialog])
     try:
-      self._layer_exporter.export_layers(layer_tree=self._layer_tree)
+      self._layer_exporter.export(layer_tree=self._layer_tree)
     except exportlayers.ExportLayersCancelError:
       pass
     except exportlayers.ExportLayersError as e:

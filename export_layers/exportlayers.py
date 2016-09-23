@@ -346,8 +346,8 @@ class LayerExporter(object):
   def exported_layers(self):
     return self._exported_layers
   
-  def export_layers(self, operations=None, layer_tree=None, keep_exported_layers=False,
-                    on_after_create_image_copy_func=None, on_after_insert_layer_func=None):
+  def export(self, operations=None, layer_tree=None, keep_exported_layers=False,
+             on_after_create_image_copy_func=None, on_after_insert_layer_func=None):
     """
     Export layers as separate images from the specified image.
     

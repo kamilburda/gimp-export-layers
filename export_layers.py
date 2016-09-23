@@ -137,7 +137,7 @@ def _run_plugin_noninteractive(run_mode, layer_tree):
   layer_exporter = exportlayers.LayerExporter(run_mode, layer_tree.image, settings['main'])
   
   try:
-    layer_exporter.export_layers(layer_tree=layer_tree)
+    layer_exporter.export(layer_tree=layer_tree)
   except exportlayers.ExportLayersCancelError:
     pass
 

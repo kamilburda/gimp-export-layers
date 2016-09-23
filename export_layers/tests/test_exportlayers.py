@@ -270,7 +270,7 @@ def test_file_formats(layer_exporter, export_settings):
       export_settings['file_extension'].set_value(file_extension)
       export_settings['output_directory'].set_value(os.path.join(orig_output_directory, file_extension))
       try:
-        layer_exporter.export_layers()
+        layer_exporter.export()
       except exportlayers.ExportLayersError:
         # Do not stop execution when one file format causes an error.
         continue
