@@ -230,9 +230,8 @@ class ExportStatuses(object):
 class LayerExporter(object):
   
   """
-  This class exports layers as separate images. Additional operations include:
-  * layer processing - resizing/cropping, inserting back/foreground, merging
-  * layer name processing - validation, file extension manipulation
+  This class exports layers as separate images, with the support for additional
+  operations applied on layers (resize, rename, ...).
   
   Attributes:
   
@@ -269,6 +268,9 @@ class LayerExporter(object):
   
   * `export_context_manager_args` - Additional arguments passed to
     `export_context_manager`.
+  
+  * `operations_executor` - `operations.OperationsExecutor` instance to manage
+    operations applied on layers.
   """
   
   BUILTIN_TAGS = {
@@ -304,17 +306,17 @@ class LayerExporter(object):
     
     self._exported_layers = []
     
-    self._operation_groups = {
+    self._processing_groups = {
       'layer_contents': [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
       'layer_name': [self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name],
       '_postprocess_layer_name': [self._postprocess_layer_name],
       'export': [self._make_dirs, self._export]
     }
     
-    self._operation_groups_functions = {}
-    for functions in self._operation_groups.values():
+    self._processing_groups_functions = {}
+    for functions in self._processing_groups.values():
       for function in functions:
-        self._operation_groups_functions[function.__name__] = function
+        self._processing_groups_functions[function.__name__] = function
     
     self._operations_executor = operations.OperationsExecutor()
     self._add_operations_initial()
@@ -331,12 +333,13 @@ class LayerExporter(object):
   def operations_executor(self):
     return self._operations_executor
   
-  def export(self, operations=None, layer_tree=None, keep_exported_layers=False):
+  def export(self, processing_groups=None, layer_tree=None, keep_exported_layers=False):
     """
     Export layers as separate images from the specified image.
     
-    `operations` is a list of tags that constraints the execution of the export.
-    Multiple tags can be specified. The following tags are supported:
+    `processing_groups` is a list of strings that constraints the execution of
+    the export. Multiple groups be specified. The following groups are
+    supported:
     
     * 'layer_contents' - Perform only operations manipulating the layer itself,
       such as cropping, resizing, etc. This is useful to preview the layer(s).
@@ -348,7 +351,7 @@ class LayerExporter(object):
     * 'export' - Perform only operations that export the layer or create
       directories for the layer.
     
-    If `operations` is None or empty, perform normal export.
+    If `processing_groups` is None or empty, perform normal export.
     
     If `layer_tree` is not None, use an existing instance of
     `pgitemtree.LayerTree` instead of creating a new one. If the instance had
@@ -363,7 +366,7 @@ class LayerExporter(object):
     layer was exported; in that case, the image copy is automatically destroyed.
     """
     
-    self._init_attributes(operations, layer_tree, keep_exported_layers)
+    self._init_attributes(processing_groups, layer_tree, keep_exported_layers)
     self._preprocess_layers()
     
     exception_occurred = False
@@ -466,8 +469,8 @@ class LayerExporter(object):
     self._operations_executor.add_foreach_operation(
       ["process_layer"], set_active_layer_after_operation, lambda: self._image_copy)
   
-  def _init_attributes(self, operations, layer_tree, keep_exported_layers):
-    self._enable_disable_operation_groups(operations)
+  def _init_attributes(self, processing_groups, layer_tree, keep_exported_layers):
+    self._enable_disable_processing_groups(processing_groups)
     
     if layer_tree is not None:
       self._layer_tree = layer_tree
@@ -515,17 +518,18 @@ class LayerExporter(object):
     # key: _ItemTreeElement parent ID (None for root); value: list of pattern number generators
     self._pattern_number_filename_generators = {None: self._filename_pattern_generator.get_number_generators()}
   
-  def _enable_disable_operation_groups(self, operations_tags):
-    for functions in self._operation_groups.values():
+  def _enable_disable_processing_groups(self, processing_groups):
+    for functions in self._processing_groups.values():
       for function in functions:
-        setattr(self, function.__name__, self._operation_groups_functions[function.__name__])
+        setattr(self, function.__name__, self._processing_groups_functions[function.__name__])
     
-    if operations_tags:
-      if not self.export_settings['more_filters/only_selected_layers'].value and 'layer_name' in operations_tags:
-        operations_tags.append('_postprocess_layer_name')
+    if processing_groups:
+      if (not self.export_settings['more_filters/only_selected_layers'].value
+          and 'layer_name' in processing_groups):
+        processing_groups.append('_postprocess_layer_name')
       
-      for operation_tag, functions in self._operation_groups.items():
-        if operation_tag not in operations_tags:
+      for processing_group, functions in self._processing_groups.items():
+        if processing_group not in processing_groups:
           for function in functions:
             setattr(self, function.__name__, lambda *args, **kwargs: None)
   

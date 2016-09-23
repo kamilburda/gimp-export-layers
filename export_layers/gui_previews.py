@@ -571,7 +571,7 @@ class ExportNamePreview(ExportPreview):
     with self._layer_exporter.modify_export_settings(
            {'selected_layers': {self._layer_exporter.image.ID: self._selected_items}},
            self._settings_events_to_temporarily_disable):
-      self._layer_exporter.export(operations=['layer_name'], layer_tree=layer_tree)
+      self._layer_exporter.export(processing_groups=['layer_name'], layer_tree=layer_tree)
   
   def _update_items(self):
     for layer_elem in self._layer_exporter.layer_tree:
@@ -967,7 +967,7 @@ class ExportImagePreview(ExportPreview):
            self._settings_events_to_temporarily_disable):
       try:
         image_preview = self._layer_exporter.export(
-          operations=['layer_contents'], layer_tree=layer_tree, keep_exported_layers=True)
+          processing_groups=['layer_contents'], layer_tree=layer_tree, keep_exported_layers=True)
       except Exception:
         image_preview = None
     
