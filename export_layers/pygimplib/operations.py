@@ -42,27 +42,33 @@ class OperationsExecutor(object):
     self._operations = collections.OrderedDict()
     # key: operation group name; value: list of (operation, operation args, operation kwargs) tuples
     self._foreach_operations = collections.OrderedDict()
-  
-  def add_operation(self, operation_group_names, operation, *operation_args, **operation_kwargs):
+    
+    # key: operation group name; value: set of operation functions
+    self._operations_functions = collections.defaultdict(set)
+    # key: operation group name; value: set of operation functions
+    self._foreach_operations_functions = collections.defaultdict(set)
+    
+  def add_operation(self, operation_groups, operation, *operation_args, **operation_kwargs):
     """
     Add an operation specified by its function `operation`, its arguments
     `*operation_args` and keyword arguments `**operation_kwargs``, to the
-    operation groups given by `operation_group_names`.
+    operation groups given by `operation_groups`.
     
     The operation groups are created automatically if no operations were added
     to them before.
     """
     
-    for operation_group_name in operation_group_names:
-      self._init_operation_group(operation_group_name)
+    for operation_group in operation_groups:
+      self._init_operation_group(operation_group)
       
-      self._operations[operation_group_name].append((operation, operation_args, operation_kwargs))
+      self._operations[operation_group].append((operation, operation_args, operation_kwargs))
+      self._operations_functions[operation_group].add(operation)
   
-  def add_foreach_operation(self, operation_group_names, foreach_operation,
+  def add_foreach_operation(self, operation_groups, foreach_operation,
                             *foreach_operation_args, **foreach_operation_kwargs):
     """
     Add an operation to be executed for each operation in groups given by
-    `operation_group_names`. `foreach_operation` is the function to be
+    `operation_groups`. `foreach_operation` is the function to be
     executed, along with its arguments `*foreach_operation_args` and keyword
     arguments `**foreach_operation_kwargs`.
     
@@ -81,8 +87,8 @@ class OperationsExecutor(object):
     they were added by this method.
     """
     
-    for operation_group_name in operation_group_names:
-      self._init_operation_group(operation_group_name)
+    for operation_group in operation_groups:
+      self._init_operation_group(operation_group)
       
       if not inspect.isgeneratorfunction(foreach_operation):
         def execute_foreach_operation_after_operation(*args, **kwargs):
@@ -93,13 +99,14 @@ class OperationsExecutor(object):
       else:
         foreach_operation_generator_function = foreach_operation
       
-      self._foreach_operations[operation_group_name].append(
+      self._foreach_operations[operation_group].append(
         (foreach_operation_generator_function, foreach_operation_args, foreach_operation_kwargs))
+      self._foreach_operations_functions[operation_group].add(foreach_operation)
   
-  def execute(self, operation_group_names, *additional_operation_args, **additional_operation_kwargs):
+  def execute(self, operation_groups, *additional_operation_args, **additional_operation_kwargs):
     """
     Execute all operations belonging to the groups in the order given by
-    `operation_group_names`.
+    `operation_groups`.
     
     Additional arguments and keyword arguments to all operations in the group
     are given by `*additional_operation_args` and
@@ -109,7 +116,7 @@ class OperationsExecutor(object):
     `add_operation` method and `**additional_operation_kwargs`, the values from
     the latter override the former.
     
-    If any of the `operation_group_names` do not exist (i.e. do not have any
+    If any of the `operation_groups` do not exist (i.e. do not have any
     operations), raise `ValueError`.
     """
     
@@ -120,7 +127,7 @@ class OperationsExecutor(object):
     
     def _execute_operation_with_foreach_operations(operation, operation_args, operation_kwargs):
       operation_generators = [
-        _execute_operation(*params) for params in self._foreach_operations[operation_group_name]]
+        _execute_operation(*params) for params in self._foreach_operations[operation_group]]
       
       _execute_foreach_operations_once(operation_generators)
       
@@ -140,17 +147,33 @@ class OperationsExecutor(object):
       for operation_generator_to_remove in operation_generators_to_remove:
         operation_generators.remove(operation_generator_to_remove)
     
-    for operation_group_name in operation_group_names:
-      if operation_group_name not in self._operations:
-        raise ValueError("operation group '{0}' does not exist".format(operation_group_name))
+    for operation_group in operation_groups:
+      if operation_group not in self._operations:
+        raise ValueError("operation group '{0}' does not exist".format(operation_group))
       
-      for operation, operation_args, operation_kwargs in self._operations[operation_group_name]:
-        if self._foreach_operations[operation_group_name]:
+      for operation, operation_args, operation_kwargs in self._operations[operation_group]:
+        if self._foreach_operations[operation_group]:
           _execute_operation_with_foreach_operations(operation, operation_args, operation_kwargs)
         else:
           _execute_operation(operation, operation_args, operation_kwargs)
   
-  def _init_operation_group(self, operation_group_name):
-    if operation_group_name not in self._operations:
-      self._operations[operation_group_name] = []
-      self._foreach_operations[operation_group_name] = []
+  def has_operation(self, operation_group, operation):
+    """
+    Return True if `operation` is added to the list of operations in group
+    `operation_group`, False otherwise.
+    """
+    
+    return operation in self._operations_functions[operation_group]
+  
+  def has_foreach_operation(self, operation_group, foreach_operation):
+    """
+    Return True if `foreach_operation` is added to the list of "for-each"
+    operations in group `operation_group`, False otherwise.
+    """
+    
+    return foreach_operation in self._foreach_operations_functions[operation_group]
+  
+  def _init_operation_group(self, operation_group):
+    if operation_group not in self._operations:
+      self._operations[operation_group] = []
+      self._foreach_operations[operation_group] = []

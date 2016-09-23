@@ -81,7 +81,7 @@ def append_to_list_again(list_):
 #===============================================================================
 
 
-class TestOperationsExecutorAddOperation(unittest.TestCase):
+class TestOperationsExecutor(unittest.TestCase):
   
   def setUp(self):
     self.operations_executor = operations.OperationsExecutor()
@@ -163,9 +163,15 @@ class TestOperationsExecutorAddOperation(unittest.TestCase):
     test_dict.clear()
     self.operations_executor.execute(["advanced_processing", "main_processing"])
     self.assertDictEqual(test_dict, {"one": 1, "two": "two", "three": 3})
+  
+  def test_has_operation(self):
+    test_list = []
+    self.operations_executor.add_operation(["main_processing"], append_test, test_list)
+    
+    self.assertTrue(self.operations_executor.has_operation("main_processing", append_test))
 
 
-class TestOperationsExecutorAddForEachOperation(unittest.TestCase):
+class TestOperationsExecutorForeachOperations(unittest.TestCase):
   
   def setUp(self):
     self.operations_executor = operations.OperationsExecutor()
@@ -264,3 +270,10 @@ class TestOperationsExecutorAddForEachOperation(unittest.TestCase):
     self.operations_executor.execute(["main_processing"])
     
     self.assertListEqual(test_list, [1, 1, 2, 2])
+  
+  def test_has_foreach_operation(self):
+    test_list = []
+    self.operations_executor.add_foreach_operation(["main_processing"], append_to_list_again, test_list)
+    
+    self.assertTrue(self.operations_executor.has_foreach_operation("main_processing", append_to_list_again))
+    self.assertFalse(self.operations_executor.has_operation("main_processing", append_to_list_again))
