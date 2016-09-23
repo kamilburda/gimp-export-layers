@@ -312,7 +312,7 @@ class LayerExporter(object):
       set_active_layer,
       lambda: self._image_copy)
     self._operations_executor.add_operation(
-      ["process_layer", "insert_layer"],
+      ["process_layer"],
       execute_operation_only_if_setting(
         ignore_layer_modes, self.export_settings['more_operations/ignore_layer_modes']))
     self._operations_executor.add_operation(
@@ -785,7 +785,6 @@ class LayerExporter(object):
       for i, layer_elem in enumerate(list(layer_elems)):
         layer_copy = self._copy_and_insert_layer(image, layer_elem.item, layer_group, i)
         self._on_after_insert_layer_func(layer_copy)
-        self._operations_executor.execute(["insert_layer"], layer_copy)
       
       layer = pgpdb.merge_layer_group(layer_group)
       
