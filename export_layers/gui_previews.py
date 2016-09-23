@@ -759,6 +759,11 @@ class ExportImagePreview(ExportPreview):
       self._layer_exporter.operations_executor.add_operation(
         ["after_insert_layer"], self._layer_exporter_on_after_insert_layer)
     
+    if not self._layer_exporter.operations_executor.has_operation(
+             "after_create_image_copy", self._layer_exporter_on_after_create_image_copy):
+      self._layer_exporter.operations_executor.add_operation(
+        ["after_create_image_copy"], self._layer_exporter_on_after_create_image_copy)
+    
     self._layer_elem = None
     
     self._preview_pixbuf = None
@@ -962,8 +967,7 @@ class ExportImagePreview(ExportPreview):
            self._settings_events_to_temporarily_disable):
       try:
         image_preview = self._layer_exporter.export(
-          operations=['layer_contents'], layer_tree=layer_tree, keep_exported_layers=True,
-          on_after_create_image_copy_func=self._layer_exporter_on_after_create_image_copy)
+          operations=['layer_contents'], layer_tree=layer_tree, keep_exported_layers=True)
       except Exception:
         image_preview = None
     

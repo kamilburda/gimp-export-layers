@@ -350,8 +350,7 @@ class LayerExporter(object):
   def operations_executor(self):
     return self._operations_executor
   
-  def export(self, operations=None, layer_tree=None, keep_exported_layers=False,
-             on_after_create_image_copy_func=None):
+  def export(self, operations=None, layer_tree=None, keep_exported_layers=False):
     """
     Export layers as separate images from the specified image.
     
@@ -381,14 +380,9 @@ class LayerExporter(object):
     image copy containing the exported layers. It is up to you to destroy the
     image copy. The method returns None if an exception was raised or if no
     layer was exported; in that case, the image copy is automatically destroyed.
-    
-    You may optionally pass a callback that is called after an image copy was
-    created (`on_after_create_image_copy_func`, takes the image copy as its only
-    argument).
     """
     
-    self._init_attributes(
-      operations, layer_tree, keep_exported_layers, on_after_create_image_copy_func)
+    self._init_attributes(operations, layer_tree, keep_exported_layers)
     self._preprocess_layers()
     
     exception_occurred = False
@@ -447,8 +441,7 @@ class LayerExporter(object):
         for event_id in event_ids:
           self.export_settings[setting_name].set_event_enabled(event_id, True)
   
-  def _init_attributes(self, operations, layer_tree, keep_exported_layers,
-                       on_after_create_image_copy_func):
+  def _init_attributes(self, operations, layer_tree, keep_exported_layers):
     self._enable_disable_operation_groups(operations)
     
     if layer_tree is not None:
@@ -458,8 +451,6 @@ class LayerExporter(object):
         self.image, name=pygimplib.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
     
     self._keep_exported_layers = keep_exported_layers
-    self._on_after_create_image_copy_func = (
-      on_after_create_image_copy_func if on_after_create_image_copy_func is not None else lambda *args: None)
     
     self.should_stop = False
     
@@ -686,7 +677,7 @@ class LayerExporter(object):
     self._image_copy = pgpdb.duplicate(self.image, metadata_only=True)
     pdb.gimp_image_undo_freeze(self._image_copy)
     
-    self._on_after_create_image_copy_func(self._image_copy)
+    self._operations_executor.execute(["after_create_image_copy"], self._image_copy)
     
     if self._use_another_image_copy:
       self._another_image_copy = pgpdb.duplicate(self._image_copy, metadata_only=True)
