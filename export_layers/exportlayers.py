@@ -106,26 +106,25 @@ def execute_operation_only_if_setting(operation, setting):
   return _execute_operation_only_if_setting
 
 
-def ignore_layer_modes(layer):
+def ignore_layer_modes(image, layer):
   layer.mode = gimpenums.NORMAL_MODE
 
 
-def inherit_transparency_from_layer_groups(get_current_layer_elem, layer):
+def inherit_transparency_from_layer_groups(get_current_layer_elem, image, layer):
   layer_elem = get_current_layer_elem()
   layer.opacity = 100.0 * functools.reduce(
     lambda layer1_opacity, layer2_opacity: layer1_opacity * layer2_opacity,
     [parent.item.opacity / 100.0 for parent in layer_elem.parents] + [layer_elem.item.opacity / 100.0])
 
 
-def autocrop_layer(get_image, layer):
-  pdb.plug_in_autocrop_layer(get_image(), layer)
+def autocrop_layer(image, layer):
+  pdb.plug_in_autocrop_layer(image, layer)
 
 
-def autocrop_to_tagged_layer(get_image, tag, get_inserted_tagged_layers, setting, layer):
+def autocrop_to_tagged_layer(tag, get_inserted_tagged_layers, setting, image, layer):
   if setting.value:
     tagged_layer = get_inserted_tagged_layers()[tag]
     if tagged_layer is not None:
-      image = get_image()
       image.active_layer = tagged_layer
       pdb.plug_in_autocrop_layer(image, tagged_layer)
       return True
@@ -133,15 +132,15 @@ def autocrop_to_tagged_layer(get_image, tag, get_inserted_tagged_layers, setting
   return False
 
 
-def set_active_layer(get_image, layer):
-  get_image().active_layer = layer
+def set_active_layer(image, layer):
+  image.active_layer = layer
 
 
-def set_active_layer_after_operation(get_image, layer):
+def set_active_layer_after_operation(image, layer):
   operation_executed = yield
   
   if operation_executed or operation_executed is None:
-    set_active_layer(get_image, layer)
+    set_active_layer(image, layer)
 
 
 def copy_and_insert_layer(image, layer, parent=None, position=0):
@@ -427,21 +426,19 @@ class LayerExporter(object):
   
   def _add_operations_initial(self):
     self._operations_executor.add_operation(
-      ["process_layer"],
-      set_active_layer,
-      lambda: self._image_copy)
+      ["process_layer"], set_active_layer)
     self._operations_executor.add_operation(
       ["process_layer"],
       execute_operation_only_if_setting(
         self._insert_background_layer, self.export_settings['more_operations/insert_background_layers']),
-      lambda: self._image_copy, "background", lambda: self._tagged_layer_elems,
-      lambda: self._tagged_layer_copies, lambda: self._inserted_tagged_layers)
+      "background", lambda: self._tagged_layer_elems, lambda: self._tagged_layer_copies,
+      lambda: self._inserted_tagged_layers)
     self._operations_executor.add_operation(
       ["process_layer"],
       execute_operation_only_if_setting(
         self._insert_foreground_layer, self.export_settings['more_operations/insert_foreground_layers']),
-      lambda: self._image_copy, "foreground", lambda: self._tagged_layer_elems,
-      lambda: self._tagged_layer_copies, lambda: self._inserted_tagged_layers)
+      "foreground", lambda: self._tagged_layer_elems, lambda: self._tagged_layer_copies,
+      lambda: self._inserted_tagged_layers)
     self._operations_executor.add_operation(
       ["process_layer"],
       execute_operation_only_if_setting(
@@ -455,19 +452,18 @@ class LayerExporter(object):
     self._operations_executor.add_operation(
       ["process_layer"],
       execute_operation_only_if_setting(
-        autocrop_layer, self.export_settings['more_operations/autocrop']),
-      lambda: self._image_copy)
+        autocrop_layer, self.export_settings['more_operations/autocrop']))
     self._operations_executor.add_operation(
       ["process_layer"],
-      autocrop_to_tagged_layer, lambda: self._image_copy, "background", lambda: self._inserted_tagged_layers,
+      autocrop_to_tagged_layer, "background", lambda: self._inserted_tagged_layers,
       self.export_settings['more_operations/autocrop_to_background'])
     self._operations_executor.add_operation(
       ["process_layer"],
-      autocrop_to_tagged_layer, lambda: self._image_copy, "foreground", lambda: self._inserted_tagged_layers,
+      autocrop_to_tagged_layer, "foreground", lambda: self._inserted_tagged_layers,
       self.export_settings['more_operations/autocrop_to_foreground'])
     
     self._operations_executor.add_foreach_operation(
-      ["process_layer"], set_active_layer_after_operation, lambda: self._image_copy)
+      ["process_layer"], set_active_layer_after_operation)
   
   def _init_attributes(self, processing_groups, layer_tree, keep_exported_layers):
     self._enable_disable_processing_groups(processing_groups)
@@ -743,9 +739,9 @@ class LayerExporter(object):
   
   def _process_layer(self, layer_elem, image, layer):
     layer_copy = copy_and_insert_layer(image, layer, None, 0)
-    self._operations_executor.execute(["after_insert_layer"], layer_copy)
+    self._operations_executor.execute(["after_insert_layer"], image, layer_copy)
     
-    self._operations_executor.execute(["process_layer"], layer_copy)
+    self._operations_executor.execute(["process_layer"], image, layer_copy)
     
     layer_copy = self._merge_and_resize_layer(image, layer_copy)
     
@@ -778,7 +774,7 @@ class LayerExporter(object):
       
       for i, layer_elem in enumerate(list(tagged_layer_elems[tag])):
         layer_copy = copy_and_insert_layer(image, layer_elem.item, layer_group, i)
-        self._operations_executor.execute(["after_insert_layer"], layer_copy)
+        self._operations_executor.execute(["after_insert_layer"], image, layer_copy)
       
       inserted_tagged_layers[tag] = pgpdb.merge_layer_group(layer_group)
       tagged_layer_copies[tag] = pdb.gimp_layer_copy(inserted_tagged_layers[tag], True)
@@ -786,16 +782,16 @@ class LayerExporter(object):
       inserted_tagged_layers[tag] = pdb.gimp_layer_copy(tagged_layer_copies[tag], True)
       pdb.gimp_image_insert_layer(image, inserted_tagged_layers[tag], None, positon)
   
-  def _insert_background_layer(self, get_image, tag, get_tagged_layer_elems, get_tagged_layer_copies,
-                               get_inserted_tagged_layers, layer):
+  def _insert_background_layer(self, tag, get_tagged_layer_elems, get_tagged_layer_copies,
+                               get_inserted_tagged_layers, image, layer):
     self._insert_tagged_layer(
-      get_image(), tag, get_tagged_layer_elems(), get_tagged_layer_copies(),
-      get_inserted_tagged_layers(), positon=len(get_image().layers))
+      image, tag, get_tagged_layer_elems(), get_tagged_layer_copies(),
+      get_inserted_tagged_layers(), positon=len(image.layers))
   
-  def _insert_foreground_layer(self, get_image, tag, get_tagged_layer_elems, get_tagged_layer_copies,
-                               get_inserted_tagged_layers, layer):
+  def _insert_foreground_layer(self, tag, get_tagged_layer_elems, get_tagged_layer_copies,
+                               get_inserted_tagged_layers, image, layer):
     self._insert_tagged_layer(
-      get_image(), tag, get_tagged_layer_elems(), get_tagged_layer_copies(),
+      image, tag, get_tagged_layer_elems(), get_tagged_layer_copies(),
       get_inserted_tagged_layers(), positon=0)
   
   def _merge_and_resize_layer(self, image, layer):

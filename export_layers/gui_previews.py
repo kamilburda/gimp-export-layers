@@ -985,7 +985,7 @@ class ExportImagePreview(ExportPreview):
     
     pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_NONE)
   
-  def _layer_exporter_on_after_insert_layer(self, layer):
+  def _layer_exporter_on_after_insert_layer(self, image, layer):
     if not pdb.gimp_item_is_group(layer):
       pdb.gimp_layer_scale(
         layer,
