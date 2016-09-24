@@ -108,7 +108,7 @@ class OperationsBox(object):
     
     self._init_operations_menu_popup()
     
-    self._init_setting_gui_elements_dragging()
+    self._init_item_widgets_dragging()
     
     for setting_name in self._displayed_settings_names:
       self._add_operation_item(self._settings[setting_name])
@@ -133,23 +133,23 @@ class OperationsBox(object):
     
     self._operations_menu.show_all()
   
-  def _init_setting_gui_elements_dragging(self):
+  def _init_item_widgets_dragging(self):
     # Make sure the drag type is unique for the entire box to prevent drops on
     # other widgets.
     drag_type = self._get_drag_type()
     
-    self._last_setting_gui_element_dest_drag = None
+    self._last_item_widget_dest_drag = None
     
     for setting in self._settings.values():
-      setting.gui.element.connect("drag-data-get", self._on_setting_gui_element_drag_data_get, setting)
+      setting.gui.element.connect("drag-data-get", self._on_item_widget_drag_data_get, setting)
       setting.gui.element.drag_source_set(gtk.gdk.BUTTON1_MASK, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
       
-      setting.gui.element.connect("drag-data-received", self._on_setting_gui_element_drag_data_received, setting)
+      setting.gui.element.connect("drag-data-received", self._on_item_widget_drag_data_received, setting)
       setting.gui.element.drag_dest_set(gtk.DEST_DEFAULT_ALL, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
       
-      setting.gui.element.connect("drag-begin", self._on_setting_gui_element_drag_begin)
-      setting.gui.element.connect("drag-motion", self._on_setting_gui_element_drag_motion)
-      setting.gui.element.connect("drag-failed", self._on_setting_gui_element_drag_failed)
+      setting.gui.element.connect("drag-begin", self._on_item_widget_drag_begin)
+      setting.gui.element.connect("drag-motion", self._on_item_widget_drag_motion)
+      setting.gui.element.connect("drag-failed", self._on_item_widget_drag_failed)
   
   def _get_drag_type(self):
     global _drag_type_id_counter
@@ -159,12 +159,12 @@ class OperationsBox(object):
     
     return drag_type
   
-  def _on_setting_gui_element_drag_data_get(self, setting_gui_element, drag_context,
-                                            selection_data, info, timestamp, setting):
+  def _on_item_widget_drag_data_get(self, item_widget, drag_context, selection_data,
+                                    info, timestamp, setting):
     selection_data.set(selection_data.target, 8, setting.name)
   
-  def _on_setting_gui_element_drag_data_received(self, setting_gui_element, drag_context,
-                                                 x, y, selection_data, info, timestamp, setting):
+  def _on_item_widget_drag_data_received(self, item_widget, drag_context, x, y,
+                                         selection_data, info, timestamp, setting):
     dragged_setting_name = selection_data.data
     if dragged_setting_name not in self._settings:
       return
@@ -177,18 +177,18 @@ class OperationsBox(object):
     
     self._move_operation_item(dragged_operation_item, new_position)
   
-  def _on_setting_gui_element_drag_begin(self, setting_gui_element, drag_context):
-    drag_icon_pixbuf = self._get_drag_icon_pixbuf(setting_gui_element)
+  def _on_item_widget_drag_begin(self, item_widget, drag_context):
+    drag_icon_pixbuf = self._get_drag_icon_pixbuf(item_widget)
     if drag_icon_pixbuf is not None:
       drag_context.set_icon_pixbuf(drag_icon_pixbuf, 0, 0)
   
-  def _on_setting_gui_element_drag_motion(self, setting_gui_element, drag_context, x, y, timestamp):
-    self._last_setting_gui_element_dest_drag = setting_gui_element
+  def _on_item_widget_drag_motion(self, item_widget, drag_context, x, y, timestamp):
+    self._last_item_widget_dest_drag = item_widget
   
-  def _on_setting_gui_element_drag_failed(self, setting_gui_element, drag_context, result):
-    if self._last_setting_gui_element_dest_drag is not None:
-      self._last_setting_gui_element_dest_drag.drag_unhighlight()
-      self._last_setting_gui_element_dest_drag = None
+  def _on_item_widget_drag_failed(self, item_widget, drag_context, result):
+    if self._last_item_widget_dest_drag is not None:
+      self._last_item_widget_dest_drag.drag_unhighlight()
+      self._last_item_widget_dest_drag = None
   
   def _on_button_add_clicked(self, button):
     self._operations_menu.popup(None, None, None, 0, 0)
@@ -256,7 +256,7 @@ class OperationsBox(object):
     operation_item_position = self._get_operation_item_position(operation_item)
     
     if operation_item_position < len(self._displayed_operation_items) - 1:
-      self._displayed_operation_items[operation_item_position + 1].setting_gui_element.grab_focus()
+      self._displayed_operation_items[operation_item_position + 1].item_widget.grab_focus()
     else:
       self._button_add.grab_focus()
     
@@ -291,11 +291,11 @@ class _OperationItem(object):
   
   _BUTTONS_PADDING = 3
   
-  def __init__(self, setting_gui_element):
-    self._setting_gui_element = setting_gui_element
+  def __init__(self, item_widget):
+    self._item_widget = item_widget
     
     self._hbox = gtk.HBox(homogeneous=False)
-    self._hbox.pack_start(self._setting_gui_element, expand=True, fill=True)
+    self._hbox.pack_start(self._item_widget, expand=True, fill=True)
     
     self._button_remove = gtk.Button()
     self._button_remove.set_relief(gtk.RELIEF_NONE)
@@ -321,8 +321,8 @@ class _OperationItem(object):
     self._event_box.connect("leave-notify-event", self._on_event_box_leave_notify_event)
     
     self._has_button_remove_focus = False
-    self._setting_gui_element.connect("focus-in-event", self._on_setting_gui_element_focus_in_event)
-    self._setting_gui_element.connect("focus-out-event", self._on_setting_gui_element_focus_out_event)
+    self._item_widget.connect("focus-in-event", self._on_item_widget_focus_in_event)
+    self._item_widget.connect("focus-out-event", self._on_item_widget_focus_out_event)
     self._button_remove.connect("grab-focus", self._on_button_remove_grab_focus)
     self._button_remove.connect("focus-out-event", self._on_button_remove_focus_out_event)
     
@@ -338,15 +338,15 @@ class _OperationItem(object):
     return self._event_box
   
   @property
-  def setting_gui_element(self):
-    return self._setting_gui_element
+  def item_widget(self):
+    return self._item_widget
   
   @property
   def button_remove(self):
     return self._button_remove
   
   def remove_setting(self):
-    self._hbox.remove(self._setting_gui_element)
+    self._hbox.remove(self._item_widget)
   
   def _on_event_box_enter_notify_event(self, event_box, event):
     if event.detail != gtk.gdk.NOTIFY_INFERIOR:
@@ -356,10 +356,10 @@ class _OperationItem(object):
     if event.detail != gtk.gdk.NOTIFY_INFERIOR:
       self._button_remove.hide()
   
-  def _on_setting_gui_element_focus_in_event(self, setting_gui_element, event):
+  def _on_item_widget_focus_in_event(self, item_widget, event):
     self._button_remove.show()
   
-  def _on_setting_gui_element_focus_out_event(self, setting_gui_element, event):
+  def _on_item_widget_focus_out_event(self, item_widget, event):
     if not self._has_button_remove_focus:
       self._button_remove.hide()
   
