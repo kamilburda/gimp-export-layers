@@ -615,7 +615,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._box_more_operations = gui_operations.OperationsBox(
       label_add_text=_("Add _Operations..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
       settings=list(self._settings['main/more_operations'].iterate_all()),
-      displayed_settings_names=self._settings['gui/displayed_builtin_operations'].value)
+      displayed_settings_names=self._settings['gui/displayed_builtin_operations'].value,
+      on_add_operation_func=exportlayers.add_operation)
     
     self._box_more_filters = gui_operations.OperationsBox(
       label_add_text=_("Add _Filters..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
@@ -657,13 +658,13 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._menu_item_save_settings = gtk.MenuItem(_("Save Settings"))
     self._menu_item_reset_settings = gtk.MenuItem(_("Reset settings"))
-
+    
     self._menu_settings = gtk.Menu()
     self._menu_settings.append(self._menu_item_show_more_settings)
     self._menu_settings.append(self._menu_item_save_settings)
     self._menu_settings.append(self._menu_item_reset_settings)
     self._menu_settings.show_all()
-
+    
     self._dialog.action_area.pack_end(self._button_stop, expand=False, fill=False)
     self._dialog.action_area.pack_start(self._button_settings, expand=False, fill=False)
     self._dialog.action_area.set_child_secondary(self._button_settings, True)

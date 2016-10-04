@@ -755,14 +755,14 @@ class ExportImagePreview(ExportPreview):
     self._initial_previewed_layer_id = initial_previered_layer_id
     
     if not self._layer_exporter.operations_executor.has_operation(
-             "after_insert_layer", self._layer_exporter_on_after_insert_layer):
+             self._layer_exporter_on_after_insert_layer, "after_insert_layer"):
       self._layer_exporter.operations_executor.add_operation(
-        ["after_insert_layer"], self._layer_exporter_on_after_insert_layer)
+        self._layer_exporter_on_after_insert_layer, ["after_insert_layer"])
     
     if not self._layer_exporter.operations_executor.has_operation(
-             "after_create_image_copy", self._layer_exporter_on_after_create_image_copy):
+             self._layer_exporter_on_after_create_image_copy, "after_create_image_copy"):
       self._layer_exporter.operations_executor.add_operation(
-        ["after_create_image_copy"], self._layer_exporter_on_after_create_image_copy)
+        self._layer_exporter_on_after_create_image_copy, ["after_create_image_copy"])
     
     self._layer_elem = None
     
@@ -985,7 +985,7 @@ class ExportImagePreview(ExportPreview):
     
     pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_NONE)
   
-  def _layer_exporter_on_after_insert_layer(self, image, layer):
+  def _layer_exporter_on_after_insert_layer(self, image, layer, layer_exporter):
     if not pdb.gimp_item_is_group(layer):
       pdb.gimp_layer_scale(
         layer,

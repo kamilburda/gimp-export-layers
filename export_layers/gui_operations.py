@@ -53,11 +53,18 @@ class OperationsBox(object):
   
   _BUTTON_HBOX_SPACING = 6
   
-  def __init__(self, label_add_text=None, spacing=0, settings=None, displayed_settings_names=None):
+  def __init__(self, label_add_text=None, spacing=0, settings=None, displayed_settings_names=None,
+               on_add_operation_func=None, on_remove_operation_func=None, on_move_operation_func=None):
     self.label_add_text = label_add_text
     self._operations_spacing = spacing
     self._settings = collections.OrderedDict([(setting.name, setting) for setting in settings])
     self._displayed_settings_names = displayed_settings_names if displayed_settings_names is not None else []
+    self._on_add_operation_func = (
+      on_add_operation_func if on_add_operation_func is not None else lambda *args: None)
+    self._on_remove_operation_func = (
+      on_remove_operation_func if on_remove_operation_func is not None else lambda *args: None)
+    self._on_move_operation_func = (
+      on_move_operation_func if on_move_operation_func is not None else lambda *args: None)
     
     self._init_gui()
   
@@ -251,6 +258,8 @@ class OperationsBox(object):
     self._displayed_settings.append(setting)
     self._displayed_settings_gui_elements.add(setting.gui.element)
     self._displayed_operation_items.append(operation_item)
+    
+    self._on_add_operation_func(setting)
   
   def _remove_operation_item(self, operation_item, setting):
     operation_item_position = self._get_operation_item_position(operation_item)
@@ -261,11 +270,13 @@ class OperationsBox(object):
       self._button_add.grab_focus()
     
     self._vbox.remove(operation_item.widget)
-    operation_item.remove_setting()
+    operation_item.remove_item_widget()
     
     self._displayed_settings.remove(setting)
     self._displayed_settings_gui_elements.remove(setting.gui.element)
     self._displayed_operation_items.remove(operation_item)
+    
+    self._on_remove_operation_func(setting)
   
   def _move_operation_item(self, operation_item, position):
     position = min(max(position, 0), len(self._displayed_operation_items) - 1)
@@ -279,6 +290,8 @@ class OperationsBox(object):
     self._displayed_settings.insert(position, setting)
     
     self._vbox.reorder_child(operation_item.widget, position)
+    
+    self._on_move_operation_func(setting)
   
   def _get_operation_item_position(self, operation_item):
     return self._displayed_operation_items.index(operation_item)
@@ -345,7 +358,7 @@ class _OperationItem(object):
   def button_remove(self):
     return self._button_remove
   
-  def remove_setting(self):
+  def remove_item_widget(self):
     self._hbox.remove(self._item_widget)
   
   def _on_event_box_enter_notify_event(self, event_box, event):
