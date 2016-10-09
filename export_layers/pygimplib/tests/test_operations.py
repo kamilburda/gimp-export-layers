@@ -87,29 +87,25 @@ class TestOperationsExecutor(unittest.TestCase):
     self.operations_executor = operations.OperationsExecutor()
   
   def test_has_operation(self):
+    operation_id = self.operations_executor.add_operation(append_to_list, ["main_processing"])
+    self.assertTrue(self.operations_executor.has_operation(operation_id))
+  
+  def test_has_matching_operation(self):
     test_list = []
+    
     self.operations_executor.add_operation(append_test, ["main_processing"], test_list)
+    self.assertTrue(self.operations_executor.has_matching_operation(append_test, "main_processing"))
     
-    self.assertTrue(self.operations_executor.has_operation(append_test, "main_processing"))
-    self.assertFalse(self.operations_executor.has_foreach_operation(append_test, "main_processing"))
-  
-  def test_has_foreach_operation(self):
-    test_list = []
-    self.operations_executor.add_foreach_operation(append_to_list_again, ["main_processing"], test_list)
-    
-    self.assertFalse(self.operations_executor.has_operation(append_to_list_again, "main_processing"))
-    self.assertTrue(self.operations_executor.has_foreach_operation(append_to_list_again, "main_processing"))
-  
-  def test_has_executor(self):
     additional_executor = operations.OperationsExecutor()
     self.operations_executor.add_executor(additional_executor, ["main_processing"])
+    self.assertTrue(
+      self.operations_executor.has_matching_operation(
+        additional_executor, "main_processing", operation_type=self.operations_executor.EXECUTOR))
     
-    self.assertTrue(self.operations_executor.has_operation(additional_executor, "main_processing"))
-    self.assertFalse(self.operations_executor.has_foreach_operation(additional_executor, "main_processing"))
-  
-  def test_has_operation_with_id(self):
-    operation_id = self.operations_executor.add_operation(append_to_list, ["main_processing"])
-    self.assertTrue(self.operations_executor.has_operation_with_id(operation_id))
+    self.operations_executor.add_foreach_operation(append_to_list_again, ["main_processing"], test_list)
+    self.assertTrue(
+      self.operations_executor.has_matching_operation(
+        append_to_list_again, "main_processing", operation_type=self.operations_executor.FOREACH_OPERATION))
   
   def test_add_operation_return_unique_ids(self):
     test_list = []
@@ -139,17 +135,17 @@ class TestOperationsExecutor(unittest.TestCase):
     operation_id = self.operations_executor.add_operation(
       append_to_list, ["main_processing", "additional_processing"], test_list, 2)
     
-    self.assertTrue(self.operations_executor.has_operation_with_id(operation_id))
-    self.assertTrue(self.operations_executor.has_operation_with_id(operation_id, "main_processing"))
-    self.assertTrue(self.operations_executor.has_operation_with_id(operation_id, "additional_processing"))
+    self.assertTrue(self.operations_executor.has_operation(operation_id))
+    self.assertTrue(self.operations_executor.has_operation(operation_id, "main_processing"))
+    self.assertTrue(self.operations_executor.has_operation(operation_id, "additional_processing"))
   
   def test_add_operation_to_another_group(self):
     test_list = []
     operation_id = self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
     
     self.operations_executor.add_operation_to_groups(operation_id, ["additional_processing"])
-    self.assertTrue(self.operations_executor.has_operation_with_id(operation_id, "main_processing"))
-    self.assertTrue(self.operations_executor.has_operation_with_id(operation_id, "additional_processing"))
+    self.assertTrue(self.operations_executor.has_operation(operation_id, "main_processing"))
+    self.assertTrue(self.operations_executor.has_operation(operation_id, "additional_processing"))
     
     self.operations_executor.add_operation_to_groups(operation_id, ["main_processing"])
     self.assertEqual(len(self.operations_executor.get_operations("main_processing")), 1)
@@ -159,8 +155,8 @@ class TestOperationsExecutor(unittest.TestCase):
       append_to_list_before, ["main_processing"], test_list, 2)
     
     self.operations_executor.add_operation_to_groups(foreach_operation_id, ["additional_processing"])
-    self.assertTrue(self.operations_executor.has_operation_with_id(foreach_operation_id, "main_processing"))
-    self.assertTrue(self.operations_executor.has_operation_with_id(foreach_operation_id, "additional_processing"))
+    self.assertTrue(self.operations_executor.has_operation(foreach_operation_id, "main_processing"))
+    self.assertTrue(self.operations_executor.has_operation(foreach_operation_id, "additional_processing"))
     
     self.operations_executor.add_operation_to_groups(foreach_operation_id, ["main_processing"])
     self.assertEqual(len(self.operations_executor.get_operations("main_processing")), 1)
@@ -170,8 +166,8 @@ class TestOperationsExecutor(unittest.TestCase):
     executor_id = self.operations_executor.add_executor(additional_executor, ["main_processing"])
     
     self.operations_executor.add_operation_to_groups(executor_id, ["additional_processing"])
-    self.assertTrue(self.operations_executor.has_operation_with_id(executor_id, "main_processing"))
-    self.assertTrue(self.operations_executor.has_operation_with_id(executor_id, "additional_processing"))
+    self.assertTrue(self.operations_executor.has_operation(executor_id, "main_processing"))
+    self.assertTrue(self.operations_executor.has_operation(executor_id, "additional_processing"))
     
     self.operations_executor.add_operation_to_groups(executor_id, ["main_processing"])
     self.assertEqual(len(self.operations_executor.get_operations("main_processing")), 2)
@@ -229,28 +225,28 @@ class TestOperationsExecutor(unittest.TestCase):
     additional_executor = operations.OperationsExecutor()
     operation_ids.append(self.operations_executor.add_executor(additional_executor, ["main_processing"]))
     
-    self.operations_executor.remove_operation_by_id(operation_ids[2], ["main_processing"])
+    self.operations_executor.remove_operation(operation_ids[2], ["main_processing"])
     self.assertEqual(len(self.operations_executor.get_operation_groups(include_empty_groups=False)), 2)
     
-    self.operations_executor.remove_operation_by_id(operation_ids[1], ["main_processing"])
+    self.operations_executor.remove_operation(operation_ids[1], ["main_processing"])
     self.assertEqual(len(self.operations_executor.get_operation_groups(include_empty_groups=False)), 2)
     
-    self.operations_executor.remove_operation_by_id(operation_ids[0], ["main_processing"])
+    self.operations_executor.remove_operation(operation_ids[0], ["main_processing"])
     non_empty_operation_groups = self.operations_executor.get_operation_groups(include_empty_groups=False)
     self.assertEqual(len(non_empty_operation_groups), 1)
     self.assertNotIn("main_processing", non_empty_operation_groups)
     self.assertIn("additional_processing", non_empty_operation_groups)
     
-    self.operations_executor.remove_operation_by_id(operation_ids[1], ["additional_processing"])
+    self.operations_executor.remove_operation(operation_ids[1], ["additional_processing"])
     non_empty_operation_groups = self.operations_executor.get_operation_groups(include_empty_groups=False)
     self.assertEqual(len(non_empty_operation_groups), 1)
     self.assertNotIn("main_processing", non_empty_operation_groups)
     self.assertIn("additional_processing", non_empty_operation_groups)
     
-    self.operations_executor.remove_operation_by_id(operation_ids[0], ["additional_processing"])
+    self.operations_executor.remove_operation(operation_ids[0], ["additional_processing"])
     self.assertEqual(len(self.operations_executor.get_operation_groups(include_empty_groups=False)), 0)
   
-  def test_get_operation_by_id(self):
+  def test_get_operation(self):
     test_list = []
     operation_ids = []
     operation_ids.append(
@@ -265,184 +261,141 @@ class TestOperationsExecutor(unittest.TestCase):
     operation_ids.append(self.operations_executor.add_executor(additional_executor, ["main_processing"]))
     
     self.assertEqual(
-      self.operations_executor.get_operation_by_id(operation_ids[0]), (append_to_list, (test_list, 2), {}))
+      self.operations_executor.get_operation(operation_ids[0]), (append_to_list, (test_list, 2), {}))
     self.assertEqual(
-      self.operations_executor.get_operation_by_id(operation_ids[1]), (append_to_list, (test_list, 3), {}))
+      self.operations_executor.get_operation(operation_ids[1]), (append_to_list, (test_list, 3), {}))
     self.assertEqual(
-      self.operations_executor.get_operation_by_id(operation_ids[2]), (append_to_list_before, (test_list, 4), {}))
+      self.operations_executor.get_operation(operation_ids[2]), (append_to_list_before, (test_list, 4), {}))
     
-    self.assertEqual(self.operations_executor.get_operation_by_id(operation_ids[3]), additional_executor)
+    self.assertEqual(self.operations_executor.get_operation(operation_ids[3]), additional_executor)
   
-  def test_get_operation_by_id_invalid_id(self):
+  def test_get_operation_invalid_id(self):
+    self.assertIsNone(self.operations_executor.get_operation(-1))
+  
+  def test_get_operation_positon(self):
+    test_list = []
+    operation_ids = []
+    
+    operation_ids.append(
+      self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2))
+    operation_ids.append(
+      self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 3))
+    operation_ids.append(
+      self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 4))
+    
+    self.assertEqual(self.operations_executor.get_operation_positon(operation_ids[0], "main_processing"), 0)
+    self.assertEqual(self.operations_executor.get_operation_positon(operation_ids[1], "main_processing"), 1)
+    self.assertEqual(self.operations_executor.get_operation_positon(operation_ids[2], "main_processing"), 2)
+  
+  def test_get_operation_positon_invalid_id(self):
+    self.operations_executor.add_operation(append_test, ["main_processing"])
     with self.assertRaises(ValueError):
-      self.operations_executor.get_operation_by_id(-1)
+      self.operations_executor.get_operation_positon(-1, "main_processing")
+  
+  def test_get_operation_positon_operation_not_in_group(self):
+    operation_id = self.operations_executor.add_operation(append_test, ["main_processing"])
+    with self.assertRaises(ValueError):
+      self.operations_executor.get_operation_positon(operation_id, "additional_processing")
+  
+  def test_find_matching_operations(self):
+    test_list = []
+    operation_ids = []
+    
+    operation_ids.append(
+      self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2))
+    operation_ids.append(
+      self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 3))
+    operation_ids.append(
+      self.operations_executor.add_operation(append_to_list, ["additional_processing"], test_list, 3))
+    
+    operation_ids.append(
+      self.operations_executor.add_foreach_operation(append_to_list_before, ["main_processing"], test_list, 3))
+    
+    additional_executor = operations.OperationsExecutor()
+    operation_ids.append(self.operations_executor.add_executor(additional_executor, ["main_processing"]))
+    
+    self.assertEqual(
+      self.operations_executor.find_matching_operations(
+        append_to_list, "main_processing"), [operation_ids[0], operation_ids[1]])
+    self.assertEqual(
+      self.operations_executor.find_matching_operations(
+        append_to_list, "main_processing", self.operations_executor.FOREACH_OPERATION), [])
+    self.assertEqual(
+      self.operations_executor.find_matching_operations(
+        append_to_list, "main_processing", self.operations_executor.EXECUTOR), [])
+    
+    self.assertEqual(
+      self.operations_executor.find_matching_operations(
+        append_to_list_before, "main_processing"), [])
+    self.assertEqual(
+      self.operations_executor.find_matching_operations(
+        append_to_list_before, "main_processing", self.operations_executor.FOREACH_OPERATION),
+      [operation_ids[3]])
+    self.assertEqual(
+      self.operations_executor.find_matching_operations(
+        append_to_list_before, "main_processing", self.operations_executor.EXECUTOR), [])
+    
+    self.assertEqual(
+      self.operations_executor.find_matching_operations(
+        additional_executor, "main_processing"), [])
+    self.assertEqual(
+      self.operations_executor.find_matching_operations(
+        additional_executor, "main_processing", self.operations_executor.FOREACH_OPERATION), [])
+    self.assertEqual(
+      self.operations_executor.find_matching_operations(
+        additional_executor, "main_processing", self.operations_executor.EXECUTOR), [operation_ids[4]])
+  
+  def test_find_matching_operations_non_existing_group(self):
+    self.operations_executor.add_operation(append_test, ["main_processing"])
+    with self.assertRaises(ValueError):
+      self.operations_executor.find_matching_operations(append_test, "additional_processing")
+  
+  def test_reorder_operation(self):
+    operation_ids = []
+    operation_ids.append(self.operations_executor.add_operation(append_test, ["main_processing"]))
+    operation_ids.append(self.operations_executor.add_operation(append_test, ["main_processing"]))
+    operation_ids.append(self.operations_executor.add_operation(append_test, ["main_processing"]))
+    operation_ids.append(self.operations_executor.add_operation(append_test, ["main_processing"]))
+    
+    self.operations_executor.reorder_operation(operation_ids[3], "main_processing", 0)
+    self.operations_executor.reorder_operation(operation_ids[2], "main_processing", 1)
+    self.operations_executor.reorder_operation(operation_ids[1], "main_processing", 2)
+    
+    self.assertEqual(len(self.operations_executor.get_operations("main_processing")), 4)
+    self.assertEqual(self.operations_executor.get_operation_positon(operation_ids[0], "main_processing"), 3)
+    self.assertEqual(self.operations_executor.get_operation_positon(operation_ids[1], "main_processing"), 2)
+    self.assertEqual(self.operations_executor.get_operation_positon(operation_ids[2], "main_processing"), 1)
+    self.assertEqual(self.operations_executor.get_operation_positon(operation_ids[3], "main_processing"), 0)
+    
+    self.operations_executor.reorder_operation(operation_ids[2], "main_processing", 5)
+    self.assertEqual(self.operations_executor.get_operation_positon(operation_ids[2], "main_processing"), 3)
+    
+    self.operations_executor.reorder_operation(operation_ids[3], "main_processing", -1)
+    self.operations_executor.reorder_operation(operation_ids[1], "main_processing", -3)
+    self.operations_executor.reorder_operation(operation_ids[0], "main_processing", -4)
+    
+    self.assertEqual(len(self.operations_executor.get_operations("main_processing")), 4)
+    self.assertEqual(self.operations_executor.get_operation_positon(operation_ids[0], "main_processing"), 0)
+    self.assertEqual(self.operations_executor.get_operation_positon(operation_ids[1], "main_processing"), 1)
+    self.assertEqual(self.operations_executor.get_operation_positon(operation_ids[2], "main_processing"), 2)
+    self.assertEqual(self.operations_executor.get_operation_positon(operation_ids[3], "main_processing"), 3)
+  
+  def test_reorder_operation_invalid_id(self):
+    with self.assertRaises(ValueError):
+      self.operations_executor.reorder_operation(-1, "main_processing", 0)
+  
+  def test_reorder_operation_non_existing_group(self):
+    operation_id = self.operations_executor.add_operation(append_test, ["main_processing"])
+    with self.assertRaises(ValueError):
+      self.operations_executor.reorder_operation(operation_id, "additional_processing", 0)
+  
+  def test_reorder_operation_operation_not_in_group(self):
+    operation_id = self.operations_executor.add_operation(append_test, ["main_processing"])
+    self.operations_executor.add_operation(append_test, ["additional_processing"])
+    with self.assertRaises(ValueError):
+      self.operations_executor.reorder_operation(operation_id, "additional_processing", 0)
   
   def test_remove_operation(self):
-    test_list = []
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    
-    self.operations_executor.remove_operation(append_test)
-    self.assertTrue(self.operations_executor.has_operation(append_test, "main_processing"))
-    self.assertEqual(len(self.operations_executor.get_operations("main_processing")), 2)
-    
-    self.operations_executor.remove_operation(append_test)
-    self.assertFalse(self.operations_executor.has_operation(append_test, "main_processing"))
-    self.assertEqual(len(self.operations_executor.get_operations("main_processing")), 1)
-  
-  def test_remove_foreach_operation(self):
-    test_list = []
-    self.operations_executor.add_foreach_operation(append_to_list_before, ["main_processing"], test_list, 2)
-    
-    self.operations_executor.remove_operation(
-      append_to_list_before, operation_type=self.operations_executor.FOREACH_OPERATION)
-    self.assertFalse(self.operations_executor.has_foreach_operation(append_to_list_before, "main_processing"))
-  
-  def test_remove_executor(self):
-    additional_executor = operations.OperationsExecutor()
-    self.operations_executor.add_executor(additional_executor, ["main_processing"])
-    
-    self.operations_executor.remove_operation(
-      additional_executor, operation_type=self.operations_executor.EXECUTOR)
-    self.assertFalse(self.operations_executor.has_operation(additional_executor, "main_processing"))
-  
-  def test_remove_operation_from_multiple_groups(self):
-    operation_id = (
-      self.operations_executor.add_operation(append_test, ["main_processing", "additional_processing"]))
-    
-    self.operations_executor.remove_operation(append_test)
-    self.assertFalse(self.operations_executor.has_operation(append_test, "main_processing"))
-    self.assertFalse(self.operations_executor.has_operation(append_test, "additional_processing"))
-    self.assertFalse(self.operations_executor.has_operation_with_id(operation_id))
-  
-  def test_remove_operation_multiple_matches(self):
-    test_list = []
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_test, ["additional_processing"])
-    
-    self.operations_executor.remove_operation(append_test, ["main_processing"], num_matches_to_remove=2)
-    self.assertTrue(self.operations_executor.has_operation(append_test, "main_processing"))
-    self.assertTrue(self.operations_executor.has_operation(append_test, "additional_processing"))
-    
-    self.operations_executor.remove_operation(append_test, ["main_processing"], num_matches_to_remove=1)
-    self.assertFalse(self.operations_executor.has_operation(append_test, "main_processing"))
-    self.assertTrue(self.operations_executor.has_operation(append_test, "additional_processing"))
-  
-  def test_remove_operation_number_of_matches_greater_than_actual_number_of_matches(self):
-    test_list = []
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_test, ["additional_processing"])
-    
-    self.operations_executor.remove_operation(append_test, ["main_processing"], num_matches_to_remove=3)
-    self.assertFalse(self.operations_executor.has_operation(append_test, "main_processing"))
-    self.assertTrue(self.operations_executor.has_operation(append_test, "additional_processing"))
-  
-  def test_remove_operation_all_matches(self):
-    test_list = []
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_test, ["additional_processing"])
-    
-    self.operations_executor.remove_operation(append_test, ["main_processing"], num_matches_to_remove=0)
-    self.assertFalse(self.operations_executor.has_operation(append_test, "main_processing"))
-    self.assertTrue(self.operations_executor.has_operation(append_test, "additional_processing"))
-  
-  def test_remove_operation_all_but_n_matches(self):
-    test_list = []
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    
-    self.operations_executor.remove_operation(append_test, ["main_processing"], num_matches_to_remove=-2)
-    self.assertTrue(self.operations_executor.has_operation(append_test, "main_processing"))
-    
-    self.operations_executor.remove_operation(append_test, ["main_processing"], num_matches_to_remove=2)
-    self.assertFalse(self.operations_executor.has_operation(append_test, "main_processing"))
-  
-  def test_remove_operation_from_nth_match(self):
-    test_list = []
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    
-    self.operations_executor.remove_operation(
-      append_test, ["main_processing"], nth_match_to_start_removing_from=2)
-    self.assertTrue(self.operations_executor.has_operation(append_test, "main_processing"))
-    self.assertEqual(self.operations_executor.get_operations("main_processing")[0][0], append_test)
-  
-  def test_remove_operation_from_nth_match_greater_than_actual_number_of_matches(self):
-    test_list = []
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    
-    self.operations_executor.remove_operation(
-      append_test, ["main_processing"], nth_match_to_start_removing_from=4)
-    self.assertTrue(self.operations_executor.has_operation(append_test, "main_processing"))
-    self.assertEqual(self.operations_executor.get_operations("main_processing")[-1][0], append_test)
-    self.assertEqual(self.operations_executor.get_operations("main_processing")[-2][0], append_to_list)
-  
-  def test_remove_operation_from_nth_to_last_match(self):
-    test_list = []
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    
-    self.operations_executor.remove_operation(
-      append_test, ["main_processing"], nth_match_to_start_removing_from=0)
-    self.assertEqual(
-      self.operations_executor.get_operations("main_processing"),
-      [(append_test, (), {}), (append_to_list, (test_list, 2), {}), (append_test, (), {})])
-    
-    self.operations_executor.remove_operation(
-      append_test, ["main_processing"], nth_match_to_start_removing_from=-1)
-    self.assertEqual(
-      self.operations_executor.get_operations("main_processing"),
-      [(append_to_list, (test_list, 2), {}), (append_test, (), {})])
-  
-  def test_remove_operation_from_nth_to_last_match_greater_than_actual_number_of_matches(self):
-    test_list = []
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    
-    self.operations_executor.remove_operation(
-      append_test, ["main_processing"], nth_match_to_start_removing_from=-4)
-    self.assertEqual(
-      self.operations_executor.get_operations("main_processing"),
-      [(append_to_list, (test_list, 2), {}), (append_test, (), {}), (append_test, (), {})])
-  
-  def test_remove_operation_non_existing_group(self):
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    with self.assertRaises(ValueError):
-      self.operations_executor.remove_operation(append_test, ["additional_processing"])
-  
-  def test_remove_operation_non_existing_operation(self):
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    with self.assertRaises(ValueError):
-      self.operations_executor.remove_operation(append_to_list, ["main_processing"])
-  
-  def test_remove_operation_operation_not_in_group(self):
-    test_list = []
-    self.operations_executor.add_operation(append_test, ["main_processing"])
-    self.operations_executor.add_operation(append_to_list, ["additional_processing"], test_list, 1)
-    with self.assertRaises(ValueError):
-      self.operations_executor.remove_operation(append_to_list, ["main_processing"])
-  
-  def test_remove_operation_by_id(self):
     test_list = []
     operation_ids = []
     
@@ -454,19 +407,21 @@ class TestOperationsExecutor(unittest.TestCase):
     additional_executor = operations.OperationsExecutor()
     operation_ids.append(self.operations_executor.add_executor(additional_executor, ["main_processing"]))
     
-    self.operations_executor.remove_operation_by_id(operation_ids[0], ["main_processing"])
-    self.assertFalse(self.operations_executor.has_operation_with_id(operation_ids[0]))
-    self.assertFalse(self.operations_executor.has_operation(append_to_list, "main_processing"))
+    self.operations_executor.remove_operation(operation_ids[0], ["main_processing"])
+    self.assertFalse(self.operations_executor.has_operation(operation_ids[0]))
+    self.assertFalse(self.operations_executor.has_matching_operation(append_to_list, "main_processing"))
     
-    self.operations_executor.remove_operation_by_id(operation_ids[1], ["main_processing"])
-    self.assertFalse(self.operations_executor.has_operation_with_id(operation_ids[1]))
-    self.assertFalse(self.operations_executor.has_operation(append_to_list_before, "main_processing"))
+    self.operations_executor.remove_operation(operation_ids[1], ["main_processing"])
+    self.assertFalse(self.operations_executor.has_operation(operation_ids[1]))
+    self.assertFalse(self.operations_executor.has_matching_operation(append_to_list_before, "main_processing"))
     
-    self.operations_executor.remove_operation_by_id(operation_ids[2], ["main_processing"])
-    self.assertFalse(self.operations_executor.has_operation_with_id(operation_ids[2]))
-    self.assertFalse(self.operations_executor.has_operation(additional_executor, "main_processing"))
+    self.operations_executor.remove_operation(operation_ids[2], ["main_processing"])
+    self.assertFalse(self.operations_executor.has_operation(operation_ids[2]))
+    self.assertFalse(
+      self.operations_executor.has_matching_operation(
+        additional_executor, "main_processing", operation_type=self.operations_executor.EXECUTOR))
   
-  def test_remove_multiple_operations_by_id(self):
+  def test_remove_multiple_operations(self):
     test_list = []
     operation_ids = []
     
@@ -475,13 +430,13 @@ class TestOperationsExecutor(unittest.TestCase):
     operation_ids.append(
       self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 3))
     
-    self.operations_executor.remove_operation_by_id(operation_ids[0], ["main_processing"])
-    self.assertFalse(self.operations_executor.has_operation_with_id(operation_ids[0]))
-    self.assertTrue(self.operations_executor.has_operation(append_to_list, "main_processing"))
+    self.operations_executor.remove_operation(operation_ids[0], ["main_processing"])
+    self.assertFalse(self.operations_executor.has_operation(operation_ids[0]))
+    self.assertTrue(self.operations_executor.has_matching_operation(append_to_list, "main_processing"))
     
-    self.operations_executor.remove_operation_by_id(operation_ids[1], ["main_processing"])
-    self.assertFalse(self.operations_executor.has_operation_with_id(operation_ids[1]))
-    self.assertFalse(self.operations_executor.has_operation(append_to_list, "main_processing"))
+    self.operations_executor.remove_operation(operation_ids[1], ["main_processing"])
+    self.assertFalse(self.operations_executor.has_operation(operation_ids[1]))
+    self.assertFalse(self.operations_executor.has_matching_operation(append_to_list, "main_processing"))
     
     operation_ids.append(
       self.operations_executor.add_foreach_operation(
@@ -490,52 +445,60 @@ class TestOperationsExecutor(unittest.TestCase):
       self.operations_executor.add_foreach_operation(
         append_to_list_before, ["main_processing"], test_list, 5))
     
-    self.operations_executor.remove_operation_by_id(operation_ids[2], ["main_processing"])
-    self.assertFalse(self.operations_executor.has_operation_with_id(operation_ids[2]))
-    self.assertTrue(self.operations_executor.has_foreach_operation(append_to_list_before, "main_processing"))
+    self.operations_executor.remove_operation(operation_ids[2], ["main_processing"])
+    self.assertFalse(self.operations_executor.has_operation(operation_ids[2]))
+    self.assertTrue(
+      self.operations_executor.has_matching_operation(
+        append_to_list_before, "main_processing", operation_type=self.operations_executor.FOREACH_OPERATION))
     
-    self.operations_executor.remove_operation_by_id(operation_ids[3], ["main_processing"])
-    self.assertFalse(self.operations_executor.has_operation_with_id(operation_ids[3]))
-    self.assertFalse(self.operations_executor.has_foreach_operation(append_to_list_before, "main_processing"))
+    self.operations_executor.remove_operation(operation_ids[3], ["main_processing"])
+    self.assertFalse(self.operations_executor.has_operation(operation_ids[3]))
+    self.assertFalse(
+      self.operations_executor.has_matching_operation(
+        append_to_list_before, "main_processing", operation_type=self.operations_executor.FOREACH_OPERATION))
     
     additional_executor = operations.OperationsExecutor()
     operation_ids.append(self.operations_executor.add_executor(additional_executor, ["main_processing"]))
     operation_ids.append(self.operations_executor.add_executor(additional_executor, ["main_processing"]))
     
-    self.operations_executor.remove_operation_by_id(operation_ids[4], ["main_processing"])
-    self.assertFalse(self.operations_executor.has_operation_with_id(operation_ids[4]))
-    self.assertTrue(self.operations_executor.has_operation(additional_executor, "main_processing"))
+    self.operations_executor.remove_operation(operation_ids[4], ["main_processing"])
+    self.assertFalse(self.operations_executor.has_operation(operation_ids[4]))
+    self.assertTrue(
+      self.operations_executor.has_matching_operation(
+        additional_executor, "main_processing", operation_type=self.operations_executor.EXECUTOR))
     
-    self.operations_executor.remove_operation_by_id(operation_ids[5], ["main_processing"])
-    self.assertFalse(self.operations_executor.has_operation_with_id(operation_ids[5]))
-    self.assertFalse(self.operations_executor.has_operation(additional_executor, "main_processing"))
+    self.operations_executor.remove_operation(operation_ids[5], ["main_processing"])
+    self.assertFalse(self.operations_executor.has_operation(operation_ids[5]))
+    self.assertFalse(
+      self.operations_executor.has_matching_operation(
+        additional_executor, "main_processing", operation_type=self.operations_executor.EXECUTOR))
   
-  def test_remove_operation_by_id_in_one_group_keep_in_others(self):
+  def test_remove_operation_in_one_group_keep_in_others(self):
     operation_id = self.operations_executor.add_operation(
       append_test, ["main_processing", "additional_processing"])
     
-    self.operations_executor.remove_operation_by_id(operation_id, ["main_processing"])
-    self.assertFalse(self.operations_executor.has_operation_with_id(operation_id, "main_processing"))
-    self.assertTrue(self.operations_executor.has_operation_with_id(operation_id, "additional_processing"))
+    self.operations_executor.remove_operation(operation_id, ["main_processing"])
+    self.assertFalse(self.operations_executor.has_operation(operation_id, "main_processing"))
+    self.assertTrue(self.operations_executor.has_operation(operation_id, "additional_processing"))
   
-  def test_remove_operation_by_id_invalid_id(self):
+  def test_remove_operation_invalid_id(self):
     with self.assertRaises(ValueError):
-      self.operations_executor.remove_operation_by_id(-1)
+      self.operations_executor.remove_operation(-1)
   
-  def test_remove_operation_by_id_non_existing_group(self):
+  def test_remove_operation_non_existing_group(self):
     operation_id = self.operations_executor.add_operation(append_test, ["main_processing"])
     with self.assertRaises(ValueError):
-      self.operations_executor.remove_operation_by_id(operation_id, ["additional_processing"])
+      self.operations_executor.remove_operation(operation_id, ["additional_processing"])
   
-  def test_remove_operation_by_id_multiple_groups_at_once(self):
+  def test_remove_operation_multiple_groups_at_once(self):
     test_list = []
     operation_id = self.operations_executor.add_operation(
       append_to_list, ["main_processing", "additional_processing"], test_list, 2)
     
-    self.operations_executor.remove_operation_by_id(operation_id)
-    self.assertFalse(self.operations_executor.has_operation_with_id(operation_id))
-    self.assertFalse(self.operations_executor.has_operation(append_to_list, "main_processing"))
-    self.assertFalse(self.operations_executor.has_operation(append_to_list, "additional_processing"))
+    self.operations_executor.remove_operation(operation_id)
+    self.assertFalse(self.operations_executor.has_operation(operation_id))
+    self.assertFalse(self.operations_executor.has_matching_operation(append_to_list, "main_processing"))
+    self.assertFalse(self.operations_executor.has_matching_operation(append_to_list, "additional_processing"))
   
   def test_remove_groups(self):
     test_list = []
