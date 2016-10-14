@@ -473,6 +473,16 @@ class TestOperationsExecutor(unittest.TestCase):
       self.operations_executor.has_matching_operation(
         additional_executor, "main_processing", operation_type=self.operations_executor.EXECUTOR))
   
+  def test_remove_operation_from_all_groups_operation_only_in_one_group(self):
+    test_list = []
+    
+    operation_id = self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
+    self.operations_executor.add_operation(append_to_list, ["additional_processing"], test_list, 3)
+    
+    self.operations_executor.remove_operation(operation_id)
+    self.assertFalse(self.operations_executor.has_operation(operation_id, "main_processing"))
+    self.assertFalse(self.operations_executor.has_operation(operation_id, "additional_processing"))
+  
   def test_remove_operation_in_one_group_keep_in_others(self):
     operation_id = self.operations_executor.add_operation(
       append_test, ["main_processing", "additional_processing"])

@@ -415,6 +415,8 @@ class OperationsExecutor(object):
       
       if operation_group in self._operation_items[operation_id].operation_groups:
         self._remove_operation(operation_id, operation_group, operations_list, operations_functions)
+        if operation_id not in self._operation_items:
+          break
   
   def remove_groups(self, operation_groups=None):
     """
