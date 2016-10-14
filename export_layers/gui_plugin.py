@@ -614,13 +614,15 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._box_more_operations = gui_operations.OperationsBox(
       label_add_text=_("Add _Operations..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
-      settings=list(self._settings['main/more_operations'].iterate_all()),
+      settings=self._settings['main/more_operations'],
       displayed_settings_names=self._settings['gui/displayed_builtin_operations'].value,
-      on_add_operation_func=exportlayers.add_operation)
+      on_add_operation_func=exportlayers.add_operation,
+      on_reorder_operation_func=exportlayers.reorder_operation,
+      on_remove_operation_func=exportlayers.remove_operation)
     
     self._box_more_filters = gui_operations.OperationsBox(
       label_add_text=_("Add _Filters..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
-      settings=list(self._settings['main/more_filters'].iterate_all()),
+      settings=self._settings['main/more_filters'],
       displayed_settings_names=self._settings['gui/displayed_builtin_filters'].value)
     
     self._hbox_more_settings = gtk.HBox(homogeneous=True)

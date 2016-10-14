@@ -184,6 +184,12 @@ def insert_foreground_layer(tag, image, layer, layer_exporter):
 #===============================================================================
 
 
+_BUILTIN_OPERATIONS_DEFAULT_GROUP = "process_layer"
+
+_operations_executor = operations.OperationsExecutor()
+
+_operations_executor.add_foreach_operation(set_active_layer_after_operation, [_BUILTIN_OPERATIONS_DEFAULT_GROUP])
+
 _builtin_operations_and_settings = {
   'ignore_layer_modes': [ignore_layer_modes],
   'autocrop': [autocrop_layer],
@@ -191,25 +197,33 @@ _builtin_operations_and_settings = {
   'insert_background_layers': [insert_background_layer, ["background"]],
   'insert_foreground_layers': [insert_foreground_layer, ["foreground"]],
   'autocrop_to_background': [autocrop_to_tagged_layer, ["background"]],
-  'autocrop_to_foreground': [autocrop_to_tagged_layer, ["foreground"]],
+  'autocrop_to_foreground': [autocrop_to_tagged_layer, ["foreground"]]
 }
 
-_operations_executor = operations.OperationsExecutor()
-
-_operations_executor.add_foreach_operation(set_active_layer_after_operation, ["process_layer"])
+_operation_settings_and_ids = {}
 
 
-def add_operation(setting):
-  if setting.name in _builtin_operations_and_settings:
-    operation_items = _builtin_operations_and_settings[setting.name]
-    operation = operation_items[0]
-    operation_args = operation_items[1] if len(operation_items) > 1 else ()
-    operation_kwargs = operation_items[2] if len(operation_items) > 2 else {}
+def add_operation(base_setting, operation_group=_BUILTIN_OPERATIONS_DEFAULT_GROUP):
+  if base_setting.name in _builtin_operations_and_settings:
+    operation_item = _builtin_operations_and_settings[base_setting.name]
+    operation = operation_item[0]
+    operation_args = operation_item[1] if len(operation_item) > 1 else ()
+    operation_kwargs = operation_item[2] if len(operation_item) > 2 else {}
     
-    _operations_executor.add_operation(
-      execute_operation_only_if_setting(operation, setting),
-      ["process_layer"],
+    _operation_settings_and_ids[base_setting.name] = _operations_executor.add_operation(
+      execute_operation_only_if_setting(operation, base_setting),
+      [operation_group],
       *operation_args, **operation_kwargs)
+
+
+def reorder_operation(setting, new_position, operation_group=_BUILTIN_OPERATIONS_DEFAULT_GROUP):
+  if setting.name in _operation_settings_and_ids:
+    _operations_executor.reorder_operation(_operation_settings_and_ids[setting.name], operation_group, new_position)
+
+
+def remove_operation(setting, operation_group=_BUILTIN_OPERATIONS_DEFAULT_GROUP):
+  if setting.name in _operation_settings_and_ids:
+    _operations_executor.remove_operation(_operation_settings_and_ids[setting.name])
 
 
 #===============================================================================

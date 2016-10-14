@@ -29,8 +29,6 @@ from __future__ import unicode_literals
 
 str = unicode
 
-import collections
-
 import pygtk
 pygtk.require("2.0")
 import gtk
@@ -54,17 +52,17 @@ class OperationsBox(object):
   _BUTTON_HBOX_SPACING = 6
   
   def __init__(self, label_add_text=None, spacing=0, settings=None, displayed_settings_names=None,
-               on_add_operation_func=None, on_remove_operation_func=None, on_move_operation_func=None):
+               on_add_operation_func=None, on_reorder_operation_func=None, on_remove_operation_func=None):
     self.label_add_text = label_add_text
     self._operations_spacing = spacing
-    self._settings = collections.OrderedDict([(setting.name, setting) for setting in settings])
+    self._settings = settings
     self._displayed_settings_names = displayed_settings_names if displayed_settings_names is not None else []
     self._on_add_operation_func = (
       on_add_operation_func if on_add_operation_func is not None else lambda *args: None)
+    self._on_reorder_operation_func = (
+      on_reorder_operation_func if on_reorder_operation_func is not None else lambda *args: None)
     self._on_remove_operation_func = (
       on_remove_operation_func if on_remove_operation_func is not None else lambda *args: None)
-    self._on_move_operation_func = (
-      on_move_operation_func if on_move_operation_func is not None else lambda *args: None)
     
     self._init_gui()
   
@@ -131,7 +129,7 @@ class OperationsBox(object):
     
     self._operations_menu = gtk.Menu()
     
-    for setting in self._settings.values():
+    for setting in self._settings:
       menu_item = gtk.MenuItem(
         label=setting.display_name.encode(constants.GTK_CHARACTER_ENCODING), use_underline=False)
       menu_item.connect("activate", self._on_operations_menu_item_activate)
@@ -147,7 +145,7 @@ class OperationsBox(object):
     
     self._last_item_widget_dest_drag = None
     
-    for setting in self._settings.values():
+    for setting in self._settings:
       setting.gui.element.connect("drag-data-get", self._on_item_widget_drag_data_get, setting)
       setting.gui.element.drag_source_set(gtk.gdk.BUTTON1_MASK, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
       
@@ -182,7 +180,7 @@ class OperationsBox(object):
     
     new_position = self._displayed_settings.index(setting)
     
-    self._move_operation_item(dragged_operation_item, new_position)
+    self._reorder_operation_item(dragged_operation_item, new_position)
   
   def _on_item_widget_drag_begin(self, item_widget, drag_context):
     drag_icon_pixbuf = self._get_drag_icon_pixbuf(item_widget)
@@ -209,9 +207,9 @@ class OperationsBox(object):
     if event.state & gtk.gdk.MOD1_MASK:     # Alt key
       key_name = gtk.gdk.keyval_name(event.keyval)
       if key_name in ["Up", "KP_Up"]:
-        self._move_operation_item(operation_item, self._get_operation_item_position(operation_item) - 1)
+        self._reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) - 1)
       elif key_name in ["Down", "KP_Down"]:
-        self._move_operation_item(operation_item, self._get_operation_item_position(operation_item) + 1)
+        self._reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) + 1)
   
   def _get_drag_icon_pixbuf(self, widget):
     if widget.get_window() is None:
@@ -278,20 +276,20 @@ class OperationsBox(object):
     
     self._on_remove_operation_func(setting)
   
-  def _move_operation_item(self, operation_item, position):
-    position = min(max(position, 0), len(self._displayed_operation_items) - 1)
+  def _reorder_operation_item(self, operation_item, position):
+    new_position = min(max(position, 0), len(self._displayed_operation_items) - 1)
     
-    operation_item_position = self._get_operation_item_position(operation_item)
+    previous_position = self._get_operation_item_position(operation_item)
     
-    self._displayed_operation_items.pop(operation_item_position)
-    self._displayed_operation_items.insert(position, operation_item)
+    self._displayed_operation_items.pop(previous_position)
+    self._displayed_operation_items.insert(new_position, operation_item)
     
-    setting = self._displayed_settings.pop(operation_item_position)
-    self._displayed_settings.insert(position, setting)
+    setting = self._displayed_settings.pop(previous_position)
+    self._displayed_settings.insert(new_position, setting)
     
-    self._vbox.reorder_child(operation_item.widget, position)
+    self._vbox.reorder_child(operation_item.widget, new_position)
     
-    self._on_move_operation_func(setting)
+    self._on_reorder_operation_func(setting, new_position)
   
   def _get_operation_item_position(self, operation_item):
     return self._displayed_operation_items.index(operation_item)
