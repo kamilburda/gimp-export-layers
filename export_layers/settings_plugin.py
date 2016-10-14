@@ -181,12 +181,6 @@ def create_settings():
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'create_folders_for_empty_groups',
-      'default_value': False,
-      'display_name': _("Create folders for empty layer groups")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
       'name': 'ignore_layer_modes',
       'default_value': False,
       'display_name': _("Ignore layer modes")
@@ -220,6 +214,12 @@ def create_settings():
   more_filters_settings = pgsettinggroup.SettingGroup('more_filters', [
     {
       'type': pgsetting.SettingTypes.boolean,
+      'name': 'include_empty_layer_groups',
+      'default_value': False,
+      'display_name': _("Include empty layer groups")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'only_layers_matching_file_extension',
       'default_value': False,
       'display_name': _("Only layers matching file extension")
@@ -248,14 +248,13 @@ def create_settings():
   
   #-----------------------------------------------------------------------------
   
-  def on_layer_groups_as_folders_changed(layer_groups_as_folders, create_folders_for_empty_groups,
-                                         merge_layer_groups):
+  def on_layer_groups_as_folders_changed(layer_groups_as_folders, include_empty_layer_groups, merge_layer_groups):
     if not layer_groups_as_folders.value:
-      create_folders_for_empty_groups.set_value(False)
-      create_folders_for_empty_groups.gui.set_enabled(False)
+      include_empty_layer_groups.set_value(False)
+      include_empty_layer_groups.gui.set_enabled(False)
       merge_layer_groups.gui.set_enabled(True)
     else:
-      create_folders_for_empty_groups.gui.set_enabled(True)
+      include_empty_layer_groups.gui.set_enabled(True)
       merge_layer_groups.gui.set_enabled(False)
       merge_layer_groups.set_value(False)
   
@@ -276,7 +275,7 @@ def create_settings():
   #-----------------------------------------------------------------------------
   
   main_settings['layer_groups_as_folders'].connect_event('value-changed',
-    on_layer_groups_as_folders_changed, main_settings['more_operations/create_folders_for_empty_groups'],
+    on_layer_groups_as_folders_changed, main_settings['more_filters/include_empty_layer_groups'],
     main_settings['more_operations/merge_layer_groups'])
   
   main_settings['more_operations/use_file_extensions_in_layer_names'].connect_event('value-changed',

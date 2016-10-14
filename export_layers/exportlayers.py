@@ -188,13 +188,19 @@ class LayerOperations(object):
 #===============================================================================
 
 
-def _add_filter_rule(rule_func):
+def _add_filter_rule(rule_func, subfilter=None):
   def _add_rule_func(*args):
     # HACK: This assumes that `LayerExporter` instance is added as an argument when
     # executing the default group for filters.
     layer_exporter = args[-1]
     rule_func_args = args[1:]
-    layer_exporter.layer_tree.filter.add_rule(rule_func, *rule_func_args)
+    
+    if subfilter is None:
+      object_filter = layer_exporter.layer_tree.filter
+    else:
+      object_filter = layer_exporter.layer_tree.filter[subfilter]
+    
+    object_filter.add_rule(rule_func, *rule_func_args)
   
   return _add_rule_func
 
@@ -277,6 +283,7 @@ _builtin_operations_and_settings = {
 }
 
 _builtin_filters_and_settings = {
+  'include_empty_layer_groups': [_add_filter_rule(LayerFilterRules.is_empty_group, subfilter="layer_types")],
   'only_layers_matching_file_extension': [
     _add_filter_rule_with_layer_exporter(LayerFilterRules.has_matching_default_file_extension)],
   'only_non_tagged_layers': [_add_filter_rule(LayerFilterRules.has_no_tags)],
@@ -751,9 +758,6 @@ class LayerExporter(object):
     
     if self.export_settings['only_visible_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.is_path_visible)
-    
-    if self.export_settings['more_operations/create_folders_for_empty_groups'].value:
-      self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_empty_group)
     
     if self.export_settings['more_filters/only_selected_layers'].value:
       self._layer_tree.filter.add_rule(
