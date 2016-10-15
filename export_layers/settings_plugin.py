@@ -157,12 +157,6 @@ def create_settings():
   more_operations_settings = pgsettinggroup.SettingGroup('more_operations', [
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'merge_layer_groups',
-      'default_value': False,
-      'display_name': _("Merge layer groups")
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
       'name': 'insert_background_layers',
       'default_value': False,
       'display_name': _("Insert background layers")
@@ -214,15 +208,15 @@ def create_settings():
   more_filters_settings = pgsettinggroup.SettingGroup('more_filters', [
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'include_empty_layer_groups',
+      'name': 'include_layer_groups',
       'default_value': False,
-      'display_name': _("Include empty layer groups")
+      'display_name': _("Include layer groups")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
-      'name': 'only_layers_matching_file_extension',
+      'name': 'include_empty_layer_groups',
       'default_value': False,
-      'display_name': _("Only layers matching file extension")
+      'display_name': _("Include empty layer groups")
     },
     {
       'type': pgsetting.SettingTypes.boolean,
@@ -238,6 +232,18 @@ def create_settings():
     },
     {
       'type': pgsetting.SettingTypes.boolean,
+      'name': 'only_layers_matching_file_extension',
+      'default_value': False,
+      'display_name': _("Only layers matching file extension")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'only_toplevel_layers',
+      'default_value': False,
+      'display_name': _("Only top-level layers")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'only_selected_layers',
       'default_value': False,
       'display_name': _("Only layers selected in preview")
@@ -248,16 +254,6 @@ def create_settings():
   
   #-----------------------------------------------------------------------------
   
-  def on_layer_groups_as_folders_changed(layer_groups_as_folders, include_empty_layer_groups, merge_layer_groups):
-    if not layer_groups_as_folders.value:
-      include_empty_layer_groups.set_value(False)
-      include_empty_layer_groups.gui.set_enabled(False)
-      merge_layer_groups.gui.set_enabled(True)
-    else:
-      include_empty_layer_groups.gui.set_enabled(True)
-      merge_layer_groups.gui.set_enabled(False)
-      merge_layer_groups.set_value(False)
-  
   def on_use_file_extensions_in_layer_names_changed(use_file_extensions_in_layer_names, file_extension):
     if not use_file_extensions_in_layer_names.value:
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
@@ -265,24 +261,8 @@ def create_settings():
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = _(
         "You need to specify default file extension for layers with invalid or no extension.")
   
-  def on_merge_layer_groups_changed(merge_layer_groups, layer_groups_as_folders):
-    if merge_layer_groups.value:
-      layer_groups_as_folders.set_value(False)
-      layer_groups_as_folders.gui.set_enabled(False)
-    else:
-      layer_groups_as_folders.gui.set_enabled(True)
-  
-  #-----------------------------------------------------------------------------
-  
-  main_settings['layer_groups_as_folders'].connect_event('value-changed',
-    on_layer_groups_as_folders_changed, main_settings['more_filters/include_empty_layer_groups'],
-    main_settings['more_operations/merge_layer_groups'])
-  
   main_settings['more_operations/use_file_extensions_in_layer_names'].connect_event('value-changed',
     on_use_file_extensions_in_layer_names_changed, main_settings['file_extension'])
-  
-  main_settings['more_operations/merge_layer_groups'].connect_event('value-changed',
-    on_merge_layer_groups_changed, main_settings['layer_groups_as_folders'])
   
   #-----------------------------------------------------------------------------
   

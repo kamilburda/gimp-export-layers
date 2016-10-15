@@ -264,13 +264,14 @@ class LayerFilterRules(object):
 #===============================================================================
 
 
-_BUILTIN_OPERATIONS_DEFAULT_GROUP = "process_layer"
-_BUILTIN_FILTERS_DEFAULT_GROUP = "set_filters"
+_BUILTIN_OPERATIONS_GROUP = "process_layer"
+_BUILTIN_FILTERS_GROUP = "set_filters"
+_BUILTIN_FILTERS_LAYER_TYPES_GROUP = "set_filters_layer_types"
 
 _operations_executor = operations.OperationsExecutor()
 
 _operations_executor.add_foreach_operation(
-  LayerOperations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_DEFAULT_GROUP])
+  LayerOperations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
 
 _builtin_operations_and_settings = {
   'ignore_layer_modes': [LayerOperations.ignore_layer_modes],
@@ -283,11 +284,16 @@ _builtin_operations_and_settings = {
 }
 
 _builtin_filters_and_settings = {
-  'include_empty_layer_groups': [_add_filter_rule(LayerFilterRules.is_empty_group, subfilter="layer_types")],
-  'only_layers_matching_file_extension': [
-    _add_filter_rule_with_layer_exporter(LayerFilterRules.has_matching_default_file_extension)],
   'only_non_tagged_layers': [_add_filter_rule(LayerFilterRules.has_no_tags)],
   'only_tagged_layers': [_add_filter_rule(LayerFilterRules.has_tags)],
+  'only_layers_matching_file_extension': [
+    _add_filter_rule_with_layer_exporter(LayerFilterRules.has_matching_default_file_extension)],
+  'only_toplevel_layers': [_add_filter_rule(LayerFilterRules.is_top_level)]
+}
+
+_builtin_include_filters_and_settings = {
+  'include_layer_groups': [_add_filter_rule(LayerFilterRules.is_nonempty_group, subfilter="layer_types")],
+  'include_empty_layer_groups': [_add_filter_rule(LayerFilterRules.is_empty_group, subfilter="layer_types")]
 }
 
 # key: setting name; value: (operation ID, operation group) tuple
@@ -296,13 +302,17 @@ _operation_settings_and_items = {}
 
 def add_operation(base_setting):
   if (base_setting.name in _builtin_operations_and_settings
-      or base_setting.name in _builtin_filters_and_settings):
+      or base_setting.name in _builtin_filters_and_settings
+      or base_setting.name in _builtin_include_filters_and_settings):
     if base_setting.name in _builtin_operations_and_settings:
       operation_item = _builtin_operations_and_settings[base_setting.name]
-      operation_group = _BUILTIN_OPERATIONS_DEFAULT_GROUP
+      operation_group = _BUILTIN_OPERATIONS_GROUP
     elif base_setting.name in _builtin_filters_and_settings:
       operation_item = _builtin_filters_and_settings[base_setting.name]
-      operation_group = _BUILTIN_FILTERS_DEFAULT_GROUP
+      operation_group = _BUILTIN_FILTERS_GROUP
+    elif base_setting.name in _builtin_include_filters_and_settings:
+      operation_item = _builtin_include_filters_and_settings[base_setting.name]
+      operation_group = _BUILTIN_FILTERS_LAYER_TYPES_GROUP
     
     operation = operation_item[0]
     operation_args = operation_item[1] if len(operation_item) > 1 else ()
@@ -436,6 +446,7 @@ class LayerExporter(object):
     self.should_stop = False
     
     self._exported_layers = []
+    self._exported_layers_ids = set()
     self._current_layer_elem = None
     self._default_file_extension = None
     
@@ -541,6 +552,14 @@ class LayerExporter(object):
     else:
       return None
   
+  def has_exported_layer(self, layer):
+    """
+    Return True if the specified `gimp.Layer` was exported in the last export,
+    False otherwise.
+    """
+    
+    return layer.ID in self._exported_layers_ids
+  
   @contextlib.contextmanager
   def modify_export_settings(self, export_settings_to_modify, settings_events_to_temporarily_disable=None):
     """
@@ -579,9 +598,10 @@ class LayerExporter(object):
           self.export_settings[setting_name].set_event_enabled(event_id, True)
   
   def _add_operations_initial(self):
-    self._operations_executor.add_operation(LayerOperations.set_active_layer, [_BUILTIN_OPERATIONS_DEFAULT_GROUP])
-    self._operations_executor.add_executor(_operations_executor, [_BUILTIN_OPERATIONS_DEFAULT_GROUP])
-    self._operations_executor.add_executor(_operations_executor, [_BUILTIN_FILTERS_DEFAULT_GROUP])
+    self._operations_executor.add_operation(LayerOperations.set_active_layer, [_BUILTIN_OPERATIONS_GROUP])
+    self._operations_executor.add_executor(
+      _operations_executor,
+      [_BUILTIN_OPERATIONS_GROUP, _BUILTIN_FILTERS_GROUP, _BUILTIN_FILTERS_LAYER_TYPES_GROUP])
   
   def _init_attributes(self, processing_groups, layer_tree, keep_exported_layers):
     self._enable_disable_processing_groups(processing_groups)
@@ -597,6 +617,7 @@ class LayerExporter(object):
     self.should_stop = False
     
     self._exported_layers = []
+    self._exported_layers_ids = set()
     
     self._current_layer_elem = None
     self._current_file_extension = None
@@ -745,16 +766,12 @@ class LayerExporter(object):
     
     self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_layer)
     
-    with (self._layer_tree.filter['layer_types'].add_rule_temp(LayerFilterRules.is_nonempty_group)
-          if self.export_settings['layer_groups_as_folders'].value else pgutils.empty_context):
-      with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags):
-        for layer_elem in self._layer_tree:
-          for tag in layer_elem.tags:
-            self._tagged_layer_elems[tag].append(layer_elem)
+    self._operations_executor.execute([_BUILTIN_FILTERS_LAYER_TYPES_GROUP], self)
     
-    if self.export_settings['more_operations/merge_layer_groups'].value:
-      self._layer_tree.filter.add_rule(LayerFilterRules.is_top_level)
-      self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
+    with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags):
+      for layer_elem in self._layer_tree:
+        for tag in layer_elem.tags:
+          self._tagged_layer_elems[tag].append(layer_elem)
     
     if self.export_settings['only_visible_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.is_path_visible)
@@ -765,7 +782,7 @@ class LayerExporter(object):
       if self.export_settings['layer_groups_as_folders'].value:
         self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
     
-    self._operations_executor.execute([_BUILTIN_FILTERS_DEFAULT_GROUP], self)
+    self._operations_executor.execute([_BUILTIN_FILTERS_GROUP], self)
   
   def _export_layers(self):
     for layer_elem in self._layer_tree:
@@ -795,6 +812,7 @@ class LayerExporter(object):
     
     if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
       self._exported_layers.append(layer)
+      self._exported_layers_ids.add(layer.ID)
       self._file_extension_properties[self._file_extension_to_assign].processed_count += 1
   
   def _process_and_export_empty_group(self, layer_elem):
@@ -849,7 +867,7 @@ class LayerExporter(object):
     layer_copy = LayerOperations.copy_and_insert_layer(image, layer, None, 0)
     self._operations_executor.execute(["after_insert_layer"], image, layer_copy, self)
     
-    self._operations_executor.execute([_BUILTIN_OPERATIONS_DEFAULT_GROUP], image, layer_copy, self)
+    self._operations_executor.execute([_BUILTIN_OPERATIONS_GROUP], image, layer_copy, self)
     
     layer_copy = self._merge_and_resize_layer(image, layer_copy)
     
@@ -896,9 +914,8 @@ class LayerExporter(object):
       layer_elem, self._include_item_path, self._get_uniquifier_position(layer_elem.name))
   
   def _postprocess_layer_name(self, layer_elem):
-    if self.export_settings['more_filters/only_selected_layers'].value:
-      if layer_elem.item_type == layer_elem.NONEMPTY_GROUP:
-        self._layer_tree.reset_name(layer_elem)
+    if layer_elem.item_type == layer_elem.NONEMPTY_GROUP:
+      self._layer_tree.reset_name(layer_elem)
   
   def _rename_layer_by_pattern(self, layer_elem):
     if self.export_settings['layer_groups_as_folders'].value:

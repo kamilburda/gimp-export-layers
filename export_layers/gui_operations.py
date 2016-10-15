@@ -116,7 +116,8 @@ class OperationsBox(object):
     self._init_item_widgets_dragging()
     
     for setting_name in self._displayed_settings_names:
-      self._add_operation_item(self._settings[setting_name])
+      if setting_name in self._settings:
+        self._add_operation_item(self._settings[setting_name])
     
     self._button_add.connect("clicked", self._on_button_add_clicked)
   

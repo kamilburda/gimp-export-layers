@@ -127,12 +127,6 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
                   ('main-background', 'main-background_autocrop')],
                  expected_results_dir=os.path.join(self.default_expected_layers_dir, 'use_image_size'))
   
-  def test_merge_layer_groups(self):
-    self.compare({
-                   'more_operations/merge_layer_groups': True
-                 },
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, 'merge_layer_groups'))
-  
   def test_background(self):
     self.compare({
                    'insert_background_layers': True
