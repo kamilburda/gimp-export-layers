@@ -120,7 +120,7 @@ def display_reset_prompt(parent=None, more_settings_shown=False):
   dialog.set_transient_for(parent)
   dialog.set_title(pygimplib.config.PLUGIN_TITLE)
   
-  dialog.set_markup(_("Do you really want to reset settings?"))
+  dialog.set_markup(_("Are you sure you want to reset settings?"))
   
   if more_settings_shown:
     checkbutton_reset_operations = gtk.CheckButton(label=_("Remove operations and filters"), use_underline=False)
@@ -613,7 +613,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._scrolled_window_basic_settings.get_child().set_shadow_type(gtk.SHADOW_NONE)
     
     self._box_more_operations = gui_operations.OperationsBox(
-      label_add_text=_("Add _Operations..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
+      label_add_text=_("Add _Operation..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
       settings=self._settings['main/more_operations'],
       displayed_settings_names=self._settings['gui/displayed_builtin_operations'].value,
       on_add_operation_func=exportlayers.add_operation,
@@ -621,7 +621,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       on_remove_operation_func=exportlayers.remove_operation)
     
     self._box_more_filters = gui_operations.OperationsBox(
-      label_add_text=_("Add _Filters..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
+      label_add_text=_("Add _Filter..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
       settings=self._settings['main/more_filters'],
       displayed_settings_names=self._settings['gui/displayed_builtin_filters'].value,
       on_add_operation_func=exportlayers.add_operation,
