@@ -313,8 +313,8 @@ class ItemTree(object):
         item_elem_parents.append(item_elem)
         child_item_elems = [_ItemTreeElement(item, item_elem_parents, None, self._name) for item in child_items]
         
-        # We break the convention here and access the `_ItemTreeElement._children`
-        # private attribute.
+        # We break the convention here and access private attributes from `_ItemTreeElement`.
+        item_elem._orig_children = child_item_elems
         item_elem._children = child_item_elems
         
         for child_item_elem in reversed(child_item_elems):
@@ -459,8 +459,6 @@ class _ItemTreeElement(object):
   * `parent` (read-only) - Immediate `_ItemTreeElement` parent of this object.
     If this object has no parent, return None.
   
-  * `orig_name` (read-only) - Original `gimp.Item.name` as a `unicode` string.
-  
   * `item_type` (read-only) - Item type - one of the following:
       * `ITEM` - normal item,
       * `NONEMPTY_GROUP` - non-empty item group (contains children),
@@ -469,6 +467,8 @@ class _ItemTreeElement(object):
   * `path_visible` (read-only) - Visibility of all item's parents and this
     item. If all items are visible, `path_visible` is True. If at least one
     of these items is invisible, `path_visible` is False.
+  
+  * `orig_name` (read-only) - Original `gimp.Item.name` as a Unicode string.
   
   * `tags` - Set of arbitrary strings attached to the item. Tags can be used for
     a variety of purposes, such as special handling of items with specific tags.
@@ -492,11 +492,12 @@ class _ItemTreeElement(object):
     
     self.name = item.name.decode()
     
-    self._orig_name = self.name
-    self._depth = len(self._parents)
-    self._parent = self._parents[-1] if self._parents else None
     self._item_type = None
     self._path_visible = None
+    
+    self._orig_name = self.name
+    self._orig_parents = self._parents
+    self._orig_children = self._children
     
     self._tags_source_name = tags_source_name if tags_source_name else "tags"
     self._tags = self._load_tags()
@@ -507,26 +508,27 @@ class _ItemTreeElement(object):
   
   @property
   def parents(self):
-    return iter(self._parents)
+    return self._parents
+  
+  @parents.setter
+  def parents(self, parents):
+    self._parents = parents
   
   @property
   def children(self):
-    if self._children is not None:
-      return iter(self._children)
-    else:
-      return None
+    return self._children
   
-  @property
-  def orig_name(self):
-    return self._orig_name
+  @children.setter
+  def children(self, children):
+    self._children = children
   
   @property
   def depth(self):
-    return self._depth
+    return len(self._parents)
   
   @property
   def parent(self):
-    return self._parent
+    return self._parents[-1] if self._parents else None
   
   @property
   def item_type(self):
@@ -547,6 +549,21 @@ class _ItemTreeElement(object):
       self._path_visible = self._get_path_visibility()
     
     return self._path_visible
+  
+  @property
+  def orig_name(self):
+    return self._orig_name
+  
+  @property
+  def orig_parents(self):
+    return iter(self._orig_parents)
+  
+  @property
+  def orig_children(self):
+    if self._orig_children is not None:
+      return iter(self._orig_children)
+    else:
+      return None
   
   @property
   def tags(self):

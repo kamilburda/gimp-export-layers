@@ -159,7 +159,7 @@ class TestLayerTree(unittest.TestCase):
     image = _parse_layers(layers_string)
     self.layer_tree = pgitemtree.LayerTree(image)
   
-  def test_get_orig_name_get_parents_get_children(self):
+  def test_get_item_tree_element_attributes(self):
     layer_elem_tree = collections.OrderedDict([
       ("Corners", [[], ["top-left-corner", "top-right-corner", "top-left-corner:", "top-left-corner::"]]),
       ("top-left-corner", [["Corners"], None]),
@@ -196,6 +196,10 @@ class TestLayerTree(unittest.TestCase):
         self.assertListEqual([child.orig_name for child in layer_elem.children], children)
       else:
         self.assertIsNone(layer_elem.children)
+      
+      self.assertEqual(layer_elem.parents, list(layer_elem.orig_parents))
+      self.assertEqual(
+        layer_elem.children, list(layer_elem.orig_children) if layer_elem.orig_children is not None else None)
   
   def test_get_len(self):
     layer_count_total = 20
