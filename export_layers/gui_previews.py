@@ -575,14 +575,12 @@ class ExportNamePreview(ExportPreview):
   
   def _update_items(self):
     for layer_elem in self._layer_exporter.layer_tree:
-      if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
-        self._update_parent_item_elems(layer_elem)
+      self._update_parent_item_elems(layer_elem)
       self._update_item_elem(layer_elem)
   
   def _insert_items(self):
     for layer_elem in self._layer_exporter.layer_tree:
-      if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
-        self._insert_parent_item_elems(layer_elem)
+      self._insert_parent_item_elems(layer_elem)
       self._insert_item_elem(layer_elem)
   
   def _insert_item_elem(self, item_elem):
@@ -651,8 +649,7 @@ class ExportNamePreview(ExportPreview):
   def _set_item_elems_sensitive(self, item_elems, sensitive):
     for item_elem in item_elems:
       self._set_item_elem_sensitive(item_elem, sensitive)
-      if self._layer_exporter.export_settings['layer_groups_as_folders'].value:
-        self._set_parent_item_elems_sensitive(item_elem)
+      self._set_parent_item_elems_sensitive(item_elem)
   
   def _get_icon_from_item_elem(self, item_elem):
     if item_elem.item_type == item_elem.ITEM:

@@ -623,7 +623,6 @@ class LayerExporter(object):
     self._current_file_extension = None
     
     self._output_directory = self.export_settings['output_directory'].value
-    self._include_item_path = self.export_settings['layer_groups_as_folders'].value
     
     self._image_copy = None
     self._tagged_layer_elems = collections.defaultdict(list)
@@ -749,6 +748,11 @@ class LayerExporter(object):
     if self._layer_tree.filter:
       self._layer_tree.reset_filter()
     
+    if not self.export_settings['layer_groups_as_folders'].value:
+      self._remove_parents_in_layer_elems()
+    else:
+      self._reset_parents_in_layer_elems()
+    
     self._set_layer_filters()
     
     with self._layer_tree.filter['layer_types'].remove_rule_temp(LayerFilterRules.is_empty_group, False):
@@ -760,6 +764,16 @@ class LayerExporter(object):
       elif self.progress_updater.num_total_tasks < 1:
         self._keep_exported_layers = False
   
+  def _remove_parents_in_layer_elems(self):
+    for layer_elem in self._layer_tree:
+      layer_elem.parents = []
+      layer_elem.children = None if layer_elem.item_type == layer_elem.ITEM else []
+  
+  def _reset_parents_in_layer_elems(self):
+    for layer_elem in self._layer_tree:
+      layer_elem.parents = list(layer_elem.orig_parents)
+      layer_elem.children = list(layer_elem.orig_children) if layer_elem.orig_children is not None else None
+  
   def _set_layer_filters(self):
     self._layer_tree.filter.add_subfilter(
       'layer_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY))
@@ -768,21 +782,23 @@ class LayerExporter(object):
     
     self._operations_executor.execute([_BUILTIN_FILTERS_LAYER_TYPES_GROUP], self)
     
-    with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags):
-      for layer_elem in self._layer_tree:
-        for tag in layer_elem.tags:
-          self._tagged_layer_elems[tag].append(layer_elem)
+    self._init_tagged_layer_elems()
     
     if self.export_settings['only_visible_layers'].value:
       self._layer_tree.filter.add_rule(LayerFilterRules.is_path_visible)
     
     if self.export_settings['more_filters/only_selected_layers'].value:
       self._layer_tree.filter.add_rule(
-        LayerFilterRules.is_layer_in_selected_layers, self.export_settings['selected_layers'].value[self.image.ID])
-      if self.export_settings['layer_groups_as_folders'].value:
-        self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_nonempty_group)
+        LayerFilterRules.is_layer_in_selected_layers,
+        self.export_settings['selected_layers'].value[self.image.ID])
     
     self._operations_executor.execute([_BUILTIN_FILTERS_GROUP], self)
+  
+  def _init_tagged_layer_elems(self):
+    with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags):
+      for layer_elem in self._layer_tree:
+        for tag in layer_elem.tags:
+          self._tagged_layer_elems[tag].append(layer_elem)
   
   def _export_layers(self):
     for layer_elem in self._layer_tree:
@@ -817,7 +833,7 @@ class LayerExporter(object):
   
   def _process_and_export_empty_group(self, layer_elem):
     self._preprocess_empty_group_name(layer_elem)
-    self._make_dirs(layer_elem.get_filepath(self._output_directory, self._include_item_path))
+    self._make_dirs(layer_elem.get_filepath(self._output_directory))
   
   def _setup(self):
     # Save context in case hook functions modify the context without reverting to its original state.
@@ -907,23 +923,22 @@ class LayerExporter(object):
   
   def _preprocess_empty_group_name(self, layer_elem):
     self._layer_tree.validate_name(layer_elem)
-    self._layer_tree.uniquify_name(layer_elem, self._include_item_path)
+    self._layer_tree.uniquify_name(layer_elem)
   
   def _process_layer_name(self, layer_elem):
     self._layer_tree.uniquify_name(
-      layer_elem, self._include_item_path, self._get_uniquifier_position(layer_elem.name))
+      layer_elem, uniquifier_position=self._get_uniquifier_position(layer_elem.name))
   
   def _postprocess_layer_name(self, layer_elem):
     if layer_elem.item_type == layer_elem.NONEMPTY_GROUP:
       self._layer_tree.reset_name(layer_elem)
   
   def _rename_layer_by_pattern(self, layer_elem):
-    if self.export_settings['layer_groups_as_folders'].value:
-      parent = layer_elem.parent.item.ID if layer_elem.parent is not None else None
-      if parent not in self._pattern_number_filename_generators:
-        self._pattern_number_filename_generators[parent] = self._filename_pattern_generator.reset_numbering()
-      else:
-        self._filename_pattern_generator.set_number_generators(self._pattern_number_filename_generators[parent])
+    parent = layer_elem.parent.item.ID if layer_elem.parent is not None else None
+    if parent not in self._pattern_number_filename_generators:
+      self._pattern_number_filename_generators[parent] = self._filename_pattern_generator.reset_numbering()
+    else:
+      self._filename_pattern_generator.set_number_generators(self._pattern_number_filename_generators[parent])
     
     layer_elem.name = self._filename_pattern_generator.generate()
   
@@ -963,7 +978,7 @@ class LayerExporter(object):
       self._export(layer_elem, image, layer)
   
   def _export(self, layer_elem, image, layer):
-    output_filename = layer_elem.get_filepath(self._output_directory, self._include_item_path)
+    output_filename = layer_elem.get_filepath(self._output_directory)
     
     self.progress_updater.update_text(_("Saving '{0}'").format(output_filename))
     
