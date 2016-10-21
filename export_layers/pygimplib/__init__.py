@@ -223,8 +223,7 @@ if _gimp_dependent_modules_imported:
       image_types,
       gimpenums.PLUGIN,
       _get_pdb_params(parameters),
-      _get_pdb_params(return_values)
-    )
+      _get_pdb_params(return_values))
     
     if menu_path:
       gimp.menu_register(plugin_procedure.__name__, menu_path)
@@ -248,7 +247,8 @@ if _gimp_dependent_modules_imported:
   
   def _set_gui_excepthook(procedure, run_mode):
     if run_mode == gimpenums.RUN_INTERACTIVE:
-      return pggui.set_gui_excepthook(config.PLUGIN_TITLE,
-        report_uri_list=config.BUG_REPORT_URI_LIST)(procedure)
+      set_gui_excepthook_func = pggui.set_gui_excepthook(
+        title=config.PLUGIN_TITLE, app_name=config.PLUGIN_TITLE, report_uri_list=config.BUG_REPORT_URI_LIST)
+      return set_gui_excepthook_func(procedure)
     else:
       return procedure

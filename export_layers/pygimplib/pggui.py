@@ -176,64 +176,129 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
 #===============================================================================
 
 
-def display_exception_message(exception_message, plugin_title=None, report_uri_list=None, parent=None):
+class GtkProgressUpdater(progress.ProgressUpdater):
+  
+  def _fill_progress_bar(self):
+    self.progress_bar.set_fraction(self._num_finished_tasks / self.num_total_tasks)
+    self._force_update()
+  
+  def _set_text_progress_bar(self, text):
+    self.progress_bar.set_text(text)
+    self._force_update()
+  
+  def _force_update(self):
+    # This is necessary for the GTK progress bar to be updated properly.
+    # See http://faq.pygtk.org/index.py?req=show&file=faq23.020.htp
+    while gtk.events_pending():
+      gtk.main_iteration()
+
+
+#===============================================================================
+
+
+def display_error_message(title=None, app_name=None, parent=None, message_type=gtk.MESSAGE_ERROR,
+                          flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                          message_markup=None, message_secondary_markup=None,
+                          details=None, display_details_initially=True,
+                          report_uri_list=None, report_description=None,
+                          button_stock_id=gtk.STOCK_CLOSE, button_response_id=gtk.RESPONSE_CLOSE,
+                          focus_on_button=False):
   """
-  Display an error message for exceptions unhandled by the plug-in.
-  
-  The message also displays the exception message in the Details box, which
-  is collapsed by default.
-  
-  Optionally, the dialog can contain links to sites where the users can report
-  this error, copying the exception message to better track the error down.
+  Display a message to alert the user about an error or an exception that
+  occurred in the application.
   
   Parameters:
   
-  * `exception_message` - Exception message to display in the Details box.
+  * `title` - Message title.
   
-  * `plugin_title` - Name of the plug-in (string) used as the message title and
-    in the message contents.
+  * `app_name` - Name of the application to use in the default contents of
+    `message_secondary_markup`.
   
-  * `report_uri_list` - List of (name, URL) tuples where the user can report
+  * `parent` - Parent widget.
+  
+  * `message_type` - GTK message type (gtk.MESSAGE_ERROR, etc.).
+  
+  * `flags` - GTK dialog flags.
+  
+  * `message_markup` - Primary message text to display as markup.
+  
+  * `message_secondary_markup` - Secondary message text to display as markup.
+  
+  * `details` - Text to display in a box with details. If None, do not display
+    any box.
+  
+  * `display_details_initially` - If True, display the details by default,
+    otherwise hide them in an expander.
+  
+  * `report_uri_list` - List of (name, URL) pairs where the user can report
     the error. If no report list is desired, pass None or an empty sequence.
   
-  * `parent` - Parent GUI element.
+  * `report_description` - Text accompanying `report_uri_list`. If None, use
+    default text. To suppress displaying the report description, pass an empty
+    string.
+  
+  * `button_stock_id` - Stock ID of the button to close the dialog with.
+  
+  * `button_response_id` - Response ID of the button to close the dialog with.
+  
+  * `focus_on_button` - If True, focus on the button to close the dialog with.
+    If False, focus on the box with details if `details` is not None, otherwise
+    let the message dialog determine the focus widget.
   """
   
-  dialog = gtk.MessageDialog(
-    parent, type=gtk.MESSAGE_ERROR, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
+  if message_markup is None:
+    message_markup = "<span font_size=\"large\"><b>" + _("Oops. Something went wrong.") + "</b></span>"
+  
+  if message_secondary_markup is None:
+    message_secondary_markup = _(
+      "{0} encountered an unexpected error and has to close. Sorry about that!").format(
+        gobject.markup_escape_text(title))
+  
+  if report_description is None:
+    report_description = _(
+      "You can help fix this error by sending a report with the text "
+      "in the details above to one of the following sites")
+  
+  dialog = gtk.MessageDialog(parent, type=message_type, flags=flags)
   dialog.set_transient_for(parent)
-  if plugin_title is not None:
-    dialog.set_title(plugin_title)
+  if title is not None:
+    dialog.set_title(app_name)
   
-  dialog.set_markup(
-    "<span font_size=\"large\"><b>" + _("Oops. Something went wrong.") + "</b></span>")
-  dialog.format_secondary_markup(
-    _("{0} encountered an unexpected error and has to close. Sorry about that!").format(
-      gobject.markup_escape_text(plugin_title)))
+  dialog.set_markup(message_markup)
+  dialog.format_secondary_markup(message_secondary_markup)
   
-  expander = get_exception_details_expander(exception_message)
-  expander.set_expanded(True)
+  if details is not None:
+    expander = _get_details_expander(details)
+    if display_details_initially:
+      expander.set_expanded(True)
+  else:
+    expander = None
   
   if report_uri_list:
-    vbox_labels_report = get_report_link_buttons(
-      report_uri_list, report_description=_(
-        "You can help fix this error by sending a report with the text "
-        "in the details above to one of the following sites"))
+    vbox_labels_report = _get_report_link_buttons(report_uri_list, report_description=report_description)
     dialog.vbox.pack_end(vbox_labels_report, expand=False, fill=False)
   
-  dialog.vbox.pack_start(expander, expand=False, fill=False)
+  if expander is not None:
+    dialog.vbox.pack_start(expander, expand=False, fill=False)
   
-  dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
+  dialog.add_button(button_stock_id, button_response_id)
   
-  if expander.get_child() is not None:
-    dialog.set_focus(expander.get_child())
+  if focus_on_button:
+    button = dialog.get_widget_for_response(button_response_id)
+    if button is not None:
+      dialog.set_focus(button)
+  else:
+    if expander is not None and expander.get_child() is not None and display_details_initially:
+      dialog.set_focus(expander.get_child())
   
   dialog.show_all()
-  dialog.run()
+  response_id = dialog.run()
   dialog.destroy()
+  
+  return response_id
 
 
-def get_exception_details_expander(exception_message):
+def _get_details_expander(details_text):
   expander = gtk.Expander()
   expander.set_use_markup(True)
   expander.set_label("<b>" + _("Details") + "</b>")
@@ -252,7 +317,7 @@ def get_exception_details_expander(exception_message):
   exception_text_view.set_pixels_inside_wrap(0)
   exception_text_view.set_left_margin(5)
   exception_text_view.set_right_margin(5)
-  exception_text_view.get_buffer().set_text(exception_message)
+  exception_text_view.get_buffer().set_text(details_text)
   
   scrolled_window.add(exception_text_view)
   expander.add(scrolled_window)
@@ -260,13 +325,13 @@ def get_exception_details_expander(exception_message):
   return expander
 
 
-def get_report_link_buttons(report_uri_list, report_description=None):
+def _get_report_link_buttons(report_uri_list, report_description=None):
   if not report_uri_list:
     return None
   
   vbox_link_buttons = gtk.VBox(homogeneous=False)
   
-  if report_description is not None:
+  if report_description:
     label_report_text = report_description
     if not _webbrowser_module_found:
       label_report_text += " " + _("(right-click to copy link)")
@@ -372,7 +437,7 @@ def display_message(message, message_type, title=None, parent=None, buttons=gtk.
 _gui_excepthook_parent = None
 
 
-def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
+def set_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
   """
   Modify `sys.excepthook` to display an error dialog for unhandled exceptions.
   
@@ -381,8 +446,7 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
   
   Parameters:
   
-  * `plugin_title` - Name of the plug-in (string) used as the dialog title and
-    in the dialog contents.
+  * `title` - Dialog title.
   
   * `report_uri_list` - List of (name, URL) tuples where the user can report
     the error. If no report list is desired, pass None or an empty sequence.
@@ -394,26 +458,26 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
   
   _gui_excepthook_parent = parent
   
-  def real_decorator(func):
+  def gui_excepthook(func):
     
     @functools.wraps(func)
     def func_wrapper(self, *args, **kwargs):
       
-      def gui_excepthook(exc_type, exc_value, exc_traceback):
+      def _gui_excepthook(exc_type, exc_value, exc_traceback):
         orig_sys_excepthook(exc_type, exc_value, exc_traceback)
         
         if issubclass(exc_type, Exception):
           exception_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-          display_exception_message(
-            exception_message, plugin_title=plugin_title, report_uri_list=report_uri_list,
-            parent=_gui_excepthook_parent)
+          display_error_message(
+            title=title, app_name=app_name, parent=_gui_excepthook_parent, details=exception_message,
+            report_uri_list=report_uri_list)
           # Make sure to quit the application since unhandled exceptions can
           # mess up the application state.
           if gtk.main_level() > 0:
             gtk.main_quit()
       
       orig_sys_excepthook = sys.excepthook
-      sys.excepthook = gui_excepthook
+      sys.excepthook = _gui_excepthook
       
       func(self, *args, **kwargs)
       
@@ -421,7 +485,7 @@ def set_gui_excepthook(plugin_title, report_uri_list=None, parent=None):
   
     return func_wrapper
   
-  return real_decorator
+  return gui_excepthook
 
 
 def set_gui_excepthook_parent(parent):
@@ -439,18 +503,14 @@ def set_gui_excepthook_parent(parent):
 #===============================================================================
 
 
-class GtkProgressUpdater(progress.ProgressUpdater):
+def get_toplevel_window(widget):
+  """
+  Return the toplevel window (`gtk.Window`) for the specified widget
+  (`gtk.Widget`). If the widget has no toplevel window, return None.
+  """
   
-  def _fill_progress_bar(self):
-    self.progress_bar.set_fraction(self._num_finished_tasks / self.num_total_tasks)
-    self._force_update()
-  
-  def _set_text_progress_bar(self, text):
-    self.progress_bar.set_text(text)
-    self._force_update()
-  
-  def _force_update(self):
-    # This is necessary for the GTK progress bar to be updated properly.
-    # See http://faq.pygtk.org/index.py?req=show&file=faq23.020.htp
-    while gtk.events_pending():
-      gtk.main_iteration()
+  toplevel_widget = widget.get_toplevel()
+  if toplevel_widget.flags() & gtk.TOPLEVEL:
+    return toplevel_widget
+  else:
+    return None
