@@ -84,33 +84,17 @@ def display_export_failure_message(exception, parent=None):
 
 
 def display_export_failure_invalid_image_message(details, parent=None):
-  dialog = gtk.MessageDialog(
-    parent=parent, type=gtk.MESSAGE_WARNING, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
-  dialog.set_transient_for(parent)
-  dialog.set_title(pygimplib.config.PLUGIN_TITLE)
-  
-  dialog.set_markup(
-    _("Sorry, but the export was unsuccessful. "
-      "Do not close the image when exporting, keep it open until the export finishes successfully."))
-  
-  dialog.format_secondary_markup(
-    _("If you believe this is a different error, you can help fix it by sending a report with the text "
-      "in the details to one of the sites below."))
-  
-  expander = pggui.get_exception_details_expander(details)
-  dialog.vbox.pack_start(expander, expand=False, fill=False)
-  
-  if pygimplib.config.BUG_REPORT_URI_LIST:
-    vbox_labels_report = pggui.get_report_link_buttons(pygimplib.config.BUG_REPORT_URI_LIST)
-    dialog.vbox.pack_start(vbox_labels_report, expand=False, fill=False)
-  
-  close_button = dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
-  
-  dialog.set_focus(close_button)
-  
-  dialog.show_all()
-  dialog.run()
-  dialog.destroy()
+  pggui.display_error_message(
+    title=pygimplib.config.PLUGIN_TITLE, app_name=pygimplib.config.PLUGIN_TITLE, parent=parent,
+    message_type=gtk.MESSAGE_WARNING,
+    message_markup=_(
+      "Sorry, but the export was unsuccessful. "
+      "Do not close the image when exporting, keep it open until the export finishes successfully."),
+    message_secondary_markup=_(
+      "If you believe this is a different error, you can help fix it by sending a report with the text "
+      "in the details to one of the sites below."),
+    details=details, display_details_initially=False,
+    report_uri_list=pygimplib.config.BUG_REPORT_URI_LIST, report_description="", focus_on_button=True)
 
 
 def display_reset_prompt(parent=None, more_settings_shown=False):
