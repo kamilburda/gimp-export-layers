@@ -872,7 +872,8 @@ class LayerExporter(object):
     pdb.gimp_context_pop()
   
   def _copy_non_modifying_parasites(self, src_image, dest_image):
-    for parasite_name in src_image.parasite_list():
+    _unused, parasite_names = pdb.gimp_image_get_parasite_list(src_image)
+    for parasite_name in parasite_names:
       if dest_image.parasite_find(parasite_name) is None:
         parasite = src_image.parasite_find(parasite_name)
         # Don't attach persistent or undoable parasites to avoid modifying `dest_image`.
