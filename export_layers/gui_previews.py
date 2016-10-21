@@ -32,6 +32,7 @@ import array
 import collections
 import contextlib
 import os
+import traceback
 
 import pygtk
 pygtk.require("2.0")
@@ -47,6 +48,7 @@ pdb = gimp.pdb
 import export_layers.pygimplib as pygimplib
 
 from export_layers.pygimplib import constants
+from export_layers.pygimplib import pggui
 
 from export_layers import exportlayers
 
@@ -428,9 +430,9 @@ class ExportNamePreview(ExportPreview):
       if len(layer_ids) >= 1:
         self._tags_menu.popup(None, None, None, event.button, event.time)
         
-        toplevel_widget = self._widget.get_toplevel()
-        if toplevel_widget.flags() & gtk.TOPLEVEL:
-          self._tags_menu_relative_position = toplevel_widget.get_window().get_pointer()
+        toplevel_window = pggui.get_toplevel_window(self._widget)
+        if toplevel_window is not None:
+          self._tags_menu_relative_position = toplevel_window.get_window().get_pointer()
       
       return stop_event_propagation
   
@@ -739,6 +741,19 @@ class ExportNamePreview(ExportPreview):
 #===============================================================================
 
 
+def display_image_preview_failure_message(details, parent=None):
+  pggui.display_error_message(
+    title=pygimplib.config.PLUGIN_TITLE, app_name=pygimplib.config.PLUGIN_TITLE, parent=parent,
+    message_type=gtk.MESSAGE_WARNING,
+    message_markup=_(
+      "There was a problem with updating the image preview."),
+    message_secondary_markup=_(
+      "If you believe this is an error in the plug-in, you can help fix it by sending a report with the text "
+      "in the details to one of the sites below."),
+    details=details, display_details_initially=False,
+    report_uri_list=pygimplib.config.BUG_REPORT_URI_LIST, report_description="", focus_on_button=True)
+
+
 class ExportImagePreview(ExportPreview):
   
   _BOTTOM_WIDGETS_PADDING = 5
@@ -970,6 +985,8 @@ class ExportImagePreview(ExportPreview):
         image_preview = self._layer_exporter.export(
           processing_groups=['layer_contents'], layer_tree=layer_tree, keep_exported_layers=True)
       except Exception:
+        display_image_preview_failure_message(
+          details=traceback.format_exc(), parent=pggui.get_toplevel_window(self._widget))
         image_preview = None
     
     if layer_tree_filter is not None:
