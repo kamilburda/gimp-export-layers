@@ -688,7 +688,7 @@ class LayerExporter(object):
       if keep_extension == "keep extension":
         return image_name
       else:
-        return pgitemtree.set_file_extension(image_name, "")
+        return pgpath.get_filename_with_new_file_extension(image_name, "")
     
     def _get_layer_path(separator="-"):
       return separator.join(
@@ -949,7 +949,7 @@ class LayerExporter(object):
         self._file_extension_to_assign = self._current_file_extension
       else:
         self._file_extension_to_assign = self._default_file_extension
-      layer_elem.set_file_extension(self._file_extension_to_assign, keep_extra_periods=True)
+      layer_elem.set_file_extension(self._file_extension_to_assign, keep_extra_trailing_periods=True)
     else:
       layer_elem.name += "." + self._file_extension_to_assign
   
