@@ -334,14 +334,62 @@ class TestStringPatternGenerator(unittest.TestCase):
 
 
 class TestGetFileExtension(unittest.TestCase):
-  
+
   def test_get_file_extension(self):
-    self.assertEqual("jpg", pgpath.get_file_extension("picture.jpg"))
-    self.assertEqual("jpg", pgpath.get_file_extension("picture.JPG"))
-    self.assertEqual("jpg", pgpath.get_file_extension("picture.jPg"))
-    self.assertEqual("", pgpath.get_file_extension("picture."))
-    self.assertEqual("", pgpath.get_file_extension("picture"))
-    self.assertEqual("JPG", pgpath.get_file_extension("picture.JPG", to_lowercase=False))
+    self.assertEqual(pgpath.get_file_extension("background.jpg"), "jpg")
+  
+  def test_get_file_extension_return_lowercase(self):
+    self.assertEqual(pgpath.get_file_extension("background.JPG"), "jpg")
+  
+  def test_get_file_extension_string_beginning_with_period(self):
+    self.assertEqual(pgpath.get_file_extension(".jpg"), "jpg")
+  
+  def test_get_file_extension_no_extension(self):
+    self.assertEqual(pgpath.get_file_extension("main-background"), "")
+    self.assertEqual(pgpath.get_file_extension("main-background."), "")
+    self.assertEqual(pgpath.get_file_extension("."), "")
+  
+  def test_get_file_extension_unrecognized_extension(self):
+    self.assertEqual(pgpath.get_file_extension("main-background.aaa"), "aaa")
+    self.assertEqual(pgpath.get_file_extension(".aaa"), "aaa")
+  
+  def test_get_file_extension_multiple_periods(self):
+    self.assertEqual(pgpath.get_file_extension("main-background.xcf.bz2"), "xcf.bz2")
+  
+  def test_get_file_extension_multiple_periods_unrecognized_extension(self):
+    self.assertEqual(pgpath.get_file_extension("main-background.aaa.bbb"), "bbb")
+
+
+class TestGetFilenameWithNewFileExtension(unittest.TestCase):
+  
+  def test_get_filename_with_new_file_extension(self):
+    self.assertEqual(pgpath.get_filename_with_new_file_extension("background.jpg", "png"), "background.png")
+    self.assertEqual(pgpath.get_filename_with_new_file_extension("background.jpg", ".png"), "background.png")
+    self.assertEqual(pgpath.get_filename_with_new_file_extension("background.", "png"), "background.png")
+  
+  def test_get_filename_with_new_file_extension_set_lowercase(self):
+    self.assertEqual(pgpath.get_filename_with_new_file_extension("background.jpg", "PNG"), "background.png")
+  
+  def test_get_filename_with_new_file_extension_no_extension(self):
+    self.assertEqual(pgpath.get_filename_with_new_file_extension("background.jpg", None), "background")
+    self.assertEqual(pgpath.get_filename_with_new_file_extension("background.jpg", "."), "background")
+  
+  def test_get_filename_with_new_file_extension_from_multiple_periods(self):
+    self.assertEqual(pgpath.get_filename_with_new_file_extension("background.xcf.bz2", "png"), "background.png")
+  
+  def test_get_filename_with_new_file_extension_from_single_period_within_multiple_periods(self):
+    self.assertEqual(
+      pgpath.get_filename_with_new_file_extension("background.aaa.jpg", "png"), "background.aaa.png")
+  
+  def test_get_filename_with_new_file_extension_multiple_consecutive_periods(self):
+    self.assertEqual(pgpath.get_filename_with_new_file_extension("background..jpg", "png"), "background..png")
+  
+  def test_get_filename_with_new_file_extension_remove_trailing_periods(self):
+    self.assertEqual(pgpath.get_filename_with_new_file_extension("background.", "png"), "background.png")
+  
+  def test_get_filename_with_new_file_extension_keep_extra_trailing_periods(self):
+    self.assertEqual(pgpath.get_filename_with_new_file_extension("background.", "png", True), "background..png")
+    self.assertEqual(pgpath.get_filename_with_new_file_extension("background..", "png", True), "background...png")
 
 
 #===============================================================================

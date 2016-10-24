@@ -36,6 +36,8 @@ import os
 import re
 import types
 
+from . import pgfileformats
+
 #===============================================================================
 
 
@@ -139,6 +141,72 @@ def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None, uniq
     uniq_str = _get_uniquified_string(uniquifier_generator)
   
   return uniq_str
+
+
+#===============================================================================
+
+
+def get_file_extension(filename):
+  """
+  Get file extension from `filename`, in lowercase.
+  
+  If `filename` has no file extension, return an empty string.
+  
+  If `filename` has multiple periods, it is checked against
+  `pgfileformats.file_formats_dict` for a matching file extension containing
+  periods. If there is no such extension, return the substring after the last
+  period.
+  """
+  
+  name_lowercase = filename.lower()
+  
+  if "." not in name_lowercase:
+    return ""
+  
+  file_extension = name_lowercase
+  
+  while file_extension:
+    next_period_index = file_extension.find(".")
+    if next_period_index == -1:
+      return file_extension
+    
+    file_extension = file_extension[next_period_index + 1:]
+    if file_extension in pgfileformats.file_formats_dict:
+      return file_extension
+  
+  return ""
+
+
+def get_filename_with_new_file_extension(filename, file_extension, keep_extra_trailing_periods=False):
+  """
+  Return a new filename with the specified new file extension.
+  
+  To remove the file extension from `filename`, pass an empty string, None, or a
+  period (".").
+  
+  If `keep_extra_trailing_periods` is True, do not remove duplicate periods
+  before the file extension.
+  """
+  
+  filename_extension = get_file_extension(filename)
+  
+  if filename_extension:
+    filename_without_extension = filename[0:len(filename) - len(filename_extension) - 1]
+  else:
+    filename_without_extension = filename
+    if filename_without_extension.endswith(".") and not keep_extra_trailing_periods:
+      filename_without_extension = filename_without_extension.rstrip(".")
+  
+  if file_extension and file_extension.startswith("."):
+    file_extension = file_extension.lstrip(".")
+  
+  if file_extension:
+    file_extension = file_extension.lower()
+    new_filename = ".".join((filename_without_extension, file_extension))
+  else:
+    new_filename = filename_without_extension
+  
+  return new_filename
 
 
 #===============================================================================
@@ -461,27 +529,6 @@ class StringPatternGenerator(object):
 
 
 #===============================================================================
-
-
-def get_file_extension(str_, to_lowercase=True):
-  """
-  Return the file extension from the specified string in lower case and strip
-  the leading period. If the string has no file extension, return empty string.
-  
-  A string has file extension if it contains a "." character and a substring
-  following this character.
-  
-  Parameters:
-  
-  * `to_lowercase` - If True, convert the file extension to lowercase.
-  """
-  
-  file_ext = os.path.splitext(str_)[1].lstrip(".")
-  
-  if to_lowercase:
-    return file_ext.lower()
-  else:
-    return file_ext
 
 
 # Taken from StackOverflow: http://stackoverflow.com/

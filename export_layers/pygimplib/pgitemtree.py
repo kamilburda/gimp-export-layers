@@ -370,67 +370,6 @@ class VectorTree(ItemTree):
 #===============================================================================
 
 
-def get_file_extension(filename):
-  """
-  Get file extension from `filename`, in lowercase.
-  
-  If `filename` has no file extension, return an empty string.
-  """
-  
-  name_lowercase = filename.lower()
-  
-  if "." not in name_lowercase:
-    return ""
-  
-  file_extension = name_lowercase
-  
-  while file_extension:
-    next_period_index = file_extension.find(".")
-    if next_period_index == -1:
-      return file_extension
-    
-    file_extension = file_extension[next_period_index + 1:]
-    if file_extension in pgfileformats.file_formats_dict:
-      return file_extension
-  
-  return ""
-
-
-def set_file_extension(filename, file_extension, keep_extra_periods=False):
-  """
-  Set file extension in `filename` and return the new filename.
-  
-  To remove the file extension from `filename`, pass an empty string, None, or a
-  period (".").
-  
-  If `keep_extra_periods` is True, do not remove duplicate periods before the
-  file extension.
-  """
-  
-  filename_extension = get_file_extension(filename)
-  
-  if filename_extension:
-    filename_without_extension = filename[0:len(filename) - len(filename_extension) - 1]
-  else:
-    filename_without_extension = filename
-    if filename_without_extension.endswith(".") and not keep_extra_periods:
-      filename_without_extension = filename_without_extension.rstrip(".")
-  
-  if file_extension and file_extension.startswith("."):
-    file_extension = file_extension.lstrip(".")
-  
-  if file_extension:
-    file_extension = file_extension.lower()
-    new_filename = ".".join((filename_without_extension, file_extension))
-  else:
-    new_filename = filename_without_extension
-  
-  return new_filename
-
-
-#===============================================================================
-
-
 class _ItemTreeElement(object):
   
   """
@@ -583,23 +522,23 @@ class _ItemTreeElement(object):
     If `name` has no file extension, return an empty string.
     """
     
-    return get_file_extension(self.name)
+    return pgpath.get_file_extension(self.name)
   
-  def set_file_extension(self, file_extension, keep_extra_periods=False):
+  def set_file_extension(self, file_extension, keep_extra_trailing_periods=False):
     """
     Set file extension in the `name` attribute.
     
-    For more information, see the `pgitemtree.set_file_extension()` method.
+    For more information, see the `pgpath.get_filename_with_new_file_extension()` method.
     """
     
-    self.name = set_file_extension(self.name, file_extension, keep_extra_periods)
+    self.name = pgpath.get_filename_with_new_file_extension(self.name, file_extension, keep_extra_trailing_periods)
   
   def get_base_name(self):
     """
     Return the item name without its file extension.
     """
     
-    file_extension = get_file_extension(self.name)
+    file_extension = self.get_file_extension()
     if file_extension:
       return self.name[:-(len(file_extension) + 1)]
     else:
