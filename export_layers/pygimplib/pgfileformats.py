@@ -59,14 +59,9 @@ def get_save_procedure(file_extension):
   """
   
   if file_extension in file_formats_dict:
-    save_procedure_name = file_formats_dict[file_extension].save_procedure_name
-    save_procedure_func = file_formats_dict[file_extension].save_procedure_func
-    
-    if not save_procedure_name and save_procedure_func:
-      return save_procedure_func
-    elif save_procedure_name and save_procedure_func:
-      if pdb.gimp_procedural_db_proc_exists(save_procedure_name):
-        return save_procedure_func
+    file_format = file_formats_dict[file_extension]
+    if file_format.save_procedure_func and file_format.is_installed():
+      return file_format.save_procedure_func
   
   return get_default_save_procedure()
 
@@ -81,7 +76,7 @@ def _save_image_default(run_mode, image, layer, filename, raw_filename):
 class _FileFormat(object):
   
   def __init__(self, description, file_extensions, save_procedure_name=None,
-               save_procedure_func=None, save_procedure_func_args=None):
+               save_procedure_func=None, save_procedure_func_args=None, kwargs=None):
     self.description = description
     self.file_extensions = file_extensions
     
@@ -96,6 +91,20 @@ class _FileFormat(object):
       self.save_procedure_func_args = save_procedure_func_args
     else:
       self.save_procedure_func_args = []
+    
+    if kwargs:
+      for name, value in kwargs.items():
+        setattr(self, name, value)
+  
+  def is_builtin(self):
+    return not self.save_procedure_name
+  
+  def is_third_party(self):
+    return bool(self.save_procedure_name)
+  
+  def is_installed(self):
+    return (self.is_builtin()
+            or (self.is_third_party() and pdb.gimp_procedural_db_proc_exists(self.save_procedure_name)))
 
 
 def _create_file_formats(file_formats_params):
@@ -107,8 +116,6 @@ def _create_file_formats_dict(file_formats):
   
   for file_format in file_formats:
     for file_extension in file_format.file_extensions:
-      # If the same extension appears in multiple formats, only the first format
-      # will be accessed by the extension.
       if file_extension not in file_formats_dict:
         file_formats_dict[file_extension] = file_format
   
@@ -127,8 +134,7 @@ file_formats = _create_file_formats([
   ("C source code", ["c"]),
   ("C source code header", ["h"]),
   ("Digital Imaging and Communications in Medicine image", ["dcm", "dicom"]),
-  # Plug-in can be found at: https://code.google.com/p/gimp-dds/
-  ("DDS image", ["dds"], "file-dds-save"),
+  ("DDS image", ["dds"], "file-dds-save", None, None, {"url": "http://registry.gimp.org/node/70"}),
   ("Encapsulated PostScript image", ["eps"]),
   ("Flexible Image Transport System", ["fit", "fits"]),
   ("GIF image", ["gif"]),
@@ -139,8 +145,7 @@ file_formats = _create_file_formats([
   ("gzip archive", ["xcf.gz", "xcfgz"]),
   ("HTML table", ["html", "htm"]),
   ("JPEG image", ["jpg", "jpeg", "jpe"]),
-  # Plug-in can be found at: http://registry.gimp.org/node/25508
-  ("JPEG XR image", ["jxr"], "file-jxr-save"),
+  ("JPEG XR image", ["jxr"], "file-jxr-save", None, None, {"url": "http://registry.gimp.org/node/25508"}),
   ("KISS CEL", ["cel"]),
   ("Microsoft Windows icon", ["ico"]),
   ("MNG animation", ["mng"]),
@@ -149,9 +154,9 @@ file_formats = _create_file_formats([
   ("PGM image", ["pgm"]),
   ("Photoshop image", ["psd"]),
   ("PNG image", ["png"]),
-  # Plug-in can be found at: http://registry.gimp.org/node/24394
   ("APNG image", ["apng"], "file-apng-save-defaults",
-   lambda run_mode, *args: pdb.file_apng_save_defaults(*args, run_mode=run_mode)),
+   lambda run_mode, *args: pdb.file_apng_save_defaults(*args, run_mode=run_mode),
+   None, {"url": "http://registry.gimp.org/node/24394"}),
   ("PNM image", ["pnm"]),
   ("Portable Document Format", ["pdf"]),
   ("PostScript document", ["ps"]),
@@ -162,10 +167,8 @@ file_formats = _create_file_formats([
   ("SUN Rasterfile image", ["im1", "im8", "im24", "im32", "rs", "ras"]),
   ("TarGA image", ["tga"]),
   ("TIFF image", ["tif", "tiff"]),
-  # Plug-in can be found at: http://registry.gimp.org/node/24882
-  ("Valve Texture Format", ["vtf"], "file-vtf-save"),
-  # Plug-in can be found at: http://registry.gimp.org/node/25874
-  ("WebP image", ["webp"], "file-webp-save"),
+  ("Valve Texture Format", ["vtf"], "file-vtf-save", None, None, {"url": "http://registry.gimp.org/node/24882"}),
+  ("WebP image", ["webp"], "file-webp-save", None, None, {"url": "http://registry.gimp.org/node/25874"}),
   ("Windows BMP image", ["bmp"]),
   ("X11 Mouse Cursor", ["xmc"], "file-xmc-save"),
   ("X BitMap image", ["xbm", "bitmap"]),

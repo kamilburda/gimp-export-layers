@@ -1467,18 +1467,8 @@ class FileExtensionEntry(ExtendedEntry):
       return None
   
   def _get_file_formats(self, file_formats):
-    file_formats_to_add = []
-    
-    for file_format in file_formats:
-      can_add_file_format = (
-        file_format.save_procedure_name is None
-        or (file_format.save_procedure_name is not None
-            and pdb.gimp_procedural_db_proc_exists(file_format.save_procedure_name)))
-      
-      if can_add_file_format:
-        file_formats_to_add.append([file_format.description, file_format.file_extensions])
-    
-    return file_formats_to_add
+    return [[file_format.description, file_format.file_extensions]
+            for file_format in file_formats if file_format.is_installed()]
   
   def _add_columns(self):
     
