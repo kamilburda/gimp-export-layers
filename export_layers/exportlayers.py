@@ -637,7 +637,6 @@ class LayerExporter(object):
     self._file_extension_properties = self._prefill_file_extension_properties()
     self._default_file_extension = self.export_settings['file_extension'].value.lstrip(".").lower()
     self._file_extension_to_assign = self._default_file_extension
-    self._file_export_func = pgfileformats.get_save_procedure(self._default_file_extension)
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
     
@@ -992,22 +991,20 @@ class LayerExporter(object):
     if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
       self._make_dirs(os.path.dirname(output_filename))
       
-      self._update_file_export_func()
-      
-      self._export_once_wrapper(self._get_run_mode(), image, layer, output_filename)
+      self._export_once_wrapper(self._get_export_func(), self._get_run_mode(), image, layer, output_filename)
       if self._current_layer_export_status == ExportStatuses.FORCE_INTERACTIVE:
-        self._export_once_wrapper(gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
+        self._export_once_wrapper(
+          self._get_export_func(), gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
   
-  def _export_once_wrapper(self, run_mode, image, layer, output_filename):
+  def _export_once_wrapper(self, export_func, run_mode, image, layer, output_filename):
     with self.export_context_manager(run_mode, image, layer, output_filename, *self.export_context_manager_args):
-      self._export_once(run_mode, image, layer, output_filename)
+      self._export_once(export_func, run_mode, image, layer, output_filename)
   
-  def _export_once(self, run_mode, image, layer, output_filename):
+  def _export_once(self, export_func, run_mode, image, layer, output_filename):
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     
     try:
-      self._file_export_func(
-        run_mode, image, layer, output_filename.encode(), os.path.basename(output_filename).encode())
+      export_func(run_mode, image, layer, output_filename.encode(), os.path.basename(output_filename).encode())
     except RuntimeError as e:
       # HACK: Since `RuntimeError` could indicate anything, including
       # `pdb.gimp_file_save` failure, this is the only way to intercept that
@@ -1041,6 +1038,5 @@ class LayerExporter(object):
     else:
       return self.initial_run_mode
   
-  def _update_file_export_func(self):
-    if self.export_settings['more_operations/use_file_extensions_in_layer_names'].value:
-      self._file_export_func = pgfileformats.get_save_procedure(self._file_extension_to_assign)
+  def _get_export_func(self):
+    return pgfileformats.get_save_procedure(self._file_extension_to_assign)
