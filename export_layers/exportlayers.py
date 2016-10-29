@@ -990,12 +990,11 @@ class LayerExporter(object):
       raise ExportLayersCancelError("cancelled")
     
     if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
-      run_mode = self._get_run_mode()
       self._make_dirs(os.path.dirname(output_filename))
       
       self._update_file_export_func()
       
-      self._export_once_wrapper(run_mode, image, layer, output_filename)
+      self._export_once_wrapper(self._get_run_mode(), image, layer, output_filename)
       if self._current_layer_export_status == ExportStatuses.FORCE_INTERACTIVE:
         self._export_once_wrapper(gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
   
