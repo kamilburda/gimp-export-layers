@@ -1050,11 +1050,9 @@ class LayerExporter(object):
       self._current_layer_export_status = ExportStatuses.EXPORT_SUCCESSFUL
   
   def _get_run_mode(self):
-    if self._file_extension_properties[self._file_extension_to_assign].is_valid:
-      if self._file_extension_properties[self._file_extension_to_assign].processed_count == 0:
-        return self.initial_run_mode
-      else:
-        return gimpenums.RUN_WITH_LAST_VALS
+    file_extension = self._file_extension_properties[self._file_extension_to_assign]
+    if file_extension.is_valid and file_extension.processed_count > 0:
+      return gimpenums.RUN_WITH_LAST_VALS
     else:
       return self.initial_run_mode
   
