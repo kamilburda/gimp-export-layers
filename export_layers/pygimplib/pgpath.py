@@ -37,6 +37,7 @@ import re
 import types
 
 from . import pgfileformats
+from . import pgutils
 
 #===============================================================================
 
@@ -491,6 +492,10 @@ class StringPatternGenerator(object):
     if not argspec.varargs:
       num_defaults = len(argspec.defaults) if argspec.defaults is not None else 0
       num_mandatory_args = len(argspec.args) - num_defaults
+      
+      if pgutils.is_bound_method(field_func):
+        num_mandatory_args -= 1
+      
       if len(field[1]) < num_mandatory_args or len(field[1]) > len(argspec.args):
         return False
     
