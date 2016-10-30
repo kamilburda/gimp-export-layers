@@ -343,6 +343,15 @@ def remove_operation(setting):
 
 class LayerNameRenamer(object):
   
+  LAYER_NAME_PATTERN_FIELDS = [
+    ("image001", "image[001]", []),
+    (_("Layer name"), "[layer name]", ["keep extension/keep only identical extension"]),
+    (_("Image name"), "[image name]", ["keep extension"]),
+    (_("Layer path"), "[layer path]", ["-"]),
+    (_("Tags"), "[tags]", ["specific tags..."]),
+    (_("Current date"), "[current date]", ["%Y-%m-%d"]),
+  ]
+  
   def __init__(self, layer_exporter, pattern):
     self._layer_exporter = layer_exporter
     
@@ -529,15 +538,6 @@ class LayerExporter(object):
     'background': _("Background"),
     'foreground': _("Foreground")
   }
-  
-  SUGGESTED_LAYER_FILENAME_PATTERNS = [
-    ("image001", "image[001]", []),
-    (_("Layer name"), "[layer name]", ["keep extension/keep only identical extension"]),
-    (_("Image name"), "[image name]", ["keep extension"]),
-    (_("Layer path"), "[layer path]", ["-"]),
-    (_("Tags"), "[tags]", ["specific tags..."]),
-    (_("Current date"), "[current date]", ["%Y-%m-%d"]),
-  ]
   
   def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser=None, progress_updater=None,
                layer_tree=None, export_context_manager=None, export_context_manager_args=None):

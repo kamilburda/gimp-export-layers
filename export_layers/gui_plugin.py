@@ -534,7 +534,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._dot_label.set_alignment(0.0, 1.0)
     
     self._filename_pattern_entry = pggui_entries.FilenamePatternEntry(
-      exportlayers.LayerExporter.SUGGESTED_LAYER_FILENAME_PATTERNS,
+      exportlayers.LayerNameRenamer.LAYER_NAME_PATTERN_FIELDS,
       minimum_width_chars=self._FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS,
       maximum_width_chars=self._FILENAME_PATTERN_ENTRY_MAX_WIDTH_CHARS,
       default_item=self._settings['main/layer_filename_pattern'].default_value)
