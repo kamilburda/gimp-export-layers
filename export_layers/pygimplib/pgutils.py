@@ -122,3 +122,14 @@ def empty_func(*args, **kwargs):
   """
   
   return None
+
+
+#===============================================================================
+
+
+def is_bound_method(func):
+  """
+  Return True if `func` is a bound method, False otherwise.
+  """
+  
+  return hasattr(func, "__self__") and func.__self__ is not None
