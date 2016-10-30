@@ -863,7 +863,6 @@ class LayerExporter(object):
     self._make_dirs(layer_elem.get_filepath(self._output_directory))
   
   def _setup(self):
-    # Save context in case hook functions modify the context without reverting to its original state.
     pdb.gimp_context_push()
     
     self._image_copy = pgpdb.duplicate(self.image, metadata_only=True)
