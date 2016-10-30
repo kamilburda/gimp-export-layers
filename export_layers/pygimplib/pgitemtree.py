@@ -517,12 +517,19 @@ class _ItemTreeElement(object):
   
   def get_file_extension(self):
     """
-    Get file extension from the `name` attribute, in lowercase.
-    
-    If `name` has no file extension, return an empty string.
+    Get file extension from the `name` attribute, in lowercase. If `name` has no
+    file extension, return an empty string.
     """
     
     return pgpath.get_file_extension(self.name)
+  
+  def get_file_extension_from_orig_name(self):
+    """
+    Get file extension from the `orig_name` attribute, in lowercase. If
+    `orig_name` has no file extension, return an empty string.
+    """
+    
+    return pgpath.get_file_extension(self.orig_name)
   
   def set_file_extension(self, file_extension, keep_extra_trailing_periods=False):
     """
