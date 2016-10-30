@@ -264,83 +264,6 @@ class LayerFilterRules(object):
 #===============================================================================
 
 
-_BUILTIN_OPERATIONS_GROUP = "process_layer"
-_BUILTIN_FILTERS_GROUP = "set_filters"
-_BUILTIN_FILTERS_LAYER_TYPES_GROUP = "set_filters_layer_types"
-
-_operations_executor = operations.OperationsExecutor()
-
-_operations_executor.add_foreach_operation(
-  LayerOperations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
-
-_builtin_operations_and_settings = {
-  'ignore_layer_modes': [LayerOperations.ignore_layer_modes],
-  'autocrop': [LayerOperations.autocrop_layer],
-  'inherit_transparency_from_layer_groups': [LayerOperations.inherit_transparency_from_layer_groups],
-  'insert_background_layers': [LayerOperations.insert_background_layer, ["background"]],
-  'insert_foreground_layers': [LayerOperations.insert_foreground_layer, ["foreground"]],
-  'autocrop_to_background': [LayerOperations.autocrop_to_tagged_layer, ["background"]],
-  'autocrop_to_foreground': [LayerOperations.autocrop_to_tagged_layer, ["foreground"]]
-}
-
-_builtin_filters_and_settings = {
-  'only_non_tagged_layers': [_add_filter_rule(LayerFilterRules.has_no_tags)],
-  'only_tagged_layers': [_add_filter_rule(LayerFilterRules.has_tags)],
-  'only_layers_matching_file_extension': [
-    _add_filter_rule_with_layer_exporter(LayerFilterRules.has_matching_default_file_extension)],
-  'only_toplevel_layers': [_add_filter_rule(LayerFilterRules.is_top_level)]
-}
-
-_builtin_include_filters_and_settings = {
-  'include_layer_groups': [_add_filter_rule(LayerFilterRules.is_nonempty_group, subfilter="layer_types")],
-  'include_empty_layer_groups': [_add_filter_rule(LayerFilterRules.is_empty_group, subfilter="layer_types")]
-}
-
-# key: setting name; value: (operation ID, operation group) tuple
-_operation_settings_and_items = {}
-
-
-def add_operation(base_setting):
-  if (base_setting.name in _builtin_operations_and_settings
-      or base_setting.name in _builtin_filters_and_settings
-      or base_setting.name in _builtin_include_filters_and_settings):
-    if base_setting.name in _builtin_operations_and_settings:
-      operation_item = _builtin_operations_and_settings[base_setting.name]
-      operation_group = _BUILTIN_OPERATIONS_GROUP
-    elif base_setting.name in _builtin_filters_and_settings:
-      operation_item = _builtin_filters_and_settings[base_setting.name]
-      operation_group = _BUILTIN_FILTERS_GROUP
-    elif base_setting.name in _builtin_include_filters_and_settings:
-      operation_item = _builtin_include_filters_and_settings[base_setting.name]
-      operation_group = _BUILTIN_FILTERS_LAYER_TYPES_GROUP
-    
-    operation = operation_item[0]
-    operation_args = operation_item[1] if len(operation_item) > 1 else ()
-    operation_kwargs = operation_item[2] if len(operation_item) > 2 else {}
-    
-    operation_id = _operations_executor.add_operation(
-      execute_operation_only_if_setting(operation, base_setting),
-      [operation_group],
-      *operation_args, **operation_kwargs)
-    
-    _operation_settings_and_items[base_setting.name] = (operation_id, operation_group)
-
-
-def reorder_operation(setting, new_position):
-  if setting.name in _operation_settings_and_items:
-    _operations_executor.reorder_operation(
-      _operation_settings_and_items[setting.name][0],
-      _operation_settings_and_items[setting.name][1], new_position)
-
-
-def remove_operation(setting):
-  if setting.name in _operation_settings_and_items:
-    _operations_executor.remove_operation(_operation_settings_and_items[setting.name][0])
-
-
-#===============================================================================
-
-
 class LayerNameRenamer(object):
   
   LAYER_NAME_PATTERN_FIELDS = [
@@ -480,6 +403,83 @@ class ExportStatuses(object):
   EXPORT_STATUSES = (
     NOT_EXPORTED_YET, EXPORT_SUCCESSFUL, FORCE_INTERACTIVE, USE_DEFAULT_FILE_EXTENSION
   ) = (0, 1, 2, 3)
+
+
+#===============================================================================
+
+
+_BUILTIN_OPERATIONS_GROUP = "process_layer"
+_BUILTIN_FILTERS_GROUP = "set_filters"
+_BUILTIN_FILTERS_LAYER_TYPES_GROUP = "set_filters_layer_types"
+
+_operations_executor = operations.OperationsExecutor()
+
+_operations_executor.add_foreach_operation(
+  LayerOperations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
+
+_builtin_operations_and_settings = {
+  'ignore_layer_modes': [LayerOperations.ignore_layer_modes],
+  'autocrop': [LayerOperations.autocrop_layer],
+  'inherit_transparency_from_layer_groups': [LayerOperations.inherit_transparency_from_layer_groups],
+  'insert_background_layers': [LayerOperations.insert_background_layer, ["background"]],
+  'insert_foreground_layers': [LayerOperations.insert_foreground_layer, ["foreground"]],
+  'autocrop_to_background': [LayerOperations.autocrop_to_tagged_layer, ["background"]],
+  'autocrop_to_foreground': [LayerOperations.autocrop_to_tagged_layer, ["foreground"]]
+}
+
+_builtin_filters_and_settings = {
+  'only_non_tagged_layers': [_add_filter_rule(LayerFilterRules.has_no_tags)],
+  'only_tagged_layers': [_add_filter_rule(LayerFilterRules.has_tags)],
+  'only_layers_matching_file_extension': [
+    _add_filter_rule_with_layer_exporter(LayerFilterRules.has_matching_default_file_extension)],
+  'only_toplevel_layers': [_add_filter_rule(LayerFilterRules.is_top_level)]
+}
+
+_builtin_include_filters_and_settings = {
+  'include_layer_groups': [_add_filter_rule(LayerFilterRules.is_nonempty_group, subfilter="layer_types")],
+  'include_empty_layer_groups': [_add_filter_rule(LayerFilterRules.is_empty_group, subfilter="layer_types")]
+}
+
+# key: setting name; value: (operation ID, operation group) tuple
+_operation_settings_and_items = {}
+
+
+def add_operation(base_setting):
+  if (base_setting.name in _builtin_operations_and_settings
+      or base_setting.name in _builtin_filters_and_settings
+      or base_setting.name in _builtin_include_filters_and_settings):
+    if base_setting.name in _builtin_operations_and_settings:
+      operation_item = _builtin_operations_and_settings[base_setting.name]
+      operation_group = _BUILTIN_OPERATIONS_GROUP
+    elif base_setting.name in _builtin_filters_and_settings:
+      operation_item = _builtin_filters_and_settings[base_setting.name]
+      operation_group = _BUILTIN_FILTERS_GROUP
+    elif base_setting.name in _builtin_include_filters_and_settings:
+      operation_item = _builtin_include_filters_and_settings[base_setting.name]
+      operation_group = _BUILTIN_FILTERS_LAYER_TYPES_GROUP
+    
+    operation = operation_item[0]
+    operation_args = operation_item[1] if len(operation_item) > 1 else ()
+    operation_kwargs = operation_item[2] if len(operation_item) > 2 else {}
+    
+    operation_id = _operations_executor.add_operation(
+      execute_operation_only_if_setting(operation, base_setting),
+      [operation_group],
+      *operation_args, **operation_kwargs)
+    
+    _operation_settings_and_items[base_setting.name] = (operation_id, operation_group)
+
+
+def reorder_operation(setting, new_position):
+  if setting.name in _operation_settings_and_items:
+    _operations_executor.reorder_operation(
+      _operation_settings_and_items[setting.name][0],
+      _operation_settings_and_items[setting.name][1], new_position)
+
+
+def remove_operation(setting):
+  if setting.name in _operation_settings_and_items:
+    _operations_executor.remove_operation(_operation_settings_and_items[setting.name][0])
 
 
 #===============================================================================
