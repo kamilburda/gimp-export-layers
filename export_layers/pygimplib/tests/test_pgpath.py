@@ -248,6 +248,14 @@ class TestStringPatternGenerator(unittest.TestCase):
     self._test_generate_with_field(
       "date", _get_date_with_default, "[date, %Y-%m-%d, more_args]", "[date, %Y-%m-%d, more_args]")
   
+  def test_generate_with_fields_with_bound_method(self):
+    class _DateGenerator(object):
+      def get_date(self, date_format):
+        return datetime.datetime(2016, 7, 16, hour=23).strftime(date_format)
+    
+    self._test_generate_with_field(
+      "date", _DateGenerator().get_date, "[date, %Y-%m-%d]", "2016-07-16")
+  
   def test_generate_with_fields_with_invalid_arguments(self):
     def _get_date(date_format):
       return datetime.datetime(2016, 7, 16, hour=23).strftime(date_format)
