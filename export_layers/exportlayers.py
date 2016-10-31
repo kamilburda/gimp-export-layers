@@ -399,6 +399,24 @@ def _get_prefilled_file_extension_properties():
 #===============================================================================
 
 
+def _make_dirs(path, layer_exporter):
+  try:
+    pgpath.make_dirs(path)
+  except OSError as e:
+    try:
+      message = e.args[1]
+      if e.filename is not None:
+        message += ": \"{0}\"".format(e.filename)
+    except (IndexError, AttributeError):
+      message = str(e)
+    
+    raise InvalidOutputDirectoryError(
+      message, layer_exporter.current_layer_elem, layer_exporter.default_file_extension)
+
+
+#===============================================================================
+
+
 class ExportStatuses(object):
   EXPORT_STATUSES = (
     NOT_EXPORTED_YET, EXPORT_SUCCESSFUL, FORCE_INTERACTIVE, USE_DEFAULT_FILE_EXTENSION
@@ -565,7 +583,7 @@ class LayerExporter(object):
       'layer_contents': [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
       'layer_name': [self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name],
       '_postprocess_layer_name': [self._postprocess_layer_name],
-      'export': [self._make_dirs, self._export]
+      'export': [_make_dirs, self._export]
     }
     
     self._processing_groups_functions = {}
@@ -860,7 +878,7 @@ class LayerExporter(object):
   
   def _process_and_export_empty_group(self, layer_elem):
     self._preprocess_empty_group_name(layer_elem)
-    self._make_dirs(layer_elem.get_filepath(self._output_directory))
+    _make_dirs(layer_elem.get_filepath(self._output_directory), self)
   
   def _setup(self):
     pdb.gimp_context_push()
@@ -974,19 +992,6 @@ class LayerExporter(object):
   def _get_uniquifier_position(self, str_):
     return len(str_) - len("." + self._file_extension_to_assign)
   
-  def _make_dirs(self, path):
-    try:
-      pgpath.make_dirs(path)
-    except OSError as e:
-      try:
-        message = e.args[1]
-        if e.filename is not None:
-          message += ": \"{0}\"".format(e.filename)
-      except (IndexError, AttributeError):
-        message = str(e)
-      
-      raise InvalidOutputDirectoryError(message, self._current_layer_elem, self._default_file_extension)
-  
   def _export_layer(self, layer_elem, image, layer):
     self._process_layer_name(layer_elem)
     self._export(layer_elem, image, layer)
@@ -1008,7 +1013,7 @@ class LayerExporter(object):
       raise ExportLayersCancelError("cancelled")
     
     if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
-      self._make_dirs(os.path.dirname(output_filename))
+      _make_dirs(os.path.dirname(output_filename), self)
       
       self._export_once_wrapper(self._get_export_func(), self._get_run_mode(), image, layer, output_filename)
       if self._current_layer_export_status == ExportStatuses.FORCE_INTERACTIVE:
