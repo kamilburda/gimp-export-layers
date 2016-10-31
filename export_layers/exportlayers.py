@@ -1061,10 +1061,10 @@ class LayerExporter(object):
   def _prepare_export_with_interactive_run_mode(self):
     self._current_layer_export_status = ExportStatuses.FORCE_INTERACTIVE
   
+  def _should_export_again_with_default_file_extension(self):
+    return self._current_file_extension != self._default_file_extension
+  
   def _prepare_export_with_default_file_extension(self):
     self._file_extension_properties[self._current_file_extension].is_valid = False
     self._current_file_extension = self._default_file_extension
     self._current_layer_export_status = ExportStatuses.USE_DEFAULT_FILE_EXTENSION
-  
-  def _should_export_again_with_default_file_extension(self):
-    return self._current_file_extension != self._default_file_extension
