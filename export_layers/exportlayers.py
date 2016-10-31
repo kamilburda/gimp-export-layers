@@ -764,7 +764,7 @@ class LayerExporter(object):
     
     self._file_extension_properties = _get_prefilled_file_extension_properties()
     self._default_file_extension = self.export_settings['file_extension'].value.lstrip(".").lower()
-    self._file_extension_to_assign = self._default_file_extension
+    self._current_file_extension = self._default_file_extension
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
     
@@ -874,7 +874,7 @@ class LayerExporter(object):
     if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
       self._exported_layers.append(layer)
       self._exported_layers_ids.add(layer.ID)
-      self._file_extension_properties[self._file_extension_to_assign].processed_count += 1
+      self._file_extension_properties[self._current_file_extension].processed_count += 1
   
   def _process_and_export_empty_group(self, layer_elem):
     self._preprocess_empty_group_name(layer_elem)
@@ -971,8 +971,7 @@ class LayerExporter(object):
     self._layer_tree.uniquify_name(layer_elem)
   
   def _process_layer_name(self, layer_elem):
-    self._layer_tree.uniquify_name(
-      layer_elem, uniquifier_position=self._get_uniquifier_position(layer_elem.name))
+    self._layer_tree.uniquify_name(layer_elem, uniquifier_position=self._get_uniquifier_position(layer_elem.name))
   
   def _postprocess_layer_name(self, layer_elem):
     if layer_elem.item_type == layer_elem.NONEMPTY_GROUP:
@@ -982,15 +981,15 @@ class LayerExporter(object):
     if self.export_settings['more_operations/use_file_extensions_in_layer_names'].value:
       orig_file_extension = layer_elem.get_file_extension_from_orig_name()
       if orig_file_extension and self._file_extension_properties[orig_file_extension].is_valid:
-        self._file_extension_to_assign = orig_file_extension
+        self._current_file_extension = orig_file_extension
       else:
-        self._file_extension_to_assign = self._default_file_extension
-      layer_elem.set_file_extension(self._file_extension_to_assign, keep_extra_trailing_periods=True)
+        self._current_file_extension = self._default_file_extension
+      layer_elem.set_file_extension(self._current_file_extension, keep_extra_trailing_periods=True)
     else:
-      layer_elem.name += "." + self._file_extension_to_assign
+      layer_elem.name += "." + self._current_file_extension
   
   def _get_uniquifier_position(self, str_):
-    return len(str_) - len("." + self._file_extension_to_assign)
+    return len(str_) - len("." + self._current_file_extension)
   
   def _export_layer(self, layer_elem, image, layer):
     self._process_layer_name(layer_elem)
@@ -1017,12 +1016,21 @@ class LayerExporter(object):
       
       self._export_once_wrapper(self._get_export_func(), self._get_run_mode(), image, layer, output_filename)
       if self._current_layer_export_status == ExportStatuses.FORCE_INTERACTIVE:
-        self._export_once_wrapper(
-          self._get_export_func(), gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
+        self._export_once_wrapper(self._get_export_func(), gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
   
   def _export_once_wrapper(self, export_func, run_mode, image, layer, output_filename):
     with self.export_context_manager(run_mode, image, layer, output_filename, *self.export_context_manager_args):
       self._export_once(export_func, run_mode, image, layer, output_filename)
+  
+  def _get_run_mode(self):
+    file_extension = self._file_extension_properties[self._current_file_extension]
+    if file_extension.is_valid and file_extension.processed_count > 0:
+      return gimpenums.RUN_WITH_LAST_VALS
+    else:
+      return self.initial_run_mode
+  
+  def _get_export_func(self):
+    return pgfileformats.get_save_procedure(self._current_file_extension)
   
   def _export_once(self, export_func, run_mode, image, layer, output_filename):
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
@@ -1030,35 +1038,33 @@ class LayerExporter(object):
     try:
       export_func(run_mode, image, layer, output_filename.encode(), os.path.basename(output_filename).encode())
     except RuntimeError as e:
-      # HACK: Since `RuntimeError` could indicate anything, including
-      # `pdb.gimp_file_save` failure, this is the only way to intercept that
-      # the export was canceled.
-      if any(message in e.message.lower() for message in ["cancelled", "canceled"]):
+      # HACK: Examining the exception message seems to be the only way to determine
+      # some specific cases of export failure.
+      if self._was_export_canceled_by_user(e.message):
         raise ExportLayersCancelError(e.message)
-      # HACK: Try again, this time forcing the interactive mode if the
-      # non-interactive mode failed (certain file formats do not allow the
-      # non-interactive mode).
-      elif "calling error" in e.message.lower():
-        if run_mode in (gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE):
-          self._current_layer_export_status = ExportStatuses.FORCE_INTERACTIVE
-        else:
-          raise ExportLayersError(e.message, layer, self._default_file_extension)
+      elif self._should_export_again_with_interactive_run_mode(e.message, run_mode):
+        self._prepare_export_with_interactive_run_mode()
+      elif self._should_export_again_with_default_file_extension():
+        self._prepare_export_with_default_file_extension()
       else:
-        if self._file_extension_to_assign != self._default_file_extension:
-          self._file_extension_properties[self._file_extension_to_assign].is_valid = False
-          self._file_extension_to_assign = self._default_file_extension
-          self._current_layer_export_status = ExportStatuses.USE_DEFAULT_FILE_EXTENSION
-        else:
-          raise ExportLayersError(e.message, layer, self._default_file_extension)
+        raise ExportLayersError(e.message, layer, self._default_file_extension)
     else:
       self._current_layer_export_status = ExportStatuses.EXPORT_SUCCESSFUL
   
-  def _get_run_mode(self):
-    file_extension = self._file_extension_properties[self._file_extension_to_assign]
-    if file_extension.is_valid and file_extension.processed_count > 0:
-      return gimpenums.RUN_WITH_LAST_VALS
-    else:
-      return self.initial_run_mode
+  def _was_export_canceled_by_user(self, exception_message):
+    return any(message in exception_message.lower() for message in ["cancelled", "canceled"])
   
-  def _get_export_func(self):
-    return pgfileformats.get_save_procedure(self._file_extension_to_assign)
+  def _should_export_again_with_interactive_run_mode(self, exception_message, current_run_mode):
+    return ("calling error" in exception_message.lower()
+            and current_run_mode in (gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE))
+  
+  def _prepare_export_with_interactive_run_mode(self):
+    self._current_layer_export_status = ExportStatuses.FORCE_INTERACTIVE
+  
+  def _prepare_export_with_default_file_extension(self):
+    self._file_extension_properties[self._current_file_extension].is_valid = False
+    self._current_file_extension = self._default_file_extension
+    self._current_layer_export_status = ExportStatuses.USE_DEFAULT_FILE_EXTENSION
+  
+  def _should_export_again_with_default_file_extension(self):
+    return self._current_file_extension != self._default_file_extension
