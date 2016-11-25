@@ -34,7 +34,6 @@ str = unicode
 import collections
 import contextlib
 import datetime
-import functools
 import os
 
 import gimp
@@ -53,6 +52,9 @@ from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgutils
 from export_layers.pygimplib import progress
+
+from . import builtin_operations
+from . import builtin_filters
 
 #===============================================================================
 
@@ -106,88 +108,6 @@ def execute_operation_only_if_setting(operation, setting):
 #===============================================================================
 
 
-class LayerOperations(object):
-  
-  @staticmethod
-  def ignore_layer_modes(image, layer, layer_exporter):
-    layer.mode = gimpenums.NORMAL_MODE
-  
-  @staticmethod
-  def inherit_transparency_from_layer_groups(image, layer, layer_exporter):
-    layer.opacity = 100.0 * functools.reduce(
-      lambda layer1_opacity, layer2_opacity: layer1_opacity * layer2_opacity,
-      [parent.item.opacity / 100.0 for parent in layer_exporter.current_layer_elem.parents]
-      + [layer_exporter.current_layer_elem.item.opacity / 100.0])
-  
-  @staticmethod
-  def autocrop_layer(image, layer, layer_exporter):
-    pdb.plug_in_autocrop_layer(image, layer)
-  
-  @staticmethod
-  def autocrop_to_tagged_layer(tag, image, layer, layer_exporter):
-    tagged_layer = layer_exporter.inserted_tagged_layers[tag]
-    if tagged_layer is not None:
-      image.active_layer = tagged_layer
-      pdb.plug_in_autocrop_layer(image, tagged_layer)
-      return True
-    else:
-      return False
-  
-  @staticmethod
-  def set_active_layer(image, layer, layer_exporter):
-    image.active_layer = layer
-  
-  @staticmethod
-  def set_active_layer_after_operation(image, layer, layer_exporter):
-    operation_executed = yield
-    
-    if operation_executed or operation_executed is None:
-      LayerOperations.set_active_layer(image, layer, layer_exporter)
-  
-  @staticmethod
-  def copy_and_insert_layer(image, layer, parent=None, position=0):
-    layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
-    pdb.gimp_image_insert_layer(image, layer_copy, parent, position)
-    pdb.gimp_item_set_visible(layer_copy, True)
-    
-    if pdb.gimp_item_is_group(layer_copy):
-      layer_copy = pgpdb.merge_layer_group(layer_copy)
-    
-    return layer_copy
-  
-  @staticmethod
-  def _insert_tagged_layer(image, tag, layer_exporter, positon=0):
-    if not layer_exporter.tagged_layer_elems[tag]:
-      return
-    
-    if layer_exporter.tagged_layer_copies[tag] is None:
-      layer_group = pdb.gimp_layer_group_new(image)
-      pdb.gimp_image_insert_layer(image, layer_group, None, positon)
-      
-      for i, layer_elem in enumerate(layer_exporter.tagged_layer_elems[tag]):
-        layer_copy = LayerOperations.copy_and_insert_layer(image, layer_elem.item, layer_group, i)
-        layer_exporter.operations_executor.execute(["after_insert_layer"], image, layer_copy, layer_exporter)
-      
-      layer_exporter.inserted_tagged_layers[tag] = pgpdb.merge_layer_group(layer_group)
-      layer_exporter.tagged_layer_copies[tag] = (
-        pdb.gimp_layer_copy(layer_exporter.inserted_tagged_layers[tag], True))
-    else:
-      layer_exporter.inserted_tagged_layers[tag] = (
-        pdb.gimp_layer_copy(layer_exporter.tagged_layer_copies[tag], True))
-      pdb.gimp_image_insert_layer(image, layer_exporter.inserted_tagged_layers[tag], None, positon)
-  
-  @staticmethod
-  def insert_background_layer(tag, image, layer, layer_exporter):
-    LayerOperations._insert_tagged_layer(image, tag, layer_exporter, positon=len(image.layers))
-  
-  @staticmethod
-  def insert_foreground_layer(tag, image, layer, layer_exporter):
-    LayerOperations._insert_tagged_layer(image, tag, layer_exporter, positon=0)
-
-
-#===============================================================================
-
-
 def _add_filter_rule(rule_func, subfilter=None):
   def _add_rule_func(*args):
     # HACK: This assumes that `LayerExporter` instance is added as an argument when
@@ -213,52 +133,6 @@ def _add_filter_rule_with_layer_exporter(rule_func):
     layer_exporter.layer_tree.filter.add_rule(rule_func, *args)
   
   return _add_rule_func_with_layer_exporter
-
-
-class LayerFilterRules(object):
-  
-  @staticmethod
-  def is_layer(layer_elem):
-    return layer_elem.item_type == layer_elem.ITEM
-  
-  @staticmethod
-  def is_nonempty_group(layer_elem):
-    return layer_elem.item_type == layer_elem.NONEMPTY_GROUP
-  
-  @staticmethod
-  def is_empty_group(layer_elem):
-    return layer_elem.item_type == layer_elem.EMPTY_GROUP
-  
-  @staticmethod
-  def is_top_level(layer_elem):
-    return layer_elem.depth == 0
-  
-  @staticmethod
-  def is_path_visible(layer_elem):
-    return layer_elem.path_visible
-  
-  @staticmethod
-  def has_matching_file_extension(layer_elem, file_extension):
-    return layer_elem.get_file_extension() == file_extension.lower()
-  
-  @staticmethod
-  def has_matching_default_file_extension(layer_elem, layer_exporter):
-    return layer_elem.get_file_extension() == layer_exporter.default_file_extension
-  
-  @staticmethod
-  def has_tags(layer_elem, *tags):
-    if tags:
-      return any(tag for tag in tags if tag in layer_elem.tags)
-    else:
-      return bool(layer_elem.tags)
-  
-  @staticmethod
-  def has_no_tags(layer_elem, *tags):
-    return not LayerFilterRules.has_tags(layer_elem, *tags)
-  
-  @staticmethod
-  def is_layer_in_selected_layers(layer_elem, selected_layers):
-    return layer_elem.item.ID in selected_layers
 
 
 #===============================================================================
@@ -433,29 +307,29 @@ _BUILTIN_FILTERS_LAYER_TYPES_GROUP = "set_filters_layer_types"
 _operations_executor = operations.OperationsExecutor()
 
 _operations_executor.add_foreach_operation(
-  LayerOperations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
+  builtin_operations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
 
 _builtin_operations_and_settings = {
-  'ignore_layer_modes': [LayerOperations.ignore_layer_modes],
-  'autocrop': [LayerOperations.autocrop_layer],
-  'inherit_transparency_from_layer_groups': [LayerOperations.inherit_transparency_from_layer_groups],
-  'insert_background_layers': [LayerOperations.insert_background_layer, ["background"]],
-  'insert_foreground_layers': [LayerOperations.insert_foreground_layer, ["foreground"]],
-  'autocrop_to_background': [LayerOperations.autocrop_to_tagged_layer, ["background"]],
-  'autocrop_to_foreground': [LayerOperations.autocrop_to_tagged_layer, ["foreground"]]
+  'ignore_layer_modes': [builtin_operations.ignore_layer_modes],
+  'autocrop': [builtin_operations.autocrop_layer],
+  'inherit_transparency_from_layer_groups': [builtin_operations.inherit_transparency_from_layer_groups],
+  'insert_background_layers': [builtin_operations.insert_background_layer, ["background"]],
+  'insert_foreground_layers': [builtin_operations.insert_foreground_layer, ["foreground"]],
+  'autocrop_to_background': [builtin_operations.autocrop_to_tagged_layer, ["background"]],
+  'autocrop_to_foreground': [builtin_operations.autocrop_to_tagged_layer, ["foreground"]]
 }
 
 _builtin_filters_and_settings = {
-  'only_non_tagged_layers': [_add_filter_rule(LayerFilterRules.has_no_tags)],
-  'only_tagged_layers': [_add_filter_rule(LayerFilterRules.has_tags)],
+  'only_non_tagged_layers': [_add_filter_rule(builtin_filters.has_no_tags)],
+  'only_tagged_layers': [_add_filter_rule(builtin_filters.has_tags)],
   'only_layers_matching_file_extension': [
-    _add_filter_rule_with_layer_exporter(LayerFilterRules.has_matching_default_file_extension)],
-  'only_toplevel_layers': [_add_filter_rule(LayerFilterRules.is_top_level)]
+    _add_filter_rule_with_layer_exporter(builtin_filters.has_matching_default_file_extension)],
+  'only_toplevel_layers': [_add_filter_rule(builtin_filters.is_top_level)]
 }
 
 _builtin_include_filters_and_settings = {
-  'include_layer_groups': [_add_filter_rule(LayerFilterRules.is_nonempty_group, subfilter="layer_types")],
-  'include_empty_layer_groups': [_add_filter_rule(LayerFilterRules.is_empty_group, subfilter="layer_types")]
+  'include_layer_groups': [_add_filter_rule(builtin_filters.is_nonempty_group, subfilter="layer_types")],
+  'include_empty_layer_groups': [_add_filter_rule(builtin_filters.is_empty_group, subfilter="layer_types")]
 }
 
 # key: setting name; value: (operation ID, operation group) tuple
@@ -727,7 +601,7 @@ class LayerExporter(object):
           self.export_settings[setting_name].set_event_enabled(event_id, True)
   
   def _add_operations_initial(self):
-    self._operations_executor.add_operation(LayerOperations.set_active_layer, [_BUILTIN_OPERATIONS_GROUP])
+    self._operations_executor.add_operation(builtin_operations.set_active_layer, [_BUILTIN_OPERATIONS_GROUP])
     self._operations_executor.add_executor(
       _operations_executor,
       [_BUILTIN_OPERATIONS_GROUP, _BUILTIN_FILTERS_GROUP, _BUILTIN_FILTERS_LAYER_TYPES_GROUP])
@@ -801,7 +675,7 @@ class LayerExporter(object):
     
     self._set_layer_filters()
     
-    with self._layer_tree.filter['layer_types'].remove_rule_temp(LayerFilterRules.is_empty_group, False):
+    with self._layer_tree.filter['layer_types'].remove_rule_temp(builtin_filters.is_empty_group, False):
       self.progress_updater.num_total_tasks = len(self._layer_tree)
     
     if self._keep_exported_layers:
@@ -824,24 +698,24 @@ class LayerExporter(object):
     self._layer_tree.filter.add_subfilter(
       'layer_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY))
     
-    self._layer_tree.filter['layer_types'].add_rule(LayerFilterRules.is_layer)
+    self._layer_tree.filter['layer_types'].add_rule(builtin_filters.is_layer)
     
     self._operations_executor.execute([_BUILTIN_FILTERS_LAYER_TYPES_GROUP], self)
     
     self._init_tagged_layer_elems()
     
     if self.export_settings['only_visible_layers'].value:
-      self._layer_tree.filter.add_rule(LayerFilterRules.is_path_visible)
+      self._layer_tree.filter.add_rule(builtin_filters.is_path_visible)
     
     if self.export_settings['more_filters/only_selected_layers'].value:
       self._layer_tree.filter.add_rule(
-        LayerFilterRules.is_layer_in_selected_layers,
+        builtin_filters.is_layer_in_selected_layers,
         self.export_settings['selected_layers'].value[self.image.ID])
     
     self._operations_executor.execute([_BUILTIN_FILTERS_GROUP], self)
   
   def _init_tagged_layer_elems(self):
-    with self._layer_tree.filter.add_rule_temp(LayerFilterRules.has_tags):
+    with self._layer_tree.filter.add_rule_temp(builtin_filters.has_tags):
       for layer_elem in self._layer_tree:
         for tag in layer_elem.tags:
           self._tagged_layer_elems[tag].append(layer_elem)
@@ -925,7 +799,7 @@ class LayerExporter(object):
           dest_image.parasite_attach(parasite)
   
   def _process_layer(self, layer_elem, image, layer):
-    layer_copy = LayerOperations.copy_and_insert_layer(image, layer, None, 0)
+    layer_copy = builtin_operations.copy_and_insert_layer(image, layer, None, 0)
     self._operations_executor.execute(["after_insert_layer"], image, layer_copy, self)
     
     self._operations_executor.execute([_BUILTIN_OPERATIONS_GROUP], image, layer_copy, self)

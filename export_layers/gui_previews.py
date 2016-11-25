@@ -50,7 +50,7 @@ import export_layers.pygimplib as pygimplib
 from export_layers.pygimplib import constants
 from export_layers.pygimplib import pggui
 
-from export_layers import exportlayers
+from export_layers import builtin_filters
 
 #===============================================================================
 
@@ -622,10 +622,10 @@ class ExportNamePreview(ExportPreview):
     if self._layer_exporter.export_settings['more_filters/only_selected_layers'].value:
       if not enabled:
         self._layer_exporter.layer_tree.filter.add_rule(
-          exportlayers.LayerFilterRules.is_layer_in_selected_layers, self._selected_items)
+          builtin_filters.is_layer_in_selected_layers, self._selected_items)
       else:
         self._layer_exporter.layer_tree.filter.remove_rule(
-          exportlayers.LayerFilterRules.is_layer_in_selected_layers, raise_if_not_found=False)
+          builtin_filters.is_layer_in_selected_layers, raise_if_not_found=False)
   
   def _set_items_sensitive(self):
     if self._layer_exporter.export_settings['more_filters/only_selected_layers'].value:

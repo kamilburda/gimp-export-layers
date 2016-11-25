@@ -40,7 +40,6 @@ pdb = gimp.pdb
 from export_layers import pygimplib
 from export_layers.pygimplib import constants
 
-
 #===============================================================================
 
 
