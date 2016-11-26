@@ -43,7 +43,7 @@ from .pygimplib import constants
 #===============================================================================
 
 
-_drag_type_id_counter = 1
+_operations_box_drag_type_id_counter = 1
 
 
 class OperationsBox(object):
@@ -157,10 +157,12 @@ class OperationsBox(object):
       setting.gui.element.connect("drag-failed", self._on_item_widget_drag_failed)
   
   def _get_drag_type(self):
-    global _drag_type_id_counter
+    global _operations_box_drag_type_id_counter
     
-    drag_type = "{0}_{1}_{2}".format(pygimplib.config.PLUGIN_NAME, self.__class__.__name__, _drag_type_id_counter)
-    _drag_type_id_counter += 1
+    drag_type = "{0}_{1}_{2}".format(
+      pygimplib.config.PLUGIN_NAME, self.__class__.__name__, _operations_box_drag_type_id_counter)
+    
+    _operations_box_drag_type_id_counter += 1
     
     return drag_type
   
