@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Export Layers - GIMP plug-in that exports layers as separate images
 #
