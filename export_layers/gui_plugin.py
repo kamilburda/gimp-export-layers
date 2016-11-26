@@ -46,21 +46,20 @@ import gimpui
 
 pdb = gimp.pdb
 
-import export_layers.pygimplib as pygimplib
+from . import pygimplib
+from .pygimplib import constants
+from .pygimplib import overwrite
+from .pygimplib import pggui
+from .pygimplib import pggui_entries
+from .pygimplib import pgutils
+from .pygimplib import pgsetting
+from .pygimplib import pgsettinggroup
+from .pygimplib import pgsettingpersistor
 
-from export_layers.pygimplib import constants
-from export_layers.pygimplib import overwrite
-from export_layers.pygimplib import pggui
-from export_layers.pygimplib import pggui_entries
-from export_layers.pygimplib import pgutils
-from export_layers.pygimplib import pgsetting
-from export_layers.pygimplib import pgsettinggroup
-from export_layers.pygimplib import pgsettingpersistor
-
-from export_layers import exportlayers
-from export_layers import gui_operations
-from export_layers import gui_previews
-from export_layers import settings_plugin
+from . import exportlayers
+from . import gui_operations
+from . import gui_previews
+from . import settings_plugin
 
 #===============================================================================
 

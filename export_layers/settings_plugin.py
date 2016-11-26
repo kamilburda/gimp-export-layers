@@ -34,12 +34,11 @@ import os
 import gimp
 import gimpenums
 
-import export_layers.pygimplib as pygimplib
-
-from export_layers.pygimplib import overwrite
-from export_layers.pygimplib import pgpath
-from export_layers.pygimplib import pgsetting
-from export_layers.pygimplib import pgsettinggroup
+from . import pygimplib
+from .pygimplib import overwrite
+from .pygimplib import pgpath
+from .pygimplib import pgsetting
+from .pygimplib import pgsettinggroup
 
 #===============================================================================
 

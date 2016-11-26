@@ -45,12 +45,11 @@ import gimpenums
 
 pdb = gimp.pdb
 
-import export_layers.pygimplib as pygimplib
+from . import pygimplib
+from .pygimplib import constants
+from .pygimplib import pggui
 
-from export_layers.pygimplib import constants
-from export_layers.pygimplib import pggui
-
-from export_layers import builtin_filters
+from . import builtin_filters
 
 #===============================================================================
 

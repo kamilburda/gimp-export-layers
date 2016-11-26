@@ -41,17 +41,16 @@ import gimpenums
 
 pdb = gimp.pdb
 
-import export_layers.pygimplib as pygimplib
-
-from export_layers.pygimplib import objectfilter
-from export_layers.pygimplib import operations
-from export_layers.pygimplib import overwrite
-from export_layers.pygimplib import pgfileformats
-from export_layers.pygimplib import pgitemtree
-from export_layers.pygimplib import pgpath
-from export_layers.pygimplib import pgpdb
-from export_layers.pygimplib import pgutils
-from export_layers.pygimplib import progress
+from . import pygimplib
+from .pygimplib import objectfilter
+from .pygimplib import operations
+from .pygimplib import overwrite
+from .pygimplib import pgfileformats
+from .pygimplib import pgitemtree
+from .pygimplib import pgpath
+from .pygimplib import pgpdb
+from .pygimplib import pgutils
+from .pygimplib import progress
 
 from . import builtin_operations
 from . import builtin_filters

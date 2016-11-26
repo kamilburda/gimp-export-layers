@@ -35,7 +35,7 @@ import gimpenums
 
 pdb = gimp.pdb
 
-from export_layers.pygimplib import pgpdb
+from .pygimplib import pgpdb
 
 #===============================================================================
 
