@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # pygimplib - Collection of modules to improve development of Python GIMP plug-ins
 #
