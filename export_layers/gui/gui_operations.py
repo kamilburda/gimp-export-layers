@@ -38,8 +38,8 @@ import gimp
 
 pdb = gimp.pdb
 
-from . import pygimplib
-from .pygimplib import constants
+from .. import pygimplib
+from ..pygimplib import constants
 
 #===============================================================================
 
