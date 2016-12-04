@@ -37,12 +37,12 @@ from .. import pgpath
 class TestUniquifyString(unittest.TestCase):
   
   def test_uniquify_string(self):
-    self.assertEqual("one (1)", pgpath.uniquify_string("one", ["one", "two", "three"]))
-    self.assertEqual("one (2)", pgpath.uniquify_string("one", ["one", "one (1)", "three"]))
+    self.assertEqual(pgpath.uniquify_string("one", ["one", "two", "three"]), "one (1)")
+    self.assertEqual(pgpath.uniquify_string("one", ["one", "one (1)", "three"]), "one (2)")
     
-    self.assertEqual("one. (1)", pgpath.uniquify_string("one.", ["one.", "two", "three"]))
-    self.assertEqual("one (1) (1)", pgpath.uniquify_string("one (1)", ["one (1)", "two", "three"]))
-    self.assertEqual("one (1) (1)", pgpath.uniquify_string("one (1)", ["one (1)", "one (2)", "three"]))
+    self.assertEqual(pgpath.uniquify_string("one.", ["one.", "two", "three"]), "one. (1)")
+    self.assertEqual(pgpath.uniquify_string("one (1)", ["one (1)", "two", "three"]), "one (1) (1)")
+    self.assertEqual(pgpath.uniquify_string("one (1)", ["one (1)", "one (2)", "three"]), "one (1) (1)")
   
   def test_uniquify_string_insert_before_file_extension(self):
     
@@ -53,9 +53,9 @@ class TestUniquifyString(unittest.TestCase):
       return position
     
     def _test_uniquify_with_file_extension(input_str, existing_strings, expected_uniquified_str):
-      self.assertEqual(expected_uniquified_str, pgpath.uniquify_string(
-        input_str, existing_strings,
-        _get_file_extension_start_position(input_str)))
+      self.assertEqual(
+        pgpath.uniquify_string(input_str, existing_strings, _get_file_extension_start_position(input_str)),
+        expected_uniquified_str)
     
     _test_uniquify_with_file_extension("one.jpg", ["one.jpg", "two", "three"], "one (1).jpg")
     _test_uniquify_with_file_extension("one.jpg", ["one.jpg", "one (1).jpg", "two", "three"], "one (2).jpg")
