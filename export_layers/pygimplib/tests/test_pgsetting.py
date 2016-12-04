@@ -343,7 +343,7 @@ class TestSettingEvents(unittest.TestCase):
     
     self.setting.set_value("jpg")
     self.assertEqual(self.only_visible_layers.value, True)
-    self.assertEqual(self.only_visible_layers.gui.get_enabled(), False)
+    self.assertFalse(self.only_visible_layers.gui.get_enabled())
   
   def test_connect_value_changed_event_nested(self):
     self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
@@ -355,7 +355,7 @@ class TestSettingEvents(unittest.TestCase):
     
     self.assertEqual(self.setting.value, "jpg")
     self.assertEqual(self.only_visible_layers.value, True)
-    self.assertEqual(self.only_visible_layers.gui.get_enabled(), False)
+    self.assertFalse(self.only_visible_layers.gui.get_enabled())
   
   def test_connect_event_multiple_events_on_single_setting(self):
     self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
@@ -366,7 +366,7 @@ class TestSettingEvents(unittest.TestCase):
     self.setting.set_value("jpg")
     self.assertEqual(self.setting.value, "jpg")
     self.assertEqual(self.only_visible_layers.value, True)
-    self.assertEqual(autocrop.gui.get_visible(), False)
+    self.assertFalse(autocrop.gui.get_visible())
   
   def test_remove_event(self):
     event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
@@ -374,7 +374,7 @@ class TestSettingEvents(unittest.TestCase):
     
     self.setting.set_value("jpg")
     self.assertEqual(self.only_visible_layers.value, self.only_visible_layers.default_value)
-    self.assertEqual(self.only_visible_layers.gui.get_enabled(), True)
+    self.assertTrue(self.only_visible_layers.gui.get_enabled())
   
   def test_remove_event_with_id_non_last_event(self):
     event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
@@ -386,7 +386,7 @@ class TestSettingEvents(unittest.TestCase):
     
     self.setting.set_value("jpg")
     self.assertEqual(self.only_visible_layers.value, False)
-    self.assertEqual(autocrop.gui.get_visible(), False)
+    self.assertFalse(autocrop.gui.get_visible())
   
   def test_remove_event_invalid_id(self):
     self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
@@ -394,11 +394,11 @@ class TestSettingEvents(unittest.TestCase):
       self.setting.remove_event(-1)
   
   def test_has_event(self):
-    self.assertEqual(self.setting.has_event(-1), False)
+    self.assertFalse(self.setting.has_event(-1))
     event_id = self.setting.connect_event('value-changed', on_file_extension_changed, self.only_visible_layers)
-    self.assertEqual(self.setting.has_event(event_id), True)
+    self.assertTrue(self.setting.has_event(event_id))
     self.setting.remove_event(event_id)
-    self.assertEqual(self.setting.has_event(event_id), False)
+    self.assertFalse(self.setting.has_event(event_id))
   
   def test_set_event_enabled(self):
     with self.assertRaises(ValueError):
@@ -408,7 +408,7 @@ class TestSettingEvents(unittest.TestCase):
     
     self.setting.set_event_enabled(event_id, False)
     self.setting.set_value("jpg")
-    self.assertEqual(self.only_visible_layers.value, False)
+    self.assertFalse(self.only_visible_layers.value)
     
     self.setting.set_event_enabled(event_id, True)
     self.setting.set_value("jpg")
@@ -428,7 +428,7 @@ class TestSettingEvents(unittest.TestCase):
     self.setting.set_value("jpg")
     self.setting.reset()
     self.assertEqual(self.only_visible_layers.value, self.only_visible_layers.default_value)
-    self.assertEqual(self.only_visible_layers.gui.get_enabled(), True)
+    self.assertTrue(self.only_visible_layers.gui.get_enabled())
 
 
 @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new_callable=gimpstubs.ShelfStub)
@@ -547,8 +547,8 @@ class TestSettingGui(unittest.TestCase):
     
     self.setting.set_gui(SettingPresenterStub, self.widget)
     
-    self.assertEqual(self.setting.gui.get_enabled(), False)
-    self.assertEqual(self.setting.gui.get_visible(), False)
+    self.assertFalse(self.setting.gui.get_enabled())
+    self.assertFalse(self.setting.gui.get_visible())
     self.assertEqual(self.widget.value, "gif")
   
   def test_setting_gui_type(self):
@@ -618,7 +618,7 @@ class TestSettingGui(unittest.TestCase):
     self.widget.set_value("jpg")
     self.assertEqual(self.setting.value, "jpg")
     self.assertEqual(only_visible_layers.value, True)
-    self.assertEqual(only_visible_layers.gui.get_enabled(), False)
+    self.assertFalse(only_visible_layers.gui.get_enabled())
   
   def test_reset_updates_gui(self):
     self.setting.set_gui(SettingPresenterStub, self.widget)
@@ -639,17 +639,17 @@ class TestSettingGui(unittest.TestCase):
   
   def test_null_setting_presenter_has_automatic_gui(self):
     setting = SettingWithGuiStub("file_extension", "")
-    self.assertEqual(setting.gui.gui_update_enabled, True)
+    self.assertTrue(setting.gui.gui_update_enabled)
   
   def test_manual_gui_update_enabled_is_false(self):
     setting = SettingWithGuiStub("file_extension", "")
     setting.set_gui(SettingPresenterStub, self.widget)
-    self.assertEqual(setting.gui.gui_update_enabled, False)
+    self.assertFalse(setting.gui.gui_update_enabled)
   
   def test_automatic_gui_update_enabled_is_true(self):
     setting = SettingWithGuiStub("file_extension", "")
     setting.set_gui(SettingPresenterWithValueChangedSignalStub, self.widget)
-    self.assertEqual(setting.gui.gui_update_enabled, True)
+    self.assertTrue(setting.gui.gui_update_enabled)
     
     self.widget.set_value("png")
     self.assertEqual(setting.value, "png")
@@ -657,7 +657,7 @@ class TestSettingGui(unittest.TestCase):
   def test_automatic_gui_update_enabled_is_false(self):
     setting = SettingWithGuiStub("file_extension", "", auto_update_gui_to_setting=False)
     setting.set_gui(SettingPresenterWithValueChangedSignalStub, self.widget)
-    self.assertEqual(setting.gui.gui_update_enabled, False)
+    self.assertFalse(setting.gui.gui_update_enabled)
     
     self.widget.set_value("png")
     self.assertEqual(setting.value, "")
@@ -665,7 +665,7 @@ class TestSettingGui(unittest.TestCase):
   def test_set_gui_disable_automatic_setting_value_update(self):
     setting = SettingWithGuiStub("file_extension", "")
     setting.set_gui(SettingPresenterWithValueChangedSignalStub, self.widget, auto_update_gui_to_setting=False)
-    self.assertEqual(setting.gui.gui_update_enabled, False)
+    self.assertFalse(setting.gui.gui_update_enabled)
     
     self.widget.set_value("png")
     self.assertEqual(setting.value, "")
@@ -682,7 +682,7 @@ class TestSettingGui(unittest.TestCase):
     setting = SettingWithGuiStub("file_extension", "")
     setting.set_gui(SettingPresenterStub, self.widget)
     
-    self.assertEqual(setting.gui.gui_update_enabled, False)
+    self.assertFalse(setting.gui.gui_update_enabled)
     
     with self.assertRaises(ValueError):
       setting.gui.auto_update_gui_to_setting(True)
@@ -829,9 +829,9 @@ class TestEnumSetting(unittest.TestCase):
       'overwrite_mode', 'replace', [('choose', "-Choose Your Mode-"), ('skip', "Skip"), ('replace', "Replace")],
       empty_value='choose', allow_empty_values=True)
     
-    self.assertEqual(setting.is_value_empty(), False)
+    self.assertFalse(setting.is_value_empty())
     setting.set_value(setting.items['choose'])
-    self.assertEqual(setting.is_value_empty(), True)
+    self.assertTrue(setting.is_value_empty())
     
   def test_set_empty_value_not_allowed(self):
     setting = pgsetting.EnumSetting(
