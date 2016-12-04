@@ -214,10 +214,10 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       self._compare_layers(layer, expected_layers[layer.name])
   
   def _compare_layers(self, layer, expected_layer):
-    self.assertEqual(pgpdb.compare_layers([layer, expected_layer]), True,
-      msg=(
-        "Layers are not identical:\nprocessed layer: {0}\nexpected layer: {1}".format(
-          layer.name, expected_layer.name)))
+    self.assertEqual(
+      pgpdb.compare_layers([layer, expected_layer]), True,
+      msg=("Layers are not identical:\nprocessed layer: {0}\nexpected layer: {1}".format(
+        layer.name, expected_layer.name)))
   
   @classmethod
   def _load_image(cls):
