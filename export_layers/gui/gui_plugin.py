@@ -60,7 +60,8 @@ from ..pygimplib import pgsettingpersistor
 from .. import exportlayers
 from .. import settings_plugin
 from . import gui_operations
-from . import gui_previews
+from . import gui_preview_image
+from . import gui_preview_name
 
 #===============================================================================
 
@@ -486,7 +487,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._folder_chooser = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
     
-    self._export_name_preview = gui_previews.ExportNamePreview(
+    self._export_name_preview = gui_preview_name.ExportNamePreview(
       self._layer_exporter_for_previews,
       self._initial_layer_tree,
       self._settings['gui_session/export_name_preview_layers_collapsed_state'].value[self._image.ID],
@@ -496,7 +497,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       on_after_update_func=self._on_name_preview_after_update,
       on_after_edit_tags_func=self._on_name_preview_after_edit_tags)
     
-    self._export_image_preview = gui_previews.ExportImagePreview(
+    self._export_image_preview = gui_preview_image.ExportImagePreview(
       self._layer_exporter_for_previews,
       self._initial_layer_tree,
       self._settings['gui_session/export_image_preview_displayed_layers'].value[self._image.ID])
