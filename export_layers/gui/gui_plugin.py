@@ -48,14 +48,14 @@ import gimpui
 pdb = gimp.pdb
 
 from .. import pygimplib
-from ..pygimplib import constants
-from ..pygimplib import overwrite
+from ..pygimplib import pgconstants
 from ..pygimplib import pggui
 from ..pygimplib import pggui_entries
-from ..pygimplib import pgutils
+from ..pygimplib import pgoverwrite
 from ..pygimplib import pgsetting
 from ..pygimplib import pgsettinggroup
 from ..pygimplib import pgsettingpersistor
+from ..pygimplib import pgutils
 
 from .. import exportlayers
 from .. import settings_plugin
@@ -345,13 +345,13 @@ def _update_directory(setting, current_image, directory_for_current_image):
   
   if directory_for_current_image is not None:
     if isinstance(directory_for_current_image, bytes):
-      directory_for_current_image = directory_for_current_image.decode(constants.GTK_CHARACTER_ENCODING)
+      directory_for_current_image = directory_for_current_image.decode(pgconstants.GTK_CHARACTER_ENCODING)
     
     setting.set_value(directory_for_current_image)
     return True
   
   if current_image.filename is not None:
-    setting.set_value(os.path.dirname(current_image.filename.decode(constants.GTK_CHARACTER_ENCODING)))
+    setting.set_value(os.path.dirname(current_image.filename.decode(pgconstants.GTK_CHARACTER_ENCODING)))
     return True
   
   return False
@@ -432,7 +432,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._layer_exporter_for_previews = exportlayers.LayerExporter(
       gimpenums.RUN_NONINTERACTIVE, self._image, self._settings['main'],
-      overwrite_chooser=overwrite.NoninteractiveOverwriteChooser(
+      overwrite_chooser=pgoverwrite.NoninteractiveOverwriteChooser(
         self._settings['main/overwrite_mode'].items['replace']),
       layer_tree=self._initial_layer_tree)
     
@@ -1180,7 +1180,7 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
     
     self._layer_exporter = exportlayers.LayerExporter(
       gimpenums.RUN_WITH_LAST_VALS, self._image, self._settings['main'],
-      overwrite.NoninteractiveOverwriteChooser(self._settings['main/overwrite_mode'].value),
+      pgoverwrite.NoninteractiveOverwriteChooser(self._settings['main/overwrite_mode'].value),
       pggui.GtkProgressUpdater(self._progress_bar),
       export_context_manager=_handle_gui_in_export, export_context_manager_args=[self._dialog])
     try:

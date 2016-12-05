@@ -43,15 +43,15 @@ import gimpenums
 pdb = gimp.pdb
 
 from . import pygimplib
-from .pygimplib import objectfilter
-from .pygimplib import operations
-from .pygimplib import overwrite
 from .pygimplib import pgfileformats
 from .pygimplib import pgitemtree
+from .pygimplib import pgobjectfilter
+from .pygimplib import pgoperations
+from .pygimplib import pgoverwrite
 from .pygimplib import pgpath
 from .pygimplib import pgpdb
+from .pygimplib import pgprogress
 from .pygimplib import pgutils
-from .pygimplib import progress
 
 from . import builtin_operations
 from . import builtin_filters
@@ -304,7 +304,7 @@ _BUILTIN_OPERATIONS_GROUP = "process_layer"
 _BUILTIN_FILTERS_GROUP = "set_filters"
 _BUILTIN_FILTERS_LAYER_TYPES_GROUP = "set_filters_layer_types"
 
-_operations_executor = operations.OperationsExecutor()
+_operations_executor = pgoperations.OperationsExecutor()
 
 _operations_executor.add_foreach_operation(
   builtin_operations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
@@ -397,7 +397,7 @@ class LayerExporter(object):
   
   * `overwrite_chooser` - `OverwriteChooser` instance that is invoked if a file
     with the same name already exists. If None is passed during initialization,
-    `overwrite.NoninteractiveOverwriteChooser` is used by default.
+    `pgoverwrite.NoninteractiveOverwriteChooser` is used by default.
   
   * `progress_updater` - `ProgressUpdater` instance that indicates the number of
     layers exported. If no progress update is desired, pass None.
@@ -422,7 +422,7 @@ class LayerExporter(object):
   * `current_layer_elem` (read-only) - The `pgitemtree._ItemTreeElement`
     instance being currently exported.
   
-  * `operations_executor` - `operations.OperationsExecutor` instance to manage
+  * `operations_executor` - `pgoperations.OperationsExecutor` instance to manage
     operations applied on layers.
   """
   
@@ -438,8 +438,9 @@ class LayerExporter(object):
     self.export_settings = export_settings
     self.overwrite_chooser = (
       overwrite_chooser if overwrite_chooser is not None
-      else overwrite.NoninteractiveOverwriteChooser(self.export_settings['overwrite_mode'].value))
-    self.progress_updater = progress_updater if progress_updater is not None else progress.ProgressUpdater(None)
+      else pgoverwrite.NoninteractiveOverwriteChooser(self.export_settings['overwrite_mode'].value))
+    self.progress_updater = (
+      progress_updater if progress_updater is not None else pgprogress.ProgressUpdater(None))
     self._layer_tree = layer_tree
     self.export_context_manager = (
       export_context_manager if export_context_manager is not None else pgutils.EmptyContext)
@@ -465,7 +466,7 @@ class LayerExporter(object):
       for function in functions:
         self._processing_groups_functions[function.__name__] = function
     
-    self._operations_executor = operations.OperationsExecutor()
+    self._operations_executor = pgoperations.OperationsExecutor()
     self._add_operations_initial()
   
   @property
@@ -696,7 +697,7 @@ class LayerExporter(object):
   
   def _set_layer_filters(self):
     self._layer_tree.filter.add_subfilter(
-      'layer_types', objectfilter.ObjectFilter(objectfilter.ObjectFilter.MATCH_ANY))
+      'layer_types', pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ANY))
     
     self._layer_tree.filter['layer_types'].add_rule(builtin_filters.is_layer)
     
@@ -745,7 +746,7 @@ class LayerExporter(object):
     self._postprocess_layer_name(layer_elem)
     self.progress_updater.update_tasks()
     
-    if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
+    if self._current_overwrite_mode != pgoverwrite.OverwriteModes.SKIP:
       self._exported_layers.append(layer)
       self._exported_layers_ids.add(layer.ID)
       self._file_extension_properties[self._current_file_extension].processed_count += 1
@@ -879,13 +880,13 @@ class LayerExporter(object):
     
     self.progress_updater.update_text(_("Saving '{0}'").format(output_filename))
     
-    self._current_overwrite_mode, output_filename = overwrite.handle_overwrite(
+    self._current_overwrite_mode, output_filename = pgoverwrite.handle_overwrite(
       output_filename, self.overwrite_chooser, self._get_uniquifier_position(output_filename))
     
-    if self._current_overwrite_mode == overwrite.OverwriteModes.CANCEL:
+    if self._current_overwrite_mode == pgoverwrite.OverwriteModes.CANCEL:
       raise ExportLayersCancelError("cancelled")
     
-    if self._current_overwrite_mode != overwrite.OverwriteModes.SKIP:
+    if self._current_overwrite_mode != pgoverwrite.OverwriteModes.SKIP:
       _make_dirs(os.path.dirname(output_filename), self)
       
       self._export_once_wrapper(self._get_export_func(), self._get_run_mode(), image, layer, output_filename)

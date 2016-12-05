@@ -36,7 +36,7 @@ import gimp
 import gimpenums
 
 from . import pygimplib
-from .pygimplib import overwrite
+from .pygimplib import pgoverwrite
 from .pygimplib import pgpath
 from .pygimplib import pgsetting
 from .pygimplib import pgsettinggroup
@@ -142,11 +142,11 @@ def create_settings():
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
-      'items': [('replace', _("_Replace"), overwrite.OverwriteModes.REPLACE),
-                ('skip', _("_Skip"), overwrite.OverwriteModes.SKIP),
-                ('rename_new', _("Rename _new file"), overwrite.OverwriteModes.RENAME_NEW),
-                ('rename_existing', _("Rename _existing file"), overwrite.OverwriteModes.RENAME_EXISTING),
-                ('cancel', _("_Cancel"), overwrite.OverwriteModes.CANCEL)],
+      'items': [('replace', _("_Replace"), pgoverwrite.OverwriteModes.REPLACE),
+                ('skip', _("_Skip"), pgoverwrite.OverwriteModes.SKIP),
+                ('rename_new', _("Rename _new file"), pgoverwrite.OverwriteModes.RENAME_NEW),
+                ('rename_existing', _("Rename _existing file"), pgoverwrite.OverwriteModes.RENAME_EXISTING),
+                ('cancel', _("_Cancel"), pgoverwrite.OverwriteModes.CANCEL)],
       'display_name': _("Overwrite mode (non-interactive run mode only)")
     },
   ], setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])

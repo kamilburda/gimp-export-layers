@@ -39,7 +39,7 @@ import gimp
 pdb = gimp.pdb
 
 from .. import pygimplib
-from ..pygimplib import constants
+from ..pygimplib import pgconstants
 
 #===============================================================================
 
@@ -90,7 +90,7 @@ class OperationsBox(object):
       button_hbox.pack_start(
         gtk.image_new_from_stock(gtk.STOCK_ADD, gtk.ICON_SIZE_MENU), expand=False, fill=False)
       
-      label_add = gtk.Label(self.label_add_text.encode(constants.GTK_CHARACTER_ENCODING))
+      label_add = gtk.Label(self.label_add_text.encode(pgconstants.GTK_CHARACTER_ENCODING))
       label_add.set_use_underline(True)
       button_hbox.pack_start(label_add, expand=False, fill=False)
       
@@ -132,7 +132,7 @@ class OperationsBox(object):
     
     for setting in self._settings:
       menu_item = gtk.MenuItem(
-        label=setting.display_name.encode(constants.GTK_CHARACTER_ENCODING), use_underline=False)
+        label=setting.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING), use_underline=False)
       menu_item.connect("activate", self._on_operations_menu_item_activate)
       self._operations_menu.append(menu_item)
       self._menu_items_and_settings[menu_item] = setting

@@ -46,7 +46,7 @@ import gimpenums
 pdb = gimp.pdb
 
 from .. import pygimplib
-from ..pygimplib import constants
+from ..pygimplib import pgconstants
 from ..pygimplib import pggui
 
 from . import gui_preview_base
@@ -452,4 +452,4 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   
   def _set_layer_name_label(self, layer_name):
     self._label_layer_name.set_markup(
-      "<i>{0}</i>".format(gobject.markup_escape_text(layer_name.encode(constants.GTK_CHARACTER_ENCODING))))
+      "<i>{0}</i>".format(gobject.markup_escape_text(layer_name.encode(pgconstants.GTK_CHARACTER_ENCODING))))
