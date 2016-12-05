@@ -57,8 +57,7 @@ import gimpenums
 
 pdb = gimp.pdb
 
-from . import objectfilter
-from . import pgfileformats
+from . import pgobjectfilter
 from . import pgpath
 
 #===============================================================================
@@ -100,14 +99,15 @@ class ItemTree(object):
   
   __metaclass__ = abc.ABCMeta
   
-  def __init__(self, image, name=None, is_filtered=False, filter_match_type=objectfilter.ObjectFilter.MATCH_ALL):
+  def __init__(self, image, name=None, is_filtered=False,
+               filter_match_type=pgobjectfilter.ObjectFilter.MATCH_ALL):
     self._image = image
     self._name = name
     self.is_filtered = is_filtered
     self._filter_match_type = filter_match_type
     
     # Filters applied to all items in `self._itemtree`
-    self.filter = objectfilter.ObjectFilter(self._filter_match_type)
+    self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
     
     # Contains all items in the item tree (including item groups).
     # key: `_ItemTreeElement.item.ID`
@@ -272,7 +272,7 @@ class ItemTree(object):
     Reset the filter, creating a new empty `ObjectFilter`.
     """
     
-    self.filter = objectfilter.ObjectFilter(self._filter_match_type)
+    self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
   
   def reset_item_elements(self):
     """

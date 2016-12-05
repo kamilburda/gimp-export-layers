@@ -27,12 +27,12 @@ str = unicode
 
 import unittest
 
-from .. import overwrite
+from .. import pgoverwrite
 
 #===============================================================================
 
 
-class InteractiveOverwriteChooserStub(overwrite.InteractiveOverwriteChooser):
+class InteractiveOverwriteChooserStub(pgoverwrite.InteractiveOverwriteChooser):
   
   def __init__(self, values_and_display_names, default_value, default_response):
     super(InteractiveOverwriteChooserStub, self).__init__(

@@ -43,7 +43,7 @@ import gimp
 
 pdb = gimp.pdb
 
-from . import constants
+from . import pgconstants
 from . import pgfileformats
 from . import pgpath
 
@@ -846,7 +846,7 @@ class ExtendedEntry(gtk.Entry):
       self._popup.trigger_popup = True
   
   def _get_text_decoded(self):
-    return self.get_text().decode(constants.GTK_CHARACTER_ENCODING)
+    return self.get_text().decode(pgconstants.GTK_CHARACTER_ENCODING)
   
   def _assign_placeholder_text(self):
     if self._placeholder_text is not None:
@@ -985,7 +985,7 @@ class FilenamePatternEntry(ExtendedEntry):
     cursor_position = self._cursor_position_before_assigning_from_row
     
     suggested_item = str(tree_model[selected_tree_iter][self._COLUMN_ITEMS])
-    last_assigned_entry_text = self._popup.last_assigned_entry_text.decode(constants.GTK_CHARACTER_ENCODING)
+    last_assigned_entry_text = self._popup.last_assigned_entry_text.decode(pgconstants.GTK_CHARACTER_ENCODING)
     
     if (cursor_position > 0 and len(last_assigned_entry_text) >= cursor_position
         and last_assigned_entry_text[cursor_position - 1] == "["):
@@ -993,7 +993,7 @@ class FilenamePatternEntry(ExtendedEntry):
     
     self.assign_text(
       (last_assigned_entry_text[:cursor_position] + suggested_item
-       + last_assigned_entry_text[cursor_position:]).encode(constants.GTK_CHARACTER_ENCODING))
+       + last_assigned_entry_text[cursor_position:]).encode(pgconstants.GTK_CHARACTER_ENCODING))
     
     self.set_position(cursor_position + len(suggested_item))
     self._cursor_position = self.get_position()
@@ -1052,7 +1052,7 @@ class FilenamePatternEntry(ExtendedEntry):
     self._cursor_position = start
   
   def _on_entry_insert_text(self, entry, new_text, new_text_length, position):
-    self._cursor_position = self.get_position() + len(new_text.decode(constants.GTK_CHARACTER_ENCODING))
+    self._cursor_position = self.get_position() + len(new_text.decode(pgconstants.GTK_CHARACTER_ENCODING))
   
   def _on_entry_cursor_position_changed(self, entry, property_spec):
     self._cursor_position = self.get_position()
@@ -1098,7 +1098,7 @@ class FilenamePatternEntry(ExtendedEntry):
     
     if move_with_text_cursor:
       self._pango_layout.set_text(
-        self._get_text_decoded()[:self._cursor_position].encode(constants.GTK_CHARACTER_ENCODING))
+        self._get_text_decoded()[:self._cursor_position].encode(pgconstants.GTK_CHARACTER_ENCODING))
       
       x_offset = min(
         self._pango_layout.get_pixel_size()[0] + self.get_layout_offsets()[0],

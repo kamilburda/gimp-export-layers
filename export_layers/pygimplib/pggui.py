@@ -57,13 +57,13 @@ import gimpui
 
 pdb = gimp.pdb
 
-from . import overwrite
-from . import progress
+from . import pgoverwrite
+from . import pgprogress
 
 #===============================================================================
 
 
-class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
+class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
   
   """
   This class is used to display a GTK dialog prompt in an interactive environment
@@ -177,7 +177,7 @@ class GtkDialogOverwriteChooser(overwrite.InteractiveOverwriteChooser):
 #===============================================================================
 
 
-class GtkProgressUpdater(progress.ProgressUpdater):
+class GtkProgressUpdater(pgprogress.ProgressUpdater):
   
   def _fill_progress_bar(self):
     self.progress_bar.set_fraction(self._num_finished_tasks / self.num_total_tasks)

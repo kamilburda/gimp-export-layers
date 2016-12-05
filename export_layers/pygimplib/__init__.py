@@ -47,7 +47,7 @@ except ImportError:
 else:
   _gimp_dependent_modules_imported = True
 
-from . import constants
+from . import pgconstants
 
 #===============================================================================
 
@@ -104,7 +104,7 @@ def _init_config():
   config.PLUGIN_PATH = os.path.dirname(pygimplib_directory)
   
   if _gimp_dependent_modules_imported:
-    config.LOG_MODE = constants.LOG_EXCEPTIONS_ONLY
+    config.LOG_MODE = pgconstants.LOG_EXCEPTIONS_ONLY
   
   gettext.install(config.DOMAIN_NAME, config.LOCALE_PATH, unicode=True)
   

@@ -387,9 +387,11 @@ class TestSettingGroup(unittest.TestCase):
     # `reset()` ignores 'file_extension' and 'overwrite_mode'
     self.assertEqual(self.settings['file_extension'].value, "gif")
     self.assertEqual(self.settings['overwrite_mode'].value, self.settings['overwrite_mode'].items['skip'])
-    self.assertEqual(self.settings['only_visible_layers'].value, self.settings['only_visible_layers'].default_value)
-    self.assertEqual(self.settings['special']['first_plugin_run'].value,
-                     self.settings['special']['first_plugin_run'].default_value)
+    self.assertEqual(
+      self.settings['only_visible_layers'].value, self.settings['only_visible_layers'].default_value)
+    self.assertEqual(
+      self.settings['special']['first_plugin_run'].value,
+      self.settings['special']['first_plugin_run'].default_value)
   
   def test_reset_ignores_nested_group(self):
     self.settings.add([self.special_settings])
@@ -409,8 +411,10 @@ class TestSettingGroupHierarchical(unittest.TestCase):
   
   def test_get_settings_via_paths(self):
     self.assertEqual(self.settings['main/file_extension'], self.settings['main']['file_extension'])
-    self.assertEqual(self.settings['advanced/only_visible_layers'], self.settings['advanced']['only_visible_layers'])
-    self.assertEqual(self.settings['advanced/overwrite_mode'], self.settings['advanced']['overwrite_mode'])
+    self.assertEqual(
+      self.settings['advanced/only_visible_layers'], self.settings['advanced']['only_visible_layers'])
+    self.assertEqual(
+      self.settings['advanced/overwrite_mode'], self.settings['advanced']['overwrite_mode'])
     
     self.settings['advanced'].add([
       pgsettinggroup.SettingGroup('expert', [

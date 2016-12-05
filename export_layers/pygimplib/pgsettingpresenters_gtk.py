@@ -40,7 +40,7 @@ import gimpui
 
 pdb = gimp.pdb
 
-from . import constants
+from . import pgconstants
 from . import pgsettingpresenter
 
 #===============================================================================
@@ -116,7 +116,7 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
     labels_and_values = setting.get_item_display_names_and_values()
     
     for i in range(0, len(labels_and_values), 2):
-      labels_and_values[i] = labels_and_values[i].encode(constants.GTK_CHARACTER_ENCODING)
+      labels_and_values[i] = labels_and_values[i].encode(pgconstants.GTK_CHARACTER_ENCODING)
     
     return gimpui.IntComboBox(tuple(labels_and_values))
   
@@ -139,10 +139,10 @@ class GtkEntryPresenter(GtkSettingPresenter):
     return gtk.Entry()
   
   def _get_value(self):
-    return self._element.get_text().decode(constants.GTK_CHARACTER_ENCODING)
+    return self._element.get_text().decode(pgconstants.GTK_CHARACTER_ENCODING)
   
   def _set_value(self, value):
-    self._element.set_text(value.encode(constants.GTK_CHARACTER_ENCODING))
+    self._element.set_text(value.encode(pgconstants.GTK_CHARACTER_ENCODING))
     # Place the cursor at the end of the text entry.
     self._element.set_position(-1)
 
@@ -156,10 +156,10 @@ class ExtendedEntryPresenter(GtkSettingPresenter):
   """
   
   def _get_value(self):
-    return self._element.get_text().decode(constants.GTK_CHARACTER_ENCODING)
+    return self._element.get_text().decode(pgconstants.GTK_CHARACTER_ENCODING)
   
   def _set_value(self, value):
-    self._element.assign_text(value.encode(constants.GTK_CHARACTER_ENCODING))
+    self._element.assign_text(value.encode(pgconstants.GTK_CHARACTER_ENCODING))
 
 
 class GtkFolderChooserPresenter(GtkSettingPresenter):
@@ -186,13 +186,13 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
       folder = self._element.get_filename()
     
     if folder is not None:
-      return folder.decode(constants.GTK_CHARACTER_ENCODING)
+      return folder.decode(pgconstants.GTK_CHARACTER_ENCODING)
     else:
       return None
   
   def _set_value(self, folder):
     if folder is not None:
-      encoded_folder = folder.encode(constants.GTK_CHARACTER_ENCODING)
+      encoded_folder = folder.encode(pgconstants.GTK_CHARACTER_ENCODING)
     else:
       encoded_folder = b""
     

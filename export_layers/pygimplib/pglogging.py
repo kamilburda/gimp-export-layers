@@ -37,7 +37,7 @@ import logging
 import os
 import sys
 
-from . import constants
+from . import pgconstants
 from . import pgpath
 from . import pgpdb
 
@@ -73,7 +73,7 @@ def log_output(log_mode, log_path_dirnames, log_stdout_filename, log_stderr_file
     modes only.
   """
   
-  if log_mode == constants.LOG_EXCEPTIONS_ONLY:
+  if log_mode == pgconstants.LOG_EXCEPTIONS_ONLY:
     logger = logging.getLogger(log_stderr_filename)
     logger.setLevel(logging.DEBUG)
     
@@ -89,10 +89,10 @@ def log_output(log_mode, log_path_dirnames, log_stdout_filename, log_stderr_file
       
       sys.excepthook = log_exceptions
   
-  elif log_mode == constants.LOG_OUTPUT_FILES:
+  elif log_mode == pgconstants.LOG_OUTPUT_FILES:
     sys.stdout = SimpleLogger(os.path.join(log_path_dirnames[0], log_stdout_filename), "a", log_header_title)
     sys.stderr = SimpleLogger(os.path.join(log_path_dirnames[0], log_stderr_filename), "a", log_header_title)
-  elif log_mode == constants.LOG_OUTPUT_GIMP_CONSOLE:
+  elif log_mode == pgconstants.LOG_OUTPUT_GIMP_CONSOLE:
     sys.stdout = pgpdb.GimpMessageFile(message_delay_milliseconds=gimp_console_message_delay_milliseconds)
     sys.stderr = pgpdb.GimpMessageFile(
       message_prefix="Error: ", message_delay_milliseconds=gimp_console_message_delay_milliseconds)

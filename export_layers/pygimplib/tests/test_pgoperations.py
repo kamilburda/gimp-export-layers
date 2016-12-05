@@ -27,7 +27,7 @@ str = unicode
 
 import unittest
 
-from .. import operations
+from .. import pgoperations
 
 #===============================================================================
 
@@ -85,7 +85,7 @@ def append_to_list_again(list_):
 class TestOperationsExecutor(unittest.TestCase):
   
   def setUp(self):
-    self.operations_executor = operations.OperationsExecutor()
+    self.operations_executor = pgoperations.OperationsExecutor()
   
   def test_has_operation(self):
     operation_id = self.operations_executor.add_operation(append_to_list, ["main_processing"])
@@ -97,7 +97,7 @@ class TestOperationsExecutor(unittest.TestCase):
     self.operations_executor.add_operation(append_test, ["main_processing"], test_list)
     self.assertTrue(self.operations_executor.has_matching_operation(append_test, "main_processing"))
     
-    additional_executor = operations.OperationsExecutor()
+    additional_executor = pgoperations.OperationsExecutor()
     self.operations_executor.add_executor(additional_executor, ["main_processing"])
     self.assertTrue(
       self.operations_executor.has_matching_operation(
@@ -123,7 +123,7 @@ class TestOperationsExecutor(unittest.TestCase):
     operation_ids.append(
       self.operations_executor.add_foreach_operation(append_to_list_before, ["main_processing"], test_list, 3))
     
-    additional_executor = operations.OperationsExecutor()
+    additional_executor = pgoperations.OperationsExecutor()
     operation_ids.append(
       self.operations_executor.add_executor(additional_executor, ["main_processing"]))
     operation_ids.append(
@@ -163,7 +163,7 @@ class TestOperationsExecutor(unittest.TestCase):
     self.assertEqual(len(self.operations_executor.get_operations("main_processing")), 1)
     self.assertEqual(len(self.operations_executor.get_foreach_operations("main_processing")), 1)
     
-    additional_executor = operations.OperationsExecutor()
+    additional_executor = pgoperations.OperationsExecutor()
     executor_id = self.operations_executor.add_executor(additional_executor, ["main_processing"])
     
     self.operations_executor.add_operation_to_groups(executor_id, ["additional_processing"])
@@ -223,7 +223,7 @@ class TestOperationsExecutor(unittest.TestCase):
       self.operations_executor.add_foreach_operation(
         append_to_list_before, ["main_processing", "additional_processing"], test_list, 2))
     
-    additional_executor = operations.OperationsExecutor()
+    additional_executor = pgoperations.OperationsExecutor()
     operation_ids.append(self.operations_executor.add_executor(additional_executor, ["main_processing"]))
     
     self.operations_executor.remove_operation(operation_ids[2], ["main_processing"])
@@ -258,7 +258,7 @@ class TestOperationsExecutor(unittest.TestCase):
       self.operations_executor.add_foreach_operation(
         append_to_list_before, ["additional_processing"], test_list, 4))
     
-    additional_executor = operations.OperationsExecutor()
+    additional_executor = pgoperations.OperationsExecutor()
     operation_ids.append(self.operations_executor.add_executor(additional_executor, ["main_processing"]))
     
     self.assertEqual(
@@ -312,7 +312,7 @@ class TestOperationsExecutor(unittest.TestCase):
     operation_ids.append(
       self.operations_executor.add_foreach_operation(append_to_list_before, ["main_processing"], test_list, 3))
     
-    additional_executor = operations.OperationsExecutor()
+    additional_executor = pgoperations.OperationsExecutor()
     operation_ids.append(self.operations_executor.add_executor(additional_executor, ["main_processing"]))
     
     self.assertEqual(
@@ -405,7 +405,7 @@ class TestOperationsExecutor(unittest.TestCase):
     operation_ids.append(
       self.operations_executor.add_foreach_operation(append_to_list_before, ["main_processing"], test_list, 3))
     
-    additional_executor = operations.OperationsExecutor()
+    additional_executor = pgoperations.OperationsExecutor()
     operation_ids.append(self.operations_executor.add_executor(additional_executor, ["main_processing"]))
     
     self.operations_executor.remove_operation(operation_ids[0], ["main_processing"])
@@ -458,7 +458,7 @@ class TestOperationsExecutor(unittest.TestCase):
       self.operations_executor.has_matching_operation(
         append_to_list_before, "main_processing", operation_type=self.operations_executor.FOREACH_OPERATION))
     
-    additional_executor = operations.OperationsExecutor()
+    additional_executor = pgoperations.OperationsExecutor()
     operation_ids.append(self.operations_executor.add_executor(additional_executor, ["main_processing"]))
     operation_ids.append(self.operations_executor.add_executor(additional_executor, ["main_processing"]))
     
@@ -548,7 +548,7 @@ class TestOperationsExecutor(unittest.TestCase):
 class TestOperationsExecutorExecute(unittest.TestCase):
   
   def setUp(self):
-    self.operations_executor = operations.OperationsExecutor()
+    self.operations_executor = pgoperations.OperationsExecutor()
   
   def test_execute_single_group_single_operation(self):
     test_list = []
@@ -727,7 +727,7 @@ class TestOperationsExecutorExecute(unittest.TestCase):
   
   def test_execute_foreach_operation_does_nothing_in_another_executor(self):
     test_list = []
-    another_operations_executor = operations.OperationsExecutor()
+    another_operations_executor = pgoperations.OperationsExecutor()
     another_operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 1)
     another_operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
     
@@ -741,7 +741,7 @@ class TestOperationsExecutorExecute(unittest.TestCase):
   
   def test_execute_with_executor(self):
     test_list = []
-    another_operations_executor = operations.OperationsExecutor()
+    another_operations_executor = pgoperations.OperationsExecutor()
     another_operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 1)
     another_operations_executor.add_operation(append_test, ["main_processing"], test_list)
     
@@ -754,7 +754,7 @@ class TestOperationsExecutorExecute(unittest.TestCase):
   
   def test_execute_with_executor_after_adding_operations_to_it(self):
     test_list = []
-    another_operations_executor = operations.OperationsExecutor()
+    another_operations_executor = pgoperations.OperationsExecutor()
     
     self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
     self.operations_executor.add_executor(another_operations_executor, ["main_processing"])
@@ -768,7 +768,7 @@ class TestOperationsExecutorExecute(unittest.TestCase):
   
   def test_execute_with_multiple_executors_after_adding_operations_to_them(self):
     test_list = []
-    more_operations_executors = [operations.OperationsExecutor(), operations.OperationsExecutor()]
+    more_operations_executors = [pgoperations.OperationsExecutor(), pgoperations.OperationsExecutor()]
     
     self.operations_executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
     self.operations_executor.add_executor(more_operations_executors[0], ["main_processing"])
@@ -785,7 +785,7 @@ class TestOperationsExecutorExecute(unittest.TestCase):
     self.assertListEqual(test_list, [2, 1, "test", 3, 4])
   
   def test_execute_with_executor_empty_group(self):
-    another_operations_executor = operations.OperationsExecutor()
+    another_operations_executor = pgoperations.OperationsExecutor()
     try:
       self.operations_executor.add_executor(another_operations_executor, ["invalid_group"])
     except Exception:

@@ -27,7 +27,7 @@ str = unicode
 
 import unittest
 
-from .. import progress
+from .. import pgprogress
 
 #===============================================================================
 
@@ -39,7 +39,7 @@ class ProgressBarStub(object):
     self.fraction = 0.0
 
 
-class ProgressUpdaterStub(progress.ProgressUpdater):
+class ProgressUpdaterStub(pgprogress.ProgressUpdater):
   
   def _update_progress_bar(self):
     self.progress_bar.fraction = self._num_finished_tasks / self.num_total_tasks
