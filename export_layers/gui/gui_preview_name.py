@@ -44,6 +44,7 @@ pdb = gimp.pdb
 from .. import pygimplib
 from ..pygimplib import pgconstants
 from ..pygimplib import pggui
+from ..pygimplib import pgutils
 
 from .. import builtin_filters
 from . import gui_preview_base
@@ -74,9 +75,9 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._selected_items = selected_items if selected_items is not None else []
     self._displayed_tags_setting = displayed_tags_setting
     
-    self._on_selection_changed_func = lambda *args: None
-    self._on_after_update_func = lambda *args: None
-    self._on_after_edit_tags_func = lambda *args: None
+    self.on_selection_changed = pgutils.empty_func
+    self.on_after_update = pgutils.empty_func
+    self.on_after_edit_tags = pgutils.empty_func
     
     self._tree_iters = collections.defaultdict(lambda: None)
     
@@ -132,7 +133,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     
     self._tree_view.columns_autosize()
     
-    self._on_after_update_func()
+    self.on_after_update()
   
   def clear(self):
     """
@@ -386,7 +387,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       # hence update the whole preview.
       self.update(update_existing_contents_only=True)
       
-      self._on_after_edit_tags_func()
+      self.on_after_edit_tags()
   
   def _on_tags_menu_item_add_tag_activate(self, menu_item_add_tag):
     def _on_popup_focus_out_event(popup, event):
@@ -481,7 +482,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
         if self._selected_items != previous_selected_items:
           self.update(update_existing_contents_only=True)
       
-      self._on_selection_changed_func()
+      self.on_selection_changed()
   
   def _get_layer_ids_in_current_selection(self):
     _unused, tree_paths = self._tree_view.get_selection().get_selected_rows()

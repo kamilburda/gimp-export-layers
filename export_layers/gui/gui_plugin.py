@@ -494,9 +494,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._settings['main/selected_layers'].value[self._image.ID],
       self._settings['gui/displayed_tags'])
     
-    self._export_name_preview.on_selection_changed_func = self._on_name_preview_selection_changed
-    self._export_name_preview.on_after_update_func = self._on_name_preview_after_update
-    self._export_name_preview.on_after_edit_tags_func = self._on_name_preview_after_edit_tags
+    self._export_name_preview.on_selection_changed = self._on_name_preview_selection_changed
+    self._export_name_preview.on_after_update = self._on_name_preview_after_update
+    self._export_name_preview.on_after_edit_tags = self._on_name_preview_after_edit_tags
     
     self._export_image_preview = gui_preview_image.ExportImagePreview(
       self._layer_exporter_for_previews,
