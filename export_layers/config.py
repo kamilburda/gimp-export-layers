@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # This file is part of Export Layers.
 #
@@ -28,13 +29,13 @@ from __future__ import unicode_literals
 
 str = unicode
 
-import export_layers.pygimplib as pygimplib
+from . import pygimplib
 
 #===============================================================================
 
 pygimplib.config.PLUGIN_NAME = "export_layers"
 
-pygimplib.config.LOG_MODE = pygimplib.constants.LOG_EXCEPTIONS_ONLY
+pygimplib.config.LOG_MODE = pygimplib.pgconstants.LOG_EXCEPTIONS_ONLY
 
 pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
 pygimplib.config.PLUGIN_VERSION = "2.5"
