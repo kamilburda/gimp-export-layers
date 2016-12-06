@@ -492,10 +492,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._initial_layer_tree,
       self._settings['gui_session/export_name_preview_layers_collapsed_state'].value[self._image.ID],
       self._settings['main/selected_layers'].value[self._image.ID],
-      self._settings['gui/displayed_tags'],
-      on_selection_changed_func=self._on_name_preview_selection_changed,
-      on_after_update_func=self._on_name_preview_after_update,
-      on_after_edit_tags_func=self._on_name_preview_after_edit_tags)
+      self._settings['gui/displayed_tags'])
+    
+    self._export_name_preview.on_selection_changed_func = self._on_name_preview_selection_changed
+    self._export_name_preview.on_after_update_func = self._on_name_preview_after_update
+    self._export_name_preview.on_after_edit_tags_func = self._on_name_preview_after_edit_tags
     
     self._export_image_preview = gui_preview_image.ExportImagePreview(
       self._layer_exporter_for_previews,

@@ -65,8 +65,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   _ICON_TAG_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_tag.png")
   
   def __init__(self, layer_exporter, initial_layer_tree=None, collapsed_items=None,
-               selected_items=None, displayed_tags_setting=None, on_selection_changed_func=None,
-               on_after_update_func=None, on_after_edit_tags_func=None):
+               selected_items=None, displayed_tags_setting=None):
     super(ExportNamePreview, self).__init__()
     
     self._layer_exporter = layer_exporter
@@ -74,11 +73,10 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
     self._selected_items = selected_items if selected_items is not None else []
     self._displayed_tags_setting = displayed_tags_setting
-    self._on_selection_changed_func = (
-      on_selection_changed_func if on_selection_changed_func is not None else lambda *args: None)
-    self._on_after_update_func = on_after_update_func if on_after_update_func is not None else lambda *args: None
-    self._on_after_edit_tags_func = (
-      on_after_edit_tags_func if on_after_edit_tags_func is not None else lambda *args: None)
+    
+    self._on_selection_changed_func = lambda *args: None
+    self._on_after_update_func = lambda *args: None
+    self._on_after_edit_tags_func = lambda *args: None
     
     self._tree_iters = collections.defaultdict(lambda: None)
     
