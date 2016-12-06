@@ -423,12 +423,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     super(_ExportLayersGui, self).__init__()
     
     self._initial_layer_tree = initial_layer_tree
-    self._image = self._initial_layer_tree.image
     self._settings = settings
     
+    self._image = self._initial_layer_tree.image
     self._is_exporting = False
-    
-    self._suppress_gimp_progress()
     
     self._layer_exporter_for_previews = exportlayers.LayerExporter(
       gimpenums.RUN_NONINTERACTIVE, self._image, self._settings['main'],
@@ -440,6 +438,8 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._hpaned_previous_position = self._settings['gui/chooser_and_previews_hpane_position'].value
     self._vpaned_previous_position = self._settings['gui/previews_vpane_position'].value
+    
+    self._suppress_gimp_progress()
     
     self._init_gui()
     
