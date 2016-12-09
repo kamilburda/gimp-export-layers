@@ -589,7 +589,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._export_previews_controller.on_name_preview_after_edit_tags)
   
   def _init_gui_operation_boxes(self):
-    self._box_more_operations = gui_operations.OperationsBox(
+    self._box_more_operations = gui_operations.OperationBox(
       label_add_text=_("Add _Operation..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
       settings=self._settings['main/more_operations'])
     
@@ -601,7 +601,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       if setting_name in self._settings['main/more_operations']:
         self._box_more_operations.add_operation_item(self._settings['main/more_operations'][setting_name])
     
-    self._box_more_filters = gui_operations.OperationsBox(
+    self._box_more_filters = gui_operations.OperationBox(
       label_add_text=_("Add _Filter..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
       settings=self._settings['main/more_filters'])
     

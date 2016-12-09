@@ -45,10 +45,10 @@ from ..pygimplib import pgutils
 #===============================================================================
 
 
-_operations_box_drag_type_id_counter = 1
+_operation_box_drag_type_id_counter = 1
 
 
-class OperationsBox(object):
+class OperationBox(object):
   
   _BUTTON_HBOX_SPACING = 6
   
@@ -146,12 +146,12 @@ class OperationsBox(object):
       setting.gui.element.connect("drag-failed", self._on_item_widget_drag_failed)
   
   def _get_drag_type(self):
-    global _operations_box_drag_type_id_counter
+    global _operation_box_drag_type_id_counter
     
     drag_type = "{0}_{1}_{2}".format(
-      pygimplib.config.PLUGIN_NAME, self.__class__.__name__, _operations_box_drag_type_id_counter)
+      pygimplib.config.PLUGIN_NAME, self.__class__.__name__, _operation_box_drag_type_id_counter)
     
-    _operations_box_drag_type_id_counter += 1
+    _operation_box_drag_type_id_counter += 1
     
     return drag_type
   
