@@ -37,7 +37,7 @@ import contextlib
 import gimp
 import gimpenums
 
-from . import pgutils
+from . import pginvocation
 
 pdb = gimp.pdb
 
@@ -434,9 +434,9 @@ class GimpMessageFile(object):
   def _write(self, data):
     if len(self._message_buffer) < self._buffer_size:
       self._message_buffer += data
-      pgutils.timeout_add_strict(self._message_delay_milliseconds, self.flush)
+      pginvocation.timeout_add_strict(self._message_delay_milliseconds, self.flush)
     else:
-      pgutils.timeout_remove_strict(self.flush)
+      pginvocation.timeout_remove_strict(self.flush)
       self.flush()
   
   def flush(self):
