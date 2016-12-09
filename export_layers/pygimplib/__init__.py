@@ -37,11 +37,11 @@ try:
   import gimpenums
   import gimpplugin
   
+  from . import pggui
   from . import pglogging
   from . import pgsetting
   from . import pgsettinggroup
   from . import pgsettingsources
-  from . import pggui
 except ImportError:
   _gimp_dependent_modules_imported = False
 else:
