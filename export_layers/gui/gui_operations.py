@@ -40,6 +40,7 @@ pdb = gimp.pdb
 
 from .. import pygimplib
 from ..pygimplib import pgconstants
+from ..pygimplib import pgutils
 
 #===============================================================================
 
@@ -51,18 +52,15 @@ class OperationsBox(object):
   
   _BUTTON_HBOX_SPACING = 6
   
-  def __init__(self, label_add_text=None, spacing=0, settings=None, displayed_settings_names=None,
-               on_add_operation_func=None, on_reorder_operation_func=None, on_remove_operation_func=None):
+  def __init__(self, label_add_text=None, spacing=0, settings=None, displayed_settings_names=None):
     self.label_add_text = label_add_text
     self._operations_spacing = spacing
     self._settings = settings
     self._displayed_settings_names = displayed_settings_names if displayed_settings_names is not None else []
-    self._on_add_operation_func = (
-      on_add_operation_func if on_add_operation_func is not None else lambda *args: None)
-    self._on_reorder_operation_func = (
-      on_reorder_operation_func if on_reorder_operation_func is not None else lambda *args: None)
-    self._on_remove_operation_func = (
-      on_remove_operation_func if on_remove_operation_func is not None else lambda *args: None)
+    
+    self.on_add_operation = pgutils.empty_func
+    self.on_reorder_operation = pgutils.empty_func
+    self.on_remove_operation = pgutils.empty_func
     
     self._init_gui()
   
@@ -167,8 +165,7 @@ class OperationsBox(object):
     
     return drag_type
   
-  def _on_item_widget_drag_data_get(self, item_widget, drag_context, selection_data,
-                                    info, timestamp, setting):
+  def _on_item_widget_drag_data_get(self, item_widget, drag_context, selection_data, info, timestamp, setting):
     selection_data.set(selection_data.target, 8, setting.name)
   
   def _on_item_widget_drag_data_received(self, item_widget, drag_context, x, y,
@@ -260,7 +257,7 @@ class OperationsBox(object):
     self._displayed_settings_gui_elements.add(setting.gui.element)
     self._displayed_operation_items.append(operation_item)
     
-    self._on_add_operation_func(setting)
+    self.on_add_operation(setting)
   
   def _remove_operation_item(self, operation_item, setting):
     operation_item_position = self._get_operation_item_position(operation_item)
@@ -277,7 +274,7 @@ class OperationsBox(object):
     self._displayed_settings_gui_elements.remove(setting.gui.element)
     self._displayed_operation_items.remove(operation_item)
     
-    self._on_remove_operation_func(setting)
+    self.on_remove_operation(setting)
   
   def _reorder_operation_item(self, operation_item, position):
     new_position = min(max(position, 0), len(self._displayed_operation_items) - 1)
@@ -292,7 +289,7 @@ class OperationsBox(object):
     
     self._vbox.reorder_child(operation_item.widget, new_position)
     
-    self._on_reorder_operation_func(setting, new_position)
+    self.on_reorder_operation(setting, new_position)
   
   def _get_operation_item_position(self, operation_item):
     return self._displayed_operation_items.index(operation_item)
