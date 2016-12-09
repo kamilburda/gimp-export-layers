@@ -109,7 +109,7 @@ def is_layer_inside_image(image, layer):
   return (-image.width < layer.offsets[0] < image.width) and (-image.height < layer.offsets[1] < image.height)
 
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 
 
 def duplicate(image, metadata_only=False):
@@ -179,7 +179,7 @@ def remove_all_items(image):
   remove_all_paths(image)
 
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 
 
 def load_layer(filename, image, strip_file_extension=False, layer_to_load_index=0):
@@ -256,7 +256,7 @@ def copy_and_paste_layer(layer, image, parent=None, position=0):
   return layer_copy
 
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 
 
 def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
@@ -387,7 +387,7 @@ def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
   return identical
 
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 
 
 class GimpMessageFile(object):
