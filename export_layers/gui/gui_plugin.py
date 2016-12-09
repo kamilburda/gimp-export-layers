@@ -62,6 +62,7 @@ from .. import settings_plugin
 from . import gui_operations
 from . import gui_preview_image
 from . import gui_preview_name
+from . import gui_previews_controller
 
 #===============================================================================
 
@@ -202,12 +203,12 @@ def add_gui_settings(settings):
     },
     {
       'type': pgsetting.SettingTypes.integer,
-      'name': 'chooser_and_previews_hpane_position',
+      'name': 'paned_outside_previews_position',
       'default_value': 610
     },
     {
       'type': pgsetting.SettingTypes.float,
-      'name': 'previews_vpane_position',
+      'name': 'paned_between_previews_position',
       'default_value': 320
     },
     {
@@ -414,8 +415,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   _FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS = 15
   _FILENAME_PATTERN_ENTRY_MAX_WIDTH_CHARS = 50
   
-  _DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS = 50
-  _DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS = 500
   _DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS = 100
   _DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS = 10000
   
@@ -436,9 +435,6 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._init_settings()
     
-    self._hpaned_previous_position = self._settings['gui/chooser_and_previews_hpane_position'].value
-    self._vpaned_previous_position = self._settings['gui/previews_vpane_position'].value
-    
     self._suppress_gimp_progress()
     
     self._init_gui()
@@ -455,7 +451,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._settings['gui_persistent/export_name_preview_layers_collapsed_state_persistent'],
       settings_plugin.convert_set_of_layer_ids_to_names, [self._layer_exporter_for_previews.layer_tree],
       settings_plugin.convert_set_of_layer_names_to_ids, [self._layer_exporter_for_previews.layer_tree])
-    
+     
     settings_plugin.setup_image_ids_and_filenames_settings(
       self._settings['gui_session/export_image_preview_displayed_layers'],
       self._settings['gui_persistent/export_image_preview_displayed_layers_persistent'],
@@ -487,21 +483,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._folder_chooser = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
     
-    self._export_name_preview = gui_preview_name.ExportNamePreview(
-      self._layer_exporter_for_previews,
-      self._initial_layer_tree,
-      self._settings['gui_session/export_name_preview_layers_collapsed_state'].value[self._image.ID],
-      self._settings['main/selected_layers'].value[self._image.ID],
-      self._settings['gui/displayed_tags'])
-    
-    self._export_name_preview.on_selection_changed = self._on_name_preview_selection_changed
-    self._export_name_preview.on_after_update = self._on_name_preview_after_update
-    self._export_name_preview.on_after_edit_tags = self._on_name_preview_after_edit_tags
-    
-    self._export_image_preview = gui_preview_image.ExportImagePreview(
-      self._layer_exporter_for_previews,
-      self._initial_layer_tree,
-      self._settings['gui_session/export_image_preview_displayed_layers'].value[self._image.ID])
+    self._init_previews_gui()
     
     self._vbox_folder_chooser = gtk.VBox(homogeneous=False)
     self._vbox_folder_chooser.set_spacing(self._DIALOG_VBOX_SPACING * 2)
@@ -554,9 +536,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       'dialog_position': [pgsetting.SettingGuiTypes.window_position, self._dialog],
       'dialog_size': [pgsetting.SettingGuiTypes.window_size, self._dialog],
       'show_more_settings': [pgsetting.SettingGuiTypes.check_menu_item, self._menu_item_show_more_settings],
-      'chooser_and_previews_hpane_position': [
+      'paned_outside_previews_position': [
         pgsetting.SettingGuiTypes.paned_position, self._hpaned_chooser_and_previews],
-      'previews_vpane_position': [
+      'paned_between_previews_position': [
         pgsetting.SettingGuiTypes.paned_position, self._vpaned_previews],
       'settings_vpane_position': [
         pgsetting.SettingGuiTypes.paned_position, self._vpaned_settings],
@@ -686,10 +668,16 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._settings['main/layer_filename_pattern'], "invalid_layer_filename_pattern")
     
     self._dialog.connect("notify::is-active", self._on_dialog_is_active_changed)
-    self._hpaned_chooser_and_previews.connect("notify::position", self._on_hpaned_position_changed)
-    self._vpaned_previews.connect("notify::position", self._on_vpaned_position_changed)
     
-    self._connect_setting_changes_to_previews()
+    self._dialog.connect(
+      "notify::is-active", self._export_previews_controller.on_dialog_is_active_changed,
+      lambda: self._is_exporting)
+    self._hpaned_chooser_and_previews.connect(
+      "notify::position", self._export_previews_controller.on_paned_outside_previews_position_changed)
+    self._vpaned_previews.connect(
+      "notify::position", self._export_previews_controller.on_paned_between_previews_position_changed)
+    
+    self._export_previews_controller.connect_setting_changes_to_previews()
     self._connect_setting_changes_to_operations_boxes()
     
     self._dialog.set_default_response(gtk.RESPONSE_CANCEL)
@@ -700,11 +688,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._dialog.action_area.set_border_width(self._DIALOG_ACTION_AREA_BORDER_WIDTH)
     
-    self._connect_visible_changed_for_previews()
+    self._export_previews_controller.connect_visible_changed_to_previews()
     
     self._show_hide_more_settings()
     
-    self._init_previews()
+    self._export_previews_controller.init_previews()
     
     self._dialog.set_focus(self._file_extension_entry)
     self._button_export.set_flags(gtk.CAN_DEFAULT)
@@ -716,9 +704,28 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._dialog.show()
   
-  def _init_previews(self):
-    self._export_name_preview.update()
-    self._export_image_preview.update()
+  def _init_previews_gui(self):
+    self._export_name_preview = gui_preview_name.ExportNamePreview(
+      self._layer_exporter_for_previews,
+      self._initial_layer_tree,
+      self._settings['gui_session/export_name_preview_layers_collapsed_state'].value[self._image.ID],
+      self._settings['main/selected_layers'].value[self._image.ID],
+      self._settings['gui/displayed_tags'])
+    
+    self._export_image_preview = gui_preview_image.ExportImagePreview(
+      self._layer_exporter_for_previews,
+      self._initial_layer_tree,
+      self._settings['gui_session/export_image_preview_displayed_layers'].value[self._image.ID])
+    
+    self._export_previews_controller = gui_previews_controller.ExportPreviewsController(
+      self._export_name_preview, self._export_image_preview, self._settings, self._image)
+    
+    self._export_name_preview.on_selection_changed = (
+      self._export_previews_controller.on_name_preview_selection_changed)
+    self._export_name_preview.on_after_update = (
+      self._export_previews_controller.on_name_preview_after_update)
+    self._export_name_preview.on_after_edit_tags = (
+      self._export_previews_controller.on_name_preview_after_edit_tags)
   
   def _reset_settings(self):
     self._settings.reset()
@@ -798,152 +805,12 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     if self._initial_layer_tree is not None:
       self._initial_layer_tree = None
       return
-    
-    if self._dialog.is_active() and not self._is_exporting:
-      self._export_name_preview.update(reset_items=True)
-      self._export_image_preview.update()
-  
-  def _connect_setting_changes_to_previews(self):
-    def _on_setting_changed(setting):
-      pgutils.timeout_add_strict(
-        self._DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS, self._export_name_preview.update)
-      pgutils.timeout_add_strict(
-        self._DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS, self._export_image_preview.update)
-    
-    for setting in self._settings['main'].iterate_all():
-      if setting.name not in [
-          'file_extension', 'output_directory', 'overwrite_mode', 'layer_filename_pattern',
-          'only_selected_layers', 'selected_layers', 'selected_layers_persistent']:
-        setting.connect_event('value-changed', _on_setting_changed)
-    
-    event_id = self._settings['main/more_filters/only_selected_layers'].connect_event(
-      'value-changed', _on_setting_changed)
-    self._export_name_preview.temporarily_disable_setting_events_on_update(
-      {'more_filters/only_selected_layers': [event_id]})
-    self._export_image_preview.temporarily_disable_setting_events_on_update(
-      {'more_filters/only_selected_layers': [event_id]})
-    
-    self._settings['gui_session/export_name_preview_layers_collapsed_state'].connect_event(
-      'after-reset',
-      lambda setting: self._export_name_preview.set_collapsed_items(setting.value[self._image.ID]))
-    self._settings['main/selected_layers'].connect_event(
-      'after-reset',
-      lambda setting: self._export_name_preview.set_selected_items(setting.value[self._image.ID]))
-    
-    def _reset_image_in_preview(setting):
-      self._export_image_preview.clear()
-    
-    self._settings['gui_session/export_image_preview_displayed_layers'].connect_event(
-      'after-reset', _reset_image_in_preview)
   
   def _connect_setting_changes_to_operations_boxes(self):
     self._settings['gui/displayed_builtin_operations'].connect_event(
       'after-reset', lambda setting: self._box_more_operations.clear())
     self._settings['gui/displayed_builtin_filters'].connect_event(
       'after-reset', lambda setting: self._box_more_filters.clear())
-  
-  def _connect_visible_changed_for_previews(self):
-    def _connect_visible_changed(preview, setting):
-      preview.widget.connect("notify::visible", self._on_preview_visible_changed, preview)
-      if not setting.value:
-        preview.lock_update(True, "previews_enabled")
-    
-    _connect_visible_changed(self._export_name_preview, self._settings['gui/export_name_preview_enabled'])
-    _connect_visible_changed(self._export_image_preview, self._settings['gui/export_image_preview_enabled'])
-  
-  def _on_preview_visible_changed(self, widget, property_spec, preview):
-    preview_visible = preview.widget.get_visible()
-    preview.lock_update(not preview_visible, "preview_visible")
-    if preview_visible:
-      preview.update()
-  
-  def _on_hpaned_position_changed(self, widget, property_spec):
-    current_position = self._hpaned_chooser_and_previews.get_position()
-    max_position = self._hpaned_chooser_and_previews.get_property("max-position")
-    
-    if current_position == max_position and self._hpaned_previous_position != max_position:
-      self._disable_preview_on_paned_drag(
-        self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
-      self._disable_preview_on_paned_drag(
-        self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
-        "previews_enabled")
-    elif current_position != max_position and self._hpaned_previous_position == max_position:
-      self._enable_preview_on_paned_drag(
-        self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
-      self._enable_preview_on_paned_drag(
-        self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
-    elif current_position != self._hpaned_previous_position:
-      if self._export_image_preview.is_larger_than_image():
-        pgutils.timeout_add_strict(
-          self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS, self._export_image_preview.update)
-      else:
-        pgutils.timeout_remove_strict(self._export_image_preview.update)
-        self._export_image_preview.resize()
-    
-    self._hpaned_previous_position = current_position
-  
-  def _on_vpaned_position_changed(self, widget, property_spec):
-    current_position = self._vpaned_previews.get_position()
-    max_position = self._vpaned_previews.get_property("max-position")
-    min_position = self._vpaned_previews.get_property("min-position")
-    
-    if current_position == max_position and self._vpaned_previous_position != max_position:
-      self._disable_preview_on_paned_drag(
-        self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
-        "vpaned_preview_enabled")
-    elif current_position != max_position and self._vpaned_previous_position == max_position:
-      self._enable_preview_on_paned_drag(
-        self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
-        "vpaned_preview_enabled")
-    elif current_position == min_position and self._vpaned_previous_position != min_position:
-      self._disable_preview_on_paned_drag(
-        self._export_name_preview, self._settings['gui/export_name_preview_enabled'],
-        "vpaned_preview_enabled")
-    elif current_position != min_position and self._vpaned_previous_position == min_position:
-      self._enable_preview_on_paned_drag(
-        self._export_name_preview, self._settings['gui/export_name_preview_enabled'],
-        "vpaned_preview_enabled")
-    elif current_position != self._vpaned_previous_position:
-      if self._export_image_preview.is_larger_than_image():
-        pgutils.timeout_add_strict(
-          self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS, self._export_image_preview.update)
-      else:
-        pgutils.timeout_remove_strict(self._export_image_preview.update)
-        self._export_image_preview.resize()
-    
-    self._vpaned_previous_position = current_position
-  
-  def _enable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key):
-    preview.lock_update(False, update_lock_key)
-    # In case the image preview gets resized, the update would be canceled, hence update always.
-    gobject.timeout_add(self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS, preview.update, True)
-    preview_enabled_setting.set_value(True)
-  
-  def _disable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key):
-    preview.lock_update(True, update_lock_key)
-    preview.set_sensitive(False)
-    preview_enabled_setting.set_value(False)
-  
-  def _on_name_preview_selection_changed(self):
-    layer_elem_from_cursor = self._export_name_preview.get_layer_elem_from_cursor()
-    if layer_elem_from_cursor is not None:
-      if (self._export_image_preview.layer_elem is None
-          or layer_elem_from_cursor.item.ID != self._export_image_preview.layer_elem.item.ID):
-        self._export_image_preview.layer_elem = layer_elem_from_cursor
-        self._export_image_preview.update()
-    else:
-      layer_elems_from_selected_rows = self._export_name_preview.get_layer_elems_from_selected_rows()
-      if layer_elems_from_selected_rows:
-        self._export_image_preview.layer_elem = layer_elems_from_selected_rows[0]
-        self._export_image_preview.update()
-      else:
-        self._export_image_preview.clear()
-  
-  def _on_name_preview_after_update(self):
-    self._export_image_preview.update_layer_elem()
-  
-  def _on_name_preview_after_edit_tags(self):
-    self._on_name_preview_selection_changed()
   
   def _on_dialog_key_press(self, widget, event):
     if gtk.gdk.keyval_name(event.keyval) == "Escape":
