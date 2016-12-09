@@ -52,21 +52,16 @@ class OperationsBox(object):
   
   _BUTTON_HBOX_SPACING = 6
   
-  def __init__(self, label_add_text=None, spacing=0, settings=None, displayed_settings_names=None):
+  def __init__(self, label_add_text=None, spacing=0, settings=None):
     self.label_add_text = label_add_text
     self._operations_spacing = spacing
     self._settings = settings
-    self._displayed_settings_names = displayed_settings_names if displayed_settings_names is not None else []
     
     self.on_add_operation = pgutils.empty_func
     self.on_reorder_operation = pgutils.empty_func
     self.on_remove_operation = pgutils.empty_func
     
     self._init_gui()
-  
-  def clear(self):
-    for _unused in range(len(self._vbox.get_children()) - 1):
-      self._remove_operation_item(self._displayed_operation_items[0], self._displayed_settings[0])
   
   @property
   def widget(self):
@@ -110,12 +105,7 @@ class OperationsBox(object):
     self._widget = self._scrolled_window
     
     self._init_operations_menu_popup()
-    
     self._init_item_widgets_dragging()
-    
-    for setting_name in self._displayed_settings_names:
-      if setting_name in self._settings:
-        self._add_operation_item(self._settings[setting_name])
     
     self._button_add.connect("clicked", self._on_button_add_clicked)
   
@@ -165,6 +155,60 @@ class OperationsBox(object):
     
     return drag_type
   
+  def add_operation_item(self, setting):
+    operation_item = _OperationItem(setting.gui.element)
+    self._vbox.pack_start(operation_item.widget, expand=False, fill=False)
+    self._vbox.reorder_child(self._button_add, -1)
+    
+    operation_item.button_remove.connect(
+      "clicked", lambda *args: self.remove_operation_item(operation_item, setting))
+    operation_item.widget.connect(
+      "key-press-event", self._on_operation_item_widget_key_press_event, operation_item)
+    
+    self._displayed_settings.append(setting)
+    self._displayed_settings_gui_elements.add(setting.gui.element)
+    self._displayed_operation_items.append(operation_item)
+    
+    self.on_add_operation(setting)
+    
+    return operation_item
+  
+  def remove_operation_item(self, operation_item, setting):
+    operation_item_position = self._get_operation_item_position(operation_item)
+    
+    if operation_item_position < len(self._displayed_operation_items) - 1:
+      self._displayed_operation_items[operation_item_position + 1].item_widget.grab_focus()
+    else:
+      self._button_add.grab_focus()
+    
+    self._vbox.remove(operation_item.widget)
+    operation_item.remove_item_widget()
+    
+    self._displayed_settings.remove(setting)
+    self._displayed_settings_gui_elements.remove(setting.gui.element)
+    self._displayed_operation_items.remove(operation_item)
+    
+    self.on_remove_operation(setting)
+  
+  def reorder_operation_item(self, operation_item, position):
+    new_position = min(max(position, 0), len(self._displayed_operation_items) - 1)
+    
+    previous_position = self._get_operation_item_position(operation_item)
+    
+    self._displayed_operation_items.pop(previous_position)
+    self._displayed_operation_items.insert(new_position, operation_item)
+    
+    setting = self._displayed_settings.pop(previous_position)
+    self._displayed_settings.insert(new_position, setting)
+    
+    self._vbox.reorder_child(operation_item.widget, new_position)
+    
+    self.on_reorder_operation(setting, new_position)
+  
+  def clear(self):
+    for _unused in range(len(self._vbox.get_children()) - 1):
+      self.remove_operation_item(self._displayed_operation_items[0], self._displayed_settings[0])
+  
   def _on_item_widget_drag_data_get(self, item_widget, drag_context, selection_data, info, timestamp, setting):
     selection_data.set(selection_data.target, 8, setting.name)
   
@@ -180,7 +224,7 @@ class OperationsBox(object):
     
     new_position = self._displayed_settings.index(setting)
     
-    self._reorder_operation_item(dragged_operation_item, new_position)
+    self.reorder_operation_item(dragged_operation_item, new_position)
   
   def _on_item_widget_drag_begin(self, item_widget, drag_context):
     drag_icon_pixbuf = self._get_drag_icon_pixbuf(item_widget)
@@ -201,15 +245,15 @@ class OperationsBox(object):
   def _on_operations_menu_item_activate(self, menu_item):
     setting = self._menu_items_and_settings[menu_item]
     if setting not in self._displayed_settings:
-      self._add_operation_item(setting)
+      self.add_operation_item(setting)
   
   def _on_operation_item_widget_key_press_event(self, widget, event, operation_item):
     if event.state & gtk.gdk.MOD1_MASK:     # Alt key
       key_name = gtk.gdk.keyval_name(event.keyval)
       if key_name in ["Up", "KP_Up"]:
-        self._reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) - 1)
+        self.reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) - 1)
       elif key_name in ["Down", "KP_Down"]:
-        self._reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) + 1)
+        self.reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) + 1)
   
   def _get_drag_icon_pixbuf(self, widget):
     if widget.get_window() is None:
@@ -242,54 +286,6 @@ class OperationsBox(object):
     widget.drag_unhighlight()
     
     return widget_pixbuf
-  
-  def _add_operation_item(self, setting):
-    operation_item = _OperationItem(setting.gui.element)
-    self._vbox.pack_start(operation_item.widget, expand=False, fill=False)
-    self._vbox.reorder_child(self._button_add, -1)
-    
-    operation_item.button_remove.connect(
-      "clicked", lambda *args: self._remove_operation_item(operation_item, setting))
-    operation_item.widget.connect(
-      "key-press-event", self._on_operation_item_widget_key_press_event, operation_item)
-    
-    self._displayed_settings.append(setting)
-    self._displayed_settings_gui_elements.add(setting.gui.element)
-    self._displayed_operation_items.append(operation_item)
-    
-    self.on_add_operation(setting)
-  
-  def _remove_operation_item(self, operation_item, setting):
-    operation_item_position = self._get_operation_item_position(operation_item)
-    
-    if operation_item_position < len(self._displayed_operation_items) - 1:
-      self._displayed_operation_items[operation_item_position + 1].item_widget.grab_focus()
-    else:
-      self._button_add.grab_focus()
-    
-    self._vbox.remove(operation_item.widget)
-    operation_item.remove_item_widget()
-    
-    self._displayed_settings.remove(setting)
-    self._displayed_settings_gui_elements.remove(setting.gui.element)
-    self._displayed_operation_items.remove(operation_item)
-    
-    self.on_remove_operation(setting)
-  
-  def _reorder_operation_item(self, operation_item, position):
-    new_position = min(max(position, 0), len(self._displayed_operation_items) - 1)
-    
-    previous_position = self._get_operation_item_position(operation_item)
-    
-    self._displayed_operation_items.pop(previous_position)
-    self._displayed_operation_items.insert(new_position, operation_item)
-    
-    setting = self._displayed_settings.pop(previous_position)
-    self._displayed_settings.insert(new_position, setting)
-    
-    self._vbox.reorder_child(operation_item.widget, new_position)
-    
-    self.on_reorder_operation(setting, new_position)
   
   def _get_operation_item_position(self, operation_item):
     return self._displayed_operation_items.index(operation_item)

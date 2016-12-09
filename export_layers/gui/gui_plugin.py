@@ -453,23 +453,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     self._scrolled_window_basic_settings.add_with_viewport(self._vbox_basic_settings)
     self._scrolled_window_basic_settings.get_child().set_shadow_type(gtk.SHADOW_NONE)
     
-    self._box_more_operations = gui_operations.OperationsBox(
-      label_add_text=_("Add _Operation..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
-      settings=self._settings['main/more_operations'],
-      displayed_settings_names=self._settings['gui/displayed_builtin_operations'].value)
-    
-    self._box_more_operations.on_add_operation = exportlayers.add_operation
-    self._box_more_operations.on_reorder_operation = exportlayers.reorder_operation
-    self._box_more_operations.on_remove_operation = exportlayers.remove_operation
-    
-    self._box_more_filters = gui_operations.OperationsBox(
-      label_add_text=_("Add _Filter..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
-      settings=self._settings['main/more_filters'],
-      displayed_settings_names=self._settings['gui/displayed_builtin_filters'].value)
-    
-    self._box_more_filters.on_add_operation = exportlayers.add_operation
-    self._box_more_filters.on_reorder_operation = exportlayers.reorder_operation
-    self._box_more_filters.on_remove_operation = exportlayers.remove_operation
+    self._init_gui_operation_boxes()
     
     self._hbox_more_settings = gtk.HBox(homogeneous=True)
     self._hbox_more_settings.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
@@ -603,6 +587,31 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._export_previews_controller.on_name_preview_after_update)
     self._export_name_preview.on_after_edit_tags = (
       self._export_previews_controller.on_name_preview_after_edit_tags)
+  
+  def _init_gui_operation_boxes(self):
+    self._box_more_operations = gui_operations.OperationsBox(
+      label_add_text=_("Add _Operation..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
+      settings=self._settings['main/more_operations'])
+    
+    self._box_more_operations.on_add_operation = exportlayers.add_operation
+    self._box_more_operations.on_reorder_operation = exportlayers.reorder_operation
+    self._box_more_operations.on_remove_operation = exportlayers.remove_operation
+    
+    for setting_name in self._settings['gui/displayed_builtin_operations'].value:
+      if setting_name in self._settings['main/more_operations']:
+        self._box_more_operations.add_operation_item(self._settings['main/more_operations'][setting_name])
+    
+    self._box_more_filters = gui_operations.OperationsBox(
+      label_add_text=_("Add _Filter..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
+      settings=self._settings['main/more_filters'])
+    
+    self._box_more_filters.on_add_operation = exportlayers.add_operation
+    self._box_more_filters.on_reorder_operation = exportlayers.reorder_operation
+    self._box_more_filters.on_remove_operation = exportlayers.remove_operation
+    
+    for setting_name in self._settings['gui/displayed_builtin_filters'].value:
+      if setting_name in self._settings['main/more_filters']:
+        self._box_more_operations.add_operation_item(self._settings['main/more_filters'][setting_name])
   
   def _reset_settings(self):
     self._settings.reset()
