@@ -51,6 +51,7 @@ from .. import pygimplib
 from ..pygimplib import pgconstants
 from ..pygimplib import pggui
 from ..pygimplib import pggui_entries
+from ..pygimplib import pginvocation
 from ..pygimplib import pgoverwrite
 from ..pygimplib import pgsetting
 from ..pygimplib import pgsettinggroup
@@ -744,7 +745,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     try:
       setting.gui.update_setting_value()
     except pgsetting.SettingValueError as e:
-      pgutils.timeout_add_strict(
+      pginvocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
         self._export_name_preview.set_sensitive, False)
       self._display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=setting)
@@ -754,7 +755,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       if self._message_setting == setting:
         self._display_message_label(None)
       
-      pgutils.timeout_add_strict(
+      pginvocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS, self._export_name_preview.update,
         should_enable_sensitive=True)
   
@@ -984,7 +985,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
         gobject.markup_escape_text(color), gobject.markup_escape_text(text)))
       
       if color == "blue":
-        pgutils.timeout_add_strict(
+        pginvocation.timeout_add_strict(
           self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS, self._display_message_label, None)
 
 

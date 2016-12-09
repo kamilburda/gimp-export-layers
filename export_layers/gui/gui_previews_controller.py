@@ -34,7 +34,7 @@ import pygtk
 pygtk.require("2.0")
 import gobject
 
-from ..pygimplib import pgutils
+from ..pygimplib import pginvocation
 
 #===============================================================================
 
@@ -80,9 +80,9 @@ class ExportPreviewsController(object):
       {'more_filters/only_selected_layers': [event_id]})
   
   def _on_setting_changed(self, setting):
-    pgutils.timeout_add_strict(
+    pginvocation.timeout_add_strict(
       self._DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS, self._export_name_preview.update)
-    pgutils.timeout_add_strict(
+    pginvocation.timeout_add_strict(
       self._DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS, self._export_image_preview.update)
   
   def _connect_setting_after_reset_collapsed_layers_in_name_preview(self):
@@ -139,10 +139,10 @@ class ExportPreviewsController(object):
         self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
     elif current_position != self._paned_outside_previews_previous_position:
       if self._export_image_preview.is_larger_than_image():
-        pgutils.timeout_add_strict(
+        pginvocation.timeout_add_strict(
           self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS, self._export_image_preview.update)
       else:
-        pgutils.timeout_remove_strict(self._export_image_preview.update)
+        pginvocation.timeout_remove_strict(self._export_image_preview.update)
         self._export_image_preview.resize()
     
     self._paned_outside_previews_previous_position = current_position
@@ -170,10 +170,10 @@ class ExportPreviewsController(object):
         "vpaned_preview_enabled")
     elif current_position != self._paned_between_previews_previous_position:
       if self._export_image_preview.is_larger_than_image():
-        pgutils.timeout_add_strict(
+        pginvocation.timeout_add_strict(
           self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS, self._export_image_preview.update)
       else:
-        pgutils.timeout_remove_strict(self._export_image_preview.update)
+        pginvocation.timeout_remove_strict(self._export_image_preview.update)
         self._export_image_preview.resize()
     
     self._paned_between_previews_previous_position = current_position
