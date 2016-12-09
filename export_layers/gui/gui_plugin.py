@@ -29,7 +29,6 @@ from __future__ import unicode_literals
 
 str = unicode
 
-import collections
 import contextlib
 import functools
 import os
@@ -54,9 +53,7 @@ from ..pygimplib import pggui_entries
 from ..pygimplib import pginvocation
 from ..pygimplib import pgoverwrite
 from ..pygimplib import pgsetting
-from ..pygimplib import pgsettinggroup
 from ..pygimplib import pgsettingpersistor
-from ..pygimplib import pgutils
 
 from .. import exportlayers
 from .. import settings_plugin
@@ -64,6 +61,7 @@ from . import gui_operations
 from . import gui_preview_image
 from . import gui_preview_name
 from . import gui_previews_controller
+from . import settings_gui
 
 #===============================================================================
 
@@ -180,116 +178,6 @@ class _ExportLayersGenericGui(object):
     gimp.progress_uninstall(self._progress_callback)
     del self._progress_callback
 
-
-#===============================================================================
-
-
-def add_gui_settings(settings):
-  
-  gui_settings = pgsettinggroup.SettingGroup('gui', [
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'dialog_position',
-      'default_value': ()
-    },
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'dialog_size',
-      'default_value': ()
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'show_more_settings',
-      'default_value': False
-    },
-    {
-      'type': pgsetting.SettingTypes.integer,
-      'name': 'paned_outside_previews_position',
-      'default_value': 610
-    },
-    {
-      'type': pgsetting.SettingTypes.float,
-      'name': 'paned_between_previews_position',
-      'default_value': 320
-    },
-    {
-      'type': pgsetting.SettingTypes.float,
-      'name': 'settings_vpane_position',
-      'default_value': 450
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'export_name_preview_enabled',
-      'default_value': True,
-      'gui_type': None
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'export_image_preview_enabled',
-      'default_value': True,
-      'gui_type': None
-    },
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'displayed_tags',
-      'default_value': exportlayers.LayerExporter.BUILTIN_TAGS,
-      'gui_type': None
-    },
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'displayed_builtin_operations',
-      'default_value': [],
-      'gui_type': None
-    },
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'displayed_builtin_filters',
-      'default_value': [],
-      'gui_type': None
-    },
-  ], setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
-  
-  session_only_gui_settings = pgsettinggroup.SettingGroup('gui_session', [
-    {
-      'type': pgsetting.SettingTypes.image_IDs_and_directories,
-      'name': 'image_ids_and_directories',
-      'default_value': {}
-    },
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'export_name_preview_layers_collapsed_state',
-      # key: image ID; value: set of layer IDs collapsed in the name preview
-      'default_value': collections.defaultdict(set)
-    },
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'export_image_preview_displayed_layers',
-      # key: image ID; value: ID of the layer displayed in the preview
-      'default_value': collections.defaultdict(pgutils.empty_func)
-    },
-  ], setting_sources=[pygimplib.config.SOURCE_SESSION])
-  
-  persistent_only_gui_settings = pgsettinggroup.SettingGroup('gui_persistent', [
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'export_name_preview_layers_collapsed_state_persistent',
-      # key: image filename; value: set of layer names collapsed in the name preview
-      'default_value': collections.defaultdict(set)
-    },
-    {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'export_image_preview_displayed_layers_persistent',
-      # key: image filename; value: name of the layer displayed in the preview
-      'default_value': collections.defaultdict(pgutils.empty_func)
-    },
-  ], setting_sources=[pygimplib.config.SOURCE_PERSISTENT])
-  
-  settings.add([gui_settings, session_only_gui_settings, persistent_only_gui_settings])
-  
-  settings.set_ignore_tags({
-    'gui_session/image_ids_and_directories': ['reset'],
-  })
-  
 
 #===============================================================================
 
@@ -445,7 +333,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     gtk.main()
   
   def _init_settings(self):
-    add_gui_settings(self._settings)
+    self._add_gui_settings()
     
     settings_plugin.setup_image_ids_and_filenames_settings(
       self._settings['gui_session/export_name_preview_layers_collapsed_state'],
@@ -471,6 +359,10 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     _setup_image_ids_and_directories_and_initial_directory(
       self._settings, self._current_directory_setting, self._image)
     _setup_output_directory_changed(self._settings, self._image)
+  
+  def _add_gui_settings(self):
+    gui_settings, session_only_gui_settings, persistent_only_gui_settings = settings_gui.create_gui_settings()
+    self._settings.add([gui_settings, session_only_gui_settings, persistent_only_gui_settings])
   
   def _init_gui(self):
     self._dialog = gimpui.Dialog(title=pygimplib.config.PLUGIN_TITLE, role=pygimplib.config.PLUGIN_NAME)
