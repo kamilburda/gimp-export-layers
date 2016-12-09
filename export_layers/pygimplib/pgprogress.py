@@ -54,8 +54,8 @@ class ProgressUpdater(object):
   
   def __init__(self, progress_bar, num_total_tasks=0):
     self.progress_bar = progress_bar
-    
     self.num_total_tasks = num_total_tasks
+    
     self._num_finished_tasks = 0
   
   @property
