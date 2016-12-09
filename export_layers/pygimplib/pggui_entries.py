@@ -46,6 +46,7 @@ pdb = gimp.pdb
 from . import pgconstants
 from . import pgfileformats
 from . import pgpath
+from . import pgutils
 
 #===============================================================================
 
@@ -141,48 +142,29 @@ gobject.type_register(CellRendererTextList)
 
 class EntryPopup(object):
   
-  _BUTTON_MOUSE_LEFT = 1
-  
-  # The implementation is loosely based on the implementation of `gtk.EntryCompletion`:
+  # Implementation of the popup is loosely based on the implementation of `gtk.EntryCompletion`:
   # https://github.com/GNOME/gtk/blob/gtk-2-24/gtk/gtkentrycompletion.c
   
-  def __init__(self, entry, column_types, rows, row_filter_func=None,
-               assign_from_selected_row_func=None, assign_last_value_func=None,
-               on_row_left_mouse_button_press_func=None, on_entry_left_mouse_button_press_func=None,
-               on_entry_key_press_before_show_popup_func=None,
-               on_entry_key_press_func=None, on_entry_after_assign_by_key_press_func=None,
-               on_entry_changed_show_popup_condition_func=None,
-               width=-1, height=200, max_num_visible_rows=8):
+  _BUTTON_MOUSE_LEFT = 1
+  
+  def __init__(self, entry, column_types, rows, width=-1, height=200, max_num_visible_rows=8):
     self._entry = entry
-    self._row_filter_func = row_filter_func
     self._width = width
     self._height = height
     self._max_num_visible_rows = max_num_visible_rows
-    self._assign_from_selected_row_func = (
-      assign_from_selected_row_func if assign_from_selected_row_func is not None else lambda *args: (None, None))
-    self._assign_last_value_func = (
-      assign_last_value_func if assign_last_value_func is not None else self._entry.assign_text)
-    self._on_row_left_mouse_button_press_func = (
-      on_row_left_mouse_button_press_func if on_row_left_mouse_button_press_func is not None else
-      self.assign_from_selected_row)
-    self._on_entry_left_mouse_button_press_func = (
-      on_entry_left_mouse_button_press_func if on_entry_left_mouse_button_press_func is not None else
-      lambda *args: None)
-    self._on_entry_key_press_before_show_popup_func = (
-      on_entry_key_press_before_show_popup_func if on_entry_key_press_before_show_popup_func is not None else
-      lambda *args: None)
-    self._on_entry_key_press_func = (
-      on_entry_key_press_func if on_entry_key_press_func is not None else
-      lambda key_name, tree_path, stop_event_propagation: stop_event_propagation)
-    self._on_entry_after_assign_by_key_press_func = (
-      on_entry_after_assign_by_key_press_func
-      if on_entry_after_assign_by_key_press_func is not None else lambda *args: None)
-    self._on_entry_changed_show_popup_condition_func = (
-      on_entry_changed_show_popup_condition_func if on_entry_changed_show_popup_condition_func is not None else
-      lambda *args: True
-    )
+    
+    self.on_assign_from_selected_row = lambda *args: (None, None)
+    self.on_assign_last_value = self._entry.assign_text
+    self.on_row_left_mouse_button_press = self.assign_from_selected_row
+    self.on_entry_left_mouse_button_press_func = pgutils.empty_func
+    self.on_entry_key_press_before_show_popup = pgutils.empty_func
+    self.on_entry_key_press = lambda key_name, tree_path, stop_event_propagation: stop_event_propagation
+    self.on_entry_after_assign_by_key_press = pgutils.empty_func
+    self.on_entry_changed_show_popup_condition = lambda *args: True
     
     self.trigger_popup = True
+    
+    self._filter_rows_func = None
     
     self._last_assigned_entry_text = ""
     self._previous_assigned_entry_text_position = None
@@ -214,6 +196,18 @@ class EntryPopup(object):
     return self._rows_filtered
   
   @property
+  def filter_rows_func(self):
+    return self._filter_rows_func
+  
+  @filter_rows_func.setter
+  def filter_rows_func(self, func):
+    self._filter_rows_func = func
+    if func is not None:
+      self._rows_filtered.set_visible_func(self._filter_rows)
+    else:
+      self._rows_filtered.set_visible_func(lambda *args: True)
+  
+  @property
   def popup(self):
     return self._popup
   
@@ -226,7 +220,7 @@ class EntryPopup(object):
     return self._last_assigned_entry_text
   
   def assign_last_value(self):
-    self._assign_last_value_func(self._last_assigned_entry_text)
+    self.on_assign_last_value(self._last_assigned_entry_text)
   
   def show(self):
     if not self.is_shown() and len(self._rows_filtered) > 0:
@@ -325,7 +319,7 @@ class EntryPopup(object):
     if tree_iter is None:     # No row is selected
       return None, None
     
-    return self._assign_from_selected_row_func(tree_model, tree_iter)
+    return self.on_assign_from_selected_row(tree_model, tree_iter)
   
   def select_and_assign_row(self, row_num):
     self.select_row(row_num)
@@ -359,7 +353,7 @@ class EntryPopup(object):
           next_row = next_row(tree_path)
         position, text = self.select_and_assign_row(next_row)
     
-    self._on_entry_after_assign_by_key_press_func(
+    self.on_entry_after_assign_by_key_press(
       self._previous_assigned_entry_text_position, self._previous_assigned_entry_text, position, text)
     
     self._previous_assigned_entry_text_position, self._previous_assigned_entry_text = position, text
@@ -374,8 +368,6 @@ class EntryPopup(object):
       self._rows.append(row)
     
     self._rows_filtered = self._rows.filter_new()
-    if self._row_filter_func is not None:
-      self._rows_filtered.set_visible_func(self._filter_rows)
     
     self._tree_view = gtk.TreeView(model=self._rows_filtered)
     self._tree_view.set_hover_selection(True)
@@ -431,14 +423,14 @@ class EntryPopup(object):
     if self._clear_filter:
       return True
     else:
-      return self._row_filter_func(rows, row_iter)
+      return self._filter_rows_func(rows, row_iter)
   
   def _on_entry_key_press(self, entry, event):
     key_name = gtk.gdk.keyval_name(event.keyval)
     
     if (not self.is_shown()
         and key_name in ["Up", "KP_Up", "Down", "KP_Down", "Page_Up", "KP_Page_Up", "Page_Down", "KP_Page_Down"]):
-      self._on_entry_key_press_before_show_popup_func()
+      self.on_entry_key_press_before_show_popup()
       
       show_popup_first_time = self._show_popup_first_time
       self.show()
@@ -486,7 +478,7 @@ class EntryPopup(object):
       else:
         stop_event_propagation = False
       
-      return self._on_entry_key_press_func(key_name, tree_path, stop_event_propagation)
+      return self.on_entry_key_press(key_name, tree_path, stop_event_propagation)
     else:
       return False
   
@@ -496,7 +488,7 @@ class EntryPopup(object):
       
       self._previous_assigned_entry_text_position, self._previous_assigned_entry_text = None, None
       
-      if not self._on_entry_changed_show_popup_condition_func():
+      if not self.on_entry_changed_show_popup_condition():
         self.hide()
         return
       
@@ -537,11 +529,11 @@ class EntryPopup(object):
       
       self.unselect()
       
-      self._on_entry_left_mouse_button_press_func()
+      self.on_entry_left_mouse_button_press_func()
   
   def _on_tree_view_left_mouse_button_press(self, tree_view, event):
     if event.button == self._BUTTON_MOUSE_LEFT:
-      self._on_row_left_mouse_button_press_func()
+      self.on_row_left_mouse_button_press()
       
       self.save_last_value()
       
@@ -928,15 +920,14 @@ class FilenamePatternEntry(ExtendedEntry):
     self._maximum_width = -1
     self.set_width_chars(self._minimum_width_chars)
     
-    self._popup = EntryPopup(
-      self, self._COLUMN_TYPES, suggested_items,
-      row_filter_func=self._filter_suggested_items,
-      assign_from_selected_row_func=self._assign_from_selected_row,
-      assign_last_value_func=self._assign_last_value,
-      on_row_left_mouse_button_press_func=self._on_row_left_mouse_button_press,
-      on_entry_changed_show_popup_condition_func=self._on_entry_changed_condition,
-      on_entry_key_press_func=self._on_entry_key_press,
-      on_entry_after_assign_by_key_press_func=self._on_entry_after_assign_by_key_press)
+    self._popup = EntryPopup(self, self._COLUMN_TYPES, suggested_items)
+    self._popup.filter_rows_func = self._filter_suggested_items
+    self._popup.on_assign_from_selected_row = self._on_assign_from_selected_row
+    self._popup.on_assign_last_value = self._assign_last_value
+    self._popup.on_row_left_mouse_button_press = self._on_row_left_mouse_button_press
+    self._popup.on_entry_changed_show_popup_condition = self._on_entry_changed_condition
+    self._popup.on_entry_key_press = self._on_entry_key_press
+    self._popup.on_entry_after_assign_by_key_press = self._on_entry_after_assign_by_key_press
     
     self._create_field_tooltip()
     
@@ -959,6 +950,129 @@ class FilenamePatternEntry(ExtendedEntry):
     
     return not text or (self._default_item_value is not None and text == self._default_item_value)
   
+  def _get_suggested_fields(self, suggested_items):
+    suggested_fields = {}
+    
+    for item in suggested_items:
+      field_value = item[1]
+      if field_value.startswith("[") and field_value.endswith("]"):
+        if item[2]:
+          suggested_fields[field_value[1:-1]] = "[{0}, {1}]".format(
+            gobject.markup_escape_text(field_value[1:-1]), ", ".join(
+              ["<i>{0}</i>".format(gobject.markup_escape_text(argument)) for argument in item[2]]))
+        else:
+          suggested_fields[field_value[1:-1]] = ""
+    
+    return suggested_fields
+  
+  def _create_field_tooltip(self):
+    self._field_tooltip_window = gtk.Window(type=gtk.WINDOW_POPUP)
+    self._field_tooltip_window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_TOOLTIP)
+    self._field_tooltip_window.set_resizable(False)
+    # This copies the style of GTK tooltips.
+    self._field_tooltip_window.set_name('gtk-tooltips')
+    
+    self._field_tooltip_text = gtk.Label()
+    
+    self._field_tooltip_hbox = gtk.HBox(homogeneous=False)
+    self._field_tooltip_hbox.pack_start(self._field_tooltip_text, expand=False, fill=False)
+    
+    self._field_tooltip_frame = gtk.Frame()
+    self._field_tooltip_frame.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+    self._field_tooltip_frame.add(self._field_tooltip_hbox)
+    self._field_tooltip_frame.show_all()
+    
+    self._field_tooltip_window.add(self._field_tooltip_frame)
+  
+  def _add_columns(self):
+    self._popup.tree_view.append_column(
+      gtk.TreeViewColumn(None, gtk.CellRendererText(), text=self._COLUMN_ITEM_NAMES))
+  
+  def _on_entry_insert_text(self, entry, new_text, new_text_length, position):
+    self._cursor_position = self.get_position() + len(new_text.decode(pgconstants.GTK_CHARACTER_ENCODING))
+  
+  def _on_entry_delete_text(self, entry, start, end):
+    self._cursor_position = start
+  
+  def _on_entry_cursor_position_changed(self, entry, property_spec):
+    self._cursor_position = self.get_position()
+    
+    field_name = (
+      pgpath.StringPatternGenerator.get_field_at_position(self._get_text_decoded(), self._cursor_position))
+    
+    if self._suggested_fields.get(field_name):
+      if field_name != self._last_field_name_with_tooltip:
+        self._last_field_name_with_tooltip = field_name
+        force_update_position = True
+      else:
+        force_update_position = False
+      
+      self._show_field_tooltip(self._suggested_fields[field_name], force_update_position)
+    else:
+      self._hide_field_tooltip()
+  
+  def _show_field_tooltip(self, tooltip_text=None, force_update_position=False):
+    if not self._field_tooltip_window.get_mapped() or force_update_position:
+      if tooltip_text is None:
+        tooltip_text = ""
+      self._field_tooltip_text.set_markup(tooltip_text)
+      self._field_tooltip_window.show()
+      self._update_field_tooltip_position()
+  
+  def _hide_field_tooltip(self):
+    if self._field_tooltip_window.get_mapped():
+      self._field_tooltip_window.hide()
+  
+  def _update_field_tooltip_position(self):
+    self._update_window_position(self._field_tooltip_window, place_above=True)
+  
+  def _update_window_position(self, window, move_with_text_cursor=True, place_above=False):
+    entry_absolute_position = self.get_window().get_origin()
+    entry_allocation_height = self.get_allocation().height
+    
+    if move_with_text_cursor:
+      self._pango_layout.set_text(
+        self._get_text_decoded()[:self._cursor_position].encode(pgconstants.GTK_CHARACTER_ENCODING))
+      
+      x_offset = min(
+        self._pango_layout.get_pixel_size()[0] + self.get_layout_offsets()[0],
+        max(self.get_allocation().width - window.get_allocation().width, 0))
+      
+      x = entry_absolute_position[0] + x_offset
+    else:
+      x = entry_absolute_position[0]
+    
+    if not place_above:
+      y = entry_absolute_position[1] + entry_allocation_height
+    else:
+      y = entry_absolute_position[1] - entry_allocation_height
+    
+    window.move(x, y)
+  
+  def _on_entry_changed(self, entry):
+    if self.get_realized():
+      self._update_entry_width()
+    
+    if self._reset_cursor_position_before_assigning_from_row:
+      self._cursor_position_before_assigning_from_row = None
+  
+  def _on_entry_focus_out_event(self, entry, event):
+    self._hide_field_tooltip()
+  
+  def _on_entry_size_allocate(self, entry, allocation):
+    if self._minimum_width == -1:
+      self._minimum_width = self.get_allocation().width
+      self._maximum_width = int((self._minimum_width / self._minimum_width_chars) * self._maximum_width_chars) + 1
+    
+    self._update_entry_width()
+  
+  def _update_entry_width(self):
+    self._pango_layout.set_text(self.get_text())
+    
+    offset_pixel_width = (self.get_layout_offsets()[0] + self.get_property("scroll-offset")) * 2
+    text_pixel_width = self._pango_layout.get_pixel_size()[0] + offset_pixel_width
+    self.set_size_request(max(min(text_pixel_width, self._maximum_width), self._minimum_width), -1)
+  
   def _filter_suggested_items(self, suggested_items, row_iter):
     item = suggested_items[row_iter][self._COLUMN_ITEMS]
     current_text = self._get_text_decoded()
@@ -969,17 +1083,7 @@ class FilenamePatternEntry(ExtendedEntry):
     else:
       return True
   
-  def _assign_last_value(self, last_value):
-    self._reset_cursor_position_before_assigning_from_row = False
-    self._do_assign_text(last_value)
-    self._reset_cursor_position_before_assigning_from_row = True
-    
-    if self._cursor_position_before_assigning_from_row is not None:
-      self._cursor_position = self._cursor_position_before_assigning_from_row
-    self.set_position(self._cursor_position)
-    self._cursor_position_before_assigning_from_row = None
-  
-  def _assign_from_selected_row(self, tree_model, selected_tree_iter):
+  def _on_assign_from_selected_row(self, tree_model, selected_tree_iter):
     if self._cursor_position_before_assigning_from_row is None:
       self._cursor_position_before_assigning_from_row = self._cursor_position
     cursor_position = self._cursor_position_before_assigning_from_row
@@ -1001,12 +1105,15 @@ class FilenamePatternEntry(ExtendedEntry):
     
     return cursor_position, suggested_item
   
-  def _update_entry_width(self):
-    self._pango_layout.set_text(self.get_text())
+  def _assign_last_value(self, last_value):
+    self._reset_cursor_position_before_assigning_from_row = False
+    self._do_assign_text(last_value)
+    self._reset_cursor_position_before_assigning_from_row = True
     
-    offset_pixel_width = (self.get_layout_offsets()[0] + self.get_property("scroll-offset")) * 2
-    text_pixel_width = self._pango_layout.get_pixel_size()[0] + offset_pixel_width
-    self.set_size_request(max(min(text_pixel_width, self._maximum_width), self._minimum_width), -1)
+    if self._cursor_position_before_assigning_from_row is not None:
+      self._cursor_position = self._cursor_position_before_assigning_from_row
+    self.set_position(self._cursor_position)
+    self._cursor_position_before_assigning_from_row = None
   
   def _on_entry_changed_condition(self):
     current_text = self._get_text_decoded()
@@ -1047,123 +1154,7 @@ class FilenamePatternEntry(ExtendedEntry):
     
     if undo_push_list:
       self.undo_context.undo_push(undo_push_list)
-  
-  def _on_entry_delete_text(self, entry, start, end):
-    self._cursor_position = start
-  
-  def _on_entry_insert_text(self, entry, new_text, new_text_length, position):
-    self._cursor_position = self.get_position() + len(new_text.decode(pgconstants.GTK_CHARACTER_ENCODING))
-  
-  def _on_entry_cursor_position_changed(self, entry, property_spec):
-    self._cursor_position = self.get_position()
-    
-    field_name = (
-      pgpath.StringPatternGenerator.get_field_at_position(self._get_text_decoded(), self._cursor_position))
-    
-    if self._suggested_fields.get(field_name):
-      if field_name != self._last_field_name_with_tooltip:
-        self._last_field_name_with_tooltip = field_name
-        force_update_position = True
-      else:
-        force_update_position = False
-      
-      self._show_field_tooltip(self._suggested_fields[field_name], force_update_position)
-    else:
-      self._hide_field_tooltip()
-  
-  def _on_entry_changed(self, entry):
-    if self.get_realized():
-      self._update_entry_width()
-    
-    if self._reset_cursor_position_before_assigning_from_row:
-      self._cursor_position_before_assigning_from_row = None
-  
-  def _on_entry_focus_out_event(self, entry, event):
-    self._hide_field_tooltip()
-  
-  def _on_entry_size_allocate(self, entry, allocation):
-    if self._minimum_width == -1:
-      self._minimum_width = self.get_allocation().width
-      self._maximum_width = int((self._minimum_width / self._minimum_width_chars) * self._maximum_width_chars) + 1
-    
-    self._update_entry_width()
-  
-  def _add_columns(self):
-    self._popup.tree_view.append_column(
-      gtk.TreeViewColumn(None, gtk.CellRendererText(), text=self._COLUMN_ITEM_NAMES))
-  
-  def _update_window_position(self, window, move_with_text_cursor=True, place_above=False):
-    entry_absolute_position = self.get_window().get_origin()
-    entry_allocation_height = self.get_allocation().height
-    
-    if move_with_text_cursor:
-      self._pango_layout.set_text(
-        self._get_text_decoded()[:self._cursor_position].encode(pgconstants.GTK_CHARACTER_ENCODING))
-      
-      x_offset = min(
-        self._pango_layout.get_pixel_size()[0] + self.get_layout_offsets()[0],
-        max(self.get_allocation().width - window.get_allocation().width, 0))
-      
-      x = entry_absolute_position[0] + x_offset
-    else:
-      x = entry_absolute_position[0]
-    
-    if not place_above:
-      y = entry_absolute_position[1] + entry_allocation_height
-    else:
-      y = entry_absolute_position[1] - entry_allocation_height
-    
-    window.move(x, y)
-  
-  def _create_field_tooltip(self):
-    self._field_tooltip_window = gtk.Window(type=gtk.WINDOW_POPUP)
-    self._field_tooltip_window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_TOOLTIP)
-    self._field_tooltip_window.set_resizable(False)
-    # This copies the style of GTK tooltips.
-    self._field_tooltip_window.set_name('gtk-tooltips')
-    
-    self._field_tooltip_text = gtk.Label()
-    
-    self._field_tooltip_hbox = gtk.HBox(homogeneous=False)
-    self._field_tooltip_hbox.pack_start(self._field_tooltip_text, expand=False, fill=False)
-    
-    self._field_tooltip_frame = gtk.Frame()
-    self._field_tooltip_frame.set_shadow_type(gtk.SHADOW_ETCHED_IN)
-    self._field_tooltip_frame.add(self._field_tooltip_hbox)
-    self._field_tooltip_frame.show_all()
-    
-    self._field_tooltip_window.add(self._field_tooltip_frame)
-  
-  def _show_field_tooltip(self, tooltip_text=None, force_update_position=False):
-    if not self._field_tooltip_window.get_mapped() or force_update_position:
-      if tooltip_text is None:
-        tooltip_text = ""
-      self._field_tooltip_text.set_markup(tooltip_text)
-      self._field_tooltip_window.show()
-      self._update_field_tooltip_position()
-  
-  def _hide_field_tooltip(self):
-    if self._field_tooltip_window.get_mapped():
-      self._field_tooltip_window.hide()
-  
-  def _update_field_tooltip_position(self):
-    self._update_window_position(self._field_tooltip_window, place_above=True)
-  
-  def _get_suggested_fields(self, suggested_items):
-    suggested_fields = {}
-    
-    for item in suggested_items:
-      field_value = item[1]
-      if field_value.startswith("[") and field_value.endswith("]"):
-        if item[2]:
-          suggested_fields[field_value[1:-1]] = "[{0}, {1}]".format(
-            gobject.markup_escape_text(field_value[1:-1]), ", ".join(
-              ["<i>{0}</i>".format(gobject.markup_escape_text(argument)) for argument in item[2]]))
-        else:
-          suggested_fields[field_value[1:-1]] = ""
-    
-    return suggested_fields
-  
+
 
 #===============================================================================
 
@@ -1188,14 +1179,14 @@ class FileExtensionEntry(ExtendedEntry):
     self._extensions_separator_text_pixel_size = None
     self._extensions_text_pixel_rects = []
     
-    self._popup = EntryPopup(
-      self, self._COLUMN_TYPES, self._get_file_formats(pgfileformats.file_formats),
-      row_filter_func=self._filter_file_formats, assign_from_selected_row_func=self._assign_from_selected_row,
-      assign_last_value_func=self._do_assign_text,
-      on_row_left_mouse_button_press_func=self._on_row_left_mouse_button_press,
-      on_entry_key_press_before_show_popup_func=self._on_key_press_before_show_popup,
-      on_entry_key_press_func=self._on_tab_keys_pressed,
-      on_entry_after_assign_by_key_press_func=self._on_entry_after_assign_by_key_press)
+    self._popup = EntryPopup(self, self._COLUMN_TYPES, self._get_file_formats(pgfileformats.file_formats))
+    self._popup.filter_rows_func = self._filter_file_formats
+    self._popup.on_assign_from_selected_row = self._on_assign_from_selected_row
+    self._popup.on_assign_last_value = self._do_assign_text
+    self._popup.on_row_left_mouse_button_press = self._on_row_left_mouse_button_press
+    self._popup.on_entry_key_press_before_show_popup = self._on_key_press_before_show_popup
+    self._popup.on_entry_key_press = self._on_tab_keys_pressed
+    self._popup.on_entry_after_assign_by_key_press = self._on_entry_after_assign_by_key_press
     
     self._add_columns()
     
@@ -1207,80 +1198,19 @@ class FileExtensionEntry(ExtendedEntry):
     super(FileExtensionEntry, self)._do_assign_text(*args, **kwargs)
     self.set_position(-1)
   
-  def _on_row_left_mouse_button_press(self):
-    previous_position, previous_text = 0, self.get_text()
-    
-    if self._highlighted_extension_index is None:
-      position, text = self._popup.assign_from_selected_row()
-    else:
-      self._do_assign_text(self._highlighted_extension)
-      position, text = 0, self._highlighted_extension
-    
-    self._undo_push(previous_position, previous_text, position, text)
+  def _get_file_formats(self, file_formats):
+    return [[file_format.description, file_format.file_extensions]
+            for file_format in file_formats if file_format.is_installed()]
   
-  def _on_key_press_before_show_popup(self):
-    self._unhighlight_extension()
-  
-  def _on_tab_keys_pressed(self, key_name, selected_tree_path, stop_event_propagation):
-    if key_name in ["Tab", "KP_Tab", "ISO_Left_Tab"]:
-      # Tree paths can sometimes point at the first row even though no row is
-      # selected, hence the `tree_iter` usage.
-      _unused, tree_iter = self._popup.tree_view.get_selection().get_selected()
-      
-      if tree_iter is not None:
-        if key_name in ["Tab", "KP_Tab"]:
-          self._highlight_extension_next(selected_tree_path)
-        elif key_name == "ISO_Left_Tab":    # Shift + Tab
-          self._highlight_extension_previous(selected_tree_path)
-        
-        previous_position, previous_text = 0, self.get_text()
-        
-        self._do_assign_text(self._highlighted_extension)
-        
-        self._on_entry_after_assign_by_key_press(previous_position, previous_text, 0, self._highlighted_extension)
-        
-        return True
+  def _add_columns(self):
+    def _add_column(cell_renderer, cell_renderer_property, column_number, column_title=None):
+      column = gtk.TreeViewColumn(column_title, cell_renderer, **{cell_renderer_property: column_number})
+      self._popup.tree_view.append_column(column)
     
-    return stop_event_propagation
-  
-  def _on_entry_after_assign_by_key_press(self, previous_position, previous_text, position, text):
-    self._undo_push(previous_position, previous_text, position, text)
-  
-  def _assign_from_selected_row(self, tree_model, selected_tree_iter, extension_index=0):
-    extensions = tree_model[selected_tree_iter][self._COLUMN_EXTENSIONS]
-    if extension_index > len(extensions):
-      extension_index = len(extensions) - 1
-    self._do_assign_text(extensions[extension_index])
-    
-    return 0, extensions[extension_index]
-  
-  def _filter_file_formats(self, file_formats, row_iter):
-    return self._entry_text_matches_row(self._get_text_decoded(), file_formats, row_iter)
-  
-  def _entry_text_matches_row(self, entry_text, file_formats, row_iter, full_match=False):
-    """
-    Return True if the text in the entry is a substring of any file extension in
-    the row.
-    """
-    
-    extensions = file_formats[row_iter][self._COLUMN_EXTENSIONS]
-    
-    if full_match:
-      return any(entry_text.lower() == extension.lower() for extension in extensions)
-    else:
-      return any(entry_text.lower() in extension.lower() for extension in extensions)
-  
-  def _undo_push(self, previous_position, previous_text, position, text):
-    undo_push_list = []
-    
-    if previous_text:
-      undo_push_list.append(("delete", previous_position, previous_text))
-    
-    if position is not None and text:
-      undo_push_list.append(("insert", position, text))
-    
-    if undo_push_list:
-      self.undo_context.undo_push(undo_push_list)
+    self._cell_renderer_description = gtk.CellRendererText()
+    self._cell_renderer_extensions = CellRendererTextList()
+    _add_column(self._cell_renderer_description, "text", self._COLUMN_DESCRIPTION)
+    _add_column(self._cell_renderer_extensions, "markup-list", self._COLUMN_EXTENSIONS)
   
   def _on_tree_view_motion_notify_event(self, tree_view, event):
     self._highlight_extension_at_pos(int(event.x), int(event.y))
@@ -1295,113 +1225,6 @@ class FileExtensionEntry(ExtendedEntry):
     self._tree_view_columns_rects = [
       self._popup.tree_view.get_cell_area((0,), self._popup.tree_view.get_column(column))
       for column in self._COLUMNS]
-  
-  def _on_tree_selection_changed(self, tree_selection):
-    self._unhighlight_extension()
-  
-  def _highlight_extension(self, selected_row_path, extension_index_selection_func):
-    if selected_row_path is not None:
-      self._unhighlight_extension_proper()
-      
-      row_path = self._popup.rows_filtered.convert_path_to_child_path(selected_row_path)
-      self._highlighted_extension_row = row_path[0]
-      
-      extensions = self._popup.rows[row_path][self._COLUMN_EXTENSIONS]
-      if len(extensions) <= 1:
-        # No good reason to highlight the only extension in the row.
-        if len(extensions) == 1:
-          self._highlighted_extension = extensions[0]
-        elif len(extensions) == 0:
-          self._highlighted_extension = ""
-        
-        return
-      
-      if self._highlighted_extension_index is None:
-        self._highlighted_extension_index = 0
-      
-      self._highlighted_extension_index = extension_index_selection_func(
-        self._highlighted_extension_index, len(extensions))
-      
-      self._highlight_extension_proper()
-      
-      self._popup.refresh_row(selected_row_path)
-  
-  def _highlight_extension_next(self, selected_row_path):
-    def _select_next_extension(highlighted_extension_index, len_extensions):
-      return (highlighted_extension_index + 1) % len_extensions
-    
-    self._highlight_extension(selected_row_path, _select_next_extension)
-  
-  def _highlight_extension_previous(self, selected_row_path):
-    def _select_previous_extension(highlighted_extension_index, len_extensions):
-      return (highlighted_extension_index - 1) % len_extensions
-    
-    self._highlight_extension(selected_row_path, _select_previous_extension)
-  
-  def _highlight_extension_at_pos(self, x, y):
-    is_in_extensions_column = x >= self._tree_view_columns_rects[self._COLUMN_EXTENSIONS].x
-    if not is_in_extensions_column:
-      if self._highlighted_extension is not None:
-        self._unhighlight_extension()
-      return
-    
-    path_params = self._popup.tree_view.get_path_at_pos(x, y)
-    if path_params is None:
-      return
-    
-    selected_path_unfiltered = self._popup.rows_filtered.convert_path_to_child_path(path_params[0])
-    extension_index = self._get_extension_index_at_pos(path_params[2], selected_path_unfiltered[0])
-    
-    if extension_index == self._highlighted_extension_index:
-      return
-    
-    if extension_index is not None:
-      self._highlight_extension_at_index(path_params[0], extension_index)
-    else:
-      self._unhighlight_extension()
-  
-  def _highlight_extension_at_index(self, selected_row_path, extension_index):
-    if selected_row_path is not None:
-      self._unhighlight_extension_proper()
-      
-      row_path = self._popup.rows_filtered.convert_path_to_child_path(selected_row_path)
-      
-      self._highlighted_extension_row = row_path[0]
-      self._highlighted_extension_index = extension_index
-      
-      self._highlight_extension_proper()
-      
-      self._popup.refresh_row(selected_row_path)
-  
-  def _unhighlight_extension(self):
-    self._unhighlight_extension_proper()
-    
-    if self._highlighted_extension_row is not None:
-      self._popup.refresh_row((self._highlighted_extension_row,), is_path_filtered=False)
-    
-    self._highlighted_extension_row = None
-    self._highlighted_extension_index = None
-  
-  def _highlight_extension_proper(self):
-    extensions = self._popup.rows[self._highlighted_extension_row][self._COLUMN_EXTENSIONS]
-    
-    self._highlighted_extension = extensions[self._highlighted_extension_index]
-    
-    bg_color = self._popup.tree_view.style.bg[gtk.STATE_SELECTED]
-    fg_color = self._popup.tree_view.style.fg[gtk.STATE_SELECTED]
-    
-    extensions[self._highlighted_extension_index] = (
-      "<span background='{0}' foreground='{1}'>{2}</span>".format(
-        bg_color.to_string(),
-        fg_color.to_string(),
-        extensions[self._highlighted_extension_index]))
-  
-  def _unhighlight_extension_proper(self):
-    if self._highlighted_extension_row is not None and self._highlighted_extension_index is not None:
-      extensions = self._popup.rows[self._highlighted_extension_row][self._COLUMN_EXTENSIONS]
-      if self._highlighted_extension is not None:
-        extensions[self._highlighted_extension_index] = self._highlighted_extension
-        self._highlighted_extension = None
   
   def _fill_extensions_text_pixel_rects(self):
     pango_layout = pango.Layout(self._popup.tree_view.get_pango_context())
@@ -1448,6 +1271,140 @@ class FileExtensionEntry(ExtendedEntry):
     pango_layout.set_text(text)
     return pango_layout.get_pixel_size()
   
+  def _on_tree_selection_changed(self, tree_selection):
+    self._unhighlight_extension()
+  
+  def _filter_file_formats(self, file_formats, row_iter):
+    return self._entry_text_matches_row(self._get_text_decoded(), file_formats, row_iter)
+  
+  def _entry_text_matches_row(self, entry_text, file_formats, row_iter, full_match=False):
+    extensions = file_formats[row_iter][self._COLUMN_EXTENSIONS]
+    
+    if full_match:
+      return any(entry_text.lower() == extension.lower() for extension in extensions)
+    else:
+      return any(entry_text.lower() in extension.lower() for extension in extensions)
+  
+  def _on_assign_from_selected_row(self, tree_model, selected_tree_iter, extension_index=0):
+    extensions = tree_model[selected_tree_iter][self._COLUMN_EXTENSIONS]
+    if extension_index > len(extensions):
+      extension_index = len(extensions) - 1
+    self._do_assign_text(extensions[extension_index])
+    
+    return 0, extensions[extension_index]
+  
+  def _on_row_left_mouse_button_press(self):
+    previous_position, previous_text = 0, self.get_text()
+    
+    if self._highlighted_extension_index is None:
+      position, text = self._popup.assign_from_selected_row()
+    else:
+      self._do_assign_text(self._highlighted_extension)
+      position, text = 0, self._highlighted_extension
+    
+    self._undo_push(previous_position, previous_text, position, text)
+  
+  def _on_key_press_before_show_popup(self):
+    self._unhighlight_extension()
+  
+  def _on_tab_keys_pressed(self, key_name, selected_tree_path, stop_event_propagation):
+    if key_name in ["Tab", "KP_Tab", "ISO_Left_Tab"]:
+      # Tree paths can sometimes point at the first row even though no row is
+      # selected, hence the `tree_iter` usage.
+      _unused, tree_iter = self._popup.tree_view.get_selection().get_selected()
+      
+      if tree_iter is not None:
+        if key_name in ["Tab", "KP_Tab"]:
+          self._highlight_extension_next(selected_tree_path)
+        elif key_name == "ISO_Left_Tab":    # Shift + Tab
+          self._highlight_extension_previous(selected_tree_path)
+        
+        previous_position, previous_text = 0, self.get_text()
+        
+        self._do_assign_text(self._highlighted_extension)
+        
+        self._on_entry_after_assign_by_key_press(previous_position, previous_text, 0, self._highlighted_extension)
+        
+        return True
+    
+    return stop_event_propagation
+  
+  def _on_entry_after_assign_by_key_press(self, previous_position, previous_text, position, text):
+    self._undo_push(previous_position, previous_text, position, text)
+  
+  def _undo_push(self, previous_position, previous_text, position, text):
+    undo_push_list = []
+    
+    if previous_text:
+      undo_push_list.append(("delete", previous_position, previous_text))
+    
+    if position is not None and text:
+      undo_push_list.append(("insert", position, text))
+    
+    if undo_push_list:
+      self.undo_context.undo_push(undo_push_list)
+  
+  def _highlight_extension_next(self, selected_row_path):
+    def _select_next_extension(highlighted_extension_index, len_extensions):
+      return (highlighted_extension_index + 1) % len_extensions
+    
+    self._highlight_extension(selected_row_path, _select_next_extension)
+  
+  def _highlight_extension_previous(self, selected_row_path):
+    def _select_previous_extension(highlighted_extension_index, len_extensions):
+      return (highlighted_extension_index - 1) % len_extensions
+    
+    self._highlight_extension(selected_row_path, _select_previous_extension)
+  
+  def _highlight_extension(self, selected_row_path, extension_index_selection_func):
+    if selected_row_path is not None:
+      self._unhighlight_extension_proper()
+      
+      row_path = self._popup.rows_filtered.convert_path_to_child_path(selected_row_path)
+      self._highlighted_extension_row = row_path[0]
+      
+      extensions = self._popup.rows[row_path][self._COLUMN_EXTENSIONS]
+      if len(extensions) <= 1:
+        # No good reason to highlight the only extension in the row.
+        if len(extensions) == 1:
+          self._highlighted_extension = extensions[0]
+        elif len(extensions) == 0:
+          self._highlighted_extension = ""
+        
+        return
+      
+      if self._highlighted_extension_index is None:
+        self._highlighted_extension_index = 0
+      
+      self._highlighted_extension_index = extension_index_selection_func(
+        self._highlighted_extension_index, len(extensions))
+      
+      self._highlight_extension_proper()
+      
+      self._popup.refresh_row(selected_row_path)
+  
+  def _highlight_extension_at_pos(self, x, y):
+    is_in_extensions_column = x >= self._tree_view_columns_rects[self._COLUMN_EXTENSIONS].x
+    if not is_in_extensions_column:
+      if self._highlighted_extension is not None:
+        self._unhighlight_extension()
+      return
+    
+    path_params = self._popup.tree_view.get_path_at_pos(x, y)
+    if path_params is None:
+      return
+    
+    selected_path_unfiltered = self._popup.rows_filtered.convert_path_to_child_path(path_params[0])
+    extension_index = self._get_extension_index_at_pos(path_params[2], selected_path_unfiltered[0])
+    
+    if extension_index == self._highlighted_extension_index:
+      return
+    
+    if extension_index is not None:
+      self._highlight_extension_at_index(path_params[0], extension_index)
+    else:
+      self._unhighlight_extension()
+  
   def _get_extension_index_at_pos(self, cell_x, selected_row):
     extension_rects = self._extensions_text_pixel_rects[selected_row]
     
@@ -1467,17 +1424,45 @@ class FileExtensionEntry(ExtendedEntry):
     else:
       return None
   
-  def _get_file_formats(self, file_formats):
-    return [[file_format.description, file_format.file_extensions]
-            for file_format in file_formats if file_format.is_installed()]
+  def _highlight_extension_at_index(self, selected_row_path, extension_index):
+    if selected_row_path is not None:
+      self._unhighlight_extension_proper()
+      
+      row_path = self._popup.rows_filtered.convert_path_to_child_path(selected_row_path)
+      
+      self._highlighted_extension_row = row_path[0]
+      self._highlighted_extension_index = extension_index
+      
+      self._highlight_extension_proper()
+      
+      self._popup.refresh_row(selected_row_path)
   
-  def _add_columns(self):
+  def _highlight_extension_proper(self):
+    extensions = self._popup.rows[self._highlighted_extension_row][self._COLUMN_EXTENSIONS]
     
-    def _add_column(cell_renderer, cell_renderer_property, column_number, column_title=None):
-      column = gtk.TreeViewColumn(column_title, cell_renderer, **{cell_renderer_property: column_number})
-      self._popup.tree_view.append_column(column)
+    self._highlighted_extension = extensions[self._highlighted_extension_index]
     
-    self._cell_renderer_description = gtk.CellRendererText()
-    self._cell_renderer_extensions = CellRendererTextList()
-    _add_column(self._cell_renderer_description, "text", self._COLUMN_DESCRIPTION)
-    _add_column(self._cell_renderer_extensions, "markup-list", self._COLUMN_EXTENSIONS)
+    bg_color = self._popup.tree_view.style.bg[gtk.STATE_SELECTED]
+    fg_color = self._popup.tree_view.style.fg[gtk.STATE_SELECTED]
+    
+    extensions[self._highlighted_extension_index] = (
+      "<span background='{0}' foreground='{1}'>{2}</span>".format(
+        bg_color.to_string(),
+        fg_color.to_string(),
+        extensions[self._highlighted_extension_index]))
+  
+  def _unhighlight_extension(self):
+    self._unhighlight_extension_proper()
+    
+    if self._highlighted_extension_row is not None:
+      self._popup.refresh_row((self._highlighted_extension_row,), is_path_filtered=False)
+    
+    self._highlighted_extension_row = None
+    self._highlighted_extension_index = None
+  
+  def _unhighlight_extension_proper(self):
+    if self._highlighted_extension_row is not None and self._highlighted_extension_index is not None:
+      extensions = self._popup.rows[self._highlighted_extension_row][self._COLUMN_EXTENSIONS]
+      if self._highlighted_extension is not None:
+        extensions[self._highlighted_extension_index] = self._highlighted_extension
+        self._highlighted_extension = None
