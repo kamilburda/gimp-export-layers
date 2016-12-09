@@ -356,7 +356,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._folder_chooser = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
     
-    self._init_previews_gui()
+    self._init_gui_previews()
     
     self._vbox_folder_chooser = gtk.VBox(homogeneous=False)
     self._vbox_folder_chooser.set_spacing(self._DIALOG_VBOX_SPACING * 2)
@@ -581,7 +581,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._dialog.show()
   
-  def _init_previews_gui(self):
+  def _init_gui_previews(self):
     self._export_name_preview = gui_preview_name.ExportNamePreview(
       self._layer_exporter_for_previews,
       self._initial_layer_tree,
