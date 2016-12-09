@@ -38,6 +38,7 @@ import gimp
 import gimpenums
 
 from . import pginvocation
+from . import pgutils
 
 pdb = gimp.pdb
 
@@ -446,3 +447,15 @@ class GimpMessageFile(object):
   def close(self):
     if self._orig_message_handler is not None:
       pdb.gimp_message_set_handler(self._orig_message_handler)
+
+
+#===============================================================================
+
+
+def suppress_gimp_progress():
+  """
+  Prevent the default progress bar in GIMP from updating by installing dummy
+  progress callbacks.
+  """
+  
+  gimp.progress_install(pgutils.empty_func, pgutils.empty_func, pgutils.empty_func, pgutils.empty_func)
