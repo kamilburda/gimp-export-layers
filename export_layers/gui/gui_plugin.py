@@ -734,23 +734,7 @@ class ExportLayersGui(object):
   @_set_settings
   def _on_button_export_clicked(self, widget):
     self._setup_gui_before_export()
-    
-    self._item_progress_indicator.install_progress_for_status(self._progress_set_value_and_show_dialog)
-    
-    overwrite_chooser = pggui.GtkDialogOverwriteChooser(
-      # Don't insert the Cancel item as a button.
-      zip(
-        self._settings['main/overwrite_mode'].items.values()[:-1],
-        self._settings['main/overwrite_mode'].items_display_names.values()[:-1]),
-      default_value=self._settings['main/overwrite_mode'].items['replace'],
-      default_response=self._settings['main/overwrite_mode'].items['cancel'],
-      title=pygimplib.config.PLUGIN_TITLE,
-      parent=self._dialog)
-    progress_updater = pggui.GtkProgressUpdater(self._item_progress_indicator.progress_bar_for_items)
-    
-    self._layer_exporter = exportlayers.LayerExporter(
-      gimpenums.RUN_INTERACTIVE, self._image, self._settings['main'], overwrite_chooser, progress_updater,
-      export_context_manager=handle_gui_in_export, export_context_manager_args=[self._dialog])
+    overwrite_chooser, progress_updater = self._setup_layer_exporter()
     
     should_quit = True
     self._is_exporting = True
@@ -795,6 +779,27 @@ class ExportLayersGui(object):
   def _setup_gui_before_export(self):
     self._display_message_label(None)
     self._set_gui_enabled(False)
+  
+  def _setup_layer_exporter(self):
+    overwrite_chooser = pggui.GtkDialogOverwriteChooser(
+      # Don't insert the Cancel item as a button.
+      zip(
+        self._settings['main/overwrite_mode'].items.values()[:-1],
+        self._settings['main/overwrite_mode'].items_display_names.values()[:-1]),
+      default_value=self._settings['main/overwrite_mode'].items['replace'],
+      default_response=self._settings['main/overwrite_mode'].items['cancel'],
+      title=pygimplib.config.PLUGIN_TITLE,
+      parent=self._dialog)
+    
+    progress_updater = pggui.GtkProgressUpdater(self._item_progress_indicator.progress_bar_for_items)
+    
+    self._item_progress_indicator.install_progress_for_status(self._progress_set_value_and_show_dialog)
+    
+    self._layer_exporter = exportlayers.LayerExporter(
+      gimpenums.RUN_INTERACTIVE, self._image, self._settings['main'], overwrite_chooser, progress_updater,
+      export_context_manager=handle_gui_in_export, export_context_manager_args=[self._dialog])
+    
+    return overwrite_chooser, progress_updater
   
   def _restore_gui_after_export(self):
     self._set_gui_enabled(True)
