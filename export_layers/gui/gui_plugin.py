@@ -126,7 +126,7 @@ def display_reset_prompt(parent=None, more_settings_shown=False):
 
 
 @contextlib.contextmanager
-def _handle_gui_in_export(run_mode, image, layer, output_filename, window):
+def handle_gui_in_export(run_mode, image, layer, output_filename, window):
   should_manipulate_window = run_mode == gimpenums.RUN_INTERACTIVE
   
   if should_manipulate_window:
@@ -143,20 +143,12 @@ def _handle_gui_in_export(run_mode, image, layer, output_filename, window):
       gtk.main_iteration()
 
 
-#===============================================================================
-
-
-class _ExportLayersGenericGui(object):
-  
-  def __init__(self):
-    self._layer_exporter = None
-  
-  def _stop(self, *args):
-    if self._layer_exporter is not None:
-      self._layer_exporter.should_stop = True
-      return True
-    else:
-      return False
+def stop_export(layer_exporter):
+  if layer_exporter is not None:
+    layer_exporter.stop()
+    return True
+  else:
+    return False
 
 
 #===============================================================================
@@ -264,7 +256,7 @@ def _setup_output_directory_changed(settings, current_image):
 #===============================================================================
 
 
-class _ExportLayersGui(_ExportLayersGenericGui):
+class ExportLayersGui(object):
   
   _HBOX_EXPORT_LABELS_NAME_SPACING = 15
   _HBOX_EXPORT_NAME_ENTRIES_SPACING = 3
@@ -288,12 +280,11 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   _DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS = 10000
   
   def __init__(self, initial_layer_tree, settings):
-    super(_ExportLayersGui, self).__init__()
-    
     self._initial_layer_tree = initial_layer_tree
     self._settings = settings
     
     self._image = self._initial_layer_tree.image
+    self._layer_exporter = None
     self._is_exporting = False
     
     self._layer_exporter_for_previews = exportlayers.LayerExporter(
@@ -482,8 +473,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._hbox_button_settings = gtk.HBox()
     self._hbox_button_settings.pack_start(self._label_button_settings, expand=True, fill=True)
-    self._hbox_button_settings.pack_start(
-      gtk.Arrow(gtk.ARROW_DOWN, gtk.SHADOW_IN), expand=False, fill=False)
+    self._hbox_button_settings.pack_start(gtk.Arrow(gtk.ARROW_DOWN, gtk.SHADOW_IN), expand=False, fill=False)
     
     self._button_settings = gtk.Button()
     self._button_settings.add(self._hbox_button_settings)
@@ -512,7 +502,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._button_export.connect("clicked", self._on_button_export_clicked)
     self._button_cancel.connect("clicked", self._on_button_cancel_clicked)
-    self._button_stop.connect("clicked", self._stop)
+    self._button_stop.connect("clicked", self._on_button_stop_clicked)
     self._dialog.connect("key-press-event", self._on_dialog_key_press)
     self._dialog.connect("delete-event", self._on_dialog_delete_event)
     
@@ -700,7 +690,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   
   def _on_dialog_key_press(self, widget, event):
     if gtk.gdk.keyval_name(event.keyval) == "Escape":
-      export_stopped = self._stop()
+      export_stopped = stop_export(self._layer_exporter)
       return export_stopped
   
   def _on_button_settings_clicked(self, button):
@@ -760,7 +750,7 @@ class _ExportLayersGui(_ExportLayersGenericGui):
     
     self._layer_exporter = exportlayers.LayerExporter(
       gimpenums.RUN_INTERACTIVE, self._image, self._settings['main'], overwrite_chooser, progress_updater,
-      export_context_manager=_handle_gui_in_export, export_context_manager_args=[self._dialog])
+      export_context_manager=handle_gui_in_export, export_context_manager_args=[self._dialog])
     
     should_quit = True
     self._is_exporting = True
@@ -849,6 +839,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
   def _on_button_cancel_clicked(self, widget):
     gtk.main_quit()
   
+  def _on_button_stop_clicked(self, widget):
+    stop_export(self._layer_exporter)
+  
   def _display_message_label(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
     self._message_setting = setting
     
@@ -875,21 +868,21 @@ class _ExportLayersGui(_ExportLayersGenericGui):
 #===============================================================================
 
 
-class _ExportLayersRepeatGui(_ExportLayersGenericGui):
+class ExportLayersRepeatGui(object):
   
   _HBOX_HORIZONTAL_SPACING = 8
   _DIALOG_WIDTH = 500
   
   def __init__(self, layer_tree, settings):
-    super(_ExportLayersRepeatGui, self).__init__()
-
-    self._init_gui()
-    
     self._layer_tree = layer_tree
-    self._image = self._layer_tree.image
     self._settings = settings
     
+    self._image = self._layer_tree.image
+    self._layer_exporter = None
+    
     pgsettingpersistor.SettingPersistor.load([self._settings['main']], [pygimplib.config.SOURCE_SESSION])
+    
+    self._init_gui()
     
     pggui.set_gui_excepthook_parent(self._dialog)
     
@@ -918,8 +911,8 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
     
     self._dialog.vbox.pack_end(self._hbox_action_area, expand=False, fill=False)
     
-    self._button_stop.connect("clicked", self._stop)
-    self._dialog.connect("delete-event", self._stop)
+    self._button_stop.connect("clicked", self._on_button_stop_clicked)
+    self._dialog.connect("delete-event", self._on_dialog_delete_event)
   
   def export_layers(self):
     self._item_progress_indicator.install_progress_for_status()
@@ -928,7 +921,7 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
       gimpenums.RUN_WITH_LAST_VALS, self._image, self._settings['main'],
       pgoverwrite.NoninteractiveOverwriteChooser(self._settings['main/overwrite_mode'].value),
       pggui.GtkProgressUpdater(self._item_progress_indicator.progress_bar_for_items),
-      export_context_manager=_handle_gui_in_export, export_context_manager_args=[self._dialog])
+      export_context_manager=handle_gui_in_export, export_context_manager_args=[self._dialog])
     try:
       self._layer_exporter.export(layer_tree=self._layer_tree)
     except exportlayers.ExportLayersCancelError:
@@ -953,14 +946,20 @@ class _ExportLayersRepeatGui(_ExportLayersGenericGui):
   
   def hide(self):
     self._dialog.hide()
+  
+  def _on_button_stop_clicked(self, widget):
+    stop_export(self._layer_exporter)
+  
+  def _on_dialog_delete_event(self, widget, event):
+    stop_export(self._layer_exporter)
 
 
 #===============================================================================
 
 
 def export_layers_gui(image, settings):
-  _ExportLayersGui(image, settings)
+  ExportLayersGui(image, settings)
 
 
 def export_layers_repeat_gui(image, settings):
-  _ExportLayersRepeatGui(image, settings)
+  ExportLayersRepeatGui(image, settings)

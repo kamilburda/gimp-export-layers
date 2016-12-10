@@ -19,10 +19,8 @@
 #
 
 """
-This module:
-* is the core of the plug-in
-* defines a class that exports layers as individual images
-* defines filter rules for layers
+This module is the core of the plug-in and provides a class to export layers as
+separate images.
 """
 
 from __future__ import absolute_import
@@ -402,9 +400,6 @@ class LayerExporter(object):
   * `progress_updater` - `ProgressUpdater` instance that indicates the number of
     layers exported. If no progress update is desired, pass None.
   
-  * `should_stop` - Can be used to stop the export prematurely. If True,
-    the export is stopped after exporting the currently processed layer.
-  
   * `layer_tree` - `LayerTree` instance containing layers to be exported.
     Defaults to None if no export has been performed yet.
   
@@ -447,12 +442,12 @@ class LayerExporter(object):
     self.export_context_manager_args = (
       export_context_manager_args if export_context_manager_args is not None else [])
     
-    self.should_stop = False
-    
     self._exported_layers = []
     self._exported_layers_ids = set()
     self._current_layer_elem = None
     self._default_file_extension = None
+    
+    self._should_stop = False
     
     self._processing_groups = {
       'layer_contents': [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
@@ -601,6 +596,9 @@ class LayerExporter(object):
         for event_id in event_ids:
           self.export_settings[setting_name].set_event_enabled(event_id, True)
   
+  def stop(self):
+    self._should_stop = True
+  
   def _add_operations_initial(self):
     self._operations_executor.add_operation(builtin_operations.set_active_layer, [_BUILTIN_OPERATIONS_GROUP])
     self._operations_executor.add_executor(
@@ -618,7 +616,7 @@ class LayerExporter(object):
     
     self._keep_exported_layers = keep_exported_layers
     
-    self.should_stop = False
+    self._should_stop = False
     
     self._exported_layers = []
     self._exported_layers_ids = set()
@@ -723,7 +721,7 @@ class LayerExporter(object):
   
   def _export_layers(self):
     for layer_elem in self._layer_tree:
-      if self.should_stop:
+      if self._should_stop:
         raise ExportLayersCancelError("export stopped by user")
       
       self._current_layer_elem = layer_elem
