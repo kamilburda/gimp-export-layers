@@ -789,7 +789,9 @@ class _ExportLayersGui(_ExportLayersGenericGui):
       self._layer_exporter = None
       self._is_exporting = False
     
-    self._settings['main/overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
+    if overwrite_chooser.overwrite_mode != pgoverwrite.OverwriteModes.CANCEL:
+      self._settings['main/overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
+    
     pgsettingpersistor.SettingPersistor.save(
       [self._settings['main'], self._settings['gui'], self._settings['gui_session']],
       [pygimplib.config.SOURCE_SESSION])
