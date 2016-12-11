@@ -579,29 +579,30 @@ class ExportLayersGui(object):
       self._export_previews_controller.on_name_preview_after_edit_tags)
   
   def _init_gui_operation_boxes(self):
-    self._box_more_operations = gui_operations.OperationBox(
-      label_add_text=_("Add _Operation..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
-      settings=self._settings['main/more_operations'])
+    self._box_more_operations = self._create_operation_box(
+      self._settings['main/more_operations'],
+      self._settings['gui/displayed_builtin_operations'],
+      _("Add _Operation..."))
     
-    self._box_more_operations.on_add_operation = exportlayers.add_operation
-    self._box_more_operations.on_reorder_operation = exportlayers.reorder_operation
-    self._box_more_operations.on_remove_operation = exportlayers.remove_operation
+    self._box_more_filters = self._create_operation_box(
+      self._settings['main/more_filters'],
+      self._settings['gui/displayed_builtin_filters'],
+      _("Add _Filter..."))
+  
+  def _create_operation_box(self, setting_group_with_operations, setting_displayed_operations, label_add_operation):
+    operation_box = gui_operations.OperationBox(
+      label_add_text=label_add_operation, spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
+      settings=setting_group_with_operations)
     
-    for setting_name in self._settings['gui/displayed_builtin_operations'].value:
-      if setting_name in self._settings['main/more_operations']:
-        self._box_more_operations.add_operation_item(self._settings['main/more_operations'][setting_name])
+    operation_box.on_add_operation = exportlayers.add_operation
+    operation_box.on_reorder_operation = exportlayers.reorder_operation
+    operation_box.on_remove_operation = exportlayers.remove_operation
     
-    self._box_more_filters = gui_operations.OperationBox(
-      label_add_text=_("Add _Filter..."), spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
-      settings=self._settings['main/more_filters'])
+    for setting_name in setting_displayed_operations.value:
+      if setting_name in setting_group_with_operations:
+        operation_box.add_operation_item(setting_group_with_operations[setting_name])
     
-    self._box_more_filters.on_add_operation = exportlayers.add_operation
-    self._box_more_filters.on_reorder_operation = exportlayers.reorder_operation
-    self._box_more_filters.on_remove_operation = exportlayers.remove_operation
-    
-    for setting_name in self._settings['gui/displayed_builtin_filters'].value:
-      if setting_name in self._settings['main/more_filters']:
-        self._box_more_operations.add_operation_item(self._settings['main/more_filters'][setting_name])
+    return operation_box
   
   def _reset_settings(self):
     self._settings.reset()
