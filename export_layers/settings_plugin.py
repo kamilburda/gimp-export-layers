@@ -208,6 +208,12 @@ def create_settings():
   more_filters_settings = pgsettinggroup.SettingGroup('more_filters', [
     {
       'type': pgsetting.SettingTypes.boolean,
+      'name': 'include_layers',
+      'default_value': True,
+      'display_name': _("Include layers")
+    },
+    {
+      'type': pgsetting.SettingTypes.boolean,
       'name': 'include_layer_groups',
       'default_value': False,
       'display_name': _("Include layer groups")

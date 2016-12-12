@@ -246,7 +246,12 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._preview_scaling_factor = self._preview_width / layer.width
     
     image_preview = self._get_image_preview()
+    
     if image_preview is None:
+      return None
+    
+    if len(image_preview.layers) == 0:
+      self._cleanup(image_preview)
       return None
     
     if image_preview.base_type != gimpenums.RGB:

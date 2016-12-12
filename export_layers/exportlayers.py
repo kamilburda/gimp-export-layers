@@ -271,24 +271,6 @@ def _get_prefilled_file_extension_properties():
 #===============================================================================
 
 
-def _make_dirs(path, layer_exporter):
-  try:
-    pgpath.make_dirs(path)
-  except OSError as e:
-    try:
-      message = e.args[1]
-      if e.filename is not None:
-        message += ": \"{0}\"".format(e.filename)
-    except (IndexError, AttributeError):
-      message = str(e)
-    
-    raise InvalidOutputDirectoryError(
-      message, layer_exporter.current_layer_elem, layer_exporter.default_file_extension)
-
-
-#===============================================================================
-
-
 class ExportStatuses(object):
   EXPORT_STATUSES = (
     NOT_EXPORTED_YET, EXPORT_SUCCESSFUL, FORCE_INTERACTIVE, USE_DEFAULT_FILE_EXTENSION
@@ -301,11 +283,6 @@ class ExportStatuses(object):
 _BUILTIN_OPERATIONS_GROUP = "process_layer"
 _BUILTIN_FILTERS_GROUP = "set_filters"
 _BUILTIN_FILTERS_LAYER_TYPES_GROUP = "set_filters_layer_types"
-
-_operations_executor = pgoperations.OperationsExecutor()
-
-_operations_executor.add_foreach_operation(
-  builtin_operations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
 
 _builtin_operations_and_settings = {
   'ignore_layer_modes': [builtin_operations.ignore_layer_modes],
@@ -326,12 +303,15 @@ _builtin_filters_and_settings = {
 }
 
 _builtin_include_filters_and_settings = {
+  'include_layers': [_add_filter_rule(builtin_filters.is_layer, subfilter="layer_types")],
   'include_layer_groups': [_add_filter_rule(builtin_filters.is_nonempty_group, subfilter="layer_types")],
   'include_empty_layer_groups': [_add_filter_rule(builtin_filters.is_empty_group, subfilter="layer_types")]
 }
 
 # key: setting name; value: (operation ID, operation group) tuple
 _operation_settings_and_items = {}
+
+_operations_executor = pgoperations.OperationsExecutor()
 
 
 def add_operation(base_setting):
@@ -370,6 +350,10 @@ def reorder_operation(setting, new_position):
 def remove_operation(setting):
   if setting.name in _operation_settings_and_items:
     _operations_executor.remove_operation(_operation_settings_and_items[setting.name][0])
+
+
+_operations_executor.add_foreach_operation(
+  builtin_operations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
 
 
 #===============================================================================
@@ -453,7 +437,7 @@ class LayerExporter(object):
       'layer_contents': [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
       'layer_name': [self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name],
       '_postprocess_layer_name': [self._postprocess_layer_name],
-      'export': [_make_dirs, self._export]
+      'export': [self._make_dirs, self._export]
     }
     
     self._processing_groups_functions = {}
@@ -604,6 +588,8 @@ class LayerExporter(object):
     self._operations_executor.add_executor(
       _operations_executor,
       [_BUILTIN_OPERATIONS_GROUP, _BUILTIN_FILTERS_GROUP, _BUILTIN_FILTERS_LAYER_TYPES_GROUP])
+    
+    add_operation(self.export_settings['more_filters/include_layers'])
   
   def _init_attributes(self, processing_groups, layer_tree, keep_exported_layers):
     self._enable_disable_processing_groups(processing_groups)
@@ -697,8 +683,6 @@ class LayerExporter(object):
     self._layer_tree.filter.add_subfilter(
       'layer_types', pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ANY))
     
-    self._layer_tree.filter['layer_types'].add_rule(builtin_filters.is_layer)
-    
     self._operations_executor.execute([_BUILTIN_FILTERS_LAYER_TYPES_GROUP], self)
     
     self._init_tagged_layer_elems()
@@ -729,7 +713,7 @@ class LayerExporter(object):
       if layer_elem.item_type in (layer_elem.ITEM, layer_elem.NONEMPTY_GROUP):
         self._process_and_export_item(layer_elem)
       elif layer_elem.item_type == layer_elem.EMPTY_GROUP:
-        self._process_and_export_empty_group(layer_elem)
+        self._process_empty_group(layer_elem)
       else:
         raise ValueError(
           "invalid/unsupported item type '{0}' of _ItemTreeElement '{1}'".format(
@@ -742,6 +726,7 @@ class LayerExporter(object):
     self._export_layer(layer_elem, self._image_copy, layer_copy)
     self._postprocess_layer(self._image_copy, layer_copy)
     self._postprocess_layer_name(layer_elem)
+    
     self.progress_updater.update_tasks()
     
     if self._current_overwrite_mode != pgoverwrite.OverwriteModes.SKIP:
@@ -749,9 +734,11 @@ class LayerExporter(object):
       self._exported_layers_ids.add(layer.ID)
       self._file_extension_properties[self._current_file_extension].processed_count += 1
   
-  def _process_and_export_empty_group(self, layer_elem):
+  def _process_empty_group(self, layer_elem):
     self._preprocess_empty_group_name(layer_elem)
-    _make_dirs(layer_elem.get_filepath(self._output_directory), self)
+    
+    empty_group_path = layer_elem.get_filepath(self._output_directory)
+    self._make_dirs(empty_group_path, self)
   
   def _setup(self):
     pdb.gimp_context_push()
@@ -885,11 +872,25 @@ class LayerExporter(object):
       raise ExportLayersCancelError("cancelled")
     
     if self._current_overwrite_mode != pgoverwrite.OverwriteModes.SKIP:
-      _make_dirs(os.path.dirname(output_filename), self)
+      self._make_dirs(os.path.dirname(output_filename), self)
       
       self._export_once_wrapper(self._get_export_func(), self._get_run_mode(), image, layer, output_filename)
       if self._current_layer_export_status == ExportStatuses.FORCE_INTERACTIVE:
         self._export_once_wrapper(self._get_export_func(), gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
+  
+  def _make_dirs(self, path, layer_exporter):
+    try:
+      pgpath.make_dirs(path)
+    except OSError as e:
+      try:
+        message = e.args[1]
+        if e.filename is not None:
+          message += ": \"{0}\"".format(e.filename)
+      except (IndexError, AttributeError):
+        message = str(e)
+      
+      raise InvalidOutputDirectoryError(
+        message, layer_exporter.current_layer_elem, layer_exporter.default_file_extension)
   
   def _export_once_wrapper(self, export_func, run_mode, image, layer, output_filename):
     with self.export_context_manager(run_mode, image, layer, output_filename, *self.export_context_manager_args):
