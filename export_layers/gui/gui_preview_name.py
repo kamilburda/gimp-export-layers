@@ -79,7 +79,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self.on_after_update = pgutils.empty_func
     self.on_after_edit_tags = pgutils.empty_func
     
-    self._tree_iters = collections.defaultdict(lambda: None)
+    self._tree_iters = collections.defaultdict(pgutils.return_none_func)
     
     self._row_expand_collapse_interactive = True
     self._toggle_tag_interactive = True

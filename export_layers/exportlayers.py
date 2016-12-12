@@ -613,8 +613,8 @@ class LayerExporter(object):
     
     self._image_copy = None
     self._tagged_layer_elems = collections.defaultdict(list)
-    self._tagged_layer_copies = collections.defaultdict(lambda: None)
-    self._inserted_tagged_layers = collections.defaultdict(lambda: None)
+    self._tagged_layer_copies = collections.defaultdict(pgutils.return_none_func)
+    self._inserted_tagged_layers = collections.defaultdict(pgutils.return_none_func)
     
     self._use_another_image_copy = False
     self._another_image_copy = None
@@ -647,7 +647,7 @@ class LayerExporter(object):
       for processing_group, functions in self._processing_groups.items():
         if processing_group not in processing_groups:
           for function in functions:
-            setattr(self, function.__name__, lambda *args, **kwargs: None)
+            setattr(self, function.__name__, pgutils.empty_func)
   
   def _preprocess_layers(self):
     if self._layer_tree.filter:

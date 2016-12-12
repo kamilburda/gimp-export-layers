@@ -122,7 +122,7 @@ def create_gui_settings():
       'type': pgsetting.SettingTypes.generic,
       'name': 'export_image_preview_displayed_layers',
       # key: image ID; value: ID of the layer displayed in the preview
-      'default_value': collections.defaultdict(pgutils.empty_func)
+      'default_value': collections.defaultdict(pgutils.return_none_func)
     },
   ], setting_sources=[pygimplib.config.SOURCE_SESSION])
   
@@ -137,7 +137,7 @@ def create_gui_settings():
       'type': pgsetting.SettingTypes.generic,
       'name': 'export_image_preview_displayed_layers_persistent',
       # key: image filename; value: name of the layer displayed in the preview
-      'default_value': collections.defaultdict(pgutils.empty_func)
+      'default_value': collections.defaultdict(pgutils.return_none_func)
     },
   ], setting_sources=[pygimplib.config.SOURCE_PERSISTENT])
   
