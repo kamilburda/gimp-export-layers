@@ -660,14 +660,15 @@ class LayerExporter(object):
     
     self._set_layer_filters()
     
-    with self._layer_tree.filter['layer_types'].remove_rule_temp(builtin_filters.is_empty_group, False):
-      self.progress_updater.num_total_tasks = len(self._layer_tree)
+    self.progress_updater.num_total_tasks = len(self._layer_tree)
     
     if self._keep_exported_layers:
-      if self.progress_updater.num_total_tasks > 1:
-        self._use_another_image_copy = True
-      elif self.progress_updater.num_total_tasks < 1:
-        self._keep_exported_layers = False
+      with self._layer_tree.filter['layer_types'].remove_rule_temp(builtin_filters.is_empty_group, False):
+        num_layers_and_nonempty_groups = len(self._layer_tree)
+        if num_layers_and_nonempty_groups > 1:
+          self._use_another_image_copy = True
+        elif num_layers_and_nonempty_groups < 1:
+          self._keep_exported_layers = False
   
   def _remove_parents_in_layer_elems(self):
     for layer_elem in self._layer_tree:
@@ -739,6 +740,9 @@ class LayerExporter(object):
     
     empty_group_path = layer_elem.get_filepath(self._output_directory)
     self._make_dirs(empty_group_path, self)
+    
+    self.progress_updater.update_text(_("Creating empty directory '{0}'").format(empty_group_path))
+    self.progress_updater.update_tasks()
   
   def _setup(self):
     pdb.gimp_context_push()
