@@ -304,6 +304,9 @@ class TestSettingGroupCreation(unittest.TestCase):
     self.assertEqual(settings['additional/autocrop'].display_name, "Autocrop")
 
 
+#===============================================================================
+
+
 class TestSettingGroup(unittest.TestCase):
   
   def setUp(self):
@@ -315,7 +318,7 @@ class TestSettingGroup(unittest.TestCase):
        'default_value': False
       }
     ])
-      
+  
   def test_get_setting_raise_error_if_invalid_name(self):
     with self.assertRaises(KeyError):
       self.settings['invalid_name']
@@ -403,6 +406,9 @@ class TestSettingGroup(unittest.TestCase):
       self.settings['special']['first_plugin_run'].value,
       self.settings['special']['first_plugin_run'].default_value)
   
+
+#===============================================================================
+
 
 class TestSettingGroupHierarchical(unittest.TestCase):
   
@@ -549,6 +555,9 @@ class TestSettingGroupHierarchical(unittest.TestCase):
       })
 
 
+#===============================================================================
+
+
 @mock.patch(
   LIB_NAME + '.pgsettingpersistor.SettingPersistor.save',
   return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
@@ -616,8 +625,11 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     mock_save.side_effect = load_save_calls_return_values
     status, _unused = self.settings.save()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.WRITE_FAIL)
-    
-    
+
+
+#===============================================================================
+
+
 class TestSettingGroupGui(unittest.TestCase):
 
   def setUp(self):
@@ -669,57 +681,3 @@ class TestSettingGroupGui(unittest.TestCase):
     
     self.assertEqual(self.settings['file_extension'].value, "gif")
     self.assertEqual(self.settings['only_visible_layers'].value, True)
-    
-
-#===============================================================================
-
-
-class TestPdbParamCreator(unittest.TestCase):
-  
-  def setUp(self):
-    self.file_ext_setting = pgsetting.FileExtensionSetting(
-      "file_extension", "png", display_name="File extension")
-    self.unregistrable_setting = pgsetting.IntSetting(
-      "num_exported_layers", 0, pdb_type=pgsetting.SettingPdbTypes.none)
-    self.settings = create_test_settings_hierarchical()
-  
-  def test_create_one_param_successfully(self):
-    params = pgsettinggroup.PdbParamCreator.create_params(self.file_ext_setting)
-    # There's only one PDB parameter returned.
-    param = params[0]
-    
-    self.assertTrue(len(param), 3)
-    self.assertEqual(param[0], pgsetting.SettingPdbTypes.string)
-    self.assertEqual(param[1], "file_extension".encode())
-    self.assertEqual(param[2], "File extension".encode())
-  
-  def test_create_params_invalid_argument(self):
-    with self.assertRaises(TypeError):
-      pgsettinggroup.PdbParamCreator.create_params([self.file_ext_setting])
-  
-  def test_create_multiple_params(self):
-    params = pgsettinggroup.PdbParamCreator.create_params(self.file_ext_setting, self.settings)
-    
-    self.assertTrue(len(params), 1 + len(self.settings))
-    self.assertEqual(
-      params[0],
-      (self.file_ext_setting.pdb_type, self.file_ext_setting.name.encode(),
-       self.file_ext_setting.description.encode()))
-    
-    for param, setting in zip(params[1:], self.settings.iterate_all()):
-      self.assertEqual(param, (setting.pdb_type, setting.name.encode(), setting.description.encode()))
-  
-  def test_create_params_with_unregistrable_setting(self):
-    params = pgsettinggroup.PdbParamCreator.create_params(self.unregistrable_setting)
-    self.assertEqual(params, [])
-  
-  def test_list_param_values(self):
-    param_values = pgsettinggroup.PdbParamCreator.list_param_values([self.settings])
-    self.assertEqual(param_values[0], self.settings['main']['file_extension'].value)
-    self.assertEqual(param_values[1], self.settings['advanced']['only_visible_layers'].value)
-    self.assertEqual(param_values[2], self.settings['advanced']['overwrite_mode'].value)
-
-  def test_list_param_values_ignore_run_mode(self):
-    param_values = pgsettinggroup.PdbParamCreator.list_param_values(
-      [pgsetting.IntSetting('run_mode', 0), self.settings])
-    self.assertEqual(len(param_values), len(list(self.settings.iterate_all())))
