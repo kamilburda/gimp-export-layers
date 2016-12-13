@@ -37,7 +37,8 @@ from .. import pgsettinggroup
 
 
 def create_test_settings():
-  settings = pgsettinggroup.SettingGroup('main', [
+  settings = pgsettinggroup.SettingGroup('main')
+  settings.add([
     {
       'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
@@ -63,16 +64,12 @@ def create_test_settings():
     },
   ])
   
-  settings.set_ignore_tags({
-    'file_extension': ['reset'],
-    'overwrite_mode': ['reset', 'apply_gui_values_to_settings'],
-  })
-  
   return settings
 
 
 def create_test_settings_hierarchical():
-  main_settings = pgsettinggroup.SettingGroup('main', [
+  main_settings = pgsettinggroup.SettingGroup('main')
+  main_settings.add([
     {
       'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
@@ -81,7 +78,8 @@ def create_test_settings_hierarchical():
     },
   ])
   
-  advanced_settings = pgsettinggroup.SettingGroup('advanced', [
+  advanced_settings = pgsettinggroup.SettingGroup('advanced')
+  advanced_settings.add([
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'only_visible_layers',
@@ -99,23 +97,30 @@ def create_test_settings_hierarchical():
     },
   ])
   
-  settings = pgsettinggroup.SettingGroup('settings', [main_settings, advanced_settings])
+  settings = pgsettinggroup.SettingGroup('settings')
+  settings.add([main_settings, advanced_settings])
   
   return settings
 
 
 def create_test_settings_load_save():
-  dummy_session_source, dummy_persistent_source = (object(), object())
+  dummy_session_source, dummy_persistent_source = object(), object()
   
-  main_settings = pgsettinggroup.SettingGroup('main', [
+  main_settings = pgsettinggroup.SettingGroup(
+    name='main', setting_params={'setting_sources': [dummy_session_source, dummy_persistent_source]})
+  
+  main_settings.add([
     {
       'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
       'default_value': 'bmp',
     },
-  ], setting_sources=[dummy_session_source, dummy_persistent_source])
+  ])
   
-  advanced_settings = pgsettinggroup.SettingGroup('advanced', [
+  advanced_settings = pgsettinggroup.SettingGroup(
+    name='advanced', setting_params={'setting_sources': [dummy_session_source]})
+  
+  advanced_settings.add([
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'only_visible_layers',
@@ -127,8 +132,9 @@ def create_test_settings_load_save():
       'name': 'autocrop',
       'default_value': False
     },
-  ], setting_sources=[dummy_session_source])
+  ])
   
-  settings = pgsettinggroup.SettingGroup('settings', [main_settings, advanced_settings])
+  settings = pgsettinggroup.SettingGroup('settings')
+  settings.add([main_settings, advanced_settings])
   
   return settings

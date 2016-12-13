@@ -42,7 +42,7 @@ from . import pgsettingpersistor
 class SettingGroup(object):
   
   """
-  This class
+  This class:
   * allows to create a group of related settings (`Setting` objects),
   * allows to store existing setting groups,
   * can perform certain operations on all settings and nested groups at once.
@@ -53,53 +53,21 @@ class SettingGroup(object):
   
   _SETTING_PATH_SEPARATOR = "/"
   
-  def __init__(self, name, setting_list, **setting_params):
+  def __init__(self, name, setting_params=None):
     """
-    Create settings from the specified list. The list can contain both `Setting`
-    and `SettingGroup` objects.
-    
-    The order of settings in the list corresponds to the order in which the
-    settings are iterated.
-    
     Parameters:
     
     * `name` - A name (string) that uniquely identifies the setting group.
     
-    * `setting_list` - List of settings (`Setting` or `SettingGroup` objects).
-    
-    * `**setting_params` - (setting attribute: value) pairs to assign to
-      each setting in the group. Attributes in individual settings override
-      these attributes.
-    
-    ---------
-    
-    To add a setting, use a dictionary containing (attribute name, value) pairs.
-    "attribute name" is a string that represents an argument passed when
-    instantiating the appropriate `Setting` class.
-    
-    The following attributes must always be specified:
-      * 'type' - type of the Setting object to instantiate.
-      * 'name' - setting name.
-      * 'default_value' - default value of the setting.
-    
-    The 'name' attribute must not contain forward slashes ('/') to allow
-    accessing settings via setting paths.
-    
-    For more attributes, check the documentation of the setting classes. Some
-    subclasses may require specifying additional mandatory attributes.
-    
-    Multiple settings with the same name and in different nested groups are
-    possible. Each such setting can be accessed like any other:
-    
-      settings['main']['autocrop']
-      settings['advanced']['autocrop']
+    * `setting_params` - dictionary of (setting attribute: value) pairs to
+      assign to each setting in the group. Attributes in individual settings
+      override these attributes.
     """
     
     self._name = name
-    self._setting_params = setting_params
-    self._settings = collections.OrderedDict()
+    self._setting_params = setting_params if setting_params is not None else {}
     
-    self.add(setting_list)
+    self._settings = collections.OrderedDict()
     
     # key: `Setting` or `SettingGroup` instance; value: set of ignore tags (strings)
     self._ignored_settings_and_tags = {}
@@ -118,11 +86,12 @@ class SettingGroup(object):
     """
     Access the setting or group by its name (string).
     
-    If a setting is inside a nested group, you can access the setting as follows:
+    If a setting is inside a nested group, you can access the setting as
+    follows:
       
       settings['main']['autocrop']
     
-    Or by a setting path:
+    As a more compact alternative, you may specify a setting path:
     
       settings['main/autocrop']
     """
@@ -156,6 +125,57 @@ class SettingGroup(object):
   
   def __len__(self):
     return len(self._settings)
+  
+  def add(self, setting_list):
+    """
+    Add settings to the group.
+    
+    The order of settings in the list corresponds to the order in which the
+    settings are iterated.
+    
+    `setting_list` is a list that can contain `Setting` objects, `SettingGroup`
+    objects or dictionaries representing `Setting` objects to be created.
+    
+    Each dictionary contains (attribute name: value) pairs, where
+    "attribute name" is a string that represents an argument passed when
+    instantiating the setting. The following attributes must always be
+    specified:
+      * 'type' - type of the Setting object to instantiate.
+      * 'name' - setting name.
+      * 'default_value' - default value of the setting.
+    
+    The 'name' attribute must not contain forward slashes ('/') (which are used
+    to access settings via paths).
+    
+    For more attributes, check the documentation of the setting classes. Some
+    `Setting` subclasses may require specifying additional mandatory attributes.
+    
+    Multiple settings with the same name and in different nested groups are
+    possible. Each such setting can be accessed like any other:
+    
+      settings['main']['autocrop']
+      settings['advanced']['autocrop']
+    
+    Settings created from dictionaries are assigned `setting_params` specified
+    during initialization of this class.
+    """
+    
+    for setting_or_group in setting_list:
+      if isinstance(setting_or_group, SettingGroup):
+        self._add_setting_group(setting_or_group)
+      else:
+        self._create_setting(setting_or_group)
+  
+  def remove(self, setting_names):
+    """
+    Remove settings from the group specified by their names.
+    """
+    
+    for setting_name in setting_names:
+      if setting_name in self._settings:
+        del self._settings[setting_name]
+      else:
+        raise KeyError("setting '{0}' not found".format(setting_name))
   
   def iterate_all(self, ignore_tags=None):
     """
@@ -201,29 +221,6 @@ class SettingGroup(object):
           yield setting
         else:
           continue
-  
-  def add(self, setting_list):
-    """
-    Add settings to the group. For details about the format of `setting_list`,
-    refer to the documentation for the `__init__()` method.
-    """
-    
-    for setting_or_group in setting_list:
-      if isinstance(setting_or_group, SettingGroup):
-        self._add_setting_group(setting_or_group)
-      else:
-        self._create_setting(setting_or_group)
-  
-  def remove(self, setting_names):
-    """
-    Remove settings from the group specified by their names.
-    """
-    
-    for setting_name in setting_names:
-      if setting_name in self._settings:
-        del self._settings[setting_name]
-      else:
-        raise KeyError("setting '{0}' not found".format(setting_name))
   
   def set_ignore_tags(self, settings_and_tags):
     """
@@ -459,28 +456,30 @@ class SettingGroup(object):
     except KeyError:
       raise TypeError(self._get_missing_mandatory_attributes_message(['type']))
     
-    del setting_data['type']
+    # Do not modify the original `setting_data` in case it is expected to be reused.
+    setting_data_copy = {key: setting_data[key] for key in setting_data if key != 'type'}
     
     try:
-      setting_data['name']
+      setting_data_copy['name']
     except KeyError:
       raise TypeError(self._get_missing_mandatory_attributes_message(['name']))
     
-    if self._SETTING_PATH_SEPARATOR in setting_data['name']:
+    if self._SETTING_PATH_SEPARATOR in setting_data_copy['name']:
       raise ValueError(
-        "'{0}': setting name must not contain '{1}'".format(setting_data['name'], self._SETTING_PATH_SEPARATOR))
+        "'{0}': setting name must not contain '{1}'".format(
+          setting_data_copy['name'], self._SETTING_PATH_SEPARATOR))
     
-    if setting_data['name'] in self._settings:
-      raise KeyError("setting '{0}' already exists".format(setting_data['name']))
+    if setting_data_copy['name'] in self._settings:
+      raise KeyError("setting '{0}' already exists".format(setting_data_copy['name']))
     
     for setting_attribute, setting_attribute_value in self._setting_params.items():
-      if setting_attribute not in setting_data:
-        setting_data[setting_attribute] = setting_attribute_value
+      if setting_attribute not in setting_data_copy:
+        setting_data_copy[setting_attribute] = setting_attribute_value
     
     try:
-      self._settings[setting_data['name']] = setting_type(**setting_data)
+      self._settings[setting_data_copy['name']] = setting_type(**setting_data_copy)
     except TypeError as e:
-      missing_mandatory_arguments = self._get_missing_mandatory_arguments(setting_type, setting_data)
+      missing_mandatory_arguments = self._get_missing_mandatory_arguments(setting_type, setting_data_copy)
       if missing_mandatory_arguments:
         message = self._get_missing_mandatory_attributes_message(missing_mandatory_arguments)
       else:
