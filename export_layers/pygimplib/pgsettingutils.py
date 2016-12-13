@@ -82,7 +82,9 @@ class PdbParamCreator(object):
       elif isinstance(setting_or_group, pgsettinggroup.SettingGroup):
         settings.extend(setting_or_group.iterate_all())
       else:
-        raise TypeError("{0}: not a Setting or a SettingGroup object".format(type(setting_or_group)))
+        raise TypeError(
+          "{0} is not an object of type {1} or {2}".format(
+            setting_or_group, pgsetting.Setting, pgsettinggroup.SettingGroup))
     
     return settings
   
