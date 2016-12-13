@@ -27,9 +27,9 @@ str = unicode
 
 import unittest
 
+from . import stubs_pgsettinggroup
 from .. import pgsetting
 from .. import pgsettingutils
-from .test_pgsettinggroup import create_test_settings_hierarchical
 
 #===============================================================================
 
@@ -41,7 +41,7 @@ class TestPdbParamCreator(unittest.TestCase):
       "file_extension", "png", display_name="File extension")
     self.unregistrable_setting = pgsetting.IntSetting(
       "num_exported_layers", 0, pdb_type=pgsetting.SettingPdbTypes.none)
-    self.settings = create_test_settings_hierarchical()
+    self.settings = stubs_pgsettinggroup.create_test_settings_hierarchical()
   
   def test_create_one_param_successfully(self):
     params = pgsettingutils.PdbParamCreator.create_params(self.file_ext_setting)

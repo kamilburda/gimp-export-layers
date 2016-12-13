@@ -29,117 +29,15 @@ import unittest
 
 from ..lib import mock
 
+from . import stubs_pgsetting
+from . import stubs_pgsettinggroup
 from .. import pgsetting
 from .. import pgsettinggroup
 from .. import pgsettingpersistor
-from .test_pgsetting import CheckButtonStub, GuiWidgetStub
-from .test_pgsetting import CheckButtonPresenterStub, SettingPresenterStub
-from .test_pgsetting import SettingWithGuiStub
 
 #===============================================================================
 
 LIB_NAME = ".".join(__name__.split(".")[:-2])
-
-#===============================================================================
-
-
-def create_test_settings():
-  settings = pgsettinggroup.SettingGroup('main', [
-    {
-      'type': pgsetting.SettingTypes.file_extension,
-      'name': 'file_extension',
-      'default_value': 'bmp',
-      'display_name': "File extension"
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'only_visible_layers',
-      'default_value': False,
-      'display_name': "Only visible layers",
-      'setting_sources': [object()]
-    },
-    {
-      'type': pgsetting.SettingTypes.enumerated,
-      'name': 'overwrite_mode',
-      'default_value': 'rename_new',
-      'items': [('replace', "Replace"),
-                ('skip', "Skip"),
-                ('rename_new', "Rename new file"),
-                ('rename_existing', "Rename existing file")],
-      'error_messages': {'invalid_value': "Invalid value. Something went wrong on our end... we are so sorry!"}
-    },
-  ])
-  
-  settings.set_ignore_tags({
-    'file_extension': ['reset'],
-    'overwrite_mode': ['reset', 'apply_gui_values_to_settings'],
-  })
-  
-  return settings
-
-
-def create_test_settings_hierarchical():
-  main_settings = pgsettinggroup.SettingGroup('main', [
-    {
-      'type': pgsetting.SettingTypes.file_extension,
-      'name': 'file_extension',
-      'default_value': 'bmp',
-      'display_name': "File extension"
-    },
-  ])
-  
-  advanced_settings = pgsettinggroup.SettingGroup('advanced', [
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'only_visible_layers',
-      'default_value': False,
-      'display_name': "Only visible layers",
-    },
-    {
-      'type': pgsetting.SettingTypes.enumerated,
-      'name': 'overwrite_mode',
-      'default_value': 'rename_new',
-      'items': [('replace', "Replace"),
-                ('skip', "Skip"),
-                ('rename_new', "Rename new file"),
-                ('rename_existing', "Rename existing file")],
-    },
-  ])
-  
-  settings = pgsettinggroup.SettingGroup('settings', [main_settings, advanced_settings])
-  
-  return settings
-
-
-def create_test_settings_load_save():
-  dummy_session_source, dummy_persistent_source = (object(), object())
-  
-  main_settings = pgsettinggroup.SettingGroup('main', [
-    {
-      'type': pgsetting.SettingTypes.file_extension,
-      'name': 'file_extension',
-      'default_value': 'bmp',
-    },
-  ], setting_sources=[dummy_session_source, dummy_persistent_source])
-  
-  advanced_settings = pgsettinggroup.SettingGroup('advanced', [
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'only_visible_layers',
-      'default_value': False,
-      'setting_sources': [dummy_persistent_source, dummy_session_source]
-    },
-    {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'autocrop',
-      'default_value': False
-    },
-  ], setting_sources=[dummy_session_source])
-  
-  settings = pgsettinggroup.SettingGroup('settings', [main_settings, advanced_settings])
-  
-  return settings
-
 
 #===============================================================================
 
@@ -310,7 +208,7 @@ class TestSettingGroupCreation(unittest.TestCase):
 class TestSettingGroup(unittest.TestCase):
   
   def setUp(self):
-    self.settings = create_test_settings()
+    self.settings = stubs_pgsettinggroup.create_test_settings()
     self.special_settings = pgsettinggroup.SettingGroup('special', [
       {
        'type': pgsetting.SettingTypes.boolean,
@@ -413,7 +311,7 @@ class TestSettingGroup(unittest.TestCase):
 class TestSettingGroupHierarchical(unittest.TestCase):
   
   def setUp(self):
-    self.settings = create_test_settings_hierarchical()
+    self.settings = stubs_pgsettinggroup.create_test_settings_hierarchical()
   
   def test_get_settings_via_paths(self):
     self.assertEqual(self.settings['main/file_extension'], self.settings['main']['file_extension'])
@@ -567,10 +465,10 @@ class TestSettingGroupHierarchical(unittest.TestCase):
 class TestSettingGroupLoadSave(unittest.TestCase):
   
   def setUp(self):
-    self.settings = create_test_settings_load_save()
+    self.settings = stubs_pgsettinggroup.create_test_settings_load_save()
   
   def test_load_save_setting_sources_not_in_group_and_in_settings(self, mock_load, mock_save):
-    settings = create_test_settings()
+    settings = stubs_pgsettinggroup.create_test_settings()
     
     settings.load()
     self.assertEqual(mock_load.call_count, 1)
@@ -635,12 +533,12 @@ class TestSettingGroupGui(unittest.TestCase):
   def setUp(self):
     self.settings = pgsettinggroup.SettingGroup('main', [
       {
-        'type': SettingWithGuiStub,
+        'type': stubs_pgsetting.SettingWithGuiStub,
         'name': 'file_extension',
         'default_value': 'bmp',
       },
       {
-        'type': SettingWithGuiStub,
+        'type': stubs_pgsetting.SettingWithGuiStub,
         'name': 'only_visible_layers',
         'default_value': False,
       },
@@ -649,30 +547,30 @@ class TestSettingGroupGui(unittest.TestCase):
   def test_initialize_gui_without_custom_gui(self):
     self.settings.initialize_gui()
     
-    self.assertIs(type(self.settings['file_extension'].gui), CheckButtonPresenterStub)
-    self.assertIs(type(self.settings['file_extension'].gui.element), CheckButtonStub)
-    self.assertIs(type(self.settings['only_visible_layers'].gui), CheckButtonPresenterStub)
-    self.assertIs(type(self.settings['only_visible_layers'].gui.element), CheckButtonStub)
+    self.assertIs(type(self.settings['file_extension'].gui), stubs_pgsetting.CheckButtonPresenterStub)
+    self.assertIs(type(self.settings['file_extension'].gui.element), stubs_pgsetting.CheckButtonStub)
+    self.assertIs(type(self.settings['only_visible_layers'].gui), stubs_pgsetting.CheckButtonPresenterStub)
+    self.assertIs(type(self.settings['only_visible_layers'].gui.element), stubs_pgsetting.CheckButtonStub)
   
   def test_initialize_gui_with_custom_gui(self):
-    file_extension_widget = GuiWidgetStub("png")
+    file_extension_widget = stubs_pgsetting.GuiWidgetStub("png")
     
     self.settings.initialize_gui(custom_gui={
-      'file_extension': [SettingPresenterStub, file_extension_widget],
+      'file_extension': [stubs_pgsetting.SettingPresenterStub, file_extension_widget],
     })
     
-    self.assertIs(type(self.settings['file_extension'].gui), SettingPresenterStub)
-    self.assertIs(type(self.settings['file_extension'].gui.element), GuiWidgetStub)
+    self.assertIs(type(self.settings['file_extension'].gui), stubs_pgsetting.SettingPresenterStub)
+    self.assertIs(type(self.settings['file_extension'].gui.element), stubs_pgsetting.GuiWidgetStub)
     # It's "bmp", not "png", since the setting value overrides the initial GUI element value.
     self.assertEqual(file_extension_widget.value, "bmp")
-    self.assertIs(type(self.settings['only_visible_layers'].gui), CheckButtonPresenterStub)
-    self.assertIs(type(self.settings['only_visible_layers'].gui.element), CheckButtonStub)
+    self.assertIs(type(self.settings['only_visible_layers'].gui), stubs_pgsetting.CheckButtonPresenterStub)
+    self.assertIs(type(self.settings['only_visible_layers'].gui.element), stubs_pgsetting.CheckButtonStub)
   
   def test_apply_gui_values_to_settings_ignores_specified_settings(self):
-    file_extension_widget = GuiWidgetStub(None)
-    only_visible_layers_widget = GuiWidgetStub(None)
-    self.settings['file_extension'].set_gui(SettingPresenterStub, file_extension_widget)
-    self.settings['only_visible_layers'].set_gui(SettingPresenterStub, only_visible_layers_widget)
+    file_extension_widget = stubs_pgsetting.GuiWidgetStub(None)
+    only_visible_layers_widget = stubs_pgsetting.GuiWidgetStub(None)
+    self.settings['file_extension'].set_gui(stubs_pgsetting.SettingPresenterStub, file_extension_widget)
+    self.settings['only_visible_layers'].set_gui(stubs_pgsetting.SettingPresenterStub, only_visible_layers_widget)
     
     file_extension_widget.set_value("gif")
     only_visible_layers_widget.set_value(True)

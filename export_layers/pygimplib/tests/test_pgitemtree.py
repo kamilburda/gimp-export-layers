@@ -44,7 +44,7 @@ except ImportError:
 
 from ..lib import mock
 
-from . import gimpstubs
+from . import stubs_gimp
 from .. import pgitemtree
 
 #===============================================================================
@@ -85,7 +85,7 @@ def _parse_layers(layer_tree_string):
   Leading or trailing spaces in each line in the string are truncated.
   """
   
-  image = gimpstubs.ImageStub()
+  image = stubs_gimp.ImageStub()
   
   layer_tree_string = layer_tree_string.strip()
   lines = layer_tree_string.splitlines(False)
@@ -100,7 +100,7 @@ def _parse_layers(layer_tree_string):
     layer = None
     
     if current_symbol.endswith(" {"):
-      layer = gimpstubs.LayerGroupStub(current_symbol.rstrip(" {"))
+      layer = stubs_gimp.LayerGroupStub(current_symbol.rstrip(" {"))
       current_parent.layers.append(layer)
       current_parent = layer
       parents.append(current_parent)
@@ -108,7 +108,7 @@ def _parse_layers(layer_tree_string):
       parents.pop()
       current_parent = parents[-1]
     else:
-      layer = gimpstubs.LayerStub(current_symbol)
+      layer = stubs_gimp.LayerStub(current_symbol)
       current_parent.layers.append(layer)
     
     if layer is not None:
@@ -120,12 +120,12 @@ def _parse_layers(layer_tree_string):
 #===============================================================================
 
 
-@mock.patch(LIB_NAME + ".pgitemtree.pdb", new=gimpstubs.PdbStub())
-@mock.patch(LIB_NAME + ".pgitemtree.gimp.GroupLayer", new=gimpstubs.LayerGroupStub)
+@mock.patch(LIB_NAME + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
+@mock.patch(LIB_NAME + ".pgitemtree.gimp.GroupLayer", new=stubs_gimp.LayerGroupStub)
 class TestLayerTree(unittest.TestCase):
 
-  @mock.patch(LIB_NAME + ".pgitemtree.pdb", new=gimpstubs.PdbStub())
-  @mock.patch(LIB_NAME + ".pgitemtree.gimp.GroupLayer", new=gimpstubs.LayerGroupStub)
+  @mock.patch(LIB_NAME + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
+  @mock.patch(LIB_NAME + ".pgitemtree.gimp.GroupLayer", new=stubs_gimp.LayerGroupStub)
   def setUp(self):
     layers_string = """
       Corners {
@@ -385,12 +385,12 @@ class TestLayerTree(unittest.TestCase):
     self.assertEqual(self.layer_tree['Corners:'].name, "Corners:")
 
 
-@mock.patch(LIB_NAME + ".pgitemtree.pdb", new=gimpstubs.PdbStub())
+@mock.patch(LIB_NAME + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
 class TestLayerTreeElement(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + ".pgitemtree.pdb", new=gimpstubs.PdbStub())
+  @mock.patch(LIB_NAME + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
   def setUp(self):
-    self.layer_elem = pgitemtree._ItemTreeElement(gimpstubs.LayerStub("main-background.jpg"))
+    self.layer_elem = pgitemtree._ItemTreeElement(stubs_gimp.LayerStub("main-background.jpg"))
   
   def test_str(self):
     self.assertEqual(str(self.layer_elem), "<_ItemTreeElement 'main-background.jpg'>")
@@ -411,7 +411,7 @@ class TestLayerTreeElement(unittest.TestCase):
     self.layer_elem.name = "."
     self.assertEqual(self.layer_elem.get_base_name(), ".")
   
-  @mock.patch(LIB_NAME + ".pgitemtree.gimp", new=gimpstubs.GimpModuleStub())
+  @mock.patch(LIB_NAME + ".pgitemtree.gimp", new=stubs_gimp.GimpModuleStub())
   def test_add_tag(self):
     self.assertEqual(self.layer_elem.tags, set())
     
@@ -422,7 +422,7 @@ class TestLayerTreeElement(unittest.TestCase):
     self.assertIn("background", self.layer_elem.tags)
     self.assertIn("foreground", self.layer_elem.tags)
   
-  @mock.patch(LIB_NAME + ".pgitemtree.gimp", new=gimpstubs.GimpModuleStub())
+  @mock.patch(LIB_NAME + ".pgitemtree.gimp", new=stubs_gimp.GimpModuleStub())
   def test_remove_tag(self):
     self.assertEqual(self.layer_elem.tags, set())
     
@@ -436,12 +436,12 @@ class TestLayerTreeElement(unittest.TestCase):
     self.assertFalse(bool(self.layer_elem.tags))
     self.assertFalse(bool(self.layer_elem.item.parasite_list()))
   
-  @mock.patch(LIB_NAME + ".pgitemtree.gimp", new=gimpstubs.GimpModuleStub())
+  @mock.patch(LIB_NAME + ".pgitemtree.gimp", new=stubs_gimp.GimpModuleStub())
   def test_initial_tags(self):
     layer_elem_tags_source_name = "test"
     
-    layer = gimpstubs.LayerStub("layer")
-    layer.parasite_attach(gimpstubs.ParasiteStub(layer_elem_tags_source_name, 0, pickle.dumps(set(["background"]))))
+    layer = stubs_gimp.LayerStub("layer")
+    layer.parasite_attach(stubs_gimp.ParasiteStub(layer_elem_tags_source_name, 0, pickle.dumps(set(["background"]))))
     
     layer_elem = pgitemtree._ItemTreeElement(layer, tags_source_name=layer_elem_tags_source_name)
     self.assertIn("background", layer_elem.tags)

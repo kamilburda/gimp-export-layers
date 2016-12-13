@@ -27,7 +27,7 @@ str = unicode
 
 import unittest
 
-from . import gimpstubs
+from . import stubs_gimp
 
 #===============================================================================
 
@@ -35,10 +35,10 @@ from . import gimpstubs
 class TestPdbStub(unittest.TestCase):
   
   def setUp(self):
-    self.pdb = gimpstubs.PdbStub()
+    self.pdb = stubs_gimp.PdbStub()
   
   def test_known_pdb_func(self):
-    image = gimpstubs.ImageStub()
+    image = stubs_gimp.ImageStub()
     image.valid = False
     self.assertFalse(self.pdb.gimp_image_is_valid(image))
   
