@@ -54,12 +54,20 @@ class OperationBox(object):
   
   def __init__(self, label_add_text=None, spacing=0, settings=None):
     self.label_add_text = label_add_text
-    self._operations_spacing = spacing
+    self._spacing_between_operations = spacing
     self._settings = settings
     
     self.on_add_operation = pgutils.empty_func
     self.on_reorder_operation = pgutils.empty_func
     self.on_remove_operation = pgutils.empty_func
+    
+    self._menu_items_and_settings = {}
+    
+    self._displayed_settings = []
+    self._displayed_settings_gui_elements = set()
+    self._displayed_operation_items = []
+    
+    self._last_item_widget_dest_drag = None
     
     self._init_gui()
   
@@ -94,7 +102,7 @@ class OperationBox(object):
     self._button_add.set_relief(gtk.RELIEF_NONE)
     
     self._vbox = gtk.VBox(homogeneous=False)
-    self._vbox.set_spacing(self._operations_spacing)
+    self._vbox.set_spacing(self._spacing_between_operations)
     self._vbox.pack_start(self._button_add, expand=False, fill=False)
     
     self._scrolled_window = gtk.ScrolledWindow()
@@ -104,48 +112,45 @@ class OperationBox(object):
     
     self._widget = self._scrolled_window
     
+    self._operations_menu = gtk.Menu()
+    
     self._init_operations_menu_popup()
-    self._init_item_widgets_dragging()
+    self._init_item_dragging()
     
     self._button_add.connect("clicked", self._on_button_add_clicked)
   
   def _init_operations_menu_popup(self):
-    self._menu_items_and_settings = {}
-    
-    self._displayed_settings = []
-    self._displayed_settings_gui_elements = set()
-    self._displayed_operation_items = []
-    
-    self._operations_menu = gtk.Menu()
-    
     for setting in self._settings:
-      menu_item = gtk.MenuItem(
-        label=setting.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING), use_underline=False)
-      menu_item.connect("activate", self._on_operations_menu_item_activate)
-      self._operations_menu.append(menu_item)
-      self._menu_items_and_settings[menu_item] = setting
+      self._add_setting_to_menu(setting)
     
     self._operations_menu.show_all()
   
-  def _init_item_widgets_dragging(self):
-    # Make sure the drag type is unique for the entire box to prevent drops on
-    # other widgets.
-    drag_type = self._get_drag_type()
-    
-    self._last_item_widget_dest_drag = None
+  def _add_setting_to_menu(self, setting):
+    menu_item = gtk.MenuItem(
+      label=setting.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING), use_underline=False)
+    menu_item.connect("activate", self._on_operations_menu_item_activate)
+    self._operations_menu.append(menu_item)
+    self._menu_items_and_settings[menu_item] = setting
+  
+  def _init_item_dragging(self):
+    # Unique drag type for the entire box prevents undesired drops on other widgets.
+    drag_type = self._get_unique_drag_type()
     
     for setting in self._settings:
-      setting.gui.element.connect("drag-data-get", self._on_item_widget_drag_data_get, setting)
-      setting.gui.element.drag_source_set(gtk.gdk.BUTTON1_MASK, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
-      
-      setting.gui.element.connect("drag-data-received", self._on_item_widget_drag_data_received, setting)
-      setting.gui.element.drag_dest_set(gtk.DEST_DEFAULT_ALL, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
-      
-      setting.gui.element.connect("drag-begin", self._on_item_widget_drag_begin)
-      setting.gui.element.connect("drag-motion", self._on_item_widget_drag_motion)
-      setting.gui.element.connect("drag-failed", self._on_item_widget_drag_failed)
+      self._connect_drag_events_to_item_widget(setting, drag_type)
   
-  def _get_drag_type(self):
+  def _connect_drag_events_to_item_widget(self, setting, drag_type):
+    setting.gui.element.connect("drag-data-get", self._on_item_widget_drag_data_get, setting)
+    setting.gui.element.drag_source_set(gtk.gdk.BUTTON1_MASK, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
+    
+    setting.gui.element.connect("drag-data-received", self._on_item_widget_drag_data_received, setting)
+    setting.gui.element.drag_dest_set(gtk.DEST_DEFAULT_ALL, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
+    
+    setting.gui.element.connect("drag-begin", self._on_item_widget_drag_begin)
+    setting.gui.element.connect("drag-motion", self._on_item_widget_drag_motion)
+    setting.gui.element.connect("drag-failed", self._on_item_widget_drag_failed)
+  
+  def _get_unique_drag_type(self):
     global _operation_box_drag_type_id_counter
     
     drag_type = "{0}_{1}_{2}".format(
@@ -255,19 +260,17 @@ class OperationBox(object):
       elif key_name in ["Down", "KP_Down"]:
         self.reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) + 1)
   
+  def _get_operation_item_position(self, operation_item):
+    return self._displayed_operation_items.index(operation_item)
+  
   def _get_drag_icon_pixbuf(self, widget):
     if widget.get_window() is None:
       return
     
-    if self._scrolled_window.get_hscrollbar() is not None and self._scrolled_window.get_hscrollbar().get_mapped():
+    if self._are_items_partially_hidden_because_of_visible_horizontal_scrollbar():
       return None
     
-    # Make sure the focus outline is not displayed in the drag icon.
-    if widget.has_focus():
-      widget.set_can_focus(False)
-    
-    # Add a border to the drag icon.
-    widget.drag_highlight()
+    self._setup_widget_to_add_border_to_drag_icon(widget)
     
     while gtk.events_pending():
       gtk.main_iteration()
@@ -278,17 +281,37 @@ class OperationBox(object):
       gtk.gdk.COLORSPACE_RGB, False, 8,
       widget_allocation.width, widget_allocation.height)
     
-    widget_pixbuf = pixbuf.get_from_drawable(
+    drag_icon_pixbuf = pixbuf.get_from_drawable(
       widget.get_window(), widget.get_colormap(),
       0, 0, 0, 0, widget_allocation.width, widget_allocation.height)
     
-    widget.set_can_focus(True)
-    widget.drag_unhighlight()
+    self._restore_widget_after_creating_drag_icon(widget)
     
-    return widget_pixbuf
+    return drag_icon_pixbuf
   
-  def _get_operation_item_position(self, operation_item):
-    return self._displayed_operation_items.index(operation_item)
+  def _are_items_partially_hidden_because_of_visible_horizontal_scrollbar(self):
+    return self._scrolled_window.get_hscrollbar() is not None and self._scrolled_window.get_hscrollbar().get_mapped()
+  
+  def _setup_widget_to_add_border_to_drag_icon(self, widget):
+    self._remove_focus_outline(widget)
+    self._add_border(widget)
+  
+  def _remove_focus_outline(self, widget):
+    if widget.has_focus():
+      widget.set_can_focus(False)
+  
+  def _add_border(self, widget):
+    widget.drag_highlight()
+  
+  def _restore_widget_after_creating_drag_icon(self, widget):
+    self._add_focus_outline(widget)
+    self._remove_border(widget)
+  
+  def _add_focus_outline(self, widget):
+    widget.set_can_focus(True)
+  
+  def _remove_border(self, widget):
+    widget.drag_unhighlight()
 
 
 #===============================================================================
@@ -383,7 +406,7 @@ class _OperationItem(object):
     
     self._is_event_box_allocated_size = True
     
-    # Assign enough height to the HBox to make sure it does not resize when showing the button.
+    # Assign enough height to the HBox to make sure it does not resize when showing buttons.
     if self._buttons_allocation.height >= allocation.height:
       self._hbox.set_size_request(-1, allocation.height)
   
@@ -393,7 +416,7 @@ class _OperationItem(object):
     
     self._buttons_allocation = allocation
     
-    # Make sure the width allocated to the buttons remains even if the buttons are hidden.
+    # Make sure the width allocated to the buttons remains the same even if buttons are hidden.
     # This avoids a problem with unreachable buttons when the horizontal scrollbar is displayed.
     self._event_box_buttons.set_size_request(self._buttons_allocation.width, -1)
     
