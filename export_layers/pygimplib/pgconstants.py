@@ -29,8 +29,12 @@ from __future__ import unicode_literals
 
 str = unicode
 
+from . import pgutils
+
 #===============================================================================
 
 _LOG_OUTPUT_MODES = (LOG_EXCEPTIONS_ONLY, LOG_OUTPUT_FILES, LOG_OUTPUT_GIMP_CONSOLE) = (0, 1, 2)
 
 GTK_CHARACTER_ENCODING = "utf-8"
+
+PYGIMPLIB_MODULE_PATH = pgutils.get_module_root(__name__, "pygimplib")

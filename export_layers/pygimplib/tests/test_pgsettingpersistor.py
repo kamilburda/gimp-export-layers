@@ -38,18 +38,17 @@ from . import stubs_pgsettinggroup
 from .. import pgsetting
 from .. import pgsettingpersistor
 from .. import pgsettingsources
+from .. import pgconstants
 
 #===============================================================================
 
-LIB_NAME = ".".join(__name__.split(".")[:-2])
 
-#===============================================================================
-
-
-@mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new_callable=stubs_gimp.ShelfStub)
+@mock.patch(
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf", new_callable=stubs_gimp.ShelfStub)
 class TestSessionPersistentSettingSource(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new=stubs_gimp.ShelfStub())
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf", new=stubs_gimp.ShelfStub())
   def setUp(self):
     self.source_name = 'test_settings'
     self.source = pgsettingsources.SessionPersistentSettingSource(self.source_name)
@@ -95,10 +94,10 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.assertEqual(setting.value, setting.default_value)
 
 
-@mock.patch(LIB_NAME + ".pgsettingsources.gimp", new_callable=stubs_gimp.GimpModuleStub)
+@mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp", new_callable=stubs_gimp.GimpModuleStub)
 class TestPersistentSettingSource(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + ".pgsettingsources.gimp.directory", new="gimp_directory")
+  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp.directory", new="gimp_directory")
   def setUp(self):
     self.source_name = 'test_settings'
     self.source = pgsettingsources.PersistentSettingSource(self.source_name)
@@ -163,12 +162,16 @@ class TestPersistentSettingSource(unittest.TestCase):
 #===============================================================================
 
 
-@mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new_callable=stubs_gimp.ShelfStub)
-@mock.patch(LIB_NAME + ".pgsettingsources.gimp", new_callable=stubs_gimp.GimpModuleStub)
+@mock.patch(
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf", new_callable=stubs_gimp.ShelfStub)
+@mock.patch(
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp", new_callable=stubs_gimp.GimpModuleStub)
 class TestSettingPersistor(unittest.TestCase):
   
-  @mock.patch(LIB_NAME + ".pgsettingsources.gimpshelf.shelf", new=stubs_gimp.ShelfStub())
-  @mock.patch(LIB_NAME + ".pgsettingsources.gimp.directory", new="gimp_directory")
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf", new=stubs_gimp.ShelfStub())
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp.directory", new="gimp_directory")
   def setUp(self):
     self.settings = stubs_pgsettinggroup.create_test_settings()
     self.session_source = pgsettingsources.SessionPersistentSettingSource('')
@@ -249,7 +252,7 @@ class TestSettingPersistor(unittest.TestCase):
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
   
   def test_load_write_fail(self, mock_persistent_source, mock_session_source):
-    with mock.patch(LIB_NAME + ".pgsettingsources.gimp") as temp_mock_persistent_source:
+    with mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp") as temp_mock_persistent_source:
       temp_mock_persistent_source.parasite_find.side_effect = pgsettingpersistor.SettingSourceWriteError
       status, _unused = pgsettingpersistor.SettingPersistor.save(
         [self.settings], [self.session_source, self.persistent_source])

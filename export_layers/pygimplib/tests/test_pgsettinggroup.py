@@ -34,10 +34,7 @@ from . import stubs_pgsettinggroup
 from .. import pgsetting
 from .. import pgsettinggroup
 from .. import pgsettingpersistor
-
-#===============================================================================
-
-LIB_NAME = ".".join(__name__.split(".")[:-2])
+from .. import pgconstants
 
 #===============================================================================
 
@@ -457,10 +454,10 @@ class TestSettingGroupHierarchical(unittest.TestCase):
 
 
 @mock.patch(
-  LIB_NAME + '.pgsettingpersistor.SettingPersistor.save',
+  pgconstants.PYGIMPLIB_MODULE_PATH + '.pgsettingpersistor.SettingPersistor.save',
   return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
 @mock.patch(
-  LIB_NAME + '.pgsettingpersistor.SettingPersistor.load',
+  pgconstants.PYGIMPLIB_MODULE_PATH + '.pgsettingpersistor.SettingPersistor.load',
   return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
 class TestSettingGroupLoadSave(unittest.TestCase):
   
