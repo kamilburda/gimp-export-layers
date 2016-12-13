@@ -43,7 +43,11 @@ from .. import exportlayers
 
 def create_gui_settings():
   
-  gui_settings = pgsettinggroup.SettingGroup('gui', [
+  gui_settings = pgsettinggroup.SettingGroup(
+    name='gui',
+    setting_attributes={'setting_sources': [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]})
+  
+  gui_settings.add([
     {
       'type': pgsetting.SettingTypes.generic,
       'name': 'dialog_position',
@@ -104,9 +108,13 @@ def create_gui_settings():
       'default_value': [],
       'gui_type': None
     },
-  ], setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+  ])
   
-  session_only_gui_settings = pgsettinggroup.SettingGroup('gui_session', [
+  session_only_gui_settings = pgsettinggroup.SettingGroup(
+    name='gui_session',
+    setting_attributes={'setting_sources': [pygimplib.config.SOURCE_SESSION]})
+  
+  session_only_gui_settings.add([
     {
       'type': pgsetting.SettingTypes.image_IDs_and_directories,
       'name': 'image_ids_and_directories',
@@ -124,9 +132,13 @@ def create_gui_settings():
       # key: image ID; value: ID of the layer displayed in the preview
       'default_value': collections.defaultdict(pgutils.return_none_func)
     },
-  ], setting_sources=[pygimplib.config.SOURCE_SESSION])
+  ])
   
-  persistent_only_gui_settings = pgsettinggroup.SettingGroup('gui_persistent', [
+  persistent_only_gui_settings = pgsettinggroup.SettingGroup(
+    name='gui_persistent',
+    setting_attributes={'setting_sources': [pygimplib.config.SOURCE_PERSISTENT]})
+  
+  persistent_only_gui_settings.add([
     {
       'type': pgsetting.SettingTypes.generic,
       'name': 'export_name_preview_layers_collapsed_state_persistent',
@@ -139,7 +151,7 @@ def create_gui_settings():
       # key: image filename; value: name of the layer displayed in the preview
       'default_value': collections.defaultdict(pgutils.return_none_func)
     },
-  ], setting_sources=[pygimplib.config.SOURCE_PERSISTENT])
+  ])
   
   session_only_gui_settings.set_ignore_tags({
     'image_ids_and_directories': ['reset'],

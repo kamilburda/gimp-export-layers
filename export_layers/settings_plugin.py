@@ -52,7 +52,9 @@ def create_settings():
   # These settings require special handling in the code, hence their separation
   # from the other settings.
   
-  special_settings = pgsettinggroup.SettingGroup('special', [
+  special_settings = pgsettinggroup.SettingGroup(name='special')
+  
+  special_settings.add([
     {
       'type': pgsetting.SettingTypes.enumerated,
       'name': 'run_mode',
@@ -80,7 +82,11 @@ def create_settings():
   # Main settings
   #-----------------------------------------------------------------------------
   
-  main_settings = pgsettinggroup.SettingGroup('main', [
+  main_settings = pgsettinggroup.SettingGroup(
+    name='main',
+    setting_attributes={'setting_sources': [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]})
+  
+  main_settings.add([
     {
       'type': pgsetting.SettingTypes.file_extension,
       'name': 'file_extension',
@@ -149,12 +155,19 @@ def create_settings():
                 ('cancel', _("_Cancel"), pgoverwrite.OverwriteModes.CANCEL)],
       'display_name': _("Overwrite mode (non-interactive run mode only)")
     },
-  ], setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+  ])
   
   # Additional settings - operations and filters
   #-----------------------------------------------------------------------------
   
-  more_operations_settings = pgsettinggroup.SettingGroup('more_operations', [
+  more_operations_settings = pgsettinggroup.SettingGroup(
+    name='more_operations',
+    setting_attributes={
+      'pdb_type': None,
+      'setting_sources': [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+    })
+  
+  more_operations_settings.add([
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'insert_background_layers',
@@ -203,9 +216,16 @@ def create_settings():
       'default_value': False,
       'display_name': _("Use file extensions in layer names")
     },
-  ], pdb_type=None, setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+  ])
   
-  more_filters_settings = pgsettinggroup.SettingGroup('more_filters', [
+  more_filters_settings = pgsettinggroup.SettingGroup(
+    name='more_filters',
+    setting_attributes={
+      'pdb_type': None,
+      'setting_sources': [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+    })
+  
+  more_filters_settings.add([
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'include_layers',
@@ -254,7 +274,7 @@ def create_settings():
       'default_value': False,
       'display_name': _("Only layers selected in preview")
     }
-  ], pdb_type=None, setting_sources=[pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+  ])
   
   main_settings.add([more_operations_settings, more_filters_settings])
   
@@ -272,7 +292,9 @@ def create_settings():
   
   #-----------------------------------------------------------------------------
   
-  settings = pgsettinggroup.SettingGroup('all_settings', [special_settings, main_settings])
+  settings = pgsettinggroup.SettingGroup(name='all_settings')
+  
+  settings.add([special_settings, main_settings])
   
   settings.set_ignore_tags({
     'special': ['reset', 'load', 'save'],
