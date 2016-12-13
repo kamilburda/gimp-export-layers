@@ -44,7 +44,7 @@ pygimplib.init()
 from ..pygimplib import pgfileformats
 from ..pygimplib import pgitemtree
 from ..pygimplib import pgpdb
-from ..pygimplib import pgsettinggroup
+from ..pygimplib import pgsettingutils
 
 from .. import exportlayers
 from .. import settings_plugin
@@ -201,7 +201,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     else:
       expected_layers = {layer.name: layer for layer in self.expected_images[expected_results_dir].layers}
     
-    param_values = pgsettinggroup.PdbParamCreator.list_param_values([settings])
+    param_values = pgsettingutils.PdbParamCreator.list_param_values([settings])
     pdb.plug_in_export_layers(*param_values)
     
     self.image_with_results, layers = self._load_layers_from_dir(self.output_directory)
