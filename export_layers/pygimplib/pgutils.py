@@ -90,3 +90,13 @@ def is_bound_method(func):
   """
   
   return hasattr(func, "__self__") and func.__self__ is not None
+
+
+def get_module_root(module_path, path_component_to_trim_after):
+  module_path_components = module_path.split(".")
+  
+  if path_component_to_trim_after in module_path_components:
+    path_component_index = module_path_components.index(path_component_to_trim_after)
+    return '.'.join(module_path_components[:path_component_index + 1])
+  else:
+    return module_path
