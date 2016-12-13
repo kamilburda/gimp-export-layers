@@ -43,6 +43,7 @@ pdb = gimp.pdb
 from . import pgpath
 from . import pgsettingpersistor
 from . import pgsettingpresenter
+from . import pgsettingutils
 from .pgsettingpresenters_gtk import SettingGuiTypes
 
 #===============================================================================
@@ -250,8 +251,8 @@ class Setting(object):
     self._allow_empty_values = allow_empty_values
     self._allowed_empty_values = list(self._ALLOWED_EMPTY_VALUES)
     
-    self._display_name = self._get_display_name(display_name)
-    self._description = self._get_description(description, self._display_name)
+    self._display_name = pgsettingutils.get_processed_display_name(display_name, self._name)
+    self._description = pgsettingutils.get_processed_description(description, self._display_name)
     
     self._pdb_type = self._get_pdb_type(pdb_type)
     self._pdb_name = self._get_pdb_name(self._name)
@@ -674,21 +675,6 @@ class Setting(object):
     except SettingValueError as e:
       raise SettingDefaultValueError(e.message, setting=self)
   
-  def _get_display_name(self, display_name):
-    if display_name is not None:
-      return display_name
-    else:
-      return self._generate_display_name()
-  
-  def _generate_display_name(self):
-    return self.name.replace("_", " ").capitalize()
-  
-  def _get_description(self, description, display_name):
-    if description is not None:
-      return description
-    else:
-      return display_name.replace("_", "")
-  
   def _get_pdb_type(self, pdb_type):
     if pdb_type == SettingPdbTypes.automatic:
       return self._get_default_pdb_type()
@@ -1030,7 +1016,7 @@ class EnumSetting(Setting):
     items_sep = ", "
     
     for value, display_name in zip(self._items.values(), self._items_display_names.values()):
-      description = self._get_description(None, display_name)
+      description = pgsettingutils.get_processed_description(None, display_name)
       items_description += "{0} ({1}){2}".format(description, value, items_sep)
     items_description = items_description[:-len(items_sep)]
     

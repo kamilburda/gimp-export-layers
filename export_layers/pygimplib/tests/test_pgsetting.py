@@ -79,15 +79,15 @@ class TestSetting(unittest.TestCase):
     with self.assertRaises(AttributeError):
       self.setting.value = "jpg"
   
-  def test_auto_generated_display_name(self):
+  def test_get_generated_display_name(self):
     self.assertEqual(stubs_pgsetting.SettingStub('this_is_a_setting', "png").display_name, "This is a setting")
   
-  def test_description_from_display_name_with_mnemonics(self):
+  def test_get_generated_description(self):
     setting = stubs_pgsetting.SettingStub('setting', "default value", display_name="_Setting")
     self.assertEqual(setting.display_name, "_Setting")
     self.assertEqual(setting.description, "Setting")
   
-  def test_custom_description(self):
+  def test_get_custom_display_name_and_description(self):
     setting = stubs_pgsetting.SettingStub(
       'setting', "default value", display_name="_Setting", description="My description")
     self.assertEqual(setting.display_name, "_Setting")

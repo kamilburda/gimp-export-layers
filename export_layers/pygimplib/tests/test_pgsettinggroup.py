@@ -39,7 +39,7 @@ from .. import pgconstants
 #===============================================================================
 
 
-class TestSettingGroupAddSettings(unittest.TestCase):
+class TestSettingGroupSetup(unittest.TestCase):
   
   def setUp(self):
     self.settings = pgsettinggroup.SettingGroup('main')
@@ -172,6 +172,19 @@ class TestSettingGroupAddSettings(unittest.TestCase):
         }
       ])
   
+  def test_get_generated_display_name(self):
+    settings = pgsettinggroup.SettingGroup(name='main')
+    self.assertEqual(settings.display_name, "Main")
+  
+  def test_get_generated_description(self):
+    settings = pgsettinggroup.SettingGroup(name='main', display_name="_Main")
+    self.assertEqual(settings.description, "Main")
+  
+  def test_get_custom_display_name_and_description(self):
+    settings = pgsettinggroup.SettingGroup(name='main', display_name="_Main", description="My description")
+    self.assertEqual(settings.display_name, "_Main")
+    self.assertEqual(settings.description, "My description")
+
 
 #===============================================================================
 

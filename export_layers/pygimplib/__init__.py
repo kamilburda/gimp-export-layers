@@ -42,7 +42,7 @@ try:
   from . import pgsetting
   from . import pgsettinggroup
   from . import pgsettingsources
-  from . import pgsettingutils
+  from . import pgsettingpdb
 except ImportError:
   _gimp_dependent_modules_imported = False
 else:
@@ -208,7 +208,7 @@ if _gimp_dependent_modules_imported:
       if params:
         has_settings = isinstance(params[0], (pgsetting.Setting, pgsettinggroup.SettingGroup))
         if has_settings:
-          pdb_params = pgsettingutils.PdbParamCreator.create_params(*params)
+          pdb_params = pgsettingpdb.PdbParamCreator.create_params(*params)
         else:
           pdb_params = params
       

@@ -35,6 +35,7 @@ import inspect
 
 from . import pgsetting
 from . import pgsettingpersistor
+from . import pgsettingutils
 
 #===============================================================================
 
@@ -49,22 +50,28 @@ class SettingGroup(object):
     
   Unless otherwise stated, "settings" in the rest of the documentation for
   this class refers to both `Setting` and `SettingGroup` objects.
+  
+  Attributes:
+  
+  * `name` (read-only) - A name (string) that uniquely identifies the setting
+    group.
+  
+  * `display_name` (read-only) - Setting group name in human-readable format.
+  
+  * `description` (read-only) - A more detailed description of the group. By
+    default, description is derived from `display_name`.
+  
+  * `setting_attributes` (read-only) - Dictionary of (setting attribute: value)
+    pairs to assign to each setting in the group. Attributes in individual
+    settings override these attributes.
   """
   
   _SETTING_PATH_SEPARATOR = "/"
   
-  def __init__(self, name, setting_attributes=None):
-    """
-    Parameters:
-    
-    * `name` - A name (string) that uniquely identifies the setting group.
-    
-    * `setting_attributes` - dictionary of (setting attribute: value) pairs to
-      assign to each setting in the group. Attributes in individual settings
-      override these attributes.
-    """
-    
+  def __init__(self, name, display_name=None, description=None, setting_attributes=None):
     self._name = name
+    self._display_name = pgsettingutils.get_processed_display_name(display_name, self._name)
+    self._description = pgsettingutils.get_processed_description(description, self._display_name)
     self._setting_attributes = setting_attributes if setting_attributes is not None else {}
     
     self._settings = collections.OrderedDict()
@@ -78,6 +85,18 @@ class SettingGroup(object):
   @property
   def name(self):
     return self._name
+  
+  @property
+  def display_name(self):
+    return self._display_name
+  
+  @property
+  def description(self):
+    return self._description
+  
+  @property
+  def setting_attributes(self):
+    return self._setting_attributes
   
   def __str__(self):
     return "<{0} '{1}'>".format(type(self).__name__, self.name)
