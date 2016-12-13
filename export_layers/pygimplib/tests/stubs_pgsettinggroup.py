@@ -107,7 +107,7 @@ def create_test_settings_load_save():
   dummy_session_source, dummy_persistent_source = object(), object()
   
   main_settings = pgsettinggroup.SettingGroup(
-    name='main', setting_params={'setting_sources': [dummy_session_source, dummy_persistent_source]})
+    name='main', setting_attributes={'setting_sources': [dummy_session_source, dummy_persistent_source]})
   
   main_settings.add([
     {
@@ -118,7 +118,7 @@ def create_test_settings_load_save():
   ])
   
   advanced_settings = pgsettinggroup.SettingGroup(
-    name='advanced', setting_params={'setting_sources': [dummy_session_source]})
+    name='advanced', setting_attributes={'setting_sources': [dummy_session_source]})
   
   advanced_settings.add([
     {

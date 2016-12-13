@@ -53,19 +53,19 @@ class SettingGroup(object):
   
   _SETTING_PATH_SEPARATOR = "/"
   
-  def __init__(self, name, setting_params=None):
+  def __init__(self, name, setting_attributes=None):
     """
     Parameters:
     
     * `name` - A name (string) that uniquely identifies the setting group.
     
-    * `setting_params` - dictionary of (setting attribute: value) pairs to
+    * `setting_attributes` - dictionary of (setting attribute: value) pairs to
       assign to each setting in the group. Attributes in individual settings
       override these attributes.
     """
     
     self._name = name
-    self._setting_params = setting_params if setting_params is not None else {}
+    self._setting_attributes = setting_attributes if setting_attributes is not None else {}
     
     self._settings = collections.OrderedDict()
     
@@ -156,8 +156,9 @@ class SettingGroup(object):
       settings['main']['autocrop']
       settings['advanced']['autocrop']
     
-    Settings created from dictionaries are assigned `setting_params` specified
-    during initialization of this class.
+    Settings created from dictionaries are by default assigned setting
+    attributes specified during the initialization of this class. These
+    attributes can be overridden by attributes in individual settings.
     """
     
     for setting_or_group in setting_list:
@@ -472,7 +473,7 @@ class SettingGroup(object):
     if setting_data_copy['name'] in self._settings:
       raise KeyError("setting '{0}' already exists".format(setting_data_copy['name']))
     
-    for setting_attribute, setting_attribute_value in self._setting_params.items():
+    for setting_attribute, setting_attribute_value in self._setting_attributes.items():
       if setting_attribute not in setting_data_copy:
         setting_data_copy[setting_attribute] = setting_attribute_value
     

@@ -45,7 +45,7 @@ class TestSettingGroupAddSettings(unittest.TestCase):
     self.settings = pgsettinggroup.SettingGroup('main')
   
   def test_add_with_group_level_attributes(self):
-    settings = pgsettinggroup.SettingGroup(name='main', setting_params={'pdb_type': None})
+    settings = pgsettinggroup.SettingGroup(name='main', setting_attributes={'pdb_type': None})
     settings.add([
       {
        'type': pgsetting.SettingTypes.boolean,
@@ -63,7 +63,7 @@ class TestSettingGroupAddSettings(unittest.TestCase):
     self.assertEqual(settings['autocrop'].pdb_type, None)
   
   def test_add_with_group_level_attributes_overridden_by_setting_attributes(self):
-    settings = pgsettinggroup.SettingGroup(name='main', setting_params={'pdb_type': None})
+    settings = pgsettinggroup.SettingGroup(name='main', setting_attributes={'pdb_type': None})
     settings.add([
       {
        'type': pgsetting.SettingTypes.boolean,
@@ -83,7 +83,7 @@ class TestSettingGroupAddSettings(unittest.TestCase):
   
   def test_add_with_group_level_attributes_overridden_by_subgroup_attributes(self):
     additional_settings = pgsettinggroup.SettingGroup(
-      name='additional', setting_params={'pdb_type': pgsetting.SettingPdbTypes.int16})
+      name='additional', setting_attributes={'pdb_type': pgsetting.SettingPdbTypes.int16})
     
     additional_settings.add([
         {
@@ -94,7 +94,7 @@ class TestSettingGroupAddSettings(unittest.TestCase):
     ])
     
     settings = pgsettinggroup.SettingGroup(
-      name='main', setting_params={'pdb_type': None, 'display_name': "Setting name"})
+      name='main', setting_attributes={'pdb_type': None, 'display_name': "Setting name"})
     
     settings.add([
       {
