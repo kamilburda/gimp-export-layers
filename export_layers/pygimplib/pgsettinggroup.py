@@ -180,11 +180,71 @@ class SettingGroup(object):
     attributes can be overridden by attributes in individual settings.
     """
     
-    for setting_or_group in setting_list:
-      if isinstance(setting_or_group, SettingGroup):
-        self._add_setting_group(setting_or_group)
+    for setting in setting_list:
+      if isinstance(setting, (pgsetting.Setting, SettingGroup)):
+        self._add_setting(setting)
       else:
-        self._create_setting(setting_or_group)
+        self._create_setting(setting)
+  
+  def _add_setting(self, setting):
+    if setting.name in self._settings:
+      raise ValueError("{0} already exists in {1}".format(setting, self))
+    
+    self._settings[setting.name] = setting
+  
+  def _create_setting(self, setting_data):
+    try:
+      setting_type = setting_data['type']
+    except KeyError:
+      raise TypeError(self._get_missing_mandatory_attributes_message(['type']))
+    
+    # Do not modify the original `setting_data` in case it is expected to be reused.
+    setting_data_copy = {key: setting_data[key] for key in setting_data if key != 'type'}
+    
+    try:
+      setting_data_copy['name']
+    except KeyError:
+      raise TypeError(self._get_missing_mandatory_attributes_message(['name']))
+    
+    if self._SETTING_PATH_SEPARATOR in setting_data_copy['name']:
+      raise ValueError(
+        "setting name '{0}' must not contain path separator '{1}'".format(
+          setting_data_copy['name'], self._SETTING_PATH_SEPARATOR))
+    
+    if setting_data_copy['name'] in self._settings:
+      raise ValueError("setting '{0}' already exists".format(setting_data_copy['name']))
+    
+    for setting_attribute, setting_attribute_value in self._setting_attributes.items():
+      if setting_attribute not in setting_data_copy:
+        setting_data_copy[setting_attribute] = setting_attribute_value
+    
+    try:
+      self._settings[setting_data_copy['name']] = setting_type(**setting_data_copy)
+    except TypeError as e:
+      missing_mandatory_arguments = self._get_missing_mandatory_arguments(setting_type, setting_data_copy)
+      if missing_mandatory_arguments:
+        message = self._get_missing_mandatory_attributes_message(missing_mandatory_arguments)
+      else:
+        message = e.message
+      raise TypeError(message)
+  
+  def _get_missing_mandatory_arguments(self, setting_type, setting_data):
+    mandatory_arg_names = self._get_mandatory_argument_names(setting_type.__init__)
+    return [arg_name for arg_name in mandatory_arg_names if arg_name not in setting_data]
+  
+  def _get_mandatory_argument_names(self, func):
+    arg_spec = inspect.getargspec(func)
+    arg_default_values = arg_spec[3] if arg_spec[3] is not None else []
+    num_mandatory_args = len(arg_spec[0]) - len(arg_default_values)
+    
+    mandatory_args = arg_spec[0][0:num_mandatory_args]
+    if mandatory_args[0] == 'self':
+      del mandatory_args[0]
+    
+    return mandatory_args
+  
+  def _get_missing_mandatory_attributes_message(self, attribute_names):
+    return "missing the following mandatory setting attributes: {0}".format(', '.join(attribute_names))
   
   def remove(self, setting_names):
     """
@@ -304,6 +364,22 @@ class SettingGroup(object):
         self._ignored_settings_and_tags[setting].remove(tag)
       if not self._ignored_settings_and_tags[setting]:
         del self._ignored_settings_and_tags[setting]
+  
+  def _get_setting_from_path(self, setting_path):
+    setting_path_components = setting_path.split(self._SETTING_PATH_SEPARATOR)
+    current_group = self
+    for group_name in setting_path_components[:-1]:
+      if group_name in current_group:
+        current_group = current_group._settings[group_name]
+      else:
+        raise KeyError("group '{0}' in path '{1}' does not exist".format(group_name, setting_path))
+    
+    try:
+      setting = current_group[setting_path_components[-1]]
+    except KeyError:
+      raise KeyError("setting '{0}' not found in path '{1}'".format(setting_path_components[-1], setting_path))
+    
+    return setting
   
   def reset(self):
     """
@@ -469,79 +545,3 @@ class SettingGroup(object):
     worst_status = _get_worst_status(status_and_messages)
     
     return worst_status, status_and_messages.get(worst_status, "")
-  
-  def _create_setting(self, setting_data):
-    try:
-      setting_type = setting_data['type']
-    except KeyError:
-      raise TypeError(self._get_missing_mandatory_attributes_message(['type']))
-    
-    # Do not modify the original `setting_data` in case it is expected to be reused.
-    setting_data_copy = {key: setting_data[key] for key in setting_data if key != 'type'}
-    
-    try:
-      setting_data_copy['name']
-    except KeyError:
-      raise TypeError(self._get_missing_mandatory_attributes_message(['name']))
-    
-    if self._SETTING_PATH_SEPARATOR in setting_data_copy['name']:
-      raise ValueError(
-        "'{0}': setting name must not contain '{1}'".format(
-          setting_data_copy['name'], self._SETTING_PATH_SEPARATOR))
-    
-    if setting_data_copy['name'] in self._settings:
-      raise KeyError("setting '{0}' already exists".format(setting_data_copy['name']))
-    
-    for setting_attribute, setting_attribute_value in self._setting_attributes.items():
-      if setting_attribute not in setting_data_copy:
-        setting_data_copy[setting_attribute] = setting_attribute_value
-    
-    try:
-      self._settings[setting_data_copy['name']] = setting_type(**setting_data_copy)
-    except TypeError as e:
-      missing_mandatory_arguments = self._get_missing_mandatory_arguments(setting_type, setting_data_copy)
-      if missing_mandatory_arguments:
-        message = self._get_missing_mandatory_attributes_message(missing_mandatory_arguments)
-      else:
-        message = e.message
-      raise TypeError(message)
-  
-  def _add_setting_group(self, setting_group):
-    if setting_group.name in self._settings:
-      raise KeyError("setting group '{0}' already exists".format(setting_group.name))
-    
-    self._settings[setting_group.name] = setting_group
-  
-  def _get_missing_mandatory_arguments(self, setting_type, setting_data):
-    mandatory_arg_names = self._get_mandatory_argument_names(setting_type.__init__)
-    return [arg_name for arg_name in mandatory_arg_names if arg_name not in setting_data]
-  
-  def _get_mandatory_argument_names(self, func):
-    arg_spec = inspect.getargspec(func)
-    arg_default_values = arg_spec[3] if arg_spec[3] is not None else []
-    num_mandatory_args = len(arg_spec[0]) - len(arg_default_values)
-    
-    mandatory_args = arg_spec[0][0:num_mandatory_args]
-    if mandatory_args[0] == 'self':
-      del mandatory_args[0]
-    
-    return mandatory_args
-  
-  def _get_missing_mandatory_attributes_message(self, attribute_names):
-    return "missing the following mandatory setting attributes: {0}".format(', '.join(attribute_names))
-  
-  def _get_setting_from_path(self, setting_path):
-    setting_path_components = setting_path.split(self._SETTING_PATH_SEPARATOR)
-    current_group = self
-    for group_name in setting_path_components[:-1]:
-      if group_name in current_group:
-        current_group = current_group._settings[group_name]
-      else:
-        raise KeyError("group '{0}' in path '{1}' does not exist".format(group_name, setting_path))
-    
-    try:
-      setting = current_group[setting_path_components[-1]]
-    except KeyError:
-      raise KeyError("setting '{0}' not found in path '{1}'".format(setting_path_components[-1], setting_path))
-    
-    return setting

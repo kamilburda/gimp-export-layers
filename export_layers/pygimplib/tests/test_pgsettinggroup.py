@@ -39,12 +39,95 @@ from .. import pgconstants
 #===============================================================================
 
 
-class TestSettingGroupSetup(unittest.TestCase):
+class TestSettingGroupAttributes(unittest.TestCase):
+  
+  def test_get_generated_display_name(self):
+    settings = pgsettinggroup.SettingGroup(name='main')
+    self.assertEqual(settings.display_name, "Main")
+  
+  def test_get_generated_description(self):
+    settings = pgsettinggroup.SettingGroup(name='main', display_name="_Main")
+    self.assertEqual(settings.description, "Main")
+  
+  def test_get_custom_display_name_and_description(self):
+    settings = pgsettinggroup.SettingGroup(name='main', display_name="_Main", description="My description")
+    self.assertEqual(settings.display_name, "_Main")
+    self.assertEqual(settings.description, "My description")
+  
+  def test_get_non_existent_setting_name(self):
+    settings = pgsettinggroup.SettingGroup(name='main')
+    with self.assertRaises(KeyError):
+      settings['invalid_name']
+
+
+class TestSettingGroupAdditionWithSettingDict(unittest.TestCase):
   
   def setUp(self):
     self.settings = pgsettinggroup.SettingGroup('main')
+    self.autocrop_setting_dict = {
+      'type': pgsetting.SettingTypes.boolean,
+      'name': 'autocrop',
+      'default_value': False}
   
-  def test_add_with_group_level_attributes(self):
+  def test_add_setting_dict(self):
+    self.settings.add([self.autocrop_setting_dict])
+    
+    self.assertIn('autocrop', self.settings)
+    self.assertIsInstance(self.settings['autocrop'], pgsetting.BoolSetting)
+    self.assertEqual(self.settings['autocrop'].value, False)
+  
+  def test_add_setting_dict_missing_type_attribute(self):
+    del self.autocrop_setting_dict['type']
+    
+    with self.assertRaises(TypeError):
+      self.settings.add([self.autocrop_setting_dict])
+  
+  def test_add_setting_dict_missing_single_mandatory_attribute(self):
+    del self.autocrop_setting_dict['name']
+    
+    with self.assertRaises(TypeError):
+      self.settings.add([self.autocrop_setting_dict])
+  
+  def test_add_setting_dict_missing_multiple_mandatory_attributes(self):
+    del self.autocrop_setting_dict['name']
+    del self.autocrop_setting_dict['default_value']
+    
+    with self.assertRaises(TypeError):
+      self.settings.add([self.autocrop_setting_dict])
+  
+  def test_add_setting_dict_with_invalid_setting_attribute(self):
+    self.autocrop_setting_dict['invalid_setting_attribute'] = None
+    
+    with self.assertRaises(TypeError):
+      self.settings.add([self.autocrop_setting_dict])
+  
+  def test_add_setting_dict_with_path_separator(self):
+    self.autocrop_setting_dict['name'] = "auto/crop"
+    
+    with self.assertRaises(ValueError):
+      self.settings.add([self.autocrop_setting_dict])
+  
+  def test_add_setting_dict_with_same_name_in_same_group(self):
+    with self.assertRaises(ValueError):
+      self.settings.add([self.autocrop_setting_dict, self.autocrop_setting_dict])
+  
+  def test_add_setting_dicts_with_same_name_in_different_child_groups(self):
+    special_settings = pgsettinggroup.SettingGroup('special')
+    special_settings.add([self.autocrop_setting_dict])
+    
+    main_settings = pgsettinggroup.SettingGroup('main')
+    main_settings.add([self.autocrop_setting_dict])
+    
+    self.settings.add([special_settings, main_settings])
+    
+    self.assertIn('autocrop', special_settings)
+    self.assertIn('autocrop', main_settings)
+    self.assertNotEqual(special_settings['autocrop'], main_settings['autocrop'])
+
+
+class TestSettingGroupAdditionWithSettingDictAndSettingAttributes(unittest.TestCase):
+  
+  def test_add_setting_dict_with_group_level_attributes(self):
     settings = pgsettinggroup.SettingGroup(name='main', setting_attributes={'pdb_type': None})
     settings.add([
       {
@@ -62,7 +145,7 @@ class TestSettingGroupSetup(unittest.TestCase):
     self.assertEqual(settings['only_visible_layers'].pdb_type, None)
     self.assertEqual(settings['autocrop'].pdb_type, None)
   
-  def test_add_with_group_level_attributes_overridden_by_setting_attributes(self):
+  def test_add_setting_dict_with_group_level_attributes_overridden_by_setting_attributes(self):
     settings = pgsettinggroup.SettingGroup(name='main', setting_attributes={'pdb_type': None})
     settings.add([
       {
@@ -81,7 +164,7 @@ class TestSettingGroupSetup(unittest.TestCase):
     self.assertEqual(settings['only_visible_layers'].pdb_type, None)
     self.assertEqual(settings['autocrop'].pdb_type, pgsetting.SettingPdbTypes.int16)
   
-  def test_add_with_group_level_attributes_overridden_by_subgroup_attributes(self):
+  def test_add_setting_dict_with_group_level_attributes_overridden_by_child_group_attributes(self):
     additional_settings = pgsettinggroup.SettingGroup(
       name='additional', setting_attributes={'pdb_type': pgsetting.SettingPdbTypes.int16})
     
@@ -110,81 +193,6 @@ class TestSettingGroupSetup(unittest.TestCase):
     self.assertEqual(settings['only_visible_layers'].display_name, "Setting name")
     self.assertEqual(settings['additional/autocrop'].display_name, "Autocrop")
 
-  def test_add_raise_error_for_missing_type_attribute(self):
-    with self.assertRaises(TypeError):
-      self.settings.add([
-        {
-         'name': 'autocrop',
-         'default_value': False,
-        }
-      ])
-  
-  def test_add_raise_error_for_missing_single_mandatory_attribute(self):
-    with self.assertRaises(TypeError):
-      self.settings.add([
-        {
-         'type': pgsetting.SettingTypes.boolean,
-         'default_value': False,
-        }
-      ])
-  
-  def test_add_raise_error_for_missing_multiple_mandatory_attributes(self):
-    with self.assertRaises(TypeError):
-      self.settings.add([
-        {
-         'type': pgsetting.SettingTypes.enumerated,
-        }
-      ])
-  
-  def test_add_raise_error_for_non_existent_attribute(self):
-    with self.assertRaises(TypeError):
-      self.settings.add([
-        {
-         'type': pgsetting.SettingTypes.boolean,
-         'name': 'autocrop',
-         'default_value': False,
-         'non_existent_attribute': None
-        }
-      ])
-  
-  def test_add_raise_error_if_name_already_exists(self):
-    with self.assertRaises(KeyError):
-      self.settings.add([
-        {
-         'type': pgsetting.SettingTypes.boolean,
-         'name': 'autocrop',
-         'default_value': False,
-        },
-        {
-         'type': pgsetting.SettingTypes.boolean,
-         'name': 'autocrop',
-         'default_value': False,
-        }
-      ])
-  
-  def test_add_raise_error_if_setting_has_path_separator(self):
-    with self.assertRaises(ValueError):
-      self.settings.add([
-        {
-         'type': pgsetting.SettingTypes.boolean,
-         'name': 'file/extension',
-         'default_value': ""
-        }
-      ])
-  
-  def test_get_generated_display_name(self):
-    settings = pgsettinggroup.SettingGroup(name='main')
-    self.assertEqual(settings.display_name, "Main")
-  
-  def test_get_generated_description(self):
-    settings = pgsettinggroup.SettingGroup(name='main', display_name="_Main")
-    self.assertEqual(settings.description, "Main")
-  
-  def test_get_custom_display_name_and_description(self):
-    settings = pgsettinggroup.SettingGroup(name='main', display_name="_Main", description="My description")
-    self.assertEqual(settings.display_name, "_Main")
-    self.assertEqual(settings.description, "My description")
-
 
 #===============================================================================
 
@@ -202,52 +210,48 @@ class TestSettingGroup(unittest.TestCase):
     self.special_settings = pgsettinggroup.SettingGroup('special')
     self.special_settings.add([self.first_plugin_run_setting_dict])
   
-  def test_get_setting_raise_error_if_invalid_name(self):
-    with self.assertRaises(KeyError):
-      self.settings['invalid_name']
+  def test_add_same_setting_in_same_group(self):
+    with self.assertRaises(ValueError):
+      self.special_settings.add([self.special_settings['first_plugin_run']])
   
-  def test_add_setting(self):
-    self.settings.add([
-      {
-       'type': pgsetting.SettingTypes.boolean,
-       'name': 'autocrop',
-       'default_value': False
-      }
-    ])
+  def test_add_same_setting_in_different_child_groups(self):
+    self.settings.add([self.special_settings['first_plugin_run'], self.special_settings])
     
-    self.assertIn('autocrop', self.settings)
-    self.assertIsInstance(self.settings['autocrop'], pgsetting.BoolSetting)
+    self.assertIn('first_plugin_run', self.settings)
+    self.assertIn('first_plugin_run', self.special_settings)
+    self.assertEqual(self.settings['first_plugin_run'], self.special_settings['first_plugin_run'])
   
-  def test_add_existing_setting_group(self):
+  def test_add_setting_group(self):
     self.settings.add([self.special_settings])
     
     self.assertIn('special', self.settings)
     self.assertEqual(self.settings['special'], self.special_settings)
   
-  def test_add_settings_with_same_name_in_different_subgroups(self):
+  def test_add_same_setting_group_in_same_parent_group(self):
+    self.settings.add([self.special_settings])
+    with self.assertRaises(ValueError):
+      self.settings.add([self.special_settings])
+  
+  def test_add_different_setting_groups_with_same_name_in_different_child_groups(self):
     main_settings = pgsettinggroup.SettingGroup('main')
-    main_settings.add([self.first_plugin_run_setting_dict])
+    main_settings.add([self.special_settings])
+    
+    different_special_settings = pgsettinggroup.SettingGroup('special')
+    self.settings.add([main_settings, different_special_settings])
+    
+    self.assertIn('special', self.settings)
+    self.assertIn('special', main_settings)
+    self.assertNotEqual(self.settings['special'], main_settings['special'])
+  
+  def test_add_same_setting_group_in_different_child_groups(self):
+    main_settings = pgsettinggroup.SettingGroup('main')
+    main_settings.add([self.special_settings])
     
     self.settings.add([self.special_settings, main_settings])
     
-    self.assertIn('first_plugin_run', self.special_settings)
-    self.assertIn('first_plugin_run', main_settings)
-    self.assertNotEqual(self.special_settings['first_plugin_run'], main_settings['first_plugin_run'])
-  
-  def test_add_setting_raise_error_if_name_already_exists(self):
-    with self.assertRaises(KeyError):
-      self.settings.add([
-        {
-         'type': pgsetting.SettingTypes.boolean,
-         'name': 'file_extension',
-         'default_value': ""
-        }
-      ])
-  
-  def test_add_setting_group_raise_error_if_name_already_exists(self):
-    self.settings.add([self.special_settings])
-    with self.assertRaises(KeyError):
-      self.settings.add([self.special_settings])
+    self.assertIn('special', self.settings)
+    self.assertIn('special', main_settings)
+    self.assertEqual(self.settings['special'], main_settings['special'])
   
   def test_remove_settings(self):
     self.settings.remove(['file_extension', 'only_visible_layers'])
