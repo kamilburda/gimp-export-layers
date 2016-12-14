@@ -232,6 +232,10 @@ class TestSettingGroup(unittest.TestCase):
     with self.assertRaises(ValueError):
       self.settings.add([self.special_settings])
   
+  def test_add_same_setting_group_as_child_of_itself(self):
+    with self.assertRaises(ValueError):
+      self.special_settings.add([self.special_settings])
+  
   def test_add_different_setting_groups_with_same_name_in_different_child_groups(self):
     main_settings = pgsettinggroup.SettingGroup('main')
     main_settings.add([self.special_settings])

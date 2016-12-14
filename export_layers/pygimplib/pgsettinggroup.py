@@ -190,6 +190,9 @@ class SettingGroup(object):
     if setting.name in self._settings:
       raise ValueError("{0} already exists in {1}".format(setting, self))
     
+    if setting == self:
+      raise ValueError("cannot add {0} as a child of itself".format(setting))
+    
     self._settings[setting.name] = setting
   
   def _create_setting(self, setting_data):
