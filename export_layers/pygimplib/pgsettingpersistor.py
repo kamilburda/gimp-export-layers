@@ -220,7 +220,7 @@ class SettingPersistor(object):
     for setting_or_group in settings_or_groups:
       if isinstance(setting_or_group, collections.Iterable):
         group = setting_or_group
-        settings.extend(list(group.iterate_all()))
+        settings.extend(list(group.traverse()))
       else:
         setting = setting_or_group
         settings.append(setting)

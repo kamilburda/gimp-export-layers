@@ -217,7 +217,7 @@ class TestSettingPersistor(unittest.TestCase):
     
     settings['main']['file_extension'].set_value("png")
     settings['advanced']['only_visible_layers'].set_value(True)
-    self.session_source.write(list(settings.iterate_all()))
+    self.session_source.write(list(settings.traverse()))
     settings['main']['file_extension'].set_value("gif")
     settings['advanced']['only_visible_layers'].set_value(False)
     
