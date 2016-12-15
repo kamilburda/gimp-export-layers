@@ -110,7 +110,7 @@ def _setup_settings_additional(settings, layer_tree):
 
 
 def _run_noninteractive(layer_tree, args):
-  main_settings = [setting for setting in settings['main'].traverse() if setting.can_be_registered_to_pdb()]
+  main_settings = [setting for setting in settings['main'].walk() if setting.can_be_registered_to_pdb()]
   
   for setting, arg in zip(main_settings, args):
     if isinstance(arg, bytes):

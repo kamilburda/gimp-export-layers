@@ -65,7 +65,7 @@ class ExportPreviewsController(object):
     self._connect_setting_after_reset_displayed_layers_in_image_preview()
   
   def _connect_settings_changed(self):
-    for setting in self._settings['main'].traverse():
+    for setting in self._settings['main'].walk():
       if setting.name not in [
           'file_extension', 'output_directory', 'overwrite_mode', 'layer_filename_pattern',
           'only_selected_layers', 'selected_layers', 'selected_layers_persistent']:
