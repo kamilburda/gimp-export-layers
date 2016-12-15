@@ -80,7 +80,7 @@ class PdbParamCreator(object):
       if isinstance(setting_or_group, pgsetting.Setting):
         settings.append(setting_or_group)
       elif isinstance(setting_or_group, pgsettinggroup.SettingGroup):
-        settings.extend(setting_or_group.traverse())
+        settings.extend(setting_or_group.walk())
       else:
         raise TypeError(
           "{0} is not an object of type {1} or {2}".format(

@@ -354,56 +354,57 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.assertIn('main/file_extension', self.settings)
     self.assertNotIn('main/invalid_setting', self.settings)
   
-  def test_traverse(self):
-    traversed_settings = list(self.settings.traverse())
+  def test_walk(self):
+    walked_settings = list(self.settings.walk())
     
-    self.assertIn(self.settings['main']['file_extension'], traversed_settings)
-    self.assertIn(self.settings['advanced']['only_visible_layers'], traversed_settings)
-    self.assertIn(self.settings['advanced']['overwrite_mode'], traversed_settings)
+    self.assertIn(self.settings['main']['file_extension'], walked_settings)
+    self.assertIn(self.settings['advanced']['only_visible_layers'], walked_settings)
+    self.assertIn(self.settings['advanced']['overwrite_mode'], walked_settings)
   
-  def test_traverse_ignore_settings_with_tag(self):
+  def test_walk_ignore_settings_with_tag(self):
     self.settings['main']['file_extension'].tags.add('ignore_reset')
     self.settings['advanced']['overwrite_mode'].tags.update(['ignore_reset', 'ignore_apply_gui_value_to_setting'])
     
-    traversed_settings = list(self.settings.traverse(
+    walked_settings = list(self.settings.walk(
       include_setting_func=lambda setting: 'ignore_reset' not in setting.tags))
     
-    self.assertNotIn(self.settings['main']['file_extension'], traversed_settings)
-    self.assertIn(self.settings['advanced']['only_visible_layers'], traversed_settings)
-    self.assertNotIn(self.settings['advanced']['overwrite_mode'], traversed_settings)
+    self.assertNotIn(self.settings['main']['file_extension'], walked_settings)
+    self.assertIn(self.settings['advanced']['only_visible_layers'], walked_settings)
+    self.assertNotIn(self.settings['advanced']['overwrite_mode'], walked_settings)
   
-  def test_traverse_ignore_settings_in_group_with_tag(self):
+  def test_walk_ignore_settings_in_group_with_tag(self):
     self.settings['advanced'].tags.add('ignore_apply_gui_value_to_setting')
     
-    traversed_settings = list(self.settings.traverse(
+    walked_settings = list(self.settings.walk(
       include_setting_func=lambda setting: 'ignore_apply_gui_value_to_setting' not in setting.tags))
     
-    self.assertIn(self.settings['main']['file_extension'], traversed_settings)
-    self.assertNotIn(self.settings['advanced']['only_visible_layers'], traversed_settings)
-    self.assertNotIn(self.settings['advanced']['overwrite_mode'], traversed_settings)
+    self.assertIn(self.settings['main']['file_extension'], walked_settings)
+    self.assertNotIn(self.settings['advanced']['only_visible_layers'], walked_settings)
+    self.assertNotIn(self.settings['advanced']['overwrite_mode'], walked_settings)
   
-  def test_traverse_include_groups(self):
-    traversed_settings = list(self.settings.traverse(include_groups=True))
+  def test_walk_include_groups(self):
+    walked_settings = list(self.settings.walk(include_groups=True))
     
-    self.assertIn(self.settings['main'], traversed_settings)
-    self.assertIn(self.settings['main']['file_extension'], traversed_settings)
-    self.assertIn(self.settings['advanced'], traversed_settings)
-    self.assertIn(self.settings['advanced']['only_visible_layers'], traversed_settings)
-    self.assertIn(self.settings['advanced']['overwrite_mode'], traversed_settings)
-    self.assertNotIn(self.settings, traversed_settings)
+    self.assertIn(self.settings['main'], walked_settings)
+    self.assertIn(self.settings['main']['file_extension'], walked_settings)
+    self.assertIn(self.settings['advanced'], walked_settings)
+    self.assertIn(self.settings['advanced']['only_visible_layers'], walked_settings)
+    self.assertIn(self.settings['advanced']['overwrite_mode'], walked_settings)
+    self.assertNotIn(self.settings, walked_settings)
   
-  def test_traverse_ignore_settings_in_group_with_tag_include_groups(self):
+  def test_walk_ignore_settings_in_group_with_tag_include_groups(self):
     self.settings['advanced'].tags.add('ignore_apply_gui_value_to_setting')
     
-    traversed_settings = list(self.settings.traverse(
+    walked_settings = list(self.settings.walk(
       include_setting_func=lambda setting: 'ignore_apply_gui_value_to_setting' not in setting.tags,
       include_groups=True))
     
-    self.assertIn(self.settings['main'], traversed_settings)
-    self.assertIn(self.settings['main']['file_extension'], traversed_settings)
-    self.assertNotIn(self.settings['advanced'], traversed_settings)
-    self.assertNotIn(self.settings['advanced']['only_visible_layers'], traversed_settings)
-    self.assertNotIn(self.settings['advanced']['overwrite_mode'], traversed_settings)
+    self.assertIn(self.settings['main'], walked_settings)
+    self.assertIn(self.settings['main']['file_extension'], walked_settings)
+    self.assertNotIn(self.settings['advanced'], walked_settings)
+    self.assertNotIn(self.settings['advanced']['only_visible_layers'], walked_settings)
+    self.assertNotIn(self.settings['advanced']['overwrite_mode'], walked_settings)
+    
 
 #===============================================================================
 

@@ -66,7 +66,7 @@ class TestPdbParamCreator(unittest.TestCase):
       (self.file_ext_setting.pdb_type, self.file_ext_setting.name.encode(),
        self.file_ext_setting.description.encode()))
     
-    for param, setting in zip(params[1:], self.settings.traverse()):
+    for param, setting in zip(params[1:], self.settings.walk()):
       self.assertEqual(param, (setting.pdb_type, setting.name.encode(), setting.description.encode()))
   
   def test_create_params_with_unregistrable_setting(self):
@@ -82,4 +82,4 @@ class TestPdbParamCreator(unittest.TestCase):
   def test_list_param_values_ignore_run_mode(self):
     param_values = pgsettingpdb.PdbParamCreator.list_param_values(
       [pgsetting.IntSetting('run_mode', 0), self.settings])
-    self.assertEqual(len(param_values), len(list(self.settings.traverse())))
+    self.assertEqual(len(param_values), len(list(self.settings.walk())))
