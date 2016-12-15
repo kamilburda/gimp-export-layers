@@ -52,14 +52,14 @@ class EntryPopup(object):
     self._height = height
     self._max_num_visible_rows = max_num_visible_rows
     
-    self.on_assign_from_selected_row = lambda *args: (None, None)
+    self.on_assign_from_selected_row = pgutils.create_empty_func(return_value=(None, None))
     self.on_assign_last_value = self._entry.assign_text
     self.on_row_left_mouse_button_press = self.assign_from_selected_row
     self.on_entry_left_mouse_button_press_func = pgutils.empty_func
     self.on_entry_key_press_before_show_popup = pgutils.empty_func
     self.on_entry_key_press = lambda key_name, tree_path, stop_event_propagation: stop_event_propagation
     self.on_entry_after_assign_by_key_press = pgutils.empty_func
-    self.on_entry_changed_show_popup_condition = lambda *args: True
+    self.on_entry_changed_show_popup_condition = pgutils.create_empty_func(return_value=True)
     
     self.trigger_popup = True
     
@@ -104,7 +104,7 @@ class EntryPopup(object):
     if func is not None:
       self._rows_filtered.set_visible_func(self._filter_rows)
     else:
-      self._rows_filtered.set_visible_func(lambda *args: True)
+      self._rows_filtered.set_visible_func(pgutils.create_empty_func(return_value=True))
   
   @property
   def popup(self):

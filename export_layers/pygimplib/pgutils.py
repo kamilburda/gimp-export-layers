@@ -81,6 +81,17 @@ def empty_func(*args, **kwargs):
 return_none_func = empty_func
 
 
+def create_empty_func(return_value):
+  """
+  Return an empty function returning the specified return value.
+  """
+  
+  def return_value_func(*args, **kwargs):
+    return return_value
+  
+  return return_value_func
+
+
 #===============================================================================
 
 
