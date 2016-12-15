@@ -181,6 +181,9 @@ class Setting(object):
     assign them to one of the "default" error messages (such as 'invalid_value'
     in several `Setting` subclasses) depending on the context in which the value
     assigned is invalid.
+  
+  * `tags` - A set of arbitrary tags attached to the setting. Tags can be used
+    to e.g. iterate over a specific subset of settings.
   """
   
   _ALLOWED_PDB_TYPES = []
@@ -280,6 +283,8 @@ class Setting(object):
     if error_messages is not None:
       self._error_messages.update(error_messages)
     
+    self._tags = set()
+    
     if self._should_validate_default_value():
       self._validate_default_value()
   
@@ -322,6 +327,10 @@ class Setting(object):
   @property
   def error_messages(self):
     return self._error_messages
+  
+  @property
+  def tags(self):
+    return self._tags
   
   def __str__(self):
     return "<{0} '{1}'>".format(type(self).__name__, self.name)

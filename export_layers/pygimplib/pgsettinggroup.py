@@ -64,6 +64,9 @@ class SettingGroup(object):
   * `setting_attributes` (read-only) - Dictionary of (setting attribute: value)
     pairs to assign to each setting in the group. Attributes in individual
     settings override these attributes.
+  
+  * `tags` - A set of arbitrary tags attached to the setting. Tags can be used
+    to e.g. iterate over a specific subset of settings.
   """
   
   _SETTING_PATH_SEPARATOR = "/"
@@ -75,9 +78,7 @@ class SettingGroup(object):
     self._setting_attributes = setting_attributes if setting_attributes is not None else {}
     
     self._settings = collections.OrderedDict()
-    
-    # key: `Setting` or `SettingGroup` instance; value: set of ignore tags (strings)
-    self._ignored_settings_and_tags = {}
+    self._tags = set()
     
     # Used in the `_next()` method
     self._settings_iterator = None
@@ -97,6 +98,10 @@ class SettingGroup(object):
   @property
   def setting_attributes(self):
     return self._setting_attributes
+  
+  @property
+  def tags(self):
+    return self._tags
   
   def __str__(self):
     return "<{0} '{1}'>".format(type(self).__name__, self.name)
@@ -130,6 +135,22 @@ class SettingGroup(object):
         return True
     else:
       return setting_name_or_path in self._settings
+  
+  def _get_setting_from_path(self, setting_path):
+    setting_path_components = setting_path.split(self._SETTING_PATH_SEPARATOR)
+    current_group = self
+    for group_name in setting_path_components[:-1]:
+      if group_name in current_group:
+        current_group = current_group._settings[group_name]
+      else:
+        raise KeyError("group '{0}' in path '{1}' does not exist".format(group_name, setting_path))
+    
+    try:
+      setting = current_group[setting_path_components[-1]]
+    except KeyError:
+      raise KeyError("setting '{0}' not found in path '{1}'".format(setting_path_components[-1], setting_path))
+    
+    return setting
   
   def __iter__(self):
     """
@@ -263,175 +284,104 @@ class SettingGroup(object):
   def iterate_all(self, ignore_tags=None):
     """
     Iterate over all settings in the group, including settings in nested groups.
-    
-    `ignore_tags` is a list of strings indicating that settings having one of
-    these tags attached are ignored. Ignore tags are attached to the settings by
-    calling the `set_ignore_tags()` method.
     """
     
-    def _should_ignore_func(setting_or_group, ignored_settings_and_tags, ignore_tags):
-      return (setting_or_group in ignored_settings_and_tags
-              and any(tag in ignored_settings_and_tags[setting_or_group] for tag in ignore_tags))
+    def _should_ignore(setting_tags, ignore_tags):
+      return any(tag in setting_tags for tag in ignore_tags)
     
-    def _never_ignore(*args):
-      return False
-    
-    if ignore_tags is not None:
-      _should_ignore = _should_ignore_func
-    else:
-      _should_ignore = _never_ignore
+    if ignore_tags is None:
+      ignore_tags = []
     
     groups = [self]
-    ignored_settings_and_tags = self._ignored_settings_and_tags
+    setting_tags = [set(self._tags)]
+    current_setting_tags = setting_tags[0]
     
     while groups:
       try:
         setting_or_group = groups[0]._next()
-        ignored_settings_and_tags.update(groups[0]._ignored_settings_and_tags)
+        current_setting_tags = setting_tags[0] | setting_or_group.tags
       except StopIteration:
         groups.pop(0)
+        setting_tags.pop(0)
         continue
       
       if isinstance(setting_or_group, SettingGroup):
-        setting_group = setting_or_group
-        if not _should_ignore(setting_group, ignored_settings_and_tags, ignore_tags):
-          groups.insert(0, setting_group)
+        if not _should_ignore(current_setting_tags, ignore_tags):
+          groups.insert(0, setting_or_group)
+          setting_tags.insert(0, current_setting_tags)
         else:
           continue
       else:
-        setting = setting_or_group
-        if not _should_ignore(setting, ignored_settings_and_tags, ignore_tags):
-          yield setting
+        if not _should_ignore(current_setting_tags, ignore_tags):
+          yield setting_or_group
         else:
           continue
   
-  def set_ignore_tags(self, settings_and_tags):
+  def _next(self):
     """
-    For the specified settings, specify a list of "ignore tags".
-    
-    When the `iterate_all()` method is called and the `ignore_tags` parameter is
-    specified, all settings matching at least one tag from `ignore_tags` will be
-    excluded from the iteration.
-    
-    When the tags match the method names in this class that operate on all
-    settings, such as `reset()` or `apply_gui_values_to_settings()`, the methods
-    ignore those settings.
-    
-    Parameters:
-    
-    * `settings_and_tags` - A dict of (setting path, tag list) pairs.
-    
-    Raises:
-    
-    * `KeyError` - Setting does not exist.
+    Return the next element when iterating the settings. Used by `iterate_all()`.
     """
     
-    self._ignored_settings_and_tags.update({
-      self._get_setting_from_path(setting_path): set(tags)
-      for setting_path, tags in settings_and_tags.items()
-    })
-  
-  def unset_ignore_tags(self, settings_and_tags):
-    """
-    Unset specified ignore tags for the specified settings. For more
-    information, see the `set_ignore_tags()` method.
-    
-    Parameters:
-    
-    * `settings_and_tags` - A dict of (setting path, tag list) pairs to unset.
-    
-    Raises:
-    
-    * `KeyError` - Setting does not exist.
-    
-    * `ValueError` - Ignore tags were not set for the setting.
-    """
-    
-    def _check_ignore_tags_exist(setting, ignore_tags):
-      if setting not in self._ignored_settings_and_tags:
-        raise ValueError("no tags were set for setting '{0}'".format(setting.name))
-      
-      invalid_ignore_tags = []
-      for tag in ignore_tags:
-        if tag not in self._ignored_settings_and_tags[setting]:
-          invalid_ignore_tags.append(tag)
-      
-      if invalid_ignore_tags:
-        raise ValueError("the following tags were not set for setting '{0}': {1}".format(
-          setting.name, invalid_ignore_tags))
-    
-    for setting_path, ignore_tags in settings_and_tags.items():
-      setting = self._get_setting_from_path(setting_path)
-      _check_ignore_tags_exist(setting, ignore_tags)
-      for tag in ignore_tags:
-        self._ignored_settings_and_tags[setting].remove(tag)
-      if not self._ignored_settings_and_tags[setting]:
-        del self._ignored_settings_and_tags[setting]
-  
-  def _get_setting_from_path(self, setting_path):
-    setting_path_components = setting_path.split(self._SETTING_PATH_SEPARATOR)
-    current_group = self
-    for group_name in setting_path_components[:-1]:
-      if group_name in current_group:
-        current_group = current_group._settings[group_name]
-      else:
-        raise KeyError("group '{0}' in path '{1}' does not exist".format(group_name, setting_path))
+    if self._settings_iterator is None:
+      self._settings_iterator = self._settings.itervalues()
     
     try:
-      setting = current_group[setting_path_components[-1]]
-    except KeyError:
-      raise KeyError("setting '{0}' not found in path '{1}'".format(setting_path_components[-1], setting_path))
-    
-    return setting
+      next_element = self._settings_iterator.next()
+    except StopIteration:
+      self._settings_iterator = None
+      raise StopIteration
+    else:
+      return next_element
   
   def reset(self):
     """
-    Reset all settings in this group. Ignore settings with the `reset` ignore
+    Reset all settings in this group. Ignore settings with the 'ignore_reset'
     tag.
     """
     
-    for setting in self.iterate_all(ignore_tags=['reset']):
+    for setting in self.iterate_all(ignore_tags=['ignore_reset']):
       setting.reset()
   
   def load(self):
     """
-    Load all settings in this group. Ignore settings with the `load` ignore
-    tag. If there are multiple combinations of setting sources within the group
-    (e.g. some settings within this group having their own setting sources),
-    loading is performed for each combination separately.
+    Load all settings in this group. Ignore settings with the 'ignore_load' tag.
+    If there are multiple combinations of setting sources within the group (e.g.
+    some settings within this group having their own setting sources), loading
+    is performed for each combination separately.
     
     Return the status and the status message as per the
     `pgsettingpersistor.SettingPersistor.load()` method. For multiple
     combinations of setting sources, return the "worst" status
-    (`READ_FAIL` or `WRITE_FAIL` > `NOT_ALL_SETTINGS_FOUND` > `SUCCESS`) and
-    a status message containing status messages of all calls to `load()`.
+    (from the "best" to the "worst": `SUCCESS`, `NOT_ALL_SETTINGS_FOUND`,
+    `READ_FAIL` or `WRITE_FAIL`) and a status message containing status messages
+    of all calls to `load()`.
     """
     
-    for setting in self.iterate_all(ignore_tags=['load']):
+    for setting in self.iterate_all(ignore_tags=['ignore_load']):
       setting.invoke_event('before-load-group')
     
-    return_values = self._load_save('load', pgsettingpersistor.SettingPersistor.load)
+    return_values = self._load_save('ignore_load', pgsettingpersistor.SettingPersistor.load)
     
-    for setting in self.iterate_all(ignore_tags=['load']):
+    for setting in self.iterate_all(ignore_tags=['ignore_load']):
       setting.invoke_event('after-load-group')
     
     return return_values
   
   def save(self):
     """
-    Save all settings in this group. Ignore settings with the `save` ignore
-    tag. Return the status and the status message as per the
+    Save all settings in this group. Ignore settings with the 'ignore_save' tag.
+    Return the status and the status message as per the
     `pgsettingpersistor.SettingPersistor.save()` method.
     
     For more information, refer to the `load()` method.
     """
     
-    for setting in self.iterate_all(ignore_tags=['save']):
+    for setting in self.iterate_all(ignore_tags=['ignore_save']):
       setting.invoke_event('before-save-group')
     
-    return_values = self._load_save('save', pgsettingpersistor.SettingPersistor.save)
+    return_values = self._load_save('ignore_save', pgsettingpersistor.SettingPersistor.save)
     
-    for setting in self.iterate_all(ignore_tags=['save']):
+    for setting in self.iterate_all(ignore_tags=['ignore_save']):
       setting.invoke_event('after-save-group')
     
     return return_values
@@ -470,7 +420,7 @@ class SettingGroup(object):
   def apply_gui_values_to_settings(self):
     """
     Apply GUI element values, entered by the user, to settings.
-    Ignore settings with the `apply_gui_values_to_settings` ignore tag.
+    Ignore settings with the 'ignore_apply_gui_value_to_setting' tag.
     
     This method will not have any effect on settings with automatic
     GUI-to-setting value updating.
@@ -484,7 +434,7 @@ class SettingGroup(object):
     exception_messages = []
     exception_settings = []
     
-    for setting in self.iterate_all(ignore_tags=['apply_gui_values_to_settings']):
+    for setting in self.iterate_all(ignore_tags=['ignore_apply_gui_value_to_setting']):
       try:
         setting.gui.update_setting_value()
       except pgsetting.SettingValueError as e:
@@ -495,22 +445,6 @@ class SettingGroup(object):
       exception_message = "\n".join(exception_messages)
       raise pgsetting.SettingValueError(
         exception_message, setting=exception_settings[0], messages=exception_messages, settings=exception_settings)
-  
-  def _next(self):
-    """
-    Return the next element when iterating the settings. Used by `iterate_all()`.
-    """
-    
-    if self._settings_iterator is None:
-      self._settings_iterator = self._settings.itervalues()
-    
-    try:
-      next_element = self._settings_iterator.next()
-    except StopIteration:
-      self._settings_iterator = None
-      raise StopIteration
-    else:
-      return next_element
   
   def _load_save(self, load_save_ignore_tag, load_save_func):
     

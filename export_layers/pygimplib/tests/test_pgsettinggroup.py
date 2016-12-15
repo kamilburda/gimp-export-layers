@@ -41,9 +41,11 @@ from .. import pgconstants
 
 class TestSettingGroupAttributes(unittest.TestCase):
   
+  def setUp(self):
+    self.settings = pgsettinggroup.SettingGroup(name='main')
+  
   def test_get_generated_display_name(self):
-    settings = pgsettinggroup.SettingGroup(name='main')
-    self.assertEqual(settings.display_name, "Main")
+    self.assertEqual(self.settings.display_name, "Main")
   
   def test_get_generated_description(self):
     settings = pgsettinggroup.SettingGroup(name='main', display_name="_Main")
@@ -55,9 +57,8 @@ class TestSettingGroupAttributes(unittest.TestCase):
     self.assertEqual(settings.description, "My description")
   
   def test_get_non_existent_setting_name(self):
-    settings = pgsettinggroup.SettingGroup(name='main')
     with self.assertRaises(KeyError):
-      settings['invalid_name']
+      self.settings['invalid_name']
 
 
 class TestSettingGroupAdditionWithSettingDict(unittest.TestCase):
@@ -283,10 +284,8 @@ class TestSettingGroup(unittest.TestCase):
   
   def test_reset_settings_and_nested_groups_and_ignore_specified_settings(self):
     self.settings.add([self.special_settings])
-    self.settings.set_ignore_tags({
-      'file_extension': ['reset'],
-      'overwrite_mode': ['reset', 'apply_gui_values_to_settings'],
-    })
+    self.settings['file_extension'].tags.add('ignore_reset')
+    self.settings['overwrite_mode'].tags.update(['ignore_reset', 'ignore_apply_gui_value_to_setting'])
     
     self.settings['file_extension'].set_value("gif")
     self.settings['only_visible_layers'].set_value(True)
@@ -305,7 +304,7 @@ class TestSettingGroup(unittest.TestCase):
   
   def test_reset_ignore_nested_group(self):
     self.settings.add([self.special_settings])
-    self.settings.set_ignore_tags({'special': ['reset']})
+    self.settings['special'].tags.add('ignore_reset')
     
     self.settings['special']['first_plugin_run'].set_value(True)
     
@@ -324,13 +323,14 @@ class TestSettingGroupHierarchical(unittest.TestCase):
   def setUp(self):
     self.settings = stubs_pgsettinggroup.create_test_settings_hierarchical()
   
-  def test_get_settings_via_paths(self):
+  def test_get_setting_via_paths(self):
     self.assertEqual(self.settings['main/file_extension'], self.settings['main']['file_extension'])
     self.assertEqual(
       self.settings['advanced/only_visible_layers'], self.settings['advanced']['only_visible_layers'])
     self.assertEqual(
       self.settings['advanced/overwrite_mode'], self.settings['advanced']['overwrite_mode'])
-    
+  
+  def test_get_setting_via_paths_multiple_levels(self):
     expert_settings = pgsettinggroup.SettingGroup('expert')
     expert_settings.add([
         {
@@ -346,6 +346,7 @@ class TestSettingGroupHierarchical(unittest.TestCase):
       self.settings['advanced/expert/file_extension_strip_mode'],
       self.settings['advanced']['expert']['file_extension_strip_mode'])
     
+  def test_get_setting_via_paths_invalid_group(self):
     with self.assertRaises(KeyError):
       self.settings['advanced/invalid_group/file_extension_strip_mode']
   
@@ -353,106 +354,31 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.assertIn('main/file_extension', self.settings)
     self.assertNotIn('main/invalid_setting', self.settings)
   
-  def test_iterate_all_no_ignore_tags(self):
+  def test_iterate_all(self):
     iterated_settings = list(self.settings.iterate_all())
     
     self.assertIn(self.settings['main']['file_extension'], iterated_settings)
     self.assertIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
     self.assertIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
   
-  def test_iterate_all_with_ignore_tag_for_settings(self):
-    self.settings['main'].set_ignore_tags({
-      'file_extension': ['reset']
-    })
-    self.settings['advanced'].set_ignore_tags({
-      'overwrite_mode': ['reset', 'apply_gui_values_to_settings']
-    })
+  def test_iterate_all_ignore_settings_with_tag(self):
+    self.settings['main']['file_extension'].tags.add('ignore_reset')
+    self.settings['advanced']['overwrite_mode'].tags.update(['ignore_reset', 'ignore_apply_gui_value_to_setting'])
     
-    iterated_settings = list(self.settings.iterate_all(['reset']))
+    iterated_settings = list(self.settings.iterate_all(['ignore_reset']))
     
     self.assertNotIn(self.settings['main']['file_extension'], iterated_settings)
     self.assertIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
   
-  def test_iterate_all_with_ignore_tag_for_groups(self):
-    self.settings.set_ignore_tags({
-      'advanced': ['apply_gui_values_to_settings']
-    })
+  def test_iterate_all_ignore_settings_in_group_with_tag(self):
+    self.settings['advanced'].tags.add('ignore_apply_gui_value_to_setting')
     
-    iterated_settings = list(self.settings.iterate_all(['apply_gui_values_to_settings']))
+    iterated_settings = list(self.settings.iterate_all(['ignore_apply_gui_value_to_setting']))
     
     self.assertIn(self.settings['main']['file_extension'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
-  
-  def test_iterate_all_with_ignore_tag_multiple_times(self):
-    self.settings['advanced'].set_ignore_tags({
-      'only_visible_layers': ['apply_gui_values_to_settings']
-    })
-    self.settings['advanced'].set_ignore_tags({
-      'overwrite_mode': ['apply_gui_values_to_settings']
-    })
-    
-    iterated_settings = list(self.settings.iterate_all(['apply_gui_values_to_settings']))
-    
-    self.assertIn(self.settings['main']['file_extension'], iterated_settings)
-    self.assertNotIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
-    self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
-  
-  def test_iterate_all_with_ignore_tag_for_settings_with_paths(self):
-    self.settings.set_ignore_tags({
-      'main/file_extension': ['reset'],
-      'advanced/overwrite_mode': ['reset', 'apply_gui_values_to_settings']
-    })
-    
-    iterated_settings = list(self.settings.iterate_all(['reset']))
-    
-    self.assertNotIn(self.settings['main']['file_extension'], iterated_settings)
-    self.assertIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
-    self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
-  
-  def test_iterate_all_set_unset_ignore_tags(self):
-    self.settings.set_ignore_tags({
-      'main/file_extension': ['reset'],
-      'advanced/overwrite_mode': ['reset', 'apply_gui_values_to_settings']
-    })
-    
-    self.settings.unset_ignore_tags({
-      'main/file_extension': ['reset']
-    })
-    
-    settings_except_reset = list(self.settings.iterate_all(['reset']))
-    self.assertIn(self.settings['main']['file_extension'], settings_except_reset)
-    self.assertNotIn(self.settings['advanced']['overwrite_mode'], settings_except_reset)
-    
-    self.settings.unset_ignore_tags({
-      'advanced/overwrite_mode': ['apply_gui_values_to_settings']
-    })
-    
-    settings_except_apply_gui = list(self.settings.iterate_all(['apply_gui_values_to_settings']))
-    self.assertIn(self.settings['main']['file_extension'], settings_except_apply_gui)
-    self.assertIn(self.settings['advanced']['overwrite_mode'], settings_except_apply_gui)
-    
-    self.settings.set_ignore_tags({
-      'main/file_extension': ['reset']
-    })
-    
-    self.assertNotIn(self.settings['main']['file_extension'], list(self.settings.iterate_all(['reset'])))
-  
-  def test_iterate_all_unset_ignore_tags_invalid_tags(self):
-    with self.assertRaises(ValueError):
-      self.settings.unset_ignore_tags({
-        'main/file_extension': ['reset']
-      })
-    
-    self.settings.set_ignore_tags({
-      'main/file_extension': ['reset']
-    })
-    
-    with self.assertRaises(ValueError):
-      self.settings.unset_ignore_tags({
-        'main/file_extension': ['apply_gui_values_to_settings']
-      })
 
 
 #===============================================================================

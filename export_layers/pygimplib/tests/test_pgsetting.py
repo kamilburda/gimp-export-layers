@@ -80,7 +80,7 @@ class TestSetting(unittest.TestCase):
       self.setting.value = "jpg"
   
   def test_get_generated_display_name(self):
-    self.assertEqual(stubs_pgsetting.SettingStub('this_is_a_setting', "png").display_name, "This is a setting")
+    self.assertEqual(self.setting.display_name, "File extension")
   
   def test_get_generated_description(self):
     setting = stubs_pgsetting.SettingStub('setting', "default value", display_name="_Setting")
@@ -109,8 +109,7 @@ class TestSetting(unittest.TestCase):
     self.assertTrue(setting.can_be_registered_to_pdb())
   
   def test_pdb_type_automatic_is_not_registrable(self):
-    setting = stubs_pgsetting.SettingStub('file_extension', "png")
-    self.assertFalse(setting.can_be_registered_to_pdb())
+    self.assertFalse(self.setting.can_be_registered_to_pdb())
   
   def test_invalid_pdb_type(self):
     with self.assertRaises(ValueError):
