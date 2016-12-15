@@ -285,7 +285,8 @@ class SettingGroup(object):
   def walk(self, include_setting_func=None, include_groups=False, walk_callbacks=None):
     """
     Return a generator that walks (iterates over) all settings in the group,
-    including settings in nested groups.
+    including settings in nested groups. The generator performs a pre-order
+    traversal.
     
     If `include_setting_func` is None, iterate over all settings. Otherwise,
     `include_setting_func` is a function that should return True if a setting

@@ -443,6 +443,16 @@ class TestSettingGroupHierarchical(unittest.TestCase):
       walk_callbacks=walk_callbacks))
     
     self.assertEqual(walked_settings, ["advanced", "only_visible_layers", "advanced_end"])
+  
+  def test_walk_with_callbacks_empty_group(self):
+    self.settings['main'].remove(['file_extension'])
+    
+    walked_settings, walk_callbacks = self._get_test_data_for_walking_group()
+    
+    list(self.settings.walk(include_groups=True, walk_callbacks=walk_callbacks))
+    
+    self.assertEqual(
+      walked_settings, ["main", "main_end", "advanced", "only_visible_layers", "overwrite_mode", "advanced_end"])
 
 
 #===============================================================================
