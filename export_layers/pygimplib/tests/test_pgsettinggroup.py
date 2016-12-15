@@ -365,7 +365,8 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.settings['main']['file_extension'].tags.add('ignore_reset')
     self.settings['advanced']['overwrite_mode'].tags.update(['ignore_reset', 'ignore_apply_gui_value_to_setting'])
     
-    iterated_settings = list(self.settings.iterate_all(['ignore_reset']))
+    iterated_settings = list(self.settings.iterate_all(
+      include_setting_func=lambda setting: 'ignore_reset' not in setting.tags))
     
     self.assertNotIn(self.settings['main']['file_extension'], iterated_settings)
     self.assertIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
@@ -374,7 +375,8 @@ class TestSettingGroupHierarchical(unittest.TestCase):
   def test_iterate_all_ignore_settings_in_group_with_tag(self):
     self.settings['advanced'].tags.add('ignore_apply_gui_value_to_setting')
     
-    iterated_settings = list(self.settings.iterate_all(['ignore_apply_gui_value_to_setting']))
+    iterated_settings = list(self.settings.iterate_all(
+      include_setting_func=lambda setting: 'ignore_apply_gui_value_to_setting' not in setting.tags))
     
     self.assertIn(self.settings['main']['file_extension'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['only_visible_layers'], iterated_settings)

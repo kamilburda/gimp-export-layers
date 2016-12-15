@@ -36,6 +36,7 @@ import inspect
 from . import pgsetting
 from . import pgsettingpersistor
 from . import pgsettingutils
+from . import pgutils
 
 #===============================================================================
 
@@ -281,38 +282,30 @@ class SettingGroup(object):
       else:
         raise KeyError("setting '{0}' not found".format(setting_name))
   
-  def iterate_all(self, ignore_tags=None):
+  def iterate_all(self, include_setting_func=None):
     """
     Iterate over all settings in the group, including settings in nested groups.
     """
     
-    def _should_ignore(setting_tags, ignore_tags):
-      return any(tag in setting_tags for tag in ignore_tags)
-    
-    if ignore_tags is None:
-      ignore_tags = []
+    if include_setting_func is None:
+      include_setting_func = pgutils.create_empty_func(return_value=True)
     
     groups = [self]
-    setting_tags = [set(self._tags)]
-    current_setting_tags = setting_tags[0]
     
     while groups:
       try:
         setting_or_group = groups[0]._next()
-        current_setting_tags = setting_tags[0] | setting_or_group.tags
       except StopIteration:
         groups.pop(0)
-        setting_tags.pop(0)
         continue
       
       if isinstance(setting_or_group, SettingGroup):
-        if not _should_ignore(current_setting_tags, ignore_tags):
+        if include_setting_func(setting_or_group):
           groups.insert(0, setting_or_group)
-          setting_tags.insert(0, current_setting_tags)
         else:
           continue
       else:
-        if not _should_ignore(current_setting_tags, ignore_tags):
+        if include_setting_func(setting_or_group):
           yield setting_or_group
         else:
           continue
@@ -339,7 +332,7 @@ class SettingGroup(object):
     tag.
     """
     
-    for setting in self.iterate_all(ignore_tags=['ignore_reset']):
+    for setting in self.iterate_all(include_setting_func=lambda setting: 'ignore_reset' not in setting.tags):
       setting.reset()
   
   def load(self):
@@ -357,12 +350,12 @@ class SettingGroup(object):
     of all calls to `load()`.
     """
     
-    for setting in self.iterate_all(ignore_tags=['ignore_load']):
+    for setting in self.iterate_all(include_setting_func=lambda setting: 'ignore_load' not in setting.tags):
       setting.invoke_event('before-load-group')
     
     return_values = self._load_save('ignore_load', pgsettingpersistor.SettingPersistor.load)
     
-    for setting in self.iterate_all(ignore_tags=['ignore_load']):
+    for setting in self.iterate_all(include_setting_func=lambda setting: 'ignore_load' not in setting.tags):
       setting.invoke_event('after-load-group')
     
     return return_values
@@ -376,12 +369,12 @@ class SettingGroup(object):
     For more information, refer to the `load()` method.
     """
     
-    for setting in self.iterate_all(ignore_tags=['ignore_save']):
+    for setting in self.iterate_all(include_setting_func=lambda setting: 'ignore_save' not in setting.tags):
       setting.invoke_event('before-save-group')
     
     return_values = self._load_save('ignore_save', pgsettingpersistor.SettingPersistor.save)
     
-    for setting in self.iterate_all(ignore_tags=['ignore_save']):
+    for setting in self.iterate_all(include_setting_func=lambda setting: 'ignore_save' not in setting.tags):
       setting.invoke_event('after-save-group')
     
     return return_values
@@ -434,7 +427,8 @@ class SettingGroup(object):
     exception_messages = []
     exception_settings = []
     
-    for setting in self.iterate_all(ignore_tags=['ignore_apply_gui_value_to_setting']):
+    for setting in self.iterate_all(
+          include_setting_func=lambda setting: 'ignore_apply_gui_value_to_setting' not in setting.tags):
       try:
         setting.gui.update_setting_value()
       except pgsetting.SettingValueError as e:
@@ -461,7 +455,7 @@ class SettingGroup(object):
       
       return worst_status
     
-    settings = self.iterate_all(ignore_tags=[load_save_ignore_tag])
+    settings = self.iterate_all(include_setting_func=lambda setting: load_save_ignore_tag not in setting.tags)
     settings = [setting for setting in settings if setting.setting_sources]
     
     settings_per_sources = collections.OrderedDict()
