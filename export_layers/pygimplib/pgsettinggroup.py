@@ -282,9 +282,15 @@ class SettingGroup(object):
       else:
         raise KeyError("setting '{0}' not found".format(setting_name))
   
-  def iterate_all(self, include_setting_func=None):
+  def iterate_all(self, include_setting_func=None, include_groups=False):
     """
     Iterate over all settings in the group, including settings in nested groups.
+    
+    If `include_setting_func` is None, iterate over all settings. Otherwise,
+    `include_setting_func` is a function that should return True if a setting
+    should be yielded and False if a setting should be ignored.
+    
+    If `include_groups` is True, yield setting groups as well.
     """
     
     if include_setting_func is None:
@@ -302,6 +308,8 @@ class SettingGroup(object):
       if isinstance(setting_or_group, SettingGroup):
         if include_setting_func(setting_or_group):
           groups.insert(0, setting_or_group)
+          if include_groups:
+            yield setting_or_group
         else:
           continue
       else:
@@ -455,8 +463,8 @@ class SettingGroup(object):
       
       return worst_status
     
-    settings = self.iterate_all(include_setting_func=lambda setting: load_save_ignore_tag not in setting.tags)
-    settings = [setting for setting in settings if setting.setting_sources]
+    setting_iterator = self.iterate_all(include_setting_func=lambda setting: load_save_ignore_tag not in setting.tags)
+    settings = [setting for setting in setting_iterator if setting.setting_sources]
     
     settings_per_sources = collections.OrderedDict()
     

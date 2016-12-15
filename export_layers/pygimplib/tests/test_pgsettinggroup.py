@@ -381,7 +381,29 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.assertIn(self.settings['main']['file_extension'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
-
+  
+  def test_iterate_all_include_groups(self):
+    iterated_settings = list(self.settings.iterate_all(include_groups=True))
+    
+    self.assertIn(self.settings['main'], iterated_settings)
+    self.assertIn(self.settings['main']['file_extension'], iterated_settings)
+    self.assertIn(self.settings['advanced'], iterated_settings)
+    self.assertIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
+    self.assertIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
+    self.assertNotIn(self.settings, iterated_settings)
+  
+  def test_iterate_all_ignore_settings_in_group_with_tag_include_groups(self):
+    self.settings['advanced'].tags.add('ignore_apply_gui_value_to_setting')
+    
+    iterated_settings = list(self.settings.iterate_all(
+      include_setting_func=lambda setting: 'ignore_apply_gui_value_to_setting' not in setting.tags,
+      include_groups=True))
+    
+    self.assertIn(self.settings['main'], iterated_settings)
+    self.assertIn(self.settings['main']['file_extension'], iterated_settings)
+    self.assertNotIn(self.settings['advanced'], iterated_settings)
+    self.assertNotIn(self.settings['advanced']['only_visible_layers'], iterated_settings)
+    self.assertNotIn(self.settings['advanced']['overwrite_mode'], iterated_settings)
 
 #===============================================================================
 
