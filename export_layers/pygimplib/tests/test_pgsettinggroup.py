@@ -404,7 +404,46 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.assertNotIn(self.settings['advanced'], walked_settings)
     self.assertNotIn(self.settings['advanced']['only_visible_layers'], walked_settings)
     self.assertNotIn(self.settings['advanced']['overwrite_mode'], walked_settings)
+  
+  def _get_test_data_for_walking_group(self):
+    walked_settings = []
     
+    def _append_setting_name(setting):
+      walked_settings.append(setting.name)
+    
+    def _append_setting_name_and_end_group_walk_indicator(setting):
+      walked_settings.append(setting.name + "_end")
+    
+    walk_callbacks = pgsettinggroup.SettingGroupWalkCallbacks()
+    walk_callbacks.on_visit_setting = _append_setting_name
+    walk_callbacks.on_visit_group = _append_setting_name
+    walk_callbacks.on_end_group_walk = _append_setting_name_and_end_group_walk_indicator
+    
+    return walked_settings, walk_callbacks
+  
+  def test_walk_with_callbacks(self):
+    walked_settings, walk_callbacks = self._get_test_data_for_walking_group()
+    
+    list(self.settings.walk(include_groups=True, walk_callbacks=walk_callbacks))
+    
+    self.assertEqual(
+      walked_settings,
+      ["main", "file_extension", "main_end",
+       "advanced", "only_visible_layers", "overwrite_mode", "advanced_end"])
+  
+  def test_walk_with_callbacks_and_ignore_settings(self):
+    self.settings['main'].tags.add('ignore_reset')
+    self.settings['advanced']['overwrite_mode'].tags.update(['ignore_reset'])
+    
+    walked_settings, walk_callbacks = self._get_test_data_for_walking_group()
+    
+    list(self.settings.walk(
+      include_setting_func=lambda setting: 'ignore_reset' not in setting.tags,
+      include_groups=True,
+      walk_callbacks=walk_callbacks))
+    
+    self.assertEqual(walked_settings, ["advanced", "only_visible_layers", "advanced_end"])
+
 
 #===============================================================================
 

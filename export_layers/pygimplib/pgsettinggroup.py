@@ -282,7 +282,7 @@ class SettingGroup(object):
       else:
         raise KeyError("setting '{0}' not found".format(setting_name))
   
-  def walk(self, include_setting_func=None, include_groups=False):
+  def walk(self, include_setting_func=None, include_groups=False, walk_callbacks=None):
     """
     Return a generator that walks (iterates over) all settings in the group,
     including settings in nested groups.
@@ -292,10 +292,17 @@ class SettingGroup(object):
     should be yielded and False if a setting should be ignored.
     
     If `include_groups` is True, yield setting groups as well.
+    
+    `walk_callbacks` is an `SettingGroupWalkCallbacks` instance that invokes
+    additional commands during the walk of the group. By default, the callbacks
+    do nothing. For more information, see the `SettingGroupWalkCallbacks` class.
     """
     
     if include_setting_func is None:
       include_setting_func = pgutils.create_empty_func(return_value=True)
+    
+    if walk_callbacks is None:
+      walk_callbacks = SettingGroupWalkCallbacks()
     
     groups = [self]
     
@@ -303,18 +310,24 @@ class SettingGroup(object):
       try:
         setting_or_group = groups[0]._next()
       except StopIteration:
+        if groups[0] != self:
+          walk_callbacks.on_end_group_walk(groups[0])
+        
         groups.pop(0)
         continue
       
       if isinstance(setting_or_group, SettingGroup):
         if include_setting_func(setting_or_group):
           groups.insert(0, setting_or_group)
+          
           if include_groups:
+            walk_callbacks.on_visit_group(setting_or_group)
             yield setting_or_group
         else:
           continue
       else:
         if include_setting_func(setting_or_group):
+          walk_callbacks.on_visit_setting(setting_or_group)
           yield setting_or_group
         else:
           continue
@@ -485,3 +498,21 @@ class SettingGroup(object):
     worst_status = _get_worst_status(status_and_messages)
     
     return worst_status, status_and_messages.get(worst_status, "")
+
+
+class SettingGroupWalkCallbacks(object):
+  
+  """
+  This class defines callbacks called during the `SettingGroup.walk()` method.
+  By default, the callbacks do nothing.
+  
+  `on_visit_setting` is called before the current `Setting` object is yielded.
+  `on_visit_group` is called before the current `SettingGroup` object is
+  yielded. `on_end_group_walk` is called after all children of the current
+  `SettingGroup` object were visited.
+  """
+  
+  def __init__(self):
+    self.on_visit_setting = pgutils.empty_func
+    self.on_visit_group = pgutils.empty_func
+    self.on_end_group_walk = pgutils.empty_func
