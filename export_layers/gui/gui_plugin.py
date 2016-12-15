@@ -716,10 +716,8 @@ class ExportLayersGui(object):
       parent=self._dialog, more_settings_shown=self._settings['gui/show_more_settings'].value)
     
     if not reset_operations:
-      self._settings.set_ignore_tags({
-        'gui/displayed_builtin_operations': ['reset'],
-        'gui/displayed_builtin_filters': ['reset'],
-      })
+      self._settings['gui/displayed_builtin_operations'].tags.add('ignore_reset')
+      self._settings['gui/displayed_builtin_filters'].tags.add('ignore_reset')
     
     if response_id == gtk.RESPONSE_YES:
       self._reset_settings()
@@ -727,10 +725,8 @@ class ExportLayersGui(object):
       self._display_message_label(_("Settings reset."), message_type=gtk.MESSAGE_INFO)
     
     if not reset_operations:
-      self._settings.unset_ignore_tags({
-        'gui/displayed_builtin_operations': ['reset'],
-        'gui/displayed_builtin_filters': ['reset'],
-      })
+      self._settings['gui/displayed_builtin_operations'].tags.remove('ignore_reset')
+      self._settings['gui/displayed_builtin_filters'].tags.remove('ignore_reset')
   
   @_set_settings
   def _on_button_export_clicked(self, widget):

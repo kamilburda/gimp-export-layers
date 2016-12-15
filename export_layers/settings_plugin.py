@@ -296,10 +296,8 @@ def create_settings():
   
   settings.add([special_settings, main_settings])
   
-  settings.set_ignore_tags({
-    'special': ['reset', 'load', 'save'],
-    'main/output_directory': ['reset']
-  })
+  settings['special'].tags.update(['ignore_reset', 'ignore_load', 'ignore_save'])
+  settings['main/output_directory'].tags.add('ignore_reset')
   
   #-----------------------------------------------------------------------------
   

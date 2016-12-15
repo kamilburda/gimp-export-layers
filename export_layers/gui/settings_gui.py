@@ -153,8 +153,6 @@ def create_gui_settings():
     },
   ])
   
-  session_only_gui_settings.set_ignore_tags({
-    'image_ids_and_directories': ['reset'],
-  })
+  session_only_gui_settings['image_ids_and_directories'].tags.add('ignore_reset')
   
   return gui_settings, session_only_gui_settings, persistent_only_gui_settings
