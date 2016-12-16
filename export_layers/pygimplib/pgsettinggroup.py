@@ -41,7 +41,7 @@ from . import pgutils
 #===============================================================================
 
 
-class SettingGroup(object):
+class SettingGroup(pgsettingutils.SettingParentMixin):
   
   """
   This class:
@@ -70,9 +70,9 @@ class SettingGroup(object):
     to e.g. iterate over a specific subset of settings.
   """
   
-  _SETTING_PATH_SEPARATOR = "/"
-  
   def __init__(self, name, display_name=None, description=None, setting_attributes=None):
+    super(SettingGroup, self).__init__()
+    
     self._name = name
     self._display_name = pgsettingutils.get_processed_display_name(display_name, self._name)
     self._description = pgsettingutils.get_processed_description(description, self._display_name)
@@ -121,13 +121,13 @@ class SettingGroup(object):
       settings['main/autocrop']
     """
     
-    if self._SETTING_PATH_SEPARATOR in setting_name_or_path:
+    if pgsettingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
       return self._get_setting_from_path(setting_name_or_path)
     else:
       return self._settings[setting_name_or_path]
   
   def __contains__(self, setting_name_or_path):
-    if self._SETTING_PATH_SEPARATOR in setting_name_or_path:
+    if pgsettingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
       try:
         self._get_setting_from_path(setting_name_or_path)
       except KeyError:
@@ -138,7 +138,7 @@ class SettingGroup(object):
       return setting_name_or_path in self._settings
   
   def _get_setting_from_path(self, setting_path):
-    setting_path_components = setting_path.split(self._SETTING_PATH_SEPARATOR)
+    setting_path_components = setting_path.split(pgsettingutils.SETTING_PATH_SEPARATOR)
     current_group = self
     for group_name in setting_path_components[:-1]:
       if group_name in current_group:
@@ -166,6 +166,14 @@ class SettingGroup(object):
   
   def __len__(self):
     return len(self._settings)
+  
+  def get_path(self):
+    """
+    This is a wrapper method for `pgsettingutils.get_setting_path`. Consult the
+    method for more information.
+    """
+    
+    return pgsettingutils.get_setting_path(self)
   
   def add(self, setting_list):
     """
@@ -204,9 +212,11 @@ class SettingGroup(object):
     
     for setting in setting_list:
       if isinstance(setting, (pgsetting.Setting, SettingGroup)):
-        self._add_setting(setting)
+        setting = self._add_setting(setting)
       else:
-        self._create_setting(setting)
+        setting = self._create_setting(setting)
+      
+      setting._parent = self
   
   def _add_setting(self, setting):
     if setting.name in self._settings:
@@ -216,6 +226,8 @@ class SettingGroup(object):
       raise ValueError("cannot add {0} as a child of itself".format(setting))
     
     self._settings[setting.name] = setting
+    
+    return setting
   
   def _create_setting(self, setting_data):
     try:
@@ -231,10 +243,10 @@ class SettingGroup(object):
     except KeyError:
       raise TypeError(self._get_missing_mandatory_attributes_message(['name']))
     
-    if self._SETTING_PATH_SEPARATOR in setting_data_copy['name']:
+    if pgsettingutils.SETTING_PATH_SEPARATOR in setting_data_copy['name']:
       raise ValueError(
         "setting name '{0}' must not contain path separator '{1}'".format(
-          setting_data_copy['name'], self._SETTING_PATH_SEPARATOR))
+          setting_data_copy['name'], pgsettingutils.SETTING_PATH_SEPARATOR))
     
     if setting_data_copy['name'] in self._settings:
       raise ValueError("setting '{0}' already exists".format(setting_data_copy['name']))
@@ -243,8 +255,13 @@ class SettingGroup(object):
       if setting_attribute not in setting_data_copy:
         setting_data_copy[setting_attribute] = setting_attribute_value
     
+    setting = self._instantiate_setting(setting_type, setting_data_copy)
+    
+    return setting
+  
+  def _instantiate_setting(self, setting_type, setting_data_copy):
     try:
-      self._settings[setting_data_copy['name']] = setting_type(**setting_data_copy)
+      setting = self._settings[setting_data_copy['name']] = setting_type(**setting_data_copy)
     except TypeError as e:
       missing_mandatory_arguments = self._get_missing_mandatory_arguments(setting_type, setting_data_copy)
       if missing_mandatory_arguments:
@@ -252,6 +269,8 @@ class SettingGroup(object):
       else:
         message = e.message
       raise TypeError(message)
+    
+    return setting
   
   def _get_missing_mandatory_arguments(self, setting_type, setting_data):
     mandatory_arg_names = self._get_mandatory_argument_names(setting_type.__init__)

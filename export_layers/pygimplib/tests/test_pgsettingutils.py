@@ -27,6 +27,8 @@ str = unicode
 
 import unittest
 
+from .. import pgsetting
+from .. import pgsettinggroup
 from .. import pgsettingutils
 
 #===============================================================================
@@ -45,3 +47,53 @@ class TestSettingAttributeGenerators(unittest.TestCase):
       pgsettingutils.get_processed_description(None, 'My _Setting Name'), "My Setting Name")
     self.assertEqual(
       pgsettingutils.get_processed_description("My description", 'My _Setting Name'), "My description")
+
+
+#===============================================================================
+
+
+def _create_test_settings_for_path():
+  setting = pgsetting.Setting("file_extension", "png")
+  main_settings = pgsettinggroup.SettingGroup("main")
+  advanced_settings = pgsettinggroup.SettingGroup("advanced")
+  
+  advanced_settings.add([setting])
+  main_settings.add([advanced_settings])
+  
+  return setting, advanced_settings, main_settings
+
+
+class TestSettingParentMixin(unittest.TestCase):
+  
+  def setUp(self):
+    self.setting, self.advanced_settings, self.main_settings = _create_test_settings_for_path()
+  
+  def test_get_parent_empty(self):
+    setting = pgsetting.Setting("file_extension", "png")
+    
+    self.assertEqual(setting.parent, None)
+  
+  def test_get_parent(self):
+    self.assertEqual(self.setting.parent, self.advanced_settings)
+    self.assertEqual(self.advanced_settings.parent, self.main_settings)
+    self.assertEqual(self.main_settings.parent, None)
+  
+  def test_get_parents(self):
+    self.assertEqual(self.setting.parents, [self.main_settings, self.advanced_settings])
+    self.assertEqual(self.advanced_settings.parents, [self.main_settings])
+    self.assertEqual(self.main_settings.parents, [])
+
+
+class TestSettingPath(unittest.TestCase):
+  
+  def setUp(self):
+    self.setting, self.advanced_settings, self.main_settings = _create_test_settings_for_path()
+  
+  def test_get_path_no_parent(self):
+    setting = pgsetting.Setting("file_extension", "png")
+    self.assertEqual(pgsettingutils.get_setting_path(setting), "file_extension")
+  
+  def test_get_path(self):
+    self.assertEqual(pgsettingutils.get_setting_path(self.setting), "main/advanced/file_extension")
+    self.assertEqual(pgsettingutils.get_setting_path(self.advanced_settings), "main/advanced")
+    self.assertEqual(pgsettingutils.get_setting_path(self.main_settings), "main")

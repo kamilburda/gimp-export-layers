@@ -109,7 +109,7 @@ class SettingDefaultValueError(SettingValueError):
 #===============================================================================
 
 
-class Setting(object):
+class Setting(pgsettingutils.SettingParentMixin):
   
   """
   This class holds data about a plug-in setting.
@@ -246,6 +246,8 @@ class Setting(object):
       override default error messages defined in classes.
     """
     
+    super(Setting, self).__init__()
+    
     self._name = name
     self._default_value = default_value
     
@@ -334,6 +336,14 @@ class Setting(object):
   
   def __str__(self):
     return "<{0} '{1}'>".format(type(self).__name__, self.name)
+  
+  def get_path(self):
+    """
+    This is a wrapper method for `pgsettingutils.get_setting_path`. Consult the
+    method for more information.
+    """
+    
+    return pgsettingutils.get_setting_path(self)
   
   def set_value(self, value):
     """

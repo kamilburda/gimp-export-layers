@@ -19,8 +19,7 @@
 #
 
 """
-This module contains various helper classes and functions for `pgsetting*`
-modules.
+This module contains helper classes and functions for `pgsetting*` modules.
 """
 
 from __future__ import absolute_import
@@ -55,3 +54,51 @@ def generate_description(display_name):
   # Underscores in display names used as mnemonics are usually undesired in
   # descriptions, hence their removal.
   return display_name.replace("_", "")
+
+
+#===============================================================================
+
+
+class SettingParentMixin(object):
+  
+  """
+  This mixin provides `Setting` and `SettingGroup` objects with a parent
+  reference, allowing settings and groups to form a tree-like structure.
+  """
+  
+  def __init__(self):
+    self._parent = None
+  
+  @property
+  def parent(self):
+    return self._parent
+  
+  @property
+  def parents(self):
+    """
+    Return a list of parents (setting groups), starting from the topmost parent.
+    """
+    
+    parent = self._parent
+    parents = []
+    
+    while parent is not None:
+      parents.insert(0, parent)
+      parent = parent.parent
+    
+    return parents
+
+
+#===============================================================================
+
+
+SETTING_PATH_SEPARATOR = "/"
+
+
+def get_setting_path(setting):
+  """
+  Get the full setting path consisting of names of parent groups and the
+  specified setting. The path components are separated by "/".
+  """
+  
+  return SETTING_PATH_SEPARATOR.join([setting.name for setting in (setting.parents + [setting])])
