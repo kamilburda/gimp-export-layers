@@ -589,7 +589,7 @@ class LayerExporter(object):
       _operations_executor,
       [_BUILTIN_OPERATIONS_GROUP, _BUILTIN_FILTERS_GROUP, _BUILTIN_FILTERS_LAYER_TYPES_GROUP])
     
-    add_operation(self.export_settings['more_filters/include_layers'])
+    add_operation(self.export_settings['more_filters/include/include_layers'])
   
   def _init_attributes(self, processing_groups, layer_tree, keep_exported_layers):
     self._enable_disable_processing_groups(processing_groups)

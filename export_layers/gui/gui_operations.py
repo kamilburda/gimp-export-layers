@@ -40,6 +40,7 @@ pdb = gimp.pdb
 
 from .. import pygimplib
 from ..pygimplib import pgconstants
+from ..pygimplib import pgsettinggroup
 from ..pygimplib import pgutils
 
 #===============================================================================
@@ -120,8 +121,18 @@ class OperationBox(object):
     self._button_add.connect("clicked", self._on_button_add_clicked)
   
   def _init_operations_menu_popup(self):
-    for setting in self._settings:
-      self._add_setting_to_menu(setting)
+    walk_callbacks = pgsettinggroup.SettingGroupWalkCallbacks()
+    walk_callbacks.on_visit_setting = self._add_setting_to_menu
+    walk_callbacks.on_visit_group = self._create_submenu_for_setting_group
+    walk_callbacks.on_end_group_walk = self._finish_adding_settings_to_submenu
+    
+    self._operations_submenus = [self._operations_menu]
+    self._current_operations_submenu = self._operations_menu
+    
+    list(self._settings.walk(include_groups=True, walk_callbacks=walk_callbacks))
+    
+    del self._operations_submenus
+    del self._current_operations_submenu
     
     self._operations_menu.show_all()
   
@@ -129,15 +140,43 @@ class OperationBox(object):
     menu_item = gtk.MenuItem(
       label=setting.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING), use_underline=False)
     menu_item.connect("activate", self._on_operations_menu_item_activate)
-    self._operations_menu.append(menu_item)
+    self._current_operations_submenu.append(menu_item)
     self._menu_items_and_settings[menu_item] = setting
+  
+  def _create_submenu_for_setting_group(self, setting_group):
+    operations_submenu = gtk.Menu()
+    
+    group_menu_item = gtk.MenuItem(
+      label=setting_group.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING), use_underline=False)
+    group_menu_item.set_submenu(operations_submenu)
+    
+    if self._operations_submenus:
+      self._operations_submenus[0].append(group_menu_item)
+    
+    self._operations_submenus.insert(0, operations_submenu)
+    self._current_operations_submenu = operations_submenu
+  
+  def _finish_adding_settings_to_submenu(self, setting_group):
+    self._operations_submenus.pop(0)
+    if self._operations_submenus:
+      self._current_operations_submenu = self._operations_submenus[0]
   
   def _init_item_dragging(self):
     # Unique drag type for the entire box prevents undesired drops on other widgets.
     drag_type = self._get_unique_drag_type()
     
-    for setting in self._settings:
+    for setting in self._settings.walk():
       self._connect_drag_events_to_item_widget(setting, drag_type)
+  
+  def _get_unique_drag_type(self):
+    global _operation_box_drag_type_id_counter
+    
+    drag_type = "{0}_{1}_{2}".format(
+      pygimplib.config.PLUGIN_NAME, self.__class__.__name__, _operation_box_drag_type_id_counter)
+    
+    _operation_box_drag_type_id_counter += 1
+    
+    return drag_type
   
   def _connect_drag_events_to_item_widget(self, setting, drag_type):
     setting.gui.element.connect("drag-data-get", self._on_item_widget_drag_data_get, setting)
@@ -149,16 +188,6 @@ class OperationBox(object):
     setting.gui.element.connect("drag-begin", self._on_item_widget_drag_begin)
     setting.gui.element.connect("drag-motion", self._on_item_widget_drag_motion)
     setting.gui.element.connect("drag-failed", self._on_item_widget_drag_failed)
-  
-  def _get_unique_drag_type(self):
-    global _operation_box_drag_type_id_counter
-    
-    drag_type = "{0}_{1}_{2}".format(
-      pygimplib.config.PLUGIN_NAME, self.__class__.__name__, _operation_box_drag_type_id_counter)
-    
-    _operation_box_drag_type_id_counter += 1
-    
-    return drag_type
   
   def add_operation_item(self, setting):
     operation_item = _OperationItem(setting.gui.element)
@@ -215,7 +244,7 @@ class OperationBox(object):
       self.remove_operation_item(self._displayed_operation_items[0], self._displayed_settings[0])
   
   def _on_item_widget_drag_data_get(self, item_widget, drag_context, selection_data, info, timestamp, setting):
-    selection_data.set(selection_data.target, 8, setting.name)
+    selection_data.set(selection_data.target, 8, setting.get_path(self._settings))
   
   def _on_item_widget_drag_data_received(self, item_widget, drag_context, x, y,
                                          selection_data, info, timestamp, setting):

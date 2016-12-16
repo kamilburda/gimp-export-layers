@@ -225,7 +225,15 @@ def create_settings():
       'setting_sources': [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     })
   
-  more_filters_settings.add([
+  include_filters_settings = pgsettinggroup.SettingGroup(
+    name='include',
+    display_name=_("Include"),
+    setting_attributes={
+      'pdb_type': None,
+      'setting_sources': [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+    })
+  
+  include_filters_settings.add([
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'include_layers',
@@ -243,7 +251,11 @@ def create_settings():
       'name': 'include_empty_layer_groups',
       'default_value': False,
       'display_name': _("Include empty layer groups")
-    },
+    }
+  ])
+  
+  more_filters_settings.add([
+    include_filters_settings,
     {
       'type': pgsetting.SettingTypes.boolean,
       'name': 'only_non_tagged_layers',
