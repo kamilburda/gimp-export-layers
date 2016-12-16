@@ -337,13 +337,13 @@ class Setting(pgsettingutils.SettingParentMixin):
   def __str__(self):
     return "<{0} '{1}'>".format(type(self).__name__, self.name)
   
-  def get_path(self):
+  def get_path(self, relative_path_setting_group=None):
     """
     This is a wrapper method for `pgsettingutils.get_setting_path`. Consult the
     method for more information.
     """
     
-    return pgsettingutils.get_setting_path(self)
+    return pgsettingutils.get_setting_path(self, relative_path_setting_group)
   
   def set_value(self, value):
     """

@@ -167,13 +167,13 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   def __len__(self):
     return len(self._settings)
   
-  def get_path(self):
+  def get_path(self, relative_path_setting_group):
     """
     This is a wrapper method for `pgsettingutils.get_setting_path`. Consult the
     method for more information.
     """
     
-    return pgsettingutils.get_setting_path(self)
+    return pgsettingutils.get_setting_path(self, relative_path_setting_group)
   
   def add(self, setting_list):
     """

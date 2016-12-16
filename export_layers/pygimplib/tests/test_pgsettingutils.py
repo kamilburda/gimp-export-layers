@@ -97,3 +97,23 @@ class TestSettingPath(unittest.TestCase):
     self.assertEqual(pgsettingutils.get_setting_path(self.setting), "main/advanced/file_extension")
     self.assertEqual(pgsettingutils.get_setting_path(self.advanced_settings), "main/advanced")
     self.assertEqual(pgsettingutils.get_setting_path(self.main_settings), "main")
+  
+  def test_get_path_with_relative_path_from_setting_group(self):
+    self._test_get_path_with_relative_path(self.setting, self.main_settings, "advanced/file_extension")
+    self._test_get_path_with_relative_path(self.setting, self.advanced_settings, "file_extension")
+    self._test_get_path_with_relative_path(self.setting, self.setting, "")
+    self._test_get_path_with_relative_path(self.advanced_settings, self.main_settings, "advanced")
+    self._test_get_path_with_relative_path(self.advanced_settings, self.advanced_settings, "")
+    self._test_get_path_with_relative_path(self.main_settings, self.main_settings, "")
+  
+  def test_get_path_with_relative_path_from_non_matching_setting_group(self):
+    special_settings = pgsettinggroup.SettingGroup("special")
+    
+    self._test_get_path_with_relative_path(self.setting, special_settings, "main/advanced/file_extension")
+    self._test_get_path_with_relative_path(self.advanced_settings, special_settings, "main/advanced")
+    self._test_get_path_with_relative_path(self.main_settings, special_settings, "main")
+  
+  def _test_get_path_with_relative_path(self, setting, relative_path_setting_group, expected_path):
+    self.assertEqual(
+      pgsettingutils.get_setting_path(setting, relative_path_setting_group=relative_path_setting_group),
+      expected_path)

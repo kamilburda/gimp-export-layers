@@ -95,10 +95,24 @@ class SettingParentMixin(object):
 SETTING_PATH_SEPARATOR = "/"
 
 
-def get_setting_path(setting):
+def get_setting_path(setting, relative_path_setting_group=None):
   """
-  Get the full setting path consisting of names of parent groups and the
+  Get the full setting path consisting of names of parent setting groups and the
   specified setting. The path components are separated by "/".
+  
+  If `relative_path_setting_group` is specified, the setting group is used to
+  relativize the setting path. If the path of the setting group to the topmost
+  parent does not match, return the full path.
   """
   
-  return SETTING_PATH_SEPARATOR.join([setting.name for setting in (setting.parents + [setting])])
+  def _get_setting_path(path_components):
+    return SETTING_PATH_SEPARATOR.join([setting.name for setting in path_components])
+  
+  setting_path = _get_setting_path(setting.parents + [setting])
+  
+  if relative_path_setting_group is not None:
+    root_path = _get_setting_path(relative_path_setting_group.parents + [relative_path_setting_group])
+    if setting_path.startswith(root_path):
+      return setting_path[len(root_path + SETTING_PATH_SEPARATOR):]
+  
+  return setting_path
