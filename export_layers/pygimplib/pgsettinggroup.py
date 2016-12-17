@@ -216,7 +216,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
       else:
         setting = self._create_setting(setting)
       
-      setting._parent = self
+      self._set_as_parent_for_setting(setting)
   
   def _add_setting(self, setting):
     if setting.name in self._settings:

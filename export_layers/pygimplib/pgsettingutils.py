@@ -87,6 +87,9 @@ class SettingParentMixin(object):
       parent = parent.parent
     
     return parents
+  
+  def _set_as_parent_for_setting(self, setting):
+    setting._parent = self
 
 
 #===============================================================================
