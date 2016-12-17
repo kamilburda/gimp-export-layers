@@ -236,7 +236,7 @@ class PersistentSettingSource(SettingSource):
     self._settings_from_parasite = self._read_from_parasite(self.source_name)
     if self._settings_from_parasite is None:
       raise pgsettingpersistor.SettingSourceNotFoundError(
-        _("Could not find persistent setting source \"{0}\".").format(self.source_name))
+        _('Could not find persistent setting source "{0}".').format(self.source_name))
     
     self._read(settings)
     
@@ -269,7 +269,7 @@ class PersistentSettingSource(SettingSource):
       settings_from_parasite = pickle.loads(parasite.data)
     except (pickle.UnpicklingError, AttributeError, EOFError):
       raise pgsettingpersistor.SettingSourceInvalidFormatError(
-        _("Settings for this plug-in stored in \"{0}\" may be corrupt. "
+        _('Settings for this plug-in stored in "{0}" may be corrupt. '
           "This could happen if the file was edited manually.\n"
           "To fix this, save the settings again or reset them.").format(self._parasite_file_path))
     

@@ -56,8 +56,8 @@ from . import pgconstants
 class _Config(object):
   
   def __init__(self):
-    super(_Config, self).__setattr__('_config', {})
-    self._config['_can_modify_config'] = True
+    super(_Config, self).__setattr__("_config", {})
+    self._config["_can_modify_config"] = True
   
   def __setattr__(self, name, value):
     if self._can_modify_config:

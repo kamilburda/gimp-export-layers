@@ -114,11 +114,11 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     If a setting is inside a nested group, you can access the setting as
     follows:
       
-      settings['main']['autocrop']
+      settings["main"]["autocrop"]
     
     As a more compact alternative, you may specify a setting path:
     
-      settings['main/autocrop']
+      settings["main/autocrop"]
     """
     
     if pgsettingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
@@ -189,11 +189,11 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     "attribute name" is a string that represents an argument passed when
     instantiating the setting. The following attributes must always be
     specified:
-      * 'type' - type of the Setting object to instantiate.
-      * 'name' - setting name.
-      * 'default_value' - default value of the setting.
+      * "type" - type of the Setting object to instantiate.
+      * "name" - setting name.
+      * "default_value" - default value of the setting.
     
-    The 'name' attribute must not contain forward slashes ('/') (which are used
+    The "name" attribute must not contain forward slashes ("/") (which are used
     to access settings via paths).
     
     For more attributes, check the documentation of the setting classes. Some
@@ -202,8 +202,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     Multiple settings with the same name and in different nested groups are
     possible. Each such setting can be accessed like any other:
     
-      settings['main']['autocrop']
-      settings['advanced']['autocrop']
+      settings["main"]["autocrop"]
+      settings["advanced"]["autocrop"]
     
     Settings created from dictionaries are by default assigned setting
     attributes specified during the initialization of this class. These
@@ -231,25 +231,25 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   
   def _create_setting(self, setting_data):
     try:
-      setting_type = setting_data['type']
+      setting_type = setting_data["type"]
     except KeyError:
-      raise TypeError(self._get_missing_mandatory_attributes_message(['type']))
+      raise TypeError(self._get_missing_mandatory_attributes_message(["type"]))
     
     # Do not modify the original `setting_data` in case it is expected to be reused.
-    setting_data_copy = {key: setting_data[key] for key in setting_data if key != 'type'}
+    setting_data_copy = {key: setting_data[key] for key in setting_data if key != "type"}
     
     try:
-      setting_data_copy['name']
+      setting_data_copy["name"]
     except KeyError:
-      raise TypeError(self._get_missing_mandatory_attributes_message(['name']))
+      raise TypeError(self._get_missing_mandatory_attributes_message(["name"]))
     
-    if pgsettingutils.SETTING_PATH_SEPARATOR in setting_data_copy['name']:
+    if pgsettingutils.SETTING_PATH_SEPARATOR in setting_data_copy["name"]:
       raise ValueError(
         "setting name '{0}' must not contain path separator '{1}'".format(
-          setting_data_copy['name'], pgsettingutils.SETTING_PATH_SEPARATOR))
+          setting_data_copy["name"], pgsettingutils.SETTING_PATH_SEPARATOR))
     
-    if setting_data_copy['name'] in self._settings:
-      raise ValueError("setting '{0}' already exists".format(setting_data_copy['name']))
+    if setting_data_copy["name"] in self._settings:
+      raise ValueError("setting '{0}' already exists".format(setting_data_copy["name"]))
     
     for setting_attribute, setting_attribute_value in self._setting_attributes.items():
       if setting_attribute not in setting_data_copy:
@@ -261,7 +261,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   
   def _instantiate_setting(self, setting_type, setting_data_copy):
     try:
-      setting = self._settings[setting_data_copy['name']] = setting_type(**setting_data_copy)
+      setting = self._settings[setting_data_copy["name"]] = setting_type(**setting_data_copy)
     except TypeError as e:
       missing_mandatory_arguments = self._get_missing_mandatory_arguments(setting_type, setting_data_copy)
       if missing_mandatory_arguments:
@@ -282,13 +282,13 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     num_mandatory_args = len(arg_spec[0]) - len(arg_default_values)
     
     mandatory_args = arg_spec[0][0:num_mandatory_args]
-    if mandatory_args[0] == 'self':
+    if mandatory_args[0] == "self":
       del mandatory_args[0]
     
     return mandatory_args
   
   def _get_missing_mandatory_attributes_message(self, attribute_names):
-    return "missing the following mandatory setting attributes: {0}".format(', '.join(attribute_names))
+    return "missing the following mandatory setting attributes: {0}".format(", ".join(attribute_names))
   
   def remove(self, setting_names):
     """
@@ -370,16 +370,16 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   
   def reset(self):
     """
-    Reset all settings in this group. Ignore settings with the 'ignore_reset'
+    Reset all settings in this group. Ignore settings with the "ignore_reset"
     tag.
     """
     
-    for setting in self.walk(include_setting_func=lambda setting: 'ignore_reset' not in setting.tags):
+    for setting in self.walk(include_setting_func=lambda setting: "ignore_reset" not in setting.tags):
       setting.reset()
   
   def load(self):
     """
-    Load all settings in this group. Ignore settings with the 'ignore_load' tag.
+    Load all settings in this group. Ignore settings with the "ignore_load" tag.
     If there are multiple combinations of setting sources within the group (e.g.
     some settings within this group having their own setting sources), loading
     is performed for each combination separately.
@@ -392,32 +392,32 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     of all calls to `load()`.
     """
     
-    for setting in self.walk(include_setting_func=lambda setting: 'ignore_load' not in setting.tags):
-      setting.invoke_event('before-load-group')
+    for setting in self.walk(include_setting_func=lambda setting: "ignore_load" not in setting.tags):
+      setting.invoke_event("before-load-group")
     
-    return_values = self._load_save('ignore_load', pgsettingpersistor.SettingPersistor.load)
+    return_values = self._load_save("ignore_load", pgsettingpersistor.SettingPersistor.load)
     
-    for setting in self.walk(include_setting_func=lambda setting: 'ignore_load' not in setting.tags):
-      setting.invoke_event('after-load-group')
+    for setting in self.walk(include_setting_func=lambda setting: "ignore_load" not in setting.tags):
+      setting.invoke_event("after-load-group")
     
     return return_values
   
   def save(self):
     """
-    Save all settings in this group. Ignore settings with the 'ignore_save' tag.
+    Save all settings in this group. Ignore settings with the "ignore_save" tag.
     Return the status and the status message as per the
     `pgsettingpersistor.SettingPersistor.save()` method.
     
     For more information, refer to the `load()` method.
     """
     
-    for setting in self.walk(include_setting_func=lambda setting: 'ignore_save' not in setting.tags):
-      setting.invoke_event('before-save-group')
+    for setting in self.walk(include_setting_func=lambda setting: "ignore_save" not in setting.tags):
+      setting.invoke_event("before-save-group")
     
-    return_values = self._load_save('ignore_save', pgsettingpersistor.SettingPersistor.save)
+    return_values = self._load_save("ignore_save", pgsettingpersistor.SettingPersistor.save)
     
-    for setting in self.walk(include_setting_func=lambda setting: 'ignore_save' not in setting.tags):
-      setting.invoke_event('after-save-group')
+    for setting in self.walk(include_setting_func=lambda setting: "ignore_save" not in setting.tags):
+      setting.invoke_event("after-save-group")
     
     return return_values
   
@@ -437,7 +437,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     file_extension_entry = gtk.Entry()
     ...
     main_settings.initialize_gui({
-      'file_extension': [SettingGuiTypes.text_entry, file_extension_entry]
+      "file_extension": [SettingGuiTypes.text_entry, file_extension_entry]
       ...
     })
     """
@@ -455,7 +455,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   def apply_gui_values_to_settings(self):
     """
     Apply GUI element values, entered by the user, to settings.
-    Ignore settings with the 'ignore_apply_gui_value_to_setting' tag.
+    Ignore settings with the "ignore_apply_gui_value_to_setting" tag.
     
     This method will not have any effect on settings with automatic
     GUI-to-setting value updating.
@@ -470,7 +470,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     exception_settings = []
     
     for setting in self.walk(
-          include_setting_func=lambda setting: 'ignore_apply_gui_value_to_setting' not in setting.tags):
+          include_setting_func=lambda setting: "ignore_apply_gui_value_to_setting" not in setting.tags):
       try:
         setting.gui.update_setting_value()
       except pgsetting.SettingValueError as e:

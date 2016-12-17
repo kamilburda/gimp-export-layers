@@ -686,7 +686,7 @@ class FilenameValidator(StringValidator):
     FileValidatorErrorStatuses.HAS_TRAILING_SPACES: N_("Filename cannot end with spaces."),
     FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: N_("Filename cannot end with a period."),
     FileValidatorErrorStatuses.HAS_INVALID_NAMES: N_(
-      "\"{0}\" is a reserved name that cannot be used in filenames.\n"),
+      '"{0}" is a reserved name that cannot be used in filenames.\n'),
   }
   
   @classmethod
@@ -774,7 +774,7 @@ class FilePathValidator(StringValidator):
     FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: N_(
       "Path components in the file path cannot end with a period."),
     FileValidatorErrorStatuses.HAS_INVALID_NAMES: N_(
-      "\"{0}\" is a reserved name that cannot be used in file paths.\n"),
+      '"{0}" is a reserved name that cannot be used in file paths.\n'),
   }
   
   @classmethod
@@ -868,7 +868,7 @@ class DirectoryPathValidator(FilePathValidator):
     FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: N_(
       "Path components in the directory path cannot end with a period."),
     FileValidatorErrorStatuses.HAS_INVALID_NAMES: N_(
-      "\"{0}\" is a reserved name that cannot be used in directory paths.\n"),
+      '"{0}" is a reserved name that cannot be used in directory paths.\n'),
     FileValidatorErrorStatuses.EXISTS_BUT_IS_NOT_DIR: N_("Specified path is not a directory.")
   }
   

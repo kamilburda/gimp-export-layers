@@ -91,7 +91,7 @@ class SettingValueError(Exception):
   """
   
   def __init__(self, *args, **kwargs):
-    for kwarg in ['setting', 'settings', 'messages']:
+    for kwarg in ["setting", "settings", "messages"]:
       setattr(self, kwarg, kwargs.pop(kwarg, None))
     
     super(SettingValueError, self).__init__(*args, **kwargs)
@@ -178,7 +178,7 @@ class Setting(pgsettingutils.SettingParentMixin):
   * `error_messages` (read-only) - A dict of error messages containing
     (message name, message contents) pairs, which can be used e.g. if a value
     assigned to the setting is invalid. You can add your own error messages and
-    assign them to one of the "default" error messages (such as 'invalid_value'
+    assign them to one of the "default" error messages (such as "invalid_value"
     in several `Setting` subclasses) depending on the context in which the value
     assigned is invalid.
   
@@ -356,8 +356,8 @@ class Setting(pgsettingutils.SettingParentMixin):
     assigned, the value is recorded. Once a GUI element is assigned to the
     setting, the recorded value is copied over to the GUI element.
     
-    Invoke event handlers of types 'before-set-value' before assigning the
-    value and 'value-changed' and 'after-set-value' (in this order) after
+    Invoke event handlers of types "before-set-value" before assigning the
+    value and "value-changed" and "after-set-value" (in this order) after
     assigning the value.
     
     Note: This is a method and not a property because of the additional overhead
@@ -365,13 +365,13 @@ class Setting(pgsettingutils.SettingParentMixin):
     remains a property for the sake of brevity.
     """
     
-    self.invoke_event('before-set-value')
+    self.invoke_event("before-set-value")
     
     self._assign_and_validate_value(value)
     self._setting_value_synchronizer.apply_setting_value_to_gui(value)
     
-    self.invoke_event('value-changed')
-    self.invoke_event('after-set-value')
+    self.invoke_event("value-changed")
+    self.invoke_event("after-set-value")
   
   def reset(self):
     """
@@ -383,25 +383,25 @@ class Setting(pgsettingutils.SettingParentMixin):
     
     in that `reset()` does not validate the default value.
     
-    Invoke event handlers of types 'before-reset' before resetting and
-    'value-changed' and 'after-reset' (in this order) after resetting.
+    Invoke event handlers of types "before-reset" before resetting and
+    "value-changed" and "after-reset" (in this order) after resetting.
     
     `reset()` also updates the GUI.
     
     If the default value is an empty container (list, dict, ...), resetting
     works properly. If the default value is a non-empty container, it is up to
     you to ensure that the default value does not get modified, for example by
-    connecting a 'before-reset' event that sets the value to the correct
+    connecting a "before-reset" event that sets the value to the correct
     default value before resetting.
     """
     
-    self.invoke_event('before-reset')
+    self.invoke_event("before-reset")
     
     self._value = copy.copy(self._default_value)
     self._setting_value_synchronizer.apply_setting_value_to_gui(self._default_value)
     
-    self.invoke_event('value-changed')
-    self.invoke_event('after-reset')
+    self.invoke_event("value-changed")
+    self.invoke_event("after-reset")
   
   def set_gui(self, gui_type=SettingGuiTypes.automatic, gui_element=None, auto_update_gui_to_setting=True):
     """
@@ -495,49 +495,49 @@ class Setting(pgsettingutils.SettingParentMixin):
     `event_type` can be an arbitrary string. The following specific event types
     determine when the event handler is invoked:
     
-      * 'value-changed' - invoked after `set_value()` or `reset()` is called and
-        before events of type 'after-set-value' or 'after-reset'.
+      * "value-changed" - invoked after `set_value()` or `reset()` is called and
+        before events of type "after-set-value" or "after-reset".
       
-      * 'before-set-value' - invoked before `set_value()` is called.
+      * "before-set-value" - invoked before `set_value()` is called.
       
-      * 'after-set-value' - invoked after `set_value()` is called.
+      * "after-set-value" - invoked after `set_value()` is called.
       
-      * 'before-reset' - invoked before `reset()` is called.
+      * "before-reset" - invoked before `reset()` is called.
       
-      * 'after-reset' - invoked after `reset()` is called.
+      * "after-reset" - invoked after `reset()` is called.
       
-      * 'before-load' - invoked before loading a setting via
+      * "before-load" - invoked before loading a setting via
         `pgsettingpersistor.SettingPersistor.load`.
       
-      * 'after-load' - invoked after loading a setting via
+      * "after-load" - invoked after loading a setting via
         `pgsettingpersistor.SettingPersistor.load`. Events will not be invoked
         if loading settings failed (i.e. `SettingPersistor` returns `READ_FAIL`
         status). Events will be invoked for all settings, even if some of them
         were not found in setting sources (i.e. `SettingPersistor` returns
         `NOT_ALL_SETTINGS_FOUND` status).
       
-      * 'before-save' - invoked before saving a setting via
+      * "before-save" - invoked before saving a setting via
       `pgsettingpersistor.SettingPersistor.save`.
       
-      * 'after-save' - invoked after saving a setting via
+      * "after-save" - invoked after saving a setting via
         `pgsettingpersistor.SettingPersistor.save`. Events will not be invoked
         if saving settings failed (i.e. `SettingPersistor` returns `SAVE_FAIL`
         status).
       
-      * 'before-load-group' - invoked before loading settings in a group via
+      * "before-load-group" - invoked before loading settings in a group via
         `SettingGroup.load`.
       
-      * 'after-load-group' - invoked after loading settings in a group via
+      * "after-load-group" - invoked after loading settings in a group via
         `SettingGroup.load`. This is useful if the group contains settings with
         different setting sources so that the event is invoked only once after
         all settings from different sources are loaded. This also applies to
-        other related events ('before-load-group', 'before-save-group',
-        'after-save-group').
+        other related events ("before-load-group", "before-save-group",
+        "after-save-group").
       
-      * 'before-save-group' - invoked before saving settings in a group via
+      * "before-save-group" - invoked before saving settings in a group via
         `SettingGroup.load`.
       
-      * 'after-save-group' - invoked after saving settings in a group via
+      * "after-save-group" - invoked after saving settings in a group via
         `SettingGroup.load`.
     
     The `event_handler` function must always contain at least one argument -
@@ -672,7 +672,7 @@ class Setting(pgsettingutils.SettingParentMixin):
   
   def _apply_gui_value_to_setting(self, value):
     self._assign_and_validate_value(value)
-    self.invoke_event('value-changed')
+    self.invoke_event("value-changed")
   
   def _validate_setting(self, value):
     try:
@@ -779,9 +779,9 @@ class NumericSetting(Setting):
   
   Error messages:
   
-  * `'below_min'` - The value assigned is less than `min_value`.
+  * `"below_min"` - The value assigned is less than `min_value`.
   
-  * `'above_max'` - The value assigned is greater than `max_value`.
+  * `"above_max"` - The value assigned is greater than `max_value`.
   """
   
   __metaclass__ = abc.ABCMeta
@@ -793,8 +793,8 @@ class NumericSetting(Setting):
     super(NumericSetting, self).__init__(name, default_value, **kwargs)
   
   def _init_error_messages(self):
-    self.error_messages['below_min'] = _("Value cannot be less than {0}.").format(self._min_value)
-    self.error_messages['above_max'] = _("Value cannot be greater than {0}.").format(self._max_value)
+    self.error_messages["below_min"] = _("Value cannot be less than {0}.").format(self._min_value)
+    self.error_messages["above_max"] = _("Value cannot be greater than {0}.").format(self._max_value)
   
   @property
   def min_value(self):
@@ -817,9 +817,9 @@ class NumericSetting(Setting):
   
   def _validate(self, value):
     if self._min_value is not None and value < self._min_value:
-      raise SettingValueError(self._value_to_str(value) + self.error_messages['below_min'])
+      raise SettingValueError(self._value_to_str(value) + self.error_messages["below_min"])
     if self._max_value is not None and value > self._max_value:
-      raise SettingValueError(self._value_to_str(value) + self.error_messages['above_max'])
+      raise SettingValueError(self._value_to_str(value) + self.error_messages["above_max"])
 
 
 class IntSetting(NumericSetting):
@@ -908,7 +908,7 @@ class EnumSetting(Setting):
   
   Raises:
   
-  * `SettingValueError` - See `'invalid_value'` error message below.
+  * `SettingValueError` - See `"invalid_value"` error message below.
   
   * `ValueError` - See the other error messages below.
   
@@ -916,10 +916,10 @@ class EnumSetting(Setting):
   
   Error messages:
   
-  * `'invalid_value'` - The value assigned is not one of the items in this
+  * `"invalid_value"` - The value assigned is not one of the items in this
     setting.
   
-  * `'invalid_default_value'` - Item name is invalid (not found in the `items`
+  * `"invalid_default_value"` - Item name is invalid (not found in the `items`
     parameter when instantiating the object).
   """
   
@@ -947,14 +947,14 @@ class EnumSetting(Setting):
     
     error_messages = {}
     
-    error_messages['invalid_value'] = _("Invalid item value; valid values: {0}").format(list(self._item_values))
+    error_messages["invalid_value"] = _("Invalid item value; valid values: {0}").format(list(self._item_values))
     
-    error_messages['invalid_default_value'] = (
+    error_messages["invalid_default_value"] = (
       "invalid identifier for the default value; must be one of {0}").format(self._items.keys())
     
-    if 'error_messages' in kwargs:
-      error_messages.update(kwargs['error_messages'])
-    kwargs['error_messages'] = error_messages
+    if "error_messages" in kwargs:
+      error_messages.update(kwargs["error_messages"])
+    kwargs["error_messages"] = error_messages
     
     if default_value in self._items:
       # `default_value` is passed as a string (identifier). In order to properly
@@ -962,7 +962,7 @@ class EnumSetting(Setting):
       # to the Setting initialization proper.
       param_default_value = self._items[default_value]
     else:
-      raise SettingDefaultValueError(error_messages['invalid_default_value'])
+      raise SettingDefaultValueError(error_messages["invalid_default_value"])
     
     self._empty_value = self._get_empty_value(empty_value)
     
@@ -1028,7 +1028,7 @@ class EnumSetting(Setting):
   
   def _validate(self, value):
     if value not in self._item_values or (not self._allow_empty_values and self._is_value_empty(value)):
-      raise SettingValueError(self._value_to_str(value) + self.error_messages['invalid_value'])
+      raise SettingValueError(self._value_to_str(value) + self.error_messages["invalid_value"])
   
   def _get_items_description(self):
     items_description = ""
@@ -1090,18 +1090,18 @@ class ImageSetting(Setting):
   
   Error messages:
   
-  * `'invalid_value'` - The image assigned is invalid.
+  * `"invalid_value"` - The image assigned is invalid.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.image]
   _ALLOWED_EMPTY_VALUES = [None]
   
   def _init_error_messages(self):
-    self.error_messages['invalid_value'] = _("Invalid image.")
+    self.error_messages["invalid_value"] = _("Invalid image.")
   
   def _validate(self, image):
     if not pdb.gimp_image_is_valid(image):
-      raise SettingValueError(self._value_to_str(image) + self.error_messages['invalid_value'])
+      raise SettingValueError(self._value_to_str(image) + self.error_messages["invalid_value"])
 
 
 class DrawableSetting(Setting):
@@ -1120,18 +1120,18 @@ class DrawableSetting(Setting):
   
   Error messages:
   
-  * `'invalid_value'` - The drawable assigned is invalid.
+  * `"invalid_value"` - The drawable assigned is invalid.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.drawable]
   _ALLOWED_EMPTY_VALUES = [None]
     
   def _init_error_messages(self):
-    self.error_messages['invalid_value'] = _("Invalid drawable.")
+    self.error_messages["invalid_value"] = _("Invalid drawable.")
   
   def _validate(self, drawable):
     if not pdb.gimp_item_is_valid(drawable):
-      raise SettingValueError(self._value_to_str(drawable) + self.error_messages['invalid_value'])
+      raise SettingValueError(self._value_to_str(drawable) + self.error_messages["invalid_value"])
 
 
 class StringSetting(Setting):
@@ -1280,7 +1280,7 @@ class ImageIDsAndDirectoriesSetting(Setting):
   @property
   def value(self):
     # Return a copy to prevent modifying the dictionary indirectly, e.g. via
-    # setting individual entries (setting.value[image.ID] = directory).
+    # setting individual entries (`setting.value[image.ID] = directory`).
     return dict(self._value)
   
   def update_image_ids_and_directories(self):

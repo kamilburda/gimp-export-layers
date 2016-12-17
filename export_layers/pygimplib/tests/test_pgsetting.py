@@ -51,18 +51,18 @@ from .. import pgconstants
 class TestSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = stubs_pgsetting.SettingStub('file_extension', "png")
+    self.setting = stubs_pgsetting.SettingStub("file_extension", "png")
   
   def test_str(self):
     self.assertEqual(str(self.setting), "<SettingStub 'file_extension'>")
   
   def test_invalid_default_value(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
-      stubs_pgsetting.SettingStub('setting', None)
+      stubs_pgsetting.SettingStub("setting", None)
   
   def test_empty_value_as_default_value(self):
     try:
-      stubs_pgsetting.SettingStub('setting', "")
+      stubs_pgsetting.SettingStub("setting", "")
     except pgsetting.SettingDefaultValueError:
       self.fail("SettingDefaultValueError should not be raised - default value is an empty value")
   
@@ -71,7 +71,7 @@ class TestSetting(unittest.TestCase):
       self.setting.set_value("")
   
   def test_assign_empty_value_allowed(self):
-    setting = stubs_pgsetting.SettingStub('setting', "", allow_empty_values=True)
+    setting = stubs_pgsetting.SettingStub("setting", "", allow_empty_values=True)
     setting.set_value("")
     self.assertEqual(setting.value, "")
   
@@ -83,29 +83,29 @@ class TestSetting(unittest.TestCase):
     self.assertEqual(self.setting.display_name, "File extension")
   
   def test_get_generated_description(self):
-    setting = stubs_pgsetting.SettingStub('setting', "default value", display_name="_Setting")
+    setting = stubs_pgsetting.SettingStub("setting", "default value", display_name="_Setting")
     self.assertEqual(setting.display_name, "_Setting")
     self.assertEqual(setting.description, "Setting")
   
   def test_get_custom_display_name_and_description(self):
     setting = stubs_pgsetting.SettingStub(
-      'setting', "default value", display_name="_Setting", description="My description")
+      "setting", "default value", display_name="_Setting", description="My description")
     self.assertEqual(setting.display_name, "_Setting")
     self.assertEqual(setting.description, "My description")
   
   def test_custom_error_messages(self):
-    setting = stubs_pgsetting.SettingStub('setting', "")
+    setting = stubs_pgsetting.SettingStub("setting", "")
     
     setting_with_custom_error_messages = stubs_pgsetting.SettingStub(
-      'setting', "", error_messages={
-        'invalid_value': "this should override the original error message", 'custom_message': "custom message"})
-    self.assertIn('custom_message', setting_with_custom_error_messages.error_messages)
+      "setting", "", error_messages={
+        "invalid_value": "this should override the original error message", "custom_message": "custom message"})
+    self.assertIn("custom_message", setting_with_custom_error_messages.error_messages)
     self.assertNotEqual(
-      setting.error_messages['invalid_value'], setting_with_custom_error_messages.error_messages['invalid_value'])
+      setting.error_messages["invalid_value"], setting_with_custom_error_messages.error_messages["invalid_value"])
   
   def test_pdb_type_automatic_is_registrable(self):
     setting = stubs_pgsetting.SettingRegistrableToPdbStub(
-      'file_extension', "png", pdb_type=pgsetting.SettingPdbTypes.string)
+      "file_extension", "png", pdb_type=pgsetting.SettingPdbTypes.string)
     self.assertTrue(setting.can_be_registered_to_pdb())
   
   def test_pdb_type_automatic_is_not_registrable(self):
@@ -113,7 +113,7 @@ class TestSetting(unittest.TestCase):
   
   def test_invalid_pdb_type(self):
     with self.assertRaises(ValueError):
-      stubs_pgsetting.SettingStub('file_extension', "png", pdb_type=pgsetting.SettingPdbTypes.string)
+      stubs_pgsetting.SettingStub("file_extension", "png", pdb_type=pgsetting.SettingPdbTypes.string)
   
   def test_reset(self):
     self.setting.set_value("jpg")
@@ -121,7 +121,7 @@ class TestSetting(unittest.TestCase):
     self.assertEqual(self.setting.value, "png")
   
   def test_reset_with_container_as_default_value(self):
-    setting = stubs_pgsetting.SettingStub('image_IDs_and_directories', {})
+    setting = stubs_pgsetting.SettingStub("image_IDs_and_directories", {})
     setting.value[1] = "image_directory"
     
     setting.reset()
@@ -141,7 +141,7 @@ class TestSetting(unittest.TestCase):
   @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.load")
   def test_load_default_source(self, mock_setting_persistor_load):
     dummy_setting_source = object()
-    setting = stubs_pgsetting.SettingStub('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source])
+    setting = stubs_pgsetting.SettingStub("image_IDs_and_directories", {}, setting_sources=[dummy_setting_source])
     setting.load()
     self.assertTrue(mock_setting_persistor_load.called)
   
@@ -149,7 +149,7 @@ class TestSetting(unittest.TestCase):
   def test_load_default_source_overridden_by_parameter(self, mock_setting_persistor_load):
     dummy_setting_source_default = object()
     setting = stubs_pgsetting.SettingStub(
-      'image_IDs_and_directories', {}, setting_sources=[dummy_setting_source_default])
+      "image_IDs_and_directories", {}, setting_sources=[dummy_setting_source_default])
     dummy_setting_source_parameter = object()
     
     setting.load([dummy_setting_source_parameter])
@@ -171,7 +171,7 @@ class TestSetting(unittest.TestCase):
   @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.save")
   def test_save_default_source(self, mock_setting_persistor_save):
     dummy_setting_source = object()
-    setting = stubs_pgsetting.SettingStub('image_IDs_and_directories', {}, setting_sources=[dummy_setting_source])
+    setting = stubs_pgsetting.SettingStub("image_IDs_and_directories", {}, setting_sources=[dummy_setting_source])
     setting.save()
     self.assertTrue(mock_setting_persistor_save.called)
   
@@ -179,7 +179,7 @@ class TestSetting(unittest.TestCase):
   def test_save_default_source_overridden_by_parameter(self, mock_setting_persistor_save):
     dummy_setting_source_default = object()
     setting = stubs_pgsetting.SettingStub(
-      'image_IDs_and_directories', {}, setting_sources=[dummy_setting_source_default])
+      "image_IDs_and_directories", {}, setting_sources=[dummy_setting_source_default])
     dummy_setting_source_parameter = object()
     
     setting.save([dummy_setting_source_parameter])
@@ -199,33 +199,33 @@ class TestSetting(unittest.TestCase):
 class TestSettingEvents(unittest.TestCase):
   
   def setUp(self):
-    self.setting = stubs_pgsetting.SettingStub('file_extension', "png")
-    self.only_visible_layers = pgsetting.BoolSetting('only_visible_layers', False)
+    self.setting = stubs_pgsetting.SettingStub("file_extension", "png")
+    self.only_visible_layers = pgsetting.BoolSetting("only_visible_layers", False)
 
   def test_connect_event_argument_is_not_callable(self):
     with self.assertRaises(TypeError):
-      self.setting.connect_event('value-changed', None)
+      self.setting.connect_event("value-changed", None)
   
   def test_connect_event_keyword_arguments(self):
-    autocrop = pgsetting.BoolSetting('autocrop', False)
+    autocrop = pgsetting.BoolSetting("autocrop", False)
     autocrop.connect_event(
-      'value-changed', stubs_pgsetting.on_autocrop_changed, self.setting, file_extension_value="tiff")
+      "value-changed", stubs_pgsetting.on_autocrop_changed, self.setting, file_extension_value="tiff")
     
     autocrop.set_value(True)
     self.assertEqual(self.setting.value, "tiff")
   
   def test_connect_value_changed_event(self):
-    self.setting.connect_event('value-changed', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("value-changed", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     
     self.setting.set_value("jpg")
     self.assertEqual(self.only_visible_layers.value, True)
     self.assertFalse(self.only_visible_layers.gui.get_enabled())
   
   def test_connect_value_changed_event_nested(self):
-    self.setting.connect_event('value-changed', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("value-changed", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     
-    autocrop = pgsetting.BoolSetting('autocrop', False)
-    autocrop.connect_event('value-changed', stubs_pgsetting.on_autocrop_changed, self.setting)
+    autocrop = pgsetting.BoolSetting("autocrop", False)
+    autocrop.connect_event("value-changed", stubs_pgsetting.on_autocrop_changed, self.setting)
     
     autocrop.set_value(True)
     
@@ -234,10 +234,10 @@ class TestSettingEvents(unittest.TestCase):
     self.assertFalse(self.only_visible_layers.gui.get_enabled())
   
   def test_connect_event_multiple_events_on_single_setting(self):
-    self.setting.connect_event('value-changed', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("value-changed", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     
-    autocrop = pgsetting.BoolSetting('autocrop', False)
-    self.setting.connect_event('value-changed', stubs_pgsetting.on_file_extension_changed_with_autocrop, autocrop)
+    autocrop = pgsetting.BoolSetting("autocrop", False)
+    self.setting.connect_event("value-changed", stubs_pgsetting.on_file_extension_changed_with_autocrop, autocrop)
     
     self.setting.set_value("jpg")
     self.assertEqual(self.setting.value, "jpg")
@@ -246,7 +246,7 @@ class TestSettingEvents(unittest.TestCase):
   
   def test_remove_event(self):
     event_id = self.setting.connect_event(
-      'value-changed', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+      "value-changed", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     self.setting.remove_event(event_id)
     
     self.setting.set_value("jpg")
@@ -255,11 +255,11 @@ class TestSettingEvents(unittest.TestCase):
   
   def test_remove_event_with_id_non_last_event(self):
     event_id = self.setting.connect_event(
-      'value-changed', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+      "value-changed", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     
-    autocrop = pgsetting.BoolSetting('autocrop', False)
+    autocrop = pgsetting.BoolSetting("autocrop", False)
     self.setting.connect_event(
-      'value-changed', stubs_pgsetting.on_file_extension_changed_with_autocrop, autocrop)
+      "value-changed", stubs_pgsetting.on_file_extension_changed_with_autocrop, autocrop)
     
     self.setting.remove_event(event_id)
     
@@ -268,14 +268,14 @@ class TestSettingEvents(unittest.TestCase):
     self.assertFalse(autocrop.gui.get_visible())
   
   def test_remove_event_invalid_id(self):
-    self.setting.connect_event('value-changed', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("value-changed", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     with self.assertRaises(ValueError):
       self.setting.remove_event(-1)
   
   def test_has_event(self):
     self.assertFalse(self.setting.has_event(-1))
     event_id = self.setting.connect_event(
-      'value-changed', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+      "value-changed", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     self.assertTrue(self.setting.has_event(event_id))
     self.setting.remove_event(event_id)
     self.assertFalse(self.setting.has_event(event_id))
@@ -285,7 +285,7 @@ class TestSettingEvents(unittest.TestCase):
       self.setting.set_event_enabled(-1, False)
     
     event_id = self.setting.connect_event(
-      'value-changed', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+      "value-changed", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     
     self.setting.set_event_enabled(event_id, False)
     self.setting.set_value("jpg")
@@ -297,14 +297,14 @@ class TestSettingEvents(unittest.TestCase):
   
   def test_invoke_event(self):
     self.only_visible_layers.set_value(True)
-    self.setting.connect_event('value-changed', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("value-changed", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     
-    self.setting.invoke_event('value-changed')
+    self.setting.invoke_event("value-changed")
     self.assertEqual(self.setting.value, "png")
     self.assertEqual(self.only_visible_layers.value, False)
   
   def test_reset_triggers_value_changed_event(self):
-    self.setting.connect_event('value-changed', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("value-changed", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     
     self.setting.set_value("jpg")
     self.setting.reset()
@@ -319,15 +319,15 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
   @mock.patch(
     pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf", new=stubs_gimp.ShelfStub())
   def setUp(self):
-    self.setting = stubs_pgsetting.SettingWithGuiStub('file_extension', "png")
-    self.only_visible_layers = pgsetting.BoolSetting('only_visible_layers', False)
-    self.session_source = pgsettingsources.SessionPersistentSettingSource('')
+    self.setting = stubs_pgsetting.SettingWithGuiStub("file_extension", "png")
+    self.only_visible_layers = pgsetting.BoolSetting("only_visible_layers", False)
+    self.session_source = pgsettingsources.SessionPersistentSettingSource("")
   
   def test_before_load_event(self, mock_session_source):
     pgsettingpersistor.SettingPersistor.save([self.setting, self.only_visible_layers], [self.session_source])
     self.setting.set_value("gif")
     
-    self.setting.connect_event('before-load', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("before-load", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     pgsettingpersistor.SettingPersistor.load([self.setting], [self.session_source])
     
     self.assertEqual(self.setting.value, "png")
@@ -337,7 +337,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     self.only_visible_layers.set_value(True)
     pgsettingpersistor.SettingPersistor.save([self.setting, self.only_visible_layers], [self.session_source])
     
-    self.setting.connect_event('after-load', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("after-load", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     pgsettingpersistor.SettingPersistor.load([self.setting], [self.session_source])
     
     self.assertEqual(self.setting.value, "png")
@@ -347,7 +347,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     self.setting.set_value("gif")
     pgsettingpersistor.SettingPersistor.save([self.setting], [self.session_source])
     
-    self.setting.connect_event('after-load', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("after-load", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     pgsettingpersistor.SettingPersistor.load([self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
@@ -357,7 +357,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     self.only_visible_layers.set_value(True)
     pgsettingpersistor.SettingPersistor.save([self.setting, self.only_visible_layers], [self.session_source])
     
-    self.setting.connect_event('after-load', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("after-load", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     
     with mock.patch(
            pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf") as temp_mock_session_source:
@@ -370,7 +370,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
   def test_before_save_event(self, mock_session_source):
     self.setting.set_value("gif")
     
-    self.setting.connect_event('before-save', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("before-save", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     pgsettingpersistor.SettingPersistor.save([self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
@@ -384,7 +384,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
   def test_after_save_event(self, mock_session_source):
     self.setting.set_value("gif")
     
-    self.setting.connect_event('after-save', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("after-save", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     pgsettingpersistor.SettingPersistor.save([self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
@@ -397,7 +397,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
   
   def test_after_save_event_write_fail(self, mock_session_source):
     self.setting.set_value("gif")
-    self.setting.connect_event('after-save', stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
+    self.setting.connect_event("after-save", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     
     with mock.patch(
            pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf") as temp_mock_session_source:
@@ -413,7 +413,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
 class TestSettingGui(unittest.TestCase):
   
   def setUp(self):
-    self.setting = stubs_pgsetting.SettingWithGuiStub('file_extension', "png")
+    self.setting = stubs_pgsetting.SettingWithGuiStub("file_extension", "png")
     self.widget = stubs_pgsetting.GuiWidgetStub("")
   
   def test_set_gui_updates_gui_value(self):
@@ -503,8 +503,8 @@ class TestSettingGui(unittest.TestCase):
   def test_update_setting_value_triggers_value_changed_event(self):
     self.setting.set_gui(stubs_pgsetting.SettingPresenterWithValueChangedSignalStub, self.widget)
     
-    only_visible_layers = pgsetting.BoolSetting('only_visible_layers', False)
-    self.setting.connect_event('value-changed', stubs_pgsetting.on_file_extension_changed, only_visible_layers)
+    only_visible_layers = pgsetting.BoolSetting("only_visible_layers", False)
+    self.setting.connect_event("value-changed", stubs_pgsetting.on_file_extension_changed, only_visible_layers)
     
     self.widget.set_value("jpg")
     self.assertEqual(self.setting.value, "jpg")
@@ -586,14 +586,14 @@ class TestSettingGui(unittest.TestCase):
 class TestBoolSetting(unittest.TestCase):
   
   def test_description_from_display_name(self):
-    setting = pgsetting.BoolSetting('only_visible_layers', False, display_name="_Only visible layers")
+    setting = pgsetting.BoolSetting("only_visible_layers", False, display_name="_Only visible layers")
     self.assertEqual(setting.description, "Only visible layers?")
 
 
 class TestIntSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.IntSetting('count', 0, min_value=0, max_value=100)
+    self.setting = pgsetting.IntSetting("count", 0, min_value=0, max_value=100)
   
   def test_value_is_below_min(self):
     with self.assertRaises(pgsetting.SettingValueError):
@@ -619,7 +619,7 @@ class TestIntSetting(unittest.TestCase):
 class TestFloatSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.FloatSetting('clip_percent', 0.0, min_value=0.0, max_value=100.0)
+    self.setting = pgsetting.FloatSetting("clip_percent", 0.0, min_value=0.0, max_value=100.0)
   
   def test_value_below_min(self):
     with self.assertRaises(pgsetting.SettingValueError):
@@ -645,55 +645,55 @@ class TestFloatSetting(unittest.TestCase):
 class TestEnumSettingInitialization(unittest.TestCase):
   
   def test_explicit_values(self):
-    setting = pgsetting.EnumSetting('overwrite_mode', 'replace', [('skip', "Skip", 5), ('replace', "Replace", 6)])
-    self.assertEqual(setting.items['skip'], 5)
-    self.assertEqual(setting.items['replace'], 6)
+    setting = pgsetting.EnumSetting("overwrite_mode", "replace", [("skip", "Skip", 5), ("replace", "Replace", 6)])
+    self.assertEqual(setting.items["skip"], 5)
+    self.assertEqual(setting.items["replace"], 6)
   
   def test_explicit_values_wrong_number_of_elements(self):
     with self.assertRaises(ValueError):
-      pgsetting.EnumSetting('overwrite_mode', 'replace', [('skip', "Skip", 4), ('replace', "Replace")])
+      pgsetting.EnumSetting("overwrite_mode", "replace", [("skip", "Skip", 4), ("replace", "Replace")])
     
   def test_invalid_explicit_values(self):
     with self.assertRaises(ValueError):
-      pgsetting.EnumSetting('overwrite_mode', 'replace', [('skip', "Skip", 4), ('replace', "Replace", 4)])
+      pgsetting.EnumSetting("overwrite_mode", "replace", [("skip", "Skip", 4), ("replace", "Replace", 4)])
   
   def test_invalid_default_value(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
-      pgsetting.EnumSetting('overwrite_mode', 'invalid_default_value', [('skip', "Skip"), ('replace', "Replace")])
+      pgsetting.EnumSetting("overwrite_mode", "invalid_default_value", [("skip", "Skip"), ("replace", "Replace")])
   
   def test_invalid_items_length_varying(self):
     with self.assertRaises(ValueError):
-      pgsetting.EnumSetting('overwrite_mode', None, [('skip', "Skip", 1), ('replace', "Replace")])
+      pgsetting.EnumSetting("overwrite_mode", None, [("skip", "Skip", 1), ("replace", "Replace")])
   
   def test_invalid_items_length_too_many_elements(self):
     with self.assertRaises(ValueError):
-      pgsetting.EnumSetting('overwrite_mode', None, [('skip', "Skip", 1, 1), ('replace', "Replace", 1, 1)])
+      pgsetting.EnumSetting("overwrite_mode", None, [("skip", "Skip", 1, 1), ("replace", "Replace", 1, 1)])
   
   def test_invalid_items_length_too_few_elements(self):
     with self.assertRaises(ValueError):
-      pgsetting.EnumSetting('overwrite_mode', None, [('skip'), ('replace')])
+      pgsetting.EnumSetting("overwrite_mode", None, [("skip"), ("replace")])
   
   def test_no_empty_value(self):
-    setting = pgsetting.EnumSetting('overwrite_mode', 'replace', [('skip', "Skip"), ('replace', "Replace")])
+    setting = pgsetting.EnumSetting("overwrite_mode", "replace", [("skip", "Skip"), ("replace", "Replace")])
     self.assertEqual(setting.empty_value, None)
   
   def test_valid_empty_value(self):
     setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace', [('choose', "Choose your mode"), ('skip', "Skip"), ('replace', "Replace")],
-      empty_value='choose')
-    self.assertEqual(setting.empty_value, setting.items['choose'])
+      "overwrite_mode", "replace", [("choose", "Choose your mode"), ("skip", "Skip"), ("replace", "Replace")],
+      empty_value="choose")
+    self.assertEqual(setting.empty_value, setting.items["choose"])
   
   def test_invalid_empty_value(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
-        'overwrite_mode', 'replace', [('skip', "Skip"), ('replace', "Replace")], empty_value='invalid_value')
+        "overwrite_mode", "replace", [("skip", "Skip"), ("replace", "Replace")], empty_value="invalid_value")
   
 
 class TestEnumSetting(unittest.TestCase):
   
   def setUp(self):
     self.setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace', [('skip', "Skip"), ('replace', "Replace")], display_name="Overwrite mode")
+      "overwrite_mode", "replace", [("skip", "Skip"), ("replace", "Replace")], display_name="Overwrite mode")
   
   def test_set_invalid_item(self):
     with self.assertRaises(pgsetting.SettingValueError):
@@ -703,14 +703,14 @@ class TestEnumSetting(unittest.TestCase):
   
   def test_get_invalid_item(self):
     with self.assertRaises(KeyError):
-      self.setting.items['invalid_item']
+      self.setting.items["invalid_item"]
   
   def test_description(self):
     self.assertEqual(self.setting.description, "Overwrite mode { Skip (0), Replace (1) }")
   
   def test_description_with_mnemonics_from_item_display_names(self):
     setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace', [('skip', "_Skip"), ('replace', "_Replace")], display_name="_Overwrite mode")
+      "overwrite_mode", "replace", [("skip", "_Skip"), ("replace", "_Replace")], display_name="_Overwrite mode")
     self.assertEqual(setting.description, "Overwrite mode { Skip (0), Replace (1) }")
   
   def test_get_item_display_names_and_values(self):
@@ -718,39 +718,39 @@ class TestEnumSetting(unittest.TestCase):
   
   def test_is_value_empty(self):
     setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace', [('choose', "-Choose Your Mode-"), ('skip', "Skip"), ('replace', "Replace")],
-      empty_value='choose', allow_empty_values=True)
+      "overwrite_mode", "replace", [("choose", "-Choose Your Mode-"), ("skip", "Skip"), ("replace", "Replace")],
+      empty_value="choose", allow_empty_values=True)
     
     self.assertFalse(setting.is_value_empty())
-    setting.set_value(setting.items['choose'])
+    setting.set_value(setting.items["choose"])
     self.assertTrue(setting.is_value_empty())
     
   def test_set_empty_value_not_allowed(self):
     setting = pgsetting.EnumSetting(
-      'overwrite_mode', 'replace', [('choose', "-Choose Your Mode-"), ('skip', "Skip"), ('replace', "Replace")],
-      empty_value='choose')
+      "overwrite_mode", "replace", [("choose", "-Choose Your Mode-"), ("skip", "Skip"), ("replace", "Replace")],
+      empty_value="choose")
     
     with self.assertRaises(pgsetting.SettingValueError):
-      setting.set_value(setting.items['choose'])
+      setting.set_value(setting.items["choose"])
 
 
 class TestImageSetting(unittest.TestCase):
   
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + '.pgsetting.pdb', new=stubs_gimp.PdbStub())
+  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsetting.pdb", new=stubs_gimp.PdbStub())
   def test_set_invalid_image(self):
     pdb = stubs_gimp.PdbStub()
     image = pdb.gimp_image_new(2, 2, gimpenums.RGB)
     
-    setting = pgsetting.ImageSetting('image', image)
+    setting = pgsetting.ImageSetting("image", image)
     
     pdb.gimp_image_delete(image)
     with self.assertRaises(pgsetting.SettingValueError):
       setting.set_value(image)
   
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + '.pgsetting.pdb', new=stubs_gimp.PdbStub())
+  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsetting.pdb", new=stubs_gimp.PdbStub())
   def test_empty_value_as_default_value(self):
     try:
-      pgsetting.ImageSetting('image', None)
+      pgsetting.ImageSetting("image", None)
     except pgsetting.SettingDefaultValueError:
       self.fail("SettingDefaultValueError should not be raised - default value is an empty value")
 
@@ -758,11 +758,11 @@ class TestImageSetting(unittest.TestCase):
 class TestFileExtensionSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.FileExtensionSetting('file_ext', "png")
+    self.setting = pgsetting.FileExtensionSetting("file_ext", "png")
   
   def test_invalid_default_value(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
-      pgsetting.FileExtensionSetting('file_ext', None)
+      pgsetting.FileExtensionSetting("file_ext", None)
   
   def test_custom_error_message(self):
     self.setting.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = "my custom message"
@@ -775,10 +775,10 @@ class TestFileExtensionSetting(unittest.TestCase):
 class TestDirectorySetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.DirectorySetting('output_directory', '/some_dir')
+    self.setting = pgsetting.DirectorySetting("output_directory", "/some_dir")
   
   def test_default_value_as_bytes_convert_to_unicode(self):
-    setting = pgsetting.DirectorySetting('output_directory', b"/some_dir/p\xc5\x88g")
+    setting = pgsetting.DirectorySetting("output_directory", b"/some_dir/p\xc5\x88g")
     self.assertIsInstance(setting.value, str)
   
   def test_set_value_as_bytes_convert_to_unicode(self):
@@ -792,7 +792,7 @@ class TestDirectorySetting(unittest.TestCase):
 class TestImageIDsAndDirectoriesSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.ImageIDsAndDirectoriesSetting('image_ids_and_directories', {})
+    self.setting = pgsetting.ImageIDsAndDirectoriesSetting("image_ids_and_directories", {})
     
     self.image_ids_and_filenames = [
       (0, None), (1, "C:\\image.png"), (2, "/test/test.jpg"), (4, "/test/another_test.gif")]

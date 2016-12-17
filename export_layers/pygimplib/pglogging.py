@@ -198,7 +198,7 @@ class Tee(object):
     * `flush_output` - If True, flush output after each write.
     """
   
-    self._streams = {sys.stdout: 'stdout', sys.stderr: 'stderr'}
+    self._streams = {sys.stdout: "stdout", sys.stderr: "stderr"}
     
     self.log_header_title = log_header_title if log_header_title is not None else ""
     self.flush_output = flush_output

@@ -73,7 +73,7 @@ class ExtendedEntry(gtk.Entry):
   """
   
   def __init__(self, *args, **kwargs):
-    self._placeholder_text = kwargs.pop('placeholder_text', None)
+    self._placeholder_text = kwargs.pop("placeholder_text", None)
     
     super(ExtendedEntry, self).__init__(*args, **kwargs)
     
@@ -193,18 +193,18 @@ class FilenamePatternEntry(ExtendedEntry):
   _COLUMN_TYPES = [bytes, bytes, gobject.TYPE_PYOBJECT]
   
   def __init__(self, suggested_items, *args, **kwargs):
-    self._minimum_width_chars = kwargs.pop('minimum_width_chars', -1)
-    self._maximum_width_chars = kwargs.pop('maximum_width_chars', -1)
-    self._default_item_value = kwargs.pop('default_item', None)
+    self._minimum_width_chars = kwargs.pop("minimum_width_chars", -1)
+    self._maximum_width_chars = kwargs.pop("maximum_width_chars", -1)
+    self._default_item_value = kwargs.pop("default_item", None)
     
     self._suggested_fields = self._get_suggested_fields(suggested_items)
     
     suggested_item_values = [item[1] for item in suggested_items]
     if self._default_item_value is not None and self._default_item_value not in suggested_item_values:
-      raise ValueError("default item \"{0}\" not in the list of suggested items: {1}".format(
+      raise ValueError('default item "{0}" not in the list of suggested items: {1}'.format(
         self._default_item_value, suggested_item_values))
     
-    kwargs['placeholder_text'] = (
+    kwargs["placeholder_text"] = (
       suggested_items[suggested_item_values.index(self._default_item_value)][0]
       if self._default_item_value is not None else None)
     
@@ -272,7 +272,7 @@ class FilenamePatternEntry(ExtendedEntry):
     self._field_tooltip_window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_TOOLTIP)
     self._field_tooltip_window.set_resizable(False)
     # This copies the style of GTK tooltips.
-    self._field_tooltip_window.set_name('gtk-tooltips')
+    self._field_tooltip_window.set_name("gtk-tooltips")
     
     self._field_tooltip_text = gtk.Label()
     
@@ -749,7 +749,7 @@ class FileExtensionEntry(ExtendedEntry):
     fg_color = self._popup.tree_view.style.fg[gtk.STATE_SELECTED]
     
     extensions[self._highlighted_extension_index] = (
-      "<span background='{0}' foreground='{1}'>{2}</span>".format(
+      '<span background="{0}" foreground="{1}">{2}</span>'.format(
         bg_color.to_string(),
         fg_color.to_string(),
         extensions[self._highlighted_extension_index]))

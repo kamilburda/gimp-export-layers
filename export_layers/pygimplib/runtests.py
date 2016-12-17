@@ -77,7 +77,7 @@ def _fix_streams_for_unittest():
     pass
   
   for stream in [sys.stdout, sys.stderr]:
-    flush_func = getattr(stream, 'flush', None)
+    flush_func = getattr(stream, "flush", None)
     if flush_func is None or not callable(stream.flush):
       stream.flush = types.MethodType(flush, stream)
 

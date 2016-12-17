@@ -144,7 +144,7 @@ class TestObjectFilter(unittest.TestCase):
       self.fail("ValueError should not be raised if raise_if_not_found=False")
   
   def test_remove_rule_temp_add_upon_exception(self):
-    self.filter.add_rule(has_matching_file_extension, 'jpg')
+    self.filter.add_rule(has_matching_file_extension, "jpg")
     try:
       with self.filter.remove_rule_temp(has_matching_file_extension):
         raise Exception("testing")
@@ -158,32 +158,32 @@ class TestObjectFilter(unittest.TestCase):
   
   def test_get_subfilter_does_not_exist(self):
     with self.assertRaises(ValueError):
-      self.filter.get_subfilter('subfilter_does_not_exist')
+      self.filter.get_subfilter("subfilter_does_not_exist")
   
   def test_add_subfilter_invalid_type(self):
     with self.assertRaises(ValueError):
-      self.filter.add_subfilter('subfilter', has_matching_file_extension)
+      self.filter.add_subfilter("subfilter", has_matching_file_extension)
   
   def test_add_subfilter_already_exists(self):
-    self.filter.add_subfilter('subfilter', pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL))
+    self.filter.add_subfilter("subfilter", pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL))
     with self.assertRaises(ValueError):
-      self.filter.add_subfilter('subfilter', pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL))
+      self.filter.add_subfilter("subfilter", pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL))
   
   def test_remove_subfilter_does_not_exist(self):
     with self.assertRaises(ValueError):
-      self.filter.remove_subfilter('subfilter_does_not_exist')
+      self.filter.remove_subfilter("subfilter_does_not_exist")
   
   def test_add_subfilter_temp(self):
     with self.filter.add_subfilter_temp(
-           'item_types', pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL)):
-      self.assertTrue(self.filter.has_subfilter('item_types'))
-    self.assertFalse(self.filter.has_subfilter('item_types'))
+           "item_types", pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL)):
+      self.assertTrue(self.filter.has_subfilter("item_types"))
+    self.assertFalse(self.filter.has_subfilter("item_types"))
 
   def test_remove_subfilter_temp(self):
-    self.filter.add_subfilter('item_types', pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL))
-    with self.filter.remove_subfilter_temp('item_types'):
-      self.assertFalse(self.filter.has_subfilter('item_types'))
-    self.assertTrue(self.filter.has_subfilter('item_types'))
+    self.filter.add_subfilter("item_types", pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL))
+    with self.filter.remove_subfilter_temp("item_types"):
+      self.assertFalse(self.filter.has_subfilter("item_types"))
+    self.assertTrue(self.filter.has_subfilter("item_types"))
   
   def test_match_all(self):
     self.filter.add_rule(has_uppercase_letters)
@@ -236,9 +236,9 @@ class TestObjectFilter(unittest.TestCase):
         # * rule
         # * rule
     
-    self.filter.add_subfilter('obj_properties', pgobjectfilter.ObjectFilter(self.filter.MATCH_ANY))
-    self.filter['obj_properties'].add_rule(is_empty)
-    self.filter['obj_properties'].add_rule(is_object_id_even)
+    self.filter.add_subfilter("obj_properties", pgobjectfilter.ObjectFilter(self.filter.MATCH_ANY))
+    self.filter["obj_properties"].add_rule(is_empty)
+    self.filter["obj_properties"].add_rule(is_object_id_even)
     self.filter.add_rule(has_uppercase_letters)
     
     self.assertTrue(self.filter.is_match(FilterableObject(2, "Hi There.jpg", is_empty=True)))
@@ -258,13 +258,13 @@ class TestObjectFilter(unittest.TestCase):
           # * rule
     
     self.filter.add_rule(is_object_id_even)
-    self.filter.add_subfilter('obj_properties', pgobjectfilter.ObjectFilter(self.filter.MATCH_ANY))
+    self.filter.add_subfilter("obj_properties", pgobjectfilter.ObjectFilter(self.filter.MATCH_ANY))
     
-    obj_properties_subfilter = self.filter['obj_properties']
+    obj_properties_subfilter = self.filter["obj_properties"]
     obj_properties_subfilter.add_rule(is_empty)
-    obj_properties_subfilter.add_subfilter('colors', pgobjectfilter.ObjectFilter(self.filter.MATCH_ALL))
+    obj_properties_subfilter.add_subfilter("colors", pgobjectfilter.ObjectFilter(self.filter.MATCH_ALL))
     
-    color_subfilter = obj_properties_subfilter['colors']
+    color_subfilter = obj_properties_subfilter["colors"]
     color_subfilter.add_rule(has_red_color)
     color_subfilter.add_rule(has_green_color)
     

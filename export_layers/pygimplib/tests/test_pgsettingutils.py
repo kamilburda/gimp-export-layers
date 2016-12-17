@@ -38,15 +38,15 @@ class TestSettingAttributeGenerators(unittest.TestCase):
   
   def test_get_processed_display_name(self):
     self.assertEqual(
-      pgsettingutils.get_processed_display_name(None, 'my_setting_name'), "My setting name")
+      pgsettingutils.get_processed_display_name(None, "my_setting_name"), "My setting name")
     self.assertEqual(
-      pgsettingutils.get_processed_display_name("My display name", 'my_setting_name'), "My display name")
+      pgsettingutils.get_processed_display_name("My display name", "my_setting_name"), "My display name")
   
   def test_get_processed_description(self):
     self.assertEqual(
-      pgsettingutils.get_processed_description(None, 'My _Setting Name'), "My Setting Name")
+      pgsettingutils.get_processed_description(None, "My _Setting Name"), "My Setting Name")
     self.assertEqual(
-      pgsettingutils.get_processed_description("My description", 'My _Setting Name'), "My description")
+      pgsettingutils.get_processed_description("My description", "My _Setting Name"), "My description")
 
 
 #===============================================================================

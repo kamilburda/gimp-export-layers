@@ -139,16 +139,16 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
       if filename_root:
         parent_directory = os.path.split(filename_root)[1]
         text_choose = (
-          _("A file named \"{0}\" already exists in \"{1}\".").format(basename, parent_directory) + " ")
+          _('A file named "{0}" already exists in "{1}".').format(basename, parent_directory) + " ")
       else:
-        text_choose = _("A file named \"{0}\" already exists.").format(basename) + "\n"
+        text_choose = _('A file named "{0}" already exists.').format(basename) + "\n"
     else:
       text_choose = _("A file with the same name already exists.") + "\n"
     
     text_choose += _("What would you like to do?")
     
     self._dialog_text.set_markup(
-      "<span font_size=\"large\"><b>" + gobject.markup_escape_text(text_choose) + "</b></span>")
+      '<span font_size="large"><b>' + gobject.markup_escape_text(text_choose) + "</b></span>")
     
     self._dialog.show_all()
     
@@ -248,7 +248,7 @@ def display_error_message(title=None, app_name=None, parent=None, message_type=g
   """
   
   if message_markup is None:
-    message_markup = "<span font_size=\"large\"><b>" + _("Oops. Something went wrong.") + "</b></span>"
+    message_markup = '<span font_size="large"><b>' + _("Oops. Something went wrong.") + "</b></span>"
   
   if message_secondary_markup is None:
     message_secondary_markup = _(

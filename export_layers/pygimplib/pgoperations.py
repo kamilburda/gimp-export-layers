@@ -561,8 +561,8 @@ class OperationsExecutor(object):
       operation_groups = self.get_operation_groups()
     
     if operation_group not in operation_groups:
-      raise ValueError("operation group \"{0}\" does not exist".format(operation_group))
+      raise ValueError("operation group '{0}' does not exist".format(operation_group))
   
   def _check_operation_in_group(self, operation_id, operation_group):
     if operation_group not in self._operation_items[operation_id].operation_groups:
-      raise ValueError("operation with ID {0} is not in group \"{1}\"".format(operation_id, operation_group))
+      raise ValueError("operation with ID {0} is not in group '{1}'".format(operation_id, operation_group))

@@ -122,11 +122,11 @@ class SettingStub(pgsetting.Setting):
   _ALLOWED_EMPTY_VALUES = [""]
   
   def _init_error_messages(self):
-    self._error_messages['invalid_value'] = "value cannot be None or an empty string"
+    self._error_messages["invalid_value"] = "value cannot be None or an empty string"
   
   def _validate(self, value):
     if value is None or value == "":
-      raise pgsetting.SettingValueError(self._error_messages['invalid_value'])
+      raise pgsetting.SettingValueError(self._error_messages["invalid_value"])
 
 
 class SettingRegistrableToPdbStub(SettingStub):

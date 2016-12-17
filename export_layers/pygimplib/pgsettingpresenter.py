@@ -127,7 +127,7 @@ class SettingPresenter(object):
       gui_element_creation_supported = self._element is not None
       if not gui_element_creation_supported:
         raise ValueError(
-          "cannot instantiate '{0}' class: `element` is None and this class does not support "
+          "cannot instantiate class '{0}': attribute 'element' is None and this class does not support "
           "the creation of a GUI element".format(type(self).__name__))
     
     copy_state = old_setting_presenter is not None

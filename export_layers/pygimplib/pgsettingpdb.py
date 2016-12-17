@@ -58,16 +58,16 @@ class PdbParamCreator(object):
     """
     Return a list of values of settings registrable to PDB.
     
-    If `ignore_run_mode` is True, ignore setting(s) named 'run_mode'. This makes
+    If `ignore_run_mode` is True, ignore setting(s) named "run_mode". This makes
     it possible to call PDB functions with the setting values without manually
-    omitting the 'run_mode' setting.
+    omitting the "run_mode" setting.
     """
     
     settings = cls._list_settings(settings_or_groups)
     
     if ignore_run_mode:
       for i, setting in enumerate(settings):
-        if setting.name == 'run_mode':
+        if setting.name == "run_mode":
           del settings[i]
           break
     

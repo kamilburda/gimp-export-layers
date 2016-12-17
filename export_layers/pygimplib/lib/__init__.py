@@ -19,5 +19,5 @@
 #
 
 """
-This package contains external libraries used in `pygimplib`.
+This package contains external libraries used in pygimplib.
 """

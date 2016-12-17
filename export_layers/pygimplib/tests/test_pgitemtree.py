@@ -214,7 +214,7 @@ class TestLayerTree(unittest.TestCase):
     output_directory = os.path.join("D:", os.sep, "testgimp")
     
     # `layer_elem` with parents
-    layer_elem = self.layer_tree['bottom-right-corner']
+    layer_elem = self.layer_tree["bottom-right-corner"]
     
     self.assertEqual(
       layer_elem.get_filepath(output_directory),
@@ -229,7 +229,7 @@ class TestLayerTree(unittest.TestCase):
       layer_elem.get_filepath(None),
       os.path.join(os.getcwd(), "Corners", "top-left-corner::", layer_elem.name))
     
-    itemtree_empty_layer_group = self.layer_tree['top-left-corner:']
+    itemtree_empty_layer_group = self.layer_tree["top-left-corner:"]
     
     self.assertEqual(
       itemtree_empty_layer_group.get_filepath(output_directory),
@@ -238,7 +238,7 @@ class TestLayerTree(unittest.TestCase):
       itemtree_empty_layer_group.get_filepath(output_directory, include_item_path=False),
       os.path.join(output_directory, itemtree_empty_layer_group.name))
     
-    itemtree_empty_layer_group_no_parents = self.layer_tree['Overlay']
+    itemtree_empty_layer_group_no_parents = self.layer_tree["Overlay"]
     
     self.assertEqual(
       itemtree_empty_layer_group_no_parents.get_filepath(output_directory),
@@ -351,35 +351,35 @@ class TestLayerTree(unittest.TestCase):
     self._compare_uniquified_with_parents(self.layer_tree, uniquified_names)
   
   def test_reset_name(self):
-    self.layer_tree['Corners'].name = "Corners.png"
+    self.layer_tree["Corners"].name = "Corners.png"
     
-    self.layer_tree.validate_name(self.layer_tree['Corners'])
-    self.layer_tree.uniquify_name(self.layer_tree['Corners'])
+    self.layer_tree.validate_name(self.layer_tree["Corners"])
+    self.layer_tree.uniquify_name(self.layer_tree["Corners"])
     
-    self.layer_tree.validate_name(self.layer_tree['Corners::'])
-    self.layer_tree.uniquify_name(self.layer_tree['Corners::'])
+    self.layer_tree.validate_name(self.layer_tree["Corners::"])
+    self.layer_tree.uniquify_name(self.layer_tree["Corners::"])
     
-    self.layer_tree.reset_name(self.layer_tree['Corners'])
+    self.layer_tree.reset_name(self.layer_tree["Corners"])
     
-    self.layer_tree.validate_name(self.layer_tree['Corners'])
-    self.layer_tree.uniquify_name(self.layer_tree['Corners'])
+    self.layer_tree.validate_name(self.layer_tree["Corners"])
+    self.layer_tree.uniquify_name(self.layer_tree["Corners"])
     
-    self.assertEqual(self.layer_tree['Corners::'].name, "Corners")
-    self.assertEqual(self.layer_tree['Corners'].name, "Corners (1)")
+    self.assertEqual(self.layer_tree["Corners::"].name, "Corners")
+    self.assertEqual(self.layer_tree["Corners"].name, "Corners (1)")
   
   def test_reset_item_elements(self):
-    self.layer_tree['Corners'].name = "Corners.png"
-    self.layer_tree['Corners:'].name = "Corners.png:"
+    self.layer_tree["Corners"].name = "Corners.png"
+    self.layer_tree["Corners:"].name = "Corners.png:"
     
-    self.layer_tree.validate_name(self.layer_tree['Corners'])
-    self.layer_tree.uniquify_name(self.layer_tree['Corners'])
-    self.layer_tree.validate_name(self.layer_tree['Corners:'])
-    self.layer_tree.uniquify_name(self.layer_tree['Corners:'])
+    self.layer_tree.validate_name(self.layer_tree["Corners"])
+    self.layer_tree.uniquify_name(self.layer_tree["Corners"])
+    self.layer_tree.validate_name(self.layer_tree["Corners:"])
+    self.layer_tree.uniquify_name(self.layer_tree["Corners:"])
     
     self.layer_tree.reset_item_elements()
     
-    self.assertEqual(self.layer_tree['Corners'].name, "Corners")
-    self.assertEqual(self.layer_tree['Corners:'].name, "Corners:")
+    self.assertEqual(self.layer_tree["Corners"].name, "Corners")
+    self.assertEqual(self.layer_tree["Corners:"].name, "Corners:")
 
 
 @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())

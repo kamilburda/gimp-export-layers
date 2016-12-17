@@ -124,7 +124,7 @@ class SettingPersistor(object):
     settings = all_settings
     
     for setting in all_settings:
-      setting.invoke_event('before-load')
+      setting.invoke_event("before-load")
     
     for source in setting_sources:
       try:
@@ -144,7 +144,7 @@ class SettingPersistor(object):
         break
     
     for setting in all_settings:
-      setting.invoke_event('after-load')
+      setting.invoke_event("after-load")
     
     if all_settings_found:
       return cls._status(cls.SUCCESS)
@@ -185,7 +185,7 @@ class SettingPersistor(object):
     settings = cls._list_settings(settings_or_groups)
     
     for setting in settings:
-      setting.invoke_event('before-save')
+      setting.invoke_event("before-save")
     
     for source in setting_sources:
       try:
@@ -194,7 +194,7 @@ class SettingPersistor(object):
         return cls._status(cls.WRITE_FAIL, e.message)
     
     for setting in settings:
-      setting.invoke_event('after-save')
+      setting.invoke_event("after-save")
     
     return cls._status(cls.SUCCESS)
   

@@ -59,7 +59,7 @@ class CellRendererTextList(gtk.CellRendererText):
     b"text-list-separator": (
       gobject.TYPE_STRING,
       b"separator for list of strings",
-      "Text separator for the list of strings (\"text-list\" and \"markup-list\" properties)",
+      'Text separator for the list of strings ("text-list" and "markup-list" properties)',
       ", ",     # Default value
       gobject.PARAM_READWRITE
     ),
