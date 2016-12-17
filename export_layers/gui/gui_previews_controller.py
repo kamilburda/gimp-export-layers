@@ -50,8 +50,8 @@ class ExportPreviewsController(object):
     self._settings = settings
     self._image = image
     
-    self._paned_outside_previews_previous_position = self._settings['gui/paned_outside_previews_position'].value
-    self._paned_between_previews_previous_position = self._settings['gui/paned_between_previews_position'].value
+    self._paned_outside_previews_previous_position = self._settings["gui/paned_outside_previews_position"].value
+    self._paned_between_previews_previous_position = self._settings["gui/paned_between_previews_position"].value
   
   def init_previews(self):
     self._export_name_preview.update()
@@ -65,19 +65,19 @@ class ExportPreviewsController(object):
     self._connect_setting_after_reset_displayed_layers_in_image_preview()
   
   def _connect_settings_changed(self):
-    for setting in self._settings['main'].walk():
+    for setting in self._settings["main"].walk():
       if setting.name not in [
-          'file_extension', 'output_directory', 'overwrite_mode', 'layer_filename_pattern',
-          'only_selected_layers', 'selected_layers', 'selected_layers_persistent']:
-        setting.connect_event('value-changed', self._on_setting_changed)
+          "file_extension", "output_directory", "overwrite_mode", "layer_filename_pattern",
+          "only_selected_layers", "selected_layers", "selected_layers_persistent"]:
+        setting.connect_event("value-changed", self._on_setting_changed)
   
   def _connect_setting_only_selected_layers_changed(self):
-    event_id = self._settings['main/more_filters/only_selected_layers'].connect_event(
-      'value-changed', self._on_setting_changed)
+    event_id = self._settings["main/more_filters/only_selected_layers"].connect_event(
+      "value-changed", self._on_setting_changed)
     self._export_name_preview.temporarily_disable_setting_events_on_update(
-      {'more_filters/only_selected_layers': [event_id]})
+      {"more_filters/only_selected_layers": [event_id]})
     self._export_image_preview.temporarily_disable_setting_events_on_update(
-      {'more_filters/only_selected_layers': [event_id]})
+      {"more_filters/only_selected_layers": [event_id]})
   
   def _on_setting_changed(self, setting):
     pginvocation.timeout_add_strict(
@@ -86,21 +86,21 @@ class ExportPreviewsController(object):
       self._DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS, self._export_image_preview.update)
   
   def _connect_setting_after_reset_collapsed_layers_in_name_preview(self):
-    self._settings['gui_session/export_name_preview_layers_collapsed_state'].connect_event(
-      'after-reset',
+    self._settings["gui_session/export_name_preview_layers_collapsed_state"].connect_event(
+      "after-reset",
       lambda setting: self._export_name_preview.set_collapsed_items(setting.value[self._image.ID]))
   
   def _connect_setting_after_reset_selected_layers_in_name_preview(self):
-    self._settings['main/selected_layers'].connect_event(
-      'after-reset',
+    self._settings["main/selected_layers"].connect_event(
+      "after-reset",
       lambda setting: self._export_name_preview.set_selected_items(setting.value[self._image.ID]))
   
   def _connect_setting_after_reset_displayed_layers_in_image_preview(self):
     def _clear_image_preview(setting):
       self._export_image_preview.clear()
     
-    self._settings['gui_session/export_image_preview_displayed_layers'].connect_event(
-      'after-reset', _clear_image_preview)
+    self._settings["gui_session/export_image_preview_displayed_layers"].connect_event(
+      "after-reset", _clear_image_preview)
   
   def connect_visible_changed_to_previews(self):
     def _connect_visible_changed(preview, setting):
@@ -108,8 +108,8 @@ class ExportPreviewsController(object):
       if not setting.value:
         preview.lock_update(True, "previews_enabled")
     
-    _connect_visible_changed(self._export_name_preview, self._settings['gui/export_name_preview_enabled'])
-    _connect_visible_changed(self._export_image_preview, self._settings['gui/export_image_preview_enabled'])
+    _connect_visible_changed(self._export_name_preview, self._settings["gui/export_name_preview_enabled"])
+    _connect_visible_changed(self._export_image_preview, self._settings["gui/export_image_preview_enabled"])
   
   def _on_preview_visible_changed(self, widget, property_spec, preview):
     preview_visible = preview.widget.get_visible()
@@ -128,15 +128,15 @@ class ExportPreviewsController(object):
     
     if current_position == max_position and self._paned_outside_previews_previous_position != max_position:
       self._disable_preview_on_paned_drag(
-        self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
+        self._export_name_preview, self._settings["gui/export_name_preview_enabled"], "previews_enabled")
       self._disable_preview_on_paned_drag(
-        self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
+        self._export_image_preview, self._settings["gui/export_image_preview_enabled"],
         "previews_enabled")
     elif current_position != max_position and self._paned_outside_previews_previous_position == max_position:
       self._enable_preview_on_paned_drag(
-        self._export_name_preview, self._settings['gui/export_name_preview_enabled'], "previews_enabled")
+        self._export_name_preview, self._settings["gui/export_name_preview_enabled"], "previews_enabled")
       self._enable_preview_on_paned_drag(
-        self._export_image_preview, self._settings['gui/export_image_preview_enabled'], "previews_enabled")
+        self._export_image_preview, self._settings["gui/export_image_preview_enabled"], "previews_enabled")
     elif current_position != self._paned_outside_previews_previous_position:
       if self._export_image_preview.is_larger_than_image():
         pginvocation.timeout_add_strict(
@@ -154,19 +154,19 @@ class ExportPreviewsController(object):
     
     if current_position == max_position and self._paned_between_previews_previous_position != max_position:
       self._disable_preview_on_paned_drag(
-        self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
+        self._export_image_preview, self._settings["gui/export_image_preview_enabled"],
         "vpaned_preview_enabled")
     elif current_position != max_position and self._paned_between_previews_previous_position == max_position:
       self._enable_preview_on_paned_drag(
-        self._export_image_preview, self._settings['gui/export_image_preview_enabled'],
+        self._export_image_preview, self._settings["gui/export_image_preview_enabled"],
         "vpaned_preview_enabled")
     elif current_position == min_position and self._paned_between_previews_previous_position != min_position:
       self._disable_preview_on_paned_drag(
-        self._export_name_preview, self._settings['gui/export_name_preview_enabled'],
+        self._export_name_preview, self._settings["gui/export_name_preview_enabled"],
         "vpaned_preview_enabled")
     elif current_position != min_position and self._paned_between_previews_previous_position == min_position:
       self._enable_preview_on_paned_drag(
-        self._export_name_preview, self._settings['gui/export_name_preview_enabled'],
+        self._export_name_preview, self._settings["gui/export_name_preview_enabled"],
         "vpaned_preview_enabled")
     elif current_position != self._paned_between_previews_previous_position:
       if self._export_image_preview.is_larger_than_image():

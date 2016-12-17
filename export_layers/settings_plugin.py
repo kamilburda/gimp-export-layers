@@ -52,30 +52,30 @@ def create_settings():
   # These settings require special handling in the code, hence their separation
   # from the other settings.
   
-  special_settings = pgsettinggroup.SettingGroup(name='special')
+  special_settings = pgsettinggroup.SettingGroup(name="special")
   
   special_settings.add([
     {
-      'type': pgsetting.SettingTypes.enumerated,
-      'name': 'run_mode',
-      'default_value': 'non_interactive',
-      'items': [('interactive', "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
-                ('non_interactive', "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
-                ('run_with_last_vals', "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)],
-      'display_name': _("The run mode")
+      "type": pgsetting.SettingTypes.enumerated,
+      "name": "run_mode",
+      "default_value": "non_interactive",
+      "items": [("interactive", "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
+                ("non_interactive", "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
+                ("run_with_last_vals", "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)],
+      "display_name": _("The run mode")
     },
     {
-      'type': pgsetting.SettingTypes.image,
-      'name': 'image',
-      'default_value': None,
-      'display_name': _("Image")
+      "type": pgsetting.SettingTypes.image,
+      "name": "image",
+      "default_value": None,
+      "display_name": _("Image")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'first_plugin_run',
-      'default_value': True,
-      'pdb_type': None,
-      'setting_sources': [pygimplib.config.SOURCE_SESSION]
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "first_plugin_run",
+      "default_value": True,
+      "pdb_type": None,
+      "setting_sources": [pygimplib.config.SOURCE_SESSION]
     },
   ])
   
@@ -83,77 +83,77 @@ def create_settings():
   #-----------------------------------------------------------------------------
   
   main_settings = pgsettinggroup.SettingGroup(
-    name='main',
-    setting_attributes={'setting_sources': [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]})
+    name="main",
+    setting_attributes={"setting_sources": [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]})
   
   main_settings.add([
     {
-      'type': pgsetting.SettingTypes.file_extension,
-      'name': 'file_extension',
-      'default_value': "png",
-      'display_name': "File extension"
+      "type": pgsetting.SettingTypes.file_extension,
+      "name": "file_extension",
+      "default_value": "png",
+      "display_name": "File extension"
     },
     {
-      'type': pgsetting.SettingTypes.string,
-      'name': 'output_directory',
-      'default_value': gimp.user_directory(1),   # "Documents" directory
-      'display_name': _("Output directory"),
-      'gui_type': None
+      "type": pgsetting.SettingTypes.string,
+      "name": "output_directory",
+      "default_value": gimp.user_directory(1),   # `Documents` directory
+      "display_name": _("Output directory"),
+      "gui_type": None
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'layer_groups_as_folders',
-      'default_value': False,
-      'display_name': _("Treat layer groups as folders")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "layer_groups_as_folders",
+      "default_value": False,
+      "display_name": _("Treat layer groups as folders")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'use_image_size',
-      'default_value': False,
-      'display_name': _("Use image size")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "use_image_size",
+      "default_value": False,
+      "display_name": _("Use image size")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'only_visible_layers',
-      'default_value': False,
-      'display_name': _("Only visible layers")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "only_visible_layers",
+      "default_value": False,
+      "display_name": _("Only visible layers")
     },
     {
-      'type': pgsetting.SettingTypes.string,
-      'name': 'layer_filename_pattern',
-      'default_value': "[layer name]",
-      'display_name': _("Layer filename pattern"),
-      'description': _("Layer filename pattern (empty string = layer name)"),
-      'gui_type': None
+      "type": pgsetting.SettingTypes.string,
+      "name": "layer_filename_pattern",
+      "default_value": "[layer name]",
+      "display_name": _("Layer filename pattern"),
+      "description": _("Layer filename pattern (empty string = layer name)"),
+      "gui_type": None
     },
     {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'selected_layers',
+      "type": pgsetting.SettingTypes.generic,
+      "name": "selected_layers",
       # key: image ID; value: set of selected layer IDs
-      'default_value': collections.defaultdict(set),
-      'display_name': _("Selected layers"),
-      'pdb_type': None,
-      'setting_sources': [pygimplib.config.SOURCE_SESSION]
+      "default_value": collections.defaultdict(set),
+      "display_name": _("Selected layers"),
+      "pdb_type": None,
+      "setting_sources": [pygimplib.config.SOURCE_SESSION]
     },
     {
-      'type': pgsetting.SettingTypes.generic,
-      'name': 'selected_layers_persistent',
+      "type": pgsetting.SettingTypes.generic,
+      "name": "selected_layers_persistent",
       # key: image filename; value: set of selected layer names
-      'default_value': collections.defaultdict(set),
-      'display_name': _("Selected layers"),
-      'pdb_type': None,
-      'setting_sources': [pygimplib.config.SOURCE_PERSISTENT]
+      "default_value": collections.defaultdict(set),
+      "display_name": _("Selected layers"),
+      "pdb_type": None,
+      "setting_sources": [pygimplib.config.SOURCE_PERSISTENT]
     },
     {
-      'type': pgsetting.SettingTypes.enumerated,
-      'name': 'overwrite_mode',
-      'default_value': 'rename_new',
-      'items': [('replace', _("_Replace"), pgoverwrite.OverwriteModes.REPLACE),
-                ('skip', _("_Skip"), pgoverwrite.OverwriteModes.SKIP),
-                ('rename_new', _("Rename _new file"), pgoverwrite.OverwriteModes.RENAME_NEW),
-                ('rename_existing', _("Rename _existing file"), pgoverwrite.OverwriteModes.RENAME_EXISTING),
-                ('cancel', _("_Cancel"), pgoverwrite.OverwriteModes.CANCEL)],
-      'display_name': _("Overwrite mode (non-interactive run mode only)")
+      "type": pgsetting.SettingTypes.enumerated,
+      "name": "overwrite_mode",
+      "default_value": "rename_new",
+      "items": [("replace", _("_Replace"), pgoverwrite.OverwriteModes.REPLACE),
+                ("skip", _("_Skip"), pgoverwrite.OverwriteModes.SKIP),
+                ("rename_new", _("Rename _new file"), pgoverwrite.OverwriteModes.RENAME_NEW),
+                ("rename_existing", _("Rename _existing file"), pgoverwrite.OverwriteModes.RENAME_EXISTING),
+                ("cancel", _("_Cancel"), pgoverwrite.OverwriteModes.CANCEL)],
+      "display_name": _("Overwrite mode (non-interactive run mode only)")
     },
   ])
   
@@ -161,130 +161,130 @@ def create_settings():
   #-----------------------------------------------------------------------------
   
   more_operations_settings = pgsettinggroup.SettingGroup(
-    name='more_operations',
+    name="more_operations",
     setting_attributes={
-      'pdb_type': None,
-      'setting_sources': [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+      "pdb_type": None,
+      "setting_sources": [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     })
   
   more_operations_settings.add([
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'insert_background_layers',
-      'default_value': False,
-      'display_name': _("Insert background layers")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "insert_background_layers",
+      "default_value": False,
+      "display_name": _("Insert background layers")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'insert_foreground_layers',
-      'default_value': False,
-      'display_name': _("Insert foreground layers")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "insert_foreground_layers",
+      "default_value": False,
+      "display_name": _("Insert foreground layers")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'inherit_transparency_from_layer_groups',
-      'default_value': False,
-      'display_name': _("Inherit transparency from layer groups"),
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "inherit_transparency_from_layer_groups",
+      "default_value": False,
+      "display_name": _("Inherit transparency from layer groups"),
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'ignore_layer_modes',
-      'default_value': False,
-      'display_name': _("Ignore layer modes")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "ignore_layer_modes",
+      "default_value": False,
+      "display_name": _("Ignore layer modes")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'autocrop',
-      'default_value': False,
-      'display_name': _("Autocrop")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "autocrop",
+      "default_value": False,
+      "display_name": _("Autocrop")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'autocrop_to_background',
-      'default_value': False,
-      'display_name': _("Autocrop to background")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "autocrop_to_background",
+      "default_value": False,
+      "display_name": _("Autocrop to background")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'autocrop_to_foreground',
-      'default_value': False,
-      'display_name': _("Autocrop to foreground")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "autocrop_to_foreground",
+      "default_value": False,
+      "display_name": _("Autocrop to foreground")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'use_file_extensions_in_layer_names',
-      'default_value': False,
-      'display_name': _("Use file extensions in layer names")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "use_file_extensions_in_layer_names",
+      "default_value": False,
+      "display_name": _("Use file extensions in layer names")
     },
   ])
   
   more_filters_settings = pgsettinggroup.SettingGroup(
-    name='more_filters',
+    name="more_filters",
     setting_attributes={
-      'pdb_type': None,
-      'setting_sources': [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+      "pdb_type": None,
+      "setting_sources": [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     })
   
   include_filters_settings = pgsettinggroup.SettingGroup(
-    name='include',
+    name="include",
     display_name=_("Include"),
     setting_attributes={
-      'pdb_type': None,
-      'setting_sources': [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+      "pdb_type": None,
+      "setting_sources": [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     })
   
   include_filters_settings.add([
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'include_layers',
-      'default_value': True,
-      'display_name': _("Include layers")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "include_layers",
+      "default_value": True,
+      "display_name": _("Include layers")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'include_layer_groups',
-      'default_value': False,
-      'display_name': _("Include layer groups")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "include_layer_groups",
+      "default_value": False,
+      "display_name": _("Include layer groups")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'include_empty_layer_groups',
-      'default_value': False,
-      'display_name': _("Include empty layer groups")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "include_empty_layer_groups",
+      "default_value": False,
+      "display_name": _("Include empty layer groups")
     }
   ])
   
   more_filters_settings.add([
     include_filters_settings,
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'only_non_tagged_layers',
-      'default_value': False,
-      'display_name': _("Only non-tagged layers")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "only_non_tagged_layers",
+      "default_value": False,
+      "display_name": _("Only non-tagged layers")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'only_tagged_layers',
-      'default_value': False,
-      'display_name': _("Only tagged layers")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "only_tagged_layers",
+      "default_value": False,
+      "display_name": _("Only tagged layers")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'only_layers_matching_file_extension',
-      'default_value': False,
-      'display_name': _("Only layers matching file extension")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "only_layers_matching_file_extension",
+      "default_value": False,
+      "display_name": _("Only layers matching file extension")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'only_toplevel_layers',
-      'default_value': False,
-      'display_name': _("Only top-level layers")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "only_toplevel_layers",
+      "default_value": False,
+      "display_name": _("Only top-level layers")
     },
     {
-      'type': pgsetting.SettingTypes.boolean,
-      'name': 'only_selected_layers',
-      'default_value': False,
-      'display_name': _("Only layers selected in preview")
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "only_selected_layers",
+      "default_value": False,
+      "display_name": _("Only layers selected in preview")
     }
   ])
   
@@ -299,17 +299,17 @@ def create_settings():
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = _(
         "You need to specify default file extension for layers with invalid or no extension.")
   
-  main_settings['more_operations/use_file_extensions_in_layer_names'].connect_event('value-changed',
-    on_use_file_extensions_in_layer_names_changed, main_settings['file_extension'])
+  main_settings["more_operations/use_file_extensions_in_layer_names"].connect_event("value-changed",
+    on_use_file_extensions_in_layer_names_changed, main_settings["file_extension"])
   
   #-----------------------------------------------------------------------------
   
-  settings = pgsettinggroup.SettingGroup(name='all_settings')
+  settings = pgsettinggroup.SettingGroup(name="all_settings")
   
   settings.add([special_settings, main_settings])
   
-  settings['special'].tags.update(['ignore_reset', 'ignore_load', 'ignore_save'])
-  settings['main/output_directory'].tags.add('ignore_reset')
+  settings["special"].tags.update(["ignore_reset", "ignore_load", "ignore_save"])
+  settings["main/output_directory"].tags.add("ignore_reset")
   
   #-----------------------------------------------------------------------------
   
@@ -384,9 +384,9 @@ def setup_image_ids_and_filenames_settings(image_ids_dict_setting, image_filenam
           image.ID, os.path.abspath(image.filename),
           image_ids_dict_setting, image_filenames_dict_setting, *convert_value_second_first_func_args)
   
-  image_filenames_dict_setting.connect_event('after-load-group', _remove_invalid_image_filenames)
-  image_filenames_dict_setting.connect_event('before-save', _update_image_filenames, image_ids_dict_setting)
-  image_ids_dict_setting.connect_event('after-load-group', _update_image_ids, image_filenames_dict_setting)
+  image_filenames_dict_setting.connect_event("after-load-group", _remove_invalid_image_filenames)
+  image_filenames_dict_setting.connect_event("before-save", _update_image_filenames, image_ids_dict_setting)
+  image_ids_dict_setting.connect_event("after-load-group", _update_image_ids, image_filenames_dict_setting)
 
 
 def convert_set_of_layer_ids_to_names(image_id, image_filename, image_ids_setting,

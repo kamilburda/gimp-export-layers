@@ -211,7 +211,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     column.set_attributes(cell_renderer_icon_layer, pixbuf=self._COLUMN_ICON_LAYER[0])
     
     cell_renderer_icon_tag = gtk.CellRendererPixbuf()
-    cell_renderer_icon_tag.set_property("pixbuf", self._icons['tag'])
+    cell_renderer_icon_tag.set_property("pixbuf", self._icons["tag"])
     column.pack_start(cell_renderer_icon_tag, expand=False)
     column.set_attributes(cell_renderer_icon_tag, visible=self._COLUMN_ICON_TAG_VISIBLE[0])
     
@@ -240,25 +240,25 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   
   def _init_icons(self):
     self._icons = {}
-    self._icons['layer_group'] = self._tree_view.render_icon(gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
-    self._icons['layer'] = gtk.gdk.pixbuf_new_from_file_at_size(
-      self._ICON_IMAGE_PATH, -1, self._icons['layer_group'].props.height)
-    self._icons['tag'] = gtk.gdk.pixbuf_new_from_file_at_size(
-      self._ICON_TAG_PATH, -1, self._icons['layer_group'].props.height)
+    self._icons["layer_group"] = self._tree_view.render_icon(gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
+    self._icons["layer"] = gtk.gdk.pixbuf_new_from_file_at_size(
+      self._ICON_IMAGE_PATH, -1, self._icons["layer_group"].props.height)
+    self._icons["tag"] = gtk.gdk.pixbuf_new_from_file_at_size(
+      self._ICON_TAG_PATH, -1, self._icons["layer_group"].props.height)
     
-    self._icons['exported_layer_group'] = self._icons['layer'].copy()
+    self._icons["exported_layer_group"] = self._icons["layer"].copy()
     
     scaling_factor = 0.8
-    width_unscaled = self._icons['layer_group'].props.width
+    width_unscaled = self._icons["layer_group"].props.width
     width = int(width_unscaled * scaling_factor)
-    height_unscaled = self._icons['layer_group'].props.height
+    height_unscaled = self._icons["layer_group"].props.height
     height = int(height_unscaled * scaling_factor)
-    x_offset_unscaled = self._icons['exported_layer_group'].props.width - self._icons['layer_group'].props.width
+    x_offset_unscaled = self._icons["exported_layer_group"].props.width - self._icons["layer_group"].props.width
     x_offset = x_offset_unscaled + width_unscaled - width
-    y_offset_unscaled = self._icons['exported_layer_group'].props.height - self._icons['layer_group'].props.height
+    y_offset_unscaled = self._icons["exported_layer_group"].props.height - self._icons["layer_group"].props.height
     y_offset = y_offset_unscaled + height_unscaled - height
     
-    self._icons['layer_group'].composite(self._icons['exported_layer_group'],
+    self._icons["layer_group"].composite(self._icons["exported_layer_group"],
       x_offset, y_offset, width, height, x_offset, y_offset,
       scaling_factor, scaling_factor, gtk.gdk.INTERP_BILINEAR, 255)
   
@@ -478,7 +478,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       previous_selected_items = self._selected_items
       self._selected_items = self._get_layer_ids_in_current_selection()
       
-      if self._layer_exporter.export_settings['more_filters/only_selected_layers'].value:
+      if self._layer_exporter.export_settings["more_filters/only_selected_layers"].value:
         if self._selected_items != previous_selected_items:
           self.update(update_existing_contents_only=True)
       
@@ -504,9 +504,9 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       layer_tree = None
     
     with self._layer_exporter.modify_export_settings(
-           {'selected_layers': {self._layer_exporter.image.ID: self._selected_items}},
+           {"selected_layers": {self._layer_exporter.image.ID: self._selected_items}},
            self._settings_events_to_temporarily_disable):
-      self._layer_exporter.export(processing_groups=['layer_name'], layer_tree=layer_tree)
+      self._layer_exporter.export(processing_groups=["layer_name"], layer_tree=layer_tree)
   
   def _update_items(self):
     for layer_elem in self._layer_exporter.layer_tree:
@@ -552,7 +552,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       self._update_item_elem(parent_elem)
   
   def _enable_filtered_items(self, enabled):
-    if self._layer_exporter.export_settings['more_filters/only_selected_layers'].value:
+    if self._layer_exporter.export_settings["more_filters/only_selected_layers"].value:
       if not enabled:
         self._layer_exporter.layer_tree.filter.add_rule(
           builtin_filters.is_layer_in_selected_layers, self._selected_items)
@@ -561,7 +561,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
           builtin_filters.is_layer_in_selected_layers, raise_if_not_found=False)
   
   def _set_items_sensitive(self):
-    if self._layer_exporter.export_settings['more_filters/only_selected_layers'].value:
+    if self._layer_exporter.export_settings["more_filters/only_selected_layers"].value:
       self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
       self._set_item_elems_sensitive(
         [self._layer_exporter.layer_tree[item_id] for item_id in self._selected_items], True)
@@ -588,14 +588,14 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   
   def _get_icon_from_item_elem(self, item_elem):
     if item_elem.item_type == item_elem.ITEM:
-      return self._icons['layer']
+      return self._icons["layer"]
     elif item_elem.item_type == item_elem.NONEMPTY_GROUP:
       if not self._layer_exporter.has_exported_layer(item_elem.item):
-        return self._icons['layer_group']
+        return self._icons["layer_group"]
       else:
-        return self._icons['exported_layer_group']
+        return self._icons["exported_layer_group"]
     elif item_elem.item_type == item_elem.EMPTY_GROUP:
-      return self._icons['layer_group']
+      return self._icons["layer_group"]
     else:
       return None
   

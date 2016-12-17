@@ -22,10 +22,10 @@
 """
 This script pre-processes documents (readmes, sites), replacing special tokens
 with the corresponding content. For example,
-"{% include-section "README.md/Features" %}" replaces the token with the section
-Features from `README.md`.
+`{% include-section "README.md/Features" %}` replaces the token with the section
+"Features" from `README.md`.
 
-Optional arguments to 'include-section':
+Optional arguments to "include-section":
 * [index] or [start index:end index] - pick chosen sentence(s) from sections
   using Python slice notation
 * [no-header] - exclude section header
@@ -40,17 +40,17 @@ str = unicode
 
 import __builtin__
 
-# For `gettext`-aware modules that use "_()" and "N_()" functions, define dummy
+# For `gettext`-aware modules that use `_()` and `N_()` functions, define dummy
 # functions that simply return the strings.
 
 def gettext(s):
   return s
 
-if '_' not in __builtin__.__dict__:
-  __builtin__.__dict__['_'] = gettext
+if "_" not in __builtin__.__dict__:
+  __builtin__.__dict__["_"] = gettext
 
-if 'N_' not in __builtin__.__dict__:
-  __builtin__.__dict__['N_'] = gettext
+if "N_" not in __builtin__.__dict__:
+  __builtin__.__dict__["N_"] = gettext
 
 import inspect
 import os
@@ -129,9 +129,9 @@ def _strip_section_header(section_header, section_contents, should_strip_header)
 
 
 token_arg_funcs = {
-  'include-section': [
-    TokenArgItem(r'[0-9]+:?[0-9]*', _parse_sentence_indices, _get_sentences_from_section),
-    TokenArgItem(r'no-header', lambda arg_str: arg_str == "no-header", _strip_section_header)
+  "include-section": [
+    TokenArgItem(r"[0-9]+:?[0-9]*", _parse_sentence_indices, _get_sentences_from_section),
+    TokenArgItem(r"no-header", lambda arg_str: arg_str == "no-header", _strip_section_header)
   ]
 }
 
@@ -143,7 +143,7 @@ def _parse_token_args(token_name, token_args_str, root_dir):
   if args_match:
     rel_document_path_str = token_args_str[:len(token_args_str) - len(args_match.group())]
   
-  document_path_parts = rel_document_path_str.strip("\"").split("/")
+  document_path_parts = rel_document_path_str.strip('"').split("/")
   document_section_name = document_path_parts[-1]
   document_path = os.path.join(root_dir, *document_path_parts[:-1])
   
@@ -201,8 +201,8 @@ def _process_token_args(token_name, token_args):
 
 def _preprocess_contents(contents, root_dir):
   for match in list(re.finditer(r"( *)(\{% include-section (.*?) %\})", contents)):
-    token_args = _parse_token_args('include-section', match.group(3), root_dir)
-    section = _process_token_args('include-section', token_args)
+    token_args = _parse_token_args("include-section", match.group(3), root_dir)
+    section = _process_token_args("include-section", token_args)
     
     dest_contents = (
       "{% capture markdown-insert %}\n" + section + "\n" + match.group(1) + "{% endcapture %}"
@@ -239,7 +239,7 @@ def main():
       resource_files_to_process.append(resource_file)
     else:
       print(
-        "Warning: File '{0}' found in resources but not in destination directory".format(
+        'Warning: File "{0}" found in resources but not in destination directory'.format(
           os.path.join(RESOURCES_PAGE_DIR, resource_file)))
   
   preprocess_contents(

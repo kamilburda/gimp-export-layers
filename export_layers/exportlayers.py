@@ -167,11 +167,11 @@ class LayerNameRenamer(object):
     layer_elem.name = self._filename_pattern_generator.generate()
   
   def _get_fields_for_layer_filename_pattern(self):
-    return {'layer name': self._get_layer_name,
-            'image name': self._get_image_name,
-            'layer path': self._get_layer_path,
-            'current date': self._get_current_date,
-            'tags': self._get_tags}
+    return {"layer name": self._get_layer_name,
+            "image name": self._get_image_name,
+            "layer path": self._get_layer_path,
+            "current date": self._get_current_date,
+            "tags": self._get_tags}
   
   def _get_layer_name(self, file_extension_strip_mode=None):
     layer_elem = self._layer_exporter.current_layer_elem
@@ -285,27 +285,27 @@ _BUILTIN_FILTERS_GROUP = "set_filters"
 _BUILTIN_FILTERS_LAYER_TYPES_GROUP = "set_filters_layer_types"
 
 _builtin_operations_and_settings = {
-  'ignore_layer_modes': [builtin_operations.ignore_layer_modes],
-  'autocrop': [builtin_operations.autocrop_layer],
-  'inherit_transparency_from_layer_groups': [builtin_operations.inherit_transparency_from_layer_groups],
-  'insert_background_layers': [builtin_operations.insert_background_layer, ["background"]],
-  'insert_foreground_layers': [builtin_operations.insert_foreground_layer, ["foreground"]],
-  'autocrop_to_background': [builtin_operations.autocrop_to_tagged_layer, ["background"]],
-  'autocrop_to_foreground': [builtin_operations.autocrop_to_tagged_layer, ["foreground"]]
+  "ignore_layer_modes": [builtin_operations.ignore_layer_modes],
+  "autocrop": [builtin_operations.autocrop_layer],
+  "inherit_transparency_from_layer_groups": [builtin_operations.inherit_transparency_from_layer_groups],
+  "insert_background_layers": [builtin_operations.insert_background_layer, ["background"]],
+  "insert_foreground_layers": [builtin_operations.insert_foreground_layer, ["foreground"]],
+  "autocrop_to_background": [builtin_operations.autocrop_to_tagged_layer, ["background"]],
+  "autocrop_to_foreground": [builtin_operations.autocrop_to_tagged_layer, ["foreground"]]
 }
 
 _builtin_filters_and_settings = {
-  'only_non_tagged_layers': [_add_filter_rule(builtin_filters.has_no_tags)],
-  'only_tagged_layers': [_add_filter_rule(builtin_filters.has_tags)],
-  'only_layers_matching_file_extension': [
+  "only_non_tagged_layers": [_add_filter_rule(builtin_filters.has_no_tags)],
+  "only_tagged_layers": [_add_filter_rule(builtin_filters.has_tags)],
+  "only_layers_matching_file_extension": [
     _add_filter_rule_with_layer_exporter(builtin_filters.has_matching_default_file_extension)],
-  'only_toplevel_layers': [_add_filter_rule(builtin_filters.is_top_level)]
+  "only_toplevel_layers": [_add_filter_rule(builtin_filters.is_top_level)]
 }
 
 _builtin_include_filters_and_settings = {
-  'include_layers': [_add_filter_rule(builtin_filters.is_layer, subfilter="layer_types")],
-  'include_layer_groups': [_add_filter_rule(builtin_filters.is_nonempty_group, subfilter="layer_types")],
-  'include_empty_layer_groups': [_add_filter_rule(builtin_filters.is_empty_group, subfilter="layer_types")]
+  "include_layers": [_add_filter_rule(builtin_filters.is_layer, subfilter="layer_types")],
+  "include_layer_groups": [_add_filter_rule(builtin_filters.is_nonempty_group, subfilter="layer_types")],
+  "include_empty_layer_groups": [_add_filter_rule(builtin_filters.is_empty_group, subfilter="layer_types")]
 }
 
 # key: setting name; value: (operation ID, operation group) tuple
@@ -406,8 +406,8 @@ class LayerExporter(object):
   """
   
   BUILTIN_TAGS = {
-    'background': _("Background"),
-    'foreground': _("Foreground")
+    "background": _("Background"),
+    "foreground": _("Foreground")
   }
   
   def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser=None, progress_updater=None,
@@ -417,7 +417,7 @@ class LayerExporter(object):
     self.export_settings = export_settings
     self.overwrite_chooser = (
       overwrite_chooser if overwrite_chooser is not None
-      else pgoverwrite.NoninteractiveOverwriteChooser(self.export_settings['overwrite_mode'].value))
+      else pgoverwrite.NoninteractiveOverwriteChooser(self.export_settings["overwrite_mode"].value))
     self.progress_updater = (
       progress_updater if progress_updater is not None else pgprogress.ProgressUpdater(None))
     self._layer_tree = layer_tree
@@ -434,10 +434,10 @@ class LayerExporter(object):
     self._should_stop = False
     
     self._processing_groups = {
-      'layer_contents': [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
-      'layer_name': [self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name],
-      '_postprocess_layer_name': [self._postprocess_layer_name],
-      'export': [self._make_dirs, self._export]
+      "layer_contents": [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
+      "layer_name": [self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name],
+      "_postprocess_layer_name": [self._postprocess_layer_name],
+      "export": [self._make_dirs, self._export]
     }
     
     self._processing_groups_functions = {}
@@ -488,14 +488,14 @@ class LayerExporter(object):
     the export. Multiple groups be specified. The following groups are
     supported:
     
-    * 'layer_contents' - Perform only operations manipulating the layer itself,
+    * "layer_contents" - Perform only operations manipulating the layer itself,
       such as cropping, resizing, etc. This is useful to preview the layer(s).
     
-    * 'layer_name' - Perform only operations manipulating layer names and layer
+    * "layer_name" - Perform only operations manipulating layer names and layer
       tree (but not layer contents). This is useful to preview the names of the
       exported layers.
     
-    * 'export' - Perform only operations that export the layer or create
+    * "export" - Perform only operations that export the layer or create
       directories for the layer.
     
     If `processing_groups` is None or empty, perform normal export.
@@ -589,7 +589,7 @@ class LayerExporter(object):
       _operations_executor,
       [_BUILTIN_OPERATIONS_GROUP, _BUILTIN_FILTERS_GROUP, _BUILTIN_FILTERS_LAYER_TYPES_GROUP])
     
-    add_operation(self.export_settings['more_filters/include/include_layers'])
+    add_operation(self.export_settings["more_filters/include/include_layers"])
   
   def _init_attributes(self, processing_groups, layer_tree, keep_exported_layers):
     self._enable_disable_processing_groups(processing_groups)
@@ -609,7 +609,7 @@ class LayerExporter(object):
     
     self._current_layer_elem = None
     
-    self._output_directory = self.export_settings['output_directory'].value
+    self._output_directory = self.export_settings["output_directory"].value
     
     self._image_copy = None
     self._tagged_layer_elems = collections.defaultdict(list)
@@ -622,15 +622,15 @@ class LayerExporter(object):
     self.progress_updater.reset()
     
     self._file_extension_properties = _get_prefilled_file_extension_properties()
-    self._default_file_extension = self.export_settings['file_extension'].value.lstrip(".").lower()
+    self._default_file_extension = self.export_settings["file_extension"].value.lstrip(".").lower()
     self._current_file_extension = self._default_file_extension
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
     
-    if self.export_settings['layer_filename_pattern'].value:
-      pattern = self.export_settings['layer_filename_pattern'].value
+    if self.export_settings["layer_filename_pattern"].value:
+      pattern = self.export_settings["layer_filename_pattern"].value
     else:
-      pattern = self.export_settings['layer_filename_pattern'].default_value
+      pattern = self.export_settings["layer_filename_pattern"].default_value
     
     self._layer_name_renamer = LayerNameRenamer(self, pattern)
   
@@ -640,9 +640,9 @@ class LayerExporter(object):
         setattr(self, function.__name__, self._processing_groups_functions[function.__name__])
     
     if processing_groups:
-      if (not self.export_settings['more_filters/only_selected_layers'].value
-          and 'layer_name' in processing_groups):
-        processing_groups.append('_postprocess_layer_name')
+      if (not self.export_settings["more_filters/only_selected_layers"].value
+          and "layer_name" in processing_groups):
+        processing_groups.append("_postprocess_layer_name")
       
       for processing_group, functions in self._processing_groups.items():
         if processing_group not in processing_groups:
@@ -653,7 +653,7 @@ class LayerExporter(object):
     if self._layer_tree.filter:
       self._layer_tree.reset_filter()
     
-    if not self.export_settings['layer_groups_as_folders'].value:
+    if not self.export_settings["layer_groups_as_folders"].value:
       self._remove_parents_in_layer_elems()
     else:
       self._reset_parents_in_layer_elems()
@@ -663,7 +663,7 @@ class LayerExporter(object):
     self.progress_updater.num_total_tasks = len(self._layer_tree)
     
     if self._keep_exported_layers:
-      with self._layer_tree.filter['layer_types'].remove_rule_temp(builtin_filters.is_empty_group, False):
+      with self._layer_tree.filter["layer_types"].remove_rule_temp(builtin_filters.is_empty_group, False):
         num_layers_and_nonempty_groups = len(self._layer_tree)
         if num_layers_and_nonempty_groups > 1:
           self._use_another_image_copy = True
@@ -682,19 +682,19 @@ class LayerExporter(object):
   
   def _set_layer_filters(self):
     self._layer_tree.filter.add_subfilter(
-      'layer_types', pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ANY))
+      "layer_types", pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ANY))
     
     self._operations_executor.execute([_BUILTIN_FILTERS_LAYER_TYPES_GROUP], self)
     
     self._init_tagged_layer_elems()
     
-    if self.export_settings['only_visible_layers'].value:
+    if self.export_settings["only_visible_layers"].value:
       self._layer_tree.filter.add_rule(builtin_filters.is_path_visible)
     
-    if self.export_settings['more_filters/only_selected_layers'].value:
+    if self.export_settings["more_filters/only_selected_layers"].value:
       self._layer_tree.filter.add_rule(
         builtin_filters.is_layer_in_selected_layers,
-        self.export_settings['selected_layers'].value[self.image.ID])
+        self.export_settings["selected_layers"].value[self.image.ID])
     
     self._operations_executor.execute([_BUILTIN_FILTERS_GROUP], self)
   
@@ -717,8 +717,8 @@ class LayerExporter(object):
         self._process_empty_group(layer_elem)
       else:
         raise ValueError(
-          "invalid/unsupported item type '{0}' of _ItemTreeElement '{1}'".format(
-            layer_elem.item_type, layer_elem.name))
+          "invalid/unsupported item type '{0}' in {1}".format(
+            layer_elem.item_type, layer_elem))
   
   def _process_and_export_item(self, layer_elem):
     layer = layer_elem.item
@@ -741,7 +741,7 @@ class LayerExporter(object):
     empty_group_path = layer_elem.get_filepath(self._output_directory)
     self._make_dirs(empty_group_path, self)
     
-    self.progress_updater.update_text(_("Creating empty directory '{0}'").format(empty_group_path))
+    self.progress_updater.update_text(_('Creating empty directory "{0}"').format(empty_group_path))
     self.progress_updater.update_tasks()
   
   def _setup(self):
@@ -815,7 +815,7 @@ class LayerExporter(object):
         pdb.gimp_image_remove_layer(image, layer)
   
   def _merge_and_resize_layer(self, image, layer):
-    if not self.export_settings['use_image_size'].value:
+    if not self.export_settings["use_image_size"].value:
       layer_offset_x, layer_offset_y = layer.offsets
       pdb.gimp_image_resize(image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
     
@@ -842,7 +842,7 @@ class LayerExporter(object):
       self._layer_tree.reset_name(layer_elem)
   
   def _set_file_extension(self, layer_elem):
-    if self.export_settings['more_operations/use_file_extensions_in_layer_names'].value:
+    if self.export_settings["more_operations/use_file_extensions_in_layer_names"].value:
       orig_file_extension = layer_elem.get_file_extension_from_orig_name()
       if orig_file_extension and self._file_extension_properties[orig_file_extension].is_valid:
         self._current_file_extension = orig_file_extension
@@ -867,7 +867,7 @@ class LayerExporter(object):
   def _export(self, layer_elem, image, layer):
     output_filename = layer_elem.get_filepath(self._output_directory)
     
-    self.progress_updater.update_text(_("Saving '{0}'").format(output_filename))
+    self.progress_updater.update_text(_('Saving "{0}"').format(output_filename))
     
     self._current_overwrite_mode, output_filename = pgoverwrite.handle_overwrite(
       output_filename, self.overwrite_chooser, self._get_uniquifier_position(output_filename))
@@ -889,7 +889,7 @@ class LayerExporter(object):
       try:
         message = e.args[1]
         if e.filename is not None:
-          message += ": \"{0}\"".format(e.filename)
+          message += ': "{0}"'.format(e.filename)
       except (IndexError, AttributeError):
         message = str(e)
       

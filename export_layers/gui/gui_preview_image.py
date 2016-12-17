@@ -296,12 +296,12 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     layer_tree_filter = layer_tree.filter if layer_tree is not None else None
     
     with self._layer_exporter.modify_export_settings(
-           {'more_filters/only_selected_layers': True,
-            'selected_layers': {self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}},
+           {"more_filters/only_selected_layers": True,
+            "selected_layers": {self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}},
            self._settings_events_to_temporarily_disable):
       try:
         image_preview = self._layer_exporter.export(
-          processing_groups=['layer_contents'], layer_tree=layer_tree, keep_exported_layers=True)
+          processing_groups=["layer_contents"], layer_tree=layer_tree, keep_exported_layers=True)
       except Exception:
         display_image_preview_failure_message(
           details=traceback.format_exc(), parent=pggui.get_toplevel_window(self._widget))
