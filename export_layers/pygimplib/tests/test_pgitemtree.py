@@ -248,24 +248,6 @@ class TestLayerTree(unittest.TestCase):
       itemtree_empty_layer_group_no_parents.get_filepath(output_directory, include_item_path=False))
   
   #-----------------------------------------------------------------------------
-    
-  def _compare_uniquified_without_parents(self, layer_tree, uniquified_names):
-    for key, name in uniquified_names.items():
-      self.assertEqual(
-        layer_tree[key].name, name,
-        "'" + key + "': '" + str(layer_tree[key].name) + "' != '" + str(name) + "'")
-  
-  def _compare_uniquified_with_parents(self, item_tree, uniquified_names):
-    for key, item_path in uniquified_names.items():
-      path_components, name = item_path[:-1], item_path[-1]
-      self.assertEqual(
-        item_tree[key].get_path_components(), path_components,
-        ("parents: '" + key + "': '" + str(item_tree[key].get_path_components())
-         + "' != '" + str(path_components) + "'"))
-      self.assertEqual(
-        item_tree[key].name, name,
-        ("layer name: '" + key + "': '" + str(item_tree[key].name)
-         + "' != '" + str(name) + "'"))
   
   def test_uniquify_without_layer_groups(self):
     uniquified_names = collections.OrderedDict([
@@ -295,6 +277,10 @@ class TestLayerTree(unittest.TestCase):
       self.layer_tree.validate_name(layer_elem)
       self.layer_tree.uniquify_name(layer_elem, include_item_path=False)
     self._compare_uniquified_without_parents(self.layer_tree, uniquified_names)
+    
+  def _compare_uniquified_without_parents(self, item_tree, uniquified_names):
+    for key, name in uniquified_names.items():
+      self.assertEqual(item_tree[key].name, name, "'{0}': '{1}' != '{2}'".format(key, item_tree[key].name, name))
   
   def test_uniquify_with_layer_groups(self):
     uniquified_names = collections.OrderedDict([
@@ -349,6 +335,15 @@ class TestLayerTree(unittest.TestCase):
         layer_elem, include_item_path=True,
         uniquifier_position=_get_file_extension_start_position(layer_elem.name))
     self._compare_uniquified_with_parents(self.layer_tree, uniquified_names)
+  
+  def _compare_uniquified_with_parents(self, item_tree, uniquified_names):
+    for key, item_path in uniquified_names.items():
+      path_components, name = item_path[:-1], item_path[-1]
+      self.assertEqual(
+        item_tree[key].get_path_components(), path_components,
+        "parents: '{0}': '{1}' != '{2}'".format(key, item_tree[key].get_path_components(), path_components))
+      self.assertEqual(
+        item_tree[key].name, name, "layer name: '{0}': '{1}' != '{2}'".format(key, item_tree[key].name, name))
   
   def test_reset_name(self):
     self.layer_tree["Corners"].name = "Corners.png"
