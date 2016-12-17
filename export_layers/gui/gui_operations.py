@@ -82,7 +82,7 @@ class OperationBox(object):
   
   @property
   def displayed_settings_names(self):
-    return [setting.name for setting in self._displayed_settings]
+    return [setting.get_path(self._settings) for setting in self._displayed_settings]
   
   def _init_gui(self):
     if self.label_add_text is not None:
