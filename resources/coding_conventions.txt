@@ -1,0 +1,37 @@
+Coding conventions
+==================
+
+This document describes coding conventions not entirely obvious from the code itself.
+
+
+Glossary
+--------
+
+element = module, class, function, variable
+
+
+Quotes in and around Strings
+----------------------------
+
+* double quotes:
+  * everywhere except cases where single quotes are used
+* single quotes:
+  * element names in non-user messages (to be consistent with e.g. Python exception messages)
+  * any string containing double quotes (to avoid inserting backslashes)
+* backquotes:
+  * element names in comments
+
+
+Mixins
+------
+
+* mixins can access and modify only those attributes defined in it
+* no other classes should directly modify attributes defined in mixins
+
+
+Imports
+-------
+
+* use explicit relative imports
+  * for library modules, this avoids dependency on the application using the library
+* import whole modules, do not import individual classes, functions or variables
