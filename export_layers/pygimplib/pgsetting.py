@@ -44,6 +44,7 @@ from . import pgpath
 from . import pgsettingpersistor
 from . import pgsettingpresenter
 from . import pgsettingutils
+from . import pgutils
 from .pgsettingpresenters_gtk import SettingGuiTypes
 
 #===============================================================================
@@ -335,7 +336,7 @@ class Setting(pgsettingutils.SettingParentMixin):
     return self._tags
   
   def __str__(self):
-    return "<{0} '{1}'>".format(type(self).__name__, self.name)
+    return pgutils.stringify_object(self, self.name)
   
   def get_path(self, relative_path_setting_group=None):
     """

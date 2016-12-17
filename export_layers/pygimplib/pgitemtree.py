@@ -59,6 +59,7 @@ pdb = gimp.pdb
 
 from . import pgobjectfilter
 from . import pgpath
+from . import pgutils
 
 #===============================================================================
 
@@ -514,7 +515,7 @@ class _ItemTreeElement(object):
     return self._tags_source_name
   
   def __str__(self):
-    return "<{0} '{1}'>".format(type(self).__name__, self.orig_name)
+    return pgutils.stringify_object(self, self.orig_name)
   
   def get_file_extension(self):
     """

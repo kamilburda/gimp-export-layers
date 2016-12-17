@@ -386,6 +386,10 @@ class TestLayerTreeElement(unittest.TestCase):
   
   def test_str(self):
     self.assertEqual(str(self.layer_elem), "<_ItemTreeElement 'main-background.jpg'>")
+    
+    self.layer_elem.name = 'main-background'
+    
+    self.assertEqual(str(self.layer_elem), "<_ItemTreeElement 'main-background.jpg'>")
   
   def test_get_base_name(self):
     self.layer_elem.name = "main-background"

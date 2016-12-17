@@ -105,7 +105,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     return self._tags
   
   def __str__(self):
-    return "<{0} '{1}'>".format(type(self).__name__, self.name)
+    return pgutils.stringify_object(self, self.name)
   
   def __getitem__(self, setting_name_or_path):
     """

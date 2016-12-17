@@ -103,6 +103,17 @@ def is_bound_method(func):
   return hasattr(func, "__self__") and func.__self__ is not None
 
 
+def stringify_object(object_, name):
+  """
+  Return a string representation of the specified object, using the specified
+  name as a presumed unique identifier of the object. This can be used in the
+  `__str__` method to return a more readable string representation than the
+  default.
+  """
+  
+  return "<{0} '{1}'>".format(type(object_).__name__, name)
+
+
 def get_module_root(module_path, path_component_to_trim_after):
   module_path_components = module_path.split(".")
   
