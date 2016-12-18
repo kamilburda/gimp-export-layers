@@ -37,18 +37,18 @@ import sys
 plugins_path = os.path.join(gimp.directory, "plug-ins")
 sys.path.append(plugins_path)
 sys.path.append(<path to pygimplib>)
-import runtests
+import pgruntests
 _ = lambda s: s
 _
-runtests.run_tests(path=plugins_path)
+pgruntests.run_tests(path=plugins_path)
 
 The `_` is vital if you are using the `gettext` module for internationalization.
 
 * To repeat the tests, paste the following to the console:
 
 
-reload(runtests)
-runtests.run_tests(path=plugins_path)
+reload(pgruntests)
+pgruntests.run_tests(path=plugins_path)
 
 
 """
