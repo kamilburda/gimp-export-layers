@@ -151,19 +151,9 @@ Ignore layer modes
 Unicode support
 ---------------
 
-Use unicode characters in:
-* layers and layer groups
-   * name the layers such that uniquification is performed
-   * add invalid special characters to them (that get removed)
-* input string parameters to PDB functions
-   - use the non-interactive run mode
-* GTK elements
-   * text entry
-   * folder chooser
-   * combo boxes, labels, buttons, checkboxes, tooltips
-      * temporarily modify settings in `settings_plugin`
+Review conformance to Unicode practices defined in the coding conventions.
 
-Also test:
+Test:
 * exporting more than once in one GIMP session (to test unicode strings in the GIMP shelf)
 * overwrite dialog - all choices
 * Save Settings with unicode strings
