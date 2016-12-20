@@ -41,7 +41,7 @@ Imports
 Unicode Practices
 -----------------
 
-##### Unicode Strings in Python 2
+### Unicode Strings in Python 2
 
 Use Python 3 behavior of Unicode strings in Python 2. To achieve this:
 * `str()` must return string of type `unicode`, not `str`. Add the following statement to the beginning of each module:
@@ -53,11 +53,11 @@ Use Python 3 behavior of Unicode strings in Python 2. To achieve this:
     
       from __future__ import unicode_literals
 
-##### Unicode for Internal Modules
+### Unicode for Internal Modules
 
 Always use Unicode strings internally.
 
-##### Unicode for External Modules
+### Unicode for External Modules
 
 GIMP uses UTF-8 encoding. That includes the following functions or attributes:
 * image name
