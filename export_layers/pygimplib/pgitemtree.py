@@ -36,12 +36,13 @@ This module defines the following classes:
   attributes derived from the original `gimp.Item` attributes
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
+import future.utils
 
 import abc
 import collections
@@ -64,7 +65,8 @@ from . import pgutils
 #===============================================================================
 
 
-class ItemTree(object):
+@future.utils.python_2_unicode_compatible
+class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   """
   This class is an interface to store all items (and item groups) of a certain
@@ -97,8 +99,6 @@ class ItemTree(object):
   * `filter` - `ObjectFilter` instance where you can add or remove filter rules
     or subfilters to filter items.
   """
-  
-  __metaclass__ = abc.ABCMeta
   
   def __init__(self, image, name=None, is_filtered=False,
                filter_match_type=pgobjectfilter.ObjectFilter.MATCH_ALL):

@@ -26,12 +26,12 @@ it is sufficient to test `pgitemtree` using one of the subclasses. `LayerTree`
 was chosen for this purpose.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
 
 import collections
 import os
@@ -42,7 +42,7 @@ try:
 except ImportError:
   import pickle
 
-from ..lib import mock
+import mock
 
 from . import stubs_gimp
 from .. import pgitemtree

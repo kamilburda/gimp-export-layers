@@ -23,12 +23,12 @@ This module provides stubs for GIMP objects, classes, etc. that can be used in
 unit tests.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
 
 #===============================================================================
 

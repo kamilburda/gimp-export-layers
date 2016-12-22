@@ -18,29 +18,29 @@
 # along with pygimplib.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
 
-import StringIO
+from future.builtins import *
+
+import io
 import sys
 import unittest
 
-from ..lib import mock
+import mock
 
 from .. import pglogging
 
 #===============================================================================
 
 
-@mock.patch("sys.stdout", new=StringIO.StringIO())
+@mock.patch("sys.stdout", new=io.StringIO())
 class TestTee(unittest.TestCase):
   
   def setUp(self):
-    self.string_file = StringIO.StringIO()
+    self.string_file = io.StringIO()
   
   def test_write(self):
     pglogging.Tee(sys.stdout, self.string_file, log_header_title="Test Header")

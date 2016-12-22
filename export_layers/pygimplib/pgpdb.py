@@ -24,12 +24,12 @@ layers, etc.) not defined in the GIMP procedural database (PDB) or the GIMP
 Python API.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
 
 import os
 import contextlib
@@ -37,6 +37,7 @@ import contextlib
 import gimp
 import gimpenums
 
+from . import pgconstants
 from . import pginvocation
 from . import pgutils
 
@@ -441,7 +442,7 @@ class GimpMessageFile(object):
       self.flush()
   
   def flush(self):
-    gimp.message(self._message_buffer.encode())
+    gimp.message(self._message_buffer.encode(pgconstants.GIMP_CHARACTER_ENCODING))
     self._message_buffer = self._message_prefix
   
   def close(self):

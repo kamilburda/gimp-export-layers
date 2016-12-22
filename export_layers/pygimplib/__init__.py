@@ -18,19 +18,52 @@
 # along with pygimplib.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-str = unicode
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import collections
 import functools
 import gettext
 import inspect
 import os
+import sys
 import types
+
+#===============================================================================
+
+def _setup_import_of_external_lib_modules(lib_directory):
+  """
+  Add directories containing external libraries for pygimplib to `sys.path` so
+  that modules from these external libraries can be imported as system modules
+  (i.e. without using absolute or explicit relative imports).
+  
+  Modules with the same name that are already installed system-wide are
+  overridden by the external library modules from pygimplib.
+  """
+  
+  for filename in os.listdir(lib_directory):
+    lib_file_path = os.path.join(lib_directory, filename)
+    if os.path.isdir(lib_file_path) and lib_file_path not in sys.path:
+      _insert_library_to_system_path(lib_file_path)
+
+
+def _insert_library_to_system_path(lib_path):
+  # Path must be inserted at the second position:
+  # https://docs.python.org/3/library/sys.html#sys.path
+  sys.path.insert(1, lib_path)
+
+
+_PYGIMPLIB_PATH = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+_LIB_SUBDIRECTORY_PATH = os.path.join(_PYGIMPLIB_PATH, "lib")
+
+_setup_import_of_external_lib_modules(_LIB_SUBDIRECTORY_PATH)
+
+#===============================================================================
+
+
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
 
 try:
   import gimp

@@ -23,12 +23,12 @@ This module defines text entries with enhanced capabilities, such as undo/redo
 history or a customizable popup.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
 
 import pygtk
 pygtk.require("2.0")
@@ -190,7 +190,7 @@ class FilenamePatternEntry(ExtendedEntry):
   _BUTTON_MOUSE_LEFT = 1
   
   _COLUMNS = [_COLUMN_ITEM_NAMES, _COLUMN_ITEMS, _COLUMN_ITEM_ARGUMENTS] = (0, 1, 2)
-  _COLUMN_TYPES = [bytes, bytes, gobject.TYPE_PYOBJECT]
+  _COLUMN_TYPES = [gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_PYOBJECT]
   
   def __init__(self, suggested_items, *args, **kwargs):
     self._minimum_width_chars = kwargs.pop("minimum_width_chars", -1)
@@ -464,7 +464,7 @@ class FilenamePatternEntry(ExtendedEntry):
 class FileExtensionEntry(ExtendedEntry):
   
   _COLUMNS = [_COLUMN_DESCRIPTION, _COLUMN_EXTENSIONS] = (0, 1)
-  _COLUMN_TYPES = [bytes, gobject.TYPE_PYOBJECT]     # [string, list of strings]
+  _COLUMN_TYPES = [gobject.TYPE_STRING, gobject.TYPE_PYOBJECT]     # [string, list of strings]
   
   def __init__(self, *args, **kwargs):
     super(FileExtensionEntry, self).__init__(*args, **kwargs)

@@ -24,12 +24,13 @@ This module defines setting sources - the means to load and save settings:
   * persistently
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
+import future.utils
 
 import abc
 import collections
@@ -50,7 +51,7 @@ from . import pgsettingpersistor
 #===============================================================================
 
 
-class SettingSource(object):
+class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   """
   This class provides an interface for reading and writing settings to
@@ -63,8 +64,6 @@ class SettingSource(object):
   * `_settings_not_found` - List of settings not found in source when the `read()`
     method is called.
   """
-  
-  __metaclass__ = abc.ABCMeta
   
   def __init__(self):
     self._settings_not_found = []

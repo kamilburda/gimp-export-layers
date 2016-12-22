@@ -23,12 +23,13 @@ This module defines classes to keep GUI elements and their associated settings
 in sync.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
+import future.utils
 
 import abc
 
@@ -50,7 +51,7 @@ class SettingValueSynchronizer(object):
 #===============================================================================
 
 
-class SettingPresenter(object):
+class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   """
   This class wraps a GUI element (widget, dialog, etc.).
@@ -76,8 +77,6 @@ class SettingPresenter(object):
     be connected.
   """
   
-  __metaclass__ = abc.ABCMeta
-    
   _VALUE_CHANGED_SIGNAL = None
   
   def __init__(self, setting, element=None, setting_value_synchronizer=None,

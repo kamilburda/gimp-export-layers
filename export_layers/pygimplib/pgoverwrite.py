@@ -25,12 +25,13 @@ This module defines:
 * `handle_overwrite` convenience function to handle conflicting files.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
+import future.utils
 
 import abc
 import os
@@ -40,9 +41,7 @@ from . import pgpath
 #===============================================================================
 
 
-class OverwriteChooser(object):
-  
-  __metaclass__ = abc.ABCMeta
+class OverwriteChooser(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   """
   This class is an interface to indicate how to handle existing files.
@@ -96,7 +95,7 @@ class NoninteractiveOverwriteChooser(OverwriteChooser):
     return self._overwrite_mode
 
 
-class InteractiveOverwriteChooser(OverwriteChooser):
+class InteractiveOverwriteChooser(future.utils.with_metaclass(abc.ABCMeta, OverwriteChooser)):
   
   """
   This class is an interface for interactive overwrite choosers, requiring
@@ -117,8 +116,6 @@ class InteractiveOverwriteChooser(OverwriteChooser):
   * `is_apply_to_all` (read-only) - Whether the user-made choice applies to the
     current file (False) or to the current and all subsequent files (True).
   """
-  
-  __metaclass__ = abc.ABCMeta
   
   def __init__(self, values_and_display_names, default_value, default_response):
     super(InteractiveOverwriteChooser, self).__init__()

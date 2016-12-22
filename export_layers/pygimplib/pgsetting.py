@@ -23,12 +23,13 @@ This module defines API that can be used to create plug-in settings and GUI
 elements associated with the settings.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
+import future.utils
 
 import abc
 import collections
@@ -110,6 +111,7 @@ class SettingDefaultValueError(SettingValueError):
 #===============================================================================
 
 
+@future.utils.python_2_unicode_compatible
 class Setting(pgsettingutils.SettingParentMixin):
   
   """
@@ -759,7 +761,7 @@ class Setting(pgsettingutils.SettingParentMixin):
 #-------------------------------------------------------------------------------
 
 
-class NumericSetting(Setting):
+class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   
   """
   This is an abstract class for numeric settings - integers and floats.
@@ -784,8 +786,6 @@ class NumericSetting(Setting):
   
   * `"above_max"` - The value assigned is greater than `max_value`.
   """
-  
-  __metaclass__ = abc.ABCMeta
   
   def __init__(self, name, default_value, min_value=None, max_value=None, **kwargs):
     self._min_value = min_value
@@ -951,7 +951,7 @@ class EnumSetting(Setting):
     error_messages["invalid_value"] = _("Invalid item value; valid values: {0}").format(list(self._item_values))
     
     error_messages["invalid_default_value"] = (
-      "invalid identifier for the default value; must be one of {0}").format(self._items.keys())
+      "invalid identifier for the default value; must be one of {0}").format(list(self._items.keys()))
     
     if "error_messages" in kwargs:
       error_messages.update(kwargs["error_messages"])
@@ -1071,7 +1071,7 @@ class EnumSetting(Setting):
         return self._items[empty_value_name]
       else:
         raise ValueError(
-          "invalid identifier for the empty value; must be one of {0}".format(self._items.keys()))
+          "invalid identifier for the empty value; must be one of {0}".format(list(self._items.keys())))
     else:
       return None
 
@@ -1149,7 +1149,7 @@ class StringSetting(Setting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
 
 
-class ValidatableStringSetting(StringSetting):
+class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSetting)):
   
   """
   This class is an abstract class for string settings which are meant to be
@@ -1171,8 +1171,6 @@ class ValidatableStringSetting(StringSetting):
   which override the status messages from the method. See
   `pgpath.FileValidatorErrorStatuses` for available error statuses.
   """
-  
-  __metaclass__ = abc.ABCMeta
   
   def __init__(self, name, default_value, string_validator, **kwargs):
     """
@@ -1300,7 +1298,7 @@ class ImageIDsAndDirectoriesSetting(Setting):
     
     # Add new images opened in GIMP
     for image in current_images:
-      if image.ID not in self._value.keys():
+      if image.ID not in self._value:
         self._value[image.ID] = self._get_imported_image_path(image)
   
   def update_directory(self, image_id, directory):

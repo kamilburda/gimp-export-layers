@@ -25,14 +25,15 @@ debugging is enabled),
 * defines a class to duplicate ("tee") standard output or error output.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
 
 import datetime
+import io
 import logging
 import os
 import sys
@@ -74,24 +75,11 @@ def log_output(log_mode, log_path_dirnames, log_stdout_filename, log_stderr_file
   """
   
   if log_mode == pgconstants.LOG_EXCEPTIONS_ONLY:
-    logger = logging.getLogger(log_stderr_filename)
-    logger.setLevel(logging.DEBUG)
-    
-    can_log = _logger_add_file_handler(
-      logger, [os.path.join(log_path_dirname, log_stderr_filename) for log_path_dirname in log_path_dirnames])
-    if can_log:
-      # Pass the `logger` instance to the function to make sure it is not None.
-      # More information at:
-      # http://stackoverflow.com/questions/5451746/sys-excepthook-doesnt-work-in-imported-modules/5477639
-      # http://bugs.python.org/issue11705
-      def log_exceptions(exctype, value, traceback, logger=logger):
-        logger.error(get_log_header(log_header_title).encode(), exc_info=(exctype, value, traceback))
-      
-      sys.excepthook = log_exceptions
-  
+    _redirect_exception_output_to_file(log_path_dirnames, log_stderr_filename, log_header_title)
   elif log_mode == pgconstants.LOG_OUTPUT_FILES:
     sys.stdout = SimpleLogger(os.path.join(log_path_dirnames[0], log_stdout_filename), "a", log_header_title)
     sys.stderr = SimpleLogger(os.path.join(log_path_dirnames[0], log_stderr_filename), "a", log_header_title)
+    _redirect_exception_output_to_file(log_path_dirnames, log_stderr_filename, log_header_title)
   elif log_mode == pgconstants.LOG_OUTPUT_GIMP_CONSOLE:
     sys.stdout = pgpdb.GimpMessageFile(message_delay_milliseconds=gimp_console_message_delay_milliseconds)
     sys.stderr = pgpdb.GimpMessageFile(
@@ -126,6 +114,23 @@ def _logger_add_file_handler(logger, log_paths):
   return can_log
 
 
+def _redirect_exception_output_to_file(log_path_dirnames, log_filename, log_header_title):
+  logger = logging.getLogger(log_filename)
+  logger.setLevel(logging.DEBUG)
+  
+  can_log = _logger_add_file_handler(
+    logger, [os.path.join(log_path_dirname, log_filename) for log_path_dirname in log_path_dirnames])
+  if can_log:
+    # Pass the `logger` instance to the function to make sure it is not None.
+    # More information at:
+    # http://stackoverflow.com/questions/5451746/sys-excepthook-doesnt-work-in-imported-modules/5477639
+    # http://bugs.python.org/issue11705
+    def log_exceptions(exctype, value, traceback, logger=logger):
+      logger.error(get_log_header(log_header_title), exc_info=(exctype, value, traceback))
+    
+    sys.excepthook = log_exceptions
+
+
 def get_log_header(log_header_title):
   return "\n".join(("", "=" * 80, log_header_title, str(datetime.datetime.now()), "\n"))
 
@@ -141,11 +146,11 @@ class SimpleLogger(object):
   
   def __init__(self, filename, mode, log_header_title):
     self._log_header_title = log_header_title
-    self._log_file = open(filename, mode)
+    self._log_file = io.open(filename, mode, encoding=pgconstants.GIMP_CHARACTER_ENCODING)
   
   def write(self, data):
     if self._log_header_title:
-      self._write(get_log_header(self._log_header_title).encode())
+      self._write(get_log_header(self._log_header_title))
     
     self._write(data)
     self.flush()
@@ -273,7 +278,7 @@ class Tee(object):
     """
     
     if self.log_header_title:
-      self._file.write(get_log_header(self.log_header_title).encode())
+      self._file.write(get_log_header(self.log_header_title))
     
     self._write_with_flush(data)
     

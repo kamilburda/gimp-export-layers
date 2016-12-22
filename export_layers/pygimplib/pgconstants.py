@@ -22,12 +22,12 @@
 This module defines constants used in other modules.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
 
 from . import pgutils
 
@@ -36,5 +36,7 @@ from . import pgutils
 _LOG_OUTPUT_MODES = (LOG_EXCEPTIONS_ONLY, LOG_OUTPUT_FILES, LOG_OUTPUT_GIMP_CONSOLE) = (0, 1, 2)
 
 GTK_CHARACTER_ENCODING = "utf-8"
+GIMP_CHARACTER_ENCODING = "utf-8"
+TEXT_FILE_CHARACTER_ENDOCING = "utf-8"
 
 PYGIMPLIB_MODULE_PATH = pgutils.get_module_root(__name__, "pygimplib")

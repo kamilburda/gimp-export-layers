@@ -23,12 +23,13 @@ This module contains functions dealing with strings, filenames, files and
 directories.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
+import future.utils
 
 import abc
 import collections
@@ -303,10 +304,10 @@ class StringPatternGenerator(object):
     `reset_numbering()`.
     """
     
-    if len(number_generators) != len(self._number_generators.keys()):
+    if len(number_generators) != len(self._number_generators):
       raise ValueError(
         "incorrect number of number generators (got {0}, expected {1})".format(
-          len(number_generators), len(self._number_generators.keys())))
+          len(number_generators), len(self._number_generators)))
     
     for field_name, number_generator in zip(self._number_generators.keys(), number_generators):
       self._set_number_field(field_name, self._fields, self._number_generators, number_generator)
@@ -597,10 +598,10 @@ class FileValidatorErrorStatuses(object):
     HAS_TRAILING_PERIOD,
     HAS_INVALID_NAMES,
     EXISTS_BUT_IS_NOT_DIR
-  ) = range(7)
+  ) = list(range(7))
 
 
-class StringValidator(object):
+class StringValidator(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   """
   This class is an interface to validate strings.
@@ -610,8 +611,6 @@ class StringValidator(object):
   This class does not specify what strings are valid (whether they contain
   invalid characters, substrings, etc.). This should be handled by subclasses.
   """
-  
-  __metaclass__ = abc.ABCMeta
   
   ERROR_STATUSES_MESSAGES = {}
   

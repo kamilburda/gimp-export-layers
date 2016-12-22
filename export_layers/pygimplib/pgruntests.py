@@ -31,35 +31,31 @@ To run unit tests in GIMP:
 * Open up the Python-Fu console (Filters -> Python-Fu -> Console).
 * Run the following commands (you can copy-paste the lines to the console):
 
-
+import imp
 import os
 import sys
 plugins_path = os.path.join(gimp.directory, "plug-ins")
 sys.path.append(plugins_path)
-sys.path.append(<path to pygimplib>)
+sys.path.append(<path to parent directory of pygimplib>)
+sys.path.append(<path to pygimplib directory>)
+import pygimplib
 import pgruntests
-_ = lambda s: s
-_
 pgruntests.run_tests(path=plugins_path)
-
-The `_` is vital if you are using the `gettext` module for internationalization.
 
 * To repeat the tests, paste the following to the console:
 
-
-reload(pgruntests)
+imp.reload(pgruntests)
 pgruntests.run_tests(path=plugins_path)
-
-
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
 
+from future.builtins import *
+
+import imp
 import importlib
 import pkgutil
 import sys
@@ -97,7 +93,7 @@ def load_module(module_name):
   if module_name not in sys.modules:
     module = importlib.import_module(module_name)
   else:
-    module = reload(sys.modules[module_name])
+    module = imp.reload(sys.modules[module_name])
   
   return module
 

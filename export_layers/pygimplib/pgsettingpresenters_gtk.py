@@ -22,12 +22,13 @@
 This module defines SettingPresenter subclasses for GTK elements.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
+import future.utils
 
 import abc
 
@@ -46,13 +47,11 @@ from . import pgsettingpresenter
 #===============================================================================
 
 
-class GtkSettingPresenter(pgsettingpresenter.SettingPresenter):
+class GtkSettingPresenter(future.utils.with_metaclass(abc.ABCMeta, pgsettingpresenter.SettingPresenter)):
   
   """
   This class is a `SettingPresenter` subclass for GTK GUI elements.
   """
-  
-  __metaclass__ = abc.ABCMeta
   
   def __init__(self, *args, **kwargs):
     self._event_handler_id = None

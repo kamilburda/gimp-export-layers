@@ -23,12 +23,13 @@ This module defines a class to group settings together for their easier creation
 and management.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import future.standard_library
+future.standard_library.install_aliases()
+
+from future.builtins import *
+import future.utils
 
 import collections
 import inspect
@@ -41,6 +42,7 @@ from . import pgutils
 #===============================================================================
 
 
+@future.utils.python_2_unicode_compatible
 class SettingGroup(pgsettingutils.SettingParentMixin):
   
   """
@@ -361,7 +363,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
       self._settings_iterator = self._settings.itervalues()
     
     try:
-      next_element = self._settings_iterator.next()
+      next_element = next(self._settings_iterator)
     except StopIteration:
       self._settings_iterator = None
       raise StopIteration
