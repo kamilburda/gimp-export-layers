@@ -73,7 +73,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   _PREVIEW_ALPHA_CHECK_SIZE = 4
   
   def __init__(self, layer_exporter, initial_layer_tree=None, initial_previered_layer_id=None):
-    super(ExportImagePreview, self).__init__()
+    super().__init__()
     
     self._layer_exporter = layer_exporter
     self._initial_layer_tree = initial_layer_tree

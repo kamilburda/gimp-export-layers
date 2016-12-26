@@ -66,7 +66,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   
   def __init__(self, layer_exporter, initial_layer_tree=None, collapsed_items=None,
                selected_items=None, displayed_tags_setting=None):
-    super(ExportNamePreview, self).__init__()
+    super().__init__()
     
     self._layer_exporter = layer_exporter
     self._initial_layer_tree = initial_layer_tree

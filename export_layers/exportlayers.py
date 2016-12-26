@@ -59,7 +59,7 @@ from . import builtin_filters
 class ExportLayersError(Exception):
   
   def __init__(self, message="", layer=None, file_extension=None):
-    super(ExportLayersError, self).__init__()
+    super().__init__()
     
     self.message = message
     
