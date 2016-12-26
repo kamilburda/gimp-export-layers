@@ -74,7 +74,7 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
   def __init__(self, values_and_display_names, default_value, default_response, title="",
                parent=None, use_mnemonics=True):
     
-    super(GtkDialogOverwriteChooser, self).__init__(values_and_display_names, default_value, default_response)
+    super().__init__(values_and_display_names, default_value, default_response)
     
     self._title = title
     self._parent = parent

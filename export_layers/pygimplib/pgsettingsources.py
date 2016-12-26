@@ -179,7 +179,7 @@ class SessionPersistentSettingSource(SettingSource):
   """
   
   def __init__(self, source_name):
-    super(SessionPersistentSettingSource, self).__init__()
+    super().__init__()
     
     self.source_name = source_name
     self._separator = "_"
@@ -216,7 +216,7 @@ class PersistentSettingSource(SettingSource):
   """
   
   def __init__(self, source_name):
-    super(PersistentSettingSource, self).__init__()
+    super().__init__()
     
     self.source_name = source_name
     self._parasite_file_path = os.path.join(gimp.directory, "parasiterc")

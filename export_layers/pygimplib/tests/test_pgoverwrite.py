@@ -31,7 +31,7 @@ from .. import pgoverwrite
 class InteractiveOverwriteChooserStub(pgoverwrite.InteractiveOverwriteChooser):
   
   def __init__(self, values_and_display_names, default_value, default_response):
-    super(InteractiveOverwriteChooserStub, self).__init__(
+    super().__init__(
       values_and_display_names, default_value, default_response)
     
     self._values = [value for value, _unused in self.values_and_display_names]

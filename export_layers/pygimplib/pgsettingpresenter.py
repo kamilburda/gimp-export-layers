@@ -326,7 +326,7 @@ class NullSettingPresenter(SettingPresenter):
     self._enabled = True
     self._visible = True
     
-    super(NullSettingPresenter, self).__init__(setting, self._NULL_GUI_ELEMENT, *args, **kwargs)
+    super().__init__(setting, self._NULL_GUI_ELEMENT, *args, **kwargs)
   
   def get_enabled(self):
     return self._enabled

@@ -80,7 +80,7 @@ class NoninteractiveOverwriteChooser(OverwriteChooser):
   """
   
   def __init__(self, overwrite_mode):
-    super(NoninteractiveOverwriteChooser, self).__init__()
+    super().__init__()
     self._overwrite_mode = overwrite_mode
   
   @property
@@ -114,7 +114,7 @@ class InteractiveOverwriteChooser(future.utils.with_metaclass(abc.ABCMeta, Overw
   """
   
   def __init__(self, values_and_display_names, default_value, default_response):
-    super(InteractiveOverwriteChooser, self).__init__()
+    super().__init__()
     
     self.values_and_display_names = values_and_display_names
     self._values = [value for value, _unused in self.values_and_display_names]

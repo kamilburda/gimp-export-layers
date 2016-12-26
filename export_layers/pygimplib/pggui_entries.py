@@ -71,7 +71,7 @@ class ExtendedEntry(gtk.Entry):
   def __init__(self, *args, **kwargs):
     self._placeholder_text = kwargs.pop("placeholder_text", None)
     
-    super(ExtendedEntry, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
     
     self._undo_context = pggui_undocontext.EntryUndoContext(self)
     self._popup = None
@@ -113,7 +113,7 @@ class ExtendedEntry(gtk.Entry):
     """
     
     if not self._has_placeholder_text_assigned:
-      return super(ExtendedEntry, self).get_text()
+      return super().get_text()
     else:
       return b""
   
@@ -204,7 +204,7 @@ class FilenamePatternEntry(ExtendedEntry):
       suggested_items[suggested_item_values.index(self._default_item_value)][0]
       if self._default_item_value is not None else None)
     
-    super(FilenamePatternEntry, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
     
     self._cursor_position = 0
     self._cursor_position_before_assigning_from_row = None
@@ -463,7 +463,7 @@ class FileExtensionEntry(ExtendedEntry):
   _COLUMN_TYPES = [gobject.TYPE_STRING, gobject.TYPE_PYOBJECT]     # [string, list of strings]
   
   def __init__(self, *args, **kwargs):
-    super(FileExtensionEntry, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
     
     self._tree_view_columns_rects = []
     
@@ -494,7 +494,7 @@ class FileExtensionEntry(ExtendedEntry):
     self._popup.tree_view.get_selection().connect("changed", self._on_tree_selection_changed)
   
   def _do_assign_text(self, *args, **kwargs):
-    super(FileExtensionEntry, self)._do_assign_text(*args, **kwargs)
+    super()._do_assign_text(*args, **kwargs)
     self.set_position(-1)
   
   def _get_file_formats(self, file_formats):

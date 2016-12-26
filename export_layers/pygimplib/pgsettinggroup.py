@@ -69,7 +69,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   """
   
   def __init__(self, name, display_name=None, description=None, setting_attributes=None):
-    super(SettingGroup, self).__init__()
+    super().__init__()
     
     self._name = name
     self._display_name = pgsettingutils.get_processed_display_name(display_name, self._name)

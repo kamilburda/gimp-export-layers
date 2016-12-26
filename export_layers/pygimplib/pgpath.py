@@ -869,7 +869,7 @@ class DirectoryPathValidator(FilePathValidator):
   
   @classmethod
   def is_valid(cls, dirpath):
-    _unused, status_messages = super(DirectoryPathValidator, cls).is_valid(dirpath)
+    _unused, status_messages = super().is_valid(dirpath)
     
     if os.path.exists(dirpath) and not os.path.isdir(dirpath):
       status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.EXISTS_BUT_IS_NOT_DIR))

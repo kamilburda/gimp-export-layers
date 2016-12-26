@@ -112,7 +112,7 @@ class ImageStub(ParasiteFunctionsStub):
   _IMAGE_FIRST_AVAILABLE_ID = 0
   
   def __init__(self, name=None):
-    super(ImageStub, self).__init__()
+    super().__init__()
     
     global _IMAGE_FIRST_AVAILABLE_ID
     
@@ -132,7 +132,7 @@ class ImageStub(ParasiteFunctionsStub):
 class ItemStub(ParasiteFunctionsStub):
   
   def __init__(self, name=None, visible=True):
-    super(ItemStub, self).__init__()
+    super().__init__()
     
     global _ITEM_FIRST_AVAILABLE_ID
     
@@ -152,7 +152,7 @@ class ItemStub(ParasiteFunctionsStub):
 class LayerStub(ItemStub):
   
   def __init__(self, *args, **kwargs):
-    super(LayerStub, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
     
     self.parent = None
 
@@ -160,7 +160,7 @@ class LayerStub(ItemStub):
 class LayerGroupStub(LayerStub):
   
   def __init__(self, *args, **kwargs):
-    super(LayerGroupStub, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
   
   @property
   def layers(self):

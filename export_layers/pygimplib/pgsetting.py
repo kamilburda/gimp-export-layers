@@ -93,7 +93,7 @@ class SettingValueError(Exception):
     for kwarg in ["setting", "settings", "messages"]:
       setattr(self, kwarg, kwargs.pop(kwarg, None))
     
-    super(SettingValueError, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
 
 
 class SettingDefaultValueError(SettingValueError):
@@ -246,7 +246,7 @@ class Setting(pgsettingutils.SettingParentMixin):
       override default error messages defined in classes.
     """
     
-    super(Setting, self).__init__()
+    super().__init__()
     
     self._name = name
     self._default_value = default_value
@@ -788,7 +788,7 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
     self._min_value = min_value
     self._max_value = max_value
     
-    super(NumericSetting, self).__init__(name, default_value, **kwargs)
+    super().__init__(name, default_value, **kwargs)
   
   def _init_error_messages(self):
     self.error_messages["below_min"] = _("Value cannot be less than {0}.").format(self._min_value)
@@ -872,7 +872,7 @@ class BoolSetting(Setting):
   
   def set_value(self, value):
     value = bool(value)
-    super(BoolSetting, self).set_value(value)
+    super().set_value(value)
 
 
 class EnumSetting(Setting):
@@ -964,7 +964,7 @@ class EnumSetting(Setting):
     
     self._empty_value = self._get_empty_value(empty_value)
     
-    super(EnumSetting, self).__init__(name, param_default_value, **kwargs)
+    super().__init__(name, param_default_value, **kwargs)
     
     self._allowed_empty_values.append(self._empty_value)
     
@@ -1179,13 +1179,13 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
     
     self._string_validator = string_validator
     
-    super(ValidatableStringSetting, self).__init__(name, default_value, **kwargs)
+    super().__init__(name, default_value, **kwargs)
   
   def set_value(self, value):
     if isinstance(value, bytes):
       value = value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
     
-    super(ValidatableStringSetting, self).set_value(value)
+    super().set_value(value)
     
   def _init_error_messages(self):
     for status in pgpath.FileValidatorErrorStatuses.ERROR_STATUSES:
@@ -1229,7 +1229,7 @@ class FileExtensionSetting(ValidatableStringSetting):
     if isinstance(default_value, bytes):
       default_value = default_value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
     
-    super(FileExtensionSetting, self).__init__(name, default_value, pgpath.FileExtensionValidator, **kwargs)
+    super().__init__(name, default_value, pgpath.FileExtensionValidator, **kwargs)
   
 
 class DirectorySetting(ValidatableStringSetting):
@@ -1257,7 +1257,7 @@ class DirectorySetting(ValidatableStringSetting):
     if isinstance(default_value, bytes):
       default_value = default_value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
     
-    super(DirectorySetting, self).__init__(name, default_value, pgpath.DirectoryPathValidator, **kwargs)
+    super().__init__(name, default_value, pgpath.DirectoryPathValidator, **kwargs)
 
 
 #-------------------------------------------------------------------------------

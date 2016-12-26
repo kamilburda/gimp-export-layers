@@ -52,7 +52,7 @@ class GtkSettingPresenter(future.utils.with_metaclass(abc.ABCMeta, pgsettingpres
   def __init__(self, *args, **kwargs):
     self._event_handler_id = None
     
-    super(GtkSettingPresenter, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
   
   def get_enabled(self):
     return self._element.get_sensitive()
@@ -167,7 +167,7 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
   """
   
   def __init__(self, *args, **kwargs):
-    super(GtkFolderChooserPresenter, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
     
     self._location_toggle_button = self._get_location_toggle_button()
 
