@@ -38,6 +38,7 @@ except Exception:
 import gimpenums
 
 from export_layers.pygimplib import pgitemtree
+from export_layers.pygimplib import pgconstants
 
 from export_layers import exportlayers
 from export_layers import settings_plugin
@@ -110,7 +111,7 @@ def _run_noninteractive(layer_tree, args):
   
   for setting, arg in zip(main_settings, args):
     if isinstance(arg, bytes):
-      arg = arg.decode()
+      arg = arg.decode(pgconstants.GIMP_CHARACTER_ENCODING)
     setting.set_value(arg)
   
   _run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, layer_tree)

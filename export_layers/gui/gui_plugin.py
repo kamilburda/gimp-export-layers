@@ -203,13 +203,13 @@ def _update_directory(setting, current_image, directory_for_current_image):
   
   if directory_for_current_image is not None:
     if isinstance(directory_for_current_image, bytes):
-      directory_for_current_image = directory_for_current_image.decode(pgconstants.GTK_CHARACTER_ENCODING)
+      directory_for_current_image = directory_for_current_image.decode(pgconstants.GIMP_CHARACTER_ENCODING)
     
     setting.set_value(directory_for_current_image)
     return True
   
   if current_image.filename is not None:
-    setting.set_value(os.path.dirname(current_image.filename.decode(pgconstants.GTK_CHARACTER_ENCODING)))
+    setting.set_value(os.path.dirname(current_image.filename.decode(pgconstants.GIMP_CHARACTER_ENCODING)))
     return True
   
   return False

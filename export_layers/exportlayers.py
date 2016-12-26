@@ -38,6 +38,7 @@ import gimpenums
 pdb = gimp.pdb
 
 from . import pygimplib
+from .pygimplib import pgconstants
 from .pygimplib import pgfileformats
 from .pygimplib import pgitemtree
 from .pygimplib import pgobjectfilter
@@ -912,7 +913,10 @@ class LayerExporter(object):
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     
     try:
-      export_func(run_mode, image, layer, output_filename.encode(), os.path.basename(output_filename).encode())
+      export_func(
+        run_mode, image, layer,
+        output_filename.encode(pgconstants.GIMP_CHARACTER_ENCODING),
+        os.path.basename(output_filename).encode(pgconstants.GIMP_CHARACTER_ENCODING))
     except RuntimeError as e:
       # HACK: Examining the exception message seems to be the only way to determine
       # some specific cases of export failure.
