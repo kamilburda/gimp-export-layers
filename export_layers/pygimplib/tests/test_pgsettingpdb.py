@@ -24,6 +24,7 @@ from future.builtins import *
 import unittest
 
 from . import stubs_pgsettinggroup
+from .. import pgconstants
 from .. import pgsetting
 from .. import pgsettingpdb
 
@@ -46,8 +47,8 @@ class TestPdbParamCreator(unittest.TestCase):
     
     self.assertTrue(len(param), 3)
     self.assertEqual(param[0], pgsetting.SettingPdbTypes.string)
-    self.assertEqual(param[1], "file_extension".encode())
-    self.assertEqual(param[2], "File extension".encode())
+    self.assertEqual(param[1], "file_extension".encode(pgconstants.GIMP_CHARACTER_ENCODING))
+    self.assertEqual(param[2], "File extension".encode(pgconstants.GIMP_CHARACTER_ENCODING))
   
   def test_create_params_invalid_argument(self):
     with self.assertRaises(TypeError):
@@ -59,11 +60,16 @@ class TestPdbParamCreator(unittest.TestCase):
     self.assertTrue(len(params), 1 + len(self.settings))
     self.assertEqual(
       params[0],
-      (self.file_ext_setting.pdb_type, self.file_ext_setting.name.encode(),
-       self.file_ext_setting.description.encode()))
+      (self.file_ext_setting.pdb_type,
+       self.file_ext_setting.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
+       self.file_ext_setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING)))
     
     for param, setting in zip(params[1:], self.settings.walk()):
-      self.assertEqual(param, (setting.pdb_type, setting.name.encode(), setting.description.encode()))
+      self.assertEqual(
+        param,
+        (setting.pdb_type,
+         setting.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
+         setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING)))
   
   def test_create_params_with_unregistrable_setting(self):
     params = pgsettingpdb.PdbParamCreator.create_params(self.unregistrable_setting)

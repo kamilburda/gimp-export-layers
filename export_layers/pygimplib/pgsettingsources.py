@@ -41,6 +41,7 @@ import gimp
 import gimpenums
 import gimpshelf
 
+from . import pgconstants
 from . import pgsetting
 from . import pgsettingpersistor
 
@@ -188,10 +189,14 @@ class SessionPersistentSettingSource(SettingSource):
   
   def write(self, settings):
     for setting in settings:
-      gimpshelf.shelf[(self.source_name + self._separator + setting.name).encode()] = setting.value
+      gimpshelf.shelf[self._get_key(setting.name)] = setting.value
   
   def _retrieve_setting_value(self, setting_name):
-    return gimpshelf.shelf[(self.source_name + self._separator + setting_name).encode()]
+    return gimpshelf.shelf[self._get_key(setting_name)]
+  
+  def _get_key(self, setting_name):
+    key = self.source_name + self._separator + setting_name
+    return key.encode(pgconstants.GIMP_CHARACTER_ENCODING)
 
 
 class PersistentSettingSource(SettingSource):

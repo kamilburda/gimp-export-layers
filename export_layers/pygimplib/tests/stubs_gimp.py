@@ -26,6 +26,8 @@ unit tests.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+from .. import pgconstants
+
 #===============================================================================
 
 
@@ -119,7 +121,7 @@ class ImageStub(ParasiteFunctionsStub):
     self.height = 0
     self.image_type = None
     self.layers = []
-    self.name = name.encode() if name is not None else b""
+    self.name = name.encode(pgconstants.GIMP_CHARACTER_ENCODING) if name is not None else b""
     self.filename = b""
     self.uri = b""
     self.valid = True
@@ -140,7 +142,7 @@ class ItemStub(ParasiteFunctionsStub):
     self.valid = True
     self.visible = visible
     self.offsets = (0, 0)
-    self.name = name.encode() if name is not None else b""
+    self.name = name.encode(pgconstants.GIMP_CHARACTER_ENCODING) if name is not None else b""
     self.image = None
     self.children = []
     

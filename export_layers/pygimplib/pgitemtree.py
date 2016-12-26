@@ -54,6 +54,7 @@ import gimpenums
 
 pdb = gimp.pdb
 
+from . import pgconstants
 from . import pgobjectfilter
 from . import pgpath
 from . import pgutils
@@ -427,7 +428,7 @@ class _ItemTreeElement(object):
     self._parents = parents if parents is not None else []
     self._children = children
     
-    self.name = item.name.decode()
+    self.name = item.name.decode(pgconstants.GIMP_CHARACTER_ENCODING)
     
     self._item_type = None
     self._path_visible = None

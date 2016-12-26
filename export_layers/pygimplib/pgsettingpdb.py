@@ -26,6 +26,7 @@ This module contains a class to generate GIMP PDB parameters out of
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+from . import pgconstants
 from . import pgsetting
 from . import pgsettinggroup
 
@@ -86,4 +87,6 @@ class PdbParamCreator(object):
   
   @classmethod
   def _create_param(cls, setting):
-    return (setting.pdb_type, setting.name.encode(), setting.description.encode())
+    return (setting.pdb_type,
+            setting.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
+            setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING))

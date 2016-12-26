@@ -37,6 +37,7 @@ import gimpenums
 
 pdb = gimp.pdb
 
+from . import pgconstants
 from . import pgpath
 from . import pgsettingpersistor
 from . import pgsettingpresenter
@@ -1182,7 +1183,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
   
   def set_value(self, value):
     if isinstance(value, bytes):
-      value = value.decode()
+      value = value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
     
     super(ValidatableStringSetting, self).set_value(value)
     
@@ -1226,7 +1227,7 @@ class FileExtensionSetting(ValidatableStringSetting):
   
   def __init__(self, name, default_value, **kwargs):
     if isinstance(default_value, bytes):
-      default_value = default_value.decode()
+      default_value = default_value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
     
     super(FileExtensionSetting, self).__init__(name, default_value, pgpath.FileExtensionValidator, **kwargs)
   
@@ -1254,7 +1255,7 @@ class DirectorySetting(ValidatableStringSetting):
   
   def __init__(self, name, default_value, **kwargs):
     if isinstance(default_value, bytes):
-      default_value = default_value.decode()
+      default_value = default_value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
     
     super(DirectorySetting, self).__init__(name, default_value, pgpath.DirectoryPathValidator, **kwargs)
 
@@ -1311,7 +1312,7 @@ class ImageIDsAndDirectoriesSetting(Setting):
   
   def _get_imported_image_path(self, image):
     if image.filename is not None:
-      return os.path.dirname(image.filename.decode())
+      return os.path.dirname(image.filename.decode(pgconstants.GIMP_CHARACTER_ENCODING))
     else:
       return None
 
