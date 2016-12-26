@@ -111,6 +111,18 @@ def stringify_object(object_, name):
 
 
 def get_module_root(module_path, path_component_to_trim_after):
+  """
+  Return the part of the full module path (separated by "." characters) from the
+  beginning up to the matching path component including that component.
+  
+  For example,
+  `get_module_root("export_layers.pygimplib.tests.test_pgutils", "pygimplib")`
+  returns `export_layers.pygimplib`.
+  
+  If `path_component_to_trim_after` does not match any path component from
+  `module_path`, return `module_path`.
+  """
+  
   module_path_components = module_path.split(".")
   
   if path_component_to_trim_after in module_path_components:
