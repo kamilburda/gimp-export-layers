@@ -25,10 +25,6 @@ Python API.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-
-import future.standard_library
-future.standard_library.install_aliases()
-
 from future.builtins import *
 
 import os

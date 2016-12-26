@@ -23,10 +23,6 @@ This module provides stubs primarily to be used in the `test_pgsetting` module.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-
-import future.standard_library
-future.standard_library.install_aliases()
-
 from future.builtins import *
 
 from .. import pgsetting

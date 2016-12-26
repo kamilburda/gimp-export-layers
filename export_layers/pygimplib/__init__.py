@@ -58,11 +58,6 @@ _LIB_SUBDIRECTORY_PATH = os.path.join(_PYGIMPLIB_PATH, "lib")
 _setup_import_of_external_lib_modules(_LIB_SUBDIRECTORY_PATH)
 
 #===============================================================================
-
-
-import future.standard_library
-future.standard_library.install_aliases()
-
 from future.builtins import *
 
 try:

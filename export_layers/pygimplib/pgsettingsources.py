@@ -25,10 +25,6 @@ This module defines setting sources - the means to load and save settings:
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-
-import future.standard_library
-future.standard_library.install_aliases()
-
 from future.builtins import *
 import future.utils
 
