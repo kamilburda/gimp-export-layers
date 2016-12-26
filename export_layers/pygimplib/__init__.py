@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# pygimplib - Collection of modules to improve development of Python GIMP plug-ins
+# pygimplib - Library to improve development of Python GIMP plug-ins
 #
 # Copyright (C) 2014-2016 khalim19 <khalim19@gmail.com>
 #
