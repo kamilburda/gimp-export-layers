@@ -47,8 +47,13 @@ def get_processed_description(setting_description, setting_display_name):
 
 
 def generate_description(display_name):
-  # Underscores in display names used as mnemonics are usually undesired in
-  # descriptions, hence their removal.
+  """
+  Generate setting description from a display name.
+  
+  Underscores in display names used as mnemonics are usually undesired in
+  descriptions, hence their removal.
+  """
+  
   return display_name.replace("_", "")
 
 
