@@ -19,12 +19,13 @@
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import export_layers.pygimplib as pygimplib
+import export_layers.config
+from future.builtins import *
+
+pygimplib.init()
 
 import os
 
@@ -35,11 +36,6 @@ except Exception:
   pass
 
 import gimpenums
-
-import export_layers.pygimplib as pygimplib
-import export_layers.config
-
-pygimplib.init()
 
 from export_layers.pygimplib import pgitemtree
 

@@ -23,12 +23,9 @@ This module is the core of the plug-in and provides a class to export layers as
 separate images.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-str = unicode
+from __future__ import absolute_import, division, print_function, unicode_literals
+from future.builtins import *
+import future.utils
 
 import collections
 import contextlib
@@ -57,6 +54,7 @@ from . import builtin_filters
 #===============================================================================
 
 
+@future.utils.python_2_unicode_compatible
 class ExportLayersError(Exception):
   
   def __init__(self, message="", layer=None, file_extension=None):
@@ -222,7 +220,7 @@ class LayerNameRenamer(object):
         _insert_tag(tag)
     else:
       for tag in tags:
-        if tag in self._layer_exporter.BUILTIN_TAGS.keys():
+        if tag in self._layer_exporter.BUILTIN_TAGS:
           continue
         if tag in self._layer_exporter.BUILTIN_TAGS.values():
           tag = _get_tag_from_tag_display_name(tag)

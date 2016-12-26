@@ -23,17 +23,19 @@
 This script creates a ZIP package for releases from the plug-in source.
 
 This script requires the `pathspec` library (for matching files by patterns):
-  https://github.com/cpburnz/python-path-specification
+https://github.com/cpburnz/python-path-specification
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import export_layers.pygimplib as pygimplib
+import export_layers.config
+from future.builtins import *
+
+pygimplib.init()
 
 import inspect
+import io
 import os
 import re
 import shutil
@@ -44,12 +46,8 @@ import zipfile
 
 import pathspec
 
-import export_layers.pygimplib as pygimplib
-
-import export_layers.config
+from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgpath
-
-pygimplib.init()
 
 #===============================================================================
 
@@ -137,7 +135,7 @@ def process_file(filename, *process_functions_and_args):
   temp_filename_copy = os.path.join(temp_dir, "temp")
   shutil.copy2(filename, temp_filename_copy)
   
-  temp_file_copy = open(temp_filename_copy, "r+")
+  temp_file_copy = io.open(temp_filename_copy, "r+b")
   temp_file = tempfile.NamedTemporaryFile("r+", dir=temp_dir, delete=False)
   
   last_modified_filename = None
@@ -182,8 +180,8 @@ def _print_program_message(message, stream=sys.stdout):
 
 
 def _get_filtered_files(directory, pattern_file):
-  with open(pattern_file, "r") as file_:
-    spec = pathspec.PathSpec.from_lines(pathspec.GitIgnorePattern, file_)
+  with io.open(pattern_file, "r", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
+    spec = pathspec.PathSpec.from_lines(pathspec.patterns.gitwildmatch.GitWildMatchPattern, file_)
   
   return [os.path.join(directory, match) for match in spec.match_tree(directory)]
 

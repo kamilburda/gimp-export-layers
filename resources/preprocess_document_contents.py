@@ -31,30 +31,20 @@ Optional arguments to "include-section":
 * [no-header] - exclude section header
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-str = unicode
+import export_layers.pygimplib as pygimplib
+import export_layers.config
+from future.builtins import *
 
-import __builtin__
-
-# For `gettext`-aware modules that use `_()` and `N_()` functions, define dummy
-# functions that simply return the strings.
-
-def gettext(s):
-  return s
-
-if "_" not in __builtin__.__dict__:
-  __builtin__.__dict__["_"] = gettext
-
-if "N_" not in __builtin__.__dict__:
-  __builtin__.__dict__["N_"] = gettext
+pygimplib.init()
 
 import inspect
+import io
 import os
 import re
+
+from export_layers.pygimplib import pgconstants
 
 #===============================================================================
 
@@ -187,7 +177,7 @@ def _find_section(contents, section_name):
 def _process_token_args(token_name, token_args):
   document_path = token_args[0]
   section_name = token_args[1]
-  with open(document_path, "r") as document:
+  with io.open(document_path, "r", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as document:
     document_contents = document.read()
     section_header, section_contents = _find_section(document_contents, section_name)
   
@@ -214,12 +204,12 @@ def _preprocess_contents(contents, root_dir):
 
 def preprocess_contents(source_files, dest_files, root_dir):
   for source_file, dest_file in zip(source_files, dest_files):
-    with open(source_file, "r") as file_:
+    with io.open(source_file, "r", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
       source_file_contents = file_.read()
     
     preprocessed_contents = _preprocess_contents(source_file_contents, root_dir)
     
-    with open(dest_file, "w") as file_:
+    with io.open(dest_file, "w", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
       file_.writelines(preprocessed_contents)
 
 

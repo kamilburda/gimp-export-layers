@@ -22,12 +22,8 @@
 This module defines the base class for preview widgets.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-str = unicode
+from __future__ import absolute_import, division, print_function, unicode_literals
+from future.builtins import *
 
 #===============================================================================
 

@@ -23,12 +23,8 @@ This module defines a preview widget displaying the names of layers to be
 exported.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-str = unicode
+from __future__ import absolute_import, division, print_function, unicode_literals
+from future.builtins import *
 
 import collections
 import os
@@ -36,6 +32,7 @@ import os
 import pygtk
 pygtk.require("2.0")
 import gtk
+import gobject
 
 import gimp
 
@@ -59,8 +56,10 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   _ADD_TAG_POPUP_BORDER_WIDTH = 5
   
   _COLUMNS = (
-    _COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME_SENSITIVE, _COLUMN_LAYER_NAME,
-    _COLUMN_LAYER_ID) = ([0, gtk.gdk.Pixbuf], [1, bool], [2, bool], [3, bytes], [4, int])
+    _COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME_SENSITIVE,
+    _COLUMN_LAYER_NAME, _COLUMN_LAYER_ID) = (
+    [0, gtk.gdk.Pixbuf], [1, gobject.TYPE_BOOLEAN], [2, gobject.TYPE_BOOLEAN],
+    [3, gobject.TYPE_STRING], [4, gobject.TYPE_INT])
   
   _ICON_IMAGE_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_image.png")
   _ICON_TAG_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_tag.png")

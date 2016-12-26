@@ -22,12 +22,8 @@
 This module defines the GUI for the plug-in.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-str = unicode
+from __future__ import absolute_import, division, print_function, unicode_literals
+from future.builtins import *
 
 import contextlib
 import functools
@@ -779,10 +775,7 @@ class ExportLayersGui(object):
   
   def _setup_layer_exporter(self):
     overwrite_chooser = pggui.GtkDialogOverwriteChooser(
-      # Don't insert the Cancel item as a button.
-      zip(
-        self._settings["main/overwrite_mode"].items.values()[:-1],
-        self._settings["main/overwrite_mode"].items_display_names.values()[:-1]),
+      self._get_overwrite_dialog_items(),
       default_value=self._settings["main/overwrite_mode"].items["replace"],
       default_response=self._settings["main/overwrite_mode"].items["cancel"],
       title=pygimplib.config.PLUGIN_TITLE,
@@ -797,6 +790,18 @@ class ExportLayersGui(object):
       export_context_manager=handle_gui_in_export, export_context_manager_args=[self._dialog])
     
     return overwrite_chooser, progress_updater
+  
+  def _get_overwrite_dialog_items(self):
+    item_value_cancel = self._settings["main/overwrite_mode"].items['cancel']
+    item_display_name_cancel = (
+      self._settings["main/overwrite_mode"].items_display_names['cancel'])
+    
+    return list(zip(
+      [item_value for item_value in self._settings["main/overwrite_mode"].items.values()
+       if item_value != item_value_cancel],
+      [item_display_name_value for item_display_name_value
+       in self._settings["main/overwrite_mode"].items_display_names.values()
+       if item_display_name_value != item_display_name_cancel]))
   
   def _restore_gui_after_export(self):
     self._set_gui_enabled(True)
