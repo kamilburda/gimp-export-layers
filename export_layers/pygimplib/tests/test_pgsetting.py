@@ -36,7 +36,6 @@ from . import stubs_gimp
 from . import stubs_pgsetting
 from .. import pgpath
 from .. import pgsetting
-from .. import pgsettingpresenter
 from .. import pgsettingpersistor
 from .. import pgsettingsources
 from .. import pgconstants
@@ -452,13 +451,10 @@ class TestSettingGui(unittest.TestCase):
         "only_visible_layers", False, gui_type=stubs_pgsetting.YesNoToggleButtonPresenterStub)
   
   def test_setting_null_gui_type(self):
-    # For now, don't use None or `SettingGuiTypes.none` as it raises TypeError due to
-    # `super()` failing on module reload. For further information, see:
-    # https://thingspython.wordpress.com/2010/09/27/another-super-wrinkle-raising-typeerror/
     setting = stubs_pgsetting.SettingWithGuiStub(
-      "only_visible_layers", False, gui_type=pgsettingpresenter.NullSettingPresenter)
+      "only_visible_layers", False, gui_type=pgsetting.SettingGuiTypes.none)
     setting.set_gui()
-    self.assertIs(type(setting.gui), pgsettingpresenter.NullSettingPresenter)
+    self.assertIs(type(setting.gui), pgsetting.SettingGuiTypes.none)
   
   def test_set_gui_gui_type_is_specified_gui_element_is_none_raise_error(self):
     setting = stubs_pgsetting.SettingWithGuiStub("only_visible_layers", False)
