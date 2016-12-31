@@ -586,6 +586,7 @@ def N_(str_):
 
 
 class FileValidatorErrorStatuses(object):
+  
   ERROR_STATUSES = (
     IS_EMPTY,
     HAS_INVALID_CHARS,

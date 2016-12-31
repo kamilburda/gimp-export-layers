@@ -102,7 +102,6 @@ class ParasiteFunctionsStub(object):
 
 #===============================================================================
 
-
 _IMAGE_FIRST_AVAILABLE_ID = 0
 _ITEM_FIRST_AVAILABLE_ID = 0
 

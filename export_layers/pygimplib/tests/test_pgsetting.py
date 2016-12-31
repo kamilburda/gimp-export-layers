@@ -778,9 +778,6 @@ class TestDirectorySetting(unittest.TestCase):
     self.assertIsInstance(self.setting.value, str)
 
 
-#-------------------------------------------------------------------------------
-
-
 class TestImageIDsAndDirectoriesSetting(unittest.TestCase):
   
   def setUp(self):

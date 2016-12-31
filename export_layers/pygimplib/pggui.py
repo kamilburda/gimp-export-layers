@@ -427,7 +427,6 @@ def display_message(message, message_type, title=None, parent=None, buttons=gtk.
 
 #===============================================================================
 
-
 _gui_excepthook_parent = None
 
 

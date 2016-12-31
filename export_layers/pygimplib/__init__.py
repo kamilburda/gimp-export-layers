@@ -30,6 +30,7 @@ import types
 
 #===============================================================================
 
+
 def _setup_import_of_external_lib_modules(lib_directory):
   """
   Add directories containing external libraries for pygimplib to `sys.path` so
@@ -187,6 +188,7 @@ _init_config()
 #===============================================================================
 
 _is_initialized = False
+
 
 def init():
   global _is_initialized

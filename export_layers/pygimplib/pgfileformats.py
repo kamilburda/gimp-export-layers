@@ -119,7 +119,6 @@ def _create_file_formats_dict(file_formats):
 
 #===============================================================================
 
-
 file_formats = _create_file_formats([
   ("Alias Pix image", ["pix", "matte", "mask", "alpha", "als"]),
   ("ASCII art", ["txt", "ansi", "text"], "file-aa-save"),

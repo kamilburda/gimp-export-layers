@@ -754,7 +754,8 @@ class Setting(pgsettingutils.SettingParentMixin):
     else:
       return ""
 
-#-------------------------------------------------------------------------------
+
+#===============================================================================
 
 
 class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
@@ -1257,9 +1258,6 @@ class DirectorySetting(ValidatableStringSetting):
       default_value = default_value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
     
     super().__init__(name, default_value, pgpath.DirectoryPathValidator, **kwargs)
-
-
-#-------------------------------------------------------------------------------
 
 
 class ImageIDsAndDirectoriesSetting(Setting):

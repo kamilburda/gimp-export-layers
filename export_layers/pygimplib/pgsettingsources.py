@@ -160,7 +160,7 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     pass
 
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 
 
 class SessionPersistentSettingSource(SettingSource):

@@ -95,7 +95,6 @@ class SettingParentMixin(object):
 
 #===============================================================================
 
-
 SETTING_PATH_SEPARATOR = "/"
 
 

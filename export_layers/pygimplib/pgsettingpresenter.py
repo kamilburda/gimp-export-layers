@@ -297,7 +297,7 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     self._set_value(value)
 
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 
 
 class NullSettingPresenter(SettingPresenter):

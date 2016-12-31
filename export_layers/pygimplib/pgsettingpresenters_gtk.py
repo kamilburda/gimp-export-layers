@@ -71,7 +71,7 @@ class GtkSettingPresenter(future.utils.with_metaclass(abc.ABCMeta, pgsettingpres
     self._event_handler_id = None
 
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 
 
 class GtkCheckButtonPresenter(GtkSettingPresenter):
