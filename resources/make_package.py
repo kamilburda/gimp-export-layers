@@ -161,17 +161,6 @@ def process_file(filename, *process_functions_and_args):
   os.rmdir(temp_dir)
 
 
-# key: filename
-# value: list of (function, additional function arguments) as arguments to `process_file`
-FILES_TO_PROCESS = {
-  FILENAMES_TO_RENAME["README.md"]: [
-    (_trim_leading_spaces, NUM_LEADING_SPACES_TO_TRIM),
-    (_rename_filenames_inside_file, FILENAMES_TO_RENAME),
-    (_remove_download_link,)
-  ]
-}
-
-
 #===============================================================================
 
 
@@ -187,6 +176,16 @@ def _get_filtered_files(directory, pattern_file):
 
 
 #===============================================================================
+
+# key: filename
+# value: list of (function, additional function arguments) as arguments to `process_file`
+FILES_TO_PROCESS = {
+  FILENAMES_TO_RENAME["README.md"]: [
+    (_trim_leading_spaces, NUM_LEADING_SPACES_TO_TRIM),
+    (_rename_filenames_inside_file, FILENAMES_TO_RENAME),
+    (_remove_download_link,)
+  ]
+}
 
 
 def make_package(input_directory, output_file, version):
@@ -261,6 +260,7 @@ def main():
   output_file = OUTPUT_FILENAME_PREFIX + "-" + pygimplib.config.PLUGIN_VERSION + OUTPUT_FILENAME_SUFFIX
   make_package(PLUGINS_PATH, output_file, pygimplib.config.PLUGIN_VERSION)
   print("Package successfully created:", os.path.join(PLUGINS_PATH, output_file))
+
 
 if __name__ == "__main__":
   main()

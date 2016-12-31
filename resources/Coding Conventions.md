@@ -24,6 +24,16 @@ Use single quotes:
 Use backquotes in element names in comments.
 
 
+Spacing
+-------
+
+Use a separator (commented line containing "=" characters) for a block of
+related functions or classes in a module.
+
+Use two empty lines between a separator and a function or class definition. Use
+one empty line between a separator and other statements.
+
+
 Python 3 Compatibility
 ----------------------
 

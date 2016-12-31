@@ -276,7 +276,6 @@ class ExportStatuses(object):
 
 #===============================================================================
 
-
 _BUILTIN_OPERATIONS_GROUP = "process_layer"
 _BUILTIN_FILTERS_GROUP = "set_filters"
 _BUILTIN_FILTERS_LAYER_TYPES_GROUP = "set_filters_layer_types"
@@ -351,7 +350,6 @@ def remove_operation(setting):
 
 _operations_executor.add_foreach_operation(
   builtin_operations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
-
 
 #===============================================================================
 

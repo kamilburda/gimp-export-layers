@@ -37,7 +37,6 @@ from ..pygimplib import pgutils
 
 #===============================================================================
 
-
 _operation_box_drag_type_id_counter = 1
 
 

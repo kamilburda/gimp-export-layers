@@ -46,7 +46,6 @@ from export_layers.gui import gui_plugin
 
 #===============================================================================
 
-
 settings = settings_plugin.create_settings()
 
 
