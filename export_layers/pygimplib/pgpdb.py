@@ -31,13 +31,12 @@ import os
 import contextlib
 
 import gimp
+from gimp import pdb
 import gimpenums
 
 from . import pgconstants
 from . import pginvocation
 from . import pgutils
-
-pdb = gimp.pdb
 
 #===============================================================================
 

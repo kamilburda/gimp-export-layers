@@ -32,10 +32,7 @@ import pygtk
 pygtk.require("2.0")
 import gtk
 
-import gimp
 import gimpui
-
-pdb = gimp.pdb
 
 from . import pgconstants
 from . import pgsettingpresenter

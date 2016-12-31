@@ -32,10 +32,6 @@ import gtk
 import gobject
 import pango
 
-import gimp
-
-pdb = gimp.pdb
-
 from . import pgconstants
 from . import pgfileformats
 from . import pggui_cellrenderers

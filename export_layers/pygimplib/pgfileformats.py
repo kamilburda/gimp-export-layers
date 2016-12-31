@@ -36,9 +36,7 @@ The file save procedure can be used for multiple purposes, such as:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-import gimp
-
-pdb = gimp.pdb
+from gimp import pdb
 
 #===============================================================================
 

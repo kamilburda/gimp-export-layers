@@ -48,10 +48,7 @@ pygtk.require("2.0")
 import gtk
 import gobject
 
-import gimp
 import gimpui
-
-pdb = gimp.pdb
 
 from . import pgoverwrite
 from . import pgprogress
