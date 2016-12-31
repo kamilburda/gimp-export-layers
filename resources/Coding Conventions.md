@@ -50,6 +50,10 @@ Import whole modules, do not import individual classes, functions or variables.
 Do not use wildcard imports. Exceptions to this rule include:
 * `from future.builtins import *` to help improve Python 3 compatibility.
 
+Module-level statements should only include imports, docstring and definitions
+of classes, functions and global variables/constants. Avoid executing code on
+the module level if possible.
+
 
 Unicode Practices
 -----------------
@@ -61,20 +65,14 @@ Always use Unicode strings internally.
 ### Unicode for External Modules
 
 GIMP uses UTF-8 encoding. That includes the following functions or attributes:
-* image name,
-* item name (layer, channel, etc.),
-* PDB parameters - name, description,
-* `PDB_STRING` arguments to PDB procedures,
-* `gimp.get_data()`, used by the GIMP shelf can apparently handle Unicode (as it
+* image name and item name (layer, channel, etc.),
+* `PDB_STRING*` parameters to PDB procedures,
+* `gimp.get_data()`, used by the GIMP shelf, can apparently handle Unicode (as it
   uses the `pickle` module), but encode/decode with UTF-8 just in case.
 
 GTK uses UTF-8 encoding. Encode strings in UTF-8 for GTK functions as
 [GTK may not fully support Unicode in Python 2]
 (http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html).
-
-`os` module can handle both `str` and `unicode` types.
-
-Argument to `write()` for file-like objects must be encoded in UTF-8.
 
 
 Mixins
@@ -91,4 +89,4 @@ GTK
 When creating a `gtk.TreeView`, `bytes` apparently cannot be used as a column
 type for strings due to the usage of the `future` library. Use
 `GObject.TYPE_STRING` instead. For consistency, always use `GObject` types for
-column types instead of Python types when such `GObject` types exist.
+column types instead of Python types if such `GObject` types exist.
