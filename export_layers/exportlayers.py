@@ -32,10 +32,8 @@ import contextlib
 import datetime
 import os
 
-import gimp
+from gimp import pdb
 import gimpenums
-
-pdb = gimp.pdb
 
 from . import pygimplib
 from .pygimplib import pgconstants

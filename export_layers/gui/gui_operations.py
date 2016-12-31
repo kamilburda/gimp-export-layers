@@ -30,10 +30,6 @@ import pygtk
 pygtk.require("2.0")
 import gtk
 
-import gimp
-
-pdb = gimp.pdb
-
 from .. import pygimplib
 from ..pygimplib import pgconstants
 from ..pygimplib import pgsettinggroup

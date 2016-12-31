@@ -37,9 +37,8 @@ import gobject
 import pango
 
 import gimp
+from gimp import pdb
 import gimpenums
-
-pdb = gimp.pdb
 
 from .. import pygimplib
 from ..pygimplib import pgconstants

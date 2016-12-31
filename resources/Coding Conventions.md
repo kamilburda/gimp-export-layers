@@ -45,9 +45,11 @@ For local modules, prefer explicit relative imports to absolute imports. For
 modules forming a library, this avoids dependency on the application using the
 library.
 
-Import whole modules, do not import individual classes, functions or variables.
+Import whole modules, do not import individual classes, functions or other
+objects. Exceptions:
+* `from gimp import pdb`
 
-Do not use wildcard imports. Exceptions to this rule include:
+Do not use wildcard imports. Exceptions:
 * `from future.builtins import *` to help improve Python 3 compatibility.
 
 Module-level statements should only include imports, docstring and definitions

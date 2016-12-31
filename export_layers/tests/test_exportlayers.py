@@ -27,9 +27,7 @@ import os
 import shutil
 import unittest
 
-import gimp
-
-pdb = gimp.pdb
+from gimp import pdb
 
 from .. import pygimplib
 from .. import config

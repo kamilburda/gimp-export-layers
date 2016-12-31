@@ -34,9 +34,7 @@ pygtk.require("2.0")
 import gtk
 import gobject
 
-import gimp
-
-pdb = gimp.pdb
+from gimp import pdb
 
 from .. import pygimplib
 from ..pygimplib import pgconstants
