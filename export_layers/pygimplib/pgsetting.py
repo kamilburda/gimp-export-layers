@@ -51,6 +51,7 @@ class SettingPdbTypes(object):
   int32 = gimpenums.PDB_INT32
   int16 = gimpenums.PDB_INT16
   int8 = gimpenums.PDB_INT8
+  int = int32
   float = gimpenums.PDB_FLOAT
   string = gimpenums.PDB_STRING
   color = gimpenums.PDB_COLOR
@@ -58,6 +59,7 @@ class SettingPdbTypes(object):
   array_int32 = gimpenums.PDB_INT32ARRAY
   array_int16 = gimpenums.PDB_INT16ARRAY
   array_int8 = gimpenums.PDB_INT8ARRAY
+  array_int = array_int32
   array_float = gimpenums.PDB_FLOATARRAY
   array_string = gimpenums.PDB_STRINGARRAY
   array_color = gimpenums.PDB_COLORARRAY
