@@ -20,7 +20,8 @@ persistent=yes
 
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
-load-plugins=
+load-plugins=pylint.extensions.bad_builtin,
+  pylint.extensions.mccabe
 
 # Use multiple processes to speed up Pylint.
 jobs=1
@@ -46,11 +47,17 @@ enable=all
 
 # Disable the message, report, category or checker with the given id(s).
 disable=no-member,
+  no-name-in-module,
+  unused-variable,
+  redefined-variable-type,
   missing-super-argument,
   unused-argument,
   wildcard-import,
   unused-wildcard-import,
-  trailing-whitespace
+  wrong-import-order,
+  wrong-import-position,
+  trailing-whitespace,
+  docstring-first-line-empty
 
 
 [REPORTS]
@@ -95,10 +102,10 @@ include-naming-hint=yes
 property-classes=abc.abstractproperty
 
 # Regular expression matching correct function names
-function-rgx=[a-z_][a-z0-9_]{2,40}$
+function-rgx=[a-z_][a-z0-9_]{2,60}$
 
 # Naming hint for function names
-function-name-hint=[a-z_][a-z0-9_]{2,40}$
+function-name-hint=[a-z_][a-z0-9_]{2,60}$
 
 # Regular expression matching correct variable names
 variable-rgx=[a-z_][a-z0-9_]{2,40}$
@@ -156,7 +163,7 @@ method-name-hint=([a-z_][a-z0-9_]{2,40}|test_[a-z0-9_]{2,60})$
 
 # Regular expression which should only match function or class names that do
 # not require a docstring.
-no-docstring-rgx=^(_|test|Test)
+no-docstring-rgx=^(_|test_|Test|main$)
 
 # Minimum line length for functions/classes that require docstrings, shorter
 # ones are exempt.
@@ -172,7 +179,7 @@ max-nested-blocks=5
 [FORMAT]
 
 # Maximum number of characters on a single line.
-max-line-length=100
+max-line-length=90
 
 # Regexp for a line that is allowed to be longer than the limit.
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$
@@ -281,7 +288,7 @@ init-import=no
 
 # A regular expression matching the name of dummy variables (i.e. expectedly
 # not used).
-dummy-variables-rgx=_unused
+dummy-variables-rgx=^unused_$
 
 # List of additional names supposed to be defined in builtins. Remember that
 # you should avoid to define new builtins when possible.
