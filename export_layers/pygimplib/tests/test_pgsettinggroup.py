@@ -495,31 +495,31 @@ class TestSettingGroupLoadSave(unittest.TestCase):
       (pgsettingpersistor.SettingPersistor.SUCCESS, "")]
     
     mock_load.side_effect = load_save_calls_return_values
-    status, _unused = self.settings.load()
+    status, unused_ = self.settings.load()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
     
     mock_save.side_effect = load_save_calls_return_values
-    status, _unused = self.settings.save()
+    status, unused_ = self.settings.save()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
     
     load_save_calls_return_values[1] = (pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND, "")
     mock_load.side_effect = load_save_calls_return_values
-    status, _unused = self.settings.load()
+    status, unused_ = self.settings.load()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
     
     load_save_calls_return_values[1] = (pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND, "")
     mock_save.side_effect = load_save_calls_return_values
-    status, _unused = self.settings.save()
+    status, unused_ = self.settings.save()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
     
     load_save_calls_return_values[2] = (pgsettingpersistor.SettingPersistor.READ_FAIL, "")
     mock_load.side_effect = load_save_calls_return_values
-    status, _unused = self.settings.load()
+    status, unused_ = self.settings.load()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
     
     load_save_calls_return_values[2] = (pgsettingpersistor.SettingPersistor.WRITE_FAIL, "")
     mock_save.side_effect = load_save_calls_return_values
-    status, _unused = self.settings.save()
+    status, unused_ = self.settings.save()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.WRITE_FAIL)
 
 

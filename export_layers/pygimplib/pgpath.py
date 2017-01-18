@@ -254,7 +254,7 @@ class StringPatternGenerator(object):
     self._pattern = pattern
     self._fields = fields if fields is not None else {}
     
-    self._pattern_parts, _unused, self._number_generators = self._parse_pattern(self._pattern, self._fields)
+    self._pattern_parts, unused_, self._number_generators = self._parse_pattern(self._pattern, self._fields)
   
   def generate(self):
     """
@@ -315,7 +315,7 @@ class StringPatternGenerator(object):
     from 0), return the field name, otherwise return None.
     """
     
-    _unused, parsed_fields, _unused = cls._parse_pattern(pattern, fields=None)
+    unused_, parsed_fields, unused_ = cls._parse_pattern(pattern, fields=None)
     
     for parsed_field in parsed_fields:
       indices = parsed_field[3]
@@ -707,7 +707,7 @@ class FilenameValidator(StringValidator):
     if filename.endswith("."):
       status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD))
     
-    root, _unused = os.path.splitext(filename)
+    root, unused_ = os.path.splitext(filename)
     if root.upper() in cls._INVALID_NAMES:
       status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_INVALID_NAMES))
     
@@ -799,7 +799,7 @@ class FilePathValidator(StringValidator):
       if path_component.endswith("."):
         statuses.add(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD)
       
-      root, _unused = os.path.splitext(path_component)
+      root, unused_ = os.path.splitext(path_component)
       if root.upper() in cls._INVALID_NAMES:
         statuses.add(FileValidatorErrorStatuses.HAS_INVALID_NAMES)
         invalid_names_status_message += (
@@ -870,7 +870,7 @@ class DirectoryPathValidator(FilePathValidator):
   
   @classmethod
   def is_valid(cls, dirpath):
-    _unused, status_messages = super().is_valid(dirpath)
+    unused_, status_messages = super().is_valid(dirpath)
     
     if os.path.exists(dirpath) and not os.path.isdir(dirpath):
       status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.EXISTS_BUT_IS_NOT_DIR))

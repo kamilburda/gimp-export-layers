@@ -125,7 +125,7 @@ def run_tests(path, test_module_name_prefix="test_", modules=None, ignored_modul
       any(module_name.startswith(module) for module in modules)
           and not any(module_name.startswith(ignored_module) for ignored_module in ignored_modules))
   
-  for _unused, module_name, _unused in pkgutil.walk_packages(path=[path]):
+  for unused_, module_name, unused_ in pkgutil.walk_packages(path=[path]):
     if should_append(module_name):
       module_names.append(module_name)
   

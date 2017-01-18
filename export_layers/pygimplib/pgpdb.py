@@ -129,7 +129,7 @@ def duplicate(image, metadata_only=False):
       pdb.gimp_image_set_colormap(new_image, *pdb.gimp_image_get_colormap(image))
     
     # Copy image parasites
-    _unused, parasite_names = pdb.gimp_image_get_parasite_list(image)
+    unused_, parasite_names = pdb.gimp_image_get_parasite_list(image)
     for name in parasite_names:
       parasite = image.parasite_find(name)
       # `pdb.gimp_image_parasite_attach` fails for some reason - use

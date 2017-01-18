@@ -280,7 +280,7 @@ class OperationsExecutor(object):
     
     self._check_operation_group_exists(operation_group)
     
-    operations_lists, _unused = self._get_operation_lists_and_functions(operation_type)
+    operations_lists, unused_ = self._get_operation_lists_and_functions(operation_type)
     
     return [operation_item.operation_id for operation_item in operations_lists[operation_group]
             if (operation_item.operation_function == operation
@@ -310,7 +310,7 @@ class OperationsExecutor(object):
     self._check_operation_in_group(operation_id, operation_group)
     
     operation_item = self._operation_items[operation_id]
-    operations_lists, _unused = self._get_operation_lists_and_functions(operation_item.operation_type)
+    operations_lists, unused_ = self._get_operation_lists_and_functions(operation_item.operation_type)
     return operations_lists[operation_group].index(operation_item)
   
   def get_operations(self, operation_group):
@@ -378,7 +378,7 @@ class OperationsExecutor(object):
     self._check_operation_in_group(operation_id, operation_group)
     
     operation_item = self._operation_items[operation_id]
-    operation_lists, _unused = self._get_operation_lists_and_functions(operation_item.operation_type)
+    operation_lists, unused_ = self._get_operation_lists_and_functions(operation_item.operation_type)
     
     operation_lists[operation_group].pop(operation_lists[operation_group].index(operation_item))
     

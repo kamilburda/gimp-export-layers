@@ -95,7 +95,7 @@ class TestStringPatternGenerator(unittest.TestCase):
   
   def _test_reset_numbering(self, pattern, *expected_outputs):
     generator = pgpath.StringPatternGenerator(pattern)
-    for _unused in range(3):
+    for unused_ in range(3):
       generator.generate()
     generator.reset_numbering()
     for output in expected_outputs:
@@ -103,7 +103,7 @@ class TestStringPatternGenerator(unittest.TestCase):
   
   def _test_set_number_generator(self, pattern, *expected_outputs):
     generator = pgpath.StringPatternGenerator(pattern)
-    for _unused in range(3):
+    for unused_ in range(3):
       generator.generate()
     number_generators = generator.get_number_generators()
     generator.reset_numbering()
