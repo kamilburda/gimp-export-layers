@@ -245,7 +245,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     if image_preview is None:
       return None
     
-    if len(image_preview.layers) == 0:
+    if not image_preview.layers:
       self._cleanup(image_preview)
       return None
     
