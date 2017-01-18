@@ -217,7 +217,7 @@ def _find_section(contents, section_name):
 
 def main():
   resource_files = []
-  for root, _unused, files in os.walk(RESOURCES_PAGE_DIR):
+  for root, unused_, files in os.walk(RESOURCES_PAGE_DIR):
     for file_ in files:
       relative_dirpath = os.path.relpath(root, RESOURCES_PAGE_DIR)
       resource_files.append(os.path.normpath(os.path.join(relative_dirpath, file_)))

@@ -166,7 +166,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
             for layer_id in self._get_layer_ids_in_current_selection()]
   
   def get_layer_elem_from_cursor(self):
-    tree_path, _unused = self._tree_view.get_cursor()
+    tree_path, unused_ = self._tree_view.get_cursor()
     if tree_path is not None:
       layer_id = self._get_layer_id(self._tree_model.get_iter(tree_path))
       return self._layer_exporter.layer_tree[layer_id]
@@ -482,7 +482,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       self.on_selection_changed()
   
   def _get_layer_ids_in_current_selection(self):
-    _unused, tree_paths = self._tree_view.get_selection().get_selected_rows()
+    unused_, tree_paths = self._tree_view.get_selection().get_selected_rows()
     return [self._get_layer_id(self._tree_model.get_iter(tree_path)) for tree_path in tree_paths]
   
   def _get_layer_id(self, tree_iter):

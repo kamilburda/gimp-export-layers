@@ -369,7 +369,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     return pixbuf_with_alpha_background
   
   def _get_preview_data(self, layer, preview_width, preview_height):
-    actual_preview_width, actual_preview_height, _unused, _unused, preview_data = (
+    actual_preview_width, actual_preview_height, unused_, unused_, preview_data = (
       pdb.gimp_drawable_thumbnail(layer, preview_width, preview_height))
     
     return actual_preview_width, actual_preview_height, array.array(b"B", preview_data).tostring()

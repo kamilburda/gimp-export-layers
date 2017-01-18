@@ -231,7 +231,7 @@ class OperationBox(object):
     self.on_reorder_operation(setting, new_position)
   
   def clear(self):
-    for _unused in range(len(self._vbox.get_children()) - 1):
+    for unused_ in range(len(self._vbox.get_children()) - 1):
       self.remove_operation_item(self._displayed_operation_items[0], self._displayed_settings[0])
   
   def _on_item_widget_drag_data_get(self, item_widget, drag_context, selection_data, info, timestamp, setting):
