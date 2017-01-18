@@ -660,11 +660,11 @@ class FileExtensionEntry(ExtendedEntry):
       
       extensions = self._popup.rows[row_path][self._COLUMN_EXTENSIONS]
       if len(extensions) <= 1:
-        # No good reason to highlight the only extension in the row.
-        if len(extensions) == 1:
-          self._highlighted_extension = extensions[0]
-        elif len(extensions) == 0:
+        # Do not highlight any extension.
+        if not extensions:
           self._highlighted_extension = ""
+        elif len(extensions) == 1:
+          self._highlighted_extension = extensions[0]
         
         return
       

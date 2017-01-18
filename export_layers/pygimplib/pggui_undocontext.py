@@ -77,7 +77,7 @@ class EntryUndoContext(object):
       action_handlers_get_cursor_position={
         "insert": lambda last_action_data: last_action_data.position,
         "delete": lambda last_action_data: last_action_data.position + len(last_action_data.text)},
-      actions_iterator=lambda actions: reversed(actions))
+      actions_iterator=reversed)
   
   def redo(self):
     self._undo_redo(
