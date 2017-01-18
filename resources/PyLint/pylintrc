@@ -18,11 +18,6 @@ ignore-patterns=
 # Pickle collected data for later comparisons.
 persistent=yes
 
-# List of plugins (as comma separated values of python modules names) to load,
-# usually to register additional checkers.
-load-plugins=pylint.extensions.bad_builtin,
-  pylint.extensions.mccabe
-
 # Use multiple processes to speed up Pylint.
 jobs=1
 
@@ -35,6 +30,16 @@ unsafe-load-any-extension=no
 # run arbitrary code
 extension-pkg-whitelist=
 
+# List of plugins (as comma separated values of python modules names) to load,
+# usually to register additional checkers.
+load-plugins=pylint.extensions.bad_builtin,
+  pylint.extensions.mccabe
+
+# List of builtins function names that should not be used, separated by a comma
+bad-functions=map,filter,input,reduce,reduce
+
+# McCabe complexity cyclomatic threshold
+max-complexity=10
 
 [MESSAGES CONTROL]
 
