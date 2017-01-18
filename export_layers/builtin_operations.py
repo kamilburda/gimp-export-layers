@@ -25,8 +25,6 @@ This module defines operations pre-defined in the plug-in.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-import functools
-
 from gimp import pdb
 import gimpenums
 
@@ -40,10 +38,11 @@ def ignore_layer_modes(image, layer, layer_exporter):
 
 
 def inherit_transparency_from_layer_groups(image, layer, layer_exporter):
-  layer.opacity = 100.0 * functools.reduce(
-    lambda layer1_opacity, layer2_opacity: layer1_opacity * layer2_opacity,
-    [parent.item.opacity / 100.0 for parent in layer_exporter.current_layer_elem.parents]
-    + [layer_exporter.current_layer_elem.item.opacity / 100.0])
+  new_layer_opacity = layer_exporter.current_layer_elem.item.opacity / 100.0
+  for parent_elem in layer_exporter.current_layer_elem.parents:
+    new_layer_opacity = new_layer_opacity * (parent_elem.item.opacity / 100.0)
+  
+  layer.opacity = new_layer_opacity * 100.0
 
 
 def autocrop_layer(image, layer, layer_exporter):
