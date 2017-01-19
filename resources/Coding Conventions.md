@@ -34,6 +34,28 @@ Use two empty lines between a separator and a function or class definition. Use
 one empty line between a separator and other statements.
 
 
+Indentation
+-----------
+
+Use 2 spaces for indentation.
+
+Always use hanging indents, with indented lines having 2 extra spaces.
+
+For function and class definitions, conditions, loops and `with` statements, use
+hanging indents and add 2 spaces after the beginning of the name of the
+function/class, first loop variable or the expression after the `with` keyword.
+For example:
+
+    def __init__(
+          self, name, default_value, display_name=None, description=None,
+          error_messages=None):
+      with open(
+             "a_totally_ridiculously_long_path_name_to_a_document", "w") as f:
+        pass
+        
+    
+
+
 Python 3 Compatibility
 ----------------------
 
@@ -79,8 +101,8 @@ Always use Unicode strings internally.
 GIMP uses UTF-8 encoding. That includes the following functions or attributes:
 * image name and item name (layer, channel, etc.),
 * `PDB_STRING*` parameters to PDB procedures,
-* `gimp.get_data()`, used by the GIMP shelf, can apparently handle Unicode (as it
-  uses the `pickle` module), but encode/decode with UTF-8 just in case.
+* `gimp.get_data()`, used by the GIMP shelf, can apparently handle Unicode
+  (as it uses the `pickle` module), but encode/decode with UTF-8 just in case.
 
 GTK uses UTF-8 encoding. Encode strings in UTF-8 for GTK functions as
 [GTK may not fully support Unicode in Python 2]
