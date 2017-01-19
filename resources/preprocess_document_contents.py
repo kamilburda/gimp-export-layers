@@ -39,16 +39,16 @@ from future.builtins import *
 
 pygimplib.init()
 
-import inspect
 import io
 import os
 import re
 
 from export_layers.pygimplib import pgconstants
+from export_layers.pygimplib import pgutils
 
 #===============================================================================
 
-RESOURCES_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
+RESOURCES_PATH = os.path.dirname(pgutils.get_current_module_file_path())
 PLUGINS_PATH = os.path.dirname(RESOURCES_PATH)
 
 RESOURCES_PAGE_DIR = os.path.join(RESOURCES_PATH, "GitHub page")

@@ -48,10 +48,11 @@ import pathspec
 
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgpath
+from export_layers.pygimplib import pgutils
 
 #===============================================================================
 
-RESOURCES_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
+RESOURCES_PATH = os.path.dirname(pgutils.get_current_module_file_path())
 PLUGINS_PATH = os.path.dirname(RESOURCES_PATH)
 
 OUTPUT_FILENAME_PREFIX = "export-layers"

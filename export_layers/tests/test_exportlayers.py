@@ -40,14 +40,15 @@ from ..pygimplib import pgfileformats
 from ..pygimplib import pgitemtree
 from ..pygimplib import pgpdb
 from ..pygimplib import pgsettingpdb
+from ..pygimplib import pgutils
 
 from .. import exportlayers
 from .. import settings_plugin
 
 #===============================================================================
 
-_current_module_dir = os.path.dirname(inspect.getfile(inspect.currentframe()))
-RESOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(_current_module_dir)), "resources")
+_CURRENT_MODULE_DIR = os.path.dirname(pgutils.get_current_module_file_path())
+RESOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(_CURRENT_MODULE_DIR)), "resources")
 TEST_IMAGES_DIR = os.path.join(RESOURCES_DIR, "Test images")
 
 EXPECTED_RESULTS_DIR = os.path.join(TEST_IMAGES_DIR, "Expected results")
