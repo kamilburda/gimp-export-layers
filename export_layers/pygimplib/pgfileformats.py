@@ -99,8 +99,10 @@ class _FileFormat(object):
     return bool(self.save_procedure_name)
   
   def is_installed(self):
-    return (self.is_builtin()
-            or (self.is_third_party() and pdb.gimp_procedural_db_proc_exists(self.save_procedure_name)))
+    return (
+      self.is_builtin()
+      or (self.is_third_party()
+          and pdb.gimp_procedural_db_proc_exists(self.save_procedure_name)))
 
 
 def _create_file_formats(file_formats_params):

@@ -248,11 +248,13 @@ class OperationsExecutor(object):
     """
     
     if operation_group is None:
-      return (operation_id in self._operation_items
-              and bool(self._operation_items[operation_id].operation_groups))
+      return (
+        operation_id in self._operation_items
+        and bool(self._operation_items[operation_id].operation_groups))
     else:
-      return (operation_id in self._operation_items
-              and operation_group in self._operation_items[operation_id].operation_groups)
+      return (
+        operation_id in self._operation_items
+        and operation_group in self._operation_items[operation_id].operation_groups)
   
   def has_matching_operation(self, operation, operation_group, operation_type=OPERATION):
     """

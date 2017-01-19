@@ -87,6 +87,7 @@ class PdbParamCreator(object):
   
   @classmethod
   def _create_param(cls, setting):
-    return (setting.pdb_type,
-            setting.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
-            setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING))
+    return (
+      setting.pdb_type,
+      setting.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
+      setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING))
