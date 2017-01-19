@@ -764,7 +764,8 @@ class LayerExporter(object):
     self._copy_non_modifying_parasites(self._image_copy, self.image)
     
     pdb.gimp_image_undo_thaw(self._image_copy)
-    if (not self._keep_exported_layers or self._use_another_image_copy) or exception_occurred:
+    if ((not self._keep_exported_layers or self._use_another_image_copy)
+        or exception_occurred):
       pdb.gimp_image_delete(self._image_copy)
       if self._use_another_image_copy:
         pdb.gimp_image_undo_thaw(self._another_image_copy)
@@ -935,8 +936,10 @@ class LayerExporter(object):
   
   def _should_export_again_with_interactive_run_mode(
         self, exception_message, current_run_mode):
-    return ("calling error" in exception_message.lower()
-            and current_run_mode in (gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE))
+    return (
+      "calling error" in exception_message.lower()
+      and current_run_mode in (
+        gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE))
   
   def _prepare_export_with_interactive_run_mode(self):
     self._current_layer_export_status = ExportStatuses.FORCE_INTERACTIVE

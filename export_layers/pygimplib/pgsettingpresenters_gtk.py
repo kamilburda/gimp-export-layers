@@ -192,7 +192,8 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
   
   def _get_location_toggle_button(self):
     return (
-      self._element.get_children()[0].get_children()[0].get_children()[0].get_children()[0].get_children()[0])
+      self._element.get_children()[0].get_children()[0].get_children()[0]
+      .get_children()[0].get_children()[0])
   
   def _is_location_entry_active(self):
     return self._location_toggle_button.get_active()

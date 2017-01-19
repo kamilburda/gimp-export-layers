@@ -178,8 +178,10 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     """
     
     allocation = self._preview_image.get_allocation()
-    return (self._preview_pixbuf is not None and allocation.width > self._preview_pixbuf.get_width()
-            and allocation.height > self._preview_pixbuf.get_height())
+    return (
+      self._preview_pixbuf is not None
+      and allocation.width > self._preview_pixbuf.get_width()
+      and allocation.height > self._preview_pixbuf.get_height())
   
   def update_layer_elem(self):
     if (self.layer_elem is not None
