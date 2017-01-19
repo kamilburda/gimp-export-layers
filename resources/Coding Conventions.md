@@ -39,9 +39,11 @@ Indentation
 
 Use 2 spaces for indentation.
 
-Always use hanging indents, with indented lines having 2 extra spaces.
+Use hanging indents, with indented lines having 2 extra spaces.
 
-For function and class definitions, conditions, loops and `with` statements, use
+For multi-line conditions, align expressions vertically.
+
+For multi-line function and class definitions, loops and `with` statements, use
 hanging indents and add 2 spaces after the beginning of the name of the
 function/class, first loop variable or the expression after the `with` keyword.
 For example:
@@ -52,7 +54,7 @@ For example:
       with open(
              "a_totally_ridiculously_long_path_name_to_a_document", "w") as f:
         pass
-        
+
     
 
 
