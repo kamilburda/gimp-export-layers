@@ -21,12 +21,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import collections
-import functools
 import gettext
 import inspect
 import os
 import sys
-import types
 
 #===============================================================================
 
@@ -53,7 +51,7 @@ def _insert_library_to_system_path(lib_path):
   sys.path.insert(1, lib_path)
 
 
-_PYGIMPLIB_PATH = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+_PYGIMPLIB_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
 _LIB_SUBDIRECTORY_PATH = os.path.join(_PYGIMPLIB_PATH, "lib")
 
 _setup_import_of_external_lib_modules(_LIB_SUBDIRECTORY_PATH)
@@ -131,8 +129,7 @@ def _init_config():
   
   config.BUG_REPORT_URI_LIST = []
   
-  pygimplib_directory = os.path.dirname(inspect.getfile(inspect.currentframe()))
-  config.PLUGIN_PATH = os.path.dirname(pygimplib_directory)
+  config.PLUGIN_PATH = os.path.dirname(_PYGIMPLIB_PATH)
   
   if _gimp_dependent_modules_imported:
     config.LOG_MODE = pgconstants.LOG_EXCEPTIONS_ONLY
