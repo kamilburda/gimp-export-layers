@@ -61,6 +61,7 @@ disable=no-member,
   unused-wildcard-import,
   wrong-import-order,
   wrong-import-position,
+  ungrouped-imports,
   trailing-whitespace,
   docstring-first-line-empty
 
