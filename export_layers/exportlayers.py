@@ -59,7 +59,7 @@ class ExportLayersError(Exception):
   def __init__(self, message="", layer=None, file_extension=None):
     super().__init__()
     
-    self.message = message
+    self._message = message
     
     try:
       self.layer_name = layer.name
@@ -69,7 +69,7 @@ class ExportLayersError(Exception):
     self.file_extension = file_extension
   
   def __str__(self):
-    str_ = self.message
+    str_ = self._message
     
     if self.layer_name:
       str_ += "\n" + _("Layer:") + " " + self.layer_name
@@ -916,14 +916,14 @@ class LayerExporter(object):
     except RuntimeError as e:
       # HACK: Examining the exception message seems to be the only way to determine
       # some specific cases of export failure.
-      if self._was_export_canceled_by_user(e.message):
-        raise ExportLayersCancelError(e.message)
-      elif self._should_export_again_with_interactive_run_mode(e.message, run_mode):
+      if self._was_export_canceled_by_user(str(e)):
+        raise ExportLayersCancelError(str(e))
+      elif self._should_export_again_with_interactive_run_mode(str(e), run_mode):
         self._prepare_export_with_interactive_run_mode()
       elif self._should_export_again_with_default_file_extension():
         self._prepare_export_with_default_file_extension()
       else:
-        raise ExportLayersError(e.message, layer, self._default_file_extension)
+        raise ExportLayersError(str(e), layer, self._default_file_extension)
     else:
       self._current_layer_export_status = ExportStatuses.EXPORT_SUCCESSFUL
   

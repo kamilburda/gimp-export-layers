@@ -73,8 +73,8 @@ def display_export_failure_message(exception, parent=None):
   error_message = _(
     "Sorry, but the export was unsuccessful. "
     "You can try exporting again if you fix the issue described below.")
-  if not exception.message.endswith("."):
-    exception.message += "."
+  if not str(exception).endswith("."):
+    error_message += "."
   error_message += "\n" + str(exception)
   
   display_message(error_message, message_type=gtk.MESSAGE_WARNING, parent=parent, message_in_text_view=True)
@@ -178,7 +178,7 @@ def _set_settings(func):
       self._settings["gui/displayed_builtin_filters"].set_value(
         self._box_more_filters.displayed_settings_names)
     except pgsetting.SettingValueError as e:
-      self._display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=e.setting)
+      self._display_message_label(str(e), message_type=gtk.MESSAGE_ERROR, setting=e.setting)
       return
     
     func(self, *args, **kwargs)
@@ -618,7 +618,7 @@ class ExportLayersGui(object):
       pginvocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
         self._export_name_preview.set_sensitive, False)
-      self._display_message_label(e.message, message_type=gtk.MESSAGE_ERROR, setting=setting)
+      self._display_message_label(str(e), message_type=gtk.MESSAGE_ERROR, setting=setting)
       self._export_name_preview.lock_update(True, name_preview_lock_update_key)
     else:
       self._export_name_preview.lock_update(False, name_preview_lock_update_key)
