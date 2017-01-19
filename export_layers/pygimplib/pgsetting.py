@@ -679,7 +679,7 @@ class Setting(pgsettingutils.SettingParentMixin):
     try:
       self._validate(value)
     except SettingValueError as e:
-      raise SettingValueError(e.message, setting=self)
+      raise SettingValueError(str(e), setting=self)
   
   def _should_validate_default_value(self):
     return not self._is_value_empty(self._default_value)
@@ -693,7 +693,7 @@ class Setting(pgsettingutils.SettingParentMixin):
     try:
       self._validate(self._default_value)
     except SettingValueError as e:
-      raise SettingDefaultValueError(e.message, setting=self)
+      raise SettingDefaultValueError(str(e), setting=self)
   
   def _get_pdb_type(self, pdb_type):
     if pdb_type == SettingPdbTypes.automatic:

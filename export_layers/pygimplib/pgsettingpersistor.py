@@ -117,6 +117,8 @@ class SettingPersistor(object):
     
     all_settings = cls._list_settings(settings_or_groups)
     all_settings_found = True
+    not_all_settings_found_message = ""
+    
     settings = all_settings
     
     for setting in all_settings:
@@ -126,16 +128,17 @@ class SettingPersistor(object):
       try:
         source.read(settings)
       except (SettingsNotFoundInSourceError, SettingSourceNotFoundError) as e:
-        if type(e) == SettingsNotFoundInSourceError:
+        if isinstance(e, SettingsNotFoundInSourceError):
           settings = source.settings_not_found
         
         if source == setting_sources[-1]:
           all_settings_found = False
+          not_all_settings_found_message = str(e)
           break
         else:
           continue
       except (SettingSourceReadError, SettingSourceInvalidFormatError) as e:
-        return cls._status(cls.READ_FAIL, e.message)
+        return cls._status(cls.READ_FAIL, str(e))
       else:
         break
     
@@ -145,7 +148,7 @@ class SettingPersistor(object):
     if all_settings_found:
       return cls._status(cls.SUCCESS)
     else:
-      return cls._status(cls.NOT_ALL_SETTINGS_FOUND, e.message)
+      return cls._status(cls.NOT_ALL_SETTINGS_FOUND, not_all_settings_found_message)
   
   @classmethod
   def save(cls, settings_or_groups, setting_sources):
@@ -187,7 +190,7 @@ class SettingPersistor(object):
       try:
         source.write(settings)
       except SettingSourceError as e:
-        return cls._status(cls.WRITE_FAIL, e.message)
+        return cls._status(cls.WRITE_FAIL, str(e))
     
     for setting in settings:
       setting.invoke_event("after-save")

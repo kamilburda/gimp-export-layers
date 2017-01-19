@@ -265,7 +265,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
       if missing_mandatory_arguments:
         message = self._get_missing_mandatory_attributes_message(missing_mandatory_arguments)
       else:
-        message = e.message
+        message = str(e)
       raise TypeError(message)
     
     return setting
@@ -472,7 +472,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
       try:
         setting.gui.update_setting_value()
       except pgsetting.SettingValueError as e:
-        exception_messages.append(e.message)
+        exception_messages.append(str(e))
         exception_settings.append(e.setting)
     
     if exception_messages:

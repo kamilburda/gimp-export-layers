@@ -761,7 +761,7 @@ class TestFileExtensionSetting(unittest.TestCase):
     try:
       self.setting.set_value("")
     except pgsetting.SettingValueError as e:
-      self.assertEqual(e.message, "my custom message")
+      self.assertEqual(str(e), "my custom message")
 
 
 class TestDirectorySetting(unittest.TestCase):
