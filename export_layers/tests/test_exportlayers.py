@@ -176,7 +176,9 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     
     self._reload_image()
   
-  def compare(self, different_settings=None, different_results_and_expected_layers=None, expected_results_dir=None):
+  def compare(
+        self, different_settings=None, different_results_and_expected_layers=None,
+        expected_results_dir=None):
     settings = settings_plugin.create_settings()
     settings["special"]["image"].set_value(self.test_image)
     settings["main"]["output_directory"].set_value(self.output_directory)

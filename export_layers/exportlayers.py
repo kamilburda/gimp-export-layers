@@ -405,8 +405,10 @@ class LayerExporter(object):
     "foreground": _("Foreground")
   }
   
-  def __init__(self, initial_run_mode, image, export_settings, overwrite_chooser=None, progress_updater=None,
-               layer_tree=None, export_context_manager=None, export_context_manager_args=None):
+  def __init__(
+        self, initial_run_mode, image, export_settings,
+        overwrite_chooser=None, progress_updater=None, layer_tree=None,
+        export_context_manager=None, export_context_manager_args=None):
     self.initial_run_mode = initial_run_mode
     self.image = image
     self.export_settings = export_settings
@@ -539,7 +541,8 @@ class LayerExporter(object):
     return layer.ID in self._exported_layers_ids
   
   @contextlib.contextmanager
-  def modify_export_settings(self, export_settings_to_modify, settings_events_to_temporarily_disable=None):
+  def modify_export_settings(
+        self, export_settings_to_modify, settings_events_to_temporarily_disable=None):
     """
     Temporarily modify export settings specified as a dict of
     (setting name: new setting value) pairs. After the execution of the wrapped
@@ -930,7 +933,8 @@ class LayerExporter(object):
   def _was_export_canceled_by_user(self, exception_message):
     return any(message in exception_message.lower() for message in ["cancelled", "canceled"])
   
-  def _should_export_again_with_interactive_run_mode(self, exception_message, current_run_mode):
+  def _should_export_again_with_interactive_run_mode(
+        self, exception_message, current_run_mode):
     return ("calling error" in exception_message.lower()
             and current_run_mode in (gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE))
   

@@ -71,7 +71,8 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   
   _PREVIEW_ALPHA_CHECK_SIZE = 4
   
-  def __init__(self, layer_exporter, initial_layer_tree=None, initial_previered_layer_id=None):
+  def __init__(
+        self, layer_exporter, initial_layer_tree=None, initial_previered_layer_id=None):
     super().__init__()
     
     self._layer_exporter = layer_exporter
@@ -341,8 +342,9 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     
     return layer_preview_pixbuf
   
-  def _add_alpha_background_to_pixbuf(self, pixbuf, opacity, use_checkboard_background=False, check_size=None,
-                                      check_color_first=None, check_color_second=None):
+  def _add_alpha_background_to_pixbuf(
+        self, pixbuf, opacity, use_checkboard_background=False, check_size=None,
+        check_color_first=None, check_color_second=None):
     if use_checkboard_background:
       pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
         gtk.gdk.COLORSPACE_RGB, False, 8,

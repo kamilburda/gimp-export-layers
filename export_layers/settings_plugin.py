@@ -288,7 +288,8 @@ def create_settings():
   
   #-----------------------------------------------------------------------------
   
-  def on_use_file_extensions_in_layer_names_changed(use_file_extensions_in_layer_names, file_extension):
+  def on_use_file_extensions_in_layer_names_changed(
+        use_file_extensions_in_layer_names, file_extension):
     if not use_file_extensions_in_layer_names.value:
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
     else:
@@ -315,11 +316,12 @@ def create_settings():
 #===============================================================================
 
 
-def setup_image_ids_and_filenames_settings(image_ids_dict_setting, image_filenames_dict_setting,
-                                           convert_value_first_second_func=None,
-                                           convert_value_first_second_func_args=None,
-                                           convert_value_second_first_func=None,
-                                           convert_value_second_first_func_args=None):
+def setup_image_ids_and_filenames_settings(
+      image_ids_dict_setting, image_filenames_dict_setting,
+      convert_value_first_second_func=None,
+      convert_value_first_second_func_args=None,
+      convert_value_second_first_func=None,
+      convert_value_second_first_func_args=None):
   """
   Set up a connection between a setting with a dict of (image ID, value) pairs
   and a setting with a dict of (image filename, value) pairs. This function
@@ -337,10 +339,12 @@ def setup_image_ids_and_filenames_settings(image_ids_dict_setting, image_filenam
   (full path), the first setting and the second setting.
   """
   
-  def _assign_image_ids_to_filenames(image_id, image_filename, image_ids_setting, image_filenames_setting):
+  def _assign_image_ids_to_filenames(
+        image_id, image_filename, image_ids_setting, image_filenames_setting):
     image_filenames_setting.value[image_filename] = image_ids_setting.value[image_id]
   
-  def _assign_image_filenames_to_ids(image_id, image_filename, image_ids_setting, image_filenames_setting):
+  def _assign_image_filenames_to_ids(
+        image_id, image_filename, image_ids_setting, image_filenames_setting):
     image_ids_setting.value[image_id] = image_filenames_setting.value[image_filename]
   
   _first_second_assign_func = (
@@ -385,29 +389,29 @@ def setup_image_ids_and_filenames_settings(image_ids_dict_setting, image_filenam
   image_ids_dict_setting.connect_event("after-load-group", _update_image_ids, image_filenames_dict_setting)
 
 
-def convert_set_of_layer_ids_to_names(image_id, image_filename, image_ids_setting,
-                                      image_filenames_setting, layer_tree):
+def convert_set_of_layer_ids_to_names(
+      image_id, image_filename, image_ids_setting, image_filenames_setting, layer_tree):
   image_filenames_setting.value[image_filename] = set(
     [layer_tree[layer_id].orig_name for layer_id in image_ids_setting.value[image_id]
      if layer_id in layer_tree])
 
 
-def convert_set_of_layer_names_to_ids(image_id, image_filename, image_ids_setting,
-                                      image_filenames_setting, layer_tree):
+def convert_set_of_layer_names_to_ids(
+      image_id, image_filename, image_ids_setting, image_filenames_setting, layer_tree):
   image_ids_setting.value[image_id] = set(
     [layer_tree[layer_orig_name].item.ID for layer_orig_name in image_filenames_setting.value[image_filename]
      if layer_orig_name in layer_tree])
 
 
-def convert_layer_id_to_name(image_id, image_filename, image_ids_setting,
-                             image_filenames_setting, layer_tree):
+def convert_layer_id_to_name(
+      image_id, image_filename, image_ids_setting, image_filenames_setting, layer_tree):
   layer_id = image_ids_setting.value[image_id]
   image_filenames_setting.value[image_filename] = (
     layer_tree[layer_id].orig_name if layer_id in layer_tree else None)
 
 
-def convert_layer_name_to_id(image_id, image_filename, image_ids_setting,
-                             image_filenames_setting, layer_tree):
+def convert_layer_name_to_id(
+      image_id, image_filename, image_ids_setting, image_filenames_setting, layer_tree):
   layer_orig_name = image_filenames_setting.value[image_filename]
   image_ids_setting.value[image_id] = (
     layer_tree[layer_orig_name].item.ID if layer_orig_name in layer_tree else None)

@@ -62,8 +62,9 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   _ICON_IMAGE_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_image.png")
   _ICON_TAG_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_tag.png")
   
-  def __init__(self, layer_exporter, initial_layer_tree=None, collapsed_items=None,
-               selected_items=None, displayed_tags_setting=None):
+  def __init__(
+        self, layer_exporter, initial_layer_tree=None, collapsed_items=None,
+        selected_items=None, displayed_tags_setting=None):
     super().__init__()
     
     self._layer_exporter = layer_exporter
@@ -88,7 +89,9 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     
     self._widget = self._vbox
   
-  def update(self, should_enable_sensitive=False, reset_items=False, update_existing_contents_only=False):
+  def update(
+        self, should_enable_sensitive=False, reset_items=False,
+        update_existing_contents_only=False):
     """
     Update the preview (filter layers, modify layer tree, etc.).
     

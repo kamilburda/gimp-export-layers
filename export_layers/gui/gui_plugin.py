@@ -62,8 +62,9 @@ from . import settings_gui
 #===============================================================================
 
 
-def display_message(message, message_type, parent=None, buttons=gtk.BUTTONS_OK,
-                    message_in_text_view=False, button_response_id_to_focus=None):
+def display_message(
+      message, message_type, parent=None, buttons=gtk.BUTTONS_OK,
+      message_in_text_view=False, button_response_id_to_focus=None):
   return pggui.display_message(
     message, message_type, title=pygimplib.config.PLUGIN_TITLE, parent=parent, buttons=buttons,
     message_in_text_view=message_in_text_view, button_response_id_to_focus=button_response_id_to_focus)
@@ -213,7 +214,8 @@ def _update_directory(setting, current_image, directory_for_current_image):
   return False
 
 
-def _setup_image_ids_and_directories_and_initial_directory(settings, current_directory_setting, current_image):
+def _setup_image_ids_and_directories_and_initial_directory(
+      settings, current_directory_setting, current_image):
   """
   Set up the initial directory for the current image according to the
   following priority list:
@@ -240,7 +242,8 @@ def _setup_image_ids_and_directories_and_initial_directory(settings, current_dir
 
 
 def _setup_output_directory_changed(settings, current_image):
-  def on_output_directory_changed(output_directory, image_ids_and_directories, current_image_id):
+  def on_output_directory_changed(
+        output_directory, image_ids_and_directories, current_image_id):
     image_ids_and_directories.update_directory(current_image_id, output_directory.value)
   
   settings["main/output_directory"].connect_event("value-changed",

@@ -49,7 +49,8 @@ class ItemProgressIndicator(object):
   processed.
   """
   
-  def __init__(self, progress_bar_for_item_status_height=10, spacing_between_progress_bars=3):
+  def __init__(
+        self, progress_bar_for_item_status_height=10, spacing_between_progress_bars=3):
     self._progress_bar_for_item_status_height = progress_bar_for_item_status_height
     self._spacing_between_progress_bars = spacing_between_progress_bars
     
@@ -81,7 +82,8 @@ class ItemProgressIndicator(object):
     self._vbox_progress_bars.pack_start(self._progress_bar_for_items, expand=False, fill=False)
     self._vbox_progress_bars.pack_start(self._progress_bar_for_item_status, expand=False, fill=False)
   
-  def install_progress_for_status(self, progress_set_value=None, progress_reset_value=None):
+  def install_progress_for_status(
+        self, progress_set_value=None, progress_reset_value=None):
     """
     Initialize the progress bar for the current item status to update according
     to GIMP PDB calls.

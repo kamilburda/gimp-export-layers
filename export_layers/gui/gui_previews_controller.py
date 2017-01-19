@@ -174,13 +174,15 @@ class ExportPreviewsController(object):
     
     self._paned_between_previews_previous_position = current_position
   
-  def _enable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key):
+  def _enable_preview_on_paned_drag(
+        self, preview, preview_enabled_setting, update_lock_key):
     preview.lock_update(False, update_lock_key)
     # In case the image preview gets resized, the update would be canceled, hence update always.
     gobject.timeout_add(self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS, preview.update, True)
     preview_enabled_setting.set_value(True)
   
-  def _disable_preview_on_paned_drag(self, preview, preview_enabled_setting, update_lock_key):
+  def _disable_preview_on_paned_drag(
+        self, preview, preview_enabled_setting, update_lock_key):
     preview.lock_update(True, update_lock_key)
     preview.set_sensitive(False)
     preview_enabled_setting.set_value(False)

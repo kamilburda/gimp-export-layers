@@ -234,11 +234,12 @@ class OperationBox(object):
     for unused_ in range(len(self._vbox.get_children()) - 1):
       self.remove_operation_item(self._displayed_operation_items[0], self._displayed_settings[0])
   
-  def _on_item_widget_drag_data_get(self, item_widget, drag_context, selection_data, info, timestamp, setting):
+  def _on_item_widget_drag_data_get(
+        self, item_widget, drag_context, selection_data, info, timestamp, setting):
     selection_data.set(selection_data.target, 8, setting.get_path(self._settings))
   
-  def _on_item_widget_drag_data_received(self, item_widget, drag_context, x, y,
-                                         selection_data, info, timestamp, setting):
+  def _on_item_widget_drag_data_received(
+        self, item_widget, drag_context, x, y, selection_data, info, timestamp, setting):
     dragged_setting_name = selection_data.data
     if dragged_setting_name not in self._settings:
       return
