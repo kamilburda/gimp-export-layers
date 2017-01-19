@@ -196,15 +196,15 @@ def create_settings():
     },
     {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "autocrop_to_background",
+      "name": "autocrop_background",
       "default_value": False,
-      "display_name": _("Autocrop to background")
+      "display_name": _("Autocrop background")
     },
     {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "autocrop_to_foreground",
+      "name": "autocrop_foreground",
       "default_value": False,
-      "display_name": _("Autocrop to foreground")
+      "display_name": _("Autocrop foreground")
     },
     {
       "type": pgsetting.SettingTypes.boolean,

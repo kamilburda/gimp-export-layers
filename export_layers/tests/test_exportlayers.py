@@ -145,22 +145,22 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
                  expected_results_dir=os.path.join(
                    self.default_expected_layers_dir, "background", "autocrop-use_image_size"))
   
-  def test_background_autocrop_to_background(self):
+  def test_background_autocrop_background(self):
     self.compare({
                    "insert_background_layers": True,
-                   "more_operations/autocrop_to_background": True
+                   "more_operations/autocrop_background": True
                  },
                  expected_results_dir=os.path.join(
                    self.default_expected_layers_dir, "background"))
   
-  def test_background_autocrop_to_background_use_image_size(self):
+  def test_background_autocrop_background_use_image_size(self):
     self.compare({
                    "insert_background_layers": True,
-                   "more_operations/autocrop_to_background": True,
+                   "more_operations/autocrop_background": True,
                    "use_image_size": True
                  },
                  expected_results_dir=os.path.join(
-                   self.default_expected_layers_dir, "background", "autocrop_to_background-use_image_size"))
+                   self.default_expected_layers_dir, "background", "autocrop_background-use_image_size"))
   
   def test_foreground(self):
     layer_tree = pgitemtree.LayerTree(self.test_image, name=pygimplib.config.SOURCE_PERSISTENT_NAME)

@@ -286,8 +286,8 @@ _builtin_operations_and_settings = {
   "inherit_transparency_from_layer_groups": [builtin_operations.inherit_transparency_from_layer_groups],
   "insert_background_layers": [builtin_operations.insert_background_layer, ["background"]],
   "insert_foreground_layers": [builtin_operations.insert_foreground_layer, ["foreground"]],
-  "autocrop_to_background": [builtin_operations.autocrop_to_tagged_layer, ["background"]],
-  "autocrop_to_foreground": [builtin_operations.autocrop_to_tagged_layer, ["foreground"]]
+  "autocrop_background": [builtin_operations.autocrop_tagged_layer, ["background"]],
+  "autocrop_foreground": [builtin_operations.autocrop_tagged_layer, ["foreground"]]
 }
 
 _builtin_filters_and_settings = {

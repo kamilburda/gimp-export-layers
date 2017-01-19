@@ -49,7 +49,7 @@ def autocrop_layer(image, layer, layer_exporter):
   pdb.plug_in_autocrop_layer(image, layer)
 
 
-def autocrop_to_tagged_layer(tag, image, layer, layer_exporter):
+def autocrop_tagged_layer(tag, image, layer, layer_exporter):
   tagged_layer = layer_exporter.inserted_tagged_layers[tag]
   if tagged_layer is not None:
     image.active_layer = tagged_layer
