@@ -67,8 +67,8 @@ def empty_func(*args, **kwargs):
   
   For example, if you need to serialize a `collections.defaultdict` instance
   (e.g. via `pickle`) returning None for missing keys, you need to use a named
-  function instead of `lambda: None`. To emphasize this particular intent,
-  however, you may want to use the alias `return_none_func` instead.
+  function instead of `lambda: None`. To emphasize this particular intent, you
+  may want to use the alias `return_none_func` instead.
   """
   
   return None
@@ -77,15 +77,15 @@ def empty_func(*args, **kwargs):
 return_none_func = empty_func
 
 
-def create_empty_func(return_value):
+def create_empty_func(return_value=None):
   """
   Return an empty function returning the specified return value.
   """
   
-  def return_value_func(*args, **kwargs):
+  def _empty_func_with_return_value(*args, **kwargs):
     return return_value
   
-  return return_value_func
+  return _empty_func_with_return_value
 
 
 #===============================================================================
