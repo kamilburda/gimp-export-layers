@@ -20,16 +20,15 @@
 #
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-import export_layers.pygimplib as pygimplib
-from future.builtins import *
 
 import os
 
-try:
-  # Disable overlay scrolling (notably used in Ubuntu) to be consistent with the Export menu.
-  os.environ["LIBOVERLAY_SCROLLBAR"] = "0"
-except Exception:
-  pass
+# Disable overlay scrollbar (notably used in Ubuntu) to be consistent with the
+# Export menu.
+os.environ["LIBOVERLAY_SCROLLBAR"] = "0"
+
+import export_layers.pygimplib as pygimplib
+from future.builtins import *
 
 import gimpenums
 
