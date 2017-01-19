@@ -191,15 +191,18 @@ class Setting(pgsettingutils.SettingParentMixin):
   _ALLOWED_EMPTY_VALUES = []
   _ALLOWED_GUI_TYPES = []
   
-  def __init__(self, name, default_value,
-               allow_empty_values=False,
-               display_name=None,
-               description=None,
-               pdb_type=SettingPdbTypes.automatic,
-               gui_type=SettingGuiTypes.automatic,
-               auto_update_gui_to_setting=True,
-               setting_sources=None,
-               error_messages=None):
+  def __init__(
+        self,
+        name,
+        default_value,
+        allow_empty_values=False,
+        display_name=None,
+        description=None,
+        pdb_type=SettingPdbTypes.automatic,
+        gui_type=SettingGuiTypes.automatic,
+        auto_update_gui_to_setting=True,
+        setting_sources=None,
+        error_messages=None):
     """
     Described are only those parameters that do not correspond to
     any attribute in this class, or parameters requiring additional information.

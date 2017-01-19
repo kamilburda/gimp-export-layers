@@ -75,8 +75,9 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   _VALUE_CHANGED_SIGNAL = None
   
-  def __init__(self, setting, element=None, setting_value_synchronizer=None,
-               old_setting_presenter=None, auto_update_gui_to_setting=True):
+  def __init__(
+        self, setting, element=None, setting_value_synchronizer=None,
+        old_setting_presenter=None, auto_update_gui_to_setting=True):
     """
     Parameters:
     

@@ -256,8 +256,9 @@ def copy_and_paste_layer(layer, image, parent=None, position=0):
 #===============================================================================
 
 
-def compare_layers(layers, compare_alpha_channels=True, compare_has_alpha=False,
-                   apply_layer_attributes=True, apply_layer_masks=True):
+def compare_layers(
+      layers, compare_alpha_channels=True, compare_has_alpha=False,
+      apply_layer_attributes=True, apply_layer_masks=True):
   """
   Return True if the contents of all specified layers are identical, False
   otherwise. Layer groups are also supported.
@@ -406,8 +407,9 @@ class GimpMessageFile(object):
     avoid printing an excessive number of message headers.
   """
   
-  def __init__(self, message_handler=gimpenums.ERROR_CONSOLE, message_prefix=None,
-               message_delay_milliseconds=0):
+  def __init__(
+        self, message_handler=gimpenums.ERROR_CONSOLE, message_prefix=None,
+        message_delay_milliseconds=0):
     self._message_handler = message_handler
     self._message_prefix = str(message_prefix) if message_prefix is not None else ""
     self._message_delay_milliseconds = message_delay_milliseconds

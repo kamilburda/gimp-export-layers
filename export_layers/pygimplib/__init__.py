@@ -225,10 +225,11 @@ if _gimp_dependent_modules_imported:
   def main():
     gimp.main(None, None, _query, _run)
   
-  def install_plugin(plugin_procedure, blurb="", description="",
-                     author="", copyright_notice="", date="",
-                     menu_name="", menu_path=None, image_types="*",
-                     parameters=None, return_values=None):
+  def install_plugin(
+        plugin_procedure, blurb="", description="",
+        author="", copyright_notice="", date="",
+        menu_name="", menu_path=None, image_types="*",
+        parameters=None, return_values=None):
     
     def _get_pdb_params(params):
       pdb_params = []

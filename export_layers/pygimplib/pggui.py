@@ -68,8 +68,9 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
   _DIALOG_VBOX_SPACING = 5
   _DIALOG_ACTION_AREA_SPACING = 8
   
-  def __init__(self, values_and_display_names, default_value, default_response, title="",
-               parent=None, use_mnemonics=True):
+  def __init__(
+        self, values_and_display_names, default_value, default_response, title="",
+        parent=None, use_mnemonics=True):
     
     super().__init__(values_and_display_names, default_value, default_response)
     
@@ -190,13 +191,14 @@ class GtkProgressUpdater(pgprogress.ProgressUpdater):
 #===============================================================================
 
 
-def display_error_message(title=None, app_name=None, parent=None, message_type=gtk.MESSAGE_ERROR,
-                          flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                          message_markup=None, message_secondary_markup=None,
-                          details=None, display_details_initially=True,
-                          report_uri_list=None, report_description=None,
-                          button_stock_id=gtk.STOCK_CLOSE, button_response_id=gtk.RESPONSE_CLOSE,
-                          focus_on_button=False):
+def display_error_message(
+      title=None, app_name=None, parent=None, message_type=gtk.MESSAGE_ERROR,
+      flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+      message_markup=None, message_secondary_markup=None,
+      details=None, display_details_initially=True,
+      report_uri_list=None, report_description=None,
+      button_stock_id=gtk.STOCK_CLOSE, button_response_id=gtk.RESPONSE_CLOSE,
+      focus_on_button=False):
   """
   Display a message to alert the user about an error or an exception that
   occurred in the application.
@@ -355,8 +357,9 @@ def _get_report_link_buttons(report_uri_list, report_description=None):
   return vbox_link_buttons
 
 
-def display_message(message, message_type, title=None, parent=None, buttons=gtk.BUTTONS_OK,
-                    message_in_text_view=False, button_response_id_to_focus=None):
+def display_message(
+      message, message_type, title=None, parent=None, buttons=gtk.BUTTONS_OK,
+      message_in_text_view=False, button_response_id_to_focus=None):
   """
   Display a generic message.
   

@@ -42,7 +42,8 @@ class EntryPopup(object):
   
   _BUTTON_MOUSE_LEFT = 1
   
-  def __init__(self, entry, column_types, rows, width=-1, height=200, max_num_visible_rows=8):
+  def __init__(
+        self, entry, column_types, rows, width=-1, height=200, max_num_visible_rows=8):
     self._entry = entry
     self._width = width
     self._height = height
@@ -220,8 +221,9 @@ class EntryPopup(object):
     self.select_row(row_num)
     return self.assign_from_selected_row()
   
-  def select_and_assign_row_after_key_press(self, tree_path, next_row, next_row_if_no_current_selection,
-                                            current_row_before_unselection, row_to_scroll_before_unselection=0):
+  def select_and_assign_row_after_key_press(
+        self, tree_path, next_row, next_row_if_no_current_selection,
+        current_row_before_unselection, row_to_scroll_before_unselection=0):
     """
     After a particular key is pressed, select the row specified by `tree_path`
     and assign the value from the selected row to the entry.

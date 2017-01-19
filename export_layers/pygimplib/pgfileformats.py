@@ -70,8 +70,9 @@ def _save_image_default(run_mode, image, layer, filename, raw_filename):
 
 class _FileFormat(object):
   
-  def __init__(self, description, file_extensions, save_procedure_name=None,
-               save_procedure_func=None, save_procedure_func_args=None, kwargs=None):
+  def __init__(
+        self, description, file_extensions, save_procedure_name=None,
+        save_procedure_func=None, save_procedure_func_args=None, kwargs=None):
     self.description = description
     self.file_extensions = file_extensions
     

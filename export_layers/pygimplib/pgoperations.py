@@ -37,7 +37,9 @@ class OperationsExecutor(object):
   _OPERATION_TYPES = OPERATION, FOREACH_OPERATION, EXECUTOR = (0, 1, 2)
   
   class _OperationItem(object):
-    def __init__(self, operation, operation_id, operation_groups, operation_type, operation_function):
+    def __init__(
+          self, operation, operation_id, operation_groups, operation_type,
+          operation_function):
       self.operation = operation
       self.operation_id = operation_id
       self.operation_groups = operation_groups if operation_groups is not None else set()
@@ -62,7 +64,9 @@ class OperationsExecutor(object):
     # key: operation ID; value: `_OperationItem` instance
     self._operation_items = {}
   
-  def execute(self, operation_groups, *additional_operation_args, **additional_operation_kwargs):
+  def execute(
+        self, operation_groups, *additional_operation_args,
+        **additional_operation_kwargs):
     """
     Execute all operations belonging to the groups in the order given by
     `operation_groups`.
@@ -84,7 +88,8 @@ class OperationsExecutor(object):
       kwargs = dict(operation_kwargs, **additional_operation_kwargs)
       return operation(*args, **kwargs)
     
-    def _execute_operation_with_foreach_operations(operation, operation_args, operation_kwargs):
+    def _execute_operation_with_foreach_operations(
+          operation, operation_args, operation_kwargs):
       operation_generators = [
         _execute_operation(*item.operation) for item in self._foreach_operations[operation_group]]
       
@@ -94,7 +99,8 @@ class OperationsExecutor(object):
         result_from_operation = _execute_operation(operation, operation_args, operation_kwargs)
         _execute_foreach_operations_once(operation_generators, result_from_operation)
     
-    def _execute_foreach_operations_once(operation_generators, result_from_operation=None):
+    def _execute_foreach_operations_once(
+          operation_generators, result_from_operation=None):
       operation_generators_to_remove = []
       
       for operation_generator in operation_generators:
@@ -123,7 +129,8 @@ class OperationsExecutor(object):
         else:
           _execute_executor(item.operation, operation_group)
   
-  def add_operation(self, operation, operation_groups, *operation_args, **operation_kwargs):
+  def add_operation(
+        self, operation, operation_groups, *operation_args, **operation_kwargs):
     """
     Add an operation specified by its function `operation`, its arguments
     `*operation_args` (as a list or tuple) and keyword arguments
@@ -144,8 +151,9 @@ class OperationsExecutor(object):
     
     return operation_id
   
-  def add_foreach_operation(self, foreach_operation, operation_groups,
-                            *foreach_operation_args, **foreach_operation_kwargs):
+  def add_foreach_operation(
+        self, foreach_operation, operation_groups,
+        *foreach_operation_args, **foreach_operation_kwargs):
     """
     Add an operation to be executed for each operation in groups given by
     `operation_groups`. `foreach_operation` is the function to be executed,
@@ -262,7 +270,8 @@ class OperationsExecutor(object):
     
     return operation in self._get_operation_lists_and_functions(operation_type)[1][operation_group]
   
-  def find_matching_operations(self, operation, operation_group, operation_type=OPERATION):
+  def find_matching_operations(
+        self, operation, operation_group, operation_type=OPERATION):
     """
     Find all operations matching the specified operation in the specified group.
     
@@ -466,7 +475,9 @@ class OperationsExecutor(object):
       self._add_executor(
         operation_item.operation_id, operation_item.operation, operation_group)
   
-  def _add_operation(self, operation_id, operation, operation_group, operation_args, operation_kwargs):
+  def _add_operation(
+        self, operation_id, operation, operation_group, operation_args,
+        operation_kwargs):
     self._init_operation_group(operation_group)
     
     operation_item = self._set_operation_item(
@@ -475,8 +486,9 @@ class OperationsExecutor(object):
     self._operations[operation_group].append(operation_item)
     self._operations_functions[operation_group][operation] += 1
   
-  def _add_foreach_operation(self, operation_id, foreach_operation, operation_group,
-                             foreach_operation_args, foreach_operation_kwargs):
+  def _add_foreach_operation(
+        self, operation_id, foreach_operation, operation_group,
+        foreach_operation_args, foreach_operation_kwargs):
     self._init_operation_group(operation_group)
     
     if not inspect.isgeneratorfunction(foreach_operation):
@@ -511,8 +523,9 @@ class OperationsExecutor(object):
     
     return operation_id
   
-  def _set_operation_item(self, operation_id, operation_group, operation,
-                          operation_type, operation_function):
+  def _set_operation_item(
+        self, operation_id, operation_group, operation,
+        operation_type, operation_function):
     if operation_id not in self._operation_items:
       self._operation_items[operation_id] = self._OperationItem(
         operation, operation_id, None, operation_type, operation_function)
@@ -521,7 +534,8 @@ class OperationsExecutor(object):
     
     return self._operation_items[operation_id]
   
-  def _remove_operation(self, operation_id, operation_group, operations_lists, operations_functions):
+  def _remove_operation(
+        self, operation_id, operation_group, operations_lists, operations_functions):
     operation_item = self._operation_items[operation_id]
     operations_lists[operation_group].remove(operation_item)
     

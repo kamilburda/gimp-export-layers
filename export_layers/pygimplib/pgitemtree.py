@@ -96,8 +96,9 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     or subfilters to filter items.
   """
   
-  def __init__(self, image, name=None, is_filtered=False,
-               filter_match_type=pgobjectfilter.ObjectFilter.MATCH_ALL):
+  def __init__(
+        self, image, name=None, is_filtered=False,
+        filter_match_type=pgobjectfilter.ObjectFilter.MATCH_ALL):
     self._image = image
     self._name = name
     self.is_filtered = is_filtered
@@ -182,8 +183,9 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
         if self.filter.is_match(item_elem):
           yield item_elem
   
-  def uniquify_name(self, item_elem, include_item_path=True,
-                    uniquifier_position=None, uniquifier_position_parents=None):
+  def uniquify_name(
+        self, item_elem, include_item_path=True,
+        uniquifier_position=None, uniquifier_position_parents=None):
     """
     Make the `name` attribute in the specified `_ItemTreeElement` object
     unique among all other, already uniquified `_ItemTreeElement` objects.

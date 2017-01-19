@@ -320,7 +320,8 @@ class FilenamePatternEntry(ExtendedEntry):
   def _update_field_tooltip_position(self):
     self._update_window_position(self._field_tooltip_window, place_above=True)
   
-  def _update_window_position(self, window, move_with_text_cursor=True, place_above=False):
+  def _update_window_position(
+        self, window, move_with_text_cursor=True, place_above=False):
     entry_absolute_position = self.get_window().get_origin()
     entry_allocation_height = self.get_allocation().height
     
@@ -437,7 +438,8 @@ class FilenamePatternEntry(ExtendedEntry):
     
     return stop_event_propagation
   
-  def _on_entry_after_assign_by_key_press(self, previous_position, previous_text, position, text):
+  def _on_entry_after_assign_by_key_press(
+        self, previous_position, previous_text, position, text):
     undo_push_list = []
     
     if previous_text:
@@ -498,7 +500,8 @@ class FileExtensionEntry(ExtendedEntry):
             for file_format in file_formats if file_format.is_installed()]
   
   def _add_columns(self):
-    def _add_column(cell_renderer, cell_renderer_property, column_number, column_title=None):
+    def _add_column(
+          cell_renderer, cell_renderer_property, column_number, column_title=None):
       column = gtk.TreeViewColumn(column_title, cell_renderer, **{cell_renderer_property: column_number})
       self._popup.tree_view.append_column(column)
     
@@ -572,7 +575,8 @@ class FileExtensionEntry(ExtendedEntry):
   def _filter_file_formats(self, file_formats, row_iter):
     return self._entry_text_matches_row(self._get_text_decoded(), file_formats, row_iter)
   
-  def _entry_text_matches_row(self, entry_text, file_formats, row_iter, full_match=False):
+  def _entry_text_matches_row(
+        self, entry_text, file_formats, row_iter, full_match=False):
     extensions = file_formats[row_iter][self._COLUMN_EXTENSIONS]
     
     if full_match:
@@ -580,7 +584,8 @@ class FileExtensionEntry(ExtendedEntry):
     else:
       return any(entry_text.lower() in extension.lower() for extension in extensions)
   
-  def _on_assign_from_selected_row(self, tree_model, selected_tree_iter, extension_index=0):
+  def _on_assign_from_selected_row(
+        self, tree_model, selected_tree_iter, extension_index=0):
     extensions = tree_model[selected_tree_iter][self._COLUMN_EXTENSIONS]
     if extension_index > len(extensions):
       extension_index = len(extensions) - 1
@@ -624,7 +629,8 @@ class FileExtensionEntry(ExtendedEntry):
     
     return stop_event_propagation
   
-  def _on_entry_after_assign_by_key_press(self, previous_position, previous_text, position, text):
+  def _on_entry_after_assign_by_key_press(
+        self, previous_position, previous_text, position, text):
     self._undo_push(previous_position, previous_text, position, text)
   
   def _undo_push(self, previous_position, previous_text, position, text):

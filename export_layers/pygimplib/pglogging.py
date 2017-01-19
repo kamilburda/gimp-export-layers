@@ -41,8 +41,9 @@ from . import pgpdb
 #===============================================================================
 
 
-def log_output(log_mode, log_path_dirnames, log_stdout_filename, log_stderr_filename, log_header_title="",
-               gimp_console_message_delay_milliseconds=0):
+def log_output(
+      log_mode, log_path_dirnames, log_stdout_filename, log_stderr_filename,
+      log_header_title="", gimp_console_message_delay_milliseconds=0):
   """
   Enable logging of output.
   
@@ -110,7 +111,8 @@ def _logger_add_file_handler(logger, log_paths):
   return can_log
 
 
-def _redirect_exception_output_to_file(log_path_dirnames, log_filename, log_header_title):
+def _redirect_exception_output_to_file(
+      log_path_dirnames, log_filename, log_header_title):
   logger = logging.getLogger(log_filename)
   logger.setLevel(logging.DEBUG)
   
@@ -186,7 +188,9 @@ class Tee(object):
     for the first time.
   """
   
-  def __init__(self, stream, file_object, log_header_title=None, start=True, flush_output=False):
+  def __init__(
+        self, stream, file_object, log_header_title=None, start=True,
+        flush_output=False):
     """
     Parameters:
     
