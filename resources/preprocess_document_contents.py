@@ -32,21 +32,22 @@ Optional arguments to "include-section":
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-
 import export_layers.pygimplib as pygimplib
-import export_layers.config
 from future.builtins import *
-
-pygimplib.init()
 
 import io
 import os
 import re
 
+import export_layers.config
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgutils
 
 #===============================================================================
+
+export_layers.config.init()
+
+pygimplib.init()
 
 RESOURCES_PATH = os.path.dirname(pgutils.get_current_module_file_path())
 PLUGINS_PATH = os.path.dirname(RESOURCES_PATH)

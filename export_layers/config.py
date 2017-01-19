@@ -22,27 +22,29 @@
 This module defines plug-in configuration.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-str = unicode
+from __future__ import absolute_import, division, print_function, unicode_literals
+from future.builtins import *
 
 from . import pygimplib
 
 #===============================================================================
 
-pygimplib.config.PLUGIN_NAME = "export_layers"
 
-pygimplib.config.LOG_MODE = pygimplib.pgconstants.LOG_EXCEPTIONS_ONLY
-
-pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
-pygimplib.config.PLUGIN_VERSION = "2.5"
-pygimplib.config.BUG_REPORT_URI_LIST = [
-  # ("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),
-  ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
-]
-
-# If True, display each step of image/layer editing in GIMP.
-pygimplib.config.DEBUG_IMAGE_PROCESSING = False
+def init():
+  """
+  Initialize pygimplib configuration entries for this plug-in.
+  """
+  
+  pygimplib.config.PLUGIN_NAME = "export_layers"
+  
+  pygimplib.config.LOG_MODE = pygimplib.pgconstants.LOG_EXCEPTIONS_ONLY
+  
+  pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
+  pygimplib.config.PLUGIN_VERSION = "2.5"
+  pygimplib.config.BUG_REPORT_URI_LIST = [
+    # ("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),
+    ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
+  ]
+  
+  # If True, display each step of image/layer editing in GIMP.
+  pygimplib.config.DEBUG_IMAGE_PROCESSING = False

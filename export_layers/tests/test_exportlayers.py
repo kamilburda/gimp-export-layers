@@ -21,8 +21,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-import inspect
-import imp
 import os
 import shutil
 import unittest
@@ -32,9 +30,8 @@ from gimp import pdb
 from .. import pygimplib
 from .. import config
 
-imp.reload(config)
-
 pygimplib.init()
+config.init()
 
 from ..pygimplib import pgfileformats
 from ..pygimplib import pgitemtree

@@ -20,12 +20,8 @@
 #
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-
 import export_layers.pygimplib as pygimplib
-import export_layers.config
 from future.builtins import *
-
-pygimplib.init()
 
 import os
 
@@ -37,6 +33,7 @@ except Exception:
 
 import gimpenums
 
+import export_layers.config
 from export_layers.pygimplib import pgitemtree
 from export_layers.pygimplib import pgconstants
 
@@ -46,8 +43,13 @@ from export_layers.gui import gui_plugin
 
 #===============================================================================
 
+export_layers.config.init()
+
+pygimplib.init()
+
 settings = settings_plugin.create_settings()
 
+#===============================================================================
 
 @pygimplib.plugin(
   blurb=_("Export layers as separate images"),
