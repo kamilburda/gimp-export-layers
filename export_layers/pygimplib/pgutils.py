@@ -26,6 +26,8 @@ context manager or an empty function.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import inspect
+
 #===============================================================================
 
 
@@ -130,3 +132,11 @@ def get_module_root(module_path, path_component_to_trim_after):
     return ".".join(module_path_components[:path_component_index + 1])
   else:
     return module_path
+
+
+def get_current_module_file_path():
+  """
+  Get the full path name of the module this function is called from.
+  """
+  
+  return inspect.stack()[1][1]

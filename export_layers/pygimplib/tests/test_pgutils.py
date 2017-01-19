@@ -25,7 +25,9 @@ This module tests the `pgsetting` and `pgsettingpresenter` modules.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import inspect
 import unittest
+import sys
 
 from .. import pgutils
 
@@ -75,4 +77,8 @@ class TestGetModuleRoot(unittest.TestCase):
     self.assertEqual(
       pgutils.get_module_root("export_layers.pygimplib.tests.test_pgutils", "."),
       "export_layers.pygimplib.tests.test_pgutils")
-
+  
+  def test_get_current_module_file_path(self):
+    self.assertEqual(
+      pgutils.get_current_module_file_path(),
+      inspect.getfile(inspect.currentframe()))
