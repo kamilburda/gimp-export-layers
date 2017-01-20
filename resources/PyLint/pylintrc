@@ -57,13 +57,16 @@ disable=no-member,
   redefined-variable-type,
   missing-super-argument,
   unused-argument,
+  too-many-arguments,
+  too-few-public-methods,
   wildcard-import,
   unused-wildcard-import,
   wrong-import-order,
   wrong-import-position,
   ungrouped-imports,
   trailing-whitespace,
-  docstring-first-line-empty
+  missing-docstring,
+  bad-continuation
 
 
 [REPORTS]
@@ -91,7 +94,7 @@ evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / stateme
 [BASIC]
 
 # Good variable names which should always be accepted, separated by a comma
-good-names=i,j,k,e
+good-names=i,j,k,e,x,y
 
 # Bad variable names which should always be refused, separated by a comma
 bad-names=foo,bar,baz,toto,tutu,tata
