@@ -1,7 +1,8 @@
 Coding Conventions
 ==================
 
-This document describes coding conventions not obvious from the code itself.
+This document describes coding conventions that may not be obvious from the code
+itself.
 
 
 Glossary
@@ -10,22 +11,17 @@ Glossary
 Element = module, class, function or variable
 
 
-Quotes in and Around Strings
-----------------------------
+Formatting
+----------
 
-Use double quotes everywhere except cases where single quotes or backquotes are
-used.
+### Line length
 
-Use single quotes:
-* in element names in non-user messages (to be consistent with e.g. Python
-  exception messages),
-* in any string containing double quotes (to avoid inserting backslashes).
-
-Use backquotes in element names in comments.
+Maximum line length is:
+* 90 characters for code,
+* 80 characters for docstrings and comments.
 
 
-Spacing
--------
+### Spacing
 
 Use a separator (commented line containing "=" characters) for a block of
 related functions or classes in a module.
@@ -34,8 +30,7 @@ Use two empty lines between a separator and a function or class definition. Use
 one empty line between a separator and other statements.
 
 
-Indentation
------------
+### Indentation
 
 Use 2 spaces for indentation.
 
@@ -55,7 +50,18 @@ For example:
              "a_totally_ridiculously_long_path_name_to_a_document", "w") as f:
         pass
 
-    
+
+### Quotes in and Around Strings
+
+Use double quotes everywhere except cases where single quotes or backquotes are
+used.
+
+Use single quotes:
+* in element names in non-user messages (to be consistent with e.g. Python
+  exception messages),
+* in any string containing double quotes (to avoid inserting backslashes).
+
+Use backquotes in element names in comments.
 
 
 Python 3 Compatibility
