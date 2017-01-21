@@ -112,7 +112,8 @@ class CellRendererTextList(gtk.CellRendererText):
       elif self.markup_list is not None:
         _set_markup()
   
-  def _property_name_to_attr(self, property_name):
+  @staticmethod
+  def _property_name_to_attr(property_name):
     return property_name.replace("-", "_")
 
 

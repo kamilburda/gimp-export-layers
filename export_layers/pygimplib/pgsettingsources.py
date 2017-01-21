@@ -58,8 +58,8 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   Attributes:
   
-  * `_settings_not_found` - List of settings not found in source when the `read()`
-    method is called.
+  * `_settings_not_found` - List of settings not found in source when the
+    `read()` method is called.
   """
   
   def __init__(self):
@@ -81,9 +81,9 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     Raises:
     
     * `SettingsNotFoundInSourceError` - At least one of the settings is not
-      found in the source. All settings that were not found in the source will be
-      stored in the `settings_not_found` list. This list is cleared on each read()
-      call.
+      found in the source. All settings that were not found in the source will
+      be stored in the `settings_not_found` list. This list is cleared on each
+      read() call.
     """
     
     pass
@@ -187,12 +187,12 @@ class SessionPersistentSettingSource(SettingSource):
   def read(self, settings):
     self._read(settings)
   
+  def _retrieve_setting_value(self, setting_name):
+    return gimpshelf.shelf[self._get_key(setting_name)]
+  
   def write(self, settings):
     for setting in settings:
       gimpshelf.shelf[self._get_key(setting.name)] = setting.value
-  
-  def _retrieve_setting_value(self, setting_name):
-    return gimpshelf.shelf[self._get_key(setting_name)]
   
   def _get_key(self, setting_name):
     key = self.source_name + self._separator + setting_name
@@ -242,6 +242,9 @@ class PersistentSettingSource(SettingSource):
     
     del self._settings_from_parasite
   
+  def _retrieve_setting_value(self, setting_name):
+    return self._settings_from_parasite[setting_name]
+  
   def write(self, settings):
     settings_from_parasite = self._read_from_parasite(self.source_name)
     if settings_from_parasite is not None:
@@ -251,14 +254,8 @@ class PersistentSettingSource(SettingSource):
       settings_to_write = self._to_dict(settings)
     
     settings_data = pickle.dumps(settings_to_write)
-    gimp.parasite_attach(gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, settings_data))
-  
-  def clear(self):
-    parasite = gimp.parasite_find(self.source_name)
-    if parasite is None:
-      return
-    
-    gimp.parasite_detach(self.source_name)
+    gimp.parasite_attach(
+      gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, settings_data))
   
   def _read_from_parasite(self, parasite_name):
     parasite = gimp.parasite_find(parasite_name)
@@ -271,12 +268,17 @@ class PersistentSettingSource(SettingSource):
       raise pgsettingpersistor.SettingSourceInvalidFormatError(
         _('Settings for this plug-in stored in "{0}" may be corrupt. '
           "This could happen if the file was edited manually.\n"
-          "To fix this, save the settings again or reset them.").format(self._parasite_file_path))
+          "To fix this, save the settings again or reset them.").format(
+            self._parasite_file_path))
     
     return settings_from_parasite
   
-  def _retrieve_setting_value(self, setting_name):
-    return self._settings_from_parasite[setting_name]
+  def clear(self):
+    parasite = gimp.parasite_find(self.source_name)
+    if parasite is None:
+      return
+    
+    gimp.parasite_detach(self.source_name)
   
   def _to_dict(self, settings):
     """

@@ -96,8 +96,9 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
       `old_setting_presenter` is None, only `setting.value` will be copied to
       this object.
     
-    * `auto_update_gui_to_setting` - If True, automatically update the setting value if
-      the GUI value is updated. This parameter does not have any effect if:
+    * `auto_update_gui_to_setting` - If True, automatically update the setting
+      value if the GUI value is updated. This parameter does not have any effect
+      if:
         
         * the `SettingPresenter` class cannot provide automatic GUI-to-setting
           update,
@@ -115,7 +116,8 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     else:
       self._value_changed_signal = None
     
-    self._setting_value_synchronizer.apply_setting_value_to_gui = self._apply_setting_value_to_gui
+    self._setting_value_synchronizer.apply_setting_value_to_gui = (
+      self._apply_setting_value_to_gui)
     
     if self._element is None:
       self._element = self._create_gui_element(setting)
@@ -123,8 +125,9 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
       gui_element_creation_supported = self._element is not None
       if not gui_element_creation_supported:
         raise ValueError(
-          "cannot instantiate class '{0}': attribute 'element' is None and this class does not support "
-          "the creation of a GUI element".format(type(self).__name__))
+          "cannot instantiate class '{0}': attribute 'element' is None "
+          "and this class does not support the creation of a GUI element".format(
+            type(self).__name__))
     
     copy_state = old_setting_presenter is not None
     if copy_state:

@@ -40,11 +40,13 @@ from .. import pgconstants
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf", new_callable=stubs_gimp.ShelfStub)
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
+  new_callable=stubs_gimp.ShelfStub)
 class TestSessionPersistentSettingSource(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf", new=stubs_gimp.ShelfStub())
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
+    new=stubs_gimp.ShelfStub())
   def setUp(self):
     self.source_name = "test_settings"
     self.source = pgsettingsources.SessionPersistentSettingSource(self.source_name)
@@ -55,8 +57,12 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.settings["only_visible_layers"].set_value(True)
     self.source.write(self.settings)
     
-    self.assertEqual(pgsettingsources.gimpshelf.shelf[self.source_name + "_" + "file_extension"], "png")
-    self.assertEqual(pgsettingsources.gimpshelf.shelf[self.source_name + "_" + "only_visible_layers"], True)
+    self.assertEqual(
+      pgsettingsources.gimpshelf.shelf[self.source_name + "_" + "file_extension"],
+      "png")
+    self.assertEqual(
+      pgsettingsources.gimpshelf.shelf[self.source_name + "_" + "only_visible_layers"],
+      True)
   
   def test_write_multiple_settings_separately(self, mock_session_source):
     self.settings["file_extension"].set_value("jpg")
@@ -70,9 +76,12 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.assertEqual(self.settings["only_visible_layers"].value, True)
   
   def test_read(self, mock_session_source):
-    pgsettingsources.gimpshelf.shelf[self.source_name + "_" + "file_extension"] = "png"
-    pgsettingsources.gimpshelf.shelf[self.source_name + "_" + "only_visible_layers"] = True
-    self.source.read([self.settings["file_extension"], self.settings["only_visible_layers"]])
+    pgsettingsources.gimpshelf.shelf[
+      self.source_name + "_" + "file_extension"] = "png"
+    pgsettingsources.gimpshelf.shelf[
+      self.source_name + "_" + "only_visible_layers"] = True
+    self.source.read(
+      [self.settings["file_extension"], self.settings["only_visible_layers"]])
     self.assertEqual(self.settings["file_extension"].value, "png")
     self.assertEqual(self.settings["only_visible_layers"].value, True)
   
@@ -90,10 +99,14 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.assertEqual(setting.value, setting.default_value)
 
 
-@mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp", new_callable=stubs_gimp.GimpModuleStub)
+@mock.patch(
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp",
+  new_callable=stubs_gimp.GimpModuleStub)
 class TestPersistentSettingSource(unittest.TestCase):
   
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp.directory", new="gimp_directory")
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp.directory",
+    new="gimp_directory")
   def setUp(self):
     self.source_name = "test_settings"
     self.source = pgsettingsources.PersistentSettingSource(self.source_name)
@@ -159,15 +172,19 @@ class TestPersistentSettingSource(unittest.TestCase):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf", new_callable=stubs_gimp.ShelfStub)
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
+  new_callable=stubs_gimp.ShelfStub)
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp", new_callable=stubs_gimp.GimpModuleStub)
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp",
+  new_callable=stubs_gimp.GimpModuleStub)
 class TestSettingPersistor(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf", new=stubs_gimp.ShelfStub())
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
+    new=stubs_gimp.ShelfStub())
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp.directory", new="gimp_directory")
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp.directory",
+    new="gimp_directory")
   def setUp(self):
     self.settings = stubs_pgsettinggroup.create_test_settings()
     self.session_source = pgsettingsources.SessionPersistentSettingSource("")
@@ -190,22 +207,26 @@ class TestSettingPersistor(unittest.TestCase):
     self.assertEqual(self.settings["file_extension"].value, "png")
     self.assertEqual(self.settings["only_visible_layers"].value, True)
   
-  def test_load_combine_settings_from_multiple_sources(self, mock_persistent_source, mock_session_source):
+  def test_load_combine_settings_from_multiple_sources(
+        self, mock_persistent_source, mock_session_source):
     self.settings["file_extension"].set_value("png")
     self.settings["only_visible_layers"].set_value(True)
     self.session_source.write([self.settings["file_extension"]])
     self.settings["file_extension"].set_value("jpg")
-    self.persistent_source.write([self.settings["only_visible_layers"], self.settings["file_extension"]])
+    self.persistent_source.write(
+      [self.settings["only_visible_layers"], self.settings["file_extension"]])
     self.settings["file_extension"].set_value("gif")
     self.settings["only_visible_layers"].set_value(False)
     
-    pgsettingpersistor.SettingPersistor.load([self.settings], [self.session_source, self.persistent_source])
+    pgsettingpersistor.SettingPersistor.load(
+      [self.settings], [self.session_source, self.persistent_source])
     
     self.assertEqual(self.settings["file_extension"].value, "png")
     self.assertEqual(self.settings["only_visible_layers"].value, True)
     
     for setting in self.settings:
-      if setting not in [self.settings["file_extension"], self.settings["only_visible_layers"]]:
+      if setting not in [
+           self.settings["file_extension"], self.settings["only_visible_layers"]]:
         self.assertEqual(setting.value, setting.default_value)
   
   def test_load_setting_groups(self, mock_persistent_source, mock_session_source):
@@ -222,14 +243,16 @@ class TestSettingPersistor(unittest.TestCase):
     self.assertEqual(settings["main"]["file_extension"].value, "png")
     self.assertEqual(settings["advanced"]["only_visible_layers"].value, True)
   
-  def test_load_settings_source_not_found(self, mock_persistent_source, mock_session_source):
+  def test_load_settings_source_not_found(
+        self, mock_persistent_source, mock_session_source):
     status, unused_ = pgsettingpersistor.SettingPersistor.load(
       [self.settings], [self.session_source, self.persistent_source])
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
   def test_load_settings_not_found(self, mock_persistent_source, mock_session_source):
     self.session_source.write([self.settings["only_visible_layers"]])
-    self.persistent_source.write([self.settings["file_extension"], self.settings["only_visible_layers"]])
+    self.persistent_source.write(
+      [self.settings["file_extension"], self.settings["only_visible_layers"]])
     
     status, unused_ = pgsettingpersistor.SettingPersistor.load(
       [self.settings["overwrite_mode"]], [self.session_source, self.persistent_source])
@@ -248,8 +271,11 @@ class TestSettingPersistor(unittest.TestCase):
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
   
   def test_load_write_fail(self, mock_persistent_source, mock_session_source):
-    with mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp") as temp_mock_persistent_source:
-      temp_mock_persistent_source.parasite_find.side_effect = pgsettingpersistor.SettingSourceWriteError
+    with mock.patch(
+           pgconstants.PYGIMPLIB_MODULE_PATH
+           + ".pgsettingsources.gimp") as temp_mock_persistent_source:
+      temp_mock_persistent_source.parasite_find.side_effect = (
+        pgsettingpersistor.SettingSourceWriteError)
       status, unused_ = pgsettingpersistor.SettingPersistor.save(
         [self.settings], [self.session_source, self.persistent_source])
     

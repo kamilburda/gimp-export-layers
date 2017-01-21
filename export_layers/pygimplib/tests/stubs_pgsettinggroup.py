@@ -56,7 +56,9 @@ def create_test_settings():
                 ("skip", "Skip"),
                 ("rename_new", "Rename new file"),
                 ("rename_existing", "Rename existing file")],
-      "error_messages": {"invalid_value": "Invalid value. Something went wrong on our end... we are so sorry!"}
+      "error_messages": {
+        "invalid_value": (
+          "Invalid value. Something went wrong on our end... we are so sorry!")}
     },
   ])
   
@@ -103,7 +105,9 @@ def create_test_settings_load_save():
   dummy_session_source, dummy_persistent_source = object(), object()
   
   main_settings = pgsettinggroup.SettingGroup(
-    name="main", setting_attributes={"setting_sources": [dummy_session_source, dummy_persistent_source]})
+    name="main",
+    setting_attributes={
+      "setting_sources": [dummy_session_source, dummy_persistent_source]})
   
   main_settings.add([
     {

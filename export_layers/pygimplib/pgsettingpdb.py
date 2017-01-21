@@ -48,7 +48,9 @@ class PdbParamCreator(object):
     """
     
     settings = cls._list_settings(settings_or_groups)
-    return [cls._create_param(setting) for setting in settings if setting.can_be_registered_to_pdb()]
+    return [
+      cls._create_param(setting) for setting in settings
+      if setting.can_be_registered_to_pdb()]
   
   @classmethod
   def list_param_values(cls, settings_or_groups, ignore_run_mode=True):
@@ -70,8 +72,8 @@ class PdbParamCreator(object):
     
     return [setting.value for setting in settings if setting.can_be_registered_to_pdb()]
   
-  @classmethod
-  def _list_settings(cls, settings_or_groups):
+  @staticmethod
+  def _list_settings(settings_or_groups):
     settings = []
     for setting_or_group in settings_or_groups:
       if isinstance(setting_or_group, pgsetting.Setting):
@@ -85,8 +87,8 @@ class PdbParamCreator(object):
     
     return settings
   
-  @classmethod
-  def _create_param(cls, setting):
+  @staticmethod
+  def _create_param(setting):
     return (
       setting.pdb_type,
       setting.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),

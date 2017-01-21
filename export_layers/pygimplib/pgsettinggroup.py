@@ -72,9 +72,12 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     super().__init__()
     
     self._name = name
-    self._display_name = pgsettingutils.get_processed_display_name(display_name, self._name)
-    self._description = pgsettingutils.get_processed_description(description, self._display_name)
-    self._setting_attributes = setting_attributes if setting_attributes is not None else {}
+    self._display_name = pgsettingutils.get_processed_display_name(
+      display_name, self._name)
+    self._description = pgsettingutils.get_processed_description(
+      description, self._display_name)
+    self._setting_attributes = (
+      setting_attributes if setting_attributes is not None else {})
     
     self._settings = collections.OrderedDict()
     self._tags = set()
@@ -142,12 +145,14 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
       if group_name in current_group:
         current_group = current_group._settings[group_name]
       else:
-        raise KeyError("group '{0}' in path '{1}' does not exist".format(group_name, setting_path))
+        raise KeyError("group '{0}' in path '{1}' does not exist".format(
+          group_name, setting_path))
     
     try:
       setting = current_group[setting_path_components[-1]]
     except KeyError:
-      raise KeyError("setting '{0}' not found in path '{1}'".format(setting_path_components[-1], setting_path))
+      raise KeyError("setting '{0}' not found in path '{1}'".format(
+        setting_path_components[-1], setting_path))
     
     return setting
   
@@ -259,14 +264,18 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   
   def _instantiate_setting(self, setting_type, setting_data_copy):
     try:
-      setting = self._settings[setting_data_copy["name"]] = setting_type(**setting_data_copy)
+      setting = setting_type(**setting_data_copy)
     except TypeError as e:
-      missing_mandatory_arguments = self._get_missing_mandatory_arguments(setting_type, setting_data_copy)
+      missing_mandatory_arguments = self._get_missing_mandatory_arguments(
+        setting_type, setting_data_copy)
       if missing_mandatory_arguments:
-        message = self._get_missing_mandatory_attributes_message(missing_mandatory_arguments)
+        message = self._get_missing_mandatory_attributes_message(
+          missing_mandatory_arguments)
       else:
         message = str(e)
       raise TypeError(message)
+    
+    self._settings[setting_data_copy["name"]] = setting
     
     return setting
   
@@ -286,7 +295,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     return mandatory_args
   
   def _get_missing_mandatory_attributes_message(self, attribute_names):
-    return "missing the following mandatory setting attributes: {0}".format(", ".join(attribute_names))
+    return "missing the following mandatory setting attributes: {0}".format(
+      ", ".join(attribute_names))
   
   def remove(self, setting_names):
     """
@@ -372,7 +382,10 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     tag.
     """
     
-    for setting in self.walk(include_setting_func=lambda setting: "ignore_reset" not in setting.tags):
+    def _has_ignore_reset_tag(setting):
+      return "ignore_reset" not in setting.tags
+    
+    for setting in self.walk(include_setting_func=_has_ignore_reset_tag):
       setting.reset()
   
   def load(self):
@@ -390,15 +403,9 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     of all calls to `load()`.
     """
     
-    for setting in self.walk(include_setting_func=lambda setting: "ignore_load" not in setting.tags):
-      setting.invoke_event("before-load-group")
-    
-    return_values = self._load_save("ignore_load", pgsettingpersistor.SettingPersistor.load)
-    
-    for setting in self.walk(include_setting_func=lambda setting: "ignore_load" not in setting.tags):
-      setting.invoke_event("after-load-group")
-    
-    return return_values
+    return self._load_save_group(
+      "ignore_load", pgsettingpersistor.SettingPersistor.load,
+      "before-load-group", "after-load-group")
   
   def save(self):
     """
@@ -409,15 +416,65 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     For more information, refer to the `load()` method.
     """
     
-    for setting in self.walk(include_setting_func=lambda setting: "ignore_save" not in setting.tags):
-      setting.invoke_event("before-save-group")
+    return self._load_save_group(
+      "ignore_save", pgsettingpersistor.SettingPersistor.save,
+      "before-save-group", "after-save-group")
+  
+  def _load_save_group(
+        self, load_save_ignore_tag, load_save_func,
+        before_load_save_group_event_type, after_load_save_group_event_type):
     
-    return_values = self._load_save("ignore_save", pgsettingpersistor.SettingPersistor.save)
+    def _has_ignore_tag(setting):
+      return load_save_ignore_tag not in setting.tags
     
-    for setting in self.walk(include_setting_func=lambda setting: "ignore_save" not in setting.tags):
-      setting.invoke_event("after-save-group")
+    for setting in self.walk(include_setting_func=_has_ignore_tag):
+      setting.invoke_event(before_load_save_group_event_type)
+    
+    return_values = self._load_save(load_save_ignore_tag, load_save_func)
+    
+    for setting in self.walk(include_setting_func=_has_ignore_tag):
+      setting.invoke_event(after_load_save_group_event_type)
     
     return return_values
+  
+  def _load_save(self, load_save_ignore_tag, load_save_func):
+    
+    def _get_worst_status(status_and_messages):
+      worst_status = pgsettingpersistor.SettingPersistor.SUCCESS
+      
+      if (pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND
+          in status_and_messages):
+        worst_status = pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND
+      
+      if pgsettingpersistor.SettingPersistor.READ_FAIL in status_and_messages:
+        worst_status = pgsettingpersistor.SettingPersistor.READ_FAIL
+      elif pgsettingpersistor.SettingPersistor.WRITE_FAIL in status_and_messages:
+        worst_status = pgsettingpersistor.SettingPersistor.WRITE_FAIL
+      
+      return worst_status
+    
+    setting_iterator = self.walk(
+      include_setting_func=lambda setting: load_save_ignore_tag not in setting.tags)
+    settings = [setting for setting in setting_iterator if setting.setting_sources]
+    
+    settings_per_sources = collections.OrderedDict()
+    
+    for setting in settings:
+      sources = tuple(setting.setting_sources)
+      if sources not in settings_per_sources:
+        settings_per_sources[sources] = []
+      
+      settings_per_sources[sources].append(setting)
+    
+    status_and_messages = collections.OrderedDict()
+    
+    for sources, settings in settings_per_sources.items():
+      status, message = load_save_func(settings, sources)
+      status_and_messages[status] = message
+    
+    worst_status = _get_worst_status(status_and_messages)
+    
+    return worst_status, status_and_messages.get(worst_status, "")
   
   def initialize_gui(self, custom_gui=None):
     """
@@ -464,11 +521,13 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     message contains messages from all invalid settings.
     """
     
+    def _has_ignore_tag(setting):
+      return "ignore_apply_gui_value_to_setting" not in setting.tags
+    
     exception_messages = []
     exception_settings = []
     
-    for setting in self.walk(
-          include_setting_func=lambda setting: "ignore_apply_gui_value_to_setting" not in setting.tags):
+    for setting in self.walk(include_setting_func=_has_ignore_tag):
       try:
         setting.gui.update_setting_value()
       except pgsetting.SettingValueError as e:
@@ -478,44 +537,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     if exception_messages:
       exception_message = "\n".join(exception_messages)
       raise pgsetting.SettingValueError(
-        exception_message, setting=exception_settings[0], messages=exception_messages, settings=exception_settings)
-  
-  def _load_save(self, load_save_ignore_tag, load_save_func):
-    
-    def _get_worst_status(status_and_messages):
-      worst_status = pgsettingpersistor.SettingPersistor.SUCCESS
-      
-      if pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND in status_and_messages:
-        worst_status = pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND
-      
-      if pgsettingpersistor.SettingPersistor.READ_FAIL in status_and_messages:
-        worst_status = pgsettingpersistor.SettingPersistor.READ_FAIL
-      elif pgsettingpersistor.SettingPersistor.WRITE_FAIL in status_and_messages:
-        worst_status = pgsettingpersistor.SettingPersistor.WRITE_FAIL
-      
-      return worst_status
-    
-    setting_iterator = self.walk(include_setting_func=lambda setting: load_save_ignore_tag not in setting.tags)
-    settings = [setting for setting in setting_iterator if setting.setting_sources]
-    
-    settings_per_sources = collections.OrderedDict()
-    
-    for setting in settings:
-      sources = tuple(setting.setting_sources)
-      if sources not in settings_per_sources:
-        settings_per_sources[sources] = []
-      
-      settings_per_sources[sources].append(setting)
-    
-    status_and_messages = collections.OrderedDict()
-    
-    for sources, settings in settings_per_sources.items():
-      status, message = load_save_func(settings, sources)
-      status_and_messages[status] = message
-    
-    worst_status = _get_worst_status(status_and_messages)
-    
-    return worst_status, status_and_messages.get(worst_status, "")
+        exception_message, setting=exception_settings[0],
+        messages=exception_messages, settings=exception_settings)
 
 
 class SettingGroupWalkCallbacks(object):

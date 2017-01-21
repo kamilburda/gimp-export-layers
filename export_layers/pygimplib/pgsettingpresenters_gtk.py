@@ -40,7 +40,8 @@ from . import pgsettingpresenter
 #===============================================================================
 
 
-class GtkSettingPresenter(future.utils.with_metaclass(abc.ABCMeta, pgsettingpresenter.SettingPresenter)):
+class GtkSettingPresenter(
+        future.utils.with_metaclass(abc.ABCMeta, pgsettingpresenter.SettingPresenter)):
   
   """
   This class is a `SettingPresenter` subclass for GTK GUI elements.
@@ -64,7 +65,8 @@ class GtkSettingPresenter(future.utils.with_metaclass(abc.ABCMeta, pgsettingpres
     self._element.set_visible(value)
   
   def _connect_value_changed_event(self):
-    self._event_handler_id = self._element.connect(self._VALUE_CHANGED_SIGNAL, self._on_value_changed)
+    self._event_handler_id = self._element.connect(
+      self._VALUE_CHANGED_SIGNAL, self._on_value_changed)
   
   def _disconnect_value_changed_event(self):
     self._element.disconnect(self._event_handler_id)
@@ -108,7 +110,8 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
     labels_and_values = setting.get_item_display_names_and_values()
     
     for i in range(0, len(labels_and_values), 2):
-      labels_and_values[i] = labels_and_values[i].encode(pgconstants.GTK_CHARACTER_ENCODING)
+      labels_and_values[i] = (
+        labels_and_values[i].encode(pgconstants.GTK_CHARACTER_ENCODING))
     
     return gimpui.IntComboBox(tuple(labels_and_values))
   

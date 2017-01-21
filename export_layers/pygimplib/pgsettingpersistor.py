@@ -197,8 +197,8 @@ class SettingPersistor(object):
     
     return cls._status(cls.SUCCESS)
   
-  @classmethod
-  def clear(cls, setting_sources):
+  @staticmethod
+  def clear(setting_sources):
     """
     Remove all settings from all the specified setting sources. Note that some
     sources may do nothing because they do not implement this method.
@@ -207,12 +207,12 @@ class SettingPersistor(object):
     for source in setting_sources:
       source.clear()
   
-  @classmethod
-  def _status(cls, status, message=None):
+  @staticmethod
+  def _status(status, message=None):
     return status, message if message is not None else ""
   
-  @classmethod
-  def _list_settings(cls, settings_or_groups):
+  @staticmethod
+  def _list_settings(settings_or_groups):
     # Put all settings into one list so that the `read()` and `write()` methods
     # are invoked only once per each source.
     settings = []

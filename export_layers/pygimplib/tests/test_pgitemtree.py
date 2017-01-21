@@ -113,12 +113,20 @@ def _parse_layers(layer_tree_string):
 #===============================================================================
 
 
-@mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
-@mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp.GroupLayer", new=stubs_gimp.LayerGroupStub)
+@mock.patch(
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb",
+  new=stubs_gimp.PdbStub())
+@mock.patch(
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp.GroupLayer",
+  new=stubs_gimp.LayerGroupStub)
 class TestLayerTree(unittest.TestCase):
 
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp.GroupLayer", new=stubs_gimp.LayerGroupStub)
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb",
+    new=stubs_gimp.PdbStub())
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp.GroupLayer",
+    new=stubs_gimp.LayerGroupStub)
   def setUp(self):
     layers_string = """
       Corners {
@@ -155,11 +163,16 @@ class TestLayerTree(unittest.TestCase):
   
   def test_get_item_tree_element_attributes(self):
     layer_elem_tree = collections.OrderedDict([
-      ("Corners", [[], ["top-left-corner", "top-right-corner", "top-left-corner:", "top-left-corner::"]]),
+      ("Corners",
+       [[],
+        ["top-left-corner", "top-right-corner",
+         "top-left-corner:", "top-left-corner::"]]),
       ("top-left-corner", [["Corners"], None]),
       ("top-right-corner", [["Corners"], None]),
       ("top-left-corner:", [["Corners"], []]),
-      ("top-left-corner::", [["Corners"], ["bottom-right-corner", "bottom-right-corner:", "bottom-left-corner"]]),
+      ("top-left-corner::",
+       [["Corners"],
+        ["bottom-right-corner", "bottom-right-corner:", "bottom-left-corner"]]),
       ("bottom-right-corner", [["Corners", "top-left-corner::"], None]),
       ("bottom-right-corner:", [["Corners", "top-left-corner::"], None]),
       ("bottom-left-corner", [["Corners", "top-left-corner::"], None]),
@@ -180,7 +193,8 @@ class TestLayerTree(unittest.TestCase):
     for layer_elem, orig_name in zip(self.layer_tree, layer_elem_tree.keys()):
       self.assertEqual(layer_elem.orig_name, orig_name)
     
-    for layer_elem, parents_and_children in zip(self.layer_tree, layer_elem_tree.values()):
+    for layer_elem, parents_and_children in zip(
+          self.layer_tree, layer_elem_tree.values()):
       parents = parents_and_children[0]
       children = parents_and_children[1]
       
@@ -193,7 +207,8 @@ class TestLayerTree(unittest.TestCase):
       
       self.assertEqual(layer_elem.parents, list(layer_elem.orig_parents))
       self.assertEqual(
-        layer_elem.children, list(layer_elem.orig_children) if layer_elem.orig_children is not None else None)
+        layer_elem.children,
+        list(layer_elem.orig_children) if layer_elem.orig_children is not None else None)
   
   def test_get_len(self):
     layer_count_total = 20
@@ -220,10 +235,12 @@ class TestLayerTree(unittest.TestCase):
       os.path.join(output_directory, layer_elem.name))
     self.assertEqual(
       layer_elem.get_filepath("testgimp"),
-      os.path.join(os.getcwd(), "testgimp", "Corners", "top-left-corner::", layer_elem.name))
+      os.path.join(
+        os.getcwd(), "testgimp", "Corners", "top-left-corner::", layer_elem.name))
     self.assertEqual(
       layer_elem.get_filepath(None),
-      os.path.join(os.getcwd(), "Corners", "top-left-corner::", layer_elem.name))
+      os.path.join(
+        os.getcwd(), "Corners", "top-left-corner::", layer_elem.name))
     
     itemtree_empty_layer_group = self.layer_tree["top-left-corner:"]
     
@@ -241,7 +258,8 @@ class TestLayerTree(unittest.TestCase):
       os.path.join(output_directory, itemtree_empty_layer_group_no_parents.name))
     self.assertEqual(
       itemtree_empty_layer_group_no_parents.get_filepath(output_directory),
-      itemtree_empty_layer_group_no_parents.get_filepath(output_directory, include_item_path=False))
+      itemtree_empty_layer_group_no_parents.get_filepath(
+        output_directory, include_item_path=False))
   
   #-----------------------------------------------------------------------------
   
@@ -276,7 +294,9 @@ class TestLayerTree(unittest.TestCase):
     
   def _compare_uniquified_without_parents(self, item_tree, uniquified_names):
     for key, name in uniquified_names.items():
-      self.assertEqual(item_tree[key].name, name, "'{0}': '{1}' != '{2}'".format(key, item_tree[key].name, name))
+      self.assertEqual(
+        item_tree[key].name, name,
+        "'{0}': '{1}' != '{2}'".format(key, item_tree[key].name, name))
   
   def test_uniquify_with_layer_groups(self):
     uniquified_names = collections.OrderedDict([
@@ -285,9 +305,12 @@ class TestLayerTree(unittest.TestCase):
       ("top-right-corner", ["Corners", "top-right-corner"]),
       ("top-left-corner:", ["Corners", "top-left-corner (1)"]),
       ("top-left-corner::", ["Corners", "top-left-corner (2)"]),
-      ("bottom-right-corner", ["Corners", "top-left-corner (2)", "bottom-right-corner"]),
-      ("bottom-right-corner:", ["Corners", "top-left-corner (2)", "bottom-right-corner (1)"]),
-      ("bottom-left-corner", ["Corners", "top-left-corner (2)", "bottom-left-corner"]),
+      ("bottom-right-corner",
+       ["Corners", "top-left-corner (2)", "bottom-right-corner"]),
+      ("bottom-right-corner:",
+       ["Corners", "top-left-corner (2)", "bottom-right-corner (1)"]),
+      ("bottom-left-corner",
+       ["Corners", "top-left-corner (2)", "bottom-left-corner"]),
       ("Corners:", ["Corners (1)"]),
       ("top-left-corner:::", ["Corners (1)", "top-left-corner"]),
       ("Frames", ["Frames"]),
@@ -337,9 +360,11 @@ class TestLayerTree(unittest.TestCase):
       path_components, name = item_path[:-1], item_path[-1]
       self.assertEqual(
         item_tree[key].get_path_components(), path_components,
-        "parents: '{0}': '{1}' != '{2}'".format(key, item_tree[key].get_path_components(), path_components))
+        "parents: '{0}': '{1}' != '{2}'".format(
+          key, item_tree[key].get_path_components(), path_components))
       self.assertEqual(
-        item_tree[key].name, name, "layer name: '{0}': '{1}' != '{2}'".format(key, item_tree[key].name, name))
+        item_tree[key].name, name,
+        "layer name: '{0}': '{1}' != '{2}'".format(key, item_tree[key].name, name))
   
   def test_reset_name(self):
     self.layer_tree["Corners"].name = "Corners.png"
@@ -373,12 +398,15 @@ class TestLayerTree(unittest.TestCase):
     self.assertEqual(self.layer_tree["Corners:"].name, "Corners:")
 
 
-@mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
+@mock.patch(
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
 class TestLayerTreeElement(unittest.TestCase):
   
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
   def setUp(self):
-    self.layer_elem = pgitemtree._ItemTreeElement(stubs_gimp.LayerStub("main-background.jpg"))
+    self.layer_elem = pgitemtree._ItemTreeElement(
+      stubs_gimp.LayerStub("main-background.jpg"))
   
   def test_str(self):
     self.assertEqual(str(self.layer_elem), "<_ItemTreeElement 'main-background.jpg'>")
@@ -403,7 +431,9 @@ class TestLayerTreeElement(unittest.TestCase):
     self.layer_elem.name = "."
     self.assertEqual(self.layer_elem.get_base_name(), ".")
   
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp", new=stubs_gimp.GimpModuleStub())
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp",
+    new=stubs_gimp.GimpModuleStub())
   def test_add_tag(self):
     self.assertEqual(self.layer_elem.tags, set())
     
@@ -414,7 +444,9 @@ class TestLayerTreeElement(unittest.TestCase):
     self.assertIn("background", self.layer_elem.tags)
     self.assertIn("foreground", self.layer_elem.tags)
   
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp", new=stubs_gimp.GimpModuleStub())
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp",
+    new=stubs_gimp.GimpModuleStub())
   def test_remove_tag(self):
     self.assertEqual(self.layer_elem.tags, set())
     
@@ -428,13 +460,17 @@ class TestLayerTreeElement(unittest.TestCase):
     self.assertFalse(bool(self.layer_elem.tags))
     self.assertFalse(bool(self.layer_elem.item.parasite_list()))
   
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp", new=stubs_gimp.GimpModuleStub())
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp",
+    new=stubs_gimp.GimpModuleStub())
   def test_initial_tags(self):
     layer_elem_tags_source_name = "test"
     
     layer = stubs_gimp.LayerStub("layer")
     layer.parasite_attach(
-      stubs_gimp.ParasiteStub(layer_elem_tags_source_name, 0, pickle.dumps(set(["background"]))))
+      stubs_gimp.ParasiteStub(
+        layer_elem_tags_source_name, 0, pickle.dumps(set(["background"]))))
     
-    layer_elem = pgitemtree._ItemTreeElement(layer, tags_source_name=layer_elem_tags_source_name)
+    layer_elem = pgitemtree._ItemTreeElement(
+      layer, tags_source_name=layer_elem_tags_source_name)
     self.assertIn("background", layer_elem.tags)

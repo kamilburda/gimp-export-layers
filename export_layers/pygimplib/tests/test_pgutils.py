@@ -27,7 +27,6 @@ from future.builtins import *
 
 import inspect
 import unittest
-import sys
 
 from .. import pgutils
 
@@ -38,7 +37,8 @@ class TestGetModuleRoot(unittest.TestCase):
 
   def test_get_module_root(self):
     self.assertEqual(
-      pgutils.get_module_root("export_layers.pygimplib.tests.test_pgutils", "export_layers"),
+      pgutils.get_module_root(
+        "export_layers.pygimplib.tests.test_pgutils", "export_layers"),
       "export_layers")
     self.assertEqual(
       pgutils.get_module_root("export_layers.pygimplib.tests.test_pgutils", "pygimplib"),
@@ -47,12 +47,14 @@ class TestGetModuleRoot(unittest.TestCase):
       pgutils.get_module_root("export_layers.pygimplib.tests.test_pgutils", "tests"),
       "export_layers.pygimplib.tests")
     self.assertEqual(
-      pgutils.get_module_root("export_layers.pygimplib.tests.test_pgutils", "test_pgutils"),
+      pgutils.get_module_root(
+        "export_layers.pygimplib.tests.test_pgutils", "test_pgutils"),
       "export_layers.pygimplib.tests.test_pgutils")
   
   def test_get_module_root_nonexistent_path_component(self):
     self.assertEqual(
-      pgutils.get_module_root("export_layers.pygimplib.tests.test_pgutils", "nonexistent_path_component"),
+      pgutils.get_module_root(
+        "export_layers.pygimplib.tests.test_pgutils", "nonexistent_path_component"),
       "export_layers.pygimplib.tests.test_pgutils")
     
     self.assertEqual(

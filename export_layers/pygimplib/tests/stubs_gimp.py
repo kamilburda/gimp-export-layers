@@ -26,6 +26,8 @@ unit tests.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import itertools
+
 from .. import pgconstants
 
 #===============================================================================
@@ -43,7 +45,8 @@ class PdbStub(object):
   def _call(self, *args):
     return self._attr_name
   
-  def gimp_image_new(self, width, height, image_type):
+  @staticmethod
+  def gimp_image_new(width, height, image_type):
     image = ImageStub()
     image.width = width
     image.height = height
@@ -51,19 +54,23 @@ class PdbStub(object):
     
     return image
   
-  def gimp_image_delete(self, image):
+  @staticmethod
+  def gimp_image_delete(image):
     image.valid = False
   
-  def gimp_image_is_valid(self, image):
+  @staticmethod
+  def gimp_image_is_valid(image):
     if image is not None:
       return image.valid
     else:
       return False
   
-  def gimp_item_is_group(self, item):
-    return type(item) == LayerGroupStub
+  @staticmethod
+  def gimp_item_is_group(item):
+    return isinstance(item, LayerGroupStub)
   
-  def gimp_item_set_visible(self, item, visible):
+  @staticmethod
+  def gimp_item_set_visible(item, visible):
     item.visible = visible
 
 
@@ -102,50 +109,45 @@ class ParasiteFunctionsStub(object):
 
 #===============================================================================
 
-_IMAGE_FIRST_AVAILABLE_ID = 0
 _ITEM_FIRST_AVAILABLE_ID = 0
 
 
 class ImageStub(ParasiteFunctionsStub):
   
-  _IMAGE_FIRST_AVAILABLE_ID = 0
+  _image_id_counter = itertools.count(start=1)
   
   def __init__(self, name=None):
     super().__init__()
     
-    global _IMAGE_FIRST_AVAILABLE_ID
-    
-    self.ID = _IMAGE_FIRST_AVAILABLE_ID
+    self.ID = self._image_id_counter.next()
     self.width = 0
     self.height = 0
     self.image_type = None
     self.layers = []
-    self.name = name.encode(pgconstants.GIMP_CHARACTER_ENCODING) if name is not None else b""
+    self.name = name.encode(
+      pgconstants.GIMP_CHARACTER_ENCODING) if name is not None else b""
     self.filename = b""
     self.uri = b""
     self.valid = True
-    
-    _IMAGE_FIRST_AVAILABLE_ID += 1
 
 
 class ItemStub(ParasiteFunctionsStub):
   
+  _item_id_counter = itertools.count(start=1)
+  
   def __init__(self, name=None, visible=True):
     super().__init__()
     
-    global _ITEM_FIRST_AVAILABLE_ID
-    
-    self.ID = _ITEM_FIRST_AVAILABLE_ID
+    self.ID = self._item_id_counter.next()
     self.width = 0
     self.height = 0
     self.valid = True
     self.visible = visible
     self.offsets = (0, 0)
-    self.name = name.encode(pgconstants.GIMP_CHARACTER_ENCODING) if name is not None else b""
+    self.name = name.encode(
+      pgconstants.GIMP_CHARACTER_ENCODING) if name is not None else b""
     self.image = None
     self.children = []
-    
-    _ITEM_FIRST_AVAILABLE_ID += 1
 
 
 class LayerStub(ItemStub):

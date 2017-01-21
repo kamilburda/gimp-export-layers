@@ -464,20 +464,20 @@ class StringPatternGenerator(object):
     
     return field_name, _process_field_args(field_args)
   
-  @classmethod
-  def _is_field_symbol_escaped(cls, pattern, index, symbol):
+  @staticmethod
+  def _is_field_symbol_escaped(pattern, index, symbol):
     return index + 1 < len(pattern) and pattern[index + 1] == symbol
   
-  @classmethod
-  def _is_field_number(cls, field_name):
+  @staticmethod
+  def _is_field_number(field_name):
     return bool(re.search(r"^[0-9]+$", field_name))
   
-  @classmethod
-  def _is_field(cls, pattern_part):
+  @staticmethod
+  def _is_field(pattern_part):
     return not isinstance(pattern_part, types.StringTypes)
   
-  @classmethod
-  def _is_field_valid(cls, field, fields):
+  @staticmethod
+  def _is_field_valid(field, fields):
     field_func = fields[field[0]]
     
     argspec = inspect.getargspec(field_func)
@@ -499,8 +499,8 @@ class StringPatternGenerator(object):
     
     return True
   
-  @classmethod
-  def _generate_number(cls, padding, initial_number):
+  @staticmethod
+  def _generate_number(padding, initial_number):
     i = initial_number
     while True:
       str_i = str(i)

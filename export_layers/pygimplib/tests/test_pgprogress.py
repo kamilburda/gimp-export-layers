@@ -59,7 +59,8 @@ class TestProgressUpdater(unittest.TestCase):
     self.progress_updater.update_tasks(self.num_total_tasks / 2)
     self.assertEqual(self.progress_updater.num_finished_tasks, self.num_total_tasks / 2)
     self.progress_updater.update_tasks(2)
-    self.assertEqual(self.progress_updater.num_finished_tasks, self.num_total_tasks / 2 + 2)
+    self.assertEqual(
+      self.progress_updater.num_finished_tasks, self.num_total_tasks / 2 + 2)
   
   def test_update_text(self):
     self.progress_updater.update_text("Hi there")

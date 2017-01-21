@@ -56,7 +56,8 @@ def timeout_add_strict(interval, callback, *callback_args, **callback_kwargs):
   
   timeout_remove_strict(callback)
   
-  _timer_ids[callback] = gobject.timeout_add(interval, _callback_wrapper, callback_args, callback_kwargs)
+  _timer_ids[callback] = gobject.timeout_add(
+    interval, _callback_wrapper, callback_args, callback_kwargs)
   
   return _timer_ids[callback]
 

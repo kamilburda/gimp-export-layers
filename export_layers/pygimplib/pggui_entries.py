@@ -160,7 +160,9 @@ class ExtendedEntry(gtk.Entry):
     self.modify_font(font_description)
   
   def _should_assign_placeholder_text(self, text):
-    return not text or (self._placeholder_text is not None and text == self._placeholder_text)
+    return (
+      not text
+      or (self._placeholder_text is not None and text == self._placeholder_text))
   
   def _on_extended_entry_focus_in_event(self, entry, event):
     self._unassign_placeholder_text()
@@ -189,12 +191,14 @@ class FilenamePatternEntry(ExtendedEntry):
     self._maximum_width_chars = kwargs.pop("maximum_width_chars", -1)
     self._default_item_value = kwargs.pop("default_item", None)
     
-    self._suggested_fields = self._get_suggested_fields(suggested_items)
+    self._suggested_fields = _get_suggested_fields(suggested_items)
     
     suggested_item_values = [item[1] for item in suggested_items]
-    if self._default_item_value is not None and self._default_item_value not in suggested_item_values:
-      raise ValueError('default item "{0}" not in the list of suggested items: {1}'.format(
-        self._default_item_value, suggested_item_values))
+    if (self._default_item_value is not None
+        and self._default_item_value not in suggested_item_values):
+      raise ValueError(
+        'default item "{0}" not in the list of suggested items: {1}'.format(
+          self._default_item_value, suggested_item_values))
     
     kwargs["placeholder_text"] = (
       suggested_items[suggested_item_values.index(self._default_item_value)][0]
@@ -221,7 +225,8 @@ class FilenamePatternEntry(ExtendedEntry):
     self._popup.on_row_left_mouse_button_press = self._on_row_left_mouse_button_press
     self._popup.on_entry_changed_show_popup_condition = self._on_entry_changed_condition
     self._popup.on_entry_key_press = self._on_entry_key_press
-    self._popup.on_entry_after_assign_by_key_press = self._on_entry_after_assign_by_key_press
+    self._popup.on_entry_after_assign_by_key_press = (
+      self._on_entry_after_assign_by_key_press)
     
     self._create_field_tooltip()
     
@@ -242,22 +247,9 @@ class FilenamePatternEntry(ExtendedEntry):
     its display name to determine whether placeholder text should be assigned.
     """
     
-    return not text or (self._default_item_value is not None and text == self._default_item_value)
-  
-  def _get_suggested_fields(self, suggested_items):
-    suggested_fields = {}
-    
-    for item in suggested_items:
-      field_value = item[1]
-      if field_value.startswith("[") and field_value.endswith("]"):
-        if item[2]:
-          suggested_fields[field_value[1:-1]] = "[{0}, {1}]".format(
-            gobject.markup_escape_text(field_value[1:-1]), ", ".join(
-              ["<i>{0}</i>".format(gobject.markup_escape_text(argument)) for argument in item[2]]))
-        else:
-          suggested_fields[field_value[1:-1]] = ""
-    
-    return suggested_fields
+    return (
+      not text
+      or (self._default_item_value is not None and text == self._default_item_value))
   
   def _create_field_tooltip(self):
     self._field_tooltip_window = gtk.Window(type=gtk.WINDOW_POPUP)
@@ -269,7 +261,8 @@ class FilenamePatternEntry(ExtendedEntry):
     self._field_tooltip_text = gtk.Label()
     
     self._field_tooltip_hbox = gtk.HBox(homogeneous=False)
-    self._field_tooltip_hbox.pack_start(self._field_tooltip_text, expand=False, fill=False)
+    self._field_tooltip_hbox.pack_start(
+      self._field_tooltip_text, expand=False, fill=False)
     
     self._field_tooltip_frame = gtk.Frame()
     self._field_tooltip_frame.set_shadow_type(gtk.SHADOW_ETCHED_IN)
@@ -283,7 +276,8 @@ class FilenamePatternEntry(ExtendedEntry):
       gtk.TreeViewColumn(None, gtk.CellRendererText(), text=self._COLUMN_ITEM_NAMES))
   
   def _on_entry_insert_text(self, entry, new_text, new_text_length, position):
-    self._cursor_position = self.get_position() + len(new_text.decode(pgconstants.GTK_CHARACTER_ENCODING))
+    self._cursor_position = (
+      self.get_position() + len(new_text.decode(pgconstants.GTK_CHARACTER_ENCODING)))
   
   def _on_entry_delete_text(self, entry, start, end):
     self._cursor_position = start
@@ -292,7 +286,8 @@ class FilenamePatternEntry(ExtendedEntry):
     self._cursor_position = self.get_position()
     
     field_name = (
-      pgpath.StringPatternGenerator.get_field_at_position(self._get_text_decoded(), self._cursor_position))
+      pgpath.StringPatternGenerator.get_field_at_position(
+        self._get_text_decoded(), self._cursor_position))
     
     if self._suggested_fields.get(field_name):
       if field_name != self._last_field_name_with_tooltip:
@@ -326,8 +321,9 @@ class FilenamePatternEntry(ExtendedEntry):
     entry_allocation_height = self.get_allocation().height
     
     if move_with_text_cursor:
+      text_up_to_cursor_position = self._get_text_decoded()[:self._cursor_position]
       self._pango_layout.set_text(
-        self._get_text_decoded()[:self._cursor_position].encode(pgconstants.GTK_CHARACTER_ENCODING))
+        text_up_to_cursor_position.encode(pgconstants.GTK_CHARACTER_ENCODING))
       
       x_offset = min(
         self._pango_layout.get_pixel_size()[0] + self.get_layout_offsets()[0],
@@ -357,16 +353,22 @@ class FilenamePatternEntry(ExtendedEntry):
   def _on_entry_size_allocate(self, entry, allocation):
     if self._minimum_width == -1:
       self._minimum_width = self.get_allocation().width
-      self._maximum_width = int((self._minimum_width / self._minimum_width_chars) * self._maximum_width_chars) + 1
+      self._maximum_width = (
+        int((self._minimum_width / self._minimum_width_chars)
+            * self._maximum_width_chars)
+        + 1)
     
     self._update_entry_width()
   
   def _update_entry_width(self):
     self._pango_layout.set_text(self.get_text())
     
-    offset_pixel_width = (self.get_layout_offsets()[0] + self.get_property("scroll-offset")) * 2
+    offset_pixel_width = (
+      (self.get_layout_offsets()[0] + self.get_property("scroll-offset"))
+      * 2)
     text_pixel_width = self._pango_layout.get_pixel_size()[0] + offset_pixel_width
-    self.set_size_request(max(min(text_pixel_width, self._maximum_width), self._minimum_width), -1)
+    self.set_size_request(
+      max(min(text_pixel_width, self._maximum_width), self._minimum_width), -1)
   
   def _filter_suggested_items(self, suggested_items, row_iter):
     item = suggested_items[row_iter][self._COLUMN_ITEMS]
@@ -384,7 +386,8 @@ class FilenamePatternEntry(ExtendedEntry):
     cursor_position = self._cursor_position_before_assigning_from_row
     
     suggested_item = str(tree_model[selected_tree_iter][self._COLUMN_ITEMS])
-    last_assigned_entry_text = self._popup.last_assigned_entry_text.decode(pgconstants.GTK_CHARACTER_ENCODING)
+    last_assigned_entry_text = (
+      self._popup.last_assigned_entry_text.decode(pgconstants.GTK_CHARACTER_ENCODING))
     
     if (cursor_position > 0 and len(last_assigned_entry_text) >= cursor_position
         and last_assigned_entry_text[cursor_position - 1] == "["):
@@ -392,7 +395,8 @@ class FilenamePatternEntry(ExtendedEntry):
     
     self.assign_text(
       (last_assigned_entry_text[:cursor_position] + suggested_item
-       + last_assigned_entry_text[cursor_position:]).encode(pgconstants.GTK_CHARACTER_ENCODING))
+       + last_assigned_entry_text[cursor_position:]).encode(
+           pgconstants.GTK_CHARACTER_ENCODING))
     
     self.set_position(cursor_position + len(suggested_item))
     self._cursor_position = self.get_position()
@@ -453,13 +457,32 @@ class FilenamePatternEntry(ExtendedEntry):
       self.undo_context.undo_push(undo_push_list)
 
 
+def _get_suggested_fields(suggested_items):
+  suggested_fields = {}
+  
+  for item in suggested_items:
+    field_value = item[1]
+    if field_value.startswith("[") and field_value.endswith("]"):
+      if item[2]:
+        suggested_fields[field_value[1:-1]] = "[{0}, {1}]".format(
+          gobject.markup_escape_text(field_value[1:-1]),
+          ", ".join(
+            ["<i>{0}</i>".format(gobject.markup_escape_text(argument))
+             for argument in item[2]]))
+      else:
+        suggested_fields[field_value[1:-1]] = ""
+  
+  return suggested_fields
+
+
 #===============================================================================
 
 
 class FileExtensionEntry(ExtendedEntry):
   
   _COLUMNS = [_COLUMN_DESCRIPTION, _COLUMN_EXTENSIONS] = (0, 1)
-  _COLUMN_TYPES = [gobject.TYPE_STRING, gobject.TYPE_PYOBJECT]     # [string, list of strings]
+  # [string, list of strings]
+  _COLUMN_TYPES = [gobject.TYPE_STRING, gobject.TYPE_PYOBJECT]
   
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -477,33 +500,35 @@ class FileExtensionEntry(ExtendedEntry):
     self._extensions_text_pixel_rects = []
     
     self._popup = pggui_entrypopup.EntryPopup(
-      self, self._COLUMN_TYPES, self._get_file_formats(pgfileformats.file_formats))
+      self, self._COLUMN_TYPES, _get_file_formats(pgfileformats.file_formats))
     self._popup.filter_rows_func = self._filter_file_formats
     self._popup.on_assign_from_selected_row = self._on_assign_from_selected_row
     self._popup.on_assign_last_value = self._do_assign_text
     self._popup.on_row_left_mouse_button_press = self._on_row_left_mouse_button_press
-    self._popup.on_entry_key_press_before_show_popup = self._on_key_press_before_show_popup
+    self._popup.on_entry_key_press_before_show_popup = (
+      self._on_key_press_before_show_popup)
     self._popup.on_entry_key_press = self._on_tab_keys_pressed
-    self._popup.on_entry_after_assign_by_key_press = self._on_entry_after_assign_by_key_press
+    self._popup.on_entry_after_assign_by_key_press = (
+      self._on_entry_after_assign_by_key_press)
     
     self._add_columns()
     
-    self._popup.tree_view.connect("motion-notify-event", self._on_tree_view_motion_notify_event)
-    self._popup.tree_view.connect_after("realize", self._on_after_tree_view_realize)
-    self._popup.tree_view.get_selection().connect("changed", self._on_tree_selection_changed)
+    self._popup.tree_view.connect(
+      "motion-notify-event", self._on_tree_view_motion_notify_event)
+    self._popup.tree_view.connect_after(
+      "realize", self._on_after_tree_view_realize)
+    self._popup.tree_view.get_selection().connect(
+      "changed", self._on_tree_selection_changed)
   
   def _do_assign_text(self, *args, **kwargs):
     super()._do_assign_text(*args, **kwargs)
     self.set_position(-1)
   
-  def _get_file_formats(self, file_formats):
-    return [[file_format.description, file_format.file_extensions]
-            for file_format in file_formats if file_format.is_installed()]
-  
   def _add_columns(self):
     def _add_column(
           cell_renderer, cell_renderer_property, column_number, column_title=None):
-      column = gtk.TreeViewColumn(column_title, cell_renderer, **{cell_renderer_property: column_number})
+      column = gtk.TreeViewColumn(
+        column_title, cell_renderer, **{cell_renderer_property: column_number})
       self._popup.tree_view.append_column(column)
     
     self._cell_renderer_description = gtk.CellRendererText()
@@ -515,7 +540,7 @@ class FileExtensionEntry(ExtendedEntry):
     self._highlight_extension_at_pos(int(event.x), int(event.y))
   
   def _on_after_tree_view_realize(self, tree_view):
-    self._extensions_separator_text_pixel_size = self._get_text_pixel_size(
+    self._extensions_separator_text_pixel_size = _get_text_pixel_size(
       self._cell_renderer_extensions.get_property("text-list-separator"),
       pango.Layout(self._popup.tree_view.get_pango_context()))
     
@@ -532,12 +557,13 @@ class FileExtensionEntry(ExtendedEntry):
       file_extensions = file_format[1]
       
       if len(file_extensions) > 1:
-        text_pixel_rects = self._get_text_pixel_rects(
+        text_pixel_rects = _get_text_pixel_rects(
           file_extensions, pango_layout, self._extensions_separator_text_pixel_size[0])
         for rect in text_pixel_rects:
           rect.x += self._cell_renderer_extensions.get_property("xpad")
           rect.x += self._popup.tree_view.style_get_property("horizontal-separator")
-          rect.x += self._popup.tree_view.get_column(self._COLUMN_EXTENSIONS).get_spacing()
+          rect.x += (
+            self._popup.tree_view.get_column(self._COLUMN_EXTENSIONS).get_spacing())
           
           # Occupy the space of the separator so that extension highlighting is
           # continuous.
@@ -553,22 +579,6 @@ class FileExtensionEntry(ExtendedEntry):
         self._extensions_text_pixel_rects.append(text_pixel_rects)
       else:
         self._extensions_text_pixel_rects.append([])
-  
-  def _get_text_pixel_rects(self, file_extensions, pango_layout, separator_pixel_width):
-    text_pixel_rects = []
-    
-    extension_x = 0
-    for extension in file_extensions:
-      extension_pixel_size = self._get_text_pixel_size(extension, pango_layout)
-      text_pixel_rects.append(gtk.gdk.Rectangle(extension_x, 0, *extension_pixel_size))
-      
-      extension_x += extension_pixel_size[0] + separator_pixel_width
-    
-    return text_pixel_rects
-  
-  def _get_text_pixel_size(self, text, pango_layout):
-    pango_layout.set_text(text)
-    return pango_layout.get_pixel_size()
   
   def _on_tree_selection_changed(self, tree_selection):
     self._unhighlight_extension()
@@ -624,7 +634,8 @@ class FileExtensionEntry(ExtendedEntry):
         
         self._do_assign_text(self._highlighted_extension)
         
-        self._on_entry_after_assign_by_key_press(previous_position, previous_text, 0, self._highlighted_extension)
+        self._on_entry_after_assign_by_key_press(
+          previous_position, previous_text, 0, self._highlighted_extension)
         
         return True
     
@@ -686,7 +697,8 @@ class FileExtensionEntry(ExtendedEntry):
       self._popup.refresh_row(selected_row_path)
   
   def _highlight_extension_at_pos(self, x, y):
-    is_in_extensions_column = x >= self._tree_view_columns_rects[self._COLUMN_EXTENSIONS].x
+    is_in_extensions_column = (
+      x >= self._tree_view_columns_rects[self._COLUMN_EXTENSIONS].x)
     if not is_in_extensions_column:
       if self._highlighted_extension is not None:
         self._unhighlight_extension()
@@ -696,8 +708,10 @@ class FileExtensionEntry(ExtendedEntry):
     if path_params is None:
       return
     
-    selected_path_unfiltered = self._popup.rows_filtered.convert_path_to_child_path(path_params[0])
-    extension_index = self._get_extension_index_at_pos(path_params[2], selected_path_unfiltered[0])
+    selected_path_unfiltered = (
+      self._popup.rows_filtered.convert_path_to_child_path(path_params[0]))
+    extension_index = (
+      self._get_extension_index_at_pos(path_params[2], selected_path_unfiltered[0]))
     
     if extension_index == self._highlighted_extension_index:
       return
@@ -740,7 +754,8 @@ class FileExtensionEntry(ExtendedEntry):
       self._popup.refresh_row(selected_row_path)
   
   def _highlight_extension_proper(self):
-    extensions = self._popup.rows[self._highlighted_extension_row][self._COLUMN_EXTENSIONS]
+    extensions = (
+      self._popup.rows[self._highlighted_extension_row][self._COLUMN_EXTENSIONS])
     
     self._highlighted_extension = extensions[self._highlighted_extension_index]
     
@@ -763,8 +778,33 @@ class FileExtensionEntry(ExtendedEntry):
     self._highlighted_extension_index = None
   
   def _unhighlight_extension_proper(self):
-    if self._highlighted_extension_row is not None and self._highlighted_extension_index is not None:
-      extensions = self._popup.rows[self._highlighted_extension_row][self._COLUMN_EXTENSIONS]
+    if (self._highlighted_extension_row is not None
+        and self._highlighted_extension_index is not None):
+      extensions = (
+        self._popup.rows[self._highlighted_extension_row][self._COLUMN_EXTENSIONS])
       if self._highlighted_extension is not None:
         extensions[self._highlighted_extension_index] = self._highlighted_extension
         self._highlighted_extension = None
+
+
+def _get_file_formats(file_formats):
+  return [[file_format.description, file_format.file_extensions]
+          for file_format in file_formats if file_format.is_installed()]
+
+  
+def _get_text_pixel_size(text, pango_layout):
+  pango_layout.set_text(text)
+  return pango_layout.get_pixel_size()
+
+  
+def _get_text_pixel_rects(file_extensions, pango_layout, separator_pixel_width):
+  text_pixel_rects = []
+  
+  extension_x = 0
+  for extension in file_extensions:
+    extension_pixel_size = _get_text_pixel_size(extension, pango_layout)
+    text_pixel_rects.append(gtk.gdk.Rectangle(extension_x, 0, *extension_pixel_size))
+    
+    extension_x += extension_pixel_size[0] + separator_pixel_width
+  
+  return text_pixel_rects

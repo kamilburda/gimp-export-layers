@@ -390,6 +390,26 @@ def compare_layers(
 #===============================================================================
 
 
+@contextlib.contextmanager
+def redirect_messages(message_handler=gimpenums.ERROR_CONSOLE):
+  """
+  Temporarily redirect GIMP messages to the specified message handler.
+  
+  Use this function as a context manager:
+    
+    with redirect_messages():
+      # do stuff
+  """
+  
+  orig_message_handler = pdb.gimp_message_get_handler()
+  pdb.gimp_message_set_handler(message_handler)
+  
+  try:
+    yield
+  finally:
+    pdb.gimp_message_set_handler(orig_message_handler)
+
+
 class GimpMessageFile(object):
   
   """

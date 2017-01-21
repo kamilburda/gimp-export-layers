@@ -59,8 +59,9 @@ from . import pgprogress
 class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
   
   """
-  This class is used to display a GTK dialog prompt in an interactive environment
-  when a file about to be saved has the same name as an already existing file.
+  This class is used to display a GTK dialog prompt in an interactive
+  environment when a file about to be saved has the same name as an already
+  existing file.
   """
   
   _DIALOG_BORDER_WIDTH = 8
@@ -82,7 +83,8 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
   
   def _init_gui(self):
     self._dialog = gimpui.Dialog(
-      title="", role=None, parent=self._parent, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
+      title="", role=None, parent=self._parent,
+      flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
     self._dialog.set_transient_for(self._parent)
     self._dialog.set_title(self._title)
     self._dialog.set_border_width(self._DIALOG_BORDER_WIDTH)
@@ -101,7 +103,8 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
     self._hbox_dialog_contents = gtk.HBox(homogeneous=False)
     self._hbox_dialog_contents.set_spacing(self._DIALOG_HBOX_CONTENTS_SPACING)
     self._hbox_dialog_contents.pack_start(self._dialog_icon, expand=False, fill=False)
-    self._hbox_dialog_contents.pack_start(self._dialog_text_event_box, expand=False, fill=False)
+    self._hbox_dialog_contents.pack_start(
+      self._dialog_text_event_box, expand=False, fill=False)
     
     if self._use_mnemonics:
       label_apply_to_all = _("_Apply action to all files")
@@ -123,7 +126,8 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
     self._checkbutton_apply_to_all.connect("toggled", self._on_apply_to_all_changed)
     
     self._is_dialog_text_allocated_size = False
-    self._dialog_text_event_box.connect("size-allocate", self._on_dialog_text_event_box_size_allocate)
+    self._dialog_text_event_box.connect(
+      "size-allocate", self._on_dialog_text_event_box_size_allocate)
     
     self._dialog.set_focus(self._buttons[self.default_value])
   
@@ -133,16 +137,18 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
       if filename_root:
         parent_directory = os.path.split(filename_root)[1]
         text_choose = (
-          _('A file named "{0}" already exists in "{1}".').format(basename, parent_directory) + " ")
+          _('A file named "{0}" already exists in "{1}" .').format(
+            basename, parent_directory))
       else:
-        text_choose = _('A file named "{0}" already exists.').format(basename) + "\n"
+        text_choose = _('A file named "{0}" already exists\n.').format(basename)
     else:
-      text_choose = _("A file with the same name already exists.") + "\n"
+      text_choose = _("A file with the same name already exists\n.")
     
     text_choose += _("What would you like to do?")
     
     self._dialog_text.set_markup(
-      '<span font_size="large"><b>' + gobject.markup_escape_text(text_choose) + "</b></span>")
+      '<span font_size="large"><b>{0}</b></span>'.format(
+        gobject.markup_escape_text(text_choose)))
     
     self._dialog.show_all()
     
@@ -165,7 +171,8 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
       # Make sure the label uses as much width as it can in the dialog.
       dialog_text_allocation = dialog_text_event_box.get_allocation()
       dialog_vbox_allocation = self._dialog.vbox.get_allocation()
-      self._dialog_text.set_size_request(dialog_vbox_allocation.width - dialog_text_allocation.x, -1)
+      self._dialog_text.set_size_request(
+        dialog_vbox_allocation.width - dialog_text_allocation.x, -1)
 
 
 #===============================================================================
@@ -243,7 +250,9 @@ def display_error_message(
   """
   
   if message_markup is None:
-    message_markup = '<span font_size="large"><b>' + _("Oops. Something went wrong.") + "</b></span>"
+    message_markup = (
+      '<span font_size="large"><b>{0}</b></span>'.format(
+        _("Oops. Something went wrong.")))
   
   if message_secondary_markup is None:
     message_secondary_markup = _(
@@ -271,7 +280,8 @@ def display_error_message(
     expander = None
   
   if report_uri_list:
-    vbox_labels_report = _get_report_link_buttons(report_uri_list, report_description=report_description)
+    vbox_labels_report = _get_report_link_buttons(
+      report_uri_list, report_description=report_description)
     dialog.vbox.pack_end(vbox_labels_report, expand=False, fill=False)
   
   if expander is not None:
@@ -284,7 +294,9 @@ def display_error_message(
     if button is not None:
       dialog.set_focus(button)
   else:
-    if expander is not None and expander.get_child() is not None and display_details_initially:
+    if (expander is not None
+        and expander.get_child() is not None
+        and display_details_initially):
       dialog.set_focus(expander.get_child())
   
   dialog.show_all()
@@ -350,9 +362,11 @@ def _get_report_link_buttons(report_uri_list, report_description=None):
     vbox_link_buttons.pack_start(linkbutton, expand=False, fill=False)
   
   if _webbrowser_module_found:
-    # Apparently, GTK doesn't know how to open URLs on Windows, hence the custom solution.
+    # Apparently, GTK doesn't know how to open URLs on Windows, hence the custom
+    # solution.
     for linkbutton in report_linkbuttons:
-      linkbutton.connect("clicked", lambda linkbutton: webbrowser.open_new_tab(linkbutton.get_uri()))
+      linkbutton.connect(
+        "clicked", lambda linkbutton: webbrowser.open_new_tab(linkbutton.get_uri()))
   
   return vbox_link_buttons
 
@@ -383,7 +397,8 @@ def display_message(
   """
   
   dialog = gtk.MessageDialog(
-    parent=parent, type=message_type, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=buttons)
+    parent=parent, type=message_type,
+    flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=buttons)
   dialog.set_transient_for(parent)
   if title is not None:
     dialog.set_title(title)
@@ -463,10 +478,13 @@ def set_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
         orig_sys_excepthook(exc_type, exc_value, exc_traceback)
         
         if issubclass(exc_type, Exception):
-          exception_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+          exception_message = "".join(
+            traceback.format_exception(exc_type, exc_value, exc_traceback))
+          
           display_error_message(
-            title=title, app_name=app_name, parent=_gui_excepthook_parent, details=exception_message,
-            report_uri_list=report_uri_list)
+            title=title, app_name=app_name, parent=_gui_excepthook_parent,
+            details=exception_message, report_uri_list=report_uri_list)
+          
           # Make sure to quit the application since unhandled exceptions can
           # mess up the application state.
           if gtk.main_level() > 0:

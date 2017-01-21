@@ -172,8 +172,10 @@ def _init_config_builtin(config):
 
 def _init_config_builtin_delayed(config):
   if _gimp_dependent_modules_imported:
-    config.SOURCE_SESSION = pgsettingsources.SessionPersistentSettingSource(config.SOURCE_SESSION_NAME)
-    config.SOURCE_PERSISTENT = pgsettingsources.PersistentSettingSource(config.SOURCE_PERSISTENT_NAME)
+    config.SOURCE_SESSION = pgsettingsources.SessionPersistentSettingSource(
+      config.SOURCE_SESSION_NAME)
+    config.SOURCE_PERSISTENT = pgsettingsources.PersistentSettingSource(
+      config.SOURCE_PERSISTENT_NAME)
 
 
 #===============================================================================
@@ -200,8 +202,9 @@ def init():
   
   if _gimp_dependent_modules_imported:
     pglogging.log_output(
-      config.LOG_MODE, config.PLUGINS_LOG_DIRNAMES, config.PLUGINS_LOG_STDOUT_FILENAME,
-      config.PLUGINS_LOG_STDERR_FILENAME, config.PLUGIN_TITLE, config.GIMP_CONSOLE_MESSAGE_DELAY_MILLISECONDS)
+      config.LOG_MODE, config.PLUGINS_LOG_DIRNAMES,
+      config.PLUGINS_LOG_STDOUT_FILENAME, config.PLUGINS_LOG_STDERR_FILENAME,
+      config.PLUGIN_TITLE, config.GIMP_CONSOLE_MESSAGE_DELAY_MILLISECONDS)
   
   _is_initialized = True
 
@@ -235,7 +238,8 @@ if _gimp_dependent_modules_imported:
       pdb_params = []
       
       if params:
-        has_settings = isinstance(params[0], (pgsetting.Setting, pgsettinggroup.SettingGroup))
+        has_settings = isinstance(
+          params[0], (pgsetting.Setting, pgsettinggroup.SettingGroup))
         if has_settings:
           pdb_params = pgsettingpdb.PdbParamCreator.create_params(*params)
         else:
@@ -262,8 +266,8 @@ if _gimp_dependent_modules_imported:
   def _query():
     gimp.domain_register(config.DOMAIN_NAME, config.LOCALE_PATH)
     
-    for plugin_procedure, plugin_args_and_kwargs in _plugins.items():
-      install_plugin(plugin_procedure, *plugin_args_and_kwargs[0], **plugin_args_and_kwargs[1])
+    for procedure, args_and_kwargs in _plugins.items():
+      install_plugin(procedure, *args_and_kwargs[0], **args_and_kwargs[1])
   
   def _run(procedure_name, procedure_params):
     if config.PLUGIN_NAME == config._DEFAULT_PLUGIN_NAME:
@@ -279,7 +283,9 @@ if _gimp_dependent_modules_imported:
   def _set_gui_excepthook(procedure, run_mode):
     if run_mode == gimpenums.RUN_INTERACTIVE:
       set_gui_excepthook_func = pggui.set_gui_excepthook(
-        title=config.PLUGIN_TITLE, app_name=config.PLUGIN_TITLE, report_uri_list=config.BUG_REPORT_URI_LIST)
+        title=config.PLUGIN_TITLE,
+        app_name=config.PLUGIN_TITLE,
+        report_uri_list=config.BUG_REPORT_URI_LIST)
       return set_gui_excepthook_func(procedure)
     else:
       return procedure

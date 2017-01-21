@@ -47,15 +47,18 @@ class TestPdbParamCreator(unittest.TestCase):
     
     self.assertTrue(len(param), 3)
     self.assertEqual(param[0], pgsetting.SettingPdbTypes.string)
-    self.assertEqual(param[1], "file_extension".encode(pgconstants.GIMP_CHARACTER_ENCODING))
-    self.assertEqual(param[2], "File extension".encode(pgconstants.GIMP_CHARACTER_ENCODING))
+    self.assertEqual(
+      param[1], "file_extension".encode(pgconstants.GIMP_CHARACTER_ENCODING))
+    self.assertEqual(
+      param[2], "File extension".encode(pgconstants.GIMP_CHARACTER_ENCODING))
   
   def test_create_params_invalid_argument(self):
     with self.assertRaises(TypeError):
       pgsettingpdb.PdbParamCreator.create_params([self.file_ext_setting])
   
   def test_create_multiple_params(self):
-    params = pgsettingpdb.PdbParamCreator.create_params(self.file_ext_setting, self.settings)
+    params = pgsettingpdb.PdbParamCreator.create_params(
+      self.file_ext_setting, self.settings)
     
     self.assertTrue(len(params), 1 + len(self.settings))
     self.assertEqual(
@@ -77,9 +80,12 @@ class TestPdbParamCreator(unittest.TestCase):
   
   def test_list_param_values(self):
     param_values = pgsettingpdb.PdbParamCreator.list_param_values([self.settings])
-    self.assertEqual(param_values[0], self.settings["main"]["file_extension"].value)
-    self.assertEqual(param_values[1], self.settings["advanced"]["only_visible_layers"].value)
-    self.assertEqual(param_values[2], self.settings["advanced"]["overwrite_mode"].value)
+    self.assertEqual(
+      param_values[0], self.settings["main"]["file_extension"].value)
+    self.assertEqual(
+      param_values[1], self.settings["advanced"]["only_visible_layers"].value)
+    self.assertEqual(
+      param_values[2], self.settings["advanced"]["overwrite_mode"].value)
 
   def test_list_param_values_ignore_run_mode(self):
     param_values = pgsettingpdb.PdbParamCreator.list_param_values(

@@ -94,7 +94,9 @@ def load_module(module_name):
   return module
 
 
-def run_tests(path, test_module_name_prefix="test_", modules=None, ignored_modules=None, output_stream=sys.stderr):
+def run_tests(
+      path, test_module_name_prefix="test_", modules=None, ignored_modules=None,
+      output_stream=sys.stderr):
   """
   Execute all modules containing unit tests located in the `path` directory. The
   names of the unit test modules start with the specified prefix.
@@ -118,12 +120,16 @@ def run_tests(path, test_module_name_prefix="test_", modules=None, ignored_modul
     ignored_modules = []
   
   if modules is None:
-    should_append = (lambda module_name:
-      not any(module_name.startswith(ignored_module) for ignored_module in ignored_modules))
+    should_append = (
+      lambda module_name: (
+        not any(
+          module_name.startswith(ignored_module) for ignored_module in ignored_modules)))
   else:
-    should_append = (lambda module_name:
-      any(module_name.startswith(module) for module in modules)
-          and not any(module_name.startswith(ignored_module) for ignored_module in ignored_modules))
+    should_append = (
+      lambda module_name: (
+        any(module_name.startswith(module) for module in modules)
+        and not any(
+          module_name.startswith(ignored_module) for ignored_module in ignored_modules)))
   
   for unused_, module_name, unused_ in pkgutil.walk_packages(path=[path]):
     if should_append(module_name):

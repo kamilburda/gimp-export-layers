@@ -91,7 +91,8 @@ class NoninteractiveOverwriteChooser(OverwriteChooser):
     return self._overwrite_mode
 
 
-class InteractiveOverwriteChooser(future.utils.with_metaclass(abc.ABCMeta, OverwriteChooser)):
+class InteractiveOverwriteChooser(
+        future.utils.with_metaclass(abc.ABCMeta, OverwriteChooser)):
   
   """
   This class is an interface for interactive overwrite choosers, requiring
@@ -121,7 +122,8 @@ class InteractiveOverwriteChooser(future.utils.with_metaclass(abc.ABCMeta, Overw
     
     if default_value not in self._values:
       raise ValueError(
-        "invalid default value '{0}'; must be one of the following: {1}".format(default_value, self._values))
+        "invalid default value '{0}'; must be one of the following: {1}".format(
+          default_value, self._values))
     
     self.default_value = default_value
     self.default_response = default_response
@@ -193,7 +195,8 @@ def handle_overwrite(filename, overwrite_chooser, uniquifier_position=None):
   if os.path.exists(filename):
     overwrite_chooser.choose(filename=os.path.abspath(filename))
     
-    if overwrite_chooser.overwrite_mode in (OverwriteModes.RENAME_NEW, OverwriteModes.RENAME_EXISTING):
+    if overwrite_chooser.overwrite_mode in (
+         OverwriteModes.RENAME_NEW, OverwriteModes.RENAME_EXISTING):
       uniq_filename = pgpath.uniquify_filename(filename, uniquifier_position)
       if overwrite_chooser.overwrite_mode == OverwriteModes.RENAME_NEW:
         filename = uniq_filename

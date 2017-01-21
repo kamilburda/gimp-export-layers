@@ -48,16 +48,17 @@ class TestSettingGroupAttributes(unittest.TestCase):
     self.assertEqual(settings.description, "Main")
   
   def test_get_custom_display_name_and_description(self):
-    settings = pgsettinggroup.SettingGroup(name="main", display_name="_Main", description="My description")
+    settings = pgsettinggroup.SettingGroup(
+      name="main", display_name="_Main", description="My description")
     self.assertEqual(settings.display_name, "_Main")
     self.assertEqual(settings.description, "My description")
   
   def test_get_non_existent_setting_name(self):
     with self.assertRaises(KeyError):
-      self.settings["invalid_name"]
+      unused_ = self.settings["invalid_name"]
 
 
-class TestSettingGroupAdditionWithSettingDict(unittest.TestCase):
+class TestSettingGroupAddWithSettingDict(unittest.TestCase):
   
   def setUp(self):
     self.settings = pgsettinggroup.SettingGroup("main")
@@ -66,49 +67,49 @@ class TestSettingGroupAdditionWithSettingDict(unittest.TestCase):
       "name": "autocrop",
       "default_value": False}
   
-  def test_add_setting_dict(self):
+  def test_add(self):
     self.settings.add([self.autocrop_setting_dict])
     
     self.assertIn("autocrop", self.settings)
     self.assertIsInstance(self.settings["autocrop"], pgsetting.BoolSetting)
     self.assertEqual(self.settings["autocrop"].value, False)
   
-  def test_add_setting_dict_missing_type_attribute(self):
+  def test_add_with_missing_type_attribute(self):
     del self.autocrop_setting_dict["type"]
     
     with self.assertRaises(TypeError):
       self.settings.add([self.autocrop_setting_dict])
   
-  def test_add_setting_dict_missing_single_mandatory_attribute(self):
+  def test_add_with_missing_single_mandatory_attribute(self):
     del self.autocrop_setting_dict["name"]
     
     with self.assertRaises(TypeError):
       self.settings.add([self.autocrop_setting_dict])
   
-  def test_add_setting_dict_missing_multiple_mandatory_attributes(self):
+  def test_add_with_missing_multiple_mandatory_attributes(self):
     del self.autocrop_setting_dict["name"]
     del self.autocrop_setting_dict["default_value"]
     
     with self.assertRaises(TypeError):
       self.settings.add([self.autocrop_setting_dict])
   
-  def test_add_setting_dict_with_invalid_setting_attribute(self):
+  def test_add_with_invalid_setting_attribute(self):
     self.autocrop_setting_dict["invalid_setting_attribute"] = None
     
     with self.assertRaises(TypeError):
       self.settings.add([self.autocrop_setting_dict])
   
-  def test_add_setting_dict_with_path_separator(self):
+  def test_add_with_path_separator(self):
     self.autocrop_setting_dict["name"] = "auto/crop"
     
     with self.assertRaises(ValueError):
       self.settings.add([self.autocrop_setting_dict])
   
-  def test_add_setting_dict_with_same_name_in_same_group(self):
+  def test_add_with_same_name_in_same_group(self):
     with self.assertRaises(ValueError):
       self.settings.add([self.autocrop_setting_dict, self.autocrop_setting_dict])
   
-  def test_add_setting_dicts_with_same_name_in_different_child_groups(self):
+  def test_add_multiple_dicts_with_same_name_in_different_child_groups(self):
     special_settings = pgsettinggroup.SettingGroup("special")
     special_settings.add([self.autocrop_setting_dict])
     
@@ -122,10 +123,11 @@ class TestSettingGroupAdditionWithSettingDict(unittest.TestCase):
     self.assertNotEqual(special_settings["autocrop"], main_settings["autocrop"])
 
 
-class TestSettingGroupAdditionWithSettingDictAndSettingAttributes(unittest.TestCase):
+class TestSettingGroupAddWithSettingDictAndSettingAttributes(unittest.TestCase):
   
-  def test_add_setting_dict_with_group_level_attributes(self):
-    settings = pgsettinggroup.SettingGroup(name="main", setting_attributes={"pdb_type": None})
+  def test_add_with_group_level_attributes(self):
+    settings = pgsettinggroup.SettingGroup(
+      name="main", setting_attributes={"pdb_type": None})
     settings.add([
       {
        "type": pgsetting.SettingTypes.boolean,
@@ -142,8 +144,9 @@ class TestSettingGroupAdditionWithSettingDictAndSettingAttributes(unittest.TestC
     self.assertEqual(settings["only_visible_layers"].pdb_type, None)
     self.assertEqual(settings["autocrop"].pdb_type, None)
   
-  def test_add_setting_dict_with_group_level_attributes_overridden_by_setting_attributes(self):
-    settings = pgsettinggroup.SettingGroup(name="main", setting_attributes={"pdb_type": None})
+  def test_add_with_group_level_attributes_overridden_by_setting_attributes(self):
+    settings = pgsettinggroup.SettingGroup(
+      name="main", setting_attributes={"pdb_type": None})
     settings.add([
       {
        "type": pgsetting.SettingTypes.boolean,
@@ -161,7 +164,7 @@ class TestSettingGroupAdditionWithSettingDictAndSettingAttributes(unittest.TestC
     self.assertEqual(settings["only_visible_layers"].pdb_type, None)
     self.assertEqual(settings["autocrop"].pdb_type, pgsetting.SettingPdbTypes.int16)
   
-  def test_add_setting_dict_with_group_level_attributes_overridden_by_child_group_attributes(self):
+  def test_add_with_group_level_attributes_overridden_by_child_group_attributes(self):
     additional_settings = pgsettinggroup.SettingGroup(
       name="additional", setting_attributes={"pdb_type": pgsetting.SettingPdbTypes.int16})
     
@@ -186,7 +189,8 @@ class TestSettingGroupAdditionWithSettingDictAndSettingAttributes(unittest.TestC
     ])
     
     self.assertEqual(settings["only_visible_layers"].pdb_type, None)
-    self.assertEqual(settings["additional/autocrop"].pdb_type, pgsetting.SettingPdbTypes.int16)
+    self.assertEqual(
+      settings["additional/autocrop"].pdb_type, pgsetting.SettingPdbTypes.int16)
     self.assertEqual(settings["only_visible_layers"].display_name, "Setting name")
     self.assertEqual(settings["additional/autocrop"].display_name, "Autocrop")
 
@@ -216,7 +220,8 @@ class TestSettingGroup(unittest.TestCase):
     
     self.assertIn("first_plugin_run", self.settings)
     self.assertIn("first_plugin_run", self.special_settings)
-    self.assertEqual(self.settings["first_plugin_run"], self.special_settings["first_plugin_run"])
+    self.assertEqual(
+      self.settings["first_plugin_run"], self.special_settings["first_plugin_run"])
   
   def test_add_setting_group(self):
     self.settings.add([self.special_settings])
@@ -281,7 +286,8 @@ class TestSettingGroup(unittest.TestCase):
   def test_reset_settings_and_nested_groups_and_ignore_specified_settings(self):
     self.settings.add([self.special_settings])
     self.settings["file_extension"].tags.add("ignore_reset")
-    self.settings["overwrite_mode"].tags.update(["ignore_reset", "ignore_apply_gui_value_to_setting"])
+    self.settings["overwrite_mode"].tags.update(
+      ["ignore_reset", "ignore_apply_gui_value_to_setting"])
     
     self.settings["file_extension"].set_value("gif")
     self.settings["only_visible_layers"].set_value(True)
@@ -291,9 +297,12 @@ class TestSettingGroup(unittest.TestCase):
     self.settings.reset()
     
     self.assertEqual(self.settings["file_extension"].value, "gif")
-    self.assertEqual(self.settings["overwrite_mode"].value, self.settings["overwrite_mode"].items["skip"])
     self.assertEqual(
-      self.settings["only_visible_layers"].value, self.settings["only_visible_layers"].default_value)
+      self.settings["overwrite_mode"].value,
+      self.settings["overwrite_mode"].items["skip"])
+    self.assertEqual(
+      self.settings["only_visible_layers"].value,
+      self.settings["only_visible_layers"].default_value)
     self.assertEqual(
       self.settings["special"]["first_plugin_run"].value,
       self.settings["special"]["first_plugin_run"].default_value)
@@ -320,11 +329,14 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.settings = stubs_pgsettinggroup.create_test_settings_hierarchical()
   
   def test_get_setting_via_paths(self):
-    self.assertEqual(self.settings["main/file_extension"], self.settings["main"]["file_extension"])
     self.assertEqual(
-      self.settings["advanced/only_visible_layers"], self.settings["advanced"]["only_visible_layers"])
+      self.settings["main/file_extension"], self.settings["main"]["file_extension"])
     self.assertEqual(
-      self.settings["advanced/overwrite_mode"], self.settings["advanced"]["overwrite_mode"])
+      self.settings["advanced/only_visible_layers"],
+      self.settings["advanced"]["only_visible_layers"])
+    self.assertEqual(
+      self.settings["advanced/overwrite_mode"],
+      self.settings["advanced"]["overwrite_mode"])
   
   def test_get_setting_via_paths_multiple_levels(self):
     expert_settings = pgsettinggroup.SettingGroup("expert")
@@ -344,7 +356,7 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     
   def test_get_setting_via_paths_invalid_group(self):
     with self.assertRaises(KeyError):
-      self.settings["advanced/invalid_group/file_extension_strip_mode"]
+      unused_ = self.settings["advanced/invalid_group/file_extension_strip_mode"]
   
   def test_contains_via_paths(self):
     self.assertIn("main/file_extension", self.settings)
@@ -359,7 +371,8 @@ class TestSettingGroupHierarchical(unittest.TestCase):
   
   def test_walk_ignore_settings_with_tag(self):
     self.settings["main"]["file_extension"].tags.add("ignore_reset")
-    self.settings["advanced"]["overwrite_mode"].tags.update(["ignore_reset", "ignore_apply_gui_value_to_setting"])
+    self.settings["advanced"]["overwrite_mode"].tags.update(
+      ["ignore_reset", "ignore_apply_gui_value_to_setting"])
     
     walked_settings = list(self.settings.walk(
       include_setting_func=lambda setting: "ignore_reset" not in setting.tags))
@@ -371,8 +384,9 @@ class TestSettingGroupHierarchical(unittest.TestCase):
   def test_walk_ignore_settings_in_group_with_tag(self):
     self.settings["advanced"].tags.add("ignore_apply_gui_value_to_setting")
     
-    walked_settings = list(self.settings.walk(
-      include_setting_func=lambda setting: "ignore_apply_gui_value_to_setting" not in setting.tags))
+    walked_settings = list(
+      self.settings.walk(include_setting_func=(
+        lambda setting: "ignore_apply_gui_value_to_setting" not in setting.tags)))
     
     self.assertIn(self.settings["main"]["file_extension"], walked_settings)
     self.assertNotIn(self.settings["advanced"]["only_visible_layers"], walked_settings)
@@ -391,31 +405,17 @@ class TestSettingGroupHierarchical(unittest.TestCase):
   def test_walk_ignore_settings_in_group_with_tag_include_groups(self):
     self.settings["advanced"].tags.add("ignore_apply_gui_value_to_setting")
     
-    walked_settings = list(self.settings.walk(
-      include_setting_func=lambda setting: "ignore_apply_gui_value_to_setting" not in setting.tags,
-      include_groups=True))
+    walked_settings = list(
+      self.settings.walk(
+        include_setting_func=(
+          lambda setting: "ignore_apply_gui_value_to_setting" not in setting.tags),
+        include_groups=True))
     
     self.assertIn(self.settings["main"], walked_settings)
     self.assertIn(self.settings["main"]["file_extension"], walked_settings)
     self.assertNotIn(self.settings["advanced"], walked_settings)
     self.assertNotIn(self.settings["advanced"]["only_visible_layers"], walked_settings)
     self.assertNotIn(self.settings["advanced"]["overwrite_mode"], walked_settings)
-  
-  def _get_test_data_for_walking_group(self):
-    walked_settings = []
-    
-    def _append_setting_name(setting):
-      walked_settings.append(setting.name)
-    
-    def _append_setting_name_and_end_group_walk_indicator(setting):
-      walked_settings.append(setting.name + "_end")
-    
-    walk_callbacks = pgsettinggroup.SettingGroupWalkCallbacks()
-    walk_callbacks.on_visit_setting = _append_setting_name
-    walk_callbacks.on_visit_group = _append_setting_name
-    walk_callbacks.on_end_group_walk = _append_setting_name_and_end_group_walk_indicator
-    
-    return walked_settings, walk_callbacks
   
   def test_walk_with_callbacks(self):
     walked_settings, walk_callbacks = self._get_test_data_for_walking_group()
@@ -448,7 +448,26 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     list(self.settings.walk(include_groups=True, walk_callbacks=walk_callbacks))
     
     self.assertEqual(
-      walked_settings, ["main", "main_end", "advanced", "only_visible_layers", "overwrite_mode", "advanced_end"])
+      walked_settings,
+      ["main", "main_end", "advanced", "only_visible_layers", "overwrite_mode",
+       "advanced_end"])
+  
+  @staticmethod
+  def _get_test_data_for_walking_group():
+    walked_settings = []
+    
+    def _append_setting_name(setting):
+      walked_settings.append(setting.name)
+    
+    def _append_setting_name_and_end_group_walk_indicator(setting):
+      walked_settings.append(setting.name + "_end")
+    
+    walk_callbacks = pgsettinggroup.SettingGroupWalkCallbacks()
+    walk_callbacks.on_visit_setting = _append_setting_name
+    walk_callbacks.on_visit_group = _append_setting_name
+    walk_callbacks.on_end_group_walk = _append_setting_name_and_end_group_walk_indicator
+    
+    return walked_settings, walk_callbacks
 
 
 #===============================================================================
@@ -465,7 +484,8 @@ class TestSettingGroupLoadSave(unittest.TestCase):
   def setUp(self):
     self.settings = stubs_pgsettinggroup.create_test_settings_load_save()
   
-  def test_load_save_setting_sources_not_in_group_and_in_settings(self, mock_load, mock_save):
+  def test_load_save_setting_sources_not_in_group_and_in_settings(
+        self, mock_load, mock_save):
     settings = stubs_pgsettinggroup.create_test_settings()
     
     settings.load()
@@ -479,19 +499,26 @@ class TestSettingGroupLoadSave(unittest.TestCase):
   def test_load_save_setting_sources_in_group_and_in_settings(self, mock_load, mock_save):
     self.settings.load()
     self.assertEqual(mock_load.call_count, 3)
-    self.assertEqual([self.settings["main/file_extension"]], mock_load.call_args_list[0][0][0])
-    self.assertEqual([self.settings["advanced/only_visible_layers"]], mock_load.call_args_list[1][0][0])
-    self.assertEqual([self.settings["advanced/autocrop"]], mock_load.call_args_list[2][0][0])
+    self.assertEqual(
+      [self.settings["main/file_extension"]], mock_load.call_args_list[0][0][0])
+    self.assertEqual(
+      [self.settings["advanced/only_visible_layers"]], mock_load.call_args_list[1][0][0])
+    self.assertEqual(
+      [self.settings["advanced/autocrop"]], mock_load.call_args_list[2][0][0])
     
     self.settings.save()
     self.assertEqual(mock_save.call_count, 3)
-    self.assertEqual([self.settings["main/file_extension"]], mock_save.call_args_list[0][0][0])
-    self.assertEqual([self.settings["advanced/only_visible_layers"]], mock_save.call_args_list[1][0][0])
-    self.assertEqual([self.settings["advanced/autocrop"]], mock_save.call_args_list[2][0][0])
+    self.assertEqual(
+      [self.settings["main/file_extension"]], mock_save.call_args_list[0][0][0])
+    self.assertEqual(
+      [self.settings["advanced/only_visible_layers"]], mock_save.call_args_list[1][0][0])
+    self.assertEqual(
+      [self.settings["advanced/autocrop"]], mock_save.call_args_list[2][0][0])
   
   def test_load_save_return_statuses(self, mock_load, mock_save):
     load_save_calls_return_values = [
-      (pgsettingpersistor.SettingPersistor.SUCCESS, ""), (pgsettingpersistor.SettingPersistor.SUCCESS, ""),
+      (pgsettingpersistor.SettingPersistor.SUCCESS, ""),
+      (pgsettingpersistor.SettingPersistor.SUCCESS, ""),
       (pgsettingpersistor.SettingPersistor.SUCCESS, "")]
     
     mock_load.side_effect = load_save_calls_return_values
@@ -502,22 +529,26 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     status, unused_ = self.settings.save()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
     
-    load_save_calls_return_values[1] = (pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND, "")
+    load_save_calls_return_values[1] = (
+      pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND, "")
     mock_load.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.load()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
     
-    load_save_calls_return_values[1] = (pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND, "")
+    load_save_calls_return_values[1] = (
+      pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND, "")
     mock_save.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.save()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
     
-    load_save_calls_return_values[2] = (pgsettingpersistor.SettingPersistor.READ_FAIL, "")
+    load_save_calls_return_values[2] = (
+      pgsettingpersistor.SettingPersistor.READ_FAIL, "")
     mock_load.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.load()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
     
-    load_save_calls_return_values[2] = (pgsettingpersistor.SettingPersistor.WRITE_FAIL, "")
+    load_save_calls_return_values[2] = (
+      pgsettingpersistor.SettingPersistor.WRITE_FAIL, "")
     mock_save.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.save()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.WRITE_FAIL)
@@ -546,30 +577,48 @@ class TestSettingGroupGui(unittest.TestCase):
   def test_initialize_gui_without_custom_gui(self):
     self.settings.initialize_gui()
     
-    self.assertIs(type(self.settings["file_extension"].gui), stubs_pgsetting.CheckButtonPresenterStub)
-    self.assertIs(type(self.settings["file_extension"].gui.element), stubs_pgsetting.CheckButtonStub)
-    self.assertIs(type(self.settings["only_visible_layers"].gui), stubs_pgsetting.CheckButtonPresenterStub)
-    self.assertIs(type(self.settings["only_visible_layers"].gui.element), stubs_pgsetting.CheckButtonStub)
+    self.assertIs(
+      type(self.settings["file_extension"].gui),
+      stubs_pgsetting.CheckButtonPresenterStub)
+    self.assertIs(
+      type(self.settings["file_extension"].gui.element),
+      stubs_pgsetting.CheckButtonStub)
+    self.assertIs(
+      type(self.settings["only_visible_layers"].gui),
+      stubs_pgsetting.CheckButtonPresenterStub)
+    self.assertIs(
+      type(self.settings["only_visible_layers"].gui.element),
+      stubs_pgsetting.CheckButtonStub)
   
   def test_initialize_gui_with_custom_gui(self):
     file_extension_widget = stubs_pgsetting.GuiWidgetStub("png")
     
     self.settings.initialize_gui(custom_gui={
-      "file_extension": [stubs_pgsetting.SettingPresenterStub, file_extension_widget],
-    })
+      "file_extension": [stubs_pgsetting.SettingPresenterStub, file_extension_widget]})
     
-    self.assertIs(type(self.settings["file_extension"].gui), stubs_pgsetting.SettingPresenterStub)
-    self.assertIs(type(self.settings["file_extension"].gui.element), stubs_pgsetting.GuiWidgetStub)
-    # It's "bmp", not "png", since the setting value overrides the initial GUI element value.
+    self.assertIs(
+      type(self.settings["file_extension"].gui),
+      stubs_pgsetting.SettingPresenterStub)
+    self.assertIs(
+      type(self.settings["file_extension"].gui.element),
+      stubs_pgsetting.GuiWidgetStub)
+    # It's "bmp", not "png", since the setting value overrides the initial GUI
+    # element value.
     self.assertEqual(file_extension_widget.value, "bmp")
-    self.assertIs(type(self.settings["only_visible_layers"].gui), stubs_pgsetting.CheckButtonPresenterStub)
-    self.assertIs(type(self.settings["only_visible_layers"].gui.element), stubs_pgsetting.CheckButtonStub)
+    self.assertIs(
+      type(self.settings["only_visible_layers"].gui),
+      stubs_pgsetting.CheckButtonPresenterStub)
+    self.assertIs(
+      type(self.settings["only_visible_layers"].gui.element),
+      stubs_pgsetting.CheckButtonStub)
   
   def test_apply_gui_values_to_settings_ignores_specified_settings(self):
     file_extension_widget = stubs_pgsetting.GuiWidgetStub(None)
     only_visible_layers_widget = stubs_pgsetting.GuiWidgetStub(None)
-    self.settings["file_extension"].set_gui(stubs_pgsetting.SettingPresenterStub, file_extension_widget)
-    self.settings["only_visible_layers"].set_gui(stubs_pgsetting.SettingPresenterStub, only_visible_layers_widget)
+    self.settings["file_extension"].set_gui(
+      stubs_pgsetting.SettingPresenterStub, file_extension_widget)
+    self.settings["only_visible_layers"].set_gui(
+      stubs_pgsetting.SettingPresenterStub, only_visible_layers_widget)
     
     file_extension_widget.set_value("gif")
     only_visible_layers_widget.set_value(True)

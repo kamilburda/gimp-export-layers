@@ -50,9 +50,10 @@ class InteractiveOverwriteChooserStub(pgoverwrite.InteractiveOverwriteChooser):
 
 
 class TestInteractiveOverwriteChooser(unittest.TestCase):
+
+  _OVERWRITE_MODES = SKIP, REPLACE, RENAME_NEW, RENAME_EXISTING = (0, 1, 2, 3)
   
   def setUp(self):
-    self.overwrite_modes = self.SKIP, self.REPLACE, self.RENAME_NEW, self.RENAME_EXISTING = (0, 1, 2, 3)
     self.values_and_display_names = [
       (self.SKIP, "Skip"), (self.REPLACE, "Replace"),
       (self.RENAME_NEW, "Rename new"), (self.RENAME_EXISTING, "Rename existing")]
@@ -66,7 +67,7 @@ class TestInteractiveOverwriteChooser(unittest.TestCase):
     self.assertEqual(self.overwrite_chooser.overwrite_mode, self.default_value)
 
   def test_choose_overwrite(self):
-    for mode in self.overwrite_modes:
+    for mode in self._OVERWRITE_MODES:
       self.overwrite_chooser.set_overwrite_mode(mode)
       self.overwrite_chooser.choose()
       self.assertEqual(self.overwrite_chooser.overwrite_mode, mode)

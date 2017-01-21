@@ -28,6 +28,28 @@ from future.builtins import *
 #===============================================================================
 
 
+def get_pdb_name(setting_name):
+  """
+  Return setting name suitable for the description of the setting in the GIMP
+  PDB.
+  """
+  
+  return setting_name.replace("_", "-")
+
+
+def value_to_str_prefix(value):
+  """
+  Return stringified setting value useful as a prefix to an error message.
+  
+  If `value` is empty or None, return empty string.
+  """
+  
+  if value:
+    return '"{0}": '.format(value)
+  else:
+    return ""
+
+
 def get_processed_display_name(setting_display_name, setting_name):
   if setting_display_name is not None:
     return setting_display_name
@@ -114,7 +136,8 @@ def get_setting_path(setting, relative_path_setting_group=None):
   setting_path = _get_setting_path(setting.parents + [setting])
   
   if relative_path_setting_group is not None:
-    root_path = _get_setting_path(relative_path_setting_group.parents + [relative_path_setting_group])
+    root_path = _get_setting_path(
+      relative_path_setting_group.parents + [relative_path_setting_group])
     if setting_path.startswith(root_path):
       return setting_path[len(root_path + SETTING_PATH_SEPARATOR):]
   

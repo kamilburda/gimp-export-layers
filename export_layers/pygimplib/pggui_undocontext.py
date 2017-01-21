@@ -73,21 +73,25 @@ class EntryUndoContext(object):
       action_handlers={
         "insert": lambda action_data: self._entry.delete_text(
           action_data.position, action_data.position + len(action_data.text)),
-        "delete": lambda action_data: self._entry.insert_text(action_data.text, action_data.position)},
+        "delete": lambda action_data: self._entry.insert_text(
+          action_data.text, action_data.position)},
       action_handlers_get_cursor_position={
         "insert": lambda last_action_data: last_action_data.position,
-        "delete": lambda last_action_data: last_action_data.position + len(last_action_data.text)},
+        "delete": lambda last_action_data: (
+          last_action_data.position + len(last_action_data.text))},
       actions_iterator=reversed)
   
   def redo(self):
     self._undo_redo(
       self._redo_stack, self._undo_stack,
       action_handlers={
-        "insert": lambda action_data: self._entry.insert_text(action_data.text, action_data.position),
+        "insert": lambda action_data: self._entry.insert_text(
+          action_data.text, action_data.position),
         "delete": lambda action_data: self._entry.delete_text(
           action_data.position, action_data.position + len(action_data.text))},
       action_handlers_get_cursor_position={
-        "insert": lambda last_action_data: last_action_data.position + len(last_action_data.text),
+        "insert": lambda last_action_data: (
+          last_action_data.position + len(last_action_data.text)),
         "delete": lambda last_action_data: last_action_data.position})
   
   def undo_push(self, undo_push_list):
@@ -180,19 +184,20 @@ class EntryUndoContext(object):
     actions = stack_to_pop_from.pop()
     
     if actions_iterator is None:
-      actions_list = actions
+      action_list = actions
     else:
-      actions_list = list(actions_iterator(actions))
+      action_list = list(actions_iterator(actions))
     
     stack_to_push_to.append(actions)
     
     self.undo_enabled = False
     
-    for action in actions_list:
+    for action in action_list:
       action_handlers[action.action_type](action)
     
-    self._entry.set_position(action_handlers_get_cursor_position[action.action_type](actions_list[-1]))
-  
+    self._entry.set_position(
+      action_handlers_get_cursor_position[action_list[-1].action_type](action_list[-1]))
+    
     self.undo_enabled = True
   
   def _undo_stack_push(self):

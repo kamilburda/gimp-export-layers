@@ -29,7 +29,8 @@ from . import pgutils
 
 #===============================================================================
 
-_LOG_OUTPUT_MODES = (LOG_EXCEPTIONS_ONLY, LOG_OUTPUT_FILES, LOG_OUTPUT_GIMP_CONSOLE) = (0, 1, 2)
+_LOG_OUTPUT_MODES = (
+  LOG_EXCEPTIONS_ONLY, LOG_OUTPUT_FILES, LOG_OUTPUT_GIMP_CONSOLE) = (0, 1, 2)
 
 GTK_CHARACTER_ENCODING = "utf-8"
 GIMP_CHARACTER_ENCODING = "utf-8"

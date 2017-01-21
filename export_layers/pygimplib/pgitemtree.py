@@ -111,7 +111,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     # key: `_ItemTreeElement.item.ID`
     # value: `_ItemTreeElement` object
     self._itemtree = collections.OrderedDict()
-    # key: `_ItemTreeElement.orig_name` (derived from `gimp.Item.name`, which is unique)
+    # key: `_ItemTreeElement.orig_name` (derived from `gimp.Item.name`)
     # value: `_ItemTreeElement` object
     self._itemtree_names = {}
     
@@ -226,7 +226,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
             else:
               position = uniquifier_position_parents
             
-            elem.name = pgpath.uniquify_string(elem.name, self._uniquified_itemtree_names[parent], position)
+            elem.name = pgpath.uniquify_string(
+              elem.name, self._uniquified_itemtree_names[parent], position)
           
           self._uniquified_itemtree[parent].add(elem)
           self._uniquified_itemtree_names[parent].add(elem.name)
@@ -293,7 +294,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     
     child_items = self._get_children_from_image(self._image)
-    child_item_elems = [_ItemTreeElement(item, [], None, self._name) for item in child_items]
+    child_item_elems = [
+      _ItemTreeElement(item, [], None, self._name) for item in child_items]
     
     item_elem_tree = child_item_elems
     
@@ -311,9 +313,12 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
       
       if child_items is not None:
         item_elem_parents.append(item_elem)
-        child_item_elems = [_ItemTreeElement(item, item_elem_parents, None, self._name) for item in child_items]
+        child_item_elems = [
+          _ItemTreeElement(
+            item, item_elem_parents, None, self._name) for item in child_items]
         
-        # We break the convention here and access private attributes from `_ItemTreeElement`.
+        # We break the convention here and access private attributes from
+        # `_ItemTreeElement`.
         item_elem._orig_children = child_item_elems
         item_elem._children = child_item_elems
         
@@ -538,7 +543,8 @@ class _ItemTreeElement(object):
     For more information, see the `pgpath.get_filename_with_new_file_extension()` method.
     """
     
-    self.name = pgpath.get_filename_with_new_file_extension(self.name, file_extension, keep_extra_trailing_periods)
+    self.name = pgpath.get_filename_with_new_file_extension(
+      self.name, file_extension, keep_extra_trailing_periods)
   
   def get_base_name(self):
     """

@@ -37,7 +37,8 @@ from . import pgutils
 
 class EntryPopup(object):
   
-  # Implementation of the popup is loosely based on the implementation of `gtk.EntryCompletion`:
+  # Implementation of the popup is loosely based on the implementation of
+  # `gtk.EntryCompletion`:
   # https://github.com/GNOME/gtk/blob/gtk-2-24/gtk/gtkentrycompletion.c
   
   _BUTTON_MOUSE_LEFT = 1
@@ -49,14 +50,17 @@ class EntryPopup(object):
     self._height = height
     self._max_num_visible_rows = max_num_visible_rows
     
-    self.on_assign_from_selected_row = pgutils.create_empty_func(return_value=(None, None))
+    self.on_assign_from_selected_row = pgutils.create_empty_func(
+      return_value=(None, None))
     self.on_assign_last_value = self._entry.assign_text
     self.on_row_left_mouse_button_press = self.assign_from_selected_row
     self.on_entry_left_mouse_button_press_func = pgutils.empty_func
     self.on_entry_key_press_before_show_popup = pgutils.empty_func
-    self.on_entry_key_press = lambda key_name, tree_path, stop_event_propagation: stop_event_propagation
+    self.on_entry_key_press = (
+      lambda key_name, tree_path, stop_event_propagation: stop_event_propagation)
     self.on_entry_after_assign_by_key_press = pgutils.empty_func
-    self.on_entry_changed_show_popup_condition = pgutils.create_empty_func(return_value=True)
+    self.on_entry_changed_show_popup_condition = pgutils.create_empty_func(
+      return_value=True)
     
     self.trigger_popup = True
     
@@ -147,7 +151,8 @@ class EntryPopup(object):
       self._popup.hide()
       
       if self._button_press_emission_hook_id is not None:
-        gobject.remove_emission_hook(self._entry, "button-press-event", self._button_press_emission_hook_id)
+        gobject.remove_emission_hook(
+          self._entry, "button-press-event", self._button_press_emission_hook_id)
       
       if self._toplevel_configure_event_id is not None:
         toplevel_window = self._entry.get_toplevel()
@@ -183,7 +188,8 @@ class EntryPopup(object):
       self._tree_view_width = self._tree_view.get_allocation().width
       if num_rows > self._max_num_visible_rows:
         vscrollbar_width = int(
-          self._scrolled_window.get_hadjustment().upper - self._scrolled_window.get_hadjustment().page_size)
+          self._scrolled_window.get_hadjustment().upper
+          - self._scrolled_window.get_hadjustment().page_size)
         self._tree_view_width += vscrollbar_width * 2
     
     self._tree_view.set_size_request(self._tree_view_width, row_height * num_visible_rows)
@@ -196,7 +202,8 @@ class EntryPopup(object):
       row_path = self._rows_filtered.convert_child_path_to_path(row_path)
     
     if row_path is not None:
-      self._rows_filtered.emit("row-changed", row_path, self._rows_filtered.get_iter(row_path))
+      self._rows_filtered.emit(
+        "row-changed", row_path, self._rows_filtered.get_iter(row_path))
   
   def select_row(self, row_num):
     self._tree_view.set_cursor((row_num,))
@@ -251,9 +258,11 @@ class EntryPopup(object):
         position, text = self.select_and_assign_row(next_row)
     
     self.on_entry_after_assign_by_key_press(
-      self._previous_assigned_entry_text_position, self._previous_assigned_entry_text, position, text)
+      self._previous_assigned_entry_text_position, self._previous_assigned_entry_text,
+      position, text)
     
-    self._previous_assigned_entry_text_position, self._previous_assigned_entry_text = position, text
+    self._previous_assigned_entry_text_position = position
+    self._previous_assigned_entry_text = text
   
   def save_last_value(self):
     self._last_assigned_entry_text = self._entry.get_text()
@@ -309,12 +318,14 @@ class EntryPopup(object):
       "leave-notify-event", self._on_vscrollbar_leave_notify_event)
     
     self._tree_view.connect_after("realize", self._on_after_tree_view_realize)
-    self._tree_view.connect("button-press-event", self._on_tree_view_left_mouse_button_press)
+    self._tree_view.connect(
+      "button-press-event", self._on_tree_view_left_mouse_button_press)
   
   def _update_position(self):
     entry_absolute_position = self._entry.get_window().get_origin()
     entry_allocation_height = self._entry.get_allocation().height
-    self._popup.move(entry_absolute_position[0], entry_absolute_position[1] + entry_allocation_height)
+    self._popup.move(
+      entry_absolute_position[0], entry_absolute_position[1] + entry_allocation_height)
   
   def _filter_rows(self, rows, row_iter):
     if self._clear_filter:
@@ -326,11 +337,14 @@ class EntryPopup(object):
     key_name = gtk.gdk.keyval_name(event.keyval)
     
     if (not self.is_shown()
-        and key_name in ["Up", "KP_Up", "Down", "KP_Down", "Page_Up", "KP_Page_Up", "Page_Down", "KP_Page_Down"]):
+        and key_name in [
+          "Up", "KP_Up", "Down", "KP_Down",
+          "Page_Up", "KP_Page_Up", "Page_Down", "KP_Page_Down"]):
       self.on_entry_key_press_before_show_popup()
       
       show_popup_first_time = self._show_popup_first_time
       self.show()
+      
       # This prevents the navigation keys to select the first row.
       if show_popup_first_time:
         self.unselect()
@@ -383,7 +397,8 @@ class EntryPopup(object):
     if self.trigger_popup:
       self.save_last_value()
       
-      self._previous_assigned_entry_text_position, self._previous_assigned_entry_text = None, None
+      self._previous_assigned_entry_text_position = None
+      self._previous_assigned_entry_text = None
       
       if not self.on_entry_changed_show_popup_condition():
         self.hide()
@@ -459,7 +474,9 @@ class EntryPopup(object):
     self.hide()
   
   def _on_emission_hook_button_press_event(self, widget, event):
-    if self._mouse_points_at_popup or self._mouse_points_at_vscrollbar or self._mouse_points_at_entry:
+    if (self._mouse_points_at_popup
+        or self._mouse_points_at_vscrollbar
+        or self._mouse_points_at_entry):
       return True
     else:
       self.hide()

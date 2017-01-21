@@ -72,15 +72,21 @@ def log_output(
   """
   
   if log_mode == pgconstants.LOG_EXCEPTIONS_ONLY:
-    _redirect_exception_output_to_file(log_path_dirnames, log_stderr_filename, log_header_title)
+    _redirect_exception_output_to_file(
+      log_path_dirnames, log_stderr_filename, log_header_title)
   elif log_mode == pgconstants.LOG_OUTPUT_FILES:
-    sys.stdout = SimpleLogger(os.path.join(log_path_dirnames[0], log_stdout_filename), "a", log_header_title)
-    sys.stderr = SimpleLogger(os.path.join(log_path_dirnames[0], log_stderr_filename), "a", log_header_title)
-    _redirect_exception_output_to_file(log_path_dirnames, log_stderr_filename, log_header_title)
+    sys.stdout = SimpleLogger(
+      os.path.join(log_path_dirnames[0], log_stdout_filename), "a", log_header_title)
+    sys.stderr = SimpleLogger(
+      os.path.join(log_path_dirnames[0], log_stderr_filename), "a", log_header_title)
+    _redirect_exception_output_to_file(
+      log_path_dirnames, log_stderr_filename, log_header_title)
   elif log_mode == pgconstants.LOG_OUTPUT_GIMP_CONSOLE:
-    sys.stdout = pgpdb.GimpMessageFile(message_delay_milliseconds=gimp_console_message_delay_milliseconds)
+    sys.stdout = pgpdb.GimpMessageFile(
+      message_delay_milliseconds=gimp_console_message_delay_milliseconds)
     sys.stderr = pgpdb.GimpMessageFile(
-      message_prefix="Error: ", message_delay_milliseconds=gimp_console_message_delay_milliseconds)
+      message_prefix="Error: ",
+      message_delay_milliseconds=gimp_console_message_delay_milliseconds)
 
 
 def _logger_add_file_handler(logger, log_paths):
@@ -117,14 +123,17 @@ def _redirect_exception_output_to_file(
   logger.setLevel(logging.DEBUG)
   
   can_log = _logger_add_file_handler(
-    logger, [os.path.join(log_path_dirname, log_filename) for log_path_dirname in log_path_dirnames])
+    logger,
+    [os.path.join(log_path_dirname, log_filename)
+     for log_path_dirname in log_path_dirnames])
   if can_log:
     # Pass the `logger` instance to the function to make sure it is not None.
     # More information at:
     # http://stackoverflow.com/questions/5451746/sys-excepthook-doesnt-work-in-imported-modules/5477639
     # http://bugs.python.org/issue11705
     def log_exceptions(exctype, value, traceback, logger=logger):
-      logger.error(get_log_header(log_header_title), exc_info=(exctype, value, traceback))
+      logger.error(
+        get_log_header(log_header_title), exc_info=(exctype, value, traceback))
     
     sys.excepthook = log_exceptions
 
