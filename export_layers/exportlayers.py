@@ -151,15 +151,19 @@ class LayerNameRenamer(object):
       pattern=pattern,
       fields=self._get_fields_for_layer_filename_pattern())
     
-    # key: _ItemTreeElement parent ID (None for root); value: list of pattern number generators
-    self._pattern_number_filename_generators = {None: self._filename_pattern_generator.get_number_generators()}
+    # key: _ItemTreeElement parent ID (None for root)
+    # value: list of pattern number generators
+    self._pattern_number_filename_generators = {
+      None: self._filename_pattern_generator.get_number_generators()}
   
   def rename(self, layer_elem):
     parent = layer_elem.parent.item.ID if layer_elem.parent is not None else None
     if parent not in self._pattern_number_filename_generators:
-      self._pattern_number_filename_generators[parent] = self._filename_pattern_generator.reset_numbering()
+      self._pattern_number_filename_generators[parent] = (
+        self._filename_pattern_generator.reset_numbering())
     else:
-      self._filename_pattern_generator.set_number_generators(self._pattern_number_filename_generators[parent])
+      self._filename_pattern_generator.set_number_generators(
+        self._pattern_number_filename_generators[parent])
     
     layer_elem.name = self._filename_pattern_generator.generate()
   
@@ -185,7 +189,10 @@ class LayerNameRenamer(object):
     return layer_elem.get_base_name()
   
   def _get_image_name(self, keep_extension=False):
-    image_name = self._layer_exporter.image.name if self._layer_exporter.image.name is not None else _("Untitled")
+    image_name = (
+      self._layer_exporter.image.name if self._layer_exporter.image.name is not None
+      else _("Untitled"))
+    
     if keep_extension == "keep extension":
       return image_name
     else:
@@ -196,7 +203,8 @@ class LayerNameRenamer(object):
       [parent.name for parent in self._layer_exporter.current_layer_elem.parents]
       + [self._layer_exporter.current_layer_elem.name])
   
-  def _get_current_date(self, date_format="%Y-%m-%d"):
+  @staticmethod
+  def _get_current_date(date_format="%Y-%m-%d"):
     return datetime.datetime.now().strftime(date_format)
   
   def _get_tags(self, *tags):
@@ -280,48 +288,55 @@ _BUILTIN_OPERATIONS_GROUP = "process_layer"
 _BUILTIN_FILTERS_GROUP = "set_filters"
 _BUILTIN_FILTERS_LAYER_TYPES_GROUP = "set_filters_layer_types"
 
-_builtin_operations_and_settings = {
+_BUILTIN_OPERATIONS_AND_SETTINGS = {
   "ignore_layer_modes": [builtin_operations.ignore_layer_modes],
   "autocrop": [builtin_operations.autocrop_layer],
-  "inherit_transparency_from_layer_groups": [builtin_operations.inherit_transparency_from_layer_groups],
-  "insert_background_layers": [builtin_operations.insert_background_layer, ["background"]],
-  "insert_foreground_layers": [builtin_operations.insert_foreground_layer, ["foreground"]],
+  "inherit_transparency_from_layer_groups": [
+    builtin_operations.inherit_transparency_from_layer_groups],
+  "insert_background_layers": [
+    builtin_operations.insert_background_layer, ["background"]],
+  "insert_foreground_layers": [
+    builtin_operations.insert_foreground_layer, ["foreground"]],
   "autocrop_background": [builtin_operations.autocrop_tagged_layer, ["background"]],
   "autocrop_foreground": [builtin_operations.autocrop_tagged_layer, ["foreground"]]
 }
 
-_builtin_filters_and_settings = {
+_BUILTIN_FILTERS_AND_SETTINGS = {
   "only_non_tagged_layers": [_add_filter_rule(builtin_filters.has_no_tags)],
   "only_tagged_layers": [_add_filter_rule(builtin_filters.has_tags)],
   "only_layers_matching_file_extension": [
-    _add_filter_rule_with_layer_exporter(builtin_filters.has_matching_default_file_extension)],
+    _add_filter_rule_with_layer_exporter(
+      builtin_filters.has_matching_default_file_extension)],
   "only_toplevel_layers": [_add_filter_rule(builtin_filters.is_top_level)]
 }
 
-_builtin_include_filters_and_settings = {
-  "include_layers": [_add_filter_rule(builtin_filters.is_layer, subfilter="layer_types")],
-  "include_layer_groups": [_add_filter_rule(builtin_filters.is_nonempty_group, subfilter="layer_types")],
-  "include_empty_layer_groups": [_add_filter_rule(builtin_filters.is_empty_group, subfilter="layer_types")]
+_BUILTIN_INCLUDE_FILTERS_AND_SETTINGS = {
+  "include_layers": [
+    _add_filter_rule(builtin_filters.is_layer, subfilter="layer_types")],
+  "include_layer_groups": [
+    _add_filter_rule(builtin_filters.is_nonempty_group, subfilter="layer_types")],
+  "include_empty_layer_groups": [
+    _add_filter_rule(builtin_filters.is_empty_group, subfilter="layer_types")]
 }
 
 # key: setting name; value: (operation ID, operation group) tuple
 _operation_settings_and_items = {}
 
-_operations_executor = pgoperations.OperationsExecutor()
+_operations_executor = pgoperations.OperationExecutor()
 
 
 def add_operation(base_setting):
-  if (base_setting.name in _builtin_operations_and_settings
-      or base_setting.name in _builtin_filters_and_settings
-      or base_setting.name in _builtin_include_filters_and_settings):
-    if base_setting.name in _builtin_operations_and_settings:
-      operation_item = _builtin_operations_and_settings[base_setting.name]
+  if (base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS
+      or base_setting.name in _BUILTIN_FILTERS_AND_SETTINGS
+      or base_setting.name in _BUILTIN_INCLUDE_FILTERS_AND_SETTINGS):
+    if base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS:
+      operation_item = _BUILTIN_OPERATIONS_AND_SETTINGS[base_setting.name]
       operation_group = _BUILTIN_OPERATIONS_GROUP
-    elif base_setting.name in _builtin_filters_and_settings:
-      operation_item = _builtin_filters_and_settings[base_setting.name]
+    elif base_setting.name in _BUILTIN_FILTERS_AND_SETTINGS:
+      operation_item = _BUILTIN_FILTERS_AND_SETTINGS[base_setting.name]
       operation_group = _BUILTIN_FILTERS_GROUP
-    elif base_setting.name in _builtin_include_filters_and_settings:
-      operation_item = _builtin_include_filters_and_settings[base_setting.name]
+    elif base_setting.name in _BUILTIN_INCLUDE_FILTERS_AND_SETTINGS:
+      operation_item = _BUILTIN_INCLUDE_FILTERS_AND_SETTINGS[base_setting.name]
       operation_group = _BUILTIN_FILTERS_LAYER_TYPES_GROUP
     
     operation = operation_item[0]
@@ -350,6 +365,20 @@ def remove_operation(setting):
 
 _operations_executor.add_foreach_operation(
   builtin_operations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
+
+#===============================================================================
+
+
+def _copy_non_modifying_parasites(src_image, dest_image):
+  unused_, parasite_names = pdb.gimp_image_get_parasite_list(src_image)
+  for parasite_name in parasite_names:
+    if dest_image.parasite_find(parasite_name) is None:
+      parasite = src_image.parasite_find(parasite_name)
+      # Don't attach persistent or undoable parasites to avoid modifying
+      # `dest_image`.
+      if parasite.flags == 0:
+        dest_image.parasite_attach(parasite)
+
 
 #===============================================================================
 
@@ -396,7 +425,7 @@ class LayerExporter(object):
   * `current_layer_elem` (read-only) - The `pgitemtree._ItemTreeElement`
     instance being currently exported.
   
-  * `operations_executor` - `pgoperations.OperationsExecutor` instance to manage
+  * `operations_executor` - `pgoperations.OperationExecutor` instance to manage
     operations applied on layers.
   """
   
@@ -409,17 +438,26 @@ class LayerExporter(object):
         self, initial_run_mode, image, export_settings,
         overwrite_chooser=None, progress_updater=None, layer_tree=None,
         export_context_manager=None, export_context_manager_args=None):
+    
     self.initial_run_mode = initial_run_mode
     self.image = image
     self.export_settings = export_settings
+    
     self.overwrite_chooser = (
       overwrite_chooser if overwrite_chooser is not None
-      else pgoverwrite.NoninteractiveOverwriteChooser(self.export_settings["overwrite_mode"].value))
+      else pgoverwrite.NoninteractiveOverwriteChooser(
+        self.export_settings["overwrite_mode"].value))
+    
     self.progress_updater = (
-      progress_updater if progress_updater is not None else pgprogress.ProgressUpdater(None))
+      progress_updater if progress_updater is not None
+      else pgprogress.ProgressUpdater(None))
+    
     self._layer_tree = layer_tree
+    
     self.export_context_manager = (
-      export_context_manager if export_context_manager is not None else pgutils.EmptyContext)
+      export_context_manager if export_context_manager is not None
+      else pgutils.EmptyContext)
+    
     self.export_context_manager_args = (
       export_context_manager_args if export_context_manager_args is not None else [])
     
@@ -431,8 +469,11 @@ class LayerExporter(object):
     self._should_stop = False
     
     self._processing_groups = {
-      "layer_contents": [self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
-      "layer_name": [self._preprocess_layer_name, self._preprocess_empty_group_name, self._process_layer_name],
+      "layer_contents": [
+        self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
+      "layer_name": [
+        self._preprocess_layer_name, self._preprocess_empty_group_name,
+        self._process_layer_name],
       "_postprocess_layer_name": [self._postprocess_layer_name],
       "export": [self._make_dirs, self._export]
     }
@@ -442,7 +483,7 @@ class LayerExporter(object):
       for function in functions:
         self._processing_groups_functions[function.__name__] = function
     
-    self._operations_executor = pgoperations.OperationsExecutor()
+    self._operations_executor = pgoperations.OperationExecutor()
     self._add_operations_initial()
   
   @property
@@ -582,10 +623,13 @@ class LayerExporter(object):
     self._should_stop = True
   
   def _add_operations_initial(self):
-    self._operations_executor.add_operation(builtin_operations.set_active_layer, [_BUILTIN_OPERATIONS_GROUP])
+    self._operations_executor.add_operation(
+      builtin_operations.set_active_layer, [_BUILTIN_OPERATIONS_GROUP])
+    
     self._operations_executor.add_executor(
       _operations_executor,
-      [_BUILTIN_OPERATIONS_GROUP, _BUILTIN_FILTERS_GROUP, _BUILTIN_FILTERS_LAYER_TYPES_GROUP])
+      [_BUILTIN_OPERATIONS_GROUP, _BUILTIN_FILTERS_GROUP,
+       _BUILTIN_FILTERS_LAYER_TYPES_GROUP])
     
     add_operation(self.export_settings["more_filters/include/include_layers"])
   
@@ -620,7 +664,8 @@ class LayerExporter(object):
     self.progress_updater.reset()
     
     self._file_extension_properties = _get_prefilled_file_extension_properties()
-    self._default_file_extension = self.export_settings["file_extension"].value.lstrip(".").lower()
+    self._default_file_extension = (
+      self.export_settings["file_extension"].value.lstrip(".").lower())
     self._current_file_extension = self._default_file_extension
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
@@ -635,7 +680,8 @@ class LayerExporter(object):
   def _enable_disable_processing_groups(self, processing_groups):
     for functions in self._processing_groups.values():
       for function in functions:
-        setattr(self, function.__name__, self._processing_groups_functions[function.__name__])
+        setattr(
+          self, function.__name__, self._processing_groups_functions[function.__name__])
     
     if processing_groups:
       if (not self.export_settings["more_filters/only_selected_layers"].value
@@ -661,7 +707,8 @@ class LayerExporter(object):
     self.progress_updater.num_total_tasks = len(self._layer_tree)
     
     if self._keep_exported_layers:
-      with self._layer_tree.filter["layer_types"].remove_rule_temp(builtin_filters.is_empty_group, False):
+      with self._layer_tree.filter["layer_types"].remove_rule_temp(
+             builtin_filters.is_empty_group, False):
         num_layers_and_nonempty_groups = len(self._layer_tree)
         if num_layers_and_nonempty_groups > 1:
           self._use_another_image_copy = True
@@ -676,7 +723,8 @@ class LayerExporter(object):
   def _reset_parents_in_layer_elems(self):
     for layer_elem in self._layer_tree:
       layer_elem.parents = list(layer_elem.orig_parents)
-      layer_elem.children = list(layer_elem.orig_children) if layer_elem.orig_children is not None else None
+      layer_elem.children = (
+        list(layer_elem.orig_children) if layer_elem.orig_children is not None else None)
   
   def _set_layer_filters(self):
     self._layer_tree.filter.add_subfilter(
@@ -739,7 +787,8 @@ class LayerExporter(object):
     empty_group_path = layer_elem.get_filepath(self._output_directory)
     self._make_dirs(empty_group_path, self)
     
-    self.progress_updater.update_text(_('Creating empty directory "{0}"').format(empty_group_path))
+    self.progress_updater.update_text(
+      _('Creating empty directory "{0}"').format(empty_group_path))
     self.progress_updater.update_tasks()
   
   def _setup(self):
@@ -761,7 +810,7 @@ class LayerExporter(object):
     if pygimplib.config.DEBUG_IMAGE_PROCESSING:
       pdb.gimp_display_delete(self._display_id)
     
-    self._copy_non_modifying_parasites(self._image_copy, self.image)
+    _copy_non_modifying_parasites(self._image_copy, self.image)
     
     pdb.gimp_image_undo_thaw(self._image_copy)
     if ((not self._keep_exported_layers or self._use_another_image_copy)
@@ -778,20 +827,12 @@ class LayerExporter(object):
     
     pdb.gimp_context_pop()
   
-  def _copy_non_modifying_parasites(self, src_image, dest_image):
-    unused_, parasite_names = pdb.gimp_image_get_parasite_list(src_image)
-    for parasite_name in parasite_names:
-      if dest_image.parasite_find(parasite_name) is None:
-        parasite = src_image.parasite_find(parasite_name)
-        # Don't attach persistent or undoable parasites to avoid modifying `dest_image`.
-        if parasite.flags == 0:
-          dest_image.parasite_attach(parasite)
-  
   def _process_layer(self, layer_elem, image, layer):
     layer_copy = builtin_operations.copy_and_insert_layer(image, layer, None, 0)
     self._operations_executor.execute(["after_insert_layer"], image, layer_copy, self)
     
-    self._operations_executor.execute([_BUILTIN_OPERATIONS_GROUP], image, layer_copy, self)
+    self._operations_executor.execute(
+      [_BUILTIN_OPERATIONS_GROUP], image, layer_copy, self)
     
     layer_copy = self._merge_and_resize_layer(image, layer_copy)
     
@@ -806,9 +847,11 @@ class LayerExporter(object):
       pdb.gimp_image_remove_layer(image, layer)
     else:
       if self._use_another_image_copy:
-        another_layer_copy = pdb.gimp_layer_new_from_drawable(layer, self._another_image_copy)
+        another_layer_copy = pdb.gimp_layer_new_from_drawable(
+          layer, self._another_image_copy)
         pdb.gimp_image_insert_layer(
-          self._another_image_copy, another_layer_copy, None, len(self._another_image_copy.layers))
+          self._another_image_copy, another_layer_copy, None,
+          len(self._another_image_copy.layers))
         another_layer_copy.name = layer.name
         
         pdb.gimp_image_remove_layer(image, layer)
@@ -816,7 +859,8 @@ class LayerExporter(object):
   def _merge_and_resize_layer(self, image, layer):
     if not self.export_settings["use_image_size"].value:
       layer_offset_x, layer_offset_y = layer.offsets
-      pdb.gimp_image_resize(image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
+      pdb.gimp_image_resize(
+        image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
     
     layer = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
     
@@ -834,7 +878,8 @@ class LayerExporter(object):
     self._layer_tree.uniquify_name(layer_elem)
   
   def _process_layer_name(self, layer_elem):
-    self._layer_tree.uniquify_name(layer_elem, uniquifier_position=self._get_uniquifier_position(layer_elem.name))
+    self._layer_tree.uniquify_name(
+      layer_elem, uniquifier_position=self._get_uniquifier_position(layer_elem.name))
   
   def _postprocess_layer_name(self, layer_elem):
     if layer_elem.item_type == layer_elem.NONEMPTY_GROUP:
@@ -843,11 +888,13 @@ class LayerExporter(object):
   def _set_file_extension(self, layer_elem):
     if self.export_settings["more_operations/use_file_extensions_in_layer_names"].value:
       orig_file_extension = layer_elem.get_file_extension_from_orig_name()
-      if orig_file_extension and self._file_extension_properties[orig_file_extension].is_valid:
+      if (orig_file_extension
+          and self._file_extension_properties[orig_file_extension].is_valid):
         self._current_file_extension = orig_file_extension
       else:
         self._current_file_extension = self._default_file_extension
-      layer_elem.set_file_extension(self._current_file_extension, keep_extra_trailing_periods=True)
+      layer_elem.set_file_extension(
+        self._current_file_extension, keep_extra_trailing_periods=True)
     else:
       layer_elem.name += "." + self._current_file_extension
   
@@ -869,7 +916,8 @@ class LayerExporter(object):
     self.progress_updater.update_text(_('Saving "{0}"').format(output_filename))
     
     self._current_overwrite_mode, output_filename = pgoverwrite.handle_overwrite(
-      output_filename, self.overwrite_chooser, self._get_uniquifier_position(output_filename))
+      output_filename, self.overwrite_chooser,
+      self._get_uniquifier_position(output_filename))
     
     if self._current_overwrite_mode == pgoverwrite.OverwriteModes.CANCEL:
       raise ExportLayersCancelError("cancelled")
@@ -877,9 +925,12 @@ class LayerExporter(object):
     if self._current_overwrite_mode != pgoverwrite.OverwriteModes.SKIP:
       self._make_dirs(os.path.dirname(output_filename), self)
       
-      self._export_once_wrapper(self._get_export_func(), self._get_run_mode(), image, layer, output_filename)
+      self._export_once_wrapper(
+        self._get_export_func(), self._get_run_mode(), image, layer, output_filename)
       if self._current_layer_export_status == ExportStatuses.FORCE_INTERACTIVE:
-        self._export_once_wrapper(self._get_export_func(), gimpenums.RUN_INTERACTIVE, image, layer, output_filename)
+        self._export_once_wrapper(
+          self._get_export_func(), gimpenums.RUN_INTERACTIVE, image, layer,
+          output_filename)
   
   def _make_dirs(self, path, layer_exporter):
     try:
@@ -896,7 +947,8 @@ class LayerExporter(object):
         message, layer_exporter.current_layer_elem, layer_exporter.default_file_extension)
   
   def _export_once_wrapper(self, export_func, run_mode, image, layer, output_filename):
-    with self.export_context_manager(run_mode, image, layer, output_filename, *self.export_context_manager_args):
+    with self.export_context_manager(
+           run_mode, image, layer, output_filename, *self.export_context_manager_args):
       self._export_once(export_func, run_mode, image, layer, output_filename)
   
   def _get_run_mode(self):
@@ -932,7 +984,8 @@ class LayerExporter(object):
       self._current_layer_export_status = ExportStatuses.EXPORT_SUCCESSFUL
   
   def _was_export_canceled_by_user(self, exception_message):
-    return any(message in exception_message.lower() for message in ["cancelled", "canceled"])
+    return any(
+      message in exception_message.lower() for message in ["cancelled", "canceled"])
   
   def _should_export_again_with_interactive_run_mode(
         self, exception_message, current_run_mode):

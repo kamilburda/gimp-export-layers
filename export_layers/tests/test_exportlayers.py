@@ -45,7 +45,8 @@ from .. import settings_plugin
 #===============================================================================
 
 _CURRENT_MODULE_DIR = os.path.dirname(pgutils.get_current_module_file_path())
-RESOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(_CURRENT_MODULE_DIR)), "resources")
+RESOURCES_DIR = os.path.join(
+  os.path.dirname(os.path.dirname(_CURRENT_MODULE_DIR)), "resources")
 TEST_IMAGES_DIR = os.path.join(RESOURCES_DIR, "Test images")
 
 EXPECTED_RESULTS_DIR = os.path.join(TEST_IMAGES_DIR, "Expected results")
@@ -60,13 +61,16 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def setUpClass(cls):
     pdb.gimp_context_push()
     
-    cls.test_image_filename = os.path.join(TEST_IMAGES_DIR, "test_export_layers_contents.xcf")
+    cls.test_image_filename = os.path.join(
+      TEST_IMAGES_DIR, "test_export_layers_contents.xcf")
     cls.test_image = cls._load_image()
     
     cls.output_directory = OUTPUT_DIR
     
     if os.path.exists(cls.output_directory) and os.listdir(cls.output_directory):
-      raise ValueError('directory for temporary results "{0}" must be empty'.format(cls.output_directory))
+      raise ValueError(
+        'directory for temporary results "{0}" must be empty'.format(
+          cls.output_directory))
     
     cls.default_expected_layers_dir = EXPECTED_RESULTS_DIR
     # key: directory containing expected results
@@ -95,84 +99,82 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     self.compare()
   
   def test_ignore_layer_modes(self):
-    self.compare({
-                   "more_operations/ignore_layer_modes": True
-                 })
+    self.compare(
+      {"more_operations/ignore_layer_modes": True})
   
   def test_autocrop(self):
-    self.compare({
-                   "more_operations/autocrop": True
-                 },
-                 [("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop"),
-                  ("main-background", "main-background_autocrop")])
+    self.compare(
+      {"more_operations/autocrop": True},
+      [("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop"),
+       ("main-background", "main-background_autocrop")])
   
   def test_use_image_size(self):
-    self.compare({
-                   "use_image_size": True
-                 },
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, "use_image_size"))
+    self.compare(
+      {"use_image_size": True},
+      expected_results_dir=os.path.join(
+        self.default_expected_layers_dir, "use_image_size"))
   
   def test_use_image_size_autocrop(self):
-    self.compare({
-                   "use_image_size": True,
-                   "more_operations/autocrop": True
-                 },
-                 [("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop"),
-                  ("main-background", "main-background_autocrop")],
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, "use_image_size"))
+    self.compare(
+      {"use_image_size": True,
+       "more_operations/autocrop": True},
+      [("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop"),
+       ("main-background", "main-background_autocrop")],
+      expected_results_dir=os.path.join(
+        self.default_expected_layers_dir, "use_image_size"))
   
   def test_background(self):
-    self.compare({
-                   "insert_background_layers": True
-                 },
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, "background"))
+    self.compare(
+      {"insert_background_layers": True},
+      expected_results_dir=os.path.join(
+        self.default_expected_layers_dir, "background"))
   
   def test_background_autocrop(self):
-    self.compare({
-                   "insert_background_layers": True,
-                   "more_operations/autocrop": True
-                 },
-                 [("overlay", "overlay_background"),
-                  ("bottom-frame-semi-transparent", "bottom-frame-semi-transparent_background_autocrop"),
-                  ("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop")])
+    self.compare(
+      {"insert_background_layers": True,
+       "more_operations/autocrop": True},
+      [("overlay",
+        "overlay_background"),
+       ("bottom-frame-semi-transparent",
+        "bottom-frame-semi-transparent_background_autocrop"),
+       ("left-frame-with-extra-borders",
+        "left-frame-with-extra-borders_autocrop")])
   
   def test_background_autocrop_use_image_size(self):
-    self.compare({
-                   "insert_background_layers": True,
-                   "more_operations/autocrop": True,
-                   "use_image_size": True
-                 },
-                 expected_results_dir=os.path.join(
-                   self.default_expected_layers_dir, "background", "autocrop-use_image_size"))
+    self.compare(
+      {"insert_background_layers": True,
+       "more_operations/autocrop": True,
+       "use_image_size": True},
+      expected_results_dir=os.path.join(
+        self.default_expected_layers_dir, "background", "autocrop-use_image_size"))
   
   def test_background_autocrop_background(self):
-    self.compare({
-                   "insert_background_layers": True,
-                   "more_operations/autocrop_background": True
-                 },
-                 expected_results_dir=os.path.join(
-                   self.default_expected_layers_dir, "background"))
+    self.compare(
+      {"insert_background_layers": True,
+       "more_operations/autocrop_background": True},
+      expected_results_dir=os.path.join(
+        self.default_expected_layers_dir, "background"))
   
   def test_background_autocrop_background_use_image_size(self):
-    self.compare({
-                   "insert_background_layers": True,
-                   "more_operations/autocrop_background": True,
-                   "use_image_size": True
-                 },
-                 expected_results_dir=os.path.join(
-                   self.default_expected_layers_dir, "background", "autocrop_background-use_image_size"))
+    self.compare(
+      {"insert_background_layers": True,
+       "more_operations/autocrop_background": True,
+       "use_image_size": True},
+      expected_results_dir=os.path.join(
+        self.default_expected_layers_dir, "background",
+        "autocrop_background-use_image_size"))
   
   def test_foreground(self):
-    layer_tree = pgitemtree.LayerTree(self.test_image, name=pygimplib.config.SOURCE_PERSISTENT_NAME)
+    layer_tree = pgitemtree.LayerTree(
+      self.test_image, name=pygimplib.config.SOURCE_PERSISTENT_NAME)
     for layer_elem in layer_tree:
       if "background" in layer_elem.tags:
         layer_elem.remove_tag("background")
         layer_elem.add_tag("foreground")
     
-    self.compare({
-                   "insert_foreground_layers": True
-                 },
-                 expected_results_dir=os.path.join(self.default_expected_layers_dir, "foreground"))
+    self.compare(
+      {"insert_foreground_layers": True},
+      expected_results_dir=os.path.join(self.default_expected_layers_dir, "foreground"))
     
     self._reload_image()
   
@@ -194,7 +196,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       self.expected_images[expected_results_dir], expected_layers = (
         self._load_layers_from_dir(expected_results_dir))
     else:
-      expected_layers = {layer.name: layer for layer in self.expected_images[expected_results_dir].layers}
+      expected_layers = {
+        layer.name: layer for layer in self.expected_images[expected_results_dir].layers}
     
     param_values = pgsettingpdb.PdbParamCreator.list_param_values([settings])
     pdb.plug_in_export_layers(*param_values)
@@ -216,7 +219,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   @classmethod
   def _load_image(cls):
-    return pdb.gimp_file_load(cls.test_image_filename, os.path.basename(cls.test_image_filename))
+    return pdb.gimp_file_load(
+      cls.test_image_filename, os.path.basename(cls.test_image_filename))
   
   @classmethod
   def _reload_image(cls):
@@ -224,7 +228,11 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     cls.test_image = cls._load_image()
   
   @classmethod
-  def _load_layers(cls, layers_filenames):
+  def _load_layers_from_dir(cls, layers_dir):
+    return cls._load_layers(cls._list_layers_files(layers_dir))
+  
+  @staticmethod
+  def _load_layers(layers_filenames):
     """
     Load layers from specified filenames into a new image. Return the image and
     a dict with (layer name: gimp.Layer instance) pairs.
@@ -233,12 +241,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     image = pgpdb.load_layers(layers_filenames, image=None, strip_file_extension=True)
     return image, {layer.name: layer for layer in image.layers}
   
-  @classmethod
-  def _load_layers_from_dir(cls, layers_dir):
-    return cls._load_layers(cls._list_layers_files(layers_dir))
-  
-  @classmethod
-  def _list_layers_files(cls, layers_dir):
+  @staticmethod
+  def _list_layers_files(layers_dir):
     layers_files = []
     
     for filename in os.listdir(layers_dir):
@@ -258,7 +262,8 @@ def test_file_formats(layer_exporter, export_settings):
   for file_format in pgfileformats.file_formats:
     for file_extension in file_format.file_extensions:
       export_settings["file_extension"].set_value(file_extension)
-      export_settings["output_directory"].set_value(os.path.join(orig_output_directory, file_extension))
+      export_settings["output_directory"].set_value(
+        os.path.join(orig_output_directory, file_extension))
       try:
         layer_exporter.export()
       except exportlayers.ExportLayersError:

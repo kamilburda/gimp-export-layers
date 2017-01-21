@@ -213,12 +213,14 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     cell_renderer_icon_tag = gtk.CellRendererPixbuf()
     cell_renderer_icon_tag.set_property("pixbuf", self._icons["tag"])
     column.pack_start(cell_renderer_icon_tag, expand=False)
-    column.set_attributes(cell_renderer_icon_tag, visible=self._COLUMN_ICON_TAG_VISIBLE[0])
+    column.set_attributes(
+      cell_renderer_icon_tag, visible=self._COLUMN_ICON_TAG_VISIBLE[0])
     
     cell_renderer_layer_name = gtk.CellRendererText()
     column.pack_start(cell_renderer_layer_name, expand=False)
     column.set_attributes(
-      cell_renderer_layer_name, text=self._COLUMN_LAYER_NAME[0], sensitive=self._COLUMN_LAYER_NAME_SENSITIVE[0])
+      cell_renderer_layer_name, text=self._COLUMN_LAYER_NAME[0],
+      sensitive=self._COLUMN_LAYER_NAME_SENSITIVE[0])
     
     self._tree_view.append_column(column)
     
@@ -230,7 +232,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._scrolled_window.add(self._tree_view)
     
     self._vbox = gtk.VBox(homogeneous=False)
-    self._vbox.pack_start(self._preview_label, expand=False, fill=False, padding=self._VBOX_PADDING)
+    self._vbox.pack_start(
+      self._preview_label, expand=False, fill=False, padding=self._VBOX_PADDING)
     self._vbox.pack_start(self._scrolled_window)
     
     self._tree_view.connect("row-collapsed", self._on_tree_view_row_collapsed)
@@ -240,7 +243,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   
   def _init_icons(self):
     self._icons = {}
-    self._icons["layer_group"] = self._tree_view.render_icon(gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
+    self._icons["layer_group"] = self._tree_view.render_icon(
+      gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
     self._icons["layer"] = gtk.gdk.pixbuf_new_from_file_at_size(
       self._ICON_IMAGE_PATH, -1, self._icons["layer_group"].props.height)
     self._icons["tag"] = gtk.gdk.pixbuf_new_from_file_at_size(
@@ -253,9 +257,13 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     width = int(width_unscaled * scaling_factor)
     height_unscaled = self._icons["layer_group"].props.height
     height = int(height_unscaled * scaling_factor)
-    x_offset_unscaled = self._icons["exported_layer_group"].props.width - self._icons["layer_group"].props.width
+    x_offset_unscaled = (
+      self._icons["exported_layer_group"].props.width
+      - self._icons["layer_group"].props.width)
     x_offset = x_offset_unscaled + width_unscaled - width
-    y_offset_unscaled = self._icons["exported_layer_group"].props.height - self._icons["layer_group"].props.height
+    y_offset_unscaled = (
+      self._icons["exported_layer_group"].props.height
+      - self._icons["layer_group"].props.height)
     y_offset = y_offset_unscaled + height_unscaled - height
     
     self._icons["layer_group"].composite(self._icons["exported_layer_group"],
@@ -307,7 +315,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
         self._add_tag_menu_item(tag, tag)
         self._add_remove_tag_menu_item(tag, tag)
     
-    self._menu_item_remove_tag.set_sensitive(bool(self._tags_remove_submenu.get_children()))
+    self._menu_item_remove_tag.set_sensitive(
+      bool(self._tags_remove_submenu.get_children()))
     
     self._sort_tags_menu_items()
     
@@ -318,10 +327,12 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._displayed_tags_setting.save()
   
   def _sort_tags_menu_items(self):
-    for new_tag_position, tag in enumerate(sorted(self._tags_menu_items, key=lambda tag: tag.lower())):
+    for new_tag_position, tag in (
+          enumerate(sorted(self._tags_menu_items, key=lambda tag: tag.lower()))):
       self._tags_menu.reorder_child(self._tags_menu_items[tag], new_tag_position)
       if tag in self._tags_remove_submenu_items:
-        self._tags_remove_submenu.reorder_child(self._tags_remove_submenu_items[tag], new_tag_position)
+        self._tags_remove_submenu.reorder_child(
+          self._tags_remove_submenu_items[tag], new_tag_position)
   
   def _add_tag_menu_item(self, tag, tag_display_name):
     self._tags_menu_items[tag] = gtk.CheckMenuItem(tag_display_name)
@@ -331,7 +342,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   
   def _add_remove_tag_menu_item(self, tag, tag_display_name):
     self._tags_remove_submenu_items[tag] = gtk.MenuItem(tag_display_name)
-    self._tags_remove_submenu_items[tag].connect("activate", self._on_tags_remove_submenu_item_activate, tag)
+    self._tags_remove_submenu_items[tag].connect(
+      "activate", self._on_tags_remove_submenu_item_activate, tag)
     self._tags_remove_submenu_items[tag].show()
     self._tags_remove_submenu.prepend(self._tags_remove_submenu_items[tag])
   
@@ -344,7 +356,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       # because this event is fired before the selection is updated.
       selection_at_pos = self._tree_view.get_path_at_pos(int(event.x), int(event.y))
       
-      if selection_at_pos is not None and self._tree_view.get_selection().count_selected_rows() > 1:
+      if (selection_at_pos is not None
+          and self._tree_view.get_selection().count_selected_rows() > 1):
         layer_ids = self._get_layer_ids_in_current_selection()
         stop_event_propagation = True
       else:
@@ -356,7 +369,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       
       layer_elems = [self._layer_exporter.layer_tree[layer_id] for layer_id in layer_ids]
       for tag, tags_menu_item in self._tags_menu_items.items():
-        tags_menu_item.set_active(all(tag in layer_elem.tags for layer_elem in layer_elems))
+        tags_menu_item.set_active(
+          all(tag in layer_elem.tags for layer_elem in layer_elems))
       
       self._toggle_tag_interactive = True
       
@@ -454,7 +468,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     del self._tags_remove_submenu_items[tag]
     del self._displayed_tags_setting.value[tag]
     
-    self._menu_item_remove_tag.set_sensitive(bool(self._tags_remove_submenu.get_children()))
+    self._menu_item_remove_tag.set_sensitive(
+      bool(self._tags_remove_submenu.get_children()))
     
     self._displayed_tags_setting.save()
   
@@ -486,7 +501,9 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   
   def _get_layer_ids_in_current_selection(self):
     unused_, tree_paths = self._tree_view.get_selection().get_selected_rows()
-    return [self._get_layer_id(self._tree_model.get_iter(tree_path)) for tree_path in tree_paths]
+    return [
+      self._get_layer_id(self._tree_model.get_iter(tree_path))
+      for tree_path in tree_paths]
   
   def _get_layer_id(self, tree_iter):
     return self._tree_model.get_value(tree_iter, column=self._COLUMN_LAYER_ID[0])
@@ -538,9 +555,12 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   def _update_item_elem(self, item_elem):
     self._tree_model.set(
       self._tree_iters[item_elem.item.ID],
-      self._COLUMN_ICON_TAG_VISIBLE[0], bool(item_elem.tags),
-      self._COLUMN_LAYER_NAME_SENSITIVE[0], True,
-      self._COLUMN_LAYER_NAME[0], item_elem.name.encode(pgconstants.GTK_CHARACTER_ENCODING))
+      self._COLUMN_ICON_TAG_VISIBLE[0],
+      bool(item_elem.tags),
+      self._COLUMN_LAYER_NAME_SENSITIVE[0],
+      True,
+      self._COLUMN_LAYER_NAME[0],
+      item_elem.name.encode(pgconstants.GTK_CHARACTER_ENCODING))
   
   def _insert_parent_item_elems(self, item_elem):
     for parent_elem in item_elem.parents:
@@ -564,15 +584,19 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     if self._layer_exporter.export_settings["more_filters/only_selected_layers"].value:
       self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
       self._set_item_elems_sensitive(
-        [self._layer_exporter.layer_tree[item_id] for item_id in self._selected_items], True)
+        [self._layer_exporter.layer_tree[item_id] for item_id in self._selected_items],
+        True)
   
   def _get_item_elem_sensitive(self, item_elem):
-    return self._tree_model.get_value(self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0])
+    return self._tree_model.get_value(
+      self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0])
   
   def _set_item_elem_sensitive(self, item_elem, sensitive):
     if self._tree_iters[item_elem.item.ID] is not None:
       self._tree_model.set_value(
-        self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0], sensitive)
+        self._tree_iters[item_elem.item.ID],
+        self._COLUMN_LAYER_NAME_SENSITIVE[0],
+        sensitive)
   
   def _set_parent_item_elems_sensitive(self, item_elem):
     for parent_elem in reversed(list(item_elem.parents)):
@@ -641,7 +665,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   def _set_selection(self):
     self._row_select_interactive = False
     
-    self._selected_items = [item for item in self._selected_items if item in self._tree_iters]
+    self._selected_items = [
+      item for item in self._selected_items if item in self._tree_iters]
     
     for item in self._selected_items:
       tree_iter = self._tree_iters[item]
@@ -657,7 +682,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   def _set_cursor(self, previous_cursor=None):
     self._row_select_interactive = False
     
-    if previous_cursor is not None and self._tree_model.get_iter(previous_cursor) is not None:
+    if (previous_cursor is not None
+        and self._tree_model.get_iter(previous_cursor) is not None):
       self._tree_view.set_cursor(previous_cursor)
     
     self._row_select_interactive = True
@@ -666,6 +692,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     if self._selected_items:
       tree_iter = self._tree_iters[self._selected_items[0]]
       if tree_iter is not None:
-        first_selected_item_path = self._tree_model.get_path(self._tree_iters[self._selected_items[0]])
+        first_selected_item_path = (
+          self._tree_model.get_path(self._tree_iters[self._selected_items[0]]))
         if first_selected_item_path is not None:
           self._tree_view.scroll_to_cell(first_selected_item_path, None, True, 0.5, 0.0)

@@ -55,9 +55,10 @@ def create_settings():
       "type": pgsetting.SettingTypes.enumerated,
       "name": "run_mode",
       "default_value": "non_interactive",
-      "items": [("interactive", "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
-                ("non_interactive", "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
-                ("run_with_last_vals", "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)],
+      "items": [
+        ("interactive", "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
+        ("non_interactive", "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
+        ("run_with_last_vals", "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)],
       "display_name": _("The run mode")
     },
     {
@@ -80,7 +81,9 @@ def create_settings():
   
   main_settings = pgsettinggroup.SettingGroup(
     name="main",
-    setting_attributes={"setting_sources": [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]})
+    setting_attributes={
+      "setting_sources": [
+        pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]})
   
   main_settings.add([
     {
@@ -144,11 +147,13 @@ def create_settings():
       "type": pgsetting.SettingTypes.enumerated,
       "name": "overwrite_mode",
       "default_value": "rename_new",
-      "items": [("replace", _("_Replace"), pgoverwrite.OverwriteModes.REPLACE),
-                ("skip", _("_Skip"), pgoverwrite.OverwriteModes.SKIP),
-                ("rename_new", _("Rename _new file"), pgoverwrite.OverwriteModes.RENAME_NEW),
-                ("rename_existing", _("Rename _existing file"), pgoverwrite.OverwriteModes.RENAME_EXISTING),
-                ("cancel", _("_Cancel"), pgoverwrite.OverwriteModes.CANCEL)],
+      "items": [
+        ("replace", _("_Replace"), pgoverwrite.OverwriteModes.REPLACE),
+        ("skip", _("_Skip"), pgoverwrite.OverwriteModes.SKIP),
+        ("rename_new", _("Rename _new file"), pgoverwrite.OverwriteModes.RENAME_NEW),
+        ("rename_existing", _("Rename _existing file"),
+         pgoverwrite.OverwriteModes.RENAME_EXISTING),
+        ("cancel", _("_Cancel"), pgoverwrite.OverwriteModes.CANCEL)],
       "display_name": _("Overwrite mode (non-interactive run mode only)")
     },
   ])
@@ -160,7 +165,8 @@ def create_settings():
     name="more_operations",
     setting_attributes={
       "pdb_type": None,
-      "setting_sources": [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+      "setting_sources": [
+        pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     })
   
   more_operations_settings.add([
@@ -218,7 +224,8 @@ def create_settings():
     name="more_filters",
     setting_attributes={
       "pdb_type": None,
-      "setting_sources": [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+      "setting_sources": [
+        pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     })
   
   include_filters_settings = pgsettinggroup.SettingGroup(
@@ -226,7 +233,8 @@ def create_settings():
     display_name=_("Include"),
     setting_attributes={
       "pdb_type": None,
-      "setting_sources": [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+      "setting_sources": [
+        pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     })
   
   include_filters_settings.add([
@@ -294,9 +302,11 @@ def create_settings():
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
     else:
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = _(
-        "You need to specify default file extension for layers with invalid or no extension.")
+        "You need to specify default file extension for layers with invalid "
+        "or no extension.")
   
-  main_settings["more_operations/use_file_extensions_in_layer_names"].connect_event("value-changed",
+  main_settings["more_operations/use_file_extensions_in_layer_names"].connect_event(
+    "value-changed",
     on_use_file_extensions_in_layer_names_changed, main_settings["file_extension"])
   
   #-----------------------------------------------------------------------------
@@ -318,10 +328,10 @@ def create_settings():
 
 def setup_image_ids_and_filenames_settings(
       image_ids_dict_setting, image_filenames_dict_setting,
-      convert_value_first_second_func=None,
-      convert_value_first_second_func_args=None,
-      convert_value_second_first_func=None,
-      convert_value_second_first_func_args=None):
+      assign_image_id_to_filename_func=None,
+      assign_image_id_to_filename_func_args=None,
+      assign_filename_to_image_id_func=None,
+      assign_filename_to_image_id_func_args=None):
   """
   Set up a connection between a setting with a dict of (image ID, value) pairs
   and a setting with a dict of (image filename, value) pairs. This function
@@ -339,54 +349,69 @@ def setup_image_ids_and_filenames_settings(
   (full path), the first setting and the second setting.
   """
   
-  def _assign_image_ids_to_filenames(
-        image_id, image_filename, image_ids_setting, image_filenames_setting):
-    image_filenames_setting.value[image_filename] = image_ids_setting.value[image_id]
+  if assign_image_id_to_filename_func is None:
+    assign_image_id_to_filename_func = _default_assign_image_id_to_filename
   
-  def _assign_image_filenames_to_ids(
-        image_id, image_filename, image_ids_setting, image_filenames_setting):
-    image_ids_setting.value[image_id] = image_filenames_setting.value[image_filename]
+  if assign_image_id_to_filename_func_args is None:
+    assign_image_id_to_filename_func_args = []
   
-  _first_second_assign_func = (
-    convert_value_first_second_func if convert_value_first_second_func is not None
-    else _assign_image_ids_to_filenames)
+  if assign_filename_to_image_id_func is None:
+    assign_filename_to_image_id_func = _default_assign_image_filename_to_id
   
-  if convert_value_first_second_func_args is None:
-    convert_value_first_second_func_args = []
+  if assign_filename_to_image_id_func_args is None:
+    assign_filename_to_image_id_func_args = []
   
-  _second_first_assign_func = (
-    convert_value_second_first_func if convert_value_second_first_func is not None
-    else _assign_image_filenames_to_ids)
+  image_filenames_dict_setting.connect_event(
+    "after-load-group", _remove_invalid_image_filenames)
+  image_filenames_dict_setting.connect_event(
+    "before-save", _update_image_filenames, image_ids_dict_setting,
+    assign_image_id_to_filename_func, assign_image_id_to_filename_func_args)
+  image_ids_dict_setting.connect_event(
+    "after-load-group", _update_image_ids, image_filenames_dict_setting,
+    assign_filename_to_image_id_func, assign_filename_to_image_id_func_args)
+
+
+def _default_assign_image_id_to_filename(
+      image_id, image_filename, image_ids_setting, image_filenames_setting):
+  image_filenames_setting.value[image_filename] = image_ids_setting.value[image_id]
+
+
+def _default_assign_image_filename_to_id(
+      image_id, image_filename, image_ids_setting, image_filenames_setting):
+  image_ids_setting.value[image_id] = image_filenames_setting.value[image_filename]
+
+
+def _remove_invalid_image_filenames(image_filenames_dict_setting):
+  for image_filename, values in list(image_filenames_dict_setting.value.items()):
+    if not(os.path.isfile(image_filename) and values):
+      del image_filenames_dict_setting.value[image_filename]
+
+
+def _update_image_filenames(
+      image_filenames_dict_setting, image_ids_dict_setting,
+      assign_image_id_to_filename_func, assign_image_id_to_filename_func_args):
+  current_images = gimp.image_list()
   
-  if convert_value_second_first_func_args is None:
-    convert_value_second_first_func_args = []
+  for image in current_images:
+    if image.ID in image_ids_dict_setting.value and image.filename:
+      assign_image_id_to_filename_func(
+        image.ID, os.path.abspath(image.filename),
+        image_ids_dict_setting, image_filenames_dict_setting,
+        *assign_image_id_to_filename_func_args)
+
+
+def _update_image_ids(
+      image_ids_dict_setting, image_filenames_dict_setting,
+      assign_filename_to_image_id_func, assign_filename_to_image_id_func_args):
+  current_images = gimp.image_list()
   
-  def _remove_invalid_image_filenames(image_filenames_dict_setting):
-    for image_filename, values in list(image_filenames_dict_setting.value.items()):
-      if not(os.path.isfile(image_filename) and values):
-        del image_filenames_dict_setting.value[image_filename]
-  
-  def _update_image_filenames(image_filenames_dict_setting, image_ids_dict_setting):
-    current_images = gimp.image_list()
-    
-    for image in current_images:
-      if image.ID in image_ids_dict_setting.value and image.filename:
-        _first_second_assign_func(
-          image.ID, os.path.abspath(image.filename),
-          image_ids_dict_setting, image_filenames_dict_setting, *convert_value_first_second_func_args)
-  
-  def _update_image_ids(image_ids_dict_setting, image_filenames_dict_setting):
-    current_images = gimp.image_list()
-    
-    for image in current_images:
-      if image.ID not in image_ids_dict_setting.value and image.filename in image_filenames_dict_setting.value:
-        _second_first_assign_func(
-          image.ID, os.path.abspath(image.filename),
-          image_ids_dict_setting, image_filenames_dict_setting, *convert_value_second_first_func_args)
-  
-  image_filenames_dict_setting.connect_event("after-load-group", _remove_invalid_image_filenames)
-  image_filenames_dict_setting.connect_event("before-save", _update_image_filenames, image_ids_dict_setting)
-  image_ids_dict_setting.connect_event("after-load-group", _update_image_ids, image_filenames_dict_setting)
+  for image in current_images:
+    if (image.ID not in image_ids_dict_setting.value
+        and image.filename in image_filenames_dict_setting.value):
+      assign_filename_to_image_id_func(
+        image.ID, os.path.abspath(image.filename),
+        image_ids_dict_setting, image_filenames_dict_setting,
+        *assign_filename_to_image_id_func_args)
 
 
 def convert_set_of_layer_ids_to_names(
@@ -399,7 +424,8 @@ def convert_set_of_layer_ids_to_names(
 def convert_set_of_layer_names_to_ids(
       image_id, image_filename, image_ids_setting, image_filenames_setting, layer_tree):
   image_ids_setting.value[image_id] = set(
-    [layer_tree[layer_orig_name].item.ID for layer_orig_name in image_filenames_setting.value[image_filename]
+    [layer_tree[layer_orig_name].item.ID
+     for layer_orig_name in image_filenames_setting.value[image_filename]
      if layer_orig_name in layer_tree])
 
 

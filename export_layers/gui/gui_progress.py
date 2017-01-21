@@ -75,12 +75,15 @@ class ItemProgressIndicator(object):
     self._progress_bar_for_items.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
     self._progress_bar_for_item_status = gtk.ProgressBar()
-    self._progress_bar_for_item_status.set_size_request(-1, self._progress_bar_for_item_status_height)
+    self._progress_bar_for_item_status.set_size_request(
+      -1, self._progress_bar_for_item_status_height)
     
     self._vbox_progress_bars = gtk.VBox()
     self._vbox_progress_bars.set_spacing(self._spacing_between_progress_bars)
-    self._vbox_progress_bars.pack_start(self._progress_bar_for_items, expand=False, fill=False)
-    self._vbox_progress_bars.pack_start(self._progress_bar_for_item_status, expand=False, fill=False)
+    self._vbox_progress_bars.pack_start(
+      self._progress_bar_for_items, expand=False, fill=False)
+    self._vbox_progress_bars.pack_start(
+      self._progress_bar_for_item_status, expand=False, fill=False)
   
   def install_progress_for_status(
         self, progress_set_value=None, progress_reset_value=None):

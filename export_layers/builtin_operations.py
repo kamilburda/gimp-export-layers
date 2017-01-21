@@ -91,7 +91,8 @@ def _insert_tagged_layer(image, tag, layer_exporter, positon=0):
     
     for i, layer_elem in enumerate(layer_exporter.tagged_layer_elems[tag]):
       layer_copy = copy_and_insert_layer(image, layer_elem.item, layer_group, i)
-      layer_exporter.operations_executor.execute(["after_insert_layer"], image, layer_copy, layer_exporter)
+      layer_exporter.operations_executor.execute(
+        ["after_insert_layer"], image, layer_copy, layer_exporter)
     
     layer_exporter.inserted_tagged_layers[tag] = pgpdb.merge_layer_group(layer_group)
     layer_exporter.tagged_layer_copies[tag] = (
@@ -99,7 +100,8 @@ def _insert_tagged_layer(image, tag, layer_exporter, positon=0):
   else:
     layer_exporter.inserted_tagged_layers[tag] = (
       pdb.gimp_layer_copy(layer_exporter.tagged_layer_copies[tag], True))
-    pdb.gimp_image_insert_layer(image, layer_exporter.inserted_tagged_layers[tag], None, positon)
+    pdb.gimp_image_insert_layer(
+      image, layer_exporter.inserted_tagged_layers[tag], None, positon)
 
 
 def insert_background_layer(tag, image, layer, layer_exporter):

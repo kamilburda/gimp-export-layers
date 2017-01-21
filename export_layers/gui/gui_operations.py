@@ -26,6 +26,8 @@ in the plug-in.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import itertools
+
 import pygtk
 pygtk.require("2.0")
 import gtk
@@ -37,10 +39,10 @@ from ..pygimplib import pgutils
 
 #===============================================================================
 
-_operation_box_drag_type_id_counter = 1
-
 
 class OperationBox(object):
+  
+  _drag_type_id_counter = itertools.count(start=1)
   
   _BUTTON_HBOX_SPACING = 6
   
@@ -81,9 +83,11 @@ class OperationBox(object):
       button_hbox = gtk.HBox()
       button_hbox.set_spacing(self._BUTTON_HBOX_SPACING)
       button_hbox.pack_start(
-        gtk.image_new_from_stock(gtk.STOCK_ADD, gtk.ICON_SIZE_MENU), expand=False, fill=False)
+        gtk.image_new_from_stock(gtk.STOCK_ADD, gtk.ICON_SIZE_MENU),
+        expand=False, fill=False)
       
-      label_add = gtk.Label(self.label_add_text.encode(pgconstants.GTK_CHARACTER_ENCODING))
+      label_add = gtk.Label(
+        self.label_add_text.encode(pgconstants.GTK_CHARACTER_ENCODING))
       label_add.set_use_underline(True)
       button_hbox.pack_start(label_add, expand=False, fill=False)
       
@@ -129,7 +133,8 @@ class OperationBox(object):
   
   def _add_setting_to_menu(self, setting):
     menu_item = gtk.MenuItem(
-      label=setting.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING), use_underline=False)
+      label=setting.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING),
+      use_underline=False)
     menu_item.connect("activate", self._on_operations_menu_item_activate)
     self._current_operations_submenu.append(menu_item)
     self._menu_items_and_settings[menu_item] = setting
@@ -138,7 +143,8 @@ class OperationBox(object):
     operations_submenu = gtk.Menu()
     
     group_menu_item = gtk.MenuItem(
-      label=setting_group.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING), use_underline=False)
+      label=setting_group.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING),
+      use_underline=False)
     group_menu_item.set_submenu(operations_submenu)
     
     if self._operations_submenus:
@@ -160,21 +166,22 @@ class OperationBox(object):
       self._connect_drag_events_to_item_widget(setting, drag_type)
   
   def _get_unique_drag_type(self):
-    global _operation_box_drag_type_id_counter
-    
     drag_type = "{0}_{1}_{2}".format(
-      pygimplib.config.PLUGIN_NAME, self.__class__.__name__, _operation_box_drag_type_id_counter)
-    
-    _operation_box_drag_type_id_counter += 1
+      pygimplib.config.PLUGIN_NAME, self.__class__.__name__,
+      self._drag_type_id_counter.next())
     
     return drag_type
   
   def _connect_drag_events_to_item_widget(self, setting, drag_type):
-    setting.gui.element.connect("drag-data-get", self._on_item_widget_drag_data_get, setting)
-    setting.gui.element.drag_source_set(gtk.gdk.BUTTON1_MASK, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
+    setting.gui.element.connect(
+      "drag-data-get", self._on_item_widget_drag_data_get, setting)
+    setting.gui.element.drag_source_set(
+      gtk.gdk.BUTTON1_MASK, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
     
-    setting.gui.element.connect("drag-data-received", self._on_item_widget_drag_data_received, setting)
-    setting.gui.element.drag_dest_set(gtk.DEST_DEFAULT_ALL, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
+    setting.gui.element.connect(
+      "drag-data-received", self._on_item_widget_drag_data_received, setting)
+    setting.gui.element.drag_dest_set(
+      gtk.DEST_DEFAULT_ALL, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
     
     setting.gui.element.connect("drag-begin", self._on_item_widget_drag_begin)
     setting.gui.element.connect("drag-motion", self._on_item_widget_drag_motion)
@@ -202,7 +209,8 @@ class OperationBox(object):
     operation_item_position = self._get_operation_item_position(operation_item)
     
     if operation_item_position < len(self._displayed_operation_items) - 1:
-      self._displayed_operation_items[operation_item_position + 1].item_widget.grab_focus()
+      next_item_position = operation_item_position + 1
+      self._displayed_operation_items[next_item_position].item_widget.grab_focus()
     else:
       self._button_add.grab_focus()
     
@@ -232,14 +240,16 @@ class OperationBox(object):
   
   def clear(self):
     for unused_ in range(len(self._vbox.get_children()) - 1):
-      self.remove_operation_item(self._displayed_operation_items[0], self._displayed_settings[0])
+      self.remove_operation_item(
+        self._displayed_operation_items[0], self._displayed_settings[0])
   
   def _on_item_widget_drag_data_get(
         self, item_widget, drag_context, selection_data, info, timestamp, setting):
     selection_data.set(selection_data.target, 8, setting.get_path(self._settings))
   
   def _on_item_widget_drag_data_received(
-        self, item_widget, drag_context, x, y, selection_data, info, timestamp, setting):
+        self, item_widget, drag_context, drop_x, drop_y, selection_data, info,
+        timestamp, setting):
     dragged_setting_name = selection_data.data
     if dragged_setting_name not in self._settings:
       return
@@ -257,7 +267,8 @@ class OperationBox(object):
     if drag_icon_pixbuf is not None:
       drag_context.set_icon_pixbuf(drag_icon_pixbuf, 0, 0)
   
-  def _on_item_widget_drag_motion(self, item_widget, drag_context, x, y, timestamp):
+  def _on_item_widget_drag_motion(
+        self, item_widget, drag_context, drop_x, drop_y, timestamp):
     self._last_item_widget_dest_drag = item_widget
   
   def _on_item_widget_drag_failed(self, item_widget, drag_context, result):
@@ -277,9 +288,11 @@ class OperationBox(object):
     if event.state & gtk.gdk.MOD1_MASK:     # Alt key
       key_name = gtk.gdk.keyval_name(event.keyval)
       if key_name in ["Up", "KP_Up"]:
-        self.reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) - 1)
+        self.reorder_operation_item(
+          operation_item, self._get_operation_item_position(operation_item) - 1)
       elif key_name in ["Down", "KP_Down"]:
-        self.reorder_operation_item(operation_item, self._get_operation_item_position(operation_item) + 1)
+        self.reorder_operation_item(
+          operation_item, self._get_operation_item_position(operation_item) + 1)
   
   def _get_operation_item_position(self, operation_item):
     return self._displayed_operation_items.index(operation_item)
@@ -291,7 +304,7 @@ class OperationBox(object):
     if self._are_items_partially_hidden_because_of_visible_horizontal_scrollbar():
       return None
     
-    self._setup_widget_to_add_border_to_drag_icon(widget)
+    _setup_widget_to_add_border_to_drag_icon(widget)
     
     while gtk.events_pending():
       gtk.main_iteration()
@@ -306,33 +319,41 @@ class OperationBox(object):
       widget.get_window(), widget.get_colormap(),
       0, 0, 0, 0, widget_allocation.width, widget_allocation.height)
     
-    self._restore_widget_after_creating_drag_icon(widget)
+    _restore_widget_after_creating_drag_icon(widget)
     
     return drag_icon_pixbuf
   
   def _are_items_partially_hidden_because_of_visible_horizontal_scrollbar(self):
-    return self._scrolled_window.get_hscrollbar() is not None and self._scrolled_window.get_hscrollbar().get_mapped()
-  
-  def _setup_widget_to_add_border_to_drag_icon(self, widget):
-    self._remove_focus_outline(widget)
-    self._add_border(widget)
-  
-  def _remove_focus_outline(self, widget):
-    if widget.has_focus():
-      widget.set_can_focus(False)
-  
-  def _add_border(self, widget):
-    widget.drag_highlight()
-  
-  def _restore_widget_after_creating_drag_icon(self, widget):
-    self._add_focus_outline(widget)
-    self._remove_border(widget)
-  
-  def _add_focus_outline(self, widget):
-    widget.set_can_focus(True)
-  
-  def _remove_border(self, widget):
-    widget.drag_unhighlight()
+    return (
+      self._scrolled_window.get_hscrollbar() is not None
+      and self._scrolled_window.get_hscrollbar().get_mapped())
+
+
+def _setup_widget_to_add_border_to_drag_icon(widget):
+  _remove_focus_outline(widget)
+  _add_border(widget)
+
+
+def _remove_focus_outline(widget):
+  if widget.has_focus():
+    widget.set_can_focus(False)
+
+
+def _add_border(widget):
+  widget.drag_highlight()
+
+
+def _restore_widget_after_creating_drag_icon(widget):
+  _add_focus_outline(widget)
+  _remove_border(widget)
+
+
+def _add_focus_outline(widget):
+  widget.set_can_focus(True)
+
+
+def _remove_border(widget):
+  widget.drag_unhighlight()
 
 
 #===============================================================================
@@ -363,7 +384,8 @@ class _OperationItem(object):
     self._event_box_buttons = gtk.EventBox()
     self._event_box_buttons.add(self._hbox_buttons)
     
-    self._hbox.pack_start(self._event_box_buttons, expand=False, fill=False, padding=self._BUTTONS_PADDING)
+    self._hbox.pack_start(
+      self._event_box_buttons, expand=False, fill=False, padding=self._BUTTONS_PADDING)
     
     self._event_box = gtk.EventBox()
     self._event_box.add(self._hbox)
@@ -380,7 +402,8 @@ class _OperationItem(object):
     self._is_event_box_allocated_size = False
     self._buttons_allocation = None
     self._event_box.connect("size-allocate", self._on_event_box_size_allocate)
-    self._event_box_buttons.connect("size-allocate", self._on_event_box_buttons_size_allocate)
+    self._event_box_buttons.connect(
+      "size-allocate", self._on_event_box_buttons_size_allocate)
     
     self._event_box.show_all()
   
@@ -427,7 +450,8 @@ class _OperationItem(object):
     
     self._is_event_box_allocated_size = True
     
-    # Assign enough height to the HBox to make sure it does not resize when showing buttons.
+    # Assign enough height to the HBox to make sure it does not resize when
+    # showing buttons.
     if self._buttons_allocation.height >= allocation.height:
       self._hbox.set_size_request(-1, allocation.height)
   
@@ -437,8 +461,9 @@ class _OperationItem(object):
     
     self._buttons_allocation = allocation
     
-    # Make sure the width allocated to the buttons remains the same even if buttons are hidden.
-    # This avoids a problem with unreachable buttons when the horizontal scrollbar is displayed.
+    # Make sure the width allocated to the buttons remains the same even if
+    # buttons are hidden. This avoids a problem with unreachable buttons when
+    # the horizontal scrollbar is displayed.
     self._event_box_buttons.set_size_request(self._buttons_allocation.width, -1)
     
     self._button_remove.hide()

@@ -53,19 +53,8 @@ RESOURCES_PATH = os.path.dirname(pgutils.get_current_module_file_path())
 PLUGINS_PATH = os.path.dirname(RESOURCES_PATH)
 
 RESOURCES_PAGE_DIR = os.path.join(RESOURCES_PATH, "GitHub page")
-PAGE_DIR = os.path.join(os.path.dirname(PLUGINS_PATH), "plug-ins - Export Layers - GitHub page")
-
-#===============================================================================
-
-
-class TokenArgItem(object):
-  
-  def __init__(self, token_arg_match_pattern, parse_func, process_func):
-    self.token_arg_match_pattern = token_arg_match_pattern
-    self.parse_func = parse_func
-    self.process_func = process_func
-    
-    self.parse_func_retvals = []
+PAGE_DIR = os.path.join(
+  os.path.dirname(PLUGINS_PATH), "plug-ins - Export Layers - GitHub page")
 
 
 #===============================================================================
@@ -77,7 +66,7 @@ def _parse_sentence_indices(arg_str):
   for index_str in sentence_indices_str:
     try:
       index = int(index_str)
-    except Exception:
+    except (ValueError, TypeError):
       index = None
     sentence_indices.append(index)
   
@@ -121,22 +110,39 @@ def _strip_section_header(section_header, section_contents, should_strip_header)
 
 #===============================================================================
 
+
+class TokenArgItem(object):
+  
+  def __init__(self, token_arg_match_pattern, parse_func, process_func):
+    self.token_arg_match_pattern = token_arg_match_pattern
+    self.parse_func = parse_func
+    self.process_func = process_func
+    
+    self.parse_func_retvals = []
+
+
 _TOKEN_ARG_FUNCS = {
   "include-section": [
-    TokenArgItem(r"[0-9]+:?[0-9]*", _parse_sentence_indices, _get_sentences_from_section),
-    TokenArgItem(r"no-header", lambda arg_str: arg_str == "no-header", _strip_section_header)
+    TokenArgItem(
+      r"[0-9]+:?[0-9]*", _parse_sentence_indices, _get_sentences_from_section),
+    TokenArgItem(
+      r"no-header", lambda arg_str: arg_str == "no-header", _strip_section_header)
   ]
 }
+
+#===============================================================================
 
 
 def preprocess_contents(source_files, dest_files, root_dir):
   for source_file, dest_file in zip(source_files, dest_files):
-    with io.open(source_file, "r", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
+    with io.open(
+           source_file, "r", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
       source_file_contents = file_.read()
     
     preprocessed_contents = _preprocess_contents(source_file_contents, root_dir)
     
-    with io.open(dest_file, "w", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
+    with io.open(
+           dest_file, "w", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
       file_.writelines(preprocessed_contents)
 
 
@@ -146,7 +152,9 @@ def _preprocess_contents(contents, root_dir):
     section = _process_token_args("include-section", token_args)
     
     dest_contents = (
-      "{% capture markdown-insert %}\n" + section + "\n" + match.group(1) + "{% endcapture %}"
+      "{% capture markdown-insert %}\n"
+      + section + "\n" + match.group(1)
+      + "{% endcapture %}"
       + "\n" + match.group(1) + "{{ markdown-insert | markdownify }}")
     contents = contents.replace(match.group(2), dest_contents, 1)
   
@@ -171,9 +179,11 @@ def _parse_token_args(token_name, token_args_str, root_dir):
   
   if args_match:
     for token_arg_item in _TOKEN_ARG_FUNCS[token_name]:
-      token_arg_match = re.search(r"\[(" + token_arg_item.token_arg_match_pattern + r")\]", args_match.group())
+      token_arg_match = re.search(
+        r"\[(" + token_arg_item.token_arg_match_pattern + r")\]", args_match.group())
       if token_arg_match:
-        token_arg_item.parse_func_retvals = [token_arg_item.parse_func(token_arg_match.group(1))]
+        token_arg_item.parse_func_retvals = [
+          token_arg_item.parse_func(token_arg_match.group(1))]
   
   return token_args
 
@@ -181,7 +191,9 @@ def _parse_token_args(token_name, token_args_str, root_dir):
 def _process_token_args(token_name, token_args):
   document_path = token_args[0]
   section_name = token_args[1]
-  with io.open(document_path, "r", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as document:
+  with io.open(
+         document_path, "r",
+         encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as document:
     document_contents = document.read()
     section_header, section_contents = _find_section(document_contents, section_name)
   
@@ -204,7 +216,8 @@ def _find_section(contents, section_name):
     
     section_header = contents[match_section.start():match_section.end()]
     if next_section:
-      section_contents = contents[match_section.end():start_of_section_contents + next_section.start() - 1]
+      section_contents = contents[
+        match_section.end():start_of_section_contents + next_section.start() - 1]
     else:
       section_contents = contents[match_section.end():]
   

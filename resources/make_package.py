@@ -56,7 +56,7 @@ RESOURCES_PATH = os.path.dirname(pgutils.get_current_module_file_path())
 PLUGINS_PATH = os.path.dirname(RESOURCES_PATH)
 
 OUTPUT_FILENAME_PREFIX = "export-layers"
-OUTPUT_FILENAME_SUFFIX = ".zip"
+OUTPUT_FILENAME_EXTENSION = "zip"
 
 INCLUDE_LIST_FILENAME = "./make_package_included_files.txt"
 
@@ -102,7 +102,8 @@ def _rename_filenames_inside_file(file_to_read, file_to_write, filenames_to_rena
   for line in file_to_read:
     processed_line = line
     for src_filename_pattern, dest_filename in filenames_to_rename_patterns.items():
-      processed_line = re.sub(src_filename_pattern, lambda match: dest_filename, processed_line)
+      processed_line = re.sub(
+        src_filename_pattern, lambda match: dest_filename, processed_line)
     file_to_write.write(processed_line)
 
 
@@ -165,21 +166,22 @@ def process_file(filename, *process_functions_and_args):
 #===============================================================================
 
 
-def _print_program_message(message, stream=sys.stdout):
+def _print_message(message, stream=sys.stdout):
   print(os.path.basename(sys.argv[0]) + ": " + message, file=stream)
 
 
-def _get_filtered_files(directory, pattern_file):
-  with io.open(pattern_file, "r", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
-    spec = pathspec.PathSpec.from_lines(pathspec.patterns.gitwildmatch.GitWildMatchPattern, file_)
+def _get_filtered_file_paths(directory, pattern_file):
+  with io.open(
+         pattern_file, "r",
+         encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
+    spec = pathspec.PathSpec.from_lines(
+      pathspec.patterns.gitwildmatch.GitWildMatchPattern, file_)
   
   return [os.path.join(directory, match) for match in spec.match_tree(directory)]
 
 
 #===============================================================================
 
-# key: filename
-# value: list of (function, additional function arguments) as arguments to `process_file`
 FILES_TO_PROCESS = {
   FILENAMES_TO_RENAME["README.md"]: [
     (_trim_leading_spaces, NUM_LEADING_SPACES_TO_TRIM),
@@ -189,78 +191,109 @@ FILES_TO_PROCESS = {
 }
 
 
-def make_package(input_directory, output_file, version):
-  
-  def _set_permissions(path, perms):
-    """
-    Set file permissions on all files and subdirectories in a given path.
-    """
-    
-    if os.name == "nt":
-      _print_program_message("Warning: Cannot set Unix-style permissions on Windows", sys.stderr)
-      return
-    
-    for root, dirs, files in os.walk(path):
-      for dir_ in dirs:
-        os.chmod(os.path.join(root, dir_), perms)
-      for file_ in files:
-        os.chmod(os.path.join(root, file_), perms)
-  
-  def _generate_pot_file(source_dir, version):
-    if os.name == "nt":
-      _print_program_message("Warning: Cannot generate .pot file on Windows", sys.stderr)
-      return
-    
-    for file_ in os.listdir(source_dir):
-      if os.path.isfile(os.path.join(source_dir, file_)):
-        if file_.endswith(".pot"):
-          os.remove(os.path.join(source_dir, file_))
-     
-    orig_cwd = os.getcwdu()
-    os.chdir(source_dir)
-    subprocess.call(["./generate_pot.sh", version])
-    os.chdir(orig_cwd)
+def make_package(input_directory, output_file_path, version):
   
   _generate_pot_file(pygimplib.config.LOCALE_PATH, version)
   
-  files = _get_filtered_files(input_directory, INCLUDE_LIST_FILENAME)
-  files_relative_paths = [file_[len(input_directory) + 1:] for file_ in files]
-  
-  for i, rel_file_path in enumerate(files_relative_paths):
-    filename = os.path.basename(rel_file_path)
-    if filename in FILENAMES_TO_RENAME:
-      files_relative_paths[i] = os.path.join(os.path.dirname(rel_file_path), FILENAMES_TO_RENAME[filename])
+  file_paths = _get_filtered_file_paths(input_directory, INCLUDE_LIST_FILENAME)
+  relative_file_paths = [
+    file_path[len(input_directory) + 1:] for file_path in file_paths]
+  relative_renamed_file_paths = _get_relative_renamed_file_paths(relative_file_paths)
   
   temp_dir = tempfile.mkdtemp()
-  temp_files = [os.path.join(temp_dir, file_rel_path) for file_rel_path in files_relative_paths]
+  temp_file_paths = [
+    os.path.join(temp_dir, relative_file_path)
+    for relative_file_path in relative_renamed_file_paths]
   
-  for src_file, temp_file in zip(files, temp_files):
-    dirname = os.path.dirname(temp_file)
-    if not os.path.exists(dirname):
-      pgpath.make_dirs(dirname)
-    shutil.copy2(src_file, temp_file)
+  _create_temp_file_paths(file_paths, temp_file_paths)
   
   _set_permissions(temp_dir, 0o755)
   
-  for temp_file in temp_files:
-    filename = os.path.basename(temp_file)
-    if filename in FILES_TO_PROCESS:
-      process_file(temp_file, *FILES_TO_PROCESS[filename])
+  _process_files(temp_file_paths)
   
-  with zipfile.ZipFile(output_file, "w", zipfile.ZIP_STORED) as zip_file:
-    for temp_file, file_ in zip(temp_files, files_relative_paths):
-      zip_file.write(temp_file, file_)
+  _create_package_file(output_file_path, temp_file_paths, relative_renamed_file_paths)
   
   shutil.rmtree(temp_dir)
+
+
+def _generate_pot_file(source_dir, version):
+  if os.name == "nt":
+    _print_message("Warning: Cannot generate .pot file on Windows", sys.stderr)
+    return
+  
+  for file_ in os.listdir(source_dir):
+    if os.path.isfile(os.path.join(source_dir, file_)):
+      if file_.endswith(".pot"):
+        os.remove(os.path.join(source_dir, file_))
+   
+  orig_cwd = os.getcwdu()
+  os.chdir(source_dir)
+  subprocess.call(["./generate_pot.sh", version])
+  os.chdir(orig_cwd)
+
+
+def _get_relative_renamed_file_paths(relative_file_paths):
+  relative_renamed_file_paths = []
+  
+  for relative_file_path in relative_file_paths:
+    if os.path.basename(relative_file_path) in FILENAMES_TO_RENAME:
+      relative_renamed_file_paths.append(
+        os.path.join(
+          os.path.dirname(relative_file_path),
+          FILENAMES_TO_RENAME[os.path.basename(relative_file_path)]))
+    else:
+      relative_renamed_file_paths.append(relative_file_path)
+  
+  return relative_renamed_file_paths
+
+
+def _create_temp_file_paths(file_paths, temp_file_paths):
+  for src_file_path, temp_file_path in zip(file_paths, temp_file_paths):
+    dirname = os.path.dirname(temp_file_path)
+    if not os.path.exists(dirname):
+      pgpath.make_dirs(dirname)
+    shutil.copy2(src_file_path, temp_file_path)
+
+
+def _set_permissions(path, permissions):
+  """
+  Set file permissions on all files and subdirectories in a given path.
+  """
+  
+  if os.name == "nt":
+    _print_message("Warning: Cannot set Unix-style permissions on Windows", sys.stderr)
+    return
+  
+  for root, dirs, files in os.walk(path):
+    for dir_ in dirs:
+      os.chmod(os.path.join(root, dir_), permissions)
+    for file_ in files:
+      os.chmod(os.path.join(root, file_), permissions)
+
+
+def _process_files(file_paths):
+  for file_path in file_paths:
+    filename = os.path.basename(file_path)
+    if filename in FILES_TO_PROCESS:
+      process_file(file_path, *FILES_TO_PROCESS[filename])
+
+
+def _create_package_file(package_file_path, input_file_paths, output_file_paths):
+  with zipfile.ZipFile(package_file_path, "w", zipfile.ZIP_STORED) as package_file:
+    for input_file_path, output_file_path in zip(input_file_paths, output_file_paths):
+      package_file.write(input_file_path, output_file_path)
 
 
 #===============================================================================
 
 
 def main():
-  output_file = OUTPUT_FILENAME_PREFIX + "-" + pygimplib.config.PLUGIN_VERSION + OUTPUT_FILENAME_SUFFIX
-  make_package(PLUGINS_PATH, output_file, pygimplib.config.PLUGIN_VERSION)
-  print("Package successfully created:", os.path.join(PLUGINS_PATH, output_file))
+  output_file_path = "{0}-{1}.{2}".format(
+    OUTPUT_FILENAME_PREFIX, pygimplib.config.PLUGIN_VERSION, OUTPUT_FILENAME_EXTENSION)
+  
+  make_package(PLUGINS_PATH, output_file_path, pygimplib.config.PLUGIN_VERSION)
+  
+  print("Package successfully created:", os.path.join(PLUGINS_PATH, output_file_path))
 
 
 if __name__ == "__main__":
