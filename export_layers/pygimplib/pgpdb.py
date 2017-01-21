@@ -77,7 +77,8 @@ def merge_layer_group(layer_group):
     orig_parent_and_pos = ()
     if layer_group.parent is not None:
       # Nested layer group
-      orig_parent_and_pos = (layer_group.parent, pdb.gimp_image_get_item_position(image, layer_group))
+      orig_parent_and_pos = (
+        layer_group.parent, pdb.gimp_image_get_item_position(image, layer_group))
       pdb.gimp_image_reorder_item(image, layer_group, None, 0)
     
     orig_layer_visibility = [layer.visible for layer in image.layers]
@@ -86,13 +87,15 @@ def merge_layer_group(layer_group):
       layer.visible = False
     layer_group.visible = True
     
-    merged_layer_group = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
+    merged_layer_group = pdb.gimp_image_merge_visible_layers(
+      image, gimpenums.EXPAND_AS_NECESSARY)
     
     for layer, orig_visible in zip(image.layers, orig_layer_visibility):
       layer.visible = orig_visible
   
     if orig_parent_and_pos:
-      pdb.gimp_image_reorder_item(image, merged_layer_group, orig_parent_and_pos[0], orig_parent_and_pos[1])
+      pdb.gimp_image_reorder_item(
+        image, merged_layer_group, orig_parent_and_pos[0], orig_parent_and_pos[1])
   
   return merged_layer_group
 
@@ -136,7 +139,8 @@ def duplicate(image, metadata_only=False):
       parasite = image.parasite_find(name)
       # `pdb.gimp_image_parasite_attach` fails for some reason - use
       # `gimp.Image.parasite_attach` instead.
-      new_image.parasite_attach(gimp.Parasite(parasite.name, parasite.flags, parasite.data))
+      new_image.parasite_attach(
+        gimp.Parasite(parasite.name, parasite.flags, parasite.data))
   
   return new_image
 
@@ -202,7 +206,8 @@ def load_layer(filename, image, strip_file_extension=False, layer_to_load_index=
   if layer_to_load_index >= len(image.layers) or layer_to_load_index < 0:
     layer_to_load_index = -1
   
-  layer = pdb.gimp_layer_new_from_drawable(loaded_image.layers[layer_to_load_index], image)
+  layer = pdb.gimp_layer_new_from_drawable(
+    loaded_image.layers[layer_to_load_index], image)
   layer.name = os.path.basename(filename)
   if strip_file_extension:
     layer.name = os.path.splitext(layer.name)[0]
@@ -351,7 +356,8 @@ def compare_layers(
   if not all_layers_have_same_size:
     return False
   
-  all_layers_are_same_image_type = all(layers[0].type == layer.type for layer in layers[1:])
+  all_layers_are_same_image_type = (
+    all(layers[0].type == layer.type for layer in layers[1:]))
   if compare_has_alpha and not all_layers_are_same_image_type:
     return False
   
@@ -478,4 +484,5 @@ def suppress_gimp_progress():
   progress callbacks.
   """
   
-  gimp.progress_install(pgutils.empty_func, pgutils.empty_func, pgutils.empty_func, pgutils.empty_func)
+  gimp.progress_install(
+    pgutils.empty_func, pgutils.empty_func, pgutils.empty_func, pgutils.empty_func)

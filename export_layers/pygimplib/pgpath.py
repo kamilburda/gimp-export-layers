@@ -40,7 +40,8 @@ from . import pgutils
 #===============================================================================
 
 
-def uniquify_string(str_, existing_strings, uniquifier_position=None, uniquifier_generator=None):
+def uniquify_string(
+      str_, existing_strings, uniquifier_position=None, uniquifier_generator=None):
   """
   If string `str_` is in the `existing_strings` list, return a unique string
   by inserting a "uniquifier" (a string that makes the whole input string
@@ -58,7 +59,8 @@ def uniquify_string(str_, existing_strings, uniquifier_position=None, uniquifier
   """
   
   return uniquify_string_generic(
-    str_, lambda str_param: str_param not in existing_strings, uniquifier_position, uniquifier_generator)
+    str_, lambda str_param: str_param not in existing_strings,
+    uniquifier_position, uniquifier_generator)
   
 
 def uniquify_filename(filename, uniquifier_position=None, uniquifier_generator=None):
@@ -75,10 +77,12 @@ def uniquify_filename(filename, uniquifier_position=None, uniquifier_generator=N
   """
   
   return uniquify_string_generic(
-    filename, lambda filename_param: not os.path.exists(filename_param), uniquifier_position, uniquifier_generator)
+    filename, lambda filename_param: not os.path.exists(filename_param),
+    uniquifier_position, uniquifier_generator)
 
 
-def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None, uniquifier_generator=None):
+def uniquify_string_generic(
+      str_, is_unique_func, uniquifier_position=None, uniquifier_generator=None):
   """
   If string `str_` is not unique according to `is_unique_func`, return a unique
   string by inserting a "uniquifier" (a string that makes the whole input string
@@ -118,7 +122,8 @@ def uniquify_string_generic(str_, is_unique_func, uniquifier_position=None, uniq
   """
   
   def _get_uniquified_string(uniquifier_generator):
-    return "{0}{1}{2}".format(str_[0:uniquifier_position], next(uniquifier_generator), str_[uniquifier_position:])
+    return "{0}{1}{2}".format(
+      str_[0:uniquifier_position], next(uniquifier_generator), str_[uniquifier_position:])
 
   def _generate_unique_number():
     i = 1
@@ -176,7 +181,8 @@ def get_file_extension(filename):
   return ""
 
 
-def get_filename_with_new_file_extension(filename, file_extension, keep_extra_trailing_periods=False):
+def get_filename_with_new_file_extension(
+      filename, file_extension, keep_extra_trailing_periods=False):
   """
   Return a new filename with the specified new file extension.
   
@@ -254,7 +260,8 @@ class StringPatternGenerator(object):
     self._pattern = pattern
     self._fields = fields if fields is not None else {}
     
-    self._pattern_parts, unused_, self._number_generators = self._parse_pattern(self._pattern, self._fields)
+    self._pattern_parts, unused_, self._number_generators = (
+      self._parse_pattern(self._pattern, self._fields))
   
   def generate(self):
     """
@@ -281,7 +288,8 @@ class StringPatternGenerator(object):
     new_number_generators = []
     
     for field_name in list(self._number_generators.keys()):
-      number_generator = self._set_number_field(field_name, self._fields, self._number_generators)
+      number_generator = self._set_number_field(
+        field_name, self._fields, self._number_generators)
       new_number_generators.append(number_generator)
     
     return new_number_generators
@@ -305,8 +313,10 @@ class StringPatternGenerator(object):
         "incorrect number of number generators (got {0}, expected {1})".format(
           len(number_generators), len(self._number_generators)))
     
-    for field_name, number_generator in zip(self._number_generators.keys(), number_generators):
-      self._set_number_field(field_name, self._fields, self._number_generators, number_generator)
+    for field_name, number_generator in zip(
+          self._number_generators.keys(), number_generators):
+      self._set_number_field(
+        field_name, self._fields, self._number_generators, number_generator)
   
   @classmethod
   def get_field_at_position(cls, pattern, position):
@@ -333,7 +343,8 @@ class StringPatternGenerator(object):
     
     # item: pair of (field name, field arguments) or string
     pattern_parts = []
-    # item: (field name, field arguments, raw field string, (field start index, field end index))
+    # item: (field name, field arguments, raw field string,
+    #        (field start index, field end index))
     parsed_fields = []
     # key: field name; value: number generator
     number_generators = collections.OrderedDict()
@@ -387,7 +398,9 @@ class StringPatternGenerator(object):
           continue
         
         field_str = pattern[start_of_field_index + 1:index]
-        field = list(cls._parse_field(field_str)) + [field_str] + [(start_of_field_index + 1, index)]
+        field = (
+          list(cls._parse_field(field_str)) + [field_str]
+          + [(start_of_field_index + 1, index)])
         
         if fields is None or (field[0] in fields and cls._is_field_valid(field, fields)):
           pattern_parts.append(field)
@@ -416,7 +429,8 @@ class StringPatternGenerator(object):
     
     field_name = field_str[:field_name_end_index].strip()
     field_args_str = field_str[field_name_end_index + 1:]
-    # Make parsing simpler without having to post-process the last argument outside the main loop.
+    # Make parsing simpler without having to post-process the last argument
+    # outside the main loop.
     field_args_str += ","
     
     is_in_field_arg = False
@@ -484,8 +498,8 @@ class StringPatternGenerator(object):
     
     if argspec.keywords:
       raise ValueError(
-        "{0}: field functions with variable keyword arguments (**kwargs) are not supported".format(
-          field_func.__name__))
+        "{0}: field functions with variable keyword arguments (**kwargs) "
+        "are not supported".format(field_func.__name__))
     
     if not argspec.varargs:
       num_defaults = len(argspec.defaults) if argspec.defaults is not None else 0
@@ -512,9 +526,11 @@ class StringPatternGenerator(object):
       i += 1
   
   @classmethod
-  def _set_number_field(cls, field_name, fields, number_generators, number_generator=None):
+  def _set_number_field(
+        cls, field_name, fields, number_generators, number_generator=None):
     if number_generator is None:
-      number_generator = cls._generate_number(padding=len(field_name), initial_number=int(field_name))
+      number_generator = cls._generate_number(
+        padding=len(field_name), initial_number=int(field_name))
     number_generators[field_name] = number_generator
     fields[field_name] = lambda: next(number_generator)
     
@@ -536,7 +552,8 @@ class StringPatternGenerator(object):
 
 # Taken from StackOverflow: http://stackoverflow.com/
 # Question: http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
-# Answer: http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python/600612#600612
+# Answer:
+# http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python/600612#600612
 def make_dirs(path):
   """
   Recursively create directories from the specified path.
@@ -636,13 +653,13 @@ class StringValidator(future.utils.with_metaclass(abc.ABCMeta, object)):
     pass
   
   @classmethod
-  def _status_tuple(cls, status):
+  def _get_status(cls, status):
     return (status, _(cls.ERROR_STATUSES_MESSAGES[status]))
 
 
 class FilenameValidator(StringValidator):
   
-  """
+  r"""
   This class is used to validate filenames (not their full path, only the
   name itself, also called "basenames").
   
@@ -673,17 +690,18 @@ class FilenameValidator(StringValidator):
   _INVALID_NAMES = {
     "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6",
     "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6",
-    "LPT7", "LPT8", "LPT9"
-  }
+    "LPT7", "LPT8", "LPT9"}
   
   ERROR_STATUSES_MESSAGES = {
     FileValidatorErrorStatuses.IS_EMPTY: N_("Filename is not specified."),
-    FileValidatorErrorStatuses.HAS_INVALID_CHARS: N_("Filename contains invalid characters."),
-    FileValidatorErrorStatuses.HAS_TRAILING_SPACES: N_("Filename cannot end with spaces."),
-    FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: N_("Filename cannot end with a period."),
+    FileValidatorErrorStatuses.HAS_INVALID_CHARS: N_(
+      "Filename contains invalid characters."),
+    FileValidatorErrorStatuses.HAS_TRAILING_SPACES: N_(
+      "Filename cannot end with spaces."),
+    FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: N_(
+      "Filename cannot end with a period."),
     FileValidatorErrorStatuses.HAS_INVALID_NAMES: N_(
-      '"{0}" is a reserved name that cannot be used in filenames.\n'),
-  }
+      '"{0}" is a reserved name that cannot be used in filenames.\n')}
   
   @classmethod
   def is_valid(cls, filename):
@@ -694,22 +712,26 @@ class FilenameValidator(StringValidator):
     """
     
     if not filename or filename is None:
-      return False, [cls._status_tuple(FileValidatorErrorStatuses.IS_EMPTY)]
+      return False, [cls._get_status(FileValidatorErrorStatuses.IS_EMPTY)]
     
     status_messages = []
     
     if re.search(cls._INVALID_CHARS_PATTERN, filename):
-      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_INVALID_CHARS))
+      status_messages.append(
+        cls._get_status(FileValidatorErrorStatuses.HAS_INVALID_CHARS))
     
     if filename.endswith(" "):
-      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_SPACES))
+      status_messages.append(
+        cls._get_status(FileValidatorErrorStatuses.HAS_TRAILING_SPACES))
     
     if filename.endswith("."):
-      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD))
+      status_messages.append(
+        cls._get_status(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD))
     
     root, unused_ = os.path.splitext(filename)
     if root.upper() in cls._INVALID_NAMES:
-      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_INVALID_NAMES))
+      status_messages.append(
+        cls._get_status(FileValidatorErrorStatuses.HAS_INVALID_NAMES))
     
     is_valid = not status_messages
     return is_valid, status_messages
@@ -763,20 +785,21 @@ class FilePathValidator(StringValidator):
   
   ERROR_STATUSES_MESSAGES = {
     FileValidatorErrorStatuses.IS_EMPTY: N_("File path is not specified."),
-    FileValidatorErrorStatuses.DRIVE_HAS_INVALID_CHARS: N_("Drive letter contains invalid characters."),
-    FileValidatorErrorStatuses.HAS_INVALID_CHARS: N_("File path contains invalid characters."),
+    FileValidatorErrorStatuses.DRIVE_HAS_INVALID_CHARS: N_(
+      "Drive letter contains invalid characters."),
+    FileValidatorErrorStatuses.HAS_INVALID_CHARS: N_(
+      "File path contains invalid characters."),
     FileValidatorErrorStatuses.HAS_TRAILING_SPACES: N_(
       "Path components in the file path cannot end with spaces."),
     FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: N_(
       "Path components in the file path cannot end with a period."),
     FileValidatorErrorStatuses.HAS_INVALID_NAMES: N_(
-      '"{0}" is a reserved name that cannot be used in file paths.\n'),
-  }
+      '"{0}" is a reserved name that cannot be used in file paths.\n')}
   
   @classmethod
   def is_valid(cls, filepath):
     if not filepath or filepath is None:
-      return False, [cls._status_tuple(FileValidatorErrorStatuses.IS_EMPTY)]
+      return False, [cls._get_status(FileValidatorErrorStatuses.IS_EMPTY)]
     
     status_messages = []
     statuses = set()
@@ -788,7 +811,8 @@ class FilePathValidator(StringValidator):
     
     if drive:
       if re.search(cls._INVALID_CHARS_PATTERN_WITHOUT_DRIVE, drive):
-        status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.DRIVE_HAS_INVALID_CHARS))
+        status_messages.append(
+          cls._get_status(FileValidatorErrorStatuses.DRIVE_HAS_INVALID_CHARS))
     
     path_components = split_path(path)
     for path_component in path_components:
@@ -803,17 +827,22 @@ class FilePathValidator(StringValidator):
       if root.upper() in cls._INVALID_NAMES:
         statuses.add(FileValidatorErrorStatuses.HAS_INVALID_NAMES)
         invalid_names_status_message += (
-          cls.ERROR_STATUSES_MESSAGES[FileValidatorErrorStatuses.HAS_INVALID_NAMES].format(root))
+          cls.ERROR_STATUSES_MESSAGES[
+            FileValidatorErrorStatuses.HAS_INVALID_NAMES].format(root))
     
     if FileValidatorErrorStatuses.HAS_INVALID_CHARS in statuses:
-      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_INVALID_CHARS))
+      status_messages.append(
+        cls._get_status(FileValidatorErrorStatuses.HAS_INVALID_CHARS))
     if FileValidatorErrorStatuses.HAS_TRAILING_SPACES in statuses:
-      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_SPACES))
+      status_messages.append(
+        cls._get_status(FileValidatorErrorStatuses.HAS_TRAILING_SPACES))
     if FileValidatorErrorStatuses.HAS_TRAILING_PERIOD in statuses:
-      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD))
+      status_messages.append(
+        cls._get_status(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD))
     if FileValidatorErrorStatuses.HAS_INVALID_NAMES in statuses:
       invalid_names_status_message = invalid_names_status_message.rstrip("\n")
-      status_messages.append((FileValidatorErrorStatuses.HAS_INVALID_NAMES, invalid_names_status_message))
+      status_messages.append(
+        (FileValidatorErrorStatuses.HAS_INVALID_NAMES, invalid_names_status_message))
     
     is_valid = not status_messages
     return is_valid, status_messages
@@ -857,23 +886,26 @@ class DirectoryPathValidator(FilePathValidator):
   
   ERROR_STATUSES_MESSAGES = {
     FileValidatorErrorStatuses.IS_EMPTY: N_("Directory path is not specified."),
-    FileValidatorErrorStatuses.DRIVE_HAS_INVALID_CHARS: N_("Drive letter contains invalid characters."),
-    FileValidatorErrorStatuses.HAS_INVALID_CHARS: N_("Directory path contains invalid characters."),
+    FileValidatorErrorStatuses.DRIVE_HAS_INVALID_CHARS: N_(
+      "Drive letter contains invalid characters."),
+    FileValidatorErrorStatuses.HAS_INVALID_CHARS: N_(
+      "Directory path contains invalid characters."),
     FileValidatorErrorStatuses.HAS_TRAILING_SPACES: N_(
       "Path components in the directory path cannot end with spaces."),
     FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: N_(
       "Path components in the directory path cannot end with a period."),
     FileValidatorErrorStatuses.HAS_INVALID_NAMES: N_(
       '"{0}" is a reserved name that cannot be used in directory paths.\n'),
-    FileValidatorErrorStatuses.EXISTS_BUT_IS_NOT_DIR: N_("Specified path is not a directory.")
-  }
+    FileValidatorErrorStatuses.EXISTS_BUT_IS_NOT_DIR: N_(
+      "Specified path is not a directory.")}
   
   @classmethod
   def is_valid(cls, dirpath):
     unused_, status_messages = super().is_valid(dirpath)
     
     if os.path.exists(dirpath) and not os.path.isdir(dirpath):
-      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.EXISTS_BUT_IS_NOT_DIR))
+      status_messages.append(
+        cls._get_status(FileValidatorErrorStatuses.EXISTS_BUT_IS_NOT_DIR))
     
     is_valid = not status_messages
     return is_valid, status_messages
@@ -881,7 +913,7 @@ class DirectoryPathValidator(FilePathValidator):
 
 class FileExtensionValidator(StringValidator):
   
-  """
+  r"""
   This class is used to validate file extensions.
   
   In this class, file extensions are considered valid if they:
@@ -899,26 +931,31 @@ class FileExtensionValidator(StringValidator):
   
   ERROR_STATUSES_MESSAGES = {
     FileValidatorErrorStatuses.IS_EMPTY: N_("File extension is not specified."),
-    FileValidatorErrorStatuses.HAS_INVALID_CHARS: N_("File extension contains invalid characters."),
-    FileValidatorErrorStatuses.HAS_TRAILING_SPACES: N_("File extension cannot end with spaces."),
-    FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: N_("File extension cannot end with a period.")
-  }
+    FileValidatorErrorStatuses.HAS_INVALID_CHARS: N_(
+      "File extension contains invalid characters."),
+    FileValidatorErrorStatuses.HAS_TRAILING_SPACES: N_(
+      "File extension cannot end with spaces."),
+    FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: N_(
+      "File extension cannot end with a period.")}
   
   @classmethod
   def is_valid(cls, file_ext):
     if not file_ext or file_ext is None:
-      return False, [cls._status_tuple(FileValidatorErrorStatuses.IS_EMPTY)]
+      return False, [cls._get_status(FileValidatorErrorStatuses.IS_EMPTY)]
     
     status_messages = []
     
     if re.search(cls._INVALID_CHARS_PATTERN, file_ext):
-      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_INVALID_CHARS))
+      status_messages.append(
+        cls._get_status(FileValidatorErrorStatuses.HAS_INVALID_CHARS))
     
     if file_ext.endswith(" "):
-      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_SPACES))
+      status_messages.append(
+        cls._get_status(FileValidatorErrorStatuses.HAS_TRAILING_SPACES))
       
     if file_ext.endswith("."):
-      status_messages.append(cls._status_tuple(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD))
+      status_messages.append(
+        cls._get_status(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD))
     
     is_valid = not status_messages
     return is_valid, status_messages
