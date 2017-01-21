@@ -165,23 +165,6 @@ def process_file(filename, *process_functions_and_args):
 
 #===============================================================================
 
-
-def _print_message(message, stream=sys.stdout):
-  print(os.path.basename(sys.argv[0]) + ": " + message, file=stream)
-
-
-def _get_filtered_file_paths(directory, pattern_file):
-  with io.open(
-         pattern_file, "r",
-         encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
-    spec = pathspec.PathSpec.from_lines(
-      pathspec.patterns.gitwildmatch.GitWildMatchPattern, file_)
-  
-  return [os.path.join(directory, match) for match in spec.match_tree(directory)]
-
-
-#===============================================================================
-
 FILES_TO_PROCESS = {
   FILENAMES_TO_RENAME["README.md"]: [
     (_trim_leading_spaces, NUM_LEADING_SPACES_TO_TRIM),
@@ -216,9 +199,19 @@ def make_package(input_directory, output_file_path, version):
   shutil.rmtree(temp_dir)
 
 
+def _get_filtered_file_paths(directory, pattern_file):
+  with io.open(
+         pattern_file, "r",
+         encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
+    spec = pathspec.PathSpec.from_lines(
+      pathspec.patterns.gitwildmatch.GitWildMatchPattern, file_)
+  
+  return [os.path.join(directory, match) for match in spec.match_tree(directory)]
+
+
 def _generate_pot_file(source_dir, version):
   if os.name == "nt":
-    _print_message("Warning: Cannot generate .pot file on Windows", sys.stderr)
+    print("Warning: Cannot generate .pot file on Windows", file=sys.stderr)
     return
   
   for file_ in os.listdir(source_dir):
@@ -261,7 +254,7 @@ def _set_permissions(path, permissions):
   """
   
   if os.name == "nt":
-    _print_message("Warning: Cannot set Unix-style permissions on Windows", sys.stderr)
+    print("Warning: Cannot set Unix-style permissions on Windows", file=sys.stderr)
     return
   
   for root, dirs, files in os.walk(path):
