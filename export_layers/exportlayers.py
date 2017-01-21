@@ -322,7 +322,7 @@ _BUILTIN_INCLUDE_FILTERS_AND_SETTINGS = {
 # key: setting name; value: (operation ID, operation group) tuple
 _operation_settings_and_items = {}
 
-_operations_executor = pgoperations.OperationExecutor()
+_operation_executor = pgoperations.OperationExecutor()
 
 
 def add_operation(base_setting):
@@ -343,7 +343,7 @@ def add_operation(base_setting):
     operation_args = operation_item[1] if len(operation_item) > 1 else ()
     operation_kwargs = operation_item[2] if len(operation_item) > 2 else {}
     
-    operation_id = _operations_executor.add_operation(
+    operation_id = _operation_executor.add_operation(
       execute_operation_only_if_setting(operation, base_setting),
       [operation_group],
       *operation_args, **operation_kwargs)
@@ -353,17 +353,17 @@ def add_operation(base_setting):
 
 def reorder_operation(setting, new_position):
   if setting.name in _operation_settings_and_items:
-    _operations_executor.reorder_operation(
+    _operation_executor.reorder_operation(
       _operation_settings_and_items[setting.name][0],
       _operation_settings_and_items[setting.name][1], new_position)
 
 
 def remove_operation(setting):
   if setting.name in _operation_settings_and_items:
-    _operations_executor.remove_operation(_operation_settings_and_items[setting.name][0])
+    _operation_executor.remove_operation(_operation_settings_and_items[setting.name][0])
 
 
-_operations_executor.add_foreach_operation(
+_operation_executor.add_foreach_operation(
   builtin_operations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
 
 #===============================================================================
@@ -425,7 +425,7 @@ class LayerExporter(object):
   * `current_layer_elem` (read-only) - The `pgitemtree._ItemTreeElement`
     instance being currently exported.
   
-  * `operations_executor` - `pgoperations.OperationExecutor` instance to manage
+  * `operation_executor` - `pgoperations.OperationExecutor` instance to manage
     operations applied on layers.
   """
   
@@ -483,7 +483,7 @@ class LayerExporter(object):
       for function in functions:
         self._processing_groups_functions[function.__name__] = function
     
-    self._operations_executor = pgoperations.OperationExecutor()
+    self._operation_executor = pgoperations.OperationExecutor()
     self._add_operations_initial()
   
   @property
@@ -515,8 +515,8 @@ class LayerExporter(object):
     return self._tagged_layer_copies
   
   @property
-  def operations_executor(self):
-    return self._operations_executor
+  def operation_executor(self):
+    return self._operation_executor
   
   def export(self, processing_groups=None, layer_tree=None, keep_exported_layers=False):
     """
@@ -623,11 +623,11 @@ class LayerExporter(object):
     self._should_stop = True
   
   def _add_operations_initial(self):
-    self._operations_executor.add_operation(
+    self._operation_executor.add_operation(
       builtin_operations.set_active_layer, [_BUILTIN_OPERATIONS_GROUP])
     
-    self._operations_executor.add_executor(
-      _operations_executor,
+    self._operation_executor.add_executor(
+      _operation_executor,
       [_BUILTIN_OPERATIONS_GROUP, _BUILTIN_FILTERS_GROUP,
        _BUILTIN_FILTERS_LAYER_TYPES_GROUP])
     
@@ -730,7 +730,7 @@ class LayerExporter(object):
     self._layer_tree.filter.add_subfilter(
       "layer_types", pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ANY))
     
-    self._operations_executor.execute([_BUILTIN_FILTERS_LAYER_TYPES_GROUP], self)
+    self._operation_executor.execute([_BUILTIN_FILTERS_LAYER_TYPES_GROUP], self)
     
     self._init_tagged_layer_elems()
     
@@ -742,7 +742,7 @@ class LayerExporter(object):
         builtin_filters.is_layer_in_selected_layers,
         self.export_settings["selected_layers"].value[self.image.ID])
     
-    self._operations_executor.execute([_BUILTIN_FILTERS_GROUP], self)
+    self._operation_executor.execute([_BUILTIN_FILTERS_GROUP], self)
   
   def _init_tagged_layer_elems(self):
     with self._layer_tree.filter.add_rule_temp(builtin_filters.has_tags):
@@ -797,7 +797,7 @@ class LayerExporter(object):
     self._image_copy = pgpdb.duplicate(self.image, metadata_only=True)
     pdb.gimp_image_undo_freeze(self._image_copy)
     
-    self._operations_executor.execute(["after_create_image_copy"], self._image_copy)
+    self._operation_executor.execute(["after_create_image_copy"], self._image_copy)
     
     if self._use_another_image_copy:
       self._another_image_copy = pgpdb.duplicate(self._image_copy, metadata_only=True)
@@ -829,9 +829,9 @@ class LayerExporter(object):
   
   def _process_layer(self, layer_elem, image, layer):
     layer_copy = builtin_operations.copy_and_insert_layer(image, layer, None, 0)
-    self._operations_executor.execute(["after_insert_layer"], image, layer_copy, self)
+    self._operation_executor.execute(["after_insert_layer"], image, layer_copy, self)
     
-    self._operations_executor.execute(
+    self._operation_executor.execute(
       [_BUILTIN_OPERATIONS_GROUP], image, layer_copy, self)
     
     layer_copy = self._merge_and_resize_layer(image, layer_copy)

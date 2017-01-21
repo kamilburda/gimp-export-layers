@@ -91,7 +91,7 @@ def _insert_tagged_layer(image, tag, layer_exporter, positon=0):
     
     for i, layer_elem in enumerate(layer_exporter.tagged_layer_elems[tag]):
       layer_copy = copy_and_insert_layer(image, layer_elem.item, layer_group, i)
-      layer_exporter.operations_executor.execute(
+      layer_exporter.operation_executor.execute(
         ["after_insert_layer"], image, layer_copy, layer_exporter)
     
     layer_exporter.inserted_tagged_layers[tag] = pgpdb.merge_layer_group(layer_group)

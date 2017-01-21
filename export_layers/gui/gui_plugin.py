@@ -597,7 +597,7 @@ class ExportLayersGui(object):
       self._export_previews_controller.on_paned_between_previews_position_changed)
     
     self._export_previews_controller.connect_setting_changes_to_previews()
-    self._connect_setting_changes_to_operations_boxes()
+    self._connect_setting_changes_to_operation_boxes()
     
     self._dialog.set_default_response(gtk.RESPONSE_CANCEL)
     
@@ -757,7 +757,7 @@ class ExportLayersGui(object):
       self._initial_layer_tree = None
       return
   
-  def _connect_setting_changes_to_operations_boxes(self):
+  def _connect_setting_changes_to_operation_boxes(self):
     self._settings["gui/displayed_builtin_operations"].connect_event(
       "after-reset", lambda setting: self._box_more_operations.clear())
     self._settings["gui/displayed_builtin_filters"].connect_event(
