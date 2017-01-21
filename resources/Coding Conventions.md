@@ -117,12 +117,20 @@ GTK uses UTF-8 encoding. Encode strings in UTF-8 for GTK functions as
 (http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html).
 
 
-Mixins
-------
+Classes
+-------
+
+### Mixins
 
 Mixins can access and modify only those attributes defined in it.
 
 No other classes should directly modify attributes defined in mixins.
+
+
+### Methods
+
+Use `@classmethod` for methods using class variables only. Use `@staticmethod` for methods not using instance or class variables and logically belonging to the
+class. 
 
 
 GTK
