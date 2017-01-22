@@ -1,4 +1,4 @@
-# This file contains files and directories to include in/exclude from the
+# This file contains files and directories to include in or exclude from the
 # release package. gitignore-like syntax is used, only reversed.
 
 # Include all files
