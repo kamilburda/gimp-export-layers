@@ -16,7 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
-#
 
 """
 This module is the core of the plug-in and provides a class to export layers as
