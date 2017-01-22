@@ -63,7 +63,7 @@ INCLUDE_LIST_FILENAME = "./make_package_included_files.txt"
 FILENAMES_TO_RENAME = {
   "README.md": "Readme.txt",
   "CHANGELOG.md": "Changelog.txt",
-  "Readme for Translators.md": "Readme for Translators.txt",
+  "README for Translators.md": "Readme for Translators.txt",
 }
 
 NUM_LEADING_SPACES_TO_TRIM = 4
