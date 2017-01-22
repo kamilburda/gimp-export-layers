@@ -71,7 +71,7 @@ NUM_LEADING_SPACES_TO_TRIM = 4
 #===============================================================================
 
 
-def process_file(filename, *process_functions_and_args):
+def process_file(file_path, *process_functions_and_args):
   
   def _prepare_files(file_to_read, file_to_write):
     file_to_read.seek(0)
@@ -87,13 +87,13 @@ def process_file(filename, *process_functions_and_args):
   
   temp_dir = tempfile.mkdtemp()
   temp_filename_copy = os.path.join(temp_dir, "temp")
-  shutil.copy2(filename, temp_filename_copy)
+  shutil.copy2(file_path, temp_filename_copy)
   
   temp_file_copy = io.open(
     temp_filename_copy, "r+", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING)
   temp_file = _create_temp_file(temp_dir, "r+", pgconstants.TEXT_FILE_CHARACTER_ENDOCING)
   
-  last_modified_filename = None
+  last_modified_file_path = None
   file_to_read = temp_file_copy
   file_to_write = temp_file
   for function_and_args in process_functions_and_args:
@@ -103,13 +103,13 @@ def process_file(filename, *process_functions_and_args):
     process_function_additional_args = function_and_args[1:]
     process_function(file_to_read, file_to_write, *process_function_additional_args)
     
-    last_modified_filename = file_to_write.name
+    last_modified_file_path = file_to_write.name
     file_to_read, file_to_write = file_to_write, file_to_read
   
   temp_file_copy.close()
   temp_file.close()
   
-  shutil.copy2(last_modified_filename, filename)
+  shutil.copy2(last_modified_file_path, file_path)
   
   os.remove(temp_filename_copy)
   os.remove(temp_file.name)
@@ -278,8 +278,25 @@ def _set_permissions(path, permissions):
 def _process_files(file_paths):
   for file_path in file_paths:
     filename = os.path.basename(file_path)
+    
     if filename in FILES_TO_PROCESS:
       process_file(file_path, *FILES_TO_PROCESS[filename])
+    
+    if filename in FILES_TO_PROCESS or filename in FILENAMES_TO_RENAME.values():
+      _set_windows_newlines(file_path)
+
+
+def _set_windows_newlines(file_path):
+  # This makes sure that even Notepad (which can only handle \r\n newlines) can
+  # properly display the readme.
+  
+  encoding = pgconstants.TEXT_FILE_CHARACTER_ENDOCING
+  
+  with io.open(file_path, "r", encoding=encoding) as file_:
+    contents = file_.read()
+  
+  with io.open(file_path, "w", newline="\r\n", encoding=encoding) as file_:
+    file_.write(contents)
 
 
 def _create_package_file(package_file_path, input_file_paths, output_file_paths):
