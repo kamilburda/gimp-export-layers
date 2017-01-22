@@ -71,6 +71,54 @@ NUM_LEADING_SPACES_TO_TRIM = 4
 #===============================================================================
 
 
+def process_file(filename, *process_functions_and_args):
+  
+  def _prepare_files(file_to_read, file_to_write):
+    file_to_read.seek(0)
+    file_to_write.seek(0)
+    file_to_write.truncate()
+  
+  def _create_temp_file(temp_dir, mode, encoding):
+    temp_file = tempfile.NamedTemporaryFile(mode, dir=temp_dir, delete=False)
+    temp_file.close()
+    temp_file = io.open(temp_file.name, mode, encoding=encoding)
+    
+    return temp_file
+  
+  temp_dir = tempfile.mkdtemp()
+  temp_filename_copy = os.path.join(temp_dir, "temp")
+  shutil.copy2(filename, temp_filename_copy)
+  
+  temp_file_copy = io.open(
+    temp_filename_copy, "r+", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING)
+  temp_file = _create_temp_file(temp_dir, "r+", pgconstants.TEXT_FILE_CHARACTER_ENDOCING)
+  
+  last_modified_filename = None
+  file_to_read = temp_file_copy
+  file_to_write = temp_file
+  for function_and_args in process_functions_and_args:
+    _prepare_files(file_to_read, file_to_write)
+    
+    process_function = function_and_args[0]
+    process_function_additional_args = function_and_args[1:]
+    process_function(file_to_read, file_to_write, *process_function_additional_args)
+    
+    last_modified_filename = file_to_write.name
+    file_to_read, file_to_write = file_to_write, file_to_read
+  
+  temp_file_copy.close()
+  temp_file.close()
+  
+  shutil.copy2(last_modified_filename, filename)
+  
+  os.remove(temp_filename_copy)
+  os.remove(temp_file.name)
+  os.rmdir(temp_dir)
+
+
+#===============================================================================
+
+
 def _trim_leading_spaces(file_to_read, file_to_write, num_leading_spaces):
   line = file_to_read.readline()
   while line:
@@ -126,45 +174,6 @@ def _remove_download_link(file_to_read, file_to_write):
     line = file_to_read.readline()
 
 
-def process_file(filename, *process_functions_and_args):
-  
-  def _prepare_files(file_to_read, file_to_write):
-    file_to_read.seek(0)
-    file_to_write.seek(0)
-    file_to_write.truncate()
-  
-  temp_dir = tempfile.mkdtemp()
-  temp_filename_copy = os.path.join(temp_dir, "temp")
-  shutil.copy2(filename, temp_filename_copy)
-  
-  temp_file_copy = io.open(temp_filename_copy, "r+b")
-  temp_file = tempfile.NamedTemporaryFile("r+", dir=temp_dir, delete=False)
-  
-  last_modified_filename = None
-  file_to_read = temp_file_copy
-  file_to_write = temp_file
-  for function_and_args in process_functions_and_args:
-    _prepare_files(file_to_read, file_to_write)
-    
-    process_function = function_and_args[0]
-    process_function_additional_args = function_and_args[1:]
-    process_function(file_to_read, file_to_write, *process_function_additional_args)
-    
-    last_modified_filename = file_to_write.name
-    file_to_read, file_to_write = file_to_write, file_to_read
-  
-  temp_file_copy.close()
-  temp_file.close()
-  
-  shutil.copy2(last_modified_filename, filename)
-  
-  os.remove(temp_filename_copy)
-  os.remove(temp_file.name)
-  os.rmdir(temp_dir)
-
-
-#===============================================================================
-
 FILES_TO_PROCESS = {
   FILENAMES_TO_RENAME["README.md"]: [
     (_trim_leading_spaces, NUM_LEADING_SPACES_TO_TRIM),
@@ -172,6 +181,8 @@ FILES_TO_PROCESS = {
     (_remove_download_link,)
   ]
 }
+
+#===============================================================================
 
 
 def make_package(input_directory, output_file_path, version):
