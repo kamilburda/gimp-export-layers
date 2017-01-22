@@ -41,7 +41,6 @@ def init():
   pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
   pygimplib.config.PLUGIN_VERSION = "3.0"
   pygimplib.config.BUG_REPORT_URI_LIST = [
-    # ("GIMP Plugin Registry", "http://registry.gimp.org/node/28268"),
     ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
   ]
   
