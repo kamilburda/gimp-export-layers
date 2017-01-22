@@ -18,4 +18,4 @@
 !export_layers/pygimplib/tests/
 !export_layers/pygimplib/lib/mock*
 !resources/
-!LICENSE
+!/LICENSE

@@ -64,7 +64,7 @@ FILENAMES_TO_RENAME = {
   "README.md": "Readme.txt",
   "CHANGELOG.md": "Changelog.txt",
   "README for Translators.md": "Readme for Translators.txt",
-}
+  "LICENSE": "License.txt"}
 
 NUM_LEADING_SPACES_TO_TRIM = 4
 
