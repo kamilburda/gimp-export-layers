@@ -154,12 +154,12 @@ class SimpleLogger(object):
       self._write(get_log_header(self._log_header_title))
     
     self._write(data)
-    self.flush()
     
     self.write = self._write
   
   def _write(self, data):
     self._log_file.write(str(data))
+    self.flush()
   
   def flush(self):
     self._log_file.flush()
