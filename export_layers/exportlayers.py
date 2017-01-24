@@ -301,8 +301,8 @@ _BUILTIN_OPERATIONS_AND_SETTINGS = {
 }
 
 _BUILTIN_FILTERS_AND_SETTINGS = {
-  "only_non_tagged_layers": [_add_filter_rule(builtin_filters.has_no_tags)],
-  "only_tagged_layers": [_add_filter_rule(builtin_filters.has_tags)],
+  "only_layers_without_tags": [_add_filter_rule(builtin_filters.has_no_tags)],
+  "only_layers_with_tags": [_add_filter_rule(builtin_filters.has_tags)],
   "only_layers_matching_file_extension": [
     _add_filter_rule_with_layer_exporter(
       builtin_filters.has_matching_default_file_extension)],

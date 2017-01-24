@@ -261,15 +261,15 @@ def create_settings():
     include_filters_settings,
     {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "only_non_tagged_layers",
+      "name": "only_layers_without_tags",
       "default_value": False,
-      "display_name": _("Only non-tagged layers")
+      "display_name": _("Only layers without tags")
     },
     {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "only_tagged_layers",
+      "name": "only_layers_with_tags",
       "default_value": False,
-      "display_name": _("Only tagged layers")
+      "display_name": _("Only layers with tags")
     },
     {
       "type": pgsetting.SettingTypes.boolean,
