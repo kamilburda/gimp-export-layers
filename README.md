@@ -218,7 +218,7 @@ On Windows, the following file formats don't work properly if file paths contain
 License
 -------
 
-This plug-in is licensed under the [GNU GPLv3](http://www.gnu.org/licenses/gpl-3.0.html).
+This plug-in is licensed under the [GNU GPLv3](http://www.gnu.org/licenses/gpl-3.0.html) license.
 
 
 Translations
