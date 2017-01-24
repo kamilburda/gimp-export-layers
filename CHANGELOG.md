@@ -3,7 +3,7 @@
 
 Redesign of the basic user interface:
 * "Advanced settings" are now referred to as "more settings".
-* Merged "Save Settings", "Reset Settings" and "Show More Settings" button into
+* Merged "Save Settings", "Reset Settings" and "Show More Settings" buttons into
 one button named "Settings".
 * Renamed "Export Layers" button to just "Export".
 * Removed "Autocrop layers" from basic settings.
