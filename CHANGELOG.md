@@ -7,6 +7,8 @@ Redesign of the basic user interface:
 one button named "Settings".
 * Renamed "Export Layers" button to just "Export".
 * Removed "Autocrop layers" from basic settings.
+* Added a second progress bar indicating the export progress of the current
+layer.
 * Misc. adjustments of GUI elements (size and spacing).
 
 Major additions and redesign to the "advanced" user interface:
@@ -20,8 +22,6 @@ name).
 * Removed the option to tag layers by renaming layers.
 * Layers can now be tagged via the layer name preview.
 * Added the option to add arbitrary tags to layers in the layer name preview.
-* Added a second progress bar indicating the export progress of the current
-layer.
 
 Changes to settings:
 * Renamed "Ignore invisible layers" to "Only visible layers".
