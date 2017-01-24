@@ -11,6 +11,7 @@
 * The plug-in no longer remembers settings in the non-interactive run mode. This behavior is consistent with other GIMP plug-ins.
 * "Export only layers matching file extension" is now applied before tagged layers are processed. This means that when this setting is selected and back/foreground layers don't have a matching file extension, they will no longer form the back/foreground of the exported layer.
 
+
 2.4 (October 4, 2015)
 ---------------------
 
@@ -24,6 +25,7 @@
 * Removed " copy" suffix from the names of exported layers for formats preserving layer information (e.g. PSD or XCF).
 * On Ubuntu, replaced the overlay scrollbar with the classic scrollbar.
 
+
 2.3 (June 18, 2015)
 -------------------
 
@@ -34,6 +36,7 @@
 * The plug-in now logs unhandled errors (exceptions) to the `export_layers/export_layers_error.log` file for official releases.
 * Major refactoring of the code dealing with settings to make it easier to create and maintain them.
 
+
 2.2.2 (December 20, 2014)
 -------------------------
 
@@ -42,6 +45,7 @@
 * Allowed to install the plug-in system-wide (e.g. to
   `C:\Program Files\GIMP 2\lib\gimp\2.0\plug-ins` on Windows).
 * Pressing Enter while the focus is on the "File extension" text field will now export layers.
+
 
 2.2.1 (November 10, 2014)
 -------------------------
@@ -52,6 +56,7 @@
   File formats that don't support the an image type (such as indexed) will
   automatically convert the type as appropriate (the same way the Export menu does).
 * Renamed "Use image size instead of layer size" to just "Use image size" for the sake of brevity.
+
 
 2.2 (August 15, 2014)
 ---------------------
@@ -72,6 +77,7 @@
   always overwritten by its default value and thus did not remember the last
   used value).
 * Misc. code refactoring and cleanup.
+
 
 2.1 (July 27, 2014)
 -------------------
@@ -96,6 +102,7 @@
 * Fixed filenames and directory names not being made unique properly, hopefully
   for real this time.
 * More code refactoring and cleanup.
+
 
 2.0 (June 27, 2014)
 -------------------
@@ -125,7 +132,7 @@ Changes to the GUI:
   in Export Layers when exporting.
 * Overwrite dialog now hides immediately after choosing an option.
 * The order of the "Export Layers" and "Cancel" buttons is now the same as in the Export menu.
-* Renamed "Chooose output directory" to "Save in folder:" to be consistent with the Export menu.
+* Renamed "Choose output directory" to "Save in folder:" to be consistent with the Export menu.
 * In the overwrite dialog, renamed "Overwrite" to "Replace" to be consistent with the Export menu.
 * Swapped the order of the "Skip" and "Replace" buttons in the overwrite dialog.
 * Upon opening the main window, the focus is now set on the File Format field.
@@ -152,9 +159,11 @@ Bug fixes:
 Misc. changes:
 * Layers exported with the "raw" file format will now have the ".raw" file extension added.
 
+
 1.1 (September 08, 2013)
 ------------------------
 * Added "Export Layers to" menu entry, repeating the export with last used settings.
+
 
 1.0 (July 01, 2013)
 -------------------
