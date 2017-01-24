@@ -46,6 +46,13 @@ Changes to settings:
 achieved via additional operations and filters or the filename pattern text
 entry.
 
+Bug fixes:
+* Fixed crash when "Search" or "Recently Used" were selected in the folder
+chooser.
+* Fixed in-dialog messages with special characters not being displayed.
+* Fixed "Export Layers (Repeat)" terminating prematurely if the user closed the
+overwrite dialog during a previous export.
+
 Misc. changes:
 * Reduced the number of PDB parameters for "plug-in-export-layers" as a result
 of the replacement of advanced settings with operations and filters.
@@ -56,13 +63,6 @@ of the replacement of advanced settings with operations and filters.
 * JPEG dialog is no longer displayed in "Export Layers (Repeat)".
 * In-dialog informative messages (e.g. "Settings successfully saved") now
 disappear automatically after a while.
-* Fixed "Export Layers (Repeat)" terminating prematurely if the user closed the overwrite dialog during a previous export.
-* Major internal restructuring.
-
-Bug fixes:
-* Fixed crash when "Search" or "Recently Used" were selected in the folder
-chooser.
-* Fixed in-dialog messages with special characters not being displayed.
 
 
 2.5 (April 22, 2016)
