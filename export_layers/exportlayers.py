@@ -362,6 +362,15 @@ def remove_operation(setting):
     _operation_executor.remove_operation(_operation_settings_and_items[setting.name][0])
 
 
+def is_valid_operation(base_setting):
+  return any(
+    base_setting.name in builtin_operations_or_filters
+    for builtin_operations_or_filters in [
+      _BUILTIN_OPERATIONS_AND_SETTINGS,
+      _BUILTIN_FILTERS_AND_SETTINGS,
+      _BUILTIN_INCLUDE_FILTERS_AND_SETTINGS])
+
+
 _operation_executor.add_foreach_operation(
   builtin_operations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
 
