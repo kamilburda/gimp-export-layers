@@ -1,3 +1,70 @@
+3.0 (Upcoming)
+--------------
+
+Redesign of the basic user interface:
+* "Advanced settings" are now referred to as "more settings".
+* Merged "Save Settings", "Reset Settings" and "Show More Settings" button into
+one button named "Settings".
+* Renamed "Export Layers" button to just "Export".
+* Removed "Autocrop layers" from basic settings.
+* Misc. adjustments of GUI elements (size and spacing).
+
+Major additions and redesign to the "advanced" user interface:
+* Added option to rename layers according to a pattern (defaulting to the layer
+name).
+* Removed GUI elements for "advanced" settings.
+* Added option to add back the "advanced" settings as operations or filters via
+"Add Operation..." and "Add Filter..." boxes.
+* Added preview displaying layer names to be exported ("layer name preview").
+* Added image preview of the layer selected in the layer name preview.
+* Removed the option to tag layers by renaming layers.
+* Layers can now be tagged via the layer name preview.
+* Added the option to add arbitrary tags to layers in the layer name preview.
+* Added a second progress bar indicating the export progress of the current
+layer.
+
+Changes to settings:
+* Renamed "Ignore invisible layers" to "Only visible layers".
+* Added the following settings acting as additional operations before export:
+  * "Insert background layers"
+  * "Insert foreground layers"
+  * "Inherit transparency from layer groups"
+  * "Ignore layer modes"
+  * "Autocrop"
+  * "Autocrop background"
+  * "Autocrop foreground"
+  * "Use file extensions in layer names"
+* Added the following settings acting as additional filters of layers:
+  * "Include layers" (enabled by default)
+  * "Include layer groups"
+  * "Include empty layer groups"
+  * "Only layers with tags"
+  * "Only layers without tags"
+  * "Only top-level layers"
+  * "Only layers selected in preview"
+* Removed settings not in the lists above as the same functionality can be
+achieved via additional operations and filters or the filename pattern text
+entry.
+
+Misc. changes:
+* Reduced the number of PDB parameters for "plug-in-export-layers" as a result
+of the replacement of advanced settings with operations and filters.
+* Export can now be stopped by pressing Escape.
+* Export is now stopped if the image is closed during the export.
+* Tagged layer groups are now also considered by settings dealing with tags.
+* Added undo/redo capability to the file extension entry.
+* JPEG dialog is no longer shown in "Export Layers (Repeat)".
+* In-dialog informative messages (e.g. "Settings successfully saved") now
+disappear automatically after a while.
+* Fixed "Export Layers (Repeat)" terminating prematurely if the user closed the overwrite dialog during a previous export.
+* Major internal restructuring.
+
+Bug fixes:
+* Fixed crash when "Search" or "Recently Used" were selected in the folder
+chooser.
+* Fixed in-dialog messages with special characters not being displayed.
+
+
 2.5 (April 22, 2016)
 --------------------
 
