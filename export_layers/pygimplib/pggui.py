@@ -43,6 +43,7 @@ import pygtk
 pygtk.require("2.0")
 import gtk
 import gobject
+import pango
 
 import gimpui
 
@@ -345,7 +346,7 @@ def _get_report_link_buttons(report_uri_list, report_description=None):
     label_report.set_alignment(0, 0.5)
     label_report.set_padding(3, 3)
     label_report.set_line_wrap(True)
-    label_report.set_line_wrap_mode(gtk.WRAP_WORD)
+    label_report.set_line_wrap_mode(pango.WRAP_WORD)
     vbox_link_buttons.pack_start(label_report, expand=False, fill=False)
   
   report_linkbuttons = []
