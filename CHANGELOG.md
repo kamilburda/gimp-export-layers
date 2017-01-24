@@ -3,8 +3,8 @@
 
 Redesign of the basic user interface:
 * "Advanced settings" are now referred to as "more settings".
-* Merged "Save Settings", "Reset Settings" and "Show More Settings" buttons into
-one button named "Settings".
+* Merged the "Save Settings" and "Reset Settings" buttons and the "Advanced
+Settings" expander into one button named "Settings".
 * Renamed "Export Layers" button to just "Export".
 * Removed "Autocrop layers" from basic settings.
 * Added a second progress bar indicating the export progress of the current
@@ -17,10 +17,10 @@ name).
 * Removed GUI elements for "advanced" settings.
 * Added option to add back the "advanced" settings as operations or filters via
 "Add Operation..." and "Add Filter..." boxes.
-* Added preview displaying layer names to be exported ("layer name preview").
+* Added preview displaying layer names to be exported.
 * Added image preview of the layer selected in the layer name preview.
-* Removed the option to tag layers by renaming layers.
-* Layers can now be tagged via the layer name preview.
+* Removed the option to tag layers by renaming layers. Instead, layers can now
+be tagged via the layer name preview.
 * Added the option to add arbitrary tags to layers in the layer name preview.
 
 Changes to settings:
@@ -53,7 +53,7 @@ of the replacement of advanced settings with operations and filters.
 * Export is now stopped if the image is closed during the export.
 * Tagged layer groups are now also considered by settings dealing with tags.
 * Added undo/redo capability to the file extension entry.
-* JPEG dialog is no longer shown in "Export Layers (Repeat)".
+* JPEG dialog is no longer displayed in "Export Layers (Repeat)".
 * In-dialog informative messages (e.g. "Settings successfully saved") now
 disappear automatically after a while.
 * Fixed "Export Layers (Repeat)" terminating prematurely if the user closed the overwrite dialog during a previous export.
