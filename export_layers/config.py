@@ -39,7 +39,7 @@ def init():
   pygimplib.config.LOG_MODE = pygimplib.pgconstants.LOG_EXCEPTIONS_ONLY
   
   pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
-  pygimplib.config.PLUGIN_VERSION = "3.0"
+  pygimplib.config.PLUGIN_VERSION = "3.0-RC1"
   pygimplib.config.BUG_REPORT_URI_LIST = [
     ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
   ]
