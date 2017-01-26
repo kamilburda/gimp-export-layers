@@ -11,7 +11,7 @@ Features:
 * customize export with a rich set of additional operations and filters,
 * ...and much more.
 
-Check out the [wiki](https://github.com/khalim19/gimp-plugin-export-layers/wiki)
+Check out the [**wiki**](https://github.com/khalim19/gimp-plugin-export-layers/wiki)
 for information about installation and usage.
 
 ####[Download latest stable release](https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.5/export-layers-2.5.zip) (2.5)
