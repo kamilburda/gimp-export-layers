@@ -27,7 +27,7 @@ Export Layers is licensed under the
 Translations
 ------------
 
-If you want to provide translations, see `Readme for Translators.md` for
+If you want to provide translations, see the [README for Translators](README for Translators.md) for
 instructions.
 
 
