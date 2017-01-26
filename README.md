@@ -1,3 +1,5 @@
+![Export Layers logo](http://khalim19.github.io/gimp-plugin-export-layers/assets/export_layers_logo.png)
+
 Export Layers
 =============
 
