@@ -16,9 +16,24 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="export_layers_logo.svg">
+   sodipodi:docname="export_layers_logo.svg"
+   inkscape:export-filename="C:\Users\khalim\.gimp-2.8\plug-ins - Export Layers - GitHub page\assets\export_layers_logo.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
      id="defs4">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient4215">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1"
+         offset="0"
+         id="stop4217" />
+      <stop
+         style="stop-color:#57503e;stop-opacity:1"
+         offset="1"
+         id="stop4219" />
+    </linearGradient>
     <linearGradient
        inkscape:collect="always"
        id="linearGradient4496">
@@ -75,33 +90,6 @@
          offset="1"
          id="stop4198" />
     </linearGradient>
-    <linearGradient
-       inkscape:collect="always"
-       id="linearGradient4163">
-      <stop
-         id="stop4167"
-         offset="0"
-         style="stop-color:#a9a089;stop-opacity:0.31764707" />
-      <stop
-         style="stop-color:#474235;stop-opacity:0.65882353;"
-         offset="0.73018336"
-         id="stop4252" />
-      <stop
-         id="stop4165"
-         offset="1"
-         style="stop-color:#534d3b;stop-opacity:1" />
-    </linearGradient>
-    <radialGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient4163"
-       id="radialGradient4171"
-       cx="397.09433"
-       cy="678.32294"
-       fx="397.09433"
-       fy="678.32294"
-       r="217.879"
-       gradientTransform="matrix(0.52743639,-0.80652107,0.6972502,0.45597707,-415.25941,625.16001)"
-       gradientUnits="userSpaceOnUse" />
     <radialGradient
        inkscape:collect="always"
        xlink:href="#linearGradient4194"
@@ -225,6 +213,17 @@
        y1="355.21936"
        x2="253.64287"
        y2="223.43364" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4215"
+       id="radialGradient4221"
+       cx="249.49602"
+       cy="664.54742"
+       fx="249.49602"
+       fy="664.54742"
+       r="199.90031"
+       gradientTransform="matrix(0.794875,-0.25542306,0.19844243,0.61755159,-76.384776,314.6549)"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -233,11 +232,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="269.78174"
-     inkscape:cy="215.28954"
+     inkscape:zoom="1.979899"
+     inkscape:cx="156.80324"
+     inkscape:cy="87.542504"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="g4718"
      showgrid="false"
      inkscape:window-width="1281"
      inkscape:window-height="1011"
@@ -257,7 +256,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -273,11 +272,13 @@
          transform="matrix(0.70806974,0,0,0.70806974,147.90926,181.03061)"
          id="g4718">
         <path
-           style="fill:url(#radialGradient4171);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           style="fill:url(#radialGradient4221);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
            d="m 278.23485,823.68261 c 183.14824,-34.4668 165.67031,-201.83714 167.30581,-288.78826 0,0 -46.29254,79.37688 -111.1307,92.76254 -64.83817,13.38566 -180.18408,-1.45517 -229.34301,-43.92487 -4.28571,83.57143 13.04765,110.64504 -58.069931,105.1453 C 70.254949,756.3574 156.206,846.64731 278.23485,823.68261 Z"
            id="path4148"
            inkscape:connector-curvature="0"
-           sodipodi:nodetypes="sczccs" />
+           sodipodi:nodetypes="sczccs"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90" />
         <g
            transform="translate(3.6939806,-3.7447434)"
            id="g4707">
