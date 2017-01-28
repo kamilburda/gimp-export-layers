@@ -28,7 +28,7 @@ You can report issues, ask questions or request new features:
 Translations
 ------------
 
-If you want to provide translations, see the [README for Translators](README for Translators.md) for
+If you would like to provide translations, see [README for Translators](README for Translators.md) for
 instructions.
 
 
