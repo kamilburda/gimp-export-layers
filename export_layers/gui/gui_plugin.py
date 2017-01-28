@@ -676,11 +676,6 @@ class ExportLayersGui(object):
     
     return operation_box
   
-  def _reset_settings(self):
-    self._settings.reset()
-    pgsettingpersistor.SettingPersistor.clear(
-      [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
-  
   def _save_settings(self):
     status, status_message = self._settings.save()
     if status == pgsettingpersistor.SettingPersistor.WRITE_FAIL:
@@ -688,6 +683,14 @@ class ExportLayersGui(object):
       return False
     else:
       return True
+  
+  def _reset_settings(self):
+    self._settings.reset()
+  
+  @staticmethod
+  def _clear_setting_sources():
+    pgsettingpersistor.SettingPersistor.clear(
+      [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
   
   def _on_text_entry_changed(self, widget, setting, name_preview_lock_update_key=None):
     try:
@@ -795,7 +798,12 @@ class ExportLayersGui(object):
     
     if response_id == gtk.RESPONSE_YES:
       self._reset_settings()
-      self._save_settings()
+      
+      if reset_operations:
+        self._clear_setting_sources()
+      else:
+        self._save_settings()
+      
       self._display_message_label(_("Settings reset."), gtk.MESSAGE_INFO)
     
     if not reset_operations:
