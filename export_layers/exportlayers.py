@@ -338,6 +338,8 @@ def add_operation(base_setting):
       operation_item = _BUILTIN_INCLUDE_FILTERS_AND_SETTINGS[base_setting.name]
       operation_group = _BUILTIN_FILTERS_LAYER_TYPES_GROUP
     
+    base_setting.set_value(True)
+    
     operation = operation_item[0]
     operation_args = operation_item[1] if len(operation_item) > 1 else ()
     operation_kwargs = operation_item[2] if len(operation_item) > 2 else {}
@@ -359,6 +361,7 @@ def reorder_operation(setting, new_position):
 
 def remove_operation(setting):
   if setting.name in _operation_settings_and_items:
+    setting.set_value(False)
     _operation_executor.remove_operation(_operation_settings_and_items[setting.name][0])
 
 
