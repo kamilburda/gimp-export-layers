@@ -285,11 +285,11 @@ class TestStringPatternGenerator(unittest.TestCase):
       "date", _DateGenerator().get_date, "[date, %Y-%m-%d]", "2016-07-16")
   
   def test_generate_with_fields_with_invalid_arguments(self):
-    def _get_date(date_format):
-      return datetime.datetime(2016, 7, 16, hour=23).strftime(date_format)
+    def _get_invalid_date(date_format):
+      raise ValueError("invalid date format {0}".format(date_format))
     
     self._test_generate_with_field(
-      "date", _get_date, "[date, %Y-%m-%D]", "[date, %Y-%m-%D]")
+      "date", _get_invalid_date, "[date, %Y-%m-%d]", "[date, %Y-%m-%d]")
   
   def test_generate_with_fields_invalid_field_function(self):
     def _get_joined_kwargs_values(separator, **kwargs):
