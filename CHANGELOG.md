@@ -11,7 +11,7 @@ Settings" expander into one button named "Settings".
 layer.
 * Misc. adjustments of GUI elements (size and spacing).
 
-Major additions and redesign to the "advanced" user interface:
+Major additions and redesign of the "advanced" user interface:
 * Added option to rename layers according to a pattern (defaulting to the layer
 name).
 * Removed GUI elements for "advanced" settings.
