@@ -324,7 +324,7 @@ _operation_settings_and_items = {}
 _operation_executor = pgoperations.OperationExecutor()
 
 
-def add_operation(base_setting):
+def add_operation(base_setting, enable=True):
   if (base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS
       or base_setting.name in _BUILTIN_FILTERS_AND_SETTINGS
       or base_setting.name in _BUILTIN_INCLUDE_FILTERS_AND_SETTINGS):
@@ -338,7 +338,7 @@ def add_operation(base_setting):
       operation_item = _BUILTIN_INCLUDE_FILTERS_AND_SETTINGS[base_setting.name]
       operation_group = _BUILTIN_FILTERS_LAYER_TYPES_GROUP
     
-    base_setting.set_value(True)
+    base_setting.set_value(enable)
     
     operation = operation_item[0]
     operation_args = operation_item[1] if len(operation_item) > 1 else ()
