@@ -13,6 +13,8 @@ Features:
 Check out the [**wiki**](https://github.com/khalim19/gimp-plugin-export-layers/wiki)
 for information about installation and usage.
 
+####[Download latest work-in-progress release](https://github.com/khalim19/gimp-plugin-export-layers/releases/tag/3.0-RC1) (3.0-RC1)
+
 ####[Download latest stable release](https://github.com/khalim19/gimp-plugin-export-layers/releases/download/2.5/export-layers-2.5.zip) (2.5)
 
 
