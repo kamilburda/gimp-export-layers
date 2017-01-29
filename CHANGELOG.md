@@ -1,5 +1,5 @@
-3.0 (Upcoming)
---------------
+3.0-RC1
+-------
 
 Redesign of the basic user interface:
 * "Advanced settings" are now referred to as "more settings".
