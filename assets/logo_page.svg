@@ -10,13 +10,13 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="214.46077mm"
+   width="97.789017mm"
    height="59.461372mm"
-   viewBox="0 0 759.90036 210.6899"
+   viewBox="0 0 346.49651 210.6899"
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="logo.svg"
+   sodipodi:docname="logo_page.svg"
    inkscape:export-filename="C:\Users\khalim\.gimp-2.8\plug-ins - Export Layers - GitHub page\assets\logo_page.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
@@ -195,11 +195,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="228.49909"
-     inkscape:cy="44.273097"
+     inkscape:zoom="0.7"
+     inkscape:cx="313.72109"
+     inkscape:cy="-185.93659"
      inkscape:document-units="px"
-     inkscape:current-layer="g4744"
+     inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1281"
      inkscape:window-height="1011"
@@ -219,7 +219,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -227,7 +227,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-116.27223,-556.99097)">
+     transform="translate(-116.27226,-556.99097)">
     <g
        id="g4744"
        transform="translate(-54.285714,-1.4285714)"
@@ -442,20 +442,5 @@
         </g>
       </g>
     </g>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:80px;line-height:125%;font-family:'Wingdings 2';-inkscape-font-specification:'Wingdings 2, ';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="492.34689"
-       y="693.91382"
-       id="text4740"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan4742"
-         x="492.34689"
-         y="693.91382"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:75px;font-family:'Tw Cen MT Condensed Extra Bold';-inkscape-font-specification:'Tw Cen MT Condensed Extra Bold, ';letter-spacing:0px;writing-mode:lr-tb;baseline-shift:baseline"
-         dx="0"
-         dy="0"
-         rotate="0 0 0 0 0 0 0 0 0 0 0 0 0 0">Export Layers</tspan></text>
   </g>
 </svg>

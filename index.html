@@ -1,7 +1,7 @@
 ---
 layout: default
 
-documentation-url: https://github.com/khalim19/gimp-plugin-export-layers/blob/master/README.md
+wiki-url: https://github.com/khalim19/gimp-plugin-export-layers/wiki
 release-notes-url: https://github.com/khalim19/gimp-plugin-export-layers/releases
 source-code-url: https://github.com/khalim19/gimp-plugin-export-layers
 ---
@@ -11,52 +11,37 @@ source-code-url: https://github.com/khalim19/gimp-plugin-export-layers
   {% capture markdown-insert %}
 
 Export Layers is a [GIMP](https://www.gimp.org/) plug-in that lets you export
-layers as separate images in any file format supported by GIMP and third-party plug-ins.
-  {% endcapture %}
-  {{ markdown-insert | markdownify }}
+layers as separate images.
 
-  <div style="text-align: center">
-    <p>
-      <a class="button download-button" href="https://github.com/khalim19/gimp-plugin-export-layers/releases/download/{{ site.plugin-version }}/export-layers-{{ site.plugin-version }}.zip">Download</a>
-    </p>
-  
-    <p>
-      Latest release: {{ site.plugin-version }}, {{ site.plugin-version-release-date }}
-      <span class="vertical-bar-sep">|</span>
-      <a href="{{ page.release-notes-url }}">Release notes</a>
-      <span class="vertical-bar-sep">|</span>
-      <a href="{{ page.documentation-url }}">Documentation</a>
-      <span class="vertical-bar-sep">|</span>
-      <a href="{{ page.source-code-url }}">Source code</a>
-    </p>
-  </div>
-
-  {% capture markdown-insert %}
 Features
 --------
 
-* uses native dialogs for file formats to adjust export settings
-* uses layer names as filenames for the exported images
-* can treat layer groups as folders
-* can use tagged layers as background or foreground layers
-* can optionally export only layers whose file extension matches the specified file extension
-* can use file extensions in layer names as file formats
+* support for any file format provided by GIMP and third-party plug-ins,
+* treat layer groups as folders,
+* display a preview of layers to be exported,
+* customize export with a rich set of additional operations and filters,
+* ...and much more.
   {% endcapture %}
   {{ markdown-insert | markdownify }}
 
   {% capture markdown-insert %}
-For details about features, installation instructions and known issues, see the [documentation]({{ page.documentation-url }}).
+See the [**wiki**]({{ page.wiki-url }}) for details about installation,
+usage and known issues.
   {% endcapture %}
   {{ markdown-insert | markdownify }}
   
-  <h2>Example</h2>
-  <p><img src="{{ "/assets/screenshot_dialog.png" | prepend: site.baseurl }}" alt="Example of Export Layers usage"></p>
+  <div style="text-align: center">
+    <p>
+      <a class="button download-button" href="https://github.com/khalim19/gimp-plugin-export-layers/releases">Download</a>
+    </p>
+  </div>
   
   {% capture markdown-insert %}
 Support
 -------
 
-You can report issues, ask questions or request new features on the [GitHub page](https://github.com/khalim19/gimp-plugin-export-layers/issues) of the plug-in.
+You can report issues, ask questions or request new features on
+[GitHub Issues](https://github.com/khalim19/gimp-plugin-export-layers/issues).
 
   {% endcapture %}
   {{ markdown-insert | markdownify }}
