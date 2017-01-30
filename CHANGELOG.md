@@ -1,5 +1,5 @@
 3.0-RC1
--------
+=======
 
 Redesign of the basic user interface:
 * "Advanced settings" are now referred to as "more settings".
@@ -65,8 +65,8 @@ of the replacement of advanced settings with operations and filters.
 disappear automatically after a while.
 
 
-Export Layers 2.5
------------------
+2.5
+===
 
 * Added a feature to tag layers as foreground layers. To use it, type
 "[foreground]" before the layer name.
@@ -94,8 +94,8 @@ back/foreground layers don't have a matching file extension, they will no longer
 form the back/foreground of the exported layer.
 
 
-Export Layers 2.4
------------------
+2.4
+===
 
 * The "File extension" text field now displays a dropdown list of file formats
 and associated file extensions (upon clicking or pressing Up/Down keys). Several
@@ -121,8 +121,8 @@ preserving layer information (e.g. PSD or XCF).
 * On Ubuntu, replaced the overlay scrollbar with the classic scrollbar.
 
 
-Export Layers 2.3
------------------
+2.3
+===
 
 * Removed tooltips for settings (except File Extension) due to being redundant.
 * Allowed to type in the output directory manually in the directory chooser if
@@ -138,8 +138,8 @@ re-save settings if they used the "Save Settings" feature.
 create and maintain them.
 
 
-Export Layers 2.2.2
--------------------
+2.2.2
+=====
 
 * Set PNG as the default file format.
 * Renamed settings containing the word "directory" to contain "folder".
@@ -149,8 +149,8 @@ Export Layers 2.2.2
 export layers.
 
 
-Export Layers 2.2.1
--------------------
+2.2.1
+=====
 
 * Images in RAW format are saved with '.data' file extension instead of '.raw'.
 * Image type is now preserved, instead of always using the RGB type.
@@ -162,8 +162,8 @@ does).
 the sake of brevity.
 
 
-Export Layers 2.2
------------------
+2.2
+===
 
 * Changed how the initial output directory in the GUI is determined. It is now
 remembered separately for each image currently opened in GIMP.
@@ -182,8 +182,8 @@ used value).
 * Misc. code refactoring and cleanup.
 
 
-Export Layers 2.1
------------------
+2.1
+===
 
 * Added support for Unicode characters. This means you can now use any character
 in layer names and the output directory, except for most of the special
@@ -210,8 +210,8 @@ for real this time.
 * More code refactoring and cleanup.
 
 
-Export Layers 2.0
------------------
+2.0
+===
 
 Implemented advanced settings, including the following:
 * export only layers whose names match the file format
@@ -278,8 +278,8 @@ Misc. changes:
 extension added.
 
 
-Export Layers 1.1
------------------
+1.1
+===
 
 Release date: September 08, 2013
 
@@ -287,8 +287,8 @@ Release date: September 08, 2013
 settings.
 
 
-Export Layers 1.0
------------------
+1.0
+===
 
 Release date: July 01, 2013
 
