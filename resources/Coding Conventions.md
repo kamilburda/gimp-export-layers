@@ -11,6 +11,18 @@ Glossary
 Element = module, class, function or variable
 
 
+Naming
+------
+
+Use the following conventions for terms and variables:
+
+| Term             | Variable name | Meaning                               |
+|------------------|---------------|---------------------------------------|
+| File name        | `filename`    | File basename                         |
+| File path        | `filepath`    | Absolute or relative file path        |
+| Directory path   | `dirpath`     | Absolute or relative directory path   |
+
+
 Formatting
 ----------
 
@@ -47,7 +59,7 @@ For example:
           self, name, default_value, display_name=None, description=None,
           error_messages=None):
       with open(
-             "a_totally_ridiculously_long_path_name_to_a_document", "w") as f:
+             "/totally/ridiculously/long/path/to/file.txt", "w") as f:
         pass
 
 
@@ -130,7 +142,7 @@ No other classes should directly modify attributes defined in mixins.
 ### Methods
 
 Use `@classmethod` for methods using class variables only. Use `@staticmethod` for methods not using instance or class variables and logically belonging to the
-class. 
+class.
 
 
 GTK

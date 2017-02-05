@@ -135,7 +135,7 @@ def display_reset_prompt(parent=None, more_settings_shown=False):
 
 
 @contextlib.contextmanager
-def handle_gui_in_export(run_mode, image, layer, output_filename, window):
+def handle_gui_in_export(run_mode, image, layer, output_filepath, window):
   should_manipulate_window = run_mode == gimpenums.RUN_INTERACTIVE
   
   if should_manipulate_window:
@@ -207,22 +207,22 @@ def _set_settings(func):
 #===============================================================================
 
 
-def _update_directory(setting, current_image, directory_for_current_image):
+def _update_directory(setting, current_image, current_image_dirpath):
   """
-  Set the directory to the setting according to the priority list below:
+  Set the directory path to the setting according to the priority list below:
   
-  1. `directory_for_current_image` if not None
+  1. `current_image_dirpath` if not None
   2. `current_image` - import path of the current image if not None
   
   If update was performed, return True, otherwise return False.
   """
   
-  if directory_for_current_image is not None:
-    if isinstance(directory_for_current_image, bytes):
-      directory_for_current_image = directory_for_current_image.decode(
+  if current_image_dirpath is not None:
+    if isinstance(current_image_dirpath, bytes):
+      current_image_dirpath = current_image_dirpath.decode(
         pgconstants.GIMP_CHARACTER_ENCODING)
     
-    setting.set_value(directory_for_current_image)
+    setting.set_value(current_image_dirpath)
     return True
   
   if current_image.filename is not None:
@@ -237,14 +237,14 @@ def _update_directory(setting, current_image, directory_for_current_image):
 def _setup_image_ids_and_directories_and_initial_directory(
       settings, current_directory_setting, current_image):
   """
-  Set up the initial directory for the current image according to the
+  Set up the initial directory path for the current image according to the
   following priority list:
   
-    1. Last export directory of the current image
-    2. Import directory of the current image
-    3. Last export directory of any image (i.e. the current value of
+    1. Last export directory path of the current image
+    2. Import directory path of the current image
+    3. Last export directory path of any image (i.e. the current value of
        "main/output_directory")
-    4. The default directory (default value) for "main/output_directory"
+    4. The default directory path (default value) for "main/output_directory"
   
   Notes:
   
@@ -253,7 +253,7 @@ def _setup_image_ids_and_directories_and_initial_directory(
     Directory 4. is set upon the instantiation of "main/output_directory".
   """
   
-  settings["gui_session/image_ids_and_directories"].update_image_ids_and_directories()
+  settings["gui_session/image_ids_and_directories"].update_image_ids_and_dirpaths()
   
   update_performed = _update_directory(
     current_directory_setting, current_image,
@@ -266,7 +266,7 @@ def _setup_image_ids_and_directories_and_initial_directory(
 def _setup_output_directory_changed(settings, current_image):
   def on_output_directory_changed(
         output_directory, image_ids_and_directories, current_image_id):
-    image_ids_and_directories.update_directory(current_image_id, output_directory.value)
+    image_ids_and_directories.update_dirpath(current_image_id, output_directory.value)
   
   settings["main/output_directory"].connect_event("value-changed",
     on_output_directory_changed, settings["gui_session/image_ids_and_directories"],
@@ -326,7 +326,7 @@ class ExportLayersGui(object):
   def _init_settings(self):
     self._add_gui_settings()
     
-    settings_plugin.setup_image_ids_and_filenames_settings(
+    settings_plugin.setup_image_ids_and_filepaths_settings(
       self._settings["gui_session/export_name_preview_layers_collapsed_state"],
       self._settings["gui_persistent/export_name_preview_layers_collapsed_state_persistent"],
       settings_plugin.convert_set_of_layer_ids_to_names,
@@ -334,7 +334,7 @@ class ExportLayersGui(object):
       settings_plugin.convert_set_of_layer_names_to_ids,
       [self._layer_exporter_for_previews.layer_tree])
     
-    settings_plugin.setup_image_ids_and_filenames_settings(
+    settings_plugin.setup_image_ids_and_filepaths_settings(
       self._settings["gui_session/export_image_preview_displayed_layers"],
       self._settings["gui_persistent/export_image_preview_displayed_layers_persistent"],
       settings_plugin.convert_layer_id_to_name,

@@ -103,7 +103,7 @@ def plug_in_export_layers_repeat(run_mode, image):
 
 
 def _setup_settings_additional(settings, layer_tree):
-  settings_plugin.setup_image_ids_and_filenames_settings(
+  settings_plugin.setup_image_ids_and_filepaths_settings(
     settings["main/selected_layers"],
     settings["main/selected_layers_persistent"],
     settings_plugin.convert_set_of_layer_ids_to_names, [layer_tree],

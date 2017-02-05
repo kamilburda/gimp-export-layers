@@ -45,14 +45,14 @@ config.init()
 
 pygimplib.init()
 
-_CURRENT_MODULE_DIR = os.path.dirname(pgutils.get_current_module_file_path())
-RESOURCES_DIR = os.path.join(
-  os.path.dirname(os.path.dirname(_CURRENT_MODULE_DIR)), "resources")
-TEST_IMAGES_DIR = os.path.join(RESOURCES_DIR, "Test images")
+_CURRENT_MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
+RESOURCES_DIRPATH = os.path.join(
+  os.path.dirname(os.path.dirname(_CURRENT_MODULE_DIRPATH)), "resources")
+TEST_IMAGES_DIRPATH = os.path.join(RESOURCES_DIRPATH, "Test images")
 
-EXPECTED_RESULTS_DIR = os.path.join(TEST_IMAGES_DIR, "Expected results")
-OUTPUT_DIR = os.path.join(TEST_IMAGES_DIR, "Temp output")
-INCORRECT_RESULTS_DIR = os.path.join(TEST_IMAGES_DIR, "Incorrect results")
+EXPECTED_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "Expected results")
+OUTPUT_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "Temp output")
+INCORRECT_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "Incorrect results")
 
 #===============================================================================
 
@@ -63,20 +63,20 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def setUpClass(cls):
     pdb.gimp_context_push()
     
-    cls.test_image_filename = os.path.join(
-      TEST_IMAGES_DIR, "test_export_layers_contents.xcf")
+    cls.test_image_filepath = os.path.join(
+      TEST_IMAGES_DIRPATH, "test_export_layers_contents.xcf")
     cls.test_image = cls._load_image()
     
-    cls.output_directory = OUTPUT_DIR
+    cls.output_dirpath = OUTPUT_DIRPATH
     
-    if os.path.exists(cls.output_directory):
-      shutil.rmtree(cls.output_directory)
+    if os.path.exists(cls.output_dirpath):
+      shutil.rmtree(cls.output_dirpath)
     
-    if os.path.exists(INCORRECT_RESULTS_DIR):
-      shutil.rmtree(INCORRECT_RESULTS_DIR)
+    if os.path.exists(INCORRECT_RESULTS_DIRPATH):
+      shutil.rmtree(INCORRECT_RESULTS_DIRPATH)
     
-    cls.default_expected_layers_dir = EXPECTED_RESULTS_DIR
-    # key: directory containing expected results
+    cls.default_expected_layers_dirpath = EXPECTED_RESULTS_DIRPATH
+    # key: path to directory containing expected results
     # value: gimp.Image instance
     cls.expected_images = {}
   
@@ -96,8 +96,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     if self.image_with_results is not None:
       pdb.gimp_image_delete(self.image_with_results)
     
-    if os.path.exists(self.output_directory):
-      shutil.rmtree(self.output_directory)
+    if os.path.exists(self.output_dirpath):
+      shutil.rmtree(self.output_dirpath)
   
   def test_default_settings(self):
     self.compare()
@@ -115,8 +115,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def test_use_image_size(self):
     self.compare(
       {"use_image_size": True},
-      expected_results_dir=os.path.join(
-        self.default_expected_layers_dir, "use_image_size"))
+      expected_results_dirpath=os.path.join(
+        self.default_expected_layers_dirpath, "use_image_size"))
   
   def test_use_image_size_autocrop(self):
     self.compare(
@@ -124,14 +124,14 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
        "more_operations/autocrop": True},
       [("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop"),
        ("main-background", "main-background_autocrop")],
-      expected_results_dir=os.path.join(
-        self.default_expected_layers_dir, "use_image_size"))
+      expected_results_dirpath=os.path.join(
+        self.default_expected_layers_dirpath, "use_image_size"))
   
   def test_background(self):
     self.compare(
       {"more_operations/insert_background_layers": True},
-      expected_results_dir=os.path.join(
-        self.default_expected_layers_dir, "background"))
+      expected_results_dirpath=os.path.join(
+        self.default_expected_layers_dirpath, "background"))
   
   def test_background_autocrop(self):
     self.compare(
@@ -149,23 +149,23 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       {"more_operations/insert_background_layers": True,
        "more_operations/autocrop": True,
        "use_image_size": True},
-      expected_results_dir=os.path.join(
-        self.default_expected_layers_dir, "background", "autocrop-use_image_size"))
+      expected_results_dirpath=os.path.join(
+        self.default_expected_layers_dirpath, "background", "autocrop-use_image_size"))
   
   def test_background_autocrop_background(self):
     self.compare(
       {"more_operations/insert_background_layers": True,
        "more_operations/autocrop_background": True},
-      expected_results_dir=os.path.join(
-        self.default_expected_layers_dir, "background"))
+      expected_results_dirpath=os.path.join(
+        self.default_expected_layers_dirpath, "background"))
   
   def test_background_autocrop_background_use_image_size(self):
     self.compare(
       {"more_operations/insert_background_layers": True,
        "more_operations/autocrop_background": True,
        "use_image_size": True},
-      expected_results_dir=os.path.join(
-        self.default_expected_layers_dir, "background",
+      expected_results_dirpath=os.path.join(
+        self.default_expected_layers_dirpath, "background",
         "autocrop_background-use_image_size"))
   
   def test_foreground(self):
@@ -178,34 +178,36 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     
     self.compare(
       {"more_operations/insert_foreground_layers": True},
-      expected_results_dir=os.path.join(self.default_expected_layers_dir, "foreground"))
+      expected_results_dirpath=os.path.join(
+        self.default_expected_layers_dirpath, "foreground"))
     
     self._reload_image()
   
   def compare(
         self, different_settings=None, different_results_and_expected_layers=None,
-        expected_results_dir=None):
+        expected_results_dirpath=None):
     settings = settings_plugin.create_settings()
     settings["special"]["image"].set_value(self.test_image)
-    settings["main"]["output_directory"].set_value(self.output_directory)
+    settings["main"]["output_directory"].set_value(self.output_dirpath)
     
     if different_settings is not None:
       for setting_name, setting_value in different_settings.items():
         settings["main"][setting_name].set_value(setting_value)
     
-    if expected_results_dir is None:
-      expected_results_dir = self.default_expected_layers_dir
+    if expected_results_dirpath is None:
+      expected_results_dirpath = self.default_expected_layers_dirpath
     
-    if expected_results_dir not in self.expected_images:
-      self.expected_images[expected_results_dir], expected_layers = (
-        self._load_layers_from_dir(expected_results_dir))
+    if expected_results_dirpath not in self.expected_images:
+      self.expected_images[expected_results_dirpath], expected_layers = (
+        self._load_layers_from_dirpath(expected_results_dirpath))
     else:
       expected_layers = {
-        layer.name: layer for layer in self.expected_images[expected_results_dir].layers}
+        layer.name: layer
+        for layer in self.expected_images[expected_results_dirpath].layers}
     
     self._export(settings)
     
-    self.image_with_results, layers = self._load_layers_from_dir(self.output_directory)
+    self.image_with_results, layers = self._load_layers_from_dirpath(self.output_dirpath)
     
     if different_results_and_expected_layers is not None:
       for layer_name, expected_layer_name in different_results_and_expected_layers:
@@ -215,7 +217,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       test_case_name = inspect.stack()[1][-3]
       self._compare_layers(
         layer, expected_layers[layer.name], settings, test_case_name,
-        expected_results_dir)
+        expected_results_dirpath)
   
   @staticmethod
   def _export(settings):
@@ -234,10 +236,10 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         exportlayers.remove_operation(operation_setting)
   
   def _compare_layers(
-        self, layer, expected_layer, settings, test_case_name, expected_results_dir):
+        self, layer, expected_layer, settings, test_case_name, expected_results_dirpath):
     if not pgpdb.compare_layers([layer, expected_layer]):
       self._save_incorrect_layers(
-        layer, expected_layer, settings, test_case_name, expected_results_dir)
+        layer, expected_layer, settings, test_case_name, expected_results_dirpath)
     
     self.assertEqual(
       pgpdb.compare_layers([layer, expected_layer]), True,
@@ -245,31 +247,32 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         layer.name, expected_layer.name)))
   
   def _save_incorrect_layers(
-        self, layer, expected_layer, settings, test_case_name, expected_results_dir):
-    incorrect_layers_dir = os.path.join(INCORRECT_RESULTS_DIR, test_case_name)
-    pgpath.make_dirs(incorrect_layers_dir)
+        self, layer, expected_layer, settings, test_case_name, expected_results_dirpath):
+    incorrect_layers_dirpath = os.path.join(INCORRECT_RESULTS_DIRPATH, test_case_name)
+    pgpath.make_dirs(incorrect_layers_dirpath)
     
     self._copy_incorrect_layer(
-      layer, settings, self.output_directory, incorrect_layers_dir, "_actual")
+      layer, settings, self.output_dirpath, incorrect_layers_dirpath, "_actual")
     self._copy_incorrect_layer(
-      expected_layer, settings, expected_results_dir, incorrect_layers_dir, "_expected")
+      expected_layer, settings, expected_results_dirpath,
+      incorrect_layers_dirpath, "_expected")
   
   @staticmethod
   def _copy_incorrect_layer(
-        layer, settings, layer_directory, incorrect_layers_dir, filename_suffix):
+        layer, settings, layer_dirpath, incorrect_layers_dirpath, filename_suffix):
     layer_input_filename = "{0}.{1}".format(
       layer.name, settings["main/file_extension"].value)
     layer_output_filename = "{0}{1}.{2}".format(
       layer.name, filename_suffix, settings["main/file_extension"].value)
     
     shutil.copy(
-      os.path.join(layer_directory, layer_input_filename),
-      os.path.join(incorrect_layers_dir, layer_output_filename))
+      os.path.join(layer_dirpath, layer_input_filename),
+      os.path.join(incorrect_layers_dirpath, layer_output_filename))
   
   @classmethod
   def _load_image(cls):
     return pdb.gimp_file_load(
-      cls.test_image_filename, os.path.basename(cls.test_image_filename))
+      cls.test_image_filepath, os.path.basename(cls.test_image_filepath))
   
   @classmethod
   def _reload_image(cls):
@@ -277,42 +280,42 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     cls.test_image = cls._load_image()
   
   @classmethod
-  def _load_layers_from_dir(cls, layers_dir):
-    return cls._load_layers(cls._list_layer_files(layers_dir))
+  def _load_layers_from_dirpath(cls, layers_dirpath):
+    return cls._load_layers(cls._list_layer_filepaths(layers_dirpath))
   
   @staticmethod
-  def _load_layers(layer_filenames):
+  def _load_layers(layer_filepaths):
     """
-    Load layers from specified filenames into a new image. Return the image and
+    Load layers from specified file paths into a new image. Return the image and
     a dict with (layer name: gimp.Layer instance) pairs.
     """
     
-    image = pgpdb.load_layers(layer_filenames, image=None, strip_file_extension=True)
+    image = pgpdb.load_layers(layer_filepaths, image=None, strip_file_extension=True)
     return image, {layer.name: layer for layer in image.layers}
   
   @staticmethod
-  def _list_layer_files(layers_dir):
-    layers_files = []
+  def _list_layer_filepaths(layers_dirpath):
+    layers_filepaths = []
     
-    for filename in os.listdir(layers_dir):
-      path = os.path.join(layers_dir, filename)
+    for filename in os.listdir(layers_dirpath):
+      path = os.path.join(layers_dirpath, filename)
       if os.path.isfile(path):
-        layers_files.append(path)
+        layers_filepaths.append(path)
     
-    return layers_files
+    return layers_filepaths
 
 
 #===============================================================================
 
 
 def test_file_formats(layer_exporter, export_settings):
-  orig_output_directory = export_settings["output_directory"].value
+  orig_output_dirpath = export_settings["output_directory"].value
   
   for file_format in pgfileformats.file_formats:
     for file_extension in file_format.file_extensions:
       export_settings["file_extension"].set_value(file_extension)
       export_settings["output_directory"].set_value(
-        os.path.join(orig_output_directory, file_extension))
+        os.path.join(orig_output_dirpath, file_extension))
       try:
         layer_exporter.export()
       except exportlayers.ExportLayersError:

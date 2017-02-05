@@ -2,7 +2,7 @@
 
 # This script updates the specified .po file according to the specified .pot file,
 # which could be changed due to the changes in the source code.
-# The old version of the .po file is preserved and is named '<filename>.po.old'.
+# The old version of the .po file is preserved and is named '[filename].po.old'.
 #
 # Options:
 # -r - don't preserve the old .po file

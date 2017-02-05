@@ -58,8 +58,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     [0, gtk.gdk.Pixbuf], [1, gobject.TYPE_BOOLEAN], [2, gobject.TYPE_BOOLEAN],
     [3, gobject.TYPE_STRING], [4, gobject.TYPE_INT])
   
-  _ICON_IMAGE_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_image.png")
-  _ICON_TAG_PATH = os.path.join(pygimplib.config.PLUGIN_PATH, "icon_tag.png")
+  _ICON_IMAGE_FILEPATH = os.path.join(pygimplib.config.PLUGIN_DIRPATH, "icon_image.png")
+  _ICON_TAG_FILEPATH = os.path.join(pygimplib.config.PLUGIN_DIRPATH, "icon_tag.png")
   
   def __init__(
         self, layer_exporter, initial_layer_tree=None, collapsed_items=None,
@@ -245,9 +245,9 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._icons["layer_group"] = self._tree_view.render_icon(
       gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
     self._icons["layer"] = gtk.gdk.pixbuf_new_from_file_at_size(
-      self._ICON_IMAGE_PATH, -1, self._icons["layer_group"].props.height)
+      self._ICON_IMAGE_FILEPATH, -1, self._icons["layer_group"].props.height)
     self._icons["tag"] = gtk.gdk.pixbuf_new_from_file_at_size(
-      self._ICON_TAG_PATH, -1, self._icons["layer_group"].props.height)
+      self._ICON_TAG_FILEPATH, -1, self._icons["layer_group"].props.height)
     
     self._icons["exported_layer_group"] = self._icons["layer"].copy()
     

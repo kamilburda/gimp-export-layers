@@ -140,14 +140,14 @@ def create_gui_settings():
     {
       "type": pgsetting.SettingTypes.generic,
       "name": "export_name_preview_layers_collapsed_state_persistent",
-      # key: image filename
+      # key: image file path
       # value: set of layer names collapsed in the name preview
       "default_value": collections.defaultdict(set)
     },
     {
       "type": pgsetting.SettingTypes.generic,
       "name": "export_image_preview_displayed_layers_persistent",
-      # key: image filename
+      # key: image file path
       # value: name of the layer displayed in the preview
       "default_value": collections.defaultdict(pgutils.return_none_func)
     },

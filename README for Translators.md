@@ -15,7 +15,7 @@ The following steps apply if you want to use Poedit.
 To create a new translation for your language:
 
 1. Open Poedit, select "File -> New from POT/PO file..." and select the .pot
-   file in the "export_layers/locale" directory.
+   file in the "export_layers/locale" folder.
 2. Set the language of the translation.
 3. Translate the strings (by filling in the "Translation" text field for each
    string).
@@ -51,13 +51,13 @@ e.g. in Ubuntu:
    
         sudo apt-get install gettext
    
-2. Find the .pot file in the "export_layers/locale" directory.
+2. Find the .pot file in the "export_layers/locale" folder.
 3. Open up terminal and run
    
-        cd [path where you extracted the package]/export_layers/locale
+        cd [folder where you extracted the package]/export_layers/locale
         ./generate_po.sh [path to .pot file] [language]
    
-   A .po file is generated in the same directory as the current working directory.
+   A .po file is generated in the same folder as the current working directory.
    
    `[language]` represents your language in the format `ll_CC`, where `ll` is
    the language code and `CC` is the country code. For example, the French
@@ -75,7 +75,7 @@ since the last translation was made, you may need to update the translation:
 
 1. Run the following commands:
    
-        cd [path where you extracted the package]/export_layers/locale
+        cd [folder where you extracted the package]/export_layers/locale
         ./update_po.sh [path to .po file] [path to .pot file]
    
    The old .po file is preserved and has ".po.old" file extension.
@@ -104,7 +104,7 @@ How can I test my translation?
 ------------------------------
 
 First, make sure you extracted the plug-in to
-`[user directory]/.gimp-2.8/plug-ins`. You then need to generate an .mo file
+`[your user folder]/.gimp-2.8/plug-ins`. You then need to generate an .mo file
 from the translated .po file.
 
 
@@ -115,7 +115,7 @@ from the translated .po file.
 Poedit automatically generates the .mo file when you save your .po file. Move
 and rename the .mo file to
 
-    [user directory]/.gimp-2.8/plug-ins/export_layers/locale/[language]/LC_MESSAGES/gimp-plugin-export-layers.mo
+    [your user folder]/.gimp-2.8/plug-ins/export_layers/locale/[language]/LC_MESSAGES/gimp-plugin-export-layers.mo
    
    where `[language]` is the language in which you translated the plug-in.
    `[language]` is a part of the .po file - e.g. for a file named "fr_FR.po",
@@ -125,13 +125,13 @@ and rename the .mo file to
 
 Generate the .mo file as follows:
    
-    cd [user directory]/.gimp-2.8/plug-ins/export_layers/locale
+    cd [your user folder]/.gimp-2.8/plug-ins/export_layers/locale
     ./generate_mo.sh [path to .po file]
 
 
 ### Running GIMP
 
-With the .mo file properly renamed and in the proper directory, you can now test
+With the .mo file properly renamed and in the proper folder, you can now test
 your translation in GIMP.
 
 #### Linux

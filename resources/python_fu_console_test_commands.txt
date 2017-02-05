@@ -1,31 +1,31 @@
 import imp
 import os
 import sys
-plugin_path = os.path.join(gimp.directory, "plug-ins - Export Layers")
-sys.path.append(plugin_path)
-sys.path.append(os.path.join(plugin_path, "export_layers"))
-sys.path.append(os.path.join(plugin_path, "export_layers", "pygimplib"))
+plugin_dirpath = os.path.join(gimp.directory, "plug-ins - Export Layers")
+sys.path.append(plugin_dirpath)
+sys.path.append(os.path.join(plugin_dirpath, "export_layers"))
+sys.path.append(os.path.join(plugin_dirpath, "export_layers", "pygimplib"))
 import pygimplib
 import pgruntests
-pgruntests.run_tests(path=plugin_path, modules=["export_layers.pygimplib"])
+pgruntests.run_tests(plugin_dirpath, modules=["export_layers.pygimplib"])
 
 
 imp.reload(pgruntests)
-pgruntests.run_tests(path=plugin_path, modules=["export_layers.pygimplib"])
+pgruntests.run_tests(plugin_dirpath, modules=["export_layers.pygimplib"])
 
 
 _ = lambda s: s
 imp.reload(pgruntests)
 _
-pgruntests.run_tests(path=plugin_path, modules=["export_layers"], ignored_modules=["export_layers.pygimplib.tests"])
+pgruntests.run_tests(plugin_dirpath, modules=["export_layers"], ignored_modules=["export_layers.pygimplib.tests"])
 
 
-resources_path = os.path.join(plugin_path, "resources")
-sys.path.append(resources_path)
+resources_dirpath = os.path.join(plugin_dirpath, "resources")
+sys.path.append(resources_dirpath)
 import make_package
 import preprocess_document_contents
 orig_cwd = os.getcwd()
-os.chdir(resources_path)
+os.chdir(resources_dirpath)
 
 
 imp.reload(make_package)

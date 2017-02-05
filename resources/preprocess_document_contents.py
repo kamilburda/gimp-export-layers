@@ -48,12 +48,12 @@ export_layers.config.init()
 
 pygimplib.init()
 
-RESOURCES_PATH = os.path.dirname(pgutils.get_current_module_file_path())
-PLUGINS_PATH = os.path.dirname(RESOURCES_PATH)
+RESOURCES_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
+PLUGINS_DIRPATH = os.path.dirname(RESOURCES_DIRPATH)
 
-RESOURCES_PAGE_DIR = os.path.join(RESOURCES_PATH, "GitHub page")
-PAGE_DIR = os.path.join(
-  os.path.dirname(PLUGINS_PATH), "plug-ins - Export Layers - GitHub page")
+RESOURCES_PAGE_DIRPATH = os.path.join(RESOURCES_DIRPATH, "GitHub page")
+PAGE_DIRPATH = os.path.join(
+  os.path.dirname(PLUGINS_DIRPATH), "plug-ins - Export Layers - GitHub page")
 
 
 #===============================================================================
@@ -132,22 +132,24 @@ _TOKEN_ARG_FUNCS = {
 #===============================================================================
 
 
-def preprocess_contents(source_files, dest_files, root_dir):
-  for source_file, dest_file in zip(source_files, dest_files):
+def preprocess_contents(source_filepaths, dest_filepaths, root_dirpath):
+  for source_filepath, dest_filepath in zip(source_filepaths, dest_filepaths):
     with io.open(
-           source_file, "r", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
+           source_filepath, "r",
+           encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
       source_file_contents = file_.read()
     
-    preprocessed_contents = _preprocess_contents(source_file_contents, root_dir)
+    preprocessed_contents = _preprocess_contents(source_file_contents, root_dirpath)
     
     with io.open(
-           dest_file, "w", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
+           dest_filepath, "w",
+           encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
       file_.writelines(preprocessed_contents)
 
 
-def _preprocess_contents(contents, root_dir):
+def _preprocess_contents(contents, root_dirpath):
   for match in list(re.finditer(r"( *)(\{% include-section (.*?) %\})", contents)):
-    token_args = _parse_token_args("include-section", match.group(3), root_dir)
+    token_args = _parse_token_args("include-section", match.group(3), root_dirpath)
     section = _process_token_args("include-section", token_args)
     
     dest_contents = (
@@ -160,18 +162,19 @@ def _preprocess_contents(contents, root_dir):
   return contents
 
 
-def _parse_token_args(token_name, token_args_str, root_dir):
-  rel_document_path_str = token_args_str
-  
+def _parse_token_args(token_name, token_args_str, root_dirpath):
   args_match = re.search(r"\[.*\]$", token_args_str)
   if args_match:
-    rel_document_path_str = token_args_str[:len(token_args_str) - len(args_match.group())]
+    relative_document_filepath = (
+      token_args_str[:len(token_args_str) - len(args_match.group())])
+  else:
+    relative_document_filepath = token_args_str
   
-  document_path_parts = rel_document_path_str.strip('"').split("/")
-  document_section_name = document_path_parts[-1]
-  document_path = os.path.join(root_dir, *document_path_parts[:-1])
+  relative_document_filepath_parts = relative_document_filepath.strip('"').split("/")
+  document_section_name = relative_document_filepath_parts[-1]
+  document_filepath = os.path.join(root_dirpath, *relative_document_filepath_parts[:-1])
   
-  token_args = [document_path, document_section_name]
+  token_args = [document_filepath, document_section_name]
   
   for token_arg_item in _TOKEN_ARG_FUNCS[token_name]:
     token_arg_item.parse_func_retvals = []
@@ -188,10 +191,10 @@ def _parse_token_args(token_name, token_args_str, root_dir):
 
 
 def _process_token_args(token_name, token_args):
-  document_path = token_args[0]
+  document_filepath = token_args[0]
   section_name = token_args[1]
   with io.open(
-         document_path, "r",
+         document_filepath, "r",
          encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as document:
     document_contents = document.read()
     section_header, section_contents = _find_section(document_contents, section_name)
@@ -229,25 +232,28 @@ def _find_section(contents, section_name):
 
 
 def main():
-  resource_files = []
-  for root, unused_, files in os.walk(RESOURCES_PAGE_DIR):
-    for file_ in files:
-      relative_dirpath = os.path.relpath(root, RESOURCES_PAGE_DIR)
-      resource_files.append(os.path.normpath(os.path.join(relative_dirpath, file_)))
+  resources_filepaths = []
+  for root, unused_, filenames in os.walk(RESOURCES_PAGE_DIRPATH):
+    for filename in filenames:
+      resources_filepaths.append(
+        os.path.normpath(
+          os.path.join(os.path.relpath(root, RESOURCES_PAGE_DIRPATH), filename)))
   
-  resource_files_to_process = []
-  for resource_file in resource_files:
-    if os.path.isfile(os.path.join(PAGE_DIR, resource_file)):
-      resource_files_to_process.append(resource_file)
+  resources_filepaths_to_process = []
+  for resources_filepath in resources_filepaths:
+    if os.path.isfile(os.path.join(PAGE_DIRPATH, resources_filepath)):
+      resources_filepaths_to_process.append(resources_filepath)
     else:
       print(
         'Warning: File "{0}" found in resources but not in destination directory'.format(
-          os.path.join(RESOURCES_PAGE_DIR, resource_file)))
+          os.path.join(RESOURCES_PAGE_DIRPATH, resources_filepath)))
   
   preprocess_contents(
-    [os.path.join(RESOURCES_PAGE_DIR, path) for path in resource_files_to_process],
-    [os.path.join(PAGE_DIR, path) for path in resource_files_to_process],
-    PLUGINS_PATH)
+    [os.path.join(RESOURCES_PAGE_DIRPATH, resources_filepath)
+     for resources_filepath in resources_filepaths_to_process],
+    [os.path.join(PAGE_DIRPATH, resources_filepath)
+     for resources_filepath in resources_filepaths_to_process],
+    PLUGINS_DIRPATH)
 
 
 if __name__ == "__main__":

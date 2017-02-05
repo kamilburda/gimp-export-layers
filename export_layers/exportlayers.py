@@ -795,11 +795,11 @@ class LayerExporter(object):
   def _process_empty_group(self, layer_elem):
     self._preprocess_empty_group_name(layer_elem)
     
-    empty_group_path = layer_elem.get_filepath(self._output_directory)
-    self._make_dirs(empty_group_path, self)
+    empty_group_dirpath = layer_elem.get_filepath(self._output_directory)
+    self._make_dirs(empty_group_dirpath, self)
     
     self.progress_updater.update_text(
-      _('Creating empty directory "{0}"').format(empty_group_path))
+      _('Creating empty directory "{0}"').format(empty_group_dirpath))
     self.progress_updater.update_tasks()
   
   def _setup(self):
@@ -922,30 +922,30 @@ class LayerExporter(object):
       self._export(layer_elem, image, layer)
   
   def _export(self, layer_elem, image, layer):
-    output_filename = layer_elem.get_filepath(self._output_directory)
+    output_filepath = layer_elem.get_filepath(self._output_directory)
     
-    self.progress_updater.update_text(_('Saving "{0}"').format(output_filename))
+    self.progress_updater.update_text(_('Saving "{0}"').format(output_filepath))
     
-    self._current_overwrite_mode, output_filename = pgoverwrite.handle_overwrite(
-      output_filename, self.overwrite_chooser,
-      self._get_uniquifier_position(output_filename))
+    self._current_overwrite_mode, output_filepath = pgoverwrite.handle_overwrite(
+      output_filepath, self.overwrite_chooser,
+      self._get_uniquifier_position(output_filepath))
     
     if self._current_overwrite_mode == pgoverwrite.OverwriteModes.CANCEL:
       raise ExportLayersCancelError("cancelled")
     
     if self._current_overwrite_mode != pgoverwrite.OverwriteModes.SKIP:
-      self._make_dirs(os.path.dirname(output_filename), self)
+      self._make_dirs(os.path.dirname(output_filepath), self)
       
       self._export_once_wrapper(
-        self._get_export_func(), self._get_run_mode(), image, layer, output_filename)
+        self._get_export_func(), self._get_run_mode(), image, layer, output_filepath)
       if self._current_layer_export_status == ExportStatuses.FORCE_INTERACTIVE:
         self._export_once_wrapper(
           self._get_export_func(), gimpenums.RUN_INTERACTIVE, image, layer,
-          output_filename)
+          output_filepath)
   
-  def _make_dirs(self, path, layer_exporter):
+  def _make_dirs(self, dirpath, layer_exporter):
     try:
-      pgpath.make_dirs(path)
+      pgpath.make_dirs(dirpath)
     except OSError as e:
       try:
         message = e.args[1]
@@ -957,10 +957,10 @@ class LayerExporter(object):
       raise InvalidOutputDirectoryError(
         message, layer_exporter.current_layer_elem, layer_exporter.default_file_extension)
   
-  def _export_once_wrapper(self, export_func, run_mode, image, layer, output_filename):
+  def _export_once_wrapper(self, export_func, run_mode, image, layer, output_filepath):
     with self.export_context_manager(
-           run_mode, image, layer, output_filename, *self.export_context_manager_args):
-      self._export_once(export_func, run_mode, image, layer, output_filename)
+           run_mode, image, layer, output_filepath, *self.export_context_manager_args):
+      self._export_once(export_func, run_mode, image, layer, output_filepath)
   
   def _get_run_mode(self):
     file_extension = self._file_extension_properties[self._current_file_extension]
@@ -972,14 +972,14 @@ class LayerExporter(object):
   def _get_export_func(self):
     return pgfileformats.get_save_procedure(self._current_file_extension)
   
-  def _export_once(self, export_func, run_mode, image, layer, output_filename):
+  def _export_once(self, export_func, run_mode, image, layer, output_filepath):
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     
     try:
       export_func(
         run_mode, image, layer,
-        output_filename.encode(pgconstants.GIMP_CHARACTER_ENCODING),
-        os.path.basename(output_filename).encode(pgconstants.GIMP_CHARACTER_ENCODING))
+        output_filepath.encode(pgconstants.GIMP_CHARACTER_ENCODING),
+        os.path.basename(output_filepath).encode(pgconstants.GIMP_CHARACTER_ENCODING))
     except RuntimeError as e:
       # HACK: Examining the exception message seems to be the only way to determine
       # some specific cases of export failure.
