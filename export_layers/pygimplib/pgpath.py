@@ -15,7 +15,7 @@
 # limitations under the License.
 
 """
-This module contains functions dealing with strings, filenames, files and
+This module contains functions dealing with strings, paths, files and
 directories.
 """
 
@@ -59,13 +59,13 @@ def uniquify_string(
     uniquifier_position, uniquifier_generator)
   
 
-def uniquify_filename(filename, uniquifier_position=None, uniquifier_generator=None):
+def uniquify_filepath(filepath, uniquifier_position=None, uniquifier_generator=None):
   """
-  If a file with the specified filename already exists, return a unique filename.
+  If a file at the specified path already exists, return a unique file path.
   
   Parameters:
   
-  * `filename` - Filename to uniquify.
+  * `filepath` - File path to uniquify.
   
   * `uniquifier_position` - See `uniquify_string_generic.uniquifier_position`.
   
@@ -73,7 +73,7 @@ def uniquify_filename(filename, uniquifier_position=None, uniquifier_generator=N
   """
   
   return uniquify_string_generic(
-    filename, lambda filename_param: not os.path.exists(filename_param),
+    filepath, lambda filepath_param: not os.path.exists(filepath_param),
     uniquifier_position, uniquifier_generator)
 
 
@@ -148,7 +148,7 @@ def uniquify_string_generic(
 
 def get_file_extension(filename):
   """
-  Get file extension from `filename`, in lowercase.
+  Get file extension from `filename` in lowercase.
   
   If `filename` has no file extension, return an empty string.
   
@@ -158,12 +158,12 @@ def get_file_extension(filename):
   period.
   """
   
-  name_lowercase = filename.lower()
+  filename_lowercase = filename.lower()
   
-  if "." not in name_lowercase:
+  if "." not in filename_lowercase:
     return ""
   
-  file_extension = name_lowercase
+  file_extension = filename_lowercase
   
   while file_extension:
     next_period_index = file_extension.find(".")
@@ -550,19 +550,19 @@ class StringPatternGenerator(object):
 # Question: http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
 # Answer:
 # http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python/600612#600612
-def make_dirs(path):
+def make_dirs(dirpath):
   """
-  Recursively create directories from the specified path.
+  Recursively create directories from the specified directory path.
   
-  Do not raise exception if the path already exists.
+  Do not raise exception if the directory path already exists.
   """
   
   try:
-    os.makedirs(path)
+    os.makedirs(dirpath)
   except OSError as exc:
-    if exc.errno == os.errno.EEXIST and os.path.isdir(path):
+    if exc.errno == os.errno.EEXIST and os.path.isdir(dirpath):
       pass
-    elif exc.errno == os.errno.EACCES and os.path.isdir(path):
+    elif exc.errno == os.errno.EACCES and os.path.isdir(dirpath):
       # This can happen if `os.makedirs` is called on a root directory
       # in Windows (e.g. `os.makedirs("C:\\")`).
       pass
@@ -656,8 +656,7 @@ class StringValidator(future.utils.with_metaclass(abc.ABCMeta, object)):
 class FilenameValidator(StringValidator):
   
   r"""
-  This class is used to validate filenames (not their full path, only the
-  name itself, also called "basenames").
+  This class is used to validate filenames (i.e. basenames).
   
   In this class, filenames are considered valid if they:
     
@@ -757,7 +756,7 @@ class FilenameValidator(StringValidator):
     return filename
 
 
-class FilePathValidator(StringValidator):
+class FilepathValidator(StringValidator):
   
   """
   This class is used to validate file paths (relative or absolute).
@@ -869,15 +868,15 @@ class FilePathValidator(StringValidator):
     return filepath
 
 
-class DirectoryPathValidator(FilePathValidator):
+class DirpathValidator(FilepathValidator):
    
   """
   This class is used to validate directory paths (relative or absolute).
   
-  The same validation rules that apply to file paths in the `FilePathValidator`
+  The same validation rules that apply to file paths in the `FilepathValidator`
   class apply to directory paths in this class, with the following additions:
   
-    * the specified path must be a directory
+    * the specified path must be a directory path
   """
   
   ERROR_STATUSES_MESSAGES = {
@@ -893,7 +892,7 @@ class DirectoryPathValidator(FilePathValidator):
     FileValidatorErrorStatuses.HAS_INVALID_NAMES: N_(
       '"{0}" is a reserved name that cannot be used in directory paths.\n'),
     FileValidatorErrorStatuses.EXISTS_BUT_IS_NOT_DIR: N_(
-      "Specified path is not a directory.")}
+      "Specified path is not a directory path.")}
   
   @classmethod
   def is_valid(cls, dirpath):
@@ -935,21 +934,21 @@ class FileExtensionValidator(StringValidator):
       "File extension cannot end with a period.")}
   
   @classmethod
-  def is_valid(cls, file_ext):
-    if not file_ext or file_ext is None:
+  def is_valid(cls, file_extension):
+    if not file_extension or file_extension is None:
       return False, [cls._get_status(FileValidatorErrorStatuses.IS_EMPTY)]
     
     status_messages = []
     
-    if re.search(cls._INVALID_CHARS_PATTERN, file_ext):
+    if re.search(cls._INVALID_CHARS_PATTERN, file_extension):
       status_messages.append(
         cls._get_status(FileValidatorErrorStatuses.HAS_INVALID_CHARS))
     
-    if file_ext.endswith(" "):
+    if file_extension.endswith(" "):
       status_messages.append(
         cls._get_status(FileValidatorErrorStatuses.HAS_TRAILING_SPACES))
       
-    if file_ext.endswith("."):
+    if file_extension.endswith("."):
       status_messages.append(
         cls._get_status(FileValidatorErrorStatuses.HAS_TRAILING_PERIOD))
     
@@ -957,5 +956,5 @@ class FileExtensionValidator(StringValidator):
     return is_valid, status_messages
   
   @classmethod
-  def validate(cls, file_ext):
-    return re.sub(cls._INVALID_CHARS_PATTERN, "", file_ext).rstrip(" ").rstrip(".")
+  def validate(cls, file_extension):
+    return re.sub(cls._INVALID_CHARS_PATTERN, "", file_extension).rstrip(" ").rstrip(".")

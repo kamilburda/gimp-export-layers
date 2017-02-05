@@ -215,7 +215,7 @@ class PersistentSettingSource(SettingSource):
     super().__init__()
     
     self.source_name = source_name
-    self._parasite_file_path = os.path.join(gimp.directory, "parasiterc")
+    self._parasite_filepath = os.path.join(gimp.directory, "parasiterc")
   
   def read(self, settings):
     """
@@ -265,7 +265,7 @@ class PersistentSettingSource(SettingSource):
         _('Settings for this plug-in stored in "{0}" may be corrupt. '
           "This could happen if the file was edited manually.\n"
           "To fix this, save the settings again or reset them.").format(
-            self._parasite_file_path))
+            self._parasite_filepath))
     
     return settings_from_parasite
   

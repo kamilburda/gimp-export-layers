@@ -47,10 +47,10 @@ class TestGetModuleRoot(unittest.TestCase):
         "export_layers.pygimplib.tests.test_pgutils", "test_pgutils"),
       "export_layers.pygimplib.tests.test_pgutils")
   
-  def test_get_module_root_nonexistent_path_component(self):
+  def test_get_module_root_nonexistent_name_component(self):
     self.assertEqual(
       pgutils.get_module_root(
-        "export_layers.pygimplib.tests.test_pgutils", "nonexistent_path_component"),
+        "export_layers.pygimplib.tests.test_pgutils", "nonexistent_name_component"),
       "export_layers.pygimplib.tests.test_pgutils")
     
     self.assertEqual(
@@ -63,11 +63,11 @@ class TestGetModuleRoot(unittest.TestCase):
         "export_layers.pygimplib.tests.test_pgutils", "export_layers.pygimplib"),
       "export_layers.pygimplib.tests.test_pgutils")
   
-  def test_get_module_root_empty_module_path(self):
+  def test_get_module_root_empty_module_name(self):
     self.assertEqual(pgutils.get_module_root("", "pygimplib"), "")
     self.assertEqual(pgutils.get_module_root(".", "pygimplib"), ".")
   
-  def test_get_module_root_empty_path_component(self):
+  def test_get_module_root_empty_name_component(self):
     self.assertEqual(
       pgutils.get_module_root("export_layers.pygimplib.tests.test_pgutils", ""),
       "export_layers.pygimplib.tests.test_pgutils")
@@ -75,8 +75,11 @@ class TestGetModuleRoot(unittest.TestCase):
     self.assertEqual(
       pgutils.get_module_root("export_layers.pygimplib.tests.test_pgutils", "."),
       "export_layers.pygimplib.tests.test_pgutils")
+
+
+class TestGetCurrentModuleFilepath(unittest.TestCase):
   
-  def test_get_current_module_file_path(self):
+  def test_get_current_module_filepath(self):
     self.assertEqual(
-      pgutils.get_current_module_file_path(),
+      pgutils.get_current_module_filepath(),
       inspect.getfile(inspect.currentframe()))

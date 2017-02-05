@@ -1243,13 +1243,13 @@ class FileExtensionSetting(ValidatableStringSetting):
     super().__init__(name, default_value, pgpath.FileExtensionValidator, **kwargs)
   
 
-class DirectorySetting(ValidatableStringSetting):
+class DirpathSetting(ValidatableStringSetting):
   
   """
-  This setting class can be used for directories.
+  This setting class can be used for directory paths.
   
-  `pgpath.DirectoryPathValidator` subclass is used to determine whether the
-  directory name is valid.
+  `pgpath.DirpathValidator` subclass is used to determine whether the directory
+  path is valid.
   
   Allowed GIMP PDB types:
   
@@ -1268,15 +1268,15 @@ class DirectorySetting(ValidatableStringSetting):
     if isinstance(default_value, bytes):
       default_value = default_value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
     
-    super().__init__(name, default_value, pgpath.DirectoryPathValidator, **kwargs)
+    super().__init__(name, default_value, pgpath.DirpathValidator, **kwargs)
 
 
-class ImageIDsAndDirectoriesSetting(Setting):
+class ImageIDsAndDirpathsSetting(Setting):
   
   """
   This setting class stores the list of currently opened images and their import
-  directories as a dictionary of (image ID, import directory) pairs.
-  Import directory is None if image has no import directory.
+  directory paths as a dictionary of (image ID, import directory path) pairs.
+  The import directory path is None if the image does not have any.
   
   This setting cannot be registered to the PDB as no corresponding PDB type
   exists.
@@ -1285,13 +1285,14 @@ class ImageIDsAndDirectoriesSetting(Setting):
   @property
   def value(self):
     # Return a copy to prevent modifying the dictionary indirectly, e.g. via
-    # setting individual entries (`setting.value[image.ID] = directory`).
+    # setting individual entries (`setting.value[image.ID] = dirpath`).
     return dict(self._value)
   
-  def update_image_ids_and_directories(self):
+  def update_image_ids_and_dirpaths(self):
     """
-    Remove all (image ID, import directory) pairs for images no longer opened in
-    GIMP. Add (image ID, import directory) pairs for new images opened in GIMP.
+    Remove all (image ID, import directory path) pairs for images no longer
+    opened in GIMP. Add (image ID, import directory path) pairs for new images
+    opened in GIMP.
     """
     
     # Get the list of images currently opened in GIMP
@@ -1306,11 +1307,11 @@ class ImageIDsAndDirectoriesSetting(Setting):
     # Add new images opened in GIMP
     for image in current_images:
       if image.ID not in self._value:
-        self._value[image.ID] = self._get_imported_image_path(image)
+        self._value[image.ID] = self._get_image_import_dirpath(image)
   
-  def update_directory(self, image_id, directory):
+  def update_dirpath(self, image_id, dirpath):
     """
-    Assign a new directory to the specified image ID.
+    Assign a new directory path to the specified image ID.
     
     If the image ID does not exist in the setting, raise KeyError.
     """
@@ -1318,9 +1319,9 @@ class ImageIDsAndDirectoriesSetting(Setting):
     if image_id not in self._value:
       raise KeyError(image_id)
     
-    self._value[image_id] = directory
+    self._value[image_id] = dirpath
   
-  def _get_imported_image_path(self, image):
+  def _get_image_import_dirpath(self, image):
     if image.filename is not None:
       return os.path.dirname(image.filename.decode(pgconstants.GIMP_CHARACTER_ENCODING))
     else:
@@ -1345,5 +1346,5 @@ class SettingTypes(object):
   drawable = DrawableSetting
   string = StringSetting
   file_extension = FileExtensionSetting
-  directory = DirectorySetting
-  image_IDs_and_directories = ImageIDsAndDirectoriesSetting
+  directory = DirpathSetting
+  image_IDs_and_directories = ImageIDsAndDirpathsSetting

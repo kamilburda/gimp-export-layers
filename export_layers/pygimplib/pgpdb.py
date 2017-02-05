@@ -181,9 +181,9 @@ def remove_all_items(image):
 #===============================================================================
 
 
-def load_layer(filename, image, strip_file_extension=False, layer_to_load_index=0):
+def load_layer(filepath, image, strip_file_extension=False, layer_to_load_index=0):
   """
-  Load an image as a layer given its `filename` to an existing `image`. Return
+  Load an image as a layer given its file path to an existing `image`. Return
   the layer.
   
   The layer is loaded at the end of the image.
@@ -197,14 +197,14 @@ def load_layer(filename, image, strip_file_extension=False, layer_to_load_index=
   image or is negative, load and return the last layer.
   """
   
-  loaded_image = pdb.gimp_file_load(filename, os.path.basename(filename))
+  loaded_image = pdb.gimp_file_load(filepath, os.path.basename(filepath))
   
   if layer_to_load_index >= len(image.layers) or layer_to_load_index < 0:
     layer_to_load_index = -1
   
   layer = pdb.gimp_layer_new_from_drawable(
     loaded_image.layers[layer_to_load_index], image)
-  layer.name = os.path.basename(filename)
+  layer.name = os.path.basename(filepath)
   if strip_file_extension:
     layer.name = os.path.splitext(layer.name)[0]
   
@@ -215,7 +215,7 @@ def load_layer(filename, image, strip_file_extension=False, layer_to_load_index=
   return layer
 
 
-def load_layers(filenames, image=None, strip_file_extension=False):
+def load_layers(filepaths, image=None, strip_file_extension=False):
   """
   Load multiple layers to one image. Return the image.
   
@@ -232,8 +232,8 @@ def load_layers(filenames, image=None, strip_file_extension=False):
   if create_new_image:
     image = gimp.Image(1, 1)
   
-  for filename in filenames:
-    load_layer(filename, image, strip_file_extension)
+  for filepath in filepaths:
+    load_layer(filepath, image, strip_file_extension)
   
   if create_new_image:
     pdb.gimp_image_resize_to_layers(image)

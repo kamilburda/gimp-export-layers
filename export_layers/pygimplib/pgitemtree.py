@@ -536,7 +536,8 @@ class _ItemTreeElement(object):
     """
     Set file extension in the `name` attribute.
     
-    For more information, see the `pgpath.get_filename_with_new_file_extension()` method.
+    For more information, see the
+    `pgpath.get_filename_with_new_file_extension()` method.
     """
     
     self.name = pgpath.get_filename_with_new_file_extension(
@@ -553,37 +554,35 @@ class _ItemTreeElement(object):
     else:
       return self.name
   
-  def get_filepath(self, directory, include_item_path=True):
+  def get_filepath(self, dirpath, include_item_path=True):
     """
-    Return file path given the specified directory, item name and names of its
-    parents.
+    Return file path given the specified directory path, item name and names of
+    its parents.
     
     If `include_item_path` is True, create file path in the following format:
-    <directory>/<item path components>/<item name>
+    <directory path>/<item path components>/<item name>
     
     If `include_item_path` is False, create file path in the following format:
-    <directory>/<item name>
+    <directory path>/<item name>
     
-    If directory is not an absolute path or is None, prepend the current working
-    directory.
+    If the directory path is not an absolute path or is None, prepend the
+    current working directory.
     
     Item path components consist of parents' item names, starting with the
     topmost parent.
     """
     
-    if directory is None:
-      directory = ""
+    if dirpath is None:
+      dirpath = ""
     
-    path = os.path.abspath(directory)
+    path = os.path.abspath(dirpath)
     
     if include_item_path:
       path_components = self.get_path_components()
       if path_components:
         path = os.path.join(path, os.path.join(*path_components))
     
-    path = os.path.join(path, self.name)
-    
-    return path
+    return os.path.join(path, self.name)
   
   def get_path_components(self):
     """

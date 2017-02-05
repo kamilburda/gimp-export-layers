@@ -488,10 +488,10 @@ class TestFilenameValidator(unittest.TestCase):
     self.assertEqual(self.validator.validate("NUL.txt"), "NUL (1).txt")
   
 
-class TestFilePathValidator(unittest.TestCase):
+class TestFilepathValidator(unittest.TestCase):
   
   def setUp(self):
-    self.validator = pgpath.FilePathValidator
+    self.validator = pgpath.FilepathValidator
   
   def test_is_valid(self):
     self.assertEqual(

@@ -30,18 +30,18 @@ To run unit tests in GIMP:
 import imp
 import os
 import sys
-plugins_path = os.path.join(gimp.directory, "plug-ins")
-sys.path.append(plugins_path)
+plugins_dirpath = os.path.join(gimp.directory, "plug-ins")
+sys.path.append(plugins_dirpath)
 sys.path.append(<path to parent directory of pygimplib>)
 sys.path.append(<path to pygimplib directory>)
 import pygimplib
 import pgruntests
-pgruntests.run_tests(path=plugins_path)
+pgruntests.run_tests(plugins_dirpath)
 
 * To repeat the tests, paste the following to the console:
 
 imp.reload(pgruntests)
-pgruntests.run_tests(path=plugins_path)
+pgruntests.run_tests(plugins_dirpath)
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -91,11 +91,11 @@ def load_module(module_name):
 
 
 def run_tests(
-      path, test_module_name_prefix="test_", modules=None, ignored_modules=None,
+      dirpath, test_module_name_prefix="test_", modules=None, ignored_modules=None,
       output_stream=sys.stderr):
   """
-  Execute all modules containing unit tests located in the `path` directory. The
-  names of the unit test modules start with the specified prefix.
+  Execute all modules containing unit tests located in the specified directory
+  path. The names of the unit test modules start with the specified prefix.
   
   `ignored_modules` is a list of prefixes matching unit test modules or packages
   to ignore.
@@ -127,7 +127,7 @@ def run_tests(
         and not any(
           module_name.startswith(ignored_module) for ignored_module in ignored_modules)))
   
-  for unused_, module_name, unused_ in pkgutil.walk_packages(path=[path]):
+  for unused_, module_name, unused_ in pkgutil.walk_packages(path=[dirpath]):
     if should_append(module_name):
       module_names.append(module_name)
   

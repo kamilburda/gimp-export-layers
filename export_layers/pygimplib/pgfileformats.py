@@ -57,8 +57,8 @@ def get_save_procedure(file_extension):
   return get_default_save_procedure()
 
 
-def _save_image_default(run_mode, image, layer, filename, raw_filename):
-  pdb.gimp_file_save(image, layer, filename, raw_filename, run_mode=run_mode)
+def _save_image_default(run_mode, image, layer, filepath, raw_filepath):
+  pdb.gimp_file_save(image, layer, filepath, raw_filepath, run_mode=run_mode)
 
 
 #===============================================================================

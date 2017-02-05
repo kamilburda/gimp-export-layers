@@ -110,18 +110,18 @@ def _parse_layers(layer_tree_string):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb",
+  pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.pdb",
   new=stubs_gimp.PdbStub())
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp.GroupLayer",
+  pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.gimp.GroupLayer",
   new=stubs_gimp.LayerGroupStub)
 class TestLayerTree(unittest.TestCase):
 
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb",
+    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.pdb",
     new=stubs_gimp.PdbStub())
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp.GroupLayer",
+    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.gimp.GroupLayer",
     new=stubs_gimp.LayerGroupStub)
   def setUp(self):
     layers_string = """
@@ -218,17 +218,17 @@ class TestLayerTree(unittest.TestCase):
     self.assertEqual(len(self.layer_tree), layer_count_only_layers)
   
   def test_get_filepath(self):
-    output_directory = os.path.join("D:", os.sep, "testgimp")
+    output_dirpath = os.path.join("D:", os.sep, "testgimp")
     
     # `layer_elem` with parents
     layer_elem = self.layer_tree["bottom-right-corner"]
     
     self.assertEqual(
-      layer_elem.get_filepath(output_directory),
-      os.path.join(output_directory, "Corners", "top-left-corner::", layer_elem.name))
+      layer_elem.get_filepath(output_dirpath),
+      os.path.join(output_dirpath, "Corners", "top-left-corner::", layer_elem.name))
     self.assertEqual(
-      layer_elem.get_filepath(output_directory, include_item_path=False),
-      os.path.join(output_directory, layer_elem.name))
+      layer_elem.get_filepath(output_dirpath, include_item_path=False),
+      os.path.join(output_dirpath, layer_elem.name))
     self.assertEqual(
       layer_elem.get_filepath("testgimp"),
       os.path.join(
@@ -241,21 +241,21 @@ class TestLayerTree(unittest.TestCase):
     itemtree_empty_layer_group = self.layer_tree["top-left-corner:"]
     
     self.assertEqual(
-      itemtree_empty_layer_group.get_filepath(output_directory),
-      os.path.join(output_directory, "Corners", itemtree_empty_layer_group.name))
+      itemtree_empty_layer_group.get_filepath(output_dirpath),
+      os.path.join(output_dirpath, "Corners", itemtree_empty_layer_group.name))
     self.assertEqual(
-      itemtree_empty_layer_group.get_filepath(output_directory, include_item_path=False),
-      os.path.join(output_directory, itemtree_empty_layer_group.name))
+      itemtree_empty_layer_group.get_filepath(output_dirpath, include_item_path=False),
+      os.path.join(output_dirpath, itemtree_empty_layer_group.name))
     
     itemtree_empty_layer_group_no_parents = self.layer_tree["Overlay"]
     
     self.assertEqual(
-      itemtree_empty_layer_group_no_parents.get_filepath(output_directory),
-      os.path.join(output_directory, itemtree_empty_layer_group_no_parents.name))
+      itemtree_empty_layer_group_no_parents.get_filepath(output_dirpath),
+      os.path.join(output_dirpath, itemtree_empty_layer_group_no_parents.name))
     self.assertEqual(
-      itemtree_empty_layer_group_no_parents.get_filepath(output_directory),
+      itemtree_empty_layer_group_no_parents.get_filepath(output_dirpath),
       itemtree_empty_layer_group_no_parents.get_filepath(
-        output_directory, include_item_path=False))
+        output_dirpath, include_item_path=False))
   
   #-----------------------------------------------------------------------------
   
@@ -395,11 +395,11 @@ class TestLayerTree(unittest.TestCase):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
+  pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
 class TestLayerTreeElement(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
+    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
   def setUp(self):
     self.layer_elem = pgitemtree._ItemTreeElement(
       stubs_gimp.LayerStub("main-background.jpg"))
@@ -428,7 +428,7 @@ class TestLayerTreeElement(unittest.TestCase):
     self.assertEqual(self.layer_elem.get_base_name(), ".")
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp",
+    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.gimp",
     new=stubs_gimp.GimpModuleStub())
   def test_add_tag(self):
     self.assertEqual(self.layer_elem.tags, set())
@@ -441,7 +441,7 @@ class TestLayerTreeElement(unittest.TestCase):
     self.assertIn("foreground", self.layer_elem.tags)
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp",
+    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.gimp",
     new=stubs_gimp.GimpModuleStub())
   def test_remove_tag(self):
     self.assertEqual(self.layer_elem.tags, set())
@@ -457,7 +457,7 @@ class TestLayerTreeElement(unittest.TestCase):
     self.assertFalse(bool(self.layer_elem.item.parasite_list()))
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp",
+    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.gimp",
     new=stubs_gimp.GimpModuleStub())
   def test_initial_tags(self):
     layer_elem_tags_source_name = "test"

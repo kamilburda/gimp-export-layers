@@ -172,22 +172,22 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
   
   def _get_value(self):
     if not self._is_location_entry_active():
-      folder = self._element.get_current_folder()
+      dirpath = self._element.get_current_folder()
     else:
-      folder = self._element.get_filename()
+      dirpath = self._element.get_filename()
     
-    if folder is not None:
-      return folder.decode(pgconstants.GTK_CHARACTER_ENCODING)
+    if dirpath is not None:
+      return dirpath.decode(pgconstants.GTK_CHARACTER_ENCODING)
     else:
       return None
   
-  def _set_value(self, folder):
-    if folder is not None:
-      encoded_folder = folder.encode(pgconstants.GTK_CHARACTER_ENCODING)
+  def _set_value(self, dirpath):
+    if dirpath is not None:
+      encoded_dirpath = dirpath.encode(pgconstants.GTK_CHARACTER_ENCODING)
     else:
-      encoded_folder = b""
+      encoded_dirpath = b""
     
-    self._element.set_current_folder(encoded_folder)
+    self._element.set_current_folder(encoded_dirpath)
   
   def _get_location_toggle_button(self):
     return (

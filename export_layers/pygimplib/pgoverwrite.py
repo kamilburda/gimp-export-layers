@@ -48,7 +48,7 @@ class OverwriteChooser(future.utils.with_metaclass(abc.ABCMeta, object)):
     pass
   
   @abc.abstractmethod
-  def choose(self, filename=None):
+  def choose(self, filepath=None):
     """
     Return a value indicating how to handle the conflicting file
     by letting the user choose the value.
@@ -59,9 +59,9 @@ class OverwriteChooser(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     Parameters:
     
-    * `filename` - Filename that conflicts with an existing file.
-      `OverwriteChooser` use the filename to simply display it to the user.
-      Defaults to None.
+    * `filepath` - File path that conflicts with an existing file.
+      This class uses the file path to simply display it to the user. Defaults
+      to None.
     """
     
     pass
@@ -83,7 +83,7 @@ class NoninteractiveOverwriteChooser(OverwriteChooser):
   def overwrite_mode(self):
     return self._overwrite_mode
   
-  def choose(self, filename=None):
+  def choose(self, filepath=None):
     return self._overwrite_mode
 
 
@@ -135,14 +135,14 @@ class InteractiveOverwriteChooser(
   def is_apply_to_all(self):
     return self._is_apply_to_all
   
-  def choose(self, filename=None):
+  def choose(self, filepath=None):
     if self._overwrite_mode is None or not self._is_apply_to_all:
-      return self._choose(filename)
+      return self._choose(filepath)
     else:
       return self._overwrite_mode
   
   @abc.abstractmethod
-  def _choose(self, filename):
+  def _choose(self, filepath):
     """
     Let the user choose the overwrite mode and return it.
     
@@ -164,39 +164,39 @@ class OverwriteModes(object):
   OVERWRITE_MODES = REPLACE, SKIP, RENAME_NEW, RENAME_EXISTING, CANCEL = (0, 1, 2, 3, 4)
 
 
-def handle_overwrite(filename, overwrite_chooser, uniquifier_position=None):
+def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
   """
-  If a file with the specified filename exists, handle the filename conflict
+  If a file with the specified file path exists, handle the file path conflict
   by executing the `overwrite_chooser` (an `OverwriteChooser` instance).
-  `filename` indicates a filename for a new file to be saved.
+  `filepath` indicates a file path for a new file to be saved.
   
   `overwrite_chooser` should support all overwrite modes specified in
-  `OverwriteModes`. `RENAME_NEW` mode renames `filename`.
+  `OverwriteModes`. `RENAME_NEW` mode renames `filepath`.
   `RENAME_EXISTING` renames the existing file in the file system.
   
-  If the overwrite mode indicates that the filename should be renamed and
+  If the overwrite mode indicates that the file path should be renamed and
   `uniquifier_position` is not None, the `uniquifier_position` specifies where
-  in the filename to insert a unique substring (" (number)"). By default, the
-  uniquifier is inserted at the end of the filename to be renamed.
+  in the file path to insert a unique substring (" (number)"). By default, the
+  uniquifier is inserted at the end of the file path to be renamed.
   
   Returns:
   
     * the overwrite mode as returned by `overwrite_chooser`, which the caller
       of this function can further use (especially `SKIP` or `CANCEL` values),
     
-    * the filename passed as the argument, modified if `RENAME_NEW` mode is
+    * the file path passed as the argument, modified if `RENAME_NEW` mode is
       returned.
   """
   
-  if os.path.exists(filename):
-    overwrite_chooser.choose(filename=os.path.abspath(filename))
+  if os.path.exists(filepath):
+    overwrite_chooser.choose(filepath=os.path.abspath(filepath))
     
     if overwrite_chooser.overwrite_mode in (
          OverwriteModes.RENAME_NEW, OverwriteModes.RENAME_EXISTING):
-      uniq_filename = pgpath.uniquify_filename(filename, uniquifier_position)
+      uniq_filepath = pgpath.uniquify_filepath(filepath, uniquifier_position)
       if overwrite_chooser.overwrite_mode == OverwriteModes.RENAME_NEW:
-        filename = uniq_filename
+        filepath = uniq_filepath
       else:
-        os.rename(filename, uniq_filename)
+        os.rename(filepath, uniq_filepath)
   
-  return overwrite_chooser.overwrite_mode, filename
+  return overwrite_chooser.overwrite_mode, filepath

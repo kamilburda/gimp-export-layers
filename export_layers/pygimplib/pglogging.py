@@ -38,7 +38,7 @@ from . import pgpdb
 
 
 def log_output(
-      log_mode, log_path_dirnames, log_stdout_filename, log_stderr_filename,
+      log_mode, log_dirpaths, log_stdout_filename, log_stderr_filename,
       log_header_title="", gimp_console_message_delay_milliseconds=0):
   """
   Enable logging of output.
@@ -51,7 +51,7 @@ def log_output(
     * DEBUG_FILE - redirect stdout and stderr to log files.
     * DEBUG_GIMP_CONSOLE - redirect stdout and stderr to the GIMP error console.
   
-  * `log_path_dirnames` - list of directory paths for log files. If the first
+  * `log_dirpaths` - list of directory paths for log files. If the first
     path is invalid or permission to write is denied, subsequent directories are
     used. For `DEBUG_FILE` mode, only the first directory is used. For
     `DEBUG_GIMP_CONSOLE` mode, this parameter has no effect.
@@ -69,12 +69,12 @@ def log_output(
   
   if log_mode == pgconstants.LOG_EXCEPTIONS_ONLY:
     _redirect_exception_output_to_file(
-      log_path_dirnames, log_stderr_filename, log_header_title)
+      log_dirpaths, log_stderr_filename, log_header_title)
   elif log_mode == pgconstants.LOG_OUTPUT_FILES:
     sys.stdout = SimpleLogger(
-      os.path.join(log_path_dirnames[0], log_stdout_filename), "a", log_header_title)
+      os.path.join(log_dirpaths[0], log_stdout_filename), "a", log_header_title)
     sys.stderr = SimpleLogger(
-      os.path.join(log_path_dirnames[0], log_stderr_filename), "a", log_header_title)
+      os.path.join(log_dirpaths[0], log_stderr_filename), "a", log_header_title)
   elif log_mode == pgconstants.LOG_OUTPUT_GIMP_CONSOLE:
     sys.stdout = pgpdb.GimpMessageFile(
       message_delay_milliseconds=gimp_console_message_delay_milliseconds)
@@ -84,14 +84,12 @@ def log_output(
 
 
 def _redirect_exception_output_to_file(
-      log_path_dirnames, log_filename, log_header_title):
+      log_dirpaths, log_filename, log_header_title):
   logger = logging.getLogger(log_filename)
   logger.setLevel(logging.DEBUG)
   
   can_log = _logger_add_file_handler(
-    logger,
-    [os.path.join(log_path_dirname, log_filename)
-     for log_path_dirname in log_path_dirnames])
+    logger, [os.path.join(log_dirpath, log_filename) for log_dirpath in log_dirpaths])
   if can_log:
     # Pass the `logger` instance to the function to make sure it is not None.
     # More information at:
@@ -104,27 +102,27 @@ def _redirect_exception_output_to_file(
     sys.excepthook = log_exceptions
 
 
-def _logger_add_file_handler(logger, log_paths):
+def _logger_add_file_handler(logger, log_filepaths):
   """
-  If the first log path in `log_paths` cannot be used (e.g. due to denied write
-  permission), try out subsequent paths.
+  If the first log path in `log_filepaths` cannot be used (e.g. due to denied
+  write permission), try out subsequent paths.
   
   Do not log if directories cannot be created or any of the log files cannot be
   created.
   """
   
   can_log = True
-  for log_path in log_paths:
+  for log_filepath in log_filepaths:
     try:
-      pgpath.make_dirs(os.path.dirname(log_path))
+      pgpath.make_dirs(os.path.dirname(log_filepath))
     except OSError:
       can_log = False
       break
     
     try:
-      logger.addHandler(logging.FileHandler(log_path))
+      logger.addHandler(logging.FileHandler(log_filepath))
     except (OSError, IOError):
-      if log_path == log_paths[-1]:
+      if log_filepath == log_filepaths[-1]:
         can_log = False
     else:
       break
@@ -192,12 +190,11 @@ class Tee(object):
   """
   
   def __init__(
-        self, stream, file_object, log_header_title=None, start=True,
-        flush_output=False):
+        self, stream, file_, log_header_title=None, start=True, flush_output=False):
     """
     Parameters:
     
-    * `file_object` - File or file-like object to write to.
+    * `file_` - File or file-like object to write to.
     
     * `start` - If True, start `Tee` upon instantiation, otherwise don't.
       To start later, pass `start=False` and call the `start()` method when
@@ -221,7 +218,7 @@ class Tee(object):
     self.stream = stream
     
     if start:
-      self.start(file_object)
+      self.start(file_)
   
   def __del__(self):
     if self.is_running():
@@ -239,19 +236,19 @@ class Tee(object):
     else:
       raise ValueError("invalid stream; must be sys.stdout or sys.stderr")
   
-  def start(self, file_object):
+  def start(self, file_):
     """
     Start `Tee` if not started during the object instantiation.
     
     Parameters:
     
-    * `file_object` - File or file-like object to write to.
+    * `file_` - File or file-like object to write to.
     """
     
     self._orig_stream = self.stream
     setattr(sys, self._stream_name, self)
     
-    self._file = file_object
+    self._file = file_
     self._is_running = True
   
   def stop(self):

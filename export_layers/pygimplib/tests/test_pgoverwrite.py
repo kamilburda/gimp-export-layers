@@ -32,7 +32,7 @@ class InteractiveOverwriteChooserStub(pgoverwrite.InteractiveOverwriteChooser):
     
     self._values = [value for value, unused_ in self.values_and_display_names]
   
-  def _choose(self, filename):
+  def _choose(self, filepath):
     if self._overwrite_mode not in self._values:
       self._overwrite_mode = self.default_response
     

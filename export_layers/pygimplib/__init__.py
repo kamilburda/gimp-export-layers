@@ -25,32 +25,31 @@ import sys
 #===============================================================================
 
 
-def _setup_import_of_external_lib_modules(lib_directory):
+def _setup_import_of_external_lib_modules(dirpath):
   """
-  Add directories containing external libraries for pygimplib to `sys.path` so
-  that modules from these external libraries can be imported as system modules
-  (i.e. without using absolute or explicit relative imports).
+  Add directory paths containing external libraries for pygimplib to `sys.path`
+  so that modules from these external libraries can be imported as system
+  modules (i.e. without using absolute or explicit relative imports).
   
   Modules with the same name that are already installed system-wide are
   overridden by the external library modules from pygimplib.
   """
   
-  for filename in os.listdir(lib_directory):
-    lib_file_path = os.path.join(lib_directory, filename)
-    if os.path.isdir(lib_file_path) and lib_file_path not in sys.path:
-      _insert_library_to_system_path(lib_file_path)
+  for filename in os.listdir(dirpath):
+    external_libs_dirpath = os.path.join(dirpath, filename)
+    if os.path.isdir(external_libs_dirpath) and external_libs_dirpath not in sys.path:
+      _insert_library_to_system_path(external_libs_dirpath)
 
 
-def _insert_library_to_system_path(lib_path):
+def _insert_library_to_system_path(lib_dirpath):
   # Path must be inserted at the second position:
   # https://docs.python.org/3/library/sys.html#sys.path
-  sys.path.insert(1, lib_path)
+  sys.path.insert(1, lib_dirpath)
 
 
-_PYGIMPLIB_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
-_LIB_SUBDIRECTORY_PATH = os.path.join(_PYGIMPLIB_PATH, "lib")
+_PYGIMPLIB_DIRPATH = os.path.dirname(inspect.getfile(inspect.currentframe())) 
 
-_setup_import_of_external_lib_modules(_LIB_SUBDIRECTORY_PATH)
+_setup_import_of_external_lib_modules(os.path.join(_PYGIMPLIB_DIRPATH, "lib"))
 
 #===============================================================================
 
@@ -120,17 +119,17 @@ def _init_config():
   config.PLUGIN_TITLE = lambda: config.PLUGIN_NAME
   config.PLUGIN_VERSION = "1.0"
   
-  config.LOCALE_PATH = lambda: os.path.join(config.PLUGIN_PATH, "locale")
+  config.LOCALE_DIRPATH = lambda: os.path.join(config.PLUGIN_DIRPATH, "locale")
   config.DOMAIN_NAME = _get_domain_name
   
   config.BUG_REPORT_URI_LIST = []
   
-  config.PLUGIN_PATH = os.path.dirname(_PYGIMPLIB_PATH)
+  config.PLUGIN_DIRPATH = os.path.dirname(_PYGIMPLIB_DIRPATH)
   
   if _gimp_dependent_modules_imported:
     config.LOG_MODE = pgconstants.LOG_EXCEPTIONS_ONLY
   
-  gettext.install(config.DOMAIN_NAME, config.LOCALE_PATH, unicode=True)
+  gettext.install(config.DOMAIN_NAME, config.LOCALE_DIRPATH, unicode=True)
   
   _init_config_builtin(config)
 
@@ -146,19 +145,19 @@ def _init_config_builtin(config):
   config.SOURCE_SESSION_NAME = _get_setting_source_name()
   config.SOURCE_PERSISTENT_NAME = _get_setting_source_name()
   
-  config.PLUGINS_LOG_DIRNAMES = []
-  config.PLUGINS_LOG_DIRNAMES.append(config.PLUGIN_PATH)
+  config.PLUGINS_LOG_DIRPATHS = []
+  config.PLUGINS_LOG_DIRPATHS.append(config.PLUGIN_DIRPATH)
   
   if _gimp_dependent_modules_imported:
-    plugins_directory_alternate = os.path.join(gimp.directory, "plug-ins")
-    if plugins_directory_alternate != config.PLUGIN_PATH:
+    plugins_dirpath_alternate = os.path.join(gimp.directory, "plug-ins")
+    if plugins_dirpath_alternate != config.PLUGIN_DIRPATH:
       # Add `[user directory]/[GIMP directory]/plug-ins` as another log path in
       # case the plug-in was installed system-wide and there is no permission to
       # create log files there.
-      config.PLUGINS_LOG_DIRNAMES.append(plugins_directory_alternate)
+      config.PLUGINS_LOG_DIRPATHS.append(plugins_dirpath_alternate)
   
-  config.PLUGINS_LOG_STDOUT_DIRNAME = config.PLUGINS_LOG_DIRNAMES[0]
-  config.PLUGINS_LOG_STDERR_DIRNAME = config.PLUGINS_LOG_DIRNAMES[0]
+  config.PLUGINS_LOG_STDOUT_DIRPATH = config.PLUGINS_LOG_DIRPATHS[0]
+  config.PLUGINS_LOG_STDERR_DIRPATH = config.PLUGINS_LOG_DIRPATHS[0]
   
   config.PLUGINS_LOG_STDOUT_FILENAME = config.PLUGIN_NAME + ".log"
   config.PLUGINS_LOG_STDERR_FILENAME = config.PLUGIN_NAME + "_error.log"
@@ -194,11 +193,11 @@ def init():
   _init_config_builtin(config)
   _init_config_builtin_delayed(config)
   
-  gettext.install(config.DOMAIN_NAME, config.LOCALE_PATH, unicode=True)
+  gettext.install(config.DOMAIN_NAME, config.LOCALE_DIRPATH, unicode=True)
   
   if _gimp_dependent_modules_imported:
     pglogging.log_output(
-      config.LOG_MODE, config.PLUGINS_LOG_DIRNAMES,
+      config.LOG_MODE, config.PLUGINS_LOG_DIRPATHS,
       config.PLUGINS_LOG_STDOUT_FILENAME, config.PLUGINS_LOG_STDERR_FILENAME,
       config.PLUGIN_TITLE, config.GIMP_CONSOLE_MESSAGE_DELAY_MILLISECONDS)
   
@@ -260,7 +259,7 @@ if _gimp_dependent_modules_imported:
       gimp.menu_register(plugin_procedure.__name__, menu_path)
   
   def _query():
-    gimp.domain_register(config.DOMAIN_NAME, config.LOCALE_PATH)
+    gimp.domain_register(config.DOMAIN_NAME, config.LOCALE_DIRPATH)
     
     for procedure, args_and_kwargs in _plugins.items():
       install_plugin(procedure, *args_and_kwargs[0], **args_and_kwargs[1])

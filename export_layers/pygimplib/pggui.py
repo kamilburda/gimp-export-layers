@@ -128,16 +128,15 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
     
     self._dialog.set_focus(self._buttons[self.default_value])
   
-  def _choose(self, filename):
-    if filename is not None:
-      filename_root, basename = os.path.split(filename)
-      if filename_root:
-        parent_directory = os.path.split(filename_root)[1]
+  def _choose(self, filepath):
+    if filepath is not None:
+      dirpath, filename = os.path.split(filepath)
+      if dirpath:
         text_choose = (
           _('A file named "{0}" already exists in "{1}". ').format(
-            basename, parent_directory))
+            filename, os.path.basename(dirpath)))
       else:
-        text_choose = _('A file named "{0}" already exists.\n').format(basename)
+        text_choose = _('A file named "{0}" already exists.\n').format(filename)
     else:
       text_choose = _("A file with the same name already exists.\n")
     

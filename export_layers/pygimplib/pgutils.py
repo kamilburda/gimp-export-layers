@@ -108,29 +108,25 @@ def stringify_object(object_, name):
   return "<{0} '{1}'>".format(type(object_).__name__, name)
 
 
-def get_module_root(module_path, path_component_to_trim_after):
+def get_module_root(full_module_name, name_component_to_trim_after):
   """
-  Return the part of the full module path (separated by "." characters) from the
-  beginning up to the matching path component including that component.
+  Return the part of the full module name (separated by "." characters) from the
+  beginning up to the matching module name component including that component.
   
-  For example,
-  `get_module_root("export_layers.pygimplib.tests.test_pgutils", "pygimplib")`
-  returns `export_layers.pygimplib`.
-  
-  If `path_component_to_trim_after` does not match any path component from
-  `module_path`, return `module_path`.
+  If `name_component_to_trim_after` does not match any name component from
+  `full_module_name`, return `full_module_name`.
   """
   
-  module_path_components = module_path.split(".")
+  module_name_components = full_module_name.split(".")
   
-  if path_component_to_trim_after in module_path_components:
-    path_component_index = module_path_components.index(path_component_to_trim_after)
-    return ".".join(module_path_components[:path_component_index + 1])
+  if name_component_to_trim_after in module_name_components:
+    name_component_index = module_name_components.index(name_component_to_trim_after)
+    return ".".join(module_name_components[:name_component_index + 1])
   else:
-    return module_path
+    return full_module_name
 
 
-def get_current_module_file_path():
+def get_current_module_filepath():
   """
   Get the full path name of the module this function is called from.
   """
