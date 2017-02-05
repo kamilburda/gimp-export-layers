@@ -529,12 +529,12 @@ class LayerExporter(object):
   def operation_executor(self):
     return self._operation_executor
   
-  def export(self, processing_groups=None, layer_tree=None, keep_exported_layers=False):
+  def export(self, processing_groups=None, layer_tree=None, keep_image_copy=False):
     """
     Export layers as separate images from the specified image.
     
-    `processing_groups` is a list of strings that constraints the execution of
-    the export. Multiple groups be specified. The following groups are
+    `processing_groups` is a list of strings that constrains the execution of
+    the export. Multiple groups can be specified. The following groups are
     supported:
     
     * "layer_contents" - Perform only operations manipulating the layer itself,
@@ -555,14 +555,13 @@ class LayerExporter(object):
     
     A copy of the image and the layers to be exported are created so that the
     original image and its soon-to-be exported layers are left intact. The
-    copies are automatically destroyed after their export. To keep the copies,
-    pass True to `keep_exported_layers`. In that case, this method returns the
-    image copy containing the exported layers. It is up to you to destroy the
-    image copy. The method returns None if an exception was raised or if no
-    layer was exported; in that case, the image copy is automatically destroyed.
+    image copy is automatically destroyed after the export. To keep the image
+    copy, pass True to `keep_image_copy`. In that case, this method returns the
+    image copy. If an exception was raised or if no layer was exported, this
+    method returns None and the image copy will be destroyed.
     """
     
-    self._init_attributes(processing_groups, layer_tree, keep_exported_layers)
+    self._init_attributes(processing_groups, layer_tree, keep_image_copy)
     self._preprocess_layers()
     
     exception_occurred = False
@@ -576,7 +575,7 @@ class LayerExporter(object):
     finally:
       self._cleanup(exception_occurred)
     
-    if self._keep_exported_layers:
+    if self._keep_image_copy:
       if self._use_another_image_copy:
         return self._another_image_copy
       else:
@@ -644,7 +643,7 @@ class LayerExporter(object):
     
     add_operation(self.export_settings["more_filters/include/include_layers"])
   
-  def _init_attributes(self, processing_groups, layer_tree, keep_exported_layers):
+  def _init_attributes(self, processing_groups, layer_tree, keep_image_copy):
     self._enable_disable_processing_groups(processing_groups)
     
     if layer_tree is not None:
@@ -653,7 +652,7 @@ class LayerExporter(object):
       self._layer_tree = pgitemtree.LayerTree(
         self.image, name=pygimplib.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
     
-    self._keep_exported_layers = keep_exported_layers
+    self._keep_image_copy = keep_image_copy
     
     self._should_stop = False
     
@@ -717,14 +716,14 @@ class LayerExporter(object):
     
     self.progress_updater.num_total_tasks = len(self._layer_tree)
     
-    if self._keep_exported_layers:
+    if self._keep_image_copy:
       with self._layer_tree.filter["layer_types"].remove_rule_temp(
              builtin_filters.is_empty_group, False):
         num_layers_and_nonempty_groups = len(self._layer_tree)
         if num_layers_and_nonempty_groups > 1:
           self._use_another_image_copy = True
         elif num_layers_and_nonempty_groups < 1:
-          self._keep_exported_layers = False
+          self._keep_image_copy = False
   
   def _remove_parents_in_layer_elems(self):
     for layer_elem in self._layer_tree:
@@ -824,7 +823,7 @@ class LayerExporter(object):
     _copy_non_modifying_parasites(self._image_copy, self.image)
     
     pdb.gimp_image_undo_thaw(self._image_copy)
-    if ((not self._keep_exported_layers or self._use_another_image_copy)
+    if ((not self._keep_image_copy or self._use_another_image_copy)
         or exception_occurred):
       pdb.gimp_image_delete(self._image_copy)
       if self._use_another_image_copy:
@@ -854,7 +853,7 @@ class LayerExporter(object):
     return layer_copy
   
   def _postprocess_layer(self, image, layer):
-    if not self._keep_exported_layers:
+    if not self._keep_image_copy:
       pdb.gimp_image_remove_layer(image, layer)
     else:
       if self._use_another_image_copy:
