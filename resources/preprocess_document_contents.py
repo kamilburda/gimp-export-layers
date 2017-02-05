@@ -134,16 +134,12 @@ _TOKEN_ARG_FUNCS = {
 
 def preprocess_contents(source_filepaths, dest_filepaths, root_dirpath):
   for source_filepath, dest_filepath in zip(source_filepaths, dest_filepaths):
-    with io.open(
-           source_filepath, "r",
-           encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
+    with io.open(source_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
       source_file_contents = file_.read()
     
     preprocessed_contents = _preprocess_contents(source_file_contents, root_dirpath)
     
-    with io.open(
-           dest_filepath, "w",
-           encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
+    with io.open(dest_filepath, "w", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
       file_.writelines(preprocessed_contents)
 
 
@@ -194,8 +190,7 @@ def _process_token_args(token_name, token_args):
   document_filepath = token_args[0]
   section_name = token_args[1]
   with io.open(
-         document_filepath, "r",
-         encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as document:
+         document_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as document:
     document_contents = document.read()
     section_header, section_contents = _find_section(document_contents, section_name)
   

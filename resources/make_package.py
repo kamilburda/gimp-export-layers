@@ -89,9 +89,8 @@ def process_file(filepath, *process_functions_and_args):
   shutil.copy2(filepath, temp_file_copy_path)
   
   temp_file_copy = io.open(
-    temp_file_copy_path, "r+", encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING)
-  temp_file = _create_temp_file(
-    temp_dirpath, "r+", pgconstants.TEXT_FILE_CHARACTER_ENDOCING)
+    temp_file_copy_path, "r+", encoding=pgconstants.TEXT_FILE_ENCODING)
+  temp_file = _create_temp_file(temp_dirpath, "r+", pgconstants.TEXT_FILE_ENCODING)
   
   last_modified_filepath = None
   file_to_read = temp_file_copy
@@ -211,8 +210,7 @@ def make_package(input_dirpath, output_filepath, version):
 
 def _get_filtered_filepaths(dirpath, pattern_filepath):
   with io.open(
-         pattern_filepath, "r",
-         encoding=pgconstants.TEXT_FILE_CHARACTER_ENDOCING) as file_:
+         pattern_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
     spec = pathspec.PathSpec.from_lines(
       pathspec.patterns.gitwildmatch.GitWildMatchPattern, file_)
   
@@ -290,12 +288,11 @@ def _set_windows_newlines(filepath):
   # This makes sure that even Notepad (which can only handle \r\n newlines) can
   # properly display the readme.
   
-  encoding = pgconstants.TEXT_FILE_CHARACTER_ENDOCING
-  
-  with io.open(filepath, "r", encoding=encoding) as file_:
+  with io.open(filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
     contents = file_.read()
   
-  with io.open(filepath, "w", newline="\r\n", encoding=encoding) as file_:
+  with io.open(
+         filepath, "w", newline="\r\n", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
     file_.write(contents)
 
 
