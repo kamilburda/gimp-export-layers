@@ -253,7 +253,7 @@ def display_error_message(
   if message_secondary_markup is None:
     message_secondary_markup = _(
       "{0} encountered an unexpected error and has to close. Sorry about that!").format(
-        gobject.markup_escape_text(title))
+        gobject.markup_escape_text(app_name))
   
   if report_description is None:
     report_description = _(
@@ -263,7 +263,7 @@ def display_error_message(
   dialog = gtk.MessageDialog(parent, type=message_type, flags=flags)
   dialog.set_transient_for(parent)
   if title is not None:
-    dialog.set_title(app_name)
+    dialog.set_title(title)
   
   dialog.set_markup(message_markup)
   dialog.format_secondary_markup(message_secondary_markup)
