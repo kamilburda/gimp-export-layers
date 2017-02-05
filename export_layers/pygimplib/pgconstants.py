@@ -30,6 +30,6 @@ _LOG_OUTPUT_MODES = (
 
 GTK_CHARACTER_ENCODING = "utf-8"
 GIMP_CHARACTER_ENCODING = "utf-8"
-TEXT_FILE_CHARACTER_ENDOCING = "utf-8"
+TEXT_FILE_ENCODING = "utf-8"
 
 PYGIMPLIB_MODULE_FILEPATH = pgutils.get_module_root(__name__, "pygimplib")
