@@ -223,7 +223,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def _export(settings):
     for operation_setting in settings.walk():
       if exportlayers.is_valid_operation(operation_setting):
-        exportlayers.add_operation(operation_setting, enable=operation_setting.value)
+        exportlayers.add_operation(operation_setting)
     
     layer_exporter = exportlayers.LayerExporter(
       settings["special"]["run_mode"].value, settings["special"]["image"].value,
