@@ -192,7 +192,7 @@ def _set_settings(func):
           if self._export_image_preview.layer_elem is not None else None)
       
       self._settings["gui/displayed_builtin_operations"].set_value(
-        self._box_more_operations.displayed_settings_names)
+        self._box_operations.displayed_settings_names)
       self._settings["gui/displayed_builtin_constraints"].set_value(
         self._box_constraints.displayed_settings_names)
     except pgsetting.SettingValueError as e:
@@ -504,7 +504,7 @@ class ExportLayersGui(object):
     self._hbox_more_settings.pack_start(
       self._scrolled_window_basic_settings, expand=True, fill=True)
     self._hbox_more_settings.pack_start(
-      self._box_more_operations.widget, expand=True, fill=True)
+      self._box_operations.widget, expand=True, fill=True)
     self._hbox_more_settings.pack_start(
       self._box_constraints.widget, expand=True, fill=True)
     
@@ -648,8 +648,8 @@ class ExportLayersGui(object):
       self._export_previews_controller.on_name_preview_after_edit_tags)
   
   def _init_gui_operation_boxes(self):
-    self._box_more_operations = self._create_operation_box(
-      self._settings["main/more_operations"],
+    self._box_operations = self._create_operation_box(
+      self._settings["main/operations"],
       self._settings["gui/displayed_builtin_operations"],
       _("Add _Operation..."))
     
@@ -761,7 +761,7 @@ class ExportLayersGui(object):
   
   def _connect_setting_changes_to_operation_boxes(self):
     self._settings["gui/displayed_builtin_operations"].connect_event(
-      "after-reset", lambda setting: self._box_more_operations.clear())
+      "after-reset", lambda setting: self._box_operations.clear())
     self._settings["gui/displayed_builtin_constraints"].connect_event(
       "after-reset", lambda setting: self._box_constraints.clear())
   

@@ -893,7 +893,7 @@ class LayerExporter(object):
       self._layer_tree.reset_name(layer_elem)
   
   def _set_file_extension(self, layer_elem):
-    if self.export_settings["more_operations/use_file_extensions_in_layer_names"].value:
+    if self.export_settings["operations/use_file_extensions_in_layer_names"].value:
       orig_file_extension = layer_elem.get_file_extension_from_orig_name()
       if (orig_file_extension
           and self._file_extension_properties[orig_file_extension].is_valid):

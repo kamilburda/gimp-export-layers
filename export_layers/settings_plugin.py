@@ -160,15 +160,15 @@ def create_settings():
   # Additional settings - operations and constraints
   #-----------------------------------------------------------------------------
   
-  more_operations_settings = pgsettinggroup.SettingGroup(
-    name="more_operations",
+  operations_settings = pgsettinggroup.SettingGroup(
+    name="operations",
     setting_attributes={
       "pdb_type": None,
       "setting_sources": [
         pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     })
   
-  more_operations_settings.add([
+  operations_settings.add([
     {
       "type": pgsetting.SettingTypes.boolean,
       "name": "insert_background_layers",
@@ -291,7 +291,7 @@ def create_settings():
     }
   ])
   
-  main_settings.add([more_operations_settings, constraints_settings])
+  main_settings.add([operations_settings, constraints_settings])
   
   #-----------------------------------------------------------------------------
   
@@ -304,7 +304,7 @@ def create_settings():
         "You need to specify default file extension for layers with invalid "
         "or no extension.")
   
-  main_settings["more_operations/use_file_extensions_in_layer_names"].connect_event(
+  main_settings["operations/use_file_extensions_in_layer_names"].connect_event(
     "value-changed",
     on_use_file_extensions_in_layer_names_changed, main_settings["file_extension"])
   
