@@ -116,7 +116,7 @@ def display_reset_prompt(parent=None, more_settings_shown=False):
   
   if more_settings_shown:
     checkbutton_reset_operations = gtk.CheckButton(
-      label=_("Remove operations and filters"), use_underline=False)
+      label=_("Remove operations and constraints"), use_underline=False)
     dialog.vbox.pack_start(checkbutton_reset_operations, expand=False, fill=False)
   
   dialog.set_focus(dialog.get_widget_for_response(gtk.RESPONSE_NO))
@@ -193,8 +193,8 @@ def _set_settings(func):
       
       self._settings["gui/displayed_builtin_operations"].set_value(
         self._box_more_operations.displayed_settings_names)
-      self._settings["gui/displayed_builtin_filters"].set_value(
-        self._box_more_filters.displayed_settings_names)
+      self._settings["gui/displayed_builtin_constraints"].set_value(
+        self._box_constraints.displayed_settings_names)
     except pgsetting.SettingValueError as e:
       self._display_message_label(str(e), gtk.MESSAGE_ERROR, e.setting)
       return
@@ -506,7 +506,7 @@ class ExportLayersGui(object):
     self._hbox_more_settings.pack_start(
       self._box_more_operations.widget, expand=True, fill=True)
     self._hbox_more_settings.pack_start(
-      self._box_more_filters.widget, expand=True, fill=True)
+      self._box_constraints.widget, expand=True, fill=True)
     
     self._vbox_settings = gtk.VBox()
     self._vbox_settings.set_spacing(self._DIALOG_VBOX_SPACING)
@@ -653,10 +653,10 @@ class ExportLayersGui(object):
       self._settings["gui/displayed_builtin_operations"],
       _("Add _Operation..."))
     
-    self._box_more_filters = self._create_operation_box(
-      self._settings["main/more_filters"],
-      self._settings["gui/displayed_builtin_filters"],
-      _("Add _Filter..."))
+    self._box_constraints = self._create_operation_box(
+      self._settings["main/constraints"],
+      self._settings["gui/displayed_builtin_constraints"],
+      _("Add _Constraint..."))
   
   def _create_operation_box(
         self, setting_group_with_operations, setting_displayed_operations,
@@ -762,8 +762,8 @@ class ExportLayersGui(object):
   def _connect_setting_changes_to_operation_boxes(self):
     self._settings["gui/displayed_builtin_operations"].connect_event(
       "after-reset", lambda setting: self._box_more_operations.clear())
-    self._settings["gui/displayed_builtin_filters"].connect_event(
-      "after-reset", lambda setting: self._box_more_filters.clear())
+    self._settings["gui/displayed_builtin_constraints"].connect_event(
+      "after-reset", lambda setting: self._box_constraints.clear())
   
   def _on_dialog_key_press(self, widget, event):
     if gtk.gdk.keyval_name(event.keyval) == "Escape":
@@ -794,7 +794,7 @@ class ExportLayersGui(object):
     
     if not reset_operations:
       self._settings["gui/displayed_builtin_operations"].tags.add("ignore_reset")
-      self._settings["gui/displayed_builtin_filters"].tags.add("ignore_reset")
+      self._settings["gui/displayed_builtin_constraints"].tags.add("ignore_reset")
     
     if response_id == gtk.RESPONSE_YES:
       self._reset_settings()
@@ -808,7 +808,7 @@ class ExportLayersGui(object):
     
     if not reset_operations:
       self._settings["gui/displayed_builtin_operations"].tags.remove("ignore_reset")
-      self._settings["gui/displayed_builtin_filters"].tags.remove("ignore_reset")
+      self._settings["gui/displayed_builtin_constraints"].tags.remove("ignore_reset")
   
   @_set_settings
   def _on_button_export_clicked(self, widget):

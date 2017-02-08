@@ -70,12 +70,12 @@ class ExportPreviewsController(object):
         setting.connect_event("value-changed", self._on_setting_changed)
   
   def _connect_setting_only_selected_layers_changed(self):
-    event_id = self._settings["main/more_filters/only_selected_layers"].connect_event(
+    event_id = self._settings["main/constraints/only_selected_layers"].connect_event(
       "value-changed", self._on_setting_changed)
     self._export_name_preview.temporarily_disable_setting_events_on_update(
-      {"more_filters/only_selected_layers": [event_id]})
+      {"constraints/only_selected_layers": [event_id]})
     self._export_image_preview.temporarily_disable_setting_events_on_update(
-      {"more_filters/only_selected_layers": [event_id]})
+      {"constraints/only_selected_layers": [event_id]})
   
   def _on_setting_changed(self, setting):
     pginvocation.timeout_add_strict(

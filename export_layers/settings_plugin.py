@@ -157,7 +157,7 @@ def create_settings():
     },
   ])
   
-  # Additional settings - operations and filters
+  # Additional settings - operations and constraints
   #-----------------------------------------------------------------------------
   
   more_operations_settings = pgsettinggroup.SettingGroup(
@@ -219,15 +219,15 @@ def create_settings():
     },
   ])
   
-  more_filters_settings = pgsettinggroup.SettingGroup(
-    name="more_filters",
+  constraints_settings = pgsettinggroup.SettingGroup(
+    name="constraints",
     setting_attributes={
       "pdb_type": None,
       "setting_sources": [
         pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     })
   
-  include_filters_settings = pgsettinggroup.SettingGroup(
+  include_constraints_settings = pgsettinggroup.SettingGroup(
     name="include",
     display_name=_("Include"),
     setting_attributes={
@@ -236,7 +236,7 @@ def create_settings():
         pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     })
   
-  include_filters_settings.add([
+  include_constraints_settings.add([
     {
       "type": pgsetting.SettingTypes.boolean,
       "name": "include_layers",
@@ -257,8 +257,8 @@ def create_settings():
     }
   ])
   
-  more_filters_settings.add([
-    include_filters_settings,
+  constraints_settings.add([
+    include_constraints_settings,
     {
       "type": pgsetting.SettingTypes.boolean,
       "name": "only_layers_without_tags",
@@ -291,7 +291,7 @@ def create_settings():
     }
   ])
   
-  main_settings.add([more_operations_settings, more_filters_settings])
+  main_settings.add([more_operations_settings, constraints_settings])
   
   #-----------------------------------------------------------------------------
   

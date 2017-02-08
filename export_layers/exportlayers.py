@@ -47,7 +47,7 @@ from .pygimplib import pgprogress
 from .pygimplib import pgutils
 
 from . import builtin_operations
-from . import builtin_filters
+from . import builtin_constraints
 
 #===============================================================================
 
@@ -102,10 +102,10 @@ def execute_operation_only_if_setting(operation, setting):
 #===============================================================================
 
 
-def _add_filter_rule(rule_func, subfilter=None):
+def _add_constraint(rule_func, subfilter=None):
   def _add_rule_func(*args):
-    # HACK: This assumes that `LayerExporter` instance is added as an argument when
-    # executing the default group for filters.
+    # HACK: This assumes that `LayerExporter` instance is added as an argument
+    # when executing the default group for constraints.
     layer_exporter = args[-1]
     rule_func_args = args[1:]
     
@@ -119,10 +119,10 @@ def _add_filter_rule(rule_func, subfilter=None):
   return _add_rule_func
 
 
-def _add_filter_rule_with_layer_exporter(rule_func):
+def _add_constraint_with_layer_exporter(rule_func):
   def _add_rule_func_with_layer_exporter(*args):
-    # HACK: This assumes that `LayerExporter` instance is added as an argument when
-    # executing the default group for filters.
+    # HACK: This assumes that `LayerExporter` instance is added as an argument
+    # when executing the default group for constraints.
     layer_exporter = args[-1]
     layer_exporter.layer_tree.filter.add_rule(rule_func, *args)
   
@@ -284,8 +284,8 @@ class ExportStatuses(object):
 #===============================================================================
 
 _BUILTIN_OPERATIONS_GROUP = "process_layer"
-_BUILTIN_FILTERS_GROUP = "set_filters"
-_BUILTIN_FILTERS_LAYER_TYPES_GROUP = "set_filters_layer_types"
+_BUILTIN_CONSTRAINTS_GROUP = "set_constraints"
+_BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP = "set_constraints_layer_types"
 
 _BUILTIN_OPERATIONS_AND_SETTINGS = {
   "ignore_layer_modes": [builtin_operations.ignore_layer_modes],
@@ -300,22 +300,22 @@ _BUILTIN_OPERATIONS_AND_SETTINGS = {
   "autocrop_foreground": [builtin_operations.autocrop_tagged_layer, ["foreground"]]
 }
 
-_BUILTIN_FILTERS_AND_SETTINGS = {
-  "only_layers_without_tags": [_add_filter_rule(builtin_filters.has_no_tags)],
-  "only_layers_with_tags": [_add_filter_rule(builtin_filters.has_tags)],
+_BUILTIN_CONSTRAINTS_AND_SETTINGS = {
+  "only_layers_without_tags": [_add_constraint(builtin_constraints.has_no_tags)],
+  "only_layers_with_tags": [_add_constraint(builtin_constraints.has_tags)],
   "only_layers_matching_file_extension": [
-    _add_filter_rule_with_layer_exporter(
-      builtin_filters.has_matching_default_file_extension)],
-  "only_toplevel_layers": [_add_filter_rule(builtin_filters.is_top_level)]
+    _add_constraint_with_layer_exporter(
+      builtin_constraints.has_matching_default_file_extension)],
+  "only_toplevel_layers": [_add_constraint(builtin_constraints.is_top_level)]
 }
 
-_BUILTIN_INCLUDE_FILTERS_AND_SETTINGS = {
+_BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS = {
   "include_layers": [
-    _add_filter_rule(builtin_filters.is_layer, subfilter="layer_types")],
+    _add_constraint(builtin_constraints.is_layer, subfilter="layer_types")],
   "include_layer_groups": [
-    _add_filter_rule(builtin_filters.is_nonempty_group, subfilter="layer_types")],
+    _add_constraint(builtin_constraints.is_nonempty_group, subfilter="layer_types")],
   "include_empty_layer_groups": [
-    _add_filter_rule(builtin_filters.is_empty_group, subfilter="layer_types")]
+    _add_constraint(builtin_constraints.is_empty_group, subfilter="layer_types")]
 }
 
 # key: setting name; value: (operation ID, operation group) tuple
@@ -326,17 +326,17 @@ _operation_executor = pgoperations.OperationExecutor()
 
 def add_operation(base_setting):
   if (base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS
-      or base_setting.name in _BUILTIN_FILTERS_AND_SETTINGS
-      or base_setting.name in _BUILTIN_INCLUDE_FILTERS_AND_SETTINGS):
+      or base_setting.name in _BUILTIN_CONSTRAINTS_AND_SETTINGS
+      or base_setting.name in _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS):
     if base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS:
       operation_item = _BUILTIN_OPERATIONS_AND_SETTINGS[base_setting.name]
       operation_group = _BUILTIN_OPERATIONS_GROUP
-    elif base_setting.name in _BUILTIN_FILTERS_AND_SETTINGS:
-      operation_item = _BUILTIN_FILTERS_AND_SETTINGS[base_setting.name]
-      operation_group = _BUILTIN_FILTERS_GROUP
-    elif base_setting.name in _BUILTIN_INCLUDE_FILTERS_AND_SETTINGS:
-      operation_item = _BUILTIN_INCLUDE_FILTERS_AND_SETTINGS[base_setting.name]
-      operation_group = _BUILTIN_FILTERS_LAYER_TYPES_GROUP
+    elif base_setting.name in _BUILTIN_CONSTRAINTS_AND_SETTINGS:
+      operation_item = _BUILTIN_CONSTRAINTS_AND_SETTINGS[base_setting.name]
+      operation_group = _BUILTIN_CONSTRAINTS_GROUP
+    elif base_setting.name in _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS:
+      operation_item = _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS[base_setting.name]
+      operation_group = _BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP
     
     operation = operation_item[0]
     operation_args = operation_item[1] if len(operation_item) > 1 else ()
@@ -364,11 +364,11 @@ def remove_operation(setting):
 
 def is_valid_operation(base_setting):
   return any(
-    base_setting.name in builtin_operations_or_filters
-    for builtin_operations_or_filters in [
+    base_setting.name in builtin_operations_or_constraints
+    for builtin_operations_or_constraints in [
       _BUILTIN_OPERATIONS_AND_SETTINGS,
-      _BUILTIN_FILTERS_AND_SETTINGS,
-      _BUILTIN_INCLUDE_FILTERS_AND_SETTINGS])
+      _BUILTIN_CONSTRAINTS_AND_SETTINGS,
+      _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS])
 
 
 _operation_executor.add_foreach_operation(
@@ -548,7 +548,7 @@ class LayerExporter(object):
     
     If `layer_tree` is not None, use an existing instance of
     `pgitemtree.LayerTree` instead of creating a new one. If the instance had
-    filters set, they will be reset.
+    constraints set, they will be reset.
     
     A copy of the image and the layers to be exported are created so that the
     original image and its soon-to-be exported layers are left intact. The
@@ -635,10 +635,10 @@ class LayerExporter(object):
     
     self._operation_executor.add_executor(
       _operation_executor,
-      [_BUILTIN_OPERATIONS_GROUP, _BUILTIN_FILTERS_GROUP,
-       _BUILTIN_FILTERS_LAYER_TYPES_GROUP])
+      [_BUILTIN_OPERATIONS_GROUP, _BUILTIN_CONSTRAINTS_GROUP,
+       _BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP])
     
-    add_operation(self.export_settings["more_filters/include/include_layers"])
+    add_operation(self.export_settings["constraints/include/include_layers"])
   
   def _init_attributes(self, processing_groups, layer_tree, keep_image_copy):
     self._enable_disable_processing_groups(processing_groups)
@@ -691,7 +691,7 @@ class LayerExporter(object):
           self, function.__name__, self._processing_groups_functions[function.__name__])
     
     if processing_groups:
-      if (not self.export_settings["more_filters/only_selected_layers"].value
+      if (not self.export_settings["constraints/only_selected_layers"].value
           and "layer_name" in processing_groups):
         processing_groups.append("_postprocess_layer_name")
       
@@ -709,13 +709,13 @@ class LayerExporter(object):
     else:
       self._reset_parents_in_layer_elems()
     
-    self._set_layer_filters()
+    self._set_layer_constraints()
     
     self.progress_updater.num_total_tasks = len(self._layer_tree)
     
     if self._keep_image_copy:
       with self._layer_tree.filter["layer_types"].remove_rule_temp(
-             builtin_filters.is_empty_group, False):
+             builtin_constraints.is_empty_group, False):
         num_layers_and_nonempty_groups = len(self._layer_tree)
         if num_layers_and_nonempty_groups > 1:
           self._use_another_image_copy = True
@@ -733,26 +733,26 @@ class LayerExporter(object):
       layer_elem.children = (
         list(layer_elem.orig_children) if layer_elem.orig_children is not None else None)
   
-  def _set_layer_filters(self):
+  def _set_layer_constraints(self):
     self._layer_tree.filter.add_subfilter(
       "layer_types", pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ANY))
     
-    self._operation_executor.execute([_BUILTIN_FILTERS_LAYER_TYPES_GROUP], self)
+    self._operation_executor.execute([_BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP], self)
     
     self._init_tagged_layer_elems()
     
     if self.export_settings["only_visible_layers"].value:
-      self._layer_tree.filter.add_rule(builtin_filters.is_path_visible)
+      self._layer_tree.filter.add_rule(builtin_constraints.is_path_visible)
     
-    if self.export_settings["more_filters/only_selected_layers"].value:
+    if self.export_settings["constraints/only_selected_layers"].value:
       self._layer_tree.filter.add_rule(
-        builtin_filters.is_layer_in_selected_layers,
+        builtin_constraints.is_layer_in_selected_layers,
         self.export_settings["selected_layers"].value[self.image.ID])
     
-    self._operation_executor.execute([_BUILTIN_FILTERS_GROUP], self)
+    self._operation_executor.execute([_BUILTIN_CONSTRAINTS_GROUP], self)
   
   def _init_tagged_layer_elems(self):
-    with self._layer_tree.filter.add_rule_temp(builtin_filters.has_tags):
+    with self._layer_tree.filter.add_rule_temp(builtin_constraints.has_tags):
       for layer_elem in self._layer_tree:
         for tag in layer_elem.tags:
           self._tagged_layer_elems[tag].append(layer_elem)

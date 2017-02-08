@@ -40,7 +40,7 @@ from ..pygimplib import pgconstants
 from ..pygimplib import pggui
 from ..pygimplib import pgutils
 
-from .. import builtin_filters
+from .. import builtin_constraints
 from . import gui_preview_base
 
 #===============================================================================
@@ -92,7 +92,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
         self, should_enable_sensitive=False, reset_items=False,
         update_existing_contents_only=False):
     """
-    Update the preview (filter layers, modify layer tree, etc.).
+    Update the preview (add/remove layer, move layer to a different parent layer
+    group, etc.).
     
     If `reset_items` is True, perform full update - add new layers, remove
     non-existent layers, etc. Note that setting this to True may introduce a
@@ -492,7 +493,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       previous_selected_items = self._selected_items
       self._selected_items = self._get_layer_ids_in_current_selection()
       
-      if self._layer_exporter.export_settings["more_filters/only_selected_layers"].value:
+      if self._layer_exporter.export_settings["constraints/only_selected_layers"].value:
         if self._selected_items != previous_selected_items:
           self.update(update_existing_contents_only=True)
       
@@ -571,16 +572,16 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       self._update_item_elem(parent_elem)
   
   def _enable_filtered_items(self, enabled):
-    if self._layer_exporter.export_settings["more_filters/only_selected_layers"].value:
+    if self._layer_exporter.export_settings["constraints/only_selected_layers"].value:
       if not enabled:
         self._layer_exporter.layer_tree.filter.add_rule(
-          builtin_filters.is_layer_in_selected_layers, self._selected_items)
+          builtin_constraints.is_layer_in_selected_layers, self._selected_items)
       else:
         self._layer_exporter.layer_tree.filter.remove_rule(
-          builtin_filters.is_layer_in_selected_layers, raise_if_not_found=False)
+          builtin_constraints.is_layer_in_selected_layers, raise_if_not_found=False)
   
   def _set_items_sensitive(self):
-    if self._layer_exporter.export_settings["more_filters/only_selected_layers"].value:
+    if self._layer_exporter.export_settings["constraints/only_selected_layers"].value:
       self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
       self._set_item_elems_sensitive(
         [self._layer_exporter.layer_tree[item_id] for item_id in self._selected_items],
