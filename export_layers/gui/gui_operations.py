@@ -115,15 +115,17 @@ class OperationBox(object):
     self._button_add.connect("clicked", self._on_button_add_clicked)
   
   def _init_operations_menu_popup(self):
+    self._operations_submenus = [self._operations_menu]
+    self._current_operations_submenu = self._operations_menu
+    
     walk_callbacks = pgsettinggroup.SettingGroupWalkCallbacks()
     walk_callbacks.on_visit_setting = self._add_setting_to_menu
     walk_callbacks.on_visit_group = self._create_submenu_for_setting_group
     walk_callbacks.on_end_group_walk = self._finish_adding_settings_to_submenu
     
-    self._operations_submenus = [self._operations_menu]
-    self._current_operations_submenu = self._operations_menu
-    
-    list(self._settings.walk(include_groups=True, walk_callbacks=walk_callbacks))
+    for unused_ in self._settings.walk(
+          include_groups=True, walk_callbacks=walk_callbacks):
+      pass
     
     del self._operations_submenus
     del self._current_operations_submenu
