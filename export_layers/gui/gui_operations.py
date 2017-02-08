@@ -158,7 +158,8 @@ class OperationBox(object):
       self._current_operations_submenu = self._operations_submenus[0]
   
   def _init_item_dragging(self):
-    # Unique drag type for the entire box prevents undesired drops on other widgets.
+    # Unique drag type for the entire box prevents undesired drops on other
+    # widgets.
     drag_type = self._get_unique_drag_type()
     
     for setting in self._settings.walk():
@@ -303,7 +304,7 @@ class OperationBox(object):
     if self._are_items_partially_hidden_because_of_visible_horizontal_scrollbar():
       return None
     
-    _setup_widget_to_add_border_to_drag_icon(widget)
+    self._setup_widget_to_add_border_to_drag_icon(widget)
     
     while gtk.events_pending():
       gtk.main_iteration()
@@ -318,7 +319,7 @@ class OperationBox(object):
       widget.get_window(), widget.get_colormap(),
       0, 0, 0, 0, widget_allocation.width, widget_allocation.height)
     
-    _restore_widget_after_creating_drag_icon(widget)
+    self._restore_widget_after_creating_drag_icon(widget)
     
     return drag_icon_pixbuf
   
@@ -326,33 +327,31 @@ class OperationBox(object):
     return (
       self._scrolled_window.get_hscrollbar() is not None
       and self._scrolled_window.get_hscrollbar().get_mapped())
-
-
-def _setup_widget_to_add_border_to_drag_icon(widget):
-  _remove_focus_outline(widget)
-  _add_border(widget)
-
-
-def _remove_focus_outline(widget):
-  if widget.has_focus():
-    widget.set_can_focus(False)
-
-
-def _add_border(widget):
-  widget.drag_highlight()
-
-
-def _restore_widget_after_creating_drag_icon(widget):
-  _add_focus_outline(widget)
-  _remove_border(widget)
-
-
-def _add_focus_outline(widget):
-  widget.set_can_focus(True)
-
-
-def _remove_border(widget):
-  widget.drag_unhighlight()
+  
+  def _setup_widget_to_add_border_to_drag_icon(self, widget):
+    self._remove_focus_outline(widget)
+    self._add_border(widget)
+  
+  @staticmethod
+  def _remove_focus_outline(widget):
+    if widget.has_focus():
+      widget.set_can_focus(False)
+  
+  @staticmethod
+  def _add_border(widget):
+    widget.drag_highlight()
+  
+  def _restore_widget_after_creating_drag_icon(self, widget):
+    self._add_focus_outline(widget)
+    self._remove_border(widget)
+  
+  @staticmethod
+  def _add_focus_outline(widget):
+    widget.set_can_focus(True)
+  
+  @staticmethod
+  def _remove_border(widget):
+    widget.drag_unhighlight()
 
 
 #===============================================================================
