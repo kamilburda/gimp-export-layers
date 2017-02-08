@@ -416,7 +416,8 @@ class TestSettingGroupHierarchical(unittest.TestCase):
   def test_walk_with_callbacks(self):
     walked_settings, walk_callbacks = self._get_test_data_for_walking_group()
     
-    list(self.settings.walk(include_groups=True, walk_callbacks=walk_callbacks))
+    for unused_ in self.settings.walk(include_groups=True, walk_callbacks=walk_callbacks):
+      pass
     
     self.assertEqual(
       walked_settings,
@@ -429,10 +430,11 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     
     walked_settings, walk_callbacks = self._get_test_data_for_walking_group()
     
-    list(self.settings.walk(
-      include_setting_func=lambda setting: "ignore_reset" not in setting.tags,
-      include_groups=True,
-      walk_callbacks=walk_callbacks))
+    for unused_ in self.settings.walk(
+          include_setting_func=lambda setting: "ignore_reset" not in setting.tags,
+          include_groups=True,
+          walk_callbacks=walk_callbacks):
+      pass
     
     self.assertEqual(walked_settings, ["advanced", "only_visible_layers", "advanced_end"])
   
@@ -441,7 +443,8 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     
     walked_settings, walk_callbacks = self._get_test_data_for_walking_group()
     
-    list(self.settings.walk(include_groups=True, walk_callbacks=walk_callbacks))
+    for unused_ in self.settings.walk(include_groups=True, walk_callbacks=walk_callbacks):
+      pass
     
     self.assertEqual(
       walked_settings,
