@@ -273,6 +273,13 @@ def _setup_output_directory_changed(settings, current_image):
     current_image.ID)
 
 
+def _add_gui_settings(settings):
+  gui_settings, session_only_gui_settings, persistent_only_gui_settings = (
+    settings_gui.create_gui_settings())
+  settings.add(
+    [gui_settings, session_only_gui_settings, persistent_only_gui_settings])
+
+
 #===============================================================================
 
 
@@ -324,7 +331,7 @@ class ExportLayersGui(object):
     gtk.main()
   
   def _init_settings(self):
-    self._add_gui_settings()
+    _add_gui_settings(self._settings)
     
     settings_plugin.setup_image_ids_and_filepaths_settings(
       self._settings["gui_session/export_name_preview_layers_collapsed_state"],
@@ -354,12 +361,6 @@ class ExportLayersGui(object):
     _setup_image_ids_and_directories_and_initial_directory(
       self._settings, self._current_directory_setting, self._image)
     _setup_output_directory_changed(self._settings, self._image)
-  
-  def _add_gui_settings(self):
-    gui_settings, session_only_gui_settings, persistent_only_gui_settings = (
-      settings_gui.create_gui_settings())
-    self._settings.add(
-      [gui_settings, session_only_gui_settings, persistent_only_gui_settings])
   
   def _init_gui(self):
     self._dialog = gimpui.Dialog(
@@ -980,8 +981,12 @@ class ExportLayersRepeatGui(object):
     self._image = self._layer_tree.image
     self._layer_exporter = None
     
+    _add_gui_settings(self._settings)
+    
     pgsettingpersistor.SettingPersistor.load(
-      [self._settings["main"]], [pygimplib.config.SOURCE_SESSION])
+      [self._settings], [pygimplib.config.SOURCE_SESSION])
+    
+    self._add_operations()
     
     self._init_gui()
     
@@ -1015,6 +1020,22 @@ class ExportLayersRepeatGui(object):
     
     self._button_stop.connect("clicked", self._on_button_stop_clicked)
     self._dialog.connect("delete-event", self._on_dialog_delete_event)
+  
+  def _add_operations(self):
+    self._add_operation_settings(
+      self._settings["main/operations"],
+      self._settings["gui/displayed_builtin_operations"])
+    
+    self._add_operation_settings(
+      self._settings["main/constraints"],
+      self._settings["gui/displayed_builtin_constraints"])
+  
+  @staticmethod
+  def _add_operation_settings(
+        setting_group_with_operations, setting_displayed_operations):
+    for setting_name in setting_displayed_operations.value:
+      if setting_name in setting_group_with_operations:
+        exportlayers.add_operation(setting_group_with_operations[setting_name])
   
   def export_layers(self):
     self._item_progress_indicator.install_progress_for_status()
