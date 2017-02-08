@@ -119,12 +119,12 @@ def _init_config():
   config.PLUGIN_TITLE = lambda: config.PLUGIN_NAME
   config.PLUGIN_VERSION = "1.0"
   
-  config.LOCALE_DIRPATH = lambda: os.path.join(config.PLUGIN_DIRPATH, "locale")
+  config.LOCALE_DIRPATH = lambda: os.path.join(config.PLUGINS_DIRPATH, "locale")
   config.DOMAIN_NAME = _get_domain_name
   
   config.BUG_REPORT_URI_LIST = []
   
-  config.PLUGIN_DIRPATH = os.path.dirname(_PYGIMPLIB_DIRPATH)
+  config.PLUGINS_DIRPATH = os.path.dirname(_PYGIMPLIB_DIRPATH)
   
   if _gimp_dependent_modules_imported:
     config.LOG_MODE = pgconstants.LOG_EXCEPTIONS_ONLY
@@ -146,11 +146,11 @@ def _init_config_builtin(config):
   config.SOURCE_PERSISTENT_NAME = _get_setting_source_name()
   
   config.PLUGINS_LOG_DIRPATHS = []
-  config.PLUGINS_LOG_DIRPATHS.append(config.PLUGIN_DIRPATH)
+  config.PLUGINS_LOG_DIRPATHS.append(config.PLUGINS_DIRPATH)
   
   if _gimp_dependent_modules_imported:
     plugins_dirpath_alternate = os.path.join(gimp.directory, "plug-ins")
-    if plugins_dirpath_alternate != config.PLUGIN_DIRPATH:
+    if plugins_dirpath_alternate != config.PLUGINS_DIRPATH:
       # Add `[user directory]/[GIMP directory]/plug-ins` as another log path in
       # case the plug-in was installed system-wide and there is no permission to
       # create log files there.

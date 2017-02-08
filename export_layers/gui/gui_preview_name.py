@@ -35,10 +35,10 @@ import gobject
 
 from gimp import pdb
 
-from .. import pygimplib
-from ..pygimplib import pgconstants
-from ..pygimplib import pggui
-from ..pygimplib import pgutils
+import pygimplib
+from pygimplib import pgconstants
+from pygimplib import pggui
+from pygimplib import pgutils
 
 from .. import builtin_constraints
 from . import gui_preview_base
@@ -57,9 +57,6 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     _COLUMN_LAYER_NAME, _COLUMN_LAYER_ID) = (
     [0, gtk.gdk.Pixbuf], [1, gobject.TYPE_BOOLEAN], [2, gobject.TYPE_BOOLEAN],
     [3, gobject.TYPE_STRING], [4, gobject.TYPE_INT])
-  
-  _ICON_IMAGE_FILEPATH = os.path.join(pygimplib.config.PLUGIN_DIRPATH, "icon_image.png")
-  _ICON_TAG_FILEPATH = os.path.join(pygimplib.config.PLUGIN_DIRPATH, "icon_tag.png")
   
   def __init__(
         self, layer_exporter, initial_layer_tree=None, collapsed_items=None,
@@ -83,6 +80,11 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._clearing_preview = False
     self._row_select_interactive = True
     self._initial_scroll_to_selection = True
+    
+    self._ICON_IMAGE_FILEPATH = os.path.join(
+      pygimplib.config.PLUGIN_SUBDIRPATH, "icon_image.png")
+    self._ICON_TAG_FILEPATH = os.path.join(
+      pygimplib.config.PLUGIN_SUBDIRPATH, "icon_tag.png")
     
     self._init_gui()
     

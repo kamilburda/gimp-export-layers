@@ -34,17 +34,17 @@ import os
 from gimp import pdb
 import gimpenums
 
-from . import pygimplib
-from .pygimplib import pgconstants
-from .pygimplib import pgfileformats
-from .pygimplib import pgitemtree
-from .pygimplib import pgobjectfilter
-from .pygimplib import pgoperations
-from .pygimplib import pgoverwrite
-from .pygimplib import pgpath
-from .pygimplib import pgpdb
-from .pygimplib import pgprogress
-from .pygimplib import pgutils
+import pygimplib
+from pygimplib import pgconstants
+from pygimplib import pgfileformats
+from pygimplib import pgitemtree
+from pygimplib import pgobjectfilter
+from pygimplib import pgoperations
+from pygimplib import pgoverwrite
+from pygimplib import pgpath
+from pygimplib import pgpdb
+from pygimplib import pgprogress
+from pygimplib import pgutils
 
 from . import builtin_operations
 from . import builtin_constraints

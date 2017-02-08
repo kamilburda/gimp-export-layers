@@ -26,10 +26,10 @@ from future.builtins import *
 
 import collections
 
-from .. import pygimplib
-from ..pygimplib import pgsetting
-from ..pygimplib import pgsettinggroup
-from ..pygimplib import pgutils
+import pygimplib
+from pygimplib import pgsetting
+from pygimplib import pgsettinggroup
+from pygimplib import pgutils
 
 from .. import exportlayers
 

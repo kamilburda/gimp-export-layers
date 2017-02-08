@@ -38,10 +38,10 @@ import gimp
 from gimp import pdb
 import gimpenums
 
-from .. import pygimplib
-from ..pygimplib import pgconstants
-from ..pygimplib import pggui
-from ..pygimplib import pgpdb
+import pygimplib
+from pygimplib import pgconstants
+from pygimplib import pggui
+from pygimplib import pgpdb
 
 from . import gui_preview_base
 

@@ -27,14 +27,14 @@ import unittest
 
 from gimp import pdb
 
-from .. import pygimplib
+import pygimplib
 from .. import config
 
-from ..pygimplib import pgfileformats
-from ..pygimplib import pgitemtree
-from ..pygimplib import pgpath
-from ..pygimplib import pgpdb
-from ..pygimplib import pgutils
+from pygimplib import pgfileformats
+from pygimplib import pgitemtree
+from pygimplib import pgpath
+from pygimplib import pgpdb
+from pygimplib import pgutils
 
 from .. import exportlayers
 from .. import settings_plugin

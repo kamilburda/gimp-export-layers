@@ -31,7 +31,7 @@ import pango
 
 import gimp
 
-from ..pygimplib import pgutils
+from pygimplib import pgutils
 
 #===============================================================================
 

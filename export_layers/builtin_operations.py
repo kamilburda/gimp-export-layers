@@ -27,7 +27,7 @@ from future.builtins import *
 from gimp import pdb
 import gimpenums
 
-from .pygimplib import pgpdb
+from pygimplib import pgpdb
 
 #===============================================================================
 

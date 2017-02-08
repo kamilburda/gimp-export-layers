@@ -30,11 +30,11 @@ import os
 import gimp
 import gimpenums
 
-from . import pygimplib
-from .pygimplib import pgoverwrite
-from .pygimplib import pgpath
-from .pygimplib import pgsetting
-from .pygimplib import pgsettinggroup
+import pygimplib
+from pygimplib import pgoverwrite
+from pygimplib import pgpath
+from pygimplib import pgsetting
+from pygimplib import pgsettinggroup
 
 #===============================================================================
 

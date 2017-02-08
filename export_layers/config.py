@@ -24,7 +24,9 @@ This module defines plug-in configuration.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-from . import pygimplib
+import os
+
+import pygimplib
 
 #===============================================================================
 
@@ -37,6 +39,9 @@ def init():
   pygimplib.config.PLUGIN_NAME = "export_layers"
   
   pygimplib.config.LOG_MODE = pygimplib.pgconstants.LOG_EXCEPTIONS_ONLY
+  pygimplib.config.PLUGIN_SUBDIRPATH = os.path.join(
+    pygimplib.config.PLUGINS_DIRPATH, pygimplib.config.PLUGIN_NAME)
+  
   
   pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
   pygimplib.config.PLUGIN_VERSION = "3.0-RC1"
