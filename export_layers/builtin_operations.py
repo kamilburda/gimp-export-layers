@@ -18,7 +18,7 @@
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-This module defines operations pre-defined in the plug-in.
+This module defines built-in operations for the plug-in.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
