@@ -10,14 +10,14 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="59.356823mm"
-   height="47.413239mm"
-   viewBox="0 0 210.31945 167.99966"
+   width="36.124569mm"
+   height="28.937374mm"
+   viewBox="0 0 128.00044 102.534"
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="image_icon.svg"
-   inkscape:export-filename="C:\Users\khalim\.gimp-2.8\plug-ins - Export Layers\export_layers\image_icon.png"
+   sodipodi:docname="icon_image.svg"
+   inkscape:export-filename="C:\Users\khalim\Downloads\icon_image.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -43,7 +43,7 @@
        x2="253.64287"
        y2="223.43364"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.65727986,0,0,0.89572092,161.50338,30.152029)" />
+       gradientTransform="matrix(0.39552594,0,0,0.53901068,259.0067,133.29407)" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -53,8 +53,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.7473419"
-     inkscape:cx="2.2994711"
-     inkscape:cy="42.207985"
+     inkscape:cx="-136.43683"
+     inkscape:cy="9.4751528"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -75,7 +75,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -83,21 +83,21 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-301.18038,-205.14808)">
+     transform="translate(-342.3399,-237.88091)">
     <rect
-       style="fill:#ffffff;fill-opacity:1;stroke:#808080;stroke-width:5;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#ffffff;fill-opacity:1;stroke:#808080;stroke-width:3.00880933;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect4136"
-       width="207.70946"
-       height="165.38966"
-       x="302.48538"
-       y="206.45308" />
+       width="124.99163"
+       height="99.525192"
+       x="343.8443"
+       y="239.38531" />
     <rect
-       style="fill:url(#linearGradient5592);fill-opacity:1;fill-rule:nonzero;stroke:#6a6a6a;stroke-width:2.30159044;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:url(#linearGradient5592);fill-opacity:1;fill-rule:nonzero;stroke:#6a6a6a;stroke-width:1.38500929;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect4138"
-       width="158.68613"
-       height="122.20194"
-       x="326.99704"
-       y="228.04694"
+       width="95.491257"
+       height="73.536469"
+       x="358.59448"
+       y="252.37967"
        inkscape:export-filename="C:\Users\khalim\Downloads\rect4138.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90" />

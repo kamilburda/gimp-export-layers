@@ -9,13 +9,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="130.77702mm"
-   height="130.77702mm"
-   viewBox="0 0 463.38318 463.38315"
+   width="36.124443mm"
+   height="36.124443mm"
+   viewBox="0 0 128 127.99999"
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="tag_icon.svg"
+   sodipodi:docname="icon_tag.svg"
    inkscape:export-filename="C:\Users\khalim\.gimp-2.8\plug-ins - Export Layers\export_layers\tag_icon.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
@@ -29,8 +29,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="-17.390713"
-     inkscape:cy="375.44393"
+     inkscape:cx="110.91269"
+     inkscape:cy="165.219"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -61,9 +61,10 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(4.278488,-192.7595)">
+     transform="translate(-163.41308,-360.45108)">
     <g
-       id="g4136">
+       id="g4136"
+       transform="matrix(0.27622931,0,0,0.27622931,164.59492,307.20524)">
       <rect
          transform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,0,0)"
          y="-16.103235"
@@ -81,13 +82,14 @@
     <circle
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path4307"
-       cx="461.7182"
-       cy="-33.257713"
-       r="31.112698"
+       cx="461.1532"
+       cy="91.653961"
+       r="8.5942392"
        transform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,0,0)" />
     <g
        id="g4140"
-       style="fill:none;stroke:#ffffff;stroke-width:15;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">
+       style="fill:none;stroke:#ffffff;stroke-width:15;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       transform="matrix(0.27622931,0,0,0.27622931,164.59492,307.20524)">
       <path
          style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:15;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          d="M 444.4082,0 238.07227,20.5 0,258.57227 185.83594,444.4082 423.9082,206.33594 444.4082,0 Z"
