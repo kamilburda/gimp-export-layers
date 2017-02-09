@@ -82,9 +82,9 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._initial_scroll_to_selection = True
     
     self._ICON_IMAGE_FILEPATH = os.path.join(
-      pygimplib.config.PLUGIN_SUBDIRPATH, "icon_image.png")
+      pygimplib.config.PLUGIN_SUBDIRPATH, "images", "icon_image.png")
     self._ICON_TAG_FILEPATH = os.path.join(
-      pygimplib.config.PLUGIN_SUBDIRPATH, "icon_tag.png")
+      pygimplib.config.PLUGIN_SUBDIRPATH, "images", "icon_tag.png")
     
     self._init_gui()
     
