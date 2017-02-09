@@ -11,18 +11,6 @@ Glossary
 Element = module, class, function or variable
 
 
-Naming
-------
-
-Use the following conventions for terms and variables:
-
-| Term             | Variable name | Meaning                               |
-|------------------|---------------|---------------------------------------|
-| File name        | `filename`    | File basename                         |
-| File path        | `filepath`    | Absolute or relative file path        |
-| Directory path   | `dirpath`     | Absolute or relative directory path   |
-
-
 Formatting
 ----------
 
@@ -76,6 +64,50 @@ Use single quotes:
 Use backquotes in element names in comments.
 
 
+Naming
+------
+
+Use the following conventions for terms and variables:
+
+| Term             | Variable name | Meaning                               |
+|------------------|---------------|---------------------------------------|
+| File name        | `filename`    | File basename                         |
+| File path        | `filepath`    | Absolute or relative file path        |
+| Directory path   | `dirpath`     | Absolute or relative directory path   |
+
+
+Imports
+-------
+
+For local modules, use explicit relative imports. For modules forming a library,
+this avoids a dependency on applications using the library.
+
+Import whole modules, do not import individual classes, functions or other
+objects. Exceptions:
+* `from gimp import pdb`
+
+Do not use wildcard imports. Exceptions:
+* `from future.builtins import *` to help improve Python 3 compatibility.
+
+
+Modules
+-------
+
+Module-level statements should only include imports, module docstring and
+definitions of classes, functions and global variables/constants. Avoid
+executing code on the module level if possible.
+
+
+Classes
+-------
+
+### Mixins
+
+Mixins can access and modify only those attributes defined in it.
+
+No other classes may directly modify attributes defined in mixins.
+
+
 Python 3 Compatibility
 ----------------------
 
@@ -90,31 +122,12 @@ Strive to make Python 2 code as compatible as possible with Python 3.
     to maintain.
 
 
-Imports
--------
-
-For local modules, prefer explicit relative imports to absolute imports. For
-modules forming a library, this avoids dependency on the application using the
-library.
-
-Import whole modules, do not import individual classes, functions or other
-objects. Exceptions:
-* `from gimp import pdb`
-
-Do not use wildcard imports. Exceptions:
-* `from future.builtins import *` to help improve Python 3 compatibility.
-
-Module-level statements should only include imports, docstring and definitions
-of classes, functions and global variables/constants. Avoid executing code on
-the module level if possible.
-
-
 Unicode Practices
 -----------------
 
 ### Unicode for Internal Modules
 
-Always use Unicode strings internally.
+Use Unicode strings internally.
 
 ### Unicode for External Modules
 
@@ -127,16 +140,6 @@ GIMP uses UTF-8 encoding. That includes the following functions or attributes:
 GTK uses UTF-8 encoding. Encode strings in UTF-8 for GTK functions as
 [GTK may not fully support Unicode in Python 2]
 (http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html).
-
-
-Classes
--------
-
-### Mixins
-
-Mixins can access and modify only those attributes defined in it.
-
-No other classes should directly modify attributes defined in mixins.
 
 
 ### Methods
