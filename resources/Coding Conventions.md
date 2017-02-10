@@ -79,8 +79,10 @@ Use the following conventions for terms and variables:
 Imports
 -------
 
-For local modules, use explicit relative imports. For modules forming a library,
-this avoids a dependency on applications using the library.
+Import modules at the beginning of a module.
+
+Use explicit relative imports in modules not used as main modules. For modules
+forming a library, this avoids a dependency on applications using the library.
 
 Import whole modules, do not import individual classes, functions or other
 objects. Exceptions:
