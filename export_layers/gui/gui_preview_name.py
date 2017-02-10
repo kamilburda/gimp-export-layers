@@ -80,10 +80,10 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._clearing_preview = False
     self._row_select_interactive = True
     self._initial_scroll_to_selection = True
-    
-    self._ICON_IMAGE_FILEPATH = os.path.join(
+  
+    self._icon_image_filepath = os.path.join(
       pygimplib.config.PLUGIN_SUBDIRPATH, "images", "icon_image.png")
-    self._ICON_TAG_FILEPATH = os.path.join(
+    self._icon_tag_filepath = os.path.join(
       pygimplib.config.PLUGIN_SUBDIRPATH, "images", "icon_tag.png")
     
     self._init_gui()
@@ -248,9 +248,9 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._icons["layer_group"] = self._tree_view.render_icon(
       gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
     self._icons["layer"] = gtk.gdk.pixbuf_new_from_file_at_size(
-      self._ICON_IMAGE_FILEPATH, -1, self._icons["layer_group"].props.height)
+      self._icon_image_filepath, -1, self._icons["layer_group"].props.height)
     self._icons["tag"] = gtk.gdk.pixbuf_new_from_file_at_size(
-      self._ICON_TAG_FILEPATH, -1, self._icons["layer_group"].props.height)
+      self._icon_tag_filepath, -1, self._icons["layer_group"].props.height)
     
     self._icons["exported_layer_group"] = self._icons["layer"].copy()
     

@@ -31,19 +31,19 @@ from future.builtins import *
 
 import gimpenums
 
-import export_layers.config
 from pygimplib import pgitemtree
 from pygimplib import pgconstants
+
+import export_layers.config
+export_layers.config.init()
 
 from export_layers import exportlayers
 from export_layers import settings_plugin
 from export_layers.gui import gui_plugin
 
-#===============================================================================
-
-export_layers.config.init()
-
 pygimplib.init()
+
+#===============================================================================
 
 SETTINGS = settings_plugin.create_settings()
 

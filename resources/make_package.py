@@ -40,16 +40,16 @@ import zipfile
 
 import pathspec
 
-import export_layers.config
 from pygimplib import pgconstants
 from pygimplib import pgpath
 from pygimplib import pgutils
 
-#===============================================================================
-
+import export_layers.config
 export_layers.config.init()
 
 pygimplib.init()
+
+#===============================================================================
 
 RESOURCES_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
 PLUGINS_DIRPATH = os.path.dirname(RESOURCES_DIRPATH)

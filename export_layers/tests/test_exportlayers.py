@@ -28,22 +28,21 @@ import unittest
 from gimp import pdb
 
 import pygimplib
-from .. import config
-
 from pygimplib import pgfileformats
 from pygimplib import pgitemtree
 from pygimplib import pgpath
 from pygimplib import pgpdb
 from pygimplib import pgutils
 
+from .. import config
+config.init()
+
 from .. import exportlayers
 from .. import settings_plugin
 
-#===============================================================================
-
-config.init()
-
 pygimplib.init()
+
+#===============================================================================
 
 _CURRENT_MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
 RESOURCES_DIRPATH = os.path.join(

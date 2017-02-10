@@ -38,13 +38,13 @@ import io
 import os
 import re
 
-import export_layers.config
 from pygimplib import pgconstants
 from pygimplib import pgutils
 
-#===============================================================================
-
+import export_layers.config
 export_layers.config.init()
+
+#===============================================================================
 
 pygimplib.init()
 
