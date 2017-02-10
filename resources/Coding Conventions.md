@@ -92,12 +92,22 @@ Do not use wildcard imports. Exceptions:
 * `from future.builtins import *` to help improve Python 3 compatibility.
 
 
-Modules
--------
+Executing Code
+--------------
 
-Module-level statements should only include imports, module docstring and
-definitions of classes, functions and global variables/constants. Avoid
-executing code on the module level if possible.
+Do not execute code on the module or class level. In particular:
+* Do not execute functions from the GIMP API or PDB as they are not fully
+initialized and it causes the application to crash.
+* Do not call the `_` function to mark module- or class-level strings as
+translatable. You need to defer the translation until the strings are used in
+the local scope. Define `N_` as a function to mark the strings as translatable
+and then use the `_` function in the local scope to perform the actual
+translation.
+
+Exceptions to this rule include:
+* initializing variables or constants,
+* initializing application configuration,
+* initializing a package or a library.
 
 
 Classes
