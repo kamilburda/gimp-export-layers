@@ -47,24 +47,29 @@ def log_output(
   
   * `log_mode` - log mode. Possible values:
   
-    * EXCEPTIONS_ONLY - only log exceptions to the error log file.
-    * DEBUG_FILE - redirect stdout and stderr to log files.
-    * DEBUG_GIMP_CONSOLE - redirect stdout and stderr to the GIMP error console.
+    * LOG_EXCEPTIONS_ONLY - only log exceptions to the error log file.
+    * LOG_OUTPUT_FILES - redirect stdout and stderr to log files.
+    * LOG_OUTPUT_GIMP_CONSOLE - redirect stdout and stderr to the GIMP error
+      console.
   
   * `log_dirpaths` - list of directory paths for log files. If the first
     path is invalid or permission to write is denied, subsequent directories are
-    used. For `DEBUG_FILE` mode, only the first directory is used. For
-    `DEBUG_GIMP_CONSOLE` mode, this parameter has no effect.
+    used. For `LOG_OUTPUT_FILES` mode, only the first directory is used. For
+    `LOG_OUTPUT_GIMP_CONSOLE` mode, this parameter has no effect.
   
   * `log_stdout_filename` - filename of the log file to write standard output
-    to. Applies to `DEBUG_FILE` mode only.
+    to. Applies to `LOG_OUTPUT_FILES` mode only.
   
   * `log_stderr_filename` - filename of the log file to write error output to.
-    Applies to `EXCEPTIONS_ONLY` and `DEBUG_FILE` modes only.
+    Applies to `LOG_EXCEPTIONS_ONLY` and `LOG_OUTPUT_FILES` modes only.
   
   * `log_header_title` - optional title in the log header, written before the
-    first output to the log files. Applies to `EXCEPTIONS_ONLY` and `DEBUG_FILE`
-    modes only.
+    first output to the log files. Applies to `LOG_EXCEPTIONS_ONLY` and
+    `LOG_OUTPUT_FILES` modes only.
+  
+  * `gimp_console_message_delay_milliseconds` - delay to display messages to the
+    GIMP console in milliseconds. Only applies to the `LOG_OUTPUT_GIMP_CONSOLE`
+    log mode.
   """
   
   if log_mode == pgconstants.LOG_EXCEPTIONS_ONLY:
