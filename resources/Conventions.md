@@ -1,8 +1,8 @@
-Coding Conventions
-==================
+Conventions
+===========
 
-This document describes coding conventions that may not be obvious from the code
-itself.
+This document contains conventions to be followed when contributing to
+Export Layers.
 
 
 Glossary
@@ -11,8 +11,12 @@ Glossary
 Element = module, class, function or variable
 
 
-Formatting
-----------
+Coding Conventions
+------------------
+
+This section describes coding conventions that may not be obvious from the code
+itself.
+
 
 ### Line length
 
@@ -64,8 +68,7 @@ Use single quotes:
 Use backquotes in element names in comments.
 
 
-Naming
-------
+### Naming
 
 Use the following conventions for terms and variables:
 
@@ -76,8 +79,7 @@ Use the following conventions for terms and variables:
 | Directory path   | `dirpath`     | Absolute or relative directory path   |
 
 
-Imports
--------
+### Imports
 
 Import modules at the beginning of a module.
 
@@ -92,8 +94,7 @@ Do not use wildcard imports. Exceptions:
 * `from future.builtins import *` to help improve Python 3 compatibility.
 
 
-Executing Code
---------------
+### Executing Code
 
 Do not execute code on the module or class level. In particular:
 * Do not execute functions from the GIMP API or PDB as they are not fully
@@ -110,18 +111,21 @@ Exceptions to this rule include:
 * initializing a package or a library.
 
 
-Classes
--------
-
-### Mixins
+### Classes
 
 Mixins can access and modify only those attributes defined in it.
 
 No other classes may directly modify attributes defined in mixins.
 
 
-Python 3 Compatibility
-----------------------
+### Methods
+
+Use `@classmethod` for methods using class variables only.
+Use `@staticmethod` for methods not using instance or class variables and
+logically belonging to the class.
+
+
+### Python 3 Compatibility
 
 Strive to make Python 2 code as compatible as possible with Python 3.
 * At the beginning of each module, import the `__future__` statements and the
@@ -134,14 +138,9 @@ Strive to make Python 2 code as compatible as possible with Python 3.
     to maintain.
 
 
-Unicode Practices
------------------
-
-### Unicode for Internal Modules
+### Unicode
 
 Use Unicode strings internally.
-
-### Unicode for External Modules
 
 GIMP uses UTF-8 encoding. That includes the following functions or attributes:
 * image name and item name (layer, channel, etc.),
@@ -154,14 +153,7 @@ GTK uses UTF-8 encoding. Encode strings in UTF-8 for GTK functions as
 (http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html).
 
 
-### Methods
-
-Use `@classmethod` for methods using class variables only. Use `@staticmethod` for methods not using instance or class variables and logically belonging to the
-class.
-
-
-GTK
----
+### GTK
 
 When creating a `gtk.TreeView`, `bytes` apparently cannot be used as a column
 type for strings due to the usage of the `future` library. Use
