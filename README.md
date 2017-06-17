@@ -29,7 +29,7 @@ You can report issues, ask questions or request new features:
 Translations
 ------------
 
-If you would like to provide translations, see [README for Translators](README%20for%20Translators.md) for
+If you would like to provide translations, see [README for Translators](README_for_Translators.md) for
 instructions.
 
 
