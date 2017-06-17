@@ -12,11 +12,10 @@ layer.
 * Misc. adjustments of GUI elements (size and spacing).
 
 Major additions and redesign of the "advanced" user interface:
-* Added option to rename layers according to a pattern (defaulting to the layer
-name).
+* Added option to rename layers according to a pattern (default: layer name).
 * Removed GUI elements for "advanced" settings.
-* Added option to add back the "advanced" settings as operations or filters via
-"Add Operation..." and "Add Filter..." boxes.
+* Added option to add back the "advanced" settings as operations and filters via
+"Add Operation..." and "Add Filter..." boxes, respectively.
 * Added preview displaying layer names to be exported.
 * Added image preview of the layer selected in the layer name preview.
 * Removed the option to tag layers by renaming layers. Instead, layers can now
