@@ -14,8 +14,13 @@ Element = module, class, function or variable
 Coding Conventions
 ------------------
 
-This section describes coding conventions that may not be obvious from the code
-itself.
+Use PEP8 and PyLint to enforce coding conventions with their respective
+configuration files:
+* [PEP8 for PyDev](PyDev/org.python.pydev.analysis.yaml)
+* [PyLint](PyLint/pylintrc)
+
+Additional conventions that override or complement the conventions in the
+aforementioned utilities are specified below.
 
 
 ### Line length
