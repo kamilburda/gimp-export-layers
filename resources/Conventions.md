@@ -4,6 +4,9 @@ Conventions
 This document contains conventions to be followed when contributing to
 Export Layers.
 
+* [Coding Conventions](#Coding-Conventions)
+* [Writing Commit Messages](#Writing-Commit-Messages)
+
 
 Glossary
 --------
@@ -11,7 +14,7 @@ Glossary
 Element = module, class, function or variable
 
 
-Coding Conventions
+Coding Conventions <a name="Coding-Conventions"></a>
 ------------------
 
 Use PEP8 and PyLint to enforce coding conventions with their respective
@@ -164,3 +167,55 @@ When creating a `gtk.TreeView`, `bytes` apparently cannot be used as a column
 type for strings due to the usage of the `future` library. Use
 `GObject.TYPE_STRING` instead. For consistency, always use `GObject` types for
 column types instead of Python types if such `GObject` types exist.
+
+
+Writing Commit Messages <a name="Writing-Commit-Messages"></a>
+-----------------------
+
+This section explains how to write good commit messages. The conventions are
+based on the following guidelines:
+* [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/)
+* [Git commit message](https://github.com/joelparkerhenderson/git_commit_message)
+
+
+### General
+
+* Each commit should change one and one thing only. For example, a bug fix and
+refactoring a function result in separate commits.
+* Create separate commits for modifying a subtree/submodule and the parent
+repository.
+
+
+### Formatting
+
+Use the following format for commit messages:
+
+    <scope>: <header>
+    
+    <body>
+
+* Limit the first line to 70 characters. Recommended length is 50 characters.
+* Do not end the first line with a period.
+* Begin the header with a verb in the imperative with a capital letter.
+* Be concise. Limit the message to the first line unless further explanation is
+required.
+* Wrap the message body in 72 characters.
+* Enclose element names with backquotes.
+
+
+#### Scope
+
+Scope in the first line is optional, but highly recommended.
+
+Use one of the following types of scope (ordered from the most preferred):
+* subtree/submodule name
+* package name
+* module name
+* filename without extension
+
+#### Verbs
+
+The usage of leading verbs in the message header are not restricted, except for
+the following verbs, which should only be used in specific circumstances:
+* Fix - bug fixes
+* Correct - corrections of typos, grammar errors
