@@ -150,13 +150,11 @@ Strive to make Python 2 code as compatible as possible with Python 3.
 
 Use Unicode strings internally.
 
-GIMP uses UTF-8 encoding. That includes the following functions or attributes:
-* image name and item name (layer, channel, etc.),
-* `PDB_STRING*` parameters to PDB procedures,
-* `gimp.get_data()`, used by the GIMP shelf, can apparently handle Unicode
-  (as it uses the `pickle` module), but encode/decode with UTF-8 just in case.
-
-GTK uses UTF-8 encoding. Encode strings in UTF-8 for GTK functions as
+Encode/decode Unicode strings when accessing the following external libraries:
+* GIMP - use UTF-8 encoding. Encoding applies to:
+  * `PDB_STRING*` parameters to PDB procedures,
+  * functions and object attributes provided by Python GIMP API.
+* GTK - use UTF-8 encoding. Encoding may be necessary as
 [GTK may not fully support Unicode in Python 2]
 (http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html).
 
