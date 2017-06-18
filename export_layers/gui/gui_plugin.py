@@ -845,7 +845,8 @@ class ExportLayersGui(object):
       self._layer_exporter = None
       self._is_exporting = False
     
-    if overwrite_chooser.overwrite_mode != pgoverwrite.OverwriteModes.CANCEL:
+    if (overwrite_chooser.overwrite_mode
+        in self._settings["main/overwrite_mode"].items.values()):
       self._settings["main/overwrite_mode"].set_value(overwrite_chooser.overwrite_mode)
     
     pgsettingpersistor.SettingPersistor.save(
@@ -866,7 +867,7 @@ class ExportLayersGui(object):
     overwrite_chooser = pggui.GtkDialogOverwriteChooser(
       self._get_overwrite_dialog_items(),
       default_value=self._settings["main/overwrite_mode"].items["replace"],
-      default_response=self._settings["main/overwrite_mode"].items["cancel"],
+      default_response=pgoverwrite.OverwriteModes.CANCEL,
       title=pygimplib.config.PLUGIN_TITLE,
       parent=self._dialog)
     
@@ -885,16 +886,9 @@ class ExportLayersGui(object):
     return overwrite_chooser, progress_updater
   
   def _get_overwrite_dialog_items(self):
-    item_value_cancel = self._settings["main/overwrite_mode"].items['cancel']
-    item_display_name_cancel = (
-      self._settings["main/overwrite_mode"].items_display_names['cancel'])
-    
     return list(zip(
-      [item_value for item_value in self._settings["main/overwrite_mode"].items.values()
-       if item_value != item_value_cancel],
-      [item_display_name_value for item_display_name_value
-       in self._settings["main/overwrite_mode"].items_display_names.values()
-       if item_display_name_value != item_display_name_cancel]))
+      self._settings["main/overwrite_mode"].items.values(),
+      self._settings["main/overwrite_mode"].items_display_names.values()))
   
   def _restore_gui_after_export(self):
     self._set_gui_enabled(True)

@@ -151,8 +151,7 @@ def create_settings():
         ("skip", _("_Skip"), pgoverwrite.OverwriteModes.SKIP),
         ("rename_new", _("Rename _new file"), pgoverwrite.OverwriteModes.RENAME_NEW),
         ("rename_existing", _("Rename _existing file"),
-         pgoverwrite.OverwriteModes.RENAME_EXISTING),
-        ("cancel", _("_Cancel"), pgoverwrite.OverwriteModes.CANCEL)],
+         pgoverwrite.OverwriteModes.RENAME_EXISTING)],
       "display_name": _("Overwrite mode (non-interactive run mode only)")
     },
   ])
