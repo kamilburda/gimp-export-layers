@@ -19,6 +19,9 @@ from future.builtins import *
 
 import unittest
 
+import mock
+
+from .. import pgconstants
 from .. import pgoverwrite
 
 #===============================================================================
@@ -72,3 +75,32 @@ class TestInteractiveOverwriteChooser(unittest.TestCase):
     self.overwrite_chooser.set_overwrite_mode(-1)
     self.overwrite_chooser.choose()
     self.assertEqual(self.overwrite_chooser.overwrite_mode, self.default_response)
+
+
+#===============================================================================
+
+
+class TestHandleOverwrite(unittest.TestCase):
+  
+  def setUp(self):
+    self.filepath = "/test/image.png"
+    self.overwrite_chooser = pgoverwrite.NoninteractiveOverwriteChooser(
+      pgoverwrite.OverwriteModes.REPLACE)
+  
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgoverwrite.os.path.exists")
+  def test_handle_overwrite_file_exists(self, mock_os_path_exists):
+    mock_os_path_exists.return_value = True
+    
+    self.assertEqual(
+      pgoverwrite.handle_overwrite(self.filepath, self.overwrite_chooser),
+      (self.overwrite_chooser.overwrite_mode, self.filepath))
+  
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgoverwrite.os.path.exists")
+  def test_handle_overwrite_file_does_not_exist(self, mock_os_path_exists):
+    mock_os_path_exists.return_value = False
+    
+    self.assertEqual(
+      pgoverwrite.handle_overwrite(self.filepath, self.overwrite_chooser),
+      (pgoverwrite.OverwriteModes.DO_NOTHING, self.filepath))

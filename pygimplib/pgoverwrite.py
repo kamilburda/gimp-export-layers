@@ -207,4 +207,6 @@ def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
       else:
         os.rename(filepath, uniq_filepath)
   
-  return overwrite_chooser.overwrite_mode, filepath
+    return overwrite_chooser.overwrite_mode, filepath
+  else:
+    return OverwriteModes.DO_NOTHING, filepath
