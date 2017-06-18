@@ -159,6 +159,13 @@ class InteractiveOverwriteChooser(
 class OverwriteModes(object):
   """
   This class defines common overwrite modes for convenience.
+  
+  `SKIP` should be used if a file path already exists and no action should be
+  taken.
+  `DO_NOTHING` should be used if a file path does not exist and no action should
+  be taken.
+  `CANCEL` should be used if the user terminated the overwrite chooser (e.g.
+  closed the overwrite dialog when an interactive chooser is used).
   """
   
   OVERWRITE_MODES = REPLACE, SKIP, RENAME_NEW, RENAME_EXISTING, CANCEL, DO_NOTHING = (
