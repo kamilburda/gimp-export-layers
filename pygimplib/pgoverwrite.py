@@ -161,7 +161,8 @@ class OverwriteModes(object):
   This class defines common overwrite modes for convenience.
   """
   
-  OVERWRITE_MODES = REPLACE, SKIP, RENAME_NEW, RENAME_EXISTING, CANCEL = (0, 1, 2, 3, 4)
+  OVERWRITE_MODES = REPLACE, SKIP, RENAME_NEW, RENAME_EXISTING, CANCEL, DO_NOTHING = (
+    0, 1, 2, 3, 4, 5)
 
 
 def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
