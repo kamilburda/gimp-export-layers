@@ -139,6 +139,7 @@ def handle_gui_in_export(run_mode, image, layer, output_filepath, window):
   should_manipulate_window = run_mode == gimpenums.RUN_INTERACTIVE
   
   if should_manipulate_window:
+    window_position = window.get_position()
     window.hide()
   while gtk.events_pending():
     gtk.main_iteration()
@@ -147,6 +148,7 @@ def handle_gui_in_export(run_mode, image, layer, output_filepath, window):
     yield
   finally:
     if should_manipulate_window:
+      window.move(*window_position)
       window.show()
     while gtk.events_pending():
       gtk.main_iteration()
