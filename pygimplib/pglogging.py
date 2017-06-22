@@ -93,18 +93,24 @@ def _redirect_exception_output_to_file(
   logger = logging.getLogger(log_filename)
   logger.setLevel(logging.DEBUG)
   
-  can_log = _logger_add_file_handler(
-    logger, [os.path.join(log_dirpath, log_filename) for log_dirpath in log_dirpaths])
-  if can_log:
-    # Pass the `logger` instance to the function to make sure it is not None.
-    # More information at:
-    # http://stackoverflow.com/questions/5451746/sys-excepthook-doesnt-work-in-imported-modules/5477639
-    # http://bugs.python.org/issue11705
-    def log_exceptions(exctype, value, traceback, logger=logger):
-      logger.error(
-        get_log_header(log_header_title), exc_info=(exctype, value, traceback))
-    
-    sys.excepthook = log_exceptions
+  # Pass the `logger` instance to the function to make sure it is not None.
+  # More information at:
+  # http://stackoverflow.com/questions/5451746/sys-excepthook-doesnt-work-in-imported-modules/5477639
+  # http://bugs.python.org/issue11705
+  def log_exception(exctype, value, traceback, logger=logger):
+    logger.error(
+      get_log_header(log_header_title), exc_info=(exctype, value, traceback))
+  
+  def log_exception_first_time(exctype, value, traceback, logger=logger):
+    can_log = _logger_add_file_handler(
+      logger, [os.path.join(log_dirpath, log_filename) for log_dirpath in log_dirpaths])
+    if can_log:
+      log_exception(exctype, value, traceback, logger=logger)
+      sys.excepthook = log_exception
+    else:
+      sys.excepthook = sys.__excepthook__
+  
+  sys.excepthook = log_exception_first_time
 
 
 def _logger_add_file_handler(logger, log_filepaths):
