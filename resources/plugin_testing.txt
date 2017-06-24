@@ -57,7 +57,7 @@ Non-interactive
 
 import os
 image = gimp.image_list()[0]
-pdb.plug_in_export_layers(image, 'png', os.path.join(gimp.directory, "test_export_layers", "Test"), False, False, False, "", False, 0, run_mode=RUN_NONINTERACTIVE)
+pdb.plug_in_export_layers(image, 'png', os.path.join(gimp.directory, "test_export_layers", "Test"), False, False, False, "", 0, run_mode=RUN_NONINTERACTIVE)
 
 
 Run-with-last-vals
@@ -67,7 +67,7 @@ Run-with-last-vals
 
 import os
 image = gimp.image_list()[0]
-pdb.plug_in_export_layers(image, 'png', os.path.join(gimp.directory, "test_export_layers", "Test"), False, False, False, "", False, 0, run_mode=RUN_WITH_LAST_VALS)
+pdb.plug_in_export_layers(image, 'png', os.path.join(gimp.directory, "test_export_layers", "Test"), False, False, False, "", 0, run_mode=RUN_WITH_LAST_VALS)
 
 
 pdb.plug_in_export_layers_repeat(image)
