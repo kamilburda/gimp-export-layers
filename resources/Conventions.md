@@ -217,6 +217,9 @@ Use one of the following types of scope (ordered from the most preferred):
 * module name
 * filename without extension
 
+To indicate a more detailed scope, use ".", e.g. `gui.settings: ...`.
+
+
 #### Verbs
 
 The usage of leading verbs in the message header are not restricted, except for
