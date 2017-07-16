@@ -108,6 +108,7 @@ Do not execute code on the module or class level. Exceptions to this rule includ
 * initializing variables or constants,
 * initializing application configuration,
 * initializing a package or a library,
+* standalone scripts such as test runners, git hooks, etc.
 
 Do not execute functions from the GIMP API or PDB on the module or class level
 as they are not fully initialized yet and it causes the application to crash.
