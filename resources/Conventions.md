@@ -175,6 +175,11 @@ based on the following guidelines:
 * [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/)
 * [Git commit message](https://github.com/joelparkerhenderson/git_commit_message)
 
+Some conventions can be automatically enforced by a
+[custom git `commit-msg` hook script](git/hooks/commit_msg.py).
+These conventions are marked by a trailing "*". To install the hook script, copy
+the script to the `.git/hooks` directory and rename it to `commit-msg`.
+
 
 ### General
 
@@ -186,18 +191,19 @@ repository.
 
 ### Formatting
 
-Use the following format for commit messages:
+Use the following format for commit messages*:
 
     <scope>: <header>
     
     <body>
 
-* Limit the first line to 70 characters. Recommended length is 50 characters.
-* Do not end the first line with a period.
-* Begin the header with a verb in the imperative with a capital letter.
+* Limit the first line to 70 characters*. Recommended length is 50 characters.
+* Do not end the first line with a period*.
+* Begin the header with a verb in the imperative.
+* Begin the header with a capital letter*.
 * Be concise. Limit the message to the first line unless further explanation is
 required.
-* Wrap the message body in 72 characters.
+* Wrap the message body in 72 characters*.
 * Enclose element names with backquotes.
 
 
