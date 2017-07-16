@@ -120,6 +120,25 @@ and then use the `_` function in the local scope to perform the actual
 translation.
 
 
+#### Execution in `__main__`
+
+Execution of code inside `__main__` must be enclosed in a function in order to
+avoid introducing global variables.
+The name of the enclosing function should be `main()`.
+
+Wrong:
+    
+    if __name__ == "__main__":
+      # code
+
+Right:
+    
+    def main():
+      # code
+    
+    if __name__ == "__main__":
+      main()
+
 
 ### Classes
 
