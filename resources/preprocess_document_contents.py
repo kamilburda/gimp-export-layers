@@ -51,7 +51,7 @@ pygimplib.init()
 RESOURCES_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
 PLUGINS_DIRPATH = os.path.dirname(RESOURCES_DIRPATH)
 
-RESOURCES_PAGE_DIRPATH = os.path.join(RESOURCES_DIRPATH, "GitHub page")
+RESOURCES_PAGE_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "GitHub page")
 PAGE_DIRPATH = os.path.join(
   os.path.dirname(PLUGINS_DIRPATH), "plug-ins - Export Layers - GitHub page")
 
