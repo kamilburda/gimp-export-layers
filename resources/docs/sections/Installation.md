@@ -1,13 +1,3 @@
-Contents
---------
-
-1. [Requirements](#requirements)
-2. [Windows](#windows)
-3. [Linux](#linux)
-4. [OS X](#os-x)
-5. [Upgrading to 3.0](#upgrading-to-30)
-
-
 Requirements
 ------------
 

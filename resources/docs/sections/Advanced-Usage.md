@@ -1,12 +1,3 @@
-Contents
---------
-
-1. [Dialog](#dialog)
-2. [Customizing Layer Names](#customizing-layer-names)
-3. [Additional Operations](#additional-operations)
-4. [Additional Constraints](#additional-constraints)
-5. [Tagging Layers](#tagging-layers)
-
 Dialog
 ------
 
