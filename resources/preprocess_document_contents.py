@@ -19,15 +19,21 @@
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-This script pre-processes documents (readmes, sites), replacing special tokens
-with the corresponding content. For example,
-`{% include-section "README.md/Features" %}` replaces the token with the section
-"Features" from `README.md`.
+This script pre-processes documents (readmes, sites), replacing specially
+formatted lines containing a command and arguments with the corresponding
+content.
 
-Optional arguments to "include-section":
-* [index] or [start index:end index] - pick chosen sentence(s) from sections
-  using Python slice notation
-* [no-header] - exclude section header
+Currently only the following command is provided:
+* `{% include-section <relative file path>:<section>[arguments]... %}`:
+  replaces the line with the section from the specified file. For example,
+  `{% include-section README.md:Features %}` replaces the line with the
+  contents of the section "Features" from the file `README.md` in the same
+  directory as the file containing this line.
+  
+  Optional arguments to `include-section`:
+  * `[index]` or `[start index:end index]`: pick chosen sentence(s) from
+    sections using Python slice notation
+  * `[no-header]` - exclude section header
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
