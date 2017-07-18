@@ -55,31 +55,35 @@ pygimplib.init()
 #===============================================================================
 
 
-def preprocess_contents(source_filepaths, dest_filepaths):
+def preprocess_contents(source_filepaths, dest_filepaths, insert_markdownify_tag):
   for source_filepath, dest_filepath in zip(source_filepaths, dest_filepaths):
     with io.open(source_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
       source_file_contents = file_.read()
     
-    preprocessed_contents = _preprocess_contents(source_filepath, source_file_contents)
+    preprocessed_contents = _preprocess_contents(
+      source_filepath, source_file_contents, insert_markdownify_tag)
     
     with io.open(dest_filepath, "w", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
       file_.writelines(preprocessed_contents)
 
 
-def _preprocess_contents(source_filepath, contents):
-  for match in list(re.finditer(r"( *)(\{% include-section (.*?) %\})", contents)):
+def _preprocess_contents(source_filepath, file_contents, insert_markdownify_tag):
+  for match in list(re.finditer(r"( *)(\{% include-section (.*?) %\})", file_contents)):
     token_args = _parse_token_args(source_filepath, "include-section", match.group(3))
-    section = _process_token_args("include-section", token_args)
+    section_contents = _process_token_args("include-section", token_args)
     
-    leading_spacing = match.group(1)
-    dest_contents = (
-      "{% capture markdown-insert %}\n"
-      + section + "\n" + leading_spacing
-      + "{% endcapture %}"
-      + "\n" + leading_spacing + "{{ markdown-insert | markdownify }}")
-    contents = contents.replace(match.group(2), dest_contents, 1)
+    if insert_markdownify_tag:
+      leading_spacing = match.group(1)
+      dest_contents = (
+        "{% capture markdown-insert %}\n"
+        + section_contents + "\n" + leading_spacing
+        + "{% endcapture %}"
+        + "\n" + leading_spacing + "{{ markdown-insert | markdownify }}")
+      file_contents = file_contents.replace(match.group(2), dest_contents, 1)
+    else:
+      file_contents = file_contents.replace(match.group(2), section_contents, 1)
   
-  return contents
+  return file_contents
 
 
 def _parse_token_args(source_filepath, token_name, token_args_str):
@@ -230,7 +234,7 @@ _TOKEN_ARG_FUNCS = {
 #===============================================================================
 
 
-def main(source_dirpath, dest_dirpath):
+def main(source_dirpath, dest_dirpath, insert_markdownify_tag=True):
   source_relative_filepaths = []
   for root, unused_, filenames in os.walk(source_dirpath):
     for filename in filenames:
@@ -241,7 +245,8 @@ def main(source_dirpath, dest_dirpath):
     [os.path.join(source_dirpath, relative_filepath)
      for relative_filepath in source_relative_filepaths],
     [os.path.join(dest_dirpath, relative_filepath)
-     for relative_filepath in source_relative_filepaths])
+     for relative_filepath in source_relative_filepaths],
+    insert_markdownify_tag)
 
 
 if __name__ == "__main__":
