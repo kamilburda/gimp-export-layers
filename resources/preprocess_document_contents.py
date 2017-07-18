@@ -59,79 +59,6 @@ PAGE_DIRPATH = os.path.join(
 #===============================================================================
 
 
-def _parse_sentence_indices(arg_str):
-  sentence_indices_str = arg_str.split(":")
-  sentence_indices = []
-  for index_str in sentence_indices_str:
-    try:
-      index = int(index_str)
-    except (ValueError, TypeError):
-      index = None
-    sentence_indices.append(index)
-  
-  return sentence_indices
-
-
-def _get_sentences_from_section(section_header, section_contents, sentence_indices):
-  if sentence_indices:
-    sentences = re.split(r"(\.[ \n])", section_contents)
-    
-    if len(sentence_indices) == 1:
-      section_sentences = sentences[sentence_indices[0]]
-      if sentence_indices[0] < len(sentences) - 1:
-        section_sentences += sentences[sentence_indices[0] + 1]
-      
-      return section_header, section_sentences
-    elif len(sentence_indices) == 2:
-      section_sentences = "" if sentence_indices[0] == 0 else "\n"
-      sentence_index = sentence_indices[0]
-      if not sentence_indices[1]:
-        sentence_indices[1] = len(sentences)
-      
-      while sentence_index < sentence_indices[1]:
-        section_sentences += sentences[sentence_index]
-        if sentence_index < len(sentences) - 1:
-          section_sentences += sentences[sentence_index + 1]
-          sentence_index += 1
-        sentence_index += 1
-      
-      return section_header, section_sentences
-  
-  return section_header, section_contents
-
-
-def _strip_section_header(section_header, section_contents, should_strip_header):
-  if should_strip_header:
-    return "", section_contents
-  else:
-    return section_header, section_contents
-
-
-#===============================================================================
-
-
-class TokenArgItem(object):
-  
-  def __init__(self, token_arg_match_pattern, parse_func, process_func):
-    self.token_arg_match_pattern = token_arg_match_pattern
-    self.parse_func = parse_func
-    self.process_func = process_func
-    
-    self.parse_func_retvals = []
-
-
-_TOKEN_ARG_FUNCS = {
-  "include-section": [
-    TokenArgItem(
-      r"[0-9]+:?[0-9]*", _parse_sentence_indices, _get_sentences_from_section),
-    TokenArgItem(
-      r"no-header", lambda arg_str: arg_str == "no-header", _strip_section_header)
-  ]
-}
-
-#===============================================================================
-
-
 def preprocess_contents(source_filepaths, dest_filepaths, root_dirpath):
   for source_filepath, dest_filepath in zip(source_filepaths, dest_filepaths):
     with io.open(source_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
@@ -222,6 +149,76 @@ def _find_section(contents, section_name):
   
   return section_header, section_contents
 
+
+#===============================================================================
+
+
+def _parse_sentence_indices(arg_str):
+  sentence_indices_str = arg_str.split(":")
+  sentence_indices = []
+  for index_str in sentence_indices_str:
+    try:
+      index = int(index_str)
+    except (ValueError, TypeError):
+      index = None
+    sentence_indices.append(index)
+  
+  return sentence_indices
+
+
+def _get_sentences_from_section(section_header, section_contents, sentence_indices):
+  if sentence_indices:
+    sentences = re.split(r"(\.[ \n])", section_contents)
+    
+    if len(sentence_indices) == 1:
+      section_sentences = sentences[sentence_indices[0]]
+      if sentence_indices[0] < len(sentences) - 1:
+        section_sentences += sentences[sentence_indices[0] + 1]
+      
+      return section_header, section_sentences
+    elif len(sentence_indices) == 2:
+      section_sentences = "" if sentence_indices[0] == 0 else "\n"
+      sentence_index = sentence_indices[0]
+      if not sentence_indices[1]:
+        sentence_indices[1] = len(sentences)
+      
+      while sentence_index < sentence_indices[1]:
+        section_sentences += sentences[sentence_index]
+        if sentence_index < len(sentences) - 1:
+          section_sentences += sentences[sentence_index + 1]
+          sentence_index += 1
+        sentence_index += 1
+      
+      return section_header, section_sentences
+  
+  return section_header, section_contents
+
+
+def _strip_section_header(section_header, section_contents, should_strip_header):
+  if should_strip_header:
+    return "", section_contents
+  else:
+    return section_header, section_contents
+
+
+class TokenArgItem(object):
+  
+  def __init__(self, token_arg_match_pattern, parse_func, process_func):
+    self.token_arg_match_pattern = token_arg_match_pattern
+    self.parse_func = parse_func
+    self.process_func = process_func
+    
+    self.parse_func_retvals = []
+
+
+_TOKEN_ARG_FUNCS = {
+  "include-section": [
+    TokenArgItem(
+      r"[0-9]+:?[0-9]*", _parse_sentence_indices, _get_sentences_from_section),
+    TokenArgItem(
+      r"no-header", lambda arg_str: arg_str == "no-header", _strip_section_header)
+  ]
+}
 
 #===============================================================================
 
