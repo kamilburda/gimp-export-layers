@@ -101,8 +101,6 @@ def _parse_token_args(source_filepath, token_name, token_args_str):
     os.path.join(
       os.path.dirname(source_filepath), *document_relative_filepath_components))
   
-  print(document_filepath)
-  
   token_args = [document_filepath, document_section_name]
   
   for token_arg_item in _TOKEN_ARG_FUNCS[token_name]:
