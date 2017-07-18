@@ -65,11 +65,12 @@ def _preprocess_contents(contents, root_dirpath):
     token_args = _parse_token_args("include-section", match.group(3), root_dirpath)
     section = _process_token_args("include-section", token_args)
     
+    leading_spacing = match.group(1)
     dest_contents = (
       "{% capture markdown-insert %}\n"
-      + section + "\n" + match.group(1)
+      + section + "\n" + leading_spacing
       + "{% endcapture %}"
-      + "\n" + match.group(1) + "{{ markdown-insert | markdownify }}")
+      + "\n" + leading_spacing + "{{ markdown-insert | markdownify }}")
     contents = contents.replace(match.group(2), dest_contents, 1)
   
   return contents
