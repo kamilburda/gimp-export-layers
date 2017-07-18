@@ -37,24 +37,14 @@ from future.builtins import *
 import io
 import os
 import re
+import sys
 
 from pygimplib import pgconstants
-from pygimplib import pgutils
 
 import export_layers.config
 export_layers.config.init()
 
-#===============================================================================
-
 pygimplib.init()
-
-RESOURCES_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
-PLUGINS_DIRPATH = os.path.dirname(RESOURCES_DIRPATH)
-
-RESOURCES_PAGE_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "GitHub page")
-PAGE_DIRPATH = os.path.join(
-  os.path.dirname(PLUGINS_DIRPATH), "plug-ins - Export Layers - GitHub page")
-
 
 #===============================================================================
 
@@ -223,30 +213,30 @@ _TOKEN_ARG_FUNCS = {
 #===============================================================================
 
 
-def main():
-  resources_filepaths = []
-  for root, unused_, filenames in os.walk(RESOURCES_PAGE_DIRPATH):
+def main(source_dirpath, dest_dirpath, root_dirpath):
+  source_relative_filepaths = []
+  for root, unused_, filenames in os.walk(source_dirpath):
     for filename in filenames:
-      resources_filepaths.append(
+      source_relative_filepaths.append(
         os.path.normpath(
-          os.path.join(os.path.relpath(root, RESOURCES_PAGE_DIRPATH), filename)))
+          os.path.join(os.path.relpath(root, source_dirpath), filename)))
   
-  resources_filepaths_to_process = []
-  for resources_filepath in resources_filepaths:
-    if os.path.isfile(os.path.join(PAGE_DIRPATH, resources_filepath)):
-      resources_filepaths_to_process.append(resources_filepath)
+  filepaths_to_process = []
+  for source_relative_filepath in source_relative_filepaths:
+    if os.path.isfile(os.path.join(dest_dirpath, source_relative_filepath)):
+      filepaths_to_process.append(source_relative_filepath)
     else:
       print(
         'Warning: File "{0}" found in resources but not in destination directory'.format(
-          os.path.join(RESOURCES_PAGE_DIRPATH, resources_filepath)))
+          os.path.join(source_dirpath, source_relative_filepath)))
   
   preprocess_contents(
-    [os.path.join(RESOURCES_PAGE_DIRPATH, resources_filepath)
-     for resources_filepath in resources_filepaths_to_process],
-    [os.path.join(PAGE_DIRPATH, resources_filepath)
-     for resources_filepath in resources_filepaths_to_process],
-    PLUGINS_DIRPATH)
+    [os.path.join(source_dirpath, filepath)
+     for filepath in filepaths_to_process],
+    [os.path.join(dest_dirpath, filepath)
+     for filepath in filepaths_to_process],
+    root_dirpath)
 
 
 if __name__ == "__main__":
-  main()
+  main(*sys.argv[:3])
