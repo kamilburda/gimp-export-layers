@@ -230,20 +230,11 @@ def main(source_dirpath, dest_dirpath, root_dirpath):
         os.path.normpath(
           os.path.join(os.path.relpath(root, source_dirpath), filename)))
   
-  filepaths_to_process = []
-  for source_relative_filepath in source_relative_filepaths:
-    if os.path.isfile(os.path.join(dest_dirpath, source_relative_filepath)):
-      filepaths_to_process.append(source_relative_filepath)
-    else:
-      print(
-        'Warning: File "{0}" found in resources but not in destination directory'.format(
-          os.path.join(source_dirpath, source_relative_filepath)))
-  
   preprocess_contents(
-    [os.path.join(source_dirpath, filepath)
-     for filepath in filepaths_to_process],
-    [os.path.join(dest_dirpath, filepath)
-     for filepath in filepaths_to_process],
+    [os.path.join(source_dirpath, relative_filepath)
+     for relative_filepath in source_relative_filepaths],
+    [os.path.join(dest_dirpath, relative_filepath)
+     for relative_filepath in source_relative_filepaths],
     root_dirpath)
 
 
