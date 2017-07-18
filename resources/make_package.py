@@ -26,7 +26,7 @@ patterns): https://github.com/cpburnz/python-path-specification
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-import pygimplib as pygimplib
+import pygimplib
 from future.builtins import *
 
 import io
