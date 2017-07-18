@@ -19,11 +19,11 @@
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-This script pre-processes documents (readmes, sites), replacing specially
-formatted lines containing a command and arguments with the corresponding
+This script pre-processes documents (HTML pages, plain text files), replacing
+lines containing a Jekyll-style tag and its arguments with the corresponding
 content.
 
-Currently only the following command is provided:
+Currently, only the following tag is provided:
 * `{% include-section <relative file path>:<section>[arguments]... %}`:
   replaces the line with the section from the specified file. For example,
   `{% include-section README.md:Features %}` replaces the line with the
