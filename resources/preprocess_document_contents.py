@@ -49,20 +49,20 @@ pygimplib.init()
 #===============================================================================
 
 
-def preprocess_contents(source_filepaths, dest_filepaths, root_dirpath):
+def preprocess_contents(source_filepaths, dest_filepaths):
   for source_filepath, dest_filepath in zip(source_filepaths, dest_filepaths):
     with io.open(source_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
       source_file_contents = file_.read()
     
-    preprocessed_contents = _preprocess_contents(source_file_contents, root_dirpath)
+    preprocessed_contents = _preprocess_contents(source_filepath, source_file_contents)
     
     with io.open(dest_filepath, "w", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
       file_.writelines(preprocessed_contents)
 
 
-def _preprocess_contents(contents, root_dirpath):
+def _preprocess_contents(source_filepath, contents):
   for match in list(re.finditer(r"( *)(\{% include-section (.*?) %\})", contents)):
-    token_args = _parse_token_args("include-section", match.group(3), root_dirpath)
+    token_args = _parse_token_args(source_filepath, "include-section", match.group(3))
     section = _process_token_args("include-section", token_args)
     
     leading_spacing = match.group(1)
@@ -76,7 +76,7 @@ def _preprocess_contents(contents, root_dirpath):
   return contents
 
 
-def _parse_token_args(token_name, token_args_str, root_dirpath):
+def _parse_token_args(source_filepath, token_name, token_args_str):
   args_match = re.search(r"\[.*\]$", token_args_str)
   if args_match:
     relative_document_filepath = (
@@ -84,14 +84,18 @@ def _parse_token_args(token_name, token_args_str, root_dirpath):
   else:
     relative_document_filepath = token_args_str
   
-  relative_document_filepath_components = relative_document_filepath.strip('"').split("/")
-  if ":" in relative_document_filepath_components[-1]:
-    relative_document_filepath_components[-1], document_section_name = (
-      relative_document_filepath_components[-1].split(":"))
+  document_relative_filepath_components = relative_document_filepath.strip('"').split("/")
+  if ":" in document_relative_filepath_components[-1]:
+    document_relative_filepath_components[-1], document_section_name = (
+      document_relative_filepath_components[-1].split(":"))
   else:
     document_section_name = ""
   
-  document_filepath = os.path.join(root_dirpath, *relative_document_filepath_components)
+  document_filepath = os.path.normpath(
+    os.path.join(
+      os.path.dirname(source_filepath), *document_relative_filepath_components))
+  
+  print(document_filepath)
   
   token_args = [document_filepath, document_section_name]
   
@@ -222,21 +226,19 @@ _TOKEN_ARG_FUNCS = {
 #===============================================================================
 
 
-def main(source_dirpath, dest_dirpath, root_dirpath):
+def main(source_dirpath, dest_dirpath):
   source_relative_filepaths = []
   for root, unused_, filenames in os.walk(source_dirpath):
     for filename in filenames:
       source_relative_filepaths.append(
-        os.path.normpath(
-          os.path.join(os.path.relpath(root, source_dirpath), filename)))
+        os.path.normpath(os.path.join(os.path.relpath(root, source_dirpath), filename)))
   
   preprocess_contents(
     [os.path.join(source_dirpath, relative_filepath)
      for relative_filepath in source_relative_filepaths],
     [os.path.join(dest_dirpath, relative_filepath)
-     for relative_filepath in source_relative_filepaths],
-    root_dirpath)
+     for relative_filepath in source_relative_filepaths])
 
 
 if __name__ == "__main__":
-  main(*sys.argv[:3])
+  main(*sys.argv[:2])
