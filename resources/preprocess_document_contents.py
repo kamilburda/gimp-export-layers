@@ -69,8 +69,8 @@ def preprocess_contents(source_filepaths, dest_filepaths, insert_markdownify_tag
 
 def _preprocess_contents(source_filepath, file_contents, insert_markdownify_tag):
   for match in list(re.finditer(r"( *)(\{% include-section (.*?) %\})", file_contents)):
-    token_args = _parse_token_args(source_filepath, "include-section", match.group(3))
-    section_contents = _process_token_args("include-section", token_args)
+    tag_args = _parse_tag_args(source_filepath, "include-section", match.group(3))
+    section_contents = _process_tag_args("include-section", tag_args)
     
     if insert_markdownify_tag:
       leading_spacing = match.group(1)
@@ -86,13 +86,13 @@ def _preprocess_contents(source_filepath, file_contents, insert_markdownify_tag)
   return file_contents
 
 
-def _parse_token_args(source_filepath, token_name, token_args_str):
-  args_match = re.search(r"\[.*\]$", token_args_str)
+def _parse_tag_args(source_filepath, tag_name, tag_args_str):
+  args_match = re.search(r"\[.*\]$", tag_args_str)
   if args_match:
     relative_document_filepath = (
-      token_args_str[:len(token_args_str) - len(args_match.group())])
+      tag_args_str[:len(tag_args_str) - len(args_match.group())])
   else:
-    relative_document_filepath = token_args_str
+    relative_document_filepath = tag_args_str
   
   document_relative_filepath_components = relative_document_filepath.strip('"').split("/")
   if ":" in document_relative_filepath_components[-1]:
@@ -105,25 +105,25 @@ def _parse_token_args(source_filepath, token_name, token_args_str):
     os.path.join(
       os.path.dirname(source_filepath), *document_relative_filepath_components))
   
-  token_args = [document_filepath, document_section_name]
+  tag_args = [document_filepath, document_section_name]
   
-  for token_arg_item in _TOKEN_ARG_FUNCS[token_name]:
-    token_arg_item.parse_func_retvals = []
+  for tag_arg_item in _TAG_ARGUMENTS[tag_name]:
+    tag_arg_item.parse_func_retvals = []
   
   if args_match:
-    for token_arg_item in _TOKEN_ARG_FUNCS[token_name]:
-      token_arg_match = re.search(
-        r"\[(" + token_arg_item.token_arg_match_pattern + r")\]", args_match.group())
-      if token_arg_match:
-        token_arg_item.parse_func_retvals = [
-          token_arg_item.parse_func(token_arg_match.group(1))]
+    for tag_arg_item in _TAG_ARGUMENTS[tag_name]:
+      tag_arg_match = re.search(
+        r"\[(" + tag_arg_item.tag_arg_match_pattern + r")\]", args_match.group())
+      if tag_arg_match:
+        tag_arg_item.parse_func_retvals = [
+          tag_arg_item.parse_func(tag_arg_match.group(1))]
   
-  return token_args
+  return tag_args
 
 
-def _process_token_args(token_name, token_args):
-  document_filepath = token_args[0]
-  section_name = token_args[1]
+def _process_tag_args(tag_name, tag_args):
+  document_filepath = tag_args[0]
+  section_name = tag_args[1]
   with io.open(
          document_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as document:
     document_contents = document.read()
@@ -132,10 +132,10 @@ def _process_token_args(token_name, token_args):
     else:
       section_header, section_contents = "", document_contents
   
-  for token_arg_item in _TOKEN_ARG_FUNCS[token_name]:
-    if token_arg_item.parse_func_retvals:
-      section_header, section_contents = token_arg_item.process_func(
-        section_header, section_contents, *token_arg_item.parse_func_retvals)
+  for tag_arg_item in _TAG_ARGUMENTS[tag_name]:
+    if tag_arg_item.parse_func_retvals:
+      section_header, section_contents = tag_arg_item.process_func(
+        section_header, section_contents, *tag_arg_item.parse_func_retvals)
   
   return section_header + section_contents
 
@@ -212,21 +212,21 @@ def _strip_section_header(section_header, section_contents, should_strip_header)
     return section_header, section_contents
 
 
-class TokenArgItem(object):
+class TagArgument(object):
   
-  def __init__(self, token_arg_match_pattern, parse_func, process_func):
-    self.token_arg_match_pattern = token_arg_match_pattern
+  def __init__(self, tag_arg_match_pattern, parse_func, process_func):
+    self.tag_arg_match_pattern = tag_arg_match_pattern
     self.parse_func = parse_func
     self.process_func = process_func
     
     self.parse_func_retvals = []
 
 
-_TOKEN_ARG_FUNCS = {
+_TAG_ARGUMENTS = {
   "include-section": [
-    TokenArgItem(
+    TagArgument(
       r"[0-9]+:?[0-9]*", _parse_sentence_indices, _get_sentences_from_section),
-    TokenArgItem(
+    TagArgument(
       r"no-header", lambda arg_str: arg_str == "no-header", _strip_section_header)
   ]
 }
