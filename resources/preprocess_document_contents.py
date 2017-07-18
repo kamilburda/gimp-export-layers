@@ -84,9 +84,14 @@ def _parse_token_args(token_name, token_args_str, root_dirpath):
   else:
     relative_document_filepath = token_args_str
   
-  relative_document_filepath_parts = relative_document_filepath.strip('"').split("/")
-  document_section_name = relative_document_filepath_parts[-1]
-  document_filepath = os.path.join(root_dirpath, *relative_document_filepath_parts[:-1])
+  relative_document_filepath_components = relative_document_filepath.strip('"').split("/")
+  if ":" in relative_document_filepath_components[-1]:
+    relative_document_filepath_components[-1], document_section_name = (
+      relative_document_filepath_components[-1].split(":"))
+  else:
+    document_section_name = ""
+  
+  document_filepath = os.path.join(root_dirpath, *relative_document_filepath_components)
   
   token_args = [document_filepath, document_section_name]
   
@@ -110,7 +115,10 @@ def _process_token_args(token_name, token_args):
   with io.open(
          document_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as document:
     document_contents = document.read()
-    section_header, section_contents = _find_section(document_contents, section_name)
+    if section_name:
+      section_header, section_contents = _find_section(document_contents, section_name)
+    else:
+      section_header, section_contents = "", document_contents
   
   for token_arg_item in _TOKEN_ARG_FUNCS[token_name]:
     if token_arg_item.parse_func_retvals:
