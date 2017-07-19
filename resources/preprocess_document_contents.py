@@ -250,4 +250,4 @@ def main(source_dirpath, dest_dirpath, insert_markdownify_tag=True):
 
 
 if __name__ == "__main__":
-  main(*sys.argv[:2])
+  main(*sys.argv[1:])
