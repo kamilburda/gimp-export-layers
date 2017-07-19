@@ -144,17 +144,40 @@ def _find_section(contents, section_name):
   section_header = ""
   section_contents = ""
   
-  match_section = re.search("(" + section_name + ")" + r"\n[=-]+\n", contents)
-  if match_section:
-    start_of_section_contents = match_section.end() + 1
-    next_section = re.search(r".*?\n[=-]+\n", contents[start_of_section_contents:])
+  section_match_regex = (
+    r"(^|\n)"
+    + "("
+    + "(" + re.escape(section_name) + ")" + r"\n[=-]+\n"
+    + "|"
+    + r"#+ " + "(" + re.escape(section_name) + ")" + r"\n"
+    + ")")
+  
+  next_section_match_regex = (
+    "\n"
+    + "("
+    + r"#+ .*?\n"
+    + "|"
+    + r".*?\n[=-]+\n"
+    + ")")
+  
+  section_match = re.search(section_match_regex, contents)
+  if section_match:
+    start_of_section_header = section_match.start(2)
+    end_of_section_header = section_match.end(2)
     
-    section_header = contents[match_section.start():match_section.end()]
-    if next_section:
-      section_contents = contents[
-        match_section.end():start_of_section_contents + next_section.start() - 1]
+    start_of_section_contents = end_of_section_header + 1
+    next_section_match = re.search(
+      next_section_match_regex, contents[start_of_section_contents:])
+    
+    section_header = contents[start_of_section_header:end_of_section_header]
+    if next_section_match:
+      start_of_next_section_header = next_section_match.start(1)
+      end_of_section_contents = (
+        start_of_section_contents + start_of_next_section_header - 1)
+      
+      section_contents = contents[end_of_section_header:end_of_section_contents]
     else:
-      section_contents = contents[match_section.end():]
+      section_contents = contents[end_of_section_header:]
   
   section_contents = section_contents.rstrip("\n")
   
