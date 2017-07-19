@@ -30,6 +30,9 @@ Currently, only the following tag is provided:
   contents of the section "Features" from the file `README.md` in the same
   directory as the file containing this line.
   
+  A section is a valid Markdown section heading (underlining headers with "="
+  or "-", or using leading "#"s separated from headers by a single space).
+  
   Optional arguments to `include-section`:
   * `[index]` or `[start index:end index]`: pick chosen sentence(s) from
     sections using Python slice notation
