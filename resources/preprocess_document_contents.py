@@ -234,19 +234,14 @@ _TAG_ARGUMENTS = {
 #===============================================================================
 
 
-def main(source_dirpath, dest_dirpath, insert_markdownify_tag=True):
-  source_relative_filepaths = []
-  for root, unused_, filenames in os.walk(source_dirpath):
-    for filename in filenames:
-      source_relative_filepaths.append(
-        os.path.normpath(os.path.join(os.path.relpath(root, source_dirpath), filename)))
+def main(source_filepaths, dest_filepaths, insert_markdownify_tag=True):
+  if len(source_filepaths) != len(dest_filepaths):
+    print(
+      "Lists of source and destination file paths are not the same length",
+      file=sys.stderr)
+    sys.exit(1)
   
-  preprocess_contents(
-    [os.path.join(source_dirpath, relative_filepath)
-     for relative_filepath in source_relative_filepaths],
-    [os.path.join(dest_dirpath, relative_filepath)
-     for relative_filepath in source_relative_filepaths],
-    insert_markdownify_tag)
+  preprocess_contents(source_filepaths, dest_filepaths, insert_markdownify_tag)
 
 
 if __name__ == "__main__":
