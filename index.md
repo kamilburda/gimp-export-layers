@@ -1,7 +1,5 @@
 ---
 layout: default
-
-license-filename: LICENSE.md
 ---
 
 Features
@@ -13,8 +11,8 @@ Features
 * customize export with a rich set of additional operations and constraints,
 * ...and much more.
 
-See the [**documentation**]({{ site.github.wiki_url | default: page.docs_url }}) for information about
-installation, usage and known issues.
+See the [**documentation**]({{ site.github.wiki_url | default: page.docs_url }})
+for information about installation, usage and known issues.
 
 
 Support
