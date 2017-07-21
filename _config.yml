@@ -1,17 +1,19 @@
 # Site settings
 title: Export Layers
 site-title: Export Layers - GIMP Plug-in
-email: khalim19@gmail.com
-description: >
-  Export layers as separate images in GIMP
+description: "GIMP plug-in that exports layers as separate images"
 baseurl: "/gimp-plugin-export-layers"
-url: "https://khalim19.github.io"
+url: https://khalim19.github.io
+github: [metadata]
+repository: khalim19/gimp-plugin-export-layers
 github_username: khalim19
+email: khalim19@gmail.com
 
 plugin-version: 3.0-RC1
 
 gems:
   - jekyll-sitemap
+  - jekyll-github-metadata
 
 # Build settings
 markdown: kramdown
