@@ -6,8 +6,7 @@ url: https://khalim19.github.io
 repository: khalim19/gimp-plugin-export-layers
 github_username: khalim19
 email: khalim19@gmail.com
-
-plugin-version: 3.0-RC1
+plugin_version: 3.0-RC1
 
 gems:
   - jekyll-sitemap

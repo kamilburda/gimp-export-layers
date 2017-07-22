@@ -3,7 +3,7 @@
   <h1 class="project-name">{{ site.title | default: site.github.repository_name }}</h1>
   <h2 class="project-tagline">{{ site.description | default: site.github.project_tagline }}</h2>
   {% if site.github.is_project_page %}
-    <a href="{{ site.github.releases_url }}/download/{{ site.plugin-version }}/export-layers-{{ site.plugin-version }}.zip" class="btn">Download {{ site.plugin-version }}</a>
+    <a href="{{ site.github.releases_url }}/download/{{ site.plugin_version }}/export-layers-{{ site.plugin_version }}.zip" class="btn">Download {{ site.plugin_version }}</a>
   {% endif %}
   <a href="{{ site.github.wiki_url | default: page.docs_url }}" class="btn">Documentation</a>
   <a href="{{ site.github.releases_url | default: page.releases_url }}" class="btn">Release Notes</a>

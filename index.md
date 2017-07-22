@@ -1,7 +1,7 @@
 ---
 layout: default
 
-license-filename: LICENSE.md
+license_filename: LICENSE.md
 ---
 
 Features
