@@ -10,8 +10,8 @@ Features:
 * customize export with a rich set of additional operations and constraints,
 * ...and much more.
 
-Check out the [**wiki**](https://github.com/khalim19/gimp-plugin-export-layers/wiki)
-for information about installation and usage.
+Check out the [documentation](http://khalim19.github.io/gimp-plugin-export-layers/docs)
+for information about installation, usage and known issues.
 
 [**Download latest work-in-progress release**](https://github.com/khalim19/gimp-plugin-export-layers/releases/tag/3.0-RC1) (3.0-RC1)
 
