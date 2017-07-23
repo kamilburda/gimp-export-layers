@@ -2,6 +2,7 @@
 layout: main
 
 license_filename: LICENSE.md
+release_notes_filename: CHANGELOG.md
 ---
 
 Features
