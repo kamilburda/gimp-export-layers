@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: main
 
 license_filename: LICENSE.md
 ---
