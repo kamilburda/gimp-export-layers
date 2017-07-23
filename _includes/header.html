@@ -5,7 +5,7 @@
   {% if site.github.is_project_page %}
     <a href="{{ site.github.releases_url }}/download/{{ site.plugin_version }}/export-layers-{{ site.plugin_version }}.zip" class="btn">Download {{ site.plugin_version }}</a>
   {% endif %}
-  <a href="{{ site.github.wiki_url | default: page.docs_url }}" class="btn">Documentation</a>
+  <a href="{{ site.docs_url | prepend: site.baseurl }}" class="btn">Documentation</a>
   <a href="{{ site.github.releases_url | default: page.release_notes_filename }}" class="btn">Release Notes</a>
   {% if site.github.is_project_page %}
     <a href="{{ site.github.repository_url }}" class="btn">View on GitHub</a>

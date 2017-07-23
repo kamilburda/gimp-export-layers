@@ -1,0 +1,27 @@
+<section class="page-header-docs">
+  <div class="page-header-docs-container" role="navigation">
+    <div>
+      <ul>
+        <li><a href="{{ site.baseurl }}/">{{ site.title }}</a></li>
+        <li class="separator">|</li>
+        <li><a href="{{ site.baseurl }}{{ site.docs_url }}">Documentation</a></li>
+      </ul>
+    </div>
+    <div class="right">
+      <ul>
+        {% if page.previous_doc_title %}
+          <li><a href="{{ site.baseurl }}{{ site.docs_url }}{{ page.previous_doc_filename }}">« {{ page.previous_doc_title }}</a>
+          </li>
+        {% endif %}
+        {% if page.previous_doc_title and page.next_doc_title %}
+          <li class="separator">|</li>
+        {% endif %}
+        {% if page.next_doc_title %}
+          <li>
+            <a href="{{ site.baseurl }}{{ site.docs_url }}{{ page.next_doc_filename }}">{{ page.next_doc_title }} »</a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</section>

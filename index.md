@@ -14,7 +14,7 @@ Features
 * customize export with a rich set of additional operations and constraints,
 * ...and much more.
 
-See the [**documentation**]({{ site.github.wiki_url | default: page.docs_url }})
+See the [documentation]({{ site.docs_url | prepend: site.baseurl }})
 for information about installation, usage and known issues.
 
 

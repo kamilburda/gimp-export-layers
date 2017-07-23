@@ -108,6 +108,96 @@ a {
   }
 }
 
+.page-header-docs {
+  color: $header-heading-color;
+  background-color: $header-bg-color;
+  
+  @include large {
+    font-size: 1.2rem;
+  }
+
+  @include medium {
+    font-size: 1.1rem;
+  }
+
+  @include small {
+    font-size: 1.0rem;
+  }
+}
+
+.page-header-docs-container {
+  @include large {
+    max-width: 64rem;
+    padding: 1rem 6rem;
+    margin: 0 auto;
+  }
+
+  @include medium {
+    padding: 1rem 4rem;
+  }
+
+  @include small {
+    padding: 1rem 1rem;
+  }
+}
+
+.page-header-docs-container ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.page-header-docs-container li {
+  display: inline;
+}
+
+.page-header-docs-container div {
+  @include large {
+    display: inline-block;
+  }
+
+  @include medium {
+    display: inline-block;
+  }
+
+  @include small {
+  }
+}
+
+.page-header-docs-container div.right {
+  @include large {
+    float: right;
+    margin-left: 0.3rem;
+  }
+
+  @include medium {
+    float: right;
+    margin-left: 0.3rem;
+  }
+
+  @include small {
+    margin-right: 0.3rem;
+  }
+}
+
+.page-header-docs-container li.separator {
+  @include large {
+    padding: 0 0.3rem;
+  }
+
+  @include medium {
+    padding: 0 0.2rem;
+  }
+
+  @include small {
+    padding: 0 0.1rem;
+  }
+}
+
+.page-header-docs a {
+  color: $header-link-color;
+}
+
 .project-name {
   margin-top: 0;
   margin-bottom: 0.1rem;
