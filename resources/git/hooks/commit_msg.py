@@ -50,7 +50,7 @@ def remove_trailing_period_from_first_line(commit_message):
   return "\n".join([first_line_processed] + body)
 
 
-def capitalize_header(commit_message):
+def capitalize_first_letter_in_header(commit_message):
   lines = commit_message.split("\n")
   first_line, body = lines[0], lines[1:]
   
@@ -59,7 +59,11 @@ def capitalize_header(commit_message):
     first_line_processed = first_line.capitalize()
   else:
     scope, header = first_line_segments
-    header_capitalized = " " + header.lstrip(" ").capitalize()
+    header_without_leading_space = header.lstrip(" ")
+    
+    header_capitalized = (
+      " " + header_without_leading_space[0].upper()
+      + header_without_leading_space[1:])
     first_line_processed = ":".join([scope, header_capitalized])
   
   return "\n".join([first_line_processed] + body)
@@ -90,7 +94,7 @@ commit_message_process_funcs = [
   [check_first_line_length, FIRST_LINE_MAX_CHAR_LENGTH],
   [check_second_line_is_empty],
   [remove_trailing_period_from_first_line],
-  [capitalize_header],
+  [capitalize_first_letter_in_header],
   [wrap_message_body, MESSAGE_BODY_MAX_CHAR_LINE_LENGTH],
   [remove_trailing_newlines]
 ]
