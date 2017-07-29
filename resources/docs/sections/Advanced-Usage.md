@@ -5,7 +5,7 @@ If you wish to further customize the export beyond the basic features of Export
 Layers, you can do so in the "advanced" version of the main dialog. To show the
 advanced dialog, press the "Settings" button and choose "Show More Settings".
 
-![Dialog for advanced usage of Export Layers](https://raw.githubusercontent.com/wiki/khalim19/gimp-plugin-export-layers/images/advanced_usage_dialog.png)
+![Dialog for advanced usage of Export Layers](../images/advanced_usage_dialog.png)
 
 The advanced dialog allows you, among other things, to customize the layer name,
 add operations executed before the export of each layer and add constraints to
