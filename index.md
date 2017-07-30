@@ -1,9 +1,6 @@
 ---
 layout: main
-
-license_filename: LICENSE.md
-license_relative_url: blob/master/LICENSE
-release_notes_filename: CHANGELOG.md
+title: GIMP plug-in
 ---
 
 Features
