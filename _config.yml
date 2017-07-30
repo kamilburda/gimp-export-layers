@@ -16,3 +16,4 @@ gems:
 
 # Build settings
 markdown: kramdown
+is_release_build: false
