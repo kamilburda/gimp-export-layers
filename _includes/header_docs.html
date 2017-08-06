@@ -4,13 +4,13 @@
       <ul>
         <li><a href="{{ '/' | relative_url }}">{{ site.title }}</a></li>
         <li class="separator">|</li>
-        <li><a href="{{ site.docs_url | relative_url }}">Documentation</a></li>
+        <li><a href="{{ site.sections_url | relative_url }}">Documentation</a></li>
       </ul>
     </div>
     <div class="right">
       <ul>
         {% if page.previous_doc_title %}
-          <li><a href="{{ site.docs_url | relative_url }}{{ page.previous_doc_filename }}">« {{ page.previous_doc_title }}</a>
+          <li><a href="{{ site.sections_url | relative_url }}{{ page.previous_doc_filename }}">« {{ page.previous_doc_title }}</a>
           </li>
         {% endif %}
         {% if page.previous_doc_title and page.next_doc_title %}
@@ -18,7 +18,7 @@
         {% endif %}
         {% if page.next_doc_title %}
           <li>
-            <a href="{{ site.docs_url | relative_url }}{{ page.next_doc_filename }}">{{ page.next_doc_title }} »</a>
+            <a href="{{ site.sections_url | relative_url }}{{ page.next_doc_filename }}">{{ page.next_doc_title }} »</a>
           </li>
         {% endif %}
       </ul>

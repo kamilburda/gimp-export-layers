@@ -8,7 +8,7 @@ github_username: khalim19
 email: khalim19@gmail.com
 
 plugin_version: 3.0-RC1
-docs_url: /docs/
+sections_url: /sections/
 license_remote_url: blob/master/LICENSE
 license_local_filename: LICENSE.txt
 release_notes_filename: CHANGELOG.html

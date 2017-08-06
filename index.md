@@ -12,7 +12,7 @@ Features
 * customize export with a rich set of additional operations and constraints,
 * ...and much more.
 
-See the [documentation]({{ site.docs_url | prepend: site.baseurl }})
+See the [documentation]({{ site.sections_url | relative_url }})
 for information about installation, usage and known issues.
 
 
