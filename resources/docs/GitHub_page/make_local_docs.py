@@ -125,8 +125,7 @@ def remove_redundant_files(site_dirpath):
   for filename in FILENAMES_TO_REMOVE:
     filepath_to_remove = os.path.join(site_dirpath, filename)
     if os.path.isfile(filepath_to_remove):
-      print("Removing {0}".format(filepath_to_remove))
-#       os.remove(filepath_to_remove)
+      os.remove(filepath_to_remove)
 
 
 def fix_links_in_html_file(html_relative_filepath, html_tree):
