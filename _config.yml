@@ -13,7 +13,7 @@ license_remote_url: blob/master/LICENSE
 license_local_filename: LICENSE.txt
 release_notes_filename: CHANGELOG.html
 
-gems:
+plugins:
   - jekyll-sitemap
   - jekyll-github-metadata
 
