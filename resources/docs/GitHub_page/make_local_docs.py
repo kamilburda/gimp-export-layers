@@ -15,6 +15,7 @@ import io
 import os
 import pathlib
 import re
+import shutil
 import sys
 
 import HTMLParser
@@ -35,6 +36,14 @@ FILENAMES_TO_REMOVE = [
   "robots.txt",
   "sitemap.xml",
 ]
+
+RELATIVE_PATHS_TO_MOVE = collections.OrderedDict([
+  ("index.html", "Readme.html"),
+  ("favicon.ico", "docs/favicon.ico"),
+  ("assets", "docs/assets"),
+  ("images", "docs/images"),
+  ("sections", "docs/sections"),
+])
 
 HTML_DOCTYPE_DECLARATION = "<!DOCTYPE html>"
 INDEX_HTML = "index.html"
@@ -121,40 +130,6 @@ def find_all_html_elements_recursive(html_tree, match):
 #===============================================================================
 
 
-def remove_redundant_files(site_dirpath):
-  for filename in FILENAMES_TO_REMOVE:
-    filepath_to_remove = os.path.join(site_dirpath, filename)
-    if os.path.isfile(filepath_to_remove):
-      os.remove(filepath_to_remove)
-
-
-def fix_links_in_html_file(html_relative_filepath, html_tree):
-  html_relative_filepath_components = pathlib.Path(html_relative_filepath).parts
-  
-  if len(html_relative_filepath_components) == 0:
-    return
-  
-  if len(html_relative_filepath_components) == 1:
-    new_baseurl = "."
-  else:
-    new_baseurl = "../" * (len(html_relative_filepath_components) - 1)
-    new_baseurl = new_baseurl.rstrip("/")
-  
-  for tag, attributes in HTML_ELEMENTS_WITH_URLS.items():
-    elements_to_fix = find_all_html_elements_recursive(html_tree, tag)
-    
-    for element in elements_to_fix:
-      for attribute in attributes:
-        href = element.get(attribute)
-        if href is not None:
-          new_href = href
-          new_href = re.sub(
-            r"^" + re.escape(PAGE_CONFIG["baseurl"]), new_baseurl, new_href)
-          new_href = re.sub(r"/$", r"/" + INDEX_HTML, new_href)
-          
-          element.set(attribute, new_href)
-
-
 def get_html_filepaths(site_dirpath):
   html_filepaths = []
   
@@ -166,12 +141,125 @@ def get_html_filepaths(site_dirpath):
   return html_filepaths
 
 
-def reorganize_files(site_dirpath):
+def remove_redundant_files(site_dirpath):
+  for filename in FILENAMES_TO_REMOVE:
+    filepath_to_remove = os.path.join(site_dirpath, filename)
+    if os.path.isfile(filepath_to_remove):
+      os.remove(filepath_to_remove)
+
+
+def remove_baseurl_in_url_attributes(html_relative_filepath, html_tree):
+  html_relative_filepath_components = pathlib.Path(html_relative_filepath).parts
+  
+  if len(html_relative_filepath_components) == 0:
+    return
+  
+  if len(html_relative_filepath_components) == 1:
+    new_baseurl = "."
+  else:
+    new_baseurl = "../" * (len(html_relative_filepath_components) - 1)
+    new_baseurl = new_baseurl.rstrip("/")
+  
+  def _get_relative_url_without_baseurl(url_attribute_value):
+    new_url_attribute_value = url_attribute_value
+    new_url_attribute_value = re.sub(
+      r"^" + re.escape(PAGE_CONFIG["baseurl"]), new_baseurl, new_url_attribute_value)
+    new_url_attribute_value = re.sub(r"/$", r"/" + INDEX_HTML, new_url_attribute_value)
+    
+    return new_url_attribute_value
+  
+  _modify_url_attributes(html_tree, _get_relative_url_without_baseurl)
+
+
+def rename_paths_in_url_attributes(
+      relative_paths_to_rename, html_relative_filepath, html_tree):
   """
-  Place all files except `index.html` in one folder.
+  Rename paths in URL attributes according to the `relative_paths_to_rename`
+  parameter.
   """
   
-  pass
+  def _get_renamed_url(url_attribute_value):
+    is_url_attribute_relative_path = url_attribute_value.startswith(".")
+    
+    if not is_url_attribute_relative_path:
+      return url_attribute_value
+    
+    html_relative_dirpath = os.path.dirname(html_relative_filepath)
+    
+    resolved_relative_url = pathlib.Path(
+      os.path.relpath(
+        os.path.normpath(
+          os.path.join(html_relative_dirpath, url_attribute_value)),
+        os.path.dirname(html_relative_dirpath))
+    ).as_posix()
+    
+    renamed_resolved_relative_url = _rename_resolved_relative_path(
+      resolved_relative_url)
+    
+    if renamed_resolved_relative_url is None:
+      return url_attribute_value
+    
+    renamed_html_relative_dirpath = _rename_resolved_relative_path(
+      html_relative_dirpath)
+    
+    if renamed_html_relative_dirpath is None:
+      renamed_html_relative_dirpath = html_relative_dirpath
+    
+    new_url_attribute_value = os.path.relpath(
+      renamed_resolved_relative_url, renamed_html_relative_dirpath)
+    
+    if not new_url_attribute_value.startswith("."):
+      new_url_attribute_value = os.path.join(".", new_url_attribute_value)
+    
+    new_url_attribute_value = pathlib.Path(new_url_attribute_value).as_posix()
+    
+    return new_url_attribute_value
+  
+  def _rename_resolved_relative_path(resolved_relative_path):
+    matching_relative_paths_to_rename = [
+      (orig_relative_path, renamed_relative_path)
+      for orig_relative_path, renamed_relative_path in relative_paths_to_rename.items()
+      if resolved_relative_path.startswith(orig_relative_path)]
+    
+    if not matching_relative_paths_to_rename:
+      return None
+    
+    orig_relative_path, renamed_relative_path = matching_relative_paths_to_rename[0]
+    
+    renamed_resolved_relative_path = re.sub(
+      re.escape(orig_relative_path), renamed_relative_path,
+      resolved_relative_path, count=1)
+    
+    return renamed_resolved_relative_path
+  
+  _modify_url_attributes(html_tree, _get_renamed_url)
+
+
+def _modify_url_attributes(html_tree, get_new_url_attribute_value_func):
+  for tag, attributes in HTML_ELEMENTS_WITH_URLS.items():
+    elements_to_fix = find_all_html_elements_recursive(html_tree, tag)
+    
+    for element in elements_to_fix:
+      for attribute in attributes:
+        attribute_value = element.get(attribute)
+        if attribute_value is not None:
+          element.set(attribute, get_new_url_attribute_value_func(attribute_value))
+
+
+def move_files(site_dirpath):
+  """
+  Place all files except the top HTML file in one folder. Rename files for
+  improved readability.
+  """
+  
+  for orig_relative_path, renamed_relative_path in RELATIVE_PATHS_TO_MOVE.items():
+    orig_path = os.path.normpath(os.path.join(site_dirpath, orig_relative_path))
+    renamed_path = os.path.normpath(os.path.join(site_dirpath, renamed_relative_path))
+    
+    if not os.path.exists(os.path.dirname(renamed_path)):
+      os.makedirs(os.path.dirname(renamed_path))
+    
+    shutil.move(orig_path, renamed_path)
 
 
 def write_to_html_file(html_tree, html_file):
@@ -191,8 +279,6 @@ def main(site_dirpath):
   
   remove_redundant_files(site_dirpath)
   
-  reorganize_files(site_dirpath)
-  
   for html_filepath in get_html_filepaths(site_dirpath):
     parser = LocalJekyllHTMLParser()
     
@@ -201,10 +287,16 @@ def main(site_dirpath):
     
     parser.close()
     
-    fix_links_in_html_file(os.path.relpath(html_filepath, site_dirpath), parser.tree)
+    html_relative_filepath = os.path.relpath(html_filepath, site_dirpath)
+    
+    remove_baseurl_in_url_attributes(html_relative_filepath, parser.tree)
+    rename_paths_in_url_attributes(
+      RELATIVE_PATHS_TO_MOVE, html_relative_filepath, parser.tree)
     
     with io.open(html_filepath, "wb") as html_file:
       write_to_html_file(parser.tree, html_file)
+   
+  move_files(site_dirpath)
 
 
 if __name__ == "__main__":
