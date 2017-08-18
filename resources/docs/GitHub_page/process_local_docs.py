@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-This script generates local HTML documentation from a Jekyll-generated page.
-
-To achieve this, the `_site` directory of a Jekyll-generated page is rendered
-locally without having to run the Jekyll server.
+This script processes HTML files from a Jekyll-generated page so that they can
+be used without running the Jekyll server (e.g. included in release packages
+as user documentation).
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
