@@ -20,7 +20,7 @@
 
 """
 This script pre-processes documents (HTML pages, plain text files), replacing
-lines containing a Jekyll-style tag and its arguments with the corresponding
+lines containing a Liquid-style tag and its arguments with the corresponding
 content.
 
 Currently, only the following tag is provided:
