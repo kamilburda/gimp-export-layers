@@ -3,16 +3,17 @@
 # This script runs the Jekyll server locally with GitHub Pages metadata properly disabled.
 
 SCRIPT_NAME="${0##*/}"
+SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-pages_dirpath='../gh-pages'
-config_filepath="$pages_dirpath"'/_config.yml'
-local_config_filepath="$pages_dirpath"'/_config_local.yml'
+pages_dirpath="$(dirname "SCRIPT_DIRECTORY")"'/gh-pages'
+config_filename='_config.yml'
+local_config_filename='_config_local.yml'
 
 local_config_entries='
 github: [metadata]'
 
 cleanup () {
-  rm -f "$local_config_filepath"
+  rm -f "$local_config_filename"
 }
 
 usage () {
@@ -58,6 +59,10 @@ done
 
 trap cleanup SIGINT SIGTERM SIGKILL
 
-echo "$local_config_entries" > "$local_config_filepath"
+orig_wd="$(pwd)"
+cd "$pages_dirpath"
 
-bundle exec jekyll serve --config "$config_filepath,$local_config_filepath"
+echo "$local_config_entries" > "$local_config_filename"
+bundle exec jekyll serve --config "$config_filename,$local_config_filename"
+
+cd "$orig_wd"
