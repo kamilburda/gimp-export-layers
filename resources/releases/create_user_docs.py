@@ -38,8 +38,7 @@ def main(github_page_scripts_dirpath, github_page_dirpath, output_dirpath):
 
 def run_page_locally(github_page_scripts_dirpath, github_page_dirpath):
   run_page_locally_process = subprocess.Popen(
-    [os.path.join(github_page_scripts_dirpath, "run_page_locally.sh"), "--release"],
-    shell=True)
+    [os.path.join(github_page_scripts_dirpath, "run_page_locally.sh"), "--release"])
   
   page_config_filepath = os.path.join(github_page_dirpath, PAGE_CONFIG_FILENAME)
   

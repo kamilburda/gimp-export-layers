@@ -68,7 +68,7 @@ GITHUB_PAGE_SCRIPTS_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "GitHub_pa
 
 def make_package(input_dirpath, output_filepath, version):
   _generate_pot_file(pygimplib.config.LOCALE_DIRPATH, version)
-  
+
   temp_dirpath = tempfile.mkdtemp()
   
   _create_user_docs(temp_dirpath)
@@ -107,10 +107,6 @@ def _get_relative_filepaths(filepaths, root_dirpath):
 
 
 def _generate_pot_file(source_dirpath, version):
-  if os.name == "nt":
-    print("Warning: Cannot create .pot file on Windows", file=sys.stderr)
-    return
-  
   for filename in os.listdir(source_dirpath):
     if os.path.isfile(os.path.join(source_dirpath, filename)):
       if filename.endswith(".pot"):
