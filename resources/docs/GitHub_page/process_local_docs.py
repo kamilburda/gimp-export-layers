@@ -245,7 +245,7 @@ def _modify_url_attributes(html_tree, get_new_url_attribute_value_func):
           element.set(attribute, get_new_url_attribute_value_func(attribute_value))
 
 
-def move_files(site_dirpath):
+def reorganize_files(site_dirpath):
   """
   Place all files except the top HTML file in one folder. Rename files for
   improved readability.
@@ -269,11 +269,10 @@ def write_to_html_file(html_tree, html_file):
 #===============================================================================
 
 
-def main(site_dirpath):
+def main(site_dirpath, page_config_filepath):
   global PAGE_CONFIG
   
-  page_config_filepath = os.path.join(os.path.dirname(site_dirpath), PAGE_CONFIG_FILENAME)
-  with io.open(page_config_filepath, "r") as page_config_file:
+  with io.open(page_config_filepath, "r", encoding=FILE_ENCODING) as page_config_file:
     PAGE_CONFIG = yaml.load(page_config_file.read())
   
   remove_redundant_files(site_dirpath)
@@ -294,9 +293,9 @@ def main(site_dirpath):
     
     with io.open(html_filepath, "wb") as html_file:
       write_to_html_file(parser.tree, html_file)
-   
-  move_files(site_dirpath)
+  
+  reorganize_files(site_dirpath)
 
 
 if __name__ == "__main__":
-  main(sys.argv[1])
+  main(sys.argv[1], sys.argv[2])

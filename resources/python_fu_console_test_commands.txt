@@ -21,7 +21,9 @@ pgruntests.run_tests(plugin_dirpath, modules=["export_layers"], ignored_modules=
 
 
 resources_dirpath = os.path.join(plugin_dirpath, "resources")
+releases_dirpath = os.path.join(resources_dirpath, "releases")
 sys.path.append(resources_dirpath)
+sys.path.append(releases_dirpath)
 import make_package
 import preprocess_document_contents
 orig_cwd = os.getcwd()
