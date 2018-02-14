@@ -1,0 +1,357 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR khalim19
+# This file is distributed under the same license as the 'export_layers' package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: export_layers 2.5\n"
+"Report-Msgid-Bugs-To: khalim19@gmail.com\n"
+"POT-Creation-Date: 2016-04-22 22:59+0200\n"
+"PO-Revision-Date: 2017-09-07 00:03+0200\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.3\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language: fr\n"
+
+msgid "\"{0}\" is a reserved name that cannot be used in directory paths.\n"
+msgstr ""
+"\"{0}\" est un nom réservé qui ne peut être utilisé dans un chemin de "
+"répertoire.\n"
+
+msgid "\"{0}\" is a reserved name that cannot be used in file paths.\n"
+msgstr ""
+"\"{0}\" est un nom réservé qui ne peut être utilisé dans un chemin de "
+"fichier.\n"
+
+msgid "\"{0}\" is a reserved name that cannot be used in filenames.\n"
+msgstr ""
+"\"{0}\" est un nom réservé qui ne peut être utilisé dans un nom de fichier.\n"
+
+msgid "(right-click to copy link)"
+msgstr "(clique-droit pour copier le lien)"
+
+msgid ""
+"A file named \"{0}\" already exists.\n"
+"What would you like to do?"
+msgstr ""
+"Un fichhier nommé {0} existe déjà.\n"
+"Que voulez vous faire ?"
+
+msgid ""
+"A file with the same name already exists.\n"
+"What would you like to do?"
+msgstr ""
+"Un fichier avec le même nom existe déjà.\n"
+"Que voulez-vous faire ?"
+
+msgid "Always strip file extension"
+msgstr "Toujours enlever l'extension de fichier"
+
+msgid "Apply action to all files"
+msgstr "Appliquer l'action à tous les fichiers"
+
+msgid "Autocrop layers"
+msgstr "Découper les calques"
+
+msgid "Could not find setting source \"{0}\"."
+msgstr "Impossible de trouver la source de réglages {0}."
+
+msgid "Create folders for empty layer groups"
+msgstr "Créer des dossiers pour les groupes de calques vides"
+
+msgid "Crop mode"
+msgstr "Mode de découpe"
+
+msgid "Crop to background"
+msgstr "Découper vers l'arrière-plan"
+
+msgid "Crop to foreground"
+msgstr "Découper vers le premier-plan"
+
+msgid "Crop to layer"
+msgstr "Découper vers le calque"
+
+msgid "Details"
+msgstr "Détails"
+
+msgid "Directory path contains invalid characters."
+msgstr "Le chemin du répertoire contient des caractères invalides."
+
+msgid "Directory path is not specified."
+msgstr "Le chemin du répertoire est manquant."
+
+msgid "Do you really want to reset settings?"
+msgstr "Vous voulez vraiment ré-initialiser les réglages ?"
+
+msgid "Drive letter contains invalid characters."
+msgstr "Le nom du disque contient des caractères invalides."
+
+msgid "E_xport Layers (repeat)"
+msgstr "E_xporter les calques (répéter)"
+
+msgid "E_xport Layers..."
+msgstr "E_xporter les calques..."
+
+msgid "Export Layers"
+msgstr "Exporter les calques"
+
+msgid "Export layers as separate images"
+msgstr "Exporter les calques en tant qu'images séparées"
+
+msgid "Export only layers matching file extension"
+msgstr "Exporter les calques avec une extension correspondante uniquement"
+
+msgid "File extension cannot end with a period."
+msgstr "L'extension des fichiers ne peuvent pas se terminer avec un point."
+
+msgid "File extension cannot end with spaces."
+msgstr "L'extension des fichiers ne peut pas se terminer avec un espace."
+
+msgid "File extension contains invalid characters."
+msgstr "L'extension des fichiers contient des caractères invalides."
+
+msgid "File extension is not specified."
+msgstr "L'extension des fichiers est manquant."
+
+msgid "File extension stripping"
+msgstr "Enlèvement des extensions de fichier"
+
+msgid "File extension:"
+msgstr "Extension des fichiers :"
+
+msgid "File extensions in layer names"
+msgstr "Extensions de fichier dans les noms des calques"
+
+msgid "File path contains invalid characters."
+msgstr "Le chemin du fichier contient des caractères invalides."
+
+msgid "File path is not specified."
+msgstr "Le chemin du fichier est manquant."
+
+msgid "Filename cannot end with a period."
+msgstr "Le nom du fichier ne peut pas se terminer avec un point."
+
+msgid "Filename cannot end with spaces."
+msgstr "Le nom du fichier ne peut pas se terminer avec un espace."
+
+msgid "Filename contains invalid characters."
+msgstr "Le nom du fichier contient des caractère invalides."
+
+msgid "Filename is not specified."
+msgstr "Le nom du fichier manquant."
+
+msgid ""
+"If the plug-in is run for the first time (i.e. no last values exist), "
+"default values will be used."
+msgstr ""
+"Si le plugin est lancé pour la première fois (pas de valeurs déjà "
+"utilisées), les valeurs à défaut seront utilisées."
+
+msgid "Ignore"
+msgstr "Ignorer"
+
+msgid "Ignore invisible layers"
+msgstr "Ignorer les calques cachés"
+
+msgid "Ignore layer modes"
+msgstr "Ignorer les modes de calques"
+
+msgid "Ignore other layers"
+msgstr "Ignorer les autres calques"
+
+msgid "Image"
+msgstr "Image"
+
+msgid "Invalid drawable."
+msgstr "Drawable invalide."
+
+msgid "Invalid image."
+msgstr "Image invalide."
+
+msgid "Invalid item value; valid values: {0}"
+msgstr "Valeur invalide; liste des valeurs possibles : {0}"
+
+msgid "Layer:"
+msgstr "Calques :"
+
+msgid "Merge layer groups"
+msgstr "Fusionner les groupes de calques"
+
+msgid "Never strip file extension"
+msgstr "Ne jamais enlever l'extension de fichier"
+
+msgid "No layers were exported."
+msgstr "Aucun calque n'a été exporté."
+
+msgid "No special handling"
+msgstr "Pas d'action spécifique"
+
+msgid "Oops! Something went wrong."
+msgstr "Oups ! Un problème est survenu."
+
+msgid "Output directory"
+msgstr "Répertoire de sortie"
+
+msgid "Overwrite mode (non-interactive run mode only)"
+msgstr "Mode d'écrasement (fonctionnement non-interactif uiquement)"
+
+msgid "Path components in the directory path cannot end with a period."
+msgstr ""
+"Les répertoires dans le chemin du répertoire ne peuvent pas se terminer avec "
+"un point."
+
+msgid "Path components in the directory path cannot end with spaces."
+msgstr ""
+"Les répertoires dans le chemin du répertoire ne peuvent pas se terminer avec "
+"un espace."
+
+msgid "Path components in the file path cannot end with a period."
+msgstr ""
+"Les répertoires dans le chemin du fichier ne peuvent pas se terminer avec un "
+"point."
+
+msgid "Path components in the file path cannot end with spaces."
+msgstr ""
+"Les répertoires dans le chemin du fichier ne peuvent pas se terminer avec un "
+"espace."
+
+msgid "Rename _existing file"
+msgstr "Renommer le fichier éxistant [E]"
+
+msgid "Rename _new file"
+msgstr "Renommer le _nouveau fichier"
+
+msgid "Reset Settings"
+msgstr "Ré-initialiser les réglages"
+
+msgid "Run \"{0}\" with the last values specified"
+msgstr "Lancer {0} avec les dernières valeurs utilisées"
+
+msgid "Save Settings"
+msgstr "Sauvegarder les réglages"
+
+msgid "Save in folder:"
+msgstr "Sauvegarder dans le dossier :"
+
+msgid ""
+"Save settings permanently. If you start GIMP again, the saved settings will "
+"be loaded when {0} is first opened."
+msgstr ""
+"Sauvegarder les réglages pour toujours. Si vous ré-ouvrez GIMP, les réglages "
+"seront chargés lorsque {0} sera ré-ouvert."
+
+msgid "Saving '{0}'"
+msgstr "Sauvegarde de {0}"
+
+msgid ""
+"Settings for this plug-in stored in the \"{0}\" file are corrupt. This could "
+"happen if the file was edited manually.\n"
+"To fix this, save the settings again or reset them."
+msgstr ""
+"La source de réglages de ce plugin ({0}) est corrompue. Cela peut être dû à "
+"une modification manuelle du fichier.\n"
+"Pour réparer ça, sauvegardez les réglages ou réinitialisez-les."
+
+msgid "Settings reset."
+msgstr "Réglages ré-initialisés."
+
+msgid "Settings successfully saved."
+msgstr "Sauvegarde des réglages effectuée avec succès."
+
+msgid ""
+"Sorry, but the export was unsuccessful. You can try exporting again if you "
+"fix the issue described below."
+msgstr ""
+"Désolé, mais l'exportation à été un échec. Vous pourrez réessayer après "
+"avoir corriger l'erreur suivante."
+
+msgid "Specified path is not a directory."
+msgstr "Le chemin spécifié ne mène pas à un répertoire."
+
+msgid "Strip identical file extension"
+msgstr "Enlever les extensions de fichier identiques"
+
+msgid "The run mode"
+msgstr "Mode de fonctionnement"
+
+msgid ""
+"To use a layer as a background for other layers, type \"[background]\" "
+"before the layer name. For foreground layers, type \"[foreground]\" before "
+"the layer name. To enable handling of tagged layers, select \"Treat specially"
+"\"."
+msgstr ""
+"Pour utiliser un calque en tant qu'arrière-plan pour les autres, ajoutez "
+"\"[background]\" avant le nom du calque. Pour utiliser un calque en tant que "
+"premier-plan pour les autres, ajoutez \"[foreground]\" avant le nom du "
+"calque. Pour activer un traitement spécifique sur les calques marqués, "
+"selectionnez \"Traiter spécifiquement\""
+
+msgid "Treat as normal layers"
+msgstr "Traiter en tant que calques normaux"
+
+msgid "Treat layer groups as folders"
+msgstr "Traiter les groupes de calques en tant que dossiers"
+
+msgid "Treat specially"
+msgstr "Traiter spécifiquement"
+
+msgid "Untitled"
+msgstr "Sans nom"
+
+msgid "Use as file extensions"
+msgstr "Utiliser en tant qu'extension de fichier"
+
+msgid "Use image size"
+msgstr "Utiliser la taille de l'image"
+
+msgid "Value cannot be greater than {0}."
+msgstr "La valeur ne peut être supérieure à {0}."
+
+msgid "Value cannot be less than {0}."
+msgstr "La valeur ne peut être inférieure à {0}."
+
+msgid ""
+"You can help fix this error by sending a report with the text in the details "
+"above to one of the following sites"
+msgstr ""
+"Vous pouvez aider à réparer cette erreur en envoyant un rapport de bogue "
+"avec le texte des détails à l'un des sites suivants."
+
+msgid ""
+"You need to specify default file extension for layers with invalid or no "
+"extension."
+msgstr ""
+"Vous devez spécifier l'extension à défaut pour les calques invalides ou sans "
+"extension."
+
+msgid "[Tagged] layers"
+msgstr "Calques [marqués]"
+
+msgid "_Advanced Settings"
+msgstr "Paramètres _avancés"
+
+msgid "_Apply action to all files"
+msgstr "_Appliquer l'action à tous les fichiers"
+
+msgid "_Cancel"
+msgstr "Annuler [C]"
+
+msgid "_Export Layers"
+msgstr "_Exporter les calques"
+
+msgid "_Replace"
+msgstr "_Remplacer"
+
+msgid "_Skip"
+msgstr "Pa_sser"
+
+msgid "_Stop"
+msgstr "_Stop"
+
+msgid "{0} encountered an unexpected error and has to close. Sorry about that!"
+msgstr "{0} a rencontré une erreur inattendue et doit fermer. Désolé !"
