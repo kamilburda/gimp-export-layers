@@ -91,6 +91,7 @@ def make_package(input_dirpath, output_filepath, version):
   _create_package_file(output_filepath, temp_filepaths, relative_filepaths)
   
   shutil.rmtree(temp_dirpath)
+  _remove_pot_files(pygimplib.config.LOCALE_DIRPATH)
 
 
 def _get_filtered_filepaths(dirpath, pattern_filepath):
@@ -107,15 +108,19 @@ def _get_relative_filepaths(filepaths, root_dirpath):
 
 
 def _generate_pot_file(source_dirpath, version):
-  for filename in os.listdir(source_dirpath):
-    if os.path.isfile(os.path.join(source_dirpath, filename)):
-      if filename.endswith(".pot"):
-        os.remove(os.path.join(source_dirpath, filename))
+  _remove_pot_files(source_dirpath)
   
   orig_cwd = os.getcwdu()
   os.chdir(source_dirpath)
   subprocess.call(["./generate_pot.sh", version])
   os.chdir(orig_cwd)
+
+
+def _remove_pot_files(source_dirpath):
+  for filename in os.listdir(source_dirpath):
+    if os.path.isfile(os.path.join(source_dirpath, filename)):
+      if filename.endswith(".pot"):
+        os.remove(os.path.join(source_dirpath, filename))
 
 
 def _copy_files_to_temp_filepaths(filepaths, temp_filepaths):
