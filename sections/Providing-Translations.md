@@ -4,7 +4,7 @@ title: Providing Translations
 ---
 
 If you want to provide translations for the plug-in, it is recommended to use
-a translation tool such as [Poedit](http://poedit.net) for easier usage.
+a translation tool such as [Poedit](https://poedit.net) for easier usage.
 
 
 How do I translate the plug-in?
