@@ -12,7 +12,7 @@ Features
 * ...and much more.
 
 
-See the [documentation](http://khalim19.github.io/gimp-plugin-export-layers/sections)
+See the [documentation](https://khalim19.github.io/gimp-plugin-export-layers/sections)
 for information about installation, usage and known issues.
 
 [**Download latest work-in-progress release**](https://github.com/khalim19/gimp-plugin-export-layers/releases/tag/3.0-RC1) (3.0-RC1)
@@ -37,5 +37,5 @@ License
 -------
 
 Export Layers is licensed under the
-[GNU GPLv3](http://www.gnu.org/licenses/gpl-3.0.html) license.
+[GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) license.
 
