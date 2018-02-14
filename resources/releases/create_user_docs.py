@@ -12,9 +12,9 @@ import importlib
 import io
 import os
 import shutil
-import subprocess
 import sys
 
+import psutil
 import requests
 import yaml
 
@@ -37,7 +37,7 @@ def main(github_page_scripts_dirpath, github_page_dirpath, output_dirpath):
 
 
 def run_page_locally(github_page_scripts_dirpath, github_page_dirpath):
-  run_page_locally_process = subprocess.Popen(
+  run_page_locally_process = psutil.Popen(
     [os.path.join(github_page_scripts_dirpath, "run_page_locally.sh"), "--release"])
   
   page_config_filepath = os.path.join(github_page_dirpath, PAGE_CONFIG_FILENAME)
@@ -56,6 +56,10 @@ def run_page_locally(github_page_scripts_dirpath, github_page_dirpath):
       pass
     else:
       page_ready = True
+  
+  run_page_locally_process_children = run_page_locally_process.children(recursive=True)
+  for child in run_page_locally_process_children:
+    child.kill()
   
   run_page_locally_process.kill()
 
