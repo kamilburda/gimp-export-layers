@@ -1,4 +1,4 @@
-# ![](docs/images/logo_small.png) Export Layers
+# ![](resources/docs/images/logo_small.png) Export Layers
 
 {% include-section "sections/Intro.md" %}
 
