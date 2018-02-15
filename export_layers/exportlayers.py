@@ -801,13 +801,13 @@ class LayerExporter(object):
   def _setup(self):
     pdb.gimp_context_push()
     
-    self._image_copy = pgpdb.duplicate(self.image, metadata_only=True)
+    self._image_copy = pgpdb.create_image_from_metadata(self.image)
     pdb.gimp_image_undo_freeze(self._image_copy)
     
     self._operation_executor.execute(["after_create_image_copy"], self._image_copy)
     
     if self._use_another_image_copy:
-      self._another_image_copy = pgpdb.duplicate(self._image_copy, metadata_only=True)
+      self._another_image_copy = pgpdb.create_image_from_metadata(self._image_copy)
       pdb.gimp_image_undo_freeze(self._another_image_copy)
     
     if pygimplib.config.DEBUG_IMAGE_PROCESSING:

@@ -110,33 +110,33 @@ def is_layer_inside_image(image, layer):
 #===============================================================================
 
 
-def duplicate(image, metadata_only=False):
+def create_image_from_metadata(image_to_copy_metadata_from):
   """
-  Duplicate the specified image.
+  Create a new image with metadata (dimensions, base type, parasites, etc.)
+  copied from `image_to_copy_metadata_from`.
   
-  If `metadata_only` is True, copy image metadata only (i.e. do not copy layers,
-  channels or paths).
+  Layers, channels or paths are not copied. For a full image copy, use
+  `pdb.gimp_image_duplicate`.
   """
   
-  if not metadata_only:
-    new_image = pdb.gimp_image_duplicate(image)
-  else:
-    new_image = pdb.gimp_image_new(image.width, image.height, image.base_type)
-    
-    pdb.gimp_image_set_resolution(new_image, *pdb.gimp_image_get_resolution(image))
-    pdb.gimp_image_set_unit(new_image, pdb.gimp_image_get_unit(image))
-    
-    if image.base_type == gimpenums.INDEXED:
-      pdb.gimp_image_set_colormap(new_image, *pdb.gimp_image_get_colormap(image))
-    
-    # Copy image parasites
-    unused_, parasite_names = pdb.gimp_image_get_parasite_list(image)
-    for name in parasite_names:
-      parasite = image.parasite_find(name)
-      # `pdb.gimp_image_parasite_attach` fails for some reason - use
-      # `gimp.Image.parasite_attach` instead.
-      new_image.parasite_attach(
-        gimp.Parasite(parasite.name, parasite.flags, parasite.data))
+  image = image_to_copy_metadata_from
+  
+  new_image = pdb.gimp_image_new(image.width, image.height, image.base_type)
+  
+  pdb.gimp_image_set_resolution(new_image, *pdb.gimp_image_get_resolution(image))
+  pdb.gimp_image_set_unit(new_image, pdb.gimp_image_get_unit(image))
+  
+  if image.base_type == gimpenums.INDEXED:
+    pdb.gimp_image_set_colormap(new_image, *pdb.gimp_image_get_colormap(image))
+  
+  # Copy image parasites
+  unused_, parasite_names = pdb.gimp_image_get_parasite_list(image)
+  for name in parasite_names:
+    parasite = image.parasite_find(name)
+    # `pdb.gimp_image_parasite_attach` fails for some reason - use
+    # `gimp.Image.parasite_attach` instead.
+    new_image.parasite_attach(
+      gimp.Parasite(parasite.name, parasite.flags, parasite.data))
   
   return new_image
 
