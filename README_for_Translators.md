@@ -49,13 +49,13 @@ To create a new translation for your language:
 install the `gettext` package - the command varies across Linux distributions,
 e.g. in Ubuntu you would type:
    
-        sudo apt-get install gettext
+       sudo apt-get install gettext
    
 2. Find the .pot file in the "export_layers/locale" folder.
 3. Open up terminal and run
    
-        cd [folder where you extracted the package]/export_layers/locale
-        ./generate_po.sh [path to .pot file] [language]
+       cd [folder where you extracted the package]/export_layers/locale
+       ./generate_po.sh [path to .pot file] [language]
    
    A .po file is generated in the same folder as the current working directory.
    
@@ -75,8 +75,8 @@ since the last translation was made, you may need to update the translation:
 
 1. Run the following commands:
    
-        cd [folder where you extracted the package]/export_layers/locale
-        ./update_po.sh [path to .po file] [path to .pot file]
+       cd [folder where you extracted the package]/export_layers/locale
+       ./update_po.sh [path to .po file] [path to .pot file]
    
    The old .po file is preserved and has ".po.old" file extension.
    
@@ -105,7 +105,7 @@ You can do so by submitting your translated .po file in one of the following way
   Create a commit titled `Add [full language name] translation ([language])`
   (e.g. `Add French translation (fr_FR)`) that adds the translated .po file to the following path:
   
-        [your user folder]/.gimp-2.8/plug-ins/export_layers/locale/[language]/LC_MESSAGES/gimp-plugin-export-layers.po
+      [your user folder]/.gimp-2.8/plug-ins/export_layers/locale/[language]/LC_MESSAGES/gimp-plugin-export-layers.po
   
   If you're updating your translation, name your commit message
   `Update [full language name] translation ([language])` (e.g. `Update French translation (fr_FR)`).
