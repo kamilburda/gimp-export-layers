@@ -48,8 +48,8 @@ If you don't want to use Poedit, you may use the terminal on Linux
 To create a new translation for your language:
 
 1. Make sure that the `gettext` package is installed in your system. If not,
-install the `gettext` package - the command varies for different distributions,
-e.g. in Ubuntu:
+install the `gettext` package - the command varies across Linux distributions,
+e.g. in Ubuntu you would type:
    
         sudo apt-get install gettext
    
@@ -95,11 +95,22 @@ since the last translation was made, you may need to update the translation:
 OK, I have finished the translation. What next?
 --------------------------------------------------
 
-You can send the translated .po file to the following email: khalim19 AT gmail DOT com.
-The translation will be added to the plug-in.
+You may want to test your translation first to make sure it works correctly,
+as described in the next section.
 
-You can also test your translation to make sure it works correctly, as described
-in the next section.
+It would also be a great idea if you shared your translation with the rest of the world.
+You can do so by submitting your translated .po file in one of the following ways:
+
+* Send the .po file to the following email: khalim19 AT gmail DOT com.
+  The translation will be added to the plug-in.
+* Open a git pull request for the [plug-in repository](https://github.com/khalim19/gimp-plugin-export-layers).
+  Create a commit titled `Add [full language name] translation ([language])`
+  (e.g. `Add French translation (fr_FR)`) that adds the translated .po file to the following path:
+  
+    [your user folder]/.gimp-2.8/plug-ins/export_layers/locale/[language]/LC_MESSAGES/gimp-plugin-export-layers.po
+  
+  If you're updating your translation, name your commit message
+  `Update [full language name] translation ([language])` (e.g. `Update French translation (fr_FR)`).
 
 
 How can I test my translation?
