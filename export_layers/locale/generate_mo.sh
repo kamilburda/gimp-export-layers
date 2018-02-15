@@ -18,10 +18,15 @@ if [ ! -f "$1" ]; then
    exit 1
 fi
 
-po_file="$1"
-shift
+if [ ! "$2" ]; then
+   echo "$PROGNAME: missing language" 1>&2
+   exit 1
+fi
 
-language="$(basename "${po_file%.*}")"
+po_file="$1"
+language="$2"
+shift 2
+
 output_dir="$LOCALE_DIR"'/'"$language"'/'"$LC_MESSAGES_DIR"
 
 mkdir -p "$output_dir"

@@ -137,7 +137,7 @@ and rename the .mo file to
 Generate the .mo file as follows:
    
     cd [your user folder]/.gimp-2.8/plug-ins/export_layers/locale
-    ./generate_mo.sh [path to .po file]
+    ./generate_mo.sh [path to .po file] [language]
 
 
 ### Running GIMP
