@@ -3,6 +3,21 @@ layout: docs_home
 title: Release Notes
 ---
 
+3.0-RC2
+=======
+
+* Renamed "filters" to "constraints" to avoid confusion with the concept of
+image filters.
+* Adding a previously enabled and subsequently removed operation or constraint
+will now be disabled when added back again.
+* Moved `pygimplib` folder above the `export_layers` folder.
+* Changed user documentation to HTML (more-or-less a copy of the plug-in page).
+* Fixed operations being ignored for "Export Layers (repeat)".
+* Fixed dialog position resetting after closing the file format dialog.
+* Fixed tagged layers (notably foreground and background) not working for
+indexed images.
+* Added French, Russian and Ukrainian translations.
+
 3.0-RC1
 =======
 
