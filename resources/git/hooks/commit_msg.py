@@ -56,7 +56,7 @@ def capitalize_first_letter_in_header(commit_message):
   
   first_line_segments = first_line.split(":", 1)
   if len(first_line_segments) <= 1:
-    first_line_processed = first_line.capitalize()
+    first_line_processed = first_line
   else:
     scope, header = first_line_segments
     header_without_leading_space = header.lstrip(" ")
