@@ -80,32 +80,52 @@ def copy_and_insert_layer(image, layer, parent=None, position=0):
   return layer_copy
 
 
-def _insert_tagged_layer(image, tag, layer_exporter, positon=0):
+def _insert_tagged_layer(image, tag, layer_exporter, position=0):
   if not layer_exporter.tagged_layer_elems[tag]:
     return
   
   if layer_exporter.tagged_layer_copies[tag] is None:
-    layer_group = pdb.gimp_layer_group_new(image)
-    pdb.gimp_image_insert_layer(image, layer_group, None, positon)
+    layer_exporter.inserted_tagged_layers[tag] = (
+      _insert_merged_tagged_layer(image, tag, layer_exporter, position))
     
-    for i, layer_elem in enumerate(layer_exporter.tagged_layer_elems[tag]):
-      layer_copy = copy_and_insert_layer(image, layer_elem.item, layer_group, i)
-      layer_exporter.operation_executor.execute(
-        ["after_insert_layer"], image, layer_copy, layer_exporter)
-    
-    layer_exporter.inserted_tagged_layers[tag] = pgpdb.merge_layer_group(layer_group)
     layer_exporter.tagged_layer_copies[tag] = (
       pdb.gimp_layer_copy(layer_exporter.inserted_tagged_layers[tag], True))
   else:
     layer_exporter.inserted_tagged_layers[tag] = (
       pdb.gimp_layer_copy(layer_exporter.tagged_layer_copies[tag], True))
     pdb.gimp_image_insert_layer(
-      image, layer_exporter.inserted_tagged_layers[tag], None, positon)
+      image, layer_exporter.inserted_tagged_layers[tag], None, position)
+
+
+def _insert_merged_tagged_layer(image, tag, layer_exporter, position=0):
+  first_tagged_layer_position = position
+  
+  for i, layer_elem in enumerate(layer_exporter.tagged_layer_elems[tag]):
+    layer_copy = copy_and_insert_layer(
+      image, layer_elem.item, None, first_tagged_layer_position + i)
+    layer_copy.visible = True
+    layer_exporter.operation_executor.execute(
+      ["after_insert_layer"], image, layer_copy, layer_exporter)
+  
+  if len(layer_exporter.tagged_layer_elems[tag]) == 1:
+    merged_layer_for_tag = image.layers[first_tagged_layer_position]
+  else:
+    second_to_last_tagged_layer_position = (
+      first_tagged_layer_position + len(layer_exporter.tagged_layer_elems[tag]) - 2)
+    
+    for i in range(
+          second_to_last_tagged_layer_position,
+          first_tagged_layer_position - 1,
+          -1):
+      merged_layer_for_tag = pdb.gimp_image_merge_down(
+        image, image.layers[i], gimpenums.EXPAND_AS_NECESSARY)
+  
+  return merged_layer_for_tag
 
 
 def insert_background_layer(tag, image, layer, layer_exporter):
-  _insert_tagged_layer(image, tag, layer_exporter, positon=len(image.layers))
+  _insert_tagged_layer(image, tag, layer_exporter, position=len(image.layers))
 
 
 def insert_foreground_layer(tag, image, layer, layer_exporter):
-  _insert_tagged_layer(image, tag, layer_exporter, positon=0)
+  _insert_tagged_layer(image, tag, layer_exporter, position=0)
