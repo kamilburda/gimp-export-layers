@@ -2,6 +2,7 @@
 ## Export Layers
 #################
 
+_config_local.yml
 *.log
 
 #################
