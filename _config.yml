@@ -7,6 +7,7 @@ repository: khalim19/gimp-plugin-export-layers
 github_username: khalim19
 email: khalim19@gmail.com
 
+plugin_name: export_layers
 plugin_version: 3.0-RC2
 sections_url: /sections/
 license_remote_url: blob/master/LICENSE
