@@ -98,6 +98,9 @@ class _Config(object):
       return attr()
     else:
       return attr
+  
+  def __hasattr__(self, name):
+    return name in self._config
 
 
 def _init_config():
