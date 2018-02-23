@@ -35,4 +35,12 @@ make_package.main()
 
 
 imp.reload(preprocess_document_contents)
-preprocess_document_contents.main([os.path.join(resources_dirpath, "docs", "README_raw.md")], [os.path.join(plugin_dirpath, "README.md")], insert_markdownify_tag=False)
+preprocess_document_contents.main([os.path.join(resources_dirpath, "docs", "README_raw.md")], [os.path.join(plugin_dirpath, "README.md")])
+
+
+
+release_utils_tests_dirpath = os.path.join(release_utils_dirpath, "tests")
+sys.path.append(release_utils_tests_dirpath)
+imp.reload(preprocess_document_contents)
+pgruntests.run_tests(release_utils_tests_dirpath)
+

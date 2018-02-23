@@ -23,26 +23,46 @@ This script pre-processes documents (HTML pages, plain text files), replacing
 lines containing a Liquid-style tag and its arguments with the corresponding
 content.
 
-Currently, only the following tag is provided:
-* `{% include-section <relative file path>:<section>[arguments]... %}`:
-  replaces the line with the section from the specified file. For example,
-  `{% include-section README.md:Features %}` replaces the line with the
-  contents of the section "Features" from the file `README.md` in the same
-  directory as the file containing this line.
-  
-  A section is a valid Markdown section heading (underlining headers with "="
-  or "-", or using leading "#"s separated from headers by a single space).
+Usage:
+`<script name> <source file paths> <destination file paths>`
+
+Each file from the list of source file paths must have a counterpart in the
+destination file paths list. Thus the length of the two lists must be identical.
+
+The following tags can be specified in the documents:
+* `{% include-section <relative file path> <arguments>... %}`:
+  Replace the entire line containing this expression with the contents of the
+  specified file.
   
   Optional arguments to `include-section`:
-  * `[index]` or `[start index:end index]`: pick chosen sentence(s) from
-    sections using Python slice notation
-  * `[no-header]` - exclude section header
+  * `section=<section name>` - Instead of the entire contents, insert only the
+    contents from the section <section name>. A section is a valid Markdown
+    section heading (underlining headers with "=" or "-", or using leading "#"s
+    separated from headers by a single space).
+  * `sentences=<index number>` or `sentences=<start index:end index>` - pick
+    chosen sentence(s) from sections by indexes using the Python slice notation.
+  * `no-header=(True | False)` - exclude section header. "False" by default.
+  
+  Examples:
+      {% include-section "docs/README.md" section=Features no-header %}
+      {% include-section "docs/README.md" section="Known Issues" %}
+      {% include-section "docs/README.md" section=License index=0 %}
+
+* `{% include-config <pygimplib configuration entry> %}`:
+  Replace the expression with the corresponding configuration entry in
+  `pygimplib.config`. If no such entry is found, the expression is not replaced.
+  
+  Examples:
+  `{% include-config "PLUGIN_NAME" %}` will insert a pygimplib configuration
+  entry titled `"PLUGIN_NAME"`, e.g. "export_layers".
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import pygimplib
 from future.builtins import *
+import future.utils
 
+import abc
 import io
 import os
 import re
@@ -58,203 +78,300 @@ pygimplib.init()
 #===============================================================================
 
 
-def preprocess_contents(source_filepaths, dest_filepaths, insert_markdownify_tag):
+def preprocess_contents(source_filepaths, dest_filepaths):
   for source_filepath, dest_filepath in zip(source_filepaths, dest_filepaths):
     with io.open(source_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
       source_file_contents = file_.read()
     
-    preprocessed_contents = _preprocess_contents(
-      source_filepath, source_file_contents, insert_markdownify_tag)
+    preprocessed_contents = source_file_contents
+    
+    for tag_name, tag_class in _TAGS.items():
+      tag = tag_class(source_filepath, _TAG_MATCHING_REGEXES[tag_name])
+      preprocessed_contents = _preprocess_contents(
+        source_filepath, tag, preprocessed_contents)
     
     with io.open(dest_filepath, "w", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
       file_.writelines(preprocessed_contents)
 
 
-def _preprocess_contents(source_filepath, file_contents, insert_markdownify_tag):
-  for match in list(re.finditer(r"( *)(\{% include-section (.*?) %\})", file_contents)):
-    tag_args = _parse_tag_args(source_filepath, "include-section", match.group(3))
-    section_contents = _process_tag_args("include-section", tag_args)
+def _preprocess_contents(source_filepath, tag, file_contents):
+  for match in list(re.finditer(tag.matching_regex, file_contents)):
+    tag_args = parse_args(tag.get_args_from_match(match))
+    tag.process_args(tag_args["args"], tag_args["optional_args"])
     
-    if insert_markdownify_tag:
-      leading_spacing = match.group(1)
-      dest_contents = (
-        "{% capture markdown-insert %}\n"
-        + section_contents + "\n" + leading_spacing
-        + "{% endcapture %}"
-        + "\n" + leading_spacing + "{{ markdown-insert | markdownify }}")
-      file_contents = file_contents.replace(match.group(2), dest_contents, 1)
-    else:
-      file_contents = file_contents.replace(match.group(2), section_contents, 1)
+    new_contents = tag.get_contents()
+    file_contents = file_contents.replace(
+      tag.get_match_to_be_replaced(match), new_contents, 1)
   
   return file_contents
-
-
-def _parse_tag_args(source_filepath, tag_name, tag_args_str):
-  args_match = re.search(r"\[.*\]$", tag_args_str)
-  if args_match:
-    relative_document_filepath = (
-      tag_args_str[:len(tag_args_str) - len(args_match.group())])
-  else:
-    relative_document_filepath = tag_args_str
-  
-  document_relative_filepath_components = relative_document_filepath.strip('"').split("/")
-  if ":" in document_relative_filepath_components[-1]:
-    document_relative_filepath_components[-1], document_section_name = (
-      document_relative_filepath_components[-1].split(":"))
-  else:
-    document_section_name = ""
-  
-  document_filepath = os.path.normpath(
-    os.path.join(
-      os.path.dirname(source_filepath), *document_relative_filepath_components))
-  
-  tag_args = [document_filepath, document_section_name]
-  
-  for tag_arg_item in _TAG_ARGUMENTS[tag_name]:
-    tag_arg_item.parse_func_retvals = []
-  
-  if args_match:
-    for tag_arg_item in _TAG_ARGUMENTS[tag_name]:
-      tag_arg_match = re.search(
-        r"\[(" + tag_arg_item.tag_arg_match_pattern + r")\]", args_match.group())
-      if tag_arg_match:
-        tag_arg_item.parse_func_retvals = [
-          tag_arg_item.parse_func(tag_arg_match.group(1))]
-  
-  return tag_args
-
-
-def _process_tag_args(tag_name, tag_args):
-  document_filepath = tag_args[0]
-  section_name = tag_args[1]
-  with io.open(
-         document_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as document:
-    document_contents = document.read()
-    if section_name:
-      section_header, section_contents = _find_section(document_contents, section_name)
-    else:
-      section_header, section_contents = "", document_contents
-  
-  for tag_arg_item in _TAG_ARGUMENTS[tag_name]:
-    if tag_arg_item.parse_func_retvals:
-      section_header, section_contents = tag_arg_item.process_func(
-        section_header, section_contents, *tag_arg_item.parse_func_retvals)
-  
-  return section_header + section_contents
-
-
-def _find_section(contents, section_name):
-  section_header = ""
-  section_contents = ""
-  
-  section_match_regex = (
-    r"(^|\n)"
-    + "("
-    + "(" + re.escape(section_name) + ")" + r"\n[=-]+\n"
-    + "|"
-    + r"#+ " + "(" + re.escape(section_name) + ")" + r"\n"
-    + ")")
-  
-  next_section_match_regex = (
-    "\n"
-    + "("
-    + r"#+ .*?\n"
-    + "|"
-    + r".*?\n[=-]+\n"
-    + ")")
-  
-  section_match = re.search(section_match_regex, contents)
-  if section_match:
-    start_of_section_header = section_match.start(2)
-    end_of_section_header = section_match.end(2)
-    
-    start_of_section_contents = end_of_section_header + 1
-    next_section_match = re.search(
-      next_section_match_regex, contents[start_of_section_contents:])
-    
-    section_header = contents[start_of_section_header:end_of_section_header]
-    if next_section_match:
-      start_of_next_section_header = next_section_match.start(1)
-      end_of_section_contents = (
-        start_of_section_contents + start_of_next_section_header - 1)
-      
-      section_contents = contents[end_of_section_header:end_of_section_contents]
-    else:
-      section_contents = contents[end_of_section_header:]
-  
-  section_contents = section_contents.rstrip("\n")
-  
-  return section_header, section_contents
 
 
 #===============================================================================
 
 
-def _parse_sentence_indices(arg_str):
-  sentence_indices_str = arg_str.split(":")
-  sentence_indices = []
-  for index_str in sentence_indices_str:
-    try:
-      index = int(index_str)
-    except (ValueError, TypeError):
-      index = None
-    sentence_indices.append(index)
+def parse_args(args_str):
   
-  return sentence_indices
-
-
-def _get_sentences_from_section(section_header, section_contents, sentence_indices):
-  if sentence_indices:
-    sentences = re.split(r"(\.[ \n])", section_contents)
+  def _parse_optional_arg(args_str_to_parse, optional_arg_name_match):
+    optional_arg_name = args_str_to_parse[:optional_arg_name_match.end(1)]
+    args_str_to_parse = args_str_to_parse[optional_arg_name_match.end(1) + 1:]
     
-    if len(sentence_indices) == 1:
-      section_sentences = sentences[sentence_indices[0]]
-      if sentence_indices[0] < len(sentences) - 1:
-        section_sentences += sentences[sentence_indices[0] + 1]
+    optional_arg_value_with_quotes_match = (
+      re.search(r'"(.+?)"(\s|$)', args_str_to_parse))
+    
+    if optional_arg_value_with_quotes_match is not None:
+      optional_arg_value = optional_arg_value_with_quotes_match.group(1)
+      args_str_to_parse = (
+        args_str_to_parse[optional_arg_value_with_quotes_match.end(1) + 1:].lstrip())
+    else:
+      optional_arg_value_without_quotes_match = (
+        re.search(r'(.+?)(\s|$)', args_str_to_parse))
       
-      return section_header, section_sentences
-    elif len(sentence_indices) == 2:
-      section_sentences = "" if sentence_indices[0] == 0 else "\n"
-      sentence_index = sentence_indices[0]
-      if not sentence_indices[1]:
-        sentence_indices[1] = len(sentences)
-      
-      while sentence_index < sentence_indices[1]:
-        section_sentences += sentences[sentence_index]
-        if sentence_index < len(sentences) - 1:
-          section_sentences += sentences[sentence_index + 1]
-          sentence_index += 1
-        sentence_index += 1
-      
-      return section_header, section_sentences
+      if optional_arg_value_without_quotes_match is not None:
+        optional_arg_value = optional_arg_value_without_quotes_match.group(1)
+        args_str_to_parse = (
+          args_str_to_parse[optional_arg_value_without_quotes_match.end(1) + 1:].lstrip())
+      else:
+        raise ValueError(
+          'missing value for optional argument "{0}"'.format(optional_arg_name))
+    
+    return args_str_to_parse, optional_arg_name, optional_arg_value
   
-  return section_header, section_contents
+  parsed_args = {"args": [], "optional_args": {}}
+  
+  quote_char = '"'
+  optional_arg_separator_char = "="
+  
+  args_str = args_str.strip()
+  args_str_to_parse = args_str
+  
+  while args_str_to_parse:
+    if args_str_to_parse[0] == quote_char:
+      args_str_to_parse = args_str_to_parse[1:]
+      
+      end_quote_index = args_str_to_parse.find(quote_char)
+      if end_quote_index != -1:
+        parsed_args["args"].append(args_str_to_parse[:end_quote_index])
+        args_str_to_parse = args_str_to_parse[end_quote_index + 1:].lstrip()
+      else:
+        raise ValueError("missing closing '{0}': {1}".format(quote_char, args_str))
+    else:
+      optional_arg_name_match = (
+        re.search(r"^(\S+?)" + optional_arg_separator_char, args_str_to_parse))
+      
+      if optional_arg_name_match is not None:
+        args_str_to_parse, optional_arg_name, optional_arg_value = (
+          _parse_optional_arg(args_str_to_parse, optional_arg_name_match))
+        parsed_args["optional_args"][optional_arg_name] = optional_arg_value
+      else:
+        space_or_end_match = re.search(r"(.+?)(\s+|$)", args_str_to_parse)
+        
+        if space_or_end_match is not None:
+          next_space_index = space_or_end_match.end(1)
+          parsed_args["args"].append(args_str_to_parse[:next_space_index])
+          args_str_to_parse = args_str_to_parse[next_space_index:].lstrip()
+        else:
+          args_str_to_parse = ""
+  
+  return parsed_args
 
 
-def _strip_section_header(section_header, section_contents, should_strip_header):
-  if should_strip_header:
-    return "", section_contents
-  else:
+#===============================================================================
+
+
+class CustomLiquidTag(future.utils.with_metaclass(abc.ABCMeta, object)):
+  
+  def __init__(self, source_filepath, matching_regex):
+    self.source_filepath = source_filepath
+    self.matching_regex = matching_regex
+    
+    self.args = []
+    self.optional_args = {}
+  
+  @abc.abstractmethod
+  def get_args_from_match(self, match):
+    pass
+  
+  @abc.abstractmethod
+  def get_match_to_be_replaced(self, match):
+    pass
+  
+  @abc.abstractmethod
+  def process_args(self, args, optional_args):
+    pass
+  
+  @abc.abstractmethod
+  def get_contents(self):
+    pass
+  
+
+class IncludeSectionTag(CustomLiquidTag):
+  
+  def get_args_from_match(self, match):
+    return match.group(3)
+  
+  def get_match_to_be_replaced(self, match):
+    return match.group(2)
+  
+  def process_args(self, args, optional_args):
+    self.args = [self._process_filepath_arg(args[0])]
+    self.optional_args = self._process_optional_args(optional_args)
+  
+  def get_contents(self):
+    document_filepath = self.args[0]
+    section_name = self.optional_args["section"]
+    
+    with io.open(
+           document_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as document:
+      document_contents = document.read()
+      if section_name:
+        section_header, section_contents = (
+          self._find_section(document_contents, section_name))
+      else:
+        section_header, section_contents = "", document_contents
+    
+    section_header, section_contents = self._get_sentences_from_section(
+      section_header, section_contents, self.optional_args["sentences"])
+    
+    section_header, section_contents = self._strip_section_header(
+      section_header, section_contents, self.optional_args["no-header"])
+    
+    return section_header + section_contents
+  
+  def _process_filepath_arg(self, relative_filepath):
+    return os.path.normpath(
+      os.path.join(os.path.dirname(self.source_filepath), relative_filepath))
+  
+  def _process_optional_args(self, optional_args):
+    processed_optional_args = {}
+    
+    processed_optional_args["section"] = optional_args.get("section", "")
+    processed_optional_args["sentences"] = (
+      self._parse_sentence_indices(optional_args.get("sentences", "")))
+    processed_optional_args["no-header"] = (
+      self._parse_bool_from_str(optional_args.get("no-header", "False")))
+    
+    return processed_optional_args
+  
+  @staticmethod
+  def _parse_sentence_indices(arg_str):
+    if not arg_str:
+      return []
+    
+    sentence_indices_str = arg_str.split(":")[:2]
+    sentence_indices = []
+    for index_str in sentence_indices_str:
+      try:
+        index = int(index_str)
+      except (ValueError, TypeError):
+        index = None
+      sentence_indices.append(index)
+    
+    return sentence_indices
+  
+  @staticmethod
+  def _parse_bool_from_str(arg_str):
+    return arg_str.lower() == "true"
+  
+  @staticmethod
+  def _find_section(contents, section_name):
+    section_header = ""
+    section_contents = ""
+    
+    section_match_regex = (
+      r"(^|\n)"
+      + "("
+      + "(" + re.escape(section_name) + ")" + r"\n[=-]+\n"
+      + "|"
+      + r"#+ " + "(" + re.escape(section_name) + ")" + r"\n"
+      + ")")
+    
+    next_section_match_regex = (
+      "\n"
+      + "("
+      + r"#+ .*?\n"
+      + "|"
+      + r".*?\n[=-]+\n"
+      + ")")
+    
+    section_match = re.search(section_match_regex, contents)
+    if section_match:
+      start_of_section_header = section_match.start(2)
+      end_of_section_header = section_match.end(2)
+      
+      start_of_section_contents = end_of_section_header + 1
+      next_section_match = re.search(
+        next_section_match_regex, contents[start_of_section_contents:])
+      
+      section_header = contents[start_of_section_header:end_of_section_header]
+      if next_section_match:
+        start_of_next_section_header = next_section_match.start(1)
+        end_of_section_contents = (
+          start_of_section_contents + start_of_next_section_header - 1)
+        
+        section_contents = contents[end_of_section_header:end_of_section_contents]
+      else:
+        section_contents = contents[end_of_section_header:]
+    
+    section_contents = section_contents.rstrip("\n")
+    
     return section_header, section_contents
-
-
-class TagArgument(object):
   
-  def __init__(self, tag_arg_match_pattern, parse_func, process_func):
-    self.tag_arg_match_pattern = tag_arg_match_pattern
-    self.parse_func = parse_func
-    self.process_func = process_func
+  @staticmethod
+  def _get_sentences_from_section(section_header, section_contents, sentence_indices):
+    if sentence_indices:
+      sentences = re.split(r"\.[ \n]", section_contents)
+      
+      if len(sentence_indices) == 1:
+        section_sentences = sentences[sentence_indices[0]].strip()
+        if not section_sentences.endswith("."):
+          section_sentences += "."
+        
+        return section_header, section_sentences
+      elif len(sentence_indices) == 2:
+        section_sentences = ". ".join(
+          sentence.strip()
+          for sentence in sentences[sentence_indices[0]:sentence_indices[1]])
+        
+        if not section_sentences.endswith("."):
+          section_sentences += '.'
+        
+        return section_header, section_sentences
     
-    self.parse_func_retvals = []
+    return section_header, section_contents
+  
+  @staticmethod
+  def _strip_section_header(section_header, section_contents, should_strip_header):
+    if should_strip_header:
+      return "", section_contents
+    else:
+      return section_header, section_contents
 
 
-_TAG_ARGUMENTS = {
-  "include-section": [
-    TagArgument(
-      r"[0-9]+:?[0-9]*", _parse_sentence_indices, _get_sentences_from_section),
-    TagArgument(
-      r"no-header", lambda arg_str: arg_str == "no-header", _strip_section_header)
-  ]
+class IncludeConfigTag(CustomLiquidTag):
+  
+  def get_args_from_match(self, match):
+    return match.group(2)
+  
+  def get_match_to_be_replaced(self, match):
+    return match.group(1)
+  
+  def process_args(self, args, optional_args):
+    self.args = args
+  
+  def get_contents(self):
+    return getattr(pygimplib.config, self.args[0], "") if self.args else ""
+
+
+#===============================================================================
+
+_TAGS = {
+  "include-section": IncludeSectionTag,
+  "include-config": IncludeConfigTag,
+}
+
+_TAG_MATCHING_REGEXES = {
+  "include-section": r"( *)(\{% include-section (.*?) %\})",
+  "include-config": r"(\{% include-config (.*?) %\})",
 }
 
 #===============================================================================
@@ -267,7 +384,7 @@ def main(source_filepaths, dest_filepaths, insert_markdownify_tag=True):
       file=sys.stderr)
     sys.exit(1)
   
-  preprocess_contents(source_filepaths, dest_filepaths, insert_markdownify_tag)
+  preprocess_contents(source_filepaths, dest_filepaths)
 
 
 if __name__ == "__main__":
