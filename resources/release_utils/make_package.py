@@ -53,7 +53,7 @@ pygimplib.init()
 
 MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
 RESOURCES_DIRPATH = os.path.dirname(MODULE_DIRPATH)
-PLUGINS_DIRPATH = os.path.dirname(RESOURCES_DIRPATH)
+PLUGINS_DIRPATH = pygimplib.config.PLUGINS_DIRPATH
 
 OUTPUT_FILENAME_PREFIX = pygimplib.config.PLUGIN_NAME
 OUTPUT_FILE_EXTENSION = "zip"
@@ -127,7 +127,8 @@ def _generate_mo_files(source_dirpath):
   
   for root_dirpath, unused_, filenames in os.walk(source_dirpath):
     for filename in filenames:
-      if os.path.isfile(os.path.join(root_dirpath, filename)) and filename.endswith(".po"):
+      if (os.path.isfile(os.path.join(root_dirpath, filename))
+          and filename.endswith(".po")):
         po_file = os.path.join(root_dirpath, filename)
         language = pgpath.split_path(root_dirpath)[-2]
         subprocess.call(["./generate_mo.sh", po_file, language])
