@@ -21,9 +21,9 @@ pgruntests.run_tests(plugin_dirpath, modules=["export_layers"], ignored_modules=
 
 
 resources_dirpath = os.path.join(plugin_dirpath, "resources")
-release_utils_dirpath = os.path.join(resources_dirpath, "release_utils")
+utils_dirpath = os.path.join(resources_dirpath, "utils")
 sys.path.append(resources_dirpath)
-sys.path.append(release_utils_dirpath)
+sys.path.append(utils_dirpath)
 import make_package
 import preprocess_document_contents
 orig_cwd = os.getcwd()
@@ -39,8 +39,8 @@ preprocess_document_contents.main([os.path.join(resources_dirpath, "docs", "READ
 
 
 
-release_utils_tests_dirpath = os.path.join(release_utils_dirpath, "tests")
-sys.path.append(release_utils_tests_dirpath)
+utils_tests_dirpath = os.path.join(utils_dirpath, "tests")
+sys.path.append(utils_tests_dirpath)
 imp.reload(preprocess_document_contents)
-pgruntests.run_tests(release_utils_tests_dirpath)
+pgruntests.run_tests(utils_tests_dirpath)
 
