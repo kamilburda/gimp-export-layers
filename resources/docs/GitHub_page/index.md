@@ -3,10 +3,10 @@ layout: main
 title: GIMP plug-in
 ---
 
-{% include-section "sections/Intro.md:Features" %}
+{% include-section "../sections/Intro.md" section="Features" %}
 
-See the [documentation]({{ site.docs_url | prepend: site.baseurl }})
+See the [documentation]({{ site.sections_url | relative_url }})
 for information about installation, usage and known issues.
 
 
-{% include-section "sections/More-Info.md:Support" %}
+{% include-section "../sections/More-Info.md" section="Support" %}
