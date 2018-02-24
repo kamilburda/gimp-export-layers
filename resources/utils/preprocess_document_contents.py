@@ -377,7 +377,7 @@ _TAG_MATCHING_REGEXES = {
 #===============================================================================
 
 
-def main(source_filepaths, dest_filepaths, insert_markdownify_tag=True):
+def main(source_filepaths, dest_filepaths):
   if len(source_filepaths) != len(dest_filepaths):
     print(
       "Lists of source and destination file paths are not the same length",
@@ -388,4 +388,4 @@ def main(source_filepaths, dest_filepaths, insert_markdownify_tag=True):
 
 
 if __name__ == "__main__":
-  main(*sys.argv[1:])
+  main(sys.argv[1], sys.argv[2])
