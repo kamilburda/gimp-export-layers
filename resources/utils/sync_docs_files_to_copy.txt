@@ -1,0 +1,2 @@
+resources/docs/images
+resources/docs/gh-pages/images

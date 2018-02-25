@@ -1,0 +1,11 @@
+resources/docs/README_raw.md
+README.md
+
+resources/docs/GitHub_page/_config.yml
+resources/docs/gh-pages/_config.yml
+
+resources/docs/GitHub_page/index.md
+resources/docs/gh-pages/index.md
+
+resources/docs/GitHub_page/sections
+resources/docs/gh-pages/sections
