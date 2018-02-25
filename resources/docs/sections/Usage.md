@@ -2,7 +2,7 @@ Once you open an image in GIMP, select "File -> Export Layers...". A dialog
 appears, allowing you to specify output folder and
 [a few basic settings](#basic-settings):
 
-![Dialog for basic usage of Export Layers](../images/usage_dialog.png)
+![Dialog for basic usage of Export Layers](../images/screenshot_dialog_usage.png)
 
 To export layers, press the "Export" button. A dialog corresponding to the file
 format appears, allowing you to adjust export settings. Some file formats don't
