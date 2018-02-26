@@ -3,6 +3,7 @@ layout: docs_page
 title: Providing Translations
 ---
 
+
 If you want to provide translations for the plug-in, it is recommended to use
 a translation tool such as [Poedit](https://poedit.net) for easier usage.
 
