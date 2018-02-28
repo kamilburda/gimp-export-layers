@@ -1,4 +1,4 @@
-# [![](resources/docs/images/logo_small.png)](https://khalim19.github.io/gimp-plugin-export-layers/) Export Layers
+# [![](resources/docs/images/logo_small.svg)](https://khalim19.github.io/gimp-plugin-export-layers/) Export Layers
 
 Export Layers is a [GIMP](https://www.gimp.org/) plug-in that exports layers as separate images.
 
