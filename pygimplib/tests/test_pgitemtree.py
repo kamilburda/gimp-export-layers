@@ -186,7 +186,7 @@ class TestLayerTree(unittest.TestCase):
       ("alt-corners", [["main-background.jpg::"], None]),
     ])
     
-    for layer_elem, orig_name in zip(self.layer_tree, layer_elem_tree.keys()):
+    for layer_elem, orig_name in zip(self.layer_tree, layer_elem_tree):
       self.assertEqual(layer_elem.orig_name, orig_name)
     
     for layer_elem, parents_and_children in zip(

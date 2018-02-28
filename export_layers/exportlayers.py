@@ -217,7 +217,7 @@ class LayerNameRenamer(object):
       tags_to_insert.append(tag_display_name)
     
     def _get_tag_from_tag_display_name(tag_display_name):
-      builtin_tags_keys = list(self._layer_exporter.BUILTIN_TAGS.keys())
+      builtin_tags_keys = list(self._layer_exporter.BUILTIN_TAGS)
       builtin_tags_values = list(self._layer_exporter.BUILTIN_TAGS.values())
       return builtin_tags_keys[builtin_tags_values.index(tag_display_name)]
     

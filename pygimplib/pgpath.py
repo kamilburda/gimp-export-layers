@@ -283,7 +283,7 @@ class StringPatternGenerator(object):
     
     new_number_generators = []
     
-    for field_name in list(self._number_generators.keys()):
+    for field_name in list(self._number_generators):
       number_generator = self._set_number_field(
         field_name, self._fields, self._number_generators)
       new_number_generators.append(number_generator)
@@ -309,8 +309,7 @@ class StringPatternGenerator(object):
         "incorrect number of number generators (got {0}, expected {1})".format(
           len(number_generators), len(self._number_generators)))
     
-    for field_name, number_generator in zip(
-          self._number_generators.keys(), number_generators):
+    for field_name, number_generator in zip(self._number_generators, number_generators):
       self._set_number_field(
         field_name, self._fields, self._number_generators, number_generator)
   

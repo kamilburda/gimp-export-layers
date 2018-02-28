@@ -356,14 +356,14 @@ class OperationExecutor(object):
     """
     
     if include_empty_groups:
-      return list(self._operations.keys())
+      return list(self._operations)
     else:
       def _is_group_non_empty(operation_group):
         return any(
           (operation_group in operation_lists and operation_lists[operation_group])
           for operation_lists in [self._operations, self._foreach_operations])
       
-      return [operation_group for operation_group in self._operations.keys()
+      return [operation_group for operation_group in self._operations
               if _is_group_non_empty(operation_group)]
   
   def reorder_operation(self, operation_id, operation_group, position):

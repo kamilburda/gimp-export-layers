@@ -93,7 +93,7 @@ class ParasiteFunctionsStub(object):
       return None
   
   def parasite_list(self):
-    return list(self._parasites.keys())
+    return list(self._parasites)
   
   def parasite_attach(self, parasite):
     self._parasites[parasite.name] = parasite

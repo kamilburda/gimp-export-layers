@@ -947,7 +947,7 @@ class EnumSetting(Setting):
     
     error_messages["invalid_default_value"] = (
       "invalid identifier for the default value; must be one of {0}").format(
-        list(self._items.keys()))
+        list(self._items))
     
     if "error_messages" in kwargs:
       error_messages.update(kwargs["error_messages"])
@@ -1075,7 +1075,7 @@ class EnumSetting(Setting):
       else:
         raise ValueError(
           "invalid identifier for the empty value; must be one of {0}".format(
-            list(self._items.keys())))
+            list(self._items)))
     else:
       return None
 
@@ -1301,7 +1301,7 @@ class ImageIDsAndDirpathsSetting(Setting):
     
     # Remove images no longer opened in GIMP
     self._value = {
-      image_id: self._value[image_id] for image_id in self._value.keys()
+      image_id: self._value[image_id] for image_id in self._value
       if image_id in current_image_ids}
     
     # Add new images opened in GIMP
