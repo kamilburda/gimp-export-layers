@@ -38,4 +38,3 @@ License
 
 Export Layers is licensed under the
 [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) license.
-
