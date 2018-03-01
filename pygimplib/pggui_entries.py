@@ -38,6 +38,58 @@ from . import pgpath
 #===============================================================================
 
 
+class EntryExpander(object):
+  
+  """
+  This class enables the specified `gtk.Entry` to have a flexible width, bounded
+  by the specified minimum and maximum number of characters (width in
+  characters).
+  """
+  
+  def __init__(self, entry, minimum_width_chars, maximum_width_chars):
+    self._entry = entry
+    self._minimum_width_chars = minimum_width_chars
+    self._maximum_width_chars = maximum_width_chars
+    
+    if self._minimum_width_chars > self._maximum_width_chars:
+      raise ValueError(
+        "minimum width in characters ({0}) cannot be greater than maximum ({1})".format(
+          self._minimum_width_chars, self._maximum_width_chars))
+    
+    self._minimum_width = -1
+    self._maximum_width = -1
+    self._entry.set_width_chars(self._minimum_width_chars)
+    
+    self._pango_layout = pango.Layout(self._entry.get_pango_context())
+    
+    self._entry.connect("changed", self._on_entry_changed)
+    self._entry.connect("size-allocate", self._on_entry_size_allocate)
+  
+  def _on_entry_changed(self, entry):
+    if self._entry.get_realized():
+      self._update_entry_width()
+  
+  def _on_entry_size_allocate(self, entry, allocation):
+    if self._minimum_width == -1:
+      self._minimum_width = self._entry.get_allocation().width
+      self._maximum_width = (
+        int((self._minimum_width / self._minimum_width_chars)
+            * self._maximum_width_chars)
+        + 1)
+    
+    self._update_entry_width()
+  
+  def _update_entry_width(self):
+    self._pango_layout.set_text(self._entry.get_text())
+    
+    offset_pixel_width = (
+      (self._entry.get_layout_offsets()[0] + self._entry.get_property("scroll-offset"))
+      * 2)
+    text_pixel_width = self._pango_layout.get_pixel_size()[0] + offset_pixel_width
+    self._entry.set_size_request(
+      max(min(text_pixel_width, self._maximum_width), self._minimum_width), -1)
+
+
 class ExtendedEntry(gtk.Entry):
   
   """
@@ -46,6 +98,7 @@ class ExtendedEntry(gtk.Entry):
   
   * undo/redo of text,
   * placeholder text,
+  * expandable width of the entry,
   * custom popup serving as an entry completion.
   
   Attributes:
@@ -61,12 +114,16 @@ class ExtendedEntry(gtk.Entry):
   """
   
   def __init__(self, *args, **kwargs):
+    self._minimum_width_chars = kwargs.pop("minimum_width_chars", -1)
+    self._maximum_width_chars = kwargs.pop("maximum_width_chars", -1)
     self._placeholder_text = kwargs.pop("placeholder_text", None)
     
     super().__init__(*args, **kwargs)
     
     self._undo_context = pggui_undocontext.EntryUndoContext(self)
     self._popup = None
+    self._expander = EntryExpander(
+      self, self._minimum_width_chars, self._maximum_width_chars)
     
     self._has_placeholder_text_assigned = False
     
@@ -75,12 +132,12 @@ class ExtendedEntry(gtk.Entry):
     self.connect_after("realize", self._on_after_extended_entry_realize)
   
   @property
-  def popup(self):
-    return self._popup
-  
-  @property
   def undo_context(self):
     return self._undo_context
+  
+  @property
+  def popup(self):
+    return self._popup
   
   def assign_text(self, text, enable_undo=False):
     """
@@ -183,8 +240,6 @@ class FilenamePatternEntry(ExtendedEntry):
   _COLUMN_TYPES = [gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_PYOBJECT]
   
   def __init__(self, suggested_items, *args, **kwargs):
-    self._minimum_width_chars = kwargs.pop("minimum_width_chars", -1)
-    self._maximum_width_chars = kwargs.pop("maximum_width_chars", -1)
     self._default_item_value = kwargs.pop("default_item", None)
     
     self._suggested_fields = _get_suggested_fields(suggested_items)
@@ -210,10 +265,6 @@ class FilenamePatternEntry(ExtendedEntry):
     
     self._pango_layout = pango.Layout(self.get_pango_context())
     
-    self._minimum_width = -1
-    self._maximum_width = -1
-    self.set_width_chars(self._minimum_width_chars)
-    
     self._popup = pggui_entrypopup.EntryPopup(self, self._COLUMN_TYPES, suggested_items)
     self._popup.filter_rows_func = self._filter_suggested_items
     self._popup.on_assign_from_selected_row = self._on_assign_from_selected_row
@@ -234,8 +285,6 @@ class FilenamePatternEntry(ExtendedEntry):
     self.connect("changed", self._on_entry_changed)
     
     self.connect("focus-out-event", self._on_entry_focus_out_event)
-    
-    self.connect("size-allocate", self._on_entry_size_allocate)
   
   def _should_assign_placeholder_text(self, text):
     """
@@ -337,34 +386,11 @@ class FilenamePatternEntry(ExtendedEntry):
     window.move(x, y)
   
   def _on_entry_changed(self, entry):
-    if self.get_realized():
-      self._update_entry_width()
-    
     if self._reset_cursor_position_before_assigning_from_row:
       self._cursor_position_before_assigning_from_row = None
   
   def _on_entry_focus_out_event(self, entry, event):
     self._hide_field_tooltip()
-  
-  def _on_entry_size_allocate(self, entry, allocation):
-    if self._minimum_width == -1:
-      self._minimum_width = self.get_allocation().width
-      self._maximum_width = (
-        int((self._minimum_width / self._minimum_width_chars)
-            * self._maximum_width_chars)
-        + 1)
-    
-    self._update_entry_width()
-  
-  def _update_entry_width(self):
-    self._pango_layout.set_text(self.get_text())
-    
-    offset_pixel_width = (
-      (self.get_layout_offsets()[0] + self.get_property("scroll-offset"))
-      * 2)
-    text_pixel_width = self._pango_layout.get_pixel_size()[0] + offset_pixel_width
-    self.set_size_request(
-      max(min(text_pixel_width, self._maximum_width), self._minimum_width), -1)
   
   def _filter_suggested_items(self, suggested_items, row_iter):
     item = suggested_items[row_iter][self._COLUMN_ITEMS]
