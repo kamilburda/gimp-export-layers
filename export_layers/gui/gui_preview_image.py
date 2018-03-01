@@ -119,12 +119,9 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     
     self._widget = self._vbox
   
-  def update(self, should_enable_sensitive=False):
+  def update(self):
     if self._update_locked:
       return
-    
-    if should_enable_sensitive:
-      self.set_sensitive(True)
     
     self.layer_elem = self._set_initial_layer_elem(self.layer_elem)
     if self.layer_elem is None:
