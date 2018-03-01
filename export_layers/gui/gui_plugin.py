@@ -74,8 +74,6 @@ def display_export_failure_message(exception, parent=None):
   error_message = _(
     "Sorry, but the export was unsuccessful. "
     "You can try exporting again if you fix the issue described below.")
-  if not str(exception).endswith("."):
-    error_message += "."
   error_message += "\n" + str(exception)
   
   display_message(
