@@ -301,8 +301,9 @@ class ExportLayersGui(object):
   _DIALOG_ACTION_AREA_BORDER_WIDTH = 5
   _DIALOG_BUTTONS_HORIZONTAL_SPACING = 6
   
-  _FILE_EXTENSION_ENTRY_WIDTH_CHARS = 8
-  _FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS = 15
+  _FILE_EXTENSION_ENTRY_MIN_WIDTH_CHARS = 5
+  _FILE_EXTENSION_ENTRY_MAX_WIDTH_CHARS = 15
+  _FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS = 13
   _FILENAME_PATTERN_ENTRY_MAX_WIDTH_CHARS = 50
   
   _DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS = 100
@@ -408,8 +409,9 @@ class ExportLayersGui(object):
         gobject.markup_escape_text(self._settings["main/file_extension"].display_name)))
     self._file_extension_label.set_alignment(0.0, 0.5)
     
-    self._file_extension_entry = pggui_entries.FileExtensionEntry()
-    self._file_extension_entry.set_width_chars(self._FILE_EXTENSION_ENTRY_WIDTH_CHARS)
+    self._file_extension_entry = pggui_entries.FileExtensionEntry(
+      minimum_width_chars=self._FILE_EXTENSION_ENTRY_MIN_WIDTH_CHARS,
+      maximum_width_chars=self._FILE_EXTENSION_ENTRY_MAX_WIDTH_CHARS)
     
     self._save_as_label = gtk.Label()
     self._save_as_label.set_markup("<b>{0}:</b>".format(_("Save as")))
