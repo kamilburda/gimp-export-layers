@@ -27,7 +27,7 @@ import unittest
 import mock
 import parameterized
 
-import preprocess_document_contents
+from resources.utils import preprocess_document_contents
 
 pygimplib.init()
 
