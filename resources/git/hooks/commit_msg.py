@@ -101,9 +101,8 @@ def process_commit_messages(commit_message_filepath):
   commit_message_funcs = (
     _get_module_level_functions_with_prefix(COMMIT_MESSAGE_FUNCS_PREFIX))
   
-  for func_and_args in commit_message_funcs:
-    func, args = func_and_args[0], func_and_args[1:]
-    commit_message = func(commit_message, *args)
+  for func in commit_message_funcs:
+    commit_message = func(commit_message)
   
   with open(commit_message_filepath, "w") as commit_message_file:
     commit_message_file.write(commit_message)
