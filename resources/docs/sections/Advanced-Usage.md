@@ -48,7 +48,7 @@ above the text entry shows you the name and the number of possible arguments.
 
 Arguments must be separated by commas. Arguments in italic are optional.
 Arguments with slashes indicates a single choice of one of the specified values.
-Invalid arguments result in the field being printed literally.
+Invalid arguments result in the field being inserted literally.
 
 To escape the square brackets, simply double them (i.e. "\[\[" and "\]\]").
 
@@ -97,13 +97,25 @@ Arguments:
 
 **\[tags\]**
 
-All tags of a layer in the format "\[\<tag1\>\] \[\<tag2\>\] ...". Tags are
-printed in alphabetical order. See [Tagging Layers](#tagging-layers) for
-information about layer tags.
+All tags of a layer. By default, tags are inserted in the following format:
+"\[\<tag1\>\] \[\<tag2\>\] ..."
+
+Tags are inserted in alphabetical order. See [Tagging Layers](#tagging-layers)
+for information about layer tags.
 
 Arguments:
-* specific tags: By default, all tags are printed. To print only specific tags,
-specify them as comma-separated arguments.
+* if the first argument contains "$tag$" and the second argument is specified,
+then the first argument is treated as a "wrapper" around the tag name and the
+second argument is a separator between tags.
+* specific tags: tag names as comma-separated arguments. If omitted, all tags
+are inserted.
+
+Examples:
+* Assume that a layer has the following tags: Background, Foreground, frames.
+* [tags] -\> \[Background\] \[Foreground\] \[frames\]
+* [tags, Background, Foreground] -\> \[Background\] \[Foreground\]
+* [tags, ($tag$), \_] -\> (Background)\_(Foreground)\_(frames)
+* [tags, ($tag$), \_, Background, Foreground] -\> (Background)\_(Foreground)
 
 **\[current date\]**
 

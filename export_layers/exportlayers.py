@@ -30,6 +30,7 @@ import collections
 import contextlib
 import datetime
 import os
+import re
 
 from gimp import pdb
 import gimpenums
@@ -139,7 +140,7 @@ class LayerNameRenamer(object):
     (_("Layer name"), "[layer name]", ["keep extension/keep only identical extension"]),
     (_("Image name"), "[image name]", ["keep extension"]),
     (_("Layer path"), "[layer path]", ["-"]),
-    (_("Tags"), "[tags]", ["specific tags..."]),
+    (_("Tags"), "[tags]", ["wrapper", "separator", "specific tags..."]),
     (_("Current date"), "[current date]", ["%Y-%m-%d"]),
   ]
   
@@ -206,7 +207,7 @@ class LayerNameRenamer(object):
   def _get_current_date(date_format="%Y-%m-%d"):
     return datetime.datetime.now().strftime(date_format)
   
-  def _get_tags(self, *tags):
+  def _get_tags(self, *args):
     tags_to_insert = []
     
     def _insert_tag(tag):
@@ -221,10 +222,11 @@ class LayerNameRenamer(object):
       builtin_tags_values = list(self._layer_exporter.BUILTIN_TAGS.values())
       return builtin_tags_keys[builtin_tags_values.index(tag_display_name)]
     
-    if not tags:
+    def _insert_all_tags():
       for tag in self._layer_exporter.current_layer_elem.tags:
         _insert_tag(tag)
-    else:
+    
+    def _insert_specified_tags(tags):
       for tag in tags:
         if tag in self._layer_exporter.BUILTIN_TAGS:
           continue
@@ -233,8 +235,29 @@ class LayerNameRenamer(object):
         if tag in self._layer_exporter.current_layer_elem.tags:
           _insert_tag(tag)
     
+    tag_wrapper = "[{0}]"
+    tag_separator = " "
+    tag_token = "$tag$"
+    
+    if not args:
+      _insert_all_tags()
+    else:
+      if len(args) < 2:
+        _insert_specified_tags(args)
+      else:
+        if tag_token in args[0]:
+          tag_wrapper = args[0].replace(tag_token, "{0}")
+          tag_separator = args[1]
+          
+          if len(args) > 2:
+            _insert_specified_tags(args[2:])
+          else:
+            _insert_all_tags()
+        else:
+          _insert_specified_tags(args)
+    
     tags_to_insert.sort(key=lambda tag: tag.lower())
-    return " ".join(["[{0}]".format(tag) for tag in tags_to_insert])
+    return tag_separator.join([tag_wrapper.format(tag) for tag in tags_to_insert])
 
 
 #===============================================================================
