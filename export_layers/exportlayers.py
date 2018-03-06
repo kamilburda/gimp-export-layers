@@ -139,8 +139,8 @@ class LayerNameRenamer(object):
     ("image001", "image[001]", []),
     (_("Layer name"), "[layer name]", ["keep extension/keep only identical extension"]),
     (_("Image name"), "[image name]", ["keep extension"]),
-    (_("Layer path"), "[layer path]", ["-"]),
-    (_("Tags"), "[tags]", ["wrapper", "separator", "specific tags..."]),
+    (_("Layer path"), "[layer path]", ["separator", "wrapper"]),
+    (_("Tags"), "[tags]", ["separator", "wrapper", "specific tags..."]),
     (_("Current date"), "[current date]", ["%Y-%m-%d"]),
   ]
   
@@ -202,10 +202,10 @@ class LayerNameRenamer(object):
     if wrapper is None:
       wrapper = "{0}"
     else:
-      layer_token = "$$"
+      path_component_token = "$$"
       
-      if layer_token in wrapper:
-        wrapper = wrapper.replace(layer_token, "{0}")
+      if path_component_token in wrapper:
+        wrapper = wrapper.replace(path_component_token, "{0}")
       else:
         wrapper = "{0}"
     
@@ -248,9 +248,9 @@ class LayerNameRenamer(object):
         if tag in self._layer_exporter.current_layer_elem.tags:
           _insert_tag(tag)
     
-    tag_wrapper = "[{0}]"
     tag_separator = " "
-    tag_token = "$tag$"
+    tag_wrapper = "[{0}]"
+    tag_token = "$$"
     
     if not args:
       _insert_all_tags()
@@ -258,9 +258,9 @@ class LayerNameRenamer(object):
       if len(args) < 2:
         _insert_specified_tags(args)
       else:
-        if tag_token in args[0]:
-          tag_wrapper = args[0].replace(tag_token, "{0}")
-          tag_separator = args[1]
+        if tag_token in args[1]:
+          tag_separator = args[0]
+          tag_wrapper = args[1].replace(tag_token, "{0}")
           
           if len(args) > 2:
             _insert_specified_tags(args[2:])

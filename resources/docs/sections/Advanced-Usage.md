@@ -113,18 +113,18 @@ Tags are inserted in alphabetical order. See [Tagging Layers](#tagging-layers)
 for information about layer tags.
 
 Arguments:
-* if the first argument contains "$tag$" and the second argument is specified,
-then the first argument is treated as a "wrapper" around the tag name and the
-second argument is a separator between tags.
+* if there are two arguments and the second argument contains "$$", then the
+first argument is a separator between tags and the second argument acts as a
+"wrapper" around the tag name.
 * specific tags: tag names as comma-separated arguments. If omitted, all tags
 are inserted.
 
 Examples:
-* Assume that a layer has the following tags: Background, Foreground, frames.
+* Suppose that a layer has the following tags: Background, Foreground, frames.
 * [tags] -\> \[Background\] \[Foreground\] \[frames\]
 * [tags, Background, Foreground] -\> \[Background\] \[Foreground\]
-* [tags, ($tag$), \_] -\> (Background)\_(Foreground)\_(frames)
-* [tags, ($tag$), \_, Background, Foreground] -\> (Background)\_(Foreground)
+* [tags, \_, ($$)] -\> (Background)\_(Foreground)\_(frames)
+* [tags, \_, ($$), Background, Foreground] -\> (Background)\_(Foreground)
 
 **\[current date\]**
 
