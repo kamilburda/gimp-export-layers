@@ -50,8 +50,6 @@ Arguments must be separated by commas. Arguments in italic are optional.
 Arguments with slashes indicates a single choice of one of the specified values.
 Invalid arguments result in the field being inserted literally.
 
-To escape the square brackets, simply double them (i.e. "\[\[" and "\]\]").
-
 ### Available fields
 
 You can choose the fields from the dropdown list displayed when clicking on the
@@ -134,6 +132,20 @@ Arguments:
 * date format: Date format as per the
 [Python `strftime` format](http://strftime.org/). Defaults to "%Y-%m-%d"
 (year-month-day).
+
+### Inserting reserved characters in arguments
+
+To insert a literal space, comma or square brackets ("\[" and "\]") in an
+argument, enclose the argument with square brackets. Literal square brackets
+must be doubled.
+
+If the last argument is enclosed in square brackets, leave a single space
+between the last and the second to last closing square bracket.
+
+Examples:
+* [layer path, [ ], $$]
+* [layer path, [ ] ]
+* [layer path, [,], [[[$$]]] ]
 
 
 Additional Operations
