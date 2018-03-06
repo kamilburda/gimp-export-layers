@@ -94,6 +94,15 @@ will be "Frames-Top".
 
 Arguments:
 * path separator: A string that separates the path components. Defaults to "-".
+* wrapper: A string that wraps around each path component. The wrapper must
+contain "$$" (denoting the name of the current path component). By default, no
+wrapper is used.
+
+Examples:
+* Suppose that a layer has the following path: Frames, Outer, bottom.
+* [layer path] -\> Frames-Outer-bottom
+* [layer path, \_] -\> Frames\_Outer\_bottom
+* [layer path, \_, ($$)] -\> (Frames)\_(Outer)\_(bottom)
 
 **\[tags\]**
 

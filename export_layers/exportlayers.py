@@ -198,10 +198,23 @@ class LayerNameRenamer(object):
     else:
       return pgpath.get_filename_with_new_file_extension(image_name, "")
   
-  def _get_layer_path(self, separator="-"):
-    return separator.join(
+  def _get_layer_path(self, separator="-", wrapper=None):
+    if wrapper is None:
+      wrapper = "{0}"
+    else:
+      layer_token = "$$"
+      
+      if layer_token in wrapper:
+        wrapper = wrapper.replace(layer_token, "{0}")
+      else:
+        wrapper = "{0}"
+    
+    path_components = (
       [parent.name for parent in self._layer_exporter.current_layer_elem.parents]
       + [self._layer_exporter.current_layer_elem.name])
+    
+    return separator.join(
+      [wrapper.format(path_component) for path_component in path_components])
   
   @staticmethod
   def _get_current_date(date_format="%Y-%m-%d"):
