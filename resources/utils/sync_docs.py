@@ -19,8 +19,11 @@
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-This script propagates changes in "raw" documentation to the files comprising the
-end-user documentation.
+This script propagates changes in "raw" documentation to the files comprising
+the end-user documentation.
+
+Care must be taken to select only files that should not be updated manually,
+because any previous updates to such files are discarded.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

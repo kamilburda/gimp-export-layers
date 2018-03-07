@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-This script provides automatic update and staging of documentation files when
-"raw" documentation files have been changed.
+This script provides automatic update and staging of end-user documentation
+files when "raw" documentation files have been changed.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
