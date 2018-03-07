@@ -129,7 +129,7 @@ def _init_config():
   config.LOCALE_DIRPATH = lambda: os.path.join(config.PLUGINS_DIRPATH, "locale")
   config.DOMAIN_NAME = _get_domain_name
   
-  config.BUG_REPORT_URI_LIST = []
+  config.BUG_REPORT_URL_LIST = []
   
   config.PLUGINS_DIRPATH = os.path.dirname(_PYGIMPLIB_DIRPATH)
   
@@ -285,7 +285,7 @@ if _gimp_dependent_modules_imported:
       set_gui_excepthook_func = pggui.set_gui_excepthook(
         title=config.PLUGIN_TITLE,
         app_name=config.PLUGIN_TITLE,
-        report_uri_list=config.BUG_REPORT_URI_LIST)
+        report_uri_list=config.BUG_REPORT_URL_LIST)
       return set_gui_excepthook_func(procedure)
     else:
       return procedure
