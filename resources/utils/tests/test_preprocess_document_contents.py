@@ -27,7 +27,7 @@ import unittest
 import mock
 import parameterized
 
-import preprocess_document_contents
+from resources.utils import preprocess_document_contents
 
 pygimplib.init()
 
@@ -116,10 +116,10 @@ menu entries.""",
       """If the crashes occur to you, try reinstalling GIMP."""],
   }
   
-  _TEST_FILE_CONTENTS = """Export Layers is a [GIMP](https://www.gimp.org/)
-plug-in that exports layers as separate images.
-
-{0}
+  _TEST_FILE_INTRO = """Export Layers is a [GIMP](https://www.gimp.org/)
+plug-in that exports layers as separate images."""
+  
+  _TEST_FILE_CONTENTS = """{0}
 
 {1}
 
@@ -128,7 +128,10 @@ plug-in that exports layers as separate images.
 {3}
 
 {4}
+
+{5}
 """.format(
+      _TEST_FILE_INTRO,
       _TEST_SECTION_HEADERS["translations"],
       _TEST_SECTION_CONTENTS["translations"],
       _TEST_SECTION_HEADERS["known_issues"],
@@ -143,7 +146,20 @@ plug-in that exports layers as separate images.
   @parameterized.parameterized.expand([
     ["no_optional_args", {}, _TEST_FILE_CONTENTS],
     ["no_header_False", {"no-header": "False"}, _TEST_FILE_CONTENTS],
-    ["no_header_True", {"no-header": "True"}, _TEST_FILE_CONTENTS],
+    ["no_header_True",
+     {"no-header": "True"},
+     """
+{0}
+
+{1}
+
+{2}
+
+{3}""".format(
+      _TEST_SECTION_CONTENTS["translations"],
+      _TEST_SECTION_HEADERS["known_issues"],
+      " ".join(_TEST_SECTION_CONTENTS["known_issues"][:2]),
+      " ".join(_TEST_SECTION_CONTENTS["known_issues"][2:]))],
     ["no_header_invalid", {"no-header": "something"}, _TEST_FILE_CONTENTS],
     ["section_with_header",
      {"section": "Translations", "no-header": "False"},

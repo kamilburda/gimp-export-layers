@@ -61,7 +61,7 @@ OUTPUT_FILE_EXTENSION = "zip"
 INCLUDE_LIST_FILEPATH = os.path.join(MODULE_DIRPATH, "make_package_included_files.txt")
 
 GITHUB_PAGE_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "gh-pages")
-GITHUB_PAGE_SCRIPTS_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "GitHub_page")
+GITHUB_PAGE_UTILS_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "GitHub_page")
 
 #===============================================================================
 
@@ -156,7 +156,7 @@ def _create_user_docs(temp_dirpath):
   create_user_docs_module = importlib.import_module("create_user_docs")
   
   create_user_docs_module.main(
-    GITHUB_PAGE_SCRIPTS_DIRPATH, GITHUB_PAGE_DIRPATH, temp_dirpath)
+    GITHUB_PAGE_UTILS_DIRPATH, GITHUB_PAGE_DIRPATH, temp_dirpath)
 
 
 def _set_permissions(dirpath, permissions):

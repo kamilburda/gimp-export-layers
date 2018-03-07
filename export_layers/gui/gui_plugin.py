@@ -97,7 +97,7 @@ def display_export_failure_invalid_image_message(details, parent=None):
       "in the details to one of the sites below."),
     details=details,
     display_details_initially=False,
-    report_uri_list=pygimplib.config.BUG_REPORT_URI_LIST,
+    report_uri_list=pygimplib.config.BUG_REPORT_URL_LIST,
     report_description="",
     focus_on_button=True)
 
