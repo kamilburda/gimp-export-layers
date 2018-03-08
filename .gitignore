@@ -4,6 +4,7 @@
 
 *.log
 resources/docs/gh-pages/
+resources/test_images/temp_output/
 
 #################
 ## Eclipse
