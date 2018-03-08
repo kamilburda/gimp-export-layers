@@ -485,11 +485,11 @@ def _get_suggested_fields(suggested_items):
     field_value = item[1]
     if field_value.startswith("[") and field_value.endswith("]"):
       if item[2]:
-        suggested_fields[field_value[1:-1]] = "[{0}, {1}]".format(
-          gobject.markup_escape_text(field_value[1:-1]),
-          ", ".join(
-            ["<i>{0}</i>".format(gobject.markup_escape_text(argument))
-             for argument in item[2]]))
+        suggested_fields[field_value[1:-1]] = "\n".join([
+          "[{0}, <i>{1}</i>]".format(
+            gobject.markup_escape_text(field_value[1:-1]),
+            gobject.markup_escape_text(arguments))
+          for arguments in item[2]])
       else:
         suggested_fields[field_value[1:-1]] = ""
   

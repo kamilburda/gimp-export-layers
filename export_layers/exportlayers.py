@@ -137,10 +137,16 @@ class LayerNameRenamer(object):
   
   LAYER_NAME_PATTERN_FIELDS = [
     ("image001", "image[001]", []),
-    (_("Layer name"), "[layer name]", ["keep extension/keep only identical extension"]),
+    (_("Layer name"),
+     "[layer name]",
+     ["keep extension",
+      "keep only identical extension"]),
     (_("Image name"), "[image name]", ["keep extension"]),
-    (_("Layer path"), "[layer path]", ["separator", "wrapper"]),
-    (_("Tags"), "[tags]", ["separator", "wrapper", "specific tags..."]),
+    (_("Layer path"), "[layer path]", ["separator, wrapper"]),
+    (_("Tags"),
+     "[tags]",
+     ["specific tags...",
+      "separator, wrapper, specific tags..."]),
     (_("Current date"), "[current date]", ["%Y-%m-%d"]),
   ]
   
