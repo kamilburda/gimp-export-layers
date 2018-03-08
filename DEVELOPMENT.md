@@ -58,8 +58,9 @@ locally:
 
 Set up git hooks located in `resources/git/hooks` by creating symbolic
 links:
-* `resources/git/hooks/commig_msg.py` -> `.git/hooks/commit-msg`
-* `resources/git/hooks/pre_commit.py` -> `.git/hooks/pre-commit`
+
+    ln -s resources/git/hooks/commig_msg.py .git/hooks/commit-msg
+    ln -s resources/git/hooks/pre_commit.py .git/hooks/pre-commit
 
 The `commig-msg` hook enforces several
 [conventions for commit messages](#Writing-Commit-Messages).
