@@ -110,18 +110,18 @@ def _parse_layers(layer_tree_string):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.pdb",
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb",
   new=stubs_gimp.PdbStub())
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.gimp.GroupLayer",
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp.GroupLayer",
   new=stubs_gimp.LayerGroupStub)
 class TestLayerTree(unittest.TestCase):
 
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.pdb",
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb",
     new=stubs_gimp.PdbStub())
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.gimp.GroupLayer",
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp.GroupLayer",
     new=stubs_gimp.LayerGroupStub)
   def setUp(self):
     layers_string = """
@@ -395,11 +395,11 @@ class TestLayerTree(unittest.TestCase):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
 class TestLayerTreeElement(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb", new=stubs_gimp.PdbStub())
   def setUp(self):
     self.layer_elem = pgitemtree._ItemTreeElement(
       stubs_gimp.LayerStub("main-background.jpg"))
@@ -428,7 +428,7 @@ class TestLayerTreeElement(unittest.TestCase):
     self.assertEqual(self.layer_elem.get_base_name(), ".")
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.gimp",
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp",
     new=stubs_gimp.GimpModuleStub())
   def test_add_tag(self):
     self.assertEqual(self.layer_elem.tags, set())
@@ -441,7 +441,7 @@ class TestLayerTreeElement(unittest.TestCase):
     self.assertIn("foreground", self.layer_elem.tags)
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.gimp",
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp",
     new=stubs_gimp.GimpModuleStub())
   def test_remove_tag(self):
     self.assertEqual(self.layer_elem.tags, set())
@@ -457,7 +457,7 @@ class TestLayerTreeElement(unittest.TestCase):
     self.assertFalse(bool(self.layer_elem.item.parasite_list()))
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgitemtree.gimp",
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp",
     new=stubs_gimp.GimpModuleStub())
   def test_initial_tags(self):
     layer_elem_tags_source_name = "test"

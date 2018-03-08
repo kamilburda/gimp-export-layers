@@ -129,14 +129,14 @@ class TestSetting(unittest.TestCase):
     self.assertEqual(setting.value, {})
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsettingpersistor.SettingPersistor.load")
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.load")
   def test_load(self, mock_setting_persistor_load):
     dummy_setting_source = object()
     self.setting.load([dummy_setting_source])
     self.assertTrue(mock_setting_persistor_load.called)
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsettingpersistor.SettingPersistor.load")
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.load")
   def test_load_default_source(self, mock_setting_persistor_load):
     dummy_setting_source = object()
     setting = stubs_pgsetting.SettingStub(
@@ -145,7 +145,7 @@ class TestSetting(unittest.TestCase):
     self.assertTrue(mock_setting_persistor_load.called)
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsettingpersistor.SettingPersistor.load")
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.load")
   def test_load_default_source_overridden_by_parameter(self, mock_setting_persistor_load):
     dummy_setting_source_default = object()
     setting = stubs_pgsetting.SettingStub(
@@ -165,14 +165,14 @@ class TestSetting(unittest.TestCase):
       self.setting.load()
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsettingpersistor.SettingPersistor.save")
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.save")
   def test_save(self, mock_setting_persistor_save):
     dummy_setting_source = object()
     self.setting.save([dummy_setting_source])
     self.assertTrue(mock_setting_persistor_save.called)
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsettingpersistor.SettingPersistor.save")
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.save")
   def test_save_default_source(self, mock_setting_persistor_save):
     dummy_setting_source = object()
     setting = stubs_pgsetting.SettingStub(
@@ -181,7 +181,7 @@ class TestSetting(unittest.TestCase):
     self.assertTrue(mock_setting_persistor_save.called)
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsettingpersistor.SettingPersistor.save")
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.save")
   def test_save_default_source_overridden_by_parameter(self, mock_setting_persistor_save):
     dummy_setting_source_default = object()
     setting = stubs_pgsetting.SettingStub(
@@ -342,12 +342,12 @@ class TestSettingEvents(unittest.TestCase):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsettingsources.gimpshelf.shelf",
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
   new_callable=stubs_gimp.ShelfStub)
 class TestSettingLoadSaveEvents(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsettingsources.gimpshelf.shelf",
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
     new=stubs_gimp.ShelfStub())
   def setUp(self):
     self.setting = stubs_pgsetting.SettingWithGuiStub("file_extension", "png")
@@ -400,7 +400,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
       "after-load", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     
     with mock.patch(
-           pgconstants.PYGIMPLIB_MODULE_FILEPATH
+           pgconstants.PYGIMPLIB_MODULE_PATH
            + ".pgsettingsources.gimpshelf.shelf") as temp_mock_session_source:
       temp_mock_session_source.__getitem__.side_effect = (
         pgsettingpersistor.SettingSourceReadError)
@@ -449,7 +449,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
       "after-save", stubs_pgsetting.on_file_extension_changed, self.only_visible_layers)
     
     with mock.patch(
-           pgconstants.PYGIMPLIB_MODULE_FILEPATH
+           pgconstants.PYGIMPLIB_MODULE_PATH
            + ".pgsettingsources.gimpshelf.shelf") as temp_mock_session_source:
       temp_mock_session_source.__setitem__.side_effect = (
         pgsettingpersistor.SettingSourceWriteError)
@@ -815,7 +815,7 @@ class TestEnumSetting(unittest.TestCase):
 class TestImageSetting(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsetting.pdb", new=stubs_gimp.PdbStub())
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsetting.pdb", new=stubs_gimp.PdbStub())
   def test_set_invalid_image(self):
     pdb = stubs_gimp.PdbStub()
     image = pdb.gimp_image_new(2, 2, gimpenums.RGB)
@@ -827,7 +827,7 @@ class TestImageSetting(unittest.TestCase):
       setting.set_value(image)
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsetting.pdb", new=stubs_gimp.PdbStub())
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsetting.pdb", new=stubs_gimp.PdbStub())
   def test_empty_value_as_default_value(self):
     try:
       pgsetting.ImageSetting("image", None)
@@ -912,7 +912,7 @@ class TestImageIDsAndDirpathsSetting(unittest.TestCase):
       self._create_image_list([(5, "/test/new_image.png"), (6, None)]))
     
     with mock.patch(
-           pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsetting.gimp.image_list",
+           pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsetting.gimp.image_list",
            new=self.get_image_list):
       self.setting.update_image_ids_and_dirpaths()
     
@@ -923,7 +923,7 @@ class TestImageIDsAndDirpathsSetting(unittest.TestCase):
     self.image_list.pop(1)
     
     with mock.patch(
-           pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsetting.gimp.image_list",
+           pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsetting.gimp.image_list",
            new=self.get_image_list):
       self.setting.update_image_ids_and_dirpaths()
     

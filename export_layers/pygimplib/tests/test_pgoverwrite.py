@@ -88,7 +88,7 @@ class TestHandleOverwrite(unittest.TestCase):
       pgoverwrite.OverwriteModes.REPLACE)
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgoverwrite.os.path.exists")
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgoverwrite.os.path.exists")
   def test_handle_overwrite_file_exists(self, mock_os_path_exists):
     mock_os_path_exists.return_value = True
     
@@ -97,7 +97,7 @@ class TestHandleOverwrite(unittest.TestCase):
       (self.overwrite_chooser.overwrite_mode, self.filepath))
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgoverwrite.os.path.exists")
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgoverwrite.os.path.exists")
   def test_handle_overwrite_file_does_not_exist(self, mock_os_path_exists):
     mock_os_path_exists.return_value = False
     

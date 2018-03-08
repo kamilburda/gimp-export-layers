@@ -473,10 +473,10 @@ class TestSettingGroupHierarchical(unittest.TestCase):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsettingpersistor.SettingPersistor.save",
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.save",
   return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_FILEPATH + ".pgsettingpersistor.SettingPersistor.load",
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.load",
   return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
 class TestSettingGroupLoadSave(unittest.TestCase):
   
