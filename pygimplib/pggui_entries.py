@@ -381,7 +381,7 @@ class FilenamePatternEntry(ExtendedEntry):
     if not place_above:
       y = entry_absolute_position[1] + entry_allocation_height
     else:
-      y = entry_absolute_position[1] - entry_allocation_height
+      y = entry_absolute_position[1] - window.get_allocation().height
     
     window.move(x, y)
   
