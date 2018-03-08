@@ -32,6 +32,15 @@ def get_synced_files_to_stage(staged_filepaths, filepaths_to_sync):
     for staged_filepath in staged_filepaths if staged_filepath in filepaths_to_sync]
 
 
+def filepath_matches_gitignore(repo, filepath):
+  try:
+    repo.git.check_ignore(filepath)
+  except git.exc.GitCommandError:
+    return False
+  else:
+    return True
+
+
 def main():
   repo = git.Repo(REPOSITORY_ROOT_DIRPATH)
   
@@ -47,7 +56,11 @@ def main():
   synced_filepaths_to_stage = (
     get_synced_files_to_stage(staged_filepaths, filepaths_to_sync))
   
-  repo.git.add(synced_filepaths_to_stage)
+  filtered_synced_filepaths_to_stage = [
+    filepath for filepath in synced_filepaths_to_stage
+    if not filepath_matches_gitignore(repo, filepath)]
+  
+  repo.git.add(filtered_synced_filepaths_to_stage)
 
 
 if __name__ == "__main__":
