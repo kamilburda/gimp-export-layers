@@ -10,7 +10,7 @@ utils_dirpath = os.path.join(resources_dirpath, "utils")
 
 sys.path.append(plugin_dirpath)
 sys.path.append(os.path.join(plugin_dirpath, "export_layers"))
-sys.path.append(os.path.join(plugin_dirpath, "pygimplib"))
+sys.path.append(os.path.join(plugin_dirpath, "export_layers", "pygimplib"))
 sys.path.append(resources_dirpath)
 sys.path.append(utils_dirpath)
 

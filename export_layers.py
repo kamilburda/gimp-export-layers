@@ -26,13 +26,13 @@ import os
 # Export menu.
 os.environ["LIBOVERLAY_SCROLLBAR"] = "0"
 
-import pygimplib
+from export_layers import pygimplib
 from future.builtins import *
 
 import gimpenums
 
-from pygimplib import pgitemtree
-from pygimplib import pgconstants
+from export_layers.pygimplib import pgitemtree
+from export_layers.pygimplib import pgconstants
 
 import export_layers.config
 export_layers.config.init()

@@ -1,7 +1,7 @@
 This software is licensed under the GNU GPL v3 license.
 
-The `pygimplib` directory contains external libraries, each with their own
-LICENSE file.
+The `export_layers/pygimplib` directory contains external libraries, each with
+their own LICENSE file.
 
 
 Text of GNU GPLv3 license:

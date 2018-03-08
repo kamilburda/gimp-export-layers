@@ -39,15 +39,15 @@ from gimp import pdb
 import gimpenums
 import gimpui
 
-import pygimplib
-from pygimplib import pgconstants
-from pygimplib import pggui
-from pygimplib import pggui_entries
-from pygimplib import pginvocation
-from pygimplib import pgoverwrite
-from pygimplib import pgpdb
-from pygimplib import pgsetting
-from pygimplib import pgsettingpersistor
+from export_layers import pygimplib
+from export_layers.pygimplib import pgconstants
+from export_layers.pygimplib import pggui
+from export_layers.pygimplib import pggui_entries
+from export_layers.pygimplib import pginvocation
+from export_layers.pygimplib import pgoverwrite
+from export_layers.pygimplib import pgpdb
+from export_layers.pygimplib import pgsetting
+from export_layers.pygimplib import pgsettingpersistor
 
 from .. import exportlayers
 from .. import settings_plugin

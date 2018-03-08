@@ -29,7 +29,7 @@ import pygtk
 pygtk.require("2.0")
 import gobject
 
-from pygimplib import pginvocation
+from export_layers.pygimplib import pginvocation
 
 #===============================================================================
 

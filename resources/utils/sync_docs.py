@@ -27,7 +27,7 @@ because any previous updates to such files are discarded.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-import pygimplib
+from export_layers import pygimplib
 from future.builtins import *
 
 import collections
@@ -35,8 +35,8 @@ import io
 import os
 import shutil
 
-from pygimplib import pgconstants
-from pygimplib import pgutils
+from export_layers.pygimplib import pgconstants
+from export_layers.pygimplib import pgutils
 
 from . import preprocess_document_contents
 

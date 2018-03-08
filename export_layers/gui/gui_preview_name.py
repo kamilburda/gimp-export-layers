@@ -35,10 +35,10 @@ import gobject
 
 from gimp import pdb
 
-import pygimplib
-from pygimplib import pgconstants
-from pygimplib import pggui
-from pygimplib import pgutils
+from export_layers import pygimplib
+from export_layers.pygimplib import pgconstants
+from export_layers.pygimplib import pggui
+from export_layers.pygimplib import pgutils
 
 from .. import builtin_constraints
 from . import gui_preview_base

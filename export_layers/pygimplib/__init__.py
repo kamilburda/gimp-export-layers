@@ -131,7 +131,7 @@ def _init_config():
   
   config.BUG_REPORT_URL_LIST = []
   
-  config.PLUGINS_DIRPATH = os.path.dirname(_PYGIMPLIB_DIRPATH)
+  config.PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(_PYGIMPLIB_DIRPATH))
   
   if _gimp_dependent_modules_imported:
     config.LOG_MODE = pgconstants.LOG_EXCEPTIONS_ONLY

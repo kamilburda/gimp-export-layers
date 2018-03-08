@@ -6,7 +6,6 @@
 
 # Include files
 /export_layers/
-/pygimplib/
 /export_layers.py
 /docs/
 /Readme.html
@@ -21,5 +20,5 @@
 !.git/
 !.settings/
 !/export_layers/tests/
-!/pygimplib/tests/
-!/pygimplib/lib/mock/
+!/export_layers/pygimplib/tests/
+!/export_layers/pygimplib/lib/mock/

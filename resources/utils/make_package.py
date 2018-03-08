@@ -26,7 +26,7 @@ patterns): https://github.com/cpburnz/python-path-specification
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-import pygimplib
+from export_layers import pygimplib
 from future.builtins import *
 
 import importlib
@@ -40,9 +40,9 @@ import zipfile
 
 import pathspec
 
-from pygimplib import pgconstants
-from pygimplib import pgpath
-from pygimplib import pgutils
+from export_layers.pygimplib import pgconstants
+from export_layers.pygimplib import pgpath
+from export_layers.pygimplib import pgutils
 
 import export_layers.config
 export_layers.config.init()

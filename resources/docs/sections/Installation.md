@@ -14,7 +14,6 @@ Copy the following files and folders:
 
     export_layers.py
     export_layers
-    pygimplib
 
 to
 
@@ -30,7 +29,6 @@ Copy the following files and folders:
 
     export_layers.py
     export_layers
-    pygimplib
 
 to
 
@@ -46,7 +44,6 @@ Copy the following files and folders:
 
     export_layers.py
     export_layers
-    pygimplib
 
 to
 

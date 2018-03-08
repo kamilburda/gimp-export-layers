@@ -35,17 +35,17 @@ import re
 from gimp import pdb
 import gimpenums
 
-import pygimplib
-from pygimplib import pgconstants
-from pygimplib import pgfileformats
-from pygimplib import pgitemtree
-from pygimplib import pgobjectfilter
-from pygimplib import pgoperations
-from pygimplib import pgoverwrite
-from pygimplib import pgpath
-from pygimplib import pgpdb
-from pygimplib import pgprogress
-from pygimplib import pgutils
+from export_layers import pygimplib
+from export_layers.pygimplib import pgconstants
+from export_layers.pygimplib import pgfileformats
+from export_layers.pygimplib import pgitemtree
+from export_layers.pygimplib import pgobjectfilter
+from export_layers.pygimplib import pgoperations
+from export_layers.pygimplib import pgoverwrite
+from export_layers.pygimplib import pgpath
+from export_layers.pygimplib import pgpdb
+from export_layers.pygimplib import pgprogress
+from export_layers.pygimplib import pgutils
 
 from . import builtin_operations
 from . import builtin_constraints

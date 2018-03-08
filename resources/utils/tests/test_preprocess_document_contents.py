@@ -19,7 +19,7 @@
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import division, print_function, unicode_literals
-import pygimplib
+from export_layers import pygimplib
 from future.builtins import *
 
 import unittest

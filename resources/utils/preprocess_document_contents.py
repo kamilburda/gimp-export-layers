@@ -59,7 +59,7 @@ The following tags can be specified in the documents:
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-import pygimplib
+from export_layers import pygimplib
 from future.builtins import *
 import future.utils
 
@@ -69,7 +69,7 @@ import os
 import re
 import sys
 
-from pygimplib import pgconstants
+from export_layers.pygimplib import pgconstants
 
 import export_layers.config
 export_layers.config.init()

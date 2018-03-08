@@ -31,10 +31,10 @@ import pygtk
 pygtk.require("2.0")
 import gtk
 
-import pygimplib
-from pygimplib import pgconstants
-from pygimplib import pgsettinggroup
-from pygimplib import pgutils
+from export_layers import pygimplib
+from export_layers.pygimplib import pgconstants
+from export_layers.pygimplib import pgsettinggroup
+from export_layers.pygimplib import pgutils
 
 #===============================================================================
 

@@ -26,7 +26,7 @@ from future.builtins import *
 
 import os
 
-import pygimplib
+from export_layers import pygimplib
 
 #===============================================================================
 
