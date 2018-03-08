@@ -1,11 +1,11 @@
-Conventions
-===========
+Developing Export Layers
+========================
 
-This document contains conventions to be followed when contributing to
-Export Layers.
-
+* [Development Setup](#Development-Setup)
+* [Creating a Release](#Creating-a-Release)
 * [Coding Conventions](#Coding-Conventions)
 * [Writing Commit Messages](#Writing-Commit-Messages)
+* [Writing Documentation](#Writing-Documentation)
 
 
 Glossary
@@ -14,13 +14,89 @@ Glossary
 Element = module, class, function or variable
 
 
+Development Setup <a name="Development-Setup"></a>
+-----------------
+
+This section explains how to set up development environment for Export Layers.
+
+A Linux distribution is recommended as the environment contains several bash
+scripts. For Windows, see [below](#Development-Setup-on-Windows) for options.
+
+
+### Setting up Repositories
+
+Clone the master branch of the repository to a directory named e.g.
+`plug-ins - Export Layers` inside the `.gimp-2.8` directory.
+
+To make GIMP recognize the new directory as a directory containing GIMP
+plug-ins, open up GIMP, go to `Edit -> Preferences -> Folders -> Plug-ins`
+and add the new directory to the list. GIMP needs to be restarted for changes to
+take effect.
+
+Clone the `gh-pages` branch (acting as the
+[GitHub page for Export Layers](https://khalim19.github.io/gimp-plugin-export-layers/))
+to `resources/docs/gh-pages`. Several scripts depend on this directory
+location.
+
+Some scripts require that the GitHub page be run locally. To set up GitHub page
+locally:
+* Install Ruby language.
+* Install `bundler` gem:
+
+      gem install bundler
+
+* Switch to the `gh-pages` directory:
+
+      cd resources/docs/gh-pages
+    
+* Run `bundle` to install required dependencies:
+
+      bundle install
+
+
+### Git Hooks <a name="Git-Hooks"></a>
+
+Set up git hooks located in `resources/git/hooks` by creating symbolic
+links:
+* `resources/git/hooks/commig_msg.py` -> `.git/hooks/commit-msg`
+* `resources/git/hooks/pre_commit.py` -> `.git/hooks/pre-commit`
+
+The `commig-msg` hook enforces several
+[conventions for commit messages](#Writing-Commit-Messages).
+
+The `pre-commit` hook automatically propagates changes in files in
+`resources/docs` to files comprising the end user documentation, such as the
+Readme and GitHub pages (located in `resources/docs/gh-pages`). See
+[User Documentation](#User-Documentation) for more information.
+
+
+### Development Setup on Windows <a name="Development-Setup-on-Windows"></a>
+
+To set up the development environment on Windows, use a virtual machine with a
+Linux distribution like Ubuntu.
+
+For Windows 10 users, a viable alternative is to use the
+[Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
+You'll also need to install an X server such as
+[Xming](https://sourceforge.net/projects/xming/).
+To enable X server on the shell, run `export DISPLAY=:0` before running
+GIMP or any Export Layers script requiring non-interactive invocation of GIMP.
+
+
+Creating a Release <a name="Creating-a-Release"></a>
+------------------
+
+To create a release package, simply run `resources/utils/make_package.sh`.
+The package will be created in the `resources` directory.
+
+
 Coding Conventions <a name="Coding-Conventions"></a>
 ------------------
 
 Use PEP8 and PyLint to enforce coding conventions with their respective
 configuration files:
-* [PEP8 for PyDev](PyDev/org.python.pydev.analysis.yaml)
-* [PyLint](PyLint/pylintrc)
+* [PEP8 for PyDev](resources/PyDev/org.python.pydev.analysis.yaml)
+* [PyLint](resources/PyLint/pylintrc)
 
 Additional conventions that override or complement the conventions in the
 aforementioned utilities are specified below.
@@ -160,8 +236,7 @@ Strive to make Python 2 code as compatible as possible with Python 3.
 * At the beginning of each module, import the `__future__` statements and the
   `future.builtins` package from the `future` library.
 * Use constructs compatible with both Python 2 and 3 as described in the
-  [`future` library documentation]
-  (http://python-future.org/compatible_idioms.html),
+  [`future` library documentation](http://python-future.org/compatible_idioms.html),
   with the following exceptions:
   * do not wrap strings in `str` or `bytes` to avoid making the code difficult
     to maintain.
@@ -176,8 +251,7 @@ Encode/decode Unicode strings when accessing the following external libraries:
   * `PDB_STRING*` parameters to PDB procedures,
   * functions and object attributes provided by Python GIMP API.
 * GTK - use UTF-8 encoding. Encoding may be necessary as
-[GTK may not fully support Unicode in Python 2]
-(http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html).
+[GTK may not fully support Unicode in Python 2](http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html).
 
 
 ### GTK
@@ -196,10 +270,9 @@ based on the following guidelines:
 * [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/)
 * [Git commit message](https://github.com/joelparkerhenderson/git_commit_message)
 
-Some conventions can be automatically enforced by a
-[custom git `commit-msg` hook script](git/hooks/commit_msg.py).
-These conventions are marked by a trailing "*". To install the hook script, copy
-the script to the `.git/hooks` directory and rename it to `commit-msg`.
+Some conventions are automatically enforced by the git hook
+[`commit-msg`](#Git-Hooks).
+These conventions are marked by a trailing "*".
 
 
 ### General
@@ -247,3 +320,25 @@ The usage of leading verbs in the message header are not restricted, except for
 the following verbs, which should only be used in specific circumstances:
 * Fix - bug fixes
 * Correct - corrections of typos, grammar errors
+
+
+Writing Documentation <a name="Writing-Documentation"></a>
+---------------------
+
+### API Documentation
+
+Documentation to modules, classes and functions are written as docstrings
+directly in the source code.
+
+### User Documentation <a name="User-Documentation"></a>
+
+To update documentation for end users, modify the "raw" documentation - files
+located in `resources/docs` (except files in `gh-pages`).
+
+Do not modify other documentation files outside `resources/docs` as they are
+automatically updated by [git hooks](#Git-Hooks) when committing changes to the
+files in `resources/docs`.
+
+Any changes propagated to files in `resources/docs/gh-pages` should be
+committed and pushed only when a new release is made so that the Export Layers
+page contains documentation of the latest official release.
