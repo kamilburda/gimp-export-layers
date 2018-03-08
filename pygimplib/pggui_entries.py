@@ -363,7 +363,6 @@ class FilenamePatternEntry(ExtendedEntry):
   def _update_window_position(
         self, window, move_with_text_cursor=True, place_above=False):
     entry_absolute_position = self.get_window().get_origin()
-    entry_allocation_height = self.get_allocation().height
     
     if move_with_text_cursor:
       text_up_to_cursor_position = self._get_text_decoded()[:self._cursor_position]
@@ -379,7 +378,7 @@ class FilenamePatternEntry(ExtendedEntry):
       x = entry_absolute_position[0]
     
     if not place_above:
-      y = entry_absolute_position[1] + entry_allocation_height
+      y = entry_absolute_position[1] + self.get_allocation().height
     else:
       y = entry_absolute_position[1] - window.get_allocation().height
     
