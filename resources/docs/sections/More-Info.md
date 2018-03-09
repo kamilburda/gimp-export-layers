@@ -7,8 +7,8 @@ You can report issues, ask questions or request new features on the [GitHub issu
 Translations
 ------------
 
-If you would like to provide translations, see
-[README for Translators](README_for_Translators.md) for instructions.
+If you would like to provide translations, see [TRANSLATIONS](TRANSLATIONS.md)
+for instructions.
 
 
 License

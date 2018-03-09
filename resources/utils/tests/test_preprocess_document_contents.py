@@ -105,7 +105,7 @@ class TestIncludeSectionTag(unittest.TestCase):
   
   _TEST_SECTION_CONTENTS = {
     "translations": """If you would like to provide translations, see
-[README for Translators](README_for_Translators.md) for instructions.""",
+[TRANSLATIONS](TRANSLATIONS.md) for instructions.""",
     "known_issues": [
       """Sometimes, after you hit the Export button, it may seem as though
 nothing happens.""",
