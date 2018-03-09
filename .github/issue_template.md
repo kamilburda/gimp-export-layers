@@ -12,5 +12,7 @@
 #### Configuration
 
 Version of Export Layers: 
+
 Version of GIMP: 
+
 Operating system: 
