@@ -1,4 +1,4 @@
-<!-- If you're reporting an issue, please fill in the details below. For other purposes, you may remove the entire text below. -->
+<!-- If you're reporting an issue, please fill in the details below. For other purposes (asking a question, requesting a new feature), you may remove the entire text below. -->
 
 #### What went wrong?
 <!-- If Export Layers crashed, include the error message here. -->
