@@ -12,8 +12,8 @@ orig_cwd="$(pwd)"
 
 
 # Install required programs/packages
-# If supported package managers are not available (apt-get, yum), developer has
-# to install missing packages manually.
+# If supported package managers are not available (apt-get), developer has to
+# install missing packages manually.
 
 function command_exists()
 {
@@ -21,19 +21,29 @@ function command_exists()
   return $?
 }
 
-required_packages='git
+if command_exists 'apt-get'; then
+  required_packages='git
 ruby
 ruby-dev
+build-essential
+patch
 zlib1g-dev
+liblzma-dev
+libgmp-dev
+libffi-dev
+gcc
 python
 python-pip
 gimp'
 
-if command_exists 'apt-get'; then
   sudo apt-get install -y $required_packages
-elif command_exists 'yum'; then
-  sudo yum install -y $required_packages
 else
+  required_packages='git
+ruby
+python27
+python-pip
+gimp'
+
   echo 'Make sure the following packages are installed:'
   echo "$required_packages"
   echo ''
