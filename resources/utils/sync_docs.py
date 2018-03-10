@@ -38,7 +38,7 @@ import shutil
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgutils
 
-from . import preprocess_document_contents
+from resources.utils import preprocess_document_contents
 
 import export_layers.config
 export_layers.config.init()
