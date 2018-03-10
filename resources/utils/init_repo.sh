@@ -77,9 +77,7 @@ fi
 
 if [ ! -f "$gimprc_filepath" ]; then
   echo "$gimprc_filename"' still does not exist, creating new file'
-  
   plugin_dirpaths_from_system_gimprc="$(grep -oE '\(plug-in-path ".*"\)' "$system_gimprc_filepath" | sed -r 's/\(plug-in-path "(.*)"\)/\1/')"
-  
   echo '(plug-in-path "'"$plugin_dirpaths_from_system_gimprc"':'"$repo_dirpath"'")' > "$gimprc_filepath"
 else
   repo_dirpath_in_gimprc="$(grep -oE '\(plug-in-path ".*'"$repo_dirpath"'"\)' "$gimprc_filepath")"
