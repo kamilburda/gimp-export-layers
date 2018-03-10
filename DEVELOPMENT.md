@@ -22,6 +22,12 @@ This section explains how to set up development environment for Export Layers.
 A Linux distribution is recommended as the environment contains several bash
 scripts. For Windows, see [below](#Development-Setup-on-Windows) for options.
 
+The easiest way is to download and execute a
+[bash script](resources/utils/init_repo.sh) that automatically installs any
+required dependencies and sets up the environment.
+
+If you cannot run the script, below is an explanation describing each step.
+
 
 ### Setting up Repositories
 
@@ -62,7 +68,7 @@ links:
     ln -s resources/git/hooks/commig_msg.py .git/hooks/commit-msg
     ln -s resources/git/hooks/pre_commit.py .git/hooks/pre-commit
 
-The `commig-msg` hook enforces several
+The `commit-msg` hook enforces several
 [conventions for commit messages](#Writing-Commit-Messages).
 
 The `pre-commit` hook automatically propagates changes in files in
