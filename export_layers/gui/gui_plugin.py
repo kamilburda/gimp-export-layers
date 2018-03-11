@@ -805,11 +805,10 @@ class ExportLayersGui(object):
     
     if response_id == gtk.RESPONSE_YES:
       self._reset_settings()
+      self._save_settings()
       
       if reset_operations:
         self._clear_setting_sources()
-      else:
-        self._save_settings()
       
       self._display_message_label(_("Settings reset."), gtk.MESSAGE_INFO)
     
