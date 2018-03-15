@@ -263,14 +263,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     if item_elem.parent in self._uniquified_itemtree:
       self._uniquified_itemtree[item_elem.parent].remove(item_elem)
   
-  def reset_filter(self):
-    """
-    Reset the filter, creating a new empty `ObjectFilter`.
-    """
-    
-    self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
-  
-  def reset_item_elements(self):
+  def reset_all_names(self):
     """
     Reset the `name` attribute of all `_ItemTreeElement` instances (regardless
     of item filtering) and clear cache for already uniquified and validated
@@ -283,6 +276,13 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     self._uniquified_itemtree.clear()
     self._uniquified_itemtree_names.clear()
     self._validated_itemtree.clear()
+  
+  def reset_filter(self):
+    """
+    Reset the filter, creating a new empty `ObjectFilter`.
+    """
+    
+    self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
   
   def _fill_item_tree(self):
     """

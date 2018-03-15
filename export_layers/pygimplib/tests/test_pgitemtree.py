@@ -379,7 +379,7 @@ class TestLayerTree(unittest.TestCase):
     self.assertEqual(self.layer_tree["Corners::"].name, "Corners")
     self.assertEqual(self.layer_tree["Corners"].name, "Corners (1)")
   
-  def test_reset_item_elements(self):
+  def test_reset_all_names(self):
     self.layer_tree["Corners"].name = "Corners.png"
     self.layer_tree["Corners:"].name = "Corners.png:"
     
@@ -388,7 +388,7 @@ class TestLayerTree(unittest.TestCase):
     self.layer_tree.validate_name(self.layer_tree["Corners:"])
     self.layer_tree.uniquify_name(self.layer_tree["Corners:"])
     
-    self.layer_tree.reset_item_elements()
+    self.layer_tree.reset_all_names()
     
     self.assertEqual(self.layer_tree["Corners"].name, "Corners")
     self.assertEqual(self.layer_tree["Corners:"].name, "Corners:")
