@@ -59,12 +59,11 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     [3, gobject.TYPE_STRING], [4, gobject.TYPE_INT])
   
   def __init__(
-        self, layer_exporter, initial_layer_tree=None, collapsed_items=None,
+        self, layer_exporter, collapsed_items=None,
         selected_items=None, displayed_tags_setting=None):
     super().__init__()
     
     self._layer_exporter = layer_exporter
-    self._initial_layer_tree = initial_layer_tree
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
     self._selected_items = selected_items if selected_items is not None else []
     self._displayed_tags_setting = displayed_tags_setting
@@ -74,6 +73,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self.on_after_edit_tags = pgutils.empty_func
     
     self._tree_iters = collections.defaultdict(pgutils.return_none_func)
+    
+    self._first_time_layer_tree_usage = True
     
     self._row_expand_collapse_interactive = True
     self._toggle_tag_interactive = True
@@ -507,13 +508,11 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   
   def _process_items(self, reset_items=False):
     if not reset_items:
-      if self._initial_layer_tree is not None:
-        layer_tree = self._initial_layer_tree
-        self._initial_layer_tree = None
-      else:
-        if self._layer_exporter.layer_tree is not None:
-          self._layer_exporter.layer_tree.reset_item_elements()
-        layer_tree = self._layer_exporter.layer_tree
+      if (self._layer_exporter.layer_tree is not None
+          and self._first_time_layer_tree_usage):
+        self._layer_exporter.layer_tree.reset_all_names()
+        self._first_time_layer_tree_usage = False
+      layer_tree = self._layer_exporter.layer_tree
     else:
       layer_tree = None
     

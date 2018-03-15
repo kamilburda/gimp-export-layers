@@ -70,17 +70,13 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   
   _BOTTOM_WIDGETS_PADDING = 5
   _IMAGE_PREVIEW_PADDING = 3
-  
   _MAX_PREVIEW_SIZE_PIXELS = 1024
-  
   _PREVIEW_ALPHA_CHECK_SIZE = 4
   
-  def __init__(
-        self, layer_exporter, initial_layer_tree=None, initial_previered_layer_id=None):
+  def __init__(self, layer_exporter, initial_previered_layer_id=None):
     super().__init__()
     
     self._layer_exporter = layer_exporter
-    self._initial_layer_tree = initial_layer_tree
     self._initial_previewed_layer_id = initial_previered_layer_id
     
     if not self._layer_exporter.operation_executor.has_matching_operation(
@@ -284,12 +280,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     return layer_preview_pixbuf
   
   def _get_image_preview(self):
-    if self._initial_layer_tree is not None:
-      layer_tree = self._initial_layer_tree
-      self._initial_layer_tree = None
-    else:
-      layer_tree = self._layer_exporter.layer_tree
-    
+    layer_tree = self._layer_exporter.layer_tree
     layer_tree_filter = layer_tree.filter if layer_tree is not None else None
     
     with self._layer_exporter.modify_export_settings(
