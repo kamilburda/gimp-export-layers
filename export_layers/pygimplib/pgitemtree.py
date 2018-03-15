@@ -417,7 +417,7 @@ class _ItemTreeElement(object):
     `tags_source_name` attribute.
   
   * `tags_source_name` - Name of the persistent source for the `tags` attribute.
-    Defaults to "tags" if the source name is None.
+    Defaults to "tags" if None.
   """
   
   _ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP = (0, 1, 2)
