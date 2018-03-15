@@ -314,11 +314,12 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   
   def _layer_exporter_on_after_insert_layer(self, image, layer, layer_exporter):
     if not pdb.gimp_item_is_group(layer):
-      pdb.gimp_layer_scale(
+      pdb.gimp_item_transform_scale(
         layer,
-        max(1, int(round(layer.width * self._preview_scaling_factor))),
-        max(1, int(round(layer.height * self._preview_scaling_factor))),
-        False)
+        layer.offsets[0] * self._preview_scaling_factor,
+        layer.offsets[1] * self._preview_scaling_factor,
+        (layer.offsets[0] + layer.width) * self._preview_scaling_factor,
+        (layer.offsets[1] + layer.height) * self._preview_scaling_factor)
   
   def _get_preview_pixbuf(self, layer, preview_width, preview_height, preview_data):
     # The following code is largely based on the implementation of
