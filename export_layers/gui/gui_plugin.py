@@ -628,6 +628,7 @@ class ExportLayersGui(object):
   def _init_gui_previews(self):
     self._export_name_preview = gui_preview_name.ExportNamePreview(
       self._layer_exporter_for_previews,
+      self._initial_layer_tree,
       self._settings["gui_session/export_name_preview_layers_collapsed_state"].value[
         self._image.ID],
       self._settings["main/selected_layers"].value[self._image.ID],
