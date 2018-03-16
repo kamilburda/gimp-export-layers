@@ -795,9 +795,11 @@ class LayerExporter(object):
   
   def _init_tagged_layer_elems(self):
     with self._layer_tree.filter.add_rule_temp(builtin_constraints.has_tags):
-      for layer_elem in self._layer_tree:
-        for tag in layer_elem.tags:
-          self._tagged_layer_elems[tag].append(layer_elem)
+      with self._layer_tree.filter["layer_types"].add_rule_temp(
+             builtin_constraints.is_nonempty_group):
+        for layer_elem in self._layer_tree:
+          for tag in layer_elem.tags:
+            self._tagged_layer_elems[tag].append(layer_elem)
   
   def _export_layers(self):
     for layer_elem in self._layer_tree:
