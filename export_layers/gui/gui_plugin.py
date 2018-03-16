@@ -698,9 +698,10 @@ class ExportLayersGui(object):
     try:
       setting.gui.update_setting_value()
     except pgsetting.SettingValueError as e:
-      pginvocation.timeout_add_strict(
-        self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
-        self._export_name_preview.set_sensitive, False)
+      if setting.name == "file_extension":
+        pginvocation.timeout_add_strict(
+          self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
+          self._export_name_preview.set_sensitive, False)
       
       self._display_message_label(str(e), gtk.MESSAGE_ERROR, setting)
       self._export_name_preview.lock_update(True, name_preview_lock_update_key)
@@ -709,9 +710,10 @@ class ExportLayersGui(object):
       if self._message_setting == setting:
         self._display_message_label(None)
       
-      pginvocation.timeout_add_strict(
-        self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
-        self._export_name_preview.set_sensitive, True)
+      if setting.name == "file_extension":
+        pginvocation.timeout_add_strict(
+          self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
+          self._export_name_preview.set_sensitive, True)
       
       pginvocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
