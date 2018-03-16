@@ -47,6 +47,8 @@ from export_layers.pygimplib import pgutils
 import export_layers.config
 export_layers.config.init()
 
+pygimplib.config.LOG_MODE = pgconstants.LOG_NONE
+
 pygimplib.init()
 
 #===============================================================================
