@@ -72,6 +72,8 @@ def log_output(
     log mode.
   """
   
+  if log_mode == pgconstants.LOG_NONE:
+    return
   if log_mode == pgconstants.LOG_EXCEPTIONS_ONLY:
     _redirect_exception_output_to_file(
       log_dirpaths, log_stderr_filename, log_header_title)
