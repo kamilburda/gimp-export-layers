@@ -181,14 +181,20 @@ def _create_package_file(package_filepath, input_filepaths, output_filepaths):
 #===============================================================================
 
 
-def main():
-  output_filepath = "{0}-{1}.{2}".format(
+def main(destination_dirpath=None):
+  output_filename = "{0}-{1}.{2}".format(
     OUTPUT_FILENAME_PREFIX, pygimplib.config.PLUGIN_VERSION, OUTPUT_FILE_EXTENSION)
+  
+  if not destination_dirpath:
+    output_filepath = os.path.join(MODULE_DIRPATH, output_filename)
+  else:
+    pgpath.make_dirs(destination_dirpath)
+    output_filepath = os.path.join(destination_dirpath, output_filename)
   
   make_package(PLUGINS_DIRPATH, output_filepath, pygimplib.config.PLUGIN_VERSION)
   
-  print("Package successfully created:", os.path.join(PLUGINS_DIRPATH, output_filepath))
+  print("Package successfully created:", output_filepath)
 
 
 if __name__ == "__main__":
-  main()
+  main(sys.argv[1] if len(sys.argv) > 1 else None)

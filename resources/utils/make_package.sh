@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ -z "$1" ]; then
+  dest_dirpath='None'
+else
+  dest_dirpath='r"'"$1"'"'
+fi
+
 gimp -i --batch-interpreter="python-fu-eval" -b '
 import sys
 import os
@@ -18,7 +24,7 @@ import make_package
 
 os.chdir(resources_dirpath)
 
-make_package.main()
+make_package.main('"$dest_dirpath"')
 
 pdb.gimp_quit(0)
 '
