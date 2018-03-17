@@ -23,3 +23,6 @@
 
 # Convert lines of .sh files to LF
 *.sh text eol=lf
+
+# Ignore modifications to specific lines in specific files
+export_layers/config.py filter=ignore_log_mode

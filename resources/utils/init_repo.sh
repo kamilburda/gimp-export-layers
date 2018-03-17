@@ -109,6 +109,10 @@ echo 'Setting up git hooks'
 ln -s 'resources/git/hooks/commig_msg.py' '.git/hooks/commit-msg'
 ln -s 'resources/git/hooks/pre_commit.py' '.git/hooks/pre-commit'
 
+echo 'Setting up filters to ignore modifications to specific lines'
+git config --local 'filter.ignore_log_mode.clean' "sed 's/pygimplib\\.config\\.LOG_MODE = .*/pygimplib\\.config\\.LOG_MODE = pygimplib\\.pgconstants\\.LOG_EXCEPTIONS_ONLY/'"
+git config --local 'filter.ignore_log_mode.smudge' 'cat'
+
 cd 'resources/docs'
 
 echo 'Cloning '"$plugin_page_branch_name"' branch of '"$repo_url"' into '\'"$repo_dirpath"'/resources/docs/'"$plugin_page_branch_name"\'
