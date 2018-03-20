@@ -26,12 +26,18 @@ sys.path.append(resources_dirpath)
 sys.path.append(utils_dirpath)
 import make_package
 import preprocess_document_contents
+import sync_docs
 orig_cwd = os.getcwd()
 os.chdir(resources_dirpath)
 
 
 imp.reload(make_package)
 make_package.main()
+
+
+
+imp.reload(sync_docs)
+sync_docs.main()
 
 
 imp.reload(preprocess_document_contents)
