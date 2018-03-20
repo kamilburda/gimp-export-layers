@@ -55,5 +55,7 @@ def init():
     ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
   ]
   
+  pygimplib.config.COPYRIGHT_YEARS = "2014-2017"
+  
   # If True, display each step of image/layer editing in GIMP.
   pygimplib.config.DEBUG_IMAGE_PROCESSING = False
