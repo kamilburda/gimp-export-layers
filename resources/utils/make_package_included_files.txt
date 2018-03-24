@@ -1,5 +1,4 @@
-# This file contains files and directories to include in or exclude from the
-# release package. gitignore-like syntax is used, only reversed.
+# This file contains pathspecs to include in or exclude from the release package.
 
 # Ignore all files
 !*
