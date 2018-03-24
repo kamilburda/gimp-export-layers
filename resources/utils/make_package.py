@@ -32,12 +32,14 @@ from future.builtins import *
 import importlib
 import io
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 import sys
 import zipfile
 
+import git
 import pathspec
 
 from export_layers.pygimplib import pgconstants
@@ -69,6 +71,11 @@ GITHUB_PAGE_UTILS_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "GitHub_page
 
 
 def make_package(input_dirpath, output_filepath, version):
+  temp_repo_files_dirpath = tempfile.mkdtemp()
+  
+  relative_filepaths_with_git_filters = (
+    _prepare_repo_files_for_packaging(PLUGINS_DIRPATH, temp_repo_files_dirpath))
+  
   _generate_translation_files(pygimplib.config.LOCALE_DIRPATH, version)
 
   temp_dirpath = tempfile.mkdtemp()
@@ -92,17 +99,76 @@ def make_package(input_dirpath, output_filepath, version):
   
   _create_package_file(output_filepath, temp_filepaths, relative_filepaths)
   
+  _restore_repo_files(
+    temp_repo_files_dirpath, PLUGINS_DIRPATH, relative_filepaths_with_git_filters)
+  
   shutil.rmtree(temp_dirpath)
+  shutil.rmtree(temp_repo_files_dirpath)
   _remove_pot_files(pygimplib.config.LOCALE_DIRPATH)
+
+
+def _prepare_repo_files_for_packaging(
+      repository_dirpath, dirpath_with_original_files_with_git_filters):
+  repo = git.Repo(repository_dirpath)
+  
+  if repo.git.status("--porcelain"):
+    print(("Repository contains local changes."
+           " Please remove or commit changes before proceeding."),
+          file=sys.stderr)
+    exit(1)
+  
+  path_specs = _get_path_specs_with_git_filters_from_gitattributes(repository_dirpath)
+  
+  spec_obj = pathspec.PathSpec.from_lines(
+    pathspec.patterns.gitwildmatch.GitWildMatchPattern, path_specs)
+  
+  relative_filepaths_with_git_filters = [
+    match for match in spec_obj.match_tree(repository_dirpath)]
+  
+  # Move files with filters to a temporary location
+  for relative_filepath in relative_filepaths_with_git_filters:
+    src_filepath = os.path.join(repository_dirpath, relative_filepath)
+    dest_filepath = os.path.join(
+      dirpath_with_original_files_with_git_filters, relative_filepath)
+    
+    pgpath.make_dirs(os.path.dirname(dest_filepath))
+    shutil.copy2(src_filepath, dest_filepath)
+  
+  # Reset files with filters and activate smudge filters on them.
+  for path_spec in path_specs:
+    repo.git.checkout(path_spec)
+  
+  return relative_filepaths_with_git_filters
+
+
+def _restore_repo_files(
+      dirpath_with_original_files_with_git_filters, repository_dirpath,
+      relative_filepaths_with_git_filters):
+  for relative_filepath in relative_filepaths_with_git_filters:
+    shutil.copy2(
+      os.path.join(dirpath_with_original_files_with_git_filters, relative_filepath),
+      os.path.join(repository_dirpath, relative_filepath))
+
+
+def _get_path_specs_with_git_filters_from_gitattributes(repository_dirpath):
+  path_specs = []
+  
+  with io.open(os.path.join(repository_dirpath, ".gitattributes")) as gitattributes_file:
+    for line in gitattributes_file:
+      match = re.search(r"\s*(.*?)\s+filter=", line)
+      if match:
+        path_specs.append(match.group(1))
+  
+  return path_specs
 
 
 def _get_filtered_filepaths(dirpath, pattern_filepath):
   with io.open(
          pattern_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
-    spec = pathspec.PathSpec.from_lines(
+    spec_obj = pathspec.PathSpec.from_lines(
       pathspec.patterns.gitwildmatch.GitWildMatchPattern, file_)
   
-  return [os.path.join(dirpath, match) for match in spec.match_tree(dirpath)]
+  return [os.path.join(dirpath, match) for match in spec_obj.match_tree(dirpath)]
 
 
 def _get_relative_filepaths(filepaths, root_dirpath):
@@ -153,12 +219,12 @@ def _copy_files_to_temp_filepaths(filepaths, temp_filepaths):
     shutil.copy2(src_filepath, temp_filepath)
 
 
-def _create_user_docs(temp_dirpath):
+def _create_user_docs(dirpath):
   sys.path.append(MODULE_DIRPATH)
   create_user_docs_module = importlib.import_module("create_user_docs")
   
   create_user_docs_module.main(
-    GITHUB_PAGE_UTILS_DIRPATH, GITHUB_PAGE_DIRPATH, temp_dirpath)
+    GITHUB_PAGE_UTILS_DIRPATH, GITHUB_PAGE_DIRPATH, dirpath)
 
 
 def _set_permissions(dirpath, permissions):
