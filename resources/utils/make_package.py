@@ -133,6 +133,7 @@ def _prepare_repo_files_for_packaging(
     
     pgpath.make_dirs(os.path.dirname(dest_filepath))
     shutil.copy2(src_filepath, dest_filepath)
+    os.remove(src_filepath)
   
   # Reset files with filters and activate smudge filters on them.
   for path_spec in path_specs:
