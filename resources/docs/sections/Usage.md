@@ -13,7 +13,7 @@ have dialogs, while some file formats display the dialog for each layer (this
 can't be prevented because the file format only allows an interactive export).
 
 By default, layer names are used as filenames. To customize this behavior, see
-[Customizing Layer Names](Advanced-Usage#customizing-layer-names).
+[Customizing Layer Names](Advanced-Usage.md#customizing-layer-names).
 
 
 Repeating Last Export
@@ -73,4 +73,4 @@ More settings
 -------------
 
 If you need to further customize the export, see
-[Advanced Usage](Advanced-Usage).
+[Advanced Usage](Advanced-Usage.md).
