@@ -5,6 +5,7 @@ previous_doc_filename: Advanced-Usage.html
 previous_doc_title: Advanced Usage
 ---
 
+
 Sometimes, after you hit the Export button, it may seem as though nothing
 happens. In that case, the file format dialog may be displayed behind GIMP - if
 so, simply select the dialog to bring it up.

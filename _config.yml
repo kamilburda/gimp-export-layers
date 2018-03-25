@@ -6,9 +6,10 @@ url: https://khalim19.github.io
 repository: khalim19/gimp-plugin-export-layers
 github_username: khalim19
 email: khalim19@gmail.com
+copyright_years: 2014-2017
 
 plugin_name: export_layers
-plugin_version: 3.0-RC2
+plugin_version: 3.0
 sections_url: /sections/
 license_remote_url: blob/master/LICENSE
 license_local_filename: LICENSE.txt

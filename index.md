@@ -18,5 +18,4 @@ for information about installation, usage and known issues.
 
 Support
 -------
-
-You can report issues, ask questions or request new features on the [GitHub issues page](https://github.com/khalim19/gimp-plugin-export-layers/issues).
+You can report issues, ask questions or request new features on the [GitHub Issues page](https://github.com/khalim19/gimp-plugin-export-layers/issues).

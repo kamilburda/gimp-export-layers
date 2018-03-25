@@ -1,4 +1,4 @@
 <footer class="site-footer">
-  <span class="site-footer-credits">© 2014-2017 {{ site.github_username }}.</span>
+  <span class="site-footer-credits">© {{ site.copyright_years }} {{ site.github_username }}.</span>
   <span class="site-footer-license"><a href="{% if site.github.repository_url %}{{ site.github.repository_url }}/{{ site.license_remote_url }}{% else %}{{ site.license_local_filename | prepend: site.sections_url | relative_url }}{% endif %}">License</a></span>
 </footer>

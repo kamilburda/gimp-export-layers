@@ -60,9 +60,7 @@ above the text entry shows you the name and the number of possible arguments.
 
 Arguments must be separated by commas. Arguments in italic are optional.
 Arguments with slashes indicates a single choice of one of the specified values.
-Invalid arguments result in the field being printed literally.
-
-To escape the square brackets, simply double them (i.e. "\[\[" and "\]\]").
+Invalid arguments result in the field being inserted literally.
 
 ### Available fields
 
@@ -106,16 +104,37 @@ will be "Frames-Top".
 
 Arguments:
 * path separator: A string that separates the path components. Defaults to "-".
+* wrapper: A string that wraps around each path component. The wrapper must
+contain "$$" (denoting the name of the current path component). By default, no
+wrapper is used.
+
+Examples:
+* Suppose that a layer has the following path: Frames, Outer, bottom.
+* [layer path] -\> Frames-Outer-bottom
+* [layer path, \_] -\> Frames\_Outer\_bottom
+* [layer path, \_, ($$)] -\> (Frames)\_(Outer)\_(bottom)
 
 **\[tags\]**
 
-All tags of a layer in the format "\[\<tag1\>\] \[\<tag2\>\] ...". Tags are
-printed in alphabetical order. See [Tagging Layers](#tagging-layers) for
-information about layer tags.
+All tags of a layer. By default, tags are inserted in the following format:
+"\[\<tag1\>\] \[\<tag2\>\] ..."
+
+Tags are inserted in alphabetical order. See [Tagging Layers](#tagging-layers)
+for information about layer tags.
 
 Arguments:
-* specific tags: By default, all tags are printed. To print only specific tags,
-specify them as comma-separated arguments.
+* if there are two arguments and the second argument contains "$$", then the
+first argument is a separator between tags and the second argument acts as a
+"wrapper" around the tag name.
+* specific tags: tag names as comma-separated arguments. If omitted, all tags
+are inserted.
+
+Examples:
+* Suppose that a layer has the following tags: Background, Foreground, frames.
+* [tags] -\> \[Background\] \[Foreground\] \[frames\]
+* [tags, Background, Foreground] -\> \[Background\] \[Foreground\]
+* [tags, \_, ($$)] -\> (Background)\_(Foreground)\_(frames)
+* [tags, \_, ($$), Background, Foreground] -\> (Background)\_(Foreground)
 
 **\[current date\]**
 
@@ -125,6 +144,20 @@ Arguments:
 * date format: Date format as per the
 [Python `strftime` format](http://strftime.org/). Defaults to "%Y-%m-%d"
 (year-month-day).
+
+### Inserting reserved characters in arguments
+
+To insert a literal space, comma or square brackets ("\[" and "\]") in an
+argument, enclose the argument with square brackets. Literal square brackets
+must be doubled.
+
+If the last argument is enclosed in square brackets, leave a single space
+between the last and the second to last closing square bracket.
+
+Examples:
+* [layer path, [ ], $$]
+* [layer path, [ ] ]
+* [layer path, [,], [[[$$]]] ]
 
 
 Additional Operations
