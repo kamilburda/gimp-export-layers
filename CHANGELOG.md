@@ -1,3 +1,24 @@
+3.0
+===
+
+* Tagged layer groups can now be inserted, even if "Include layer groups"
+constraint is disabled.
+* Made "[layer path]" and "[tags]" fields for the filename pattern entry more
+flexible.
+* If a field for the filename pattern entry has several variations for its
+arguments, the tooltip displays each variation on a separate line.
+* File extension entry is now expandable.
+* Decreased width of the file extension and filename pattern entries.
+* Moved `pygimplib` folder back under `export_layers`.
+* Fixed incorrect positioning of layers in the image previews.
+* Fixed incorrect layer name in the image preview when a layer is first
+displayed there.
+* Fixed Reset Settings not working for settings persisting during a GIMP
+session.
+* Fixed enabled/disabled state of previews.
+* Fixed extra period in export failure messages.
+
+
 3.0-RC2
 =======
 
