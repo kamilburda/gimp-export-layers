@@ -41,13 +41,14 @@ The following tags can be specified in the documents:
     separated from headers by a single space).
   * `sentences=<index number>` or `sentences=<start index:end index>` - pick
     chosen sentence(s) from sections by indexes using the Python slice notation.
+    Index starts from 0.
   * `no-header=(True | False)` - exclude section header. "False" by default. If
     no section is specified, the first section header is ignored.
   
   Examples:
-      {% include-section "docs/README.md" section=Features no-header %}
+      {% include-section "docs/README.md" section=Features no-header=True %}
       {% include-section "docs/README.md" section="Known Issues" %}
-      {% include-section "docs/README.md" section=License index=0 %}
+      {% include-section "docs/README.md" section=License sentences=0 %}
 
 * `{% include-config <pygimplib configuration entry> %}`:
   Replace the expression with the corresponding configuration entry in
