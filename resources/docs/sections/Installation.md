@@ -73,7 +73,9 @@ Due to numerous significant changes in version 3.0, make sure you perform a
 complete reinstall when upgrading from an earlier version:
 
 1. Reset settings by pressing the "Reset Settings" button.
-2. Remove the `export_layers.py` file and the `export_layers` folder from the
-installation folder.
-3. Run GIMP (so that GIMP "forgets" about the plug-in).
-4. Install the new version.
+2. Close GIMP.
+3. Remove the `export_layers.py` file and the `export_layers` folder from the
+installation folder. If you used 3.0-RC1, remove the `pygimplib` folder as well.
+4. In the folder above `plug-ins`, open `parasiterc` in a text editor and remove the entire line beginning with `(parasite "plug_in_export_layers"`.
+5. Run GIMP (so that GIMP "forgets" about the plug-in).
+6. Install the new version.
