@@ -6,6 +6,7 @@ title: Release Notes
 3.0
 ===
 
+* Created a separate release for GIMP 2.9. This release does not contain the smaller progress bar (displayed while exporting) due to the plug-in dialog freezing during the export.
 * Tagged layer groups can now be inserted, even if "Include layer groups"
 constraint is disabled.
 * Made "[layer path]" and "[tags]" fields for the filename pattern entry more
