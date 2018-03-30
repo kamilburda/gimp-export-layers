@@ -8,18 +8,20 @@ Requirements
 Windows
 -------
 
-Make sure you installed GIMP with support for Python scripting.
+Make sure you have GIMP installed with support for Python scripting.
 
 Copy the following files and folders:
 
     export_layers.py
     export_layers
 
-to
+to the folder containing plug-ins depending on your version of GIMP:
 
-    [your home folder]\.gimp-[GIMP version]\plug-ins
+* GIMP 2.8: `C:\Users\[your username]\.gimp-2.8\plug-ins`
+* GIMP 2.9: `C:\Users\[your username]\AppData\Roaming\GIMP\2.9\plug-ins`
+* GIMP 2.10: `C:\Users\[your username]\AppData\Roaming\GIMP\2.10\plug-ins`
 
-Example of the installation folder: `C:\Users\khalim\.gimp-2.8\plug-ins`
+If you can't locate the folder, open GIMP, go to Edit -> Preferences -> Folders -> Plug-Ins and use one of the listed folders.
 
 
 Linux
@@ -30,11 +32,13 @@ Copy the following files and folders:
     export_layers.py
     export_layers
 
-to
+to the folder containing plug-ins depending on your version of GIMP:
 
-    [your home folder]/.gimp-[GIMP version]/plug-ins
+* GIMP 2.8: `/home/[your username]/.gimp-2.8/plug-ins`
+* GIMP 2.9: `/home/[your username]/.config/GIMP/2.9/plug-ins`
+* GIMP 2.10: `/home/[your username]/.config/GIMP/2.10/plug-ins`
 
-Example of the installation folder: `/home/khalim/.gimp-2.8/plug-ins`
+If you can't locate the folder, open GIMP, go to Edit -> Preferences -> Folders -> Plug-Ins and use one of the listed folders.
 
 
 OS X
@@ -45,12 +49,13 @@ Copy the following files and folders:
     export_layers.py
     export_layers
 
-to
+to the folder containing plug-ins depending on your version of GIMP:
 
-    [your home folder]/Library/Application Support/GIMP/[GIMP version]/plug-ins
+* GIMP 2.8: `/Users/[your username]/Library/Application Support/GIMP/2.8/plug-ins`
+* GIMP 2.9: `/Users/[your username]/Library/Application Support/GIMP/2.9/plug-ins`
+* GIMP 2.10: `/Users/[your username]/Library/Application Support/GIMP/2.10/plug-ins`
 
-Example of the installation folder:
-`/Users/khalim/Library/Application Support/GIMP/2.8/plug-ins`
+If you can't locate the folder, open GIMP, go to Edit -> Preferences -> Folders -> Plug-Ins and use one of the listed folders.
 
 GIMP for OS X may have Python 2.6 bundled, which will not work with this
 plug-in, since Python 2.7 is required.
