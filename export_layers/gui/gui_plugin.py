@@ -35,6 +35,7 @@ import gtk
 import gobject
 import pango
 
+import gimp
 from gimp import pdb
 import gimpenums
 import gimpui
@@ -323,7 +324,8 @@ class ExportLayersGui(object):
     
     self._init_settings()
     
-    pgpdb.suppress_gimp_progress()
+    if gimp.version[0:2] not in [(2, 9), (2, 10)]:
+      pgpdb.suppress_gimp_progress()
     
     self._init_gui()
     
@@ -869,6 +871,9 @@ class ExportLayersGui(object):
     self._display_message_label(None)
     self._set_gui_enabled(False)
   
+  def _restore_gui_after_export(self):
+    self._set_gui_enabled(True)
+  
   def _setup_layer_exporter(self):
     overwrite_chooser = pggui.GtkDialogOverwriteChooser(
       self._get_overwrite_dialog_items(),
@@ -895,9 +900,6 @@ class ExportLayersGui(object):
     return list(zip(
       self._settings["main/overwrite_mode"].items.values(),
       self._settings["main/overwrite_mode"].items_display_names.values()))
-  
-  def _restore_gui_after_export(self):
-    self._set_gui_enabled(True)
   
   def _set_gui_enabled(self, enabled):
     self._item_progress_indicator.widget.set_visible(not enabled)

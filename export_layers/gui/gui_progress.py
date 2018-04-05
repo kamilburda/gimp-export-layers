@@ -82,8 +82,10 @@ class ItemProgressIndicator(object):
     self._vbox_progress_bars.set_spacing(self._spacing_between_progress_bars)
     self._vbox_progress_bars.pack_start(
       self._progress_bar_for_items, expand=False, fill=False)
-    self._vbox_progress_bars.pack_start(
-      self._progress_bar_for_item_status, expand=False, fill=False)
+    
+    if gimp.version[0:2] not in [(2, 9), (2, 10)]:
+      self._vbox_progress_bars.pack_start(
+        self._progress_bar_for_item_status, expand=False, fill=False)
   
   def install_progress_for_status(
         self, progress_set_value=None, progress_reset_value=None):
@@ -91,6 +93,9 @@ class ItemProgressIndicator(object):
     Initialize the progress bar for the current item status to update according
     to GIMP PDB calls.
     """
+    
+    if gimp.version[0:2] in [(2, 9), (2, 10)]:
+      return
     
     if progress_set_value is None:
       progress_set_value = self._progress_set_value
@@ -114,6 +119,9 @@ class ItemProgressIndicator(object):
     Reset the progress bar for the current item status so that it no longer
     updates according to GIMP PDB calls.
     """
+    
+    if gimp.version[0:2] in [(2, 9), (2, 10)]:
+      return
     
     if self._progress_callback is not None:
       gimp.progress_uninstall(self._progress_callback)
