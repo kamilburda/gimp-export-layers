@@ -72,6 +72,7 @@ class ItemProgressIndicator(object):
   def _init_gui(self):
     self._progress_bar_for_items = gtk.ProgressBar()
     self._progress_bar_for_items.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+    self._progress_bar_for_items.set_text_alignment(0.0, 0.5)
     
     self._progress_bar_for_item_status = gtk.ProgressBar()
     self._progress_bar_for_item_status.set_size_request(
