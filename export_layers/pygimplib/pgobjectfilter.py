@@ -75,7 +75,7 @@ class ObjectFilter(object):
     """
     Add the specified rule as a function to the filter.
     
-    If `rule_func` already exists in the filter, nothing happens.
+    If `rule_func` already exists in the filter, do nothing.
     
     If you need to later remove the rule from the filter (using the
     `remove_rule()` method), pass a named function rather than an inline lambda

@@ -106,7 +106,7 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     removed and would thus lead to bloating the source.
     
     Some `SettingSource` subclasses may not implement this method, in which case
-    calling `clear()` does nothing.
+    calling `clear()` has no effect.
     """
     
     pass
