@@ -33,11 +33,18 @@ class ExportPreview(object):
     self._update_locked = False
     self._lock_keys = set()
     
+    self._should_enable_sensitive = None
+    
     self._settings_events_to_temporarily_disable = {}
   
-  def update(self):
+  def update(self, should_enable_sensitive=None):
     """
     Update the export preview if update is not locked (see `lock_update`).
+    
+    If `should_enable_sensitive` is True/False, enable/disable sensitive state
+    immediately if the preview is not locked, or apply the state once the
+    preview is no longer locked. If `should_enable_sensitive` is None, preserve
+    the sensitive state.
     """
     
     pass
