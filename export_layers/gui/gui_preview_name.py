@@ -90,9 +90,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     
     self._widget = self._vbox
   
-  def update(
-        self, should_enable_sensitive=None, reset_items=False,
-        update_existing_contents_only=False):
+  def update(self, reset_items=False, update_existing_contents_only=False):
     """
     Update the preview (add/remove layer, move layer to a different parent layer
     group, etc.).
@@ -107,15 +105,9 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     useful if you know the item structure will be preserved.
     """
     
-    if should_enable_sensitive is not None:
-      self._should_enable_sensitive = should_enable_sensitive
-    
-    if self._update_locked:
+    update_locked = super().update()
+    if update_locked:
       return
-    
-    if self._should_enable_sensitive is not None:
-      self.set_sensitive(self._should_enable_sensitive)
-      self._should_enable_sensitive = None
     
     if not update_existing_contents_only:
       self.clear()

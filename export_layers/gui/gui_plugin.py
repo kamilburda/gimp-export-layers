@@ -710,10 +710,12 @@ class ExportLayersGui(object):
       if self._message_setting == setting:
         self._display_message_label(None)
       
+      self._export_name_preview.add_function_at_update(
+        self._export_name_preview.set_sensitive, True)
+      
       pginvocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
-        self._export_name_preview.update,
-        should_enable_sensitive=True)
+        self._export_name_preview.update)
   
   def _on_menu_item_show_more_settings_toggled(self, widget):
     self._show_hide_more_settings()
