@@ -1,7 +1,7 @@
 Basic Usage
 -----------
 
-Once you open an image in GIMP, select "File -> Export Layers...". A dialog
+Once you open an image in GIMP, select "File → Export Layers...". A dialog
 appears, allowing you to specify output folder and
 [a few basic settings](#basic-settings):
 
@@ -21,7 +21,7 @@ Repeating Last Export
 
 If you made changes to your image and want to export again with the same
 settings, you can do so with just one click by running
-"File -> Export Layers (repeat)".
+"File → Export Layers (repeat)".
 
 
 Basic Settings

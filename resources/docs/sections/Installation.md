@@ -21,7 +21,7 @@ to the folder containing plug-ins depending on your version of GIMP:
 * GIMP 2.9: `C:\Users\[your username]\AppData\Roaming\GIMP\2.9\plug-ins`
 * GIMP 2.10: `C:\Users\[your username]\AppData\Roaming\GIMP\2.10\plug-ins`
 
-If you can't locate the folder, open GIMP, go to Edit -> Preferences -> Folders -> Plug-Ins and use one of the listed folders.
+If you can't locate the folder, open GIMP, go to Edit → Preferences → Folders → Plug-Ins and use one of the listed folders.
 
 
 Linux
@@ -38,7 +38,7 @@ to the folder containing plug-ins depending on your version of GIMP:
 * GIMP 2.9: `/home/[your username]/.config/GIMP/2.9/plug-ins`
 * GIMP 2.10: `/home/[your username]/.config/GIMP/2.10/plug-ins`
 
-If you can't locate the folder, open GIMP, go to Edit -> Preferences -> Folders -> Plug-Ins and use one of the listed folders.
+If you can't locate the folder, open GIMP, go to Edit → Preferences → Folders → Plug-Ins and use one of the listed folders.
 
 
 OS X
@@ -55,13 +55,13 @@ to the folder containing plug-ins depending on your version of GIMP:
 * GIMP 2.9: `/Users/[your username]/Library/Application Support/GIMP/2.9/plug-ins`
 * GIMP 2.10: `/Users/[your username]/Library/Application Support/GIMP/2.10/plug-ins`
 
-If you can't locate the folder, open GIMP, go to Edit -> Preferences -> Folders -> Plug-Ins and use one of the listed folders.
+If you can't locate the folder, open GIMP, go to Edit → Preferences → Folders → Plug-Ins and use one of the listed folders.
 
 GIMP for OS X may have Python 2.6 bundled, which will not work with this
 plug-in, since Python 2.7 is required.
 
 To check if the correct version of Python is installed, start GIMP and go to
-Filters -> Python-Fu -> Console. The console must display "Python 2.7" or later
+Filters → Python-Fu → Console. The console must display "Python 2.7" or later
 from the 2.7.x series. If not, install Python 2.7, open
 `/Applications/Gimp.app/Contents/Resources/lib/gimp/2.0/interpreters/pygimp.interp`
 and change its contents to the following:

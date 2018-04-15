@@ -63,9 +63,9 @@ The numbering is separate for each layer group if
 "Treat layer groups as folders" is enabled.
 
 Examples:
-* \[1\] -\> 1, 2, ...
-* \[001\] -\> 001, 002, ..., 009, 010, ..., 999, 1000, ...
-* \[005\] -\> 005, 006, ...
+* \[1\] → 1, 2, ...
+* \[001\] → 001, 002, ..., 009, 010, ..., 999, 1000, ...
+* \[005\] → 005, 006, ...
 
 **\[layer name\]**
 
@@ -98,9 +98,9 @@ wrapper is used.
 
 Examples:
 * Suppose that a layer has the following path: Frames, Outer, bottom.
-* [layer path] -\> Frames-Outer-bottom
-* [layer path, \_] -\> Frames\_Outer\_bottom
-* [layer path, \_, ($$)] -\> (Frames)\_(Outer)\_(bottom)
+* [layer path] → Frames-Outer-bottom
+* [layer path, \_] → Frames\_Outer\_bottom
+* [layer path, \_, ($$)] → (Frames)\_(Outer)\_(bottom)
 
 **\[tags\]**
 
@@ -119,10 +119,10 @@ are inserted.
 
 Examples:
 * Suppose that a layer has the following tags: Background, Foreground, frames.
-* [tags] -\> \[Background\] \[Foreground\] \[frames\]
-* [tags, Background, Foreground] -\> \[Background\] \[Foreground\]
-* [tags, \_, ($$)] -\> (Background)\_(Foreground)\_(frames)
-* [tags, \_, ($$), Background, Foreground] -\> (Background)\_(Foreground)
+* [tags] → \[Background\] \[Foreground\] \[frames\]
+* [tags, Background, Foreground] → \[Background\] \[Foreground\]
+* [tags, \_, ($$)] → (Background)\_(Foreground)\_(frames)
+* [tags, \_, ($$), Background, Foreground] → (Background)\_(Foreground)
 
 **\[current date\]**
 
