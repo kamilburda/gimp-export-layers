@@ -1,3 +1,10 @@
+3.1
+===
+
+* Created a single release package for GIMP 2.8, 2.9 and 2.10-RC1 (and hopefully later versions).
+* Further decreased width of the file extension entry and filename pattern entry.
+* Properly fixed enabled/disabled state of previews.
+
 3.0
 ===
 
