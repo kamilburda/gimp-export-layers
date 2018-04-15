@@ -50,6 +50,7 @@ def _insert_library_to_system_path(lib_dirpath):
 _PYGIMPLIB_DIRPATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
 
 _setup_import_of_external_lib_modules(os.path.join(_PYGIMPLIB_DIRPATH, "lib"))
+_insert_library_to_system_path(os.path.join(_PYGIMPLIB_DIRPATH, "lib"))
 
 #===============================================================================
 
