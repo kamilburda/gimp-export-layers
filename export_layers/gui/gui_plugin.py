@@ -307,7 +307,7 @@ class ExportLayersGui(object):
   _DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS = 100
   _DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS = 10000
   
-  def __init__(self, initial_layer_tree, settings):
+  def __init__(self, initial_layer_tree, settings, run_gui_func=None):
     self._initial_layer_tree = initial_layer_tree
     self._settings = settings
     
@@ -330,7 +330,10 @@ class ExportLayersGui(object):
     
     pggui.set_gui_excepthook_parent(self._dialog)
     
-    gtk.main()
+    if not run_gui_func:
+      gtk.main()
+    else:
+      run_gui_func(self, self._dialog, self._settings)
   
   def _init_settings(self):
     _add_gui_settings(self._settings)
