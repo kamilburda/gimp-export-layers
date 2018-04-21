@@ -1,0 +1,14 @@
+# Paste these commands to the Python-Fu console to generate plug-in dialog screenshots.
+
+import os
+import sys
+
+plugin_dirpath = os.path.join(gimp.directory, "plug-ins - Export Layers")
+sys.path.append(plugin_dirpath)
+sys.path.append(os.path.join(plugin_dirpath, "export_layers"))
+sys.path.append(os.path.join(plugin_dirpath, "resources", "utils"))
+
+import make_screenshots
+
+make_screenshots.main()
+
