@@ -4,5 +4,5 @@ resources/docs/gh-pages/images/logo.svg
 resources/docs/images/screenshot_dialog_advanced_usage.png
 resources/docs/gh-pages/images/screenshot_dialog_advanced_usage.png
 
-resources/docs/images/screenshot_dialog_usage.png
-resources/docs/gh-pages/images/screenshot_dialog_usage.png
+resources/docs/images/screenshot_dialog_basic_usage.png
+resources/docs/gh-pages/images/screenshot_dialog_basic_usage.png
