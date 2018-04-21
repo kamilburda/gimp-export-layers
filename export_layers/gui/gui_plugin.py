@@ -179,9 +179,8 @@ def _set_settings(func):
       self._settings["main"].apply_gui_values_to_settings()
       self._settings["gui"].apply_gui_values_to_settings()
       
-      self._current_directory_setting.gui.update_setting_value()
       self._settings["main/output_directory"].set_value(
-        self._current_directory_setting.value)
+        self._settings["gui_session/current_directory"].value)
       
       self._settings["gui_session/export_name_preview_layers_collapsed_state"].value[
         self._image.ID] = self._export_name_preview.collapsed_items
@@ -357,12 +356,12 @@ class ExportLayersGui(object):
       display_message(status_message, gtk.MESSAGE_WARNING)
     
     # Needs to be string to avoid strict directory validation
-    self._current_directory_setting = pgsetting.StringSetting(
-      "current_directory", self._settings["main/output_directory"].default_value)
+    self._settings["gui_session"].add([pgsetting.StringSetting(
+      "current_directory", self._settings["main/output_directory"].default_value)])
     self._message_setting = None
     
     _setup_image_ids_and_directories_and_initial_directory(
-      self._settings, self._current_directory_setting, self._image)
+      self._settings, self._settings["gui_session/current_directory"], self._image)
     _setup_output_directory_changed(self._settings, self._image)
   
   def _init_gui(self):
@@ -453,7 +452,7 @@ class ExportLayersGui(object):
         pgsetting.SettingGuiTypes.extended_entry, self._filename_pattern_entry]
     })
     
-    self._current_directory_setting.set_gui(
+    self._settings["gui_session/current_directory"].set_gui(
       pgsetting.SettingGuiTypes.folder_chooser, self._folder_chooser)
     
     self._hbox_export_name_labels = gtk.HBox(homogeneous=False)
