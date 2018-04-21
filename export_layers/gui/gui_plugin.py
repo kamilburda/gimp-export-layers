@@ -1077,14 +1077,3 @@ class ExportLayersRepeatGui(object):
   
   def _on_dialog_delete_event(self, widget, event):
     stop_export(self._layer_exporter)
-
-
-#===============================================================================
-
-
-def export_layers_gui(image, settings):
-  ExportLayersGui(image, settings)
-
-
-def export_layers_repeat_gui(image, settings):
-  ExportLayersRepeatGui(image, settings)

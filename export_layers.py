@@ -130,11 +130,11 @@ def _run_with_last_vals(layer_tree):
 
 
 def _run_export_layers_interactive(layer_tree):
-  gui_plugin.export_layers_gui(layer_tree, SETTINGS)
+  gui_plugin.ExportLayersGui(layer_tree, SETTINGS)
 
 
 def _run_export_layers_repeat_interactive(layer_tree):
-  gui_plugin.export_layers_repeat_gui(layer_tree, SETTINGS)
+  gui_plugin.ExportLayersRepeatGui(layer_tree, SETTINGS)
 
 
 def _run_plugin_noninteractive(run_mode, layer_tree):
