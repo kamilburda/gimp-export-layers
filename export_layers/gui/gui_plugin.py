@@ -560,12 +560,12 @@ class ExportLayersGui(object):
     self._dialog.action_area.pack_start(self._button_settings, expand=False, fill=False)
     self._dialog.action_area.set_child_secondary(self._button_settings, True)
     
-    self._item_progress_indicator = gui_progress.ItemProgressIndicator()
+    self._progress_bar = gtk.ProgressBar()
+    self._progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
     self._dialog.vbox.set_spacing(self._DIALOG_VBOX_SPACING)
     self._dialog.vbox.pack_start(self._vpaned_settings, expand=True, fill=True)
-    self._dialog.vbox.pack_end(
-      self._item_progress_indicator.widget, expand=False, fill=False)
+    self._dialog.vbox.pack_end(self._progress_bar, expand=False, fill=False)
     
     # Move the action area above the progress bar.
     self._dialog.vbox.reorder_child(self._dialog.action_area, -1)
@@ -610,7 +610,7 @@ class ExportLayersGui(object):
     self._dialog.set_default_response(gtk.RESPONSE_CANCEL)
     
     self._dialog.vbox.show_all()
-    self._item_progress_indicator.widget.hide()
+    self._progress_bar.hide()
     self._button_stop.hide()
     
     self._dialog.action_area.set_border_width(self._DIALOG_ACTION_AREA_BORDER_WIDTH)
@@ -824,6 +824,11 @@ class ExportLayersGui(object):
     self._setup_gui_before_export()
     overwrite_chooser, progress_updater = self._setup_layer_exporter()
     
+    item_progress_indicator = gui_progress.ItemProgressIndicator(
+      self._progress_bar, progress_updater)
+    item_progress_indicator.install_progress_for_status(
+      self._progress_set_value_and_show_dialog)
+    
     should_quit = True
     self._is_exporting = True
     
@@ -849,7 +854,7 @@ class ExportLayersGui(object):
           _("No layers were exported."), gtk.MESSAGE_INFO, parent=self._dialog)
         should_quit = False
     finally:
-      self._item_progress_indicator.uninstall_progress_for_status()
+      item_progress_indicator.uninstall_progress_for_status()
       self._layer_exporter = None
       self._is_exporting = False
     
@@ -882,11 +887,7 @@ class ExportLayersGui(object):
       title=pygimplib.config.PLUGIN_TITLE,
       parent=self._dialog)
     
-    progress_updater = pggui.GtkProgressUpdater(
-      self._item_progress_indicator.progress_bar_for_items)
-    
-    self._item_progress_indicator.install_progress_for_status(
-      self._progress_set_value_and_show_dialog)
+    progress_updater = pggui.GtkProgressUpdater(self._progress_bar)
     
     self._layer_exporter = exportlayers.LayerExporter(
       gimpenums.RUN_INTERACTIVE, self._image, self._settings["main"],
@@ -902,15 +903,12 @@ class ExportLayersGui(object):
       self._settings["main/overwrite_mode"].items_display_names.values()))
   
   def _set_gui_enabled(self, enabled):
-    self._item_progress_indicator.widget.set_visible(not enabled)
+    self._progress_bar.set_visible(not enabled)
     self._button_stop.set_visible(not enabled)
     self._button_cancel.set_visible(enabled)
     
     for child in self._dialog.vbox:
-      if child not in (
-           self._dialog.action_area,
-           self._item_progress_indicator.progress_bar_for_items,
-           self._item_progress_indicator.progress_bar_for_item_status):
+      if child not in (self._dialog.action_area, self._progress_bar):
         child.set_sensitive(enabled)
     
     self._button_settings.set_sensitive(enabled)
@@ -926,7 +924,7 @@ class ExportLayersGui(object):
       self._dialog.set_focus(self._button_stop)
   
   def _progress_set_value_and_show_dialog(self, fraction):
-    self._item_progress_indicator.progress_bar_for_item_status.set_fraction(fraction)
+    self._progress_bar.set_fraction(fraction)
     
     # Without this workaround, the main dialog would not appear until the export
     # of the second layer.
@@ -1010,12 +1008,12 @@ class ExportLayersRepeatGui(object):
     self._buttonbox = gtk.HButtonBox()
     self._buttonbox.pack_start(self._button_stop, expand=False, fill=False)
     
-    self._item_progress_indicator = gui_progress.ItemProgressIndicator()
+    self._progress_bar = gtk.ProgressBar()
+    self._progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
     self._hbox_action_area = gtk.HBox(homogeneous=False)
     self._hbox_action_area.set_spacing(self._HBOX_HORIZONTAL_SPACING)
-    self._hbox_action_area.pack_start(
-      self._item_progress_indicator.widget, expand=True, fill=True)
+    self._hbox_action_area.pack_start(self._progress_bar, expand=True, fill=True)
     self._hbox_action_area.pack_end(self._buttonbox, expand=False, fill=False)
     
     self._dialog.vbox.pack_end(self._hbox_action_area, expand=False, fill=False)
@@ -1040,13 +1038,16 @@ class ExportLayersRepeatGui(object):
         exportlayers.add_operation(setting_group_with_operations[setting_name])
   
   def export_layers(self):
-    self._item_progress_indicator.install_progress_for_status()
+    progress_updater = pggui.GtkProgressUpdater(self._progress_bar)
+    item_progress_indicator = gui_progress.ItemProgressIndicator(
+      self._progress_bar, progress_updater)
+    item_progress_indicator.install_progress_for_status()
     
     self._layer_exporter = exportlayers.LayerExporter(
       gimpenums.RUN_WITH_LAST_VALS, self._image, self._settings["main"],
       pgoverwrite.NoninteractiveOverwriteChooser(
         self._settings["main/overwrite_mode"].value),
-      pggui.GtkProgressUpdater(self._item_progress_indicator.progress_bar_for_items),
+      progress_updater,
       export_context_manager=handle_gui_in_export,
       export_context_manager_args=[self._dialog])
     try:
@@ -1066,7 +1067,7 @@ class ExportLayersRepeatGui(object):
         display_message(
           _("No layers were exported."), gtk.MESSAGE_INFO, parent=self._dialog)
     finally:
-      self._item_progress_indicator.uninstall_progress_for_status()
+      item_progress_indicator.uninstall_progress_for_status()
   
   def show(self):
     self._dialog.vbox.show_all()
