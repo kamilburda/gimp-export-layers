@@ -179,6 +179,8 @@ def _set_settings(func):
       self._settings["main"].apply_gui_values_to_settings()
       self._settings["gui"].apply_gui_values_to_settings()
       
+      self._settings["gui_session/current_directory"].gui.update_setting_value()
+      
       self._settings["main/output_directory"].set_value(
         self._settings["gui_session/current_directory"].value)
       
