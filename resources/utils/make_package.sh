@@ -1,10 +1,39 @@
 #!/bin/bash
 
-if [ -z "$1" ]; then
-  dest_dirpath='None'
-else
-  dest_dirpath='r"'"$1"'"'
-fi
+function error_usage()
+{
+  usage='Usage: make_package [options...]
+
+Options:
+  -f, --force - make package even if the repository contains local changes
+  -d, --dest-dir - destination directory of the created package
+  -h, --help - display this help and exit'
+  
+  if [ -z "$1" ]; then
+    printf '%s\n' "${1:-$usage}"
+  else
+    printf 'Error: %s\n\n%s\n' "$1" "${2:-$usage}"
+  fi
+  
+  exit 1
+} 1>&2
+
+force_if_dirty='False'
+destination_dirpath='None'
+
+while [[ "${1:0:1}" = "-" && "$1" != "--" ]]; do
+  case "$1" in
+  -f | --force ) force_if_dirty='True';;
+  -d | --dest-dir ) shift; destination_dirpath='r"'"$1"'"';;
+  -h | --help ) error_usage;;
+  * ) [[ "$1" ]] && error_usage "unknown argument: $1";;
+  esac
+
+  shift
+done
+
+[[ "$1" = "--" ]] && shift
+
 
 gimp -i --batch-interpreter="python-fu-eval" -b '
 import sys
@@ -24,7 +53,7 @@ import make_package
 
 os.chdir(resources_dirpath)
 
-make_package.main('"$dest_dirpath"')
+make_package.main(destination_dirpath='"$destination_dirpath"', force_if_dirty='"$force_if_dirty"')
 
 pdb.gimp_quit(0)
 '

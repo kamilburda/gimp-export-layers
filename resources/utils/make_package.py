@@ -70,11 +70,12 @@ GITHUB_PAGE_UTILS_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "GitHub_page
 #===============================================================================
 
 
-def make_package(input_dirpath, output_filepath, version):
+def make_package(input_dirpath, output_filepath, version, force_if_dirty=False):
   temp_repo_files_dirpath = tempfile.mkdtemp()
   
   relative_filepaths_with_git_filters = (
-    _prepare_repo_files_for_packaging(PLUGINS_DIRPATH, temp_repo_files_dirpath))
+    _prepare_repo_files_for_packaging(
+      PLUGINS_DIRPATH, temp_repo_files_dirpath, force_if_dirty))
   
   _generate_translation_files(pygimplib.config.LOCALE_DIRPATH, version)
 
@@ -108,10 +109,10 @@ def make_package(input_dirpath, output_filepath, version):
 
 
 def _prepare_repo_files_for_packaging(
-      repository_dirpath, dirpath_with_original_files_with_git_filters):
+      repository_dirpath, dirpath_with_original_files_with_git_filters, force_if_dirty):
   repo = git.Repo(repository_dirpath)
   
-  if repo.git.status("--porcelain"):
+  if not force_if_dirty and repo.git.status("--porcelain"):
     print(("Repository contains local changes."
            " Please remove or commit changes before proceeding."),
           file=sys.stderr)
@@ -250,7 +251,7 @@ def _create_package_file(package_filepath, input_filepaths, output_filepaths):
 #===============================================================================
 
 
-def main(destination_dirpath=None):
+def main(destination_dirpath=None, force_if_dirty=False):
   output_filename = "{0}-{1}.{2}".format(
     OUTPUT_FILENAME_PREFIX, pygimplib.config.PLUGIN_VERSION, OUTPUT_FILE_EXTENSION)
   
@@ -260,7 +261,8 @@ def main(destination_dirpath=None):
     pgpath.make_dirs(destination_dirpath)
     output_filepath = os.path.join(destination_dirpath, output_filename)
   
-  make_package(PLUGINS_DIRPATH, output_filepath, pygimplib.config.PLUGIN_VERSION)
+  make_package(
+    PLUGINS_DIRPATH, output_filepath, pygimplib.config.PLUGIN_VERSION, force_if_dirty)
   
   print("Package successfully created:", output_filepath)
 
