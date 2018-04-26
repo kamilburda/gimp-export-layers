@@ -20,7 +20,7 @@
 
 """
 This script automatically takes and processes screenshots of the plug-in dialog
-for documentation pourposes. This script requires the `pyautogui` library.
+for documentation purposes. This script requires the `pyautogui` library.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
