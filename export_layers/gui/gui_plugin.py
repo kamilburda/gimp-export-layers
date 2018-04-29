@@ -957,7 +957,7 @@ class ExportLayersGui(object):
         text += "."
       
       if message_type == gtk.MESSAGE_ERROR:
-        self._label_message.set_markup('<span foreground="red"><b>{1}</b></span>'.format(
+        self._label_message.set_markup('<span foreground="red"><b>{0}</b></span>'.format(
           gobject.markup_escape_text(text)))
         pginvocation.timeout_remove_strict(self._display_message_label)
       else:
