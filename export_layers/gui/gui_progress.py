@@ -56,7 +56,7 @@ class ItemProgressIndicator(object):
     to GIMP PDB calls.
     """
     
-    if gimp.version[0:2] in [(2, 9), (2, 10)]:
+    if gimp.version[0:2] > (2, 8):
       return
     
     if progress_set_value is not None:
@@ -82,7 +82,7 @@ class ItemProgressIndicator(object):
     updates according to GIMP PDB calls.
     """
     
-    if gimp.version[0:2] in [(2, 9), (2, 10)]:
+    if gimp.version[0:2] > (2, 8):
       return
     
     if self._progress_callback is not None:

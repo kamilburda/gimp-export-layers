@@ -325,7 +325,7 @@ class ExportLayersGui(object):
     
     self._init_settings()
     
-    if gimp.version[0:2] not in [(2, 9), (2, 10)]:
+    if gimp.version[0:2] == (2, 8):
       pgpdb.suppress_gimp_progress()
     
     self._init_gui()
