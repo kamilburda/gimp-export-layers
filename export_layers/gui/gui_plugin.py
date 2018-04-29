@@ -292,6 +292,7 @@ class ExportLayersGui(object):
   _HBOX_HORIZONTAL_SPACING = 8
   
   _MORE_SETTINGS_HORIZONTAL_SPACING = 12
+  _MORE_SETTINGS_BORDER_WIDTH = 2
   _MORE_SETTINGS_VERTICAL_SPACING = 6
   _MORE_SETTINGS_OPERATIONS_SPACING = 4
   
@@ -513,6 +514,7 @@ class ExportLayersGui(object):
     
     self._hbox_more_settings = gtk.HBox(homogeneous=True)
     self._hbox_more_settings.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
+    self._hbox_more_settings.set_border_width(self._MORE_SETTINGS_BORDER_WIDTH)
     self._hbox_more_settings.pack_start(
       self._scrolled_window_basic_settings, expand=True, fill=True)
     self._hbox_more_settings.pack_start(
