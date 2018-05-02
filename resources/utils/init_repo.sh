@@ -2,14 +2,7 @@
 
 # This script initializes the Export Layers git repository.
 
-gimp_local_dirpath="$HOME"'/.gimp-2.8'
-plugin_main_repo_dirname='plug-ins - Export Layers'
-plugin_page_branch_name='gh-pages'
-repo_url='https://github.com/khalim19/gimp-plugin-export-layers.git'
-repo_dirpath="$gimp_local_dirpath"'/'"$plugin_main_repo_dirname"
-
 orig_cwd="$(pwd)"
-
 
 # Install required programs/packages
 # If supported package managers are not available (apt-get), developer has to
@@ -75,6 +68,22 @@ sudo pip install $python_modules
 
 
 # GIMP initialization
+
+gimp_version_major_minor="$(gimp --version | sed 's/.*version \([0-9][0-9]*.[0-9][0-9]*\).*$/\1/')"
+
+if [ "$gimp_version_major_minor" = "2.8" ]; then
+  gimp_local_dirpath="$HOME"'/.gimp-2.8'
+elif [[ ! "$gimp_version_major_minor" < "2.9" ]]; then
+  gimp_local_dirpath="$HOME"'/.config/GIMP/'"$gimp_version_major_minor"
+else
+  echo "Unsupported version of GIMP ($gimp_version_major_minor). Please install GIMP version 2.8 or later."
+  exit 1
+fi
+
+plugin_main_repo_dirname='plug-ins - Export Layers'
+plugin_page_branch_name='gh-pages'
+repo_url='https://github.com/khalim19/gimp-plugin-export-layers.git'
+repo_dirpath="$gimp_local_dirpath"'/'"$plugin_main_repo_dirname"
 
 gimprc_filename='gimprc'
 gimprc_filepath="$gimp_local_dirpath"'/'"$gimprc_filename"
