@@ -14,12 +14,12 @@ The following steps apply if you want to use Poedit.
 
 To create a new translation for your language:
 
-1. Open Poedit, select "File -> New from POT/PO file..." and select the .pot
+1. Open Poedit, select "File → New from POT/PO file..." and select the .pot
    file in the "export_layers/locale" folder.
 2. Set the language of the translation.
 3. Translate the strings (by filling in the "Translation" text field for each
    string).
-4. If desired, go to "Catalog -> Properties..." and edit the translation file
+4. If desired, go to "Catalog → Properties..." and edit the translation file
    properties. If you don't do this, warning messages may pop up when saving,
    but they should be harmless.
 5. When done, save the .po file.
@@ -27,7 +27,7 @@ To create a new translation for your language:
 If you spotted some translation errors in the .po file or the plug-in is updated
 since the last translation was made, you may need to update the translation:
 
-1. Open the .po file, select "Catalog -> Update from POT file..." and find the
+1. Open the .po file, select "Catalog → Update from POT file..." and find the
    .pot file.
 2. Update the translated strings. In case the plug-in was updated, update is
    necessary if:

@@ -37,7 +37,7 @@ Clone the master branch of the repository to a directory named e.g.
 as 2.10.
 
 To make GIMP recognize the new directory as a directory containing GIMP
-plug-ins, open up GIMP, go to `Edit -> Preferences -> Folders -> Plug-ins`
+plug-ins, open up GIMP, go to "Edit → Preferences → Folders → Plug-ins"
 and add the new directory to the list. GIMP needs to be restarted for changes to
 take effect.
 
