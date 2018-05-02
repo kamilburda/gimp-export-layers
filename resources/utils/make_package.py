@@ -81,7 +81,7 @@ def make_package(input_dirpath, output_filepath, version, force_if_dirty=False):
 
   temp_dirpath = tempfile.mkdtemp()
   
-  _create_user_docs(temp_dirpath)
+  _create_user_docs(os.path.join(temp_dirpath, pygimplib.config.PLUGIN_NAME))
   
   input_filepaths = _get_filtered_filepaths(input_dirpath, INCLUDE_LIST_FILEPATH)
   user_docs_filepaths = _get_filtered_filepaths(temp_dirpath, INCLUDE_LIST_FILEPATH)
