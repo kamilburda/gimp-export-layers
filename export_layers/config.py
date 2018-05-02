@@ -55,6 +55,9 @@ def init():
     ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
   ]
   
+  pygimplib.config.LOCAL_DOCS_PATH = os.path.join(
+    pygimplib.config.PLUGIN_SUBDIRPATH, "Readme.html")
+  
   pygimplib.config.COPYRIGHT_YEARS = "2014-2017"
   
   # If True, display each step of image/layer editing in GIMP.

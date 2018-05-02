@@ -29,6 +29,13 @@ import functools
 import os
 import traceback
 
+try:
+  import webbrowser
+except ImportError:
+  _webbrowser_module_found = False
+else:
+  _webbrowser_module_found = True
+
 import pygtk
 pygtk.require("2.0")
 import gtk
@@ -581,6 +588,13 @@ class ExportLayersGui(object):
     self._dialog.connect("key-press-event", self._on_dialog_key_press)
     self._dialog.connect("delete-event", self._on_dialog_delete_event)
     
+    if _webbrowser_module_found:
+      self._button_help = gtk.Button()
+      self._button_help.set_label(_("_Help"))
+      self._dialog.action_area.pack_start(self._button_help, expand=False, fill=False)
+      self._dialog.action_area.set_child_secondary(self._button_help, True)
+      self._button_help.connect("clicked", self._on_button_help_clicked)
+    
     self._button_settings.connect("clicked", self._on_button_settings_clicked)
     self._menu_item_show_more_settings.connect(
       "toggled", self._on_menu_item_show_more_settings_toggled)
@@ -947,6 +961,14 @@ class ExportLayersGui(object):
   
   def _on_button_stop_clicked(self, widget):
     stop_export(self._layer_exporter)
+  
+  def _on_button_help_clicked(self, widget):
+    if os.path.isfile(pygimplib.config.LOCAL_DOCS_PATH):
+      docs_url = pygimplib.config.LOCAL_DOCS_PATH
+    else:
+      docs_url = pygimplib.config.PAGE_URL
+    
+    webbrowser.open_new_tab(docs_url)
   
   def _display_message_label(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
     self._message_setting = setting
