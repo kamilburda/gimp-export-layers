@@ -114,9 +114,8 @@ You can do so by submitting your translated .po file in one of the following way
 How can I test my translation?
 ------------------------------
 
-First, make sure you extracted the plug-in to
-`[your user folder]/.gimp-2.8/plug-ins`. You then need to generate an .mo file
-from the translated .po file.
+First, make sure Export Layers is installed in the folder for GIMP plug-ins. You
+then need to generate an .mo file from the translated .po file.
 
 
 ### Generating .mo file
@@ -126,7 +125,7 @@ from the translated .po file.
 Poedit automatically generates the .mo file when you save your .po file. Move
 and rename the .mo file to
 
-    [your user folder]/.gimp-2.8/plug-ins/export_layers/locale/[language]/LC_MESSAGES/gimp-plugin-export-layers.mo
+    [GIMP plug-ins folder]/export_layers/locale/[language]/LC_MESSAGES/gimp-plugin-export-layers.mo
    
    where `[language]` is the language in which you translated the plug-in.
    `[language]` is a part of the .po file - e.g. for a file named "fr_FR.po",
@@ -136,7 +135,7 @@ and rename the .mo file to
 
 Generate the .mo file as follows:
    
-    cd [your user folder]/.gimp-2.8/plug-ins/export_layers/locale
+    cd [GIMP plug-ins folder]/export_layers/locale
     ./generate_mo.sh [path to .po file] [language]
 
 
@@ -156,8 +155,10 @@ Run GIMP from the terminal as follows:
 Run GIMP from the Windows command line as follows:
    
     set lang=[language].UTF-8
-    gimp-2.8.exe
+    gimp-[version].exe
 
-If Windows does not recognize `gimp-2.8.exe`, specify the full path, e.g.:
+where `[version]` is the GIMP version, e.g. `gimp-2.8.exe` for GIMP 2.8.
+
+If Windows does not recognize the GIMP executable, specify the full path:
    
-    "C:\Program Files\GIMP 2\bin\gimp-2.8.exe"
+    "C:\Program Files\GIMP 2\bin\gimp-[version].exe"
