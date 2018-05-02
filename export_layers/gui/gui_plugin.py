@@ -296,7 +296,8 @@ class ExportLayersGui(object):
   
   _HBOX_EXPORT_LABELS_NAME_SPACING = 15
   _HBOX_EXPORT_NAME_ENTRIES_SPACING = 3
-  _HBOX_HORIZONTAL_SPACING = 8
+  _HBOX_EXPORT_NAME_AND_MESSAGE_HORIZONTAL_SPACING = 8
+  _HBOX_EXPORT_NAME_AND_MESSAGE_BORDER_WIDTH = 2
   
   _MORE_SETTINGS_HORIZONTAL_SPACING = 12
   _MORE_SETTINGS_BORDER_WIDTH = 2
@@ -494,7 +495,10 @@ class ExportLayersGui(object):
       self._hbox_export_name_entries, expand=False, fill=False)
     
     self._hbox_export_name_and_message = gtk.HBox(homogeneous=False)
-    self._hbox_export_name_and_message.set_spacing(self._HBOX_HORIZONTAL_SPACING)
+    self._hbox_export_name_and_message.set_spacing(
+      self._HBOX_EXPORT_NAME_AND_MESSAGE_HORIZONTAL_SPACING)
+    self._hbox_export_name_and_message.set_border_width(
+      self._HBOX_EXPORT_NAME_AND_MESSAGE_BORDER_WIDTH)
     self._hbox_export_name_and_message.pack_start(
       self._hbox_export_name, expand=False, fill=False)
     self._hbox_export_name_and_message.pack_start(
