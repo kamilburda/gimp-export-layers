@@ -260,7 +260,7 @@ class PersistentSettingSource(SettingSource):
     
     try:
       settings_from_parasite = pickle.loads(parasite.data)
-    except (pickle.UnpicklingError, AttributeError, EOFError, ImportError, IndexError):
+    except Exception:
       raise pgsettingpersistor.SettingSourceInvalidFormatError(
         _('Settings for this plug-in stored in "{0}" may be corrupt. '
           "This could happen if the file was edited manually.\n"
