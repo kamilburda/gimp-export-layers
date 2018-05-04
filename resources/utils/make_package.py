@@ -29,6 +29,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from export_layers import pygimplib
 from future.builtins import *
 
+import collections
 import importlib
 import io
 import os
@@ -57,10 +58,9 @@ pygimplib.init()
 
 MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
 RESOURCES_DIRPATH = os.path.dirname(MODULE_DIRPATH)
-PLUGINS_DIRPATH = pygimplib.config.PLUGINS_DIRPATH
 
-OUTPUT_FILENAME_PREFIX = pygimplib.config.PLUGIN_NAME
-OUTPUT_FILE_EXTENSION = "zip"
+TEMP_INPUT_DIRPATH = os.path.join(MODULE_DIRPATH, "installers", "temp_input")
+OUTPUT_DIRPATH_DEFAULT = os.path.join(MODULE_DIRPATH, "installers", "output")
 
 INCLUDE_LIST_FILEPATH = os.path.join(MODULE_DIRPATH, "make_package_included_files.txt")
 
@@ -70,16 +70,19 @@ GITHUB_PAGE_UTILS_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "GitHub_page
 #===============================================================================
 
 
-def make_package(input_dirpath, output_filepath, version, force_if_dirty=False):
+def make_package(input_dirpath, package_dirpath, force_if_dirty, installers):
   temp_repo_files_dirpath = tempfile.mkdtemp()
   
   relative_filepaths_with_git_filters = (
     _prepare_repo_files_for_packaging(
-      PLUGINS_DIRPATH, temp_repo_files_dirpath, force_if_dirty))
+      input_dirpath, temp_repo_files_dirpath, force_if_dirty))
   
-  _generate_translation_files(pygimplib.config.LOCALE_DIRPATH, version)
+  _generate_translation_files(
+    pygimplib.config.LOCALE_DIRPATH, pygimplib.config.PLUGIN_VERSION)
 
-  temp_dirpath = tempfile.mkdtemp()
+  temp_dirpath = TEMP_INPUT_DIRPATH
+  
+  _create_temp_dirpath(temp_dirpath)
   
   _create_user_docs(os.path.join(temp_dirpath, pygimplib.config.PLUGIN_NAME))
   
@@ -98,14 +101,24 @@ def make_package(input_dirpath, output_filepath, version, force_if_dirty=False):
   
   _set_permissions(temp_dirpath, 0o755)
   
-  _create_package_file(output_filepath, temp_filepaths, relative_filepaths)
+  _create_package_file(
+    package_dirpath, temp_dirpath, temp_filepaths, relative_filepaths, installers)
   
   _restore_repo_files(
-    temp_repo_files_dirpath, PLUGINS_DIRPATH, relative_filepaths_with_git_filters)
+    temp_repo_files_dirpath, input_dirpath, relative_filepaths_with_git_filters)
   
   shutil.rmtree(temp_dirpath)
   shutil.rmtree(temp_repo_files_dirpath)
   _remove_pot_files(pygimplib.config.LOCALE_DIRPATH)
+
+
+def _create_temp_dirpath(temp_dirpath):
+  if os.path.isdir(temp_dirpath):
+    shutil.rmtree(temp_dirpath)
+  elif os.path.isfile(temp_dirpath):
+    os.remove(temp_dirpath)
+    
+  pgpath.make_dirs(temp_dirpath)
 
 
 def _prepare_repo_files_for_packaging(
@@ -242,30 +255,89 @@ def _set_permissions(dirpath, permissions):
       os.chmod(os.path.join(root, filename), permissions)
 
 
-def _create_package_file(package_filepath, input_filepaths, output_filepaths):
+#===============================================================================
+
+
+def _create_package_file(
+      package_dirpath, input_dirpath, input_filepaths, output_filepaths, installers):
+  installer_funcs = collections.OrderedDict([
+    ("windows", _create_windows_installer),
+    ("manual", _create_manual_package),
+  ])
+  
+  if "all" in installers:
+    installer_funcs_to_execute = list(installer_funcs.values())
+  else:
+    installer_funcs_to_execute = [
+      installer_funcs[installer] for installer in installers
+      if installer in installer_funcs]
+  
+  for installer_func in installer_funcs_to_execute:
+    installer_func(package_dirpath, input_dirpath, input_filepaths, output_filepaths)
+
+
+def _create_manual_package(
+      package_dirpath, input_dirpath, input_filepaths, output_filepaths):
+  package_filename = "{0}-{1}.zip".format(
+    pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
+  
+  package_filepath = os.path.join(package_dirpath, package_filename)
+  
   with zipfile.ZipFile(package_filepath, "w", zipfile.ZIP_STORED) as package_file:
     for input_filepath, output_filepath in zip(input_filepaths, output_filepaths):
       package_file.write(input_filepath, output_filepath)
+  
+  print("Manual package successfully created:", package_filepath)
+
+
+def _create_windows_installer(
+      package_dirpath, input_dirpath, input_filepaths, output_filepaths):
+  installer_filename_prefix = "{0}-{1}-windows".format(
+    pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
+  
+  installer_filepath = os.path.join(package_dirpath, installer_filename_prefix + ".exe")
+  
+  #TODO: Replace hard-coded path with proper solution
+  INNO_SETUP_DIRPATH = r'/mnt/c/Program Files (x86)/Inno Setup 5/ISCC.exe'
+  
+  WINDOWS_INSTALLER_SCRIPT_DIRPATH = os.path.join(MODULE_DIRPATH, "installers", "windows")
+  WINDOWS_INSTALLER_SCRIPT_FILENAME = "installer.iss"
+  
+  orig_cwd = os.getcwd()
+  os.chdir(WINDOWS_INSTALLER_SCRIPT_DIRPATH)
+  
+  return_code = subprocess.call([
+    INNO_SETUP_DIRPATH,
+    "/DPLUGIN_NAME={}".format(pygimplib.config.PLUGIN_NAME),
+    "/DAPP_VERSION={}".format(pygimplib.config.PLUGIN_VERSION),
+    "/DINPUT_DIRPATH={}".format(
+      os.path.relpath(input_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH)),
+    "/DOUTPUT_DIRPATH={}".format(
+      os.path.relpath(package_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH)),
+    "/DOUTPUT_FILENAME_PREFIX={}".format(installer_filename_prefix),
+    "/DAPP_VERSION={}".format(pygimplib.config.PLUGIN_VERSION),
+    WINDOWS_INSTALLER_SCRIPT_FILENAME
+  ])
+  
+  os.chdir(orig_cwd)
+  
+  if return_code == 0:
+    print("Windows installer successfully created:", installer_filepath)
+  else:
+    print("Failed to create Windows installer:", installer_filepath)
 
 
 #===============================================================================
 
 
-def main(destination_dirpath=None, force_if_dirty=False):
-  output_filename = "{0}-{1}.{2}".format(
-    OUTPUT_FILENAME_PREFIX, pygimplib.config.PLUGIN_VERSION, OUTPUT_FILE_EXTENSION)
+def main(destination_dirpath=None, force_if_dirty=False, installers="all"):
+  package_dirpath = destination_dirpath if destination_dirpath else OUTPUT_DIRPATH_DEFAULT
+  pgpath.make_dirs(package_dirpath)
   
-  if not destination_dirpath:
-    output_filepath = os.path.join(MODULE_DIRPATH, output_filename)
-  else:
-    pgpath.make_dirs(destination_dirpath)
-    output_filepath = os.path.join(destination_dirpath, output_filename)
+  installers = installers.replace(" ", "").split(",")
   
-  make_package(
-    PLUGINS_DIRPATH, output_filepath, pygimplib.config.PLUGIN_VERSION, force_if_dirty)
-  
-  print("Package successfully created:", output_filepath)
+  make_package(pygimplib.config.PLUGINS_DIRPATH, package_dirpath, force_if_dirty, installers)
 
 
 if __name__ == "__main__":
-  main(sys.argv[1] if len(sys.argv) > 1 else None)
+  main(sys.argv[1:])
