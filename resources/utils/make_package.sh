@@ -9,9 +9,10 @@ Options:
   -f, --force - make package even if the repository contains local changes
   -i, --installers [INSTALLERS] - comma-separated list of installers to create
     - possible values for installers: "windows", "manual", "all"
-    - default: "all" (creates all installers)
+    - default: "manual"
     - example: -i "windows,manual" creates a Windows installer and a ZIP package for manual install
-    - unrecognized installers are silently ignored
+    - "all" creates all installers - note that creating a Windows installer may not be possible on *nix systems
+    - unrecognized values are silently ignored
   -h, --help - display this help and exit'
   
   if [ -z "$1" ]; then
@@ -26,14 +27,14 @@ Options:
 
 destination_dirpath='None'
 force_if_dirty='False'
-installers='all'
+installers='"manual"'
 
 
 while [[ "${1:0:1}" = "-" && "$1" != "--" ]]; do
   case "$1" in
   -d | --dest-dir ) shift; destination_dirpath='r"'"$1"'"';;
   -f | --force ) force_if_dirty='True';;
-  -i | --installers ) shift; installers="$1";;
+  -i | --installers ) shift; installers='"'"$1"'"';;
   -h | --help ) error_usage;;
   * ) [[ "$1" ]] && error_usage "unknown argument: $1";;
   esac

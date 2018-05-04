@@ -330,7 +330,7 @@ def _create_windows_installer(
 #===============================================================================
 
 
-def main(destination_dirpath=None, force_if_dirty=False, installers="all"):
+def main(destination_dirpath=None, force_if_dirty=False, installers="manual"):
   package_dirpath = destination_dirpath if destination_dirpath else OUTPUT_DIRPATH_DEFAULT
   pgpath.make_dirs(package_dirpath)
   
