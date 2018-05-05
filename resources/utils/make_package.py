@@ -297,26 +297,23 @@ def _create_windows_installer(
   
   installer_filepath = os.path.join(package_dirpath, installer_filename_prefix + ".exe")
   
-  #TODO: Replace hard-coded path with proper solution
-  INNO_SETUP_DIRPATH = r'/mnt/c/Program Files (x86)/Inno Setup 5/ISCC.exe'
-  
   WINDOWS_INSTALLER_SCRIPT_DIRPATH = os.path.join(MODULE_DIRPATH, "installers", "windows")
   WINDOWS_INSTALLER_SCRIPT_FILENAME = "installer.iss"
+  WINDOWS_INSTALLER_COMPILER_COMMAND = "compile_installer.bat"
   
   orig_cwd = os.getcwd()
   os.chdir(WINDOWS_INSTALLER_SCRIPT_DIRPATH)
   
   return_code = subprocess.call([
-    INNO_SETUP_DIRPATH,
-    "/DPLUGIN_NAME={}".format(pygimplib.config.PLUGIN_NAME),
-    "/DAPP_VERSION={}".format(pygimplib.config.PLUGIN_VERSION),
-    "/DINPUT_DIRPATH={}".format(
-      os.path.relpath(input_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH)),
-    "/DOUTPUT_DIRPATH={}".format(
-      os.path.relpath(package_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH)),
-    "/DOUTPUT_FILENAME_PREFIX={}".format(installer_filename_prefix),
-    "/DAPP_VERSION={}".format(pygimplib.config.PLUGIN_VERSION),
-    WINDOWS_INSTALLER_SCRIPT_FILENAME
+    "cmd.exe",
+    "/c",
+    WINDOWS_INSTALLER_COMPILER_COMMAND,
+    pygimplib.config.PLUGIN_NAME,
+    pygimplib.config.PLUGIN_VERSION,
+    os.path.relpath(input_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
+    os.path.relpath(package_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
+    installer_filename_prefix,
+    WINDOWS_INSTALLER_SCRIPT_FILENAME,
   ])
   
   os.chdir(orig_cwd)

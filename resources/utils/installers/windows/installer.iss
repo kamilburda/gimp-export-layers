@@ -1,10 +1,10 @@
-#define APP_NAME "Export Layers for GIMP"
+#define INSTALLER_NAME "Export Layers for GIMP"
 
 [Setup]
-AppName={#APP_NAME}
-AppVersion={#APP_VERSION}
-AppVerName={#APP_NAME} {#APP_VERSION}
-DefaultDirName={userdocs}\{#APP_NAME}
+AppName={#INSTALLER_NAME}
+AppVersion={#PLUGIN_VERSION}
+AppVerName={#INSTALLER_NAME} {#PLUGIN_VERSION}
+DefaultDirName={userdocs}\{#INSTALLER_NAME}
 DefaultGroupName=GIMP
 UninstallFilesDir={app}\{#PLUGIN_NAME}
 PrivilegesRequired=lowest
