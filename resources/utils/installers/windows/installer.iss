@@ -29,17 +29,22 @@ type
   TVersionArray = array [0..1] of integer;
 
 var
-  GimpPluginsPath: string;
-  ShouldShowPluginsDirPage: boolean;
+  PluginsDirpath: string;
+  GimpDirpath: string;
+  ShouldShowSelectDirsPage: boolean;
+  SelectDirsPage: TInputDirWizardPage;
+  PluginsDirpathEdit: TEdit;
+  GimpDirpathEdit: TEdit;
 
 
-function GetLocalGimpPluginsPath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: string) : string; forward;
+function GetLocalPluginsDirpath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: string) : string; forward;
 function GetGimpVersionMajorMinor (const gimpVersion: string) : TVersionArray; forward;
+procedure CreateSelectDirsPage; forward;
 
 
 function GetPluginsDirpath(value: string) : string;
 begin
-  Result := GimpPluginsPath;
+  Result := PluginsDirpath;
 end;
 
 
@@ -51,42 +56,85 @@ var
 begin
   Result := True;
   
-  if not RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'DisplayVersion', gimpVersion) then
-    if not RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'DisplayVersion', gimpVersion) then
-    begin
+  ShouldShowSelectDirsPage := False;
+  
+  if not RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'DisplayVersion', gimpVersion) then begin
+    if not RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'DisplayVersion', gimpVersion) then begin
       MsgBox(
-        'Could not find GIMP installation path. Please specify the path to GIMP plug-ins manually.'
+        'Could not find GIMP installation path. Please specify the path to GIMP and GIMP plug-ins manually.'
         + ' If GIMP is not installed, abort this installation and install GIMP first.',
         mbInformation,
         MB_OK);
       
-      ShouldShowPluginsDirPage := True;
+      ShouldShowSelectDirsPage := True;
       Exit;
     end;
+  end;
   
   gimpVersionMajorMinor := GetGimpVersionMajorMinor(gimpVersion);
   gimpVersionMajorMinorStr := IntToStr(gimpVersionMajorMinor[0]) + '.' + IntToStr(gimpVersionMajorMinor[1]);
   
-  if (gimpVersionMajorMinor[0] <= MIN_REQUIRED_GIMP_VERSION_MAJOR) and (gimpVersionMajorMinor[1] < MIN_REQUIRED_GIMP_VERSION_MINOR) then
-  begin
+  if (gimpVersionMajorMinor[0] <= MIN_REQUIRED_GIMP_VERSION_MAJOR) and (gimpVersionMajorMinor[1] < MIN_REQUIRED_GIMP_VERSION_MINOR) then begin
     MsgBox(
       'GIMP version ' + gimpVersionMajorMinorStr + ' detected.'
       + ' To use {#PLUGIN_TITLE}, install GIMP ' + MIN_REQUIRED_GIMP_VERSION + ' or later.'
-      + ' If you have GIMP ' + MIN_REQUIRED_GIMP_VERSION + ' or later installed, '
-      + 'specify the path to GIMP plug-ins.'
+      + ' If you do have GIMP ' + MIN_REQUIRED_GIMP_VERSION + ' or later installed, '
+      + 'specify the path to GIMP and GIMP plug-ins manually.'
       + ' Otherwise, abort this installation and install GIMP with a sufficient version first.',
       mbInformation,
       MB_OK);
       
-      ShouldShowPluginsDirPage := True;
+      ShouldShowSelectDirsPage := True;
       Exit;
   end;
   
-  GimpPluginsPath := GetLocalGimpPluginsPath(gimpVersionMajorMinor, gimpVersionMajorMinorStr);
+  PluginsDirpath := GetLocalPluginsDirpath(gimpVersionMajorMinor, gimpVersionMajorMinorStr);
 end;
 
 
-function GetLocalGimpPluginsPath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: string) : string;
+procedure InitializeWizard;
+begin
+  if ShouldShowSelectDirsPage then begin
+    CreateSelectDirsPage();
+  end;
+end;
+
+
+function NextButtonClick(curPageID: integer) : boolean;
+begin
+  Result := True;
+  
+  if (SelectDirsPage <> nil) and (curPageID = SelectDirsPage.ID) then begin
+    GimpDirpath := GimpDirpathEdit.Text;
+    PluginsDirpath := PluginsDirpathEdit.Text;
+    
+    { `DefaultDirName` may be empty at this point, causing the installer to fail. }
+    WizardForm.DirEdit.Text := PluginsDirpath;
+  end;
+end;
+
+
+procedure CreateSelectDirsPage;
+var
+  lastAddedDirIndex: integer;
+begin
+  SelectDirsPage := CreateInputDirPage(
+    wpWelcome,
+    'Select Location for GIMP and GIMP Plug-ins',
+    '',
+    'Specify the directory path to a working GIMP installation and the path to GIMP plug-ins (for the current user or system-wide).',
+    False,
+    'New Folder');
+  
+  lastAddedDirIndex := SelectDirsPage.Add('Path to GIMP installation');
+  GimpDirpathEdit := SelectDirsPage.Edits[lastAddedDirIndex];
+  
+  lastAddedDirIndex := SelectDirsPage.Add('Path to GIMP plug-ins');
+  PluginsDirpathEdit := SelectDirsPage.Edits[lastAddedDirIndex];
+end;
+
+
+function GetLocalPluginsDirpath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: string) : string;
 begin
   if (gimpVersionMajorMinor[0] <= 2) and (gimpVersionMajorMinor[1] < 9) then
     Result := ExpandConstant('{%USERPROFILE}') + '\.gimp-' + gimpVersionMajorMinorStr + '\plug-ins'
@@ -106,10 +154,8 @@ begin
   versionNumberFieldCurrentArrayIndex := 0;
   versionNumberFieldStartIndex := 1;
   
-  for i := 1 to Length(gimpVersion) do
-  begin
-    if gimpVersion[i] = '.' then
-    begin
+  for i := 1 to Length(gimpVersion) do begin
+    if gimpVersion[i] = '.' then begin
       SetArrayLength(versionNumberFields, GetArrayLength(versionNumberFields) + 1);
       versionNumberFields[versionNumberFieldCurrentArrayIndex] := (
         StrToIntDef(
@@ -120,8 +166,7 @@ begin
     end;
   end;
   
-  if versionNumberFieldStartIndex <= Length(gimpVersion) then
-  begin
+  if versionNumberFieldStartIndex <= Length(gimpVersion) then begin
     SetArrayLength(versionNumberFields, GetArrayLength(versionNumberFields) + 1);
     versionNumberFields[versionNumberFieldCurrentArrayIndex] := (
       StrToIntDef(
