@@ -21,6 +21,13 @@ Source: {#INPUT_DIRPATH}\*; DestDir: "{app}"; Flags: ignoreversion recursesubdir
 
 const
   GIMP_REG_PATH = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\GIMP-2_is1';
+  GIMP_NOT_FOUND_MESSAGE = (
+    'Could not find GIMP installation path.'
+    + ' Please specify the path to GIMP and GIMP plug-ins manually.'
+    + ' If GIMP is not installed, abort this installation and install GIMP first.');
+  PYTHON_NOT_FOUND_IN_GIMP_MESSAGE = (
+    'It appears that your GIMP installation does not support Python scripting.'
+    + ' Please install GIMP with enabled support for Python scripting before proceeding.');
   MIN_REQUIRED_GIMP_VERSION_MAJOR = 2;
   MIN_REQUIRED_GIMP_VERSION_MINOR = 8;
   MIN_REQUIRED_GIMP_VERSION = '2.8';
@@ -37,6 +44,7 @@ var
   GimpDirpathEdit: TEdit;
 
 
+procedure CheckPythonScriptingEnabled; forward;
 function GetLocalPluginsDirpath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: string) : string; forward;
 function GetGimpVersionMajorMinor (const gimpVersion: string) : TVersionArray; forward;
 procedure CreateSelectDirsPage; forward;
@@ -58,17 +66,11 @@ begin
   
   ShouldShowSelectDirsPage := False;
   
-  if not RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'DisplayVersion', gimpVersion) then begin
-    if not RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'DisplayVersion', gimpVersion) then begin
-      MsgBox(
-        'Could not find GIMP installation path. Please specify the path to GIMP and GIMP plug-ins manually.'
-        + ' If GIMP is not installed, abort this installation and install GIMP first.',
-        mbInformation,
-        MB_OK);
-      
-      ShouldShowSelectDirsPage := True;
-      Exit;
-    end;
+  if (not RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'DisplayVersion', gimpVersion)
+      and not RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'DisplayVersion', gimpVersion)) then begin
+    MsgBox(GIMP_NOT_FOUND_MESSAGE, mbInformation, MB_OK);
+    ShouldShowSelectDirsPage := True;
+    Exit;
   end;
   
   gimpVersionMajorMinor := GetGimpVersionMajorMinor(gimpVersion);
@@ -89,6 +91,15 @@ begin
   end;
   
   PluginsDirpath := GetLocalPluginsDirpath(gimpVersionMajorMinor, gimpVersionMajorMinorStr);
+  
+  if (not RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'InstallLocation', GimpDirpath)
+      and not RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'InstallLocation', GimpDirpath)) then begin
+    MsgBox(GIMP_NOT_FOUND_MESSAGE, mbInformation, MB_OK);
+    ShouldShowSelectDirsPage := True;
+    Exit;
+  end;
+  
+  CheckPythonScriptingEnabled();
 end;
 
 
@@ -110,6 +121,8 @@ begin
     
     { `DefaultDirName` may be empty at this point, causing the installer to fail. }
     WizardForm.DirEdit.Text := PluginsDirpath;
+    
+    CheckPythonScriptingEnabled();
   end;
 end;
 
@@ -131,6 +144,15 @@ begin
   
   lastAddedDirIndex := SelectDirsPage.Add('Path to GIMP plug-ins');
   PluginsDirpathEdit := SelectDirsPage.Edits[lastAddedDirIndex];
+end;
+
+
+procedure CheckPythonScriptingEnabled;
+begin
+  if not DirExists(GimpDirpath + '\Python') then begin
+    MsgBox(PYTHON_NOT_FOUND_IN_GIMP_MESSAGE, mbInformation, MB_OK);
+    Abort();
+  end;
 end;
 
 
