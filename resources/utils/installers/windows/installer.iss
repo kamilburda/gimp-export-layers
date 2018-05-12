@@ -17,6 +17,9 @@ OutputBaseFilename={#OUTPUT_FILENAME_PREFIX}
 [Files]
 Source: {#INPUT_DIRPATH}\*; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 
+[Messages]
+ReadyLabel2b=Click Install to continue with the installation, or click Customize to modify the installation.
+
 [Code]
 
 const
@@ -38,16 +41,26 @@ type
 var
   PluginsDirpath: string;
   GimpDirpath: string;
-  ShouldShowSelectDirsPage: boolean;
+  
   SelectDirsPage: TInputDirWizardPage;
   PluginsDirpathEdit: TEdit;
   GimpDirpathEdit: TEdit;
+  
+  IsGimpDirpathDetected: boolean;
+  
+  InstallerState: (Initialized, Customizing, ReadyToInstall);
+  
+  CustomizeButton: TNewButton;
 
+
+procedure AddCustomizeToInstallPage; forward;
+procedure OnCustomizeClicked(sender: TObject); forward;
+function GetButtonWidthFitToCaption(caption: string; xSpacing: integer) : integer; forward;
+procedure CreateSelectDirsPage; forward;
 
 procedure CheckPythonScriptingEnabled; forward;
 function GetLocalPluginsDirpath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: string) : string; forward;
 function GetGimpVersionMajorMinor (const gimpVersion: string) : TVersionArray; forward;
-procedure CreateSelectDirsPage; forward;
 
 
 function GetPluginsDirpath(value: string) : string;
@@ -64,12 +77,13 @@ var
 begin
   Result := True;
   
-  ShouldShowSelectDirsPage := False;
+  InstallerState := Initialized;
+  IsGimpDirpathDetected := True;
   
   if (not RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'DisplayVersion', gimpVersion)
       and not RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'DisplayVersion', gimpVersion)) then begin
     MsgBox(GIMP_NOT_FOUND_MESSAGE, mbInformation, MB_OK);
-    ShouldShowSelectDirsPage := True;
+    IsGimpDirpathDetected := False;
     Exit;
   end;
   
@@ -86,7 +100,7 @@ begin
       mbInformation,
       MB_OK);
       
-      ShouldShowSelectDirsPage := True;
+      IsGimpDirpathDetected := False;
       Exit;
   end;
   
@@ -95,7 +109,7 @@ begin
   if (not RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'InstallLocation', GimpDirpath)
       and not RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'InstallLocation', GimpDirpath)) then begin
     MsgBox(GIMP_NOT_FOUND_MESSAGE, mbInformation, MB_OK);
-    ShouldShowSelectDirsPage := True;
+    IsGimpDirpathDetected := False;
     Exit;
   end;
   
@@ -105,9 +119,11 @@ end;
 
 procedure InitializeWizard;
 begin
-  if ShouldShowSelectDirsPage then begin
-    CreateSelectDirsPage();
-  end;
+  WizardForm.BackButton.visible := False;
+  
+  AddCustomizeToInstallPage();
+  
+  CreateSelectDirsPage();
 end;
 
 
@@ -115,15 +131,84 @@ function NextButtonClick(curPageID: integer) : boolean;
 begin
   Result := True;
   
-  if (SelectDirsPage <> nil) and (curPageID = SelectDirsPage.ID) then begin
+  if curPageID = SelectDirsPage.ID then begin
     GimpDirpath := GimpDirpathEdit.Text;
     PluginsDirpath := PluginsDirpathEdit.Text;
     
-    { `DefaultDirName` may be empty at this point, causing the installer to fail. }
+    // `DefaultDirName` may be empty at this point, causing the installer to fail.
     WizardForm.DirEdit.Text := PluginsDirpath;
     
     CheckPythonScriptingEnabled();
   end;
+end;
+
+
+function BackButtonClick(curPageID: integer) : boolean;
+begin
+  Result := True;
+  
+  if curPageID = wpReady then
+    InstallerState := Customizing;
+end;
+
+
+function ShouldSkipPage(pageID: Integer): Boolean;
+begin
+  Result := False;
+  
+  if (pageID <> wpReady) and IsGimpDirpathDetected and (InstallerState = Initialized) then
+    Result := True
+end;
+
+
+procedure CurPageChanged(curPageID: Integer);
+begin
+  WizardForm.BackButton.visible := False;
+  CustomizeButton.visible := curPageID = wpReady;
+end;
+
+
+procedure AddCustomizeToInstallPage;
+begin
+  CustomizeButton := TNewButton.Create(WizardForm);
+  
+  with CustomizeButton do begin
+    Caption := 'Customize';
+    Parent := WizardForm;
+    Width := GetButtonWidthFitToCaption(Caption, 12);
+    Height := WizardForm.NextButton.Height;
+    Left := WizardForm.ClientWidth - (WizardForm.CancelButton.Left + WizardForm.CancelButton.Width);
+    Top := WizardForm.NextButton.Top;
+    
+    OnClick := @OnCustomizeClicked;
+  end;
+end;
+
+
+procedure OnCustomizeClicked(sender: TObject);
+begin
+  WizardForm.BackButton.OnClick(TNewButton(sender).Parent);
+end;
+
+
+function GetButtonWidthFitToCaption(caption: string; xSpacing: integer) : integer;
+var
+  dummyLabel: TNewStaticText;
+  defaultWidth: integer;
+begin
+  dummyLabel := TNewStaticText.Create(WizardForm);
+  
+  dummyLabel.Autosize := True;
+  dummyLabel.Caption := caption;
+  
+  defaultWidth := WizardForm.NextButton.Width;
+  
+  if defaultWidth >= dummyLabel.Width + ScaleX(xSpacing) then
+    Result := defaultWidth
+  else
+    Result := dummyLabel.Width + ScaleX(xSpacing);
+  
+  dummyLabel.Free;
 end;
 
 
@@ -141,9 +226,11 @@ begin
   
   lastAddedDirIndex := SelectDirsPage.Add('Path to GIMP installation');
   GimpDirpathEdit := SelectDirsPage.Edits[lastAddedDirIndex];
+  SelectDirsPage.Values[0] := GimpDirpath;
   
   lastAddedDirIndex := SelectDirsPage.Add('Path to GIMP plug-ins');
   PluginsDirpathEdit := SelectDirsPage.Edits[lastAddedDirIndex];
+  SelectDirsPage.Values[1] := PluginsDirpath;
 end;
 
 
