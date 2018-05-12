@@ -13,6 +13,7 @@ Compression=lzma2
 DirExistsWarning=no
 OutputDir={#OUTPUT_DIRPATH}
 OutputBaseFilename={#OUTPUT_FILENAME_PREFIX}
+WizardSmallImageFile=logo.bmp
 
 [Files]
 Source: {#INPUT_DIRPATH}\*; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
