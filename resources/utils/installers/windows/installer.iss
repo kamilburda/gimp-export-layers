@@ -17,7 +17,7 @@ OutputDir={#OUTPUT_DIRPATH}
 OutputBaseFilename={#OUTPUT_FILENAME_PREFIX}
 WizardSmallImageFile=logo_wizard.bmp
 WizardImageFile=menu_path.bmp
-SetupIconFile=icon.ico
+SetupIconFile=icon_installer.ico
 
 [Files]
 Source: {#INPUT_DIRPATH}\*; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
