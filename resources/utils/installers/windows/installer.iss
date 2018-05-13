@@ -18,6 +18,7 @@ OutputBaseFilename={#OUTPUT_FILENAME_PREFIX}
 WizardSmallImageFile=logo_wizard.bmp
 WizardImageFile=menu_path.bmp
 SetupIconFile=icon_installer.ico
+UninstallDisplayIcon=logo.ico
 
 [Files]
 Source: {#INPUT_DIRPATH}\*; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
