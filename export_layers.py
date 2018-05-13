@@ -22,6 +22,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 
+# Fix Windows installation failing to import modules from the `export_layers`
+# folder.
+if os.name == "nt":
+  import inspect
+  import sys
+  current_module_dirpath = os.path.dirname(inspect.getfile(inspect.currentframe()))
+  sys.path.append(current_module_dirpath)
+
 # Disable overlay scrollbar (notably used in Ubuntu) to be consistent with the
 # Export menu.
 os.environ["LIBOVERLAY_SCROLLBAR"] = "0"
