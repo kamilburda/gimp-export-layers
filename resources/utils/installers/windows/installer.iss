@@ -1,4 +1,4 @@
-#define PLUGIN_TITLE "Export Layers"
+﻿#define PLUGIN_TITLE "Export Layers"
 #define INSTALLER_NAME PLUGIN_TITLE + " for GIMP"
 
 [Setup]
