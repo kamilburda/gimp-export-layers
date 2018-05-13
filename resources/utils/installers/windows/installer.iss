@@ -166,6 +166,9 @@ procedure CurPageChanged(curPageID: Integer);
 begin
   WizardForm.BackButton.visible := False;
   CustomizeButton.visible := curPageID = wpReady;
+  
+  if curPageID = wpReady then
+    InstallerState := ReadyToInstall;
 end;
 
 
