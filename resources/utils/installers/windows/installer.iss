@@ -9,7 +9,6 @@ DefaultDirName={code:GetPluginsDirpath}
 DisableDirPage=Yes
 UninstallFilesDir={app}\{#PLUGIN_NAME}
 PrivilegesRequired=lowest
-Compression=lzma2
 DirExistsWarning=no
 OutputDir={#OUTPUT_DIRPATH}
 OutputBaseFilename={#OUTPUT_FILENAME_PREFIX}
