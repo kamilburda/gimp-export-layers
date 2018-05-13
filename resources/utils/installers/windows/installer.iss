@@ -12,7 +12,7 @@ PrivilegesRequired=lowest
 DirExistsWarning=no
 OutputDir={#OUTPUT_DIRPATH}
 OutputBaseFilename={#OUTPUT_FILENAME_PREFIX}
-WizardSmallImageFile=logo.bmp
+WizardSmallImageFile=logo_wizard.bmp
 WizardImageFile=menu_path.bmp
 SetupIconFile=icon.ico
 
