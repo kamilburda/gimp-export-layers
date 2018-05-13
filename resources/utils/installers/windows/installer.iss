@@ -252,8 +252,28 @@ end;
 
 
 procedure CheckPythonScriptingEnabled;
+var
+  possiblePythonDirpaths: TStringList;
+  i: integer;
+  pythonPathFound: boolean;
 begin
-  if not DirExists(GimpDirpath + '\Python') then begin
+  pythonPathFound := False;
+  
+  possiblePythonDirpaths := TStringList.Create;
+  possiblePythonDirpaths.Add(GimpDirpath + '\Python');
+  possiblePythonDirpaths.Add(GimpDirpath + '\32\lib\python2.7');
+  possiblePythonDirpaths.Add(GimpDirpath + '\lib\python2.7');
+  
+  for i := 0 to possiblePythonDirpaths.Count - 1 do begin
+    if DirExists(possiblePythonDirpaths[i]) then begin
+      pythonPathFound := True;
+      break;
+    end;
+  end;
+  
+  possiblePythonDirpaths.Free;
+  
+  if not pythonPathFound then begin
     MsgBox(PYTHON_NOT_FOUND_IN_GIMP_MESSAGE, mbInformation, MB_OK);
     Abort();
   end;
