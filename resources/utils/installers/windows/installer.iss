@@ -22,6 +22,13 @@ UninstallDisplayIcon=logo.ico
 
 [Files]
 Source: {#INPUT_DIRPATH}\*; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: logo_wizard.bmp; Flags: dontcopy
+Source: menu_path.bmp; Flags: dontcopy
+Source: icon_installer.ico; Flags: dontcopy
+Source: logo.ico; DestDir: "{app}\{#PLUGIN_NAME}"
+
+[Icons]
+Name: "{group}\Uninstall {#INSTALLER_NAME}"; Filename: "{uninstallexe}"; Flags: preventpinning
 
 [Messages]
 ReadyLabel2b=Click Install to continue with the installation of {#PLUGIN_TITLE}, or click Customize to modify the installation.
