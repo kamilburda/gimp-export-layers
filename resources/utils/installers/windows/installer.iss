@@ -14,6 +14,7 @@ DirExistsWarning=no
 OutputDir={#OUTPUT_DIRPATH}
 OutputBaseFilename={#OUTPUT_FILENAME_PREFIX}
 WizardSmallImageFile=logo.bmp
+WizardImageFile=menu_path.bmp
 SetupIconFile=icon.ico
 
 [Files]
