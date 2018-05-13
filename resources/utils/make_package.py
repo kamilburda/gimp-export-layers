@@ -310,6 +310,7 @@ def _create_windows_installer(
     WINDOWS_INSTALLER_COMPILER_COMMAND,
     pygimplib.config.PLUGIN_NAME,
     pygimplib.config.PLUGIN_VERSION,
+    pygimplib.config.AUTHOR_NAME,
     os.path.relpath(input_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
     os.path.relpath(package_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
     installer_filename_prefix,

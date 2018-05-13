@@ -5,6 +5,7 @@
 AppName={#INSTALLER_NAME}
 AppVersion={#PLUGIN_VERSION}
 AppVerName={#INSTALLER_NAME} {#PLUGIN_VERSION}
+AppPublisher={#AUTHOR_NAME}
 DefaultDirName={code:GetPluginsDirpath}
 DisableDirPage=Yes
 UninstallFilesDir={app}\{#PLUGIN_NAME}
