@@ -20,7 +20,8 @@ SetupIconFile=icon.ico
 Source: {#INPUT_DIRPATH}\*; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 
 [Messages]
-ReadyLabel2b=Click Install to continue with the installation, or click Customize to modify the installation.
+ReadyLabel2b=Click Install to continue with the installation of {#PLUGIN_TITLE}, or click Customize to modify the installation.
+FinishedLabelNoIcons={#PLUGIN_TITLE} successfully installed. To run the plug-in, start GIMP and go to File → Export Layers.
 
 [Code]
 
