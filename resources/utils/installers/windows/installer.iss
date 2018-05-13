@@ -14,6 +14,7 @@ DirExistsWarning=no
 OutputDir={#OUTPUT_DIRPATH}
 OutputBaseFilename={#OUTPUT_FILENAME_PREFIX}
 WizardSmallImageFile=logo.bmp
+SetupIconFile=icon.ico
 
 [Files]
 Source: {#INPUT_DIRPATH}\*; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
