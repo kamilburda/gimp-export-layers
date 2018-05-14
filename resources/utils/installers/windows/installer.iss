@@ -233,8 +233,8 @@ begin
   SelectDirsPage := CreateInputDirPage(
     wpWelcome,
     'Select Location for GIMP and GIMP Plug-ins',
-    '',
-    'Specify the directory path to a working GIMP installation and the path to GIMP plug-ins (for the current user or system-wide).',
+    'Where is GIMP located and where should {#PLUGIN_TITLE} be installed?',
+    'Specify custom directory path to a working GIMP installation and to GIMP plug-ins.',
     False,
     'New Folder');
   
