@@ -30,7 +30,6 @@ from export_layers import pygimplib
 from future.builtins import *
 
 import collections
-import importlib
 import io
 import os
 import re
@@ -46,6 +45,8 @@ import pathspec
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgutils
+
+from resources.utils import create_user_docs
 
 import export_layers.config
 export_layers.config.init()
@@ -235,10 +236,7 @@ def _copy_files_to_temp_filepaths(filepaths, temp_filepaths):
 
 
 def _create_user_docs(dirpath):
-  sys.path.append(MODULE_DIRPATH)
-  create_user_docs_module = importlib.import_module("create_user_docs")
-  
-  create_user_docs_module.main(
+  create_user_docs.main(
     GITHUB_PAGE_UTILS_DIRPATH, GITHUB_PAGE_DIRPATH, dirpath)
 
 
