@@ -42,16 +42,19 @@ const
   PYTHON_NOT_FOUND_IN_GIMP_MESSAGE = (
     'It appears that your GIMP installation does not support Python scripting.'
     + ' Please install GIMP with enabled support for Python scripting before proceeding.');
+  
   MIN_REQUIRED_GIMP_VERSION_MAJOR = 2;
   MIN_REQUIRED_GIMP_VERSION_MINOR = 8;
   MIN_REQUIRED_GIMP_VERSION = '2.8';
+  
+  NUM_CUSTOM_PAGES = 2;
 
 type
-  TVersionArray = array [0..1] of integer;
+  TVersionArray = array [0..1] of Integer;
 
 var
-  PluginsDirpath: string;
-  GimpDirpath: string;
+  PluginsDirpath: String;
+  GimpDirpath: String;
   
   InputDirsPage: TInputDirWizardPage;
   PluginsDirpathEdit: TEdit;
@@ -59,7 +62,7 @@ var
   
   SelectPluginInstallationDirPage: TInputOptionWizardPage;
   
-  IsGimpDetected: boolean;
+  IsGimpDetected: Boolean;
   InstallerState: (Initialized, ReadyToInstall);
   
   CustomizeButton: TNewButton;
@@ -67,27 +70,27 @@ var
 
 procedure AddCustomizeToInstallPage; forward;
 procedure OnCustomizeClicked(sender: TObject); forward;
-function GetButtonWidthFitToCaption(caption: string; xSpacing: integer) : integer; forward;
+function GetButtonWidthFitToCaption(caption: String; xSpacing: Integer) : Integer; forward;
 
-procedure CreateSelectPluginInstallationDirPage(const afterID: integer); forward;
-procedure CreateInputDirsPage(const afterID: integer); forward;
+procedure CreateSelectPluginInstallationDirPage(const afterID: Integer); forward;
+procedure CreateInputDirsPage(const afterID: Integer); forward;
 
 procedure CheckPythonScriptingEnabled; forward;
-function GetLocalPluginsDirpath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: string) : string; forward;
-function GetGimpVersionMajorMinor (const gimpVersion: string) : TVersionArray; forward;
+function GetLocalPluginsDirpath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: String) : String; forward;
+function GetGimpVersionMajorMinor (const gimpVersion: String) : TVersionArray; forward;
 
 
-function GetPluginsDirpath(value: string) : string;
+function GetPluginsDirpath(value: String) : String;
 begin
   Result := PluginsDirpath;
 end;
 
 
-function InitializeSetup() : boolean;
+function InitializeSetup() : Boolean;
 var
-  gimpVersion: string;
+  gimpVersion: String;
   gimpVersionMajorMinor: TVersionArray;
-  gimpVersionMajorMinorStr: string;
+  gimpVersionMajorMinorStr: String;
 begin
   Result := True;
   
@@ -140,7 +143,7 @@ begin
 end;
 
 
-function NextButtonClick(curPageID: integer) : boolean;
+function NextButtonClick(curPageID: Integer) : Boolean;
 begin
   Result := True;
   
@@ -158,8 +161,8 @@ end;
 
 function ShouldSkipPage(pageID: Integer): Boolean;
 var
-  isInstallerStarted: boolean;
-  isInstallerStartedWithGimpNotDetected: boolean;
+  isInstallerStarted: Boolean;
+  isInstallerStartedWithGimpNotDetected: Boolean;
 begin
   isInstallerStarted := (
     (pageID <> wpReady)
@@ -207,17 +210,19 @@ end;
 
 
 procedure OnCustomizeClicked(sender: TObject);
+var
+  i: Integer;
 begin
-  // Go back to the first page.
-  WizardForm.BackButton.OnClick(TNewButton(sender).Parent);
-  WizardForm.BackButton.OnClick(TNewButton(sender).Parent);
+  for i := 0 to NUM_CUSTOM_PAGES - 1 do begin
+    WizardForm.BackButton.OnClick(TNewButton(sender).Parent);
+  end;
 end;
 
 
-function GetButtonWidthFitToCaption(caption: string; xSpacing: integer) : integer;
+function GetButtonWidthFitToCaption(caption: String; xSpacing: Integer) : Integer;
 var
   dummyLabel: TNewStaticText;
-  defaultWidth: integer;
+  defaultWidth: Integer;
 begin
   dummyLabel := TNewStaticText.Create(WizardForm);
   
@@ -237,7 +242,7 @@ begin
 end;
 
 
-procedure CreateSelectPluginInstallationDirPage(const afterID: integer);
+procedure CreateSelectPluginInstallationDirPage(const afterID: Integer);
 begin
   SelectPluginInstallationDirPage := CreateInputOptionPage(
     afterID,
@@ -257,9 +262,9 @@ begin
 end;
 
 
-procedure CreateInputDirsPage(const afterID: integer);
+procedure CreateInputDirsPage(const afterID: Integer);
 var
-  lastAddedDirIndex: integer;
+  lastAddedDirIndex: Integer;
 begin
   InputDirsPage := CreateInputDirPage(
     afterID,
@@ -282,8 +287,8 @@ end;
 procedure CheckPythonScriptingEnabled;
 var
   possiblePythonDirpaths: TStringList;
-  i: integer;
-  pythonPathFound: boolean;
+  i: Integer;
+  pythonPathFound: Boolean;
 begin
   pythonPathFound := False;
   
@@ -308,7 +313,7 @@ begin
 end;
 
 
-function GetLocalPluginsDirpath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: string) : string;
+function GetLocalPluginsDirpath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: String) : String;
 begin
   if (gimpVersionMajorMinor[0] <= 2) and (gimpVersionMajorMinor[1] < 9) then begin
     Result := ExpandConstant('{%USERPROFILE}') + '\.gimp-' + gimpVersionMajorMinorStr + '\plug-ins';
@@ -319,13 +324,13 @@ begin
 end;
 
 
-function GetGimpVersionMajorMinor (const gimpVersion: string) : TVersionArray;
+function GetGimpVersionMajorMinor (const gimpVersion: String) : TVersionArray;
 var
   versionNumberMajorMinor: TVersionArray;
-  i: integer;
-  versionNumberFields: array of integer;
-  versionNumberFieldCurrentArrayIndex: integer;
-  versionNumberFieldStartIndex: integer;
+  i: Integer;
+  versionNumberFields: array of Integer;
+  versionNumberFieldCurrentArrayIndex: Integer;
+  versionNumberFieldStartIndex: Integer;
 begin
   versionNumberFieldCurrentArrayIndex := 0;
   versionNumberFieldStartIndex := 1;
