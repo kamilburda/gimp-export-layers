@@ -31,6 +31,9 @@ Source: logo.ico; Flags: dontcopy
 ReadyLabel2b=Click Install to continue with the installation of {#PLUGIN_TITLE}, or click Customize to modify the installation.
 FinishedLabelNoIcons={#PLUGIN_TITLE} successfully installed. To run the plug-in, start GIMP (or restart if already running) and go to File → Export Layers.
 
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}\{#PLUGIN_NAME}"
+
 [Code]
 
 const
