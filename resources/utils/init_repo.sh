@@ -62,7 +62,8 @@ requests
 mock
 parameterized
 psutil
-pyyaml'
+pyyaml
+pyautogui'
 
 sudo pip install $python_modules
 
