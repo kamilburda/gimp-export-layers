@@ -76,8 +76,9 @@ procedure CreateSelectPluginInstallationDirPage(const afterID: Integer); forward
 procedure CreateInputDirsPage(const afterID: Integer); forward;
 
 procedure CheckPythonScriptingEnabled; forward;
-function GetLocalPluginsDirpath(const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: String) : String; forward;
+function GetLocalPluginsDirpath(const gimpVersionMajorMinor: TVersionArray) : String; forward;
 function GetGimpVersionMajorMinor(const gimpVersion: String) : TVersionArray; forward;
+function GetGimpVersionStr(const gimpVersionArray: array of Integer) : String; forward;
 
 
 function GetPluginsDirpath(value: String) : String;
@@ -90,7 +91,6 @@ function InitializeSetup() : Boolean;
 var
   gimpVersion: String;
   gimpVersionMajorMinor: TVersionArray;
-  gimpVersionMajorMinorStr: String;
 begin
   Result := True;
   
@@ -105,11 +105,10 @@ begin
   end;
   
   gimpVersionMajorMinor := GetGimpVersionMajorMinor(gimpVersion);
-  gimpVersionMajorMinorStr := IntToStr(gimpVersionMajorMinor[0]) + '.' + IntToStr(gimpVersionMajorMinor[1]);
   
   if (gimpVersionMajorMinor[0] <= MIN_REQUIRED_GIMP_VERSION_MAJOR) and (gimpVersionMajorMinor[1] < MIN_REQUIRED_GIMP_VERSION_MINOR) then begin
     MsgBox(
-      'GIMP version ' + gimpVersionMajorMinorStr + ' detected.'
+      'GIMP version ' + GetGimpVersionStr(gimpVersionMajorMinor) + ' detected.'
       + ' To use {#PLUGIN_TITLE}, install GIMP ' + MIN_REQUIRED_GIMP_VERSION + ' or later.'
       + ' If you do have GIMP ' + MIN_REQUIRED_GIMP_VERSION + ' or later installed, '
       + 'specify the path to GIMP and GIMP plug-ins manually.'
@@ -121,7 +120,7 @@ begin
       Exit;
   end;
   
-  PluginsDirpath := GetLocalPluginsDirpath(gimpVersionMajorMinor, gimpVersionMajorMinorStr);
+  PluginsDirpath := GetLocalPluginsDirpath(gimpVersionMajorMinor);
   
   if (not RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'InstallLocation', GimpDirpath)
       and not RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'InstallLocation', GimpDirpath)) then begin
@@ -155,6 +154,9 @@ begin
     WizardForm.DirEdit.Text := PluginsDirpath;
     
     CheckPythonScriptingEnabled();
+  end
+  else if curPageID = SelectPluginInstallationDirPage.ID then begin
+    // TODO: Assign GIMP plug-in dirpath; if the third option was chosen, display next page, otherwise don't
   end;
 end;
 
@@ -313,8 +315,12 @@ begin
 end;
 
 
-function GetLocalPluginsDirpath(const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: String) : String;
+function GetLocalPluginsDirpath(const gimpVersionMajorMinor: TVersionArray) : String;
+var
+  gimpVersionMajorMinorStr: String;
 begin
+  gimpVersionMajorMinorStr := GetGimpVersionStr(gimpVersionMajorMinor);
+  
   if (gimpVersionMajorMinor[0] <= 2) and (gimpVersionMajorMinor[1] < 9) then begin
     Result := ExpandConstant('{%USERPROFILE}') + '\.gimp-' + gimpVersionMajorMinorStr + '\plug-ins';
   end
@@ -359,4 +365,19 @@ begin
   versionNumberMajorMinor[1] := versionNumberFields[1];
   
   Result := versionNumberMajorMinor;
+end;
+
+
+function GetGimpVersionStr(const gimpVersionArray: array of Integer) : String;
+var
+  i: Integer;
+  gimpVersionStr: String;
+begin
+  gimpVersionStr := '';
+  
+  for i := 0 to Length(gimpVersionArray) - 1 do begin
+    gimpVersionStr := gimpVersionStr + IntToStr(gimpVersionArray[i]) + '.';
+  end;
+  
+  Result := Copy(gimpVersionStr, 1, Length(gimpVersionStr) - 1);
 end;
