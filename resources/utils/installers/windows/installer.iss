@@ -11,7 +11,7 @@ DefaultGroupName=GIMP
 DisableProgramGroupPage=Yes
 DisableDirPage=Yes
 UninstallFilesDir={app}\{#PLUGIN_NAME}
-PrivilegesRequired=lowest
+PrivilegesRequired=admin
 DirExistsWarning=no
 OutputDir={#OUTPUT_DIRPATH}
 OutputBaseFilename={#OUTPUT_FILENAME_PREFIX}
@@ -281,7 +281,7 @@ begin
   
   SelectPluginInstallPathPage.Add('Install for just me');
   SelectPluginInstallPathPage.Add(
-    'Install for all users (requires administrator privileges)');
+    'Install for all users');
   SelectPluginInstallPathPage.Add('Choose custom installation path');
   
   SelectPluginInstallPathPage.Values[0] := True;
