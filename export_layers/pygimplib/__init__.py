@@ -31,20 +31,14 @@ def _setup_import_of_external_lib_modules(dirpath):
   so that modules from these external libraries can be imported as system
   modules (i.e. without using absolute or explicit relative imports).
   
-  Modules with the same name that are already installed system-wide are
-  overridden by the external library modules from pygimplib.
+  Modules with the same name that are already installed system-wide override the
+  external library modules from pygimplib.
   """
   
   for filename in os.listdir(dirpath):
     external_libs_dirpath = os.path.join(dirpath, filename)
     if os.path.isdir(external_libs_dirpath) and external_libs_dirpath not in sys.path:
-      _insert_library_to_system_path(external_libs_dirpath)
-
-
-def _insert_library_to_system_path(lib_dirpath):
-  # Path must be inserted at the second position:
-  # https://docs.python.org/3/library/sys.html#sys.path
-  sys.path.insert(1, lib_dirpath)
+      sys.path.append(external_libs_dirpath)
 
 
 _PYGIMPLIB_DIRPATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
