@@ -53,13 +53,14 @@ var
   PluginsDirpath: string;
   GimpDirpath: string;
   
-  SelectDirsPage: TInputDirWizardPage;
+  InputDirsPage: TInputDirWizardPage;
   PluginsDirpathEdit: TEdit;
   GimpDirpathEdit: TEdit;
   
-  IsGimpDirpathDetected: boolean;
+  SelectPluginInstallationDirPage: TInputOptionWizardPage;
   
-  InstallerState: (Initialized, Customizing, ReadyToInstall);
+  IsGimpDetected: boolean;
+  InstallerState: (Initialized, ReadyToInstall);
   
   CustomizeButton: TNewButton;
 
@@ -67,7 +68,9 @@ var
 procedure AddCustomizeToInstallPage; forward;
 procedure OnCustomizeClicked(sender: TObject); forward;
 function GetButtonWidthFitToCaption(caption: string; xSpacing: integer) : integer; forward;
-procedure CreateSelectDirsPage; forward;
+
+procedure CreateSelectPluginInstallationDirPage(const afterID: integer); forward;
+procedure CreateInputDirsPage(const afterID: integer); forward;
 
 procedure CheckPythonScriptingEnabled; forward;
 function GetLocalPluginsDirpath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: string) : string; forward;
@@ -89,12 +92,12 @@ begin
   Result := True;
   
   InstallerState := Initialized;
-  IsGimpDirpathDetected := True;
+  IsGimpDetected := True;
   
   if (not RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'DisplayVersion', gimpVersion)
       and not RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'DisplayVersion', gimpVersion)) then begin
     MsgBox(GIMP_NOT_FOUND_MESSAGE, mbInformation, MB_OK);
-    IsGimpDirpathDetected := False;
+    IsGimpDetected := False;
     Exit;
   end;
   
@@ -111,7 +114,7 @@ begin
       mbInformation,
       MB_OK);
       
-      IsGimpDirpathDetected := False;
+      IsGimpDetected := False;
       Exit;
   end;
   
@@ -120,7 +123,7 @@ begin
   if (not RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'InstallLocation', GimpDirpath)
       and not RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'InstallLocation', GimpDirpath)) then begin
     MsgBox(GIMP_NOT_FOUND_MESSAGE, mbInformation, MB_OK);
-    IsGimpDirpathDetected := False;
+    IsGimpDetected := False;
     Exit;
   end;
   
@@ -130,11 +133,10 @@ end;
 
 procedure InitializeWizard;
 begin
-  WizardForm.BackButton.visible := False;
-  
   AddCustomizeToInstallPage();
   
-  CreateSelectDirsPage();
+  CreateSelectPluginInstallationDirPage(wpWelcome);
+  CreateInputDirsPage(SelectPluginInstallationDirPage.ID);
 end;
 
 
@@ -142,7 +144,7 @@ function NextButtonClick(curPageID: integer) : boolean;
 begin
   Result := True;
   
-  if curPageID = SelectDirsPage.ID then begin
+  if curPageID = InputDirsPage.ID then begin
     GimpDirpath := GimpDirpathEdit.Text;
     PluginsDirpath := PluginsDirpathEdit.Text;
     
@@ -154,31 +156,36 @@ begin
 end;
 
 
-function BackButtonClick(curPageID: integer) : boolean;
-begin
-  Result := True;
-  
-  if curPageID = wpReady then
-    InstallerState := Customizing;
-end;
-
-
 function ShouldSkipPage(pageID: Integer): Boolean;
+var
+  isInstallerStarted: boolean;
+  isInstallerStartedWithGimpNotDetected: boolean;
 begin
-  Result := False;
+  isInstallerStarted := (
+    (pageID <> wpReady)
+    and (InstallerState = Initialized)
+    and IsGimpDetected);
   
-  if (pageID <> wpReady) and IsGimpDirpathDetected and (InstallerState = Initialized) then
-    Result := True
+  isInstallerStartedWithGimpNotDetected := (
+    (pageID = SelectPluginInstallationDirPage.ID)
+    and (InstallerState = Initialized)
+    and not IsGimpDetected);
+  
+  Result := isInstallerStarted or isInstallerStartedWithGimpNotDetected;
 end;
 
 
 procedure CurPageChanged(curPageID: Integer);
 begin
-  WizardForm.BackButton.visible := False;
-  CustomizeButton.visible := curPageID = wpReady;
+  CustomizeButton.visible := (curPageID = wpReady) and IsGimpDetected;
   
-  if curPageID = wpReady then
+  if (curPageID = InputDirsPage.ID) and not IsGimpDetected then begin
+    WizardForm.BackButton.visible := False;
+  end;
+  
+  if curPageID = wpReady then begin
     InstallerState := ReadyToInstall;
+  end;
 end;
 
 
@@ -201,6 +208,8 @@ end;
 
 procedure OnCustomizeClicked(sender: TObject);
 begin
+  // Go back to the first page.
+  WizardForm.BackButton.OnClick(TNewButton(sender).Parent);
   WizardForm.BackButton.OnClick(TNewButton(sender).Parent);
 end;
 
@@ -217,34 +226,56 @@ begin
   
   defaultWidth := WizardForm.NextButton.Width;
   
-  if defaultWidth >= dummyLabel.Width + ScaleX(xSpacing) then
-    Result := defaultWidth
-  else
+  if defaultWidth >= dummyLabel.Width + ScaleX(xSpacing) then begin
+    Result := defaultWidth;
+  end
+  else begin
     Result := dummyLabel.Width + ScaleX(xSpacing);
+  end;
   
   dummyLabel.Free;
 end;
 
 
-procedure CreateSelectDirsPage;
+procedure CreateSelectPluginInstallationDirPage(const afterID: integer);
+begin
+  SelectPluginInstallationDirPage := CreateInputOptionPage(
+    afterID,
+    'Select Installation Path',
+    'Where should {#PLUGIN_TITLE} be installed?',
+    'Select one of the options below:',
+    True,
+    False
+  );
+  
+  SelectPluginInstallationDirPage.Add('Install for just me');
+  SelectPluginInstallationDirPage.Add(
+    'Install for all users (requires administrator privileges)');
+  SelectPluginInstallationDirPage.Add('Choose custom plug-in installation path');
+  
+  SelectPluginInstallationDirPage.Values[0] := True;
+end;
+
+
+procedure CreateInputDirsPage(const afterID: integer);
 var
   lastAddedDirIndex: integer;
 begin
-  SelectDirsPage := CreateInputDirPage(
-    wpWelcome,
+  InputDirsPage := CreateInputDirPage(
+    afterID,
     'Select Location for GIMP and GIMP Plug-ins',
     'Where is GIMP located and where should {#PLUGIN_TITLE} be installed?',
     'Specify custom directory path to a working GIMP installation and to GIMP plug-ins.',
     False,
     'New Folder');
   
-  lastAddedDirIndex := SelectDirsPage.Add('Path to GIMP installation');
-  GimpDirpathEdit := SelectDirsPage.Edits[lastAddedDirIndex];
-  SelectDirsPage.Values[0] := GimpDirpath;
+  lastAddedDirIndex := InputDirsPage.Add('Path to GIMP installation');
+  GimpDirpathEdit := InputDirsPage.Edits[lastAddedDirIndex];
+  InputDirsPage.Values[0] := GimpDirpath;
   
-  lastAddedDirIndex := SelectDirsPage.Add('Path to GIMP plug-ins');
-  PluginsDirpathEdit := SelectDirsPage.Edits[lastAddedDirIndex];
-  SelectDirsPage.Values[1] := PluginsDirpath;
+  lastAddedDirIndex := InputDirsPage.Add('Path to GIMP plug-ins');
+  PluginsDirpathEdit := InputDirsPage.Edits[lastAddedDirIndex];
+  InputDirsPage.Values[1] := PluginsDirpath;
 end;
 
 
@@ -279,10 +310,12 @@ end;
 
 function GetLocalPluginsDirpath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: string) : string;
 begin
-  if (gimpVersionMajorMinor[0] <= 2) and (gimpVersionMajorMinor[1] < 9) then
-    Result := ExpandConstant('{%USERPROFILE}') + '\.gimp-' + gimpVersionMajorMinorStr + '\plug-ins'
-  else
+  if (gimpVersionMajorMinor[0] <= 2) and (gimpVersionMajorMinor[1] < 9) then begin
+    Result := ExpandConstant('{%USERPROFILE}') + '\.gimp-' + gimpVersionMajorMinorStr + '\plug-ins';
+  end
+  else begin
     Result := ExpandConstant('{userappdata}') + '\GIMP\' + gimpVersionMajorMinorStr + '\plug-ins';
+  end;
 end;
 
 
