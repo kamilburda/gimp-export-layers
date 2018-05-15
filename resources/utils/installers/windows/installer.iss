@@ -282,7 +282,7 @@ begin
   SelectPluginInstallPathPage.Add('Install for just me');
   SelectPluginInstallPathPage.Add(
     'Install for all users (requires administrator privileges)');
-  SelectPluginInstallPathPage.Add('Choose custom plug-in installation path');
+  SelectPluginInstallPathPage.Add('Choose custom installation path');
   
   SelectPluginInstallPathPage.Values[0] := True;
 end;
