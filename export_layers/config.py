@@ -48,6 +48,7 @@ def init():
   
   pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
   pygimplib.config.PLUGIN_VERSION = "3.1"
+  pygimplib.config.AUTHOR_NAME = "khalim19"
   pygimplib.config.PAGE_URL = "https://khalim19.github.io/gimp-plugin-export-layers"
   pygimplib.config.REPOSITORY_URL = (
     "https://github.com/khalim19/gimp-plugin-export-layers")
