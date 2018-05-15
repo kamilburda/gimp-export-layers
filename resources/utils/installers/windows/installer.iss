@@ -70,14 +70,14 @@ var
 
 procedure AddCustomizeToInstallPage; forward;
 procedure OnCustomizeClicked(sender: TObject); forward;
-function GetButtonWidthFitToCaption(caption: String; xSpacing: Integer) : Integer; forward;
+function GetButtonWidthFitToCaption(const caption: String; const xSpacing: Integer) : Integer; forward;
 
 procedure CreateSelectPluginInstallationDirPage(const afterID: Integer); forward;
 procedure CreateInputDirsPage(const afterID: Integer); forward;
 
 procedure CheckPythonScriptingEnabled; forward;
-function GetLocalPluginsDirpath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: String) : String; forward;
-function GetGimpVersionMajorMinor (const gimpVersion: String) : TVersionArray; forward;
+function GetLocalPluginsDirpath(const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: String) : String; forward;
+function GetGimpVersionMajorMinor(const gimpVersion: String) : TVersionArray; forward;
 
 
 function GetPluginsDirpath(value: String) : String;
@@ -159,7 +159,7 @@ begin
 end;
 
 
-function ShouldSkipPage(pageID: Integer): Boolean;
+function ShouldSkipPage(pageID: Integer) : Boolean;
 var
   isInstallerStarted: Boolean;
   isInstallerStartedWithGimpNotDetected: Boolean;
@@ -219,7 +219,7 @@ begin
 end;
 
 
-function GetButtonWidthFitToCaption(caption: String; xSpacing: Integer) : Integer;
+function GetButtonWidthFitToCaption(const caption: String; const xSpacing: Integer) : Integer;
 var
   dummyLabel: TNewStaticText;
   defaultWidth: Integer;
@@ -313,7 +313,7 @@ begin
 end;
 
 
-function GetLocalPluginsDirpath (const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: String) : String;
+function GetLocalPluginsDirpath(const gimpVersionMajorMinor: TVersionArray; const gimpVersionMajorMinorStr: String) : String;
 begin
   if (gimpVersionMajorMinor[0] <= 2) and (gimpVersionMajorMinor[1] < 9) then begin
     Result := ExpandConstant('{%USERPROFILE}') + '\.gimp-' + gimpVersionMajorMinorStr + '\plug-ins';
@@ -324,7 +324,7 @@ begin
 end;
 
 
-function GetGimpVersionMajorMinor (const gimpVersion: String) : TVersionArray;
+function GetGimpVersionMajorMinor(const gimpVersion: String) : TVersionArray;
 var
   versionNumberMajorMinor: TVersionArray;
   i: Integer;
