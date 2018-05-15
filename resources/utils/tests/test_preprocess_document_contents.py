@@ -111,7 +111,7 @@ class TestIncludeSectionTag(unittest.TestCase):
 nothing happens.""",
       """In that case, the file format dialog may be displayed behind GIMP.""",
       """If so, simply select the dialog to bring it up.""",
-      """Several users reported crashes on Windows and OS X when clicking on the
+      """Several users reported crashes on Windows and macOS when clicking on the
 menu entries.""",
       """If the crashes occur to you, try reinstalling GIMP."""],
   }

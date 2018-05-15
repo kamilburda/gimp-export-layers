@@ -41,8 +41,8 @@ to the folder containing plug-ins depending on your version of GIMP:
 If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
 
 
-OS X
-----
+macOS
+-----
 
 Copy the following files and folders:
 
@@ -57,7 +57,7 @@ to the folder containing plug-ins depending on your version of GIMP:
 
 If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
 
-GIMP for OS X may have Python 2.6 bundled, which will not work with this
+GIMP for macOS may have Python 2.6 bundled, which will not work with this
 plug-in, since Python 2.7 is required.
 
 To check if the correct version of Python is installed, start GIMP and go to
