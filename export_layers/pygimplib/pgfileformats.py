@@ -105,10 +105,6 @@ class _FileFormat(object):
 
 
 def _create_file_formats(file_formats_params):
-  for params in file_formats_params:
-    for param in params:
-      print(param, params[param])
-    print()
   return [_FileFormat(**params) for params in file_formats_params]
 
 
