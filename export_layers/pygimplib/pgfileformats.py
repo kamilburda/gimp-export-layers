@@ -32,6 +32,7 @@ The file save procedure can be used for multiple purposes, such as:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import gimp
 from gimp import pdb
 
 #===============================================================================
@@ -68,7 +69,8 @@ class _FileFormat(object):
   
   def __init__(
         self, description, file_extensions, save_procedure_name=None,
-        save_procedure_func=None, save_procedure_func_args=None, kwargs=None):
+        save_procedure_func=None, save_procedure_func_args=None, versions=None,
+        **kwargs):
     self.description = description
     self.file_extensions = file_extensions
     
@@ -84,9 +86,10 @@ class _FileFormat(object):
     else:
       self.save_procedure_func_args = []
     
-    if kwargs:
-      for name, value in kwargs.items():
-        setattr(self, name, value)
+    self.versions = versions if versions is not None else [gimp.version[:2]]
+    
+    for name, value in kwargs.items():
+      setattr(self, name, value)
   
   def is_builtin(self):
     return not self.save_procedure_name
@@ -102,7 +105,11 @@ class _FileFormat(object):
 
 
 def _create_file_formats(file_formats_params):
-  return [_FileFormat(*params) for params in file_formats_params]
+  for params in file_formats_params:
+    for param in params:
+      print(param, params[param])
+    print()
+  return [_FileFormat(**params) for params in file_formats_params]
 
 
 def _create_file_formats_dict(file_formats):
@@ -110,7 +117,8 @@ def _create_file_formats_dict(file_formats):
   
   for file_format in file_formats:
     for file_extension in file_format.file_extensions:
-      if file_extension not in file_formats_dict:
+      if (file_extension not in file_formats_dict
+          and gimp.version[:2] in file_format.versions):
         file_formats_dict[file_extension] = file_format
   
   return file_formats_dict
@@ -119,59 +127,128 @@ def _create_file_formats_dict(file_formats):
 #===============================================================================
 
 file_formats = _create_file_formats([
-  ("Alias Pix image", ["pix", "matte", "mask", "alpha", "als"]),
-  ("ASCII art", ["txt", "ansi", "text"], "file-aa-save"),
-  ("AutoDesk FLIC animation", ["fli", "flc"]),
-  ("bzip archive", ["xcf.bz2", "xcfbz2"]),
-  ("Colored XHTML", ["xhtml"]),
-  ("C source code", ["c"]),
-  ("C source code header", ["h"]),
-  ("Digital Imaging and Communications in Medicine image", ["dcm", "dicom"]),
-  ("DDS image", ["dds"], "file-dds-save", None, None,
-   {"url": "http://registry.gimp.org/node/70"}),
-  ("Encapsulated PostScript image", ["eps"]),
-  ("Flexible Image Transport System", ["fit", "fits"]),
-  ("GIF image", ["gif"]),
-  ("GIMP brush", ["gbr"]),
-  ("GIMP brush (animated)", ["gih"]),
-  ("GIMP pattern", ["pat"]),
-  ("GIMP XCF image", ["xcf"]),
-  ("gzip archive", ["xcf.gz", "xcfgz"]),
-  ("HTML table", ["html", "htm"]),
-  ("JPEG image", ["jpg", "jpeg", "jpe"]),
-  ("JPEG XR image", ["jxr"], "file-jxr-save", None, None,
-   {"url": "http://registry.gimp.org/node/25508"}),
-  ("KISS CEL", ["cel"]),
-  ("Microsoft Windows icon", ["ico"]),
-  ("MNG animation", ["mng"]),
-  ("OpenRaster", ["ora"]),
-  ("PBM image", ["pbm"]),
-  ("PGM image", ["pgm"]),
-  ("Photoshop image", ["psd"]),
-  ("PNG image", ["png"]),
-  ("APNG image", ["apng"], "file-apng-save-defaults",
-   lambda run_mode, *args: pdb.file_apng_save_defaults(*args, run_mode=run_mode),
-   None, {"url": "http://registry.gimp.org/node/24394"}),
-  ("PNM image", ["pnm"]),
-  ("Portable Document Format", ["pdf"]),
-  ("PostScript document", ["ps"]),
-  ("PPM image", ["ppm"]),
-  ("Raw image data", ["raw", "data"], None,
-   lambda run_mode, *args: pdb.file_raw_save(*args, run_mode=run_mode)),
-  ("Silicon Graphics IRIS image", ["sgi", "rgb", "rgba", "bw", "icon"]),
-  ("SUN Rasterfile image", ["im1", "im8", "im24", "im32", "rs", "ras"]),
-  ("TarGA image", ["tga"]),
-  ("TIFF image", ["tif", "tiff"]),
-  ("Valve Texture Format", ["vtf"], "file-vtf-save", None, None,
-   {"url": "http://registry.gimp.org/node/24882"}),
-  ("WebP image", ["webp"], "file-webp-save", None, None,
-   {"url": "http://registry.gimp.org/node/25874"}),
-  ("Windows BMP image", ["bmp"]),
-  ("X11 Mouse Cursor", ["xmc"], "file-xmc-save"),
-  ("X BitMap image", ["xbm", "bitmap"]),
-  ("X PixMap image", ["xpm"]),
-  ("X window dump", ["xwd"]),
-  ("ZSoft PCX image", ["pcx", "pcc"]),
+  {"description": "Alias Pix image",
+   "file_extensions": ["pix", "matte", "mask", "alpha", "als"]},
+  {"description": "ASCII art",
+   "file_extensions": ["txt", "ansi", "text"],
+   "save_procedure_name": "file-aa-save",
+   "versions": [(2, 8)]},
+  {"description": "AutoDesk FLIC animation",
+   "file_extensions": ["fli", "flc"]},
+  {"description": "bzip archive",
+   "file_extensions": ["xcf.bz2", "xcfbz2"]},
+  {"description": "C source code",
+   "file_extensions": ["c"]},
+  {"description": "C source code header",
+   "file_extensions": ["h"]},
+  {"description": "Colored XHTML",
+   "file_extensions": ["xhtml"]},
+  {"description": "DDS image",
+   "file_extensions": ["dds"],
+   "save_procedure_name": "file-dds-save",
+   "url": "http://registry.gimp.org/node/70"},
+  {"description": "Digital Imaging and Communications in Medicine image",
+   "file_extensions": ["dcm", "dicom"]},
+  {"description": "Encapsulated PostScript image",
+   "file_extensions": ["eps"]},
+  {"description": "Flexible Image Transport System",
+   "file_extensions": ["fit", "fits"]},
+  {"description": "GIF image",
+   "file_extensions": ["gif"]},
+  {"description": "GIMP brush",
+   "file_extensions": ["gbr"]},
+  {"description": "GIMP brush (animated)",
+   "file_extensions": ["gih"]},
+  {"description": "GIMP pattern",
+   "file_extensions": ["pat"]},
+  {"description": "GIMP XCF image",
+   "file_extensions": ["xcf"]},
+  {"description": "gzip archive",
+   "file_extensions": ["xcf.gz", "xcfgz"]},
+  {"description": "HTML table",
+   "file_extensions": ["html", "htm"]},
+  {"description": "JPEG image",
+   "file_extensions": ["jpg", "jpeg", "jpe"]},
+  {"description": "JPEG XR image",
+   "file_extensions": ["jxr"],
+   "save_procedure_name": "file-jxr-save",
+   "url": "http://registry.gimp.org/node/25508"},
+  {"description": "KISS CEL",
+   "file_extensions": ["cel"]},
+  {"description": "Microsoft Windows icon",
+   "file_extensions": ["ico"]},
+  {"description": "MNG animation",
+   "file_extensions": ["mng"]},
+  {"description": "OpenRaster",
+   "file_extensions": ["ora"]},
+  {"description": "OpenEXR image",
+   "file_extensions": ["exr"],
+   "versions": [(2, 10)]},
+  {"description": "PBM image",
+   "file_extensions": ["pbm"]},
+  {"description": "PFM image",
+   "file_extensions": ["pfm"],
+   "versions": [(2, 10)]},
+  {"description": "PGM image",
+   "file_extensions": ["pgm"]},
+  {"description": "Photoshop image",
+   "file_extensions": ["psd"]},
+  {"description": "PNG image",
+   "file_extensions": ["png"]},
+  {"description": "APNG image",
+   "file_extensions": ["apng"],
+   "save_procedure_name": "file-apng-save-defaults",
+   "save_procedure_func": (
+     lambda run_mode, *args: pdb.file_apng_save_defaults(*args, run_mode=run_mode)),
+   "url": "http://registry.gimp.org/node/24394"},
+  {"description": "PNM image",
+   "file_extensions": ["pnm"]},
+  {"description": "Portable Document Format",
+   "file_extensions": ["pdf"]},
+  {"description": "PostScript document",
+   "file_extensions": ["ps"]},
+  {"description": "PPM image",
+   "file_extensions": ["ppm"]},
+  {"description": "Radiance RGBE",
+   "file_extensions": ["hdr"],
+   "versions": [(2, 10)]},
+  {"description": "Raw image data",
+   "file_extensions": ["data", "raw"],
+   "save_procedure_func": (
+     lambda run_mode, *args: pdb.file_raw_save(*args, run_mode=run_mode))},
+  {"description": "Silicon Graphics IRIS image",
+   "file_extensions": ["sgi", "rgb", "rgba", "bw", "icon"]},
+  {"description": "SUN Rasterfile image",
+   "file_extensions": ["im1", "im8", "im24", "im32", "rs", "ras"]},
+  {"description": "TarGA image",
+   "file_extensions": ["tga"]},
+  {"description": "TIFF image",
+   "file_extensions": ["tif", "tiff"]},
+  {"description": "Valve Texture Format",
+   "file_extensions": ["vtf"],
+   "save_procedure_name": "file-vtf-save",
+   "url": "http://registry.gimp.org/node/24882"},
+  {"description": "WebP image",
+   "file_extensions": ["webp"],
+   "save_procedure_name": "file-webp-save",
+   "url": "http://registry.gimp.org/node/25874"},
+  {"description": "Windows BMP image",
+   "file_extensions": ["bmp"]},
+  {"description": "X11 Mouse Cursor",
+   "save_procedure_name": "file-xmc-save",
+   "file_extensions": ["xmc"],
+   "versions": [(2, 8)]},
+  {"description": "X BitMap image",
+   "file_extensions": ["xbm", "bitmap"]},
+  {"description": "X PixMap image",
+   "file_extensions": ["xpm"]},
+  {"description": "X window dump",
+   "file_extensions": ["xwd"]},
+  {"description": "xz archive",
+   "file_extensions": ["xcf.xz", "xcfxz"],
+   "versions": [(2, 10)]},
+  {"description": "ZSoft PCX image",
+   "file_extensions": ["pcx", "pcc"]},
 ])
 
 file_formats_dict = _create_file_formats_dict(file_formats)
