@@ -13,7 +13,7 @@ The following file formats are not working properly with this plug-in:
 
 The following file formats have to display the file format dialog for each layer,
 not just the first layer:
-* raw,
+* raw (GIMP 2.8 only),
 * FLI,
 * C source,
 * HTML.
