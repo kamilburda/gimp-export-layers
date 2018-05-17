@@ -15,8 +15,19 @@ Requirements
 * Python 2.7 or later from the 2.7.x series
 
 
-Windows
--------
+Windows installer
+-----------------
+
+Simply run the Windows installer and customize plug-in installation path as
+needed. If you have a portable GIMP installation, you will be prompted to
+specify the path to GIMP and GIMP plug-ins manually.
+
+
+Manual installation (ZIP package)
+---------------------------------
+
+
+### Windows
 
 Make sure you have GIMP installed with support for Python scripting.
 
@@ -34,8 +45,7 @@ to the folder containing plug-ins depending on your version of GIMP:
 If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
 
 
-Linux
------
+### Linux
 
 Copy the following files and folders:
 
@@ -51,8 +61,7 @@ to the folder containing plug-ins depending on your version of GIMP:
 If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
 
 
-OS X
-----
+### macOS
 
 Copy the following files and folders:
 
@@ -67,7 +76,7 @@ to the folder containing plug-ins depending on your version of GIMP:
 
 If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
 
-GIMP for OS X may have Python 2.6 bundled, which will not work with this
+GIMP for macOS may have Python 2.6 bundled, which will not work with this
 plug-in, since Python 2.7 is required.
 
 To check if the correct version of Python is installed, start GIMP and go to
@@ -81,8 +90,8 @@ and change its contents to the following:
     :Python:E::py::python:
 
 
-Upgrading to 3.0
-----------------
+Upgrading from 2.x to to 3.x
+----------------------------
 
 Due to numerous significant changes in version 3.0, make sure you perform a
 complete reinstall when upgrading from an earlier version:

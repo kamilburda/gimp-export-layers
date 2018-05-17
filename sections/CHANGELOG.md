@@ -3,10 +3,23 @@ layout: docs_home
 title: Release Notes
 ---
 
+3.2
+===
+
+* Added a simple installer for Windows.
+* Plug-in dialog now properly inherits the theme set in GIMP 2.10.
+* Updated the list of file formats and extensions for GIMP 2.10.
+* Error messages no longer disappear automatically after a while.
+* Added a small amount of padding in the bottom part of the plug-in dialog.
+* Fixed plug-in failing to load for GIMP 2.10 on Windows.
+* Fixed a crash when running the plug-in after an upgrade from an early version
+  (up to 3.0-RC1).
+* Several minor updates to documentation.
+
 3.1
 ===
 
-* Created a single release package for GIMP 2.8, 2.9 and 2.10-RC1 (and hopefully later versions).
+* Created a single release package for GIMP 2.8, 2.9 and 2.10.
 * Further decreased width of the file extension entry and filename pattern entry.
 * Properly fixed enabled/disabled state of previews.
 

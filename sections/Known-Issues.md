@@ -10,7 +10,7 @@ Sometimes, after you hit the Export button, it may seem as though nothing
 happens. In that case, the file format dialog may be displayed behind GIMP - if
 so, simply select the dialog to bring it up.
 
-Several users reported crashes on Windows and OS X when clicking on the menu
+Several users reported crashes on Windows and macOS when clicking on the menu
 entries. If the crashes occur to you, try reinstalling GIMP.
 
 The following file formats are not working properly with this plug-in:
@@ -18,7 +18,7 @@ The following file formats are not working properly with this plug-in:
 
 The following file formats have to display the file format dialog for each layer,
 not just the first layer:
-* raw,
+* raw (GIMP 2.8 only),
 * FLI,
 * C source,
 * HTML.
