@@ -285,7 +285,10 @@ def _create_manual_package(
   readme_relative_filepath = "Readme.html"
   readme_filepath = os.path.join(
     input_dirpath, pygimplib.config.PLUGIN_NAME, readme_relative_filepath)
-  if readme_filepath in input_filepaths:
+  
+  can_create_toplevel_readme = readme_filepath in input_filepaths
+  
+  if can_create_toplevel_readme:
     input_filepaths.append(_create_toplevel_readme_for_manual_package(readme_filepath))
     output_filepaths.append(readme_relative_filepath)
   
@@ -294,6 +297,10 @@ def _create_manual_package(
       package_file.write(input_filepath, output_filepath)
   
   print("Manual package successfully created:", package_filepath)
+  
+  if can_create_toplevel_readme:
+    input_filepaths.pop()
+    output_filepaths.pop()
 
 
 def _create_toplevel_readme_for_manual_package(readme_filepath):
