@@ -5,6 +5,7 @@
 *.log
 resources/docs/gh-pages/
 resources/test_images/temp_output/
+resources/test_images/incorrect_results/
 resources/utils/installers/output/
 resources/utils/installers/temp_input/
 resources/utils/installers/test_input/
