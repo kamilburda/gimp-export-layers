@@ -30,6 +30,7 @@ from export_layers import pygimplib
 from future.builtins import *
 
 import collections
+import importlib
 import io
 import os
 import re
@@ -102,7 +103,7 @@ def make_package(input_dirpath, package_dirpath, force_if_dirty, installers):
   
   _set_permissions(temp_dirpath, 0o755)
   
-  _create_package_file(
+  _create_packages(
     package_dirpath, temp_dirpath, temp_filepaths, relative_filepaths, installers)
   
   _restore_repo_files(
@@ -256,7 +257,7 @@ def _set_permissions(dirpath, permissions):
 #===============================================================================
 
 
-def _create_package_file(
+def _create_packages(
       package_dirpath, input_dirpath, input_filepaths, output_filepaths, installers):
   installer_funcs = collections.OrderedDict([
     ("windows", _create_windows_installer),
@@ -281,11 +282,42 @@ def _create_manual_package(
   
   package_filepath = os.path.join(package_dirpath, package_filename)
   
+  readme_relative_filepath = "Readme.html"
+  readme_filepath = os.path.join(
+    input_dirpath, pygimplib.config.PLUGIN_NAME, readme_relative_filepath)
+  if readme_filepath in input_filepaths:
+    input_filepaths.append(_create_toplevel_readme_for_manual_package(readme_filepath))
+    output_filepaths.append(readme_relative_filepath)
+  
   with zipfile.ZipFile(package_filepath, "w", zipfile.ZIP_STORED) as package_file:
     for input_filepath, output_filepath in zip(input_filepaths, output_filepaths):
       package_file.write(input_filepath, output_filepath)
   
   print("Manual package successfully created:", package_filepath)
+
+
+def _create_toplevel_readme_for_manual_package(readme_filepath):
+  def add_directory_to_url(url_attribute_value):
+    return re.sub(
+      r"^docs",
+      "{0}/docs".format(pygimplib.config.PLUGIN_NAME),
+      url_attribute_value)
+  
+  toplevel_readme_filepath = os.path.join(
+    os.path.dirname(os.path.dirname(readme_filepath)), os.path.basename(readme_filepath))
+  
+  shutil.copy2(readme_filepath, toplevel_readme_filepath)
+  
+  sys.path.append(GITHUB_PAGE_UTILS_DIRPATH)
+  process_local_docs_module = importlib.import_module("process_local_docs")
+  
+  process_local_docs_module.modify_url_attributes_in_file(
+    readme_filepath,
+    add_directory_to_url,
+    toplevel_readme_filepath,
+    os.path.join(GITHUB_PAGE_DIRPATH, create_user_docs.PAGE_CONFIG_FILENAME))
+  
+  return toplevel_readme_filepath
 
 
 def _create_windows_installer(

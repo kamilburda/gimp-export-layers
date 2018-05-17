@@ -126,9 +126,6 @@ def find_all_html_elements_recursive(html_tree, match):
   return matches
   
 
-#===============================================================================
-
-
 def get_html_filepaths(site_dirpath):
   html_filepaths = []
   
@@ -167,7 +164,7 @@ def remove_baseurl_in_url_attributes(html_relative_filepath, html_tree):
     
     return new_url_attribute_value
   
-  _modify_url_attributes(html_tree, _get_relative_url_without_baseurl)
+  modify_url_attributes(html_tree, _get_relative_url_without_baseurl)
 
 
 def rename_paths_in_url_attributes(
@@ -231,10 +228,10 @@ def rename_paths_in_url_attributes(
     
     return renamed_resolved_relative_path
   
-  _modify_url_attributes(html_tree, _get_renamed_url)
+  modify_url_attributes(html_tree, _get_renamed_url)
 
 
-def _modify_url_attributes(html_tree, get_new_url_attribute_value_func):
+def modify_url_attributes(html_tree, get_new_url_attribute_value_func):
   for tag, attributes in HTML_ELEMENTS_WITH_URLS.items():
     elements_to_fix = find_all_html_elements_recursive(html_tree, tag)
     
@@ -266,25 +263,48 @@ def write_to_html_file(html_tree, html_file):
   html_tree.write(html_file, encoding=FILE_ENCODING, xml_declaration=False, method="html")
 
 
+def get_html_parser(html_filepath):
+  parser = LocalJekyllHTMLParser()
+  
+  with io.open(html_filepath, "r", encoding=FILE_ENCODING) as html_file:
+    parser.feed(html_file.read())
+  
+  parser.close()
+  
+  return parser
+
+
+def init_page_config(page_config_filepath):
+  global PAGE_CONFIG
+  
+  if PAGE_CONFIG is None:
+    with io.open(page_config_filepath, "r", encoding=FILE_ENCODING) as page_config_file:
+      PAGE_CONFIG = yaml.load(page_config_file.read())
+
+
 #===============================================================================
 
 
-def main(site_dirpath, page_config_filepath):
-  global PAGE_CONFIG
+def modify_url_attributes_in_file(
+      html_filepath, get_new_url_attribute_value_func,
+      output_html_filepath, page_config_filepath):
+  init_page_config(page_config_filepath)
   
-  with io.open(page_config_filepath, "r", encoding=FILE_ENCODING) as page_config_file:
-    PAGE_CONFIG = yaml.load(page_config_file.read())
+  parser = get_html_parser(html_filepath)
+  
+  modify_url_attributes(parser.tree, get_new_url_attribute_value_func)
+  
+  with io.open(output_html_filepath, "wb") as toplevel_html_file:
+    write_to_html_file(parser.tree, toplevel_html_file)
+
+
+def main(site_dirpath, page_config_filepath):
+  init_page_config(page_config_filepath)
   
   remove_redundant_files(site_dirpath)
   
   for html_filepath in get_html_filepaths(site_dirpath):
-    parser = LocalJekyllHTMLParser()
-    
-    with io.open(html_filepath, "r", encoding=FILE_ENCODING) as html_file:
-      parser.feed(html_file.read())
-    
-    parser.close()
-    
+    parser = get_html_parser(html_filepath)
     html_relative_filepath = os.path.relpath(html_filepath, site_dirpath)
     
     remove_baseurl_in_url_attributes(html_relative_filepath, parser.tree)
