@@ -1,4 +1,7 @@
-﻿#define PLUGIN_TITLE "Export Layers"
+﻿; To successfully compilte the installer, run `compile_installer.bat` instead
+; with specified parameters.
+
+#define PLUGIN_TITLE "Export Layers"
 #define INSTALLER_NAME PLUGIN_TITLE + " for GIMP"
 
 [Setup]
