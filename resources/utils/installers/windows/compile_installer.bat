@@ -33,9 +33,9 @@ set INSTALLER_SCRIPT_FILENAME=%7
 goto :EOF
 
 :innoSetupNotFound
-echo Inno Setup installation path not found in the registry.
+echo Inno Setup installation path not found in the registry. Please install Inno Setup before proceeding.
 goto :EOF
 
 :usage
 echo Usage: %~n0%~x0 PLUGIN_NAME PLUGIN_VERSION AUTHOR_NAME INPUT_DIRPATH OUTPUT_DIRPATH OUTPUT_FILENAME_PREFIX INSTALLER_SCRIPT_FILENAME
-echo Example: %~n0%~x0 export_layers 3.2 input_files output export_layers-3.2-windows installer.iss
+echo Example: %~n0%~x0 export_layers 3.2 khalim19 input_files output export_layers-3.2-windows installer.iss
