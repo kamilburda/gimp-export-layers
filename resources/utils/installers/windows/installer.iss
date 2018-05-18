@@ -1,4 +1,4 @@
-﻿; To successfully compilte the installer, run `compile_installer.bat` instead
+﻿; To successfully compile the installer, run `compile_installer.bat` instead
 ; with specified parameters.
 
 #define PLUGIN_TITLE "Export Layers"
