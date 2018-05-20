@@ -1,5 +1,11 @@
 ﻿; To successfully compile the installer, run `compile_installer.bat` instead
 ; with specified parameters.
+;
+; Code dealing with re-running installer with elevated privileges taken from:
+; https://stackoverflow.com/a/35435534
+;
+; Custom parameters for installer:
+; pluginpath - plug-in installation directory
 
 #define PLUGIN_TITLE "Export Layers"
 #define INSTALLER_NAME PLUGIN_TITLE + " for GIMP"
@@ -14,7 +20,7 @@ DefaultGroupName=GIMP
 DisableProgramGroupPage=Yes
 DisableDirPage=Yes
 UninstallFilesDir={app}\{#PLUGIN_NAME}
-PrivilegesRequired=admin
+PrivilegesRequired=lowest
 DirExistsWarning=no
 OutputDir={#OUTPUT_DIRPATH}
 OutputBaseFilename={#OUTPUT_FILENAME_PREFIX}
@@ -39,6 +45,13 @@ Type: filesandordirs; Name: "{app}\{#PLUGIN_NAME}"
 
 [Code]
 
+#ifdef UNICODE
+  #define AW "W"
+#else
+  #define AW "A"
+#endif
+
+
 const
   GIMP_REG_PATH = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\GIMP-2_is1';
   GIMP_NOT_FOUND_MESSAGE = (
@@ -48,6 +61,20 @@ const
   PYTHON_NOT_FOUND_IN_GIMP_MESSAGE = (
     'It appears that your GIMP installation does not support Python scripting.'
     + ' Please install GIMP with enabled support for Python scripting before proceeding.');
+  NO_WRITE_PERMISSION_MESSAGE_PROMPT = (
+    'It appears that you do not have permissions to install to directory "%s". '
+    + 'Would you like to re-run the installer with administrator privileges?'
+  );
+  NO_WRITE_PERMISSION_MESSAGE = (
+    'It appears that you do not have permissions to install to directory "%s". '
+    + 'Please select a different directory.'
+  );
+  FAILED_TO_RUN_ELEVATED = (
+    'Failed to run with administrator privileges. '
+    + 'Try again or install to a directory with write permissions.'
+  );
+  
+  PLUGIN_PATH_PARAM_NAME = 'pluginpath';
   
   MIN_REQUIRED_GIMP_VERSION_MAJOR = 2;
   MIN_REQUIRED_GIMP_VERSION_MINOR = 8;
@@ -90,6 +117,14 @@ function GetSystemPluginsDirpath(const gimpVersionMajorMinor: TVersionArray) : S
 function GetGimpVersionMajorMinor(const gimpVersion: String) : TVersionArray; forward;
 function GetGimpVersionStr(const gimpVersionArray: array of Integer) : String; forward;
 
+function HasElevatedPrivileges : Boolean; forward;
+function HasWritePermission(dirpath: String) : Boolean; forward;
+function CheckWritePermission(dirpath: String; out shouldElevate: Boolean) : Boolean; forward;
+function RunWithElevatedPrivileges : Boolean; forward;
+
+procedure ExitProcess(uExitCode: UINT); external 'ExitProcess@kernel32.dll stdcall';
+function ShellExecute(hwnd: HWND; lpOperation, lpFile, lpParameters, lpDirectory: String; nShowCmd: Integer) : THandle; external 'ShellExecute{#AW}@shell32.dll stdcall';
+
 
 function GetPluginsDirpath(value: String) : String;
 begin
@@ -104,18 +139,20 @@ begin
   Result := True;
   
   InstallerState := Initialized;
-  IsGimpDetected := True;
   
-  if (not RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'DisplayVersion', gimpVersion)
-      and not RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'DisplayVersion', gimpVersion)) then begin
+  IsGimpDetected := (
+    RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'DisplayVersion', gimpVersion)
+    or RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'DisplayVersion', gimpVersion));
+  
+  if not IsGimpDetected then begin
     MsgBox(GIMP_NOT_FOUND_MESSAGE, mbInformation, MB_OK);
-    IsGimpDetected := False;
     Exit;
   end;
   
   GimpVersionMajorMinor := GetGimpVersionMajorMinor(gimpVersion);
   
-  if (GimpVersionMajorMinor[0] <= MIN_REQUIRED_GIMP_VERSION_MAJOR) and (GimpVersionMajorMinor[1] < MIN_REQUIRED_GIMP_VERSION_MINOR) then begin
+  if ((GimpVersionMajorMinor[0] <= MIN_REQUIRED_GIMP_VERSION_MAJOR)
+      and (GimpVersionMajorMinor[1] < MIN_REQUIRED_GIMP_VERSION_MINOR)) then begin
     MsgBox(
       'GIMP version ' + GetGimpVersionStr(GimpVersionMajorMinor) + ' detected.'
       + ' To use {#PLUGIN_TITLE}, install GIMP ' + MIN_REQUIRED_GIMP_VERSION + ' or later.'
@@ -129,12 +166,15 @@ begin
       Exit;
   end;
   
-  PluginsDirpath := GetLocalPluginsDirpath(GimpVersionMajorMinor);
+  PluginsDirpath := ExpandConstant(
+    '{param:' + PLUGIN_PATH_PARAM_NAME + '|' + GetLocalPluginsDirpath(GimpVersionMajorMinor) + '}');
   
-  if (not RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'InstallLocation', GimpDirpath)
-      and not RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'InstallLocation', GimpDirpath)) then begin
+  IsGimpDetected := (
+    RegQueryStringValue(HKLM64, GIMP_REG_PATH, 'InstallLocation', GimpDirpath)
+    or RegQueryStringValue(HKLM32, GIMP_REG_PATH, 'InstallLocation', GimpDirpath));
+  
+  if not IsGimpDetected then begin
     MsgBox(GIMP_NOT_FOUND_MESSAGE, mbInformation, MB_OK);
-    IsGimpDetected := False;
     Exit;
   end
   else begin
@@ -157,24 +197,34 @@ end;
 
 
 function NextButtonClick(curPageID: Integer) : Boolean;
+var
+  shouldElevate: Boolean;
 begin
   Result := True;
+  shouldElevate := False;
   
   if curPageID = CustomPathsPage.ID then begin
     GimpDirpath := GimpDirpathEdit.Text;
     PluginsDirpath := PluginsDirpathEdit.Text;
     
     CheckPythonScriptingEnabled();
+    Result := CheckWritePermission(PluginsDirpath, shouldElevate);
   end
   else if curPageID = SelectPluginInstallPathPage.ID then begin
     if SelectPluginInstallPathPage.values[0] then begin
       PluginsDirpath := GetLocalPluginsDirpath(GimpVersionMajorMinor);
+      Result := CheckWritePermission(PluginsDirpath, shouldElevate);
     end
     else if SelectPluginInstallPathPage.values[1] then begin
       PluginsDirpath := GetSystemPluginsDirpath(GimpVersionMajorMinor);
+      Result := CheckWritePermission(PluginsDirpath, shouldElevate);
     end;
     
     PluginsDirpathEdit.Text := PluginsDirpath;
+  end;
+  
+  if shouldElevate then begin
+    RunWithElevatedPrivileges();
   end;
 end;
 
@@ -286,8 +336,7 @@ begin
   );
   
   SelectPluginInstallPathPage.Add('Install for just me');
-  SelectPluginInstallPathPage.Add(
-    'Install for all users');
+  SelectPluginInstallPathPage.Add('Install for all users');
   SelectPluginInstallPathPage.Add('Choose custom installation path');
   
   SelectPluginInstallPathPage.Values[0] := True;
@@ -422,4 +471,73 @@ begin
   end;
   
   Result := Copy(gimpVersionStr, 1, Length(gimpVersionStr) - 1);
+end;
+
+
+function HasElevatedPrivileges : Boolean;
+begin
+  Result := IsAdminLoggedOn or IsPowerUserLoggedOn;
+end;
+
+
+function HasWritePermission(dirpath: String) : Boolean;
+var
+  tempFilepath: String;
+begin
+  repeat
+    tempFilepath := dirpath + '\' + 'temp_' + IntToStr(Random(MAXINT));
+  until not FileExists(tempFilepath);
+  
+  Result := SaveStringToFile(tempFilepath, 'test', False);
+  
+  if Result then begin
+    DeleteFile(tempFilepath)
+  end;
+end;
+
+
+function CheckWritePermission(dirpath: String; out shouldElevate: Boolean) : Boolean;
+var
+  noWritePermissionPromptResult: Integer;
+begin
+  Result := HasWritePermission(dirpath);
+  shouldElevate := False;
+  
+  if not Result then begin
+    if not HasElevatedPrivileges() then begin
+      noWritePermissionPromptResult := MsgBox(
+        Format(NO_WRITE_PERMISSION_MESSAGE_PROMPT, [dirpath]), mbConfirmation, MB_YESNO);
+      shouldElevate := noWritePermissionPromptResult = IDYES;
+    end
+    else begin
+      MsgBox(
+        Format(NO_WRITE_PERMISSION_MESSAGE, [dirpath]), mbInformation, MB_OK);
+    end;
+  end;
+end;
+
+
+function RunWithElevatedPrivileges : Boolean;
+var
+  shellExecuteRetVal: Integer;
+  params: String;
+  paramIndex: Integer;
+begin
+  for paramIndex := 1 to ParamCount do begin
+    params := params + AddQuotes(ParamStr(paramIndex)) + ' ';
+  end;
+  
+  params := params + AddQuotes('/LANG=' + ActiveLanguage) + ' ';
+  params := params + AddQuotes('/' + PLUGIN_PATH_PARAM_NAME + '=' + PluginsDirpath);
+  
+  shellExecuteRetVal := ShellExecute(0, 'runas', ExpandConstant('{srcexe}'), params, '', SW_SHOW);
+  
+  Result := shellExecuteRetVal > 32;
+  
+  if Result then begin
+    ExitProcess(0);
+  end
+  else begin
+    MsgBox(FAILED_TO_RUN_ELEVATED, mbInformation, MB_OK);
+  end;
 end;
