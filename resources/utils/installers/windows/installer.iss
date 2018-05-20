@@ -164,9 +164,9 @@ begin
       + ' Otherwise, abort this installation and install GIMP with a sufficient version first.',
       mbInformation,
       MB_OK);
-      
-      IsGimpDetected := False;
-      Exit;
+    
+    IsGimpDetected := False;
+    Exit;
   end;
   
   PluginsDirpath := ExpandConstant(
