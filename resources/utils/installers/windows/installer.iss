@@ -118,8 +118,10 @@ function GetGimpVersionMajorMinor(const gimpVersion: String) : TVersionArray; fo
 function GetGimpVersionStr(const gimpVersionArray: array of Integer) : String; forward;
 
 function HasElevatedPrivileges : Boolean; forward;
-function HasWritePermission(dirpath: String) : Boolean; forward;
-function CheckWritePermission(dirpath: String; out shouldElevate: Boolean) : Boolean; forward;
+function HasWritePermission(const dirpath: String) : Boolean; forward;
+function CheckWritePermission(const dirpath: String; out shouldElevate: Boolean) : Boolean; forward;
+function CreateDirRecursive(const dirpath: String; out nonexistentDirpaths: array of String) : Boolean; forward;
+function RemoveDirs(const dirpaths: array of String) : Boolean; forward;
 function RunWithElevatedPrivileges : Boolean; forward;
 
 procedure ExitProcess(uExitCode: UINT); external 'ExitProcess@kernel32.dll stdcall';
@@ -439,7 +441,7 @@ begin
         StrToIntDef(
           Copy(
             gimpVersion, versionNumberFieldStartIndex, i - versionNumberFieldStartIndex), -1));
-      versionNumberFieldCurrentArrayIndex := versionNumberFieldCurrentArrayIndex + 1;
+      Inc(versionNumberFieldCurrentArrayIndex);
       versionNumberFieldStartIndex := i + 1;
     end;
   end;
@@ -480,23 +482,36 @@ begin
 end;
 
 
-function HasWritePermission(dirpath: String) : Boolean;
+function HasWritePermission(const dirpath: String) : Boolean;
 var
   tempFilepath: String;
+  directoryCreated: Boolean;
+  nonexistentDirpaths: array of String;
 begin
   repeat
     tempFilepath := dirpath + '\' + 'temp_' + IntToStr(Random(MAXINT));
   until not FileExists(tempFilepath);
   
+  if not DirExists(dirpath) then begin
+    directoryCreated := CreateDirRecursive(dirpath, nonexistentDirpaths);
+  end
+  else begin
+    directoryCreated := False;
+  end;
+  
   Result := SaveStringToFile(tempFilepath, 'test', False);
   
   if Result then begin
-    DeleteFile(tempFilepath)
+    DeleteFile(tempFilepath);
+  end;
+  
+  if directoryCreated then begin
+    RemoveDirs(nonexistentDirpaths);
   end;
 end;
 
 
-function CheckWritePermission(dirpath: String; out shouldElevate: Boolean) : Boolean;
+function CheckWritePermission(const dirpath: String; out shouldElevate: Boolean) : Boolean;
 var
   noWritePermissionPromptResult: Integer;
 begin
@@ -513,6 +528,41 @@ begin
       MsgBox(
         Format(NO_WRITE_PERMISSION_MESSAGE, [dirpath]), mbInformation, MB_OK);
     end;
+  end;
+end;
+
+
+function CreateDirRecursive(const dirpath: String; out nonexistentDirpaths: array of String) : Boolean;
+var
+  currentDirectory: String;
+  nonexistentDirpathsIndex: Integer;
+begin
+  nonexistentDirpathsIndex := 0;
+  currentDirectory := dirpath;
+  
+  while not DirExists(currentDirectory) do begin
+    SetArrayLength(nonexistentDirpaths, GetArrayLength(nonexistentDirpaths) + 1);
+    nonexistentDirpaths[nonexistentDirpathsIndex] := currentDirectory;
+    currentDirectory := ExtractFileDir(currentDirectory);
+    Inc(nonexistentDirpathsIndex);
+  end;
+  
+  Result := True;
+  
+  for nonexistentDirpathsIndex := GetArrayLength(nonexistentDirpaths) - 1 downto 0 do begin
+    Result := Result and CreateDir(nonexistentDirpaths[nonexistentDirpathsIndex]);
+  end;
+end;
+
+
+function RemoveDirs(const dirpaths: array of String) : Boolean;
+var
+  dirpathsIndex: Integer;
+begin
+  Result := True;
+  
+  for dirpathsIndex := 0 to GetArrayLength(dirpaths) - 1 do begin
+    Result := Result and RemoveDir(dirpaths[dirpathsIndex]);
   end;
 end;
 
