@@ -409,7 +409,8 @@ var
 begin
   gimpVersionMajorMinorStr := GetGimpVersionStr(gimpVersionMajorMinor);
   
-  if (gimpVersionMajorMinor[0] <= 2) and (gimpVersionMajorMinor[1] < 9) then begin
+  if ((gimpVersionMajorMinor[0] < 2)
+      or ((gimpVersionMajorMinor[0] = 2) and (gimpVersionMajorMinor[1] < 9))) then begin
     Result := ExpandConstant('{%USERPROFILE}') + '\.gimp-' + gimpVersionMajorMinorStr + '\plug-ins';
   end
   else begin
