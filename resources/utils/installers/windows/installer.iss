@@ -15,6 +15,7 @@ AppName={#INSTALLER_NAME}
 AppVersion={#PLUGIN_VERSION}
 AppVerName={#INSTALLER_NAME} {#PLUGIN_VERSION}
 AppPublisher={#AUTHOR_NAME}
+VersionInfoVersion={#PLUGIN_VERSION}
 DefaultDirName={code:GetPluginsDirpath}
 DefaultGroupName=GIMP
 DisableProgramGroupPage=Yes
