@@ -27,6 +27,7 @@ libffi-dev
 gcc
 python
 python-pip
+makeself
 gimp'
 
   sudo apt-get install -y $required_packages
