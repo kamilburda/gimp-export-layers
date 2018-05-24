@@ -15,17 +15,30 @@ Requirements
 * Python 2.7 or later from the 2.7.x series
 
 
-Windows installer
------------------
+Installers
+----------
+
+### Windows
 
 Simply run the Windows installer and customize plug-in installation path as
 needed. If you have a portable GIMP installation, you will be prompted to
 specify the path to GIMP and GIMP plug-ins manually.
 
+### Linux
+
+Simply run the installer (which is actually a self-extracting archive) from the terminal or double-clicking on the file in the GUI of your file explorer application if supported.
+
+You can customize the file path to the GIMP executable and the plug-in installation with `-g` and `-i` option, respectively. These options must be specified as follows (do not forget the `--`):
+
+    [installer script].sh -- -g [gimp_filepath] -i [installation_path]
+
+If `-g` is specified, so must be `-i`, otherwise the installation will not proceed.
+
+To install Export Layers system-wide, run the installer with root privileges.
+
 
 Manual installation (ZIP package)
 ---------------------------------
-
 
 ### Windows
 
