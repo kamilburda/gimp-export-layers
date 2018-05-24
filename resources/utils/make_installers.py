@@ -19,10 +19,7 @@
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-This script creates a ZIP package for releases from the plug-in source.
-
-This script requires the `pathspec` library (for matching file paths by
-patterns): https://github.com/cpburnz/python-path-specification
+This script creates installers for releases from the plug-in source.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -64,7 +61,7 @@ RESOURCES_DIRPATH = os.path.dirname(MODULE_DIRPATH)
 TEMP_INPUT_DIRPATH = os.path.join(MODULE_DIRPATH, "installers", "temp_input")
 OUTPUT_DIRPATH_DEFAULT = os.path.join(MODULE_DIRPATH, "installers", "output")
 
-INCLUDE_LIST_FILEPATH = os.path.join(MODULE_DIRPATH, "make_package_included_files.txt")
+INCLUDE_LIST_FILEPATH = os.path.join(MODULE_DIRPATH, "make_installers_included_files.txt")
 
 GITHUB_PAGE_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "gh-pages")
 GITHUB_PAGE_UTILS_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "GitHub_page")
@@ -72,7 +69,7 @@ GITHUB_PAGE_UTILS_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "GitHub_page
 #===============================================================================
 
 
-def make_package(input_dirpath, package_dirpath, force_if_dirty, installers):
+def make_installers(input_dirpath, installer_dirpath, force_if_dirty, installers):
   temp_repo_files_dirpath = tempfile.mkdtemp()
   
   relative_filepaths_with_git_filters = (
@@ -103,8 +100,8 @@ def make_package(input_dirpath, package_dirpath, force_if_dirty, installers):
   
   _set_permissions(temp_dirpath, 0o755)
   
-  _create_packages(
-    package_dirpath, temp_dirpath, temp_filepaths, relative_filepaths, installers)
+  _create_installers(
+    installer_dirpath, temp_dirpath, temp_filepaths, relative_filepaths, installers)
   
   _restore_repo_files(
     temp_repo_files_dirpath, input_dirpath, relative_filepaths_with_git_filters)
@@ -257,12 +254,12 @@ def _set_permissions(dirpath, permissions):
 #===============================================================================
 
 
-def _create_packages(
-      package_dirpath, input_dirpath, input_filepaths, output_filepaths, installers):
+def _create_installers(
+      installer_dirpath, input_dirpath, input_filepaths, output_filepaths, installers):
   installer_funcs = collections.OrderedDict([
     ("windows", _create_windows_installer),
     ("linux", _create_linux_installer),
-    ("manual", _create_manual_package),
+    ("zip", _create_zip_package),
   ])
   
   if "all" in installers:
@@ -273,14 +270,14 @@ def _create_packages(
       if installer in installer_funcs]
   
   for installer_func in installer_funcs_to_execute:
-    installer_func(package_dirpath, input_dirpath, input_filepaths, output_filepaths)
+    installer_func(installer_dirpath, input_dirpath, input_filepaths, output_filepaths)
 
 
-def _create_manual_package(
-      package_dirpath, input_dirpath, input_filepaths, output_filepaths):
+def _create_zip_package(
+      installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
   package_filename = "{0}-{1}.zip".format(
     pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
-  package_filepath = os.path.join(package_dirpath, package_filename)
+  package_filepath = os.path.join(installer_dirpath, package_filename)
   
   readme_relative_filepath = "Readme.html"
   readme_filepath = os.path.join(
@@ -289,21 +286,21 @@ def _create_manual_package(
   can_create_toplevel_readme = readme_filepath in input_filepaths
   
   if can_create_toplevel_readme:
-    input_filepaths.append(_create_toplevel_readme_for_manual_package(readme_filepath))
+    input_filepaths.append(_create_toplevel_readme_for_zip_package(readme_filepath))
     output_filepaths.append(readme_relative_filepath)
   
   with zipfile.ZipFile(package_filepath, "w", zipfile.ZIP_STORED) as package_file:
     for input_filepath, output_filepath in zip(input_filepaths, output_filepaths):
       package_file.write(input_filepath, output_filepath)
   
-  print("Manual package successfully created:", package_filepath)
+  print("ZIP package successfully created:", package_filepath)
   
   if can_create_toplevel_readme:
     input_filepaths.pop()
     output_filepaths.pop()
 
 
-def _create_toplevel_readme_for_manual_package(readme_filepath):
+def _create_toplevel_readme_for_zip_package(readme_filepath):
   def add_directory_to_url(url_attribute_value):
     return re.sub(
       r"^docs",
@@ -328,11 +325,11 @@ def _create_toplevel_readme_for_manual_package(readme_filepath):
 
 
 def _create_windows_installer(
-      package_dirpath, input_dirpath, input_filepaths, output_filepaths):
+      installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
   installer_filename_prefix = "{0}-{1}-windows".format(
     pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
   
-  installer_filepath = os.path.join(package_dirpath, installer_filename_prefix + ".exe")
+  installer_filepath = os.path.join(installer_dirpath, installer_filename_prefix + ".exe")
   
   WINDOWS_INSTALLER_SCRIPT_DIRPATH = os.path.join(MODULE_DIRPATH, "installers", "windows")
   WINDOWS_INSTALLER_SCRIPT_FILENAME = "installer.iss"
@@ -349,7 +346,7 @@ def _create_windows_installer(
     pygimplib.config.PLUGIN_VERSION,
     pygimplib.config.AUTHOR_NAME,
     os.path.relpath(input_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
-    os.path.relpath(package_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
+    os.path.relpath(installer_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
     installer_filename_prefix,
     WINDOWS_INSTALLER_SCRIPT_FILENAME,
   ])
@@ -363,10 +360,10 @@ def _create_windows_installer(
 
 
 def _create_linux_installer(
-      package_dirpath, input_dirpath, input_filepaths, output_filepaths):
+      installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
   installer_filename = "{0}-{1}-linux.sh".format(
     pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
-  installer_filepath = os.path.join(package_dirpath, installer_filename)
+  installer_filepath = os.path.join(installer_dirpath, installer_filename)
   
   installer_script_filename = "installer.sh"
   installer_script_filepath = os.path.join(
@@ -394,12 +391,14 @@ def _create_linux_installer(
 
 
 def main(destination_dirpath=None, force_if_dirty=False, installers="manual"):
-  package_dirpath = destination_dirpath if destination_dirpath else OUTPUT_DIRPATH_DEFAULT
-  pgpath.make_dirs(package_dirpath)
+  installer_dirpath = (
+    destination_dirpath if destination_dirpath else OUTPUT_DIRPATH_DEFAULT)
+  pgpath.make_dirs(installer_dirpath)
   
   installers = installers.replace(" ", "").split(",")
   
-  make_package(pygimplib.config.PLUGINS_DIRPATH, package_dirpath, force_if_dirty, installers)
+  make_installers(
+    pygimplib.config.PLUGINS_DIRPATH, installer_dirpath, force_if_dirty, installers)
 
 
 if __name__ == "__main__":

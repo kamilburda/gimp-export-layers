@@ -24,15 +24,15 @@ resources_dirpath = os.path.join(plugin_dirpath, "resources")
 utils_dirpath = os.path.join(resources_dirpath, "utils")
 sys.path.append(resources_dirpath)
 sys.path.append(utils_dirpath)
-import make_package
+import make_installers
 import preprocess_document_contents
 import sync_docs
 orig_cwd = os.getcwd()
 os.chdir(resources_dirpath)
 
 
-imp.reload(make_package)
-make_package.main()
+imp.reload(make_installers)
+make_installers.main()
 
 
 

@@ -95,8 +95,10 @@ GIMP or any Export Layers script requiring non-interactive invocation of GIMP.
 Creating a Release <a name="Creating-a-Release"></a>
 ------------------
 
-To create a release package, simply run `resources/utils/make_package.sh`.
-The package will be created in the `resources` directory.
+Run `resources/utils/make_installers.sh` to create installer(s).
+Use the `-i` option to specify platform(s) for which to create installers.
+The installers will be created in the `resources/utils/installers/output`
+directory.
 
 
 Coding Conventions <a name="Coding-Conventions"></a>

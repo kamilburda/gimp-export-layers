@@ -2,15 +2,15 @@
 
 function error_usage()
 {
-  usage='Usage: make_package [options...]
+  usage='Usage: make_installers [options...]
 
 Options:
   -d, --dest-dir [DIRECTORY] - destination directory of the created package
   -f, --force - make package even if the repository contains local changes
   -i, --installers [INSTALLERS] - comma-separated list of installers to create
-    - possible values for installers: "windows", "linux", "manual", "all"
-    - default: "manual"
-    - example: -i "windows,manual" creates a Windows installer and a ZIP package for manual install
+    - possible values for installers: "windows", "linux", "zip", "all"
+    - default: "zip"
+    - example: -i "windows,zip" creates a Windows installer and a ZIP package for manual install
     - "all" creates all installers - note that creating a Windows installer may not be possible on *nix systems
     - unrecognized values are silently ignored
   -h, --help - display this help and exit'
@@ -27,7 +27,7 @@ Options:
 
 destination_dirpath='None'
 force_if_dirty='False'
-installers='"manual"'
+installers='"zip"'
 
 
 while [[ "${1:0:1}" = "-" && "$1" != "--" ]]; do
@@ -59,11 +59,11 @@ sys.path.append(os.path.join(plugin_dirpath, "export_layers", "pygimplib"))
 sys.path.append(resources_dirpath)
 sys.path.append(utils_dirpath)
 
-import make_package
+import make_installers
 
 os.chdir(resources_dirpath)
 
-make_package.main(destination_dirpath='"$destination_dirpath"', force_if_dirty='"$force_if_dirty"', installers='"$installers"')
+make_installers.main(destination_dirpath='"$destination_dirpath"', force_if_dirty='"$force_if_dirty"', installers='"$installers"')
 
 pdb.gimp_quit(0)
 '
