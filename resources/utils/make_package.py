@@ -261,6 +261,7 @@ def _create_packages(
       package_dirpath, input_dirpath, input_filepaths, output_filepaths, installers):
   installer_funcs = collections.OrderedDict([
     ("windows", _create_windows_installer),
+    ("linux", _create_linux_installer),
     ("manual", _create_manual_package),
   ])
   
@@ -279,7 +280,6 @@ def _create_manual_package(
       package_dirpath, input_dirpath, input_filepaths, output_filepaths):
   package_filename = "{0}-{1}.zip".format(
     pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
-  
   package_filepath = os.path.join(package_dirpath, package_filename)
   
   readme_relative_filepath = "Readme.html"
@@ -360,6 +360,34 @@ def _create_windows_installer(
     print("Windows installer successfully created:", installer_filepath)
   else:
     print("Failed to create Windows installer:", installer_filepath)
+
+
+def _create_linux_installer(
+      package_dirpath, input_dirpath, input_filepaths, output_filepaths):
+  installer_filename = "{0}-{1}-linux.sh".format(
+    pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
+  installer_filepath = os.path.join(package_dirpath, installer_filename)
+  
+  installer_script_filename = "installer.sh"
+  installer_script_filepath = os.path.join(
+    MODULE_DIRPATH, "installers", "unix", installer_script_filename)
+  
+  shutil.copy2(
+    installer_script_filepath,
+    os.path.join(input_dirpath, installer_script_filename))
+  
+  return_code = subprocess.call([
+    "makeself",
+    input_dirpath,
+    installer_filepath,
+    "{0} - GIMP plug-in".format(pygimplib.config.PLUGIN_TITLE),
+    os.path.join(".", installer_script_filename)
+  ])
+  
+  if return_code == 0:
+    print("Linux installer successfully created:", installer_filepath)
+  else:
+    print("Failed to create Linux installer:", installer_filepath)
 
 
 #===============================================================================

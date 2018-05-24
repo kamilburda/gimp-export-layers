@@ -8,7 +8,7 @@ Options:
   -d, --dest-dir [DIRECTORY] - destination directory of the created package
   -f, --force - make package even if the repository contains local changes
   -i, --installers [INSTALLERS] - comma-separated list of installers to create
-    - possible values for installers: "windows", "manual", "all"
+    - possible values for installers: "windows", "linux", "manual", "all"
     - default: "manual"
     - example: -i "windows,manual" creates a Windows installer and a ZIP package for manual install
     - "all" creates all installers - note that creating a Windows installer may not be possible on *nix systems
