@@ -86,7 +86,7 @@ class _FileFormat(object):
     else:
       self.save_procedure_func_args = []
     
-    self.versions = versions if versions is not None else [gimp.version[:2]]
+    self.version_check_func = versions if versions is not None else lambda: True
     
     for name, value in kwargs.items():
       setattr(self, name, value)
@@ -113,8 +113,7 @@ def _create_file_formats_dict(file_formats):
   
   for file_format in file_formats:
     for file_extension in file_format.file_extensions:
-      if (file_extension not in file_formats_dict
-          and gimp.version[:2] in file_format.versions):
+      if file_extension not in file_formats_dict and file_format.version_check_func():
         file_formats_dict[file_extension] = file_format
   
   return file_formats_dict
@@ -128,7 +127,7 @@ file_formats = _create_file_formats([
   {"description": "ASCII art",
    "file_extensions": ["txt", "ansi", "text"],
    "save_procedure_name": "file-aa-save",
-   "versions": [(2, 8)]},
+   "versions": lambda: gimp.version <= (2, 8)},
   {"description": "AutoDesk FLIC animation",
    "file_extensions": ["fli", "flc"]},
   {"description": "bzip archive",
@@ -179,12 +178,12 @@ file_formats = _create_file_formats([
    "file_extensions": ["ora"]},
   {"description": "OpenEXR image",
    "file_extensions": ["exr"],
-   "versions": [(2, 10)]},
+   "versions": lambda: gimp.version >= (2, 10)},
   {"description": "PBM image",
    "file_extensions": ["pbm"]},
   {"description": "PFM image",
    "file_extensions": ["pfm"],
-   "versions": [(2, 10)]},
+   "versions": lambda: gimp.version >= (2, 10)},
   {"description": "PGM image",
    "file_extensions": ["pgm"]},
   {"description": "Photoshop image",
@@ -207,7 +206,7 @@ file_formats = _create_file_formats([
    "file_extensions": ["ppm"]},
   {"description": "Radiance RGBE",
    "file_extensions": ["hdr"],
-   "versions": [(2, 10)]},
+   "versions": lambda: gimp.version >= (2, 10)},
   {"description": "Raw image data",
    "file_extensions": ["data", "raw"],
    "save_procedure_func": (
@@ -233,7 +232,7 @@ file_formats = _create_file_formats([
   {"description": "X11 Mouse Cursor",
    "save_procedure_name": "file-xmc-save",
    "file_extensions": ["xmc"],
-   "versions": [(2, 8)]},
+   "versions": lambda: gimp.version <= (2, 8)},
   {"description": "X BitMap image",
    "file_extensions": ["xbm", "bitmap"]},
   {"description": "X PixMap image",
@@ -242,7 +241,7 @@ file_formats = _create_file_formats([
    "file_extensions": ["xwd"]},
   {"description": "xz archive",
    "file_extensions": ["xcf.xz", "xcfxz"],
-   "versions": [(2, 10)]},
+   "versions": lambda: gimp.version >= (2, 10)},
   {"description": "ZSoft PCX image",
    "file_extensions": ["pcx", "pcc"]},
 ])
