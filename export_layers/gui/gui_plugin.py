@@ -334,7 +334,7 @@ class ExportLayersGui(object):
     
     self._init_settings()
     
-    if gimp.version[0:2] == (2, 8):
+    if gimp.version[:2] == (2, 8):
       pgpdb.suppress_gimp_progress()
     
     self._init_gui()
@@ -379,7 +379,7 @@ class ExportLayersGui(object):
     _setup_output_directory_changed(self._settings, self._image)
   
   def _init_gui(self):
-    if gimp.version[0:2] >= (2, 10):
+    if gimp.version >= (2, 10):
       gimpui.gimp_ui_init()
     
     self._dialog = gimpui.Dialog(
@@ -1026,7 +1026,7 @@ class ExportLayersRepeatGui(object):
     self.export_layers()
   
   def _init_gui(self):
-    if gimp.version[0:2] >= (2, 10):
+    if gimp.version >= (2, 10):
       gimpui.gimp_ui_init()
     
     self._dialog = gimpui.Dialog(title=pygimplib.config.PLUGIN_TITLE, role=None)
