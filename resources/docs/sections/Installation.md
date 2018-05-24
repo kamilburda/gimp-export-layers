@@ -63,6 +63,18 @@ to the folder containing plug-ins depending on your version of GIMP:
 
 If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
 
+To check if the correct version of Python is installed, start GIMP and go to
+"Filters → Python-Fu → Console". The console must display "Python 2.7" or later
+from the 2.7.x series. If not, install Python 2.7, open
+`/usr/lib/gimp/2.0/interpreters/pygimp.interp`
+and change its contents to the following:
+
+    python=[path to Python 2.7 executable]
+    /usr/bin/python=[path to Python 2.7 executable]
+    :Python:E::py::python:
+
+`[path to Python 2.7 executable]` is usually `/usr/bin/python` or `/usr/bin/python2.7`.
+
 
 ### macOS
 
@@ -79,18 +91,17 @@ to the folder containing plug-ins depending on your version of GIMP:
 
 If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
 
-GIMP for macOS may have Python 2.6 bundled, which will not work with this
-plug-in, since Python 2.7 is required.
-
 To check if the correct version of Python is installed, start GIMP and go to
 "Filters → Python-Fu → Console". The console must display "Python 2.7" or later
 from the 2.7.x series. If not, install Python 2.7, open
 `/Applications/Gimp.app/Contents/Resources/lib/gimp/2.0/interpreters/pygimp.interp`
 and change its contents to the following:
 
-    python=/usr/bin/python
-    /usr/bin/python=/usr/bin/python
+    python=[path to Python 2.7 executable]
+    /usr/bin/python=[path to Python 2.7 executable]
     :Python:E::py::python:
+
+`[path to Python 2.7 executable]` is usually `/usr/bin/python` or `/usr/bin/python2.7`.
 
 
 Upgrading from 2.x to to 3.x
