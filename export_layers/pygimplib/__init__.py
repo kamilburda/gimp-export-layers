@@ -53,6 +53,7 @@ try:
   import gimp
   import gimpenums
   import gimpplugin
+  import gimpui
   
   from . import pggui
   from . import pglogging
@@ -272,6 +273,10 @@ if _gimp_dependent_modules_imported:
     config._can_modify_config = False
     
     procedure = _set_gui_excepthook(_plugins_names[procedure_name], procedure_params[0])
+    
+    if hasattr(gimpui, "gimp_ui_init"):
+      gimpui.gimp_ui_init()
+    
     procedure(*procedure_params)
   
   def _set_gui_excepthook(procedure, run_mode):
