@@ -22,11 +22,26 @@ with a timeout.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import os
+
+import gimp
 import gobject
 
 #===============================================================================
 
 _timer_ids = {}
+
+
+def timeout_add(interval, callback, *callback_args):
+  """
+  This is a thin wrapper of `gobject.timeout_add` that "fixes" the function
+  failing to work on Windows on GIMP 2.10 by setting the interval to zero.
+  """
+  
+  if os.name == "nt" and gimp.version >= (2, 10):
+    return gobject.timeout_add(0, callback, *callback_args)
+  else:
+    return gobject.timeout_add(interval, callback, *callback_args)
 
 
 def timeout_add_strict(interval, callback, *callback_args, **callback_kwargs):
@@ -52,7 +67,7 @@ def timeout_add_strict(interval, callback, *callback_args, **callback_kwargs):
   
   timeout_remove_strict(callback)
   
-  _timer_ids[callback] = gobject.timeout_add(
+  _timer_ids[callback] = timeout_add(
     interval, _callback_wrapper, callback_args, callback_kwargs)
   
   return _timer_ids[callback]
