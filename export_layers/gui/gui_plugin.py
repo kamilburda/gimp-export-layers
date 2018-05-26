@@ -984,12 +984,16 @@ class ExportLayersGui(object):
       if message_type == gtk.MESSAGE_ERROR:
         self._label_message.set_markup('<span foreground="red"><b>{0}</b></span>'.format(
           gobject.markup_escape_text(text)))
-        pginvocation.timeout_remove_strict(self._display_message_label)
+        
+        if not (os.name == "nt" and gimp.version >= (2, 10)):
+          pginvocation.timeout_remove_strict(self._display_message_label)
       else:
         self._label_message.set_markup('<span><b>{0}</b></span>'.format(
           gobject.markup_escape_text(text)))
-        pginvocation.timeout_add_strict(
-          self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS, self._display_message_label, None)
+        
+        if not (os.name == "nt" and gimp.version >= (2, 10)):
+          pginvocation.timeout_add_strict(
+            self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS, self._display_message_label, None)
 
 
 #===============================================================================
