@@ -967,7 +967,7 @@ class ExportLayersGui(object):
     if os.path.isfile(pygimplib.config.LOCAL_DOCS_PATH):
       docs_url = pygimplib.config.LOCAL_DOCS_PATH
     else:
-      docs_url = pygimplib.config.PAGE_URL
+      docs_url = pygimplib.config.DOCS_URL
     
     webbrowser.open_new_tab(docs_url)
   

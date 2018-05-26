@@ -51,6 +51,7 @@ def init():
   pygimplib.config.AUTHOR_NAME = "khalim19"
   pygimplib.config.AUTHOR_CONTACT = "khalim19@gmail.com"
   pygimplib.config.PAGE_URL = "https://khalim19.github.io/gimp-plugin-export-layers"
+  pygimplib.config.DOCS_URL = pygimplib.config.PAGE_URL + "/sections"
   pygimplib.config.REPOSITORY_URL = (
     "https://github.com/khalim19/gimp-plugin-export-layers")
   pygimplib.config.BUG_REPORT_URL_LIST = [
@@ -58,7 +59,7 @@ def init():
   ]
   
   pygimplib.config.LOCAL_DOCS_PATH = os.path.join(
-    pygimplib.config.PLUGIN_SUBDIRPATH, "Readme.html")
+    pygimplib.config.PLUGIN_SUBDIRPATH, "docs", "sections", "index.html")
   
   pygimplib.config.COPYRIGHT_YEARS = "2013-2018"
   
