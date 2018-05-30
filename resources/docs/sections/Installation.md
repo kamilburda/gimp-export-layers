@@ -18,6 +18,10 @@ specify the path to GIMP and GIMP plug-ins manually.
 
 Simply run the installer (which is actually a self-extracting archive) from the terminal or double-clicking on the file in the GUI of your file explorer application if supported.
 
+If necessary, set the executable permission of the installer first, either in the GUI of your file explorer or in the terminal:
+
+    chmod +x [installer script].sh
+
 You can customize the file path to the GIMP executable and the plug-in installation with `-g` and `-i` option, respectively. These options must be specified as follows (do not forget the `--`):
 
     [installer script].sh -- -g [gimp_filepath] -i [installation_path]
