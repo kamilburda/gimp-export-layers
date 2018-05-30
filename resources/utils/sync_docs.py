@@ -101,7 +101,7 @@ def get_filepaths(file_list_filepath):
     full_source_path = os.path.join(path_root, source_path)
     full_dest_path = os.path.join(path_root, dest_path)
     
-    if os.path.isfile(full_source_path) and os.path.isfile(full_dest_path):
+    if os.path.isfile(full_source_path):
       paths_to_sync[full_source_path] = full_dest_path
     elif os.path.isdir(full_source_path) and os.path.isdir(full_dest_path):
       listed_source_filepaths = _list_filepaths(full_source_path)
