@@ -1,6 +1,7 @@
 ---
 layout: docs_page
 title: Documentation
+navbar_active_tab: docs
 ---
 
 Export Layers is a [GIMP](https://www.gimp.org/) plug-in that exports layers as separate images.

@@ -158,7 +158,15 @@ a {
 }
 
 .navbar a {
-  color: $header-link-color;
+  color: $navbar-link-color;
+  
+  &:hover {
+    color: $navbar-link-color-active;
+  }
+}
+
+.navbar a.active {
+  color: $navbar-link-color-active;
 }
 
 .project-name {

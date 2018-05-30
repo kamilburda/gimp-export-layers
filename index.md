@@ -1,6 +1,7 @@
 ---
 layout: main
 title: GIMP plug-in
+navbar_active_tab: home
 ---
 
 ### Getting started and need help?
