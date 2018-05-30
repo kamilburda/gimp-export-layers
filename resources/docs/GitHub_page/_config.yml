@@ -2,18 +2,22 @@
 title: Export Layers
 description: "GIMP plug-in that exports layers as separate images"
 baseurl: "/gimp-plugin-export-layers"
-url: https://khalim19.github.io
-repository: khalim19/gimp-plugin-export-layers
-github_username: khalim19
-email: khalim19@gmail.com
-copyright_years: {% include-config "COPYRIGHT_YEARS" %}
+url: "https://khalim19.github.io"
+repository: "khalim19/gimp-plugin-export-layers"
+github_username: "khalim19"
+email: "khalim19@gmail.com"
+copyright_years: "{% include-config "COPYRIGHT_YEARS" %}"
 
-plugin_name: {% include-config "PLUGIN_NAME" %}
-plugin_version: {% include-config "PLUGIN_VERSION" %}
-sections_url: /sections/
-license_remote_url: blob/master/LICENSE
-license_local_filename: LICENSE.txt
-release_notes_filename: CHANGELOG.html
+plugin_name: "{% include-config "PLUGIN_NAME" %}"
+plugin_version: "{% include-config "PLUGIN_VERSION" %}"
+download_windows_suffix: "-windows.exe"
+download_linux_suffix: "-linux.sh"
+download_macos_suffix: "-macos.sh"
+download_zip_suffix: ".zip"
+sections_url: "/sections/"
+license_remote_url: "blob/master/LICENSE"
+license_local_filename: "LICENSE.txt"
+release_notes_filename: "CHANGELOG.html"
 
 plugins:
   - jekyll-sitemap

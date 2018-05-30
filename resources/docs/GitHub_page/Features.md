@@ -1,0 +1,1 @@
+{% include-section "../../sections/Intro.md" section="Features" no-header=True %}

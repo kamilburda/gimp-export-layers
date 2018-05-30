@@ -3,10 +3,27 @@ layout: main
 title: GIMP plug-in
 ---
 
-{% include-section "../sections/Intro.md" section="Features" %}
+### Getting started and need help?
 
-See the [documentation]({{ site.sections_url | relative_url }})
-for information about installation, usage and known issues.
+See [Installation](sections/Installation.html) and [Usage](sections/Usage.html).
 
 
-{% include-section "../sections/More-Info.md" section="Support" sentences=0 %}
+### Need more customization?
+
+See [Advanced Usage](sections/Advanced-Usage.html).
+
+
+### Having trouble?
+
+See the [known issues](sections/Known-Issues.html) or feel free to
+[report other issues or ask questions](https://github.com/khalim19/gimp-plugin-export-layers/issues).
+
+
+### Want to translate the plug-in into your language?
+
+See the [instructions for providing translations](sections/Providing-Translations.html).
+
+
+### Curious about latest changes in the plug-in?
+
+See the [release notes](sections/CHANGELOG.html).
