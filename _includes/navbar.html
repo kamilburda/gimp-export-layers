@@ -1,20 +1,17 @@
-<section class="page-header-docs">
-  <div class="page-header-docs-container" role="navigation">
+<section class="navbar">
+  <div class="navbar-container" role="navigation">
     <div>
       <ul>
-        <li><a href="{{ '/' | relative_url }}">{{ site.title }}</a></li>
-        <li class="separator">|</li>
+        <li><a href="{{ '/' | relative_url }}">Home</a></li>
         <li><a href="{{ site.sections_url | relative_url }}">Documentation</a></li>
+        <li><a href="https://github.com/{{ site.repository }}">View on GitHub</a></li>
       </ul>
     </div>
     <div class="right">
-      <ul>
+      <ul class="right">
         {% if page.previous_doc_title %}
           <li><a href="{{ site.sections_url | relative_url }}{{ page.previous_doc_filename }}">« {{ page.previous_doc_title }}</a>
           </li>
-        {% endif %}
-        {% if page.previous_doc_title and page.next_doc_title %}
-          <li class="separator">|</li>
         {% endif %}
         {% if page.next_doc_title %}
           <li>

@@ -49,19 +49,19 @@ a {
 .btn {
   display: inline-block;
   margin-bottom: 1rem;
-  color: rgba(255, 255, 255, 0.75);
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.20);
+  color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(0, 0, 0, 0.20);
+  border-color: rgba(0, 0, 0, 0.25);
   border-style: solid;
   border-width: 1px;
   border-radius: 0.3rem;
-  transition: color 0.05s, background-color 0.05s, border-color 0.05s;
+  transition: color 0.1s, background-color 0.1s, border-color 0.1s;
 
   &:hover {
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 1);
     text-decoration: none;
     background-color: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.25);
   }
 
   + .btn {
@@ -69,11 +69,11 @@ a {
   }
 
   @include large {
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 0.9rem;
   }
 
   @include medium {
-    padding: 0.6rem 0.9rem;
+    padding: 0.6rem 0.8rem;
     font-size: 0.9rem;
   }
 
@@ -90,44 +90,26 @@ a {
   }
 }
 
-.page-header {
+.navbar {
   color: $header-heading-color;
-  text-align: center;
-  background-color: $header-bg-color;
+  background-color: $navbar-bg-color;
 
   @include large {
-    padding: 1rem 1rem;
-  }
-
-  @include medium {
-    padding: 1rem 1rem;
-  }
-
-  @include small {
-    padding: 1rem 1rem;
-  }
-}
-
-.page-header-docs {
-  color: $header-heading-color;
-  background-color: $header-bg-color;
-  
-  @include large {
-    font-size: 1.2rem;
-  }
-
-  @include medium {
     font-size: 1.1rem;
   }
 
-  @include small {
+  @include medium {
     font-size: 1.0rem;
+  }
+
+  @include small {
+    font-size: 0.9rem;
   }
 }
 
-.page-header-docs-container {
+.navbar-container {
   @include large {
-    max-width: 64rem;
+    max-width: 72rem;
     padding: 1rem 6rem;
     margin: 0 auto;
   }
@@ -141,60 +123,41 @@ a {
   }
 }
 
-.page-header-docs-container ul {
+.navbar-container ul {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.page-header-docs-container li {
+.navbar-container li {
   display: inline;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
-.page-header-docs-container div {
+.navbar-container div {
   @include large {
     display: inline-block;
   }
-
-  @include medium {
-    display: inline-block;
-  }
-
-  @include small {
-  }
 }
 
-.page-header-docs-container div.right {
+.navbar-container div.right {
   @include large {
     float: right;
-    margin-left: 0.3rem;
-  }
-
-  @include medium {
-    float: right;
-    margin-left: 0.3rem;
-  }
-
-  @include small {
-    margin-right: 0.3rem;
   }
 }
 
-.page-header-docs-container li.separator {
-  @include large {
-    padding: 0 0.3rem;
-  }
-
+.navbar-container ul.right {
   @include medium {
-    padding: 0 0.2rem;
+    padding-top: 0.5rem;
   }
-
+  
   @include small {
-    padding: 0 0.1rem;
+    padding-top: 0.5rem;
   }
 }
 
-.page-header-docs a {
+.navbar a {
   color: $header-link-color;
 }
 
@@ -216,9 +179,8 @@ a {
 }
 
 .project-tagline {
-  margin-bottom: 2rem;
   font-weight: normal;
-  opacity: 0.7;
+  opacity: 0.9;
 
   @include large {
     font-size: 1.25rem;
@@ -233,6 +195,138 @@ a {
   }
 }
 
+.project-tagline ul {
+  padding-left:0;
+  list-style-position: inside;
+  
+  @include small {
+    text-align: left;
+  }
+}
+
+.page-header {
+  color: $header-heading-color;
+  background-color: $header-bg-color;
+  background-image: url("../../images/screenshot_dialog_sketch.svg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  text-align: left;
+  padding: 1rem 0;
+}
+
+.page-header img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+  
+  @include large {
+    width: 100%;
+    height: 100%;
+  }
+  
+  @include medium {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.page-header-container {
+  @include large {
+    display: flex;
+    max-width: 72rem;
+    padding: 1rem 6rem;
+    margin: 0 auto;
+  }
+
+  @include medium {
+    display: flex;
+    padding: 1rem 4rem;
+  }
+
+  @include small {
+    padding: 1rem 1rem;
+  }
+}
+
+.page-header-text {
+  @include large {
+    width: 70%;
+    order: 1;
+    padding-right: 1rem;
+  }
+  
+  @include medium {
+    width: 60%;
+    order: 1;
+    padding-right: 1rem;
+  }
+}
+
+.page-header-image {
+  @include large {
+    width: 30%;
+    order: 2;
+    padding-left: 1rem;
+  }
+  
+  @include medium {
+    width: 40%;
+    order: 2;
+    padding-left: 1rem;
+  }
+}
+
+.downloads-container {
+  @include large {
+    max-width: 72rem;
+    padding: 0 6rem;
+    margin: 0 auto;
+  }
+
+  @include medium {
+    padding: 0 4rem;
+  }
+
+  @include small {
+    padding: 0 1rem;
+  }
+}
+
+.downloads-text {
+  margin-top: 0;
+}
+
+.download-buttons a {
+  text-align: center;
+  
+  @include large {
+    min-width: 15%;
+  }
+  
+  @include medium {
+    min-width: 15%;
+  }
+}
+
+.download-buttons img {
+  display: inline;
+  margin-right: 0.2rem;
+  opacity: 0.9;
+  
+  @include large {
+    width: 0.9rem;
+  }
+  
+  @include medium {
+    width: 0.8rem;
+  }
+  
+  @include small {
+    width: 0.8rem;
+  }
+}
+
 .main-content {
   word-wrap: break-word;
 
@@ -241,7 +335,7 @@ a {
   }
 
   @include large {
-    max-width: 64rem;
+    max-width: 72rem;
     padding: 2rem 6rem;
     margin: 0 auto;
     font-size: 1.1rem;
@@ -258,6 +352,8 @@ a {
   }
 
   img {
+    display: block;
+    margin: 0 auto;
     max-width: 100%;
     border:1px solid #b0b0b0;
   }

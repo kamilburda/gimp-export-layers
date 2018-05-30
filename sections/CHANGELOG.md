@@ -1,5 +1,5 @@
 ---
-layout: docs_home
+layout: docs_page
 title: Release Notes
 ---
 

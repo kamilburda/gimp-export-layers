@@ -1,13 +1,40 @@
 <section class="page-header">
-  <img src="{{ '/images/logo.svg' | relative_url }}" alt="">
-  <h1 class="project-name">{{ site.title | default: site.github.repository_name }}</h1>
-  <h2 class="project-tagline">{{ site.description | default: site.github.project_tagline }}</h2>
+  <div class="page-header-container">
+    <div class="page-header-image">
+      <img src="{{ '/images/logo.svg' | relative_url }}" alt="">
+    </div>
+    <div class="page-header-text">
+      <h1 class="project-name">{{ site.title | default: site.github.repository_name }}</h1>
+      <h2 class="project-tagline">
+        {{ site.description | default: site.github.project_tagline }}
+        {% capture markdown-insert %}
+{% include Features.md %}
+        {% endcapture %}
+        {{ markdown-insert | markdownify }}
+      </h2>
+    </div>
+  </div>
   {% if site.github.is_project_page %}
-    <a href="{{ site.github.releases_url }}" class="btn">Download {{ site.plugin_version }}</a>
-  {% endif %}
-  <a href="{{ site.sections_url | relative_url }}" class="btn">Documentation</a>
-  <a href="{% if site.github.repository_url %}{{ site.github.releases_url }}{% else %}{{ site.release_notes_filename | prepend: site.sections_url | relative_url }}{% endif %}" class="btn">Release Notes</a>
-  {% if site.github.is_project_page %}
-    <a href="{{ site.github.repository_url }}" class="btn">View on GitHub</a>
+    <div class="downloads-container">
+      <h2 class="project-tagline downloads-text">Download {{ site.plugin_version }}:</h2>
+      <div class="download-buttons">
+        <a href="{{ site.github.releases_url }}/{{ site.plugin_name }}-{{ site.plugin_version }}{{ site.download_windows_suffix }}" class="btn">
+          <img src="{{ '/images/download_icon.svg' | relative_url }}" alt="">
+          Windows
+        </a>
+        <a href="{{ site.github.releases_url }}/{{ site.plugin_name }}-{{ site.plugin_version }}{{ site.download_linux_suffix }}" class="btn">
+          <img src="{{ '/images/download_icon.svg' | relative_url }}" alt="">
+          GNU/Linux
+        </a>
+        <!-- <a href="{{ site.github.releases_url }}/{{ site.plugin_name }}-{{ site.plugin_version }}{{ site.download_macos_suffix }}" class="btn"> -->
+          <!-- <img src="{{ '/images/download_icon.svg' | relative_url }}" alt=""> -->
+          <!-- macOS -->
+        <!-- </a> -->
+        <a href="{{ site.github.releases_url }}/{{ site.plugin_name }}-{{ site.plugin_version }}{{ site.download_zip_suffix }}" class="btn">
+          <img src="{{ '/images/download_icon.svg' | relative_url }}" alt="">
+          ZIP package
+        </a>
+      </div>
+    </div>
   {% endif %}
 </section>
