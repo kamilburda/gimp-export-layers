@@ -82,6 +82,12 @@ pygimplib.init()
 
 def preprocess_contents(source_filepaths, dest_filepaths):
   for source_filepath, dest_filepath in zip(source_filepaths, dest_filepaths):
+    if not os.path.isfile(source_filepath):
+      print(
+        'Warning: Input path "{0}" does not exist or is not a file'.format(
+          source_filepath))
+      continue
+    
     with io.open(source_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
       source_file_contents = file_.read()
     
@@ -89,8 +95,11 @@ def preprocess_contents(source_filepaths, dest_filepaths):
     
     for tag_name, tag_class in _TAGS.items():
       tag = tag_class(source_filepath, _TAG_MATCHING_REGEXES[tag_name])
-      preprocessed_contents = _preprocess_contents(
-        source_filepath, tag, preprocessed_contents)
+      try:
+        preprocessed_contents = _preprocess_contents(
+          source_filepath, tag, preprocessed_contents)
+      except DocumentNotFoundError as e:
+        print(str(e))
     
     with io.open(dest_filepath, "w", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
       file_.writelines(preprocessed_contents)
@@ -180,6 +189,10 @@ def parse_args(args_str):
 #===============================================================================
 
 
+class DocumentNotFoundError(Exception):
+  pass
+
+
 class CustomLiquidTag(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   def __init__(self, source_filepath, matching_regex):
@@ -221,6 +234,11 @@ class IncludeSectionTag(CustomLiquidTag):
   def get_contents(self):
     document_filepath = self.args[0]
     section_name = self.optional_args["section"]
+    
+    if not os.path.isfile(document_filepath):
+      raise DocumentNotFoundError(
+        'Document path "{0}" inside "{1}" does not exist or is not a file'.format(
+          document_filepath, self.source_filepath))
     
     with io.open(
            document_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as document:
