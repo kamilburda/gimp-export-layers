@@ -259,7 +259,7 @@ def _create_installers(
   installer_funcs = collections.OrderedDict([
     ("windows", _create_windows_installer),
     ("linux", _create_linux_installer),
-    ("zip", _create_zip_package),
+    ("zip", _create_zip_archive),
   ])
   
   if "all" in installers:
@@ -273,11 +273,11 @@ def _create_installers(
     installer_func(installer_dirpath, input_dirpath, input_filepaths, output_filepaths)
 
 
-def _create_zip_package(
+def _create_zip_archive(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
-  package_filename = "{0}-{1}.zip".format(
+  archive_filename = "{0}-{1}.zip".format(
     pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
-  package_filepath = os.path.join(installer_dirpath, package_filename)
+  archive_filepath = os.path.join(installer_dirpath, archive_filename)
   
   readme_relative_filepath = "Readme.html"
   readme_filepath = os.path.join(
@@ -286,21 +286,21 @@ def _create_zip_package(
   can_create_toplevel_readme = readme_filepath in input_filepaths
   
   if can_create_toplevel_readme:
-    input_filepaths.append(_create_toplevel_readme_for_zip_package(readme_filepath))
+    input_filepaths.append(_create_toplevel_readme_for_zip_archive(readme_filepath))
     output_filepaths.append(readme_relative_filepath)
   
-  with zipfile.ZipFile(package_filepath, "w", zipfile.ZIP_STORED) as package_file:
+  with zipfile.ZipFile(archive_filepath, "w", zipfile.ZIP_STORED) as archive_file:
     for input_filepath, output_filepath in zip(input_filepaths, output_filepaths):
-      package_file.write(input_filepath, output_filepath)
+      archive_file.write(input_filepath, output_filepath)
   
-  print("ZIP package successfully created:", package_filepath)
+  print("ZIP archive successfully created:", archive_filepath)
   
   if can_create_toplevel_readme:
     input_filepaths.pop()
     output_filepaths.pop()
 
 
-def _create_toplevel_readme_for_zip_package(readme_filepath):
+def _create_toplevel_readme_for_zip_archive(readme_filepath):
   def add_directory_to_url(url_attribute_value):
     return re.sub(
       r"^docs",
