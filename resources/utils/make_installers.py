@@ -361,7 +361,7 @@ def _create_windows_installer(
 
 def _create_linux_installer(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
-  installer_filename = "{0}-{1}-linux.sh".format(
+  installer_filename = "{0}-{1}-linux.run".format(
     pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
   installer_filepath = os.path.join(installer_dirpath, installer_filename)
   
