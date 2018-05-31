@@ -382,7 +382,15 @@ def _create_linux_installer(
   ])
   
   if return_code == 0:
-    print("Linux installer successfully created:", installer_filepath)
+    package_filepath = os.path.join(
+      installer_dirpath, re.sub(r".run$", r".zip", installer_filename))
+    
+    with zipfile.ZipFile(package_filepath, "w", zipfile.ZIP_STORED) as package_file:
+      package_file.write(installer_filepath, installer_filename)
+    
+    os.remove(installer_filepath)
+    
+    print("Linux package successfully created:", package_filepath)
   else:
     print("Failed to create Linux installer:", installer_filepath)
 
