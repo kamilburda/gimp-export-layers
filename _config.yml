@@ -12,13 +12,12 @@ plugin_name: "export_layers"
 plugin_version: "3.2"
 latest_plugin_version_release_date: "May 17, 2018"
 download_windows_suffix: "-windows.exe"
-download_macos_suffix: "-macos.sh"
 download_linux_suffix: "-linux.zip"
+download_macos_suffix: "-macos.zip"
 download_zip_suffix: ".zip"
 sections_url: "/sections/"
 license_remote_url: "blob/master/LICENSE"
 license_local_filename: "LICENSE.txt"
-release_notes_filename: "CHANGELOG.html"
 
 plugins:
   - jekyll-sitemap
