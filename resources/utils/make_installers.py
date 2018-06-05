@@ -259,6 +259,7 @@ def _create_installers(
   installer_funcs = collections.OrderedDict([
     ("windows", _create_windows_installer),
     ("linux", _create_linux_installer),
+    ("macos", _create_macos_installer),
     ("zip", _create_zip_archive),
   ])
   
@@ -271,6 +272,94 @@ def _create_installers(
   
   for installer_func in installer_funcs_to_execute:
     installer_func(installer_dirpath, input_dirpath, input_filepaths, output_filepaths)
+
+
+def _create_windows_installer(
+      installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
+  installer_filename_prefix = "{0}-{1}-windows".format(
+    pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
+  
+  installer_filepath = os.path.join(installer_dirpath, installer_filename_prefix + ".exe")
+  
+  WINDOWS_INSTALLER_SCRIPT_DIRPATH = os.path.join(MODULE_DIRPATH, "installers", "windows")
+  WINDOWS_INSTALLER_SCRIPT_FILENAME = "installer.iss"
+  WINDOWS_INSTALLER_COMPILER_COMMAND = "compile_installer.bat"
+  
+  orig_cwd = os.getcwd()
+  os.chdir(WINDOWS_INSTALLER_SCRIPT_DIRPATH)
+  
+  return_code = subprocess.call([
+    "cmd.exe",
+    "/c",
+    WINDOWS_INSTALLER_COMPILER_COMMAND,
+    pygimplib.config.PLUGIN_NAME,
+    pygimplib.config.PLUGIN_VERSION,
+    pygimplib.config.AUTHOR_NAME,
+    os.path.relpath(input_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
+    os.path.relpath(installer_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
+    installer_filename_prefix,
+    WINDOWS_INSTALLER_SCRIPT_FILENAME,
+  ])
+  
+  os.chdir(orig_cwd)
+  
+  if return_code == 0:
+    print("Windows installer successfully created:", installer_filepath)
+  else:
+    print("Failed to create Windows installer:", installer_filepath)
+
+
+def _create_linux_installer(
+      installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
+  _create_unix_installer(
+    installer_dirpath, input_dirpath, input_filepaths, output_filepaths,
+    platform_id="linux", platform_name="Linux")
+
+
+def _create_macos_installer(
+      installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
+  _create_unix_installer(
+    installer_dirpath, input_dirpath, input_filepaths, output_filepaths,
+    platform_id="macos", platform_name="macOS")
+
+
+def _create_unix_installer(
+      installer_dirpath, input_dirpath, input_filepaths, output_filepaths,
+      platform_id, platform_name):
+  installer_filename = "{0}-{1}-{2}.run".format(
+    pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION, platform_id)
+  installer_filepath = os.path.join(installer_dirpath, installer_filename)
+  
+  installer_script_filename = "installer.sh"
+  installer_script_filepath = os.path.join(
+    MODULE_DIRPATH, "installers", "unix", installer_script_filename)
+  
+  shutil.copy2(
+    installer_script_filepath,
+    os.path.join(input_dirpath, installer_script_filename))
+  
+  return_code = subprocess.call([
+    "makeself",
+    input_dirpath,
+    installer_filepath,
+    "{0} - GIMP plug-in".format(pygimplib.config.PLUGIN_TITLE),
+    os.path.join(".", installer_script_filename),
+    "--os",
+    platform_id
+  ])
+  
+  if return_code == 0:
+    package_filepath = os.path.join(
+      installer_dirpath, re.sub(r".run$", r".zip", installer_filename))
+    
+    with zipfile.ZipFile(package_filepath, "w", zipfile.ZIP_STORED) as package_file:
+      package_file.write(installer_filepath, installer_filename)
+    
+    os.remove(installer_filepath)
+    
+    print("{0} package successfully created:".format(platform_name), package_filepath)
+  else:
+    print("Failed to create {0} installer:".format(platform_name), installer_filepath)
 
 
 def _create_zip_archive(
@@ -322,77 +411,6 @@ def _create_toplevel_readme_for_zip_archive(readme_filepath):
     os.path.join(GITHUB_PAGE_DIRPATH, create_user_docs.PAGE_CONFIG_FILENAME))
   
   return toplevel_readme_filepath
-
-
-def _create_windows_installer(
-      installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
-  installer_filename_prefix = "{0}-{1}-windows".format(
-    pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
-  
-  installer_filepath = os.path.join(installer_dirpath, installer_filename_prefix + ".exe")
-  
-  WINDOWS_INSTALLER_SCRIPT_DIRPATH = os.path.join(MODULE_DIRPATH, "installers", "windows")
-  WINDOWS_INSTALLER_SCRIPT_FILENAME = "installer.iss"
-  WINDOWS_INSTALLER_COMPILER_COMMAND = "compile_installer.bat"
-  
-  orig_cwd = os.getcwd()
-  os.chdir(WINDOWS_INSTALLER_SCRIPT_DIRPATH)
-  
-  return_code = subprocess.call([
-    "cmd.exe",
-    "/c",
-    WINDOWS_INSTALLER_COMPILER_COMMAND,
-    pygimplib.config.PLUGIN_NAME,
-    pygimplib.config.PLUGIN_VERSION,
-    pygimplib.config.AUTHOR_NAME,
-    os.path.relpath(input_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
-    os.path.relpath(installer_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
-    installer_filename_prefix,
-    WINDOWS_INSTALLER_SCRIPT_FILENAME,
-  ])
-  
-  os.chdir(orig_cwd)
-  
-  if return_code == 0:
-    print("Windows installer successfully created:", installer_filepath)
-  else:
-    print("Failed to create Windows installer:", installer_filepath)
-
-
-def _create_linux_installer(
-      installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
-  installer_filename = "{0}-{1}-linux.run".format(
-    pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
-  installer_filepath = os.path.join(installer_dirpath, installer_filename)
-  
-  installer_script_filename = "installer.sh"
-  installer_script_filepath = os.path.join(
-    MODULE_DIRPATH, "installers", "unix", installer_script_filename)
-  
-  shutil.copy2(
-    installer_script_filepath,
-    os.path.join(input_dirpath, installer_script_filename))
-  
-  return_code = subprocess.call([
-    "makeself",
-    input_dirpath,
-    installer_filepath,
-    "{0} - GIMP plug-in".format(pygimplib.config.PLUGIN_TITLE),
-    os.path.join(".", installer_script_filename)
-  ])
-  
-  if return_code == 0:
-    package_filepath = os.path.join(
-      installer_dirpath, re.sub(r".run$", r".zip", installer_filename))
-    
-    with zipfile.ZipFile(package_filepath, "w", zipfile.ZIP_STORED) as package_file:
-      package_file.write(installer_filepath, installer_filename)
-    
-    os.remove(installer_filepath)
-    
-    print("Linux package successfully created:", package_filepath)
-  else:
-    print("Failed to create Linux installer:", installer_filepath)
 
 
 #===============================================================================

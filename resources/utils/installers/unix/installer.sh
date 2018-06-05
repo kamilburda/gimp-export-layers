@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Common functions
+
 command_exists()
 {
   command -v "$1" > /dev/null 2>&1
@@ -37,6 +39,24 @@ get_python_version_major_minor()
   echo "`"$python_command" --version 2>&1 | sed 's/.*Python \([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*$/\1.\2/'`"
 }
 
+get_installation_dirpath()
+{
+  if [ -n "$1" ]; then
+    echo "$1"
+  else
+    echo "`get_plugins_dirpath`"
+  fi
+}
+
+get_plugins_dirpath()
+{
+  if ! is_user_root; then
+    echo "`get_user_plugins_dirpath`"
+  else
+    echo "`get_system_plugins_dirpath`"
+  fi
+}
+
 get_user_plugins_dirpath()
 {
   gimp_version="`get_gimp_version_major_minor`"
@@ -58,44 +78,42 @@ get_system_plugins_dirpath()
   echo '/usr/lib/gimp/'"$version_major"'.0/plug-ins'
 }
 
-get_installation_dirpath()
-{
-  if [ -n "$1" ]; then
-    echo "$1"
-  else
-    if ! is_user_root; then
-      echo "`get_user_plugins_dirpath`"
-    else
-      echo "`get_system_plugins_dirpath`"
-    fi
-  fi
-}
-
-has_correct_python_version()
-{
-  if command_exists "$1" && [ "`get_python_version_major_minor "$1"`" = "$REQUIRED_PYTHON_VERSION" ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-has_correct_gimp_version()
+check_correct_gimp_version()
 {
   gimp_version="`get_gimp_version_major_minor "$1"`"
   version_major="`echo "$gimp_version" | cut -d '.' -f1`"
   version_minor="`echo "$gimp_version" | cut -d '.' -f2`"
   
-  if [ $version_major -ge $MIN_REQUIRED_GIMP_VERSION_MAJOR ] && [ $version_minor -ge $MIN_REQUIRED_GIMP_VERSION_MINOR ]; then
-    return 0
+  if ! { [ $version_major -ge $MIN_REQUIRED_GIMP_VERSION_MAJOR ] && [ $version_minor -ge $MIN_REQUIRED_GIMP_VERSION_MINOR ]; }; then
+    exit_with_usage "The specified GIMP installation ('$gimp_command') is not supported. Please install GIMP ${MIN_REQUIRED_GIMP_VERSION_MAJOR}.${MIN_REQUIRED_GIMP_VERSION_MINOR} or later or specify custom path to GIMP with the -g option and the plug-in installation path with the -i option."
+  fi
+}
+
+check_python_installation()
+{
+  if [ -f "$pygimp_interp_filepath" ]; then
+    python_command="`get_python_command_from_pygimp_interp "$pygimp_interp_filepath"`"
+    check_correct_python_version "$python_command"
   else
-    return 1
+    echo "Warning: '$pygimp_interp_filepath' does not exist. $CHECK_PYTHON_MANUALLY_MESSAGE" 1>&2
+  fi
+}
+
+check_correct_python_version()
+{
+  if ! { command_exists "$1" && [ "`get_python_version_major_minor "$1"`" = "$REQUIRED_PYTHON_VERSION" ]; }; then
+    exit_with_usage "Python $REQUIRED_PYTHON_VERSION not installed. Install Python $REQUIRED_PYTHON_VERSION and modify '$pygimp_interp_filepath' to point to Python $REQUIRED_PYTHON_VERSION command before proceeding. Alternatively, install GIMP from a package that is bundled with Python $REQUIRED_PYTHON_VERSION."
   fi
 }
 
 get_python_command_from_pygimp_interp()
 {
   sed -n '1 s/^[^=]*=\(.*\)/\1/p' "$1"
+}
+
+get_pygimp_interp_filepath()
+{
+  echo "$pygimp_interp_dirpath"'/'"$pygimp_interp_filename"
 }
 
 exit_with_usage()
@@ -121,11 +139,14 @@ Options:
 } 1>&2
 
 
+# Global variables
+
 script_filename="`basename "$0"`"
 
 gimp_command_default='gimp'
 gimp_command=''
 installation_dirpath=''
+installation_os='linux'
 
 MIN_REQUIRED_GIMP_VERSION_MAJOR=2
 MIN_REQUIRED_GIMP_VERSION_MINOR=8
@@ -133,10 +154,13 @@ REQUIRED_PYTHON_VERSION='2.7'
 
 python_command='python'
 pygimp_interp_filename='pygimp.interp'
-pygimp_interp_rel_dirpath='lib/gimp/2.0/interpreters'
-pygimp_interp_system_filepath='/usr/'"$pygimp_interp_rel_dirpath"'/'"$pygimp_interp_filename"
+pygimp_interp_dirpath='/usr/lib/gimp/2.0/interpreters'
+pygimp_interp_filepath="`get_pygimp_interp_filepath`"
 CHECK_PYTHON_MANUALLY_MESSAGE="Check if GIMP is correctly installed with Python $REQUIRED_PYTHON_VERSION. You can display the Python version in GIMP by running 'Filter -> Python-Fu -> Console'. If this is not the case, install Python $REQUIRED_PYTHON_VERSION, locate '$pygimp_interp_filename' in your GIMP installation and set the path to the 'python' command there manually.
 "
+
+
+# Option parsing
 
 while [ "`echo "$1" | head -c1`" = "-" ] && [ "$1" != "--" ]; do
   case "$1" in
@@ -154,6 +178,13 @@ while [ "`echo "$1" | head -c1`" = "-" ] && [ "$1" != "--" ]; do
       else
         exit_with_usage "Missing argument to option $1"
       fi;;
+    -o | --os )
+      if [ -n "$2" ]; then
+        installation_os="$2"
+        shift
+      else
+        exit_with_usage "Missing argument to option $1"
+      fi;;
     -h | --help ) exit_with_usage;;
     * ) [ -n "$1" ] && exit_with_usage "Unknown argument: $1";;
   esac
@@ -163,6 +194,43 @@ done
 
 [ "$1" = "--" ] && shift
 
+
+# Platform-specific setup
+
+if [ "$installation_os" = 'linux' ]; then
+  :
+elif [ "$installation_os" = 'macos' ]; then
+  
+  get_user_plugins_dirpath()
+  {
+    gimp_version="`get_gimp_version_major_minor`"
+    version_major="`echo "$gimp_version" | cut -d '.' -f1`"
+    version_minor="`echo "$gimp_version" | cut -d '.' -f2`"
+    
+    echo "$HOME"'/Library/Application Support/GIMP/'"$version_major"'.'"$version_minor"'/plug-ins'
+  }
+  
+  get_system_plugins_dirpath()
+  {
+    gimp_version="`get_gimp_version_major_minor`"
+    version_major="`echo "$gimp_version" | cut -d '.' -f1`"
+    
+    echo '/Applications/GIMP.app/Contents/Resources/lib/gimp/'"$version_major"'.0/plug-ins'
+  }
+  
+  check_python_installation()
+  {
+    check_correct_python_version "$python_command_default"
+  }
+  
+  gimp_command_default='/Applications/GIMP.app/Contents/MacOS/GIMP'
+  python_command_default='/Applications/GIMP.app/Contents/MacOS/python'
+else
+  exit_with_usage "Error: Invalid argument for -o option '$installation_os'"
+fi
+
+
+# Checks for correct GIMP and Python installation
 
 if [ -z "$gimp_command" ]; then
   gimp_command="$gimp_command_default"
@@ -178,23 +246,16 @@ else
   exit_with_usage "Could not find path to GIMP command ('$gimp_command'), please specify the correct path using option -g and the plug-in installation path with the -i option."
 fi
 
-if ! has_correct_gimp_version "$gimp_command"; then
-  exit_with_usage "The specified GIMP installation ('$gimp_command') is not supported. Please install GIMP ${MIN_REQUIRED_GIMP_VERSION_MAJOR}.${MIN_REQUIRED_GIMP_VERSION_MINOR} or later or specify custom path to GIMP with the -g option and the plug-in installation path with the -i option."
-fi
+check_correct_gimp_version "$gimp_command"
 
 if [ "$gimp_command" = "$gimp_command_default" ]; then
-  if [ -f "$pygimp_interp_system_filepath" ]; then
-    python_command="`get_python_command_from_pygimp_interp "$pygimp_interp_system_filepath"`"
-    
-    if ! has_correct_python_version "$python_command"; then
-      exit_with_usage "Python $REQUIRED_PYTHON_VERSION not installed. Please install Python $REQUIRED_PYTHON_VERSION and modify '$pygimp_interp_system_filepath' to point to Python $REQUIRED_PYTHON_VERSION command before proceeding."
-    fi
-  else
-    echo "Warning: '$pygimp_interp_system_filepath' does not exist. $CHECK_PYTHON_MANUALLY_MESSAGE" 1>&2
-  fi
+  check_python_installation
 else
   echo "Warning: Could not check for Python $REQUIRED_PYTHON_VERSION installation. $CHECK_PYTHON_MANUALLY_MESSAGE" 1>&2
 fi
+
+
+# Plug-in installation
 
 echo 'Copying files to '"$installation_dirpath"
 chmod -R 755 .
