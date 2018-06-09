@@ -22,10 +22,12 @@ get_gimp_version_major_minor()
   if [ -n "$1" ]; then
     gimp_command="$1"
   else
-    gimp_command='gimp'
+    gimp_command="$gimp_command_default"
   fi
   
-  echo "`"$gimp_command" --version 2>&1 | sed 's/.*version \([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*$/\1.\2/'`"
+  echo "`"$gimp_command" --version 2>&1 | sed -n '\
+    /.*version [0-9][0-9]*\.[0-9][0-9]*\..*$/ \
+      { s/.*version \([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*$/\1.\2/p; q; }'`"
 }
 
 get_python_version_major_minor()
@@ -36,7 +38,9 @@ get_python_version_major_minor()
     python_command='python'
   fi
   
-  echo "`"$python_command" --version 2>&1 | sed 's/.*Python \([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*$/\1.\2/'`"
+  echo "`"$python_command" --version 2>&1 | sed -n '\
+    /.*Python [0-9][0-9]*\.[0-9][0-9]*\..*$/ \
+      { s/.*Python \([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*$/\1.\2/p; q; }'`"
 }
 
 get_installation_dirpath()
