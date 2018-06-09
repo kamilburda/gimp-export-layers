@@ -69,7 +69,8 @@ GITHUB_PAGE_UTILS_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "GitHub_page
 #===============================================================================
 
 
-def make_installers(input_dirpath, installer_dirpath, force_if_dirty, installers):
+def make_installers(
+      input_dirpath, installer_dirpath, force_if_dirty, installers, generate_docs):
   temp_repo_files_dirpath = tempfile.mkdtemp()
   
   relative_filepaths_with_git_filters = (
@@ -83,7 +84,8 @@ def make_installers(input_dirpath, installer_dirpath, force_if_dirty, installers
   
   _create_temp_dirpath(temp_dirpath)
   
-  _create_user_docs(os.path.join(temp_dirpath, pygimplib.config.PLUGIN_NAME))
+  if generate_docs:
+    _create_user_docs(os.path.join(temp_dirpath, pygimplib.config.PLUGIN_NAME))
   
   input_filepaths = _get_filtered_filepaths(input_dirpath, INCLUDE_LIST_FILEPATH)
   user_docs_filepaths = _get_filtered_filepaths(temp_dirpath, INCLUDE_LIST_FILEPATH)
@@ -416,7 +418,11 @@ def _create_toplevel_readme_for_zip_archive(readme_filepath):
 #===============================================================================
 
 
-def main(destination_dirpath=None, force_if_dirty=False, installers="manual"):
+def main(
+      destination_dirpath=None,
+      force_if_dirty=False,
+      installers="zip",
+      generate_docs=True):
   installer_dirpath = (
     destination_dirpath if destination_dirpath else OUTPUT_DIRPATH_DEFAULT)
   pgpath.make_dirs(installer_dirpath)
@@ -424,7 +430,11 @@ def main(destination_dirpath=None, force_if_dirty=False, installers="manual"):
   installers = installers.replace(" ", "").split(",")
   
   make_installers(
-    pygimplib.config.PLUGINS_DIRPATH, installer_dirpath, force_if_dirty, installers)
+    pygimplib.config.PLUGINS_DIRPATH,
+    installer_dirpath,
+    force_if_dirty,
+    installers,
+    generate_docs)
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ Options:
     - example: -i "windows,zip" creates a Windows installer and a ZIP package for manual install
     - "all" creates all installers - note that creating a Windows installer may not be possible on *nix systems
     - unrecognized values are silently ignored
+  -o, --no-docs - do not generate documentation
   -h, --help - display this help and exit'
   
   if [ -z "$1" ]; then
@@ -28,6 +29,7 @@ Options:
 destination_dirpath='None'
 force_if_dirty='False'
 installers='"zip"'
+generate_docs='True'
 
 
 while [[ "${1:0:1}" = "-" && "$1" != "--" ]]; do
@@ -35,6 +37,7 @@ while [[ "${1:0:1}" = "-" && "$1" != "--" ]]; do
   -d | --dest-dir ) shift; destination_dirpath='r"'"$1"'"';;
   -f | --force ) force_if_dirty='True';;
   -i | --installers ) shift; installers='"'"$1"'"';;
+  -o | --no-docs ) generate_docs='False';;
   -h | --help ) error_usage;;
   * ) [[ "$1" ]] && error_usage "unknown argument: $1";;
   esac
@@ -63,7 +66,7 @@ import make_installers
 
 os.chdir(resources_dirpath)
 
-make_installers.main(destination_dirpath='"$destination_dirpath"', force_if_dirty='"$force_if_dirty"', installers='"$installers"')
+make_installers.main(destination_dirpath='"$destination_dirpath"', force_if_dirty='"$force_if_dirty"', installers='"$installers"', generate_docs='"$generate_docs"')
 
 pdb.gimp_quit(0)
 '
