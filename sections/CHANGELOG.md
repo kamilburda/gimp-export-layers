@@ -4,6 +4,18 @@ title: Release Notes
 navbar_active_tab: docs
 ---
 
+3.2.1
+=====
+
+* Added installers for Linux and macOS.
+* Pressing the Help button now jumps to the Documentation subpage rather than
+  the main page of the plug-in.
+* Fixed updates to previews not working and info/error messages not disappearing
+  automatically for GIMP 2.10 on Windows.
+* Fixed GIMP version checks causing incorrect behavior of progress bars and
+  prevented displaying several file extensions available on certain GIMP
+  versions.
+
 3.2
 ===
 
