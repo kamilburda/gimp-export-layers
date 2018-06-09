@@ -20,7 +20,21 @@ Unpack the ZIP archive to any folder and run the extracted installer by double-c
 
 You can customize the file path to the GIMP executable and the plug-in installation with `-g` and `-i` options, respectively. These options must be specified in the terminal as follows (do not forget the `--`):
 
-    ./[installer script].run -- -g [gimp_filepath] -i [installation_path]
+    [installer script].run -- -g [gimp_filepath] -i [installation_path]
+
+If `-g` is specified, so must be `-i`, otherwise the installation will not proceed.
+
+To install Export Layers system-wide, run the installer with root privileges.
+
+### macOS
+
+First, make sure GIMP is installed in the `Applications` folder.
+
+Unpack the ZIP archive to any folder and run the extracted installer from Terminal.
+
+You can customize the file path to the GIMP executable and the plug-in installation with `-g` and `-i` options, respectively. These options must be specified in the terminal as follows (do not forget the `--`):
+
+    [installer script].run -- -g [gimp_filepath] -i [installation_path]
 
 If `-g` is specified, so must be `-i`, otherwise the installation will not proceed.
 
@@ -90,18 +104,6 @@ to the folder containing plug-ins depending on your version of GIMP:
 * GIMP 2.10: `/Users/[your username]/Library/Application Support/GIMP/2.10/plug-ins`
 
 If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
-
-To check if the correct version of Python is installed, start GIMP and go to
-"Filters → Python-Fu → Console". The console must display "Python 2.7" or later
-from the 2.7.x series. If not, install Python 2.7, open
-`/Applications/Gimp.app/Contents/Resources/lib/gimp/2.0/interpreters/pygimp.interp`
-and change its contents to the following:
-
-    python=[path to Python 2.7 executable]
-    /usr/bin/python=[path to Python 2.7 executable]
-    :Python:E::py::python:
-
-`[path to Python 2.7 executable]` is usually `/usr/bin/python` or `/usr/bin/python2.7`.
 
 
 Upgrading from 2.x to to 3.x
