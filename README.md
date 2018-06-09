@@ -14,7 +14,7 @@ Features
 See the [documentation](https://khalim19.github.io/gimp-plugin-export-layers/sections)
 for information about installation, usage and known issues.
 
-[**Download latest release**](https://github.com/khalim19/gimp-plugin-export-layers/releases/tag/3.2) (3.2)
+[**Download latest release**](https://github.com/khalim19/gimp-plugin-export-layers/releases/tag/3.2.1) (3.2.1)
 
 
 Support
