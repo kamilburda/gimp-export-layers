@@ -127,6 +127,7 @@ exit_with_usage()
 Options:
   -g, --gimp-command [COMMAND] - file path to GIMP command; if this option is specified, -i option must be specified as well
   -i, --install-path [DIRECTORY] - plug-in installation path
+  -u, --dry-run - do not install the plug-in; this is useful to test the installer behavior with different environments and options
   -h, --help - display this help and exit'
   
   echo
@@ -151,6 +152,7 @@ gimp_command_default='gimp'
 gimp_command=''
 installation_dirpath=''
 installation_os='linux'
+dry_run=false
 
 MIN_REQUIRED_GIMP_VERSION_MAJOR=2
 MIN_REQUIRED_GIMP_VERSION_MINOR=8
@@ -182,6 +184,7 @@ while [ "`echo "$1" | head -c1`" = "-" ] && [ "$1" != "--" ]; do
       else
         exit_with_usage "Missing argument to option $1"
       fi;;
+    -u | --dry-run ) dry_run=true;;
     -o | --os )
       if [ -n "$2" ]; then
         installation_os="$2"
@@ -262,7 +265,10 @@ fi
 # Plug-in installation
 
 echo 'Copying files to '"$installation_dirpath"
-chmod -R 755 .
-rm -f "$script_filename"
-mkdir -p "$installation_dirpath"
-cp -a . "$installation_dirpath"
+
+if [ "$dry_run" = false ]; then
+  chmod -R 755 .
+  rm -f "$script_filename"
+  mkdir -p "$installation_dirpath"
+  cp -p -R . "$installation_dirpath"
+fi
