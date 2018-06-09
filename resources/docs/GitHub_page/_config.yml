@@ -10,7 +10,7 @@ copyright_years: "{% include-config "COPYRIGHT_YEARS" %}"
 
 plugin_name: "{% include-config "PLUGIN_NAME" %}"
 plugin_version: "{% include-config "PLUGIN_VERSION" %}"
-latest_plugin_version_release_date: "May 17, 2018"
+latest_plugin_version_release_date: "{% include-config "LATEST_PLUGIN_VERSION_RELEASE_DATE" %}"
 download_windows_suffix: "-windows.exe"
 download_linux_suffix: "-linux.zip"
 download_macos_suffix: "-macos.zip"
