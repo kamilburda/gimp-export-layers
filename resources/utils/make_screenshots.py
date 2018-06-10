@@ -55,7 +55,8 @@ pygimplib.init()
 MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
 RESOURCES_DIRPATH = os.path.dirname(MODULE_DIRPATH)
 
-TEST_IMAGES_DIRPATH = os.path.join(RESOURCES_DIRPATH, "test_images")
+TEST_IMAGES_DIRPATH = os.path.join(
+  pygimplib.config.PLUGIN_SUBDIRPATH, "tests", "test_images")
 TEST_IMAGES_FILEPATH = os.path.join(TEST_IMAGES_DIRPATH, "test_export_layers_contents.xcf")
 OUTPUT_DIRPATH = os.path.join(gimp.user_directory(4), "Loading Screens", "Components")
 

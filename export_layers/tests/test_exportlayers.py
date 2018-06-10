@@ -45,9 +45,7 @@ pygimplib.init()
 #===============================================================================
 
 _CURRENT_MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
-RESOURCES_DIRPATH = os.path.join(
-  os.path.dirname(os.path.dirname(_CURRENT_MODULE_DIRPATH)), "resources")
-TEST_IMAGES_DIRPATH = os.path.join(RESOURCES_DIRPATH, "test_images")
+TEST_IMAGES_DIRPATH = os.path.join(_CURRENT_MODULE_DIRPATH, "test_images")
 
 EXPECTED_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "expected_results")
 OUTPUT_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "temp_output")
