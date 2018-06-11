@@ -1,14 +1,14 @@
-resources/docs/images/download_icon.svg
-resources/docs/gh-pages/images/download_icon.svg
+docs/images/download_icon.svg
+docs/gh-pages/images/download_icon.svg
 
-resources/docs/images/logo.svg
-resources/docs/gh-pages/images/logo.svg
+docs/images/logo.svg
+docs/gh-pages/images/logo.svg
 
-resources/docs/images/screenshot_dialog_advanced_usage.png
-resources/docs/gh-pages/images/screenshot_dialog_advanced_usage.png
+docs/images/screenshot_dialog_advanced_usage.png
+docs/gh-pages/images/screenshot_dialog_advanced_usage.png
 
-resources/docs/images/screenshot_dialog_basic_usage.png
-resources/docs/gh-pages/images/screenshot_dialog_basic_usage.png
+docs/images/screenshot_dialog_basic_usage.png
+docs/gh-pages/images/screenshot_dialog_basic_usage.png
 
-resources/docs/images/screenshot_dialog_sketch.svg
-resources/docs/gh-pages/images/screenshot_dialog_sketch.svg
+docs/images/screenshot_dialog_sketch.svg
+docs/gh-pages/images/screenshot_dialog_sketch.svg

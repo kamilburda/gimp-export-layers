@@ -1,14 +1,14 @@
-resources/docs/README_raw.md
+docs/README_raw.md
 README.md
 
-resources/docs/GitHub_page/_config.yml
-resources/docs/gh-pages/_config.yml
+docs/GitHub_page/_config.yml
+docs/gh-pages/_config.yml
 
-resources/docs/GitHub_page/index.md
-resources/docs/gh-pages/index.md
+docs/GitHub_page/index.md
+docs/gh-pages/index.md
 
-resources/docs/GitHub_page/_includes/Features.md
-resources/docs/gh-pages/_includes/Features.md
+docs/GitHub_page/_includes/Features.md
+docs/gh-pages/_includes/Features.md
 
-resources/docs/GitHub_page/sections
-resources/docs/gh-pages/sections
+docs/GitHub_page/sections
+docs/gh-pages/sections

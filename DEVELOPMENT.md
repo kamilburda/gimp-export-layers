@@ -43,7 +43,7 @@ take effect.
 
 Clone the `gh-pages` branch (acting as the
 [GitHub page for Export Layers](https://khalim19.github.io/gimp-plugin-export-layers/))
-to `resources/docs/gh-pages`. Several scripts depend on this directory
+to `docs/gh-pages`. Several scripts depend on this directory
 location.
 
 Some scripts require that the GitHub page be run locally. To set up GitHub page
@@ -55,7 +55,7 @@ locally:
 
 * Switch to the `gh-pages` directory:
 
-      cd resources/docs/gh-pages
+      cd docs/gh-pages
     
 * Run `bundle` to install required dependencies:
 
@@ -73,8 +73,8 @@ The `commit-msg` hook enforces several
 [conventions for commit messages](#Writing-Commit-Messages).
 
 The `pre-commit` hook automatically propagates changes in files in
-`resources/docs` to files comprising the end user documentation, such as the
-Readme and GitHub pages (located in `resources/docs/gh-pages`). See
+`docs` to files comprising the end user documentation, such as the
+Readme and GitHub pages (located in `docs/gh-pages`). See
 [User Documentation](#User-Documentation) for more information.
 
 
@@ -344,12 +344,12 @@ directly in the source code.
 ### User Documentation <a name="User-Documentation"></a>
 
 To update documentation for end users, modify the "raw" documentation - files
-located in `resources/docs` (except files in `gh-pages`).
+located in `docs` (except files in `gh-pages`).
 
-Do not modify other documentation files outside `resources/docs` as they are
+Do not modify other documentation files outside `docs` as they are
 automatically updated by [git hooks](#Git-Hooks) when committing changes to the
-files in `resources/docs`.
+files in `docs`.
 
-Any changes propagated to files in `resources/docs/gh-pages` should be
+Any changes propagated to files in `docs/gh-pages` should be
 committed and pushed only when a new release is made so that the Export Layers
 page contains documentation of the latest official release.

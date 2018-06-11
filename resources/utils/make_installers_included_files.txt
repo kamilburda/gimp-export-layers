@@ -6,8 +6,6 @@
 # Include files
 /export_layers/
 /export_layers.py
-/docs/
-/Readme.html
 
 # Ignore files
 !*.pyc

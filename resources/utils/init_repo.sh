@@ -126,9 +126,9 @@ echo 'Setting up filters to ignore modifications to specific lines'
 git config --local 'filter.ignore_log_mode.clean' "sed 's/pygimplib\\.config\\.LOG_MODE = .*/pygimplib\\.config\\.LOG_MODE = pygimplib\\.pgconstants\\.LOG_EXCEPTIONS_ONLY/'"
 git config --local 'filter.ignore_log_mode.smudge' 'cat'
 
-cd 'resources/docs'
+cd 'docs'
 
-echo 'Cloning '"$plugin_page_branch_name"' branch of '"$repo_url"' into '\'"$repo_dirpath"'/resources/docs/'"$plugin_page_branch_name"\'
+echo 'Cloning '"$plugin_page_branch_name"' branch of '"$repo_url"' into '\'"$repo_dirpath"'/docs/'"$plugin_page_branch_name"\'
 git clone --branch "$plugin_page_branch_name" -- "$repo_url" "$plugin_page_branch_name"
 
 cd "$plugin_page_branch_name"

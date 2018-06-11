@@ -56,15 +56,15 @@ pygimplib.init()
 #===============================================================================
 
 MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
-RESOURCES_DIRPATH = os.path.dirname(MODULE_DIRPATH)
 
 TEMP_INPUT_DIRPATH = os.path.join(MODULE_DIRPATH, "installers", "temp_input")
 OUTPUT_DIRPATH_DEFAULT = os.path.join(MODULE_DIRPATH, "installers", "output")
 
 INCLUDE_LIST_FILEPATH = os.path.join(MODULE_DIRPATH, "make_installers_included_files.txt")
 
-GITHUB_PAGE_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "gh-pages")
-GITHUB_PAGE_UTILS_DIRPATH = os.path.join(RESOURCES_DIRPATH, "docs", "GitHub_page")
+GITHUB_PAGE_DIRPATH = os.path.join(pygimplib.config.PLUGINS_DIRPATH, "docs", "gh-pages")
+GITHUB_PAGE_UTILS_DIRPATH = os.path.join(
+  pygimplib.config.PLUGINS_DIRPATH, "docs", "GitHub_page")
 
 #===============================================================================
 
