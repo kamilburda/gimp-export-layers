@@ -27,7 +27,6 @@ from export_layers import pygimplib
 from future.builtins import *
 
 import collections
-import importlib
 import io
 import os
 import re
@@ -45,6 +44,7 @@ from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgutils
 
 from utils import create_user_docs
+from utils import process_local_docs
 
 import export_layers.config
 export_layers.config.init()
@@ -404,10 +404,7 @@ def _create_toplevel_readme_for_zip_archive(readme_filepath):
   
   shutil.copy2(readme_filepath, toplevel_readme_filepath)
   
-  sys.path.append(GITHUB_PAGE_UTILS_DIRPATH)
-  process_local_docs_module = importlib.import_module("process_local_docs")
-  
-  process_local_docs_module.modify_url_attributes_in_file(
+  process_local_docs.modify_url_attributes_in_file(
     readme_filepath,
     add_directory_to_url,
     toplevel_readme_filepath,

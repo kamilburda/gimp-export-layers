@@ -8,7 +8,6 @@ This script generates user documentation from GitHub Pages files.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import importlib
 import io
 import os
 import shutil
@@ -17,6 +16,8 @@ import sys
 import psutil
 import requests
 import yaml
+
+from utils import process_local_docs
 
 #===============================================================================
 
@@ -30,7 +31,7 @@ JEKYLL_SERVER_PORT = "4000"
 
 def main(github_page_scripts_dirpath, github_page_dirpath, output_dirpath):
   run_page_locally(github_page_scripts_dirpath, github_page_dirpath)
-  process_local_docs(
+  _process_local_docs(
     github_page_scripts_dirpath,
     github_page_dirpath,
     output_dirpath)
@@ -64,13 +65,10 @@ def run_page_locally(github_page_scripts_dirpath, github_page_dirpath):
   run_page_locally_process.kill()
 
 
-def process_local_docs(github_page_scripts_dirpath, github_page_dirpath, output_dirpath):
-  sys.path.append(github_page_scripts_dirpath)
-  process_local_docs_module = importlib.import_module("process_local_docs")
-  
+def _process_local_docs(github_page_scripts_dirpath, github_page_dirpath, output_dirpath):
   copy_directory(os.path.join(github_page_dirpath, SITE_DIRNAME), output_dirpath)
   
-  process_local_docs_module.main(
+  process_local_docs.main(
     output_dirpath,
     os.path.join(github_page_dirpath, PAGE_CONFIG_FILENAME))
 
