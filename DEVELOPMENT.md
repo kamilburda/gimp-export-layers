@@ -96,8 +96,7 @@ Creating a Release <a name="Creating-a-Release"></a>
 
 Run `utils/make_installers.sh` to create installer(s).
 Use the `-i` option to specify platform(s) for which to create installers.
-The installers will be created in the `utils/installers/output`
-directory.
+The installers will be created in the `installers/output` directory.
 
 
 Coding Conventions <a name="Coding-Conventions"></a>

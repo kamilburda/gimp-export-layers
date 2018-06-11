@@ -56,9 +56,10 @@ pygimplib.init()
 #===============================================================================
 
 MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
+INSTALLERS_DIRPATH = os.path.join(pygimplib.config.PLUGINS_DIRPATH, "installers")
 
-TEMP_INPUT_DIRPATH = os.path.join(MODULE_DIRPATH, "installers", "temp_input")
-OUTPUT_DIRPATH_DEFAULT = os.path.join(MODULE_DIRPATH, "installers", "output")
+TEMP_INPUT_DIRPATH = os.path.join(INSTALLERS_DIRPATH, "temp_input")
+OUTPUT_DIRPATH_DEFAULT = os.path.join(INSTALLERS_DIRPATH, "output")
 
 INCLUDE_LIST_FILEPATH = os.path.join(MODULE_DIRPATH, "make_installers_included_files.txt")
 
@@ -283,7 +284,7 @@ def _create_windows_installer(
   
   installer_filepath = os.path.join(installer_dirpath, installer_filename_prefix + ".exe")
   
-  WINDOWS_INSTALLER_SCRIPT_DIRPATH = os.path.join(MODULE_DIRPATH, "installers", "windows")
+  WINDOWS_INSTALLER_SCRIPT_DIRPATH = os.path.join(INSTALLERS_DIRPATH, "windows")
   WINDOWS_INSTALLER_SCRIPT_FILENAME = "installer.iss"
   WINDOWS_INSTALLER_COMPILER_COMMAND = "compile_installer.bat"
   
@@ -334,7 +335,7 @@ def _create_unix_installer(
   
   installer_script_filename = "installer.sh"
   installer_script_filepath = os.path.join(
-    MODULE_DIRPATH, "installers", "unix", installer_script_filename)
+    INSTALLERS_DIRPATH, "unix", installer_script_filename)
   
   shutil.copy2(
     installer_script_filepath,

@@ -6,9 +6,9 @@
 export_layers/tests/test_images/temp_output/
 export_layers/tests/test_images/incorrect_results/
 docs/gh-pages/
-utils/installers/output/
-utils/installers/temp_input/
-utils/installers/test_input/
+installers/output/
+installers/temp_input/
+installers/test_input/
 
 #################
 ## Eclipse
