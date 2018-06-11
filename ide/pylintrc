@@ -67,7 +67,8 @@ disable=no-member,
   ungrouped-imports,
   trailing-whitespace,
   missing-docstring,
-  bad-continuation
+  bad-continuation,
+  no-else-return
 
 
 [REPORTS]
