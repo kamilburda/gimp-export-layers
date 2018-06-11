@@ -64,11 +64,10 @@ locally:
 
 ### Git Hooks <a name="Git-Hooks"></a>
 
-Set up git hooks located in `resources/git/hooks` by creating symbolic
-links:
+Set up git hooks located in `git_hooks` by creating symbolic links:
 
-    ln -s resources/git/hooks/commig_msg.py .git/hooks/commit-msg
-    ln -s resources/git/hooks/pre_commit.py .git/hooks/pre-commit
+    ln -s git_hooks/commig_msg.py .git/hooks/commit-msg
+    ln -s git_hooks/pre_commit.py .git/hooks/pre-commit
 
 The `commit-msg` hook enforces several
 [conventions for commit messages](#Writing-Commit-Messages).

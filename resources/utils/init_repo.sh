@@ -119,8 +119,8 @@ git clone --recurse-submodules -- "$repo_url" "$repo_dirpath"
 cd "$repo_dirpath"
 
 echo 'Setting up git hooks'
-ln -s 'resources/git/hooks/commig_msg.py' '.git/hooks/commit-msg'
-ln -s 'resources/git/hooks/pre_commit.py' '.git/hooks/pre-commit'
+ln -s 'git_hooks/commit_msg.py' '.git/hooks/commit-msg'
+ln -s 'git_hooks/pre_commit.py' '.git/hooks/pre-commit'
 
 echo 'Setting up filters to ignore modifications to specific lines'
 git config --local 'filter.ignore_log_mode.clean' "sed 's/pygimplib\\.config\\.LOG_MODE = .*/pygimplib\\.config\\.LOG_MODE = pygimplib\\.pgconstants\\.LOG_EXCEPTIONS_ONLY/'"
@@ -134,7 +134,7 @@ git clone --branch "$plugin_page_branch_name" -- "$repo_url" "$plugin_page_branc
 cd "$plugin_page_branch_name"
 
 echo 'Setting up git hooks for branch '"$plugin_page_branch_name"
-ln -s "$repo_dirpath"'/resources/git/hooks/commig_msg.py' '.git/hooks/commit-msg'
+ln -s "$repo_dirpath"'/git_hooks/commit_msg.py' '.git/hooks/commit-msg'
 
 bundle install
 
