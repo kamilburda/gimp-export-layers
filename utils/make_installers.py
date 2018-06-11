@@ -56,16 +56,16 @@ pygimplib.init()
 #===============================================================================
 
 MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
-INSTALLERS_DIRPATH = os.path.join(pygimplib.config.PLUGINS_DIRPATH, "installers")
+PLUGINS_DIRPATH = os.path.dirname(MODULE_DIRPATH)
+INSTALLERS_DIRPATH = os.path.join(PLUGINS_DIRPATH, "installers")
 
 TEMP_INPUT_DIRPATH = os.path.join(INSTALLERS_DIRPATH, "temp_input")
 OUTPUT_DIRPATH_DEFAULT = os.path.join(INSTALLERS_DIRPATH, "output")
 
 INCLUDE_LIST_FILEPATH = os.path.join(MODULE_DIRPATH, "make_installers_included_files.txt")
 
-GITHUB_PAGE_DIRPATH = os.path.join(pygimplib.config.PLUGINS_DIRPATH, "docs", "gh-pages")
-GITHUB_PAGE_UTILS_DIRPATH = os.path.join(
-  pygimplib.config.PLUGINS_DIRPATH, "docs", "GitHub_page")
+GITHUB_PAGE_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "gh-pages")
+GITHUB_PAGE_UTILS_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "GitHub_page")
 
 #===============================================================================
 
@@ -428,11 +428,7 @@ def main(
   installers = installers.replace(" ", "").split(",")
   
   make_installers(
-    pygimplib.config.PLUGINS_DIRPATH,
-    installer_dirpath,
-    force_if_dirty,
-    installers,
-    generate_docs)
+    PLUGINS_DIRPATH, installer_dirpath, force_if_dirty, installers, generate_docs)
 
 
 if __name__ == "__main__":

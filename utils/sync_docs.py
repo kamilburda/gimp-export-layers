@@ -48,6 +48,7 @@ pygimplib.init()
 #===============================================================================
 
 MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
+PLUGINS_DIRPATH = os.path.dirname(MODULE_DIRPATH)
 
 PATHS_TO_PREPROCESS_FILEPATH = os.path.join(
   MODULE_DIRPATH, "sync_docs_files_to_preprocess.txt")
@@ -92,7 +93,7 @@ def get_filepaths(file_list_filepath):
   
   source_paths = [os.path.normpath(line) for line in lines[::2]]
   dest_paths = [os.path.normpath(line) for line in lines[1::2]]
-  path_root = pygimplib.config.PLUGINS_DIRPATH
+  path_root = PLUGINS_DIRPATH
   
   paths_to_sync = collections.OrderedDict()
   
