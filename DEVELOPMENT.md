@@ -106,8 +106,8 @@ Coding Conventions <a name="Coding-Conventions"></a>
 
 Use PEP8 and PyLint to enforce coding conventions with their respective
 configuration files:
-* [PEP8 for PyDev](resources/PyDev/org.python.pydev.analysis.yaml)
-* [PyLint](resources/PyLint/pylintrc)
+* [PEP8 for PyDev](ide/org.python.pydev.analysis.yaml)
+* [PyLint](ide/pylintrc)
 
 Additional conventions that override or complement the conventions in the
 aforementioned utilities are specified below.
