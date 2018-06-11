@@ -44,7 +44,7 @@ from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgutils
 
-from resources.utils import create_user_docs
+from utils import create_user_docs
 
 import export_layers.config
 export_layers.config.init()

@@ -53,18 +53,14 @@ import sys
 import os
 
 plugin_dirpath = os.path.join(gimp.directory, "plug-ins - Export Layers")
-resources_dirpath = os.path.join(plugin_dirpath, "resources")
-utils_dirpath = os.path.join(resources_dirpath, "utils")
+utils_dirpath = os.path.join(plugin_dirpath, "utils")
 
 sys.path.append(plugin_dirpath)
 sys.path.append(os.path.join(plugin_dirpath, "export_layers"))
 sys.path.append(os.path.join(plugin_dirpath, "export_layers", "pygimplib"))
-sys.path.append(resources_dirpath)
 sys.path.append(utils_dirpath)
 
 import make_installers
-
-os.chdir(resources_dirpath)
 
 make_installers.main(destination_dirpath='"$destination_dirpath"', force_if_dirty='"$force_if_dirty"', installers='"$installers"', generate_docs='"$generate_docs"')
 

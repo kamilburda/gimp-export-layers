@@ -21,7 +21,7 @@ REPOSITORY_ROOT_DIRPATH = os.path.dirname(os.path.dirname(GIT_HOOKS_DIRPATH))
 
 sys.path.append(REPOSITORY_ROOT_DIRPATH)
 
-from resources.utils import sync_docs
+from utils import sync_docs
 
 #===============================================================================
 

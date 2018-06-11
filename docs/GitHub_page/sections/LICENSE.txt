@@ -1,1 +1,1 @@
-{% include-section ../../../../LICENSE %}
+{% include-section ../../../LICENSE %}

@@ -38,7 +38,7 @@ import shutil
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgutils
 
-from resources.utils import preprocess_document_contents
+from utils import preprocess_document_contents
 
 import export_layers.config
 export_layers.config.init()
@@ -48,7 +48,6 @@ pygimplib.init()
 #===============================================================================
 
 MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
-RESOURCES_DIRPATH = os.path.dirname(MODULE_DIRPATH)
 
 PATHS_TO_PREPROCESS_FILEPATH = os.path.join(
   MODULE_DIRPATH, "sync_docs_files_to_preprocess.txt")

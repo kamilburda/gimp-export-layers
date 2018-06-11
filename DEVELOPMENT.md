@@ -23,7 +23,7 @@ A Linux distribution is recommended as the environment contains several bash
 scripts. For Windows, see [below](#Development-Setup-on-Windows) for options.
 
 The easiest way is to download and execute a
-[bash script](resources/utils/init_repo.sh) that automatically installs any
+[bash script](utils/init_repo.sh) that automatically installs any
 required dependencies and sets up the environment.
 
 If you cannot run the script, below is an explanation describing each step.
@@ -94,9 +94,9 @@ GIMP or any Export Layers script requiring non-interactive invocation of GIMP.
 Creating a Release <a name="Creating-a-Release"></a>
 ------------------
 
-Run `resources/utils/make_installers.sh` to create installer(s).
+Run `utils/make_installers.sh` to create installer(s).
 Use the `-i` option to specify platform(s) for which to create installers.
-The installers will be created in the `resources/utils/installers/output`
+The installers will be created in the `utils/installers/output`
 directory.
 
 

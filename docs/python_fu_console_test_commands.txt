@@ -20,15 +20,12 @@ _
 pgruntests.run_tests(plugin_dirpath, modules=["export_layers"], ignored_modules=["export_layers.pygimplib.tests"])
 
 
-resources_dirpath = os.path.join(plugin_dirpath, "resources")
-utils_dirpath = os.path.join(resources_dirpath, "utils")
-sys.path.append(resources_dirpath)
+utils_dirpath = os.path.join(plugin_dirpath, "utils")
 sys.path.append(utils_dirpath)
 import make_installers
 import preprocess_document_contents
 import sync_docs
 orig_cwd = os.getcwd()
-os.chdir(resources_dirpath)
 
 
 imp.reload(make_installers)
