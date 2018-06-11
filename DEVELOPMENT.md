@@ -158,7 +158,7 @@ Use single quotes:
   exception messages),
 * in any string containing double quotes (to avoid inserting backslashes).
 
-Use backquotes in element names in comments.
+Use backquotes in element names in comments and docstrings.
 
 
 ### Naming
