@@ -19,6 +19,8 @@ from future.builtins import *
 
 import unittest
 
+import parameterized
+
 from .. import pgoperations
 
 #===============================================================================
@@ -603,28 +605,34 @@ class TestOperationExecutor(OperationExecutorTestCase):
       self.executor.remove_groups(["main_processing"])
 
 
-class TestOperationExecutorExecuteSingleGroupSingleOperation(OperationExecutorTestCase):
+class TestOperationExecutorExecuteOperations(OperationExecutorTestCase):
   
-  def test_execute(self):
-    test_list = []
-    self.executor.add_operation(append_test, ["main_processing"], test_list)
-    self.executor.execute(["main_processing"])
+  @parameterized.parameterized.expand([
+    ("default",
+     "main_processing", append_test, [], [],
+     ["test"]),
     
-    self.assertEqual(test_list, ["test"])
-  
-  def test_execute_additional_args(self):
-    test_list = []
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list)
-    self.executor.execute(["main_processing"], 1)
+    ("execute_args",
+     "main_processing", append_to_list, [], [1],
+     [1]),
     
-    self.assertEqual(test_list, [1])
-  
-  def test_execute_additional_multiple_args(self):
-    test_list = []
-    self.executor.add_operation(extend_list, ["main_processing"], test_list, 1)
-    self.executor.execute(["main_processing"], 2, 3)
+    ("add_and_execute_args",
+     "main_processing", extend_list, [1], [2, 3],
+     [1, 2, 3]),
     
-    self.assertListEqual(test_list, [1, 2, 3])
+  ])
+  def test_execute_single_operation(
+        self,
+        test_case_name_suffix,
+        operation_group, operation, add_operation_args, execute_args,
+        expected_result):
+    test_list = []
+    
+    self.executor.add_operation(
+      operation, [operation_group], test_list, *add_operation_args)
+    self.executor.execute([operation_group], *execute_args)
+    
+    self.assertEqual(test_list, expected_result)
   
   def test_execute_invalid_number_of_args(self):
     test_list = []
@@ -650,9 +658,6 @@ class TestOperationExecutorExecuteSingleGroupSingleOperation(OperationExecutorTe
     
     self.assertDictEqual(test_dict, {"one": 1, "two": "two", "three": 3})
 
-
-class TestOperationExecutorExecute(OperationExecutorTestCase):
-  
   def test_execute_multiple_operations(self):
     test_list = []
     self.executor.add_operation(append_test, ["main_processing"], test_list)
@@ -692,93 +697,85 @@ class TestOperationExecutorExecute(OperationExecutorTestCase):
 
 class TestOperationExecutorExecuteForeachOperations(OperationExecutorTestCase):
   
-  def test_execute_single_foreach_default_execution(self):
+  @parameterized.parameterized.expand([
+    ("default",
+     append_to_list, append_to_list, "main_processing", [[1], [2]], [3],
+     [1, 3, 2, 3]),
+    
+    ("before_operation",
+     append_to_list, append_to_list_before, "main_processing", [[1], [2]], [3],
+     [3, 1, 3, 2]),
+    
+    ("before_and_after_operation",
+     append_to_list, append_to_list_before_and_after, "main_processing", [[1], [2]], [3],
+     [3, 1, 3, 3, 2, 3]),
+    
+    ("before_and_after_operation_multiple_times",
+     append_to_list, append_to_list_before_and_after_execute_twice,
+     "main_processing", [[1], [2]], [3],
+     [3, 1, 1, 3, 3, 2, 2, 3]),
+    
+  ])
+  def test_execute_single_foreach(
+        self,
+        test_case_name_suffix, operation, foreach_operation, operation_group,
+        operations_args, foreach_operation_args,
+        expected_result):
     test_list = []
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 1)
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.executor.add_foreach_operation(append_to_list, ["main_processing"], test_list, 3)
     
-    self.executor.execute(["main_processing"])
+    self.executor.add_operation(
+      operation, [operation_group], test_list, *operations_args[0])
+    self.executor.add_operation(
+      operation, [operation_group], test_list, *operations_args[1])
+    self.executor.add_foreach_operation(
+      foreach_operation, [operation_group], test_list, *foreach_operation_args)
     
-    self.assertListEqual(test_list, [1, 3, 2, 3])
+    self.executor.execute([operation_group])
+    
+    self.assertListEqual(test_list, expected_result)
   
-  def test_execute_single_foreach_before_operation(self):
+  @parameterized.parameterized.expand([
+    ("simple",
+     append_to_list, [append_to_list_before, append_to_list],
+     "main_processing",
+     [[1], [2]], [[3], [4]],
+     [3, 1, 4, 3, 2, 4]),
+    
+    ("complex",
+     append_to_list,
+     [append_to_list_before_and_after, append_to_list_before_and_after_execute_twice],
+     "main_processing",
+     [[1], [2]], [[3], [4]],
+     [3, 4, 1, 3, 1, 4,
+      3, 4, 2, 3, 2, 4]),
+    
+    ("even_more_complex",
+     append_to_list,
+     [append_to_list_before_and_after, append_to_list_before_middle_after_execute_twice],
+     "main_processing",
+     [[1], [2]], [[3], [4]],
+     [3, 4, 1, 3, 4, 1, 4,
+      3, 4, 2, 3, 4, 2, 4]),
+  ])
+  def test_execute_multiple_foreachs(
+        self,
+        test_case_name_suffix, operation, foreach_operations, operation_group,
+        operations_args, foreach_operations_args,
+        expected_result):
     test_list = []
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 1)
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
+    
+    self.executor.add_operation(
+      operation, [operation_group], test_list, *operations_args[0])
+    self.executor.add_operation(
+      operation, [operation_group], test_list, *operations_args[1])
     self.executor.add_foreach_operation(
-      append_to_list_before, ["main_processing"], test_list, 3)
-    
-    self.executor.execute(["main_processing"])
-    
-    self.assertListEqual(test_list, [3, 1, 3, 2])
-  
-  def test_execute_single_foreach_before_and_after_operation(self):
-    test_list = []
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 1)
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
+      foreach_operations[0], [operation_group], test_list, *foreach_operations_args[0])
     self.executor.add_foreach_operation(
-      append_to_list_before_and_after, ["main_processing"], test_list, 3)
+      foreach_operations[1], [operation_group], test_list, *foreach_operations_args[1])
     
-    self.executor.execute(["main_processing"])
+    self.executor.execute([operation_group])
     
-    self.assertListEqual(test_list, [3, 1, 3, 3, 2, 3])
-  
-  def test_execute_single_foreach_before_and_after_operation_multiple_times(self):
-    test_list = []
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 1)
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.executor.add_foreach_operation(
-      append_to_list_before_and_after_execute_twice, ["main_processing"], test_list, 3)
-    
-    self.executor.execute(["main_processing"])
-    
-    self.assertListEqual(test_list, [3, 1, 1, 3, 3, 2, 2, 3])
-  
-  def test_execute_multiple_foreachs(self):
-    test_list = []
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 1)
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.executor.add_foreach_operation(
-      append_to_list_before, ["main_processing"], test_list, 3)
-    self.executor.add_foreach_operation(
-      append_to_list, ["main_processing"], test_list, 4)
-    
-    self.executor.execute(["main_processing"])
-    
-    self.assertListEqual(test_list, [3, 1, 4, 3, 2, 4])
-  
-  def test_execute_multiple_foreachs_complex(self):
-    test_list = []
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 1)
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.executor.add_foreach_operation(
-      append_to_list_before_and_after, ["main_processing"], test_list, 3)
-    self.executor.add_foreach_operation(
-      append_to_list_before_and_after_execute_twice, ["main_processing"], test_list, 4)
-    
-    self.executor.execute(["main_processing"])
-    
-    self.assertListEqual(
-      test_list,
-      [3, 4, 1, 3, 1, 4,
-       3, 4, 2, 3, 2, 4])
-  
-  def test_execute_multiple_foreachs_even_more_complex(self):
-    test_list = []
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 1)
-    self.executor.add_operation(append_to_list, ["main_processing"], test_list, 2)
-    self.executor.add_foreach_operation(
-      append_to_list_before_and_after, ["main_processing"], test_list, 3)
-    self.executor.add_foreach_operation(
-      append_to_list_before_middle_after_execute_twice, ["main_processing"], test_list, 4)
-    
-    self.executor.execute(["main_processing"])
-    
-    self.assertListEqual(
-      test_list,
-      [3, 4, 1, 3, 4, 1, 4,
-       3, 4, 2, 3, 4, 2, 4])
+    self.assertListEqual(test_list, expected_result)
   
   def test_execute_foreach_use_return_value_from_operation(self):
     test_list = []
