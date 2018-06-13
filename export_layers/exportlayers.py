@@ -858,19 +858,20 @@ class LayerExporter(object):
       self._display_id = pdb.gimp_display_new(self._image_copy)
   
   def _cleanup(self, exception_occurred=False):
-    if pygimplib.config.DEBUG_IMAGE_PROCESSING:
-      pdb.gimp_display_delete(self._display_id)
-    
     _copy_non_modifying_parasites(self._image_copy, self.image)
     
     pdb.gimp_image_undo_thaw(self._image_copy)
+    
+    if pygimplib.config.DEBUG_IMAGE_PROCESSING:
+      pdb.gimp_display_delete(self._display_id)
+    
     if ((not self._keep_image_copy or self._use_another_image_copy)
         or exception_occurred):
-      pdb.gimp_image_delete(self._image_copy)
+      pgpdb.delete_image_safe(self._image_copy)
       if self._use_another_image_copy:
         pdb.gimp_image_undo_thaw(self._another_image_copy)
         if exception_occurred:
-          pdb.gimp_image_delete(self._another_image_copy)
+          pgpdb.delete_image_safe(self._another_image_copy)
     
     for tagged_layer_copy in self._tagged_layer_copies.values():
       if tagged_layer_copy is not None:

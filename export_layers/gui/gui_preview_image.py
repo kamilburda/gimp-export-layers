@@ -251,11 +251,11 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     
     image_preview = self._get_image_preview()
     
-    if image_preview is None:
+    if image_preview is None or not pdb.gimp_image_is_valid(image_preview):
       return None
     
     if not image_preview.layers:
-      pdb.gimp_image_delete(image_preview)
+      pgpdb.delete_image_safe(image_preview)
       return None
     
     if image_preview.base_type != gimpenums.RGB:
