@@ -30,7 +30,6 @@ import collections
 import contextlib
 import datetime
 import os
-import re
 
 from gimp import pdb
 import gimpenums
