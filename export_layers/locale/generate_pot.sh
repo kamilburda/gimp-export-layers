@@ -29,4 +29,3 @@ xargs xgettext --language=Python --keyword='_' --keyword='N_' --package-name="$P
 sed -i '
   s/^\("Content-Type: text\/plain; charset\)=CHARSET/\1=UTF-8/
 ' "$OUTPUT_FILE"
-
