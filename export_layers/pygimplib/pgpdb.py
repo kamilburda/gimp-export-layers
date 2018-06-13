@@ -178,6 +178,16 @@ def remove_all_items(image):
   remove_all_paths(image)
 
 
+def delete_image_safe(image):
+  """
+  Delete the specified image. If the image does not exist, do not throw an
+  exception.
+  """
+  
+  if pdb.gimp_image_is_valid(image):
+    pdb.gimp_image_delete(image)
+
+
 #===============================================================================
 
 
