@@ -393,7 +393,7 @@ def add_operation(base_setting):
 
 def reorder_operation(setting, new_position):
   if setting.name in _operation_settings_and_items:
-    _operation_executor.reorder_operation(
+    _operation_executor.reorder(
       _operation_settings_and_items[setting.name][0],
       _operation_settings_and_items[setting.name][1], new_position)
 
