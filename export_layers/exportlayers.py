@@ -383,10 +383,10 @@ def add_operation(base_setting):
     operation_args = operation_item[1] if len(operation_item) > 1 else ()
     operation_kwargs = operation_item[2] if len(operation_item) > 2 else {}
     
-    operation_id = _operation_executor.add_operation(
+    operation_id = _operation_executor.add(
       execute_operation_only_if_setting(operation, base_setting),
       [operation_group],
-      *operation_args, **operation_kwargs)
+      operation_args, operation_kwargs)
     
     _operation_settings_and_items[base_setting.name] = (operation_id, operation_group)
 
@@ -412,8 +412,10 @@ def is_valid_operation(base_setting):
       _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS])
 
 
-_operation_executor.add_foreach_operation(
-  builtin_operations.set_active_layer_after_operation, [_BUILTIN_OPERATIONS_GROUP])
+_operation_executor.add(
+  builtin_operations.set_active_layer_after_operation,
+  [_BUILTIN_OPERATIONS_GROUP],
+  foreach=True)
 
 #===============================================================================
 
@@ -671,10 +673,10 @@ class LayerExporter(object):
     self._should_stop = True
   
   def _add_operations_initial(self):
-    self._operation_executor.add_operation(
+    self._operation_executor.add(
       builtin_operations.set_active_layer, [_BUILTIN_OPERATIONS_GROUP])
     
-    self._operation_executor.add_executor(
+    self._operation_executor.add(
       _operation_executor,
       [_BUILTIN_OPERATIONS_GROUP, _BUILTIN_CONSTRAINTS_GROUP,
        _BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP])
