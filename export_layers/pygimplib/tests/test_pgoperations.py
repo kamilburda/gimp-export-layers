@@ -87,30 +87,45 @@ class OperationExecutorTestCase(unittest.TestCase):
 
 class TestOperationExecutor(OperationExecutorTestCase):
   
-  def test_has_operation(self):
-    operation_id = self.executor.add(append_to_list)
-    self.assertTrue(self.executor.has_operation(operation_id))
-  
-  def test_has_matching_operation(self):
+  @parameterized.parameterized.expand([
+    ("default_group",
+     None, ["default"]
+     ),
+    
+    ("default_group_explicit_name",
+     "default", ["default"]
+     ),
+    
+    ("specific_groups",
+     ["main_processing", "advanced_processing"],
+     ["main_processing", "advanced_processing"]
+     ),
+  ])
+  def test_add(self, test_case_name_suffix, groups, get_operations_groups):
     test_list = []
     
-    self.executor.add(append_test, ["main_processing"], [test_list])
-    self.assertTrue(
-      self.executor.has_matching_operation(append_test, "main_processing"))
+    self.executor.add(append_test, groups, args=[test_list])
     
-    additional_executor = pgoperations.OperationExecutor()
-    self.executor.add(additional_executor, ["main_processing"])
-    self.assertTrue(
-      self.executor.has_matching_operation(
-        additional_executor, "main_processing",
-        operation_type=self.executor.TYPE_EXECUTOR))
+    for get_operations_group in get_operations_groups:
+      self.assertEqual(len(self.executor.get_operations(get_operations_group)), 1)
+  
+  def test_add_to_all_groups(self):
+    test_list = []
     
     self.executor.add(
-      append_to_list_again, ["main_processing"], [test_list], foreach=True)
-    self.assertTrue(
-      self.executor.has_matching_operation(
-        append_to_list_again, "main_processing",
-        operation_type=self.executor.TYPE_FOREACH_OPERATION))
+      append_test, ["main_processing", "advanced_processing"], [test_list])
+    self.executor.add(append_test, "all", [test_list])
+    
+    self.assertEqual(len(self.executor.get_operations("main_processing")), 2)
+    self.assertEqual(len(self.executor.get_operations("advanced_processing")), 2)
+    self.assertFalse("default" in self.executor.get_groups())
+    
+    self.executor.add(append_test, args=[test_list])
+    self.executor.add(append_test, "all", [test_list])
+    
+    self.assertEqual(len(self.executor.get_operations("main_processing")), 3)
+    self.assertEqual(len(self.executor.get_operations("advanced_processing")), 3)
+    self.assertEqual(len(self.executor.get_operations("default")), 2)
   
   def test_add_return_unique_ids(self):
     test_list = []
@@ -176,6 +191,31 @@ class TestOperationExecutor(OperationExecutorTestCase):
     self.executor.add_to_groups(executor_id, ["main_processing"])
     self.assertEqual(len(self.executor.get_operations("main_processing")), 2)
     self.assertEqual(len(self.executor.get_foreach_operations("main_processing")), 1)
+  
+  def test_has_operation(self):
+    operation_id = self.executor.add(append_to_list)
+    self.assertTrue(self.executor.has_operation(operation_id))
+  
+  def test_has_matching_operation(self):
+    test_list = []
+    
+    self.executor.add(append_test, args=[test_list])
+    self.assertTrue(
+      self.executor.has_matching_operation(append_test, "default"))
+    
+    additional_executor = pgoperations.OperationExecutor()
+    self.executor.add(additional_executor)
+    self.assertTrue(
+      self.executor.has_matching_operation(
+        additional_executor, "default",
+        operation_type=self.executor.TYPE_EXECUTOR))
+    
+    self.executor.add(
+      append_to_list_again, args=[test_list], foreach=True)
+    self.assertTrue(
+      self.executor.has_matching_operation(
+        append_to_list_again, "default",
+        operation_type=self.executor.TYPE_FOREACH_OPERATION))
   
   def test_get_operations_non_existing_group(self):
     self.assertIsNone(self.executor.get_operations("non_existing_group"))
