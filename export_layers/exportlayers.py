@@ -780,7 +780,7 @@ class LayerExporter(object):
     self._layer_tree.filter.add_subfilter(
       "layer_types", pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ANY))
     
-    self._operation_executor.execute([_BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP], self)
+    self._operation_executor.execute([_BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP], [self])
     
     self._init_tagged_layer_elems()
     
@@ -792,7 +792,7 @@ class LayerExporter(object):
         builtin_constraints.is_layer_in_selected_layers,
         self.export_settings["selected_layers"].value[self.image.ID])
     
-    self._operation_executor.execute([_BUILTIN_CONSTRAINTS_GROUP], self)
+    self._operation_executor.execute([_BUILTIN_CONSTRAINTS_GROUP], [self])
   
   def _init_tagged_layer_elems(self):
     with self._layer_tree.filter.add_rule_temp(builtin_constraints.has_tags):
@@ -849,7 +849,7 @@ class LayerExporter(object):
     self._image_copy = pgpdb.create_image_from_metadata(self.image)
     pdb.gimp_image_undo_freeze(self._image_copy)
     
-    self._operation_executor.execute(["after_create_image_copy"], self._image_copy)
+    self._operation_executor.execute(["after_create_image_copy"], [self._image_copy])
     
     if self._use_another_image_copy:
       self._another_image_copy = pgpdb.create_image_from_metadata(self._image_copy)
@@ -882,10 +882,10 @@ class LayerExporter(object):
   
   def _process_layer(self, layer_elem, image, layer):
     layer_copy = builtin_operations.copy_and_insert_layer(image, layer, None, 0)
-    self._operation_executor.execute(["after_insert_layer"], image, layer_copy, self)
+    self._operation_executor.execute(["after_insert_layer"], [image, layer_copy, self])
     
     self._operation_executor.execute(
-      [_BUILTIN_OPERATIONS_GROUP], image, layer_copy, self)
+      [_BUILTIN_OPERATIONS_GROUP], [image, layer_copy, self])
     
     layer_copy = self._merge_and_resize_layer(image, layer_copy)
     

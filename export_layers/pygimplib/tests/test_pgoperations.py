@@ -641,7 +641,7 @@ class TestOperationExecutorExecuteOperations(OperationExecutorTestCase):
     test_list = []
     
     self.executor.add(operation, args=[test_list] + add_args)
-    self.executor.execute(["default"], *execute_args)
+    self.executor.execute(additional_args=execute_args)
     
     self.assertEqual(test_list, expected_result)
   
@@ -650,23 +650,23 @@ class TestOperationExecutorExecuteOperations(OperationExecutorTestCase):
     self.executor.add(append_to_list, args=[test_list, 1, 2])
     
     with self.assertRaises(TypeError):
-      self.executor.execute(["default"])
+      self.executor.execute()
   
   def test_execute_additional_args_invalid_number_of_args(self):
     test_list = []
     self.executor.add(append_to_list, args=[test_list])
     
     with self.assertRaises(TypeError):
-      self.executor.execute(["default"])
+      self.executor.execute()
     
     with self.assertRaises(TypeError):
-      self.executor.execute(["default"], 1, 2)
+      self.executor.execute(additional_args=[1, 2])
   
   def test_execute_additional_kwargs_override_former_kwargs(self):
     test_dict = {}
     self.executor.add(
       update_dict, args=[test_dict], kwargs={"one": 1, "two": 2})
-    self.executor.execute(["default"], two="two", three=3)
+    self.executor.execute(additional_kwargs={"two": "two", "three": 3})
     
     self.assertDictEqual(test_dict, {"one": 1, "two": "two", "three": 3})
 
@@ -675,7 +675,7 @@ class TestOperationExecutorExecuteOperations(OperationExecutorTestCase):
     self.executor.add(append_test, args=[test_list])
     self.executor.add(extend_list, args=[test_list, 1])
     
-    self.executor.execute(["default"])
+    self.executor.execute()
     
     self.assertListEqual(test_list, ["test", 1])
   
@@ -703,7 +703,7 @@ class TestOperationExecutorExecuteOperations(OperationExecutorTestCase):
     
   def test_execute_empty_group(self):
     try:
-      self.executor.execute(["default"])
+      self.executor.execute()
     except Exception:
       self.fail("executing no operations for the given group should not raise exception")
 
@@ -742,7 +742,7 @@ class TestOperationExecutorExecuteForeachOperations(OperationExecutorTestCase):
     self.executor.add(
       foreach_operation, args=[test_list] + foreach_operation_args, foreach=True)
     
-    self.executor.execute(["default"])
+    self.executor.execute()
     
     self.assertListEqual(test_list, expected_result)
   
@@ -782,7 +782,7 @@ class TestOperationExecutorExecuteForeachOperations(OperationExecutorTestCase):
     self.executor.add(
       foreach_operations[1], args=[test_list] + foreach_operations_args[1], foreach=True)
     
-    self.executor.execute(["default"])
+    self.executor.execute()
     
     self.assertListEqual(test_list, expected_result)
   
@@ -792,7 +792,7 @@ class TestOperationExecutorExecuteForeachOperations(OperationExecutorTestCase):
     self.executor.add(append_to_list, args=[test_list, 2])
     self.executor.add(append_to_list_again, args=[test_list], foreach=True)
     
-    self.executor.execute(["default"])
+    self.executor.execute()
     
     self.assertListEqual(test_list, [1, 1, 2, 2])
   
@@ -806,7 +806,7 @@ class TestOperationExecutorExecuteForeachOperations(OperationExecutorTestCase):
     self.executor.add(append_to_list, args=[test_list, 3])
     self.executor.add(append_to_list_again, args=[test_list], foreach=True)
     
-    self.executor.execute(["default"])
+    self.executor.execute()
     
     self.assertListEqual(test_list, [1, 2, 3, 3])
 
@@ -822,7 +822,7 @@ class TestOperationExecutorExecuteWithExecutor(OperationExecutorTestCase):
     self.executor.add(append_to_list, args=[test_list, 2])
     self.executor.add(another_executor)
     
-    self.executor.execute(["default"])
+    self.executor.execute()
     
     self.assertListEqual(test_list, [2, 1, "test"])
   
@@ -836,7 +836,7 @@ class TestOperationExecutorExecuteWithExecutor(OperationExecutorTestCase):
     another_executor.add(append_to_list, args=[test_list, 1])
     another_executor.add(append_test, args=[test_list])
     
-    self.executor.execute(["default"])
+    self.executor.execute()
     
     self.assertListEqual(test_list, [2, 1, "test"])
   
@@ -854,7 +854,7 @@ class TestOperationExecutorExecuteWithExecutor(OperationExecutorTestCase):
     more_executors[1].add(append_to_list, args=[test_list, 3])
     more_executors[1].add(append_to_list, args=[test_list, 4])
     
-    self.executor.execute(["default"])
+    self.executor.execute()
     
     self.assertListEqual(test_list, [2, 1, "test", 3, 4])
   

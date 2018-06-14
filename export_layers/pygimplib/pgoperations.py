@@ -36,15 +36,18 @@ class OperationExecutor(object):
   def __init__(self):
     # key: operation group; value: list of `_OperationItem` instances
     self._operations = collections.OrderedDict()
+    
     # key: operation group; value: list of `_OperationItem` instances
     self._foreach_operations = collections.OrderedDict()
     
     # key: operation group; value: dict of (operation function: count) pairs
     self._operation_functions = collections.defaultdict(
       lambda: collections.defaultdict(int))
+    
     # key: operation group; value: dict of (operation function: count) pairs
     self._foreach_operation_functions = collections.defaultdict(
       lambda: collections.defaultdict(int))
+    
     # key: operation group
     # value: dict of (`OperationExecutor` instance: count) pairs
     self._executors = collections.defaultdict(lambda: collections.defaultdict(int))
@@ -54,20 +57,25 @@ class OperationExecutor(object):
     # key: operation ID; value: `_OperationItem` instance
     self._operation_items = {}
   
-  def execute(self, groups, *additional_args, **additional_kwargs):
+  def execute(self, groups=None, additional_args=None, additional_kwargs=None):
     """
-    Execute all operations belonging to the groups in the order given by
-    `groups`.
+    Execute operations.
+    
+    If `groups` is None or "default", execute operations in the default group.
+    
+    If `groups` is a list of group names (strings), execute operations in the
+    specified groups.
+    
+    If `groups` is "all", execute operations in all existing groups.
     
     Additional arguments and keyword arguments to all operations in the group
-    are given by `*additional_args` and `**additional_kwargs`, respectively.
-    `*additional_args` are appended at the end of argument list. If some keyword
+    are given by `additional_args` and `additional_kwargs`, respectively.
+    `additional_args` are appended at the end of argument list. If some keyword
     arguments appear in both the keyword arguments to the `kwargs` argument in
-    the `add` method and `**additional_kwargs`, the values from the latter
+    the `add` method and `additional_kwargs`, the values from the latter
     override the former.
     
-    If any of the `groups` do not exist (i.e. do not have any operations), raise
-    `ValueError`.
+    If any of the `groups` do not exist, raise `ValueError`.
     """
     
     def _execute_operation(operation, operation_args, operation_kwargs):
@@ -102,10 +110,14 @@ class OperationExecutor(object):
         operation_generators.remove(operation_generator_to_remove)
     
     def _execute_executor(executor, group):
-      executor.execute(
-        [group], *additional_args, **additional_kwargs)
+      executor.execute([group], additional_args, additional_kwargs)
     
-    for group in groups:
+    additional_args = additional_args if additional_args is not None else ()
+    additional_kwargs = additional_kwargs if additional_kwargs is not None else {}
+    
+    processed_groups = self._get_groups(groups)
+    
+    for group in processed_groups:
       if group not in self._operations:
         self._init_group(group)
       
@@ -139,7 +151,8 @@ class OperationExecutor(object):
     the specified groups. Groups are created automatically if they previously
     did not exist.
     
-    If `groups` is "all", the operation is added to all existing groups.
+    If `groups` is "all", the operation is added to all existing groups. The
+    operation will not be added to the default group if it does not exist.
     
     The operation is added at the end of the list of operations in the specified
     group(s). To modify the order of the added operation, use the `reorder`
