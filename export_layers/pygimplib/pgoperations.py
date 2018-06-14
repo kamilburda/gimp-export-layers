@@ -31,7 +31,7 @@ import itertools
 
 class OperationExecutor(object):
   
-  _OPERATION_TYPES = TYPE_OPERATION, TYPE_FOREACH_OPERATION, TYPE_EXECUTOR = (0, 1, 2)
+  _OPERATION_TYPES = _TYPE_OPERATION, _TYPE_FOREACH_OPERATION, _TYPE_EXECUTOR = (0, 1, 2)
   
   def __init__(self):
     # key: operation group; value: list of `_OperationItem` instances
@@ -68,14 +68,17 @@ class OperationExecutor(object):
     
     If `groups` is "all", execute operations in all existing groups.
     
+    If any of the `groups` do not exist, raise `ValueError`.
+    
+    If `operation` is an `OperationExecutor` instance, the instance will execute
+    operations in the specified groups.
+    
     Additional arguments and keyword arguments to all operations in the group
     are given by `additional_args` and `additional_kwargs`, respectively.
     `additional_args` are appended at the end of argument list. If some keyword
     arguments appear in both the keyword arguments to the `kwargs` argument in
     the `add` method and `additional_kwargs`, the values from the latter
     override the former.
-    
-    If any of the `groups` do not exist, raise `ValueError`.
     """
     
     def _execute_operation(operation, operation_args, operation_kwargs):
@@ -115,14 +118,12 @@ class OperationExecutor(object):
     additional_args = additional_args if additional_args is not None else ()
     additional_kwargs = additional_kwargs if additional_kwargs is not None else {}
     
-    processed_groups = self._get_groups(groups)
-    
-    for group in processed_groups:
+    for group in self._process_groups_arg(groups):
       if group not in self._operations:
         self._init_group(group)
       
       for item in self._operations[group]:
-        if item.operation_type != self.TYPE_EXECUTOR:
+        if item.operation_type != self._TYPE_EXECUTOR:
           operation, operation_args, operation_kwargs = item.operation
           if self._foreach_operations[group]:
             _execute_operation_with_foreach_operations(
@@ -192,10 +193,8 @@ class OperationExecutor(object):
     
     operation_id = self._get_operation_id()
     
-    processed_groups = self._get_groups(groups)
-    
     if isinstance(operation, self.__class__):
-      for group in processed_groups:
+      for group in self._process_groups_arg(groups):
         self._add_executor(operation_id, operation, group)
     else:
       if not foreach:
@@ -203,7 +202,7 @@ class OperationExecutor(object):
       else:
         add_operation_func = self._add_foreach_operation
       
-      for group in processed_groups:
+      for group in self._process_groups_arg(groups):
         add_operation_func(
           operation_id, operation, group,
           args if args is not None else (),
@@ -211,82 +210,85 @@ class OperationExecutor(object):
     
     return operation_id
   
-  def add_to_groups(self, operation_id, groups):
+  def add_to_groups(self, operation_id, groups=None):
     """
-    Add an existing operation to the specified operation groups. If the
-    operation was already added to one of the specified groups, it will not be
-    added again (to do that, use the `add` method). If the ID is not valid,
-    raise `ValueError`.
+    Add an existing operation specified by its ID to the specified operation
+    groups. For more information about the `groups` parameter, see `add`.
+    
+    If the operation was already added to one of the specified groups, it will
+    not be added again (use the `add` method for that purpose).
+    
+    If the operation ID is not valid, raise `ValueError`.
     """
     
     self._check_operation_id_is_valid(operation_id)
     
-    for group in groups:
+    for group in self._process_groups_arg(groups):
       if group not in self._operation_items[operation_id].groups:
         self._add_operation_to_group(self._operation_items[operation_id], group)
   
-  def has_operation(self, operation_id, group=None):
+  def has_operation(self, operation_id, groups=None):
     """
     Return True if the specified ID (returned from the `add` method) belongs to
-    an existing operation.
+    an existing operation in at least one of the specified groups.
     
-    If `group` is specified, return True if the ID exists in the group. If
-    `group` is None, return True if the ID exists in any of the existing groups.
+    `group` can have one of the following values:
+      * None or "default" - the default group,
+      * list of group names (strings) - specific groups,
+      * "all" - all existing groups.
     """
     
-    if group is None:
-      return (
-        operation_id in self._operation_items
-        and bool(self._operation_items[operation_id].groups))
-    else:
-      return (
-        operation_id in self._operation_items
-        and group in self._operation_items[operation_id].groups)
+    return (
+      operation_id in self._operation_items
+      and any(group in self._operation_items[operation_id].groups
+              for group in self._process_groups_arg(groups)))
   
-  def has_matching_operation(
-        self, operation, group, operation_type=TYPE_OPERATION):
+  def has_matching_operation(self, operation, groups=None, foreach=False):
     """
-    Return True if the specified operation of the specified type is added to the
-    list of operations in group `group`, False otherwise.
+    Return True if the specified operation exists, False otherwise. `operation`
+    can be a function or `OperationExecutor` instance.
     
-    `operation_type` can be one of the following:
+    For information about the `groups` parameter, see `has_operation`.
     
-      * TYPE_OPERATION - regular operation
-      
-      * TYPE_FOREACH_OPERATION - for-each operation
-      
-      * TYPE_EXECUTOR - `OperationExecutor` instance
+    If `foreach` is True, treat the operation as a for-each operation.
     """
     
-    executors = self._get_operation_lists_and_functions(operation_type)[1]
+    operation_functions = self._get_operation_lists_and_functions(
+      self._get_operation_type(operation, foreach))[1]
     
-    return operation in executors[group]
+    for group in self._process_groups_arg(groups):
+      if operation in operation_functions[group]:
+        return True
+    
+    return False
   
-  def find_matching_operations(
-        self, operation, group, operation_type=TYPE_OPERATION):
+  def find_matching_operations(self, operation, groups=None, foreach=False):
     """
-    Find all operations matching the specified operation in the specified group.
+    Return operation IDs matching the specified operation. `operation` can be a
+    function or `OperationExecutor` instance.
     
-    `operation_type` must be one of the following:
+    For information about the `groups` parameter, see `has_operation`.
     
-      * TYPE_OPERATION - regular operation
-      
-      * TYPE_FOREACH_OPERATION - for-each operation
-      
-      * TYPE_EXECUTOR - `OperationExecutor` instance
-    
-    If the operation group does not exist or the operation type is not valid,
-    raise `ValueError`.
+    If `foreach` is True, treat the operation as a for-each operation.
     """
     
-    self._check_group_exists(group)
+    operation_type = self._get_operation_type(operation, foreach)
+    operation_lists = self._get_operation_lists_and_functions(operation_type)[0]
     
-    operation_lists, unused_ = self._get_operation_lists_and_functions(operation_type)
+    processed_groups = [
+      group for group in self._process_groups_arg(groups)
+      if group in self.get_groups()]
     
-    return [
-      operation_item.operation_id for operation_item in operation_lists[group]
-      if (operation_item.operation_function == operation
-          and operation_item.operation_type == operation_type)]
+    found_operation_ids = []
+    
+    for group in processed_groups:
+      found_operation_ids.extend([
+        operation_item.operation_id
+        for operation_item in operation_lists[group]
+        if (operation_item.operation_function == operation
+            and operation_item.operation_type == operation_type)])
+    
+    return found_operation_ids
   
   def get_operation(self, operation_id):
     """
@@ -298,14 +300,17 @@ class OperationExecutor(object):
     else:
       return None
   
-  def get_operation_position(self, operation_id, group):
+  def get_operation_position(self, operation_id, group=None):
     """
     Return the position of the operation specified by its ID in the specified
-    group.
+    group. If `group` is None or "default", use the default group.
     
     If the ID is not valid or the operation is not in the group, raise
     `ValueError`.
     """
+    
+    if group is None:
+      group = "default"
     
     self._check_operation_id_is_valid(operation_id)
     self._check_operation_in_group(operation_id, group)
@@ -315,26 +320,25 @@ class OperationExecutor(object):
       operation_item.operation_type)
     return operation_lists[group].index(operation_item)
   
-  def get_operations(self, group):
+  def get_operations(self, group=None, foreach=False):
     """
-    Return all operations (along with their arguments and keyword arguments) and
-    executors for the operation group in their execution order. If the group
-    does not exist, return None.
+    Return all operations, along with their arguments and keyword arguments for
+    the operation group in their execution order. If the group does not exist,
+    return None.
+    
+    If `foreach` is True, return for-each operations instead.
     """
+    
+    if group is None:
+      group = "default"
+    
+    if not foreach:
+      operation_items = self._operations
+    else:
+      operation_items = self._foreach_operations
     
     if group in self._operations:
-      return [item.operation for item in self._operations[group]]
-    else:
-      return None
-  
-  def get_foreach_operations(self, group):
-    """
-    Return all for-each operations for the operation group in their execution
-    order. If the group does not exist, return None.
-    """
-    
-    if group in self._foreach_operations:
-      return [item.operation for item in self._foreach_operations[group]]
+      return [item.operation for item in operation_items[group]]
     else:
       return None
   
@@ -343,7 +347,7 @@ class OperationExecutor(object):
     Return a list of all groups in the executor.
     
     If `include_empty_groups` is False, do not include groups with no
-    operations, for-each operations or executors.
+    operations.
     """
     
     if include_empty_groups:
@@ -357,10 +361,11 @@ class OperationExecutor(object):
       return [group for group in self._operations
               if _is_group_non_empty(group)]
   
-  def reorder(self, operation_id, group, position):
+  def reorder(self, operation_id, position, group=None):
     """
     Change the execution order of the operation specified by its ID in the
-    specified operation group to the specified position.
+    specified operation group to the specified position. If `group` is None or
+    "default", use the default group.
     
     A position of 0 moves the operation to the beginning of the execution order.
     Negative numbers move the operation to the n-th to last position, i.e. -1
@@ -371,6 +376,9 @@ class OperationExecutor(object):
       * operation group does not exist
       * operation is not in the specified group
     """
+    
+    if group is None:
+      group = "default"
     
     self._check_operation_id_is_valid(operation_id)
     self._check_group_exists(group)
@@ -388,14 +396,18 @@ class OperationExecutor(object):
     
     operation_lists[group].insert(position, operation_item)
   
-  def remove_operation(self, operation_id, groups=None):
+  def remove(self, operation_id, groups=None):
     """
     Remove the operation specified by its ID from the specified operation
-    groups. If `groups` is None, remove the operation from all groups.
-    If the ID is invalid, raise `ValueError`.
-      
-    For existing groups where the operation is not added, do nothing. If at
-    least one of the specified groups do not exist, raise `ValueError`.
+    groups.
+    
+    For information about the `groups` parameter, see `has_operation`.
+    
+    For existing groups where the operation is not added, do nothing.
+    
+    Raises `ValueError` if:
+      * operation ID is invalid
+      * at least one of the specified groups does not exist
     """
     
     self._check_operation_id_is_valid(operation_id)
@@ -404,13 +416,8 @@ class OperationExecutor(object):
       self._get_operation_lists_and_functions(
         self._operation_items[operation_id].operation_type))
     
-    existing_groups = self.get_groups()
-    
-    if groups is None:
-      groups = existing_groups
-    
-    for group in groups:
-      self._check_group_exists(group, existing_groups)
+    for group in self._process_groups_arg(groups):
+      self._check_group_exists(group)
       
       if group in self._operation_items[operation_id].groups:
         self._remove_operation(
@@ -423,19 +430,18 @@ class OperationExecutor(object):
     Remove the specified groups and their operations (including for-each
     operations).
     
-    If `groups` is None, remove all groups, i.e. clear the entire executor.
+    For information about the `groups` parameter, see `has_operation`.
+    
+    Non-existent groups in `groups` are ignored.
     """
     
-    existing_groups = self.get_groups()
+    processed_groups = [
+      group for group in self._process_groups_arg(groups)
+      if group in self.get_groups()]
     
-    if groups is None:
-      groups = existing_groups
-    
-    for group in groups:
-      self._check_group_exists(group, existing_groups)
-      
+    for group in processed_groups:
       for operation_item in self._operations[group]:
-        if operation_item.operation_type == self.TYPE_OPERATION:
+        if operation_item.operation_type == self._TYPE_OPERATION:
           self._remove_operation(
             operation_item.operation_id, group, self._operations,
             self._operation_functions)
@@ -458,15 +464,15 @@ class OperationExecutor(object):
       self._foreach_operations[group] = []
   
   def _add_operation_to_group(self, operation_item, group):
-    if operation_item.operation_type == self.TYPE_OPERATION:
+    if operation_item.operation_type == self._TYPE_OPERATION:
       self._add_operation(
         operation_item.operation_id, operation_item.operation[0], group,
         operation_item.operation[1], operation_item.operation[2])
-    elif operation_item.operation_type == self.TYPE_FOREACH_OPERATION:
+    elif operation_item.operation_type == self._TYPE_FOREACH_OPERATION:
       self._add_foreach_operation(
         operation_item.operation_id, operation_item.operation[0], group,
         operation_item.operation[1], operation_item.operation[2])
-    elif operation_item.operation_type == self.TYPE_EXECUTOR:
+    elif operation_item.operation_type == self._TYPE_EXECUTOR:
       self._add_executor(
         operation_item.operation_id, operation_item.operation, group)
   
@@ -476,7 +482,7 @@ class OperationExecutor(object):
     
     operation_item = self._set_operation_item(
       operation_id, group, (operation, operation_args, operation_kwargs),
-      self.TYPE_OPERATION, operation)
+      self._TYPE_OPERATION, operation)
     
     self._operations[group].append(operation_item)
     self._operation_functions[group][operation] += 1
@@ -499,7 +505,7 @@ class OperationExecutor(object):
       operation_id, group,
       (foreach_operation_generator_function,
        foreach_operation_args, foreach_operation_kwargs),
-      self.TYPE_FOREACH_OPERATION, foreach_operation)
+      self._TYPE_FOREACH_OPERATION, foreach_operation)
     
     self._foreach_operations[group].append(operation_item)
     self._foreach_operation_functions[group][foreach_operation] += 1
@@ -509,7 +515,7 @@ class OperationExecutor(object):
     
     operation_item = self._set_operation_item(
       operation_id, group, executor,
-      self.TYPE_EXECUTOR, executor)
+      self._TYPE_EXECUTOR, executor)
     
     self._operations[group].append(operation_item)
     self._executors[group][executor] += 1
@@ -545,7 +551,7 @@ class OperationExecutor(object):
     if not self._operation_items[operation_id].groups:
       del self._operation_items[operation_id]
   
-  def _get_groups(self, groups):
+  def _process_groups_arg(self, groups):
     if groups is None or groups == "default":
       return ["default"]
     elif groups == "all":
@@ -553,12 +559,21 @@ class OperationExecutor(object):
     else:
       return groups
   
+  def _get_operation_type(self, operation, is_foreach):
+    if isinstance(operation, self.__class__):
+      return self._TYPE_EXECUTOR
+    else:
+      if not is_foreach:
+        return self._TYPE_OPERATION
+      else:
+        return self._TYPE_FOREACH_OPERATION
+  
   def _get_operation_lists_and_functions(self, operation_type):
-    if operation_type == self.TYPE_OPERATION:
+    if operation_type == self._TYPE_OPERATION:
       return self._operations, self._operation_functions
-    elif operation_type == self.TYPE_FOREACH_OPERATION:
+    elif operation_type == self._TYPE_FOREACH_OPERATION:
       return self._foreach_operations, self._foreach_operation_functions
-    elif operation_type == self.TYPE_EXECUTOR:
+    elif operation_type == self._TYPE_EXECUTOR:
       return self._operations, self._executors
     else:
       raise ValueError(
@@ -591,5 +606,5 @@ class _OperationItem(object):
     self.operation_id = operation_id
     self.groups = groups if groups is not None else set()
     self.operation_type = (
-      operation_type if operation_type is not None else OperationExecutor.TYPE_OPERATION)
+      operation_type if operation_type is not None else OperationExecutor._TYPE_OPERATION)
     self.operation_function = operation_function

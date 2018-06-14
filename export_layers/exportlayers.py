@@ -400,7 +400,7 @@ def reorder_operation(setting, new_position):
 
 def remove_operation(setting):
   if setting.name in _operation_settings_and_items:
-    _operation_executor.remove_operation(_operation_settings_and_items[setting.name][0])
+    _operation_executor.remove(_operation_settings_and_items[setting.name][0], "all")
 
 
 def is_valid_operation(base_setting):

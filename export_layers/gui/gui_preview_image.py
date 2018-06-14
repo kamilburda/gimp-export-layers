@@ -80,12 +80,12 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._initial_previewed_layer_id = initial_previered_layer_id
     
     if not self._layer_exporter.operation_executor.has_matching_operation(
-             self._layer_exporter_on_after_insert_layer, "after_insert_layer"):
+             self._layer_exporter_on_after_insert_layer, ["after_insert_layer"]):
       self._layer_exporter.operation_executor.add(
         self._layer_exporter_on_after_insert_layer, ["after_insert_layer"])
     
     if not self._layer_exporter.operation_executor.has_matching_operation(
-             self._layer_exporter_on_after_create_image_copy, "after_create_image_copy"):
+             self._layer_exporter_on_after_create_image_copy, ["after_create_image_copy"]):
       self._layer_exporter.operation_executor.add(
         self._layer_exporter_on_after_create_image_copy, ["after_create_image_copy"])
     
