@@ -120,20 +120,30 @@ class OperationExecutor(object):
         else:
           _execute_executor(item.operation, group)
   
-  def add(self, operation, groups, args=None, kwargs=None, foreach=False):
+  def add(self, operation, groups=None, args=None, kwargs=None, foreach=False):
     """
-    Add an operation to the specified groups. Return the ID of the newly added
-    operation.
+    Add an operation to be executed by `execute`. Return the ID of the newly
+    added operation.
     
     The operation can be:
     * a function, in which case optional arguments (`args`, a list or tuple) and
       keyword arguments (`kwargs`, a dict) can be specified,
     * an `OperationExecutor` instance.
     
-    Operation groups are created automatically if they previously did not exist.
+    To control which operations are executed, you may want to group them.
     
-    The operation is added at the end of the list of operations. To modify the
-    order of the added operation, call the `reorder_operation` method.
+    If `groups` is None or "default", the operation is added to a default group
+    appropriately named "default".
+    
+    If `groups` is a list of group names (strings), the operation is added to
+    the specified groups. Groups are created automatically if they previously
+    did not exist.
+    
+    If `groups` is "all", the operation is added to all existing groups.
+    
+    The operation is added at the end of the list of operations in the specified
+    group(s). To modify the order of the added operation, use the `reorder`
+    method.
     
     If `foreach` is True and the operation is a function, the operation is
     treated as a "for-each" operation. By default, a for-each operation is
@@ -169,8 +179,10 @@ class OperationExecutor(object):
     
     operation_id = self._get_operation_id()
     
+    processed_groups = self._get_groups(groups)
+    
     if isinstance(operation, self.__class__):
-      for group in groups:
+      for group in processed_groups:
         self._add_executor(operation_id, operation, group)
     else:
       if not foreach:
@@ -178,7 +190,7 @@ class OperationExecutor(object):
       else:
         add_operation_func = self._add_foreach_operation
       
-      for group in groups:
+      for group in processed_groups:
         add_operation_func(
           operation_id, operation, group,
           args if args is not None else (),
@@ -332,7 +344,7 @@ class OperationExecutor(object):
       return [group for group in self._operations
               if _is_group_non_empty(group)]
   
-  def reorder_operation(self, operation_id, group, position):
+  def reorder(self, operation_id, group, position):
     """
     Change the execution order of the operation specified by its ID in the
     specified operation group to the specified position.
@@ -519,6 +531,14 @@ class OperationExecutor(object):
     
     if not self._operation_items[operation_id].groups:
       del self._operation_items[operation_id]
+  
+  def _get_groups(self, groups):
+    if groups is None or groups == "default":
+      return ["default"]
+    elif groups == "all":
+      return self.get_groups()
+    else:
+      return groups
   
   def _get_operation_lists_and_functions(self, operation_type):
     if operation_type == self.TYPE_OPERATION:
