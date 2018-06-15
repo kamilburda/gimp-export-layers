@@ -194,6 +194,16 @@ class TestOperationExecutor(OperationExecutorTestCase):
     self.executor.add_to_groups(operation_id, ["main"])
     self.assertEqual(len(self.executor.list_operations("main")), 1)
   
+  def test_add_ignore_if_exists(self):
+    test_list = []
+    self.executor.add(append_to_list, args=[test_list, 1], ignore_if_exists=True)
+    self.assertEqual(len(self.executor.list_operations()), 1)
+    
+    operation_id = self.executor.add(
+      append_to_list, args=[test_list, 2], ignore_if_exists=True)
+    self.assertEqual(len(self.executor.list_operations()), 1)
+    self.assertIsNone(operation_id)
+  
   def test_has_operation(self):
     operation_id = self.executor.add(append_to_list)
     self.assertTrue(self.executor.has_operation(operation_id))

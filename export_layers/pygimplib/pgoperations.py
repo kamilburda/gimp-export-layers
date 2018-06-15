@@ -57,7 +57,9 @@ class OperationExecutor(object):
     # key: operation ID; value: `_OperationItem` instance
     self._operation_items = {}
   
-  def add(self, operation, groups=None, args=None, kwargs=None, foreach=False):
+  def add(
+        self, operation, groups=None, args=None, kwargs=None, foreach=False,
+        ignore_if_exists=False):
     """
     Add an operation to be executed by `execute`. Return the ID of the newly
     added operation.
@@ -113,7 +115,15 @@ class OperationExecutor(object):
     
     will print "bar1", "bar2", then execute the operation (only once), and then
     print "baz1" and "baz2".
+    
+    If `ignore_if_exists` is True, do not add the operation if the same function
+    or `OperationExecutor` instance is already added in at least one of the
+    specified groups and return None. Note that the same function with different
+    arguments is still treated as one function.
     """
+    
+    if ignore_if_exists and self.contains(operation, groups, foreach):
+      return None
     
     operation_id = self._get_operation_id()
     
