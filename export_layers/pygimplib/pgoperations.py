@@ -358,8 +358,7 @@ class OperationExecutor(object):
           (group in operation_lists and operation_lists[group])
           for operation_lists in [self._operations, self._foreach_operations])
       
-      return [group for group in self._operations
-              if _is_group_non_empty(group)]
+      return [group for group in self._operations if _is_group_non_empty(group)]
   
   def reorder(self, operation_id, position, group=None):
     """
@@ -513,8 +512,7 @@ class OperationExecutor(object):
     self._init_group(group)
     
     operation_item = self._set_operation_item(
-      operation_id, group, executor,
-      self._TYPE_EXECUTOR, executor)
+      operation_id, group, executor, self._TYPE_EXECUTOR, executor)
     
     self._operations[group].append(operation_item)
     self._executors[group][executor] += 1
