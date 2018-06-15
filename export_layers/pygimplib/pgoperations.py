@@ -227,23 +227,7 @@ class OperationExecutor(object):
       if group not in self._operation_items[operation_id].groups:
         self._add_operation_to_group(self._operation_items[operation_id], group)
   
-  def has_operation(self, operation_id, groups=None):
-    """
-    Return True if the specified ID (returned from the `add` method) belongs to
-    an existing operation in at least one of the specified groups.
-    
-    `group` can have one of the following values:
-      * None or "default" - the default group,
-      * list of group names (strings) - specific groups,
-      * "all" - all existing groups.
-    """
-    
-    return (
-      operation_id in self._operation_items
-      and any(group in self._operation_items[operation_id].groups
-              for group in self._process_groups_arg(groups)))
-  
-  def has_matching_operation(self, operation, groups=None, foreach=False):
+  def contains(self, operation, groups=None, foreach=False):
     """
     Return True if the specified operation exists, False otherwise. `operation`
     can be a function or `OperationExecutor` instance.
@@ -262,7 +246,7 @@ class OperationExecutor(object):
     
     return False
   
-  def find_matching_operations(self, operation, groups=None, foreach=False):
+  def find(self, operation, groups=None, foreach=False):
     """
     Return operation IDs matching the specified operation. `operation` can be a
     function or `OperationExecutor` instance.
@@ -290,6 +274,22 @@ class OperationExecutor(object):
     
     return found_operation_ids
   
+  def has_operation(self, operation_id, groups=None):
+    """
+    Return True if the specified ID (returned from the `add` method) belongs to
+    an existing operation in at least one of the specified groups.
+    
+    `group` can have one of the following values:
+      * None or "default" - the default group,
+      * list of group names (strings) - specific groups,
+      * "all" - all existing groups.
+    """
+    
+    return (
+      operation_id in self._operation_items
+      and any(group in self._operation_items[operation_id].groups
+              for group in self._process_groups_arg(groups)))
+  
   def get_operation(self, operation_id):
     """
     Return operation specified by its ID. If the ID is not valid, return None.
@@ -300,7 +300,7 @@ class OperationExecutor(object):
     else:
       return None
   
-  def get_operation_position(self, operation_id, group=None):
+  def get_position(self, operation_id, group=None):
     """
     Return the position of the operation specified by its ID in the specified
     group. If `group` is None or "default", use the default group.
@@ -320,9 +320,9 @@ class OperationExecutor(object):
       operation_item.operation_type)
     return operation_lists[group].index(operation_item)
   
-  def get_operations(self, group=None, foreach=False):
+  def list_operations(self, group=None, foreach=False):
     """
-    Return all operations, along with their arguments and keyword arguments for
+    Return all operations, along with their arguments and keyword arguments, for
     the specified group in their execution order. If the group does not exist,
     return None.
     
