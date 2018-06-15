@@ -126,7 +126,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
     self.assertEqual(len(self.executor.list_operations("additional")), 3)
     self.assertEqual(len(self.executor.list_operations()), 2)
   
-  def test_add_return_unique_ids(self):
+  def test_add_return_unique_ids_within_same_executor(self):
     test_list = []
     operation_ids = []
     
@@ -143,6 +143,14 @@ class TestOperationExecutor(OperationExecutorTestCase):
     operation_ids.append(self.executor.add(additional_executor))
     
     self.assertEqual(len(operation_ids), len(set(operation_ids)))
+  
+  def test_add_return_unique_ids_across_multiple_executors(self):
+    operation_id = self.executor.add(append_test)
+    
+    additional_executor = pgoperations.OperationExecutor()
+    additional_operation_id = additional_executor.add(append_test)
+    
+    self.assertNotEqual(operation_id, additional_operation_id)
   
   def test_add_return_same_id_for_multiple_groups(self):
     test_list = []

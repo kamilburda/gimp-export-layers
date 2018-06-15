@@ -33,6 +33,8 @@ class OperationExecutor(object):
   
   _OPERATION_TYPES = _TYPE_OPERATION, _TYPE_FOREACH_OPERATION, _TYPE_EXECUTOR = (0, 1, 2)
   
+  _operation_id_counter = itertools.count(start=1)
+  
   def __init__(self):
     # key: operation group; value: list of `_OperationItem` instances
     self._operations = collections.OrderedDict()
@@ -51,8 +53,6 @@ class OperationExecutor(object):
     # key: operation group
     # value: dict of (`OperationExecutor` instance: count) pairs
     self._executors = collections.defaultdict(lambda: collections.defaultdict(int))
-    
-    self._operation_id_counter = itertools.count(start=1)
     
     # key: operation ID; value: `_OperationItem` instance
     self._operation_items = {}
