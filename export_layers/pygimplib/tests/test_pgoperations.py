@@ -117,7 +117,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
     
     self.assertEqual(len(self.executor.list_operations("main")), 2)
     self.assertEqual(len(self.executor.list_operations("additional")), 2)
-    self.assertFalse("default" in self.executor.get_groups())
+    self.assertFalse("default" in self.executor.list_groups())
     
     self.executor.add(append_test, args=[test_list])
     self.executor.add(append_test, "all", [test_list])
@@ -250,16 +250,16 @@ class TestOperationExecutor(OperationExecutorTestCase):
   def test_get_foreach_operations_non_existing_group(self):
     self.assertIsNone(self.executor.list_operations("non_existing_group", foreach=True))
   
-  def test_get_groups(self):
+  def test_list_groups(self):
     test_list = []
     self.executor.add(append_to_list, ["main"], [test_list, 2])
     self.executor.add(append_to_list, ["additional"], [test_list, 3])
     
-    self.assertEqual(len(self.executor.get_groups()), 2)
-    self.assertIn("main", self.executor.get_groups())
-    self.assertIn("additional", self.executor.get_groups())
+    self.assertEqual(len(self.executor.list_groups()), 2)
+    self.assertIn("main", self.executor.list_groups())
+    self.assertIn("additional", self.executor.list_groups())
   
-  def test_get_groups_without_empty_groups(self):
+  def test_list_groups_without_empty_groups(self):
     test_list = []
     operation_ids = []
     
@@ -274,25 +274,25 @@ class TestOperationExecutor(OperationExecutorTestCase):
     operation_ids.append(self.executor.add(additional_executor, ["main"]))
     
     self.executor.remove(operation_ids[2], ["main"])
-    self.assertEqual(len(self.executor.get_groups(include_empty_groups=False)), 2)
+    self.assertEqual(len(self.executor.list_groups(include_empty_groups=False)), 2)
     
     self.executor.remove(operation_ids[1], ["main"])
-    self.assertEqual(len(self.executor.get_groups(include_empty_groups=False)), 2)
+    self.assertEqual(len(self.executor.list_groups(include_empty_groups=False)), 2)
     
     self.executor.remove(operation_ids[0], ["main"])
-    non_empty_groups = self.executor.get_groups(include_empty_groups=False)
+    non_empty_groups = self.executor.list_groups(include_empty_groups=False)
     self.assertEqual(len(non_empty_groups), 1)
     self.assertNotIn("main", non_empty_groups)
     self.assertIn("additional", non_empty_groups)
     
     self.executor.remove(operation_ids[1], ["additional"])
-    non_empty_groups = self.executor.get_groups(include_empty_groups=False)
+    non_empty_groups = self.executor.list_groups(include_empty_groups=False)
     self.assertEqual(len(non_empty_groups), 1)
     self.assertNotIn("main", non_empty_groups)
     self.assertIn("additional", non_empty_groups)
     
     self.executor.remove(operation_ids[0], ["additional"])
-    self.assertEqual(len(self.executor.get_groups(include_empty_groups=False)), 0)
+    self.assertEqual(len(self.executor.list_groups(include_empty_groups=False)), 0)
   
   def test_get_operation(self):
     test_list = []
@@ -542,12 +542,12 @@ class TestOperationExecutor(OperationExecutorTestCase):
     self.executor.add(append_test, ["main", "additional"])
     
     self.executor.remove_groups(["main"])
-    self.assertEqual(len(self.executor.get_groups()), 1)
-    self.assertIn("additional", self.executor.get_groups())
+    self.assertEqual(len(self.executor.list_groups()), 1)
+    self.assertIn("additional", self.executor.list_groups())
     self.assertIsNone(self.executor.list_operations("main"))
     
     self.executor.remove_groups(["additional"])
-    self.assertEqual(len(self.executor.get_groups()), 0)
+    self.assertEqual(len(self.executor.list_groups()), 0)
     self.assertIsNone(self.executor.list_operations("main"))
     self.assertIsNone(self.executor.list_operations("additional"))
   
@@ -559,7 +559,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
     self.executor.add(append_test, ["main", "additional"])
     
     self.executor.remove_groups("all")
-    self.assertEqual(len(self.executor.get_groups()), 0)
+    self.assertEqual(len(self.executor.list_groups()), 0)
     self.assertIsNone(self.executor.list_operations("main"))
     self.assertIsNone(self.executor.list_operations("additional"))
   

@@ -271,7 +271,7 @@ class OperationExecutor(object):
     
     processed_groups = [
       group for group in self._process_groups_arg(groups)
-      if group in self.get_groups()]
+      if group in self.list_groups()]
     
     found_operation_ids = []
     
@@ -352,7 +352,7 @@ class OperationExecutor(object):
     else:
       return None
   
-  def get_groups(self, include_empty_groups=True):
+  def list_groups(self, include_empty_groups=True):
     """
     Return a list of all groups in the executor.
     
@@ -445,7 +445,7 @@ class OperationExecutor(object):
     
     processed_groups = [
       group for group in self._process_groups_arg(groups)
-      if group in self.get_groups()]
+      if group in self.list_groups()]
     
     for group in processed_groups:
       for operation_item in self._operations[group]:
@@ -562,7 +562,7 @@ class OperationExecutor(object):
     if groups is None or groups == "default":
       return ["default"]
     elif groups == "all":
-      return self.get_groups()
+      return self.list_groups()
     else:
       return groups
   
@@ -593,7 +593,7 @@ class OperationExecutor(object):
   
   def _check_group_exists(self, group, groups=None):
     if groups is None:
-      groups = self.get_groups()
+      groups = self.list_groups()
     
     if group not in groups:
       raise ValueError("group '{0}' does not exist".format(group))
