@@ -57,82 +57,6 @@ class OperationExecutor(object):
     # key: operation ID; value: `_OperationItem` instance
     self._operation_items = {}
   
-  def execute(self, groups=None, additional_args=None, additional_kwargs=None):
-    """
-    Execute operations.
-    
-    If `groups` is None or "default", execute operations in the default group.
-    
-    If `groups` is a list of group names (strings), execute operations in the
-    specified groups.
-    
-    If `groups` is "all", execute operations in all existing groups.
-    
-    If any of the `groups` do not exist, raise `ValueError`.
-    
-    If `operation` is an `OperationExecutor` instance, the instance will execute
-    operations in the specified groups.
-    
-    Additional arguments and keyword arguments to all operations in the group
-    are given by `additional_args` and `additional_kwargs`, respectively.
-    `additional_args` are appended at the end of argument list. If some keyword
-    arguments appear in both the keyword arguments to the `kwargs` argument in
-    the `add` method and `additional_kwargs`, the values from the latter
-    override the former.
-    """
-    
-    def _execute_operation(operation, operation_args, operation_kwargs):
-      args = tuple(operation_args) + tuple(additional_args)
-      kwargs = dict(operation_kwargs, **additional_kwargs)
-      return operation(*args, **kwargs)
-    
-    def _execute_operation_with_foreach_operations(
-          operation, operation_args, operation_kwargs, group):
-      operation_generators = [
-        _execute_operation(*item.operation)
-        for item in self._foreach_operations[group]]
-      
-      _execute_foreach_operations_once(operation_generators)
-      
-      while operation_generators:
-        result_from_operation = _execute_operation(
-          operation, operation_args, operation_kwargs)
-        _execute_foreach_operations_once(operation_generators, result_from_operation)
-    
-    def _execute_foreach_operations_once(
-          operation_generators, result_from_operation=None):
-      operation_generators_to_remove = []
-      
-      for operation_generator in operation_generators:
-        try:
-          operation_generator.send(result_from_operation)
-        except StopIteration:
-          operation_generators_to_remove.append(operation_generator)
-      
-      for operation_generator_to_remove in operation_generators_to_remove:
-        operation_generators.remove(operation_generator_to_remove)
-    
-    def _execute_executor(executor, group):
-      executor.execute([group], additional_args, additional_kwargs)
-    
-    additional_args = additional_args if additional_args is not None else ()
-    additional_kwargs = additional_kwargs if additional_kwargs is not None else {}
-    
-    for group in self._process_groups_arg(groups):
-      if group not in self._operations:
-        self._init_group(group)
-      
-      for item in self._operations[group]:
-        if item.operation_type != self._TYPE_EXECUTOR:
-          operation, operation_args, operation_kwargs = item.operation
-          if self._foreach_operations[group]:
-            _execute_operation_with_foreach_operations(
-              operation, operation_args, operation_kwargs, group)
-          else:
-            _execute_operation(operation, operation_args, operation_kwargs)
-        else:
-          _execute_executor(item.operation, group)
-  
   def add(self, operation, groups=None, args=None, kwargs=None, foreach=False):
     """
     Add an operation to be executed by `execute`. Return the ID of the newly
@@ -209,6 +133,82 @@ class OperationExecutor(object):
           kwargs if kwargs is not None else {})
     
     return operation_id
+  
+  def execute(self, groups=None, additional_args=None, additional_kwargs=None):
+    """
+    Execute operations.
+    
+    If `groups` is None or "default", execute operations in the default group.
+    
+    If `groups` is a list of group names (strings), execute operations in the
+    specified groups.
+    
+    If `groups` is "all", execute operations in all existing groups.
+    
+    If any of the `groups` do not exist, raise `ValueError`.
+    
+    If `operation` is an `OperationExecutor` instance, the instance will execute
+    operations in the specified groups.
+    
+    Additional arguments and keyword arguments to all operations in the group
+    are given by `additional_args` and `additional_kwargs`, respectively.
+    `additional_args` are appended at the end of argument list. If some keyword
+    arguments appear in both the keyword arguments to the `kwargs` argument in
+    the `add` method and `additional_kwargs`, the values from the latter
+    override the former.
+    """
+    
+    def _execute_operation(operation, operation_args, operation_kwargs):
+      args = tuple(operation_args) + tuple(additional_args)
+      kwargs = dict(operation_kwargs, **additional_kwargs)
+      return operation(*args, **kwargs)
+    
+    def _execute_operation_with_foreach_operations(
+          operation, operation_args, operation_kwargs, group):
+      operation_generators = [
+        _execute_operation(*item.operation)
+        for item in self._foreach_operations[group]]
+      
+      _execute_foreach_operations_once(operation_generators)
+      
+      while operation_generators:
+        result_from_operation = _execute_operation(
+          operation, operation_args, operation_kwargs)
+        _execute_foreach_operations_once(operation_generators, result_from_operation)
+    
+    def _execute_foreach_operations_once(
+          operation_generators, result_from_operation=None):
+      operation_generators_to_remove = []
+      
+      for operation_generator in operation_generators:
+        try:
+          operation_generator.send(result_from_operation)
+        except StopIteration:
+          operation_generators_to_remove.append(operation_generator)
+      
+      for operation_generator_to_remove in operation_generators_to_remove:
+        operation_generators.remove(operation_generator_to_remove)
+    
+    def _execute_executor(executor, group):
+      executor.execute([group], additional_args, additional_kwargs)
+    
+    additional_args = additional_args if additional_args is not None else ()
+    additional_kwargs = additional_kwargs if additional_kwargs is not None else {}
+    
+    for group in self._process_groups_arg(groups):
+      if group not in self._operations:
+        self._init_group(group)
+      
+      for item in self._operations[group]:
+        if item.operation_type != self._TYPE_EXECUTOR:
+          operation, operation_args, operation_kwargs = item.operation
+          if self._foreach_operations[group]:
+            _execute_operation_with_foreach_operations(
+              operation, operation_args, operation_kwargs, group)
+          else:
+            _execute_operation(operation, operation_args, operation_kwargs)
+        else:
+          _execute_executor(item.operation, group)
   
   def add_to_groups(self, operation_id, groups=None):
     """
