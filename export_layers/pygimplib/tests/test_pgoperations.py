@@ -388,6 +388,11 @@ class TestOperationExecutor(OperationExecutorTestCase):
     operation_id = self.executor.add(append_test)
     self.assertEqual(
       self.executor.find_matching_operations(append_test, ["non_existing_group"]), [])
+    
+    self.assertEqual(
+      self.executor.find_matching_operations(
+        append_test, ["default", "non_existing_group"]),
+      [operation_id])
   
   def test_reorder(self):
     operation_ids = []
