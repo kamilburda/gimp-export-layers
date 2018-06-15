@@ -1,31 +1,32 @@
 #!/bin/bash
 
 # This script (re-)generates .pot file from .py files in the entire plug-in.
-#
-# Arguments:
-# $1 - plug-in version
 
 PROGNAME="$(basename "$0")"
 
-PLUGIN_NAME='export_layers'
-PACKAGE_NAME=\'"$PLUGIN_NAME"\'
-DOMAIN_NAME='gimp-plugin-export-layers'
+USAGE="$PROGNAME"' PLUGIN_NAME PLUGIN_VERSION DOMAIN_NAME AUTHOR_NAME AUTHOR_CONTACT'
 
-if [ -z "$1" ]; then
-   echo "$PROGNAME: error: version must be specified"
+if [ $# -le 4 ]; then
+   echo "$PROGNAME: invalid number of arguments"
+   echo
+   echo "$USAGE"
    exit 1
 fi
 
-plugin_version="$1"
+plugin_name="$1"
+plugin_version="$2"
+domain_name="$3"
+author_name="$4"
+author_contact="$5"
 
-INPUT_DIRECTORY='../..'
-OUTPUT_FILE='./'"$DOMAIN_NAME"'-'"$plugin_version"'.pot'
-AUTHOR_NAME='khalim19'
-AUTHOR_MAIL='khalim19@gmail.com'
+package_name=\'"$plugin_name"\'
 
-find "$INPUT_DIRECTORY" -type f -iname '*.py' | \
-xargs xgettext --language=Python --keyword='_' --keyword='N_' --package-name="$PACKAGE_NAME" --package-version="$plugin_version" --copyright-holder="$AUTHOR_NAME" --msgid-bugs-address="$AUTHOR_MAIL" --output="$OUTPUT_FILE" --from-code='UTF-8'
+input_dirpath='../..'
+output_filepath='./'"$domain_name"'-'"$plugin_version"'.pot'
+
+find "$input_dirpath" -type f -iname '*.py' | \
+xargs xgettext --language=Python --keyword='_' --keyword='N_' --package-name="$package_name" --package-version="$plugin_version" --copyright-holder="$author_name" --msgid-bugs-address="$author_contact" --output="$output_filepath" --from-code='UTF-8'
 
 sed -i '
   s/^\("Content-Type: text\/plain; charset\)=CHARSET/\1=UTF-8/
-' "$OUTPUT_FILE"
+' "$output_filepath"

@@ -78,8 +78,7 @@ def make_installers(
     _prepare_repo_files_for_packaging(
       input_dirpath, temp_repo_files_dirpath, force_if_dirty))
   
-  _generate_translation_files(
-    pygimplib.config.LOCALE_DIRPATH, pygimplib.config.PLUGIN_VERSION)
+  _generate_translation_files(pygimplib.config.LOCALE_DIRPATH)
 
   temp_dirpath = TEMP_INPUT_DIRPATH
   
@@ -192,17 +191,26 @@ def _get_relative_filepaths(filepaths, root_dirpath):
   return [filepath[len(root_dirpath) + 1:] for filepath in filepaths]
 
 
-def _generate_translation_files(source_dirpath, version):
+def _generate_translation_files(source_dirpath):
   _remove_pot_files(source_dirpath)
   
-  _generate_pot_file(source_dirpath, version)
+  _generate_pot_file(source_dirpath)
   _generate_mo_files(source_dirpath)
 
 
-def _generate_pot_file(source_dirpath, version):
+def _generate_pot_file(source_dirpath):
   orig_cwd = os.getcwdu()
   os.chdir(source_dirpath)
-  subprocess.call(["./generate_pot.sh", version])
+  
+  subprocess.call([
+    "./generate_pot.sh",
+    pygimplib.config.PLUGIN_NAME,
+    pygimplib.config.PLUGIN_VERSION,
+    pygimplib.config.DOMAIN_NAME,
+    pygimplib.config.AUTHOR_NAME,
+    pygimplib.config.AUTHOR_CONTACT,
+  ])
+  
   os.chdir(orig_cwd)
 
 
