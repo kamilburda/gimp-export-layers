@@ -560,13 +560,13 @@ class OperationExecutor(object):
       return groups
   
   def _get_operation_type(self, operation, is_foreach):
-    if isinstance(operation, self.__class__):
-      return self._TYPE_EXECUTOR
+    if is_foreach:
+      return self._TYPE_FOREACH_OPERATION
     else:
-      if not is_foreach:
-        return self._TYPE_OPERATION
+      if isinstance(operation, self.__class__):
+        return self._TYPE_EXECUTOR
       else:
-        return self._TYPE_FOREACH_OPERATION
+        return self._TYPE_OPERATION
   
   def _get_operation_lists_and_functions(self, operation_type):
     if operation_type == self._TYPE_OPERATION:

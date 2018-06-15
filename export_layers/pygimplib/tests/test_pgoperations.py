@@ -382,11 +382,10 @@ class TestOperationExecutor(OperationExecutorTestCase):
       self.executor.find_matching_operations(additional_executor),
       [operation_ids[4]])
     self.assertEqual(
-      self.executor.find_matching_operations(additional_executor, foreach=True),
-      [operation_ids[4]])
+      self.executor.find_matching_operations(additional_executor, foreach=True), [])
   
   def test_find_matching_operations_non_existing_group(self):
-    self.executor.add(append_test)
+    operation_id = self.executor.add(append_test)
     self.assertEqual(
       self.executor.find_matching_operations(append_test, ["non_existing_group"]), [])
   
