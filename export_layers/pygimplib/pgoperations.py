@@ -212,8 +212,8 @@ class OperationExecutor(object):
   
   def add_to_groups(self, operation_id, groups=None):
     """
-    Add an existing operation specified by its ID to the specified operation
-    groups. For more information about the `groups` parameter, see `add`.
+    Add an existing operation specified by its ID to the specified groups. For
+    more information about the `groups` parameter, see `add`.
     
     If the operation was already added to one of the specified groups, it will
     not be added again (use the `add` method for that purpose).
@@ -323,7 +323,7 @@ class OperationExecutor(object):
   def get_operations(self, group=None, foreach=False):
     """
     Return all operations, along with their arguments and keyword arguments for
-    the operation group in their execution order. If the group does not exist,
+    the specified group in their execution order. If the group does not exist,
     return None.
     
     If `foreach` is True, return for-each operations instead.
@@ -364,8 +364,8 @@ class OperationExecutor(object):
   def reorder(self, operation_id, position, group=None):
     """
     Change the execution order of the operation specified by its ID in the
-    specified operation group to the specified position. If `group` is None or
-    "default", use the default group.
+    specified group to the specified position. If `group` is None or "default",
+    use the default group.
     
     A position of 0 moves the operation to the beginning of the execution order.
     Negative numbers move the operation to the n-th to last position, i.e. -1
@@ -373,8 +373,8 @@ class OperationExecutor(object):
     
     Raises `ValueError` if:
       * operation ID is invalid
-      * operation group does not exist
-      * operation is not in the specified group
+      * group does not exist
+      * operation is not in the group
     """
     
     if group is None:
@@ -398,8 +398,7 @@ class OperationExecutor(object):
   
   def remove(self, operation_id, groups=None):
     """
-    Remove the operation specified by its ID from the specified operation
-    groups.
+    Remove the operation specified by its ID from the specified groups.
     
     For information about the `groups` parameter, see `has_operation`.
     
@@ -589,7 +588,7 @@ class OperationExecutor(object):
       groups = self.get_groups()
     
     if group not in groups:
-      raise ValueError("operation group '{0}' does not exist".format(group))
+      raise ValueError("group '{0}' does not exist".format(group))
   
   def _check_operation_in_group(self, operation_id, group):
     if group not in self._operation_items[operation_id].groups:
