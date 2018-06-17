@@ -22,10 +22,52 @@ import sys
 import unittest
 
 import mock
+import parameterized
 
+from .. import pgconstants
 from .. import pglogging
 
 #===============================================================================
+
+
+class TestCreateLogFile(unittest.TestCase):
+  
+  @parameterized.parameterized.expand([
+    ("valid_file_and_first_dirpath",
+     ["file"], [None, None], "file", 1),
+    
+    ("valid_file_and_second_dirpath",
+     ["file"], [OSError(), None], "file", 2),
+    
+    ("valid_file_invalid_dirpath",
+     ["file"], [OSError(), OSError()], None, 2),
+    
+    ("valid_second_file",
+     [IOError(), "file"], [None, None], "file", 2),
+    
+    ("invalid_file",
+     IOError(), [None, None], None, 2),
+  ])
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pglogging._pgpath_dirs.make_dirs")
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pglogging.io.open")
+  def test_create_log_file(
+        self,
+        test_case_name_suffix,
+        io_open_side_effect, make_dirs_side_effect,
+        expected_result, expected_num_calls_make_dirs,
+        mock_io_open, mock_make_dirs):
+    log_dirpaths = ["dirpath_1", "dirpath_2"]
+    log_filename = "output.log"
+    
+    mock_io_open.side_effect = io_open_side_effect
+    mock_make_dirs.side_effect = make_dirs_side_effect
+        
+    log_file = pglogging.create_log_file(log_dirpaths, log_filename)
+    
+    self.assertEqual(log_file, expected_result)
+    self.assertEqual(mock_make_dirs.call_count, expected_num_calls_make_dirs)
 
 
 @mock.patch("sys.stdout", new=io.StringIO())
