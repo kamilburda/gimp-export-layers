@@ -16,13 +16,24 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import collections
-import gettext
 import inspect
 import os
 import sys
 
-#===============================================================================
+_PYGIMPLIB_DIRPATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
+
+from . import pglogging
+
+# Enable logging as early as possible to capture any unexpected errors (such as
+# missing modules) before pygimplib is fully initialized.
+pglogging.log_output(
+  pglogging.LOG_EXCEPTIONS_ONLY,
+  [os.path.dirname(os.path.dirname(_PYGIMPLIB_DIRPATH)),
+   os.path.dirname(_PYGIMPLIB_DIRPATH),
+   _PYGIMPLIB_DIRPATH],
+  None,
+  "error.log",
+  "pygimplib")
 
 
 def _setup_import_of_external_lib_modules(dirpath):
@@ -41,22 +52,20 @@ def _setup_import_of_external_lib_modules(dirpath):
       sys.path.append(external_libs_dirpath)
 
 
-_PYGIMPLIB_DIRPATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
-
 _setup_import_of_external_lib_modules(os.path.join(_PYGIMPLIB_DIRPATH, "lib"))
 
-#===============================================================================
 
 from future.builtins import *
+
+import collections
+import gettext
 
 try:
   import gimp
   import gimpenums
-  import gimpplugin
   import gimpui
   
   from . import pggui
-  from . import pglogging
   from . import pgsetting
   from . import pgsettinggroup
   from . import pgsettingsources
@@ -65,8 +74,6 @@ except ImportError:
   _gimp_dependent_modules_imported = False
 else:
   _gimp_dependent_modules_imported = True
-
-from . import pgconstants
 
 #===============================================================================
 
@@ -129,7 +136,7 @@ def _init_config():
   config.PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(_PYGIMPLIB_DIRPATH))
   
   if _gimp_dependent_modules_imported:
-    config.LOG_MODE = pgconstants.LOG_EXCEPTIONS_ONLY
+    config.LOG_MODE = pglogging.LOG_EXCEPTIONS_ONLY
   
   gettext.install(config.DOMAIN_NAME, config.LOCALE_DIRPATH, unicode=True)
   

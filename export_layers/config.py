@@ -44,7 +44,7 @@ def init():
   pygimplib.config.LOCALE_DIRPATH = os.path.join(
     pygimplib.config.PLUGINS_DIRPATH, pygimplib.config.PLUGIN_NAME, "locale")
   
-  pygimplib.config.LOG_MODE = pygimplib.pgconstants.LOG_EXCEPTIONS_ONLY
+  pygimplib.config.LOG_MODE = pygimplib.pglogging.LOG_EXCEPTIONS_ONLY
   
   pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
   pygimplib.config.PLUGIN_VERSION = "3.2.1"

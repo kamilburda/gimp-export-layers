@@ -123,7 +123,7 @@ ln -s 'git_hooks/commit_msg.py' '.git/hooks/commit-msg'
 ln -s 'git_hooks/pre_commit.py' '.git/hooks/pre-commit'
 
 echo 'Setting up filters to ignore modifications to specific lines'
-git config --local 'filter.ignore_config_entries.clean' "sed 's/pygimplib\\.config\\.LOG_MODE = .*/pygimplib\\.config\\.LOG_MODE = pygimplib\\.pgconstants\\.LOG_EXCEPTIONS_ONLY/' | sed 's/pygimplib\\.config\\.DEBUG_IMAGE_PROCESSING = .*/pygimplib\\.config\\.DEBUG_IMAGE_PROCESSING = False/'"
+git config --local 'filter.ignore_config_entries.clean' "sed 's/pygimplib\\.config\\.LOG_MODE = .*/pygimplib\\.config\\.LOG_MODE = pygimplib\\.pglogging\\.LOG_EXCEPTIONS_ONLY/' | sed 's/pygimplib\\.config\\.DEBUG_IMAGE_PROCESSING = .*/pygimplib\\.config\\.DEBUG_IMAGE_PROCESSING = False/'"
 git config --local 'filter.ignore_config_entries.smudge' 'cat'
 
 cd 'docs'

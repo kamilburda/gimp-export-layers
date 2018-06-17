@@ -21,20 +21,31 @@ debugging is enabled),
 * defines a class to duplicate ("tee") standard output or error output.
 """
 
+# NOTE: In order to allow logging errors as early as possible:
+# * we are breaking the "all imports at the beginning of module" convention
+#   for some modules,
+# * the `future` library is not imported in case some modules in the library are
+#   not available in the installed Python distribution and would thus cause an
+#   `ImportError` to be raised.
+
 from __future__ import absolute_import, division, print_function, unicode_literals
-from future.builtins import *
+
+str = unicode
 
 import datetime
 import io
-import logging
 import os
 import sys
+import traceback
 
-from . import pgconstants
-from . import pgpath
-from . import pgpdb
+from . import _pgpath_dirs
 
 #===============================================================================
+
+_LOG_MODES = (
+  LOG_NONE, LOG_EXCEPTIONS_ONLY, LOG_OUTPUT_FILES, LOG_OUTPUT_GIMP_CONSOLE) = (0, 1, 2, 3)
+
+_exception_logger = None
 
 
 def log_output(
@@ -54,8 +65,7 @@ def log_output(
   
   * `log_dirpaths` - list of directory paths for log files. If the first
     path is invalid or permission to write is denied, subsequent directories are
-    used. For `LOG_OUTPUT_FILES` mode, only the first directory is used. For
-    `LOG_OUTPUT_GIMP_CONSOLE` mode, this parameter has no effect.
+    used. For `LOG_OUTPUT_GIMP_CONSOLE` mode, this parameter has no effect.
   
   * `log_stdout_filename` - filename of the log file to write standard output
     to. Applies to `LOG_OUTPUT_FILES` mode only.
@@ -72,17 +82,26 @@ def log_output(
     log mode.
   """
   
-  if log_mode == pgconstants.LOG_NONE:
+  _restore_orig_state(log_mode)
+  
+  if log_mode == LOG_NONE:
     return
-  if log_mode == pgconstants.LOG_EXCEPTIONS_ONLY:
+  if log_mode == LOG_EXCEPTIONS_ONLY:
     _redirect_exception_output_to_file(
       log_dirpaths, log_stderr_filename, log_header_title)
-  elif log_mode == pgconstants.LOG_OUTPUT_FILES:
-    sys.stdout = SimpleLogger(
-      os.path.join(log_dirpaths[0], log_stdout_filename), "a", log_header_title)
-    sys.stderr = SimpleLogger(
-      os.path.join(log_dirpaths[0], log_stderr_filename), "a", log_header_title)
-  elif log_mode == pgconstants.LOG_OUTPUT_GIMP_CONSOLE:
+  elif log_mode == LOG_OUTPUT_FILES:
+    stdout_file = _create_log_file(log_dirpaths, log_stdout_filename)
+    
+    if stdout_file is not None:
+      sys.stdout = SimpleLogger(stdout_file, log_header_title)
+    
+    stderr_file = _create_log_file(log_dirpaths, log_stderr_filename)
+    
+    if stderr_file is not None:
+      sys.stderr = SimpleLogger(stderr_file, log_header_title)
+  elif log_mode == LOG_OUTPUT_GIMP_CONSOLE:
+    from . import pgpdb
+    
     sys.stdout = pgpdb.GimpMessageFile(
       message_delay_milliseconds=gimp_console_message_delay_milliseconds)
     sys.stderr = pgpdb.GimpMessageFile(
@@ -90,24 +109,48 @@ def log_output(
       message_delay_milliseconds=gimp_console_message_delay_milliseconds)
 
 
-def _redirect_exception_output_to_file(
-      log_dirpaths, log_filename, log_header_title):
-  logger = logging.getLogger(log_filename)
-  logger.setLevel(logging.DEBUG)
+def get_log_header(log_header_title):
+  return "\n".join(("", "=" * 80, log_header_title, str(datetime.datetime.now()), "\n"))
+
+
+def _restore_orig_state(log_mode):
+  global _exception_logger
   
-  # Pass the `logger` instance to the function to make sure it is not None.
-  # More information at:
-  # http://stackoverflow.com/questions/5451746/sys-excepthook-doesnt-work-in-imported-modules/5477639
-  # http://bugs.python.org/issue11705
-  def log_exception(exctype, value, traceback, logger=logger):
-    logger.error(
-      get_log_header(log_header_title), exc_info=(exctype, value, traceback))
+  for file_ in [_exception_logger, sys.stdout, sys.stderr]:
+    if (file_ is not None
+        and hasattr(file_, "close")
+        and file_ not in [sys.__stdout__, sys.__stderr__]):
+      try:
+        file_.close()
+      except IOError:
+        # An exception could occur for an invalid file descriptor.
+        pass
   
-  def log_exception_first_time(exctype, value, traceback, logger=logger):
-    can_log = _logger_add_file_handler(
-      logger, [os.path.join(log_dirpath, log_filename) for log_dirpath in log_dirpaths])
-    if can_log:
-      log_exception(exctype, value, traceback, logger=logger)
+  _exception_logger = None
+  sys.excepthook = sys.__excepthook__
+   
+  sys.stdout = sys.__stdout__
+  sys.stderr = sys.__stderr__
+
+
+def _redirect_exception_output_to_file(log_dirpaths, log_filename, log_header_title):
+  global _exception_logger
+  
+  def log_exception(exctype, value, traceback_):
+    global _exception_logger
+    
+    _exception_logger.write(
+      "".join(traceback.format_exception(exctype, value, traceback_)))
+  
+  def log_exception_first_time(exctype, value, traceback_):
+    global _exception_logger
+    
+    _exception_log_file = _create_log_file(log_dirpaths, log_filename)
+    
+    if _exception_log_file is not None:
+      _exception_logger = SimpleLogger(_exception_log_file, log_header_title)
+      log_exception(exctype, value, traceback_)
+      
       sys.excepthook = log_exception
     else:
       sys.excepthook = sys.__excepthook__
@@ -115,36 +158,27 @@ def _redirect_exception_output_to_file(
   sys.excepthook = log_exception_first_time
 
 
-def _logger_add_file_handler(logger, log_filepaths):
+def _create_log_file(log_dirpaths, log_filename, mode="a"):
   """
-  If the first log path in `log_filepaths` cannot be used (e.g. due to denied
-  write permission), try out subsequent paths.
+  Create a log file in the first file path that can be written to.
   
-  Do not log if directories cannot be created or any of the log files cannot be
-  created.
+  Return the log file upon successful creation, None otherwise.
   """
   
-  can_log = True
-  for log_filepath in log_filepaths:
+  for log_dirpath in log_dirpaths:
     try:
-      pgpath.make_dirs(os.path.dirname(log_filepath))
+      _pgpath_dirs.make_dirs(log_dirpath)
     except OSError:
-      can_log = False
-      break
+      continue
     
     try:
-      logger.addHandler(logging.FileHandler(log_filepath))
-    except (OSError, IOError):
-      if log_filepath == log_filepaths[-1]:
-        can_log = False
+      log_file = io.open(os.path.join(log_dirpath, log_filename), mode, encoding="utf-8")
+    except IOError:
+      continue
     else:
       break
   
-  return can_log
-
-
-def get_log_header(log_header_title):
-  return "\n".join(("", "=" * 80, log_header_title, str(datetime.datetime.now()), "\n"))
+  return log_file
 
 
 #===============================================================================
@@ -156,9 +190,9 @@ class SimpleLogger(object):
   This class wraps a file object to write a header before the first output.
   """
   
-  def __init__(self, filename, mode, log_header_title):
+  def __init__(self, file_, log_header_title):
+    self._log_file = file_
     self._log_header_title = log_header_title
-    self._log_file = io.open(filename, mode, encoding=pgconstants.GIMP_CHARACTER_ENCODING)
   
   def write(self, data):
     if self._log_header_title:

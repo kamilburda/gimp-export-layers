@@ -40,6 +40,7 @@ import git
 import pathspec
 
 from export_layers.pygimplib import pgconstants
+from export_layers.pygimplib import pglogging
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgutils
 
@@ -49,7 +50,7 @@ from utils import process_local_docs
 import export_layers.config
 export_layers.config.init()
 
-pygimplib.config.LOG_MODE = pgconstants.LOG_NONE
+pygimplib.config.LOG_MODE = pglogging.LOG_NONE
 
 pygimplib.init()
 
