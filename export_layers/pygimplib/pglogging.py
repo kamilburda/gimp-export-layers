@@ -90,12 +90,12 @@ def log_output(
     _redirect_exception_output_to_file(
       log_dirpaths, log_stderr_filename, log_header_title)
   elif log_mode == LOG_OUTPUT_FILES:
-    stdout_file = _create_log_file(log_dirpaths, log_stdout_filename)
+    stdout_file = create_log_file(log_dirpaths, log_stdout_filename)
     
     if stdout_file is not None:
       sys.stdout = SimpleLogger(stdout_file, log_header_title)
     
-    stderr_file = _create_log_file(log_dirpaths, log_stderr_filename)
+    stderr_file = create_log_file(log_dirpaths, log_stderr_filename)
     
     if stderr_file is not None:
       sys.stderr = SimpleLogger(stderr_file, log_header_title)
@@ -111,6 +111,31 @@ def log_output(
 
 def get_log_header(log_header_title):
   return "\n".join(("", "=" * 80, log_header_title, str(datetime.datetime.now()), "\n"))
+
+
+def create_log_file(log_dirpaths, log_filename, mode="a"):
+  """
+  Create a log file in the first file path that can be written to.
+  
+  Return the log file upon successful creation, None otherwise.
+  """
+  
+  log_file = None
+  
+  for log_dirpath in log_dirpaths:
+    try:
+      _pgpath_dirs.make_dirs(log_dirpath)
+    except OSError:
+      continue
+    
+    try:
+      log_file = io.open(os.path.join(log_dirpath, log_filename), mode, encoding="utf-8")
+    except IOError:
+      continue
+    else:
+      break
+  
+  return log_file
 
 
 def _restore_orig_state(log_mode):
@@ -136,16 +161,10 @@ def _restore_orig_state(log_mode):
 def _redirect_exception_output_to_file(log_dirpaths, log_filename, log_header_title):
   global _exception_logger
   
-  def log_exception(exctype, value, traceback_):
+  def create_file_upon_exception_and_log_exception(exctype, value, traceback_):
     global _exception_logger
     
-    _exception_logger.write(
-      "".join(traceback.format_exception(exctype, value, traceback_)))
-  
-  def log_exception_first_time(exctype, value, traceback_):
-    global _exception_logger
-    
-    _exception_log_file = _create_log_file(log_dirpaths, log_filename)
+    _exception_log_file = create_log_file(log_dirpaths, log_filename)
     
     if _exception_log_file is not None:
       _exception_logger = SimpleLogger(_exception_log_file, log_header_title)
@@ -155,30 +174,13 @@ def _redirect_exception_output_to_file(log_dirpaths, log_filename, log_header_ti
     else:
       sys.excepthook = sys.__excepthook__
   
-  sys.excepthook = log_exception_first_time
-
-
-def _create_log_file(log_dirpaths, log_filename, mode="a"):
-  """
-  Create a log file in the first file path that can be written to.
-  
-  Return the log file upon successful creation, None otherwise.
-  """
-  
-  for log_dirpath in log_dirpaths:
-    try:
-      _pgpath_dirs.make_dirs(log_dirpath)
-    except OSError:
-      continue
+  def log_exception(exctype, value, traceback_):
+    global _exception_logger
     
-    try:
-      log_file = io.open(os.path.join(log_dirpath, log_filename), mode, encoding="utf-8")
-    except IOError:
-      continue
-    else:
-      break
+    _exception_logger.write(
+      "".join(traceback.format_exception(exctype, value, traceback_)))
   
-  return log_file
+  sys.excepthook = create_file_upon_exception_and_log_exception
 
 
 #===============================================================================
