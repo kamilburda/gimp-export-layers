@@ -24,8 +24,8 @@ import inspect
 import os
 import sys
 
-# Fix Windows installation failing to import modules from the `export_layers`
-# folder.
+# Fix Windows installation failing to import modules from subdirectories in the
+# "plug-ins" directory.
 if os.name == "nt":
   current_module_dirpath = os.path.dirname(inspect.getfile(inspect.currentframe()))
   if current_module_dirpath not in sys.path:
