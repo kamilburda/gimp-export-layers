@@ -216,9 +216,8 @@ class SimpleLogger(object):
 #===============================================================================
 
 
-# Original version:
+# Original version by Peter Otten:
 # http://mail.python.org/pipermail/python-list/2007-May/438106.html
-# Author: Peter Otten
 class Tee(object):
   
   """
