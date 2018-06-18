@@ -27,13 +27,14 @@ from . import pglogging
 # Enable logging as early as possible to capture any unexpected errors (such as
 # missing modules) before pygimplib is fully initialized.
 pglogging.log_output(
-  pglogging.LOG_EXCEPTIONS_ONLY,
-  [os.path.dirname(os.path.dirname(_PYGIMPLIB_DIRPATH)),
-   os.path.dirname(_PYGIMPLIB_DIRPATH),
-   _PYGIMPLIB_DIRPATH],
-  None,
-  "error.log",
-  "pygimplib")
+  log_mode=pglogging.LOG_EXCEPTIONS_ONLY,
+  log_dirpaths=[
+    os.path.dirname(os.path.dirname(_PYGIMPLIB_DIRPATH)),
+    os.path.dirname(_PYGIMPLIB_DIRPATH),
+    _PYGIMPLIB_DIRPATH],
+  log_stdout_filename=None,
+  log_stderr_filename="error.log",
+  log_header_title="pygimplib")
 
 
 def _setup_import_of_external_lib_modules(dirpath):
