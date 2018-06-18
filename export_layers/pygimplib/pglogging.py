@@ -21,7 +21,8 @@ debugging is enabled),
 * defines a class to duplicate ("tee") standard output or error output.
 """
 
-# NOTE: In order to allow logging errors as early as possible:
+# NOTE: In order to allow logging errors as early as possible (before plug-in
+# initialization):
 # * we are breaking the "all imports at the beginning of module" convention
 #   for some modules,
 # * the `future` library is not imported in case some modules in the library are
@@ -161,24 +162,24 @@ def _restore_orig_state(log_mode):
 def _redirect_exception_output_to_file(log_dirpaths, log_filename, log_header_title):
   global _exception_logger
   
-  def create_file_upon_exception_and_log_exception(exctype, value, traceback_):
+  def create_file_upon_exception_and_log_exception(exc_type, exc_value, exc_traceback):
     global _exception_logger
     
     _exception_log_file = create_log_file(log_dirpaths, log_filename)
     
     if _exception_log_file is not None:
       _exception_logger = SimpleLogger(_exception_log_file, log_header_title)
-      log_exception(exctype, value, traceback_)
+      log_exception(exc_type, exc_value, exc_traceback)
       
       sys.excepthook = log_exception
     else:
       sys.excepthook = sys.__excepthook__
   
-  def log_exception(exctype, value, traceback_):
+  def log_exception(exc_type, exc_value, exc_traceback):
     global _exception_logger
     
     _exception_logger.write(
-      "".join(traceback.format_exception(exctype, value, traceback_)))
+      "".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
   
   sys.excepthook = create_file_upon_exception_and_log_exception
 
