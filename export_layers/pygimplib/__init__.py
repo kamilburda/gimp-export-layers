@@ -279,19 +279,20 @@ if _gimp_dependent_modules_imported:
     
     config._can_modify_config = False
     
-    procedure = _set_gui_excepthook(_plugins_names[procedure_name], procedure_params[0])
+    procedure = _add_gui_excepthook(_plugins_names[procedure_name], procedure_params[0])
     
     if hasattr(gimpui, "gimp_ui_init"):
       gimpui.gimp_ui_init()
     
     procedure(*procedure_params)
   
-  def _set_gui_excepthook(procedure, run_mode):
+  def _add_gui_excepthook(procedure, run_mode):
     if run_mode == gimpenums.RUN_INTERACTIVE:
-      set_gui_excepthook_func = pggui.set_gui_excepthook(
+      add_gui_excepthook_func = pggui.add_gui_excepthook(
         title=config.PLUGIN_TITLE,
         app_name=config.PLUGIN_TITLE,
         report_uri_list=config.BUG_REPORT_URL_LIST)
-      return set_gui_excepthook_func(procedure)
+      
+      return add_gui_excepthook_func(procedure)
     else:
       return procedure

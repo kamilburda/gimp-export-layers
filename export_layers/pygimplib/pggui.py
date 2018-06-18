@@ -444,12 +444,13 @@ def display_message(
 _gui_excepthook_parent = None
 
 
-def set_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
+def add_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
   """
-  Modify `sys.excepthook` to display an error dialog for unhandled exceptions.
+  Return a decorator that modifies `sys.excepthook` to display an error dialog
+  for unhandled exceptions.
   
-  Don't display the dialog for exceptions which are not subclasses of
-  `Exception` (such as `SystemExit or `KeyboardInterrupt`).
+  The dialog will not be displayed for exceptions which are not subclasses of
+  `Exception` (such as `SystemExit` or `KeyboardInterrupt`).
   
   Parameters:
   
@@ -492,7 +493,7 @@ def set_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
       func(self, *args, **kwargs)
       
       sys.excepthook = orig_sys_excepthook
-  
+    
     return func_wrapper
   
   return gui_excepthook
@@ -501,8 +502,8 @@ def set_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
 def set_gui_excepthook_parent(parent):
   """
   Set the parent GUI element to attach the exception dialog to when using
-  `set_gui_excepthook`. This function allows to modify the parent dynamically
-  even after decorating a function with `set_gui_excepthook`.
+  `add_gui_excepthook`. This function allows to modify the parent dynamically
+  even after decorating a function with `add_gui_excepthook`.
   """
   
   global _gui_excepthook_parent
