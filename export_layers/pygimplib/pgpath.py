@@ -26,12 +26,14 @@ import future.utils
 import abc
 import collections
 import inspect
+import os
 import re
 import types
 
-from ._pgpath_dirs import *
 from . import pgfileformats
 from . import pgutils
+
+from ._pgpath_dirs import *
 
 #===============================================================================
 

@@ -18,12 +18,16 @@
 This module contains functions related to directory manipulations.
 
 This module should not be used directly. Use `pgpath` as the contents of this
-module are included in that module.
+module are included in `pgpath`.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
+
+__all__ = [
+  "make_dirs"
+]
 
 #===============================================================================
 
