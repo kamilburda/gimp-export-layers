@@ -22,6 +22,7 @@ This module defines:
 * GTK generic message dialog
 * wrapper for `sys.excepthook` that displays the GTK exception dialog when an
   unhandled exception is raised
+* miscellaneous helper functions dealing with the GUI
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
