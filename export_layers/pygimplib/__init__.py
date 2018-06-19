@@ -36,6 +36,17 @@ pglogging.log_output(
   log_stderr_filename="error.log",
   log_header_title="pygimplib")
 
+try:
+  import gimp
+  
+  from . import _pggui_messages
+except ImportError:
+  _gimp_dependent_modules_imported = False
+else:
+  _gimp_dependent_modules_imported = True
+  
+  _pggui_messages.set_gui_excepthook(title=None, app_name=None)
+
 
 def _setup_import_of_external_lib_modules(dirpath):
   """
@@ -61,8 +72,7 @@ from future.builtins import *
 import collections
 import gettext
 
-try:
-  import gimp
+if _gimp_dependent_modules_imported:
   import gimpenums
   import gimpui
   
@@ -71,10 +81,6 @@ try:
   from . import pgsettinggroup
   from . import pgsettingsources
   from . import pgsettingpdb
-except ImportError:
-  _gimp_dependent_modules_imported = False
-else:
-  _gimp_dependent_modules_imported = True
 
 #===============================================================================
 
