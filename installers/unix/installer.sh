@@ -26,8 +26,8 @@ get_gimp_version_major_minor()
   fi
   
   echo "`"$gimp_command" --version 2>&1 | sed -n '\
-    /.*version [0-9][0-9]*\.[0-9][0-9]*\..*$/ \
-      { s/.*version \([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*$/\1.\2/p; q; }'`"
+    /.*\b[0-9][0-9]*\.[0-9][0-9]*\..*$/ \
+      { s/.*\b\([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*$/\1.\2/p; q; }'`"
 }
 
 get_python_version_major_minor()
@@ -39,8 +39,8 @@ get_python_version_major_minor()
   fi
   
   echo "`"$python_command" --version 2>&1 | sed -n '\
-    /.*Python [0-9][0-9]*\.[0-9][0-9]*\..*$/ \
-      { s/.*Python \([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*$/\1.\2/p; q; }'`"
+    /.*\b[0-9][0-9]*\.[0-9][0-9]*\..*$/ \
+      { s/.*\b\([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*$/\1.\2/p; q; }'`"
 }
 
 get_installation_dirpath()
