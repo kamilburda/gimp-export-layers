@@ -88,8 +88,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
   * `is_filtered` - If True, ignore items that do not match the filter
     (`ObjectFilter`) in this object when iterating.
   
-  * `filter` - `ObjectFilter` instance where you can add or remove filter rules
-    or subfilters to filter items.
+  * `filter` - `ObjectFilter` instance that allows filtering items based on
+    filters and subfilters.
   """
   
   def __init__(
@@ -107,6 +107,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     # key: `_ItemTreeElement.item.ID`
     # value: `_ItemTreeElement` object
     self._itemtree = collections.OrderedDict()
+    
     # key: `_ItemTreeElement.orig_name` (derived from `gimp.Item.name`)
     # value: `_ItemTreeElement` object
     self._itemtree_names = {}
@@ -114,6 +115,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     # key: `_ItemTreeElement` object (parent) or None (root of the item tree)
     # value: set of `_ItemTreeElement` objects
     self._uniquified_itemtree = {}
+    
     # key: `_ItemTreeElement` object (parent) or None (root of the item tree)
     # value: set of `_ItemTreeElement.name` strings
     self._uniquified_itemtree_names = {}
