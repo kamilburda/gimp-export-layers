@@ -38,7 +38,7 @@ class TestPdbParamCreator(unittest.TestCase):
   
   def test_create_one_param_successfully(self):
     params = pgsettingpdb.PdbParamCreator.create_params(self.file_ext_setting)
-    # There's only one PDB parameter returned.
+    # There is only one PDB parameter returned.
     param = params[0]
     
     self.assertTrue(len(param), 3)

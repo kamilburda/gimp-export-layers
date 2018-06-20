@@ -601,8 +601,8 @@ class TestSettingGroupGui(unittest.TestCase):
     self.assertIs(
       type(self.settings["file_extension"].gui.element),
       stubs_pgsetting.GuiWidgetStub)
-    # It's "bmp", not "png", since the setting value overrides the initial GUI
-    # element value.
+    # The expected value is "bmp", not "png", since the setting value overrides
+    # the initial GUI element value.
     self.assertEqual(file_extension_widget.value, "bmp")
     self.assertIs(
       type(self.settings["only_visible_layers"].gui),

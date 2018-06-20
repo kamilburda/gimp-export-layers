@@ -634,17 +634,17 @@ class FilenameValidator(StringValidator):
   
   In this class, filenames are considered valid if they:
     
-    * don't contain control characters with ordinal numbers 0-31 and 127-159
+    * do not contain control characters with ordinal numbers 0-31 and 127-159
     
-    * don't contain the following special characters:
+    * do not contain the following special characters:
       
       <>:"/\|?*
     
-    * don't start or end with spaces
+    * do not start or end with spaces
     
-    * don't end with one or more periods
+    * do not end with one or more periods
     
-    * don't have invalid names according to the naming conventions for the
+    * do not have invalid names according to the naming conventions for the
       Windows platform:
       
       http://msdn.microsoft.com/en-us/library/aa365247%28VS.85%29
@@ -719,8 +719,8 @@ class FilenameValidator(StringValidator):
     filename = re.sub(cls._INVALID_CHARS_PATTERN, "", filename).strip(" ").rstrip(".")
     
     root, ext = os.path.splitext(filename)
-    # For reserved names, the comparison must be case-insensitive
-    # (because Windows has case-insensitive filenames).
+    # For reserved names, the comparison must be case-insensitive (because
+    # Windows has case-insensitive filenames).
     if root.upper() in cls._INVALID_NAMES:
       filename = root + " (1)" + ext
     
@@ -887,13 +887,13 @@ class FileExtensionValidator(StringValidator):
   
   In this class, file extensions are considered valid if they:
     
-    * don't contain control characters with ordinal numbers 0-31 and 127-159
+    * do not contain control characters with ordinal numbers 0-31 and 127-159
     
-    * don't contain the following special characters:
+    * do not contain the following special characters:
       
       <>:"/\|?*
     
-    * don't end with spaces or periods
+    * do not end with spaces or periods
   """
   
   _INVALID_CHARS_PATTERN = FilenameValidator._INVALID_CHARS_PATTERN

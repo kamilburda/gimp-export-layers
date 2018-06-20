@@ -214,7 +214,7 @@ class GtkWindowPositionPresenter(GtkSettingPresenter):
     """
     Set new position of the window (i.e. move the window).
     
-    Don't move the window if `value` is None or empty.
+    Do not move the window if `value` is None or empty.
     """
     
     if value:
@@ -237,7 +237,7 @@ class GtkWindowSizePresenter(GtkSettingPresenter):
     """
     Set new size of the window.
     
-    Don't resize the window if `value` is None or empty.
+    Do not resize the window if `value` is None or empty.
     """
     
     if value:

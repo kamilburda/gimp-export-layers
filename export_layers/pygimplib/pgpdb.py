@@ -282,8 +282,8 @@ def compare_layers(
   If `compare_alpha_channels` is True, perform comparison of alpha channels.
   
   If `compare_has_alpha` is True, compare the presence of alpha channels in all
-  layers - if some layers have alpha channels and others don't, do not perform
-  full comparison and return False.
+  layers - if some layers have alpha channels and others do not, then do not
+  perform full comparison and return False.
   
   If `apply_layer_attributes` is True, take the layer attributes (opacity, mode)
   into consideration when comparing, otherwise ignore them.
@@ -356,6 +356,18 @@ def compare_layers(
     
     return layer
   
+  def _prepare_for_comparison_of_alpha_channels(layer):
+    _extract_alpha_channel_to_layer_mask(layer)
+    _remove_alpha_channel(layer)
+  
+  def _extract_alpha_channel_to_layer_mask(layer):
+    mask = pdb.gimp_layer_create_mask(layer, gimpenums.ADD_ALPHA_MASK)
+    pdb.gimp_layer_add_mask(layer, mask)
+    pdb.gimp_layer_set_apply_mask(layer, False)
+  
+  def _remove_alpha_channel(layer):
+    pdb.gimp_layer_flatten(layer)
+  
   all_layers_have_same_size = (
     all(layers[0].width == layer.width for layer in layers[1:])
     and all(layers[0].height == layer.height for layer in layers[1:]))
@@ -376,12 +388,7 @@ def compare_layers(
   for layer in layer_group.children:
     if pdb.gimp_drawable_has_alpha(layer):
       has_alpha = True
-      # Extract alpha channel to the layer mask (to compare alpha channels).
-      mask = pdb.gimp_layer_create_mask(layer, gimpenums.ADD_ALPHA_MASK)
-      pdb.gimp_layer_add_mask(layer, mask)
-      pdb.gimp_layer_set_apply_mask(layer, False)
-      # Remove alpha channel
-      pdb.gimp_layer_flatten(layer)
+      _prepare_for_comparison_of_alpha_channels(layer)
   
   identical = _is_identical(layer_group)
   
@@ -455,7 +462,7 @@ class GimpMessageFile(object):
     self._message_buffer = self._message_prefix
   
   def write(self, data):
-    # Message handler can't be set upon instantiation, because the PDB may not
+    # Message handler cannot be set upon instantiation, because the PDB may not
     # have been initialized yet.
     self._orig_message_handler = pdb.gimp_message_get_handler()
     pdb.gimp_message_set_handler(self._message_handler)

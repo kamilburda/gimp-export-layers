@@ -234,7 +234,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     except KeyError:
       raise TypeError(self._get_missing_mandatory_attributes_message(["type"]))
     
-    # Do not modify the original `setting_data` in case it is expected to be reused.
+    # Do not modify the original `setting_data` in case it is expected to be
+    # reused.
     setting_data_copy = {key: setting_data[key] for key in setting_data if key != "type"}
     
     try:

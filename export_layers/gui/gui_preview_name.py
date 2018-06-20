@@ -350,7 +350,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       layer_ids = []
       stop_event_propagation = False
       
-      # Get the current selection. We can't use `TreeSelection.get_selection()`
+      # Get the current selection. We cannot use `TreeSelection.get_selection()`
       # because this event is fired before the selection is updated.
       selection_at_pos = self._tree_view.get_path_at_pos(int(event.x), int(event.y))
       
@@ -395,8 +395,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       
       pdb.gimp_image_undo_group_end(self._layer_exporter.image)
       
-      # Modifying just one layer could result in renaming other layers differently,
-      # hence update the whole preview.
+      # Modifying just one layer could result in renaming other layers
+      # differently, hence update the whole preview.
       self.update(update_existing_contents_only=True)
       
       self.on_after_edit_tags()

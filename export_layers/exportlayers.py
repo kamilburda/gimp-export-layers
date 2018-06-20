@@ -426,7 +426,7 @@ def _copy_non_modifying_parasites(src_image, dest_image):
   for parasite_name in parasite_names:
     if dest_image.parasite_find(parasite_name) is None:
       parasite = src_image.parasite_find(parasite_name)
-      # Don't attach persistent or undoable parasites to avoid modifying
+      # Do not attach persistent or undoable parasites to avoid modifying
       # `dest_image`.
       if parasite.flags == 0:
         dest_image.parasite_attach(parasite)
@@ -445,7 +445,7 @@ class LayerExporter(object):
   
   * `initial_run_mode` - The run mode to use for the first layer exported.
     For subsequent layers, `gimpenums.RUN_WITH_LAST_VALS` is used. If the file
-    format in which the layer is exported to can't handle
+    format in which the layer is exported to cannot handle
     `gimpenums.RUN_WITH_LAST_VALS`, `gimpenums.RUN_INTERACTIVE` is used.
   
   * `image` - GIMP image to export layers from.

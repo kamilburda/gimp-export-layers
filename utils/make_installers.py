@@ -140,7 +140,20 @@ def _prepare_repo_files_for_packaging(
   relative_filepaths_with_git_filters = [
     match for match in spec_obj.match_tree(repository_dirpath)]
   
-  # Move files with filters to a temporary location
+  _move_files_with_filters_to_temporary_location(
+    repository_dirpath,
+    relative_filepaths_with_git_filters,
+    dirpath_with_original_files_with_git_filters)
+  
+  _reset_files_with_filters_and_activate_smudge_filters(repo, path_specs)
+  
+  return relative_filepaths_with_git_filters
+
+
+def _move_files_with_filters_to_temporary_location(
+      repository_dirpath,
+      relative_filepaths_with_git_filters,
+      dirpath_with_original_files_with_git_filters):
   for relative_filepath in relative_filepaths_with_git_filters:
     src_filepath = os.path.join(repository_dirpath, relative_filepath)
     dest_filepath = os.path.join(
@@ -149,12 +162,11 @@ def _prepare_repo_files_for_packaging(
     pgpath.make_dirs(os.path.dirname(dest_filepath))
     shutil.copy2(src_filepath, dest_filepath)
     os.remove(src_filepath)
-  
-  # Reset files with filters and activate smudge filters on them.
+
+
+def _reset_files_with_filters_and_activate_smudge_filters(repo, path_specs):
   for path_spec in path_specs:
     repo.git.checkout(path_spec)
-  
-  return relative_filepaths_with_git_filters
 
 
 def _restore_repo_files(

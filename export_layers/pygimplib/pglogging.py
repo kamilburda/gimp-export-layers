@@ -246,9 +246,8 @@ class Tee(object):
     
     * `file_` - File or file-like object to write to.
     
-    * `start` - If True, start `Tee` upon instantiation, otherwise don't.
-      To start later, pass `start=False` and call the `start()` method when
-      desired.
+    * `start` - If True, start `Tee` upon instantiation. To start later, pass
+      `start=False` and call the `start()` method when desired.
     
     * `flush_output` - If True, flush output after each write.
     """

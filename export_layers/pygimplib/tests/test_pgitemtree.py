@@ -275,8 +275,8 @@ class TestLayerTree(unittest.TestCase):
       ("top-left-corner::::", "top-left-corner (3)")
     ])
     
-    # This is to make the uniquification work properly for these tests. It's not
-    # inside the `uniquify_names` method because the code that uses this
+    # This is to make the uniquification work properly for these tests. The code
+    # is not inside the `uniquify_names` method because the code that uses this
     # method may need to uniquify non-empty layer groups in some scenarios
     # (such as when merging non-empty layer groups into layers, which would not
     # match the filter).

@@ -271,7 +271,9 @@ class Setting(pgsettingutils.SettingParentMixin):
     # value: collections.OrderedDict{
     #   event handler ID: [event handler, arguments, keyword arguments, is enabled]}
     self._event_handlers = collections.defaultdict(collections.OrderedDict)
-    # allows faster lookup of events via IDs; key: event handler ID; value: event type
+    
+    # This allows faster lookup of events via IDs.
+    # key: event handler ID; value: event type
     self._event_handler_ids_and_types = {}
     
     self._event_handler_id_counter = itertools.count(start=1)
@@ -956,7 +958,7 @@ class EnumSetting(Setting):
     if default_value in self._items:
       # `default_value` is passed as a string (identifier). In order to properly
       # initialize the setting, the actual default value (integer) must be
-      # passed to the Setting initialization proper.
+      # passed to the `Setting` initialization proper.
       param_default_value = self._items[default_value]
     else:
       raise SettingDefaultValueError(error_messages["invalid_default_value"])
@@ -1295,19 +1297,9 @@ class ImageIDsAndDirpathsSetting(Setting):
     opened in GIMP.
     """
     
-    # Get the list of images currently opened in GIMP
-    current_images = gimp.image_list()
-    current_image_ids = set([image.ID for image in current_images])
-    
-    # Remove images no longer opened in GIMP
-    self._value = {
-      image_id: self._value[image_id] for image_id in self._value
-      if image_id in current_image_ids}
-    
-    # Add new images opened in GIMP
-    for image in current_images:
-      if image.ID not in self._value:
-        self._value[image.ID] = self._get_image_import_dirpath(image)
+    current_images, current_image_ids = self._get_currently_opened_images()
+    self._filter_images_no_longer_opened(current_image_ids)
+    self._add_new_opened_images(current_images)
   
   def update_dirpath(self, image_id, dirpath):
     """
@@ -1320,6 +1312,22 @@ class ImageIDsAndDirpathsSetting(Setting):
       raise KeyError(image_id)
     
     self._value[image_id] = dirpath
+  
+  def _get_currently_opened_images(self):
+    current_images = gimp.image_list()
+    current_image_ids = set([image.ID for image in current_images])
+    
+    return current_images, current_image_ids
+  
+  def _filter_images_no_longer_opened(self, current_image_ids):
+    self._value = {
+      image_id: self._value[image_id] for image_id in self._value
+      if image_id in current_image_ids}
+  
+  def _add_new_opened_images(self, current_images):
+    for image in current_images:
+      if image.ID not in self._value:
+        self._value[image.ID] = self._get_image_import_dirpath(image)
   
   def _get_image_import_dirpath(self, image):
     if image.filename is not None:
