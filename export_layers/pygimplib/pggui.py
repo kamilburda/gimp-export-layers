@@ -127,17 +127,17 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
       dirpath, filename = os.path.split(filepath)
       if dirpath:
         text_choose = (
-          _('A file named "{0}" already exists in "{1}". ').format(
+          _('A file named "{}" already exists in "{}". ').format(
             filename, os.path.basename(dirpath)))
       else:
-        text_choose = _('A file named "{0}" already exists.\n').format(filename)
+        text_choose = _('A file named "{}" already exists.\n').format(filename)
     else:
       text_choose = _("A file with the same name already exists.\n")
     
     text_choose += _("What would you like to do?")
     
     self._dialog_text.set_markup(
-      '<span font_size="large"><b>{0}</b></span>'.format(
+      '<span font_size="large"><b>{}</b></span>'.format(
         gobject.markup_escape_text(text_choose)))
     
     self._dialog.show_all()

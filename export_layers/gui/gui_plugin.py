@@ -417,7 +417,7 @@ class ExportLayersGui(object):
     
     self._file_extension_label = gtk.Label()
     self._file_extension_label.set_markup(
-      "<b>{0}:</b>".format(
+      "<b>{}:</b>".format(
         gobject.markup_escape_text(self._settings["main/file_extension"].display_name)))
     self._file_extension_label.set_alignment(0.0, 0.5)
     
@@ -426,7 +426,7 @@ class ExportLayersGui(object):
       maximum_width_chars=self._FILE_EXTENSION_ENTRY_MAX_WIDTH_CHARS)
     
     self._save_as_label = gtk.Label()
-    self._save_as_label.set_markup("<b>{0}:</b>".format(_("Save as")))
+    self._save_as_label.set_markup("<b>{}:</b>".format(_("Save as")))
     self._save_as_label.set_alignment(0.0, 0.5)
     
     self._dot_label = gtk.Label(".")
@@ -981,13 +981,13 @@ class ExportLayersGui(object):
         text += "."
       
       if message_type == gtk.MESSAGE_ERROR:
-        self._label_message.set_markup('<span foreground="red"><b>{0}</b></span>'.format(
+        self._label_message.set_markup('<span foreground="red"><b>{}</b></span>'.format(
           gobject.markup_escape_text(text)))
         
         if not (os.name == "nt" and gimp.version >= (2, 10)):
           pginvocation.timeout_remove_strict(self._display_message_label)
       else:
-        self._label_message.set_markup('<span><b>{0}</b></span>'.format(
+        self._label_message.set_markup('<span><b>{}</b></span>'.format(
           gobject.markup_escape_text(text)))
         
         if not (os.name == "nt" and gimp.version >= (2, 10)):

@@ -29,8 +29,8 @@ msgstr "Розширення файлу:"
 
 #: ../../export_layers/exportlayers.py:582
 #, python-brace-format
-msgid "Saving '{0}'"
-msgstr "Збереження '{0}'"
+msgid "Saving '{}'"
+msgstr "Збереження '{}'"
 
 #: ../../export_layers/pygimplib/pggui.py:106
 msgid "_Apply action to all files"
@@ -43,10 +43,10 @@ msgstr "Застосувати дію до усіх файлів"
 #: ../../export_layers/pygimplib/pggui.py:132
 #, python-brace-format
 msgid ""
-"A file named \"{0}\" already exists.\n"
+"A file named \"{}\" already exists.\n"
 "What would you like to do?"
 msgstr ""
-"Файл з назвою \"{0}\" вже існує.\n"
+"Файл з назвою \"{}\" вже існує.\n"
 "Що б ви хотіли зробити?"
 
 #: ../../export_layers/pygimplib/pggui.py:134
@@ -63,8 +63,8 @@ msgstr "От дупа! Щось пішло не так."
 
 #: ../../export_layers/pygimplib/pggui.py:198
 #, python-brace-format
-msgid "{0} encountered an unexpected error and has to close. Sorry about that!"
-msgstr "{0} виникла несподівана помилка. Вибачте!"
+msgid "{} encountered an unexpected error and has to close. Sorry about that!"
+msgstr "{} виникла несподівана помилка. Вибачте!"
 
 #: ../../export_layers/pygimplib/pggui.py:204
 msgid "Details"
@@ -84,18 +84,18 @@ msgstr "(правий клік - копіювати посилання)"
 
 #: ../../export_layers/pygimplib/pgsetting.py:600
 #, python-brace-format
-msgid "Value cannot be less than {0}."
-msgstr "Значення не може бути менше {0}."
+msgid "Value cannot be less than {}."
+msgstr "Значення не може бути менше {}."
 
 #: ../../export_layers/pygimplib/pgsetting.py:601
 #, python-brace-format
-msgid "Value cannot be greater than {0}."
-msgstr "Значення не може бути більше {0}."
+msgid "Value cannot be greater than {}."
+msgstr "Значення не може бути більше {}."
 
 #: ../../export_layers/pygimplib/pgsetting.py:756
 #, python-brace-format
-msgid "Invalid item value; valid values: {0}"
-msgstr "Невірне значення елемента; дійсні значення: {0}"
+msgid "Invalid item value; valid values: {}"
+msgstr "Невірне значення елемента; дійсні значення: {}"
 
 #: ../../export_layers/pygimplib/pgsetting.py:909
 msgid "Invalid image."
@@ -123,9 +123,9 @@ msgstr "Ім'я файлу не може закінчитися періодом
 
 #: ../../export_layers/pygimplib/pgpath.py:317
 #, python-brace-format
-msgid "\"{0}\" is a reserved name that cannot be used in filenames.\n"
+msgid "\"{}\" is a reserved name that cannot be used in filenames.\n"
 msgstr ""
-"\"{0}\" - зареєстроване ім'я, яке не може бути використане в іменах файлів.\n"
+"\"{}\" - зареєстроване ім'я, яке не може бути використане в іменах файлів.\n"
 
 #: ../../export_layers/pygimplib/pgpath.py:373
 msgid "Untitled"
@@ -154,9 +154,9 @@ msgstr "Компоненти у шляху до файлу не можуть з�
 
 #: ../../export_layers/pygimplib/pgpath.py:409
 #, python-brace-format
-msgid "\"{0}\" is a reserved name that cannot be used in file paths.\n"
+msgid "\"{}\" is a reserved name that cannot be used in file paths.\n"
 msgstr ""
-"\"{0}\" - зареєстроване ім'я, яке не може використовуватися у шляхах до "
+"\"{}\" - зареєстроване ім'я, яке не може використовуватися у шляхах до "
 "файлу.\n"
 
 #: ../../export_layers/pygimplib/pgpath.py:495
@@ -177,9 +177,9 @@ msgstr "Компоненти в шляху до каталогу не можут
 
 #: ../../export_layers/pygimplib/pgpath.py:503
 #, python-brace-format
-msgid "\"{0}\" is a reserved name that cannot be used in directory paths.\n"
+msgid "\"{}\" is a reserved name that cannot be used in directory paths.\n"
 msgstr ""
-"\"{0}\" - зареєстроване ім'я, яке не може використовуватися в шляху до "
+"\"{}\" - зареєстроване ім'я, яке не може використовуватися в шляху до "
 "каталогу.\n"
 
 #: ../../export_layers/pygimplib/pgpath.py:504
@@ -204,17 +204,17 @@ msgstr "Розширення файлу не може закінчуватися
 
 #: ../../export_layers/pygimplib/pgsettingpersistor.py:248
 #, python-brace-format
-msgid "Could not find setting source \"{0}\"."
-msgstr "Не вдалося знайти джерело налаштування \"{0}\"."
+msgid "Could not find setting source \"{}\"."
+msgstr "Не вдалося знайти джерело налаштування \"{}\"."
 
 #: ../../export_layers/pygimplib/pgsettingpersistor.py:257
 #, python-brace-format
 msgid ""
-"Settings for this plug-in stored in the \"{0}\" file are corrupt. This could "
+"Settings for this plug-in stored in the \"{}\" file are corrupt. This could "
 "happen if the file was edited manually.\n"
 "To fix this, save the settings again or reset them."
 msgstr ""
-"Параметри цього плагіна, збережені в файлі \"{0}\", пошкоджені. Це могло "
+"Параметри цього плагіна, збережені в файлі \"{}\", пошкоджені. Це могло "
 "статися, якщо файл був редагований вручну.\n"
 "Щоб це виправити, знову збережіть налаштування або скиньте їх."
 
@@ -403,10 +403,10 @@ msgstr "Зберегти налаштування"
 #, python-brace-format
 msgid ""
 "Save settings permanently. If you start GIMP again, the saved settings will "
-"be loaded when {0} is first opened."
+"be loaded when {} is first opened."
 msgstr ""
 "Зберегти налаштування назавжди. Якщо ви знову запустите GIMP, збережені "
-"налаштування будуть завантажені, коли {0} буде вперше відкрито."
+"налаштування будуть завантажені, коли {} буде вперше відкрито."
 
 #: ../../export_layers/gui_plugin.py:373
 msgid "Reset Settings"
@@ -442,8 +442,8 @@ msgstr "Експортування шарів..."
 
 #: ../../export_layers.py:115
 #, python-brace-format
-msgid "Run \"{0}\" with the last values specified"
-msgstr "Виконати \"{0}\" з останніми вказаними значеннями"
+msgid "Run \"{}\" with the last values specified"
+msgstr "Виконати \"{}\" з останніми вказаними значеннями"
 
 #: ../../export_layers.py:116
 msgid ""

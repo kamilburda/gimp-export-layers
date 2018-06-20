@@ -413,7 +413,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   
   def _set_layer_name_label(self, layer_name):
     self._label_layer_name.set_markup(
-      "<i>{0}</i>".format(
+      "<i>{}</i>".format(
         gobject.markup_escape_text(
           layer_name.encode(pgconstants.GTK_CHARACTER_ENCODING))))
 

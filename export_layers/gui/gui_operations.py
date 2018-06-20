@@ -168,7 +168,7 @@ class OperationBox(object):
       self._connect_drag_events_to_item_widget(setting, drag_type)
   
   def _get_unique_drag_type(self):
-    drag_type = "{0}_{1}_{2}".format(
+    drag_type = "{}_{}_{}".format(
       pygimplib.config.PLUGIN_NAME, self.__class__.__name__,
       self._drag_type_id_counter.next())
     

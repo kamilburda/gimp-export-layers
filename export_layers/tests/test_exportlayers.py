@@ -240,7 +240,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     
     self.assertEqual(
       pgpdb.compare_layers([layer, expected_layer]), True,
-      msg=("Layers are not identical:\nprocessed layer: {0}\nexpected layer: {1}".format(
+      msg=("Layers are not identical:\nprocessed layer: {}\nexpected layer: {}".format(
         layer.name, expected_layer.name)))
   
   def _save_incorrect_layers(
@@ -257,9 +257,9 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   @staticmethod
   def _copy_incorrect_layer(
         layer, settings, layer_dirpath, incorrect_layers_dirpath, filename_suffix):
-    layer_input_filename = "{0}.{1}".format(
+    layer_input_filename = "{}.{}".format(
       layer.name, settings["main/file_extension"].value)
-    layer_output_filename = "{0}{1}.{2}".format(
+    layer_output_filename = "{}{}.{}".format(
       layer.name, filename_suffix, settings["main/file_extension"].value)
     
     shutil.copy(

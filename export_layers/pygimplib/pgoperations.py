@@ -584,23 +584,23 @@ class OperationExecutor(object):
       return self._operations, self._executors
     else:
       raise ValueError(
-        "invalid operation type {0}; must be one of {1}".format(
+        "invalid operation type {}; must be one of {}".format(
           operation_type, self._OPERATION_TYPES))
   
   def _check_operation_id_is_valid(self, operation_id):
     if operation_id not in self._operation_items:
-      raise ValueError("operation with ID {0} does not exist".format(operation_id))
+      raise ValueError("operation with ID {} does not exist".format(operation_id))
   
   def _check_group_exists(self, group, groups=None):
     if groups is None:
       groups = self.list_groups()
     
     if group not in groups:
-      raise ValueError("group '{0}' does not exist".format(group))
+      raise ValueError("group '{}' does not exist".format(group))
   
   def _check_operation_in_group(self, operation_id, group):
     if group not in self._operation_items[operation_id].groups:
-      raise ValueError("operation with ID {0} is not in group '{1}'".format(
+      raise ValueError("operation with ID {} is not in group '{}'".format(
         operation_id, group))
 
   

@@ -121,7 +121,7 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
       gui_element_creation_supported = self._element is not None
       if not gui_element_creation_supported:
         raise ValueError(
-          "cannot instantiate class '{0}': attribute 'element' is None "
+          "cannot instantiate class '{}': attribute 'element' is None "
           "and this class does not support the creation of a GUI element".format(
             type(self).__name__))
     
@@ -202,7 +202,7 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     if enabled and self._VALUE_CHANGED_SIGNAL is None:
       raise ValueError(
-        "class '{0}' does not support automatic GUI update".format(type(self).__name__))
+        "class '{}' does not support automatic GUI update".format(type(self).__name__))
     
     if enabled:
       self._value_changed_signal = self._VALUE_CHANGED_SIGNAL

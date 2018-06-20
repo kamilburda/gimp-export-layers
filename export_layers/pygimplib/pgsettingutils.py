@@ -41,7 +41,7 @@ def value_to_str_prefix(value):
   """
   
   if value:
-    return '"{0}": '.format(value)
+    return '"{}": '.format(value)
   else:
     return ""
 

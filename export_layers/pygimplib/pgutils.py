@@ -105,7 +105,7 @@ def stringify_object(object_, name):
   default.
   """
   
-  return "<{0} '{1}'>".format(type(object_).__name__, name)
+  return "<{} '{}'>".format(type(object_).__name__, name)
 
 
 def get_module_root(full_module_name, name_component_to_trim_after):

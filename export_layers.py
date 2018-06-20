@@ -60,7 +60,7 @@ SETTINGS = settings_plugin.create_settings()
 
 @pygimplib.plugin(
   blurb=_("Export layers as separate images"),
-  author="{0} <{1}>".format(
+  author="{} <{}>".format(
     pygimplib.config.AUTHOR_NAME, pygimplib.config.AUTHOR_CONTACT),
   copyright_notice=pygimplib.config.AUTHOR_NAME,
   date=pygimplib.config.COPYRIGHT_YEARS,
@@ -85,12 +85,12 @@ def plug_in_export_layers(run_mode, image, *args):
 
 
 @pygimplib.plugin(
-  blurb=_('Run "{0}" with the last values specified').format(
+  blurb=_('Run "{}" with the last values specified').format(
     pygimplib.config.PLUGIN_TITLE),
   description=_(
     "If the plug-in is run for the first time (i.e. no last values exist), "
     "default values will be used."),
-  author="{0} <{1}>".format(
+  author="{} <{}>".format(
     pygimplib.config.AUTHOR_NAME, pygimplib.config.AUTHOR_CONTACT),
   copyright_notice=pygimplib.config.AUTHOR_NAME,
   date=pygimplib.config.COPYRIGHT_YEARS,

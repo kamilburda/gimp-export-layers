@@ -286,7 +286,7 @@ def _create_installers(
 
 def _create_windows_installer(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
-  installer_filename_prefix = "{0}-{1}-windows".format(
+  installer_filename_prefix = "{}-{}-windows".format(
     pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
   
   installer_filepath = os.path.join(installer_dirpath, installer_filename_prefix + ".exe")
@@ -336,7 +336,7 @@ def _create_macos_installer(
 def _create_unix_installer(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths,
       platform_id, platform_name):
-  installer_filename = "{0}-{1}-{2}.run".format(
+  installer_filename = "{}-{}-{}.run".format(
     pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION, platform_id)
   installer_filepath = os.path.join(installer_dirpath, installer_filename)
   
@@ -352,7 +352,7 @@ def _create_unix_installer(
     "makeself",
     input_dirpath,
     installer_filepath,
-    "{0} - GIMP plug-in".format(pygimplib.config.PLUGIN_TITLE),
+    "{} - GIMP plug-in".format(pygimplib.config.PLUGIN_TITLE),
     os.path.join(".", installer_script_filename),
     "--os",
     platform_id
@@ -367,14 +367,14 @@ def _create_unix_installer(
     
     os.remove(installer_filepath)
     
-    print("{0} package successfully created:".format(platform_name), package_filepath)
+    print("{} package successfully created:".format(platform_name), package_filepath)
   else:
-    print("Failed to create {0} installer:".format(platform_name), installer_filepath)
+    print("Failed to create {} installer:".format(platform_name), installer_filepath)
 
 
 def _create_zip_archive(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
-  archive_filename = "{0}-{1}.zip".format(
+  archive_filename = "{}-{}.zip".format(
     pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
   archive_filepath = os.path.join(installer_dirpath, archive_filename)
   
@@ -403,7 +403,7 @@ def _create_toplevel_readme_for_zip_archive(readme_filepath):
   def add_directory_to_url(url_attribute_value):
     return re.sub(
       r"^docs",
-      "{0}/docs".format(pygimplib.config.PLUGIN_NAME),
+      "{}/docs".format(pygimplib.config.PLUGIN_NAME),
       url_attribute_value)
   
   toplevel_readme_filepath = os.path.join(

@@ -141,13 +141,13 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
       if group_name in current_group:
         current_group = current_group._settings[group_name]
       else:
-        raise KeyError("group '{0}' in path '{1}' does not exist".format(
+        raise KeyError("group '{}' in path '{}' does not exist".format(
           group_name, setting_path))
     
     try:
       setting = current_group[setting_path_components[-1]]
     except KeyError:
-      raise KeyError("setting '{0}' not found in path '{1}'".format(
+      raise KeyError("setting '{}' not found in path '{}'".format(
         setting_path_components[-1], setting_path))
     
     return setting
@@ -219,10 +219,10 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   
   def _add_setting(self, setting):
     if setting.name in self._settings:
-      raise ValueError("{0} already exists in {1}".format(setting, self))
+      raise ValueError("{} already exists in {}".format(setting, self))
     
     if setting == self:
-      raise ValueError("cannot add {0} as a child of itself".format(setting))
+      raise ValueError("cannot add {} as a child of itself".format(setting))
     
     self._settings[setting.name] = setting
     
@@ -244,11 +244,11 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     
     if pgsettingutils.SETTING_PATH_SEPARATOR in setting_data_copy["name"]:
       raise ValueError(
-        "setting name '{0}' must not contain path separator '{1}'".format(
+        "setting name '{}' must not contain path separator '{}'".format(
           setting_data_copy["name"], pgsettingutils.SETTING_PATH_SEPARATOR))
     
     if setting_data_copy["name"] in self._settings:
-      raise ValueError("setting '{0}' already exists".format(setting_data_copy["name"]))
+      raise ValueError("setting '{}' already exists".format(setting_data_copy["name"]))
     
     for setting_attribute, setting_attribute_value in self._setting_attributes.items():
       if setting_attribute not in setting_data_copy:
@@ -291,7 +291,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     return mandatory_args
   
   def _get_missing_mandatory_attributes_message(self, attribute_names):
-    return "missing the following mandatory setting attributes: {0}".format(
+    return "missing the following mandatory setting attributes: {}".format(
       ", ".join(attribute_names))
   
   def remove(self, setting_names):
@@ -303,7 +303,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
       if setting_name in self._settings:
         del self._settings[setting_name]
       else:
-        raise KeyError("setting '{0}' not found".format(setting_name))
+        raise KeyError("setting '{}' not found".format(setting_name))
   
   def walk(self, include_setting_func=None, include_groups=False, walk_callbacks=None):
     """

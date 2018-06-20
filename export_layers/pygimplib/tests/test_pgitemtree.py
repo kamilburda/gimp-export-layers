@@ -292,7 +292,7 @@ class TestLayerTree(unittest.TestCase):
     for key, name in uniquified_names.items():
       self.assertEqual(
         item_tree[key].name, name,
-        "'{0}': '{1}' != '{2}'".format(key, item_tree[key].name, name))
+        "'{}': '{}' != '{}'".format(key, item_tree[key].name, name))
   
   def test_uniquify_with_layer_groups(self):
     uniquified_names = collections.OrderedDict([
@@ -356,11 +356,11 @@ class TestLayerTree(unittest.TestCase):
       path_components, name = item_path[:-1], item_path[-1]
       self.assertEqual(
         item_tree[key].get_path_components(), path_components,
-        "parents: '{0}': '{1}' != '{2}'".format(
+        "parents: '{}': '{}' != '{}'".format(
           key, item_tree[key].get_path_components(), path_components))
       self.assertEqual(
         item_tree[key].name, name,
-        "layer name: '{0}': '{1}' != '{2}'".format(key, item_tree[key].name, name))
+        "layer name: '{}': '{}' != '{}'".format(key, item_tree[key].name, name))
   
   def test_reset_name(self):
     self.layer_tree["Corners"].name = "Corners.png"

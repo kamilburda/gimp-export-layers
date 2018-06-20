@@ -205,14 +205,14 @@ class LayerNameRenamer(object):
   
   def _get_layer_path(self, separator="-", wrapper=None):
     if wrapper is None:
-      wrapper = "{0}"
+      wrapper = "{}"
     else:
       path_component_token = "$$"
       
       if path_component_token in wrapper:
-        wrapper = wrapper.replace(path_component_token, "{0}")
+        wrapper = wrapper.replace(path_component_token, "{}")
       else:
-        wrapper = "{0}"
+        wrapper = "{}"
     
     path_components = (
       [parent.name for parent in self._layer_exporter.current_layer_elem.parents]
@@ -254,7 +254,7 @@ class LayerNameRenamer(object):
           _insert_tag(tag)
     
     tag_separator = " "
-    tag_wrapper = "[{0}]"
+    tag_wrapper = "[{}]"
     tag_token = "$$"
     
     if not args:
@@ -265,7 +265,7 @@ class LayerNameRenamer(object):
       else:
         if tag_token in args[1]:
           tag_separator = args[0]
-          tag_wrapper = args[1].replace(tag_token, "{0}")
+          tag_wrapper = args[1].replace(tag_token, "{}")
           
           if len(args) > 2:
             _insert_specified_tags(args[2:])
@@ -815,7 +815,7 @@ class LayerExporter(object):
         self._process_empty_group(layer_elem)
       else:
         raise ValueError(
-          "invalid/unsupported item type '{0}' in {1}".format(
+          "invalid/unsupported item type '{}' in {}".format(
             layer_elem.item_type, layer_elem))
   
   def _process_and_export_item(self, layer_elem):
@@ -840,7 +840,7 @@ class LayerExporter(object):
     self._make_dirs(empty_group_dirpath, self)
     
     self.progress_updater.update_text(
-      _('Creating empty directory "{0}"').format(empty_group_dirpath))
+      _('Creating empty directory "{}"').format(empty_group_dirpath))
     self.progress_updater.update_tasks()
   
   def _setup(self):
@@ -966,7 +966,7 @@ class LayerExporter(object):
   def _export(self, layer_elem, image, layer):
     output_filepath = layer_elem.get_filepath(self._output_directory)
     
-    self.progress_updater.update_text(_('Saving "{0}"').format(output_filepath))
+    self.progress_updater.update_text(_('Saving "{}"').format(output_filepath))
     
     self._current_overwrite_mode, output_filepath = pgoverwrite.handle_overwrite(
       output_filepath, self.overwrite_chooser,
@@ -992,7 +992,7 @@ class LayerExporter(object):
       try:
         message = e.args[1]
         if e.filename is not None:
-          message += ': "{0}"'.format(e.filename)
+          message += ': "{}"'.format(e.filename)
       except (IndexError, AttributeError):
         message = str(e)
       

@@ -118,7 +118,7 @@ class InteractiveOverwriteChooser(
     
     if default_value not in self._values:
       raise ValueError(
-        "invalid default value '{0}'; must be one of the following: {1}".format(
+        "invalid default value '{}'; must be one of the following: {}".format(
           default_value, self._values))
     
     self.default_value = default_value

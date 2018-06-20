@@ -286,7 +286,7 @@ class TestStringPatternGenerator(unittest.TestCase):
   
   def test_generate_with_fields_with_invalid_arguments(self):
     def _get_invalid_date(date_format):
-      raise ValueError("invalid date format {0}".format(date_format))
+      raise ValueError("invalid date format {}".format(date_format))
     
     self._test_generate_with_field(
       "date", _get_invalid_date, "[date, %Y-%m-%d]", "[date, %Y-%m-%d]")

@@ -594,7 +594,7 @@ class Setting(pgsettingutils.SettingParentMixin):
     """
     
     if event_id not in self._event_handler_ids_and_types:
-      raise ValueError("event handler with ID {0} does not exist".format(event_id))
+      raise ValueError("event handler with ID {} does not exist".format(event_id))
     
     event_type = self._event_handler_ids_and_types[event_id]
     del self._event_handlers[event_type][event_id]
@@ -613,7 +613,7 @@ class Setting(pgsettingutils.SettingParentMixin):
     """
     
     if not self.has_event(event_id):
-      raise ValueError("event ID {0} is invalid".format(event_id))
+      raise ValueError("event ID {} is invalid".format(event_id))
     
     event_type = self._event_handler_ids_and_types[event_id]
     self._event_handlers[event_type][event_id][3] = enabled
@@ -712,7 +712,7 @@ class Setting(pgsettingutils.SettingParentMixin):
       return pdb_type
     else:
       raise ValueError(
-        "GIMP PDB type '{0}' not allowed; for the list of allowed PDB types, refer to "
+        "GIMP PDB type '{}' not allowed; for the list of allowed PDB types, refer to "
         "the documentation of the appropriate Setting class".format(pdb_type))
   
   def _get_default_pdb_type(self):
@@ -738,7 +738,7 @@ class Setting(pgsettingutils.SettingParentMixin):
         gui_type_to_return = gui_type
       else:
         raise ValueError(
-          "invalid GUI type; must be one of {0}".format(
+          "invalid GUI type; must be one of {}".format(
             [type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
     
     return gui_type_to_return
@@ -781,9 +781,9 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   
   def _init_error_messages(self):
     self.error_messages["below_min"] = (
-      _("Value cannot be less than {0}.").format(self._min_value))
+      _("Value cannot be less than {}.").format(self._min_value))
     self.error_messages["above_max"] = (
-      _("Value cannot be greater than {0}.").format(self._max_value))
+      _("Value cannot be greater than {}.").format(self._max_value))
   
   @property
   def min_value(self):
@@ -796,11 +796,11 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   @property
   def description(self):
     if self._min_value is not None and self._max_value is None:
-      return "{0} >= {1}".format(self._pdb_name, self._min_value)
+      return "{} >= {}".format(self._pdb_name, self._min_value)
     elif self._min_value is None and self._max_value is not None:
-      return "{0} <= {1}".format(self._pdb_name, self._max_value)
+      return "{} <= {}".format(self._pdb_name, self._max_value)
     elif self._min_value is not None and self._max_value is not None:
-      return "{0} <= {1} <= {2}".format(self._min_value, self._pdb_name, self._max_value)
+      return "{} <= {} <= {}".format(self._min_value, self._pdb_name, self._max_value)
     else:
       return self._display_name
   
@@ -943,10 +943,10 @@ class EnumSetting(Setting):
     error_messages = {}
     
     error_messages["invalid_value"] = (
-      _("Invalid item value; valid values: {0}").format(list(self._item_values)))
+      _("Invalid item value; valid values: {}").format(list(self._item_values)))
     
     error_messages["invalid_default_value"] = (
-      "invalid identifier for the default value; must be one of {0}").format(
+      "invalid identifier for the default value; must be one of {}").format(
         list(self._items))
     
     if "error_messages" in kwargs:
@@ -1037,7 +1037,7 @@ class EnumSetting(Setting):
     for value, display_name in zip(
           self._items.values(), self._items_display_names.values()):
       description = pgsettingutils.get_processed_description(None, display_name)
-      items_description += "{0} ({1}){2}".format(description, value, items_sep)
+      items_description += "{} ({}){}".format(description, value, items_sep)
     items_description = items_description[:-len(items_sep)]
     
     return "{ " + items_description + " }"
@@ -1074,7 +1074,7 @@ class EnumSetting(Setting):
         return self._items[empty_value_name]
       else:
         raise ValueError(
-          "invalid identifier for the empty value; must be one of {0}".format(
+          "invalid identifier for the empty value; must be one of {}".format(
             list(self._items)))
     else:
       return None

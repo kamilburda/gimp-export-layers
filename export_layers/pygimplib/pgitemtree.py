@@ -611,7 +611,7 @@ class _ItemTreeElement(object):
     """
     
     if tag not in self._tags:
-      raise ValueError("tag '{0}' not found in {1}".format(tag, self))
+      raise ValueError("tag '{}' not found in {}".format(tag, self))
     
     self._tags.remove(tag)
     

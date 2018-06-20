@@ -84,7 +84,7 @@ def preprocess_contents(source_filepaths, dest_filepaths):
   for source_filepath, dest_filepath in zip(source_filepaths, dest_filepaths):
     if not os.path.isfile(source_filepath):
       print(
-        'Warning: Input path "{0}" does not exist or is not a file'.format(
+        'Warning: Input path "{}" does not exist or is not a file'.format(
           source_filepath))
       continue
     
@@ -143,7 +143,7 @@ def parse_args(args_str):
           args_str_to_parse[optional_arg_value_without_quotes_match.end(1) + 1:].lstrip())
       else:
         raise ValueError(
-          'missing value for optional argument "{0}"'.format(optional_arg_name))
+          'missing value for optional argument "{}"'.format(optional_arg_name))
     
     return args_str_to_parse, optional_arg_name, optional_arg_value
   
@@ -164,7 +164,7 @@ def parse_args(args_str):
         parsed_args["args"].append(args_str_to_parse[:end_quote_index])
         args_str_to_parse = args_str_to_parse[end_quote_index + 1:].lstrip()
       else:
-        raise ValueError("missing closing '{0}': {1}".format(quote_char, args_str))
+        raise ValueError("missing closing '{}': {}".format(quote_char, args_str))
     else:
       optional_arg_name_match = (
         re.search(r"^(\S+?)" + optional_arg_separator_char, args_str_to_parse))
@@ -237,7 +237,7 @@ class IncludeSectionTag(CustomLiquidTag):
     
     if not os.path.isfile(document_filepath):
       raise DocumentNotFoundError(
-        'Document path "{0}" inside "{1}" does not exist or is not a file'.format(
+        'Document path "{}" inside "{}" does not exist or is not a file'.format(
           document_filepath, self.source_filepath))
     
     with io.open(

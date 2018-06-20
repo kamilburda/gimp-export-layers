@@ -119,17 +119,17 @@ menu entries.""",
   _TEST_FILE_INTRO = """Export Layers is a [GIMP](https://www.gimp.org/)
 plug-in that exports layers as separate images."""
   
-  _TEST_FILE_CONTENTS = """{0}
+  _TEST_FILE_CONTENTS = """{}
 
-{1}
+{}
 
-{2}
+{}
 
-{3}
+{}
 
-{4}
+{}
 
-{5}
+{}
 """.format(
       _TEST_FILE_INTRO,
       _TEST_SECTION_HEADERS["translations"],
@@ -149,13 +149,13 @@ plug-in that exports layers as separate images."""
     ["no_header_True",
      {"no-header": "True"},
      """
-{0}
+{}
 
-{1}
+{}
 
-{2}
+{}
 
-{3}""".format(
+{}""".format(
       _TEST_SECTION_CONTENTS["translations"],
       _TEST_SECTION_HEADERS["known_issues"],
       " ".join(_TEST_SECTION_CONTENTS["known_issues"][:2]),

@@ -78,7 +78,7 @@ class PdbParamCreator(object):
         settings.extend(setting_or_group.walk())
       else:
         raise TypeError(
-          "{0} is not an object of type {1} or {2}".format(
+          "{} is not an object of type {} or {}".format(
             setting_or_group, pgsetting.Setting, pgsettinggroup.SettingGroup))
     
     return settings

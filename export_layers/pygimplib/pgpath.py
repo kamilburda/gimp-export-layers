@@ -112,7 +112,7 @@ def uniquify_string_generic(
          
         i = 2
         while True:
-          yield "{0} {1}".format(uniquifier, i)
+          yield "{} {}".format(uniquifier, i)
           i += 1
     
     This generator yields " - copy", " - another copy", " - another copy 2",
@@ -120,13 +120,13 @@ def uniquify_string_generic(
   """
   
   def _get_uniquified_string(uniquifier_generator):
-    return "{0}{1}{2}".format(
+    return "{}{}{}".format(
       str_[0:uniquifier_position], next(uniquifier_generator), str_[uniquifier_position:])
 
   def _generate_unique_number():
     i = 1
     while True:
-      yield " ({0})".format(i)
+      yield " ({})".format(i)
       i += 1
   
   if is_unique_func(str_):
@@ -329,7 +329,7 @@ class StringPatternGenerator(object):
     
     if len(number_generators) != len(self._number_generators):
       raise ValueError(
-        "incorrect number of number generators (got {0}, expected {1})".format(
+        "incorrect number of number generators (got {}, expected {})".format(
           len(number_generators), len(self._number_generators)))
     
     for field_name, number_generator in zip(self._number_generators, number_generators):
@@ -516,7 +516,7 @@ class StringPatternGenerator(object):
     
     if argspec.keywords:
       raise ValueError(
-        "{0}: field functions with variable keyword arguments (**kwargs) "
+        "{}: field functions with variable keyword arguments (**kwargs) "
         "are not supported".format(field_func.__name__))
     
     if not argspec.varargs:
@@ -560,7 +560,7 @@ class StringPatternGenerator(object):
     try:
       return_value = field_func(*field[1])
     except Exception:
-      return "[{0}]".format(field[2])
+      return "[{}]".format(field[2])
     else:
       return str(return_value)
 
@@ -670,7 +670,7 @@ class FilenameValidator(StringValidator):
     FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: N_(
       "Filename cannot end with a period."),
     FileValidatorErrorStatuses.HAS_INVALID_NAMES: N_(
-      '"{0}" is a reserved name that cannot be used in filenames.\n')}
+      '"{}" is a reserved name that cannot be used in filenames.\n')}
   
   @classmethod
   def is_valid(cls, filename):
@@ -763,7 +763,7 @@ class FilepathValidator(StringValidator):
     FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: N_(
       "Path components in the file path cannot end with a period."),
     FileValidatorErrorStatuses.HAS_INVALID_NAMES: N_(
-      '"{0}" is a reserved name that cannot be used in file paths.\n')}
+      '"{}" is a reserved name that cannot be used in file paths.\n')}
   
   @classmethod
   def is_valid(cls, filepath):
@@ -864,7 +864,7 @@ class DirpathValidator(FilepathValidator):
     FileValidatorErrorStatuses.HAS_TRAILING_PERIOD: N_(
       "Path components in the directory path cannot end with a period."),
     FileValidatorErrorStatuses.HAS_INVALID_NAMES: N_(
-      '"{0}" is a reserved name that cannot be used in directory paths.\n'),
+      '"{}" is a reserved name that cannot be used in directory paths.\n'),
     FileValidatorErrorStatuses.EXISTS_BUT_IS_NOT_DIR: N_(
       "Specified path is not a directory path.")}
   

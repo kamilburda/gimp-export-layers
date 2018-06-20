@@ -103,7 +103,7 @@ class _Config(object):
   
   def __getattr__(self, name):
     if name not in self._config:
-      raise AttributeError("configuration entry '{0}' not found".format(name))
+      raise AttributeError("configuration entry '{}' not found".format(name))
     
     attr = self._config[name]
     
