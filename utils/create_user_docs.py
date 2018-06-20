@@ -7,6 +7,8 @@ This script generates user documentation from GitHub Pages files.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+from export_layers import pygimplib
+from future.builtins import *
 
 import io
 import os
@@ -17,9 +19,18 @@ import psutil
 import requests
 import yaml
 
+from export_layers.pygimplib import pgutils
+
 from utils import process_local_docs
 
+import export_layers.config
+export_layers.config.init()
+
+pygimplib.init()
+
 #===============================================================================
+
+MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
 
 FILE_ENCODING = "utf-8"
 
@@ -28,18 +39,12 @@ SITE_DIRNAME = "_site"
 JEKYLL_SERVER_LOCALHOST_IP = "127.0.0.1"
 JEKYLL_SERVER_PORT = "4000"
 
-
-def main(github_page_scripts_dirpath, github_page_dirpath, output_dirpath):
-  run_page_locally(github_page_scripts_dirpath, github_page_dirpath)
-  _process_local_docs(
-    github_page_scripts_dirpath,
-    github_page_dirpath,
-    output_dirpath)
+#===============================================================================
 
 
-def run_page_locally(github_page_scripts_dirpath, github_page_dirpath):
-  run_page_locally_process = psutil.Popen(
-    [os.path.join(github_page_scripts_dirpath, "run_page_locally.sh"), "--release"])
+def run_github_page_locally(github_page_dirpath):
+  run_github_page_locally_process = psutil.Popen(
+    [os.path.join(MODULE_DIRPATH, "run_github_page_locally.sh"), "--release"])
   
   page_config_filepath = os.path.join(github_page_dirpath, PAGE_CONFIG_FILENAME)
   
@@ -58,14 +63,13 @@ def run_page_locally(github_page_scripts_dirpath, github_page_dirpath):
     else:
       page_ready = True
   
-  run_page_locally_process_children = run_page_locally_process.children(recursive=True)
-  for child in run_page_locally_process_children:
+  for child in run_github_page_locally_process.children(recursive=True):
     child.kill()
   
-  run_page_locally_process.kill()
+  run_github_page_locally_process.kill()
 
 
-def _process_local_docs(github_page_scripts_dirpath, github_page_dirpath, output_dirpath):
+def _process_local_docs(github_page_dirpath, output_dirpath):
   copy_directory(os.path.join(github_page_dirpath, SITE_DIRNAME), output_dirpath)
   
   process_local_docs.main(
@@ -85,12 +89,16 @@ def copy_directory(source_dirpath, dest_dirpath):
         os.path.join(dest_dirpath, name))
 
 
+#===============================================================================
+
+
+def main(github_page_dirpath, output_dirpath):
+  run_github_page_locally(github_page_dirpath)
+  _process_local_docs(github_page_dirpath, output_dirpath)
+
+
 if __name__ == "__main__":
-  github_page_scripts_absolute_dirpath = os.path.abspath(sys.argv[1])
-  github_page_absolute_dirpath = os.path.abspath(sys.argv[2])
-  output_absolute_dirpath = os.path.abspath(sys.argv[3])
+  github_page_absolute_dirpath = os.path.abspath(sys.argv[1])
+  output_absolute_dirpath = os.path.abspath(sys.argv[2])
   
-  main(
-    github_page_scripts_absolute_dirpath,
-    github_page_absolute_dirpath,
-    output_absolute_dirpath)
+  main(github_page_absolute_dirpath, output_absolute_dirpath)

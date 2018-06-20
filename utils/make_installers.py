@@ -66,7 +66,6 @@ OUTPUT_DIRPATH_DEFAULT = os.path.join(INSTALLERS_DIRPATH, "output")
 INCLUDE_LIST_FILEPATH = os.path.join(MODULE_DIRPATH, "make_installers_included_files.txt")
 
 GITHUB_PAGE_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "gh-pages")
-GITHUB_PAGE_UTILS_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "GitHub_page")
 
 #===============================================================================
 
@@ -246,8 +245,7 @@ def _copy_files_to_temp_filepaths(filepaths, temp_filepaths):
 
 
 def _create_user_docs(dirpath):
-  create_user_docs.main(
-    GITHUB_PAGE_UTILS_DIRPATH, GITHUB_PAGE_DIRPATH, dirpath)
+  create_user_docs.main(GITHUB_PAGE_DIRPATH, dirpath)
 
 
 def _set_permissions(dirpath, permissions):
