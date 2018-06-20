@@ -143,6 +143,7 @@ Run GIMP from the Windows command line as follows:
 
 where `[version]` is the GIMP version, e.g. `gimp-2.8.exe` for GIMP 2.8.
 
-If Windows does not recognize the GIMP executable, specify the full path:
+If Windows does not recognize the GIMP executable, specify the full path.
+Assuming GIMP was installed in the default installation path, the full path is:
    
     "C:\Program Files\GIMP 2\bin\gimp-[version].exe"
