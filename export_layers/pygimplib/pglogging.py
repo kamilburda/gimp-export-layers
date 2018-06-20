@@ -58,7 +58,8 @@ def log_output(
   Parameters:
   
   * `log_mode` - log mode. Possible values:
-  
+    
+    * LOG_NONE - do not log anything.
     * LOG_EXCEPTIONS_ONLY - only log exceptions to the error log file.
     * LOG_OUTPUT_FILES - redirect stdout and stderr to log files.
     * LOG_OUTPUT_GIMP_CONSOLE - redirect stdout and stderr to the GIMP error
