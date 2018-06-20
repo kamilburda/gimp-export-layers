@@ -16,6 +16,9 @@
 
 """
 This module defines a custom popup usable for GTK text entries.
+
+This module should not be used directly. Use `pggui` as the contents of this
+module are included in `pggui`.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -27,6 +30,10 @@ import gtk
 import gobject
 
 from . import pgutils
+
+__all__ = [
+  "EntryPopup",
+]
 
 #===============================================================================
 

@@ -50,7 +50,6 @@ import gimpui
 from export_layers import pygimplib
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pggui
-from export_layers.pygimplib import pggui_entries
 from export_layers.pygimplib import pginvocation
 from export_layers.pygimplib import pgoverwrite
 from export_layers.pygimplib import pgpdb
@@ -422,7 +421,7 @@ class ExportLayersGui(object):
         gobject.markup_escape_text(self._settings["main/file_extension"].display_name)))
     self._file_extension_label.set_alignment(0.0, 0.5)
     
-    self._file_extension_entry = pggui_entries.FileExtensionEntry(
+    self._file_extension_entry = pggui.FileExtensionEntry(
       minimum_width_chars=self._FILE_EXTENSION_ENTRY_MIN_WIDTH_CHARS,
       maximum_width_chars=self._FILE_EXTENSION_ENTRY_MAX_WIDTH_CHARS)
     
@@ -433,7 +432,7 @@ class ExportLayersGui(object):
     self._dot_label = gtk.Label(".")
     self._dot_label.set_alignment(0.0, 1.0)
     
-    self._filename_pattern_entry = pggui_entries.FilenamePatternEntry(
+    self._filename_pattern_entry = pggui.FilenamePatternEntry(
       exportlayers.LayerNameRenamer.LAYER_NAME_PATTERN_FIELDS,
       minimum_width_chars=self._FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS,
       maximum_width_chars=self._FILENAME_PATTERN_ENTRY_MAX_WIDTH_CHARS,

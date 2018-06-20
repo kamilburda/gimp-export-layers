@@ -19,6 +19,8 @@ This module defines:
 * GTK overwrite dialog
 * GTK progress updater
 * miscellaneous helper functions dealing with the GUI
+
+This module also includes functions and classes defined in `_pggui_*` modules.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -36,7 +38,11 @@ import gimpui
 from . import pgoverwrite
 from . import pgprogress
 
+from ._pggui_cellrenderers import *
+from ._pggui_entries import *
+from ._pggui_entrypopup import *
 from ._pggui_messages import *
+from ._pggui_undocontext import *
 
 #===============================================================================
 

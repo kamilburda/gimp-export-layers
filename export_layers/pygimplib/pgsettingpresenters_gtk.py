@@ -141,7 +141,7 @@ class GtkEntryPresenter(GtkSettingPresenter):
 class ExtendedEntryPresenter(GtkSettingPresenter):
   
   """
-  This class is a `SettingPresenter` for `pggui_entries.ExtendedEntry` elements.
+  This class is a `SettingPresenter` for `pggui.ExtendedEntry` elements.
   
   Value: Text in the entry.
   """
