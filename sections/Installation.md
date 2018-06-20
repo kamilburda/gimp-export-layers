@@ -21,15 +21,15 @@ Installers
 
 ### Windows
 
-Simply run the Windows installer and customize plug-in installation path as
-needed. If you have a portable GIMP installation, you will be prompted to
-specify the path to GIMP and GIMP plug-ins manually.
+Simply run the Windows installer and customize plug-in installation path as needed.
+If you have a portable GIMP installation, you will be prompted to specify the path to GIMP and GIMP plug-ins manually.
 
 ### Linux
 
 Unpack the ZIP archive to any folder and run the extracted installer by double-clicking on the file in your file explorer application or from the terminal.
 
-You can customize the file path to the GIMP executable and the plug-in installation with `-g` and `-i` options, respectively. These options must be specified in the terminal as follows (do not forget the `--`):
+You can customize the file path to the GIMP executable and the plug-in installation with `-g` and `-i` options, respectively.
+These options must be specified in the terminal as follows (do not forget the `--`):
 
     [installer script].run -- -g [gimp_filepath] -i [installation_path]
 
@@ -43,7 +43,8 @@ First, make sure GIMP is installed in the `Applications` folder.
 
 Unpack the ZIP archive to any folder and run the extracted installer from Terminal.
 
-You can customize the file path to the GIMP executable and the plug-in installation with `-g` and `-i` options, respectively. These options must be specified in the terminal as follows (do not forget the `--`):
+You can customize the file path to the GIMP executable and the plug-in installation with `-g` and `-i` options, respectively.
+These options must be specified in the terminal as follows (do not forget the `--`):
 
     [installer script].run -- -g [gimp_filepath] -i [installation_path]
 
@@ -88,11 +89,9 @@ to the folder containing plug-ins depending on your version of GIMP:
 
 If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
 
-To check if the correct version of Python is installed, start GIMP and go to
-"Filters → Python-Fu → Console". The console must display "Python 2.7" or later
-from the 2.7.x series. If not, install Python 2.7, open
-`/usr/lib/gimp/2.0/interpreters/pygimp.interp`
-and change its contents to the following:
+To check if the correct version of Python is installed, start GIMP and go to "Filters → Python-Fu → Console".
+The console must display "Python 2.7" or later from the 2.7.x series.
+If not, install Python 2.7, open `/usr/lib/gimp/2.0/interpreters/pygimp.interp` and change its contents to the following:
 
     python=[path to Python 2.7 executable]
     /usr/bin/python=[path to Python 2.7 executable]
@@ -120,13 +119,12 @@ If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folde
 Upgrading from 2.x to to 3.x
 ----------------------------
 
-Due to numerous significant changes in version 3.0, make sure you perform a
-complete reinstall when upgrading from an earlier version:
+Due to numerous significant changes in version 3.0, make sure you perform a complete reinstall when upgrading from an earlier version:
 
 1. Reset settings by pressing the "Reset Settings" button.
 2. Close GIMP.
-3. Remove the `export_layers.py` file and the `export_layers` folder from the
-installation folder. If you used 3.0-RC1, remove the `pygimplib` folder as well.
+3. Remove the `export_layers.py` file and the `export_layers` folder from the installation folder.
+   If you used 3.0-RC1, remove the `pygimplib` folder as well.
 4. In the folder above `plug-ins`, open `parasiterc` in a text editor and remove the entire line beginning with `(parasite "plug_in_export_layers"`.
 5. Run GIMP (so that GIMP "forgets" about the plug-in).
 6. Install the new version.
