@@ -127,10 +127,7 @@ class OperationExecutor(object):
     
     operation_id = self._get_operation_id()
     
-    if isinstance(operation, self.__class__):
-      for group in self._process_groups_arg(groups):
-        self._add_executor(operation_id, operation, group)
-    else:
+    if callable(operation):
       if not foreach:
         add_operation_func = self._add_operation
       else:
@@ -141,6 +138,9 @@ class OperationExecutor(object):
           operation_id, operation, group,
           args if args is not None else (),
           kwargs if kwargs is not None else {})
+    else:
+      for group in self._process_groups_arg(groups):
+        self._add_executor(operation_id, operation, group)
     
     return operation_id
   
@@ -570,10 +570,10 @@ class OperationExecutor(object):
     if is_foreach:
       return self._TYPE_FOREACH_OPERATION
     else:
-      if isinstance(operation, self.__class__):
-        return self._TYPE_EXECUTOR
-      else:
+      if callable(operation):
         return self._TYPE_OPERATION
+      else:
+        return self._TYPE_EXECUTOR
   
   def _get_operation_lists_and_functions(self, operation_type):
     if operation_type == self._TYPE_OPERATION:
