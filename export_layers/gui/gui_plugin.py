@@ -1026,9 +1026,6 @@ class ExportLayersRepeatGui(object):
     self.export_layers()
   
   def _init_gui(self):
-    if gimp.version >= (2, 10):
-      gimpui.gimp_ui_init()
-    
     self._dialog = gimpui.Dialog(title=pygimplib.config.PLUGIN_TITLE, role=None)
     self._dialog.set_transient()
     self._dialog.set_border_width(8)
