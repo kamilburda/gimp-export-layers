@@ -18,3 +18,5 @@ Version of Export Layers:
 Version of GIMP: 
 
 Operating system: 
+
+<!-- If you use an unofficial GIMP installation, specify the installer here (name, URL). -->
