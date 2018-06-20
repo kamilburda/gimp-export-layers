@@ -292,14 +292,14 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   @staticmethod
   def _list_layer_filepaths(layers_dirpath):
-    layers_filepaths = []
+    layer_filepaths = []
     
     for filename in os.listdir(layers_dirpath):
       path = os.path.join(layers_dirpath, filename)
       if os.path.isfile(path):
-        layers_filepaths.append(path)
+        layer_filepaths.append(path)
     
-    return layers_filepaths
+    return layer_filepaths
 
 
 #===============================================================================
