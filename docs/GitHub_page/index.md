@@ -16,8 +16,7 @@ See [Advanced Usage](sections/Advanced-Usage.html).
 
 ### Having trouble?
 
-See the [known issues](sections/Known-Issues.html) or feel free to
-[report other issues or ask questions](https://github.com/khalim19/gimp-plugin-export-layers/issues).
+See the [known issues](sections/Known-Issues.html) or feel free to [report other issues or ask questions](https://github.com/khalim19/gimp-plugin-export-layers/issues).
 
 
 ### Want to translate the plug-in into your language?
