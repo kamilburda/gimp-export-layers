@@ -395,7 +395,8 @@ def reorder_operation(setting, new_position):
   if setting.name in _operation_settings_and_items:
     _operation_executor.reorder(
       _operation_settings_and_items[setting.name][0],
-      _operation_settings_and_items[setting.name][1], new_position)
+      new_position,
+      _operation_settings_and_items[setting.name][1])
 
 
 def remove_operation(setting):
