@@ -401,8 +401,10 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     """
     
     return self._load_save_group(
-      "ignore_load", pgsettingpersistor.SettingPersistor.load,
-      "before-load-group", "after-load-group")
+      "ignore_load",
+      pgsettingpersistor.SettingPersistor.load,
+      "before-load-group",
+      "after-load-group")
   
   def save(self):
     """
@@ -414,12 +416,17 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     """
     
     return self._load_save_group(
-      "ignore_save", pgsettingpersistor.SettingPersistor.save,
-      "before-save-group", "after-save-group")
+      "ignore_save",
+      pgsettingpersistor.SettingPersistor.save,
+      "before-save-group",
+      "after-save-group")
   
   def _load_save_group(
-        self, load_save_ignore_tag, load_save_func,
-        before_load_save_group_event_type, after_load_save_group_event_type):
+        self,
+        load_save_ignore_tag,
+        load_save_func,
+        before_load_save_group_event_type,
+        after_load_save_group_event_type):
     
     def _has_ignore_tag(setting):
       return load_save_ignore_tag not in setting.tags
@@ -534,8 +541,10 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     if exception_messages:
       exception_message = "\n".join(exception_messages)
       raise pgsetting.SettingValueError(
-        exception_message, setting=exception_settings[0],
-        messages=exception_messages, settings=exception_settings)
+        exception_message,
+        setting=exception_settings[0],
+        messages=exception_messages,
+        settings=exception_settings)
 
 
 class SettingGroupWalkCallbacks(object):

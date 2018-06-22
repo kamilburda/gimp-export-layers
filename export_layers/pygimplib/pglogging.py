@@ -50,8 +50,12 @@ _exception_logger = None
 
 
 def log_output(
-      log_mode, log_dirpaths, log_stdout_filename, log_stderr_filename,
-      log_header_title="", gimp_console_message_delay_milliseconds=0):
+      log_mode,
+      log_dirpaths,
+      log_stdout_filename,
+      log_stderr_filename,
+      log_header_title="",
+      gimp_console_message_delay_milliseconds=0):
   """
   Enable logging of output.
   

@@ -88,7 +88,10 @@ class TestTee(unittest.TestCase):
   
   def test_start_and_stop(self):
     tee_stdout = pglogging.Tee(
-      sys.stdout, self.string_file, log_header_title="Test Header", start=False)
+      sys.stdout,
+      self.string_file,
+      log_header_title="Test Header",
+      start=False)
     
     print("Hi There")
     self.assertFalse(self.string_file.getvalue().endswith("Hi There\n"))

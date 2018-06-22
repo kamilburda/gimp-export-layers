@@ -596,7 +596,9 @@ class TestOperationExecutorExecuteOperations(OperationExecutorTestCase):
   def test_execute_single_operation(
         self,
         test_case_name_suffix,
-        operation, add_args, execute_args,
+        operation,
+        add_args,
+        execute_args,
         expected_result):
     test_list = []
     
@@ -688,7 +690,10 @@ class TestOperationExecutorExecuteForeachOperations(OperationExecutorTestCase):
   def test_execute_single_foreach(
         self,
         test_case_name_suffix,
-        operation, foreach_operation, operations_args, foreach_operation_args,
+        operation,
+        foreach_operation,
+        operations_args,
+        foreach_operation_args,
         expected_result):
     test_list = []
     
@@ -724,7 +729,10 @@ class TestOperationExecutorExecuteForeachOperations(OperationExecutorTestCase):
   def test_execute_multiple_foreachs(
         self,
         test_case_name_suffix,
-        operation, foreach_operations, operations_args, foreach_operations_args,
+        operation,
+        foreach_operations,
+        operations_args,
+        foreach_operations_args,
         expected_result):
     test_list = []
     

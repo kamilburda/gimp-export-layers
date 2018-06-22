@@ -69,11 +69,19 @@ from . import settings_gui
 
 
 def display_message(
-      message, message_type, parent=None, buttons=gtk.BUTTONS_OK,
-      message_in_text_view=False, button_response_id_to_focus=None):
+      message,
+      message_type,
+      parent=None,
+      buttons=gtk.BUTTONS_OK,
+      message_in_text_view=False,
+      button_response_id_to_focus=None):
   return pggui.display_message(
-    message, message_type, title=pygimplib.config.PLUGIN_TITLE, parent=parent,
-    buttons=buttons, message_in_text_view=message_in_text_view,
+    message,
+    message_type,
+    title=pygimplib.config.PLUGIN_TITLE,
+    parent=parent,
+    buttons=buttons,
+    message_in_text_view=message_in_text_view,
     button_response_id_to_focus=button_response_id_to_focus)
 
 
@@ -84,7 +92,9 @@ def display_export_failure_message(exception, parent=None):
   error_message += "\n" + str(exception)
   
   display_message(
-    error_message, message_type=gtk.MESSAGE_WARNING, parent=parent,
+    error_message,
+    message_type=gtk.MESSAGE_WARNING,
+    parent=parent,
     message_in_text_view=True)
 
 
@@ -111,7 +121,8 @@ def display_export_failure_invalid_image_message(details, parent=None):
 
 def display_reset_prompt(parent=None, more_settings_shown=False):
   dialog = gtk.MessageDialog(
-    parent=parent, type=gtk.MESSAGE_WARNING,
+    parent=parent,
+    type=gtk.MESSAGE_WARNING,
     flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
     buttons=gtk.BUTTONS_YES_NO)
   dialog.set_transient_for(parent)
@@ -264,7 +275,8 @@ def _setup_image_ids_and_directories_and_initial_directory(
   settings["gui_session/image_ids_and_directories"].update_image_ids_and_dirpaths()
   
   update_performed = _update_directory(
-    current_directory_setting, current_image,
+    current_directory_setting,
+    current_image,
     settings["gui_session/image_ids_and_directories"].value[current_image.ID])
   
   if not update_performed:
@@ -326,7 +338,9 @@ class ExportLayersGui(object):
     self._is_exporting = False
     
     self._layer_exporter_for_previews = exportlayers.LayerExporter(
-      gimpenums.RUN_NONINTERACTIVE, self._image, self._settings["main"],
+      gimpenums.RUN_NONINTERACTIVE,
+      self._image,
+      self._settings["main"],
       overwrite_chooser=pgoverwrite.NoninteractiveOverwriteChooser(
         self._settings["main/overwrite_mode"].items["replace"]),
       layer_tree=self._initial_layer_tree)
@@ -379,7 +393,8 @@ class ExportLayersGui(object):
   
   def _init_gui(self):
     self._dialog = gimpui.Dialog(
-      title=pygimplib.config.PLUGIN_TITLE, role=pygimplib.config.PLUGIN_NAME)
+      title=pygimplib.config.PLUGIN_TITLE,
+      role=pygimplib.config.PLUGIN_NAME)
     self._dialog.set_transient()
     self._dialog.set_default_size(*self._DIALOG_SIZE)
     self._dialog.set_border_width(self._DIALOG_BORDER_WIDTH)
@@ -604,11 +619,15 @@ class ExportLayersGui(object):
       "activate", self._on_reset_settings_activate)
     
     self._file_extension_entry.connect(
-      "changed", self._on_text_entry_changed,
-      self._settings["main/file_extension"], "invalid_file_extension")
+      "changed",
+      self._on_text_entry_changed,
+      self._settings["main/file_extension"],
+      "invalid_file_extension")
     self._filename_pattern_entry.connect(
-      "changed", self._on_text_entry_changed,
-      self._settings["main/layer_filename_pattern"], "invalid_layer_filename_pattern")
+      "changed",
+      self._on_text_entry_changed,
+      self._settings["main/layer_filename_pattern"],
+      "invalid_layer_filename_pattern")
     
     self._dialog.connect("notify::is-active", self._on_dialog_is_active_changed)
     
@@ -686,7 +705,9 @@ class ExportLayersGui(object):
       _("Add _Constraint..."))
   
   def _create_operation_box(
-        self, setting_group_with_operations, setting_displayed_operations,
+        self,
+        setting_group_with_operations,
+        setting_displayed_operations,
         label_add_operation):
     operation_box = gui_operations.OperationBox(
       label_add_text=label_add_operation,
@@ -803,12 +824,14 @@ class ExportLayersGui(object):
     dialog_position = self._dialog.get_window().get_origin()
     button_allocation = button.get_allocation()
     self._menu_settings.popup(
-      None, None,
+      None,
+      None,
       lambda menu: (
         button_allocation.x + dialog_position[0],
         button_allocation.y + button_allocation.height + dialog_position[1],
         True),
-      0, 0)
+      0,
+      0)
   
   @_set_settings
   def _on_save_settings_activate(self, widget):
@@ -909,8 +932,11 @@ class ExportLayersGui(object):
     progress_updater = pggui.GtkProgressUpdater(self._progress_bar)
     
     self._layer_exporter = exportlayers.LayerExporter(
-      gimpenums.RUN_INTERACTIVE, self._image, self._settings["main"],
-      overwrite_chooser, progress_updater,
+      gimpenums.RUN_INTERACTIVE,
+      self._image,
+      self._settings["main"],
+      overwrite_chooser,
+      progress_updater,
       export_context_manager=handle_gui_in_export,
       export_context_manager_args=[self._dialog])
     
@@ -1073,7 +1099,9 @@ class ExportLayersRepeatGui(object):
     item_progress_indicator.install_progress_for_status()
     
     self._layer_exporter = exportlayers.LayerExporter(
-      gimpenums.RUN_WITH_LAST_VALS, self._image, self._settings["main"],
+      gimpenums.RUN_WITH_LAST_VALS,
+      self._image,
+      self._settings["main"],
       pgoverwrite.NoninteractiveOverwriteChooser(
         self._settings["main/overwrite_mode"].value),
       progress_updater,

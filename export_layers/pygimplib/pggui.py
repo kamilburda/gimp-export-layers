@@ -61,8 +61,12 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
   _DIALOG_ACTION_AREA_SPACING = 8
   
   def __init__(
-        self, values_and_display_names, default_value, default_response, title="",
-        parent=None, use_mnemonics=True):
+        self,
+        values_and_display_names,
+        default_value,
+        default_response, title="",
+        parent=None,
+        use_mnemonics=True):
     
     super().__init__(values_and_display_names, default_value, default_response)
     
@@ -74,7 +78,9 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
   
   def _init_gui(self):
     self._dialog = gimpui.Dialog(
-      title="", role=None, parent=self._parent,
+      title="",
+      role=None,
+      parent=self._parent,
       flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
     self._dialog.set_transient_for(self._parent)
     self._dialog.set_title(self._title)

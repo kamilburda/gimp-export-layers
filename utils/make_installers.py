@@ -170,7 +170,8 @@ def _reset_files_with_filters_and_activate_smudge_filters(repo, path_specs):
 
 
 def _restore_repo_files(
-      dirpath_with_original_files_with_git_filters, repository_dirpath,
+      dirpath_with_original_files_with_git_filters,
+      repository_dirpath,
       relative_filepaths_with_git_filters):
   for relative_filepath in relative_filepaths_with_git_filters:
     shutil.copy2(
@@ -334,15 +335,23 @@ def _create_windows_installer(
 def _create_linux_installer(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
   _create_unix_installer(
-    installer_dirpath, input_dirpath, input_filepaths, output_filepaths,
-    platform_id="linux", platform_name="Linux")
+    installer_dirpath,
+    input_dirpath,
+    input_filepaths,
+    output_filepaths,
+    platform_id="linux",
+    platform_name="Linux")
 
 
 def _create_macos_installer(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
   _create_unix_installer(
-    installer_dirpath, input_dirpath, input_filepaths, output_filepaths,
-    platform_id="macos", platform_name="macOS")
+    installer_dirpath,
+    input_dirpath,
+    input_filepaths,
+    output_filepaths,
+    platform_id="macos",
+    platform_name="macOS")
 
 
 def _create_unix_installer(

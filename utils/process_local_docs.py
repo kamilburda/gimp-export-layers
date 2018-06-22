@@ -240,8 +240,10 @@ def rename_paths_in_url_attributes(
     orig_relative_path, renamed_relative_path = matching_relative_paths_to_rename[0]
     
     renamed_resolved_relative_path = re.sub(
-      re.escape(orig_relative_path), renamed_relative_path,
-      resolved_relative_path, count=1)
+      re.escape(orig_relative_path),
+      renamed_relative_path,
+      resolved_relative_path,
+      count=1)
     
     return renamed_resolved_relative_path
   
@@ -303,8 +305,10 @@ def init_page_config(page_config_filepath):
 
 
 def modify_url_attributes_in_file(
-      html_filepath, get_new_url_attribute_value_func,
-      output_html_filepath, page_config_filepath):
+      html_filepath,
+      get_new_url_attribute_value_func,
+      output_html_filepath,
+      page_config_filepath):
   init_page_config(page_config_filepath)
   
   parser = get_html_parser(html_filepath)

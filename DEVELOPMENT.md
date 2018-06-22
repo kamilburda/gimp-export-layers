@@ -114,13 +114,18 @@ Use 2 spaces for indentation.
 
 Use hanging indents, with indented lines having 2 extra spaces.
 
+For multi-line lists of variables (or arguments in function calls or definitions):
+* if the variables fit in one line, use one line for all variables,
+* if the variables do not fit in one line, use one line for each variable.
+
 For multi-line conditions, align expressions vertically.
 
-For multi-line function and class definitions, loops and `with` statements, use hanging indents and add 2 spaces after the beginning of the name of the function/class, first loop variable or the expression after the `with` keyword.
-For example:
+For multi-line function or class definitions, loops and `with` statements, use hanging indents and add 2 spaces after the beginning of the name of the function/class, first loop variable or the expression after the `with` keyword.
+Example:
 
     def __init__(
-          self, name, default_value, display_name=None, description=None,
+          self,
+          default_value,
           error_messages=None):
       with open(
              "/totally/ridiculously/long/path/to/file.txt", "w") as f:

@@ -287,11 +287,12 @@ class TestLayerTree(unittest.TestCase):
       self.layer_tree.validate_name(layer_elem)
       self.layer_tree.uniquify_name(layer_elem, include_item_path=False)
     self._compare_uniquified_without_parents(self.layer_tree, uniquified_names)
-    
+  
   def _compare_uniquified_without_parents(self, item_tree, uniquified_names):
     for key, name in uniquified_names.items():
       self.assertEqual(
-        item_tree[key].name, name,
+        item_tree[key].name,
+        name,
         "'{}': '{}' != '{}'".format(key, item_tree[key].name, name))
   
   def test_uniquify_with_layer_groups(self):
@@ -347,7 +348,8 @@ class TestLayerTree(unittest.TestCase):
     for layer_elem in self.layer_tree:
       self.layer_tree.validate_name(layer_elem)
       self.layer_tree.uniquify_name(
-        layer_elem, include_item_path=True,
+        layer_elem,
+        include_item_path=True,
         uniquifier_position=_get_file_extension_start_position(layer_elem.name))
     self._compare_uniquified_with_parents(self.layer_tree, uniquified_names)
   
@@ -355,11 +357,13 @@ class TestLayerTree(unittest.TestCase):
     for key, item_path in uniquified_names.items():
       path_components, name = item_path[:-1], item_path[-1]
       self.assertEqual(
-        item_tree[key].get_path_components(), path_components,
+        item_tree[key].get_path_components(),
+        path_components,
         "parents: '{}': '{}' != '{}'".format(
           key, item_tree[key].get_path_components(), path_components))
       self.assertEqual(
-        item_tree[key].name, name,
+        item_tree[key].name,
+        name,
         "layer name: '{}': '{}' != '{}'".format(key, item_tree[key].name, name))
   
   def test_reset_name(self):

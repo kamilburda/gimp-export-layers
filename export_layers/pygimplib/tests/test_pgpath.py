@@ -134,14 +134,24 @@ class TestStringPatternGenerator(unittest.TestCase):
         yield layer_name
     
     self._test_generate_with_field_generator(
-      "layer name", _get_layer_name,
-      "[layer name]", "layer one", "layer two", "layer three")
+      "layer name",
+      _get_layer_name,
+      "[layer name]",
+      "layer one",
+      "layer two",
+      "layer three")
     self._test_generate_with_field_generator(
-      "layer name", _get_layer_name,
-      "[layer name]_001", "layer one_001", "layer two_001", "layer three_001")
+      "layer name",
+      _get_layer_name,
+      "[layer name]_001",
+      "layer one_001",
+      "layer two_001",
+      "layer three_001")
     self._test_generate_with_field_generator(
-      "layer name", _get_layer_name,
-      "[layer name]_[layer name]", "layer one_layer two")
+      "layer name",
+      _get_layer_name,
+      "[layer name]_[layer name]",
+      "layer one_layer two")
     
     self._test_generate_with_fields(
       {"field1": lambda: "value1",
@@ -499,7 +509,10 @@ class TestFilepathValidator(unittest.TestCase):
     self.assertTrue(
       self.validator.is_valid(
         os.path.join(
-          "zero", "0n3", "two", ",o_O_;-()" + os.sep + os.sep + os.sep,
+          "zero",
+          "0n3",
+          "two",
+          ",o_O_;-()" + os.sep + os.sep + os.sep,
           "three.jpg" + os.sep))[0])
     self.assertFalse(
       self.validator.is_valid(os.path.join("one", "two", "\x09\x7f", ":|"))[0])

@@ -53,14 +53,24 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   _ADD_TAG_POPUP_BORDER_WIDTH = 5
   
   _COLUMNS = (
-    _COLUMN_ICON_LAYER, _COLUMN_ICON_TAG_VISIBLE, _COLUMN_LAYER_NAME_SENSITIVE,
-    _COLUMN_LAYER_NAME, _COLUMN_LAYER_ID) = (
-    [0, gtk.gdk.Pixbuf], [1, gobject.TYPE_BOOLEAN], [2, gobject.TYPE_BOOLEAN],
-    [3, gobject.TYPE_STRING], [4, gobject.TYPE_INT])
+    _COLUMN_ICON_LAYER,
+    _COLUMN_ICON_TAG_VISIBLE,
+    _COLUMN_LAYER_NAME_SENSITIVE,
+    _COLUMN_LAYER_NAME,
+    _COLUMN_LAYER_ID) = (
+    [0, gtk.gdk.Pixbuf],
+    [1, gobject.TYPE_BOOLEAN],
+    [2, gobject.TYPE_BOOLEAN],
+    [3, gobject.TYPE_STRING],
+    [4, gobject.TYPE_INT])
   
   def __init__(
-        self, layer_exporter, initial_layer_tree=None, collapsed_items=None,
-        selected_items=None, displayed_tags_setting=None):
+        self,
+        layer_exporter,
+        initial_layer_tree=None,
+        collapsed_items=None,
+        selected_items=None,
+        displayed_tags_setting=None):
     super().__init__()
     
     self._layer_exporter = layer_exporter

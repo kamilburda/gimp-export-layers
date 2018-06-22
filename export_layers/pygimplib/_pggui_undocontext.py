@@ -177,8 +177,12 @@ class EntryUndoContext(object):
     self._cursor_changed_by_action = True
   
   def _undo_redo(
-        self, stack_to_pop_from, stack_to_push_to, action_handlers,
-        action_handlers_get_cursor_position, actions_iterator=None):
+        self,
+        stack_to_pop_from,
+        stack_to_push_to,
+        action_handlers,
+        action_handlers_get_cursor_position,
+        actions_iterator=None):
     self._undo_stack_push()
     
     if not stack_to_pop_from:

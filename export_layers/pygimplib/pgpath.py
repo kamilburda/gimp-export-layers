@@ -57,8 +57,10 @@ def uniquify_string(
   """
   
   return uniquify_string_generic(
-    str_, lambda str_param: str_param not in existing_strings,
-    uniquifier_position, uniquifier_generator)
+    str_,
+    lambda str_param: str_param not in existing_strings,
+    uniquifier_position,
+    uniquifier_generator)
   
 
 def uniquify_filepath(filepath, uniquifier_position=None, uniquifier_generator=None):
@@ -75,8 +77,10 @@ def uniquify_filepath(filepath, uniquifier_position=None, uniquifier_generator=N
   """
   
   return uniquify_string_generic(
-    filepath, lambda filepath_param: not os.path.exists(filepath_param),
-    uniquifier_position, uniquifier_generator)
+    filepath,
+    lambda filepath_param: not os.path.exists(filepath_param),
+    uniquifier_position,
+    uniquifier_generator)
 
 
 def uniquify_string_generic(
@@ -417,7 +421,8 @@ class StringPatternGenerator(object):
         
         field_str = pattern[start_of_field_index + 1:index]
         field = (
-          list(cls._parse_field(field_str)) + [field_str]
+          list(cls._parse_field(field_str))
+          + [field_str]
           + [(start_of_field_index + 1, index)])
         
         if fields is None or (field[0] in fields and cls._is_field_valid(field, fields)):

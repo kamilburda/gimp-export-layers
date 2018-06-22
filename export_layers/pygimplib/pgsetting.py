@@ -411,7 +411,9 @@ class Setting(pgsettingutils.SettingParentMixin):
     self.invoke_event("after-reset")
   
   def set_gui(
-        self, gui_type=SettingGuiTypes.automatic, gui_element=None,
+        self,
+        gui_type=SettingGuiTypes.automatic,
+        gui_element=None,
         auto_update_gui_to_setting=True):
     """
     Create a new GUI object (`SettingPresenter` instance) for this setting or
@@ -458,7 +460,9 @@ class Setting(pgsettingutils.SettingParentMixin):
       self._gui.auto_update_gui_to_setting(False)
     
     self._gui = gui_type(
-      self, gui_element, setting_value_synchronizer=self._setting_value_synchronizer,
+      self,
+      gui_element,
+      setting_value_synchronizer=self._setting_value_synchronizer,
       old_setting_presenter=self._gui,
       auto_update_gui_to_setting=auto_update_gui_to_setting)
   

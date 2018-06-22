@@ -221,10 +221,14 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._vbox.pack_start(
       self._preview_image, expand=True, fill=True, padding=self._IMAGE_PREVIEW_PADDING)
     self._vbox.pack_start(
-      self._placeholder_image, expand=True, fill=True,
+      self._placeholder_image,
+      expand=True,
+      fill=True,
       padding=self._IMAGE_PREVIEW_PADDING)
     self._vbox.pack_start(
-      self._label_layer_name, expand=False, fill=False,
+      self._label_layer_name,
+      expand=False,
+      fill=False,
       padding=self._BOTTOM_WIDGETS_PADDING)
     
     self._show_placeholder_image()
@@ -307,7 +311,8 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       image_copy,
       max(1, int(round(image_copy.width * self._preview_scaling_factor))),
       max(1, int(round(image_copy.height * self._preview_scaling_factor))),
-      0, 0)
+      0,
+      0)
     
     pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_NONE)
   
@@ -325,16 +330,24 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     # `gimp_pixbuf_from_data` from:
     # https://github.com/GNOME/gimp/blob/gimp-2-8/libgimp/gimppixbuf.c
     layer_preview_pixbuf = gtk.gdk.pixbuf_new_from_data(
-      preview_data, gtk.gdk.COLORSPACE_RGB, layer.has_alpha, 8, preview_width,
-      preview_height, preview_width * layer.bpp)
+      preview_data,
+      gtk.gdk.COLORSPACE_RGB,
+      layer.has_alpha,
+      8,
+      preview_width,
+      preview_height,
+      preview_width * layer.bpp)
     
     self._preview_pixbuf = layer_preview_pixbuf
     
     if layer.has_alpha:
       layer_preview_pixbuf = _add_alpha_background_to_pixbuf(
-        layer_preview_pixbuf, layer.opacity, self.draw_checkboard_alpha_background,
+        layer_preview_pixbuf,
+        layer.opacity,
+        self.draw_checkboard_alpha_background,
         self._PREVIEW_ALPHA_CHECK_SIZE,
-        self._preview_alpha_check_color_first, self._preview_alpha_check_color_second)
+        self._preview_alpha_check_color_first,
+        self._preview_alpha_check_color_second)
     
     return layer_preview_pixbuf
   
@@ -384,9 +397,12 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       scaled_preview_width, scaled_preview_height, gtk.gdk.INTERP_NEAREST)
     
     scaled_preview_pixbuf = _add_alpha_background_to_pixbuf(
-      scaled_preview_pixbuf, 100, self.draw_checkboard_alpha_background,
+      scaled_preview_pixbuf,
+      100,
+      self.draw_checkboard_alpha_background,
       self._PREVIEW_ALPHA_CHECK_SIZE,
-      self._preview_alpha_check_color_first, self._preview_alpha_check_color_second)
+      self._preview_alpha_check_color_first,
+      self._preview_alpha_check_color_second)
     
     self._preview_image.set_from_pixbuf(scaled_preview_pixbuf)
     
@@ -397,8 +413,10 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     if not self._is_updating and not self._preview_image.get_mapped():
       preview_widget_allocated_width = allocation.width - self._IMAGE_PREVIEW_PADDING * 2
       preview_widget_allocated_height = (
-        allocation.height - self._label_layer_name.get_allocation().height
-        - self._BOTTOM_WIDGETS_PADDING * 2 - self._IMAGE_PREVIEW_PADDING * 2)
+        allocation.height
+        - self._label_layer_name.get_allocation().height
+        - self._BOTTOM_WIDGETS_PADDING * 2
+        - self._IMAGE_PREVIEW_PADDING * 2)
       
       if (preview_widget_allocated_width < self._placeholder_image_size[0]
           or preview_widget_allocated_height < self._placeholder_image_size[1]):
@@ -419,29 +437,57 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
 
   
 def _add_alpha_background_to_pixbuf(
-      pixbuf, opacity, use_checkboard_background=False, check_size=None,
-      check_color_first=None, check_color_second=None):
+      pixbuf,
+      opacity,
+      use_checkboard_background=False,
+      check_size=None,
+      check_color_first=None,
+      check_color_second=None):
   if use_checkboard_background:
     pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
-      gtk.gdk.COLORSPACE_RGB, False, 8,
-      pixbuf.get_width(), pixbuf.get_height())
+      gtk.gdk.COLORSPACE_RGB,
+      False,
+      8,
+      pixbuf.get_width(),
+      pixbuf.get_height())
     
     pixbuf.composite_color(
-      pixbuf_with_alpha_background, 0, 0,
-      pixbuf.get_width(), pixbuf.get_height(),
-      0, 0, 1.0, 1.0, gtk.gdk.INTERP_NEAREST,
+      pixbuf_with_alpha_background,
+      0,
+      0,
+      pixbuf.get_width(),
+      pixbuf.get_height(),
+      0,
+      0,
+      1.0,
+      1.0,
+      gtk.gdk.INTERP_NEAREST,
       int(round((opacity / 100.0) * 255)),
-      0, 0, check_size, check_color_first, check_color_second)
+      0,
+      0,
+      check_size,
+      check_color_first,
+      check_color_second)
   else:
     pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
-      gtk.gdk.COLORSPACE_RGB, True, 8,
-      pixbuf.get_width(), pixbuf.get_height())
+      gtk.gdk.COLORSPACE_RGB,
+      True,
+      8,
+      pixbuf.get_width(),
+      pixbuf.get_height())
     pixbuf_with_alpha_background.fill(0xffffff00)
     
     pixbuf.composite(
-      pixbuf_with_alpha_background, 0, 0,
-      pixbuf.get_width(), pixbuf.get_height(),
-      0, 0, 1.0, 1.0, gtk.gdk.INTERP_NEAREST,
+      pixbuf_with_alpha_background,
+      0,
+      0,
+      pixbuf.get_width(),
+      pixbuf.get_height(),
+      0,
+      0,
+      1.0,
+      1.0,
+      gtk.gdk.INTERP_NEAREST,
       int(round((opacity / 100.0) * 255)))
   
   return pixbuf_with_alpha_background
@@ -452,5 +498,6 @@ def _get_preview_data(layer, preview_width, preview_height):
     pdb.gimp_drawable_thumbnail(layer, preview_width, preview_height))
   
   return (
-    actual_preview_width, actual_preview_height,
+    actual_preview_width,
+    actual_preview_height,
     array.array(b"B", preview_data).tostring())

@@ -63,12 +63,19 @@ __all__ = [
 
 
 def display_error_message(
-      title=None, app_name=None, parent=None, message_type=gtk.MESSAGE_ERROR,
+      title=None,
+      app_name=None,
+      parent=None,
+      message_type=gtk.MESSAGE_ERROR,
       flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-      message_markup=None, message_secondary_markup=None,
-      details=None, display_details_initially=True,
-      report_uri_list=None, report_description=None,
-      button_stock_id=gtk.STOCK_CLOSE, button_response_id=gtk.RESPONSE_CLOSE,
+      message_markup=None,
+      message_secondary_markup=None,
+      details=None,
+      display_details_initially=True,
+      report_uri_list=None,
+      report_description=None,
+      button_stock_id=gtk.STOCK_CLOSE,
+      button_response_id=gtk.RESPONSE_CLOSE,
       focus_on_button=False):
   """
   Display a message to alert the user about an error or an exception that
@@ -249,8 +256,13 @@ def _get_report_link_buttons(
 
 
 def display_message(
-      message, message_type, title=None, parent=None, buttons=gtk.BUTTONS_OK,
-      message_in_text_view=False, button_response_id_to_focus=None):
+      message,
+      message_type,
+      title=None,
+      parent=None,
+      buttons=gtk.BUTTONS_OK,
+      message_in_text_view=False,
+      button_response_id_to_focus=None):
   """
   Display a generic message.
   
@@ -274,8 +286,10 @@ def display_message(
   """
   
   dialog = gtk.MessageDialog(
-    parent=parent, type=message_type,
-    flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=buttons)
+    parent=parent,
+    type=message_type,
+    flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+    buttons=buttons)
   dialog.set_transient_for(parent)
   if title is not None:
     dialog.set_title(title)
@@ -355,8 +369,14 @@ def add_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
       
       def _gui_excepthook(exc_type, exc_value, exc_traceback):
         _gui_excepthook_generic(
-          exc_type, exc_value, exc_traceback,
-          orig_sys_excepthook, title, app_name, _gui_excepthook_parent, report_uri_list)
+          exc_type,
+          exc_value,
+          exc_traceback,
+          orig_sys_excepthook,
+          title,
+          app_name,
+          _gui_excepthook_parent,
+          report_uri_list)
       
       orig_sys_excepthook = sys.excepthook
       sys.excepthook = _gui_excepthook
@@ -386,8 +406,14 @@ def set_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
   
   def gui_excepthook(exc_type, exc_value, exc_traceback):
     _gui_excepthook_generic(
-      exc_type, exc_value, exc_traceback,
-      orig_sys_excepthook, title, app_name, _gui_excepthook_parent, report_uri_list)
+      exc_type,
+      exc_value,
+      exc_traceback,
+      orig_sys_excepthook,
+      title,
+      app_name,
+      _gui_excepthook_parent,
+      report_uri_list)
   
   orig_sys_excepthook = sys.excepthook
   sys.excepthook = gui_excepthook
@@ -406,7 +432,9 @@ def set_gui_excepthook_parent(parent):
 
 
 def _gui_excepthook_generic(
-      exc_type, exc_value, exc_traceback,
+      exc_type,
+      exc_value,
+      exc_traceback,
       orig_sys_excepthook,
       title,
       app_name,
@@ -419,8 +447,11 @@ def _gui_excepthook_generic(
       traceback.format_exception(exc_type, exc_value, exc_traceback))
     
     display_error_message(
-      title=title, app_name=app_name, parent=parent,
-      details=exception_message, report_uri_list=report_uri_list)
+      title=title,
+      app_name=app_name,
+      parent=parent,
+      details=exception_message,
+      report_uri_list=report_uri_list)
     
     # Make sure to quit the application since unhandled exceptions can
     # mess up the application state.

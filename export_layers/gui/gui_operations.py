@@ -169,7 +169,8 @@ class OperationBox(object):
   
   def _get_unique_drag_type(self):
     drag_type = "{}_{}_{}".format(
-      pygimplib.config.PLUGIN_NAME, self.__class__.__name__,
+      pygimplib.config.PLUGIN_NAME,
+      self.__class__.__name__,
       self._drag_type_id_counter.next())
     
     return drag_type
@@ -250,8 +251,15 @@ class OperationBox(object):
     selection_data.set(selection_data.target, 8, setting.get_path(self._settings))
   
   def _on_item_widget_drag_data_received(
-        self, item_widget, drag_context, drop_x, drop_y, selection_data, info,
-        timestamp, setting):
+        self,
+        item_widget,
+        drag_context,
+        drop_x,
+        drop_y,
+        selection_data,
+        info,
+        timestamp,
+        setting):
     dragged_setting_name = selection_data.data
     if dragged_setting_name not in self._settings:
       return
@@ -314,12 +322,21 @@ class OperationBox(object):
     widget_allocation = widget.get_allocation()
     
     pixbuf = gtk.gdk.Pixbuf(
-      gtk.gdk.COLORSPACE_RGB, False, 8,
-      widget_allocation.width, widget_allocation.height)
+      gtk.gdk.COLORSPACE_RGB,
+      False,
+      8,
+      widget_allocation.width,
+      widget_allocation.height)
     
     drag_icon_pixbuf = pixbuf.get_from_drawable(
-      widget.get_window(), widget.get_colormap(),
-      0, 0, 0, 0, widget_allocation.width, widget_allocation.height)
+      widget.get_window(),
+      widget.get_colormap(),
+      0,
+      0,
+      0,
+      0,
+      widget_allocation.width,
+      widget_allocation.height)
     
     self._restore_widget_after_creating_drag_icon(widget)
     

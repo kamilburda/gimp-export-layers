@@ -448,8 +448,8 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     
     self.assertEqual(
       walked_settings,
-      ["main", "main_end", "advanced", "only_visible_layers", "overwrite_mode",
-       "advanced_end"])
+      ["main", "main_end",
+       "advanced", "only_visible_layers", "overwrite_mode", "advanced_end"])
   
   @staticmethod
   def _get_test_data_for_walking_group():

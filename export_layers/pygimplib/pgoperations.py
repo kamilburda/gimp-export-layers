@@ -135,7 +135,9 @@ class OperationExecutor(object):
       
       for group in self._process_groups_arg(groups):
         add_operation_func(
-          operation_id, operation, group,
+          operation_id,
+          operation,
+          group,
           args if args is not None else (),
           kwargs if kwargs is not None else {})
     else:
@@ -452,16 +454,22 @@ class OperationExecutor(object):
       for operation_item in self._operations[group]:
         if operation_item.operation_type == self._TYPE_OPERATION:
           self._remove_operation(
-            operation_item.operation_id, group, self._operations,
+            operation_item.operation_id,
+            group,
+            self._operations,
             self._operation_functions)
         else:
           self._remove_operation(
-            operation_item.operation_id, group, self._operations,
+            operation_item.operation_id,
+            group,
+            self._operations,
             self._executors)
       
       for operation_item in self._foreach_operations[group]:
         self._remove_operation(
-          operation_item.operation_id, group, self._foreach_operations,
+          operation_item.operation_id,
+          group,
+          self._foreach_operations,
           self._foreach_operation_functions)
       
       del self._operations[group]
@@ -475,12 +483,18 @@ class OperationExecutor(object):
   def _add_operation_to_group(self, operation_item, group):
     if operation_item.operation_type == self._TYPE_OPERATION:
       self._add_operation(
-        operation_item.operation_id, operation_item.operation[0], group,
-        operation_item.operation[1], operation_item.operation[2])
+        operation_item.operation_id,
+        operation_item.operation[0],
+        group,
+        operation_item.operation[1],
+        operation_item.operation[2])
     elif operation_item.operation_type == self._TYPE_FOREACH_OPERATION:
       self._add_foreach_operation(
-        operation_item.operation_id, operation_item.operation[0], group,
-        operation_item.operation[1], operation_item.operation[2])
+        operation_item.operation_id,
+        operation_item.operation[0],
+        group,
+        operation_item.operation[1],
+        operation_item.operation[2])
     elif operation_item.operation_type == self._TYPE_EXECUTOR:
       self._add_executor(
         operation_item.operation_id, operation_item.operation, group)
@@ -490,15 +504,22 @@ class OperationExecutor(object):
     self._init_group(group)
     
     operation_item = self._set_operation_item(
-      operation_id, group, (operation, operation_args, operation_kwargs),
-      self._TYPE_OPERATION, operation)
+      operation_id,
+      group,
+      (operation, operation_args, operation_kwargs),
+      self._TYPE_OPERATION,
+      operation)
     
     self._operations[group].append(operation_item)
     self._operation_functions[group][operation] += 1
   
   def _add_foreach_operation(
-        self, operation_id, foreach_operation, group,
-        foreach_operation_args, foreach_operation_kwargs):
+        self,
+        operation_id,
+        foreach_operation,
+        group,
+        foreach_operation_args,
+        foreach_operation_kwargs):
     self._init_group(group)
     
     if not inspect.isgeneratorfunction(foreach_operation):
@@ -511,10 +532,13 @@ class OperationExecutor(object):
       foreach_operation_generator_function = foreach_operation
     
     operation_item = self._set_operation_item(
-      operation_id, group,
+      operation_id,
+      group,
       (foreach_operation_generator_function,
-       foreach_operation_args, foreach_operation_kwargs),
-      self._TYPE_FOREACH_OPERATION, foreach_operation)
+       foreach_operation_args,
+       foreach_operation_kwargs),
+      self._TYPE_FOREACH_OPERATION,
+      foreach_operation)
     
     self._foreach_operations[group].append(operation_item)
     self._foreach_operation_functions[group][foreach_operation] += 1
@@ -532,8 +556,12 @@ class OperationExecutor(object):
     return self._operation_id_counter.next()
   
   def _set_operation_item(
-        self, operation_id, group, operation,
-        operation_type, operation_function):
+        self,
+        operation_id,
+        group,
+        operation,
+        operation_type,
+        operation_function):
     if operation_id not in self._operation_items:
       self._operation_items[operation_id] = _OperationItem(
         operation, operation_id, None, operation_type, operation_function)
@@ -608,7 +636,11 @@ class OperationExecutor(object):
 class _OperationItem(object):
   
   def __init__(
-        self, operation, operation_id, groups, operation_type,
+        self,
+        operation,
+        operation_id,
+        groups,
+        operation_type,
         operation_function):
     self.operation = operation
     self.operation_id = operation_id

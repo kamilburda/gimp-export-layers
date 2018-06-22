@@ -488,9 +488,15 @@ class LayerExporter(object):
   }
   
   def __init__(
-        self, initial_run_mode, image, export_settings,
-        overwrite_chooser=None, progress_updater=None, layer_tree=None,
-        export_context_manager=None, export_context_manager_args=None):
+        self,
+        initial_run_mode,
+        image,
+        export_settings,
+        overwrite_chooser=None,
+        progress_updater=None,
+        layer_tree=None,
+        export_context_manager=None,
+        export_context_manager_args=None):
     
     self.initial_run_mode = initial_run_mode
     self.image = image
@@ -681,7 +687,8 @@ class LayerExporter(object):
     
     self._operation_executor.add(
       _operation_executor,
-      [_BUILTIN_OPERATIONS_GROUP, _BUILTIN_CONSTRAINTS_GROUP,
+      [_BUILTIN_OPERATIONS_GROUP,
+       _BUILTIN_CONSTRAINTS_GROUP,
        _BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP])
     
     add_operation(self.export_settings["constraints/include/include_layers"])
@@ -906,7 +913,9 @@ class LayerExporter(object):
         another_layer_copy = pdb.gimp_layer_new_from_drawable(
           layer, self._another_image_copy)
         pdb.gimp_image_insert_layer(
-          self._another_image_copy, another_layer_copy, None,
+          self._another_image_copy,
+          another_layer_copy,
+          None,
           len(self._another_image_copy.layers))
         another_layer_copy.name = layer.name
         
@@ -985,7 +994,10 @@ class LayerExporter(object):
         self._get_export_func(), self._get_run_mode(), image, layer, output_filepath)
       if self._current_layer_export_status == ExportStatuses.FORCE_INTERACTIVE:
         self._export_once_wrapper(
-          self._get_export_func(), gimpenums.RUN_INTERACTIVE, image, layer,
+          self._get_export_func(),
+          gimpenums.RUN_INTERACTIVE,
+          image,
+          layer,
           output_filepath)
   
   def _make_dirs(self, dirpath, layer_exporter):
@@ -1022,7 +1034,9 @@ class LayerExporter(object):
     
     try:
       export_func(
-        run_mode, image, layer,
+        run_mode,
+        image,
+        layer,
         output_filepath.encode(pgconstants.GIMP_CHARACTER_ENCODING),
         os.path.basename(output_filepath).encode(pgconstants.GIMP_CHARACTER_ENCODING))
     except RuntimeError as e:

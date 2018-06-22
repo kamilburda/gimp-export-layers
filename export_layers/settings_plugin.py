@@ -361,12 +361,20 @@ def setup_image_ids_and_filepaths_settings(
   
   image_filepaths_dict_setting.connect_event(
     "after-load-group", _remove_invalid_image_filepaths)
+  
   image_filepaths_dict_setting.connect_event(
-    "before-save", _update_image_filepaths, image_ids_dict_setting,
-    assign_image_id_to_filepath_func, assign_image_id_to_filepath_func_args)
+    "before-save",
+    _update_image_filepaths,
+    image_ids_dict_setting,
+    assign_image_id_to_filepath_func,
+    assign_image_id_to_filepath_func_args)
+  
   image_ids_dict_setting.connect_event(
-    "after-load-group", _update_image_ids, image_filepaths_dict_setting,
-    assign_filepath_to_image_id_func, assign_filepath_to_image_id_func_args)
+    "after-load-group",
+    _update_image_ids,
+    image_filepaths_dict_setting,
+    assign_filepath_to_image_id_func,
+    assign_filepath_to_image_id_func_args)
 
 
 def _default_assign_image_id_to_filepath(
@@ -386,29 +394,37 @@ def _remove_invalid_image_filepaths(image_filepaths_dict_setting):
 
 
 def _update_image_filepaths(
-      image_filepaths_dict_setting, image_ids_dict_setting,
-      assign_image_id_to_filepath_func, assign_image_id_to_filepath_func_args):
+      image_filepaths_dict_setting,
+      image_ids_dict_setting,
+      assign_image_id_to_filepath_func,
+      assign_image_id_to_filepath_func_args):
   current_images = gimp.image_list()
   
   for image in current_images:
     if image.ID in image_ids_dict_setting.value and image.filename:
       assign_image_id_to_filepath_func(
-        image.ID, os.path.abspath(image.filename),
-        image_ids_dict_setting, image_filepaths_dict_setting,
+        image.ID,
+        os.path.abspath(image.filename),
+        image_ids_dict_setting,
+        image_filepaths_dict_setting,
         *assign_image_id_to_filepath_func_args)
 
 
 def _update_image_ids(
-      image_ids_dict_setting, image_filepaths_dict_setting,
-      assign_filepath_to_image_id_func, assign_filepath_to_image_id_func_args):
+      image_ids_dict_setting,
+      image_filepaths_dict_setting,
+      assign_filepath_to_image_id_func,
+      assign_filepath_to_image_id_func_args):
   current_images = gimp.image_list()
   
   for image in current_images:
     if (image.ID not in image_ids_dict_setting.value
         and image.filename in image_filepaths_dict_setting.value):
       assign_filepath_to_image_id_func(
-        image.ID, os.path.abspath(image.filename),
-        image_ids_dict_setting, image_filepaths_dict_setting,
+        image.ID,
+        os.path.abspath(image.filename),
+        image_ids_dict_setting,
+        image_filepaths_dict_setting,
         *assign_filepath_to_image_id_func_args)
 
 

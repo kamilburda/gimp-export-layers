@@ -181,7 +181,9 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     self._reload_image()
   
   def compare(
-        self, different_settings=None, different_results_and_expected_layers=None,
+        self,
+        different_settings=None,
+        different_results_and_expected_layers=None,
         expected_results_dirpath=None):
     settings = settings_plugin.create_settings()
     settings["special"]["image"].set_value(self.test_image)
@@ -213,7 +215,10 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     for layer in layers.values():
       test_case_name = inspect.stack()[1][-3]
       self._compare_layers(
-        layer, expected_layers[layer.name], settings, test_case_name,
+        layer,
+        expected_layers[layer.name],
+        settings,
+        test_case_name,
         expected_results_dirpath)
   
   @staticmethod
@@ -223,7 +228,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         exportlayers.add_operation(operation_setting)
     
     layer_exporter = exportlayers.LayerExporter(
-      settings["special"]["run_mode"].value, settings["special"]["image"].value,
+      settings["special"]["run_mode"].value,
+      settings["special"]["image"].value,
       settings["main"])
     
     layer_exporter.export()
@@ -239,7 +245,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         layer, expected_layer, settings, test_case_name, expected_results_dirpath)
     
     self.assertEqual(
-      pgpdb.compare_layers([layer, expected_layer]), True,
+      pgpdb.compare_layers([layer, expected_layer]),
+      True,
       msg=("Layers are not identical:\nprocessed layer: {}\nexpected layer: {}".format(
         layer.name, expected_layer.name)))
   
@@ -251,8 +258,11 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     self._copy_incorrect_layer(
       layer, settings, self.output_dirpath, incorrect_layers_dirpath, "_actual")
     self._copy_incorrect_layer(
-      expected_layer, settings, expected_results_dirpath,
-      incorrect_layers_dirpath, "_expected")
+      expected_layer,
+      settings,
+      expected_results_dirpath,
+      incorrect_layers_dirpath,
+      "_expected")
   
   @staticmethod
   def _copy_incorrect_layer(
