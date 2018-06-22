@@ -85,7 +85,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     used as an identifier of the persistent source for tags in items. See
     `_ItemTreeElement.tags` for more information.
   
-  * `is_filtered` - If True, ignore items that do not match the filter
+  * `is_filtered` - If `True`, ignore items that do not match the filter
     (`ObjectFilter`) in this object when iterating.
   
   * `filter` - `ObjectFilter` instance that allows filtering items based on
@@ -147,10 +147,10 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   def __contains__(self, id_or_name):
     """
-    Return True if an `_ItemTreeElement` object is in the item tree, regardless
-    of filters. Return False otherwise. The `_ItemTreeElement` object is
-    specified by its `_ItemTreeElement.item.ID` attribute or its `orig_name`
-    attribute.
+    Return `True` if an `_ItemTreeElement` object is in the item tree,
+    regardless of filters. Return `False` otherwise. The `_ItemTreeElement`
+    object is specified by its `_ItemTreeElement.item.ID` attribute or its
+    `orig_name` attribute.
     """
     
     return id_or_name in self._itemtree or id_or_name in self._itemtree_names
@@ -165,8 +165,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   def __iter__(self):
     """
-    If the `is_filtered` attribute is False, iterate over all items. If
-    `is_filtered` is True, iterate only over items that match the filter.
+    If the `is_filtered` attribute is `False`, iterate over all items. If
+    `is_filtered` is `True`, iterate only over items that match the filter.
     
     Yields:
     
@@ -196,17 +196,17 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     * `item_elem` - `_ItemTreeElement` object whose `name` attribute
       will be uniquified.
     
-    * `include_item_path` - If True, take the item path into account when
+    * `include_item_path` - If `True`, take the item path into account when
       uniquifying.
       
     * `uniquifier_position` - Position (index) where the uniquifier is inserted
-      into the current item. If the position is None, insert the uniquifier at
+      into the current item. If the position is `None`, insert the uniquifier at
       the end of the item name (i.e. append it).
       
     * `uniquifier_position_parents` - Position (index) where the uniquifier is
-      inserted into the parents of the current item. If the position is None,
+      inserted into the parents of the current item. If the position is `None`,
       insert the uniquifier at the end of the name of each parent. This
-      parameter has no effect if `include_item_path` is False.
+      parameter has no effect if `include_item_path` is `False`.
     """
     
     if include_item_path:
@@ -243,7 +243,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
   def validate_name(self, item_elem, force_validation=False):
     """
     Validate the `name` attribute of the specified item and all of its parents
-    if not validated already or if `force_validation` is True.
+    if not validated already or if `force_validation` is `True`.
     """
     
     for elem in list(item_elem.parents) + [item_elem]:
@@ -399,7 +399,7 @@ class _ItemTreeElement(object):
     the item is in the item tree.
   
   * `parent` (read-only) - Immediate `_ItemTreeElement` parent of this object.
-    If this object has no parent, return None.
+    If this object has no parent, return `None`.
   
   * `item_type` (read-only) - Item type - one of the following:
       * `ITEM` - normal item,
@@ -407,8 +407,8 @@ class _ItemTreeElement(object):
       * `EMPTY_GROUP` - empty item group (contains no children).
   
   * `path_visible` (read-only) - Visibility of all item's parents and this
-    item. If all items are visible, `path_visible` is True. If at least one
-    of these items is invisible, `path_visible` is False.
+    item. If all items are visible, `path_visible` is `True`. If at least one
+    of these items is invisible, `path_visible` is `False`.
   
   * `orig_name` (read-only) - Original `gimp.Item.name` as a Unicode string.
   
@@ -419,7 +419,7 @@ class _ItemTreeElement(object):
     `tags_source_name` attribute.
   
   * `tags_source_name` - Name of the persistent source for the `tags` attribute.
-    Defaults to "tags" if None.
+    Defaults to `"tags"` if `None`.
   """
   
   _ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP = (0, 1, 2)
@@ -561,13 +561,13 @@ class _ItemTreeElement(object):
     Return file path given the specified directory path, item name and names of
     its parents.
     
-    If `include_item_path` is True, create file path in the following format:
+    If `include_item_path` is `True`, create file path in the following format:
     <directory path>/<item path components>/<item name>
     
-    If `include_item_path` is False, create file path in the following format:
+    If `include_item_path` is `False`, create file path in the following format:
     <directory path>/<item name>
     
-    If the directory path is not an absolute path or is None, prepend the
+    If the directory path is not an absolute path or is `None`, prepend the
     current working directory.
     
     Item path components consist of parents' item names, starting with the
@@ -621,8 +621,8 @@ class _ItemTreeElement(object):
   
   def _get_path_visibility(self):
     """
-    If this item and all of its parents are visible, return True, otherwise
-    return False.
+    If this item and all of its parents are visible, return `True`, otherwise
+    return `False`.
     """
     
     path_visible = True

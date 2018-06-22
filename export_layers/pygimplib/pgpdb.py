@@ -98,8 +98,9 @@ def merge_layer_group(layer_group):
 
 def is_layer_inside_image(image, layer):
   """
-  Return True if the layer is inside the image canvas (partially or completely).
-  Return False if the layer is completely outside the image canvas.
+  Return `True` if the layer is inside the image canvas (partially or
+  completely). Return `False` if the layer is completely outside the image
+  canvas.
   """
   
   return (
@@ -199,7 +200,7 @@ def load_layer(filepath, image, strip_file_extension=False, layer_to_load_index=
   The layer is loaded at the end of the image.
   
   Layers names are basenames of the corresponding files. If
-  `strip_file_extension` is True, remove the file extension from layer names.
+  `strip_file_extension` is `True`, remove the file extension from layer names.
   
   If the file contains multiple layers, specify the index of the desired layer
   to load. Only top-level layers are supported (i.e. not layers inside layer
@@ -231,11 +232,11 @@ def load_layers(filepaths, image=None, strip_file_extension=False):
   
   The layers are loaded at the end of the image.
   
-  If `image` is None, create a new image. If `image` is not None, load the
+  If `image` is `None`, create a new image. If `image` is not `None`, load the
   layers to the specified image.
   
   Layers names are basenames of the corresponding files. If
-  `strip_file_extension` is True, remove the file extension from layer names.
+  `strip_file_extension` is `True`, remove the file extension from layer names.
   """
   
   create_new_image = image is None
@@ -256,8 +257,8 @@ def copy_and_paste_layer(layer, image, parent=None, position=0):
   Copy the specified layer into the specified image, parent layer group and
   position in the group. Return the copied layer.
   
-  If `parent` is None, insert the layer in the main stack (outside of any layer
-  group).
+  If `parent` is `None`, insert the layer in the main stack (outside of any
+  layer group).
   """
   
   layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
@@ -273,23 +274,24 @@ def compare_layers(
       layers, compare_alpha_channels=True, compare_has_alpha=False,
       apply_layer_attributes=True, apply_layer_masks=True):
   """
-  Return True if the contents of all specified layers are identical, False
+  Return `True` if the contents of all specified layers are identical, `False`
   otherwise. Layer groups are also supported.
   
   The default values of the optional parameters correspond to how the layers are
   displayed in the image canvas.
   
-  If `compare_alpha_channels` is True, perform comparison of alpha channels.
+  If `compare_alpha_channels` is `True`, perform comparison of alpha channels.
   
-  If `compare_has_alpha` is True, compare the presence of alpha channels in all
-  layers - if some layers have alpha channels and others do not, then do not
-  perform full comparison and return False.
+  If `compare_has_alpha` is `True`, compare the presence of alpha channels in
+  all layers - if some layers have alpha channels and others do not, then do not
+  perform full comparison and return `False`.
   
-  If `apply_layer_attributes` is True, take the layer attributes (opacity, mode)
-  into consideration when comparing, otherwise ignore them.
+  If `apply_layer_attributes` is `True`, take the layer attributes (opacity,
+  mode) into consideration when comparing, otherwise ignore them.
   
-  If `apply_layer_masks` is True, apply layer masks if they are enabled. If the
-  masks are disabled or `apply_layer_masks` is False, layer masks are ignored.
+  If `apply_layer_masks` is `True`, apply layer masks if they are enabled. If
+  the masks are disabled or `apply_layer_masks` is `False`, layer masks are
+  ignored.
   """
   
   def _copy_layers(image, layers, parent=None, position=0):
@@ -441,7 +443,7 @@ class GimpMessageFile(object):
   * `message_handler` - Handler to which messages are output. Possible values
     are the same as for the `pdb.gimp_message_get_handler()` procedure.
   
-  * `message_prefix` - If not None, prepend this string to each message.
+  * `message_prefix` - If not `None`, prepend this string to each message.
   
   * `message_delay_milliseconds` - Delay in milliseconds before displaying the
     output. This is useful to aggregate multiple messages into one in order to

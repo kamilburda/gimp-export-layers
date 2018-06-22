@@ -61,8 +61,8 @@ def log_output(
     
     * LOG_NONE - do not log anything.
     * LOG_EXCEPTIONS_ONLY - only log exceptions to the error log file.
-    * LOG_OUTPUT_FILES - redirect stdout and stderr to log files.
-    * LOG_OUTPUT_GIMP_CONSOLE - redirect stdout and stderr to the GIMP error
+    * LOG_OUTPUT_FILES - redirect `stdout` and `stderr` to log files.
+    * LOG_OUTPUT_GIMP_CONSOLE - redirect `stdout` and `stderr` to the GIMP error
       console.
   
   * `log_dirpaths` - list of directory paths for log files. If the first
@@ -119,7 +119,7 @@ def create_log_file(log_dirpaths, log_filename, mode="a"):
   """
   Create a log file in the first file path that can be written to.
   
-  Return the log file upon successful creation, None otherwise.
+  Return the log file upon successful creation, `None` otherwise.
   """
   
   log_file = None
@@ -225,7 +225,7 @@ class SimpleLogger(object):
 class Tee(object):
   
   """
-  This class copies stdout or stderr output to a specified file,
+  This class copies `stdout` or `stderr` output to a specified file,
   much like the Unix "tee" command.
   
   This class acts as a file-like object containing `write` and `flush` methods.
@@ -246,10 +246,10 @@ class Tee(object):
     
     * `file_` - File or file-like object to write to.
     
-    * `start` - If True, start `Tee` upon instantiation. To start later, pass
+    * `start` - If `True`, start `Tee` upon instantiation. To start later, pass
       `start=False` and call the `start()` method when desired.
     
-    * `flush_output` - If True, flush output after each write.
+    * `flush_output` - If `True`, flush output after each write.
     """
   
     self._streams = {sys.stdout: "stdout", sys.stderr: "stderr"}
@@ -313,7 +313,7 @@ class Tee(object):
   
   def is_running(self):
     """
-    Return True if `Tee` is running (i.e. writing to file), False otherwise.
+    Return `True` if `Tee` is running (i.e. writing to file), `False` otherwise.
     """
     
     return self._is_running

@@ -287,7 +287,7 @@ class _FileExtension(object):
   
   Attributes:
   
-  * `is_valid` - If True, file extension is valid and can be used in filenames
+  * `is_valid` - If `True`, file extension is valid and can be used in filenames
     for file export procedures.
   
   * `processed_count` - Number of items with the specific file extension that
@@ -454,14 +454,15 @@ class LayerExporter(object):
     class treats them as read-only.
   
   * `overwrite_chooser` - `OverwriteChooser` instance that is invoked if a file
-    with the same name already exists. If None is passed during initialization,
-    `pgoverwrite.NoninteractiveOverwriteChooser` is used by default.
+    with the same name already exists. If `None` is passed during
+    initialization, `pgoverwrite.NoninteractiveOverwriteChooser` is used by
+    default.
   
   * `progress_updater` - `ProgressUpdater` instance that indicates the number of
-    layers exported. If no progress update is desired, pass None.
+    layers exported. If no progress update is desired, pass `None`.
   
   * `layer_tree` - `LayerTree` instance containing layers to be exported.
-    Defaults to None if no export has been performed yet.
+    Defaults to `None` if no export has been performed yet.
   
   * `exported_layers` - List of layers that were successfully exported. Does not
     include skipped layers (when files with the same names already exist).
@@ -578,28 +579,29 @@ class LayerExporter(object):
     the export. Multiple groups can be specified. The following groups are
     supported:
     
-    * "layer_contents" - Perform only operations manipulating the layer itself,
-      such as cropping, resizing, etc. This is useful to preview the layer(s).
+    * `"layer_contents"` - Perform only operations manipulating the layer
+      itself, such as cropping, resizing, etc. This is useful to preview the
+      layer(s).
     
-    * "layer_name" - Perform only operations manipulating layer names and layer
-      tree (but not layer contents). This is useful to preview the names of the
-      exported layers.
+    * `"layer_name"` - Perform only operations manipulating layer names
+      and layer tree (but not layer contents). This is useful to preview the
+      names of the exported layers.
     
-    * "export" - Perform only operations that export the layer or create
+    * `"export"` - Perform only operations that export the layer or create
       directories for the layer.
     
-    If `processing_groups` is None or empty, perform normal export.
+    If `processing_groups` is `None` or empty, perform normal export.
     
-    If `layer_tree` is not None, use an existing instance of
+    If `layer_tree` is not `None`, use an existing instance of
     `pgitemtree.LayerTree` instead of creating a new one. If the instance had
     constraints set, they will be reset.
     
     A copy of the image and the layers to be exported are created so that the
     original image and its soon-to-be exported layers are left intact. The
     image copy is automatically destroyed after the export. To keep the image
-    copy, pass True to `keep_image_copy`. In that case, this method returns the
-    image copy. If an exception was raised or if no layer was exported, this
-    method returns None and the image copy will be destroyed.
+    copy, pass `True` to `keep_image_copy`. In that case, this method returns
+    the image copy. If an exception was raised or if no layer was exported, this
+    method returns `None` and the image copy will be destroyed.
     """
     
     self._init_attributes(processing_groups, layer_tree, keep_image_copy)
@@ -626,8 +628,8 @@ class LayerExporter(object):
   
   def has_exported_layer(self, layer):
     """
-    Return True if the specified `gimp.Layer` was exported in the last export,
-    False otherwise.
+    Return `True` if the specified `gimp.Layer` was exported in the last export,
+    `False` otherwise.
     """
     
     return layer.ID in self._exported_layers_ids

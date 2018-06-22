@@ -239,7 +239,7 @@ class EntryPopup(object):
     and assign the value from the selected row to the entry.
     
     One can pass functions for `next_row` and `current_row_before_unselection`
-    parameters if `tree_path` is None and `tree_path` is used to compute these
+    parameters if `tree_path` is `None` and `tree_path` is used to compute these
     parameters.
     """
     

@@ -72,7 +72,7 @@ class ProgressUpdater(object):
   
   def update_text(self, text):
     """
-    Update text in the progress bar. Use None or an empty string to remove the
+    Update text in the progress bar. Use `None` or an empty string to remove the
     text.
     """
     

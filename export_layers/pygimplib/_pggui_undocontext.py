@@ -44,8 +44,8 @@ class EntryUndoContext(object):
   
   Attributes:
   
-  * `undo_enabled` - If True, add user actions (insert text, delete text) to the
-    undo history.
+  * `undo_enabled` - If `True`, add user actions (insert text, delete text) to
+    the undo history.
   """
   
   _ActionData = collections.namedtuple("_ActionData", ["action_type", "position", "text"])

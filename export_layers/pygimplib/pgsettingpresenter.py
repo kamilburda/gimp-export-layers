@@ -65,8 +65,8 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   * `_VALUE_CHANGED_SIGNAL` - Object that indicates the type of event to
     connect to the GUI element. Once the event is triggered, it assigns the GUI
-    element value to the setting value. If this attribute is None, no event can
-    be connected.
+    element value to the setting value. If this attribute is `None`, no event
+    can be connected.
   """
   
   _VALUE_CHANGED_SIGNAL = None
@@ -79,7 +79,7 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     * `element` - A GUI element.
     
-      If `element` is None, create a new GUI element automatically. If the
+      If `element` is `None`, create a new GUI element automatically. If the
       specific `SettingPresenter` class does not support creating a GUI element,
       pass an existing GUI element.
     
@@ -89,17 +89,17 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     * `old_setting_presenter` - `SettingPresenter` object that was previously
       assigned to `setting` (as the `setting.gui` attribute). The state
       from that `SettingPresenter` object will be copied to this object. If
-      `old_setting_presenter` is None, only `setting.value` will be copied to
+      `old_setting_presenter` is `None`, only `setting.value` will be copied to
       this object.
     
-    * `auto_update_gui_to_setting` - If True, automatically update the setting
+    * `auto_update_gui_to_setting` - If `True`, automatically update the setting
       value if the GUI value is updated. This parameter does not have any effect
       if:
         
         * the `SettingPresenter` class cannot provide automatic GUI-to-setting
           update,
         
-        * `old_setting_presenter` is not None and the automatic GUI-to-setting
+        * `old_setting_presenter` is not `None` and the automatic GUI-to-setting
           update was disabled in that presenter.
     """
     
@@ -196,7 +196,7 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Enable or disable automatic GUI update.
     
-    If `value` is True and the `SettingPresenter` class does not support
+    If `value` is `True` and the `SettingPresenter` class does not support
     automatic GUI update, `ValueError` is raised.
     """
     
@@ -283,7 +283,8 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
   def _on_value_changed(self, *args):
     """
     This is an event handler that automatically updates the value of the
-    setting. It is triggered when the user changes the value of the GUI element.
+    setting. The event is triggered when the user changes the value of the GUI
+    element.
     """
     
     self._update_setting_value()

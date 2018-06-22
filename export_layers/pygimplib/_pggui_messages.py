@@ -91,16 +91,16 @@ def display_error_message(
   
   * `message_secondary_markup` - Secondary message text to display as markup.
   
-  * `details` - Text to display in a box with details. If None, do not display
+  * `details` - Text to display in a box with details. If `None`, do not display
     any box.
   
-  * `display_details_initially` - If True, display the details by default,
+  * `display_details_initially` - If `True`, display the details by default,
     otherwise hide them in an expander.
   
   * `report_uri_list` - List of (name, URL) pairs where the user can report
-    the error. If no report list is desired, pass None or an empty sequence.
+    the error. If no report list is desired, pass `None` or an empty sequence.
   
-  * `report_description` - Text accompanying `report_uri_list`. If None, use
+  * `report_description` - Text accompanying `report_uri_list`. If `None`, use
     default text. To suppress displaying the report description, pass an empty
     string.
   
@@ -108,9 +108,9 @@ def display_error_message(
   
   * `button_response_id` - Response ID of the button to close the dialog with.
   
-  * `focus_on_button` - If True, focus on the button to close the dialog with.
-    If False, focus on the box with details if `details` is not None, otherwise
-    let the message dialog determine the focus widget.
+  * `focus_on_button` - If `True`, focus on the button to close the dialog with.
+    If `False`, focus on the box with details if `details` is not `None`,
+    otherwise let the message dialog determine the focus widget.
   """
   
   if not ("_" in __builtin__.__dict__ or "_" in globals()):
@@ -266,11 +266,11 @@ def display_message(
   
   * `buttons` - Buttons to display in the dialog.
   
-  * `message_in_text_view` - If True, display text the after the first newline
+  * `message_in_text_view` - If `True`, display text the after the first newline
     character in a text view.
   
   * `button_response_id_to_focus` - Response ID of the button to set as the
-    focus. If None, the dialog determines which widget gets the focus.
+    focus. If `None`, the dialog determines which widget gets the focus.
   """
   
   dialog = gtk.MessageDialog(
@@ -339,7 +339,7 @@ def add_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
   * `title` - Dialog title.
   
   * `report_uri_list` - List of (name, URL) tuples where the user can report
-    the error. If no report list is desired, pass None or an empty sequence.
+    the error. If no report list is desired, pass `None` or an empty sequence.
   
   * `parent` - Parent GUI element.
   """

@@ -219,10 +219,10 @@ def _update_directory(setting, current_image, current_image_dirpath):
   """
   Set the directory path to the setting according to the priority list below:
   
-  1. `current_image_dirpath` if not None
-  2. `current_image` - import path of the current image if not None
+  1. `current_image_dirpath` if not `None`
+  2. `current_image` - import path of the current image if not `None`
   
-  If update was performed, return True, otherwise return False.
+  If update was performed, return `True`, otherwise return `False`.
   """
   
   if current_image_dirpath is not None:

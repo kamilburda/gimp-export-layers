@@ -214,7 +214,7 @@ class GtkWindowPositionPresenter(GtkSettingPresenter):
     """
     Set new position of the window (i.e. move the window).
     
-    Do not move the window if `value` is None or empty.
+    Do not move the window if `value` is `None` or empty.
     """
     
     if value:
@@ -237,7 +237,7 @@ class GtkWindowSizePresenter(GtkSettingPresenter):
     """
     Set new size of the window.
     
-    Do not resize the window if `value` is None or empty.
+    Do not resize the window if `value` is `None` or empty.
     """
     
     if value:
@@ -249,7 +249,7 @@ class GtkExpanderPresenter(GtkSettingPresenter):
   """
   This class is a `SettingPresenter` for `gtk.Expander` elements.
   
-  Value: True if the expander is expanded, False if collapsed.
+  Value: `True` if the expander is expanded, `False` if collapsed.
   """
   
   def _get_value(self):

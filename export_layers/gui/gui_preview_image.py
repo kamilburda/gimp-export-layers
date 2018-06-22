@@ -170,8 +170,8 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   
   def is_larger_than_image(self):
     """
-    Return True if the preview widget is larger than the image. If no image is
-    previewed, return False.
+    Return `True` if the preview widget is larger than the image. If no image is
+    previewed, return `False`.
     """
     
     allocation = self._preview_image.get_allocation()

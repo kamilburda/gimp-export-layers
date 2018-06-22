@@ -71,21 +71,21 @@ class OperationExecutor(object):
     
     To control which operations are executed, you may want to group them.
     
-    If `groups` is None or "default", the operation is added to a default group
-    appropriately named "default".
+    If `groups` is `None` or `"default"`, the operation is added to a default
+    group appropriately named `"default"`.
     
     If `groups` is a list of group names (strings), the operation is added to
     the specified groups. Groups are created automatically if they previously
     did not exist.
     
-    If `groups` is "all", the operation is added to all existing groups. The
+    If `groups` is `"all"`, the operation is added to all existing groups. The
     operation will not be added to the default group if it does not exist.
     
     The operation is added at the end of the list of operations in the specified
     group(s). To modify the order of the added operation, use the `reorder`
     method.
     
-    If `foreach` is True and the operation is a function, the operation is
+    If `foreach` is `True` and the operation is a function, the operation is
     treated as a "for-each" operation. By default, a for-each operation is
     executed after each regular operation or `OperationExecutor` instance. To
     customize this behavior, use the `yield` statement in the for-each operation
@@ -116,10 +116,10 @@ class OperationExecutor(object):
     will print "bar1", "bar2", then execute the operation (only once), and then
     print "baz1" and "baz2".
     
-    If `ignore_if_exists` is True, do not add the operation if the same function
-    or `OperationExecutor` instance is already added in at least one of the
-    specified groups and return None. Note that the same function with different
-    arguments is still treated as one function.
+    If `ignore_if_exists` is `True`, do not add the operation if the same
+    function or `OperationExecutor` instance is already added in at least one of
+    the specified groups and return `None`. Note that the same function with
+    different arguments is still treated as one function.
     """
     
     if ignore_if_exists and self.contains(operation, groups, foreach):
@@ -148,12 +148,13 @@ class OperationExecutor(object):
     """
     Execute operations.
     
-    If `groups` is None or "default", execute operations in the default group.
+    If `groups` is `None` or `"default"`, execute operations in the default
+    group.
     
     If `groups` is a list of group names (strings), execute operations in the
     specified groups.
     
-    If `groups` is "all", execute operations in all existing groups.
+    If `groups` is `"all"`, execute operations in all existing groups.
     
     If any of the `groups` do not exist, raise `ValueError`.
     
@@ -239,12 +240,12 @@ class OperationExecutor(object):
   
   def contains(self, operation, groups=None, foreach=False):
     """
-    Return True if the specified operation exists, False otherwise. `operation`
-    can be a function or `OperationExecutor` instance.
+    Return `True` if the specified operation exists, `False` otherwise.
+    `operation` can be a function or `OperationExecutor` instance.
     
     For information about the `groups` parameter, see `has_operation`.
     
-    If `foreach` is True, treat the operation as a for-each operation.
+    If `foreach` is `True`, treat the operation as a for-each operation.
     """
     
     operation_functions = self._get_operation_lists_and_functions(
@@ -263,7 +264,7 @@ class OperationExecutor(object):
     
     For information about the `groups` parameter, see `has_operation`.
     
-    If `foreach` is True, treat the operation as a for-each operation.
+    If `foreach` is `True`, treat the operation as a for-each operation.
     """
     
     operation_type = self._get_operation_type(operation, foreach)
@@ -286,13 +287,13 @@ class OperationExecutor(object):
   
   def has_operation(self, operation_id, groups=None):
     """
-    Return True if the specified ID (returned from the `add` method) belongs to
-    an existing operation in at least one of the specified groups.
+    Return `True` if the specified ID (returned from the `add` method) belongs
+    to an existing operation in at least one of the specified groups.
     
     `group` can have one of the following values:
-      * None or "default" - the default group,
+      * `None` or `"default"` - the default group,
       * list of group names (strings) - specific groups,
-      * "all" - all existing groups.
+      * `"all"` - all existing groups.
     """
     
     return (
@@ -302,7 +303,7 @@ class OperationExecutor(object):
   
   def get_operation(self, operation_id):
     """
-    Return operation specified by its ID. If the ID is not valid, return None.
+    Return operation specified by its ID. If the ID is not valid, return `None`.
     """
     
     if operation_id in self._operation_items:
@@ -313,7 +314,7 @@ class OperationExecutor(object):
   def get_position(self, operation_id, group=None):
     """
     Return the position of the operation specified by its ID in the specified
-    group. If `group` is None or "default", use the default group.
+    group. If `group` is `None` or `"default"`, use the default group.
     
     If the ID is not valid or the operation is not in the group, raise
     `ValueError`.
@@ -334,9 +335,9 @@ class OperationExecutor(object):
     """
     Return all operations, along with their arguments and keyword arguments, for
     the specified group in their execution order. If the group does not exist,
-    return None.
+    return `None`.
     
-    If `foreach` is True, return for-each operations instead.
+    If `foreach` is `True`, return for-each operations instead.
     """
     
     if group is None:
@@ -356,7 +357,7 @@ class OperationExecutor(object):
     """
     Return a list of all groups in the executor.
     
-    If `include_empty_groups` is False, do not include groups with no
+    If `include_empty_groups` is `False`, do not include groups with no
     operations.
     """
     
@@ -373,8 +374,8 @@ class OperationExecutor(object):
   def reorder(self, operation_id, position, group=None):
     """
     Change the execution order of the operation specified by its ID in the
-    specified group to the specified position. If `group` is None or "default",
-    use the default group.
+    specified group to the specified position. If `group` is `None` or
+    `"default"`, use the default group.
     
     A position of 0 moves the operation to the beginning of the execution order.
     Negative numbers move the operation to the n-th to last position, i.e. -1

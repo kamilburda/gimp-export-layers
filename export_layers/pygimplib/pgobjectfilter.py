@@ -38,10 +38,10 @@ class ObjectFilter(object):
   
   * `match_type` (read-only) - Match type. Possible match types:
     
-    * MATCH_ALL - For `is_match()` to return True, the object must match
+    * MATCH_ALL - For `is_match()` to return `True`, the object must match
       all rules.
     
-    * MATCH_ANY - For `is_match()` to return True, the object must match
+    * MATCH_ANY - For `is_match()` to return `True`, the object must match
       at least one rule.
   
   For greater flexibility, the filter can also contain nested `ObjectFilter`
@@ -63,7 +63,7 @@ class ObjectFilter(object):
   
   def __bool__(self):
     """
-    Return True if the filter is not empty, False otherwise.
+    Return `True` if the filter is not empty, `False` otherwise.
     """
     
     return bool(self._filter_items)
@@ -124,13 +124,13 @@ class ObjectFilter(object):
     
     * `rule_func` - Function to remove from the filter.
     
-    * `raise_if_not_found` - If True, raise `ValueError` if `rule_func` is not
+    * `raise_if_not_found` - If `True`, raise `ValueError` if `rule_func` is not
       found in the filter.
     
     Raises:
     
     * `ValueError` - `rule_func` is not found in the filter and
-      `raise_if_not_found` is True.
+      `raise_if_not_found` is `True`.
     """
     
     if self.has_rule(rule_func):
@@ -186,13 +186,13 @@ class ObjectFilter(object):
     
     * `rule_func` - Function to remove from the filter.
     
-    * `raise_if_not_found` - If True, raise `ValueError` if `rule_func` is not
+    * `raise_if_not_found` - If `True`, raise `ValueError` if `rule_func` is not
       in the filter.
     
     Raises:
     
     * `ValueError` - `rule_func` is not found in the filter and
-      `raise_if_not_found` is True.
+      `raise_if_not_found` is `True`.
     """
     
     has_rule = self.has_rule(rule_func)
@@ -263,13 +263,13 @@ class ObjectFilter(object):
     
     * `subfilter name` - Subfilter name.
     
-    * `raise_if_not_found` - If True, raise `ValueError` if `subfilter_name`
+    * `raise_if_not_found` - If `True`, raise `ValueError` if `subfilter_name`
       is not found in the filter.
     
     Raises:
     
     * `ValueError` - `subfilter_name` is not found in the filter and
-      `raise_if_not_found` is True.
+      `raise_if_not_found` is `True`.
     """
     
     if self.has_subfilter(subfilter_name):
@@ -310,13 +310,13 @@ class ObjectFilter(object):
     
     * `subfilter name` - Subfilter name.
     
-    * `raise_if_not_found` - If True, raise `ValueError` if `subfilter_name`
+    * `raise_if_not_found` - If `True`, raise `ValueError` if `subfilter_name`
       is not found in the filter.
     
     Raises:
     
     * `ValueError` - `subfilter_name` is not found in the filter and
-      `raise_if_not_found` is True.
+      `raise_if_not_found` is `True`.
     """
     
     has_subfilter = self.has_subfilter(subfilter_name)
@@ -337,15 +337,15 @@ class ObjectFilter(object):
   
   def is_match(self, object_to_match):
     """
-    If `match_type` attribute is `MATCH_ALL`, return True if `object_to_match`
-    matches all specified filter rules and all top-level subfilters return True.
-    Otherwise return False.
+    If `match_type` attribute is `MATCH_ALL`, return `True` if `object_to_match`
+    matches all specified filter rules and all top-level subfilters return
+    `True`. Otherwise return `False`.
     
-    If `match_type` attribute is `MATCH_ANY`, return True if `object_to_match`
+    If `match_type` attribute is `MATCH_ANY`, return `True` if `object_to_match`
     matches at least one specified filter rule or at least one top-level
-    subfilter returns True. Otherwise return False.
+    subfilter returns `True`. Otherwise return `False`.
     
-    If no filter rules are specified, return True.
+    If no filter rules are specified, return `True`.
     """
     
     if not self._filter_items:

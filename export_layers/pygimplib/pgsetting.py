@@ -132,7 +132,7 @@ class Setting(pgsettingutils.SettingParentMixin):
   If a setting subclass supports "empty" values, such values will not be
   considered invalid when used as default values. However, empty values will be
   treated as invalid when assigning the setting one of such values after
-  instantiation. Examples of empty values include None for an image object,
+  instantiation. Examples of empty values include `None` for an image object,
   "Choose an item" for an enumerated setting, etc. Empty values are useful when
   users must choose a different value, yet no valid value is a good candidate
   for a default value.
@@ -171,7 +171,7 @@ class Setting(pgsettingutils.SettingParentMixin):
     a PDB parameter name.
   
   * `setting_sources` (read-only) - Default setting sources to use when loading
-    or saving the setting. If None, no default sources are specified.
+    or saving the setting. If `None`, no default sources are specified.
   
   * `error_messages` (read-only) - A dict of error messages containing
     (message name, message contents) pairs, which can be used e.g. if a value
@@ -211,7 +211,7 @@ class Setting(pgsettingutils.SettingParentMixin):
       setting class) is passed as the default value, default value validation is
       not performed.
     
-    * `allow_empty_values` - If False and an empty value is passed to the
+    * `allow_empty_values` - If `False` and an empty value is passed to the
       `set_value` method, then the value is considered invalid. Otherwise, the
       value is considered valid.
     
@@ -219,7 +219,7 @@ class Setting(pgsettingutils.SettingParentMixin):
       `SettingPdbTypes.automatic` (the default), the first PDB type in the list
       of allowed PDB types for a particular Setting subclass is chosen. If no
       allowed PDB types are defined for that subclass, the setting cannot be
-      registered (None is assigned).
+      registered (`None` is assigned).
     
     * `gui_type` - Type of GUI element to be created by the `set_gui` method.
       Use the `SettingGuiTypes` enum to specify the desired GUI type.
@@ -233,10 +233,10 @@ class Setting(pgsettingutils.SettingParentMixin):
       list of allowed GUI types for the corresponding `Setting` subclass. If
       not, `ValueError` is raised.
       
-      If the `gui_type` is None, no GUI is created for this setting.
+      If the `gui_type` is `None`, no GUI is created for this setting.
     
-    * `auto_update_gui_to_setting` - If True, automatically update the setting
-      value if the GUI value is updated. If False, the setting must be updated
+    * `auto_update_gui_to_setting` - If `True`, automatically update the setting
+      value if the GUI value is updated. If `False`, the setting must be updated
       manually by calling `Setting.gui.update_setting_value` when needed.
       
       This parameter does not have any effect if the GUI type used in
@@ -363,8 +363,8 @@ class Setting(pgsettingutils.SettingParentMixin):
     assigned, the value is recorded. Once a GUI element is assigned to the
     setting, the recorded value is copied over to the GUI element.
     
-    Invoke event handlers of types "before-set-value" before assigning the
-    value and "value-changed" and "after-set-value" (in this order) after
+    Invoke event handlers of types `"before-set-value"` before assigning the
+    value and `"value-changed"` and `"after-set-value"` (in this order) after
     assigning the value.
     
     Note: This is a method and not a property because of the additional overhead
@@ -390,16 +390,16 @@ class Setting(pgsettingutils.SettingParentMixin):
     
     in that `reset()` does not validate the default value.
     
-    Invoke event handlers of types "before-reset" before resetting and
-    "value-changed" and "after-reset" (in this order) after resetting.
+    Invoke event handlers of types `"before-reset"` before resetting and
+    `"value-changed"` and `"after-reset"` (in this order) after resetting.
     
     `reset()` also updates the GUI.
     
     If the default value is an empty container (list, dict, ...), resetting
-    works properly. If the default value is a non-empty container, it is up to
-    you to ensure that the default value does not get modified, for example by
-    connecting a "before-reset" event that sets the value to the correct
-    default value before resetting.
+    works properly. If the default value is a non-empty container, it is the
+    responsibility of the caller to ensure that the default value does not get
+    modified, for example by connecting a `"before-reset"` event that sets the
+    value to the correct default value before resetting.
     """
     
     self.invoke_event("before-reset")
@@ -432,14 +432,14 @@ class Setting(pgsettingutils.SettingParentMixin):
       GUI element in `gui_element`. This is useful if you wish to use the GUI
       element for multiple settings or for other purposes outside this setting.
       
-      If `gui_type` is None, remove the GUI and disconnect any events the GUI
+      If `gui_type` is `None`, remove the GUI and disconnect any events the GUI
       had. The state of the old GUI is still preserved.
     
     * `gui_element` - A GUI element (wrapped in a `SettingPresenter` instance).
     
       If `gui_type` is `SettingGuiTypes.automatic`, `gui_element` is ignored.
       If `gui_type` is not `SettingGuiTypes.automatic` and `gui_element` is
-      None, raise `ValueError`.
+      `None`, raise `ValueError`.
     
     * `auto_update_gui_to_setting` - See `auto_update_gui_to_setting` parameter
       in `__init__`.
@@ -468,8 +468,8 @@ class Setting(pgsettingutils.SettingParentMixin):
     `pgsettingpersistor.SettingPersistor.load` for more information about
     setting sources.
     
-    If `setting_sources` is None, use the default setting sources. If
-    `setting_sources` is None and there are no default setting sources, raise
+    If `setting_sources` is `None`, use the default setting sources. If
+    `setting_sources` is `None` and there are no default setting sources, raise
     `ValueError`.
     """
     
@@ -486,8 +486,8 @@ class Setting(pgsettingutils.SettingParentMixin):
     `pgsettingpersistor.SettingPersistor.save` for more information about
     setting sources.
     
-    If `setting_sources` is None, use the default setting sources. If
-    `setting_sources` is None and there are no default setting sources, raise
+    If `setting_sources` is `None`, use the default setting sources. If
+    `setting_sources` is `None` and there are no default setting sources, raise
     `ValueError`.
     """
     
@@ -506,49 +506,49 @@ class Setting(pgsettingutils.SettingParentMixin):
     `event_type` can be an arbitrary string. The following specific event types
     determine when the event handler is invoked:
     
-      * "value-changed" - invoked after `set_value()` or `reset()` is called and
-        before events of type "after-set-value" or "after-reset".
+      * `"value-changed"` - invoked after `set_value()` or `reset()` is called
+        and before events of type `"after-set-value"` or `"after-reset"`.
       
-      * "before-set-value" - invoked before `set_value()` is called.
+      * `"before-set-value"` - invoked before `set_value()` is called.
       
-      * "after-set-value" - invoked after `set_value()` is called.
+      * `"after-set-value"` - invoked after `set_value()` is called.
       
-      * "before-reset" - invoked before `reset()` is called.
+      * `"before-reset"` - invoked before `reset()` is called.
       
-      * "after-reset" - invoked after `reset()` is called.
+      * `"after-reset"` - invoked after `reset()` is called.
       
-      * "before-load" - invoked before loading a setting via
+      * `"before-load"` - invoked before loading a setting via
         `pgsettingpersistor.SettingPersistor.load`.
       
-      * "after-load" - invoked after loading a setting via
+      * `"after-load"` - invoked after loading a setting via
         `pgsettingpersistor.SettingPersistor.load`. Events will not be invoked
         if loading settings failed (i.e. `SettingPersistor` returns `READ_FAIL`
         status). Events will be invoked for all settings, even if some of them
         were not found in setting sources (i.e. `SettingPersistor` returns
         `NOT_ALL_SETTINGS_FOUND` status).
       
-      * "before-save" - invoked before saving a setting via
+      * `"before-save"` - invoked before saving a setting via
       `pgsettingpersistor.SettingPersistor.save`.
       
-      * "after-save" - invoked after saving a setting via
+      * `"after-save"` - invoked after saving a setting via
         `pgsettingpersistor.SettingPersistor.save`. Events will not be invoked
         if saving settings failed (i.e. `SettingPersistor` returns `SAVE_FAIL`
         status).
       
-      * "before-load-group" - invoked before loading settings in a group via
+      * `"before-load-group"` - invoked before loading settings in a group via
         `SettingGroup.load`.
       
-      * "after-load-group" - invoked after loading settings in a group via
+      * `"after-load-group"` - invoked after loading settings in a group via
         `SettingGroup.load`. This is useful if the group contains settings with
         different setting sources so that the event is invoked only once after
         all settings from different sources are loaded. This also applies to
-        other related events ("before-load-group", "before-save-group",
-        "after-save-group").
+        other related events (`"before-load-group"`, `"before-save-group"`,
+        `"after-save-group"`).
       
-      * "before-save-group" - invoked before saving settings in a group via
+      * `"before-save-group"` - invoked before saving settings in a group via
         `SettingGroup.load`.
       
-      * "after-save-group" - invoked after saving settings in a group via
+      * `"after-save-group"` - invoked after saving settings in a group via
         `SettingGroup.load`.
     
     The `event_handler` function must always contain at least one argument -
@@ -606,8 +606,8 @@ class Setting(pgsettingutils.SettingParentMixin):
     """
     Enable or disable the event handler specified by its ID.
     
-    If the event ID is already enabled and `enabled` is True or is already
-    disabled and `enabled` is False, do nothing.
+    If the event ID is already enabled and `enabled` is `True` or is already
+    disabled and `enabled` is `False`, do nothing.
     
     Raises:
     
@@ -622,8 +622,8 @@ class Setting(pgsettingutils.SettingParentMixin):
   
   def has_event(self, event_id):
     """
-    Return True if the event handler specified by its ID is connected to the
-    setting, False otherwise.
+    Return `True` if the event handler specified by its ID is connected to the
+    setting, `False` otherwise.
     """
     
     return event_id in self._event_handler_ids_and_types
@@ -640,16 +640,16 @@ class Setting(pgsettingutils.SettingParentMixin):
   
   def is_value_empty(self):
     """
-    Return True if the setting value is one of the empty values defined for the
-    setting class, otherwise return False.
+    Return `True` if the setting value is one of the empty values defined for
+    the setting class, otherwise return `False`.
     """
     
     return self._is_value_empty(self._value)
   
   def can_be_registered_to_pdb(self):
     """
-    Return True if setting can be registered as a parameter to GIMP PDB, False
-    otherwise.
+    Return `True` if setting can be registered as a parameter to GIMP PDB,
+    `False` otherwise.
     """
     
     return self._pdb_type != SettingPdbTypes.none
@@ -754,7 +754,8 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   """
   This is an abstract class for numeric settings - integers and floats.
   
-  When assigning a value, it checks for the upper and lower bounds if they are set.
+  When assigning a value, this class checks for the upper and lower bounds if
+  they are set.
   
   Additional attributes:
   
@@ -764,9 +765,9 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   
   Raises:
   
-  * `SettingValueError` - If `min_value` is not None and the value assigned is
-    less than `min_value`, or if `max_value` is not None and the value assigned
-    is greater than `max_value`.
+  * `SettingValueError` - If `min_value` is not `None` and the value assigned is
+    less than `min_value`, or if `max_value` is not `None` and the value
+    assigned is greater than `max_value`.
   
   Error messages:
   
@@ -822,9 +823,9 @@ class IntSetting(NumericSetting):
   
   Allowed GIMP PDB types:
   
-  * SettingPdbTypes.int32 (default)
-  * SettingPdbTypes.int16
-  * SettingPdbTypes.int8
+  * `SettingPdbTypes.int32` (default)
+  * `SettingPdbTypes.int16`
+  * `SettingPdbTypes.int8`
   """
   
   _ALLOWED_PDB_TYPES = [
@@ -838,7 +839,7 @@ class FloatSetting(NumericSetting):
   
   Allowed GIMP PDB types:
   
-  * SettingPdbTypes.float
+  * `SettingPdbTypes.float`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.float]
@@ -854,9 +855,9 @@ class BoolSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * SettingPdbTypes.int32 (default)
-  * SettingPdbTypes.int16
-  * SettingPdbTypes.int8
+  * `SettingPdbTypes.int32` (default)
+  * `SettingPdbTypes.int16`
+  * `SettingPdbTypes.int8`
   """
   
   _ALLOWED_PDB_TYPES = [
@@ -880,14 +881,15 @@ class EnumSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * SettingPdbTypes.int32 (default)
-  * SettingPdbTypes.int16
-  * SettingPdbTypes.int8
+  * `SettingPdbTypes.int32` (default)
+  * `SettingPdbTypes.int16`
+  * `SettingPdbTypes.int8`
   
   Additional attributes:
   
   * `items` (read-only) - A dict of <item name, item value> pairs. Item name
-    uniquely identifies each item. Item value is the corresponding integer value.
+    uniquely identifies each item. Item value is the corresponding integer
+    value.
   
   * `items_display_names` (read-only) - A dict of <item name, item display name>
     pairs. Item display names can be used e.g. as combo box items in the GUI.
@@ -989,8 +991,8 @@ class EnumSetting(Setting):
   
   def is_item(self, *item_names):
     """
-    Return True if the setting value is set to one the specified items,
-    otherwise return False.
+    Return `True` if the setting value is set to one the specified items,
+    otherwise return `False`.
     
     If only one item is specified, this is a more convenient and less verbose
     alternative to
@@ -1089,11 +1091,11 @@ class ImageSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * SettingPdbTypes.image
+  * `SettingPdbTypes.image`
   
   Allowed empty values:
   
-  * None
+  * `None`
   
   Error messages:
   
@@ -1120,11 +1122,11 @@ class DrawableSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * SettingPdbTypes.drawable
+  * `SettingPdbTypes.drawable`
   
   Allowed empty values:
   
-  * None
+  * `None`
   
   Error messages:
   
@@ -1151,7 +1153,7 @@ class StringSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * SettingPdbTypes.string
+  * `SettingPdbTypes.string`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
@@ -1169,7 +1171,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
   
   Allowed GIMP PDB types:
   
-  * SettingPdbTypes.string
+  * `SettingPdbTypes.string`
   
   Error messages:
   
@@ -1232,7 +1234,7 @@ class FileExtensionSetting(ValidatableStringSetting):
   
   Allowed empty values:
   
-  * ""
+  * `""`
   """
   
   _ALLOWED_EMPTY_VALUES = [""]
@@ -1259,8 +1261,8 @@ class DirpathSetting(ValidatableStringSetting):
   
   Allowed empty values:
   
-  * None
-  * ""
+  * `None`
+  * `""`
   """
   
   _ALLOWED_EMPTY_VALUES = [None, ""]

@@ -95,12 +95,12 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     Update the preview (add/remove layer, move layer to a different parent layer
     group, etc.).
     
-    If `reset_items` is True, perform full update - add new layers, remove
-    non-existent layers, etc. Note that setting this to True may introduce a
+    If `reset_items` is `True`, perform full update - add new layers, remove
+    non-existent layers, etc. Note that setting this to `True` may introduce a
     performance penalty for hundreds of items.
     
-    If `update_existing_contents_only` is True, only update the contents of the
-    existing items. Note that the items will not be reparented,
+    If `update_existing_contents_only` is `True`, only update the contents of
+    the existing items. Note that the items will not be reparented,
     expanded/collapsed or added/removed even if they need to be. This option is
     useful if you know the item structure will be preserved.
     """

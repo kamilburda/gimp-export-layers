@@ -100,9 +100,9 @@ def run_tests(
   `ignored_modules` is a list of prefixes matching unit test modules or packages
   to ignore.
   
-  If `modules` is None, include all modules, except for those specified in
-  `ignored_modules`. If `modules` is not None, include only modules matching the
-  prefixes specified in `modules`. `ignored_modules` can be used to exclude
+  If `modules` is `None`, include all modules, except for those specified in
+  `ignored_modules`. If `modules` is not `None`, include only modules matching
+  the prefixes specified in `modules`. `ignored_modules` can be used to exclude
   submodules in `modules`.
   
   `output_stream` prints the unit test output using the specified output stream.

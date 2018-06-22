@@ -64,7 +64,7 @@ def empty_func(*args, **kwargs):
   parameter.
   
   For example, if you need to serialize a `collections.defaultdict` instance
-  (e.g. via `pickle`) returning None for missing keys, you need to use a named
+  (e.g. via `pickle`) returning `None` for missing keys, you need to use a named
   function instead of `lambda: None`. To emphasize this particular intent, you
   may want to use the alias `return_none_func` instead.
   """
@@ -91,7 +91,7 @@ def create_empty_func(return_value=None):
 
 def is_bound_method(func):
   """
-  Return True if `func` is a bound method, False otherwise.
+  Return `True` if `func` is a bound method, `False` otherwise.
   """
   
   return hasattr(func, "__self__") and func.__self__ is not None

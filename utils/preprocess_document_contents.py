@@ -42,7 +42,7 @@ The following tags can be specified in the documents:
   * `sentences=<index number>` or `sentences=<start index:end index>` - pick
     chosen sentence(s) from sections by indexes using the Python slice notation.
     Index starts from 0.
-  * `no-header=(True | False)` - exclude section header. "False" by default. If
+  * `no-header=(True | False)` - exclude section header. `False` by default. If
     no section is specified, the first section header is ignored.
   
   Examples:

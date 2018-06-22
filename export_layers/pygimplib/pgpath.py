@@ -90,15 +90,15 @@ def uniquify_string_generic(
   
   * `str_` - String to uniquify.
   
-  * `is_unique_func` - Function that returns True if `str_` is unique, False
+  * `is_unique_func` - Function that returns `True` if `str_` is unique, `False`
     otherwise. `is_unique_func` must contain `str_` as its only parameter.
   
   * `uniquifier_position` - Position (index) where the uniquifier is inserted.
-    If the position is None, insert the uniquifier at the end of `str_` (i.e.
+    If the position is `None`, insert the uniquifier at the end of `str_` (i.e.
     append it).
   
   * `uniquifier_generator` - A generator object that generates a unique string
-    (uniquifier) in each iteration. If None, the generator yields default
+    (uniquifier) in each iteration. If `None`, the generator yields default
     strings - " (1)", " (2)", etc.
     
     An example of a custom uniquifier generator:
@@ -184,10 +184,10 @@ def get_filename_with_new_file_extension(
   """
   Return a new filename with the specified new file extension.
   
-  To remove the file extension from `filename`, pass an empty string, None, or a
-  period (".").
+  To remove the file extension from `filename`, pass an empty string, `None`, or
+  a period (".").
   
-  If `keep_extra_trailing_periods` is True, do not remove duplicate periods
+  If `keep_extra_trailing_periods` is `True`, do not remove duplicate periods
   before the file extension.
   """
   
@@ -340,7 +340,7 @@ class StringPatternGenerator(object):
   def get_field_at_position(cls, pattern, position):
     """
     If the pattern contains a field at the given character position (starting
-    from 0), return the field name, otherwise return None.
+    from 0), return the field name, otherwise return `None`.
     """
     
     unused_, parsed_fields, unused_ = cls._parse_pattern(pattern, fields=None)
@@ -605,7 +605,7 @@ class StringValidator(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     Returns:
       
-      * `is_valid` - True if the string is valid, False otherwise.
+      * `is_valid` - `True` if the string is valid, `False` otherwise.
       
       * `status_messages` - If the string is invalid, `status_messages` is
         a list of (status code, status message) tuples describing why the string
@@ -649,7 +649,7 @@ class FilenameValidator(StringValidator):
       
       http://msdn.microsoft.com/en-us/library/aa365247%28VS.85%29
     
-    * are not empty or None
+    * are not empty or `None`
   """
   
   _INVALID_CHARS_PATTERN = r"[\x00-\x1f\x7f-\x9f<>:\"\\/|?*]"

@@ -37,7 +37,7 @@ def value_to_str_prefix(value):
   """
   Return stringified setting value useful as a prefix to an error message.
   
-  If `value` is empty or None, return empty string.
+  If `value` is empty or `None`, return empty string.
   """
   
   if value:

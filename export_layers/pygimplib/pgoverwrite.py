@@ -61,7 +61,7 @@ class OverwriteChooser(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     * `filepath` - File path that conflicts with an existing file.
       This class uses the file path to simply display it to the user. Defaults
-      to None.
+      to `None`.
     """
     
     pass
@@ -107,7 +107,7 @@ class InteractiveOverwriteChooser(
     does not have to be any of the values in `values_and_display_names`.
   
   * `is_apply_to_all` (read-only) - Whether the user-made choice applies to the
-    current file (False) or to the current and all subsequent files (True).
+    current file (`False`) or to the current and all subsequent files (`True`).
   """
   
   def __init__(self, values_and_display_names, default_value, default_response):
@@ -183,7 +183,7 @@ def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
   `RENAME_EXISTING` renames the existing file in the file system.
   
   If the overwrite mode indicates that the file path should be renamed and
-  `uniquifier_position` is not None, the `uniquifier_position` specifies where
+  `uniquifier_position` is not `None`, the `uniquifier_position` specifies where
   in the file path to insert a unique substring (" (number)"). By default, the
   uniquifier is inserted at the end of the file path to be renamed.
   

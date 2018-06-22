@@ -79,7 +79,7 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     * `SettingsNotFoundInSourceError` - At least one of the settings is not
       found in the source. All settings that were not found in the source will
       be stored in the `settings_not_found` list. This list is cleared on each
-      read() call.
+      `read()` call.
     """
     
     pass

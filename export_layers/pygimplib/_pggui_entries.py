@@ -116,11 +116,11 @@ class ExtendedEntry(gtk.Entry):
   * `undo_context` (read-only) - `EntryUndoContext` instance to handle undo/redo
     actions.
   
-  * `popup` (read-only) - `EntryPopup` instance serving as the popup, or None.
+  * `popup` (read-only) - `EntryPopup` instance serving as the popup, or `None`.
   
   * `placeholder_text` (read-only) - Placeholder text displayed if the entry is
-    empty or matches the placeholder text. If None, the entry has no placeholder
-    text.
+    empty or matches the placeholder text. If `None`, the entry has no
+    placeholder text.
   """
   
   def __init__(self, *args, **kwargs):
@@ -156,7 +156,7 @@ class ExtendedEntry(gtk.Entry):
     If the entry does not have focus and the text is empty or matches the
     placeholder text, assign the placeholder text.
      
-    If `enable_undo` is True, add the assignment to the undo history.
+    If `enable_undo` is `True`, add the assignment to the undo history.
     """
     
     if self.has_focus() or not self._should_assign_placeholder_text(text):

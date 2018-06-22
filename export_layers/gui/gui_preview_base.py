@@ -59,25 +59,26 @@ class ExportPreview(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   def set_sensitive(self, sensitive):
     """
-    Set the sensitivity of the preview (True = sensitive, False = insensitive).
+    Set the sensitivity of the preview (`True` = sensitive,
+    `False` = insensitive).
     """
     
     pass
   
   def lock_update(self, lock, key=None):
     """
-    If `lock` is True, calling `update` will have no effect. Passing False to
-    `lock` will enable updating the preview again.
+    If `lock` is `True`, calling `update` will have no effect. Passing `False`
+    to `lock` will enable updating the preview again.
     
     If `key` is specified to lock the update, the same key must be specified to
     unlock the preview. Multiple keys can be used to lock the preview; to unlock
     the preview, call this method with each of the keys.
     
-    If `key` is specified and `lock` is False and the key was not used to lock
+    If `key` is specified and `lock` is `False` and the key was not used to lock
     the preview before, nothing happens.
     
-    If `key` is None, lock/unlock the preview regardless of which function
-    called this method. Passing None also removes previous keys that were used
+    If `key` is `None`, lock/unlock the preview regardless of which function
+    called this method. Passing `None` also removes previous keys that were used
     to lock the preview.
     """
     

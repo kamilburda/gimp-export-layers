@@ -312,11 +312,11 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     including settings in nested groups. The generator performs a pre-order
     traversal.
     
-    If `include_setting_func` is None, iterate over all settings. Otherwise,
-    `include_setting_func` is a function that should return True if a setting
-    should be yielded and False if a setting should be ignored.
+    If `include_setting_func` is `None`, iterate over all settings. Otherwise,
+    `include_setting_func` is a function that should return `True` if a setting
+    should be yielded and `False` if a setting should be ignored.
     
-    If `include_groups` is True, yield setting groups as well.
+    If `include_groups` is `True`, yield setting groups as well.
     
     `walk_callbacks` is an `SettingGroupWalkCallbacks` instance that invokes
     additional commands during the walk of the group. By default, the callbacks
@@ -480,18 +480,18 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     Settings that are not provided with a readily available GUI can have their
     GUI initialized using the `custom_gui` dict. `custom_gui` contains
     (setting name, list of arguments to `pgsetting.Setting.set_gui`) pairs. The
-    "enable GUI update?" boolean in the list is optional and defaults to True.
+    "enable GUI update?" boolean in the list is optional and defaults to `True`.
     For more information about parameters in the list, see the `Setting.set_gui`
     method.
     
     Example:
     
-    file_extension_entry = gtk.Entry()
-    ...
-    main_settings.initialize_gui({
-      "file_extension": [SettingGuiTypes.text_entry, file_extension_entry]
+      file_extension_entry = gtk.Entry()
       ...
-    })
+      main_settings.initialize_gui({
+        "file_extension": [SettingGuiTypes.text_entry, file_extension_entry]
+        ...
+      })
     """
     
     if custom_gui is None:
