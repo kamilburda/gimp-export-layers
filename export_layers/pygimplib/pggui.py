@@ -158,7 +158,7 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
     if not self._is_dialog_text_allocated_size:
       self._is_dialog_text_allocated_size = True
       
-      # Make sure the label uses as much width as it can in the dialog.
+      # Make sure the label uses as much width as possible in the dialog.
       dialog_text_allocation = dialog_text_event_box.get_allocation()
       dialog_vbox_allocation = self._dialog.vbox.get_allocation()
       self._dialog_text.set_size_request(
