@@ -26,8 +26,6 @@ import unittest
 
 from .. import pgutils
 
-#===============================================================================
-
 
 class TestGetModuleRoot(unittest.TestCase):
 

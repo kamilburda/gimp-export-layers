@@ -26,8 +26,6 @@ import itertools
 
 from .. import pgconstants
 
-#===============================================================================
-
 
 class PdbStub(object):
   
@@ -70,9 +68,6 @@ class PdbStub(object):
     item.visible = visible
 
 
-#===============================================================================
-
-
 class ParasiteStub(object):
   
   def __init__(self, name, flags, data):
@@ -102,8 +97,6 @@ class ParasiteFunctionsStub(object):
     if parasite_name in self._parasites:
       del self._parasites[parasite_name]
 
-
-#===============================================================================
 
 _ITEM_FIRST_AVAILABLE_ID = 0
 
@@ -168,9 +161,6 @@ class LayerGroupStub(LayerStub):
     self.children = val
 
 
-#===============================================================================
-
-
 class GimpModuleStub(ParasiteFunctionsStub):
   
   pdb = PdbStub
@@ -179,9 +169,6 @@ class GimpModuleStub(ParasiteFunctionsStub):
   Item = ItemStub
   Layer = LayerStub
   GroupLayer = LayerGroupStub
-
-
-#===============================================================================
 
 
 class ShelfStub(object):

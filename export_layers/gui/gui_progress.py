@@ -32,8 +32,6 @@ import gimp
 
 from export_layers.pygimplib import pgutils
 
-#===============================================================================
-
 
 class ItemProgressIndicator(object):
   """

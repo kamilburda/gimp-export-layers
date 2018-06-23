@@ -25,35 +25,6 @@ from future.builtins import *
 
 import collections
 
-#===============================================================================
-
-
-class SettingSourceError(Exception):
-  pass
-
-
-class SettingsNotFoundInSourceError(SettingSourceError):
-  pass
-
-
-class SettingSourceNotFoundError(SettingSourceError):
-  pass
-
-
-class SettingSourceReadError(SettingSourceError):
-  pass
-
-
-class SettingSourceInvalidFormatError(SettingSourceError):
-  pass
-
-
-class SettingSourceWriteError(SettingSourceError):
-  pass
-
-
-#===============================================================================
-
 
 class SettingPersistor(object):
   """
@@ -216,3 +187,27 @@ class SettingPersistor(object):
         setting = setting_or_group
         settings.append(setting)
     return settings
+
+
+class SettingSourceError(Exception):
+  pass
+
+
+class SettingsNotFoundInSourceError(SettingSourceError):
+  pass
+
+
+class SettingSourceNotFoundError(SettingSourceError):
+  pass
+
+
+class SettingSourceReadError(SettingSourceError):
+  pass
+
+
+class SettingSourceInvalidFormatError(SettingSourceError):
+  pass
+
+
+class SettingSourceWriteError(SettingSourceError):
+  pass

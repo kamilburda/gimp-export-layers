@@ -27,8 +27,6 @@ import parameterized
 from .. import pgconstants
 from .. import pglogging
 
-#===============================================================================
-
 
 class TestCreateLogFile(unittest.TestCase):
   

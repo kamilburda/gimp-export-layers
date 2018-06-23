@@ -35,8 +35,6 @@ from future.builtins import *
 import gimp
 from gimp import pdb
 
-#===============================================================================
-
 
 def get_default_save_procedure():
   return _save_image_default
@@ -61,7 +59,19 @@ def _save_image_default(run_mode, image, layer, filepath, raw_filepath):
   pdb.gimp_file_save(image, layer, filepath, raw_filepath, run_mode=run_mode)
 
 
-#===============================================================================
+def _create_file_formats(file_formats_params):
+  return [_FileFormat(**params) for params in file_formats_params]
+
+
+def _create_file_formats_dict(file_formats):
+  file_formats_dict = {}
+  
+  for file_format in file_formats:
+    for file_extension in file_format.file_extensions:
+      if file_extension not in file_formats_dict and file_format.version_check_func():
+        file_formats_dict[file_extension] = file_format
+  
+  return file_formats_dict
 
 
 class _FileFormat(object):
@@ -102,23 +112,6 @@ class _FileFormat(object):
       or (self.is_third_party()
           and pdb.gimp_procedural_db_proc_exists(self.save_procedure_name)))
 
-
-def _create_file_formats(file_formats_params):
-  return [_FileFormat(**params) for params in file_formats_params]
-
-
-def _create_file_formats_dict(file_formats):
-  file_formats_dict = {}
-  
-  for file_format in file_formats:
-    for file_extension in file_format.file_extensions:
-      if file_extension not in file_formats_dict and file_format.version_check_func():
-        file_formats_dict[file_extension] = file_format
-  
-  return file_formats_dict
-
-
-#===============================================================================
 
 file_formats = _create_file_formats([
   {"description": "Alias Pix image",

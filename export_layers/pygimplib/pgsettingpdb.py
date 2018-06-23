@@ -26,8 +26,6 @@ from . import pgconstants
 from . import pgsetting
 from . import pgsettinggroup
 
-#===============================================================================
-
 
 class PdbParamCreator(object):
   """

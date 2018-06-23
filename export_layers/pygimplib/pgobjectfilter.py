@@ -25,8 +25,6 @@ from future.builtins import *
 import inspect
 import contextlib
 
-#===============================================================================
-
 
 class ObjectFilter(object):
   """

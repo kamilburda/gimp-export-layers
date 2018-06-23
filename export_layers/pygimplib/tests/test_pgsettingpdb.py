@@ -24,8 +24,6 @@ from .. import pgconstants
 from .. import pgsetting
 from .. import pgsettingpdb
 
-#===============================================================================
-
 
 class TestPdbParamCreator(unittest.TestCase):
   

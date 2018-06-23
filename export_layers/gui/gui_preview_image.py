@@ -45,8 +45,6 @@ from export_layers.pygimplib import pgpdb
 
 from . import gui_preview_base
 
-#===============================================================================
-
 
 def display_image_preview_failure_message(details, parent=None):
   pggui.display_error_message(

@@ -21,8 +21,6 @@ import unittest
 
 from .. import pgprogress
 
-#===============================================================================
-
 
 class ProgressBarStub(object):
   
@@ -38,9 +36,6 @@ class ProgressUpdaterStub(pgprogress.ProgressUpdater):
   
   def _set_text_progress_bar(self, text):
     self.progress_bar.text = text
-
-
-#===============================================================================
 
 
 class TestProgressUpdater(unittest.TestCase):

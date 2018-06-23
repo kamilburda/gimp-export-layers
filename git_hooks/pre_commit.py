@@ -40,8 +40,6 @@ sys.path.append(REPOSITORY_ROOT_DIRPATH)
 
 from utils import sync_docs
 
-#===============================================================================
-
 
 def get_synced_files_to_stage(staged_filepaths, filepaths_to_sync):
   return [
@@ -56,6 +54,9 @@ def filepath_matches_gitignore(repo, filepath):
     return False
   else:
     return True
+
+
+#===============================================================================
 
 
 def main():

@@ -43,8 +43,6 @@ from export_layers.pygimplib import pgutils
 from .. import builtin_constraints
 from . import gui_preview_base
 
-#===============================================================================
-
 
 class ExportNamePreview(gui_preview_base.ExportPreview):
   

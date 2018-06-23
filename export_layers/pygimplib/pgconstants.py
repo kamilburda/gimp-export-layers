@@ -23,7 +23,6 @@ from future.builtins import *
 
 from . import pgutils
 
-#===============================================================================
 
 GTK_CHARACTER_ENCODING = "utf-8"
 GIMP_CHARACTER_ENCODING = "utf-8"

@@ -36,17 +36,10 @@ from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
 
-#===============================================================================
-
 
 def create_settings():
-  
-  # Special settings
-  #-----------------------------------------------------------------------------
-  
   # These settings require special handling in the code, hence their separation
   # from the other settings.
-  
   special_settings = pgsettinggroup.SettingGroup(name="special")
   
   special_settings.add([
@@ -74,9 +67,6 @@ def create_settings():
       "setting_sources": [pygimplib.config.SOURCE_SESSION]
     },
   ])
-  
-  # Main settings
-  #-----------------------------------------------------------------------------
   
   main_settings = pgsettinggroup.SettingGroup(
     name="main",
@@ -155,9 +145,6 @@ def create_settings():
       "display_name": _("Overwrite mode (non-interactive run mode only)")
     },
   ])
-  
-  # Additional settings - operations and constraints
-  #-----------------------------------------------------------------------------
   
   operations_settings = pgsettinggroup.SettingGroup(
     name="operations",

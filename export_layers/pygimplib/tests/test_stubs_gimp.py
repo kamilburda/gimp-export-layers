@@ -21,8 +21,6 @@ import unittest
 
 from . import stubs_gimp
 
-#===============================================================================
-
 
 class TestPdbStub(unittest.TestCase):
   

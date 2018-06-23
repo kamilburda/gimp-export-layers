@@ -42,7 +42,6 @@ except ImportError:
 
 import yaml
 
-#===============================================================================
 
 FILE_ENCODING = "utf-8"
 
@@ -300,9 +299,6 @@ def init_page_config(page_config_filepath):
       PAGE_CONFIG = yaml.load(page_config_file.read())
 
 
-#===============================================================================
-
-
 def modify_url_attributes_in_file(
       html_filepath,
       get_new_url_attribute_value_func,
@@ -316,6 +312,9 @@ def modify_url_attributes_in_file(
   
   with io.open(output_html_filepath, "wb") as toplevel_html_file:
     write_to_html_file(parser.tree, toplevel_html_file)
+
+
+#===============================================================================
 
 
 def main(site_dirpath, page_config_filepath):

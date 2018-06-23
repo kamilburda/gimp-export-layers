@@ -36,8 +36,6 @@ from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgutils
 
-#===============================================================================
-
 
 class OperationBox(object):
   
@@ -371,9 +369,6 @@ class OperationBox(object):
   @staticmethod
   def _remove_border(widget):
     widget.drag_unhighlight()
-
-
-#===============================================================================
 
 
 class _OperationItem(object):

@@ -24,8 +24,6 @@ from future.builtins import *
 from .. import pgsetting
 from .. import pgsettingpresenter
 
-#===============================================================================
-
 
 class GuiWidgetStub(object):
   
@@ -104,9 +102,6 @@ class CheckButtonPresenterStub(SettingPresenterStub):
 
 class YesNoToggleButtonPresenterStub(SettingPresenterStub):
   pass
-
-
-#===============================================================================
 
 
 class SettingStub(pgsetting.Setting):

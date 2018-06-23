@@ -50,7 +50,6 @@ from export_layers.gui import gui_plugin
 
 pygimplib.init()
 
-#===============================================================================
 
 PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(pgutils.get_current_module_filepath()))
 
@@ -63,8 +62,6 @@ OUTPUT_DIRPATH = os.path.join(gimp.user_directory(4), "Loading Screens", "Compon
 SCREENSHOTS_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "images")
 SCREENSHOT_DIALOG_BASIC_USAGE_FILENAME = "screenshot_dialog_basic_usage.png"
 SCREENSHOT_DIALOG_ADVANCED_USAGE_FILENAME = "screenshot_dialog_advanced_usage.png"
-
-#===============================================================================
 
 
 def take_screenshots(gui, dialog, settings):

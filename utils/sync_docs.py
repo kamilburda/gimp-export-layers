@@ -45,7 +45,6 @@ export_layers.config.init()
 
 pygimplib.init()
 
-#===============================================================================
 
 MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
 PLUGINS_DIRPATH = os.path.dirname(MODULE_DIRPATH)
@@ -55,7 +54,13 @@ PATHS_TO_PREPROCESS_FILEPATH = os.path.join(
 PATHS_TO_COPY_FILEPATH = os.path.join(
   MODULE_DIRPATH, "sync_docs_files_to_copy.txt")
 
-#===============================================================================
+
+def sync_files(filepaths_to_preprocess, filepaths_to_copy):
+  preprocess_document_contents.main(
+    filepaths_to_preprocess.keys(), filepaths_to_preprocess.values())
+  
+  for source_filepath, dest_filepath in filepaths_to_copy.items():
+    shutil.copy2(source_filepath, dest_filepath)
 
 
 def get_filepaths(file_list_filepath):
@@ -117,14 +122,6 @@ def get_filepaths(file_list_filepath):
 
 
 #===============================================================================
-
-
-def sync_files(filepaths_to_preprocess, filepaths_to_copy):
-  preprocess_document_contents.main(
-    filepaths_to_preprocess.keys(), filepaths_to_preprocess.values())
-  
-  for source_filepath, dest_filepath in filepaths_to_copy.items():
-    shutil.copy2(source_filepath, dest_filepath)
 
 
 def main():

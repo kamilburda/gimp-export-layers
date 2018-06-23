@@ -24,8 +24,6 @@ This module defines built-in constraints for the plug-in.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-#===============================================================================
-
 
 def is_layer(layer_elem):
   return layer_elem.item_type == layer_elem.ITEM

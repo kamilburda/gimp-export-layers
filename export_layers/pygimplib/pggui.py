@@ -44,8 +44,6 @@ from ._pggui_entrypopup import *
 from ._pggui_messages import *
 from ._pggui_undocontext import *
 
-#===============================================================================
-
 
 class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
   """
@@ -170,9 +168,6 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
         dialog_vbox_allocation.width - dialog_text_allocation.x, -1)
 
 
-#===============================================================================
-
-
 class GtkProgressUpdater(pgprogress.ProgressUpdater):
   
   def _fill_progress_bar(self):
@@ -188,9 +183,6 @@ class GtkProgressUpdater(pgprogress.ProgressUpdater):
     # See http://faq.pygtk.org/index.py?req=show&file=faq23.020.htp
     while gtk.events_pending():
       gtk.main_iteration()
-
-
-#===============================================================================
 
 
 def get_toplevel_window(widget):

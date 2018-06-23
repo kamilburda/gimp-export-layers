@@ -81,11 +81,8 @@ if _gimp_dependent_modules_imported:
   from . import pgsettingsources
   from . import pgsettingpdb
 
-#===============================================================================
 
 config = None
-
-#===============================================================================
 
 
 class _Config(object):
@@ -188,11 +185,7 @@ def _init_config_builtin_delayed(config):
       config.SOURCE_PERSISTENT_NAME)
 
 
-#===============================================================================
-
 _init_config()
-
-#===============================================================================
 
 _is_initialized = False
 
@@ -216,8 +209,6 @@ def init():
   
   _is_initialized = True
 
-
-#===============================================================================
 
 if _gimp_dependent_modules_imported:
   

@@ -28,7 +28,6 @@ export_layers.config.init()
 
 pygimplib.init()
 
-#===============================================================================
 
 MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
 
@@ -38,8 +37,6 @@ PAGE_CONFIG_FILENAME = "_config.yml"
 SITE_DIRNAME = "_site"
 JEKYLL_SERVER_LOCALHOST_IP = "127.0.0.1"
 JEKYLL_SERVER_PORT = "4000"
-
-#===============================================================================
 
 
 def run_github_page_locally(github_page_dirpath):

@@ -54,8 +54,6 @@ from . import pgobjectfilter
 from . import pgpath
 from . import pgutils
 
-#===============================================================================
-
 
 @future.utils.python_2_unicode_compatible
 class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
@@ -361,9 +359,6 @@ class VectorTree(ItemTree):
   
   def _get_children_from_image(self, image):
     return image.vectors
-
-
-#===============================================================================
 
 
 class _ItemTreeElement(object):

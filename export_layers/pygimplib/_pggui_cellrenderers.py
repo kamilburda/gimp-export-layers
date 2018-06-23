@@ -33,8 +33,6 @@ __all__ = [
   "CellRendererTextList",
 ]
 
-#===============================================================================
-
 
 class CellRendererTextList(gtk.CellRendererText):
   """
@@ -117,7 +115,5 @@ class CellRendererTextList(gtk.CellRendererText):
   def _property_name_to_attr(property_name):
     return property_name.replace("-", "_")
 
-
-#===============================================================================
 
 gobject.type_register(CellRendererTextList)

@@ -26,8 +26,6 @@ import collections
 import inspect
 import itertools
 
-#===============================================================================
-
 
 class OperationExecutor(object):
   """

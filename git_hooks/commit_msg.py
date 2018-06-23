@@ -30,20 +30,11 @@ import inspect
 import sys
 import textwrap
 
-#===============================================================================
 
 FIRST_LINE_MAX_CHAR_LENGTH = 70
 MESSAGE_BODY_MAX_CHAR_LINE_LENGTH = 72
 
 COMMIT_MESSAGE_FUNCS_PREFIX = "commit_msg"
-
-
-def print_error_message_and_exit(message, exit_status=1):
-  print(message, file=sys.stderr)
-  sys.exit(exit_status)
-
-
-#===============================================================================
 
 
 def commit_msg_check_first_line_length(commit_message):
@@ -136,6 +127,11 @@ def _get_module_level_functions_with_prefix(prefix):
     member_obj
     for member_name, member_obj in inspect.getmembers(sys.modules[__name__])
     if inspect.isfunction(member_obj) and member_name.startswith(prefix)]
+
+
+def print_error_message_and_exit(message, exit_status=1):
+  print(message, file=sys.stderr)
+  sys.exit(exit_status)
 
 
 #===============================================================================

@@ -35,8 +35,6 @@ from . import pgutils
 
 from ._pgpath_dirs import *
 
-#===============================================================================
-
 
 def uniquify_string(
       str_, existing_strings, uniquifier_position=None, uniquifier_generator=None):
@@ -145,9 +143,6 @@ def uniquify_string_generic(
     uniq_str = _get_uniquified_string(uniquifier_generator)
   
   return uniq_str
-
-
-#===============================================================================
 
 
 def get_file_extension(filename):

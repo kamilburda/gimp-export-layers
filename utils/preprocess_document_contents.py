@@ -77,8 +77,6 @@ export_layers.config.init()
 
 pygimplib.init()
 
-#===============================================================================
-
 
 def preprocess_contents(source_filepaths, dest_filepaths):
   for source_filepath, dest_filepath in zip(source_filepaths, dest_filepaths):
@@ -115,9 +113,6 @@ def _preprocess_contents(source_filepath, tag, file_contents):
       tag.get_match_to_be_replaced(match), new_contents, 1)
   
   return file_contents
-
-
-#===============================================================================
 
 
 def parse_args(args_str):
@@ -395,8 +390,6 @@ class IncludeConfigTag(CustomLiquidTag):
   def get_contents(self):
     return getattr(pygimplib.config, self.args[0], "") if self.args else ""
 
-
-#===============================================================================
 
 _TAGS = {
   "include-section": IncludeSectionTag,

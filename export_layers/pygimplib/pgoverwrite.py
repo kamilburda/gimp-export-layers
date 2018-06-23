@@ -30,8 +30,6 @@ import os
 
 from . import pgpath
 
-#===============================================================================
-
 
 class OverwriteChooser(future.utils.with_metaclass(abc.ABCMeta, object)):
   """
@@ -148,25 +146,6 @@ class InteractiveOverwriteChooser(
     pass
 
 
-#===============================================================================
-
-
-class OverwriteModes(object):
-  """
-  This class defines common overwrite modes for convenience.
-  
-  `SKIP` should be used if a file path already exists and no action should be
-  taken.
-  `DO_NOTHING` should be used if a file path does not exist and no action should
-  be taken.
-  `CANCEL` should be used if the user terminated the overwrite chooser (e.g.
-  closed the overwrite dialog when an interactive chooser is used).
-  """
-  
-  OVERWRITE_MODES = REPLACE, SKIP, RENAME_NEW, RENAME_EXISTING, CANCEL, DO_NOTHING = (
-    0, 1, 2, 3, 4, 5)
-
-
 def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
   """
   If a file with the specified file path exists, handle the file path conflict
@@ -204,3 +183,19 @@ def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
     return overwrite_chooser.overwrite_mode, filepath
   else:
     return OverwriteModes.DO_NOTHING, filepath
+
+
+class OverwriteModes(object):
+  """
+  This class defines common overwrite modes for convenience.
+  
+  `SKIP` should be used if a file path already exists and no action should be
+  taken.
+  `DO_NOTHING` should be used if a file path does not exist and no action should
+  be taken.
+  `CANCEL` should be used if the user terminated the overwrite chooser (e.g.
+  closed the overwrite dialog when an interactive chooser is used).
+  """
+  
+  OVERWRITE_MODES = REPLACE, SKIP, RENAME_NEW, RENAME_EXISTING, CANCEL, DO_NOTHING = (
+    0, 1, 2, 3, 4, 5)

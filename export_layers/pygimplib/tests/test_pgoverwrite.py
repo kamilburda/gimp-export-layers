@@ -24,8 +24,6 @@ import mock
 from .. import pgconstants
 from .. import pgoverwrite
 
-#===============================================================================
-
 
 class InteractiveOverwriteChooserStub(pgoverwrite.InteractiveOverwriteChooser):
   
@@ -43,9 +41,6 @@ class InteractiveOverwriteChooserStub(pgoverwrite.InteractiveOverwriteChooser):
   
   def set_overwrite_mode(self, overwrite_mode):
     self._overwrite_mode = overwrite_mode
-
-
-#===============================================================================
 
 
 class TestInteractiveOverwriteChooser(unittest.TestCase):
@@ -75,9 +70,6 @@ class TestInteractiveOverwriteChooser(unittest.TestCase):
     self.overwrite_chooser.set_overwrite_mode(-1)
     self.overwrite_chooser.choose()
     self.assertEqual(self.overwrite_chooser.overwrite_mode, self.default_response)
-
-
-#===============================================================================
 
 
 class TestHandleOverwrite(unittest.TestCase):

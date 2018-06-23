@@ -41,8 +41,6 @@ from . import pgsettingutils
 from . import pgutils
 from .pgsettingpresenters_gtk import SettingGuiTypes
 
-#===============================================================================
-
 
 class SettingPdbTypes(object):
   int32 = gimpenums.PDB_INT32
@@ -76,34 +74,6 @@ class SettingPdbTypes(object):
   
   none = None
   automatic = type(b"AutomaticSettingPdbType", (), {})()
-
-
-#===============================================================================
-
-
-class SettingValueError(Exception):
-  """
-  This exception class is raised when a value assigned to a `Setting` object is
-  invalid.
-  """
-  
-  def __init__(self, *args, **kwargs):
-    for kwarg in ["setting", "settings", "messages"]:
-      setattr(self, kwarg, kwargs.pop(kwarg, None))
-    
-    super().__init__(*args, **kwargs)
-
-
-class SettingDefaultValueError(SettingValueError):
-  """
-  This exception class is raised when the default value specified during the
-  `Setting` object initialization is invalid.
-  """
-  
-  pass
-
-
-#===============================================================================
 
 
 @future.utils.python_2_unicode_compatible
@@ -732,9 +702,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     return gui_type_to_return
 
 
-#===============================================================================
-
-
 class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   """
   This is an abstract class for numeric settings - integers and floats.
@@ -1305,7 +1272,26 @@ class ImageIDsAndDirpathsSetting(Setting):
       return None
 
 
-#===============================================================================
+class SettingValueError(Exception):
+  """
+  This exception class is raised when a value assigned to a `Setting` object is
+  invalid.
+  """
+  
+  def __init__(self, *args, **kwargs):
+    for kwarg in ["setting", "settings", "messages"]:
+      setattr(self, kwarg, kwargs.pop(kwarg, None))
+    
+    super().__init__(*args, **kwargs)
+
+
+class SettingDefaultValueError(SettingValueError):
+  """
+  This exception class is raised when the default value specified during the
+  `Setting` object initialization is invalid.
+  """
+  
+  pass
 
 
 class SettingTypes(object):

@@ -24,8 +24,6 @@ from future.builtins import *
 
 import inspect
 
-#===============================================================================
-
 
 class EmptyContext(object):
   """
@@ -54,9 +52,6 @@ class EmptyContext(object):
 empty_context = EmptyContext()
 
 
-#===============================================================================
-
-
 def empty_func(*args, **kwargs):
   """
   Use this function when an empty function is desired to be passed as a
@@ -81,9 +76,6 @@ def create_empty_func(return_value=None):
     return return_value
   
   return _empty_func_with_return_value
-
-
-#===============================================================================
 
 
 def is_bound_method(func):

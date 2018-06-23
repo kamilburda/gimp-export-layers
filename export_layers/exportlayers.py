@@ -49,391 +49,6 @@ from export_layers.pygimplib import pgutils
 from . import builtin_operations
 from . import builtin_constraints
 
-#===============================================================================
-
-
-@future.utils.python_2_unicode_compatible
-class ExportLayersError(Exception):
-  
-  def __init__(self, message="", layer=None, file_extension=None):
-    super().__init__()
-    
-    self._message = message
-    
-    try:
-      self.layer_name = layer.name
-    except AttributeError:
-      self.layer_name = None
-    
-    self.file_extension = file_extension
-  
-  def __str__(self):
-    str_ = self._message
-    
-    if self.layer_name:
-      str_ += "\n" + _("Layer:") + " " + self.layer_name
-    if self.file_extension:
-      str_ += "\n" + _("File extension:") + " " + self.file_extension
-    
-    return str_
-
-
-class ExportLayersCancelError(ExportLayersError):
-  pass
-
-
-class InvalidOutputDirectoryError(ExportLayersError):
-  pass
-
-
-#===============================================================================
-
-
-def execute_operation_only_if_setting(operation, setting):
-  def _execute_operation_only_if_setting(*operation_args, **operation_kwargs):
-    if setting.value:
-      return operation(*operation_args, **operation_kwargs)
-    else:
-      return False
-  
-  return _execute_operation_only_if_setting
-
-
-#===============================================================================
-
-
-def _add_constraint(rule_func, subfilter=None):
-  def _add_rule_func(*args):
-    # HACK: This assumes that `LayerExporter` instance is added as an argument
-    # when executing the default group for constraints.
-    layer_exporter = args[-1]
-    rule_func_args = args[1:]
-    
-    if subfilter is None:
-      object_filter = layer_exporter.layer_tree.filter
-    else:
-      object_filter = layer_exporter.layer_tree.filter[subfilter]
-    
-    object_filter.add_rule(rule_func, *rule_func_args)
-  
-  return _add_rule_func
-
-
-def _add_constraint_with_layer_exporter(rule_func):
-  def _add_rule_func_with_layer_exporter(*args):
-    # HACK: This assumes that `LayerExporter` instance is added as an argument
-    # when executing the default group for constraints.
-    layer_exporter = args[-1]
-    layer_exporter.layer_tree.filter.add_rule(rule_func, *args)
-  
-  return _add_rule_func_with_layer_exporter
-
-
-#===============================================================================
-
-
-class LayerNameRenamer(object):
-  
-  LAYER_NAME_PATTERN_FIELDS = [
-    ("image001", "image[001]", []),
-    (_("Layer name"),
-     "[layer name]",
-     ["keep extension",
-      "keep only identical extension"]),
-    (_("Image name"), "[image name]", ["keep extension"]),
-    (_("Layer path"), "[layer path]", ["separator, wrapper"]),
-    (_("Tags"),
-     "[tags]",
-     ["specific tags...",
-      "separator, wrapper, specific tags..."]),
-    (_("Current date"), "[current date]", ["%Y-%m-%d"]),
-  ]
-  
-  def __init__(self, layer_exporter, pattern):
-    self._layer_exporter = layer_exporter
-    
-    self._filename_pattern_generator = pgpath.StringPatternGenerator(
-      pattern=pattern,
-      fields=self._get_fields_for_layer_filename_pattern())
-    
-    # key: _ItemTreeElement parent ID (None for root)
-    # value: list of pattern number generators
-    self._pattern_number_filename_generators = {
-      None: self._filename_pattern_generator.get_number_generators()}
-  
-  def rename(self, layer_elem):
-    parent = layer_elem.parent.item.ID if layer_elem.parent is not None else None
-    if parent not in self._pattern_number_filename_generators:
-      self._pattern_number_filename_generators[parent] = (
-        self._filename_pattern_generator.reset_numbering())
-    else:
-      self._filename_pattern_generator.set_number_generators(
-        self._pattern_number_filename_generators[parent])
-    
-    layer_elem.name = self._filename_pattern_generator.generate()
-  
-  def _get_fields_for_layer_filename_pattern(self):
-    return {"layer name": self._get_layer_name,
-            "image name": self._get_image_name,
-            "layer path": self._get_layer_path,
-            "current date": self._get_current_date,
-            "tags": self._get_tags}
-  
-  def _get_layer_name(self, file_extension_strip_mode=None):
-    layer_elem = self._layer_exporter.current_layer_elem
-    
-    if file_extension_strip_mode in ["keep extension", "keep only identical extension"]:
-      file_extension = layer_elem.get_file_extension_from_orig_name()
-      if file_extension:
-        if file_extension_strip_mode == "keep only identical extension":
-          if file_extension == self._layer_exporter.default_file_extension:
-            return layer_elem.name
-        else:
-          return layer_elem.name
-    
-    return layer_elem.get_base_name()
-  
-  def _get_image_name(self, keep_extension=False):
-    image_name = (
-      self._layer_exporter.image.name if self._layer_exporter.image.name is not None
-      else _("Untitled"))
-    
-    if keep_extension == "keep extension":
-      return image_name
-    else:
-      return pgpath.get_filename_with_new_file_extension(image_name, "")
-  
-  def _get_layer_path(self, separator="-", wrapper=None):
-    if wrapper is None:
-      wrapper = "{}"
-    else:
-      path_component_token = "$$"
-      
-      if path_component_token in wrapper:
-        wrapper = wrapper.replace(path_component_token, "{}")
-      else:
-        wrapper = "{}"
-    
-    path_components = (
-      [parent.name for parent in self._layer_exporter.current_layer_elem.parents]
-      + [self._layer_exporter.current_layer_elem.name])
-    
-    return separator.join(
-      [wrapper.format(path_component) for path_component in path_components])
-  
-  @staticmethod
-  def _get_current_date(date_format="%Y-%m-%d"):
-    return datetime.datetime.now().strftime(date_format)
-  
-  def _get_tags(self, *args):
-    tags_to_insert = []
-    
-    def _insert_tag(tag):
-      if tag in self._layer_exporter.BUILTIN_TAGS:
-        tag_display_name = self._layer_exporter.BUILTIN_TAGS[tag]
-      else:
-        tag_display_name = tag
-      tags_to_insert.append(tag_display_name)
-    
-    def _get_tag_from_tag_display_name(tag_display_name):
-      builtin_tags_keys = list(self._layer_exporter.BUILTIN_TAGS)
-      builtin_tags_values = list(self._layer_exporter.BUILTIN_TAGS.values())
-      return builtin_tags_keys[builtin_tags_values.index(tag_display_name)]
-    
-    def _insert_all_tags():
-      for tag in self._layer_exporter.current_layer_elem.tags:
-        _insert_tag(tag)
-    
-    def _insert_specified_tags(tags):
-      for tag in tags:
-        if tag in self._layer_exporter.BUILTIN_TAGS:
-          continue
-        if tag in self._layer_exporter.BUILTIN_TAGS.values():
-          tag = _get_tag_from_tag_display_name(tag)
-        if tag in self._layer_exporter.current_layer_elem.tags:
-          _insert_tag(tag)
-    
-    tag_separator = " "
-    tag_wrapper = "[{}]"
-    tag_token = "$$"
-    
-    if not args:
-      _insert_all_tags()
-    else:
-      if len(args) < 2:
-        _insert_specified_tags(args)
-      else:
-        if tag_token in args[1]:
-          tag_separator = args[0]
-          tag_wrapper = args[1].replace(tag_token, "{}")
-          
-          if len(args) > 2:
-            _insert_specified_tags(args[2:])
-          else:
-            _insert_all_tags()
-        else:
-          _insert_specified_tags(args)
-    
-    tags_to_insert.sort(key=lambda tag: tag.lower())
-    return tag_separator.join([tag_wrapper.format(tag) for tag in tags_to_insert])
-
-
-#===============================================================================
-
-
-class _FileExtension(object):
-  """
-  This class defines additional properties for a file extension.
-  
-  Attributes:
-  
-  * `is_valid` - If `True`, file extension is valid and can be used in filenames
-    for file export procedures.
-  
-  * `processed_count` - Number of items with the specific file extension that
-    have already been exported.
-  """
-  
-  def __init__(self):
-    self.is_valid = True
-    self.processed_count = 0
-
-
-def _get_prefilled_file_extension_properties():
-  file_extension_properties = collections.defaultdict(_FileExtension)
-  
-  for file_format in pgfileformats.file_formats:
-    # This ensures that the file format dialog will be displayed only once per
-    # file format if multiple file extensions for the same format are used
-    # (e.g. "jpg", "jpeg" or "jpe" for the JPEG format).
-    extension_properties = _FileExtension()
-    for file_extension in file_format.file_extensions:
-      file_extension_properties[file_extension] = extension_properties
-  
-  return file_extension_properties
-
-
-#===============================================================================
-
-
-class ExportStatuses(object):
-  EXPORT_STATUSES = (
-    NOT_EXPORTED_YET, EXPORT_SUCCESSFUL, FORCE_INTERACTIVE, USE_DEFAULT_FILE_EXTENSION
-  ) = (0, 1, 2, 3)
-
-
-#===============================================================================
-
-_BUILTIN_OPERATIONS_GROUP = "process_layer"
-_BUILTIN_CONSTRAINTS_GROUP = "set_constraints"
-_BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP = "set_constraints_layer_types"
-
-_BUILTIN_OPERATIONS_AND_SETTINGS = {
-  "ignore_layer_modes": [builtin_operations.ignore_layer_modes],
-  "autocrop": [builtin_operations.autocrop_layer],
-  "inherit_transparency_from_layer_groups": [
-    builtin_operations.inherit_transparency_from_layer_groups],
-  "insert_background_layers": [
-    builtin_operations.insert_background_layer, ["background"]],
-  "insert_foreground_layers": [
-    builtin_operations.insert_foreground_layer, ["foreground"]],
-  "autocrop_background": [builtin_operations.autocrop_tagged_layer, ["background"]],
-  "autocrop_foreground": [builtin_operations.autocrop_tagged_layer, ["foreground"]]
-}
-
-_BUILTIN_CONSTRAINTS_AND_SETTINGS = {
-  "only_layers_without_tags": [_add_constraint(builtin_constraints.has_no_tags)],
-  "only_layers_with_tags": [_add_constraint(builtin_constraints.has_tags)],
-  "only_layers_matching_file_extension": [
-    _add_constraint_with_layer_exporter(
-      builtin_constraints.has_matching_default_file_extension)],
-  "only_toplevel_layers": [_add_constraint(builtin_constraints.is_top_level)]
-}
-
-_BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS = {
-  "include_layers": [
-    _add_constraint(builtin_constraints.is_layer, subfilter="layer_types")],
-  "include_layer_groups": [
-    _add_constraint(builtin_constraints.is_nonempty_group, subfilter="layer_types")],
-  "include_empty_layer_groups": [
-    _add_constraint(builtin_constraints.is_empty_group, subfilter="layer_types")]
-}
-
-# key: setting name; value: (operation ID, operation group) tuple
-_operation_settings_and_items = {}
-
-_operation_executor = pgoperations.OperationExecutor()
-
-
-def add_operation(base_setting):
-  if (base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS
-      or base_setting.name in _BUILTIN_CONSTRAINTS_AND_SETTINGS
-      or base_setting.name in _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS):
-    if base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS:
-      operation_item = _BUILTIN_OPERATIONS_AND_SETTINGS[base_setting.name]
-      operation_group = _BUILTIN_OPERATIONS_GROUP
-    elif base_setting.name in _BUILTIN_CONSTRAINTS_AND_SETTINGS:
-      operation_item = _BUILTIN_CONSTRAINTS_AND_SETTINGS[base_setting.name]
-      operation_group = _BUILTIN_CONSTRAINTS_GROUP
-    elif base_setting.name in _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS:
-      operation_item = _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS[base_setting.name]
-      operation_group = _BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP
-    
-    operation = operation_item[0]
-    operation_args = operation_item[1] if len(operation_item) > 1 else ()
-    operation_kwargs = operation_item[2] if len(operation_item) > 2 else {}
-    
-    operation_id = _operation_executor.add(
-      execute_operation_only_if_setting(operation, base_setting),
-      [operation_group],
-      operation_args, operation_kwargs)
-    
-    _operation_settings_and_items[base_setting.name] = (operation_id, operation_group)
-
-
-def reorder_operation(setting, new_position):
-  if setting.name in _operation_settings_and_items:
-    _operation_executor.reorder(
-      _operation_settings_and_items[setting.name][0],
-      new_position,
-      _operation_settings_and_items[setting.name][1])
-
-
-def remove_operation(setting):
-  if setting.name in _operation_settings_and_items:
-    _operation_executor.remove(_operation_settings_and_items[setting.name][0], "all")
-
-
-def is_valid_operation(base_setting):
-  return any(
-    base_setting.name in builtin_operations_or_constraints
-    for builtin_operations_or_constraints in [
-      _BUILTIN_OPERATIONS_AND_SETTINGS,
-      _BUILTIN_CONSTRAINTS_AND_SETTINGS,
-      _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS])
-
-
-_operation_executor.add(
-  builtin_operations.set_active_layer_after_operation,
-  [_BUILTIN_OPERATIONS_GROUP],
-  foreach=True)
-
-#===============================================================================
-
-
-def _copy_non_modifying_parasites(src_image, dest_image):
-  unused_, parasite_names = pdb.gimp_image_get_parasite_list(src_image)
-  for parasite_name in parasite_names:
-    if dest_image.parasite_find(parasite_name) is None:
-      parasite = src_image.parasite_find(parasite_name)
-      # Do not attach persistent or undoable parasites to avoid modifying
-      # `dest_image`.
-      if parasite.flags == 0:
-        dest_image.parasite_attach(parasite)
-
-
-#===============================================================================
-
 
 class LayerExporter(object):
   """
@@ -865,7 +480,7 @@ class LayerExporter(object):
       self._display_id = pdb.gimp_display_new(self._image_copy)
   
   def _cleanup(self, exception_occurred=False):
-    _copy_non_modifying_parasites(self._image_copy, self.image)
+    self._copy_non_modifying_parasites(self._image_copy, self.image)
     
     pdb.gimp_image_undo_thaw(self._image_copy)
     
@@ -1070,3 +685,369 @@ class LayerExporter(object):
     self._file_extension_properties[self._current_file_extension].is_valid = False
     self._current_file_extension = self._default_file_extension
     self._current_layer_export_status = ExportStatuses.USE_DEFAULT_FILE_EXTENSION
+  
+  @staticmethod
+  def _copy_non_modifying_parasites(src_image, dest_image):
+    unused_, parasite_names = pdb.gimp_image_get_parasite_list(src_image)
+    for parasite_name in parasite_names:
+      if dest_image.parasite_find(parasite_name) is None:
+        parasite = src_image.parasite_find(parasite_name)
+        # Do not attach persistent or undoable parasites to avoid modifying
+        # `dest_image`.
+        if parasite.flags == 0:
+          dest_image.parasite_attach(parasite)
+
+
+#===============================================================================
+
+
+def _add_constraint(rule_func, subfilter=None):
+  def _add_rule_func(*args):
+    # HACK: This assumes that `LayerExporter` instance is added as an argument
+    # when executing the default group for constraints.
+    layer_exporter = args[-1]
+    rule_func_args = args[1:]
+    
+    if subfilter is None:
+      object_filter = layer_exporter.layer_tree.filter
+    else:
+      object_filter = layer_exporter.layer_tree.filter[subfilter]
+    
+    object_filter.add_rule(rule_func, *rule_func_args)
+  
+  return _add_rule_func
+
+
+def _add_constraint_with_layer_exporter(rule_func):
+  def _add_rule_func_with_layer_exporter(*args):
+    # HACK: This assumes that `LayerExporter` instance is added as an argument
+    # when executing the default group for constraints.
+    layer_exporter = args[-1]
+    layer_exporter.layer_tree.filter.add_rule(rule_func, *args)
+  
+  return _add_rule_func_with_layer_exporter
+
+
+_BUILTIN_OPERATIONS_GROUP = "process_layer"
+_BUILTIN_CONSTRAINTS_GROUP = "set_constraints"
+_BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP = "set_constraints_layer_types"
+
+_BUILTIN_OPERATIONS_AND_SETTINGS = {
+  "ignore_layer_modes": [builtin_operations.ignore_layer_modes],
+  "autocrop": [builtin_operations.autocrop_layer],
+  "inherit_transparency_from_layer_groups": [
+    builtin_operations.inherit_transparency_from_layer_groups],
+  "insert_background_layers": [
+    builtin_operations.insert_background_layer, ["background"]],
+  "insert_foreground_layers": [
+    builtin_operations.insert_foreground_layer, ["foreground"]],
+  "autocrop_background": [builtin_operations.autocrop_tagged_layer, ["background"]],
+  "autocrop_foreground": [builtin_operations.autocrop_tagged_layer, ["foreground"]]
+}
+
+_BUILTIN_CONSTRAINTS_AND_SETTINGS = {
+  "only_layers_without_tags": [_add_constraint(builtin_constraints.has_no_tags)],
+  "only_layers_with_tags": [_add_constraint(builtin_constraints.has_tags)],
+  "only_layers_matching_file_extension": [
+    _add_constraint_with_layer_exporter(
+      builtin_constraints.has_matching_default_file_extension)],
+  "only_toplevel_layers": [_add_constraint(builtin_constraints.is_top_level)]
+}
+
+_BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS = {
+  "include_layers": [
+    _add_constraint(builtin_constraints.is_layer, subfilter="layer_types")],
+  "include_layer_groups": [
+    _add_constraint(builtin_constraints.is_nonempty_group, subfilter="layer_types")],
+  "include_empty_layer_groups": [
+    _add_constraint(builtin_constraints.is_empty_group, subfilter="layer_types")]
+}
+
+# key: setting name; value: (operation ID, operation group) tuple
+_operation_settings_and_items = {}
+
+_operation_executor = pgoperations.OperationExecutor()
+
+_operation_executor.add(
+  builtin_operations.set_active_layer_after_operation,
+  [_BUILTIN_OPERATIONS_GROUP],
+  foreach=True)
+
+
+def add_operation(base_setting):
+  if (base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS
+      or base_setting.name in _BUILTIN_CONSTRAINTS_AND_SETTINGS
+      or base_setting.name in _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS):
+    if base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS:
+      operation_item = _BUILTIN_OPERATIONS_AND_SETTINGS[base_setting.name]
+      operation_group = _BUILTIN_OPERATIONS_GROUP
+    elif base_setting.name in _BUILTIN_CONSTRAINTS_AND_SETTINGS:
+      operation_item = _BUILTIN_CONSTRAINTS_AND_SETTINGS[base_setting.name]
+      operation_group = _BUILTIN_CONSTRAINTS_GROUP
+    elif base_setting.name in _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS:
+      operation_item = _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS[base_setting.name]
+      operation_group = _BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP
+    
+    operation = operation_item[0]
+    operation_args = operation_item[1] if len(operation_item) > 1 else ()
+    operation_kwargs = operation_item[2] if len(operation_item) > 2 else {}
+    
+    operation_id = _operation_executor.add(
+      execute_operation_only_if_setting(operation, base_setting),
+      [operation_group],
+      operation_args, operation_kwargs)
+    
+    _operation_settings_and_items[base_setting.name] = (operation_id, operation_group)
+
+
+def reorder_operation(setting, new_position):
+  if setting.name in _operation_settings_and_items:
+    _operation_executor.reorder(
+      _operation_settings_and_items[setting.name][0],
+      new_position,
+      _operation_settings_and_items[setting.name][1])
+
+
+def remove_operation(setting):
+  if setting.name in _operation_settings_and_items:
+    _operation_executor.remove(_operation_settings_and_items[setting.name][0], "all")
+
+
+def is_valid_operation(base_setting):
+  return any(
+    base_setting.name in builtin_operations_or_constraints
+    for builtin_operations_or_constraints in [
+      _BUILTIN_OPERATIONS_AND_SETTINGS,
+      _BUILTIN_CONSTRAINTS_AND_SETTINGS,
+      _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS])
+
+
+def execute_operation_only_if_setting(operation, setting):
+  def _execute_operation_only_if_setting(*operation_args, **operation_kwargs):
+    if setting.value:
+      return operation(*operation_args, **operation_kwargs)
+    else:
+      return False
+  
+  return _execute_operation_only_if_setting
+
+
+#===============================================================================
+
+
+class LayerNameRenamer(object):
+  
+  LAYER_NAME_PATTERN_FIELDS = [
+    ("image001", "image[001]", []),
+    (_("Layer name"),
+     "[layer name]",
+     ["keep extension",
+      "keep only identical extension"]),
+    (_("Image name"), "[image name]", ["keep extension"]),
+    (_("Layer path"), "[layer path]", ["separator, wrapper"]),
+    (_("Tags"),
+     "[tags]",
+     ["specific tags...",
+      "separator, wrapper, specific tags..."]),
+    (_("Current date"), "[current date]", ["%Y-%m-%d"]),
+  ]
+  
+  def __init__(self, layer_exporter, pattern):
+    self._layer_exporter = layer_exporter
+    
+    self._filename_pattern_generator = pgpath.StringPatternGenerator(
+      pattern=pattern,
+      fields=self._get_fields_for_layer_filename_pattern())
+    
+    # key: _ItemTreeElement parent ID (None for root)
+    # value: list of pattern number generators
+    self._pattern_number_filename_generators = {
+      None: self._filename_pattern_generator.get_number_generators()}
+  
+  def rename(self, layer_elem):
+    parent = layer_elem.parent.item.ID if layer_elem.parent is not None else None
+    if parent not in self._pattern_number_filename_generators:
+      self._pattern_number_filename_generators[parent] = (
+        self._filename_pattern_generator.reset_numbering())
+    else:
+      self._filename_pattern_generator.set_number_generators(
+        self._pattern_number_filename_generators[parent])
+    
+    layer_elem.name = self._filename_pattern_generator.generate()
+  
+  def _get_fields_for_layer_filename_pattern(self):
+    return {"layer name": self._get_layer_name,
+            "image name": self._get_image_name,
+            "layer path": self._get_layer_path,
+            "current date": self._get_current_date,
+            "tags": self._get_tags}
+  
+  def _get_layer_name(self, file_extension_strip_mode=None):
+    layer_elem = self._layer_exporter.current_layer_elem
+    
+    if file_extension_strip_mode in ["keep extension", "keep only identical extension"]:
+      file_extension = layer_elem.get_file_extension_from_orig_name()
+      if file_extension:
+        if file_extension_strip_mode == "keep only identical extension":
+          if file_extension == self._layer_exporter.default_file_extension:
+            return layer_elem.name
+        else:
+          return layer_elem.name
+    
+    return layer_elem.get_base_name()
+  
+  def _get_image_name(self, keep_extension=False):
+    image_name = (
+      self._layer_exporter.image.name if self._layer_exporter.image.name is not None
+      else _("Untitled"))
+    
+    if keep_extension == "keep extension":
+      return image_name
+    else:
+      return pgpath.get_filename_with_new_file_extension(image_name, "")
+  
+  def _get_layer_path(self, separator="-", wrapper=None):
+    if wrapper is None:
+      wrapper = "{}"
+    else:
+      path_component_token = "$$"
+      
+      if path_component_token in wrapper:
+        wrapper = wrapper.replace(path_component_token, "{}")
+      else:
+        wrapper = "{}"
+    
+    path_components = (
+      [parent.name for parent in self._layer_exporter.current_layer_elem.parents]
+      + [self._layer_exporter.current_layer_elem.name])
+    
+    return separator.join(
+      [wrapper.format(path_component) for path_component in path_components])
+  
+  @staticmethod
+  def _get_current_date(date_format="%Y-%m-%d"):
+    return datetime.datetime.now().strftime(date_format)
+  
+  def _get_tags(self, *args):
+    tags_to_insert = []
+    
+    def _insert_tag(tag):
+      if tag in self._layer_exporter.BUILTIN_TAGS:
+        tag_display_name = self._layer_exporter.BUILTIN_TAGS[tag]
+      else:
+        tag_display_name = tag
+      tags_to_insert.append(tag_display_name)
+    
+    def _get_tag_from_tag_display_name(tag_display_name):
+      builtin_tags_keys = list(self._layer_exporter.BUILTIN_TAGS)
+      builtin_tags_values = list(self._layer_exporter.BUILTIN_TAGS.values())
+      return builtin_tags_keys[builtin_tags_values.index(tag_display_name)]
+    
+    def _insert_all_tags():
+      for tag in self._layer_exporter.current_layer_elem.tags:
+        _insert_tag(tag)
+    
+    def _insert_specified_tags(tags):
+      for tag in tags:
+        if tag in self._layer_exporter.BUILTIN_TAGS:
+          continue
+        if tag in self._layer_exporter.BUILTIN_TAGS.values():
+          tag = _get_tag_from_tag_display_name(tag)
+        if tag in self._layer_exporter.current_layer_elem.tags:
+          _insert_tag(tag)
+    
+    tag_separator = " "
+    tag_wrapper = "[{}]"
+    tag_token = "$$"
+    
+    if not args:
+      _insert_all_tags()
+    else:
+      if len(args) < 2:
+        _insert_specified_tags(args)
+      else:
+        if tag_token in args[1]:
+          tag_separator = args[0]
+          tag_wrapper = args[1].replace(tag_token, "{}")
+          
+          if len(args) > 2:
+            _insert_specified_tags(args[2:])
+          else:
+            _insert_all_tags()
+        else:
+          _insert_specified_tags(args)
+    
+    tags_to_insert.sort(key=lambda tag: tag.lower())
+    return tag_separator.join([tag_wrapper.format(tag) for tag in tags_to_insert])
+
+
+class _FileExtension(object):
+  """
+  This class defines additional properties for a file extension.
+  
+  Attributes:
+  
+  * `is_valid` - If `True`, file extension is valid and can be used in filenames
+    for file export procedures.
+  
+  * `processed_count` - Number of items with the specific file extension that
+    have already been exported.
+  """
+  
+  def __init__(self):
+    self.is_valid = True
+    self.processed_count = 0
+
+
+def _get_prefilled_file_extension_properties():
+  file_extension_properties = collections.defaultdict(_FileExtension)
+  
+  for file_format in pgfileformats.file_formats:
+    # This ensures that the file format dialog will be displayed only once per
+    # file format if multiple file extensions for the same format are used
+    # (e.g. "jpg", "jpeg" or "jpe" for the JPEG format).
+    extension_properties = _FileExtension()
+    for file_extension in file_format.file_extensions:
+      file_extension_properties[file_extension] = extension_properties
+  
+  return file_extension_properties
+
+
+@future.utils.python_2_unicode_compatible
+class ExportLayersError(Exception):
+  
+  def __init__(self, message="", layer=None, file_extension=None):
+    super().__init__()
+    
+    self._message = message
+    
+    try:
+      self.layer_name = layer.name
+    except AttributeError:
+      self.layer_name = None
+    
+    self.file_extension = file_extension
+  
+  def __str__(self):
+    str_ = self._message
+    
+    if self.layer_name:
+      str_ += "\n" + _("Layer:") + " " + self.layer_name
+    if self.file_extension:
+      str_ += "\n" + _("File extension:") + " " + self.file_extension
+    
+    return str_
+
+
+class ExportLayersCancelError(ExportLayersError):
+  pass
+
+
+class InvalidOutputDirectoryError(ExportLayersError):
+  pass
+
+
+class ExportStatuses(object):
+  EXPORT_STATUSES = (
+    NOT_EXPORTED_YET, EXPORT_SUCCESSFUL, FORCE_INTERACTIVE, USE_DEFAULT_FILE_EXTENSION
+  ) = (0, 1, 2, 3)

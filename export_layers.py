@@ -52,11 +52,9 @@ from export_layers.gui import gui_plugin
 
 pygimplib.init()
 
-#===============================================================================
 
 SETTINGS = settings_plugin.create_settings()
 
-#===============================================================================
 
 @pygimplib.plugin(
   blurb=_("Export layers as separate images"),

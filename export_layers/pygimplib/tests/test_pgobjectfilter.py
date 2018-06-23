@@ -21,8 +21,6 @@ import unittest
 
 from .. import pgobjectfilter
 
-#===============================================================================
-
 
 class FilterableObject(object):
   
@@ -65,9 +63,6 @@ class FilterRules(object):
   @staticmethod
   def invalid_rule_func():
     pass
-
-
-#===============================================================================
 
 
 class TestObjectFilter(unittest.TestCase):

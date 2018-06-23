@@ -23,8 +23,6 @@ import unittest
 
 from .. import pgpath
 
-#===============================================================================
-
 
 class TestUniquifyString(unittest.TestCase):
   
@@ -73,9 +71,6 @@ class TestUniquifyString(unittest.TestCase):
       "one (1).xcf.gz",
       pgpath.uniquify_string(
         input_str, [input_str, "two", "three"], len(input_str) - len(".xcf.gz")))
-
-
-#===============================================================================
 
 
 class TestStringPatternGenerator(unittest.TestCase):
@@ -379,9 +374,6 @@ class TestStringPatternGenerator(unittest.TestCase):
     self.assertEqual(get_field_at_position("[layer name]", -1), None)
 
 
-#===============================================================================
-
-
 class TestGetFileExtension(unittest.TestCase):
 
   def test_nominal_case(self):
@@ -462,9 +454,6 @@ class TestGetFilenameWithNewFileExtension(unittest.TestCase):
     self.assertEqual(
       pgpath.get_filename_with_new_file_extension("background..", "png", True),
       "background...png")
-
-
-#===============================================================================
 
 
 class TestFilenameValidator(unittest.TestCase):

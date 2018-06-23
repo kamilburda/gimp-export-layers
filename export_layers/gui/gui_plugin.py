@@ -65,90 +65,6 @@ from . import gui_previews_controller
 from . import gui_progress
 from . import settings_gui
 
-#===============================================================================
-
-
-def display_message(
-      message,
-      message_type,
-      parent=None,
-      buttons=gtk.BUTTONS_OK,
-      message_in_text_view=False,
-      button_response_id_to_focus=None):
-  return pggui.display_message(
-    message,
-    message_type,
-    title=pygimplib.config.PLUGIN_TITLE,
-    parent=parent,
-    buttons=buttons,
-    message_in_text_view=message_in_text_view,
-    button_response_id_to_focus=button_response_id_to_focus)
-
-
-def display_export_failure_message(exception, parent=None):
-  error_message = _(
-    "Sorry, but the export was unsuccessful. "
-    "You can try exporting again if you fix the issue described below.")
-  error_message += "\n" + str(exception)
-  
-  display_message(
-    error_message,
-    message_type=gtk.MESSAGE_WARNING,
-    parent=parent,
-    message_in_text_view=True)
-
-
-def display_export_failure_invalid_image_message(details, parent=None):
-  pggui.display_error_message(
-    title=pygimplib.config.PLUGIN_TITLE,
-    app_name=pygimplib.config.PLUGIN_TITLE,
-    parent=parent,
-    message_type=gtk.MESSAGE_WARNING,
-    message_markup=_(
-      "Sorry, but the export was unsuccessful. "
-      "Do not close the image when exporting, "
-      "keep it open until the export finishes successfully."),
-    message_secondary_markup=_(
-      "If you believe this is a different error, "
-      "you can help fix it by sending a report with the text "
-      "in the details to one of the sites below."),
-    details=details,
-    display_details_initially=False,
-    report_uri_list=pygimplib.config.BUG_REPORT_URL_LIST,
-    report_description="",
-    focus_on_button=True)
-
-
-def display_reset_prompt(parent=None, more_settings_shown=False):
-  dialog = gtk.MessageDialog(
-    parent=parent,
-    type=gtk.MESSAGE_WARNING,
-    flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-    buttons=gtk.BUTTONS_YES_NO)
-  dialog.set_transient_for(parent)
-  dialog.set_title(pygimplib.config.PLUGIN_TITLE)
-  
-  dialog.set_markup(_("Are you sure you want to reset settings?"))
-  
-  if more_settings_shown:
-    checkbutton_reset_operations = gtk.CheckButton(
-      label=_("Remove operations and constraints"), use_underline=False)
-    dialog.vbox.pack_start(checkbutton_reset_operations, expand=False, fill=False)
-  
-  dialog.set_focus(dialog.get_widget_for_response(gtk.RESPONSE_NO))
-  
-  dialog.show_all()
-  response_id = dialog.run()
-  dialog.destroy()
-  
-  reset_operations = (
-    checkbutton_reset_operations.get_active() if more_settings_shown else False)
-  
-  return response_id, reset_operations
-
-
-#===============================================================================
-
 
 @contextlib.contextmanager
 def handle_gui_in_export(run_mode, image, layer, output_filepath, window):
@@ -176,9 +92,6 @@ def stop_export(layer_exporter):
     return True
   else:
     return False
-
-
-#===============================================================================
 
 
 def _set_settings(func):
@@ -221,9 +134,6 @@ def _set_settings(func):
     func(self, *args, **kwargs)
   
   return func_wrapper
-
-
-#===============================================================================
 
 
 def _update_directory(setting, current_image, current_image_dirpath):
@@ -1019,9 +929,6 @@ class ExportLayersGui(object):
             self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS, self._display_message_label, None)
 
 
-#===============================================================================
-
-
 class ExportLayersRepeatGui(object):
   
   _HBOX_HORIZONTAL_SPACING = 8
@@ -1137,3 +1044,85 @@ class ExportLayersRepeatGui(object):
   
   def _on_dialog_delete_event(self, widget, event):
     stop_export(self._layer_exporter)
+
+
+#===============================================================================
+
+
+def display_message(
+      message,
+      message_type,
+      parent=None,
+      buttons=gtk.BUTTONS_OK,
+      message_in_text_view=False,
+      button_response_id_to_focus=None):
+  return pggui.display_message(
+    message,
+    message_type,
+    title=pygimplib.config.PLUGIN_TITLE,
+    parent=parent,
+    buttons=buttons,
+    message_in_text_view=message_in_text_view,
+    button_response_id_to_focus=button_response_id_to_focus)
+
+
+def display_export_failure_message(exception, parent=None):
+  error_message = _(
+    "Sorry, but the export was unsuccessful. "
+    "You can try exporting again if you fix the issue described below.")
+  error_message += "\n" + str(exception)
+  
+  display_message(
+    error_message,
+    message_type=gtk.MESSAGE_WARNING,
+    parent=parent,
+    message_in_text_view=True)
+
+
+def display_export_failure_invalid_image_message(details, parent=None):
+  pggui.display_error_message(
+    title=pygimplib.config.PLUGIN_TITLE,
+    app_name=pygimplib.config.PLUGIN_TITLE,
+    parent=parent,
+    message_type=gtk.MESSAGE_WARNING,
+    message_markup=_(
+      "Sorry, but the export was unsuccessful. "
+      "Do not close the image when exporting, "
+      "keep it open until the export finishes successfully."),
+    message_secondary_markup=_(
+      "If you believe this is a different error, "
+      "you can help fix it by sending a report with the text "
+      "in the details to one of the sites below."),
+    details=details,
+    display_details_initially=False,
+    report_uri_list=pygimplib.config.BUG_REPORT_URL_LIST,
+    report_description="",
+    focus_on_button=True)
+
+
+def display_reset_prompt(parent=None, more_settings_shown=False):
+  dialog = gtk.MessageDialog(
+    parent=parent,
+    type=gtk.MESSAGE_WARNING,
+    flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+    buttons=gtk.BUTTONS_YES_NO)
+  dialog.set_transient_for(parent)
+  dialog.set_title(pygimplib.config.PLUGIN_TITLE)
+  
+  dialog.set_markup(_("Are you sure you want to reset settings?"))
+  
+  if more_settings_shown:
+    checkbutton_reset_operations = gtk.CheckButton(
+      label=_("Remove operations and constraints"), use_underline=False)
+    dialog.vbox.pack_start(checkbutton_reset_operations, expand=False, fill=False)
+  
+  dialog.set_focus(dialog.get_widget_for_response(gtk.RESPONSE_NO))
+  
+  dialog.show_all()
+  response_id = dialog.run()
+  dialog.destroy()
+  
+  reset_operations = (
+    checkbutton_reset_operations.get_active() if more_settings_shown else False)
+  
+  return response_id, reset_operations

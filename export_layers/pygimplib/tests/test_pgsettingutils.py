@@ -23,8 +23,6 @@ from .. import pgsetting
 from .. import pgsettinggroup
 from .. import pgsettingutils
 
-#===============================================================================
-
 
 class TestSettingAttributeGenerators(unittest.TestCase):
   
@@ -43,9 +41,6 @@ class TestSettingAttributeGenerators(unittest.TestCase):
     self.assertEqual(
       pgsettingutils.get_processed_description(
         "My description", "My _Setting Name"), "My description")
-
-
-#===============================================================================
 
 
 def _create_test_settings_for_path():

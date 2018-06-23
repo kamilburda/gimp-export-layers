@@ -28,8 +28,6 @@ import os
 
 from export_layers import pygimplib
 
-#===============================================================================
-
 
 def init():
   """

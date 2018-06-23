@@ -33,8 +33,6 @@ from export_layers.pygimplib import pgutils
 
 from .. import exportlayers
 
-#===============================================================================
-
 
 def create_gui_settings():
   

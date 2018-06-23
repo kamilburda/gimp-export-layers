@@ -34,8 +34,6 @@ from . import pgconstants
 from . import pginvocation
 from . import pgutils
 
-#===============================================================================
-
 
 @contextlib.contextmanager
 def undo_group(image):
@@ -55,45 +53,6 @@ def undo_group(image):
     pdb.gimp_image_undo_group_end(image)
 
 
-def merge_layer_group(layer_group):
-  """
-  Merge layers in the specified layer group belonging to the specified image
-  into one layer.
-  
-  This function can handle both top-level and nested layer groups.
-  """
-  if not pdb.gimp_item_is_group(layer_group):
-    raise TypeError("'{}': not a layer group".format(layer_group.name))
-  
-  image = layer_group.image
-  
-  with undo_group(image):
-    orig_parent_and_pos = ()
-    if layer_group.parent is not None:
-      # Nested layer group
-      orig_parent_and_pos = (
-        layer_group.parent, pdb.gimp_image_get_item_position(image, layer_group))
-      pdb.gimp_image_reorder_item(image, layer_group, None, 0)
-    
-    orig_layer_visibility = [layer.visible for layer in image.layers]
-    
-    for layer in image.layers:
-      layer.visible = False
-    layer_group.visible = True
-    
-    merged_layer_group = pdb.gimp_image_merge_visible_layers(
-      image, gimpenums.EXPAND_AS_NECESSARY)
-    
-    for layer, orig_visible in zip(image.layers, orig_layer_visibility):
-      layer.visible = orig_visible
-  
-    if orig_parent_and_pos:
-      pdb.gimp_image_reorder_item(
-        image, merged_layer_group, orig_parent_and_pos[0], orig_parent_and_pos[1])
-  
-  return merged_layer_group
-
-
 def is_layer_inside_image(image, layer):
   """
   Return `True` if the layer is inside the image canvas (partially or
@@ -103,9 +62,6 @@ def is_layer_inside_image(image, layer):
   return (
     -image.width < layer.offsets[0] < image.width
     and -image.height < layer.offsets[1] < image.height)
-
-
-#===============================================================================
 
 
 def create_image_from_metadata(image_to_copy_metadata_from):
@@ -255,9 +211,6 @@ def copy_and_paste_layer(layer, image, parent=None, position=0):
   return layer_copy
 
 
-#===============================================================================
-
-
 def compare_layers(
       layers,
       compare_alpha_channels=True,
@@ -397,6 +350,45 @@ def compare_layers(
   pdb.gimp_image_delete(image)
   
   return identical
+
+
+def merge_layer_group(layer_group):
+  """
+  Merge layers in the specified layer group belonging to the specified image
+  into one layer.
+  
+  This function can handle both top-level and nested layer groups.
+  """
+  if not pdb.gimp_item_is_group(layer_group):
+    raise TypeError("'{}': not a layer group".format(layer_group.name))
+  
+  image = layer_group.image
+  
+  with undo_group(image):
+    orig_parent_and_pos = ()
+    if layer_group.parent is not None:
+      # Nested layer group
+      orig_parent_and_pos = (
+        layer_group.parent, pdb.gimp_image_get_item_position(image, layer_group))
+      pdb.gimp_image_reorder_item(image, layer_group, None, 0)
+    
+    orig_layer_visibility = [layer.visible for layer in image.layers]
+    
+    for layer in image.layers:
+      layer.visible = False
+    layer_group.visible = True
+    
+    merged_layer_group = pdb.gimp_image_merge_visible_layers(
+      image, gimpenums.EXPAND_AS_NECESSARY)
+    
+    for layer, orig_visible in zip(image.layers, orig_layer_visibility):
+      layer.visible = orig_visible
+  
+    if orig_parent_and_pos:
+      pdb.gimp_image_reorder_item(
+        image, merged_layer_group, orig_parent_and_pos[0], orig_parent_and_pos[1])
+  
+  return merged_layer_group
 
 
 #===============================================================================

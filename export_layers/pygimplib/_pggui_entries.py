@@ -45,8 +45,6 @@ __all__ = [
   "FileExtensionEntry",
 ]
 
-#===============================================================================
-
 
 class EntryExpander(object):
   """
@@ -232,9 +230,6 @@ class ExtendedEntry(gtk.Entry):
   def _on_after_extended_entry_realize(self, entry):
     if self._should_assign_placeholder_text(self._get_text_decoded()):
       self._assign_placeholder_text()
-
-
-#===============================================================================
 
 
 class FilenamePatternEntry(ExtendedEntry):
@@ -498,9 +493,6 @@ class FilenamePatternEntry(ExtendedEntry):
     
     if undo_push_list:
       self.undo_context.undo_push(undo_push_list)
-
-
-#===============================================================================
 
 
 class FileExtensionEntry(ExtendedEntry):

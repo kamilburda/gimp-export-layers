@@ -59,8 +59,6 @@ __all__ = [
   "set_gui_excepthook_parent",
 ]
 
-#===============================================================================
-
 
 def display_error_message(
       title=None,

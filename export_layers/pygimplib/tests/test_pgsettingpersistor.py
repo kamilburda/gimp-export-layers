@@ -32,8 +32,6 @@ from .. import pgsettingpersistor
 from .. import pgsettingsources
 from .. import pgconstants
 
-#===============================================================================
-
 
 @mock.patch(
   pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
@@ -162,9 +160,6 @@ class TestPersistentSettingSource(unittest.TestCase):
     
     with self.assertRaises(pgsettingpersistor.SettingSourceNotFoundError):
       self.source.read(self.settings)
-
-
-#===============================================================================
 
 
 @mock.patch(

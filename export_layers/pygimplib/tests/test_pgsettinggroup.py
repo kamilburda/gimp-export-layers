@@ -28,8 +28,6 @@ from .. import pgsettinggroup
 from .. import pgsettingpersistor
 from .. import pgconstants
 
-#===============================================================================
-
 
 class TestSettingGroupAttributes(unittest.TestCase):
   
@@ -191,9 +189,6 @@ class TestSettingGroupAddWithSettingDictAndSettingAttributes(unittest.TestCase):
     self.assertEqual(settings["additional/autocrop"].display_name, "Autocrop")
 
 
-#===============================================================================
-
-
 class TestSettingGroup(unittest.TestCase):
   
   def setUp(self):
@@ -314,9 +309,6 @@ class TestSettingGroup(unittest.TestCase):
     self.assertNotEqual(
       self.settings["special"]["first_plugin_run"].value,
       self.settings["special"]["first_plugin_run"].default_value)
-  
-
-#===============================================================================
 
 
 class TestSettingGroupHierarchical(unittest.TestCase):
@@ -469,9 +461,6 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     return walked_settings, walk_callbacks
 
 
-#===============================================================================
-
-
 @mock.patch(
   pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.save",
   return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
@@ -551,9 +540,6 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     mock_save.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.save()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.WRITE_FAIL)
-
-
-#===============================================================================
 
 
 class TestSettingGroupGui(unittest.TestCase):

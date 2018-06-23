@@ -54,27 +54,6 @@ import sys
 import types
 import unittest
 
-#===============================================================================
-
-
-def run_test(module, stream=sys.stderr):
-  test_suite = unittest.TestLoader().loadTestsFromModule(module)
-  test_runner = unittest.TextTestRunner(stream=stream)
-  test_runner.run(test_suite)
-
-
-def load_module(module_name):
-  """
-  If not imported, import the module specified by its name.
-  If already imported, reload the module.
-  """
-  if module_name not in sys.modules:
-    module = importlib.import_module(module_name)
-  else:
-    module = imp.reload(sys.modules[module_name])
-  
-  return module
-
 
 def run_tests(
       dirpath,
@@ -123,6 +102,25 @@ def run_tests(
     module = load_module(module_name)
     if module_name.split(".")[-1].startswith(test_module_name_prefix):
       run_test(module, stream=output_stream)
+
+
+def run_test(module, stream=sys.stderr):
+  test_suite = unittest.TestLoader().loadTestsFromModule(module)
+  test_runner = unittest.TextTestRunner(stream=stream)
+  test_runner.run(test_suite)
+
+
+def load_module(module_name):
+  """
+  If not imported, import the module specified by its name.
+  If already imported, reload the module.
+  """
+  if module_name not in sys.modules:
+    module = importlib.import_module(module_name)
+  else:
+    module = imp.reload(sys.modules[module_name])
+  
+  return module
 
 
 def _fix_streams_for_unittest():

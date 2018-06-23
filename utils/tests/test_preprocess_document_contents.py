@@ -31,8 +31,6 @@ from utils import preprocess_document_contents
 
 pygimplib.init()
 
-#===============================================================================
-
 
 class TestParseArgs(unittest.TestCase):
   
@@ -89,9 +87,6 @@ class TestParseArgs(unittest.TestCase):
   def test_parse_args(self, test_case_name, args_str, expected_parsed_args):
     parsed_args = preprocess_document_contents.parse_args(args_str)
     self.assertDictEqual(parsed_args, expected_parsed_args)
-
-
-#===============================================================================
 
 
 class TestIncludeSectionTag(unittest.TestCase):

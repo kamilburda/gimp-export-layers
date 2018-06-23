@@ -25,13 +25,7 @@ layer names and images to be exported.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-import pygtk
-pygtk.require("2.0")
-import gobject
-
 from export_layers.pygimplib import pginvocation
-
-#===============================================================================
 
 
 class ExportPreviewsController(object):

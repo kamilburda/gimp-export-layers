@@ -41,7 +41,6 @@ import traceback
 
 from . import _pgpath_dirs
 
-#===============================================================================
 
 _LOG_MODES = (
   LOG_NONE, LOG_EXCEPTIONS_ONLY, LOG_OUTPUT_FILES, LOG_OUTPUT_GIMP_CONSOLE) = (0, 1, 2, 3)
@@ -187,9 +186,6 @@ def _redirect_exception_output_to_file(log_dirpaths, log_filename, log_header_ti
   sys.excepthook = create_file_upon_exception_and_log_exception
 
 
-#===============================================================================
-
-
 class SimpleLogger(object):
   """
   This class wraps a file object to write a header before the first output.
@@ -216,9 +212,6 @@ class SimpleLogger(object):
   
   def close(self):
     self._log_file.close()
-
-
-#===============================================================================
 
 
 # Original version by Peter Otten:

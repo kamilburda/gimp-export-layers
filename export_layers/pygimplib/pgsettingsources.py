@@ -41,8 +41,6 @@ from . import pgconstants
 from . import pgsetting
 from . import pgsettingpersistor
 
-#===============================================================================
-
 
 class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
   """
@@ -148,9 +146,6 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     This method must be defined in subclasses.
     """
     pass
-
-
-#===============================================================================
 
 
 class SessionPersistentSettingSource(SettingSource):

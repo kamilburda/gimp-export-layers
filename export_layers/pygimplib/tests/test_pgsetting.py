@@ -36,8 +36,6 @@ from .. import pgsettingpersistor
 from .. import pgsettingsources
 from .. import pgconstants
 
-#===============================================================================
-
 
 class TestSetting(unittest.TestCase):
   
@@ -199,9 +197,6 @@ class TestSetting(unittest.TestCase):
   def test_save_no_default_source_no_parameter(self):
     with self.assertRaises(ValueError):
       self.setting.save()
-  
-
-#===============================================================================
 
 
 class TestSettingEvents(unittest.TestCase):
@@ -456,9 +451,6 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
       pgsettingpersistor.SettingPersistor.save([self.setting], [self.session_source])
     
     self.assertEqual(self.only_visible_layers.value, False)
-  
-  
-#===============================================================================
 
 
 class TestSettingGui(unittest.TestCase):

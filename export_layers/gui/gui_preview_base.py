@@ -27,8 +27,6 @@ import future.utils
 
 import abc
 
-#===============================================================================
-
 
 class ExportPreview(future.utils.with_metaclass(abc.ABCMeta, object)):
   

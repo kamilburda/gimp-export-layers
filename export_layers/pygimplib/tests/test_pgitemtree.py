@@ -40,8 +40,6 @@ from . import stubs_gimp
 from .. import pgitemtree
 from .. import pgconstants
 
-#===============================================================================
-
 
 class LayerFilterRules(object):
   
@@ -60,9 +58,6 @@ class LayerFilterRules(object):
   @staticmethod
   def has_matching_file_extension(layer_elem, file_extension):
     return layer_elem.name.endswith("." + file_extension)
-
-
-#===============================================================================
 
 
 def _parse_layers(layer_tree_string):
@@ -103,9 +98,6 @@ def _parse_layers(layer_tree_string):
       layer.parent = current_parent
   
   return image
-
-
-#===============================================================================
 
 
 @mock.patch(

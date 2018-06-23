@@ -23,8 +23,6 @@ import parameterized
 
 from .. import pgoperations
 
-#===============================================================================
-
 
 def append_test(list_):
   list_.append("test")
@@ -73,16 +71,10 @@ def append_to_list_again(list_):
   list_.append(arg)
 
 
-#===============================================================================
-
-
 class OperationExecutorTestCase(unittest.TestCase):
   
   def setUp(self):
     self.executor = pgoperations.OperationExecutor()
-
-
-#===============================================================================
 
 
 class TestOperationExecutor(OperationExecutorTestCase):

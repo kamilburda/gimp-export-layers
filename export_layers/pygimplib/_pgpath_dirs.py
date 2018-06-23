@@ -29,7 +29,6 @@ __all__ = [
   "make_dirs"
 ]
 
-#===============================================================================
 
 # Taken from StackOverflow: http://stackoverflow.com/
 # Question: http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python

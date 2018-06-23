@@ -54,7 +54,6 @@ pygimplib.config.LOG_MODE = pglogging.LOG_NONE
 
 pygimplib.init()
 
-#===============================================================================
 
 MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
 PLUGINS_DIRPATH = os.path.dirname(MODULE_DIRPATH)
@@ -66,8 +65,6 @@ OUTPUT_DIRPATH_DEFAULT = os.path.join(INSTALLERS_DIRPATH, "output")
 INCLUDE_LIST_FILEPATH = os.path.join(MODULE_DIRPATH, "make_installers_included_files.txt")
 
 GITHUB_PAGE_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "gh-pages")
-
-#===============================================================================
 
 
 def make_installers(

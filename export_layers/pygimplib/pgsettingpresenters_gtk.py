@@ -33,8 +33,6 @@ import gimpui
 from . import pgconstants
 from . import pgsettingpresenter
 
-#===============================================================================
-
 
 class GtkSettingPresenter(
         future.utils.with_metaclass(abc.ABCMeta, pgsettingpresenter.SettingPresenter)):
@@ -66,9 +64,6 @@ class GtkSettingPresenter(
   def _disconnect_value_changed_event(self):
     self._element.disconnect(self._event_handler_id)
     self._event_handler_id = None
-
-
-#===============================================================================
 
 
 class GtkCheckButtonPresenter(GtkSettingPresenter):

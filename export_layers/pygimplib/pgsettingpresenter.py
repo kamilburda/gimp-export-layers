@@ -25,8 +25,6 @@ import future.utils
 
 import abc
 
-#===============================================================================
-
 
 class SettingValueSynchronizer(object):
   """
@@ -37,9 +35,6 @@ class SettingValueSynchronizer(object):
   def __init__(self):
     self.apply_setting_value_to_gui = None
     self.apply_gui_value_to_setting = None
-
-
-#===============================================================================
 
 
 class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
@@ -283,9 +278,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     `set_value()` method is called.
     """
     self._set_value(value)
-
-
-#===============================================================================
 
 
 class NullSettingPresenter(SettingPresenter):

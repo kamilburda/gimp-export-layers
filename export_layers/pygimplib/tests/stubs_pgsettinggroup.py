@@ -25,8 +25,6 @@ from future.builtins import *
 from .. import pgsetting
 from .. import pgsettinggroup
 
-#===============================================================================
-
 
 def create_test_settings():
   settings = pgsettinggroup.SettingGroup("main")

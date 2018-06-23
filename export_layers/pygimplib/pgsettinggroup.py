@@ -31,8 +31,6 @@ from . import pgsettingpersistor
 from . import pgsettingutils
 from . import pgutils
 
-#===============================================================================
-
 
 @future.utils.python_2_unicode_compatible
 class SettingGroup(pgsettingutils.SettingParentMixin):

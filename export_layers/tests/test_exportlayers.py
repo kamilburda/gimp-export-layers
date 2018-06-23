@@ -42,7 +42,6 @@ from .. import settings_plugin
 
 pygimplib.init()
 
-#===============================================================================
 
 _CURRENT_MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
 TEST_IMAGES_DIRPATH = os.path.join(_CURRENT_MODULE_DIRPATH, "test_images")
@@ -50,8 +49,6 @@ TEST_IMAGES_DIRPATH = os.path.join(_CURRENT_MODULE_DIRPATH, "test_images")
 EXPECTED_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "expected_results")
 OUTPUT_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "temp_output")
 INCORRECT_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "incorrect_results")
-
-#===============================================================================
 
 
 class TestExportLayersCompareLayerContents(unittest.TestCase):
