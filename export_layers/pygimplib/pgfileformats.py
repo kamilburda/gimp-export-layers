@@ -49,7 +49,6 @@ def get_save_procedure(file_extension):
   return the default save procedure (as returned by
   `get_default_save_procedure`).
   """
-  
   if file_extension in file_formats_dict:
     file_format = file_formats_dict[file_extension]
     if file_format.save_procedure_func and file_format.is_installed():

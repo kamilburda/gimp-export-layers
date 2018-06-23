@@ -87,7 +87,6 @@ def log_output(
     GIMP console in milliseconds. Only applies to the `LOG_OUTPUT_GIMP_CONSOLE`
     log mode.
   """
-  
   _restore_orig_state(log_mode)
   
   if log_mode == LOG_NONE:
@@ -125,7 +124,6 @@ def create_log_file(log_dirpaths, log_filename, mode="a"):
   
   Return the log file upon successful creation, `None` otherwise.
   """
-  
   log_file = None
   
   for log_dirpath in log_dirpaths:
@@ -193,7 +191,6 @@ def _redirect_exception_output_to_file(log_dirpaths, log_filename, log_header_ti
 
 
 class SimpleLogger(object):
-  
   """
   This class wraps a file object to write a header before the first output.
   """
@@ -227,7 +224,6 @@ class SimpleLogger(object):
 # Original version by Peter Otten:
 # http://mail.python.org/pipermail/python-list/2007-May/438106.html
 class Tee(object):
-  
   """
   This class copies `stdout` or `stderr` output to a specified file,
   much like the Unix "tee" command.
@@ -255,7 +251,6 @@ class Tee(object):
     
     * `flush_output` - If `True`, flush output after each write.
     """
-  
     self._streams = {sys.stdout: "stdout", sys.stderr: "stderr"}
     
     self.log_header_title = log_header_title if log_header_title is not None else ""
@@ -297,7 +292,6 @@ class Tee(object):
     
     * `file_` - File or file-like object to write to.
     """
-    
     self._orig_stream = self.stream
     setattr(sys, self._stream_name, self)
     
@@ -308,7 +302,6 @@ class Tee(object):
     """
     Stop `Tee`, i.e. stop writing to the file.
     """
-    
     setattr(sys, self._stream_name, self._orig_stream)
     self._file.close()
     
@@ -319,7 +312,6 @@ class Tee(object):
     """
     Return `True` if `Tee` is running (i.e. writing to file), `False` otherwise.
     """
-    
     return self._is_running
   
   def write(self, data):
@@ -329,7 +321,6 @@ class Tee(object):
     If `log_header_title` is not empty, write the log header before the first
     output.
     """
-    
     if self.log_header_title:
       self._file.write(get_log_header(self.log_header_title))
     

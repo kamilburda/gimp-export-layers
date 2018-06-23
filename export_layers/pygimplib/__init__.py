@@ -57,7 +57,6 @@ def _setup_import_of_external_lib_modules(dirpath):
   Modules with the same name that are already installed system-wide override the
   external library modules from pygimplib.
   """
-  
   for filename in os.listdir(dirpath):
     external_libs_dirpath = os.path.join(dirpath, filename)
     if os.path.isdir(external_libs_dirpath) and external_libs_dirpath not in sys.path:

@@ -108,7 +108,6 @@ class SettingDefaultValueError(SettingValueError):
 
 @future.utils.python_2_unicode_compatible
 class Setting(pgsettingutils.SettingParentMixin):
-  
   """
   This class holds data about a plug-in setting.
   
@@ -246,7 +245,6 @@ class Setting(pgsettingutils.SettingParentMixin):
       pairs. Use this to pass custom error messages. This way, you may also
       override default error messages defined in classes.
     """
-    
     super().__init__()
     
     self._name = name
@@ -349,7 +347,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     This is a wrapper method for `pgsettingutils.get_setting_path`. Consult the
     method for more information.
     """
-    
     return pgsettingutils.get_setting_path(self, relative_path_setting_group)
   
   def set_value(self, value):
@@ -371,7 +368,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     introduced by validation, GUI updating and event handling. `value` still
     remains a property for the sake of brevity.
     """
-    
     self.invoke_event("before-set-value")
     
     self._assign_and_validate_value(value)
@@ -401,7 +397,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     modified, for example by connecting a `"before-reset"` event that sets the
     value to the correct default value before resetting.
     """
-    
     self.invoke_event("before-reset")
     
     self._value = copy.copy(self._default_value)
@@ -446,7 +441,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     * `auto_update_gui_to_setting` - See `auto_update_gui_to_setting` parameter
       in `__init__`.
     """
-    
     if gui_type != SettingGuiTypes.automatic and gui_element is None:
       raise ValueError("gui_element cannot be None if gui_type is automatic")
     if gui_type == SettingGuiTypes.automatic and gui_element is not None:
@@ -476,7 +470,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     `setting_sources` is `None` and there are no default setting sources, raise
     `ValueError`.
     """
-    
     if setting_sources is None:
       setting_sources = self._setting_sources
     if setting_sources is None:
@@ -494,7 +487,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     `setting_sources` is `None` and there are no default setting sources, raise
     `ValueError`.
     """
-    
     if setting_sources is None:
       setting_sources = self._setting_sources
     if setting_sources is None:
@@ -582,7 +574,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     * `TypeError` - `event_handler` is not a function or the wrong number of
       arguments was passed in `event_handler_args`.
     """
-    
     if not callable(event_handler):
       raise TypeError("not a function")
     
@@ -598,7 +589,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     Remove the event handler specified by its ID as returned by the
     `connect_event` method.
     """
-    
     if event_id not in self._event_handler_ids_and_types:
       raise ValueError("event handler with ID {} does not exist".format(event_id))
     
@@ -617,7 +607,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     
     * `ValueError` - Event ID is invalid.
     """
-    
     if not self.has_event(event_id):
       raise ValueError("event ID {} is invalid".format(event_id))
     
@@ -629,14 +618,12 @@ class Setting(pgsettingutils.SettingParentMixin):
     Return `True` if the event handler specified by its ID is connected to the
     setting, `False` otherwise.
     """
-    
     return event_id in self._event_handler_ids_and_types
   
   def invoke_event(self, event_type):
     """
     Call all connected event handlers of the specified event type.
     """
-    
     for (event_handler, event_handler_args,
          event_handler_kwargs, enabled) in self._event_handlers[event_type].values():
       if enabled:
@@ -647,7 +634,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     Return `True` if the setting value is one of the empty values defined for
     the setting class, otherwise return `False`.
     """
-    
     return self._is_value_empty(self._value)
   
   def can_be_registered_to_pdb(self):
@@ -655,7 +641,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     Return `True` if setting can be registered as a parameter to GIMP PDB,
     `False` otherwise.
     """
-    
     return self._pdb_type != SettingPdbTypes.none
   
   def _validate(self, value):
@@ -663,14 +648,12 @@ class Setting(pgsettingutils.SettingParentMixin):
     Check whether the specified value is valid. If the value is invalid, raise
     `SettingValueError`.
     """
-    
     pass
   
   def _init_error_messages(self):
     """
     Initialize custom error messages in the `error_messages` dict.
     """
-    
     pass
   
   def _is_value_empty(self, value):
@@ -703,7 +686,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     Check whether the default value of the setting is valid. If the default
     value is invalid, raise `SettingDefaultValueError`.
     """
-    
     try:
       self._validate(self._default_value)
     except SettingValueError as e:
@@ -754,7 +736,6 @@ class Setting(pgsettingutils.SettingParentMixin):
 
 
 class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
-  
   """
   This is an abstract class for numeric settings - integers and floats.
   
@@ -821,7 +802,6 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
 
 
 class IntSetting(NumericSetting):
-  
   """
   This class can be used for integer settings.
   
@@ -837,7 +817,6 @@ class IntSetting(NumericSetting):
 
 
 class FloatSetting(NumericSetting):
-  
   """
   This class can be used for float settings.
   
@@ -850,7 +829,6 @@ class FloatSetting(NumericSetting):
     
 
 class BoolSetting(Setting):
-  
   """
   This class can be used for boolean settings.
   
@@ -878,7 +856,6 @@ class BoolSetting(Setting):
 
 
 class EnumSetting(Setting):
-  
   """
   This class can be used for settings with a limited number of values,
   accessed by their associated names.
@@ -944,7 +921,6 @@ class EnumSetting(Setting):
       be unique and specified in each tuple. Use only 2- or only 3-element
       tuples, they cannot be combined.
     """
-    
     self._items, self._items_display_names, self._item_values = (
       self._create_item_attributes(items))
     
@@ -1007,7 +983,6 @@ class EnumSetting(Setting):
     
       setting.value in (setting.items[name1], setting.items[name2], ...)
     """
-    
     return any(self.value == self.items[item_name] for item_name in item_names)
   
   def set_item(self, item_name):
@@ -1018,14 +993,12 @@ class EnumSetting(Setting):
       
       setting.set_value(setting.items[item_name])
     """
-    
     self.set_value(self.items[item_name])
   
   def get_item_display_names_and_values(self):
     """
     Return a list of (item display name, item value) pairs.
     """
-    
     display_names_and_values = []
     for item_name, item_value in zip(
           self._items_display_names.values(), self._items.values()):
@@ -1089,7 +1062,6 @@ class EnumSetting(Setting):
 
 
 class ImageSetting(Setting):
-  
   """
   This setting class can be used for `gimp.Image` objects.
   
@@ -1119,7 +1091,6 @@ class ImageSetting(Setting):
 
 
 class DrawableSetting(Setting):
-  
   """
   This setting class can be used for `gimp.Drawable`, `gimp.Layer`,
   `gimp.GroupLayer` or `gimp.Channel` objects.
@@ -1151,7 +1122,6 @@ class DrawableSetting(Setting):
 
 
 class StringSetting(Setting):
-  
   """
   This class can be used for string settings.
   
@@ -1165,7 +1135,6 @@ class StringSetting(Setting):
 
 
 class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSetting)):
-  
   """
   This class is an abstract class for string settings which are meant to be
   validated with one of the `pgpath.StringValidator` subclasses.
@@ -1194,7 +1163,6 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
     * `string_validator` - `pgpath.StringValidator` subclass used to validate
       the value assigned to this object.
     """
-    
     self._string_validator = string_validator
     
     super().__init__(name, default_value, **kwargs)
@@ -1225,7 +1193,6 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
   
 
 class FileExtensionSetting(ValidatableStringSetting):
-  
   """
   This setting class can be used for file extensions.
   
@@ -1252,7 +1219,6 @@ class FileExtensionSetting(ValidatableStringSetting):
   
 
 class DirpathSetting(ValidatableStringSetting):
-  
   """
   This setting class can be used for directory paths.
   
@@ -1280,7 +1246,6 @@ class DirpathSetting(ValidatableStringSetting):
 
 
 class ImageIDsAndDirpathsSetting(Setting):
-  
   """
   This setting class stores the list of currently opened images and their import
   directory paths as a dictionary of (image ID, import directory path) pairs.
@@ -1302,7 +1267,6 @@ class ImageIDsAndDirpathsSetting(Setting):
     opened in GIMP. Add (image ID, import directory path) pairs for new images
     opened in GIMP.
     """
-    
     current_images, current_image_ids = self._get_currently_opened_images()
     self._filter_images_no_longer_opened(current_image_ids)
     self._add_new_opened_images(current_images)
@@ -1313,7 +1277,6 @@ class ImageIDsAndDirpathsSetting(Setting):
     
     If the image ID does not exist in the setting, raise KeyError.
     """
-    
     if image_id not in self._value:
       raise KeyError(image_id)
     
@@ -1346,7 +1309,6 @@ class ImageIDsAndDirpathsSetting(Setting):
 
 
 class SettingTypes(object):
-  
   """
   This enum maps `Setting` classes to more human-readable names.
   """

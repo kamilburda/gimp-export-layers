@@ -45,7 +45,6 @@ from . import pgsettingpersistor
 
 
 class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
-  
   """
   This class provides an interface for reading and writing settings to
   permanent or semi-permanent sources.
@@ -81,7 +80,6 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
       be stored in the `settings_not_found` list. This list is cleared on each
       `read()` call.
     """
-    
     pass
   
   @abc.abstractmethod
@@ -95,7 +93,6 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     * `settings` - Any iterable sequence containing `Setting` objects.
     """
-    
     pass
   
   def clear(self):
@@ -108,7 +105,6 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     Some `SettingSource` subclasses may not implement this method, in which case
     calling `clear()` has no effect.
     """
-    
     pass
   
   @property
@@ -126,7 +122,6 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     * `SettingsNotFoundInSourceError` - one or more settings could not be found
       in the source. These settings are stored in the `settings_not_found` list.
     """
-    
     self._settings_not_found = []
     
     for setting in settings:
@@ -152,7 +147,6 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     This method must be defined in subclasses.
     """
-    
     pass
 
 
@@ -160,7 +154,6 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
 
 
 class SessionPersistentSettingSource(SettingSource):
-  
   """
   This class reads settings from/writes settings to a source that persists
   during one GIMP session.
@@ -196,7 +189,6 @@ class SessionPersistentSettingSource(SettingSource):
 
 
 class PersistentSettingSource(SettingSource):
-  
   """
   This class reads settings from/writes settings to a persistent source.
   
@@ -228,7 +220,6 @@ class PersistentSettingSource(SettingSource):
     * `SettingSourceInvalidFormatError` - Specified source has invalid format.
       This could happen if the source was edited manually.
     """
-    
     self._settings_from_parasite = self._read_from_parasite(self.source_name)
     if self._settings_from_parasite is None:
       raise pgsettingpersistor.SettingSourceNotFoundError(
@@ -281,7 +272,6 @@ class PersistentSettingSource(SettingSource):
     Format the setting name and value to a dict, which the `pickle` module can
     properly serialize and de-serialize.
     """
-    
     settings_dict = collections.OrderedDict()
     for setting in settings:
       settings_dict[setting.name] = setting.value

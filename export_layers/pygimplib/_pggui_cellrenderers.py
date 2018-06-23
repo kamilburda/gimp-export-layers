@@ -37,7 +37,6 @@ __all__ = [
 
 
 class CellRendererTextList(gtk.CellRendererText):
-  
   """
   This is a custom text-based cell renderer that can accept a list of strings.
   """
@@ -94,7 +93,6 @@ class CellRendererTextList(gtk.CellRendererText):
     Change the "text" or "markup" property according to the value of
     "text-list", "markup-list" and "text-list-separator" properties.
     """
-    
     def _set_text():
       new_text = self.text_list_separator.join(self.text_list)
       gtk.CellRendererText.set_property(self, "text", new_text)

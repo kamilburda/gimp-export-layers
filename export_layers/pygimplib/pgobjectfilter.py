@@ -29,7 +29,6 @@ import contextlib
 
 
 class ObjectFilter(object):
-  
   """
   This class is a filter containing a set of rules that determines whether
   a given object matches the rules or not (using the `is_match()` method).
@@ -65,7 +64,6 @@ class ObjectFilter(object):
     """
     Return `True` if the filter is not empty, `False` otherwise.
     """
-    
     return bool(self._filter_items)
   
   def has_rule(self, rule_func):
@@ -96,7 +94,6 @@ class ObjectFilter(object):
     
     * `ValueError` - `rule_func` does not have at least one argument.
     """
-    
     if self.has_rule(rule_func):
       return
     
@@ -132,7 +129,6 @@ class ObjectFilter(object):
     * `ValueError` - `rule_func` is not found in the filter and
       `raise_if_not_found` is `True`.
     """
-    
     if self.has_rule(rule_func):
       del self._filter_items[rule_func]
     else:
@@ -164,7 +160,6 @@ class ObjectFilter(object):
     
     * `ValueError` - `rule_func` does not have at least one argument.
     """
-    
     has_rule_already = self.has_rule(rule_func)
     if not has_rule_already:
       self.add_rule(rule_func, *rule_func_args)
@@ -194,7 +189,6 @@ class ObjectFilter(object):
     * `ValueError` - `rule_func` is not found in the filter and
       `raise_if_not_found` is `True`.
     """
-    
     has_rule = self.has_rule(rule_func)
     
     if not has_rule:
@@ -223,7 +217,6 @@ class ObjectFilter(object):
     
     * `ValueError` - `subfilter_name` already exists in the filter.
     """
-    
     if self.has_subfilter(subfilter_name):
       raise ValueError(
         "subfilter named '{}' already exists in the filter".format(subfilter_name))
@@ -243,7 +236,6 @@ class ObjectFilter(object):
     * `ValueError` - `subfilter_name` does not exist in the filter or the value
       associated with `subfilter_name` is not a subfilter.
     """
-    
     if not self.has_subfilter(subfilter_name):
       raise ValueError(
         "subfilter named '{}' not found in filter".format(subfilter_name))
@@ -271,7 +263,6 @@ class ObjectFilter(object):
     * `ValueError` - `subfilter_name` is not found in the filter and
       `raise_if_not_found` is `True`.
     """
-    
     if self.has_subfilter(subfilter_name):
       del self._filter_items[subfilter_name]
     else:
@@ -291,7 +282,6 @@ class ObjectFilter(object):
     
     * `ValueError` - `subfilter_name` already exists in the filter.
     """
-    
     self.add_subfilter(subfilter_name, subfilter)
     try:
       yield
@@ -318,7 +308,6 @@ class ObjectFilter(object):
     * `ValueError` - `subfilter_name` is not found in the filter and
       `raise_if_not_found` is `True`.
     """
-    
     has_subfilter = self.has_subfilter(subfilter_name)
     
     if not has_subfilter:
@@ -347,7 +336,6 @@ class ObjectFilter(object):
     
     If no filter rules are specified, return `True`.
     """
-    
     if not self._filter_items:
       return True
     
@@ -361,7 +349,6 @@ class ObjectFilter(object):
     Reset the filter, removing all rules and subfilters. The match type is
     preserved.
     """
-    
     self._filter_items.clear()
   
   def _is_match_all(self, object_to_match):

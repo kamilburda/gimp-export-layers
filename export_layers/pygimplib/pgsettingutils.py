@@ -27,7 +27,6 @@ SETTING_PATH_SEPARATOR = "/"
 
 
 class SettingParentMixin(object):
-  
   """
   This mixin provides `Setting` and `SettingGroup` objects with a parent
   reference, allowing settings and groups to form a tree-like structure.
@@ -45,7 +44,6 @@ class SettingParentMixin(object):
     """
     Return a list of parents (setting groups), starting from the topmost parent.
     """
-    
     parent = self._parent
     parents = []
     
@@ -64,7 +62,6 @@ def get_pdb_name(setting_name):
   Return setting name suitable for the description of the setting in the GIMP
   PDB.
   """
-  
   return setting_name.replace("_", "-")
 
 
@@ -74,7 +71,6 @@ def value_to_str_prefix(value):
   
   If `value` is empty or `None`, return empty string.
   """
-  
   if value:
     return '"{}": '.format(value)
   else:
@@ -106,7 +102,6 @@ def generate_description(display_name):
   Underscores in display names used as mnemonics are usually undesired in
   descriptions, hence their removal.
   """
-  
   return display_name.replace("_", "")
 
 
@@ -119,7 +114,6 @@ def get_setting_path(setting, relative_path_setting_group=None):
   relativize the setting path. If the path of the setting group to the topmost
   parent does not match, return the full path.
   """
-  
   def _get_setting_path(path_components):
     return SETTING_PATH_SEPARATOR.join([setting.name for setting in path_components])
   

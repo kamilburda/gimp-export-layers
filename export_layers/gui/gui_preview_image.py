@@ -164,7 +164,6 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     Resize the preview if the widget is smaller than the previewed image so that
     the image fits the widget.
     """
-    
     if not self._is_updating and self._preview_image.get_mapped():
       self._resize_preview(self._preview_image.get_allocation(), self._preview_pixbuf)
   
@@ -173,7 +172,6 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     Return `True` if the preview widget is larger than the image. If no image is
     previewed, return `False`.
     """
-    
     allocation = self._preview_image.get_allocation()
     return (
       self._preview_pixbuf is not None

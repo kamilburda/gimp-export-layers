@@ -48,7 +48,6 @@ from ._pggui_undocontext import *
 
 
 class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
-  
   """
   This class is used to display a GTK dialog prompt in an interactive
   environment when a file about to be saved has the same name as an already
@@ -199,7 +198,6 @@ def get_toplevel_window(widget):
   Return the toplevel window (`gtk.Window`) for the specified widget
   (`gtk.Widget`). If the widget has no toplevel window, return None.
   """
-  
   toplevel_widget = widget.get_toplevel()
   if toplevel_widget.flags() & gtk.TOPLEVEL:
     return toplevel_widget

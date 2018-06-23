@@ -436,7 +436,6 @@ def _copy_non_modifying_parasites(src_image, dest_image):
 
 
 class LayerExporter(object):
-  
   """
   This class exports layers as separate images, with the support for additional
   operations applied on layers (resize, rename, ...).
@@ -609,7 +608,6 @@ class LayerExporter(object):
     the image copy. If an exception was raised or if no layer was exported, this
     method returns `None` and the image copy will be destroyed.
     """
-    
     self._init_attributes(processing_groups, layer_tree, keep_image_copy)
     self._preprocess_layers()
     
@@ -637,7 +635,6 @@ class LayerExporter(object):
     Return `True` if the specified `gimp.Layer` was exported in the last export,
     `False` otherwise.
     """
-    
     return layer.ID in self._exported_layers_ids
   
   @contextlib.contextmanager
@@ -655,7 +652,6 @@ class LayerExporter(object):
     {setting name: list of event IDs} pairs that temporarily disables events
     specified by their IDs for the specified settings.
     """
-    
     if settings_events_to_temporarily_disable is None:
       settings_events_to_temporarily_disable = {}
     

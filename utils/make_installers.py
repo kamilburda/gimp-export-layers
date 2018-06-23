@@ -266,7 +266,6 @@ def _set_permissions(dirpath, permissions):
   Set file permissions on all files and subdirectories in the given directory
   path.
   """
-  
   for root, subdirpaths, filenames in os.walk(dirpath):
     for subdirpath in subdirpaths:
       os.chmod(os.path.join(root, subdirpath), permissions)

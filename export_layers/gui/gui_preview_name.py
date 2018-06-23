@@ -114,7 +114,6 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     expanded/collapsed or added/removed even if they need to be. This option is
     useful if you know the item structure will be preserved.
     """
-    
     update_locked = super().update()
     if update_locked:
       return
@@ -147,7 +146,6 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     """
     Clear the entire preview.
     """
-    
     self._clearing_preview = True
     self._tree_model.clear()
     self._tree_iters.clear()
@@ -160,7 +158,6 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     """
     Set the collapsed state of items in the preview.
     """
-    
     self._collapsed_items = collapsed_items
     self._set_expanded_items()
   
@@ -168,7 +165,6 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     """
     Set the selection of items in the preview.
     """
-    
     self._selected_items = selected_items
     self._set_selection()
   
@@ -638,7 +634,6 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     If `tree_path` is specified, set the states only for the child elements in
     the tree path, otherwise set the states in the whole tree view.
     """
-    
     self._row_expand_collapse_interactive = False
     
     if tree_path is None:

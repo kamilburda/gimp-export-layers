@@ -296,7 +296,6 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     Load layers from specified file paths into a new image. Return the image and
     a dict with (layer name: gimp.Layer instance) pairs.
     """
-    
     image = pgpdb.load_layers(layer_filepaths, image=None, strip_file_extension=True)
     return image, {layer.name: layer for layer in image.layers}
   

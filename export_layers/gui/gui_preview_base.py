@@ -44,7 +44,6 @@ class ExportPreview(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Update the export preview if update is not locked (see `lock_update`).
     """
-    
     return self._execute_functions_if_unlocked()
   
   def _execute_functions_if_unlocked(self):
@@ -62,7 +61,6 @@ class ExportPreview(future.utils.with_metaclass(abc.ABCMeta, object)):
     Set the sensitivity of the preview (`True` = sensitive,
     `False` = insensitive).
     """
-    
     pass
   
   def lock_update(self, lock, key=None):
@@ -81,7 +79,6 @@ class ExportPreview(future.utils.with_metaclass(abc.ABCMeta, object)):
     called this method. Passing `None` also removes previous keys that were used
     to lock the preview.
     """
-    
     if key is None:
       self._lock_keys.clear()
       self._update_locked = lock
@@ -103,7 +100,6 @@ class ExportPreview(future.utils.with_metaclass(abc.ABCMeta, object)):
     only if the preview is unlocked. This is useful to postpone execution of
     functions until the preview is available again.
     """
-    
     self._functions_to_execute_at_update.append((func, func_args, func_kwargs))
   
   def temporarily_disable_setting_events_on_update(self, settings_and_event_ids):

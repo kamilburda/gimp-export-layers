@@ -30,7 +30,6 @@ from . import pgsettinggroup
 
 
 class PdbParamCreator(object):
-  
   """
   This class creates GIMP PDB (procedural database) parameters for plug-ins
   (plug-in procedures) from `Setting` objects.
@@ -42,7 +41,6 @@ class PdbParamCreator(object):
     Return a list of GIMP PDB parameters from the specified `Setting` or
     `SettingGroup` objects.
     """
-    
     settings = cls._list_settings(settings_or_groups)
     return [
       cls._create_param(setting) for setting in settings
@@ -57,7 +55,6 @@ class PdbParamCreator(object):
     makes it possible to call PDB functions with the setting values without
     manually omitting the `"run_mode"` setting.
     """
-    
     settings = cls._list_settings(settings_or_groups)
     
     if ignore_run_mode:

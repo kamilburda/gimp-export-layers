@@ -119,7 +119,6 @@ def display_error_message(
     If `False`, focus on the box with details if `details` is not `None`,
     otherwise let the message dialog determine the focus widget.
   """
-  
   if not ("_" in __builtin__.__dict__ or "_" in globals()):
     # This is a placeholder function until `gettext` is properly initialized.
     def _(str_):
@@ -284,7 +283,6 @@ def display_message(
   * `button_response_id_to_focus` - Response ID of the button to set as the
     focus. If `None`, the dialog determines which widget gets the focus.
   """
-  
   dialog = gtk.MessageDialog(
     parent=parent,
     type=message_type,
@@ -357,7 +355,6 @@ def add_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
   
   * `parent` - Parent GUI element.
   """
-  
   global _gui_excepthook_parent
   
   _gui_excepthook_parent = parent
@@ -399,7 +396,6 @@ def set_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
   
   For information about parameters, see `add_gui_excepthook`.
   """
-  
   global _gui_excepthook_parent
   
   _gui_excepthook_parent = parent
@@ -425,7 +421,6 @@ def set_gui_excepthook_parent(parent):
   `add_gui_excepthook`. This function allows to modify the parent dynamically
   even after decorating a function with `add_gui_excepthook`.
   """
-  
   global _gui_excepthook_parent
   
   _gui_excepthook_parent = parent

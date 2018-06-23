@@ -34,7 +34,6 @@ from . import pgpath
 
 
 class OverwriteChooser(future.utils.with_metaclass(abc.ABCMeta, object)):
-  
   """
   This class is an interface to indicate how to handle existing files.
   
@@ -63,12 +62,10 @@ class OverwriteChooser(future.utils.with_metaclass(abc.ABCMeta, object)):
       This class uses the file path to simply display it to the user. Defaults
       to `None`.
     """
-    
     pass
 
 
 class NoninteractiveOverwriteChooser(OverwriteChooser):
-  
   """
   This class simply stores overwrite mode specified upon the object
   instantiation. The object is suitable to use in a non-interactive environment,
@@ -89,7 +86,6 @@ class NoninteractiveOverwriteChooser(OverwriteChooser):
 
 class InteractiveOverwriteChooser(
         future.utils.with_metaclass(abc.ABCMeta, OverwriteChooser)):
-  
   """
   This class is an interface for interactive overwrite choosers, requiring
   the user choose the overwrite mode.
@@ -149,7 +145,6 @@ class InteractiveOverwriteChooser(
     If the choice results in a value that is not in `values_and_display_names`,
     return `default_response`.
     """
-    
     pass
 
 
@@ -195,7 +190,6 @@ def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
     * the file path passed as the argument, modified if `RENAME_NEW` mode is
       returned.
   """
-  
   if os.path.exists(filepath):
     overwrite_chooser.choose(filepath=os.path.abspath(filepath))
     

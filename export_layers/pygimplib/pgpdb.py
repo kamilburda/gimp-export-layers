@@ -48,7 +48,6 @@ def undo_group(image):
     with undo_group(image):
       # do stuff
   """
-  
   pdb.gimp_image_undo_group_start(image)
   try:
     yield
@@ -63,7 +62,6 @@ def merge_layer_group(layer_group):
   
   This function can handle both top-level and nested layer groups.
   """
-  
   if not pdb.gimp_item_is_group(layer_group):
     raise TypeError("'{}': not a layer group".format(layer_group.name))
   
@@ -102,7 +100,6 @@ def is_layer_inside_image(image, layer):
   completely). Return `False` if the layer is completely outside the image
   canvas.
   """
-  
   return (
     -image.width < layer.offsets[0] < image.width
     and -image.height < layer.offsets[1] < image.height)
@@ -119,7 +116,6 @@ def create_image_from_metadata(image_to_copy_metadata_from):
   Layers, channels or paths are not copied. For a full image copy, use
   `pdb.gimp_image_duplicate`.
   """
-  
   image = image_to_copy_metadata_from
   
   new_image = pdb.gimp_image_new(image.width, image.height, image.base_type)
@@ -146,7 +142,6 @@ def remove_all_layers(image):
   """
   Remove all layers from the specified image.
   """
-  
   for layer in image.layers:
     pdb.gimp_image_remove_layer(image, layer)
 
@@ -155,7 +150,6 @@ def remove_all_channels(image):
   """
   Remove all layers from the specified image.
   """
-  
   for channel in image.channels:
     pdb.gimp_image_remove_channel(image, channel)
 
@@ -164,7 +158,6 @@ def remove_all_paths(image):
   """
   Remove all paths (vectors) from the specified image.
   """
-  
   for path in image.vectors:
     pdb.gimp_image_remove_vectors(image, path)
 
@@ -173,7 +166,6 @@ def remove_all_items(image):
   """
   Remove all items (layers, channels, paths) from the specified image.
   """
-  
   remove_all_layers(image)
   remove_all_channels(image)
   remove_all_paths(image)
@@ -184,7 +176,6 @@ def delete_image_safe(image):
   Delete the specified image. If the image does not exist, do not throw an
   exception.
   """
-  
   if pdb.gimp_image_is_valid(image):
     pdb.gimp_image_delete(image)
 
@@ -207,7 +198,6 @@ def load_layer(filepath, image, strip_file_extension=False, layer_to_load_index=
   groups). If the index is greater than the number of layers in the loaded
   image or is negative, load and return the last layer.
   """
-  
   loaded_image = pdb.gimp_file_load(filepath, os.path.basename(filepath))
   
   if layer_to_load_index >= len(image.layers) or layer_to_load_index < 0:
@@ -238,7 +228,6 @@ def load_layers(filepaths, image=None, strip_file_extension=False):
   Layers names are basenames of the corresponding files. If
   `strip_file_extension` is `True`, remove the file extension from layer names.
   """
-  
   create_new_image = image is None
   if create_new_image:
     image = gimp.Image(1, 1)
@@ -260,7 +249,6 @@ def copy_and_paste_layer(layer, image, parent=None, position=0):
   If `parent` is `None`, insert the layer in the main stack (outside of any
   layer group).
   """
-  
   layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
   pdb.gimp_image_insert_layer(image, layer_copy, parent, position)
   
@@ -424,7 +412,6 @@ def redirect_messages(message_handler=gimpenums.ERROR_CONSOLE):
     with redirect_messages():
       # do stuff
   """
-  
   orig_message_handler = pdb.gimp_message_get_handler()
   pdb.gimp_message_set_handler(message_handler)
   
@@ -435,7 +422,6 @@ def redirect_messages(message_handler=gimpenums.ERROR_CONSOLE):
 
 
 class GimpMessageFile(object):
-  
   """
   This class provides a file-like way to write output as GIMP messages.
   
@@ -507,7 +493,6 @@ def suppress_gimp_progress():
   progress callback. Subsequent calls to this function without a matching call
   to `unsuppress_gimp_progress` have no effect.
   """
-  
   global _dummy_progress_callback
   
   if _dummy_progress_callback:
@@ -523,7 +508,6 @@ def unsuppress_gimp_progress():
   `suppress_gimp_progress`. Calling this function before calling
   `suppress_gimp_progress` has no effect.
   """
-  
   global _dummy_progress_callback
   
   if not _dummy_progress_callback:

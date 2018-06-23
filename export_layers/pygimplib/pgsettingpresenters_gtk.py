@@ -38,7 +38,6 @@ from . import pgsettingpresenter
 
 class GtkSettingPresenter(
         future.utils.with_metaclass(abc.ABCMeta, pgsettingpresenter.SettingPresenter)):
-  
   """
   This class is a `SettingPresenter` subclass for GTK GUI elements.
   """
@@ -73,7 +72,6 @@ class GtkSettingPresenter(
 
 
 class GtkCheckButtonPresenter(GtkSettingPresenter):
-  
   """
   This class is a `SettingPresenter` for `gtk.CheckButton` elements.
   
@@ -93,7 +91,6 @@ class GtkCheckButtonPresenter(GtkSettingPresenter):
 
 
 class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
-  
   """
   This class is a `SettingPresenter` for `gimpui.IntComboBox` elements.
   
@@ -119,7 +116,6 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
 
 
 class GtkEntryPresenter(GtkSettingPresenter):
-  
   """
   This class is a `SettingPresenter` for `gtk.Entry` elements.
   
@@ -139,7 +135,6 @@ class GtkEntryPresenter(GtkSettingPresenter):
 
 
 class ExtendedEntryPresenter(GtkSettingPresenter):
-  
   """
   This class is a `SettingPresenter` for `pggui.ExtendedEntry` elements.
   
@@ -154,7 +149,6 @@ class ExtendedEntryPresenter(GtkSettingPresenter):
 
 
 class GtkFolderChooserPresenter(GtkSettingPresenter):
-  
   """
   This class is a `SettingPresenter` for `gtk.FileChooserWidget` elements
   used as folder choosers.
@@ -199,7 +193,6 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
 
 
 class GtkWindowPositionPresenter(GtkSettingPresenter):
-  
   """
   This class is a `SettingPresenter` for window or dialog elements
   (`gtk.Window`, `gtk.Dialog`) to get/set its position.
@@ -216,13 +209,11 @@ class GtkWindowPositionPresenter(GtkSettingPresenter):
     
     Do not move the window if `value` is `None` or empty.
     """
-    
     if value:
       self._element.move(*value)
 
 
 class GtkWindowSizePresenter(GtkSettingPresenter):
-  
   """
   This class is a `SettingPresenter` for window or dialog elements
   (`gtk.Window`, `gtk.Dialog`) to get/set its size.
@@ -239,13 +230,11 @@ class GtkWindowSizePresenter(GtkSettingPresenter):
     
     Do not resize the window if `value` is `None` or empty.
     """
-    
     if value:
       self._element.resize(*value)
 
 
 class GtkExpanderPresenter(GtkSettingPresenter):
-  
   """
   This class is a `SettingPresenter` for `gtk.Expander` elements.
   
@@ -260,7 +249,6 @@ class GtkExpanderPresenter(GtkSettingPresenter):
 
 
 class GtkPanedPositionPresenter(GtkSettingPresenter):
-  
   """
   This class is a `SettingPresenter` for `gtk.Paned` elements.
   
@@ -275,7 +263,6 @@ class GtkPanedPositionPresenter(GtkSettingPresenter):
 
 
 class GtkCheckMenuItemPresenter(GtkSettingPresenter):
-  
   """
   This class is a `SettingPresenter` for `gtk.CheckMenuItem` elements.
   
@@ -298,7 +285,6 @@ class GtkCheckMenuItemPresenter(GtkSettingPresenter):
 
 
 class SettingGuiTypes(object):
-  
   """
   This enum maps `SettingPresenter` classes to more human-readable names.
   """

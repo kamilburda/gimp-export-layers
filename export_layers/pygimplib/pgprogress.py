@@ -26,7 +26,6 @@ from future.builtins import *
 
 
 class ProgressUpdater(object):
-  
   """
   This class wraps the behavior of a progress bar used in GUIs.
   
@@ -62,7 +61,6 @@ class ProgressUpdater(object):
     
     * `ValueError` - Number of finished tasks exceeds the number of total tasks.
     """
-    
     if self._num_finished_tasks + num_tasks > self.num_total_tasks:
       raise ValueError("number of finished tasks exceeds the number of total tasks")
     
@@ -75,7 +73,6 @@ class ProgressUpdater(object):
     Update text in the progress bar. Use `None` or an empty string to remove the
     text.
     """
-    
     if text is None:
       text = ""
     self._set_text_progress_bar(text)
@@ -84,7 +81,6 @@ class ProgressUpdater(object):
     """
     Empty the progress bar and remove its text.
     """
-    
     self._num_finished_tasks = 0
     if self.num_total_tasks > 0:
       self._fill_progress_bar()
@@ -97,7 +93,6 @@ class ProgressUpdater(object):
     This is a method to be overridden by a subclass that implements a
     GUI-specific progress updater.
     """
-    
     pass
   
   def _set_text_progress_bar(self, text):
@@ -107,5 +102,4 @@ class ProgressUpdater(object):
     This is a method to be overridden by a subclass that implements a
     GUI-specific progress updater.
     """
-    
     pass

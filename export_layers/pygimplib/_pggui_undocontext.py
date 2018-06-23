@@ -38,7 +38,6 @@ __all__ = [
 
 
 class EntryUndoContext(object):
-  
   """
   This class adds undo/redo capabilities to a `gtk.Entry` object.
   
@@ -121,7 +120,6 @@ class EntryUndoContext(object):
     
     * `ValueError` - invalid `action_type`.
     """
-    
     self._redo_stack = []
     
     self._undo_stack_push()

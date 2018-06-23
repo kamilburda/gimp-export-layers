@@ -29,7 +29,6 @@ import abc
 
 
 class SettingValueSynchronizer(object):
-  
   """
   This class allows the `Setting` and `SettingPresenter` classes to keep the
   `Setting` and `SettingPresenter` values in sync.
@@ -44,7 +43,6 @@ class SettingValueSynchronizer(object):
 
 
 class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
-  
   """
   This class wraps a GUI element (widget, dialog, etc.).
   
@@ -106,7 +104,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
         * `old_setting_presenter` is not `None` and the automatic GUI-to-setting
           update was disabled in that presenter.
     """
-    
     self._setting = setting
     self._element = element
     self._setting_value_synchronizer = setting_value_synchronizer
@@ -155,7 +152,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Return the enabled/disabled state of the GUI element.
     """
-    
     pass
   
   @abc.abstractmethod
@@ -163,7 +159,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Set the enabled/disabled state of the GUI element.
     """
-    
     pass
   
   @abc.abstractmethod
@@ -171,7 +166,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Return the visible/invisible state of the GUI element.
     """
-    
     pass
   
   @abc.abstractmethod
@@ -179,7 +173,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Set the visible/invisible state of the GUI element.
     """
-    
     pass
   
   def update_setting_value(self):
@@ -190,7 +183,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     This method will not have any effect if this object updates its setting
     value automatically.
     """
-    
     # The `is_value_empty` check makes sure that settings with empty values
     # which are not allowed will be properly invalidated.
     if self._value_changed_signal is None or self._setting.is_value_empty():
@@ -203,7 +195,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     If `value` is `True` and the `SettingPresenter` class does not support
     automatic GUI update, `ValueError` is raised.
     """
-    
     if enabled and self._VALUE_CHANGED_SIGNAL is None:
       raise ValueError(
         "class '{}' does not support automatic GUI update".format(type(self).__name__))
@@ -223,7 +214,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     Return None if the `SettingPresenter` subclass does not support GUI element
     creation.
     """
-    
     return None
   
   @abc.abstractmethod
@@ -231,7 +221,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Return the value of the GUI element.
     """
-    
     pass
   
   @abc.abstractmethod
@@ -243,7 +232,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     setting and the GUI element cannot handle the value, this method must wrap
     the empty value into a safe value (that the GUI element can handle).
     """
-    
     pass
   
   def _copy_state(self, old_setting_presenter):
@@ -258,7 +246,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Assign the GUI element value, entered by the user, to the setting value.
     """
-    
     self._setting_value_synchronizer.apply_gui_value_to_setting(self._get_value())
   
   @abc.abstractmethod
@@ -270,7 +257,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     Because the way event handlers are connected varies in each GUI framework,
     subclass this class and override this method for the GUI framework you use.
     """
-    
     pass
   
   @abc.abstractmethod
@@ -281,7 +267,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     Because the way event handlers are disconnected varies in each GUI framework,
     subclass this class and override this method for the GUI framework you use.
     """
-    
     pass
   
   def _on_value_changed(self, *args):
@@ -290,7 +275,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     setting. The event is triggered when the user changes the value of the GUI
     element.
     """
-    
     self._update_setting_value()
   
   def _apply_setting_value_to_gui(self, value):
@@ -298,7 +282,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     Assign the setting value to the GUI element. Used by the setting when its
     `set_value()` method is called.
     """
-    
     self._set_value(value)
 
 
@@ -306,7 +289,6 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
 
 
 class NullSettingPresenter(SettingPresenter):
-  
   """
   This class acts as an empty `SettingPresenter` object whose methods do nothing.
   
@@ -326,7 +308,6 @@ class NullSettingPresenter(SettingPresenter):
     """
     `element` is ignored - its attributes are not read or set.
     """
-    
     self._value = None
     self._enabled = True
     self._visible = True

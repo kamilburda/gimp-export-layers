@@ -235,7 +235,6 @@ def _update_directory(setting, current_image, current_image_dirpath):
   
   If update was performed, return `True`, otherwise return `False`.
   """
-  
   if current_image_dirpath is not None:
     if isinstance(current_image_dirpath, bytes):
       current_image_dirpath = current_image_dirpath.decode(
@@ -271,7 +270,6 @@ def _setup_image_ids_and_directories_and_initial_directory(
     source.
     Directory 4. is set upon the instantiation of "main/output_directory".
   """
-  
   settings["gui_session/image_ids_and_directories"].update_image_ids_and_dirpaths()
   
   update_performed = _update_directory(

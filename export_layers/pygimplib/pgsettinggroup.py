@@ -36,7 +36,6 @@ from . import pgutils
 
 @future.utils.python_2_unicode_compatible
 class SettingGroup(pgsettingutils.SettingParentMixin):
-  
   """
   This class:
   * allows to create a group of related settings (`Setting` objects),
@@ -117,7 +116,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     
       settings["main/autocrop"]
     """
-    
     if pgsettingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
       return self._get_setting_from_path(setting_name_or_path)
     else:
@@ -159,7 +157,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     This method does not iterate over nested groups. Use `walk()` in that
     case.
     """
-    
     for setting in self._settings.values():
       yield setting
   
@@ -171,7 +168,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     This is a wrapper method for `pgsettingutils.get_setting_path`. Consult the
     method for more information.
     """
-    
     return pgsettingutils.get_setting_path(self, relative_path_setting_group)
   
   def add(self, setting_list):
@@ -208,7 +204,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     attributes specified during the initialization of this class. These
     attributes can be overridden by attributes in individual settings.
     """
-    
     for setting in setting_list:
       if isinstance(setting, (pgsetting.Setting, SettingGroup)):
         setting = self._add_setting(setting)
@@ -299,7 +294,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     """
     Remove settings from the group specified by their names.
     """
-    
     for setting_name in setting_names:
       if setting_name in self._settings:
         del self._settings[setting_name]
@@ -322,7 +316,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     additional commands during the walk of the group. By default, the callbacks
     do nothing. For more information, see the `SettingGroupWalkCallbacks` class.
     """
-    
     if include_setting_func is None:
       include_setting_func = pgutils.create_empty_func(return_value=True)
     
@@ -361,7 +354,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     """
     Return the next element when iterating the settings. Used by `walk()`.
     """
-    
     if self._settings_iterator is None:
       self._settings_iterator = self._settings.itervalues()
     
@@ -378,7 +370,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     Reset all settings in this group. Ignore settings with the "ignore_reset"
     tag.
     """
-    
     def _has_ignore_reset_tag(setting):
       return "ignore_reset" not in setting.tags
     
@@ -399,7 +390,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     `READ_FAIL` or `WRITE_FAIL`) and a status message containing status messages
     of all calls to `load()`.
     """
-    
     return self._load_save_group(
       "ignore_load",
       pgsettingpersistor.SettingPersistor.load,
@@ -414,7 +404,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     
     For more information, refer to the `load()` method.
     """
-    
     return self._load_save_group(
       "ignore_save",
       pgsettingpersistor.SettingPersistor.save,
@@ -500,7 +489,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
         ...
       })
     """
-    
     if custom_gui is None:
       custom_gui = {}
     
@@ -548,7 +536,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
 
 
 class SettingGroupWalkCallbacks(object):
-  
   """
   This class defines callbacks called during the `SettingGroup.walk()` method.
   By default, the callbacks do nothing.

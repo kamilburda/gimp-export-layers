@@ -56,7 +56,6 @@ class SettingSourceWriteError(SettingSourceError):
 
 
 class SettingPersistor(object):
-  
   """
   This class:
   * serves as a wrapper for `SettingSource` classes
@@ -107,7 +106,6 @@ class SettingPersistor(object):
       
       * `status_message` - Message describing the returned status in more detail.
     """
-    
     if not settings_or_groups or not setting_sources:
       return cls._status(cls.SUCCESS)
     
@@ -173,7 +171,6 @@ class SettingPersistor(object):
       
       * `status_message` - Message describing the status in more detail.
     """
-    
     if not settings_or_groups or not setting_sources:
       return cls._status(cls.SUCCESS)
     
@@ -199,7 +196,6 @@ class SettingPersistor(object):
     Remove all settings from all the specified setting sources. Note that some
     sources may do nothing because they do not implement this method.
     """
-    
     for source in setting_sources:
       source.clear()
   

@@ -41,7 +41,6 @@ def make_dirs(dirpath):
   
   Do not raise exception if the directory path already exists.
   """
-  
   try:
     os.makedirs(dirpath)
   except OSError as exc:

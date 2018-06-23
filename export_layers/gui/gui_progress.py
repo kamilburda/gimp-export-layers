@@ -36,7 +36,6 @@ from export_layers.pygimplib import pgutils
 
 
 class ItemProgressIndicator(object):
-  
   """
   This class controls a single progress bar to indicate the number of processed
   items and the status of the currently processed item.
@@ -55,7 +54,6 @@ class ItemProgressIndicator(object):
     Initialize the progress bar for the current item status to update according
     to GIMP PDB calls.
     """
-    
     if gimp.version >= (2, 9):
       return
     
@@ -81,7 +79,6 @@ class ItemProgressIndicator(object):
     Reset the progress bar for the current item status so that it no longer
     updates according to GIMP PDB calls.
     """
-    
     if gimp.version >= (2, 9):
       return
     

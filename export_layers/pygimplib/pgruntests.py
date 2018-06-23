@@ -68,7 +68,6 @@ def load_module(module_name):
   If not imported, import the module specified by its name.
   If already imported, reload the module.
   """
-  
   if module_name not in sys.modules:
     module = importlib.import_module(module_name)
   else:
@@ -97,7 +96,6 @@ def run_tests(
   
   `output_stream` prints the unit test output using the specified output stream.
   """
-  
   _fix_streams_for_unittest()
   
   module_names = []

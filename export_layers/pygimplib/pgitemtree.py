@@ -59,7 +59,6 @@ from . import pgutils
 
 @future.utils.python_2_unicode_compatible
 class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
-  
   """
   This class is an interface to store all items (and item groups) of a certain
   type (e.g. layers, channels or paths) of a GIMP image in an ordered
@@ -140,7 +139,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     Access an `_ItemTreeElement` object by its `_ItemTreeElement.item.ID`
     attribute or its `orig_name` attribute.
     """
-    
     try:
       item_elem = self._itemtree[id_or_name]
     except KeyError:
@@ -155,7 +153,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     object is specified by its `_ItemTreeElement.item.ID` attribute or its
     `orig_name` attribute.
     """
-    
     return id_or_name in self._itemtree or id_or_name in self._itemtree_names
   
   def __len__(self):
@@ -163,7 +160,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     Return the number of all item tree elements - that is, all immediate
     children of the image and all nested children.
     """
-    
     return len([item_elem for item_elem in self])
   
   def __iter__(self):
@@ -175,7 +171,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     * `item_elem` - The current `_ItemTreeElement` object.
     """
-    
     if not self.is_filtered:
       for item_elem in self._itemtree.values():
         yield item_elem
@@ -214,7 +209,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
       insert the uniquifier at the end of the name of each parent. This
       parameter has no effect if `include_item_path` is `False`.
     """
-    
     if include_item_path:
       for elem in list(item_elem.parents) + [item_elem]:
         parent = elem.parent
@@ -251,7 +245,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     Validate the `name` attribute of the specified item and all of its parents
     if not validated already or if `force_validation` is `True`.
     """
-    
     for elem in list(item_elem.parents) + [item_elem]:
       if elem not in self._validated_itemtree or force_validation:
         elem.name = pgpath.FilenameValidator.validate(elem.name)
@@ -263,7 +256,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     allow the item to be validated or uniquified again (using `validate_name`
     or `uniquify_name`, respectively).
     """
-    
     item_elem.name = item_elem.orig_name
     
     if item_elem in self._validated_itemtree:
@@ -277,7 +269,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     of item filtering) and clear cache for already uniquified and validated
     `_ItemTreeElement` instances.
     """
-    
     for item_elem in self._itemtree.values():
       item_elem.name = item_elem.orig_name
     
@@ -289,14 +280,12 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Reset the filter, creating a new empty `ObjectFilter`.
     """
-    
     self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
   
   def _fill_item_tree(self):
     """
     Fill the `_itemtree` and `_itemtree_names` dictionaries.
     """
-    
     child_items = self._get_children_from_image(self._image)
     child_item_elems = [
       _ItemTreeElement(item, [], None, self._name) for item in child_items]
@@ -336,7 +325,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     If no child items exist, return an empty list.
     """
-    
     pass
   
   def _get_children_from_item(self, item):
@@ -345,7 +333,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     If no child items exist, return an empty list.
     """
-    
     return item.children
   
   def _is_group(self, item):
@@ -380,7 +367,6 @@ class VectorTree(ItemTree):
 
 
 class _ItemTreeElement(object):
-  
   """
   This class wraps a `gimp.Item` object and defines custom item attributes.
   
@@ -529,7 +515,6 @@ class _ItemTreeElement(object):
     Get file extension from the `name` attribute, in lowercase. If `name` has no
     file extension, return an empty string.
     """
-    
     return pgpath.get_file_extension(self.name)
   
   def get_file_extension_from_orig_name(self):
@@ -537,7 +522,6 @@ class _ItemTreeElement(object):
     Get file extension from the `orig_name` attribute, in lowercase. If
     `orig_name` has no file extension, return an empty string.
     """
-    
     return pgpath.get_file_extension(self.orig_name)
   
   def set_file_extension(self, file_extension, keep_extra_trailing_periods=False):
@@ -547,7 +531,6 @@ class _ItemTreeElement(object):
     For more information, see the
     `pgpath.get_filename_with_new_file_extension()` method.
     """
-    
     self.name = pgpath.get_filename_with_new_file_extension(
       self.name, file_extension, keep_extra_trailing_periods)
   
@@ -555,7 +538,6 @@ class _ItemTreeElement(object):
     """
     Return the item name without its file extension.
     """
-    
     file_extension = self.get_file_extension()
     if file_extension:
       return self.name[:-(len(file_extension) + 1)]
@@ -579,7 +561,6 @@ class _ItemTreeElement(object):
     Item path components consist of parents' item names, starting with the
     topmost parent.
     """
-    
     if dirpath is None:
       dirpath = ""
     
@@ -596,7 +577,6 @@ class _ItemTreeElement(object):
     """
     Return a list of names of all parents of this item as path components.
     """
-    
     return [parent.name for parent in self.parents]
   
   def add_tag(self, tag):
@@ -604,7 +584,6 @@ class _ItemTreeElement(object):
     Add the specified tag to the item. If the tag already exists, do nothing.
     The tag is saved to the item persistently.
     """
-    
     if tag in self._tags:
       return
     
@@ -617,7 +596,6 @@ class _ItemTreeElement(object):
     Remove the specified tag from the item. If the tag does not exist, raise
     `ValueError`.
     """
-    
     if tag not in self._tags:
       raise ValueError("tag '{}' not found in {}".format(tag, self))
     
@@ -630,7 +608,6 @@ class _ItemTreeElement(object):
     If this item and all of its parents are visible, return `True`, otherwise
     return `False`.
     """
-    
     path_visible = True
     if not self._item.visible:
       path_visible = False
@@ -645,7 +622,6 @@ class _ItemTreeElement(object):
     """
     Save tags persistently to the item.
     """
-    
     self._item.parasite_detach(self._tags_source_name)
     
     if self._tags:

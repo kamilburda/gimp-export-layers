@@ -176,7 +176,6 @@ class EntryPopup(object):
     in the tree view. For subsequent calls of this function, the width of the
     tree view will remain the same.
     """
-    
     columns = self._tree_view.get_columns()
     if columns:
       cell_height = max(column.cell_get_size()[4] for column in columns)
@@ -246,7 +245,6 @@ class EntryPopup(object):
     parameters if `tree_path` is `None` and `tree_path` is used to compute these
     parameters.
     """
-    
     if tree_path is None:
       position, text = self.select_and_assign_row(next_row_if_no_current_selection)
     else:

@@ -55,7 +55,6 @@ def uniquify_string(
   
   * `uniquifier_generator` - See `uniquify_string_generic.uniquifier_generator`.
   """
-  
   return uniquify_string_generic(
     str_,
     lambda str_param: str_param not in existing_strings,
@@ -75,7 +74,6 @@ def uniquify_filepath(filepath, uniquifier_position=None, uniquifier_generator=N
   
   * `uniquifier_generator` - See `uniquify_string_generic.uniquifier_generator`.
   """
-  
   return uniquify_string_generic(
     filepath,
     lambda filepath_param: not os.path.exists(filepath_param),
@@ -163,7 +161,6 @@ def get_file_extension(filename):
   periods. If there is no such extension, return the substring after the last
   period.
   """
-  
   filename_lowercase = filename.lower()
   
   if "." not in filename_lowercase:
@@ -194,7 +191,6 @@ def get_filename_with_new_file_extension(
   If `keep_extra_trailing_periods` is `True`, do not remove duplicate periods
   before the file extension.
   """
-  
   filename_extension = get_file_extension(filename)
   
   if filename_extension:
@@ -220,7 +216,6 @@ def split_path(path):
   """
   Split the specified path into separate path components.
   """
-  
   path = os.path.normpath(path)
   path_components = []
   
@@ -241,7 +236,6 @@ def split_path(path):
 
 
 class StringPatternGenerator(object):
-  
   """
   This class generates strings by a given pattern and optionally fields acting
   as variables in the pattern.
@@ -292,7 +286,6 @@ class StringPatternGenerator(object):
     class. For more information about string generation, refer to the class
     documentation.
     """
-    
     pattern_parts = []
     for part in self._pattern_parts:
       if not self._is_field(part):
@@ -307,7 +300,6 @@ class StringPatternGenerator(object):
     If the pattern contains number fields, reset the numbering of the fields to
     their initial value. Return the new number generators.
     """
-    
     new_number_generators = []
     
     for field_name in list(self._number_generators):
@@ -321,7 +313,6 @@ class StringPatternGenerator(object):
     """
     Return generators that generate auto-incrementing numbers in the pattern.
     """
-    
     return list(self._number_generators.values())
   
   def set_number_generators(self, number_generators):
@@ -330,7 +321,6 @@ class StringPatternGenerator(object):
     can be used to resume previous numbering, e.g. after calling
     `reset_numbering()`.
     """
-    
     if len(number_generators) != len(self._number_generators):
       raise ValueError(
         "incorrect number of number generators (got {}, expected {})".format(
@@ -346,7 +336,6 @@ class StringPatternGenerator(object):
     If the pattern contains a field at the given character position (starting
     from 0), return the field name, otherwise return `None`.
     """
-    
     unused_, parsed_fields, unused_ = cls._parse_pattern(pattern, fields=None)
     
     for parsed_field in parsed_fields:
@@ -591,7 +580,6 @@ class FileValidatorErrorStatuses(object):
 
 
 class StringValidator(future.utils.with_metaclass(abc.ABCMeta, object)):
-  
   """
   This class is an interface to validate strings.
   
@@ -616,7 +604,6 @@ class StringValidator(future.utils.with_metaclass(abc.ABCMeta, object)):
         a list of (status code, status message) tuples describing why the string
         is invalid. Otherwise it is an empty list.
     """
-    
     pass
   
   @classmethod
@@ -624,7 +611,6 @@ class StringValidator(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Modify the specified string to make it valid.
     """
-    
     pass
   
   @classmethod
@@ -684,7 +670,6 @@ class FilenameValidator(StringValidator):
     
     See the class description for details about when the filename is valid.
     """
-    
     if not filename or filename is None:
       return False, [cls._get_status(FileValidatorErrorStatuses.IS_EMPTY)]
     
@@ -720,7 +705,6 @@ class FilenameValidator(StringValidator):
     
     If the filename is truncated to an empty string, return "Untitled".
     """
-    
     filename = re.sub(cls._INVALID_CHARS_PATTERN, "", filename).strip(" ").rstrip(".")
     
     root, ext = os.path.splitext(filename)
@@ -736,7 +720,6 @@ class FilenameValidator(StringValidator):
 
 
 class FilepathValidator(StringValidator):
-  
   """
   This class is used to validate file paths (relative or absolute).
   
@@ -848,7 +831,6 @@ class FilepathValidator(StringValidator):
 
 
 class DirpathValidator(FilepathValidator):
-   
   """
   This class is used to validate directory paths (relative or absolute).
   

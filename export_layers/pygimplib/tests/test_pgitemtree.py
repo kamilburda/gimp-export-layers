@@ -73,7 +73,6 @@ def _parse_layers(layer_tree_string):
   
   Leading or trailing spaces in each line in the string are truncated.
   """
-  
   image = stubs_gimp.ImageStub()
   
   layer_tree_string = layer_tree_string.strip()

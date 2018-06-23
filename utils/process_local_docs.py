@@ -266,7 +266,6 @@ def reorganize_files(site_dirpath):
   Place all files except the top HTML file in one folder. Rename files for
   improved readability.
   """
-  
   for orig_relative_path, renamed_relative_path in RELATIVE_PATHS_TO_MOVE.items():
     orig_path = os.path.normpath(os.path.join(site_dirpath, orig_relative_path))
     renamed_path = os.path.normpath(os.path.join(site_dirpath, renamed_relative_path))

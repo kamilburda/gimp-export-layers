@@ -121,7 +121,6 @@ class OperationExecutor(object):
     the specified groups and return `None`. Note that the same function with
     different arguments is still treated as one function.
     """
-    
     if ignore_if_exists and self.contains(operation, groups, foreach):
       return None
     
@@ -233,7 +232,6 @@ class OperationExecutor(object):
     
     If the operation ID is not valid, raise `ValueError`.
     """
-    
     self._check_operation_id_is_valid(operation_id)
     
     for group in self._process_groups_arg(groups):
@@ -249,7 +247,6 @@ class OperationExecutor(object):
     
     If `foreach` is `True`, treat the operation as a for-each operation.
     """
-    
     operation_functions = self._get_operation_lists_and_functions(
       self._get_operation_type(operation, foreach))[1]
     
@@ -268,7 +265,6 @@ class OperationExecutor(object):
     
     If `foreach` is `True`, treat the operation as a for-each operation.
     """
-    
     operation_type = self._get_operation_type(operation, foreach)
     operation_lists = self._get_operation_lists_and_functions(operation_type)[0]
     
@@ -297,7 +293,6 @@ class OperationExecutor(object):
       * list of group names (strings) - specific groups,
       * `"all"` - all existing groups.
     """
-    
     return (
       operation_id in self._operation_items
       and any(group in self._operation_items[operation_id].groups
@@ -307,7 +302,6 @@ class OperationExecutor(object):
     """
     Return operation specified by its ID. If the ID is not valid, return `None`.
     """
-    
     if operation_id in self._operation_items:
       return self._operation_items[operation_id].operation
     else:
@@ -321,7 +315,6 @@ class OperationExecutor(object):
     If the ID is not valid or the operation is not in the group, raise
     `ValueError`.
     """
-    
     if group is None:
       group = "default"
     
@@ -341,7 +334,6 @@ class OperationExecutor(object):
     
     If `foreach` is `True`, return for-each operations instead.
     """
-    
     if group is None:
       group = "default"
     
@@ -362,7 +354,6 @@ class OperationExecutor(object):
     If `include_empty_groups` is `False`, do not include groups with no
     operations.
     """
-    
     if include_empty_groups:
       return list(self._operations)
     else:
@@ -388,7 +379,6 @@ class OperationExecutor(object):
       * group does not exist
       * operation is not in the group
     """
-    
     if group is None:
       group = "default"
     
@@ -420,7 +410,6 @@ class OperationExecutor(object):
       * operation ID is invalid
       * at least one of the specified groups does not exist
     """
-    
     self._check_operation_id_is_valid(operation_id)
     
     operation_list, operation_functions = (
@@ -445,7 +434,6 @@ class OperationExecutor(object):
     
     Non-existent groups in `groups` are ignored.
     """
-    
     processed_groups = [
       group for group in self._process_groups_arg(groups)
       if group in self.list_groups()]

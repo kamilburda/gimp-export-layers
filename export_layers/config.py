@@ -35,7 +35,6 @@ def init():
   """
   Initialize pygimplib configuration entries for this plug-in.
   """
-  
   pygimplib.config.PLUGIN_NAME = "export_layers"
   
   pygimplib.config.PLUGIN_SUBDIRPATH = os.path.join(

@@ -49,7 +49,6 @@ __all__ = [
 
 
 class EntryExpander(object):
-  
   """
   This class enables the specified `gtk.Entry` to have a flexible width, bounded
   by the specified minimum and maximum number of characters (width in
@@ -101,7 +100,6 @@ class EntryExpander(object):
 
 
 class ExtendedEntry(gtk.Entry):
-  
   """
   This class is a text entry with additional capabilities compared to
   `gtk.Entry`:
@@ -158,7 +156,6 @@ class ExtendedEntry(gtk.Entry):
      
     If `enable_undo` is `True`, add the assignment to the undo history.
     """
-    
     if self.has_focus() or not self._should_assign_placeholder_text(text):
       self._do_assign_text(text, enable_undo)
     else:
@@ -170,7 +167,6 @@ class ExtendedEntry(gtk.Entry):
     text (i.e. what `gtk.Entry.get_text()` would return), otherwise return an
     empty string.
     """
-    
     if not self._has_placeholder_text_assigned:
       return super().get_text()
     else:
@@ -181,7 +177,6 @@ class ExtendedEntry(gtk.Entry):
     Use this method to set text instead of `assign_text` if it is not desired to
     handle placeholder text assignment.
     """
-    
     if self._popup is not None:
       self._popup.trigger_popup = False
     if not enable_undo:
@@ -301,7 +296,6 @@ class FilenamePatternEntry(ExtendedEntry):
     Unlike the parent method, use the value of the suggested item rather than
     its display name to determine whether placeholder text should be assigned.
     """
-    
     return (
       not text
       or (self._default_item_value is not None and text == self._default_item_value))

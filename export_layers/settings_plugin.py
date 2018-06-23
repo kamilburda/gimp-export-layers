@@ -347,7 +347,6 @@ def setup_image_ids_and_filepaths_settings(
   must accept at least four arguments - current image ID, current image file
   path, the first setting and the second setting.
   """
-  
   if assign_image_id_to_filepath_func is None:
     assign_image_id_to_filepath_func = _default_assign_image_id_to_filepath
   
