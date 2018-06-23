@@ -23,6 +23,41 @@ from future.builtins import *
 
 #===============================================================================
 
+SETTING_PATH_SEPARATOR = "/"
+
+
+class SettingParentMixin(object):
+  
+  """
+  This mixin provides `Setting` and `SettingGroup` objects with a parent
+  reference, allowing settings and groups to form a tree-like structure.
+  """
+  
+  def __init__(self):
+    self._parent = None
+  
+  @property
+  def parent(self):
+    return self._parent
+  
+  @property
+  def parents(self):
+    """
+    Return a list of parents (setting groups), starting from the topmost parent.
+    """
+    
+    parent = self._parent
+    parents = []
+    
+    while parent is not None:
+      parents.insert(0, parent)
+      parent = parent.parent
+    
+    return parents
+  
+  def _set_as_parent_for_setting(self, setting):
+    setting._parent = self
+
 
 def get_pdb_name(setting_name):
   """
@@ -73,47 +108,6 @@ def generate_description(display_name):
   """
   
   return display_name.replace("_", "")
-
-
-#===============================================================================
-
-
-class SettingParentMixin(object):
-  
-  """
-  This mixin provides `Setting` and `SettingGroup` objects with a parent
-  reference, allowing settings and groups to form a tree-like structure.
-  """
-  
-  def __init__(self):
-    self._parent = None
-  
-  @property
-  def parent(self):
-    return self._parent
-  
-  @property
-  def parents(self):
-    """
-    Return a list of parents (setting groups), starting from the topmost parent.
-    """
-    
-    parent = self._parent
-    parents = []
-    
-    while parent is not None:
-      parents.insert(0, parent)
-      parent = parent.parent
-    
-    return parents
-  
-  def _set_as_parent_for_setting(self, setting):
-    setting._parent = self
-
-
-#===============================================================================
-
-SETTING_PATH_SEPARATOR = "/"
 
 
 def get_setting_path(setting, relative_path_setting_group=None):

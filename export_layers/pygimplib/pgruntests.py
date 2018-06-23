@@ -57,19 +57,6 @@ import unittest
 #===============================================================================
 
 
-def _fix_streams_for_unittest():
-  # In the GIMP Python-Fu console, `sys.stdout` and `sys.stderr` are missing
-  # the `flush()` method, which needs to be defined in order for the `unittest`
-  # module to work properly.
-  def flush(self):
-    pass
-  
-  for stream in [sys.stdout, sys.stderr]:
-    flush_func = getattr(stream, "flush", None)
-    if flush_func is None or not callable(stream.flush):
-      stream.flush = types.MethodType(flush, stream)
-
-
 def run_test(module, stream=sys.stderr):
   test_suite = unittest.TestLoader().loadTestsFromModule(module)
   test_runner = unittest.TextTestRunner(stream=stream)
@@ -135,3 +122,16 @@ def run_tests(
     module = load_module(module_name)
     if module_name.split(".")[-1].startswith(test_module_name_prefix):
       run_test(module, stream=output_stream)
+
+
+def _fix_streams_for_unittest():
+  # In the GIMP Python-Fu console, `sys.stdout` and `sys.stderr` are missing
+  # the `flush()` method, which needs to be defined in order for the `unittest`
+  # module to work properly.
+  def flush(self):
+    pass
+  
+  for stream in [sys.stdout, sys.stderr]:
+    flush_func = getattr(stream, "flush", None)
+    if flush_func is None or not callable(stream.flush):
+      stream.flush = types.MethodType(flush, stream)
