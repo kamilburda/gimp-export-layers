@@ -325,7 +325,8 @@ def create_settings():
 
 
 def setup_image_ids_and_filepaths_settings(
-      image_ids_dict_setting, image_filepaths_dict_setting,
+      image_ids_dict_setting,
+      image_filepaths_dict_setting,
       assign_image_id_to_filepath_func=None,
       assign_image_id_to_filepath_func_args=None,
       assign_filepath_to_image_id_func=None,

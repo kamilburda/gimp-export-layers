@@ -78,7 +78,10 @@ def load_module(module_name):
 
 
 def run_tests(
-      dirpath, test_module_name_prefix="test_", modules=None, ignored_modules=None,
+      dirpath,
+      test_module_name_prefix="test_",
+      modules=None,
+      ignored_modules=None,
       output_stream=sys.stderr):
   """
   Execute all modules containing unit tests located in the specified directory
