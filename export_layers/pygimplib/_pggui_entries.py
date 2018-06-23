@@ -252,7 +252,7 @@ class FilenamePatternEntry(ExtendedEntry):
   def __init__(self, suggested_items, *args, **kwargs):
     self._default_item_value = kwargs.pop("default_item", None)
     
-    self._suggested_fields = _get_suggested_fields(suggested_items)
+    self._suggested_fields = self._get_suggested_fields(suggested_items)
     
     suggested_item_values = [item[1] for item in suggested_items]
     if (self._default_item_value is not None
@@ -305,6 +305,24 @@ class FilenamePatternEntry(ExtendedEntry):
     return (
       not text
       or (self._default_item_value is not None and text == self._default_item_value))
+  
+  @staticmethod
+  def _get_suggested_fields(suggested_items):
+    suggested_fields = {}
+    
+    for item in suggested_items:
+      field_value = item[1]
+      if field_value.startswith("[") and field_value.endswith("]"):
+        if item[2]:
+          suggested_fields[field_value[1:-1]] = "\n".join([
+            "[{0}, <i>{1}</i>]".format(
+              gobject.markup_escape_text(field_value[1:-1]),
+              gobject.markup_escape_text(arguments))
+            for arguments in item[2]])
+        else:
+          suggested_fields[field_value[1:-1]] = ""
+    
+    return suggested_fields
   
   def _create_field_tooltip(self):
     self._field_tooltip_window = gtk.Window(type=gtk.WINDOW_POPUP)
@@ -486,24 +504,6 @@ class FilenamePatternEntry(ExtendedEntry):
     
     if undo_push_list:
       self.undo_context.undo_push(undo_push_list)
-
-
-def _get_suggested_fields(suggested_items):
-  suggested_fields = {}
-  
-  for item in suggested_items:
-    field_value = item[1]
-    if field_value.startswith("[") and field_value.endswith("]"):
-      if item[2]:
-        suggested_fields[field_value[1:-1]] = "\n".join([
-          "[{0}, <i>{1}</i>]".format(
-            gobject.markup_escape_text(field_value[1:-1]),
-            gobject.markup_escape_text(arguments))
-          for arguments in item[2]])
-      else:
-        suggested_fields[field_value[1:-1]] = ""
-  
-  return suggested_fields
 
 
 #===============================================================================

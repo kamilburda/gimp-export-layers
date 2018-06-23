@@ -272,7 +272,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._preview_width, self._preview_height = self._get_preview_size(
       layer_preview.width, layer_preview.height)
     
-    self._preview_width, self._preview_height, preview_data = _get_preview_data(
+    self._preview_width, self._preview_height, preview_data = self._get_preview_data(
       layer_preview, self._preview_width, self._preview_height)
     
     layer_preview_pixbuf = self._get_preview_pixbuf(
@@ -341,7 +341,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._preview_pixbuf = layer_preview_pixbuf
     
     if layer.has_alpha:
-      layer_preview_pixbuf = _add_alpha_background_to_pixbuf(
+      layer_preview_pixbuf = self._add_alpha_background_to_pixbuf(
         layer_preview_pixbuf,
         layer.opacity,
         self.draw_checkboard_alpha_background,
@@ -396,7 +396,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     scaled_preview_pixbuf = preview_pixbuf.scale_simple(
       scaled_preview_width, scaled_preview_height, gtk.gdk.INTERP_NEAREST)
     
-    scaled_preview_pixbuf = _add_alpha_background_to_pixbuf(
+    scaled_preview_pixbuf = self._add_alpha_background_to_pixbuf(
       scaled_preview_pixbuf,
       100,
       self.draw_checkboard_alpha_background,
@@ -434,70 +434,70 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       "<i>{}</i>".format(
         gobject.markup_escape_text(
           layer_name.encode(pgconstants.GTK_CHARACTER_ENCODING))))
-
   
-def _add_alpha_background_to_pixbuf(
-      pixbuf,
-      opacity,
-      use_checkboard_background=False,
-      check_size=None,
-      check_color_first=None,
-      check_color_second=None):
-  if use_checkboard_background:
-    pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
-      gtk.gdk.COLORSPACE_RGB,
-      False,
-      8,
-      pixbuf.get_width(),
-      pixbuf.get_height())
+  @staticmethod
+  def _add_alpha_background_to_pixbuf(
+        pixbuf,
+        opacity,
+        use_checkboard_background=False,
+        check_size=None,
+        check_color_first=None,
+        check_color_second=None):
+    if use_checkboard_background:
+      pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
+        gtk.gdk.COLORSPACE_RGB,
+        False,
+        8,
+        pixbuf.get_width(),
+        pixbuf.get_height())
+      
+      pixbuf.composite_color(
+        pixbuf_with_alpha_background,
+        0,
+        0,
+        pixbuf.get_width(),
+        pixbuf.get_height(),
+        0,
+        0,
+        1.0,
+        1.0,
+        gtk.gdk.INTERP_NEAREST,
+        int(round((opacity / 100.0) * 255)),
+        0,
+        0,
+        check_size,
+        check_color_first,
+        check_color_second)
+    else:
+      pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
+        gtk.gdk.COLORSPACE_RGB,
+        True,
+        8,
+        pixbuf.get_width(),
+        pixbuf.get_height())
+      pixbuf_with_alpha_background.fill(0xffffff00)
+      
+      pixbuf.composite(
+        pixbuf_with_alpha_background,
+        0,
+        0,
+        pixbuf.get_width(),
+        pixbuf.get_height(),
+        0,
+        0,
+        1.0,
+        1.0,
+        gtk.gdk.INTERP_NEAREST,
+        int(round((opacity / 100.0) * 255)))
     
-    pixbuf.composite_color(
-      pixbuf_with_alpha_background,
-      0,
-      0,
-      pixbuf.get_width(),
-      pixbuf.get_height(),
-      0,
-      0,
-      1.0,
-      1.0,
-      gtk.gdk.INTERP_NEAREST,
-      int(round((opacity / 100.0) * 255)),
-      0,
-      0,
-      check_size,
-      check_color_first,
-      check_color_second)
-  else:
-    pixbuf_with_alpha_background = gtk.gdk.Pixbuf(
-      gtk.gdk.COLORSPACE_RGB,
-      True,
-      8,
-      pixbuf.get_width(),
-      pixbuf.get_height())
-    pixbuf_with_alpha_background.fill(0xffffff00)
+    return pixbuf_with_alpha_background
+  
+  @staticmethod
+  def _get_preview_data(layer, preview_width, preview_height):
+    actual_preview_width, actual_preview_height, unused_, unused_, preview_data = (
+      pdb.gimp_drawable_thumbnail(layer, preview_width, preview_height))
     
-    pixbuf.composite(
-      pixbuf_with_alpha_background,
-      0,
-      0,
-      pixbuf.get_width(),
-      pixbuf.get_height(),
-      0,
-      0,
-      1.0,
-      1.0,
-      gtk.gdk.INTERP_NEAREST,
-      int(round((opacity / 100.0) * 255)))
-  
-  return pixbuf_with_alpha_background
-
-  
-def _get_preview_data(layer, preview_width, preview_height):
-  actual_preview_width, actual_preview_height, unused_, unused_, preview_data = (
-    pdb.gimp_drawable_thumbnail(layer, preview_width, preview_height))
-  
-  return (
-    actual_preview_width,
-    actual_preview_height,
-    array.array(b"B", preview_data).tostring())
+    return (
+      actual_preview_width,
+      actual_preview_height,
+      array.array(b"B", preview_data).tostring())
