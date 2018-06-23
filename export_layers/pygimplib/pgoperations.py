@@ -30,6 +30,18 @@ import itertools
 
 
 class OperationExecutor(object):
+  """
+  This class executes a sequence of functions while allowing to modify which
+  functions in the sequence are executed and what order they are executed in.
+  A function is hereinafter referred to as an "operation".
+  
+  Additional features include:
+  * grouping operations and executing only operations in specified groups,
+  * adding operations to be executed before or after each operation ("for-each"
+    operations),
+  * adding another `OperationExecutor` instance as an operation (i.e. nesting
+    the current instance inside another instance).
+  """
   
   _OPERATION_TYPES = _TYPE_OPERATION, _TYPE_FOREACH_OPERATION, _TYPE_EXECUTOR = (0, 1, 2)
   
