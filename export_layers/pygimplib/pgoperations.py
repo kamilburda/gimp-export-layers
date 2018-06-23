@@ -70,7 +70,12 @@ class OperationExecutor(object):
     self._operation_items = {}
   
   def add(
-        self, operation, groups=None, args=None, kwargs=None, foreach=False,
+        self,
+        operation,
+        groups=None,
+        args=None,
+        kwargs=None,
+        foreach=False,
         ignore_if_exists=False):
     """
     Add an operation to be executed by `execute`. Return the ID of the newly
