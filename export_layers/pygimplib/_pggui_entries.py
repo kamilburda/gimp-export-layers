@@ -517,7 +517,7 @@ class FileExtensionEntry(ExtendedEntry):
     self._extensions_text_pixel_rects = []
     
     self._popup = _pggui_entrypopup.EntryPopup(
-      self, self._COLUMN_TYPES, _get_file_formats(pgfileformats.file_formats))
+      self, self._COLUMN_TYPES, self._get_file_formats(pgfileformats.file_formats))
     self._popup.filter_rows_func = self._filter_file_formats
     self._popup.on_assign_from_selected_row = self._on_assign_from_selected_row
     self._popup.on_assign_last_value = self._do_assign_text
@@ -557,7 +557,7 @@ class FileExtensionEntry(ExtendedEntry):
     self._highlight_extension_at_pos(int(event.x), int(event.y))
   
   def _on_after_tree_view_realize(self, tree_view):
-    self._extensions_separator_text_pixel_size = _get_text_pixel_size(
+    self._extensions_separator_text_pixel_size = self._get_text_pixel_size(
       self._cell_renderer_extensions.get_property("text-list-separator"),
       pango.Layout(self._popup.tree_view.get_pango_context()))
     
@@ -574,7 +574,7 @@ class FileExtensionEntry(ExtendedEntry):
       file_extensions = file_format[1]
       
       if len(file_extensions) > 1:
-        text_pixel_rects = _get_text_pixel_rects(
+        text_pixel_rects = self._get_text_pixel_rects(
           file_extensions, pango_layout, self._extensions_separator_text_pixel_size[0])
         for rect in text_pixel_rects:
           rect.x += self._cell_renderer_extensions.get_property("xpad")
@@ -803,25 +803,23 @@ class FileExtensionEntry(ExtendedEntry):
         extensions[self._highlighted_extension_index] = self._highlighted_extension
         self._highlighted_extension = None
 
-
-def _get_file_formats(file_formats):
-  return [[file_format.description, file_format.file_extensions]
-          for file_format in file_formats if file_format.is_installed()]
-
+  @staticmethod
+  def _get_file_formats(file_formats):
+    return [[file_format.description, file_format.file_extensions]
+            for file_format in file_formats if file_format.is_installed()]
   
-def _get_text_pixel_size(text, pango_layout):
-  pango_layout.set_text(text)
-  return pango_layout.get_pixel_size()
-
+  def _get_text_pixel_size(self, text, pango_layout):
+    pango_layout.set_text(text)
+    return pango_layout.get_pixel_size()
   
-def _get_text_pixel_rects(file_extensions, pango_layout, separator_pixel_width):
-  text_pixel_rects = []
-  
-  extension_x = 0
-  for extension in file_extensions:
-    extension_pixel_size = _get_text_pixel_size(extension, pango_layout)
-    text_pixel_rects.append(gtk.gdk.Rectangle(extension_x, 0, *extension_pixel_size))
+  def _get_text_pixel_rects(self, file_extensions, pango_layout, separator_pixel_width):
+    text_pixel_rects = []
     
-    extension_x += extension_pixel_size[0] + separator_pixel_width
-  
-  return text_pixel_rects
+    extension_x = 0
+    for extension in file_extensions:
+      extension_pixel_size = self._get_text_pixel_size(extension, pango_layout)
+      text_pixel_rects.append(gtk.gdk.Rectangle(extension_x, 0, *extension_pixel_size))
+      
+      extension_x += extension_pixel_size[0] + separator_pixel_width
+    
+    return text_pixel_rects
