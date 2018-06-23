@@ -86,11 +86,13 @@ The installers will be created in the `installers/output` directory.
 Coding Conventions <a name="Coding-Conventions"></a>
 ------------------
 
-Use PEP8 and PyLint to enforce coding conventions with their respective configuration files:
-* [PEP8 for PyDev](ide/org.python.pydev.analysis.yaml)
+For Python modules, stick to PEP 8 unless overridden below.
+
+Use pep8 and PyLint to enforce coding conventions with their respective configuration files:
+* [pep8 configuration for PyDev](ide/org.python.pydev.analysis.yaml)
 * [PyLint](ide/pylintrc)
 
-Additional conventions that override or complement the conventions in the aforementioned utilities are specified below.
+Additional conventions complementing aforementioned conventions are specified below.
 
 
 ### Line length
