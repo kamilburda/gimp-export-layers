@@ -98,9 +98,6 @@ class ParasiteFunctionsStub(object):
       del self._parasites[parasite_name]
 
 
-_ITEM_FIRST_AVAILABLE_ID = 0
-
-
 class ImageStub(ParasiteFunctionsStub):
   
   _image_id_counter = itertools.count(start=1)
