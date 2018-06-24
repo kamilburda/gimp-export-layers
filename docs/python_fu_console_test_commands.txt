@@ -10,8 +10,7 @@ import pgruntests
 pgruntests.run_tests(plugin_dirpath, modules=["export_layers.pygimplib"])
 
 
-imp.reload(pgruntests)
-pgruntests.run_tests(plugin_dirpath, modules=["export_layers.pygimplib"])
+imp.reload(pgruntests); pgruntests.run_tests(plugin_dirpath, modules=["export_layers.pygimplib"])
 
 
 _ = lambda s: s
@@ -28,17 +27,14 @@ import sync_docs
 orig_cwd = os.getcwd()
 
 
-imp.reload(make_installers)
-make_installers.main()
+imp.reload(make_installers); make_installers.main()
 
 
 
-imp.reload(sync_docs)
-sync_docs.main()
+imp.reload(sync_docs); sync_docs.main()
 
 
-imp.reload(preprocess_document_contents)
-preprocess_document_contents.main([os.path.join(plugin_dirpath, "docs", "README_raw.md")], [os.path.join(plugin_dirpath, "README.md")])
+imp.reload(preprocess_document_contents); preprocess_document_contents.main([os.path.join(plugin_dirpath, "docs", "README_raw.md")], [os.path.join(plugin_dirpath, "README.md")])
 
 
 
