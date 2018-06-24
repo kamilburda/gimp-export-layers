@@ -762,6 +762,26 @@ class TestOperationExecutorExecuteForeachOperations(OperationExecutorTestCase):
     self.executor.execute()
     
     self.assertListEqual(test_list, [1, 2, 3, 3])
+  
+  def test_execute_foreach_executor(self):
+    test_list = []
+    
+    def append_to_list_before_from_executor():
+      another_executor.execute()
+      yield
+    
+    self.executor.add(append_to_list, args=[test_list, 1])
+    self.executor.add(append_to_list, args=[test_list, 2])
+    
+    another_executor = pgoperations.OperationExecutor()
+    another_executor.add(append_to_list, args=[test_list, 3])
+    another_executor.add(append_to_list, args=[test_list, 4])
+    
+    self.executor.add(append_to_list_before_from_executor, foreach=True)
+    
+    self.executor.execute()
+    
+    self.assertListEqual(test_list, [3, 4, 1, 3, 4, 2])
 
 
 class TestOperationExecutorExecuteWithExecutor(OperationExecutorTestCase):

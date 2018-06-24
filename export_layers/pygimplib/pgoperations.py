@@ -79,7 +79,7 @@ class OperationExecutor(object):
     Add an operation to be executed by `execute`. Return the ID of the newly
     added operation.
     
-    The operation can be:
+    An operation can be:
     * a function, in which case optional arguments (`args`, a list or tuple) and
       keyword arguments (`kwargs`, a dict) can be specified,
     * an `OperationExecutor` instance.
@@ -102,9 +102,10 @@ class OperationExecutor(object):
     
     If `foreach` is `True` and the operation is a function, the operation is
     treated as a "for-each" operation. By default, a for-each operation is
-    executed after each regular operation or `OperationExecutor` instance. To
-    customize this behavior, use the `yield` statement in the for-each operation
-    to specify where it is desired to execute each operation. For example:
+    executed after each regular operation (function or `OperationExecutor`
+    instance). To customize this behavior, use the `yield` statement in the
+    for-each operation to specify where it is desired to execute each operation.
+    For example:
     
       def foo():
         print("bar")
@@ -130,6 +131,13 @@ class OperationExecutor(object):
     
     will print "bar1", "bar2", then execute the operation (only once), and then
     print "baz1" and "baz2".
+    
+    To make an `OperationExecutor` instance behave as a for-each operation, wrap
+    the instance in a function as shown above. For example:
+      
+      def execute_before_each_operation():
+        executor.execute()
+        yield
     
     If `ignore_if_exists` is `True`, do not add the operation if the same
     function or `OperationExecutor` instance is already added in at least one of
