@@ -448,7 +448,7 @@ class OperationExecutor(object):
         if operation_id not in self._operation_items:
           break
   
-  def remove_groups(self, groups=None):
+  def remove_groups(self, groups):
     """
     Remove the specified groups and their operations (including for-each
     operations).
