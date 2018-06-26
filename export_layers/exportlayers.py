@@ -701,6 +701,64 @@ class LayerExporter(object):
 #===============================================================================
 
 
+def add_operation(base_setting):
+  if (base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS
+      or base_setting.name in _BUILTIN_CONSTRAINTS_AND_SETTINGS
+      or base_setting.name in _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS):
+    if base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS:
+      operation_item = _BUILTIN_OPERATIONS_AND_SETTINGS[base_setting.name]
+      operation_group = _BUILTIN_OPERATIONS_GROUP
+    elif base_setting.name in _BUILTIN_CONSTRAINTS_AND_SETTINGS:
+      operation_item = _BUILTIN_CONSTRAINTS_AND_SETTINGS[base_setting.name]
+      operation_group = _BUILTIN_CONSTRAINTS_GROUP
+    elif base_setting.name in _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS:
+      operation_item = _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS[base_setting.name]
+      operation_group = _BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP
+    
+    operation = operation_item[0]
+    operation_args = operation_item[1] if len(operation_item) > 1 else ()
+    operation_kwargs = operation_item[2] if len(operation_item) > 2 else {}
+    
+    operation_id = _operation_executor.add(
+      execute_operation_only_if_setting(operation, base_setting),
+      [operation_group],
+      operation_args, operation_kwargs)
+    
+    _operation_settings_and_items[base_setting.name] = (operation_id, operation_group)
+
+
+def reorder_operation(setting, new_position):
+  if setting.name in _operation_settings_and_items:
+    _operation_executor.reorder(
+      _operation_settings_and_items[setting.name][0],
+      new_position,
+      _operation_settings_and_items[setting.name][1])
+
+
+def remove_operation(setting):
+  if setting.name in _operation_settings_and_items:
+    _operation_executor.remove(_operation_settings_and_items[setting.name][0], "all")
+
+
+def is_valid_operation(base_setting):
+  return any(
+    base_setting.name in builtin_operations_or_constraints
+    for builtin_operations_or_constraints in [
+      _BUILTIN_OPERATIONS_AND_SETTINGS,
+      _BUILTIN_CONSTRAINTS_AND_SETTINGS,
+      _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS])
+
+
+def execute_operation_only_if_setting(operation, setting):
+  def _execute_operation_only_if_setting(*operation_args, **operation_kwargs):
+    if setting.value:
+      return operation(*operation_args, **operation_kwargs)
+    else:
+      return False
+  
+  return _execute_operation_only_if_setting
+
+
 def _add_constraint(rule_func, subfilter=None):
   def _add_rule_func(*args):
     # HACK: This assumes that `LayerExporter` instance is added as an argument
@@ -772,64 +830,6 @@ _operation_executor.add(
   builtin_operations.set_active_layer_after_operation,
   [_BUILTIN_OPERATIONS_GROUP],
   foreach=True)
-
-
-def add_operation(base_setting):
-  if (base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS
-      or base_setting.name in _BUILTIN_CONSTRAINTS_AND_SETTINGS
-      or base_setting.name in _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS):
-    if base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS:
-      operation_item = _BUILTIN_OPERATIONS_AND_SETTINGS[base_setting.name]
-      operation_group = _BUILTIN_OPERATIONS_GROUP
-    elif base_setting.name in _BUILTIN_CONSTRAINTS_AND_SETTINGS:
-      operation_item = _BUILTIN_CONSTRAINTS_AND_SETTINGS[base_setting.name]
-      operation_group = _BUILTIN_CONSTRAINTS_GROUP
-    elif base_setting.name in _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS:
-      operation_item = _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS[base_setting.name]
-      operation_group = _BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP
-    
-    operation = operation_item[0]
-    operation_args = operation_item[1] if len(operation_item) > 1 else ()
-    operation_kwargs = operation_item[2] if len(operation_item) > 2 else {}
-    
-    operation_id = _operation_executor.add(
-      execute_operation_only_if_setting(operation, base_setting),
-      [operation_group],
-      operation_args, operation_kwargs)
-    
-    _operation_settings_and_items[base_setting.name] = (operation_id, operation_group)
-
-
-def reorder_operation(setting, new_position):
-  if setting.name in _operation_settings_and_items:
-    _operation_executor.reorder(
-      _operation_settings_and_items[setting.name][0],
-      new_position,
-      _operation_settings_and_items[setting.name][1])
-
-
-def remove_operation(setting):
-  if setting.name in _operation_settings_and_items:
-    _operation_executor.remove(_operation_settings_and_items[setting.name][0], "all")
-
-
-def is_valid_operation(base_setting):
-  return any(
-    base_setting.name in builtin_operations_or_constraints
-    for builtin_operations_or_constraints in [
-      _BUILTIN_OPERATIONS_AND_SETTINGS,
-      _BUILTIN_CONSTRAINTS_AND_SETTINGS,
-      _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS])
-
-
-def execute_operation_only_if_setting(operation, setting):
-  def _execute_operation_only_if_setting(*operation_args, **operation_kwargs):
-    if setting.value:
-      return operation(*operation_args, **operation_kwargs)
-    else:
-      return False
-  
-  return _execute_operation_only_if_setting
 
 
 #===============================================================================
