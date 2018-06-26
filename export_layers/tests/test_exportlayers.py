@@ -25,6 +25,7 @@ import os
 import shutil
 import unittest
 
+import gimp
 from gimp import pdb
 
 from export_layers import pygimplib
@@ -46,7 +47,7 @@ pygimplib.init()
 _CURRENT_MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
 TEST_IMAGES_DIRPATH = os.path.join(_CURRENT_MODULE_DIRPATH, "test_images")
 
-EXPECTED_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "expected_results")
+DEFAULT_EXPECTED_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "expected_results")
 OUTPUT_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "temp_output")
 INCORRECT_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "incorrect_results")
 
@@ -69,7 +70,16 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     if os.path.exists(INCORRECT_RESULTS_DIRPATH):
       shutil.rmtree(INCORRECT_RESULTS_DIRPATH)
     
-    cls.default_expected_layers_dirpath = EXPECTED_RESULTS_DIRPATH
+    version_specific_expected_results_dirpath = (
+      DEFAULT_EXPECTED_RESULTS_DIRPATH
+      + "_"
+      + "-".join([str(version_number_part) for version_number_part in gimp.version[:2]]))
+    
+    if os.path.isdir(version_specific_expected_results_dirpath):
+      cls.expected_results_root_dirpath = version_specific_expected_results_dirpath
+    else:
+      cls.expected_results_root_dirpath = DEFAULT_EXPECTED_RESULTS_DIRPATH
+    
     # key: path to directory containing expected results
     # value: gimp.Image instance
     cls.expected_images = {}
@@ -110,7 +120,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     self.compare(
       {"use_image_size": True},
       expected_results_dirpath=os.path.join(
-        self.default_expected_layers_dirpath, "use_image_size"))
+        self.expected_results_root_dirpath, "use_image_size"))
   
   def test_use_image_size_autocrop(self):
     self.compare(
@@ -119,13 +129,13 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       [("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop"),
        ("main-background", "main-background_autocrop")],
       expected_results_dirpath=os.path.join(
-        self.default_expected_layers_dirpath, "use_image_size"))
+        self.expected_results_root_dirpath, "use_image_size"))
   
   def test_background(self):
     self.compare(
       {"operations/insert_background_layers": True},
       expected_results_dirpath=os.path.join(
-        self.default_expected_layers_dirpath, "background"))
+        self.expected_results_root_dirpath, "background"))
   
   def test_background_autocrop(self):
     self.compare(
@@ -144,14 +154,14 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
        "operations/autocrop": True,
        "use_image_size": True},
       expected_results_dirpath=os.path.join(
-        self.default_expected_layers_dirpath, "background", "autocrop-use_image_size"))
+        self.expected_results_root_dirpath, "background", "autocrop-use_image_size"))
   
   def test_background_autocrop_background(self):
     self.compare(
       {"operations/insert_background_layers": True,
        "operations/autocrop_background": True},
       expected_results_dirpath=os.path.join(
-        self.default_expected_layers_dirpath, "background"))
+        self.expected_results_root_dirpath, "background"))
   
   def test_background_autocrop_background_use_image_size(self):
     self.compare(
@@ -159,7 +169,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
        "operations/autocrop_background": True,
        "use_image_size": True},
       expected_results_dirpath=os.path.join(
-        self.default_expected_layers_dirpath, "background",
+        self.expected_results_root_dirpath,
+        "background",
         "autocrop_background-use_image_size"))
   
   def test_foreground(self):
@@ -173,7 +184,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     self.compare(
       {"operations/insert_foreground_layers": True},
       expected_results_dirpath=os.path.join(
-        self.default_expected_layers_dirpath, "foreground"))
+        self.expected_results_root_dirpath, "foreground"))
     
     self._reload_image()
   
@@ -183,15 +194,16 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         different_results_and_expected_layers=None,
         expected_results_dirpath=None):
     settings = settings_plugin.create_settings()
-    settings["special"]["image"].set_value(self.test_image)
-    settings["main"]["output_directory"].set_value(self.output_dirpath)
+    settings["special/image"].set_value(self.test_image)
+    settings["main/output_directory"].set_value(self.output_dirpath)
+    settings["main/file_extension"].set_value("xcf")
     
     if different_settings is not None:
       for setting_name, setting_value in different_settings.items():
         settings["main"][setting_name].set_value(setting_value)
     
     if expected_results_dirpath is None:
-      expected_results_dirpath = self.default_expected_layers_dirpath
+      expected_results_dirpath = self.expected_results_root_dirpath
     
     if expected_results_dirpath not in self.expected_images:
       self.expected_images[expected_results_dirpath], expected_layers = (
@@ -225,8 +237,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         exportlayers.add_operation(operation_setting)
     
     layer_exporter = exportlayers.LayerExporter(
-      settings["special"]["run_mode"].value,
-      settings["special"]["image"].value,
+      settings["special/run_mode"].value,
+      settings["special/image"].value,
       settings["main"])
     
     layer_exporter.export()
