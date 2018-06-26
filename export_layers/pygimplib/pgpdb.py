@@ -277,7 +277,13 @@ def compare_layers(
     for layer in layer_group.children[1:]:
       layer.visible = True
       
-      histogram_data = pdb.gimp_histogram(layer_group, gimpenums.HISTOGRAM_VALUE, 1, 255)
+      if gimp.version >= (2, 10):
+        histogram_data = pdb.gimp_drawable_histogram(
+          layer_group, gimpenums.HISTOGRAM_VALUE, 1 / 255, 1.0)
+      else:
+        histogram_data = pdb.gimp_histogram(
+          layer_group, gimpenums.HISTOGRAM_VALUE, 1, 255)
+      
       percentile = histogram_data[5]
       identical = percentile == 0.0
       
