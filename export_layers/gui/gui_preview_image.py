@@ -138,6 +138,11 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     while gtk.events_pending():
       gtk.main_iteration()
     
+    # This could happen if a layer group contained an empty layer group as its
+    # only child and the empty layer group was subsequently removed.
+    if self.layer_elem is None:
+      return
+    
     with pgpdb.redirect_messages():
       preview_pixbuf = self._get_in_memory_preview(self.layer_elem.item)
     
