@@ -187,10 +187,10 @@ class OperationExecutor(object):
     
     Additional arguments and keyword arguments to all operations in the group
     are given by `additional_args` and `additional_kwargs`, respectively.
-    `additional_args` are appended at the end of argument list. If some keyword
-    arguments appear in both the keyword arguments to the `kwargs` argument in
-    the `add` method and `additional_kwargs`, the values from the latter
-    override the former.
+    `additional_args` are appended to the argument list. If some keyword
+    arguments appear in both the `kwargs` parameter in the `add` method and in
+    `additional_kwargs`, values from the latter override the values in the
+    former.
     """
     
     def _execute_operation(operation, operation_args, operation_kwargs):
