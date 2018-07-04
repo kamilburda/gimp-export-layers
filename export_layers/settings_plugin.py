@@ -43,7 +43,9 @@ from export_layers.pygimplib import pgsettinggroup
 def create_settings():
   # These settings require special handling in the code, hence their separation
   # from the other settings.
-  special_settings = pgsettinggroup.SettingGroup(name="special")
+  special_settings = pgsettinggroup.SettingGroup(
+    name="special",
+    tags=["ignore_reset", "ignore_load", "ignore_save"])
   
   special_settings.add([
     {
@@ -89,7 +91,8 @@ def create_settings():
       "name": "output_directory",
       "default_value": gimp.user_directory(1),   # `Documents` directory
       "display_name": _("Output directory"),
-      "gui_type": None
+      "gui_type": None,
+      "tags": ["ignore_reset"]
     },
     {
       "type": pgsetting.SettingTypes.boolean,
@@ -322,9 +325,6 @@ def create_settings():
   settings = pgsettinggroup.SettingGroup(name="all_settings")
   
   settings.add([special_settings, main_settings])
-  
-  settings["special"].tags.update(["ignore_reset", "ignore_load", "ignore_save"])
-  settings["main/output_directory"].tags.add("ignore_reset")
   
   #-----------------------------------------------------------------------------
   

@@ -113,7 +113,8 @@ def create_gui_settings():
     {
       "type": pgsetting.SettingTypes.image_IDs_and_directories,
       "name": "image_ids_and_directories",
-      "default_value": {}
+      "default_value": {},
+      "tags": ["ignore_reset"]
     },
     {
       "type": pgsetting.SettingTypes.generic,
@@ -150,7 +151,5 @@ def create_gui_settings():
       "default_value": collections.defaultdict(pgutils.return_none_func)
     },
   ])
-  
-  session_only_gui_settings["image_ids_and_directories"].tags.add("ignore_reset")
   
   return gui_settings, session_only_gui_settings, persistent_only_gui_settings
