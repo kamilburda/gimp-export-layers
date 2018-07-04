@@ -53,27 +53,37 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   * `description` (read-only) - A more detailed description of the group. By
     default, description is derived from `display_name`.
   
+  * `tags` - A set of arbitrary tags attached to the setting. Tags can be used
+    to e.g. iterate over a specific subset of settings.
+  
   * `setting_attributes` (read-only) - Dictionary of (setting attribute: value)
     pairs to assign to each setting in the group. Attributes in individual
     settings override these attributes.
-  
-  * `tags` - A set of arbitrary tags attached to the setting. Tags can be used
-    to e.g. iterate over a specific subset of settings.
   """
   
-  def __init__(self, name, display_name=None, description=None, setting_attributes=None):
+  def __init__(
+        self,
+        name,
+        display_name=None,
+        description=None,
+        tags=None,
+        setting_attributes=None):
     super().__init__()
     
     self._name = name
+    
     self._display_name = pgsettingutils.get_processed_display_name(
       display_name, self._name)
+    
     self._description = pgsettingutils.get_processed_description(
       description, self._display_name)
+    
+    self._tags = set(tags) if tags is not None else set()
+    
     self._setting_attributes = (
       setting_attributes if setting_attributes is not None else {})
     
     self._settings = collections.OrderedDict()
-    self._tags = set()
     
     # Used in the `_next()` method
     self._settings_iterator = None

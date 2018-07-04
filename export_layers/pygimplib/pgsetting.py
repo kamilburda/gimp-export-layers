@@ -168,7 +168,8 @@ class Setting(pgsettingutils.SettingParentMixin):
         gui_type=SettingGuiTypes.automatic,
         auto_update_gui_to_setting=True,
         setting_sources=None,
-        error_messages=None):
+        error_messages=None,
+        tags=None):
     """
     Described are only those parameters that do not correspond to
     any attribute in this class, or parameters requiring additional information.
@@ -214,6 +215,10 @@ class Setting(pgsettingutils.SettingParentMixin):
     * `error_messages` - A dict containing (message name, message contents)
       pairs. Use this to pass custom error messages. This way, you may also
       override default error messages defined in classes.
+    
+    * `tags` - An iterable container (list, set, etc.) of arbitrary tags
+      attached to the setting. Tags can be used to e.g. iterate over a specific
+      subset of settings.
     """
     super().__init__()
     
@@ -260,7 +265,7 @@ class Setting(pgsettingutils.SettingParentMixin):
     if error_messages is not None:
       self._error_messages.update(error_messages)
     
-    self._tags = set()
+    self._tags = set(tags) if tags is not None else set()
     
     if self._should_validate_default_value():
       self._validate_default_value()
