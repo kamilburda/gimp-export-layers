@@ -1139,7 +1139,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
       value = value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
     
     super().set_value(value)
-    
+  
   def _init_error_messages(self):
     for status in pgpath.FileValidatorErrorStatuses.ERROR_STATUSES:
       self.error_messages[status] = ""
@@ -1224,8 +1224,8 @@ class ImageIDsAndDirpathsSetting(Setting):
   
   @property
   def value(self):
-    # Return a copy to prevent modifying the dictionary indirectly, e.g. via
-    # setting individual entries (`setting.value[image.ID] = dirpath`).
+    # Return a copy to prevent modifying the dictionary indirectly by assigning
+    # to individual items (`setting.value[image.ID] = dirpath`).
     return dict(self._value)
   
   def update_image_ids_and_dirpaths(self):

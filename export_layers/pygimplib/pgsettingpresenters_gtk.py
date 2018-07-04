@@ -276,9 +276,6 @@ class GtkCheckMenuItemPresenter(GtkSettingPresenter):
     self._element.set_active(value)
 
 
-#===============================================================================
-
-
 class SettingGuiTypes(object):
   """
   This enum maps `SettingPresenter` classes to more human-readable names.

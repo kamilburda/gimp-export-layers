@@ -114,15 +114,13 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     if self._element is None:
       self._element = self._create_gui_element(setting)
       
-      gui_element_creation_supported = self._element is not None
-      if not gui_element_creation_supported:
+      if self._element is None:
         raise ValueError(
           "cannot instantiate class '{}': attribute 'element' is None "
           "and this class does not support the creation of a GUI element".format(
             type(self).__name__))
     
-    copy_state = old_setting_presenter is not None
-    if copy_state:
+    if old_setting_presenter is not None:
       self._copy_state(old_setting_presenter)
     else:
       self._setting_value_synchronizer.apply_setting_value_to_gui(self._setting.value)

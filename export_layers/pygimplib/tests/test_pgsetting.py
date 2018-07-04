@@ -30,11 +30,11 @@ import mock
 
 from . import stubs_gimp
 from . import stubs_pgsetting
+from .. import pgconstants
 from .. import pgpath
 from .. import pgsetting
 from .. import pgsettingpersistor
 from .. import pgsettingsources
-from .. import pgconstants
 
 
 class TestSetting(unittest.TestCase):
@@ -212,7 +212,9 @@ class TestSettingEvents(unittest.TestCase):
   def test_connect_event_keyword_arguments(self):
     autocrop = pgsetting.BoolSetting("autocrop", False)
     autocrop.connect_event(
-      "value-changed", stubs_pgsetting.on_autocrop_changed, self.setting,
+      "value-changed",
+      stubs_pgsetting.on_autocrop_changed,
+      self.setting,
       file_extension_value="tiff")
     
     autocrop.set_value(True)
@@ -220,7 +222,8 @@ class TestSettingEvents(unittest.TestCase):
   
   def test_connect_value_changed_event(self):
     self.setting.connect_event(
-      "value-changed", stubs_pgsetting.on_file_extension_changed,
+      "value-changed",
+      stubs_pgsetting.on_file_extension_changed,
       self.only_visible_layers)
     
     self.setting.set_value("jpg")
@@ -229,7 +232,8 @@ class TestSettingEvents(unittest.TestCase):
   
   def test_connect_value_changed_event_nested(self):
     self.setting.connect_event(
-      "value-changed", stubs_pgsetting.on_file_extension_changed,
+      "value-changed",
+      stubs_pgsetting.on_file_extension_changed,
       self.only_visible_layers)
     
     autocrop = pgsetting.BoolSetting("autocrop", False)
@@ -244,7 +248,8 @@ class TestSettingEvents(unittest.TestCase):
   
   def test_connect_event_multiple_events_on_single_setting(self):
     self.setting.connect_event(
-      "value-changed", stubs_pgsetting.on_file_extension_changed,
+      "value-changed",
+      stubs_pgsetting.on_file_extension_changed,
       self.only_visible_layers)
     
     autocrop = pgsetting.BoolSetting("autocrop", False)
@@ -258,7 +263,8 @@ class TestSettingEvents(unittest.TestCase):
   
   def test_remove_event(self):
     event_id = self.setting.connect_event(
-      "value-changed", stubs_pgsetting.on_file_extension_changed,
+      "value-changed",
+      stubs_pgsetting.on_file_extension_changed,
       self.only_visible_layers)
     self.setting.remove_event(event_id)
     
@@ -269,7 +275,8 @@ class TestSettingEvents(unittest.TestCase):
   
   def test_remove_event_with_id_non_last_event(self):
     event_id = self.setting.connect_event(
-      "value-changed", stubs_pgsetting.on_file_extension_changed,
+      "value-changed",
+      stubs_pgsetting.on_file_extension_changed,
       self.only_visible_layers)
     
     autocrop = pgsetting.BoolSetting("autocrop", False)
@@ -284,7 +291,8 @@ class TestSettingEvents(unittest.TestCase):
   
   def test_remove_event_invalid_id(self):
     self.setting.connect_event(
-      "value-changed", stubs_pgsetting.on_file_extension_changed,
+      "value-changed",
+      stubs_pgsetting.on_file_extension_changed,
       self.only_visible_layers)
     with self.assertRaises(ValueError):
       self.setting.remove_event(-1)
@@ -292,7 +300,8 @@ class TestSettingEvents(unittest.TestCase):
   def test_has_event(self):
     self.assertFalse(self.setting.has_event(-1))
     event_id = self.setting.connect_event(
-      "value-changed", stubs_pgsetting.on_file_extension_changed,
+      "value-changed",
+      stubs_pgsetting.on_file_extension_changed,
       self.only_visible_layers)
     self.assertTrue(self.setting.has_event(event_id))
     self.setting.remove_event(event_id)
@@ -303,7 +312,8 @@ class TestSettingEvents(unittest.TestCase):
       self.setting.set_event_enabled(-1, False)
     
     event_id = self.setting.connect_event(
-      "value-changed", stubs_pgsetting.on_file_extension_changed,
+      "value-changed",
+      stubs_pgsetting.on_file_extension_changed,
       self.only_visible_layers)
     
     self.setting.set_event_enabled(event_id, False)
@@ -317,7 +327,8 @@ class TestSettingEvents(unittest.TestCase):
   def test_invoke_event(self):
     self.only_visible_layers.set_value(True)
     self.setting.connect_event(
-      "value-changed", stubs_pgsetting.on_file_extension_changed,
+      "value-changed",
+      stubs_pgsetting.on_file_extension_changed,
       self.only_visible_layers)
     
     self.setting.invoke_event("value-changed")
@@ -326,7 +337,8 @@ class TestSettingEvents(unittest.TestCase):
   
   def test_reset_triggers_value_changed_event(self):
     self.setting.connect_event(
-      "value-changed", stubs_pgsetting.on_file_extension_changed,
+      "value-changed",
+      stubs_pgsetting.on_file_extension_changed,
       self.only_visible_layers)
     
     self.setting.set_value("jpg")
@@ -496,7 +508,8 @@ class TestSettingGui(unittest.TestCase):
   def test_setting_invalid_gui_type_raise_error(self):
     with self.assertRaises(ValueError):
       stubs_pgsetting.SettingWithGuiStub(
-        "only_visible_layers", False,
+        "only_visible_layers",
+        False,
         gui_type=stubs_pgsetting.YesNoToggleButtonPresenterStub)
   
   def test_setting_null_gui_type(self):
@@ -525,7 +538,8 @@ class TestSettingGui(unittest.TestCase):
   
   def test_set_gui_gui_element_is_none_presenter_has_no_wrapper_raise_error(self):
     setting = stubs_pgsetting.SettingWithGuiStub(
-      "only_visible_layers", False,
+      "only_visible_layers",
+      False,
       gui_type=stubs_pgsetting.SettingPresenterWithoutGuiElementCreationStub)
     with self.assertRaises(ValueError):
       setting.set_gui()
