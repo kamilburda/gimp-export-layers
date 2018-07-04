@@ -1272,6 +1272,51 @@ class ImageIDsAndDirpathsSetting(Setting):
       return None
 
 
+class OperationSetting(Setting):
+  """
+  This setting class can be used for operations. See
+  `pgoperation.OperationExecutor` class for more information about operations.
+  
+  Attributes:
+  
+  * `value` - a list or tuple:
+    `(function, list or tuple of arguments, dict of keyword arguments)`
+  
+  Additional attributes:
+  
+  * `enabled` (read-only) - If True, indicate that operation be executed, False
+    otherwise.
+  
+  Allowed GIMP PDB types:
+  
+  * `SettingPdbTypes.string`
+  
+  Additional events:
+    
+  * `"enabled-changed"` - invoked after `set_enabled` is called.
+  """
+  
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.check_button]
+  
+  def __init__(self, name, default_value, enabled=True, **kwargs):
+    super().__init__(name, default_value, **kwargs)
+    
+    self._enabled = enabled
+  
+  @property
+  def enabled(self):
+    return self._enabled
+  
+  def set_enabled(self, enabled):
+    """
+    Set the enabled state of the operation. This has in and of itself no effect
+    and only serves as an indication that the operation (the setting value)
+    should or should not be executed.
+    """
+    self._enabled = enabled
+    self.invoke_event("enabled-changed")
+  
+
 class SettingValueError(Exception):
   """
   This exception class is raised when a value assigned to a `Setting` object is
@@ -1310,3 +1355,4 @@ class SettingTypes(object):
   file_extension = FileExtensionSetting
   directory = DirpathSetting
   image_IDs_and_directories = ImageIDsAndDirpathsSetting
+  operation = OperationSetting
