@@ -196,8 +196,10 @@ def _setup_output_directory_changed(settings, current_image):
         output_directory, image_ids_and_directories, current_image_id):
     image_ids_and_directories.update_dirpath(current_image_id, output_directory.value)
   
-  settings["main/output_directory"].connect_event("value-changed",
-    on_output_directory_changed, settings["gui_session/image_ids_and_directories"],
+  settings["main/output_directory"].connect_event(
+    "value-changed",
+    on_output_directory_changed,
+    settings["gui_session/image_ids_and_directories"],
     current_image.ID)
 
 

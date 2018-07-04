@@ -44,6 +44,7 @@ from export_layers.pygimplib import pgoverwrite
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgprogress
+from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgutils
 
 from . import builtin_operations
@@ -276,14 +277,21 @@ class LayerExporter(object):
     
     orig_setting_values = {}
     for setting_name, new_value in export_settings_to_modify.items():
-      orig_setting_values[setting_name] = self.export_settings[setting_name].value
-      self.export_settings[setting_name].set_value(new_value)
+      if isinstance(self.export_settings[setting_name], pgsetting.OperationSetting):
+        orig_setting_values[setting_name] = self.export_settings[setting_name].enabled
+        self.export_settings[setting_name].set_enabled(new_value)
+      else:
+        orig_setting_values[setting_name] = self.export_settings[setting_name].value
+        self.export_settings[setting_name].set_value(new_value)
     
     try:
       yield
     finally:
       for setting_name, orig_value in orig_setting_values.items():
-        self.export_settings[setting_name].set_value(orig_value)
+        if isinstance(self.export_settings[setting_name], pgsetting.OperationSetting):
+          self.export_settings[setting_name].set_enabled(orig_value)
+        else:
+          self.export_settings[setting_name].set_value(orig_value)
       
       for setting_name, event_ids in settings_events_to_temporarily_disable.items():
         for event_id in event_ids:
@@ -355,7 +363,7 @@ class LayerExporter(object):
           self, function.__name__, self._processing_groups_functions[function.__name__])
     
     if processing_groups:
-      if (not self.export_settings["constraints/only_selected_layers"].value
+      if (not self.export_settings["constraints/only_selected_layers"].enabled
           and "layer_name" in processing_groups):
         processing_groups.append("_postprocess_layer_name")
       
@@ -408,7 +416,7 @@ class LayerExporter(object):
     if self.export_settings["only_visible_layers"].value:
       self._layer_tree.filter.add_rule(builtin_constraints.is_path_visible)
     
-    if self.export_settings["constraints/only_selected_layers"].value:
+    if self.export_settings["constraints/only_selected_layers"].enabled:
       self._layer_tree.filter.add_rule(
         builtin_constraints.is_layer_in_selected_layers,
         self.export_settings["selected_layers"].value[self.image.ID])
@@ -562,7 +570,7 @@ class LayerExporter(object):
       self._layer_tree.reset_name(layer_elem)
   
   def _set_file_extension(self, layer_elem):
-    if self.export_settings["operations/use_file_extensions_in_layer_names"].value:
+    if self.export_settings["operations/use_file_extensions_in_layer_names"].enabled:
       orig_file_extension = layer_elem.get_file_extension_from_orig_name()
       if (orig_file_extension
           and self._file_extension_properties[orig_file_extension].is_valid):
@@ -751,7 +759,7 @@ def is_valid_operation(base_setting):
 
 def execute_operation_only_if_setting(operation, setting):
   def _execute_operation_only_if_setting(*operation_args, **operation_kwargs):
-    if setting.value:
+    if setting.enabled:
       return operation(*operation_args, **operation_kwargs)
     else:
       return False

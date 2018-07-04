@@ -56,16 +56,26 @@ class ExportPreviewsController(object):
     self._connect_setting_after_reset_displayed_layers_in_image_preview()
   
   def _connect_settings_changed(self):
-    for setting in self._settings["main"].walk():
-      if setting.name not in [
-          "file_extension", "output_directory", "overwrite_mode",
-          "layer_filename_pattern", "only_selected_layers",
-          "selected_layers", "selected_layers_persistent"]:
-        setting.connect_event("value-changed", self._on_setting_changed)
+    basic_setting_names_with_value_changed_event = [
+      "layer_groups_as_folders",
+      "use_image_size",
+      "only_visible_layers"
+    ]
+    
+    for setting_name in basic_setting_names_with_value_changed_event:
+      self._settings["main"][setting_name].connect_event(
+        "value-changed", self._on_setting_changed)
+    
+    for setting in self._settings["main/operations"].walk():
+      setting.connect_event("enabled-changed", self._on_setting_changed)
+    
+    for setting in self._settings["main/constraints"].walk():
+      if setting.name != "only_selected_layers":
+        setting.connect_event("enabled-changed", self._on_setting_changed)
   
   def _connect_setting_only_selected_layers_changed(self):
     event_id = self._settings["main/constraints/only_selected_layers"].connect_event(
-      "value-changed", self._on_setting_changed)
+      "enabled-changed", self._on_setting_changed)
     self._export_name_preview.temporarily_disable_setting_events_on_update(
       {"constraints/only_selected_layers": [event_id]})
     self._export_image_preview.temporarily_disable_setting_events_on_update(

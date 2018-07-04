@@ -33,6 +33,7 @@ from export_layers.pygimplib import pgfileformats
 from export_layers.pygimplib import pgitemtree
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
+from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgutils
 
 from .. import config
@@ -199,8 +200,11 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     settings["main/file_extension"].set_value("xcf")
     
     if different_settings is not None:
-      for setting_name, setting_value in different_settings.items():
-        settings["main"][setting_name].set_value(setting_value)
+      for setting_name, value in different_settings.items():
+        if isinstance(settings["main"][setting_name], pgsetting.SettingTypes.operation):
+          settings["main"][setting_name].set_enabled(value)
+        else:
+          settings["main"][setting_name].set_value(value)
     
     if expected_results_dirpath is None:
       expected_results_dirpath = self.expected_results_root_dirpath
