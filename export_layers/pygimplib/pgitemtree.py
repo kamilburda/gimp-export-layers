@@ -505,6 +505,10 @@ class _ItemTreeElement(object):
   def __str__(self):
     return pgutils.stringify_object(self, self.orig_name)
   
+  def __repr__(self):
+    return pgutils.stringify_object(
+      self, " ".join([self.orig_name, str(type(self.item))]))
+  
   def get_file_extension(self):
     """
     Get file extension from the `name` attribute, in lowercase. If `name` has no
