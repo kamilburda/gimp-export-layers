@@ -41,13 +41,54 @@ from export_layers.pygimplib import pgsettinggroup
 
 
 def create_settings():
-  # These settings require special handling in the code, hence their separation
-  # from the other settings.
-  special_settings = pgsettinggroup.SettingGroup(
-    name="special",
-    tags=["ignore_reset", "ignore_load", "ignore_save"])
+  settings = pgsettinggroup.create_groups({
+    "name": "all_settings",
+    "groups": [
+      {
+        # These settings require special handling in the code, hence their separation
+        # from the other settings.
+        "name": "special",
+        "tags": ["ignore_reset", "ignore_load", "ignore_save"],
+      },
+      {
+        "name": "main",
+        "setting_attributes": {
+          "setting_sources": [
+            pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]},
+        "groups": [
+          {
+            "name": "operations",
+            "setting_attributes": {
+              "pdb_type": None,
+              "setting_sources": [
+                pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+            }
+          },
+          {
+            "name": "constraints",
+            "setting_attributes": {
+              "pdb_type": None,
+              "setting_sources": [
+                pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+            },
+            "groups": [
+              {
+                "name": "include",
+                "display_name": _("Include"),
+                "setting_attributes": {
+                  "pdb_type": None,
+                  "setting_sources": [
+                    pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  })
   
-  special_settings.add([
+  settings["special"].add([
     {
       "type": pgsetting.SettingTypes.enumerated,
       "name": "run_mode",
@@ -73,13 +114,7 @@ def create_settings():
     },
   ])
   
-  main_settings = pgsettinggroup.SettingGroup(
-    name="main",
-    setting_attributes={
-      "setting_sources": [
-        pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]})
-  
-  main_settings.add([
+  settings["main"].add([
     {
       "type": pgsetting.SettingTypes.file_extension,
       "name": "file_extension",
@@ -152,15 +187,7 @@ def create_settings():
     },
   ])
   
-  operations_settings = pgsettinggroup.SettingGroup(
-    name="operations",
-    setting_attributes={
-      "pdb_type": None,
-      "setting_sources": [
-        pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
-    })
-  
-  operations_settings.add([
+  settings["main/operations"].add([
     {
       "type": pgsetting.SettingTypes.operation,
       "name": "insert_background_layers",
@@ -219,52 +246,7 @@ def create_settings():
     },
   ])
   
-  constraints_settings = pgsettinggroup.SettingGroup(
-    name="constraints",
-    setting_attributes={
-      "pdb_type": None,
-      "setting_sources": [
-        pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
-    })
-  
-  include_constraints_settings = pgsettinggroup.SettingGroup(
-    name="include",
-    display_name=_("Include"),
-    setting_attributes={
-      "pdb_type": None,
-      "setting_sources": [
-        pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
-    })
-  
-  include_constraints_settings.add([
-    {
-      "type": pgsetting.SettingTypes.operation,
-      "name": "include_layers",
-      "default_value": [
-        builtin_constraints.is_layer, [], {"subfilter": "layer_types"}],
-      "enabled": True,
-      "display_name": _("Include layers")
-    },
-    {
-      "type": pgsetting.SettingTypes.operation,
-      "name": "include_layer_groups",
-      "default_value": [
-        builtin_constraints.is_nonempty_group, [], {"subfilter": "layer_types"}],
-      "enabled": False,
-      "display_name": _("Include layer groups")
-    },
-    {
-      "type": pgsetting.SettingTypes.operation,
-      "name": "include_empty_layer_groups",
-      "default_value": [
-        builtin_constraints.is_empty_group, [], {"subfilter": "layer_types"}],
-      "enabled": False,
-      "display_name": _("Include empty layer groups")
-    }
-  ])
-  
-  constraints_settings.add([
-    include_constraints_settings,
+  settings["main/constraints"].add([
     {
       "type": pgsetting.SettingTypes.operation,
       "name": "only_layers_without_tags",
@@ -302,9 +284,32 @@ def create_settings():
     }
   ])
   
-  main_settings.add([operations_settings, constraints_settings])
-  
-  #-----------------------------------------------------------------------------
+  settings["main/constraints/include"].add([
+    {
+      "type": pgsetting.SettingTypes.operation,
+      "name": "include_layers",
+      "default_value": [
+        builtin_constraints.is_layer, [], {"subfilter": "layer_types"}],
+      "enabled": True,
+      "display_name": _("Include layers")
+    },
+    {
+      "type": pgsetting.SettingTypes.operation,
+      "name": "include_layer_groups",
+      "default_value": [
+        builtin_constraints.is_nonempty_group, [], {"subfilter": "layer_types"}],
+      "enabled": False,
+      "display_name": _("Include layer groups")
+    },
+    {
+      "type": pgsetting.SettingTypes.operation,
+      "name": "include_empty_layer_groups",
+      "default_value": [
+        builtin_constraints.is_empty_group, [], {"subfilter": "layer_types"}],
+      "enabled": False,
+      "display_name": _("Include empty layer groups")
+    }
+  ])
   
   def on_use_file_extensions_in_layer_names_enabled_changed(
         use_file_extensions_in_layer_names, file_extension):
@@ -315,18 +320,10 @@ def create_settings():
         "You need to specify default file extension for layers with invalid "
         "or no extension.")
   
-  main_settings["operations/use_file_extensions_in_layer_names"].connect_event(
+  settings["main/operations/use_file_extensions_in_layer_names"].connect_event(
     "enabled-changed",
     on_use_file_extensions_in_layer_names_enabled_changed,
-    main_settings["file_extension"])
-  
-  #-----------------------------------------------------------------------------
-  
-  settings = pgsettinggroup.SettingGroup(name="all_settings")
-  
-  settings.add([special_settings, main_settings])
-  
-  #-----------------------------------------------------------------------------
+    settings["main/file_extension"])
   
   return settings
 
