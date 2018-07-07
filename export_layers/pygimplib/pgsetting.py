@@ -118,7 +118,7 @@ class Setting(pgsettingutils.SettingParentMixin):
   
   * `gui` (read-only) - `SettingPresenter` instance acting as a wrapper of a GUI
     element. With `gui`, you may modify GUI-specific attributes, such as
-    visibility or sensitivity (enabled/disabled).
+    visibility or sensitivity.
   
   * `display_name` (read-only) - Setting name in human-readable format. Useful
     e.g. as GUI labels. The display name may contain underscores, which can be
@@ -388,7 +388,7 @@ class Setting(pgsettingutils.SettingParentMixin):
     """
     Create a new GUI object (`SettingPresenter` instance) for this setting or
     remove the GUI. The state of the previous GUI object is copied to the new
-    GUI object (such as its value, visibility and enabled state).
+    GUI object (such as its value, visibility and sensitivity).
     
     Parameters:
     
@@ -599,8 +599,10 @@ class Setting(pgsettingutils.SettingParentMixin):
     """
     Call all connected event handlers of the specified event type.
     """
-    for (event_handler, event_handler_args,
-         event_handler_kwargs, enabled) in self._event_handlers[event_type].values():
+    for (event_handler,
+         event_handler_args,
+         event_handler_kwargs,
+         enabled) in self._event_handlers[event_type].values():
       if enabled:
         event_handler(self, *event_handler_args, **event_handler_kwargs)
   

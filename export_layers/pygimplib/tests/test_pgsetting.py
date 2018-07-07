@@ -229,7 +229,7 @@ class TestSettingEvents(unittest.TestCase):
     
     self.setting.set_value("jpg")
     self.assertEqual(self.only_visible_layers.value, True)
-    self.assertFalse(self.only_visible_layers.gui.get_enabled())
+    self.assertFalse(self.only_visible_layers.gui.get_sensitive())
   
   def test_connect_value_changed_event_nested(self):
     self.setting.connect_event(
@@ -245,7 +245,7 @@ class TestSettingEvents(unittest.TestCase):
     
     self.assertEqual(self.setting.value, "jpg")
     self.assertEqual(self.only_visible_layers.value, True)
-    self.assertFalse(self.only_visible_layers.gui.get_enabled())
+    self.assertFalse(self.only_visible_layers.gui.get_sensitive())
   
   def test_connect_event_multiple_events_on_single_setting(self):
     self.setting.connect_event(
@@ -272,7 +272,7 @@ class TestSettingEvents(unittest.TestCase):
     self.setting.set_value("jpg")
     self.assertEqual(
       self.only_visible_layers.value, self.only_visible_layers.default_value)
-    self.assertTrue(self.only_visible_layers.gui.get_enabled())
+    self.assertTrue(self.only_visible_layers.gui.get_sensitive())
   
   def test_remove_event_with_id_non_last_event(self):
     event_id = self.setting.connect_event(
@@ -346,7 +346,7 @@ class TestSettingEvents(unittest.TestCase):
     self.setting.reset()
     self.assertEqual(
       self.only_visible_layers.value, self.only_visible_layers.default_value)
-    self.assertTrue(self.only_visible_layers.gui.get_enabled())
+    self.assertTrue(self.only_visible_layers.gui.get_sensitive())
 
 
 @mock.patch(
@@ -482,13 +482,13 @@ class TestSettingGui(unittest.TestCase):
     self.assertEqual(self.widget.value, "gif")
   
   def test_set_gui_preserves_gui_state(self):
-    self.setting.gui.set_enabled(False)
+    self.setting.gui.set_sensitive(False)
     self.setting.gui.set_visible(False)
     self.setting.set_value("gif")
     
     self.setting.set_gui(stubs_pgsetting.SettingPresenterStub, self.widget)
     
-    self.assertFalse(self.setting.gui.get_enabled())
+    self.assertFalse(self.setting.gui.get_sensitive())
     self.assertFalse(self.setting.gui.get_visible())
     self.assertEqual(self.widget.value, "gif")
   
@@ -570,7 +570,7 @@ class TestSettingGui(unittest.TestCase):
     self.widget.set_value("jpg")
     self.assertEqual(self.setting.value, "jpg")
     self.assertEqual(only_visible_layers.value, True)
-    self.assertFalse(only_visible_layers.gui.get_enabled())
+    self.assertFalse(only_visible_layers.gui.get_sensitive())
   
   def test_reset_updates_gui(self):
     self.setting.set_gui(stubs_pgsetting.SettingPresenterStub, self.widget)

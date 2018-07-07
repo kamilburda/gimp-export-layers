@@ -113,12 +113,12 @@ class ExportPreviewsController(object):
     def _connect_visible_changed(preview, setting):
       preview.widget.connect("notify::visible", self._on_preview_visible_changed, preview)
       if not setting.value:
-        preview.lock_update(True, "previews_enabled")
+        preview.lock_update(True, "previews_sensitive")
     
     _connect_visible_changed(
-      self._export_name_preview, self._settings["gui/export_name_preview_enabled"])
+      self._export_name_preview, self._settings["gui/export_name_preview_sensitive"])
     _connect_visible_changed(
-      self._export_image_preview, self._settings["gui/export_image_preview_enabled"])
+      self._export_image_preview, self._settings["gui/export_image_preview_sensitive"])
   
   def _on_preview_visible_changed(self, widget, property_spec, preview):
     preview_visible = preview.widget.get_visible()
@@ -138,19 +138,19 @@ class ExportPreviewsController(object):
     if (current_position == max_position
         and self._paned_outside_previews_previous_position != max_position):
       self._disable_preview_on_paned_drag(
-        self._export_name_preview, self._settings["gui/export_name_preview_enabled"],
-        "previews_enabled")
+        self._export_name_preview, self._settings["gui/export_name_preview_sensitive"],
+        "previews_sensitive")
       self._disable_preview_on_paned_drag(
-        self._export_image_preview, self._settings["gui/export_image_preview_enabled"],
-        "previews_enabled")
+        self._export_image_preview, self._settings["gui/export_image_preview_sensitive"],
+        "previews_sensitive")
     elif (current_position != max_position
           and self._paned_outside_previews_previous_position == max_position):
       self._enable_preview_on_paned_drag(
-        self._export_name_preview, self._settings["gui/export_name_preview_enabled"],
-        "previews_enabled")
+        self._export_name_preview, self._settings["gui/export_name_preview_sensitive"],
+        "previews_sensitive")
       self._enable_preview_on_paned_drag(
-        self._export_image_preview, self._settings["gui/export_image_preview_enabled"],
-        "previews_enabled")
+        self._export_image_preview, self._settings["gui/export_image_preview_sensitive"],
+        "previews_sensitive")
     elif current_position != self._paned_outside_previews_previous_position:
       if self._export_image_preview.is_larger_than_image():
         pginvocation.timeout_add_strict(
@@ -170,23 +170,23 @@ class ExportPreviewsController(object):
     if (current_position == max_position
         and self._paned_between_previews_previous_position != max_position):
       self._disable_preview_on_paned_drag(
-        self._export_image_preview, self._settings["gui/export_image_preview_enabled"],
-        "vpaned_preview_enabled")
+        self._export_image_preview, self._settings["gui/export_image_preview_sensitive"],
+        "vpaned_preview_sensitive")
     elif (current_position != max_position
           and self._paned_between_previews_previous_position == max_position):
       self._enable_preview_on_paned_drag(
-        self._export_image_preview, self._settings["gui/export_image_preview_enabled"],
-        "vpaned_preview_enabled")
+        self._export_image_preview, self._settings["gui/export_image_preview_sensitive"],
+        "vpaned_preview_sensitive")
     elif (current_position == min_position
           and self._paned_between_previews_previous_position != min_position):
       self._disable_preview_on_paned_drag(
-        self._export_name_preview, self._settings["gui/export_name_preview_enabled"],
-        "vpaned_preview_enabled")
+        self._export_name_preview, self._settings["gui/export_name_preview_sensitive"],
+        "vpaned_preview_sensitive")
     elif (current_position != min_position
           and self._paned_between_previews_previous_position == min_position):
       self._enable_preview_on_paned_drag(
-        self._export_name_preview, self._settings["gui/export_name_preview_enabled"],
-        "vpaned_preview_enabled")
+        self._export_name_preview, self._settings["gui/export_name_preview_sensitive"],
+        "vpaned_preview_sensitive")
     elif current_position != self._paned_between_previews_previous_position:
       if self._export_image_preview.is_larger_than_image():
         pginvocation.timeout_add_strict(
@@ -199,20 +199,20 @@ class ExportPreviewsController(object):
     self._paned_between_previews_previous_position = current_position
   
   def _enable_preview_on_paned_drag(
-        self, preview, preview_enabled_setting, update_lock_key):
+        self, preview, preview_sensitive_setting, update_lock_key):
     preview.lock_update(False, update_lock_key)
     preview.add_function_at_update(preview.set_sensitive, True)
     # In case the image preview gets resized, the update would be canceled,
     # hence update always.
     pginvocation.timeout_add(
       self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS, preview.update)
-    preview_enabled_setting.set_value(True)
+    preview_sensitive_setting.set_value(True)
   
   def _disable_preview_on_paned_drag(
-        self, preview, preview_enabled_setting, update_lock_key):
+        self, preview, preview_sensitive_setting, update_lock_key):
     preview.lock_update(True, update_lock_key)
     preview.set_sensitive(False)
-    preview_enabled_setting.set_value(False)
+    preview_sensitive_setting.set_value(False)
   
   def on_name_preview_selection_changed(self):
     layer_elem_from_cursor = self._export_name_preview.get_layer_elem_from_cursor()

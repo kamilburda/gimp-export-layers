@@ -141,16 +141,16 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     return self._value_changed_signal is not None
   
   @abc.abstractmethod
-  def get_enabled(self):
+  def get_sensitive(self):
     """
-    Return the enabled/disabled state of the GUI element.
+    Return the sensitive state of the GUI element.
     """
     pass
   
   @abc.abstractmethod
-  def set_enabled(self, enabled):
+  def set_sensitive(self, sensitive):
     """
-    Set the enabled/disabled state of the GUI element.
+    Set the sensitive state of the GUI element.
     """
     pass
   
@@ -229,7 +229,7 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   def _copy_state(self, old_setting_presenter):
     self._set_value(old_setting_presenter._get_value())
-    self.set_enabled(old_setting_presenter.get_enabled())
+    self.set_sensitive(old_setting_presenter.get_sensitive())
     self.set_visible(old_setting_presenter.get_visible())
     
     if not old_setting_presenter.gui_update_enabled:
@@ -299,16 +299,16 @@ class NullSettingPresenter(SettingPresenter):
     `element` is ignored - its attributes are not read or set.
     """
     self._value = None
-    self._enabled = True
+    self._sensitive = True
     self._visible = True
     
     super().__init__(setting, self._NULL_GUI_ELEMENT, *args, **kwargs)
   
-  def get_enabled(self):
-    return self._enabled
+  def get_sensitive(self):
+    return self._sensitive
   
-  def set_enabled(self, enabled):
-    self._enabled = enabled
+  def set_sensitive(self, sensitive):
+    self._sensitive = sensitive
   
   def get_visible(self):
     return self._visible

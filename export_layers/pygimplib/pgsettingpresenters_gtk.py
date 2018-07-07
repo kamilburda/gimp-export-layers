@@ -45,11 +45,11 @@ class GtkSettingPresenter(
     
     super().__init__(*args, **kwargs)
   
-  def get_enabled(self):
+  def get_sensitive(self):
     return self._element.get_sensitive()
   
-  def set_enabled(self, value):
-    self._element.set_sensitive(value)
+  def set_sensitive(self, sensitive):
+    self._element.set_sensitive(sensitive)
   
   def get_visible(self):
     return self._element.get_visible()

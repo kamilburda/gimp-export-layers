@@ -75,13 +75,13 @@ def create_gui_settings():
     },
     {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "export_name_preview_enabled",
+      "name": "export_name_preview_sensitive",
       "default_value": True,
       "gui_type": None
     },
     {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "export_image_preview_enabled",
+      "name": "export_image_preview_sensitive",
       "default_value": True,
       "gui_type": None
     },

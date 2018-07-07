@@ -29,7 +29,7 @@ class GuiWidgetStub(object):
   
   def __init__(self, value):
     self.value = value
-    self.enabled = True
+    self.sensitive = True
     self.visible = True
     
     self._signal = None
@@ -55,11 +55,11 @@ class CheckButtonStub(GuiWidgetStub):
 
 class SettingPresenterStub(pgsettingpresenter.SettingPresenter):
   
-  def get_enabled(self):
-    return self._element.enabled
+  def get_sensitive(self):
+    return self._element.sensitive
   
-  def set_enabled(self, value):
-    self._element.enabled = value
+  def set_sensitive(self, sensitive):
+    self._element.sensitive = sensitive
 
   def get_visible(self):
     return self._element.visible
@@ -132,10 +132,10 @@ class SettingWithGuiStub(SettingStub):
 def on_file_extension_changed(file_extension, only_visible_layers):
   if file_extension.value == "png":
     only_visible_layers.set_value(False)
-    only_visible_layers.gui.set_enabled(True)
+    only_visible_layers.gui.set_sensitive(True)
   else:
     only_visible_layers.set_value(True)
-    only_visible_layers.gui.set_enabled(False)
+    only_visible_layers.gui.set_sensitive(False)
 
 
 def on_file_extension_changed_with_autocrop(file_extension, autocrop):
