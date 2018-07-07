@@ -54,8 +54,8 @@ class GtkSettingPresenter(
   def get_visible(self):
     return self._element.get_visible()
   
-  def set_visible(self, value):
-    self._element.set_visible(value)
+  def set_visible(self, visible):
+    self._element.set_visible(visible)
   
   def _connect_value_changed_event(self):
     self._event_handler_id = self._element.connect(

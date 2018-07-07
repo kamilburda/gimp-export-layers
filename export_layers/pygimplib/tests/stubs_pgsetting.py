@@ -64,8 +64,8 @@ class SettingPresenterStub(pgsettingpresenter.SettingPresenter):
   def get_visible(self):
     return self._element.visible
   
-  def set_visible(self, value):
-    self._element.visible = value
+  def set_visible(self, visible):
+    self._element.visible = visible
   
   def _create_gui_element(self, setting):
     return GuiWidgetStub(setting.value)
