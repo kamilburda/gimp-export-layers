@@ -436,6 +436,32 @@ class Setting(pgsettingutils.SettingParentMixin):
       old_setting_presenter=self._gui,
       auto_update_gui_to_setting=auto_update_gui_to_setting)
   
+  def set_attribute(self, attribute_name, attribute_value, *args, **kwargs):
+    """
+    Set the value (`attribute_value`) of an attribute given by its name
+    (`attribute_name`).
+    
+    Any attribute that can be accessed publicly and that also has a
+    corresponding `set_[attribute_name]` method defined is a valid attribute. A
+    prime example is the `value` attribute. Other attributes, non-existent
+    attributes or `attribute_name` equal to `"attribute"` raise
+    `AttributeError`.
+    
+    If the `set_[attribute_name]` method requires arguments or keyword
+    arguments, pass `*args` and `**kwargs`, respectively.
+    """
+    if attribute_name == "attribute":
+      raise AttributeError("'{}' is not a valid attribute".format(attribute_name))
+    
+    if hasattr(self, attribute_name) and hasattr(self, "set_" + attribute_name):
+      getattr(self, "set_" + attribute_name)(attribute_value, *args, **kwargs)
+    elif not hasattr(self, attribute_name):
+      raise AttributeError("setting '{}' has no attribute '{}'".format(
+        self.get_path(), attribute_name))
+    else:
+      raise AttributeError("cannot set value to attribute '{}' in setting '{}'".format(
+        attribute_name, self.get_path()))
+  
   def load(self, setting_sources=None):
     """
     Load setting from the specified setting source(s). See
