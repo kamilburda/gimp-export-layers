@@ -88,23 +88,24 @@ class Setting(pgsettingutils.SettingParentMixin):
   
   This class in particular can store any data. However, it is strongly
   recommended to use the appropriate `Setting` subclass for a particular data
-  type, as the subclasses offer the following features:
+  type, as the subclasses offer the following benefits:
   * setting can be registered to the GIMP procedural database (PDB),
   * automatic validation of input values,
   * readily available GUI element, keeping the GUI and the setting value in
     sync.
   
-  Settings can contain an event handler that is triggered when the value
-  of the setting changes (e.g. when `set_value()` method is called). This way,
-  other settings and their GUI elements can be adjusted automatically.
+  Settings can contain event handlers that are triggered when a setting property
+  changes, e.g. `value` (when `set_value()` method is called). This way, for
+  example, other settings can be updated automatically according to the new
+  value of the modified setting.
   
   If a setting subclass supports "empty" values, such values will not be
   considered invalid when used as default values. However, empty values will be
   treated as invalid when assigning the setting one of such values after
-  instantiation. Examples of empty values include `None` for an image object,
-  "Choose an item" for an enumerated setting, etc. Empty values are useful when
-  users must choose a different value, yet no valid value is a good candidate
-  for a default value.
+  instantiation. Examples of empty values include `None` for an image object, or
+  "Choose an item" for an enumerated setting. Empty values are useful when users
+  must choose a different value, yet no valid value is a good candidate for a
+  default value.
   
   Attributes:
   
