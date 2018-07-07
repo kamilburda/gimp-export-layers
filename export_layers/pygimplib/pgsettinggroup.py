@@ -343,6 +343,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   def remove(self, setting_names):
     """
     Remove settings from the group specified by their names.
+    
+    If any setting does not exist, raise `KeyError`.
     """
     for setting_name in setting_names:
       if setting_name in self._settings:
