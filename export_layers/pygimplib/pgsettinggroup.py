@@ -165,7 +165,11 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     if pgsettingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
       return self._get_setting_from_path(setting_name_or_path)
     else:
-      return self._settings[setting_name_or_path]
+      try:
+        return self._settings[setting_name_or_path]
+      except KeyError:
+        raise KeyError("setting '{}' not found in group '{}'".format(
+          setting_name_or_path, self.name))
   
   def __contains__(self, setting_name_or_path):
     if pgsettingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
