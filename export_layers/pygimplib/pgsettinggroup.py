@@ -32,6 +32,44 @@ from . import pgsettingutils
 from . import pgutils
 
 
+def create_groups(setting_dict):
+  """
+  Create a hierarchy of setting groups (`SettingGroup` instances) from a
+  dictionary containing attributes for the groups. This function simplifies
+  adding setting groups (via `SettingGroup.add`).
+  
+  Groups are specified under the `"groups"` key as a list of dictionaries.
+  
+  Only `"groups"` and the names of parameters for `SettingGroup.__init__` are
+  valid keys for `setting_dict`. Other keys raise `TypeError`.
+  
+  Example:
+    settings = pgsettinggroup.create_groups({
+      "name": "main",
+      "groups": [
+        {
+          "name": "operations"
+        },
+        {
+          "name": "constraints"
+        }
+      ]
+    })
+  """
+  
+  setting_group_dicts = setting_dict.pop("groups", None)
+  
+  if setting_group_dicts is None:
+    setting_group_dicts = []
+  
+  setting_group = SettingGroup(**setting_dict)
+  
+  for setting_group_dict in setting_group_dicts:
+    setting_group.add([create_groups(setting_group_dict)])
+  
+  return setting_group
+
+
 @future.utils.python_2_unicode_compatible
 class SettingGroup(pgsettingutils.SettingParentMixin):
   """

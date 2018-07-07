@@ -117,7 +117,7 @@ class TestSettingGroupAddWithSettingDict(unittest.TestCase):
     self.assertNotEqual(special_settings["autocrop"], main_settings["autocrop"])
 
 
-class TestSettingGroupAddWithSettingDictAndSettingAttributes(unittest.TestCase):
+class TestSettingGroupAddFromDict(unittest.TestCase):
   
   def test_add_with_group_level_attributes(self):
     settings = pgsettinggroup.SettingGroup(
@@ -163,11 +163,11 @@ class TestSettingGroupAddWithSettingDictAndSettingAttributes(unittest.TestCase):
       name="additional", setting_attributes={"pdb_type": pgsetting.SettingPdbTypes.int16})
     
     additional_settings.add([
-        {
-         "type": pgsetting.SettingTypes.boolean,
-         "name": "autocrop",
-         "default_value": False
-        }
+      {
+       "type": pgsetting.SettingTypes.boolean,
+       "name": "autocrop",
+       "default_value": False
+      }
     ])
     
     settings = pgsettinggroup.SettingGroup(
@@ -187,6 +187,51 @@ class TestSettingGroupAddWithSettingDictAndSettingAttributes(unittest.TestCase):
       settings["additional/autocrop"].pdb_type, pgsetting.SettingPdbTypes.int16)
     self.assertEqual(settings["only_visible_layers"].display_name, "Setting name")
     self.assertEqual(settings["additional/autocrop"].display_name, "Autocrop")
+
+
+class TestSettingGroupCreateGroupsFromDict(unittest.TestCase):
+  
+  def test_create_groups_no_groups(self):
+    settings = pgsettinggroup.create_groups({
+      "name": "main",
+      "groups": None,
+    })
+    
+    self.assertEqual(len(settings), 0)
+  
+  def test_create_groups(self):
+    settings = pgsettinggroup.create_groups({
+      "name": "main",
+      "groups": [
+        {
+          "name": "operations"
+        },
+        {
+          "name": "constraints",
+          "groups": [
+            {
+              "name": "include"
+            }
+          ]
+        }
+      ]
+    })
+    
+    self.assertEqual(settings.name, "main")
+    self.assertEqual(len(settings), 2)
+    self.assertIn("operations", settings)
+    self.assertIn("constraints", settings)
+    self.assertIn("constraints/include", settings)
+    self.assertIn("include", settings["constraints"])
+    self.assertEqual(len(settings["constraints"]), 1)
+    self.assertNotIn("include", settings)
+  
+  def test_create_group_invalid_key(self):
+    with self.assertRaises(TypeError):
+      pgsettinggroup.create_groups({
+        "name": "main",
+        "invalid_key": {},
+      })
 
 
 class TestSettingGroup(unittest.TestCase):
