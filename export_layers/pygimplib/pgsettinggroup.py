@@ -340,6 +340,36 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     return "missing the following mandatory setting attributes: {}".format(
       ", ".join(attribute_names))
   
+  def set_attributes(self, setting_attributes_and_values):
+    """
+    Set specified attributes to specified settings with a dictionary of
+    `(setting_name.attribute_name, attribute_value)` key-value pairs.
+    
+    If `attribute_name` is omitted in the key, the `value` attribute is assumed.
+    
+    If any attribute does not exist, raise `AttributeError`. If any setting does
+    not exist, raise `KeyError`. If the key has more than one '.' character,
+    raise `ValueError`.
+    
+    Example:
+      group.set_attributes({
+        "main/file_extension": "png",
+        "main/operations/autocrop.enabled": False
+      })
+    """
+    for setting_name_and_attribute, value in setting_attributes_and_values.items():
+      parts = setting_name_and_attribute.split(".")
+      if len(parts) == 1:
+        setting_name = setting_name_and_attribute
+        attribute_name = "value"
+      elif len(parts) == 2:
+        setting_name, attribute_name = parts
+      else:
+        raise ValueError("'{}' cannot have more than one '.' character".format(
+          setting_name_and_attribute))
+      
+      self[setting_name].set_attribute(attribute_name, value)
+  
   def remove(self, setting_names):
     """
     Remove settings from the group specified by their names.

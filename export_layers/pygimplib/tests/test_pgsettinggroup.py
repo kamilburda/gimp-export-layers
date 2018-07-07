@@ -295,6 +295,37 @@ class TestSettingGroup(unittest.TestCase):
     self.assertIn("special", main_settings)
     self.assertEqual(self.settings["special"], main_settings["special"])
   
+  def test_set_attributes(self):
+    only_tagged_layers_setting = pgsetting.OperationSetting("only_tagged_layers", [])
+    self.settings.add([only_tagged_layers_setting])
+    
+    self.settings.set_attributes({
+      "file_extension": "jpg",
+      "only_tagged_layers.enabled": True,
+    })
+    
+    self.assertEqual(self.settings["file_extension"].value, "jpg")
+    self.assertEqual(self.settings["only_tagged_layers"].enabled, True)
+    self.assertEqual(self.settings["only_tagged_layers"].value, [])
+  
+  def test_set_attributes_nonexistent_attribute(self):
+    with self.assertRaises(AttributeError):
+      self.settings.set_attributes({
+        "file_extension.nonexistent": "jpg",
+      })
+  
+  def test_set_attributes_nonexistent_setting(self):
+    with self.assertRaises(KeyError):
+      self.settings.set_attributes({
+        "nonexistent_setting": "jpg",
+      })
+  
+  def test_set_attributes_invalid_number_of_periods(self):
+    with self.assertRaises(ValueError):
+      self.settings.set_attributes({
+        "file_extension.value.value": "jpg",
+      })
+  
   def test_remove_settings(self):
     self.settings.remove(["file_extension", "only_visible_layers"])
     self.assertNotIn("file_extension", self.settings)
