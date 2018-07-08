@@ -318,6 +318,12 @@ class TestSettingGroup(unittest.TestCase):
       self.settings["file_extension"].default_value)
     self.assertEqual(setting_attributes_and_values["only_tagged_layers.enabled"], False)
   
+  def test_get_attributes_getter_only(self):
+    setting_attributes_and_values = self.settings.get_attributes([
+      "file_extension.name"])
+    self.assertEqual(
+      setting_attributes_and_values["file_extension.name"], "file_extension")
+  
   def test_get_attributes_nonexistent_attribute(self):
     with self.assertRaises(AttributeError):
       self.settings.get_attributes(["file_extension.nonexistent"])
