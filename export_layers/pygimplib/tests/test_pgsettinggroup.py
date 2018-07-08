@@ -34,6 +34,13 @@ class TestSettingGroupAttributes(unittest.TestCase):
   def setUp(self):
     self.settings = pgsettinggroup.SettingGroup(name="main")
   
+  def test_invalid_group_name(self):
+    with self.assertRaises(ValueError):
+      pgsettinggroup.SettingGroup(name="main/additional")
+    
+    with self.assertRaises(ValueError):
+      pgsettinggroup.SettingGroup(name="main.additional")
+  
   def test_get_generated_display_name(self):
     self.assertEqual(self.settings.display_name, "Main")
   

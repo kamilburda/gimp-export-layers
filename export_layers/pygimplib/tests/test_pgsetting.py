@@ -46,6 +46,13 @@ class TestSetting(unittest.TestCase):
   def test_str(self):
     self.assertEqual(str(self.setting), "<SettingStub 'file_extension'>")
   
+  def test_invalid_setting_name(self):
+    with self.assertRaises(ValueError):
+      stubs_pgsetting.SettingStub("file/extension", "png")
+    
+    with self.assertRaises(ValueError):
+      stubs_pgsetting.SettingStub("file.extension", "png")
+  
   def test_invalid_default_value(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
       stubs_pgsetting.SettingStub("setting", None)

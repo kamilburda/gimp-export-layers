@@ -109,6 +109,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     super().__init__()
     
     self._name = name
+    pgsettingutils.check_setting_name(self._name)
     
     self._display_name = pgsettingutils.get_processed_display_name(
       display_name, self._name)

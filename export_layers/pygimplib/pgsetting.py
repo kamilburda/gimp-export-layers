@@ -224,6 +224,8 @@ class Setting(pgsettingutils.SettingParentMixin):
     super().__init__()
     
     self._name = name
+    pgsettingutils.check_setting_name(self._name)
+    
     self._default_value = default_value
     
     self._value = copy.copy(self._default_value)

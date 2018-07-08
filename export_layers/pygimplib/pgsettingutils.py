@@ -23,6 +23,7 @@ from future.builtins import *
 
 
 SETTING_PATH_SEPARATOR = "/"
+SETTING_ATTRIBUTE_SEPARATOR = "."
 
 
 class SettingParentMixin(object):
@@ -125,3 +126,15 @@ def get_setting_path(setting, relative_path_setting_group=None):
       return setting_path[len(root_path + SETTING_PATH_SEPARATOR):]
   
   return setting_path
+
+
+def check_setting_name(setting_name):
+  """
+  Check if the specified setting name is valid. If not, raise `ValueError`.
+  
+  A setting name must not contain `SETTING_PATH_SEPARATOR` or
+  `SETTING_ATTRIBUTE_SEPARATOR`.
+  """
+  if (SETTING_PATH_SEPARATOR in setting_name
+      or SETTING_ATTRIBUTE_SEPARATOR in setting_name):
+    raise ValueError("setting name '{}' is not valid".format(setting_name))
