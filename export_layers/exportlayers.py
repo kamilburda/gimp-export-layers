@@ -254,19 +254,18 @@ class LayerExporter(object):
     return layer.ID in self._exported_layers_ids
   
   @contextlib.contextmanager
-  def modify_export_settings(
-        self, export_settings_to_modify, settings_events_to_temporarily_disable=None):
+  def modify_export_setting_attributes(
+        self, setting_attributes_and_values, settings_events_to_temporarily_disable=None):
     """
-    Temporarily modify export settings specified as a dict of
-    (setting name: new setting value) pairs. After the execution of the wrapped
-    block of code, the settings are restored to their original values.
+    Temporarily modify specified attributes of export settings using a
+    dictionary of `(setting_name.setting_attribute: new attribute value)` pairs.
+    After the execution of the wrapped block of code, the setting attributes are
+    restored to their original values.
     
-    Any events connected to the settings triggered by the `set_value` method
-    will be executed.
-    
-    `settings_events_to_temporarily_disable` is a dict of
-    {setting name: list of event IDs} pairs that temporarily disables events
-    specified by their IDs for the specified settings.
+    Any connected event handlers triggered on attribute change will normally be
+    executed. Specific events for specific settings may be disabled via the
+    `settings_events_to_temporarily_disable` dictionary of
+    `(setting name, list of event IDs)` key-value pairs.
     """
     if settings_events_to_temporarily_disable is None:
       settings_events_to_temporarily_disable = {}
@@ -275,23 +274,14 @@ class LayerExporter(object):
       for event_id in event_ids:
         self.export_settings[setting_name].set_event_enabled(event_id, False)
     
-    orig_setting_values = {}
-    for setting_name, new_value in export_settings_to_modify.items():
-      if isinstance(self.export_settings[setting_name], pgsetting.OperationSetting):
-        orig_setting_values[setting_name] = self.export_settings[setting_name].enabled
-        self.export_settings[setting_name].set_enabled(new_value)
-      else:
-        orig_setting_values[setting_name] = self.export_settings[setting_name].value
-        self.export_settings[setting_name].set_value(new_value)
+    orig_setting_attributes = self.export_settings.get_attributes(
+      list(setting_attributes_and_values))
+    self.export_settings.set_attributes(setting_attributes_and_values)
     
     try:
       yield
     finally:
-      for setting_name, orig_value in orig_setting_values.items():
-        if isinstance(self.export_settings[setting_name], pgsetting.OperationSetting):
-          self.export_settings[setting_name].set_enabled(orig_value)
-        else:
-          self.export_settings[setting_name].set_value(orig_value)
+      self.export_settings.set_attributes(orig_setting_attributes)
       
       for setting_name, event_ids in settings_events_to_temporarily_disable.items():
         for event_id in event_ids:

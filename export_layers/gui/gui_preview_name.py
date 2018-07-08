@@ -522,7 +522,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     else:
       layer_tree = None
     
-    with self._layer_exporter.modify_export_settings(
+    with self._layer_exporter.modify_export_setting_attributes(
            {"selected_layers": {self._layer_exporter.image.ID: self._selected_items}},
            self._settings_events_to_temporarily_disable):
       self._layer_exporter.export(processing_groups=["layer_name"], layer_tree=layer_tree)
