@@ -340,6 +340,42 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     return "missing the following mandatory setting attributes: {}".format(
       ", ".join(attribute_names))
   
+  def get_attributes(self, setting_attributes):
+    """
+    Return an ordered dictionary of
+    `(setting_name.attribute_name, attribute_value)` key-value pairs given the
+    list of `setting_name.attribute_name` elements.
+    
+    If `attribute_name` is omitted in a list element, the `value` attribute is
+    assumed.
+    
+    If any attribute does not exist, raise `AttributeError`. If any setting does
+    not exist, raise `KeyError`. If the key has more than one '.' character,
+    raise `ValueError`.
+    
+    Example:
+      group.get_attributes([
+        "main/file_extension",
+        "main/operations/autocrop.enabled"])
+    
+    returns
+      
+      {
+        "main/file_extension": "png",
+        "main/operations/autocrop.enabled": False
+      }
+    """
+    setting_attributes_and_values = collections.OrderedDict()
+    
+    for setting_name_and_attribute in setting_attributes:
+      setting_name, attribute_name = self._get_setting_and_attribute_names(
+        setting_name_and_attribute)
+      
+      value = getattr(self[setting_name], attribute_name)
+      setting_attributes_and_values[setting_name_and_attribute] = value
+    
+    return setting_attributes_and_values
+  
   def set_attributes(self, setting_attributes_and_values):
     """
     Set specified attributes to specified settings with a dictionary of
@@ -358,17 +394,23 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
       })
     """
     for setting_name_and_attribute, value in setting_attributes_and_values.items():
-      parts = setting_name_and_attribute.split(".")
-      if len(parts) == 1:
-        setting_name = setting_name_and_attribute
-        attribute_name = "value"
-      elif len(parts) == 2:
-        setting_name, attribute_name = parts
-      else:
-        raise ValueError("'{}' cannot have more than one '.' character".format(
-          setting_name_and_attribute))
+      setting_name, attribute_name = self._get_setting_and_attribute_names(
+        setting_name_and_attribute)
       
       self[setting_name].set_attribute(attribute_name, value)
+  
+  def _get_setting_and_attribute_names(self, setting_name_and_attribute):
+    parts = setting_name_and_attribute.split(".")
+    if len(parts) == 1:
+      setting_name = setting_name_and_attribute
+      attribute_name = "value"
+    elif len(parts) == 2:
+      setting_name, attribute_name = parts
+    else:
+      raise ValueError("'{}' cannot have more than one '.' character".format(
+        setting_name_and_attribute))
+    
+    return setting_name, attribute_name
   
   def remove(self, setting_names):
     """

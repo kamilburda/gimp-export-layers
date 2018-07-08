@@ -295,6 +295,34 @@ class TestSettingGroup(unittest.TestCase):
     self.assertIn("special", main_settings)
     self.assertEqual(self.settings["special"], main_settings["special"])
   
+  def test_get_attributes(self):
+    only_tagged_layers_setting = pgsetting.OperationSetting("only_tagged_layers", [])
+    only_tagged_layers_setting.set_enabled(False)
+    self.settings.add([only_tagged_layers_setting])
+    
+    setting_attributes_and_values = self.settings.get_attributes([
+      "file_extension",
+      "only_tagged_layers.enabled",
+    ])
+    
+    self.assertEqual(len(setting_attributes_and_values), 2)
+    self.assertEqual(
+      setting_attributes_and_values["file_extension"],
+      self.settings["file_extension"].default_value)
+    self.assertEqual(setting_attributes_and_values["only_tagged_layers.enabled"], False)
+  
+  def test_get_attributes_nonexistent_attribute(self):
+    with self.assertRaises(AttributeError):
+      self.settings.get_attributes(["file_extension.nonexistent"])
+  
+  def test_get_attributes_nonexistent_setting(self):
+    with self.assertRaises(KeyError):
+      self.settings.get_attributes(["nonexistent_setting"])
+  
+  def test_get_attributes_invalid_number_of_periods(self):
+    with self.assertRaises(ValueError):
+      self.settings.get_attributes(["file_extension.value.value"])
+  
   def test_set_attributes(self):
     only_tagged_layers_setting = pgsetting.OperationSetting("only_tagged_layers", [])
     self.settings.add([only_tagged_layers_setting])
