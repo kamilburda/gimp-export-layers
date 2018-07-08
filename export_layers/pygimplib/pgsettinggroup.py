@@ -351,8 +351,9 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     assumed.
     
     If any attribute does not exist, raise `AttributeError`. If any setting does
-    not exist, raise `KeyError`. If the key has more than one '.' character,
-    raise `ValueError`.
+    not exist, raise `KeyError`. If the key has more than one separator for
+    attributes (`pgsettingutils.SETTING_ATTRIBUTE_SEPARATOR`), raise
+    `ValueError`.
     
     Example:
       group.get_attributes([
@@ -385,8 +386,9 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     If `attribute_name` is omitted in the key, the `value` attribute is assumed.
     
     If any attribute does not exist, raise `AttributeError`. If any setting does
-    not exist, raise `KeyError`. If the key has more than one '.' character,
-    raise `ValueError`.
+    not exist, raise `KeyError`. If the key has more than one separator for
+    attributes (`pgsettingutils.SETTING_ATTRIBUTE_SEPARATOR`), raise
+    `ValueError`.
     
     Example:
       group.set_attributes({
@@ -401,15 +403,15 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
       self[setting_name].set_attribute(attribute_name, value)
   
   def _get_setting_and_attribute_names(self, setting_name_and_attribute):
-    parts = setting_name_and_attribute.split(".")
+    parts = setting_name_and_attribute.split(pgsettingutils.SETTING_ATTRIBUTE_SEPARATOR)
     if len(parts) == 1:
       setting_name = setting_name_and_attribute
       attribute_name = "value"
     elif len(parts) == 2:
       setting_name, attribute_name = parts
     else:
-      raise ValueError("'{}' cannot have more than one '.' character".format(
-        setting_name_and_attribute))
+      raise ValueError("'{}' cannot have more than one '{}' character".format(
+        setting_name_and_attribute, pgsettingutils.SETTING_ATTRIBUTE_SEPARATOR))
     
     return setting_name, attribute_name
   
