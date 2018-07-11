@@ -358,13 +358,13 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     Example:
       group.get_attributes([
         "main/file_extension",
-        "main/operations/autocrop.enabled"])
+        "main/file_extension.display_name"])
     
     returns
       
       {
         "main/file_extension": "png",
-        "main/operations/autocrop.enabled": False
+        "main/file_extension.display_name": "File Extension"
       }
     """
     setting_attributes_and_values = collections.OrderedDict()
@@ -392,8 +392,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     
     Example:
       group.set_attributes({
-        "main/file_extension": "png",
-        "main/operations/autocrop.enabled": False
+        "main/file_extension": "png"
       })
     """
     for setting_name_and_attribute, value in setting_attributes_and_values.items():
