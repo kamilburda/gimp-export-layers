@@ -216,12 +216,14 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     cell_renderer_icon_tag.set_property("pixbuf", self._icons["tag"])
     column.pack_start(cell_renderer_icon_tag, expand=False)
     column.set_attributes(
-      cell_renderer_icon_tag, visible=self._COLUMN_ICON_TAG_VISIBLE[0])
+      cell_renderer_icon_tag,
+      visible=self._COLUMN_ICON_TAG_VISIBLE[0])
     
     cell_renderer_layer_name = gtk.CellRendererText()
     column.pack_start(cell_renderer_layer_name, expand=False)
     column.set_attributes(
-      cell_renderer_layer_name, text=self._COLUMN_LAYER_NAME[0],
+      cell_renderer_layer_name,
+      text=self._COLUMN_LAYER_NAME[0],
       sensitive=self._COLUMN_LAYER_NAME_SENSITIVE[0])
     
     self._tree_view.append_column(column)
