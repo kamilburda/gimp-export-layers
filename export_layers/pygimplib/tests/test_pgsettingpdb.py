@@ -75,11 +75,11 @@ class TestPdbParamCreator(unittest.TestCase):
   def test_list_param_values(self):
     param_values = pgsettingpdb.PdbParamCreator.list_param_values([self.settings])
     self.assertEqual(
-      param_values[0], self.settings["main"]["file_extension"].value)
+      param_values[0], self.settings["main/file_extension"].value)
     self.assertEqual(
-      param_values[1], self.settings["advanced"]["only_visible_layers"].value)
+      param_values[1], self.settings["advanced/only_visible_layers"].value)
     self.assertEqual(
-      param_values[2], self.settings["advanced"]["overwrite_mode"].value)
+      param_values[2], self.settings["advanced/overwrite_mode"].value)
 
   def test_list_param_values_ignore_run_mode(self):
     param_values = pgsettingpdb.PdbParamCreator.list_param_values(

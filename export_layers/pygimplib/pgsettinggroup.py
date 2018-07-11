@@ -248,8 +248,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     Multiple settings with the same name and in different nested groups are
     possible. Each such setting can be accessed like any other:
     
-      settings["main"]["autocrop"]
-      settings["advanced"]["autocrop"]
+      settings["main/autocrop"]
+      settings["advanced/autocrop"]
     
     Settings created from dictionaries are by default assigned setting
     attributes specified during the initialization of this class. These
