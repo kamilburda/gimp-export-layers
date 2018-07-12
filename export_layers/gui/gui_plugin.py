@@ -274,7 +274,7 @@ class ExportLayersGui(object):
     
     settings_plugin.setup_image_ids_and_filepaths_settings(
       self._settings["gui_session/export_name_preview_layers_collapsed_state"],
-      self._settings["gui_persistent/export_name_preview_layers_collapsed_state_persistent"],
+      self._settings["gui_persistent/export_name_preview_layers_collapsed_state"],
       settings_plugin.convert_set_of_layer_ids_to_names,
       [self._layer_exporter_for_previews.layer_tree],
       settings_plugin.convert_set_of_layer_names_to_ids,
@@ -282,7 +282,7 @@ class ExportLayersGui(object):
     
     settings_plugin.setup_image_ids_and_filepaths_settings(
       self._settings["gui_session/export_image_preview_displayed_layers"],
-      self._settings["gui_persistent/export_image_preview_displayed_layers_persistent"],
+      self._settings["gui_persistent/export_image_preview_displayed_layers"],
       settings_plugin.convert_layer_id_to_name,
       [self._layer_exporter_for_previews.layer_tree],
       settings_plugin.convert_layer_name_to_id,
