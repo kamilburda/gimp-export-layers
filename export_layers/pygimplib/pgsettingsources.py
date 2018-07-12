@@ -40,6 +40,8 @@ import gimpshelf
 from . import pgconstants
 from . import pgsetting
 
+from ._pgsettingsources_errors import *
+
 
 class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
   """
@@ -271,27 +273,3 @@ class PersistentSettingSource(SettingSource):
       settings_dict[setting.get_path("root")] = setting.value
     
     return settings_dict
-
-
-class SettingSourceError(Exception):
-  pass
-
-
-class SettingsNotFoundInSourceError(SettingSourceError):
-  pass
-
-
-class SettingSourceNotFoundError(SettingSourceError):
-  pass
-
-
-class SettingSourceReadError(SettingSourceError):
-  pass
-
-
-class SettingSourceInvalidFormatError(SettingSourceError):
-  pass
-
-
-class SettingSourceWriteError(SettingSourceError):
-  pass

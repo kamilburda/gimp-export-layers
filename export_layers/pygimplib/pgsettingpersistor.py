@@ -15,9 +15,8 @@
 # limitations under the License.
 
 """
-This module:
-* provides simple interface to load and save settings using setting sources
-* defines exceptions usable in setting sources
+This module provides a simple interface to load and save settings using setting
+sources defined in the `pgsettingsources` module.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -25,7 +24,7 @@ from future.builtins import *
 
 import collections
 
-from . import pgsettingsources
+from . import _pgsettingsources_errors
 
 
 class SettingPersistor(object):
@@ -94,9 +93,9 @@ class SettingPersistor(object):
     for source in setting_sources:
       try:
         source.read(settings)
-      except (pgsettingsources.SettingsNotFoundInSourceError,
-              pgsettingsources.SettingSourceNotFoundError) as e:
-        if isinstance(e, pgsettingsources.SettingsNotFoundInSourceError):
+      except (_pgsettingsources_errors.SettingsNotFoundInSourceError,
+              _pgsettingsources_errors.SettingSourceNotFoundError) as e:
+        if isinstance(e, _pgsettingsources_errors.SettingsNotFoundInSourceError):
           settings = source.settings_not_found
         
         if source == setting_sources[-1]:
@@ -105,8 +104,8 @@ class SettingPersistor(object):
           break
         else:
           continue
-      except (pgsettingsources.SettingSourceReadError,
-              pgsettingsources.SettingSourceInvalidFormatError) as e:
+      except (_pgsettingsources_errors.SettingSourceReadError,
+              _pgsettingsources_errors.SettingSourceInvalidFormatError) as e:
         return cls._status(cls.READ_FAIL, str(e))
       else:
         break
@@ -157,7 +156,7 @@ class SettingPersistor(object):
     for source in setting_sources:
       try:
         source.write(settings)
-      except pgsettingsources.SettingSourceError as e:
+      except _pgsettingsources_errors.SettingSourceError as e:
         return cls._status(cls.WRITE_FAIL, str(e))
     
     for setting in settings:
