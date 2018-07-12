@@ -53,9 +53,12 @@ class TestCreateLogFile(unittest.TestCase):
   def test_create_log_file(
         self,
         test_case_name_suffix,
-        io_open_side_effect, make_dirs_side_effect,
-        expected_result, expected_num_calls_make_dirs,
-        mock_io_open, mock_make_dirs):
+        io_open_side_effect,
+        make_dirs_side_effect,
+        expected_result,
+        expected_num_calls_make_dirs,
+        mock_io_open,
+        mock_make_dirs):
     log_dirpaths = ["dirpath_1", "dirpath_2"]
     log_filename = "output.log"
     
