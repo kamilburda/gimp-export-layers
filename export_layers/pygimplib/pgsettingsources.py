@@ -124,7 +124,7 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     for setting in settings:
       try:
-        value = self._retrieve_setting_value(setting.name)
+        value = self._retrieve_setting_value(setting.get_path("root"))
       except KeyError:
         self._settings_not_found.append(setting)
       else:
@@ -136,7 +136,7 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     if self._settings_not_found:
       raise pgsettingpersistor.SettingsNotFoundInSourceError(
         _("The following settings could not be found in any sources:\n{}").format(
-          "\n".join(setting.name for setting in self._settings_not_found)))
+          "\n".join(setting.get_path() for setting in self._settings_not_found)))
   
   @abc.abstractmethod
   def _retrieve_setting_value(self, setting_name):
@@ -176,7 +176,7 @@ class SessionPersistentSettingSource(SettingSource):
   
   def write(self, settings):
     for setting in settings:
-      gimpshelf.shelf[self._get_key(setting.name)] = setting.value
+      gimpshelf.shelf[self._get_key(setting.get_path("root"))] = setting.value
   
   def _get_key(self, setting_name):
     key = self.source_name + self._separator + setting_name
@@ -269,6 +269,6 @@ class PersistentSettingSource(SettingSource):
     """
     settings_dict = collections.OrderedDict()
     for setting in settings:
-      settings_dict[setting.name] = setting.value
+      settings_dict[setting.get_path("root")] = setting.value
     
     return settings_dict

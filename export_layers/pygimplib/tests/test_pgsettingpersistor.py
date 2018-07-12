@@ -52,10 +52,16 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.source.write(self.settings)
     
     self.assertEqual(
-      pgsettingsources.gimpshelf.shelf[self.source_name + "_" + "file_extension"],
+      pgsettingsources.gimpshelf.shelf[
+        self.source_name
+        + "_"
+        + self.settings["file_extension"].get_path("root")],
       "png")
     self.assertEqual(
-      pgsettingsources.gimpshelf.shelf[self.source_name + "_" + "only_visible_layers"],
+      pgsettingsources.gimpshelf.shelf[
+        self.source_name
+        + "_"
+        + self.settings["only_visible_layers"].get_path("root")],
       True)
   
   def test_write_multiple_settings_separately(self, mock_session_source):
@@ -71,9 +77,13 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
   
   def test_read(self, mock_session_source):
     pgsettingsources.gimpshelf.shelf[
-      self.source_name + "_" + "file_extension"] = "png"
+      self.source_name
+      + "_"
+      + self.settings["file_extension"].get_path("root")] = "png"
     pgsettingsources.gimpshelf.shelf[
-      self.source_name + "_" + "only_visible_layers"] = True
+      self.source_name
+      + "_"
+      + self.settings["only_visible_layers"].get_path("root")] = True
     self.source.read(
       [self.settings["file_extension"], self.settings["only_visible_layers"]])
     self.assertEqual(self.settings["file_extension"].value, "png")
@@ -124,6 +134,17 @@ class TestPersistentSettingSource(unittest.TestCase):
     
     self.assertEqual(self.settings["file_extension"].value, "jpg")
     self.assertEqual(self.settings["only_visible_layers"].value, True)
+  
+  def test_write_read_same_setting_name_in_different_groups(self, mock_persistent_source):
+    settings = stubs_pgsettinggroup.create_test_settings_hierarchical()
+    file_extension_advanced_setting = pgsetting.FileExtensionSetting("file_extension", "png")
+    settings["advanced"].add([file_extension_advanced_setting])
+    
+    self.source.write(settings.walk())
+    self.source.read(settings.walk())
+    
+    self.assertEqual(settings["main/file_extension"].value, "bmp")
+    self.assertEqual(settings["advanced/file_extension"].value, "png")
   
   def test_read_source_not_found(self, mock_persistent_source):
     with self.assertRaises(pgsettingpersistor.SettingSourceNotFoundError):
@@ -223,16 +244,16 @@ class TestSettingPersistor(unittest.TestCase):
   def test_load_setting_groups(self, mock_persistent_source, mock_session_source):
     settings = stubs_pgsettinggroup.create_test_settings_hierarchical()
     
-    settings["main"]["file_extension"].set_value("png")
-    settings["advanced"]["only_visible_layers"].set_value(True)
-    self.session_source.write(list(settings.walk()))
-    settings["main"]["file_extension"].set_value("gif")
-    settings["advanced"]["only_visible_layers"].set_value(False)
+    settings["main/file_extension"].set_value("png")
+    settings["advanced/only_visible_layers"].set_value(True)
+    self.session_source.write(settings.walk())
+    settings["main/file_extension"].set_value("gif")
+    settings["advanced/only_visible_layers"].set_value(False)
     
     pgsettingpersistor.SettingPersistor.load([settings], [self.session_source])
     
-    self.assertEqual(settings["main"]["file_extension"].value, "png")
-    self.assertEqual(settings["advanced"]["only_visible_layers"].value, True)
+    self.assertEqual(settings["main/file_extension"].value, "png")
+    self.assertEqual(settings["advanced/only_visible_layers"].value, True)
   
   def test_load_settings_source_not_found(
         self, mock_persistent_source, mock_session_source):
