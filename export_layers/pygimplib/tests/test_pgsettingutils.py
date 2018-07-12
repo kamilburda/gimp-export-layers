@@ -118,6 +118,14 @@ class TestSettingPath(unittest.TestCase):
     self._test_get_path_with_relative_path(
       self.main_settings, special_settings, "main")
   
+  def test_get_path_without_root_group(self):
+    self.assertEqual(
+      pgsettingutils.get_setting_path(self.setting, "root"), "advanced/file_extension")
+    self.assertEqual(
+      pgsettingutils.get_setting_path(self.advanced_settings, "root"), "advanced")
+    self.assertEqual(
+      pgsettingutils.get_setting_path(self.main_settings, "root"), "main")
+  
   def _test_get_path_with_relative_path(
         self, setting, relative_path_setting_group, expected_path):
     self.assertEqual(

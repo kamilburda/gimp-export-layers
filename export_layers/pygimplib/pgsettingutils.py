@@ -113,19 +113,30 @@ def get_setting_path(setting, relative_path_setting_group=None):
   If `relative_path_setting_group` is specified, the setting group is used to
   relativize the setting path. If the path of the setting group to the topmost
   parent does not match, return the full path.
+  
+  If `relative_path_setting_group` is equal to `"root"` and the setting has at
+  least one parent, omit the topmost group.
   """
   def _get_setting_path(path_components):
     return SETTING_PATH_SEPARATOR.join([setting.name for setting in path_components])
   
-  setting_path = _get_setting_path(setting.parents + [setting])
-  
-  if relative_path_setting_group is not None:
-    root_path = _get_setting_path(
-      relative_path_setting_group.parents + [relative_path_setting_group])
-    if setting_path.startswith(root_path):
-      return setting_path[len(root_path + SETTING_PATH_SEPARATOR):]
-  
-  return setting_path
+  if relative_path_setting_group == "root":
+    if setting.parents:
+      setting_path_without_root = _get_setting_path(
+        (setting.parents + [setting])[1:])
+      return setting_path_without_root
+    else:
+      return setting.name
+  else:
+    setting_path = _get_setting_path(setting.parents + [setting])
+    
+    if relative_path_setting_group is not None:
+      root_path = _get_setting_path(
+        relative_path_setting_group.parents + [relative_path_setting_group])
+      if setting_path.startswith(root_path):
+        return setting_path[len(root_path + SETTING_PATH_SEPARATOR):]
+    
+    return setting_path
 
 
 def check_setting_name(setting_name):
