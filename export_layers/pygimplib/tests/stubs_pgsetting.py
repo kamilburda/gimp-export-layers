@@ -148,8 +148,3 @@ def on_file_extension_changed_with_autocrop(file_extension, autocrop):
 def on_autocrop_changed(autocrop, file_extension, file_extension_value="jpg"):
   if autocrop.value:
     file_extension.set_value(file_extension_value)
-
-
-def on_operation_setting_enabled_changed(setting, operation):
-  if setting.enabled:
-    setting.set_value([operation])

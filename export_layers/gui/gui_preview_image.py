@@ -287,8 +287,8 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     layer_tree = self._layer_exporter.layer_tree
     layer_tree_filter = layer_tree.filter if layer_tree is not None else None
     
-    with self._layer_exporter.modify_export_setting_attributes(
-           {"constraints/only_selected_layers.enabled": True,
+    with self._layer_exporter.modify_export_settings(
+           {"constraints/only_selected_layers": True,
             "selected_layers": {
               self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}},
            self._settings_events_to_temporarily_disable):

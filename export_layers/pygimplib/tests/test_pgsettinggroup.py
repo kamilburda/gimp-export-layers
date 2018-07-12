@@ -303,20 +303,15 @@ class TestSettingGroup(unittest.TestCase):
     self.assertEqual(self.settings["special"], main_settings["special"])
   
   def test_get_attributes(self):
-    only_tagged_layers_setting = pgsetting.OperationSetting("only_tagged_layers", [])
-    only_tagged_layers_setting.set_enabled(False)
-    self.settings.add([only_tagged_layers_setting])
-    
     setting_attributes_and_values = self.settings.get_attributes([
       "file_extension",
-      "only_tagged_layers.enabled",
+      "file_extension.display_name",
     ])
     
     self.assertEqual(len(setting_attributes_and_values), 2)
+    self.assertEqual(setting_attributes_and_values["file_extension"], "bmp")
     self.assertEqual(
-      setting_attributes_and_values["file_extension"],
-      self.settings["file_extension"].default_value)
-    self.assertEqual(setting_attributes_and_values["only_tagged_layers.enabled"], False)
+      setting_attributes_and_values["file_extension.display_name"], "File extension")
   
   def test_get_attributes_getter_only(self):
     setting_attributes_and_values = self.settings.get_attributes([
@@ -337,17 +332,11 @@ class TestSettingGroup(unittest.TestCase):
       self.settings.get_attributes(["file_extension.value.value"])
   
   def test_set_attributes(self):
-    only_tagged_layers_setting = pgsetting.OperationSetting("only_tagged_layers", [])
-    self.settings.add([only_tagged_layers_setting])
-    
     self.settings.set_attributes({
-      "file_extension": "jpg",
-      "only_tagged_layers.enabled": True,
+      "file_extension": "jpg"
     })
     
     self.assertEqual(self.settings["file_extension"].value, "jpg")
-    self.assertEqual(self.settings["only_tagged_layers"].enabled, True)
-    self.assertEqual(self.settings["only_tagged_layers"].value, [])
   
   def test_set_attributes_nonexistent_attribute(self):
     with self.assertRaises(AttributeError):

@@ -35,7 +35,6 @@ from .. import pgpath
 from .. import pgsetting
 from .. import pgsettingpersistor
 from .. import pgsettingsources
-from .. import pgutils
 
 
 class TestSetting(unittest.TestCase):
@@ -983,19 +982,3 @@ class TestImageIDsAndDirpathsSetting(unittest.TestCase):
     self.assertEqual(
       self.setting.value[image_id_to_test],
       self.image_ids_and_directories[image_id_to_test])
-
-
-class TestOperationSetting(unittest.TestCase):
-  
-  def setUp(self):
-    self.setting = pgsetting.OperationSetting("autocrop", None)
-  
-  def test_enabled_changed_event(self):
-    self.setting.connect_event(
-      "enabled-changed",
-      stubs_pgsetting.on_operation_setting_enabled_changed,
-      pgutils.empty_func)
-    
-    self.setting.set_enabled(True)
-    
-    self.assertEqual(self.setting.value, [pgutils.empty_func])

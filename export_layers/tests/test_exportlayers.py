@@ -109,11 +109,11 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_ignore_layer_modes(self):
     self.compare(
-      {"operations/ignore_layer_modes.enabled": True})
+      {"operations/ignore_layer_modes": True})
   
   def test_autocrop(self):
     self.compare(
-      {"operations/autocrop.enabled": True},
+      {"operations/autocrop": True},
       [("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop"),
        ("main-background", "main-background_autocrop")])
   
@@ -126,7 +126,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def test_use_image_size_autocrop(self):
     self.compare(
       {"use_image_size": True,
-       "operations/autocrop.enabled": True},
+       "operations/autocrop": True},
       [("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop"),
        ("main-background", "main-background_autocrop")],
       expected_results_dirpath=os.path.join(
@@ -134,14 +134,14 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_background(self):
     self.compare(
-      {"operations/insert_background_layers.enabled": True},
+      {"operations/insert_background_layers": True},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "background"))
   
   def test_background_autocrop(self):
     self.compare(
-      {"operations/insert_background_layers.enabled": True,
-       "operations/autocrop.enabled": True},
+      {"operations/insert_background_layers": True,
+       "operations/autocrop": True},
       [("main-background", "main-background_autocrop"),
        ("overlay", "overlay_background"),
        ("bottom-frame-semi-transparent",
@@ -151,23 +151,23 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_background_autocrop_use_image_size(self):
     self.compare(
-      {"operations/insert_background_layers.enabled": True,
-       "operations/autocrop.enabled": True,
+      {"operations/insert_background_layers": True,
+       "operations/autocrop": True,
        "use_image_size": True},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "background", "autocrop-use_image_size"))
   
   def test_background_autocrop_background(self):
     self.compare(
-      {"operations/insert_background_layers.enabled": True,
-       "operations/autocrop_background.enabled": True},
+      {"operations/insert_background_layers": True,
+       "operations/autocrop_background": True},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "background"))
   
   def test_background_autocrop_background_use_image_size(self):
     self.compare(
-      {"operations/insert_background_layers.enabled": True,
-       "operations/autocrop_background.enabled": True,
+      {"operations/insert_background_layers": True,
+       "operations/autocrop_background": True,
        "use_image_size": True},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath,
@@ -183,7 +183,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         layer_elem.add_tag("foreground")
     
     self.compare(
-      {"operations/insert_foreground_layers.enabled": True},
+      {"operations/insert_foreground_layers": True},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "foreground"))
     
