@@ -378,29 +378,6 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     
     return setting_attributes_and_values
   
-  def set_attributes(self, setting_attributes_and_values):
-    """
-    Set specified attributes to specified settings with a dictionary of
-    `(setting_name.attribute_name, attribute_value)` key-value pairs.
-    
-    If `attribute_name` is omitted in the key, the `value` attribute is assumed.
-    
-    If any attribute does not exist, raise `AttributeError`. If any setting does
-    not exist, raise `KeyError`. If the key has more than one separator for
-    attributes (`pgsettingutils.SETTING_ATTRIBUTE_SEPARATOR`), raise
-    `ValueError`.
-    
-    Example:
-      group.set_attributes({
-        "main/file_extension": "png"
-      })
-    """
-    for setting_name_and_attribute, value in setting_attributes_and_values.items():
-      setting_name, attribute_name = self._get_setting_and_attribute_names(
-        setting_name_and_attribute)
-      
-      self[setting_name].set_attribute(attribute_name, value)
-  
   def _get_setting_and_attribute_names(self, setting_name_and_attribute):
     parts = setting_name_and_attribute.split(pgsettingutils.SETTING_ATTRIBUTE_SEPARATOR)
     if len(parts) == 1:
@@ -413,6 +390,22 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
         setting_name_and_attribute, pgsettingutils.SETTING_ATTRIBUTE_SEPARATOR))
     
     return setting_name, attribute_name
+  
+  def set_values(self, settings_and_values):
+    """
+    Set values to specified settings via a dictionary of `(setting name, value)`
+    key-value pairs.
+    
+    If any setting does not exist, raise `KeyError`.
+    
+    Example:
+      group.set_values({
+        "main/file_extension": "png",
+        "main/autocrop": True,
+      })
+    """
+    for setting_name, value in settings_and_values.items():
+      self[setting_name].set_value(value)
   
   def remove(self, setting_names):
     """

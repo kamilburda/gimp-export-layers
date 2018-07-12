@@ -274,12 +274,12 @@ class LayerExporter(object):
     
     orig_setting_attributes = self.export_settings.get_attributes(
       list(settings_and_values))
-    self.export_settings.set_attributes(settings_and_values)
+    self.export_settings.set_values(settings_and_values)
     
     try:
       yield
     finally:
-      self.export_settings.set_attributes(orig_setting_attributes)
+      self.export_settings.set_values(orig_setting_attributes)
       
       for setting_name, event_ids in settings_events_to_temporarily_disable.items():
         for event_id in event_ids:

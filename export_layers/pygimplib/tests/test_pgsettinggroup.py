@@ -331,29 +331,19 @@ class TestSettingGroup(unittest.TestCase):
     with self.assertRaises(ValueError):
       self.settings.get_attributes(["file_extension.value.value"])
   
-  def test_set_attributes(self):
-    self.settings.set_attributes({
-      "file_extension": "jpg"
+  def test_set_values(self):
+    self.settings.set_values({
+      "file_extension": "jpg",
+      "only_visible_layers": True
     })
     
     self.assertEqual(self.settings["file_extension"].value, "jpg")
+    self.assertEqual(self.settings["only_visible_layers"].value, True)
   
-  def test_set_attributes_nonexistent_attribute(self):
-    with self.assertRaises(AttributeError):
-      self.settings.set_attributes({
-        "file_extension.nonexistent": "jpg",
-      })
-  
-  def test_set_attributes_nonexistent_setting(self):
+  def test_set_values_nonexistent_setting(self):
     with self.assertRaises(KeyError):
-      self.settings.set_attributes({
+      self.settings.set_values({
         "nonexistent_setting": "jpg",
-      })
-  
-  def test_set_attributes_invalid_number_of_periods(self):
-    with self.assertRaises(ValueError):
-      self.settings.set_attributes({
-        "file_extension.value.value": "jpg",
       })
   
   def test_remove_settings(self):

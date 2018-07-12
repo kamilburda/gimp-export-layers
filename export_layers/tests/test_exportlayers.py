@@ -200,7 +200,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     settings["main/file_extension"].set_value("xcf")
     
     if different_setting_attributes is not None:
-      settings["main"].set_attributes(different_setting_attributes)
+      settings["main"].set_values(different_setting_attributes)
     
     if expected_results_dirpath is None:
       expected_results_dirpath = self.expected_results_root_dirpath

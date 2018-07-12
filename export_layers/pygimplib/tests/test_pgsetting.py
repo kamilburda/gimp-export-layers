@@ -76,30 +76,6 @@ class TestSetting(unittest.TestCase):
     with self.assertRaises(AttributeError):
       self.setting.value = "jpg"
   
-  def test_set_attribute_valid_attribute(self):
-    self.setting.set_attribute("value", "jpg")
-    self.assertEqual(self.setting.value, "jpg")
-  
-  def test_set_attribute_getter_exists_setter_does_not_exist(self):
-    with self.assertRaises(AttributeError):
-      self.setting.set_attribute("display_name", "File Extension")
-  
-  def test_set_attribute_setter_exists_getter_does_not_exist(self):
-    setting = pgsetting.EnumSetting(
-      "overwrite_mode", "replace",
-      [("skip", "Skip"), ("replace", "Replace")], display_name="Overwrite mode")
-    
-    with self.assertRaises(AttributeError):
-      setting.set_attribute("item", "skip")
-  
-  def test_set_attribute_nonexistent_attribute(self):
-    with self.assertRaises(AttributeError):
-      self.setting.set_attribute("nonexistent", "jpg")
-  
-  def test_set_attribute_with_attribute_name_equal_to_attribute(self):
-    with self.assertRaises(AttributeError):
-      self.setting.set_attribute("attribute", "jpg")
-  
   def test_get_generated_display_name(self):
     self.assertEqual(self.setting.display_name, "File extension")
   
