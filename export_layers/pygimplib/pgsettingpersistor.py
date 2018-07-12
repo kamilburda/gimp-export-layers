@@ -25,6 +25,8 @@ from future.builtins import *
 
 import collections
 
+from . import pgsettingsources
+
 
 class SettingPersistor(object):
   """
@@ -92,8 +94,9 @@ class SettingPersistor(object):
     for source in setting_sources:
       try:
         source.read(settings)
-      except (SettingsNotFoundInSourceError, SettingSourceNotFoundError) as e:
-        if isinstance(e, SettingsNotFoundInSourceError):
+      except (pgsettingsources.SettingsNotFoundInSourceError,
+              pgsettingsources.SettingSourceNotFoundError) as e:
+        if isinstance(e, pgsettingsources.SettingsNotFoundInSourceError):
           settings = source.settings_not_found
         
         if source == setting_sources[-1]:
@@ -102,7 +105,8 @@ class SettingPersistor(object):
           break
         else:
           continue
-      except (SettingSourceReadError, SettingSourceInvalidFormatError) as e:
+      except (pgsettingsources.SettingSourceReadError,
+              pgsettingsources.SettingSourceInvalidFormatError) as e:
         return cls._status(cls.READ_FAIL, str(e))
       else:
         break
@@ -153,7 +157,7 @@ class SettingPersistor(object):
     for source in setting_sources:
       try:
         source.write(settings)
-      except SettingSourceError as e:
+      except pgsettingsources.SettingSourceError as e:
         return cls._status(cls.WRITE_FAIL, str(e))
     
     for setting in settings:
@@ -187,27 +191,3 @@ class SettingPersistor(object):
         setting = setting_or_group
         settings.append(setting)
     return settings
-
-
-class SettingSourceError(Exception):
-  pass
-
-
-class SettingsNotFoundInSourceError(SettingSourceError):
-  pass
-
-
-class SettingSourceNotFoundError(SettingSourceError):
-  pass
-
-
-class SettingSourceReadError(SettingSourceError):
-  pass
-
-
-class SettingSourceInvalidFormatError(SettingSourceError):
-  pass
-
-
-class SettingSourceWriteError(SettingSourceError):
-  pass

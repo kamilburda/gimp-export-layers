@@ -442,7 +442,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
            pgconstants.PYGIMPLIB_MODULE_PATH
            + ".pgsettingsources.gimpshelf.shelf") as temp_mock_session_source:
       temp_mock_session_source.__getitem__.side_effect = (
-        pgsettingpersistor.SettingSourceReadError)
+        pgsettingsources.SettingSourceReadError)
       pgsettingpersistor.SettingPersistor.load([self.setting], [self.session_source])
     
     self.assertEqual(self.setting.value, "png")
@@ -491,7 +491,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
            pgconstants.PYGIMPLIB_MODULE_PATH
            + ".pgsettingsources.gimpshelf.shelf") as temp_mock_session_source:
       temp_mock_session_source.__setitem__.side_effect = (
-        pgsettingpersistor.SettingSourceWriteError)
+        pgsettingsources.SettingSourceWriteError)
       pgsettingpersistor.SettingPersistor.save([self.setting], [self.session_source])
     
     self.assertEqual(self.only_visible_layers.value, False)

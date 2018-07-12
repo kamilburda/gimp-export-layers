@@ -16,8 +16,8 @@
 
 """
 This module defines setting sources - the means to load and save settings:
-  * "session-persistently" - i.e. settings persist during one GIMP session
-  * persistently
+* persistently
+* "session-persistently" - i.e. settings persist during one GIMP session
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -39,7 +39,6 @@ import gimpshelf
 
 from . import pgconstants
 from . import pgsetting
-from . import pgsettingpersistor
 
 
 class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
@@ -134,7 +133,7 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
           setting.reset()
     
     if self._settings_not_found:
-      raise pgsettingpersistor.SettingsNotFoundInSourceError(
+      raise SettingsNotFoundInSourceError(
         _("The following settings could not be found in any sources:\n{}").format(
           "\n".join(setting.get_path() for setting in self._settings_not_found)))
   
@@ -217,7 +216,7 @@ class PersistentSettingSource(SettingSource):
     """
     self._settings_from_parasite = self._read_from_parasite(self.source_name)
     if self._settings_from_parasite is None:
-      raise pgsettingpersistor.SettingSourceNotFoundError(
+      raise SettingSourceNotFoundError(
         _('Could not find persistent setting source "{}".').format(self.source_name))
     
     self._read(settings)
@@ -247,7 +246,7 @@ class PersistentSettingSource(SettingSource):
     try:
       settings_from_parasite = pickle.loads(parasite.data)
     except Exception:
-      raise pgsettingpersistor.SettingSourceInvalidFormatError(
+      raise SettingSourceInvalidFormatError(
         _('Settings for this plug-in stored in "{}" may be corrupt. '
           "This could happen if the file was edited manually.\n"
           "To fix this, save the settings again or reset them.").format(
@@ -272,3 +271,27 @@ class PersistentSettingSource(SettingSource):
       settings_dict[setting.get_path("root")] = setting.value
     
     return settings_dict
+
+
+class SettingSourceError(Exception):
+  pass
+
+
+class SettingsNotFoundInSourceError(SettingSourceError):
+  pass
+
+
+class SettingSourceNotFoundError(SettingSourceError):
+  pass
+
+
+class SettingSourceReadError(SettingSourceError):
+  pass
+
+
+class SettingSourceInvalidFormatError(SettingSourceError):
+  pass
+
+
+class SettingSourceWriteError(SettingSourceError):
+  pass
