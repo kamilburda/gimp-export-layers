@@ -33,7 +33,6 @@ from export_layers.pygimplib import pgfileformats
 from export_layers.pygimplib import pgitemtree
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
-from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgutils
 
 from .. import config
@@ -109,11 +108,11 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_ignore_layer_modes(self):
     self.compare(
-      {"operations/ignore_layer_modes": True})
+      {"operations/ignore_layer_modes/enabled": True})
   
   def test_autocrop(self):
     self.compare(
-      {"operations/autocrop": True},
+      {"operations/autocrop/enabled": True},
       [("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop"),
        ("main-background", "main-background_autocrop")])
   
@@ -126,7 +125,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def test_use_image_size_autocrop(self):
     self.compare(
       {"use_image_size": True,
-       "operations/autocrop": True},
+       "operations/autocrop/enabled": True},
       [("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop"),
        ("main-background", "main-background_autocrop")],
       expected_results_dirpath=os.path.join(
@@ -134,14 +133,14 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_background(self):
     self.compare(
-      {"operations/insert_background_layers": True},
+      {"operations/insert_background_layers/enabled": True},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "background"))
   
   def test_background_autocrop(self):
     self.compare(
-      {"operations/insert_background_layers": True,
-       "operations/autocrop": True},
+      {"operations/insert_background_layers/enabled": True,
+       "operations/autocrop/enabled": True},
       [("main-background", "main-background_autocrop"),
        ("overlay", "overlay_background"),
        ("bottom-frame-semi-transparent",
@@ -151,23 +150,23 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_background_autocrop_use_image_size(self):
     self.compare(
-      {"operations/insert_background_layers": True,
-       "operations/autocrop": True,
+      {"operations/insert_background_layers/enabled": True,
+       "operations/autocrop/enabled": True,
        "use_image_size": True},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "background", "autocrop-use_image_size"))
   
   def test_background_autocrop_background(self):
     self.compare(
-      {"operations/insert_background_layers": True,
-       "operations/autocrop_background": True},
+      {"operations/insert_background_layers/enabled": True,
+       "operations/autocrop_background/enabled": True},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "background"))
   
   def test_background_autocrop_background_use_image_size(self):
     self.compare(
-      {"operations/insert_background_layers": True,
-       "operations/autocrop_background": True,
+      {"operations/insert_background_layers/enabled": True,
+       "operations/autocrop_background/enabled": True,
        "use_image_size": True},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath,
@@ -183,7 +182,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         layer_elem.add_tag("foreground")
     
     self.compare(
-      {"operations/insert_foreground_layers": True},
+      {"operations/insert_foreground_layers/enabled": True},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "foreground"))
     
@@ -191,7 +190,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def compare(
         self,
-        different_setting_attributes=None,
+        different_settings=None,
         different_results_and_expected_layers=None,
         expected_results_dirpath=None):
     settings = settings_plugin.create_settings()
@@ -199,8 +198,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     settings["main/output_directory"].set_value(self.output_dirpath)
     settings["main/file_extension"].set_value("xcf")
     
-    if different_setting_attributes is not None:
-      settings["main"].set_values(different_setting_attributes)
+    if different_settings is not None:
+      settings["main"].set_values(different_settings)
     
     if expected_results_dirpath is None:
       expected_results_dirpath = self.expected_results_root_dirpath
@@ -232,7 +231,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   @staticmethod
   def _export(settings):
-    for operation_setting in settings.walk():
+    for operation_setting in settings.walk(include_groups=True):
       if exportlayers.is_valid_operation(operation_setting):
         exportlayers.add_operation(operation_setting)
     
@@ -243,7 +242,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     
     layer_exporter.export()
     
-    for operation_setting in settings.walk():
+    for operation_setting in settings.walk(include_groups=True):
       if exportlayers.is_valid_operation(operation_setting):
         exportlayers.remove_operation(operation_setting)
   

@@ -87,15 +87,15 @@ def take_screenshots(gui, dialog, settings):
   
   gui._box_operations.add_operation_item(
     settings["main/operations/insert_background_layers"])
-  settings["main/operations/insert_background_layers"].set_value(True)
+  settings["main/operations/insert_background_layers/enabled"].set_value(True)
   
   gui._box_operations.add_operation_item(
     settings["main/operations/ignore_layer_modes"])
-  settings["main/operations/ignore_layer_modes"].set_value(True)
+  settings["main/operations/ignore_layer_modes/enabled"].set_value(True)
   
   gui._box_constraints.add_operation_item(
     settings["main/constraints/only_layers_without_tags"])
-  settings["main/constraints/only_layers_without_tags"].set_value(False)
+  settings["main/constraints/only_layers_without_tags/enabled"].set_value(False)
   
   gui._export_name_preview.set_selected_items(set([
     gui._export_name_preview._layer_exporter.layer_tree["bottom-frame"].item.ID]))

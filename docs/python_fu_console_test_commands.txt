@@ -10,7 +10,7 @@ import pgruntests
 pgruntests.run_tests(plugin_dirpath, modules=["export_layers.pygimplib"])
 
 
-imp.reload(pgruntests); pgruntests.run_tests(plugin_dirpath, modules=["export_layers.pygimplib"])
+imp.reload(pgruntests); pgruntests.run_tests(plugin_dirpath, modules=["export_layers.pygimplib", "export_layers.tests"], ignored_modules=["export_layers.tests.test_exportlayers"])
 
 
 _ = lambda s: s

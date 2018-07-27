@@ -419,7 +419,12 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
       else:
         raise KeyError("setting '{}' not found".format(setting_name))
   
-  def walk(self, include_setting_func=None, include_groups=False, walk_callbacks=None):
+  def walk(
+        self,
+        include_setting_func=None,
+        include_groups=False,
+        include_if_parent_skipped=False,
+        walk_callbacks=None):
     """
     Return a generator that walks (iterates over) all settings in the group,
     including settings in nested groups. The generator performs a pre-order
@@ -427,7 +432,12 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     
     If `include_setting_func` is `None`, iterate over all settings. Otherwise,
     `include_setting_func` is a function that should return `True` if a setting
-    should be yielded and `False` if a setting should be ignored.
+    should be yielded and `False` if a setting should be skipped.
+    
+    If `include_if_parent_skipped` is `False`, settings or groups within a
+    parent group that does not match `include_setting_func` are skipped,
+    `True` otherwise. If `True` and `include_groups` is `True`, the parent group
+    will still be ignored by `walk_callbacks`.
     
     If `include_groups` is `True`, yield setting groups as well.
     
@@ -460,6 +470,9 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
           if include_groups:
             walk_callbacks.on_visit_group(setting_or_group)
             yield setting_or_group
+        elif include_if_parent_skipped:
+          groups.insert(0, setting_or_group)
+          continue
         else:
           continue
       else:

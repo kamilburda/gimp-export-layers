@@ -466,11 +466,10 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.assertNotIn(self.settings["advanced/overwrite_mode"], walked_settings)
   
   def test_walk_ignore_settings_in_group_with_tag(self):
-    self.settings["advanced"].tags.add("ignore_apply_gui_value_to_setting")
+    self.settings["advanced"].tags.add("ignore_reset")
     
-    walked_settings = list(
-      self.settings.walk(include_setting_func=(
-        lambda setting: "ignore_apply_gui_value_to_setting" not in setting.tags)))
+    walked_settings = list(self.settings.walk(
+      include_setting_func=lambda setting: "ignore_reset" not in setting.tags))
     
     self.assertIn(self.settings["main/file_extension"], walked_settings)
     self.assertNotIn(self.settings["advanced/only_visible_layers"], walked_settings)
@@ -487,12 +486,11 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.assertNotIn(self.settings, walked_settings)
   
   def test_walk_ignore_settings_in_group_with_tag_include_groups(self):
-    self.settings["advanced"].tags.add("ignore_apply_gui_value_to_setting")
+    self.settings["advanced"].tags.add("ignore_reset")
     
     walked_settings = list(
       self.settings.walk(
-        include_setting_func=(
-          lambda setting: "ignore_apply_gui_value_to_setting" not in setting.tags),
+        include_setting_func=lambda setting: "ignore_reset" not in setting.tags,
         include_groups=True))
     
     self.assertIn(self.settings["main"], walked_settings)
@@ -500,6 +498,35 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     self.assertNotIn(self.settings["advanced"], walked_settings)
     self.assertNotIn(self.settings["advanced/only_visible_layers"], walked_settings)
     self.assertNotIn(self.settings["advanced/overwrite_mode"], walked_settings)
+  
+  def test_walk_include_if_parent_skipped(self):
+    self.settings["advanced"].tags.add("ignore_reset")
+    
+    walked_settings = list(
+      self.settings.walk(
+        include_setting_func=lambda setting: "ignore_reset" not in setting.tags,
+        include_if_parent_skipped=True))
+    
+    self.assertNotIn(self.settings["main"], walked_settings)
+    self.assertIn(self.settings["main/file_extension"], walked_settings)
+    self.assertNotIn(self.settings["advanced"], walked_settings)
+    self.assertIn(self.settings["advanced/only_visible_layers"], walked_settings)
+    self.assertIn(self.settings["advanced/overwrite_mode"], walked_settings)
+  
+  def test_walk_include_if_parent_skipped_and_include_groups(self):
+    self.settings["advanced"].tags.add("ignore_reset")
+    
+    walked_settings = list(
+      self.settings.walk(
+        include_setting_func=lambda setting: "ignore_reset" not in setting.tags,
+        include_groups=True,
+        include_if_parent_skipped=True))
+    
+    self.assertIn(self.settings["main"], walked_settings)
+    self.assertIn(self.settings["main/file_extension"], walked_settings)
+    self.assertNotIn(self.settings["advanced"], walked_settings)
+    self.assertIn(self.settings["advanced/only_visible_layers"], walked_settings)
+    self.assertIn(self.settings["advanced/overwrite_mode"], walked_settings)
   
   def test_walk_with_callbacks(self):
     walked_settings, walk_callbacks = self._get_test_data_for_walking_group()

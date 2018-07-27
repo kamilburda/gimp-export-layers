@@ -30,6 +30,10 @@ import os
 import gimp
 import gimpenums
 
+from export_layers import builtin_operations
+from export_layers import builtin_constraints
+from export_layers import operations
+
 from export_layers import pygimplib
 from export_layers.pygimplib import pgoverwrite
 from export_layers.pygimplib import pgpath
@@ -185,120 +189,120 @@ def create_settings():
   ])
   
   settings["main/operations"].add([
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "insert_background_layers",
-      "default_value": False,
-      "display_name": _("Insert background layers")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "insert_foreground_layers",
-      "default_value": False,
-      "display_name": _("Insert foreground layers")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "inherit_transparency_from_layer_groups",
-      "default_value": False,
-      "display_name": _("Inherit transparency from layer groups"),
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "ignore_layer_modes",
-      "default_value": False,
-      "display_name": _("Ignore layer modes")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "autocrop",
-      "default_value": False,
-      "display_name": _("Autocrop")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "autocrop_background",
-      "default_value": False,
-      "display_name": _("Autocrop background")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "autocrop_foreground",
-      "default_value": False,
-      "display_name": _("Autocrop foreground")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "use_file_extensions_in_layer_names",
-      "default_value": False,
-      "display_name": _("Use file extensions in layer names")
-    },
+    operations.create_operation(
+      name="insert_background_layers",
+      function=[builtin_operations.insert_background_layer, ["background"]],
+      enabled=False,
+      display_name=_("Insert background layers")
+    ),
+    operations.create_operation(
+      name="insert_foreground_layers",
+      function=[builtin_operations.insert_foreground_layer, ["foreground"]],
+      enabled=False,
+      display_name=_("Insert foreground layers")
+    ),
+    operations.create_operation(
+      name="inherit_transparency_from_layer_groups",
+      function=[builtin_operations.inherit_transparency_from_layer_groups],
+      enabled=False,
+      display_name=_("Inherit transparency from layer groups")
+    ),
+    operations.create_operation(
+      name="ignore_layer_modes",
+      function=[builtin_operations.ignore_layer_modes],
+      enabled=False,
+      display_name=_("Ignore layer modes")
+    ),
+    operations.create_operation(
+      name="autocrop",
+      function=[builtin_operations.autocrop_layer],
+      enabled=False,
+      display_name=_("Autocrop")
+    ),
+    operations.create_operation(
+      name="autocrop_background",
+      function=[builtin_operations.autocrop_tagged_layer, ["background"]],
+      enabled=False,
+      display_name=_("Autocrop background")
+    ),
+    operations.create_operation(
+      name="autocrop_foreground",
+      function=[builtin_operations.autocrop_tagged_layer, ["foreground"]],
+      enabled=False,
+      display_name=_("Autocrop foreground")
+    ),
+    operations.create_operation(
+      name="use_file_extensions_in_layer_names",
+      function=None,
+      enabled=False,
+      display_name=_("Use file extensions in layer names")
+    ),
   ])
   
   settings["main/constraints"].add([
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "only_layers_without_tags",
-      "default_value": False,
-      "display_name": _("Only layers without tags")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "only_layers_with_tags",
-      "default_value": False,
-      "display_name": _("Only layers with tags")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "only_layers_matching_file_extension",
-      "default_value": False,
-      "display_name": _("Only layers matching file extension")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "only_toplevel_layers",
-      "default_value": False,
-      "display_name": _("Only top-level layers")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "only_selected_layers",
-      "default_value": False,
-      "display_name": _("Only layers selected in preview")
-    }
+    operations.create_operation(
+      name="only_layers_without_tags",
+      function=[builtin_constraints.has_no_tags],
+      enabled=False,
+      display_name=_("Only layers without tags")
+    ),
+    operations.create_operation(
+      name="only_layers_with_tags",
+      function=[builtin_constraints.has_tags],
+      enabled=False,
+      display_name=_("Only layers with tags")
+    ),
+    operations.create_operation(
+      name="only_layers_matching_file_extension",
+      function=[builtin_constraints.has_matching_default_file_extension],
+      enabled=False,
+      display_name=_("Only layers matching file extension")
+    ),
+    operations.create_operation(
+      name="only_toplevel_layers",
+      function=[builtin_constraints.is_top_level],
+      enabled=False,
+      display_name=_("Only top-level layers")
+    ),
+    operations.create_operation(
+      name="only_selected_layers",
+      function=None,
+      enabled=False,
+      display_name=_("Only layers selected in preview")
+    ),
   ])
   
   settings["main/constraints/include"].add([
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "include_layers",
-      "default_value": True,
-      "display_name": _("Include layers")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "include_layer_groups",
-      "default_value": False,
-      "display_name": _("Include layer groups")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "include_empty_layer_groups",
-      "default_value": False,
-      "display_name": _("Include empty layer groups")
-    }
+    operations.create_operation(
+      name="include_layers",
+      function=[builtin_constraints.is_layer, [], {"subfilter": "layer_types"}],
+      enabled=True,
+      display_name=_("Include layers")
+    ),
+    operations.create_operation(
+      name="include_layer_groups",
+      function=[builtin_constraints.is_nonempty_group, [], {"subfilter": "layer_types"}],
+      enabled=False,
+      display_name=_("Include layer groups")
+    ),
+    operations.create_operation(
+      name="include_empty_layer_groups",
+      function=[builtin_constraints.is_empty_group, [], {"subfilter": "layer_types"}],
+      enabled=False,
+      display_name=_("Include empty layer groups")
+    ),
   ])
   
   def on_use_file_extensions_in_layer_names_enabled_changed(
-        use_file_extensions_in_layer_names, file_extension):
-    if not use_file_extensions_in_layer_names.value:
+        use_file_extensions_in_layer_names_enabled, file_extension):
+    if not use_file_extensions_in_layer_names_enabled.value:
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
     else:
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = _(
         "You need to specify default file extension for layers with invalid "
         "or no extension.")
   
-  settings["main/operations/use_file_extensions_in_layer_names"].connect_event(
+  settings["main/operations/use_file_extensions_in_layer_names/enabled"].connect_event(
     "value-changed",
     on_use_file_extensions_in_layer_names_enabled_changed,
     settings["main/file_extension"])

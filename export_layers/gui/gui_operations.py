@@ -33,7 +33,6 @@ import gtk
 
 from export_layers import pygimplib
 from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgutils
 
 
@@ -113,20 +112,11 @@ class OperationBox(object):
     self._button_add.connect("clicked", self._on_button_add_clicked)
   
   def _init_operations_menu_popup(self):
-    self._operations_submenus = [self._operations_menu]
-    self._current_operations_submenu = self._operations_menu
-    
-    walk_callbacks = pgsettinggroup.SettingGroupWalkCallbacks()
-    walk_callbacks.on_visit_setting = self._add_setting_to_menu
-    walk_callbacks.on_visit_group = self._create_submenu_for_setting_group
-    walk_callbacks.on_end_group_walk = self._finish_adding_settings_to_submenu
-    
-    for unused_ in self._settings.walk(
-          include_groups=True, walk_callbacks=walk_callbacks):
-      pass
-    
-    del self._operations_submenus
-    del self._current_operations_submenu
+    for setting in self._settings.walk(
+          include_setting_func=lambda setting: "operation" in setting.tags,
+          include_groups=True,
+          include_if_parent_skipped=True):
+      self._add_setting_to_menu(setting)
     
     self._operations_menu.show_all()
   
@@ -135,34 +125,18 @@ class OperationBox(object):
       label=setting.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING),
       use_underline=False)
     menu_item.connect("activate", self._on_operations_menu_item_activate)
-    self._current_operations_submenu.append(menu_item)
+    self._operations_menu.append(menu_item)
     self._menu_items_and_settings[menu_item] = setting
-  
-  def _create_submenu_for_setting_group(self, setting_group):
-    operations_submenu = gtk.Menu()
-    
-    group_menu_item = gtk.MenuItem(
-      label=setting_group.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING),
-      use_underline=False)
-    group_menu_item.set_submenu(operations_submenu)
-    
-    if self._operations_submenus:
-      self._operations_submenus[0].append(group_menu_item)
-    
-    self._operations_submenus.insert(0, operations_submenu)
-    self._current_operations_submenu = operations_submenu
-  
-  def _finish_adding_settings_to_submenu(self, setting_group):
-    self._operations_submenus.pop(0)
-    if self._operations_submenus:
-      self._current_operations_submenu = self._operations_submenus[0]
   
   def _init_item_dragging(self):
     # Unique drag type for the entire box prevents undesired drops on other
     # widgets.
     drag_type = self._get_unique_drag_type()
     
-    for setting in self._settings.walk():
+    for setting in self._settings.walk(
+          include_setting_func=lambda setting: "operation" in setting.tags,
+          include_groups=True,
+          include_if_parent_skipped=True):
       self._connect_drag_events_to_item_widget(setting, drag_type)
   
   def _get_unique_drag_type(self):
@@ -174,22 +148,24 @@ class OperationBox(object):
     return drag_type
   
   def _connect_drag_events_to_item_widget(self, setting, drag_type):
-    setting.gui.element.connect(
+    setting_enabled = setting["enabled"]
+    
+    setting_enabled.gui.element.connect(
       "drag-data-get", self._on_item_widget_drag_data_get, setting)
-    setting.gui.element.drag_source_set(
+    setting_enabled.gui.element.drag_source_set(
       gtk.gdk.BUTTON1_MASK, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
     
-    setting.gui.element.connect(
+    setting_enabled.gui.element.connect(
       "drag-data-received", self._on_item_widget_drag_data_received, setting)
-    setting.gui.element.drag_dest_set(
+    setting_enabled.gui.element.drag_dest_set(
       gtk.DEST_DEFAULT_ALL, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
     
-    setting.gui.element.connect("drag-begin", self._on_item_widget_drag_begin)
-    setting.gui.element.connect("drag-motion", self._on_item_widget_drag_motion)
-    setting.gui.element.connect("drag-failed", self._on_item_widget_drag_failed)
+    setting_enabled.gui.element.connect("drag-begin", self._on_item_widget_drag_begin)
+    setting_enabled.gui.element.connect("drag-motion", self._on_item_widget_drag_motion)
+    setting_enabled.gui.element.connect("drag-failed", self._on_item_widget_drag_failed)
   
   def add_operation_item(self, setting):
-    operation_item = _OperationItem(setting.gui.element)
+    operation_item = _OperationItem(setting["enabled"].gui.element)
     self._vbox.pack_start(operation_item.widget, expand=False, fill=False)
     self._vbox.reorder_child(self._button_add, -1)
     
@@ -199,7 +175,7 @@ class OperationBox(object):
       "key-press-event", self._on_operation_item_widget_key_press_event, operation_item)
     
     self._displayed_settings.append(setting)
-    self._displayed_settings_gui_elements.add(setting.gui.element)
+    self._displayed_settings_gui_elements.add(setting["enabled"].gui.element)
     self._displayed_operation_items.append(operation_item)
     
     self.on_add_operation(setting)
@@ -219,7 +195,7 @@ class OperationBox(object):
     operation_item.remove_item_widget()
     
     self._displayed_settings.remove(setting)
-    self._displayed_settings_gui_elements.remove(setting.gui.element)
+    self._displayed_settings_gui_elements.remove(setting["enabled"].gui.element)
     self._displayed_operation_items.remove(operation_item)
     
     self.on_remove_operation(setting)
