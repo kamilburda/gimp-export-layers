@@ -27,6 +27,8 @@ from future.builtins import *
 
 from export_layers.pygimplib import pginvocation
 
+from .. import operations
+
 
 class ExportPreviewsController(object):
   
@@ -66,14 +68,12 @@ class ExportPreviewsController(object):
       self._settings["main"][setting_name].connect_event(
         "value-changed", self._on_setting_changed)
     
-    for setting in self._settings["main/operations"].walk(
-          include_setting_func=lambda setting: "enabled" in setting.tags,
-          include_if_parent_skipped=True):
+    for setting in operations.walk_operations(
+          self._settings["main/operations"], "enabled"):
       setting.connect_event("value-changed", self._on_setting_changed)
     
-    for setting in self._settings["main/constraints"].walk(
-          include_setting_func=lambda setting: "enabled" in setting.tags,
-          include_if_parent_skipped=True):
+    for setting in operations.walk_operations(
+          self._settings["main/constraints"], "enabled"):
       if not setting.get_path().endswith("only_selected_layers/enabled"):
         setting.connect_event("value-changed", self._on_setting_changed)
   

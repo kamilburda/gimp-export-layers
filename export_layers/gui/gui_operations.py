@@ -35,6 +35,8 @@ from export_layers import pygimplib
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgutils
 
+from .. import operations
+
 
 class OperationBox(object):
   
@@ -112,10 +114,7 @@ class OperationBox(object):
     self._button_add.connect("clicked", self._on_button_add_clicked)
   
   def _init_operations_menu_popup(self):
-    for setting in self._settings.walk(
-          include_setting_func=lambda setting: "operation" in setting.tags,
-          include_groups=True,
-          include_if_parent_skipped=True):
+    for setting in operations.walk_operations(self._settings):
       self._add_setting_to_menu(setting)
     
     self._operations_menu.show_all()
@@ -133,10 +132,7 @@ class OperationBox(object):
     # widgets.
     drag_type = self._get_unique_drag_type()
     
-    for setting in self._settings.walk(
-          include_setting_func=lambda setting: "operation" in setting.tags,
-          include_groups=True,
-          include_if_parent_skipped=True):
+    for setting in operations.walk_operations(self._settings):
       self._connect_drag_events_to_item_widget(setting, drag_type)
   
   def _get_unique_drag_type(self):

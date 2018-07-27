@@ -30,6 +30,17 @@ from export_layers.pygimplib import pgsettinggroup
 
 
 def create_operation(name, function, enabled=True, display_name=None):
+  """
+  Create a `SettingGroup` instance acting as an operation.
+  
+  Each group contains the following settings or subgroups (assuming settings
+  unless otherwise stated):
+  * "function" - the function executed
+  * "arguments" - subgroup containing arguments to the function; each argument
+    is a separate setting
+  * "enabled" - whether the operation should be executed or not
+  * "display_name" - the display name (human-readable name) of the operation
+  """
   operation_group = pgsettinggroup.SettingGroup(
     name,
     tags=["operation"],
@@ -41,7 +52,6 @@ def create_operation(name, function, enabled=True, display_name=None):
   
   operation_arguments_group = pgsettinggroup.SettingGroup(
     "arguments",
-    tags=["arguments"],
     setting_attributes={
       "pdb_type": None,
       "setting_sources": [
@@ -53,7 +63,6 @@ def create_operation(name, function, enabled=True, display_name=None):
       "type": pgsetting.SettingTypes.generic,
       "name": "function",
       "default_value": function,
-      "tags": ["function"],
     },
     operation_arguments_group,
     {
@@ -61,15 +70,38 @@ def create_operation(name, function, enabled=True, display_name=None):
       "name": "enabled",
       "default_value": enabled,
       "display_name": display_name,
-      "tags": ["enabled"],
     },
     {
       "type": pgsetting.SettingTypes.string,
       "name": "display_name",
       "default_value": display_name,
       "gui_type": None,
-      "tags": ["display_name"],
     },
   ])
   
   return operation_group
+
+
+def walk_operations(operations, setting_name="operation"):
+  """
+  Walk over a setting group containing operations.
+  
+  `setting_name` specifies which underlying setting or subgroup of each
+  operation is returned. By default, the group representing the entire operation
+  is returned. For possible values, see `create_operation`.
+  """
+  if setting_name == "operation":
+    def has_tag(setting):
+      return setting_name in setting.tags
+    
+    include_setting_func = has_tag
+  else:
+    def matches_setting_name(setting):
+      return setting_name == setting.name
+    
+    include_setting_func = matches_setting_name
+  
+  return operations.walk(
+    include_setting_func=include_setting_func,
+    include_groups=True,
+    include_if_parent_skipped=True)
