@@ -33,6 +33,12 @@ def append_to_list(list_, arg):
   return arg
 
 
+def append_to_list_multiple_args(list_, arg1, arg2, arg3):
+  for arg in [arg1, arg2, arg3]:
+    list_.append(arg)
+  return arg1, arg2, arg3
+
+
 def extend_list(list_, *args):
   list_.extend(args)
 
@@ -622,7 +628,21 @@ class TestOperationExecutorExecuteOperations(OperationExecutorTestCase):
     self.executor.execute(additional_kwargs={"two": "two", "three": 3})
     
     self.assertDictEqual(test_dict, {"one": 1, "two": "two", "three": 3})
-
+  
+  def test_execute_additional_args_position_at_beginning(self):
+    test_list = []
+    self.executor.add(append_to_list, args=[1])
+    self.executor.execute(additional_args=[test_list], additional_args_position=0)
+    
+    self.assertEqual(test_list, [1])
+  
+  def test_execute_additional_args_position_in_middle(self):
+    test_list = []
+    self.executor.add(append_to_list_multiple_args, args=[test_list, 1, 3])
+    self.executor.execute(additional_args=[2], additional_args_position=2)
+    
+    self.assertEqual(test_list, [1, 2, 3])
+  
   def test_execute_multiple_operations(self):
     test_list = []
     self.executor.add(append_test, args=[test_list])

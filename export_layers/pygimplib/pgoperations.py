@@ -168,7 +168,12 @@ class OperationExecutor(object):
     
     return operation_id
   
-  def execute(self, groups=None, additional_args=None, additional_kwargs=None):
+  def execute(
+        self,
+        groups=None,
+        additional_args=None,
+        additional_kwargs=None,
+        additional_args_position=None):
     """
     Execute operations.
     
@@ -187,16 +192,28 @@ class OperationExecutor(object):
     
     Additional arguments and keyword arguments to all operations in the group
     are given by `additional_args` and `additional_kwargs`, respectively.
-    `additional_args` are appended to the argument list. If some keyword
-    arguments appear in both the `kwargs` parameter in the `add` method and in
-    `additional_kwargs`, values from the latter override the values in the
-    former.
+    If some keyword arguments appear in both the `kwargs` parameter in the `add`
+    method and in `additional_kwargs`, values from the latter override the
+    values in the former.
+    
+    `additional_args` are appended to the argument list by default. Specify
+    `additional_args_position` as an integer to change the insertion position of
+    `additional_args`. `additional_args_position` also applies to nested
+    `OperationExecutor` instances.
     """
     
     def _execute_operation(operation, operation_args, operation_kwargs):
-      args = tuple(operation_args) + tuple(additional_args)
+      args = _get_args(operation_args)
       kwargs = dict(operation_kwargs, **additional_kwargs)
       return operation(*args, **kwargs)
+    
+    def _get_args(operation_args):
+      if additional_args_position is None:
+        return tuple(operation_args) + tuple(additional_args)
+      else:
+        args = list(operation_args)
+        args[additional_args_position:additional_args_position] = additional_args
+        return tuple(args)
     
     def _execute_operation_with_foreach_operations(
           operation, operation_args, operation_kwargs, group):
@@ -225,7 +242,8 @@ class OperationExecutor(object):
         operation_generators.remove(operation_generator_to_remove)
     
     def _execute_executor(executor, group):
-      executor.execute([group], additional_args, additional_kwargs)
+      executor.execute(
+        [group], additional_args, additional_kwargs, additional_args_position)
     
     additional_args = additional_args if additional_args is not None else ()
     additional_kwargs = additional_kwargs if additional_kwargs is not None else {}
