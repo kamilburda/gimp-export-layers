@@ -121,7 +121,7 @@ class OperationBox(object):
   
   def _add_setting_to_menu(self, setting):
     menu_item = gtk.MenuItem(
-      label=setting.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING),
+      label=setting["display_name"].value.encode(pgconstants.GTK_CHARACTER_ENCODING),
       use_underline=False)
     menu_item.connect("activate", self._on_operations_menu_item_activate)
     self._operations_menu.append(menu_item)
