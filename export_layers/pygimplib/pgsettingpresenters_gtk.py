@@ -77,12 +77,26 @@ class GtkCheckButtonPresenter(GtkSettingPresenter):
   
   def _create_gui_element(self, setting):
     return gtk.CheckButton(setting.display_name)
-    
+  
   def _get_value(self):
     return self._element.get_active()
   
   def _set_value(self, value):
     self._element.set_active(value)
+
+
+class GtkCheckButtonLabelPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gtk.CheckButton` elements.
+  
+  Value: Label of the check button.
+  """
+  
+  def _get_value(self):
+    return self._element.get_label()
+  
+  def _set_value(self, value):
+    self._element.set_label(value)
 
 
 class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
@@ -93,7 +107,7 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
   """
   
   _VALUE_CHANGED_SIGNAL = "changed"
-
+  
   def _create_gui_element(self, setting):
     labels_and_values = setting.get_item_display_names_and_values()
     
@@ -282,6 +296,7 @@ class SettingGuiTypes(object):
   """
   
   check_button = GtkCheckButtonPresenter
+  check_button_label = GtkCheckButtonLabelPresenter
   combobox = GimpUiIntComboBoxPresenter
   text_entry = GtkEntryPresenter
   extended_entry = ExtendedEntryPresenter
