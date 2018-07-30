@@ -737,10 +737,11 @@ def add_operation(setting_group):
 
 def reorder_operation(setting_group, new_position):
   if setting_group.name in _operation_settings_and_items:
-    _operation_executor.reorder(
-      _operation_settings_and_items[setting_group.name][0],
-      new_position,
-      _operation_settings_and_items[setting_group.name][1])
+    for operation_group in _operation_settings_and_items[setting_group.name][1]:
+      _operation_executor.reorder(
+        _operation_settings_and_items[setting_group.name][0],
+        new_position,
+        operation_group)
 
 
 def remove_operation(setting_group):
