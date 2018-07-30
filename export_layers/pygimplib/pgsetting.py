@@ -424,6 +424,8 @@ class Setting(pgsettingutils.SettingParentMixin):
     if gui_type == SettingGuiTypes.automatic and gui_element is not None:
       raise ValueError("gui_type cannot be automatic if gui_element is not None")
     
+    self.invoke_event("before-set-gui")
+    
     if gui_type == SettingGuiTypes.automatic:
       gui_type = self._gui_type
     elif gui_type is None:
@@ -437,6 +439,8 @@ class Setting(pgsettingutils.SettingParentMixin):
       setting_value_synchronizer=self._setting_value_synchronizer,
       old_setting_presenter=self._gui,
       auto_update_gui_to_setting=auto_update_gui_to_setting)
+    
+    self.invoke_event("after-set-gui")
   
   def load(self, setting_sources=None):
     """
@@ -490,6 +494,10 @@ class Setting(pgsettingutils.SettingParentMixin):
       * `"before-reset"` - invoked before `reset()` is called.
       
       * `"after-reset"` - invoked after `reset()` is called.
+      
+      * `"before-set-gui"` - invoked before `set_gui()` is called.
+      
+      * `"after-set-gui"` - invoked after `set_gui()` is called.
       
       * `"before-load"` - invoked before loading a setting via
         `pgsettingpersistor.SettingPersistor.load`.
