@@ -29,6 +29,7 @@ import future.utils
 import collections
 import contextlib
 import datetime
+import inspect
 import os
 
 from gimp import pdb
@@ -290,13 +291,13 @@ class LayerExporter(object):
   
   def _add_operations_initial(self):
     self._operation_executor.add(
-      builtin_operations.set_active_layer, [_BUILTIN_OPERATIONS_GROUP])
+      builtin_operations.set_active_layer, [builtin_operations.BUILTIN_OPERATIONS_GROUP])
     
     self._operation_executor.add(
       _operation_executor,
-      [_BUILTIN_OPERATIONS_GROUP,
-       _BUILTIN_CONSTRAINTS_GROUP,
-       _BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP])
+      [builtin_operations.BUILTIN_OPERATIONS_GROUP,
+       builtin_constraints.BUILTIN_CONSTRAINTS_GROUP,
+       builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP])
     
     add_operation(self.export_settings["constraints/include/include_layers"])
   
@@ -397,7 +398,10 @@ class LayerExporter(object):
     self._layer_tree.filter.add_subfilter(
       "layer_types", pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ANY))
     
-    self._operation_executor.execute([_BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP], [self])
+    self._operation_executor.execute(
+      [builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
+      [self],
+      additional_args_position=LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
     
     self._init_tagged_layer_elems()
     
@@ -409,7 +413,10 @@ class LayerExporter(object):
         builtin_constraints.is_layer_in_selected_layers,
         self.export_settings["selected_layers"].value[self.image.ID])
     
-    self._operation_executor.execute([_BUILTIN_CONSTRAINTS_GROUP], [self])
+    self._operation_executor.execute(
+      [builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
+      [self],
+      additional_args_position=LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
   
   def _init_tagged_layer_elems(self):
     with self._layer_tree.filter.add_rule_temp(builtin_constraints.has_tags):
@@ -466,7 +473,8 @@ class LayerExporter(object):
     self._image_copy = pgpdb.create_image_from_metadata(self.image)
     pdb.gimp_image_undo_freeze(self._image_copy)
     
-    self._operation_executor.execute(["after_create_image_copy"], [self._image_copy])
+    self._operation_executor.execute(
+      ["after_create_image_copy"], [self._image_copy], additional_args_position=0)
     
     if self._use_another_image_copy:
       self._another_image_copy = pgpdb.create_image_from_metadata(self._image_copy)
@@ -499,10 +507,13 @@ class LayerExporter(object):
   
   def _process_layer(self, layer_elem, image, layer):
     layer_copy = builtin_operations.copy_and_insert_layer(image, layer, None, 0)
-    self._operation_executor.execute(["after_insert_layer"], [image, layer_copy, self])
+    self._operation_executor.execute(
+      ["after_insert_layer"], [image, layer_copy, self], additional_args_position=0)
     
     self._operation_executor.execute(
-      [_BUILTIN_OPERATIONS_GROUP], [image, layer_copy, self])
+      [builtin_operations.BUILTIN_OPERATIONS_GROUP],
+      [image, layer_copy, self],
+      additional_args_position=0)
     
     layer_copy = self._merge_and_resize_layer(image, layer_copy)
     
@@ -697,57 +708,50 @@ class LayerExporter(object):
 #===============================================================================
 
 
-def add_operation(base_setting):
-  if (base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS
-      or base_setting.name in _BUILTIN_CONSTRAINTS_AND_SETTINGS
-      or base_setting.name in _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS):
-    if base_setting.name in _BUILTIN_OPERATIONS_AND_SETTINGS:
-      operation_item = _BUILTIN_OPERATIONS_AND_SETTINGS[base_setting.name]
-      operation_group = _BUILTIN_OPERATIONS_GROUP
-    elif base_setting.name in _BUILTIN_CONSTRAINTS_AND_SETTINGS:
-      operation_item = _BUILTIN_CONSTRAINTS_AND_SETTINGS[base_setting.name]
-      operation_group = _BUILTIN_CONSTRAINTS_GROUP
-    elif base_setting.name in _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS:
-      operation_item = _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS[base_setting.name]
-      operation_group = _BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP
+LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
+
+
+def add_operation(setting_group):
+    function_item = setting_group["function"].value
     
-    operation = operation_item[0]
-    operation_args = operation_item[1] if len(operation_item) > 1 else ()
-    operation_kwargs = operation_item[2] if len(operation_item) > 2 else {}
+    if function_item is None:
+      return
+    
+    function = function_item[0]
+    
+    if "constraint" in setting_group.tags:
+      function = (
+        _add_constraint(function, subfilter=setting_group["subfilter"].value))
+    
+    function_args = function_item[1] if len(function_item) > 1 else ()
+    function_kwargs = function_item[2] if len(function_item) > 2 else {}
+    operation_groups = setting_group["operation_groups"].value
     
     operation_id = _operation_executor.add(
-      execute_operation_only_if_enabled(operation, base_setting["enabled"]),
-      [operation_group],
-      operation_args, operation_kwargs)
+      execute_operation_only_if_enabled(function, setting_group["enabled"]),
+      operation_groups,
+      function_args, function_kwargs)
     
-    _operation_settings_and_items[base_setting.name] = (operation_id, operation_group)
+    _operation_settings_and_items[setting_group.name] = (operation_id, operation_groups)
 
 
-def reorder_operation(setting, new_position):
-  if setting.name in _operation_settings_and_items:
+def reorder_operation(setting_group, new_position):
+  if setting_group.name in _operation_settings_and_items:
     _operation_executor.reorder(
-      _operation_settings_and_items[setting.name][0],
+      _operation_settings_and_items[setting_group.name][0],
       new_position,
-      _operation_settings_and_items[setting.name][1])
+      _operation_settings_and_items[setting_group.name][1])
 
 
-def remove_operation(setting):
-  if setting.name in _operation_settings_and_items:
-    _operation_executor.remove(_operation_settings_and_items[setting.name][0], "all")
+def remove_operation(setting_group):
+  if setting_group.name in _operation_settings_and_items:
+    _operation_executor.remove(
+      _operation_settings_and_items[setting_group.name][0], "all")
 
 
-def is_valid_operation(base_setting):
-  return any(
-    base_setting.name in builtin_operations_or_constraints
-    for builtin_operations_or_constraints in [
-      _BUILTIN_OPERATIONS_AND_SETTINGS,
-      _BUILTIN_CONSTRAINTS_AND_SETTINGS,
-      _BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS])
-
-
-def execute_operation_only_if_enabled(operation, setting):
+def execute_operation_only_if_enabled(operation, setting_enabled):
   def _execute_operation_only_if_enabled(*operation_args, **operation_kwargs):
-    if setting.value:
+    if setting_enabled.value:
       return operation(*operation_args, **operation_kwargs)
     else:
       return False
@@ -757,10 +761,20 @@ def execute_operation_only_if_enabled(operation, setting):
 
 def _add_constraint(rule_func, subfilter=None):
   def _add_rule_func(*args):
-    # HACK: This assumes that `LayerExporter` instance is added as an argument
-    # when executing the default group for constraints.
-    layer_exporter = args[-1]
-    rule_func_args = args[1:]
+    try:
+      layer_exporter_arg_position = (
+        inspect.getargspec(rule_func).args.index("layer_exporter"))
+    except ValueError:
+      layer_exporter_arg_position = None
+    
+    if layer_exporter_arg_position is not None:
+      layer_exporter = args[layer_exporter_arg_position - 1]
+      rule_func_args = args
+    else:
+      layer_exporter = args[LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS - 1]
+      rule_func_args = (
+        args[:LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS - 1]
+        + args[LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS:])
     
     if subfilter is None:
       object_filter = layer_exporter.layer_tree.filter
@@ -772,51 +786,6 @@ def _add_constraint(rule_func, subfilter=None):
   return _add_rule_func
 
 
-def _add_constraint_with_layer_exporter(rule_func):
-  def _add_rule_func_with_layer_exporter(*args):
-    # HACK: This assumes that `LayerExporter` instance is added as an argument
-    # when executing the default group for constraints.
-    layer_exporter = args[-1]
-    layer_exporter.layer_tree.filter.add_rule(rule_func, *args)
-  
-  return _add_rule_func_with_layer_exporter
-
-
-_BUILTIN_OPERATIONS_GROUP = "process_layer"
-_BUILTIN_CONSTRAINTS_GROUP = "set_constraints"
-_BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP = "set_constraints_layer_types"
-
-_BUILTIN_OPERATIONS_AND_SETTINGS = {
-  "ignore_layer_modes": [builtin_operations.ignore_layer_modes],
-  "autocrop": [builtin_operations.autocrop_layer],
-  "inherit_transparency_from_layer_groups": [
-    builtin_operations.inherit_transparency_from_layer_groups],
-  "insert_background_layers": [
-    builtin_operations.insert_background_layer, ["background"]],
-  "insert_foreground_layers": [
-    builtin_operations.insert_foreground_layer, ["foreground"]],
-  "autocrop_background": [builtin_operations.autocrop_tagged_layer, ["background"]],
-  "autocrop_foreground": [builtin_operations.autocrop_tagged_layer, ["foreground"]]
-}
-
-_BUILTIN_CONSTRAINTS_AND_SETTINGS = {
-  "only_layers_without_tags": [_add_constraint(builtin_constraints.has_no_tags)],
-  "only_layers_with_tags": [_add_constraint(builtin_constraints.has_tags)],
-  "only_layers_matching_file_extension": [
-    _add_constraint_with_layer_exporter(
-      builtin_constraints.has_matching_default_file_extension)],
-  "only_toplevel_layers": [_add_constraint(builtin_constraints.is_top_level)]
-}
-
-_BUILTIN_INCLUDE_CONSTRAINTS_AND_SETTINGS = {
-  "include_layers": [
-    _add_constraint(builtin_constraints.is_layer, subfilter="layer_types")],
-  "include_layer_groups": [
-    _add_constraint(builtin_constraints.is_nonempty_group, subfilter="layer_types")],
-  "include_empty_layer_groups": [
-    _add_constraint(builtin_constraints.is_empty_group, subfilter="layer_types")]
-}
-
 # key: setting name; value: (operation ID, operation group) tuple
 _operation_settings_and_items = {}
 
@@ -824,7 +793,7 @@ _operation_executor = pgoperations.OperationExecutor()
 
 _operation_executor.add(
   builtin_operations.set_active_layer_after_operation,
-  [_BUILTIN_OPERATIONS_GROUP],
+  [builtin_operations.BUILTIN_OPERATIONS_GROUP],
   foreach=True)
 
 

@@ -193,103 +193,122 @@ def create_settings():
       name="insert_background_layers",
       function=[builtin_operations.insert_background_layer, ["background"]],
       enabled=False,
-      display_name=_("Insert background layers")
+      display_name=_("Insert background layers"),
+      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
     ),
     operations.create_operation(
       name="insert_foreground_layers",
       function=[builtin_operations.insert_foreground_layer, ["foreground"]],
       enabled=False,
-      display_name=_("Insert foreground layers")
+      display_name=_("Insert foreground layers"),
+      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
     ),
     operations.create_operation(
       name="inherit_transparency_from_layer_groups",
       function=[builtin_operations.inherit_transparency_from_layer_groups],
       enabled=False,
-      display_name=_("Inherit transparency from layer groups")
+      display_name=_("Inherit transparency from layer groups"),
+      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
     ),
     operations.create_operation(
       name="ignore_layer_modes",
       function=[builtin_operations.ignore_layer_modes],
       enabled=False,
-      display_name=_("Ignore layer modes")
+      display_name=_("Ignore layer modes"),
+      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
     ),
     operations.create_operation(
       name="autocrop",
       function=[builtin_operations.autocrop_layer],
       enabled=False,
-      display_name=_("Autocrop")
+      display_name=_("Autocrop"),
+      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
     ),
     operations.create_operation(
       name="autocrop_background",
       function=[builtin_operations.autocrop_tagged_layer, ["background"]],
       enabled=False,
-      display_name=_("Autocrop background")
+      display_name=_("Autocrop background"),
+      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
     ),
     operations.create_operation(
       name="autocrop_foreground",
       function=[builtin_operations.autocrop_tagged_layer, ["foreground"]],
       enabled=False,
-      display_name=_("Autocrop foreground")
+      display_name=_("Autocrop foreground"),
+      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
     ),
     operations.create_operation(
       name="use_file_extensions_in_layer_names",
       function=None,
       enabled=False,
-      display_name=_("Use file extensions in layer names")
+      display_name=_("Use file extensions in layer names"),
+      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
     ),
   ])
   
   settings["main/constraints"].add([
-    operations.create_operation(
+    operations.create_constraint(
       name="only_layers_without_tags",
       function=[builtin_constraints.has_no_tags],
       enabled=False,
-      display_name=_("Only layers without tags")
+      display_name=_("Only layers without tags"),
+      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
     ),
-    operations.create_operation(
+    operations.create_constraint(
       name="only_layers_with_tags",
       function=[builtin_constraints.has_tags],
       enabled=False,
-      display_name=_("Only layers with tags")
+      display_name=_("Only layers with tags"),
+      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
     ),
-    operations.create_operation(
+    operations.create_constraint(
       name="only_layers_matching_file_extension",
       function=[builtin_constraints.has_matching_default_file_extension],
       enabled=False,
-      display_name=_("Only layers matching file extension")
+      display_name=_("Only layers matching file extension"),
+      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
     ),
-    operations.create_operation(
+    operations.create_constraint(
       name="only_toplevel_layers",
       function=[builtin_constraints.is_top_level],
       enabled=False,
-      display_name=_("Only top-level layers")
+      display_name=_("Only top-level layers"),
+      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
     ),
-    operations.create_operation(
+    operations.create_constraint(
       name="only_selected_layers",
       function=None,
       enabled=False,
-      display_name=_("Only layers selected in preview")
+      display_name=_("Only layers selected in preview"),
+      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
     ),
   ])
   
   settings["main/constraints/include"].add([
-    operations.create_operation(
+    operations.create_constraint(
       name="include_layers",
-      function=[builtin_constraints.is_layer, [], {"subfilter": "layer_types"}],
+      function=[builtin_constraints.is_layer],
       enabled=True,
-      display_name=_("Include layers")
+      display_name=_("Include layers"),
+      subfilter="layer_types",
+      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
     ),
-    operations.create_operation(
+    operations.create_constraint(
       name="include_layer_groups",
-      function=[builtin_constraints.is_nonempty_group, [], {"subfilter": "layer_types"}],
+      function=[builtin_constraints.is_nonempty_group],
       enabled=False,
-      display_name=_("Include layer groups")
+      display_name=_("Include layer groups"),
+      subfilter="layer_types",
+      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
     ),
-    operations.create_operation(
+    operations.create_constraint(
       name="include_empty_layer_groups",
-      function=[builtin_constraints.is_empty_group, [], {"subfilter": "layer_types"}],
+      function=[builtin_constraints.is_empty_group],
       enabled=False,
-      display_name=_("Include empty layer groups")
+      display_name=_("Include empty layer groups"),
+      subfilter="layer_types",
+      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
     ),
   ])
   

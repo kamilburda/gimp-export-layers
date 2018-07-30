@@ -30,6 +30,9 @@ import gimpenums
 from export_layers.pygimplib import pgpdb
 
 
+BUILTIN_OPERATIONS_GROUP = "process_layer"
+
+
 def ignore_layer_modes(image, layer, layer_exporter):
   layer.mode = gimpenums.NORMAL_MODE
 
@@ -46,7 +49,7 @@ def autocrop_layer(image, layer, layer_exporter):
   pdb.plug_in_autocrop_layer(image, layer)
 
 
-def autocrop_tagged_layer(tag, image, layer, layer_exporter):
+def autocrop_tagged_layer(image, layer, layer_exporter, tag):
   tagged_layer = layer_exporter.inserted_tagged_layers[tag]
   if tagged_layer is not None:
     image.active_layer = tagged_layer
@@ -78,13 +81,13 @@ def copy_and_insert_layer(image, layer, parent=None, position=0):
   return layer_copy
 
 
-def _insert_tagged_layer(image, tag, layer_exporter, position=0):
+def _insert_tagged_layer(image, layer_exporter, tag, position=0):
   if not layer_exporter.tagged_layer_elems[tag]:
     return
   
   if layer_exporter.tagged_layer_copies[tag] is None:
     layer_exporter.inserted_tagged_layers[tag] = (
-      _insert_merged_tagged_layer(image, tag, layer_exporter, position))
+      _insert_merged_tagged_layer(image, layer_exporter, tag, position))
     
     layer_exporter.tagged_layer_copies[tag] = (
       pdb.gimp_layer_copy(layer_exporter.inserted_tagged_layers[tag], True))
@@ -95,7 +98,7 @@ def _insert_tagged_layer(image, tag, layer_exporter, position=0):
       image, layer_exporter.inserted_tagged_layers[tag], None, position)
 
 
-def _insert_merged_tagged_layer(image, tag, layer_exporter, position=0):
+def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
   first_tagged_layer_position = position
   
   for i, layer_elem in enumerate(layer_exporter.tagged_layer_elems[tag]):
@@ -121,9 +124,9 @@ def _insert_merged_tagged_layer(image, tag, layer_exporter, position=0):
   return merged_layer_for_tag
 
 
-def insert_background_layer(tag, image, layer, layer_exporter):
-  _insert_tagged_layer(image, tag, layer_exporter, position=len(image.layers))
+def insert_background_layer(image, layer, layer_exporter, tag):
+  _insert_tagged_layer(image, layer_exporter, tag, position=len(image.layers))
 
 
-def insert_foreground_layer(tag, image, layer, layer_exporter):
-  _insert_tagged_layer(image, tag, layer_exporter, position=0)
+def insert_foreground_layer(image, layer, layer_exporter, tag):
+  _insert_tagged_layer(image, layer_exporter, tag, position=0)

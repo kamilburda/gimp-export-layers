@@ -29,7 +29,8 @@ from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
 
 
-def create_operation(name, function, enabled=True, display_name=None):
+def create_operation(
+      name, function, enabled=True, display_name=None, operation_groups=None):
   """
   Create a `SettingGroup` instance acting as an operation.
   
@@ -40,8 +41,10 @@ def create_operation(name, function, enabled=True, display_name=None):
     is a separate setting
   * "enabled" - whether the operation should be executed or not
   * "display_name" - the display name (human-readable name) of the operation
+  * "operation_group" - list of groups the operation belongs to; used in
+    `pgoperations.OperationExecutor` and `exportlayers.LayerExporter`
   """
-  operation_group = pgsettinggroup.SettingGroup(
+  operation = pgsettinggroup.SettingGroup(
     name,
     tags=["operation"],
     setting_attributes={
@@ -50,7 +53,7 @@ def create_operation(name, function, enabled=True, display_name=None):
         pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     })
   
-  operation_arguments_group = pgsettinggroup.SettingGroup(
+  arguments = pgsettinggroup.SettingGroup(
     "arguments",
     setting_attributes={
       "pdb_type": None,
@@ -58,13 +61,14 @@ def create_operation(name, function, enabled=True, display_name=None):
         pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     })
   
-  operation_group.add([
+  operation.add([
     {
       "type": pgsetting.SettingTypes.generic,
       "name": "function",
       "default_value": function,
+      "setting_sources": None,
     },
-    operation_arguments_group,
+    arguments,
     {
       "type": pgsetting.SettingTypes.boolean,
       "name": "enabled",
@@ -77,9 +81,43 @@ def create_operation(name, function, enabled=True, display_name=None):
       "default_value": display_name,
       "gui_type": None,
     },
+    {
+      "type": pgsetting.SettingTypes.generic,
+      "name": "operation_groups",
+      "default_value": operation_groups,
+      "gui_type": None,
+    },
   ])
   
-  return operation_group
+  return operation
+
+
+def create_constraint(
+      name,
+      function,
+      enabled=True,
+      display_name=None,
+      operation_groups=None,
+      subfilter=None):
+  constraint = create_operation(
+    name,
+    function,
+    enabled,
+    display_name,
+    operation_groups)
+  
+  constraint.tags.add("constraint")
+  
+  constraint.add([
+    {
+      "type": pgsetting.SettingTypes.string,
+      "name": "subfilter",
+      "default_value": subfilter,
+      "gui_type": None,
+    },
+  ])
+  
+  return constraint
 
 
 def walk_operations(operations, setting_name="operation"):
@@ -88,9 +126,12 @@ def walk_operations(operations, setting_name="operation"):
   
   `setting_name` specifies which underlying setting or subgroup of each
   operation is returned. By default, the group representing the entire operation
-  is returned. For possible values, see `create_operation`.
+  is returned. For possible values, see `create_operation`. Additional values
+  include:
+  * `"operation"` - the setting group if the group is an operation or constraint
+  * `"constraint"` - the setting group if the group is a constraint
   """
-  if setting_name == "operation":
+  if setting_name in ["operation", "constraint"]:
     def has_tag(setting):
       return setting_name in setting.tags
     

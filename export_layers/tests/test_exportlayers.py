@@ -39,6 +39,7 @@ from .. import config
 config.init()
 
 from .. import exportlayers
+from .. import operations
 from .. import settings_plugin
 
 pygimplib.init()
@@ -231,9 +232,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   @staticmethod
   def _export(settings):
-    for operation_setting in settings.walk(include_groups=True):
-      if exportlayers.is_valid_operation(operation_setting):
-        exportlayers.add_operation(operation_setting)
+    for operation_setting in operations.walk_operations(settings):
+      exportlayers.add_operation(operation_setting)
     
     layer_exporter = exportlayers.LayerExporter(
       settings["special/run_mode"].value,
@@ -242,9 +242,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     
     layer_exporter.export()
     
-    for operation_setting in settings.walk(include_groups=True):
-      if exportlayers.is_valid_operation(operation_setting):
-        exportlayers.remove_operation(operation_setting)
+    for operation_setting in operations.walk_operations(settings):
+      exportlayers.remove_operation(operation_setting)
   
   def _compare_layers(
         self, layer, expected_layer, settings, test_case_name, expected_results_dirpath):
