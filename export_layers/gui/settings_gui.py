@@ -100,7 +100,7 @@ def create_gui_settings():
     {
       "type": pgsetting.SettingTypes.generic,
       "name": "displayed_builtin_constraints",
-      "default_value": ["include/include_layers"],
+      "default_value": ["include_layers"],
       "gui_type": None
     },
   ])

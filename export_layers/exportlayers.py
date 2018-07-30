@@ -299,7 +299,7 @@ class LayerExporter(object):
        builtin_constraints.BUILTIN_CONSTRAINTS_GROUP,
        builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP])
     
-    add_operation(self.export_settings["constraints/include/include_layers"])
+    add_operation(self.export_settings["constraints/include_layers"])
   
   def _init_attributes(self, processing_groups, layer_tree, keep_image_copy):
     self._enable_disable_processing_groups(processing_groups)

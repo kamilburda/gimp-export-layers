@@ -72,17 +72,6 @@ def create_settings():
               "setting_sources": [
                 pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
             },
-            "groups": [
-              {
-                "name": "include",
-                "display_name": _("Include"),
-                "setting_attributes": {
-                  "pdb_type": None,
-                  "setting_sources": [
-                    pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
-                }
-              }
-            ]
           }
         ]
       }
@@ -249,6 +238,30 @@ def create_settings():
   
   settings["main/constraints"].add([
     operations.create_constraint(
+      name="include_layers",
+      function=[builtin_constraints.is_layer],
+      enabled=True,
+      display_name=_("Include layers"),
+      subfilter="layer_types",
+      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
+    ),
+    operations.create_constraint(
+      name="include_layer_groups",
+      function=[builtin_constraints.is_nonempty_group],
+      enabled=False,
+      display_name=_("Include layer groups"),
+      subfilter="layer_types",
+      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
+    ),
+    operations.create_constraint(
+      name="include_empty_layer_groups",
+      function=[builtin_constraints.is_empty_group],
+      enabled=False,
+      display_name=_("Include empty layer groups"),
+      subfilter="layer_types",
+      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
+    ),
+    operations.create_constraint(
       name="only_layers_without_tags",
       function=[builtin_constraints.has_no_tags],
       enabled=False,
@@ -282,33 +295,6 @@ def create_settings():
       enabled=False,
       display_name=_("Only layers selected in preview"),
       operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
-    ),
-  ])
-  
-  settings["main/constraints/include"].add([
-    operations.create_constraint(
-      name="include_layers",
-      function=[builtin_constraints.is_layer],
-      enabled=True,
-      display_name=_("Include layers"),
-      subfilter="layer_types",
-      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
-    ),
-    operations.create_constraint(
-      name="include_layer_groups",
-      function=[builtin_constraints.is_nonempty_group],
-      enabled=False,
-      display_name=_("Include layer groups"),
-      subfilter="layer_types",
-      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
-    ),
-    operations.create_constraint(
-      name="include_empty_layer_groups",
-      function=[builtin_constraints.is_empty_group],
-      enabled=False,
-      display_name=_("Include empty layer groups"),
-      subfilter="layer_types",
-      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
     ),
   ])
   
