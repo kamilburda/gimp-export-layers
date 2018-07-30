@@ -73,7 +73,6 @@ def create_operation(
       "type": pgsetting.SettingTypes.boolean,
       "name": "enabled",
       "default_value": enabled,
-      "display_name": display_name,
     },
     {
       "type": pgsetting.SettingTypes.string,
@@ -89,7 +88,19 @@ def create_operation(
     },
   ])
   
+  operation["enabled"].connect_event(
+    "after-set-gui",
+    _set_display_name_for_enabled_gui,
+    operation["display_name"])
+  
   return operation
+
+
+def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
+  setting_display_name.set_gui(
+    gui_type=pgsetting.SettingGuiTypes.check_button_label,
+    gui_element=setting_enabled.gui.element
+  )
 
 
 def create_constraint(
