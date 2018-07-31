@@ -728,7 +728,7 @@ def add_operation(setting_group):
     operation_groups = setting_group["operation_groups"].value
     
     operation_id = _operation_executor.add(
-      execute_operation_only_if_enabled(function, setting_group["enabled"]),
+      _execute_operation_only_if_enabled(function, setting_group["enabled"]),
       operation_groups,
       function_args, function_kwargs)
     
@@ -750,14 +750,14 @@ def remove_operation(setting_group):
       _operation_settings_and_items[setting_group.name][0], "all")
 
 
-def execute_operation_only_if_enabled(operation, setting_enabled):
-  def _execute_operation_only_if_enabled(*operation_args, **operation_kwargs):
+def _execute_operation_only_if_enabled(operation, setting_enabled):
+  def _execute_operation(*operation_args, **operation_kwargs):
     if setting_enabled.value:
       return operation(*operation_args, **operation_kwargs)
     else:
       return False
   
-  return _execute_operation_only_if_enabled
+  return _execute_operation
 
 
 def _add_constraint(rule_func, subfilter=None):
