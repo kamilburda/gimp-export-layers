@@ -18,7 +18,8 @@
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-This module defines the mean to create and manipulate plug-in operations.
+This module defines the mean to create and manipulate plug-in operations
+and constraints.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

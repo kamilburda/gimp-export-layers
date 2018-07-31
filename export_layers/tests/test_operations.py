@@ -22,8 +22,11 @@ from future.builtins import *
 
 import unittest
 
+import parameterized
+
 from export_layers import pygimplib
 from export_layers.pygimplib import pgutils
+from export_layers.pygimplib import pgsettinggroup
 
 from .. import operations
 
@@ -33,10 +36,73 @@ pygimplib.init()
 class TestCreateOperation(unittest.TestCase):
   
   def test_create_operation(self):
-    operation_setting = operations.create_operation(
+    operation = operations.create_operation(
       "autocrop", pgutils.empty_func, True, "Autocrop")
     
-    self.assertEqual(operation_setting.name, "autocrop")
-    self.assertEqual(operation_setting["function"].value, pgutils.empty_func)
-    self.assertEqual(operation_setting["enabled"].value, True)
-    self.assertEqual(operation_setting["display_name"].value, "Autocrop")
+    self.assertEqual(operation.name, "autocrop")
+    self.assertEqual(operation["function"].value, pgutils.empty_func)
+    self.assertEqual(operation["enabled"].value, True)
+    self.assertEqual(operation["display_name"].value, "Autocrop")
+    self.assertSetEqual(operation.tags, set(["operation"]))
+  
+  def test_create_constraint(self):
+    constraint = operations.create_constraint(
+      "only_visible_layers", pgutils.empty_func, True, "Only Visible Layers")
+    
+    self.assertEqual(constraint.name, "only_visible_layers")
+    self.assertEqual(constraint["function"].value, pgutils.empty_func)
+    self.assertEqual(constraint["enabled"].value, True)
+    self.assertEqual(constraint["display_name"].value, "Only Visible Layers")
+    self.assertEqual(constraint["subfilter"].value, None)
+    self.assertSetEqual(constraint.tags, set(["operation", "constraint"]))
+
+
+class TestWalkOperations(unittest.TestCase):
+  
+  def setUp(self):
+    self.operation_group = pgsettinggroup.SettingGroup("test_operations")
+    self.operation_group.add([
+      operations.create_operation(
+        name="autocrop",
+        function=pgutils.empty_func,
+        enabled=True,
+        display_name=_("Autocrop"),
+      ),
+      operations.create_operation(
+        name="autocrop_background",
+        function=pgutils.empty_func,
+        enabled=False,
+        display_name=_("Autocrop background layers"),
+      ),
+      operations.create_operation(
+        name="autocrop_foreground",
+        function=pgutils.empty_func,
+        enabled=False,
+        display_name=_("Autocrop foreground layers"),
+      ),
+    ])
+  
+  @parameterized.parameterized.expand([
+    ("operations",
+     "operation",
+     ["autocrop",
+      "autocrop_background",
+      "autocrop_foreground"]),
+    
+    ("constraints",
+     "constraint", []),
+    
+    ("enabled",
+     "enabled",
+     ["autocrop/enabled",
+      "autocrop_background/enabled",
+      "autocrop_foreground/enabled"]),
+    
+    ("nonexistent_setting",
+     "nonexistent_setting", []),
+  ])
+  def test_walk_operations(
+        self, test_case_name_suffix, setting_name, expected_setting_paths):
+    self.assertListEqual(
+      list(operations.walk_operations(self.operation_group, setting_name=setting_name)),
+      [self.operation_group[path] for path in expected_setting_paths])
