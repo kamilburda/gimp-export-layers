@@ -22,6 +22,7 @@ license_local_filename: "LICENSE.txt"
 plugins:
   - jekyll-sitemap
   - jekyll-github-metadata
+  - jekyll-seo-tag
 
 # Build settings
 markdown: kramdown
