@@ -28,7 +28,7 @@ If you have a portable GIMP installation, you will be prompted to specify the pa
 
 Unpack the ZIP archive to any folder and run the extracted installer by double-clicking on the file in your file explorer application or from the terminal.
 
-You can customize the file path to the GIMP executable and the plug-in installation with `-g` and `-i` options, respectively.
+You can customize the path to the GIMP executable and the plug-in installation with `-g` and `-i` options, respectively.
 These options must be specified in the terminal as follows (do not forget the `--`):
 
     [installer script].run -- -g [gimp_filepath] -i [installation_path]
@@ -39,11 +39,11 @@ To install Export Layers system-wide, run the installer with root privileges.
 
 ### macOS
 
-First, make sure GIMP is installed in the `Applications` folder.
+First, make sure GIMP is installed in the `Applications` folder and is named `GIMP.app`.
 
 Unpack the ZIP archive to any folder and run the extracted installer from Terminal.
 
-You can customize the file path to the GIMP executable and the plug-in installation with `-g` and `-i` options, respectively.
+You can customize the path to the GIMP executable and the plug-in installation with `-g` and `-i` options, respectively.
 These options must be specified in the terminal as follows (do not forget the `--`):
 
     [installer script].run -- -g [gimp_filepath] -i [installation_path]

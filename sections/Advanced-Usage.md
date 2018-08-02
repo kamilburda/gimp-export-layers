@@ -146,6 +146,7 @@ Additional Operations
 ---------------------
 
 To add custom operations before the export of each layer, press the "Add Operation..." button and select one of the operations described below.
+You can enable, disable or remove operations as needed.
 
 **Insert background layers**
 
@@ -192,6 +193,7 @@ Additional Constraints
 ----------------------
 
 To include or exclude layers according to specific criteria, press the "Add Constraint..." button and select one of the constraints described below.
+You can enable, disable or remove constraints as needed.
 
 **Include layers**
 
