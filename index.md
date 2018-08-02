@@ -1,6 +1,6 @@
 ---
 layout: main
-title: GIMP plug-in
+title: Home
 navbar_active_tab: home
 ---
 
