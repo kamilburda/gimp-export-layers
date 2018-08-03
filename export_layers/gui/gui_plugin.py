@@ -814,9 +814,9 @@ class ExportLayersGui(object):
         in self._settings["main/overwrite_mode"].items.values()):
       self._settings["main/overwrite_mode"].set_value(overwrite_chooser.overwrite_mode)
     
-    pgsettingpersistor.SettingPersistor.save(
-      [self._settings["main"], self._settings["gui"], self._settings["gui_session"]],
-      [pygimplib.config.SOURCE_SESSION])
+    self._settings["main"].save([pygimplib.config.SOURCE_SESSION])
+    self._settings["gui"].save([pygimplib.config.SOURCE_SESSION])
+    self._settings["gui_session"].save([pygimplib.config.SOURCE_SESSION])
     
     if should_quit:
       gtk.main_quit()
