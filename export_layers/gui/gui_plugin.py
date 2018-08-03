@@ -945,8 +945,7 @@ class ExportLayersRepeatGui(object):
     
     _add_gui_settings(self._settings)
     
-    pgsettingpersistor.SettingPersistor.load(
-      [self._settings], [pygimplib.config.SOURCE_SESSION])
+    self._settings.load([pygimplib.config.SOURCE_SESSION])
     
     self._add_operations()
     
