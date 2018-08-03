@@ -117,6 +117,15 @@ def create_constraint(
       display_name=None,
       operation_groups=None,
       subfilter=None):
+  """
+  Create a `SettingGroup` instance acting as a constraint.
+  
+  See `create_operation` for more information.
+  
+  Additional settings include:
+  * `subfilter` - name of a subfilter for an `ObjectFilter` instance where
+    constraints should be added. By default, no subfilter is assumed.
+  """
   constraint = create_operation(
     name,
     function,
