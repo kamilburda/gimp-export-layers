@@ -27,6 +27,7 @@ import unittest
 import gimpenums
 
 import mock
+import parameterized
 
 from . import stubs_gimp
 from . import stubs_pgsetting
@@ -133,78 +134,105 @@ class TestSetting(unittest.TestCase):
     setting.reset()
     self.assertEqual(setting.value, {})
   
+  @parameterized.parameterized.expand([
+    ("default_source",
+     ["default"], None, True, ["default"]),
+    
+    ("no_default_source",
+     None, None, True, []),
+    
+    ("parameter_not_in_empty_default_sources",
+     None, ["param"], True, []),
+    
+    ("parameter_not_in_default_sources",
+     ["default"], ["param"], True, []),
+    
+    ("parameter_matching_a_default_source",
+     ["one", "two"], ["one"], True, ["one"]),
+  ])
   @mock.patch(
     pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.load")
-  def test_load(self, mock_setting_persistor_load):
-    dummy_setting_source = object()
-    self.setting.load([dummy_setting_source])
-    self.assertTrue(mock_setting_persistor_load.called)
+  def test_load(
+        self,
+        test_case_name_suffix,
+        sources_for_setting,
+        sources_as_parameters,
+        was_save_called,
+        sources_in_call_args,
+        mock_setting_persistor_load):
+    self._test_load_save(
+      sources_for_setting,
+      sources_as_parameters,
+      was_save_called,
+      sources_in_call_args,
+      mock_setting_persistor_load,
+      "load")
   
-  @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.load")
-  def test_load_default_source(self, mock_setting_persistor_load):
-    dummy_setting_source = object()
-    setting = stubs_pgsetting.SettingStub(
-      "image_IDs_and_directories", {}, setting_sources=[dummy_setting_source])
-    setting.load()
-    self.assertTrue(mock_setting_persistor_load.called)
-  
-  @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.load")
-  def test_load_default_source_overridden_by_parameter(self, mock_setting_persistor_load):
-    dummy_setting_source_default = object()
-    setting = stubs_pgsetting.SettingStub(
-      "image_IDs_and_directories", {}, setting_sources=[dummy_setting_source_default])
-    dummy_setting_source_parameter = object()
+  @parameterized.parameterized.expand([
+    ("default_source",
+     ["default"], None, True, ["default"]),
     
-    setting.load([dummy_setting_source_parameter])
+    ("no_default_source",
+     None, None, True, []),
     
-    self.assertTrue(mock_setting_persistor_load.called)
-    self.assertIn(
-      dummy_setting_source_parameter, mock_setting_persistor_load.call_args[0][1])
-    self.assertNotIn(
-      dummy_setting_source_default, mock_setting_persistor_load.call_args[0][1])
-  
-  def test_load_no_default_source_no_parameter(self):
-    with self.assertRaises(ValueError):
-      self.setting.load()
-  
+    ("parameter_not_in_empty_default_sources",
+     None, ["param"], True, []),
+    
+    ("parameter_not_in_default_sources",
+     ["default"], ["param"], True, []),
+    
+    ("parameter_matching_a_default_source",
+     ["one", "two"], ["one"], True, ["one"]),
+  ])
   @mock.patch(
     pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.save")
-  def test_save(self, mock_setting_persistor_save):
-    dummy_setting_source = object()
-    self.setting.save([dummy_setting_source])
-    self.assertTrue(mock_setting_persistor_save.called)
+  def test_save(
+        self,
+        test_case_name_suffix,
+        sources_for_setting,
+        sources_as_parameters,
+        was_save_called,
+        sources_in_call_args,
+        mock_setting_persistor_save):
+    self._test_load_save(
+      sources_for_setting,
+      sources_as_parameters,
+      was_save_called,
+      sources_in_call_args,
+      mock_setting_persistor_save,
+      "save")
   
-  @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.save")
-  def test_save_default_source(self, mock_setting_persistor_save):
-    dummy_setting_source = object()
+  def _test_load_save(
+        self,
+        sources_for_setting,
+        sources_as_parameters,
+        was_save_called,
+        sources_in_call_args,
+        mock_load_save,
+        load_save_func_name):
     setting = stubs_pgsetting.SettingStub(
-      "image_IDs_and_directories", {}, setting_sources=[dummy_setting_source])
-    setting.save()
-    self.assertTrue(mock_setting_persistor_save.called)
-  
-  @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.save")
-  def test_save_default_source_overridden_by_parameter(self, mock_setting_persistor_save):
-    dummy_setting_source_default = object()
-    setting = stubs_pgsetting.SettingStub(
-      "image_IDs_and_directories", {}, setting_sources=[dummy_setting_source_default])
-    dummy_setting_source_parameter = object()
+      "image_IDs_and_directories", {}, setting_sources=sources_for_setting)
+    getattr(setting, load_save_func_name)(sources_as_parameters)
     
-    setting.save([dummy_setting_source_parameter])
+    if was_save_called:
+      self.assertTrue(mock_load_save.called)
+    else:
+      self.assertFalse(mock_load_save.called)
     
-    self.assertTrue(mock_setting_persistor_save.called)
-    self.assertIn(
-      dummy_setting_source_parameter, mock_setting_persistor_save.call_args[0][1])
-    self.assertNotIn(
-      dummy_setting_source_default, mock_setting_persistor_save.call_args[0][1])
+    sources = (
+      sources_for_setting if sources_for_setting is not None else []
+      + sources_as_parameters if sources_as_parameters is not None else [])
+    
+    for source in sources:
+      call_args = (
+        mock_load_save.call_args[0][1]
+        if mock_load_save.call_args[0][1] is not None else [])
+      
+      if source in sources_in_call_args:
+        self.assertIn(source, call_args)
+      else:
+        self.assertNotIn(source, call_args)
   
-  def test_save_no_default_source_no_parameter(self):
-    with self.assertRaises(ValueError):
-      self.setting.save()
-
 
 class TestSettingEvents(unittest.TestCase):
   

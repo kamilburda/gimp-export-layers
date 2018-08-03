@@ -96,7 +96,7 @@ def create_test_settings_hierarchical():
 
 
 def create_test_settings_load_save():
-  dummy_session_source, dummy_persistent_source = object(), object()
+  dummy_session_source, dummy_persistent_source = "session_source", "persistent_source"
   
   main_settings = pgsettinggroup.SettingGroup(
     name="main",

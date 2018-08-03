@@ -444,37 +444,39 @@ class Setting(pgsettingutils.SettingParentMixin):
   
   def load(self, setting_sources=None):
     """
-    Load setting from the specified setting source(s). See
+    Load setting value from the specified setting source(s). See
     `pgsettingpersistor.SettingPersistor.load` for more information about
     setting sources.
     
     If `setting_sources` is `None`, use the default setting sources. If
-    `setting_sources` is `None` and there are no default setting sources, raise
-    `ValueError`.
-    """
-    if setting_sources is None:
-      setting_sources = self._setting_sources
-    if setting_sources is None:
-      raise ValueError("no setting sources and no default setting sources specified")
+    specified, use a subset of sources matching the default sources. For
+    example, if the default sources contain a persistent and a
+    session-persistent source and `setting_sources` contains a
+    session-persistent source, the setting value is loaded from the
+    session-persistent source only.
     
-    return pgsettingpersistor.SettingPersistor.load([self], setting_sources)
+    If there are no default setting sources or `setting_sources` does not match
+    any of the default sources, this method has no effect.
+    """
+    self._load_save(setting_sources, pgsettingpersistor.SettingPersistor.load)
   
   def save(self, setting_sources=None):
     """
-    Save setting to the specified setting source(s). See
+    Save setting value to the specified setting source(s). See
     `pgsettingpersistor.SettingPersistor.save` for more information about
     setting sources.
     
     If `setting_sources` is `None`, use the default setting sources. If
-    `setting_sources` is `None` and there are no default setting sources, raise
-    `ValueError`.
-    """
-    if setting_sources is None:
-      setting_sources = self._setting_sources
-    if setting_sources is None:
-      raise ValueError("no setting sources and no default setting sources specified")
+    specified, use a subset of sources matching the default sources. For
+    example, if the default sources contain a persistent and a
+    session-persistent source and `setting_sources` contains a
+    session-persistent source, the setting value is loaded from the
+    session-persistent source only.
     
-    return pgsettingpersistor.SettingPersistor.save([self], setting_sources)
+    If there are no default setting sources or `setting_sources` does not match
+    any of the default sources, this method has no effect.
+    """
+    self._load_save(setting_sources, pgsettingpersistor.SettingPersistor.save)
   
   def connect_event(
         self, event_type, event_handler, *event_handler_args, **event_handler_kwargs):
@@ -718,6 +720,18 @@ class Setting(pgsettingutils.SettingParentMixin):
             [type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
     
     return gui_type_to_return
+  
+  def _load_save(self, setting_sources, load_save_func):
+    if setting_sources is None:
+      setting_sources = self._setting_sources
+    else:
+      if self._setting_sources is not None:
+        setting_sources = [
+          source for source in setting_sources if source in self._setting_sources]
+      else:
+        setting_sources = None
+    
+    return load_save_func([self], setting_sources)
 
 
 class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):

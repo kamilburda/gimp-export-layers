@@ -499,7 +499,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   
   def reset(self):
     """
-    Reset all settings in this group. Ignore settings with the "ignore_reset"
+    Reset all settings in this group. Ignore settings with the `"ignore_reset"`
     tag.
     """
     def _has_ignore_reset_tag(setting):
@@ -508,12 +508,12 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     for setting in self.walk(include_setting_func=_has_ignore_reset_tag):
       setting.reset()
   
-  def load(self):
+  def load(self, setting_sources=None):
     """
-    Load all settings in this group. Ignore settings with the "ignore_load" tag.
-    If there are multiple combinations of setting sources within the group (e.g.
-    some settings within this group having their own setting sources), loading
-    is performed for each combination separately.
+    Load all settings in this group. Ignore settings with the `"ignore_load"`
+    tag. If there are multiple combinations of setting sources within the group
+    (e.g. some settings within this group having their own setting sources),
+    loading is performed for each combination separately.
     
     Return the status and the status message as per the
     `pgsettingpersistor.SettingPersistor.load()` method. For multiple
@@ -521,17 +521,22 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     (from the "best" to the "worst": `SUCCESS`, `NOT_ALL_SETTINGS_FOUND`,
     `READ_FAIL` or `WRITE_FAIL`) and a status message containing status messages
     of all calls to `load()`.
+    
+    If `setting_sources` is `None`, use the default setting sources for all
+    settings. If specified, only a subset of settings having `setting_sources`
+    will be loaded, and only from `setting_sources`.
     """
     return self._load_save_group(
       "ignore_load",
       pgsettingpersistor.SettingPersistor.load,
+      setting_sources,
       "before-load-group",
       "after-load-group")
   
-  def save(self):
+  def save(self, setting_sources=None):
     """
-    Save all settings in this group. Ignore settings with the "ignore_save" tag.
-    Return the status and the status message as per the
+    Save all settings in this group. Ignore settings with the `"ignore_save"`
+    tag. Return the status and the status message as per the
     `pgsettingpersistor.SettingPersistor.save()` method.
     
     For more information, refer to the `load()` method.
@@ -539,6 +544,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     return self._load_save_group(
       "ignore_save",
       pgsettingpersistor.SettingPersistor.save,
+      setting_sources,
       "before-save-group",
       "after-save-group")
   
@@ -546,6 +552,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
         self,
         load_save_ignore_tag,
         load_save_func,
+        setting_sources,
         before_load_save_group_event_type,
         after_load_save_group_event_type):
     
@@ -555,14 +562,14 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     for setting in self.walk(include_setting_func=_has_ignore_tag):
       setting.invoke_event(before_load_save_group_event_type)
     
-    return_values = self._load_save(load_save_ignore_tag, load_save_func)
+    return_values = self._load_save(load_save_ignore_tag, load_save_func, setting_sources)
     
     for setting in self.walk(include_setting_func=_has_ignore_tag):
       setting.invoke_event(after_load_save_group_event_type)
     
     return return_values
   
-  def _load_save(self, load_save_ignore_tag, load_save_func):
+  def _load_save(self, load_save_ignore_tag, load_save_func, setting_sources):
     
     def _get_worst_status(status_and_messages):
       worst_status = pgsettingpersistor.SettingPersistor.SUCCESS
@@ -585,11 +592,17 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     settings_per_sources = collections.OrderedDict()
     
     for setting in settings:
-      sources = tuple(setting.setting_sources)
-      if sources not in settings_per_sources:
-        settings_per_sources[sources] = []
+      if setting_sources is None:
+        sources = tuple(setting.setting_sources)
+      else:
+        sources = tuple(
+          source for source in setting.setting_sources if source in setting_sources)
       
-      settings_per_sources[sources].append(setting)
+      if sources:
+        if sources not in settings_per_sources:
+          settings_per_sources[sources] = []
+        
+        settings_per_sources[sources].append(setting)
     
     status_and_messages = collections.OrderedDict()
     
@@ -634,7 +647,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   def apply_gui_values_to_settings(self):
     """
     Apply GUI element values, entered by the user, to settings.
-    Ignore settings with the "ignore_apply_gui_value_to_setting" tag.
+    Ignore settings with the `"ignore_apply_gui_value_to_setting"` tag.
     
     This method will not have any effect on settings with automatic
     GUI-to-setting value updating.

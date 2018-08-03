@@ -67,7 +67,7 @@ class SettingPersistor(object):
       * `status`:
       
         * `SUCCESS` - Settings successfully loaded. This status is also returned
-          if `settings_or_groups` or `setting_sources` is empty.
+          if `settings_or_groups` or `setting_sources` is empty or `None`.
         
         * `NOT_ALL_SETTINGS_FOUND` - Could not find some settings from
           any of the sources. Default values are assigned to these settings.
@@ -137,7 +137,7 @@ class SettingPersistor(object):
       * `status`:
       
         * `SUCCESS` - Settings successfully saved. This status is also returned
-          if `settings_or_groups` or `setting_sources` is empty.
+          if `settings_or_groups` or `setting_sources` is empty or `None`.
         
         * `WRITE_FAIL` - Could not write data to the first source where this
           error occurred. May occur for file sources with e.g. denied write

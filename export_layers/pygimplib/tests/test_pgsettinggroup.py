@@ -20,6 +20,7 @@ from future.builtins import *
 import unittest
 
 import mock
+import parameterized
 
 from . import stubs_pgsetting
 from . import stubs_pgsettinggroup
@@ -607,24 +608,53 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     self.assertEqual(mock_save.call_count, 1)
     self.assertEqual([settings["only_visible_layers"]], mock_save.call_args[0][0])
   
-  def test_load_save_setting_sources_in_group_and_in_settings(self, mock_load, mock_save):
-    self.settings.load()
-    self.assertEqual(mock_load.call_count, 3)
-    self.assertEqual(
-      [self.settings["main/file_extension"]], mock_load.call_args_list[0][0][0])
-    self.assertEqual(
-      [self.settings["advanced/only_visible_layers"]], mock_load.call_args_list[1][0][0])
-    self.assertEqual(
-      [self.settings["advanced/autocrop"]], mock_load.call_args_list[2][0][0])
+  @parameterized.parameterized.expand([
+    ("default_sources",
+     None,
+     3,
+     [["main/file_extension"], ["advanced/only_visible_layers"], ["advanced/autocrop"]],
+     [("session_source", "persistent_source"),
+      ("persistent_source", "session_source"),
+      ("session_source",)]),
     
-    self.settings.save()
-    self.assertEqual(mock_save.call_count, 3)
-    self.assertEqual(
-      [self.settings["main/file_extension"]], mock_save.call_args_list[0][0][0])
-    self.assertEqual(
-      [self.settings["advanced/only_visible_layers"]], mock_save.call_args_list[1][0][0])
-    self.assertEqual(
-      [self.settings["advanced/autocrop"]], mock_save.call_args_list[2][0][0])
+    ("session_source_only",
+     ["session_source"],
+     1,
+     [["main/file_extension", "advanced/only_visible_layers", "advanced/autocrop"]],
+     [("session_source",)]),
+    
+    ("persistent_source_only",
+     ["persistent_source"],
+     1,
+     [["main/file_extension", "advanced/only_visible_layers"]],
+     [("persistent_source",)]),
+  ])
+  def test_load_save_setting_sources_in_group_and_in_settings(
+        self,
+        mock_load,
+        mock_save,
+        test_case_name_suffix,
+        setting_sources,
+        load_save_call_count,
+        setting_names_in_calls,
+        expected_setting_sources_in_calls):
+    self._test_load_save(
+      test_case_name_suffix,
+      setting_sources,
+      load_save_call_count,
+      setting_names_in_calls,
+      expected_setting_sources_in_calls,
+      "load",
+      mock_load)
+    
+    self._test_load_save(
+      test_case_name_suffix,
+      setting_sources,
+      load_save_call_count,
+      setting_names_in_calls,
+      expected_setting_sources_in_calls,
+      "save",
+      mock_save)
   
   def test_load_save_return_statuses(self, mock_load, mock_save):
     load_save_calls_return_values = [
@@ -663,6 +693,28 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     mock_save.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.save()
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.WRITE_FAIL)
+  
+  def _test_load_save(
+        self,
+        test_case_name_suffix,
+        setting_sources,
+        load_save_call_count,
+        setting_names_in_calls,
+        expected_setting_sources_in_calls,
+        load_save_func_name,
+        mock_object):
+    getattr(self.settings, load_save_func_name)(setting_sources)
+    
+    self.assertEqual(mock_object.call_count, load_save_call_count)
+    
+    for i, (setting_names_per_call, setting_sources_per_call) in (
+          enumerate(zip(setting_names_in_calls, expected_setting_sources_in_calls))):
+      self.assertEqual(
+        mock_object.call_args_list[i][0][0],
+        [self.settings[name] for name in setting_names_per_call])
+      self.assertEqual(
+        mock_object.call_args_list[i][0][1],
+        setting_sources_per_call)
 
 
 class TestSettingGroupGui(unittest.TestCase):
