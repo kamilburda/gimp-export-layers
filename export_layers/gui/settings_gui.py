@@ -31,7 +31,7 @@ from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgutils
 
-from .. import exportlayers
+from .. import operations
 
 
 def create_gui_settings():
@@ -88,7 +88,7 @@ def create_gui_settings():
     {
       "type": pgsetting.SettingTypes.generic,
       "name": "displayed_tags",
-      "default_value": exportlayers.LayerExporter.BUILTIN_TAGS,
+      "default_value": operations.BUILTIN_TAGS,
       "gui_type": None
     },
     {

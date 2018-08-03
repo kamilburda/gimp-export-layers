@@ -30,6 +30,12 @@ from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
 
 
+BUILTIN_TAGS = {
+  "background": _("Background"),
+  "foreground": _("Foreground")
+}
+
+
 def create_operation(
       name, function, enabled=True, display_name=None, operation_groups=None):
   """
