@@ -166,15 +166,21 @@ class SettingEventsMixin(object):
     """
     return event_id in self._event_handler_ids_and_types
   
-  def invoke_event(self, event_type):
+  def invoke_event(self, event_type, *additional_args, **additional_kwargs):
     """
     Call all connected event handlers of the specified event type.
+    
+    Additional arguments and keyword arguments are passed via
+    `*additional_args` and `**additional_kwargs`, respectively. These arguments
+    are appended to the arguments specified in `connect_event` (if any).
     """
     for (event_handler,
-         event_handler_args,
-         event_handler_kwargs,
+         args,
+         kwargs,
          enabled) in self._event_handlers[event_type].values():
       if enabled:
+        event_handler_args = tuple(args) + additional_args
+        event_handler_kwargs = dict(kwargs, **additional_kwargs)
         event_handler(self, *event_handler_args, **event_handler_kwargs)
 
 

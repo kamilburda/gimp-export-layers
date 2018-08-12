@@ -99,7 +99,18 @@ class TestSettingEventsMixin(unittest.TestCase):
     self.assertEqual(self.file_extension.value, "png")
     self.assertFalse(self.only_visible.value)
   
-  def test_connect_event_keyword_arguments(self):
+  def test_invoke_event_with_arguments(self):
+    self.only_visible.set_value(True)
+    self.file_extension.connect_event(
+      "test-event",
+      stubs_pgsetting.on_file_extension_changed)
+    
+    self.file_extension.invoke_event("test-event", self.only_visible)
+    
+    self.assertEqual(self.file_extension.value, "png")
+    self.assertFalse(self.only_visible.value)
+  
+  def test_connect_event_with_keyword_arguments(self):
     autocrop = pgsetting.BoolSetting("autocrop", False)
     autocrop.connect_event(
       "test-event",
@@ -109,6 +120,18 @@ class TestSettingEventsMixin(unittest.TestCase):
     
     autocrop.set_value(True)
     autocrop.invoke_event("test-event")
+    
+    self.assertEqual(self.file_extension.value, "tiff")
+  
+  def test_invoke_event_with_keyword_arguments(self):
+    autocrop = pgsetting.BoolSetting("autocrop", False)
+    autocrop.connect_event(
+      "test-event",
+      stubs_pgsetting.on_autocrop_changed,
+      self.file_extension)
+    
+    autocrop.set_value(True)
+    autocrop.invoke_event("test-event", file_extension_value="tiff")
     
     self.assertEqual(self.file_extension.value, "tiff")
   
