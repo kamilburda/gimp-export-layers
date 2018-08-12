@@ -162,6 +162,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
     As a more compact alternative, you may specify a setting path:
     
       settings["main/autocrop"]
+    
+    If the name or path does not exist, raise `KeyError`.
     """
     if pgsettingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
       return self._get_setting_from_path(setting_name_or_path)
@@ -340,6 +342,18 @@ class SettingGroup(pgsettingutils.SettingParentMixin):
   def _get_missing_mandatory_attributes_message(self, attribute_names):
     return "missing the following mandatory setting attributes: {}".format(
       ", ".join(attribute_names))
+  
+  def get_value(self, setting_name_or_path, default_value):
+    """
+    Return the value of the setting specified by its name or path. If the
+    setting does not exist, return `default_value` instead.
+    """
+    try:
+      setting = self[setting_name_or_path]
+    except KeyError:
+      return default_value
+    else:
+      return setting.value
   
   def get_attributes(self, setting_attributes):
     """

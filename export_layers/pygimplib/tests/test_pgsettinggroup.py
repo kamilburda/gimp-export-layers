@@ -303,6 +303,26 @@ class TestSettingGroup(unittest.TestCase):
     self.assertIn("special", main_settings)
     self.assertEqual(self.settings["special"], main_settings["special"])
   
+  @parameterized.parameterized.expand([
+    ("setting_exists_returns_setting_value",
+     "file_extension",
+     "jpg",
+     "bmp"),
+    
+    ("setting_does_not_exist_returns_default_value",
+     "invalid_setting",
+     "jpg",
+     "jpg"),
+  ])
+  def test_get_value(
+        self,
+        test_case_name_suffix,
+        setting_name_or_path,
+        default_value,
+        expected_value):
+    self.assertEqual(
+      self.settings.get_value(setting_name_or_path, default_value), expected_value)
+  
   def test_get_attributes(self):
     setting_attributes_and_values = self.settings.get_attributes([
       "file_extension",
