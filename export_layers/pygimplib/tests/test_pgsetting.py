@@ -239,21 +239,6 @@ class TestSettingEvents(unittest.TestCase):
   def setUp(self):
     self.setting = stubs_pgsetting.SettingStub("file_extension", "png")
     self.only_visible_layers = pgsetting.BoolSetting("only_visible_layers", False)
-
-  def test_connect_event_argument_is_not_callable(self):
-    with self.assertRaises(TypeError):
-      self.setting.connect_event("value-changed", None)
-  
-  def test_connect_event_keyword_arguments(self):
-    autocrop = pgsetting.BoolSetting("autocrop", False)
-    autocrop.connect_event(
-      "value-changed",
-      stubs_pgsetting.on_autocrop_changed,
-      self.setting,
-      file_extension_value="tiff")
-    
-    autocrop.set_value(True)
-    self.assertEqual(self.setting.value, "tiff")
   
   def test_connect_value_changed_event(self):
     self.setting.connect_event(
@@ -280,95 +265,6 @@ class TestSettingEvents(unittest.TestCase):
     self.assertEqual(self.setting.value, "jpg")
     self.assertEqual(self.only_visible_layers.value, True)
     self.assertFalse(self.only_visible_layers.gui.get_sensitive())
-  
-  def test_connect_event_multiple_events_on_single_setting(self):
-    self.setting.connect_event(
-      "value-changed",
-      stubs_pgsetting.on_file_extension_changed,
-      self.only_visible_layers)
-    
-    autocrop = pgsetting.BoolSetting("autocrop", False)
-    self.setting.connect_event(
-      "value-changed", stubs_pgsetting.on_file_extension_changed_with_autocrop, autocrop)
-    
-    self.setting.set_value("jpg")
-    self.assertEqual(self.setting.value, "jpg")
-    self.assertEqual(self.only_visible_layers.value, True)
-    self.assertFalse(autocrop.gui.get_visible())
-  
-  def test_remove_event(self):
-    event_id = self.setting.connect_event(
-      "value-changed",
-      stubs_pgsetting.on_file_extension_changed,
-      self.only_visible_layers)
-    self.setting.remove_event(event_id)
-    
-    self.setting.set_value("jpg")
-    self.assertEqual(
-      self.only_visible_layers.value, self.only_visible_layers.default_value)
-    self.assertTrue(self.only_visible_layers.gui.get_sensitive())
-  
-  def test_remove_event_with_id_non_last_event(self):
-    event_id = self.setting.connect_event(
-      "value-changed",
-      stubs_pgsetting.on_file_extension_changed,
-      self.only_visible_layers)
-    
-    autocrop = pgsetting.BoolSetting("autocrop", False)
-    self.setting.connect_event(
-      "value-changed", stubs_pgsetting.on_file_extension_changed_with_autocrop, autocrop)
-    
-    self.setting.remove_event(event_id)
-    
-    self.setting.set_value("jpg")
-    self.assertEqual(self.only_visible_layers.value, False)
-    self.assertFalse(autocrop.gui.get_visible())
-  
-  def test_remove_event_invalid_id(self):
-    self.setting.connect_event(
-      "value-changed",
-      stubs_pgsetting.on_file_extension_changed,
-      self.only_visible_layers)
-    with self.assertRaises(ValueError):
-      self.setting.remove_event(-1)
-  
-  def test_has_event(self):
-    self.assertFalse(self.setting.has_event(-1))
-    event_id = self.setting.connect_event(
-      "value-changed",
-      stubs_pgsetting.on_file_extension_changed,
-      self.only_visible_layers)
-    self.assertTrue(self.setting.has_event(event_id))
-    self.setting.remove_event(event_id)
-    self.assertFalse(self.setting.has_event(event_id))
-  
-  def test_set_event_enabled(self):
-    with self.assertRaises(ValueError):
-      self.setting.set_event_enabled(-1, False)
-    
-    event_id = self.setting.connect_event(
-      "value-changed",
-      stubs_pgsetting.on_file_extension_changed,
-      self.only_visible_layers)
-    
-    self.setting.set_event_enabled(event_id, False)
-    self.setting.set_value("jpg")
-    self.assertFalse(self.only_visible_layers.value)
-    
-    self.setting.set_event_enabled(event_id, True)
-    self.setting.set_value("jpg")
-    self.assertEqual(self.only_visible_layers.value, True)
-  
-  def test_invoke_event(self):
-    self.only_visible_layers.set_value(True)
-    self.setting.connect_event(
-      "value-changed",
-      stubs_pgsetting.on_file_extension_changed,
-      self.only_visible_layers)
-    
-    self.setting.invoke_event("value-changed")
-    self.assertEqual(self.setting.value, "png")
-    self.assertEqual(self.only_visible_layers.value, False)
   
   def test_reset_triggers_value_changed_event(self):
     self.setting.connect_event(

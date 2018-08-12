@@ -26,7 +26,6 @@ import future.utils
 import abc
 import collections
 import copy
-import itertools
 import os
 
 import gimp
@@ -77,7 +76,7 @@ class SettingPdbTypes(object):
 
 
 @future.utils.python_2_unicode_compatible
-class Setting(pgsettingutils.SettingParentMixin):
+class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMixin):
   """
   This class holds data about a plug-in setting.
   
@@ -98,6 +97,57 @@ class Setting(pgsettingutils.SettingParentMixin):
   changes, e.g. `value` (when `set_value()` method is called). This way, for
   example, other settings can be updated automatically according to the new
   value of the modified setting.
+
+  The following specific event types are invoked for settings:
+  
+    * `"value-changed"` - invoked after `set_value()` or `reset()` is called
+      and before events of type `"after-set-value"` or `"after-reset"`.
+    
+    * `"before-set-value"` - invoked before `set_value()` is called.
+    
+    * `"after-set-value"` - invoked after `set_value()` is called.
+    
+    * `"before-reset"` - invoked before `reset()` is called.
+    
+    * `"after-reset"` - invoked after `reset()` is called.
+    
+    * `"before-set-gui"` - invoked before `set_gui()` is called.
+    
+    * `"after-set-gui"` - invoked after `set_gui()` is called.
+    
+    * `"before-load"` - invoked before loading a setting via
+      `pgsettingpersistor.SettingPersistor.load`.
+    
+    * `"after-load"` - invoked after loading a setting via
+      `pgsettingpersistor.SettingPersistor.load`. Events will not be invoked
+      if loading settings failed (i.e. `SettingPersistor` returns `READ_FAIL`
+      status). Events will be invoked for all settings, even if some of them
+      were not found in setting sources (i.e. `SettingPersistor` returns
+      `NOT_ALL_SETTINGS_FOUND` status).
+    
+    * `"before-save"` - invoked before saving a setting via
+    `pgsettingpersistor.SettingPersistor.save`.
+    
+    * `"after-save"` - invoked after saving a setting via
+      `pgsettingpersistor.SettingPersistor.save`. Events will not be invoked
+      if saving settings failed (i.e. `SettingPersistor` returns `SAVE_FAIL`
+      status).
+    
+    * `"before-load-group"` - invoked before loading settings in a group via
+      `SettingGroup.load`.
+    
+    * `"after-load-group"` - invoked after loading settings in a group via
+      `SettingGroup.load`. This is useful if the group contains settings with
+      different setting sources so that the event is invoked only once after
+      all settings from different sources are loaded. This also applies to
+      other related events (`"before-load-group"`, `"before-save-group"`,
+      `"after-save-group"`).
+    
+    * `"before-save-group"` - invoked before saving settings in a group via
+      `SettingGroup.load`.
+    
+    * `"after-save-group"` - invoked after saving settings in a group via
+      `SettingGroup.load`.
   
   If a setting subclass supports "empty" values, such values will not be
   considered invalid when used as default values. However, empty values will be
@@ -242,17 +292,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     self._pdb_name = pgsettingutils.get_pdb_name(self._name)
     
     self._setting_sources = setting_sources
-    
-    # key: event type
-    # value: collections.OrderedDict{
-    #   event handler ID: [event handler, arguments, keyword arguments, is enabled]}
-    self._event_handlers = collections.defaultdict(collections.OrderedDict)
-    
-    # This allows faster lookup of events via IDs.
-    # key: event handler ID; value: event type
-    self._event_handler_ids_and_types = {}
-    
-    self._event_handler_id_counter = itertools.count(start=1)
     
     self._setting_value_synchronizer = pgsettingpresenter.SettingValueSynchronizer()
     self._setting_value_synchronizer.apply_gui_value_to_setting = (
@@ -477,147 +516,6 @@ class Setting(pgsettingutils.SettingParentMixin):
     any of the default sources, this method has no effect.
     """
     self._load_save(setting_sources, pgsettingpersistor.SettingPersistor.save)
-  
-  def connect_event(
-        self, event_type, event_handler, *event_handler_args, **event_handler_kwargs):
-    """
-    Connect an event handler to the setting.
-    
-    `event_type` can be an arbitrary string. The following specific event types
-    determine when the event handler is invoked:
-    
-      * `"value-changed"` - invoked after `set_value()` or `reset()` is called
-        and before events of type `"after-set-value"` or `"after-reset"`.
-      
-      * `"before-set-value"` - invoked before `set_value()` is called.
-      
-      * `"after-set-value"` - invoked after `set_value()` is called.
-      
-      * `"before-reset"` - invoked before `reset()` is called.
-      
-      * `"after-reset"` - invoked after `reset()` is called.
-      
-      * `"before-set-gui"` - invoked before `set_gui()` is called.
-      
-      * `"after-set-gui"` - invoked after `set_gui()` is called.
-      
-      * `"before-load"` - invoked before loading a setting via
-        `pgsettingpersistor.SettingPersistor.load`.
-      
-      * `"after-load"` - invoked after loading a setting via
-        `pgsettingpersistor.SettingPersistor.load`. Events will not be invoked
-        if loading settings failed (i.e. `SettingPersistor` returns `READ_FAIL`
-        status). Events will be invoked for all settings, even if some of them
-        were not found in setting sources (i.e. `SettingPersistor` returns
-        `NOT_ALL_SETTINGS_FOUND` status).
-      
-      * `"before-save"` - invoked before saving a setting via
-      `pgsettingpersistor.SettingPersistor.save`.
-      
-      * `"after-save"` - invoked after saving a setting via
-        `pgsettingpersistor.SettingPersistor.save`. Events will not be invoked
-        if saving settings failed (i.e. `SettingPersistor` returns `SAVE_FAIL`
-        status).
-      
-      * `"before-load-group"` - invoked before loading settings in a group via
-        `SettingGroup.load`.
-      
-      * `"after-load-group"` - invoked after loading settings in a group via
-        `SettingGroup.load`. This is useful if the group contains settings with
-        different setting sources so that the event is invoked only once after
-        all settings from different sources are loaded. This also applies to
-        other related events (`"before-load-group"`, `"before-save-group"`,
-        `"after-save-group"`).
-      
-      * `"before-save-group"` - invoked before saving settings in a group via
-        `SettingGroup.load`.
-      
-      * `"after-save-group"` - invoked after saving settings in a group via
-        `SettingGroup.load`.
-    
-    The `event_handler` function must always contain at least one argument -
-    this setting.
-    
-    Multiple event handlers can be connected. Each new event handler is
-    executed as the last.
-    
-    Parameters:
-    
-    * `event_type` - Type of event specifying when the event should be invoked.
-    
-    * `event_handler` - Function to be called when `set_value()` from this
-      setting is called.
-    
-    * `*event_handler_args` - Arguments to `event_handler`.
-    
-    * `**event_handler_kwargs` - Keyword arguments to `event_handler`.
-    
-    Returns:
-    
-    * `event_id` - Numeric ID of the event handler (can be used to remove the
-      event via `remove_event`).
-    
-    Raises:
-    
-    * `TypeError` - `event_handler` is not a function or the wrong number of
-      arguments was passed in `event_handler_args`.
-    """
-    if not callable(event_handler):
-      raise TypeError("not a function")
-    
-    event_id = self._event_handler_id_counter.next()
-    self._event_handlers[event_type][event_id] = [
-      event_handler, event_handler_args, event_handler_kwargs, True]
-    self._event_handler_ids_and_types[event_id] = event_type
-    
-    return event_id
-  
-  def remove_event(self, event_id):
-    """
-    Remove the event handler specified by its ID as returned by the
-    `connect_event` method.
-    """
-    if event_id not in self._event_handler_ids_and_types:
-      raise ValueError("event handler with ID {} does not exist".format(event_id))
-    
-    event_type = self._event_handler_ids_and_types[event_id]
-    del self._event_handlers[event_type][event_id]
-    del self._event_handler_ids_and_types[event_id]
-  
-  def set_event_enabled(self, event_id, enabled):
-    """
-    Enable or disable the event handler specified by its ID.
-    
-    If the event ID is already enabled and `enabled` is `True` or is already
-    disabled and `enabled` is `False`, do nothing.
-    
-    Raises:
-    
-    * `ValueError` - Event ID is invalid.
-    """
-    if not self.has_event(event_id):
-      raise ValueError("event ID {} is invalid".format(event_id))
-    
-    event_type = self._event_handler_ids_and_types[event_id]
-    self._event_handlers[event_type][event_id][3] = enabled
-  
-  def has_event(self, event_id):
-    """
-    Return `True` if the event handler specified by its ID is connected to the
-    setting, `False` otherwise.
-    """
-    return event_id in self._event_handler_ids_and_types
-  
-  def invoke_event(self, event_type):
-    """
-    Call all connected event handlers of the specified event type.
-    """
-    for (event_handler,
-         event_handler_args,
-         event_handler_kwargs,
-         enabled) in self._event_handlers[event_type].values():
-      if enabled:
-        event_handler(self, *event_handler_args, **event_handler_kwargs)
   
   def is_value_empty(self):
     """

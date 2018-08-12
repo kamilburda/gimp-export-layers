@@ -19,6 +19,7 @@ from future.builtins import *
 
 import unittest
 
+from . import stubs_pgsetting
 from .. import pgsetting
 from .. import pgsettinggroup
 from .. import pgsettingutils
@@ -74,6 +75,128 @@ class TestSettingParentMixin(unittest.TestCase):
     self.assertEqual(self.setting.parents, [self.main_settings, self.advanced_settings])
     self.assertEqual(self.advanced_settings.parents, [self.main_settings])
     self.assertEqual(self.main_settings.parents, [])
+
+
+class TestSettingEventsMixin(unittest.TestCase):
+  
+  def setUp(self):
+    self.file_extension = stubs_pgsetting.SettingStub("file_extension", "png")
+    self.only_visible = pgsetting.BoolSetting("only_visible_layers", False)
+  
+  def test_connect_event_argument_is_not_callable(self):
+    with self.assertRaises(TypeError):
+      self.file_extension.connect_event("test-event", None)
+  
+  def test_invoke_event(self):
+    self.only_visible.set_value(True)
+    self.file_extension.connect_event(
+      "test-event",
+      stubs_pgsetting.on_file_extension_changed,
+      self.only_visible)
+    
+    self.file_extension.invoke_event("test-event")
+    
+    self.assertEqual(self.file_extension.value, "png")
+    self.assertFalse(self.only_visible.value)
+  
+  def test_connect_event_keyword_arguments(self):
+    autocrop = pgsetting.BoolSetting("autocrop", False)
+    autocrop.connect_event(
+      "test-event",
+      stubs_pgsetting.on_autocrop_changed,
+      self.file_extension,
+      file_extension_value="tiff")
+    
+    autocrop.set_value(True)
+    autocrop.invoke_event("test-event")
+    
+    self.assertEqual(self.file_extension.value, "tiff")
+  
+  def test_connect_event_multiple_events_on_single_setting(self):
+    self.file_extension.connect_event(
+      "test-event",
+      stubs_pgsetting.on_file_extension_changed,
+      self.only_visible)
+    
+    autocrop = pgsetting.BoolSetting("autocrop", False)
+    self.file_extension.connect_event(
+      "test-event", stubs_pgsetting.on_file_extension_changed_with_autocrop, autocrop)
+    
+    self.file_extension.set_value("jpg")
+    self.file_extension.invoke_event("test-event")
+    
+    self.assertEqual(self.file_extension.value, "jpg")
+    self.assertTrue(self.only_visible.value)
+    self.assertFalse(autocrop.gui.get_visible())
+  
+  def test_remove_event(self):
+    event_id = self.file_extension.connect_event(
+      "test-event",
+      stubs_pgsetting.on_file_extension_changed,
+      self.only_visible)
+    
+    self.file_extension.remove_event(event_id)
+    self.file_extension.set_value("jpg")
+    self.file_extension.invoke_event("test-event")
+    
+    self.assertEqual(
+      self.only_visible.value, self.only_visible.default_value)
+    self.assertTrue(self.only_visible.gui.get_sensitive())
+  
+  def test_remove_event_with_id_non_last_event(self):
+    event_id = self.file_extension.connect_event(
+      "test-event",
+      stubs_pgsetting.on_file_extension_changed,
+      self.only_visible)
+    
+    autocrop = pgsetting.BoolSetting("autocrop", False)
+    self.file_extension.connect_event(
+      "test-event", stubs_pgsetting.on_file_extension_changed_with_autocrop, autocrop)
+    
+    self.file_extension.remove_event(event_id)
+    self.file_extension.set_value("jpg")
+    self.file_extension.invoke_event("test-event")
+    
+    self.assertFalse(self.only_visible.value)
+    self.assertFalse(autocrop.gui.get_visible())
+  
+  def test_remove_event_invalid_id_raises_error(self):
+    with self.assertRaises(ValueError):
+      self.file_extension.remove_event(-1)
+  
+  def test_has_event(self):
+    event_id = self.file_extension.connect_event(
+      "test-event",
+      stubs_pgsetting.on_file_extension_changed,
+      self.only_visible)
+    
+    self.assertTrue(self.file_extension.has_event(event_id))
+    
+    self.file_extension.remove_event(event_id)
+    self.assertFalse(self.file_extension.has_event(event_id))
+  
+  def test_has_event_returns_false_on_no_events(self):
+    self.assertFalse(self.file_extension.has_event(-1))
+  
+  def test_set_event_enabled(self):
+    event_id = self.file_extension.connect_event(
+      "test-event",
+      stubs_pgsetting.on_file_extension_changed,
+      self.only_visible)
+    
+    self.file_extension.set_event_enabled(event_id, False)
+    self.file_extension.set_value("jpg")
+    self.file_extension.invoke_event("test-event")
+    self.assertFalse(self.only_visible.value)
+    
+    self.file_extension.set_event_enabled(event_id, True)
+    self.file_extension.set_value("jpg")
+    self.file_extension.invoke_event("test-event")
+    self.assertTrue(self.only_visible.value)
+  
+  def test_set_event_enabled_invalid_event_raises_error(self):
+    with self.assertRaises(ValueError):
+      self.file_extension.set_event_enabled(-1, False)
 
 
 class TestSettingPath(unittest.TestCase):

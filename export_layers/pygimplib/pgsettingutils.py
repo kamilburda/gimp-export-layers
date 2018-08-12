@@ -21,6 +21,9 @@ This module contains helper classes and functions for `pgsetting*` modules.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import collections
+import itertools
+
 
 SETTING_PATH_SEPARATOR = "/"
 SETTING_ATTRIBUTE_SEPARATOR = "."
@@ -33,6 +36,8 @@ class SettingParentMixin(object):
   """
   
   def __init__(self):
+    super().__init__()
+    
     self._parent = None
   
   @property
@@ -55,6 +60,122 @@ class SettingParentMixin(object):
   
   def _set_as_parent_for_setting(self, setting):
     setting._parent = self
+
+
+class SettingEventsMixin(object):
+  """
+  This mixin provides `Setting` and `SettingGroup` objects with the capability
+  of setting up and invoking events.
+  """
+  
+  def __init__(self):
+    super().__init__()
+    
+    # key: event type
+    # value: collections.OrderedDict{
+    #   event handler ID: [event handler, arguments, keyword arguments, is enabled]}
+    self._event_handlers = collections.defaultdict(collections.OrderedDict)
+    
+    # This allows faster lookup of events via IDs.
+    # key: event handler ID; value: event type
+    self._event_handler_ids_and_types = {}
+    
+    self._event_handler_id_counter = itertools.count(start=1)
+  
+  def connect_event(
+        self, event_type, event_handler, *event_handler_args, **event_handler_kwargs):
+    """
+    Connect an event handler.
+    
+    `event_type` can be an arbitrary string. To invoke an event manually, call
+    `invoke_event`.
+    
+    Several event types are invoked automatically. For the list of such event
+    types, consult the documentation for `Setting` or `SettingGroup` classes.
+    
+    The `event_handler` function must always contain at least one argument -
+    the instance this method is called from (a setting or a setting group).
+    
+    Multiple event handlers can be connected. Each new event handler is
+    executed as the last.
+    
+    Parameters:
+    
+    * `event_type` - Event type as a string.
+    
+    * `event_handler` - Function to be called when the event given by
+      `event_type` is invoked.
+    
+    * `*event_handler_args` - Arguments to `event_handler`.
+    
+    * `**event_handler_kwargs` - Keyword arguments to `event_handler`.
+    
+    Returns:
+    
+    * `event_id` - Numeric ID of the event handler (can be used to remove the
+      event via `remove_event`).
+    
+    Raises:
+    
+    * `TypeError` - `event_handler` is not a function or the wrong number of
+      arguments was passed in `event_handler_args`.
+    """
+    if not callable(event_handler):
+      raise TypeError("not a function")
+    
+    event_id = self._event_handler_id_counter.next()
+    self._event_handlers[event_type][event_id] = [
+      event_handler, event_handler_args, event_handler_kwargs, True]
+    self._event_handler_ids_and_types[event_id] = event_type
+    
+    return event_id
+  
+  def remove_event(self, event_id):
+    """
+    Remove the event handler specified by its ID as returned by the
+    `connect_event` method.
+    """
+    if event_id not in self._event_handler_ids_and_types:
+      raise ValueError("event handler with ID {} does not exist".format(event_id))
+    
+    event_type = self._event_handler_ids_and_types[event_id]
+    del self._event_handlers[event_type][event_id]
+    del self._event_handler_ids_and_types[event_id]
+  
+  def set_event_enabled(self, event_id, enabled):
+    """
+    Enable or disable the event handler specified by its ID.
+    
+    If the event ID is already enabled and `enabled` is `True` or is already
+    disabled and `enabled` is `False`, do nothing.
+    
+    Raises:
+    
+    * `ValueError` - Event ID is invalid.
+    """
+    if not self.has_event(event_id):
+      raise ValueError("event ID {} is invalid".format(event_id))
+    
+    event_type = self._event_handler_ids_and_types[event_id]
+    self._event_handlers[event_type][event_id][3] = enabled
+  
+  def has_event(self, event_id):
+    """
+    Return `True` if the event handler specified by its ID is connected to the
+    setting, `False` otherwise.
+    """
+    return event_id in self._event_handler_ids_and_types
+  
+  def invoke_event(self, event_type):
+    """
+    Call all connected event handlers of the specified event type.
+    """
+    for (event_handler,
+         event_handler_args,
+         event_handler_kwargs,
+         enabled) in self._event_handlers[event_type].values():
+      if enabled:
+        event_handler(self, *event_handler_args, **event_handler_kwargs)
 
 
 def get_pdb_name(setting_name):

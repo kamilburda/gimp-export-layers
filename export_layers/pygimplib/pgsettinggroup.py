@@ -71,7 +71,7 @@ def create_groups(setting_dict):
 
 
 @future.utils.python_2_unicode_compatible
-class SettingGroup(pgsettingutils.SettingParentMixin):
+class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMixin):
   """
   This class:
   * allows to create a group of related settings (`Setting` objects),
