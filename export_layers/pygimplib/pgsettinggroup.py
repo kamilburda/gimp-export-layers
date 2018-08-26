@@ -234,14 +234,14 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     objects or dictionaries representing `Setting` objects to be created.
     
     Each dictionary contains (attribute name: value) pairs, where
-    "attribute name" is a string that represents an argument passed when
+    `"attribute name"` is a string that represents an argument passed when
     instantiating the setting. The following attributes must always be
     specified:
-      * "type" - type of the Setting object to instantiate.
-      * "name" - setting name.
-      * "default_value" - default value of the setting.
+      * `"type"` - type of the Setting object to instantiate.
+      * `"name"` - setting name.
+      * `"default_value"` - default value of the setting.
     
-    The "name" attribute must not contain forward slashes ("/") (which are used
+    The `"name"` attribute must not contain forward slashes (`"/"`) (which are used
     to access settings via paths).
     
     For more attributes, check the documentation of the setting classes. Some
