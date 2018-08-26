@@ -27,6 +27,7 @@ from . import stubs_pgsettinggroup
 from .. import pgsetting
 from .. import pgsettinggroup
 from .. import pgsettingpersistor
+from .. import pgsettingpresenter
 from .. import pgconstants
 
 
@@ -754,7 +755,7 @@ class TestSettingGroupGui(unittest.TestCase):
       },
     ])
 
-  def test_initialize_gui_without_custom_gui(self):
+  def test_initialize_gui(self):
     self.settings.initialize_gui()
     
     self.assertIs(
@@ -769,6 +770,17 @@ class TestSettingGroupGui(unittest.TestCase):
     self.assertIs(
       type(self.settings["only_visible_layers"].gui.element),
       stubs_pgsetting.CheckButtonStub)
+
+  def test_initialize_gui_ignores_specified_settings(self):
+    self.settings["only_visible_layers"].tags.add("ignore_initialize_gui")
+    self.settings.initialize_gui()
+    
+    self.assertIs(
+      type(self.settings["file_extension"].gui),
+      stubs_pgsetting.CheckButtonPresenterStub)
+    self.assertIs(
+      type(self.settings["only_visible_layers"].gui),
+      pgsettingpresenter.NullSettingPresenter)
   
   def test_initialize_gui_with_custom_gui(self):
     file_extension_widget = stubs_pgsetting.GuiWidgetStub("png")
@@ -792,7 +804,7 @@ class TestSettingGroupGui(unittest.TestCase):
       type(self.settings["only_visible_layers"].gui.element),
       stubs_pgsetting.CheckButtonStub)
   
-  def test_apply_gui_values_to_settings_ignores_specified_settings(self):
+  def test_apply_gui_values_to_settings(self):
     file_extension_widget = stubs_pgsetting.GuiWidgetStub(None)
     only_visible_layers_widget = stubs_pgsetting.GuiWidgetStub(None)
     self.settings["file_extension"].set_gui(

@@ -570,15 +570,15 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
         before_load_save_group_event_type,
         after_load_save_group_event_type):
     
-    def _has_ignore_tag(setting):
+    def _should_not_ignore(setting):
       return load_save_ignore_tag not in setting.tags
     
-    for setting in self.walk(include_setting_func=_has_ignore_tag):
+    for setting in self.walk(include_setting_func=_should_not_ignore):
       setting.invoke_event(before_load_save_group_event_type)
     
     return_values = self._load_save(load_save_ignore_tag, load_save_func, setting_sources)
     
-    for setting in self.walk(include_setting_func=_has_ignore_tag):
+    for setting in self.walk(include_setting_func=_should_not_ignore):
       setting.invoke_event(after_load_save_group_event_type)
     
     return return_values
@@ -630,7 +630,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
   
   def initialize_gui(self, custom_gui=None):
     """
-    Initialize GUI for all settings.
+    Initialize GUI for all settings. Ignore settings with the
+    `"ignore_initialize_gui"` tag.
     
     Settings that are not provided with a readily available GUI can have their
     GUI initialized using the `custom_gui` dict. `custom_gui` contains
@@ -648,10 +649,14 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
         ...
       })
     """
+    
+    def _should_not_ignore(setting):
+      return "ignore_initialize_gui" not in setting.tags
+    
     if custom_gui is None:
       custom_gui = {}
     
-    for setting in self.walk():
+    for setting in self.walk(include_setting_func=_should_not_ignore):
       if setting.name not in custom_gui:
         setting.set_gui()
       else:
@@ -672,13 +677,13 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     message contains messages from all invalid settings.
     """
     
-    def _has_ignore_tag(setting):
+    def _should_not_ignore(setting):
       return "ignore_apply_gui_value_to_setting" not in setting.tags
     
     exception_messages = []
     exception_settings = []
     
-    for setting in self.walk(include_setting_func=_has_ignore_tag):
+    for setting in self.walk(include_setting_func=_should_not_ignore):
       try:
         setting.gui.update_setting_value()
       except pgsetting.SettingValueError as e:
