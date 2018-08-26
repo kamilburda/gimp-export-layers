@@ -294,15 +294,18 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
       args=[[self.layer_elem.item.ID]])
     
-    try:
-      image_preview = self._layer_exporter.export(
-        processing_groups=["layer_contents"],
-        layer_tree=layer_tree,
-        keep_image_copy=True)
-    except Exception:
-      display_image_preview_failure_message(
-        details=traceback.format_exc(), parent=pggui.get_toplevel_window(self._widget))
-      image_preview = None
+    with self._layer_exporter.modify_export_settings(
+       {"selected_layers": {
+          self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}}):
+      try:
+        image_preview = self._layer_exporter.export(
+          processing_groups=["layer_contents"],
+          layer_tree=layer_tree,
+          keep_image_copy=True)
+      except Exception:
+        display_image_preview_failure_message(
+          details=traceback.format_exc(), parent=pggui.get_toplevel_window(self._widget))
+        image_preview = None
     
     self._layer_exporter.remove_operation(
       only_selected_layers_operation_id, [builtin_constraints.BUILTIN_CONSTRAINTS_GROUP])
