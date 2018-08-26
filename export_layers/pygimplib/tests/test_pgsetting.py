@@ -256,11 +256,11 @@ class TestSettingEvents(unittest.TestCase):
       stubs_pgsetting.on_file_extension_changed,
       self.only_visible_layers)
     
-    autocrop = pgsetting.BoolSetting("autocrop", False)
-    autocrop.connect_event(
-      "value-changed", stubs_pgsetting.on_autocrop_changed, self.setting)
+    use_image_size = pgsetting.BoolSetting("use_image_size", False)
+    use_image_size.connect_event(
+      "value-changed", stubs_pgsetting.on_use_image_size_changed, self.setting)
     
-    autocrop.set_value(True)
+    use_image_size.set_value(True)
     
     self.assertEqual(self.setting.value, "jpg")
     self.assertEqual(self.only_visible_layers.value, True)

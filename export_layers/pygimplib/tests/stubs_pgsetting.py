@@ -138,13 +138,13 @@ def on_file_extension_changed(file_extension, only_visible_layers):
     only_visible_layers.gui.set_sensitive(False)
 
 
-def on_file_extension_changed_with_autocrop(file_extension, autocrop):
+def on_file_extension_changed_with_use_image_size(file_extension, use_image_size):
   if file_extension.value == "png":
-    autocrop.gui.set_visible(True)
+    use_image_size.gui.set_visible(True)
   else:
-    autocrop.gui.set_visible(False)
+    use_image_size.gui.set_visible(False)
 
 
-def on_autocrop_changed(autocrop, file_extension, file_extension_value="jpg"):
-  if autocrop.value:
+def on_use_image_size_changed(use_image_size, file_extension, file_extension_value="jpg"):
+  if use_image_size.value:
     file_extension.set_value(file_extension_value)

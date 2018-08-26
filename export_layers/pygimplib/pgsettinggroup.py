@@ -157,11 +157,11 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     If a setting is inside a nested group, you can access the setting as
     follows:
       
-      settings["main"]["autocrop"]
+      settings["main"]["file_extension"]
     
     As a more compact alternative, you may specify a setting path:
     
-      settings["main/autocrop"]
+      settings["main/file_extension"]
     
     If the name or path does not exist, raise `KeyError`.
     """
@@ -250,8 +250,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     Multiple settings with the same name and in different nested groups are
     possible. Each such setting can be accessed like any other:
     
-      settings["main/autocrop"]
-      settings["advanced/autocrop"]
+      settings["main/file_extension"]
+      settings["advanced/file_extension"]
     
     Settings created from dictionaries are by default assigned setting
     attributes specified during the initialization of this class. These
@@ -415,7 +415,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     Example:
       group.set_values({
         "main/file_extension": "png",
-        "main/autocrop": True,
+        "main/output_directory": "/sample/directory",
       })
     """
     for setting_name, value in settings_and_values.items():

@@ -111,27 +111,27 @@ class TestSettingEventsMixin(unittest.TestCase):
     self.assertFalse(self.only_visible.value)
   
   def test_connect_event_with_keyword_arguments(self):
-    autocrop = pgsetting.BoolSetting("autocrop", False)
-    autocrop.connect_event(
+    use_image_size = pgsetting.BoolSetting("use_image_size", False)
+    use_image_size.connect_event(
       "test-event",
-      stubs_pgsetting.on_autocrop_changed,
+      stubs_pgsetting.on_use_image_size_changed,
       self.file_extension,
       file_extension_value="tiff")
     
-    autocrop.set_value(True)
-    autocrop.invoke_event("test-event")
+    use_image_size.set_value(True)
+    use_image_size.invoke_event("test-event")
     
     self.assertEqual(self.file_extension.value, "tiff")
   
   def test_invoke_event_with_keyword_arguments(self):
-    autocrop = pgsetting.BoolSetting("autocrop", False)
-    autocrop.connect_event(
+    use_image_size = pgsetting.BoolSetting("use_image_size", False)
+    use_image_size.connect_event(
       "test-event",
-      stubs_pgsetting.on_autocrop_changed,
+      stubs_pgsetting.on_use_image_size_changed,
       self.file_extension)
     
-    autocrop.set_value(True)
-    autocrop.invoke_event("test-event", file_extension_value="tiff")
+    use_image_size.set_value(True)
+    use_image_size.invoke_event("test-event", file_extension_value="tiff")
     
     self.assertEqual(self.file_extension.value, "tiff")
   
@@ -141,16 +141,18 @@ class TestSettingEventsMixin(unittest.TestCase):
       stubs_pgsetting.on_file_extension_changed,
       self.only_visible)
     
-    autocrop = pgsetting.BoolSetting("autocrop", False)
+    use_image_size = pgsetting.BoolSetting("use_image_size", False)
     self.file_extension.connect_event(
-      "test-event", stubs_pgsetting.on_file_extension_changed_with_autocrop, autocrop)
+      "test-event",
+      stubs_pgsetting.on_file_extension_changed_with_use_image_size,
+      use_image_size)
     
     self.file_extension.set_value("jpg")
     self.file_extension.invoke_event("test-event")
     
     self.assertEqual(self.file_extension.value, "jpg")
     self.assertTrue(self.only_visible.value)
-    self.assertFalse(autocrop.gui.get_visible())
+    self.assertFalse(use_image_size.gui.get_visible())
   
   def test_remove_event(self):
     event_id = self.file_extension.connect_event(
@@ -172,16 +174,18 @@ class TestSettingEventsMixin(unittest.TestCase):
       stubs_pgsetting.on_file_extension_changed,
       self.only_visible)
     
-    autocrop = pgsetting.BoolSetting("autocrop", False)
+    use_image_size = pgsetting.BoolSetting("use_image_size", False)
     self.file_extension.connect_event(
-      "test-event", stubs_pgsetting.on_file_extension_changed_with_autocrop, autocrop)
+      "test-event",
+      stubs_pgsetting.on_file_extension_changed_with_use_image_size,
+      use_image_size)
     
     self.file_extension.remove_event(event_id)
     self.file_extension.set_value("jpg")
     self.file_extension.invoke_event("test-event")
     
     self.assertFalse(self.only_visible.value)
-    self.assertFalse(autocrop.gui.get_visible())
+    self.assertFalse(use_image_size.gui.get_visible())
   
   def test_remove_event_invalid_id_raises_error(self):
     with self.assertRaises(ValueError):

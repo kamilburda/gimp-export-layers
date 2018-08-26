@@ -65,65 +65,66 @@ class TestSettingGroupAddWithSettingDict(unittest.TestCase):
   
   def setUp(self):
     self.settings = pgsettinggroup.SettingGroup("main")
-    self.autocrop_setting_dict = {
+    self.setting_dict = {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "autocrop",
+      "name": "use_image_size",
       "default_value": False}
   
   def test_add(self):
-    self.settings.add([self.autocrop_setting_dict])
+    self.settings.add([self.setting_dict])
     
-    self.assertIn("autocrop", self.settings)
-    self.assertIsInstance(self.settings["autocrop"], pgsetting.BoolSetting)
-    self.assertEqual(self.settings["autocrop"].value, False)
+    self.assertIn("use_image_size", self.settings)
+    self.assertIsInstance(self.settings["use_image_size"], pgsetting.BoolSetting)
+    self.assertEqual(self.settings["use_image_size"].value, False)
   
   def test_add_with_missing_type_attribute(self):
-    del self.autocrop_setting_dict["type"]
+    del self.setting_dict["type"]
     
     with self.assertRaises(TypeError):
-      self.settings.add([self.autocrop_setting_dict])
+      self.settings.add([self.setting_dict])
   
   def test_add_with_missing_single_mandatory_attribute(self):
-    del self.autocrop_setting_dict["name"]
+    del self.setting_dict["name"]
     
     with self.assertRaises(TypeError):
-      self.settings.add([self.autocrop_setting_dict])
+      self.settings.add([self.setting_dict])
   
   def test_add_with_missing_multiple_mandatory_attributes(self):
-    del self.autocrop_setting_dict["name"]
-    del self.autocrop_setting_dict["default_value"]
+    del self.setting_dict["name"]
+    del self.setting_dict["default_value"]
     
     with self.assertRaises(TypeError):
-      self.settings.add([self.autocrop_setting_dict])
+      self.settings.add([self.setting_dict])
   
   def test_add_with_invalid_setting_attribute(self):
-    self.autocrop_setting_dict["invalid_setting_attribute"] = None
+    self.setting_dict["invalid_setting_attribute"] = None
     
     with self.assertRaises(TypeError):
-      self.settings.add([self.autocrop_setting_dict])
+      self.settings.add([self.setting_dict])
   
   def test_add_with_path_separator(self):
-    self.autocrop_setting_dict["name"] = "auto/crop"
+    self.setting_dict["name"] = "use/image/size"
     
     with self.assertRaises(ValueError):
-      self.settings.add([self.autocrop_setting_dict])
+      self.settings.add([self.setting_dict])
   
   def test_add_with_same_name_in_same_group(self):
     with self.assertRaises(ValueError):
-      self.settings.add([self.autocrop_setting_dict, self.autocrop_setting_dict])
+      self.settings.add([self.setting_dict, self.setting_dict])
   
   def test_add_multiple_dicts_with_same_name_in_different_child_groups(self):
     special_settings = pgsettinggroup.SettingGroup("special")
-    special_settings.add([self.autocrop_setting_dict])
+    special_settings.add([self.setting_dict])
     
     main_settings = pgsettinggroup.SettingGroup("main")
-    main_settings.add([self.autocrop_setting_dict])
+    main_settings.add([self.setting_dict])
     
     self.settings.add([special_settings, main_settings])
     
-    self.assertIn("autocrop", special_settings)
-    self.assertIn("autocrop", main_settings)
-    self.assertNotEqual(special_settings["autocrop"], main_settings["autocrop"])
+    self.assertIn("use_image_size", special_settings)
+    self.assertIn("use_image_size", main_settings)
+    self.assertNotEqual(
+      special_settings["use_image_size"], main_settings["use_image_size"])
 
 
 class TestSettingGroupAddFromDict(unittest.TestCase):
@@ -139,13 +140,13 @@ class TestSettingGroupAddFromDict(unittest.TestCase):
       },
       {
        "type": pgsetting.SettingTypes.boolean,
-       "name": "autocrop",
+       "name": "use_image_size",
        "default_value": False,
       }
     ])
     
     self.assertEqual(settings["only_visible_layers"].pdb_type, None)
-    self.assertEqual(settings["autocrop"].pdb_type, None)
+    self.assertEqual(settings["use_image_size"].pdb_type, None)
   
   def test_add_with_group_level_attributes_overridden_by_setting_attributes(self):
     settings = pgsettinggroup.SettingGroup(
@@ -158,14 +159,15 @@ class TestSettingGroupAddFromDict(unittest.TestCase):
       },
       {
        "type": pgsetting.SettingTypes.boolean,
-       "name": "autocrop",
+       "name": "use_image_size",
        "default_value": False,
        "pdb_type": pgsetting.SettingPdbTypes.int16
       }
     ])
     
     self.assertEqual(settings["only_visible_layers"].pdb_type, None)
-    self.assertEqual(settings["autocrop"].pdb_type, pgsetting.SettingPdbTypes.int16)
+    self.assertEqual(
+      settings["use_image_size"].pdb_type, pgsetting.SettingPdbTypes.int16)
   
   def test_add_with_group_level_attributes_overridden_by_child_group_attributes(self):
     additional_settings = pgsettinggroup.SettingGroup(
@@ -174,7 +176,7 @@ class TestSettingGroupAddFromDict(unittest.TestCase):
     additional_settings.add([
       {
        "type": pgsetting.SettingTypes.boolean,
-       "name": "autocrop",
+       "name": "use_image_size",
        "default_value": False
       }
     ])
@@ -193,9 +195,9 @@ class TestSettingGroupAddFromDict(unittest.TestCase):
     
     self.assertEqual(settings["only_visible_layers"].pdb_type, None)
     self.assertEqual(
-      settings["additional/autocrop"].pdb_type, pgsetting.SettingPdbTypes.int16)
+      settings["additional/use_image_size"].pdb_type, pgsetting.SettingPdbTypes.int16)
     self.assertEqual(settings["only_visible_layers"].display_name, "Setting name")
-    self.assertEqual(settings["additional/autocrop"].display_name, "Autocrop")
+    self.assertEqual(settings["additional/use_image_size"].display_name, "Use image size")
 
 
 class TestSettingGroupCreateGroupsFromDict(unittest.TestCase):
@@ -633,7 +635,9 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     ("default_sources",
      None,
      3,
-     [["main/file_extension"], ["advanced/only_visible_layers"], ["advanced/autocrop"]],
+     [["main/file_extension"],
+      ["advanced/only_visible_layers"],
+      ["advanced/use_image_size"]],
      [("session_source", "persistent_source"),
       ("persistent_source", "session_source"),
       ("session_source",)]),
@@ -641,7 +645,7 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     ("session_source_only",
      ["session_source"],
      1,
-     [["main/file_extension", "advanced/only_visible_layers", "advanced/autocrop"]],
+     [["main/file_extension", "advanced/only_visible_layers", "advanced/use_image_size"]],
      [("session_source",)]),
     
     ("persistent_source_only",
