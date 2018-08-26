@@ -49,22 +49,22 @@ operations/constraints. These events include:
 * `"before-reorder-operation"` - invoked when calling `reorder` before
   reordering an operation.
   
-  Arguments: operation name, position before reordering
+  Arguments: operation, position before reordering
 
 * `"after-reorder-operation"` - invoked when calling `reorder` after reordering
   an operation.
   
-  Arguments: operation name, position before reordering, new position
+  Arguments: operation, position before reordering, new position
 
 * `"before-remove-operation"` - invoked when calling `remove` before removing an
   operation.
   
-  Arguments: operation name
+  Arguments: operation to be removed
 
 * `"after-remove-operation"` - invoked when calling `remove` after removing an
   operation.
   
-  Arguments: operation name
+  Arguments: name of removed operation
 
 * `"before-clear-operation"` - invoked when calling `clear` before clearing
   operations.
@@ -446,7 +446,9 @@ def reorder(operations, operation_name, new_position):
     raise ValueError("operation '{}' not found in operations named '{}'".format(
       operation_name, operations.name))
   
-  operations.invoke_event("before-reorder-operation", operation_name, current_position)
+  operation = operations["added"][operation_name]
+  
+  operations.invoke_event("before-reorder-operation", operation, current_position)
   
   operation_dict = operations["added_data"].value.pop(current_position)
   
@@ -456,7 +458,7 @@ def reorder(operations, operation_name, new_position):
   operations["added_data"].value.insert(new_position, operation_dict)
   
   operations.invoke_event(
-    "after-reorder-operation", operation_name, current_position, new_position)
+    "after-reorder-operation", operation, current_position, new_position)
 
 
 def remove(operations, operation_name):
@@ -472,7 +474,9 @@ def remove(operations, operation_name):
     raise ValueError("operation '{}' not found in operations named '{}'".format(
       operation_name, operations.name))
   
-  operations.invoke_event("before-remove-operation", operation_name)
+  operation = operations["added"][operation_name]
+  
+  operations.invoke_event("before-remove-operation", operation)
   
   operations["added"].remove([operation_name])
   del operations["added_data"].value[operation_index]
