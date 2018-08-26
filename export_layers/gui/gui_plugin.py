@@ -56,6 +56,7 @@ from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettingpersistor
 
+from .. import operations
 from .. import exportlayers
 from .. import settings_plugin
 from . import gui_operations
@@ -64,6 +65,85 @@ from . import gui_preview_name
 from . import gui_previews_controller
 from . import gui_progress
 from . import settings_gui
+
+
+def display_message(
+      message,
+      message_type,
+      parent=None,
+      buttons=gtk.BUTTONS_OK,
+      message_in_text_view=False,
+      button_response_id_to_focus=None):
+  return pggui.display_message(
+    message,
+    message_type,
+    title=pygimplib.config.PLUGIN_TITLE,
+    parent=parent,
+    buttons=buttons,
+    message_in_text_view=message_in_text_view,
+    button_response_id_to_focus=button_response_id_to_focus)
+
+
+def display_export_failure_message(exception, parent=None):
+  error_message = _(
+    "Sorry, but the export was unsuccessful. "
+    "You can try exporting again if you fix the issue described below.")
+  error_message += "\n" + str(exception)
+  
+  display_message(
+    error_message,
+    message_type=gtk.MESSAGE_WARNING,
+    parent=parent,
+    message_in_text_view=True)
+
+
+def display_export_failure_invalid_image_message(details, parent=None):
+  pggui.display_error_message(
+    title=pygimplib.config.PLUGIN_TITLE,
+    app_name=pygimplib.config.PLUGIN_TITLE,
+    parent=parent,
+    message_type=gtk.MESSAGE_WARNING,
+    message_markup=_(
+      "Sorry, but the export was unsuccessful. "
+      "Do not close the image when exporting, "
+      "keep it open until the export finishes successfully."),
+    message_secondary_markup=_(
+      "If you believe this is a different error, "
+      "you can help fix it by sending a report with the text "
+      "in the details to one of the sites below."),
+    details=details,
+    display_details_initially=False,
+    report_uri_list=pygimplib.config.BUG_REPORT_URL_LIST,
+    report_description="",
+    focus_on_button=True)
+
+
+def display_reset_prompt(parent=None, more_settings_shown=False):
+  dialog = gtk.MessageDialog(
+    parent=parent,
+    type=gtk.MESSAGE_WARNING,
+    flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+    buttons=gtk.BUTTONS_YES_NO)
+  dialog.set_transient_for(parent)
+  dialog.set_title(pygimplib.config.PLUGIN_TITLE)
+  
+  dialog.set_markup(_("Are you sure you want to reset settings?"))
+  
+  if more_settings_shown:
+    checkbutton_reset_operations = gtk.CheckButton(
+      label=_("Remove operations and constraints"), use_underline=False)
+    dialog.vbox.pack_start(checkbutton_reset_operations, expand=False, fill=False)
+  
+  dialog.set_focus(dialog.get_widget_for_response(gtk.RESPONSE_NO))
+  
+  dialog.show_all()
+  response_id = dialog.run()
+  dialog.destroy()
+  
+  clear_operations = (
+    checkbutton_reset_operations.get_active() if more_settings_shown else False)
+  
+  return response_id, clear_operations
 
 
 @contextlib.contextmanager
@@ -122,11 +202,6 @@ def _set_settings(func):
         self._image.ID] = (
           self._export_image_preview.layer_elem.item.ID
           if self._export_image_preview.layer_elem is not None else None)
-      
-      self._settings["gui/displayed_builtin_operations"].set_value(
-        self._box_operations.displayed_settings_names)
-      self._settings["gui/displayed_builtin_constraints"].set_value(
-        self._box_constraints.displayed_settings_names)
     except pgsetting.SettingValueError as e:
       self._display_message_label(str(e), gtk.MESSAGE_ERROR, e.setting)
       return
@@ -553,7 +628,6 @@ class ExportLayersGui(object):
       self._export_previews_controller.on_paned_between_previews_position_changed)
     
     self._export_previews_controller.connect_setting_changes_to_previews()
-    self._connect_setting_changes_to_operation_boxes()
     
     self._dialog.set_default_response(gtk.RESPONSE_CANCEL)
     
@@ -606,33 +680,45 @@ class ExportLayersGui(object):
   def _init_gui_operation_boxes(self):
     self._box_operations = self._create_operation_box(
       self._settings["main/operations"],
-      self._settings["gui/displayed_builtin_operations"],
       _("Add _Operation..."))
     
     self._box_constraints = self._create_operation_box(
       self._settings["main/constraints"],
-      self._settings["gui/displayed_builtin_constraints"],
       _("Add _Constraint..."))
   
-  def _create_operation_box(
-        self,
-        setting_group_with_operations,
-        setting_displayed_operations,
-        label_add_operation):
+  def _create_operation_box(self, operations_group, label_add_operation):
     operation_box = gui_operations.OperationBox(
+      operations_group=operations_group,
       label_add_text=label_add_operation,
-      spacing=self._MORE_SETTINGS_OPERATIONS_SPACING,
-      settings=setting_group_with_operations)
+      spacing=self._MORE_SETTINGS_OPERATIONS_SPACING)
     
-    operation_box.on_add_operation = exportlayers.add_operation
-    operation_box.on_reorder_operation = exportlayers.reorder_operation
-    operation_box.on_remove_operation = exportlayers.remove_operation
+    self._add_gui_to_already_added_operations(operation_box, operations_group)
     
-    for setting_name in setting_displayed_operations.value:
-      if setting_name in setting_group_with_operations:
-        operation_box.add_operation_item(setting_group_with_operations[setting_name])
+    operation_box.on_add_operation = (
+      lambda operations_group, operation_name: operations.add(
+        operations_group, operation_name))
+    
+    operation_box.on_reorder_operation = (
+      lambda operations_group, operation_name, new_position: operations.reorder(
+        operations_group, operation_name, new_position))
+    
+    operation_box.on_remove_operation = (
+      lambda operations_group, operation_name: operations.remove(
+        operations_group, operation_name))
     
     return operation_box
+  
+  def _add_gui_to_already_added_operations(self, operation_box, operations_group):
+    orig_on_add_operation = operation_box.on_add_operation
+    
+    operation_box.on_add_operation = (
+      lambda operations_group, operation_name: (
+        operations_group["added"][operation_name]))
+    
+    for operation in operations.walk(operations_group):
+      operation_box.add_operation_item(operation.name)
+    
+    operation_box.on_add_operation = orig_on_add_operation
   
   def _save_settings(self):
     status, status_message = self._settings.save()
@@ -719,12 +805,6 @@ class ExportLayersGui(object):
       self._initial_layer_tree = None
       return
   
-  def _connect_setting_changes_to_operation_boxes(self):
-    self._settings["gui/displayed_builtin_operations"].connect_event(
-      "after-reset", lambda setting: self._box_operations.clear())
-    self._settings["gui/displayed_builtin_constraints"].connect_event(
-      "after-reset", lambda setting: self._box_constraints.clear())
-  
   def _on_dialog_key_press(self, widget, event):
     if gtk.gdk.keyval_name(event.keyval) == "Escape":
       export_stopped = stop_export(self._layer_exporter)
@@ -750,26 +830,35 @@ class ExportLayersGui(object):
       self._display_message_label(_("Settings successfully saved."), gtk.MESSAGE_INFO)
   
   def _on_reset_settings_activate(self, widget):
-    response_id, reset_operations = display_reset_prompt(
+    response_id, clear_operations = display_reset_prompt(
       parent=self._dialog,
       more_settings_shown=self._settings["gui/show_more_settings"].value)
     
-    if not reset_operations:
-      self._settings["gui/displayed_builtin_operations"].tags.add("ignore_reset")
-      self._settings["gui/displayed_builtin_constraints"].tags.add("ignore_reset")
-    
     if response_id == gtk.RESPONSE_YES:
+      if clear_operations:
+        self._box_operations.clear()
+        operations.clear(self._settings["main/operations"])
+        self._add_gui_to_already_added_operations(
+          self._box_operations, self._settings["main/operations"])
+        
+        self._box_constraints.clear()
+        operations.clear(self._settings["main/constraints"])
+        self._add_gui_to_already_added_operations(
+          self._box_constraints, self._settings["main/constraints"])
+      else:
+        self._settings["main/operations"].tags.add("ignore_reset")
+        self._settings["main/constraints"].tags.add("ignore_reset")
+      
       self._reset_settings()
       self._save_settings()
       
-      if reset_operations:
+      if clear_operations:
         self._clear_setting_sources()
+      else:
+        self._settings["main/operations"].tags.remove("ignore_reset")
+        self._settings["main/constraints"].tags.remove("ignore_reset")
       
       self._display_message_label(_("Settings reset."), gtk.MESSAGE_INFO)
-    
-    if not reset_operations:
-      self._settings["gui/displayed_builtin_operations"].tags.remove("ignore_reset")
-      self._settings["gui/displayed_builtin_constraints"].tags.remove("ignore_reset")
   
   @_set_settings
   def _on_button_export_clicked(self, widget):
@@ -947,8 +1036,6 @@ class ExportLayersRepeatGui(object):
     
     self._settings.load([pygimplib.config.SOURCE_SESSION])
     
-    self._add_operations()
-    
     self._init_gui()
     
     pggui.set_gui_excepthook_parent(self._dialog)
@@ -981,22 +1068,6 @@ class ExportLayersRepeatGui(object):
     
     self._button_stop.connect("clicked", self._on_button_stop_clicked)
     self._dialog.connect("delete-event", self._on_dialog_delete_event)
-  
-  def _add_operations(self):
-    self._add_operation_settings(
-      self._settings["main/operations"],
-      self._settings["gui/displayed_builtin_operations"])
-    
-    self._add_operation_settings(
-      self._settings["main/constraints"],
-      self._settings["gui/displayed_builtin_constraints"])
-  
-  @staticmethod
-  def _add_operation_settings(
-        setting_group_with_operations, setting_displayed_operations):
-    for setting_name in setting_displayed_operations.value:
-      if setting_name in setting_group_with_operations:
-        exportlayers.add_operation(setting_group_with_operations[setting_name])
   
   def export_layers(self):
     progress_updater = pggui.GtkProgressUpdater(self._progress_bar)
@@ -1045,85 +1116,3 @@ class ExportLayersRepeatGui(object):
   
   def _on_dialog_delete_event(self, widget, event):
     stop_export(self._layer_exporter)
-
-
-#===============================================================================
-
-
-def display_message(
-      message,
-      message_type,
-      parent=None,
-      buttons=gtk.BUTTONS_OK,
-      message_in_text_view=False,
-      button_response_id_to_focus=None):
-  return pggui.display_message(
-    message,
-    message_type,
-    title=pygimplib.config.PLUGIN_TITLE,
-    parent=parent,
-    buttons=buttons,
-    message_in_text_view=message_in_text_view,
-    button_response_id_to_focus=button_response_id_to_focus)
-
-
-def display_export_failure_message(exception, parent=None):
-  error_message = _(
-    "Sorry, but the export was unsuccessful. "
-    "You can try exporting again if you fix the issue described below.")
-  error_message += "\n" + str(exception)
-  
-  display_message(
-    error_message,
-    message_type=gtk.MESSAGE_WARNING,
-    parent=parent,
-    message_in_text_view=True)
-
-
-def display_export_failure_invalid_image_message(details, parent=None):
-  pggui.display_error_message(
-    title=pygimplib.config.PLUGIN_TITLE,
-    app_name=pygimplib.config.PLUGIN_TITLE,
-    parent=parent,
-    message_type=gtk.MESSAGE_WARNING,
-    message_markup=_(
-      "Sorry, but the export was unsuccessful. "
-      "Do not close the image when exporting, "
-      "keep it open until the export finishes successfully."),
-    message_secondary_markup=_(
-      "If you believe this is a different error, "
-      "you can help fix it by sending a report with the text "
-      "in the details to one of the sites below."),
-    details=details,
-    display_details_initially=False,
-    report_uri_list=pygimplib.config.BUG_REPORT_URL_LIST,
-    report_description="",
-    focus_on_button=True)
-
-
-def display_reset_prompt(parent=None, more_settings_shown=False):
-  dialog = gtk.MessageDialog(
-    parent=parent,
-    type=gtk.MESSAGE_WARNING,
-    flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-    buttons=gtk.BUTTONS_YES_NO)
-  dialog.set_transient_for(parent)
-  dialog.set_title(pygimplib.config.PLUGIN_TITLE)
-  
-  dialog.set_markup(_("Are you sure you want to reset settings?"))
-  
-  if more_settings_shown:
-    checkbutton_reset_operations = gtk.CheckButton(
-      label=_("Remove operations and constraints"), use_underline=False)
-    dialog.vbox.pack_start(checkbutton_reset_operations, expand=False, fill=False)
-  
-  dialog.set_focus(dialog.get_widget_for_response(gtk.RESPONSE_NO))
-  
-  dialog.show_all()
-  response_id = dialog.run()
-  dialog.destroy()
-  
-  reset_operations = (
-    checkbutton_reset_operations.get_active() if more_settings_shown else False)
-  
-  return response_id, reset_operations

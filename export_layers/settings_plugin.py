@@ -56,24 +56,6 @@ def create_settings():
         "setting_attributes": {
           "setting_sources": [
             pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]},
-        "groups": [
-          {
-            "name": "operations",
-            "setting_attributes": {
-              "pdb_type": None,
-              "setting_sources": [
-                pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
-            }
-          },
-          {
-            "name": "constraints",
-            "setting_attributes": {
-              "pdb_type": None,
-              "setting_sources": [
-                pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
-            },
-          }
-        ]
       }
     ]
   })
@@ -177,125 +159,162 @@ def create_settings():
     },
   ])
   
-  settings["main/operations"].add([
-    operations.create_operation(
-      name="insert_background_layers",
-      function=[builtin_operations.insert_background_layer, ["background"]],
-      enabled=False,
-      display_name=_("Insert background layers"),
-      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
-    ),
-    operations.create_operation(
-      name="insert_foreground_layers",
-      function=[builtin_operations.insert_foreground_layer, ["foreground"]],
-      enabled=False,
-      display_name=_("Insert foreground layers"),
-      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
-    ),
-    operations.create_operation(
-      name="inherit_transparency_from_layer_groups",
-      function=[builtin_operations.inherit_transparency_from_layer_groups],
-      enabled=False,
-      display_name=_("Inherit transparency from layer groups"),
-      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
-    ),
-    operations.create_operation(
-      name="ignore_layer_modes",
-      function=[builtin_operations.ignore_layer_modes],
-      enabled=False,
-      display_name=_("Ignore layer modes"),
-      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
-    ),
-    operations.create_operation(
-      name="autocrop",
-      function=[builtin_operations.autocrop_layer],
-      enabled=False,
-      display_name=_("Autocrop"),
-      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
-    ),
-    operations.create_operation(
-      name="autocrop_background",
-      function=[builtin_operations.autocrop_tagged_layer, ["background"]],
-      enabled=False,
-      display_name=_("Autocrop background"),
-      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
-    ),
-    operations.create_operation(
-      name="autocrop_foreground",
-      function=[builtin_operations.autocrop_tagged_layer, ["foreground"]],
-      enabled=False,
-      display_name=_("Autocrop foreground"),
-      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
-    ),
-    operations.create_operation(
-      name="use_file_extensions_in_layer_names",
-      function=None,
-      enabled=False,
-      display_name=_("Use file extensions in layer names"),
-      operation_groups=[builtin_operations.BUILTIN_OPERATIONS_GROUP],
-    ),
+  settings["main"].add([operations.create(
+    name="operations",
+    type_="operation",
+    builtin_operations_data=[
+      {
+        "name": "insert_background_layers",
+        "function": builtin_operations.insert_background_layer,
+        "arguments": [
+          {
+            "type": pgsetting.SettingTypes.string,
+            "name": "tag",
+            "default_value": "background",
+          },
+        ],
+        "enabled": False,
+        "display_name": _("Insert background layers"),
+        "operation_groups": [builtin_operations.BUILTIN_OPERATIONS_GROUP],
+      },
+      {
+        "name": "insert_foreground_layers",
+        "function": builtin_operations.insert_foreground_layer,
+        "arguments": [
+          {
+            "type": pgsetting.SettingTypes.string,
+            "name": "tag",
+            "default_value": "foreground",
+          },
+        ],
+        "enabled": False,
+        "display_name": _("Insert foreground layers"),
+        "operation_groups": [builtin_operations.BUILTIN_OPERATIONS_GROUP],
+      },
+      {
+        "name": "inherit_transparency_from_layer_groups",
+        "function": builtin_operations.inherit_transparency_from_layer_groups,
+        "enabled": False,
+        "display_name": _("Inherit transparency from layer groups"),
+        "operation_groups": [builtin_operations.BUILTIN_OPERATIONS_GROUP],
+      },
+      {
+        "name": "ignore_layer_modes",
+        "function": builtin_operations.ignore_layer_modes,
+        "enabled": False,
+        "display_name": _("Ignore layer modes"),
+        "operation_groups": [builtin_operations.BUILTIN_OPERATIONS_GROUP],
+      },
+      {
+        "name": "autocrop",
+        "function": builtin_operations.autocrop_layer,
+        "enabled": False,
+        "display_name": _("Autocrop"),
+        "operation_groups": [builtin_operations.BUILTIN_OPERATIONS_GROUP],
+      },
+      {
+        "name": "autocrop_background",
+        "function": builtin_operations.autocrop_tagged_layer,
+        "arguments": [
+          {
+            "type": pgsetting.SettingTypes.string,
+            "name": "tag",
+            "default_value": "background",
+          },
+        ],
+        "enabled": False,
+        "display_name": _("Autocrop background"),
+        "operation_groups": [builtin_operations.BUILTIN_OPERATIONS_GROUP],
+      },
+      {
+        "name": "autocrop_foreground",
+        "function": builtin_operations.autocrop_tagged_layer,
+        "arguments": [
+          {
+            "type": pgsetting.SettingTypes.string,
+            "name": "tag",
+            "default_value": "foreground",
+          },
+        ],
+        "enabled": False,
+        "display_name": _("Autocrop foreground"),
+        "operation_groups": [builtin_operations.BUILTIN_OPERATIONS_GROUP],
+      },
+      {
+        "name": "use_file_extensions_in_layer_names",
+        "function": None,
+        "enabled": False,
+        "display_name": _("Use file extensions in layer names"),
+        "operation_groups": [builtin_operations.BUILTIN_OPERATIONS_GROUP],
+      },
+    ]),
   ])
   
-  settings["main/constraints"].add([
-    operations.create_constraint(
-      name="include_layers",
-      function=[builtin_constraints.is_layer],
-      enabled=True,
-      display_name=_("Include layers"),
-      subfilter="layer_types",
-      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
-    ),
-    operations.create_constraint(
-      name="include_layer_groups",
-      function=[builtin_constraints.is_nonempty_group],
-      enabled=False,
-      display_name=_("Include layer groups"),
-      subfilter="layer_types",
-      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
-    ),
-    operations.create_constraint(
-      name="include_empty_layer_groups",
-      function=[builtin_constraints.is_empty_group],
-      enabled=False,
-      display_name=_("Include empty layer groups"),
-      subfilter="layer_types",
-      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
-    ),
-    operations.create_constraint(
-      name="only_layers_without_tags",
-      function=[builtin_constraints.has_no_tags],
-      enabled=False,
-      display_name=_("Only layers without tags"),
-      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
-    ),
-    operations.create_constraint(
-      name="only_layers_with_tags",
-      function=[builtin_constraints.has_tags],
-      enabled=False,
-      display_name=_("Only layers with tags"),
-      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
-    ),
-    operations.create_constraint(
-      name="only_layers_matching_file_extension",
-      function=[builtin_constraints.has_matching_default_file_extension],
-      enabled=False,
-      display_name=_("Only layers matching file extension"),
-      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
-    ),
-    operations.create_constraint(
-      name="only_toplevel_layers",
-      function=[builtin_constraints.is_top_level],
-      enabled=False,
-      display_name=_("Only top-level layers"),
-      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
-    ),
-    operations.create_constraint(
-      name="only_selected_layers",
-      function=None,
-      enabled=False,
-      display_name=_("Only layers selected in preview"),
-      operation_groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
-    ),
+  settings["main"].add([operations.create(
+    name="constraints",
+    type_="constraint",
+    initial_operations=["include_layers"],
+    builtin_operations_data=[
+      {
+        "name": "include_layers",
+        "function": builtin_constraints.is_layer,
+        "enabled": True,
+        "display_name": _("Include layers"),
+        "subfilter": "layer_types",
+        "operation_groups": [builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
+      },
+      {
+        "name": "include_layer_groups",
+        "function": builtin_constraints.is_nonempty_group,
+        "enabled": False,
+        "display_name": _("Include layer groups"),
+        "subfilter": "layer_types",
+        "operation_groups": [builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
+      },
+      {
+        "name": "include_empty_layer_groups",
+        "function": builtin_constraints.is_empty_group,
+        "enabled": False,
+        "display_name": _("Include empty layer groups"),
+        "subfilter": "layer_types",
+        "operation_groups": [builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
+      },
+      {
+        "name": "only_layers_without_tags",
+        "function": builtin_constraints.has_no_tags,
+        "enabled": False,
+        "display_name": _("Only layers without tags"),
+        "operation_groups": [builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
+      },
+      {
+        "name": "only_layers_with_tags",
+        "function": builtin_constraints.has_tags,
+        "enabled": False,
+        "display_name": _("Only layers with tags"),
+        "operation_groups": [builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
+      },
+      {
+        "name": "only_layers_matching_file_extension",
+        "function": builtin_constraints.has_matching_default_file_extension,
+        "enabled": False,
+        "display_name": _("Only layers matching file extension"),
+        "operation_groups": [builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
+      },
+      {
+        "name": "only_toplevel_layers",
+        "function": builtin_constraints.is_top_level,
+        "enabled": False,
+        "display_name": _("Only top-level layers"),
+        "operation_groups": [builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
+      },
+      {
+        "name": "only_selected_layers",
+        "function": None,
+        "enabled": False,
+        "display_name": _("Only layers selected in preview"),
+        "operation_groups": [builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
+      },
+    ]),
   ])
   
   def on_use_file_extensions_in_layer_names_enabled_changed(
@@ -306,11 +325,17 @@ def create_settings():
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = _(
         "You need to specify default file extension for layers with invalid "
         "or no extension.")
+
+  def on_after_add_operation(
+        operations_, file_extension_setting, operation, orig_operation_name):
+    if orig_operation_name == "use_file_extensions_in_layer_names":
+      operation["enabled"].connect_event(
+        "value-changed",
+        on_use_file_extensions_in_layer_names_enabled_changed,
+        file_extension_setting)
   
-  settings["main/operations/use_file_extensions_in_layer_names/enabled"].connect_event(
-    "value-changed",
-    on_use_file_extensions_in_layer_names_enabled_changed,
-    settings["main/file_extension"])
+  settings["main/operations"].connect_event(
+    "after-add-operation", on_after_add_operation, settings["main/file_extension"])
   
   return settings
 

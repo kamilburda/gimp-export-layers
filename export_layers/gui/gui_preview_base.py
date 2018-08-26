@@ -35,8 +35,6 @@ class ExportPreview(future.utils.with_metaclass(abc.ABCMeta, object)):
     self._lock_keys = set()
     
     self._functions_to_execute_at_update = []
-    
-    self._settings_events_to_temporarily_disable = {}
   
   def update(self):
     """
@@ -99,6 +97,3 @@ class ExportPreview(future.utils.with_metaclass(abc.ABCMeta, object)):
     functions until the preview is available again.
     """
     self._functions_to_execute_at_update.append((func, func_args, func_kwargs))
-  
-  def temporarily_disable_setting_events_on_update(self, settings_and_event_ids):
-    self._settings_events_to_temporarily_disable = settings_and_event_ids

@@ -52,12 +52,20 @@ class ExportPreviewsController(object):
   
   def connect_setting_changes_to_previews(self):
     self._connect_settings_changed()
-    self._connect_setting_only_selected_layers_changed()
     self._connect_setting_after_reset_collapsed_layers_in_name_preview()
     self._connect_setting_after_reset_selected_layers_in_name_preview()
     self._connect_setting_after_reset_displayed_layers_in_image_preview()
   
   def _connect_settings_changed(self):
+    self._connect_basic_settings()
+    
+    self._connect_already_added_operations()
+    self._prepare_to_connect_subsequent_operations()
+    
+    self._connect_already_added_constraints()
+    self._prepare_to_connect_subsequent_constraints()
+  
+  def _connect_basic_settings(self):
     basic_setting_names_with_value_changed_event = [
       "layer_groups_as_folders",
       "use_image_size",
@@ -67,23 +75,28 @@ class ExportPreviewsController(object):
     for setting_name in basic_setting_names_with_value_changed_event:
       self._settings["main"][setting_name].connect_event(
         "value-changed", self._on_setting_changed)
-    
-    for setting in operations.walk_operations(
-          self._settings["main/operations"], "enabled"):
-      setting.connect_event("value-changed", self._on_setting_changed)
-    
-    for setting in operations.walk_operations(
-          self._settings["main/constraints"], "enabled"):
-      if not setting.get_path().endswith("only_selected_layers/enabled"):
-        setting.connect_event("value-changed", self._on_setting_changed)
   
-  def _connect_setting_only_selected_layers_changed(self):
-    event_id = self._settings["main/constraints/only_selected_layers/enabled"].connect_event(
-      "value-changed", self._on_setting_changed)
-    self._export_name_preview.temporarily_disable_setting_events_on_update(
-      {"constraints/only_selected_layers/enabled": [event_id]})
-    self._export_image_preview.temporarily_disable_setting_events_on_update(
-      {"constraints/only_selected_layers/enabled": [event_id]})
+  def _connect_already_added_operations(self):
+    for setting in operations.walk(self._settings["main/operations"], "enabled"):
+      setting.connect_event("value-changed", self._on_setting_changed)
+  
+  def _prepare_to_connect_subsequent_operations(self):
+    def _on_after_add_operation(operations_, operation, orig_operation_name):
+      operation["enabled"].connect_event("value-changed", self._on_setting_changed)
+    
+    self._settings["main/operations"].connect_event(
+      "after-add-operation", _on_after_add_operation)
+  
+  def _connect_already_added_constraints(self):
+    for setting in operations.walk(self._settings["main/constraints"], "enabled"):
+      setting.connect_event("value-changed", self._on_setting_changed)
+  
+  def _prepare_to_connect_subsequent_constraints(self):
+    def _on_after_add_operation(operations_, operation, orig_operation_name):
+      operation["enabled"].connect_event("value-changed", self._on_setting_changed)
+    
+    self._settings["main/constraints"].connect_event(
+      "after-add-operation", _on_after_add_operation)
   
   def _on_setting_changed(self, setting):
     pginvocation.timeout_add_strict(

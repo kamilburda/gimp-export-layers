@@ -44,21 +44,20 @@ class OperationBox(object):
   
   _BUTTON_HBOX_SPACING = 6
   
-  def __init__(self, label_add_text=None, spacing=0, settings=None):
-    self.label_add_text = label_add_text
+  def __init__(self, operations_group=None, label_add_text=None, spacing=0):
+    self._operations = operations_group
+    self._label_add_text = label_add_text
     self._spacing_between_operations = spacing
-    self._settings = settings
     
     self.on_add_operation = pgutils.empty_func
     self.on_reorder_operation = pgutils.empty_func
     self.on_remove_operation = pgutils.empty_func
     
-    self._menu_items_and_settings = {}
+    self._menu_items_and_operation_names = {}
     
-    self._displayed_settings = []
-    self._displayed_settings_gui_elements = set()
-    self._displayed_operation_items = []
+    self._operation_items = []
     
+    self._drag_type_id = self._drag_type_id_counter.next()
     self._last_item_widget_dest_drag = None
     
     self._init_gui()
@@ -67,16 +66,8 @@ class OperationBox(object):
   def widget(self):
     return self._widget
   
-  @property
-  def displayed_settings(self):
-    return self._displayed_settings
-  
-  @property
-  def displayed_settings_names(self):
-    return [setting.get_path(self._settings) for setting in self._displayed_settings]
-  
   def _init_gui(self):
-    if self.label_add_text is not None:
+    if self._label_add_text is not None:
       self._button_add = gtk.Button()
       button_hbox = gtk.HBox()
       button_hbox.set_spacing(self._BUTTON_HBOX_SPACING)
@@ -85,7 +76,7 @@ class OperationBox(object):
         expand=False, fill=False)
       
       label_add = gtk.Label(
-        self.label_add_text.encode(pgconstants.GTK_CHARACTER_ENCODING))
+        self._label_add_text.encode(pgconstants.GTK_CHARACTER_ENCODING))
       label_add.set_use_underline(True)
       button_hbox.pack_start(label_add, expand=False, fill=False)
       
@@ -109,116 +100,102 @@ class OperationBox(object):
     self._operations_menu = gtk.Menu()
     
     self._init_operations_menu_popup()
-    self._init_item_dragging()
     
     self._button_add.connect("clicked", self._on_button_add_clicked)
   
   def _init_operations_menu_popup(self):
-    for setting in operations.walk_operations(self._settings):
-      self._add_setting_to_menu(setting)
+    for operation in operations.walk(self._operations, subgroup="builtin"):
+      self._add_operation_to_menu_popup(operation)
     
     self._operations_menu.show_all()
   
-  def _add_setting_to_menu(self, setting):
+  def _add_operation_to_menu_popup(self, operation):
     menu_item = gtk.MenuItem(
-      label=setting["display_name"].value.encode(pgconstants.GTK_CHARACTER_ENCODING),
+      label=operation["display_name"].value.encode(pgconstants.GTK_CHARACTER_ENCODING),
       use_underline=False)
     menu_item.connect("activate", self._on_operations_menu_item_activate)
     self._operations_menu.append(menu_item)
-    self._menu_items_and_settings[menu_item] = setting
+    self._menu_items_and_operation_names[menu_item] = operation.name
   
-  def _init_item_dragging(self):
-    # Unique drag type for the entire box prevents undesired drops on other
-    # widgets.
-    drag_type = self._get_unique_drag_type()
+  def add_operation_item(self, operation_name):
+    operation = self.on_add_operation(self._operations, operation_name)
+    operation.initialize_gui()
     
-    for setting in operations.walk_operations(self._settings):
-      self._connect_drag_events_to_item_widget(setting, drag_type)
-  
-  def _get_unique_drag_type(self):
-    drag_type = "{}_{}_{}".format(
-      pygimplib.config.PLUGIN_NAME,
-      self.__class__.__name__,
-      self._drag_type_id_counter.next())
-    
-    return drag_type
-  
-  def _connect_drag_events_to_item_widget(self, setting, drag_type):
-    setting_enabled = setting["enabled"]
-    
-    setting_enabled.gui.element.connect(
-      "drag-data-get", self._on_item_widget_drag_data_get, setting)
-    setting_enabled.gui.element.drag_source_set(
-      gtk.gdk.BUTTON1_MASK, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
-    
-    setting_enabled.gui.element.connect(
-      "drag-data-received", self._on_item_widget_drag_data_received, setting)
-    setting_enabled.gui.element.drag_dest_set(
-      gtk.DEST_DEFAULT_ALL, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
-    
-    setting_enabled.gui.element.connect("drag-begin", self._on_item_widget_drag_begin)
-    setting_enabled.gui.element.connect("drag-motion", self._on_item_widget_drag_motion)
-    setting_enabled.gui.element.connect("drag-failed", self._on_item_widget_drag_failed)
-  
-  def add_operation_item(self, setting):
-    operation_item = _OperationItem(setting["enabled"].gui.element)
+    operation_item = _OperationItem(operation, operation["enabled"].gui.element)
     self._vbox.pack_start(operation_item.widget, expand=False, fill=False)
     self._vbox.reorder_child(self._button_add, -1)
     
     operation_item.button_remove.connect(
-      "clicked", lambda *args: self.remove_operation_item(operation_item, setting))
+      "clicked", lambda *args: self.remove_operation_item(operation_item))
     operation_item.widget.connect(
       "key-press-event", self._on_operation_item_widget_key_press_event, operation_item)
     
-    self._displayed_settings.append(setting)
-    self._displayed_settings_gui_elements.add(setting["enabled"].gui.element)
-    self._displayed_operation_items.append(operation_item)
+    self._connect_drag_events_to_item_widget(
+      operation_item, operation, self._get_unique_drag_type())
     
-    self.on_add_operation(setting)
+    self._operation_items.append(operation_item)
     
     return operation_item
   
-  def remove_operation_item(self, operation_item, setting):
+  def _connect_drag_events_to_item_widget(self, operation_item, operation, drag_type):
+    operation_enabled = operation["enabled"]
+    
+    operation_enabled.gui.element.connect(
+      "drag-data-get", self._on_item_widget_drag_data_get, operation)
+    operation_enabled.gui.element.drag_source_set(
+      gtk.gdk.BUTTON1_MASK, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
+    
+    operation_enabled.gui.element.connect(
+      "drag-data-received", self._on_item_widget_drag_data_received, operation_item)
+    operation_enabled.gui.element.drag_dest_set(
+      gtk.DEST_DEFAULT_ALL, [(drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
+    
+    operation_enabled.gui.element.connect("drag-begin", self._on_item_widget_drag_begin)
+    operation_enabled.gui.element.connect("drag-motion", self._on_item_widget_drag_motion)
+    operation_enabled.gui.element.connect("drag-failed", self._on_item_widget_drag_failed)
+  
+  def _get_unique_drag_type(self):
+    # Unique drag type for the entire box prevents undesired drops on other
+    # widgets.
+    return "{}_{}_{}".format(
+      pygimplib.config.PLUGIN_NAME,
+      self.__class__.__name__,
+      self._drag_type_id)
+  
+  def reorder_operation_item(self, operation_item, position):
+    new_position = min(max(position, 0), len(self._operation_items) - 1)
+    
+    self.on_reorder_operation(
+      self._operations, operation_item.operation.name, new_position)
+    
+    self._operation_items.pop(self._get_operation_item_position(operation_item))
+    self._operation_items.insert(new_position, operation_item)
+    
+    self._vbox.reorder_child(operation_item.widget, new_position)
+  
+  def remove_operation_item(self, operation_item):
     operation_item_position = self._get_operation_item_position(operation_item)
     
-    if operation_item_position < len(self._displayed_operation_items) - 1:
+    if operation_item_position < len(self._operation_items) - 1:
       next_item_position = operation_item_position + 1
-      self._displayed_operation_items[next_item_position].item_widget.grab_focus()
+      self._operation_items[next_item_position].item_widget.grab_focus()
     else:
       self._button_add.grab_focus()
     
     self._vbox.remove(operation_item.widget)
     operation_item.remove_item_widget()
     
-    self._displayed_settings.remove(setting)
-    self._displayed_settings_gui_elements.remove(setting["enabled"].gui.element)
-    self._displayed_operation_items.remove(operation_item)
+    self._operation_items.remove(operation_item)
     
-    self.on_remove_operation(setting)
-  
-  def reorder_operation_item(self, operation_item, position):
-    new_position = min(max(position, 0), len(self._displayed_operation_items) - 1)
-    
-    previous_position = self._get_operation_item_position(operation_item)
-    
-    self._displayed_operation_items.pop(previous_position)
-    self._displayed_operation_items.insert(new_position, operation_item)
-    
-    setting = self._displayed_settings.pop(previous_position)
-    self._displayed_settings.insert(new_position, setting)
-    
-    self._vbox.reorder_child(operation_item.widget, new_position)
-    
-    self.on_reorder_operation(setting, new_position)
+    self.on_remove_operation(self._operations, operation_item.operation.name)
   
   def clear(self):
     for unused_ in range(len(self._vbox.get_children()) - 1):
-      self.remove_operation_item(
-        self._displayed_operation_items[0], self._displayed_settings[0])
+      self.remove_operation_item(self._operation_items[0])
   
   def _on_item_widget_drag_data_get(
-        self, item_widget, drag_context, selection_data, info, timestamp, setting):
-    selection_data.set(selection_data.target, 8, setting.get_path(self._settings))
+        self, item_widget, drag_context, selection_data, info, timestamp, operation):
+    selection_data.set(selection_data.target, 8, operation.get_path(self._operations))
   
   def _on_item_widget_drag_data_received(
         self,
@@ -229,18 +206,22 @@ class OperationBox(object):
         selection_data,
         info,
         timestamp,
-        setting):
-    dragged_setting_name = selection_data.data
-    if dragged_setting_name not in self._settings:
+        operation_item):
+    dragged_operation_name = selection_data.data
+    
+    if dragged_operation_name not in (
+         operation.get_path(self._operations)
+         for operation in operations.walk(self._operations)):
       return
     
-    dragged_setting = self._settings[dragged_setting_name]
-    dragged_item_position = self._displayed_settings.index(dragged_setting)
-    dragged_operation_item = self._displayed_operation_items[dragged_item_position]
+    dragged_operation_item = next(
+      (item for item in self._operation_items
+       if item.operation == self._operations[dragged_operation_name]),
+      None)
     
-    new_position = self._displayed_settings.index(setting)
-    
-    self.reorder_operation_item(dragged_operation_item, new_position)
+    if dragged_operation_item is not None:
+      new_position = self._get_operation_item_position(operation_item)
+      self.reorder_operation_item(dragged_operation_item, new_position)
   
   def _on_item_widget_drag_begin(self, item_widget, drag_context):
     drag_icon_pixbuf = self._get_drag_icon_pixbuf(item_widget)
@@ -260,9 +241,7 @@ class OperationBox(object):
     self._operations_menu.popup(None, None, None, 0, 0)
   
   def _on_operations_menu_item_activate(self, menu_item):
-    setting = self._menu_items_and_settings[menu_item]
-    if setting not in self._displayed_settings:
-      self.add_operation_item(setting)
+    self.add_operation_item(self._menu_items_and_operation_names[menu_item])
   
   def _on_operation_item_widget_key_press_event(self, widget, event, operation_item):
     if event.state & gtk.gdk.MOD1_MASK:     # Alt key
@@ -275,7 +254,7 @@ class OperationBox(object):
           operation_item, self._get_operation_item_position(operation_item) + 1)
   
   def _get_operation_item_position(self, operation_item):
-    return self._displayed_operation_items.index(operation_item)
+    return self._operation_items.index(operation_item)
   
   def _get_drag_icon_pixbuf(self, widget):
     if widget.get_window() is None:
@@ -347,7 +326,8 @@ class _OperationItem(object):
   
   _BUTTONS_PADDING = 3
   
-  def __init__(self, item_widget):
+  def __init__(self, operation, item_widget):
+    self._operation = operation
     self._item_widget = item_widget
     
     self._hbox = gtk.HBox(homogeneous=False)
@@ -390,6 +370,10 @@ class _OperationItem(object):
       "size-allocate", self._on_event_box_buttons_size_allocate)
     
     self._event_box.show_all()
+  
+  @property
+  def operation(self):
+    return self._operation
   
   @property
   def widget(self):

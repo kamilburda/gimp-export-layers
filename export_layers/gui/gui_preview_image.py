@@ -43,6 +43,8 @@ from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pggui
 from export_layers.pygimplib import pgpdb
 
+from export_layers import builtin_constraints
+
 from . import gui_preview_base
 
 
@@ -77,13 +79,13 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._layer_exporter = layer_exporter
     self._initial_previewed_layer_id = initial_previered_layer_id
     
-    self._layer_exporter.operation_executor.add(
+    self._layer_exporter.add_operation(
       self._layer_exporter_on_after_insert_layer, ["after_insert_layer"],
-      ignore_if_exists=False)
+      ignore_if_exists=True)
     
-    self._layer_exporter.operation_executor.add(
+    self._layer_exporter.add_operation(
       self._layer_exporter_on_after_create_image_copy, ["after_create_image_copy"],
-      ignore_if_exists=False)
+      ignore_if_exists=True)
     
     self._layer_elem = None
     
@@ -287,20 +289,23 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     layer_tree = self._layer_exporter.layer_tree
     layer_tree_filter = layer_tree.filter if layer_tree is not None else None
     
-    with self._layer_exporter.modify_export_settings(
-           {"constraints/only_selected_layers/enabled": True,
-            "selected_layers": {
-              self._layer_exporter.image.ID: set([self.layer_elem.item.ID])}},
-           self._settings_events_to_temporarily_disable):
-      try:
-        image_preview = self._layer_exporter.export(
-          processing_groups=["layer_contents"],
-          layer_tree=layer_tree,
-          keep_image_copy=True)
-      except Exception:
-        display_image_preview_failure_message(
-          details=traceback.format_exc(), parent=pggui.get_toplevel_window(self._widget))
-        image_preview = None
+    only_selected_layers_operation_id = self._layer_exporter.add_constraint(
+      builtin_constraints.is_layer_in_selected_layers,
+      groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
+      args=[[self.layer_elem.item.ID]])
+    
+    try:
+      image_preview = self._layer_exporter.export(
+        processing_groups=["layer_contents"],
+        layer_tree=layer_tree,
+        keep_image_copy=True)
+    except Exception:
+      display_image_preview_failure_message(
+        details=traceback.format_exc(), parent=pggui.get_toplevel_window(self._widget))
+      image_preview = None
+    
+    self._layer_exporter.remove_operation(
+      only_selected_layers_operation_id, [builtin_constraints.BUILTIN_CONSTRAINTS_GROUP])
     
     if layer_tree_filter is not None:
       self._layer_exporter.layer_tree.filter = layer_tree_filter

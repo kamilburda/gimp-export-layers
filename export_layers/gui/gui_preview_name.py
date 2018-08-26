@@ -497,8 +497,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       previous_selected_items = self._selected_items
       self._selected_items = self._get_layer_ids_in_current_selection()
       
-      if self._layer_exporter.export_settings[
-           "constraints/only_selected_layers/enabled"].value:
+      if self._layer_exporter.export_settings.get_value(
+           "constraints/added/only_selected_layers/enabled", False):
         if self._selected_items != previous_selected_items:
           self.update(update_existing_contents_only=True)
       
@@ -526,8 +526,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       layer_tree = None
     
     with self._layer_exporter.modify_export_settings(
-           {"selected_layers": {self._layer_exporter.image.ID: self._selected_items}},
-           self._settings_events_to_temporarily_disable):
+           {"selected_layers": {self._layer_exporter.image.ID: self._selected_items}}):
       self._layer_exporter.export(processing_groups=["layer_name"], layer_tree=layer_tree)
   
   def _update_items(self):
@@ -577,8 +576,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       self._update_item_elem(parent_elem)
   
   def _enable_filtered_items(self, enabled):
-    if self._layer_exporter.export_settings[
-         "constraints/only_selected_layers/enabled"].value:
+    if self._layer_exporter.export_settings.get_value(
+         "constraints/added/only_selected_layers/enabled", False):
       if not enabled:
         self._layer_exporter.layer_tree.filter.add_rule(
           builtin_constraints.is_layer_in_selected_layers, self._selected_items)
@@ -587,8 +586,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
           builtin_constraints.is_layer_in_selected_layers, raise_if_not_found=False)
   
   def _set_items_sensitive(self):
-    if self._layer_exporter.export_settings[
-         "constraints/only_selected_layers/enabled"].value:
+    if self._layer_exporter.export_settings.get_value(
+         "constraints/added/only_selected_layers/enabled", False):
       self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
       self._set_item_elems_sensitive(
         [self._layer_exporter.layer_tree[item_id] for item_id in self._selected_items],

@@ -91,18 +91,6 @@ def create_gui_settings():
       "default_value": operations.BUILTIN_TAGS,
       "gui_type": None
     },
-    {
-      "type": pgsetting.SettingTypes.generic,
-      "name": "displayed_builtin_operations",
-      "default_value": [],
-      "gui_type": None
-    },
-    {
-      "type": pgsetting.SettingTypes.generic,
-      "name": "displayed_builtin_constraints",
-      "default_value": ["include_layers"],
-      "gui_type": None
-    },
   ])
   
   session_only_gui_settings = pgsettinggroup.SettingGroup(

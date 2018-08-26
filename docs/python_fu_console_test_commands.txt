@@ -10,7 +10,10 @@ import pgruntests
 pgruntests.run_tests(plugin_dirpath, modules=["export_layers.pygimplib"])
 
 
-imp.reload(pgruntests); pgruntests.run_tests(plugin_dirpath, modules=["export_layers.pygimplib", "export_layers.tests"], ignored_modules=["export_layers.tests.test_exportlayers"])
+_ = lambda s: s
+imp.reload(pgruntests)
+_
+pgruntests.run_tests(plugin_dirpath, modules=["export_layers.pygimplib", "export_layers.tests", "export_layers"], ignored_modules=["export_layers.tests.test_exportlayers_contents"])
 
 
 _ = lambda s: s
@@ -22,13 +25,16 @@ pgruntests.run_tests(plugin_dirpath, modules=["export_layers"], ignored_modules=
 utils_dirpath = os.path.join(plugin_dirpath, "utils")
 sys.path.append(utils_dirpath)
 import make_installers
+import make_screenshots
 import preprocess_document_contents
 import sync_docs
 orig_cwd = os.getcwd()
 
 
-imp.reload(make_installers); make_installers.main()
+_ = lambda s: s; imp.reload(make_screenshots); _; make_screenshots.main()
 
+
+imp.reload(make_installers); make_installers.main()
 
 
 imp.reload(sync_docs); sync_docs.main()

@@ -95,8 +95,12 @@ class LayerExporter(object):
     instance being currently exported.
   
   * `operation_executor` - `pgoperations.OperationExecutor` instance to manage
-    operations applied on layers.
+    operations applied on layers. This property is not None only during the
+    `export()` method and can be used to modify the execution of operations
+    while processing layers.
   """
+  
+  _LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
   
   def __init__(
         self,
@@ -153,8 +157,8 @@ class LayerExporter(object):
       for function in functions:
         self._processing_groups_functions[function.__name__] = function
     
-    self._operation_executor = pgoperations.OperationExecutor()
-    self._add_operations_initial()
+    self._operation_executor = None
+    self._initial_operation_executor = pgoperations.OperationExecutor()
   
   @property
   def layer_tree(self):
@@ -250,25 +254,12 @@ class LayerExporter(object):
     return layer.ID in self._exported_layers_ids
   
   @contextlib.contextmanager
-  def modify_export_settings(
-        self, settings_and_values, settings_events_to_temporarily_disable=None):
+  def modify_export_settings(self, settings_and_values):
     """
     Temporarily modify values of export settings using a dictionary of
     `(setting_name: new value)` pairs. After the execution of the wrapped block
     of code, the settings are restored to their original values.
-    
-    Any connected event handlers triggered on value change will normally be
-    executed. Specific events for specific settings may be disabled via the
-    `settings_events_to_temporarily_disable` dictionary of
-    `(setting name, list of event IDs)` key-value pairs.
     """
-    if settings_events_to_temporarily_disable is None:
-      settings_events_to_temporarily_disable = {}
-    
-    for setting_name, event_ids in settings_events_to_temporarily_disable.items():
-      for event_id in event_ids:
-        self.export_settings[setting_name].set_event_enabled(event_id, False)
-    
     orig_setting_values = self.export_settings.get_attributes(
       list(settings_and_values))
     self.export_settings.set_values(settings_and_values)
@@ -277,27 +268,55 @@ class LayerExporter(object):
       yield
     finally:
       self.export_settings.set_values(orig_setting_values)
-      
-      for setting_name, event_ids in settings_events_to_temporarily_disable.items():
-        for event_id in event_ids:
-          self.export_settings[setting_name].set_event_enabled(event_id, True)
   
   def stop(self):
     self._should_stop = True
   
-  def _add_operations_initial(self):
-    self._operation_executor.add(
-      builtin_operations.set_active_layer, [builtin_operations.BUILTIN_OPERATIONS_GROUP])
+  def add_operation(self, *args, **kwargs):
+    """
+    Add an operation to be executed during `export()`. The signature is the same
+    as for the `pgoperations.OperationExecutor.add` method.
     
-    self._operation_executor.add(
-      _operation_executor,
-      [builtin_operations.BUILTIN_OPERATIONS_GROUP,
-       builtin_constraints.BUILTIN_CONSTRAINTS_GROUP,
-       builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP])
+    Operations added by this method are placed before operations added by
+    `operations.add`.
     
-    add_operation(self.export_settings["constraints/include_layers"])
+    Unlike `operations.add`, operations added by this method do not act as
+    settings, i.e. they are merely functions without GUI, are not saved
+    persistently and are always enabled.
+    """
+    return self._initial_operation_executor.add(*args, **kwargs)
+  
+  def add_constraint(self, func, *args, **kwargs):
+    """
+    Add a constraint to be applied during `export()`. The first argument is the
+    function to act as a filter (returning `True` or `False`). The rest of the
+    signature is the same as for the `pgoperations.OperationExecutor.add`
+    method.
+    
+    For more information, see `add_operation.`
+    """
+    return self._initial_operation_executor.add(
+      self._get_constraint_func(func), *args, **kwargs)
+  
+  def remove_operation(self, *args, **kwargs):
+    """
+    Remove an operation originally scheduled to be executed during `export()`.
+    The signature is the same as for the `pgoperations.OperationExecutor.remove`
+    method.
+    """
+    self._initial_operation_executor.remove(*args, **kwargs)
+  
+  def reorder_operation(self, *args, **kwargs):
+    """
+    Reorder an operation to be executed during `export()`. The signature is the
+    same as for the `pgoperations.OperationExecutor.reorder` method.
+    """
+    self._initial_operation_executor.reorder(*args, **kwargs)
   
   def _init_attributes(self, processing_groups, layer_tree, keep_image_copy):
+    self._operation_executor = pgoperations.OperationExecutor()
+    self._add_operations()
+    
     self._enable_disable_processing_groups(processing_groups)
     
     if layer_tree is not None:
@@ -341,6 +360,84 @@ class LayerExporter(object):
     
     self._layer_name_renamer = LayerNameRenamer(self, pattern)
   
+  def _add_operations(self):
+    self._operation_executor.add(
+      builtin_operations.set_active_layer, [builtin_operations.BUILTIN_OPERATIONS_GROUP])
+    
+    self._operation_executor.add(
+      builtin_operations.set_active_layer_after_operation,
+      [builtin_operations.BUILTIN_OPERATIONS_GROUP],
+      foreach=True)
+    
+    self._operation_executor.add(
+      self._initial_operation_executor,
+      self._initial_operation_executor.list_groups(include_empty_groups=True))
+    
+    for operation in operations.walk(self.export_settings["operations"]):
+      self._add_operation(operation, self._operation_executor)
+    
+    for constraint in operations.walk(self.export_settings["constraints"]):
+      self._add_operation(constraint, self._operation_executor)
+  
+  def _add_operation(self, operation, executor):
+    function = operation["function"].value
+    
+    if function is None:
+      return
+    
+    if "constraint" in operation.tags:
+      function = (
+        self._get_constraint_func(function, subfilter=operation["subfilter"].value))
+    
+    function_args = tuple(arg_setting.value for arg_setting in operation["arguments"])
+    operation_groups = operation["operation_groups"].value
+    
+    executor.add(
+      self._execute_operation_only_if_enabled(function, operation["enabled"]),
+      operation_groups,
+      function_args)
+  
+  def _get_constraint_func(self, rule_func, subfilter=None):
+    def _add_rule_func(*args):
+      try:
+        layer_exporter_arg_position = (
+          inspect.getargspec(rule_func).args.index("layer_exporter"))
+      except ValueError:
+        layer_exporter_arg_position = None
+      
+      if layer_exporter_arg_position is not None:
+        layer_exporter = args[layer_exporter_arg_position - 1]
+        rule_func_args = args
+      else:
+        if len(args) > 1:
+          layer_exporter_arg_position = (
+            self._LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
+        else:
+          layer_exporter_arg_position = (
+            self._LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS - 1)
+        
+        layer_exporter = args[layer_exporter_arg_position]
+        rule_func_args = (
+          args[:layer_exporter_arg_position] + args[layer_exporter_arg_position + 1:])
+      
+      if subfilter is None:
+        object_filter = layer_exporter.layer_tree.filter
+      else:
+        object_filter = layer_exporter.layer_tree.filter[subfilter]
+      
+      object_filter.add_rule(rule_func, *rule_func_args)
+    
+    return _add_rule_func
+  
+  def _execute_operation_only_if_enabled(self, operation, setting_enabled):
+    def _execute_operation(*operation_args, **operation_kwargs):
+      if setting_enabled.value:
+        return operation(*operation_args, **operation_kwargs)
+      else:
+        return False
+    
+    return _execute_operation
+  
   def _enable_disable_processing_groups(self, processing_groups):
     for functions in self._processing_groups.values():
       for function in functions:
@@ -348,7 +445,8 @@ class LayerExporter(object):
           self, function.__name__, self._processing_groups_functions[function.__name__])
     
     if processing_groups:
-      if (not self.export_settings["constraints/only_selected_layers/enabled"].value
+      if (not self.export_settings.get_value(
+                "constraints/added/only_selected_layers/enabled", False)
           and "layer_name" in processing_groups):
         processing_groups.append("_postprocess_layer_name")
       
@@ -397,14 +495,15 @@ class LayerExporter(object):
     self._operation_executor.execute(
       [builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
       [self],
-      additional_args_position=LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
+      additional_args_position=self._LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
     
     self._init_tagged_layer_elems()
     
     if self.export_settings["only_visible_layers"].value:
       self._layer_tree.filter.add_rule(builtin_constraints.is_path_visible)
     
-    if self.export_settings["constraints/only_selected_layers/enabled"].value:
+    if self.export_settings.get_value(
+         "constraints/added/only_selected_layers/enabled", False):
       self._layer_tree.filter.add_rule(
         builtin_constraints.is_layer_in_selected_layers,
         self.export_settings["selected_layers"].value[self.image.ID])
@@ -412,7 +511,7 @@ class LayerExporter(object):
     self._operation_executor.execute(
       [builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
       [self],
-      additional_args_position=LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
+      additional_args_position=self._LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
   
   def _init_tagged_layer_elems(self):
     with self._layer_tree.filter.add_rule_temp(builtin_constraints.has_tags):
@@ -565,7 +664,8 @@ class LayerExporter(object):
       self._layer_tree.reset_name(layer_elem)
   
   def _set_file_extension(self, layer_elem):
-    if self.export_settings["operations/use_file_extensions_in_layer_names/enabled"].value:
+    if self.export_settings.get_value(
+         "operations/added/use_file_extensions_in_layer_names/enabled", False):
       orig_file_extension = layer_elem.get_file_extension_from_orig_name()
       if (orig_file_extension
           and self._file_extension_properties[orig_file_extension].is_valid):
@@ -699,99 +799,6 @@ class LayerExporter(object):
         # `dest_image`.
         if parasite.flags == 0:
           dest_image.parasite_attach(parasite)
-
-
-#===============================================================================
-
-
-LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
-
-
-def add_operation(setting_group):
-    function_item = setting_group["function"].value
-    
-    if function_item is None:
-      return
-    
-    function = function_item[0]
-    
-    if "constraint" in setting_group.tags:
-      function = (
-        _add_constraint(function, subfilter=setting_group["subfilter"].value))
-    
-    function_args = function_item[1] if len(function_item) > 1 else ()
-    function_kwargs = function_item[2] if len(function_item) > 2 else {}
-    operation_groups = setting_group["operation_groups"].value
-    
-    operation_id = _operation_executor.add(
-      _execute_operation_only_if_enabled(function, setting_group["enabled"]),
-      operation_groups,
-      function_args, function_kwargs)
-    
-    _operation_settings_and_items[setting_group.name] = (operation_id, operation_groups)
-
-
-def reorder_operation(setting_group, new_position):
-  if setting_group.name in _operation_settings_and_items:
-    for operation_group in _operation_settings_and_items[setting_group.name][1]:
-      _operation_executor.reorder(
-        _operation_settings_and_items[setting_group.name][0],
-        new_position,
-        operation_group)
-
-
-def remove_operation(setting_group):
-  if setting_group.name in _operation_settings_and_items:
-    _operation_executor.remove(
-      _operation_settings_and_items[setting_group.name][0], "all")
-
-
-def _execute_operation_only_if_enabled(operation, setting_enabled):
-  def _execute_operation(*operation_args, **operation_kwargs):
-    if setting_enabled.value:
-      return operation(*operation_args, **operation_kwargs)
-    else:
-      return False
-  
-  return _execute_operation
-
-
-def _add_constraint(rule_func, subfilter=None):
-  def _add_rule_func(*args):
-    try:
-      layer_exporter_arg_position = (
-        inspect.getargspec(rule_func).args.index("layer_exporter"))
-    except ValueError:
-      layer_exporter_arg_position = None
-    
-    if layer_exporter_arg_position is not None:
-      layer_exporter = args[layer_exporter_arg_position - 1]
-      rule_func_args = args
-    else:
-      layer_exporter = args[LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS - 1]
-      rule_func_args = (
-        args[:LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS - 1]
-        + args[LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS:])
-    
-    if subfilter is None:
-      object_filter = layer_exporter.layer_tree.filter
-    else:
-      object_filter = layer_exporter.layer_tree.filter[subfilter]
-    
-    object_filter.add_rule(rule_func, *rule_func_args)
-  
-  return _add_rule_func
-
-
-# key: setting name; value: (operation ID, operation group) tuple
-_operation_settings_and_items = {}
-
-_operation_executor = pgoperations.OperationExecutor()
-
-_operation_executor.add(
-  builtin_operations.set_active_layer_after_operation,
-  [builtin_operations.BUILTIN_OPERATIONS_GROUP],
-  foreach=True)
 
 
 #===============================================================================
