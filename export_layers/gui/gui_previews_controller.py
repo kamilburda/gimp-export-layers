@@ -59,46 +59,49 @@ class ExportPreviewsController(object):
   def _connect_settings_changed(self):
     self._connect_basic_settings()
     
-    self._connect_already_added_operations()
-    self._prepare_to_connect_subsequent_operations()
+    self._connect_already_added_operations(self._settings["main/operations"])
+    self._prepare_to_connect_subsequent_operations(self._settings["main/operations"])
     
-    self._connect_already_added_constraints()
-    self._prepare_to_connect_subsequent_constraints()
+    self._connect_already_added_operations(self._settings["main/constraints"])
+    self._prepare_to_connect_subsequent_operations(self._settings["main/constraints"])
   
   def _connect_basic_settings(self):
-    basic_setting_names_with_value_changed_event = [
+    basic_setting_names = [
       "layer_groups_as_folders",
       "use_image_size",
       "only_visible_layers"
     ]
     
-    for setting_name in basic_setting_names_with_value_changed_event:
+    for setting_name in basic_setting_names:
       self._settings["main"][setting_name].connect_event(
-        "value-changed", self._on_setting_changed)
+        "value-changed", self._update_previews_on_setting_change)
   
-  def _connect_already_added_operations(self):
-    for setting in operations.walk(self._settings["main/operations"], "enabled"):
-      setting.connect_event("value-changed", self._on_setting_changed)
+  def _connect_already_added_operations(self, operations_group):
+    for setting in operations.walk(operations_group, "enabled"):
+      setting.connect_event("value-changed", self._update_previews_on_setting_change)
   
-  def _prepare_to_connect_subsequent_operations(self):
-    def _on_after_add_operation(operations_, operation, orig_operation_name):
-      operation["enabled"].connect_event("value-changed", self._on_setting_changed)
+  def _prepare_to_connect_subsequent_operations(self, operations_group):
+    def _on_after_add_operation(operations_, operation, *args, **kwargs):
+      if operation["enabled"].value:
+        self._update_previews_on_setting_change(operation["enabled"])
+      operation["enabled"].connect_event(
+        "value-changed", self._update_previews_on_setting_change)
     
-    self._settings["main/operations"].connect_event(
-      "after-add-operation", _on_after_add_operation)
-  
-  def _connect_already_added_constraints(self):
-    for setting in operations.walk(self._settings["main/constraints"], "enabled"):
-      setting.connect_event("value-changed", self._on_setting_changed)
-  
-  def _prepare_to_connect_subsequent_constraints(self):
-    def _on_after_add_operation(operations_, operation, orig_operation_name):
-      operation["enabled"].connect_event("value-changed", self._on_setting_changed)
+    def _on_after_reorder_operation(operations_, operation, *args, **kwargs):
+      if operation["enabled"].value:
+        self._update_previews_on_setting_change(operation["enabled"])
     
-    self._settings["main/constraints"].connect_event(
-      "after-add-operation", _on_after_add_operation)
+    def _on_before_remove_operation(operations_, operation, *args, **kwargs):
+      if operation["enabled"].value:
+        # Changing the enabled state triggers the "value-changed" event and thus
+        # properly keeps the previews in sync after operation removal.
+        operation["enabled"].set_value(False)
+    
+    operations_group.connect_event("after-add-operation", _on_after_add_operation)
+    operations_group.connect_event("after-reorder-operation", _on_after_reorder_operation)
+    operations_group.connect_event("before-remove-operation", _on_before_remove_operation)
   
-  def _on_setting_changed(self, setting):
+  def _update_previews_on_setting_change(self, setting):
     pginvocation.timeout_add_strict(
       self._DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS,
       self._export_name_preview.update)
