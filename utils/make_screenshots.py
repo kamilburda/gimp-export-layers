@@ -20,7 +20,7 @@
 
 """
 This script automatically takes and processes screenshots of the plug-in dialog
-for documentation purposes. This script requires the `pyautogui` library.
+for documentation purposes.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -36,8 +36,6 @@ import gtk
 
 import gimp
 from gimp import pdb
-
-import pyautogui
 
 from export_layers.pygimplib import pgitemtree
 from export_layers.pygimplib import pgutils
@@ -85,17 +83,19 @@ def take_screenshots(gui, dialog, settings):
   
   #HACK: Accessing private members
   
-  gui._box_operations.add_operation_item(
-    settings["main/operations/insert_background_layers"])
-  settings["main/operations/insert_background_layers/enabled"].set_value(True)
+  gui._box_operations.clear()
+  gui._box_constraints.clear()
   
-  gui._box_operations.add_operation_item(
-    settings["main/operations/ignore_layer_modes"])
-  settings["main/operations/ignore_layer_modes/enabled"].set_value(True)
+  gui._box_operations.add_operation_item("insert_background_layers")
+  settings["main/operations/added/insert_background_layers/enabled"].set_value(True)
   
-  gui._box_constraints.add_operation_item(
-    settings["main/constraints/only_layers_without_tags"])
-  settings["main/constraints/only_layers_without_tags/enabled"].set_value(False)
+  gui._box_operations.add_operation_item("ignore_layer_modes")
+  settings["main/operations/added/ignore_layer_modes/enabled"].set_value(True)
+  
+  gui._box_constraints.add_operation_item("include_layers")
+  
+  gui._box_constraints.add_operation_item("only_layers_without_tags")
+  settings["main/constraints/added/only_layers_without_tags/enabled"].set_value(False)
   
   gui._export_name_preview.set_selected_items(set([
     gui._export_name_preview._layer_exporter.layer_tree["bottom-frame"].item.ID]))
@@ -120,12 +120,9 @@ def take_and_process_screenshot(
   #HACK: Wait a while until the window is fully shown.
   time.sleep(1)
   
-  take_screenshot(screenshots_dirpath, filename)
+  screenshot_image = take_screenshot()
   
-  screenshot_image = pdb.gimp_file_load(
-    os.path.join(screenshots_dirpath, filename), filename)
-  
-  crop_dialog(screenshot_image, settings, decoration_offsets)
+  crop_to_dialog(screenshot_image, settings, decoration_offsets)
   
   pdb.gimp_file_save(
     screenshot_image,
@@ -133,10 +130,11 @@ def take_and_process_screenshot(
     os.path.join(screenshots_dirpath, filename),
     filename)
   
+  pdb.gimp_image_delete(screenshot_image)
+  
 
-def take_screenshot(screenshots_dirpath, filename):
-  screenshot = pyautogui.screenshot()
-  screenshot.save(os.path.join(screenshots_dirpath, filename))
+def take_screenshot():
+  return pdb.plug_in_screenshot(1, -1, 0, 0, 0, 0)
 
 
 def move_dialog_to_corner(dialog, settings):
@@ -149,7 +147,9 @@ def move_dialog_to_corner(dialog, settings):
   return decoration_offset_x, decoration_offset_y
 
 
-def crop_dialog(image, settings, decoration_offsets):
+def crop_to_dialog(image, settings, decoration_offsets):
+  settings["gui/dialog_size"].gui.update_setting_value()
+  
   pdb.gimp_image_crop(
     image,
     settings["gui/dialog_size"].value[0],
@@ -169,9 +169,11 @@ def main(settings=None):
   
   image = pdb.gimp_file_load(TEST_IMAGES_FILEPATH, os.path.basename(TEST_IMAGES_FILEPATH))
   
-  settings["special/image"].set_value(image)
-  
   layer_tree = pgitemtree.LayerTree(
     image, name=pygimplib.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
   
+  settings["special/image"].set_value(image)
+  
   gui_plugin.ExportLayersGui(layer_tree, settings, run_gui_func=take_screenshots)
+  
+  pdb.gimp_image_delete(image)
