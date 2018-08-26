@@ -236,8 +236,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       operation_names = []
     
     for operation_name in operation_names:
-      operation = operations.add(settings["main/operations"], operation_name)
-      operation["enabled"].set_value(True)
+      operations.add(settings["main/operations"], operation_name)
     
     layer_exporter = exportlayers.LayerExporter(
       settings["special/run_mode"].value,
