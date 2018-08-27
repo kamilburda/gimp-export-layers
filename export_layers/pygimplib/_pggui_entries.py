@@ -35,7 +35,7 @@ from . import pgconstants
 from . import pgfileformats
 from . import _pggui_cellrenderers
 from . import _pggui_entrypopup
-from . import _pggui_undocontext
+from . import _pggui_entryundocontext
 from . import pgpath
 
 __all__ = [
@@ -126,7 +126,7 @@ class ExtendedEntry(gtk.Entry):
     
     super().__init__(*args, **kwargs)
     
-    self._undo_context = _pggui_undocontext.EntryUndoContext(self)
+    self._undo_context = _pggui_entryundocontext.EntryUndoContext(self)
     self._popup = None
     self._expander = EntryExpander(
       self, self._minimum_width_chars, self._maximum_width_chars)
