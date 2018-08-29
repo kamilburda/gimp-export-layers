@@ -30,6 +30,7 @@ import os
 
 import gimp
 from gimp import pdb
+import gimpcolor
 import gimpenums
 
 from . import pgconstants
@@ -48,15 +49,6 @@ class SettingPdbTypes(object):
   int = int32
   float = gimpenums.PDB_FLOAT
   string = gimpenums.PDB_STRING
-  color = gimpenums.PDB_COLOR
-  
-  array_int32 = gimpenums.PDB_INT32ARRAY
-  array_int16 = gimpenums.PDB_INT16ARRAY
-  array_int8 = gimpenums.PDB_INT8ARRAY
-  array_int = array_int32
-  array_float = gimpenums.PDB_FLOATARRAY
-  array_string = gimpenums.PDB_STRINGARRAY
-  array_color = gimpenums.PDB_COLORARRAY
   
   image = gimpenums.PDB_IMAGE
   item = gimpenums.PDB_ITEM
@@ -67,9 +59,18 @@ class SettingPdbTypes(object):
   vectors = gimpenums.PDB_VECTORS
   path = vectors
   
+  color = gimpenums.PDB_COLOR
   parasite = gimpenums.PDB_PARASITE
   display = gimpenums.PDB_DISPLAY
-  status = gimpenums.PDB_STATUS
+  pdb_status = gimpenums.PDB_STATUS
+  
+  array_int32 = gimpenums.PDB_INT32ARRAY
+  array_int16 = gimpenums.PDB_INT16ARRAY
+  array_int8 = gimpenums.PDB_INT8ARRAY
+  array_int = array_int32
+  array_float = gimpenums.PDB_FLOATARRAY
+  array_string = gimpenums.PDB_STRINGARRAY
+  array_color = gimpenums.PDB_COLORARRAY
   
   none = None
   automatic = type(b"AutomaticSettingPdbType", (), {})()
@@ -711,6 +712,7 @@ class IntSetting(NumericSetting):
   
   _ALLOWED_PDB_TYPES = [
     SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.int_spin_button]
 
 
 class FloatSetting(NumericSetting):
@@ -723,7 +725,8 @@ class FloatSetting(NumericSetting):
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.float]
-    
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.float_spin_button]
+
 
 class BoolSetting(Setting):
   """
@@ -800,7 +803,7 @@ class EnumSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [
     SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
-  _ALLOWED_GUI_TYPES = [SettingGuiTypes.combobox]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.combo_box]
   
   def __init__(self, name, default_value, items, empty_value=None, **kwargs):
     """
@@ -958,6 +961,19 @@ class EnumSetting(Setting):
       return None
 
 
+class StringSetting(Setting):
+  """
+  This class can be used for string settings.
+  
+  Allowed GIMP PDB types:
+  
+  * `SettingPdbTypes.string`
+  """
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
+
+
 class ImageSetting(Setting):
   """
   This setting class can be used for `gimp.Image` objects.
@@ -977,6 +993,7 @@ class ImageSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.image]
   _ALLOWED_EMPTY_VALUES = [None]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.image_combo_box]
   
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _("Invalid image.")
@@ -989,8 +1006,7 @@ class ImageSetting(Setting):
 
 class DrawableSetting(Setting):
   """
-  This setting class can be used for `gimp.Drawable`, `gimp.Layer`,
-  `gimp.GroupLayer` or `gimp.Channel` objects.
+  This setting class can be used for `gimp.Drawable` objects.
   
   Allowed GIMP PDB types:
   
@@ -1007,6 +1023,7 @@ class DrawableSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.drawable]
   _ALLOWED_EMPTY_VALUES = [None]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.drawable_combo_box]
     
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _("Invalid drawable.")
@@ -1018,17 +1035,236 @@ class DrawableSetting(Setting):
         + self.error_messages["invalid_value"])
 
 
-class StringSetting(Setting):
+class LayerSetting(Setting):
   """
-  This class can be used for string settings.
+  This setting class can be used for `gimp.Layer` or `gimp.GroupLayer` objects.
   
   Allowed GIMP PDB types:
   
-  * `SettingPdbTypes.string`
+  * `SettingPdbTypes.layer`
+  
+  Allowed empty values:
+  
+  * `None`
+  
+  Error messages:
+  
+  * `"invalid_value"` - The layer assigned is invalid.
   """
   
-  _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
-  _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.layer]
+  _ALLOWED_EMPTY_VALUES = [None]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.layer_combo_box]
+  
+  def _init_error_messages(self):
+    self.error_messages["invalid_value"] = _("Invalid layer.")
+  
+  def _validate(self, layer):
+    if not pdb.gimp_item_is_layer(layer):
+      raise SettingValueError(
+        pgsettingutils.value_to_str_prefix(layer)
+        + self.error_messages["invalid_value"])
+
+
+class ChannelSetting(Setting):
+  """
+  This setting class can be used for `gimp.Channel` objects.
+  
+  Allowed GIMP PDB types:
+  
+  * `SettingPdbTypes.channel`
+  
+  Allowed empty values:
+  
+  * `None`
+  
+  Error messages:
+  
+  * `"invalid_value"` - The channel assigned is invalid.
+  """
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.channel]
+  _ALLOWED_EMPTY_VALUES = [None]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.channel_combo_box]
+  
+  def _init_error_messages(self):
+    self.error_messages["invalid_value"] = _("Invalid channel.")
+  
+  def _validate(self, channel):
+    if not pdb.gimp_item_is_channel(channel):
+      raise SettingValueError(
+        pgsettingutils.value_to_str_prefix(channel)
+        + self.error_messages["invalid_value"])
+
+
+class SelectionSetting(ChannelSetting):
+  """
+  This setting class can be used to store the current selection. Selection in
+  GIMP is internally represented as a `gimp.Channel` object. Unlike
+  `ChannelSetting`, this setting does not support GUI (there is no need for
+  GUI).
+  
+  Allowed GIMP PDB types:
+  
+  * `SettingPdbTypes.selection`
+  
+  Allowed empty values:
+  
+  * `None`
+  
+  Error messages:
+  
+  * `"invalid_value"` - The channel assigned is invalid.
+  """
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.selection]
+  _ALLOWED_GUI_TYPES = []
+
+
+class VectorsSetting(Setting):
+  """
+  This setting class can be used for `gimp.Vectors` objects.
+  
+  Allowed GIMP PDB types:
+  
+  * `SettingPdbTypes.vectors` (default)
+  * `SettingPdbTypes.path` (alias to `SettingPdbTypes.vectors`)
+  
+  Allowed empty values:
+  
+  * `None`
+  
+  Error messages:
+  
+  * `"invalid_value"` - The vectors instance assigned is invalid.
+  """
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.vectors, SettingPdbTypes.path]
+  _ALLOWED_EMPTY_VALUES = [None]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.vectors_combo_box]
+  
+  def _init_error_messages(self):
+    self.error_messages["invalid_value"] = _("Invalid vectors.")
+  
+  def _validate(self, vectors):
+    if not pdb.gimp_item_is_vectors(vectors):
+      raise SettingValueError(
+        pgsettingutils.value_to_str_prefix(vectors)
+        + self.error_messages["invalid_value"])
+
+
+class ColorSetting(Setting):
+  """
+  This setting class can be used for `gimpcolor.RGB` objects.
+  
+  Allowed GIMP PDB types:
+  
+  * `SettingPdbTypes.color`
+  
+  Allowed empty values:
+  
+  * `None`
+  
+  Error messages:
+  
+  * `"invalid_value"` - The color assigned is invalid.
+  """
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.color]
+  _ALLOWED_EMPTY_VALUES = [None]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.color_button]
+  
+  def _init_error_messages(self):
+    self.error_messages["invalid_value"] = _("Invalid color.")
+  
+  def _validate(self, color):
+    if not isinstance(color, gimpcolor.RGB):
+      raise SettingValueError(
+        pgsettingutils.value_to_str_prefix(color)
+        + self.error_messages["invalid_value"])
+
+
+class DisplaySetting(Setting):
+  """
+  This class can be used for `gimp.Display` objects.
+  
+  Allowed GIMP PDB types:
+  
+  * `SettingPdbTypes.display`
+  
+  Error messages:
+  
+  * `"invalid_value"` - The display assigned is invalid.
+  """
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.display]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.display_spin_button]
+  
+  def _init_error_messages(self):
+    self.error_messages["invalid_value"] = _("Invalid display.")
+  
+  def _validate(self, display):
+    if not pdb.gimp_display_is_valid(display):
+      raise SettingValueError(
+        pgsettingutils.value_to_str_prefix(display)
+        + self.error_messages["invalid_value"])
+
+
+class ParasiteSetting(Setting):
+  """
+  This setting class can be used for `gimp.Parasite` objects.
+  
+  Allowed GIMP PDB types:
+  
+  * SettingPdbTypes.parasite
+  
+  Error messages:
+  
+  * `"invalid_value"` - The value is not a `gimp.Parasite` instance.
+  """
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.parasite]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.parasite_box]
+  
+  def _init_error_messages(self):
+    self.error_messages["invalid_value"] = _("Invalid parasite.")
+  
+  def _validate(self, parasite):
+    if not isinstance(parasite, gimp.Parasite):
+      raise SettingValueError(
+        pgsettingutils.value_to_str_prefix(parasite)
+        + self.error_messages["invalid_value"])
+
+
+class PdbStatusSetting(EnumSetting):
+  """
+  This class is an `EnumSetting` subclass with fixed items - exit statuses of
+  GIMP PDB procedures.
+  
+  Allowed GIMP PDB types:
+  
+  * `SettingPdbTypes.pdb_status` (default)
+  * `SettingPdbTypes.int32`
+  * `SettingPdbTypes.int16`
+  * `SettingPdbTypes.int8`
+  """
+  
+  _ALLOWED_PDB_TYPES = [
+    SettingPdbTypes.pdb_status,
+    SettingPdbTypes.int32,
+    SettingPdbTypes.int16,
+    SettingPdbTypes.int8]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.combo_box]
+  
+  def __init__(self, name, default_value, **kwargs):
+    self._pdb_statuses = [
+      ("PDB_EXECUTION_ERROR", "PDB_EXECUTION_ERROR", gimpenums.PDB_EXECUTION_ERROR),
+      ("PDB_CALLING_ERROR", "PDB_CALLING_ERROR", gimpenums.PDB_CALLING_ERROR),
+      ("PDB_PASS_THROUGH", "PDB_PASS_THROUGH", gimpenums.PDB_PASS_THROUGH),
+      ("PDB_SUCCESS", "PDB_SUCCESS", gimpenums.PDB_SUCCESS),
+      ("PDB_CANCEL", "PDB_CANCEL", gimpenums.PDB_CANCEL)]
+    
+    super().__init__(name, default_value, self._pdb_statuses, empty_value=None, **kwargs)
 
 
 class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSetting)):
@@ -1142,6 +1378,111 @@ class DirpathSetting(ValidatableStringSetting):
     super().__init__(name, default_value, pgpath.DirpathValidator, **kwargs)
 
 
+class BrushSetting(Setting):
+  """
+  This setting class can be used for brushes. Each brush is represented by a
+  tuple `(brush name: string, opacity: float, spacing: int, layer mode: int)`.
+  
+  Allowed empty values:
+  
+  * `()`
+  
+  Error messages:
+  
+  * `"invalid_value"` - Invalid number of tuple elements.
+  """
+  
+  _ALLOWED_EMPTY_VALUES = [()]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.brush_select_button]
+  
+  _MAX_NUM_TUPLE_ELEMENTS = 4
+  
+  def _init_error_messages(self):
+    self.error_messages["invalid_value"] = _(
+      "Invalid number of tuple elements (must be at most {}).".format(
+        self._MAX_NUM_TUPLE_ELEMENTS))
+  
+  def _validate(self, brush_tuple):
+    if len(brush_tuple) > self._MAX_NUM_TUPLE_ELEMENTS:
+      raise SettingValueError(
+        pgsettingutils.value_to_str_prefix(brush_tuple)
+        + self.error_messages["invalid_value"])
+
+
+class FontSetting(Setting):
+  """
+  This setting class can be used for fonts. Fonts are considered strings.
+  
+  Allowed GIMP PDB types:
+  
+  * SettingPdbTypes.string
+  
+  Allowed empty values:
+  
+  * `""`
+  """
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
+  _ALLOWED_EMPTY_VALUES = [""]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.font_select_button]
+
+
+class GradientSetting(Setting):
+  """
+  This setting class can be used for gradients. Gradients are considered
+  strings.
+  
+  Allowed GIMP PDB types:
+  
+  * SettingPdbTypes.string
+  
+  Allowed empty values:
+  
+  * `""`
+  """
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
+  _ALLOWED_EMPTY_VALUES = [""]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.gradient_select_button]
+
+
+class PaletteSetting(Setting):
+  """
+  This setting class can be used for color palettes. Palettes are considered
+  strings.
+  
+  Allowed GIMP PDB types:
+  
+  * SettingPdbTypes.string
+  
+  Allowed empty values:
+  
+  * `""`
+  """
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
+  _ALLOWED_EMPTY_VALUES = [""]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.palette_select_button]
+
+
+class PatternSetting(Setting):
+  """
+  This setting class can be used for patterns. Patterns are considered strings.
+  
+  Allowed GIMP PDB types:
+  
+  * SettingPdbTypes.string
+  
+  Allowed empty values:
+  
+  * `""`
+  """
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
+  _ALLOWED_EMPTY_VALUES = [""]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.pattern_select_button]
+
+
 class ImageIDsAndDirpathsSetting(Setting):
   """
   This setting class stores the list of currently opened images and their import
@@ -1200,7 +1541,7 @@ class ImageIDsAndDirpathsSetting(Setting):
       return os.path.dirname(image.filename.decode(pgconstants.GIMP_CHARACTER_ENCODING))
     else:
       return None
-  
+
 
 class SettingValueError(Exception):
   """
@@ -1234,9 +1575,28 @@ class SettingTypes(object):
   float = FloatSetting
   boolean = BoolSetting
   enumerated = EnumSetting
+  string = StringSetting
+  
   image = ImageSetting
   drawable = DrawableSetting
-  string = StringSetting
+  layer = LayerSetting
+  channel = ChannelSetting
+  selection = SelectionSetting
+  vectors = VectorsSetting
+  path = vectors
+  
+  color = ColorSetting
+  parasite = ParasiteSetting
+  display = DisplaySetting
+  pdb_status = PdbStatusSetting
+  
   file_extension = FileExtensionSetting
   directory = DirpathSetting
+  
+  brush = BrushSetting
+  font = FontSetting
+  gradient = GradientSetting
+  palette = PaletteSetting
+  pattern = PatternSetting
+  
   image_IDs_and_directories = ImageIDsAndDirpathsSetting

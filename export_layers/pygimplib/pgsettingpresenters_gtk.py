@@ -28,9 +28,11 @@ import pygtk
 pygtk.require("2.0")
 import gtk
 
+import gimp
 import gimpui
 
 from . import pgconstants
+from . import pggui
 from . import pgsettingpresenter
 
 
@@ -66,6 +68,44 @@ class GtkSettingPresenter(
     self._event_handler_id = None
 
 
+class GtkIntSpinButtonPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gtk.SpinButton` elements.
+  
+  Value: Integer value of the spin button.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "value-changed"
+  
+  def _create_gui_element(self, setting):
+    return _create_spin_button(setting)
+  
+  def _get_value(self):
+    return self._element.get_value_as_int()
+  
+  def _set_value(self, value):
+    self._element.set_value(value)
+
+
+class GtkFloatSpinButtonPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gtk.SpinButton` elements.
+  
+  Value: Floating point value of the spin button.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "value-changed"
+  
+  def _create_gui_element(self, setting):
+    return _create_spin_button(setting, digits=1)
+  
+  def _get_value(self):
+    return self._element.get_value()
+  
+  def _set_value(self, value):
+    self._element.set_value(value)
+
+
 class GtkCheckButtonPresenter(GtkSettingPresenter):
   """
   This class is a `SettingPresenter` for `gtk.CheckButton` elements.
@@ -99,11 +139,30 @@ class GtkCheckButtonLabelPresenter(GtkSettingPresenter):
     self._element.set_label(value)
 
 
+class GtkCheckMenuItemPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gtk.CheckMenuItem` elements.
+  
+  Value: Checked state of the menu item (checked/unchecked).
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "toggled"
+  
+  def _create_gui_element(self, setting):
+    return gtk.CheckMenuItem(setting.display_name)
+  
+  def _get_value(self):
+    return self._element.get_active()
+  
+  def _set_value(self, value):
+    self._element.set_active(value)
+
+
 class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
   """
   This class is a `SettingPresenter` for `gimpui.IntComboBox` elements.
   
-  Value: Item selected in the combobox.
+  Value: Item selected in the combo box.
   """
   
   _VALUE_CHANGED_SIGNAL = "changed"
@@ -122,7 +181,7 @@ class GimpUiIntComboBoxPresenter(GtkSettingPresenter):
   
   def _set_value(self, value):
     self._element.set_active(value)
-
+  
 
 class GtkEntryPresenter(GtkSettingPresenter):
   """
@@ -141,6 +200,180 @@ class GtkEntryPresenter(GtkSettingPresenter):
     self._element.set_text(value.encode(pgconstants.GTK_CHARACTER_ENCODING))
     # Place the cursor at the end of the text entry.
     self._element.set_position(-1)
+
+
+class GimpUiImageComboBoxPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gimpui.ImageComboBox` elements.
+  
+  Value: `gimp.Image` selected in the combo box.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "changed"
+  
+  def _create_gui_element(self, setting):
+    return gimpui.ImageComboBox()
+  
+  def _get_value(self):
+    return self._element.get_active_image()
+  
+  def _set_value(self, value):
+    self._element.set_active_image(value)
+
+
+class GimpUiDrawableComboBoxPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gimpui.DrawableComboBox` elements.
+  Only drawables from the image referenced by the setting are displayed.
+  
+  Value: `gimp.Drawable` selected in the combo box.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "changed"
+  
+  def _create_gui_element(self, setting):
+    return _create_item_combo_box(gimpui.DrawableComboBox, setting)
+  
+  def _get_value(self):
+    return self._element.get_active_drawable()
+  
+  def _set_value(self, value):
+    self._element.set_active_drawable(value)
+
+
+class GimpUiLayerComboBoxPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gimpui.LayerComboBox` elements.
+  Only layers from the image referenced by the setting are displayed.
+  
+  Value: `gimp.Layer` selected in the combo box.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "changed"
+  
+  def _create_gui_element(self, setting):
+    return _create_item_combo_box(gimpui.LayerComboBox, setting)
+  
+  def _get_value(self):
+    return self._element.get_active_layer()
+  
+  def _set_value(self, value):
+    self._element.set_active_layer(value)
+
+
+class GimpUiChannelComboBoxPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gimpui.ChannelComboBox` elements.
+  Only channels from the image referenced by the setting are displayed.
+  
+  Value: `gimp.Channel` selected in the combo box.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "changed"
+  
+  def _create_gui_element(self, setting):
+    return _create_item_combo_box(gimpui.ChannelComboBox, setting)
+  
+  def _get_value(self):
+    return self._element.get_active_channel()
+  
+  def _set_value(self, value):
+    self._element.set_active_channel(value)
+
+
+class GimpUiVectorsComboBoxPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gimpui.VectorsComboBox` elements.
+  Only instances of vectors (paths) from the image referenced by the setting are
+  displayed.
+  
+  Value: `gimp.Vectors` selected in the combo box.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "changed"
+  
+  def _create_gui_element(self, setting):
+    return _create_item_combo_box(gimpui.VectorsComboBox, setting)
+  
+  def _get_value(self):
+    return self._element.get_active_vectors()
+  
+  def _set_value(self, value):
+    self._element.set_active_vectors(value)
+  
+
+class GimpUiColorButtonPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gimpui.ColorButton` elements.
+  
+  Value: `gimpcolor.RGB` instance representing color in RGB.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "color-changed"
+  
+  def _create_gui_element(self, setting):
+    return gimpui.ColorButton(
+      setting.display_name, 100, 20, setting.value, gimpui.COLOR_AREA_FLAT)
+  
+  def _get_value(self):
+    return self._element.get_color()
+  
+  def _set_value(self, value):
+    self._element.set_color(value)
+
+
+class ParasiteBoxPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `pggui.ParasiteBox` elements.
+  
+  Value: `gimp.Parasite` instance.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "parasite-changed"
+  
+  def _create_gui_element(self, setting):
+    return pggui.ParasiteBox(setting.value)
+  
+  def _get_value(self):
+    return self._element.get_parasite()
+  
+  def _set_value(self, value):
+    self._element.set_parasite(value)
+
+
+class GtkDisplaySpinButtonPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gtk.SpinButton` elements.
+  
+  Value: `gimp.Display` instance, represented by its integer ID in the spin
+  button.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "value-changed"
+  
+  def _create_gui_element(self, setting):
+    display_id = getattr(setting.value, "ID", 0)
+    
+    spin_button = gtk.SpinButton(
+      gtk.Adjustment(
+        value=display_id,
+        lower=0,
+        upper=2**32,
+        step_incr=1,
+        page_incr=10,
+      ),
+      digits=0)
+    
+    spin_button.set_numeric(True)
+    spin_button.set_value(display_id)
+    
+    return spin_button
+  
+  def _get_value(self):
+    return gimp._id2display(self._element.get_value_as_int())
+  
+  def _set_value(self, value):
+    self._element.set_value(value.ID)
 
 
 class ExtendedEntryPresenter(GtkSettingPresenter):
@@ -199,6 +432,103 @@ class GtkFolderChooserPresenter(GtkSettingPresenter):
   
   def _is_location_entry_active(self):
     return self._location_toggle_button.get_active()
+
+
+class GimpUiBrushSelectButtonPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gimpui.BrushSelectButton` elements.
+  
+  Value: Tuple representing a brush.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "brush-set"
+  _BRUSH_PROPERTIES = ["brush-name", "brush-opacity", "brush-spacing", "brush-paint-mode"]
+  
+  def _create_gui_element(self, setting):
+    return gimpui.BrushSelectButton(setting.display_name, *setting.value)
+  
+  def _get_value(self):
+    return self._element.get_brush()
+  
+  def _set_value(self, value):
+    for property_name, property_value in zip(self._BRUSH_PROPERTIES, value):
+      self._element.set_property(property_name, property_value)
+
+
+class GimpUiFontSelectButtonPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gimpui.FontSelectButton` elements.
+  
+  Value: String representing a font.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "font-set"
+  
+  def _create_gui_element(self, setting):
+    return gimpui.FontSelectButton(setting.display_name, setting.value)
+  
+  def _get_value(self):
+    return self._element.get_font()
+  
+  def _set_value(self, value):
+    self._element.set_font(value)
+
+
+class GimpUiGradientSelectButtonPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gimpui.GradientSelectButton` elements.
+  
+  Value: String representing a gradient.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "gradient-set"
+  
+  def _create_gui_element(self, setting):
+    return gimpui.GradientSelectButton(setting.display_name, setting.value)
+  
+  def _get_value(self):
+    return self._element.get_gradient()
+  
+  def _set_value(self, value):
+    self._element.set_gradient(value)
+
+
+class GimpUiPaletteSelectButtonPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gimpui.PaletteSelectButton` elements.
+  
+  Value: String representing a color palette.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "palette-set"
+  
+  def _create_gui_element(self, setting):
+    return gimpui.PaletteSelectButton(setting.display_name, setting.value)
+  
+  def _get_value(self):
+    return self._element.get_palette()
+  
+  def _set_value(self, value):
+    self._element.set_palette(value)
+
+
+class GimpUiPatternSelectButtonPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `gimpui.PatternSelectButton` elements.
+  
+  Value: String representing a pattern.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "pattern-set"
+  
+  def _create_gui_element(self, setting):
+    return gimpui.PatternSelectButton(setting.display_name, setting.value)
+  
+  def _get_value(self):
+    return self._element.get_pattern()
+  
+  def _set_value(self, value):
+    self._element.set_pattern(value)
 
 
 class GtkWindowPositionPresenter(GtkSettingPresenter):
@@ -271,23 +601,32 @@ class GtkPanedPositionPresenter(GtkSettingPresenter):
     self._element.set_position(value)
 
 
-class GtkCheckMenuItemPresenter(GtkSettingPresenter):
-  """
-  This class is a `SettingPresenter` for `gtk.CheckMenuItem` elements.
+def _create_spin_button(setting, digits=0):
+  spin_button = gtk.SpinButton(
+    gtk.Adjustment(
+      value=setting.value,
+      lower=getattr(setting, "min_value", -2**32),
+      upper=getattr(setting, "max_value", 2**32),
+      step_incr=1,
+      page_incr=10,
+    ),
+    digits=digits)
   
-  Value: Checked state of the menu item (checked/unchecked).
-  """
+  spin_button.set_numeric(True)
+  spin_button.set_value(setting.value)
   
-  _VALUE_CHANGED_SIGNAL = "toggled"
-  
-  def _create_gui_element(self, setting):
-    return gtk.CheckMenuItem(setting.display_name)
-  
-  def _get_value(self):
-    return self._element.get_active()
-  
-  def _set_value(self, value):
-    self._element.set_active(value)
+  return spin_button
+
+
+def _create_item_combo_box(item_combo_box_type, setting):
+  if hasattr(setting.value, "image"):
+    def _image_matches_setting_image(image, item, setting_image):
+      return image == setting_image
+    
+    return item_combo_box_type(
+      constraint=_image_matches_setting_image, data=setting.value.image)
+  else:
+    return item_combo_box_type()
 
 
 class SettingGuiTypes(object):
@@ -295,17 +634,37 @@ class SettingGuiTypes(object):
   This enum maps `SettingPresenter` classes to more human-readable names.
   """
   
+  int_spin_button = GtkIntSpinButtonPresenter
+  float_spin_button = GtkFloatSpinButtonPresenter
   check_button = GtkCheckButtonPresenter
   check_button_label = GtkCheckButtonLabelPresenter
-  combobox = GimpUiIntComboBoxPresenter
+  check_menu_item = GtkCheckMenuItemPresenter
+  combo_box = GimpUiIntComboBoxPresenter
   text_entry = GtkEntryPresenter
+  
+  image_combo_box = GimpUiImageComboBoxPresenter
+  drawable_combo_box = GimpUiDrawableComboBoxPresenter
+  layer_combo_box = GimpUiLayerComboBoxPresenter
+  channel_combo_box = GimpUiChannelComboBoxPresenter
+  vectors_combo_box = GimpUiVectorsComboBoxPresenter
+  
+  color_button = GimpUiColorButtonPresenter
+  parasite_box = ParasiteBoxPresenter
+  display_spin_button = GtkDisplaySpinButtonPresenter
+  
   extended_entry = ExtendedEntryPresenter
   folder_chooser = GtkFolderChooserPresenter
+  
+  brush_select_button = GimpUiBrushSelectButtonPresenter
+  font_select_button = GimpUiFontSelectButtonPresenter
+  gradient_select_button = GimpUiGradientSelectButtonPresenter
+  palette_select_button = GimpUiPaletteSelectButtonPresenter
+  pattern_select_button = GimpUiPatternSelectButtonPresenter
+  
   window_position = GtkWindowPositionPresenter
   window_size = GtkWindowSizePresenter
   expander = GtkExpanderPresenter
   paned_position = GtkPanedPositionPresenter
-  check_menu_item = GtkCheckMenuItemPresenter
   
   automatic = type(b"AutomaticGuiType", (), {})()
   none = pgsettingpresenter.NullSettingPresenter
