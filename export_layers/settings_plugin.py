@@ -50,6 +50,7 @@ def create_settings():
         # from the other settings.
         "name": "special",
         "tags": ["ignore_reset", "ignore_load", "ignore_save"],
+        "setting_attributes": {"gui_type": None},
       },
       {
         "name": "main",
@@ -69,20 +70,20 @@ def create_settings():
         ("interactive", "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
         ("non_interactive", "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
         ("run_with_last_vals", "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)],
-      "display_name": _("The run mode")
+      "display_name": _("The run mode"),
     },
     {
       "type": pgsetting.SettingTypes.image,
       "name": "image",
       "default_value": None,
-      "display_name": _("Image")
+      "display_name": _("Image"),
     },
     {
       "type": pgsetting.SettingTypes.boolean,
       "name": "first_plugin_run",
       "default_value": True,
       "pdb_type": None,
-      "setting_sources": [pygimplib.config.SOURCE_SESSION]
+      "setting_sources": [pygimplib.config.SOURCE_SESSION],
     },
   ])
   
