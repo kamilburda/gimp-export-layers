@@ -106,7 +106,7 @@ class YesNoToggleButtonPresenterStub(SettingPresenterStub):
 
 class SettingStub(pgsetting.Setting):
   
-  _ALLOWED_EMPTY_VALUES = [""]
+  _EMPTY_VALUES = [""]
   
   def _init_error_messages(self):
     self._error_messages["invalid_value"] = "value cannot be None or an empty string"

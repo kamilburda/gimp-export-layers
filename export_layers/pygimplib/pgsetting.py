@@ -206,8 +206,8 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
   """
   
   _ALLOWED_PDB_TYPES = []
-  _ALLOWED_EMPTY_VALUES = []
   _ALLOWED_GUI_TYPES = []
+  _EMPTY_VALUES = []
   
   def __init__(
         self,
@@ -282,7 +282,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     self._value = self._copy_value(self._default_value)
     
     self._allow_empty_values = allow_empty_values
-    self._allowed_empty_values = list(self._ALLOWED_EMPTY_VALUES)
+    self._empty_values = list(self._EMPTY_VALUES)
     
     self._display_name = pgsettingutils.get_processed_display_name(
       display_name, self._name)
@@ -554,7 +554,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     return copy.copy(value)
   
   def _is_value_empty(self, value):
-    return value in self._allowed_empty_values
+    return value in self._empty_values
   
   def _assign_and_validate_value(self, value):
     if not self._allow_empty_values:
@@ -857,7 +857,7 @@ class EnumSetting(Setting):
     
     super().__init__(name, param_default_value, **kwargs)
     
-    self._allowed_empty_values.append(self._empty_value)
+    self._empty_values.append(self._empty_value)
     
     self._items_description = self._get_items_description()
   
@@ -990,7 +990,7 @@ class ImageSetting(Setting):
   
   * `SettingPdbTypes.image`
   
-  Allowed empty values:
+  Empty values:
   
   * `None`
   
@@ -1000,8 +1000,8 @@ class ImageSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.image]
-  _ALLOWED_EMPTY_VALUES = [None]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.image_combo_box]
+  _EMPTY_VALUES = [None]
   
   def _copy_value(self, value):
     return value
@@ -1023,7 +1023,7 @@ class DrawableSetting(Setting):
   
   * `SettingPdbTypes.drawable`
   
-  Allowed empty values:
+  Empty values:
   
   * `None`
   
@@ -1033,8 +1033,8 @@ class DrawableSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.drawable]
-  _ALLOWED_EMPTY_VALUES = [None]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.drawable_combo_box]
+  _EMPTY_VALUES = [None]
   
   def _copy_value(self, value):
     return value
@@ -1057,7 +1057,7 @@ class LayerSetting(Setting):
   
   * `SettingPdbTypes.layer`
   
-  Allowed empty values:
+  Empty values:
   
   * `None`
   
@@ -1067,8 +1067,8 @@ class LayerSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.layer]
-  _ALLOWED_EMPTY_VALUES = [None]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.layer_combo_box]
+  _EMPTY_VALUES = [None]
   
   def _copy_value(self, value):
     return value
@@ -1091,7 +1091,7 @@ class ChannelSetting(Setting):
   
   * `SettingPdbTypes.channel`
   
-  Allowed empty values:
+  Empty values:
   
   * `None`
   
@@ -1101,8 +1101,8 @@ class ChannelSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.channel]
-  _ALLOWED_EMPTY_VALUES = [None]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.channel_combo_box]
+  _EMPTY_VALUES = [None]
   
   def _copy_value(self, value):
     return value
@@ -1128,7 +1128,7 @@ class SelectionSetting(ChannelSetting):
   
   * `SettingPdbTypes.selection`
   
-  Allowed empty values:
+  Empty values:
   
   * `None`
   
@@ -1150,7 +1150,7 @@ class VectorsSetting(Setting):
   * `SettingPdbTypes.vectors` (default)
   * `SettingPdbTypes.path` (alias to `SettingPdbTypes.vectors`)
   
-  Allowed empty values:
+  Empty values:
   
   * `None`
   
@@ -1160,8 +1160,8 @@ class VectorsSetting(Setting):
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.vectors, SettingPdbTypes.path]
-  _ALLOWED_EMPTY_VALUES = [None]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.vectors_combo_box]
+  _EMPTY_VALUES = [None]
   
   def _copy_value(self, value):
     return value
@@ -1360,13 +1360,13 @@ class FileExtensionSetting(ValidatableStringSetting):
   
   * SettingPdbTypes.string
   
-  Allowed empty values:
+  Empty values:
   
   * `""`
   """
   
-  _ALLOWED_EMPTY_VALUES = [""]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
+  _EMPTY_VALUES = [""]
   
   def __init__(self, name, default_value, **kwargs):
     if isinstance(default_value, bytes):
@@ -1386,14 +1386,14 @@ class DirpathSetting(ValidatableStringSetting):
   
   * SettingPdbTypes.string
   
-  Allowed empty values:
+  Empty values:
   
   * `None`
   * `""`
   """
   
-  _ALLOWED_EMPTY_VALUES = [None, ""]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.folder_chooser]
+  _EMPTY_VALUES = [None, ""]
   
   def __init__(self, name, default_value, **kwargs):
     if isinstance(default_value, bytes):
@@ -1407,7 +1407,7 @@ class BrushSetting(Setting):
   This setting class can be used for brushes. Each brush is represented by a
   tuple `(brush name: string, opacity: float, spacing: int, layer mode: int)`.
   
-  Allowed empty values:
+  Empty values:
   
   * `()`
   
@@ -1416,8 +1416,8 @@ class BrushSetting(Setting):
   * `"invalid_value"` - Invalid number of tuple elements.
   """
   
-  _ALLOWED_EMPTY_VALUES = [()]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.brush_select_button]
+  _EMPTY_VALUES = [()]
   
   _MAX_NUM_TUPLE_ELEMENTS = 4
   
@@ -1441,14 +1441,14 @@ class FontSetting(Setting):
   
   * SettingPdbTypes.string
   
-  Allowed empty values:
+  Empty values:
   
   * `""`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
-  _ALLOWED_EMPTY_VALUES = [""]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.font_select_button]
+  _EMPTY_VALUES = [""]
 
 
 class GradientSetting(Setting):
@@ -1460,14 +1460,14 @@ class GradientSetting(Setting):
   
   * SettingPdbTypes.string
   
-  Allowed empty values:
+  Empty values:
   
   * `""`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
-  _ALLOWED_EMPTY_VALUES = [""]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.gradient_select_button]
+  _EMPTY_VALUES = [""]
 
 
 class PaletteSetting(Setting):
@@ -1479,14 +1479,14 @@ class PaletteSetting(Setting):
   
   * SettingPdbTypes.string
   
-  Allowed empty values:
+  Empty values:
   
   * `""`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
-  _ALLOWED_EMPTY_VALUES = [""]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.palette_select_button]
+  _EMPTY_VALUES = [""]
 
 
 class PatternSetting(Setting):
@@ -1497,14 +1497,14 @@ class PatternSetting(Setting):
   
   * SettingPdbTypes.string
   
-  Allowed empty values:
+  Empty values:
   
   * `""`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
-  _ALLOWED_EMPTY_VALUES = [""]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.pattern_select_button]
+  _EMPTY_VALUES = [""]
 
 
 class ImageIDsAndDirpathsSetting(Setting):
