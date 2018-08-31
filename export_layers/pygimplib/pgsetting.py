@@ -279,7 +279,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     
     self._default_value = default_value
     
-    self._value = copy.copy(self._default_value)
+    self._value = self._copy_value(self._default_value)
     
     self._allow_empty_values = allow_empty_values
     self._allowed_empty_values = list(self._ALLOWED_EMPTY_VALUES)
@@ -417,7 +417,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     """
     self.invoke_event("before-reset")
     
-    self._value = copy.copy(self._default_value)
+    self._value = self._copy_value(self._default_value)
     self._setting_value_synchronizer.apply_setting_value_to_gui(self._default_value)
     
     self.invoke_event("value-changed")
@@ -544,6 +544,14 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     Initialize custom error messages in the `error_messages` dict.
     """
     pass
+  
+  def _copy_value(self, value):
+    """
+    Create a shallow copy of the specified value.
+    
+    Override this in subclasses in case copying must be handled differently.
+    """
+    return copy.copy(value)
   
   def _is_value_empty(self, value):
     return value in self._allowed_empty_values
@@ -995,6 +1003,9 @@ class ImageSetting(Setting):
   _ALLOWED_EMPTY_VALUES = [None]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.image_combo_box]
   
+  def _copy_value(self, value):
+    return value
+  
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _("Invalid image.")
   
@@ -1024,6 +1035,9 @@ class DrawableSetting(Setting):
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.drawable]
   _ALLOWED_EMPTY_VALUES = [None]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.drawable_combo_box]
+  
+  def _copy_value(self, value):
+    return value
     
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _("Invalid drawable.")
@@ -1056,6 +1070,9 @@ class LayerSetting(Setting):
   _ALLOWED_EMPTY_VALUES = [None]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.layer_combo_box]
   
+  def _copy_value(self, value):
+    return value
+  
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _("Invalid layer.")
   
@@ -1086,6 +1103,9 @@ class ChannelSetting(Setting):
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.channel]
   _ALLOWED_EMPTY_VALUES = [None]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.channel_combo_box]
+  
+  def _copy_value(self, value):
+    return value
   
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _("Invalid channel.")
@@ -1142,6 +1162,9 @@ class VectorsSetting(Setting):
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.vectors, SettingPdbTypes.path]
   _ALLOWED_EMPTY_VALUES = [None]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.vectors_combo_box]
+  
+  def _copy_value(self, value):
+    return value
   
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _("Invalid vectors.")
@@ -1200,6 +1223,9 @@ class DisplaySetting(Setting):
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.display]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.display_spin_button]
   
+  def _copy_value(self, value):
+    return value
+  
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _("Invalid display.")
   
@@ -1225,6 +1251,9 @@ class ParasiteSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.parasite]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.parasite_box]
+  
+  def _copy_value(self, value):
+    return value
   
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _("Invalid parasite.")
