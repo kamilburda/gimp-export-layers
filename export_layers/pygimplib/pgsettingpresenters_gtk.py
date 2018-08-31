@@ -602,11 +602,21 @@ class GtkPanedPositionPresenter(GtkSettingPresenter):
 
 
 def _create_spin_button(setting, digits=0):
+  if hasattr(setting, "min_value") and setting.min_value is not None:
+    min_value = setting.min_value
+  else:
+    min_value = -2**32
+  
+  if hasattr(setting, "max_value") and setting.max_value is not None:
+    max_value = setting.max_value
+  else:
+    max_value = 2**32
+  
   spin_button = gtk.SpinButton(
     gtk.Adjustment(
       value=setting.value,
-      lower=getattr(setting, "min_value", -2**32),
-      upper=getattr(setting, "max_value", 2**32),
+      lower=min_value,
+      upper=max_value,
       step_incr=1,
       page_incr=10,
     ),
