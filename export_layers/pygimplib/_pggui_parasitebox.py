@@ -32,6 +32,8 @@ import gobject
 
 import gimp
 
+from . import pgconstants
+
 __all__ = [
   "ParasiteBox",
 ]
@@ -77,7 +79,8 @@ class ParasiteBox(gtk.HBox):
     
     self._parasite_data_entry = gtk.Entry()
     
-    self._vbox_name_label = gtk.Label(_("Name"))
+    self._vbox_name_label = gtk.Label(
+      _("Name").encode(pgconstants.GTK_CHARACTER_ENCODING))
     self._vbox_name_label.set_alignment(0.0, 0.5)
     
     self._vbox_name = gtk.VBox()
@@ -85,7 +88,8 @@ class ParasiteBox(gtk.HBox):
     self._vbox_name.pack_start(self._vbox_name_label, fill=False, expand=False)
     self._vbox_name.pack_start(self._parasite_name_entry, fill=False, expand=False)
     
-    self._vbox_flags_label = gtk.Label(_("Flags"))
+    self._vbox_flags_label = gtk.Label(
+      _("Flags").encode(pgconstants.GTK_CHARACTER_ENCODING))
     self._vbox_flags_label.set_alignment(0.0, 0.5)
     
     self._vbox_flags = gtk.VBox()
@@ -94,7 +98,8 @@ class ParasiteBox(gtk.HBox):
     self._vbox_flags.pack_start(
       self._parasite_flags_spin_button, fill=False, expand=False)
     
-    self._vbox_data_label = gtk.Label(_("Data"))
+    self._vbox_data_label = gtk.Label(
+      _("Data").encode(pgconstants.GTK_CHARACTER_ENCODING))
     self._vbox_data_label.set_alignment(0.0, 0.5)
     
     self._vbox_data = gtk.VBox()
@@ -112,16 +117,18 @@ class ParasiteBox(gtk.HBox):
   
   def _get_values(self):
     return (
-      self._parasite_name_entry.get_text(),
+      self._parasite_name_entry.get_text().decode(pgconstants.GTK_CHARACTER_ENCODING),
       self._parasite_flags_spin_button.get_value_as_int(),
-      self._parasite_data_entry.get_text())
+      self._parasite_data_entry.get_text().decode(pgconstants.GTK_CHARACTER_ENCODING))
   
   def _set_values(self, parasite):
     self._should_invoke_parasite_changed_signal = False
     
-    self._parasite_name_entry.set_text(parasite.name)
+    self._parasite_name_entry.set_text(
+      parasite.name.encode(pgconstants.GTK_CHARACTER_ENCODING))
     self._parasite_flags_spin_button.set_value(parasite.flags)
-    self._parasite_data_entry.set_text(parasite.data)
+    self._parasite_data_entry.set_text(
+      parasite.data.encode(pgconstants.GTK_CHARACTER_ENCODING))
     
     self._should_invoke_parasite_changed_signal = True
   
