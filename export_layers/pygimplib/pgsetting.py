@@ -1184,17 +1184,12 @@ class ColorSetting(Setting):
   
   * `SettingPdbTypes.color`
   
-  Allowed empty values:
-  
-  * `None`
-  
   Error messages:
   
   * `"invalid_value"` - The color assigned is invalid.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.color]
-  _ALLOWED_EMPTY_VALUES = [None]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.color_button]
   
   def _init_error_messages(self):
