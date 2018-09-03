@@ -129,7 +129,7 @@ def remove_all_items(image):
 
 def delete_image_safe(image):
   """
-  Delete the specified image. If the image does not exist, do not throw an
+  Delete the specified image. If the image does not exist, do not raise any
   exception.
   """
   if pdb.gimp_image_is_valid(image):
