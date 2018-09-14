@@ -361,6 +361,7 @@ class VectorTree(ItemTree):
     return image.vectors
 
 
+@future.utils.python_2_unicode_compatible
 class _ItemTreeElement(object):
   """
   This class wraps a `gimp.Item` object and defines custom item attributes.
