@@ -518,7 +518,9 @@ class ArrayBox(ItemBox):
       self._should_emit_array_box_changed_signal_when_reordering = True
     
     if self._should_update_spin_button:
+      self._should_invoke_size_spin_button_value_changed_signal = False
       self._size_spin_button.spin(gtk.SPIN_STEP_FORWARD, increment=1)
+      self._should_invoke_size_spin_button_value_changed_signal = True
     
     return item
   
@@ -538,7 +540,9 @@ class ArrayBox(ItemBox):
       return
     
     if self._should_update_spin_button:
+      self._should_invoke_size_spin_button_value_changed_signal = False
       self._size_spin_button.spin(gtk.SPIN_STEP_BACKWARD, increment=1)
+      self._should_invoke_size_spin_button_value_changed_signal = True
     
     item_position = self._get_item_position(item)
     self._remove_item(item)

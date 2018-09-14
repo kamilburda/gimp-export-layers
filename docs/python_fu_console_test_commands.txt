@@ -8,7 +8,6 @@ sys.path.append(os.path.join(plugin_dirpath, "export_layers", "pygimplib"))
 import pygimplib
 import pgruntests
 from pygimplib.tests import test_pgsetting_gui
-pygimplib.init()
 
 
 _ = lambda s: s
