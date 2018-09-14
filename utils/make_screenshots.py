@@ -86,10 +86,10 @@ def take_screenshots(gui, dialog, settings):
   gui._box_operations.clear()
   gui._box_constraints.clear()
   
-  gui._box_operations.add_operation_item("insert_background_layers")
-  gui._box_operations.add_operation_item("ignore_layer_modes")
-  gui._box_constraints.add_operation_item("include_layers")
-  gui._box_constraints.add_operation_item("only_layers_without_tags")
+  gui._box_operations.add_item("insert_background_layers")
+  gui._box_operations.add_item("ignore_layer_modes")
+  gui._box_constraints.add_item("include_layers")
+  gui._box_constraints.add_item("only_layers_without_tags")
   settings["main/constraints/added/only_layers_without_tags/enabled"].set_value(False)
   
   gui._export_name_preview.set_selected_items(set([

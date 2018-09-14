@@ -298,7 +298,6 @@ class ExportLayersGui(object):
   _MORE_SETTINGS_HORIZONTAL_SPACING = 12
   _MORE_SETTINGS_BORDER_WIDTH = 2
   _MORE_SETTINGS_VERTICAL_SPACING = 6
-  _MORE_SETTINGS_OPERATIONS_SPACING = 4
   
   _DIALOG_SIZE = (900, 610)
   _DIALOG_BORDER_WIDTH = 8
@@ -524,10 +523,8 @@ class ExportLayersGui(object):
     self._hbox_more_settings.set_border_width(self._MORE_SETTINGS_BORDER_WIDTH)
     self._hbox_more_settings.pack_start(
       self._scrolled_window_basic_settings, expand=True, fill=True)
-    self._hbox_more_settings.pack_start(
-      self._box_operations.widget, expand=True, fill=True)
-    self._hbox_more_settings.pack_start(
-      self._box_constraints.widget, expand=True, fill=True)
+    self._hbox_more_settings.pack_start(self._box_operations, expand=True, fill=True)
+    self._hbox_more_settings.pack_start(self._box_constraints, expand=True, fill=True)
     
     self._vbox_settings = gtk.VBox()
     self._vbox_settings.set_spacing(self._DIALOG_VBOX_SPACING)
@@ -687,38 +684,35 @@ class ExportLayersGui(object):
       _("Add _Constraint..."))
   
   def _create_operation_box(self, operations_group, label_add_operation):
-    operation_box = gui_operations.OperationBox(
-      operations_group=operations_group,
-      label_add_text=label_add_operation,
-      spacing=self._MORE_SETTINGS_OPERATIONS_SPACING)
+    operation_box = gui_operations.OperationBox(operations_group, label_add_operation)
     
     self._add_gui_to_already_added_operations(operation_box, operations_group)
     
-    operation_box.on_add_operation = (
+    operation_box.on_add_item = (
       lambda operations_group, operation_name: operations.add(
         operations_group, operation_name))
     
-    operation_box.on_reorder_operation = (
+    operation_box.on_reorder_item = (
       lambda operations_group, operation_name, new_position: operations.reorder(
         operations_group, operation_name, new_position))
     
-    operation_box.on_remove_operation = (
+    operation_box.on_remove_item = (
       lambda operations_group, operation_name: operations.remove(
         operations_group, operation_name))
     
     return operation_box
   
   def _add_gui_to_already_added_operations(self, operation_box, operations_group):
-    orig_on_add_operation = operation_box.on_add_operation
+    orig_on_add_item = operation_box.on_add_item
     
-    operation_box.on_add_operation = (
+    operation_box.on_add_item = (
       lambda operations_group, operation_name: (
         operations_group["added"][operation_name]))
     
     for operation in operations.walk(operations_group):
-      operation_box.add_operation_item(operation.name)
+      operation_box.add_item(operation.name)
     
-    operation_box.on_add_operation = orig_on_add_operation
+    operation_box.on_add_item = orig_on_add_item
   
   def _save_settings(self):
     status, status_message = self._settings.save()
