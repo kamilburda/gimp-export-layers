@@ -990,6 +990,12 @@ class StringSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
+  
+  def set_value(self, value):
+    if isinstance(value, bytes):
+      value = value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
+    
+    super().set_value(value)
 
 
 class ImageSetting(Setting):
@@ -1333,12 +1339,6 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
     self._string_validator = string_validator
     
     super().__init__(name, default_value, **kwargs)
-  
-  def set_value(self, value):
-    if isinstance(value, bytes):
-      value = value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
-    
-    super().set_value(value)
   
   def _init_error_messages(self):
     for status in pgpath.FileValidatorErrorStatuses.ERROR_STATUSES:
