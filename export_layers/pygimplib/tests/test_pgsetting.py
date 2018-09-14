@@ -882,3 +882,392 @@ class TestImageIDsAndDirpathsSetting(unittest.TestCase):
     self.assertEqual(
       self.setting.value[image_id_to_test],
       self.image_ids_and_directories[image_id_to_test])
+
+
+class TestCreateArraySetting(unittest.TestCase):
+  
+  def test_create(self):
+    setting = pgsetting.ArraySetting(
+      "coordinates",
+      (1.0, 5.0, 10.0),
+      element_type=pgsetting.SettingTypes.float,
+      element_default_value=0.0)
+    
+    self.assertEqual(setting.name, "coordinates")
+    self.assertEqual(setting.default_value, (1.0, 5.0, 10.0))
+    self.assertEqual(setting.value, (1.0, 5.0, 10.0))
+    self.assertEqual(setting.element_type, pgsetting.SettingTypes.float)
+    self.assertEqual(setting.element_default_value, 0.0)
+  
+  def test_create_passing_non_tuple_as_default_value_converts_initial_value_to_tuple(
+        self):
+    setting = pgsetting.ArraySetting(
+      "coordinates",
+      [1.0, 5.0, 10.0],
+      element_type=pgsetting.SettingTypes.float,
+      element_default_value=0.0)
+    
+    self.assertEqual(setting.default_value, [1.0, 5.0, 10.0])
+    self.assertEqual(setting.value, (1.0, 5.0, 10.0))
+  
+  def test_create_passing_array_setting_raises_error(self):
+    with self.assertRaises(TypeError):
+      pgsetting.ArraySetting(
+        "coordinates",
+        (1.0, 5.0, 10.0),
+        element_type=pgsetting.SettingTypes.array,
+        element_default_value=0.0)
+  
+  def test_create_with_additional_read_only_element_arguments(self):
+    setting = pgsetting.ArraySetting(
+      "coordinates",
+      (1.0, 5.0, 10.0),
+      element_type=pgsetting.SettingTypes.float,
+      element_default_value=0.0,
+      element_min_value=-100.0,
+      element_max_value=100.0)
+    
+    self.assertEqual(setting.element_min_value, -100.0)
+    self.assertEqual(setting.element_max_value, 100.0)
+    
+    for setting_attribute in setting.__dict__:
+      if setting_attribute.startswith("element_"):
+        with self.assertRaises(AttributeError):
+          setattr(setting, setting_attribute, None)
+  
+  def test_create_passing_invalid_default_value_raises_error(self):
+    with self.assertRaises(pgsetting.SettingValueError):
+      pgsetting.ArraySetting(
+        "coordinates",
+        (-200.0, 200.0),
+        element_type=pgsetting.SettingTypes.float,
+        element_default_value=0.0,
+        element_min_value=-100.0,
+        element_max_value=100.0)
+
+
+class TestArraySetting(unittest.TestCase):
+  
+  def setUp(self):
+    self.setting = pgsetting.ArraySetting(
+      "coordinates",
+      (1.0, 5.0, 10.0),
+      element_type=pgsetting.SettingTypes.float,
+      element_default_value=0.0,
+      element_min_value=-100.0,
+      element_max_value=100.0)
+  
+  @parameterized.parameterized.expand([
+    ("with_tuple", (20.0, 50.0, 40.0), (20.0, 50.0, 40.0)),
+    ("converts_value_to_tuple", [20.0, 50.0, 40.0], (20.0, 50.0, 40.0)),
+  ])
+  def test_set_value(self, test_case_name_suffix, input_value, expected_value):
+    self.setting.set_value(input_value)
+    
+    self.assertEqual(self.setting.value, expected_value)
+    for i, expected_element_value in enumerate(expected_value):
+      self.assertEqual(self.setting[i].value, expected_element_value)
+  
+  def test_set_value_validates_if_value_is_iterable(self):
+    with self.assertRaises(pgsetting.SettingValueError):
+      self.setting.set_value(45)
+  
+  @parameterized.parameterized.expand([
+    ("first_is_invalid", (200.0, 50.0, 40.0)),
+    ("middle_is_invalid", (20.0, 200.0, 40.0)),
+    ("last_is_invalid", (20.0, 50.0, 200.0)),
+    ("two_are_invalid", (20.0, 200.0, 200.0)),
+    ("all_are_invalid", (200.0, 200.0, 200.0)),
+  ])
+  def test_set_value_validates_each_element_value_individually(
+        self, test_case_name_suffix, input_value):
+    with self.assertRaises(pgsetting.SettingValueError):
+      self.setting.set_value(input_value)
+  
+  def test_reset_retains_default_value(self):
+    self.setting.set_value((20.0, 50.0, 40.0))
+    self.setting.reset()
+    self.assertEqual(self.setting.value, (1.0, 5.0, 10.0))
+    self.assertEqual(self.setting.default_value, (1.0, 5.0, 10.0))
+  
+  @parameterized.parameterized.expand([
+    ("first", 0, 1.0),
+    ("middle", 1, 5.0),
+    ("last", 2, 10.0),
+    ("last_with_negative_index", -1, 10.0),
+    ("second_to_last_with_negative_index", -2, 5.0),
+  ])
+  def test_getitem(self, test_case_name_suffix, index, expected_value):
+    self.assertEqual(self.setting[index].value, expected_value)
+  
+  @parameterized.parameterized.expand([
+    ("first_to_middle", None, 2, [1.0, 5.0]),
+    ("middle_to_last", 1, None, [5.0, 10.0]),
+    ("middle_to_last_explicit", 1, 3, [5.0, 10.0]),
+    ("all", None, None, [1.0, 5.0, 10.0]),
+    ("negative_last_to_middle", -1, -3, [10.0, 5.0], -1),
+  ])
+  def test_getitem_slice(
+        self, test_case_name_suffix, index_begin, index_end, expected_value, step=None):
+    self.assertEqual(
+      [element.value for element in self.setting[index_begin:index_end:step]],
+      expected_value)
+  
+  @parameterized.parameterized.expand([
+    ("one_more_than_length", 3),
+    ("more_than_length", 5),
+  ])
+  def test_getitem_out_of_bounds_raises_error(self, test_case_name_suffix, index):
+    with self.assertRaises(IndexError):
+      self.setting[index]
+  
+  @parameterized.parameterized.expand([
+    ("first_element", [0]),
+    ("middle_element", [1]),
+    ("last_element", [2]),
+    ("two_elements", [1, 1]),
+    ("all_elements", [0, 0, 0]),
+  ])
+  def test_delitem(self, test_case_name_suffix, indexes_to_delete):
+    orig_len = len(self.setting)
+    
+    for index in indexes_to_delete:
+      del self.setting[index]
+    
+    self.assertEqual(len(self.setting), orig_len - len(indexes_to_delete))
+  
+  @parameterized.parameterized.expand([
+    ("one_more_than_length", 3),
+    ("more_than_length", 5),
+  ])
+  def test_delitem_out_of_bounds_raises_error(self, test_case_name_suffix, index):
+    with self.assertRaises(IndexError):
+      self.setting[index]
+  
+  @parameterized.parameterized.expand([
+    ("append_default_value",
+     None, pgsetting.ArraySetting.ELEMENT_DEFAULT_VALUE, -1, 0.0),
+    
+    ("insert_at_beginning_default_value",
+     0, pgsetting.ArraySetting.ELEMENT_DEFAULT_VALUE, 0, 0.0),
+    
+    ("insert_in_middle_default_value",
+     1, pgsetting.ArraySetting.ELEMENT_DEFAULT_VALUE, 1, 0.0),
+    
+    ("append_value",
+     None, 40.0, -1, 40.0),
+    
+    ("insert_in_middle_value",
+     1, 40.0, 1, 40.0),
+  ])
+  def test_add_element(
+        self, test_case_name_suffix, index, value, insertion_index, expected_value):
+    element = self.setting.add_element(index, value=value)
+    self.assertEqual(len(self.setting), 4)
+    self.assertIs(self.setting[insertion_index], element)
+    self.assertEqual(self.setting[insertion_index].value, expected_value)
+  
+  def test_add_element_none_as_value(self):
+    setting = pgsetting.ArraySetting(
+      "coordinates",
+      (),
+      element_type=pgsetting.SettingTypes.generic,
+      element_default_value=0)
+    
+    setting.add_element(value=None)
+    self.assertEqual(setting[-1].value, None)
+  
+  @parameterized.parameterized.expand([
+    ("middle_to_first", 1, 0, [5.0, 1.0, 10.0]),
+    ("middle_to_last", 1, 2, [1.0, 10.0, 5.0]),
+    ("middle_to_last_above_bounds", 1, 3, [1.0, 10.0, 5.0]),
+    ("first_to_middle", 0, 1, [5.0, 1.0, 10.0]),
+    ("last_to_middle", 2, 1, [1.0, 10.0, 5.0]),
+    ("middle_to_last_negative_position", 1, -1, [1.0, 10.0, 5.0]),
+    ("middle_to_middle_negative_position", 1, -2, [1.0, 5.0, 10.0]),
+  ])
+  def test_reorder_element(
+        self, test_case_name_suffix, index, new_index, expected_values):
+    self.setting.reorder_element(index, new_index)
+    self.assertEqual(
+      [element.value for element in self.setting[:]],
+      expected_values)
+  
+  def test_set_element_value(self):
+    self.setting[1].set_value(50.0)
+    self.assertEqual(self.setting[1].value, 50.0)
+    self.assertEqual(self.setting.value, (1.0, 50.0, 10.0))
+  
+  def test_set_element_value_validates_value(self):
+    with self.assertRaises(pgsetting.SettingValueError):
+      self.setting[1].set_value(200.0)
+  
+  def test_reset_element_sets_element_default_value(self):
+    self.setting[1].reset()
+    self.assertEqual(self.setting[1].value, 0.0)
+    self.assertEqual(self.setting.value, (1.0, 0.0, 10.0))
+  
+  def test_connect_event_for_individual_elements_affects_those_elements_only(self):
+    def _on_array_changed(array_setting):
+      array_setting[2].set_value(70.0)
+    
+    def _on_element_changed(element, array_setting):
+      array_setting[0].set_value(20.0)
+    
+    self.setting.connect_event("value-changed", _on_array_changed)
+    
+    self.setting[1].connect_event("value-changed", _on_element_changed, self.setting)
+    self.setting[1].set_value(50.0)
+    
+    self.assertEqual(self.setting[0].value, 20.0)
+    self.assertEqual(self.setting[1].value, 50.0)
+    self.assertEqual(self.setting[2].value, 10.0)
+    self.assertEqual(self.setting.value, (20.0, 50.0, 10.0))
+    
+    self.setting.set_value((60.0, 80.0, 30.0))
+    self.assertEqual(self.setting.value, (60.0, 80.0, 70.0))
+  
+  @parameterized.parameterized.expand([
+    ("default_index",
+     None, pgsetting.ArraySetting.ELEMENT_DEFAULT_VALUE, None, 0.0),
+    
+    ("explicit_index",
+     1, pgsetting.ArraySetting.ELEMENT_DEFAULT_VALUE, 1, 0.0),
+  ])
+  def test_before_add_element_event(
+        self, test_case_name_suffix, index, value, expected_index, expected_value):
+    event_args = []
+    
+    def _on_before_add_element(array_setting, index, value):
+      event_args.append((index, value))
+    
+    self.setting.connect_event("before-add-element", _on_before_add_element)
+    
+    self.setting.add_element(index, value)
+    self.assertEqual(event_args[0][0], expected_index)
+    self.assertEqual(event_args[0][1], expected_value)
+  
+  @parameterized.parameterized.expand([
+    ("default_index",
+     None, pgsetting.ArraySetting.ELEMENT_DEFAULT_VALUE, -1, 0.0),
+    
+    ("explicit_zero_index",
+     0, pgsetting.ArraySetting.ELEMENT_DEFAULT_VALUE, 0, 0.0),
+    
+    ("explicit_positive_index",
+     1, pgsetting.ArraySetting.ELEMENT_DEFAULT_VALUE, 1, 0.0),
+    
+    ("explicit_negative_index",
+     -1, pgsetting.ArraySetting.ELEMENT_DEFAULT_VALUE, -2, 0.0),
+  ])
+  def test_after_add_element_event(
+        self, test_case_name_suffix, index, value, expected_index, expected_value):
+    event_args = []
+    
+    def _on_after_add_element(array_setting, insertion_index, value):
+      event_args.append((insertion_index, value))
+    
+    self.setting.connect_event("after-add-element", _on_after_add_element)
+    
+    self.setting.add_element(index, value)
+    self.assertEqual(event_args[0][0], expected_index)
+    self.assertEqual(event_args[0][1], expected_value)
+
+
+class TestArraySettingCreateWithSize(unittest.TestCase):
+  
+  @parameterized.parameterized.expand([
+    ("default_sizes", None, None, 0, None),
+    ("min_size_zero", 0, None, 0, None),
+    ("min_size_positive", 1, None, 1, None),
+    ("min_size_positive_max_size_positive", 1, 5, 1, 5),
+    ("max_size_equal_to_default_value_length", 1, 3, 1, 3),
+    ("min_and_max_size_equal_to_default_value_length", 3, 3, 3, 3),
+  ])
+  def test_create_with_size(
+        self,
+        test_case_name_suffix,
+        min_size,
+        max_size,
+        expected_min_size,
+        expected_max_size):
+    setting = pgsetting.ArraySetting(
+      "coordinates",
+      (1.0, 5.0, 10.0),
+      element_type=pgsetting.SettingTypes.float,
+      element_default_value=0.0,
+      min_size=min_size,
+      max_size=max_size)
+    
+    self.assertEqual(setting.min_size, expected_min_size)
+    self.assertEqual(setting.max_size, expected_max_size)
+  
+  @parameterized.parameterized.expand([
+    ("min_size_negative", -1, None),
+    ("max_size_less_than_min_size", 5, 4),
+    ("max_size_less_than_default_value_length", 0, 2),
+    ("min_size_greater_than_default_value_length", 4, None),
+  ])
+  def test_create_raises_error_on_invalid_size(
+        self, test_case_name_suffix, min_size, max_size):
+    with self.assertRaises(pgsetting.SettingDefaultValueError):
+      pgsetting.ArraySetting(
+        "coordinates",
+        (1.0, 5.0, 10.0),
+        element_type=pgsetting.SettingTypes.float,
+        element_default_value=0.0,
+        min_size=min_size,
+        max_size=max_size)
+
+
+class TestArraySettingSize(unittest.TestCase):
+  
+  def setUp(self):
+    self.setting = pgsetting.ArraySetting(
+      "coordinates",
+      (1.0, 5.0, 10.0),
+      element_type=pgsetting.SettingTypes.float,
+      element_default_value=0.0,
+      element_min_value=-100.0,
+      element_max_value=100.0,
+      min_size=2,
+      max_size=4)
+  
+  def test_set_value_with_respect_to_size(self):
+    try:
+      self.setting.set_value((5.0, 10.0))
+    except pgsetting.SettingValueError:
+      self.fail(
+        "setting the value while satisfying size restrictions should not raise error")
+  
+  @parameterized.parameterized.expand([
+    ("value_length_less_than_min_size", (1.0,)),
+    ("value_length_greater_than_max_size", (1.0, 5.0, 10.0, 30.0, 70.0)),
+  ])
+  def test_set_value_invalid_size_raises_error(self, test_case_name_suffix, value):
+    with self.assertRaises(pgsetting.SettingValueError):
+      self.setting.set_value(value)
+  
+  def test_add_element_with_respect_to_size(self):
+    try:
+      self.setting.add_element()
+    except pgsetting.SettingValueError:
+      self.fail(
+        "adding an element while satisfying size restrictions should not raise error")
+  
+  def test_add_element_more_than_max_size_raises_error(self):
+    self.setting.add_element()
+    with self.assertRaises(pgsetting.SettingValueError):
+      self.setting.add_element()
+  
+  def test_delete_element_with_respect_to_size(self):
+    try:
+      del self.setting[-1]
+    except pgsetting.SettingValueError:
+      self.fail(
+        "deleting an element while satisfying size restrictions should not raise error")
+  
+  def test_delete_element_less_then_min_size_raises_error(self):
+    del self.setting[-1]
+    with self.assertRaises(pgsetting.SettingValueError):
+      del self.setting[-1]

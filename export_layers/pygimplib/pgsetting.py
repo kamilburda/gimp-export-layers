@@ -27,6 +27,7 @@ import abc
 import collections
 import copy
 import os
+import types
 
 import gimp
 from gimp import pdb
@@ -388,7 +389,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     """
     self.invoke_event("before-set-value")
     
-    self._assign_and_validate_value(value)
+    self._validate_and_assign_value(value)
     self._setting_value_synchronizer.apply_setting_value_to_gui(value)
     
     self.invoke_event("value-changed")
@@ -418,7 +419,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     self.invoke_event("before-reset")
     
     self._value = self._copy_value(self._default_value)
-    self._setting_value_synchronizer.apply_setting_value_to_gui(self._default_value)
+    self._setting_value_synchronizer.apply_setting_value_to_gui(self._value)
     
     self.invoke_event("value-changed")
     self.invoke_event("after-reset")
@@ -470,7 +471,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
       gui_type = self._gui_type
     elif gui_type is None:
       gui_type = pgsettingpresenter.NullSettingPresenter
-      # We need to disconnect the event before removing the GUI.
+      # We need to disconnect the "GUI changed" event before removing the GUI.
       self._gui.auto_update_gui_to_setting(False)
     
     self._gui = gui_type(
@@ -541,7 +542,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
   
   def _init_error_messages(self):
     """
-    Initialize custom error messages in the `error_messages` dict.
+    Initialize custom error messages in the `error_messages` dictionary.
     """
     pass
   
@@ -549,24 +550,34 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     """
     Create a shallow copy of the specified value.
     
-    Override this in subclasses in case copying must be handled differently.
+    Override this method in subclasses in case copying must be handled
+    differently.
     """
     return copy.copy(value)
+  
+  def _assign_value(self, value):
+    """
+    Assign specified value to the `_value` attribute after validation.
+    
+    Override this method in subclasses if other modifications to the `_value`
+    attribute must be made other than mere assignment.
+    """
+    self._value = value
   
   def _is_value_empty(self, value):
     return value in self._empty_values
   
-  def _assign_and_validate_value(self, value):
+  def _validate_and_assign_value(self, value):
     if not self._allow_empty_values:
       self._validate_setting(value)
     else:
       if not self._is_value_empty(value):
         self._validate_setting(value)
     
-    self._value = value
+    self._assign_value(value)
   
   def _apply_gui_value_to_setting(self, value):
-    self._assign_and_validate_value(value)
+    self._validate_and_assign_value(value)
     self.invoke_event("value-changed")
   
   def _validate_setting(self, value):
@@ -758,9 +769,8 @@ class BoolSetting(Setting):
   def description(self):
     return self._description + "?"
   
-  def set_value(self, value):
-    value = bool(value)
-    super().set_value(value)
+  def _assign_value(self, value):
+    self._value = bool(value)
 
 
 class EnumSetting(Setting):
@@ -1334,8 +1344,8 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
     for status in pgpath.FileValidatorErrorStatuses.ERROR_STATUSES:
       self.error_messages[status] = ""
   
-  def _validate(self, value):
-    is_valid, status_messages = self._string_validator.is_valid(value)
+  def _validate(self, string_):
+    is_valid, status_messages = self._string_validator.is_valid(string_)
     if not is_valid:
       new_status_messages = []
       for status, status_message in status_messages:
@@ -1345,7 +1355,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
           new_status_messages.append(status_message)
       
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(value)
+        pgsettingutils.value_to_str_prefix(string_)
         + "\n".join([message for message in new_status_messages]))
   
 
@@ -1567,6 +1577,276 @@ class ImageIDsAndDirpathsSetting(Setting):
       return None
 
 
+class ArraySetting(Setting):
+  """
+  This setting class can be used for PDB array types.
+  
+  Values of array settings are tuples whose elements are of the specified
+  setting type.
+  
+  Any setting type can be passed on initialization of the array setting.
+  However, only specific setting types can be registered to the GIMP PDB or have
+  their own GUI  - consult the documentation of individual setting classes for
+  more information.
+  
+  Validation of setting values is performed for each element individually.
+  
+  Array settings are useful for manipulating array PDB parameters or for
+  storing a collection of values of the same type. For more fine-grained control
+  (collection of values of different type, different GUI, etc.),
+  use `pgsettinggroup.SettingGroup` instead.
+  
+  Error messages:
+  
+  * `"invalid_value"` - The value is not a tuple or an iterable container.
+  
+  * `"negative_min_size"` - `min_size` is negative.
+  
+  * `"min_size_greater_than_max_size"` - `min_size` is greater than `max_size`.
+  
+  * `"min_size_greater_than_value_length"` - `min_size` is greater than the
+    length of the value.
+  
+  * `"max_size_less_than_value_length"` - `max_size` is less than the length of
+    the value.
+  
+  * `"delete_below_min_size"` - deleting an element causes the array to have
+    fewer than `min_size` elements.
+  
+  * `"add_above_max_size"` - adding an element causes the array to have more
+    than `max_size` elements.
+  """
+  
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.array_box]
+  
+  ELEMENT_DEFAULT_VALUE = type(b"DefaultElementValue", (), {})()
+  
+  def __init__(
+        self,
+        name,
+        default_value,
+        element_type,
+        element_default_value,
+        min_size=None,
+        max_size=None,
+        **kwargs):
+    """
+    Additional parameters include all parameters that would be passed to the
+    basic setting class this array setting is composed of. These parameters
+    must be prefixed with `"element_"`. Mandatory parameters for the basic
+    setting classes include:
+    * `element_type` - setting type of each array element. `ArraySetting` is not
+      supported at the moment and raises `TypeError`.
+    * `element_default_value` - default value of each array element
+    * all other mandatory parameters as per individual setting classes.
+    
+    Array-specific additional parameters:
+    * `min_size` - minimum array size (0 by default).
+    * `max_size` - maximum array size (`None` by default, meaning size is
+      unlimited).
+    """
+    
+    if issubclass(element_type, self.__class__):
+      raise TypeError("cannot pass array type as elements")
+    
+    self._element_type = element_type
+    self._element_default_value = element_default_value
+    self._min_size = min_size if min_size is not None else 0
+    self._max_size = max_size
+    
+    self._element_kwargs = {
+      key[len("element_"):]: value for key, value in kwargs.items()
+      if key.startswith("element_")}
+    
+    for key, value in self._element_kwargs.items():
+      self._create_read_only_property("element_" + key, value)
+    
+    self._elements = []
+    
+    array_kwargs = {
+      key: value for key, value in kwargs.items() if not key.startswith("element_")}
+    
+    super().__init__(name, default_value, **array_kwargs)
+  
+  @property
+  def value(self):
+    # This ensures that this property is always up-to-date no matter what events
+    # are connected to individual elements.
+    self._value = self._get_element_values()
+    return self._value
+  
+  @property
+  def element_type(self):
+    return self._element_type
+  
+  @property
+  def element_default_value(self):
+    return self._element_default_value
+  
+  @property
+  def min_size(self):
+    return self._min_size
+  
+  @property
+  def max_size(self):
+    return self._max_size
+  
+  def __getitem__(self, index):
+    """
+    Return a setting representing the the array element at the specified index.
+    """
+    return self._elements[index]
+  
+  def __delitem__(self, index):
+    if len(self._elements) == self._min_size:
+      raise SettingValueError(
+        self.error_messages["delete_below_min_size"].format(self._min_size))
+    
+    self.invoke_event("before-delete-element", index)
+    
+    del self._elements[index]
+    
+    self.invoke_event("after-delete-element")
+  
+  def __len__(self):
+    """
+    Return the number of elements of the array.
+    """
+    return len(self._elements)
+  
+  def add_element(self, index=None, value=ELEMENT_DEFAULT_VALUE):
+    """
+    Add a new element with the specified value at the specified index (starting
+    from 0).
+    
+    If `index` is `None`, append the value. If `value` is
+    `ELEMENT_DEFAULT_VALUE`, use the `element_default_value` attribute as the
+    value.
+    """
+    if len(self._elements) == self._max_size:
+      raise SettingValueError(
+        self.error_messages["add_above_max_size"].format(self._max_size))
+    
+    if isinstance(value, type(self.ELEMENT_DEFAULT_VALUE)):
+      value = self._element_default_value
+    
+    self.invoke_event("before-add-element", index, value)
+    
+    element = self._create_element(value)
+    
+    if index is None:
+      self._elements.append(element)
+      insertion_index = -1
+    else:
+      self._elements.insert(index, element)
+      insertion_index = index if index >= 0 else index - 1
+    
+    self.invoke_event("after-add-element", insertion_index, value)
+    
+    return element
+  
+  def reorder_element(self, index, new_index):
+    """
+    Change the order of an array element at `index` to a new position specified
+    by `new_index`. Both indexes start from 0.
+    """
+    self.invoke_event("before-reorder-element", index)
+    
+    element = self._elements.pop(index)
+  
+    if new_index < 0:
+      new_index = max(len(self._elements) + new_index + 1, 0)
+    
+    self._elements.insert(new_index, element)
+    
+    self.invoke_event("after-reorder-element", index, new_index)
+  
+  def _init_error_messages(self):
+    self.error_messages["invalid_value"] = _("Not an array.")
+    self.error_messages["negative_min_size"] = _(
+      "Minimum array size ({}) cannot be negative.")
+    self.error_messages["min_size_greater_than_max_size"] = _(
+      "Minimum array size ({}) cannot be greater than maximum array size ({}).")
+    self.error_messages["min_size_greater_than_value_length"] = _(
+      "Minimum array size ({}) cannot be greater than the length of the value ({}).")
+    self.error_messages["max_size_less_than_value_length"] = _(
+      "Maximum array size ({}) cannot be less than the length of the value ({}).")
+    self.error_messages["delete_below_min_size"] = _(
+      "Cannot delete any more elements - array must have at least {} elements.")
+    self.error_messages["add_above_max_size"] = _(
+      "Cannot add any more elements - array must have at most {} elements.")
+  
+  def _validate(self, value_array):
+    if (not isinstance(value_array, collections.Iterable)
+        or isinstance(value_array, types.StringTypes)):
+      raise SettingValueError(
+        pgsettingutils.value_to_str_prefix(value_array)
+        + self.error_messages["invalid_value"])
+    
+    if self._min_size < 0:
+      raise SettingValueError(
+        self.error_messages["negative_min_size"].format(self._min_size))
+    elif self._max_size is not None and self._min_size > self._max_size:
+      raise SettingValueError(
+        self.error_messages["min_size_greater_than_max_size"].format(
+          self._min_size, self._max_size))
+    elif self._min_size > len(value_array):
+      raise SettingValueError(
+        self.error_messages["min_size_greater_than_value_length"].format(
+          self._min_size, len(value_array)))
+    elif self._max_size is not None and self._max_size < len(value_array):
+      raise SettingValueError(
+        self.error_messages["max_size_less_than_value_length"].format(
+          self._max_size, len(value_array)))
+  
+  def _assign_value(self, value_array):
+    elements = []
+    exceptions = []
+    exception_occurred = False
+    
+    for value in value_array:
+      try:
+        elements.append(self._create_element(value))
+      except SettingValueError as e:
+        exceptions.append(e)
+        exception_occurred = True
+    
+    if exception_occurred:
+      raise SettingValueError("\n".join([str(e) for e in exceptions]))
+    
+    self._elements = elements
+    self._value = self._get_element_values()
+  
+  def _apply_gui_value_to_setting(self, value):
+    # No assignment takes place to prevent breaking the sync between the array
+    # and the GUI.
+    self.invoke_event("value-changed")
+  
+  def _copy_value(self, value):
+    self._elements = [self._create_element(element_value) for element_value in value]
+    return self._get_element_values()
+  
+  def _create_element(self, value):
+    setting = self._element_type(
+      name="element",
+      default_value=self._element_default_value,
+      display_name="",
+      **self._element_kwargs)
+    setting.set_value(value)
+    
+    return setting
+  
+  def _create_read_only_property(self, key, value):
+    setattr(self, "_" + key, value)
+    setattr(
+      self.__class__,
+      key,
+      property(fget=lambda self, key=key: getattr(self, "_" + key)))
+  
+  def _get_element_values(self):
+    return tuple(setting.value for setting in self._elements)
+
+
 class SettingValueError(Exception):
   """
   This exception class is raised when a value assigned to a `Setting` object is
@@ -1624,3 +1904,5 @@ class SettingTypes(object):
   pattern = PatternSetting
   
   image_IDs_and_directories = ImageIDsAndDirpathsSetting
+  
+  array = ArraySetting

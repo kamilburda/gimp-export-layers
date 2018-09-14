@@ -8,6 +8,7 @@ sys.path.append(os.path.join(plugin_dirpath, "export_layers", "pygimplib"))
 import pygimplib
 import pgruntests
 from pygimplib.tests import test_pgsetting_gui
+pygimplib.init()
 
 
 _ = lambda s: s
@@ -19,7 +20,13 @@ pgruntests.run_tests(plugin_dirpath, modules=["export_layers.pygimplib", "export
 _ = lambda s: s
 imp.reload(test_pgsetting_gui)
 _
-test_pgsetting_gui.test_settings_and_gui()
+test_pgsetting_gui.test_basic_settings_and_gui()
+
+
+_ = lambda s: s
+imp.reload(test_pgsetting_gui)
+_
+test_pgsetting_gui.test_array_settings_and_gui()
 
 
 _ = lambda s: s

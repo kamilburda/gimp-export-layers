@@ -35,43 +35,15 @@ from .. import pgconstants
 from .. import pgsetting
 
 
-def test_settings_and_gui():
-  image = _create_test_image()
-  
-  setting_items = [
-    ("integer", pgsetting.SettingTypes.integer, 0),
-    ("float", pgsetting.SettingTypes.float, 0),
-    ("boolean", pgsetting.SettingTypes.boolean, False),
-    ("enumerated",
-     pgsetting.SettingTypes.enumerated,
-     "non_interactive",
-     [("interactive", "RUN-INTERACTIVE"),
-      ("non_interactive", "RUN-NONINTERACTIVE"),
-      ("run_with_last_vals", "RUN-WITH-LAST-VALS")],),
-    ("string", pgsetting.SettingTypes.string, "Test"),
-    
-    ("image", pgsetting.SettingTypes.image, image),
-    ("drawable", pgsetting.SettingTypes.drawable, image.layers[0]),
-    ("layer", pgsetting.SettingTypes.layer, image.layers[0]),
-    ("channel", pgsetting.SettingTypes.channel, image.channels[0]),
-    ("selection", pgsetting.SettingTypes.selection, pdb.gimp_image_get_selection(image)),
-    ("vectors", pgsetting.SettingTypes.vectors, image.vectors[0]),
-    
-    ("color", pgsetting.SettingTypes.color, gimpcolor.RGB(0, 0, 255)),
-    ("parasite", pgsetting.SettingTypes.parasite, gimp.Parasite("Test", 0, "data")),
-    ("display", pgsetting.SettingTypes.display, gimp.Display(image)),
-    ("pdb_status", pgsetting.SettingTypes.pdb_status, "PDB_SUCCESS"),
-    
-    ("file_extension", pgsetting.SettingTypes.file_extension, "png"),
-    ("directory", pgsetting.SettingTypes.directory, gimp.directory),
-    
-    ("brush", pgsetting.SettingTypes.brush, ()),
-    ("font", pgsetting.SettingTypes.font, ""),
-    ("gradient", pgsetting.SettingTypes.gradient, ""),
-    ("palette", pgsetting.SettingTypes.palette, ""),
-    ("pattern", pgsetting.SettingTypes.pattern, ""),
-  ]
-  
+def test_basic_settings_and_gui():
+  test_settings_and_gui(_get_basic_settings())
+
+
+def test_array_settings_and_gui():
+  test_settings_and_gui(_get_array_settings())
+
+
+def test_settings_and_gui(setting_items):
   settings = []
   
   for item in setting_items:
@@ -164,6 +136,64 @@ def test_settings_and_gui():
   dialog.set_default_size(800, 800)
   
   dialog.show_all()
+
+
+def _get_basic_settings():
+  image = _create_test_image()
+  
+  return [
+    ("integer", pgsetting.SettingTypes.integer, 0),
+    ("float", pgsetting.SettingTypes.float, 0),
+    ("boolean", pgsetting.SettingTypes.boolean, False),
+    ("enumerated",
+     pgsetting.SettingTypes.enumerated,
+     "non_interactive",
+     [("interactive", "RUN-INTERACTIVE"),
+      ("non_interactive", "RUN-NONINTERACTIVE"),
+      ("run_with_last_vals", "RUN-WITH-LAST-VALS")],),
+    ("string", pgsetting.SettingTypes.string, "Test"),
+    
+    ("image", pgsetting.SettingTypes.image, image),
+    ("drawable", pgsetting.SettingTypes.drawable, image.layers[0]),
+    ("layer", pgsetting.SettingTypes.layer, image.layers[0]),
+    ("channel", pgsetting.SettingTypes.channel, image.channels[0]),
+    ("selection", pgsetting.SettingTypes.selection, pdb.gimp_image_get_selection(image)),
+    ("vectors", pgsetting.SettingTypes.vectors, image.vectors[0]),
+    
+    ("color", pgsetting.SettingTypes.color, gimpcolor.RGB(0, 0, 255)),
+    ("parasite", pgsetting.SettingTypes.parasite, gimp.Parasite("Test", 0, "data")),
+    ("display", pgsetting.SettingTypes.display, gimp.Display(image)),
+    ("pdb_status", pgsetting.SettingTypes.pdb_status, "PDB_SUCCESS"),
+    
+    ("file_extension", pgsetting.SettingTypes.file_extension, "png"),
+    ("directory", pgsetting.SettingTypes.directory, gimp.directory),
+    
+    ("brush", pgsetting.SettingTypes.brush, ()),
+    ("font", pgsetting.SettingTypes.font, ""),
+    ("gradient", pgsetting.SettingTypes.gradient, ""),
+    ("palette", pgsetting.SettingTypes.palette, ""),
+    ("pattern", pgsetting.SettingTypes.pattern, ""),
+  ]
+
+
+def _get_array_settings():
+  return [
+    ("array_of_booleans",
+     pgsetting.SettingTypes.array,
+     (True, False, True),
+     pgsetting.SettingTypes.boolean,
+     True,
+     3,
+     10),
+    
+    ("array_of_floats",
+     pgsetting.SettingTypes.array,
+     (5.0, 10.0, 30.0),
+     pgsetting.SettingTypes.float,
+     1.0,
+     3,
+     10),
+  ]
 
 
 def _on_setting_value_changed(

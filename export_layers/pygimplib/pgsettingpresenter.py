@@ -25,6 +25,8 @@ import future.utils
 
 import abc
 
+from . import pgutils
+
 
 class SettingValueSynchronizer(object):
   """
@@ -33,8 +35,8 @@ class SettingValueSynchronizer(object):
   """
   
   def __init__(self):
-    self.apply_setting_value_to_gui = None
-    self.apply_gui_value_to_setting = None
+    self.apply_setting_value_to_gui = pgutils.empty_func
+    self.apply_gui_value_to_setting = pgutils.empty_func
 
 
 class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
