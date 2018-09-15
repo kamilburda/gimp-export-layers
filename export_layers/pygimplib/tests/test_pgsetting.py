@@ -117,6 +117,15 @@ class TestSetting(unittest.TestCase):
       stubs_pgsetting.SettingStub(
         "file_extension", "png", pdb_type=pgsetting.SettingPdbTypes.string)
   
+  def test_get_pdb_param_for_registrable_setting(self):
+    setting = stubs_pgsetting.SettingRegistrableToPdbStub("file_extension", "png")
+    self.assertEqual(
+      setting.get_pdb_param(),
+      [(pgsetting.SettingPdbTypes.string, b"file_extension", b"File extension")])
+  
+  def test_get_pdb_param_for_nonregistrable_setting(self):
+    self.assertEqual(self.setting.get_pdb_param(), None)
+  
   def test_reset(self):
     self.setting.set_value("jpg")
     self.setting.reset()
@@ -944,6 +953,52 @@ class TestCreateArraySetting(unittest.TestCase):
         element_default_value=0.0,
         element_min_value=-100.0,
         element_max_value=100.0)
+  
+  @parameterized.parameterized.expand([
+    ("element_pdb_type_is_registrable",
+     pgsetting.SettingPdbTypes.automatic,
+     pgsetting.SettingTypes.float,
+     pgsetting.SettingPdbTypes.array_float),
+    
+    ("element_pdb_type_is_not_registrable",
+     pgsetting.SettingPdbTypes.automatic,
+     pgsetting.SettingTypes.generic,
+     pgsetting.SettingPdbTypes.none),
+    
+    ("registration_is_disabled_explicitly",
+     None,
+     pgsetting.SettingTypes.float,
+     pgsetting.SettingPdbTypes.none),
+  ])
+  def test_create_with_pdb_type(
+        self, test_case_name_suffix, pdb_type, element_type, expected_pdb_type):
+    setting = pgsetting.ArraySetting(
+      "coordinates",
+      (1.0, 5.0, 10.0),
+      pdb_type=pdb_type,
+      element_type=element_type,
+      element_default_value=0.0)
+    
+    self.assertEqual(setting.pdb_type, expected_pdb_type)
+  
+  def test_create_with_explicit_valid_element_pdb_type(self):
+    setting = pgsetting.ArraySetting(
+      "coordinates",
+      (1, 5, 10),
+      element_type=pgsetting.SettingTypes.integer,
+      element_default_value=0,
+      element_pdb_type=pgsetting.SettingPdbTypes.int16)
+    
+    self.assertEqual(setting.pdb_type, pgsetting.SettingPdbTypes.array_int16)
+  
+  def test_create_with_invalid_element_pdb_type(self):
+    with self.assertRaises(ValueError):
+      pgsetting.ArraySetting(
+        "coordinates",
+        (1.0, 5.0, 10.0),
+        element_type=pgsetting.SettingTypes.float,
+        element_default_value=0.0,
+        element_pdb_type=pgsetting.SettingPdbTypes.int16)
 
 
 class TestArraySetting(unittest.TestCase):
@@ -1172,6 +1227,40 @@ class TestArraySetting(unittest.TestCase):
     self.setting.add_element(index, value)
     self.assertEqual(event_args[0][0], expected_index)
     self.assertEqual(event_args[0][1], expected_value)
+  
+  @parameterized.parameterized.expand([
+    ("default_length_name_and_description",
+     None,
+     None,
+     b"coordinates-length",
+     b"Number of elements in 'coordinates'"),
+    
+    ("custom_length_name_and_description",
+     "num-axes-coordinates",
+     "The number of axes for coordinates",
+     b"num-axes-coordinates",
+     b"The number of axes for coordinates"),
+  ])
+  def test_get_pdb_param_for_registrable_setting(
+        self,
+        test_case_name_suffix,
+        length_name,
+        length_description,
+        expected_length_name,
+        expected_length_description):
+    self.assertEqual(
+      self.setting.get_pdb_param(length_name, length_description),
+      [(pgsetting.SettingPdbTypes.int, expected_length_name, expected_length_description),
+       (pgsetting.SettingPdbTypes.array_float, b"coordinates", b"Coordinates")])
+  
+  def test_get_pdb_param_for_nonregistrable_setting(self):
+    setting = pgsetting.ArraySetting(
+      "coordinates",
+      (1.0, 5.0, 10.0),
+      element_type=pgsetting.SettingTypes.generic,
+      element_default_value=0.0)
+    
+    self.assertEqual(setting.get_pdb_param(), None)
 
 
 class TestArraySettingCreateWithSize(unittest.TestCase):

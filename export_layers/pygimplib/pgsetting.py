@@ -1614,6 +1614,11 @@ class ArraySetting(Setting):
   (collection of values of different type, different GUI, etc.),
   use `pgsettinggroup.SettingGroup` instead.
   
+  If the `element_type` specified during instantiation has a matching `array_*`
+  type in `SettingPdbTypes` (e.g. `float` and `array_float`), then the array
+  setting can be registered. To disable registration, pass `None` to `pdb_type`
+  during instantiation as one normally would.
+  
   Error messages:
   
   * `"invalid_value"` - The value is not a tuple or an iterable container.
@@ -1636,6 +1641,15 @@ class ArraySetting(Setting):
   """
   
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.array_box]
+  
+  _ARRAY_PDB_TYPES = {
+    gimpenums.PDB_INT32: gimpenums.PDB_INT32ARRAY,
+    gimpenums.PDB_INT16: gimpenums.PDB_INT16ARRAY,
+    gimpenums.PDB_INT8: gimpenums.PDB_INT8ARRAY,
+    gimpenums.PDB_FLOAT: gimpenums.PDB_FLOATARRAY,
+    gimpenums.PDB_STRING: gimpenums.PDB_STRINGARRAY,
+    gimpenums.PDB_COLOR: gimpenums.PDB_COLORARRAY,
+  }
   
   ELEMENT_DEFAULT_VALUE = type(b"DefaultElementValue", (), {})()
   
@@ -1779,6 +1793,41 @@ class ArraySetting(Setting):
     
     self.invoke_event("after-reorder-element", index, new_index)
   
+  def get_pdb_param(self, length_name=None, length_description=None):
+    """
+    Return a list of two tuples, describing the length of the array and the
+    array itself, as GIMP PDB parameters - PDB type, name and description.
+    
+    If the underlying `element_type` does not support any PDB type, return
+    `None`.
+    
+    To customize the name and description of the length parameter, pass
+    `length_name` and `length_description`, respectively. Passing `None` creates
+    the name and description automatically.
+    """
+    if self.can_be_registered_to_pdb():
+      if length_name is None:
+        length_name = "{}-length".format(self.name)
+      
+      if not isinstance(length_name, bytes):
+        length_name = length_name.encode(pgconstants.GIMP_CHARACTER_ENCODING)
+      
+      if length_description is None:
+        length_description = _("Number of elements in '{}'").format(self.name)
+      
+      if not isinstance(length_description, bytes):
+        length_description = length_description.encode(
+          pgconstants.GIMP_CHARACTER_ENCODING)
+      
+      return [
+        (SettingPdbTypes.int32, length_name, length_description),
+        (self.pdb_type,
+         self.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
+         self.description.encode(pgconstants.GIMP_CHARACTER_ENCODING))
+      ]
+    else:
+      return None
+  
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _("Not an array.")
     self.error_messages["negative_min_size"] = _(
@@ -1843,6 +1892,15 @@ class ArraySetting(Setting):
   def _copy_value(self, value):
     self._elements = [self._create_element(element_value) for element_value in value]
     return self._get_element_values()
+  
+  def _get_default_pdb_type(self):
+    if hasattr(self, "_element_pdb_type"):
+      if self._element_pdb_type in self._ARRAY_PDB_TYPES:
+        return self._ARRAY_PDB_TYPES[self._element_pdb_type]
+    elif self._element_type._ALLOWED_PDB_TYPES:
+      return self._ARRAY_PDB_TYPES[self._element_type._ALLOWED_PDB_TYPES[0]]
+    
+    return SettingPdbTypes.none
   
   def _create_element(self, value):
     setting = self._element_type(
