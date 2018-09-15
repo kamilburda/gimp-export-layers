@@ -41,6 +41,7 @@ from future.builtins import *
 import gimpenums
 
 from export_layers.pygimplib import pgitemtree
+from export_layers.pygimplib import pgsettingpdb
 
 import export_layers.config
 export_layers.config.init()
@@ -123,7 +124,7 @@ def _run_noninteractive(layer_tree, args):
     setting for setting in SETTINGS["main"].walk()
     if setting.can_be_registered_to_pdb()]
   
-  for setting, arg in zip(main_settings, args):
+  for setting, arg in zip(main_settings, pgsettingpdb.iter_args(args, main_settings)):
     setting.set_value(arg)
   
   _run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, layer_tree)

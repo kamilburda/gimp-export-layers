@@ -533,6 +533,24 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     """
     return self._pdb_type != SettingPdbTypes.none
   
+  def get_pdb_param(self):
+    """
+    Return a list of tuples, each tuple containing data describing the setting
+    as a GIMP PDB parameter - PDB type, name and description.
+    
+    If the setting does not support any PDB type, return `None`.
+    
+    Most setting classes return a list of only one tuple, meaning the setting is
+    represented by one PDB parameter.
+    """
+    if self.can_be_registered_to_pdb():
+      return [(
+        self.pdb_type,
+        self.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
+        self.description.encode(pgconstants.GIMP_CHARACTER_ENCODING))]
+    else:
+      return None
+  
   def _validate(self, value):
     """
     Check whether the specified value is valid. If the value is invalid, raise

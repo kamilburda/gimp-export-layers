@@ -247,7 +247,7 @@ if _gimp_dependent_modules_imported:
         has_settings = isinstance(
           params[0], (pgsetting.Setting, pgsettinggroup.SettingGroup))
         if has_settings:
-          pdb_params = pgsettingpdb.PdbParamCreator.create_params(*params)
+          pdb_params = pgsettingpdb.create_params(*params)
         else:
           pdb_params = params
       

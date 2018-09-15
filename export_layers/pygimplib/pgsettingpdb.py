@@ -15,72 +15,91 @@
 # limitations under the License.
 
 """
-This module contains a class to generate GIMP PDB parameters out of
-`pgsetting.Setting` objects.
+This module contains a class to generate GIMP PDB parameters out of settings
+(`pgsetting.Setting` instances) and parse GIMP procedure arguments to assign
+them as values to settings.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-from . import pgconstants
 from . import pgsetting
 from . import pgsettinggroup
 
 
-class PdbParamCreator(object):
+def create_params(*settings_or_groups):
   """
-  This class creates GIMP PDB (procedural database) parameters for plug-ins
-  (plug-in procedures) from `Setting` objects.
+  Return a list of GIMP PDB parameters from the specified `Setting` or
+  `SettingGroup` instances.
   """
+  settings = _list_settings(settings_or_groups)
   
-  @classmethod
-  def create_params(cls, *settings_or_groups):
-    """
-    Return a list of GIMP PDB parameters from the specified `Setting` or
-    `SettingGroup` objects.
-    """
-    settings = cls._list_settings(settings_or_groups)
-    return [
-      cls._create_param(setting) for setting in settings
-      if setting.can_be_registered_to_pdb()]
+  params = []
   
-  @classmethod
-  def list_param_values(cls, settings_or_groups, ignore_run_mode=True):
-    """
-    Return a list of values of settings registrable to PDB.
-    
-    If `ignore_run_mode` is `True`, ignore setting(s) named `"run_mode"`. This
-    makes it possible to call PDB functions with the setting values without
-    manually omitting the `"run_mode"` setting.
-    """
-    settings = cls._list_settings(settings_or_groups)
-    
-    if ignore_run_mode:
-      for i, setting in enumerate(settings):
-        if setting.name == "run_mode":
-          del settings[i]
-          break
-    
-    return [setting.value for setting in settings if setting.can_be_registered_to_pdb()]
+  for setting in settings:
+    if setting.can_be_registered_to_pdb():
+      params.extend(setting.get_pdb_param())
   
-  @staticmethod
-  def _list_settings(settings_or_groups):
-    settings = []
-    for setting_or_group in settings_or_groups:
-      if isinstance(setting_or_group, pgsetting.Setting):
-        settings.append(setting_or_group)
-      elif isinstance(setting_or_group, pgsettinggroup.SettingGroup):
-        settings.extend(setting_or_group.walk())
-      else:
-        raise TypeError(
-          "{} is not an object of type {} or {}".format(
-            setting_or_group, pgsetting.Setting, pgsettinggroup.SettingGroup))
-    
-    return settings
+  return params
+
+
+def iter_args(args, settings):
+  """
+  Iterate over arguments (`args`) passed to a GIMP PDB procedure.
   
-  @staticmethod
-  def _create_param(setting):
-    return (
-      setting.pdb_type,
-      setting.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
-      setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING))
+  `settings` is a list of `Setting` instances that may modify the iteration. For
+  example, if an argument is matched by a setting of type `ArraySetting`, the
+  array argument causes the preceding argument to be skipped. The preceding
+  argument is the array length and does not need to exist as a separate setting
+  because the length can be obtained from the array itself in Python.
+  
+  If there are more settings than non-skipped arguments, the remaining settings
+  will be ignored.
+  """
+  indexes_of_array_length_settings = set()
+  index = 0
+  
+  for setting in settings:
+    if isinstance(setting, pgsetting.ArraySetting):
+      index += 1
+      indexes_of_array_length_settings.add(index - 1)
+    
+    index += 1
+  
+  for arg_index in range(min(len(args), index)):
+    if arg_index not in indexes_of_array_length_settings:
+      yield args[arg_index]
+
+
+def list_param_values(settings_or_groups, ignore_run_mode=True):
+  """
+  Return a list of values of settings registrable to PDB.
+  
+  If `ignore_run_mode` is `True`, ignore setting(s) named `"run_mode"`. This
+  makes it possible to call PDB functions with the setting values without
+  manually omitting the `"run_mode"` setting.
+  """
+  settings = _list_settings(settings_or_groups)
+  
+  if ignore_run_mode:
+    for i, setting in enumerate(settings):
+      if setting.name == "run_mode":
+        del settings[i]
+        break
+  
+  return [setting.value for setting in settings if setting.can_be_registered_to_pdb()]
+
+
+def _list_settings(settings_or_groups):
+  settings = []
+  for setting_or_group in settings_or_groups:
+    if isinstance(setting_or_group, pgsetting.Setting):
+      settings.append(setting_or_group)
+    elif isinstance(setting_or_group, pgsettinggroup.SettingGroup):
+      settings.extend(setting_or_group.walk())
+    else:
+      raise TypeError(
+        "{} is not an object of type {} or {}".format(
+          setting_or_group, pgsetting.Setting, pgsettinggroup.SettingGroup))
+  
+  return settings
