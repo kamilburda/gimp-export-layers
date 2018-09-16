@@ -955,6 +955,21 @@ class TestCreateArraySetting(unittest.TestCase):
         element_max_value=100.0)
   
   @parameterized.parameterized.expand([
+    ("default_value_is_empty", ()),
+    ("default_value_is_not_empty", (1.0, 5.0, 10.0)),
+  ])
+  def test_create_invalid_element_default_value_raises_error(
+        self, test_case_name_suffix, default_value):
+    with self.assertRaises(pgsetting.SettingDefaultValueError):
+      pgsetting.ArraySetting(
+        "coordinates",
+        default_value,
+        element_type=pgsetting.SettingTypes.float,
+        element_default_value=-200.0,
+        element_min_value=-100.0,
+        element_max_value=100.0)
+  
+  @parameterized.parameterized.expand([
     ("element_pdb_type_is_registrable",
      pgsetting.SettingPdbTypes.automatic,
      pgsetting.SettingTypes.float,

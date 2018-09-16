@@ -1604,20 +1604,20 @@ class ArraySetting(Setting):
   
   Any setting type can be passed on initialization of the array setting.
   However, only specific setting types can be registered to the GIMP PDB or have
-  their own GUI  - consult the documentation of individual setting classes for
+  their own GUI - consult the documentation of individual setting classes for
   more information.
   
   Validation of setting values is performed for each element individually.
   
-  Array settings are useful for manipulating array PDB parameters or for
+  Array settings are useful for manipulating PDB array parameters or for
   storing a collection of values of the same type. For more fine-grained control
   (collection of values of different type, different GUI, etc.),
   use `pgsettinggroup.SettingGroup` instead.
   
   If the `element_type` specified during instantiation has a matching `array_*`
   type in `SettingPdbTypes` (e.g. `float` and `array_float`), then the array
-  setting can be registered. To disable registration, pass `None` to `pdb_type`
-  during instantiation as one normally would.
+  setting can be registered to the GIMP PDB. To disable registration, pass
+  `None` to `pdb_type` during instantiation as one normally would.
   
   Error messages:
   
@@ -1683,6 +1683,7 @@ class ArraySetting(Setting):
     
     self._element_type = element_type
     self._element_default_value = element_default_value
+    
     self._min_size = min_size if min_size is not None else 0
     self._max_size = max_size
     
@@ -1697,6 +1698,8 @@ class ArraySetting(Setting):
     
     array_kwargs = {
       key: value for key, value in kwargs.items() if not key.startswith("element_")}
+    
+    self._validate_element_default_value()
     
     super().__init__(name, default_value, **array_kwargs)
   
@@ -1901,6 +1904,13 @@ class ArraySetting(Setting):
       return self._ARRAY_PDB_TYPES[self._element_type._ALLOWED_PDB_TYPES[0]]
     
     return SettingPdbTypes.none
+  
+  def _validate_element_default_value(self):
+    kwargs = dict(self._element_kwargs, gui_type=None)
+    # Rely on the underlying element setting type to perform validation of the
+    # default value.
+    self._element_type(
+      name="element", default_value=self._element_default_value, **kwargs)
   
   def _create_element(self, value):
     setting = self._element_type(
