@@ -47,11 +47,17 @@ def test_settings_and_gui(setting_items):
   settings = []
   
   for item in setting_items:
-    setting_type = item[1]
-    setting_type_args = [item[0]] + list(item[2:])
-    
-    for gui_type in setting_type._ALLOWED_GUI_TYPES:
-      settings.append(setting_type(*setting_type_args, gui_type=gui_type))
+    if isinstance(item, dict):
+      setting_type = item.pop("type")
+      
+      for gui_type in setting_type._ALLOWED_GUI_TYPES:
+        settings.append(setting_type(**item))
+    else:
+      setting_type = item[1]
+      setting_type_args = [item[0]] + list(item[2:])
+      
+      for gui_type in setting_type._ALLOWED_GUI_TYPES:
+        settings.append(setting_type(*setting_type_args, gui_type=gui_type))
   
   dialog = gtk.Dialog()
   
@@ -178,21 +184,40 @@ def _get_basic_settings():
 
 def _get_array_settings():
   return [
-    ("array_of_booleans",
-     pgsetting.SettingTypes.array,
-     (True, False, True),
-     pgsetting.SettingTypes.boolean,
-     True,
-     3,
-     10),
+    {
+     "type": pgsetting.SettingTypes.array,
+     "name": "array_of_booleans",
+     "default_value": (True, False, True),
+     "element_type": pgsetting.SettingTypes.boolean,
+     "element_default_value": True,
+     "min_size": 3,
+     "max_size": 10,
+    },
     
-    ("array_of_floats",
-     pgsetting.SettingTypes.array,
-     (5.0, 10.0, 30.0),
-     pgsetting.SettingTypes.float,
-     1.0,
-     3,
-     10),
+    {
+     "type": pgsetting.SettingTypes.array,
+     "name": "array_of_floats",
+     "default_value": (5.0, 10.0, 30.0),
+     "element_type": pgsetting.SettingTypes.float,
+     "element_default_value": 1.0,
+     "min_size": 3,
+     "max_size": 10,
+    },
+    
+    {
+     "type": pgsetting.SettingTypes.array,
+     "name": "2D_array_of_floats",
+     "display_name": "2D array of floats",
+     "default_value": ((1.0, 5.0, 10.0), (2.0, 15.0, 25.0), (-5.0, 10.0, 40.0)),
+     "element_type": pgsetting.SettingTypes.array,
+     "element_default_value": (0.0, 0.0, 0.0),
+     "min_size": 3,
+     "max_size": 10,
+     "element_element_type": pgsetting.SettingTypes.float,
+     "element_element_default_value": 1.0,
+     "element_min_size": 1,
+     "element_max_size": 3,
+    },
   ]
 
 

@@ -919,14 +919,6 @@ class TestCreateArraySetting(unittest.TestCase):
     self.assertEqual(setting.default_value, [1.0, 5.0, 10.0])
     self.assertEqual(setting.value, (1.0, 5.0, 10.0))
   
-  def test_create_passing_array_setting_raises_error(self):
-    with self.assertRaises(TypeError):
-      pgsetting.ArraySetting(
-        "coordinates",
-        (1.0, 5.0, 10.0),
-        element_type=pgsetting.SettingTypes.array,
-        element_default_value=0.0)
-  
   def test_create_with_additional_read_only_element_arguments(self):
     setting = pgsetting.ArraySetting(
       "coordinates",
@@ -943,6 +935,18 @@ class TestCreateArraySetting(unittest.TestCase):
       if setting_attribute.startswith("element_"):
         with self.assertRaises(AttributeError):
           setattr(setting, setting_attribute, None)
+  
+  def test_create_with_additional_arguments_overriding_internal_element_arguments(self):
+    setting = pgsetting.ArraySetting(
+      "coordinates",
+      (1.0, 5.0, 10.0),
+      element_type=pgsetting.SettingTypes.float,
+      element_default_value=0.0,
+      element_min_value=-100.0,
+      element_max_value=100.0,
+      element_display_name="Coordinate")
+    
+    self.assertEqual(setting.element_display_name, "Coordinate")
   
   def test_create_passing_invalid_default_value_raises_error(self):
     with self.assertRaises(pgsetting.SettingValueError):
@@ -1014,6 +1018,32 @@ class TestCreateArraySetting(unittest.TestCase):
         element_type=pgsetting.SettingTypes.float,
         element_default_value=0.0,
         element_pdb_type=pgsetting.SettingPdbTypes.int16)
+  
+  def test_create_multidimensional_array(self):
+    values = ((1.0, 5.0, 10.0), (2.0, 15.0, 25.0), (-5.0, 10.0, 40.0))
+    
+    setting = pgsetting.ArraySetting(
+      "path_coordinates",
+      values,
+      element_type=pgsetting.SettingTypes.array,
+      element_default_value=(0.0, 0.0, 0.0),
+      element_element_type=pgsetting.SettingTypes.float,
+      element_element_default_value=1.0)
+    
+    self.assertTupleEqual(setting.default_value, values)
+    self.assertEqual(setting.element_type, pgsetting.SettingTypes.array)
+    self.assertEqual(setting.element_default_value, (0.0, 0.0, 0.0))
+    self.assertFalse(setting.can_be_registered_to_pdb())
+    
+    for i in range(len(setting)):
+      self.assertEqual(setting[i].element_type, pgsetting.SettingTypes.float)
+      self.assertEqual(setting[i].default_value, (0.0, 0.0, 0.0))
+      self.assertEqual(setting[i].value, values[i])
+      self.assertFalse(setting[i].can_be_registered_to_pdb())
+      
+      for j in range(len(setting[i])):
+        self.assertEqual(setting[i][j].default_value, 1.0)
+        self.assertEqual(setting[i][j].value, values[i][j])
 
 
 class TestArraySetting(unittest.TestCase):

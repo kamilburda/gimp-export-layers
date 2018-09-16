@@ -1664,12 +1664,17 @@ class ArraySetting(Setting):
         **kwargs):
     """
     Additional parameters include all parameters that would be passed to the
-    basic setting class this array setting is composed of. These parameters
-    must be prefixed with `"element_"`. Mandatory parameters for the basic
-    setting classes include:
-    * `element_type` - setting type of each array element. `ArraySetting` is not
-      supported at the moment and raises `TypeError`.
-    * `element_default_value` - default value of each array element
+    basic setting class this array setting is composed of (= an array element).
+    These parameters must be prefixed with `"element_"`. Mandatory parameters
+    for the basic setting classes include:
+    * `element_type` - setting type of each array element. Passing
+      `ArraySetting` is also possible, allowing to create multidimensional
+      arrays. Note that in that case, mandatory parameters for elements of each
+      subsequent dimension must be specified and must have an extra `"element_"`
+      prefix. For example, for the second dimension of a 2D array,
+      `element_element_type` and `element_element_default_value` must also be
+      specified.
+    * `element_default_value` - default value of each array element.
     * all other mandatory parameters as per individual setting classes.
     
     Array-specific additional parameters:
@@ -1677,9 +1682,6 @@ class ArraySetting(Setting):
     * `max_size` - maximum array size (`None` by default, meaning size is
       unlimited).
     """
-    
-    if issubclass(element_type, self.__class__):
-      raise TypeError("cannot pass array type as elements")
     
     self._element_type = element_type
     self._element_default_value = element_default_value
@@ -1913,11 +1915,15 @@ class ArraySetting(Setting):
       name="element", default_value=self._element_default_value, **kwargs)
   
   def _create_element(self, value):
-    setting = self._element_type(
-      name="element",
-      default_value=self._element_default_value,
-      display_name="",
+    kwargs = dict(
+      dict(
+        name="element",
+        default_value=self._element_default_value,
+        display_name="",
+        pdb_type=None),
       **self._element_kwargs)
+    
+    setting = self._element_type(**kwargs)
     setting.set_value(value)
     
     return setting
