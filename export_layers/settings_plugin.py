@@ -314,6 +314,11 @@ def create_settings():
   def on_after_add_operation(
         operations_, operation, orig_operation_name, file_extension_setting):
     if orig_operation_name == "use_file_extensions_in_layer_names":
+      if operation["enabled"].value:
+        # Invoke manually in case "enabled" is True upon adding.
+        on_use_file_extensions_in_layer_names_enabled_changed(
+          operation["enabled"], file_extension_setting)
+      
       operation["enabled"].connect_event(
         "value-changed",
         on_use_file_extensions_in_layer_names_enabled_changed,
