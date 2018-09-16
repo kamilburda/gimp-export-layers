@@ -1435,6 +1435,14 @@ class BrushSetting(Setting):
   This setting class can be used for brushes. Each brush is represented by a
   tuple `(brush name: string, opacity: float, spacing: int, layer mode: int)`.
   
+  When calling `set_value`, brush name may be passed without being wrapped in a
+  tuple that gets then converted to a tuple of one element containing the brush
+  name.
+  
+  Allowed GIMP PDB types:
+  
+  * SettingPdbTypes.string
+  
   Empty values:
   
   * `()`
@@ -1444,10 +1452,17 @@ class BrushSetting(Setting):
   * `"invalid_value"` - Invalid number of tuple elements.
   """
   
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.brush_select_button]
   _EMPTY_VALUES = [()]
   
   _MAX_NUM_TUPLE_ELEMENTS = 4
+  
+  def set_value(self, value):
+    if isinstance(value, types.StringTypes):
+      value = (value,)
+    
+    super().set_value(value)
   
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _(

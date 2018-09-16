@@ -814,6 +814,34 @@ class TestDirpathSetting(unittest.TestCase):
     self.assertIsInstance(self.setting.value, str)
 
 
+class TestBrushSetting(unittest.TestCase):
+  
+  def setUp(self):
+    self.setting = pgsetting.BrushSetting("brush", ("", -1, -1, -1))
+  
+  def test_init_with_brush_name_only_raises_error(self):
+    with self.assertRaises(pgsetting.SettingDefaultValueError):
+      pgsetting.BrushSetting("brush", "Clipboard")
+  
+  @parameterized.parameterized.expand([
+    ("one_element", ("Clipboard",), ("Clipboard",)),
+    ("two_elements", ("Clipboard", 50.0), ("Clipboard", 50.0)),
+    ("four_elements", ("Clipboard", 50.0, 10.0, -1), ("Clipboard", 50.0, 10.0, -1)),
+  ])
+  def test_set_value_with_tuple_valid_length(
+        self, test_case_name_suffix, value, expected_value):
+    self.setting.set_value(value)
+    self.assertEqual(self.setting.value, expected_value)
+  
+  def test_set_value_with_tuple_invalid_length(self):
+    with self.assertRaises(pgsetting.SettingValueError):
+      self.setting.set_value(("", -1, -1, -1, -1))
+  
+  def test_set_value_accepts_brush_name_and_converts_to_tuple(self):
+    self.setting.set_value("Clipboard")
+    self.assertEqual(self.setting.value, ("Clipboard",))
+
+
 class TestImageIDsAndDirpathsSetting(unittest.TestCase):
   
   def setUp(self):
