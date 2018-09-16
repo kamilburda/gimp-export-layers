@@ -172,15 +172,17 @@ class SettingEventsMixin(object):
     
     Additional arguments and keyword arguments are passed via
     `*additional_args` and `**additional_kwargs`, respectively. These arguments
-    are appended to the arguments specified in `connect_event` (if any).
+    are prepended to the arguments specified in `connect_event` (if any).
+    The same keyword arguments in `connect_event` override keyword arguments in
+    `**additional_kwargs`.
     """
     for (event_handler,
          args,
          kwargs,
          enabled) in self._event_handlers[event_type].values():
       if enabled:
-        event_handler_args = tuple(args) + additional_args
-        event_handler_kwargs = dict(kwargs, **additional_kwargs)
+        event_handler_args = additional_args + tuple(args)
+        event_handler_kwargs = dict(additional_kwargs, **kwargs)
         event_handler(self, *event_handler_args, **event_handler_kwargs)
 
 

@@ -128,10 +128,22 @@ class TestSettingEventsMixin(unittest.TestCase):
     use_image_size.connect_event(
       "test-event",
       stubs_pgsetting.on_use_image_size_changed,
-      self.file_extension)
+      file_extension_value="tiff")
     
     use_image_size.set_value(True)
-    use_image_size.invoke_event("test-event", file_extension_value="tiff")
+    use_image_size.invoke_event("test-event", file_extension=self.file_extension)
+    
+    self.assertEqual(self.file_extension.value, "tiff")
+  
+  def test_invoke_event_places_invoke_event_arguments_first(self):
+    use_image_size = pgsetting.BoolSetting("use_image_size", False)
+    use_image_size.connect_event(
+      "test-event",
+      stubs_pgsetting.on_use_image_size_changed,
+      "tiff")
+    
+    use_image_size.set_value(True)
+    use_image_size.invoke_event("test-event", self.file_extension)
     
     self.assertEqual(self.file_extension.value, "tiff")
   

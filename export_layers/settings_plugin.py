@@ -312,7 +312,7 @@ def create_settings():
         "or no extension.")
 
   def on_after_add_operation(
-        operations_, file_extension_setting, operation, orig_operation_name):
+        operations_, operation, orig_operation_name, file_extension_setting):
     if orig_operation_name == "use_file_extensions_in_layer_names":
       operation["enabled"].connect_event(
         "value-changed",
