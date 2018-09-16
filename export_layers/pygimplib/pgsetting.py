@@ -214,11 +214,11 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
         self,
         name,
         default_value,
-        allow_empty_values=False,
         display_name=None,
         description=None,
         pdb_type=SettingPdbTypes.automatic,
         gui_type=SettingGuiTypes.automatic,
+        allow_empty_values=False,
         auto_update_gui_to_setting=True,
         setting_sources=None,
         error_messages=None,
@@ -233,10 +233,6 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
       validated. If one of the so called "empty values" (specific to each
       setting class) is passed as the default value, default value validation is
       not performed.
-    
-    * `allow_empty_values` - If `False` and an empty value is passed to the
-      `set_value` method, then the value is considered invalid. Otherwise, the
-      value is considered valid.
     
     * `pdb_type` - one of the `SettingPdbTypes` items. If set to
       `SettingPdbTypes.automatic` (the default), the first PDB type in the list
@@ -257,6 +253,10 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
       not, `ValueError` is raised.
       
       If the `gui_type` is `None`, no GUI is created for this setting.
+    
+    * `allow_empty_values` - If `False` and an empty value is passed to the
+      `set_value` method, then the value is considered invalid. Otherwise, the
+      value is considered valid.
     
     * `auto_update_gui_to_setting` - If `True`, automatically update the setting
       value if the GUI value is updated. If `False`, the setting must be updated
