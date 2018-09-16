@@ -25,6 +25,9 @@ module are included in `pggui`.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import collections
+import contextlib
+
 import pygtk
 pygtk.require("2.0")
 import gtk
@@ -466,10 +469,7 @@ class ArrayBox(ItemBox):
     self.on_reorder_item = pgutils.empty_func
     self.on_remove_item = pgutils.empty_func
     
-    self._should_invoke_size_spin_button_value_changed_signal = True
-    self._should_update_spin_button = True
-    self._should_remove_below_min_size = False
-    self._should_emit_array_box_changed_signal_when_reordering = True
+    self._locker = _ActionLocker()
     
     self._init_gui()
   
@@ -513,14 +513,12 @@ class ArrayBox(ItemBox):
       item.label.set_label(self._get_item_name(len(self._items)))
     
     if index is not None:
-      self._should_emit_array_box_changed_signal_when_reordering = False
-      self.reorder_item(item, index)
-      self._should_emit_array_box_changed_signal_when_reordering = True
+      with self._locker.lock_temp("emit_array_box_changed_on_reorder"):
+        self.reorder_item(item, index)
     
-    if self._should_update_spin_button:
-      self._should_invoke_size_spin_button_value_changed_signal = False
-      self._size_spin_button.spin(gtk.SPIN_STEP_FORWARD, increment=1)
-      self._should_invoke_size_spin_button_value_changed_signal = True
+    if self._locker.is_unlocked("update_spin_button"):
+      with self._locker.lock_temp("emit_size_spin_button_value_changed"):
+        self._size_spin_button.spin(gtk.SPIN_STEP_FORWARD, increment=1)
     
     return item
   
@@ -532,17 +530,17 @@ class ArrayBox(ItemBox):
     
     self._rename_item_names(min(orig_position, processed_new_position))
     
-    if self._should_emit_array_box_changed_signal_when_reordering:
+    if self._locker.is_unlocked("emit_array_box_changed_on_reorder"):
       self.emit("array-box-changed")
   
   def remove_item(self, item):
-    if not self._should_remove_below_min_size and len(self._items) == self._min_size:
+    if (self._locker.is_unlocked("prevent_removal_below_min_size")
+        and len(self._items) == self._min_size):
       return
     
-    if self._should_update_spin_button:
-      self._should_invoke_size_spin_button_value_changed_signal = False
-      self._size_spin_button.spin(gtk.SPIN_STEP_BACKWARD, increment=1)
-      self._should_invoke_size_spin_button_value_changed_signal = True
+    if self._locker.is_unlocked("update_spin_button"):
+      with self._locker.lock_temp("emit_size_spin_button_value_changed"):
+        self._size_spin_button.spin(gtk.SPIN_STEP_BACKWARD, increment=1)
     
     item_position = self._get_item_position(item)
     self._remove_item(item)
@@ -552,8 +550,8 @@ class ArrayBox(ItemBox):
     self._rename_item_names(item_position)
   
   def set_values(self, values):
-    self._should_invoke_size_spin_button_value_changed_signal = False
-    self._should_remove_below_min_size = True
+    self._locker.lock("emit_size_spin_button_value_changed")
+    self._locker.lock("prevent_removal_below_min_size")
     
     orig_on_remove_item = self.on_remove_item
     self.on_remove_item = pgutils.empty_func
@@ -566,8 +564,8 @@ class ArrayBox(ItemBox):
     
     self._size_spin_button.set_value(len(values))
     
-    self._should_remove_below_min_size = False
-    self._should_invoke_size_spin_button_value_changed_signal = True
+    self._locker.unlock("prevent_removal_below_min_size")
+    self._locker.unlock("emit_size_spin_button_value_changed")
   
   def _setup_drag(self, item):
     self._drag_and_drop_context.setup_drag(
@@ -583,8 +581,8 @@ class ArrayBox(ItemBox):
       self)
   
   def _on_size_spin_button_value_changed(self, size_spin_button):
-    if self._should_invoke_size_spin_button_value_changed_signal:
-      self._should_update_spin_button = False
+    if self._locker.is_unlocked("emit_size_spin_button_value_changed"):
+      self._locker.lock("update_spin_button")
       
       new_size = size_spin_button.get_value_as_int()
       
@@ -599,20 +597,21 @@ class ArrayBox(ItemBox):
       
       self.emit("array-box-changed")
       
-      self._should_update_spin_button = True
+      self._locker.unlock("update_spin_button")
   
   def _on_item_remove_button_clicked(self, remove_button, item):
-    self._should_invoke_size_spin_button_value_changed_signal = False
+    self._locker.lock("emit_size_spin_button_value_changed")
     
     should_emit_signal = (
-      len(self._items) > self._min_size or self._should_remove_below_min_size)
+      len(self._items) > self._min_size
+      or self._locker.is_locked("prevent_removal_below_min_size"))
     
     super()._on_item_remove_button_clicked(remove_button, item)
     
     if should_emit_signal:
       self.emit("array-box-changed")
     
-    self._should_invoke_size_spin_button_value_changed_signal = True
+    self._locker.unlock("emit_size_spin_button_value_changed")
   
   def _rename_item_names(self, start_index):
     for index, item in enumerate(self._items[start_index:]):
@@ -637,6 +636,33 @@ class _ArrayBoxItem(ItemBoxItem):
   @property
   def label(self):
     return self._label
+
+
+class _ActionLocker(object):
+  
+  def __init__(self):
+    self._tokens = collections.defaultdict(int)
+  
+  @contextlib.contextmanager
+  def lock_temp(self, key):
+    self.lock(key)
+    try:
+      yield
+    finally:
+      self.unlock(key)
+  
+  def lock(self, key):
+    self._tokens[key] += 1
+  
+  def unlock(self, key):
+    if self._tokens[key] > 0:
+      self._tokens[key] -= 1
+  
+  def is_locked(self, key):
+    return self._tokens[key] > 0
+  
+  def is_unlocked(self, key):
+    return self._tokens[key] == 0
 
 
 gobject.type_register(ArrayBox)
