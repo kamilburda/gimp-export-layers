@@ -278,7 +278,7 @@ Use the following format for commit messages*:
     
     <body>
 
-* Limit the first line to 70 characters*. Recommended length is 50 characters.
+* Limit the first line to 80 characters*. Strive for brevity and clarity.
 * Do not end the first line with a period*.
 * Begin the header with a verb in the imperative.
 * Begin the header with a capital letter*.
