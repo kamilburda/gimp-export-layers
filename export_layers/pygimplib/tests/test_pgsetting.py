@@ -24,6 +24,7 @@ from future.builtins import *
 import os
 import unittest
 
+import gimpcolor
 import gimpenums
 
 import mock
@@ -52,6 +53,18 @@ class TestSetting(unittest.TestCase):
     
     with self.assertRaises(ValueError):
       stubs_pgsetting.SettingStub("file.extension", "png")
+  
+  def test_default_default_value(self):
+    self.assertEqual(stubs_pgsetting.SettingStub("setting").default_value, 0)
+  
+  def test_callable_default_default_value(self):
+    self.assertEqual(
+      stubs_pgsetting.SettingStubWithCallableDefaultDefaultValue("setting").default_value,
+      "_setting")
+  
+  def test_explicit_default_value(self):
+    self.assertEqual(
+      stubs_pgsetting.SettingStub("file_extension", "png").default_value, "png")
   
   def test_invalid_default_value(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
@@ -601,7 +614,8 @@ class TestBoolSetting(unittest.TestCase):
 class TestIntSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.IntSetting("count", 0, min_value=0, max_value=100)
+    self.setting = pgsetting.IntSetting(
+      "count", default_value=0, min_value=0, max_value=100)
   
   def test_value_is_below_min(self):
     with self.assertRaises(pgsetting.SettingValueError):
@@ -628,7 +642,7 @@ class TestFloatSetting(unittest.TestCase):
   
   def setUp(self):
     self.setting = pgsetting.FloatSetting(
-      "clip_percent", 0.0, min_value=0.0, max_value=100.0)
+      "clip_percent", default_value=0.0, min_value=0.0, max_value=100.0)
   
   def test_value_below_min(self):
     with self.assertRaises(pgsetting.SettingValueError):
@@ -651,69 +665,89 @@ class TestFloatSetting(unittest.TestCase):
       self.fail("SettingValueError should not be raised")
 
 
-class TestEnumSettingInitialization(unittest.TestCase):
+class TestCreateEnumSetting(unittest.TestCase):
   
-  def test_explicit_values(self):
+  def test_default_default_value_is_first_item(self):
     setting = pgsetting.EnumSetting(
-      "overwrite_mode", "replace", [("skip", "Skip", 5), ("replace", "Replace", 6)])
+      "overwrite_mode", [("skip", "Skip"), ("replace", "Replace")])
+    self.assertEqual(setting.default_value, setting.items["skip"])
+  
+  def test_no_items_raises_error(self):
+    with self.assertRaises(ValueError):
+      pgsetting.EnumSetting("overwrite_mode", [])
+  
+  def test_explicit_item_values(self):
+    setting = pgsetting.EnumSetting(
+      "overwrite_mode",
+      [("skip", "Skip", 5), ("replace", "Replace", 6)],
+      default_value="replace")
     self.assertEqual(setting.items["skip"], 5)
     self.assertEqual(setting.items["replace"], 6)
   
-  def test_explicit_values_wrong_number_of_elements(self):
+  def test_inconsistent_number_of_elements_raises_error(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
         "overwrite_mode", "replace", [("skip", "Skip", 4), ("replace", "Replace")])
     
-  def test_invalid_explicit_values(self):
+  def test_same_explicit_item_value_multiple_times_raises_error(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
-        "overwrite_mode", "replace", [("skip", "Skip", 4), ("replace", "Replace", 4)])
+        "overwrite_mode", [("skip", "Skip", 4), ("replace", "Replace", 4)])
   
-  def test_invalid_default_value(self):
+  def test_invalid_default_value_raises_error(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
       pgsetting.EnumSetting(
-        "overwrite_mode", "invalid_default_value",
-        [("skip", "Skip"), ("replace", "Replace")])
+        "overwrite_mode",
+        [("skip", "Skip"), ("replace", "Replace")],
+        default_value="invalid_default_value")
   
-  def test_invalid_items_length_varying(self):
+  def test_too_many_elements_in_items_raises_error(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
-        "overwrite_mode", None, [("skip", "Skip", 1), ("replace", "Replace")])
+        "overwrite_mode", [("skip", "Skip", 1, 1), ("replace", "Replace", 1, 1)])
   
-  def test_invalid_items_length_too_many_elements(self):
+  def test_too_few_elements_in_items_raises_error(self):
     with self.assertRaises(ValueError):
-      pgsetting.EnumSetting(
-        "overwrite_mode", None, [("skip", "Skip", 1, 1), ("replace", "Replace", 1, 1)])
-  
-  def test_invalid_items_length_too_few_elements(self):
-    with self.assertRaises(ValueError):
-      pgsetting.EnumSetting("overwrite_mode", None, [("skip"), ("replace")])
+      pgsetting.EnumSetting("overwrite_mode", [("skip"), ("replace")])
   
   def test_no_empty_value(self):
     setting = pgsetting.EnumSetting(
-      "overwrite_mode", "replace", [("skip", "Skip"), ("replace", "Replace")])
+      "overwrite_mode", [("skip", "Skip"), ("replace", "Replace")])
     self.assertEqual(setting.empty_value, None)
   
   def test_valid_empty_value(self):
     setting = pgsetting.EnumSetting(
-      "overwrite_mode", "replace",
+      "overwrite_mode",
       [("choose", "Choose your mode"), ("skip", "Skip"), ("replace", "Replace")],
+      default_value="replace",
       empty_value="choose")
     self.assertEqual(setting.empty_value, setting.items["choose"])
   
-  def test_invalid_empty_value(self):
+  def test_empty_value_is_equal_to_default_default_value(self):
+    setting = pgsetting.EnumSetting(
+      "overwrite_mode",
+      [("choose", "Choose your mode"), ("skip", "Skip"), ("replace", "Replace")],
+      empty_value="choose")
+    
+    self.assertEqual(setting.default_value, setting.items["choose"])
+    self.assertEqual(setting.empty_value, setting.items["choose"])
+  
+  def test_invalid_empty_value_raises_error(self):
     with self.assertRaises(ValueError):
       pgsetting.EnumSetting(
-        "overwrite_mode", "replace",
-        [("skip", "Skip"), ("replace", "Replace")], empty_value="invalid_value")
+        "overwrite_mode",
+        [("skip", "Skip"), ("replace", "Replace")],
+        empty_value="invalid_value")
   
 
 class TestEnumSetting(unittest.TestCase):
   
   def setUp(self):
     self.setting = pgsetting.EnumSetting(
-      "overwrite_mode", "replace",
-      [("skip", "Skip"), ("replace", "Replace")], display_name="Overwrite mode")
+      "overwrite_mode",
+      [("skip", "Skip"), ("replace", "Replace")],
+      default_value="replace",
+      display_name="Overwrite mode")
   
   def test_set_invalid_item(self):
     with self.assertRaises(pgsetting.SettingValueError):
@@ -730,8 +764,10 @@ class TestEnumSetting(unittest.TestCase):
   
   def test_description_with_mnemonics_from_item_display_names(self):
     setting = pgsetting.EnumSetting(
-      "overwrite_mode", "replace",
-      [("skip", "_Skip"), ("replace", "_Replace")], display_name="_Overwrite mode")
+      "overwrite_mode",
+      [("skip", "_Skip"), ("replace", "_Replace")],
+      display_name="_Overwrite mode",
+      default_value="replace")
     self.assertEqual(setting.description, "Overwrite mode { Skip (0), Replace (1) }")
   
   def test_get_item_display_names_and_values(self):
@@ -740,9 +776,11 @@ class TestEnumSetting(unittest.TestCase):
   
   def test_is_value_empty(self):
     setting = pgsetting.EnumSetting(
-      "overwrite_mode", "replace",
+      "overwrite_mode",
       [("choose", "-Choose Your Mode-"), ("skip", "Skip"), ("replace", "Replace")],
-      empty_value="choose", allow_empty_values=True)
+      default_value="replace",
+      empty_value="choose",
+      allow_empty_values=True)
     
     self.assertFalse(setting.is_value_empty())
     setting.set_value(setting.items["choose"])
@@ -750,8 +788,9 @@ class TestEnumSetting(unittest.TestCase):
     
   def test_set_empty_value_not_allowed(self):
     setting = pgsetting.EnumSetting(
-      "overwrite_mode", "replace",
+      "overwrite_mode",
       [("choose", "-Choose Your Mode-"), ("skip", "Skip"), ("replace", "Replace")],
+      default_value="replace",
       empty_value="choose")
     
     with self.assertRaises(pgsetting.SettingValueError):
@@ -782,14 +821,31 @@ class TestImageSetting(unittest.TestCase):
         "SettingDefaultValueError should not be raised - default value is an empty value")
 
 
+class TestColorSetting(unittest.TestCase):
+  
+  def test_create_with_default_default_value(self):
+    self.assertEqual(
+      pgsetting.ColorSetting("color").default_value, gimpcolor.RGB(0, 0, 0))
+
+
+class TestParasiteSetting(unittest.TestCase):
+  
+  def test_create_with_default_default_value(self):
+    setting = pgsetting.ParasiteSetting("parasite")
+    
+    self.assertEqual(setting.value.name, "parasite")
+    self.assertEqual(setting.value.flags, 0)
+    self.assertEqual(setting.value.data, "")
+
+
 class TestFileExtensionSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.FileExtensionSetting("file_ext", "png")
+    self.setting = pgsetting.FileExtensionSetting("file_ext", default_value="png")
   
   def test_invalid_default_value(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
-      pgsetting.FileExtensionSetting("file_ext", None)
+      pgsetting.FileExtensionSetting("file_ext", default_value=None)
   
   def test_custom_error_message(self):
     self.setting.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = (
@@ -803,10 +859,11 @@ class TestFileExtensionSetting(unittest.TestCase):
 class TestDirpathSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.DirpathSetting("output_directory", "/some_dir")
+    self.setting = pgsetting.DirpathSetting("output_directory", default_value="/some_dir")
   
   def test_default_value_as_bytes_convert_to_unicode(self):
-    setting = pgsetting.DirpathSetting("output_directory", b"/some_dir/p\xc5\x88g")
+    setting = pgsetting.DirpathSetting(
+      "output_directory", default_value=b"/some_dir/p\xc5\x88g")
     self.assertIsInstance(setting.value, str)
   
   def test_set_value_as_bytes_convert_to_unicode(self):
@@ -817,11 +874,11 @@ class TestDirpathSetting(unittest.TestCase):
 class TestBrushSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.BrushSetting("brush", ("", -1, -1, -1))
+    self.setting = pgsetting.BrushSetting("brush", default_value=("", -1, -1, -1))
   
   def test_init_with_brush_name_only_raises_error(self):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
-      pgsetting.BrushSetting("brush", "Clipboard")
+      pgsetting.BrushSetting("brush", default_value="Clipboard")
   
   @parameterized.parameterized.expand([
     ("one_element", ("Clipboard",), ("Clipboard",)),
@@ -845,7 +902,8 @@ class TestBrushSetting(unittest.TestCase):
 class TestImageIDsAndDirpathsSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = pgsetting.ImageIDsAndDirpathsSetting("image_ids_and_directories", {})
+    self.setting = pgsetting.ImageIDsAndDirpathsSetting(
+      "image_ids_and_directories", default_value={})
     
     self.image_ids_and_filepaths = [
       (0, None), (1, "C:\\image.png"), (2, "/test/test.jpg"),
@@ -926,7 +984,7 @@ class TestCreateArraySetting(unittest.TestCase):
   def test_create(self):
     setting = pgsetting.ArraySetting(
       "coordinates",
-      (1.0, 5.0, 10.0),
+      default_value=(1.0, 5.0, 10.0),
       element_type=pgsetting.SettingTypes.float,
       element_default_value=0.0)
     
@@ -936,11 +994,28 @@ class TestCreateArraySetting(unittest.TestCase):
     self.assertEqual(setting.element_type, pgsetting.SettingTypes.float)
     self.assertEqual(setting.element_default_value, 0.0)
   
+  def test_create_with_empty_tuple(self):
+    setting = pgsetting.ArraySetting(
+      "coordinates",
+      default_value=(),
+      element_type=pgsetting.SettingTypes.float,
+      element_default_value=0.0)
+    
+    self.assertEqual(setting.default_value, ())
+    self.assertEqual(setting.value, ())
+  
+  def test_create_with_element_default_value(self):
+    setting = pgsetting.ArraySetting(
+      "coordinates", element_type=pgsetting.SettingTypes.float)
+    setting.add_element()
+    
+    self.assertEqual(setting[0].value, 0.0)
+  
   def test_create_passing_non_tuple_as_default_value_converts_initial_value_to_tuple(
         self):
     setting = pgsetting.ArraySetting(
       "coordinates",
-      [1.0, 5.0, 10.0],
+      default_value=[1.0, 5.0, 10.0],
       element_type=pgsetting.SettingTypes.float,
       element_default_value=0.0)
     
@@ -950,7 +1025,7 @@ class TestCreateArraySetting(unittest.TestCase):
   def test_create_with_additional_read_only_element_arguments(self):
     setting = pgsetting.ArraySetting(
       "coordinates",
-      (1.0, 5.0, 10.0),
+      default_value=(1.0, 5.0, 10.0),
       element_type=pgsetting.SettingTypes.float,
       element_default_value=0.0,
       element_min_value=-100.0,
@@ -967,7 +1042,7 @@ class TestCreateArraySetting(unittest.TestCase):
   def test_create_with_additional_arguments_overriding_internal_element_arguments(self):
     setting = pgsetting.ArraySetting(
       "coordinates",
-      (1.0, 5.0, 10.0),
+      default_value=(1.0, 5.0, 10.0),
       element_type=pgsetting.SettingTypes.float,
       element_default_value=0.0,
       element_min_value=-100.0,
@@ -980,7 +1055,7 @@ class TestCreateArraySetting(unittest.TestCase):
     with self.assertRaises(pgsetting.SettingValueError):
       pgsetting.ArraySetting(
         "coordinates",
-        (-200.0, 200.0),
+        default_value=(-200.0, 200.0),
         element_type=pgsetting.SettingTypes.float,
         element_default_value=0.0,
         element_min_value=-100.0,
@@ -995,7 +1070,7 @@ class TestCreateArraySetting(unittest.TestCase):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
       pgsetting.ArraySetting(
         "coordinates",
-        default_value,
+        default_value=default_value,
         element_type=pgsetting.SettingTypes.float,
         element_default_value=-200.0,
         element_min_value=-100.0,
@@ -1021,7 +1096,7 @@ class TestCreateArraySetting(unittest.TestCase):
         self, test_case_name_suffix, pdb_type, element_type, expected_pdb_type):
     setting = pgsetting.ArraySetting(
       "coordinates",
-      (1.0, 5.0, 10.0),
+      default_value=(1.0, 5.0, 10.0),
       pdb_type=pdb_type,
       element_type=element_type,
       element_default_value=0.0)
@@ -1031,7 +1106,7 @@ class TestCreateArraySetting(unittest.TestCase):
   def test_create_with_explicit_valid_element_pdb_type(self):
     setting = pgsetting.ArraySetting(
       "coordinates",
-      (1, 5, 10),
+      default_value=(1, 5, 10),
       element_type=pgsetting.SettingTypes.integer,
       element_default_value=0,
       element_pdb_type=pgsetting.SettingPdbTypes.int16)
@@ -1042,7 +1117,7 @@ class TestCreateArraySetting(unittest.TestCase):
     with self.assertRaises(ValueError):
       pgsetting.ArraySetting(
         "coordinates",
-        (1.0, 5.0, 10.0),
+        default_value=(1.0, 5.0, 10.0),
         element_type=pgsetting.SettingTypes.float,
         element_default_value=0.0,
         element_pdb_type=pgsetting.SettingPdbTypes.int16)
@@ -1052,7 +1127,7 @@ class TestCreateArraySetting(unittest.TestCase):
     
     setting = pgsetting.ArraySetting(
       "path_coordinates",
-      values,
+      default_value=values,
       element_type=pgsetting.SettingTypes.array,
       element_default_value=(0.0, 0.0, 0.0),
       element_element_type=pgsetting.SettingTypes.float,
@@ -1072,6 +1147,17 @@ class TestCreateArraySetting(unittest.TestCase):
       for j in range(len(setting[i])):
         self.assertEqual(setting[i][j].default_value, 1.0)
         self.assertEqual(setting[i][j].value, values[i][j])
+  
+  def test_create_multidimensional_array_with_default_default_values(self):
+    setting = pgsetting.ArraySetting(
+      "path_coordinates",
+      element_type=pgsetting.SettingTypes.array,
+      element_element_type=pgsetting.SettingTypes.float)
+    
+    setting.add_element()
+    self.assertEqual(setting.value, ((),))
+    setting[0].add_element()
+    self.assertEqual(setting.value, ((0.0,),))
 
 
 class TestArraySetting(unittest.TestCase):
@@ -1079,7 +1165,7 @@ class TestArraySetting(unittest.TestCase):
   def setUp(self):
     self.setting = pgsetting.ArraySetting(
       "coordinates",
-      (1.0, 5.0, 10.0),
+      default_value=(1.0, 5.0, 10.0),
       element_type=pgsetting.SettingTypes.float,
       element_default_value=0.0,
       element_min_value=-100.0,
@@ -1198,7 +1284,7 @@ class TestArraySetting(unittest.TestCase):
   def test_add_element_none_as_value(self):
     setting = pgsetting.ArraySetting(
       "coordinates",
-      (),
+      default_value=(),
       element_type=pgsetting.SettingTypes.generic,
       element_default_value=0)
     
@@ -1329,7 +1415,7 @@ class TestArraySetting(unittest.TestCase):
   def test_get_pdb_param_for_nonregistrable_setting(self):
     setting = pgsetting.ArraySetting(
       "coordinates",
-      (1.0, 5.0, 10.0),
+      default_value=(1.0, 5.0, 10.0),
       element_type=pgsetting.SettingTypes.generic,
       element_default_value=0.0)
     
@@ -1355,7 +1441,7 @@ class TestArraySettingCreateWithSize(unittest.TestCase):
         expected_max_size):
     setting = pgsetting.ArraySetting(
       "coordinates",
-      (1.0, 5.0, 10.0),
+      default_value=(1.0, 5.0, 10.0),
       element_type=pgsetting.SettingTypes.float,
       element_default_value=0.0,
       min_size=min_size,
@@ -1375,7 +1461,7 @@ class TestArraySettingCreateWithSize(unittest.TestCase):
     with self.assertRaises(pgsetting.SettingDefaultValueError):
       pgsetting.ArraySetting(
         "coordinates",
-        (1.0, 5.0, 10.0),
+        default_value=(1.0, 5.0, 10.0),
         element_type=pgsetting.SettingTypes.float,
         element_default_value=0.0,
         min_size=min_size,
@@ -1387,7 +1473,7 @@ class TestArraySettingSize(unittest.TestCase):
   def setUp(self):
     self.setting = pgsetting.ArraySetting(
       "coordinates",
-      (1.0, 5.0, 10.0),
+      default_value=(1.0, 5.0, 10.0),
       element_type=pgsetting.SettingTypes.float,
       element_default_value=0.0,
       element_min_value=-100.0,

@@ -106,6 +106,7 @@ class YesNoToggleButtonPresenterStub(SettingPresenterStub):
 
 class SettingStub(pgsetting.Setting):
   
+  _DEFAULT_DEFAULT_VALUE = 0
   _EMPTY_VALUES = [""]
   
   def _init_error_messages(self):
@@ -114,6 +115,11 @@ class SettingStub(pgsetting.Setting):
   def _validate(self, value):
     if value is None or value == "":
       raise pgsetting.SettingValueError(self._error_messages["invalid_value"])
+
+
+class SettingStubWithCallableDefaultDefaultValue(SettingStub):
+  
+  _DEFAULT_DEFAULT_VALUE = lambda self: "_" + self._name
 
 
 class SettingRegistrableToPdbStub(SettingStub):

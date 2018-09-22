@@ -89,10 +89,10 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
       self.source.read(self.settings)
   
   def test_read_invalid_setting_value_set_to_default_value(self, mock_session_source):
-    setting_with_invalid_value = pgsetting.IntSetting("int", -1)
+    setting_with_invalid_value = pgsetting.IntSetting("int", default_value=-1)
     self.source.write([setting_with_invalid_value])
     
-    setting = pgsetting.IntSetting("int", 2, min_value=0)
+    setting = pgsetting.IntSetting("int", default_value=2, min_value=0)
     self.source.read([setting])
     
     self.assertEqual(setting.value, setting.default_value)
@@ -132,7 +132,8 @@ class TestPersistentSettingSource(unittest.TestCase):
   
   def test_write_read_same_setting_name_in_different_groups(self, mock_persistent_source):
     settings = stubs_pgsettinggroup.create_test_settings_hierarchical()
-    file_extension_advanced_setting = pgsetting.FileExtensionSetting("file_extension", "png")
+    file_extension_advanced_setting = pgsetting.FileExtensionSetting(
+      "file_extension", default_value="png")
     settings["advanced"].add([file_extension_advanced_setting])
     
     self.source.write(settings.walk())
@@ -162,10 +163,10 @@ class TestPersistentSettingSource(unittest.TestCase):
       self.source.read(self.settings)
   
   def test_read_invalid_setting_value_set_to_default_value(self, mock_persistent_source):
-    setting_with_invalid_value = pgsetting.IntSetting("int", -1)
+    setting_with_invalid_value = pgsetting.IntSetting("int", default_value=-1)
     self.source.write([setting_with_invalid_value])
     
-    setting = pgsetting.IntSetting("int", 2, min_value=0)
+    setting = pgsetting.IntSetting("int", default_value=2, min_value=0)
     self.source.read([setting])
     
     self.assertEqual(setting.value, setting.default_value)

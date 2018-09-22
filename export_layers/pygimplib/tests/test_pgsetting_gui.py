@@ -47,17 +47,11 @@ def test_settings_and_gui(setting_items):
   settings = []
   
   for item in setting_items:
-    if isinstance(item, dict):
-      setting_type = item.pop("type")
-      
-      for gui_type in setting_type._ALLOWED_GUI_TYPES:
-        settings.append(setting_type(**item))
-    else:
-      setting_type = item[1]
-      setting_type_args = [item[0]] + list(item[2:])
-      
-      for gui_type in setting_type._ALLOWED_GUI_TYPES:
-        settings.append(setting_type(*setting_type_args, gui_type=gui_type))
+    setting_type = item.pop("type")
+    
+    for gui_type in setting_type._ALLOWED_GUI_TYPES:
+      item["gui_type"] = gui_type
+      settings.append(setting_type(**item))
   
   dialog = gtk.Dialog()
   
@@ -150,37 +144,111 @@ def _get_basic_settings():
   image = _create_test_image()
   
   return [
-    ("integer", pgsetting.SettingTypes.integer, 0),
-    ("float", pgsetting.SettingTypes.float, 0),
-    ("boolean", pgsetting.SettingTypes.boolean, False),
-    ("enumerated",
-     pgsetting.SettingTypes.enumerated,
-     "non_interactive",
-     [("interactive", "RUN-INTERACTIVE"),
+    {
+      "name": "integer",
+      "type": pgsetting.SettingTypes.integer,
+    },
+    {
+      "name": "float",
+      "type": pgsetting.SettingTypes.float,
+    },
+    {
+      "name": "boolean",
+      "type": pgsetting.SettingTypes.boolean,
+    },
+    {
+     "name": "enumerated",
+     "type": pgsetting.SettingTypes.enumerated,
+     "items": [("interactive", "RUN-INTERACTIVE"),
       ("non_interactive", "RUN-NONINTERACTIVE"),
-      ("run_with_last_vals", "RUN-WITH-LAST-VALS")],),
-    ("string", pgsetting.SettingTypes.string, "Test"),
+      ("run_with_last_vals", "RUN-WITH-LAST-VALS")],
+     "default_value": "non_interactive",
+    },
+    {
+      "name": "string",
+      "type": pgsetting.SettingTypes.string,
+      "default_value": "Test",
+    },
     
-    ("image", pgsetting.SettingTypes.image, image),
-    ("drawable", pgsetting.SettingTypes.drawable, image.layers[0]),
-    ("layer", pgsetting.SettingTypes.layer, image.layers[0]),
-    ("channel", pgsetting.SettingTypes.channel, image.channels[0]),
-    ("selection", pgsetting.SettingTypes.selection, pdb.gimp_image_get_selection(image)),
-    ("vectors", pgsetting.SettingTypes.vectors, image.vectors[0]),
+    {
+      "name": "image",
+      "type": pgsetting.SettingTypes.image,
+      "default_value": image,
+    },
+    {
+      "name": "drawable",
+      "type": pgsetting.SettingTypes.drawable,
+      "default_value": image.layers[0],
+    },
+    {
+      "name": "layer",
+      "type": pgsetting.SettingTypes.layer,
+      "default_value": image.layers[0],
+    },
+    {
+      "name": "channel",
+      "type": pgsetting.SettingTypes.channel,
+      "default_value": image.channels[0],
+    },
+    {
+      "name": "selection",
+      "type": pgsetting.SettingTypes.selection,
+      "default_value": pdb.gimp_image_get_selection(image),
+    },
+    {
+      "name": "vectors",
+      "type": pgsetting.SettingTypes.vectors,
+      "default_value": image.vectors[0],
+    },
     
-    ("color", pgsetting.SettingTypes.color, gimpcolor.RGB(0, 0, 255)),
-    ("parasite", pgsetting.SettingTypes.parasite, gimp.Parasite("Test", 0, "data")),
-    ("display", pgsetting.SettingTypes.display, gimp.Display(image)),
-    ("pdb_status", pgsetting.SettingTypes.pdb_status, "PDB_SUCCESS"),
+    {
+      "name": "color",
+      "type": pgsetting.SettingTypes.color,
+    },
+    {
+      "name": "parasite",
+      "type": pgsetting.SettingTypes.parasite,
+    },
+    {
+      "name": "display",
+      "type": pgsetting.SettingTypes.display,
+      "default_value": gimp.Display(image),
+    },
+    {
+      "name": "pdb_status",
+      "type": pgsetting.SettingTypes.pdb_status,
+    },
     
-    ("file_extension", pgsetting.SettingTypes.file_extension, "png"),
-    ("directory", pgsetting.SettingTypes.directory, gimp.directory),
+    {
+      "name": "file_extension",
+      "type": pgsetting.SettingTypes.file_extension,
+      "default_value": "png",
+    },
+    {
+      "name": "directory",
+      "type": pgsetting.SettingTypes.directory,
+    },
     
-    ("brush", pgsetting.SettingTypes.brush, ()),
-    ("font", pgsetting.SettingTypes.font, ""),
-    ("gradient", pgsetting.SettingTypes.gradient, ""),
-    ("palette", pgsetting.SettingTypes.palette, ""),
-    ("pattern", pgsetting.SettingTypes.pattern, ""),
+    {
+      "name": "brush",
+      "type": pgsetting.SettingTypes.brush,
+    },
+    {
+      "name": "font",
+      "type": pgsetting.SettingTypes.font,
+    },
+    {
+      "name": "gradient",
+      "type": pgsetting.SettingTypes.gradient,
+    },
+    {
+      "name": "palette",
+      "type": pgsetting.SettingTypes.palette,
+    },
+    {
+      "name": "pattern",
+      "type": pgsetting.SettingTypes.pattern,
+    },
   ]
 
 

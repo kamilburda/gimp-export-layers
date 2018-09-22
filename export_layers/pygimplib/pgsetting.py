@@ -167,7 +167,11 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     `set_value()` method. `value` is initially set to `default_value`.
   
   * `default_value` (read-only) - Default value of the setting assigned upon its
-    initialization or after the `reset()` method is called.
+    initialization or after the `reset()` method is called. If not specified or
+    if `DEFAULT_VALUE` is passed explicitly, a default value is assigned
+    automatically. The value depends on the particular setting subclass. This
+    class uses `None` as the default value. Note that it is still a good
+    practice to specify default values explicitly.
   
   * `gui` (read-only) - `SettingPresenter` instance acting as a wrapper of a GUI
     element. With `gui`, you may modify GUI-specific attributes, such as
@@ -195,7 +199,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
   * `setting_sources` (read-only) - Default setting sources to use when loading
     or saving the setting. If `None`, no default sources are specified.
   
-  * `error_messages` (read-only) - A dict of error messages containing
+  * `error_messages` (read-only) - A dictionary of error messages containing
     (message name, message contents) pairs, which can be used e.g. if a value
     assigned to the setting is invalid. You can add your own error messages and
     assign them to one of the "default" error messages (such as "invalid_value"
@@ -206,14 +210,17 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     to e.g. iterate over a specific subset of settings.
   """
   
+  DEFAULT_VALUE = type(b"DefaultValue", (), {})()
+  
   _ALLOWED_PDB_TYPES = []
   _ALLOWED_GUI_TYPES = []
+  _DEFAULT_DEFAULT_VALUE = None
   _EMPTY_VALUES = []
   
   def __init__(
         self,
         name,
-        default_value,
+        default_value=DEFAULT_VALUE,
         display_name=None,
         description=None,
         pdb_type=SettingPdbTypes.automatic,
@@ -265,9 +272,9 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
       This parameter does not have any effect if the GUI type used in
       this setting cannot provide automatic GUI-to-setting update.
     
-    * `error_messages` - A dict containing (message name, message contents)
-      pairs. Use this to pass custom error messages. This way, you may also
-      override default error messages defined in classes.
+    * `error_messages` - A dictionary containing (message name, message
+      contents) pairs. Use this to pass custom error messages. This way, you may
+      also override default error messages defined in classes.
     
     * `tags` - An iterable container (list, set, etc.) of arbitrary tags
       attached to the setting. Tags can be used to e.g. iterate over a specific
@@ -278,7 +285,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     self._name = name
     pgsettingutils.check_setting_name(self._name)
     
-    self._default_value = default_value
+    self._default_value = self._get_default_value(default_value)
     
     self._value = self._copy_value(self._default_value)
     
@@ -617,6 +624,15 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     except SettingValueError as e:
       raise SettingDefaultValueError(str(e), setting=self)
   
+  def _get_default_value(self, default_value):
+    if isinstance(default_value, type(self.DEFAULT_VALUE)):
+      if not callable(self._DEFAULT_DEFAULT_VALUE):
+        return self._DEFAULT_DEFAULT_VALUE
+      else:
+        return self._DEFAULT_DEFAULT_VALUE()
+    else:
+      return default_value
+  
   def _get_pdb_type(self, pdb_type):
     if pdb_type == SettingPdbTypes.automatic:
       return self._get_default_pdb_type()
@@ -696,11 +712,11 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   * `"above_max"` - The value assigned is greater than `max_value`.
   """
   
-  def __init__(self, name, default_value, min_value=None, max_value=None, **kwargs):
+  def __init__(self, name, min_value=None, max_value=None, **kwargs):
     self._min_value = min_value
     self._max_value = max_value
     
-    super().__init__(name, default_value, **kwargs)
+    super().__init__(name, **kwargs)
   
   def _init_error_messages(self):
     self.error_messages["below_min"] = (
@@ -745,11 +761,14 @@ class IntSetting(NumericSetting):
   * `SettingPdbTypes.int32` (default)
   * `SettingPdbTypes.int16`
   * `SettingPdbTypes.int8`
+  
+  Default value: 0
   """
   
   _ALLOWED_PDB_TYPES = [
     SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.int_spin_button]
+  _DEFAULT_DEFAULT_VALUE = 0
 
 
 class FloatSetting(NumericSetting):
@@ -759,10 +778,13 @@ class FloatSetting(NumericSetting):
   Allowed GIMP PDB types:
   
   * `SettingPdbTypes.float`
+  
+  Default value: 0.0
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.float]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.float_spin_button]
+  _DEFAULT_DEFAULT_VALUE = 0.0
 
 
 class BoolSetting(Setting):
@@ -777,11 +799,14 @@ class BoolSetting(Setting):
   * `SettingPdbTypes.int32` (default)
   * `SettingPdbTypes.int16`
   * `SettingPdbTypes.int8`
+  
+  Default value: `False`
   """
   
   _ALLOWED_PDB_TYPES = [
     SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.check_button, SettingGuiTypes.check_menu_item]
+  _DEFAULT_DEFAULT_VALUE = False
   
   @property
   def description(self):
@@ -802,14 +827,18 @@ class EnumSetting(Setting):
   * `SettingPdbTypes.int16`
   * `SettingPdbTypes.int8`
   
+  Default value: Name of the first item passed to the `items` parameter during
+  initialization.
+  
   Additional attributes:
   
-  * `items` (read-only) - A dict of <item name, item value> pairs. Item name
-    uniquely identifies each item. Item value is the corresponding integer
+  * `items` (read-only) - A dictionary of <item name, item value> pairs. Item
+    name uniquely identifies each item. Item value is the corresponding integer
     value.
   
-  * `items_display_names` (read-only) - A dict of <item name, item display name>
-    pairs. Item display names can be used e.g. as combo box items in the GUI.
+  * `items_display_names` (read-only) - A dictionary of <item name, item display
+    name> pairs. Item display names can be used e.g. as combo box items in the
+    GUI.
   
   * `empty_value` (read-only) - Item name designated as the empty value. By
     default, the setting does not have an empty value.
@@ -824,7 +853,12 @@ class EnumSetting(Setting):
   
   * `SettingValueError` - See `"invalid_value"` error message below.
   
-  * `ValueError` - See the other error messages below.
+  * `SettingDefaultValueError` - See `"invalid_default_value"` error message
+    below.
+  
+  * `ValueError` - no items were specified, the same value was assigned to
+    multiple items, or uneven number of elements was passed to the `items`
+    parameter during initialization.
   
   * `KeyError` - Invalid key to `items` or `items_display_names`.
   
@@ -840,50 +874,44 @@ class EnumSetting(Setting):
   _ALLOWED_PDB_TYPES = [
     SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.combo_box]
+  _DEFAULT_DEFAULT_VALUE = lambda self: next((name for name in self._items), None)
   
-  def __init__(self, name, default_value, items, empty_value=None, **kwargs):
+  def __init__(self, name, items, empty_value=None, **kwargs):
     """
     Additional parameters:
     
-    * `default_value` - Item name (identifier). Unlike other Setting classes,
-      where the default value is specified directly, EnumSetting accepts a valid
-      item name instead.
-    
     * `items` - A list of either (item name, item display name) tuples
-      or (item name, item display name, item value) tuples.
-      
-      For 2-element tuples, item values are assigned automatically, starting
-      with 0. Use 3-element tuples to assign explicit item values. Values must
-      be unique and specified in each tuple. Use only 2- or only 3-element
-      tuples, they cannot be combined.
+      or (item name, item display name, item value) tuples. For 2-element
+      tuples, item values are assigned automatically, starting with 0. Use
+      3-element tuples to assign explicit item values. Values must be unique
+      and specified in each tuple. Use only 2- or only 3-element tuples, they
+      cannot be combined.
+    
+    * `default_value` - Item name (identifier). Unlike other Setting classes,
+      where the default value is specified directly, `EnumSetting` accepts a
+      valid item name instead.
     """
     self._items, self._items_display_names, self._item_values = (
       self._create_item_attributes(items))
     
-    error_messages = {}
+    # This member gets overridden during parent class instantiation, but can
+    # still be accessible before the instantiation if need be.
+    self._error_messages = {}
     
-    error_messages["invalid_value"] = (
+    self._error_messages["invalid_value"] = (
       _("Invalid item value; valid values: {}").format(list(self._item_values)))
     
-    error_messages["invalid_default_value"] = (
+    self._error_messages["invalid_default_value"] = (
       "invalid identifier for the default value; must be one of {}").format(
         list(self._items))
     
     if "error_messages" in kwargs:
-      error_messages.update(kwargs["error_messages"])
-    kwargs["error_messages"] = error_messages
-    
-    if default_value in self._items:
-      # `default_value` is passed as a string (identifier). In order to properly
-      # initialize the setting, the actual default value (integer) must be
-      # passed to the `Setting` initialization proper.
-      param_default_value = self._items[default_value]
-    else:
-      raise SettingDefaultValueError(error_messages["invalid_default_value"])
+      self._error_messages.update(kwargs["error_messages"])
+    kwargs["error_messages"] = self._error_messages
     
     self._empty_value = self._get_empty_value(empty_value)
     
-    super().__init__(name, param_default_value, **kwargs)
+    super().__init__(name, **kwargs)
     
     self._empty_values.append(self._empty_value)
     
@@ -941,6 +969,21 @@ class EnumSetting(Setting):
       display_names_and_values.extend((item_name, item_value))
     return display_names_and_values
   
+  def _get_default_value(self, default_value):
+    if isinstance(default_value, type(Setting.DEFAULT_VALUE)):
+      default_default_value = super()._get_default_value(default_value)
+      if default_default_value is not None:
+        return self._items[default_default_value]
+      else:
+        return default_default_value
+    else:
+      if default_value in self._items:
+        # `default_value` is passed as a string (identifier), while the actual
+        # value (integer) must be passed to the setting initialization.
+        return self._items[default_value]
+      else:
+        raise SettingDefaultValueError(self._error_messages["invalid_default_value"])
+  
   def _validate(self, value):
     if (value not in self._item_values
         or (not self._allow_empty_values and self._is_value_empty(value))):
@@ -964,6 +1007,8 @@ class EnumSetting(Setting):
     items_display_names = collections.OrderedDict()
     item_values = set()
     
+    if not input_items:
+      raise ValueError("must specify at least one item")
     if all(len(elem) == 2 for elem in input_items):
       for i, (item_name, item_display_name) in enumerate(input_items):
         items[item_name] = i
@@ -1004,10 +1049,13 @@ class StringSetting(Setting):
   Allowed GIMP PDB types:
   
   * `SettingPdbTypes.string`
+  
+  Default value: `""`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
+  _DEFAULT_DEFAULT_VALUE = ""
   
   def set_value(self, value):
     if isinstance(value, bytes):
@@ -1218,6 +1266,8 @@ class ColorSetting(Setting):
   
   * `SettingPdbTypes.color`
   
+  Default value: `gimpcolor.RGB` instance with black color (`(0, 0, 0)`).
+  
   Error messages:
   
   * `"invalid_value"` - The color assigned is invalid.
@@ -1225,6 +1275,8 @@ class ColorSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.color]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.color_button]
+  # Create default value dynamically to avoid potential errors on GIMP startup.
+  _DEFAULT_DEFAULT_VALUE = lambda self: gimpcolor.RGB(0, 0, 0)
   
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _("Invalid color.")
@@ -1247,10 +1299,15 @@ class DisplaySetting(Setting):
   Error messages:
   
   * `"invalid_value"` - The display assigned is invalid.
+  
+  Empty values:
+  
+  * `None`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.display]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.display_spin_button]
+  _EMPTY_VALUES = [None]
   
   def _copy_value(self, value):
     return value
@@ -1271,7 +1328,10 @@ class ParasiteSetting(Setting):
   
   Allowed GIMP PDB types:
   
-  * SettingPdbTypes.parasite
+  * `SettingPdbTypes.parasite`
+  
+  Default value: `gimp.Parasite` instance whose name is equal to the setting
+  name, all flags are disabled (i.e. equal to 0) and data are empty (`""`).
   
   Error messages:
   
@@ -1280,6 +1340,7 @@ class ParasiteSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.parasite]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.parasite_box]
+  _DEFAULT_DEFAULT_VALUE = lambda self: gimp.Parasite(self.name, 0, "")
   
   def _copy_value(self, value):
     return value
@@ -1314,7 +1375,7 @@ class PdbStatusSetting(EnumSetting):
     SettingPdbTypes.int8]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.combo_box]
   
-  def __init__(self, name, default_value, **kwargs):
+  def __init__(self, name, **kwargs):
     self._pdb_statuses = [
       ("PDB_EXECUTION_ERROR", "PDB_EXECUTION_ERROR", gimpenums.PDB_EXECUTION_ERROR),
       ("PDB_CALLING_ERROR", "PDB_CALLING_ERROR", gimpenums.PDB_CALLING_ERROR),
@@ -1322,7 +1383,7 @@ class PdbStatusSetting(EnumSetting):
       ("PDB_SUCCESS", "PDB_SUCCESS", gimpenums.PDB_SUCCESS),
       ("PDB_CANCEL", "PDB_CANCEL", gimpenums.PDB_CANCEL)]
     
-    super().__init__(name, default_value, self._pdb_statuses, empty_value=None, **kwargs)
+    super().__init__(name, self._pdb_statuses, empty_value=None, **kwargs)
 
 
 class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSetting)):
@@ -1347,7 +1408,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
   `pgpath.FileValidatorErrorStatuses` for available error statuses.
   """
   
-  def __init__(self, name, default_value, string_validator, **kwargs):
+  def __init__(self, name, string_validator, **kwargs):
     """
     Additional parameters:
     
@@ -1356,7 +1417,11 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
     """
     self._string_validator = string_validator
     
-    super().__init__(name, default_value, **kwargs)
+    if "default_value" in kwargs and isinstance(kwargs["default_value"], bytes):
+      kwargs["default_value"] = (
+        kwargs["default_value"].decode(pgconstants.GIMP_CHARACTER_ENCODING))
+    
+    super().__init__(name, **kwargs)
   
   def _init_error_messages(self):
     for status in pgpath.FileValidatorErrorStatuses.ERROR_STATUSES:
@@ -1396,11 +1461,8 @@ class FileExtensionSetting(ValidatableStringSetting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
   _EMPTY_VALUES = [""]
   
-  def __init__(self, name, default_value, **kwargs):
-    if isinstance(default_value, bytes):
-      default_value = default_value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
-    
-    super().__init__(name, default_value, pgpath.FileExtensionValidator, **kwargs)
+  def __init__(self, name, **kwargs):
+    super().__init__(name, pgpath.FileExtensionValidator, **kwargs)
   
 
 class DirpathSetting(ValidatableStringSetting):
@@ -1423,11 +1485,8 @@ class DirpathSetting(ValidatableStringSetting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.folder_chooser]
   _EMPTY_VALUES = [None, ""]
   
-  def __init__(self, name, default_value, **kwargs):
-    if isinstance(default_value, bytes):
-      default_value = default_value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
-    
-    super().__init__(name, default_value, pgpath.DirpathValidator, **kwargs)
+  def __init__(self, name, **kwargs):
+    super().__init__(name, pgpath.DirpathValidator, **kwargs)
 
 
 class BrushSetting(Setting):
@@ -1443,6 +1502,8 @@ class BrushSetting(Setting):
   
   * SettingPdbTypes.string
   
+  Default value: `()`
+  
   Empty values:
   
   * `()`
@@ -1454,6 +1515,7 @@ class BrushSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.brush_select_button]
+  _DEFAULT_DEFAULT_VALUE = ()
   _EMPTY_VALUES = [()]
   
   _MAX_NUM_TUPLE_ELEMENTS = 4
@@ -1484,6 +1546,8 @@ class FontSetting(Setting):
   
   * SettingPdbTypes.string
   
+  Default value: `""`
+  
   Empty values:
   
   * `""`
@@ -1491,6 +1555,7 @@ class FontSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.font_select_button]
+  _DEFAULT_DEFAULT_VALUE = ""
   _EMPTY_VALUES = [""]
 
 
@@ -1503,6 +1568,8 @@ class GradientSetting(Setting):
   
   * SettingPdbTypes.string
   
+  Default value: `""`
+  
   Empty values:
   
   * `""`
@@ -1510,6 +1577,7 @@ class GradientSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.gradient_select_button]
+  _DEFAULT_DEFAULT_VALUE = ""
   _EMPTY_VALUES = [""]
 
 
@@ -1522,6 +1590,8 @@ class PaletteSetting(Setting):
   
   * SettingPdbTypes.string
   
+  Default value: `""`
+  
   Empty values:
   
   * `""`
@@ -1529,6 +1599,7 @@ class PaletteSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.palette_select_button]
+  _DEFAULT_DEFAULT_VALUE = ""
   _EMPTY_VALUES = [""]
 
 
@@ -1540,6 +1611,8 @@ class PatternSetting(Setting):
   
   * SettingPdbTypes.string
   
+  Default value: `""`
+  
   Empty values:
   
   * `""`
@@ -1547,6 +1620,7 @@ class PatternSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.pattern_select_button]
+  _DEFAULT_DEFAULT_VALUE = ""
   _EMPTY_VALUES = [""]
 
 
@@ -1558,7 +1632,11 @@ class ImageIDsAndDirpathsSetting(Setting):
   
   This setting cannot be registered to the PDB as no corresponding PDB type
   exists.
+  
+  Default value: `{}`
   """
+  
+  _DEFAULT_DEFAULT_VALUE = {}
   
   @property
   def value(self):
@@ -1634,6 +1712,8 @@ class ArraySetting(Setting):
   setting can be registered to the GIMP PDB. To disable registration, pass
   `None` to `pdb_type` during instantiation as one normally would.
   
+  Default value: `()`
+  
   Error messages:
   
   * `"invalid_value"` - The value is not a tuple or an iterable container.
@@ -1655,7 +1735,10 @@ class ArraySetting(Setting):
     than `max_size` elements.
   """
   
+  ELEMENT_DEFAULT_VALUE = type(b"DefaultElementValue", (), {})()
+  
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.array_box]
+  _DEFAULT_DEFAULT_VALUE = ()
   
   _ARRAY_PDB_TYPES = {
     gimpenums.PDB_INT32: gimpenums.PDB_INT32ARRAY,
@@ -1666,30 +1749,18 @@ class ArraySetting(Setting):
     gimpenums.PDB_COLOR: gimpenums.PDB_COLORARRAY,
   }
   
-  ELEMENT_DEFAULT_VALUE = type(b"DefaultElementValue", (), {})()
-  
-  def __init__(
-        self,
-        name,
-        default_value,
-        element_type,
-        element_default_value,
-        min_size=None,
-        max_size=None,
-        **kwargs):
+  def __init__(self, name, element_type, min_size=0, max_size=None, **kwargs):
     """
     Additional parameters include all parameters that would be passed to the
-    basic setting class this array setting is composed of (= an array element).
-    These parameters must be prefixed with `"element_"`. Mandatory parameters
-    for the basic setting classes include:
+    setting class this array is composed of (= array elements). These parameters
+    must be prefixed with `"element_"` (e.g. `element_default_value`). Mandatory
+    parameters for the basic setting classes include:
     * `element_type` - setting type of each array element. Passing
       `ArraySetting` is also possible, allowing to create multidimensional
       arrays. Note that in that case, mandatory parameters for elements of each
       subsequent dimension must be specified and must have an extra `"element_"`
       prefix. For example, for the second dimension of a 2D array,
-      `element_element_type` and `element_element_default_value` must also be
-      specified.
-    * `element_default_value` - default value of each array element.
+      `element_element_type` must also be specified.
     * all other mandatory parameters as per individual setting classes.
     
     Array-specific additional parameters:
@@ -1699,8 +1770,6 @@ class ArraySetting(Setting):
     """
     
     self._element_type = element_type
-    self._element_default_value = element_default_value
-    
     self._min_size = min_size if min_size is not None else 0
     self._max_size = max_size
     
@@ -1716,9 +1785,9 @@ class ArraySetting(Setting):
     array_kwargs = {
       key: value for key, value in kwargs.items() if not key.startswith("element_")}
     
-    self._validate_element_default_value()
+    self._dummy_element = self._create_dummy_element()
     
-    super().__init__(name, default_value, **array_kwargs)
+    super().__init__(name, **array_kwargs)
   
   @property
   def value(self):
@@ -1730,10 +1799,6 @@ class ArraySetting(Setting):
   @property
   def element_type(self):
     return self._element_type
-  
-  @property
-  def element_default_value(self):
-    return self._element_default_value
   
   @property
   def min_size(self):
@@ -1772,15 +1837,14 @@ class ArraySetting(Setting):
     from 0).
     
     If `index` is `None`, append the value. If `value` is
-    `ELEMENT_DEFAULT_VALUE`, use the `element_default_value` attribute as the
-    value.
+    `ELEMENT_DEFAULT_VALUE`, use the default value of the underlying element.
     """
     if len(self._elements) == self._max_size:
       raise SettingValueError(
         self.error_messages["add_above_max_size"].format(self._max_size))
     
     if isinstance(value, type(self.ELEMENT_DEFAULT_VALUE)):
-      value = self._element_default_value
+      value = self._dummy_element.default_value
     
     self.invoke_event("before-add-element", index, value)
     
@@ -1922,18 +1986,18 @@ class ArraySetting(Setting):
     
     return SettingPdbTypes.none
   
-  def _validate_element_default_value(self):
-    kwargs = dict(self._element_kwargs, gui_type=None)
+  def _create_dummy_element(self):
+    """
+    Create an internal element to access and validate the element default value.
+    """
     # Rely on the underlying element setting type to perform validation of the
     # default value.
-    self._element_type(
-      name="element", default_value=self._element_default_value, **kwargs)
+    return self._element_type(name="element", **dict(self._element_kwargs, gui_type=None))
   
   def _create_element(self, value):
     kwargs = dict(
       dict(
         name="element",
-        default_value=self._element_default_value,
         display_name="",
         pdb_type=None),
       **self._element_kwargs)

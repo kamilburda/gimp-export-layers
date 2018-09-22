@@ -29,12 +29,12 @@ class TestCreateParams(unittest.TestCase):
   
   def setUp(self):
     self.file_ext_setting = pgsetting.FileExtensionSetting(
-      "file_extension", "png", display_name="File extension")
+      "file_extension", default_value="png", display_name="File extension")
     self.unregistrable_setting = pgsetting.IntSetting(
-      "num_exported_layers", 0, pdb_type=pgsetting.SettingPdbTypes.none)
+      "num_exported_layers", default_value=0, pdb_type=pgsetting.SettingPdbTypes.none)
     self.coordinates_setting = pgsetting.ArraySetting(
       "coordinates",
-      (1.0, 5.0, 10.0),
+      default_value=(1.0, 5.0, 10.0),
       element_type=pgsetting.SettingTypes.float,
       element_default_value=0.0)
     
@@ -112,7 +112,7 @@ class TestIterArgs(unittest.TestCase):
   def test_iter_args_with_array_setting(self):
     coordinates_setting = pgsetting.ArraySetting(
       "coordinates",
-      (1.0, 5.0, 10.0),
+      default_value=(1.0, 5.0, 10.0),
       element_type=pgsetting.SettingTypes.float,
       element_default_value=0.0)
     
