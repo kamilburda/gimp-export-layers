@@ -68,6 +68,8 @@ class SettingEventsMixin(object):
   of setting up and invoking events.
   """
   
+  _event_handler_id_counter = itertools.count(start=1)
+  
   def __init__(self):
     super().__init__()
     
@@ -79,8 +81,6 @@ class SettingEventsMixin(object):
     # This allows faster lookup of events via IDs.
     # key: event handler ID; value: event type
     self._event_handler_ids_and_types = {}
-    
-    self._event_handler_id_counter = itertools.count(start=1)
   
   def connect_event(
         self, event_type, event_handler, *event_handler_args, **event_handler_kwargs):

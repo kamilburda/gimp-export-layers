@@ -87,6 +87,15 @@ class TestSettingEventsMixin(unittest.TestCase):
     with self.assertRaises(TypeError):
       self.file_extension.connect_event("test-event", None)
   
+  def test_events_are_unique_for_one_instance_and_across_instances(self):
+    event_ids = set()
+    
+    event_ids.add(self.file_extension.connect_event("test-event", lambda *args: None))
+    event_ids.add(self.file_extension.connect_event("test-event", lambda *args: None))
+    event_ids.add(self.only_visible.connect_event("test-event", lambda *args: None))
+    
+    self.assertEqual(len(event_ids), 3)
+  
   def test_invoke_event(self):
     self.only_visible.set_value(True)
     self.file_extension.connect_event(
