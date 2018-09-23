@@ -657,10 +657,10 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
       custom_gui = {}
     
     for setting in self.walk(include_setting_func=_should_not_ignore):
-      if setting.name not in custom_gui:
+      if setting.get_path("root") not in custom_gui:
         setting.set_gui()
       else:
-        set_gui_args = custom_gui[setting.name]
+        set_gui_args = custom_gui[setting.get_path("root")]
         setting.set_gui(*set_gui_args)
   
   def apply_gui_values_to_settings(self):

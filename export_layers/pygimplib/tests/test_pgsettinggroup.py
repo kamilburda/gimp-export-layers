@@ -758,7 +758,7 @@ class TestSettingGroupGui(unittest.TestCase):
         "default_value": False,
       },
     ])
-
+  
   def test_initialize_gui(self):
     self.settings.initialize_gui()
     

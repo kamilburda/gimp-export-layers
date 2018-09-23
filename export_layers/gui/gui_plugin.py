@@ -452,21 +452,21 @@ class ExportLayersGui(object):
     self._vpaned_settings = gtk.VPaned()
     
     self._settings.initialize_gui({
-      "file_extension": [
+      "main/file_extension": [
         pgsetting.SettingGuiTypes.extended_entry, self._file_extension_entry],
-      "dialog_position": [
+      "gui/dialog_position": [
         pgsetting.SettingGuiTypes.window_position, self._dialog],
-      "dialog_size": [
+      "gui/dialog_size": [
         pgsetting.SettingGuiTypes.window_size, self._dialog],
-      "show_more_settings": [
+      "gui/show_more_settings": [
         pgsetting.SettingGuiTypes.check_menu_item, self._menu_item_show_more_settings],
-      "paned_outside_previews_position": [
+      "gui/paned_outside_previews_position": [
         pgsetting.SettingGuiTypes.paned_position, self._hpaned_chooser_and_previews],
-      "paned_between_previews_position": [
+      "gui/paned_between_previews_position": [
         pgsetting.SettingGuiTypes.paned_position, self._vpaned_previews],
-      "settings_vpane_position": [
+      "gui/settings_vpane_position": [
         pgsetting.SettingGuiTypes.paned_position, self._vpaned_settings],
-      "layer_filename_pattern": [
+      "main/layer_filename_pattern": [
         pgsetting.SettingGuiTypes.extended_entry, self._filename_pattern_entry]
     })
     
