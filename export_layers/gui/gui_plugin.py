@@ -367,8 +367,12 @@ class ExportLayersGui(object):
       display_message(status_message, gtk.MESSAGE_WARNING)
     
     # Needs to be string to avoid strict directory validation
-    self._settings["gui_session"].add([pgsetting.StringSetting(
-      "current_directory", self._settings["main/output_directory"].default_value)])
+    self._settings["gui_session"].add([
+      pgsetting.StringSetting(
+        "current_directory",
+        default_value=self._settings["main/output_directory"].default_value,
+        gui_type=None)])
+    
     self._message_setting = None
     
     _setup_image_ids_and_directories_and_initial_directory(
