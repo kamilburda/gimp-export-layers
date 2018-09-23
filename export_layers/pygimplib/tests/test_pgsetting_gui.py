@@ -32,6 +32,7 @@ import gimpcolor
 import gimpenums
 
 from .. import pgconstants
+from .. import pggui
 from .. import pgsetting
 
 
@@ -44,6 +45,9 @@ def test_array_settings_and_gui():
 
 
 def test_settings_and_gui(setting_items):
+  pggui.set_gui_excepthook("Test GUI for Settings", "")
+  pggui.set_gui_excepthook_additional_callback(_display_message_on_setting_value_error)
+  
   settings = []
   
   for item in setting_items:
@@ -350,3 +354,11 @@ def _create_test_image():
     pdb.gimp_image_insert_vectors(image, vectors, None, 0)
   
   return image
+
+
+def _display_message_on_setting_value_error(exc_type, exc_value, exc_traceback):
+  if issubclass(exc_type, pgsetting.SettingValueError):
+    gimp.message(str(exc_value).encode(pgconstants.GIMP_CHARACTER_ENCODING))
+    return True
+  else:
+    return False
