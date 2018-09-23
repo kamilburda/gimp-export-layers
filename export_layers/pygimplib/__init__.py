@@ -19,6 +19,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import inspect
 import os
 import sys
+import traceback
 
 _PYGIMPLIB_DIRPATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
 
@@ -75,6 +76,7 @@ if _gimp_dependent_modules_imported:
   import gimpenums
   import gimpui
   
+  from . import pgconstants
   from . import pggui
   from . import pgsetting
   from . import pgsettinggroup
@@ -292,6 +294,9 @@ if _gimp_dependent_modules_imported:
   
   def _add_gui_excepthook(procedure, run_mode):
     if run_mode == gimpenums.RUN_INTERACTIVE:
+      pggui.set_gui_excepthook_additional_callback(
+        _display_message_on_setting_value_error)
+      
       add_gui_excepthook_func = pggui.add_gui_excepthook(
         title=config.PLUGIN_TITLE,
         app_name=config.PLUGIN_TITLE,
@@ -300,3 +305,10 @@ if _gimp_dependent_modules_imported:
       return add_gui_excepthook_func(procedure)
     else:
       return procedure
+  
+  def _display_message_on_setting_value_error(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, pgsetting.SettingValueError):
+      gimp.message(str(exc_value).encode(pgconstants.GIMP_CHARACTER_ENCODING))
+      return True
+    else:
+      return False

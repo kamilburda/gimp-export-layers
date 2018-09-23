@@ -337,6 +337,8 @@ class ExportLayersGui(object):
     self._init_gui()
     
     pggui.set_gui_excepthook_parent(self._dialog)
+    pggui.set_gui_excepthook_additional_callback(
+      self._display_message_label_on_setting_value_error)
     
     if not run_gui_func:
       gtk.main()
@@ -1016,6 +1018,14 @@ class ExportLayersGui(object):
         if not (os.name == "nt" and gimp.version >= (2, 10)):
           pginvocation.timeout_add_strict(
             self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS, self._display_message_label, None)
+  
+  def _display_message_label_on_setting_value_error(
+        self, exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, pgsetting.SettingValueError):
+      self._display_message_label(str(exc_value), gtk.MESSAGE_ERROR)
+      return True
+    else:
+      return False
 
 
 class ExportLayersRepeatGui(object):

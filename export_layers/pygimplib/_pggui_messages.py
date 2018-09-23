@@ -57,6 +57,7 @@ __all__ = [
   "display_message",
   "add_gui_excepthook",
   "set_gui_excepthook_parent",
+  "set_gui_excepthook_additional_callback",
 ]
 
 
@@ -333,13 +334,14 @@ def display_message(
 #===============================================================================
 
 _gui_excepthook_parent = None
+_gui_excepthook_additional_callback = lambda *args, **kwargs: False
 
 
 def add_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
   """
   Return a decorator that modifies `sys.excepthook` to display an error dialog
-  for unhandled exceptions and restores `sys.excepthook` once the decorated
-  function finished its execution.
+  for unhandled exceptions and terminates the application. `sys.excepthook` is
+  restored once the decorated function finishes its execution.
   
   The dialog will not be displayed for exceptions which are not subclasses of
   `Exception` (such as `SystemExit` or `KeyboardInterrupt`).
@@ -424,6 +426,20 @@ def set_gui_excepthook_parent(parent):
   _gui_excepthook_parent = parent
 
 
+def set_gui_excepthook_additional_callback(callback):
+  """
+  Set a callback to be executed at the beginning of exception handling. If the
+  callback returns `True`, terminate exception handling at this point. Returning
+  `True` consequently prevents the error dialog from being displayed and the
+  application from being terminated.
+  
+  The callback takes the same parameters as `sys.excepthook`.
+  """
+  global _gui_excepthook_additional_callback
+  
+  _gui_excepthook_additional_callback = callback
+
+
 def _gui_excepthook_generic(
       exc_type,
       exc_value,
@@ -433,6 +449,12 @@ def _gui_excepthook_generic(
       app_name,
       parent,
       report_uri_list):
+  callback_result = _gui_excepthook_additional_callback(
+    exc_type, exc_value, exc_traceback)
+  
+  if callback_result:
+    return
+  
   orig_sys_excepthook(exc_type, exc_value, exc_traceback)
   
   if issubclass(exc_type, Exception):
