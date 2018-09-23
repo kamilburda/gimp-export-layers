@@ -56,6 +56,7 @@ __all__ = [
   "display_error_message",
   "display_message",
   "add_gui_excepthook",
+  "set_gui_excepthook",
   "set_gui_excepthook_parent",
   "set_gui_excepthook_additional_callback",
 ]
