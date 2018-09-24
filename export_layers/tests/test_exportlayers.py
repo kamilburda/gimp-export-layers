@@ -32,7 +32,6 @@ from export_layers.pygimplib import pgutils
 from .. import config
 config.init()
 
-from .. import builtin_operations
 from .. import exportlayers
 from .. import operations
 from .. import settings_plugin
@@ -64,12 +63,12 @@ class TestExportLayersInitialOperations(unittest.TestCase):
     operations.add(settings["main/operations"], "ignore_layer_modes")
     
     layer_exporter.add_operation(
-      pgutils.empty_func, [builtin_operations.BUILTIN_OPERATIONS_GROUP])
+      pgutils.empty_func, [operations.DEFAULT_OPERATIONS_GROUP])
     
     layer_exporter.export(processing_groups=[])
     
     added_operation_items = layer_exporter.operation_executor.list_operations(
-      group=builtin_operations.BUILTIN_OPERATIONS_GROUP)
+      group=operations.DEFAULT_OPERATIONS_GROUP)
     
     self.assertEqual(len(added_operation_items), 3)
     
@@ -77,6 +76,6 @@ class TestExportLayersInitialOperations(unittest.TestCase):
     self.assertIsInstance(initial_executor, pgoperations.OperationExecutor)
     
     operations_in_initial_executor = initial_executor.list_operations(
-      group=builtin_operations.BUILTIN_OPERATIONS_GROUP)
+      group=operations.DEFAULT_OPERATIONS_GROUP)
     self.assertEqual(len(operations_in_initial_executor), 1)
     self.assertEqual(operations_in_initial_executor[0], (pgutils.empty_func, (), {}))

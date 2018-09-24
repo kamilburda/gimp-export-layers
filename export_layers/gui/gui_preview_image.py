@@ -44,6 +44,7 @@ from export_layers.pygimplib import pggui
 from export_layers.pygimplib import pgpdb
 
 from export_layers import builtin_constraints
+from export_layers import operations
 
 from . import gui_preview_base
 
@@ -291,7 +292,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     
     only_selected_layers_operation_id = self._layer_exporter.add_constraint(
       builtin_constraints.is_layer_in_selected_layers,
-      groups=[builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
+      groups=[operations.DEFAULT_CONSTRAINTS_GROUP],
       args=[[self.layer_elem.item.ID]])
     
     with self._layer_exporter.modify_export_settings(
@@ -308,7 +309,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
         image_preview = None
     
     self._layer_exporter.remove_operation(
-      only_selected_layers_operation_id, [builtin_constraints.BUILTIN_CONSTRAINTS_GROUP])
+      only_selected_layers_operation_id, [operations.DEFAULT_CONSTRAINTS_GROUP])
     
     if layer_tree_filter is not None:
       self._layer_exporter.layer_tree.filter = layer_tree_filter

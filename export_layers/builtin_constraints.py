@@ -25,8 +25,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 
-BUILTIN_CONSTRAINTS_GROUP = "set_constraints"
-BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP = "set_constraints_layer_types"
+CONSTRAINTS_LAYER_TYPES_GROUP = "constraints_layer_types"
 
 
 def is_layer(layer_elem):

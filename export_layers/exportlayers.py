@@ -362,11 +362,11 @@ class LayerExporter(object):
   
   def _add_operations(self):
     self._operation_executor.add(
-      builtin_operations.set_active_layer, [builtin_operations.BUILTIN_OPERATIONS_GROUP])
+      builtin_operations.set_active_layer, [operations.DEFAULT_OPERATIONS_GROUP])
     
     self._operation_executor.add(
       builtin_operations.set_active_layer_after_operation,
-      [builtin_operations.BUILTIN_OPERATIONS_GROUP],
+      [operations.DEFAULT_OPERATIONS_GROUP],
       foreach=True)
     
     self._operation_executor.add(
@@ -493,7 +493,7 @@ class LayerExporter(object):
       "layer_types", pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ANY))
     
     self._operation_executor.execute(
-      [builtin_constraints.BUILTIN_CONSTRAINTS_LAYER_TYPES_GROUP],
+      [builtin_constraints.CONSTRAINTS_LAYER_TYPES_GROUP],
       [self],
       additional_args_position=self._LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
     
@@ -509,7 +509,7 @@ class LayerExporter(object):
         self.export_settings["selected_layers"].value[self.image.ID])
     
     self._operation_executor.execute(
-      [builtin_constraints.BUILTIN_CONSTRAINTS_GROUP],
+      [operations.DEFAULT_CONSTRAINTS_GROUP],
       [self],
       additional_args_position=self._LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
   
@@ -606,7 +606,7 @@ class LayerExporter(object):
       ["after_insert_layer"], [image, layer_copy, self], additional_args_position=0)
     
     self._operation_executor.execute(
-      [builtin_operations.BUILTIN_OPERATIONS_GROUP],
+      [operations.DEFAULT_OPERATIONS_GROUP],
       [image, layer_copy, self],
       additional_args_position=0)
     

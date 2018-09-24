@@ -30,9 +30,6 @@ import gimpenums
 from export_layers.pygimplib import pgpdb
 
 
-BUILTIN_OPERATIONS_GROUP = "process_layer"
-
-
 def ignore_layer_modes(image, layer, layer_exporter):
   layer.mode = gimpenums.NORMAL_MODE
 

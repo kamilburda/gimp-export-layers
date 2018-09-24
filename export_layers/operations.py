@@ -89,6 +89,9 @@ BUILTIN_TAGS = {
   "foreground": _("Foreground")
 }
 
+DEFAULT_OPERATIONS_GROUP = "default_operations"
+DEFAULT_CONSTRAINTS_GROUP = "default_constraints"
+
 
 def create(name, builtin_operations_data, type_="operation", initial_operations=None):
   """
@@ -311,6 +314,9 @@ def _create_operation(
   if arguments:
     arguments_group.add(arguments)
   
+  if operation_groups is None:
+    operation_groups = [DEFAULT_OPERATIONS_GROUP]
+  
   operation.add([
     {
       "type": pgsetting.SettingTypes.generic,
@@ -355,6 +361,9 @@ def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
 
 
 def _create_constraint(name, function, subfilter=None, **create_operation_kwargs):
+  if create_operation_kwargs.get("operation_groups", None) is None:
+    create_operation_kwargs["operation_groups"] = [DEFAULT_CONSTRAINTS_GROUP]
+  
   constraint = _create_operation(name, function, **create_operation_kwargs)
   
   constraint.tags.add("constraint")

@@ -109,17 +109,24 @@ class TestCreateOperations(unittest.TestCase):
      ["operation"],
      {"operation_groups": {
         "autocrop": ["basic"],
-        "autocrop_background": None,
-        "autocrop_foreground": None}}),
+        "autocrop_background": [operations.DEFAULT_OPERATIONS_GROUP],
+        "autocrop_foreground": [operations.DEFAULT_OPERATIONS_GROUP]}}),
     
     ("constraints",
      "constraints",
      get_builtin_constraints_list,
      "constraint",
      ["operation", "constraint"],
-     {"subfilter": {
-        "only_visible_layers": None,
-        "include_layers": "layer_types"}}),
+     {
+       "operation_groups": {
+         "only_visible_layers": [operations.DEFAULT_CONSTRAINTS_GROUP],
+         "include_layers": [operations.DEFAULT_CONSTRAINTS_GROUP],
+       },
+       "subfilter": {
+         "only_visible_layers": None,
+         "include_layers": "layer_types",
+       },
+     }),
   ])
   def test_create(
         self,
