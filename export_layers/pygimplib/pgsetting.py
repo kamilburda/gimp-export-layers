@@ -543,7 +543,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
   def get_pdb_param(self):
     """
     Return a list of tuples, each tuple containing data describing the setting
-    as a GIMP PDB parameter - PDB type, name and description.
+    as a GIMP PDB parameter - PDB type, PDB name and description.
     
     If the setting does not support any PDB type, return `None`.
     
@@ -553,7 +553,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     if self.can_be_registered_to_pdb():
       return [(
         self.pdb_type,
-        self.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
+        self.pdb_name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
         self.description.encode(pgconstants.GIMP_CHARACTER_ENCODING))]
     else:
       return None
@@ -573,12 +573,17 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
   
   def _copy_value(self, value):
     """
-    Create a shallow copy of the specified value.
+    Create a shallow copy of the specified value. By default, iterables (except
+    strings) are copied, otherwise the original objects are returned.
     
     Override this method in subclasses in case copying must be handled
     differently.
     """
-    return copy.copy(value)
+    if (isinstance(value, collections.Iterable)
+        and not isinstance(value, types.StringTypes)):
+      return copy.copy(value)
+    else:
+      return value
   
   def _assign_value(self, value):
     """
@@ -2077,3 +2082,34 @@ class SettingTypes(object):
   image_IDs_and_directories = ImageIDsAndDirpathsSetting
   
   array = ArraySetting
+
+
+PDB_TYPES_TO_SETTING_TYPES_MAP = {
+  gimpenums.PDB_INT32: IntSetting,
+  gimpenums.PDB_INT16: IntSetting,
+  gimpenums.PDB_INT8: IntSetting,
+  gimpenums.PDB_FLOAT: FloatSetting,
+  gimpenums.PDB_STRING: StringSetting,
+  
+  gimpenums.PDB_IMAGE: ImageSetting,
+  #TODO: ItemSetting should be defined; however, there is no appropriate GUI
+  # available out of the box.
+  gimpenums.PDB_ITEM: DrawableSetting,
+  gimpenums.PDB_DRAWABLE: DrawableSetting,
+  gimpenums.PDB_LAYER: DrawableSetting,
+  gimpenums.PDB_CHANNEL: ChannelSetting,
+  gimpenums.PDB_SELECTION: SelectionSetting,
+  gimpenums.PDB_VECTORS: VectorsSetting,
+  
+  gimpenums.PDB_COLOR: ColorSetting,
+  gimpenums.PDB_PARASITE: ParasiteSetting,
+  gimpenums.PDB_DISPLAY: DisplaySetting,
+  gimpenums.PDB_STATUS: PdbStatusSetting,
+  
+  gimpenums.PDB_INT32ARRAY: {"type": ArraySetting, "element_type": IntSetting},
+  gimpenums.PDB_INT16ARRAY: {"type": ArraySetting, "element_type": IntSetting},
+  gimpenums.PDB_INT8ARRAY: {"type": ArraySetting, "element_type": IntSetting},
+  gimpenums.PDB_FLOATARRAY: {"type": ArraySetting, "element_type": FloatSetting},
+  gimpenums.PDB_STRINGARRAY: {"type": ArraySetting, "element_type": StringSetting},
+  gimpenums.PDB_COLORARRAY: {"type": ArraySetting, "element_type": ColorSetting},
+}

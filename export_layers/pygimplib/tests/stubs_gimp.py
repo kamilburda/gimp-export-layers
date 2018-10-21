@@ -68,6 +68,41 @@ class PdbStub(object):
     item.visible = visible
 
 
+class PdbProcedureStub(object):
+  
+  def __init__(
+        self,
+        name,
+        type_,
+        params,
+        return_vals=None,
+        author="",
+        blurb="",
+        help_="",
+        copyright_="",
+        date=""):
+    self.proc_name = name
+    self.proc_type = type_
+    self.params = params
+    self.return_vals = return_vals if return_vals is not None else ()
+    self.proc_author = author
+    self.proc_blurb = blurb
+    self.proc_help = help_
+    self.proc_copyright = copyright_
+    self.proc_date = date
+  
+  def __call__(self, *args, **kwargs):
+    pass
+  
+  @property
+  def nparams(self):
+    return len(self.params)
+  
+  @property
+  def nreturn_vals(self):
+    return len(self.return_vals)
+
+
 class ParasiteStub(object):
   
   def __init__(self, name, flags, data):

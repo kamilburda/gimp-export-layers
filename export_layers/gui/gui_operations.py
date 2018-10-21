@@ -28,7 +28,13 @@ from future.builtins import *
 import pygtk
 pygtk.require("2.0")
 import gtk
+import gobject
+import pango
 
+from gimp import pdb
+import gimpui
+
+from export_layers import pygimplib
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pggui
 from export_layers.pygimplib import pgutils
@@ -56,7 +62,10 @@ class OperationBox(pggui.ItemBox):
     self.on_reorder_item = pgutils.empty_func
     self.on_remove_item = pgutils.empty_func
     
-    self._menu_items_and_operation_names = {}
+    self._procedure_browser_dialog = None
+    self._operation_edit_dialog = _OperationEditDialog(
+      title=None,
+      role=pygimplib.config.PLUGIN_NAME)
     
     self._init_gui()
   
@@ -112,21 +121,64 @@ class OperationBox(pggui.ItemBox):
     for operation in operations.walk(self._operations, subgroup="builtin"):
       self._add_operation_to_menu_popup(operation)
     
+    self._operations_menu.append(gtk.SeparatorMenuItem())
+    
+    self._add_add_custom_procedure_to_menu_popup()
+    
     self._operations_menu.show_all()
+  
+  def _on_button_add_clicked(self, button):
+    self._operations_menu.popup(None, None, None, 0, 0)
   
   def _add_operation_to_menu_popup(self, operation):
     menu_item = gtk.MenuItem(
       label=operation["display_name"].value.encode(pgconstants.GTK_CHARACTER_ENCODING),
       use_underline=False)
-    menu_item.connect("activate", self._on_operations_menu_item_activate)
+    menu_item.connect("activate", self._on_operations_menu_item_activate, operation.name)
     self._operations_menu.append(menu_item)
-    self._menu_items_and_operation_names[menu_item] = operation.name
   
-  def _on_operations_menu_item_activate(self, menu_item):
-    self.add_item(self._menu_items_and_operation_names[menu_item])
+  def _on_operations_menu_item_activate(self, menu_item, operation_name):
+    self.add_item(operation_name)
   
-  def _on_button_add_clicked(self, button):
-    self._operations_menu.popup(None, None, None, 0, 0)
+  def _add_add_custom_procedure_to_menu_popup(self):
+    menu_item = gtk.MenuItem(
+      label=_("Add custom procedure..."),
+      use_underline=False)
+    menu_item.connect("activate", self._on_add_custom_procedure_menu_item_activate)
+    self._operations_menu.append(menu_item)
+  
+  def _on_add_custom_procedure_menu_item_activate(self, menu_item):
+    if self._procedure_browser_dialog:
+      if not self._operation_edit_dialog.get_mapped():
+        self._procedure_browser_dialog.show()
+      else:
+        self._operation_edit_dialog.present()
+    else:
+      self._procedure_browser_dialog = self._create_procedure_browser_dialog()
+  
+  def _create_procedure_browser_dialog(self):
+    dialog = gimpui.ProcBrowserDialog(
+      _("Procedure Browser"),
+      role=pygimplib.config.PLUGIN_NAME,
+      buttons=(gtk.STOCK_ADD, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
+    
+    dialog.set_default_response(gtk.RESPONSE_OK)
+    dialog.set_alternative_button_order((gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL))
+    
+    dialog.connect("response", self._on_procedure_browser_dialog_response)
+    
+    dialog.show_all()
+    
+    return dialog
+  
+  def _on_procedure_browser_dialog_response(self, dialog, response_id):
+    if response_id == gtk.RESPONSE_OK:
+      procedure_name = dialog.get_selected()
+      if procedure_name:
+        self._operation_edit_dialog.set_contents(self._operations, pdb[procedure_name])
+        self._operation_edit_dialog.show_all()
+    
+    dialog.hide()
 
 
 class _OperationItem(pggui.ItemBoxItem):
@@ -139,3 +191,58 @@ class _OperationItem(pggui.ItemBoxItem):
   @property
   def operation(self):
     return self._operation
+
+
+class _OperationEditDialog(gimpui.Dialog):
+  
+  _DIALOG_BORDER_WIDTH = 8
+  _ACTION_AREA_BORDER_WIDTH = 5
+  _DIALOG_HEIGHT = 500
+  
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    
+    self.set_transient()
+    
+    self.add_buttons(gtk.STOCK_OK, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+    
+    self._label_procedure_name = gtk.Label()
+    self._label_procedure_name.set_use_markup(True)
+    self._label_procedure_name.set_alignment(0.0, 0.5)
+    self._label_procedure_name.set_ellipsize(pango.ELLIPSIZE_END)
+    
+    self._vbox_operation_parameters = gtk.VBox()
+    
+    self._scrolled_window = gtk.ScrolledWindow()
+    self._scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+    self._scrolled_window.add_with_viewport(self._vbox_operation_parameters)
+    self._scrolled_window.get_child().set_shadow_type(gtk.SHADOW_NONE)
+    
+    self.vbox.pack_start(self._label_procedure_name, fill=False, expand=False)
+    self.vbox.pack_start(self._scrolled_window, fill=True, expand=True)
+    
+    self.set_border_width(self._DIALOG_BORDER_WIDTH)
+    #TODO: Resolve excessive borders at the bottom
+    self.action_area.set_border_width(self._ACTION_AREA_BORDER_WIDTH)
+    
+    self.connect("response", self._on_operation_edit_dialog_response)
+  
+  def set_contents(self, operations_group, procedure):
+    self.set_title(_("Edit operation {}").format(procedure.proc_name))
+    self._label_procedure_name.set_markup(
+      "<b>" + gobject.markup_escape_text(procedure.proc_name) + "</b>")
+    
+    operation_parameter_widgets = self._vbox_operation_parameters.get_children()
+    for parameter_widget in operation_parameter_widgets:
+      self._vbox_operation_parameters.remove(parameter_widget)
+    
+    operations.add(operations_group, procedure)
+  
+  def _on_operation_edit_dialog_response(self, dialog, response_id):
+    #TODO: If canceling on choosing an operation from the procedure browser
+    # dialog, do not add the operation
+    
+    if response_id == gtk.RESPONSE_OK:
+      dialog.hide()
+    else:
+      dialog.hide()

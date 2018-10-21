@@ -134,7 +134,7 @@ class TestSetting(unittest.TestCase):
     setting = stubs_pgsetting.SettingRegistrableToPdbStub("file_extension", "png")
     self.assertEqual(
       setting.get_pdb_param(),
-      [(pgsetting.SettingPdbTypes.string, b"file_extension", b"File extension")])
+      [(pgsetting.SettingPdbTypes.string, b"file-extension", b"File extension")])
   
   def test_get_pdb_param_for_nonregistrable_setting(self):
     self.assertEqual(self.setting.get_pdb_param(), None)

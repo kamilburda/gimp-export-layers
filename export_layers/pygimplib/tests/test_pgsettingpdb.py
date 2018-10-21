@@ -47,7 +47,7 @@ class TestCreateParams(unittest.TestCase):
     self.assertTrue(len(param), 3)
     self.assertEqual(param[0], pgsetting.SettingPdbTypes.string)
     self.assertEqual(
-      param[1], "file_extension".encode(pgconstants.GIMP_CHARACTER_ENCODING))
+      param[1], "file-extension".encode(pgconstants.GIMP_CHARACTER_ENCODING))
     self.assertEqual(
       param[2], "File extension".encode(pgconstants.GIMP_CHARACTER_ENCODING))
   
@@ -64,7 +64,7 @@ class TestCreateParams(unittest.TestCase):
     self.assertEqual(
       params[0],
       (self.file_ext_setting.pdb_type,
-       self.file_ext_setting.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
+       self.file_ext_setting.pdb_name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
        self.file_ext_setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING)))
     
     # Array length parameter
@@ -73,14 +73,14 @@ class TestCreateParams(unittest.TestCase):
     self.assertEqual(
       params[2],
       (self.coordinates_setting.pdb_type,
-       self.coordinates_setting.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
+       self.coordinates_setting.pdb_name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
        self.coordinates_setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING)))
     
     for param, setting in zip(params[3:], self.settings.walk()):
       self.assertEqual(
         param,
         (setting.pdb_type,
-         setting.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
+         setting.pdb_name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
          setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING)))
   
   def test_create_params_with_unregistrable_setting(self):

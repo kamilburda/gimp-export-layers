@@ -188,10 +188,16 @@ class SettingEventsMixin(object):
 
 def get_pdb_name(setting_name):
   """
-  Return setting name suitable for the description of the setting in the GIMP
-  PDB.
+  Return name suitable for the description of the setting in the GIMP PDB.
   """
   return setting_name.replace("_", "-")
+
+
+def get_setting_name(pdb_name):
+  """
+  Return setting name based on the specified name from GIMP PDB.
+  """
+  return pdb_name.replace("-", "_")
 
 
 def value_to_str_prefix(value):

@@ -25,6 +25,8 @@ import unittest
 import mock
 import parameterized
 
+import gimpenums
+
 from export_layers import pygimplib
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgsetting
@@ -699,3 +701,68 @@ class TestLoadSaveOperations(unittest.TestCase):
     self.assertNotIn("autocrop", settings["added"])
     self.assertIn("autocrop_background", settings["added"])
     self.assertIn("autocrop_foreground", settings["added"])
+
+
+class TestManagePdbProceduresAsOperations(unittest.TestCase):
+  
+  def setUp(self):
+    self.settings = operations.create("operations", get_builtin_operations_list())
+    self.procedure_stub = stubs_gimp.PdbProcedureStub(
+      name="file-png-save",
+      type_=gimpenums.PLUGIN,
+      #TODO: test with image parameter
+      params=(
+        (gimpenums.PDB_INT32, "run-mode", "The run mode"),
+#         (gimpenums.PDB_IMAGE, "image", "Input image"),
+        (gimpenums.PDB_INT32ARRAY, "save-options", "Save options"),
+        (gimpenums.PDB_STRING, "filename", "Filename to save the image in")),
+      return_vals=None,
+      blurb="Saves files in PNG file format")
+  
+  def test_add_pdb_procedure_as_operation(self):
+    operation = operations.add(self.settings, self.procedure_stub)
+    
+    self.assertIn("file-png-save", self.settings["added"])
+    
+    self.assertEqual(operation.name, "file-png-save")
+#     self.assertEqual(operation["function"].value, self.procedure_stub)
+    self.assertEqual(operation["function"].value, "file-png-save")
+    self.assertEqual(operation["enabled"].value, True)
+    self.assertEqual(operation["display_name"].value, self.procedure_stub.proc_name)
+    self.assertEqual(
+      operation["operation_groups"].value, [operations.DEFAULT_OPERATIONS_GROUP])
+    
+    self.assertEqual(operation["arguments/run-mode"].value, 0)
+#     self.assertEqual(operation["arguments/image"].value, None)
+    self.assertEqual(operation["arguments/save-options"].value, ())
+    self.assertEqual(operation["arguments/filename"].value, "")
+    
+    self.assertEqual(
+      _find_in_added_data(self.settings, "file-png-save")["name"], "file-png-save")
+    self.assertEqual(
+      _find_in_added_data(self.settings, "file-png-save")["function"], "file-png-save")
+  
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
+    new_callable=stubs_gimp.ShelfStub)
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp",
+    new_callable=stubs_gimp.GimpModuleStub)
+  def test_load_save_pdb_procedure_as_operation(
+        self, mock_persistent_source, mock_session_source):
+    operation = operations.add(self.settings, self.procedure_stub)
+    
+    operation["enabled"].set_value(False)
+    operation["arguments/filename"].set_value("image.png")
+    
+    self.settings.save()
+    self.settings.load()
+    
+    self.assertEqual(operation.name, "file-png-save")
+#     self.assertEqual(operation["function"].value, self.procedure_stub)
+    self.assertEqual(operation["function"].value, "file-png-save")
+    self.assertEqual(operation["enabled"].value, False)
+    self.assertEqual(operation["arguments/filename"].value, "image.png")
+    
+    self.assertEqual(
+      _find_in_added_data(self.settings, "file-png-save")["function"], "file-png-save")

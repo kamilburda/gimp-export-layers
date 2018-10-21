@@ -386,13 +386,14 @@ _OPERATION_TYPES_AND_FUNCTIONS = {
 }
 
 
-def add(operations, operation_name):
+def add(operations, pdb_proc_or_builtin_name):
   """
   Add an operation to the `operations` setting group specified by its name.
   Return the added operation.
   
-  The `operation_name` must exist in `operations` (as specified in
-  `create_operation` in the `builtin_operations_data` parameter).
+  `pdb_proc_or_builtin_name` can be a GIMP PDB procedure or the name of a
+  built-in operation that exists in `operations` (as specified in `create` in
+  the `builtin_operations_data` parameter)
   
   The same operation can be added multiple times. Each operation will be
   assigned a unique name and display name (e.g. `"autocrop"` and `"Autocrop"`
@@ -400,20 +401,63 @@ def add(operations, operation_name):
   operation, and so on).
   """
   
-  def _generate_unique_operation_name():
-    i = 2
-    while True:
-      yield "_{}".format(i)
-      i += 1
+  operations.invoke_event("before-add-operation", pdb_proc_or_builtin_name)
   
-  def _generate_unique_display_name():
-    i = 2
-    while True:
-      yield " ({})".format(i)
-      i += 1
+  is_pdb_procedure = (
+    hasattr(pdb_proc_or_builtin_name, "proc_name") and callable(pdb_proc_or_builtin_name))
   
-  operations.invoke_event("before-add-operation", operation_name)
+  if is_pdb_procedure:
+    operation_dict = _get_operation_dict_for_pdb_procedure(
+      operations, pdb_proc_or_builtin_name)
+  else:
+    operation_dict = _get_operation_dict_for_builtin(operations, pdb_proc_or_builtin_name)
   
+  operation = _create_operation_by_type(**operation_dict)
+  
+  operations["added"].add([operation])
+  operations["added_data"].value.append(operation_dict)
+  
+  operations.invoke_event("after-add-operation", operation, pdb_proc_or_builtin_name)
+  
+  return operation
+
+
+def _get_operation_dict_for_pdb_procedure(operations, pdb_procedure):
+  operation_dict = {
+    "name": pdb_procedure.proc_name,
+    "function": pdb_procedure.proc_name,
+    "arguments": [],
+    "display_name": pdb_procedure.proc_name,
+  }
+  
+  for pdb_param_type, pdb_param_name, unused_ in pdb_procedure.params:
+    setting_type = pgsetting.PDB_TYPES_TO_SETTING_TYPES_MAP[pdb_param_type]
+    if isinstance(setting_type, dict):
+      arguments_dict = dict(setting_type)
+      arguments_dict["name"] = pdb_param_name
+      operation_dict["arguments"].append(arguments_dict)
+    else:
+      operation_dict["arguments"].append({
+        "type": setting_type,
+        "name": pdb_param_name,
+      })
+  
+  operation_dict["name"] = (
+    pgpath.uniquify_string(
+      operation_dict["name"],
+      [operation.name for operation in walk(operations)],
+      uniquifier_generator=_generate_unique_operation_name()))
+  
+  operation_dict["display_name"] = (
+    pgpath.uniquify_string(
+      operation_dict["display_name"],
+      [operation["display_name"].value for operation in walk(operations)],
+      uniquifier_generator=_generate_unique_display_name()))
+  
+  return operation_dict
+
+
+def _get_operation_dict_for_builtin(operations, operation_name):
   operation_dict = dict(operations["builtin_data"].value[operation_name])
   
   operation_dict["name"] = (
@@ -428,14 +472,21 @@ def add(operations, operation_name):
       [operation["display_name"].value for operation in walk(operations)],
       uniquifier_generator=_generate_unique_display_name()))
   
-  operation = _create_operation_by_type(**operation_dict)
-  
-  operations["added"].add([operation])
-  operations["added_data"].value.append(operation_dict)
-  
-  operations.invoke_event("after-add-operation", operation, operation_name)
-  
-  return operation
+  return operation_dict
+
+
+def _generate_unique_operation_name():
+  i = 2
+  while True:
+    yield "_{}".format(i)
+    i += 1
+
+
+def _generate_unique_display_name():
+  i = 2
+  while True:
+    yield " ({})".format(i)
+    i += 1
 
 
 def reorder(operations, operation_name, new_position):
