@@ -673,7 +673,9 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
         gui_type_to_return = gui_type
       else:
         raise ValueError(
-          "invalid GUI type; must be one of {}".format(
+          "{}: invalid GUI type '{}'; must be one of {}".format(
+            self.name,
+            gui_type,
             [type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
     
     return gui_type_to_return
