@@ -38,6 +38,7 @@ from export_layers.pygimplib import pgutils
 from .. import config
 config.init()
 
+from .. import builtin_operations
 from .. import exportlayers
 from .. import operations
 from .. import settings_plugin
@@ -236,7 +237,9 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       operation_names = []
     
     for operation_name in operation_names:
-      operations.add(settings["main/operations"], operation_name)
+      operations.add(
+        settings["main/operations"],
+        builtin_operations.BUILTIN_OPERATIONS[operation_name])
     
     layer_exporter = exportlayers.LayerExporter(
       settings["special/run_mode"].value,

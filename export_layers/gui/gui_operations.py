@@ -49,6 +49,7 @@ class OperationBox(pggui.ItemBox):
   def __init__(
         self,
         operations_group=None,
+        builtin_operations=None,
         label_add_text=None,
         item_spacing=pggui.ItemBox.ITEM_SPACING,
         *args,
@@ -56,6 +57,7 @@ class OperationBox(pggui.ItemBox):
     super().__init__(item_spacing=item_spacing, *args, **kwargs)
     
     self._operations = operations_group
+    self._builtin_operations = builtin_operations
     self._label_add_text = label_add_text
     
     self.on_add_item = pgutils.empty_func
@@ -95,8 +97,8 @@ class OperationBox(pggui.ItemBox):
     self._operations_menu = gtk.Menu()
     self._init_operations_menu_popup()
   
-  def add_item(self, operation_name):
-    operation = self.on_add_item(self._operations, operation_name)
+  def add_item(self, operation_dict_or_function):
+    operation = self.on_add_item(self._operations, operation_dict_or_function)
     operation.initialize_gui()
     
     item = _OperationItem(operation, operation["enabled"].gui.element)
@@ -118,8 +120,8 @@ class OperationBox(pggui.ItemBox):
     self.on_remove_item(self._operations, item.operation.name)
   
   def _init_operations_menu_popup(self):
-    for operation in operations.walk(self._operations, subgroup="builtin"):
-      self._add_operation_to_menu_popup(operation)
+    for operation_dict in self._builtin_operations.values():
+      self._add_operation_to_menu_popup(operation_dict)
     
     self._operations_menu.append(gtk.SeparatorMenuItem())
     
@@ -130,15 +132,16 @@ class OperationBox(pggui.ItemBox):
   def _on_button_add_clicked(self, button):
     self._operations_menu.popup(None, None, None, 0, 0)
   
-  def _add_operation_to_menu_popup(self, operation):
+  def _add_operation_to_menu_popup(self, operation_dict):
     menu_item = gtk.MenuItem(
-      label=operation["display_name"].value.encode(pgconstants.GTK_CHARACTER_ENCODING),
+      label=operation_dict["display_name"].encode(
+        pgconstants.GTK_CHARACTER_ENCODING),
       use_underline=False)
-    menu_item.connect("activate", self._on_operations_menu_item_activate, operation.name)
+    menu_item.connect("activate", self._on_operations_menu_item_activate, operation_dict)
     self._operations_menu.append(menu_item)
   
-  def _on_operations_menu_item_activate(self, menu_item, operation_name):
-    self.add_item(operation_name)
+  def _on_operations_menu_item_activate(self, menu_item, operation_dict_or_function):
+    self.add_item(operation_dict_or_function)
   
   def _add_add_custom_procedure_to_menu_popup(self):
     menu_item = gtk.MenuItem(

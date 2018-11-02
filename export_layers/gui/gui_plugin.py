@@ -56,6 +56,8 @@ from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettingpersistor
 
+from .. import builtin_constraints
+from .. import builtin_operations
 from .. import operations
 from .. import exportlayers
 from .. import settings_plugin
@@ -683,20 +685,26 @@ class ExportLayersGui(object):
   def _init_gui_operation_boxes(self):
     self._box_operations = self._create_operation_box(
       self._settings["main/operations"],
+      builtin_operations.BUILTIN_OPERATIONS,
       _("Add _Operation..."))
     
     self._box_constraints = self._create_operation_box(
       self._settings["main/constraints"],
+      builtin_constraints.BUILTIN_CONSTRAINTS,
       _("Add _Constraint..."))
   
-  def _create_operation_box(self, operations_group, label_add_operation):
-    operation_box = gui_operations.OperationBox(operations_group, label_add_operation)
+  def _create_operation_box(
+        self, operations_group, builtin_operations_list, label_add_operation):
+    operation_box = gui_operations.OperationBox(
+      operations_group,
+      builtin_operations_list,
+      label_add_operation)
     
     self._add_gui_to_already_added_operations(operation_box, operations_group)
     
     operation_box.on_add_item = (
-      lambda operations_group, operation_name: operations.add(
-        operations_group, operation_name))
+      lambda operations_group, operation_dict_or_function: operations.add(
+        operations_group, operation_dict_or_function))
     
     operation_box.on_reorder_item = (
       lambda operations_group, operation_name, new_position: operations.reorder(

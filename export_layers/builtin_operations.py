@@ -24,10 +24,13 @@ This module defines built-in operations for the plug-in.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import collections
+
 from gimp import pdb
 import gimpenums
 
 from export_layers.pygimplib import pgpdb
+from export_layers.pygimplib import pgsetting
 
 
 def ignore_layer_modes(image, layer, layer_exporter):
@@ -127,3 +130,78 @@ def insert_background_layer(image, layer, layer_exporter, tag):
 
 def insert_foreground_layer(image, layer, layer_exporter, tag):
   _insert_tagged_layer(image, layer_exporter, tag, position=0)
+
+
+_BUILTIN_OPERATIONS_LIST = [
+  {
+    "name": "insert_background_layers",
+    "function": insert_background_layer,
+    "arguments": [
+      {
+        "type": pgsetting.SettingTypes.string,
+        "name": "tag",
+        "default_value": "background",
+      },
+    ],
+    "display_name": _("Insert background layers"),
+  },
+  {
+    "name": "insert_foreground_layers",
+    "function": insert_foreground_layer,
+    "arguments": [
+      {
+        "type": pgsetting.SettingTypes.string,
+        "name": "tag",
+        "default_value": "foreground",
+      },
+    ],
+    "display_name": _("Insert foreground layers"),
+  },
+  {
+    "name": "inherit_transparency_from_layer_groups",
+    "function": inherit_transparency_from_layer_groups,
+    "display_name": _("Inherit transparency from layer groups"),
+  },
+  {
+    "name": "ignore_layer_modes",
+    "function": ignore_layer_modes,
+    "display_name": _("Ignore layer modes"),
+  },
+  {
+    "name": "autocrop",
+    "function": autocrop_layer,
+    "display_name": _("Autocrop"),
+  },
+  {
+    "name": "autocrop_background",
+    "function": autocrop_tagged_layer,
+    "arguments": [
+      {
+        "type": pgsetting.SettingTypes.string,
+        "name": "tag",
+        "default_value": "background",
+      },
+    ],
+    "display_name": _("Autocrop background"),
+  },
+  {
+    "name": "autocrop_foreground",
+    "function": autocrop_tagged_layer,
+    "arguments": [
+      {
+        "type": pgsetting.SettingTypes.string,
+        "name": "tag",
+        "default_value": "foreground",
+      },
+    ],
+    "display_name": _("Autocrop foreground"),
+  },
+  {
+    "name": "use_file_extensions_in_layer_names",
+    "function": None,
+    "display_name": _("Use file extensions in layer names"),
+  },
+]
+
+BUILTIN_OPERATIONS = collections.OrderedDict(
+  (operation_dict["name"], operation_dict) for operation_dict in _BUILTIN_OPERATIONS_LIST)

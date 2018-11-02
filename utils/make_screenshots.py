@@ -43,6 +43,8 @@ from export_layers.pygimplib import pgutils
 import export_layers.config
 export_layers.config.init()
 
+from export_layers import builtin_operations
+from export_layers import builtin_constraints
 from export_layers import settings_plugin
 from export_layers.gui import gui_plugin
 
@@ -86,10 +88,14 @@ def take_screenshots(gui, dialog, settings):
   gui._box_operations.clear()
   gui._box_constraints.clear()
   
-  gui._box_operations.add_item("insert_background_layers")
-  gui._box_operations.add_item("ignore_layer_modes")
-  gui._box_constraints.add_item("include_layers")
-  gui._box_constraints.add_item("only_layers_without_tags")
+  gui._box_operations.add_item(
+    builtin_operations.BUILTIN_OPERATIONS["insert_background_layers"])
+  gui._box_operations.add_item(
+    builtin_operations.BUILTIN_OPERATIONS["ignore_layer_modes"])
+  gui._box_constraints.add_item(
+    builtin_constraints.BUILTIN_CONSTRAINTS["include_layers"])
+  gui._box_constraints.add_item(
+    builtin_constraints.BUILTIN_CONSTRAINTS["only_layers_without_tags"])
   settings["main/constraints/added/only_layers_without_tags/enabled"].set_value(False)
   
   gui._export_name_preview.set_selected_items(set([

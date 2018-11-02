@@ -20,6 +20,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import collections
 import unittest
 
 import mock
@@ -40,58 +41,66 @@ from .. import operations
 pygimplib.init()
 
 
-def get_builtin_operations_list():
-  return [
-    {
-      "name": "autocrop",
-      "function": pgutils.empty_func,
-      "enabled": True,
-      "display_name": "Autocrop",
-      "operation_groups": ["basic"],
-      "arguments": [
-        {
-          "type": pgsetting.SettingTypes.integer,
-          "name": "offset_x",
-          "default_value": 0,
-        },
-        {
-          "type": pgsetting.SettingTypes.integer,
-          "name": "offset_y",
-          "default_value": 0,
-        },
-      ]
-    },
-    {
-      "name": "autocrop_background",
-      "function": pgutils.empty_func,
-      "enabled": False,
-      "display_name": "Autocrop background layers",
-    },
-    {
-      "name": "autocrop_foreground",
-      "function": pgutils.empty_func,
-      "enabled": False,
-      "display_name": "Autocrop foreground layers",
-    },
-  ]
+test_operations = [
+  {
+    "name": "autocrop",
+    "type": "operation",
+    "function": pgutils.empty_func,
+    "enabled": True,
+    "display_name": "Autocrop",
+    "operation_groups": ["basic"],
+    "arguments": [
+      {
+        "type": pgsetting.SettingTypes.integer,
+        "name": "offset_x",
+        "default_value": 0,
+      },
+      {
+        "type": pgsetting.SettingTypes.integer,
+        "name": "offset_y",
+        "default_value": 0,
+      },
+    ],
+  },
+  {
+    "name": "autocrop_background",
+    "type": "operation",
+    "function": pgutils.empty_func,
+    "enabled": False,
+    "display_name": "Autocrop background layers",
+  },
+  {
+    "name": "autocrop_foreground",
+    "type": "operation",
+    "function": pgutils.empty_func,
+    "enabled": False,
+    "display_name": "Autocrop foreground layers",
+  },
+]
+
+test_constraints = [
+  {
+    "name": "only_visible_layers",
+    "type": "constraint",
+    "function": pgutils.empty_func,
+    "enabled": False,
+    "display_name": "Only visible layers",
+  },
+  {
+    "name": "include_layers",
+    "type": "constraint",
+    "function": pgutils.empty_func,
+    "enabled": True,
+    "display_name": "Include layers",
+    "subfilter": "layer_types",
+  },
+]
 
 
-def get_builtin_constraints_list():
-  return [
-    {
-      "name": "only_visible_layers",
-      "function": pgutils.empty_func,
-      "enabled": False,
-      "display_name": "Only visible layers",
-    },
-    {
-      "name": "include_layers",
-      "function": pgutils.empty_func,
-      "enabled": True,
-      "display_name": "Include layers",
-      "subfilter": "layer_types",
-    },
-  ]
+def get_operation_data(operations_list):
+  return collections.OrderedDict(
+    (operation_dict["name"], dict(operation_dict))
+    for operation_dict in operations_list)
 
 
 def _find_in_added_data(operations, operation_name):
@@ -104,151 +113,116 @@ def _find_in_added_data(operations, operation_name):
 class TestCreateOperations(unittest.TestCase):
   
   @parameterized.parameterized.expand([
-    ("operations",
-     "operations",
-     get_builtin_operations_list,
-     "operation",
-     ["operation"],
-     {"operation_groups": {
-        "autocrop": ["basic"],
-        "autocrop_background": [operations.DEFAULT_OPERATIONS_GROUP],
-        "autocrop_foreground": [operations.DEFAULT_OPERATIONS_GROUP]}}),
-    
-    ("constraints",
-     "constraints",
-     get_builtin_constraints_list,
-     "constraint",
-     ["operation", "constraint"],
-     {
-       "operation_groups": {
-         "only_visible_layers": [operations.DEFAULT_CONSTRAINTS_GROUP],
-         "include_layers": [operations.DEFAULT_CONSTRAINTS_GROUP],
-       },
-       "subfilter": {
-         "only_visible_layers": None,
-         "include_layers": "layer_types",
-       },
-     }),
+    ("operations", "operations"),
+    ("constraints", "constraints"),
   ])
-  def test_create(
-        self,
-        test_case_name_suffix,
-        name,
-        builtin_operations_data_func,
-        type_,
-        tags,
-        additional_builtin_data):
-    builtin_operations_list = builtin_operations_data_func()
-    
-    settings = operations.create(name, builtin_operations_list, type_=type_)
+  def test_create(self, test_case_name_suffix, name):
+    settings = operations.create(name)
     
     self.assertIn("added", settings)
     self.assertEqual(len(settings["added"]), 0)
-    self.assertIn("builtin", settings)
-    self.assertIn("builtin_data", settings)
-    
-    for operation_dict in builtin_operations_list:
-      self.assertEqual(operation_dict["operation_type"], type_)
-    
     self.assertFalse(settings["added_data"].value)
-    
-    builtin_operations_dict = {
-      operation_dict["name"]: operation_dict
-      for operation_dict in builtin_operations_list}
-    
-    for operation_name, operation_dict in builtin_operations_dict.items():
-      operation = settings["builtin"][operation_name]
-      
-      self.assertIn(operation_name, settings["builtin"])
-      
-      self.assertEqual(operation.name, operation_name)
-      self.assertEqual(operation["function"].value, operation_dict["function"])
-      self.assertEqual(operation["enabled"].value, operation_dict["enabled"])
-      self.assertEqual(operation["display_name"].value, operation_dict["display_name"])
-      self.assertSetEqual(operation.tags, set(tags))
-      
-      if "arguments" in operation_dict:
-        self.assertEqual(len(operation["arguments"]), len(operation_dict["arguments"]))
-        
-        for argument_setting, argument_dict in zip(
-              operation["arguments"], operation_dict["arguments"]):
-          self.assertEqual(type(argument_setting), argument_dict["type"])
-          self.assertEqual(argument_setting.name, argument_dict["name"])
-          self.assertEqual(argument_setting.value, argument_dict["default_value"])
-    
-    for attribute_name, attribute_dict in additional_builtin_data.items():
-      for operation_name, attribute_value in attribute_dict.items():
-        operation = settings["builtin"][operation_name]
-        self.assertEqual(operation[attribute_name].value, attribute_value)
-  
-  def test_create_invalid_type(self):
-    with self.assertRaises(ValueError):
-      operations.create(
-        "operations", get_builtin_operations_list(), type_="invalid_type")
   
   @parameterized.parameterized.expand([
-    ("by_index",
-     0,
-     "autocrop"),
+    ("operation_with_default_group",
+     "operations",
+     test_operations,
+     "autocrop_background",
+     ["operation"],
+     {"operation_groups": [operations.DEFAULT_OPERATIONS_GROUP]}),
     
-    ("by_name",
+    ("operation_with_custom_group",
+     "operations",
+     test_operations,
      "autocrop",
-     "autocrop"),
+     ["operation"],
+     {"operation_groups": ["basic"]}),
+    
+    ("constraint_with_default_subfilter",
+     "constraints",
+     test_constraints,
+     "only_visible_layers",
+     ["operation", "constraint"],
+     {
+       "operation_groups": [operations.DEFAULT_CONSTRAINTS_GROUP],
+       "subfilter": None
+     }),
+    
+    ("constraint_with_custom_subfilter",
+     "constraints",
+     test_constraints,
+     "include_layers",
+     ["operation", "constraint"],
+     {
+       "operation_groups": [operations.DEFAULT_CONSTRAINTS_GROUP],
+       "subfilter": "layer_types",
+     }),
   ])
-  def test_create_builtin_initial_operations_are_added(
+  def test_create_initial_operations_are_added(
         self,
         test_case_name_suffix,
-        builtin_initial_operation_index_or_name,
-        expected_operation_name):
-    builtin_operations = get_builtin_operations_list()
+        name,
+        test_operations_list,
+        initial_operation_name,
+        tags,
+        additional_operation_attributes):
+    initial_operation_dict = get_operation_data(
+      test_operations_list)[initial_operation_name]
     
-    try:
-      initial_operation = builtin_operations[builtin_initial_operation_index_or_name]
-    except TypeError:
-      initial_operation = builtin_initial_operation_index_or_name
-    
-    settings = operations.create(
-      "operations",
-      builtin_operations,
-      initial_operations=[initial_operation])
+    settings = operations.create(name, [initial_operation_dict])
     
     self.assertDictEqual(
-      _find_in_added_data(settings, expected_operation_name),
-      settings["builtin_data"].value[expected_operation_name])
-    
-    self.assertIn(expected_operation_name, settings["added"])
-    
+      _find_in_added_data(settings, initial_operation_name), initial_operation_dict)
+    self.assertIn(initial_operation_dict["name"], settings["added"])
     self.assertIsNot(
-      settings["builtin_data"].value["autocrop"],
-      _find_in_added_data(settings, "autocrop"))
+      _find_in_added_data(settings, initial_operation_name), initial_operation_dict)
+    
+    self.assertSetEqual(settings["added"][initial_operation_name].tags, set(tags))
+    
+    for attribute_name, value in additional_operation_attributes.items():
+      self.assertEqual(
+        settings["added"][initial_operation_name][attribute_name].value, value)
+    
+    self.assertNotIn("type", settings["added"][initial_operation_name])
+    
+    self.assertIn("type", _find_in_added_data(settings, initial_operation_name))
+    self.assertEqual(
+      initial_operation_dict["type"],
+      _find_in_added_data(settings, initial_operation_name)["type"])
+  
+  def test_create_initial_operation_with_invalid_type_raises_error(self):
+    initial_operation_dict = get_operation_data(test_operations)["autocrop"]
+    initial_operation_dict["type"] = "invalid_type"
+    
+    with self.assertRaises(ValueError):
+      operations.create("operations", [initial_operation_dict])
 
 
 class TestManageOperations(unittest.TestCase):
   
   def setUp(self):
-    self.settings = operations.create("operations", get_builtin_operations_list())
+    self.test_operations = get_operation_data(test_operations)
+    self.autocrop_operation_dict = self.test_operations["autocrop"]
+    self.settings = operations.create("operations")
   
   def test_add(self):
-    operation = operations.add(self.settings, "autocrop")
+    operation = operations.add(self.settings, self.autocrop_operation_dict)
     
     self.assertIn("autocrop", self.settings["added"])
-    self.assertNotEqual(
-      self.settings["added/autocrop"],
-      self.settings["builtin/autocrop"])
-    
-    self.assertEqual(operation, self.settings["added/autocrop"])
-    
+    self.assertEqual(len(self.settings["added"]), 1)
     self.assertDictEqual(
-      self.settings["builtin_data"].value["autocrop"],
-      _find_in_added_data(self.settings, "autocrop"))
-    
+      _find_in_added_data(self.settings, "autocrop"), self.autocrop_operation_dict)
     self.assertIsNot(
-      self.settings["builtin_data"].value["autocrop"],
-      _find_in_added_data(self.settings, "autocrop"))
+      _find_in_added_data(self.settings, "autocrop"), self.autocrop_operation_dict)
+    self.assertEqual(operation, self.settings["added/autocrop"])
+  
+  def test_add_passing_invalid_object_raises_error(self):
+    with self.assertRaises(TypeError):
+      operations.add(self.settings, "invalid_object")
   
   def test_add_existing_name_is_uniquified(self):
-    operation = operations.add(self.settings, "autocrop")
-    operation_2 = operations.add(self.settings, "autocrop")
+    operation = operations.add(self.settings, self.autocrop_operation_dict)
+    operation_2 = operations.add(self.settings, self.autocrop_operation_dict)
     
     self.assertIn("autocrop", self.settings["added"])
     self.assertIn("autocrop_2", self.settings["added"])
@@ -270,58 +244,66 @@ class TestManageOperations(unittest.TestCase):
   def test_add_invokes_before_add_operation_event(self):
     invoked_event_args = []
     
-    def on_before_add_operation(operations, operation_name):
-      invoked_event_args.append((operations, operation_name))
+    def on_before_add_operation(operations, operation_dict):
+      invoked_event_args.append((operations, operation_dict))
       self.assertNotIn("autocrop", self.settings)
     
     self.settings.connect_event("before-add-operation", on_before_add_operation)
     
-    operations.add(self.settings, "autocrop")
+    operations.add(self.settings, self.autocrop_operation_dict)
     
     self.assertIs(invoked_event_args[0][0], self.settings)
-    self.assertEqual(invoked_event_args[0][1], "autocrop")
+    self.assertDictEqual(invoked_event_args[0][1], self.autocrop_operation_dict)
+    self.assertIsNot(invoked_event_args[0][1], self.autocrop_operation_dict)
   
   @parameterized.parameterized.expand([
     ("",
      ["autocrop"],),
     
-    ("and_passes_original_operation_name",
+    ("and_passes_original_operation_dict",
      ["autocrop", "autocrop"],),
   ])
   def test_add_invokes_after_add_operation_event(
-        self, test_case_name_suffix, names_to_add):
+        self, test_case_name_suffix, operation_names_to_add):
     invoked_event_args = []
     
-    def on_after_add_operation(operations, operation, orig_operation_name):
-      invoked_event_args.append((operations, operation, orig_operation_name))
+    def on_after_add_operation(operations, operation, orig_operation_dict):
+      invoked_event_args.append((operations, operation, orig_operation_dict))
     
     self.settings.connect_event("after-add-operation", on_after_add_operation)
     
-    for operation_name in names_to_add:
-      operation = operations.add(self.settings, operation_name)
+    for operation_name in operation_names_to_add:
+      operation = operations.add(self.settings, self.test_operations[operation_name])
       
       self.assertIs(invoked_event_args[-1][0], self.settings)
       self.assertIs(invoked_event_args[-1][1], operation)
-      self.assertEqual(invoked_event_args[-1][2], operation_name)
+      self.assertDictEqual(invoked_event_args[-1][2], self.autocrop_operation_dict)
+      self.assertIsNot(invoked_event_args[-1][2], self.autocrop_operation_dict)
   
   def test_add_modifying_added_operation_modifies_nothing_else(self):
-    operation = operations.add(self.settings, "autocrop")
-    builtin_operation = self.settings["builtin/autocrop"]
-    
+    operation = operations.add(self.settings, self.autocrop_operation_dict)
     operation["enabled"].set_value(False)
     operation["arguments/offset_x"].set_value(20)
     operation["arguments/offset_y"].set_value(10)
     
-    self.assertNotEqual(operation["enabled"], builtin_operation["enabled"])
+    self.assertNotEqual(operation["enabled"], self.autocrop_operation_dict["enabled"])
     self.assertNotEqual(
-      operation["arguments/offset_x"], builtin_operation["arguments/offset_x"])
+      operation["arguments/offset_x"], self.autocrop_operation_dict["arguments"][0])
     self.assertNotEqual(
-      operation["arguments/offset_y"], builtin_operation["arguments/offset_y"])
+      operation["arguments/offset_y"], self.autocrop_operation_dict["arguments"][1])
     
     self.assertNotEqual(
-      operation["enabled"], self.settings["builtin_data"].value["autocrop"]["enabled"])
-    self.assertNotEqual(
       operation["enabled"], _find_in_added_data(self.settings, "autocrop")["enabled"])
+  
+  def test_add_creates_separate_settings_for_custom_fields(self):
+    self.autocrop_operation_dict["custom_field"] = "value"
+    
+    operation = operations.add(self.settings, self.autocrop_operation_dict)
+    
+    self.assertEqual(operation["custom_field"].value, "value")
+    self.assertEqual(self.settings["added/autocrop/custom_field"].value, "value")
+    self.assertEqual(
+      _find_in_added_data(self.settings, "autocrop")["custom_field"], "value")
   
   @parameterized.parameterized.expand([
     ("middle_to_first",
@@ -365,8 +347,8 @@ class TestManageOperations(unittest.TestCase):
         operation_name,
         new_position,
         expected_ordered_operation_names):
-    for operation in self.settings["builtin"]:
-      operations.add(self.settings, operation.name)
+    for operation_dict in self.test_operations.values():
+      operations.add(self.settings, operation_dict)
     
     operations.reorder(self.settings, operation_name, new_position)
     
@@ -397,11 +379,11 @@ class TestManageOperations(unittest.TestCase):
   def test_remove(
         self,
         test_case_name_suffix,
-        names_to_add,
+        operation_names_to_add,
         names_to_remove,
         names_to_keep):
-    for operation_name in names_to_add:
-      operations.add(self.settings, operation_name)
+    for operation_name in operation_names_to_add:
+      operations.add(self.settings, self.test_operations[operation_name])
     
     for operation_name in names_to_remove:
       operations.remove(self.settings, operation_name)
@@ -413,31 +395,26 @@ class TestManageOperations(unittest.TestCase):
       self.assertIn(operation_name, self.settings["added"])
       self.assertIsNotNone(_find_in_added_data(self.settings, operation_name))
     
-    for operation_name in list(set(names_to_add)):
-      self.assertIn(operation_name, self.settings["builtin"])
+    self.assertEqual(len(self.settings["added"]), len(names_to_keep))
   
   def test_remove_nonexisting_operation_name(self):
     with self.assertRaises(ValueError):
       operations.remove(self.settings, "invalid_operation")
   
   def test_clear(self):
-    for operation in self.settings["builtin"]:
-      operations.add(self.settings, operation.name)
+    for operation_dict in self.test_operations.values():
+      operations.add(self.settings, operation_dict)
     
     operations.clear(self.settings)
     
     self.assertFalse(self.settings["added"])
     self.assertFalse(self.settings["added_data"].value)
-    self.assertTrue(self.settings["builtin"])
-    self.assertTrue(self.settings["builtin_data"])
+    self.assertTrue(self.test_operations)
   
   def test_clear_resets_to_initial_operations(self):
-    settings = operations.create(
-      "operations",
-      get_builtin_operations_list(),
-      initial_operations=["autocrop"])
+    settings = operations.create("operations", [self.autocrop_operation_dict])
     
-    operations.add(settings, "autocrop_background")
+    operations.add(settings, self.test_operations["autocrop_background"])
     operations.clear(settings)
     
     self.assertIn("autocrop", settings["added"])
@@ -447,7 +424,10 @@ class TestManageOperations(unittest.TestCase):
     self.assertEqual(len(settings["added_data"].value), 1)
     self.assertDictEqual(
       _find_in_added_data(settings, "autocrop"),
-      settings["builtin_data"].value["autocrop"])
+      self.autocrop_operation_dict)
+    self.assertIsNot(
+      _find_in_added_data(settings, "autocrop"),
+      self.autocrop_operation_dict)
 
 
 class TestWalkOperations(unittest.TestCase):
@@ -475,25 +455,17 @@ class TestWalkOperations(unittest.TestCase):
   ]
   
   def setUp(self):
-    self.settings = operations.create("operations", get_builtin_operations_list())
-  
-  @parameterized.parameterized.expand(_walk_parameters)
-  def test_walk_builtin(
-        self, test_case_name_suffix, setting_name, expected_setting_paths):
-    self.assertListEqual(
-      list(operations.walk(
-        self.settings, setting_name=setting_name, subgroup="builtin")),
-      [self.settings["builtin/" + path] for path in expected_setting_paths])
+    self.test_operations = get_operation_data(test_operations)
+    self.settings = operations.create("operations")
   
   @parameterized.parameterized.expand(_walk_parameters)
   def test_walk_added(
         self, test_case_name_suffix, setting_name, expected_setting_paths):
-    for operation in self.settings["builtin"]:
-      operations.add(self.settings, operation.name)
+    for operation_dict in self.test_operations.values():
+      operations.add(self.settings, operation_dict)
     
     self.assertListEqual(
-      list(operations.walk(
-        self.settings, setting_name=setting_name, subgroup="added")),
+      list(operations.walk(self.settings, setting_name=setting_name)),
       [self.settings["added/" + path] for path in expected_setting_paths])
   
   @parameterized.parameterized.expand([
@@ -531,15 +503,14 @@ class TestWalkOperations(unittest.TestCase):
         setting_name,
         operations_to_reorder,
         expected_setting_paths):
-    for operation in self.settings["builtin"]:
-      operations.add(self.settings, operation.name)
+    for operation_dict in self.test_operations.values():
+      operations.add(self.settings, operation_dict)
     
     for operation_name, new_position in operations_to_reorder:
       operations.reorder(self.settings, operation_name, new_position)
     
     self.assertListEqual(
-      list(operations.walk(
-        self.settings, setting_name=setting_name, subgroup="added")),
+      list(operations.walk(self.settings, setting_name=setting_name)),
       [self.settings["added/" + path] for path in expected_setting_paths])
 
 
@@ -552,7 +523,8 @@ class TestWalkOperations(unittest.TestCase):
 class TestLoadSaveOperations(unittest.TestCase):
   
   def setUp(self):
-    self.settings = operations.create("operations", get_builtin_operations_list())
+    self.test_operations = get_operation_data(test_operations)
+    self.settings = operations.create("operations")
   
   @mock.patch(
     pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.save",
@@ -578,8 +550,8 @@ class TestLoadSaveOperations(unittest.TestCase):
         self,
         mock_persistent_source,
         mock_session_source):
-    for operation_name in ["autocrop", "autocrop_background", "autocrop_foreground"]:
-      operations.add(self.settings, operation_name)
+    for operation_dict in self.test_operations.values():
+      operations.add(self.settings, operation_dict)
     
     self.settings.save()
     
@@ -602,29 +574,31 @@ class TestLoadSaveOperations(unittest.TestCase):
         mock_persistent_source,
         mock_session_source,
         test_case_name_suffix,
-        names_to_add):
-    for operation_name in names_to_add:
-      operations.add(self.settings, operation_name)
+        operation_names_to_add):
+    for operation_name in operation_names_to_add:
+      operations.add(self.settings, self.test_operations[operation_name])
     
     added_data_before_save = self.settings["added_data"].value
     
     self.settings.save()
     self.settings.load()
     
-    self.assertEqual(len(self.settings["added_data"].value), len(names_to_add))
+    self.assertEqual(len(self.settings["added_data"].value), len(operation_names_to_add))
+    
     for dict_before_save, dict_after_save in zip(
           added_data_before_save, self.settings["added_data"].value):
       self.assertDictEqual(dict_before_save, dict_after_save)
     
-    self.assertEqual(len(self.settings["added"]), len(names_to_add))
+    self.assertEqual(len(self.settings["added"]), len(operation_names_to_add))
+    
     for added_setting, dict_after_save in zip(
           self.settings["added"], self.settings["added_data"].value):
       self.assertEqual(added_setting.name, dict_after_save["name"])
   
   def test_values_are_preserved_after_load(
         self, mock_persistent_source, mock_session_source):
-    for operation in self.settings["builtin"]:
-      operations.add(self.settings, operation.name)
+    for operation_dict in self.test_operations.values():
+      operations.add(self.settings, operation_dict)
     
     self.settings["added/autocrop_background/enabled"].set_value(True)
     self.settings["added/autocrop_background/operation_groups"].set_value(["background"])
@@ -649,8 +623,8 @@ class TestLoadSaveOperations(unittest.TestCase):
   
   def test_added_data_values_is_filled_before_save_and_reset_on_clear(
         self, mock_persistent_source, mock_session_source):
-    for operation in self.settings["builtin"]:
-      operations.add(self.settings, operation.name)
+    for operation_dict in self.test_operations.values():
+      operations.add(self.settings, operation_dict)
     
     self.settings["added/autocrop_background/enabled"].set_value(True)
     self.settings["added/autocrop_background/operation_groups"].set_value(["background"])
@@ -667,13 +641,10 @@ class TestLoadSaveOperations(unittest.TestCase):
   
   def test_load_if_added_data_not_found_sets_initial_operations(
         self, mock_persistent_source, mock_session_source):
-    settings = operations.create(
-      "operations",
-      get_builtin_operations_list(),
-      initial_operations=["autocrop"])
+    settings = operations.create("operations", [self.test_operations["autocrop"]])
     
     for operation_name in ["autocrop_background", "autocrop_foreground"]:
-      operations.add(settings, operation_name)
+      operations.add(settings, self.test_operations[operation_name])
     
     settings.load()
     
@@ -684,13 +655,10 @@ class TestLoadSaveOperations(unittest.TestCase):
   
   def test_load_if_added_data_found_overrides_initial_operations(
         self, mock_persistent_source, mock_session_source):
-    settings = operations.create(
-      "operations",
-      get_builtin_operations_list(),
-      initial_operations=["autocrop"])
+    settings = operations.create("operations", [self.test_operations["autocrop"]])
     
     for operation_name in ["autocrop_background", "autocrop_foreground"]:
-      operations.add(settings, operation_name)
+      operations.add(settings, self.test_operations[operation_name])
     
     operations.remove(settings, "autocrop")
     
@@ -706,14 +674,13 @@ class TestLoadSaveOperations(unittest.TestCase):
 class TestManagePdbProceduresAsOperations(unittest.TestCase):
   
   def setUp(self):
-    self.settings = operations.create("operations", get_builtin_operations_list())
+    self.test_operations = get_operation_data(test_operations)
+    self.settings = operations.create("operations")
     self.procedure_stub = stubs_gimp.PdbProcedureStub(
       name="file-png-save",
       type_=gimpenums.PLUGIN,
-      #TODO: test with image parameter
       params=(
         (gimpenums.PDB_INT32, "run-mode", "The run mode"),
-#         (gimpenums.PDB_IMAGE, "image", "Input image"),
         (gimpenums.PDB_INT32ARRAY, "save-options", "Save options"),
         (gimpenums.PDB_STRING, "filename", "Filename to save the image in")),
       return_vals=None,
@@ -725,15 +692,14 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
     self.assertIn("file-png-save", self.settings["added"])
     
     self.assertEqual(operation.name, "file-png-save")
-#     self.assertEqual(operation["function"].value, self.procedure_stub)
     self.assertEqual(operation["function"].value, "file-png-save")
     self.assertEqual(operation["enabled"].value, True)
     self.assertEqual(operation["display_name"].value, self.procedure_stub.proc_name)
     self.assertEqual(
       operation["operation_groups"].value, [operations.DEFAULT_OPERATIONS_GROUP])
+    self.assertEqual(operation["is_pdb_procedure"].value, True)
     
     self.assertEqual(operation["arguments/run-mode"].value, 0)
-#     self.assertEqual(operation["arguments/image"].value, None)
     self.assertEqual(operation["arguments/save-options"].value, ())
     self.assertEqual(operation["arguments/filename"].value, "")
     
@@ -759,9 +725,9 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
     self.settings.load()
     
     self.assertEqual(operation.name, "file-png-save")
-#     self.assertEqual(operation["function"].value, self.procedure_stub)
     self.assertEqual(operation["function"].value, "file-png-save")
     self.assertEqual(operation["enabled"].value, False)
+    self.assertEqual(operation["is_pdb_procedure"].value, True)
     self.assertEqual(operation["arguments/filename"].value, "image.png")
     
     self.assertEqual(

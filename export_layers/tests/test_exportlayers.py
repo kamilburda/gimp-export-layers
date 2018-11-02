@@ -29,6 +29,8 @@ from export_layers import pygimplib
 from export_layers.pygimplib import pgoperations
 from export_layers.pygimplib import pgutils
 
+from export_layers import builtin_operations
+
 from .. import config
 config.init()
 
@@ -60,7 +62,9 @@ class TestExportLayersInitialOperations(unittest.TestCase):
       settings["special/image"].value,
       settings["main"])
     
-    operations.add(settings["main/operations"], "ignore_layer_modes")
+    operations.add(
+      settings["main/operations"],
+      builtin_operations.BUILTIN_OPERATIONS["ignore_layer_modes"])
     
     layer_exporter.add_operation(
       pgutils.empty_func, [operations.DEFAULT_OPERATIONS_GROUP])

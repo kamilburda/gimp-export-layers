@@ -30,7 +30,6 @@ import os
 import gimp
 import gimpenums
 
-from export_layers import builtin_operations
 from export_layers import builtin_constraints
 from export_layers import operations
 
@@ -160,133 +159,11 @@ def create_settings():
     },
   ])
   
-  settings["main"].add([operations.create(
-    name="operations",
-    type_="operation",
-    builtin_operations_data=[
-      {
-        "name": "insert_background_layers",
-        "function": builtin_operations.insert_background_layer,
-        "arguments": [
-          {
-            "type": pgsetting.SettingTypes.string,
-            "name": "tag",
-            "default_value": "background",
-          },
-        ],
-        "display_name": _("Insert background layers"),
-      },
-      {
-        "name": "insert_foreground_layers",
-        "function": builtin_operations.insert_foreground_layer,
-        "arguments": [
-          {
-            "type": pgsetting.SettingTypes.string,
-            "name": "tag",
-            "default_value": "foreground",
-          },
-        ],
-        "display_name": _("Insert foreground layers"),
-      },
-      {
-        "name": "inherit_transparency_from_layer_groups",
-        "function": builtin_operations.inherit_transparency_from_layer_groups,
-        "display_name": _("Inherit transparency from layer groups"),
-      },
-      {
-        "name": "ignore_layer_modes",
-        "function": builtin_operations.ignore_layer_modes,
-        "display_name": _("Ignore layer modes"),
-      },
-      {
-        "name": "autocrop",
-        "function": builtin_operations.autocrop_layer,
-        "display_name": _("Autocrop"),
-      },
-      {
-        "name": "autocrop_background",
-        "function": builtin_operations.autocrop_tagged_layer,
-        "arguments": [
-          {
-            "type": pgsetting.SettingTypes.string,
-            "name": "tag",
-            "default_value": "background",
-          },
-        ],
-        "display_name": _("Autocrop background"),
-      },
-      {
-        "name": "autocrop_foreground",
-        "function": builtin_operations.autocrop_tagged_layer,
-        "arguments": [
-          {
-            "type": pgsetting.SettingTypes.string,
-            "name": "tag",
-            "default_value": "foreground",
-          },
-        ],
-        "display_name": _("Autocrop foreground"),
-      },
-      {
-        "name": "use_file_extensions_in_layer_names",
-        "function": None,
-        "display_name": _("Use file extensions in layer names"),
-      },
-    ]),
-  ])
+  settings["main"].add([operations.create(name="operations")])
   
   settings["main"].add([operations.create(
     name="constraints",
-    type_="constraint",
-    initial_operations=["include_layers"],
-    builtin_operations_data=[
-      {
-        "name": "include_layers",
-        "function": builtin_constraints.is_layer,
-        "display_name": _("Include layers"),
-        "subfilter": "layer_types",
-        "operation_groups": [builtin_constraints.CONSTRAINTS_LAYER_TYPES_GROUP],
-      },
-      {
-        "name": "include_layer_groups",
-        "function": builtin_constraints.is_nonempty_group,
-        "display_name": _("Include layer groups"),
-        "subfilter": "layer_types",
-        "operation_groups": [builtin_constraints.CONSTRAINTS_LAYER_TYPES_GROUP],
-      },
-      {
-        "name": "include_empty_layer_groups",
-        "function": builtin_constraints.is_empty_group,
-        "display_name": _("Include empty layer groups"),
-        "subfilter": "layer_types",
-        "operation_groups": [builtin_constraints.CONSTRAINTS_LAYER_TYPES_GROUP],
-      },
-      {
-        "name": "only_layers_without_tags",
-        "function": builtin_constraints.has_no_tags,
-        "display_name": _("Only layers without tags"),
-      },
-      {
-        "name": "only_layers_with_tags",
-        "function": builtin_constraints.has_tags,
-        "display_name": _("Only layers with tags"),
-      },
-      {
-        "name": "only_layers_matching_file_extension",
-        "function": builtin_constraints.has_matching_default_file_extension,
-        "display_name": _("Only layers matching file extension"),
-      },
-      {
-        "name": "only_toplevel_layers",
-        "function": builtin_constraints.is_top_level,
-        "display_name": _("Only top-level layers"),
-      },
-      {
-        "name": "only_selected_layers",
-        "function": None,
-        "display_name": _("Only layers selected in preview"),
-      },
-    ]),
+    initial_operations=[builtin_constraints.BUILTIN_CONSTRAINTS["include_layers"]]),
   ])
   
   def on_use_file_extensions_in_layer_names_enabled_changed(

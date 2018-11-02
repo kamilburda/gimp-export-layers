@@ -513,3 +513,16 @@ def unsuppress_gimp_progress():
   
   gimp.progress_uninstall(_dummy_progress_callback)
   _dummy_progress_callback = None
+
+
+#===============================================================================
+
+
+def is_pdb_procedure(function):
+  """
+  Return `True` if the given function is a PDB procedure, `False` otherwise.
+  """
+  return (
+    hasattr(function, "proc_name")
+    and hasattr(function, "params")
+    and callable(function))

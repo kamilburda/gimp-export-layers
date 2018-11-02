@@ -34,7 +34,7 @@ operations/constraints. These events include:
   * calling `clear` before resetting operations (due to initial operations being
     added back).
   
-  Arguments: operation name to be added
+  Arguments: operation dictionary to be added
 
 * `"after-add-operation"` - invoked when:
   * calling `add` after adding an operation,
@@ -43,7 +43,7 @@ operations/constraints. These events include:
   * calling `clear` after resetting operations (due to initial operations being
     added back).
   
-  Arguments: created operation, original operation name (same as in
+  Arguments: created operation, original operation dictionary (same as in
   `"before-add-operation"`)
 
 * `"before-reorder-operation"` - invoked when calling `reorder` before
@@ -64,7 +64,7 @@ operations/constraints. These events include:
 * `"after-remove-operation"` - invoked when calling `remove` after removing an
   operation.
   
-  Arguments: name of removed operation
+  Arguments: name of the removed operation
 
 * `"before-clear-operation"` - invoked when calling `clear` before clearing
   operations.
@@ -76,10 +76,9 @@ operations/constraints. These events include:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-import collections
-
 from export_layers import pygimplib
 from export_layers.pygimplib import pgpath
+from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
 
@@ -93,51 +92,51 @@ DEFAULT_OPERATIONS_GROUP = "default_operations"
 DEFAULT_CONSTRAINTS_GROUP = "default_constraints"
 
 
-def create(name, builtin_operations_data, type_="operation", initial_operations=None):
+def create(name, initial_operations=None):
   """
-  Create a `SettingGroup` instance containing operations with the specified
-  `name` and built-in operations in the form of a list of dictionaries,
-  `builtin_operations_data`.
+  Create a `SettingGroup` instance containing operations.
   
-  The resulting `SettingGroup` instance contains the following subgroups usable
-  outside the `operations` module:
+  Parameters:
+  * `name` - name of the `SettingGroup` instance.
+  * `type` - `"operation"` or `"constraint"`, see below for details.
+  * `initial_operations` - list of dictionaries describing operations to be
+    added by default. Calling `clear` will reset the operations returned by this
+    function to the initial operations. By default, no initial operations are
+    added.
+  
+  The resulting `SettingGroup` instance contains the following subgroups:
   * `"added"` - contains operations added via `add`.
-  * `"builtin"` - contains built-in operations created by this method. This
-    subgroup can be used to e.g. list all available built-in operations.
+  * `"added_data"` - operations stored as dictionaries, used when loading or
+    saving operations persistently. `"added_data"` should only be used and
+    modified internally.
   
-  Built-in operations should not be used directly, but should rather be added
-  first via the `add` method.
-  
-  `builtin_operations_data` is a list of dictionaries that contain fields
-  pertaining to the specified `type_`.
-  
-  If `type_` is `"operation"`, each dictionary can contain the following fields:
-  * `"function"` - the function to execute
+  Each dictionary in `initial_operations` can contain the following fields:
+  * `"name"` - name of the operation.
+  * `"type"` - see below for details.
+  * `"function"` - the function to execute.
   * `"arguments"` - arguments to `"function"` as a list of dictionaries defining
     settings. Each dictionary must contain mandatory attributes and can contain
     optional attributes as stated in `SettingGroup.add`.
-  * `"enabled"` - whether the operation should be executed or not
+  * `"enabled"` - whether the operation should be executed or not.
   * `"display_name"` - the display name (human-readable name) of the operation
   * `"operation_group"` - list of groups the operation belongs to; used in
     `pgoperations.OperationExecutor` and `exportlayers.LayerExporter`
   
-  If `type_` is `"constraint"`, the dictionaries in `builtin_operations_data`
-  can contain the following additional fields beside those for type
-  `"operation"`:
-  * `subfilter` - the name of a subfilter for an `ObjectFilter` instance where
-    constraints should be added. By default, `subfilter` is `None` (no subfilter
-    is assumed).
-  
-  `initial_operations` is a list of dictionaries containing the same fields as
-  in `builtin_operations_data` that represent operations to be added by default.
-  Calling `clear` will reset the operations returned by this function to the
-  initial operations. By default, no initial operations are assumed.
-  
   Each created operation in the returned group is a nested `SettingGroup`.
-  Each such group contains settings with the name corresponding to the fields
-  in the dictionaries in `builtin_operations_data`. An additional group is
-  `"arguments"` that contains arguments to the function; each argument is a
-  separate setting.
+  An additional group is `"arguments"` that contains arguments to the function;
+  each argument is a separate setting (`Setting` instance).
+  
+  Possible values for `"type"`:
+  * `"operation"` (default) - represents a regular operation.
+    `"operation_group"` defaults to `DEFAULT_OPERATIONS_GROUP` if not defined.
+  * `"constraint"` - represents a constraint.
+    `"operation_group"` defaults to `DEFAULT_CONSTRAINTS_GROUP` if not defined.
+    Additional allowed fields for `"constraint"` include:
+      * `subfilter` - the name of a subfilter for an `ObjectFilter` instance
+        where constraints should be added. By default, `subfilter` is `None` (no
+        subfilter is assumed).
+  
+  Other values for `"type"` raise `ValueError`.
   """
   operations = pgsettinggroup.SettingGroup(
     name=name,
@@ -153,26 +152,12 @@ def create(name, builtin_operations_data, type_="operation", initial_operations=
       "setting_sources": None,
     })
   
-  builtin_operations = _create_builtin_operations(builtin_operations_data, type_)
-  _add_operation_type_to_builtin_data(builtin_operations_data, type_)
-  
-  builtin_operations_dict = collections.OrderedDict(
-    (dict_["name"], dict_) for dict_ in builtin_operations_data)
-  
   operations.add([
-    builtin_operations,
-    {
-      "type": pgsetting.SettingTypes.generic,
-      "name": "builtin_data",
-      "default_value": builtin_operations_dict,
-      "setting_sources": None,
-    },
     added_operations,
     {
       "type": pgsetting.SettingTypes.generic,
       "name": "added_data",
-      "default_value": _get_initial_added_data(
-        initial_operations, builtin_operations_dict),
+      "default_value": _get_initial_added_data(initial_operations),
       "setting_sources": [
         pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     },
@@ -214,45 +199,11 @@ def create(name, builtin_operations_data, type_="operation", initial_operations=
   return operations
 
 
-def _create_builtin_operations(builtin_operations_data, operation_type):
-  if operation_type not in _OPERATION_TYPES_AND_FUNCTIONS:
-    raise ValueError("invalid operation type; must be one of {}".format(
-      list(_OPERATION_TYPES_AND_FUNCTIONS)))
-  
-  builtin_operations = pgsettinggroup.SettingGroup(
-    name="builtin",
-    setting_attributes={
-      "pdb_type": None,
-      "setting_sources": None,
-    })
-  
-  for builtin_operation_dict in builtin_operations_data:
-    builtin_operations.add([
-      _create_operation_by_type(operation_type, **builtin_operation_dict)])
-  
-  return builtin_operations
-
-
-def _get_initial_added_data(initial_operations, builtin_operations_dict):
-  if initial_operations is None:
-    initial_operations = []
-  
-  initial_added_data = []
-  
-  for initial_operation in initial_operations:
-    try:
-      initial_operation_to_add = builtin_operations_dict[initial_operation]
-    except (KeyError, TypeError):
-      initial_operation_to_add = initial_operation
-    
-    initial_added_data.append(dict(initial_operation_to_add))
-  
-  return initial_added_data
-
-
-def _add_operation_type_to_builtin_data(builtin_operations_data, type_):
-  for builtin_operation_dict in builtin_operations_data:
-    builtin_operation_dict["operation_type"] = type_
+def _get_initial_added_data(initial_operations):
+  if not initial_operations:
+    return []
+  else:
+    return [dict(operation_dict) for operation_dict in initial_operations]
 
 
 def _clear_operations_before_load_without_adding_initial_operations(
@@ -262,16 +213,23 @@ def _clear_operations_before_load_without_adding_initial_operations(
 
 def _create_operations_from_added_data(operations):
   for operation_dict in operations["added_data"].value:
-    operations.invoke_event("before-add-operation", operation_dict["name"])
+    operations.invoke_event("before-add-operation", operation_dict)
     
     operation = _create_operation_by_type(**dict(operation_dict))
     operations["added"].add([operation])
     
-    operations.invoke_event("after-add-operation", operation, operation_dict["name"])
+    operations.invoke_event("after-add-operation", operation, operation_dict)
 
 
-def _create_operation_by_type(operation_type="operation", **kwargs):
-  return _OPERATION_TYPES_AND_FUNCTIONS[operation_type](**kwargs)
+def _create_operation_by_type(**kwargs):
+  type_ = kwargs.pop("type", "operation")
+  
+  if type_ not in _OPERATION_TYPES_AND_FUNCTIONS:
+    raise ValueError(
+      "invalid type '{}'; valid values: {}".format(
+        type_, list(_OPERATION_TYPES_AND_FUNCTIONS)))
+  
+  return _OPERATION_TYPES_AND_FUNCTIONS[type_](**kwargs)
 
 
 def _get_values_from_operations(added_data_values_setting, added_operations_group):
@@ -295,7 +253,14 @@ def _create_operation(
       arguments=None,
       enabled=True,
       display_name=None,
-      operation_groups=None):
+      operation_groups=None,
+      **custom_fields):
+  
+  def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
+    setting_display_name.set_gui(
+      gui_type=pgsetting.SettingGuiTypes.check_button_label,
+      gui_element=setting_enabled.gui.element)
+  
   operation = pgsettinggroup.SettingGroup(
     name,
     tags=["operation"],
@@ -345,19 +310,22 @@ def _create_operation(
     },
   ])
   
+  for field_name, field_value in custom_fields.items():
+    operation.add([
+      {
+        "type": pgsetting.SettingTypes.generic,
+        "name": field_name,
+        "default_value": field_value,
+        "gui_type": None,
+      },
+    ])
+  
   operation["enabled"].connect_event(
     "after-set-gui",
     _set_display_name_for_enabled_gui,
     operation["display_name"])
   
   return operation
-
-
-def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
-  setting_display_name.set_gui(
-    gui_type=pgsetting.SettingGuiTypes.check_button_label,
-    gui_element=setting_enabled.gui.element
-  )
 
 
 def _create_constraint(name, function, subfilter=None, **create_operation_kwargs):
@@ -386,38 +354,43 @@ _OPERATION_TYPES_AND_FUNCTIONS = {
 }
 
 
-def add(operations, pdb_proc_or_builtin_name):
+def add(operations, operation_dict_or_function):
   """
-  Add an operation to the `operations` setting group specified by its name.
-  Return the added operation.
+  Add an operation to the `operations` setting group.
   
-  `pdb_proc_or_builtin_name` can be a GIMP PDB procedure or the name of a
-  built-in operation that exists in `operations` (as specified in `create` in
-  the `builtin_operations_data` parameter)
+  `operation_dict_or_function` can be one of the following:
+  * a dictionary - see `create` for more information.
+  * a PDB procedure.
+  
+  Objects of other types passed to `operation_dict_or_function` raise
+  `TypeError`.
   
   The same operation can be added multiple times. Each operation will be
   assigned a unique name and display name (e.g. `"autocrop"` and `"Autocrop"`
   for the first operation, `"autocrop_2"` and `"Autocrop (2)"` for the second
   operation, and so on).
   """
-  
-  operations.invoke_event("before-add-operation", pdb_proc_or_builtin_name)
-  
-  is_pdb_procedure = (
-    hasattr(pdb_proc_or_builtin_name, "proc_name") and callable(pdb_proc_or_builtin_name))
-  
-  if is_pdb_procedure:
-    operation_dict = _get_operation_dict_for_pdb_procedure(
-      operations, pdb_proc_or_builtin_name)
+  if isinstance(operation_dict_or_function, dict):
+    operation_dict = operation_dict_or_function
   else:
-    operation_dict = _get_operation_dict_for_builtin(operations, pdb_proc_or_builtin_name)
+    if pgpdb.is_pdb_procedure(operation_dict_or_function):
+      operation_dict = _get_operation_dict_for_pdb_procedure(
+        operations, operation_dict_or_function)
+    else:
+      raise TypeError(
+        "'{}' is not a valid object - pass a dict or a PDB procedure".format(
+          operation_dict_or_function))
+  
+  operations.invoke_event("before-add-operation", dict(operation_dict))
+  
+  _uniquify_name_and_display_name(operations, operation_dict)
   
   operation = _create_operation_by_type(**operation_dict)
   
   operations["added"].add([operation])
-  operations["added_data"].value.append(operation_dict)
+  operations["added_data"].value.append(dict(operation_dict))
   
-  operations.invoke_event("after-add-operation", operation, pdb_proc_or_builtin_name)
+  operations.invoke_event("after-add-operation", operation, dict(operation_dict))
   
   return operation
 
@@ -428,6 +401,7 @@ def _get_operation_dict_for_pdb_procedure(operations, pdb_procedure):
     "function": pdb_procedure.proc_name,
     "arguments": [],
     "display_name": pdb_procedure.proc_name,
+    "is_pdb_procedure": True,
   }
   
   for pdb_param_type, pdb_param_name, unused_ in pdb_procedure.params:
@@ -442,6 +416,23 @@ def _get_operation_dict_for_pdb_procedure(operations, pdb_procedure):
         "name": pdb_param_name,
       })
   
+  return operation_dict
+
+
+def _uniquify_name_and_display_name(operations, operation_dict):
+  
+  def _generate_unique_operation_name():
+    i = 2
+    while True:
+      yield "_{}".format(i)
+      i += 1
+  
+  def _generate_unique_display_name():
+    i = 2
+    while True:
+      yield " ({})".format(i)
+      i += 1
+  
   operation_dict["name"] = (
     pgpath.uniquify_string(
       operation_dict["name"],
@@ -453,40 +444,6 @@ def _get_operation_dict_for_pdb_procedure(operations, pdb_procedure):
       operation_dict["display_name"],
       [operation["display_name"].value for operation in walk(operations)],
       uniquifier_generator=_generate_unique_display_name()))
-  
-  return operation_dict
-
-
-def _get_operation_dict_for_builtin(operations, operation_name):
-  operation_dict = dict(operations["builtin_data"].value[operation_name])
-  
-  operation_dict["name"] = (
-    pgpath.uniquify_string(
-      operation_dict["name"],
-      [operation.name for operation in walk(operations)],
-      uniquifier_generator=_generate_unique_operation_name()))
-  
-  operation_dict["display_name"] = (
-    pgpath.uniquify_string(
-      operation_dict["display_name"],
-      [operation["display_name"].value for operation in walk(operations)],
-      uniquifier_generator=_generate_unique_display_name()))
-  
-  return operation_dict
-
-
-def _generate_unique_operation_name():
-  i = 2
-  while True:
-    yield "_{}".format(i)
-    i += 1
-
-
-def _generate_unique_display_name():
-  i = 2
-  while True:
-    yield " ({})".format(i)
-    i += 1
 
 
 def reorder(operations, operation_name, new_position):
@@ -568,21 +525,16 @@ def _clear(operations):
   operations["added_data_values"].reset()
 
 
-def walk(operations, setting_name="operation", subgroup="added"):
+def walk(operations, setting_name="operation"):
   """
   Walk (iterate over) a setting group containing operations.
   
   `setting_name` specifies which underlying setting or subgroup of each
-  operation is returned. By default, the group representing the entire operation
-  is returned. For possible values, see `create_operation`. Additional values
+  operation is returned. By default, the setting group representing the entire
+  operation is returned. For possible values, see `create`. Additional values
   include:
   * `"operation"` - the setting group if the group is an operation or constraint
   * `"constraint"` - the setting group if the group is a constraint
-  
-  `subgroup` indicates which subgroup to walk. Possible values:
-  * `"added"` (default) - walk operations added via `add` in the current order
-     of operations (which may have been changed after calls to `reorder`).
-  * `"builtin"` - walk built-in operations specified in `create`.
   """
   if setting_name in _OPERATION_TYPES_AND_FUNCTIONS:
     def has_tag(setting):
@@ -595,24 +547,18 @@ def walk(operations, setting_name="operation", subgroup="added"):
     
     include_setting_func = matches_setting_name
   
-  if subgroup == "added":
-    def _walk_added_operations():
-      listed_operations = {
-        (setting.name if setting_name in _OPERATION_TYPES_AND_FUNCTIONS
-         else setting.parent.name): setting
-        for setting in operations["added"].walk(
-          include_setting_func=include_setting_func,
-          include_groups=True,
-          include_if_parent_skipped=True)}
-      
-      for operation_dict in operations["added_data"].value:
-        operation_name = operation_dict["name"]
-        if operation_name in listed_operations:
-          yield listed_operations[operation_name]
+  def _walk_added_operations():
+    listed_operations = {
+      (setting.name if setting_name in _OPERATION_TYPES_AND_FUNCTIONS
+       else setting.parent.name): setting
+      for setting in operations["added"].walk(
+        include_setting_func=include_setting_func,
+        include_groups=True,
+        include_if_parent_skipped=True)}
     
-    return _walk_added_operations()
-  elif subgroup == "builtin":
-    return operations["builtin"].walk(
-      include_setting_func=include_setting_func,
-      include_groups=True,
-      include_if_parent_skipped=True)
+    for operation_dict in operations["added_data"].value:
+      operation_name = operation_dict["name"]
+      if operation_name in listed_operations:
+        yield listed_operations[operation_name]
+  
+  return _walk_added_operations()
