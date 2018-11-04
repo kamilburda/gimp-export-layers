@@ -239,6 +239,7 @@ Encode/decode Unicode strings when accessing the following external libraries:
 * GIMP - use UTF-8 encoding.
   Encoding applies to:
   * `PDB_STRING*` parameters to PDB procedures,
+  * accessing PDB procedures via `pdb.__getitem__` when passing a procedure name,
   * functions and object attributes provided by Python GIMP API.
 * GTK - use UTF-8 encoding.
   Encoding may be necessary as [GTK may not fully support Unicode in Python 2](http://python-gtk-3-tutorial.readthedocs.org/en/latest/unicode.html).
