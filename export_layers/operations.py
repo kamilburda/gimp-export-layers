@@ -123,8 +123,7 @@ def create(name, initial_operations=None):
     `pgoperations.OperationExecutor` and `exportlayers.LayerExporter`
   
   Each created operation in the returned group is a nested `SettingGroup`.
-  An additional group is `"arguments"` that contains arguments to the function;
-  each argument is a separate setting (`Setting` instance).
+  `"arguments"` group contains arguments as separate `Setting` instances.
   
   Possible values for `"type"`:
   * `"operation"` (default) - represents a regular operation.
