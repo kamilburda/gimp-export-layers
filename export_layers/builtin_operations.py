@@ -70,6 +70,14 @@ def set_active_layer_after_operation(image, layer, layer_exporter):
     set_active_layer(image, layer, layer_exporter)
 
 
+def insert_background_layer(image, layer, layer_exporter, tag):
+  _insert_tagged_layer(image, layer_exporter, tag, position=len(image.layers))
+
+
+def insert_foreground_layer(image, layer, layer_exporter, tag):
+  _insert_tagged_layer(image, layer_exporter, tag, position=0)
+
+
 def copy_and_insert_layer(image, layer, parent=None, position=0):
   layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
   pdb.gimp_image_insert_layer(image, layer_copy, parent, position)
@@ -122,14 +130,6 @@ def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
         image, image.layers[i], gimpenums.EXPAND_AS_NECESSARY)
   
   return merged_layer_for_tag
-
-
-def insert_background_layer(image, layer, layer_exporter, tag):
-  _insert_tagged_layer(image, layer_exporter, tag, position=len(image.layers))
-
-
-def insert_foreground_layer(image, layer, layer_exporter, tag):
-  _insert_tagged_layer(image, layer_exporter, tag, position=0)
 
 
 _BUILTIN_OPERATIONS_LIST = [
