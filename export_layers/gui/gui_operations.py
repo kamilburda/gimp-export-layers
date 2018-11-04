@@ -178,7 +178,9 @@ class OperationBox(pggui.ItemBox):
     if response_id == gtk.RESPONSE_OK:
       procedure_name = dialog.get_selected()
       if procedure_name:
-        self._operation_edit_dialog.set_contents(self._operations, pdb[procedure_name])
+        self._operation_edit_dialog.set_contents(
+          self._operations,
+          pdb[procedure_name.encode(pgconstants.GIMP_CHARACTER_ENCODING)])
         self._operation_edit_dialog.show_all()
     
     dialog.hide()

@@ -100,8 +100,6 @@ class LayerExporter(object):
     while processing layers.
   """
   
-  _LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
-  
   def __init__(
         self,
         initial_run_mode,
@@ -296,7 +294,7 @@ class LayerExporter(object):
     For more information, see `add_operation.`
     """
     return self._initial_operation_executor.add(
-      self._get_constraint_func(func), *args, **kwargs)
+      _get_constraint_func(func), *args, **kwargs)
   
   def remove_operation(self, *args, **kwargs):
     """
@@ -374,69 +372,10 @@ class LayerExporter(object):
       self._initial_operation_executor.list_groups(include_empty_groups=True))
     
     for operation in operations.walk(self.export_settings["operations"]):
-      self._add_operation(operation, self._operation_executor)
+      add_operation_from_settings(operation, self._operation_executor)
     
     for constraint in operations.walk(self.export_settings["constraints"]):
-      self._add_operation(constraint, self._operation_executor)
-  
-  def _add_operation(self, operation, executor):
-    function = operation["function"].value
-    
-    if function is None:
-      return
-    
-    if "constraint" in operation.tags:
-      function = (
-        self._get_constraint_func(function, subfilter=operation["subfilter"].value))
-    
-    function_args = tuple(arg_setting.value for arg_setting in operation["arguments"])
-    operation_groups = operation["operation_groups"].value
-    
-    executor.add(
-      self._execute_operation_only_if_enabled(function, operation["enabled"]),
-      operation_groups,
-      function_args)
-  
-  def _get_constraint_func(self, rule_func, subfilter=None):
-    def _add_rule_func(*args):
-      try:
-        layer_exporter_arg_position = (
-          inspect.getargspec(rule_func).args.index("layer_exporter"))
-      except ValueError:
-        layer_exporter_arg_position = None
-      
-      if layer_exporter_arg_position is not None:
-        layer_exporter = args[layer_exporter_arg_position - 1]
-        rule_func_args = args
-      else:
-        if len(args) > 1:
-          layer_exporter_arg_position = (
-            self._LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
-        else:
-          layer_exporter_arg_position = (
-            self._LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS - 1)
-        
-        layer_exporter = args[layer_exporter_arg_position]
-        rule_func_args = (
-          args[:layer_exporter_arg_position] + args[layer_exporter_arg_position + 1:])
-      
-      if subfilter is None:
-        object_filter = layer_exporter.layer_tree.filter
-      else:
-        object_filter = layer_exporter.layer_tree.filter[subfilter]
-      
-      object_filter.add_rule(rule_func, *rule_func_args)
-    
-    return _add_rule_func
-  
-  def _execute_operation_only_if_enabled(self, operation, setting_enabled):
-    def _execute_operation(*operation_args, **operation_kwargs):
-      if setting_enabled.value:
-        return operation(*operation_args, **operation_kwargs)
-      else:
-        return False
-    
-    return _execute_operation
+      add_operation_from_settings(constraint, self._operation_executor)
   
   def _enable_disable_processing_groups(self, processing_groups):
     for functions in self._processing_groups.values():
@@ -495,7 +434,7 @@ class LayerExporter(object):
     self._operation_executor.execute(
       [builtin_constraints.CONSTRAINTS_LAYER_TYPES_GROUP],
       [self],
-      additional_args_position=self._LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
+      additional_args_position=_LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
     
     self._init_tagged_layer_elems()
     
@@ -511,7 +450,7 @@ class LayerExporter(object):
     self._operation_executor.execute(
       [operations.DEFAULT_CONSTRAINTS_GROUP],
       [self],
-      additional_args_position=self._LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
+      additional_args_position=_LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
   
   def _init_tagged_layer_elems(self):
     with self._layer_tree.filter.add_rule_temp(builtin_constraints.has_tags):
@@ -804,6 +743,106 @@ class LayerExporter(object):
 #===============================================================================
 
 
+_LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
+
+
+def add_operation_from_settings(operation, executor):
+  if operation.get_value("is_pdb_procedure", False):
+    try:
+      function = pdb[
+        operation["function"].value.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
+    except KeyError:
+      raise InvalidPdbProcedureError(
+        "invalid PDB procedure '{}'".format(operation["function"].value))
+  else:
+    function = operation["function"].value
+  
+  if function is None:
+    return
+  
+  function_args = tuple(arg_setting.value for arg_setting in operation["arguments"])
+  function_kwargs = {}
+  
+  if operation.get_value("is_pdb_procedure", False):
+    if _has_run_mode_param(function):
+      function_kwargs = {b"run_mode": function_args[0]}
+      function_args = function_args[1:]
+    
+    function = _get_operation_func_for_pdb_procedure(function)
+  
+  if "constraint" in operation.tags:
+    function = _get_constraint_func(function, subfilter=operation["subfilter"].value)
+  
+  executor.add(
+    _execute_operation_only_if_enabled(function, operation["enabled"]),
+    operation["operation_groups"].value,
+    function_args,
+    function_kwargs)
+
+
+def _get_constraint_func(rule_func, subfilter=None):
+  def _add_rule_func(*args):
+    layer_exporter, rule_func_args = _get_args_for_constraint_func(rule_func, args)
+    
+    if subfilter is None:
+      object_filter = layer_exporter.layer_tree.filter
+    else:
+      object_filter = layer_exporter.layer_tree.filter[subfilter]
+    
+    object_filter.add_rule(rule_func, *rule_func_args)
+  
+  return _add_rule_func
+
+
+def _get_args_for_constraint_func(rule_func, args):
+  try:
+    layer_exporter_arg_position = (
+      inspect.getargspec(rule_func).args.index("layer_exporter"))
+  except ValueError:
+    layer_exporter_arg_position = None
+  
+  if layer_exporter_arg_position is not None:
+    layer_exporter = args[layer_exporter_arg_position - 1]
+    rule_func_args = args
+  else:
+    if len(args) > 1:
+      layer_exporter_arg_position = (
+        _LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
+    else:
+      layer_exporter_arg_position = (
+        _LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS - 1)
+    
+    layer_exporter = args[layer_exporter_arg_position]
+    rule_func_args = (
+      args[:layer_exporter_arg_position] + args[layer_exporter_arg_position + 1:])
+  
+  return layer_exporter, rule_func_args
+
+
+def _get_operation_func_for_pdb_procedure(pdb_procedure):
+  def _pdb_procedure_as_operation(image, layer, layer_exporter, *args, **kwargs):
+    pdb_procedure(*args, **kwargs)
+  
+  return _pdb_procedure_as_operation
+
+
+def _has_run_mode_param(pdb_procedure):
+  return pdb_procedure.params and pdb_procedure.params[0][1] == "run-mode"
+
+
+def _execute_operation_only_if_enabled(operation, setting_enabled):
+  def _execute_operation(*operation_args, **operation_kwargs):
+    if setting_enabled.value:
+      return operation(*operation_args, **operation_kwargs)
+    else:
+      return False
+  
+  return _execute_operation
+
+
+#===============================================================================
+
+
 class LayerNameRenamer(object):
   
   LAYER_NAME_PATTERN_FIELDS = [
@@ -982,6 +1021,9 @@ def _get_prefilled_file_extension_properties():
   return file_extension_properties
 
 
+#===============================================================================
+
+
 @future.utils.python_2_unicode_compatible
 class ExportLayersError(Exception):
   
@@ -1014,6 +1056,13 @@ class ExportLayersCancelError(ExportLayersError):
 
 class InvalidOutputDirectoryError(ExportLayersError):
   pass
+
+
+class InvalidPdbProcedureError(ExportLayersError):
+  pass
+
+
+#===============================================================================
 
 
 class ExportStatuses(object):
