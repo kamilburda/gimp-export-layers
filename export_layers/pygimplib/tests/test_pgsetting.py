@@ -1171,6 +1171,14 @@ class TestArraySetting(unittest.TestCase):
       element_min_value=-100.0,
       element_max_value=100.0)
   
+  def test_has_element_default_value_even_if_not_specified(self):
+    setting = pgsetting.ArraySetting(
+      "coordinates",
+      element_type=pgsetting.SettingTypes.float)
+    
+    self.assertTrue(hasattr(setting, "element_default_value"))
+    self.assertEqual(setting.element_default_value, 0.0)
+  
   @parameterized.parameterized.expand([
     ("with_tuple", (20.0, 50.0, 40.0), (20.0, 50.0, 40.0)),
     ("converts_value_to_tuple", [20.0, 50.0, 40.0], (20.0, 50.0, 40.0)),
