@@ -373,8 +373,7 @@ def add(operations, operation_dict_or_function):
     operation_dict = operation_dict_or_function
   else:
     if pgpdb.is_pdb_procedure(operation_dict_or_function):
-      operation_dict = _get_operation_dict_for_pdb_procedure(
-        operations, operation_dict_or_function)
+      operation_dict = get_operation_dict_for_pdb_procedure(operation_dict_or_function)
     else:
       raise TypeError(
         "'{}' is not a valid object - pass a dict or a PDB procedure".format(
@@ -394,7 +393,27 @@ def add(operations, operation_dict_or_function):
   return operation
 
 
-def _get_operation_dict_for_pdb_procedure(operations, pdb_procedure):
+def get_operation_dict_for_pdb_procedure(pdb_procedure):
+  """
+  Return a dictionary representing the specified GIMP PDB procedure that can be
+  added to a setting group for operations via `add`.
+  
+  The `"function"` field contains the PDB procedure name instead of the function
+  itself in order for the dictionary to allow loading/saving to a persistent
+  source.
+  
+  If the procedure contains arguments with the same name, each subsequent
+  identical name is made unique (since arguments are internally represented as
+  `pgsetting.Setting` instances, whose names must be unique within a setting
+  group).
+  """
+  
+  def _generate_unique_pdb_procedure_argument_name():
+    i = 2
+    while True:
+      yield "-{}".format(i)
+      i += 1
+  
   operation_dict = {
     "name": pdb_procedure.proc_name,
     "function": pdb_procedure.proc_name,
@@ -403,16 +422,28 @@ def _get_operation_dict_for_pdb_procedure(operations, pdb_procedure):
     "is_pdb_procedure": True,
   }
   
+  pdb_procedure_argument_names = []
+  
   for pdb_param_type, pdb_param_name, unused_ in pdb_procedure.params:
     setting_type = pgsetting.PDB_TYPES_TO_SETTING_TYPES_MAP[pdb_param_type]
+    
+    unique_pdb_param_name = pgpath.uniquify_string(
+      pdb_param_name,
+      pdb_procedure_argument_names,
+      uniquifier_generator=_generate_unique_pdb_procedure_argument_name())
+    
+    pdb_procedure_argument_names.append(unique_pdb_param_name)
+    
     if isinstance(setting_type, dict):
       arguments_dict = dict(setting_type)
-      arguments_dict["name"] = pdb_param_name
+      arguments_dict["name"] = unique_pdb_param_name
+      arguments_dict["display_name"] = pdb_param_name
       operation_dict["arguments"].append(arguments_dict)
     else:
       operation_dict["arguments"].append({
         "type": setting_type,
-        "name": pdb_param_name,
+        "name": unique_pdb_param_name,
+        "display_name": pdb_param_name,
       })
   
   return operation_dict

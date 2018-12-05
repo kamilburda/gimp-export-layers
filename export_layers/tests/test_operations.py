@@ -686,6 +686,18 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
       return_vals=None,
       blurb="Saves files in PNG file format")
   
+  def test_get_operation_dict_for_pdb_procedure_with_non_unique_param_names(self):
+    self.procedure_stub.params = tuple(
+      list(self.procedure_stub.params)
+      + [(gimpenums.PDB_INT32ARRAY, "save-options", "More save options"),
+         (gimpenums.PDB_STRING, "filename", "Another filename")])
+    
+    operation_dict = operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
+    
+    self.assertListEqual(
+      [argument_dict["name"] for argument_dict in operation_dict["arguments"]],
+      ["run-mode", "save-options", "filename", "save-options-2", "filename-2"])
+  
   def test_add_pdb_procedure_as_operation(self):
     operation = operations.add(self.settings, self.procedure_stub)
     
