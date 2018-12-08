@@ -77,6 +77,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 from export_layers import pygimplib
+from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgsetting
@@ -415,20 +416,21 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
       i += 1
   
   operation_dict = {
-    "name": pdb_procedure.proc_name,
-    "function": pdb_procedure.proc_name,
+    "name": pdb_procedure.proc_name.decode(pgconstants.GTK_CHARACTER_ENCODING),
+    "function": pdb_procedure.proc_name.decode(pgconstants.GTK_CHARACTER_ENCODING),
     "arguments": [],
-    "display_name": pdb_procedure.proc_name,
+    "display_name": pdb_procedure.proc_name.decode(pgconstants.GTK_CHARACTER_ENCODING),
     "is_pdb_procedure": True,
   }
   
   pdb_procedure_argument_names = []
   
   for pdb_param_type, pdb_param_name, unused_ in pdb_procedure.params:
+    processed_pdb_param_name = pdb_param_name.decode(pgconstants.GTK_CHARACTER_ENCODING)
     setting_type = pgsetting.PDB_TYPES_TO_SETTING_TYPES_MAP[pdb_param_type]
     
     unique_pdb_param_name = pgpath.uniquify_string(
-      pdb_param_name,
+      processed_pdb_param_name,
       pdb_procedure_argument_names,
       uniquifier_generator=_generate_unique_pdb_procedure_argument_name())
     
@@ -437,13 +439,13 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
     if isinstance(setting_type, dict):
       arguments_dict = dict(setting_type)
       arguments_dict["name"] = unique_pdb_param_name
-      arguments_dict["display_name"] = pdb_param_name
+      arguments_dict["display_name"] = processed_pdb_param_name
       operation_dict["arguments"].append(arguments_dict)
     else:
       operation_dict["arguments"].append({
         "type": setting_type,
         "name": unique_pdb_param_name,
-        "display_name": pdb_param_name,
+        "display_name": processed_pdb_param_name,
       })
   
   return operation_dict
