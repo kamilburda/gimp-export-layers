@@ -65,9 +65,6 @@ class OperationBox(pggui.ItemBox):
     self.on_remove_item = pgutils.empty_func
     
     self._procedure_browser_dialog = None
-    self._operation_edit_dialog = _OperationEditDialog(
-      title=None,
-      role=pygimplib.config.PLUGIN_NAME)
     
     self._init_gui()
   
@@ -78,7 +75,8 @@ class OperationBox(pggui.ItemBox):
       button_hbox.set_spacing(self._ADD_BUTTON_HBOX_SPACING)
       button_hbox.pack_start(
         gtk.image_new_from_stock(gtk.STOCK_ADD, gtk.ICON_SIZE_MENU),
-        expand=False, fill=False)
+        expand=False,
+        fill=False)
       
       label_add = gtk.Label(
         self._label_add_text.encode(pgconstants.GTK_CHARACTER_ENCODING))
@@ -101,9 +99,11 @@ class OperationBox(pggui.ItemBox):
     operation = self.on_add_item(self._operations, operation_dict_or_function)
     operation.initialize_gui()
     
-    item = _OperationItem(operation, operation["enabled"].gui.element)
+    item = _OperationBoxItem(operation, operation["enabled"].gui.element)
     
     self._add_item(item)
+    
+    item.button_edit.connect("clicked", self._on_item_edit_button_clicked, item)
     
     return item
   
@@ -152,10 +152,7 @@ class OperationBox(pggui.ItemBox):
   
   def _on_add_custom_procedure_menu_item_activate(self, menu_item):
     if self._procedure_browser_dialog:
-      if not self._operation_edit_dialog.get_mapped():
-        self._procedure_browser_dialog.show()
-      else:
-        self._operation_edit_dialog.present()
+      self._procedure_browser_dialog.show()
     else:
       self._procedure_browser_dialog = self._create_procedure_browser_dialog()
   
@@ -178,76 +175,143 @@ class OperationBox(pggui.ItemBox):
     if response_id == gtk.RESPONSE_OK:
       procedure_name = dialog.get_selected()
       if procedure_name:
-        self._operation_edit_dialog.set_contents(
-          self._operations,
-          pdb[procedure_name.encode(pgconstants.GIMP_CHARACTER_ENCODING)])
-        self._operation_edit_dialog.show_all()
+        procedure = pdb[procedure_name.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
+        
+        pdb_proc_operation_dict = operations.get_operation_dict_for_pdb_procedure(
+          procedure)
+        pdb_proc_operation_dict["enabled"] = False
+        
+        item = self.add_item(pdb_proc_operation_dict)
+        
+        operation_edit_dialog = _OperationEditDialog(
+          procedure,
+          item.operation,
+          title=None,
+          role=pygimplib.config.PLUGIN_NAME)
+        
+        operation_edit_dialog.connect(
+          "response",
+          self._on_operation_edit_dialog_for_new_operation_response,
+          item)
+        
+        operation_edit_dialog.show_all()
     
     dialog.hide()
+  
+  def _on_operation_edit_dialog_for_new_operation_response(
+        self, dialog, response_id, item):
+    dialog.destroy()
+    
+    if response_id == gtk.RESPONSE_OK:
+      item.operation["enabled"].set_value(True)
+    else:
+      self.remove_item(item)
+  
+  def _on_item_edit_button_clicked(self, edit_button, item):
+    if item.operation.get_value("is_pdb_procedure", False):
+      procedure = pdb[
+        item.operation["function"].value.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
+      
+      operation_edit_dialog = _OperationEditDialog(
+        procedure,
+        item.operation,
+        title=None,
+        role=pygimplib.config.PLUGIN_NAME)
+      
+      operation_edit_dialog.connect(
+        "response", self._on_operation_edit_dialog_for_existing_operation_response)
+      
+      operation_edit_dialog.show_all()
+  
+  def _on_operation_edit_dialog_for_existing_operation_response(self, dialog, response_id):
+    dialog.destroy()
+    
+    if response_id != gtk.RESPONSE_OK:
+      #TODO: Set arguments to previous values
+      pass
 
 
-class _OperationItem(pggui.ItemBoxItem):
+class _OperationBoxItem(pggui.ItemBoxItem):
   
   def __init__(self, operation, item_widget):
     super().__init__(item_widget)
     
     self._operation = operation
+    
+    self._button_edit = gtk.Button()
+    self._setup_item_button(self._button_edit, gtk.STOCK_EDIT, position=0)
   
   @property
   def operation(self):
     return self._operation
+  
+  @property
+  def button_edit(self):
+    return self._button_edit
 
 
 class _OperationEditDialog(gimpui.Dialog):
   
   _DIALOG_BORDER_WIDTH = 8
-  _ACTION_AREA_BORDER_WIDTH = 5
-  _DIALOG_HEIGHT = 500
+  _DIALOG_VBOX_SPACING = 8
   
-  def __init__(self, *args, **kwargs):
+  _TABLE_ROW_SPACING = 4
+  _TABLE_COLUMN_SPACING = 8
+  
+  def __init__(self, procedure, operation, *args, **kwargs):
     super().__init__(*args, **kwargs)
     
     self.set_transient()
+    self.set_resizable(False)
+    self.set_title(_("Edit operation {}").format(operation["display_name"].value))
     
-    self.add_buttons(gtk.STOCK_OK, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+    self._button_ok = self.add_button(gtk.STOCK_OK, gtk.RESPONSE_OK)
+    self._button_cancel = self.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
     
     self._label_procedure_name = gtk.Label()
     self._label_procedure_name.set_use_markup(True)
     self._label_procedure_name.set_alignment(0.0, 0.5)
     self._label_procedure_name.set_ellipsize(pango.ELLIPSIZE_END)
+    self._label_procedure_name.set_markup(
+      "<b>" + gobject.markup_escape_text(operation["display_name"].value) + "</b>")
     
-    self._vbox_operation_parameters = gtk.VBox()
+    self._label_procedure_short_description = gtk.Label()
+    self._label_procedure_short_description.set_line_wrap(True)
+    self._label_procedure_short_description.set_alignment(0.0, 0.5)
+    self._label_procedure_short_description.set_label(procedure.proc_blurb)
+    self._label_procedure_short_description.set_tooltip_text(procedure.proc_help)
     
-    self._scrolled_window = gtk.ScrolledWindow()
-    self._scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-    self._scrolled_window.add_with_viewport(self._vbox_operation_parameters)
-    self._scrolled_window.get_child().set_shadow_type(gtk.SHADOW_NONE)
+    self._table_operation_arguments = gtk.Table(homogeneous=False)
+    self._table_operation_arguments.set_row_spacings(self._TABLE_ROW_SPACING)
+    self._table_operation_arguments.set_col_spacings(self._TABLE_COLUMN_SPACING)
     
-    self.vbox.pack_start(self._label_procedure_name, fill=False, expand=False)
-    self.vbox.pack_start(self._scrolled_window, fill=True, expand=True)
+    # Put widgets in a custom `VBox` because the action area would otherwise
+    # have excessively thick borders for some reason.
+    self._vbox = gtk.VBox()
+    self._vbox.set_border_width(self._DIALOG_BORDER_WIDTH)
+    self._vbox.set_spacing(self._DIALOG_VBOX_SPACING)
+    self._vbox.pack_start(self._label_procedure_name, fill=False, expand=False)
+    self._vbox.pack_start(
+      self._label_procedure_short_description, fill=False, expand=False)
+    self._vbox.pack_start(self._table_operation_arguments, fill=True, expand=True)
     
-    self.set_border_width(self._DIALOG_BORDER_WIDTH)
-    #TODO: Resolve excessive borders at the bottom
-    self.action_area.set_border_width(self._ACTION_AREA_BORDER_WIDTH)
+    self.vbox.pack_start(self._vbox, fill=False, expand=False)
+    
+    self._set_arguments(procedure, operation)
+    
+    self.set_focus(self._button_ok)
     
     self.connect("response", self._on_operation_edit_dialog_response)
   
-  def set_contents(self, operations_group, procedure):
-    self.set_title(_("Edit operation {}").format(procedure.proc_name))
-    self._label_procedure_name.set_markup(
-      "<b>" + gobject.markup_escape_text(procedure.proc_name) + "</b>")
-    
-    operation_parameter_widgets = self._vbox_operation_parameters.get_children()
-    for parameter_widget in operation_parameter_widgets:
-      self._vbox_operation_parameters.remove(parameter_widget)
-    
-    operations.add(operations_group, procedure)
+  def _set_arguments(self, procedure, operation):
+    for i, setting in enumerate(operation["arguments"]):
+      label = gtk.Label(setting.display_name)
+      label.set_alignment(0.0, 0.5)
+      label.set_tooltip_text(procedure.params[i][2])
+      
+      self._table_operation_arguments.attach(label, 0, 1, i, i + 1)
+      self._table_operation_arguments.attach(setting.gui.element, 1, 2, i, i + 1)
   
   def _on_operation_edit_dialog_response(self, dialog, response_id):
-    #TODO: If canceling on choosing an operation from the procedure browser
-    # dialog, do not add the operation
-    
-    if response_id == gtk.RESPONSE_OK:
-      dialog.hide()
-    else:
-      dialog.hide()
+    for child in list(self._table_operation_arguments.get_children()):
+      self._table_operation_arguments.remove(child)
