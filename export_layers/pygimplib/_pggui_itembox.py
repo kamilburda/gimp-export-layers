@@ -333,19 +333,8 @@ class ItemBoxItem(object):
     self._hbox = gtk.HBox(homogeneous=False)
     self._hbox.set_spacing(self._HBOX_SPACING)
     
-    self._button_remove = gtk.Button()
-    self._button_remove.set_relief(gtk.RELIEF_NONE)
-    
-    self._icon_remove = gtk.image_new_from_pixbuf(
-      self._button_remove.render_icon(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU))
-    self._icon_remove.show()
-    
-    self._button_remove.add(self._icon_remove)
-    
     self._hbox_buttons = gtk.HBox(homogeneous=False)
     self._hbox_buttons.set_spacing(self._HBOX_BUTTONS_SPACING)
-    
-    self._hbox_buttons.pack_start(self._button_remove, expand=False, fill=False)
     
     self._event_box_buttons = gtk.EventBox()
     self._event_box_buttons.add(self._hbox_buttons)
@@ -356,14 +345,13 @@ class ItemBoxItem(object):
     self._event_box = gtk.EventBox()
     self._event_box.add(self._hbox)
     
+    self._has_hbox_buttons_focus = False
+    
+    self._button_remove = gtk.Button()
+    self._setup_item_button(self._button_remove, gtk.STOCK_CLOSE)
+    
     self._event_box.connect("enter-notify-event", self._on_event_box_enter_notify_event)
     self._event_box.connect("leave-notify-event", self._on_event_box_leave_notify_event)
-    
-    self._has_button_remove_focus = False
-    self._item_widget.connect("focus-in-event", self._on_item_widget_focus_in_event)
-    self._item_widget.connect("focus-out-event", self._on_item_widget_focus_out_event)
-    self._button_remove.connect("grab-focus", self._on_button_remove_grab_focus)
-    self._button_remove.connect("focus-out-event", self._on_button_remove_focus_out_event)
     
     self._is_event_box_allocated_size = False
     self._buttons_allocation = None
@@ -388,27 +376,28 @@ class ItemBoxItem(object):
   def remove_item_widget(self):
     self._hbox.remove(self._item_widget)
   
+  def _setup_item_button(self, item_button, icon, position=None):
+    item_button.set_relief(gtk.RELIEF_NONE)
+    
+    button_icon = gtk.image_new_from_pixbuf(
+      item_button.render_icon(icon, gtk.ICON_SIZE_MENU))
+    button_icon.show()
+    
+    item_button.add(button_icon)
+    
+    self._hbox_buttons.pack_start(item_button, expand=False, fill=False)
+    if position is not None:
+      self._hbox_buttons.reorder_child(item_button, position)
+    
+    item_button.show_all()
+  
   def _on_event_box_enter_notify_event(self, event_box, event):
     if event.detail != gtk.gdk.NOTIFY_INFERIOR:
-      self._button_remove.show()
+      self._hbox_buttons.show()
   
   def _on_event_box_leave_notify_event(self, event_box, event):
     if event.detail != gtk.gdk.NOTIFY_INFERIOR:
-      self._button_remove.hide()
-  
-  def _on_item_widget_focus_in_event(self, item_widget, event):
-    self._button_remove.show()
-  
-  def _on_item_widget_focus_out_event(self, item_widget, event):
-    if not self._has_button_remove_focus:
-      self._button_remove.hide()
-  
-  def _on_button_remove_grab_focus(self, button_remove):
-    self._has_button_remove_focus = True
-  
-  def _on_button_remove_focus_out_event(self, button_remove, event):
-    self._has_button_remove_focus = False
-    self._button_remove.hide()
+      self._hbox_buttons.hide()
   
   def _on_event_box_size_allocate(self, event_box, allocation):
     if self._is_event_box_allocated_size:
@@ -432,7 +421,7 @@ class ItemBoxItem(object):
     # the horizontal scrollbar is displayed.
     self._event_box_buttons.set_size_request(self._buttons_allocation.width, -1)
     
-    self._button_remove.hide()
+    self._hbox_buttons.hide()
 
 
 class ArrayBox(ItemBox):
