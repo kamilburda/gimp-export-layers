@@ -218,7 +218,8 @@ class GimpUiImageComboBoxPresenter(GtkSettingPresenter):
     return self._element.get_active_image()
   
   def _set_value(self, value):
-    self._element.set_active_image(value)
+    if value is not None:
+      self._element.set_active_image(value)
 
 
 class GimpUiDrawableComboBoxPresenter(GtkSettingPresenter):
@@ -238,7 +239,8 @@ class GimpUiDrawableComboBoxPresenter(GtkSettingPresenter):
     return self._element.get_active_drawable()
   
   def _set_value(self, value):
-    self._element.set_active_drawable(value)
+    if value is not None:
+      self._element.set_active_drawable(value)
 
 
 class GimpUiLayerComboBoxPresenter(GtkSettingPresenter):
@@ -258,7 +260,8 @@ class GimpUiLayerComboBoxPresenter(GtkSettingPresenter):
     return self._element.get_active_layer()
   
   def _set_value(self, value):
-    self._element.set_active_layer(value)
+    if value is not None:
+      self._element.set_active_layer(value)
 
 
 class GimpUiChannelComboBoxPresenter(GtkSettingPresenter):
@@ -278,7 +281,8 @@ class GimpUiChannelComboBoxPresenter(GtkSettingPresenter):
     return self._element.get_active_channel()
   
   def _set_value(self, value):
-    self._element.set_active_channel(value)
+    if value is not None:
+      self._element.set_active_channel(value)
 
 
 class GimpUiVectorsComboBoxPresenter(GtkSettingPresenter):
@@ -299,7 +303,8 @@ class GimpUiVectorsComboBoxPresenter(GtkSettingPresenter):
     return self._element.get_active_vectors()
   
   def _set_value(self, value):
-    self._element.set_active_vectors(value)
+    if value is not None:
+      self._element.set_active_vectors(value)
   
 
 class GimpUiColorButtonPresenter(GtkSettingPresenter):
