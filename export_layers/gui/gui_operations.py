@@ -37,6 +37,7 @@ import gimpui
 from export_layers import pygimplib
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pggui
+from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgutils
 
 from .. import operations
@@ -311,6 +312,10 @@ class _OperationEditDialog(gimpui.Dialog):
       
       self._table_operation_arguments.attach(label, 0, 1, i, i + 1)
       self._table_operation_arguments.attach(setting.gui.element, 1, 2, i, i + 1)
+      
+      if isinstance(setting, pgsetting.ArraySetting):
+        setting.gui.element.set_size_request(250, -1)
+        setting.gui.element.max_height = 150
   
   def _on_operation_edit_dialog_response(self, dialog, response_id):
     for child in list(self._table_operation_arguments.get_children()):
