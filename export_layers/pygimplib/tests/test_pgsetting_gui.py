@@ -59,44 +59,37 @@ def test_settings_and_gui(setting_items):
   
   dialog = gtk.Dialog()
   
-  vbox = gtk.VBox()
-  vbox.set_spacing(5)
-  
-  SETTING_TYPE_LABEL_WIDTH = 100
-  SETTING_GUI_ELEMENT_WIDTH = 400
+  SETTING_GUI_ELEMENT_WIDTH = 450
   SETTING_VALUE_LABEL_WIDTH = 150
-  SETTING_VALUE_CHANGED_CALL_COUNT_LABEL_WIDTH = 50
   
-  hbox_labels = gtk.HBox()
-  hbox_labels.set_spacing(5)
-  
-  setting_type_title_label = gtk.Label("Type")
+  setting_type_title_label = gtk.Label("<b>Type</b>")
+  setting_type_title_label.set_use_markup(True)
   setting_type_title_label.set_alignment(0.0, 0.5)
-  setting_type_title_label.set_size_request(SETTING_TYPE_LABEL_WIDTH, -1)
-  hbox_labels.pack_start(setting_type_title_label, fill=True, expand=True)
   
-  setting_gui_title_label = gtk.Label("GUI")
+  setting_gui_title_label = gtk.Label("<b>GUI</b>")
+  setting_gui_title_label.set_use_markup(True)
   setting_gui_title_label.set_alignment(0.0, 0.5)
-  setting_gui_title_label.set_size_request(SETTING_GUI_ELEMENT_WIDTH, -1)
-  hbox_labels.pack_start(setting_gui_title_label, fill=True, expand=True)
   
-  setting_value_title_label = gtk.Label("Value")
+  setting_value_title_label = gtk.Label("<b>Value</b>")
+  setting_value_title_label.set_use_markup(True)
   setting_value_title_label.set_alignment(0.0, 0.5)
-  setting_value_title_label.set_size_request(SETTING_VALUE_LABEL_WIDTH, -1)
-  hbox_labels.pack_start(setting_value_title_label, fill=True, expand=True)
   
-  setting_call_count_title_label = gtk.Label("Call count")
+  setting_call_count_title_label = gtk.Label("<b>Call count</b>")
+  setting_call_count_title_label.set_use_markup(True)
   setting_call_count_title_label.set_alignment(0.0, 0.5)
-  setting_call_count_title_label.set_size_request(
-    SETTING_VALUE_CHANGED_CALL_COUNT_LABEL_WIDTH, -1)
-  hbox_labels.pack_start(setting_call_count_title_label, fill=True, expand=True)
   
-  vbox.pack_start(hbox_labels, fill=True, expand=True)
+  table = gtk.Table(homogeneous=False)
+  table.set_row_spacings(6)
+  table.set_col_spacings(5)
   
-  for setting in settings:
+  table.attach(setting_type_title_label, 0, 1, 0, 1)
+  table.attach(setting_gui_title_label, 1, 2, 0, 1)
+  table.attach(setting_value_title_label, 2, 3, 0, 1)
+  table.attach(setting_call_count_title_label, 3, 4, 0, 1)
+  
+  for i, setting in enumerate(settings):
     setting_type_label = gtk.Label(setting.display_name)
     setting_type_label.set_alignment(0.0, 0.5)
-    setting_type_label.set_size_request(SETTING_TYPE_LABEL_WIDTH, -1)
     
     setting.set_gui()
     setting.gui.element.set_size_request(SETTING_GUI_ELEMENT_WIDTH, -1)
@@ -109,8 +102,6 @@ def test_settings_and_gui(setting_items):
     
     setting_value_changed_call_count_label = gtk.Label(b"0")
     setting_value_changed_call_count_label.set_alignment(0.0, 0.5)
-    setting_value_changed_call_count_label.set_size_request(
-      SETTING_VALUE_CHANGED_CALL_COUNT_LABEL_WIDTH, -1)
     
     _set_setting_value_label(setting, setting_value_label)
     
@@ -120,26 +111,22 @@ def test_settings_and_gui(setting_items):
       setting_value_label,
       setting_value_changed_call_count_label)
     
-    hbox = gtk.HBox()
-    hbox.set_spacing(5)
-    hbox.pack_start(setting_type_label, fill=True, expand=True)
-    hbox.pack_start(setting.gui.element, fill=True, expand=True)
-    hbox.pack_start(setting_value_label, fill=True, expand=True)
-    hbox.pack_start(setting_value_changed_call_count_label, fill=True, expand=True)
-    
-    vbox.pack_start(hbox, fill=True, expand=True)
+    table.attach(setting_type_label, 0, 1, i + 1, i + 2)
+    table.attach(setting.gui.element, 1, 2, i + 1, i + 2)
+    table.attach(setting_value_label, 2, 3, i + 1, i + 2)
+    table.attach(setting_value_changed_call_count_label, 3, 4, i + 1, i + 2)
   
   reset_button = dialog.add_button("Reset", gtk.RESPONSE_OK)
   reset_button.connect("clicked", _on_reset_button_clicked, settings)
   
   scrolled_window = gtk.ScrolledWindow()
   scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-  scrolled_window.add_with_viewport(vbox)
+  scrolled_window.add_with_viewport(table)
   scrolled_window.get_child().set_shadow_type(gtk.SHADOW_NONE)
   
   dialog.vbox.pack_start(scrolled_window, fill=True, expand=True)
   dialog.set_border_width(5)
-  dialog.set_default_size(800, 800)
+  dialog.set_default_size(850, 800)
   
   dialog.show_all()
 
