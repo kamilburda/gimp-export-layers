@@ -442,8 +442,27 @@ class ArrayBox(ItemBox):
         min_size=0,
         max_size=None,
         item_spacing=ItemBox.ITEM_SPACING,
+        max_height=None,
         *args,
         **kwargs):
+    """
+    Parameters:
+    
+    * `new_item_default_value` - default value for new items.
+    
+    * `min_size` - minimum number of elements.
+    
+    * `max_size` - max_size number of elements. If `None`, the number of
+      elements is unlimited.
+    
+    * `item_spacing` - vertical spacing in pixels between items.
+    
+    * `max_height` - maximum height of the array box before the vertical
+      scrollbar is displayed. The array box will resize automatically until the
+      maximum height is reached. If `max_height` is `None`, the height is fixed
+      to whatever height is provided by `gtk.ScrolledWindow`. If `max_height` is
+      zero or negative, the height is unlimited.
+    """
     super().__init__(item_spacing=item_spacing, *args, **kwargs)
     
     self._new_item_default_value = new_item_default_value
@@ -453,6 +472,11 @@ class ArrayBox(ItemBox):
       self._max_size = 2**32
     else:
       self._max_size = max_size if max_size >= min_size else min_size
+    
+    self.max_height = max_height
+    
+    self._effective_width = None
+    self._effective_height = None
     
     self.on_add_item = pgutils.empty_func
     self.on_reorder_item = pgutils.empty_func
@@ -483,10 +507,10 @@ class ArrayBox(ItemBox):
     self._size_hbox.pack_start(self._size_spin_button_label, expand=False, fill=False)
     self._size_hbox.pack_start(self._size_spin_button, expand=False, fill=False)
     
-    self._size_spin_button.connect("value-changed", self._on_size_spin_button_value_changed)
-    
     self._vbox.pack_start(self._size_hbox, expand=False, fill=False)
     self._vbox.reorder_child(self._size_hbox, 0)
+    
+    self._size_spin_button.connect("value-changed", self._on_size_spin_button_value_changed)
   
   def add_item(self, item_value=None, index=None):
     if item_value is None:
@@ -495,6 +519,8 @@ class ArrayBox(ItemBox):
     item_widget = self.on_add_item(item_value, index)
     
     item = _ArrayBoxItem(item_widget)
+    
+    items_previous_allocation = self._vbox_items.get_allocation()
     
     self._add_item(item)
     
@@ -508,6 +534,12 @@ class ArrayBox(ItemBox):
     if self._locker.is_unlocked("update_spin_button"):
       with self._locker.lock_temp("emit_size_spin_button_value_changed"):
         self._size_spin_button.spin(gtk.SPIN_STEP_FORWARD, increment=1)
+    
+    if self.max_height is not None:
+      while gtk.events_pending():
+        gtk.main_iteration()
+      
+      self._modify_height(items_previous_allocation)
     
     return item
   
@@ -532,11 +564,19 @@ class ArrayBox(ItemBox):
         self._size_spin_button.spin(gtk.SPIN_STEP_BACKWARD, increment=1)
     
     item_position = self._get_item_position(item)
+    items_previous_allocation = self._vbox_items.get_allocation()
+    
     self._remove_item(item)
     
     self.on_remove_item(item_position)
     
     self._rename_item_names(item_position)
+    
+    if self.max_height is not None:
+      while gtk.events_pending():
+        gtk.main_iteration()
+      
+      self._modify_height(items_previous_allocation)
   
   def set_values(self, values):
     self._locker.lock("emit_size_spin_button_value_changed")
@@ -601,6 +641,36 @@ class ArrayBox(ItemBox):
       self.emit("array-box-changed")
     
     self._locker.unlock("emit_size_spin_button_value_changed")
+  
+  def _modify_height(self, items_previous_allocation):
+    items_new_allocation = self._vbox_items.get_allocation()
+    allocation = self.get_allocation()
+    current_width = self.get_size_request()[0]
+    
+    height_diff = items_new_allocation.height - items_previous_allocation.height
+    
+    if height_diff != 0:
+      new_height = allocation.height + height_diff
+      
+      if self._effective_height is None:
+        self._effective_height = allocation.height
+      
+      if (self._is_max_height_unlimited()
+          or (new_height <= self.max_height
+              and self._effective_height < self.max_height)):
+        self.set_size_request(current_width, new_height)
+      elif self._effective_height >= self.max_height and height_diff < 0:
+        if self._effective_height + height_diff < self.max_height:
+          self.set_size_request(current_width, self._effective_height + height_diff)
+        else:
+          self.set_size_request(current_width, self.max_height)
+      else:
+        self.set_size_request(current_width, self.max_height)
+      
+      self._effective_height = self._effective_height + height_diff
+  
+  def _is_max_height_unlimited(self):
+    return self.max_height <= 0
   
   def _rename_item_names(self, start_index):
     for index, item in enumerate(self._items[start_index:]):
