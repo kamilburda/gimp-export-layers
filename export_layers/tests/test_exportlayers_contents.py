@@ -340,3 +340,16 @@ def test_export_for_all_file_formats(layer_exporter, export_settings):
       except exportlayers.ExportLayersError:
         # Do not stop execution when one file format causes an error.
         continue
+
+
+def test_add_all_pdb_procedures_as_operations():
+  """
+  Add all PDB procedures as operations to check if all setting types are
+  properly supported.
+  """
+  settings = operations.create("all_pdb_procedures")
+  
+  unused_, procedure_names = pdb.gimp_procedural_db_query("", "", "", "", "", "", "")
+  
+  for procedure_name in procedure_names:
+    operations.add(settings, pdb[procedure_name])
