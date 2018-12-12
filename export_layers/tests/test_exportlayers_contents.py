@@ -327,7 +327,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
 #===============================================================================
 
 
-def test_file_formats(layer_exporter, export_settings):
+def test_export_for_all_file_formats(layer_exporter, export_settings):
   orig_output_dirpath = export_settings["output_directory"].value
   
   for file_format in pgfileformats.file_formats:
