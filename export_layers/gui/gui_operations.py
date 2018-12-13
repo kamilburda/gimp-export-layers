@@ -178,8 +178,28 @@ class OperationBox(pggui.ItemBox):
       if procedure_name:
         procedure = pdb[procedure_name.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
         
-        pdb_proc_operation_dict = operations.get_operation_dict_for_pdb_procedure(
-          procedure)
+        try:
+          pdb_proc_operation_dict = operations.get_operation_dict_for_pdb_procedure(
+            procedure)
+        except operations.UnsupportedPdbProcedureError as e:
+          pggui.display_error_message(
+            title=pygimplib.config.PLUGIN_TITLE,
+            app_name="",
+            parent=self.get_toplevel(),
+            message_type=gtk.MESSAGE_WARNING,
+            message_markup=(
+              _("Could not add procedure '{}' because the parameter type '{}' "
+                "is not supported.").format(e.procedure_name, e.unsupported_param_type)),
+            message_secondary_markup="",
+            report_uri_list=pygimplib.config.BUG_REPORT_URL_LIST,
+            report_description=_(
+              "You can help fix this issue by sending a report with the text above "
+              "to one of the sites below"),
+            focus_on_button=True)
+          
+          dialog.hide()
+          return
+        
         pdb_proc_operation_dict["enabled"] = False
         
         item = self.add_item(pdb_proc_operation_dict)

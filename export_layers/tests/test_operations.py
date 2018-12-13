@@ -698,6 +698,14 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
       [argument_dict["name"] for argument_dict in operation_dict["arguments"]],
       ["run-mode", "save-options", "filename", "save-options-2", "filename-2"])
   
+  def test_get_operation_dict_for_pdb_procedure_unsupported_pdb_param_type(self):
+    self.procedure_stub.params = tuple(
+      list(self.procedure_stub.params)
+      + [("unsupported", "param-with-unsupported-type", "")])
+    
+    with self.assertRaises(operations.UnsupportedPdbProcedureError):
+      operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
+  
   def test_add_pdb_procedure_as_operation(self):
     operation = operations.add(self.settings, self.procedure_stub)
     

@@ -427,7 +427,11 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
   
   for pdb_param_type, pdb_param_name, unused_ in pdb_procedure.params:
     processed_pdb_param_name = pdb_param_name.decode(pgconstants.GTK_CHARACTER_ENCODING)
-    setting_type = pgsetting.PDB_TYPES_TO_SETTING_TYPES_MAP[pdb_param_type]
+    
+    try:
+      setting_type = pgsetting.PDB_TYPES_TO_SETTING_TYPES_MAP[pdb_param_type]
+    except KeyError:
+      raise UnsupportedPdbProcedureError(operation_dict["name"], pdb_param_type)
     
     unique_pdb_param_name = pgpath.uniquify_string(
       processed_pdb_param_name,
@@ -594,3 +598,10 @@ def walk(operations, setting_name="operation"):
         yield listed_operations[operation_name]
   
   return _walk_added_operations()
+
+
+class UnsupportedPdbProcedureError(Exception):
+  
+  def __init__(self, procedure_name, unsupported_param_type):
+    self.procedure_name = procedure_name
+    self.unsupported_param_type = unsupported_param_type
