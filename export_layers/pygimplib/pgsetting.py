@@ -365,6 +365,20 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
   def tags(self):
     return self._tags
   
+  @classmethod
+  def get_allowed_pdb_types(cls):
+    """
+    Return the list of allowed PDB types for this setting type.
+    """
+    return list(cls._ALLOWED_PDB_TYPES)
+  
+  @classmethod
+  def get_allowed_gui_types(cls):
+    """
+    Return the list of allowed GUI types for this setting type.
+    """
+    return list(cls._ALLOWED_GUI_TYPES)
+  
   def __str__(self):
     return pgutils.stringify_object(self, self.name)
   
