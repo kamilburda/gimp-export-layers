@@ -279,6 +279,9 @@ class _OperationEditDialog(gimpui.Dialog):
   _TABLE_ROW_SPACING = 4
   _TABLE_COLUMN_SPACING = 8
   
+  _ARRAY_PARAMETER_GUI_WIDTH = 250
+  _ARRAY_PARAMETER_GUI_MAX_HEIGHT = 150
+  
   def __init__(self, procedure, operation, *args, **kwargs):
     super().__init__(*args, **kwargs)
     
@@ -331,11 +334,12 @@ class _OperationEditDialog(gimpui.Dialog):
       label.set_tooltip_text(procedure.params[i][2])
       
       self._table_operation_arguments.attach(label, 0, 1, i, i + 1)
-      self._table_operation_arguments.attach(setting.gui.element, 1, 2, i, i + 1)
       
       if isinstance(setting, pgsetting.ArraySetting):
-        setting.gui.element.set_size_request(250, -1)
-        setting.gui.element.max_height = 150
+        setting.gui.element.set_size_request(self._ARRAY_PARAMETER_GUI_WIDTH, -1)
+        setting.gui.element.max_height = self._ARRAY_PARAMETER_GUI_MAX_HEIGHT
+      
+      self._table_operation_arguments.attach(setting.gui.element, 1, 2, i, i + 1)
   
   def _on_operation_edit_dialog_response(self, dialog, response_id):
     for child in list(self._table_operation_arguments.get_children()):
