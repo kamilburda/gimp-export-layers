@@ -282,6 +282,8 @@ class _OperationEditDialog(gimpui.Dialog):
   _ARRAY_PARAMETER_GUI_WIDTH = 250
   _ARRAY_PARAMETER_GUI_MAX_HEIGHT = 150
   
+  _PLACEHOLDER_WIDGET_HORIZONTAL_SPACING_BETWEEN_ELEMENTS = 5
+  
   def __init__(self, procedure, operation, *args, **kwargs):
     super().__init__(*args, **kwargs)
     
@@ -335,12 +337,38 @@ class _OperationEditDialog(gimpui.Dialog):
       
       self._table_operation_arguments.attach(label, 0, 1, i, i + 1)
       
-      if isinstance(setting, pgsetting.ArraySetting):
-        setting.gui.element.set_size_request(self._ARRAY_PARAMETER_GUI_WIDTH, -1)
-        setting.gui.element.max_height = self._ARRAY_PARAMETER_GUI_MAX_HEIGHT
+      gui_element_to_attach = setting.gui.element
       
-      self._table_operation_arguments.attach(setting.gui.element, 1, 2, i, i + 1)
+      if not isinstance(setting.gui, pgsetting.SettingGuiTypes.none):
+        if isinstance(setting, pgsetting.ArraySetting):
+          if setting.element_type.get_allowed_gui_types():
+            setting.gui.element.set_size_request(self._ARRAY_PARAMETER_GUI_WIDTH, -1)
+            setting.gui.element.max_height = self._ARRAY_PARAMETER_GUI_MAX_HEIGHT
+          else:
+            gui_element_to_attach = self._create_placeholder_widget()
+      else:
+        gui_element_to_attach = self._create_placeholder_widget()
+      
+      self._table_operation_arguments.attach(gui_element_to_attach, 1, 2, i, i + 1)
   
   def _on_operation_edit_dialog_response(self, dialog, response_id):
     for child in list(self._table_operation_arguments.get_children()):
       self._table_operation_arguments.remove(child)
+  
+  def _create_placeholder_widget(self):
+    hbox = gtk.HBox()
+    hbox.set_spacing(self._PLACEHOLDER_WIDGET_HORIZONTAL_SPACING_BETWEEN_ELEMENTS)
+    
+    hbox.pack_start(
+      gtk.image_new_from_stock(gtk.STOCK_DIALOG_WARNING, gtk.ICON_SIZE_BUTTON),
+      expand=False,
+      fill=False)
+    
+    label = gtk.Label()
+    label.set_use_markup(True)
+    label.set_markup(
+      '<span font_size="small">{}</span>'.format(_("Cannot modify this parameter")))
+    
+    hbox.pack_start(label, expand=False, fill=False)
+    
+    return hbox
