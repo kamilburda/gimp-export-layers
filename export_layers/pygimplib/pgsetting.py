@@ -1733,6 +1733,14 @@ class ArraySetting(Setting):
   setting can be registered to the GIMP PDB. To disable registration, pass
   `None` to `pdb_type` during instantiation as one normally would.
   
+  Additional attributes:
+  
+  * `element_type` - Setting type of array elements.
+  
+  * `min_size` - The minimum array size.
+  
+  * `max_size` - The maximum array size.
+  
   Default value: `()`
   
   Error messages:
@@ -1803,10 +1811,10 @@ class ArraySetting(Setting):
       key[len("element_"):]: value for key, value in kwargs.items()
       if key.startswith("element_")}
     
-    self._dummy_element = self._create_dummy_element()
+    self._reference_element = self._create_reference_element()
     
     if "default_value" not in self._element_kwargs:
-      self._element_kwargs["default_value"] = self._dummy_element.default_value
+      self._element_kwargs["default_value"] = self._reference_element.default_value
     
     for key, value in self._element_kwargs.items():
       self._create_read_only_property("element_" + key, value)
@@ -1873,7 +1881,7 @@ class ArraySetting(Setting):
         self.error_messages["add_above_max_size"].format(self._max_size))
     
     if isinstance(value, type(self.ELEMENT_DEFAULT_VALUE)):
-      value = self._dummy_element.default_value
+      value = self._reference_element.default_value
     
     self.invoke_event("before-add-element", index, value)
     
@@ -2015,9 +2023,9 @@ class ArraySetting(Setting):
     
     return SettingPdbTypes.none
   
-  def _create_dummy_element(self):
+  def _create_reference_element(self):
     """
-    Create an internal element to access and validate the element default value.
+    Create a reference element to access and validate the element default value.
     """
     # Rely on the underlying element setting type to perform validation of the
     # default value.
