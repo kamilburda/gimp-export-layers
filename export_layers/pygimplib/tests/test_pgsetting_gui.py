@@ -53,7 +53,7 @@ def test_settings_and_gui(setting_items):
   for item in setting_items:
     setting_type = item.pop("type")
     
-    for gui_type in setting_type._ALLOWED_GUI_TYPES:
+    for gui_type in setting_type.get_allowed_gui_types():
       item["gui_type"] = gui_type
       settings.append(setting_type(**item))
   
