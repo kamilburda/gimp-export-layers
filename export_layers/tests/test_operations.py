@@ -706,6 +706,20 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
     with self.assertRaises(operations.UnsupportedPdbProcedureError):
       operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
   
+  def test_get_operation_dict_for_pdb_procedure_default_run_mode_is_noninteractive(self):
+    operation_dict = operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
+    self.assertEqual(
+      operation_dict["arguments"][0]["default_value"], gimpenums.RUN_NONINTERACTIVE)
+  
+  def test_get_operation_dict_for_pdb_procedure_run_mode_as_not_first_parameter(self):
+    self.procedure_stub.params = tuple(
+      [(gimpenums.PDB_INT32, "dummy-param", "Dummy paramter")]
+      + list(self.procedure_stub.params))
+    
+    operation_dict = operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
+    self.assertNotIn("default_value", operation_dict["arguments"][0])
+    self.assertNotIn("default_value", operation_dict["arguments"][1])
+  
   def test_add_pdb_procedure_as_operation(self):
     operation = operations.add(self.settings, self.procedure_stub)
     
@@ -719,7 +733,7 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
       operation["operation_groups"].value, [operations.DEFAULT_OPERATIONS_GROUP])
     self.assertEqual(operation["is_pdb_procedure"].value, True)
     
-    self.assertEqual(operation["arguments/run-mode"].value, 0)
+    self.assertEqual(operation["arguments/run-mode"].value, gimpenums.RUN_NONINTERACTIVE)
     self.assertEqual(operation["arguments/save-options"].value, ())
     self.assertEqual(operation["arguments/filename"].value, "")
     

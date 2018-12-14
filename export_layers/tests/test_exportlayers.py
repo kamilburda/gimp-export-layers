@@ -121,7 +121,8 @@ class TestAddOperationFromSettings(unittest.TestCase):
     self._test_add_pdb_proc_as_operation(self.procedure_stub, ((), ""), {})
   
   def test_add_pdb_proc_as_operation_with_run_mode(self):
-    self._test_add_pdb_proc_as_operation(self.procedure_stub, ((), ""), {"run_mode": 0})
+    self._test_add_pdb_proc_as_operation(
+      self.procedure_stub, ((), ""), {"run_mode": gimpenums.RUN_NONINTERACTIVE})
   
   def _test_add_pdb_proc_as_operation(self, pdb_procedure, expected_args, expected_kwargs):
     operation = operations.add(self.settings, pdb_procedure)

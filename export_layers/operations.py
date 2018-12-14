@@ -76,6 +76,8 @@ operations/constraints. These events include:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import gimpenums
+
 from export_layers import pygimplib
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgpath
@@ -425,7 +427,7 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
   
   pdb_procedure_argument_names = []
   
-  for pdb_param_type, pdb_param_name, unused_ in pdb_procedure.params:
+  for index, (pdb_param_type, pdb_param_name, unused_) in enumerate(pdb_procedure.params):
     processed_pdb_param_name = pdb_param_name.decode(pgconstants.GTK_CHARACTER_ENCODING)
     
     try:
@@ -444,13 +446,17 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
       arguments_dict = dict(setting_type)
       arguments_dict["name"] = unique_pdb_param_name
       arguments_dict["display_name"] = processed_pdb_param_name
-      operation_dict["arguments"].append(arguments_dict)
     else:
-      operation_dict["arguments"].append({
+      arguments_dict = {
         "type": setting_type,
         "name": unique_pdb_param_name,
         "display_name": processed_pdb_param_name,
-      })
+      }
+    
+    if index == 0 and processed_pdb_param_name == "run-mode":
+      arguments_dict["default_value"] = gimpenums.RUN_NONINTERACTIVE
+    
+    operation_dict["arguments"].append(arguments_dict)
   
   return operation_dict
 
