@@ -331,6 +331,10 @@ class _OperationEditDialog(gimpui.Dialog):
   
   def _set_arguments(self, procedure, operation):
     for i, setting in enumerate(operation["arguments"]):
+      # Prevent run mode from being modified, should always be non-interactive
+      if i == 0 and setting.display_name == "run-mode":
+        continue
+      
       label = gtk.Label(setting.display_name)
       label.set_alignment(0.0, 0.5)
       label.set_tooltip_text(procedure.params[i][2])
