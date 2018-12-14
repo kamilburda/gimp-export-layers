@@ -52,6 +52,7 @@ class OperationBox(pggui.ItemBox):
         operations_group=None,
         builtin_operations=None,
         label_add_text=None,
+        allow_custom_pdb_procedures=True,
         item_spacing=pggui.ItemBox.ITEM_SPACING,
         *args,
         **kwargs):
@@ -60,6 +61,7 @@ class OperationBox(pggui.ItemBox):
     self._operations = operations_group
     self._builtin_operations = builtin_operations
     self._label_add_text = label_add_text
+    self._allow_custom_pdb_procedures = allow_custom_pdb_procedures
     
     self.on_add_item = pgutils.empty_func
     self.on_reorder_item = pgutils.empty_func
@@ -124,9 +126,9 @@ class OperationBox(pggui.ItemBox):
     for operation_dict in self._builtin_operations.values():
       self._add_operation_to_menu_popup(operation_dict)
     
-    self._operations_menu.append(gtk.SeparatorMenuItem())
-    
-    self._add_add_custom_procedure_to_menu_popup()
+    if self._allow_custom_pdb_procedures:
+      self._operations_menu.append(gtk.SeparatorMenuItem())
+      self._add_add_custom_procedure_to_menu_popup()
     
     self._operations_menu.show_all()
   

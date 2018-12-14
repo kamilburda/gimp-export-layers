@@ -691,14 +691,20 @@ class ExportLayersGui(object):
     self._box_constraints = self._create_operation_box(
       self._settings["main/constraints"],
       builtin_constraints.BUILTIN_CONSTRAINTS,
-      _("Add _Constraint..."))
+      _("Add _Constraint..."),
+      allow_custom_pdb_procedures=False)
   
   def _create_operation_box(
-        self, operations_group, builtin_operations_list, label_add_operation):
+        self,
+        operations_group,
+        builtin_operations_list,
+        label_add_operation,
+        allow_custom_pdb_procedures=True):
     operation_box = gui_operations.OperationBox(
       operations_group,
       builtin_operations_list,
-      label_add_operation)
+      label_add_operation,
+      allow_custom_pdb_procedures=allow_custom_pdb_procedures)
     
     self._add_gui_to_already_added_operations(operation_box, operations_group)
     
