@@ -771,5 +771,5 @@ class SettingGuiTypes(object):
   expander = GtkExpanderPresenter
   paned_position = GtkPanedPositionPresenter
   
-  automatic = type(b"AutomaticGuiType", (), {})()
+  automatic = "automatic"
   none = pgsettingpresenter.NullSettingPresenter

@@ -74,7 +74,7 @@ class SettingPdbTypes(object):
   array_color = gimpenums.PDB_COLORARRAY
   
   none = None
-  automatic = type(b"AutomaticSettingPdbType", (), {})()
+  automatic = "automatic"
 
 
 @future.utils.python_2_unicode_compatible
