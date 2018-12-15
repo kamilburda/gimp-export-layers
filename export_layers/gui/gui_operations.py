@@ -333,8 +333,7 @@ class _OperationEditDialog(gimpui.Dialog):
   
   def _set_arguments(self, procedure, operation):
     for i, setting in enumerate(operation["arguments"]):
-      # Prevent run mode from being modified, should always be non-interactive
-      if i == 0 and setting.display_name == "run-mode":
+      if not operation["indexes_of_arguments_to_show_hide"].value[i]:
         continue
       
       label = gtk.Label(setting.display_name)

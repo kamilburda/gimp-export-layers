@@ -76,6 +76,8 @@ operations/constraints. These events include:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import collections
+
 import gimpenums
 
 from export_layers import pygimplib
@@ -84,6 +86,7 @@ from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
+from export_layers.pygimplib import pgutils
 
 
 BUILTIN_TAGS = {
@@ -423,6 +426,7 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
     "arguments": [],
     "display_name": pdb_procedure.proc_name.decode(pgconstants.GTK_CHARACTER_ENCODING),
     "is_pdb_procedure": True,
+    "indexes_of_arguments_to_show_hide": collections.defaultdict(_return_true),
   }
   
   pdb_procedure_argument_names = []
@@ -455,10 +459,17 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
     
     if index == 0 and processed_pdb_param_name == "run-mode":
       arguments_dict["default_value"] = gimpenums.RUN_NONINTERACTIVE
+      operation_dict["indexes_of_arguments_to_show_hide"][index] = False
     
     operation_dict["arguments"].append(arguments_dict)
   
   return operation_dict
+
+
+def _return_true():
+  # Function must be explicitly defined in order for `defauldict`s to be
+  # `pickle`-able.
+  return True
 
 
 def _uniquify_name_and_display_name(operations, operation_dict):
