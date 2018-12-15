@@ -187,7 +187,7 @@ class OperationBox(pggui.ItemBox):
           pggui.display_error_message(
             title=pygimplib.config.PLUGIN_TITLE,
             app_name="",
-            parent=self.get_toplevel(),
+            parent=pggui.get_toplevel_window(self),
             message_type=gtk.MESSAGE_WARNING,
             message_markup=(
               _("Could not add procedure '{}' because the parameter type '{}' "
