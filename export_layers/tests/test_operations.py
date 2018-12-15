@@ -681,6 +681,7 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
       type_=gimpenums.PLUGIN,
       params=(
         (gimpenums.PDB_INT32, "run-mode", "The run mode"),
+        (gimpenums.PDB_INT32, "num-save-options", "Number of save options"),
         (gimpenums.PDB_INT32ARRAY, "save-options", "Save options"),
         (gimpenums.PDB_STRING, "filename", "Filename to save the image in")),
       return_vals=None,
@@ -696,7 +697,12 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
     
     self.assertListEqual(
       [argument_dict["name"] for argument_dict in operation_dict["arguments"]],
-      ["run-mode", "save-options", "filename", "save-options-2", "filename-2"])
+      ["run-mode",
+       "num-save-options",
+       "save-options",
+       "filename",
+       "save-options-2",
+       "filename-2"])
   
   def test_get_operation_dict_for_pdb_procedure_unsupported_pdb_param_type(self):
     self.procedure_stub.params = tuple(
@@ -720,7 +726,7 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
     self.assertNotIn("default_value", operation_dict["arguments"][0])
     self.assertNotIn("default_value", operation_dict["arguments"][1])
   
-  def test_add_pdb_procedure_as_operation(self):
+  def test_add_pdb_procedure(self):
     operation = operations.add(self.settings, self.procedure_stub)
     
     self.assertIn("file-png-save", self.settings["added"])
@@ -734,8 +740,10 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
     self.assertEqual(operation["is_pdb_procedure"].value, True)
     
     self.assertEqual(operation["indexes_of_arguments_to_show_hide"].value[0], False)
+    self.assertEqual(operation["indexes_of_arguments_to_show_hide"].value[1], False)
     
     self.assertEqual(operation["arguments/run-mode"].value, gimpenums.RUN_NONINTERACTIVE)
+    self.assertEqual(operation["arguments/num-save-options"].value, 0)
     self.assertEqual(operation["arguments/save-options"].value, ())
     self.assertEqual(operation["arguments/filename"].value, "")
     
@@ -743,6 +751,19 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
       _find_in_added_data(self.settings, "file-png-save")["name"], "file-png-save")
     self.assertEqual(
       _find_in_added_data(self.settings, "file-png-save")["function"], "file-png-save")
+  
+  def test_add_pdb_procedure_array_length_setting_is_updated_automatically(self):
+    operation = operations.add(self.settings, self.procedure_stub)
+    
+    operation["arguments/save-options"].add_element()
+    self.assertEqual(operation["arguments/num-save-options"].value, 1)
+    operation["arguments/save-options"].add_element()
+    self.assertEqual(operation["arguments/num-save-options"].value, 2)
+    
+    del operation["arguments/save-options"][-1]
+    self.assertEqual(operation["arguments/num-save-options"].value, 1)
+    del operation["arguments/save-options"][-1]
+    self.assertEqual(operation["arguments/num-save-options"].value, 0)
   
   @mock.patch(
     pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
