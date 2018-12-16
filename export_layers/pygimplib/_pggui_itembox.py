@@ -381,7 +381,6 @@ class ItemBoxItem(object):
     
     button_icon = gtk.image_new_from_pixbuf(
       item_button.render_icon(icon, gtk.ICON_SIZE_MENU))
-    button_icon.show()
     
     item_button.add(button_icon)
     
@@ -408,7 +407,7 @@ class ItemBoxItem(object):
     # Assign enough height to the HBox to make sure it does not resize when
     # showing buttons.
     if self._buttons_allocation.height >= allocation.height:
-      self._hbox.set_size_request(-1, allocation.height)
+      self._hbox.set_size_request(self._hbox.get_size_request()[0], allocation.height)
   
   def _on_event_box_buttons_size_allocate(self, event_box, allocation):
     if self._buttons_allocation is not None:
@@ -419,7 +418,8 @@ class ItemBoxItem(object):
     # Make sure the width allocated to the buttons remains the same even if
     # buttons are hidden. This avoids a problem with unreachable buttons when
     # the horizontal scrollbar is displayed.
-    self._event_box_buttons.set_size_request(self._buttons_allocation.width, -1)
+    self._event_box_buttons.set_size_request(
+      self._buttons_allocation.width, self._event_box_buttons.get_size_request()[1])
     
     self._hbox_buttons.hide()
 
