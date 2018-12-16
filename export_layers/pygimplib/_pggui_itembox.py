@@ -360,6 +360,8 @@ class ItemBoxItem(object):
       "size-allocate", self._on_event_box_buttons_size_allocate)
     
     self._event_box.show_all()
+    
+    self._hbox_buttons.set_no_show_all(True)
   
   @property
   def widget(self):
