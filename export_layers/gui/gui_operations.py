@@ -347,8 +347,8 @@ class _OperationEditDialog(gimpui.Dialog):
       if not isinstance(setting.gui, pgsetting.SettingGuiTypes.none):
         if isinstance(setting, pgsetting.ArraySetting):
           if setting.element_type.get_allowed_gui_types():
-            setting.gui.element.set_size_request(
-              self._ARRAY_PARAMETER_GUI_WIDTH, setting.gui.element.get_size_request()[1])
+            setting.gui.element.set_property(
+              "width-request", self._ARRAY_PARAMETER_GUI_WIDTH)
             setting.gui.element.max_height = self._ARRAY_PARAMETER_GUI_MAX_HEIGHT
           else:
             gui_element_to_attach = self._create_placeholder_widget()

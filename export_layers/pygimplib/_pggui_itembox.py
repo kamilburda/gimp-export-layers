@@ -409,7 +409,7 @@ class ItemBoxItem(object):
     # Assign enough height to the HBox to make sure it does not resize when
     # showing buttons.
     if self._buttons_allocation.height >= allocation.height:
-      self._hbox.set_size_request(self._hbox.get_size_request()[0], allocation.height)
+      self._hbox.set_property("height-request", allocation.height)
   
   def _on_event_box_buttons_size_allocate(self, event_box, allocation):
     if self._buttons_allocation is not None:
@@ -420,8 +420,8 @@ class ItemBoxItem(object):
     # Make sure the width allocated to the buttons remains the same even if
     # buttons are hidden. This avoids a problem with unreachable buttons when
     # the horizontal scrollbar is displayed.
-    self._event_box_buttons.set_size_request(
-      self._buttons_allocation.width, self._event_box_buttons.get_size_request()[1])
+    self._event_box_buttons.set_property(
+      "width-request", self._buttons_allocation.width)
     
     self._hbox_buttons.hide()
 
@@ -647,27 +647,26 @@ class ArrayBox(ItemBox):
   def _modify_height(self, items_previous_allocation):
     items_new_allocation = self._vbox_items.get_allocation()
     allocation = self.get_allocation()
-    current_width = self.get_size_request()[0]
     
     height_diff = items_new_allocation.height - items_previous_allocation.height
     
     if height_diff != 0:
-      new_height = allocation.height + height_diff
-      
       if self._effective_height is None:
         self._effective_height = allocation.height
       
       if (self._is_max_height_unlimited()
-          or (new_height <= self.max_height
+          or (allocation.height + height_diff <= self.max_height
               and self._effective_height < self.max_height)):
-        self.set_size_request(current_width, new_height)
+        new_height = allocation.height + height_diff
       elif self._effective_height >= self.max_height and height_diff < 0:
         if self._effective_height + height_diff < self.max_height:
-          self.set_size_request(current_width, self._effective_height + height_diff)
+          new_height = self._effective_height + height_diff
         else:
-          self.set_size_request(current_width, self.max_height)
+          new_height = self.max_height
       else:
-        self.set_size_request(current_width, self.max_height)
+        new_height = self.max_height
+      
+      self.set_property("height-request", new_height)
       
       self._effective_height = self._effective_height + height_diff
   
