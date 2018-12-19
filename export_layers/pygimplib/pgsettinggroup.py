@@ -241,8 +241,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
       * `"name"` - setting name.
       * `"default_value"` - default value of the setting.
     
-    The `"name"` attribute must not contain forward slashes (`"/"`) (which are used
-    to access settings via paths).
+    The `"name"` attribute must not contain forward slashes (`"/"`) (which are
+    used to access settings via paths).
     
     For more attributes, check the documentation of the setting classes. Some
     `Setting` subclasses may require specifying additional mandatory attributes.
