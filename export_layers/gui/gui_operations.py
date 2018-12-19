@@ -324,6 +324,12 @@ class _OperationEditDialog(gimpui.Dialog):
     
     self._button_ok = self.add_button(gtk.STOCK_OK, gtk.RESPONSE_OK)
     self._button_cancel = self.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+    self.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
+    
+    self._button_reset = gtk.Button()
+    self._button_reset.set_label(_("_Reset"))
+    self.action_area.pack_start(self._button_reset, expand=False, fill=False)
+    self.action_area.set_child_secondary(self._button_reset, True)
     
     self._label_procedure_name = gtk.Label()
     self._label_procedure_name.set_use_markup(True)
@@ -358,6 +364,7 @@ class _OperationEditDialog(gimpui.Dialog):
     
     self.set_focus(self._button_ok)
     
+    self._button_reset.connect("clicked", self._on_button_reset_clicked, operation)
     self.connect("response", self._on_operation_edit_dialog_response)
   
   def _set_arguments(self, procedure, operation):
@@ -385,6 +392,9 @@ class _OperationEditDialog(gimpui.Dialog):
         gui_element_to_attach = self._create_placeholder_widget()
       
       self._table_operation_arguments.attach(gui_element_to_attach, 1, 2, i, i + 1)
+  
+  def _on_button_reset_clicked(self, button, operation):
+    operation["arguments"].reset()
   
   def _on_operation_edit_dialog_response(self, dialog, response_id):
     for child in list(self._table_operation_arguments.get_children()):
