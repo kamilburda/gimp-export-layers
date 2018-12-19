@@ -128,6 +128,17 @@ class OperationBox(pggui.ItemBox):
         self._on_operation_item_gui_label_size_allocate,
         operation["enabled"].gui.element)
   
+  def _on_operation_item_gui_label_size_allocate(
+        self, item_gui_label, allocation, item_gui):
+    full_text_layout = pango.Layout(item_gui_label.get_pango_context())
+    full_text_layout.set_text(item_gui_label.get_text())
+    
+    if (item_gui_label.get_layout().get_pixel_size()[0]
+        < full_text_layout.get_pixel_size()[0]):
+      item_gui.set_tooltip_text(item_gui_label.get_text())
+    else:
+      item_gui.set_tooltip_text(None)
+  
   def reorder_item(self, item, new_position):
     processed_new_position = self._reorder_item(item, new_position)
     self.on_reorder_item(self._operations, item.operation.name, processed_new_position)
@@ -149,17 +160,6 @@ class OperationBox(pggui.ItemBox):
       self._add_add_custom_procedure_to_menu_popup()
     
     self._operations_menu.show_all()
-  
-  def _on_operation_item_gui_label_size_allocate(
-        self, item_gui_label, allocation, item_gui):
-    full_text_layout = pango.Layout(item_gui_label.get_pango_context())
-    full_text_layout.set_text(item_gui_label.get_text())
-    
-    if (item_gui_label.get_layout().get_pixel_size()[0]
-        < full_text_layout.get_pixel_size()[0]):
-      item_gui.set_tooltip_text(item_gui_label.get_text())
-    else:
-      item_gui.set_tooltip_text(None)
   
   def _on_button_add_clicked(self, button):
     self._operations_menu.popup(None, None, None, 0, 0)
