@@ -92,13 +92,13 @@ def test_settings_and_gui(setting_items):
     setting_type_label.set_alignment(0.0, 0.5)
     
     setting.set_gui()
-    setting.gui.element.set_size_request(SETTING_GUI_ELEMENT_WIDTH, -1)
+    setting.gui.element.set_property("width-request", SETTING_GUI_ELEMENT_WIDTH)
     
     _check_setting_gui_interface(setting)
     
     setting_value_label = gtk.Label()
     setting_value_label.set_alignment(0.0, 0.5)
-    setting_value_label.set_size_request(SETTING_VALUE_LABEL_WIDTH, -1)
+    setting_value_label.set_property("width-request", SETTING_VALUE_LABEL_WIDTH)
     
     setting_value_changed_call_count_label = gtk.Label(b"0")
     setting_value_changed_call_count_label.set_alignment(0.0, 0.5)

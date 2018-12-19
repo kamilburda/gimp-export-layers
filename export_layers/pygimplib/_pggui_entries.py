@@ -93,8 +93,9 @@ class EntryExpander(object):
       (self._entry.get_layout_offsets()[0] + self._entry.get_property("scroll-offset"))
       * 2)
     text_pixel_width = self._pango_layout.get_pixel_size()[0] + offset_pixel_width
-    self._entry.set_size_request(
-      max(min(text_pixel_width, self._maximum_width), self._minimum_width), -1)
+    self._entry.set_property(
+      "width-request",
+      max(min(text_pixel_width, self._maximum_width), self._minimum_width))
 
 
 class ExtendedEntry(gtk.Entry):
