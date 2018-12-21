@@ -264,6 +264,10 @@ class OperationBox(pggui.ItemBox):
       procedure = pdb[
         item.operation["function"].value.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
       
+      operation_values_before_dialog = {
+        setting.get_path(item.operation): setting.value
+        for setting in item.operation.walk()}
+      
       operation_edit_dialog = _OperationEditDialog(
         procedure,
         item.operation,
@@ -271,16 +275,19 @@ class OperationBox(pggui.ItemBox):
         role=pygimplib.config.PLUGIN_NAME)
       
       operation_edit_dialog.connect(
-        "response", self._on_operation_edit_dialog_for_existing_operation_response)
+        "response",
+        self._on_operation_edit_dialog_for_existing_operation_response,
+        item.operation,
+        operation_values_before_dialog)
       
       operation_edit_dialog.show_all()
   
-  def _on_operation_edit_dialog_for_existing_operation_response(self, dialog, response_id):
+  def _on_operation_edit_dialog_for_existing_operation_response(
+        self, dialog, response_id, operation, operation_values_before_dialog):
     dialog.destroy()
     
     if response_id != gtk.RESPONSE_OK:
-      #TODO: Set arguments to previous values
-      pass
+      operation.set_values(operation_values_before_dialog)
 
 
 class _OperationBoxItem(pggui.ItemBoxItem):
