@@ -15,8 +15,8 @@
 # limitations under the License.
 
 """
-This module defines a custom widget acting as a GUI element for
-`pgsetting.ArraySetting` instances.
+This module defines a custom widget holding an array of GUI elements. The widget
+is used as the default GUI for `pgsetting.ArraySetting` instances.
 
 This module should not be used directly. Use `pggui` as the contents of this
 module are included in `pggui`.
@@ -45,7 +45,7 @@ __all__ = [
 
 class ItemBox(gtk.ScrolledWindow):
   """
-  This abstract class defines a scrollable box holding a vertical list of items.
+  This base class defines a scrollable box holding a vertical list of items.
   Each item is an instance of `_ItemBoxItem` class or one of its subclasses.
   """
   
