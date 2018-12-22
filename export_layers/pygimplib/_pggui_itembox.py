@@ -525,7 +525,8 @@ class ArrayBox(ItemBox):
     self._add_item(item)
     
     self._items_allocations[item] = item.widget.get_allocation()
-    self._update_height(self._items_allocations[item].height + self._item_spacing)
+    if self.max_height is not None:
+      self._update_height(self._items_allocations[item].height + self._item_spacing)
     
     item.widget.connect("size-allocate", self._on_item_widget_size_allocate, item)
     
@@ -650,7 +651,10 @@ class ArrayBox(ItemBox):
     if self._items_total_height is None:
       self._items_total_height = self.get_allocation().height
     
-    actual_height = min(self._items_total_height, self.max_height)
+    if not self._is_max_height_unlimited():
+      actual_height = min(self._items_total_height, self.max_height)
+    else:
+      actual_height = self._items_total_height
     
     if (self._is_max_height_unlimited()
         or (actual_height + height_diff <= self.max_height
