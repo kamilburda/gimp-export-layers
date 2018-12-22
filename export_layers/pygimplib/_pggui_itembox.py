@@ -444,6 +444,7 @@ class ArrayBox(ItemBox):
         min_size=0,
         max_size=None,
         item_spacing=ItemBox.ITEM_SPACING,
+        max_width=None,
         max_height=None,
         *args,
         **kwargs):
@@ -454,16 +455,19 @@ class ArrayBox(ItemBox):
     
     * `min_size` - minimum number of elements.
     
-    * `max_size` - max_size number of elements. If `None`, the number of
-      elements is unlimited.
+    * `max_size` - maximum number of elements. If `None`, the number of elements
+      is unlimited.
     
     * `item_spacing` - vertical spacing in pixels between items.
     
-    * `max_height` - maximum height of the array box before the vertical
+    * `max_width` - maximum width of the array box before the horizontal
       scrollbar is displayed. The array box will resize automatically until the
-      maximum height is reached. If `max_height` is `None`, the height is fixed
-      to whatever height is provided by `gtk.ScrolledWindow`. If `max_height` is
-      zero or negative, the height is unlimited.
+      maximum width is reached. If `max_width` is `None`, the width is fixed
+      to whatever width is provided by `gtk.ScrolledWindow`. If `max_width` is
+      zero or negative, the width is unlimited.
+    
+    * `max_height` - maximum height of the array box before the vertical
+      scrollbar is displayed. For more information, see `max_width`.
     """
     super().__init__(item_spacing=item_spacing, *args, **kwargs)
     
@@ -475,12 +479,14 @@ class ArrayBox(ItemBox):
     else:
       self._max_size = max_size if max_size >= min_size else min_size
     
+    self.max_width = max_width
     self.max_height = max_height
     
     self.on_add_item = pgutils.empty_func
     self.on_reorder_item = pgutils.empty_func
     self.on_remove_item = pgutils.empty_func
     
+    self._items_total_width = None
     self._items_total_height = None
     self._items_allocations = {}
     self._locker = _ActionLocker()
@@ -525,8 +531,7 @@ class ArrayBox(ItemBox):
     self._add_item(item)
     
     self._items_allocations[item] = item.widget.get_allocation()
-    if self.max_height is not None:
-      self._update_height(self._items_allocations[item].height + self._item_spacing)
+    self._update_height(self._items_allocations[item].height + self._item_spacing)
     
     item.widget.connect("size-allocate", self._on_item_widget_size_allocate, item)
     
@@ -567,8 +572,7 @@ class ArrayBox(ItemBox):
     
     self._remove_item(item)
     
-    if self.max_height is not None:
-      self._update_height(-(self._items_allocations[item].height + self._item_spacing))
+    self._update_height(-(self._items_allocations[item].height + self._item_spacing))
     del self._items_allocations[item]
     
     self.on_remove_item(item_position)
@@ -640,40 +644,67 @@ class ArrayBox(ItemBox):
     self._locker.unlock("emit_size_spin_button_value_changed")
   
   def _on_item_widget_size_allocate(self, item_widget, allocation, item):
+    if self.max_width is not None:
+      self._update_width(allocation.width - self._items_allocations[item].width)
+    
     if self.max_height is not None:
-      height_diff = allocation.height - self._items_allocations[item].height
+      self._update_height(allocation.height - self._items_allocations[item].height)
+    
+    self._items_allocations[item] = allocation
+  
+  def _update_width(self, width_diff):
+    if self._items_total_width is None:
+      self._items_total_width = self.get_allocation().width
+    
+    if width_diff != 0:
+      self._update_dimension(
+        width_diff,
+        self._items_total_width,
+        self.max_width,
+        self.max_width <= 0,
+        "width-request")
       
-      if height_diff != 0:
-        self._update_height(height_diff)
-        self._items_allocations[item] = allocation
+      self._items_total_width = self._items_total_width + width_diff
   
   def _update_height(self, height_diff):
     if self._items_total_height is None:
       self._items_total_height = self.get_allocation().height
     
-    if not self._is_max_height_unlimited():
-      actual_height = min(self._items_total_height, self.max_height)
-    else:
-      actual_height = self._items_total_height
-    
-    if (self._is_max_height_unlimited()
-        or (actual_height + height_diff <= self.max_height
-            and self._items_total_height < self.max_height)):
-      new_height = actual_height + height_diff
-    elif self._items_total_height >= self.max_height and height_diff < 0:
-      if self._items_total_height + height_diff < self.max_height:
-        new_height = self._items_total_height + height_diff
-      else:
-        new_height = self.max_height
-    else:
-      new_height = self.max_height
-    
-    self.set_property("height-request", new_height)
-    
-    self._items_total_height = self._items_total_height + height_diff
+    if height_diff != 0:
+      self._update_dimension(
+        height_diff,
+        self._items_total_height,
+        self.max_height,
+        self.max_height <= 0,
+        "height-request")
+      
+      self._items_total_height = self._items_total_height + height_diff
   
-  def _is_max_height_unlimited(self):
-    return self.max_height <= 0
+  def _update_dimension(
+        self,
+        size_diff,
+        total_size,
+        max_visible_size,
+        is_max_visible_size_unlimited,
+        dimension_request_property):
+    if not is_max_visible_size_unlimited:
+      visible_size = min(total_size, max_visible_size)
+    else:
+      visible_size = total_size
+    
+    if (is_max_visible_size_unlimited
+        or (visible_size + size_diff <= max_visible_size
+            and total_size < max_visible_size)):
+      new_size = visible_size + size_diff
+    elif total_size >= max_visible_size and size_diff < 0:
+      if total_size + size_diff < max_visible_size:
+        new_size = total_size + size_diff
+      else:
+        new_size = max_visible_size
+    else:
+      new_size = max_visible_size
+    
+    self.set_property(dimension_request_property, new_size)
   
   def _rename_item_names(self, start_index):
     for index, item in enumerate(self._items[start_index:]):
