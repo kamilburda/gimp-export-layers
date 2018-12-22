@@ -106,7 +106,7 @@ class OperationBox(pggui.ItemBox):
     
     item = _OperationBoxItem(operation, operation["enabled"].gui.element)
     
-    self._add_item(item)
+    super().add_item(item)
     
     item.button_edit.connect("clicked", self._on_item_edit_button_clicked, item)
     
@@ -140,14 +140,14 @@ class OperationBox(pggui.ItemBox):
       item_gui.set_tooltip_text(None)
   
   def reorder_item(self, item, new_position):
-    processed_new_position = self._reorder_item(item, new_position)
+    processed_new_position = super().reorder_item(item, new_position)
     self.on_reorder_item(self._operations, item.operation.name, processed_new_position)
   
   def remove_item(self, item):
     if self._get_item_position(item) == len(self._items) - 1:
       self._button_add.grab_focus()
     
-    self._remove_item(item)
+    super().remove_item(item)
     
     self.on_remove_item(self._operations, item.operation.name)
   

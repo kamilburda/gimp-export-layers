@@ -244,19 +244,6 @@ class ItemBox(gtk.ScrolledWindow):
     self.get_child().set_shadow_type(gtk.SHADOW_NONE)
   
   def add_item(self, item):
-    self._add_item(item)
-  
-  def reorder_item(self, item, position):
-    self._reorder_item(item, position)
-  
-  def remove_item(self, item):
-    self._remove_item(item)
-  
-  def clear(self):
-    for unused_ in range(len(self._items)):
-      self.remove_item(self._items[0])
-  
-  def _add_item(self, item):
     self._vbox_items.pack_start(item.widget, expand=False, fill=False)
     
     item.button_remove.connect("clicked", self._on_item_remove_button_clicked, item)
@@ -268,7 +255,7 @@ class ItemBox(gtk.ScrolledWindow):
     
     return item
   
-  def _reorder_item(self, item, position):
+  def reorder_item(self, item, position):
     new_position = min(max(position, 0), len(self._items) - 1)
     
     self._items.pop(self._get_item_position(item))
@@ -278,7 +265,7 @@ class ItemBox(gtk.ScrolledWindow):
     
     return new_position
   
-  def _remove_item(self, item):
+  def remove_item(self, item):
     item_position = self._get_item_position(item)
     if item_position < len(self._items) - 1:
       next_item_position = item_position + 1
@@ -288,6 +275,10 @@ class ItemBox(gtk.ScrolledWindow):
     item.remove_item_widget()
     
     self._items.remove(item)
+  
+  def clear(self):
+    for unused_ in range(len(self._items)):
+      self.remove_item(self._items[0])
   
   def _setup_drag(self, item):
     self._drag_and_drop_context.setup_drag(
@@ -528,7 +519,7 @@ class ArrayBox(ItemBox):
     
     item = _ArrayBoxItem(item_widget)
     
-    self._add_item(item)
+    super().add_item(item)
     
     self._items_allocations[item] = item.widget.get_allocation()
     self._update_height(self._items_allocations[item].height + self._item_spacing)
@@ -550,7 +541,7 @@ class ArrayBox(ItemBox):
   
   def reorder_item(self, item, new_position):
     orig_position = self._get_item_position(item)
-    processed_new_position = self._reorder_item(item, new_position)
+    processed_new_position = super().reorder_item(item, new_position)
     
     self.on_reorder_item(orig_position, processed_new_position)
     
@@ -570,7 +561,7 @@ class ArrayBox(ItemBox):
     
     item_position = self._get_item_position(item)
     
-    self._remove_item(item)
+    super().remove_item(item)
     
     self._update_height(-(self._items_allocations[item].height + self._item_spacing))
     del self._items_allocations[item]
