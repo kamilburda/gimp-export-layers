@@ -85,12 +85,6 @@ def create_gui_settings():
       "default_value": True,
       "gui_type": None
     },
-    {
-      "type": pgsetting.SettingTypes.generic,
-      "name": "displayed_tags",
-      "default_value": operations.BUILTIN_TAGS,
-      "gui_type": None
-    },
   ])
   
   session_only_gui_settings = pgsettinggroup.SettingGroup(

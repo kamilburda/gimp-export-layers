@@ -157,6 +157,13 @@ def create_settings():
          pgoverwrite.OverwriteModes.RENAME_EXISTING)],
       "display_name": _("Overwrite mode (non-interactive run mode only)")
     },
+    {
+      "type": pgsetting.SettingTypes.generic,
+      "name": "available_tags",
+      "default_value": operations.BUILTIN_TAGS,
+      "pdb_type": None,
+      "gui_type": None,
+    },
   ])
   
   settings["main"].add([operations.create(name="operations")])

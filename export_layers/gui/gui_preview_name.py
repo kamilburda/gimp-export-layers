@@ -68,14 +68,14 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
         initial_layer_tree=None,
         collapsed_items=None,
         selected_items=None,
-        displayed_tags_setting=None):
+        available_tags_setting=None):
     super().__init__()
     
     self._layer_exporter = layer_exporter
     self._initial_layer_tree = initial_layer_tree
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
     self._selected_items = selected_items if selected_items is not None else []
-    self._displayed_tags_setting = displayed_tags_setting
+    self._available_tags_setting = available_tags_setting
     
     self.on_selection_changed = pgutils.empty_func
     self.on_after_update = pgutils.empty_func
@@ -134,7 +134,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     
     self._enable_filtered_items(enabled=False)
     
-    self._update_displayed_tags()
+    self._update_available_tags()
     
     self._tree_view.columns_autosize()
     
@@ -293,12 +293,12 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._menu_item_remove_tag.set_submenu(self._tags_remove_submenu)
     self._tags_menu.append(self._menu_item_remove_tag)
     
-    for tag, tag_display_name in self._displayed_tags_setting.default_value.items():
+    for tag, tag_display_name in self._available_tags_setting.default_value.items():
       self._add_tag_menu_item(tag, tag_display_name)
     
     self._tags_menu.show_all()
   
-  def _update_displayed_tags(self):
+  def _update_available_tags(self):
     self._layer_exporter.layer_tree.is_filtered = False
     
     used_tags = set()
@@ -314,7 +314,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     for tag, menu_item in self._tags_remove_submenu_items.items():
       menu_item.set_sensitive(tag not in used_tags)
     
-    for tag in self._displayed_tags_setting.value:
+    for tag in self._available_tags_setting.value:
       if tag not in self._tags_menu_items:
         self._add_tag_menu_item(tag, tag)
         self._add_remove_tag_menu_item(tag, tag)
@@ -325,10 +325,10 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._sort_tags_menu_items()
     
     for tag in self._tags_menu_items:
-      if tag not in self._displayed_tags_setting.value:
-        self._displayed_tags_setting.value[tag] = tag
+      if tag not in self._available_tags_setting.value:
+        self._available_tags_setting.value[tag] = tag
     
-    self._displayed_tags_setting.save()
+    self._available_tags_setting.save()
   
   def _sort_tags_menu_items(self):
     for new_tag_position, tag in (
@@ -470,12 +470,12 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     
     del self._tags_menu_items[tag]
     del self._tags_remove_submenu_items[tag]
-    del self._displayed_tags_setting.value[tag]
+    del self._available_tags_setting.value[tag]
     
     self._menu_item_remove_tag.set_sensitive(
       bool(self._tags_remove_submenu.get_children()))
     
-    self._displayed_tags_setting.save()
+    self._available_tags_setting.save()
   
   def _on_tree_view_row_collapsed(self, widget, tree_iter, tree_path):
     if self._row_expand_collapse_interactive:
