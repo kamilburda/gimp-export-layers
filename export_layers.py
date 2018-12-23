@@ -56,7 +56,7 @@ pygimplib.init()
 SETTINGS = settings_plugin.create_settings()
 
 
-@pygimplib.plugin(
+@pygimplib.procedure(
   blurb=_("Export layers as separate images"),
   author="{} <{}>".format(
     pygimplib.config.AUTHOR_NAME, pygimplib.config.AUTHOR_CONTACT),
@@ -82,7 +82,7 @@ def plug_in_export_layers(run_mode, image, *args):
     _run_noninteractive(layer_tree, args)
 
 
-@pygimplib.plugin(
+@pygimplib.procedure(
   blurb=_('Run "{}" with the last values specified').format(
     pygimplib.config.PLUGIN_TITLE),
   description=_(

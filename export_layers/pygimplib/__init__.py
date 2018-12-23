@@ -214,48 +214,49 @@ def init():
 
 if _gimp_dependent_modules_imported:
   
-  _plugins = collections.OrderedDict()
-  _plugins_names = collections.OrderedDict()
+  _procedures = collections.OrderedDict()
+  _procedures_names = collections.OrderedDict()
   
-  def plugin(**plugin_kwargs):
+  def procedure(**kwargs):
     """
     This function is a decorator that installs the wrapped function as a GIMP
-    plug-in. The plug-in can then be accessed via the GIMP procedural database
-    (PDB) and optionally from the GIMP user interface.
+    procedure. The procedure can then be accessed via the GIMP procedural
+    database (PDB) and optionally from the GIMP user interface.
     
-    The function name is used as the plug-in name as found in the GIMP PDB.
+    The function name is used as the procedure name as found in the GIMP PDB.
     
     The following keyword arguments are accepted:
     
-    * `blurb` - Short description of the plug-in.
+    * `blurb` - Short description of the procedure.
     
-    * `description` - More detailed information about the plug-in.
+    * `description` - More detailed information about the procedure.
     
-    * `author` - Plug-in author.
+    * `author` - Author of the plug-in.
     
-    * `copyright_holder` - Plug-in copyright holder.
+    * `copyright_holder` - Copyright holder of the plug-in.
     
-    * `date` - Dates (usually years) at which the plug-in development was active.
+    * `date` - Dates (usually years) at which the plug-in development was
+      active.
     
     * `menu_name` - name of the menu entry in the GIMP user interface.
     
     * `menu_path` - path of the menu entry in the GIMP user interface.
     
-    * `image_types` - image types to which the plug-in applies (e.g. RGB or
-      indexed). By default, the plug-in can be run for images of any type.
+    * `image_types` - image types to which the procedure applies (e.g. RGB or
+      indexed). By default, the procedure can be run for images of any type.
     
-    * `parameters` - plug-in parameters. This is a list of tuples of three
+    * `parameters` - procedure parameters. This is a list of tuples of three
       elements: `(PDB type, name, description)`. Alternatively, you may pass
       a `SettingGroup` instance or a list of `SettingGroup` instances containing
       plug-in settings.
     
-    * `return_values` - return values of the plug-in, usable when calling the
-      plug-in programmatically. The format of `return_values` is the same as
+    * `return_values` - return values of the procedure, usable when calling the
+      procedure programmatically. The format of `return_values` is the same as
       `parameters`.
     
     Example:
     
-      \@pygimplib.plugin(
+      \@pygimplib.procedure(
         blurb="Export layers as separate images",
         author="John Doe",
         menu_name=_("E_xport Layers..."),
@@ -269,21 +270,21 @@ if _gimp_dependent_modules_imported:
         ...
     """
     
-    def plugin_wrapper(procedure):
-      _plugins[procedure] = plugin_kwargs
-      _plugins_names[procedure.__name__] = procedure
+    def procedure_wrapper(procedure):
+      _procedures[procedure] = kwargs
+      _procedures_names[procedure.__name__] = procedure
       return procedure
     
-    return plugin_wrapper
+    return procedure_wrapper
   
   def main():
     """
-    Enable the installation and execution of GIMP plug-ins.
+    Enable the installation and execution of GIMP procedures.
     """
     gimp.main(None, None, _query, _run)
   
-  def _install_plugin(
-        plugin_procedure,
+  def _install_procedure(
+        procedure,
         blurb="",
         description="",
         author="",
@@ -309,7 +310,7 @@ if _gimp_dependent_modules_imported:
       return pdb_params
     
     gimp.install_procedure(
-      plugin_procedure.__name__,
+      procedure.__name__,
       blurb,
       description,
       author,
@@ -322,13 +323,13 @@ if _gimp_dependent_modules_imported:
       _get_pdb_params(return_values))
     
     if menu_path:
-      gimp.menu_register(plugin_procedure.__name__, menu_path)
+      gimp.menu_register(procedure.__name__, menu_path)
   
   def _query():
     gimp.domain_register(config.DOMAIN_NAME, config.LOCALE_DIRPATH)
     
-    for procedure, kwargs in _plugins.items():
-      _install_plugin(procedure, **kwargs)
+    for procedure, kwargs in _procedures.items():
+      _install_procedure(procedure, **kwargs)
   
   def _run(procedure_name, procedure_params):
     if config.PLUGIN_NAME == config._DEFAULT_PLUGIN_NAME:
@@ -338,7 +339,8 @@ if _gimp_dependent_modules_imported:
     
     config._can_modify_config = False
     
-    procedure = _add_gui_excepthook(_plugins_names[procedure_name], procedure_params[0])
+    procedure = _add_gui_excepthook(
+      _procedures_names[procedure_name], procedure_params[0])
     
     if hasattr(gimpui, "gimp_ui_init"):
       gimpui.gimp_ui_init()
