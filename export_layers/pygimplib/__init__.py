@@ -217,19 +217,72 @@ if _gimp_dependent_modules_imported:
   _plugins = collections.OrderedDict()
   _plugins_names = collections.OrderedDict()
   
-  def plugin(*plugin_args, **plugin_kwargs):
+  def plugin(**plugin_kwargs):
+    """
+    This function is a decorator that installs the wrapped function as a GIMP
+    plug-in. The plug-in can then be accessed via the GIMP procedural database
+    (PDB) and optionally from the GIMP user interface.
+    
+    The function name is used as the plug-in name as found in the GIMP PDB.
+    
+    The following keyword arguments are accepted:
+    
+    * `blurb` - Short description of the plug-in.
+    
+    * `description` - More detailed information about the plug-in.
+    
+    * `author` - Plug-in author.
+    
+    * `copyright_holder` - Plug-in copyright holder.
+    
+    * `date` - Dates (usually years) at which the plug-in development was active.
+    
+    * `menu_name` - name of the menu entry in the GIMP user interface.
+    
+    * `menu_path` - path of the menu entry in the GIMP user interface.
+    
+    * `image_types` - image types to which the plug-in applies (e.g. RGB or
+      indexed). By default, the plug-in can be run for images of any type.
+    
+    * `parameters` - plug-in parameters. This is a list of tuples of three
+      elements: `(PDB type, name, description)`. Alternatively, you may pass
+      a `SettingGroup` instance or a list of `SettingGroup` instances containing
+      plug-in settings.
+    
+    * `return_values` - return values of the plug-in, usable when calling the
+      plug-in programmatically. The format of `return_values` is the same as
+      `parameters`.
+    
+    Example:
+    
+      \@pygimplib.plugin(
+        blurb="Export layers as separate images",
+        author="John Doe",
+        menu_name=_("E_xport Layers..."),
+        menu_path="<Image>/File/Export",
+        parameters=[
+          (gimpenums.PDB_INT32, "run-mode", "The run mode"),
+          (gimpenums.PDB_IMAGE, "image", "The current image"),
+          (gimpenums.PDB_STRING, "dirpath", "The export directory path")]
+      )
+      def plug_in_export_layers(run_mode, image, *args):
+        ...
+    """
     
     def plugin_wrapper(procedure):
-      _plugins[procedure] = (plugin_args, plugin_kwargs)
+      _plugins[procedure] = plugin_kwargs
       _plugins_names[procedure.__name__] = procedure
       return procedure
     
     return plugin_wrapper
   
   def main():
+    """
+    Enable the installation and execution of GIMP plug-ins.
+    """
     gimp.main(None, None, _query, _run)
   
-  def install_plugin(
+  def _install_plugin(
         plugin_procedure,
         blurb="",
         description="",
@@ -274,8 +327,8 @@ if _gimp_dependent_modules_imported:
   def _query():
     gimp.domain_register(config.DOMAIN_NAME, config.LOCALE_DIRPATH)
     
-    for procedure, args_and_kwargs in _plugins.items():
-      install_plugin(procedure, *args_and_kwargs[0], **args_and_kwargs[1])
+    for procedure, kwargs in _plugins.items():
+      _install_plugin(procedure, **kwargs)
   
   def _run(procedure_name, procedure_params):
     if config.PLUGIN_NAME == config._DEFAULT_PLUGIN_NAME:
