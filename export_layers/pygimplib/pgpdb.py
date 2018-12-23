@@ -127,7 +127,7 @@ def remove_all_items(image):
   remove_all_paths(image)
 
 
-def delete_image_safe(image):
+def try_delete_image(image):
   """
   Delete the specified image. If the image does not exist, do not raise any
   exception.

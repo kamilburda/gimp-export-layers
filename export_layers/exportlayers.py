@@ -527,11 +527,11 @@ class LayerExporter(object):
     
     if ((not self._keep_image_copy or self._use_another_image_copy)
         or exception_occurred):
-      pgpdb.delete_image_safe(self._image_copy)
+      pgpdb.try_delete_image(self._image_copy)
       if self._use_another_image_copy:
         pdb.gimp_image_undo_thaw(self._another_image_copy)
         if exception_occurred:
-          pgpdb.delete_image_safe(self._another_image_copy)
+          pgpdb.try_delete_image(self._another_image_copy)
     
     for tagged_layer_copy in self._tagged_layer_copies.values():
       if tagged_layer_copy is not None:

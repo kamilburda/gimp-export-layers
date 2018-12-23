@@ -261,7 +261,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       return None
     
     if not image_preview.layers:
-      pgpdb.delete_image_safe(image_preview)
+      pgpdb.try_delete_image(image_preview)
       return None
     
     if image_preview.base_type != gimpenums.RGB:
