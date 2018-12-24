@@ -2128,7 +2128,7 @@ PDB_TYPES_TO_SETTING_TYPES_MAP = {
   # available out of the box.
   gimpenums.PDB_ITEM: DrawableSetting,
   gimpenums.PDB_DRAWABLE: DrawableSetting,
-  gimpenums.PDB_LAYER: DrawableSetting,
+  gimpenums.PDB_LAYER: LayerSetting,
   gimpenums.PDB_CHANNEL: ChannelSetting,
   gimpenums.PDB_SELECTION: SelectionSetting,
   gimpenums.PDB_VECTORS: VectorsSetting,
