@@ -184,7 +184,7 @@ Exceptions to this rule include:
 * initializing a package or a library,
 * standalone scripts such as test runners, git hooks, etc.
 
-Do not execute functions from the GIMP API or PDB on the module or class level as they are not fully initialized yet and it causes the application to crash.
+Do not execute functions from the GIMP API or PDB on the module or class level as they are not fully initialized yet and cause the application to crash.
 
 Do not call the `_` function to mark module- or class-level strings as translatable.
 You need to defer the translation until the strings are used in the local scope.
@@ -252,9 +252,8 @@ Encode/decode Unicode strings when accessing the following external libraries:
 
 ### GTK
 
-When creating a `gtk.TreeView`, `bytes` apparently cannot be used as a column type for strings due to the usage of the `future` library.
-Use `GObject.TYPE_STRING` instead.
-For consistency, always use `GObject` types for column types instead of Python types if such `GObject` types exist.
+Always use `GObject` types (for `gtk.TreeView` columns, `__gsignals__`, etc.) instead of Python types if such `GObject` types exist.
+For example, use `GObject.TYPE_STRING` instead of `bytes` for `gtk.TreeView` columns of string type (`bytes` apparently cannot be used due to the usage of the `future` library).
 
 
 Writing Commit Messages <a name="Writing-Commit-Messages"></a>
