@@ -1118,6 +1118,40 @@ class ImageSetting(Setting):
         pgsettingutils.value_to_str_prefix(image) + self.error_messages["invalid_value"])
 
 
+class ItemSetting(Setting):
+  """
+  This setting class can be used for `gimp.Item` objects.
+  
+  Allowed GIMP PDB types:
+  
+  * `SettingPdbTypes.item`
+  
+  Empty values:
+  
+  * `None`
+  
+  Error messages:
+  
+  * `"invalid_value"` - The item assigned is invalid.
+  """
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.item]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.item_combo_box]
+  _EMPTY_VALUES = [None]
+  
+  def _copy_value(self, value):
+    return value
+  
+  def _init_error_messages(self):
+    self.error_messages["invalid_value"] = _("Invalid item.")
+  
+  def _validate(self, item):
+    if not isinstance(item, gimp.Item):
+      raise SettingValueError(
+        pgsettingutils.value_to_str_prefix(item)
+        + self.error_messages["invalid_value"])
+
+
 class DrawableSetting(Setting):
   """
   This setting class can be used for `gimp.Drawable` objects.
@@ -2124,9 +2158,7 @@ PDB_TYPES_TO_SETTING_TYPES_MAP = {
   gimpenums.PDB_STRING: StringSetting,
   
   gimpenums.PDB_IMAGE: ImageSetting,
-  #TODO: ItemSetting should be defined; however, there is no appropriate GUI
-  # available out of the box.
-  gimpenums.PDB_ITEM: DrawableSetting,
+  gimpenums.PDB_ITEM: ItemSetting,
   gimpenums.PDB_DRAWABLE: DrawableSetting,
   gimpenums.PDB_LAYER: LayerSetting,
   gimpenums.PDB_CHANNEL: ChannelSetting,

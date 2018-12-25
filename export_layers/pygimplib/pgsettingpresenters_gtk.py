@@ -226,10 +226,35 @@ class GimpUiImageComboBoxPresenter(GtkSettingPresenter):
       self._element.set_active_image(value)
 
 
+class GimpItemComboBoxPresenter(GtkSettingPresenter):
+  """
+  This class is a `SettingPresenter` for `pggui.GimpItemComboBox` elements.
+  
+  Value: `gimp.Item` selected in the combo box.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "changed"
+  
+  def _create_gui_element(self, setting):
+    return _create_item_combo_box(pggui.GimpItemComboBox, setting)
+  
+  def _get_value(self):
+    return self._element.get_active_item()
+  
+  def _set_value(self, value):
+    """
+    Set a `gimp.Item` instance to be selected in the combo box. Passing `None`
+    has no effect.
+    """
+    if value is not None:
+      self._element.set_active_item(value)
+
+
 class GimpUiDrawableComboBoxPresenter(GtkSettingPresenter):
   """
   This class is a `SettingPresenter` for `gimpui.DrawableComboBox` elements.
-  Only drawables from the image referenced by the setting are displayed.
+  If the setting references a `gimp.Image`, only drawables from that image will
+  be displayed.
   
   Value: `gimp.Drawable` selected in the combo box.
   """
@@ -254,7 +279,8 @@ class GimpUiDrawableComboBoxPresenter(GtkSettingPresenter):
 class GimpUiLayerComboBoxPresenter(GtkSettingPresenter):
   """
   This class is a `SettingPresenter` for `gimpui.LayerComboBox` elements.
-  Only layers from the image referenced by the setting are displayed.
+  If the setting references a `gimp.Image`, only layers from that image will
+  be displayed.
   
   Value: `gimp.Layer` selected in the combo box.
   """
@@ -279,7 +305,8 @@ class GimpUiLayerComboBoxPresenter(GtkSettingPresenter):
 class GimpUiChannelComboBoxPresenter(GtkSettingPresenter):
   """
   This class is a `SettingPresenter` for `gimpui.ChannelComboBox` elements.
-  Only channels from the image referenced by the setting are displayed.
+  If the setting references a `gimp.Image`, only channels from that image will
+  be displayed.
   
   Value: `gimp.Channel` selected in the combo box.
   """
@@ -304,8 +331,8 @@ class GimpUiChannelComboBoxPresenter(GtkSettingPresenter):
 class GimpUiVectorsComboBoxPresenter(GtkSettingPresenter):
   """
   This class is a `SettingPresenter` for `gimpui.VectorsComboBox` elements.
-  Only instances of vectors (paths) from the image referenced by the setting are
-  displayed.
+  If the setting references a `gimp.Image`, only vectors from that image will
+  be displayed.
   
   Value: `gimp.Vectors` selected in the combo box.
   """
@@ -766,6 +793,7 @@ class SettingGuiTypes(object):
   text_entry = GtkEntryPresenter
   
   image_combo_box = GimpUiImageComboBoxPresenter
+  item_combo_box = GimpItemComboBoxPresenter
   drawable_combo_box = GimpUiDrawableComboBoxPresenter
   layer_combo_box = GimpUiLayerComboBoxPresenter
   channel_combo_box = GimpUiChannelComboBoxPresenter

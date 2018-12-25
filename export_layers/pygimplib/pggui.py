@@ -43,6 +43,7 @@ from ._pggui_draganddropcontext import *
 from ._pggui_entries import *
 from ._pggui_entrypopup import *
 from ._pggui_entryundocontext import *
+from ._pggui_gimpitemcombobox import *
 from ._pggui_itembox import *
 from ._pggui_messages import *
 from ._pggui_parasitebox import *
