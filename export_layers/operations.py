@@ -87,10 +87,12 @@ from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
 
+from . import placeholders
+
 
 BUILTIN_TAGS = {
   "background": _("Background"),
-  "foreground": _("Foreground")
+  "foreground": _("Foreground"),
 }
 
 DEFAULT_OPERATIONS_GROUP = "default_operations"
@@ -459,6 +461,10 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
         "name": unique_pdb_param_name,
         "display_name": processed_pdb_param_name,
       }
+    
+    if pdb_param_type in placeholders.PDB_TYPES_TO_PLACEHOLDER_SETTING_TYPES_MAP:
+      arguments_dict["type"] = (
+        placeholders.PDB_TYPES_TO_PLACEHOLDER_SETTING_TYPES_MAP[pdb_param_type])
     
     if index == 0 and processed_pdb_param_name == "run-mode":
       arguments_dict["default_value"] = gimpenums.RUN_NONINTERACTIVE

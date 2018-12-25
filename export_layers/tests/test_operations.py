@@ -37,6 +37,7 @@ from export_layers.pygimplib import pgutils
 from export_layers.pygimplib.tests import stubs_gimp
 
 from .. import operations
+from .. import placeholders
 
 pygimplib.init()
 
@@ -674,7 +675,6 @@ class TestLoadSaveOperations(unittest.TestCase):
 class TestManagePdbProceduresAsOperations(unittest.TestCase):
   
   def setUp(self):
-    self.test_operations = get_operation_data(test_operations)
     self.settings = operations.create("operations")
     self.procedure_stub = stubs_gimp.PdbProcedureStub(
       name="file-png-save",
@@ -686,45 +686,6 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
         (gimpenums.PDB_STRING, "filename", "Filename to save the image in")),
       return_vals=None,
       blurb="Saves files in PNG file format")
-  
-  def test_get_operation_dict_for_pdb_procedure_with_non_unique_param_names(self):
-    self.procedure_stub.params = tuple(
-      list(self.procedure_stub.params)
-      + [(gimpenums.PDB_INT32ARRAY, "save-options", "More save options"),
-         (gimpenums.PDB_STRING, "filename", "Another filename")])
-    
-    operation_dict = operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
-    
-    self.assertListEqual(
-      [argument_dict["name"] for argument_dict in operation_dict["arguments"]],
-      ["run-mode",
-       "num-save-options",
-       "save-options",
-       "filename",
-       "save-options-2",
-       "filename-2"])
-  
-  def test_get_operation_dict_for_pdb_procedure_unsupported_pdb_param_type(self):
-    self.procedure_stub.params = tuple(
-      list(self.procedure_stub.params)
-      + [("unsupported", "param-with-unsupported-type", "")])
-    
-    with self.assertRaises(operations.UnsupportedPdbProcedureError):
-      operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
-  
-  def test_get_operation_dict_for_pdb_procedure_default_run_mode_is_noninteractive(self):
-    operation_dict = operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
-    self.assertEqual(
-      operation_dict["arguments"][0]["default_value"], gimpenums.RUN_NONINTERACTIVE)
-  
-  def test_get_operation_dict_for_pdb_procedure_run_mode_as_not_first_parameter(self):
-    self.procedure_stub.params = tuple(
-      [(gimpenums.PDB_INT32, "dummy-param", "Dummy paramter")]
-      + list(self.procedure_stub.params))
-    
-    operation_dict = operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
-    self.assertNotIn("default_value", operation_dict["arguments"][0])
-    self.assertNotIn("default_value", operation_dict["arguments"][1])
   
   def test_add_pdb_procedure(self):
     operation = operations.add(self.settings, self.procedure_stub)
@@ -789,3 +750,71 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
     
     self.assertEqual(
       _find_in_added_data(self.settings, "file-png-save")["function"], "file-png-save")
+
+
+class TestGetOperationDictAsPdbProcedure(unittest.TestCase):
+  
+  def setUp(self):
+    self.test_operations = get_operation_data(test_operations)
+    self.procedure_stub = stubs_gimp.PdbProcedureStub(
+      name="file-png-save",
+      type_=gimpenums.PLUGIN,
+      params=(
+        (gimpenums.PDB_INT32, "run-mode", "The run mode"),
+        (gimpenums.PDB_INT32, "num-save-options", "Number of save options"),
+        (gimpenums.PDB_INT32ARRAY, "save-options", "Save options"),
+        (gimpenums.PDB_STRING, "filename", "Filename to save the image in")),
+      return_vals=None,
+      blurb="Saves files in PNG file format")
+  
+  def test_with_non_unique_param_names(self):
+    self.procedure_stub.params = tuple(
+      list(self.procedure_stub.params)
+      + [(gimpenums.PDB_INT32ARRAY, "save-options", "More save options"),
+         (gimpenums.PDB_STRING, "filename", "Another filename")])
+    
+    operation_dict = operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
+    
+    self.assertListEqual(
+      [argument_dict["name"] for argument_dict in operation_dict["arguments"]],
+      ["run-mode",
+       "num-save-options",
+       "save-options",
+       "filename",
+       "save-options-2",
+       "filename-2"])
+  
+  def test_unsupported_pdb_param_type(self):
+    self.procedure_stub.params = tuple(
+      list(self.procedure_stub.params)
+      + [("unsupported", "param-with-unsupported-type", "")])
+    
+    with self.assertRaises(operations.UnsupportedPdbProcedureError):
+      operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
+  
+  def test_default_run_mode_is_noninteractive(self):
+    operation_dict = operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
+    self.assertEqual(
+      operation_dict["arguments"][0]["default_value"], gimpenums.RUN_NONINTERACTIVE)
+  
+  def test_run_mode_as_not_first_parameter(self):
+    self.procedure_stub.params = tuple(
+      [(gimpenums.PDB_INT32, "dummy-param", "Dummy parameter")]
+      + list(self.procedure_stub.params))
+    
+    operation_dict = operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
+    self.assertNotIn("default_value", operation_dict["arguments"][0])
+    self.assertNotIn("default_value", operation_dict["arguments"][1])
+  
+  def test_gimp_object_types_are_replaced_with_placeholders(self):
+    self.procedure_stub.params = tuple(
+      list(self.procedure_stub.params)
+      + [(gimpenums.PDB_IMAGE, "image", "The image"),
+         (gimpenums.PDB_LAYER, "layer", "The layer to export")])
+    
+    operation_dict = operations.get_operation_dict_for_pdb_procedure(self.procedure_stub)
+    
+    self.assertEqual(
+      operation_dict["arguments"][-2]["type"], placeholders.PlaceholderImageSetting)
+    self.assertEqual(
+      operation_dict["arguments"][-1]["type"], placeholders.PlaceholderLayerSetting)

@@ -50,6 +50,7 @@ from export_layers.pygimplib import pgutils
 from . import builtin_operations
 from . import builtin_constraints
 from . import operations
+from . import placeholders
 
 
 class LayerExporter(object):
@@ -770,14 +771,46 @@ def add_operation_from_settings(operation, executor):
     
     function = _get_operation_func_for_pdb_procedure(function)
   
+  if "constraint" not in operation.tags:
+    function = _get_operation_func_with_replaced_placeholders(function)
+  
   if "constraint" in operation.tags:
     function = _get_constraint_func(function, subfilter=operation["subfilter"].value)
   
+  function = _execute_operation_only_if_enabled(function, operation["enabled"])
+  
   executor.add(
-    _execute_operation_only_if_enabled(function, operation["enabled"]),
-    operation["operation_groups"].value,
-    function_args,
-    function_kwargs)
+    function, operation["operation_groups"].value, function_args, function_kwargs)
+
+
+def _has_run_mode_param(pdb_procedure):
+  return pdb_procedure.params and pdb_procedure.params[0][1] == "run-mode"
+
+
+def _get_operation_func_for_pdb_procedure(pdb_procedure):
+  def _pdb_procedure_as_operation(image, layer, layer_exporter, *args, **kwargs):
+    pdb_procedure(*args, **kwargs)
+  
+  return _pdb_procedure_as_operation
+
+
+def _get_operation_func_with_replaced_placeholders(function):
+  def _operation(image, layer, layer_exporter, *args, **kwargs):
+    new_args, new_kwargs = placeholders.get_replaced_args_and_kwargs(
+      args, kwargs, image, layer, layer_exporter)
+    function(image, layer, layer_exporter, *new_args, **new_kwargs)
+  
+  return _operation
+
+
+def _execute_operation_only_if_enabled(operation, setting_enabled):
+  def _execute_operation(*operation_args, **operation_kwargs):
+    if setting_enabled.value:
+      return operation(*operation_args, **operation_kwargs)
+    else:
+      return False
+  
+  return _execute_operation
 
 
 def _get_constraint_func(rule_func, subfilter=None):
@@ -817,27 +850,6 @@ def _get_args_for_constraint_func(rule_func, args):
       args[:layer_exporter_arg_position] + args[layer_exporter_arg_position + 1:])
   
   return layer_exporter, rule_func_args
-
-
-def _get_operation_func_for_pdb_procedure(pdb_procedure):
-  def _pdb_procedure_as_operation(image, layer, layer_exporter, *args, **kwargs):
-    pdb_procedure(*args, **kwargs)
-  
-  return _pdb_procedure_as_operation
-
-
-def _has_run_mode_param(pdb_procedure):
-  return pdb_procedure.params and pdb_procedure.params[0][1] == "run-mode"
-
-
-def _execute_operation_only_if_enabled(operation, setting_enabled):
-  def _execute_operation(*operation_args, **operation_kwargs):
-    if setting_enabled.value:
-      return operation(*operation_args, **operation_kwargs)
-    else:
-      return False
-  
-  return _execute_operation
 
 
 #===============================================================================
