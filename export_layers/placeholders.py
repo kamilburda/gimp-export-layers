@@ -19,13 +19,16 @@
 
 """
 This module defines placeholder GIMP objects that are replaced with real objects
-during export. Specifically, the following placeholder objects are created:
+when executing GIMP PDB procedures during export.
 
-* `PLACEHOLDERS["current_image"]` - represents the image currently being
-  processed
+The following placeholder objects are defined:
 
-* `PLACEHOLDERS["current_layer"]` - represents the layer currently being
-  processed in the current image
+* `PLACEHOLDERS["current_image"]` - Represents the image currently being
+  processed.
+
+* `PLACEHOLDERS["current_layer"]` - Represents the layer currently being
+  processed in the current image. This placeholder is currently also used for
+  PDB procedures containing `gimp.Drawable` or `gimp.Item` parameters.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -75,7 +78,7 @@ def get_replaced_arg(arg, image, layer, layer_exporter):
   Arguments after `args` are mandatory arguments for operations and are used to
   determine the real object that replaces the placeholder.
   """
-  if arg in _PLACEHOLDERS:
+  if arg in _PLACEHOLDERS.keys():
     return _PLACEHOLDERS[arg].replace_args(image, layer, layer_exporter)
   else:
     return arg
@@ -150,8 +153,15 @@ class PlaceholderLayerSetting(PlaceholderSetting):
   _ALLOWED_PLACEHOLDERS = ["current_layer"]
 
 
+class PlaceholderItemSetting(PlaceholderSetting):
+  
+  _DEFAULT_DEFAULT_VALUE = "current_layer"
+  _ALLOWED_PLACEHOLDERS = ["current_layer"]
+
+
 PDB_TYPES_TO_PLACEHOLDER_SETTING_TYPES_MAP = {
   gimpenums.PDB_IMAGE: PlaceholderImageSetting,
+  gimpenums.PDB_ITEM: PlaceholderItemSetting,
   gimpenums.PDB_DRAWABLE: PlaceholderDrawableSetting,
   gimpenums.PDB_LAYER: PlaceholderLayerSetting,
 }
