@@ -218,6 +218,10 @@ class GimpUiImageComboBoxPresenter(GtkSettingPresenter):
     return self._element.get_active_image()
   
   def _set_value(self, value):
+    """
+    Set a `gimp.Image` instance to be selected in the combo box. Passing
+    `None` has no effect.
+    """
     if value is not None:
       self._element.set_active_image(value)
 
@@ -239,6 +243,10 @@ class GimpUiDrawableComboBoxPresenter(GtkSettingPresenter):
     return self._element.get_active_drawable()
   
   def _set_value(self, value):
+    """
+    Set a `gimp.Drawable` instance to be selected in the combo box. Passing
+    `None` has no effect.
+    """
     if value is not None:
       self._element.set_active_drawable(value)
 
@@ -260,6 +268,10 @@ class GimpUiLayerComboBoxPresenter(GtkSettingPresenter):
     return self._element.get_active_layer()
   
   def _set_value(self, value):
+    """
+    Set a `gimp.Layer` instance to be selected in the combo box. Passing
+    `None` has no effect.
+    """
     if value is not None:
       self._element.set_active_layer(value)
 
@@ -281,6 +293,10 @@ class GimpUiChannelComboBoxPresenter(GtkSettingPresenter):
     return self._element.get_active_channel()
   
   def _set_value(self, value):
+    """
+    Set a `gimp.Channel` instance to be selected in the combo box. Passing
+    `None` has no effect.
+    """
     if value is not None:
       self._element.set_active_channel(value)
 
@@ -303,6 +319,10 @@ class GimpUiVectorsComboBoxPresenter(GtkSettingPresenter):
     return self._element.get_active_vectors()
   
   def _set_value(self, value):
+    """
+    Set a `gimp.Vectors` instance to be selected in the combo box. Passing
+    `None` has no effect.
+    """
     if value is not None:
       self._element.set_active_vectors(value)
   
