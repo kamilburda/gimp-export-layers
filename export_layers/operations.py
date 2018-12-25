@@ -653,21 +653,18 @@ def walk(operations, setting_name="operation"):
     
     include_setting_func = matches_setting_name
   
-  def _walk_added_operations():
-    listed_operations = {
-      (setting.name if setting_name in _OPERATION_TYPES_AND_FUNCTIONS
-       else setting.parent.name): setting
-      for setting in operations["added"].walk(
-        include_setting_func=include_setting_func,
-        include_groups=True,
-        include_if_parent_skipped=True)}
-    
-    for operation_dict in operations["_added_data"].value:
-      operation_name = operation_dict["name"]
-      if operation_name in listed_operations:
-        yield listed_operations[operation_name]
+  listed_operations = {
+    (setting.name if setting_name in _OPERATION_TYPES_AND_FUNCTIONS
+     else setting.parent.name): setting
+    for setting in operations["added"].walk(
+      include_setting_func=include_setting_func,
+      include_groups=True,
+      include_if_parent_skipped=True)}
   
-  return _walk_added_operations()
+  for operation_dict in operations["_added_data"].value:
+    operation_name = operation_dict["name"]
+    if operation_name in listed_operations:
+      yield listed_operations[operation_name]
 
 
 class UnsupportedPdbProcedureError(Exception):
