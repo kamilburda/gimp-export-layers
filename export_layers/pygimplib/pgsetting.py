@@ -1180,7 +1180,7 @@ class DrawableSetting(Setting):
     self.error_messages["invalid_value"] = _("Invalid drawable.")
   
   def _validate(self, drawable):
-    if not pdb.gimp_item_is_valid(drawable):
+    if not pdb.gimp_item_is_drawable(drawable):
       raise SettingValueError(
         pgsettingutils.value_to_str_prefix(drawable)
         + self.error_messages["invalid_value"])
