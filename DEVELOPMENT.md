@@ -222,6 +222,11 @@ No other classes may directly modify attributes defined in mixins.
 Use `@classmethod` for methods using class variables only.
 Use `@staticmethod` for methods not using instance or class variables and logically belonging to the class.
 
+Do not use `keys()` when iterating over dictionary keys.
+Exceptions:
+* improving clarity (e.g. when passing keys as a parameter to a function),
+* iterating over objects of unhashable types (e.g. `gimp.Layer`).
+
 
 ### Python 3 Compatibility
 
