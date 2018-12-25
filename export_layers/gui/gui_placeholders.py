@@ -46,12 +46,12 @@ class GimpObjectPlaceholdersComboBoxPresenter(pgsettingpresenters_gtk.GtkSetting
     
     for index, placeholder in enumerate(setting.get_allowed_placeholders()):
       placeholder_names_and_values.extend(
-        (placeholder.name.encode(pgconstants.GTK_CHARACTER_ENCODING), index))
+        (placeholder.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING), index))
     
     return gimpui.IntComboBox(tuple(placeholder_names_and_values))
   
   def _get_value(self):
-    return self._setting.get_allowed_placeholders()[self._element.get_active()]
+    return self._setting.get_allowed_placeholder_names()[self._element.get_active()]
   
   def _set_value(self, value):
-    self._element.set_active(self._setting.get_allowed_placeholders().index(value))
+    self._element.set_active(self._setting.get_allowed_placeholder_names().index(value))

@@ -41,13 +41,13 @@ from .gui import gui_placeholders
 
 class _GimpObjectPlaceholder(object):
   
-  def __init__(self, name, replacement_func):
-    self._name = name
+  def __init__(self, display_name, replacement_func):
+    self._display_name = display_name
     self._replacement_func = replacement_func
   
   @property
-  def name(self):
-    return self._name
+  def display_name(self):
+    return self._display_name
   
   def replace_args(self, *args):
     return self._replacement_func(*args)
@@ -61,7 +61,7 @@ def _get_current_layer(image, layer, layer_exporter):
   return layer
 
 
-PLACEHOLDERS = {
+_PLACEHOLDERS = {
   "current_image": _GimpObjectPlaceholder(_("Current Image"), _get_current_image),
   "current_layer": _GimpObjectPlaceholder(_("Current Layer"), _get_current_layer),
 }
@@ -75,8 +75,8 @@ def get_replaced_arg(arg, image, layer, layer_exporter):
   Arguments after `args` are mandatory arguments for operations and are used to
   determine the real object that replaces the placeholder.
   """
-  if arg in PLACEHOLDERS.values():
-    return arg.replace_args(image, layer, layer_exporter)
+  if arg in _PLACEHOLDERS:
+    return _PLACEHOLDERS[arg].replace_args(image, layer, layer_exporter)
   else:
     return arg
 
@@ -108,11 +108,20 @@ class PlaceholderSetting(pgsetting.Setting):
   _ALLOWED_PLACEHOLDERS = []
   
   @classmethod
+  def get_allowed_placeholder_names(cls):
+    """
+    Return a list of allowed names of placeholders for this setting class.
+    """
+    return list(cls._ALLOWED_PLACEHOLDERS)
+  
+  @classmethod
   def get_allowed_placeholders(cls):
     """
     Return a list of allowed placeholder objects for this setting class.
     """
-    return cls._ALLOWED_PLACEHOLDERS
+    return [
+      placeholder for placeholder_name, placeholder in _PLACEHOLDERS.items()
+      if placeholder_name in cls._ALLOWED_PLACEHOLDERS]
   
   def _init_error_messages(self):
     self.error_messages["invalid_value"] = _("Invalid placeholder.")
@@ -125,20 +134,20 @@ class PlaceholderSetting(pgsetting.Setting):
 
 class PlaceholderImageSetting(PlaceholderSetting):
   
-  _DEFAULT_DEFAULT_VALUE = PLACEHOLDERS["current_image"]
-  _ALLOWED_PLACEHOLDERS = [PLACEHOLDERS["current_image"]]
+  _DEFAULT_DEFAULT_VALUE = "current_image"
+  _ALLOWED_PLACEHOLDERS = ["current_image"]
 
 
 class PlaceholderDrawableSetting(PlaceholderSetting):
   
-  _DEFAULT_DEFAULT_VALUE = PLACEHOLDERS["current_layer"]
-  _ALLOWED_PLACEHOLDERS = [PLACEHOLDERS["current_layer"]]
+  _DEFAULT_DEFAULT_VALUE = "current_layer"
+  _ALLOWED_PLACEHOLDERS = ["current_layer"]
 
 
 class PlaceholderLayerSetting(PlaceholderSetting):
   
-  _DEFAULT_DEFAULT_VALUE = PLACEHOLDERS["current_layer"]
-  _ALLOWED_PLACEHOLDERS = [PLACEHOLDERS["current_layer"]]
+  _DEFAULT_DEFAULT_VALUE = "current_layer"
+  _ALLOWED_PLACEHOLDERS = ["current_layer"]
 
 
 PDB_TYPES_TO_PLACEHOLDER_SETTING_TYPES_MAP = {
