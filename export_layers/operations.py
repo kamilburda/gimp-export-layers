@@ -113,9 +113,14 @@ def create(name, initial_operations=None):
   
   The resulting `SettingGroup` instance contains the following subgroups:
   * `"added"` - contains operations added via `add`.
-  * `"added_data"` - operations stored as dictionaries, used when loading or
-    saving operations persistently. `"added_data"` should only be used and
-    modified internally.
+  * `"_added_data"` - operations stored as dictionaries, used when loading or
+    saving operations persistently. As indicated by the leading underscore, this
+    subgroup is only for internal use and should not be modified outside
+    `operations`.
+  * `"_added_data_values"` - values of operations stored as dictionaries, used
+    when loading or saving operations persistently. As indicated by the leading
+    underscore, this subgroup is only for internal use and should not be
+    modified outside `operations`.
   
   Each dictionary in `initial_operations` can contain the following fields:
   * `"name"` - name of the operation.
@@ -162,14 +167,14 @@ def create(name, initial_operations=None):
     added_operations,
     {
       "type": pgsetting.SettingTypes.generic,
-      "name": "added_data",
+      "name": "_added_data",
       "default_value": _get_initial_added_data(initial_operations),
       "setting_sources": [
         pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
     },
     {
       "type": pgsetting.SettingTypes.generic,
-      "name": "added_data_values",
+      "name": "_added_data_values",
       "default_value": {},
       "setting_sources": [
         pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
@@ -182,22 +187,22 @@ def create(name, initial_operations=None):
     "after-clear-operations",
     _create_operations_from_added_data)
   
-  operations["added_data"].connect_event(
+  operations["_added_data"].connect_event(
     "before-load",
     _clear_operations_before_load_without_adding_initial_operations,
     operations)
   
-  operations["added_data"].connect_event(
+  operations["_added_data"].connect_event(
     "after-load",
     lambda added_data_setting: (
       _create_operations_from_added_data(added_data_setting.parent)))
   
-  operations["added_data_values"].connect_event(
+  operations["_added_data_values"].connect_event(
     "before-save",
     _get_values_from_operations,
     operations["added"])
   
-  operations["added_data_values"].connect_event(
+  operations["_added_data_values"].connect_event(
     "after-load",
     _set_values_for_operations,
     operations["added"])
@@ -218,7 +223,7 @@ def _clear_operations_before_load_without_adding_initial_operations(
 
 
 def _create_operations_from_added_data(operations):
-  for operation_dict in operations["added_data"].value:
+  for operation_dict in operations["_added_data"].value:
     operations.invoke_event("before-add-operation", operation_dict)
     
     operation = _create_operation_by_type(**dict(operation_dict))
@@ -397,7 +402,7 @@ def add(operations, operation_dict_or_function):
     _hide_gui_for_run_mode_and_array_length_arguments(operation)
   
   operations["added"].add([operation])
-  operations["added_data"].value.append(dict(operation_dict))
+  operations["_added_data"].value.append(dict(operation_dict))
   
   operations.invoke_event("after-add-operation", operation, dict(operation_dict))
   
@@ -568,12 +573,12 @@ def reorder(operations, operation_name, new_position):
   
   operations.invoke_event("before-reorder-operation", operation, current_position)
   
-  operation_dict = operations["added_data"].value.pop(current_position)
+  operation_dict = operations["_added_data"].value.pop(current_position)
   
   if new_position < 0:
-    new_position = max(len(operations["added_data"].value) + new_position + 1, 0)
+    new_position = max(len(operations["_added_data"].value) + new_position + 1, 0)
   
-  operations["added_data"].value.insert(new_position, operation_dict)
+  operations["_added_data"].value.insert(new_position, operation_dict)
   
   operations.invoke_event(
     "after-reorder-operation", operation, current_position, new_position)
@@ -597,14 +602,14 @@ def remove(operations, operation_name):
   operations.invoke_event("before-remove-operation", operation)
   
   operations["added"].remove([operation_name])
-  del operations["added_data"].value[operation_index]
+  del operations["_added_data"].value[operation_index]
   
   operations.invoke_event("after-remove-operation", operation_name)
 
 
 def _find_index_in_added_data(operations, operation_name):
   return next(
-    (index for index, dict_ in enumerate(operations["added_data"].value)
+    (index for index, dict_ in enumerate(operations["_added_data"].value)
      if dict_["name"] == operation_name),
     None)
 
@@ -622,8 +627,8 @@ def clear(operations):
 
 def _clear(operations):
   operations["added"].remove([operation.name for operation in walk(operations)])
-  operations["added_data"].reset()
-  operations["added_data_values"].reset()
+  operations["_added_data"].reset()
+  operations["_added_data_values"].reset()
 
 
 def walk(operations, setting_name="operation"):
@@ -657,7 +662,7 @@ def walk(operations, setting_name="operation"):
         include_groups=True,
         include_if_parent_skipped=True)}
     
-    for operation_dict in operations["added_data"].value:
+    for operation_dict in operations["_added_data"].value:
       operation_name = operation_dict["name"]
       if operation_name in listed_operations:
         yield listed_operations[operation_name]

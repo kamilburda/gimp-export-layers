@@ -106,7 +106,7 @@ def get_operation_data(operations_list):
 
 def _find_in_added_data(operations, operation_name):
   return next(
-    (dict_ for dict_ in operations["added_data"].value
+    (dict_ for dict_ in operations["_added_data"].value
      if dict_["name"] == operation_name),
     None)
 
@@ -122,7 +122,7 @@ class TestCreateOperations(unittest.TestCase):
     
     self.assertIn("added", settings)
     self.assertEqual(len(settings["added"]), 0)
-    self.assertFalse(settings["added_data"].value)
+    self.assertFalse(settings["_added_data"].value)
   
   @parameterized.parameterized.expand([
     ("operation_with_default_group",
@@ -240,7 +240,7 @@ class TestManageOperations(unittest.TestCase):
       "Autocrop (2)")
     
     self.assertEqual(len(self.settings["added"]), 2)
-    self.assertEqual(len(self.settings["added_data"].value), 2)
+    self.assertEqual(len(self.settings["_added_data"].value), 2)
   
   def test_add_invokes_before_add_operation_event(self):
     invoked_event_args = []
@@ -354,7 +354,7 @@ class TestManageOperations(unittest.TestCase):
     operations.reorder(self.settings, operation_name, new_position)
     
     self.assertEqual(
-      [operation_dict["name"] for operation_dict in self.settings["added_data"].value],
+      [operation_dict["name"] for operation_dict in self.settings["_added_data"].value],
       expected_ordered_operation_names)
   
   def test_reorder_nonexisting_operation_name(self):
@@ -409,7 +409,7 @@ class TestManageOperations(unittest.TestCase):
     operations.clear(self.settings)
     
     self.assertFalse(self.settings["added"])
-    self.assertFalse(self.settings["added_data"].value)
+    self.assertFalse(self.settings["_added_data"].value)
     self.assertTrue(self.test_operations)
   
   def test_clear_resets_to_initial_operations(self):
@@ -422,7 +422,7 @@ class TestManageOperations(unittest.TestCase):
     self.assertEqual(len(settings["added"]), 1)
     self.assertNotIn("autocrop_background", settings)
     
-    self.assertEqual(len(settings["added_data"].value), 1)
+    self.assertEqual(len(settings["_added_data"].value), 1)
     self.assertDictEqual(
       _find_in_added_data(settings, "autocrop"),
       self.autocrop_operation_dict)
@@ -540,12 +540,12 @@ class TestLoadSaveOperations(unittest.TestCase):
     
     self.assertEqual(mock_load.call_count, 1)
     self.assertEqual(len(mock_load.call_args[0][0]), 2)
-    self.assertIn(self.settings["added_data"], mock_load.call_args[0][0])
-    self.assertIn(self.settings["added_data_values"], mock_load.call_args[0][0])
+    self.assertIn(self.settings["_added_data"], mock_load.call_args[0][0])
+    self.assertIn(self.settings["_added_data_values"], mock_load.call_args[0][0])
     self.assertEqual(mock_save.call_count, 1)
     self.assertEqual(len(mock_save.call_args[0][0]), 2)
-    self.assertIn(self.settings["added_data"], mock_save.call_args[0][0])
-    self.assertIn(self.settings["added_data_values"], mock_save.call_args[0][0])
+    self.assertIn(self.settings["_added_data"], mock_save.call_args[0][0])
+    self.assertIn(self.settings["_added_data_values"], mock_save.call_args[0][0])
   
   def test_added_data_values_are_cleared_before_save(
         self,
@@ -560,7 +560,7 @@ class TestLoadSaveOperations(unittest.TestCase):
     
     self.settings.save()
     
-    for key in self.settings["added_data_values"].value:
+    for key in self.settings["_added_data_values"].value:
       self.assertNotIn("autocrop/", key)
   
   @parameterized.parameterized.expand([
@@ -579,21 +579,21 @@ class TestLoadSaveOperations(unittest.TestCase):
     for operation_name in operation_names_to_add:
       operations.add(self.settings, self.test_operations[operation_name])
     
-    added_data_before_save = self.settings["added_data"].value
+    added_data_before_save = self.settings["_added_data"].value
     
     self.settings.save()
     self.settings.load()
     
-    self.assertEqual(len(self.settings["added_data"].value), len(operation_names_to_add))
+    self.assertEqual(len(self.settings["_added_data"].value), len(operation_names_to_add))
     
     for dict_before_save, dict_after_save in zip(
-          added_data_before_save, self.settings["added_data"].value):
+          added_data_before_save, self.settings["_added_data"].value):
       self.assertDictEqual(dict_before_save, dict_after_save)
     
     self.assertEqual(len(self.settings["added"]), len(operation_names_to_add))
     
     for added_setting, dict_after_save in zip(
-          self.settings["added"], self.settings["added_data"].value):
+          self.settings["added"], self.settings["_added_data"].value):
       self.assertEqual(added_setting.name, dict_after_save["name"])
   
   def test_values_are_preserved_after_load(
@@ -634,11 +634,11 @@ class TestLoadSaveOperations(unittest.TestCase):
     
     self.settings.save()
     
-    self.assertTrue(self.settings["added_data_values"].value)
+    self.assertTrue(self.settings["_added_data_values"].value)
     
     operations.clear(self.settings)
     
-    self.assertFalse(self.settings["added_data_values"].value)
+    self.assertFalse(self.settings["_added_data_values"].value)
   
   def test_load_if_added_data_not_found_sets_initial_operations(
         self, mock_persistent_source, mock_session_source):
