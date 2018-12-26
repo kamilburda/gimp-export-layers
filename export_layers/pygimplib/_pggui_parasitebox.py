@@ -43,6 +43,10 @@ class ParasiteBox(gtk.HBox):
   """
   This is a subclass of `gtk.VBox` to edit `gimp.Parasite` instances
   interactively.
+  
+  Signals:
+  
+  * `"parasite-changed"` - The parasite was modified by the user.
   """
   
   __gsignals__ = {b"parasite-changed": (gobject.SIGNAL_RUN_FIRST, None, ())}

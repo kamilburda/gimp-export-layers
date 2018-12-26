@@ -249,6 +249,13 @@ class ArrayBox(ItemBox):
   """
   This class can be used to edit `pgsetting.ArraySetting` instances
   interactively.
+  
+  Signals:
+  
+  * `"array-box-changed"` - An item was added, reordered or removed by the user.
+  * `"array-box-item-changed"` - The contents of an item was modified by the
+    user. Currently, this signal is not invoked in this widget and can only be
+    invoked explicitly by calling `ArrayBox.emit("array-box-item-changed")`.
   """
   
   __gsignals__ = {

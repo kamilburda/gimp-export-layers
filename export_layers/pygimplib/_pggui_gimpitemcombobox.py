@@ -43,6 +43,12 @@ class GimpItemComboBox(gtk.VBox):
   """
   This class defines a GTK widget for `gimp.Item` objects acting as an
   abstraction over GIMP objects - layers, channels and vectors.
+  
+  Signals:
+  
+  * `"changed"` - The user changed the selection either in the combo box
+    containing available item types or in the combo box for the selected item
+    type.
   """
   
   __gsignals__ = {b"changed": (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT,))}
