@@ -133,10 +133,10 @@ class GtkCheckButtonLabelPresenter(GtkSettingPresenter):
   """
   
   def _get_value(self):
-    return self._element.get_label()
+    return self._element.get_label().decode(pgconstants.GTK_CHARACTER_ENCODING)
   
   def _set_value(self, value):
-    self._element.set_label(value)
+    self._element.set_label(value.encode(pgconstants.GTK_CHARACTER_ENCODING))
 
 
 class GtkCheckMenuItemPresenter(GtkSettingPresenter):
