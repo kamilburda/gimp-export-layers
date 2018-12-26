@@ -526,6 +526,18 @@ def _return_true():
 
 
 def _uniquify_name_and_display_name(operations, operation_dict):
+  operation_dict["name"] = _uniquify_operation_name(
+    operations, operation_dict["name"])
+  
+  operation_dict["display_name"] = _uniquify_operation_display_name(
+    operations, operation_dict["display_name"])
+
+
+def _uniquify_operation_name(operations, name):
+  """
+  Return `name` modified to not match the name of any existing operation in
+  `operations`.
+  """
   
   def _generate_unique_operation_name():
     i = 2
@@ -533,21 +545,28 @@ def _uniquify_name_and_display_name(operations, operation_dict):
       yield "_{}".format(i)
       i += 1
   
+  return (
+    pgpath.uniquify_string(
+      name,
+      [operation.name for operation in walk(operations)],
+      uniquifier_generator=_generate_unique_operation_name()))
+
+
+def _uniquify_operation_display_name(operations, display_name):
+  """
+  Return `display_name` modified to not match the display name of any existing
+  operation in `operations`.
+  """
+  
   def _generate_unique_display_name():
     i = 2
     while True:
       yield " ({})".format(i)
       i += 1
   
-  operation_dict["name"] = (
+  return (
     pgpath.uniquify_string(
-      operation_dict["name"],
-      [operation.name for operation in walk(operations)],
-      uniquifier_generator=_generate_unique_operation_name()))
-  
-  operation_dict["display_name"] = (
-    pgpath.uniquify_string(
-      operation_dict["display_name"],
+      display_name,
       [operation["display_name"].value for operation in walk(operations)],
       uniquifier_generator=_generate_unique_display_name()))
 
