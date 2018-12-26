@@ -124,7 +124,7 @@ def test_settings_and_gui(setting_items):
   scrolled_window.add_with_viewport(table)
   scrolled_window.get_child().set_shadow_type(gtk.SHADOW_NONE)
   
-  dialog.vbox.pack_start(scrolled_window, fill=True, expand=True)
+  dialog.vbox.pack_start(scrolled_window, expand=True, fill=True)
   dialog.set_border_width(5)
   dialog.set_default_size(850, 800)
   

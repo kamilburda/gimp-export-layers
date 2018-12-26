@@ -65,7 +65,7 @@ class ItemBox(gtk.ScrolledWindow):
     
     self._vbox = gtk.VBox(homogeneous=False)
     self._vbox.set_spacing(self.VBOX_SPACING)
-    self._vbox.pack_start(self._vbox_items, fill=False, expand=False)
+    self._vbox.pack_start(self._vbox_items, expand=False, fill=False)
     
     self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
     self.add_with_viewport(self._vbox)
@@ -549,7 +549,7 @@ class _ArrayBoxItem(ItemBoxItem):
     self._label = gtk.Label()
     self._label.show()
     
-    self._hbox.pack_start(self._label, fill=False, expand=False)
+    self._hbox.pack_start(self._label, expand=False, fill=False)
     self._hbox.reorder_child(self._label, 0)
   
   @property

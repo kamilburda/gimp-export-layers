@@ -367,12 +367,12 @@ class _OperationEditDialog(gimpui.Dialog):
     self._vbox = gtk.VBox()
     self._vbox.set_border_width(self._DIALOG_BORDER_WIDTH)
     self._vbox.set_spacing(self._DIALOG_VBOX_SPACING)
-    self._vbox.pack_start(self._label_procedure_name, fill=False, expand=False)
+    self._vbox.pack_start(self._label_procedure_name, expand=False, fill=False)
     self._vbox.pack_start(
-      self._label_procedure_short_description, fill=False, expand=False)
-    self._vbox.pack_start(self._table_operation_arguments, fill=True, expand=True)
+      self._label_procedure_short_description, expand=False, fill=False)
+    self._vbox.pack_start(self._table_operation_arguments, expand=True, fill=True)
     
-    self.vbox.pack_start(self._vbox, fill=False, expand=False)
+    self.vbox.pack_start(self._vbox, expand=False, fill=False)
     
     self._set_arguments(procedure, operation)
     

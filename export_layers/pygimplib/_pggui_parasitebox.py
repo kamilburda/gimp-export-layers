@@ -89,8 +89,8 @@ class ParasiteBox(gtk.HBox):
     
     self._vbox_name = gtk.VBox()
     self._vbox_name.set_spacing(self._VBOX_SPACING)
-    self._vbox_name.pack_start(self._vbox_name_label, fill=False, expand=False)
-    self._vbox_name.pack_start(self._parasite_name_entry, fill=False, expand=False)
+    self._vbox_name.pack_start(self._vbox_name_label, expand=False, fill=False)
+    self._vbox_name.pack_start(self._parasite_name_entry, expand=False, fill=False)
     
     self._vbox_flags_label = gtk.Label(
       _("Flags").encode(pgconstants.GTK_CHARACTER_ENCODING))
@@ -98,9 +98,9 @@ class ParasiteBox(gtk.HBox):
     
     self._vbox_flags = gtk.VBox()
     self._vbox_flags.set_spacing(self._VBOX_SPACING)
-    self._vbox_flags.pack_start(self._vbox_flags_label, fill=False, expand=False)
+    self._vbox_flags.pack_start(self._vbox_flags_label, expand=False, fill=False)
     self._vbox_flags.pack_start(
-      self._parasite_flags_spin_button, fill=False, expand=False)
+      self._parasite_flags_spin_button, expand=False, fill=False)
     
     self._vbox_data_label = gtk.Label(
       _("Data").encode(pgconstants.GTK_CHARACTER_ENCODING))
@@ -108,13 +108,13 @@ class ParasiteBox(gtk.HBox):
     
     self._vbox_data = gtk.VBox()
     self._vbox_data.set_spacing(self._VBOX_SPACING)
-    self._vbox_data.pack_start(self._vbox_data_label, fill=False, expand=False)
-    self._vbox_data.pack_start(self._parasite_data_entry, fill=False, expand=False)
+    self._vbox_data.pack_start(self._vbox_data_label, expand=False, fill=False)
+    self._vbox_data.pack_start(self._parasite_data_entry, expand=False, fill=False)
     
     self.set_spacing(self._HBOX_SPACING)
-    self.pack_start(self._vbox_name, fill=False, expand=False)
-    self.pack_start(self._vbox_flags, fill=False, expand=False)
-    self.pack_start(self._vbox_data, fill=False, expand=False)
+    self.pack_start(self._vbox_name, expand=False, fill=False)
+    self.pack_start(self._vbox_flags, expand=False, fill=False)
+    self.pack_start(self._vbox_data, expand=False, fill=False)
     
     self._set_values(parasite)
     self._connect_changed_events()
