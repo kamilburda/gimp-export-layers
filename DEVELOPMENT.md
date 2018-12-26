@@ -267,7 +267,7 @@ The conventions are based on the following guidelines:
 * [Git commit message](https://github.com/joelparkerhenderson/git_commit_message)
 
 Some conventions are automatically enforced by the git hook [`commit-msg`](#Git-Hooks).
-These conventions are marked by a trailing `*`.
+These conventions are marked by a trailing "*".
 
 
 ### General
