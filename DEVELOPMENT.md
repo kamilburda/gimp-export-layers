@@ -11,7 +11,8 @@ Developing Export Layers
 Glossary
 --------
 
-Element = module, class, function or variable
+* Element = module, class, function or variable
+* PDB = GIMP procedural database
 
 
 Development Setup <a name="Development-Setup"></a>
@@ -20,18 +21,18 @@ Development Setup <a name="Development-Setup"></a>
 This section explains how to set up development environment for Export Layers.
 
 A Linux distribution is recommended as the environment contains several bash scripts.
-For Windows, see [below](#Development-Setup-on-Windows) for options.
+For Windows, see [Development Setup on Windows](#Development-Setup-on-Windows) for options.
 
-The easiest way is to download and execute a [bash script](utils/init_repo.sh) that automatically installs any required dependencies and sets up the environment.
+The easiest way is to download and execute the [bash script](utils/init_repo.sh) that automatically installs any required dependencies and sets up the environment.
 
-If you cannot run the script, below is an explanation describing each step.
+If you cannot run the script, perform manual setup as per the instructions below.
 
 
 ### Setting up Repositories
 
 Clone the master branch of the repository to a directory named e.g. `plug-ins - Export Layers` inside the directory for local GIMP plug-ins - `.gimp-2.8` for GIMP 2.8, `.config/GIMP/[version]` for later GIMP versions such as 2.10.
 
-To make GIMP recognize the new directory as a directory containing GIMP plug-ins, open up GIMP, go to "Edit → Preferences → Folders → Plug-ins" and add the new directory to the list.
+To make GIMP recognize the new directory as a directory containing GIMP plug-ins, open up GIMP, go to `Edit → Preferences → Folders → Plug-ins` and add the new directory to the list.
 GIMP needs to be restarted for changes to take effect.
 
 Clone the `gh-pages` branch (acting as the [GitHub page for Export Layers](https://khalim19.github.io/gimp-plugin-export-layers/)) to `docs/gh-pages`.
@@ -104,7 +105,7 @@ Maximum line length is:
 
 ### Spacing
 
-Use separators (commented lines containing "=" characters) to group blocks of related functions or classes in a module.
+Use separators (commented lines containing `=` characters) to group blocks of related functions or classes in a module.
 
 Use two empty lines between a separator and a function or class definition.
 Use one empty line between a separator and other statements.
@@ -184,11 +185,12 @@ Exceptions to this rule include:
 * initializing a package or a library,
 * standalone scripts such as test runners, git hooks, etc.
 
-Do not execute functions from the GIMP API or PDB on the module or class level as they are not fully initialized yet and cause the application to crash.
+Do not execute functions from the GIMP API or PDB on the module or class level.
+The modules are executed during GIMP startup when the GIMP API is not fully initialized yet, resulting in error messages and the plug-in procedures failing to register to the GIMP PDB.
 
-Do not call the `_` function to mark module- or class-level strings as translatable.
+Do not wrap module- or class-level translatable strings with the `_` function.
 You need to defer the translation until the strings are used in the local scope.
-Define `N_` as a function to mark the strings as translatable and then use the `_` function in the local scope to perform the actual translation.
+Instead, define `N_` as a function to mark the module- and class-level strings as translatable and then use the `_` function in the local scope to perform the actual translation.
 
 
 #### Execution in `__main__`
@@ -265,7 +267,7 @@ The conventions are based on the following guidelines:
 * [Git commit message](https://github.com/joelparkerhenderson/git_commit_message)
 
 Some conventions are automatically enforced by the git hook [`commit-msg`](#Git-Hooks).
-These conventions are marked by a trailing "*".
+These conventions are marked by a trailing `*`.
 
 
 ### General
@@ -302,7 +304,7 @@ Use one of the following types of scope (ordered from the most preferred):
 * module name
 * filename without extension
 
-To indicate a more detailed scope, use ".", e.g. `gui.settings: ...`.
+To indicate a more detailed scope, use `.`, e.g. `gui.settings: ...`.
 
 
 #### Verbs
