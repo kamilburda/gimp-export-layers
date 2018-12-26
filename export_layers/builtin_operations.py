@@ -45,10 +45,6 @@ def inherit_transparency_from_layer_groups(image, layer, layer_exporter):
   layer.opacity = new_layer_opacity * 100.0
 
 
-def autocrop_layer(image, layer, layer_exporter):
-  pdb.plug_in_autocrop_layer(image, layer)
-
-
 def autocrop_tagged_layer(image, layer, layer_exporter, tag):
   tagged_layer = layer_exporter.inserted_tagged_layers[tag]
   if tagged_layer is not None:
@@ -166,11 +162,6 @@ _BUILTIN_OPERATIONS_LIST = [
     "name": "ignore_layer_modes",
     "function": ignore_layer_modes,
     "display_name": _("Ignore layer modes"),
-  },
-  {
-    "name": "autocrop",
-    "function": autocrop_layer,
-    "display_name": _("Autocrop"),
   },
   {
     "name": "autocrop_background",

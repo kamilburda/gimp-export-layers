@@ -112,26 +112,9 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     self.compare(
       operation_names=["ignore_layer_modes"])
   
-  def test_autocrop(self):
-    self.compare(
-      operation_names=["autocrop"],
-      different_results_and_expected_layers=[
-        ("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop"),
-        ("main-background", "main-background_autocrop")])
-  
   def test_use_image_size(self):
     self.compare(
       {"use_image_size": True},
-      expected_results_dirpath=os.path.join(
-        self.expected_results_root_dirpath, "use_image_size"))
-  
-  def test_use_image_size_autocrop(self):
-    self.compare(
-      {"use_image_size": True},
-      operation_names=["autocrop"],
-      different_results_and_expected_layers=[
-        ("left-frame-with-extra-borders", "left-frame-with-extra-borders_autocrop"),
-        ("main-background", "main-background_autocrop")],
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "use_image_size"))
   
@@ -140,24 +123,6 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       operation_names=["insert_background_layers"],
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "background"))
-  
-  def test_background_autocrop(self):
-    self.compare(
-      operation_names=["insert_background_layers", "autocrop"],
-      different_results_and_expected_layers=[
-        ("main-background", "main-background_autocrop"),
-        ("overlay", "overlay_background"),
-        ("bottom-frame-semi-transparent",
-         "bottom-frame-semi-transparent_background_autocrop"),
-        ("left-frame-with-extra-borders",
-         "left-frame-with-extra-borders_autocrop")])
-  
-  def test_background_autocrop_use_image_size(self):
-    self.compare(
-      {"use_image_size": True},
-      operation_names=["insert_background_layers", "autocrop"],
-      expected_results_dirpath=os.path.join(
-        self.expected_results_root_dirpath, "background", "autocrop-use_image_size"))
   
   def test_background_autocrop_background(self):
     self.compare(
