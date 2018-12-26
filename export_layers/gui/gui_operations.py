@@ -260,7 +260,9 @@ class OperationBox(pggui.ItemBox):
       self.remove_item(item)
   
   def _on_item_edit_button_clicked(self, edit_button, item):
-    if item.operation.get_value("is_pdb_procedure", False):
+    if item.operation.get_value("is_pdb_procedure", False) and not item.is_being_edited:
+      item.is_being_edited = True
+      
       procedure = pdb[
         item.operation["function"].value.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
       
@@ -277,23 +279,27 @@ class OperationBox(pggui.ItemBox):
       operation_edit_dialog.connect(
         "response",
         self._on_operation_edit_dialog_for_existing_operation_response,
-        item.operation,
+        item,
         operation_values_before_dialog)
       
       operation_edit_dialog.show_all()
   
   def _on_operation_edit_dialog_for_existing_operation_response(
-        self, dialog, response_id, operation, operation_values_before_dialog):
+        self, dialog, response_id, item, operation_values_before_dialog):
     dialog.destroy()
     
     if response_id != gtk.RESPONSE_OK:
-      operation.set_values(operation_values_before_dialog)
+      item.operation.set_values(operation_values_before_dialog)
+    
+    item.is_being_edited = False
 
 
 class _OperationBoxItem(pggui.ItemBoxItem):
   
   def __init__(self, operation, item_widget):
     super().__init__(item_widget)
+    
+    self.is_being_edited = False
     
     self._operation = operation
     
