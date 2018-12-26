@@ -47,7 +47,7 @@ from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgprogress
 from export_layers.pygimplib import pgutils
 
-from . import builtin_operations
+from . import builtin_procedures
 from . import builtin_constraints
 from . import operations
 from . import placeholders
@@ -96,7 +96,7 @@ class LayerExporter(object):
     instance being currently exported.
   
   * `operation_executor` - `pgoperations.OperationExecutor` instance to manage
-    operations applied on layers. This property is not None only during the
+    operations applied on layers. This property is not `None` only during the
     `export()` method and can be used to modify the execution of operations
     while processing layers.
   """
@@ -271,15 +271,15 @@ class LayerExporter(object):
   def stop(self):
     self._should_stop = True
   
-  def add_operation(self, *args, **kwargs):
+  def add_procedure(self, *args, **kwargs):
     """
-    Add an operation to be executed during `export()`. The signature is the same
+    Add a procedure to be executed during `export()`. The signature is the same
     as for the `pgoperations.OperationExecutor.add` method.
     
-    Operations added by this method are placed before operations added by
+    Procedures added by this method are placed before procedures added by
     `operations.add`.
     
-    Unlike `operations.add`, operations added by this method do not act as
+    Unlike `operations.add`, procedures added by this method do not act as
     settings, i.e. they are merely functions without GUI, are not saved
     persistently and are always enabled.
     """
@@ -292,7 +292,7 @@ class LayerExporter(object):
     signature is the same as for the `pgoperations.OperationExecutor.add`
     method.
     
-    For more information, see `add_operation.`
+    For more information, see `add_procedure.`
     """
     return self._initial_operation_executor.add(
       _get_constraint_func(func), *args, **kwargs)
@@ -361,19 +361,19 @@ class LayerExporter(object):
   
   def _add_operations(self):
     self._operation_executor.add(
-      builtin_operations.set_active_layer, [operations.DEFAULT_OPERATIONS_GROUP])
+      builtin_procedures.set_active_layer, [operations.DEFAULT_PROCEDURES_GROUP])
     
     self._operation_executor.add(
-      builtin_operations.set_active_layer_after_operation,
-      [operations.DEFAULT_OPERATIONS_GROUP],
+      builtin_procedures.set_active_layer_after_operation,
+      [operations.DEFAULT_PROCEDURES_GROUP],
       foreach=True)
     
     self._operation_executor.add(
       self._initial_operation_executor,
       self._initial_operation_executor.list_groups(include_empty_groups=True))
     
-    for operation in operations.walk(self.export_settings["operations"]):
-      add_operation_from_settings(operation, self._operation_executor)
+    for procedure in operations.walk(self.export_settings["procedures"]):
+      add_operation_from_settings(procedure, self._operation_executor)
     
     for constraint in operations.walk(self.export_settings["constraints"]):
       add_operation_from_settings(constraint, self._operation_executor)
@@ -541,12 +541,12 @@ class LayerExporter(object):
     pdb.gimp_context_pop()
   
   def _process_layer(self, layer_elem, image, layer):
-    layer_copy = builtin_operations.copy_and_insert_layer(image, layer, None, 0)
+    layer_copy = builtin_procedures.copy_and_insert_layer(image, layer, None, 0)
     self._operation_executor.execute(
       ["after_insert_layer"], [image, layer_copy, self], additional_args_position=0)
     
     self._operation_executor.execute(
-      [operations.DEFAULT_OPERATIONS_GROUP],
+      [operations.DEFAULT_PROCEDURES_GROUP],
       [image, layer_copy, self],
       additional_args_position=0)
     
@@ -605,7 +605,7 @@ class LayerExporter(object):
   
   def _set_file_extension(self, layer_elem):
     if self.export_settings.get_value(
-         "operations/added/use_file_extensions_in_layer_names/enabled", False):
+         "procedures/added/use_file_extensions_in_layer_names/enabled", False):
       orig_file_extension = layer_elem.get_file_extension_from_orig_name()
       if (orig_file_extension
           and self._file_extension_properties[orig_file_extension].is_valid):

@@ -166,7 +166,7 @@ def create_settings():
     },
   ])
   
-  settings["main"].add([operations.create(name="operations")])
+  settings["main"].add([operations.create(name="procedures")])
   
   settings["main"].add([operations.create(
     name="constraints",
@@ -181,22 +181,22 @@ def create_settings():
       file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = _(
         "You need to specify default file extension for layers with invalid "
         "or no extension.")
-
-  def on_after_add_operation(
-        operations_, operation, orig_operation_name, file_extension_setting):
-    if orig_operation_name == "use_file_extensions_in_layer_names":
-      if operation["enabled"].value:
+  
+  def on_after_add_procedure(
+        procedures, procedure, orig_procedure_name, file_extension_setting):
+    if orig_procedure_name == "use_file_extensions_in_layer_names":
+      if procedure["enabled"].value:
         # Invoke manually in case "enabled" is True upon adding.
         on_use_file_extensions_in_layer_names_enabled_changed(
-          operation["enabled"], file_extension_setting)
+          procedure["enabled"], file_extension_setting)
       
-      operation["enabled"].connect_event(
+      procedure["enabled"].connect_event(
         "value-changed",
         on_use_file_extensions_in_layer_names_enabled_changed,
         file_extension_setting)
   
-  settings["main/operations"].connect_event(
-    "after-add-operation", on_after_add_operation, settings["main/file_extension"])
+  settings["main/procedures"].connect_event(
+    "after-add-operation", on_after_add_procedure, settings["main/file_extension"])
   
   return settings
 

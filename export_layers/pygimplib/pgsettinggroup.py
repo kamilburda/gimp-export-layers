@@ -48,7 +48,7 @@ def create_groups(setting_dict):
       "name": "main",
       "groups": [
         {
-          "name": "operations"
+          "name": "procedures"
         },
         {
           "name": "constraints"

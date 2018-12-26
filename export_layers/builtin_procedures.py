@@ -18,7 +18,7 @@
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-This module defines built-in operations for the plug-in.
+This module defines built-in procedures for the plug-in.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -128,7 +128,7 @@ def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
   return merged_layer_for_tag
 
 
-_BUILTIN_OPERATIONS_LIST = [
+_BUILTIN_PROCEDURES_LIST = [
   {
     "name": "insert_background_layers",
     "function": insert_background_layer,
@@ -194,5 +194,5 @@ _BUILTIN_OPERATIONS_LIST = [
   },
 ]
 
-BUILTIN_OPERATIONS = collections.OrderedDict(
-  (operation_dict["name"], operation_dict) for operation_dict in _BUILTIN_OPERATIONS_LIST)
+BUILTIN_PROCEDURES = collections.OrderedDict(
+  (operation_dict["name"], operation_dict) for operation_dict in _BUILTIN_PROCEDURES_LIST)

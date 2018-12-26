@@ -30,7 +30,7 @@ from export_layers import pygimplib
 from export_layers.pygimplib import pgoperations
 from export_layers.pygimplib import pgutils
 
-from export_layers import builtin_operations
+from export_layers import builtin_procedures
 
 from export_layers.pygimplib.tests import stubs_gimp
 
@@ -54,7 +54,7 @@ class TestLayerExporterInitialOperations(unittest.TestCase):
   def tearDownClass(cls):
     pdb.gimp_image_delete(cls.image)
   
-  def test_add_operation_added_operation_is_first_in_execution_list(self):
+  def test_add_procedure_added_procedure_is_first_in_execution_list(self):
     settings = settings_plugin.create_settings()
     settings["special/image"].set_value(self.image)
     settings["main/file_extension"].set_value("xcf")
@@ -65,16 +65,16 @@ class TestLayerExporterInitialOperations(unittest.TestCase):
       settings["main"])
     
     operations.add(
-      settings["main/operations"],
-      builtin_operations.BUILTIN_OPERATIONS["ignore_layer_modes"])
+      settings["main/procedures"],
+      builtin_procedures.BUILTIN_PROCEDURES["ignore_layer_modes"])
     
-    layer_exporter.add_operation(
-      pgutils.empty_func, [operations.DEFAULT_OPERATIONS_GROUP])
+    layer_exporter.add_procedure(
+      pgutils.empty_func, [operations.DEFAULT_PROCEDURES_GROUP])
     
     layer_exporter.export(processing_groups=[])
     
     added_operation_items = layer_exporter.operation_executor.list_operations(
-      group=operations.DEFAULT_OPERATIONS_GROUP)
+      group=operations.DEFAULT_PROCEDURES_GROUP)
     
     self.assertEqual(len(added_operation_items), 3)
     
@@ -82,7 +82,7 @@ class TestLayerExporterInitialOperations(unittest.TestCase):
     self.assertIsInstance(initial_executor, pgoperations.OperationExecutor)
     
     operations_in_initial_executor = initial_executor.list_operations(
-      group=operations.DEFAULT_OPERATIONS_GROUP)
+      group=operations.DEFAULT_PROCEDURES_GROUP)
     self.assertEqual(len(operations_in_initial_executor), 1)
     self.assertEqual(operations_in_initial_executor[0], (pgutils.empty_func, (), {}))
 
@@ -91,7 +91,7 @@ class TestAddOperationFromSettings(unittest.TestCase):
   
   def setUp(self):
     self.executor = pgoperations.OperationExecutor()
-    self.settings = operations.create("operations")
+    self.procedures = operations.create("procedures")
     
     self.procedure_stub = stubs_gimp.PdbProcedureStub(
       name="file-png-save",
@@ -103,14 +103,14 @@ class TestAddOperationFromSettings(unittest.TestCase):
       return_vals=None,
       blurb="Saves files in PNG file format")
   
-  def test_add_operation(self):
-    operation = operations.add(
-      self.settings, builtin_operations.BUILTIN_OPERATIONS["insert_background_layers"])
+  def test_add_operation_from_settings(self):
+    procedure = operations.add(
+      self.procedures, builtin_procedures.BUILTIN_PROCEDURES["insert_background_layers"])
     
-    exportlayers.add_operation_from_settings(operation, self.executor)
+    exportlayers.add_operation_from_settings(procedure, self.executor)
     
     added_operation_items = self.executor.list_operations(
-      group=operations.DEFAULT_OPERATIONS_GROUP)
+      group=operations.DEFAULT_PROCEDURES_GROUP)
     
     self.assertEqual(len(added_operation_items), 1)
     self.assertEqual(added_operation_items[0][1], ("background",))
@@ -125,15 +125,15 @@ class TestAddOperationFromSettings(unittest.TestCase):
       self.procedure_stub, ((), ""), {"run_mode": gimpenums.RUN_NONINTERACTIVE})
   
   def _test_add_pdb_proc_as_operation(self, pdb_procedure, expected_args, expected_kwargs):
-    operation = operations.add(self.settings, pdb_procedure)
+    procedure = operations.add(self.procedures, pdb_procedure)
     
     with mock.patch("export_layers.exportlayers.pdb") as pdb_mock:
       pdb_mock.__getitem__.return_value = pdb_procedure
       
-      exportlayers.add_operation_from_settings(operation, self.executor)
+      exportlayers.add_operation_from_settings(procedure, self.executor)
     
     added_operation_items = self.executor.list_operations(
-      group=operations.DEFAULT_OPERATIONS_GROUP)
+      group=operations.DEFAULT_PROCEDURES_GROUP)
     
     self.assertEqual(len(added_operation_items), 1)
     self.assertEqual(added_operation_items[0][1], expected_args)

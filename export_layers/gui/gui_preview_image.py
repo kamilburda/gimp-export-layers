@@ -80,11 +80,11 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._layer_exporter = layer_exporter
     self._initial_previewed_layer_id = initial_previered_layer_id
     
-    self._layer_exporter.add_operation(
+    self._layer_exporter.add_procedure(
       self._layer_exporter_on_after_insert_layer, ["after_insert_layer"],
       ignore_if_exists=True)
     
-    self._layer_exporter.add_operation(
+    self._layer_exporter.add_procedure(
       self._layer_exporter_on_after_create_image_copy, ["after_create_image_copy"],
       ignore_if_exists=True)
     

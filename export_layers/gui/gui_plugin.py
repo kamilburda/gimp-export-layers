@@ -57,7 +57,7 @@ from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettingpersistor
 
 from .. import builtin_constraints
-from .. import builtin_operations
+from .. import builtin_procedures
 from .. import operations
 from .. import exportlayers
 from .. import settings_plugin
@@ -134,7 +134,7 @@ def display_reset_prompt(parent=None, more_settings_shown=False):
   
   if more_settings_shown:
     checkbutton_reset_operations = gtk.CheckButton(
-      label=_("Remove operations and constraints"), use_underline=False)
+      label=_("Remove procedures and constraints"), use_underline=False)
     dialog.vbox.pack_start(checkbutton_reset_operations, expand=False, fill=False)
   
   dialog.set_focus(dialog.get_widget_for_response(gtk.RESPONSE_NO))
@@ -533,7 +533,7 @@ class ExportLayersGui(object):
     self._hbox_more_settings.set_border_width(self._MORE_SETTINGS_BORDER_WIDTH)
     self._hbox_more_settings.pack_start(
       self._scrolled_window_basic_settings, expand=True, fill=True)
-    self._hbox_more_settings.pack_start(self._box_operations, expand=True, fill=True)
+    self._hbox_more_settings.pack_start(self._box_procedures, expand=True, fill=True)
     self._hbox_more_settings.pack_start(self._box_constraints, expand=True, fill=True)
     
     self._vbox_settings = gtk.VBox()
@@ -685,10 +685,10 @@ class ExportLayersGui(object):
       self._export_previews_controller.on_name_preview_after_edit_tags)
   
   def _init_gui_operation_boxes(self):
-    self._box_operations = self._create_operation_box(
-      self._settings["main/operations"],
-      builtin_operations.BUILTIN_OPERATIONS,
-      _("Add _Operation..."))
+    self._box_procedures = self._create_operation_box(
+      self._settings["main/procedures"],
+      builtin_procedures.BUILTIN_PROCEDURES,
+      _("Add _Procedure..."))
     
     self._box_constraints = self._create_operation_box(
       self._settings["main/constraints"],
@@ -699,12 +699,12 @@ class ExportLayersGui(object):
   def _create_operation_box(
         self,
         operations_group,
-        builtin_operations_list,
+        builtin_procedures_list,
         label_add_operation,
         allow_custom_pdb_procedures=True):
     operation_box = gui_operations.OperationBox(
       operations_group,
-      builtin_operations_list,
+      builtin_procedures_list,
       label_add_operation,
       allow_custom_pdb_procedures=allow_custom_pdb_procedures)
     
@@ -852,17 +852,17 @@ class ExportLayersGui(object):
     
     if response_id == gtk.RESPONSE_YES:
       if clear_operations:
-        self._box_operations.clear()
-        operations.clear(self._settings["main/operations"])
+        self._box_procedures.clear()
+        operations.clear(self._settings["main/procedures"])
         self._add_gui_to_already_added_operations(
-          self._box_operations, self._settings["main/operations"])
+          self._box_procedures, self._settings["main/procedures"])
         
         self._box_constraints.clear()
         operations.clear(self._settings["main/constraints"])
         self._add_gui_to_already_added_operations(
           self._box_constraints, self._settings["main/constraints"])
       else:
-        self._settings["main/operations"].tags.add("ignore_reset")
+        self._settings["main/procedures"].tags.add("ignore_reset")
         self._settings["main/constraints"].tags.add("ignore_reset")
       
       self._reset_settings()
@@ -871,7 +871,7 @@ class ExportLayersGui(object):
       if clear_operations:
         self._clear_setting_sources()
       else:
-        self._settings["main/operations"].tags.remove("ignore_reset")
+        self._settings["main/procedures"].tags.remove("ignore_reset")
         self._settings["main/constraints"].tags.remove("ignore_reset")
       
       self._display_message_label(_("Settings reset."), gtk.MESSAGE_INFO)

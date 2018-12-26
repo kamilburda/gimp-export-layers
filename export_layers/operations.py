@@ -18,14 +18,13 @@
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-This module defines the means to create and manipulate plug-in operations and
-constraints.
+This module defines the means to create and manipulate plug-in operations -
+procedures and constraints.
 
-Most functions take a setting group containing operations/constraints as its
-first argument.
+Most functions take a setting group containing operations as its first argument.
 
-Many functions define events invoked on the setting group containing
-operations/constraints. These events include:
+Many functions define events invoked on the setting group containing operations.
+These events include:
 
 * `"before-add-operation"` - invoked when:
   * calling `add` before adding an operation,
@@ -95,7 +94,7 @@ BUILTIN_TAGS = {
   "foreground": _("Foreground"),
 }
 
-DEFAULT_OPERATIONS_GROUP = "default_operations"
+DEFAULT_PROCEDURES_GROUP = "default_procedures"
 DEFAULT_CONSTRAINTS_GROUP = "default_constraints"
 
 
@@ -105,7 +104,7 @@ def create(name, initial_operations=None):
   
   Parameters:
   * `name` - name of the `SettingGroup` instance.
-  * `type` - `"operation"` or `"constraint"`, see below for details.
+  * `type` - `"procedure"` or `"constraint"`, see below for details.
   * `initial_operations` - list of dictionaries describing operations to be
     added by default. Calling `clear` will reset the operations returned by this
     function to the initial operations. By default, no initial operations are
@@ -138,11 +137,11 @@ def create(name, initial_operations=None):
   `"arguments"` group contains arguments as separate `Setting` instances.
   
   Possible values for `"type"`:
-  * `"operation"` (default) - represents a regular operation.
-    `"operation_group"` defaults to `DEFAULT_OPERATIONS_GROUP` if not defined.
-  * `"constraint"` - represents a constraint.
-    `"operation_group"` defaults to `DEFAULT_CONSTRAINTS_GROUP` if not defined.
-    Additional allowed fields for `"constraint"` include:
+  * `"procedure"` (default) - represents a procedure. `"operation_group"`
+    defaults to `DEFAULT_PROCEDURES_GROUP` if not defined.
+  * `"constraint"` - represents a constraint. `"operation_group"` defaults to
+    `DEFAULT_CONSTRAINTS_GROUP` if not defined. Additional allowed fields for
+    `"constraint"` include:
       * `subfilter` - the name of a subfilter for an `ObjectFilter` instance
         where constraints should be added. By default, `subfilter` is `None` (no
         subfilter is assumed).
@@ -233,7 +232,7 @@ def _create_operations_from_added_data(operations):
 
 
 def _create_operation_by_type(**kwargs):
-  type_ = kwargs.pop("type", "operation")
+  type_ = kwargs.pop("type", "procedure")
   
   if type_ not in _OPERATION_TYPES_AND_FUNCTIONS:
     raise ValueError(
@@ -258,7 +257,7 @@ def _set_values_for_operations(added_data_values_setting, added_operations_group
         added_data_values_setting.value[setting.get_path(added_operations_group)])
 
 
-def _create_operation(
+def _create_procedure(
       name,
       function,
       arguments=None,
@@ -274,7 +273,7 @@ def _create_operation(
   
   operation = pgsettinggroup.SettingGroup(
     name,
-    tags=["operation"],
+    tags=["procedure"],
     setting_attributes={
       "pdb_type": None,
       "setting_sources": None,
@@ -291,7 +290,7 @@ def _create_operation(
     arguments_group.add(arguments)
   
   if operation_groups is None:
-    operation_groups = [DEFAULT_OPERATIONS_GROUP]
+    operation_groups = [DEFAULT_PROCEDURES_GROUP]
   
   operation.add([
     {
@@ -343,7 +342,7 @@ def _create_constraint(name, function, subfilter=None, **create_operation_kwargs
   if create_operation_kwargs.get("operation_groups", None) is None:
     create_operation_kwargs["operation_groups"] = [DEFAULT_CONSTRAINTS_GROUP]
   
-  constraint = _create_operation(name, function, **create_operation_kwargs)
+  constraint = _create_procedure(name, function, **create_operation_kwargs)
   
   constraint.tags.add("constraint")
   
@@ -360,7 +359,7 @@ def _create_constraint(name, function, subfilter=None, **create_operation_kwargs
 
 
 _OPERATION_TYPES_AND_FUNCTIONS = {
-  "operation": _create_operation,
+  "procedure": _create_procedure,
   "constraint": _create_constraint
 }
 
@@ -650,7 +649,7 @@ def _clear(operations):
   operations["_added_data_values"].reset()
 
 
-def walk(operations, setting_name="operation"):
+def walk(operations, setting_name="procedure"):
   """
   Walk (iterate over) a setting group containing operations.
   
@@ -658,7 +657,8 @@ def walk(operations, setting_name="operation"):
   operation is returned. By default, the setting group representing the entire
   operation is returned. For possible values, see `create`. Additional values
   include:
-  * `"operation"` - the setting group if the group is an operation or constraint
+  * `"procedure"` - the setting group if the group is an operation of any type
+    (procedure or constraint)
   * `"constraint"` - the setting group if the group is a constraint
   """
   if setting_name in _OPERATION_TYPES_AND_FUNCTIONS:

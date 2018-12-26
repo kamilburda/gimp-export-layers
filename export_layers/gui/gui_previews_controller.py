@@ -59,8 +59,8 @@ class ExportPreviewsController(object):
   def _connect_settings_changed(self):
     self._connect_basic_settings()
     
-    self._connect_already_added_operations(self._settings["main/operations"])
-    self._prepare_to_connect_subsequent_operations(self._settings["main/operations"])
+    self._connect_already_added_operations(self._settings["main/procedures"])
+    self._prepare_to_connect_subsequent_operations(self._settings["main/procedures"])
     
     self._connect_already_added_operations(self._settings["main/constraints"])
     self._prepare_to_connect_subsequent_operations(self._settings["main/constraints"])

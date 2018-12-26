@@ -38,7 +38,7 @@ from export_layers.pygimplib import pgutils
 from .. import config
 config.init()
 
-from .. import builtin_operations
+from .. import builtin_procedures
 from .. import exportlayers
 from .. import operations
 from .. import settings_plugin
@@ -110,7 +110,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_ignore_layer_modes(self):
     self.compare(
-      operation_names=["ignore_layer_modes"])
+      procedure_names=["ignore_layer_modes"])
   
   def test_use_image_size(self):
     self.compare(
@@ -120,20 +120,20 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_background(self):
     self.compare(
-      operation_names=["insert_background_layers"],
+      procedure_names=["insert_background_layers"],
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "background"))
   
   def test_background_autocrop_background(self):
     self.compare(
-      operation_names=["insert_background_layers", "autocrop_background"],
+      procedure_names=["insert_background_layers", "autocrop_background"],
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "background"))
   
   def test_background_autocrop_background_use_image_size(self):
     self.compare(
       {"use_image_size": True},
-      operation_names=["insert_background_layers", "autocrop_background"],
+      procedure_names=["insert_background_layers", "autocrop_background"],
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath,
         "background",
@@ -148,7 +148,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         layer_elem.add_tag("foreground")
     
     self.compare(
-      operation_names=["insert_foreground_layers"],
+      procedure_names=["insert_foreground_layers"],
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "foreground"))
     
@@ -157,7 +157,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def compare(
         self,
         settings_and_values=None,
-        operation_names=None,
+        procedure_names=None,
         different_results_and_expected_layers=None,
         expected_results_dirpath=None):
     settings = settings_plugin.create_settings()
@@ -179,7 +179,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         layer.name: layer
         for layer in self.expected_images[expected_results_dirpath].layers}
     
-    self._export(settings, operation_names)
+    self._export(settings, procedure_names)
     
     self.image_with_results, layers = self._load_layers_from_dirpath(self.output_dirpath)
     
@@ -197,14 +197,14 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         expected_results_dirpath)
   
   @staticmethod
-  def _export(settings, operation_names):
-    if operation_names is None:
-      operation_names = []
+  def _export(settings, procedure_names):
+    if procedure_names is None:
+      procedure_names = []
     
-    for operation_name in operation_names:
+    for procedure_name in procedure_names:
       operations.add(
-        settings["main/operations"],
-        builtin_operations.BUILTIN_OPERATIONS[operation_name])
+        settings["main/procedures"],
+        builtin_procedures.BUILTIN_PROCEDURES[procedure_name])
     
     layer_exporter = exportlayers.LayerExporter(
       settings["special/run_mode"].value,
@@ -213,8 +213,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     
     layer_exporter.export()
     
-    for operation_name in operation_names:
-      operations.remove(settings["main/operations"], operation_name)
+    for procedure_name in procedure_names:
+      operations.remove(settings["main/procedures"], procedure_name)
   
   def _compare_layers(
         self, layer, expected_layer, settings, test_case_name, expected_results_dirpath):
@@ -312,9 +312,9 @@ def test_add_all_pdb_procedures_as_operations():
   Add all PDB procedures as operations to check if all setting types are
   properly supported.
   """
-  settings = operations.create("all_pdb_procedures")
+  procedures = operations.create("all_pdb_procedures")
   
   unused_, procedure_names = pdb.gimp_procedural_db_query("", "", "", "", "", "", "")
   
   for procedure_name in procedure_names:
-    operations.add(settings, pdb[procedure_name])
+    operations.add(procedures, pdb[procedure_name])

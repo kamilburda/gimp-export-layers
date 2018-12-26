@@ -52,7 +52,7 @@ class OperationBox(pggui.ItemBox):
   def __init__(
         self,
         operations_group=None,
-        builtin_operations=None,
+        builtin_procedures=None,
         label_add_text=None,
         allow_custom_pdb_procedures=True,
         item_spacing=pggui.ItemBox.ITEM_SPACING,
@@ -61,7 +61,7 @@ class OperationBox(pggui.ItemBox):
     super().__init__(item_spacing=item_spacing, *args, **kwargs)
     
     self._operations = operations_group
-    self._builtin_operations = builtin_operations
+    self._builtin_procedures = builtin_procedures
     self._label_add_text = label_add_text
     self._allow_custom_pdb_procedures = allow_custom_pdb_procedures
     
@@ -69,7 +69,7 @@ class OperationBox(pggui.ItemBox):
     self.on_reorder_item = pgutils.empty_func
     self.on_remove_item = pgutils.empty_func
     
-    self._procedure_browser_dialog = None
+    self._pdb_procedure_browser_dialog = None
     
     self._init_gui()
   
@@ -113,7 +113,6 @@ class OperationBox(pggui.ItemBox):
     return item
   
   def _init_operation_item_gui(self, operation):
-    
     operation.initialize_gui()
     
     # HACK: Prevent displaying horizontal scrollbar by ellipsizing labels. To
@@ -152,12 +151,12 @@ class OperationBox(pggui.ItemBox):
     self.on_remove_item(self._operations, item.operation.name)
   
   def _init_operations_menu_popup(self):
-    for operation_dict in self._builtin_operations.values():
+    for operation_dict in self._builtin_procedures.values():
       self._add_operation_to_menu_popup(operation_dict)
     
     if self._allow_custom_pdb_procedures:
       self._operations_menu.append(gtk.SeparatorMenuItem())
-      self._add_add_custom_procedure_to_menu_popup()
+      self._add_add_custom_operation_to_menu_popup()
     
     self._operations_menu.show_all()
   
@@ -175,20 +174,20 @@ class OperationBox(pggui.ItemBox):
   def _on_operations_menu_item_activate(self, menu_item, operation_dict_or_function):
     self.add_item(operation_dict_or_function)
   
-  def _add_add_custom_procedure_to_menu_popup(self):
+  def _add_add_custom_operation_to_menu_popup(self):
     menu_item = gtk.MenuItem(
       label=_("Add custom procedure..."),
       use_underline=False)
-    menu_item.connect("activate", self._on_add_custom_procedure_menu_item_activate)
+    menu_item.connect("activate", self._on_add_custom_operation_menu_item_activate)
     self._operations_menu.append(menu_item)
   
-  def _on_add_custom_procedure_menu_item_activate(self, menu_item):
-    if self._procedure_browser_dialog:
-      self._procedure_browser_dialog.show()
+  def _on_add_custom_operation_menu_item_activate(self, menu_item):
+    if self._pdb_procedure_browser_dialog:
+      self._pdb_procedure_browser_dialog.show()
     else:
-      self._procedure_browser_dialog = self._create_procedure_browser_dialog()
+      self._pdb_procedure_browser_dialog = self._create_pdb_procedure_browser_dialog()
   
-  def _create_procedure_browser_dialog(self):
+  def _create_pdb_procedure_browser_dialog(self):
     dialog = gimpui.ProcBrowserDialog(
       _("Procedure Browser"),
       role=pygimplib.config.PLUGIN_NAME,
@@ -197,13 +196,13 @@ class OperationBox(pggui.ItemBox):
     dialog.set_default_response(gtk.RESPONSE_OK)
     dialog.set_alternative_button_order((gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL))
     
-    dialog.connect("response", self._on_procedure_browser_dialog_response)
+    dialog.connect("response", self._on_pdb_procedure_browser_dialog_response)
     
     dialog.show_all()
     
     return dialog
   
-  def _on_procedure_browser_dialog_response(self, dialog, response_id):
+  def _on_pdb_procedure_browser_dialog_response(self, dialog, response_id):
     if response_id == gtk.RESPONSE_OK:
       procedure_name = dialog.get_selected()
       if procedure_name:

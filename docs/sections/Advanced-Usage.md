@@ -6,13 +6,13 @@ To show the advanced dialog, press the "Settings" button and choose "Show More S
 
 ![Dialog for advanced usage of Export Layers](../images/screenshot_dialog_advanced_usage.png)
 
-The advanced dialog allows you, among other things, to customize the layer name, add operations executed before the export of each layer and add constraints to exclude specific layers.
+The advanced dialog allows you, among other things, to customize the layer name, add procedures executed before the export of each layer and add constraints to exclude specific layers.
 
-You can adjust the height of the bottom pane (between the file extension and the buttons to add operations/constraints) and the width of the pane between the folder chooser and the preview.
+You can adjust the height of the bottom pane (between the file extension and the buttons to add procedures/constraints) and the width of the pane between the folder chooser and the preview.
 
 ### Preview
 
-Because the number of operations and constraints can get overwhelming, the preview can help you by showing how the layers will be exported.
+Because the number of procedures and constraints can get overwhelming, the preview can help you by showing how the layers will be exported.
 
 The upper part of the preview displays the names of layers to be exported ("layer name preview"), along with their folder structure if "Treat layer groups as folders" is enabled.
 
@@ -129,12 +129,12 @@ Examples:
 * [layer path, [,], [[[$$]]] ]
 
 
-Additional Operations
+Additional Procedures
 ---------------------
 
-To add custom operations before the export of each layer, press the "Add Operation..." button and select one of the operations described below.
-You can enable, disable or remove operations as needed.
-You can add the same operation multiple times.
+To add custom procedures before the export of each layer, press the "Add Procedure..." button and select one of the procedures described below.
+You can enable, disable or remove procedures as needed.
+You can add the same procedure multiple times.
 
 **Insert background layers**
 

@@ -31,8 +31,6 @@ from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgutils
 
-from .. import operations
-
 
 def create_gui_settings():
   
