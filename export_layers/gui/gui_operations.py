@@ -424,7 +424,8 @@ class _OperationEditDialog(gimpui.Dialog):
     label = gtk.Label()
     label.set_use_markup(True)
     label.set_markup(
-      '<span font_size="small">{}</span>'.format(_("Cannot modify this parameter")))
+      '<span font_size="small">{}</span>'.format(
+        gobject.markup_escape_text(_("Cannot modify this parameter"))))
     
     hbox.pack_start(label, expand=False, fill=False)
     

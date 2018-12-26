@@ -129,7 +129,8 @@ def display_reset_prompt(parent=None, more_settings_shown=False):
   dialog.set_transient_for(parent)
   dialog.set_title(pygimplib.config.PLUGIN_TITLE)
   
-  dialog.set_markup(_("Are you sure you want to reset settings?"))
+  dialog.set_markup(
+    gobject.markup_escape_text(_("Are you sure you want to reset settings?")))
   
   if more_settings_shown:
     checkbutton_reset_operations = gtk.CheckButton(
@@ -433,7 +434,8 @@ class ExportLayersGui(object):
       maximum_width_chars=self._FILE_EXTENSION_ENTRY_MAX_WIDTH_CHARS)
     
     self._save_as_label = gtk.Label()
-    self._save_as_label.set_markup("<b>{}:</b>".format(_("Save as")))
+    self._save_as_label.set_markup(
+      "<b>{}:</b>".format(gobject.markup_escape_text(_("Save as"))))
     self._save_as_label.set_alignment(0.0, 0.5)
     
     self._dot_label = gtk.Label(".")
