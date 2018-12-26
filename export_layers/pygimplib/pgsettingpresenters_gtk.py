@@ -228,7 +228,9 @@ class GimpUiImageComboBoxPresenter(GtkSettingPresenter):
 
 class GimpItemComboBoxPresenter(GtkSettingPresenter):
   """
-  This class is a `SettingPresenter` for `pggui.GimpItemComboBox` elements.
+  This class is a `SettingPresenter` for `pggui.GimpItemComboBox` elements. If
+  the setting references a `gimp.Image`, only drawables from that image will be
+  displayed.
   
   Value: `gimp.Item` selected in the combo box.
   """
@@ -252,9 +254,9 @@ class GimpItemComboBoxPresenter(GtkSettingPresenter):
 
 class GimpUiDrawableComboBoxPresenter(GtkSettingPresenter):
   """
-  This class is a `SettingPresenter` for `gimpui.DrawableComboBox` elements.
-  If the setting references a `gimp.Image`, only drawables from that image will
-  be displayed.
+  This class is a `SettingPresenter` for `gimpui.DrawableComboBox` elements. If
+  the setting references a `gimp.Image`, only drawables from that image will be
+  displayed.
   
   Value: `gimp.Drawable` selected in the combo box.
   """
@@ -278,9 +280,9 @@ class GimpUiDrawableComboBoxPresenter(GtkSettingPresenter):
 
 class GimpUiLayerComboBoxPresenter(GtkSettingPresenter):
   """
-  This class is a `SettingPresenter` for `gimpui.LayerComboBox` elements.
-  If the setting references a `gimp.Image`, only layers from that image will
-  be displayed.
+  This class is a `SettingPresenter` for `gimpui.LayerComboBox` elements. If the
+  setting references a `gimp.Image`, only layers from that image will be
+  displayed.
   
   Value: `gimp.Layer` selected in the combo box.
   """
@@ -304,9 +306,9 @@ class GimpUiLayerComboBoxPresenter(GtkSettingPresenter):
 
 class GimpUiChannelComboBoxPresenter(GtkSettingPresenter):
   """
-  This class is a `SettingPresenter` for `gimpui.ChannelComboBox` elements.
-  If the setting references a `gimp.Image`, only channels from that image will
-  be displayed.
+  This class is a `SettingPresenter` for `gimpui.ChannelComboBox` elements. If
+  the setting references a `gimp.Image`, only channels from that image will be
+  displayed.
   
   Value: `gimp.Channel` selected in the combo box.
   """
@@ -330,9 +332,9 @@ class GimpUiChannelComboBoxPresenter(GtkSettingPresenter):
 
 class GimpUiVectorsComboBoxPresenter(GtkSettingPresenter):
   """
-  This class is a `SettingPresenter` for `gimpui.VectorsComboBox` elements.
-  If the setting references a `gimp.Image`, only vectors from that image will
-  be displayed.
+  This class is a `SettingPresenter` for `gimpui.VectorsComboBox` elements. If
+  the setting references a `gimp.Image`, only vectors from that image will be
+  displayed.
   
   Value: `gimp.Vectors` selected in the combo box.
   """
