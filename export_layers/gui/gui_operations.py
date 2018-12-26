@@ -344,12 +344,13 @@ class _OperationEditDialog(gimpui.Dialog):
     self.action_area.pack_start(self._button_reset, expand=False, fill=False)
     self.action_area.set_child_secondary(self._button_reset, True)
     
-    self._label_procedure_name = gtk.Label()
-    self._label_procedure_name.set_use_markup(True)
-    self._label_procedure_name.set_alignment(0.0, 0.5)
-    self._label_procedure_name.set_ellipsize(pango.ELLIPSIZE_END)
-    self._label_procedure_name.set_markup(
-      "<b>" + gobject.markup_escape_text(operation["display_name"].value) + "</b>")
+    self._label_procedure_name = pggui.EditableLabel()
+    self._label_procedure_name.label.set_use_markup(True)
+    self._label_procedure_name.label.set_ellipsize(pango.ELLIPSIZE_END)
+    self._label_procedure_name.label.set_markup(
+      "<b>{}</b>".format(gobject.markup_escape_text(operation["display_name"].value)))
+    self._label_procedure_name.connect(
+      "changed", self._on_label_procedure_name_changed, operation)
     
     self._label_procedure_short_description = gtk.Label()
     self._label_procedure_short_description.set_line_wrap(True)
@@ -407,6 +408,12 @@ class _OperationEditDialog(gimpui.Dialog):
   
   def _on_button_reset_clicked(self, button, operation):
     operation["arguments"].reset()
+  
+  def _on_label_procedure_name_changed(self, editable_label, operation):
+    operation["display_name"].set_value(editable_label.label.get_text())
+    
+    editable_label.label.set_markup(
+      "<b>{}</b>".format(gobject.markup_escape_text(operation["display_name"].value)))
   
   def _on_operation_edit_dialog_response(self, dialog, response_id):
     for child in list(self._table_operation_arguments.get_children()):
