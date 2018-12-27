@@ -510,12 +510,12 @@ class StringPatternGenerator(object):
     
     if not argspec.varargs:
       num_defaults = len(argspec.defaults) if argspec.defaults is not None else 0
-      num_mandatory_args = len(argspec.args) - num_defaults
+      num_required_args = len(argspec.args) - num_defaults
       
       if pgutils.is_bound_method(field_func):
-        num_mandatory_args -= 1
+        num_required_args -= 1
       
-      if len(field[1]) < num_mandatory_args or len(field[1]) > len(argspec.args):
+      if len(field[1]) < num_required_args or len(field[1]) > len(argspec.args):
         return False
     
     return True

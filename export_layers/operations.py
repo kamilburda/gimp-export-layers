@@ -140,7 +140,7 @@ def create(name, initial_operations=None):
   * `"type"` - Operation type. See below for details.
   * `"function"` - The function to execute.
   * `"arguments"` - Specified as list of dictionaries defining settings. Each
-    dictionary must contain mandatory attributes and can contain optional
+    dictionary must contain required attributes and can contain optional
     attributes as stated in `SettingGroup.add`.
   * `"enabled"`
   * `"display_name"`

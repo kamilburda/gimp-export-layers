@@ -245,7 +245,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     used to access settings via paths).
     
     For more attributes, check the documentation of the setting classes. Some
-    `Setting` subclasses may require specifying additional mandatory attributes.
+    `Setting` subclasses may require specifying additional required attributes.
     
     Multiple settings with the same name and in different nested groups are
     possible. Each such setting can be accessed like any other:
@@ -280,7 +280,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     try:
       setting_type = setting_data["type"]
     except KeyError:
-      raise TypeError(self._get_missing_mandatory_attributes_message(["type"]))
+      raise TypeError(self._get_missing_required_attributes_message(["type"]))
     
     # Do not modify the original `setting_data` in case it is expected to be
     # reused.
@@ -289,7 +289,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     try:
       setting_data_copy["name"]
     except KeyError:
-      raise TypeError(self._get_missing_mandatory_attributes_message(["name"]))
+      raise TypeError(self._get_missing_required_attributes_message(["name"]))
     
     if pgsettingutils.SETTING_PATH_SEPARATOR in setting_data_copy["name"]:
       raise ValueError(
@@ -311,11 +311,11 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     try:
       setting = setting_type(**setting_data_copy)
     except TypeError as e:
-      missing_mandatory_arguments = self._get_missing_mandatory_arguments(
+      missing_required_arguments = self._get_missing_required_arguments(
         setting_type, setting_data_copy)
-      if missing_mandatory_arguments:
-        message = self._get_missing_mandatory_attributes_message(
-          missing_mandatory_arguments)
+      if missing_required_arguments:
+        message = self._get_missing_required_attributes_message(
+          missing_required_arguments)
       else:
         message = str(e)
       raise TypeError(message)
@@ -324,23 +324,23 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     
     return setting
   
-  def _get_missing_mandatory_arguments(self, setting_type, setting_data):
-    mandatory_arg_names = self._get_mandatory_argument_names(setting_type.__init__)
-    return [arg_name for arg_name in mandatory_arg_names if arg_name not in setting_data]
+  def _get_missing_required_arguments(self, setting_type, setting_data):
+    required_arg_names = self._get_required_argument_names(setting_type.__init__)
+    return [arg_name for arg_name in required_arg_names if arg_name not in setting_data]
   
-  def _get_mandatory_argument_names(self, func):
+  def _get_required_argument_names(self, func):
     arg_spec = inspect.getargspec(func)
     arg_default_values = arg_spec[3] if arg_spec[3] is not None else []
-    num_mandatory_args = len(arg_spec[0]) - len(arg_default_values)
+    num_required_args = len(arg_spec[0]) - len(arg_default_values)
     
-    mandatory_args = arg_spec[0][0:num_mandatory_args]
-    if mandatory_args[0] == "self":
-      del mandatory_args[0]
+    required_args = arg_spec[0][0:num_required_args]
+    if required_args[0] == "self":
+      del required_args[0]
     
-    return mandatory_args
+    return required_args
   
-  def _get_missing_mandatory_attributes_message(self, attribute_names):
-    return "missing the following mandatory setting attributes: {}".format(
+  def _get_missing_required_attributes_message(self, attribute_names):
+    return "missing the following required setting attributes: {}".format(
       ", ".join(attribute_names))
   
   def get_value(self, setting_name_or_path, default_value):

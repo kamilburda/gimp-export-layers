@@ -83,13 +83,13 @@ class TestSettingGroupAddWithSettingDict(unittest.TestCase):
     with self.assertRaises(TypeError):
       self.settings.add([self.setting_dict])
   
-  def test_add_with_missing_single_mandatory_attribute(self):
+  def test_add_with_missing_single_required_attribute(self):
     del self.setting_dict["name"]
     
     with self.assertRaises(TypeError):
       self.settings.add([self.setting_dict])
   
-  def test_add_with_missing_multiple_mandatory_attributes(self):
+  def test_add_with_missing_multiple_required_attributes(self):
     del self.setting_dict["name"]
     del self.setting_dict["default_value"]
     

@@ -1817,15 +1817,15 @@ class ArraySetting(Setting):
     Additional parameters include all parameters that would be passed to the
     setting class this array is composed of (i.e. array elements). These
     parameters must be prefixed with `"element_"` (e.g.
-    `element_default_value`). Mandatory parameters for the basic setting classes
+    `element_default_value`). Required parameters for the basic setting classes
     include:
     * `element_type` - setting type of each array element. Passing
       `ArraySetting` is also possible, allowing to create multidimensional
-      arrays. Note that in that case, mandatory parameters for elements of each
+      arrays. Note that in that case, required parameters for elements of each
       subsequent dimension must be specified and must have an extra `"element_"`
       prefix. For example, for the second dimension of a 2D array,
       `element_element_type` must also be specified.
-    * all other mandatory parameters as per individual setting classes.
+    * all other required parameters as per individual setting classes.
     
     All parameters prefixed with `"element_"` will be created in the array
     setting as read-only properties. `element_default_value` will always be

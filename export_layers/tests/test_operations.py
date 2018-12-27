@@ -201,7 +201,7 @@ class TestCreateOperations(unittest.TestCase):
   @parameterized.parameterized.expand([
     ("missing_name", "name"),
   ])
-  def test_create_missing_mandatory_fields_raises_error(
+  def test_create_missing_required_fields_raises_error(
         self, test_case_name_suffix, missing_name):
     initial_operation_dict = get_operation_data(test_procedures)["autocrop"]
     del initial_operation_dict[missing_name]
