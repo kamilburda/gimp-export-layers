@@ -98,7 +98,7 @@ DEFAULT_PROCEDURES_GROUP = "default_procedures"
 DEFAULT_CONSTRAINTS_GROUP = "default_constraints"
 
 _DEFAULT_OPERATION_TYPE = "procedure"
-_REQUIRED_OPERATION_FIELDS = ["name", "function"]
+_REQUIRED_OPERATION_FIELDS = ["name"]
 
 
 def create(name, initial_operations=None):
@@ -266,7 +266,7 @@ def _set_values_for_operations(added_data_values_setting, added_operations_group
 
 def _create_procedure(
       name,
-      function,
+      function=None,
       arguments=None,
       enabled=True,
       display_name=None,
