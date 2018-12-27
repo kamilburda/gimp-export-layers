@@ -107,49 +107,65 @@ def create(name, initial_operations=None):
   
   Parameters:
   * `name` - name of the `SettingGroup` instance.
-  * `type` - `"procedure"` or `"constraint"`, see below for details.
   * `initial_operations` - list of dictionaries describing operations to be
     added by default. Calling `clear` will reset the operations returned by this
     function to the initial operations. By default, no initial operations are
     added.
   
   The resulting `SettingGroup` instance contains the following subgroups:
-  * `"added"` - contains operations added via `add`.
-  * `"_added_data"` - operations stored as dictionaries, used when loading or
+  * `"added"` - Contains operations added via `add` or created in this function
+    via `initial_operations` dictionary.
+  * `"_added_data"` - Operations stored as dictionaries, used when loading or
     saving operations persistently. As indicated by the leading underscore, this
     subgroup is only for internal use and should not be modified outside
     `operations`.
-  * `"_added_data_values"` - values of operations stored as dictionaries, used
+  * `"_added_data_values"` - Values of operations stored as dictionaries, used
     when loading or saving operations persistently. As indicated by the leading
     underscore, this subgroup is only for internal use and should not be
     modified outside `operations`.
   
-  Each dictionary in `initial_operations` can contain the following fields:
-  * `"name"` - name of the operation.
-  * `"type"` - see below for details.
-  * `"function"` - the function to execute.
-  * `"arguments"` - arguments to `"function"` as a list of dictionaries defining
-    settings. Each dictionary must contain mandatory attributes and can contain
-    optional attributes as stated in `SettingGroup.add`.
-  * `"enabled"` - whether the operation should be executed or not.
-  * `"display_name"` - the display name (human-readable name) of the operation
-  * `"operation_group"` - list of groups the operation belongs to; used in
-    `pgoperations.OperationExecutor` and `exportlayers.LayerExporter`
+  Each created operation in the returned group is a nested `SettingGroup`. Each
+  operation contains the following settings or subgroups:
+  * `"name"` - Name of the operation.
+  * `"function"` - The function to execute.
+  * `"arguments"` - Arguments to `"function"` as a `SettingGroup` containing
+    arguments as separate `Setting` instances.
+  * `"enabled"` - Whether the operation should be executed or not.
+  * `"display_name"` - The display name (human-readable name) of the operation.
+  * `"operation_group"` - List of groups the operation belongs to, used in
+    `pgoperations.OperationExecutor` and `exportlayers.LayerExporter`.
   
-  Each created operation in the returned group is a nested `SettingGroup`.
-  `"arguments"` group contains arguments as separate `Setting` instances.
+  Each dictionary in `initial_operations` may contain the following fields:
+  * `"name"` - This field is required.
+  * `"type"` - Operation type. See below for details.
+  * `"function"` - The function to execute.
+  * `"arguments"` - Specified as list of dictionaries defining settings. Each
+    dictionary must contain mandatory attributes and can contain optional
+    attributes as stated in `SettingGroup.add`.
+  * `"enabled"`
+  * `"display_name"`
+  * `"operation_group"`
+  
+  Custom fields are accepted as well. For each field, a separate setting is
+  created, using the field name as the setting name.
+  
+  Depending on the specified `"type"`, the dictionary may contain additional
+  fields and `create` may generate additional settings.
   
   Possible values for `"type"`:
-  * `"procedure"` (default) - represents a procedure. `"operation_group"`
+  * `"procedure"` (default) - Represents a procedure. `"operation_group"`
     defaults to `DEFAULT_PROCEDURES_GROUP` if not defined.
-  * `"constraint"` - represents a constraint. `"operation_group"` defaults to
-    `DEFAULT_CONSTRAINTS_GROUP` if not defined. Additional allowed fields for
-    `"constraint"` include:
-      * `subfilter` - the name of a subfilter for an `ObjectFilter` instance
-        where constraints should be added. By default, `subfilter` is `None` (no
-        subfilter is assumed).
+  * `"constraint"` - Represents a constraint. `"operation_group"` defaults to
+    `DEFAULT_CONSTRAINTS_GROUP` if not defined.
   
-  Other values for `"type"` raise `ValueError`.
+  Additional allowed fields for type `"constraint"` include:
+  * `subfilter` - The name of a subfilter for an `ObjectFilter` instance
+    where constraints should be added. By default, `subfilter` is `None` (no
+    subfilter is assumed).
+  
+  Raises:
+  * `ValueError` - invalid `"type"` or missing required fields in
+    `initial_operations`.
   """
   operations = pgsettinggroup.SettingGroup(
     name=name,
@@ -377,7 +393,7 @@ def add(operations, operation_dict_or_function):
   Add an operation to the `operations` setting group.
   
   `operation_dict_or_function` can be one of the following:
-  * a dictionary - see `create` for more information.
+  * a dictionary - see `create` for required and accepted fields.
   * a PDB procedure.
   
   Objects of other types passed to `operation_dict_or_function` raise
@@ -670,7 +686,7 @@ def walk(operations, operation_type_or_setting_name="operation"):
   * `"procedure"` - the entire setting group if the group is a procedure
   * `"constraint"` - the entire setting group if the group is a constraint
   
-  For allowed values for names of settings or subgroups, see `create`.
+  For the list of possible names of settings and subgroups, see `create`.
   
   If `operation_type_or_setting_name` is not an operation type nor a
   setting/subgroup name, return an empty list.
