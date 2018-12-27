@@ -273,7 +273,7 @@ def _create_procedure(
   
   operation = pgsettinggroup.SettingGroup(
     name,
-    tags=["procedure"],
+    tags=["operation", "procedure"],
     setting_attributes={
       "pdb_type": None,
       "setting_sources": None,
@@ -344,6 +344,7 @@ def _create_constraint(name, function, subfilter=None, **create_operation_kwargs
   
   constraint = _create_procedure(name, function, **create_operation_kwargs)
   
+  constraint.tags.remove("procedure")
   constraint.tags.add("constraint")
   
   constraint.add([

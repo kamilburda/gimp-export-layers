@@ -129,21 +129,21 @@ class TestCreateOperations(unittest.TestCase):
      "procedures",
      test_procedures,
      "autocrop_background",
-     ["procedure"],
+     ["operation", "procedure"],
      {"operation_groups": [operations.DEFAULT_PROCEDURES_GROUP]}),
     
     ("procedure_with_custom_group",
      "procedures",
      test_procedures,
      "autocrop",
-     ["procedure"],
+     ["operation", "procedure"],
      {"operation_groups": ["basic"]}),
     
     ("constraint_with_default_subfilter",
      "constraints",
      test_constraints,
      "only_visible_layers",
-     ["procedure", "constraint"],
+     ["operation", "constraint"],
      {
        "operation_groups": [operations.DEFAULT_CONSTRAINTS_GROUP],
        "subfilter": None
@@ -153,7 +153,7 @@ class TestCreateOperations(unittest.TestCase):
      "constraints",
      test_constraints,
      "include_layers",
-     ["procedure", "constraint"],
+     ["operation", "constraint"],
      {
        "operation_groups": [operations.DEFAULT_CONSTRAINTS_GROUP],
        "subfilter": "layer_types",
@@ -431,6 +431,14 @@ class TestWalkOperations(unittest.TestCase):
   
   _walk_parameters = [
     ("operations",
+     "operation",
+     ["autocrop",
+      "autocrop_background",
+      "autocrop_foreground",
+      "only_visible_layers",
+      "include_layers"]),
+    
+    ("procedures",
      "procedure",
      ["autocrop",
       "autocrop_background",
@@ -438,13 +446,16 @@ class TestWalkOperations(unittest.TestCase):
     
     ("constraints",
      "constraint",
-     []),
+     ["only_visible_layers",
+      "include_layers"]),
     
     ("enabled",
      "enabled",
      ["autocrop/enabled",
       "autocrop_background/enabled",
-      "autocrop_foreground/enabled"]),
+      "autocrop_foreground/enabled",
+      "only_visible_layers/enabled",
+      "include_layers/enabled"]),
     
     ("nonexistent_setting",
      "nonexistent_setting",
@@ -453,41 +464,45 @@ class TestWalkOperations(unittest.TestCase):
   
   def setUp(self):
     self.test_procedures = get_operation_data(test_procedures)
-    self.procedures = operations.create("procedures")
+    self.test_constraints = get_operation_data(test_constraints)
+    self.operations = operations.create("operations")
   
   @parameterized.parameterized.expand(_walk_parameters)
   def test_walk_added(
-        self, test_case_name_suffix, setting_name, expected_setting_paths):
+        self, test_case_name_suffix, type_or_setting_name, expected_setting_paths):
     for operation_dict in self.test_procedures.values():
-      operations.add(self.procedures, operation_dict)
+      operations.add(self.operations, operation_dict)
+    
+    for operation_dict in self.test_constraints.values():
+      operations.add(self.operations, operation_dict)
     
     self.assertListEqual(
-      list(operations.walk(self.procedures, setting_name=setting_name)),
-      [self.procedures["added/" + path] for path in expected_setting_paths])
+      list(operations.walk(self.operations, type_or_setting_name)),
+      [self.operations["added/" + path] for path in expected_setting_paths])
   
   @parameterized.parameterized.expand([
-    ("operations",
+    ("procedures_reorder_first",
      "procedure",
      [("autocrop", 1)],
      ["autocrop_background",
       "autocrop",
       "autocrop_foreground"]),
     
-    ("operations",
+    ("procedures_reorder_last",
      "procedure",
      [("autocrop_foreground", 1)],
      ["autocrop",
       "autocrop_foreground",
       "autocrop_background"]),
     
-    ("enabled",
+    ("enabled_reorder_first",
      "enabled",
      [("autocrop", 1)],
      ["autocrop_background/enabled",
       "autocrop/enabled",
       "autocrop_foreground/enabled"]),
     
-    ("enabled",
+    ("enabled_reorder_last",
      "enabled",
      [("autocrop_foreground", 1)],
      ["autocrop/enabled",
@@ -497,18 +512,18 @@ class TestWalkOperations(unittest.TestCase):
   def test_walk_added_after_reordering(
         self,
         test_case_name_suffix,
-        setting_name,
+        type_or_setting_name,
         operations_to_reorder,
         expected_setting_paths):
     for operation_dict in self.test_procedures.values():
-      operations.add(self.procedures, operation_dict)
+      operations.add(self.operations, operation_dict)
     
     for operation_name, new_position in operations_to_reorder:
-      operations.reorder(self.procedures, operation_name, new_position)
+      operations.reorder(self.operations, operation_name, new_position)
     
     self.assertListEqual(
-      list(operations.walk(self.procedures, setting_name=setting_name)),
-      [self.procedures["added/" + path] for path in expected_setting_paths])
+      list(operations.walk(self.operations, type_or_setting_name)),
+      [self.operations["added/" + path] for path in expected_setting_paths])
 
 
 @mock.patch(
