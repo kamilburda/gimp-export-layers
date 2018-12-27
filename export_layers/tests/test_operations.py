@@ -499,6 +499,19 @@ class TestWalkOperations(unittest.TestCase):
       list(operations.walk(self.operations, operation_type, setting_name)),
       [self.operations["added/" + path] for path in expected_setting_paths])
   
+  def test_walk_added_with_same_setting_name_as_operation_type(self):
+    for operation_dict in self.test_procedures.values():
+      operation_dict["procedure"] = "value"
+      operations.add(self.operations, operation_dict)
+    
+    self.assertListEqual(
+      list(operations.walk(self.operations, "procedure", "procedure")),
+      [self.operations["added/" + path]
+       for path in [
+         "autocrop/procedure",
+         "autocrop_background/procedure",
+         "autocrop_foreground/procedure"]])
+  
   @parameterized.parameterized.expand([
     ("reorder_first",
      [("autocrop", 1)],
