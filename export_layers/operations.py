@@ -146,9 +146,6 @@ def create(name, initial_operations=None):
   * `"display_name"`
   * `"operation_group"`
   
-  Custom fields are accepted as well. For each field, a separate setting is
-  created, using the field name as the setting name.
-  
   Depending on the specified `"type"`, the dictionary may contain additional
   fields and `create` may generate additional settings.
   
@@ -159,9 +156,12 @@ def create(name, initial_operations=None):
     `DEFAULT_CONSTRAINTS_GROUP` if not defined.
   
   Additional allowed fields for type `"constraint"` include:
-  * `subfilter` - The name of a subfilter for an `ObjectFilter` instance
-    where constraints should be added. By default, `subfilter` is `None` (no
+  * `"subfilter"` - The name of a subfilter for an `ObjectFilter` instance
+    where constraints should be added. By default, `"subfilter"` is `None` (no
     subfilter is assumed).
+  
+  Custom fields are accepted as well. For each field, a separate setting is
+  created, using the field name as the setting name.
   
   Raises:
   * `ValueError` - invalid `"type"` or missing required fields in

@@ -200,7 +200,6 @@ class TestCreateOperations(unittest.TestCase):
   
   @parameterized.parameterized.expand([
     ("missing_name", "name"),
-    ("missing_function", "function"),
   ])
   def test_create_missing_mandatory_fields_raises_error(
         self, test_case_name_suffix, missing_name):
@@ -441,7 +440,12 @@ class TestManageOperations(unittest.TestCase):
 
 class TestWalkOperations(unittest.TestCase):
   
-  _walk_parameters = [
+  def setUp(self):
+    self.test_procedures = get_operation_data(test_procedures)
+    self.test_constraints = get_operation_data(test_constraints)
+    self.operations = operations.create("operations")
+  
+  @parameterized.parameterized.expand([
     ("operations",
      "operation",
      ["autocrop",
@@ -472,14 +476,7 @@ class TestWalkOperations(unittest.TestCase):
     ("nonexistent_setting",
      "nonexistent_setting",
      []),
-  ]
-  
-  def setUp(self):
-    self.test_procedures = get_operation_data(test_procedures)
-    self.test_constraints = get_operation_data(test_constraints)
-    self.operations = operations.create("operations")
-  
-  @parameterized.parameterized.expand(_walk_parameters)
+  ])
   def test_walk_added(
         self, test_case_name_suffix, type_or_setting_name, expected_setting_paths):
     for operation_dict in self.test_procedures.values():
