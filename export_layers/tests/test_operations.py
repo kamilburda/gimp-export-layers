@@ -197,6 +197,18 @@ class TestCreateOperations(unittest.TestCase):
     
     with self.assertRaises(ValueError):
       operations.create("procedures", [initial_operation_dict])
+  
+  @parameterized.parameterized.expand([
+    ("missing_name", "name"),
+    ("missing_function", "function"),
+  ])
+  def test_create_missing_mandatory_fields_raises_error(
+        self, test_case_name_suffix, missing_name):
+    initial_operation_dict = get_operation_data(test_procedures)["autocrop"]
+    del initial_operation_dict[missing_name]
+    
+    with self.assertRaises(ValueError):
+      operations.create("procedures", [initial_operation_dict])
 
 
 class TestManageOperations(unittest.TestCase):

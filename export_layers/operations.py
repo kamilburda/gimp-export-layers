@@ -97,6 +97,9 @@ BUILTIN_TAGS = {
 DEFAULT_PROCEDURES_GROUP = "default_procedures"
 DEFAULT_CONSTRAINTS_GROUP = "default_constraints"
 
+_DEFAULT_OPERATION_TYPE = "procedure"
+_REQUIRED_OPERATION_FIELDS = ["name", "function"]
+
 
 def create(name, initial_operations=None):
   """
@@ -232,12 +235,16 @@ def _create_operations_from_added_data(operations):
 
 
 def _create_operation_by_type(**kwargs):
-  type_ = kwargs.pop("type", "procedure")
+  type_ = kwargs.pop("type", _DEFAULT_OPERATION_TYPE)
   
   if type_ not in _OPERATION_TYPES_AND_FUNCTIONS:
     raise ValueError(
       "invalid type '{}'; valid values: {}".format(
         type_, list(_OPERATION_TYPES_AND_FUNCTIONS)))
+  
+  for required_field in _REQUIRED_OPERATION_FIELDS:
+    if required_field not in kwargs:
+      raise ValueError("missing required field: '{}'".format(required_field))
   
   return _OPERATION_TYPES_AND_FUNCTIONS[type_](**kwargs)
 
