@@ -358,6 +358,10 @@ def _create_procedure(
     _set_display_name_for_enabled_gui,
     operation["display_name"])
   
+  if operation.get_value("is_pdb_procedure", True):
+    _connect_events_to_sync_array_and_array_length_arguments(operation)
+    _hide_gui_for_run_mode_and_array_length_arguments(operation)
+  
   return operation
 
 
@@ -380,6 +384,46 @@ def _create_constraint(name, function, subfilter=None, **create_operation_kwargs
   ])
   
   return constraint
+
+
+def _connect_events_to_sync_array_and_array_length_arguments(operation):
+  
+  def _increment_array_length(
+        array_setting, insertion_index, value, array_length_setting):
+    array_length_setting.set_value(array_length_setting.value + 1)
+  
+  def _decrement_array_length(
+        array_setting, insertion_index, array_length_setting):
+    array_length_setting.set_value(array_length_setting.value - 1)
+  
+  operation_arguments_as_list = [setting for setting in operation["arguments"]]
+  
+  for index in _get_array_length_setting_indexes(operation["arguments"]):
+    try:
+      array_setting = operation_arguments_as_list[index + 1]
+    except IndexError:
+      continue
+    
+    array_length_setting = operation_arguments_as_list[index]
+    array_setting.connect_event(
+      "after-add-element", _increment_array_length, array_length_setting)
+    array_setting.connect_event(
+      "before-delete-element", _decrement_array_length, array_length_setting)
+
+
+def _hide_gui_for_run_mode_and_array_length_arguments(operation):
+  first_argument = next(iter(operation["arguments"]), None)
+  if first_argument is not None and first_argument.display_name == "run-mode":
+    operation["indexes_of_arguments_to_show_hide"].value[0] = False
+  
+  for index in _get_array_length_setting_indexes(operation["arguments"]):
+    operation["indexes_of_arguments_to_show_hide"].value[index] = False
+
+
+def _get_array_length_setting_indexes(operation_arguments):
+  return [
+    index - 1 for index, setting in enumerate(operation_arguments)
+    if isinstance(setting, pgsetting.ArraySetting)]
 
 
 _OPERATION_TYPES_AND_FUNCTIONS = {
@@ -419,10 +463,6 @@ def add(operations, operation_dict_or_function):
   _uniquify_name_and_display_name(operations, operation_dict)
   
   operation = _create_operation_by_type(**operation_dict)
-  
-  if operation.get_value("is_pdb_procedure", True):
-    _connect_events_to_sync_array_and_array_length_arguments(operation)
-    _hide_gui_for_run_mode_and_array_length_arguments(operation)
   
   operations["added"].add([operation])
   operations["_added_data"].value.append(dict(operation_dict))
@@ -500,46 +540,6 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
     operation_dict["arguments"].append(arguments_dict)
   
   return operation_dict
-
-
-def _connect_events_to_sync_array_and_array_length_arguments(operation):
-  
-  def _increment_array_length(
-        array_setting, insertion_index, value, array_length_setting):
-    array_length_setting.set_value(array_length_setting.value + 1)
-  
-  def _decrement_array_length(
-        array_setting, insertion_index, array_length_setting):
-    array_length_setting.set_value(array_length_setting.value - 1)
-  
-  operation_arguments_as_list = [setting for setting in operation["arguments"]]
-  
-  for index in _get_array_length_setting_indexes(operation["arguments"]):
-    try:
-      array_setting = operation_arguments_as_list[index + 1]
-    except IndexError:
-      continue
-    
-    array_length_setting = operation_arguments_as_list[index]
-    array_setting.connect_event(
-      "after-add-element", _increment_array_length, array_length_setting)
-    array_setting.connect_event(
-      "before-delete-element", _decrement_array_length, array_length_setting)
-
-
-def _hide_gui_for_run_mode_and_array_length_arguments(operation):
-  first_argument = next(iter(operation["arguments"]), None)
-  if first_argument is not None and first_argument.display_name == "run-mode":
-    operation["indexes_of_arguments_to_show_hide"].value[0] = False
-  
-  for index in _get_array_length_setting_indexes(operation["arguments"]):
-    operation["indexes_of_arguments_to_show_hide"].value[index] = False
-
-
-def _get_array_length_setting_indexes(operation_arguments):
-  return [
-    index - 1 for index, setting in enumerate(operation_arguments)
-    if isinstance(setting, pgsetting.ArraySetting)]
 
 
 def _return_true():
