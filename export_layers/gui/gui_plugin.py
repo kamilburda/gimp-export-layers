@@ -688,50 +688,51 @@ class ExportLayersGui(object):
     self._box_procedures = self._create_operation_box(
       self._settings["main/procedures"],
       builtin_procedures.BUILTIN_PROCEDURES,
-      _("Add _Procedure..."))
+      _("Add _Procedure..."),
+      label_add_custom_operation=_("Add Custom Procedure..."))
     
     self._box_constraints = self._create_operation_box(
       self._settings["main/constraints"],
       builtin_constraints.BUILTIN_CONSTRAINTS,
       _("Add _Constraint..."),
-      allow_custom_pdb_procedures=False)
+      allow_custom_operations=False)
   
   def _create_operation_box(
         self,
-        operations_group,
-        builtin_procedures_list,
+        operations_,
+        builtin_operations,
         label_add_operation,
-        allow_custom_pdb_procedures=True):
+        allow_custom_operations=True,
+        label_add_custom_operation=None):
     operation_box = gui_operations.OperationBox(
-      operations_group,
-      builtin_procedures_list,
+      operations_,
+      builtin_operations,
       label_add_operation,
-      allow_custom_pdb_procedures=allow_custom_pdb_procedures)
+      allow_custom_operations=allow_custom_operations,
+      label_add_custom_operation=label_add_custom_operation)
     
-    self._add_gui_to_already_added_operations(operation_box, operations_group)
+    self._add_gui_to_already_added_operations(operation_box, operations_)
     
     operation_box.on_add_item = (
-      lambda operations_group, operation_dict_or_function: operations.add(
-        operations_group, operation_dict_or_function))
+      lambda operations_, operation_dict_or_function: operations.add(
+        operations_, operation_dict_or_function))
     
     operation_box.on_reorder_item = (
-      lambda operations_group, operation_name, new_position: operations.reorder(
-        operations_group, operation_name, new_position))
+      lambda operations_, operation_name, new_position: operations.reorder(
+        operations_, operation_name, new_position))
     
     operation_box.on_remove_item = (
-      lambda operations_group, operation_name: operations.remove(
-        operations_group, operation_name))
+      lambda operations_, operation_name: operations.remove(operations_, operation_name))
     
     return operation_box
   
-  def _add_gui_to_already_added_operations(self, operation_box, operations_group):
+  def _add_gui_to_already_added_operations(self, operation_box, operations_):
     orig_on_add_item = operation_box.on_add_item
     
     operation_box.on_add_item = (
-      lambda operations_group, operation_name: (
-        operations_group["added"][operation_name]))
+      lambda operations_, operation_name: (operations_["added"][operation_name]))
     
-    for operation in operations.walk(operations_group):
+    for operation in operations.walk(operations_):
       operation_box.add_item(operation.name)
     
     operation_box.on_add_item = orig_on_add_item

@@ -18,8 +18,8 @@
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-This module defines the means to graphically edit a list of operations executed
-in the plug-in.
+This module defines the means to interactively edit a list of operations
+executed in the plug-in.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -52,18 +52,20 @@ class OperationBox(pggui.ItemBox):
   def __init__(
         self,
         operations_group=None,
-        builtin_procedures=None,
+        builtin_operations=None,
         label_add_text=None,
-        allow_custom_pdb_procedures=True,
+        allow_custom_operations=True,
+        label_add_custom_operation=None,
         item_spacing=pggui.ItemBox.ITEM_SPACING,
         *args,
         **kwargs):
     super().__init__(item_spacing=item_spacing, *args, **kwargs)
     
     self._operations = operations_group
-    self._builtin_procedures = builtin_procedures
+    self._builtin_operations = builtin_operations
     self._label_add_text = label_add_text
-    self._allow_custom_pdb_procedures = allow_custom_pdb_procedures
+    self._allow_custom_operations = allow_custom_operations
+    self._label_add_custom_operation = label_add_custom_operation
     
     self.on_add_item = pgutils.empty_func
     self.on_reorder_item = pgutils.empty_func
@@ -151,10 +153,10 @@ class OperationBox(pggui.ItemBox):
     self.on_remove_item(self._operations, item.operation.name)
   
   def _init_operations_menu_popup(self):
-    for operation_dict in self._builtin_procedures.values():
+    for operation_dict in self._builtin_operations.values():
       self._add_operation_to_menu_popup(operation_dict)
     
-    if self._allow_custom_pdb_procedures:
+    if self._allow_custom_operations:
       self._operations_menu.append(gtk.SeparatorMenuItem())
       self._add_add_custom_operation_to_menu_popup()
     
@@ -175,9 +177,7 @@ class OperationBox(pggui.ItemBox):
     self.add_item(operation_dict_or_function)
   
   def _add_add_custom_operation_to_menu_popup(self):
-    menu_item = gtk.MenuItem(
-      label=_("Add custom procedure..."),
-      use_underline=False)
+    menu_item = gtk.MenuItem(label=self._label_add_custom_operation, use_underline=False)
     menu_item.connect("activate", self._on_add_custom_operation_menu_item_activate)
     self._operations_menu.append(menu_item)
   
@@ -206,11 +206,11 @@ class OperationBox(pggui.ItemBox):
     if response_id == gtk.RESPONSE_OK:
       procedure_name = dialog.get_selected()
       if procedure_name:
-        procedure = pdb[procedure_name.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
+        pdb_procedure = pdb[procedure_name.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
         
         try:
           pdb_proc_operation_dict = operations.get_operation_dict_for_pdb_procedure(
-            procedure)
+            pdb_procedure)
         except operations.UnsupportedPdbProcedureError as e:
           pggui.display_error_message(
             title=pygimplib.config.PLUGIN_TITLE,
@@ -235,7 +235,7 @@ class OperationBox(pggui.ItemBox):
         item = self.add_item(pdb_proc_operation_dict)
         
         operation_edit_dialog = _OperationEditDialog(
-          procedure,
+          pdb_procedure,
           item.operation,
           title=None,
           role=pygimplib.config.PLUGIN_NAME)
@@ -262,7 +262,7 @@ class OperationBox(pggui.ItemBox):
     if item.operation.get_value("is_pdb_procedure", False) and not item.is_being_edited:
       item.is_being_edited = True
       
-      procedure = pdb[
+      pdb_procedure = pdb[
         item.operation["function"].value.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
       
       operation_values_before_dialog = {
@@ -270,7 +270,7 @@ class OperationBox(pggui.ItemBox):
         for setting in item.operation.walk()}
       
       operation_edit_dialog = _OperationEditDialog(
-        procedure,
+        pdb_procedure,
         item.operation,
         title=None,
         role=pygimplib.config.PLUGIN_NAME)
@@ -327,7 +327,7 @@ class _OperationEditDialog(gimpui.Dialog):
   
   _PLACEHOLDER_WIDGET_HORIZONTAL_SPACING_BETWEEN_ELEMENTS = 5
   
-  def __init__(self, procedure, operation, *args, **kwargs):
+  def __init__(self, pdb_procedure, operation, *args, **kwargs):
     super().__init__(*args, **kwargs)
     
     self.set_transient()
@@ -354,8 +354,8 @@ class _OperationEditDialog(gimpui.Dialog):
     self._label_procedure_short_description = gtk.Label()
     self._label_procedure_short_description.set_line_wrap(True)
     self._label_procedure_short_description.set_alignment(0.0, 0.5)
-    self._label_procedure_short_description.set_label(procedure.proc_blurb)
-    self._label_procedure_short_description.set_tooltip_text(procedure.proc_help)
+    self._label_procedure_short_description.set_label(pdb_procedure.proc_blurb)
+    self._label_procedure_short_description.set_tooltip_text(pdb_procedure.proc_help)
     
     self._table_operation_arguments = gtk.Table(homogeneous=False)
     self._table_operation_arguments.set_row_spacings(self._TABLE_ROW_SPACING)
@@ -373,21 +373,21 @@ class _OperationEditDialog(gimpui.Dialog):
     
     self.vbox.pack_start(self._vbox, expand=False, fill=False)
     
-    self._set_arguments(procedure, operation)
+    self._set_arguments(pdb_procedure, operation)
     
     self.set_focus(self._button_ok)
     
     self._button_reset.connect("clicked", self._on_button_reset_clicked, operation)
     self.connect("response", self._on_operation_edit_dialog_response)
   
-  def _set_arguments(self, procedure, operation):
+  def _set_arguments(self, pdb_procedure, operation):
     for i, setting in enumerate(operation["arguments"]):
       if not operation["indexes_of_arguments_to_show_hide"].value[i]:
         continue
       
       label = gtk.Label(setting.display_name)
       label.set_alignment(0.0, 0.5)
-      label.set_tooltip_text(procedure.params[i][2])
+      label.set_tooltip_text(pdb_procedure.params[i][2])
       
       self._table_operation_arguments.attach(label, 0, 1, i, i + 1)
       
