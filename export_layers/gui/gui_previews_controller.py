@@ -77,7 +77,7 @@ class ExportPreviewsController(object):
         "value-changed", self._update_previews_on_setting_change)
   
   def _connect_already_added_operations(self, operations_group):
-    for setting in operations.walk(operations_group, "enabled"):
+    for setting in operations.walk(operations_group, setting_name="enabled"):
       setting.connect_event("value-changed", self._update_previews_on_setting_change)
   
   def _prepare_to_connect_subsequent_operations(self, operations_group):

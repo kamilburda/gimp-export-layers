@@ -446,26 +446,24 @@ class TestWalkOperations(unittest.TestCase):
     self.operations = operations.create("operations")
   
   @parameterized.parameterized.expand([
-    ("operations",
-     "operation",
+    ("all_types_entire_operations",
+     None,
+     None,
      ["autocrop",
       "autocrop_background",
       "autocrop_foreground",
       "only_visible_layers",
       "include_layers"]),
     
-    ("procedures",
+    ("specific_type_entire_operations",
      "procedure",
+     None,
      ["autocrop",
       "autocrop_background",
       "autocrop_foreground"]),
     
-    ("constraints",
-     "constraint",
-     ["only_visible_layers",
-      "include_layers"]),
-    
-    ("enabled",
+    ("all_types_specific_setting",
+     None,
      "enabled",
      ["autocrop/enabled",
       "autocrop_background/enabled",
@@ -473,12 +471,24 @@ class TestWalkOperations(unittest.TestCase):
       "only_visible_layers/enabled",
       "include_layers/enabled"]),
     
+    ("specific_types_specific_setting",
+     "procedure",
+     "enabled",
+     ["autocrop/enabled",
+      "autocrop_background/enabled",
+      "autocrop_foreground/enabled"]),
+    
     ("nonexistent_setting",
+     None,
      "nonexistent_setting",
      []),
   ])
   def test_walk_added(
-        self, test_case_name_suffix, type_or_setting_name, expected_setting_paths):
+        self,
+        test_case_name_suffix,
+        operation_type,
+        setting_name,
+        expected_setting_paths):
     for operation_dict in self.test_procedures.values():
       operations.add(self.operations, operation_dict)
     
@@ -486,42 +496,31 @@ class TestWalkOperations(unittest.TestCase):
       operations.add(self.operations, operation_dict)
     
     self.assertListEqual(
-      list(operations.walk(self.operations, type_or_setting_name)),
+      list(operations.walk(self.operations, operation_type, setting_name)),
       [self.operations["added/" + path] for path in expected_setting_paths])
   
   @parameterized.parameterized.expand([
-    ("procedures_reorder_first",
-     "procedure",
+    ("reorder_first",
      [("autocrop", 1)],
      ["autocrop_background",
       "autocrop",
       "autocrop_foreground"]),
     
-    ("procedures_reorder_last",
-     "procedure",
+    ("reorder_middle",
+     [("autocrop_background", 0)],
+     ["autocrop_background",
+      "autocrop",
+      "autocrop_foreground"]),
+    
+    ("reorder_last",
      [("autocrop_foreground", 1)],
      ["autocrop",
       "autocrop_foreground",
       "autocrop_background"]),
-    
-    ("enabled_reorder_first",
-     "enabled",
-     [("autocrop", 1)],
-     ["autocrop_background/enabled",
-      "autocrop/enabled",
-      "autocrop_foreground/enabled"]),
-    
-    ("enabled_reorder_last",
-     "enabled",
-     [("autocrop_foreground", 1)],
-     ["autocrop/enabled",
-      "autocrop_foreground/enabled",
-      "autocrop_background/enabled"]),
   ])
   def test_walk_added_after_reordering(
         self,
         test_case_name_suffix,
-        type_or_setting_name,
         operations_to_reorder,
         expected_setting_paths):
     for operation_dict in self.test_procedures.values():
@@ -531,7 +530,7 @@ class TestWalkOperations(unittest.TestCase):
       operations.reorder(self.operations, operation_name, new_position)
     
     self.assertListEqual(
-      list(operations.walk(self.operations, type_or_setting_name)),
+      list(operations.walk(self.operations)),
       [self.operations["added/" + path] for path in expected_setting_paths])
 
 

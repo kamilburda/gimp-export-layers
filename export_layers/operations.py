@@ -149,7 +149,7 @@ def create(name, initial_operations=None):
   Depending on the specified `"type"`, the dictionary may contain additional
   fields and `create` may generate additional settings.
   
-  Possible values for `"type"`:
+  Allowed values for `"type"`:
   * `"procedure"` (default) - Represents a procedure. `"operation_group"`
     defaults to `DEFAULT_PROCEDURES_GROUP` if not defined.
   * `"constraint"` - Represents a constraint. `"operation_group"` defaults to
@@ -673,48 +673,50 @@ def _clear(operations):
   operations["_added_data_values"].reset()
 
 
-def walk(operations, operation_type_or_setting_name="operation"):
+def walk(operations, operation_type=None, setting_name=None):
   """
   Walk (iterate over) a setting group containing operations.
   
-  `operation_type_or_setting_name` determines whether to iterate over operations
-  or specific underlying settings or subgroups of each operation.
+  The value of `operation_type` determines what types of operations to iterate
+  over. If `operation_type` is `None`, iterate over all operations. For allowed
+  operation types, see `create`. Invalid values for `operation_type` raise
+  `ValueError`.
   
-  Allowed values for operation types:
-  * `"operation"` - the entire setting group if the group is an operation of any
-    type (procedure or constraint)
-  * `"procedure"` - the entire setting group if the group is a procedure
-  * `"constraint"` - the entire setting group if the group is a constraint
+  If `setting_name` is `None`, iterate over each setting group representing the
+  entire operation.
   
-  For the list of possible names of settings and subgroups, see `create`.
-  
-  If `operation_type_or_setting_name` is not an operation type nor a
-  setting/subgroup name, return an empty list.
+  If `setting_name` is not `None`, iterate over each setting or subgroup inside
+  each operation. For example, `"enabled"` yields the `"enabled"` setting for
+  each operation. For the list of possible names of settings and subgroups, see
+  `create`.
   """
-  operation_types = list(_OPERATION_TYPES_AND_FUNCTIONS.keys()) + ["operation"]
+  operation_types = list(_OPERATION_TYPES_AND_FUNCTIONS)
   
-  if operation_type_or_setting_name in operation_types:
-    def has_tag(setting):
-      return operation_type_or_setting_name in setting.tags
-    
-    include_setting_func = has_tag
-  else:
-    def matches_setting_name(setting):
-      return operation_type_or_setting_name == setting.name
-    
-    include_setting_func = matches_setting_name
+  if operation_type is not None and operation_type not in operation_types:
+    raise ValueError("invalid operation type '{}'".format(operation_type))
+  
+  def has_matching_type(setting):
+    if operation_type is None:
+      return any(type_ in setting.tags for type_ in operation_types)
+    else:
+      return operation_type in setting.tags
   
   listed_operations = {
-    (setting.name if operation_type_or_setting_name in operation_types
-     else setting.parent.name): setting
+    setting.name: setting
     for setting in operations["added"].walk(
-      include_setting_func=include_setting_func,
+      include_setting_func=has_matching_type,
       include_groups=True,
       include_if_parent_skipped=True)}
   
   for operation_dict in operations["_added_data"].value:
     if operation_dict["name"] in listed_operations:
-      yield listed_operations[operation_dict["name"]]
+      operation = listed_operations[operation_dict["name"]]
+      
+      if setting_name is None:
+        yield operation
+      else:
+        if setting_name in operation:
+          yield operation[setting_name]
 
 
 class UnsupportedPdbProcedureError(Exception):
