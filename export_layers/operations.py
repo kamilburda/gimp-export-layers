@@ -650,31 +650,39 @@ def _clear(operations):
   operations["_added_data_values"].reset()
 
 
-def walk(operations, setting_name="procedure"):
+def walk(operations, operation_type_or_setting_name="operation"):
   """
   Walk (iterate over) a setting group containing operations.
   
-  `setting_name` specifies which underlying setting or subgroup of each
-  operation is returned. By default, the setting group representing the entire
-  operation is returned. For possible values, see `create`. Additional values
-  include:
-  * `"procedure"` - the setting group if the group is an operation of any type
-    (procedure or constraint)
-  * `"constraint"` - the setting group if the group is a constraint
+  `operation_type_or_setting_name` determines whether to iterate over operations
+  or specific underlying settings or subgroups of each operation.
+  
+  Allowed values for operation types:
+  * `"operation"` - the entire setting group if the group is an operation of any
+    type (procedure or constraint)
+  * `"procedure"` - the entire setting group if the group is a procedure
+  * `"constraint"` - the entire setting group if the group is a constraint
+  
+  For allowed values for names of settings or subgroups, see `create`.
+  
+  If `operation_type_or_setting_name` is not an operation type nor a
+  setting/subgroup name, return an empty list.
   """
-  if setting_name in _OPERATION_TYPES_AND_FUNCTIONS:
+  operation_types = list(_OPERATION_TYPES_AND_FUNCTIONS.keys()) + ["operation"]
+  
+  if operation_type_or_setting_name in operation_types:
     def has_tag(setting):
-      return setting_name in setting.tags
+      return operation_type_or_setting_name in setting.tags
     
     include_setting_func = has_tag
   else:
     def matches_setting_name(setting):
-      return setting_name == setting.name
+      return operation_type_or_setting_name == setting.name
     
     include_setting_func = matches_setting_name
   
   listed_operations = {
-    (setting.name if setting_name in _OPERATION_TYPES_AND_FUNCTIONS
+    (setting.name if operation_type_or_setting_name in operation_types
      else setting.parent.name): setting
     for setting in operations["added"].walk(
       include_setting_func=include_setting_func,
@@ -682,9 +690,8 @@ def walk(operations, setting_name="procedure"):
       include_if_parent_skipped=True)}
   
   for operation_dict in operations["_added_data"].value:
-    operation_name = operation_dict["name"]
-    if operation_name in listed_operations:
-      yield listed_operations[operation_name]
+    if operation_dict["name"] in listed_operations:
+      yield listed_operations[operation_dict["name"]]
 
 
 class UnsupportedPdbProcedureError(Exception):
