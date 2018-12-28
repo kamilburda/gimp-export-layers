@@ -26,6 +26,8 @@ from future.builtins import *
 
 import collections
 
+from export_layers.pygimplib import pgsetting
+
 
 CONSTRAINTS_LAYER_TYPES_GROUP = "constraints_layer_types"
 
@@ -58,15 +60,15 @@ def has_matching_default_file_extension(layer_elem, layer_exporter):
   return layer_elem.get_file_extension() == layer_exporter.default_file_extension
 
 
-def has_tags(layer_elem, *tags):
+def has_tags(layer_elem, tags=None):
   if tags:
     return any(tag for tag in tags if tag in layer_elem.tags)
   else:
     return bool(layer_elem.tags)
 
 
-def has_no_tags(layer_elem, *tags):
-  return not has_tags(layer_elem, *tags)
+def has_no_tags(layer_elem, tags=None):
+  return not has_tags(layer_elem, tags)
 
 
 def is_layer_in_selected_layers(layer_elem, selected_layers):
@@ -102,12 +104,28 @@ _BUILTIN_CONSTRAINTS_LIST = [
     "name": "only_layers_without_tags",
     "type": "constraint",
     "function": has_no_tags,
+    "arguments": [
+      {
+        "type": pgsetting.SettingTypes.array,
+        "name": "tags",
+        "element_type": pgsetting.SettingTypes.string,
+        "default_value": (),
+      },
+    ],
     "display_name": _("Only layers without tags"),
   },
   {
     "name": "only_layers_with_tags",
     "type": "constraint",
     "function": has_tags,
+    "arguments": [
+      {
+        "type": pgsetting.SettingTypes.array,
+        "name": "tags",
+        "element_type": pgsetting.SettingTypes.string,
+        "default_value": (),
+      },
+    ],
     "display_name": _("Only layers with tags"),
   },
   {
