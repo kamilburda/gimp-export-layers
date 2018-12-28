@@ -602,6 +602,12 @@ class ArrayBoxPresenter(GtkSettingPresenter):
     
     super().__init__(*args, **kwargs)
   
+  def update_setting_value(self):
+    super().update_setting_value()
+    
+    for element_index in range(len(self._setting)):
+      self._setting[element_index].gui.update_setting_value()
+  
   def _connect_value_changed_event(self):
     super()._connect_value_changed_event()
     

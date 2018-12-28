@@ -979,6 +979,9 @@ class TestImageIDsAndDirpathsSetting(unittest.TestCase):
       self.image_ids_and_directories[image_id_to_test])
 
 
+#===============================================================================
+
+
 class TestCreateArraySetting(unittest.TestCase):
   
   def test_create(self):
