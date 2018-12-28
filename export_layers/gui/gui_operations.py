@@ -290,7 +290,9 @@ class OperationBox(pggui.ItemBox):
         self, dialog, response_id, item, operation_values_before_dialog):
     dialog.destroy()
     
-    if response_id != gtk.RESPONSE_OK:
+    if response_id == gtk.RESPONSE_OK:
+      item.operation["arguments"].apply_gui_values_to_settings()
+    else:
       item.operation.set_values(operation_values_before_dialog)
     
     item.is_being_edited = False
