@@ -111,6 +111,8 @@ class OperationBox(pggui.ItemBox):
     super().add_item(item)
     
     item.button_edit.connect("clicked", self._on_item_edit_button_clicked, item)
+    item.button_remove.connect(
+      "clicked", self._on_item_remove_button_clicked_remove_operation_edit_dialog, item)
     
     return item
   
@@ -259,32 +261,34 @@ class OperationBox(pggui.ItemBox):
       self.remove_item(item)
   
   def _on_item_edit_button_clicked(self, edit_button, item):
-    if not item.is_being_edited:
-      item.is_being_edited = True
-      
-      if item.operation.get_value("is_pdb_procedure", False):
-        pdb_procedure = pdb[
-          item.operation["function"].value.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
-      else:
-        pdb_procedure = None
-      
-      operation_values_before_dialog = {
-        setting.get_path(item.operation): setting.value
-        for setting in item.operation.walk()}
-      
-      operation_edit_dialog = _OperationEditDialog(
-        item.operation,
-        pdb_procedure,
-        title=None,
-        role=pygimplib.config.PLUGIN_NAME)
-      
-      operation_edit_dialog.connect(
-        "response",
-        self._on_operation_edit_dialog_for_existing_operation_response,
-        item,
-        operation_values_before_dialog)
-      
-      operation_edit_dialog.show_all()
+    if item.is_being_edited():
+      return
+    
+    if item.operation.get_value("is_pdb_procedure", False):
+      pdb_procedure = pdb[
+        item.operation["function"].value.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
+    else:
+      pdb_procedure = None
+    
+    operation_values_before_dialog = {
+      setting.get_path(item.operation): setting.value
+      for setting in item.operation.walk()}
+    
+    operation_edit_dialog = _OperationEditDialog(
+      item.operation,
+      pdb_procedure,
+      title=None,
+      role=pygimplib.config.PLUGIN_NAME)
+    
+    item.operation_edit_dialog = operation_edit_dialog
+    
+    operation_edit_dialog.connect(
+      "response",
+      self._on_operation_edit_dialog_for_existing_operation_response,
+      item,
+      operation_values_before_dialog)
+    
+    operation_edit_dialog.show_all()
   
   def _on_operation_edit_dialog_for_existing_operation_response(
         self, dialog, response_id, item, operation_values_before_dialog):
@@ -295,7 +299,12 @@ class OperationBox(pggui.ItemBox):
     else:
       item.operation.set_values(operation_values_before_dialog)
     
-    item.is_being_edited = False
+    item.operation_edit_dialog = None
+  
+  def _on_item_remove_button_clicked_remove_operation_edit_dialog(
+        self, button_remove, item):
+    if item.is_being_edited():
+      item.operation_edit_dialog.response(gtk.RESPONSE_CANCEL)
 
 
 class _OperationBoxItem(pggui.ItemBoxItem):
@@ -303,7 +312,7 @@ class _OperationBoxItem(pggui.ItemBoxItem):
   def __init__(self, operation, item_widget):
     super().__init__(item_widget)
     
-    self.is_being_edited = False
+    self.operation_edit_dialog = None
     
     self._operation = operation
     
@@ -317,6 +326,9 @@ class _OperationBoxItem(pggui.ItemBoxItem):
   @property
   def button_edit(self):
     return self._button_edit
+  
+  def is_being_edited(self):
+    return self.operation_edit_dialog is not None
 
 
 class _OperationEditDialog(gimpui.Dialog):
