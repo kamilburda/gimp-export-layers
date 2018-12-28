@@ -349,7 +349,7 @@ class _OperationEditDialog(gimpui.Dialog):
     
     self.set_transient()
     self.set_resizable(False)
-    self.set_title(_("Edit operation {}").format(operation["display_name"].value))
+    self.set_title(_("Edit Operation {}").format(operation["display_name"].value))
     
     self._button_ok = self.add_button(gtk.STOCK_OK, gtk.RESPONSE_OK)
     self._button_cancel = self.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
