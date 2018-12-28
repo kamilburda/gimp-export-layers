@@ -356,9 +356,6 @@ class ArrayBox(ItemBox):
     
     super().add_item(item)
     
-    self._items_allocations[item] = item.widget.get_allocation()
-    self._update_height(self._items_allocations[item].height + self._item_spacing)
-    
     item.widget.connect("size-allocate", self._on_item_widget_size_allocate, item)
     
     if index is None:
@@ -398,8 +395,9 @@ class ArrayBox(ItemBox):
     
     super().remove_item(item)
     
-    self._update_height(-(self._items_allocations[item].height + self._item_spacing))
-    del self._items_allocations[item]
+    if item in self._items_allocations:
+      self._update_height(-(self._items_allocations[item].height + self._item_spacing))
+      del self._items_allocations[item]
     
     self.on_remove_item(item_position)
     
@@ -413,6 +411,11 @@ class ArrayBox(ItemBox):
     self.on_remove_item = pgutils.empty_func
     
     self.clear()
+    
+    # This fixes an issue of items being allocated height of 1 when the array
+    # size was previously 0.
+    self.set_property("height-request", -1)
+    
     for index, value in enumerate(values):
       self.add_item(value, index)
     
@@ -470,11 +473,12 @@ class ArrayBox(ItemBox):
     self._locker.unlock("emit_size_spin_button_value_changed")
   
   def _on_item_widget_size_allocate(self, item_widget, allocation, item):
-    if self.max_width is not None:
+    if item in self._items_allocations:
       self._update_width(allocation.width - self._items_allocations[item].width)
-    
-    if self.max_height is not None:
       self._update_height(allocation.height - self._items_allocations[item].height)
+    else:
+      self._update_width(allocation.width)
+      self._update_height(allocation.height + self._item_spacing)
     
     self._items_allocations[item] = allocation
   
@@ -487,7 +491,6 @@ class ArrayBox(ItemBox):
         width_diff,
         self._items_total_width,
         self.max_width,
-        self.max_width <= 0,
         "width-request")
       
       self._items_total_width = self._items_total_width + width_diff
@@ -501,7 +504,6 @@ class ArrayBox(ItemBox):
         height_diff,
         self._items_total_height,
         self.max_height,
-        self.max_height <= 0,
         "height-request")
       
       self._items_total_height = self._items_total_height + height_diff
@@ -511,8 +513,12 @@ class ArrayBox(ItemBox):
         size_diff,
         total_size,
         max_visible_size,
-        is_max_visible_size_unlimited,
         dimension_request_property):
+    if max_visible_size is None:
+      is_max_visible_size_unlimited = True
+    else:
+      is_max_visible_size_unlimited = max_visible_size <= 0
+    
     if not is_max_visible_size_unlimited:
       visible_size = min(total_size, max_visible_size)
     else:
@@ -530,7 +536,8 @@ class ArrayBox(ItemBox):
     else:
       new_size = max_visible_size
     
-    self.set_property(dimension_request_property, new_size)
+    if max_visible_size is not None:
+      self.set_property(dimension_request_property, new_size)
   
   def _rename_item_names(self, start_index):
     for index, item in enumerate(self._items[start_index:]):
