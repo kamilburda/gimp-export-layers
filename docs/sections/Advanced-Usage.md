@@ -159,10 +159,6 @@ For example, if a layer has 50% opacity and its parent group also has 50% opacit
 Set the layer mode of each layer to "Normal".
 Among other uses, this may be necessary for layers with different modes that "vanish" if background or foreground is inserted.
 
-**Autocrop**
-
-Automatically crop each layer.
-
 **Autocrop background**
 
 Automatically crop the background formed by layers tagged with "Background".
