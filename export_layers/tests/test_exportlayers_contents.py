@@ -108,10 +108,6 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def test_default_settings(self):
     self.compare()
   
-  def test_ignore_layer_modes(self):
-    self.compare(
-      procedure_names=["ignore_layer_modes"])
-  
   def test_use_image_size(self):
     self.compare(
       {"use_image_size": True},

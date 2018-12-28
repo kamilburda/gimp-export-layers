@@ -154,11 +154,6 @@ This corresponds to how the layer is actually displayed in the image canvas.
 
 For example, if a layer has 50% opacity and its parent group also has 50% opacity, the resulting opacity of the exported layer will be 25%.
 
-**Ignore layer modes**
-
-Set the layer mode of each layer to "Normal".
-Among other uses, this may be necessary for layers with different modes that "vanish" if background or foreground is inserted.
-
 **Autocrop background**
 
 Automatically crop the background formed by layers tagged with "Background".

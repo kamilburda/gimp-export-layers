@@ -33,10 +33,6 @@ from export_layers.pygimplib import pgpdb
 from export_layers.pygimplib import pgsetting
 
 
-def ignore_layer_modes(image, layer, layer_exporter):
-  layer.mode = gimpenums.NORMAL_MODE
-
-
 def inherit_transparency_from_layer_groups(image, layer, layer_exporter):
   new_layer_opacity = layer_exporter.current_layer_elem.item.opacity / 100.0
   for parent_elem in layer_exporter.current_layer_elem.parents:
@@ -157,11 +153,6 @@ _BUILTIN_PROCEDURES_LIST = [
     "name": "inherit_transparency_from_layer_groups",
     "function": inherit_transparency_from_layer_groups,
     "display_name": _("Inherit transparency from layer groups"),
-  },
-  {
-    "name": "ignore_layer_modes",
-    "function": ignore_layer_modes,
-    "display_name": _("Ignore layer modes"),
   },
   {
     "name": "autocrop_background",

@@ -66,7 +66,7 @@ class TestLayerExporterInitialOperations(unittest.TestCase):
     
     operations.add(
       settings["main/procedures"],
-      builtin_procedures.BUILTIN_PROCEDURES["ignore_layer_modes"])
+      builtin_procedures.BUILTIN_PROCEDURES["insert_background_layers"])
     
     layer_exporter.add_procedure(
       pgutils.empty_func, [operations.DEFAULT_PROCEDURES_GROUP])

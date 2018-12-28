@@ -90,8 +90,6 @@ def take_screenshots(gui, dialog, settings):
   
   gui._box_procedures.add_item(
     builtin_procedures.BUILTIN_PROCEDURES["insert_background_layers"])
-  gui._box_procedures.add_item(
-    builtin_procedures.BUILTIN_PROCEDURES["ignore_layer_modes"])
   gui._box_constraints.add_item(
     builtin_constraints.BUILTIN_CONSTRAINTS["include_layers"])
   gui._box_constraints.add_item(
