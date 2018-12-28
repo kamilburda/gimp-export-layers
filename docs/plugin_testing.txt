@@ -1,43 +1,9 @@
-Testing criteria
-----------------
-
 Platforms
+---------
+
 * Windows
 * Ubuntu
-
-Plugins
-* Export Layers
-* Export Layers (repeat)
-
-Run modes
-* interactive
-* non-interactive
-* run-with-last-vals
-
-All file formats
-* first layer - display dialog in interactive
-* subsequent layers - use last values (with a few exceptions, where dialog must always be displayed)
-
-Settings
-* not all combinations, only those settings that relate to each other
-
-Setting persistence
-* no setting source
-* persistent source only
-* session-persistent source only
-* both setting sources
-
-Layer names and filenames
-* valid and invalid characters in filenames and directory names
-* Unicode characters
-
-Image types
-* RGB
-* RGBA
-* grayscale
-* indexed
-
-Unicode support
+* macOS
 
 
 Export Layers
@@ -54,24 +20,19 @@ Non-interactive
 * don't load settings
 * save settings to GIMP shelf after export
 
-
-import os
-image = gimp.image_list()[0]
-pdb.plug_in_export_layers(image, 'png', os.path.join(gimp.directory, "test_export_layers", "Test"), False, False, False, "", 0, run_mode=RUN_NONINTERACTIVE)
-
-
 Run-with-last-vals
 * load settings from GIMP shelf and config file
 * save settings to GIMP shelf after export
 
+Layer names and filenames
+* valid and invalid characters in filenames and directory names
+* Unicode characters
 
-import os
-image = gimp.image_list()[0]
-pdb.plug_in_export_layers(image, 'png', os.path.join(gimp.directory, "test_export_layers", "Test"), False, False, False, "", 0, run_mode=RUN_WITH_LAST_VALS)
-
-
-pdb.plug_in_export_layers_repeat(image)
-
+Image types
+* RGB
+* RGBA
+* grayscale
+* indexed
 
 
 Export Layers (repeat)
@@ -95,57 +56,56 @@ Run-with-last-vals
 Settings
 --------
 
-Output directory
-* root directory
-* non-root directory
-* directory with denied write permission
+Basic settings
+* Output directory
+  * root directory
+  * non-root directory
+  * directory with denied write permission
+* File extension
+  * all valid file extension
+  * invalid file extension - empty, non-empty
+  * first layer - display dialog (interactive run mode)
+  * subsequent layers - use last values (except file formats not supporting non-interactive run mode)
+* Layer groups as folders
+  * filenames and directories must be properly uniquified
+* Only visible layers
+  * visible layers with invisible parents must also be ignored
+* Use image size
+* Overwrite mode (non-interactive run mode only)
+  * make sure the settings uses the last overwrite mode
+  * by default - rename new files
 
-File format
-* all valid file formats
-* invalid file format - empty, non-empty
-* first layer - display dialog in interactive
-* subsequent layers - use last values (with a few exceptions, where dialog must always be displayed)
+Setting persistence
+* no setting source
+* persistent source only
+* session-persistent source only
+* both setting sources
 
-Layer groups as folders
-* filenames and directories must be properly uniquified
+Built-in operations
+* procedures
+* constraints
 
-Merge layer groups
+Custom operations
+* add
+* edit
+  * Reset
+  * Cancel
+* remove
 
-Create folders for empty layer groups
+Tagged layers in built-in operations
 
-Only visible layers
-* visible layers with invisible parents must also be ignored
+Name preview
+* "Layer groups as folders"
+* "Include..." constraints
+* tags
+  * assign tag to layer
+  * add tag
+  * remove tag
+* selected and not selected layers for the "Only layers selected in preview" constraint
 
-Autocrop
-
-Use image size
-
-Layer names in [square brackets] - Treat as background layers - Crop to layer
-* test these three settings with the PNG format since it supports the alpha channel, in which you can clearly see the differences in each setting combination
-* multiple background layers, in the same and in different places in the layer tree
-* layer group in [square brackets] - if Merge layer groups is enabled, it should also be treated as a background layer
-
-Overwrite mode (non-interactive run mode only)
-* make sure it uses the last overwrite mode
-* by default - rename_new
-
-File extensions in layer names
-* No special handling - Always strip
-* No special handling - Strip identical
-* No special handling - Never strip
-* Export only layers matching file format
-  * invalid file format - empty, non-empty
-* Use as file formats
-  * no or invalid file extension in layers -> file format must be used
-  * invalid file format - empty, non-empty
-
-Layer names in [square brackets]
-* square_bracketed_mode - Treat as normal layers
-* square_bracketed_mode - Ignore
-* square_bracketed_mode - Ignore other layers
-* square_bracketed_mode - Ignore other layers + Create folders for empty layer groups
-
-Ignore layer modes
+Image preview
+* properly scaled image and procedures applied on the image
+  * e.g. paintbrush coordinates must be made relative to the previewed image
 
 
 Unicode support
@@ -156,16 +116,4 @@ Review conformance to Unicode practices defined in the coding conventions.
 Test:
 * exporting more than once in one GIMP session (to test unicode strings in the GIMP shelf)
 * overwrite dialog - all choices
-* Save Settings with unicode strings
-
-
-Platforms
----------
-
-Windows
-* test everything
-
-Ubuntu
-* test all GUI dialogs - Export Layers, Export Layers (repeat), overwrite dialog, exception dialog, warning dialog, info dialog
-* test Unicode stuff
-* test a few arbitrarily chosen settings
+* save settings with unicode strings
