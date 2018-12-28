@@ -605,8 +605,8 @@ class ArrayBoxPresenter(GtkSettingPresenter):
   def update_setting_value(self):
     super().update_setting_value()
     
-    for element_index in range(len(self._setting)):
-      self._setting[element_index].gui.update_setting_value()
+    for array_element in self._setting.get_elements():
+      array_element.gui.update_setting_value()
   
   def _connect_value_changed_event(self):
     super()._connect_value_changed_event()
@@ -650,7 +650,7 @@ class ArrayBoxPresenter(GtkSettingPresenter):
     return array_box
   
   def _get_value(self):
-    return tuple(self._setting[index].value for index in range(len(self._setting)))
+    return tuple(array_element.value for array_element in self._setting.get_elements())
   
   def _set_value(self, value):
     def _add_existing_element(array_element_value, index):

@@ -1174,6 +1174,15 @@ class TestArraySetting(unittest.TestCase):
       element_min_value=-100.0,
       element_max_value=100.0)
   
+  def test_get_elements(self):
+    self.assertListEqual(
+      self.setting.get_elements(), [self.setting[0], self.setting[1], self.setting[2]])
+    
+  def test_get_elements_returns_a_copy(self):
+    elements = self.setting.get_elements()
+    del elements[0]
+    self.assertNotEqual(self.setting.get_elements(), elements)
+  
   def test_has_element_default_value_even_if_not_specified(self):
     setting = pgsetting.ArraySetting(
       "coordinates",

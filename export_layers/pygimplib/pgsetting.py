@@ -1955,6 +1955,12 @@ class ArraySetting(Setting):
     """
     self.__delitem__(index)
   
+  def get_elements(self):
+    """
+    Return a list of array elements in this setting.
+    """
+    return list(self._elements)
+  
   def get_pdb_param(self, length_name=None, length_description=None):
     """
     Return a list of two tuples, describing the length of the array and the
