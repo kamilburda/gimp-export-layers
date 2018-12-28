@@ -689,27 +689,31 @@ class ExportLayersGui(object):
       self._settings["main/procedures"],
       builtin_procedures.BUILTIN_PROCEDURES,
       _("Add _Procedure..."),
-      label_add_custom_operation=_("Add Custom Procedure..."))
+      _("Edit Procedure"),
+      add_custom_operation_text=_("Add Custom Procedure..."))
     
     self._box_constraints = self._create_operation_box(
       self._settings["main/constraints"],
       builtin_constraints.BUILTIN_CONSTRAINTS,
       _("Add _Constraint..."),
+      _("Edit Constraint"),
       allow_custom_operations=False)
   
   def _create_operation_box(
         self,
         operations_,
         builtin_operations,
-        label_add_operation,
+        add_operation_text,
+        edit_operation_text,
         allow_custom_operations=True,
-        label_add_custom_operation=None):
+        add_custom_operation_text=None):
     operation_box = gui_operations.OperationBox(
       operations_,
       builtin_operations,
-      label_add_operation,
+      add_operation_text,
+      edit_operation_text,
       allow_custom_operations=allow_custom_operations,
-      label_add_custom_operation=label_add_custom_operation)
+      add_custom_operation_text=add_custom_operation_text)
     
     self._add_gui_to_already_added_operations(operation_box, operations_)
     

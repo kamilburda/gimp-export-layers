@@ -51,21 +51,24 @@ class OperationBox(pggui.ItemBox):
   
   def __init__(
         self,
-        operations_group=None,
+        operations_,
         builtin_operations=None,
-        label_add_text=None,
+        add_operation_text=None,
+        edit_operation_text=None,
         allow_custom_operations=True,
-        label_add_custom_operation=None,
+        add_custom_operation_text=None,
         item_spacing=pggui.ItemBox.ITEM_SPACING,
         *args,
         **kwargs):
     super().__init__(item_spacing=item_spacing, *args, **kwargs)
     
-    self._operations = operations_group
-    self._builtin_operations = builtin_operations
-    self._label_add_text = label_add_text
+    self._operations = operations_
+    self._builtin_operations = (
+      builtin_operations if builtin_operations is not None else {})
+    self._add_operation_text = add_operation_text
+    self._edit_operation_text = edit_operation_text
     self._allow_custom_operations = allow_custom_operations
-    self._label_add_custom_operation = label_add_custom_operation
+    self._add_custom_operation_text = add_custom_operation_text
     
     self.on_add_item = pgutils.empty_func
     self.on_reorder_item = pgutils.empty_func
@@ -76,7 +79,7 @@ class OperationBox(pggui.ItemBox):
     self._init_gui()
   
   def _init_gui(self):
-    if self._label_add_text is not None:
+    if self._add_operation_text is not None:
       self._button_add = gtk.Button()
       button_hbox = gtk.HBox()
       button_hbox.set_spacing(self._ADD_BUTTON_HBOX_SPACING)
@@ -86,7 +89,7 @@ class OperationBox(pggui.ItemBox):
         fill=False)
       
       label_add = gtk.Label(
-        self._label_add_text.encode(pgconstants.GTK_CHARACTER_ENCODING))
+        self._add_operation_text.encode(pgconstants.GTK_CHARACTER_ENCODING))
       label_add.set_use_underline(True)
       button_hbox.pack_start(label_add, expand=False, fill=False)
       
@@ -179,7 +182,7 @@ class OperationBox(pggui.ItemBox):
     self.add_item(operation_dict_or_function)
   
   def _add_add_custom_operation_to_menu_popup(self):
-    menu_item = gtk.MenuItem(label=self._label_add_custom_operation, use_underline=False)
+    menu_item = gtk.MenuItem(label=self._add_custom_operation_text, use_underline=False)
     menu_item.connect("activate", self._on_add_custom_operation_menu_item_activate)
     self._operations_menu.append(menu_item)
   
@@ -239,7 +242,7 @@ class OperationBox(pggui.ItemBox):
         operation_edit_dialog = _OperationEditDialog(
           item.operation,
           pdb_procedure,
-          title=None,
+          title=self._get_operation_edit_dialog_title(item),
           role=pygimplib.config.PLUGIN_NAME)
         
         operation_edit_dialog.connect(
@@ -277,7 +280,7 @@ class OperationBox(pggui.ItemBox):
     operation_edit_dialog = _OperationEditDialog(
       item.operation,
       pdb_procedure,
-      title=None,
+      title=self._get_operation_edit_dialog_title(item),
       role=pygimplib.config.PLUGIN_NAME)
     
     item.operation_edit_dialog = operation_edit_dialog
@@ -305,6 +308,13 @@ class OperationBox(pggui.ItemBox):
         self, button_remove, item):
     if item.is_being_edited():
       item.operation_edit_dialog.response(gtk.RESPONSE_CANCEL)
+  
+  def _get_operation_edit_dialog_title(self, item):
+    if self._edit_operation_text is not None:
+      return "{} {}".format(
+        self._edit_operation_text, item.operation["display_name"].value)
+    else:
+      return None
 
 
 class _OperationBoxItem(pggui.ItemBoxItem):
@@ -349,7 +359,6 @@ class _OperationEditDialog(gimpui.Dialog):
     
     self.set_transient()
     self.set_resizable(False)
-    self.set_title(_("Edit Operation {}").format(operation["display_name"].value))
     
     self._button_ok = self.add_button(gtk.STOCK_OK, gtk.RESPONSE_OK)
     self._button_cancel = self.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
