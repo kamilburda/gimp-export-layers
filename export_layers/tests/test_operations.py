@@ -736,8 +736,8 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
       operation["operation_groups"].value, [operations.DEFAULT_PROCEDURES_GROUP])
     self.assertEqual(operation["is_pdb_procedure"].value, True)
     
-    self.assertEqual(operation["indexes_of_arguments_to_show_hide"].value[0], False)
-    self.assertEqual(operation["indexes_of_arguments_to_show_hide"].value[1], False)
+    self.assertEqual(operation["arguments/run-mode"].gui.get_visible(), False)
+    self.assertEqual(operation["arguments/num-save-options"].gui.get_visible(), False)
     
     self.assertEqual(operation["arguments/run-mode"].value, gimpenums.RUN_NONINTERACTIVE)
     self.assertEqual(operation["arguments/num-save-options"].value, 0)

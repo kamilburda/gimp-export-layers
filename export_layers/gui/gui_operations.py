@@ -235,8 +235,8 @@ class OperationBox(pggui.ItemBox):
         item = self.add_item(pdb_proc_operation_dict)
         
         operation_edit_dialog = _OperationEditDialog(
-          pdb_procedure,
           item.operation,
+          pdb_procedure,
           title=None,
           role=pygimplib.config.PLUGIN_NAME)
         
@@ -259,19 +259,22 @@ class OperationBox(pggui.ItemBox):
       self.remove_item(item)
   
   def _on_item_edit_button_clicked(self, edit_button, item):
-    if item.operation.get_value("is_pdb_procedure", False) and not item.is_being_edited:
+    if not item.is_being_edited:
       item.is_being_edited = True
       
-      pdb_procedure = pdb[
-        item.operation["function"].value.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
+      if item.operation.get_value("is_pdb_procedure", False):
+        pdb_procedure = pdb[
+          item.operation["function"].value.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
+      else:
+        pdb_procedure = None
       
       operation_values_before_dialog = {
         setting.get_path(item.operation): setting.value
         for setting in item.operation.walk()}
       
       operation_edit_dialog = _OperationEditDialog(
-        pdb_procedure,
         item.operation,
+        pdb_procedure,
         title=None,
         role=pygimplib.config.PLUGIN_NAME)
       
@@ -327,7 +330,7 @@ class _OperationEditDialog(gimpui.Dialog):
   
   _PLACEHOLDER_WIDGET_HORIZONTAL_SPACING_BETWEEN_ELEMENTS = 5
   
-  def __init__(self, pdb_procedure, operation, *args, **kwargs):
+  def __init__(self, operation, pdb_procedure, *args, **kwargs):
     super().__init__(*args, **kwargs)
     
     self.set_transient()
@@ -351,11 +354,12 @@ class _OperationEditDialog(gimpui.Dialog):
     self._label_procedure_name.connect(
       "changed", self._on_label_procedure_name_changed, operation)
     
-    self._label_procedure_short_description = gtk.Label()
-    self._label_procedure_short_description.set_line_wrap(True)
-    self._label_procedure_short_description.set_alignment(0.0, 0.5)
-    self._label_procedure_short_description.set_label(pdb_procedure.proc_blurb)
-    self._label_procedure_short_description.set_tooltip_text(pdb_procedure.proc_help)
+    if pdb_procedure is not None:
+      self._label_procedure_short_description = gtk.Label()
+      self._label_procedure_short_description.set_line_wrap(True)
+      self._label_procedure_short_description.set_alignment(0.0, 0.5)
+      self._label_procedure_short_description.set_label(pdb_procedure.proc_blurb)
+      self._label_procedure_short_description.set_tooltip_text(pdb_procedure.proc_help)
     
     self._table_operation_arguments = gtk.Table(homogeneous=False)
     self._table_operation_arguments.set_row_spacings(self._TABLE_ROW_SPACING)
@@ -367,27 +371,29 @@ class _OperationEditDialog(gimpui.Dialog):
     self._vbox.set_border_width(self._DIALOG_BORDER_WIDTH)
     self._vbox.set_spacing(self._DIALOG_VBOX_SPACING)
     self._vbox.pack_start(self._label_procedure_name, expand=False, fill=False)
-    self._vbox.pack_start(
-      self._label_procedure_short_description, expand=False, fill=False)
+    if pdb_procedure is not None:
+      self._vbox.pack_start(
+        self._label_procedure_short_description, expand=False, fill=False)
     self._vbox.pack_start(self._table_operation_arguments, expand=True, fill=True)
     
     self.vbox.pack_start(self._vbox, expand=False, fill=False)
     
-    self._set_arguments(pdb_procedure, operation)
+    self._set_arguments(operation, pdb_procedure)
     
     self.set_focus(self._button_ok)
     
     self._button_reset.connect("clicked", self._on_button_reset_clicked, operation)
     self.connect("response", self._on_operation_edit_dialog_response)
   
-  def _set_arguments(self, pdb_procedure, operation):
+  def _set_arguments(self, operation, pdb_procedure):
     for i, setting in enumerate(operation["arguments"]):
-      if not operation["indexes_of_arguments_to_show_hide"].value[i]:
+      if not setting.gui.get_visible():
         continue
       
       label = gtk.Label(setting.display_name)
       label.set_alignment(0.0, 0.5)
-      label.set_tooltip_text(pdb_procedure.params[i][2])
+      if pdb_procedure is not None:
+        label.set_tooltip_text(pdb_procedure.params[i][2])
       
       self._table_operation_arguments.attach(label, 0, 1, i, i + 1)
       

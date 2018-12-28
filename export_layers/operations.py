@@ -75,8 +75,6 @@ These events include:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-import collections
-
 import gimpenums
 
 from export_layers import pygimplib
@@ -396,34 +394,33 @@ def _connect_events_to_sync_array_and_array_length_arguments(operation):
         array_setting, insertion_index, array_length_setting):
     array_length_setting.set_value(array_length_setting.value - 1)
   
-  operation_arguments_as_list = [setting for setting in operation["arguments"]]
-  
-  for index in _get_array_length_setting_indexes(operation["arguments"]):
-    try:
-      array_setting = operation_arguments_as_list[index + 1]
-    except IndexError:
-      continue
-    
-    array_length_setting = operation_arguments_as_list[index]
+  for length_setting, array_setting in _get_array_length_and_array_settings(operation):
     array_setting.connect_event(
-      "after-add-element", _increment_array_length, array_length_setting)
+      "after-add-element", _increment_array_length, length_setting)
     array_setting.connect_event(
-      "before-delete-element", _decrement_array_length, array_length_setting)
+      "before-delete-element", _decrement_array_length, length_setting)
 
 
 def _hide_gui_for_run_mode_and_array_length_arguments(operation):
   first_argument = next(iter(operation["arguments"]), None)
   if first_argument is not None and first_argument.display_name == "run-mode":
-    operation["indexes_of_arguments_to_show_hide"].value[0] = False
+    first_argument.gui.set_visible(False)
   
-  for index in _get_array_length_setting_indexes(operation["arguments"]):
-    operation["indexes_of_arguments_to_show_hide"].value[index] = False
+  for length_setting, unused_ in _get_array_length_and_array_settings(operation):
+    length_setting.gui.set_visible(False)
 
 
-def _get_array_length_setting_indexes(operation_arguments):
-  return [
-    index - 1 for index, setting in enumerate(operation_arguments)
-    if isinstance(setting, pgsetting.ArraySetting)]
+def _get_array_length_and_array_settings(operation):
+  array_length_and_array_settings = []
+  previous_setting = None
+  
+  for setting in operation["arguments"]:
+    if isinstance(setting, pgsetting.ArraySetting) and previous_setting is not None:
+      array_length_and_array_settings.append((previous_setting, setting))
+    
+    previous_setting = setting
+  
+  return array_length_and_array_settings
 
 
 _OPERATION_TYPES_AND_FUNCTIONS = {
@@ -499,7 +496,6 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
     "arguments": [],
     "display_name": pdb_procedure.proc_name.decode(pgconstants.GTK_CHARACTER_ENCODING),
     "is_pdb_procedure": True,
-    "indexes_of_arguments_to_show_hide": collections.defaultdict(_return_true),
   }
   
   pdb_procedure_argument_names = []
@@ -540,12 +536,6 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
     operation_dict["arguments"].append(arguments_dict)
   
   return operation_dict
-
-
-def _return_true():
-  # Function must be explicitly defined in order for `defauldict`s to be
-  # `pickle`-able.
-  return True
 
 
 def _uniquify_name_and_display_name(operations, operation_dict):

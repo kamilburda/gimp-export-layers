@@ -189,7 +189,7 @@ class GtkEntryPresenter(GtkSettingPresenter):
   
   Value: Text in the entry.
   """
-
+  
   def _create_gui_element(self, setting):
     return gtk.Entry()
   
