@@ -1948,6 +1948,13 @@ class ArraySetting(Setting):
     
     self.invoke_event("after-reorder-element", index, new_index)
   
+  def remove_element(self, index):
+    """
+    Remove an element at the specified index. This method is an alias to
+    `__delitem__`.
+    """
+    self.__delitem__(index)
+  
   def get_pdb_param(self, length_name=None, length_description=None):
     """
     Return a list of two tuples, describing the length of the array and the
