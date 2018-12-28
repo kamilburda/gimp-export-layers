@@ -418,7 +418,7 @@ class _OperationEditDialog(gimpui.Dialog):
     operation["display_name"].set_value(editable_label.label.get_text())
     
     editable_label.label.set_markup(
-      "<b>{}</b>".format(gobject.markup_escape_text(operation["display_name"].value)))
+      "<b>{}</b>".format(gobject.markup_escape_text(editable_label.label.get_text())))
   
   def _on_operation_edit_dialog_response(self, dialog, response_id):
     for child in list(self._table_operation_arguments.get_children()):
