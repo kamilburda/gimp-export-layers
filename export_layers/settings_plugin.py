@@ -173,18 +173,19 @@ def create_settings():
     initial_operations=[builtin_constraints.BUILTIN_CONSTRAINTS["include_layers"]]),
   ])
   
-  def on_use_file_extensions_in_layer_names_enabled_changed(
-        use_file_extensions_in_layer_names_enabled, file_extension):
-    if not use_file_extensions_in_layer_names_enabled.value:
-      file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
-    else:
-      file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = _(
-        "You need to specify default file extension for layers with invalid "
-        "or no extension.")
-  
   def on_after_add_procedure(
-        procedures, procedure, orig_procedure_name, file_extension_setting):
-    if orig_procedure_name == "use_file_extensions_in_layer_names":
+        procedures, procedure, orig_procedure_dict, file_extension_setting):
+    if orig_procedure_dict["name"] == "use_file_extensions_in_layer_names":
+      
+      def on_use_file_extensions_in_layer_names_enabled_changed(
+            use_file_extensions_in_layer_names_enabled, file_extension):
+        if not use_file_extensions_in_layer_names_enabled.value:
+          file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
+        else:
+          file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = _(
+            "You need to specify default file extension for layers with invalid "
+            "or no extension.")
+      
       if procedure["enabled"].value:
         # Invoke manually in case "enabled" is True upon adding.
         on_use_file_extensions_in_layer_names_enabled_changed(
