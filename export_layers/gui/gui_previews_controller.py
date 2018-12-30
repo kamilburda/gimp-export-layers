@@ -81,11 +81,11 @@ class ExportPreviewsController(object):
       self._settings["main"][setting_name].connect_event(
         "value-changed", self._update_previews_on_setting_change)
   
-  def _connect_already_added_operations(self, operations_group):
-    for setting in operations.walk(operations_group, setting_name="enabled"):
+  def _connect_already_added_operations(self, operations_):
+    for setting in operations.walk(operations_, setting_name="enabled"):
       setting.connect_event("value-changed", self._update_previews_on_setting_change)
   
-  def _prepare_to_connect_subsequent_operations(self, operations_group):
+  def _prepare_to_connect_subsequent_operations(self, operations_):
     def _on_after_add_operation(operations_, operation, *args, **kwargs):
       if operation["enabled"].value:
         self._update_previews_on_setting_change(operation["enabled"])
@@ -102,9 +102,9 @@ class ExportPreviewsController(object):
         # properly keeps the previews in sync after operation removal.
         operation["enabled"].set_value(False)
     
-    operations_group.connect_event("after-add-operation", _on_after_add_operation)
-    operations_group.connect_event("after-reorder-operation", _on_after_reorder_operation)
-    operations_group.connect_event("before-remove-operation", _on_before_remove_operation)
+    operations_.connect_event("after-add-operation", _on_after_add_operation)
+    operations_.connect_event("after-reorder-operation", _on_after_reorder_operation)
+    operations_.connect_event("before-remove-operation", _on_before_remove_operation)
   
   def _update_previews_on_setting_change(self, setting):
     pginvocation.timeout_add_strict(
