@@ -818,3 +818,8 @@ class FileExtensionEntry(ExtendedEntry):
       extension_x += extension_pixel_size[0] + separator_pixel_width
     
     return text_pixel_rects
+
+
+gobject.type_register(ExtendedEntry)
+gobject.type_register(FilenamePatternEntry)
+gobject.type_register(FileExtensionEntry)
