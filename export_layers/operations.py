@@ -124,7 +124,6 @@ def create(name, initial_operations=None):
   
   Each created operation in the returned group is a nested `SettingGroup`. Each
   operation contains the following settings or subgroups:
-  * `"name"` - Name of the operation.
   * `"function"` - The function to execute.
   * `"arguments"` - Arguments to `"function"` as a `SettingGroup` containing
     arguments as separate `Setting` instances.
@@ -134,7 +133,8 @@ def create(name, initial_operations=None):
     `pgoperations.OperationExecutor` and `exportlayers.LayerExporter`.
   
   Each dictionary in `initial_operations` may contain the following fields:
-  * `"name"` - This field is required.
+  * `"name"` - This field is required. This is the `name` attribute of the
+    created operation.
   * `"type"` - Operation type. See below for details.
   * `"function"` - The function to execute.
   * `"arguments"` - Specified as list of dictionaries defining settings. Each
