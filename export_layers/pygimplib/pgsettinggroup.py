@@ -343,7 +343,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     return "missing the following required setting attributes: {}".format(
       ", ".join(attribute_names))
   
-  def get_value(self, setting_name_or_path, default_value):
+  def get_value(self, setting_name_or_path, default_value=None):
     """
     Return the value of the setting specified by its name or path. If the
     setting does not exist, return `default_value` instead.
