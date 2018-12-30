@@ -69,7 +69,8 @@ class EntryUndoContext(object):
   
   def undo(self):
     self._undo_redo(
-      self._undo_stack, self._redo_stack,
+      self._undo_stack,
+      self._redo_stack,
       action_handlers={
         "insert": lambda action_data: self._entry.delete_text(
           action_data.position, action_data.position + len(action_data.text)),
@@ -83,7 +84,8 @@ class EntryUndoContext(object):
   
   def redo(self):
     self._undo_redo(
-      self._redo_stack, self._undo_stack,
+      self._redo_stack,
+      self._undo_stack,
       action_handlers={
         "insert": lambda action_data: self._entry.insert_text(
           action_data.text, action_data.position),
