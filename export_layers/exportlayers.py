@@ -252,22 +252,6 @@ class LayerExporter(object):
     """
     return layer.ID in self._exported_layers_ids
   
-  @contextlib.contextmanager
-  def modify_export_settings(self, settings_and_values):
-    """
-    Temporarily modify values of export settings using a dictionary of
-    `(setting_name: new value)` pairs. After the execution of the wrapped block
-    of code, the settings are restored to their original values.
-    """
-    orig_setting_values = self.export_settings.get_attributes(
-      list(settings_and_values))
-    self.export_settings.set_values(settings_and_values)
-    
-    try:
-      yield
-    finally:
-      self.export_settings.set_values(orig_setting_values)
-  
   def stop(self):
     self._should_stop = True
   
