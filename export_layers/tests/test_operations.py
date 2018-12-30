@@ -233,25 +233,26 @@ class TestManageOperations(unittest.TestCase):
       operations.add(self.procedures, "invalid_object")
   
   def test_add_existing_name_is_uniquified(self):
-    operation = operations.add(self.procedures, self.autocrop_dict)
-    operation_2 = operations.add(self.procedures, self.autocrop_dict)
+    added_operations = [
+      operations.add(self.procedures, self.autocrop_dict) for unused_ in range(3)]
     
-    self.assertIn("autocrop", self.procedures["added"])
-    self.assertIn("autocrop_2", self.procedures["added"])
-    self.assertEqual(
-      self.procedures["added/autocrop_2/display_name"].value, "Autocrop (2)")
+    expected_names = ["autocrop", "autocrop_2", "autocrop_3"]
+    expected_display_names = ["Autocrop", "Autocrop (2)", "Autocrop (3)"]
     
-    self.assertEqual(operation, self.procedures["added/autocrop"])
-    self.assertEqual(operation_2, self.procedures["added/autocrop_2"])
+    for operation, expected_name, expected_display_name in zip(
+          added_operations, expected_names, expected_display_names):
+      self.assertIn(expected_name, self.procedures["added"])
+      self.assertEqual(operation, self.procedures["added/" + expected_name])
+      self.assertEqual(
+        self.procedures["added/" + expected_name + "/display_name"].value,
+        expected_display_name)
+      self.assertIsNotNone(_find_in_added_data(self.procedures, expected_name))
+      self.assertEqual(
+        _find_in_added_data(self.procedures, expected_name)["display_name"],
+        expected_display_name)
     
-    self.assertIsNotNone(_find_in_added_data(self.procedures, "autocrop"))
-    self.assertIsNotNone(_find_in_added_data(self.procedures, "autocrop_2"))
-    self.assertEqual(
-      _find_in_added_data(self.procedures, "autocrop_2")["display_name"],
-      "Autocrop (2)")
-    
-    self.assertEqual(len(self.procedures["added"]), 2)
-    self.assertEqual(len(self.procedures["_added_data"].value), 2)
+    self.assertEqual(len(self.procedures["added"]), 3)
+    self.assertEqual(len(self.procedures["_added_data"].value), 3)
   
   def test_add_invokes_before_add_operation_event(self):
     invoked_event_args = []

@@ -446,7 +446,7 @@ def add(operations, operation_dict_or_function):
   operation, and so on).
   """
   if isinstance(operation_dict_or_function, dict):
-    operation_dict = operation_dict_or_function
+    operation_dict = dict(operation_dict_or_function)
   else:
     if pgpdb.is_pdb_procedure(operation_dict_or_function):
       operation_dict = get_operation_dict_for_pdb_procedure(operation_dict_or_function)
@@ -455,16 +455,18 @@ def add(operations, operation_dict_or_function):
         "'{}' is not a valid object - pass a dict or a PDB procedure".format(
           operation_dict_or_function))
   
-  operations.invoke_event("before-add-operation", dict(operation_dict))
+  orig_operation_dict = dict(operation_dict)
+  
+  operations.invoke_event("before-add-operation", operation_dict)
   
   _uniquify_name_and_display_name(operations, operation_dict)
   
   operation = _create_operation_by_type(**operation_dict)
   
   operations["added"].add([operation])
-  operations["_added_data"].value.append(dict(operation_dict))
+  operations["_added_data"].value.append(operation_dict)
   
-  operations.invoke_event("after-add-operation", operation, dict(operation_dict))
+  operations.invoke_event("after-add-operation", operation, orig_operation_dict)
   
   return operation
 

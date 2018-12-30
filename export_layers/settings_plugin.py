@@ -202,7 +202,7 @@ def create_settings():
         orig_constraint_dict,
         selected_layers_setting,
         image_setting):
-    if orig_constraint_dict["name"].startswith("only_selected_layers"):
+    if orig_constraint_dict["name"] == "only_selected_layers":
       constraint["arguments/selected_layers"].gui.set_visible(False)
       
       def on_selected_layers_changed(
