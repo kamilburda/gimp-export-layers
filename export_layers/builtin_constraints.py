@@ -143,7 +143,15 @@ _BUILTIN_CONSTRAINTS_LIST = [
   {
     "name": "only_selected_layers",
     "type": "constraint",
-    "function": None,
+    "function": is_layer_in_selected_layers,
+    "arguments": [
+      {
+        "type": pgsetting.SettingTypes.generic,
+        "name": "selected_layers",
+        "default_value": set(),
+        "gui_type": None,
+      },
+    ],
     "display_name": _("Only layers selected in preview"),
   },
 ]

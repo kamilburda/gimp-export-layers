@@ -196,8 +196,33 @@ def create_settings():
         on_use_file_extensions_in_layer_names_enabled_changed,
         file_extension_setting)
   
+  def on_after_add_constraint(
+        constraints,
+        constraint,
+        orig_constraint_dict,
+        selected_layers_setting,
+        image_setting):
+    if orig_constraint_dict["name"].startswith("only_selected_layers"):
+      
+      def on_selected_layers_changed(
+            selected_layers_setting, only_selected_layers_constraint, image_setting):
+        if image_setting.value is not None:
+          only_selected_layers_constraint["arguments/selected_layers"].set_value(
+            selected_layers_setting.value[image_setting.value.ID])
+      
+      on_selected_layers_changed(selected_layers_setting, constraint, image_setting)
+      
+      selected_layers_setting.connect_event(
+        "value-changed", on_selected_layers_changed, constraint, image_setting)
+  
   settings["main/procedures"].connect_event(
     "after-add-operation", on_after_add_procedure, settings["main/file_extension"])
+  
+  settings["main/constraints"].connect_event(
+    "after-add-operation",
+    on_after_add_constraint,
+    settings["main/selected_layers"],
+    settings["special/image"])
   
   return settings
 

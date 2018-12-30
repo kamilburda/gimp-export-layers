@@ -385,9 +385,7 @@ class LayerExporter(object):
           self, function.__name__, self._processing_groups_functions[function.__name__])
     
     if processing_groups:
-      if (not self.export_settings.get_value(
-                "constraints/added/only_selected_layers/enabled", False)
-          and "layer_name" in processing_groups):
+      if "layer_name" in processing_groups:
         processing_groups.append("_postprocess_layer_name")
       
       for processing_group, functions in self._processing_groups.items():
@@ -441,12 +439,6 @@ class LayerExporter(object):
     
     if self.export_settings["only_visible_layers"].value:
       self._layer_tree.filter.add_rule(builtin_constraints.is_path_visible)
-    
-    if self.export_settings.get_value(
-         "constraints/added/only_selected_layers/enabled", False):
-      self._layer_tree.filter.add_rule(
-        builtin_constraints.is_layer_in_selected_layers,
-        self.export_settings["selected_layers"].value[self.image.ID])
     
     self._operation_executor.execute(
       [operations.DEFAULT_CONSTRAINTS_GROUP],

@@ -41,6 +41,8 @@ class ExportPreviewsController(object):
     self._settings = settings
     self._image = image
     
+    self._only_selected_layers_constraints = {}
+    
     self._paned_outside_previews_previous_position = (
       self._settings["gui/paned_outside_previews_position"].value)
     self._paned_between_previews_previous_position = (
@@ -52,9 +54,12 @@ class ExportPreviewsController(object):
   
   def connect_setting_changes_to_previews(self):
     self._connect_settings_changed()
+    
     self._connect_setting_after_reset_collapsed_layers_in_name_preview()
     self._connect_setting_after_reset_selected_layers_in_name_preview()
     self._connect_setting_after_reset_displayed_layers_in_image_preview()
+    
+    self._connect_toggle_name_preview_filtering()
   
   def _connect_settings_changed(self):
     self._connect_basic_settings()
@@ -128,6 +133,29 @@ class ExportPreviewsController(object):
     
     self._settings["gui_session/export_image_preview_displayed_layers"].connect_event(
       "after-reset", _clear_image_preview)
+  
+  def _connect_toggle_name_preview_filtering(self):
+    def _after_add_only_selected_layers(constraints, constraint, orig_constraint_dict):
+      if constraint.name.startswith("only_selected_layers"):
+        self._only_selected_layers_constraints[constraint.name] = constraint
+        
+        def _on_enabled_changed(constraint_enabled):
+          self._export_name_preview.is_filtering = (
+            any(constraint["enabled"].value
+                for constraint in self._only_selected_layers_constraints.values()))
+        
+        _on_enabled_changed(constraint["enabled"])
+        constraint["enabled"].connect_event("value-changed", _on_enabled_changed)
+    
+    def _after_remove_only_selected_layers(constraints, removed_constraint_name):
+      if removed_constraint_name.startswith("only_selected_layers"):
+        del self._only_selected_layers_constraints[removed_constraint_name]
+    
+    self._settings["main/constraints"].connect_event(
+      "after-add-operation", _after_add_only_selected_layers)
+    
+    self._settings["main/constraints"].connect_event(
+      "after-remove-operation", _after_remove_only_selected_layers)
   
   def connect_visible_changed_to_previews(self):
     def _connect_visible_changed(preview, setting):
@@ -235,6 +263,16 @@ class ExportPreviewsController(object):
     preview_sensitive_setting.set_value(False)
   
   def on_name_preview_selection_changed(self):
+    self._update_selected_layers()
+    self._update_image_preview()
+  
+  def on_name_preview_after_update(self):
+    self._export_image_preview.update_layer_elem()
+  
+  def on_name_preview_after_edit_tags(self):
+    self._update_image_preview()
+  
+  def _update_image_preview(self):
     layer_elem_from_cursor = self._export_name_preview.get_layer_elem_from_cursor()
     if layer_elem_from_cursor is not None:
       if (self._export_image_preview.layer_elem is None
@@ -251,8 +289,7 @@ class ExportPreviewsController(object):
       else:
         self._export_image_preview.clear()
   
-  def on_name_preview_after_update(self):
-    self._export_image_preview.update_layer_elem()
-  
-  def on_name_preview_after_edit_tags(self):
-    self.on_name_preview_selection_changed()
+  def _update_selected_layers(self):
+    selected_layers_dict = self._settings["main/selected_layers"].value
+    selected_layers_dict[self._image.ID] = self._export_name_preview.selected_items
+    self._settings["main/selected_layers"].set_value(selected_layers_dict)

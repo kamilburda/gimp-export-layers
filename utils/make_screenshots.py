@@ -98,7 +98,6 @@ def take_screenshots(gui, dialog, settings):
   
   gui._export_name_preview.set_selected_items(set([
     gui._export_name_preview._layer_exporter.layer_tree["bottom-frame"].item.ID]))
-  gui._export_name_preview.on_selection_changed()
   
   dialog.set_focus(gui._export_name_preview.tree_view)
   
