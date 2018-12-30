@@ -52,15 +52,12 @@ class ExtendedEntry(gtk.Entry):
   
   * undo/redo of text,
   * placeholder text,
-  * expandable width of the entry,
-  * custom popup serving as an entry completion.
+  * expandable width of the entry.
   
   Attributes:
   
   * `undo_context` (read-only) - `EntryUndoContext` instance to handle undo/redo
     actions.
-  
-  * `popup` (read-only) - `EntryPopup` instance serving as the popup, or `None`.
   
   * `placeholder_text` (read-only) - Placeholder text displayed if the entry is
     empty or matches the placeholder text. If `None`, the entry has no
@@ -68,6 +65,18 @@ class ExtendedEntry(gtk.Entry):
   """
   
   def __init__(self, *args, **kwargs):
+    """
+    Parameters:
+    
+    * `minimum_width_chars` - Minimum width specified as a number of characters.
+      The entry will not shrink below this width.
+    
+    * `maximum_width_chars` - Maximum width specified as a number of characters.
+      The entry will not expand above this width.
+    
+    * `placeholder_text` - Text to display as a placeholder if the entry is
+      empty. If `None`, do not display any placeholder.
+    """
     self._minimum_width_chars = kwargs.pop("minimum_width_chars", -1)
     self._maximum_width_chars = kwargs.pop("maximum_width_chars", -1)
     self._placeholder_text = kwargs.pop("placeholder_text", None)
@@ -88,10 +97,6 @@ class ExtendedEntry(gtk.Entry):
   @property
   def undo_context(self):
     return self._undo_context
-  
-  @property
-  def popup(self):
-    return self._popup
   
   def assign_text(self, text, enable_undo=False):
     """
@@ -181,6 +186,16 @@ class ExtendedEntry(gtk.Entry):
 
 
 class FilenamePatternEntry(ExtendedEntry):
+  """
+  This class is a subclass of `ExtendedEntry` used for the purpose of typing a
+  pattern for filenames (e.g. for exported layers as separate images). A popup
+  displaying the list of suggested items (components of the pattern) is
+  displayed while typing.
+  
+  Additional attributes:
+  
+  * `popup` (read-only) - `EntryPopup` instance serving as the popup.
+  """
   
   _BUTTON_MOUSE_LEFT = 1
   
@@ -188,6 +203,17 @@ class FilenamePatternEntry(ExtendedEntry):
   _COLUMN_TYPES = [gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_PYOBJECT]
   
   def __init__(self, suggested_items, *args, **kwargs):
+    """
+    Parameters:
+    
+    * `suggested_items` - List of
+      `(item name displayed in popup, text inserted in entry, arguments)` tuples
+      describing each item.
+    
+    * `default_item` - The second element of an item from the `suggested_items`
+      that is displayed as placeholder text, or `None` for no default item. This
+      argument replaces the `placeholder_text` parameter from `ExtendedEntry`.
+    """
     self._default_item_value = kwargs.pop("default_item", None)
     
     self._suggested_fields = self._get_suggested_fields(suggested_items)
@@ -233,6 +259,10 @@ class FilenamePatternEntry(ExtendedEntry):
     self.connect("changed", self._on_entry_changed)
     
     self.connect("focus-out-event", self._on_entry_focus_out_event)
+  
+  @property
+  def popup(self):
+    return self._popup
   
   def _should_assign_placeholder_text(self, text):
     """
@@ -444,6 +474,19 @@ class FilenamePatternEntry(ExtendedEntry):
 
 
 class FileExtensionEntry(ExtendedEntry):
+  """
+  This class is a subclass of `ExtendedEntry` used for the purpose of specifying
+  a file extension.
+  
+  A popup displaying the list of available file formats in GIMP and the
+  corresponding file extensions is displayed. If a row contains multiple file
+  extensions, the user is able to select a particular file extension. By
+  default, the first file extension in the row is used.
+  
+  Additional attributes:
+  
+  * `popup` (read-only) - `EntryPopup` instance serving as the popup.
+  """
   
   _COLUMNS = [_COLUMN_DESCRIPTION, _COLUMN_EXTENSIONS] = (0, 1)
   # [string, list of strings]
@@ -484,6 +527,10 @@ class FileExtensionEntry(ExtendedEntry):
       "realize", self._on_after_tree_view_realize)
     self._popup.tree_view.get_selection().connect(
       "changed", self._on_tree_selection_changed)
+  
+  @property
+  def popup(self):
+    return self._popup
   
   def _do_assign_text(self, *args, **kwargs):
     super()._do_assign_text(*args, **kwargs)
