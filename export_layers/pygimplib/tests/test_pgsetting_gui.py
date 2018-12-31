@@ -82,10 +82,10 @@ def test_settings_and_gui(setting_items):
   table.set_row_spacings(6)
   table.set_col_spacings(5)
   
-  table.attach(setting_type_title_label, 0, 1, 0, 1)
-  table.attach(setting_gui_title_label, 1, 2, 0, 1)
-  table.attach(setting_value_title_label, 2, 3, 0, 1)
-  table.attach(setting_call_count_title_label, 3, 4, 0, 1)
+  table.attach(setting_type_title_label, 0, 1, 0, 1, yoptions=0)
+  table.attach(setting_gui_title_label, 1, 2, 0, 1, yoptions=0)
+  table.attach(setting_value_title_label, 2, 3, 0, 1, yoptions=0)
+  table.attach(setting_call_count_title_label, 3, 4, 0, 1, yoptions=0)
   
   for i, setting in enumerate(settings):
     setting_type_label = gtk.Label(setting.display_name)
