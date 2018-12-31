@@ -43,9 +43,6 @@ class ExportPreview(gtk.VBox):
     """
     Update the export preview if update is not locked (see `lock_update`).
     """
-    return self._execute_functions_if_unlocked()
-  
-  def _execute_functions_if_unlocked(self):
     if self._update_locked:
       return True
     
@@ -54,13 +51,6 @@ class ExportPreview(gtk.VBox):
       func(*func_args, **func_kwargs)
     
     return False
-  
-  def set_sensitive(self, sensitive):
-    """
-    Set the sensitivity of the preview (`True` = sensitive,
-    `False` = insensitive).
-    """
-    pass
   
   def lock_update(self, lock, key=None):
     """
