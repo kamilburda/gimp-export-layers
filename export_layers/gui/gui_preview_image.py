@@ -110,9 +110,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._placeholder_image_size = gtk.icon_size_lookup(
       self._placeholder_image.get_property("icon-size"))
     
-    self._vbox.connect("size-allocate", self._on_vbox_size_allocate)
-    
-    self._widget = self._vbox
+    self.connect("size-allocate", self._on_size_allocate)
   
   def update(self):
     update_locked = super().update()
@@ -158,9 +156,6 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._preview_image.hide()
     self._show_placeholder_image(use_layer_name)
   
-  def set_sensitive(self, sensitive):
-    self._widget.set_sensitive(sensitive)
-  
   def resize(self, update_when_larger_than_image_size=False):
     """
     Resize the preview if the widget is smaller than the previewed image so that
@@ -201,10 +196,6 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       self._previous_preview_pixbuf_width = None
       self._previous_preview_pixbuf_height = None
   
-  @property
-  def widget(self):
-    return self._widget
-  
   def _init_gui(self):
     self._preview_image = gtk.Image()
     self._preview_image.set_no_show_all(True)
@@ -217,15 +208,14 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._label_layer_name = gtk.Label()
     self._label_layer_name.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
-    self._vbox = gtk.VBox(homogeneous=False)
-    self._vbox.pack_start(
+    self.pack_start(
       self._preview_image, expand=True, fill=True, padding=self._IMAGE_PREVIEW_PADDING)
-    self._vbox.pack_start(
+    self.pack_start(
       self._placeholder_image,
       expand=True,
       fill=True,
       padding=self._IMAGE_PREVIEW_PADDING)
-    self._vbox.pack_start(
+    self.pack_start(
       self._label_layer_name,
       expand=False,
       fill=False,
@@ -298,7 +288,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
         keep_image_copy=True)
     except Exception:
       display_image_preview_failure_message(
-        details=traceback.format_exc(), parent=pggui.get_toplevel_window(self._widget))
+        details=traceback.format_exc(), parent=pggui.get_toplevel_window(self))
       image_preview = None
     
     self._layer_exporter.remove_operation(
@@ -412,7 +402,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._previous_preview_pixbuf_width = scaled_preview_width
     self._previous_preview_pixbuf_height = scaled_preview_height
   
-  def _on_vbox_size_allocate(self, image_widget, allocation):
+  def _on_size_allocate(self, image_widget, allocation):
     if not self._is_updating and not self._preview_image.get_mapped():
       preview_widget_allocated_width = allocation.width - self._IMAGE_PREVIEW_PADDING * 2
       preview_widget_allocated_height = (
@@ -504,3 +494,6 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       actual_preview_width,
       actual_preview_height,
       array.array(b"B", preview_data).tostring())
+
+
+gobject.type_register(ExportImagePreview)

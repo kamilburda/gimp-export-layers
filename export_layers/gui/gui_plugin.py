@@ -408,10 +408,8 @@ class ExportLayersGui(object):
     self._vbox_folder_chooser.pack_start(self._folder_chooser)
     
     self._vpaned_previews = gtk.VPaned()
-    self._vpaned_previews.pack1(
-      self._export_name_preview.widget, resize=True, shrink=True)
-    self._vpaned_previews.pack2(
-      self._export_image_preview.widget, resize=True, shrink=True)
+    self._vpaned_previews.pack1(self._export_name_preview, resize=True, shrink=True)
+    self._vpaned_previews.pack2(self._export_image_preview, resize=True, shrink=True)
     
     self._frame_previews = gtk.Frame()
     self._frame_previews.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
@@ -677,11 +675,14 @@ class ExportLayersGui(object):
     self._export_previews_controller = gui_previews_controller.ExportPreviewsController(
       self._export_name_preview, self._export_image_preview, self._settings, self._image)
     
-    self._export_name_preview.on_selection_changed = (
+    self._export_name_preview.connect(
+      "preview-selection-changed",
       self._export_previews_controller.on_name_preview_selection_changed)
-    self._export_name_preview.on_after_update = (
+    self._export_name_preview.connect(
+      "preview-updated",
       self._export_previews_controller.on_name_preview_after_update)
-    self._export_name_preview.on_after_edit_tags = (
+    self._export_name_preview.connect(
+      "preview-tags-changed",
       self._export_previews_controller.on_name_preview_after_edit_tags)
   
   def _init_gui_operation_boxes(self):
@@ -797,8 +798,8 @@ class ExportLayersGui(object):
       self._filename_pattern_entry.show()
       
       self._frame_previews.show()
-      self._export_name_preview.widget.show()
-      self._export_image_preview.widget.show()
+      self._export_name_preview.show()
+      self._export_image_preview.show()
     else:
       basic_settings_gui_elements = self._vbox_basic_settings.get_children()
       for gui_element in basic_settings_gui_elements:
@@ -809,8 +810,8 @@ class ExportLayersGui(object):
       self._hbox_more_settings.hide()
       
       self._frame_previews.hide()
-      self._export_name_preview.widget.hide()
-      self._export_image_preview.widget.hide()
+      self._export_name_preview.hide()
+      self._export_image_preview.hide()
       
       self._file_extension_label.show()
       self._save_as_label.hide()

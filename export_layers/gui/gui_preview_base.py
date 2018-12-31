@@ -23,14 +23,17 @@ This module defines the base class for preview widgets.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
-import future.utils
 
-import abc
+import pygtk
+pygtk.require("2.0")
+import gtk
 
 
-class ExportPreview(future.utils.with_metaclass(abc.ABCMeta, object)):
+class ExportPreview(gtk.VBox):
   
   def __init__(self):
+    super().__init__(homogeneous=False)
+    
     self._update_locked = False
     self._lock_keys = set()
     

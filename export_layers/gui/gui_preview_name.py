@@ -45,8 +45,37 @@ from . import gui_preview_base
 
 
 class ExportNamePreview(gui_preview_base.ExportPreview):
+  """
+  This class defines a widget displaying a preview of exported layers -
+  filenames and their folder structure.
   
-  _VBOX_PADDING = 5
+  Additional features:
+  * toggling "filter mode" - unselected layers are not sensitive.
+  * assigning tags to layers.
+  
+  Attributes:
+  
+  * `is_filtering` - If enabled, unselected layers are not sensitive.
+  
+  Signals:
+  
+  * `"preview-selection-changed"` - The selection in the preview was modified
+    by the user or by calling `set_selected_items`.
+  * `"preview-updated"` - The preview was updated by calling `update`.
+  * `"preview-tags-changed"` - An existing tag was added to or removed from a
+    layer.
+  """
+  
+  __gsignals__ = {
+    b"preview-selection-changed": (
+      gobject.SIGNAL_RUN_FIRST, None, ()),
+    b"preview-updated": (
+      gobject.SIGNAL_RUN_FIRST, None, ()),
+    b"preview-tags-changed": (
+      gobject.SIGNAL_RUN_FIRST, None, ()),
+  }
+  
+  _PREVIEW_LABEL_PADDING = 5
   _ADD_TAG_POPUP_HBOX_SPACING = 5
   _ADD_TAG_POPUP_BORDER_WIDTH = 5
   
@@ -77,10 +106,6 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._selected_items = selected_items if selected_items is not None else []
     self._available_tags_setting = available_tags_setting
     
-    self.on_selection_changed = pgutils.empty_func
-    self.on_after_update = pgutils.empty_func
-    self.on_after_edit_tags = pgutils.empty_func
-    
     self.is_filtering = False
     
     self._tree_iters = collections.defaultdict(pgutils.return_none_func)
@@ -97,8 +122,6 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       pygimplib.config.PLUGIN_SUBDIRPATH, "images", "icon_tag.png")
     
     self._init_gui()
-    
-    self._widget = self._vbox
   
   def update(self, reset_items=False, update_existing_contents_only=False):
     """
@@ -140,7 +163,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     
     self._tree_view.columns_autosize()
     
-    self.on_after_update()
+    self.emit("preview-updated")
   
   def clear(self):
     """
@@ -150,9 +173,6 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._tree_model.clear()
     self._tree_iters.clear()
     self._clearing_preview = False
-  
-  def set_sensitive(self, sensitive):
-    self._widget.set_sensitive(sensitive)
   
   def set_collapsed_items(self, collapsed_items):
     """
@@ -167,7 +187,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     """
     self._selected_items = selected_items
     self._set_selection()
-    self.on_selection_changed()
+    self.emit("preview-selection-changed")
   
   def get_layer_elems_from_selected_rows(self):
     return [self._layer_exporter.layer_tree[layer_id]
@@ -180,10 +200,6 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       return self._layer_exporter.layer_tree[layer_id]
     else:
       return None
-  
-  @property
-  def widget(self):
-    return self._widget
   
   @property
   def tree_view(self):
@@ -238,10 +254,9 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
     self._scrolled_window.add(self._tree_view)
     
-    self._vbox = gtk.VBox(homogeneous=False)
-    self._vbox.pack_start(
-      self._preview_label, expand=False, fill=False, padding=self._VBOX_PADDING)
-    self._vbox.pack_start(self._scrolled_window)
+    self.pack_start(
+      self._preview_label, expand=False, fill=False, padding=self._PREVIEW_LABEL_PADDING)
+    self.pack_start(self._scrolled_window)
     
     self._tree_view.connect("row-collapsed", self._on_tree_view_row_collapsed)
     self._tree_view.connect("row-expanded", self._on_tree_view_row_expanded)
@@ -384,7 +399,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       if len(layer_ids) >= 1:
         self._tags_menu.popup(None, None, None, event.button, event.time)
         
-        toplevel_window = pggui.get_toplevel_window(self._widget)
+        toplevel_window = pggui.get_toplevel_window(self)
         if toplevel_window is not None:
           self._tags_menu_relative_position = toplevel_window.get_window().get_pointer()
       
@@ -408,7 +423,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       # differently, hence update the whole preview.
       self.update(update_existing_contents_only=True)
       
-      self.on_after_edit_tags()
+      self.emit("preview-tags-changed")
   
   def _on_tags_menu_item_add_tag_activate(self, menu_item_add_tag):
     def _on_popup_focus_out_event(popup, event):
@@ -441,7 +456,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     popup_add_tag.set_decorated(False)
     popup_add_tag.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_POPUP_MENU)
     
-    toplevel_widget = self._widget.get_toplevel()
+    toplevel_widget = self.get_toplevel()
     if toplevel_widget.flags() & gtk.TOPLEVEL:
       popup_add_tag.set_transient_for(toplevel_widget)
     
@@ -500,7 +515,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       previous_selected_items = self._selected_items
       self._selected_items = self._get_layer_ids_in_current_selection()
       
-      self.on_selection_changed()
+      self.emit("preview-selection-changed")
       
       if self.is_filtering and self._selected_items != previous_selected_items:
         self.update(update_existing_contents_only=True)
@@ -698,3 +713,6 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
           self._tree_model.get_path(self._tree_iters[self._selected_items[0]]))
         if first_selected_item_path is not None:
           self._tree_view.scroll_to_cell(first_selected_item_path, None, True, 0.5, 0.0)
+
+
+gobject.type_register(ExportNamePreview)
