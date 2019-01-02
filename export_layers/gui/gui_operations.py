@@ -136,14 +136,7 @@ class OperationBox(pggui.ItemBox):
   
   def _on_operation_item_gui_label_size_allocate(
         self, item_gui_label, allocation, item_gui):
-    full_text_layout = pango.Layout(item_gui_label.get_pango_context())
-    full_text_layout.set_text(item_gui_label.get_text())
-    
-    if (item_gui_label.get_layout().get_pixel_size()[0]
-        < full_text_layout.get_pixel_size()[0]):
-      item_gui.set_tooltip_text(item_gui_label.get_text())
-    else:
-      item_gui.set_tooltip_text(None)
+    pggui.set_tooltip_if_label_does_not_fit(item_gui, item_gui_label)
   
   def reorder_item(self, item, new_position):
     processed_new_position = super().reorder_item(item, new_position)
