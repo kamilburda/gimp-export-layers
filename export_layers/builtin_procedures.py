@@ -132,11 +132,6 @@ def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
 
 _BUILTIN_PROCEDURES_LIST = [
   {
-    "name": "use_layer_size",
-    "function": resize_to_layer_size,
-    "display_name": _("Use layer size"),
-  },
-  {
     "name": "insert_background_layers",
     "function": insert_background_layer,
     "arguments": [
@@ -193,6 +188,11 @@ _BUILTIN_PROCEDURES_LIST = [
     "name": "use_file_extensions_in_layer_names",
     "function": None,
     "display_name": _("Use file extensions in layer names"),
+  },
+  {
+    "name": "use_layer_size",
+    "function": resize_to_layer_size,
+    "display_name": _("Use layer size"),
   },
 ]
 
