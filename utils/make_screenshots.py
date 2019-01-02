@@ -65,7 +65,6 @@ SCREENSHOT_DIALOG_ADVANCED_USAGE_FILENAME = "screenshot_dialog_advanced_usage.pn
 
 
 def take_screenshots(gui, dialog, settings):
-  settings["main/layer_groups_as_folders"].set_value(True)
   settings["gui_session/current_directory"].set_value(OUTPUT_DIRPATH)
   settings["gui/show_more_settings"].set_value(False)
   

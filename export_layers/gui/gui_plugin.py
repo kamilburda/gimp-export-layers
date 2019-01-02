@@ -300,13 +300,11 @@ class ExportLayersGui(object):
   
   _MORE_SETTINGS_HORIZONTAL_SPACING = 12
   _MORE_SETTINGS_BORDER_WIDTH = 2
-  _MORE_SETTINGS_VERTICAL_SPACING = 6
   
   _DIALOG_SIZE = (900, 610)
   _DIALOG_BORDER_WIDTH = 8
   _DIALOG_VBOX_SPACING = 5
   _DIALOG_ACTION_AREA_BORDER_WIDTH = 5
-  _DIALOG_BUTTONS_HORIZONTAL_SPACING = 6
   
   _FILE_EXTENSION_ENTRY_MIN_WIDTH_CHARS = 4
   _FILE_EXTENSION_ENTRY_MAX_WIDTH_CHARS = 15
@@ -507,26 +505,11 @@ class ExportLayersGui(object):
     self._hbox_export_name_and_message.pack_start(
       self._label_message, expand=True, fill=True)
     
-    self._hbox_basic_settings = gtk.HBox(homogeneous=False)
-    self._hbox_basic_settings.pack_start(
-      self._settings["main/layer_groups_as_folders"].gui.element)
-    
-    self._vbox_basic_settings = gtk.VBox(homogeneous=False)
-    self._vbox_basic_settings.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)
-    
-    self._scrolled_window_basic_settings = gtk.ScrolledWindow()
-    self._scrolled_window_basic_settings.set_policy(
-      gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-    self._scrolled_window_basic_settings.add_with_viewport(self._vbox_basic_settings)
-    self._scrolled_window_basic_settings.get_child().set_shadow_type(gtk.SHADOW_NONE)
-    
     self._init_gui_operation_boxes()
     
     self._hbox_more_settings = gtk.HBox(homogeneous=True)
     self._hbox_more_settings.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
     self._hbox_more_settings.set_border_width(self._MORE_SETTINGS_BORDER_WIDTH)
-    self._hbox_more_settings.pack_start(
-      self._scrolled_window_basic_settings, expand=True, fill=True)
     self._hbox_more_settings.pack_start(self._box_procedures, expand=True, fill=True)
     self._hbox_more_settings.pack_start(self._box_constraints, expand=True, fill=True)
     
@@ -535,8 +518,6 @@ class ExportLayersGui(object):
     self._vbox_settings.pack_start(self._hpaned_chooser_and_previews)
     self._vbox_settings.pack_start(
       self._hbox_export_name_and_message, expand=False, fill=False)
-    self._vbox_settings.pack_start(
-      self._hbox_basic_settings, expand=False, fill=False)
     
     self._vpaned_settings.pack1(self._vbox_settings, resize=True, shrink=False)
     self._vpaned_settings.pack2(self._hbox_more_settings, resize=False, shrink=True)
@@ -780,12 +761,6 @@ class ExportLayersGui(object):
   
   def _show_hide_more_settings(self):
     if self._menu_item_show_more_settings.get_active():
-      basic_settings_gui_elements = self._hbox_basic_settings.get_children()
-      for gui_element in basic_settings_gui_elements:
-        self._hbox_basic_settings.remove(gui_element)
-        self._vbox_basic_settings.pack_start(gui_element, expand=False, fill=False)
-      
-      self._hbox_basic_settings.hide()
       self._hbox_more_settings.show()
       
       self._file_extension_label.hide()
@@ -797,12 +772,6 @@ class ExportLayersGui(object):
       self._export_name_preview.show()
       self._export_image_preview.show()
     else:
-      basic_settings_gui_elements = self._vbox_basic_settings.get_children()
-      for gui_element in basic_settings_gui_elements:
-        self._vbox_basic_settings.remove(gui_element)
-        self._hbox_basic_settings.pack_start(gui_element)
-      
-      self._hbox_basic_settings.show()
       self._hbox_more_settings.hide()
       
       self._frame_previews.hide()

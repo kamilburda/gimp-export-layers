@@ -14,7 +14,7 @@ You can adjust the height of the bottom pane (between the file extension and the
 
 Because the number of procedures and constraints can get overwhelming, the preview can help you by showing how the layers will be exported.
 
-The upper part of the preview displays the names of layers to be exported ("layer name preview"), along with their folder structure if "Treat layer groups as folders" is enabled.
+The upper part of the preview displays the names of layers to be exported ("layer name preview"), along with their folder structure.
 
 If you select a layer in the layer name preview, the layer contents are displayed below ("contents preview").
 You can also adjust the height of the contents preview by dragging the upper edge of the contents preview.
@@ -46,8 +46,7 @@ You can choose the fields from the dropdown list displayed when clicking on the 
 **\[number\]**
 
 A number incrementing for each layer.
-
-The numbering is separate for each layer group if "Treat layer groups as folders" is enabled.
+The numbering is separate for each layer group.
 
 Examples:
 * \[1\] → 1, 2, ...

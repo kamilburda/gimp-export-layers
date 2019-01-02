@@ -103,12 +103,6 @@ def create_settings():
       "tags": ["ignore_reset"]
     },
     {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "layer_groups_as_folders",
-      "default_value": False,
-      "display_name": _("Treat layer groups as folders")
-    },
-    {
       "type": pgsetting.SettingTypes.string,
       "name": "layer_filename_pattern",
       "default_value": "[layer name]",

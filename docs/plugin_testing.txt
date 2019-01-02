@@ -58,6 +58,7 @@ Settings
 
 Basic settings
 * Output directory
+  * filenames and directories are properly uniquified
   * root directory
   * non-root directory
   * directory with denied write permission
@@ -66,11 +67,9 @@ Basic settings
   * invalid file extension - empty, non-empty
   * first layer - display dialog (interactive run mode)
   * subsequent layers - use last values (except file formats not supporting non-interactive run mode)
-* Layer groups as folders
-  * filenames and directories must be properly uniquified
 * Overwrite mode (non-interactive run mode only)
-  * make sure the settings uses the last overwrite mode
-  * by default - rename new files
+  * settings use the last overwrite mode
+  * default mode - rename new files
 
 Setting persistence
 * no setting source
@@ -93,7 +92,7 @@ Custom operations
 Tagged layers in built-in operations
 
 Name preview
-* Layer groups as folders
+* layers are organized in folder structure, names are properly uniquified
 * "Include..." constraints
 * tags
   * assign tag to layer

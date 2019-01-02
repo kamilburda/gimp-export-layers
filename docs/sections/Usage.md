@@ -29,11 +29,6 @@ Type or choose your desired file extension in the "File extension" text entry.
 The dropdown list can help you choose the right file format/extension.
 For now, the dropdown list only contains a fixed list of file formats provided by GIMP and some recognized third-party plug-ins, but you can you can still enter a file extension not in the dropdown list in case you use a file format plug-in not recognized by Export Layers.
 
-**Treat layer groups as folders**
-
-If enabled, layers will be exported to subfolders corresponding to the layer groups.
-If disabled, all layers will be exported to the output folder on the same level and no subfolders will be created.
-
 
 Managing Settings
 -----------------

@@ -53,7 +53,7 @@ class ExportPreviewsController(object):
     self._export_image_preview.update()
   
   def connect_setting_changes_to_previews(self):
-    self._connect_settings_changed()
+    self._connect_operations_changed()
     
     self._connect_setting_after_reset_collapsed_layers_in_name_preview()
     self._connect_setting_after_reset_selected_layers_in_name_preview()
@@ -61,21 +61,12 @@ class ExportPreviewsController(object):
     
     self._connect_toggle_name_preview_filtering()
   
-  def _connect_settings_changed(self):
-    self._connect_basic_settings()
-    
+  def _connect_operations_changed(self):
     self._connect_already_added_operations(self._settings["main/procedures"])
     self._prepare_to_connect_subsequent_operations(self._settings["main/procedures"])
     
     self._connect_already_added_operations(self._settings["main/constraints"])
     self._prepare_to_connect_subsequent_operations(self._settings["main/constraints"])
-  
-  def _connect_basic_settings(self):
-    basic_setting_names = ["layer_groups_as_folders"]
-    
-    for setting_name in basic_setting_names:
-      self._settings["main"][setting_name].connect_event(
-        "value-changed", self._update_previews_on_setting_change)
   
   def _connect_already_added_operations(self, operations_):
     for setting in operations.walk(operations_, setting_name="enabled"):
