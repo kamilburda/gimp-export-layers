@@ -439,7 +439,7 @@ class ExportLayersGui(object):
     
     self._label_message = gtk.Label()
     self._label_message.set_alignment(0.0, 0.5)
-    self._label_message.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+    self._label_message.set_ellipsize(pango.ELLIPSIZE_END)
     
     self._menu_item_show_more_settings = gtk.CheckMenuItem(_("Show More Settings"))
     
@@ -568,6 +568,7 @@ class ExportLayersGui(object):
     # Move the action area above the progress bar.
     self._dialog.vbox.reorder_child(self._dialog.action_area, -1)
     
+    self._label_message.connect("size-allocate", self._on_label_message_size_allocate)
     self._button_export.connect("clicked", self._on_button_export_clicked)
     self._button_cancel.connect("clicked", self._on_button_cancel_clicked)
     self._button_stop.connect("clicked", self._on_button_stop_clicked)
@@ -759,6 +760,9 @@ class ExportLayersGui(object):
       pginvocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
         self._export_name_preview.update)
+  
+  def _on_label_message_size_allocate(self, label, allocation):
+    pggui.set_tooltip_if_label_does_not_fit(label, label)
   
   def _on_menu_item_show_more_settings_toggled(self, widget):
     self._show_hide_more_settings()
