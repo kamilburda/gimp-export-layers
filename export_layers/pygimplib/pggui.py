@@ -32,6 +32,7 @@ import pygtk
 pygtk.require("2.0")
 import gtk
 import gobject
+import pango
 
 import gimpui
 
@@ -196,3 +197,23 @@ def get_toplevel_window(widget):
     return toplevel_widget
   else:
     return None
+
+
+def set_tooltip_if_label_does_not_fit(widget, label, use_markup=True):
+  """
+  If the `label` is not wide enough to display the entire text, assign a tooltip
+  to the `widget` displaying the text. Otherwise, remove the tooltip.
+  
+  If `use_markup` is `True`, treat the label text as marked-up text.
+  """
+  full_text_layout = pango.Layout(label.get_pango_context())
+  
+  if use_markup:
+    full_text_layout.set_markup_with_accel(label.get_label(), "_")
+  else:
+    full_text_layout.set_text(label.get_text())
+  
+  if label.get_layout().get_pixel_size()[0] < full_text_layout.get_pixel_size()[0]:
+    widget.set_tooltip_text(label.get_text())
+  else:
+    widget.set_tooltip_text(None)
