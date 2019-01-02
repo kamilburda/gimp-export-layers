@@ -61,7 +61,7 @@ OUTPUT_DIRPATH = os.path.join(gimp.user_directory(4), "Loading Screens", "Compon
 
 SCREENSHOTS_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "images")
 SCREENSHOT_DIALOG_BASIC_USAGE_FILENAME = "screenshot_dialog_basic_usage.png"
-SCREENSHOT_DIALOG_ADVANCED_USAGE_FILENAME = "screenshot_dialog_advanced_usage.png"
+SCREENSHOT_DIALOG_CUSTOMIZING_EXPORT_FILENAME = "screenshot_dialog_customizing_export.png"
 
 
 def take_screenshots(gui, dialog, settings):
@@ -69,6 +69,11 @@ def take_screenshots(gui, dialog, settings):
   settings["gui/show_more_settings"].set_value(False)
   
   decoration_offsets = move_dialog_to_corner(dialog, settings)
+  
+  gui._export_name_preview.set_selected_items(set([
+    gui._export_name_preview._layer_exporter.layer_tree["main-background"].item.ID]))
+  
+  dialog.set_focus(gui._export_name_preview.tree_view)
   
   while gtk.events_pending():
     gtk.main_iteration()
@@ -88,23 +93,27 @@ def take_screenshots(gui, dialog, settings):
   
   gui._box_procedures.add_item(
     builtin_procedures.BUILTIN_PROCEDURES["insert_background_layers"])
+  gui._box_procedures.add_item(
+    builtin_procedures.BUILTIN_PROCEDURES["use_layer_size"])
+  settings["main/procedures/added/use_layer_size/enabled"].set_value(False)
+  
   gui._box_constraints.add_item(
     builtin_constraints.BUILTIN_CONSTRAINTS["include_layers"])
   gui._box_constraints.add_item(
     builtin_constraints.BUILTIN_CONSTRAINTS["only_layers_without_tags"])
-  settings["main/constraints/added/only_layers_without_tags/enabled"].set_value(False)
+  
+  while gtk.events_pending():
+    gtk.main_iteration()
   
   gui._export_name_preview.set_selected_items(set([
     gui._export_name_preview._layer_exporter.layer_tree["bottom-frame"].item.ID]))
-  
-  dialog.set_focus(gui._export_name_preview.tree_view)
   
   while gtk.events_pending():
     gtk.main_iteration()
   
   take_and_process_screenshot(
     SCREENSHOTS_DIRPATH,
-    SCREENSHOT_DIALOG_ADVANCED_USAGE_FILENAME,
+    SCREENSHOT_DIALOG_CUSTOMIZING_EXPORT_FILENAME,
     settings,
     decoration_offsets)
   

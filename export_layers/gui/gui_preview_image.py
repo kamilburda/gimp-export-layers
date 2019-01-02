@@ -69,8 +69,8 @@ def display_image_preview_failure_message(details, parent=None):
 
 class ExportImagePreview(gui_preview_base.ExportPreview):
   
-  _BOTTOM_WIDGETS_PADDING = 5
-  _IMAGE_PREVIEW_PADDING = 3
+  _WIDGET_SPACING = 6
+  _BORDER_WIDTH = 6
   _MAX_PREVIEW_SIZE_PIXELS = 1024
   _PREVIEW_ALPHA_CHECK_SIZE = 4
   
@@ -208,18 +208,12 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._label_layer_name = gtk.Label()
     self._label_layer_name.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
-    self.pack_start(
-      self._preview_image, expand=True, fill=True, padding=self._IMAGE_PREVIEW_PADDING)
-    self.pack_start(
-      self._placeholder_image,
-      expand=True,
-      fill=True,
-      padding=self._IMAGE_PREVIEW_PADDING)
-    self.pack_start(
-      self._label_layer_name,
-      expand=False,
-      fill=False,
-      padding=self._BOTTOM_WIDGETS_PADDING)
+    self.set_spacing(self._WIDGET_SPACING)
+    self.set_border_width(self._BORDER_WIDTH)
+    
+    self.pack_start(self._preview_image, expand=True, fill=True)
+    self.pack_start(self._placeholder_image, expand=True, fill=True)
+    self.pack_start(self._label_layer_name, expand=False, fill=False)
     
     self._show_placeholder_image()
   
@@ -404,12 +398,12 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   
   def _on_size_allocate(self, image_widget, allocation):
     if not self._is_updating and not self._preview_image.get_mapped():
-      preview_widget_allocated_width = allocation.width - self._IMAGE_PREVIEW_PADDING * 2
+      preview_widget_allocated_width = allocation.width - self._BORDER_WIDTH
       preview_widget_allocated_height = (
         allocation.height
         - self._label_layer_name.get_allocation().height
-        - self._BOTTOM_WIDGETS_PADDING * 2
-        - self._IMAGE_PREVIEW_PADDING * 2)
+        - self._WIDGET_SPACING
+        - self._BORDER_WIDTH * 2)
       
       if (preview_widget_allocated_width < self._placeholder_image_size[0]
           or preview_widget_allocated_height < self._placeholder_image_size[1]):

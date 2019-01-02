@@ -13,7 +13,7 @@ See [Installation](Installation.html) and [Usage](Usage.html).
 
 ### Need more customization?
 
-See [Advanced Usage](Advanced-Usage.html).
+See [Customizing Export](Customizing-Export.html).
 
 
 ### Having trouble?

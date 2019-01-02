@@ -1,32 +1,25 @@
-Dialog
-------
+Introduction
+------------
 
-If you wish to further customize the export beyond the basic features of Export Layers, you can do so in the "advanced" version of the main dialog.
-To show the advanced dialog, press the "Settings" button and choose "Show More Settings".
+Beyond the basic features, Export Layers allows you to:
+* customize the layer name,
+* apply additional procedures before the export (insert background, scale down...)
+* exclude specific layers from the export by applying constraints (only visible layers, ...)
 
-![Dialog for advanced usage of Export Layers](../images/screenshot_dialog_advanced_usage.png)
+To enable customization, press the "Settings" button and choose "Show More Settings".
 
-The advanced dialog allows you, among other things, to customize the layer name, add procedures executed before the export of each layer and add constraints to exclude specific layers.
+![Dialog of Export Layers with additional customization](../images/screenshot_dialog_customizing_export.png)
 
-You can adjust the height of the bottom pane (between the file extension and the buttons to add procedures/constraints) and the width of the pane between the folder chooser and the preview.
-
-### Preview
-
-Because the number of procedures and constraints can get overwhelming, the preview can help you by showing how the layers will be exported.
-
-The upper part of the preview displays the names of layers to be exported ("layer name preview"), along with their folder structure.
-
-If you select a layer in the layer name preview, the layer contents are displayed below ("contents preview").
-You can also adjust the height of the contents preview by dragging the upper edge of the contents preview.
+You may adjust the height of the bottom pane by dragging the separator above the procedures and constraints.
 
 
 Customizing Layer Names
 -----------------------
 
+By default, layer names are used as filenames.
 The text entry next to "Save as" lets you customize the filenames.
-Layer names are used by default.
 
-There are several built-in "fields" that you can combine to form a filename pattern.
+There are several built-in *fields* that you can combine to form a filename pattern.
 For example, "image\[001\]" renames the layers to "image001", "image002" and so on.
 
 The preview automatically updates as you change the filename pattern and so can greatly help you figure out how your specified pattern affects the layer names.
@@ -220,7 +213,7 @@ Export only layers having a file extension matching the extension typed in the t
 
 **Only layers selected in preview**
 
-Export only layers selected in the layer name preview.
+Export only layers selected in the preview.
 If you save settings, the selection is saved as well.
 
 
@@ -228,14 +221,14 @@ Tagging Layers
 --------------
 
 Tags attached to layers allow you to customize each layer individually.
-To attach a tag to one or more layers, select them in the [layer name preview](#preview), right-click on the selection and choose your tag.
+To attach a tag to one or more layers, select them in the preview, right-click on the selection and choose your tag.
 Tagged layers are indicated with a tag icon in the preview.
 
 Adding or removing tags modifies the current image.
 Save the image to keep the tags permanently.
 
 Currently, Export Layers recognizes only "Background" and "Foreground" tags during processing.
-However, you can still add custom tags if desired - right-click anywhere on the layer name preview, select "Add tag..." and name your new tag.
+However, you can still add custom tags if desired - right-click anywhere on the preview, select "Add tag..." and name your new tag.
 You can then add the tag to any layer.
 
-To remove custom tags, you must first remove them from all layers, then right-click anywhere on the layer name preview, select "Remove tag..." and select the tag you wish to remove.
+To remove custom tags, you must first remove them from all layers, then right-click anywhere on the preview, select "Remove tag..." and select the tag you wish to remove.

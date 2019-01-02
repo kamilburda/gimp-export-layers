@@ -44,44 +44,44 @@ def create_gui_settings():
     {
       "type": pgsetting.SettingTypes.generic,
       "name": "dialog_position",
-      "default_value": ()
+      "default_value": (),
     },
     {
       "type": pgsetting.SettingTypes.generic,
       "name": "dialog_size",
-      "default_value": ()
+      "default_value": (),
     },
     {
       "type": pgsetting.SettingTypes.boolean,
       "name": "show_more_settings",
-      "default_value": False
+      "default_value": False,
     },
     {
       "type": pgsetting.SettingTypes.integer,
       "name": "paned_outside_previews_position",
-      "default_value": 610
+      "default_value": 610,
     },
     {
       "type": pgsetting.SettingTypes.float,
       "name": "paned_between_previews_position",
-      "default_value": 320
+      "default_value": 420,
     },
     {
       "type": pgsetting.SettingTypes.float,
       "name": "settings_vpane_position",
-      "default_value": 450
+      "default_value": 420,
     },
     {
       "type": pgsetting.SettingTypes.boolean,
       "name": "export_name_preview_sensitive",
       "default_value": True,
-      "gui_type": None
+      "gui_type": None,
     },
     {
       "type": pgsetting.SettingTypes.boolean,
       "name": "export_image_preview_sensitive",
       "default_value": True,
-      "gui_type": None
+      "gui_type": None,
     },
   ])
   
@@ -94,20 +94,20 @@ def create_gui_settings():
       "type": pgsetting.SettingTypes.image_IDs_and_directories,
       "name": "image_ids_and_directories",
       "default_value": {},
-      "tags": ["ignore_reset"]
+      "tags": ["ignore_reset"],
     },
     {
       "type": pgsetting.SettingTypes.generic,
       "name": "export_name_preview_layers_collapsed_state",
       # key: image ID
       # value: set of layer IDs collapsed in the name preview
-      "default_value": collections.defaultdict(set)
+      "default_value": collections.defaultdict(set),
     },
     {
       "type": pgsetting.SettingTypes.generic,
       "name": "export_image_preview_displayed_layers",
       # key: image ID; value: ID of the layer displayed in the preview
-      "default_value": collections.defaultdict(pgutils.return_none_func)
+      "default_value": collections.defaultdict(pgutils.return_none_func),
     },
   ])
   

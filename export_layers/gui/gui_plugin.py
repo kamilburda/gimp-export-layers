@@ -299,7 +299,7 @@ class ExportLayersGui(object):
   _HBOX_EXPORT_NAME_AND_MESSAGE_BORDER_WIDTH = 2
   
   _MORE_SETTINGS_HORIZONTAL_SPACING = 12
-  _MORE_SETTINGS_BORDER_WIDTH = 2
+  _MORE_SETTINGS_BORDER_WIDTH = 3
   
   _DIALOG_SIZE = (900, 610)
   _DIALOG_BORDER_WIDTH = 8
@@ -413,12 +413,6 @@ class ExportLayersGui(object):
     self._frame_previews.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
     self._frame_previews.add(self._vpaned_previews)
     
-    self._hpaned_chooser_and_previews = gtk.HPaned()
-    self._hpaned_chooser_and_previews.pack1(
-      self._vbox_folder_chooser, resize=True, shrink=False)
-    self._hpaned_chooser_and_previews.pack2(
-      self._frame_previews, resize=True, shrink=True)
-    
     self._file_extension_label = gtk.Label()
     self._file_extension_label.set_markup(
       "<b>{}:</b>".format(
@@ -449,7 +443,8 @@ class ExportLayersGui(object):
     
     self._menu_item_show_more_settings = gtk.CheckMenuItem(_("Show More Settings"))
     
-    self._vpaned_settings = gtk.VPaned()
+    self._vpaned_chooser_and_operations = gtk.VPaned()
+    self._hpaned_settings_and_previews = gtk.HPaned()
     
     self._settings.initialize_gui({
       "main/file_extension": [
@@ -461,11 +456,11 @@ class ExportLayersGui(object):
       "gui/show_more_settings": [
         pgsetting.SettingGuiTypes.check_menu_item, self._menu_item_show_more_settings],
       "gui/paned_outside_previews_position": [
-        pgsetting.SettingGuiTypes.paned_position, self._hpaned_chooser_and_previews],
+        pgsetting.SettingGuiTypes.paned_position, self._hpaned_settings_and_previews],
       "gui/paned_between_previews_position": [
         pgsetting.SettingGuiTypes.paned_position, self._vpaned_previews],
       "gui/settings_vpane_position": [
-        pgsetting.SettingGuiTypes.paned_position, self._vpaned_settings],
+        pgsetting.SettingGuiTypes.paned_position, self._vpaned_chooser_and_operations],
       "main/layer_filename_pattern": [
         pgsetting.SettingGuiTypes.extended_entry, self._filename_pattern_entry]
     })
@@ -507,20 +502,28 @@ class ExportLayersGui(object):
     
     self._init_gui_operation_boxes()
     
-    self._hbox_more_settings = gtk.HBox(homogeneous=True)
-    self._hbox_more_settings.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
-    self._hbox_more_settings.set_border_width(self._MORE_SETTINGS_BORDER_WIDTH)
-    self._hbox_more_settings.pack_start(self._box_procedures, expand=True, fill=True)
-    self._hbox_more_settings.pack_start(self._box_constraints, expand=True, fill=True)
+    self._hbox_operations = gtk.HBox(homogeneous=True)
+    self._hbox_operations.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
+    self._hbox_operations.set_border_width(self._MORE_SETTINGS_BORDER_WIDTH)
+    self._hbox_operations.pack_start(self._box_procedures, expand=True, fill=True)
+    self._hbox_operations.pack_start(self._box_constraints, expand=True, fill=True)
     
-    self._vbox_settings = gtk.VBox()
-    self._vbox_settings.set_spacing(self._DIALOG_VBOX_SPACING)
-    self._vbox_settings.pack_start(self._hpaned_chooser_and_previews)
-    self._vbox_settings.pack_start(
+    self._vbox_chooser_and_settings = gtk.VBox()
+    self._vbox_chooser_and_settings.set_spacing(self._DIALOG_VBOX_SPACING)
+    self._vbox_chooser_and_settings.pack_start(
+      self._vbox_folder_chooser, expand=True, fill=True)
+    self._vbox_chooser_and_settings.pack_start(
       self._hbox_export_name_and_message, expand=False, fill=False)
     
-    self._vpaned_settings.pack1(self._vbox_settings, resize=True, shrink=False)
-    self._vpaned_settings.pack2(self._hbox_more_settings, resize=False, shrink=True)
+    self._vpaned_chooser_and_operations.pack1(
+      self._vbox_chooser_and_settings, resize=True, shrink=False)
+    self._vpaned_chooser_and_operations.pack2(
+      self._hbox_operations, resize=False, shrink=True)
+    
+    self._hpaned_settings_and_previews.pack1(
+      self._vpaned_chooser_and_operations, resize=True, shrink=False)
+    self._hpaned_settings_and_previews.pack2(
+      self._frame_previews, resize=True, shrink=True)
     
     self._button_export = self._dialog.add_button(_("_Export"), gtk.RESPONSE_OK)
     self._button_cancel = self._dialog.add_button(_("_Cancel"), gtk.RESPONSE_CANCEL)
@@ -558,7 +561,8 @@ class ExportLayersGui(object):
     self._progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
     self._dialog.vbox.set_spacing(self._DIALOG_VBOX_SPACING)
-    self._dialog.vbox.pack_start(self._vpaned_settings, expand=True, fill=True)
+    self._dialog.vbox.pack_start(
+      self._hpaned_settings_and_previews, expand=True, fill=True)
     self._dialog.vbox.pack_end(self._progress_bar, expand=False, fill=False)
     
     # Move the action area above the progress bar.
@@ -602,7 +606,7 @@ class ExportLayersGui(object):
       "notify::is-active",
       self._export_previews_controller.on_dialog_is_active_changed,
       lambda: self._is_exporting)
-    self._hpaned_chooser_and_previews.connect(
+    self._hpaned_settings_and_previews.connect(
       "notify::position",
       self._export_previews_controller.on_paned_outside_previews_position_changed)
     self._vpaned_previews.connect(
@@ -761,22 +765,14 @@ class ExportLayersGui(object):
   
   def _show_hide_more_settings(self):
     if self._menu_item_show_more_settings.get_active():
-      self._hbox_more_settings.show()
+      self._hbox_operations.show()
       
       self._file_extension_label.hide()
       self._save_as_label.show()
       self._dot_label.show()
       self._filename_pattern_entry.show()
-      
-      self._frame_previews.show()
-      self._export_name_preview.show()
-      self._export_image_preview.show()
     else:
-      self._hbox_more_settings.hide()
-      
-      self._frame_previews.hide()
-      self._export_name_preview.hide()
-      self._export_image_preview.hide()
+      self._hbox_operations.hide()
       
       self._file_extension_label.show()
       self._save_as_label.hide()
