@@ -66,15 +66,14 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
         self,
         values_and_display_names,
         default_value,
-        default_response, title="",
-        parent=None,
-        use_mnemonics=True):
+        default_response,
+        title="",
+        parent=None):
     
     super().__init__(values_and_display_names, default_value, default_response)
     
     self._title = title
     self._parent = parent
-    self._use_mnemonics = use_mnemonics
     
     self._init_gui()
   
@@ -105,12 +104,9 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
     self._hbox_dialog_contents.pack_start(
       self._dialog_text_event_box, expand=False, fill=False)
     
-    if self._use_mnemonics:
-      label_apply_to_all = _("_Apply action to all files")
-    else:
-      label_apply_to_all = _("Apply action to all files")
-    self._checkbutton_apply_to_all = gtk.CheckButton(label=label_apply_to_all)
-    self._checkbutton_apply_to_all.set_use_underline(self._use_mnemonics)
+    self._checkbutton_apply_to_all = gtk.CheckButton(
+      label=_("_Apply action to all files"))
+    self._checkbutton_apply_to_all.set_use_underline(True)
     
     self._dialog.vbox.set_spacing(self._DIALOG_VBOX_SPACING)
     self._dialog.vbox.pack_start(self._hbox_dialog_contents, expand=False, fill=False)
