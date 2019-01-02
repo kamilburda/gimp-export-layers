@@ -214,6 +214,10 @@ See [Tagging Layers](#tagging-layers) for information about tags.
 Export only layers with no tags.
 See [Tagging Layers](#tagging-layers) for information about tags.
 
+**Only layers matching file extension**
+
+Export only layers having a file extension matching the extension typed in the text entry.
+
 **Only layers selected in preview**
 
 Export only layers selected in the layer name preview.
