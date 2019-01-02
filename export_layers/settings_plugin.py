@@ -164,25 +164,8 @@ def create_settings():
   def on_after_add_procedure(
         procedures, procedure, orig_procedure_dict, file_extension_setting):
     if orig_procedure_dict["name"] == "use_file_extensions_in_layer_names":
-      
-      def on_use_file_extensions_in_layer_names_enabled_changed(
-            use_file_extensions_in_layer_names_enabled, file_extension):
-        if not use_file_extensions_in_layer_names_enabled.value:
-          file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
-        else:
-          file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = _(
-            "You need to specify default file extension for layers with invalid "
-            "or no extension.")
-      
-      if procedure["enabled"].value:
-        # Invoke manually in case "enabled" is True upon adding.
-        on_use_file_extensions_in_layer_names_enabled_changed(
-          procedure["enabled"], file_extension_setting)
-      
-      procedure["enabled"].connect_event(
-        "value-changed",
-        on_use_file_extensions_in_layer_names_enabled_changed,
-        file_extension_setting)
+      _adjust_error_message_for_use_file_extensions_in_layer_names(
+        procedure, file_extension_setting)
   
   def on_after_add_constraint(
         constraints,
@@ -192,17 +175,8 @@ def create_settings():
         image_setting):
     if orig_constraint_dict["name"] == "only_selected_layers":
       constraint["arguments/selected_layers"].gui.set_visible(False)
-      
-      def on_selected_layers_changed(
-            selected_layers_setting, only_selected_layers_constraint, image_setting):
-        if image_setting.value is not None:
-          only_selected_layers_constraint["arguments/selected_layers"].set_value(
-            selected_layers_setting.value[image_setting.value.ID])
-      
-      on_selected_layers_changed(selected_layers_setting, constraint, image_setting)
-      
-      selected_layers_setting.connect_event(
-        "value-changed", on_selected_layers_changed, constraint, image_setting)
+      _sync_selected_layers_and_only_selected_layers_constraint(
+        selected_layers_setting, constraint, image_setting)
   
   settings["main/procedures"].connect_event(
     "after-add-operation", on_after_add_procedure, settings["main/file_extension"])
@@ -214,6 +188,44 @@ def create_settings():
     settings["special/image"])
   
   return settings
+
+
+def _adjust_error_message_for_use_file_extensions_in_layer_names(
+      procedure, file_extension_setting):
+  
+  def _on_use_file_extensions_in_layer_names_enabled_changed(
+        use_file_extensions_in_layer_names_enabled, file_extension):
+    if not use_file_extensions_in_layer_names_enabled.value:
+      file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
+    else:
+      file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = _(
+        "You need to specify default file extension for layers with invalid "
+        "or no extension.")
+  
+  if procedure["enabled"].value:
+    # Invoke manually in case "enabled" is True upon adding.
+    _on_use_file_extensions_in_layer_names_enabled_changed(
+      procedure["enabled"], file_extension_setting)
+  
+  procedure["enabled"].connect_event(
+    "value-changed",
+    _on_use_file_extensions_in_layer_names_enabled_changed,
+    file_extension_setting)
+
+
+def _sync_selected_layers_and_only_selected_layers_constraint(
+      selected_layers_setting, constraint, image_setting):
+  
+  def _on_selected_layers_changed(
+        selected_layers_setting, only_selected_layers_constraint, image_setting):
+    if image_setting.value is not None:
+      only_selected_layers_constraint["arguments/selected_layers"].set_value(
+        selected_layers_setting.value[image_setting.value.ID])
+  
+  _on_selected_layers_changed(selected_layers_setting, constraint, image_setting)
+  
+  selected_layers_setting.connect_event(
+    "value-changed", _on_selected_layers_changed, constraint, image_setting)
 
 
 #===============================================================================
