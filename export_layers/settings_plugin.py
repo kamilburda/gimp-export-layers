@@ -109,12 +109,6 @@ def create_settings():
       "display_name": _("Treat layer groups as folders")
     },
     {
-      "type": pgsetting.SettingTypes.boolean,
-      "name": "only_visible_layers",
-      "default_value": False,
-      "display_name": _("Only visible layers")
-    },
-    {
       "type": pgsetting.SettingTypes.string,
       "name": "layer_filename_pattern",
       "default_value": "[layer name]",
@@ -168,7 +162,9 @@ def create_settings():
   
   settings["main"].add([operations.create(
     name="constraints",
-    initial_operations=[builtin_constraints.BUILTIN_CONSTRAINTS["include_layers"]]),
+    initial_operations=[
+      builtin_constraints.BUILTIN_CONSTRAINTS["include_layers"],
+      builtin_constraints.BUILTIN_CONSTRAINTS["only_visible_layers"]]),
   ])
   
   def on_after_add_procedure(

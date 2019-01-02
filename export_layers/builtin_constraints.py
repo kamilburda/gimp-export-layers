@@ -44,20 +44,12 @@ def is_empty_group(layer_elem):
   return layer_elem.item_type == layer_elem.EMPTY_GROUP
 
 
-def is_top_level(layer_elem):
-  return layer_elem.depth == 0
-
-
 def is_path_visible(layer_elem):
   return layer_elem.path_visible
 
 
-def has_matching_file_extension(layer_elem, file_extension):
-  return layer_elem.get_file_extension() == file_extension.lower()
-
-
-def has_matching_default_file_extension(layer_elem, layer_exporter):
-  return layer_elem.get_file_extension() == layer_exporter.default_file_extension
+def is_top_level(layer_elem):
+  return layer_elem.depth == 0
 
 
 def has_tags(layer_elem, tags=None):
@@ -69,6 +61,14 @@ def has_tags(layer_elem, tags=None):
 
 def has_no_tags(layer_elem, tags=None):
   return not has_tags(layer_elem, tags)
+
+
+def has_matching_file_extension(layer_elem, file_extension):
+  return layer_elem.get_file_extension() == file_extension.lower()
+
+
+def has_matching_default_file_extension(layer_elem, layer_exporter):
+  return layer_elem.get_file_extension() == layer_exporter.default_file_extension
 
 
 def is_layer_in_selected_layers(layer_elem, selected_layers):
@@ -101,18 +101,17 @@ _BUILTIN_CONSTRAINTS_LIST = [
     "operation_groups": [CONSTRAINTS_LAYER_TYPES_GROUP],
   },
   {
-    "name": "only_layers_without_tags",
+    "name": "only_visible_layers",
     "type": "constraint",
-    "function": has_no_tags,
-    "arguments": [
-      {
-        "type": pgsetting.SettingTypes.array,
-        "name": "tags",
-        "element_type": pgsetting.SettingTypes.string,
-        "default_value": (),
-      },
-    ],
-    "display_name": _("Only layers without tags"),
+    "function": is_path_visible,
+    "enabled": False,
+    "display_name": _("Only visible layers"),
+  },
+  {
+    "name": "only_toplevel_layers",
+    "type": "constraint",
+    "function": is_top_level,
+    "display_name": _("Only top-level layers"),
   },
   {
     "name": "only_layers_with_tags",
@@ -129,16 +128,24 @@ _BUILTIN_CONSTRAINTS_LIST = [
     "display_name": _("Only layers with tags"),
   },
   {
+    "name": "only_layers_without_tags",
+    "type": "constraint",
+    "function": has_no_tags,
+    "arguments": [
+      {
+        "type": pgsetting.SettingTypes.array,
+        "name": "tags",
+        "element_type": pgsetting.SettingTypes.string,
+        "default_value": (),
+      },
+    ],
+    "display_name": _("Only layers without tags"),
+  },
+  {
     "name": "only_layers_matching_file_extension",
     "type": "constraint",
     "function": has_matching_default_file_extension,
     "display_name": _("Only layers matching file extension"),
-  },
-  {
-    "name": "only_toplevel_layers",
-    "type": "constraint",
-    "function": is_top_level,
-    "display_name": _("Only top-level layers"),
   },
   {
     "name": "only_selected_layers",

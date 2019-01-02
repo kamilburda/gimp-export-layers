@@ -34,11 +34,6 @@ For now, the dropdown list only contains a fixed list of file formats provided b
 If enabled, layers will be exported to subfolders corresponding to the layer groups.
 If disabled, all layers will be exported to the output folder on the same level and no subfolders will be created.
 
-**Only visible layers**
-
-If enabled, invisible layers will not be exported.
-Visible layers within invisible layer groups will also not be exported.
-
 
 Managing Settings
 -----------------

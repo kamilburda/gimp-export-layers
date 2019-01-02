@@ -420,9 +420,6 @@ class LayerExporter(object):
     
     self._init_tagged_layer_elems()
     
-    if self.export_settings["only_visible_layers"].value:
-      self._layer_tree.filter.add_rule(builtin_constraints.is_path_visible)
-    
     self._operation_executor.execute(
       [operations.DEFAULT_CONSTRAINTS_GROUP],
       [self],

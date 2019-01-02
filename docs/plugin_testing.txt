@@ -93,7 +93,7 @@ Custom operations
 Tagged layers in built-in operations
 
 Name preview
-* "Layer groups as folders"
+* Layer groups as folders
 * "Include..." constraints
 * tags
   * assign tag to layer

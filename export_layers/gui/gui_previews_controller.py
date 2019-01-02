@@ -71,10 +71,7 @@ class ExportPreviewsController(object):
     self._prepare_to_connect_subsequent_operations(self._settings["main/constraints"])
   
   def _connect_basic_settings(self):
-    basic_setting_names = [
-      "layer_groups_as_folders",
-      "only_visible_layers"
-    ]
+    basic_setting_names = ["layer_groups_as_folders"]
     
     for setting_name in basic_setting_names:
       self._settings["main"][setting_name].connect_event(

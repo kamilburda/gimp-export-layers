@@ -196,6 +196,15 @@ Export all layer groups.
 
 Create subfolders for empty layer groups.
 
+**Only visible layers**
+
+If enabled, invisible layers will not be exported.
+Visible layers within invisible layer groups will also not be exported.
+
+**Only top-level layers**
+
+Export only layers at the top of the layer tree (i.e. do not export layers inside any layer group).
+
 **Only layers with tags**
 
 Export only layers with tags.
@@ -205,10 +214,6 @@ See [Tagging Layers](#tagging-layers) for information about tags.
 
 Export only layers with no tags.
 See [Tagging Layers](#tagging-layers) for information about tags.
-
-**Only top-level layers**
-
-Export only layers at the top of the layer tree (i.e. do not export layers inside any layer group).
 
 **Only layers selected in preview**
 

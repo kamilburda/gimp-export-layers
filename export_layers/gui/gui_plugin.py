@@ -510,8 +510,6 @@ class ExportLayersGui(object):
     self._hbox_basic_settings = gtk.HBox(homogeneous=False)
     self._hbox_basic_settings.pack_start(
       self._settings["main/layer_groups_as_folders"].gui.element)
-    self._hbox_basic_settings.pack_start(
-      self._settings["main/only_visible_layers"].gui.element)
     
     self._vbox_basic_settings = gtk.VBox(homogeneous=False)
     self._vbox_basic_settings.set_spacing(self._MORE_SETTINGS_VERTICAL_SPACING)

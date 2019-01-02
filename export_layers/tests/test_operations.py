@@ -81,19 +81,19 @@ test_procedures = [
 
 test_constraints = [
   {
-    "name": "only_visible_layers",
-    "type": "constraint",
-    "function": pgutils.empty_func,
-    "enabled": False,
-    "display_name": "Only visible layers",
-  },
-  {
     "name": "include_layers",
     "type": "constraint",
     "function": pgutils.empty_func,
     "enabled": True,
     "display_name": "Include layers",
     "subfilter": "layer_types",
+  },
+  {
+    "name": "only_visible_layers",
+    "type": "constraint",
+    "function": pgutils.empty_func,
+    "enabled": False,
+    "display_name": "Only visible layers",
   },
 ]
 
@@ -453,8 +453,8 @@ class TestWalkOperations(unittest.TestCase):
      ["autocrop",
       "autocrop_background",
       "autocrop_foreground",
-      "only_visible_layers",
-      "include_layers"]),
+      "include_layers",
+      "only_visible_layers"]),
     
     ("specific_type_entire_operations",
      "procedure",
@@ -469,8 +469,8 @@ class TestWalkOperations(unittest.TestCase):
      ["autocrop/enabled",
       "autocrop_background/enabled",
       "autocrop_foreground/enabled",
-      "only_visible_layers/enabled",
-      "include_layers/enabled"]),
+      "include_layers/enabled",
+      "only_visible_layers/enabled"]),
     
     ("specific_types_specific_setting",
      "procedure",
