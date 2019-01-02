@@ -110,26 +110,30 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_use_image_size(self):
     self.compare(
-      {"use_image_size": True},
+      procedure_names_to_remove=["use_layer_size"],
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "use_image_size"))
   
   def test_background(self):
     self.compare(
-      procedure_names=["insert_background_layers"],
+      procedure_names_to_add={"insert_background_layers": 0},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "background"))
   
   def test_background_autocrop_background(self):
     self.compare(
-      procedure_names=["insert_background_layers", "autocrop_background"],
+      procedure_names_to_add={
+        "insert_background_layers": 0,
+        "autocrop_background": None},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "background"))
   
   def test_background_autocrop_background_use_image_size(self):
     self.compare(
-      {"use_image_size": True},
-      procedure_names=["insert_background_layers", "autocrop_background"],
+      procedure_names_to_add={
+        "insert_background_layers": 0,
+        "autocrop_background": None},
+      procedure_names_to_remove=["use_layer_size"],
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath,
         "background",
@@ -144,7 +148,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         layer_elem.add_tag("foreground")
     
     self.compare(
-      procedure_names=["insert_foreground_layers"],
+      procedure_names_to_add={"insert_foreground_layers": 0},
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, "foreground"))
     
@@ -152,17 +156,14 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def compare(
         self,
-        settings_and_values=None,
-        procedure_names=None,
+        procedure_names_to_add=None,
+        procedure_names_to_remove=None,
         different_results_and_expected_layers=None,
         expected_results_dirpath=None):
     settings = settings_plugin.create_settings()
     settings["special/image"].set_value(self.test_image)
     settings["main/output_directory"].set_value(self.output_dirpath)
     settings["main/file_extension"].set_value("xcf")
-    
-    if settings_and_values is not None:
-      settings["main"].set_values(settings_and_values)
     
     if expected_results_dirpath is None:
       expected_results_dirpath = self.expected_results_root_dirpath
@@ -175,7 +176,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         layer.name: layer
         for layer in self.expected_images[expected_results_dirpath].layers}
     
-    self._export(settings, procedure_names)
+    self._export(settings, procedure_names_to_add, procedure_names_to_remove)
     
     self.image_with_results, layers = self._load_layers_from_dirpath(self.output_dirpath)
     
@@ -193,14 +194,23 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         expected_results_dirpath)
   
   @staticmethod
-  def _export(settings, procedure_names):
-    if procedure_names is None:
-      procedure_names = []
+  def _export(settings, procedure_names_to_add, procedure_names_to_remove):
+    if procedure_names_to_add is None:
+      procedure_names_to_add = {}
     
-    for procedure_name in procedure_names:
+    if procedure_names_to_remove is None:
+      procedure_names_to_remove = []
+    
+    for procedure_name, order in procedure_names_to_add.items():
       operations.add(
         settings["main/procedures"],
         builtin_procedures.BUILTIN_PROCEDURES[procedure_name])
+      if order is not None:
+        operations.reorder(settings["main/procedures"], procedure_name, order)
+    
+    for procedure_name in procedure_names_to_remove:
+      if procedure_name in settings["main/procedures/added"]:
+        operations.remove(settings["main/procedures"], procedure_name)
     
     layer_exporter = exportlayers.LayerExporter(
       settings["special/run_mode"].value,
@@ -209,7 +219,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     
     layer_exporter.export()
     
-    for procedure_name in procedure_names:
+    for procedure_name in procedure_names_to_add:
       operations.remove(settings["main/procedures"], procedure_name)
   
   def _compare_layers(

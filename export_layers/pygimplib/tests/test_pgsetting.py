@@ -278,11 +278,11 @@ class TestSettingEvents(unittest.TestCase):
       stubs_pgsetting.on_file_extension_changed,
       self.only_visible_layers)
     
-    use_image_size = pgsetting.BoolSetting("use_image_size", False)
-    use_image_size.connect_event(
-      "value-changed", stubs_pgsetting.on_use_image_size_changed, self.setting)
+    use_layer_size = pgsetting.BoolSetting("use_layer_size", False)
+    use_layer_size.connect_event(
+      "value-changed", stubs_pgsetting.on_use_layer_size_changed, self.setting)
     
-    use_image_size.set_value(True)
+    use_layer_size.set_value(True)
     
     self.assertEqual(self.setting.value, "jpg")
     self.assertEqual(self.only_visible_layers.value, True)

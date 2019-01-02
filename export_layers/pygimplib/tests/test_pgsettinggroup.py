@@ -67,15 +67,15 @@ class TestSettingGroupAddWithSettingDict(unittest.TestCase):
     self.settings = pgsettinggroup.SettingGroup("main")
     self.setting_dict = {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "use_image_size",
+      "name": "use_layer_size",
       "default_value": False}
   
   def test_add(self):
     self.settings.add([self.setting_dict])
     
-    self.assertIn("use_image_size", self.settings)
-    self.assertIsInstance(self.settings["use_image_size"], pgsetting.BoolSetting)
-    self.assertEqual(self.settings["use_image_size"].value, False)
+    self.assertIn("use_layer_size", self.settings)
+    self.assertIsInstance(self.settings["use_layer_size"], pgsetting.BoolSetting)
+    self.assertEqual(self.settings["use_layer_size"].value, False)
   
   def test_add_with_missing_type_attribute(self):
     del self.setting_dict["type"]
@@ -103,7 +103,7 @@ class TestSettingGroupAddWithSettingDict(unittest.TestCase):
       self.settings.add([self.setting_dict])
   
   def test_add_with_path_separator(self):
-    self.setting_dict["name"] = "use/image/size"
+    self.setting_dict["name"] = "use/layer/size"
     
     with self.assertRaises(ValueError):
       self.settings.add([self.setting_dict])
@@ -121,10 +121,10 @@ class TestSettingGroupAddWithSettingDict(unittest.TestCase):
     
     self.settings.add([special_settings, main_settings])
     
-    self.assertIn("use_image_size", special_settings)
-    self.assertIn("use_image_size", main_settings)
+    self.assertIn("use_layer_size", special_settings)
+    self.assertIn("use_layer_size", main_settings)
     self.assertNotEqual(
-      special_settings["use_image_size"], main_settings["use_image_size"])
+      special_settings["use_layer_size"], main_settings["use_layer_size"])
 
 
 class TestSettingGroupAddFromDict(unittest.TestCase):
@@ -140,13 +140,13 @@ class TestSettingGroupAddFromDict(unittest.TestCase):
       },
       {
        "type": pgsetting.SettingTypes.boolean,
-       "name": "use_image_size",
+       "name": "use_layer_size",
        "default_value": False,
       }
     ])
     
     self.assertEqual(settings["only_visible_layers"].pdb_type, None)
-    self.assertEqual(settings["use_image_size"].pdb_type, None)
+    self.assertEqual(settings["use_layer_size"].pdb_type, None)
   
   def test_add_with_group_level_attributes_overridden_by_setting_attributes(self):
     settings = pgsettinggroup.SettingGroup(
@@ -159,7 +159,7 @@ class TestSettingGroupAddFromDict(unittest.TestCase):
       },
       {
        "type": pgsetting.SettingTypes.boolean,
-       "name": "use_image_size",
+       "name": "use_layer_size",
        "default_value": False,
        "pdb_type": pgsetting.SettingPdbTypes.int16
       }
@@ -167,7 +167,7 @@ class TestSettingGroupAddFromDict(unittest.TestCase):
     
     self.assertEqual(settings["only_visible_layers"].pdb_type, None)
     self.assertEqual(
-      settings["use_image_size"].pdb_type, pgsetting.SettingPdbTypes.int16)
+      settings["use_layer_size"].pdb_type, pgsetting.SettingPdbTypes.int16)
   
   def test_add_with_group_level_attributes_overridden_by_child_group_attributes(self):
     additional_settings = pgsettinggroup.SettingGroup(
@@ -176,7 +176,7 @@ class TestSettingGroupAddFromDict(unittest.TestCase):
     additional_settings.add([
       {
        "type": pgsetting.SettingTypes.boolean,
-       "name": "use_image_size",
+       "name": "use_layer_size",
        "default_value": False
       }
     ])
@@ -195,9 +195,9 @@ class TestSettingGroupAddFromDict(unittest.TestCase):
     
     self.assertEqual(settings["only_visible_layers"].pdb_type, None)
     self.assertEqual(
-      settings["additional/use_image_size"].pdb_type, pgsetting.SettingPdbTypes.int16)
+      settings["additional/use_layer_size"].pdb_type, pgsetting.SettingPdbTypes.int16)
     self.assertEqual(settings["only_visible_layers"].display_name, "Setting name")
-    self.assertEqual(settings["additional/use_image_size"].display_name, "Use image size")
+    self.assertEqual(settings["additional/use_layer_size"].display_name, "Use layer size")
 
 
 class TestSettingGroupCreateGroupsFromDict(unittest.TestCase):
@@ -637,7 +637,7 @@ class TestSettingGroupLoadSave(unittest.TestCase):
      3,
      [["main/file_extension"],
       ["advanced/only_visible_layers"],
-      ["advanced/use_image_size"]],
+      ["advanced/use_layer_size"]],
      [("session_source", "persistent_source"),
       ("persistent_source", "session_source"),
       ("session_source",)]),
@@ -645,7 +645,7 @@ class TestSettingGroupLoadSave(unittest.TestCase):
     ("session_source_only",
      ["session_source"],
      1,
-     [["main/file_extension", "advanced/only_visible_layers", "advanced/use_image_size"]],
+     [["main/file_extension", "advanced/only_visible_layers", "advanced/use_layer_size"]],
      [("session_source",)]),
     
     ("persistent_source_only",

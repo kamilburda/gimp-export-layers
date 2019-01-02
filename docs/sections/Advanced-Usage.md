@@ -136,6 +136,14 @@ To add custom procedures before the export of each layer, press the "Add Procedu
 You can enable, disable or remove procedures as needed.
 You can add the same procedure multiple times.
 
+**Use layer size**
+
+If enabled, layers will be resized (not scaled) to their size instead of the image size. This procedure is enabled by default.
+
+To keep the size of the image canvas and the layer position within the image, disable this setting.
+Note that in that case the layers will be cut off if they are partially outside the image canvas.
+To export the entire layer, leave this setting enabled.
+
 **Insert background layers**
 
 Insert layers tagged with "Background" as background for each layer.
@@ -178,7 +186,7 @@ You can add the same constraint multiple times.
 **Include layers**
 
 Export all layers that are not groups.
-This is enabled by default.
+This constraint is enabled by default.
 
 **Include layer groups**
 

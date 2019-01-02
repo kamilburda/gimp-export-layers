@@ -73,7 +73,6 @@ class ExportPreviewsController(object):
   def _connect_basic_settings(self):
     basic_setting_names = [
       "layer_groups_as_folders",
-      "use_image_size",
       "only_visible_layers"
     ]
     

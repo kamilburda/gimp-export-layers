@@ -68,9 +68,6 @@ Basic settings
   * subsequent layers - use last values (except file formats not supporting non-interactive run mode)
 * Layer groups as folders
   * filenames and directories must be properly uniquified
-* Only visible layers
-  * visible layers with invisible parents must also be ignored
-* Use image size
 * Overwrite mode (non-interactive run mode only)
   * make sure the settings uses the last overwrite mode
   * by default - rename new files
@@ -84,6 +81,7 @@ Setting persistence
 Built-in operations
 * procedures
 * constraints
+  * Only visible layers - visible layers with invisible parents must also be ignored
 
 Custom operations
 * add

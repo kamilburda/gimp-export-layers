@@ -30,6 +30,7 @@ import os
 import gimp
 import gimpenums
 
+from export_layers import builtin_procedures
 from export_layers import builtin_constraints
 from export_layers import operations
 
@@ -109,12 +110,6 @@ def create_settings():
     },
     {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "use_image_size",
-      "default_value": False,
-      "display_name": _("Use image size")
-    },
-    {
-      "type": pgsetting.SettingTypes.boolean,
       "name": "only_visible_layers",
       "default_value": False,
       "display_name": _("Only visible layers")
@@ -166,7 +161,10 @@ def create_settings():
     },
   ])
   
-  settings["main"].add([operations.create(name="procedures")])
+  settings["main"].add([operations.create(
+    name="procedures",
+    initial_operations=[builtin_procedures.BUILTIN_PROCEDURES["use_layer_size"]]),
+  ])
   
   settings["main"].add([operations.create(
     name="constraints",

@@ -120,39 +120,39 @@ class TestSettingEventsMixin(unittest.TestCase):
     self.assertFalse(self.only_visible.value)
   
   def test_connect_event_with_keyword_arguments(self):
-    use_image_size = pgsetting.BoolSetting("use_image_size", False)
-    use_image_size.connect_event(
+    use_layer_size = pgsetting.BoolSetting("use_layer_size", False)
+    use_layer_size.connect_event(
       "test-event",
-      stubs_pgsetting.on_use_image_size_changed,
+      stubs_pgsetting.on_use_layer_size_changed,
       self.file_extension,
       file_extension_value="tiff")
     
-    use_image_size.set_value(True)
-    use_image_size.invoke_event("test-event")
+    use_layer_size.set_value(True)
+    use_layer_size.invoke_event("test-event")
     
     self.assertEqual(self.file_extension.value, "tiff")
   
   def test_invoke_event_with_keyword_arguments(self):
-    use_image_size = pgsetting.BoolSetting("use_image_size", False)
-    use_image_size.connect_event(
+    use_layer_size = pgsetting.BoolSetting("use_layer_size", False)
+    use_layer_size.connect_event(
       "test-event",
-      stubs_pgsetting.on_use_image_size_changed,
+      stubs_pgsetting.on_use_layer_size_changed,
       file_extension_value="tiff")
     
-    use_image_size.set_value(True)
-    use_image_size.invoke_event("test-event", file_extension=self.file_extension)
+    use_layer_size.set_value(True)
+    use_layer_size.invoke_event("test-event", file_extension=self.file_extension)
     
     self.assertEqual(self.file_extension.value, "tiff")
   
   def test_invoke_event_places_invoke_event_arguments_first(self):
-    use_image_size = pgsetting.BoolSetting("use_image_size", False)
-    use_image_size.connect_event(
+    use_layer_size = pgsetting.BoolSetting("use_layer_size", False)
+    use_layer_size.connect_event(
       "test-event",
-      stubs_pgsetting.on_use_image_size_changed,
+      stubs_pgsetting.on_use_layer_size_changed,
       "tiff")
     
-    use_image_size.set_value(True)
-    use_image_size.invoke_event("test-event", self.file_extension)
+    use_layer_size.set_value(True)
+    use_layer_size.invoke_event("test-event", self.file_extension)
     
     self.assertEqual(self.file_extension.value, "tiff")
   
@@ -162,18 +162,18 @@ class TestSettingEventsMixin(unittest.TestCase):
       stubs_pgsetting.on_file_extension_changed,
       self.only_visible)
     
-    use_image_size = pgsetting.BoolSetting("use_image_size", False)
+    use_layer_size = pgsetting.BoolSetting("use_layer_size", False)
     self.file_extension.connect_event(
       "test-event",
-      stubs_pgsetting.on_file_extension_changed_with_use_image_size,
-      use_image_size)
+      stubs_pgsetting.on_file_extension_changed_with_use_layer_size,
+      use_layer_size)
     
     self.file_extension.set_value("jpg")
     self.file_extension.invoke_event("test-event")
     
     self.assertEqual(self.file_extension.value, "jpg")
     self.assertTrue(self.only_visible.value)
-    self.assertFalse(use_image_size.gui.get_visible())
+    self.assertFalse(use_layer_size.gui.get_visible())
   
   def test_remove_event(self):
     event_id = self.file_extension.connect_event(
@@ -195,18 +195,18 @@ class TestSettingEventsMixin(unittest.TestCase):
       stubs_pgsetting.on_file_extension_changed,
       self.only_visible)
     
-    use_image_size = pgsetting.BoolSetting("use_image_size", False)
+    use_layer_size = pgsetting.BoolSetting("use_layer_size", False)
     self.file_extension.connect_event(
       "test-event",
-      stubs_pgsetting.on_file_extension_changed_with_use_image_size,
-      use_image_size)
+      stubs_pgsetting.on_file_extension_changed_with_use_layer_size,
+      use_layer_size)
     
     self.file_extension.remove_event(event_id)
     self.file_extension.set_value("jpg")
     self.file_extension.invoke_event("test-event")
     
     self.assertFalse(self.only_visible.value)
-    self.assertFalse(use_image_size.gui.get_visible())
+    self.assertFalse(use_layer_size.gui.get_visible())
   
   def test_remove_event_invalid_id_raises_error(self):
     with self.assertRaises(ValueError):

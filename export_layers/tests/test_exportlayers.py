@@ -76,7 +76,8 @@ class TestLayerExporterInitialOperations(unittest.TestCase):
     added_operation_items = layer_exporter.operation_executor.list_operations(
       group=operations.DEFAULT_PROCEDURES_GROUP)
     
-    self.assertEqual(len(added_operation_items), 3)
+    # Includes built-in procedures added by default
+    self.assertEqual(len(added_operation_items), 4)
     
     initial_executor = added_operation_items[1]
     self.assertIsInstance(initial_executor, pgoperations.OperationExecutor)

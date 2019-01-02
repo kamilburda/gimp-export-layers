@@ -550,15 +550,8 @@ class LayerExporter(object):
         pdb.gimp_image_remove_layer(image, layer)
   
   def _merge_and_resize_layer(self, image, layer):
-    if not self.export_settings["use_image_size"].value:
-      layer_offset_x, layer_offset_y = layer.offsets
-      pdb.gimp_image_resize(
-        image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
-    
     layer = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
-    
     pdb.gimp_layer_resize_to_image_size(layer)
-    
     return layer
   
   def _preprocess_layer_name(self, layer_elem):

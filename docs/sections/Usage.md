@@ -39,13 +39,6 @@ If disabled, all layers will be exported to the output folder on the same level 
 If enabled, invisible layers will not be exported.
 Visible layers within invisible layer groups will also not be exported.
 
-**Use image size**
-
-If enabled, layers will be resized (not scaled) to the image size.
-This is useful if you want to keep the size of the image canvas and the layer position within the image.
-If layers are partially outside the image canvas, they will be cut off.
-If you want to export the entire layer, leave this setting disabled.
-
 
 Managing Settings
 -----------------

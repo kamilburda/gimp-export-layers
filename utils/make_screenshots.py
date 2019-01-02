@@ -80,7 +80,6 @@ def take_screenshots(gui, dialog, settings):
     settings,
     decoration_offsets)
   
-  settings["main/use_image_size"].set_value(True)
   settings["gui/show_more_settings"].set_value(True)
   
   #HACK: Accessing private members

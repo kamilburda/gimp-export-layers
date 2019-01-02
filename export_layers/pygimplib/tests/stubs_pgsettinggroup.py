@@ -123,7 +123,7 @@ def create_test_settings_load_save():
     },
     {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "use_image_size",
+      "name": "use_layer_size",
       "default_value": False
     },
   ])
