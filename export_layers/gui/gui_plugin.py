@@ -322,6 +322,8 @@ class ExportLayersGui(object):
     self._layer_exporter = None
     self._is_exporting = False
     
+    self._message_setting = None
+    
     self._layer_exporter_for_previews = exportlayers.LayerExporter(
       gimpenums.RUN_NONINTERACTIVE,
       self._image,
@@ -330,12 +332,18 @@ class ExportLayersGui(object):
         self._settings["main/overwrite_mode"].items["replace"]),
       layer_tree=self._initial_layer_tree)
     
-    self._init_settings()
-    
     if gimp.version[:2] == (2, 8):
       pgpdb.suppress_gimp_progress()
     
-    self._init_gui()
+    self._init_settings()
+    self._init_operations()
+    
+    self._init_gui_elements()
+    
+    self._assign_gui_to_settings()
+    
+    self._connect_events()
+    self._finish_init_and_show()
     
     pggui.set_gui_excepthook_parent(self._dialog)
     pggui.set_gui_excepthook_additional_callback(
@@ -365,6 +373,9 @@ class ExportLayersGui(object):
       settings_plugin.convert_layer_name_to_id,
       [self._layer_exporter_for_previews.layer_tree])
     
+    self._settings["main/procedures"].tags.add("ignore_load")
+    self._settings["main/constraints"].tags.add("ignore_load")
+    
     status, status_message = self._settings.load()
     if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
       display_message(status_message, gtk.MESSAGE_WARNING)
@@ -376,19 +387,25 @@ class ExportLayersGui(object):
         default_value=self._settings["main/output_directory"].default_value,
         gui_type=None)])
     
-    self._message_setting = None
-    
     _setup_image_ids_and_directories_and_initial_directory(
       self._settings, self._settings["gui_session/current_directory"], self._image)
     _setup_output_directory_changed(self._settings, self._image)
   
-  def _init_gui(self):
+  def _init_operations(self):
+    self._settings["main/procedures"].tags.remove("ignore_load")
+    self._settings["main/procedures"].load()
+    
+    self._settings["main/constraints"].tags.remove("ignore_load")
+    self._settings["main/constraints"].load()
+  
+  def _init_gui_elements(self):
     self._dialog = gimpui.Dialog(
       title=pygimplib.config.PLUGIN_TITLE,
       role=pygimplib.config.PLUGIN_NAME)
     self._dialog.set_transient()
     self._dialog.set_default_size(*self._DIALOG_SIZE)
     self._dialog.set_border_width(self._DIALOG_BORDER_WIDTH)
+    self._dialog.set_default_response(gtk.RESPONSE_CANCEL)
     
     self._folder_chooser_label = gtk.Label()
     self._folder_chooser_label.set_markup("<b>" + _("Save in folder:") + "</b>")
@@ -422,6 +439,7 @@ class ExportLayersGui(object):
     self._file_extension_entry = pggui.FileExtensionEntry(
       minimum_width_chars=self._FILE_EXTENSION_ENTRY_MIN_WIDTH_CHARS,
       maximum_width_chars=self._FILE_EXTENSION_ENTRY_MAX_WIDTH_CHARS)
+    self._file_extension_entry.set_activates_default(True)
     
     self._save_as_label = gtk.Label()
     self._save_as_label.set_markup(
@@ -436,6 +454,7 @@ class ExportLayersGui(object):
       minimum_width_chars=self._FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS,
       maximum_width_chars=self._FILENAME_PATTERN_ENTRY_MAX_WIDTH_CHARS,
       default_item=self._settings["main/layer_filename_pattern"].default_value)
+    self._filename_pattern_entry.set_activates_default(True)
     
     self._label_message = gtk.Label()
     self._label_message.set_alignment(0.0, 0.5)
@@ -445,28 +464,6 @@ class ExportLayersGui(object):
     
     self._vpaned_chooser_and_operations = gtk.VPaned()
     self._hpaned_settings_and_previews = gtk.HPaned()
-    
-    self._settings.initialize_gui({
-      "main/file_extension": [
-        pgsetting.SettingGuiTypes.extended_entry, self._file_extension_entry],
-      "gui/dialog_position": [
-        pgsetting.SettingGuiTypes.window_position, self._dialog],
-      "gui/dialog_size": [
-        pgsetting.SettingGuiTypes.window_size, self._dialog],
-      "gui/show_more_settings": [
-        pgsetting.SettingGuiTypes.check_menu_item, self._menu_item_show_more_settings],
-      "gui/paned_outside_previews_position": [
-        pgsetting.SettingGuiTypes.paned_position, self._hpaned_settings_and_previews],
-      "gui/paned_between_previews_position": [
-        pgsetting.SettingGuiTypes.paned_position, self._vpaned_previews],
-      "gui/settings_vpane_position": [
-        pgsetting.SettingGuiTypes.paned_position, self._vpaned_chooser_and_operations],
-      "main/layer_filename_pattern": [
-        pgsetting.SettingGuiTypes.extended_entry, self._filename_pattern_entry]
-    })
-    
-    self._settings["gui_session/current_directory"].set_gui(
-      pgsetting.SettingGuiTypes.folder_chooser, self._folder_chooser)
     
     self._hbox_export_name_labels = gtk.HBox(homogeneous=False)
     self._hbox_export_name_labels.pack_start(
@@ -500,7 +497,19 @@ class ExportLayersGui(object):
     self._hbox_export_name_and_message.pack_start(
       self._label_message, expand=True, fill=True)
     
-    self._init_gui_operation_boxes()
+    self._box_procedures = self._create_operation_box(
+      self._settings["main/procedures"],
+      builtin_procedures.BUILTIN_PROCEDURES,
+      _("Add _Procedure..."),
+      _("Edit Procedure"),
+      add_custom_operation_text=_("Add Custom Procedure..."))
+    
+    self._box_constraints = self._create_operation_box(
+      self._settings["main/constraints"],
+      builtin_constraints.BUILTIN_CONSTRAINTS,
+      _("Add _Constraint..."),
+      _("Edit Constraint"),
+      allow_custom_operations=False)
     
     self._hbox_operations = gtk.HBox(homogeneous=True)
     self._hbox_operations.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
@@ -526,11 +535,13 @@ class ExportLayersGui(object):
       self._frame_previews, resize=True, shrink=True)
     
     self._button_export = self._dialog.add_button(_("_Export"), gtk.RESPONSE_OK)
+    self._button_export.set_flags(gtk.CAN_DEFAULT)
     self._button_cancel = self._dialog.add_button(_("_Cancel"), gtk.RESPONSE_CANCEL)
     self._dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
     
     self._button_stop = gtk.Button()
     self._button_stop.set_label(_("_Stop"))
+    self._button_stop.set_no_show_all(True)
     
     self._label_button_settings = gtk.Label(_("_Settings"))
     self._label_button_settings.set_use_underline(True)
@@ -557,8 +568,15 @@ class ExportLayersGui(object):
     self._dialog.action_area.pack_start(self._button_settings, expand=False, fill=False)
     self._dialog.action_area.set_child_secondary(self._button_settings, True)
     
+    if _webbrowser_module_found:
+      self._button_help = gtk.Button()
+      self._button_help.set_label(_("_Help"))
+      self._dialog.action_area.pack_start(self._button_help, expand=False, fill=False)
+      self._dialog.action_area.set_child_secondary(self._button_help, True)
+    
     self._progress_bar = gtk.ProgressBar()
     self._progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+    self._progress_bar.set_no_show_all(True)
     
     self._dialog.vbox.set_spacing(self._DIALOG_VBOX_SPACING)
     self._dialog.vbox.pack_start(
@@ -567,19 +585,14 @@ class ExportLayersGui(object):
     
     # Move the action area above the progress bar.
     self._dialog.vbox.reorder_child(self._dialog.action_area, -1)
-    
+  
+  def _connect_events(self):
     self._label_message.connect("size-allocate", self._on_label_message_size_allocate)
     self._button_export.connect("clicked", self._on_button_export_clicked)
     self._button_cancel.connect("clicked", self._on_button_cancel_clicked)
     self._button_stop.connect("clicked", self._on_button_stop_clicked)
-    self._dialog.connect("key-press-event", self._on_dialog_key_press)
-    self._dialog.connect("delete-event", self._on_dialog_delete_event)
     
     if _webbrowser_module_found:
-      self._button_help = gtk.Button()
-      self._button_help.set_label(_("_Help"))
-      self._dialog.action_area.pack_start(self._button_help, expand=False, fill=False)
-      self._dialog.action_area.set_child_secondary(self._button_help, True)
       self._button_help.connect("clicked", self._on_button_help_clicked)
     
     self._button_settings.connect("clicked", self._on_button_settings_clicked)
@@ -601,12 +614,24 @@ class ExportLayersGui(object):
       self._settings["main/layer_filename_pattern"],
       "invalid_layer_filename_pattern")
     
+    self._dialog.connect("key-press-event", self._on_dialog_key_press)
+    self._dialog.connect("delete-event", self._on_dialog_delete_event)
     self._dialog.connect("notify::is-active", self._on_dialog_is_active_changed)
-    
     self._dialog.connect(
       "notify::is-active",
       self._export_previews_controller.on_dialog_is_active_changed,
       lambda: self._is_exporting)
+    
+    self._export_name_preview.connect(
+      "preview-selection-changed",
+      self._export_previews_controller.on_name_preview_selection_changed)
+    self._export_name_preview.connect(
+      "preview-updated",
+      self._export_previews_controller.on_name_preview_after_update)
+    self._export_name_preview.connect(
+      "preview-tags-changed",
+      self._export_previews_controller.on_name_preview_after_edit_tags)
+    
     self._hpaned_settings_and_previews.connect(
       "notify::position",
       self._export_previews_controller.on_paned_outside_previews_position_changed)
@@ -615,14 +640,9 @@ class ExportLayersGui(object):
       self._export_previews_controller.on_paned_between_previews_position_changed)
     
     self._export_previews_controller.connect_setting_changes_to_previews()
-    
-    self._dialog.set_default_response(gtk.RESPONSE_CANCEL)
-    
+  
+  def _finish_init_and_show(self):
     self._dialog.vbox.show_all()
-    self._progress_bar.hide()
-    self._button_stop.hide()
-    
-    self._dialog.action_area.set_border_width(self._DIALOG_ACTION_AREA_BORDER_WIDTH)
     
     self._export_previews_controller.connect_visible_changed_to_previews()
     
@@ -630,15 +650,35 @@ class ExportLayersGui(object):
     
     self._export_previews_controller.init_previews()
     
+    self._dialog.action_area.set_border_width(self._DIALOG_ACTION_AREA_BORDER_WIDTH)
     self._dialog.set_focus(self._file_extension_entry)
-    self._button_export.set_flags(gtk.CAN_DEFAULT)
     self._button_export.grab_default()
-    self._filename_pattern_entry.set_activates_default(True)
-    self._file_extension_entry.set_activates_default(True)
     # Place the cursor at the end of the text entry.
     self._file_extension_entry.set_position(-1)
     
     self._dialog.show()
+  
+  def _assign_gui_to_settings(self):
+    self._settings.initialize_gui({
+      "main/file_extension": [
+        pgsetting.SettingGuiTypes.extended_entry, self._file_extension_entry],
+      "gui/dialog_position": [
+        pgsetting.SettingGuiTypes.window_position, self._dialog],
+      "gui/dialog_size": [
+        pgsetting.SettingGuiTypes.window_size, self._dialog],
+      "gui/show_more_settings": [
+        pgsetting.SettingGuiTypes.check_menu_item, self._menu_item_show_more_settings],
+      "gui/paned_outside_previews_position": [
+        pgsetting.SettingGuiTypes.paned_position, self._hpaned_settings_and_previews],
+      "gui/paned_between_previews_position": [
+        pgsetting.SettingGuiTypes.paned_position, self._vpaned_previews],
+      "gui/settings_vpane_position": [
+        pgsetting.SettingGuiTypes.paned_position, self._vpaned_chooser_and_operations],
+      "main/layer_filename_pattern": [
+        pgsetting.SettingGuiTypes.extended_entry, self._filename_pattern_entry],
+      "gui_session/current_directory": [
+        pgsetting.SettingGuiTypes.folder_chooser, self._folder_chooser],
+    })
   
   def _init_gui_previews(self):
     self._export_name_preview = gui_preview_name.ExportNamePreview(
@@ -656,31 +696,6 @@ class ExportLayersGui(object):
     
     self._export_previews_controller = gui_previews_controller.ExportPreviewsController(
       self._export_name_preview, self._export_image_preview, self._settings, self._image)
-    
-    self._export_name_preview.connect(
-      "preview-selection-changed",
-      self._export_previews_controller.on_name_preview_selection_changed)
-    self._export_name_preview.connect(
-      "preview-updated",
-      self._export_previews_controller.on_name_preview_after_update)
-    self._export_name_preview.connect(
-      "preview-tags-changed",
-      self._export_previews_controller.on_name_preview_after_edit_tags)
-  
-  def _init_gui_operation_boxes(self):
-    self._box_procedures = self._create_operation_box(
-      self._settings["main/procedures"],
-      builtin_procedures.BUILTIN_PROCEDURES,
-      _("Add _Procedure..."),
-      _("Edit Procedure"),
-      add_custom_operation_text=_("Add Custom Procedure..."))
-    
-    self._box_constraints = self._create_operation_box(
-      self._settings["main/constraints"],
-      builtin_constraints.BUILTIN_CONSTRAINTS,
-      _("Add _Constraint..."),
-      _("Edit Constraint"),
-      allow_custom_operations=False)
   
   def _create_operation_box(
         self,
@@ -1004,7 +1019,9 @@ class ExportLayersGui(object):
         
         if not (os.name == "nt" and gimp.version >= (2, 10)):
           pginvocation.timeout_add_strict(
-            self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS, self._display_message_label, None)
+            self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS,
+            self._display_message_label,
+            None)
   
   def _display_message_label_on_setting_value_error(
         self, exc_type, exc_value, exc_traceback):
@@ -1017,6 +1034,7 @@ class ExportLayersGui(object):
 
 class ExportLayersRepeatGui(object):
   
+  _BORDER_WIDTH = 8
   _HBOX_HORIZONTAL_SPACING = 8
   _DIALOG_WIDTH = 500
   
@@ -1042,7 +1060,7 @@ class ExportLayersRepeatGui(object):
   def _init_gui(self):
     self._dialog = gimpui.Dialog(title=pygimplib.config.PLUGIN_TITLE, role=None)
     self._dialog.set_transient()
-    self._dialog.set_border_width(8)
+    self._dialog.set_border_width(self._BORDER_WIDTH)
     self._dialog.set_default_size(self._DIALOG_WIDTH, -1)
     
     self._button_stop = gtk.Button()
