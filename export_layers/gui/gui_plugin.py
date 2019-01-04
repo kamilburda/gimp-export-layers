@@ -968,13 +968,13 @@ class ExportLayersGui(object):
         self._label_message.set_markup('<span foreground="red"><b>{}</b></span>'.format(
           gobject.markup_escape_text(text)))
         
-        if not (os.name == "nt" and gimp.version >= (2, 10)):
+        if not (os.name == "nt" and ((2, 10, 0) <= gimp.version < (2, 10, 6))):
           pginvocation.timeout_remove_strict(self._display_message_label)
       else:
         self._label_message.set_markup('<span><b>{}</b></span>'.format(
           gobject.markup_escape_text(text)))
         
-        if not (os.name == "nt" and gimp.version >= (2, 10)):
+        if not (os.name == "nt" and ((2, 10, 0) <= gimp.version < (2, 10, 6))):
           pginvocation.timeout_add_strict(
             self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS,
             self._display_message_label,
