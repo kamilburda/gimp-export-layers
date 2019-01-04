@@ -114,11 +114,6 @@ class ExportPreviewsController(object):
       if orig_constraint_dict["name"] == "only_selected_layers":
         self._only_selected_layers_constraints[constraint.name] = constraint
         
-        def _on_enabled_changed(constraint_enabled):
-          self._export_name_preview.is_filtering = (
-            any(constraint["enabled"].value
-                for constraint in self._only_selected_layers_constraints.values()))
-        
         _on_enabled_changed(constraint["enabled"])
         constraint["enabled"].connect_event("value-changed", _on_enabled_changed)
     
@@ -126,11 +121,23 @@ class ExportPreviewsController(object):
       if removed_constraint_name.startswith("only_selected_layers"):
         del self._only_selected_layers_constraints[removed_constraint_name]
     
+    def _on_enabled_changed(constraint_enabled):
+      self._export_name_preview.is_filtering = (
+        any(constraint["enabled"].value
+            for constraint in self._only_selected_layers_constraints.values()))
+    
+    def _before_clear_constraints(constraints):
+      self._only_selected_layers_constraints = {}
+      self._export_name_preview.is_filtering = False
+    
     self._settings["main/constraints"].connect_event(
       "after-add-operation", _after_add_only_selected_layers)
     
     self._settings["main/constraints"].connect_event(
       "after-remove-operation", _after_remove_only_selected_layers)
+    
+    self._settings["main/constraints"].connect_event(
+      "before-clear-operations", _before_clear_constraints)
   
   def connect_visible_changed_to_previews(self):
     def _connect_visible_changed(preview, setting):
