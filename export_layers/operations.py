@@ -65,10 +65,10 @@ These events include:
   
   Arguments: name of the removed operation
 
-* `"before-clear-operation"` - invoked when calling `clear` before clearing
+* `"before-clear-operations"` - invoked when calling `clear` before clearing
   operations.
 
-* `"after-clear-operation"` - invoked when calling `clear` after clearing
+* `"after-clear-operations"` - invoked when calling `clear` after clearing
   operations.
 """
 
