@@ -44,6 +44,15 @@ from .. import operations
 
 class OperationBox(pggui.ItemBox):
   
+  __gsignals__ = {
+    b"operation-box-item-added": (
+      gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT,)),
+    b"operation-box-item-reordered": (
+      gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT, gobject.TYPE_INT)),
+    b"operation-box-item-removed": (
+      gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT,)),
+  }
+  
   _ADD_BUTTON_HBOX_SPACING = 6
   
   _OPERATION_ENABLED_LABEL_MAX_CHAR_WIDTH = 1000
@@ -95,7 +104,11 @@ class OperationBox(pggui.ItemBox):
     operation = operations.add(self._operations, operation_dict_or_function)
     self._operations.set_event_enabled(self._after_add_operation_event_id, True)
     
-    return self._add_item_from_operation(operation)
+    item = self._add_item_from_operation(operation)
+    
+    self.emit("operation-box-item-added", item)
+    
+    return item
   
   def reorder_item(self, item, new_position):
     processed_new_position = self._reorder_item(item, new_position)
@@ -103,6 +116,8 @@ class OperationBox(pggui.ItemBox):
     self._operations.set_event_enabled(self._after_reorder_operation_event_id, False)
     operations.reorder(self._operations, item.operation.name, processed_new_position)
     self._operations.set_event_enabled(self._after_reorder_operation_event_id, True)
+    
+    self.emit("operation-box-item-reordered", item, new_position)
   
   def remove_item(self, item):
     self._remove_item(item)
@@ -110,6 +125,8 @@ class OperationBox(pggui.ItemBox):
     self._operations.set_event_enabled(self._before_remove_operation_event_id, False)
     operations.remove(self._operations, item.operation.name)
     self._operations.set_event_enabled(self._before_remove_operation_event_id, True)
+    
+    self.emit("operation-box-item-removed", item)
   
   def _init_gui(self):
     if self._add_operation_text is not None:
