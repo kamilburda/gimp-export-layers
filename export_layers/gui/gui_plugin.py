@@ -587,6 +587,9 @@ class ExportLayersGui(object):
     self._dialog.vbox.reorder_child(self._dialog.action_area, -1)
   
   def _connect_events(self):
+    self._box_procedures.connect(
+      "operation-box-item-added", self._on_box_procedures_item_added)
+    
     self._label_message.connect("size-allocate", self._on_label_message_size_allocate)
     self._button_export.connect("clicked", self._on_button_export_clicked)
     self._button_cancel.connect("clicked", self._on_button_cancel_clicked)
@@ -733,6 +736,11 @@ class ExportLayersGui(object):
       pginvocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
         self._export_name_preview.update)
+  
+  def _on_box_procedures_item_added(self, box_procedures, item):
+    if any(item.operation.name.startswith(name)
+           for name in ["insert_background_layers", "insert_foreground_layers"]):
+      operations.reorder(self._settings["main/procedures"], item.operation.name, 0)
   
   def _on_label_message_size_allocate(self, label, allocation):
     pggui.set_tooltip_if_label_does_not_fit(label, label)
