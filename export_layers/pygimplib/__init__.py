@@ -29,10 +29,7 @@ from . import pglogging
 # missing modules) before pygimplib is fully initialized.
 pglogging.log_output(
   log_mode=pglogging.LOG_EXCEPTIONS_ONLY,
-  log_dirpaths=[
-    os.path.dirname(os.path.dirname(_PYGIMPLIB_DIRPATH)),
-    os.path.dirname(_PYGIMPLIB_DIRPATH),
-    _PYGIMPLIB_DIRPATH],
+  log_dirpaths=[os.path.dirname(_PYGIMPLIB_DIRPATH), _PYGIMPLIB_DIRPATH],
   log_stdout_filename=None,
   log_stderr_filename="error.log",
   log_header_title="pygimplib")
@@ -45,7 +42,6 @@ except ImportError:
   _gimp_dependent_modules_imported = False
 else:
   _gimp_dependent_modules_imported = True
-  
   _pggui_messages.set_gui_excepthook(title=None, app_name=None)
 
 
@@ -159,19 +155,21 @@ def _init_config_builtin(config):
   config.SOURCE_SESSION_NAME = _get_setting_source_name()
   config.SOURCE_PERSISTENT_NAME = _get_setting_source_name()
   
+  config.DEFAULT_LOGS_DIRPATH = os.path.dirname(_PYGIMPLIB_DIRPATH)
+  
   config.PLUGINS_LOG_DIRPATHS = []
-  config.PLUGINS_LOG_DIRPATHS.append(config.PLUGINS_DIRPATH)
+  config.PLUGINS_LOG_DIRPATHS.append(config.DEFAULT_LOGS_DIRPATH)
   
   if _gimp_dependent_modules_imported:
     plugins_dirpath_alternate = os.path.join(gimp.directory, "plug-ins")
-    if plugins_dirpath_alternate != config.PLUGINS_DIRPATH:
+    if plugins_dirpath_alternate != config.DEFAULT_LOGS_DIRPATH:
       # Add `[user directory]/[GIMP directory]/plug-ins` as another log path in
       # case the plug-in was installed system-wide and there is no permission to
       # create log files there.
       config.PLUGINS_LOG_DIRPATHS.append(plugins_dirpath_alternate)
   
-  config.PLUGINS_LOG_STDOUT_DIRPATH = config.PLUGINS_LOG_DIRPATHS[0]
-  config.PLUGINS_LOG_STDERR_DIRPATH = config.PLUGINS_LOG_DIRPATHS[0]
+  config.PLUGINS_LOG_STDOUT_DIRPATH = config.DEFAULT_LOGS_DIRPATH
+  config.PLUGINS_LOG_STDERR_DIRPATH = config.DEFAULT_LOGS_DIRPATH
   
   config.PLUGINS_LOG_STDOUT_FILENAME = config.PLUGIN_NAME + ".log"
   config.PLUGINS_LOG_STDERR_FILENAME = config.PLUGIN_NAME + "_error.log"
