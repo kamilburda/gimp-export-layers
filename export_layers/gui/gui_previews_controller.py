@@ -27,8 +27,6 @@ from future.builtins import *
 
 from export_layers.pygimplib import pginvocation
 
-from .. import operations
-
 
 class ExportPreviewsController(object):
   
@@ -53,7 +51,8 @@ class ExportPreviewsController(object):
     self._export_image_preview.update()
   
   def connect_setting_changes_to_previews(self):
-    self._connect_operations_changed()
+    self._connect_operations_changed(self._settings["main/procedures"])
+    self._connect_operations_changed(self._settings["main/constraints"])
     
     self._connect_setting_after_reset_collapsed_layers_in_name_preview()
     self._connect_setting_after_reset_selected_layers_in_name_preview()
@@ -61,18 +60,7 @@ class ExportPreviewsController(object):
     
     self._connect_toggle_name_preview_filtering()
   
-  def _connect_operations_changed(self):
-    self._connect_already_added_operations(self._settings["main/procedures"])
-    self._prepare_to_connect_subsequent_operations(self._settings["main/procedures"])
-    
-    self._connect_already_added_operations(self._settings["main/constraints"])
-    self._prepare_to_connect_subsequent_operations(self._settings["main/constraints"])
-  
-  def _connect_already_added_operations(self, operations_):
-    for setting in operations.walk(operations_, setting_name="enabled"):
-      setting.connect_event("value-changed", self._update_previews_on_setting_change)
-  
-  def _prepare_to_connect_subsequent_operations(self, operations_):
+  def _connect_operations_changed(self, operations_):
     def _on_after_add_operation(operations_, operation, *args, **kwargs):
       if operation["enabled"].value:
         self._update_previews_on_setting_change(operation["enabled"])

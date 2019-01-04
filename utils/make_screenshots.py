@@ -45,6 +45,7 @@ export_layers.config.init()
 
 from export_layers import builtin_procedures
 from export_layers import builtin_constraints
+from export_layers import operations
 from export_layers import settings_plugin
 from export_layers.gui import gui_plugin
 
@@ -70,6 +71,7 @@ def take_screenshots(gui, dialog, settings):
   
   decoration_offsets = move_dialog_to_corner(dialog, settings)
   
+  #HACK: Accessing private members
   gui._export_name_preview.set_selected_items(set([
     gui._export_name_preview._layer_exporter.layer_tree["main-background"].item.ID]))
   
@@ -86,25 +88,24 @@ def take_screenshots(gui, dialog, settings):
   
   settings["gui/show_more_settings"].set_value(True)
   
-  #HACK: Accessing private members
+  operations.clear(settings["main/procedures"])
+  operations.clear(settings["main/constraints"])
   
-  gui._box_procedures.clear()
-  gui._box_constraints.clear()
-  
-  gui._box_procedures.add_item(
+  operations.add(
+    settings["main/procedures"],
     builtin_procedures.BUILTIN_PROCEDURES["insert_background_layers"])
-  gui._box_procedures.add_item(
-    builtin_procedures.BUILTIN_PROCEDURES["use_layer_size"])
+  operations.reorder(
+    settings["main/procedures"], "insert_background_layers", 0)
   settings["main/procedures/added/use_layer_size/enabled"].set_value(False)
   
-  gui._box_constraints.add_item(
-    builtin_constraints.BUILTIN_CONSTRAINTS["include_layers"])
-  gui._box_constraints.add_item(
+  operations.add(
+    settings["main/constraints"],
     builtin_constraints.BUILTIN_CONSTRAINTS["only_layers_without_tags"])
   
   while gtk.events_pending():
     gtk.main_iteration()
   
+  #HACK: Accessing private members
   gui._export_name_preview.set_selected_items(set([
     gui._export_name_preview._layer_exporter.layer_tree["bottom-frame"].item.ID]))
   

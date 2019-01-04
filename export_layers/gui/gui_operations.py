@@ -38,7 +38,6 @@ from export_layers import pygimplib
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pggui
 from export_layers.pygimplib import pgsetting
-from export_layers.pygimplib import pgutils
 
 from .. import operations
 
@@ -70,13 +69,47 @@ class OperationBox(pggui.ItemBox):
     self._allow_custom_operations = allow_custom_operations
     self._add_custom_operation_text = add_custom_operation_text
     
-    self.on_add_item = pgutils.empty_func
-    self.on_reorder_item = pgutils.empty_func
-    self.on_remove_item = pgutils.empty_func
-    
     self._pdb_procedure_browser_dialog = None
     
     self._init_gui()
+    
+    self._after_add_operation_event_id = self._operations.connect_event(
+      "after-add-operation",
+      lambda operations_, operation, orig_operation_dict: (
+        self._add_item_from_operation(operation)))
+    
+    self._after_reorder_operation_event_id = self._operations.connect_event(
+      "after-reorder-operation",
+      lambda operations_, operation, current_position, new_position: (
+        self._reorder_operation(operation, new_position)))
+    
+    self._before_remove_operation_event_id = self._operations.connect_event(
+      "before-remove-operation",
+      lambda operations_, operation: self._remove_operation(operation))
+    
+    self._before_clear_operations_event_id = self._operations.connect_event(
+      "before-clear-operations", lambda operations_: self._clear())
+  
+  def add_item(self, operation_dict_or_function):
+    self._operations.set_event_enabled(self._after_add_operation_event_id, False)
+    operation = operations.add(self._operations, operation_dict_or_function)
+    self._operations.set_event_enabled(self._after_add_operation_event_id, True)
+    
+    return self._add_item_from_operation(operation)
+  
+  def reorder_item(self, item, new_position):
+    processed_new_position = self._reorder_item(item, new_position)
+    
+    self._operations.set_event_enabled(self._after_reorder_operation_event_id, False)
+    operations.reorder(self._operations, item.operation.name, processed_new_position)
+    self._operations.set_event_enabled(self._after_reorder_operation_event_id, True)
+  
+  def remove_item(self, item):
+    self._remove_item(item)
+    
+    self._operations.set_event_enabled(self._before_remove_operation_event_id, False)
+    operations.remove(self._operations, item.operation.name)
+    self._operations.set_event_enabled(self._before_remove_operation_event_id, True)
   
   def _init_gui(self):
     if self._add_operation_text is not None:
@@ -105,8 +138,7 @@ class OperationBox(pggui.ItemBox):
     self._operations_menu = gtk.Menu()
     self._init_operations_menu_popup()
   
-  def add_item(self, operation_dict_or_function):
-    operation = self.on_add_item(self._operations, operation_dict_or_function)
+  def _add_item_from_operation(self, operation):
     self._init_operation_item_gui(operation)
     
     item = _OperationBoxItem(operation, operation["enabled"].gui.element)
@@ -138,17 +170,37 @@ class OperationBox(pggui.ItemBox):
         self, item_gui_label, allocation, item_gui):
     pggui.set_tooltip_if_label_does_not_fit(item_gui, item_gui_label)
   
-  def reorder_item(self, item, new_position):
-    processed_new_position = super().reorder_item(item, new_position)
-    self.on_reorder_item(self._operations, item.operation.name, processed_new_position)
+  def _reorder_operation(self, operation, new_position):
+    item = next(
+      (item_ for item_ in self._items if item_.operation.name == operation.name), None)
+    if item is not None:
+      self._reorder_item(item, new_position)
+    else:
+      raise ValueError("operation '{}' does not match any item in '{}'".format(
+        operation.name, self))
   
-  def remove_item(self, item):
+  def _reorder_item(self, item, new_position):
+    return super().reorder_item(item, new_position)
+  
+  def _remove_operation(self, operation):
+    item = next(
+      (item_ for item_ in self._items if item_.operation.name == operation.name), None)
+    
+    if item is not None:
+      self._remove_item(item)
+    else:
+      raise ValueError("operation '{}' does not match any item in '{}'".format(
+        operation.get_path(), self))
+  
+  def _remove_item(self, item):
     if self._get_item_position(item) == len(self._items) - 1:
       self._button_add.grab_focus()
     
     super().remove_item(item)
-    
-    self.on_remove_item(self._operations, item.operation.name)
+  
+  def _clear(self):
+    for unused_ in range(len(self._items)):
+      self._remove_item(self._items[0])
   
   def _init_operations_menu_popup(self):
     for operation_dict in self._builtin_operations.values():

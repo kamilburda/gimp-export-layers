@@ -336,13 +336,13 @@ class ExportLayersGui(object):
       pgpdb.suppress_gimp_progress()
     
     self._init_settings()
-    self._init_operations()
     
     self._init_gui_elements()
-    
     self._assign_gui_to_settings()
-    
     self._connect_events()
+    
+    self._init_operations()
+    
     self._finish_init_and_show()
     
     pggui.set_gui_excepthook_parent(self._dialog)
@@ -497,14 +497,14 @@ class ExportLayersGui(object):
     self._hbox_export_name_and_message.pack_start(
       self._label_message, expand=True, fill=True)
     
-    self._box_procedures = self._create_operation_box(
+    self._box_procedures = gui_operations.OperationBox(
       self._settings["main/procedures"],
       builtin_procedures.BUILTIN_PROCEDURES,
       _("Add _Procedure..."),
       _("Edit Procedure"),
       add_custom_operation_text=_("Add Custom Procedure..."))
     
-    self._box_constraints = self._create_operation_box(
+    self._box_constraints = gui_operations.OperationBox(
       self._settings["main/constraints"],
       builtin_constraints.BUILTIN_CONSTRAINTS,
       _("Add _Constraint..."),
@@ -697,48 +697,6 @@ class ExportLayersGui(object):
     self._export_previews_controller = gui_previews_controller.ExportPreviewsController(
       self._export_name_preview, self._export_image_preview, self._settings, self._image)
   
-  def _create_operation_box(
-        self,
-        operations_,
-        builtin_operations,
-        add_operation_text,
-        edit_operation_text,
-        allow_custom_operations=True,
-        add_custom_operation_text=None):
-    operation_box = gui_operations.OperationBox(
-      operations_,
-      builtin_operations,
-      add_operation_text,
-      edit_operation_text,
-      allow_custom_operations=allow_custom_operations,
-      add_custom_operation_text=add_custom_operation_text)
-    
-    self._add_gui_to_already_added_operations(operation_box, operations_)
-    
-    operation_box.on_add_item = (
-      lambda operations_, operation_dict_or_function: operations.add(
-        operations_, operation_dict_or_function))
-    
-    operation_box.on_reorder_item = (
-      lambda operations_, operation_name, new_position: operations.reorder(
-        operations_, operation_name, new_position))
-    
-    operation_box.on_remove_item = (
-      lambda operations_, operation_name: operations.remove(operations_, operation_name))
-    
-    return operation_box
-  
-  def _add_gui_to_already_added_operations(self, operation_box, operations_):
-    orig_on_add_item = operation_box.on_add_item
-    
-    operation_box.on_add_item = (
-      lambda operations_, operation_name: (operations_["added"][operation_name]))
-    
-    for operation in operations.walk(operations_):
-      operation_box.add_item(operation.name)
-    
-    operation_box.on_add_item = orig_on_add_item
-  
   def _save_settings(self):
     status, status_message = self._settings.save()
     if status == pgsettingpersistor.SettingPersistor.WRITE_FAIL:
@@ -838,15 +796,8 @@ class ExportLayersGui(object):
     
     if response_id == gtk.RESPONSE_YES:
       if clear_operations:
-        self._box_procedures.clear()
         operations.clear(self._settings["main/procedures"])
-        self._add_gui_to_already_added_operations(
-          self._box_procedures, self._settings["main/procedures"])
-        
-        self._box_constraints.clear()
         operations.clear(self._settings["main/constraints"])
-        self._add_gui_to_already_added_operations(
-          self._box_constraints, self._settings["main/constraints"])
       else:
         self._settings["main/procedures"].tags.add("ignore_reset")
         self._settings["main/constraints"].tags.add("ignore_reset")
