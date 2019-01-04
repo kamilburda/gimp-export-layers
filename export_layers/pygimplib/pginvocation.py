@@ -36,7 +36,7 @@ def timeout_add(interval, callback, *callback_args):
   This is a thin wrapper of `gobject.timeout_add` that "fixes" the function
   failing to work on Windows on GIMP 2.10 by setting the interval to zero.
   """
-  if os.name == "nt" and gimp.version >= (2, 10):
+  if os.name == "nt" and ((2, 10, 0) <= gimp.version < (2, 10, 6)):
     return gobject.timeout_add(0, callback, *callback_args)
   else:
     return gobject.timeout_add(interval, callback, *callback_args)
