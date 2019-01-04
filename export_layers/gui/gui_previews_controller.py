@@ -30,7 +30,8 @@ from export_layers.pygimplib import pginvocation
 
 class ExportPreviewsController(object):
   
-  _DELAY_PREVIEWS_UPDATE_MILLISECONDS = 50
+  _DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS = 50
+  _DELAY_PREVIEWS_DIALOG_ACTIVE_UPDATE_MILLISECONDS = 0
   _DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS = 500
   
   def __init__(self, export_name_preview, export_image_preview, settings, image):
@@ -79,9 +80,9 @@ class ExportPreviewsController(object):
   
   def _update_previews_on_setting_change(self, setting):
     pginvocation.timeout_add_strict(
-      self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_name_preview.update)
+      self._DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS, self._export_name_preview.update)
     pginvocation.timeout_add_strict(
-      self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_image_preview.update)
+      self._DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS, self._export_image_preview.update)
   
   def _connect_setting_after_reset_collapsed_layers_in_name_preview(self):
     self._settings[
@@ -136,11 +137,12 @@ class ExportPreviewsController(object):
   def on_dialog_is_active_changed(self, dialog, property_spec, is_exporting_func):
     if dialog.is_active() and not is_exporting_func():
       pginvocation.timeout_add_strict(
-        self._DELAY_PREVIEWS_UPDATE_MILLISECONDS,
+        self._DELAY_PREVIEWS_DIALOG_ACTIVE_UPDATE_MILLISECONDS,
         self._export_name_preview.update,
         reset_items=True)
       pginvocation.timeout_add_strict(
-        self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_image_preview.update)
+        self._DELAY_PREVIEWS_DIALOG_ACTIVE_UPDATE_MILLISECONDS,
+        self._export_image_preview.update)
   
   def on_paned_outside_previews_position_changed(self, paned, property_spec):
     current_position = paned.get_position()
