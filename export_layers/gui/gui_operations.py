@@ -43,6 +43,22 @@ from .. import operations
 
 
 class OperationBox(pggui.ItemBox):
+  """
+  This class defines a scrollable box that allows the user to add, edit and
+  remove operations interactively. Each operation has an associated widget
+  (item) displayed in the box.
+  
+  The box connects events to the passed operations that keeps the operations and
+  the box in sync. For example, when adding an operation via `operations.add`,
+  the item for the operation is automatically added to the box. Conversely, when
+  calling `add_item` from this class, both the operation and the item are added
+  to the operations and the GUI, respectively.
+  
+  Signals:
+  * `"operation-box-item-added"` - An item was added via `add_item`.
+  * `"operation-box-item-reordered"` - An item was reordered via `reorder_item`.
+  * `"operation-box-item-removed"` - An item was removed via `remove_item`.
+  """
   
   __gsignals__ = {
     b"operation-box-item-added": (
