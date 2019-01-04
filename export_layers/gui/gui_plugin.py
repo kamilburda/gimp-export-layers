@@ -302,9 +302,9 @@ class ExportLayersGui(object):
   _MORE_SETTINGS_BORDER_WIDTH = 3
   
   _DIALOG_SIZE = (900, 610)
-  _DIALOG_BORDER_WIDTH = 8
+  _DIALOG_BORDER_WIDTH = 5
+  _DIALOG_CONTENTS_BORDER_WIDTH = 5
   _DIALOG_VBOX_SPACING = 5
-  _DIALOG_ACTION_AREA_BORDER_WIDTH = 5
   
   _FILE_EXTENSION_ENTRY_MIN_WIDTH_CHARS = 4
   _FILE_EXTENSION_ENTRY_MAX_WIDTH_CHARS = 15
@@ -578,9 +578,13 @@ class ExportLayersGui(object):
     self._progress_bar.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     self._progress_bar.set_no_show_all(True)
     
-    self._dialog.vbox.set_spacing(self._DIALOG_VBOX_SPACING)
-    self._dialog.vbox.pack_start(
+    self._hbox_contents = gtk.HBox()
+    self._hbox_contents.pack_start(
       self._hpaned_settings_and_previews, expand=True, fill=True)
+    self._hbox_contents.set_border_width(self._DIALOG_CONTENTS_BORDER_WIDTH)
+    
+    self._dialog.vbox.set_spacing(self._DIALOG_VBOX_SPACING)
+    self._dialog.vbox.pack_start(self._hbox_contents, expand=True, fill=True)
     self._dialog.vbox.pack_end(self._progress_bar, expand=False, fill=False)
     
     # Move the action area above the progress bar.
@@ -653,7 +657,6 @@ class ExportLayersGui(object):
     
     self._export_previews_controller.init_previews()
     
-    self._dialog.action_area.set_border_width(self._DIALOG_ACTION_AREA_BORDER_WIDTH)
     self._dialog.set_focus(self._file_extension_entry)
     self._button_export.grab_default()
     # Place the cursor at the end of the text entry.
