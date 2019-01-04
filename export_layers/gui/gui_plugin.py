@@ -650,9 +650,6 @@ class ExportLayersGui(object):
   
   def _finish_init_and_show(self):
     self._dialog.vbox.show_all()
-    
-    self._export_previews_controller.connect_visible_changed_to_previews()
-    
     self._show_hide_more_settings()
     
     self._dialog.set_focus(self._file_extension_entry)

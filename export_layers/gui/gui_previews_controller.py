@@ -133,23 +133,6 @@ class ExportPreviewsController(object):
     self._settings["main/constraints"].connect_event(
       "before-clear-operations", _before_clear_constraints)
   
-  def connect_visible_changed_to_previews(self):
-    def _connect_visible_changed(preview, setting):
-      preview.connect("notify::visible", self._on_preview_visible_changed, preview)
-      if not setting.value:
-        preview.lock_update(True, "previews_sensitive")
-    
-    _connect_visible_changed(
-      self._export_name_preview, self._settings["gui/export_name_preview_sensitive"])
-    _connect_visible_changed(
-      self._export_image_preview, self._settings["gui/export_image_preview_sensitive"])
-  
-  def _on_preview_visible_changed(self, widget, property_spec, preview):
-    preview_visible = preview.get_visible()
-    preview.lock_update(not preview_visible, "preview_visible")
-    if preview_visible:
-      preview.update()
-  
   def on_dialog_is_active_changed(self, dialog, property_spec, is_exporting_func):
     if dialog.is_active() and not is_exporting_func():
       pginvocation.timeout_add_strict(
