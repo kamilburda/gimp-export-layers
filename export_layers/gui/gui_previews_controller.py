@@ -30,7 +30,7 @@ from export_layers.pygimplib import pginvocation
 
 class ExportPreviewsController(object):
   
-  _DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS = 50
+  _DELAY_PREVIEWS_UPDATE_MILLISECONDS = 50
   _DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS = 500
   
   def __init__(self, export_name_preview, export_image_preview, settings, image):
@@ -45,10 +45,6 @@ class ExportPreviewsController(object):
       self._settings["gui/paned_outside_previews_position"].value)
     self._paned_between_previews_previous_position = (
       self._settings["gui/paned_between_previews_position"].value)
-  
-  def init_previews(self):
-    self._export_name_preview.update()
-    self._export_image_preview.update()
   
   def connect_setting_changes_to_previews(self):
     self._connect_operations_changed(self._settings["main/procedures"])
@@ -83,11 +79,9 @@ class ExportPreviewsController(object):
   
   def _update_previews_on_setting_change(self, setting):
     pginvocation.timeout_add_strict(
-      self._DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS,
-      self._export_name_preview.update)
+      self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_name_preview.update)
     pginvocation.timeout_add_strict(
-      self._DELAY_PREVIEWS_SETTINGS_UPDATE_MILLISECONDS,
-      self._export_image_preview.update)
+      self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_image_preview.update)
   
   def _connect_setting_after_reset_collapsed_layers_in_name_preview(self):
     self._settings[
@@ -121,14 +115,14 @@ class ExportPreviewsController(object):
       if removed_constraint_name.startswith("only_selected_layers"):
         del self._only_selected_layers_constraints[removed_constraint_name]
     
+    def _before_clear_constraints(constraints):
+      self._only_selected_layers_constraints = {}
+      self._export_name_preview.is_filtering = False
+    
     def _on_enabled_changed(constraint_enabled):
       self._export_name_preview.is_filtering = (
         any(constraint["enabled"].value
             for constraint in self._only_selected_layers_constraints.values()))
-    
-    def _before_clear_constraints(constraints):
-      self._only_selected_layers_constraints = {}
-      self._export_name_preview.is_filtering = False
     
     self._settings["main/constraints"].connect_event(
       "after-add-operation", _after_add_only_selected_layers)
@@ -158,8 +152,12 @@ class ExportPreviewsController(object):
   
   def on_dialog_is_active_changed(self, dialog, property_spec, is_exporting_func):
     if dialog.is_active() and not is_exporting_func():
-      self._export_name_preview.update(reset_items=True)
-      self._export_image_preview.update()
+      pginvocation.timeout_add_strict(
+        self._DELAY_PREVIEWS_UPDATE_MILLISECONDS,
+        self._export_name_preview.update,
+        reset_items=True)
+      pginvocation.timeout_add_strict(
+        self._DELAY_PREVIEWS_UPDATE_MILLISECONDS, self._export_image_preview.update)
   
   def on_paned_outside_previews_position_changed(self, paned, property_spec):
     current_position = paned.get_position()

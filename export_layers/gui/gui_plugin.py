@@ -655,8 +655,6 @@ class ExportLayersGui(object):
     
     self._show_hide_more_settings()
     
-    self._export_previews_controller.init_previews()
-    
     self._dialog.set_focus(self._file_extension_entry)
     self._button_export.grab_default()
     # Place the cursor at the end of the text entry.
