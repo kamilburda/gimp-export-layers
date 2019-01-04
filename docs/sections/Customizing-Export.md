@@ -134,10 +134,18 @@ Insert layers tagged with "Background" as background for each layer.
 To set a layer as a background layer, see [Tagging Layers](#tagging-layers).
 Note that even background layers get exported - to prevent this behavior, enable the "Only layers without tags" constraint.
 
+In the dialog, this procedure is always inserted in the first position.
+This prevents potential confusion when "Use layer size" is unchecked and the background is offset relative to the layer rather than the image canvas.
+If this is your intention, you can always move this procedure below "Use layer size".
+
 **Insert foreground layers**
 
 Insert layers tagged with "Foreground" as foreground for each layer.
 See the "Insert background layers" setting for more information.
+
+In the dialog, this procedure is always inserted in the first position.
+This prevents potential confusion when "Use layer size" is unchecked and the foreground is offset relative to the layer rather than the image canvas.
+If this is your intention, you can always move this procedure below "Use layer size".
 
 **Inherit transparency from layer groups**
 
