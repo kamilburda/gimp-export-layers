@@ -161,33 +161,35 @@ def create_settings():
       builtin_constraints.BUILTIN_CONSTRAINTS["only_visible_layers"]]),
   ])
   
-  def on_after_add_procedure(
-        procedures, procedure, orig_procedure_dict, file_extension_setting):
-    if orig_procedure_dict["name"] == "use_file_extensions_in_layer_names":
-      _adjust_error_message_for_use_file_extensions_in_layer_names(
-        procedure, file_extension_setting)
-  
-  def on_after_add_constraint(
-        constraints,
-        constraint,
-        orig_constraint_dict,
-        selected_layers_setting,
-        image_setting):
-    if orig_constraint_dict["name"] == "only_selected_layers":
-      constraint["arguments/selected_layers"].gui.set_visible(False)
-      _sync_selected_layers_and_only_selected_layers_constraint(
-        selected_layers_setting, constraint, image_setting)
-  
   settings["main/procedures"].connect_event(
-    "after-add-operation", on_after_add_procedure, settings["main/file_extension"])
+    "after-add-operation", _on_after_add_procedure, settings["main/file_extension"])
   
   settings["main/constraints"].connect_event(
     "after-add-operation",
-    on_after_add_constraint,
+    _on_after_add_constraint,
     settings["main/selected_layers"],
     settings["special/image"])
   
   return settings
+
+
+def _on_after_add_procedure(
+      procedures, procedure, orig_procedure_dict, file_extension_setting):
+  if orig_procedure_dict["name"] == "use_file_extensions_in_layer_names":
+    _adjust_error_message_for_use_file_extensions_in_layer_names(
+      procedure, file_extension_setting)
+
+
+def _on_after_add_constraint(
+      constraints,
+      constraint,
+      orig_constraint_dict,
+      selected_layers_setting,
+      image_setting):
+  if orig_constraint_dict["name"] == "only_selected_layers":
+    constraint["arguments/selected_layers"].gui.set_visible(False)
+    _sync_selected_layers_and_only_selected_layers_constraint(
+      selected_layers_setting, constraint, image_setting)
 
 
 def _adjust_error_message_for_use_file_extensions_in_layer_names(
