@@ -634,6 +634,11 @@ class _ItemTreeElement(object):
   def _load_tags(self):
     parasite = self._item.parasite_find(self._tags_source_name)
     if parasite:
-      return pickle.loads(parasite.data)
+      try:
+        tags = pickle.loads(parasite.data)
+      except Exception:
+        tags = set()
+      
+      return tags
     else:
       return set()

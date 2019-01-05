@@ -453,8 +453,8 @@ class TestLayerTreeElement(unittest.TestCase):
     self.layer_elem.remove_tag("background")
     
     self.assertNotIn("background", self.layer_elem.tags)
-    self.assertFalse(bool(self.layer_elem.tags))
-    self.assertFalse(bool(self.layer_elem.item.parasite_list()))
+    self.assertFalse(self.layer_elem.tags)
+    self.assertFalse(self.layer_elem.item.parasite_list())
   
   @mock.patch(
     pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp",
@@ -470,3 +470,17 @@ class TestLayerTreeElement(unittest.TestCase):
     layer_elem = pgitemtree._ItemTreeElement(
       layer, tags_source_name=layer_elem_tags_source_name)
     self.assertIn("background", layer_elem.tags)
+  
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp",
+    new=stubs_gimp.GimpModuleStub())
+  def test_initial_tags_with_invalid_data(self):
+    layer_elem_tags_source_name = "test"
+    
+    layer = stubs_gimp.LayerStub("layer")
+    layer.parasite_attach(
+      stubs_gimp.ParasiteStub(layer_elem_tags_source_name, 0, "invalid_data"))
+    
+    layer_elem = pgitemtree._ItemTreeElement(
+      layer, tags_source_name=layer_elem_tags_source_name)
+    self.assertFalse(layer_elem.tags)
