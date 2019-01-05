@@ -257,6 +257,9 @@ Encode/decode Unicode strings when accessing the following external libraries:
 Always use `GObject` types (for `gtk.TreeView` columns, `__gsignals__`, etc.) instead of Python types if such `GObject` types exist.
 For example, use `GObject.TYPE_STRING` instead of `bytes` for `gtk.TreeView` columns of string type (`bytes` apparently cannot be used due to the usage of the `future` library).
 
+If it is necessary to get the dimensions or the relative position of a widget not yet realized, connect to the `"size-allocate"` signal and continue processing in the connected event handler.
+Do not use `gtk.main_iteration()` (which forces the GUI to update) for this purpose as it introduces flickering in the GUI.
+
 
 Writing Commit Messages <a name="Writing-Commit-Messages"></a>
 -----------------------

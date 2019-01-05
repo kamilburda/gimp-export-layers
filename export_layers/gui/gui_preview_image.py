@@ -96,6 +96,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self.draw_checkboard_alpha_background = True
     
     self._is_updating = False
+    self._is_preview_image_allocated_size = False
     
     self._preview_width = None
     self._preview_height = None
@@ -110,6 +111,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       self._placeholder_image.get_property("icon-size"))
     
     self.connect("size-allocate", self._on_size_allocate)
+    self._preview_image.connect("size-allocate", self._on_preview_image_size_allocate)
   
   def update(self):
     update_locked = super().update()
@@ -129,24 +131,8 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._preview_image.show()
     self._set_layer_name_label(self.layer_elem.name)
     
-    # Make sure that the correct size is allocated to the image.
-    while gtk.events_pending():
-      gtk.main_iteration()
-    
-    # This could happen if a layer group contained an empty layer group as its
-    # only child and the empty layer group was subsequently removed.
-    if self.layer_elem is None:
-      return
-    
-    with pgpdb.redirect_messages():
-      preview_pixbuf = self._get_in_memory_preview(self.layer_elem.item)
-    
-    if preview_pixbuf is not None:
-      self._preview_image.set_from_pixbuf(preview_pixbuf)
-    else:
-      self.clear(use_layer_name=True)
-    
-    self._is_updating = False
+    if self._is_preview_image_allocated_size:
+      self._set_contents()
   
   def clear(self, use_layer_name=False):
     self.layer_elem = None
@@ -202,6 +188,22 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       self._preview_pixbuf = None
       self._previous_preview_pixbuf_width = None
       self._previous_preview_pixbuf_height = None
+  
+  def _set_contents(self):
+    # This could happen if a layer group contained an empty layer group as its
+    # only child and the empty layer group was subsequently removed.
+    if self.layer_elem is None:
+      return
+    
+    with pgpdb.redirect_messages():
+      preview_pixbuf = self._get_in_memory_preview(self.layer_elem.item)
+    
+    if preview_pixbuf is not None:
+      self._preview_image.set_from_pixbuf(preview_pixbuf)
+    else:
+      self.clear(use_layer_name=True)
+    
+    self._is_updating = False
   
   def _init_gui(self):
     self._preview_image = gtk.Image()
@@ -390,7 +392,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._previous_preview_pixbuf_width = scaled_preview_width
     self._previous_preview_pixbuf_height = scaled_preview_height
   
-  def _on_size_allocate(self, image_widget, allocation):
+  def _on_size_allocate(self, preview, allocation):
     if not self._is_updating and not self._preview_image.get_mapped():
       preview_widget_allocated_width = allocation.width - self._BORDER_WIDTH
       preview_widget_allocated_height = (
@@ -404,6 +406,11 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
         self._placeholder_image.hide()
       else:
         self._placeholder_image.show()
+  
+  def _on_preview_image_size_allocate(self, image, allocation):
+    if not self._is_preview_image_allocated_size:
+      self._set_contents()
+      self._is_preview_image_allocated_size = True
   
   def _show_placeholder_image(self, use_layer_name=False):
     self._placeholder_image.show()
