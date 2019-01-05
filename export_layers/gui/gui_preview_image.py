@@ -74,11 +74,10 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   _MAX_PREVIEW_SIZE_PIXELS = 1024
   _PREVIEW_ALPHA_CHECK_SIZE = 4
   
-  def __init__(self, layer_exporter, initial_previewed_layer_id=None):
+  def __init__(self, layer_exporter):
     super().__init__()
     
     self._layer_exporter = layer_exporter
-    self._initial_previewed_layer_id = initial_previewed_layer_id
     
     self._layer_exporter.add_procedure(
       self._layer_exporter_on_after_insert_layer, ["after_insert_layer"],
@@ -117,7 +116,6 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     if update_locked:
       return
     
-    self.layer_elem = self._set_initial_layer_elem(self.layer_elem)
     if self.layer_elem is None:
       return
     
@@ -175,11 +173,20 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       and allocation.width > self._preview_pixbuf.get_width()
       and allocation.height > self._preview_pixbuf.get_height())
   
-  def update_layer_elem(self):
-    if (self.layer_elem is not None
-        and self._layer_exporter.layer_tree is not None
-        and self.layer_elem.item.ID in self._layer_exporter.layer_tree):
-      layer_elem = self._layer_exporter.layer_tree[self.layer_elem.item.ID]
+  def update_layer_elem(self, layer_id=None):
+    if layer_id is None:
+      if (self.layer_elem is not None
+          and self._layer_exporter.layer_tree is not None
+          and self.layer_elem.item.ID in self._layer_exporter.layer_tree):
+        layer_id = self.layer_elem.item.ID
+        should_update = True
+      else:
+        should_update = False
+    else:
+      should_update = layer_id in self._layer_exporter.layer_tree
+    
+    if should_update:
+      layer_elem = self._layer_exporter.layer_tree[layer_id]
       if self._layer_exporter.layer_tree.filter.is_match(layer_elem):
         self.layer_elem = layer_elem
         self._set_layer_name_label(self.layer_elem.name)
@@ -216,19 +223,6 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self.pack_start(self._label_layer_name, expand=False, fill=False)
     
     self._show_placeholder_image()
-  
-  def _set_initial_layer_elem(self, layer_elem):
-    if layer_elem is None:
-      if (self._layer_exporter.layer_tree is not None
-          and self._initial_previewed_layer_id in self._layer_exporter.layer_tree):
-        layer_elem = self._layer_exporter.layer_tree[self._initial_previewed_layer_id]
-        self._initial_previewed_layer_id = None
-        return layer_elem
-      else:
-        self._initial_previewed_layer_id = None
-        return None
-    else:
-      return layer_elem
   
   def _get_in_memory_preview(self, layer):
     self._preview_width, self._preview_height = self._get_preview_size(

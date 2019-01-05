@@ -690,7 +690,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       if tree_iter is not None:
         self._tree_view.get_selection().select_iter(tree_iter)
     
-    if self._initial_scroll_to_selection:
+    if self._initial_scroll_to_selection and self._selected_items:
       self._set_initial_scroll_to_selection()
       self._initial_scroll_to_selection = False
     

@@ -691,9 +691,7 @@ class ExportLayersGui(object):
       self._settings["main/available_tags"])
     
     self._export_image_preview = gui_preview_image.ExportImagePreview(
-      self._layer_exporter_for_previews,
-      self._settings["gui_session/export_image_preview_displayed_layers"].value[
-        self._image.ID])
+      self._layer_exporter_for_previews)
     
     self._export_previews_controller = gui_previews_controller.ExportPreviewsController(
       self._export_name_preview, self._export_image_preview, self._settings, self._image)

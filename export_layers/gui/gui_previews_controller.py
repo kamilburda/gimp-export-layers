@@ -31,7 +31,6 @@ from export_layers.pygimplib import pginvocation
 class ExportPreviewsController(object):
   
   _DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS = 50
-  _DELAY_PREVIEWS_DIALOG_ACTIVE_UPDATE_MILLISECONDS = 0
   _DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS = 500
   
   def __init__(self, export_name_preview, export_image_preview, settings, image):
@@ -41,6 +40,7 @@ class ExportPreviewsController(object):
     self._image = image
     
     self._only_selected_layers_constraints = {}
+    self._is_initial_selection_set = False
     
     self._paned_outside_previews_previous_position = (
       self._settings["gui/paned_outside_previews_position"].value)
@@ -59,13 +59,15 @@ class ExportPreviewsController(object):
   
   def on_dialog_is_active_changed(self, dialog, property_spec, is_exporting_func):
     if dialog.is_active() and not is_exporting_func():
-      pginvocation.timeout_add_strict(
-        self._DELAY_PREVIEWS_DIALOG_ACTIVE_UPDATE_MILLISECONDS,
-        self._export_name_preview.update,
-        reset_items=True)
-      pginvocation.timeout_add_strict(
-        self._DELAY_PREVIEWS_DIALOG_ACTIVE_UPDATE_MILLISECONDS,
-        self._export_image_preview.update)
+      pginvocation.timeout_remove_strict(self._export_name_preview.update)
+      pginvocation.timeout_remove_strict(self._export_image_preview.update)
+      
+      self._export_name_preview.update(reset_items=True)
+      
+      if not self._is_initial_selection_set:
+        self._set_initial_selection_and_update_image_preview()
+      else:
+        self._export_image_preview.update()
   
   def on_paned_outside_previews_position_changed(self, paned, property_spec):
     current_position = paned.get_position()
@@ -236,6 +238,22 @@ class ExportPreviewsController(object):
     preview.lock_update(True, update_lock_key)
     preview.set_sensitive(False)
     preview_sensitive_setting.set_value(False)
+  
+  def _set_initial_selection_and_update_image_preview(self):
+    layer_id_to_display = self._settings[
+      "gui_session/export_image_preview_displayed_layers"].value[self._image.ID]
+    
+    if (layer_id_to_display is None
+        and not self._settings["main/selected_layers"].value[self._image.ID]
+        and self._image.active_layer is not None):
+      layer_id_to_display = self._image.active_layer.ID
+      # This triggers an event that updates the image preview as well.
+      self._export_name_preview.set_selected_items([layer_id_to_display])
+    else:
+      self._export_image_preview.update_layer_elem(layer_id_to_display)
+      self._export_image_preview.update()
+    
+    self._is_initial_selection_set = True
   
   def _update_selected_layers(self):
     selected_layers_dict = self._settings["main/selected_layers"].value
