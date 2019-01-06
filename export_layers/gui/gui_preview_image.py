@@ -189,9 +189,9 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   def set_scaling(
         self, resize_image_operation_groups=None, scale_layer_operation_groups=None):
     """
-    Add procedures that scale the previewed image to the size of the widget.
+    Add operations that scale the previewed image to the size of the widget.
     
-    Subsequent calls to this method will remove the previously added procedures.
+    Subsequent calls to this method will remove the previously added operations.
     
     The optional operation groups allow to customize at which point during
     processing the scaling should be performed. By default, scaling is performed
