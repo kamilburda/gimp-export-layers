@@ -439,7 +439,7 @@ class OperationExecutor(object):
     
     operation_lists[group].insert(position, operation_item)
   
-  def remove(self, operation_id, groups=None):
+  def remove(self, operation_id, groups=None, ignore_if_not_exists=False):
     """
     Remove the operation specified by its ID from the specified groups.
     
@@ -447,11 +447,18 @@ class OperationExecutor(object):
     
     For existing groups where the operation is not added, do nothing.
     
+    If `ignore_if_not_exists` is `True`, do not raise `ValueError` if
+    `operation_id` does not match any added operation.
+    
     Raises `ValueError` if:
-      * operation ID is invalid
+      * operation ID is invalid and `ignore_if_not_exists` is `False`
       * at least one of the specified groups does not exist
     """
-    self._check_operation_id_is_valid(operation_id)
+    if ignore_if_not_exists:
+      if operation_id not in self._operation_items:
+        return
+    else:
+      self._check_operation_id_is_valid(operation_id)
     
     operation_list, operation_functions = (
       self._get_operation_lists_and_functions(

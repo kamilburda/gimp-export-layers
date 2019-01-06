@@ -530,6 +530,13 @@ class TestOperationExecutor(OperationExecutorTestCase):
     with self.assertRaises(ValueError):
       self.executor.remove(operation_id, ["additional"])
   
+  def test_remove_ignore_if_not_exists(self):
+    try:
+      self.executor.remove(-1, ignore_if_not_exists=True)
+    except ValueError:
+      self.fail(
+        "removing operations when `ignore_if_not_exists=True` should not raise error")
+  
   def test_remove_multiple_groups_at_once(self):
     test_list = []
     operation_id = self.executor.add(
