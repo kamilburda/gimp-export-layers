@@ -79,14 +79,6 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     
     self._layer_exporter = layer_exporter
     
-    self._layer_exporter.add_procedure(
-      self._layer_exporter_on_after_insert_layer, ["after_insert_layer"],
-      ignore_if_exists=True)
-    
-    self._layer_exporter.add_procedure(
-      self._layer_exporter_on_after_create_image_copy, ["after_create_image_copy"],
-      ignore_if_exists=True)
-    
     self._layer_elem = None
     
     self._preview_pixbuf = None
@@ -101,6 +93,11 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._preview_width = None
     self._preview_height = None
     self._preview_scaling_factor = None
+    
+    self._resize_image_operation_id = None
+    self._scale_layer_operation_id = None
+    
+    self.set_scaling()
     
     self._init_gui()
     
@@ -188,6 +185,39 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       self._preview_pixbuf = None
       self._previous_preview_pixbuf_width = None
       self._previous_preview_pixbuf_height = None
+  
+  def set_scaling(
+        self, resize_image_operation_groups=None, scale_layer_operation_groups=None):
+    """
+    Add procedures that scale the previewed image to the size of the widget.
+    
+    Subsequent calls to this method will remove the previously added procedures.
+    
+    The optional operation groups allow to customize at which point during
+    processing the scaling should be performed. By default, scaling is performed
+    at the start of the processing.
+    """
+    if resize_image_operation_groups is None:
+      resize_image_operation_groups = ["after_create_image_copy"]
+    
+    if scale_layer_operation_groups is None:
+      scale_layer_operation_groups = ["after_insert_layer"]
+    
+    self._layer_exporter.remove_operation(
+      self._resize_image_operation_id, groups="all", ignore_if_not_exists=True)
+    
+    self._resize_image_operation_id = self._layer_exporter.add_procedure(
+      self._resize_image_for_layer_exporter,
+      resize_image_operation_groups,
+      ignore_if_exists=True)
+    
+    self._layer_exporter.remove_operation(
+      self._scale_layer_operation_id, groups="all", ignore_if_not_exists=True)
+    
+    self._scale_layer_operation_id = self._layer_exporter.add_procedure(
+      self._scale_layer_for_layer_exporter,
+      scale_layer_operation_groups,
+      ignore_if_exists=True)
   
   def _set_contents(self):
     # This could happen if a layer group contained an empty layer group as its
@@ -289,17 +319,17 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     
     return image_preview
   
-  def _layer_exporter_on_after_create_image_copy(self, image_copy):
+  def _resize_image_for_layer_exporter(self, image, *args, **kwargs):
     pdb.gimp_image_resize(
-      image_copy,
-      max(1, int(round(image_copy.width * self._preview_scaling_factor))),
-      max(1, int(round(image_copy.height * self._preview_scaling_factor))),
+      image,
+      max(1, int(round(image.width * self._preview_scaling_factor))),
+      max(1, int(round(image.height * self._preview_scaling_factor))),
       0,
       0)
     
     pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_NONE)
   
-  def _layer_exporter_on_after_insert_layer(self, image, layer, layer_exporter):
+  def _scale_layer_for_layer_exporter(self, image, layer, layer_exporter):
     if not pdb.gimp_item_is_group(layer):
       pdb.gimp_item_transform_scale(
         layer,

@@ -27,6 +27,9 @@ from future.builtins import *
 
 from export_layers.pygimplib import pginvocation
 
+from export_layers import builtin_constraints
+from export_layers import builtin_procedures
+
 
 class ExportPreviewsController(object):
   
@@ -40,6 +43,7 @@ class ExportPreviewsController(object):
     self._image = image
     
     self._only_selected_layers_constraints = {}
+    self._custom_operations = {}
     self._is_initial_selection_set = False
     
     self._paned_outside_previews_previous_position = (
@@ -56,6 +60,7 @@ class ExportPreviewsController(object):
     self._connect_setting_after_reset_displayed_layers_in_image_preview()
     
     self._connect_toggle_name_preview_filtering()
+    self._connect_set_image_preview_scaling()
   
   def connect_name_preview_events(self):
     self._export_name_preview.connect(
@@ -200,7 +205,7 @@ class ExportPreviewsController(object):
         constraint["enabled"].connect_event("value-changed", _on_enabled_changed)
     
     def _before_remove_only_selected_layers(constraints, constraint):
-      if constraint["orig_name"].value == "only_selected_layers":
+      if constraint.name in self._only_selected_layers_constraints:
         del self._only_selected_layers_constraints[constraint.name]
     
     def _before_clear_constraints(constraints):
@@ -220,6 +225,53 @@ class ExportPreviewsController(object):
     
     self._settings["main/constraints"].connect_event(
       "before-clear-operations", _before_clear_constraints)
+  
+  def _connect_set_image_preview_scaling(self):
+    def _after_add_operation(
+          operations, operation, orig_operation_dict, builtin_operations):
+      if operation["orig_name"].value not in builtin_operations:
+        self._custom_operations[operation.name] = operation
+        
+        _set_image_preview_scaling(operation["enabled"])
+        operation["enabled"].connect_event("value-changed", _set_image_preview_scaling)
+    
+    def _before_remove_operation(operations, operation):
+      if operation.name in self._custom_operations:
+        del self._custom_operations[operation.name]
+    
+    def _before_clear_operations(operations):
+      self._custom_operations = {}
+      self._export_image_preview.set_scaling()
+    
+    def _set_image_preview_scaling(operation_enabled):
+      if not any(operation["enabled"].value
+                 for operation in self._custom_operations.values()):
+        self._export_image_preview.set_scaling()
+      else:
+        self._export_image_preview.set_scaling(
+          ["after_process_layer"], ["after_process_layer"])
+    
+    self._settings["main/procedures"].connect_event(
+      "after-add-operation",
+      _after_add_operation,
+      builtin_procedures.BUILTIN_PROCEDURES)
+    
+    self._settings["main/procedures"].connect_event(
+      "before-remove-operation", _before_remove_operation)
+    
+    self._settings["main/procedures"].connect_event(
+      "before-clear-operations", _before_clear_operations)
+    
+    self._settings["main/constraints"].connect_event(
+      "after-add-operation",
+      _after_add_operation,
+      builtin_constraints.BUILTIN_CONSTRAINTS)
+    
+    self._settings["main/constraints"].connect_event(
+      "before-remove-operation", _before_remove_operation)
+    
+    self._settings["main/constraints"].connect_event(
+      "before-clear-operations", _before_clear_operations)
   
   def _on_name_preview_selection_changed(self, preview):
     self._update_selected_layers()

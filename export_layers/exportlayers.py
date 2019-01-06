@@ -520,6 +520,9 @@ class LayerExporter(object):
     
     layer_copy.name = layer.name
     
+    self._operation_executor.execute(
+      ["after_process_layer"], [image, layer_copy, self], additional_args_position=0)
+    
     return layer_copy
   
   def _postprocess_layer(self, image, layer):
