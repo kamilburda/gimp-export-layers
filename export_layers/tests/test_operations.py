@@ -216,6 +216,8 @@ class TestManageOperations(unittest.TestCase):
     self.test_procedures = get_operation_data(test_procedures)
     self.autocrop_dict = self.test_procedures["autocrop"]
     self.procedures = operations.create("procedures")
+    
+    self.expected_dict = dict({"orig_name": "autocrop"}, **self.autocrop_dict)
   
   def test_add(self):
     operation = operations.add(self.procedures, self.autocrop_dict)
@@ -223,7 +225,7 @@ class TestManageOperations(unittest.TestCase):
     self.assertIn("autocrop", self.procedures["added"])
     self.assertEqual(len(self.procedures["added"]), 1)
     self.assertDictEqual(
-      _find_in_added_data(self.procedures, "autocrop"), self.autocrop_dict)
+      _find_in_added_data(self.procedures, "autocrop"), self.expected_dict)
     self.assertIsNot(
       _find_in_added_data(self.procedures, "autocrop"), self.autocrop_dict)
     self.assertEqual(operation, self.procedures["added/autocrop"])
@@ -236,6 +238,7 @@ class TestManageOperations(unittest.TestCase):
     added_operations = [
       operations.add(self.procedures, self.autocrop_dict) for unused_ in range(3)]
     
+    orig_name = "autocrop"
     expected_names = ["autocrop", "autocrop_2", "autocrop_3"]
     expected_display_names = ["Autocrop", "Autocrop (2)", "Autocrop (3)"]
     
@@ -246,6 +249,8 @@ class TestManageOperations(unittest.TestCase):
       self.assertEqual(
         self.procedures["added/" + expected_name + "/display_name"].value,
         expected_display_name)
+      self.assertEqual(
+        self.procedures["added/" + expected_name + "/orig_name"].value, orig_name)
       self.assertIsNotNone(_find_in_added_data(self.procedures, expected_name))
       self.assertEqual(
         _find_in_added_data(self.procedures, expected_name)["display_name"],
@@ -266,7 +271,7 @@ class TestManageOperations(unittest.TestCase):
     operations.add(self.procedures, self.autocrop_dict)
     
     self.assertIs(invoked_event_args[0][0], self.procedures)
-    self.assertDictEqual(invoked_event_args[0][1], self.autocrop_dict)
+    self.assertDictEqual(invoked_event_args[0][1], self.expected_dict)
     self.assertIsNot(invoked_event_args[0][1], self.autocrop_dict)
   
   @parameterized.parameterized.expand([

@@ -131,8 +131,13 @@ def create(name, initial_operations=None):
   * `"display_name"` - The display name (human-readable name) of the operation.
   * `"operation_group"` - List of groups the operation belongs to, used in
     `pgoperations.OperationExecutor` and `exportlayers.LayerExporter`.
+  * `"orig_name"` - The original name of the operation. If an operation with the
+    same `"name"` field (see below) was previously added, the name of the new
+    operation is made unique to allow lookup of both operations. Otherwise,
+    `"orig_name"` is equal to `"name"`.
   
-  Each dictionary in `initial_operations` may contain the following fields:
+  Each dictionary in the `initial_operations` list may contain the following
+  fields:
   * `"name"` - This field is required. This is the `name` attribute of the
     created operation.
   * `"type"` - Operation type. See below for details.
@@ -341,6 +346,16 @@ def _create_procedure(
     },
   ])
   
+  orig_name_value = custom_fields.pop("orig_name", name)
+  operation.add([
+    {
+      "type": pgsetting.SettingTypes.string,
+      "name": "orig_name",
+      "default_value": orig_name_value,
+      "gui_type": None,
+    },
+  ])
+  
   for field_name, field_value in custom_fields.items():
     operation.add([
       {
@@ -541,6 +556,8 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
 
 
 def _uniquify_name_and_display_name(operations, operation_dict):
+  operation_dict["orig_name"] = operation_dict["name"]
+  
   operation_dict["name"] = _uniquify_operation_name(
     operations, operation_dict["name"])
   

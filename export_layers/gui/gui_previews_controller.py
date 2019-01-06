@@ -195,15 +195,15 @@ class ExportPreviewsController(object):
   
   def _connect_toggle_name_preview_filtering(self):
     def _after_add_only_selected_layers(constraints, constraint, orig_constraint_dict):
-      if orig_constraint_dict["name"] == "only_selected_layers":
+      if constraint["orig_name"].value == "only_selected_layers":
         self._only_selected_layers_constraints[constraint.name] = constraint
         
         _on_enabled_changed(constraint["enabled"])
         constraint["enabled"].connect_event("value-changed", _on_enabled_changed)
     
-    def _after_remove_only_selected_layers(constraints, removed_constraint_name):
-      if removed_constraint_name.startswith("only_selected_layers"):
-        del self._only_selected_layers_constraints[removed_constraint_name]
+    def _before_remove_only_selected_layers(constraints, constraint):
+      if constraint["orig_name"].value == "only_selected_layers":
+        del self._only_selected_layers_constraints[constraint.name]
     
     def _before_clear_constraints(constraints):
       self._only_selected_layers_constraints = {}
@@ -218,7 +218,7 @@ class ExportPreviewsController(object):
       "after-add-operation", _after_add_only_selected_layers)
     
     self._settings["main/constraints"].connect_event(
-      "after-remove-operation", _after_remove_only_selected_layers)
+      "before-remove-operation", _before_remove_only_selected_layers)
     
     self._settings["main/constraints"].connect_event(
       "before-clear-operations", _before_clear_constraints)

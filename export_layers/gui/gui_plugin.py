@@ -734,7 +734,7 @@ class ExportLayersGui(object):
         self._export_name_preview.update)
   
   def _on_box_procedures_item_added(self, box_procedures, item):
-    if any(item.operation.name.startswith(name)
+    if any(item.operation["orig_name"].value == name
            for name in ["insert_background_layers", "insert_foreground_layers"]):
       operations.reorder(self._settings["main/procedures"], item.operation.name, 0)
   
