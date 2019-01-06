@@ -629,16 +629,6 @@ class ExportLayersGui(object):
       self._export_previews_controller.on_dialog_is_active_changed,
       lambda: self._is_exporting)
     
-    self._export_name_preview.connect(
-      "preview-selection-changed",
-      self._export_previews_controller.on_name_preview_selection_changed)
-    self._export_name_preview.connect(
-      "preview-updated",
-      self._export_previews_controller.on_name_preview_after_update)
-    self._export_name_preview.connect(
-      "preview-tags-changed",
-      self._export_previews_controller.on_name_preview_after_edit_tags)
-    
     self._hpaned_settings_and_previews.connect(
       "notify::position",
       self._export_previews_controller.on_paned_outside_previews_position_changed)
@@ -647,6 +637,7 @@ class ExportLayersGui(object):
       self._export_previews_controller.on_paned_between_previews_position_changed)
     
     self._export_previews_controller.connect_setting_changes_to_previews()
+    self._export_previews_controller.connect_name_preview_events()
   
   def _finish_init_and_show(self):
     self._dialog.vbox.show_all()

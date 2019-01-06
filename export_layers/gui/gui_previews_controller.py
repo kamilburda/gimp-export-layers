@@ -57,6 +57,14 @@ class ExportPreviewsController(object):
     
     self._connect_toggle_name_preview_filtering()
   
+  def connect_name_preview_events(self):
+    self._export_name_preview.connect(
+      "preview-selection-changed", self._on_name_preview_selection_changed)
+    self._export_name_preview.connect(
+      "preview-updated", self._on_name_preview_after_update)
+    self._export_name_preview.connect(
+      "preview-tags-changed", self._on_name_preview_after_edit_tags)
+  
   def on_dialog_is_active_changed(self, dialog, property_spec, is_exporting_func):
     if dialog.is_active() and not is_exporting_func():
       pginvocation.timeout_remove_strict(self._export_name_preview.update)
@@ -136,16 +144,6 @@ class ExportPreviewsController(object):
     
     self._paned_between_previews_previous_position = current_position
   
-  def on_name_preview_selection_changed(self, preview):
-    self._update_selected_layers()
-    self._update_image_preview()
-  
-  def on_name_preview_after_update(self, preview):
-    self._export_image_preview.update_layer_elem()
-  
-  def on_name_preview_after_edit_tags(self, preview):
-    self._update_image_preview()
-  
   def _connect_operations_changed(self, operations_):
     def _on_after_add_operation(operations_, operation, *args, **kwargs):
       if operation["enabled"].value:
@@ -222,6 +220,16 @@ class ExportPreviewsController(object):
     
     self._settings["main/constraints"].connect_event(
       "before-clear-operations", _before_clear_constraints)
+  
+  def _on_name_preview_selection_changed(self, preview):
+    self._update_selected_layers()
+    self._update_image_preview()
+  
+  def _on_name_preview_after_update(self, preview):
+    self._export_image_preview.update_layer_elem()
+  
+  def _on_name_preview_after_edit_tags(self, preview):
+    self._update_image_preview()
   
   def _enable_preview_on_paned_drag(
         self, preview, preview_sensitive_setting, update_lock_key):
