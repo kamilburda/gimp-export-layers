@@ -55,9 +55,25 @@ class OperationBox(pggui.ItemBox):
   to the operations and the GUI, respectively.
   
   Signals:
+  
   * `"operation-box-item-added"` - An item was added via `add_item`.
+    
+    Arguments:
+    
+    * `item` - The added item.
+    
   * `"operation-box-item-reordered"` - An item was reordered via `reorder_item`.
+    
+    Arguments:
+    
+    * `item` - The reordered item.
+    * `new_position` - The new position of the reordered item (starting from 0).
+    
   * `"operation-box-item-removed"` - An item was removed via `remove_item`.
+    
+    Arguments:
+    
+    * `item` - The removed item.
   """
   
   __gsignals__ = {

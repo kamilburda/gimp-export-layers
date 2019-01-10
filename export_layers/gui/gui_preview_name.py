@@ -61,18 +61,16 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
   
   * `"preview-selection-changed"` - The selection in the preview was modified
     by the user or by calling `set_selected_items`.
-  * `"preview-updated"` - The preview was updated by calling `update`.
+  * `"preview-updated"` - The preview was updated by calling `update`. This
+    signal is not emitted if the update is locked.
   * `"preview-tags-changed"` - An existing tag was added to or removed from a
     layer.
   """
   
   __gsignals__ = {
-    b"preview-selection-changed": (
-      gobject.SIGNAL_RUN_FIRST, None, ()),
-    b"preview-updated": (
-      gobject.SIGNAL_RUN_FIRST, None, ()),
-    b"preview-tags-changed": (
-      gobject.SIGNAL_RUN_FIRST, None, ()),
+    b"preview-selection-changed": (gobject.SIGNAL_RUN_FIRST, None, ()),
+    b"preview-updated": (gobject.SIGNAL_RUN_FIRST, None, ()),
+    b"preview-tags-changed": (gobject.SIGNAL_RUN_FIRST, None, ()),
   }
   
   _PREVIEW_LABEL_PADDING = 5

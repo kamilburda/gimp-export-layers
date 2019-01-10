@@ -49,6 +49,10 @@ class GimpItemComboBox(gtk.VBox):
   * `"changed"` - The user changed the selection either in the combo box
     containing available item types or in the combo box for the selected item
     type.
+    
+    Arguments:
+    
+    * `selected_item` - The currently selected `gimp.Item` object.
   """
   
   __gsignals__ = {b"changed": (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT,))}
