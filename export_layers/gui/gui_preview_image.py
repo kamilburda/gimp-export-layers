@@ -26,6 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import array
+import time
 import traceback
 
 import pygtk
@@ -68,6 +69,25 @@ def display_image_preview_failure_message(details, parent=None):
 
 
 class ExportImagePreview(gui_preview_base.ExportPreview):
+  """
+  This class defines a widget displaying a preview of an image to be exported,
+  including its name.
+  
+  Signals:
+  
+  * `"preview-updated"` - The preview was updated by calling `update`. This
+    signal is not emitted if the update is locked.
+    
+    Arguments:
+    
+    * `update_duration_seconds` - Duration of the update in seconds as a float.
+      The duration only considers the update of the image contents (i.e. does
+      not consider the duration of updating the label of the image name).
+  """
+  
+  __gsignals__ = {
+    b"preview-updated": (gobject.SIGNAL_RUN_FIRST, None, ()),
+  }
   
   _WIDGET_SPACING = 6
   _BORDER_WIDTH = 6
@@ -109,6 +129,18 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     
     self.connect("size-allocate", self._on_size_allocate)
     self._preview_image.connect("size-allocate", self._on_preview_image_size_allocate)
+  
+  @property
+  def layer_elem(self):
+    return self._layer_elem
+  
+  @layer_elem.setter
+  def layer_elem(self, value):
+    self._layer_elem = value
+    if value is None:
+      self._preview_pixbuf = None
+      self._previous_preview_pixbuf_width = None
+      self._previous_preview_pixbuf_height = None
   
   def update(self):
     update_locked = super().update()
@@ -174,18 +206,6 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
         self.layer_elem = layer_elem
         self._set_layer_name_label(self.layer_elem.name)
   
-  @property
-  def layer_elem(self):
-    return self._layer_elem
-  
-  @layer_elem.setter
-  def layer_elem(self, value):
-    self._layer_elem = value
-    if value is None:
-      self._preview_pixbuf = None
-      self._previous_preview_pixbuf_width = None
-      self._previous_preview_pixbuf_height = None
-  
   def set_scaling(
         self, resize_image_operation_groups=None, scale_layer_operation_groups=None):
     """
@@ -225,6 +245,8 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     if self.layer_elem is None:
       return
     
+    start_update_time = time.time()
+    
     with pgpdb.redirect_messages():
       preview_pixbuf = self._get_in_memory_preview(self.layer_elem.item)
     
@@ -234,6 +256,10 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       self.clear(use_layer_name=True)
     
     self._is_updating = False
+    
+    update_duration_seconds = time.time() - start_update_time
+    
+    self.emit("preview-updated", update_duration_seconds)
   
   def _init_gui(self):
     self._preview_image = gtk.Image()
