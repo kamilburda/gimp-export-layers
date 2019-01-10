@@ -293,6 +293,13 @@ def _add_gui_settings(settings):
 
 class ExportLayersGui(object):
   
+  _DIALOG_SIZE = (900, 610)
+  _DIALOG_BORDER_WIDTH = 5
+  _DIALOG_CONTENTS_BORDER_WIDTH = 5
+  _DIALOG_VBOX_SPACING = 5
+  
+  _SAVE_IN_FOLDER_LABEL_PADDING = 3
+  
   _HBOX_EXPORT_LABELS_NAME_SPACING = 10
   _HBOX_EXPORT_NAME_ENTRIES_SPACING = 3
   _HBOX_EXPORT_NAME_AND_MESSAGE_HORIZONTAL_SPACING = 8
@@ -300,11 +307,6 @@ class ExportLayersGui(object):
   
   _MORE_SETTINGS_HORIZONTAL_SPACING = 12
   _MORE_SETTINGS_BORDER_WIDTH = 3
-  
-  _DIALOG_SIZE = (900, 610)
-  _DIALOG_BORDER_WIDTH = 5
-  _DIALOG_CONTENTS_BORDER_WIDTH = 5
-  _DIALOG_VBOX_SPACING = 5
   
   _FILE_EXTENSION_ENTRY_MIN_WIDTH_CHARS = 4
   _FILE_EXTENSION_ENTRY_MAX_WIDTH_CHARS = 10
@@ -417,9 +419,12 @@ class ExportLayersGui(object):
     self._init_gui_previews()
     
     self._vbox_folder_chooser = gtk.VBox(homogeneous=False)
-    self._vbox_folder_chooser.set_spacing(self._DIALOG_VBOX_SPACING * 2)
+    self._vbox_folder_chooser.set_spacing(self._DIALOG_VBOX_SPACING)
     self._vbox_folder_chooser.pack_start(
-      self._folder_chooser_label, expand=False, fill=False)
+      self._folder_chooser_label,
+      expand=False,
+      fill=False,
+      padding=self._SAVE_IN_FOLDER_LABEL_PADDING)
     self._vbox_folder_chooser.pack_start(self._folder_chooser)
     
     self._vpaned_previews = gtk.VPaned()
