@@ -86,7 +86,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   """
   
   __gsignals__ = {
-    b"preview-updated": (gobject.SIGNAL_RUN_FIRST, None, ()),
+    b"preview-updated": (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_FLOAT,)),
   }
   
   _WIDGET_SPACING = 6
