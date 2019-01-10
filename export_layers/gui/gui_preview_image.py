@@ -353,7 +353,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       0,
       0)
     
-    pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_NONE)
+    pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_LINEAR)
   
   def _scale_layer_for_layer_exporter(self, image, layer, layer_exporter):
     if not pdb.gimp_item_is_group(layer):
