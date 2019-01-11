@@ -217,3 +217,32 @@ def set_tooltip_if_label_does_not_fit(widget, label, use_markup=True):
     widget.set_tooltip_text(label.get_text())
   else:
     widget.set_tooltip_text(None)
+
+
+def menu_popup_below_widget(
+      menu,
+      widget,
+      parent_menu_shell=None,
+      parent_menu_item=None,
+      button=0,
+      activate_time=0):
+  """
+  Display popup of the specified menu below the specified widget. If the widget
+  has no associated top-level window, display the popup on the cursor position.
+  """
+  toplevel_window = get_toplevel_window(widget)
+  
+  if toplevel_window is not None:
+    toplevel_window_position = toplevel_window.get_window().get_origin()
+    widget_allocation = widget.get_allocation()
+    menu.popup(
+      parent_menu_shell,
+      parent_menu_item,
+      lambda menu_: (
+        widget_allocation.x + toplevel_window_position[0],
+        widget_allocation.y + widget_allocation.height + toplevel_window_position[1],
+        True),
+      button,
+      activate_time)
+  else:
+    menu.popup(parent_menu_shell, parent_menu_item, None, button, activate_time)
