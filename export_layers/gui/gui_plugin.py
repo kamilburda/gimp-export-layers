@@ -465,11 +465,6 @@ class ExportLayersGui(object):
     self._label_message.set_alignment(0.0, 0.5)
     self._label_message.set_ellipsize(pango.ELLIPSIZE_END)
     
-    self._menu_item_show_more_settings = gtk.CheckMenuItem(_("Show More Settings"))
-    
-    self._vpaned_chooser_and_operations = gtk.VPaned()
-    self._hpaned_settings_and_previews = gtk.HPaned()
-    
     self._hbox_export_name_labels = gtk.HBox(homogeneous=False)
     self._hbox_export_name_labels.pack_start(
       self._file_extension_label, expand=False, fill=False)
@@ -529,11 +524,13 @@ class ExportLayersGui(object):
     self._vbox_chooser_and_settings.pack_start(
       self._hbox_export_name_and_message, expand=False, fill=False)
     
+    self._vpaned_chooser_and_operations = gtk.VPaned()
     self._vpaned_chooser_and_operations.pack1(
       self._vbox_chooser_and_settings, resize=True, shrink=False)
     self._vpaned_chooser_and_operations.pack2(
       self._hbox_operations, resize=False, shrink=True)
     
+    self._hpaned_settings_and_previews = gtk.HPaned()
     self._hpaned_settings_and_previews.pack1(
       self._vpaned_chooser_and_operations, resize=True, shrink=False)
     self._hpaned_settings_and_previews.pack2(
@@ -560,6 +557,7 @@ class ExportLayersGui(object):
     self._button_settings = gtk.Button()
     self._button_settings.add(self._hbox_button_settings)
     
+    self._menu_item_show_more_settings = gtk.CheckMenuItem(_("Show More Settings"))
     self._menu_item_save_settings = gtk.MenuItem(_("Save Settings"))
     self._menu_item_reset_settings = gtk.MenuItem(_("Reset settings"))
     
@@ -607,7 +605,8 @@ class ExportLayersGui(object):
     if _webbrowser_module_found:
       self._button_help.connect("clicked", self._on_button_help_clicked)
     
-    self._button_settings.connect("clicked", self._on_button_settings_clicked)
+    self._button_settings.connect(
+      "clicked", self._on_button_settings_clicked)
     self._menu_item_show_more_settings.connect(
       "toggled", self._on_menu_item_show_more_settings_toggled)
     self._menu_item_save_settings.connect(
@@ -771,17 +770,7 @@ class ExportLayersGui(object):
       return export_stopped
   
   def _on_button_settings_clicked(self, button):
-    dialog_position = self._dialog.get_window().get_origin()
-    button_allocation = button.get_allocation()
-    self._menu_settings.popup(
-      None,
-      None,
-      lambda menu: (
-        button_allocation.x + dialog_position[0],
-        button_allocation.y + button_allocation.height + dialog_position[1],
-        True),
-      0,
-      0)
+    pggui.menu_popup_below_widget(self._menu_settings, button)
   
   @_set_settings
   def _on_save_settings_activate(self, widget):
