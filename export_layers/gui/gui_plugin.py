@@ -316,6 +316,8 @@ class ExportLayersGui(object):
   _DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS = 100
   _DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS = 10000
   
+  _MAXIMUM_IMAGE_PREVIEW_AUTOMATIC_UPDATE_DURATION_SECONDS = 1.0
+  
   def __init__(self, initial_layer_tree, settings, run_gui_func=None):
     self._initial_layer_tree = initial_layer_tree
     self._settings = settings
@@ -642,6 +644,8 @@ class ExportLayersGui(object):
     
     self._export_previews_controller.connect_setting_changes_to_previews()
     self._export_previews_controller.connect_name_preview_events()
+    
+    self._export_image_preview.connect("preview-updated", self._on_image_preview_updated)
   
   def _finish_init_and_show(self):
     self._dialog.vbox.show_all()
@@ -763,6 +767,20 @@ class ExportLayersGui(object):
     if self._initial_layer_tree is not None:
       self._initial_layer_tree = None
       return
+  
+  def _on_image_preview_updated(self, preview, update_duration_seconds):
+    if (self._settings[
+         "gui/export_image_preview_automatic_update_if_below_maximum_duration"].value
+        and (update_duration_seconds
+             >= self._MAXIMUM_IMAGE_PREVIEW_AUTOMATIC_UPDATE_DURATION_SECONDS)):
+      self._export_image_preview.set_automatic_update(False)
+      
+      self._display_message_label(
+        _("Disabling automatic preview update."), gtk.MESSAGE_INFO)
+      
+      self._settings[
+        "gui/export_image_preview_automatic_update_if_below_maximum_duration"
+      ].set_value(False)
   
   def _on_dialog_key_press(self, widget, event):
     if gtk.gdk.keyval_name(event.keyval) == "Escape":

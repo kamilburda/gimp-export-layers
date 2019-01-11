@@ -83,13 +83,24 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     * `update_duration_seconds` - Duration of the update in seconds as a float.
       The duration only considers the update of the image contents (i.e. does
       not consider the duration of updating the label of the image name).
+  
+  * `"preview-toggled-automatic-update"` - The preview's option to
+    enable/disable automatic update was toggled.
+    
+    Arguments:
+    
+    * `automatic` - See `set_automatic_update` for more information.
   """
   
   __gsignals__ = {
     b"preview-updated": (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_FLOAT,)),
+    b"preview-toggled-automatic-update": (
+      gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_BOOLEAN,)),
   }
   
-  _WIDGET_SPACING = 6
+  _MANUAL_UPDATE_LOCK = "_manual_update"
+  
+  _WIDGET_SPACING = 5
   _BORDER_WIDTH = 6
   _MAX_PREVIEW_SIZE_PIXELS = 1024
   _PREVIEW_ALPHA_CHECK_SIZE = 4
@@ -117,6 +128,8 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._resize_image_operation_id = None
     self._scale_layer_operation_id = None
     
+    self._should_emit_automatic_update_signal = True
+    
     self.set_scaling()
     
     self._init_gui()
@@ -129,6 +142,11 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     
     self.connect("size-allocate", self._on_size_allocate)
     self._preview_image.connect("size-allocate", self._on_preview_image_size_allocate)
+    
+    self._button_menu.connect("clicked", self._on_button_menu_clicked)
+    self._menu_item_update_automatically.connect(
+      "toggled", self._on_menu_item_update_automatically_toggled)
+    self._button_refresh.connect("clicked", self._on_button_refresh_clicked)
   
   @property
   def layer_elem(self):
@@ -239,6 +257,22 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       scale_layer_operation_groups,
       ignore_if_exists=True)
   
+  def set_automatic_update(self, automatic=True):
+    """
+    If `automatic` is `False`, lock `update` and allow only manual updates via a
+    button within the preview.
+    
+    If `automatic` is `True`, call `update` and hide the button for the manual
+    update. Calls to `update` properly updates the preview, provided that the
+    update is not locked by calls to `lock_update`.
+    
+    The key used to lock the preview for manual update is `_MANUAL_UPDATE_LOCK`.
+    This key should not be directly used outside this class to lock the preview.
+    """
+    self._should_emit_automatic_update_signal = False
+    self._menu_item_update_automatically.set_active(automatic)
+    self._should_emit_automatic_update_signal = True
+  
   def _set_contents(self):
     # This could happen if a layer group contained an empty layer group as its
     # only child and the empty layer group was subsequently removed.
@@ -262,6 +296,31 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self.emit("preview-updated", update_duration_seconds)
   
   def _init_gui(self):
+    self._button_menu = gtk.Button()
+    self._button_menu.set_relief(gtk.RELIEF_NONE)
+    self._button_menu.add(gtk.Arrow(gtk.ARROW_DOWN, gtk.SHADOW_IN))
+    
+    self._menu_item_update_automatically = gtk.CheckMenuItem(
+      _("Update Preview Automatically"))
+    self._menu_item_update_automatically.set_active(True)
+    
+    self._menu_settings = gtk.Menu()
+    self._menu_settings.append(self._menu_item_update_automatically)
+    self._menu_settings.show_all()
+    
+    self._button_refresh = gtk.Button()
+    self._button_refresh.set_tooltip_text(_("Update Preview"))
+    self._button_refresh.set_relief(gtk.RELIEF_NONE)
+    self._button_refresh.add(gtk.image_new_from_pixbuf(
+      self._button_refresh.render_icon(gtk.STOCK_REFRESH, gtk.ICON_SIZE_MENU)))
+    self._button_refresh.show_all()
+    self._button_refresh.hide()
+    self._button_refresh.set_no_show_all(True)
+    
+    self._hbox_buttons = gtk.HBox()
+    self._hbox_buttons.pack_start(self._button_menu, expand=False, fill=False)
+    self._hbox_buttons.pack_start(self._button_refresh, expand=False, fill=False)
+    
     self._preview_image = gtk.Image()
     self._preview_image.set_no_show_all(True)
     
@@ -276,10 +335,11 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self.set_spacing(self._WIDGET_SPACING)
     self.set_border_width(self._BORDER_WIDTH)
     
+    self.pack_start(self._hbox_buttons, expand=False, fill=False)
     self.pack_start(self._preview_image, expand=True, fill=True)
     self.pack_start(self._placeholder_image, expand=True, fill=True)
     self.pack_start(self._label_layer_name, expand=False, fill=False)
-    
+        
     self._show_placeholder_image()
   
   def _get_in_memory_preview(self, layer):
@@ -453,6 +513,8 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       preview_widget_allocated_width = allocation.width - self._BORDER_WIDTH
       preview_widget_allocated_height = (
         allocation.height
+        - self._hbox_buttons.get_allocation().height
+        - self._WIDGET_SPACING
         - self._label_layer_name.get_allocation().height
         - self._WIDGET_SPACING
         - self._BORDER_WIDTH * 2)
@@ -478,6 +540,31 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       "<i>{}</i>".format(
         gobject.markup_escape_text(
           layer_name.encode(pgconstants.GTK_CHARACTER_ENCODING))))
+  
+  def _on_button_menu_clicked(self, button):
+    pggui.menu_popup_below_widget(self._menu_settings, button)
+  
+  def _on_menu_item_update_automatically_toggled(self, menu_item):
+    if self._menu_item_update_automatically.get_active():
+      self._button_refresh.hide()
+      self.lock_update(False, self._MANUAL_UPDATE_LOCK)
+      self.update()
+    else:
+      self._button_refresh.show()
+      self.lock_update(True, self._MANUAL_UPDATE_LOCK)
+    
+    if self._should_emit_automatic_update_signal:
+      self.emit(
+        "preview-toggled-automatic-update",
+        self._menu_item_update_automatically.get_active())
+  
+  def _on_button_refresh_clicked(self, button):
+    if self._MANUAL_UPDATE_LOCK in self._lock_keys:
+      self.lock_update(False, self._MANUAL_UPDATE_LOCK)
+      self.update()
+      self.lock_update(True, self._MANUAL_UPDATE_LOCK)
+    else:
+      self.update()
   
   @staticmethod
   def _add_alpha_background_to_pixbuf(

@@ -34,8 +34,12 @@ Preview
 To have a better grasp of what layers are actually exported and how, the preview displays the layer names in a folder structure.
 If you select a layer, the layer contents will be displayed at the bottom of the preview.
 
-You may adjust the width of the entire preview by dragging the separator between the preview and the folder chooser.
-You may also adjust the height of the contents by dragging the separator above the contents.
+You can adjust the width of the entire preview by dragging the separator between the preview and the folder chooser.
+You can also adjust the height of the previewed image by dragging the separator above the image.
+
+If the previewed image takes too long to render, the preview is no longer updated automatically.
+A button next to the arrow button above the image is displayed that allows you to manually update the image.
+To switch between automatic and manual update, click on the arrow button and select `"Update Preview Automatically"`.
 
 
 Managing Settings

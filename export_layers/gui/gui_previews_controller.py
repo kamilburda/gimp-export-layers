@@ -61,6 +61,7 @@ class ExportPreviewsController(object):
     
     self._connect_toggle_name_preview_filtering()
     self._connect_set_image_preview_scaling()
+    self._connect_image_preview_menu_setting_changes()
   
   def connect_name_preview_events(self):
     self._export_name_preview.connect(
@@ -272,6 +273,19 @@ class ExportPreviewsController(object):
     
     self._settings["main/constraints"].connect_event(
       "before-clear-operations", _before_clear_operations)
+  
+  def _connect_image_preview_menu_setting_changes(self):
+    def _on_preview_toggled_automatic_update(preview, automatic):
+      self._settings["gui/export_image_preview_automatic_update"].set_value(automatic)
+    
+    self._settings["gui/export_image_preview_automatic_update"].connect_event(
+      "value-changed",
+      lambda setting, update_if_below_setting: update_if_below_setting.set_value(False),
+      self._settings[
+        "gui/export_image_preview_automatic_update_if_below_maximum_duration"])
+    
+    self._export_image_preview.connect(
+      "preview-toggled-automatic-update", _on_preview_toggled_automatic_update)
   
   def _on_name_preview_selection_changed(self, preview):
     self._update_selected_layers()

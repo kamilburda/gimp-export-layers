@@ -64,7 +64,7 @@ def create_gui_settings():
     {
       "type": pgsetting.SettingTypes.float,
       "name": "paned_between_previews_position",
-      "default_value": 410,
+      "default_value": 380,
     },
     {
       "type": pgsetting.SettingTypes.float,
@@ -80,6 +80,18 @@ def create_gui_settings():
     {
       "type": pgsetting.SettingTypes.boolean,
       "name": "export_image_preview_sensitive",
+      "default_value": True,
+      "gui_type": None,
+    },
+    {
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "export_image_preview_automatic_update",
+      "default_value": True,
+      "gui_type": None,
+    },
+    {
+      "type": pgsetting.SettingTypes.boolean,
+      "name": "export_image_preview_automatic_update_if_below_maximum_duration",
       "default_value": True,
       "gui_type": None,
     },
