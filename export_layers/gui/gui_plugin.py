@@ -410,7 +410,7 @@ class ExportLayersGui(object):
     self._dialog.set_default_response(gtk.RESPONSE_CANCEL)
     
     self._folder_chooser_label = gtk.Label()
-    self._folder_chooser_label.set_markup(_("Save in folder:"))
+    self._folder_chooser_label.set_markup("<b>" + _("Save in folder:") + "</b>")
     self._folder_chooser_label.set_alignment(0.0, 0.5)
     
     self._folder_chooser = gtk.FileChooserWidget(
@@ -437,7 +437,7 @@ class ExportLayersGui(object):
     
     self._file_extension_label = gtk.Label()
     self._file_extension_label.set_markup(
-      "{}:".format(
+      "<b>{}:</b>".format(
         gobject.markup_escape_text(self._settings["main/file_extension"].display_name)))
     self._file_extension_label.set_alignment(0.0, 0.5)
     
@@ -448,7 +448,7 @@ class ExportLayersGui(object):
     
     self._save_as_label = gtk.Label()
     self._save_as_label.set_markup(
-      "{}:".format(gobject.markup_escape_text(_("Save as"))))
+      "<b>{}:</b>".format(gobject.markup_escape_text(_("Save as"))))
     self._save_as_label.set_alignment(0.0, 0.5)
     
     self._dot_label = gtk.Label(".")

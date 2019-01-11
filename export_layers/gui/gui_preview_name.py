@@ -245,7 +245,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     
     self._tree_view.append_column(column)
     
-    self._preview_label = gtk.Label(_("Preview"))
+    self._preview_label = gtk.Label()
+    self._preview_label.set_markup("<b>" + _("Preview") + "</b>")
     self._preview_label.set_alignment(0.02, 0.5)
     
     self._scrolled_window = gtk.ScrolledWindow()
