@@ -61,6 +61,7 @@ from .. import builtin_procedures
 from .. import operations
 from .. import exportlayers
 from .. import settings_plugin
+from . import gui_message_label
 from . import gui_operations
 from . import gui_preview_image
 from . import gui_preview_name
@@ -463,9 +464,7 @@ class ExportLayersGui(object):
       default_item=self._settings["main/layer_filename_pattern"].default_value)
     self._filename_pattern_entry.set_activates_default(True)
     
-    self._label_message = gtk.Label()
-    self._label_message.set_alignment(0.0, 0.5)
-    self._label_message.set_ellipsize(pango.ELLIPSIZE_END)
+    self._label_message = gui_message_label.MessageLabel()
     
     self._hbox_export_name_labels = gtk.HBox(homogeneous=False)
     self._hbox_export_name_labels.pack_start(
@@ -599,7 +598,6 @@ class ExportLayersGui(object):
     self._box_procedures.connect(
       "operation-box-item-added", self._on_box_procedures_item_added)
     
-    self._label_message.connect("size-allocate", self._on_label_message_size_allocate)
     self._button_export.connect("clicked", self._on_button_export_clicked)
     self._button_cancel.connect("clicked", self._on_button_cancel_clicked)
     self._button_stop.connect("clicked", self._on_button_stop_clicked)
@@ -736,9 +734,6 @@ class ExportLayersGui(object):
     if any(item.operation["orig_name"].value == name
            for name in ["insert_background_layers", "insert_foreground_layers"]):
       operations.reorder(self._settings["main/procedures"], item.operation.name, 0)
-  
-  def _on_label_message_size_allocate(self, label, allocation):
-    pggui.set_tooltip_if_label_does_not_fit(label, label)
   
   def _on_menu_item_show_more_settings_toggled(self, widget):
     self._show_hide_more_settings()
@@ -957,29 +952,8 @@ class ExportLayersGui(object):
   
   def _display_message_label(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
     self._message_setting = setting
-    
-    if not text:
-      self._label_message.set_text("")
-    else:
-      text = text[0].upper() + text[1:]
-      if not text.endswith("."):
-        text += "."
-      
-      if message_type == gtk.MESSAGE_ERROR:
-        self._label_message.set_markup('<span foreground="red"><b>{}</b></span>'.format(
-          gobject.markup_escape_text(text)))
-        
-        if not (os.name == "nt" and ((2, 10, 0) <= gimp.version < (2, 10, 6))):
-          pginvocation.timeout_remove_strict(self._display_message_label)
-      else:
-        self._label_message.set_markup('<span><b>{}</b></span>'.format(
-          gobject.markup_escape_text(text)))
-        
-        if not (os.name == "nt" and ((2, 10, 0) <= gimp.version < (2, 10, 6))):
-          pginvocation.timeout_add_strict(
-            self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS,
-            self._display_message_label,
-            None)
+    self._label_message.set_text(
+      text, message_type, self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS)
   
   def _display_message_label_on_setting_value_error(
         self, exc_type, exc_value, exc_traceback):
