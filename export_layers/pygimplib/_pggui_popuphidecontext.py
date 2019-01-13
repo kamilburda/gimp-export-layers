@@ -59,6 +59,7 @@ class PopupHideContext(object):
     
     self._button_press_emission_hook_id = None
     self._toplevel_configure_event_id = None
+    self._toplevel_position = None
     self._widgets_with_entered_pointers = set()
     
     self._popup_owner_widget.connect(
@@ -77,6 +78,7 @@ class PopupHideContext(object):
       # `"button-press-event"` emission hooks, hence this workaround.
       self._toplevel_configure_event_id = toplevel.connect(
         "configure-event", self._on_toplevel_configure_event)
+      self._toplevel_position = toplevel.get_position()
   
   def disconnect_button_press_events_for_hiding(self):
     if self._button_press_emission_hook_id is not None:
@@ -107,7 +109,10 @@ class PopupHideContext(object):
       return False
   
   def _on_toplevel_configure_event(self, toplevel, event):
-    self._hide_callback()
+    if self._toplevel_position != toplevel.get_position():
+      self._hide_callback()
+    
+    self._toplevel_position = toplevel.get_position()
   
   def _on_widget_enter_notify_event(self, widget, event):
     self._widgets_with_entered_pointers.add(widget)
