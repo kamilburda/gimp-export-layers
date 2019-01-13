@@ -771,7 +771,12 @@ class ExportLayersGui(object):
       self._export_image_preview.set_automatic_update(False)
       
       self._display_inline_message(
-        _("Disabling automatic preview update."), gtk.MESSAGE_INFO)
+        "{}\n\n{}".format(
+          _("Disabling automatic preview update."),
+          _("The preview takes too long to update. "
+            + "You may turn automatic updates back on "
+            + "from the menu above the previewed image.")),
+        gtk.MESSAGE_INFO)
       
       self._settings[
         "gui/export_image_preview_automatic_update_if_below_maximum_duration"
