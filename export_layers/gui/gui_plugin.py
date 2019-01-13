@@ -207,7 +207,7 @@ def _set_settings(func):
           self._export_image_preview.layer_elem.item.ID
           if self._export_image_preview.layer_elem is not None else None)
     except pgsetting.SettingValueError as e:
-      self._display_message_label(str(e), gtk.MESSAGE_ERROR, e.setting)
+      self._display_inline_message(str(e), gtk.MESSAGE_ERROR, e.setting)
       return
     
     func(self, *args, **kwargs)
@@ -352,7 +352,7 @@ class ExportLayersGui(object):
     
     pggui.set_gui_excepthook_parent(self._dialog)
     pggui.set_gui_excepthook_additional_callback(
-      self._display_message_label_on_setting_value_error)
+      self._display_inline_message_on_setting_value_error)
     
     if not run_gui_func:
       gtk.main()
@@ -716,12 +716,12 @@ class ExportLayersGui(object):
       pginvocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
         self._export_name_preview.set_sensitive, False)
-      self._display_message_label(str(e), gtk.MESSAGE_ERROR, setting)
+      self._display_inline_message(str(e), gtk.MESSAGE_ERROR, setting)
       self._export_name_preview.lock_update(True, name_preview_lock_update_key)
     else:
       self._export_name_preview.lock_update(False, name_preview_lock_update_key)
       if self._message_setting == setting:
-        self._display_message_label(None)
+        self._display_inline_message(None)
       
       self._export_name_preview.add_function_at_update(
         self._export_name_preview.set_sensitive, True)
@@ -770,7 +770,7 @@ class ExportLayersGui(object):
              >= self._MAXIMUM_IMAGE_PREVIEW_AUTOMATIC_UPDATE_DURATION_SECONDS)):
       self._export_image_preview.set_automatic_update(False)
       
-      self._display_message_label(
+      self._display_inline_message(
         _("Disabling automatic preview update."), gtk.MESSAGE_INFO)
       
       self._settings[
@@ -789,7 +789,7 @@ class ExportLayersGui(object):
   def _on_save_settings_activate(self, widget):
     save_successful = self._save_settings()
     if save_successful:
-      self._display_message_label(_("Settings successfully saved."), gtk.MESSAGE_INFO)
+      self._display_inline_message(_("Settings successfully saved."), gtk.MESSAGE_INFO)
   
   def _on_reset_settings_activate(self, widget):
     response_id, clear_operations = display_reset_prompt(
@@ -813,7 +813,7 @@ class ExportLayersGui(object):
         self._settings["main/procedures"].tags.remove("ignore_reset")
         self._settings["main/constraints"].tags.remove("ignore_reset")
       
-      self._display_message_label(_("Settings reset."), gtk.MESSAGE_INFO)
+      self._display_inline_message(_("Settings reset."), gtk.MESSAGE_INFO)
   
   @_set_settings
   def _on_button_export_clicked(self, widget):
@@ -869,7 +869,7 @@ class ExportLayersGui(object):
       progress_updater.reset()
   
   def _setup_gui_before_export(self):
-    self._display_message_label(None)
+    self._display_inline_message(None)
     self._set_gui_enabled(False)
   
   def _restore_gui_after_export(self):
@@ -950,15 +950,15 @@ class ExportLayersGui(object):
     
     webbrowser.open_new_tab(docs_url)
   
-  def _display_message_label(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
+  def _display_inline_message(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
     self._message_setting = setting
     self._label_message.set_text(
       text, message_type, self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS)
   
-  def _display_message_label_on_setting_value_error(
+  def _display_inline_message_on_setting_value_error(
         self, exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, pgsetting.SettingValueError):
-      self._display_message_label(str(exc_value), gtk.MESSAGE_ERROR)
+      self._display_inline_message(str(exc_value), gtk.MESSAGE_ERROR)
       return True
     else:
       return False
