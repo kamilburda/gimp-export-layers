@@ -27,9 +27,10 @@ from future.builtins import *
 import pygtk
 pygtk.require("2.0")
 import gtk
-import gobject
 
 from . import pgutils
+
+from . import _pggui_popuphidecontext
 
 __all__ = [
   "EntryPopup",
@@ -77,14 +78,10 @@ class EntryPopup(object):
     
     self._tree_view_width = None
     
-    self._mouse_points_at_entry = False
-    self._mouse_points_at_popup = False
-    self._mouse_points_at_vscrollbar = False
-    
-    self._button_press_emission_hook_id = None
-    self._toplevel_configure_event_id = None
-    
     self._init_gui(column_types, rows)
+    
+    self._popup_hide_context = _pggui_popuphidecontext.PopupHideContext(
+      self._popup, self._entry, self.hide)
     
     self._connect_events()
   
@@ -125,17 +122,7 @@ class EntryPopup(object):
   
   def show(self):
     if not self.is_shown() and len(self._rows_filtered) > 0:
-      self._button_press_emission_hook_id = gobject.add_emission_hook(
-        self._entry, "button-press-event", self._on_emission_hook_button_press_event)
-      
-      toplevel_window = self._entry.get_toplevel()
-      if isinstance(toplevel_window, gtk.Window):
-        toplevel_window.get_group().add_window(self._popup)
-        # As soon as the user starts dragging or resizing the window, hide the
-        # popup. Button presses on the window decoration cannot be intercepted
-        # via "button-press-event" emission hooks, hence this workaround.
-        self._toplevel_configure_event_id = toplevel_window.connect(
-          "configure-event", self._on_toplevel_configure_event)
+      self._popup_hide_context.connect_button_press_events_for_hiding()
       
       self._popup.set_screen(self._entry.get_screen())
       
@@ -150,15 +137,7 @@ class EntryPopup(object):
   def hide(self):
     if self.is_shown():
       self._popup.hide()
-      
-      if self._button_press_emission_hook_id is not None:
-        gobject.remove_emission_hook(
-          self._entry, "button-press-event", self._button_press_emission_hook_id)
-      
-      if self._toplevel_configure_event_id is not None:
-        toplevel_window = self._entry.get_toplevel()
-        if isinstance(toplevel_window, gtk.Window):
-          toplevel_window.disconnect(self._toplevel_configure_event_id)
+      self._popup_hide_context.disconnect_button_press_events_for_hiding()
   
   def is_shown(self):
     return self._popup.get_mapped()
@@ -311,20 +290,17 @@ class EntryPopup(object):
     
     self._entry.connect("focus-out-event", self._on_entry_focus_out_event)
     
-    self._entry.connect("enter-notify-event", self._on_entry_enter_notify_event)
-    self._entry.connect("leave-notify-event", self._on_entry_leave_notify_event)
-    
-    self._popup.connect("enter-notify-event", self._on_popup_enter_notify_event)
-    self._popup.connect("leave-notify-event", self._on_popup_leave_notify_event)
-    
-    self._scrolled_window.get_vscrollbar().connect(
-      "enter-notify-event", self._on_vscrollbar_enter_notify_event)
-    self._scrolled_window.get_vscrollbar().connect(
-      "leave-notify-event", self._on_vscrollbar_leave_notify_event)
-    
     self._tree_view.connect_after("realize", self._on_after_tree_view_realize)
     self._tree_view.connect(
       "button-press-event", self._on_tree_view_left_mouse_button_press)
+    
+    wigets_to_exclude_from_hiding_popup_with_button_press = [
+      self._entry,
+      self._popup,
+      self._scrolled_window.get_vscrollbar()]
+    
+    for widget in wigets_to_exclude_from_hiding_popup_with_button_press:
+      self._popup_hide_context.exclude_widget_from_hiding_with_button_press(widget)
   
   def _update_position(self):
     entry_absolute_position = self._entry.get_window().get_origin()
@@ -456,39 +432,8 @@ class EntryPopup(object):
       
       self.hide()
   
-  def _on_entry_enter_notify_event(self, entry, event):
-    self._mouse_points_at_entry = True
-  
-  def _on_entry_leave_notify_event(self, entry, event):
-    self._mouse_points_at_entry = False
-  
-  def _on_popup_enter_notify_event(self, entry, event):
-    self._mouse_points_at_popup = True
-  
-  def _on_popup_leave_notify_event(self, popup, event):
-    self._mouse_points_at_popup = False
-  
-  def _on_vscrollbar_enter_notify_event(self, vscrollbar, event):
-    self._mouse_points_at_vscrollbar = True
-  
-  def _on_vscrollbar_leave_notify_event(self, vscrollbar, event):
-    self._mouse_points_at_vscrollbar = False
-  
   def _on_entry_focus_out_event(self, entry, event):
     self.save_last_value()
-    self.hide()
-  
-  def _on_emission_hook_button_press_event(self, widget, event):
-    if (self._mouse_points_at_popup
-        or self._mouse_points_at_vscrollbar
-        or self._mouse_points_at_entry):
-      return True
-    else:
-      self.hide()
-      return False
-  
-  def _on_toplevel_configure_event(self, toplevel_window, event):
-    self.hide()
 
   def _on_after_tree_view_realize(self, tree_view):
     # Set the correct initial width and height of the tree view.
