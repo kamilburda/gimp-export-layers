@@ -179,6 +179,8 @@ class MessageLabel(gtk.HBox):
   def _on_popup_more_show(self, popup):
     self._popup_hide_context.connect_button_press_events_for_hiding()
     
+    self._popup_more.set_screen(self._button_more.get_screen())
+    
     if self._message_type != gtk.MESSAGE_ERROR:
       self._timeout_remove_strict(self._clear_delay, self.set_text)
   
