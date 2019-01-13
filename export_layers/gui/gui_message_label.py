@@ -59,8 +59,7 @@ class MessageLabel(gtk.HBox):
     super().__init__(homogeneous=False)
     
     self._label_text = ""
-    self._full_text = ""
-    self._is_text_multiline = False
+    self._popup_text_lines = []
     self._message_type = None
     self._clear_delay = None
     
@@ -101,33 +100,31 @@ class MessageLabel(gtk.HBox):
     """
     if not text:
       self._label_text = ""
-      self._full_text = ""
-      self._is_text_multiline = False
+      self._popup_text_lines = []
       self._label_message.set_text(self._label_text)
       return
     
-    lines = text.split("\n")
+    lines = text.strip().split("\n")
     
     first_line = lines[0]
     first_line = first_line[0].upper() + first_line[1:]
     if not first_line.endswith("."):
       first_line += "."
     
-    self._label_text = first_line.encode(pgconstants.GTK_CHARACTER_ENCODING)
-    self._full_text = "\n".join([first_line] + lines[1:]).encode(
-      pgconstants.GTK_CHARACTER_ENCODING)
-    self._is_text_multiline = len(lines) > 1
+    self._label_text = first_line
+    self._popup_text_lines = lines[1:]
     self._message_type = message_type
     self._clear_delay = clear_delay
     
     if message_type == gtk.MESSAGE_ERROR:
       self._label_message.set_markup(
-        '<span foreground="red"><b>{}</b></span>'.format(
-          gobject.markup_escape_text(self._label_text)))
+        '<span foreground="red"><b>{}</b></span>'.format(gobject.markup_escape_text(
+          self._label_text.encode(pgconstants.GTK_CHARACTER_ENCODING))))
       self._timeout_remove_strict(self._clear_delay, self.set_text)
     else:
       self._label_message.set_markup(
-        "<b>{}</b>".format(gobject.markup_escape_text(self._label_text)))
+        "<b>{}</b>".format(gobject.markup_escape_text(
+          self._label_text.encode(pgconstants.GTK_CHARACTER_ENCODING))))
       self._timeout_add_strict(self._clear_delay, self.set_text, None)
   
   def _init_gui(self):
@@ -176,15 +173,23 @@ class MessageLabel(gtk.HBox):
     self.pack_start(self._button_more, expand=False, fill=False)
   
   def _on_label_message_size_allocate(self, label, allocation):
-    if (pggui.get_label_full_text_width(label) < self.get_allocation().width
-        and not self._is_text_multiline):
-      self._button_more.hide()
-    else:
+    if (pggui.get_label_full_text_width(self._label_message) > self.get_allocation().width
+        or len(self._popup_text_lines) >= 1):
       self._button_more.show()
+    else:
+      self._button_more.hide()
   
   def _on_button_more_clicked(self, button):
+    lines = list(self._popup_text_lines)
+    
+    if (pggui.get_label_full_text_width(self._label_message)
+        > self._label_message.get_allocation().width):
+      lines.insert(0, self._label_text)
+    
+    text = "\n".join(lines).strip()
+    
     text_buffer = gtk.TextBuffer()
-    text_buffer.set_text(self._full_text)
+    text_buffer.set_text(text.encode(pgconstants.GTK_CHARACTER_ENCODING))
     self._text_view_more.set_buffer(text_buffer)
     
     self._popup_more.move(*pggui.get_position_below_widget(self))
