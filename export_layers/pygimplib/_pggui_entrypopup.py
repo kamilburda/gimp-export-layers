@@ -31,6 +31,7 @@ import gtk
 from . import pgutils
 
 from . import _pggui_popuphidecontext
+from . import _pggui_utils
 
 __all__ = [
   "EntryPopup",
@@ -303,10 +304,9 @@ class EntryPopup(object):
       self._popup_hide_context.exclude_widget_from_hiding_with_button_press(widget)
   
   def _update_position(self):
-    entry_absolute_position = self._entry.get_window().get_origin()
-    entry_allocation_height = self._entry.get_allocation().height
-    self._popup.move(
-      entry_absolute_position[0], entry_absolute_position[1] + entry_allocation_height)
+    position = _pggui_utils.get_position_below_widget(self._entry)
+    if position is not None:
+      self._popup.move(*position)
   
   def _filter_rows(self, rows, row_iter):
     if self._clear_filter:
