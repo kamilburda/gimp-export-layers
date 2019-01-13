@@ -49,6 +49,7 @@ from ._pggui_gimpitemcombobox import *
 from ._pggui_itembox import *
 from ._pggui_messages import *
 from ._pggui_parasitebox import *
+from ._pggui_popuphidecontext import *
 
 
 class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
