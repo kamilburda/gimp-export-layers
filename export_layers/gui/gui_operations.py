@@ -217,7 +217,10 @@ class OperationBox(pggui.ItemBox):
   
   def _on_operation_item_gui_label_size_allocate(
         self, item_gui_label, allocation, item_gui):
-    pggui.set_tooltip_if_label_does_not_fit(item_gui, item_gui_label)
+    if pggui.label_fits_text(item_gui_label):
+      item_gui.set_tooltip_text(None)
+    else:
+      item_gui.set_tooltip_text(item_gui_label.get_text())
   
   def _reorder_operation(self, operation, new_position):
     item = next(
