@@ -502,14 +502,14 @@ class ExportLayersGui(object):
     self._box_procedures = gui_operations.OperationBox(
       self._settings["main/procedures"],
       builtin_procedures.BUILTIN_PROCEDURES,
-      _("Add _Procedure..."),
+      _("Add P_rocedure..."),
       _("Edit Procedure"),
       add_custom_operation_text=_("Add Custom Procedure..."))
     
     self._box_constraints = gui_operations.OperationBox(
       self._settings["main/constraints"],
       builtin_constraints.BUILTIN_CONSTRAINTS,
-      _("Add _Constraint..."),
+      _("Add C_onstraint..."),
       _("Edit Constraint"),
       allow_custom_operations=False)
     
