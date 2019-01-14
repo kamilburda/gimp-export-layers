@@ -2,9 +2,9 @@
 
 {% include-section "sections/Intro.md" %}
 
-See the [documentation](https://khalim19.github.io/gimp-plugin-export-layers/sections) for information about installation, usage and known issues.
+[**Download latest release**](https://github.com/khalim19/gimp-plugin-export-layers/releases/tag/{% include-config "PLUGIN_VERSION" %}) ({% include-config "PLUGIN_VERSION" %}, {% include-config "LATEST_PLUGIN_VERSION_RELEASE_DATE" %})
 
-[**Download latest release**](https://github.com/khalim19/gimp-plugin-export-layers/releases/tag/{% include-config "PLUGIN_VERSION" %}) ({% include-config "PLUGIN_VERSION" %})
+See the [documentation](https://khalim19.github.io/gimp-plugin-export-layers/sections) for information about installation, usage and known issues.
 
 
 {% include-section "sections/More-info.md" %}
