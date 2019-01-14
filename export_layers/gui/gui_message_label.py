@@ -157,8 +157,8 @@ class MessageLabel(gtk.HBox):
     
     self._scrolled_window_more = gtk.ScrolledWindow()
     self._scrolled_window_more.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_NEVER)
-    self._scrolled_window_more.set_shadow_type(gtk.SHADOW_NONE)
-    self._scrolled_window_more.add_with_viewport(self._text_view_more)
+    self._scrolled_window_more.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+    self._scrolled_window_more.add(self._text_view_more)
     
     self._popup_more = gtk.Window(type=gtk.WINDOW_POPUP)
     self._popup_more.set_resizable(False)
