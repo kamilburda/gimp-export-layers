@@ -72,7 +72,6 @@ class MessageLabel(gtk.HBox):
     
     self._popup_more.connect("show", self._on_popup_more_show)
     self._popup_more.connect("hide", self._on_popup_more_hide)
-    self._text_view_more.connect("size-allocate", self._on_text_view_more_size_allocate)
     
     wigets_to_exclude_from_hiding_popup_with_button_press = [
       self._popup_more,
@@ -208,14 +207,6 @@ class MessageLabel(gtk.HBox):
     
     if self._message_type != gtk.MESSAGE_ERROR:
       self._timeout_add_strict(self._clear_delay, self.set_text, None)
-  
-  def _on_text_view_more_size_allocate(self, text_view, allocation):
-    if allocation.height > self._MAX_POPUP_HEIGHT:
-      self._scrolled_window_more.set_property("height-request", self._MAX_POPUP_HEIGHT)
-      self._scrolled_window_more.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-    else:
-      self._scrolled_window_more.set_property("height-request", -1)
-      self._scrolled_window_more.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_NEVER)
   
   def _timeout_add_strict(self, delay, func, *args, **kwargs):
     if self._should_clear_text_after_delay(delay):
