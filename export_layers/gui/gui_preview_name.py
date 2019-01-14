@@ -73,7 +73,6 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     b"preview-tags-changed": (gobject.SIGNAL_RUN_FIRST, None, ()),
   }
   
-  _PREVIEW_LABEL_PADDING = 5
   _ADD_TAG_POPUP_HBOX_SPACING = 5
   _ADD_TAG_POPUP_BORDER_WIDTH = 5
   
@@ -245,16 +244,10 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     
     self._tree_view.append_column(column)
     
-    self._preview_label = gtk.Label()
-    self._preview_label.set_markup("<b>" + _("Preview") + "</b>")
-    self._preview_label.set_alignment(0.02, 0.5)
-    
     self._scrolled_window = gtk.ScrolledWindow()
     self._scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
     self._scrolled_window.add(self._tree_view)
     
-    self.pack_start(
-      self._preview_label, expand=False, fill=False, padding=self._PREVIEW_LABEL_PADDING)
     self.pack_start(self._scrolled_window)
     
     self._tree_view.connect("row-collapsed", self._on_tree_view_row_collapsed)

@@ -64,7 +64,7 @@ def create_gui_settings():
     {
       "type": pgsetting.SettingTypes.float,
       "name": "paned_between_previews_position",
-      "default_value": 380,
+      "default_value": 360,
     },
     {
       "type": pgsetting.SettingTypes.float,

@@ -300,6 +300,7 @@ class ExportLayersGui(object):
   _DIALOG_VBOX_SPACING = 5
   
   _SAVE_IN_FOLDER_LABEL_PADDING = 3
+  _PREVIEW_LABEL_BORDER_WIDTH = 5
   
   _HBOX_EXPORT_LABELS_NAME_SPACING = 10
   _HBOX_EXPORT_NAME_ENTRIES_SPACING = 3
@@ -419,8 +420,6 @@ class ExportLayersGui(object):
     self._folder_chooser = gtk.FileChooserWidget(
       action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
     
-    self._init_gui_previews()
-    
     self._vbox_folder_chooser = gtk.VBox(homogeneous=False)
     self._vbox_folder_chooser.set_spacing(self._DIALOG_VBOX_SPACING)
     self._vbox_folder_chooser.pack_start(
@@ -430,13 +429,27 @@ class ExportLayersGui(object):
       padding=self._SAVE_IN_FOLDER_LABEL_PADDING)
     self._vbox_folder_chooser.pack_start(self._folder_chooser)
     
+    self._init_gui_previews()
+    
+    self._preview_label = gtk.Label()
+    self._preview_label.set_markup("<b>" + _("Preview") + "</b>")
+    self._preview_label.set_alignment(0.0, 0.5)
+    
+    self._hbox_preview_label = gtk.HBox()
+    self._hbox_preview_label.set_border_width(self._PREVIEW_LABEL_BORDER_WIDTH)
+    self._hbox_preview_label.pack_start(self._preview_label)
+    
     self._vpaned_previews = gtk.VPaned()
     self._vpaned_previews.pack1(self._export_name_preview, resize=True, shrink=True)
     self._vpaned_previews.pack2(self._export_image_preview, resize=True, shrink=True)
     
+    self._vbox_previews = gtk.VBox()
+    self._vbox_previews.pack_start(self._hbox_preview_label, expand=False, fill=False)
+    self._vbox_previews.pack_start(self._vpaned_previews, expand=True, fill=True)
+    
     self._frame_previews = gtk.Frame()
     self._frame_previews.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
-    self._frame_previews.add(self._vpaned_previews)
+    self._frame_previews.add(self._vbox_previews)
     
     self._file_extension_label = gtk.Label()
     self._file_extension_label.set_markup(
