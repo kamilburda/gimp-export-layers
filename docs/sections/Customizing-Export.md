@@ -4,7 +4,7 @@ Introduction
 Beyond the basic features, Export Layers allows you to:
 * customize the layer name,
 * apply additional procedures before the export (insert background, scale down...)
-* exclude specific layers from the export by applying constraints (only visible layers, ...)
+* selecting which layers to export by applying constraints (only visible layers, ...)
 
 To enable customization, press the "Settings" button and choose "Show More Settings".
 
@@ -121,17 +121,25 @@ Examples:
 * [layer path, [,], [[[$$]]] ]
 
 
-Additional Procedures
----------------------
+Customizing Export with Procedures
+----------------------------------
 
-To add custom procedures before the export of each layer, press the "Add Procedure..." button and select one of the procedures described below.
+Procedures allow you to process layers before they are exported.
+To add procedures before the export of each layer, press the "Add Procedure..." button and select one of the available procedures, or add a [custom procedure](#Adding-Custom-Procedures).
 You can enable, disable or remove procedures as needed.
 You can add the same procedure multiple times.
+
+Each procedure can be edited by pressing the edit icon next to the procedure name.
+You may edit the procedure name and the values of its arguments (if any) that are applied to each layer.
+
+
+### Built-in Procedures
 
 **Insert background layers**
 
 Insert layers tagged with "Background" as background for each layer.
 To set a layer as a background layer, see [Tagging Layers](#tagging-layers).
+
 Note that even background layers get exported - to prevent this behavior, enable the "Only layers without tags" constraint.
 
 In the dialog, this procedure is always inserted in the first position.
@@ -141,7 +149,9 @@ If this is your intention, you can always move this procedure below "Use layer s
 **Insert foreground layers**
 
 Insert layers tagged with "Foreground" as foreground for each layer.
-See the "Insert background layers" setting for more information.
+To set a layer as a foreground layer, see [Tagging Layers](#tagging-layers).
+
+Note that even foreground layers get exported - to prevent this behavior, enable the "Only layers without tags" constraint.
 
 In the dialog, this procedure is always inserted in the first position.
 This prevents potential confusion when "Use layer size" is unchecked and the foreground is offset relative to the layer rather than the image canvas.
@@ -169,19 +179,33 @@ If a layer has a recognized file extension, use that file extension instead of t
 
 **Use layer size**
 
-If enabled, layers will be resized (not scaled) to their size instead of the image size. This procedure is enabled by default.
+If enabled, layers will be resized (not scaled) to their size instead of the image size.
+This procedure is enabled by default.
 
 To keep the size of the image canvas and the layer position within the image, disable this setting.
 Note that in that case the layers will be cut off if they are partially outside the image canvas.
 To export the entire layer, leave this setting enabled.
 
 
-Additional Constraints
-----------------------
+### Adding Custom Procedures <a name="Adding-Custom-Procedures"></a>
 
-To include or exclude layers according to specific criteria, press the "Add Constraint..." button and select one of the constraints described below.
-You can enable, disable or remove constraints as needed.
-You can add the same constraint multiple times.
+You can add any procedure available in the GIMP Procedural Database (PDB) by pressing "Add Procedure..." and then selecting "Add Custom Procedure...".
+Select the desired procedure from the browser dialog and press "Add".
+The edit dialog allows you to edit the procedure name and the values of its arguments.
+
+
+Selecting Layers to Export with Constraints
+-------------------------------------------
+
+To include or exclude layers from the export according to specific criteria, press the "Add Constraint..." button and select one of the available constraints.
+As with procedures, you can enable, disable or remove constraints as needed.
+Adding the same constraint multiple times is possible, but will have no effect.
+
+Currently, only several built-in constraints are supported.
+Future versions will allow specifying custom constraints.
+
+
+### Built-in Constraints
 
 **Include layers**
 
@@ -190,7 +214,7 @@ This constraint is enabled by default.
 
 **Include layer groups**
 
-Export all layer groups.
+Export all layer groups as layers.
 
 **Include empty layer groups**
 

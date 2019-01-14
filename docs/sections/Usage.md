@@ -56,4 +56,4 @@ To reset settings to their default values, press the "Settings" button and choos
 More Customization
 ------------------
 
-If you are in the need of customizing layer names, applying additional procedures before exporting or excluding specific layers from the export, see [Customizing Export](Customizing-Export.md).
+If you find yourself in the need of customizing layer names, applying additional procedures before exporting or excluding specific layers from the export, see [Customizing Export](Customizing-Export.md).
