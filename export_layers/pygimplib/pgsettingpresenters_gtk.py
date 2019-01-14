@@ -116,7 +116,7 @@ class GtkCheckButtonPresenter(GtkSettingPresenter):
   _VALUE_CHANGED_SIGNAL = "clicked"
   
   def _create_gui_element(self, setting):
-    return gtk.CheckButton(setting.display_name)
+    return gtk.CheckButton(setting.display_name, use_underline=False)
   
   def _get_value(self):
     return self._element.get_active()
