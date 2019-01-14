@@ -277,8 +277,6 @@ def _create_installers(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths, installers):
   installer_funcs = collections.OrderedDict([
     ("windows", _create_windows_installer),
-    ("linux", _create_linux_installer),
-    ("macos", _create_macos_installer),
     ("zip", _create_zip_archive),
   ])
   
@@ -326,67 +324,6 @@ def _create_windows_installer(
     print("Windows installer successfully created:", installer_filepath)
   else:
     print("Failed to create Windows installer:", installer_filepath)
-
-
-def _create_linux_installer(
-      installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
-  _create_unix_installer(
-    installer_dirpath,
-    input_dirpath,
-    input_filepaths,
-    output_filepaths,
-    platform_id="linux",
-    platform_name="Linux")
-
-
-def _create_macos_installer(
-      installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
-  _create_unix_installer(
-    installer_dirpath,
-    input_dirpath,
-    input_filepaths,
-    output_filepaths,
-    platform_id="macos",
-    platform_name="macOS")
-
-
-def _create_unix_installer(
-      installer_dirpath, input_dirpath, input_filepaths, output_filepaths,
-      platform_id, platform_name):
-  installer_filename = "{}-{}-{}.run".format(
-    pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION, platform_id)
-  installer_filepath = os.path.join(installer_dirpath, installer_filename)
-  
-  installer_script_filename = "installer.sh"
-  installer_script_filepath = os.path.join(
-    INSTALLERS_DIRPATH, "unix", installer_script_filename)
-  
-  shutil.copy2(
-    installer_script_filepath,
-    os.path.join(input_dirpath, installer_script_filename))
-  
-  return_code = subprocess.call([
-    "makeself",
-    input_dirpath,
-    installer_filepath,
-    "{} - GIMP plug-in".format(pygimplib.config.PLUGIN_TITLE),
-    os.path.join(".", installer_script_filename),
-    "--os",
-    platform_id
-  ])
-  
-  if return_code == 0:
-    package_filepath = os.path.join(
-      installer_dirpath, re.sub(r".run$", r".zip", installer_filename))
-    
-    with zipfile.ZipFile(package_filepath, "w", zipfile.ZIP_STORED) as package_file:
-      package_file.write(installer_filepath, installer_filename)
-    
-    os.remove(installer_filepath)
-    
-    print("{} package successfully created:".format(platform_name), package_filepath)
-  else:
-    print("Failed to create {} installer:".format(platform_name), installer_filepath)
 
 
 def _create_zip_archive(
