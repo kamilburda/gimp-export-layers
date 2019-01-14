@@ -39,6 +39,7 @@ from gimp import pdb
 
 from export_layers.pygimplib import pgitemtree
 from export_layers.pygimplib import pgutils
+from export_layers.pygimplib import pgpath
 
 import export_layers.config
 export_layers.config.init()
@@ -66,6 +67,8 @@ SCREENSHOT_DIALOG_CUSTOMIZING_EXPORT_FILENAME = "screenshot_dialog_customizing_e
 
 
 def take_screenshots(gui, dialog, settings):
+  pgpath.make_dirs(OUTPUT_DIRPATH)
+  
   settings["gui_session/current_directory"].set_value(OUTPUT_DIRPATH)
   settings["gui/show_more_settings"].set_value(False)
   
