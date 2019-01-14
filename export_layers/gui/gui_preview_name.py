@@ -295,11 +295,11 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     
     self._tags_menu.append(gtk.SeparatorMenuItem())
     
-    self._menu_item_add_tag = gtk.MenuItem(_("Add tag..."))
+    self._menu_item_add_tag = gtk.MenuItem(_("Add New Tag..."))
     self._menu_item_add_tag.connect("activate", self._on_tags_menu_item_add_tag_activate)
     self._tags_menu.append(self._menu_item_add_tag)
     
-    self._menu_item_remove_tag = gtk.MenuItem(_("Remove tag"))
+    self._menu_item_remove_tag = gtk.MenuItem(_("Remove Tag"))
     self._menu_item_remove_tag.set_submenu(self._tags_remove_submenu)
     self._tags_menu.append(self._menu_item_remove_tag)
     
@@ -353,6 +353,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._tags_menu_items[tag].connect("toggled", self._on_tags_menu_item_toggled, tag)
     self._tags_menu_items[tag].show()
     self._tags_menu.prepend(self._tags_menu_items[tag])
+    
+    return self._tags_menu_items[tag]
   
   def _add_remove_tag_menu_item(self, tag, tag_display_name):
     self._tags_remove_submenu_items[tag] = gtk.MenuItem(tag_display_name)
@@ -426,7 +428,8 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       if key_name in ["Return", "KP_Enter"]:
         entry_text = entry_add_tag.get_text()
         if entry_text and entry_text not in self._tags_menu_items:
-          self._add_tag_menu_item(entry_text, entry_text)
+          menu_item = self._add_tag_menu_item(entry_text, entry_text)
+          menu_item.set_active(True)
           self._add_remove_tag_menu_item(entry_text, entry_text)
         
         popup.destroy()
@@ -448,13 +451,13 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     popup_add_tag.set_decorated(False)
     popup_add_tag.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_POPUP_MENU)
     
-    toplevel_widget = self.get_toplevel()
-    if toplevel_widget.flags() & gtk.TOPLEVEL:
-      popup_add_tag.set_transient_for(toplevel_widget)
+    toplevel = pggui.get_toplevel_window(self)
+    if toplevel is not None:
+      popup_add_tag.set_transient_for(toplevel)
     
-    _set_popup_position(popup_add_tag, toplevel_widget)
+    _set_popup_position(popup_add_tag, toplevel)
     
-    label_tag_name = gtk.Label(_("Tag name:"))
+    label_tag_name = gtk.Label(_("Tag Name:"))
     
     entry_add_tag = gtk.Entry()
     

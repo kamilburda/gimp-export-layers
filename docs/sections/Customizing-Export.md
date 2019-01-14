@@ -235,8 +235,8 @@ Tagged layers are indicated with a tag icon in the preview.
 Adding or removing tags modifies the current image.
 Save the image to keep the tags permanently.
 
-Currently, Export Layers recognizes only "Background" and "Foreground" tags during processing.
-However, you can still add custom tags if desired - right-click anywhere on the preview, select "Add tag..." and name your new tag.
-You can then add the tag to any layer.
+By default, Export Layers defines "Background" and "Foreground" tags.
+To add custom tags, right-click anywhere on the preview, select "Add New Tag..." and name your new tag.
+The new tag will be immediately added to the currently selected layer(s).
 
-To remove custom tags, you must first remove them from all layers, then right-click anywhere on the preview, select "Remove tag..." and select the tag you wish to remove.
+To remove custom tags, remove them first from all layers, then right-click anywhere on the preview, select "Remove Tag..." and select the tag you wish to remove.
