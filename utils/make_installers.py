@@ -29,6 +29,7 @@ from future.builtins import *
 import collections
 import io
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -65,6 +66,9 @@ OUTPUT_DIRPATH_DEFAULT = os.path.join(INSTALLERS_DIRPATH, "output")
 INCLUDE_LIST_FILEPATH = os.path.join(MODULE_DIRPATH, "make_installers_included_files.txt")
 
 GITHUB_PAGE_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "gh-pages")
+
+README_RELATIVE_FILEPATH = os.path.join("docs", "sections", "index.html")
+README_RELATIVE_OUTPUT_FILEPATH = os.path.join("Readme.html")
 
 
 def make_installers(
@@ -332,15 +336,14 @@ def _create_zip_archive(
     pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
   archive_filepath = os.path.join(installer_dirpath, archive_filename)
   
-  readme_relative_filepath = "Readme.html"
   readme_filepath = os.path.join(
-    input_dirpath, pygimplib.config.PLUGIN_NAME, readme_relative_filepath)
+    input_dirpath, pygimplib.config.PLUGIN_NAME, README_RELATIVE_FILEPATH)
   
   can_create_toplevel_readme = readme_filepath in input_filepaths
   
   if can_create_toplevel_readme:
     input_filepaths.append(_create_toplevel_readme_for_zip_archive(readme_filepath))
-    output_filepaths.append(readme_relative_filepath)
+    output_filepaths.append(README_RELATIVE_OUTPUT_FILEPATH)
   
   with zipfile.ZipFile(archive_filepath, "w", zipfile.ZIP_STORED) as archive_file:
     for input_filepath, output_filepath in zip(input_filepaths, output_filepaths):
@@ -354,20 +357,25 @@ def _create_zip_archive(
 
 
 def _create_toplevel_readme_for_zip_archive(readme_filepath):
-  def add_directory_to_url(url_attribute_value):
-    return re.sub(
-      r"^docs",
-      "{}/docs".format(pygimplib.config.PLUGIN_NAME),
-      url_attribute_value)
+  def _modify_relative_paths(url_attribute_value):
+    url_filepath = os.path.join(os.path.dirname(readme_filepath), url_attribute_value)
+    
+    if not os.path.exists(url_filepath):
+      return url_attribute_value
+    
+    new_url_attribute_value = os.path.relpath(
+      os.path.normpath(url_filepath), TEMP_INPUT_DIRPATH)
+    
+    return pathlib.Path(new_url_attribute_value).as_posix()
   
   toplevel_readme_filepath = os.path.join(
-    os.path.dirname(os.path.dirname(readme_filepath)), os.path.basename(readme_filepath))
+    TEMP_INPUT_DIRPATH, os.path.basename(readme_filepath))
   
   shutil.copy2(readme_filepath, toplevel_readme_filepath)
   
   process_local_docs.modify_url_attributes_in_file(
     readme_filepath,
-    add_directory_to_url,
+    _modify_relative_paths,
     toplevel_readme_filepath,
     os.path.join(GITHUB_PAGE_DIRPATH, create_user_docs.PAGE_CONFIG_FILENAME))
   

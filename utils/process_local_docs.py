@@ -50,10 +50,10 @@ FILENAMES_TO_REMOVE = [
   "Gemfile.lock",
   "robots.txt",
   "sitemap.xml",
+  "index.html",
 ]
 
 RELATIVE_PATHS_TO_MOVE = collections.OrderedDict([
-  ("index.html", "Readme.html"),
   ("favicon.ico", "docs/favicon.ico"),
   ("assets", "docs/assets"),
   ("images", "docs/images"),
