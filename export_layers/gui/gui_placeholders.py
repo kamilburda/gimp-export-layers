@@ -2,7 +2,7 @@
 #
 # This file is part of Export Layers.
 #
-# Copyright (C) 2013-2018 khalim19 <khalim19@gmail.com>
+# Copyright (C) 2013-2019 khalim19 <khalim19@gmail.com>
 #
 # Export Layers is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

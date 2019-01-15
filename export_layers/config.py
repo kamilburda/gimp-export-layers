@@ -59,7 +59,7 @@ def init():
   pygimplib.config.LOCAL_DOCS_PATH = os.path.join(
     pygimplib.config.PLUGIN_SUBDIRPATH, "docs", "sections", "index.html")
   
-  pygimplib.config.COPYRIGHT_YEARS = "2013-2018"
+  pygimplib.config.COPYRIGHT_YEARS = "2013-2019"
   
   # If True, display each step of image/layer editing in GIMP.
   pygimplib.config.DEBUG_IMAGE_PROCESSING = False
