@@ -92,7 +92,7 @@ def create_settings():
       "type": pgsetting.SettingTypes.file_extension,
       "name": "file_extension",
       "default_value": "png",
-      "display_name": "File extension"
+      "display_name": "File extension",
     },
     {
       "type": pgsetting.SettingTypes.string,
@@ -100,7 +100,7 @@ def create_settings():
       "default_value": gimp.user_directory(1),   # `Documents` directory
       "display_name": _("Output directory"),
       "gui_type": None,
-      "tags": ["ignore_reset"]
+      "tags": ["ignore_reset"],
     },
     {
       "type": pgsetting.SettingTypes.string,
@@ -108,7 +108,7 @@ def create_settings():
       "default_value": "[layer name]",
       "display_name": _("Layer filename pattern"),
       "description": _("Layer filename pattern (empty string = layer name)"),
-      "gui_type": None
+      "gui_type": None,
     },
     {
       "type": pgsetting.SettingTypes.generic,
@@ -117,7 +117,7 @@ def create_settings():
       "default_value": collections.defaultdict(set),
       "display_name": _("Selected layers"),
       "pdb_type": None,
-      "setting_sources": [pygimplib.config.SOURCE_SESSION]
+      "setting_sources": [pygimplib.config.SOURCE_SESSION],
     },
     {
       "type": pgsetting.SettingTypes.generic,
@@ -126,7 +126,7 @@ def create_settings():
       "default_value": collections.defaultdict(set),
       "display_name": _("Selected layers"),
       "pdb_type": None,
-      "setting_sources": [pygimplib.config.SOURCE_PERSISTENT]
+      "setting_sources": [pygimplib.config.SOURCE_PERSISTENT],
     },
     {
       "type": pgsetting.SettingTypes.enumerated,
@@ -138,12 +138,19 @@ def create_settings():
         ("rename_new", _("Rename _new file"), pgoverwrite.OverwriteModes.RENAME_NEW),
         ("rename_existing", _("Rename _existing file"),
          pgoverwrite.OverwriteModes.RENAME_EXISTING)],
-      "display_name": _("Overwrite mode (non-interactive run mode only)")
+      "display_name": _("Overwrite mode (non-interactive run mode only)"),
     },
     {
       "type": pgsetting.SettingTypes.generic,
       "name": "available_tags",
       "default_value": operations.BUILTIN_TAGS,
+      "pdb_type": None,
+      "gui_type": None,
+    },
+    {
+      "type": pgsetting.SettingTypes.generic,
+      "name": "plugin_version",
+      "default_value": pygimplib.config.PLUGIN_VERSION,
       "pdb_type": None,
       "gui_type": None,
     },
