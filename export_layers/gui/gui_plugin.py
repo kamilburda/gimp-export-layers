@@ -398,10 +398,10 @@ class ExportLayersGui(object):
     _setup_output_directory_changed(self._settings, self._image)
   
   def _init_operations(self):
-    self._settings["main/procedures"].tags.remove("ignore_load")
+    self._settings["main/procedures"].tags.discard("ignore_load")
     self._settings["main/procedures"].load()
     
-    self._settings["main/constraints"].tags.remove("ignore_load")
+    self._settings["main/constraints"].tags.discard("ignore_load")
     self._settings["main/constraints"].load()
   
   def _init_gui_elements(self):
