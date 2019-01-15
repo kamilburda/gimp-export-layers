@@ -552,7 +552,11 @@ class ExportLayersGui(object):
     
     self._button_export = self._dialog.add_button(_("_Export"), gtk.RESPONSE_OK)
     self._button_export.set_flags(gtk.CAN_DEFAULT)
+    self._button_export.hide()
+    
     self._button_cancel = self._dialog.add_button(_("_Cancel"), gtk.RESPONSE_CANCEL)
+    self._button_cancel.hide()
+    
     self._dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
     
     self._button_stop = gtk.Button()
@@ -659,6 +663,9 @@ class ExportLayersGui(object):
     self._export_image_preview.connect("preview-updated", self._on_image_preview_updated)
   
   def _finish_init_and_show(self):
+    while gtk.events_pending():
+      gtk.main_iteration()
+    
     self._dialog.vbox.show_all()
     self._show_hide_more_settings()
     
