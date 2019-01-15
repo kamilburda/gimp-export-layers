@@ -702,6 +702,8 @@ class ExportLayersGui(object):
     
     self._export_image_preview = gui_preview_image.ExportImagePreview(
       self._layer_exporter_for_previews)
+    self._export_image_preview.set_automatic_update(
+      self._settings["gui/export_image_preview_automatic_update"].value)
     
     self._export_previews_controller = gui_previews_controller.ExportPreviewsController(
       self._export_name_preview, self._export_image_preview, self._settings, self._image)
