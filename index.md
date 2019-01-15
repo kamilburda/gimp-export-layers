@@ -11,7 +11,7 @@ See [Installation](sections/Installation.html) and [Usage](sections/Usage.html).
 
 ### Need more customization?
 
-See [Advanced Usage](sections/Advanced-Usage.html).
+See [Customizing Export](sections/Customizing-Export.html).
 
 
 ### Having trouble?

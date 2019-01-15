@@ -2,7 +2,9 @@
   <div class="navbar-container" role="navigation">
     <div>
       <ul>
-        <li><a {% if page.navbar_active_tab == "home" %}class="active"{% endif %} href="{{ '/' | relative_url }}">Home</a></li>
+        {% if site.github.is_project_page %}
+          <li><a {% if page.navbar_active_tab == "home" %}class="active"{% endif %} href="{{ '/' | relative_url }}">Home</a></li>
+        {% endif %}
         <li><a {% if page.navbar_active_tab == "docs" %}class="active"{% endif %} href="{{ site.sections_url | relative_url }}">Documentation</a></li>
         <li><a href="https://github.com/{{ site.repository }}">View on GitHub</a></li>
       </ul>

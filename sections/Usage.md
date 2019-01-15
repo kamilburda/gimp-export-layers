@@ -4,8 +4,8 @@ title: Usage
 navbar_active_tab: docs
 previous_doc_filename: Installation.html
 previous_doc_title: Installation
-next_doc_filename: Advanced-Usage.html
-next_doc_title: Advanced Usage
+next_doc_filename: Customizing-Export.html
+next_doc_title: Customizing Export
 ---
 
 * TOC
@@ -14,64 +14,59 @@ next_doc_title: Advanced Usage
 Basic Usage
 -----------
 
-Once you open an image in GIMP, select "File → Export Layers...".
-A dialog appears, allowing you to specify output folder and [a few basic settings](#basic-settings):
+Open your image in GIMP and select "File → Export Layers...".
+A dialog that appears allows you to choose the output folder and file extension.
 
 ![Dialog for basic usage of Export Layers](../images/screenshot_dialog_basic_usage.png)
 
 To export layers, press the "Export" button.
 A dialog corresponding to the file format appears, allowing you to adjust export settings.
-Some file formats don't have dialogs, while some file formats display the dialog for each layer (this can't be prevented because the file format only allows an interactive export).
-
-By default, layer names are used as filenames.
-To customize this behavior, see [Customizing Layer Names](Advanced-Usage.md#customizing-layer-names).
+Some file formats do not display dialogs, while some display the dialog for each layer (this cannot be prevented because such a file format only allows an interactive export).
 
 
 Repeating Last Export
 ---------------------
 
-If you made changes to your image and want to export again with the same settings, you can do so with just one click by running "File → Export Layers (repeat)".
+If you made changes to your image and you want to export again with the same settings, you can do so simply by running "File → Export Layers (repeat)".
 
 
-Basic Settings
---------------
-
-**File extension**
+Changing File Extension
+-----------------------
 
 Type or choose your desired file extension in the "File extension" text entry.
-The dropdown list can help you choose the right file format/extension.
-For now, the dropdown list only contains a fixed list of file formats provided by GIMP and some recognized third-party plug-ins, but you can you can still enter a file extension not in the dropdown list in case you use a file format plug-in not recognized by Export Layers.
+The dropdown list displays available file formats alongside their associated file extensions.
+If a file format contains multiple file extensions, the first is selected by default, but you may also choose from the other extensions (by clicking or pressing Tab).
 
-**Treat layer groups as folders**
+For now, the dropdown only contains a fixed list of file formats provided by GIMP and some recognized third-party plug-ins.
+However, you may still enter a file extension not in the list in case you use a file format plug-in not recognized by Export Layers.
 
-If enabled, layers will be exported to subfolders corresponding to the layer groups.
-If disabled, all layers will be exported to the output folder on the same level and no subfolders will be created.
 
-**Only visible layers**
+Preview
+-------
 
-If enabled, invisible layers will not be exported.
-Visible layers within invisible layer groups will also not be exported.
+To have a better grasp of what layers are actually exported and how, the preview displays the layer names in a folder structure.
+If you select a layer, the layer contents will be displayed at the bottom of the preview.
 
-**Use image size**
+You can adjust the width of the entire preview by dragging the separator between the preview and the folder chooser.
+You can also adjust the height of the previewed image by dragging the separator above the image.
 
-If enabled, layers will be resized (not scaled) to the image size.
-This is useful if you want to keep the size of the image canvas and the layer position within the image.
-If layers are partially outside the image canvas, they will be cut off.
-If you want to export the entire layer, leave this setting disabled.
+If the previewed image takes too long to render, the preview is no longer updated automatically.
+A button next to the arrow button above the image is displayed that allows you to manually update the image.
+To switch between automatic and manual update, click on the arrow button and select `"Update Preview Automatically"`.
 
 
 Managing Settings
 -----------------
 
-After a successful export, your settings are preserved while GIMP is open.
-This means that if you close GIMP, the settings will be reset.
+After a successful export, your settings (output folder, file extension, dialog position and size, etc.) are preserved while GIMP is running.
+If you close GIMP, the settings will be reset.
 
 To save settings permanently, press the "Settings" button and choose "Save Settings".
 
 To reset settings to their default values, press the "Settings" button and choose "Reset Settings".
 
 
-More settings
--------------
+More Customization
+------------------
 
-If you need to further customize the export, see [Advanced Usage](Advanced-Usage.md).
+If you find yourself in the need of customizing layer names, applying additional procedures before exporting or excluding specific layers from the export, see [Customizing Export](Customizing-Export.md).

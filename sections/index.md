@@ -1,6 +1,6 @@
 ---
 layout: docs_page
-title: Documentation
+title: Export Layers – Documentation
 navbar_active_tab: docs
 ---
 
@@ -13,7 +13,7 @@ See [Installation](Installation.html) and [Usage](Usage.html).
 
 ### Need more customization?
 
-See [Advanced Usage](Advanced-Usage.html).
+See [Customizing Export](Customizing-Export.html).
 
 
 ### Having trouble?
