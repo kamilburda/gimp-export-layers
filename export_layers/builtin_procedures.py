@@ -185,6 +185,11 @@ _BUILTIN_PROCEDURES_LIST = [
     "display_name": _("Autocrop foreground"),
   },
   {
+    "name": "ignore_folder_structure",
+    "function": None,
+    "display_name": _("Ignore folder structure"),
+  },
+  {
     "name": "use_file_extensions_in_layer_names",
     "function": None,
     "display_name": _("Use file extensions in layer names"),
