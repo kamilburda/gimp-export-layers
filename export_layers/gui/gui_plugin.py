@@ -289,6 +289,47 @@ def _add_gui_settings(settings):
     [gui_settings, session_only_gui_settings, persistent_only_gui_settings])
 
 
+def _check_settings_integrity_by_version(settings):
+  min_version_without_clean_reinstall = "3.3"
+  
+  if not pygimplib.config.SOURCE_PERSISTENT.has_data():
+    _save_plugin_version(settings)
+    return True
+  
+  status, unused_ = pgsettingpersistor.SettingPersistor.load(
+    [settings["main/plugin_version"]], [pygimplib.config.SOURCE_PERSISTENT])
+  
+  if (status == pgsettingpersistor.SettingPersistor.SUCCESS
+      and settings["main/plugin_version"].value >= min_version_without_clean_reinstall):
+    _save_plugin_version(settings)
+    return True
+  
+  response = display_message(
+    _("Due to significant changes in version {}, "
+      "settings need to be reset. Proceed?".format(min_version_without_clean_reinstall)),
+    gtk.MESSAGE_WARNING,
+    buttons=gtk.BUTTONS_YES_NO,
+    button_response_id_to_focus=gtk.RESPONSE_NO)
+  
+  if response == gtk.RESPONSE_YES:
+    _clear_setting_sources()
+    _save_plugin_version(settings)
+    return True
+  else:
+    return False
+
+
+def _save_plugin_version(settings):
+  settings["main/plugin_version"].reset()
+  pgsettingpersistor.SettingPersistor.save(
+    [settings["main/plugin_version"]], [pygimplib.config.SOURCE_PERSISTENT])
+
+
+def _clear_setting_sources():
+  pgsettingpersistor.SettingPersistor.clear(
+    [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+
+
 #===============================================================================
 
 
@@ -323,6 +364,9 @@ class ExportLayersGui(object):
   def __init__(self, initial_layer_tree, settings, run_gui_func=None):
     self._initial_layer_tree = initial_layer_tree
     self._settings = settings
+    
+    if not _check_settings_integrity_by_version(self._settings):
+      return
     
     self._image = self._initial_layer_tree.image
     self._layer_exporter = None
@@ -726,11 +770,6 @@ class ExportLayersGui(object):
   def _reset_settings(self):
     self._settings.reset()
   
-  @staticmethod
-  def _clear_setting_sources():
-    pgsettingpersistor.SettingPersistor.clear(
-      [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
-  
   def _on_text_entry_changed(self, widget, setting, name_preview_lock_update_key=None):
     try:
       setting.gui.update_setting_value()
@@ -835,7 +874,7 @@ class ExportLayersGui(object):
       self._save_settings()
       
       if clear_operations:
-        self._clear_setting_sources()
+        _clear_setting_sources()
       else:
         self._settings["main/procedures"].tags.remove("ignore_reset")
         self._settings["main/constraints"].tags.remove("ignore_reset")
@@ -1003,6 +1042,9 @@ class ExportLayersRepeatGui(object):
     
     self._image = self._layer_tree.image
     self._layer_exporter = None
+    
+    if not _check_settings_integrity_by_version(self._settings):
+      return
     
     _add_gui_settings(self._settings)
     
