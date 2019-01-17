@@ -493,7 +493,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       return
     
     scaled_preview_pixbuf = preview_pixbuf.scale_simple(
-      scaled_preview_width, scaled_preview_height, gtk.gdk.INTERP_NEAREST)
+      scaled_preview_width, scaled_preview_height, gtk.gdk.INTERP_BILINEAR)
     
     scaled_preview_pixbuf = self._add_alpha_background_to_pixbuf(
       scaled_preview_pixbuf,
