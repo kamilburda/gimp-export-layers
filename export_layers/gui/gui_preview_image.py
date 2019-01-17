@@ -289,6 +289,8 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     else:
       self.clear(use_layer_name=True)
     
+    self.queue_draw()
+    
     self._is_updating = False
     
     update_duration_seconds = time.time() - start_update_time
@@ -504,6 +506,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       self._preview_alpha_check_color_second)
     
     self._preview_image.set_from_pixbuf(scaled_preview_pixbuf)
+    self.queue_draw()
     
     self._previous_preview_pixbuf_width = scaled_preview_width
     self._previous_preview_pixbuf_height = scaled_preview_height
