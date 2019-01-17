@@ -177,3 +177,10 @@ class TestPersistentSettingSource(unittest.TestCase):
     
     with self.assertRaises(pgsettingsources.SettingSourceNotFoundError):
       self.source.read(self.settings)
+  
+  def test_has_data_with_no_data(self, mock_persistent_source):
+    self.assertFalse(self.source.has_data())
+  
+  def test_has_data_with_data(self, mock_persistent_source):
+    self.source.write([self.settings["file_extension"]])
+    self.assertTrue(self.source.has_data())

@@ -172,12 +172,12 @@ class SessionPersistentSettingSource(SettingSource):
   def read(self, settings):
     self._read(settings)
   
-  def _retrieve_setting_value(self, setting_name):
-    return gimpshelf.shelf[self._get_key(setting_name)]
-  
   def write(self, settings):
     for setting in settings:
       gimpshelf.shelf[self._get_key(setting.get_path("root"))] = setting.value
+  
+  def _retrieve_setting_value(self, setting_name):
+    return gimpshelf.shelf[self._get_key(setting_name)]
   
   def _get_key(self, setting_name):
     key = self.source_name + self._separator + setting_name
@@ -225,9 +225,6 @@ class PersistentSettingSource(SettingSource):
     
     del self._settings_from_parasite
   
-  def _retrieve_setting_value(self, setting_name):
-    return self._settings_from_parasite[setting_name]
-  
   def write(self, settings):
     settings_from_parasite = self._read_from_parasite(self.source_name)
     if settings_from_parasite is not None:
@@ -239,6 +236,23 @@ class PersistentSettingSource(SettingSource):
     settings_data = pickle.dumps(settings_to_write)
     gimp.parasite_attach(
       gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, settings_data))
+  
+  def clear(self):
+    parasite = gimp.parasite_find(self.source_name)
+    if parasite is None:
+      return
+    
+    gimp.parasite_detach(self.source_name)
+  
+  def has_data(self):
+    """
+    Return `True` if the setting source contains data for the `source_name`
+    identifier, `False` otherwise.
+    """
+    return gimp.parasite_find(self.source_name) is not None
+  
+  def _retrieve_setting_value(self, setting_name):
+    return self._settings_from_parasite[setting_name]
   
   def _read_from_parasite(self, parasite_name):
     parasite = gimp.parasite_find(parasite_name)
@@ -255,13 +269,6 @@ class PersistentSettingSource(SettingSource):
             self._parasite_filepath))
     
     return settings_from_parasite
-  
-  def clear(self):
-    parasite = gimp.parasite_find(self.source_name)
-    if parasite is None:
-      return
-    
-    gimp.parasite_detach(self.source_name)
   
   def _to_dict(self, settings):
     """
