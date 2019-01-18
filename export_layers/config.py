@@ -44,8 +44,8 @@ def init():
   pygimplib.config.LOG_MODE = pygimplib.pglogging.LOG_EXCEPTIONS_ONLY
   
   pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
-  pygimplib.config.PLUGIN_VERSION = "3.2.1"
-  pygimplib.config.LATEST_PLUGIN_VERSION_RELEASE_DATE = "June 9, 2018"
+  pygimplib.config.PLUGIN_VERSION = "3.3"
+  pygimplib.config.LATEST_PLUGIN_VERSION_RELEASE_DATE = "January 18, 2019"
   pygimplib.config.AUTHOR_NAME = "khalim19"
   pygimplib.config.AUTHOR_CONTACT = "khalim19@gmail.com"
   pygimplib.config.PAGE_URL = "https://khalim19.github.io/gimp-plugin-export-layers"
