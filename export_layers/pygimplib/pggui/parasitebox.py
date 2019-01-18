@@ -17,9 +17,6 @@
 """
 This module defines a custom widget acting as a GUI element for `gimp.Parasite`
 instances.
-
-This module should not be used directly. Use `pggui` as the contents of this
-module are included in `pggui`.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -32,7 +29,7 @@ import gobject
 
 import gimp
 
-from . import pgconstants
+from .. import pgconstants
 
 __all__ = [
   "ParasiteBox",

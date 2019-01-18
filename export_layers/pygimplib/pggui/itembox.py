@@ -17,9 +17,6 @@
 """
 This module defines a custom widget holding an array of GUI elements. The widget
 is used as the default GUI for `pgsetting.ArraySetting` instances.
-
-This module should not be used directly. Use `pggui` as the contents of this
-module are included in `pggui`.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -33,8 +30,9 @@ pygtk.require("2.0")
 import gtk
 import gobject
 
-from . import _pggui_draganddropcontext
-from . import pgutils
+from .. import pgutils
+
+from . import draganddropcontext
 
 __all__ = [
   "ItemBox",
@@ -57,7 +55,7 @@ class ItemBox(gtk.ScrolledWindow):
     
     self._item_spacing = item_spacing
     
-    self._drag_and_drop_context = _pggui_draganddropcontext.DragAndDropContext()
+    self._drag_and_drop_context = draganddropcontext.DragAndDropContext()
     self._items = []
     
     self._vbox_items = gtk.VBox(homogeneous=False)

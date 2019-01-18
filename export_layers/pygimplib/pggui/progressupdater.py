@@ -16,9 +16,6 @@
 
 """
 This module defines a GTK progress bar updater.
-
-This module should not be used directly. Use `pggui` as the contents of this
-module are included in `pggui`.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -28,7 +25,7 @@ import pygtk
 pygtk.require("2.0")
 import gtk
 
-from . import pgprogress
+from .. import pgprogress
 
 __all__ = [
   "GtkProgressUpdater",

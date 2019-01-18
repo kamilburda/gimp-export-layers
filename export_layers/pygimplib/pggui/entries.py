@@ -17,9 +17,6 @@
 """
 This module defines text entries with enhanced capabilities, such as undo/redo
 history or a customizable popup.
-
-This module should not be used directly. Use `pggui` as the contents of this
-module are included in `pggui`.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -31,13 +28,14 @@ import gtk
 import gobject
 import pango
 
-from . import pgconstants
-from . import pgfileformats
-from . import _pggui_cellrenderers
-from . import _pggui_entryexpander
-from . import _pggui_entrypopup
-from . import _pggui_entryundocontext
-from . import pgpath
+from .. import pgconstants
+from .. import pgfileformats
+from .. import pgpath
+
+from . import cellrenderers
+from . import entryexpander
+from . import entrypopup
+from . import entryundocontext
 
 __all__ = [
   "ExtendedEntry",
@@ -83,9 +81,9 @@ class ExtendedEntry(gtk.Entry):
     
     super().__init__(*args, **kwargs)
     
-    self._undo_context = _pggui_entryundocontext.EntryUndoContext(self)
+    self._undo_context = entryundocontext.EntryUndoContext(self)
     self._popup = None
-    self._expander = _pggui_entryexpander.EntryExpander(
+    self._expander = entryexpander.EntryExpander(
       self, self._minimum_width_chars, self._maximum_width_chars)
     
     self._has_placeholder_text_assigned = False
@@ -239,7 +237,7 @@ class FilenamePatternEntry(ExtendedEntry):
     
     self._pango_layout = pango.Layout(self.get_pango_context())
     
-    self._popup = _pggui_entrypopup.EntryPopup(self, self._COLUMN_TYPES, suggested_items)
+    self._popup = entrypopup.EntryPopup(self, self._COLUMN_TYPES, suggested_items)
     self._popup.filter_rows_func = self._filter_suggested_items
     self._popup.on_assign_from_selected_row = self._on_assign_from_selected_row
     self._popup.on_assign_last_value = self._assign_last_value
@@ -508,7 +506,7 @@ class FileExtensionEntry(ExtendedEntry):
     self._extensions_separator_text_pixel_size = None
     self._extensions_text_pixel_rects = []
     
-    self._popup = _pggui_entrypopup.EntryPopup(
+    self._popup = entrypopup.EntryPopup(
       self, self._COLUMN_TYPES, self._get_file_formats(pgfileformats.file_formats))
     self._popup.filter_rows_func = self._filter_file_formats
     self._popup.on_assign_from_selected_row = self._on_assign_from_selected_row
@@ -544,7 +542,7 @@ class FileExtensionEntry(ExtendedEntry):
       self._popup.tree_view.append_column(column)
     
     self._cell_renderer_description = gtk.CellRendererText()
-    self._cell_renderer_extensions = _pggui_cellrenderers.CellRendererTextList()
+    self._cell_renderer_extensions = cellrenderers.CellRendererTextList()
     _add_column(self._cell_renderer_description, "text", self._COLUMN_DESCRIPTION)
     _add_column(self._cell_renderer_extensions, "markup-list", self._COLUMN_EXTENSIONS)
   

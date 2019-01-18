@@ -17,9 +17,6 @@
 """
 This module defines a class simplifying hiding a popup window based on user
 actions.
-
-This module should not be used directly. Use `pggui` as the contents of this
-module are included in `pggui`.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -27,7 +24,7 @@ from future.builtins import *
 
 import gobject
 
-from . import _pggui_utils
+from . import utils
 
 __all__ = [
   "PopupHideContext",
@@ -71,7 +68,7 @@ class PopupHideContext(object):
       "button-press-event",
       self._on_emission_hook_button_press_event)
     
-    toplevel = _pggui_utils.get_toplevel_window(self._popup_owner_widget)
+    toplevel = utils.get_toplevel_window(self._popup_owner_widget)
     if toplevel is not None:
       toplevel.get_group().add_window(self._popup_to_hide)
       # Button presses on the window decoration cannot be intercepted via the
@@ -87,7 +84,7 @@ class PopupHideContext(object):
         "button-press-event",
         self._button_press_emission_hook_id)
     
-    toplevel = _pggui_utils.get_toplevel_window(self._popup_owner_widget)
+    toplevel = utils.get_toplevel_window(self._popup_owner_widget)
     if (toplevel is not None
         and self._toplevel_configure_event_id is not None
         and toplevel.handler_is_connected(self._toplevel_configure_event_id)):

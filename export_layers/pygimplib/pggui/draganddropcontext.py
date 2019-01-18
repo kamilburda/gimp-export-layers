@@ -17,9 +17,6 @@
 """
 This module defines a class providing drag-and-drop capability to any GTK
 widget.
-
-This module should not be used directly. Use `pggui` as the contents of this
-module are included in `pggui`.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

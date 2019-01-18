@@ -32,7 +32,7 @@ import gobject
 import gimp
 import gimpui
 
-from . import pgconstants
+from .. import pgconstants
 
 __all__ = [
   "GimpItemComboBox",

@@ -15,23 +15,26 @@
 # limitations under the License.
 
 """
-This module includes functions and classes defined in `_pggui_*` modules.
+This module contains helper functions and classes for managing GUI elements in
+plug-ins.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-from ._pggui_cellrenderers import *
-from ._pggui_draganddropcontext import *
-from ._pggui_editablelabel import *
-from ._pggui_entries import *
-from ._pggui_entrypopup import *
-from ._pggui_entryundocontext import *
-from ._pggui_gimpitemcombobox import *
-from ._pggui_itembox import *
-from ._pggui_messages import *
-from ._pggui_overwritechooser import *
-from ._pggui_parasitebox import *
-from ._pggui_popuphidecontext import *
-from ._pggui_progressupdater import *
-from ._pggui_utils import *
+from .cellrenderers import *
+from .draganddropcontext import *
+from .editablelabel import *
+from .entries import *
+from .entryexpander import *
+from .entrypopup import *
+from .entryundocontext import *
+from .gimpitemcombobox import *
+from .itembox import *
+from .overwritechooser import *
+from .parasitebox import *
+from .popuphidecontext import *
+from .progressupdater import *
+from .utils import *
+
+from .._pggui_messages import *

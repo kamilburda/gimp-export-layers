@@ -16,9 +16,6 @@
 
 """
 This module defines a custom popup usable for GTK text entries.
-
-This module should not be used directly. Use `pggui` as the contents of this
-module are included in `pggui`.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -28,10 +25,10 @@ import pygtk
 pygtk.require("2.0")
 import gtk
 
-from . import pgutils
+from .. import pgutils
 
-from . import _pggui_popuphidecontext
-from . import _pggui_utils
+from . import popuphidecontext
+from . import utils
 
 __all__ = [
   "EntryPopup",
@@ -81,7 +78,7 @@ class EntryPopup(object):
     
     self._init_gui(column_types, rows)
     
-    self._popup_hide_context = _pggui_popuphidecontext.PopupHideContext(
+    self._popup_hide_context = popuphidecontext.PopupHideContext(
       self._popup, self._entry, self.hide)
     
     self._connect_events()
@@ -303,7 +300,7 @@ class EntryPopup(object):
       self._popup_hide_context.exclude_widget_from_hiding_with_button_press(widget)
   
   def _update_position(self):
-    position = _pggui_utils.get_position_below_widget(self._entry)
+    position = utils.get_position_below_widget(self._entry)
     if position is not None:
       self._popup.move(*position)
   

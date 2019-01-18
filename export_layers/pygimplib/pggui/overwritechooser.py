@@ -16,9 +16,6 @@
 
 """
 This module defines a GTK overwrite dialog prompt.
-
-This module should not be used directly. Use `pggui` as the contents of this
-module are included in `pggui`.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -33,7 +30,7 @@ import gobject
 
 import gimpui
 
-from . import pgoverwrite
+from .. import pgoverwrite
 
 __all__ = [
   "GtkDialogOverwriteChooser",
