@@ -312,8 +312,7 @@ def _check_settings_integrity_by_version(settings):
     button_response_id_to_focus=gtk.RESPONSE_NO)
   
   if response == gtk.RESPONSE_YES:
-    _clear_setting_sources()
-    _save_plugin_version(settings)
+    _clear_setting_sources(settings)
     return True
   else:
     return False
@@ -325,9 +324,11 @@ def _save_plugin_version(settings):
     [settings["main/plugin_version"]], [pygimplib.config.SOURCE_PERSISTENT])
 
 
-def _clear_setting_sources():
+def _clear_setting_sources(settings):
   pgsettingpersistor.SettingPersistor.clear(
     [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+  
+  _save_plugin_version(settings)
 
 
 #===============================================================================
@@ -874,7 +875,7 @@ class ExportLayersGui(object):
       self._save_settings()
       
       if clear_operations:
-        _clear_setting_sources()
+        _clear_setting_sources(self._settings)
       else:
         self._settings["main/procedures"].tags.remove("ignore_reset")
         self._settings["main/constraints"].tags.remove("ignore_reset")
