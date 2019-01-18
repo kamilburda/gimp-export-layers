@@ -62,6 +62,10 @@ def filepath_matches_gitignore(repo, filepath):
 def main():
   repo = git.Repo(REPOSITORY_ROOT_DIRPATH)
   
+  if repo.active_branch != repo.heads.master:
+    print("Cannot sync docs from a non-master branch")
+    return
+  
   staged_filepaths = [
     os.path.normpath(os.path.join(REPOSITORY_ROOT_DIRPATH, diff.a_path))
     for diff in repo.index.diff("HEAD")]
