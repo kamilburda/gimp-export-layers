@@ -142,6 +142,8 @@ To set a layer as a background layer, see [Tagging Layers](#tagging-layers).
 
 Note that even background layers get exported - to prevent this behavior, enable the "Only layers without tags" constraint.
 
+You may modify the tag representing the background layers by editing the procedure argument "Tag".
+
 In the dialog, this procedure is always inserted in the first position.
 This prevents potential confusion when "Use layer size" is unchecked and the background is offset relative to the layer rather than the image canvas.
 If this is your intention, you can always move this procedure below "Use layer size".
@@ -152,6 +154,8 @@ Insert layers tagged with "Foreground" as foreground for each layer.
 To set a layer as a foreground layer, see [Tagging Layers](#tagging-layers).
 
 Note that even foreground layers get exported - to prevent this behavior, enable the "Only layers without tags" constraint.
+
+You may modify the tag representing the foreground layers by editing the procedure argument "Tag".
 
 In the dialog, this procedure is always inserted in the first position.
 This prevents potential confusion when "Use layer size" is unchecked and the foreground is offset relative to the layer rather than the image canvas.
@@ -236,11 +240,21 @@ Export only layers at the top of the layer tree (i.e. do not export layers insid
 **Only layers with tags**
 
 Export only layers with tags.
+
+By default, all layers without tags are excluded from export.
+To export only layers with specific tags, edit this constraint and add the tags for the "Tags" argument.
+For example, adding "background" will export only layers containing the "background" tag.
+Other tagged layers will be excluded.
+
 See [Tagging Layers](#tagging-layers) for information about tags.
 
 **Only layers without tags**
 
 Export only layers with no tags.
+
+By default, all layers with tags are excluded from export.
+To ignore only specific tags, edit this constraint and add the tags for the "Tags" argument.
+
 See [Tagging Layers](#tagging-layers) for information about tags.
 
 **Only layers matching file extension**
