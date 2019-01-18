@@ -108,7 +108,8 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
     
     self._dialog.action_area.set_spacing(self._DIALOG_ACTION_AREA_SPACING)
     
-    self._checkbutton_apply_to_all.connect("toggled", self._on_apply_to_all_changed)
+    self._checkbutton_apply_to_all.connect(
+      "toggled", self._on_checkbutton_apply_to_all_toggled)
     
     self._is_dialog_text_allocated_size = False
     self._dialog_text_event_box.connect(
@@ -145,7 +146,7 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
     
     return self._overwrite_mode
   
-  def _on_apply_to_all_changed(self, widget):
+  def _on_checkbutton_apply_to_all_toggled(self, checkbutton):
     self._is_apply_to_all = self._checkbutton_apply_to_all.get_active()
   
   def _on_dialog_text_event_box_size_allocate(self, dialog_text_event_box, allocation):

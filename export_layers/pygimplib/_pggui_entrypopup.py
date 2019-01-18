@@ -287,13 +287,12 @@ class EntryPopup(object):
   def _connect_events(self):
     self._entry.connect("changed", self._on_entry_changed)
     self._entry.connect("button-press-event", self._on_entry_left_mouse_button_press)
-    self._entry.connect("key-press-event", self._on_entry_key_press)
+    self._entry.connect("key-press-event", self._on_entry_key_press_event)
     
     self._entry.connect("focus-out-event", self._on_entry_focus_out_event)
     
     self._tree_view.connect_after("realize", self._on_after_tree_view_realize)
-    self._tree_view.connect(
-      "button-press-event", self._on_tree_view_left_mouse_button_press)
+    self._tree_view.connect("button-press-event", self._on_tree_view_button_press_event)
     
     wigets_to_exclude_from_hiding_popup_with_button_press = [
       self._entry,
@@ -314,7 +313,7 @@ class EntryPopup(object):
     else:
       return self._filter_rows_func(rows, row_iter)
   
-  def _on_entry_key_press(self, entry, event):
+  def _on_entry_key_press_event(self, entry, event):
     key_name = gtk.gdk.keyval_name(event.keyval)
     
     if (not self.is_shown()
@@ -424,7 +423,7 @@ class EntryPopup(object):
       
       self.on_entry_left_mouse_button_press_func()
   
-  def _on_tree_view_left_mouse_button_press(self, tree_view, event):
+  def _on_tree_view_button_press_event(self, tree_view, event):
     if event.button == self._BUTTON_MOUSE_LEFT:
       self.on_row_left_mouse_button_press()
       

@@ -195,9 +195,9 @@ class OperationBox(pggui.ItemBox):
     
     super().add_item(item)
     
-    item.button_edit.connect("clicked", self._on_item_edit_button_clicked, item)
+    item.button_edit.connect("clicked", self._on_item_button_edit_clicked, item)
     item.button_remove.connect(
-      "clicked", self._on_item_remove_button_clicked_remove_operation_edit_dialog, item)
+      "clicked", self._on_item_button_remove_clicked_remove_operation_edit_dialog, item)
     
     return item
   
@@ -361,7 +361,7 @@ class OperationBox(pggui.ItemBox):
     else:
       self.remove_item(item)
   
-  def _on_item_edit_button_clicked(self, edit_button, item):
+  def _on_item_button_edit_clicked(self, edit_button, item):
     if item.is_being_edited():
       return
     
@@ -402,7 +402,7 @@ class OperationBox(pggui.ItemBox):
     
     item.operation_edit_dialog = None
   
-  def _on_item_remove_button_clicked_remove_operation_edit_dialog(
+  def _on_item_button_remove_clicked_remove_operation_edit_dialog(
         self, button_remove, item):
     if item.is_being_edited():
       item.operation_edit_dialog.response(gtk.RESPONSE_CANCEL)

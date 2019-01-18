@@ -74,7 +74,7 @@ class ItemBox(gtk.ScrolledWindow):
   def add_item(self, item):
     self._vbox_items.pack_start(item.widget, expand=False, fill=False)
     
-    item.button_remove.connect("clicked", self._on_item_remove_button_clicked, item)
+    item.button_remove.connect("clicked", self._on_item_button_remove_clicked, item)
     item.widget.connect("key-press-event", self._on_item_widget_key_press_event, item)
     
     self._setup_drag(item)
@@ -134,7 +134,7 @@ class ItemBox(gtk.ScrolledWindow):
         self.reorder_item(
           item, self._get_item_position(item) + 1)
   
-  def _on_item_remove_button_clicked(self, remove_button, item):
+  def _on_item_button_remove_clicked(self, button, item):
     self.remove_item(item)
   
   def _get_item_position(self, item):
@@ -458,14 +458,14 @@ class ArrayBox(ItemBox):
       
       self._locker.unlock("update_spin_button")
   
-  def _on_item_remove_button_clicked(self, remove_button, item):
+  def _on_item_button_remove_clicked(self, button, item):
     self._locker.lock("emit_size_spin_button_value_changed")
     
     should_emit_signal = (
       len(self._items) > self._min_size
       or self._locker.is_locked("prevent_removal_below_min_size"))
     
-    super()._on_item_remove_button_clicked(remove_button, item)
+    super()._on_item_button_remove_clicked(button, item)
     
     if should_emit_signal:
       self.emit("array-box-changed")

@@ -108,7 +108,7 @@ class GimpItemComboBox(gtk.VBox):
       
       combo_box.widget.connect("changed", self._on_combo_box_changed)
     
-    self._item_types_combo_box.connect("changed", self._on_item_type_changed)
+    self._item_types_combo_box.connect("changed", self._on_item_types_combo_box_changed)
     
     self._item_types_combo_box.set_active(0)
   
@@ -139,11 +139,11 @@ class GimpItemComboBox(gtk.VBox):
   def _on_combo_box_changed(self, *args, **kwargs):
     self.emit("changed", self.get_active_item())
   
-  def _on_item_type_changed(self, item_types_combo_box):
+  def _on_item_types_combo_box_changed(self, combo_box):
     if self._displayed_item_combo_box is not None:
       self._displayed_item_combo_box.widget.hide()
     
-    index = item_types_combo_box.get_active()
+    index = self._item_types_combo_box.get_active()
     self._item_combo_boxes[index].widget.show()
     
     self._displayed_item_combo_box = self._item_combo_boxes[index]

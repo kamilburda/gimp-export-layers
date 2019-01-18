@@ -253,12 +253,12 @@ class FilenamePatternEntry(ExtendedEntry):
     
     self._add_columns()
     
-    self.connect("insert-text", self._on_entry_insert_text)
-    self.connect("delete-text", self._on_entry_delete_text)
-    self.connect("notify::cursor-position", self._on_entry_cursor_position_changed)
-    self.connect("changed", self._on_entry_changed)
-    
-    self.connect("focus-out-event", self._on_entry_focus_out_event)
+    self.connect("insert-text", self._on_filename_pattern_entry_insert_text)
+    self.connect("delete-text", self._on_filename_pattern_entry_delete_text)
+    self.connect(
+      "notify::cursor-position", self._on_filename_pattern_entry_notify_cursor_position)
+    self.connect("changed", self._on_filename_pattern_entry_changed)
+    self.connect("focus-out-event", self._on_filename_pattern_entry_focus_out_event)
   
   @property
   def popup(self):
@@ -315,14 +315,15 @@ class FilenamePatternEntry(ExtendedEntry):
     self._popup.tree_view.append_column(
       gtk.TreeViewColumn(None, gtk.CellRendererText(), text=self._COLUMN_ITEM_NAMES))
   
-  def _on_entry_insert_text(self, entry, new_text, new_text_length, position):
+  def _on_filename_pattern_entry_insert_text(
+        self, entry, new_text, new_text_length, position):
     self._cursor_position = (
       self.get_position() + len(new_text.decode(pgconstants.GTK_CHARACTER_ENCODING)))
   
-  def _on_entry_delete_text(self, entry, start, end):
+  def _on_filename_pattern_entry_delete_text(self, entry, start, end):
     self._cursor_position = start
   
-  def _on_entry_cursor_position_changed(self, entry, property_spec):
+  def _on_filename_pattern_entry_notify_cursor_position(self, entry, property_spec):
     self._cursor_position = self.get_position()
     
     field_name = (
@@ -379,11 +380,11 @@ class FilenamePatternEntry(ExtendedEntry):
     
     window.move(x, y)
   
-  def _on_entry_changed(self, entry):
+  def _on_filename_pattern_entry_changed(self, entry):
     if self._reset_cursor_position_before_assigning_from_row:
       self._cursor_position_before_assigning_from_row = None
   
-  def _on_entry_focus_out_event(self, entry, event):
+  def _on_filename_pattern_entry_focus_out_event(self, entry, event):
     self._hide_field_tooltip()
   
   def _filter_suggested_items(self, suggested_items, row_iter):
@@ -523,8 +524,7 @@ class FileExtensionEntry(ExtendedEntry):
     
     self._popup.tree_view.connect(
       "motion-notify-event", self._on_tree_view_motion_notify_event)
-    self._popup.tree_view.connect_after(
-      "realize", self._on_after_tree_view_realize)
+    self._popup.tree_view.connect_after("realize", self._on_after_tree_view_realize)
     self._popup.tree_view.get_selection().connect(
       "changed", self._on_tree_selection_changed)
   

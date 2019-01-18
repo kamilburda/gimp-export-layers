@@ -64,8 +64,8 @@ class EntryUndoContext(object):
     
     self._entry.connect("insert-text", self._on_entry_insert_text)
     self._entry.connect("delete-text", self._on_entry_delete_text)
-    self._entry.connect("notify::cursor-position", self._on_entry_cursor_position_changed)
-    self._entry.connect("key-press-event", self._on_entry_key_press)
+    self._entry.connect("notify::cursor-position", self._on_entry_notify_cursor_position)
+    self._entry.connect("key-press-event", self._on_entry_key_press_event)
   
   def undo(self):
     self._undo_redo(
@@ -147,13 +147,13 @@ class EntryUndoContext(object):
       if text_to_delete:
         self._on_entry_action(start, text_to_delete, "delete")
   
-  def _on_entry_cursor_position_changed(self, entry, property_spec):
+  def _on_entry_notify_cursor_position(self, entry, property_spec):
     if self._cursor_changed_by_action:
       self._cursor_changed_by_action = False
     else:
       self._undo_stack_push()
   
-  def _on_entry_key_press(self, entry, event):
+  def _on_entry_key_press_event(self, entry, event):
     if (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.CONTROL_MASK:
       key_name = gtk.gdk.keyval_name(gtk.gdk.keyval_to_lower(event.keyval))
       if key_name == "z":

@@ -667,14 +667,11 @@ class ExportLayersGui(object):
     if _webbrowser_module_found:
       self._button_help.connect("clicked", self._on_button_help_clicked)
     
-    self._button_settings.connect(
-      "clicked", self._on_button_settings_clicked)
+    self._button_settings.connect("clicked", self._on_button_settings_clicked)
     self._menu_item_show_more_settings.connect(
       "toggled", self._on_menu_item_show_more_settings_toggled)
-    self._menu_item_save_settings.connect(
-      "activate", self._on_save_settings_activate)
-    self._menu_item_reset_settings.connect(
-      "activate", self._on_reset_settings_activate)
+    self._menu_item_save_settings.connect("activate", self._on_save_settings_activate)
+    self._menu_item_reset_settings.connect("activate", self._on_reset_settings_activate)
     
     self._file_extension_entry.connect(
       "changed",
@@ -687,20 +684,20 @@ class ExportLayersGui(object):
       self._settings["main/layer_filename_pattern"],
       "invalid_layer_filename_pattern")
     
-    self._dialog.connect("key-press-event", self._on_dialog_key_press)
+    self._dialog.connect("key-press-event", self._on_dialog_key_press_event)
     self._dialog.connect("delete-event", self._on_dialog_delete_event)
-    self._dialog.connect("notify::is-active", self._on_dialog_is_active_changed)
+    self._dialog.connect("notify::is-active", self._on_dialog_notify_is_active)
     self._dialog.connect(
       "notify::is-active",
-      self._export_previews_controller.on_dialog_is_active_changed,
+      self._export_previews_controller.on_dialog_notify_is_active,
       lambda: self._is_exporting)
     
     self._hpaned_settings_and_previews.connect(
       "notify::position",
-      self._export_previews_controller.on_paned_outside_previews_position_changed)
+      self._export_previews_controller.on_paned_outside_previews_notify_position)
     self._vpaned_previews.connect(
       "notify::position",
-      self._export_previews_controller.on_paned_between_previews_position_changed)
+      self._export_previews_controller.on_paned_between_previews_notify_position)
     
     self._export_previews_controller.connect_setting_changes_to_previews()
     self._export_previews_controller.connect_name_preview_events()
@@ -771,7 +768,7 @@ class ExportLayersGui(object):
   def _reset_settings(self):
     self._settings.reset()
   
-  def _on_text_entry_changed(self, widget, setting, name_preview_lock_update_key=None):
+  def _on_text_entry_changed(self, entry, setting, name_preview_lock_update_key=None):
     try:
       setting.gui.update_setting_value()
     except pgsetting.SettingValueError as e:
@@ -797,7 +794,7 @@ class ExportLayersGui(object):
            for name in ["insert_background_layers", "insert_foreground_layers"]):
       operations.reorder(self._settings["main/procedures"], item.operation.name, 0)
   
-  def _on_menu_item_show_more_settings_toggled(self, widget):
+  def _on_menu_item_show_more_settings_toggled(self, menu_item):
     self._show_hide_more_settings()
   
   def _show_hide_more_settings(self):
@@ -816,7 +813,7 @@ class ExportLayersGui(object):
       self._dot_label.hide()
       self._filename_pattern_entry.hide()
   
-  def _on_dialog_is_active_changed(self, widget, property_spec):
+  def _on_dialog_notify_is_active(self, dialog, property_spec):
     if not pdb.gimp_image_is_valid(self._image):
       gtk.main_quit()
       return
@@ -844,7 +841,7 @@ class ExportLayersGui(object):
         "gui/image_preview_automatic_update_if_below_maximum_duration"
       ].set_value(False)
   
-  def _on_dialog_key_press(self, widget, event):
+  def _on_dialog_key_press_event(self, dialog, event):
     if gtk.gdk.keyval_name(event.keyval) == "Escape":
       export_stopped = stop_export(self._layer_exporter)
       return export_stopped
@@ -853,12 +850,12 @@ class ExportLayersGui(object):
     pggui.menu_popup_below_widget(self._menu_settings, button)
   
   @_set_settings
-  def _on_save_settings_activate(self, widget):
+  def _on_save_settings_activate(self, menu_item):
     save_successful = self._save_settings()
     if save_successful:
       self._display_inline_message(_("Settings successfully saved."), gtk.MESSAGE_INFO)
   
-  def _on_reset_settings_activate(self, widget):
+  def _on_reset_settings_activate(self, menu_item):
     response_id, clear_operations = display_reset_prompt(
       parent=self._dialog,
       more_settings_shown=self._settings["gui/show_more_settings"].value)
@@ -883,7 +880,7 @@ class ExportLayersGui(object):
       self._display_inline_message(_("Settings reset."), gtk.MESSAGE_INFO)
   
   @_set_settings
-  def _on_button_export_clicked(self, widget):
+  def _on_button_export_clicked(self, button):
     self._setup_gui_before_export()
     overwrite_chooser, progress_updater = self._setup_layer_exporter()
     
@@ -1000,16 +997,16 @@ class ExportLayersGui(object):
     while gtk.events_pending():
       gtk.main_iteration()
   
-  def _on_dialog_delete_event(self, widget, event):
+  def _on_dialog_delete_event(self, dialog, event):
     gtk.main_quit()
   
-  def _on_button_cancel_clicked(self, widget):
+  def _on_button_cancel_clicked(self, button):
     gtk.main_quit()
   
-  def _on_button_stop_clicked(self, widget):
+  def _on_button_stop_clicked(self, button):
     stop_export(self._layer_exporter)
   
-  def _on_button_help_clicked(self, widget):
+  def _on_button_help_clicked(self, button):
     if os.path.isfile(pygimplib.config.LOCAL_DOCS_PATH):
       docs_url = pygimplib.config.LOCAL_DOCS_PATH
     else:
@@ -1126,8 +1123,8 @@ class ExportLayersRepeatGui(object):
   def hide(self):
     self._dialog.hide()
   
-  def _on_button_stop_clicked(self, widget):
+  def _on_button_stop_clicked(self, button):
     stop_export(self._layer_exporter)
   
-  def _on_dialog_delete_event(self, widget, event):
+  def _on_dialog_delete_event(self, dialog, event):
     stop_export(self._layer_exporter)

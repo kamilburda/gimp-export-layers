@@ -253,7 +253,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._tree_view.connect("row-collapsed", self._on_tree_view_row_collapsed)
     self._tree_view.connect("row-expanded", self._on_tree_view_row_expanded)
     self._tree_view.get_selection().connect("changed", self._on_tree_selection_changed)
-    self._tree_view.connect("event", self._on_tree_view_right_button_press)
+    self._tree_view.connect("event", self._on_tree_view_right_button_press_event)
   
   def _init_icons(self):
     self._icons = {}
@@ -296,7 +296,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._tags_menu.append(gtk.SeparatorMenuItem())
     
     self._menu_item_add_tag = gtk.MenuItem(_("Add New Tag..."))
-    self._menu_item_add_tag.connect("activate", self._on_tags_menu_item_add_tag_activate)
+    self._menu_item_add_tag.connect("activate", self._on_menu_item_add_tag_activate)
     self._tags_menu.append(self._menu_item_add_tag)
     
     self._menu_item_remove_tag = gtk.MenuItem(_("Remove Tag"))
@@ -363,7 +363,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._tags_remove_submenu_items[tag].show()
     self._tags_remove_submenu.prepend(self._tags_remove_submenu_items[tag])
   
-  def _on_tree_view_right_button_press(self, widget, event):
+  def _on_tree_view_right_button_press_event(self, tree_view, event):
     if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
       layer_ids = []
       stop_event_propagation = False
@@ -419,7 +419,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       
       self.emit("preview-tags-changed")
   
-  def _on_tags_menu_item_add_tag_activate(self, menu_item_add_tag):
+  def _on_menu_item_add_tag_activate(self, menu_item_add_tag):
     def _on_popup_focus_out_event(popup, event):
       popup.destroy()
     
@@ -490,12 +490,12 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     
     self._available_tags_setting.save()
   
-  def _on_tree_view_row_collapsed(self, widget, tree_iter, tree_path):
+  def _on_tree_view_row_collapsed(self, tree_view, tree_iter, tree_path):
     if self._row_expand_collapse_interactive:
       self._collapsed_items.add(self._get_layer_id(tree_iter))
       self._tree_view.columns_autosize()
   
-  def _on_tree_view_row_expanded(self, widget, tree_iter, tree_path):
+  def _on_tree_view_row_expanded(self, tree_view, tree_iter, tree_path):
     if self._row_expand_collapse_interactive:
       layer_id = self._get_layer_id(tree_iter)
       if layer_id in self._collapsed_items:
@@ -505,7 +505,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       
       self._tree_view.columns_autosize()
   
-  def _on_tree_selection_changed(self, widget):
+  def _on_tree_selection_changed(self, tree_selection):
     if not self._clearing_preview and self._row_select_interactive:
       previous_selected_items = self._selected_items
       self._selected_items = self._get_layer_ids_in_current_selection()

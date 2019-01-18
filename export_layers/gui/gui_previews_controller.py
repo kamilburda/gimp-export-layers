@@ -67,11 +67,11 @@ class ExportPreviewsController(object):
     self._name_preview.connect(
       "preview-selection-changed", self._on_name_preview_selection_changed)
     self._name_preview.connect(
-      "preview-updated", self._on_name_preview_after_update)
+      "preview-updated", self._on_name_preview_updated)
     self._name_preview.connect(
-      "preview-tags-changed", self._on_name_preview_after_edit_tags)
+      "preview-tags-changed", self._on_name_preview_tags_changed)
   
-  def on_dialog_is_active_changed(self, dialog, property_spec, is_exporting_func):
+  def on_dialog_notify_is_active(self, dialog, property_spec, is_exporting_func):
     if dialog.is_active() and not is_exporting_func():
       pginvocation.timeout_remove_strict(self._name_preview.update)
       pginvocation.timeout_remove_strict(self._image_preview.update)
@@ -83,7 +83,7 @@ class ExportPreviewsController(object):
       else:
         self._image_preview.update()
   
-  def on_paned_outside_previews_position_changed(self, paned, property_spec):
+  def on_paned_outside_previews_notify_position(self, paned, property_spec):
     current_position = paned.get_position()
     max_position = paned.get_property("max-position")
     
@@ -118,7 +118,7 @@ class ExportPreviewsController(object):
     
     self._paned_outside_previews_previous_position = current_position
   
-  def on_paned_between_previews_position_changed(self, paned, property_spec):
+  def on_paned_between_previews_notify_position(self, paned, property_spec):
     current_position = paned.get_position()
     max_position = paned.get_property("max-position")
     min_position = paned.get_property("min-position")
@@ -299,10 +299,10 @@ class ExportPreviewsController(object):
     self._update_selected_layers()
     self._update_image_preview()
   
-  def _on_name_preview_after_update(self, preview):
+  def _on_name_preview_updated(self, preview):
     self._image_preview.update_layer_elem()
   
-  def _on_name_preview_after_edit_tags(self, preview):
+  def _on_name_preview_tags_changed(self, preview):
     self._update_image_preview()
   
   def _enable_preview_on_paned_drag(
