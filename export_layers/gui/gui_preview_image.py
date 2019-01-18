@@ -274,8 +274,8 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._should_emit_automatic_update_signal = True
   
   def _set_contents(self):
-    # This could happen if a layer group contained an empty layer group as its
-    # only child and the empty layer group was subsequently removed.
+    # Sanity check in case `layer_elem` changes before `"size-allocate"` is
+    # emitted.
     if self.layer_elem is None:
       return
     
