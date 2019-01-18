@@ -90,7 +90,7 @@ def display_error_message(
   
   * `parent` - Parent widget.
   
-  * `message_type` - GTK message type (gtk.MESSAGE_ERROR, etc.).
+  * `message_type` - GTK message type (`gtk.MESSAGE_ERROR`, etc.).
   
   * `flags` - GTK dialog flags.
   
@@ -269,7 +269,7 @@ def display_message(
   
   * `message` - The message to display.
   
-  * `message_type` - GTK message type (gtk.MESSAGE_INFO, etc.).
+  * `message_type` - GTK message type (`gtk.MESSAGE_INFO`, etc.).
   
   * `title` - Message title.
   
@@ -395,7 +395,7 @@ def set_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
   The dialog will not be displayed for exceptions which are not subclasses of
   `Exception` (such as `SystemExit` or `KeyboardInterrupt`).
   
-  For information about parameters, see `add_gui_excepthook`.
+  For information about parameters, see `add_gui_excepthook()`.
   """
   global _gui_excepthook_parent
   
@@ -419,8 +419,8 @@ def set_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
 def set_gui_excepthook_parent(parent):
   """
   Set the parent GUI element to attach the exception dialog to when using
-  `add_gui_excepthook`. This function allows to modify the parent dynamically
-  even after decorating a function with `add_gui_excepthook`.
+  `add_gui_excepthook()`. This function allows to modify the parent dynamically
+  even after decorating a function with `add_gui_excepthook()`.
   """
   global _gui_excepthook_parent
   

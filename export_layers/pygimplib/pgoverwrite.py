@@ -56,9 +56,8 @@ class OverwriteChooser(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     Parameters:
     
-    * `filepath` - File path that conflicts with an existing file.
-      This class uses the file path to simply display it to the user. Defaults
-      to `None`.
+    * `filepath` - File path that conflicts with an existing file. This class
+      uses the file path to simply display it to the user. Defaults to `None`.
     """
     pass
 
@@ -97,8 +96,8 @@ class InteractiveOverwriteChooser(
     `values_and_display_names` list.
   
   * `default_response` - Default value to return if the user made a choice that
-    returns a value not in `values_and_display_names`. `default_response`
-    does not have to be any of the values in `values_and_display_names`.
+    returns a value not in `values_and_display_names`. `default_response` does
+    not have to be any of the values in `values_and_display_names`.
   
   * `is_apply_to_all` (read-only) - Whether the user-made choice applies to the
     current file (`False`) or to the current and all subsequent files (`True`).
@@ -158,7 +157,7 @@ def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
   
   If the overwrite mode indicates that the file path should be renamed and
   `uniquifier_position` is not `None`, the `uniquifier_position` specifies where
-  in the file path to insert a unique substring (" (number)"). By default, the
+  in the file path to insert a unique substring (`" (number)"`). By default, the
   uniquifier is inserted at the end of the file path to be renamed.
   
   Returns:
@@ -191,8 +190,10 @@ class OverwriteModes(object):
   
   `SKIP` should be used if a file path already exists and no action should be
   taken.
+  
   `DO_NOTHING` should be used if a file path does not exist and no action should
   be taken.
+  
   `CANCEL` should be used if the user terminated the overwrite chooser (e.g.
   closed the overwrite dialog when an interactive chooser is used).
   """

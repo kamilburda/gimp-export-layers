@@ -95,9 +95,9 @@ class LayerExporter(object):
     instance being currently exported.
   
   * `operation_executor` - `pgoperations.OperationExecutor` instance to manage
-    operations applied on layers. This property is not `None` only during the
-    `export()` method and can be used to modify the execution of operations
-    while processing layers.
+    operations applied on layers. This property is not `None` only during
+    `export()` and can be used to modify the execution of operations while
+    processing layers.
   """
   
   def __init__(
@@ -257,12 +257,12 @@ class LayerExporter(object):
   def add_procedure(self, *args, **kwargs):
     """
     Add a procedure to be executed during `export()`. The signature is the same
-    as for the `pgoperations.OperationExecutor.add` method.
+    as for `pgoperations.OperationExecutor.add()`.
     
     Procedures added by this method are placed before procedures added by
-    `operations.add`.
+    `operations.add()`.
     
-    Unlike `operations.add`, procedures added by this method do not act as
+    Unlike `operations.add()`, procedures added by this method do not act as
     settings, i.e. they are merely functions without GUI, are not saved
     persistently and are always enabled.
     """
@@ -272,10 +272,9 @@ class LayerExporter(object):
     """
     Add a constraint to be applied during `export()`. The first argument is the
     function to act as a filter (returning `True` or `False`). The rest of the
-    signature is the same as for the `pgoperations.OperationExecutor.add`
-    method.
+    signature is the same as for `pgoperations.OperationExecutor.add()`.
     
-    For more information, see `add_procedure.`
+    For more information, see `add_procedure()`.
     """
     return self._initial_operation_executor.add(
       _get_constraint_func(func), *args, **kwargs)
@@ -283,15 +282,14 @@ class LayerExporter(object):
   def remove_operation(self, *args, **kwargs):
     """
     Remove an operation originally scheduled to be executed during `export()`.
-    The signature is the same as for the `pgoperations.OperationExecutor.remove`
-    method.
+    The signature is the same as for `pgoperations.OperationExecutor.remove()`.
     """
     self._initial_operation_executor.remove(*args, **kwargs)
   
   def reorder_operation(self, *args, **kwargs):
     """
     Reorder an operation to be executed during `export()`. The signature is the
-    same as for the `pgoperations.OperationExecutor.reorder` method.
+    same as for `pgoperations.OperationExecutor.reorder()`.
     """
     self._initial_operation_executor.reorder(*args, **kwargs)
   

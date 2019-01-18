@@ -17,7 +17,7 @@
 """
 This module defines setting sources - the means to load and save settings:
 * persistently
-* "session-persistently" - i.e. settings persist during one GIMP session
+* session-wide - settings persist during one GIMP session
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -46,14 +46,12 @@ from ._pgsettingsources_errors import *
 class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
   """
   This class provides an interface for reading and writing settings to
-  permanent or semi-permanent sources.
-  
-  For easier usage, use the `SettingPersistor` class instead.
+  setting sources. For easier usage, use the `SettingPersistor` class instead.
   
   Attributes:
   
-  * `_settings_not_found` - List of settings not found in source when the
-    `read()` method is called.
+  * `_settings_not_found` - List of settings not found in the source when
+    `read()` is called.
   """
   
   def __init__(self):
@@ -154,8 +152,8 @@ class SessionPersistentSettingSource(SettingSource):
   This class reads settings from/writes settings to a source that persists
   during one GIMP session.
   
-  GIMP shelf is used as the session-persistent source and contains the
-  name and last used value of each setting.
+  Internally, the GIMP shelf is used as the session-wide source and contains the
+  name and the last used value of each setting.
   
   Attributes:
   
@@ -209,7 +207,7 @@ class PersistentSettingSource(SettingSource):
     """
     Raises:
     
-    * `SettingsNotFoundInSourceError` - see the `SettingSource` class.
+    * `SettingsNotFoundInSourceError` - See the `SettingSource` class.
     
     * `SettingSourceNotFoundError` - Could not find the specified source.
     
@@ -272,8 +270,8 @@ class PersistentSettingSource(SettingSource):
   
   def _to_dict(self, settings):
     """
-    Format the setting name and value to a dict, which the `pickle` module can
-    properly serialize and de-serialize.
+    Format the setting name and value to a dict that can be serialized by the
+    `pickle` module.
     """
     settings_dict = collections.OrderedDict()
     for setting in settings:

@@ -25,8 +25,8 @@ Each element of the list is a tuple:
 The file save procedure can be used for multiple purposes, such as:
 * checking that the corresponding file format plug-in is installed,
 * using that save procedure instead of the default save procedure
-  (`pdb.gimp_file_save`, which invokes the correct file save procedure based on
-  the file extension of the filename).
+  (`pdb.gimp_file_save()`, which invokes the correct file save procedure based
+  on the file extension of the filename).
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -45,7 +45,7 @@ def get_save_procedure(file_extension):
   Return the file save procedure for the given file extension. If the file
   extension is invalid or does not have a specific save procedure defined,
   return the default save procedure (as returned by
-  `get_default_save_procedure`).
+  `get_default_save_procedure()`).
   """
   if file_extension in file_formats_dict:
     file_format = file_formats_dict[file_extension]

@@ -179,8 +179,8 @@ class SettingPersistor(object):
   
   @staticmethod
   def _list_settings(settings_or_groups):
-    # Put all settings into one list so that the `read()` and `write()` methods
-    # are invoked only once per each source.
+    # Put all settings into one list so that `read()` and `write()` are invoked
+    # only once per each source.
     settings = []
     for setting_or_group in settings_or_groups:
       if isinstance(setting_or_group, collections.Iterable):

@@ -188,7 +188,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     unique among all other, already uniquified `_ItemTreeElement` objects.
     
     To achieve uniquification, a string ("uniquifier") in the form of
-    " (<number>)" is inserted at the end of the item names.
+    `" (<number>)"` is inserted at the end of the item names.
     
     Parameters:
     
@@ -528,8 +528,7 @@ class _ItemTreeElement(object):
     """
     Set file extension in the `name` attribute.
     
-    For more information, see the
-    `pgpath.get_filename_with_new_file_extension()` method.
+    For more information, see `pgpath.get_filename_with_new_file_extension()`.
     """
     self.name = pgpath.get_filename_with_new_file_extension(
       self.name, file_extension, keep_extra_trailing_periods)
@@ -550,10 +549,12 @@ class _ItemTreeElement(object):
     its parents.
     
     If `include_item_path` is `True`, create file path in the following format:
-    <directory path>/<item path components>/<item name>
+      
+      <directory path>/<item path components>/<item name>
     
     If `include_item_path` is `False`, create file path in the following format:
-    <directory path>/<item name>
+      
+      <directory path>/<item name>
     
     If the directory path is not an absolute path or is `None`, prepend the
     current working directory.

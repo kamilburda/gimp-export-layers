@@ -49,8 +49,8 @@ class PopupHideContext(object):
     
     * `popup_owner_widget` - A `gtk.Widget` instance that spawned the popup.
     
-    * `hide_callback` - A function to hide the popup. If `None`, the
-      `popup_to_hide.hide()` method is used to hide the popup.
+    * `hide_callback` - A function to hide the popup. If `None`,
+      `popup_to_hide.hide()` is used to hide the popup.
     """
     self._popup_to_hide = popup_to_hide
     self._popup_owner_widget = popup_owner_widget

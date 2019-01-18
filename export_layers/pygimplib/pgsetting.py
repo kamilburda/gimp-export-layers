@@ -96,9 +96,9 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     sync.
   
   Settings can contain event handlers that are triggered when a setting property
-  changes, e.g. `value` (when `set_value()` method is called). This way, for
-  example, other settings can be updated automatically according to the new
-  value of the modified setting.
+  changes, e.g. `value` (when `set_value()` is called). This way, for example,
+  other settings can be updated automatically according to the new value of the
+  modified setting.
 
   The following specific event types are invoked for settings:
   
@@ -118,28 +118,28 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     * `"after-set-gui"` - invoked after `set_gui()` is called.
     
     * `"before-load"` - invoked before loading a setting via
-      `pgsettingpersistor.SettingPersistor.load`.
+      `pgsettingpersistor.SettingPersistor.load()`.
     
     * `"after-load"` - invoked after loading a setting via
-      `pgsettingpersistor.SettingPersistor.load`. Events will not be invoked
+      `pgsettingpersistor.SettingPersistor.load()`. Events will not be invoked
       if loading settings failed (i.e. `SettingPersistor` returns `READ_FAIL`
       status). Events will be invoked for all settings, even if some of them
       were not found in setting sources (i.e. `SettingPersistor` returns
       `NOT_ALL_SETTINGS_FOUND` status).
     
     * `"before-save"` - invoked before saving a setting via
-    `pgsettingpersistor.SettingPersistor.save`.
+    `pgsettingpersistor.SettingPersistor.save()`.
     
     * `"after-save"` - invoked after saving a setting via
-      `pgsettingpersistor.SettingPersistor.save`. Events will not be invoked
+      `pgsettingpersistor.SettingPersistor.save()`. Events will not be invoked
       if saving settings failed (i.e. `SettingPersistor` returns `SAVE_FAIL`
       status).
     
     * `"before-load-group"` - invoked before loading settings in a group via
-      `SettingGroup.load`.
+      `SettingGroup.load()`.
     
     * `"after-load-group"` - invoked after loading settings in a group via
-      `SettingGroup.load`. This is useful if the group contains settings with
+      `SettingGroup.load()`. This is useful if the group contains settings with
       different setting sources so that the event is invoked only once after
       all settings from different sources are loaded. This also applies to
       other related events (`"before-load-group"`, `"before-save-group"`,
@@ -163,12 +163,12 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
   
   * `name` (read-only) - A name (string) that uniquely identifies the setting.
   
-  * `value` (read-only) - The setting value. To set the value, call the
-    `set_value()` method. `value` is initially set to `default_value`.
+  * `value` (read-only) - The setting value. To set the value, call
+    `set_value()`. `value` is initially set to `default_value`.
   
   * `default_value` (read-only) - Default value of the setting assigned upon its
-    initialization or after the `reset()` method is called. If not specified or
-    if `DEFAULT_VALUE` is passed explicitly, a default value is assigned
+    initialization or after `reset()` is called. If not specified or if
+    `DEFAULT_VALUE` is passed explicitly, a default value is assigned
     automatically. The value depends on the particular setting subclass. This
     class uses `None` as the default value. Note that it is still a good
     practice to specify default values explicitly.
@@ -247,8 +247,8 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
       allowed PDB types are defined for that subclass, the setting cannot be
       registered (`None` is assigned).
     
-    * `gui_type` - Type of GUI element to be created by the `set_gui` method.
-      Use the `SettingGuiTypes` enum to specify the desired GUI type.
+    * `gui_type` - Type of GUI element to be created by `set_gui()`. Use the
+      members of the `SettingGuiTypes` class to specify the desired GUI type.
     
       If `gui_type` is `SettingGuiTypes.automatic`, choose the first GUI type
       from the list of allowed GUI type for the corresponding `Setting`
@@ -261,13 +261,13 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
       
       If the `gui_type` is `None`, no GUI is created for this setting.
     
-    * `allow_empty_values` - If `False` and an empty value is passed to the
-      `set_value` method, then the value is considered invalid. Otherwise, the
-      value is considered valid.
+    * `allow_empty_values` - If `False` and an empty value is passed to
+      `set_value()`, then the value is considered invalid. Otherwise, the value
+      is considered valid.
     
     * `auto_update_gui_to_setting` - If `True`, automatically update the setting
       value if the GUI value is updated. If `False`, the setting must be updated
-      manually by calling `Setting.gui.update_setting_value` when needed.
+      manually by calling `Setting.gui.update_setting_value()` when needed.
       
       This parameter does not have any effect if the GUI type used in
       this setting cannot provide automatic GUI-to-setting update.
@@ -384,8 +384,8 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
   
   def get_path(self, relative_path_setting_group=None):
     """
-    This is a wrapper method for `pgsettingutils.get_setting_path`. Consult the
-    method for more information.
+    This is a wrapper method for `pgsettingutils.get_setting_path()`. Consult
+    the method for more information.
     """
     return pgsettingutils.get_setting_path(self, relative_path_setting_group)
   
@@ -463,7 +463,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
       allowed GUI types specified in the setting.
       
       If `gui_type` is `SettingGuiTypes.automatic`, create a GUI object of the
-      type specified in the `gui_type` parameter in `__init__`.
+      type specified in the `gui_type` parameter in `__init__()`.
       
       To specify an existing GUI element, pass a specific `gui_type` and the
       GUI element in `gui_element`. This is useful if you wish to use the GUI
@@ -479,7 +479,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
       `None`, raise `ValueError`.
     
     * `auto_update_gui_to_setting` - See `auto_update_gui_to_setting` parameter
-      in `__init__`.
+      in `__init__()`.
     """
     if gui_type != SettingGuiTypes.automatic and gui_element is None:
       raise ValueError("gui_element cannot be None if gui_type is automatic")
@@ -507,7 +507,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
   def load(self, setting_sources=None):
     """
     Load setting value from the specified setting source(s). See
-    `pgsettingpersistor.SettingPersistor.load` for more information about
+    `pgsettingpersistor.SettingPersistor.load()` for more information about
     setting sources.
     
     If `setting_sources` is `None`, use the default setting sources. If
@@ -525,7 +525,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
   def save(self, setting_sources=None):
     """
     Save setting value to the specified setting source(s). See
-    `pgsettingpersistor.SettingPersistor.save` for more information about
+    `pgsettingpersistor.SettingPersistor.save()` for more information about
     setting sources.
     
     If `setting_sources` is `None`, use the default setting sources. If
@@ -1446,8 +1446,8 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
   This class is an abstract class for string settings which are meant to be
   validated with one of the `pgpath.StringValidator` subclasses.
   
-  To determine whether the string is valid, the `is_valid()` method from the
-  subclass being used is called.
+  To determine whether the string is valid, `is_valid()` from the corresponding
+  subclass is called.
   
   Allowed GIMP PDB types:
   
@@ -1457,9 +1457,9 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
   
   This class contains empty messages for error statuses from
   the specified `pgpath.StringValidator` subclass. Normally, if the value
-  (string) assigned is invalid, status messages returned from `is_valid()`
-  are used. If desired, you may fill the error messages with custom messages
-  which override the status messages from the method. See
+  (string) assigned is invalid, status messages returned from `is_valid()` are
+  used. If desired, you may fill the error messages with custom messages which
+  override the status messages from the method. See
   `pgpath.FileValidatorErrorStatuses` for available error statuses.
   """
   
@@ -1501,8 +1501,8 @@ class FileExtensionSetting(ValidatableStringSetting):
   """
   This setting class can be used for file extensions.
   
-  `pgpath.FileExtensionValidator` subclass is used to determine whether the file
-  extension is valid.
+  The `pgpath.FileExtensionValidator` subclass is used to determine whether the
+  file extension is valid.
   
   Allowed GIMP PDB types:
   
@@ -1524,8 +1524,8 @@ class DirpathSetting(ValidatableStringSetting):
   """
   This setting class can be used for directory paths.
   
-  `pgpath.DirpathValidator` subclass is used to determine whether the directory
-  path is valid.
+  The `pgpath.DirpathValidator` subclass is used to determine whether the
+  directory path is valid.
   
   Allowed GIMP PDB types:
   

@@ -89,7 +89,7 @@ def stringify_object(object_, name):
   """
   Return a string representation of the specified object, using the specified
   name as a presumed unique identifier of the object. This can be used in the
-  `__str__` method to return a more readable string representation than the
+  `__str__()` method to return a more readable string representation than the
   default.
   """
   return "<{} '{}'>".format(type(object_).__name__, name)

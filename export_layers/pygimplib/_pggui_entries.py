@@ -125,8 +125,8 @@ class ExtendedEntry(gtk.Entry):
   
   def _do_assign_text(self, text, enable_undo=False):
     """
-    Use this method to set text instead of `assign_text` if it is not desired to
-    handle placeholder text assignment.
+    Use this method to set text instead of `assign_text()` if it is not desired
+    to handle placeholder text assignment.
     """
     if self._popup is not None:
       self._popup.trigger_popup = False

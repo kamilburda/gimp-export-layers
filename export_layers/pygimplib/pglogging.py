@@ -60,31 +60,31 @@ def log_output(
   
   Parameters:
   
-  * `log_mode` - log mode. Possible values:
+  * `log_mode` - The log mode. Possible values:
     
-    * LOG_NONE - do not log anything.
-    * LOG_EXCEPTIONS_ONLY - only log exceptions to the error log file.
-    * LOG_OUTPUT_FILES - redirect `stdout` and `stderr` to log files.
-    * LOG_OUTPUT_GIMP_CONSOLE - redirect `stdout` and `stderr` to the GIMP error
+    * LOG_NONE - Do not log anything.
+    * LOG_EXCEPTIONS_ONLY - Only log exceptions to the error log file.
+    * LOG_OUTPUT_FILES - Redirect `stdout` and `stderr` to log files.
+    * LOG_OUTPUT_GIMP_CONSOLE - Redirect `stdout` and `stderr` to the GIMP error
       console.
   
-  * `log_dirpaths` - list of directory paths for log files. If the first
-    path is invalid or permission to write is denied, subsequent directories are
-    used. For `LOG_OUTPUT_GIMP_CONSOLE` mode, this parameter has no effect.
+  * `log_dirpaths` - List of directory paths for log files. If the first path is
+    invalid or permission to write is denied, subsequent directories are used.
+    For the `LOG_OUTPUT_GIMP_CONSOLE` mode, this parameter has no effect.
   
-  * `log_stdout_filename` - filename of the log file to write standard output
-    to. Applies to `LOG_OUTPUT_FILES` mode only.
+  * `log_stdout_filename` - Filename of the log file to write standard output
+    to. Applies to the `LOG_OUTPUT_FILES` mode only.
   
-  * `log_stderr_filename` - filename of the log file to write error output to.
-    Applies to `LOG_EXCEPTIONS_ONLY` and `LOG_OUTPUT_FILES` modes only.
+  * `log_stderr_filename` - Filename of the log file to write error output to.
+    Applies to the `LOG_EXCEPTIONS_ONLY` and `LOG_OUTPUT_FILES` modes only.
   
-  * `log_header_title` - optional title in the log header, written before the
-    first output to the log files. Applies to `LOG_EXCEPTIONS_ONLY` and
+  * `log_header_title` - Optional title in the log header, written before the
+    first output to the log files. Applies to the `LOG_EXCEPTIONS_ONLY` and
     `LOG_OUTPUT_FILES` modes only.
   
-  * `gimp_console_message_delay_milliseconds` - delay to display messages to the
-    GIMP console in milliseconds. Only applies to the `LOG_OUTPUT_GIMP_CONSOLE`
-    log mode.
+  * `gimp_console_message_delay_milliseconds` - The delay to display messages to
+    the GIMP console in milliseconds. Only applies to the
+    `LOG_OUTPUT_GIMP_CONSOLE` mode.
   """
   _restore_orig_state(log_mode)
   
@@ -220,9 +220,10 @@ class SimpleLogger(object):
 class Tee(object):
   """
   This class copies `stdout` or `stderr` output to a specified file,
-  much like the Unix "tee" command.
+  much like the Unix `tee` command.
   
-  This class acts as a file-like object containing `write` and `flush` methods.
+  This class acts as a file-like object containing the `write()` and `flush()`
+  methods.
   
   Attributes:
   
@@ -241,7 +242,7 @@ class Tee(object):
     * `file_` - File or file-like object to write to.
     
     * `start` - If `True`, start `Tee` upon instantiation. To start later, pass
-      `start=False` and call the `start()` method when desired.
+      `start=False` and call `start()` when desired.
     
     * `flush_output` - If `True`, flush output after each write.
     """

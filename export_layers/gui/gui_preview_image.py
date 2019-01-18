@@ -75,7 +75,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   
   Signals:
   
-  * `"preview-updated"` - The preview was updated by calling `update`. This
+  * `"preview-updated"` - The preview was updated by calling `update()`. This
     signal is not emitted if the update is locked.
     
     Arguments:
@@ -89,7 +89,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     
     Arguments:
     
-    * `automatic` - See `set_automatic_update` for more information.
+    * `automatic` - See `set_automatic_update()` for more information.
   """
   
   __gsignals__ = {
@@ -259,12 +259,12 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
   
   def set_automatic_update(self, automatic=True):
     """
-    If `automatic` is `False`, lock `update` and allow only manual updates via a
-    button within the preview.
+    If `automatic` is `False`, lock `update()` and allow only manual updates via
+    a button within the preview.
     
-    If `automatic` is `True`, call `update` and hide the button for the manual
-    update. Calls to `update` properly updates the preview, provided that the
-    update is not locked by calls to `lock_update`.
+    If `automatic` is `True`, call `update()` and hide the button for the manual
+    update. Calls to `update()` properly updates the preview, provided that the
+    update is not locked by calls to `lock_update()`.
     
     The key used to lock the preview for manual update is `_MANUAL_UPDATE_LOCK`.
     This key should not be directly used outside this class to lock the preview.

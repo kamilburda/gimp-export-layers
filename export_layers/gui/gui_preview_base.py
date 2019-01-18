@@ -41,7 +41,7 @@ class ExportPreview(gtk.VBox):
   
   def update(self):
     """
-    Update the export preview if update is not locked (see `lock_update`).
+    Update the export preview if update is not locked (see `lock_update()`).
     """
     if self._update_locked:
       return True
@@ -83,7 +83,7 @@ class ExportPreview(gtk.VBox):
   def add_function_at_update(self, func, *func_args, **func_kwargs):
     """
     Add a function to a list of functions to execute at the beginning of
-    `update`.
+    `update()`.
     
     The functions will be executed in the order in which they were added and
     only if the preview is unlocked. This is useful to postpone execution of

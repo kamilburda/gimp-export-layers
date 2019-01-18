@@ -49,27 +49,28 @@ class OperationBox(pggui.ItemBox):
   (item) displayed in the box.
   
   The box connects events to the passed operations that keeps the operations and
-  the box in sync. For example, when adding an operation via `operations.add`,
+  the box in sync. For example, when adding an operation via `operations.add()`,
   the item for the operation is automatically added to the box. Conversely, when
-  calling `add_item` from this class, both the operation and the item are added
-  to the operations and the GUI, respectively.
+  calling `add_item()` from this class, both the operation and the item are
+  added to the operations and the GUI, respectively.
   
   Signals:
   
-  * `"operation-box-item-added"` - An item was added via `add_item`.
+  * `"operation-box-item-added"` - An item was added via `add_item()`.
     
     Arguments:
     
     * `item` - The added item.
     
-  * `"operation-box-item-reordered"` - An item was reordered via `reorder_item`.
+  * `"operation-box-item-reordered"` - An item was reordered via
+    `reorder_item()`.
     
     Arguments:
     
     * `item` - The reordered item.
     * `new_position` - The new position of the reordered item (starting from 0).
     
-  * `"operation-box-item-removed"` - An item was removed via `remove_item`.
+  * `"operation-box-item-removed"` - An item was removed via `remove_item()`.
     
     Arguments:
     

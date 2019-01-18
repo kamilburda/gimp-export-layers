@@ -124,7 +124,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     
     self._settings = collections.OrderedDict()
     
-    # Used in the `_next()` method
+    # Used in `_next()`
     self._settings_iterator = None
   
   @property
@@ -207,8 +207,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     """
     Iterate over settings in the order they were created or added.
     
-    This method does not iterate over nested groups. Use `walk()` in that
-    case.
+    This method does not iterate over nested groups. Use `walk()` in that case.
     """
     for setting in self._settings.values():
       yield setting
@@ -218,8 +217,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
   
   def get_path(self, relative_path_setting_group=None):
     """
-    This is a wrapper method for `pgsettingutils.get_setting_path`. Consult the
-    method for more information.
+    This is a wrapper method for `pgsettingutils.get_setting_path()`. Consult
+    the method for more information.
     """
     return pgsettingutils.get_setting_path(self, relative_path_setting_group)
   
@@ -529,8 +528,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     (e.g. some settings within this group having their own setting sources),
     loading is performed for each combination separately.
     
-    Return the status and the status message as per the
-    `pgsettingpersistor.SettingPersistor.load()` method. For multiple
+    Return the status and the status message as per
+    `pgsettingpersistor.SettingPersistor.load()`. For multiple
     combinations of setting sources, return the "worst" status
     (from the "best" to the "worst": `SUCCESS`, `NOT_ALL_SETTINGS_FOUND`,
     `READ_FAIL` or `WRITE_FAIL`) and a status message containing status messages
@@ -550,10 +549,10 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
   def save(self, setting_sources=None):
     """
     Save all settings in this group. Ignore settings with the `"ignore_save"`
-    tag. Return the status and the status message as per the
-    `pgsettingpersistor.SettingPersistor.save()` method.
+    tag. Return the status and the status message as per
+    `pgsettingpersistor.SettingPersistor.save()`.
     
-    For more information, refer to the `load()` method.
+    For more information, see `load()`.
     """
     return self._load_save_group(
       "ignore_save",
@@ -637,8 +636,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     GUI initialized using the `custom_gui` dict. `custom_gui` contains
     (setting name, list of arguments to `pgsetting.Setting.set_gui`) pairs. The
     "enable GUI update?" boolean in the list is optional and defaults to `True`.
-    For more information about parameters in the list, see the `Setting.set_gui`
-    method.
+    For more information about parameters in the list, see `Setting.set_gui()`.
     
     Example:
     
@@ -701,8 +699,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
 
 class SettingGroupWalkCallbacks(object):
   """
-  This class defines callbacks called during the `SettingGroup.walk()` method.
-  By default, the callbacks do nothing.
+  This class defines callbacks called during `SettingGroup.walk()`. By default,
+  the callbacks do nothing.
   
   `on_visit_setting` is called before the current `Setting` object is yielded.
   `on_visit_group` is called before the current `SettingGroup` object is

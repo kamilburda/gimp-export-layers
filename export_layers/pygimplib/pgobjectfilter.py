@@ -29,7 +29,7 @@ import contextlib
 class ObjectFilter(object):
   """
   This class is a filter containing a set of rules that determines whether
-  a given object matches the rules or not (using the `is_match()` method).
+  a given object matches the rules or not (using `is_match()`).
   
   Attributes:
   
@@ -73,16 +73,15 @@ class ObjectFilter(object):
     
     If `rule_func` already exists in the filter, do nothing.
     
-    If you need to later remove the rule from the filter (using the
-    `remove_rule()` method), pass a named function rather than an inline lambda
+    If you need to later remove the rule from the filter (using
+    `remove_rule()`), pass a named function rather than an inline lambda
     expression. Alternatively, you can use `add_rule_temp()` for temporary
     filters.
     
     Parameters:
     
     * `rule_func` - Function to filter objects by. The function must always have
-      at least one argument - the object to match (used by the `is_match()`
-      method).
+      at least one argument - the object to match (used by `is_match()`).
     
     * `*rule_func_args` - Arguments for the `rule_func` function.
     
@@ -147,8 +146,7 @@ class ObjectFilter(object):
     Parameters:
     
     * `rule_func` - Function to filter objects by. The function must always have
-      at least one argument - the object to match (used by the `is_match()`
-      method).
+      at least one argument - the object to match (used by `is_match()`).
     
     * `*rule_func_args` - Arguments for the `rule_func` function.
     
@@ -209,7 +207,7 @@ class ObjectFilter(object):
     """
     Add the specified subfilter (`ObjectFilter` instance) to the filter.
     
-    The subfilter can be later accessed by the `get_subfilter` method.
+    The subfilter can be later accessed by `get_subfilter()`.
     
     Raises:
     

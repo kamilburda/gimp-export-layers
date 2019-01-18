@@ -49,9 +49,11 @@ def uniquify_string(
   
   * `existing_strings` - List of strings to compare against `str_`.
   
-  * `uniquifier_position` - See `uniquify_string_generic.uniquifier_position`.
+  * `uniquifier_position` - See the `uniquifier_position` parameter in
+    `uniquify_string_generic()` for more information.
   
-  * `uniquifier_generator` - See `uniquify_string_generic.uniquifier_generator`.
+  * `uniquifier_generator` - See the `uniquifier_generator` parameter in
+    `uniquify_string_generic()`.
   """
   return uniquify_string_generic(
     str_,
@@ -68,9 +70,11 @@ def uniquify_filepath(filepath, uniquifier_position=None, uniquifier_generator=N
   
   * `filepath` - File path to uniquify.
   
-  * `uniquifier_position` - See `uniquify_string_generic.uniquifier_position`.
+  * `uniquifier_position` - See the `uniquifier_position` parameter in
+    `uniquify_string_generic()` for more information.
   
-  * `uniquifier_generator` - See `uniquify_string_generic.uniquifier_generator`.
+  * `uniquifier_generator` - See the `uniquifier_generator` parameter in
+    `uniquify_string_generic()`.
   """
   return uniquify_string_generic(
     filepath,
@@ -624,7 +628,7 @@ class FilenameValidator(StringValidator):
     
     * do not contain the following special characters:
       
-      <>:"/\|?*
+        <>:"/\|?*
     
     * do not start or end with spaces
     
@@ -696,9 +700,9 @@ class FilenameValidator(StringValidator):
     Validate the specified filename by removing invalid characters.
     
     If the filename is one of the reserved names for the Windows platform,
-    append " (1)" to the filename (before the file extension if it has one).
+    append `" (1)"` to the filename (before the file extension if it has one).
     
-    If the filename is truncated to an empty string, return "Untitled".
+    If the filename is truncated to an empty string, return `"Untitled"`.
     """
     filename = re.sub(cls._INVALID_CHARS_PATTERN, "", filename).strip(" ").rstrip(".")
     
@@ -721,10 +725,10 @@ class FilepathValidator(StringValidator):
   The same validation rules that apply to filenames in the `FilenameValidator`
   class apply to file paths in this class, with the following exceptions:
     
-    * "/" and "\" characters are allowed
+    * `/` and `\` characters are allowed
     
-    * ":" character is allowed to appear at the root level only (as a part of a
-      drive letter, e.g. "C:\")
+    * `:` character is allowed to appear at the root level only (as a part of a
+      drive letter, e.g. `"C:\"`)
   """
   
   _INVALID_CHARS = r"\x00-\x1f\x7f-\x9f<>\"|?*"
@@ -873,7 +877,7 @@ class FileExtensionValidator(StringValidator):
     
     * do not contain the following special characters:
       
-      <>:"/\|?*
+        <>:"/\|?*
     
     * do not end with spaces or periods
   """

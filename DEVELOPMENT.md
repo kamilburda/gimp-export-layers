@@ -146,7 +146,8 @@ Use single quotes:
 * in element names in non-user messages (to be consistent with e.g. Python exception messages),
 * in any string containing double quotes (to avoid inserting backslashes).
 
-Use backquotes in element names in comments and docstrings.
+In comments and docstrings, wrap element names in backquotes.
+Format function and method names as `function()`.
 
 
 ### Naming
@@ -294,7 +295,8 @@ Use the following format for commit messages*:
 * Begin the header with a capital letter*.
 * Be concise. Limit the message to the first line unless further explanation is required.
 * Wrap the message body in 72 characters*.
-* Enclose element names with backquotes.
+* Wrap element names with backquotes.
+* Format function and method names as `function()`.
 
 
 #### Scope

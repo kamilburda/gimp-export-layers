@@ -250,14 +250,14 @@ def _setup_image_ids_and_directories_and_initial_directory(
     1. Last export directory path of the current image
     2. Import directory path of the current image
     3. Last export directory path of any image (i.e. the current value of
-       "main/output_directory")
-    4. The default directory path (default value) for "main/output_directory"
+       `"main/output_directory"`)
+    4. The default directory path (default value) for `"main/output_directory"`
   
   Notes:
   
-    Directory 3. is set upon loading "main/output_directory" from a persistent
+    Directory 3. is set upon loading `"main/output_directory"` from a persistent
     source.
-    Directory 4. is set upon the instantiation of "main/output_directory".
+    Directory 4. is set upon the instantiation of `"main/output_directory"`.
   """
   settings["gui_session/image_ids_and_directories"].update_image_ids_and_dirpaths()
   

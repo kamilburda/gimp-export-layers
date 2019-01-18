@@ -70,7 +70,7 @@ def create_image_from_metadata(image_to_copy_metadata_from):
   copied from `image_to_copy_metadata_from`.
   
   Layers, channels or paths are not copied. For a full image copy, use
-  `pdb.gimp_image_duplicate`.
+  `pdb.gimp_image_duplicate()`.
   """
   image = image_to_copy_metadata_from
   
@@ -428,7 +428,7 @@ class GimpMessageFile(object):
   Parameters:
   
   * `message_handler` - Handler to which messages are output. Possible values
-    are the same as for the `pdb.gimp_message_get_handler()` procedure.
+    are the same as for `pdb.gimp_message_get_handler()`.
   
   * `message_prefix` - If not `None`, prepend this string to each message.
   
@@ -489,7 +489,7 @@ def suppress_gimp_progress():
   """
   Prevent the default progress bar in GIMP from updating by installing a dummy
   progress callback. Subsequent calls to this function without a matching call
-  to `unsuppress_gimp_progress` have no effect.
+  to `unsuppress_gimp_progress()` have no effect.
   """
   global _dummy_progress_callback
   
@@ -503,8 +503,8 @@ def suppress_gimp_progress():
 def unsuppress_gimp_progress():
   """
   Undo suppression of the default progress bar in GIMP caused by calling
-  `suppress_gimp_progress`. Calling this function before calling
-  `suppress_gimp_progress` has no effect.
+  `suppress_gimp_progress()`. Calling this function before calling
+  `suppress_gimp_progress()` has no effect.
   """
   global _dummy_progress_callback
   

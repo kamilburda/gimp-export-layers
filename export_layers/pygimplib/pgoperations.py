@@ -76,7 +76,7 @@ class OperationExecutor(object):
         foreach=False,
         ignore_if_exists=False):
     """
-    Add an operation to be executed by `execute`. Return the ID of the newly
+    Add an operation to be executed by `execute()`. Return the ID of the newly
     added operation.
     
     An operation can be:
@@ -97,8 +97,7 @@ class OperationExecutor(object):
     operation will not be added to the default group if it does not exist.
     
     The operation is added at the end of the list of operations in the specified
-    group(s). To modify the order of the added operation, use the `reorder`
-    method.
+    group(s). To modify the order of the added operation, call `reorder()`.
     
     If `foreach` is `True` and the operation is a function, the operation is
     treated as a "for-each" operation. By default, a for-each operation is
@@ -112,7 +111,7 @@ class OperationExecutor(object):
         yield
         print("baz")
     
-    first prints "bar", then executes the operation and finally prints "baz".
+    first prints `bar`, then executes the operation and finally prints `baz`.
     Multiple `yield` statements can be specified to execute the wrapped
     operation multiple times.
     
@@ -129,8 +128,8 @@ class OperationExecutor(object):
         yield
         print("baz2")
     
-    will print "bar1", "bar2", then execute the operation (only once), and then
-    print "baz1" and "baz2".
+    will print `bar1`, `bar2`, then execute the operation (only once), and then
+    print `baz1` and `baz2`.
     
     To make an `OperationExecutor` instance behave as a for-each operation, wrap
     the instance in a function as shown above. For example:
@@ -192,9 +191,9 @@ class OperationExecutor(object):
     
     Additional arguments and keyword arguments to all operations in the group
     are given by `additional_args` and `additional_kwargs`, respectively.
-    If some keyword arguments appear in both the `kwargs` parameter in the `add`
-    method and in `additional_kwargs`, values from the latter override the
-    values in the former.
+    If some keyword arguments appear in both the `kwargs` parameter in `add()`
+    and in `additional_kwargs`, values from the latter override the values in
+    the former.
     
     `additional_args` are appended to the argument list by default. Specify
     `additional_args_position` as an integer to change the insertion position of
@@ -266,10 +265,10 @@ class OperationExecutor(object):
   def add_to_groups(self, operation_id, groups=None):
     """
     Add an existing operation specified by its ID to the specified groups. For
-    more information about the `groups` parameter, see `add`.
+    more information about the `groups` parameter, see `add()`.
     
     If the operation was already added to one of the specified groups, it will
-    not be added again (use the `add` method for that purpose).
+    not be added again (call `add()` for that purpose).
     
     If the operation ID is not valid, raise `ValueError`.
     """
@@ -284,7 +283,7 @@ class OperationExecutor(object):
     Return `True` if the specified operation exists, `False` otherwise.
     `operation` can be a function or `OperationExecutor` instance.
     
-    For information about the `groups` parameter, see `has_operation`.
+    For information about the `groups` parameter, see `has_operation()`.
     
     If `foreach` is `True`, treat the operation as a for-each operation.
     """
@@ -302,7 +301,7 @@ class OperationExecutor(object):
     Return operation IDs matching the specified operation. `operation` can be a
     function or `OperationExecutor` instance.
     
-    For information about the `groups` parameter, see `has_operation`.
+    For information about the `groups` parameter, see `has_operation()`.
     
     If `foreach` is `True`, treat the operation as a for-each operation.
     """
@@ -326,8 +325,8 @@ class OperationExecutor(object):
   
   def has_operation(self, operation_id, groups=None):
     """
-    Return `True` if the specified ID (returned from the `add` method) belongs
-    to an existing operation in at least one of the specified groups.
+    Return `True` if the specified ID (returned from `add()`) belongs to an
+    existing operation in at least one of the specified groups.
     
     `group` can have one of the following values:
       * `None` or `"default"` - the default group,
@@ -443,7 +442,7 @@ class OperationExecutor(object):
     """
     Remove the operation specified by its ID from the specified groups.
     
-    For information about the `groups` parameter, see `has_operation`.
+    For information about the `groups` parameter, see `has_operation()`.
     
     For existing groups where the operation is not added, do nothing.
     
@@ -478,7 +477,7 @@ class OperationExecutor(object):
     Remove the specified groups and their operations (including for-each
     operations).
     
-    For information about the `groups` parameter, see `has_operation`.
+    For information about the `groups` parameter, see `has_operation()`.
     
     Non-existent groups in `groups` are ignored.
     """

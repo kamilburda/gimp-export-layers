@@ -77,7 +77,7 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     Parameters:
     
     * `element` - A GUI element.
-    
+      
       If `element` is `None`, create a new GUI element automatically. If the
       specific `SettingPresenter` class does not support creating a GUI element,
       pass an existing GUI element.

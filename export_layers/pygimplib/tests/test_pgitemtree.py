@@ -266,11 +266,10 @@ class TestLayerTree(unittest.TestCase):
       ("top-left-corner::::", "top-left-corner (3)")
     ])
     
-    # This is to make the uniquification work properly for these tests. The code
-    # is not inside the `uniquify_names` method because the code that uses this
-    # method may need to uniquify non-empty layer groups in some scenarios
-    # (such as when merging non-empty layer groups into layers, which would not
-    # match the filter).
+    # This is to make uniquification work properly for these tests. The code is
+    # not inside `uniquify_names()` as the code that uses this method may need
+    # to uniquify non-empty layer groups in some scenarios (such as when merging
+    # non-empty layer groups into layers, which would not match the filter).
     self.layer_tree.is_filtered = True
     self.layer_tree.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     

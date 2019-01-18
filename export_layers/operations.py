@@ -27,48 +27,48 @@ Many functions define events invoked on the setting group containing operations.
 These events include:
 
 * `"before-add-operation"` - invoked when:
-  * calling `add` before adding an operation,
-  * calling `SettingGroup.load` or `SettingPersistor.load` before loading an
+  * calling `add()` before adding an operation,
+  * calling `SettingGroup.load()` or `SettingPersistor.load()` before loading an
     operation (loading an operation counts as adding),
-  * calling `clear` before resetting operations (due to initial operations being
-    added back).
+  * calling `clear()` before resetting operations (due to initial operations
+    being added back).
   
   Arguments: operation dictionary to be added
 
 * `"after-add-operation"` - invoked when:
-  * calling `add` after adding an operation,
-  * calling `SettingGroup.load` or `SettingPersistor.load` after loading an
+  * calling `add()` after adding an operation,
+  * calling `SettingGroup.load()` or `SettingPersistor.load()` after loading an
     operation (loading an operation counts as adding),
-  * calling `clear` after resetting operations (due to initial operations being
-    added back).
+  * calling `clear()` after resetting operations (due to initial operations
+    being added back).
   
   Arguments: created operation, original operation dictionary (same as in
   `"before-add-operation"`)
 
-* `"before-reorder-operation"` - invoked when calling `reorder` before
+* `"before-reorder-operation"` - invoked when calling `reorder()` before
   reordering an operation.
   
   Arguments: operation, position before reordering
 
-* `"after-reorder-operation"` - invoked when calling `reorder` after reordering
+* `"after-reorder-operation"` - invoked when calling `reorder()` after reordering
   an operation.
   
   Arguments: operation, position before reordering, new position
 
-* `"before-remove-operation"` - invoked when calling `remove` before removing an
+* `"before-remove-operation"` - invoked when calling `remove()` before removing an
   operation.
   
   Arguments: operation to be removed
 
-* `"after-remove-operation"` - invoked when calling `remove` after removing an
+* `"after-remove-operation"` - invoked when calling `remove()` after removing an
   operation.
   
   Arguments: name of the removed operation
 
-* `"before-clear-operations"` - invoked when calling `clear` before clearing
+* `"before-clear-operations"` - invoked when calling `clear()` before clearing
   operations.
 
-* `"after-clear-operations"` - invoked when calling `clear` after clearing
+* `"after-clear-operations"` - invoked when calling `clear()` after clearing
   operations.
 """
 
@@ -106,13 +106,13 @@ def create(name, initial_operations=None):
   Parameters:
   * `name` - name of the `SettingGroup` instance.
   * `initial_operations` - list of dictionaries describing operations to be
-    added by default. Calling `clear` will reset the operations returned by this
-    function to the initial operations. By default, no initial operations are
-    added.
+    added by default. Calling `clear()` will reset the operations returned by
+    this function to the initial operations. By default, no initial operations
+    are added.
   
   The resulting `SettingGroup` instance contains the following subgroups:
-  * `"added"` - Contains operations added via `add` or created in this function
-    via `initial_operations` dictionary.
+  * `"added"` - Contains operations added via `add()` or created in this
+    function via `initial_operations` dictionary.
   * `"_added_data"` - Operations stored as dictionaries, used when loading or
     saving operations persistently. As indicated by the leading underscore, this
     subgroup is only for internal use and should not be modified outside
@@ -144,7 +144,7 @@ def create(name, initial_operations=None):
   * `"function"` - The function to execute.
   * `"arguments"` - Specified as list of dictionaries defining settings. Each
     dictionary must contain required attributes and can contain optional
-    attributes as stated in `SettingGroup.add`.
+    attributes as stated in `SettingGroup.add()`.
   * `"enabled"`
   * `"display_name"`
   * `"operation_group"`
@@ -449,7 +449,7 @@ def add(operations, operation_dict_or_function):
   Add an operation to the `operations` setting group.
   
   `operation_dict_or_function` can be one of the following:
-  * a dictionary - see `create` for required and accepted fields.
+  * a dictionary - see `create()` for required and accepted fields.
   * a PDB procedure.
   
   Objects of other types passed to `operation_dict_or_function` raise
@@ -489,7 +489,7 @@ def add(operations, operation_dict_or_function):
 def get_operation_dict_for_pdb_procedure(pdb_procedure):
   """
   Return a dictionary representing the specified GIMP PDB procedure that can be
-  added to a setting group for operations via `add`.
+  added to a setting group for operations via `add()`.
   
   The `"function"` field contains the PDB procedure name instead of the function
   itself in order for the dictionary to allow loading/saving to a persistent
@@ -688,7 +688,7 @@ def walk(operations, operation_type=None, setting_name=None):
   
   The value of `operation_type` determines what types of operations to iterate
   over. If `operation_type` is `None`, iterate over all operations. For allowed
-  operation types, see `create`. Invalid values for `operation_type` raise
+  operation types, see `create()`. Invalid values for `operation_type` raise
   `ValueError`.
   
   If `setting_name` is `None`, iterate over each setting group representing the
@@ -697,7 +697,7 @@ def walk(operations, operation_type=None, setting_name=None):
   If `setting_name` is not `None`, iterate over each setting or subgroup inside
   each operation. For example, `"enabled"` yields the `"enabled"` setting for
   each operation. For the list of possible names of settings and subgroups, see
-  `create`.
+  `create()`.
   """
   operation_types = list(_OPERATION_TYPES_AND_FUNCTIONS)
   

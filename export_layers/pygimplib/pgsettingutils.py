@@ -132,8 +132,8 @@ class SettingEventsMixin(object):
   
   def remove_event(self, event_id):
     """
-    Remove the event handler specified by its ID as returned by the
-    `connect_event` method.
+    Remove the event handler specified by its ID as returned by
+    `connect_event()`.
     """
     if event_id not in self._event_handler_ids_and_types:
       raise ValueError("event handler with ID {} does not exist".format(event_id))
