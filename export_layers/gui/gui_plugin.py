@@ -198,14 +198,14 @@ def _set_settings(func):
       self._settings["main/output_directory"].set_value(
         self._settings["gui_session/current_directory"].value)
       
-      self._settings["gui_session/export_name_preview_layers_collapsed_state"].value[
-        self._image.ID] = self._export_name_preview.collapsed_items
+      self._settings["gui_session/name_preview_layers_collapsed_state"].value[
+        self._image.ID] = self._name_preview.collapsed_items
       self._settings["main/selected_layers"].value[
-        self._image.ID] = self._export_name_preview.selected_items
-      self._settings["gui_session/export_image_preview_displayed_layers"].value[
+        self._image.ID] = self._name_preview.selected_items
+      self._settings["gui_session/image_preview_displayed_layers"].value[
         self._image.ID] = (
-          self._export_image_preview.layer_elem.item.ID
-          if self._export_image_preview.layer_elem is not None else None)
+          self._image_preview.layer_elem.item.ID
+          if self._image_preview.layer_elem is not None else None)
     except pgsetting.SettingValueError as e:
       self._display_inline_message(str(e), gtk.MESSAGE_ERROR, e.setting)
       return
@@ -409,16 +409,16 @@ class ExportLayersGui(object):
     _add_gui_settings(self._settings)
     
     settings_plugin.setup_image_ids_and_filepaths_settings(
-      self._settings["gui_session/export_name_preview_layers_collapsed_state"],
-      self._settings["gui_persistent/export_name_preview_layers_collapsed_state"],
+      self._settings["gui_session/name_preview_layers_collapsed_state"],
+      self._settings["gui_persistent/name_preview_layers_collapsed_state"],
       settings_plugin.convert_set_of_layer_ids_to_names,
       [self._layer_exporter_for_previews.layer_tree],
       settings_plugin.convert_set_of_layer_names_to_ids,
       [self._layer_exporter_for_previews.layer_tree])
     
     settings_plugin.setup_image_ids_and_filepaths_settings(
-      self._settings["gui_session/export_image_preview_displayed_layers"],
-      self._settings["gui_persistent/export_image_preview_displayed_layers"],
+      self._settings["gui_session/image_preview_displayed_layers"],
+      self._settings["gui_persistent/image_preview_displayed_layers"],
       settings_plugin.convert_layer_id_to_name,
       [self._layer_exporter_for_previews.layer_tree],
       settings_plugin.convert_layer_name_to_id,
@@ -485,8 +485,8 @@ class ExportLayersGui(object):
     self._hbox_preview_label.pack_start(self._preview_label)
     
     self._vpaned_previews = gtk.VPaned()
-    self._vpaned_previews.pack1(self._export_name_preview, resize=True, shrink=True)
-    self._vpaned_previews.pack2(self._export_image_preview, resize=True, shrink=True)
+    self._vpaned_previews.pack1(self._name_preview, resize=True, shrink=True)
+    self._vpaned_previews.pack2(self._image_preview, resize=True, shrink=True)
     
     self._vbox_previews = gtk.VBox()
     self._vbox_previews.pack_start(self._hbox_preview_label, expand=False, fill=False)
@@ -705,7 +705,7 @@ class ExportLayersGui(object):
     self._export_previews_controller.connect_setting_changes_to_previews()
     self._export_previews_controller.connect_name_preview_events()
     
-    self._export_image_preview.connect("preview-updated", self._on_image_preview_updated)
+    self._image_preview.connect("preview-updated", self._on_image_preview_updated)
   
   def _finish_init_and_show(self):
     while gtk.events_pending():
@@ -744,21 +744,21 @@ class ExportLayersGui(object):
     })
   
   def _init_gui_previews(self):
-    self._export_name_preview = gui_preview_name.ExportNamePreview(
+    self._name_preview = gui_preview_name.ExportNamePreview(
       self._layer_exporter_for_previews,
       self._initial_layer_tree,
-      self._settings["gui_session/export_name_preview_layers_collapsed_state"].value[
+      self._settings["gui_session/name_preview_layers_collapsed_state"].value[
         self._image.ID],
       self._settings["main/selected_layers"].value[self._image.ID],
       self._settings["main/available_tags"])
     
-    self._export_image_preview = gui_preview_image.ExportImagePreview(
+    self._image_preview = gui_preview_image.ExportImagePreview(
       self._layer_exporter_for_previews)
-    self._export_image_preview.set_automatic_update(
-      self._settings["gui/export_image_preview_automatic_update"].value)
+    self._image_preview.set_automatic_update(
+      self._settings["gui/image_preview_automatic_update"].value)
     
     self._export_previews_controller = gui_previews_controller.ExportPreviewsController(
-      self._export_name_preview, self._export_image_preview, self._settings, self._image)
+      self._name_preview, self._image_preview, self._settings, self._image)
   
   def _save_settings(self):
     status, status_message = self._settings.save()
@@ -777,20 +777,20 @@ class ExportLayersGui(object):
     except pgsetting.SettingValueError as e:
       pginvocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
-        self._export_name_preview.set_sensitive, False)
+        self._name_preview.set_sensitive, False)
       self._display_inline_message(str(e), gtk.MESSAGE_ERROR, setting)
-      self._export_name_preview.lock_update(True, name_preview_lock_update_key)
+      self._name_preview.lock_update(True, name_preview_lock_update_key)
     else:
-      self._export_name_preview.lock_update(False, name_preview_lock_update_key)
+      self._name_preview.lock_update(False, name_preview_lock_update_key)
       if self._message_setting == setting:
         self._display_inline_message(None)
       
-      self._export_name_preview.add_function_at_update(
-        self._export_name_preview.set_sensitive, True)
+      self._name_preview.add_function_at_update(
+        self._name_preview.set_sensitive, True)
       
       pginvocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
-        self._export_name_preview.update)
+        self._name_preview.update)
   
   def _on_box_procedures_item_added(self, box_procedures, item):
     if any(item.operation["orig_name"].value == name
@@ -827,10 +827,10 @@ class ExportLayersGui(object):
   
   def _on_image_preview_updated(self, preview, update_duration_seconds):
     if (self._settings[
-         "gui/export_image_preview_automatic_update_if_below_maximum_duration"].value
+         "gui/image_preview_automatic_update_if_below_maximum_duration"].value
         and (update_duration_seconds
              >= self._MAXIMUM_IMAGE_PREVIEW_AUTOMATIC_UPDATE_DURATION_SECONDS)):
-      self._export_image_preview.set_automatic_update(False)
+      self._image_preview.set_automatic_update(False)
       
       self._display_inline_message(
         "{}\n\n{}".format(
@@ -841,7 +841,7 @@ class ExportLayersGui(object):
         gtk.MESSAGE_INFO)
       
       self._settings[
-        "gui/export_image_preview_automatic_update_if_below_maximum_duration"
+        "gui/image_preview_automatic_update_if_below_maximum_duration"
       ].set_value(False)
   
   def _on_dialog_key_press(self, widget, event):

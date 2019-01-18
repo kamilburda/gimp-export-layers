@@ -36,9 +36,9 @@ class ExportPreviewsController(object):
   _DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS = 50
   _DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS = 500
   
-  def __init__(self, export_name_preview, export_image_preview, settings, image):
-    self._export_name_preview = export_name_preview
-    self._export_image_preview = export_image_preview
+  def __init__(self, name_preview, image_preview, settings, image):
+    self._name_preview = name_preview
+    self._image_preview = image_preview
     self._settings = settings
     self._image = image
     
@@ -64,24 +64,24 @@ class ExportPreviewsController(object):
     self._connect_image_preview_menu_setting_changes()
   
   def connect_name_preview_events(self):
-    self._export_name_preview.connect(
+    self._name_preview.connect(
       "preview-selection-changed", self._on_name_preview_selection_changed)
-    self._export_name_preview.connect(
+    self._name_preview.connect(
       "preview-updated", self._on_name_preview_after_update)
-    self._export_name_preview.connect(
+    self._name_preview.connect(
       "preview-tags-changed", self._on_name_preview_after_edit_tags)
   
   def on_dialog_is_active_changed(self, dialog, property_spec, is_exporting_func):
     if dialog.is_active() and not is_exporting_func():
-      pginvocation.timeout_remove_strict(self._export_name_preview.update)
-      pginvocation.timeout_remove_strict(self._export_image_preview.update)
+      pginvocation.timeout_remove_strict(self._name_preview.update)
+      pginvocation.timeout_remove_strict(self._image_preview.update)
       
-      self._export_name_preview.update(reset_items=True)
+      self._name_preview.update(reset_items=True)
       
       if not self._is_initial_selection_set:
         self._set_initial_selection_and_update_image_preview()
       else:
-        self._export_image_preview.update()
+        self._image_preview.update()
   
   def on_paned_outside_previews_position_changed(self, paned, property_spec):
     current_position = paned.get_position()
@@ -90,27 +90,31 @@ class ExportPreviewsController(object):
     if (current_position == max_position
         and self._paned_outside_previews_previous_position != max_position):
       self._disable_preview_on_paned_drag(
-        self._export_name_preview, self._settings["gui/export_name_preview_sensitive"],
+        self._name_preview,
+        self._settings["gui/name_preview_sensitive"],
         "previews_sensitive")
       self._disable_preview_on_paned_drag(
-        self._export_image_preview, self._settings["gui/export_image_preview_sensitive"],
+        self._image_preview,
+        self._settings["gui/image_preview_sensitive"],
         "previews_sensitive")
     elif (current_position != max_position
           and self._paned_outside_previews_previous_position == max_position):
       self._enable_preview_on_paned_drag(
-        self._export_name_preview, self._settings["gui/export_name_preview_sensitive"],
+        self._name_preview,
+        self._settings["gui/name_preview_sensitive"],
         "previews_sensitive")
       self._enable_preview_on_paned_drag(
-        self._export_image_preview, self._settings["gui/export_image_preview_sensitive"],
+        self._image_preview,
+        self._settings["gui/image_preview_sensitive"],
         "previews_sensitive")
     elif current_position != self._paned_outside_previews_previous_position:
-      if self._export_image_preview.is_larger_than_image():
+      if self._image_preview.is_larger_than_image():
         pginvocation.timeout_add_strict(
           self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS,
-          self._export_image_preview.update)
+          self._image_preview.update)
       else:
-        pginvocation.timeout_remove_strict(self._export_image_preview.update)
-        self._export_image_preview.resize()
+        pginvocation.timeout_remove_strict(self._image_preview.update)
+        self._image_preview.resize()
     
     self._paned_outside_previews_previous_position = current_position
   
@@ -122,31 +126,35 @@ class ExportPreviewsController(object):
     if (current_position == max_position
         and self._paned_between_previews_previous_position != max_position):
       self._disable_preview_on_paned_drag(
-        self._export_image_preview, self._settings["gui/export_image_preview_sensitive"],
+        self._image_preview,
+        self._settings["gui/image_preview_sensitive"],
         "vpaned_preview_sensitive")
     elif (current_position != max_position
           and self._paned_between_previews_previous_position == max_position):
       self._enable_preview_on_paned_drag(
-        self._export_image_preview, self._settings["gui/export_image_preview_sensitive"],
+        self._image_preview,
+        self._settings["gui/image_preview_sensitive"],
         "vpaned_preview_sensitive")
     elif (current_position == min_position
           and self._paned_between_previews_previous_position != min_position):
       self._disable_preview_on_paned_drag(
-        self._export_name_preview, self._settings["gui/export_name_preview_sensitive"],
+        self._name_preview,
+        self._settings["gui/name_preview_sensitive"],
         "vpaned_preview_sensitive")
     elif (current_position != min_position
           and self._paned_between_previews_previous_position == min_position):
       self._enable_preview_on_paned_drag(
-        self._export_name_preview, self._settings["gui/export_name_preview_sensitive"],
+        self._name_preview,
+        self._settings["gui/name_preview_sensitive"],
         "vpaned_preview_sensitive")
     elif current_position != self._paned_between_previews_previous_position:
-      if self._export_image_preview.is_larger_than_image():
+      if self._image_preview.is_larger_than_image():
         pginvocation.timeout_add_strict(
           self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS,
-          self._export_image_preview.update)
+          self._image_preview.update)
       else:
-        pginvocation.timeout_remove_strict(self._export_image_preview.update)
-        self._export_image_preview.resize()
+        pginvocation.timeout_remove_strict(self._image_preview.update)
+        self._image_preview.resize()
     
     self._paned_between_previews_previous_position = current_position
   
@@ -173,28 +181,28 @@ class ExportPreviewsController(object):
   
   def _update_previews_on_setting_change(self, setting):
     pginvocation.timeout_add_strict(
-      self._DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS, self._export_name_preview.update)
+      self._DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS, self._name_preview.update)
     pginvocation.timeout_add_strict(
-      self._DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS, self._export_image_preview.update)
+      self._DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS, self._image_preview.update)
   
   def _connect_setting_after_reset_collapsed_layers_in_name_preview(self):
     self._settings[
-      "gui_session/export_name_preview_layers_collapsed_state"].connect_event(
+      "gui_session/name_preview_layers_collapsed_state"].connect_event(
         "after-reset",
-        lambda setting: self._export_name_preview.set_collapsed_items(
+        lambda setting: self._name_preview.set_collapsed_items(
           setting.value[self._image.ID]))
   
   def _connect_setting_after_reset_selected_layers_in_name_preview(self):
     self._settings["main/selected_layers"].connect_event(
       "after-reset",
-      lambda setting: self._export_name_preview.set_selected_items(
+      lambda setting: self._name_preview.set_selected_items(
         setting.value[self._image.ID]))
   
   def _connect_setting_after_reset_displayed_layers_in_image_preview(self):
     def _clear_image_preview(setting):
-      self._export_image_preview.clear()
+      self._image_preview.clear()
     
-    self._settings["gui_session/export_image_preview_displayed_layers"].connect_event(
+    self._settings["gui_session/image_preview_displayed_layers"].connect_event(
       "after-reset", _clear_image_preview)
   
   def _connect_toggle_name_preview_filtering(self):
@@ -211,10 +219,10 @@ class ExportPreviewsController(object):
     
     def _before_clear_constraints(constraints):
       self._only_selected_layers_constraints = {}
-      self._export_name_preview.is_filtering = False
+      self._name_preview.is_filtering = False
     
     def _on_enabled_changed(constraint_enabled):
-      self._export_name_preview.is_filtering = (
+      self._name_preview.is_filtering = (
         any(constraint["enabled"].value
             for constraint in self._only_selected_layers_constraints.values()))
     
@@ -242,14 +250,14 @@ class ExportPreviewsController(object):
     
     def _before_clear_operations(operations):
       self._custom_operations = {}
-      self._export_image_preview.set_scaling()
+      self._image_preview.set_scaling()
     
     def _set_image_preview_scaling(operation_enabled):
       if not any(operation["enabled"].value
                  for operation in self._custom_operations.values()):
-        self._export_image_preview.set_scaling()
+        self._image_preview.set_scaling()
       else:
-        self._export_image_preview.set_scaling(
+        self._image_preview.set_scaling(
           ["after_process_layer"], ["after_process_layer"])
     
     self._settings["main/procedures"].connect_event(
@@ -276,15 +284,15 @@ class ExportPreviewsController(object):
   
   def _connect_image_preview_menu_setting_changes(self):
     def _on_preview_toggled_automatic_update(preview, automatic):
-      self._settings["gui/export_image_preview_automatic_update"].set_value(automatic)
+      self._settings["gui/image_preview_automatic_update"].set_value(automatic)
     
-    self._settings["gui/export_image_preview_automatic_update"].connect_event(
+    self._settings["gui/image_preview_automatic_update"].connect_event(
       "value-changed",
       lambda setting, update_if_below_setting: update_if_below_setting.set_value(False),
       self._settings[
-        "gui/export_image_preview_automatic_update_if_below_maximum_duration"])
+        "gui/image_preview_automatic_update_if_below_maximum_duration"])
     
-    self._export_image_preview.connect(
+    self._image_preview.connect(
       "preview-toggled-automatic-update", _on_preview_toggled_automatic_update)
   
   def _on_name_preview_selection_changed(self, preview):
@@ -292,7 +300,7 @@ class ExportPreviewsController(object):
     self._update_image_preview()
   
   def _on_name_preview_after_update(self, preview):
-    self._export_image_preview.update_layer_elem()
+    self._image_preview.update_layer_elem()
   
   def _on_name_preview_after_edit_tags(self, preview):
     self._update_image_preview()
@@ -315,38 +323,37 @@ class ExportPreviewsController(object):
   
   def _set_initial_selection_and_update_image_preview(self):
     layer_id_to_display = self._settings[
-      "gui_session/export_image_preview_displayed_layers"].value[self._image.ID]
+      "gui_session/image_preview_displayed_layers"].value[self._image.ID]
     
     if (layer_id_to_display is None
         and not self._settings["main/selected_layers"].value[self._image.ID]
         and self._image.active_layer is not None):
       layer_id_to_display = self._image.active_layer.ID
       # This triggers an event that updates the image preview as well.
-      self._export_name_preview.set_selected_items([layer_id_to_display])
+      self._name_preview.set_selected_items([layer_id_to_display])
     else:
-      self._export_image_preview.update_layer_elem(layer_id_to_display)
-      self._export_image_preview.update()
+      self._image_preview.update_layer_elem(layer_id_to_display)
+      self._image_preview.update()
     
     self._is_initial_selection_set = True
   
   def _update_selected_layers(self):
     selected_layers_dict = self._settings["main/selected_layers"].value
-    selected_layers_dict[self._image.ID] = self._export_name_preview.selected_items
+    selected_layers_dict[self._image.ID] = self._name_preview.selected_items
     self._settings["main/selected_layers"].set_value(selected_layers_dict)
   
   def _update_image_preview(self):
-    layer_elem_from_cursor = self._export_name_preview.get_layer_elem_from_cursor()
+    layer_elem_from_cursor = self._name_preview.get_layer_elem_from_cursor()
     if layer_elem_from_cursor is not None:
-      if (self._export_image_preview.layer_elem is None
-          or (layer_elem_from_cursor.item.ID
-              != self._export_image_preview.layer_elem.item.ID)):
-        self._export_image_preview.layer_elem = layer_elem_from_cursor
-        self._export_image_preview.update()
+      if (self._image_preview.layer_elem is None
+          or (layer_elem_from_cursor.item.ID != self._image_preview.layer_elem.item.ID)):
+        self._image_preview.layer_elem = layer_elem_from_cursor
+        self._image_preview.update()
     else:
       layer_elems_from_selected_rows = (
-        self._export_name_preview.get_layer_elems_from_selected_rows())
+        self._name_preview.get_layer_elems_from_selected_rows())
       if layer_elems_from_selected_rows:
-        self._export_image_preview.layer_elem = layer_elems_from_selected_rows[0]
-        self._export_image_preview.update()
+        self._image_preview.layer_elem = layer_elems_from_selected_rows[0]
+        self._image_preview.update()
       else:
-        self._export_image_preview.clear()
+        self._image_preview.clear()

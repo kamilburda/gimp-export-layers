@@ -73,25 +73,25 @@ def create_gui_settings():
     },
     {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "export_name_preview_sensitive",
+      "name": "name_preview_sensitive",
       "default_value": True,
       "gui_type": None,
     },
     {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "export_image_preview_sensitive",
+      "name": "image_preview_sensitive",
       "default_value": True,
       "gui_type": None,
     },
     {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "export_image_preview_automatic_update",
+      "name": "image_preview_automatic_update",
       "default_value": True,
       "gui_type": None,
     },
     {
       "type": pgsetting.SettingTypes.boolean,
-      "name": "export_image_preview_automatic_update_if_below_maximum_duration",
+      "name": "image_preview_automatic_update_if_below_maximum_duration",
       "default_value": True,
       "gui_type": None,
     },
@@ -110,14 +110,14 @@ def create_gui_settings():
     },
     {
       "type": pgsetting.SettingTypes.generic,
-      "name": "export_name_preview_layers_collapsed_state",
+      "name": "name_preview_layers_collapsed_state",
       # key: image ID
       # value: set of layer IDs collapsed in the name preview
       "default_value": collections.defaultdict(set),
     },
     {
       "type": pgsetting.SettingTypes.generic,
-      "name": "export_image_preview_displayed_layers",
+      "name": "image_preview_displayed_layers",
       # key: image ID; value: ID of the layer displayed in the preview
       "default_value": collections.defaultdict(pgutils.return_none_func),
     },
@@ -130,14 +130,14 @@ def create_gui_settings():
   persistent_only_gui_settings.add([
     {
       "type": pgsetting.SettingTypes.generic,
-      "name": "export_name_preview_layers_collapsed_state",
+      "name": "name_preview_layers_collapsed_state",
       # key: image file path
       # value: set of layer names collapsed in the name preview
       "default_value": collections.defaultdict(set)
     },
     {
       "type": pgsetting.SettingTypes.generic,
-      "name": "export_image_preview_displayed_layers",
+      "name": "image_preview_displayed_layers",
       # key: image file path
       # value: name of the layer displayed in the preview
       "default_value": collections.defaultdict(pgutils.return_none_func)
