@@ -1,3 +1,36 @@
+3.3
+===
+
+* **Due to significant changes in 3.3, make sure to perform a [clean reinstall](https://khalim19.github.io/gimp-plugin-export-layers/sections/Installation.html#Upgrading-from-Earlier-Versions).** The plug-in can still function without performing a clean reinstall (a warning dialog will ask you to clear settings), but will likely not be usable from the command line.
+* Removed installers for Linux and macOS. The installers were not flexible enough to handle the diversity of available GIMP installers and different installation directories. The manual package is simple enough to install anyway (in some cases, simpler than the installers).
+* Added the ability to add any PDB procedures to apply to all layers before export (blur, scale, drop shadows, ...). The argument values of any procedure can be adjusted by clicking the edit button.
+* "Operations" are now referred to as "procedures".
+* Allowed adding the same procedure or constraint multiple times.
+* Allowed editing the name of procedures and constraints.
+* Procedures or constraints are now enabled when added.
+* Removed "Use image size". Added "Use layer size" having the opposite meaning to the list of custom procdures. This procedure is enabled by default.
+* Removed "Treat layer groups as folders". The folder structure is now preserved by default and can be disabled by adding the new "Ignore folder structure" procedure.
+* Moved "Only visible layers" to the list of constraints (still disabled by default).
+* "Include layers" is now always displayed by default for clarity.
+* Flattened menu items for built-in constraints for improved discoverability.
+* "Only layers with tags" and "Only layers without tags" now optionally allow including/excluding only specific tags.
+* "Insert background layers" and "Insert foreground layers" now allow modifying which tag represents back- and foreground layers, respectively.
+* The preview is now displayed always, i.e. even if "Show More Settings" is unchecked. This helps users visualize the export even with the basic setup.
+* Upon starting the plug-in, the image preview defaults to the active layer if there is no selection in the layer name preview.
+* The image preview will be set to manual update if the update takes too long (currently set to 1 second). The automatic update can be turned on/off using the menu entry available above the image preview.
+* Name preview: Renamed "Add tag..." to "Add New Tag...". Creating a new tag now automatically applies that tag to all the currently selected layers.
+* Improved handling of long or multi-line in-dialog messages.
+* Restored auto-hiding of in-dialog messages and delayed preview updates (the latter saving performance).
+* Cleaned up arguments for `pdb.gimp_plugin_export_layers` due to the removal of the three settings visible in the "basic" GUI.
+* Performed small adjustments in layout and spacing in the GUI.
+* Changed mnemonics of GUI elements to avoid clashes with mnemonics for GTK widgets (such as folder chooser).
+* Removed the redundant `Home` page from the documentation for the ZIP package.
+* Errors are now logged as early as possible. If the plug-in is not fully initialized yet, the errors are logged into the `export_layers/error.log` file.
+* Fixed image preview leaving artifacts when downsizing the image (by dragging panes).
+* Fixed the main dialog displaying visually jarring white background for a short moment while initializing.
+* Fixed a rare crash in the image preview for nested empty layer groups.
+
+
 3.2.1
 =====
 

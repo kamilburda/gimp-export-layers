@@ -73,7 +73,7 @@ to the folder containing plug-ins depending on your version of GIMP, usually one
 If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
 
 
-Upgrading to 3.3
+Upgrading to 3.3 <a name="Upgrading-from-Earlier-Versions"></a>
 ----------------
 
 Due to significant changes in version 3.3, make sure you first perform complete reinstall when upgrading from an earlier version:
