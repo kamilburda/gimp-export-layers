@@ -167,6 +167,11 @@ def _get_basic_settings():
       "default_value": image,
     },
     {
+      "name": "item",
+      "type": pgsetting.SettingTypes.item,
+      "default_value": image.layers[0],
+    },
+    {
       "name": "drawable",
       "type": pgsetting.SettingTypes.drawable,
       "default_value": image.layers[0],

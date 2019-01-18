@@ -2137,6 +2137,7 @@ class SettingTypes(object):
   string = StringSetting
   
   image = ImageSetting
+  item = ItemSetting
   drawable = DrawableSetting
   layer = LayerSetting
   channel = ChannelSetting
