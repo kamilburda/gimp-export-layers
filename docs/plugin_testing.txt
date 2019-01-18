@@ -13,11 +13,11 @@ Interactive
 * load settings from GIMP shelf and config file
 * save settings to GIMP shelf after export
 * save settings to GIMP shelf if the export is canceled or stopped prematurely
-* user chooses to save settings to config file (Save Settings)
+* Save Settings
 * Reset Settings
 
 Non-interactive
-* don't load settings
+* do not load settings
 * save settings to GIMP shelf after export
 
 Run-with-last-vals
@@ -34,6 +34,11 @@ Image types
 * grayscale
 * indexed
 
+Plug-in versions and clean start
+* user had version prior to 3.3, saved settings
+* user had version prior to 3.3, unsaved settings
+* new user - version 3.3+
+
 
 Export Layers (repeat)
 ----------------------
@@ -41,7 +46,7 @@ Export Layers (repeat)
 Interactive
 * load settings from GIMP shelf and config file
 * first run
-  * display Export Layers dialog
+  * display "Export Layers" dialog
 * subsequent runs
   * display "Export Layers (repeat)" dialog
 
@@ -85,24 +90,27 @@ Built-in operations
 Custom operations
 * add
 * edit
+  * adjust argument values
+  * edit name
   * Reset
   * Cancel
 * remove
 
 Tagged layers in built-in operations
 
-Name preview
-* layers are organized in folder structure, names are properly uniquified
-* "Include..." constraints
-* tags
-  * assign tag to layer
-  * add tag
-  * remove tag
-* selected and not selected layers for the "Only layers selected in preview" constraint
-
-Image preview
-* properly scaled image and procedures applied on the image
-  * e.g. paintbrush coordinates must be made relative to the previewed image
+Preview
+* layer names
+  * layers are organized in folder structure, names are properly uniquified
+  * "Include..." constraints
+  * tags
+    * assign tag to layer
+    * add tag
+    * remove tag
+  * selected and not selected layers for the "Only layers selected in preview" constraint
+* image
+  * properly scaled image and procedures applied on the image
+    * e.g. paintbrush coordinates must be made relative to the previewed image
+  * dragging panes properly scales/downsizes image without artifacts
 
 
 Unicode support
