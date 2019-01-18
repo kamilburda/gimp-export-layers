@@ -139,11 +139,15 @@ Customizing Export with Procedures
 
 Procedures allow you to process layers before they are exported.
 To add procedures before the export of each layer, press the "Add Procedure..." button and select one of the available procedures, or add a [custom procedure](#Adding-Custom-Procedures).
-You can enable, disable or remove procedures as needed.
-You can add the same procedure multiple times.
 
-Each procedure can be edited by pressing the edit icon next to the procedure name.
-You may edit the procedure name and the values of its arguments (if any) that are applied to each layer.
+For each added procedure, you may perform any of the following:
+* enable and disable the procedure,
+* move the procedure up/down by dragging the procedure with mouse or by keyboard,
+* edit the procedure.
+  You may edit the name and the values of its arguments (if any) that are applied to each layer.
+* remove the procedure.
+
+You can add the same procedure multiple times.
 
 
 ### Built-in Procedures
@@ -219,8 +223,8 @@ Selecting Layers to Export with Constraints
 -------------------------------------------
 
 To include or exclude layers from the export according to specific criteria, press the "Add Constraint..." button and select one of the available constraints.
-As with procedures, you can enable, disable or remove constraints as needed.
-Adding the same constraint multiple times is possible, but will have no effect.
+As with procedures, you can enable, disable, reorder, edit or remove constraints as needed.
+Adding the same constraint multiple times is also possible.
 
 Currently, only several built-in constraints are supported.
 Future versions will allow specifying custom constraints.
