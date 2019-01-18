@@ -9,6 +9,3 @@ docs/gh-pages/images/screenshot_dialog_customizing_export.png
 
 docs/images/screenshot_dialog_basic_usage.png
 docs/gh-pages/images/screenshot_dialog_basic_usage.png
-
-docs/images/screenshot_dialog_sketch.svg
-docs/gh-pages/images/screenshot_dialog_sketch.svg
