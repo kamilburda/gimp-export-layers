@@ -370,11 +370,8 @@ class ExportLayersGui(object):
       return
     
     self._image = self._initial_layer_tree.image
-    self._layer_exporter = None
-    self._is_exporting = False
-    
     self._message_setting = None
-    
+    self._layer_exporter = None
     self._layer_exporter_for_previews = exportlayers.LayerExporter(
       gimpenums.RUN_NONINTERACTIVE,
       self._image,
@@ -660,7 +657,7 @@ class ExportLayersGui(object):
     self._box_procedures.connect(
       "operation-box-item-added", self._on_box_procedures_item_added)
     
-    self._button_export.connect("clicked", self._on_button_export_clicked)
+    self._button_export.connect("clicked", self._on_button_export_clicked, "exporting")
     self._button_cancel.connect("clicked", self._on_button_cancel_clicked)
     self._button_stop.connect("clicked", self._on_button_stop_clicked)
     
@@ -687,10 +684,6 @@ class ExportLayersGui(object):
     self._dialog.connect("key-press-event", self._on_dialog_key_press_event)
     self._dialog.connect("delete-event", self._on_dialog_delete_event)
     self._dialog.connect("notify::is-active", self._on_dialog_notify_is_active)
-    self._dialog.connect(
-      "notify::is-active",
-      self._export_previews_controller.on_dialog_notify_is_active,
-      lambda: self._is_exporting)
     
     self._hpaned_settings_and_previews.connect(
       "notify::position",
@@ -880,7 +873,7 @@ class ExportLayersGui(object):
       self._display_inline_message(_("Settings reset."), gtk.MESSAGE_INFO)
   
   @_set_settings
-  def _on_button_export_clicked(self, button):
+  def _on_button_export_clicked(self, button, lock_update_key):
     self._setup_gui_before_export()
     overwrite_chooser, progress_updater = self._setup_layer_exporter()
     
@@ -890,7 +883,8 @@ class ExportLayersGui(object):
       self._progress_set_value_and_show_dialog)
     
     should_quit = True
-    self._is_exporting = True
+    self._name_preview.lock_update(True, lock_update_key)
+    self._image_preview.lock_update(True, lock_update_key)
     
     try:
       self._layer_exporter.export()
@@ -916,7 +910,8 @@ class ExportLayersGui(object):
     finally:
       item_progress_indicator.uninstall_progress_for_status()
       self._layer_exporter = None
-      self._is_exporting = False
+      self._name_preview.lock_update(False, lock_update_key)
+      self._image_preview.lock_update(False, lock_update_key)
     
     if (overwrite_chooser.overwrite_mode
         in self._settings["main/overwrite_mode"].items.values()):

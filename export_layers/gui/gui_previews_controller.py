@@ -25,6 +25,7 @@ layer names and images to be exported.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+from export_layers.pygimplib import pggui
 from export_layers.pygimplib import pginvocation
 
 from export_layers import builtin_constraints
@@ -62,6 +63,8 @@ class ExportPreviewsController(object):
     self._connect_toggle_name_preview_filtering()
     self._connect_set_image_preview_scaling()
     self._connect_image_preview_menu_setting_changes()
+    
+    self._connect_toplevel_notify_is_active()
   
   def connect_name_preview_events(self):
     self._name_preview.connect(
@@ -70,18 +73,6 @@ class ExportPreviewsController(object):
       "preview-updated", self._on_name_preview_updated)
     self._name_preview.connect(
       "preview-tags-changed", self._on_name_preview_tags_changed)
-  
-  def on_dialog_notify_is_active(self, dialog, property_spec, is_exporting_func):
-    if dialog.is_active() and not is_exporting_func():
-      pginvocation.timeout_remove_strict(self._name_preview.update)
-      pginvocation.timeout_remove_strict(self._image_preview.update)
-      
-      self._name_preview.update(reset_items=True)
-      
-      if not self._is_initial_selection_set:
-        self._set_initial_selection_and_update_image_preview()
-      else:
-        self._image_preview.update()
   
   def on_paned_outside_previews_notify_position(self, paned, property_spec):
     current_position = paned.get_position()
@@ -295,6 +286,13 @@ class ExportPreviewsController(object):
     self._image_preview.connect(
       "preview-toggled-automatic-update", _on_preview_toggled_automatic_update)
   
+  def _connect_toplevel_notify_is_active(self):
+    toplevel = (
+      pggui.get_toplevel_window(self._name_preview)
+      or pggui.get_toplevel_window(self._image_preview))
+    if toplevel is not None:
+      toplevel.connect("notify::is-active", self._on_toplevel_notify_is_active)
+   
   def _on_name_preview_selection_changed(self, preview):
     self._update_selected_layers()
     self._update_image_preview()
@@ -304,6 +302,18 @@ class ExportPreviewsController(object):
   
   def _on_name_preview_tags_changed(self, preview):
     self._update_image_preview()
+  
+  def _on_toplevel_notify_is_active(self, toplevel, property_spec):
+    if toplevel.is_active():
+      pginvocation.timeout_remove_strict(self._name_preview.update)
+      pginvocation.timeout_remove_strict(self._image_preview.update)
+      
+      self._name_preview.update(reset_items=True)
+      
+      if not self._is_initial_selection_set:
+        self._set_initial_selection_and_update_image_preview()
+      else:
+        self._image_preview.update()
   
   def _enable_preview_on_paned_drag(
         self, preview, preview_sensitive_setting, update_lock_key):
