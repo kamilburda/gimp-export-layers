@@ -14,7 +14,7 @@ navbar_active_tab: docs
 * Allowed adding the same procedure or constraint multiple times.
 * Allowed editing the name of procedures and constraints.
 * Procedures or constraints are now enabled when added.
-* Removed "Use image size". Added "Use layer size" having the opposite meaning to the list of custom procdures. This procedure is enabled by default.
+* Removed "Use image size". Added "Use layer size" having the opposite meaning to the list of custom procedures. This procedure is enabled by default.
 * Removed "Treat layer groups as folders". The folder structure is now preserved by default and can be disabled by adding the new "Ignore folder structure" procedure.
 * Moved "Only visible layers" to the list of constraints (still disabled by default).
 * "Include layers" is now always displayed by default for clarity.
