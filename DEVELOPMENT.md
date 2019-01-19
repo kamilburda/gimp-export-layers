@@ -329,10 +329,9 @@ Documentation to modules, classes and functions are written as docstrings direct
 ### User Documentation <a name="User-Documentation"></a>
 
 To update documentation for end users, modify the "raw" documentation - files located in `docs` (except files in `gh-pages`).
-
 Do not modify other documentation files outside `docs` as they are automatically updated by [git hooks](#Git-Hooks) when committing changes to the files in `docs`.
 
-Any changes propagated to files in `docs/gh-pages` should be committed and pushed only when a new release is made so that the Export Layers page contains documentation of the latest official release.
+Any changes in user documentation propagated to files in `docs/gh-pages` should be reviewed first before pushing to the `gh-pages` branch.
 
 In Markdown files, break lines on sentences.
 For long sentences, rely on soft wrap or split them into multiple shorter sentences.
