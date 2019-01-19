@@ -11,4 +11,4 @@ docs/GitHub_page/_includes/Features.md
 docs/gh-pages/_includes/Features.md
 
 docs/GitHub_page/sections
-docs/gh-pages/sections
+docs/gh-pages/dev/sections

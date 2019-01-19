@@ -51,6 +51,7 @@ FILENAMES_TO_REMOVE = [
   "robots.txt",
   "sitemap.xml",
   "index.html",
+  "dev",
 ]
 
 RELATIVE_PATHS_TO_MOVE = collections.OrderedDict([
@@ -158,6 +159,8 @@ def remove_redundant_files(site_dirpath):
     filepath_to_remove = os.path.join(site_dirpath, filename)
     if os.path.isfile(filepath_to_remove):
       os.remove(filepath_to_remove)
+    elif os.path.isdir(filepath_to_remove):
+      shutil.rmtree(filepath_to_remove)
 
 
 def remove_baseurl_in_url_attributes(html_relative_filepath, html_tree):
