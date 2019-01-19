@@ -1,5 +1,8 @@
 #!/bin/bash
 
+SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+
 function error_usage()
 {
   usage='Usage: make_installers [options...]
@@ -52,8 +55,8 @@ gimp -i --batch-interpreter="python-fu-eval" -b '
 import sys
 import os
 
-plugin_dirpath = os.path.join(gimp.directory, "plug-ins - Export Layers")
-utils_dirpath = os.path.join(plugin_dirpath, "utils")
+utils_dirpath = "'"$SCRIPT_DIRECTORY"'"
+plugin_dirpath = os.path.dirname(utils_dirpath)
 
 sys.path.append(plugin_dirpath)
 sys.path.append(os.path.join(plugin_dirpath, "export_layers"))
