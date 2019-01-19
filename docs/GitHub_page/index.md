@@ -19,11 +19,11 @@ See [Customizing Export](sections/Customizing-Export.html).
 See the [known issues](sections/Known-Issues.html) or feel free to [report other issues or ask questions](https://github.com/khalim19/gimp-plugin-export-layers/issues).
 
 
-### Want to translate the plug-in into your language?
+### Want to translate {% include-config "PLUGIN_TITLE" %} into your language?
 
 See the [instructions for providing translations](sections/Providing-Translations.html).
 
 
-### Curious about latest changes in the plug-in?
+### Curious about the latest changes?
 
 See the [release notes](sections/CHANGELOG.html).

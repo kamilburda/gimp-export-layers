@@ -1,10 +1,10 @@
 ---
 layout: docs_page
-title: Export Layers – Documentation
+title: {% include-config "PLUGIN_TITLE" %} – Documentation
 navbar_active_tab: docs
 ---
 
-Export Layers is a [GIMP](https://www.gimp.org/) plug-in that exports layers as separate images.
+{% include-config "PLUGIN_TITLE" %} is a [GIMP](https://www.gimp.org/) plug-in that exports layers as separate images.
 
 ### Getting started and need help?
 
@@ -21,11 +21,11 @@ See [Customizing Export](Customizing-Export.html).
 See the [known issues](Known-Issues.html) or feel free to [report other issues or ask questions](https://github.com/khalim19/gimp-plugin-export-layers/issues).
 
 
-### Want to translate the plug-in into your language?
+### Want to translate {% include-config "PLUGIN_TITLE" %} into your language?
 
 See the [instructions for providing translations](Providing-Translations.html).
 
 
-### Curious about latest changes in the plug-in?
+### Curious about the latest changes?
 
 See the [release notes](CHANGELOG.html).
