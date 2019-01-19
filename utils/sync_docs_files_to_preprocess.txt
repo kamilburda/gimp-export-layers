@@ -12,3 +12,6 @@ docs/gh-pages/_includes/Features.md
 
 docs/GitHub_page/sections
 docs/gh-pages/dev/sections
+
+docs/GitHub_page/sections/CHANGELOG.md
+docs/gh-pages/sections/CHANGELOG.md
