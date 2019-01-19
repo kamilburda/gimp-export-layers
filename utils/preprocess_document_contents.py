@@ -78,8 +78,8 @@ export_layers.config.init()
 pygimplib.init()
 
 
-def preprocess_contents(source_filepaths, dest_filepaths):
-  for source_filepath, dest_filepath in zip(source_filepaths, dest_filepaths):
+def preprocess_contents(source_and_dest_filepaths):
+  for source_filepath, dest_filepath in source_and_dest_filepaths:
     if not os.path.isfile(source_filepath):
       print(
         'Warning: Input path "{}" does not exist or is not a file'.format(
@@ -404,15 +404,9 @@ _TAG_MATCHING_REGEXES = {
 #===============================================================================
 
 
-def main(source_filepaths, dest_filepaths):
-  if len(source_filepaths) != len(dest_filepaths):
-    print(
-      "Lists of source and destination file paths are not the same length",
-      file=sys.stderr)
-    sys.exit(1)
-  
-  preprocess_contents(source_filepaths, dest_filepaths)
+def main(source_and_dest_filepaths):
+  preprocess_contents(source_and_dest_filepaths)
 
 
 if __name__ == "__main__":
-  main(sys.argv[1], sys.argv[2])
+  main(sys.argv[1])

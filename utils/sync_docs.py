@@ -30,7 +30,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from export_layers import pygimplib
 from future.builtins import *
 
-import collections
 import io
 import os
 import shutil
@@ -56,10 +55,9 @@ PATHS_TO_COPY_FILEPATH = os.path.join(
 
 
 def sync_files(filepaths_to_preprocess, filepaths_to_copy):
-  preprocess_document_contents.main(
-    filepaths_to_preprocess.keys(), filepaths_to_preprocess.values())
+  preprocess_document_contents.main(filepaths_to_preprocess)
   
-  for source_filepath, dest_filepath in filepaths_to_copy.items():
+  for source_filepath, dest_filepath in filepaths_to_copy:
     shutil.copy2(source_filepath, dest_filepath)
 
 
@@ -100,21 +98,21 @@ def get_filepaths(file_list_filepath):
   dest_paths = [os.path.normpath(line) for line in lines[1::2]]
   path_root = PLUGINS_DIRPATH
   
-  paths_to_sync = collections.OrderedDict()
+  paths_to_sync = []
   
   for source_path, dest_path in zip(source_paths, dest_paths):
     full_source_path = os.path.join(path_root, source_path)
     full_dest_path = os.path.join(path_root, dest_path)
     
     if os.path.isfile(full_source_path):
-      paths_to_sync[full_source_path] = full_dest_path
+      paths_to_sync.append((full_source_path, full_dest_path))
     elif os.path.isdir(full_source_path) and os.path.isdir(full_dest_path):
       listed_source_filepaths = _list_filepaths(full_source_path)
       listed_dest_filepaths = [
         _replace_path_part(listed_source_filepath, source_path, dest_path, path_root)
         for listed_source_filepath in listed_source_filepaths]
       
-      paths_to_sync.update(zip(listed_source_filepaths, listed_dest_filepaths))
+      paths_to_sync.extend(zip(listed_source_filepaths, listed_dest_filepaths))
     else:
       continue
   

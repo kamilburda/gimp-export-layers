@@ -71,7 +71,7 @@ def main():
     for diff in repo.index.diff("HEAD")]
   
   filepaths_to_sync = sync_docs.get_filepaths(sync_docs.PATHS_TO_PREPROCESS_FILEPATH)
-  filepaths_to_sync.update(sync_docs.get_filepaths(sync_docs.PATHS_TO_COPY_FILEPATH))
+  filepaths_to_sync.extend(sync_docs.get_filepaths(sync_docs.PATHS_TO_COPY_FILEPATH))
   
   sync_docs.main()
   
