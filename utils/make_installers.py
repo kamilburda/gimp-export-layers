@@ -23,18 +23,35 @@ This script creates installers for releases from the plug-in source.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+
+import os
+import sys
+import inspect
+
+UTILS_DIRPATH = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
+
+PLUGINS_DIRPATH = os.path.dirname(UTILS_DIRPATH)
+PLUGIN_SUBDIRPATH = os.path.join(PLUGINS_DIRPATH, "export_layers")
+PYGIMPLIB_DIRPATH = os.path.join(PLUGIN_SUBDIRPATH, "pygimplib")
+
+sys.path.extend([
+  UTILS_DIRPATH,
+  PLUGINS_DIRPATH,
+  PLUGIN_SUBDIRPATH,
+  PYGIMPLIB_DIRPATH])
+
+
 from export_layers import pygimplib
 from future.builtins import *
 
+import argparse
 import collections
 import io
-import os
 import pathlib
 import re
 import shutil
 import subprocess
 import tempfile
-import sys
 import zipfile
 
 import git
@@ -42,8 +59,7 @@ import pathspec
 
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pglogging
-from export_layers.pygimplib import pgpath
-from export_layers.pygimplib import pgutils
+from export_layers.pygimplib import _pgpath_dirs
 
 from utils import create_user_docs
 from utils import process_local_docs
@@ -56,14 +72,12 @@ pygimplib.config.LOG_MODE = pglogging.LOG_NONE
 pygimplib.init()
 
 
-MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
-PLUGINS_DIRPATH = os.path.dirname(MODULE_DIRPATH)
 INSTALLERS_DIRPATH = os.path.join(PLUGINS_DIRPATH, "installers")
 
 TEMP_INPUT_DIRPATH = os.path.join(INSTALLERS_DIRPATH, "temp_input")
 OUTPUT_DIRPATH_DEFAULT = os.path.join(INSTALLERS_DIRPATH, "output")
 
-INCLUDE_LIST_FILEPATH = os.path.join(MODULE_DIRPATH, "make_installers_included_files.txt")
+INCLUDE_LIST_FILEPATH = os.path.join(UTILS_DIRPATH, "make_installers_included_files.txt")
 
 GITHUB_PAGE_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "gh-pages")
 
@@ -72,7 +86,13 @@ README_RELATIVE_OUTPUT_FILEPATH = os.path.join("Readme.html")
 
 
 def make_installers(
-      input_dirpath, installer_dirpath, force_if_dirty, installers, generate_docs):
+      input_dirpath=PLUGINS_DIRPATH,
+      installer_dirpath=OUTPUT_DIRPATH_DEFAULT,
+      force_if_dirty=False,
+      installers=None,
+      generate_docs=True):
+  _pgpath_dirs.make_dirs(installer_dirpath)
+  
   temp_repo_files_dirpath = tempfile.mkdtemp()
   
   relative_filepaths_with_git_filters = (
@@ -120,7 +140,7 @@ def _create_temp_dirpath(temp_dirpath):
   elif os.path.isfile(temp_dirpath):
     os.remove(temp_dirpath)
     
-  pgpath.make_dirs(temp_dirpath)
+  _pgpath_dirs.make_dirs(temp_dirpath)
 
 
 def _prepare_repo_files_for_packaging(
@@ -160,7 +180,7 @@ def _move_files_with_filters_to_temporary_location(
     dest_filepath = os.path.join(
       dirpath_with_original_files_with_git_filters, relative_filepath)
     
-    pgpath.make_dirs(os.path.dirname(dest_filepath))
+    _pgpath_dirs.make_dirs(os.path.dirname(dest_filepath))
     shutil.copy2(src_filepath, dest_filepath)
     os.remove(src_filepath)
 
@@ -237,7 +257,7 @@ def _generate_mo_files(source_dirpath):
       if (os.path.isfile(os.path.join(root_dirpath, filename))
           and filename.endswith(".po")):
         po_file = os.path.join(root_dirpath, filename)
-        language = pgpath.split_path(root_dirpath)[-2]
+        language = _pgpath_dirs.split_path(root_dirpath)[-2]
         subprocess.call(["./generate_mo.sh", po_file, language])
   
   os.chdir(orig_cwd)
@@ -254,7 +274,7 @@ def _copy_files_to_temp_filepaths(filepaths, temp_filepaths):
   for src_filepath, temp_filepath in zip(filepaths, temp_filepaths):
     dirpath = os.path.dirname(temp_filepath)
     if not os.path.exists(dirpath):
-      pgpath.make_dirs(dirpath)
+      _pgpath_dirs.make_dirs(dirpath)
     shutil.copy2(src_filepath, temp_filepath)
 
 
@@ -279,6 +299,11 @@ def _set_permissions(dirpath, permissions):
 
 def _create_installers(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths, installers):
+  if installers is None:
+    installers = []
+  
+  installers = list(collections.OrderedDict.fromkeys(installers))
+  
   installer_funcs = collections.OrderedDict([
     ("windows", _create_windows_installer),
     ("zip", _create_zip_archive),
@@ -385,20 +410,43 @@ def _create_toplevel_readme_for_zip_archive(readme_filepath):
 #===============================================================================
 
 
-def main(
-      destination_dirpath=None,
-      force_if_dirty=False,
-      installers="zip",
-      generate_docs=True):
-  installer_dirpath = (
-    destination_dirpath if destination_dirpath else OUTPUT_DIRPATH_DEFAULT)
-  pgpath.make_dirs(installer_dirpath)
+def main():
+  parser = argparse.ArgumentParser(description="Create installers for the GIMP plug-in.")
+  parser.add_argument(
+    "-d",
+    "--dest-dir",
+    default=OUTPUT_DIRPATH_DEFAULT,
+    help="destination directory of the created installers",
+    metavar="DIRECTORY",
+    dest="installer_dirpath")
+  parser.add_argument(
+    "-f",
+    "--force",
+    action="store_true",
+    default=False,
+    help="make installer even if the repository contains local changes",
+    dest="force_if_dirty")
+  parser.add_argument(
+    "-i",
+    "--installers",
+    nargs="*",
+    default=["zip"],
+    choices=["windows", "zip", "all"],
+    help=(
+      "installers to create; "
+      "note that creating a Windows installer may not be possible on *nix systems"),
+    dest="installers")
+  parser.add_argument(
+    "-n",
+    "--no-docs",
+    action="store_false",
+    default=True,
+    help="do not generate documentation",
+    dest="generate_docs")
   
-  installers = installers.replace(" ", "").split(",")
-  
-  make_installers(
-    PLUGINS_DIRPATH, installer_dirpath, force_if_dirty, installers, generate_docs)
+  parsed_args = parser.parse_args(sys.argv[1:])
+  make_installers(**dict(parsed_args.__dict__))
 
 
 if __name__ == "__main__":
-  main(sys.argv[1:])
+  main()
