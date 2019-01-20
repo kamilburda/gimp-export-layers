@@ -201,7 +201,8 @@ def init():
   
   gettext.install(config.DOMAIN_NAME, config.LOCALE_DIRPATH, unicode=True)
   
-  if _gimp_dependent_modules_imported:
+  if (_gimp_dependent_modules_imported
+      or config.LOG_MODE != pglogging.LOG_OUTPUT_GIMP_CONSOLE):
     pglogging.log_output(
       config.LOG_MODE, config.PLUGINS_LOG_DIRPATHS,
       config.PLUGINS_LOG_STDOUT_FILENAME, config.PLUGINS_LOG_STDERR_FILENAME,
