@@ -211,26 +211,6 @@ def get_filename_with_new_file_extension(
   return new_filename
 
 
-def split_path(path):
-  """
-  Split the specified path into separate path components.
-  """
-  path = os.path.normpath(path)
-  path_components = []
-  
-  head = path
-  while True:
-    head, tail = os.path.split(head)
-    if tail:
-      path_components.insert(0, tail)
-    else:
-      if head:
-        path_components.insert(0, head)
-      break
-  
-  return path_components
-
-
 #===============================================================================
 
 

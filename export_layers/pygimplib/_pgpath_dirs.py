@@ -23,10 +23,13 @@ module are included in `pgpath`.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+str = unicode
+
 import os
 
 __all__ = [
-  "make_dirs"
+  "make_dirs",
+  "split_path",
 ]
 
 
@@ -51,3 +54,23 @@ def make_dirs(dirpath):
       pass
     else:
       raise
+
+
+def split_path(path):
+  """
+  Split the specified path into separate path components.
+  """
+  path = os.path.normpath(path)
+  path_components = []
+  
+  head = path
+  while True:
+    head, tail = os.path.split(head)
+    if tail:
+      path_components.insert(0, tail)
+    else:
+      if head:
+        path_components.insert(0, head)
+      break
+  
+  return path_components
