@@ -23,25 +23,29 @@ import traceback
 
 _PYGIMPLIB_DIRPATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
 
-from . import pglogging
-
-# Enable logging as early as possible to capture any unexpected errors (such as
-# missing modules) before pygimplib is fully initialized.
-pglogging.log_output(
-  log_mode=pglogging.LOG_EXCEPTIONS_ONLY,
-  log_dirpaths=[os.path.dirname(_PYGIMPLIB_DIRPATH), _PYGIMPLIB_DIRPATH],
-  log_stdout_filename=None,
-  log_stderr_filename="error.log",
-  log_header_title="pygimplib")
-
 try:
   import gimp
-  
-  from . import _pggui_messages
 except ImportError:
   _gimp_dependent_modules_imported = False
 else:
   _gimp_dependent_modules_imported = True
+
+from . import pglogging
+
+
+if _gimp_dependent_modules_imported:
+  # Enable logging as early as possible to capture any unexpected errors (such
+  # as missing modules) before pygimplib is fully initialized.
+  pglogging.log_output(
+    log_mode=pglogging.LOG_EXCEPTIONS_ONLY,
+    log_dirpaths=[os.path.dirname(_PYGIMPLIB_DIRPATH), _PYGIMPLIB_DIRPATH],
+    log_stdout_filename=None,
+    log_stderr_filename="error.log",
+    log_header_title="pygimplib")
+
+if _gimp_dependent_modules_imported:
+  from . import _pggui_messages
+  
   _pggui_messages.set_gui_excepthook(title=None, app_name=None)
 
 
