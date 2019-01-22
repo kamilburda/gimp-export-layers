@@ -10,7 +10,7 @@ copyright_years: "2013-2019"
 
 plugin_name: "export_layers"
 plugin_version: "3.3"
-latest_plugin_version_release_date: "January 18, 2019"
+plugin_version_release_date: "January 18, 2019"
 download_windows_suffix: "-windows.exe"
 download_zip_suffix: ".zip"
 sections_url: "/sections/"
