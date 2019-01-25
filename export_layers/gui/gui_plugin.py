@@ -61,30 +61,15 @@ from .. import builtin_procedures
 from .. import operations
 from .. import exportlayers
 from .. import settings_plugin
+from .. import upgrade
 from . import gui_message_label
 from . import gui_operations
 from . import gui_preview_image
 from . import gui_preview_name
 from . import gui_previews_controller
 from . import gui_progress
+from . import messages
 from . import settings_gui
-
-
-def display_message(
-      message,
-      message_type,
-      parent=None,
-      buttons=gtk.BUTTONS_OK,
-      message_in_text_view=False,
-      button_response_id_to_focus=None):
-  return pggui.display_message(
-    message,
-    message_type,
-    title=pygimplib.config.PLUGIN_TITLE,
-    parent=parent,
-    buttons=buttons,
-    message_in_text_view=message_in_text_view,
-    button_response_id_to_focus=button_response_id_to_focus)
 
 
 def display_export_failure_message(exception, parent=None):
@@ -93,7 +78,7 @@ def display_export_failure_message(exception, parent=None):
     "You can try exporting again if you fix the issue described below.")
   error_message += "\n" + str(exception)
   
-  display_message(
+  messages.display_message(
     error_message,
     message_type=gtk.MESSAGE_WARNING,
     parent=parent,
@@ -289,48 +274,6 @@ def _add_gui_settings(settings):
     [gui_settings, session_only_gui_settings, persistent_only_gui_settings])
 
 
-def _check_settings_integrity_by_version(settings):
-  min_version_without_clean_reinstall = "3.3"
-  
-  if not pygimplib.config.SOURCE_PERSISTENT.has_data():
-    _save_plugin_version(settings)
-    return True
-  
-  status, unused_ = pgsettingpersistor.SettingPersistor.load(
-    [settings["main/plugin_version"]], [pygimplib.config.SOURCE_PERSISTENT])
-  
-  if (status == pgsettingpersistor.SettingPersistor.SUCCESS
-      and settings["main/plugin_version"].value >= min_version_without_clean_reinstall):
-    _save_plugin_version(settings)
-    return True
-  
-  response = display_message(
-    _("Due to significant changes in version {}, "
-      "settings need to be reset. Proceed?".format(min_version_without_clean_reinstall)),
-    gtk.MESSAGE_WARNING,
-    buttons=gtk.BUTTONS_YES_NO,
-    button_response_id_to_focus=gtk.RESPONSE_NO)
-  
-  if response == gtk.RESPONSE_YES:
-    _clear_setting_sources(settings)
-    return True
-  else:
-    return False
-
-
-def _save_plugin_version(settings):
-  settings["main/plugin_version"].reset()
-  pgsettingpersistor.SettingPersistor.save(
-    [settings["main/plugin_version"]], [pygimplib.config.SOURCE_PERSISTENT])
-
-
-def _clear_setting_sources(settings):
-  pgsettingpersistor.SettingPersistor.clear(
-    [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
-  
-  _save_plugin_version(settings)
-
-
 #===============================================================================
 
 
@@ -366,7 +309,8 @@ class ExportLayersGui(object):
     self._initial_layer_tree = initial_layer_tree
     self._settings = settings
     
-    if not _check_settings_integrity_by_version(self._settings):
+    should_abort = upgrade.upgrade(self._settings, True)
+    if should_abort:
       return
     
     self._image = self._initial_layer_tree.image
@@ -426,7 +370,7 @@ class ExportLayersGui(object):
     
     status, status_message = self._settings.load()
     if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
-      display_message(status_message, gtk.MESSAGE_WARNING)
+      messages.display_message(status_message, gtk.MESSAGE_WARNING)
     
     # Needs to be string to avoid strict directory validation
     self._settings["gui_session"].add([
@@ -753,7 +697,7 @@ class ExportLayersGui(object):
   def _save_settings(self):
     status, status_message = self._settings.save()
     if status == pgsettingpersistor.SettingPersistor.WRITE_FAIL:
-      display_message(status_message, gtk.MESSAGE_WARNING, parent=self._dialog)
+      messages.display_message(status_message, gtk.MESSAGE_WARNING, parent=self._dialog)
       return False
     else:
       return True
@@ -865,7 +809,7 @@ class ExportLayersGui(object):
       self._save_settings()
       
       if clear_operations:
-        _clear_setting_sources(self._settings)
+        upgrade.clear_setting_sources(self._settings)
       else:
         self._settings["main/procedures"].tags.remove("ignore_reset")
         self._settings["main/constraints"].tags.remove("ignore_reset")
@@ -904,7 +848,7 @@ class ExportLayersGui(object):
       self._settings["special/first_plugin_run"].save()
       
       if not self._layer_exporter.exported_layers:
-        display_message(
+        messages.display_message(
           _("No layers were exported."), gtk.MESSAGE_INFO, parent=self._dialog)
         should_quit = False
     finally:
@@ -1036,7 +980,8 @@ class ExportLayersRepeatGui(object):
     self._image = self._layer_tree.image
     self._layer_exporter = None
     
-    if not _check_settings_integrity_by_version(self._settings):
+    should_abort = upgrade.upgrade(self._settings, True)
+    if should_abort:
       return
     
     _add_gui_settings(self._settings)
@@ -1105,7 +1050,7 @@ class ExportLayersRepeatGui(object):
           traceback.format_exc(), parent=self._dialog)
     else:
       if not self._layer_exporter.exported_layers:
-        display_message(
+        messages.display_message(
           _("No layers were exported."), gtk.MESSAGE_INFO, parent=self._dialog)
     finally:
       item_progress_indicator.uninstall_progress_for_status()
