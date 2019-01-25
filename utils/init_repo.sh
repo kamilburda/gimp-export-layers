@@ -27,7 +27,6 @@ libffi-dev
 gcc
 python
 python-pip
-makeself
 gimp'
 
   sudo apt-get install -y $required_packages
@@ -60,10 +59,12 @@ sudo gem install bundler
 python_modules='pathspec
 pathlib
 requests
+simplejson
 mock
 parameterized
 psutil
-pyyaml'
+pyyaml
+GitPython'
 
 sudo pip install $python_modules
 
@@ -125,6 +126,9 @@ echo 'Setting up filters to ignore modifications to specific lines'
 git config --local 'filter.ignore_config_entries.clean' "sed 's/pygimplib\\.config\\.LOG_MODE = .*/pygimplib\\.config\\.LOG_MODE = pygimplib\\.pglogging\\.LOG_EXCEPTIONS_ONLY/' | sed 's/pygimplib\\.config\\.DEBUG_IMAGE_PROCESSING = .*/pygimplib\\.config\\.DEBUG_IMAGE_PROCESSING = False/'"
 git config --local 'filter.ignore_config_entries.smudge' 'cat'
 
+echo 'Enabling core.autocrlf in git config'
+git config --local 'core.autocrlf' 'true'
+
 cd 'docs'
 
 echo 'Cloning '"$plugin_page_branch_name"' branch of '"$repo_url"' into '\'"$repo_dirpath"'/docs/'"$plugin_page_branch_name"\'
@@ -134,6 +138,9 @@ cd "$plugin_page_branch_name"
 
 echo 'Setting up git hooks for branch '"$plugin_page_branch_name"
 ln -s "$repo_dirpath"'/git_hooks/commit_msg.py' '.git/hooks/commit-msg'
+
+echo 'Enabling core.autocrlf in git config for branch '"$plugin_page_branch_name"
+git config --local 'core.autocrlf' 'true'
 
 bundle install
 

@@ -117,3 +117,15 @@ def get_current_module_filepath():
   Get the full path name of the module this function is called from.
   """
   return inspect.stack()[1][1]
+
+
+def create_read_only_property(obj, name, value):
+  """
+  For the given `obj` object, create private attribute named `_[name]` and
+  read-only property named `name` returning the value of the private attribute.
+  """
+  setattr(obj, "_" + name, value)
+  setattr(
+    obj.__class__,
+    name,
+    property(fget=lambda obj, name=name: getattr(obj, "_" + name)))

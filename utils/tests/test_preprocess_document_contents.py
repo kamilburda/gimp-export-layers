@@ -184,17 +184,26 @@ plug-in that exports layers as separate images."""
      _TEST_SECTION_HEADERS["known_issues"]
      + "\n" + " ".join(_TEST_SECTION_CONTENTS["known_issues"][1:3])],
   ])
-  def test_include_section(self, test_case_name, optional_args, expected_contents):
-    with mock.patch("preprocess_document_contents.io.open") as mock_open:
-      mock_file = mock_open.return_value.__enter__.return_value
-      mock_file.read.side_effect = lambda: self._TEST_FILE_CONTENTS
-      
-      tag = preprocess_document_contents.IncludeSectionTag(
-        self._TEST_SOURCE_FILEPATH, self._TEST_MACTHING_REGEX)
-      
-      tag.process_args([self._TEST_FILEPATH_WITH_SECTIONS], optional_args)
-      
-      self.assertEqual(tag.get_contents(), expected_contents)
+  @mock.patch("preprocess_document_contents.os.path.isfile")
+  @mock.patch("preprocess_document_contents.io.open")
+  def test_include_section(
+        self,
+        test_case_name,
+        optional_args,
+        expected_contents,
+        mock_open,
+        mock_os_path_isfile):
+    mock_os_path_isfile.return_value = True
+    
+    mock_file = mock_open.return_value.__enter__.return_value
+    mock_file.read.side_effect = lambda: self._TEST_FILE_CONTENTS
+    
+    tag = preprocess_document_contents.IncludeSectionTag(
+      self._TEST_SOURCE_FILEPATH, self._TEST_MACTHING_REGEX)
+    
+    tag.process_args([self._TEST_FILEPATH_WITH_SECTIONS], optional_args)
+    
+    self.assertEqual(tag.get_contents(), expected_contents)
 
 
 class TestIncludeConfigTag(unittest.TestCase):

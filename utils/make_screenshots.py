@@ -59,7 +59,11 @@ TEST_IMAGES_DIRPATH = os.path.join(
   pygimplib.config.PLUGIN_SUBDIRPATH, "tests", "test_images")
 TEST_IMAGES_FILEPATH = os.path.join(
   TEST_IMAGES_DIRPATH, "test_export_layers_contents.xcf")
-OUTPUT_DIRPATH = os.path.join(gimp.user_directory(4), "Loading Screens", "Components")
+
+if gimp.user_directory(4):
+  OUTPUT_DIRPATH = os.path.join(gimp.user_directory(4), "Loading Screens", "Components")
+else:
+  OUTPUT_DIRPATH = os.path.join(gimp.directory, "Loading Screens", "Components")
 
 SCREENSHOTS_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "images")
 SCREENSHOT_DIALOG_BASIC_USAGE_FILENAME = "screenshot_dialog_basic_usage.png"

@@ -1851,7 +1851,7 @@ class ArraySetting(Setting):
       self._element_kwargs["default_value"] = self._reference_element.default_value
     
     for key, value in self._element_kwargs.items():
-      self._create_read_only_property("element_" + key, value)
+      pgutils.create_read_only_property(self, "element_" + key, value)
     
     self._elements = []
     
@@ -2090,13 +2090,6 @@ class ArraySetting(Setting):
     setting.set_value(value)
     
     return setting
-  
-  def _create_read_only_property(self, key, value):
-    setattr(self, "_" + key, value)
-    setattr(
-      self.__class__,
-      key,
-      property(fget=lambda self, key=key: getattr(self, "_" + key)))
   
   def _get_element_values(self):
     return tuple(setting.value for setting in self._elements)

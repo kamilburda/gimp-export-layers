@@ -238,11 +238,13 @@ class IncludeSectionTag(CustomLiquidTag):
     with io.open(
            document_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as document:
       document_contents = document.read()
-      if not section_name and not self.optional_args["no-header"]:
-        section_header, section_contents = "", document_contents
+      if section_name:
+        section_header, section_contents = find_section(document_contents, section_name)
+      elif not section_name and self.optional_args["no-header"]:
+        section_header, section_contents = find_section(
+          document_contents, section_name, get_contents_if_section_name_empty=True)
       else:
-        section_header, section_contents = (
-          self._find_section(document_contents, section_name))
+        section_header, section_contents = "", document_contents
     
     section_header, section_contents = self._get_sentences_from_section(
       section_header, section_contents, self.optional_args["sentences"])
@@ -288,64 +290,6 @@ class IncludeSectionTag(CustomLiquidTag):
     return arg_str.lower() == "true"
   
   @staticmethod
-  def _find_section(contents, section_name):
-    
-    def _get_section_contents(contents, start_of_section_contents, end_of_section_header):
-      next_section_match_regex = (
-        "\n"
-        + "("
-        + r"#+ .*?\n"
-        + "|"
-        + r".*?\n[=-]+\n"
-        + ")")
-      next_section_match = re.search(
-        next_section_match_regex, contents[start_of_section_contents:])
-      
-      if next_section_match:
-        start_of_next_section_header = next_section_match.start(1)
-        end_of_section_contents = (
-          start_of_section_contents + start_of_next_section_header - 1)
-        
-        return contents[end_of_section_header:end_of_section_contents]
-      else:
-        return contents[end_of_section_header:]
-    
-    section_header = ""
-    section_contents = ""
-    
-    if section_name:
-      section_name_pattern = re.escape(section_name)
-    else:
-      section_name_pattern = r".*?"
-    
-    section_match_regex = (
-      r"(^|\n)"
-      + "("
-      + "(" + section_name_pattern + ")" + r"\n[=-]+\n"
-      + "|"
-      + r"#+ " + "(" + section_name_pattern + ")" + r"\n"
-      + ")")
-    
-    section_match = re.search(section_match_regex, contents)
-    if section_match:
-      start_of_section_header = section_match.start(2)
-      end_of_section_header = section_match.end(2)
-      
-      start_of_section_contents = end_of_section_header + 1
-      
-      section_header = contents[start_of_section_header:end_of_section_header]
-      
-      if section_name:
-        section_contents = _get_section_contents(
-          contents, start_of_section_contents, end_of_section_header)
-      else:
-        section_contents = contents[end_of_section_header:]
-    
-    section_contents = section_contents.rstrip("\n")
-    
-    return section_header, section_contents
-  
-  @staticmethod
   def _get_sentences_from_section(section_header, section_contents, sentence_indices):
     if sentence_indices:
       sentences = re.split(r"\.[ \n]", section_contents)
@@ -374,6 +318,64 @@ class IncludeSectionTag(CustomLiquidTag):
       return "", section_contents
     else:
       return section_header, section_contents
+
+
+def find_section(contents, section_name=None, get_contents_if_section_name_empty=False):
+  
+  def _get_section_contents(contents, start_of_section_contents, end_of_section_header):
+    next_section_match_regex = (
+      "\n"
+      + "("
+      + r"#+ .*?\n"
+      + "|"
+      + r".*?\n[=-]+\n"
+      + ")")
+    next_section_match = re.search(
+      next_section_match_regex, contents[start_of_section_contents:])
+    
+    if next_section_match:
+      start_of_next_section_header = next_section_match.start(1)
+      end_of_section_contents = (
+        start_of_section_contents + start_of_next_section_header - 1)
+      
+      return contents[end_of_section_header:end_of_section_contents]
+    else:
+      return contents[end_of_section_header:]
+  
+  section_header = ""
+  section_contents = ""
+  
+  if section_name:
+    section_name_pattern = re.escape(section_name)
+  else:
+    section_name_pattern = r".*?"
+  
+  section_match_regex = (
+    r"(^|\n)"
+    + "("
+    + "(" + section_name_pattern + ")" + r"\n[=-]+\n"
+    + "|"
+    + r"#+ " + "(" + section_name_pattern + ")" + r"\n"
+    + ")")
+  
+  section_match = re.search(section_match_regex, contents)
+  if section_match:
+    start_of_section_header = section_match.start(2)
+    end_of_section_header = section_match.end(2)
+    
+    start_of_section_contents = end_of_section_header + 1
+    
+    section_header = contents[start_of_section_header:end_of_section_header]
+    
+    if section_name or not get_contents_if_section_name_empty:
+      section_contents = _get_section_contents(
+        contents, start_of_section_contents, end_of_section_header)
+    else:
+      section_contents = contents[end_of_section_header:]
+  
+  section_contents = section_contents.rstrip("\n")
+  
+  return section_header, section_contents
 
 
 class IncludeConfigTag(CustomLiquidTag):

@@ -10,7 +10,7 @@ copyright_years: "{% include-config "COPYRIGHT_YEARS" %}"
 
 plugin_name: "{% include-config "PLUGIN_NAME" %}"
 plugin_version: "{% include-config "PLUGIN_VERSION" %}"
-latest_plugin_version_release_date: "{% include-config "LATEST_PLUGIN_VERSION_RELEASE_DATE" %}"
+plugin_version_release_date: "{% include-config "PLUGIN_VERSION_RELEASE_DATE" %}"
 download_windows_suffix: "-windows.exe"
 download_zip_suffix: ".zip"
 sections_url: "/sections/"

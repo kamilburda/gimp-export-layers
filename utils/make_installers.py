@@ -40,7 +40,6 @@ sys.path.extend([
   PLUGIN_SUBDIRPATH,
   PYGIMPLIB_DIRPATH])
 
-
 from export_layers import pygimplib
 from future.builtins import *
 
@@ -424,7 +423,7 @@ def main():
     "--force",
     action="store_true",
     default=False,
-    help="make installer even if the repository contains local changes",
+    help="make installers even if the repository contains local changes",
     dest="force_if_dirty")
   parser.add_argument(
     "-i",

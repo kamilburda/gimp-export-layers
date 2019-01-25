@@ -5,6 +5,10 @@ plugin_dirpath = os.path.join(gimp.directory, "plug-ins - Export Layers")
 sys.path.append(plugin_dirpath)
 sys.path.append(os.path.join(plugin_dirpath, "export_layers"))
 sys.path.append(os.path.join(plugin_dirpath, "export_layers", "pygimplib"))
+utils_dirpath = os.path.join(plugin_dirpath, "utils")
+utils_tests_dirpath = os.path.join(utils_dirpath, "tests")
+sys.path.append(utils_dirpath)
+sys.path.append(utils_tests_dirpath)
 import pygimplib
 import pgruntests
 from pygimplib.tests import test_pgsetting_gui
@@ -15,7 +19,7 @@ imp.reload(pgruntests)
 _
 pgruntests.run_tests(
   plugin_dirpath,
-  modules=["export_layers.pygimplib", "export_layers.tests", "export_layers"],
+  modules=["export_layers.pygimplib", "export_layers.tests", "export_layers", "utils", "utils.tests"],
   ignored_modules=["export_layers.tests.test_exportlayers_contents"])
 
 
@@ -40,8 +44,6 @@ pgruntests.run_tests(
   ignored_modules=["export_layers.pygimplib.tests"])
 
 
-utils_dirpath = os.path.join(plugin_dirpath, "utils")
-sys.path.append(utils_dirpath)
 import make_installers
 import make_screenshots
 import preprocess_document_contents
@@ -61,9 +63,6 @@ imp.reload(sync_docs); sync_docs.main()
 imp.reload(preprocess_document_contents); preprocess_document_contents.main([(os.path.join(plugin_dirpath, "docs", "README_raw.md"), os.path.join(plugin_dirpath, "README.md"))])
 
 
-
-utils_tests_dirpath = os.path.join(utils_dirpath, "tests")
-sys.path.append(utils_tests_dirpath)
 imp.reload(preprocess_document_contents)
 pgruntests.run_tests(utils_tests_dirpath)
 
