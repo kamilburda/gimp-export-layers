@@ -520,7 +520,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     If there are no default setting sources or `setting_sources` does not match
     any of the default sources, this method has no effect.
     """
-    self._load_save(setting_sources, pgsettingpersistor.SettingPersistor.load)
+    return self._load_save(setting_sources, pgsettingpersistor.SettingPersistor.load)
   
   def save(self, setting_sources=None):
     """
@@ -538,7 +538,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     If there are no default setting sources or `setting_sources` does not match
     any of the default sources, this method has no effect.
     """
-    self._load_save(setting_sources, pgsettingpersistor.SettingPersistor.save)
+    return self._load_save(setting_sources, pgsettingpersistor.SettingPersistor.save)
   
   def is_value_empty(self):
     """
