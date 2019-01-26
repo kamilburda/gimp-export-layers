@@ -62,13 +62,13 @@ import git
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pglogging
 from export_layers.pygimplib import pgutils
+from export_layers.pygimplib import pgversion
 
 import export_layers.config
 export_layers.config.init()
 
 from utils import make_installers
 from utils import preprocess_document_contents
-from utils import version
 
 pygimplib.config.LOG_MODE = pglogging.LOG_NONE
 
@@ -184,8 +184,8 @@ def _check_if_tag_with_new_version_already_exists(release_metadata):
 
 def _get_next_version(release_metadata):
   try:
-    ver = version.Version.parse(release_metadata.current_version)
-  except version.InvalidVersionFormatError:
+    ver = pgversion.Version.parse(release_metadata.current_version)
+  except pgversion.InvalidVersionFormatError:
     _print_error_and_exit(
       "Version string '{}' has invalid format; valid format: {}".format(
         release_metadata.current_version, VERSION_STRING_FORMAT))
