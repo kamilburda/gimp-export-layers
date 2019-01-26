@@ -18,8 +18,8 @@
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-This module determines the current plug-in version and performs compatibility
-updates if upgrading from an earlier version.
+This module provides necessary steps to update the plug-in to the latest version
+(e.g. due to settings being reorganized or removed).
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -31,29 +31,52 @@ import gtk
 
 from export_layers import pygimplib
 from export_layers.pygimplib import pgsettingpersistor
+from export_layers.pygimplib import pgversion
 
 from export_layers.gui import messages
 
 
-MIN_VERSION_WITHOUT_CLEAN_REINSTALL = "3.3"
+MIN_VERSION_WITHOUT_CLEAN_REINSTALL = pgversion.Version.parse("3.3")
+
+_UPDATE_STATUSES = (FRESH_START, UPDATE, CLEAR_SETTINGS, ABORT) = (0, 1, 2, 3)
 
 
-def upgrade(settings, prompt_on_clean_reinstall=False):
+def update(settings, prompt_on_clear=False):
+  """
+  Update to the latest version of the plug-in.
+  
+  Return one of the following values:
+  
+  * `FRESH_START` - The plug-in was never used before.
+  
+  * `UPDATE` - The plug-in was successfully updated to the latest version.
+  
+  * `CLEAR_SETTINGS` - An old version of the plug-in (incompatible with the
+    changes in later versions) was used that required clearing stored settings.
+    
+  * `ABORT` - No update was performed. This value is returned if the user
+    cancelled clearing settings interactively.
+  
+  If `prompt_on_clear` is `True` and the plug-in requires clearing settings,
+  display a message dialog to prompt the user to proceed with clearing. If "No"
+  is chosen, do not clear settings and return `ABORT`.
+  """
   if _is_fresh_start():
     _save_plugin_version(settings)
-    return False
+    return FRESH_START
   
-  current_version = pygimplib.config.PLUGIN_VERSION
+  current_version = pgversion.Version.parse(pygimplib.config.PLUGIN_VERSION)
   
   status, unused_ = pgsettingpersistor.SettingPersistor.load(
     [settings["main/plugin_version"]], [pygimplib.config.SOURCE_PERSISTENT])
   
   if (status == pgsettingpersistor.SettingPersistor.SUCCESS
-      and settings["main/plugin_version"].value >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
+      and (pgversion.Version.parse(settings["main/plugin_version"].value)
+           >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL)):
     _save_plugin_version(settings)
-    return False
+    return UPDATE
   
-  if prompt_on_clean_reinstall:
+  if prompt_on_clear:
     response = messages.display_message(
       _("Due to significant changes in the plug-in, settings need to be reset. Proceed?"),
       gtk.MESSAGE_WARNING,
@@ -62,12 +85,12 @@ def upgrade(settings, prompt_on_clean_reinstall=False):
     
     if response == gtk.RESPONSE_YES:
       clear_setting_sources(settings)
-      return False
+      return CLEAR_SETTINGS
     else:
-      return True
+      return ABORT
   else:
     clear_setting_sources(settings)
-    return False
+    return CLEAR_SETTINGS
 
 
 def clear_setting_sources(settings):

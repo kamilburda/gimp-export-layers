@@ -61,7 +61,7 @@ from .. import builtin_procedures
 from .. import operations
 from .. import exportlayers
 from .. import settings_plugin
-from .. import upgrade
+from .. import update
 from . import gui_message_label
 from . import gui_operations
 from . import gui_preview_image
@@ -309,8 +309,8 @@ class ExportLayersGui(object):
     self._initial_layer_tree = initial_layer_tree
     self._settings = settings
     
-    should_abort = upgrade.upgrade(self._settings, True)
-    if should_abort:
+    status = update.update(self._settings, True)
+    if status == update.ABORT:
       return
     
     self._image = self._initial_layer_tree.image
@@ -809,7 +809,7 @@ class ExportLayersGui(object):
       self._save_settings()
       
       if clear_operations:
-        upgrade.clear_setting_sources(self._settings)
+        update.clear_setting_sources(self._settings)
       else:
         self._settings["main/procedures"].tags.remove("ignore_reset")
         self._settings["main/constraints"].tags.remove("ignore_reset")
@@ -980,8 +980,8 @@ class ExportLayersRepeatGui(object):
     self._image = self._layer_tree.image
     self._layer_exporter = None
     
-    should_abort = upgrade.upgrade(self._settings, True)
-    if should_abort:
+    status = update.update(self._settings, True)
+    if status == update.ABORT:
       return
     
     _add_gui_settings(self._settings)
