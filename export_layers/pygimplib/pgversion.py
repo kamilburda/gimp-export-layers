@@ -47,6 +47,49 @@ class Version(object):
     
     return version_str
   
+  def __lt__(self, other_version):
+    this_version_main_components = self._get_main_components_tuple(self)
+    other_version_main_components = self._get_main_components_tuple(other_version)
+    
+    if this_version_main_components < other_version_main_components:
+      return True
+    elif this_version_main_components > other_version_main_components:
+      return False
+    else:
+      if self.prerelease is not None and other_version.prerelease is None:
+        return True
+      elif self.prerelease is not None and other_version.prerelease is not None:
+        if self.prerelease < other_version.prerelease:
+          return True
+        elif self.prerelease > other_version.prerelease:
+          return False
+        else:
+          return (
+            self._get_default_number(self.prerelease_patch)
+            < self._get_default_number(other_version.prerelease_patch))
+      else:
+        return False
+  
+  def __le__(self, other_version):
+    return self.__lt__(other_version) or self.__eq__(other_version)
+  
+  def __eq__(self, other_version):
+    return (
+      (self._get_main_components_tuple(self)
+       == self._get_main_components_tuple(other_version))
+      and self.prerelease == other_version.prerelease
+      and (self._get_default_number(self.prerelease_patch)
+           == self._get_default_number(other_version.prerelease_patch)))
+  
+  def __ne__(self, other_version):
+    return not self.__eq__(other_version)
+  
+  def __gt__(self, other_version):
+    return not self.__le__(other_version)
+  
+  def __ge__(self, other_version):
+    return not self.__lt__(other_version)
+  
   def increment(self, component_to_increment, prerelease=None):
     """
     Increment the version as per `component_to_increment` and `prerelease`.
@@ -167,7 +210,7 @@ class Version(object):
     match = re.search(r'^([0-9]+?)\.([0-9]+?)$', main_str_components)
     
     if match is None:
-      match = re.search(r'^([0-9]+?)\.([0-9]+?)\.([1-9]+?)$', main_str_components)
+      match = re.search(r'^([0-9]+?)\.([0-9]+?)\.([1-9][0-9]*)$', main_str_components)
       if match is None:
         raise InvalidVersionFormatError
     
@@ -182,7 +225,8 @@ class Version(object):
     match = re.search(r'^([a-zA-Z0-9]+?)$', prerelease_str_components)
     
     if match is None:
-      match = re.search(r'^([a-zA-Z0-9]+?)\.([2-9]+?)$', prerelease_str_components)
+      match = re.search(
+        r'^([a-zA-Z0-9]+?)\.([2-9]|[1-9][0-9]+)$', prerelease_str_components)
       if match is None:
         raise InvalidVersionFormatError
     
@@ -190,6 +234,16 @@ class Version(object):
     version_obj.prerelease = match_groups[0]
     if len(match_groups) == 2:
       version_obj.prerelease_patch = int(match_groups[1])
+  
+  @staticmethod
+  def _get_main_components_tuple(ver):
+    return tuple(
+      number if number is not None else -1
+      for number in [ver.major, ver.minor, ver.patch])
+  
+  @staticmethod
+  def _get_default_number(component):
+    return component if component is not None else -1
 
 
 class InvalidVersionFormatError(Exception):

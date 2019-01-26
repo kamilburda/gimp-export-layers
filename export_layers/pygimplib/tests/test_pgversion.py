@@ -36,8 +36,11 @@ class TestVersion(unittest.TestCase):
   @parameterized.parameterized.expand([
     ["major_minor", "3.3", (3, 3, None, None, None)],
     ["major_minor_patch", "3.3.1", (3, 3, 1, None, None)],
+    ["major_minor_patch_with_more_digits", "3.3.10", (3, 3, 10, None, None)],
     ["major_minor_prerelease", "3.3-alpha", (3, 3, None, "alpha", None)],
     ["major_minor_prerelease_patch", "3.3-alpha.2", (3, 3, None, "alpha", 2)],
+    ["major_minor_prerelease_patch_with_more_digits",
+     "3.3-alpha.10", (3, 3, None, "alpha", 10)],
     ["major_minor_patch_prerelease_patch", "3.3.1-alpha.2", (3, 3, 1, "alpha", 2)],
   ])
   def test_parse_version_string(
@@ -160,22 +163,45 @@ class TestVersion(unittest.TestCase):
       ver.increment(component_to_increment, prerelease)
   
   @parameterized.parameterized.expand([
-    ["lt", "3.3", "3.2", "__lt__", False],
-    ["lt", "3.3", "3.3", "__lt__", False],
-    ["lt", "3.3", "3.4", "__lt__", True],
-    ["lt", "3.3", "3.3-alpha", "__lt__", False],
-    ["lt", "3.3-alpha", "3.3", "__lt__", True],
-    ["lt", "3.3-alpha", "3.3-beta", "__lt__", True],
-    ["lt", "3.3-beta", "3.3-alpha", "__lt__", True],
-    ["lt", "3.3-alpha", "3.3-alpha", "__lt__", False],
-    ["lt", "3.3-alpha", "3.3-alpha.2", "__lt__", True],
-    ["lt", "3.3-alpha.2", "3.3-alpha.2", "__lt__", False],
-    ["lt", "3.3-alpha.3", "3.3-alpha.2", "__lt__", False],
-    ["le", "3.3", "3.3", "__le__", True],
-    ["le", "3.3", "3.4", "__le__", True],
+    ["first_is_less", "3.3", "3.4", True],
+    ["first_is_greater", "3.3", "3.2", False],
+    ["equal", "3.3", "3.3", False],
+    ["digits_compared_as_numbers", "3.3", "3.10", True],
+    ["prerelease_and_no_prerelease", "3.3-alpha", "3.3", True],
+    ["no_prerelease_and_prerelease", "3.3", "3.3-alpha", False],
+    ["different_prereleases_first_is_less", "3.3-alpha", "3.3-beta", True],
+    ["different_prereleases_first_is_greater", "3.3-alpha", "3.3-beta", True],
+    ["same_prereleases", "3.3-alpha", "3.3-alpha", False],
+    ["prerelease_and_prerelease_with_patch", "3.3-alpha", "3.3-alpha.2", True],
+    ["same_prereleases_with_same_patches", "3.3-alpha.2", "3.3-alpha.2", False],
+    ["same_prereleases_first_patch_less", "3.3-alpha.2", "3.3-alpha.3", True],
+    ["same_prereleases_first_patch_greater", "3.3-alpha.3", "3.3-alpha.2", False],
+    ["prerelease_patch_digits_compared_as_number", "3.3-alpha.2", "3.3-alpha.10", True],
   ])
-  def test_comparison(self, test_case_name_suffix, ver1_str, ver2_str, operator, result):
+  def test_less_than(self, test_case_name_suffix, ver1_str, ver2_str, result):
     ver1 = pgversion.Version.parse(ver1_str)
     ver2 = pgversion.Version.parse(ver2_str)
     
-    self.assertEqual(bool(getattr(ver1, operator)(ver2)), result)
+    if result:
+      self.assertTrue(ver1 < ver2)
+    else:
+      self.assertFalse(ver1 < ver2)
+  
+  @parameterized.parameterized.expand([
+    ["equal", "3.3", "3.3", True],
+    ["not_equal", "3.3", "3.4", False],
+    ["equal_with_patch", "3.3.1", "3.3.1", True],
+    ["not_equal_with_patch", "3.3.1", "3.3.2", False],
+    ["equal_prerelease", "3.3-alpha", "3.3-alpha", True],
+    ["not_equal_prerelease", "3.3-alpha", "3.3-beta", False],
+    ["equal_prerelease_patch", "3.3-alpha.2", "3.3-alpha.2", True],
+    ["not_equal_prerelease_patch", "3.3-alpha.2", "3.3-alpha.3", False],
+  ])
+  def test_equal(self, test_case_name_suffix, ver1_str, ver2_str, result):
+    ver1 = pgversion.Version.parse(ver1_str)
+    ver2 = pgversion.Version.parse(ver2_str)
+    
+    if result:
+      self.assertEqual(ver1, ver2)
+    else:
+      self.assertNotEqual(ver1, ver2)
