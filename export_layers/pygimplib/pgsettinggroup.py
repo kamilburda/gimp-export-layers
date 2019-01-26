@@ -236,9 +236,8 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     `"attribute name"` is a string that represents an argument passed when
     instantiating the setting. The following attributes must always be
     specified:
-      * `"type"` - type of the Setting object to instantiate.
-      * `"name"` - setting name.
-      * `"default_value"` - default value of the setting.
+      * `"type"` - Type of the Setting object to instantiate.
+      * `"name"` - Setting name.
     
     The `"name"` attribute must not contain forward slashes (`"/"`) (which are
     used to access settings via paths).
