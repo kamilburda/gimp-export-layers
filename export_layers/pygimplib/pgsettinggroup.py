@@ -390,6 +390,14 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     
     return setting_attributes_and_values
   
+  def get_values(self):
+    """
+    Return an ordered dictionary of `(setting_name, setting_value)` pairs for
+    all settings in this group.
+    """
+    return collections.OrderedDict([
+      (setting.get_path("root"), setting.value) for setting in self.walk()])
+  
   def _get_setting_and_attribute_names(self, setting_name_and_attribute):
     parts = setting_name_and_attribute.split(pgsettingutils.SETTING_ATTRIBUTE_SEPARATOR)
     if len(parts) == 1:

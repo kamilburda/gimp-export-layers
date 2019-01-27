@@ -337,7 +337,7 @@ class TestSettingGroup(unittest.TestCase):
     self.assertEqual(
       setting_attributes_and_values["file_extension.display_name"], "File extension")
   
-  def test_get_attributes_getter_only(self):
+  def test_get_attributes_getter_properties_only(self):
     setting_attributes_and_values = self.settings.get_attributes([
       "file_extension.name"])
     self.assertEqual(
@@ -354,6 +354,20 @@ class TestSettingGroup(unittest.TestCase):
   def test_get_attributes_invalid_number_of_periods(self):
     with self.assertRaises(ValueError):
       self.settings.get_attributes(["file_extension.value.value"])
+  
+  def test_get_values(self):
+    setting_names_and_values = self.settings.get_values()
+    
+    self.assertEqual(len(setting_names_and_values), 3)
+    self.assertEqual(
+      setting_names_and_values["file_extension"],
+      self.settings["file_extension"].default_value)
+    self.assertEqual(
+      setting_names_and_values["only_visible_layers"],
+      self.settings["only_visible_layers"].default_value)
+    self.assertEqual(
+      setting_names_and_values["overwrite_mode"],
+      self.settings["overwrite_mode"].default_value)
   
   def test_set_values(self):
     self.settings.set_values({
@@ -465,6 +479,20 @@ class TestSettingGroupHierarchical(unittest.TestCase):
   def test_get_setting_via_paths_invalid_group(self):
     with self.assertRaises(KeyError):
       unused_ = self.settings["advanced/invalid_group/file_extension_strip_mode"]
+  
+  def test_get_values_returns_paths(self):
+    setting_names_and_values = self.settings.get_values()
+    
+    self.assertEqual(len(setting_names_and_values), 3)
+    self.assertEqual(
+      setting_names_and_values["main/file_extension"],
+      self.settings["main/file_extension"].default_value)
+    self.assertEqual(
+      setting_names_and_values["advanced/only_visible_layers"],
+      self.settings["advanced/only_visible_layers"].default_value)
+    self.assertEqual(
+      setting_names_and_values["advanced/overwrite_mode"],
+      self.settings["advanced/overwrite_mode"].default_value)
   
   def test_contains_via_paths(self):
     self.assertIn("main/file_extension", self.settings)
