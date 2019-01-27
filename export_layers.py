@@ -48,6 +48,7 @@ export_layers.config.init()
 
 from export_layers import exportlayers
 from export_layers import settings_plugin
+from export_layers import update
 from export_layers.gui import gui_plugin
 
 pygimplib.init()
@@ -73,6 +74,10 @@ def plug_in_export_layers(run_mode, image, *args):
   layer_tree = pgitemtree.LayerTree(
     image, name=pygimplib.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
   _setup_settings_additional(SETTINGS, layer_tree)
+  
+  status = update.update(SETTINGS, run_mode == gimpenums.RUN_INTERACTIVE)
+  if status == update.ABORT:
+    return
   
   if run_mode == gimpenums.RUN_INTERACTIVE:
     _run_export_layers_interactive(layer_tree)
@@ -100,6 +105,10 @@ def plug_in_export_layers_repeat(run_mode, image):
   layer_tree = pgitemtree.LayerTree(
     image, name=pygimplib.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
   _setup_settings_additional(SETTINGS, layer_tree)
+  
+  status = update.update(SETTINGS, run_mode == gimpenums.RUN_INTERACTIVE)
+  if status == update.ABORT:
+    return
   
   if run_mode == gimpenums.RUN_INTERACTIVE:
     SETTINGS["special/first_plugin_run"].load()

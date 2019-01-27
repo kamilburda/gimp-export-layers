@@ -69,7 +69,6 @@ from . import gui_preview_name
 from . import gui_previews_controller
 from . import gui_progress
 from . import messages
-from . import settings_gui
 
 
 def display_export_failure_message(exception, parent=None):
@@ -267,13 +266,6 @@ def _setup_output_directory_changed(settings, current_image):
     current_image.ID)
 
 
-def _add_gui_settings(settings):
-  gui_settings, session_only_gui_settings, persistent_only_gui_settings = (
-    settings_gui.create_gui_settings())
-  settings.add(
-    [gui_settings, session_only_gui_settings, persistent_only_gui_settings])
-
-
 #===============================================================================
 
 
@@ -309,10 +301,6 @@ class ExportLayersGui(object):
     self._initial_layer_tree = initial_layer_tree
     self._settings = settings
     
-    status = update.update(self._settings, True)
-    if status == update.ABORT:
-      return
-    
     self._image = self._initial_layer_tree.image
     self._message_setting = None
     self._layer_exporter = None
@@ -347,8 +335,6 @@ class ExportLayersGui(object):
       run_gui_func(self, self._dialog, self._settings)
   
   def _init_settings(self):
-    _add_gui_settings(self._settings)
-    
     settings_plugin.setup_image_ids_and_filepaths_settings(
       self._settings["gui_session/name_preview_layers_collapsed_state"],
       self._settings["gui_persistent/name_preview_layers_collapsed_state"],
@@ -979,12 +965,6 @@ class ExportLayersRepeatGui(object):
     
     self._image = self._layer_tree.image
     self._layer_exporter = None
-    
-    status = update.update(self._settings, True)
-    if status == update.ABORT:
-      return
-    
-    _add_gui_settings(self._settings)
     
     self._settings.load([pygimplib.config.SOURCE_SESSION])
     

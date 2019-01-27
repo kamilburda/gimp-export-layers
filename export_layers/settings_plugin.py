@@ -30,15 +30,16 @@ import os
 import gimp
 import gimpenums
 
-from export_layers import builtin_procedures
-from export_layers import builtin_constraints
-from export_layers import operations
-
 from export_layers import pygimplib
 from export_layers.pygimplib import pgoverwrite
 from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
+
+from export_layers import builtin_procedures
+from export_layers import builtin_constraints
+from export_layers import operations
+from export_layers.gui import settings_gui
 
 
 def create_settings():
@@ -155,6 +156,8 @@ def create_settings():
       "gui_type": None,
     },
   ])
+  
+  settings.add(settings_gui.create_gui_settings())
   
   settings["main"].add([operations.create(
     name="procedures",
