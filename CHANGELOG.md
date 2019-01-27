@@ -1,3 +1,9 @@
+Upcoming Changes
+================
+
+* From version 3.3 onward, obsolete settings, procedures or constraints are automatically replaced when first starting the plug-in with a newer version.
+
+
 3.3
 ===
 
