@@ -25,6 +25,8 @@ This module provides necessary steps to update the plug-in to the latest version
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import collections
+
 import pygtk
 pygtk.require("2.0")
 import gtk
@@ -43,7 +45,8 @@ _UPDATE_STATUSES = (FRESH_START, UPDATE, CLEAR_SETTINGS, ABORT) = (0, 1, 2, 3)
 
 def update(settings, prompt_on_clear=False):
   """
-  Update to the latest version of the plug-in.
+  Update to the latest version of the plug-in. This includes renaming settings
+  or replacing obsolete procedures.
   
   Return one of the following values:
   
@@ -65,15 +68,18 @@ def update(settings, prompt_on_clear=False):
     _save_plugin_version(settings)
     return FRESH_START
   
-  current_version = pgversion.Version.parse(pygimplib.config.PLUGIN_VERSION)
-  
   status, unused_ = pgsettingpersistor.SettingPersistor.load(
     [settings["main/plugin_version"]], [pygimplib.config.SOURCE_PERSISTENT])
   
+  previous_version = pgversion.Version.parse(settings["main/plugin_version"].value)
+  
   if (status == pgsettingpersistor.SettingPersistor.SUCCESS
-      and (pgversion.Version.parse(settings["main/plugin_version"].value)
-           >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL)):
+      and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
     _save_plugin_version(settings)
+    
+    current_version = pgversion.Version.parse(pygimplib.config.PLUGIN_VERSION)
+    handle_update(settings, _UPDATE_HANDLERS, previous_version, current_version)
+    
     return UPDATE
   
   if prompt_on_clear:
@@ -98,6 +104,48 @@ def clear_setting_sources(settings):
     [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
   
   _save_plugin_version(settings)
+
+
+def handle_update(settings, update_handlers, previous_version, current_version):
+  for version_str, update_handler in update_handlers.items():
+    if previous_version < pgversion.Version.parse(version_str) <= current_version:
+      update_handler(settings)
+
+
+def _update_to_3_3_1(settings):
+  settings_to_rename = collections.OrderedDict([
+    ("gui/export_name_preview_sensitive",
+     "gui/name_preview_sensitive"),
+    ("gui/export_image_preview_sensitive",
+     "gui/image_preview_sensitive"),
+    ("gui/export_image_preview_automatic_update",
+     "gui/image_preview_automatic_update"),
+    ("gui/export_image_preview_automatic_update_if_below_maximum_duration",
+     "gui/image_preview_automatic_update_if_below_maximum_duration"),
+    ("gui_session/export_name_preview_layers_collapsed_state",
+     "gui_session/name_preview_layers_collapsed_state"),
+    ("gui_session/export_image_preview_displayed_layers",
+     "gui_session/image_preview_displayed_layers"),
+    ("gui_persistent/export_name_preview_layers_collapsed_state",
+     "gui_persistent/name_preview_layers_collapsed_state"),
+    ("gui_persistent/export_image_preview_displayed_layers",
+     "gui_persistent/image_preview_displayed_layers"),
+  ])
+  
+  for source in [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]:
+    data_dict = source.read_dict()
+    
+    for orig_setting_name, new_setting_name in settings_to_rename.items():
+      if orig_setting_name in data_dict:
+        data_dict[new_setting_name] = data_dict[orig_setting_name]
+        del data_dict[orig_setting_name]
+    
+    source.write_dict(data_dict)
+
+
+_UPDATE_HANDLERS = collections.OrderedDict([
+  ("3.3.1", _update_to_3_3_1),
+])
 
 
 def _is_fresh_start():

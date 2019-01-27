@@ -20,6 +20,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import collections
+
 import pygtk
 pygtk.require("2.0")
 import gtk
@@ -27,12 +29,14 @@ import gtk
 import unittest
 
 import mock
+import parameterized
 
 from export_layers import pygimplib
 from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib import pgsetting
 from export_layers.pygimplib import pgsettinggroup
 from export_layers.pygimplib import pgsettingpersistor
+from export_layers.pygimplib import pgversion
 
 from export_layers.pygimplib.tests import stubs_gimp
 
@@ -47,6 +51,7 @@ pygimplib.init()
 @mock.patch(
   pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp",
   new_callable=stubs_gimp.GimpModuleStub)
+@mock.patch("export_layers.update.handle_update")
 class TestUpdate(unittest.TestCase):
   
   def setUp(self):
@@ -83,7 +88,7 @@ class TestUpdate(unittest.TestCase):
     ])
   
   def test_fresh_start_stores_new_version(
-        self, mock_persistent_source, mock_session_source):
+        self, mock_handle_update, mock_persistent_source, mock_session_source):
     self.assertFalse(pygimplib.config.SOURCE_PERSISTENT.has_data())
     
     status = update.update(self.settings)
@@ -96,7 +101,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
   
   def test_minimum_version_or_later_is_overwritten_by_new_version(
-        self, mock_persistent_source, mock_session_source):
+        self, mock_handle_update, mock_persistent_source, mock_session_source):
     self.settings["main/plugin_version"].set_value(self.current_version)
     self.settings["main/plugin_version"].save()
     
@@ -106,7 +111,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
   
   def test_persistent_source_has_data_but_not_version_clears_setting_sources(
-        self, mock_persistent_source, mock_session_source):
+        self, mock_handle_update, mock_persistent_source, mock_session_source):
     self.settings["main/test_setting"].save()
     
     status = update.update(self.settings)
@@ -115,7 +120,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
   
   def test_less_than_minimum_version_clears_setting_sources(
-        self, mock_persistent_source, mock_session_source):
+        self, mock_handle_update, mock_persistent_source, mock_session_source):
     self.settings["main/plugin_version"].set_value(self.old_incompatible_version)
     self.settings["main"].save()
     
@@ -129,7 +134,11 @@ class TestUpdate(unittest.TestCase):
   
   @mock.patch("export_layers.gui.messages.display_message")
   def test_prompt_on_clear_positive_response(
-        self, mock_display_message, mock_persistent_source, mock_session_source):
+        self,
+        mock_display_message,
+        mock_handle_update,
+        mock_persistent_source,
+        mock_session_source):
     mock_display_message.return_value = gtk.RESPONSE_YES
     
     self.settings["main/plugin_version"].set_value(self.old_incompatible_version)
@@ -144,7 +153,11 @@ class TestUpdate(unittest.TestCase):
   
   @mock.patch("export_layers.gui.messages.display_message")
   def test_prompt_on_clear_negative_response(
-        self, mock_display_message, mock_persistent_source, mock_session_source):
+        self,
+        mock_display_message,
+        mock_handle_update,
+        mock_persistent_source,
+        mock_session_source):
     mock_display_message.return_value = gtk.RESPONSE_NO
     
     self.settings["main/plugin_version"].set_value(self.old_incompatible_version)
@@ -157,3 +170,49 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(
       self.settings["main/test_setting"].load()[0],
       pgsettingpersistor.SettingPersistor.SUCCESS)
+  
+
+class TestHandleUpdate(unittest.TestCase):
+  
+  def setUp(self):
+    self.update_handlers = collections.OrderedDict([
+      ("3.3.1", lambda *args, **kwargs: self._executed_handlers.append("3.3.1")),
+      ("3.4", lambda *args, **kwargs: self._executed_handlers.append("3.4")),
+      ("3.5", lambda *args, **kwargs: self._executed_handlers.append("3.5")),
+    ])
+    
+    self._executed_handlers = []
+    
+    self.settings = pgsettinggroup.SettingGroup("settings")
+  
+  @parameterized.parameterized.expand([
+    ["previous_version_earlier_than_all_handlers_execute_one_handler",
+     "3.3", "3.3.1", ["3.3.1"]],
+    ["previous_version_earlier_than_all_handlers_execute_multiple_handlers",
+     "3.3", "3.4", ["3.3.1", "3.4"]],
+    ["equal_previous_and_current_version_execute_no_handler",
+     "3.5", "3.5", []],
+    ["equal_previous_and_current_version_and_globally_not_latest_execute_no_handler",
+     "3.3.1", "3.3.1", []],
+    ["previous_version_equal_to_first_handler_execute_one_handler",
+     "3.3.1", "3.4", ["3.4"]],
+    ["previous_version_equal_to_latest_handler_execute_no_handler",
+     "3.5", "3.6", []],
+    ["previous_greater_than_handlers_execute_no_handler",
+     "3.6", "3.6", []],
+  ])
+  def test_handle_update(
+        self,
+        test_case_name_suffix,
+        previous_version_str,
+        current_version_str,
+        executed_handlers):
+    self._executed_handlers = []
+    
+    update.handle_update(
+      self.settings,
+      self.update_handlers,
+      pgversion.Version.parse(previous_version_str),
+      pgversion.Version.parse(current_version_str))
+    
+    self.assertEqual(self._executed_handlers, executed_handlers)

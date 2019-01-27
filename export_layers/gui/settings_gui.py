@@ -33,7 +33,6 @@ from export_layers.pygimplib import pgutils
 
 
 def create_gui_settings():
-  
   gui_settings = pgsettinggroup.SettingGroup(
     name="gui",
     setting_attributes={
