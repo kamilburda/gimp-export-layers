@@ -105,6 +105,15 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(status, update.UPDATE)
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
   
+  def test_persistent_source_has_data_but_not_version_clears_setting_sources(
+        self, mock_persistent_source, mock_session_source):
+    self.settings["main/test_setting"].save()
+    
+    status = update.update(self.settings)
+    
+    self.assertEqual(status, update.CLEAR_SETTINGS)
+    self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
+  
   def test_less_than_minimum_version_clears_setting_sources(
         self, mock_persistent_source, mock_session_source):
     self.settings["main/plugin_version"].set_value(self.old_incompatible_version)

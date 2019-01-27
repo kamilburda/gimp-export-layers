@@ -47,7 +47,7 @@ def update(settings, prompt_on_clear=False):
   
   Return one of the following values:
   
-  * `FRESH_START` - The plug-in was never used before.
+  * `FRESH_START` - The plug-in was never used before or has no settings stored.
   
   * `UPDATE` - The plug-in was successfully updated to the latest version.
   
