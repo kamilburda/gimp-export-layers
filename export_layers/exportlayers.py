@@ -30,6 +30,7 @@ import collections
 import datetime
 import inspect
 import os
+import string
 
 from gimp import pdb
 import gimpenums
@@ -837,6 +838,7 @@ class LayerNameRenamer(object):
      ["specific tags...",
       "separator, wrapper, specific tags..."]),
     (_("Current date"), "[current date]", ["%Y-%m-%d"]),
+    (_("Metadata"), "[metadata]", ["pattern"]),
   ]
   
   def __init__(self, layer_exporter, pattern):
@@ -863,11 +865,14 @@ class LayerNameRenamer(object):
     layer_elem.name = self._filename_pattern_generator.generate()
   
   def _get_fields_for_layer_filename_pattern(self):
-    return {"layer name": self._get_layer_name,
-            "image name": self._get_image_name,
-            "layer path": self._get_layer_path,
-            "current date": self._get_current_date,
-            "tags": self._get_tags}
+    return {
+      "layer name": self._get_layer_name,
+      "image name": self._get_image_name,
+      "layer path": self._get_layer_path,
+      "tags": self._get_tags,
+      "current date": self._get_current_date,
+      "metadata": self._get_metadata,
+    }
   
   def _get_layer_name(self, file_extension_strip_mode=None):
     layer_elem = self._layer_exporter.current_layer_elem
@@ -910,10 +915,6 @@ class LayerNameRenamer(object):
     
     return separator.join(
       [wrapper.format(path_component) for path_component in path_components])
-  
-  @staticmethod
-  def _get_current_date(date_format="%Y-%m-%d"):
-    return datetime.datetime.now().strftime(date_format)
   
   def _get_tags(self, *args):
     tags_to_insert = []
@@ -966,6 +967,30 @@ class LayerNameRenamer(object):
     
     tags_to_insert.sort(key=lambda tag: tag.lower())
     return tag_separator.join([tag_wrapper.format(tag) for tag in tags_to_insert])
+  
+  @staticmethod
+  def _get_current_date(date_format="%Y-%m-%d"):
+    return datetime.datetime.now().strftime(date_format)
+  
+  def _get_metadata(self, pattern):
+    layer_elem = self._layer_exporter.current_layer_elem
+    image = self._layer_exporter.image
+    
+    fields = {
+      "w": layer_elem.item.width,
+      "h": layer_elem.item.height,
+      "x": layer_elem.item.offsets[0],
+      "y": layer_elem.item.offsets[1],
+      "iw": image.width,
+      "ih": image.height,
+    }
+    
+    return _PercentTemplate(pattern).safe_substitute(fields)
+
+
+class _PercentTemplate(string.Template):
+  
+  delimiter = "%"
 
 
 class _FileExtension(object):
