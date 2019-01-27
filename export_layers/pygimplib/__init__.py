@@ -175,8 +175,8 @@ def _init_config_builtin(config):
   config.PLUGINS_LOG_STDOUT_DIRPATH = config.DEFAULT_LOGS_DIRPATH
   config.PLUGINS_LOG_STDERR_DIRPATH = config.DEFAULT_LOGS_DIRPATH
   
-  config.PLUGINS_LOG_STDOUT_FILENAME = config.PLUGIN_NAME + ".log"
-  config.PLUGINS_LOG_STDERR_FILENAME = config.PLUGIN_NAME + "_error.log"
+  config.PLUGINS_LOG_STDOUT_FILENAME = "output.log"
+  config.PLUGINS_LOG_STDERR_FILENAME = "error.log"
   
   config.GIMP_CONSOLE_MESSAGE_DELAY_MILLISECONDS = 50
 
