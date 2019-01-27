@@ -135,12 +135,13 @@ def _update_to_3_3_1(settings):
   for source in [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]:
     data_dict = source.read_dict()
     
-    for orig_setting_name, new_setting_name in settings_to_rename.items():
-      if orig_setting_name in data_dict:
-        data_dict[new_setting_name] = data_dict[orig_setting_name]
-        del data_dict[orig_setting_name]
-    
-    source.write_dict(data_dict)
+    if data_dict:
+      for orig_setting_name, new_setting_name in settings_to_rename.items():
+        if orig_setting_name in data_dict:
+          data_dict[new_setting_name] = data_dict[orig_setting_name]
+          del data_dict[orig_setting_name]
+      
+      source.write_dict(data_dict)
 
 
 _UPDATE_HANDLERS = collections.OrderedDict([
