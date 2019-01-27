@@ -44,7 +44,7 @@ class TestSettingPersistor(unittest.TestCase):
     new="gimp_directory")
   def setUp(self):
     self.settings = stubs_pgsettinggroup.create_test_settings()
-    self.session_source = pgsettingsources.SessionPersistentSettingSource("")
+    self.session_source = pgsettingsources.SessionWideSettingSource("")
     self.persistent_source = pgsettingsources.PersistentSettingSource("")
   
   def test_load_save(self, mock_persistent_source, mock_session_source):

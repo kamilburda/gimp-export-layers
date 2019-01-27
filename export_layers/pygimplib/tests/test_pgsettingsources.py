@@ -31,38 +31,36 @@ from .. import pgconstants
 @mock.patch(
   pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
   new_callable=stubs_gimp.ShelfStub)
-class TestSessionPersistentSettingSource(unittest.TestCase):
+class TestSessionWideSettingSource(unittest.TestCase):
   
   @mock.patch(
     pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
     new=stubs_gimp.ShelfStub())
   def setUp(self):
     self.source_name = "test_settings"
-    self.source = pgsettingsources.SessionPersistentSettingSource(self.source_name)
+    self.source = pgsettingsources.SessionWideSettingSource(self.source_name)
     self.settings = stubs_pgsettinggroup.create_test_settings()
   
   def test_write(self, mock_session_source):
     self.settings["file_extension"].set_value("png")
     self.settings["only_visible_layers"].set_value(True)
+    
     self.source.write(self.settings)
     
     self.assertEqual(
-      pgsettingsources.gimpshelf.shelf[
-        self.source_name
-        + "_"
-        + self.settings["file_extension"].get_path("root")],
+      pgsettingsources.gimpshelf.shelf[self.source_name][
+        self.settings["file_extension"].get_path("root")],
       "png")
     self.assertEqual(
-      pgsettingsources.gimpshelf.shelf[
-        self.source_name
-        + "_"
-        + self.settings["only_visible_layers"].get_path("root")],
+      pgsettingsources.gimpshelf.shelf[self.source_name][
+        self.settings["only_visible_layers"].get_path("root")],
       True)
   
   def test_write_multiple_settings_separately(self, mock_session_source):
     self.settings["file_extension"].set_value("jpg")
     self.source.write([self.settings["file_extension"]])
     self.settings["only_visible_layers"].set_value(True)
+    
     self.source.write([self.settings["only_visible_layers"]])
     self.source.read([self.settings["file_extension"]])
     self.source.read([self.settings["only_visible_layers"]])
@@ -71,22 +69,30 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.assertEqual(self.settings["only_visible_layers"].value, True)
   
   def test_read(self, mock_session_source):
-    pgsettingsources.gimpshelf.shelf[
-      self.source_name
-      + "_"
-      + self.settings["file_extension"].get_path("root")] = "png"
-    pgsettingsources.gimpshelf.shelf[
-      self.source_name
-      + "_"
-      + self.settings["only_visible_layers"].get_path("root")] = True
+    data = {}
+    data[self.settings["file_extension"].get_path("root")] = "png"
+    data[self.settings["only_visible_layers"].get_path("root")] = True
+    pgsettingsources.gimpshelf.shelf[self.source_name] = data
+    
     self.source.read(
       [self.settings["file_extension"], self.settings["only_visible_layers"]])
+    
     self.assertEqual(self.settings["file_extension"].value, "png")
     self.assertEqual(self.settings["only_visible_layers"].value, True)
   
   def test_read_settings_not_found(self, mock_session_source):
+    self.source.write([self.settings["file_extension"]])
     with self.assertRaises(pgsettingsources.SettingsNotFoundInSourceError):
       self.source.read(self.settings)
+  
+  def test_read_settings_invalid_format(self, mock_session_source):
+    with mock.patch(
+           pgconstants.PYGIMPLIB_MODULE_PATH
+           + ".pgsettingsources.gimpshelf.shelf") as temp_mock_session_source:
+      temp_mock_session_source.__getitem__.side_effect = Exception
+      
+      with self.assertRaises(pgsettingsources.SettingSourceInvalidFormatError):
+        self.source.read(self.settings)
   
   def test_read_invalid_setting_value_set_to_default_value(self, mock_session_source):
     setting_with_invalid_value = pgsetting.IntSetting("int", default_value=-1)
@@ -96,6 +102,20 @@ class TestSessionPersistentSettingSource(unittest.TestCase):
     self.source.read([setting])
     
     self.assertEqual(setting.value, setting.default_value)
+  
+  def test_clear(self, mock_session_source):
+    self.source.write(self.settings)
+    self.source.clear()
+    
+    with self.assertRaises(pgsettingsources.SettingSourceNotFoundError):
+      self.source.read(self.settings)
+  
+  def test_has_data_with_no_data(self, mock_session_source):
+    self.assertFalse(self.source.has_data())
+  
+  def test_has_data_with_data(self, mock_session_source):
+    self.source.write([self.settings["file_extension"]])
+    self.assertTrue(self.source.has_data())
 
 
 @mock.patch(
@@ -114,8 +134,10 @@ class TestPersistentSettingSource(unittest.TestCase):
   def test_write_read(self, mock_persistent_source):
     self.settings["file_extension"].set_value("jpg")
     self.settings["only_visible_layers"].set_value(True)
+    
     self.source.write(self.settings)
     self.source.read(self.settings)
+    
     self.assertEqual(self.settings["file_extension"].value, "jpg")
     self.assertEqual(self.settings["only_visible_layers"].value, True)
   
@@ -123,6 +145,7 @@ class TestPersistentSettingSource(unittest.TestCase):
     self.settings["file_extension"].set_value("jpg")
     self.source.write([self.settings["file_extension"]])
     self.settings["only_visible_layers"].set_value(True)
+    
     self.source.write([self.settings["only_visible_layers"]])
     self.source.read([self.settings["file_extension"]])
     self.source.read([self.settings["only_visible_layers"]])
@@ -200,7 +223,7 @@ class TestSettingSourceReadWriteDict(unittest.TestCase):
   def setUp(self):
     self.source_name = "test_settings"
     self.source_session = (
-      pgsettingsources.SessionPersistentSettingSource(self.source_name))
+      pgsettingsources.SessionWideSettingSource(self.source_name))
     self.source_persistent = pgsettingsources.PersistentSettingSource(self.source_name)
     self.settings = stubs_pgsettinggroup.create_test_settings()
   
@@ -208,15 +231,10 @@ class TestSettingSourceReadWriteDict(unittest.TestCase):
     for source in [self.source_session, self.source_persistent]:
       self._test_read_dict(source)
   
-  def test_read_dict_with_nonexistent_setting_names(
+  def test_read_dict_nonexistent_source(
         self, mock_persistent_source, mock_session_source):
     for source in [self.source_session, self.source_persistent]:
-      self._test_read_dict_with_nonexistent_setting_names(source)
-  
-  def test_read_dict_empty_or_nonexistent_source(
-        self, mock_persistent_source, mock_session_source):
-    for source in [self.source_session, self.source_persistent]:
-      self._test_read_dict_empty_or_nonexistent_source(source)
+      self._test_read_dict_nonexistent_source(source)
   
   def test_write_dict(self, mock_persistent_source, mock_session_source):
     for source in [self.source_session, self.source_persistent]:
@@ -225,23 +243,17 @@ class TestSettingSourceReadWriteDict(unittest.TestCase):
   def _test_read_dict(self, source):
     source.write(self.settings)
     
-    data_dict = source.read_dict(["file_extension", "only_visible_layers"])
+    data_dict = source.read_dict()
     self.assertDictEqual(
       data_dict,
       {
         "file_extension": self.settings["file_extension"].value,
         "only_visible_layers": self.settings["only_visible_layers"].value,
+        "overwrite_mode": self.settings["overwrite_mode"].value,
       })
   
-  def _test_read_dict_with_nonexistent_setting_names(self, source):
-    source.write(self.settings)
-    
-    data_dict = source.read_dict(["file_extension", "nonexistent_setting"])
-    self.assertDictEqual(
-      data_dict, {"file_extension": self.settings["file_extension"].value})
-  
-  def _test_read_dict_empty_or_nonexistent_source(self, source):
-    self.assertEqual(source.read_dict(["file_extension", "only_visible_layers"]), {})
+  def _test_read_dict_nonexistent_source(self, source):
+    self.assertIsNone(source.read_dict())
   
   def _test_write_dict(self, source):
     data_dict = {

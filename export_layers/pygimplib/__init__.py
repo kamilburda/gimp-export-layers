@@ -183,7 +183,7 @@ def _init_config_builtin(config):
 
 def _init_config_builtin_delayed(config):
   if _gimp_dependent_modules_imported:
-    config.SOURCE_SESSION = pgsettingsources.SessionPersistentSettingSource(
+    config.SOURCE_SESSION = pgsettingsources.SessionWideSettingSource(
       config.SOURCE_SESSION_NAME)
     config.SOURCE_PERSISTENT = pgsettingsources.PersistentSettingSource(
       config.SOURCE_PERSISTENT_NAME)

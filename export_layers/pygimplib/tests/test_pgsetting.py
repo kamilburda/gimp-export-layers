@@ -312,7 +312,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
   def setUp(self):
     self.setting = stubs_pgsetting.SettingWithGuiStub("file_extension", "png")
     self.only_visible_layers = pgsetting.BoolSetting("only_visible_layers", False)
-    self.session_source = pgsettingsources.SessionPersistentSettingSource("")
+    self.session_source = pgsettingsources.SessionWideSettingSource("")
   
   def test_before_load_event(self, mock_session_source):
     pgsettingpersistor.SettingPersistor.save(

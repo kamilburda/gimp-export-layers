@@ -167,8 +167,7 @@ class SettingPersistor(object):
   @staticmethod
   def clear(setting_sources):
     """
-    Remove all settings from all the specified setting sources. Note that some
-    sources may do nothing because they do not implement this method.
+    Remove all settings from all the specified setting sources.
     """
     for source in setting_sources:
       source.clear()

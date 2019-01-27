@@ -111,7 +111,7 @@ class ParasiteStub(object):
     self.data = data
 
 
-class ParasiteFunctionsStub(object):
+class ParasiteFunctionsStubMixin(object):
   
   def __init__(self):
     self._parasites = {}
@@ -133,7 +133,7 @@ class ParasiteFunctionsStub(object):
       del self._parasites[parasite_name]
 
 
-class ImageStub(ParasiteFunctionsStub):
+class ImageStub(ParasiteFunctionsStubMixin):
   
   _image_id_counter = itertools.count(start=1)
   
@@ -152,7 +152,7 @@ class ImageStub(ParasiteFunctionsStub):
     self.valid = True
 
 
-class ItemStub(ParasiteFunctionsStub):
+class ItemStub(ParasiteFunctionsStubMixin):
   
   _item_id_counter = itertools.count(start=1)
   
@@ -193,7 +193,7 @@ class LayerGroupStub(LayerStub):
     self.children = val
 
 
-class GimpModuleStub(ParasiteFunctionsStub):
+class GimpModuleStub(ParasiteFunctionsStubMixin):
   
   pdb = PdbStub
   Parasite = ParasiteStub
