@@ -253,9 +253,8 @@ def setup_image_ids_and_filepaths_settings(
   """
   Set up a connection between a setting with a dict of (image ID, value) pairs
   and a setting with a dict of (image file path, value) pairs. This function
-  makes the two settings act like one - the former stored in a
-  session-persistent setting source, and the latter in a persistent setting
-  source.
+  makes the two settings act like one - the former stored in a session-wide
+  setting source, and the latter in a persistent setting source.
   
   The rationale behind using two settings is that the IDs of images do not
   change during a GIMP session while the their file paths can.
