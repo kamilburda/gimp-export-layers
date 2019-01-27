@@ -184,3 +184,82 @@ class TestPersistentSettingSource(unittest.TestCase):
   def test_has_data_with_data(self, mock_persistent_source):
     self.source.write([self.settings["file_extension"]])
     self.assertTrue(self.source.has_data())
+
+
+@mock.patch(
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
+  new_callable=stubs_gimp.ShelfStub)
+@mock.patch(
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp",
+  new_callable=stubs_gimp.GimpModuleStub)
+class TestSettingSourceReadWriteDict(unittest.TestCase):
+  
+  @mock.patch(
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp.directory",
+    new="gimp_directory")
+  def setUp(self):
+    self.source_name = "test_settings"
+    self.source_session = (
+      pgsettingsources.SessionPersistentSettingSource(self.source_name))
+    self.source_persistent = pgsettingsources.PersistentSettingSource(self.source_name)
+    self.settings = stubs_pgsettinggroup.create_test_settings()
+  
+  def test_read_dict(self, mock_persistent_source, mock_session_source):
+    for source in [self.source_session, self.source_persistent]:
+      self._test_read_dict(source)
+  
+  def test_read_dict_with_nonexistent_setting_names(
+        self, mock_persistent_source, mock_session_source):
+    for source in [self.source_session, self.source_persistent]:
+      self._test_read_dict_with_nonexistent_setting_names(source)
+  
+  def test_read_dict_empty_or_nonexistent_source(
+        self, mock_persistent_source, mock_session_source):
+    for source in [self.source_session, self.source_persistent]:
+      self._test_read_dict_empty_or_nonexistent_source(source)
+  
+  def test_write_dict(self, mock_persistent_source, mock_session_source):
+    for source in [self.source_session, self.source_persistent]:
+      self._test_write_dict(source)
+  
+  def _test_read_dict(self, source):
+    source.write(self.settings)
+    
+    data_dict = source.read_dict(["file_extension", "only_visible_layers"])
+    self.assertDictEqual(
+      data_dict,
+      {
+        "file_extension": self.settings["file_extension"].value,
+        "only_visible_layers": self.settings["only_visible_layers"].value,
+      })
+  
+  def _test_read_dict_with_nonexistent_setting_names(self, source):
+    source.write(self.settings)
+    
+    data_dict = source.read_dict(["file_extension", "nonexistent_setting"])
+    self.assertDictEqual(
+      data_dict, {"file_extension": self.settings["file_extension"].value})
+  
+  def _test_read_dict_empty_or_nonexistent_source(self, source):
+    self.assertEqual(source.read_dict(["file_extension", "only_visible_layers"]), {})
+  
+  def _test_write_dict(self, source):
+    data_dict = {
+      "file_extension": self.settings["file_extension"].default_value,
+      "only_visible_layers": self.settings["only_visible_layers"].default_value,
+    }
+    
+    self.settings["file_extension"].set_value("jpg")
+    self.settings["only_visible_layers"].set_value(True)
+    
+    source.write_dict(data_dict)
+    
+    source.read(
+      [self.settings["file_extension"], self.settings["only_visible_layers"]])
+    
+    self.assertEqual(
+      self.settings["file_extension"].value,
+      self.settings["file_extension"].default_value)
+    self.assertEqual(
+      self.settings["only_visible_layers"].value,
+      self.settings["only_visible_layers"].default_value)

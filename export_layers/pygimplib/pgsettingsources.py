@@ -104,6 +104,37 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     pass
   
+  @abc.abstractmethod
+  def read_dict(self, setting_names):
+    """
+    Read setting values from the source specified by their names in the
+    `setting_names` list. Return a dictionary of
+    `(setting name, setting value)` pairs.
+    
+    Settings that do not exist in the source are skipped. If the source does not
+    exist, return an empty dictionary.
+    
+    This method is useful in the unlikely case the settings must be modified
+    directly in the source or removed from the source.
+    """
+    pass
+  
+  @abc.abstractmethod
+  def write_dict(self, setting_names_and_values):
+    """
+    Write setting names and values to the source specified in the
+    `setting_names_and_values` dictionary containing
+    `(setting name, setting value)` pairs.
+    
+    Depending on the subclass, the entire setting source may be overwritten by
+    the specified dictionary. Therefore, do not assume unspecified settings to
+    be preserved in the source after calling this method.
+    
+    This method is useful in the unlikely case the settings must be modified
+    directly in the source or removed from the source.
+    """
+    pass
+  
   @property
   def settings_not_found(self):
     return self._settings_not_found
@@ -112,7 +143,7 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Read setting values from the source into the settings.
     
-    To retrieve a single value, `_retrieve_setting_value` is called.
+    To read a single value, `_read_setting_value` is called.
     
     Raises:
     
@@ -123,7 +154,7 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     for setting in settings:
       try:
-        value = self._retrieve_setting_value(setting.get_path("root"))
+        value = self._read_setting_value(setting.get_path("root"))
       except KeyError:
         self._settings_not_found.append(setting)
       else:
@@ -138,9 +169,9 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
           "\n".join(setting.get_path() for setting in self._settings_not_found)))
   
   @abc.abstractmethod
-  def _retrieve_setting_value(self, setting_name):
+  def _read_setting_value(self, setting_name):
     """
-    Retrieve a single setting value from the source given the setting name.
+    Read a single setting value from the source given the setting name.
     
     This method must be defined in subclasses.
     """
@@ -172,10 +203,28 @@ class SessionPersistentSettingSource(SettingSource):
   
   def write(self, settings):
     for setting in settings:
-      gimpshelf.shelf[self._get_key(setting.get_path("root"))] = setting.value
+      self._write_setting_value(setting.get_path("root"), setting.value)
   
-  def _retrieve_setting_value(self, setting_name):
+  def read_dict(self, setting_names):
+    setting_names_and_values = {}
+    
+    for name in setting_names:
+      try:
+        setting_names_and_values[name] = self._read_setting_value(name)
+      except KeyError:
+        pass
+    
+    return setting_names_and_values
+  
+  def write_dict(self, setting_names_and_values):
+    for name, value in setting_names_and_values.items():
+      self._write_setting_value(name, value)
+  
+  def _read_setting_value(self, setting_name):
     return gimpshelf.shelf[self._get_key(setting_name)]
+  
+  def _write_setting_value(self, setting_name, setting_value):
+    gimpshelf.shelf[self._get_key(setting_name)] = setting_value
   
   def _get_key(self, setting_name):
     key = self.source_name + self._separator + setting_name
@@ -202,6 +251,7 @@ class PersistentSettingSource(SettingSource):
     
     self.source_name = source_name
     self._parasite_filepath = os.path.join(gimp.directory, "parasiterc")
+    self._settings_from_parasite = None
   
   def read(self, settings):
     """
@@ -221,19 +271,17 @@ class PersistentSettingSource(SettingSource):
     
     self._read(settings)
     
-    del self._settings_from_parasite
+    self._settings_from_parasite = None
   
   def write(self, settings):
     settings_from_parasite = self._read_from_parasite(self.source_name)
     if settings_from_parasite is not None:
-      settings_to_write = settings_from_parasite
-      settings_to_write.update(self._to_dict(settings))
+      setting_names_and_values = settings_from_parasite
+      setting_names_and_values.update(self._to_dict(settings))
     else:
-      settings_to_write = self._to_dict(settings)
+      setting_names_and_values = self._to_dict(settings)
     
-    settings_data = pickle.dumps(settings_to_write)
-    gimp.parasite_attach(
-      gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, settings_data))
+    self.write_dict(setting_names_and_values)
   
   def clear(self):
     parasite = gimp.parasite_find(self.source_name)
@@ -242,6 +290,28 @@ class PersistentSettingSource(SettingSource):
     
     gimp.parasite_detach(self.source_name)
   
+  def read_dict(self, setting_names):
+    setting_names_and_values = {}
+    
+    self._settings_from_parasite = self._read_from_parasite(self.source_name)
+    if self._settings_from_parasite is None:
+      return setting_names_and_values
+    
+    for name in setting_names:
+      try:
+        setting_names_and_values[name] = self._read_setting_value(name)
+      except KeyError:
+        pass
+    
+    self._settings_from_parasite = None
+    
+    return setting_names_and_values
+  
+  def write_dict(self, setting_names_and_values):
+    data = pickle.dumps(setting_names_and_values)
+    gimp.parasite_attach(
+      gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, data))
+  
   def has_data(self):
     """
     Return `True` if the setting source contains data for the `source_name`
@@ -249,7 +319,7 @@ class PersistentSettingSource(SettingSource):
     """
     return gimp.parasite_find(self.source_name) is not None
   
-  def _retrieve_setting_value(self, setting_name):
+  def _read_setting_value(self, setting_name):
     return self._settings_from_parasite[setting_name]
   
   def _read_from_parasite(self, parasite_name):
