@@ -1,7 +1,12 @@
 Upcoming Changes
 ================
 
-* Layer filename pattern: Added the option to specify metadata - layer width, height, *x*- and *y*-offsets and image width and height.
+Changes to the filename pattern entry:
+  * Reworked tooltips, now containing more details and some examples.
+  * Explicitly specified tags are no longer sorted alphabetically.
+  * Changed the default separator and wrapper for the `Tags` field.
+  * Modified several arguments to use the `%` notation for brevity and consistency.
+  * Added the option to specify several layer or image attributes - layer width, height, *x*- and *y*-offsets and image width and height.
 * From version 3.3 onward, obsolete settings, procedures or constraints are automatically replaced when first starting the plug-in with a newer version.
 
 

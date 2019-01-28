@@ -205,8 +205,8 @@ class FilenamePatternEntry(ExtendedEntry):
     Parameters:
     
     * `suggested_items` - List of
-      `(item name displayed in popup, text inserted in entry, arguments)` tuples
-      describing each item.
+      `(item name displayed in popup, text to insert in entry, description)`
+      tuples describing each item.
     
     * `default_item` - The second element of an item from the `suggested_items`
       that is displayed as placeholder text, or `None` for no default item. This
@@ -278,14 +278,7 @@ class FilenamePatternEntry(ExtendedEntry):
     for item in suggested_items:
       field_value = item[1]
       if field_value.startswith("[") and field_value.endswith("]"):
-        if item[2]:
-          suggested_fields[field_value[1:-1]] = "\n".join([
-            "[{0}, <i>{1}</i>]".format(
-              gobject.markup_escape_text(field_value[1:-1]),
-              gobject.markup_escape_text(arguments))
-            for arguments in item[2]])
-        else:
-          suggested_fields[field_value[1:-1]] = ""
+        suggested_fields[field_value[1:-1]] = item[2]
     
     return suggested_fields
   

@@ -60,6 +60,7 @@ from .. import builtin_constraints
 from .. import builtin_procedures
 from .. import operations
 from .. import exportlayers
+from .. import renamer
 from .. import settings_plugin
 from .. import update
 from . import gui_message_label
@@ -443,7 +444,7 @@ class ExportLayersGui(object):
     self._dot_label.set_alignment(0.0, 1.0)
     
     self._filename_pattern_entry = pggui.FilenamePatternEntry(
-      exportlayers.LayerNameRenamer.LAYER_NAME_PATTERN_FIELDS,
+      renamer.get_field_descriptions(renamer.FIELDS),
       minimum_width_chars=self._FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS,
       maximum_width_chars=self._FILENAME_PATTERN_ENTRY_MAX_WIDTH_CHARS,
       default_item=self._settings["main/layer_filename_pattern"].default_value)

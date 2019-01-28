@@ -27,10 +27,8 @@ from future.builtins import *
 import future.utils
 
 import collections
-import datetime
 import inspect
 import os
-import string
 
 from gimp import pdb
 import gimpenums
@@ -51,6 +49,7 @@ from . import builtin_procedures
 from . import builtin_constraints
 from . import operations
 from . import placeholders
+from . import renamer
 
 
 class LayerExporter(object):
@@ -339,7 +338,7 @@ class LayerExporter(object):
     else:
       pattern = self.export_settings["layer_filename_pattern"].default_value
     
-    self._layer_name_renamer = LayerNameRenamer(self, pattern)
+    self._layer_name_renamer = renamer.LayerNameRenamer(self, pattern)
   
   def _add_operations(self):
     self._operation_executor.add(
@@ -820,179 +819,6 @@ def _get_args_for_constraint_func(rule_func, args):
   return layer_exporter, rule_func_args
 
 
-#===============================================================================
-
-
-class LayerNameRenamer(object):
-  
-  LAYER_NAME_PATTERN_FIELDS = [
-    ("image001", "image[001]", []),
-    (_("Layer name"),
-     "[layer name]",
-     ["keep extension",
-      "keep only identical extension"]),
-    (_("Image name"), "[image name]", ["keep extension"]),
-    (_("Layer path"), "[layer path]", ["separator, wrapper"]),
-    (_("Tags"),
-     "[tags]",
-     ["specific tags...",
-      "separator, wrapper, specific tags..."]),
-    (_("Current date"), "[current date]", ["%Y-%m-%d"]),
-    (_("Metadata"), "[metadata]", ["pattern"]),
-  ]
-  
-  def __init__(self, layer_exporter, pattern):
-    self._layer_exporter = layer_exporter
-    
-    self._filename_pattern_generator = pgpath.StringPatternGenerator(
-      pattern=pattern,
-      fields=self._get_fields_for_layer_filename_pattern())
-    
-    # key: _ItemTreeElement parent ID (None for root)
-    # value: list of pattern number generators
-    self._pattern_number_filename_generators = {
-      None: self._filename_pattern_generator.get_number_generators()}
-  
-  def rename(self, layer_elem):
-    parent = layer_elem.parent.item.ID if layer_elem.parent is not None else None
-    if parent not in self._pattern_number_filename_generators:
-      self._pattern_number_filename_generators[parent] = (
-        self._filename_pattern_generator.reset_numbering())
-    else:
-      self._filename_pattern_generator.set_number_generators(
-        self._pattern_number_filename_generators[parent])
-    
-    layer_elem.name = self._filename_pattern_generator.generate()
-  
-  def _get_fields_for_layer_filename_pattern(self):
-    return {
-      "layer name": self._get_layer_name,
-      "image name": self._get_image_name,
-      "layer path": self._get_layer_path,
-      "tags": self._get_tags,
-      "current date": self._get_current_date,
-      "metadata": self._get_metadata,
-    }
-  
-  def _get_layer_name(self, file_extension_strip_mode=None):
-    layer_elem = self._layer_exporter.current_layer_elem
-    
-    if file_extension_strip_mode in ["keep extension", "keep only identical extension"]:
-      file_extension = layer_elem.get_file_extension_from_orig_name()
-      if file_extension:
-        if file_extension_strip_mode == "keep only identical extension":
-          if file_extension == self._layer_exporter.default_file_extension:
-            return layer_elem.name
-        else:
-          return layer_elem.name
-    
-    return layer_elem.get_base_name()
-  
-  def _get_image_name(self, keep_extension=False):
-    image_name = (
-      self._layer_exporter.image.name if self._layer_exporter.image.name is not None
-      else _("Untitled"))
-    
-    if keep_extension == "keep extension":
-      return image_name
-    else:
-      return pgpath.get_filename_with_new_file_extension(image_name, "")
-  
-  def _get_layer_path(self, separator="-", wrapper=None):
-    if wrapper is None:
-      wrapper = "{}"
-    else:
-      path_component_token = "$$"
-      
-      if path_component_token in wrapper:
-        wrapper = wrapper.replace(path_component_token, "{}")
-      else:
-        wrapper = "{}"
-    
-    path_components = (
-      [parent.name for parent in self._layer_exporter.current_layer_elem.parents]
-      + [self._layer_exporter.current_layer_elem.name])
-    
-    return separator.join(
-      [wrapper.format(path_component) for path_component in path_components])
-  
-  def _get_tags(self, *args):
-    tags_to_insert = []
-    
-    def _insert_tag(tag):
-      if tag in operations.BUILTIN_TAGS:
-        tag_display_name = operations.BUILTIN_TAGS[tag]
-      else:
-        tag_display_name = tag
-      tags_to_insert.append(tag_display_name)
-    
-    def _get_tag_from_tag_display_name(tag_display_name):
-      builtin_tags_keys = list(operations.BUILTIN_TAGS)
-      builtin_tags_values = list(operations.BUILTIN_TAGS.values())
-      return builtin_tags_keys[builtin_tags_values.index(tag_display_name)]
-    
-    def _insert_all_tags():
-      for tag in self._layer_exporter.current_layer_elem.tags:
-        _insert_tag(tag)
-    
-    def _insert_specified_tags(tags):
-      for tag in tags:
-        if tag in operations.BUILTIN_TAGS:
-          continue
-        if tag in operations.BUILTIN_TAGS.values():
-          tag = _get_tag_from_tag_display_name(tag)
-        if tag in self._layer_exporter.current_layer_elem.tags:
-          _insert_tag(tag)
-    
-    tag_separator = " "
-    tag_wrapper = "[{}]"
-    tag_token = "$$"
-    
-    if not args:
-      _insert_all_tags()
-    else:
-      if len(args) < 2:
-        _insert_specified_tags(args)
-      else:
-        if tag_token in args[1]:
-          tag_separator = args[0]
-          tag_wrapper = args[1].replace(tag_token, "{}")
-          
-          if len(args) > 2:
-            _insert_specified_tags(args[2:])
-          else:
-            _insert_all_tags()
-        else:
-          _insert_specified_tags(args)
-    
-    tags_to_insert.sort(key=lambda tag: tag.lower())
-    return tag_separator.join([tag_wrapper.format(tag) for tag in tags_to_insert])
-  
-  @staticmethod
-  def _get_current_date(date_format="%Y-%m-%d"):
-    return datetime.datetime.now().strftime(date_format)
-  
-  def _get_metadata(self, pattern):
-    layer_elem = self._layer_exporter.current_layer_elem
-    image = self._layer_exporter.image
-    
-    fields = {
-      "w": layer_elem.item.width,
-      "h": layer_elem.item.height,
-      "x": layer_elem.item.offsets[0],
-      "y": layer_elem.item.offsets[1],
-      "iw": image.width,
-      "ih": image.height,
-    }
-    
-    return _PercentTemplate(pattern).safe_substitute(fields)
-
-
-class _PercentTemplate(string.Template):
-  
-  delimiter = "%"
-
-
 class _FileExtension(object):
   """
   This class defines additional properties for a file extension.
@@ -1023,9 +849,6 @@ def _get_prefilled_file_extension_properties():
       file_extension_properties[file_extension] = extension_properties
   
   return file_extension_properties
-
-
-#===============================================================================
 
 
 @future.utils.python_2_unicode_compatible
@@ -1064,9 +887,6 @@ class InvalidOutputDirectoryError(ExportLayersError):
 
 class InvalidPdbProcedureError(ExportLayersError):
   pass
-
-
-#===============================================================================
 
 
 class ExportStatuses(object):
