@@ -351,7 +351,8 @@ _FIELDS_LIST = [
         '"%c" denotes the component itself'),
     ],
     [
-      [_('Suppose that a layer named "Left" has parent groups named "Hands" and "Body".')],
+      [_('Suppose that a layer named "Left" has parent groups named '
+         '"Hands" and "Body".')],
       ["[layer path]", "Body-Hands-Left"],
       ["[layer path, _]", "Body_Hands_Left"],
       ["[layer path, _, (%c)]", "(Body)_(Hands)_(Left)"],
@@ -392,7 +393,8 @@ _FIELDS_LIST = [
       _('Specify <i>format</i> as per the Python "strftime" function.'),
     ],
     [
-      ["[current date, %Y-%m-%d]", "2019-01-28"],
+      ["[current date]", "2019-01-28"],
+      ["[current date, %m.%d.%Y_%H-%M]", "28.01.2019_19-04"],
     ],
   ),
   _Field(
@@ -405,12 +407,12 @@ _FIELDS_LIST = [
     ],
     [
       _("<i>pattern</i> can contain the following fields:"),
-      _("%w - layer width"),
-      _("%h - layer height"),
-      _("%x - layer x-offset"),
-      _("%y - layer y-offset"),
-      _("%iw - image width"),
-      _("%ih - image height"),
+      _("%w - the layer width"),
+      _("%h - the layer height"),
+      _("%x - the layer x-offset"),
+      _("%y - the layer y-offset"),
+      _("%iw - the image width"),
+      _("%ih - the image height"),
     ],
     [
       ["[attributes, %w-%h-%x-%y]", "1000-500-0-40"],

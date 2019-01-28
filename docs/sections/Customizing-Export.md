@@ -25,100 +25,126 @@ For example, "image\[001\]" renames the layers to "image001", "image002" and so 
 The preview automatically updates as you change the filename pattern and so can greatly help you figure out how your specified pattern affects the layer names.
 
 Fields must be enclosed in square brackets and must have a correct number of arguments.
-If you place the text cursor inside a field, a corresponding tooltip above the text entry shows you the name and the number of possible arguments.
+If you place the text cursor inside a field, a corresponding tooltip above the text entry shows you the correct usage along with examples.
 
 Arguments must be separated by commas.
-Arguments in italic are optional.
-Arguments with slashes indicates a single choice of one of the specified values.
 Invalid arguments result in the field being inserted literally.
 
 ### Available fields
 
 You can choose the fields from the dropdown list displayed when clicking on the text entry or you can type the fields manually.
 
-**\[number\]**
+**Number**
 
 A number incrementing for each layer.
 The numbering is separate for each layer group.
 
 Examples:
-* \[1\] → 1, 2, ...
-* \[001\] → 001, 002, ..., 009, 010, ..., 999, 1000, ...
-* \[005\] → 005, 006, ...
+* `[1]` → `1`, `2`, ...
+* `[001]` → `001`, `002`, ..., `009`, `010`, ..., `999`, `1000`, ...
+* `[005]` → `005`, `006`, ...
 
 **\[layer name\]**
 
 The layer name.
 
 Arguments:
-* "keep extension": If a layer has a recognized file extension, don't remove it.
-* "keep only identical extension": If a layer has a recognized file extension and it matches the extension in the "File extension" text entry, don't remove it.
+* `%e` If a layer has a recognized file extension, keep the extension.
+* `%i`: If a layer has a recognized file extension that matches the extension in the "File extension" text entry, keep the extension.
 
 **\[image name\]**
 
 The current image name.
 
 Arguments:
-* "keep extension": Do not remove the file extension of the image if it has one.
+* `%e`: If the image has a file extension, keep the extension.
 
 **\[layer path\]**
 
 The "full path" of a layer.
-For example, if the image has a layer group named "Frames" and the layer group has a layer named "Top", the path for the layer will be "Frames-Top".
+For example, if the image has a layer group named `Body` containing a layer group named `Hands` containing a layer named `Left`, the layer path will be `Body-Hands-Left`.
 
 Arguments:
-* path separator: A string that separates the path components.
-  Defaults to "-".
-* wrapper: A string that wraps around each path component.
-  The wrapper must contain "$$" (denoting the name of the current path component).
-  By default, no wrapper is used.
+* *separator*: A string separating the path components.
+  Defaults to `-`.
+* *wrapper*: A string that wraps around each path component.
+  The wrapper must contain `%c` denoting the path component.
+  Defaults to `%c`.
 
 Examples:
-* Suppose that a layer has the following path: Frames, Outer, bottom.
-* [layer path] → Frames-Outer-bottom
-* [layer path, \_] → Frames\_Outer\_bottom
-* [layer path, \_, ($$)] → (Frames)\_(Outer)\_(bottom)
+* `[layer path]` → `Body-Hands-Left`
+* `[layer path, _]` → `Body_Hands_Left`
+* `[layer path, _, (%c)]` → `(Body)_(Hands)_(Left)`
 
 **\[tags\]**
 
-All tags of a layer.
-By default, tags are inserted in the following format:
-"\[\<tag1\>\] \[\<tag2\>\] ..."
+All tags assigned to a layer.
+For example, suppose that a layer has the following tags: `left`, `middle`, `right`.
+Then (by default) the tags will be formatted as `left-middle-right`.
 
-Tags are inserted in alphabetical order.
+Without arguments, tags are inserted in alphabetical order.
+
 See [Tagging Layers](#tagging-layers) for information about layer tags.
 
 Arguments:
-* if there are two arguments and the second argument contains "$$", then the first argument is a separator between tags and the second argument acts as a "wrapper" around the tag name.
-* specific tags: tag names as comma-separated arguments.
+* *separator*: A string separating the tags.
+  Defaults to `-`.
+* *wrapper*: A string that wraps around each path component.
+  The wrapper must contain `%t` denoting the tag.
+* *tags...*: Specific tag names as comma-separated arguments.
   If omitted, all tags are inserted.
+  Tags not assigned to a layer are ignored.
+
+If at least two arguments are specified and the second argument contains `%t`, then the first argument is considered to be the *separator* argument and the second argument the *wrapper* argument.
 
 Examples:
-* Suppose that a layer has the following tags: Background, Foreground, frames.
-* [tags] → \[Background\] \[Foreground\] \[frames\]
-* [tags, Background, Foreground] → \[Background\] \[Foreground\]
-* [tags, \_, ($$)] → (Background)\_(Foreground)\_(frames)
-* [tags, \_, ($$), Background, Foreground] → (Background)\_(Foreground)
+* `[tags]` → `left-middle-right`
+* `[tags, right, left]` → `right-left`
+* `[tags, _, (%t)]` → `(left)_(middle)_(right)`
+* `[tags, _, (%t), right, left]` → `(right)_(left)`
 
 **\[current date\]**
 
 The current date.
 
 Arguments:
-* date format: Date format as per the [Python `strftime` format](http://strftime.org/).
-  Defaults to "%Y-%m-%d" (year-month-day).
+* *format*: Date format as per the [Python `strftime` function](http://strftime.org/).
+  Defaults to `%Y-%m-%d` (year-month-day).
+
+Examples:
+* `[current date]` → `2019-01-28`
+* `[current date, %m.%d.%Y_%H-%M]` → `28.01.2019_19-04`
+
+**\[attributes\]**
+
+Layer or image attributes.
+
+Arguments
+* *pattern*: A string formatting the attributes.
+
+Available attributes for *pattern*:
+* `%w` - The layer width.
+* `%h` - The layer height.
+* `%x` - The layer *x*-offset.
+* `%y` - The layer *y*-offset.
+* `%iw` - The image width.
+* `%ih` - The image height.
+
+Examples:
+* `[attributes, %w-%h-%x-%y]` → `1000-500-0-40`
+
 
 ### Inserting reserved characters in arguments
 
-To insert a literal space, comma or square brackets ("\[" and "\]") in an argument, enclose the argument with square brackets.
+To insert a literal space, comma or square brackets (`[` and `]`) in an argument, enclose the argument with square brackets.
 Literal square brackets must be doubled.
 
 If the last argument is enclosed in square brackets, leave a single space between the last and the second to last closing square bracket.
 
 Examples:
-* [layer path, [ ], $$]
-* [layer path, [ ] ]
-* [layer path, [,], [[[$$]]] ]
+* `[layer path, [ ], %c]` → `Body Hands Left`
+* `[layer path, [ ] ]` → `Body Hands Left`
+* `[layer path, [,], [[[%c]]] ]` → `[Body],[Hands],[Left]`
 
 
 Customizing Export with Procedures
