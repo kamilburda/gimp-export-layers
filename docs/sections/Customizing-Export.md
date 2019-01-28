@@ -141,9 +141,12 @@ Literal square brackets must be doubled.
 
 If the last argument is enclosed in square brackets, leave a single space between the last and the second to last closing square bracket.
 
+To insert a literal `%` character, double the character.
+
 Examples:
 * `[layer path, [ ], %c]` → `Body Hands Left`
 * `[layer path, [ ] ]` → `Body Hands Left`
+* `[layer path, [ ], %%%c%%]` → `%Body% %Hands% %Left%`
 * `[layer path, [,], [[[%c]]] ]` → `[Body],[Hands],[Left]`
 
 
