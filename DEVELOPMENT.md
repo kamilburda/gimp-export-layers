@@ -174,7 +174,8 @@ Exceptions:
 
 Do not use wildcard imports.
 Exceptions:
-* `from future.builtins import *` to help improve Python 3 compatibility.
+* `from future.builtins import *` to help improve Python 3 compatibility,
+* internal modules whose public elements should be used directly through a package. These modules must define `__all__` to list all public elements to be imported.
 
 
 ### Executing Code
