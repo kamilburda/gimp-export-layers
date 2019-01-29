@@ -39,7 +39,7 @@ You can also adjust the height of the previewed image by dragging the separator 
 
 If the previewed image takes too long to render, the preview is no longer updated automatically.
 A button next to the arrow button above the image is displayed that allows you to manually update the image.
-To switch between automatic and manual update, click on the arrow button and select `"Update Preview Automatically"`.
+To switch between automatic and manual update, click on the arrow button and select "Update Preview Automatically".
 
 
 Managing Settings
