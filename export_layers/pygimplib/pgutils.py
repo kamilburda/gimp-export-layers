@@ -121,7 +121,7 @@ def get_current_module_filepath():
 
 def create_read_only_property(obj, name, value):
   """
-  For the given `obj` object, create private attribute named `_[name]` and
+  For the given `obj` object, create a private attribute named `_[name]` and a
   read-only property named `name` returning the value of the private attribute.
   """
   setattr(obj, "_" + name, value)
