@@ -17,310 +17,330 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-import datetime
 import os
 import unittest
+
+import parameterized
 
 from .. import pgpath
 
 
 class TestUniquifyString(unittest.TestCase):
   
-  def test_uniquify_string(self):
-    self.assertEqual(
-      pgpath.uniquify_string("one", ["one", "two", "three"]), "one (1)")
-    self.assertEqual(
-      pgpath.uniquify_string("one", ["one", "one (1)", "three"]), "one (2)")
+  @parameterized.parameterized.expand([
+    ("one_identical_string", "one", ["one", "two", "three"], "one (1)"),
     
-    self.assertEqual(
-      pgpath.uniquify_string("one.", ["one.", "two", "three"]), "one. (1)")
-    self.assertEqual(
-      pgpath.uniquify_string("one (1)", ["one (1)", "two", "three"]), "one (1) (1)")
-    self.assertEqual(
-      pgpath.uniquify_string("one (1)", ["one (1)", "one (2)", "three"]), "one (1) (1)")
+    ("identical_string_and_existing_string_with_uniquifier",
+     "one", ["one", "one (1)", "three"], "one (2)"),
+    
+    ("multiple_identical_strings", "one", ["one", "one", "three"], "one (1)"),
+    
+    ("existing_string_with_uniquifier",
+     "one (1)", ["one (1)", "two", "three"], "one (1) (1)"),
+    
+    ("multiple_existing_strings_with_uniquifier",
+     "one (1)", ["one (1)", "one (2)", "three"], "one (1) (1)"),
+  ])
+  def test_uniquify_string(
+        self, test_case_name_suffix, str_, existing_strings, expected_str):
+    self.assertEqual(pgpath.uniquify_string(str_, existing_strings), expected_str)
   
-  def test_uniquify_string_insert_before_file_extension(self):
+  @parameterized.parameterized.expand([
+    ("one_identical_string",
+     "one.png", ["one.png", "two", "three"], "one (1).png"),
     
-    def _get_file_extension_start_position(str_):
-      position = str_.rfind(".")
-      if position == -1:
-        position = len(str_)
-      return position
+    ("identical_string_and_existing_string_with_uniquifier",
+     "one.png", ["one.png", "one (1).png", "three"], "one (2).png"),
     
-    def _test_uniquify_with_file_extension(
-          input_str, existing_strings, expected_uniquified_str):
-      self.assertEqual(
-        pgpath.uniquify_string(
-          input_str, existing_strings, _get_file_extension_start_position(input_str)),
-        expected_uniquified_str)
-    
-    _test_uniquify_with_file_extension(
-      "one.jpg", ["one.jpg", "two", "three"], "one (1).jpg")
-    _test_uniquify_with_file_extension(
-      "one.jpg", ["one.jpg", "one (1).jpg", "two", "three"], "one (2).jpg")
-    _test_uniquify_with_file_extension(
-      "one", ["one", "two", "three"], "one (1)")
-    _test_uniquify_with_file_extension(
-      "one.", ["one.", "two", "three"], "one (1).")
-    _test_uniquify_with_file_extension(
-      "one (1).jpg", ["one (1).jpg", "two", "three"], "one (1) (1).jpg")
-  
-  def test_uniquify_string_insert_before_file_extension_with_periods(self):
-    input_str = "one.xcf.gz"
+    ("existing_string_with_uniquifier",
+     "one (1).png", ["one (1).png", "two", "three"], "one (1) (1).png"),
+  ])
+  def test_uniquify_string_with_custom_uniquifier_position(
+        self, test_case_name_suffix, str_, existing_strings, expected_str):
     self.assertEqual(
-      "one (1).xcf.gz",
-      pgpath.uniquify_string(
-        input_str, [input_str, "two", "three"], len(input_str) - len(".xcf.gz")))
+      pgpath.uniquify_string(str_, existing_strings, len(str_) - len(".png")),
+      expected_str)
+
+
+def _get_field_value(arg1=1, arg2=2):
+  return "{}{}".format(arg1, arg2)
+
+
+def _get_field_value_with_required_args(arg1, arg2, arg3):
+  return "{}{}{}".format(arg1, arg2, arg3)
+
+
+def _get_field_value_with_varargs(arg1, *args):
+  return "{}_{}".format(arg1, "-".join(args))
+
+
+def _get_field_value_with_kwargs(arg1=1, arg2=2, **kwargs):
+  return "{}_{}".format(arg1, "-".join(kwargs.values()))
+
+
+def _get_field_value_raising_exception(arg1=1, arg2=2):
+  raise ValueError("invalid argument values")
+
+
+def _generate_number():
+  i = 1
+  while True:
+    yield i
+    i += 1
+
+
+def _generate_string_with_single_character(character="a"):
+  while True:
+    yield character
+    character += "a"
 
 
 class TestStringPatternGenerator(unittest.TestCase):
   
-  def _test_generate(self, pattern, *expected_outputs):
-    generator = pgpath.StringPatternGenerator(pattern)
-    for output in expected_outputs:
-      self.assertEqual(generator.generate(), output)
+  @parameterized.parameterized.expand([
+    ("empty_string", "", ""),
+    ("nonempty_string", "image", "image"),
+    ("string_containing_field_delimiters", "[image]", "[image]"),
+  ])
+  def test_generate_without_fields(
+        self, test_case_name_suffix, pattern, expected_output):
+    self.assertEqual(pgpath.StringPatternGenerator(pattern).generate(), expected_output)
   
-  def _test_generate_with_field(self, field_name, field_func, pattern, *expected_outputs):
-    generator = pgpath.StringPatternGenerator(pattern, {field_name: field_func})
-    for output in expected_outputs:
-      self.assertEqual(generator.generate(), output)
+  @parameterized.parameterized.expand([
+    ("fields_without_arguments_with_constant_value",
+     [("field1", lambda: "1"),
+      ("field2", lambda: "2"),
+      ("field3", lambda: "3")],
+     "img_[field1][field2]_[field3]",
+     "img_12_3"),
+    
+    ("field_with_explicit_arguments",
+     [("field", _get_field_value)], "img_[field, 3, 4]", "img_34"),
+    
+    ("field_with_explicit_arguments_of_length_more_than_one",
+     [("field", _get_field_value)], "img_[field, one, two]", "img_onetwo"),
+    
+    ("field_with_last_default_argument",
+     [("field", _get_field_value)], "img_[field, 3]", "img_32"),
+    
+    ("field_with_default_arguments",
+     [("field", _get_field_value)], "img_[field]", "img_12"),
+    
+    ("field_with_default_arguments_with_trailing_comma",
+     [("field", _get_field_value)], "img_[field,]", "img_12"),
+    
+    ("field_with_default_arguments_with_trailing_comma_and_space",
+     [("field", _get_field_value)], "img_[field, ]", "img_12"),
+    
+    ("field_with_explicit_arguments_with_trailing_comma_and_space",
+     [("field", _get_field_value)], "img_[field, 3, 4, ]", "img_34"),
+    
+    ("field_with_last_default_argument_with_trailing_comma_and_space",
+     [("field", _get_field_value)], "img_[field, 3, ]", "img_32"),
+    
+    ("field_with_more_args_than_func",
+     [("field", _get_field_value)], "img_[field, 3, 4, 5]", "img_[field, 3, 4, 5]"),
+    
+    ("field_with_zero_args_for_func_with_required_args",
+     [("field", _get_field_value_with_required_args)],
+     "img_[field]",
+     "img_[field]"),
+    
+    ("field_with_fewer_args_than_required",
+     [("field", _get_field_value_with_required_args)],
+     "img_[field, 3]",
+     "img_[field, 3]"),
+    
+    ("field_with_one_arg_less_than_required",
+     [("field", _get_field_value_with_required_args)],
+     "img_[field, 3, 4]",
+     "img_[field, 3, 4]"),
+    
+    ("field_with_no_varargs_for_func_with_varargs",
+     [("field", _get_field_value_with_varargs)],
+     "img_[field, 3]",
+     "img_3_"),
+    
+    ("field_with_varargs_for_func_with_varargs",
+     [("field", _get_field_value_with_varargs)],
+     "img_[field, 3, 4, 5, 6]",
+     "img_3_4-5-6"),
+    
+    ("field_args_with_explicit_delimiters",
+     [("field", _get_field_value)], "img_[field, [3], [4],]", "img_34"),
+    
+    ("field_args_of_length_more_than_one_with_explicit_delimiters",
+     [("field", _get_field_value)], "img_[field, [one], [two],]", "img_onetwo"),
+    
+    ("field_with_multiple_spaces_between_args",
+     [("field", _get_field_value)], "img_[field,   3,  4  ]", "img_34"),
+    
+    ("field_args_with_explicit_delimiters_escape_spaces_and_arg_delimiters",
+     [("field", _get_field_value)], "img_[field, [3, ], [4, ],]", "img_3, 4, "),
+    
+    ("field_args_with_escaped_delimiters_on_arg_bounds",
+     [("field", _get_field_value)],
+     "img_[field, [[[3, ]]], [[[4, ]]],]",
+     "img_[3, ][4, ]"),
+    
+    ("field_args_with_escaped_delimiters_inside_args",
+     [("field", _get_field_value)], "img_[field, [on[[e], [t[[w]]o],]", "img_on[et[w]o"),
+    
+    ("field_with_function_raising_exception_returns_pattern",
+     [("field", _get_field_value_raising_exception)], "img_[field]", "img_[field]"),
+    
+    ("unrecognized_field_is_not_processed",
+     [("unrecognized field", _get_field_value)],
+     "img_[field]",
+     "img_[field]"),
+    
+    ("field_with_delimiters_is_not_processed",
+     [(r"\[field\]", _generate_number)],
+     "img_[field]",
+     "img_[field]"),
+    
+    ("escaped_delimiters",
+     [("field", _get_field_value)], "img_[[field]]", "img_[field]"),
+    
+    ("escaped_delimiters_alongside_fields",
+     [("field", _get_field_value)], "[[img [[1]]_[field]", "[img [1]_12"),
+    
+    ("uneven_number_of_opening_and_closing_delimiters",
+     [("field", _get_field_value)], "img_[field, [1[, ]", "img_[field, [1[, ]"),
+    
+    ("escaped_opening_delimiter",
+     [("field", _get_field_value)], "img_[[field", "img_[field"),
+    
+    ("unescaped_opening_delimiter",
+     [("field", _get_field_value)], "img_[field", "img_[field"),
+    
+    ("unescaped_opening_delimiter_at_end",
+     [("field", _get_field_value)], "img_[field][", "img_12["),
+    
+    ("escaped_closing_delimiter",
+     [("field", _get_field_value)], "img_field]]", "img_field]"),
+    
+    ("unescaped_closing_delimiter",
+     [("field", _get_field_value)], "img_field]", "img_field]"),
+    
+    ("escaped_opening_delimiter_and_unescaped_closing_delimiter",
+     [("field", _get_field_value)], "img_[[field]", "img_[field]"),
+    
+    ("unescaped_opening_delimiter_and_escaped_closing_delimiter",
+     [("field", _get_field_value)], "img_[field]]", "img_12]"),
+    
+    ("escaped_delimiters_at_ends_fields_fields_inside",
+     [("field", _get_field_value)], "img_[[field] [field]]", "img_[field] 12]"),
+    
+    ("unescaped_opening_and_closing_delimiters_at_end",
+     [("field", _get_field_value)], "img_[field[]", "img_[field[]"),
+  ])
+  def test_generate_with_fields(
+        self, test_case_name_suffix, fields, pattern, expected_output):
+    self.assertEqual(
+      pgpath.StringPatternGenerator(pattern, fields).generate(),
+      expected_output)
   
-  def _test_generate_with_fields(self, fields, pattern, *expected_outputs):
+  @parameterized.parameterized.expand([
+    ("field_with_explicit_arguments",
+     [("field", _get_field_value)], "img_[field, 3, 4]", "img_34"),
+    
+    ("field_with_explicit_arguments_of_length_more_than_one",
+     [("field", _get_field_value)], "img_[field, one, two]", "img_onetwo"),
+    
+    ("field_with_last_default_argument",
+     [("field", _get_field_value)], "img_[field, 3]", "img_32"),
+    
+    ("field_with_default_arguments",
+     [("field", _get_field_value)], "img_[field]", "img_12"),
+  ])
+  def test_generate_multiple_times_yields_same_field(
+        self, test_case_name_suffix, fields, pattern, expected_output):
     generator = pgpath.StringPatternGenerator(pattern, fields)
-    for output in expected_outputs:
-      self.assertEqual(generator.generate(), output)
+    num_repeats = 3
+    
+    outputs = [generator.generate() for unused_ in range(num_repeats)]
+    
+    self.assertListEqual(outputs, [expected_output] * num_repeats)
   
-  def _test_generate_with_field_generator(
-        self, field_name, field_generator_func, pattern, *expected_outputs):
-    field_generator = field_generator_func()
-    fields = {field_name: lambda: next(field_generator)}
+  @parameterized.parameterized.expand([
+    ("regex_single_matching_character",
+     [(r"^[0-9]+$", _generate_number)], "img_[0]", ["img_1", "img_2", "img_3"]),
+    
+    ("regex_multiple_matching_characters",
+     [(r"^[0-9]+$", _generate_number)], "img_[42]", ["img_1", "img_2", "img_3"]),
+    
+    ("multple_fields_matching_regex",
+     [(r"^[0-9]+$", _generate_number)],
+     "img_[42]_[0]",
+     ["img_1_2", "img_3_4", "img_5_6"]),
+    
+    ("non_matching_regex",
+     [(r"^[0-9]+$", _generate_number)],
+     "img_[abc]",
+     ["img_[abc]"]),
+    
+    ("multiple_fields_one_matching_regex",
+     [(r"^[0-9]+$", _generate_number),
+      (r"^[a-z]+$", _generate_string_with_single_character)],
+     "img_[42]_[##]",
+     ["img_1_[##]", "img_2_[##]", "img_3_[##]"]),
+    
+    ("multiple_matching_regexes_takes_first_matching_regex",
+     [(r"^[0-9]+$", _generate_number),
+      (r"^[0-9a-z]+$", _generate_string_with_single_character)],
+     "img_[42]",
+     ["img_1", "img_2", "img_3"]),
+  ])
+  def test_generate_with_field_as_regex(
+        self, test_case_name_suffix, fields, pattern, expected_outputs):
+    generators = []
+    
+    processed_fields = []
+    
+    for field_regex, generator_func in fields:
+      gen = generator_func()
+      generators.append(gen)
+      processed_fields.append((field_regex, lambda gen=gen: next(gen)))
+    
+    generator = pgpath.StringPatternGenerator(pattern, processed_fields)
+    outputs = [generator.generate() for unused_ in range(len(expected_outputs))]
+    
+    self.assertEqual(outputs, expected_outputs)
+  
+  @parameterized.parameterized.expand([
+    ("one_field", "img_[field]", ["img_1", "img_2", "img_3"]),
+    ("multiple_fields", "img_[field]_[field]", ["img_1_2", "img_3_4", "img_5_6"]),
+  ])
+  def test_generate_with_field_generator(
+        self, test_case_name_suffix, pattern, expected_outputs):
+    field_value_generator = _generate_number()
+    fields = [("field", lambda: next(field_value_generator))]
+    
     generator = pgpath.StringPatternGenerator(pattern, fields)
-    for output in expected_outputs:
-      self.assertEqual(generator.generate(), output)
+    outputs = [generator.generate() for unused_ in range(len(expected_outputs))]
+    
+    self.assertListEqual(outputs, expected_outputs)
   
-  def _test_reset_numbering(self, pattern, *expected_outputs):
-    generator = pgpath.StringPatternGenerator(pattern)
-    for unused_ in range(3):
-      generator.generate()
-    generator.reset_numbering()
-    for output in expected_outputs:
-      self.assertEqual(generator.generate(), output)
+  @parameterized.parameterized.expand([
+    ("with_all_args", "img_[field, 3, 4]", "img_34"),
+    ("with_no_args", "img_[field]", "img_12"),
+  ])
+  def test_generate_with_fields_with_bound_method(
+        self, test_case_name_suffix, pattern, expected_output):
+    class _Field(object):
+      
+      def get_field_value(self, arg1=1, arg2=2):
+        return "{}{}".format(arg1, arg2)
+    
+    generator = pgpath.StringPatternGenerator(
+      pattern, [("field", _Field().get_field_value)])
+    self.assertEqual(generator.generate(), expected_output)
   
-  def _test_set_number_generator(self, pattern, *expected_outputs):
-    generator = pgpath.StringPatternGenerator(pattern)
-    for unused_ in range(3):
-      generator.generate()
-    number_generators = generator.get_number_generators()
-    generator.reset_numbering()
-    generator.set_number_generators(number_generators)
-    for output in expected_outputs:
-      self.assertEqual(generator.generate(), output)
-  
-  def test_generate(self):
-    self._test_generate("", "")
-    self._test_generate("image", "image")
-    self._test_generate("image001", "image001", "image001")
-    self._test_generate("001", "001", "001")
-    self._test_generate("001_image_001", "001_image_001", "001_image_001")
-    
-  def test_generate_with_fields(self):
-    def _get_layer_name():
-      for layer_name in ["layer one", "layer two", "layer three"]:
-        yield layer_name
-    
-    self._test_generate_with_field_generator(
-      "layer name",
-      _get_layer_name,
-      "[layer name]",
-      "layer one",
-      "layer two",
-      "layer three")
-    self._test_generate_with_field_generator(
-      "layer name",
-      _get_layer_name,
-      "[layer name]_001",
-      "layer one_001",
-      "layer two_001",
-      "layer three_001")
-    self._test_generate_with_field_generator(
-      "layer name",
-      _get_layer_name,
-      "[layer name]_[layer name]",
-      "layer one_layer two")
-    
-    self._test_generate_with_fields(
-      {"field1": lambda: "value1",
-       "field2": lambda: "value2",
-       "field3": lambda: "value3"},
-      "image_[field1][field2]_[field3]",
-      "image_value1value2_value3",
-      "image_value1value2_value3",
-      "image_value1value2_value3")
-    
-    self._test_generate_with_fields(
-      {"field": lambda arg1, arg2: "value" + str(arg1) + str(arg2),
-       "bar": lambda: "another value"},
-      ("Hi there [field, 1, 2][another field][another field]_[another field], "
-       "I am [bar] and [bazbaz] and this is [001] and [baz]"),
-      ("Hi there value12[another field][another field]_[another field], "
-       "I am another value and [bazbaz] and this is 001 and [baz]"),
-      ("Hi there value12[another field][another field]_[another field], "
-       "I am another value and [bazbaz] and this is 002 and [baz]"),
-      ("Hi there value12[another field][another field]_[another field], "
-       "I am another value and [bazbaz] and this is 003 and [baz]"),)
-    
-    self._test_generate_with_field_generator(
-      "different field", _get_layer_name, "[layer name]", "[layer name]")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[unrecognized field]", "[unrecognized field]")
-    self._test_generate_with_field_generator(
-      "[layer name]", _get_layer_name, "[layer name]", "[layer name]")
-    
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[[layer name]]", "[layer name]")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[layer name", "[layer name")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[layer [name", "[layer [name")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[[layer name", "[layer name")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[[layer [[name]]_[layer name]",
-      "[layer [name]_layer one")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[[layer name]", "[layer name]")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "layer name]", "layer name]")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "layer ]name]", "layer ]name]")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "layer name]]", "layer name]")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[[layer ]]name]]_[layer name]",
-      "[layer ]name]_layer one")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[layer name]]", "layer one]")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[layer name[]", "[layer name[]")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "]layer name[]", "]layer name[]")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "]layer name][", "]layer name][")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[layer name][", "layer one[",
-      "layer two[", "layer three[")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[[layer name]] [[layer name]]",
-      "[layer name] [layer name]")
-    self._test_generate_with_field_generator(
-      "layer name", _get_layer_name, "[[layer name] [layer name]]",
-      "[layer name] layer one]", "[layer name] layer two]",
-      "[layer name] layer three]")
-  
-  def test_generate_with_number_field(self):
-    self._test_generate_with_fields(
-      {}, "image[001]", "image001", "image002", "image003")
-    self._test_generate_with_fields(
-      {}, "image[01]", "image01", "image02", "image03")
-    self._test_generate_with_fields(
-      {}, "image[009]", "image009", "image010", "image011")
-    self._test_generate_with_fields(
-      {}, "image[001]_[001]", "image001_002", "image003_004", "image005_006")
-    self._test_generate_with_fields(
-      {}, "image[001]_2016-07-16",
-      "image001_2016-07-16", "image002_2016-07-16", "image003_2016-07-16")
-    self._test_generate_with_fields(
-      {}, "image[001]_[05]_2016-07-16",
-      "image001_05_2016-07-16", "image002_06_2016-07-16", "image003_07_2016-07-16")
-  
-  def test_generate_with_fields_with_args(self):
-    def _get_date(date_format):
-      return datetime.datetime(2016, 7, 16, hour=23).strftime(date_format)
-    
-    def _get_date_with_default(date_format="%d.%m.%Y"):
-      return datetime.datetime(2016, 7, 16, hour=23).strftime(date_format)
-    
-    def _get_joined_args(separator, *args):
-      return separator.join(args)
-    
-    self._test_generate_with_field(
-      "date", _get_date, "[date, %Y-%m-%d]", "2016-07-16")
-    self._test_generate_with_field(
-      "joined args", _get_joined_args,
-      "[joined args, -, one, two, three]", "one-two-three")
-    self._test_generate_with_field(
-      "joined args", _get_joined_args,
-      "[joined args, -, [one], [two], [three],]", "one-two-three")
-    self._test_generate_with_field(
-      "joined args", _get_joined_args,
-      "[joined args, -, [one, ], [two, ], [three, ],]", "one, -two, -three, ")
-    self._test_generate_with_field(
-      "joined args", _get_joined_args,
-      "[joined args, -, [[[one, ]]], [[[two, ]]], [[[three, ]]],]",
-      "[one, ]-[two, ]-[three, ]")
-    self._test_generate_with_field(
-      "joined args", _get_joined_args,
-      "[joined args, -, [one[, ]", "[joined args, -, [one[, ]")
-    self._test_generate_with_field(
-      "joined args", _get_joined_args,
-      "[joined args, -, [on[[e], [t[[w]]o], [thre]]e],]", "on[e-t[w]o-thre]e")
-    
-    self._test_generate_with_field(
-      "date", _get_date, "[date]", "[date]")
-    self._test_generate_with_field(
-      "date", _get_date, "[date, %Y-%m-%d, more_args]", "[date, %Y-%m-%d, more_args]")
-    
-    self._test_generate_with_field(
-      "date", _get_date_with_default, "[date, %Y-%m-%d]", "2016-07-16")
-    self._test_generate_with_field(
-      "date", _get_date_with_default, "[date]", "16.07.2016")
-    self._test_generate_with_field(
-      "date", _get_date_with_default, "[date, ]", "16.07.2016")
-    self._test_generate_with_field(
-      "date", _get_date_with_default,
-      "[date, %Y-%m-%d, more_args]", "[date, %Y-%m-%d, more_args]")
-  
-  def test_generate_with_fields_with_bound_method(self):
-    class _DateGenerator(object):
-      @staticmethod
-      def get_date(date_format):
-        return datetime.datetime(2016, 7, 16, hour=23).strftime(date_format)
-    
-    self._test_generate_with_field(
-      "date", _DateGenerator().get_date, "[date, %Y-%m-%d]", "2016-07-16")
-  
-  def test_generate_with_fields_with_invalid_arguments(self):
-    def _get_invalid_date(date_format):
-      raise ValueError("invalid date format {}".format(date_format))
-    
-    self._test_generate_with_field(
-      "date", _get_invalid_date, "[date, %Y-%m-%d]", "[date, %Y-%m-%d]")
-  
-  def test_generate_with_fields_invalid_field_function(self):
-    def _get_joined_kwargs_values(separator, **kwargs):
-      return separator.join(kwargs.values())
-    
+  def test_generate_field_function_with_kwargs_raises_error(self):
     with self.assertRaises(ValueError):
       pgpath.StringPatternGenerator(
-        "[joined kwargs, -]", {"joined kwargs": _get_joined_kwargs_values})
-  
-  def test_reset_numbering(self):
-    self._test_reset_numbering("image[001]", "image001", "image002")
-    self._test_reset_numbering("image[005]", "image005", "image006")
-    self._test_reset_numbering("image[999]", "image999", "image1000")
-    self._test_reset_numbering("image[001]_[001]", "image001_002", "image003_004")
-    self._test_reset_numbering("image[001]_[005]", "image001_005", "image002_006")
-  
-  def test_set_number_generator(self):
-    self._test_set_number_generator("image[001]", "image004", "image005")
-    self._test_set_number_generator("image[001]_[001]", "image007_008", "image009_010")
-    self._test_set_number_generator("image[001]_[005]", "image004_008", "image005_009")
-  
-    generator = pgpath.StringPatternGenerator("image[001]")
-    with self.assertRaises(ValueError):
-      generator.set_number_generators([])
-    with self.assertRaises(ValueError):
-      generator.set_number_generators([object(), object()])
+        "[field, -]", [("field", _get_field_value_with_kwargs)])
   
   def test_get_field_at_position(self):
     get_field_at_position = pgpath.StringPatternGenerator.get_field_at_position
@@ -338,7 +358,7 @@ class TestStringPatternGenerator(unittest.TestCase):
     self.assertEqual(get_field_at_position("[[layer name]", 3), None)
     self.assertEqual(get_field_at_position("[[[layer name]", 1), None)
     self.assertEqual(get_field_at_position("[[[layer name]", 2), None)
-    self.assertTrue(get_field_at_position("[[[layer name]", 3), "layer name")
+    self.assertEqual(get_field_at_position("[[[layer name]", 3), "layer name")
     
     self.assertEqual(get_field_at_position("layer [name]", 2), None)
     self.assertEqual(get_field_at_position("layer [name]", 6), None)

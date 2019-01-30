@@ -222,41 +222,34 @@ class StringPatternGenerator(object):
   To generate a string, create a new instance of `StringPatternGenerator` with
   the desired pattern and fields and then call `generate()`.
   
-  `fields` is a dictionary of <field name>: <function> pairs inserted into the
-  pattern. Fields in the pattern are enclosed in square brackets ("[field]").
-  To insert literal square brackets, double the character ("[[", "]]").
+  `fields` is a list of `(field regex, function)` tuples inserted into the
+  pattern. Fields in the pattern are enclosed in square brackets (`"[field]"`).
+  To insert literal square brackets, double the characters (`"[["`, `"]]"`).
   
-  Field arguments are separated by commas (","). The number of arguments depends
-  on the function in the `fields` dictionary. To insert literal commas in field
-  arguments, enclose the arguments in square brackets. To insert square brackets
-  in field arguments, enclose the arguments in square brackets and double the
-  square brackets (the ones inside the argument, not the enclosing ones). If the
-  last argument is enclosed in square brackets, insert a comma after the
-  argument.
-  
-  A special field containing a number (consisting of nothing but digits) can be
-  specified in the pattern. The number auto-increments by 1 after each call to
-  `generate()`.
+  Field arguments are separated by commas (`","`). The number of arguments
+  depends on the function in the `fields` dictionary. To insert literal commas
+  in field arguments, enclose the arguments in square brackets. To insert square
+  brackets in field arguments, enclose the arguments in square brackets and
+  double the square brackets (the ones inside the argument, not the enclosing
+  ones). If the last argument is enclosed in square brackets, insert a comma
+  after the argument.
   
   Examples:
   
+  Suppose `fields` contains a field named `"date"` returning the current date
+  (requiring a date format as a parameter).
+  
   * "image" -> "image", "image", ...
-  * "image[001]" -> "image001", "image002", ...
-  * "image[005]" -> "image005", "image006", ...
-  * "image[1]" -> "image1", "image2", ...
-  * "image[001]_1234" -> "image001_1234", "image002_1234", ...
-  * Suppose `fields` contains field "date" returning current date (requiring a
-    date format as a parameter). Then:
-    "image_[date, %Y-%m-%d]" -> "image_2016-07-16", ...
+  * "image_[date, %Y-%m-%d]" -> "image_2016-07-16", ...
   * "[[image]]" -> "[image]", ...
-  * "[date, [[[%Y,%m,%d]]],]" -> "[2016,07,16]", ...
+  * "[date, [[[%Y,%m,%d]]] ]" -> "[2016,07,16]", ...
   """
   
   def __init__(self, pattern, fields=None):
     self._pattern = pattern
-    self._fields = fields if fields is not None else {}
+    self._fields = collections.OrderedDict(fields if fields is not None else [])
     
-    self._pattern_parts, unused_, self._number_generators = (
+    self._pattern_parts, unused_, self._parsed_fields_and_matching_regexes = (
       self._parse_pattern(self._pattern, self._fields))
   
   def generate(self):
@@ -273,41 +266,6 @@ class StringPatternGenerator(object):
         pattern_parts.append(self._process_field(part))
     
     return "".join(pattern_parts)
-  
-  def reset_numbering(self):
-    """
-    If the pattern contains number fields, reset the numbering of the fields to
-    their initial value. Return the new number generators.
-    """
-    new_number_generators = []
-    
-    for field_name in list(self._number_generators):
-      number_generator = self._set_number_field(
-        field_name, self._fields, self._number_generators)
-      new_number_generators.append(number_generator)
-    
-    return new_number_generators
-  
-  def get_number_generators(self):
-    """
-    Return generators that generate auto-incrementing numbers in the pattern.
-    """
-    return list(self._number_generators.values())
-  
-  def set_number_generators(self, number_generators):
-    """
-    Set generators that generate auto-incrementing numbers in the pattern. This
-    can be used to resume previous numbering, e.g. after calling
-    `reset_numbering()`.
-    """
-    if len(number_generators) != len(self._number_generators):
-      raise ValueError(
-        "incorrect number of number generators (got {}, expected {})".format(
-          len(number_generators), len(self._number_generators)))
-    
-    for field_name, number_generator in zip(self._number_generators, number_generators):
-      self._set_number_field(
-        field_name, self._fields, self._number_generators, number_generator)
   
   @classmethod
   def get_field_at_position(cls, pattern, position):
@@ -331,13 +289,14 @@ class StringPatternGenerator(object):
     last_constant_substring_index = 0
     field_depth = 0
     
-    # item: pair of (field name, field arguments) or string
+    # item: pair of (field regex, field arguments) or string
     pattern_parts = []
-    # item: (field name, field arguments, raw field string,
+    # item: (field regex, field arguments, raw field string,
     #        (field start index, field end index))
     parsed_fields = []
-    # key: field name; value: number generator
-    number_generators = collections.OrderedDict()
+    # key: parsed field
+    # value: matching field regex
+    parsed_fields_and_matching_regexes = {}
     
     def _add_pattern_part(end_index=None):
       start_index = max(last_constant_substring_index, start_of_field_index)
@@ -387,20 +346,24 @@ class StringPatternGenerator(object):
           index += 1
           continue
         
-        field_str = pattern[start_of_field_index + 1:index]
-        field = (
-          list(cls._parse_field(field_str))
-          + [field_str]
+        parsed_field_str = pattern[start_of_field_index + 1:index]
+        parsed_field = (
+          list(cls._parse_field(parsed_field_str))
+          + [parsed_field_str]
           + [(start_of_field_index + 1, index)])
         
-        if fields is None or (field[0] in fields and cls._is_field_valid(field, fields)):
-          pattern_parts.append(field)
-          parsed_fields.append(field)
-        elif cls._is_field_number(field[0]) and not field[1]:
-          cls._set_number_field(field[0], fields, number_generators)
-          
-          pattern_parts.append(field)
-          parsed_fields.append(field)
+        if fields is not None:
+          matching_field_regex = (
+            cls._get_first_matching_field_regex(parsed_field[0], fields))
+        else:
+          matching_field_regex = None
+        
+        if (fields is None
+            or (matching_field_regex is not None
+                and cls._is_field_valid(parsed_field, matching_field_regex, fields))):
+          pattern_parts.append(parsed_field)
+          parsed_fields.append(parsed_field)
+          parsed_fields_and_matching_regexes[parsed_field[0]] = matching_field_regex
         else:
           _add_pattern_part(index + 1)
         
@@ -410,7 +373,7 @@ class StringPatternGenerator(object):
     
     _add_pattern_part()
     
-    return pattern_parts, parsed_fields, number_generators
+    return pattern_parts, parsed_fields, parsed_fields_and_matching_regexes
   
   @classmethod
   def _parse_field(cls, field_str):
@@ -469,21 +432,9 @@ class StringPatternGenerator(object):
     
     return field_name, _process_field_args(field_args)
   
-  @staticmethod
-  def _is_field_symbol_escaped(pattern, index, symbol):
-    return index + 1 < len(pattern) and pattern[index + 1] == symbol
-  
-  @staticmethod
-  def _is_field_number(field_name):
-    return bool(re.search(r"^[0-9]+$", field_name))
-  
-  @staticmethod
-  def _is_field(pattern_part):
-    return not isinstance(pattern_part, types.StringTypes)
-  
-  @staticmethod
-  def _is_field_valid(field, fields):
-    field_func = fields[field[0]]
+  @classmethod
+  def _is_field_valid(cls, parsed_field, field_regex, fields):
+    field_func = fields[field_regex]
     
     argspec = inspect.getargspec(field_func)
     
@@ -499,36 +450,28 @@ class StringPatternGenerator(object):
       if pgutils.is_bound_method(field_func):
         num_required_args -= 1
       
-      if len(field[1]) < num_required_args or len(field[1]) > len(argspec.args):
+      if (len(parsed_field[1]) < num_required_args
+          or len(parsed_field[1]) > len(argspec.args)):
         return False
     
     return True
   
   @staticmethod
-  def _generate_number(padding, initial_number):
-    i = initial_number
-    while True:
-      str_i = str(i)
-      
-      if len(str_i) < padding:
-        str_i = "0" * (padding - len(str_i)) + str_i
-      
-      yield str_i
-      i += 1
+  def _get_first_matching_field_regex(parsed_field_str, fields):
+    return next(
+      (field_regex for field_regex in fields if re.search(field_regex, parsed_field_str)),
+      None)
   
-  @classmethod
-  def _set_number_field(
-        cls, field_name, fields, number_generators, number_generator=None):
-    if number_generator is None:
-      number_generator = cls._generate_number(
-        padding=len(field_name), initial_number=int(field_name))
-    number_generators[field_name] = number_generator
-    fields[field_name] = lambda: next(number_generator)
-    
-    return number_generator
+  @staticmethod
+  def _is_field_symbol_escaped(pattern, index, symbol):
+    return index + 1 < len(pattern) and pattern[index + 1] == symbol
+  
+  @staticmethod
+  def _is_field(pattern_part):
+    return not isinstance(pattern_part, types.StringTypes)
   
   def _process_field(self, field):
-    field_func = self._fields[field[0]]
+    field_func = self._fields[self._parsed_fields_and_matching_regexes[field[0]]]
     
     try:
       return_value = field_func(*field[1])
