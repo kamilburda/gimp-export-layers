@@ -445,7 +445,8 @@ class StringPatternGenerator(object):
     
     if not argspec.varargs:
       num_defaults = len(argspec.defaults) if argspec.defaults is not None else 0
-      num_required_args = len(argspec.args) - num_defaults
+      # The field value should always be the first argument, hence `- 1`.
+      num_required_args = len(argspec.args) - num_defaults - 1
       
       if pgutils.is_bound_method(field_func):
         num_required_args -= 1
@@ -474,7 +475,7 @@ class StringPatternGenerator(object):
     field_func = self._fields[self._parsed_fields_and_matching_regexes[field[0]]]
     
     try:
-      return_value = field_func(*field[1])
+      return_value = field_func(field[0], *field[1])
     except Exception:
       return "[{}]".format(field[2])
     else:
