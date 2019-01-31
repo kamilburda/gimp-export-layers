@@ -340,308 +340,307 @@ class TestStringPatternGenerator(unittest.TestCase):
   def test_generate_field_function_with_kwargs_raises_error(self):
     with self.assertRaises(ValueError):
       pgpath.StringPatternGenerator(
-        "[field, -]", [("field", _get_field_value_with_kwargs)])
+        "[field, 3, 4]", [("field", _get_field_value_with_kwargs)])
   
-  def test_get_field_at_position(self):
-    get_field_at_position = pgpath.StringPatternGenerator.get_field_at_position
+  @parameterized.parameterized.expand([
+    ("", "", 0, None),
+    ("", "img_12", 0, None),
+    ("", "img_12", 3, None),
+    ("", "[layer name]", 0, None),
+    ("", "[layer name]", 1, "layer name"),
+    ("", "[layer name]", 5, "layer name"),
+    ("", "[layer name]", 11, "layer name"),
+    ("", "[layer name]", 12, None),
+    ("", "[[layer name]", 1, None),
+    ("", "[[layer name]", 2, None),
+    ("", "[[layer name]", 3, None),
+    ("", "[[[layer name]", 1, None),
+    ("", "[[[layer name]", 2, None),
+    ("", "[[[layer name]", 3, "layer name"),
     
-    self.assertEqual(get_field_at_position("", 0), None)
-    self.assertEqual(get_field_at_position("image001", 0), None)
-    self.assertEqual(get_field_at_position("image001", 5), None)
-    self.assertEqual(get_field_at_position("[layer name]", 0), None)
-    self.assertEqual(get_field_at_position("[layer name]", 1), "layer name")
-    self.assertEqual(get_field_at_position("[layer name]", 5), "layer name")
-    self.assertEqual(get_field_at_position("[layer name]", 11), "layer name")
-    self.assertEqual(get_field_at_position("[layer name]", 12), None)
-    self.assertEqual(get_field_at_position("[[layer name]", 1), None)
-    self.assertEqual(get_field_at_position("[[layer name]", 2), None)
-    self.assertEqual(get_field_at_position("[[layer name]", 3), None)
-    self.assertEqual(get_field_at_position("[[[layer name]", 1), None)
-    self.assertEqual(get_field_at_position("[[[layer name]", 2), None)
-    self.assertEqual(get_field_at_position("[[[layer name]", 3), "layer name")
+    ("", "layer [name]", 2, None),
+    ("", "layer [name]", 6, None),
+    ("", "layer [name]", 7, "name"),
+    ("", "layer [name] name", 7, "name"),
+    ("", "layer [name][layer] name", 7, "name"),
+    ("", "layer [name][layer] name", 13, "layer"),
+    ("", "layer [name] [layer] name", 7, "name"),
+    ("", "layer [name] [layer] name", 14, "layer"),
+    ("", "layer [name] [layer] name", 13, None),
     
-    self.assertEqual(get_field_at_position("layer [name]", 2), None)
-    self.assertEqual(get_field_at_position("layer [name]", 6), None)
-    self.assertEqual(get_field_at_position("layer [name]", 7), "name")
-    self.assertEqual(get_field_at_position("layer [name] name", 7), "name")
-    self.assertEqual(
-      get_field_at_position("layer [name][layer] name", 7), "name")
-    self.assertEqual(
-      get_field_at_position("layer [name][layer] name", 13), "layer")
-    self.assertEqual(
-      get_field_at_position("layer [name] [layer] name", 7), "name")
-    self.assertEqual(
-      get_field_at_position("layer [name] [layer] name", 14), "layer")
-    self.assertEqual(get_field_at_position("layer [name] [layer] name", 13), None)
+    ("", "layer [[layer [[ name]", 2, None),
+    ("", "layer [[layer [[ name]", 6, None),
+    ("", "layer [[layer [[ name]", 7, None),
+    ("", "layer [[layer [[ name]", 8, None),
+    ("", "layer [[layer [[ name]", 14, None),
+    ("", "layer [[layer [[ name]", 15, None),
+    ("", "layer [[layer [[ name]", 16, None),
+    ("", "layer [[layer [[[name]", 16, None),
+    ("", "layer [[layer [[[name]", 17, "name"),
     
-    self.assertEqual(get_field_at_position("layer [[layer [[ name]", 2), None)
-    self.assertEqual(get_field_at_position("layer [[layer [[ name]", 6), None)
-    self.assertEqual(get_field_at_position("layer [[layer [[ name]", 7), None)
-    self.assertEqual(get_field_at_position("layer [[layer [[ name]", 8), None)
-    self.assertEqual(get_field_at_position("layer [[layer [[ name]", 14), None)
-    self.assertEqual(get_field_at_position("layer [[layer [[ name]", 15), None)
-    self.assertEqual(get_field_at_position("layer [[layer [[ name]", 16), None)
-    self.assertEqual(get_field_at_position("layer [[layer [[[name]", 16), None)
+    ("", "[layer name", 0, None),
+    ("", "[layer name", 1, None),
+    ("", "[layer [name", 7, None),
+    ("", "[layer [name", 8, None),
+    
+    ("position_greater_than_pattern_length_returns_none", "[layer name]", 100, None),
+    ("negative_position_returns_none", "[layer name]", -1, None),
+  ])
+  def test_get_field_at_position(
+        self, test_case_name_suffix, pattern, position, expected_output):
     self.assertEqual(
-      get_field_at_position("layer [[layer [[[name]", 17), "name")
-    
-    self.assertEqual(get_field_at_position("[layer name", 0), None)
-    self.assertEqual(get_field_at_position("[layer name", 1), None)
-    self.assertEqual(get_field_at_position("[layer [name", 7), None)
-    self.assertEqual(get_field_at_position("[layer [name", 8), None)
-    
-    self.assertEqual(get_field_at_position("[layer name]", 100), None)
-    self.assertEqual(get_field_at_position("[layer name]", -1), None)
+      pgpath.StringPatternGenerator.get_field_at_position(pattern, position),
+      expected_output)
 
 
 class TestGetFileExtension(unittest.TestCase):
-
-  def test_nominal_case(self):
-    self.assertEqual(pgpath.get_file_extension("background.jpg"), "jpg")
   
-  def test_return_lowercase(self):
-    self.assertEqual(pgpath.get_file_extension("background.JPG"), "jpg")
-  
-  def test_string_beginning_with_period(self):
-    self.assertEqual(pgpath.get_file_extension(".jpg"), "jpg")
-  
-  def test_no_extension(self):
-    self.assertEqual(pgpath.get_file_extension("main-background"), "")
-    self.assertEqual(pgpath.get_file_extension("main-background."), "")
-    self.assertEqual(pgpath.get_file_extension("."), "")
-  
-  def test_unrecognized_extension(self):
-    self.assertEqual(pgpath.get_file_extension("main-background.aaa"), "aaa")
-    self.assertEqual(pgpath.get_file_extension(".aaa"), "aaa")
-  
-  def test_multiple_periods(self):
-    self.assertEqual(pgpath.get_file_extension("main-background.xcf.bz2"), "xcf.bz2")
-  
-  def test_multiple_periods_unrecognized_extension(self):
-    self.assertEqual(pgpath.get_file_extension("main-background.aaa.bbb"), "bbb")
+  @parameterized.parameterized.expand([
+    ("", "background.jpg", "jpg"),
+    ("empty_string", "", ""),
+    ("returns_lowercase", "background.JPG", "jpg"),
+    ("string_beginning_with_period", ".jpg", "jpg"),
+    ("no_extension", "main-background", ""),
+    ("no_extension_with_trailing_period", "main-background.", ""),
+    ("single_period_as_string", ".", ""),
+    ("unrecognized_extension", "main-background.aaa", "aaa"),
+    ("string_beginning_with_period_with_unrecognized_extension", ".aaa", "aaa"),
+    ("multiple_periods_with_recognized_extension", "main-background.xcf.bz2", "xcf.bz2"),
+    ("multiple_periods_with_unrecognized_extension", "main-background.aaa.bbb", "bbb"),
+  ])
+  def test_get_file_extension(self, test_case_name_suffix, str_, expected_output):
+    self.assertEqual(pgpath.get_file_extension(str_), expected_output)
 
 
 class TestGetFilenameWithNewFileExtension(unittest.TestCase):
   
-  def test_nominal_case(self):
-    self.assertEqual(
-      pgpath.get_filename_with_new_file_extension("background.jpg", "png"),
-      "background.png")
-    self.assertEqual(
-      pgpath.get_filename_with_new_file_extension("background.jpg", ".png"),
-      "background.png")
-    self.assertEqual(
-      pgpath.get_filename_with_new_file_extension("background.", "png"),
-      "background.png")
-  
-  def test_set_lowercase(self):
-    self.assertEqual(
-      pgpath.get_filename_with_new_file_extension("background.jpg", "PNG"),
-      "background.png")
-  
-  def test_no_extension(self):
-    self.assertEqual(
-      pgpath.get_filename_with_new_file_extension("background.jpg", None),
-      "background")
-    self.assertEqual(
-      pgpath.get_filename_with_new_file_extension("background.jpg", "."),
-      "background")
-  
-  def test_from_multiple_periods(self):
-    self.assertEqual(
-      pgpath.get_filename_with_new_file_extension("background.xcf.bz2", "png"),
-      "background.png")
-  
-  def test_from_single_period_within_multiple_periods(self):
+  @parameterized.parameterized.expand([
+    ("", "background.jpg", "png", "background.png"),
+    ("empty_string", "", "png", ".png"),
+    ("string_without_extension", "background", "png", "background.png"),
+    ("new_extension_with_leading_period", "background.jpg", ".png", "background.png"),
+    ("string_with_trailing_period", "background.", "png", "background.png"),
+    ("new_extension_is_set_lowercase", "background.jpg", "PNG", "background.png"),
+    ("empty_new_extension_removes_extension", "background.jpg", "", "background"),
+    ("new_extension_as_none_removes_extension", "background.jpg", None, "background"),
+    ("new_extension_as_single_period_removes_extension",
+     "background.jpg", ".", "background"),
+    ("extension_with_multiple_periods_in_string",
+     "background.xcf.bz2", "png", "background.png"),
+    ("multiple_periods_in_string_single_period_for_extension",
+     "background.aaa.jpg", "png", "background.aaa.png"),
+    ("multiple_consecutive_periods",
+     "background..jpg", "png", "background..png"),
+    ("keep_extra_single_trailing_period",
+     "background.", "png", "background..png", True),
+    ("keep_extra_multiple_trailing_periods",
+     "background..", "png", "background...png", True),
+  ])
+  def test_get_filename_with_new_file_extension(
+        self,
+        test_case_name_suffix,
+        str_,
+        new_file_extension,
+        expected_output,
+        keep_extra_trailing_periods=False):
     self.assertEqual(
       pgpath.get_filename_with_new_file_extension(
-        "background.aaa.jpg", "png"), "background.aaa.png")
-  
-  def test_multiple_consecutive_periods(self):
-    self.assertEqual(
-      pgpath.get_filename_with_new_file_extension("background..jpg", "png"),
-      "background..png")
-  
-  def test_remove_trailing_periods(self):
-    self.assertEqual(
-      pgpath.get_filename_with_new_file_extension("background.", "png"),
-      "background.png")
-  
-  def test_keep_extra_trailing_periods(self):
-    self.assertEqual(
-      pgpath.get_filename_with_new_file_extension("background.", "png", True),
-      "background..png")
-    self.assertEqual(
-      pgpath.get_filename_with_new_file_extension("background..", "png", True),
-      "background...png")
+        str_, new_file_extension, keep_extra_trailing_periods),
+      expected_output)
 
 
 class TestFilenameValidator(unittest.TestCase):
   
-  def setUp(self):
-    self.validator = pgpath.FilenameValidator
+  def test_is_valid_returns_no_status_messages(self):
+    self.assertEqual(pgpath.FilenameValidator.is_valid("one"), (True, []))
   
-  def test_is_valid(self):
-    self.assertEqual(self.validator.is_valid("one"), (True, []))
-    self.assertTrue(self.validator.is_valid("0n3_two_,o_O_;-()three.jpg")[0])
-    self.assertFalse(self.validator.is_valid("one/two\x09\x7f\\:|")[0])
-    self.assertFalse(self.validator.is_valid("")[0])
-    self.assertFalse(self.validator.is_valid(" one ")[0])
-    self.assertFalse(self.validator.is_valid("one.")[0])
-    self.assertTrue(self.validator.is_valid(".one")[0])
-    self.assertFalse(self.validator.is_valid("NUL")[0])
-    self.assertFalse(self.validator.is_valid("NUL.txt")[0])
-    self.assertTrue(self.validator.is_valid("NUL (1)")[0])
-    
-  def test_validate(self):
-    self.assertEqual(self.validator.validate("one"), "one")
-    self.assertEqual(
-      self.validator.validate("0n3_two_,o_O_;-()three.jpg"),
-      "0n3_two_,o_O_;-()three.jpg")
-    self.assertEqual(self.validator.validate("one/two\x09\x7f\\:|"), "onetwo")
-    self.assertEqual(self.validator.validate(""), "Untitled")
-    self.assertEqual(self.validator.validate(" one "), "one")
-    self.assertEqual(self.validator.validate("one."), "one")
-    self.assertEqual(self.validator.validate(".one"), ".one")
-    self.assertEqual(self.validator.validate("NUL"), "NUL (1)")
-    self.assertEqual(self.validator.validate("NUL.txt"), "NUL (1).txt")
+  @parameterized.parameterized.expand([
+    ("", "0n3_two_,o_O_;-()three.jpg", True),
+    ("", "one/two\x09\x7f\\:|", False),
+    ("", "", False),
+    ("", " one ", False),
+    ("", "one.", False),
+    ("", ".one", True),
+    ("", "NUL", False),
+    ("", "NUL.txt", False),
+    ("", "NUL (1)", True),
+  ])
+  def test_is_valid(self, test_case_name_suffix, str_, expected_is_valid):
+    if expected_is_valid:
+      self.assertTrue(pgpath.FilenameValidator.is_valid(str_)[0])
+    else:
+      self.assertFalse(pgpath.FilenameValidator.is_valid(str_)[0])
+  
+  @parameterized.parameterized.expand([
+    ("", "one", "one"),
+    ("", "0n3_two_,o_O_;-()three.jpg", "0n3_two_,o_O_;-()three.jpg"),
+    ("", "one/two\x09\x7f\\:|", "onetwo"),
+    ("", "", "Untitled"),
+    ("", " one ", "one"),
+    ("", "one.", "one"),
+    ("", ".one", ".one"),
+    ("", "NUL", "NUL (1)"),
+    ("", "NUL.txt", "NUL (1).txt"),
+  ])
+  def test_validate(self, test_case_name_suffix, str_, expected_output):
+    self.assertEqual(pgpath.FilenameValidator.validate(str_), expected_output)
   
 
 class TestFilepathValidator(unittest.TestCase):
   
-  def setUp(self):
-    self.validator = pgpath.FilepathValidator
-  
-  def test_is_valid(self):
+  def test_is_valid_returns_no_status_messages(self):
     self.assertEqual(
-      self.validator.is_valid(os.path.join("one", "two", "three")), (True, []))
-    self.assertTrue(
-      self.validator.is_valid(
-        os.path.join(
-          "zero",
-          "0n3",
-          "two",
-          ",o_O_;-()" + os.sep + os.sep + os.sep,
-          "three.jpg" + os.sep))[0])
-    self.assertFalse(
-      self.validator.is_valid(os.path.join("one", "two", "\x09\x7f", ":|"))[0])
-    self.assertFalse(
-      self.validator.is_valid(os.path.join("one", ":two", "three"))[0])
+      pgpath.FilepathValidator.is_valid(os.path.join("one", "two", "three")),
+      (True, []))
+  
+  @parameterized.parameterized.expand([
+    ("", [
+      "zero", "0n3", "two", ",o_O_;-()" + os.sep + os.sep + os.sep, "three.jpg" + os.sep],
+     True),
+    ("", ["one", "two", "\x09\x7f", ":|"], False),
+    ("", ["one", ":two", "three"], False),
+    ("", ["C:|" + os.sep + "two", "three"], False),
+    ("", [" one", "two", "three "], False),
+    ("", ["one", " two", "three"], True),
+    ("", ["one", "two ", "three"], False),
+    ("", ["one", "two", "three."], False),
+    ("", ["one.", "two.", "three"], False),
+    ("", [".one", "two", ".three"], True),
+    ("", ["one", "two", "NUL"], False),
+    ("", ["one", "two", "NUL.txt"], False),
+    ("", ["one", "NUL", "three"], False),
+    ("", ["one", "NUL (1)", "three"], True),
+    ("", [""], False),
+    ("", ["C:" + os.sep + "two", "three"], True, "nt"),
+    ("", ["C:" + os.sep + "two", "three"], False, "posix"),
+  ])
+  def test_is_valid(
+        self, test_case_name_suffix, path_components, expected_is_valid, os_name=None):
+    if os_name is not None and os.name != os_name:
+      return
     
-    if os.name == "nt":
+    if expected_is_valid:
       self.assertTrue(
-        self.validator.is_valid(os.path.join("C:" + os.sep + "two", "three"))[0])
+        pgpath.FilepathValidator.is_valid(os.path.join(*path_components))[0])
     else:
       self.assertFalse(
-        self.validator.is_valid(os.path.join("C:" + os.sep + "two", "three"))[0])
-    
-    self.assertFalse(
-      self.validator.is_valid(os.path.join("C:|" + os.sep + "two", "three"))[0])
-    self.assertFalse(self.validator.is_valid(os.path.join(" one", "two", "three "))[0])
-    self.assertTrue(self.validator.is_valid(os.path.join("one", " two", "three"))[0])
-    self.assertFalse(self.validator.is_valid(os.path.join("one", "two ", "three"))[0])
-    self.assertFalse(self.validator.is_valid(os.path.join("one", "two", "three."))[0])
-    self.assertFalse(self.validator.is_valid(os.path.join("one.", "two.", "three"))[0])
-    self.assertTrue(self.validator.is_valid(os.path.join(".one", "two", ".three"))[0])
-    self.assertFalse(self.validator.is_valid(os.path.join("one", "two", "NUL"))[0])
-    self.assertFalse(self.validator.is_valid(os.path.join("one", "two", "NUL.txt"))[0])
-    self.assertFalse(self.validator.is_valid(os.path.join("one", "NUL", "three"))[0])
-    self.assertTrue(self.validator.is_valid(os.path.join("one", "NUL (1)", "three"))[0])
-    self.assertFalse(self.validator.is_valid("")[0])
+        pgpath.FilepathValidator.is_valid(os.path.join(*path_components))[0])
   
-  def test_validate(self):
-    self.assertEqual(
-      self.validator.validate(os.path.join("one", "two", "three")),
-      os.path.join("one", "two", "three"))
-    self.assertEqual(
-      self.validator.validate(
-        os.path.join(
-          "zero", "0n3", "two", ",o_O_;-()" + os.sep + os.sep + os.sep,
-          "three.jpg" + os.sep)),
-      os.path.join("zero", "0n3", "two", ",o_O_;-()", "three.jpg"))
-    self.assertEqual(
-      self.validator.validate(os.path.join("one", "two\x09\x7f", "three:|")),
-      os.path.join("one", "two", "three"))
-    self.assertEqual(
-      self.validator.validate(os.path.join("one", ":two", "three")),
-      os.path.join("one", "two", "three"))
+  @parameterized.parameterized.expand([
+    ("",
+     ["one", "two", "three"],
+     ["one", "two", "three"]),
+    ("",
+     ["zero", "0n3", "two", ",o_O_;-()" + os.sep + os.sep + os.sep, "three.jpg" + os.sep],
+     ["zero", "0n3", "two", ",o_O_;-()", "three.jpg"]),
+    ("",
+     ["one", "two\x09\x7f", "three:|"],
+     ["one", "two", "three"]),
+    ("",
+     ["one", ":two", "three"],
+     ["one", "two", "three"]),
+    ("",
+     [" one", "two", "three "],
+     ["one", "two", "three"]),
+    ("",
+     ["one", "two ", "three"],
+     ["one", "two", "three"]),
+    ("",
+     ["one", "two", "three."],
+     ["one", "two", "three"]),
+    ("",
+     ["one.", "two.", "three"],
+     ["one", "two", "three"]),
+    ("",
+     [".one", "two", ".three"],
+     [".one", "two", ".three"]),
+    ("",
+     ["one", "two", "NUL"],
+     ["one", "two", "NUL (1)"]),
+    ("",
+     ["one", "two", "NUL:|.txt"],
+     ["one", "two", "NUL (1).txt"]),
+    ("",
+     ["one", "NUL", "three"],
+     ["one", "NUL (1)", "three"]),
+    ("",
+     ["one", "NUL (1)", "three"],
+     ["one", "NUL (1)", "three"]),
+    ("",
+     ["one", ":|", "three"],
+     ["one", "three"]),
+    ("",
+     [""],
+     ["."]),
+    ("",
+     ["|"],
+     ["."]),
+    ("",
+     ["C:" + os.sep + "two", "three"],
+     ["C:" + os.sep + "two", "three"],
+     "nt"),
+    ("",
+     ["C:|one" + os.sep + "two", "three"],
+     ["C:", "one", "two", "three"],
+     "nt"),
+    ("",
+     ["C:|" + os.sep + "two", "three"],
+     ["C:", "two", "three"],
+     "nt"),
+    ("",
+     ["C:" + os.sep + "two", "three"],
+     ["C" + os.sep + "two", "three"],
+     "posix"),
+    ("",
+     ["C:|one" + os.sep + "two", "three"],
+     ["Cone", "two", "three"],
+     "posix"),
+    ("",
+     ["C:|" + os.sep + "two", "three"],
+     ["C", "two", "three"],
+     "posix"),
+  ])
+  def test_validate(
+        self,
+        test_case_name_suffix,
+        path_components,
+        expected_path_components,
+        os_name=None):
+    if os_name is not None and os.name != os_name:
+      return
     
-    if os.name == "nt":
-      self.assertEqual(
-        self.validator.validate(os.path.join("C:" + os.sep + "two", "three")),
-        os.path.join("C:" + os.sep + "two", "three"))
-      self.assertEqual(
-        self.validator.validate(os.path.join("C:|one" + os.sep + "two", "three")),
-        os.path.join("C:", "one", "two", "three"))
-      self.assertEqual(
-        self.validator.validate(os.path.join("C:|" + os.sep + "two", "three")),
-        os.path.join("C:", "two", "three"))
-    else:
-      self.assertEqual(
-        self.validator.validate(os.path.join("C:" + os.sep + "two", "three")),
-        os.path.join("C" + os.sep + "two", "three"))
-      self.assertEqual(
-        self.validator.validate(os.path.join("C:|one" + os.sep + "two", "three")),
-        os.path.join("Cone", "two", "three"))
-      self.assertEqual(
-        self.validator.validate(os.path.join("C:|" + os.sep + "two", "three")),
-        os.path.join("C", "two", "three"))
-    
     self.assertEqual(
-      self.validator.validate(os.path.join(" one", "two", "three ")),
-      os.path.join("one", "two", "three"))
-    self.assertEqual(
-      self.validator.validate(os.path.join("one", "two ", "three")),
-      os.path.join("one", "two", "three"))
-    self.assertEqual(
-      self.validator.validate(os.path.join("one", "two", "three.")),
-      os.path.join("one", "two", "three"))
-    self.assertEqual(
-      self.validator.validate(os.path.join("one.", "two.", "three")),
-      os.path.join("one", "two", "three"))
-    self.assertEqual(
-      self.validator.validate(os.path.join(".one", "two", ".three")),
-      os.path.join(".one", "two", ".three"))
-    self.assertEqual(
-      self.validator.validate(os.path.join("one", "two", "NUL")),
-      os.path.join("one", "two", "NUL (1)"))
-    self.assertEqual(
-      self.validator.validate(os.path.join("one", "two", "NUL:|.txt")),
-      os.path.join("one", "two", "NUL (1).txt"))
-    self.assertEqual(
-      self.validator.validate(os.path.join("one", "NUL", "three")),
-      os.path.join("one", "NUL (1)", "three"))
-    self.assertEqual(
-      self.validator.validate(os.path.join("one", "NUL (1)", "three")),
-      os.path.join("one", "NUL (1)", "three"))
-    
-    self.assertEqual(self.validator.validate(""), ".")
-    self.assertEqual(self.validator.validate("|"), ".")
-    self.assertEqual(
-      self.validator.validate(os.path.join("one", ":|", "three")),
-      os.path.join("one", "three"))
+      pgpath.FilepathValidator.validate(os.path.join(*path_components)),
+      os.path.join(*expected_path_components))
 
 
 class TestFileExtensionValidator(unittest.TestCase):
   
-  def setUp(self):
-    self.validator = pgpath.FileExtensionValidator
+  def test_is_valid_returns_no_status_messages(self):
+    self.assertEqual(pgpath.FileExtensionValidator.is_valid("jpg"), (True, []))
   
-  def test_is_valid(self):
-    self.assertEqual(self.validator.is_valid("jpg"), (True, []))
-    self.assertTrue(self.validator.is_valid(".jpg")[0])
-    self.assertTrue(self.validator.is_valid("tar.gz")[0])
-    self.assertFalse(self.validator.is_valid("one/two\x09\x7f\\:|")[0])
-    self.assertFalse(self.validator.is_valid("")[0])
-    self.assertFalse(self.validator.is_valid(" jpg ")[0])
-    self.assertFalse(self.validator.is_valid("jpg.")[0])
+  @parameterized.parameterized.expand([
+    ("", ".jpg", True),
+    ("", "tar.gz", True),
+    ("", "one/two\x09\x7f\\:|", False),
+    ("", "", False),
+    ("", " jpg ", False),
+    ("", "jpg.", False),
+  ])
+  def test_is_valid(self, test_case_name_suffix, str_, expected_is_valid):
+    if expected_is_valid:
+      self.assertTrue(pgpath.FileExtensionValidator.is_valid(str_)[0])
+    else:
+      self.assertFalse(pgpath.FileExtensionValidator.is_valid(str_)[0])
   
-  def test_validate(self):
-    self.assertEqual(self.validator.validate("jpg"), "jpg")
-    self.assertEqual(self.validator.validate(".jpg"), ".jpg")
-    self.assertEqual(self.validator.validate("tar.gz"), "tar.gz")
-    self.assertEqual(self.validator.validate("one/two\x09\x7f\\:|"), "onetwo")
-    self.assertEqual(self.validator.validate(" jpg "), " jpg")
-    self.assertEqual(self.validator.validate("jpg."), "jpg")
-    
-    self.assertEqual(self.validator.validate(""), "")
+  @parameterized.parameterized.expand([
+    ("", "jpg", "jpg"),
+    ("", ".jpg", ".jpg"),
+    ("", "tar.gz", "tar.gz"),
+    ("", " jpg ", " jpg"),
+    ("", "jpg.", "jpg"),
+    ("", "", ""),
+    ("", "one/two\x09\x7f\\:|", "onetwo"),
+  ])
+  def test_validate(self, test_case_name_suffix, str_, expected_output):
+    self.assertEqual(pgpath.FileExtensionValidator.validate(str_), expected_output)
