@@ -36,33 +36,28 @@ from . import operations
 
 class LayerNameRenamer(object):
   
-  def __init__(self, layer_exporter, pattern):
+  def __init__(self, layer_exporter, pattern, fields=None):
     self._layer_exporter = layer_exporter
+    self._pattern = pattern
+    
+    self._fields = fields if fields is not None else _FIELDS_LIST
     
     self._filename_pattern_generator = pgpath.StringPatternGenerator(
-      pattern=pattern,
-      fields=self._get_fields_for_layer_filename_pattern())
+      pattern=self._pattern, fields=self._get_fields_and_substitute_funcs())
     
-    # key: _ItemTreeElement parent ID (None for root)
-    # value: list of pattern number generators
-    self._pattern_number_filename_generators = {
-      None: self._filename_pattern_generator.get_number_generators()}
+    for field in self._fields:
+      field.on_renamer_init(self._filename_pattern_generator)
   
   def rename(self, layer_elem):
-    parent = layer_elem.parent.item.ID if layer_elem.parent is not None else None
-    if parent not in self._pattern_number_filename_generators:
-      self._pattern_number_filename_generators[parent] = (
-        self._filename_pattern_generator.reset_numbering())
-    else:
-      self._filename_pattern_generator.set_number_generators(
-        self._pattern_number_filename_generators[parent])
+    for field in self._fields:
+      field.process_before_rename(layer_elem)
     
     layer_elem.name = self._filename_pattern_generator.generate()
   
-  def _get_fields_for_layer_filename_pattern(self):
+  def _get_fields_and_substitute_funcs(self):
     return {
-      field.name: self._get_field_substitute_func(field.substitute_func)
-      for field in _FIELDS_LIST if field.substitute_func is not None}
+      field.regex: self._get_field_substitute_func(field.substitute_func)
+      for field in self._fields if field.substitute_func is not None}
   
   def _get_field_substitute_func(self, func):
     def substitute_func_wrapper(*args):
@@ -73,35 +68,36 @@ class LayerNameRenamer(object):
 
 def get_field_descriptions(fields):
   return [
-    (field.display_name, field.field_to_insert, str(field))
+    (field.display_name, field.str_to_insert, str(field))
     for field in fields.values()]
 
 
-class _Field(object):
+class Field(object):
   
   def __init__(
         self,
-        name,
+        regex,
         substitute_func,
         display_name,
-        field_to_insert,
-        param_specs,
+        str_to_insert,
+        usage_lines,
         details_lines,
         examples_lines):
-    self._name = name
+    self._regex = regex
     self._substitute_func = substitute_func
     self._display_name = display_name
-    self._field_to_insert = field_to_insert
-    self._param_specs = param_specs
+    self._str_to_insert = str_to_insert
+    self._usage_lines = usage_lines
     self._details_lines = details_lines
     self._examples_lines = examples_lines
   
   def __str__(self):
-    return "\n\n".join([self.param_specs_str, self.details, self.examples])
+    return "\n\n".join(
+      [str_ for str_ in [self.usage, self.details, self.examples] if str_])
   
   @property
-  def name(self):
-    return self._name
+  def regex(self):
+    return self._regex
   
   @property
   def substitute_func(self):
@@ -112,12 +108,12 @@ class _Field(object):
     return self._display_name
   
   @property
-  def field_to_insert(self):
-    return self._field_to_insert
+  def str_to_insert(self):
+    return self._str_to_insert
   
   @property
-  def param_specs(self):
-    return self._param_specs
+  def usage_lines(self):
+    return self._usage_lines
   
   @property
   def details_lines(self):
@@ -128,23 +124,32 @@ class _Field(object):
     return self._examples_lines
   
   @property
-  def param_specs_str(self):
+  def usage(self):
+    if not self.usage_lines:
+      return ""
+    
     formatted_specs = []
     
-    for spec in self.param_specs:
+    for spec in self.usage_lines:
       if spec:
-        formatted_specs.append("[{}, {}]".format(self.name, spec))
+        formatted_specs.append("[{}, {}]".format(self.regex, spec))
       else:
-        formatted_specs.append("[{}]".format(self.name))
+        formatted_specs.append("[{}]".format(self.regex))
     
     return "\n".join([_("Usage:")] + formatted_specs)
   
   @property
   def details(self):
-    return "\n".join([_("Details:")] + self._details_lines)
+    if self._details_lines:
+      return "\n".join([_("Details:")] + self._details_lines)
+    else:
+      return ""
   
   @property
   def examples(self):
+    if not self._examples_lines:
+      return ""
+    
     formatted_examples_lines = []
     
     for example_line in self._examples_lines:
@@ -154,6 +159,75 @@ class _Field(object):
         formatted_examples_lines.append(*example_line)
     
     return "\n".join([_("Examples:")] + formatted_examples_lines)
+  
+  def on_renamer_init(self, string_pattern_generator):
+    pass
+  
+  def process_before_rename(self, layer_elem):
+    pass
+
+
+class NumberField(Field):
+  
+  def __init__(self):
+    super().__init__(
+      "^[0-9]+$",
+      self._get_number,
+      _("image001"),
+      "image[001]",
+      [],
+      [],
+      [
+        ["[001]", "001, 002, ..."],
+        ["[1]", "1, 2, ..."],
+        ["[005]", "005, 006, ..."],
+      ],
+    )
+  
+  def on_renamer_init(self, string_pattern_generator):
+    self._number_fields = set([
+      field_value
+      for field_value, field_regex
+      in string_pattern_generator.parsed_fields_and_matching_regexes.items()
+      if field_regex == self.regex])
+    
+    # key: `_ItemTreeElement` parent ID (`None` for root)
+    # value: dictionary of (field value, number generators) pairs
+    self._parents_and_number_generators = {}
+    
+    self._current_parent = None
+  
+  def process_before_rename(self, layer_elem):
+    self._current_parent = (
+      layer_elem.parent.item.ID if layer_elem.parent is not None else None)
+    
+    if self._current_parent not in self._parents_and_number_generators:
+      self._parents_and_number_generators[self._current_parent] = (
+        self._get_initial_number_generators())
+  
+  @staticmethod
+  def generate_number(padding, initial_number):
+    i = initial_number
+    while True:
+      str_i = str(i)
+      
+      if len(str_i) < padding:
+        str_i = "0" * (padding - len(str_i)) + str_i
+      
+      yield str_i
+      i += 1
+  
+  def _get_number(self, layer_exporter, field_value):
+    return next(self._parents_and_number_generators[self._current_parent][field_value])
+  
+  def _get_initial_number_generators(self):
+    return {
+      field_value: self._get_initial_number_generator(field_value)
+      for field_value in self._number_fields}
+  
+  def _get_initial_number_generator(self, field_value):
+    return self.generate_number(
+      padding=len(field_value), initial_number=int(field_value))
 
 
 class _PercentTemplate(string.Template):
@@ -161,7 +235,7 @@ class _PercentTemplate(string.Template):
   delimiter = "%"
 
 
-def _get_layer_name(layer_exporter, file_extension_strip_mode=""):
+def _get_layer_name(layer_exporter, field_value, file_extension_strip_mode=""):
   layer_elem = layer_exporter.current_layer_elem
   
   if file_extension_strip_mode in ["%e", "%i"]:
@@ -176,7 +250,7 @@ def _get_layer_name(layer_exporter, file_extension_strip_mode=""):
   return layer_elem.get_base_name()
 
 
-def _get_image_name(layer_exporter, keep_extension_str=""):
+def _get_image_name(layer_exporter, field_value, keep_extension_str=""):
   image_name = (
     layer_exporter.image.name if layer_exporter.image.name is not None else _("Untitled"))
   
@@ -186,7 +260,7 @@ def _get_image_name(layer_exporter, keep_extension_str=""):
     return pgpath.get_filename_with_new_file_extension(image_name, "")
 
 
-def _get_layer_path(layer_exporter, separator="-", wrapper=None):
+def _get_layer_path(layer_exporter, field_value, separator="-", wrapper=None):
   path_component_token = "%c"
   
   if wrapper is None:
@@ -205,7 +279,7 @@ def _get_layer_path(layer_exporter, separator="-", wrapper=None):
     [wrapper.format(path_component) for path_component in path_components])
 
 
-def _get_tags(layer_exporter, *args):
+def _get_tags(layer_exporter, field_value, *args):
   tags_to_insert = []
   
   def _insert_tag(tag):
@@ -259,11 +333,11 @@ def _get_tags(layer_exporter, *args):
   return tag_separator.join([tag_wrapper.format(tag) for tag in tags_to_insert])
 
 
-def _get_current_date(layer_exporter, date_format="%Y-%m-%d"):
+def _get_current_date(layer_exporter, field_value, date_format="%Y-%m-%d"):
   return datetime.datetime.now().strftime(date_format)
 
 
-def _get_attributes(layer_exporter, pattern):
+def _get_attributes(layer_exporter, field_value, pattern):
   layer_elem = layer_exporter.current_layer_elem
   image = layer_exporter.image
   
@@ -280,20 +354,8 @@ def _get_attributes(layer_exporter, pattern):
 
 
 _FIELDS_LIST = [
-  _Field(
-    "number",
-    None,
-    _("image001"),
-    "image[001]",
-    [],
-    [],
-    [
-      ["[001]", "001, 002, ..."],
-      ["[1]", "1, 2, ..."],
-      ["[005]", "005, 006, ..."],
-    ],
-  ),
-  _Field(
+  NumberField(),
+  Field(
     "layer name",
     _get_layer_name,
     _("Layer name"),
@@ -316,7 +378,7 @@ _FIELDS_LIST = [
       ["[layer name, %i]", "Frame"],
     ],
   ),
-  _Field(
+  Field(
     "image name",
     _get_image_name,
     _("Image name"),
@@ -334,7 +396,7 @@ _FIELDS_LIST = [
       ["[image name, %e]", "Image.png"],
     ],
   ),
-  _Field(
+  Field(
     "layer path",
     _get_layer_path,
     _("Layer path"),
@@ -358,7 +420,7 @@ _FIELDS_LIST = [
       ["[layer path, _, (%c)]", "(Body)_(Hands)_(Left)"],
     ],
   ),
-  _Field(
+  Field(
     "tags",
     _get_tags,
     _("Tags"),
@@ -380,7 +442,7 @@ _FIELDS_LIST = [
       ["[tags, _, (%t), left, right]", "(left)_(right)"],
     ],
   ),
-  _Field(
+  Field(
     "current date",
     _get_current_date,
     _("Current date"),
@@ -397,7 +459,7 @@ _FIELDS_LIST = [
       ["[current date, %m.%d.%Y_%H-%M]", "28.01.2019_19-04"],
     ],
   ),
-  _Field(
+  Field(
     "attributes",
     _get_attributes,
     _("Attributes"),
@@ -420,5 +482,4 @@ _FIELDS_LIST = [
   ),
 ]
 
-
-FIELDS = collections.OrderedDict([(field.name, field) for field in _FIELDS_LIST])
+FIELDS = collections.OrderedDict([(field.regex, field) for field in _FIELDS_LIST])
