@@ -290,6 +290,18 @@ class StringPatternGenerator(object):
     
     return None
   
+  @staticmethod
+  def get_first_matching_field_regex(parsed_field_str, field_regexes):
+    """
+    Given the field `parsed_field_str` and the list of field regular
+    expressions, return the first matching field regular expression. Return
+    `None` if there is no match.
+    """
+    return next(
+      (field_regex for field_regex in field_regexes
+       if re.search(field_regex, parsed_field_str)),
+      None)
+  
   @classmethod
   def _parse_pattern(cls, pattern, fields=None):
     index = 0
@@ -362,7 +374,7 @@ class StringPatternGenerator(object):
         
         if fields is not None:
           matching_field_regex = (
-            cls._get_first_matching_field_regex(parsed_field[0], fields))
+            cls.get_first_matching_field_regex(parsed_field[0], fields))
         else:
           matching_field_regex = None
         
@@ -464,12 +476,6 @@ class StringPatternGenerator(object):
         return False
     
     return True
-  
-  @staticmethod
-  def _get_first_matching_field_regex(parsed_field_str, fields):
-    return next(
-      (field_regex for field_regex in fields if re.search(field_regex, parsed_field_str)),
-      None)
   
   @staticmethod
   def _is_field_symbol_escaped(pattern, index, symbol):
