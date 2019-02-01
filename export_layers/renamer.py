@@ -68,7 +68,7 @@ class LayerNameRenamer(object):
 
 def get_field_descriptions(fields):
   return [
-    (field.display_name, field.str_to_insert, str(field))
+    (field.display_name, field.str_to_insert, field.regex, str(field))
     for field in fields.values()]
 
 
