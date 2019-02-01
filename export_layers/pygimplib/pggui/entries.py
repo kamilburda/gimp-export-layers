@@ -197,15 +197,23 @@ class FilenamePatternEntry(ExtendedEntry):
   
   _BUTTON_MOUSE_LEFT = 1
   
-  _COLUMNS = [_COLUMN_ITEM_NAMES, _COLUMN_ITEMS, _COLUMN_ITEM_ARGUMENTS] = (0, 1, 2)
-  _COLUMN_TYPES = [gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_PYOBJECT]
+  _COLUMNS = [
+    _COLUMN_ITEM_NAMES,
+    _COLUMN_ITEMS_TO_INSERT,
+    _COLUMN_REGEX_TO_MATCH,
+    _COLUMN_ITEM_DESCRIPTIONS] = (
+      0, 1, 2, 3)
+  
+  _COLUMN_TYPES = [
+    gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_STRING]
   
   def __init__(self, suggested_items, *args, **kwargs):
     """
     Parameters:
     
     * `suggested_items` - List of
-      `(item name displayed in popup, text to insert in entry, description)`
+      `(item name displayed in popup, text to insert in entry,
+        regular expression matching item name, description)`
       tuples describing each item.
     
     * `default_item` - The second element of an item from the `suggested_items`
@@ -214,7 +222,7 @@ class FilenamePatternEntry(ExtendedEntry):
     """
     self._default_item_value = kwargs.pop("default_item", None)
     
-    self._suggested_fields = self._get_suggested_fields(suggested_items)
+    self._item_regexes_and_descriptions = {item[2]: item[3] for item in suggested_items}
     
     suggested_item_values = [item[1] for item in suggested_items]
     if (self._default_item_value is not None
@@ -233,7 +241,7 @@ class FilenamePatternEntry(ExtendedEntry):
     self._cursor_position_before_assigning_from_row = None
     self._reset_cursor_position_before_assigning_from_row = True
     
-    self._last_field_name_with_tooltip = ""
+    self._last_field_with_tooltip = ""
     
     self._pango_layout = pango.Layout(self.get_pango_context())
     
@@ -271,17 +279,6 @@ class FilenamePatternEntry(ExtendedEntry):
       not text
       or (self._default_item_value is not None and text == self._default_item_value))
   
-  @staticmethod
-  def _get_suggested_fields(suggested_items):
-    suggested_fields = {}
-    
-    for item in suggested_items:
-      field_value = item[1]
-      if field_value.startswith("[") and field_value.endswith("]"):
-        suggested_fields[field_value[1:-1]] = item[2]
-    
-    return suggested_fields
-  
   def _create_field_tooltip(self):
     self._field_tooltip_window = gtk.Window(type=gtk.WINDOW_POPUP)
     self._field_tooltip_window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_TOOLTIP)
@@ -317,20 +314,28 @@ class FilenamePatternEntry(ExtendedEntry):
   def _on_filename_pattern_entry_notify_cursor_position(self, entry, property_spec):
     self._cursor_position = self.get_position()
     
-    field_name = (
-      pgpath.StringPatternGenerator.get_field_at_position(
-        self._get_text_decoded(), self._cursor_position))
+    field = pgpath.StringPatternGenerator.get_field_at_position(
+      self._get_text_decoded(), self._cursor_position)
     
-    if self._suggested_fields.get(field_name):
-      if field_name != self._last_field_name_with_tooltip:
-        self._last_field_name_with_tooltip = field_name
-        force_update_position = True
-      else:
-        force_update_position = False
-      
-      self._show_field_tooltip(self._suggested_fields[field_name], force_update_position)
-    else:
+    if field is None:
       self._hide_field_tooltip()
+      return
+    
+    matching_field_regex = pgpath.StringPatternGenerator.get_first_matching_field_regex(
+      field, self._item_regexes_and_descriptions)
+    
+    if matching_field_regex not in self._item_regexes_and_descriptions:
+      self._hide_field_tooltip()
+      return
+    
+    if field != self._last_field_with_tooltip:
+      self._last_field_with_tooltip = field
+      force_update_position = True
+    else:
+      force_update_position = False
+    
+    self._show_field_tooltip(
+      self._item_regexes_and_descriptions[matching_field_regex], force_update_position)
   
   def _show_field_tooltip(self, tooltip_text=None, force_update_position=False):
     if not self._field_tooltip_window.get_mapped() or force_update_position:
@@ -379,7 +384,7 @@ class FilenamePatternEntry(ExtendedEntry):
     self._hide_field_tooltip()
   
   def _filter_suggested_items(self, suggested_items, row_iter):
-    item = suggested_items[row_iter][self._COLUMN_ITEMS]
+    item = suggested_items[row_iter][self._COLUMN_ITEMS_TO_INSERT]
     current_text = self._get_text_decoded()
     
     if (self._cursor_position > 0 and len(current_text) >= self._cursor_position
@@ -393,7 +398,7 @@ class FilenamePatternEntry(ExtendedEntry):
       self._cursor_position_before_assigning_from_row = self._cursor_position
     cursor_position = self._cursor_position_before_assigning_from_row
     
-    suggested_item = str(tree_model[selected_tree_iter][self._COLUMN_ITEMS])
+    suggested_item = str(tree_model[selected_tree_iter][self._COLUMN_ITEMS_TO_INSERT])
     last_assigned_entry_text = (
       self._popup.last_assigned_entry_text.decode(pgconstants.GTK_CHARACTER_ENCODING))
     
