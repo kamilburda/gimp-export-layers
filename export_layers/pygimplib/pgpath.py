@@ -252,6 +252,14 @@ class StringPatternGenerator(object):
     self._pattern_parts, unused_, self._parsed_fields_and_matching_regexes = (
       self._parse_pattern(self._pattern, self._fields))
   
+  @property
+  def pattern_parts(self):
+    return self._pattern_parts
+  
+  @property
+  def parsed_fields_and_matching_regexes(self):
+    return self._parsed_fields_and_matching_regexes
+  
   def generate(self):
     """
     Generate string from the pattern and fields given in the instance of this
