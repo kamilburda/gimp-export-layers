@@ -130,11 +130,18 @@ class Field(object):
     
     formatted_specs = []
     
-    for spec in self.usage_lines:
-      if spec:
-        formatted_specs.append("[{}, {}]".format(self.regex, spec))
+    for usage_line in self.usage_lines:
+      if len(usage_line) > 1:
+        field_name = usage_line[0]
+        arguments = usage_line[1]
       else:
-        formatted_specs.append("[{}]".format(self.regex))
+        field_name = self.regex
+        arguments = usage_line[0]
+      
+      if arguments:
+        formatted_specs.append("[{}, {}]".format(field_name, arguments))
+      else:
+        formatted_specs.append("[{}]".format(field_name))
     
     return "\n".join([_("Usage:")] + formatted_specs)
   
@@ -175,8 +182,13 @@ class NumberField(Field):
       self._get_number,
       _("image001"),
       "image[001]",
-      [],
-      [],
+      [
+        ["<i>number</i>", ""],
+        ["<i>number</i>", "%n"],
+      ],
+      [
+        _("%n - do not reset numbering across layer groups"),
+      ],
       [
         ["[001]", "001, 002, ..."],
         ["[1]", "1, 2, ..."],
@@ -194,8 +206,9 @@ class NumberField(Field):
     # key: `_ItemTreeElement` parent ID (`None` for root)
     # value: dictionary of (field value, number generators) pairs
     self._parents_and_number_generators = {}
-    
     self._current_parent = None
+    
+    self._global_number_generators = self._get_initial_number_generators()
   
   def process_before_rename(self, layer_elem):
     self._current_parent = (
@@ -217,8 +230,14 @@ class NumberField(Field):
       yield str_i
       i += 1
   
-  def _get_number(self, layer_exporter, field_value):
-    return next(self._parents_and_number_generators[self._current_parent][field_value])
+  def _get_number(self, layer_exporter, field_value, reset_numbering_on_parent=True):
+    if reset_numbering_on_parent == "%n":
+      reset_numbering_on_parent = False
+    
+    if reset_numbering_on_parent:
+      return next(self._parents_and_number_generators[self._current_parent][field_value])
+    else:
+      return next(self._global_number_generators[field_value])
   
   def _get_initial_number_generators(self):
     return {
@@ -361,9 +380,9 @@ _FIELDS_LIST = [
     _("Layer name"),
     "[layer name]",
     [
-      "",
-      "%e",
-      "%i",
+      [""],
+      ["%e"],
+      ["%i"],
     ],
     [
       _("%e - keep file extension"),
@@ -384,8 +403,8 @@ _FIELDS_LIST = [
     _("Image name"),
     "[image name]",
     [
-      "",
-      "%e",
+      [""],
+      ["%e"],
     ],
     [
       _("%e - keep image file extension"),
@@ -402,9 +421,9 @@ _FIELDS_LIST = [
     _("Layer path"),
     "[layer path]",
     [
-      "",
-      "<i>separator</i>",
-      "<i>separator</i>, <i>wrapper</i>",
+      [""],
+      ["<i>separator</i>"],
+      ["<i>separator</i>, <i>wrapper</i>"],
     ],
     [
       _("<i>separator</i> - string separating the layer path components "
@@ -426,9 +445,9 @@ _FIELDS_LIST = [
     _("Tags"),
     "[tags]",
     [
-      "",
-      "<i>tags...</i>",
-      "<i>separator</i>, <i>wrapper</i>, <i>tags...</i>",
+      [""],
+      ["<i>tags...</i>"],
+      ["<i>separator</i>, <i>wrapper</i>, <i>tags...</i>"],
     ],
     [
       _("Without arguments, all tags are included. Tags that do not exist are ignored."),
@@ -448,8 +467,8 @@ _FIELDS_LIST = [
     _("Current date"),
     "[current date]",
     [
-      "",
-      "<i>format</i>",
+      [""],
+      ["<i>format</i>"],
     ],
     [
       _('Specify <i>format</i> as per the Python "strftime" function.'),
@@ -465,7 +484,7 @@ _FIELDS_LIST = [
     _("Attributes"),
     "[attributes]",
     [
-      "<i>pattern</i>",
+      ["<i>pattern</i>"],
     ],
     [
       _("<i>pattern</i> can contain the following fields:"),
