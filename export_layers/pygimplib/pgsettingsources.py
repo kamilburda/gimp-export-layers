@@ -45,23 +45,18 @@ from ._pgsettingsources_errors import *
 
 class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
   """
-  This class provides an interface for reading and writing settings to
-  setting sources. For easier usage, is is highly recommended to use the
+  This class provides an interface for reading and writing settings to setting
+  sources. For easier usage, is is highly recommended to use the
   `SettingPersistor` class instead.
   
   Attributes:
   
   * `source_name` - A unique identifier to distinguish entries from different
     plug-ins in this source.
-  
-  * `settings_not_found` - A list of settings not found in the source when
-    `read()` is called.
   """
   
   def __init__(self, source_name):
     self.source_name = source_name
-    
-    self._settings_not_found = []
   
   def read(self, settings):
     """
@@ -75,8 +70,7 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     * `SettingsNotFoundInSourceError` - At least one of the settings is not
       found in the source. All settings that were not found in the source will
-      be stored in the `settings_not_found` property. `settings_not_found` is
-      cleared on each `read()` call.
+      be stored in this exception in the `settings_not_found` attribute.
     
     * `SettingSourceNotFoundError` - Could not find the source.
     
@@ -88,23 +82,24 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
       raise SettingSourceNotFoundError(
         _('Could not find setting source "{}".').format(self.source_name))
     
-    self._settings_not_found = []
+    settings_not_found = []
     
     for setting in settings:
       try:
         value = settings_from_source[setting.get_path("root")]
       except KeyError:
-        self._settings_not_found.append(setting)
+        settings_not_found.append(setting)
       else:
         try:
           setting.set_value(value)
         except pgsetting.SettingValueError:
           setting.reset()
     
-    if self._settings_not_found:
+    if settings_not_found:
       raise SettingsNotFoundInSourceError(
         _("The following settings could not be found:\n{}").format(
-          "\n".join(setting.get_path() for setting in self._settings_not_found)))
+          "\n".join(setting.get_path() for setting in settings_not_found)),
+        settings_not_found)
   
   def write(self, settings):
     """
@@ -126,8 +121,8 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Remove all settings from the source.
     
-    This is useful if settings are renamed, since the old settings would not be
-    removed and would thus lead to bloating the source.
+    This method is useful if settings are renamed, since the old settings would
+    not be removed and would thus lead to bloating the source.
     """
     pass
   
@@ -170,10 +165,6 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     modify or remove settings from the source.
     """
     pass
-  
-  @property
-  def settings_not_found(self):
-    return self._settings_not_found
   
   def _settings_to_dict(self, settings):
     settings_dict = collections.OrderedDict()

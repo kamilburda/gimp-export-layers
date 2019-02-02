@@ -96,7 +96,7 @@ class SettingPersistor(object):
       except (_pgsettingsources_errors.SettingsNotFoundInSourceError,
               _pgsettingsources_errors.SettingSourceNotFoundError) as e:
         if isinstance(e, _pgsettingsources_errors.SettingsNotFoundInSourceError):
-          settings = source.settings_not_found
+          settings = e.settings_not_found
         
         if source == setting_sources[-1]:
           all_settings_found = False

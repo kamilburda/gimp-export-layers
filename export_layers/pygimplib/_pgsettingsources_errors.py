@@ -37,7 +37,11 @@ class SettingSourceError(Exception):
 
 
 class SettingsNotFoundInSourceError(SettingSourceError):
-  pass
+  
+  def __init__(self, message, settings_not_found=None):
+    super().__init__(message)
+    
+    self.settings_not_found = settings_not_found if settings_not_found is not None else []
 
 
 class SettingSourceNotFoundError(SettingSourceError):
