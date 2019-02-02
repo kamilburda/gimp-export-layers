@@ -2,11 +2,14 @@ Upcoming Changes
 ================
 
 Changes to the filename pattern entry:
-  * Reworked tooltips, now containing more details and some examples.
-  * Explicitly specified tags are no longer sorted alphabetically.
-  * Changed the default separator and wrapper for the `Tags` field.
-  * Modified several arguments to use the `%` notation for brevity and consistency.
-  * Added the option to specify several layer or image attributes - layer width, height, *x*- and *y*-offsets and image width and height.
+* Reworked tooltips for each field, now containing usage, details and some examples.
+* Explicitly specified tags are no longer sorted alphabetically.
+* Changed the default separator and wrapper for the `Tags` field.
+* Modified several arguments to use the `%` notation for brevity and consistency.
+* Added a field to specify several layer or image attributes - layer width, height, *x*- and *y*-offsets and image width and height.
+* Added an option to the number field (such as `[001]`) to disable resetting numbering across layer groups.
+
+Misc. changes:
 * From version 3.3 onward, obsolete settings, procedures or constraints are automatically replaced when first starting the plug-in with a newer version.
 
 
