@@ -314,14 +314,14 @@ class FilenamePatternEntry(ExtendedEntry):
   def _on_filename_pattern_entry_notify_cursor_position(self, entry, property_spec):
     self._cursor_position = self.get_position()
     
-    field = pgpath.StringPatternGenerator.get_field_at_position(
+    field = pgpath.StringPattern.get_field_at_position(
       self._get_text_decoded(), self._cursor_position)
     
     if field is None:
       self._hide_field_tooltip()
       return
     
-    matching_field_regex = pgpath.StringPatternGenerator.get_first_matching_field_regex(
+    matching_field_regex = pgpath.StringPattern.get_first_matching_field_regex(
       field, self._item_regexes_and_descriptions)
     
     if matching_field_regex not in self._item_regexes_and_descriptions:
@@ -435,7 +435,7 @@ class FilenamePatternEntry(ExtendedEntry):
         return (
           current_text[self._cursor_position - 1] == "["
           and current_text[self._cursor_position - 2] != "["
-          and not pgpath.StringPatternGenerator.get_field_at_position(
+          and not pgpath.StringPattern.get_field_at_position(
             current_text, self._cursor_position - 1))
       else:
         return current_text[0] == "["

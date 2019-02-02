@@ -214,25 +214,29 @@ def get_filename_with_new_file_extension(
 #===============================================================================
 
 
-class StringPatternGenerator(object):
+class StringPattern(object):
   """
-  This class generates strings by a given pattern and optionally fields acting
-  as variables in the pattern.
+  This class provides string substitution based on fields and their arguments.
   
-  To generate a string, create a new instance of `StringPatternGenerator` with
-  the desired pattern and fields and then call `generate()`.
+  Fields are enclosed in square brackets (such as `"[field]"`). Field arguments
+  are separated by commas (`","`). The number of arguments depends on the
+  substitution function in the `fields` dictionary passed to `__init__`.
   
-  `fields` is a list of `(field regex, function)` tuples inserted into the
-  pattern. Fields in the pattern are enclosed in square brackets (`"[field]"`).
-  To insert literal square brackets, double the characters (`"[["`, `"]]"`).
+  To insert literal commas in field arguments, enclose the arguments in square
+  brackets. To insert square brackets in field arguments, enclose the arguments
+  in square brackets and double the square brackets (the ones inside the
+  argument, not the enclosing ones). If the last argument is enclosed in square
+  brackets, insert a comma after the argument.
   
-  Field arguments are separated by commas (`","`). The number of arguments
-  depends on the function in the `fields` dictionary. To insert literal commas
-  in field arguments, enclose the arguments in square brackets. To insert square
-  brackets in field arguments, enclose the arguments in square brackets and
-  double the square brackets (the ones inside the argument, not the enclosing
-  ones). If the last argument is enclosed in square brackets, insert a comma
-  after the argument.
+  Attributes:
+  
+  * `pattern` - The original string pattern.
+  
+  * `pattern_parts` - Parts of `pattern` split into strings (parts of the
+    pattern not containing the field) and fields (tuples describing the field).
+  
+  * `parsed_fields_and_matching_regexes` - Dictionary of
+    `(parsed field, first matching field regular expression)` pairs.
   
   Examples:
   
@@ -246,11 +250,32 @@ class StringPatternGenerator(object):
   """
   
   def __init__(self, pattern, fields=None):
+    """
+    Parameters:
+    
+    * `pattern` - String containing fields to substitute.
+    
+    * `fields` - List of `(field regex, function)` tuples. `field regex` matches
+      the fields in the pattern and `function` substitutes the field with the
+      value returned by the function. The function must always specify at least
+      one argument - the field to be substituted.
+      
+      Any unmatched fields will be silently ignored.
+      
+      Fields in the pattern are enclosed in square brackets (`"[field]"`). To
+      insert literal square brackets, double the characters (`"[["`, `"]]"`).
+      
+      If `fields` is `None`, no fields in the pattern will be substituted.
+    """
     self._pattern = pattern
     self._fields = collections.OrderedDict(fields if fields is not None else [])
     
     self._pattern_parts, unused_, self._parsed_fields_and_matching_regexes = (
       self._parse_pattern(self._pattern, self._fields))
+  
+  @property
+  def pattern(self):
+    return self._pattern
   
   @property
   def pattern_parts(self):
@@ -260,11 +285,12 @@ class StringPatternGenerator(object):
   def parsed_fields_and_matching_regexes(self):
     return self._parsed_fields_and_matching_regexes
   
-  def generate(self):
+  def substitute(self):
     """
-    Generate string from the pattern and fields given in the instance of this
-    class. For more information about string generation, refer to the class
-    documentation.
+    Substitute fields in the string pattern. Return the processed string.
+    
+    If any substitution function raises an exception, the original string
+    pattern is returned.
     """
     pattern_parts = []
     for part in self._pattern_parts:

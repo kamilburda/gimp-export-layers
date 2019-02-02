@@ -95,7 +95,7 @@ def _generate_string_with_single_character(character="a"):
     character += "a"
 
 
-class TestStringPatternGenerator(unittest.TestCase):
+class TestStringPattern(unittest.TestCase):
   
   @parameterized.parameterized.expand([
     ("empty_string", "", ""),
@@ -104,7 +104,7 @@ class TestStringPatternGenerator(unittest.TestCase):
   ])
   def test_generate_without_fields(
         self, test_case_name_suffix, pattern, expected_output):
-    self.assertEqual(pgpath.StringPatternGenerator(pattern).generate(), expected_output)
+    self.assertEqual(pgpath.StringPattern(pattern).substitute(), expected_output)
   
   @parameterized.parameterized.expand([
     ("fields_without_arguments_with_constant_value",
@@ -237,9 +237,7 @@ class TestStringPatternGenerator(unittest.TestCase):
   ])
   def test_generate_with_fields(
         self, test_case_name_suffix, fields, pattern, expected_output):
-    self.assertEqual(
-      pgpath.StringPatternGenerator(pattern, fields).generate(),
-      expected_output)
+    self.assertEqual(pgpath.StringPattern(pattern, fields).substitute(), expected_output)
   
   @parameterized.parameterized.expand([
     ("field_with_explicit_arguments",
@@ -256,10 +254,10 @@ class TestStringPatternGenerator(unittest.TestCase):
   ])
   def test_generate_multiple_times_yields_same_field(
         self, test_case_name_suffix, fields, pattern, expected_output):
-    generator = pgpath.StringPatternGenerator(pattern, fields)
+    string_pattern = pgpath.StringPattern(pattern, fields)
     num_repeats = 3
     
-    outputs = [generator.generate() for unused_ in range(num_repeats)]
+    outputs = [string_pattern.substitute() for unused_ in range(num_repeats)]
     
     self.assertListEqual(outputs, [expected_output] * num_repeats)
   
@@ -295,16 +293,16 @@ class TestStringPatternGenerator(unittest.TestCase):
   def test_generate_with_field_as_regex(
         self, test_case_name_suffix, fields, pattern, expected_outputs):
     generators = []
-    
     processed_fields = []
     
     for field_regex, generator_func in fields:
-      gen = generator_func()
-      generators.append(gen)
-      processed_fields.append((field_regex, lambda field, gen=gen: next(gen)))
+      generator = generator_func()
+      generators.append(generator)
+      processed_fields.append(
+        (field_regex, lambda field, generator=generator: next(generator)))
     
-    generator = pgpath.StringPatternGenerator(pattern, processed_fields)
-    outputs = [generator.generate() for unused_ in range(len(expected_outputs))]
+    string_pattern = pgpath.StringPattern(pattern, processed_fields)
+    outputs = [string_pattern.substitute() for unused_ in range(len(expected_outputs))]
     
     self.assertEqual(outputs, expected_outputs)
   
@@ -317,8 +315,8 @@ class TestStringPatternGenerator(unittest.TestCase):
     field_value_generator = _generate_number()
     fields = [("field", lambda field: next(field_value_generator))]
     
-    generator = pgpath.StringPatternGenerator(pattern, fields)
-    outputs = [generator.generate() for unused_ in range(len(expected_outputs))]
+    string_pattern = pgpath.StringPattern(pattern, fields)
+    outputs = [string_pattern.substitute() for unused_ in range(len(expected_outputs))]
     
     self.assertListEqual(outputs, expected_outputs)
   
@@ -333,14 +331,12 @@ class TestStringPatternGenerator(unittest.TestCase):
       def get_field_value(self, field, arg1=1, arg2=2):
         return "{}{}".format(arg1, arg2)
     
-    generator = pgpath.StringPatternGenerator(
-      pattern, [("field", _Field().get_field_value)])
-    self.assertEqual(generator.generate(), expected_output)
+    string_pattern = pgpath.StringPattern(pattern, [("field", _Field().get_field_value)])
+    self.assertEqual(string_pattern.substitute(), expected_output)
   
   def test_generate_field_function_with_kwargs_raises_error(self):
     with self.assertRaises(ValueError):
-      pgpath.StringPatternGenerator(
-        "[field, 3, 4]", [("field", _get_field_value_with_kwargs)])
+      pgpath.StringPattern("[field, 3, 4]", [("field", _get_field_value_with_kwargs)])
   
   @parameterized.parameterized.expand([
     ("", "", 0, None),
@@ -389,8 +385,7 @@ class TestStringPatternGenerator(unittest.TestCase):
   def test_get_field_at_position(
         self, test_case_name_suffix, pattern, position, expected_output):
     self.assertEqual(
-      pgpath.StringPatternGenerator.get_field_at_position(pattern, position),
-      expected_output)
+      pgpath.StringPattern.get_field_at_position(pattern, position), expected_output)
 
 
 class TestGetFileExtension(unittest.TestCase):

@@ -42,17 +42,17 @@ class LayerNameRenamer(object):
     
     self._fields = fields if fields is not None else _FIELDS_LIST
     
-    self._filename_pattern_generator = pgpath.StringPatternGenerator(
+    self._filename_pattern = pgpath.StringPattern(
       pattern=self._pattern, fields=self._get_fields_and_substitute_funcs())
     
     for field in self._fields:
-      field.on_renamer_init(self._filename_pattern_generator)
+      field.on_renamer_init(self._filename_pattern)
   
   def rename(self, layer_elem):
     for field in self._fields:
       field.process_before_rename(layer_elem)
     
-    layer_elem.name = self._filename_pattern_generator.generate()
+    layer_elem.name = self._filename_pattern.substitute()
   
   def _get_fields_and_substitute_funcs(self):
     return {
@@ -167,7 +167,7 @@ class Field(object):
     
     return "\n".join([_("Examples:")] + formatted_examples_lines)
   
-  def on_renamer_init(self, string_pattern_generator):
+  def on_renamer_init(self, string_pattern):
     pass
   
   def process_before_rename(self, layer_elem):
@@ -196,11 +196,11 @@ class NumberField(Field):
       ],
     )
   
-  def on_renamer_init(self, string_pattern_generator):
+  def on_renamer_init(self, string_pattern):
     self._number_fields = set([
       field_value
       for field_value, field_regex
-      in string_pattern_generator.parsed_fields_and_matching_regexes.items()
+      in string_pattern.parsed_fields_and_matching_regexes.items()
       if field_regex == self.regex])
     
     # key: `_ItemTreeElement` parent ID (`None` for root)

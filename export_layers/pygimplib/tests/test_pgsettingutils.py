@@ -25,7 +25,7 @@ from .. import pgsettinggroup
 from .. import pgsettingutils
 
 
-class TestSettingAttributeGenerators(unittest.TestCase):
+class TestGetProcessedSettingAttribute(unittest.TestCase):
   
   def test_get_processed_display_name(self):
     self.assertEqual(
