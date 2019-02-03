@@ -386,6 +386,25 @@ class TestStringPattern(unittest.TestCase):
         self, test_case_name_suffix, pattern, position, expected_output):
     self.assertEqual(
       pgpath.StringPattern.get_field_at_position(pattern, position), expected_output)
+  
+  @parameterized.parameterized.expand([
+    ("no_fields", ["img_12", "_345"], "img_12_345"),
+    ("single_field_without_arguments", ["img_", ["field"]], "img_[field]"),
+    ("single_field_with_one_argument", ["img_", ["field", [3]]], "img_[field, 3]"),
+    ("single_field_with_multiple_arguments",
+     ["img_", ["field", [3, 4]]], "img_[field, 3, 4]"),
+    ("multiple_fields",
+     ["img_", ["field", [3, 4]], "_layer_", ["field2"], ".png"],
+     "img_[field, 3, 4]_layer_[field2].png"),
+  ])
+  def test_reconstruct_pattern(
+        self, test_case_name_suffix, pattern_parts, expected_str):
+    self.assertEqual(
+      pgpath.StringPattern.reconstruct_pattern(pattern_parts), expected_str)
+  
+  def test_reconstruct_pattern_empty_list_for_field_raises_error(self):
+    with self.assertRaises(ValueError):
+      pgpath.StringPattern.reconstruct_pattern(["img_", []])
 
 
 class TestGetFileExtension(unittest.TestCase):

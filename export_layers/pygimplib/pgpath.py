@@ -316,6 +316,36 @@ class StringPattern(object):
     
     return None
   
+  @classmethod
+  def reconstruct_pattern(cls, pattern_parts):
+    """
+    Reconstruct a string pattern given the parsed `pattern_parts` returned from
+    the `pattern_parts` attribute of a `StringPattern` instance.
+    
+    Raises:
+    
+    * `ValueError` - A list as an element of `pattern_parts` representing a
+      field is empty.
+    """
+    processed_pattern_parts = []
+    
+    for part in pattern_parts:
+      if not cls._is_field(part):
+        processed_pattern_parts.append(part)
+      else:
+        if not part:
+          raise ValueError(
+            "lists representing fields must always contain at least one element")
+        
+        field_components = [part[0]]
+        
+        if len(part) > 1:
+          field_components.extend([str(arg) for arg in part[1]])
+        
+        processed_pattern_parts.append("[{}]".format(", ".join(field_components)))
+    
+    return "".join(processed_pattern_parts)
+  
   @staticmethod
   def get_first_matching_field_regex(parsed_field_str, field_regexes):
     """
