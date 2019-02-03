@@ -26,12 +26,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import collections
+import types
 
 import pygtk
 pygtk.require("2.0")
 import gtk
 
 from export_layers import pygimplib
+from export_layers.pygimplib import pgpath
 from export_layers.pygimplib import pgsettingpersistor
 from export_layers.pygimplib import pgversion
 
@@ -112,8 +114,77 @@ def handle_update(settings, update_handlers, previous_version, current_version):
       update_handler(settings)
 
 
+def rename_settings(settings_to_rename):
+  for source in [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]:
+    data_dict = source.read_dict()
+    
+    if data_dict:
+      for orig_setting_name, new_setting_name in settings_to_rename:
+        if orig_setting_name in data_dict:
+          data_dict[new_setting_name] = data_dict[orig_setting_name]
+          del data_dict[orig_setting_name]
+      
+      source.write_dict(data_dict)
+
+
+def replace_field_arguments_in_pattern(
+      pattern, field_regexes_and_argument_values_and_replacements):
+  
+  def _replace_field_arguments(field_arguments, values_and_replacements):
+    replaced_field_arguments = []
+    
+    for argument in field_arguments:
+      replaced_argument = argument
+      
+      for value, replacement in values_and_replacements:
+        replaced_argument = replaced_argument.replace(value, replacement)
+      
+      replaced_field_arguments.append(replaced_argument)
+    
+    return replaced_field_arguments
+  
+  string_pattern = pgpath.StringPattern(
+    pattern,
+    fields={
+      field_regex: lambda *args: None
+      for field_regex in field_regexes_and_argument_values_and_replacements})
+  
+  processed_pattern_parts = []
+  
+  for part in string_pattern.pattern_parts:
+    if isinstance(part, types.StringTypes):
+      processed_pattern_parts.append(part)
+    else:
+      field_regex = part[0]
+      
+      if field_regex not in field_regexes_and_argument_values_and_replacements:
+        continue
+      
+      field_components = [field_regex]
+      
+      if len(part) > 1:
+        field_components.append(
+          _replace_field_arguments(
+            part[1],
+            field_regexes_and_argument_values_and_replacements[field_regex]))
+      
+      processed_pattern_parts.append(field_components)
+  
+  return pgpath.StringPattern.reconstruct_pattern(processed_pattern_parts)
+
+
+def _is_fresh_start():
+  return not pygimplib.config.SOURCE_PERSISTENT.has_data()
+
+
+def _save_plugin_version(settings):
+  settings["main/plugin_version"].reset()
+  pgsettingpersistor.SettingPersistor.save(
+    [settings["main/plugin_version"]], [pygimplib.config.SOURCE_PERSISTENT])
+
+
 def _update_to_3_3_1(settings):
-  settings_to_rename = collections.OrderedDict([
+  rename_settings([
     ("gui/export_name_preview_sensitive",
      "gui/name_preview_sensitive"),
     ("gui/export_image_preview_sensitive",
@@ -132,28 +203,21 @@ def _update_to_3_3_1(settings):
      "gui_persistent/image_preview_displayed_layers"),
   ])
   
-  for source in [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]:
-    data_dict = source.read_dict()
-    
-    if data_dict:
-      for orig_setting_name, new_setting_name in settings_to_rename.items():
-        if orig_setting_name in data_dict:
-          data_dict[new_setting_name] = data_dict[orig_setting_name]
-          del data_dict[orig_setting_name]
-      
-      source.write_dict(data_dict)
+  settings["main/layer_filename_pattern"].load()
+  
+  settings["main/layer_filename_pattern"].set_value(
+    replace_field_arguments_in_pattern(
+      settings["main/layer_filename_pattern"].value,
+      {
+        "layer name": [("keep extension", "%e"), ("keep only identical extension", "%i")],
+        "image name": [("keep extension", "%e")],
+        "layer path": [("$$", "%c")],
+        "tags": [("$$", "%t")],
+      }))
+  
+  settings["main/layer_filename_pattern"].save()
 
 
 _UPDATE_HANDLERS = collections.OrderedDict([
   ("3.3.1", _update_to_3_3_1),
 ])
-
-
-def _is_fresh_start():
-  return not pygimplib.config.SOURCE_PERSISTENT.has_data()
-
-
-def _save_plugin_version(settings):
-  settings["main/plugin_version"].reset()
-  pgsettingpersistor.SettingPersistor.save(
-    [settings["main/plugin_version"]], [pygimplib.config.SOURCE_PERSISTENT])

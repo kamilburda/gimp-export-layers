@@ -52,6 +52,7 @@ pygimplib.init()
   pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp",
   new_callable=stubs_gimp.GimpModuleStub)
 @mock.patch("export_layers.update.handle_update")
+@mock.patch("export_layers.gui.messages.display_message")
 class TestUpdate(unittest.TestCase):
   
   def setUp(self):
@@ -88,7 +89,11 @@ class TestUpdate(unittest.TestCase):
     ])
   
   def test_fresh_start_stores_new_version(
-        self, mock_handle_update, mock_persistent_source, mock_session_source):
+        self,
+        mock_display_message,
+        mock_handle_update,
+        mock_persistent_source,
+        mock_session_source):
     self.assertFalse(pygimplib.config.SOURCE_PERSISTENT.has_data())
     
     status = update.update(self.settings)
@@ -101,7 +106,11 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
   
   def test_minimum_version_or_later_is_overwritten_by_new_version(
-        self, mock_handle_update, mock_persistent_source, mock_session_source):
+        self,
+        mock_display_message,
+        mock_handle_update,
+        mock_persistent_source,
+        mock_session_source):
     self.settings["main/plugin_version"].set_value(self.current_version)
     self.settings["main/plugin_version"].save()
     
@@ -111,7 +120,11 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
   
   def test_persistent_source_has_data_but_not_version_clears_setting_sources(
-        self, mock_handle_update, mock_persistent_source, mock_session_source):
+        self,
+        mock_display_message,
+        mock_handle_update,
+        mock_persistent_source,
+        mock_session_source):
     self.settings["main/test_setting"].save()
     
     status = update.update(self.settings)
@@ -120,7 +133,11 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
   
   def test_less_than_minimum_version_clears_setting_sources(
-        self, mock_handle_update, mock_persistent_source, mock_session_source):
+        self,
+        mock_display_message,
+        mock_handle_update,
+        mock_persistent_source,
+        mock_session_source):
     self.settings["main/plugin_version"].set_value(self.old_incompatible_version)
     self.settings["main"].save()
     
@@ -132,7 +149,6 @@ class TestUpdate(unittest.TestCase):
       self.settings["main/test_setting"].load()[0],
       pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
-  @mock.patch("export_layers.gui.messages.display_message")
   def test_prompt_on_clear_positive_response(
         self,
         mock_display_message,
@@ -151,7 +167,6 @@ class TestUpdate(unittest.TestCase):
       self.settings["main/test_setting"].load()[0],
       pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
-  @mock.patch("export_layers.gui.messages.display_message")
   def test_prompt_on_clear_negative_response(
         self,
         mock_display_message,
@@ -216,3 +231,29 @@ class TestHandleUpdate(unittest.TestCase):
       pgversion.Version.parse(current_version_str))
     
     self.assertEqual(self._executed_handlers, executed_handlers)
+
+
+class TestReplaceFieldArgumentsInPattern(unittest.TestCase):
+  
+  @parameterized.parameterized.expand([
+    ["single_argument_per_field",
+     {"layer name": [("keep extension", "%e")], "tags": [("$$", "%t")]},
+     "[layer name, keep extension]_[layer name]_[tags, _, ($$)]",
+     "[layer name, %e]_[layer name]_[tags, _, (%t)]"],
+    
+    ["multiple_arguments_per_field",
+     {"layer name": [("keep extension", "%e"), ("lowercase", "%l")],
+      "tags": [("$$", "%t")]},
+     "[layer name, lowercase, keep extension]_[layer name]_[tags, _, ($$)]",
+     "[layer name, %l, %e]_[layer name]_[tags, _, (%t)]"],
+    
+    ["unspecified_fields_remain_unmodified",
+     {"layer name": [("keep extension", "%e")], "tags": [("$$", "%t")]},
+     "[layer name, keep extension]_[001]_[tags, _, ($$)]",
+     "[layer name, %e]_[001]_[tags, _, (%t)]"],
+  ])
+  def test_replace_field_arguments_in_pattern(
+        self, test_case_name_suffix, fields_and_replacements, pattern, expected_output):
+    self.assertEqual(
+      update.replace_field_arguments_in_pattern(pattern, fields_and_replacements),
+      expected_output)
