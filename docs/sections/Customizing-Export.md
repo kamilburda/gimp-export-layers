@@ -121,17 +121,24 @@ Layer or image attributes.
 
 Arguments
 * *pattern*: A string formatting the attributes.
-
-Available attributes for *pattern*:
-* `%w` - The layer width.
-* `%h` - The layer height.
-* `%x` - The layer *x*-offset.
-* `%y` - The layer *y*-offset.
-* `%iw` - The image width.
-* `%ih` - The image height.
+  Available attributes:
+  * `%w` - The layer width.
+  * `%h` - The layer height.
+  * `%x` - The layer *x*-offset.
+  * `%y` - The layer *y*-offset.
+  * `%iw` - The image width.
+  * `%ih` - The image height.
+* *measure*: The measure in which the attribute values are displayed.
+  Applies to `%w`, `%h`, `%x` and `%y` only.
+  Available measures:
+  * `%px` (default) - Display absolute values in pixels.
+  * `%pc` - Display percentages relative to the image.
+    A number may be included after `%pc` to specify the number of digits to round to (2 by default).
+    For example, `%pc1` displays percentages rounded to a single decimal digit.
 
 Examples:
 * `[attributes, %w-%h-%x-%y]` → `1000-500-0-40`
+* `[attributes, %w-%h-%x-%y, %pc1]` → `1.0-0.8-0.0-0.1`
 
 
 ### Inserting reserved characters in arguments

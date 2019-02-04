@@ -27,6 +27,7 @@ from future.builtins import *
 
 import collections
 import datetime
+import re
 import string
 
 from export_layers.pygimplib import pgpath
@@ -356,18 +357,41 @@ def _get_current_date(layer_exporter, field_value, date_format="%Y-%m-%d"):
   return datetime.datetime.now().strftime(date_format)
 
 
-def _get_attributes(layer_exporter, field_value, pattern):
+def _get_attributes(layer_exporter, field_value, pattern, measure="%px"):
   layer_elem = layer_exporter.current_layer_elem
   image = layer_exporter.image
   
   fields = {
-    "w": layer_elem.item.width,
-    "h": layer_elem.item.height,
-    "x": layer_elem.item.offsets[0],
-    "y": layer_elem.item.offsets[1],
     "iw": image.width,
     "ih": image.height,
   }
+  
+  layer_fields = {}
+  
+  if measure == "%px":
+    layer_fields = {
+      "w": layer_elem.item.width,
+      "h": layer_elem.item.height,
+      "x": layer_elem.item.offsets[0],
+      "y": layer_elem.item.offsets[1],
+    }
+  elif measure.startswith("%pc"):
+    match = re.match(r"^" + re.escape("%pc") + r"([0-9]*)$", measure)
+    
+    if match is not None:
+      if match.group(1):
+        round_digits = int(match.group(1))
+      else:
+        round_digits = 2
+      
+      layer_fields = {
+        "w": round(layer_elem.item.width / image.width, round_digits),
+        "h": round(layer_elem.item.height / image.height, round_digits),
+        "x": round(layer_elem.item.offsets[0] / image.width, round_digits),
+        "y": round(layer_elem.item.offsets[1] / image.height, round_digits),
+      }
+  
+  fields.update(layer_fields)
   
   return _PercentTemplate(pattern).safe_substitute(fields)
 
@@ -485,6 +509,8 @@ _FIELDS_LIST = [
     "[attributes]",
     [
       ["<i>pattern</i>"],
+      ["<i>pattern</i>, %px"],
+      ["<i>pattern</i>, %pc&lt;<i>number</i>&gt;"],
     ],
     [
       _("<i>pattern</i> can contain the following fields:"),
@@ -494,9 +520,14 @@ _FIELDS_LIST = [
       _("%y - the layer y-offset"),
       _("%iw - the image width"),
       _("%ih - the image height"),
+      _("For %w, %h, %x and %y, the following arguments apply:"),
+      _("%px - specify layer coordinates/dimensions in pixels (default)"),
+      _("%pc - specify layer coordinates/dimensions in percentages (relative to image);"),
+      _("a number after %pc denotes the number of decimal digits to display"),
     ],
     [
       ["[attributes, %w-%h-%x-%y]", "1000-500-0-40"],
+      ["[attributes, %w-%h-%x-%y, %pc1]", "1.0-0.8-0.0-0.1"],
     ],
   ),
 ]
