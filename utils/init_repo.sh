@@ -25,6 +25,7 @@ liblzma-dev
 libgmp-dev
 libffi-dev
 gcc
+gettext
 python
 python-pip
 gimp'
