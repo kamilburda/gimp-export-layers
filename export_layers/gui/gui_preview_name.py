@@ -35,10 +35,7 @@ import gobject
 
 from gimp import pdb
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pggui
-from export_layers.pygimplib import pgutils
+from export_layers import pygimplib as pg
 
 from .. import builtin_constraints
 from . import gui_preview_base
@@ -105,7 +102,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     
     self.is_filtering = False
     
-    self._tree_iters = collections.defaultdict(pgutils.return_none_func)
+    self._tree_iters = collections.defaultdict(pg.utils.return_none_func)
     
     self._row_expand_collapse_interactive = True
     self._toggle_tag_interactive = True
@@ -114,9 +111,9 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     self._initial_scroll_to_selection = True
     
     self._icon_image_filepath = os.path.join(
-      pygimplib.config.PLUGIN_SUBDIRPATH, "images", "icon_image.png")
+      pg.config.PLUGIN_SUBDIRPATH, "images", "icon_image.png")
     self._icon_tag_filepath = os.path.join(
-      pygimplib.config.PLUGIN_SUBDIRPATH, "images", "icon_tag.png")
+      pg.config.PLUGIN_SUBDIRPATH, "images", "icon_tag.png")
     
     self._init_gui()
   
@@ -393,7 +390,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       if len(layer_ids) >= 1:
         self._tags_menu.popup(None, None, None, event.button, event.time)
         
-        toplevel_window = pggui.get_toplevel_window(self)
+        toplevel_window = pg.gui.get_toplevel_window(self)
         if toplevel_window is not None:
           self._tags_menu_relative_position = toplevel_window.get_window().get_pointer()
       
@@ -451,7 +448,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
     popup_add_tag.set_decorated(False)
     popup_add_tag.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_POPUP_MENU)
     
-    toplevel = pggui.get_toplevel_window(self)
+    toplevel = pg.gui.get_toplevel_window(self)
     if toplevel is not None:
       popup_add_tag.set_transient_for(toplevel)
     
@@ -559,7 +556,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       [self._get_icon_from_item_elem(item_elem),
        bool(item_elem.tags),
        True,
-       item_elem.name.encode(pgconstants.GTK_CHARACTER_ENCODING),
+       item_elem.name.encode(pg.constants.GTK_CHARACTER_ENCODING),
        item_elem.item.ID])
     self._tree_iters[item_elem.item.ID] = tree_iter
     
@@ -573,7 +570,7 @@ class ExportNamePreview(gui_preview_base.ExportPreview):
       self._COLUMN_LAYER_NAME_SENSITIVE[0],
       True,
       self._COLUMN_LAYER_NAME[0],
-      item_elem.name.encode(pgconstants.GTK_CHARACTER_ENCODING))
+      item_elem.name.encode(pg.constants.GTK_CHARACTER_ENCODING))
   
   def _insert_parent_item_elems(self, item_elem):
     for parent_elem in item_elem.parents:

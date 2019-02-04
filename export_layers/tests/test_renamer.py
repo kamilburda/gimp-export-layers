@@ -25,16 +25,14 @@ import unittest
 import mock
 import parameterized
 
-from export_layers import pygimplib
+from export_layers import pygimplib as pg
 
-from export_layers.pygimplib import pgitemtree
-from export_layers.pygimplib import pgconstants
 from export_layers.pygimplib.tests import stubs_gimp
-from export_layers.pygimplib.tests import utils_pgitemtree
+from export_layers.pygimplib.tests import utils_itemtree
 
 from .. import renamer
 
-pygimplib.init()
+pg.init()
 
 
 class TestNumberField(unittest.TestCase):
@@ -62,18 +60,18 @@ class TestNumberField(unittest.TestCase):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb",
+  pg.constants.PYGIMPLIB_MODULE_PATH + ".itemtree.pdb",
   new=stubs_gimp.PdbStub())
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp.GroupLayer",
+  pg.constants.PYGIMPLIB_MODULE_PATH + ".itemtree.gimp.GroupLayer",
   new=stubs_gimp.LayerGroupStub)
 class TestRenameWithNumberField(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.pdb",
+    pg.constants.PYGIMPLIB_MODULE_PATH + ".itemtree.pdb",
     new=stubs_gimp.PdbStub())
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgitemtree.gimp.GroupLayer",
+    pg.constants.PYGIMPLIB_MODULE_PATH + ".itemtree.gimp.GroupLayer",
     new=stubs_gimp.LayerGroupStub)
   def setUp(self):
     layers_string = """
@@ -96,7 +94,7 @@ class TestRenameWithNumberField(unittest.TestCase):
       Overlay2
     """
     
-    self.image = utils_pgitemtree.parse_layers(layers_string)
+    self.image = utils_itemtree.parse_layers(layers_string)
   
   @parameterized.parameterized.expand([
     ("start_from_one",
@@ -166,7 +164,7 @@ class TestRenameWithNumberField(unittest.TestCase):
      """),
   ])
   def test_rename(self, test_case_name_suffix, pattern, expected_layer_names_str):
-    layer_tree = pgitemtree.LayerTree(self.image)
+    layer_tree = pg.itemtree.LayerTree(self.image)
     
     layer_name_renamer = (
       renamer.LayerNameRenamer(None, pattern, fields=[renamer.NumberField()]))
@@ -176,7 +174,7 @@ class TestRenameWithNumberField(unittest.TestCase):
         layer_name_renamer.rename(layer_elem)
     
     expected_layer_tree = (
-      pgitemtree.LayerTree(utils_pgitemtree.parse_layers(expected_layer_names_str)))
+      pg.itemtree.LayerTree(utils_itemtree.parse_layers(expected_layer_names_str)))
     
     self.assertListEqual(
       [renamed_layer_elem.name for renamed_layer_elem in layer_tree],

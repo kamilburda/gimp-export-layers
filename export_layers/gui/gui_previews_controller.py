@@ -25,8 +25,7 @@ layer names and images to be exported.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-from export_layers.pygimplib import pggui
-from export_layers.pygimplib import pginvocation
+from export_layers import pygimplib as pg
 
 from export_layers import builtin_constraints
 from export_layers import builtin_procedures
@@ -100,11 +99,11 @@ class ExportPreviewsController(object):
         "previews_sensitive")
     elif current_position != self._paned_outside_previews_previous_position:
       if self._image_preview.is_larger_than_image():
-        pginvocation.timeout_add_strict(
+        pg.invocation.timeout_add_strict(
           self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS,
           self._image_preview.update)
       else:
-        pginvocation.timeout_remove_strict(self._image_preview.update)
+        pg.invocation.timeout_remove_strict(self._image_preview.update)
         self._image_preview.resize()
     
     self._paned_outside_previews_previous_position = current_position
@@ -140,11 +139,11 @@ class ExportPreviewsController(object):
         "vpaned_preview_sensitive")
     elif current_position != self._paned_between_previews_previous_position:
       if self._image_preview.is_larger_than_image():
-        pginvocation.timeout_add_strict(
+        pg.invocation.timeout_add_strict(
           self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS,
           self._image_preview.update)
       else:
-        pginvocation.timeout_remove_strict(self._image_preview.update)
+        pg.invocation.timeout_remove_strict(self._image_preview.update)
         self._image_preview.resize()
     
     self._paned_between_previews_previous_position = current_position
@@ -171,9 +170,9 @@ class ExportPreviewsController(object):
     operations_.connect_event("before-remove-operation", _on_before_remove_operation)
   
   def _update_previews_on_setting_change(self, setting):
-    pginvocation.timeout_add_strict(
+    pg.invocation.timeout_add_strict(
       self._DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS, self._name_preview.update)
-    pginvocation.timeout_add_strict(
+    pg.invocation.timeout_add_strict(
       self._DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS, self._image_preview.update)
   
   def _connect_setting_after_reset_collapsed_layers_in_name_preview(self):
@@ -288,8 +287,8 @@ class ExportPreviewsController(object):
   
   def _connect_toplevel_notify_is_active(self):
     toplevel = (
-      pggui.get_toplevel_window(self._name_preview)
-      or pggui.get_toplevel_window(self._image_preview))
+      pg.gui.get_toplevel_window(self._name_preview)
+      or pg.gui.get_toplevel_window(self._image_preview))
     if toplevel is not None:
       toplevel.connect("notify::is-active", self._on_toplevel_notify_is_active)
    
@@ -305,8 +304,8 @@ class ExportPreviewsController(object):
   
   def _on_toplevel_notify_is_active(self, toplevel, property_spec):
     if toplevel.is_active():
-      pginvocation.timeout_remove_strict(self._name_preview.update)
-      pginvocation.timeout_remove_strict(self._image_preview.update)
+      pg.invocation.timeout_remove_strict(self._name_preview.update)
+      pg.invocation.timeout_remove_strict(self._image_preview.update)
       
       self._name_preview.update(reset_items=True)
       
@@ -321,7 +320,7 @@ class ExportPreviewsController(object):
     preview.add_function_at_update(preview.set_sensitive, True)
     # In case the image preview gets resized, the update would be canceled,
     # hence update always.
-    pginvocation.timeout_add(
+    pg.invocation.timeout_add(
       self._DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS, preview.update)
     preview_sensitive_setting.set_value(True)
   

@@ -24,7 +24,7 @@ from future.builtins import *
 
 import itertools
 
-from .. import pgconstants
+from .. import constants as pgconstants
 
 
 class PdbStub(object):

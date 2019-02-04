@@ -36,8 +36,7 @@ from future.builtins import *
 
 import gimpenums
 
-from export_layers.pygimplib import pgsetting
-from export_layers.pygimplib import pgsettingutils
+from export_layers import pygimplib as pg
 
 from .gui import gui_placeholders
 
@@ -105,7 +104,7 @@ def get_replaced_args_and_kwargs(func_args, func_kwargs, image, layer, layer_exp
 #===============================================================================
 
 
-class PlaceholderSetting(pgsetting.Setting):
+class PlaceholderSetting(pg.setting.Setting):
    
   _ALLOWED_GUI_TYPES = [gui_placeholders.GimpObjectPlaceholdersComboBoxPresenter]
   _ALLOWED_PLACEHOLDERS = []
@@ -131,8 +130,8 @@ class PlaceholderSetting(pgsetting.Setting):
   
   def _validate(self, value):
     if value not in self._ALLOWED_PLACEHOLDERS:
-      raise pgsetting.SettingValueError(
-        pgsettingutils.value_to_str_prefix(value) + self.error_messages["invalid_value"])
+      raise pg.setting.SettingValueError(
+        pg.settingutils.value_to_str_prefix(value) + self.error_messages["invalid_value"])
 
 
 class PlaceholderImageSetting(PlaceholderSetting):

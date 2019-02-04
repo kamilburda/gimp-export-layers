@@ -30,23 +30,23 @@ except ImportError:
 else:
   _gimp_dependent_modules_imported = True
 
-from . import pglogging
+from . import logging
 
 
 if _gimp_dependent_modules_imported:
   # Enable logging as early as possible to capture any unexpected errors (such
   # as missing modules) before pygimplib is fully initialized.
-  pglogging.log_output(
-    log_mode=pglogging.LOG_EXCEPTIONS_ONLY,
+  logging.log_output(
+    log_mode=logging.LOG_EXCEPTIONS_ONLY,
     log_dirpaths=[os.path.dirname(_PYGIMPLIB_DIRPATH), _PYGIMPLIB_DIRPATH],
     log_stdout_filename=None,
     log_stderr_filename="error.log",
     log_header_title="pygimplib")
 
 if _gimp_dependent_modules_imported:
-  from . import _pggui_messages
+  from . import _gui_messages
   
-  _pggui_messages.set_gui_excepthook(title=None, app_name=None)
+  _gui_messages.set_gui_excepthook(title=None, app_name=None)
 
 
 def _setup_import_of_external_lib_modules(dirpath):
@@ -56,7 +56,7 @@ def _setup_import_of_external_lib_modules(dirpath):
   modules (i.e. without using absolute or explicit relative imports).
   
   Modules with the same name that are already installed system-wide override the
-  external library modules from pygimplib.
+  external library modules from `pygimplib`.
   """
   for filename in os.listdir(dirpath):
     external_libs_dirpath = os.path.join(dirpath, filename)
@@ -67,21 +67,76 @@ def _setup_import_of_external_lib_modules(dirpath):
 _setup_import_of_external_lib_modules(os.path.join(_PYGIMPLIB_DIRPATH, "lib"))
 
 
-from future.builtins import *
+from future.builtins import (
+  ascii, bytes, chr, dict, filter, hex, input, int, list, map, next, object,
+  oct, open, pow, range, round, str, super, zip)
 
 import collections
 import gettext
+
+from . import constants
+from . import utils
+from . import version
 
 if _gimp_dependent_modules_imported:
   import gimpenums
   import gimpui
   
-  from . import pgconstants
-  from . import pggui
-  from . import pgsetting
-  from . import pgsettinggroup
-  from . import pgsettingsources
-  from . import pgsettingpdb
+  from . import fileformats
+  from . import invocation
+  from . import gui
+  from . import itemtree
+  from . import objectfilter
+  from . import operations
+  from . import overwrite
+  from . import path
+  from . import pdb
+  from . import progress
+  from . import setting
+  from . import settinggroup
+  from . import settingpdb
+  from . import settingpersistor
+  from . import settingpresenter
+  from . import settingpresenters_gtk
+  from . import settingsources
+  from . import settingutils
+
+__all__ = [
+  # Modules
+  "constants",
+  "logging",
+  "utils",
+  "version",
+  # Global elements defined in this module
+  "config",
+  "init",
+]
+
+if _gimp_dependent_modules_imported:
+  __all__.extend([
+    # Modules
+    "fileformats",
+    "invocation",
+    "gui",
+    "itemtree",
+    "objectfilter",
+    "operations",
+    "overwrite",
+    "path",
+    "pdb",
+    "progress",
+    "setting",
+    "settinggroup",
+    "settingpdb",
+    "settingpersistor",
+    "settingpresenter",
+    "settingpresenters_gtk",
+    "settingsources",
+    "settingutils",
+    # Global elements defined in this module
+    "procedure",
+    "main",
+  ])
 
 
 config = None
@@ -141,7 +196,7 @@ def _init_config():
   config.PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(_PYGIMPLIB_DIRPATH))
   
   if _gimp_dependent_modules_imported:
-    config.LOG_MODE = pglogging.LOG_EXCEPTIONS_ONLY
+    config.LOG_MODE = logging.LOG_EXCEPTIONS_ONLY
   
   gettext.install(config.DOMAIN_NAME, config.LOCALE_DIRPATH, unicode=True)
   
@@ -183,9 +238,9 @@ def _init_config_builtin(config):
 
 def _init_config_builtin_delayed(config):
   if _gimp_dependent_modules_imported:
-    config.SOURCE_SESSION = pgsettingsources.SessionWideSettingSource(
+    config.SOURCE_SESSION = settingsources.SessionWideSettingSource(
       config.SOURCE_SESSION_NAME)
-    config.SOURCE_PERSISTENT = pgsettingsources.PersistentSettingSource(
+    config.SOURCE_PERSISTENT = settingsources.PersistentSettingSource(
       config.SOURCE_PERSISTENT_NAME)
 
 
@@ -206,8 +261,8 @@ def init():
   gettext.install(config.DOMAIN_NAME, config.LOCALE_DIRPATH, unicode=True)
   
   if (_gimp_dependent_modules_imported
-      or config.LOG_MODE != pglogging.LOG_OUTPUT_GIMP_CONSOLE):
-    pglogging.log_output(
+      or config.LOG_MODE != logging.LOG_OUTPUT_GIMP_CONSOLE):
+    logging.log_output(
       config.LOG_MODE, config.PLUGINS_LOG_DIRPATHS,
       config.PLUGINS_LOG_STDOUT_FILENAME, config.PLUGINS_LOG_STDERR_FILENAME,
       config.PLUGIN_TITLE, config.GIMP_CONSOLE_MESSAGE_DELAY_MILLISECONDS)
@@ -258,8 +313,10 @@ if _gimp_dependent_modules_imported:
       `parameters`.
     
     Example:
-    
-      \@pygimplib.procedure(
+      
+      import pygimplib as pg
+      
+      \@pg.procedure(
         blurb="Export layers as separate images",
         author="John Doe",
         menu_name=_("E_xport Layers..."),
@@ -304,9 +361,9 @@ if _gimp_dependent_modules_imported:
       
       if params:
         has_settings = isinstance(
-          params[0], (pgsetting.Setting, pgsettinggroup.SettingGroup))
+          params[0], (setting.Setting, settinggroup.SettingGroup))
         if has_settings:
-          pdb_params = pgsettingpdb.create_params(*params)
+          pdb_params = settingpdb.create_params(*params)
         else:
           pdb_params = params
       
@@ -352,10 +409,10 @@ if _gimp_dependent_modules_imported:
   
   def _add_gui_excepthook(procedure, run_mode):
     if run_mode == gimpenums.RUN_INTERACTIVE:
-      pggui.set_gui_excepthook_additional_callback(
+      gui.set_gui_excepthook_additional_callback(
         _display_message_on_setting_value_error)
       
-      add_gui_excepthook_func = pggui.add_gui_excepthook(
+      add_gui_excepthook_func = gui.add_gui_excepthook(
         title=config.PLUGIN_TITLE,
         app_name=config.PLUGIN_TITLE,
         report_uri_list=config.BUG_REPORT_URL_LIST)
@@ -365,8 +422,8 @@ if _gimp_dependent_modules_imported:
       return procedure
   
   def _display_message_on_setting_value_error(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, pgsetting.SettingValueError):
-      gimp.message(str(exc_value).encode(pgconstants.GIMP_CHARACTER_ENCODING))
+    if issubclass(exc_type, setting.SettingValueError):
+      gimp.message(str(exc_value).encode(constants.GIMP_CHARACTER_ENCODING))
       return True
     else:
       return False

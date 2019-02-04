@@ -31,38 +31,33 @@ import unittest
 import mock
 import parameterized
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pgsetting
-from export_layers.pygimplib import pgsettinggroup
-from export_layers.pygimplib import pgsettingpersistor
-from export_layers.pygimplib import pgversion
+from export_layers import pygimplib as pg
 
 from export_layers.pygimplib.tests import stubs_gimp
 
 from .. import update
 
-pygimplib.init()
+pg.init()
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
+  pg.constants.PYGIMPLIB_MODULE_PATH + ".settingsources.gimpshelf.shelf",
   new_callable=stubs_gimp.ShelfStub)
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp",
+  pg.constants.PYGIMPLIB_MODULE_PATH + ".settingsources.gimp",
   new_callable=stubs_gimp.GimpModuleStub)
 @mock.patch("export_layers.update.handle_update")
 @mock.patch("export_layers.gui.messages.display_message")
 class TestUpdate(unittest.TestCase):
   
   def setUp(self):
-    self.settings = pgsettinggroup.create_groups({
+    self.settings = pg.settinggroup.create_groups({
       "name": "all_settings",
       "groups": [
         {
           "name": "main",
           "setting_attributes": {
-            "setting_sources": [pygimplib.config.SOURCE_PERSISTENT]},
+            "setting_sources": [pg.config.SOURCE_PERSISTENT]},
         }
       ]
     })
@@ -73,14 +68,14 @@ class TestUpdate(unittest.TestCase):
     
     self.settings["main"].add([
       {
-        "type": pgsetting.SettingTypes.generic,
+        "type": pg.setting.SettingTypes.generic,
         "name": "plugin_version",
         "default_value": self.new_version,
         "pdb_type": None,
         "gui_type": None,
       },
       {
-        "type": pgsetting.SettingTypes.generic,
+        "type": pg.setting.SettingTypes.generic,
         "name": "test_setting",
         "default_value": "test",
         "pdb_type": None,
@@ -94,7 +89,7 @@ class TestUpdate(unittest.TestCase):
         mock_handle_update,
         mock_persistent_source,
         mock_session_source):
-    self.assertFalse(pygimplib.config.SOURCE_PERSISTENT.has_data())
+    self.assertFalse(pg.config.SOURCE_PERSISTENT.has_data())
     
     status = update.update(self.settings)
     
@@ -103,7 +98,7 @@ class TestUpdate(unittest.TestCase):
     
     status, unused_ = self.settings["main/plugin_version"].load()
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
-    self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
+    self.assertEqual(status, pg.settingpersistor.SettingPersistor.SUCCESS)
   
   def test_minimum_version_or_later_is_overwritten_by_new_version(
         self,
@@ -147,7 +142,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
     self.assertEqual(
       self.settings["main/test_setting"].load()[0],
-      pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
+      pg.settingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
   def test_prompt_on_clear_positive_response(
         self,
@@ -165,7 +160,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
     self.assertEqual(
       self.settings["main/test_setting"].load()[0],
-      pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
+      pg.settingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
   def test_prompt_on_clear_negative_response(
         self,
@@ -184,7 +179,7 @@ class TestUpdate(unittest.TestCase):
       self.settings["main/plugin_version"].value, self.old_incompatible_version)
     self.assertEqual(
       self.settings["main/test_setting"].load()[0],
-      pgsettingpersistor.SettingPersistor.SUCCESS)
+      pg.settingpersistor.SettingPersistor.SUCCESS)
   
 
 class TestHandleUpdate(unittest.TestCase):
@@ -198,7 +193,7 @@ class TestHandleUpdate(unittest.TestCase):
     
     self._executed_handlers = []
     
-    self.settings = pgsettinggroup.SettingGroup("settings")
+    self.settings = pg.settinggroup.SettingGroup("settings")
   
   @parameterized.parameterized.expand([
     ["previous_version_earlier_than_all_handlers_execute_one_handler",
@@ -227,8 +222,8 @@ class TestHandleUpdate(unittest.TestCase):
     update.handle_update(
       self.settings,
       self.update_handlers,
-      pgversion.Version.parse(previous_version_str),
-      pgversion.Version.parse(current_version_str))
+      pg.version.Version.parse(previous_version_str),
+      pg.version.Version.parse(current_version_str))
     
     self.assertEqual(self._executed_handlers, executed_handlers)
 

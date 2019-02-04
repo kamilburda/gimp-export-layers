@@ -24,7 +24,7 @@ for documentation purposes.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-from export_layers import pygimplib
+from export_layers import pygimplib as pg
 from future.builtins import *
 
 import os
@@ -37,10 +37,6 @@ import gtk
 import gimp
 from gimp import pdb
 
-from export_layers.pygimplib import pgitemtree
-from export_layers.pygimplib import pgutils
-from export_layers.pygimplib import pgpath
-
 import export_layers.config
 export_layers.config.init()
 
@@ -50,13 +46,12 @@ from export_layers import operations
 from export_layers import settings_plugin
 from export_layers.gui import gui_plugin
 
-pygimplib.init()
+pg.init()
 
 
-PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(pgutils.get_current_module_filepath()))
+PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(pg.utils.get_current_module_filepath()))
 
-TEST_IMAGES_DIRPATH = os.path.join(
-  pygimplib.config.PLUGIN_SUBDIRPATH, "tests", "test_images")
+TEST_IMAGES_DIRPATH = os.path.join(pg.config.PLUGIN_SUBDIRPATH, "tests", "test_images")
 TEST_IMAGES_FILEPATH = os.path.join(
   TEST_IMAGES_DIRPATH, "test_export_layers_contents.xcf")
 
@@ -71,7 +66,7 @@ SCREENSHOT_DIALOG_CUSTOMIZING_EXPORT_FILENAME = "screenshot_dialog_customizing_e
 
 
 def take_screenshots(gui, dialog, settings):
-  pgpath.make_dirs(OUTPUT_DIRPATH)
+  pg.path.make_dirs(OUTPUT_DIRPATH)
   
   settings["gui_session/current_directory"].set_value(OUTPUT_DIRPATH)
   settings["gui/show_more_settings"].set_value(False)
@@ -182,8 +177,8 @@ def main(settings=None):
   
   image = pdb.gimp_file_load(TEST_IMAGES_FILEPATH, os.path.basename(TEST_IMAGES_FILEPATH))
   
-  layer_tree = pgitemtree.LayerTree(
-    image, name=pygimplib.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
+  layer_tree = pg.itemtree.LayerTree(
+    image, name=pg.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
   
   settings["special/image"].set_value(image)
   

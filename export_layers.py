@@ -35,13 +35,10 @@ if os.name == "nt":
 # Export menu.
 os.environ["LIBOVERLAY_SCROLLBAR"] = "0"
 
-from export_layers import pygimplib
+from export_layers import pygimplib as pg
 from future.builtins import *
 
 import gimpenums
-
-from export_layers.pygimplib import pgitemtree
-from export_layers.pygimplib import pgsettingpdb
 
 import export_layers.config
 export_layers.config.init()
@@ -51,18 +48,17 @@ from export_layers import settings_plugin
 from export_layers import update
 from export_layers.gui import gui_plugin
 
-pygimplib.init()
+pg.init()
 
 
 SETTINGS = settings_plugin.create_settings()
 
 
-@pygimplib.procedure(
+@pg.procedure(
   blurb=_("Export layers as separate images"),
-  author="{} <{}>".format(
-    pygimplib.config.AUTHOR_NAME, pygimplib.config.AUTHOR_CONTACT),
-  copyright_notice=pygimplib.config.AUTHOR_NAME,
-  date=pygimplib.config.COPYRIGHT_YEARS,
+  author="{} <{}>".format(pg.config.AUTHOR_NAME, pg.config.AUTHOR_CONTACT),
+  copyright_notice=pg.config.AUTHOR_NAME,
+  date=pg.config.COPYRIGHT_YEARS,
   menu_name=_("E_xport Layers..."),
   menu_path="<Image>/File/Export",
   parameters=[SETTINGS["special"], SETTINGS["main"]]
@@ -71,8 +67,8 @@ def plug_in_export_layers(run_mode, image, *args):
   SETTINGS["special/run_mode"].set_value(run_mode)
   SETTINGS["special/image"].set_value(image)
   
-  layer_tree = pgitemtree.LayerTree(
-    image, name=pygimplib.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
+  layer_tree = pg.itemtree.LayerTree(
+    image, name=pg.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
   _setup_settings_additional(SETTINGS, layer_tree)
   
   status = update.update(SETTINGS, run_mode == gimpenums.RUN_INTERACTIVE)
@@ -87,23 +83,21 @@ def plug_in_export_layers(run_mode, image, *args):
     _run_noninteractive(layer_tree, args)
 
 
-@pygimplib.procedure(
-  blurb=_('Run "{}" with the last values specified').format(
-    pygimplib.config.PLUGIN_TITLE),
+@pg.procedure(
+  blurb=_('Run "{}" with the last values specified').format(pg.config.PLUGIN_TITLE),
   description=_(
     "If the plug-in is run for the first time (i.e. no last values exist), "
     "default values will be used."),
-  author="{} <{}>".format(
-    pygimplib.config.AUTHOR_NAME, pygimplib.config.AUTHOR_CONTACT),
-  copyright_notice=pygimplib.config.AUTHOR_NAME,
-  date=pygimplib.config.COPYRIGHT_YEARS,
+  author="{} <{}>".format(pg.config.AUTHOR_NAME, pg.config.AUTHOR_CONTACT),
+  copyright_notice=pg.config.AUTHOR_NAME,
+  date=pg.config.COPYRIGHT_YEARS,
   menu_name=_("E_xport Layers (repeat)"),
   menu_path="<Image>/File/Export",
   parameters=[SETTINGS["special"]]
 )
 def plug_in_export_layers_repeat(run_mode, image):
-  layer_tree = pgitemtree.LayerTree(
-    image, name=pygimplib.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
+  layer_tree = pg.itemtree.LayerTree(
+    image, name=pg.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
   _setup_settings_additional(SETTINGS, layer_tree)
   
   status = update.update(SETTINGS, run_mode == gimpenums.RUN_INTERACTIVE)
@@ -133,7 +127,7 @@ def _run_noninteractive(layer_tree, args):
     setting for setting in SETTINGS["main"].walk()
     if setting.can_be_registered_to_pdb()]
   
-  for setting, arg in zip(main_settings, pgsettingpdb.iter_args(args, main_settings)):
+  for setting, arg in zip(main_settings, pg.settingpdb.iter_args(args, main_settings)):
     setting.set_value(arg)
   
   _run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, layer_tree)
@@ -165,4 +159,4 @@ def _run_plugin_noninteractive(run_mode, layer_tree):
 
 #===============================================================================
 
-pygimplib.main()
+pg.main()

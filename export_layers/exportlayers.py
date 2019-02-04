@@ -33,17 +33,7 @@ import os
 from gimp import pdb
 import gimpenums
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pgfileformats
-from export_layers.pygimplib import pgitemtree
-from export_layers.pygimplib import pgobjectfilter
-from export_layers.pygimplib import pgoperations
-from export_layers.pygimplib import pgoverwrite
-from export_layers.pygimplib import pgpath
-from export_layers.pygimplib import pgpdb
-from export_layers.pygimplib import pgprogress
-from export_layers.pygimplib import pgutils
+from export_layers import pygimplib as pg
 
 from . import builtin_procedures
 from . import builtin_constraints
@@ -71,8 +61,8 @@ class LayerExporter(object):
   
   * `overwrite_chooser` - `OverwriteChooser` instance that is invoked if a file
     with the same name already exists. If `None` is passed during
-    initialization, `pgoverwrite.NoninteractiveOverwriteChooser` is used by
-    default.
+    initialization, `pygimplib.overwrite.NoninteractiveOverwriteChooser` is used
+    by default.
   
   * `progress_updater` - `ProgressUpdater` instance that indicates the number of
     layers exported. If no progress update is desired, pass `None`.
@@ -91,11 +81,11 @@ class LayerExporter(object):
   * `export_context_manager_args` - Additional arguments passed to
     `export_context_manager`.
   
-  * `current_layer_elem` (read-only) - The `pgitemtree._ItemTreeElement`
-    instance being currently exported.
+  * `current_layer_elem` (read-only) - The `itemtree._ItemTreeElement` instance
+    being currently exported.
   
-  * `operation_executor` - `pgoperations.OperationExecutor` instance to manage
-    operations applied on layers. This property is not `None` only during
+  * `operation_executor` - `pygimplib.operations.OperationExecutor` instance to
+    manage operations applied on layers. This property is not `None` only during
     `export()` and can be used to modify the execution of operations while
     processing layers.
   """
@@ -117,18 +107,18 @@ class LayerExporter(object):
     
     self.overwrite_chooser = (
       overwrite_chooser if overwrite_chooser is not None
-      else pgoverwrite.NoninteractiveOverwriteChooser(
+      else pg.overwrite.NoninteractiveOverwriteChooser(
         self.export_settings["overwrite_mode"].value))
     
     self.progress_updater = (
       progress_updater if progress_updater is not None
-      else pgprogress.ProgressUpdater(None))
+      else pg.progress.ProgressUpdater(None))
     
     self._layer_tree = layer_tree
     
     self.export_context_manager = (
       export_context_manager if export_context_manager is not None
-      else pgutils.EmptyContext)
+      else pg.utils.EmptyContext)
     
     self.export_context_manager_args = (
       export_context_manager_args if export_context_manager_args is not None else [])
@@ -156,7 +146,7 @@ class LayerExporter(object):
         self._processing_groups_functions[function.__name__] = function
     
     self._operation_executor = None
-    self._initial_operation_executor = pgoperations.OperationExecutor()
+    self._initial_operation_executor = pg.operations.OperationExecutor()
   
   @property
   def layer_tree(self):
@@ -212,7 +202,7 @@ class LayerExporter(object):
     If `processing_groups` is `None` or empty, perform normal export.
     
     If `layer_tree` is not `None`, use an existing instance of
-    `pgitemtree.LayerTree` instead of creating a new one. If the instance had
+    `itemtree.LayerTree` instead of creating a new one. If the instance had
     constraints set, they will be reset.
     
     A copy of the image and the layers to be exported are created so that the
@@ -257,7 +247,7 @@ class LayerExporter(object):
   def add_procedure(self, *args, **kwargs):
     """
     Add a procedure to be executed during `export()`. The signature is the same
-    as for `pgoperations.OperationExecutor.add()`.
+    as for `pygimplib.operations.OperationExecutor.add()`.
     
     Procedures added by this method are placed before procedures added by
     `operations.add()`.
@@ -272,7 +262,7 @@ class LayerExporter(object):
     """
     Add a constraint to be applied during `export()`. The first argument is the
     function to act as a filter (returning `True` or `False`). The rest of the
-    signature is the same as for `pgoperations.OperationExecutor.add()`.
+    signature is the same as for `pygimplib.operations.OperationExecutor.add()`.
     
     For more information, see `add_procedure()`.
     """
@@ -282,19 +272,20 @@ class LayerExporter(object):
   def remove_operation(self, *args, **kwargs):
     """
     Remove an operation originally scheduled to be executed during `export()`.
-    The signature is the same as for `pgoperations.OperationExecutor.remove()`.
+    The signature is the same as for
+    `pygimplib.operations.OperationExecutor.remove()`.
     """
     self._initial_operation_executor.remove(*args, **kwargs)
   
   def reorder_operation(self, *args, **kwargs):
     """
     Reorder an operation to be executed during `export()`. The signature is the
-    same as for `pgoperations.OperationExecutor.reorder()`.
+    same as for `pygimplib.operations.OperationExecutor.reorder()`.
     """
     self._initial_operation_executor.reorder(*args, **kwargs)
   
   def _init_attributes(self, processing_groups, layer_tree, keep_image_copy):
-    self._operation_executor = pgoperations.OperationExecutor()
+    self._operation_executor = pg.operations.OperationExecutor()
     self._add_operations()
     
     self._enable_disable_processing_groups(processing_groups)
@@ -302,8 +293,8 @@ class LayerExporter(object):
     if layer_tree is not None:
       self._layer_tree = layer_tree
     else:
-      self._layer_tree = pgitemtree.LayerTree(
-        self.image, name=pygimplib.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
+      self._layer_tree = pg.itemtree.LayerTree(
+        self.image, name=pg.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
     
     self._keep_image_copy = keep_image_copy
     
@@ -318,8 +309,8 @@ class LayerExporter(object):
     
     self._image_copy = None
     self._tagged_layer_elems = collections.defaultdict(list)
-    self._tagged_layer_copies = collections.defaultdict(pgutils.return_none_func)
-    self._inserted_tagged_layers = collections.defaultdict(pgutils.return_none_func)
+    self._tagged_layer_copies = collections.defaultdict(pg.utils.return_none_func)
+    self._inserted_tagged_layers = collections.defaultdict(pg.utils.return_none_func)
     
     self._use_another_image_copy = False
     self._another_image_copy = None
@@ -372,7 +363,7 @@ class LayerExporter(object):
       for processing_group, functions in self._processing_groups.items():
         if processing_group not in processing_groups:
           for function in functions:
-            setattr(self, function.__name__, pgutils.empty_func)
+            setattr(self, function.__name__, pg.utils.empty_func)
   
   def _preprocess_layers(self):
     if self._layer_tree.filter:
@@ -410,7 +401,7 @@ class LayerExporter(object):
   
   def _set_layer_constraints(self):
     self._layer_tree.filter.add_subfilter(
-      "layer_types", pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ANY))
+      "layer_types", pg.objectfilter.ObjectFilter(pg.objectfilter.ObjectFilter.MATCH_ANY))
     
     self._operation_executor.execute(
       [builtin_constraints.CONSTRAINTS_LAYER_TYPES_GROUP],
@@ -458,7 +449,7 @@ class LayerExporter(object):
     
     self.progress_updater.update_tasks()
     
-    if self._current_overwrite_mode != pgoverwrite.OverwriteModes.SKIP:
+    if self._current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
       self._exported_layers.append(layer)
       self._exported_layers_ids.add(layer.ID)
       self._file_extension_properties[self._current_file_extension].processed_count += 1
@@ -476,17 +467,17 @@ class LayerExporter(object):
   def _setup(self):
     pdb.gimp_context_push()
     
-    self._image_copy = pgpdb.create_image_from_metadata(self.image)
+    self._image_copy = pg.pdb.create_image_from_metadata(self.image)
     pdb.gimp_image_undo_freeze(self._image_copy)
     
     self._operation_executor.execute(
       ["after_create_image_copy"], [self._image_copy], additional_args_position=0)
     
     if self._use_another_image_copy:
-      self._another_image_copy = pgpdb.create_image_from_metadata(self._image_copy)
+      self._another_image_copy = pg.pdb.create_image_from_metadata(self._image_copy)
       pdb.gimp_image_undo_freeze(self._another_image_copy)
     
-    if pygimplib.config.DEBUG_IMAGE_PROCESSING:
+    if pg.config.DEBUG_IMAGE_PROCESSING:
       self._display_id = pdb.gimp_display_new(self._image_copy)
   
   def _cleanup(self, exception_occurred=False):
@@ -494,16 +485,16 @@ class LayerExporter(object):
     
     pdb.gimp_image_undo_thaw(self._image_copy)
     
-    if pygimplib.config.DEBUG_IMAGE_PROCESSING:
+    if pg.config.DEBUG_IMAGE_PROCESSING:
       pdb.gimp_display_delete(self._display_id)
     
     if ((not self._keep_image_copy or self._use_another_image_copy)
         or exception_occurred):
-      pgpdb.try_delete_image(self._image_copy)
+      pg.pdb.try_delete_image(self._image_copy)
       if self._use_another_image_copy:
         pdb.gimp_image_undo_thaw(self._another_image_copy)
         if exception_occurred:
-          pgpdb.try_delete_image(self._another_image_copy)
+          pg.pdb.try_delete_image(self._another_image_copy)
     
     for tagged_layer_copy in self._tagged_layer_copies.values():
       if tagged_layer_copy is not None:
@@ -601,14 +592,14 @@ class LayerExporter(object):
     
     self.progress_updater.update_text(_('Saving "{}"').format(output_filepath))
     
-    self._current_overwrite_mode, output_filepath = pgoverwrite.handle_overwrite(
+    self._current_overwrite_mode, output_filepath = pg.overwrite.handle_overwrite(
       output_filepath, self.overwrite_chooser,
       self._get_uniquifier_position(output_filepath))
     
-    if self._current_overwrite_mode == pgoverwrite.OverwriteModes.CANCEL:
+    if self._current_overwrite_mode == pg.overwrite.OverwriteModes.CANCEL:
       raise ExportLayersCancelError("cancelled")
     
-    if self._current_overwrite_mode != pgoverwrite.OverwriteModes.SKIP:
+    if self._current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
       self._make_dirs(os.path.dirname(output_filepath), self)
       
       self._export_once_wrapper(
@@ -623,7 +614,7 @@ class LayerExporter(object):
   
   def _make_dirs(self, dirpath, layer_exporter):
     try:
-      pgpath.make_dirs(dirpath)
+      pg.path.make_dirs(dirpath)
     except OSError as e:
       try:
         message = e.args[1]
@@ -648,7 +639,7 @@ class LayerExporter(object):
       return self.initial_run_mode
   
   def _get_export_func(self):
-    return pgfileformats.get_save_procedure(self._current_file_extension)
+    return pg.fileformats.get_save_procedure(self._current_file_extension)
   
   def _export_once(self, export_func, run_mode, image, layer, output_filepath):
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
@@ -658,8 +649,8 @@ class LayerExporter(object):
         run_mode,
         image,
         layer,
-        output_filepath.encode(pgconstants.GIMP_CHARACTER_ENCODING),
-        os.path.basename(output_filepath).encode(pgconstants.GIMP_CHARACTER_ENCODING))
+        output_filepath.encode(pg.constants.GIMP_CHARACTER_ENCODING),
+        os.path.basename(output_filepath).encode(pg.constants.GIMP_CHARACTER_ENCODING))
     except RuntimeError as e:
       # HACK: Examining the exception message seems to be the only way to determine
       # some specific cases of export failure.
@@ -718,7 +709,7 @@ def add_operation_from_settings(operation, executor):
   if operation.get_value("is_pdb_procedure", False):
     try:
       function = pdb[
-        operation["function"].value.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
+        operation["function"].value.encode(pg.constants.GIMP_CHARACTER_ENCODING)]
     except KeyError:
       raise InvalidPdbProcedureError(
         "invalid PDB procedure '{}'".format(operation["function"].value))
@@ -840,7 +831,7 @@ class _FileExtension(object):
 def _get_prefilled_file_extension_properties():
   file_extension_properties = collections.defaultdict(_FileExtension)
   
-  for file_format in pgfileformats.file_formats:
+  for file_format in pg.fileformats.file_formats:
     # This ensures that the file format dialog will be displayed only once per
     # file format if multiple file extensions for the same format are used
     # (e.g. "jpg", "jpeg" or "jpe" for the JPEG format).

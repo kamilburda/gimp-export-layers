@@ -30,7 +30,7 @@ import datetime
 import re
 import string
 
-from export_layers.pygimplib import pgpath
+from export_layers import pygimplib as pg
 
 from . import operations
 
@@ -43,7 +43,7 @@ class LayerNameRenamer(object):
     
     self._fields = fields if fields is not None else _FIELDS_LIST
     
-    self._filename_pattern = pgpath.StringPattern(
+    self._filename_pattern = pg.path.StringPattern(
       pattern=self._pattern, fields=self._get_fields_and_substitute_funcs())
     
     for field in self._fields:
@@ -277,7 +277,7 @@ def _get_image_name(layer_exporter, field_value, keep_extension_str=""):
   if keep_extension_str == "%e":
     return image_name
   else:
-    return pgpath.get_filename_with_new_file_extension(image_name, "")
+    return pg.path.get_filename_with_new_file_extension(image_name, "")
 
 
 def _get_layer_path(layer_exporter, field_value, separator="-", wrapper=None):

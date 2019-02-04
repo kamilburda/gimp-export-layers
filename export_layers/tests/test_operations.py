@@ -28,36 +28,32 @@ import parameterized
 
 import gimpenums
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pgsetting
-from export_layers.pygimplib import pgsettingpersistor
-from export_layers.pygimplib import pgutils
+from export_layers import pygimplib as pg
 
 from export_layers.pygimplib.tests import stubs_gimp
 
 from .. import operations
 from .. import placeholders
 
-pygimplib.init()
+pg.init()
 
 
 test_procedures = [
   {
     "name": "autocrop",
     "type": "procedure",
-    "function": pgutils.empty_func,
+    "function": pg.utils.empty_func,
     "enabled": True,
     "display_name": "Autocrop",
     "operation_groups": ["basic"],
     "arguments": [
       {
-        "type": pgsetting.SettingTypes.integer,
+        "type": pg.setting.SettingTypes.integer,
         "name": "offset_x",
         "default_value": 0,
       },
       {
-        "type": pgsetting.SettingTypes.integer,
+        "type": pg.setting.SettingTypes.integer,
         "name": "offset_y",
         "default_value": 0,
       },
@@ -66,14 +62,14 @@ test_procedures = [
   {
     "name": "autocrop_background",
     "type": "procedure",
-    "function": pgutils.empty_func,
+    "function": pg.utils.empty_func,
     "enabled": False,
     "display_name": "Autocrop background layers",
   },
   {
     "name": "autocrop_foreground",
     "type": "procedure",
-    "function": pgutils.empty_func,
+    "function": pg.utils.empty_func,
     "enabled": False,
     "display_name": "Autocrop foreground layers",
   },
@@ -83,7 +79,7 @@ test_constraints = [
   {
     "name": "include_layers",
     "type": "constraint",
-    "function": pgutils.empty_func,
+    "function": pg.utils.empty_func,
     "enabled": True,
     "display_name": "Include layers",
     "subfilter": "layer_types",
@@ -91,7 +87,7 @@ test_constraints = [
   {
     "name": "only_visible_layers",
     "type": "constraint",
-    "function": pgutils.empty_func,
+    "function": pg.utils.empty_func,
     "enabled": False,
     "display_name": "Only visible layers",
   },
@@ -554,10 +550,10 @@ class TestWalkOperations(unittest.TestCase):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
+  pg.constants.PYGIMPLIB_MODULE_PATH + ".settingsources.gimpshelf.shelf",
   new_callable=stubs_gimp.ShelfStub)
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp",
+  pg.constants.PYGIMPLIB_MODULE_PATH + ".settingsources.gimp",
   new_callable=stubs_gimp.GimpModuleStub)
 class TestLoadSaveOperations(unittest.TestCase):
   
@@ -566,11 +562,11 @@ class TestLoadSaveOperations(unittest.TestCase):
     self.procedures = operations.create("procedures")
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.save",
-    return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
+    pg.constants.PYGIMPLIB_MODULE_PATH + ".settingpersistor.SettingPersistor.save",
+    return_value=(pg.settingpersistor.SettingPersistor.SUCCESS, ""))
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingpersistor.SettingPersistor.load",
-    return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
+    pg.constants.PYGIMPLIB_MODULE_PATH + ".settingpersistor.SettingPersistor.load",
+    return_value=(pg.settingpersistor.SettingPersistor.SUCCESS, ""))
   def test_save_load_affects_only_added_data(
         self, mock_load, mock_save, mock_persistent_source, mock_session_source):
     self.procedures.save()
@@ -769,10 +765,10 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
     self.assertEqual(operation["arguments/num-save-options"].value, 0)
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimpshelf.shelf",
+    pg.constants.PYGIMPLIB_MODULE_PATH + ".settingsources.gimpshelf.shelf",
     new_callable=stubs_gimp.ShelfStub)
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".pgsettingsources.gimp",
+    pg.constants.PYGIMPLIB_MODULE_PATH + ".settingsources.gimp",
     new_callable=stubs_gimp.GimpModuleStub)
   def test_load_save_pdb_procedure_as_operation(
         self, mock_persistent_source, mock_session_source):

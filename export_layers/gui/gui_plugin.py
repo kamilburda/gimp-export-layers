@@ -47,14 +47,7 @@ from gimp import pdb
 import gimpenums
 import gimpui
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pggui
-from export_layers.pygimplib import pginvocation
-from export_layers.pygimplib import pgoverwrite
-from export_layers.pygimplib import pgpdb
-from export_layers.pygimplib import pgsetting
-from export_layers.pygimplib import pgsettingpersistor
+from export_layers import pygimplib as pg
 
 from .. import builtin_constraints
 from .. import builtin_procedures
@@ -86,9 +79,9 @@ def display_export_failure_message(exception, parent=None):
 
 
 def display_export_failure_invalid_image_message(details, parent=None):
-  pggui.display_error_message(
-    title=pygimplib.config.PLUGIN_TITLE,
-    app_name=pygimplib.config.PLUGIN_TITLE,
+  pg.gui.display_error_message(
+    title=pg.config.PLUGIN_TITLE,
+    app_name=pg.config.PLUGIN_TITLE,
     parent=parent,
     message_type=gtk.MESSAGE_WARNING,
     message_markup=_(
@@ -101,7 +94,7 @@ def display_export_failure_invalid_image_message(details, parent=None):
       "in the details to one of the sites below."),
     details=details,
     display_details_initially=False,
-    report_uri_list=pygimplib.config.BUG_REPORT_URL_LIST,
+    report_uri_list=pg.config.BUG_REPORT_URL_LIST,
     report_description="",
     focus_on_button=True)
 
@@ -113,7 +106,7 @@ def display_reset_prompt(parent=None, more_settings_shown=False):
     flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
     buttons=gtk.BUTTONS_YES_NO)
   dialog.set_transient_for(parent)
-  dialog.set_title(pygimplib.config.PLUGIN_TITLE)
+  dialog.set_title(pg.config.PLUGIN_TITLE)
   
   dialog.set_markup(
     gobject.markup_escape_text(_("Are you sure you want to reset settings?")))
@@ -191,7 +184,7 @@ def _set_settings(func):
         self._image.ID] = (
           self._image_preview.layer_elem.item.ID
           if self._image_preview.layer_elem is not None else None)
-    except pgsetting.SettingValueError as e:
+    except pg.setting.SettingValueError as e:
       self._display_inline_message(str(e), gtk.MESSAGE_ERROR, e.setting)
       return
     
@@ -212,7 +205,7 @@ def _update_directory(setting, current_image, current_image_dirpath):
   if current_image_dirpath is not None:
     if isinstance(current_image_dirpath, bytes):
       current_image_dirpath = current_image_dirpath.decode(
-        pgconstants.GIMP_CHARACTER_ENCODING)
+        pg.constants.GIMP_CHARACTER_ENCODING)
     
     setting.set_value(current_image_dirpath)
     return True
@@ -220,7 +213,7 @@ def _update_directory(setting, current_image, current_image_dirpath):
   if current_image.filename is not None:
     setting.set_value(
       os.path.dirname(
-        current_image.filename.decode(pgconstants.GIMP_CHARACTER_ENCODING)))
+        current_image.filename.decode(pg.constants.GIMP_CHARACTER_ENCODING)))
     return True
   
   return False
@@ -309,12 +302,12 @@ class ExportLayersGui(object):
       gimpenums.RUN_NONINTERACTIVE,
       self._image,
       self._settings["main"],
-      overwrite_chooser=pgoverwrite.NoninteractiveOverwriteChooser(
+      overwrite_chooser=pg.overwrite.NoninteractiveOverwriteChooser(
         self._settings["main/overwrite_mode"].items["replace"]),
       layer_tree=self._initial_layer_tree)
     
     if gimp.version[:2] == (2, 8):
-      pgpdb.suppress_gimp_progress()
+      pg.pdb.suppress_gimp_progress()
     
     self._init_settings()
     
@@ -326,8 +319,8 @@ class ExportLayersGui(object):
     
     self._finish_init_and_show()
     
-    pggui.set_gui_excepthook_parent(self._dialog)
-    pggui.set_gui_excepthook_additional_callback(
+    pg.gui.set_gui_excepthook_parent(self._dialog)
+    pg.gui.set_gui_excepthook_additional_callback(
       self._display_inline_message_on_setting_value_error)
     
     if not run_gui_func:
@@ -356,12 +349,12 @@ class ExportLayersGui(object):
     self._settings["main/constraints"].tags.add("ignore_load")
     
     status, status_message = self._settings.load()
-    if status == pgsettingpersistor.SettingPersistor.READ_FAIL:
+    if status == pg.settingpersistor.SettingPersistor.READ_FAIL:
       messages.display_message(status_message, gtk.MESSAGE_WARNING)
     
     # Needs to be string to avoid strict directory validation
     self._settings["gui_session"].add([
-      pgsetting.StringSetting(
+      pg.setting.StringSetting(
         "current_directory",
         default_value=self._settings["main/output_directory"].default_value,
         gui_type=None)])
@@ -379,8 +372,8 @@ class ExportLayersGui(object):
   
   def _init_gui_elements(self):
     self._dialog = gimpui.Dialog(
-      title=pygimplib.config.PLUGIN_TITLE,
-      role=pygimplib.config.PLUGIN_NAME)
+      title=pg.config.PLUGIN_TITLE,
+      role=pg.config.PLUGIN_NAME)
     self._dialog.set_transient()
     self._dialog.set_default_size(*self._DIALOG_SIZE)
     self._dialog.set_border_width(self._DIALOG_BORDER_WIDTH)
@@ -430,7 +423,7 @@ class ExportLayersGui(object):
         gobject.markup_escape_text(self._settings["main/file_extension"].display_name)))
     self._file_extension_label.set_alignment(0.0, 0.5)
     
-    self._file_extension_entry = pggui.FileExtensionEntry(
+    self._file_extension_entry = pg.gui.FileExtensionEntry(
       minimum_width_chars=self._FILE_EXTENSION_ENTRY_MIN_WIDTH_CHARS,
       maximum_width_chars=self._FILE_EXTENSION_ENTRY_MAX_WIDTH_CHARS)
     self._file_extension_entry.set_activates_default(True)
@@ -443,7 +436,7 @@ class ExportLayersGui(object):
     self._dot_label = gtk.Label(".")
     self._dot_label.set_alignment(0.0, 1.0)
     
-    self._filename_pattern_entry = pggui.FilenamePatternEntry(
+    self._filename_pattern_entry = pg.gui.FilenamePatternEntry(
       renamer.get_field_descriptions(renamer.FIELDS),
       minimum_width_chars=self._FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS,
       maximum_width_chars=self._FILENAME_PATTERN_ENTRY_MAX_WIDTH_CHARS,
@@ -645,23 +638,23 @@ class ExportLayersGui(object):
   def _assign_gui_to_settings(self):
     self._settings.initialize_gui({
       "main/file_extension": [
-        pgsetting.SettingGuiTypes.extended_entry, self._file_extension_entry],
+        pg.setting.SettingGuiTypes.extended_entry, self._file_extension_entry],
       "gui/dialog_position": [
-        pgsetting.SettingGuiTypes.window_position, self._dialog],
+        pg.setting.SettingGuiTypes.window_position, self._dialog],
       "gui/dialog_size": [
-        pgsetting.SettingGuiTypes.window_size, self._dialog],
+        pg.setting.SettingGuiTypes.window_size, self._dialog],
       "gui/show_more_settings": [
-        pgsetting.SettingGuiTypes.check_menu_item, self._menu_item_show_more_settings],
+        pg.setting.SettingGuiTypes.check_menu_item, self._menu_item_show_more_settings],
       "gui/paned_outside_previews_position": [
-        pgsetting.SettingGuiTypes.paned_position, self._hpaned_settings_and_previews],
+        pg.setting.SettingGuiTypes.paned_position, self._hpaned_settings_and_previews],
       "gui/paned_between_previews_position": [
-        pgsetting.SettingGuiTypes.paned_position, self._vpaned_previews],
+        pg.setting.SettingGuiTypes.paned_position, self._vpaned_previews],
       "gui/settings_vpane_position": [
-        pgsetting.SettingGuiTypes.paned_position, self._vpaned_chooser_and_operations],
+        pg.setting.SettingGuiTypes.paned_position, self._vpaned_chooser_and_operations],
       "main/layer_filename_pattern": [
-        pgsetting.SettingGuiTypes.extended_entry, self._filename_pattern_entry],
+        pg.setting.SettingGuiTypes.extended_entry, self._filename_pattern_entry],
       "gui_session/current_directory": [
-        pgsetting.SettingGuiTypes.folder_chooser, self._folder_chooser],
+        pg.setting.SettingGuiTypes.folder_chooser, self._folder_chooser],
     })
   
   def _init_gui_previews(self):
@@ -683,7 +676,7 @@ class ExportLayersGui(object):
   
   def _save_settings(self):
     status, status_message = self._settings.save()
-    if status == pgsettingpersistor.SettingPersistor.WRITE_FAIL:
+    if status == pg.settingpersistor.SettingPersistor.WRITE_FAIL:
       messages.display_message(status_message, gtk.MESSAGE_WARNING, parent=self._dialog)
       return False
     else:
@@ -695,8 +688,8 @@ class ExportLayersGui(object):
   def _on_text_entry_changed(self, entry, setting, name_preview_lock_update_key=None):
     try:
       setting.gui.update_setting_value()
-    except pgsetting.SettingValueError as e:
-      pginvocation.timeout_add_strict(
+    except pg.setting.SettingValueError as e:
+      pg.invocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
         self._name_preview.set_sensitive, False)
       self._display_inline_message(str(e), gtk.MESSAGE_ERROR, setting)
@@ -709,7 +702,7 @@ class ExportLayersGui(object):
       self._name_preview.add_function_at_update(
         self._name_preview.set_sensitive, True)
       
-      pginvocation.timeout_add_strict(
+      pg.invocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
         self._name_preview.update)
   
@@ -771,7 +764,7 @@ class ExportLayersGui(object):
       return export_stopped
   
   def _on_button_settings_clicked(self, button):
-    pggui.menu_popup_below_widget(self._menu_settings, button)
+    pg.gui.menu_popup_below_widget(self._menu_settings, button)
   
   @_set_settings
   def _on_save_settings_activate(self, menu_item):
@@ -848,9 +841,9 @@ class ExportLayersGui(object):
         in self._settings["main/overwrite_mode"].items.values()):
       self._settings["main/overwrite_mode"].set_value(overwrite_chooser.overwrite_mode)
     
-    self._settings["main"].save([pygimplib.config.SOURCE_SESSION])
-    self._settings["gui"].save([pygimplib.config.SOURCE_SESSION])
-    self._settings["gui_session"].save([pygimplib.config.SOURCE_SESSION])
+    self._settings["main"].save([pg.config.SOURCE_SESSION])
+    self._settings["gui"].save([pg.config.SOURCE_SESSION])
+    self._settings["gui_session"].save([pg.config.SOURCE_SESSION])
     
     if should_quit:
       gtk.main_quit()
@@ -866,14 +859,14 @@ class ExportLayersGui(object):
     self._set_gui_enabled(True)
   
   def _setup_layer_exporter(self):
-    overwrite_chooser = pggui.GtkDialogOverwriteChooser(
+    overwrite_chooser = pg.gui.GtkDialogOverwriteChooser(
       self._get_overwrite_dialog_items(),
       default_value=self._settings["main/overwrite_mode"].items["replace"],
-      default_response=pgoverwrite.OverwriteModes.CANCEL,
-      title=pygimplib.config.PLUGIN_TITLE,
+      default_response=pg.overwrite.OverwriteModes.CANCEL,
+      title=pg.config.PLUGIN_TITLE,
       parent=self._dialog)
     
-    progress_updater = pggui.GtkProgressUpdater(self._progress_bar)
+    progress_updater = pg.gui.GtkProgressUpdater(self._progress_bar)
     
     self._layer_exporter = exportlayers.LayerExporter(
       gimpenums.RUN_INTERACTIVE,
@@ -933,10 +926,10 @@ class ExportLayersGui(object):
     stop_export(self._layer_exporter)
   
   def _on_button_help_clicked(self, button):
-    if os.path.isfile(pygimplib.config.LOCAL_DOCS_PATH):
-      docs_url = pygimplib.config.LOCAL_DOCS_PATH
+    if os.path.isfile(pg.config.LOCAL_DOCS_PATH):
+      docs_url = pg.config.LOCAL_DOCS_PATH
     else:
-      docs_url = pygimplib.config.DOCS_URL
+      docs_url = pg.config.DOCS_URL
     
     webbrowser.open_new_tab(docs_url)
   
@@ -947,7 +940,7 @@ class ExportLayersGui(object):
   
   def _display_inline_message_on_setting_value_error(
         self, exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, pgsetting.SettingValueError):
+    if issubclass(exc_type, pg.setting.SettingValueError):
       self._display_inline_message(str(exc_value), gtk.MESSAGE_ERROR)
       return True
     else:
@@ -967,18 +960,18 @@ class ExportLayersRepeatGui(object):
     self._image = self._layer_tree.image
     self._layer_exporter = None
     
-    self._settings.load([pygimplib.config.SOURCE_SESSION])
+    self._settings.load([pg.config.SOURCE_SESSION])
     
     self._init_gui()
     
-    pggui.set_gui_excepthook_parent(self._dialog)
+    pg.gui.set_gui_excepthook_parent(self._dialog)
     
     gtk.main_iteration()
     self.show()
     self.export_layers()
   
   def _init_gui(self):
-    self._dialog = gimpui.Dialog(title=pygimplib.config.PLUGIN_TITLE, role=None)
+    self._dialog = gimpui.Dialog(title=pg.config.PLUGIN_TITLE, role=None)
     self._dialog.set_transient()
     self._dialog.set_border_width(self._BORDER_WIDTH)
     self._dialog.set_default_size(self._DIALOG_WIDTH, -1)
@@ -1003,7 +996,7 @@ class ExportLayersRepeatGui(object):
     self._dialog.connect("delete-event", self._on_dialog_delete_event)
   
   def export_layers(self):
-    progress_updater = pggui.GtkProgressUpdater(self._progress_bar)
+    progress_updater = pg.gui.GtkProgressUpdater(self._progress_bar)
     item_progress_indicator = gui_progress.ItemProgressIndicator(
       self._progress_bar, progress_updater)
     item_progress_indicator.install_progress_for_status()
@@ -1012,7 +1005,7 @@ class ExportLayersRepeatGui(object):
       gimpenums.RUN_WITH_LAST_VALS,
       self._image,
       self._settings["main"],
-      pgoverwrite.NoninteractiveOverwriteChooser(
+      pg.overwrite.NoninteractiveOverwriteChooser(
         self._settings["main/overwrite_mode"].value),
       progress_updater,
       export_context_manager=handle_gui_in_export,

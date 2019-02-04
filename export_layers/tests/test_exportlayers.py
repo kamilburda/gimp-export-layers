@@ -26,9 +26,7 @@ import unittest
 from gimp import pdb
 import gimpenums
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pgoperations
-from export_layers.pygimplib import pgutils
+from export_layers import pygimplib as pg
 
 from export_layers import builtin_procedures
 
@@ -41,7 +39,7 @@ from .. import exportlayers
 from .. import operations
 from .. import settings_plugin
 
-pygimplib.init()
+pg.init()
 
 
 class TestLayerExporterInitialOperations(unittest.TestCase):
@@ -69,7 +67,7 @@ class TestLayerExporterInitialOperations(unittest.TestCase):
       builtin_procedures.BUILTIN_PROCEDURES["insert_background_layers"])
     
     layer_exporter.add_procedure(
-      pgutils.empty_func, [operations.DEFAULT_PROCEDURES_GROUP])
+      pg.utils.empty_func, [operations.DEFAULT_PROCEDURES_GROUP])
     
     layer_exporter.export(processing_groups=[])
     
@@ -80,18 +78,18 @@ class TestLayerExporterInitialOperations(unittest.TestCase):
     self.assertEqual(len(added_operation_items), 4)
     
     initial_executor = added_operation_items[1]
-    self.assertIsInstance(initial_executor, pgoperations.OperationExecutor)
+    self.assertIsInstance(initial_executor, pg.operations.OperationExecutor)
     
     operations_in_initial_executor = initial_executor.list_operations(
       group=operations.DEFAULT_PROCEDURES_GROUP)
     self.assertEqual(len(operations_in_initial_executor), 1)
-    self.assertEqual(operations_in_initial_executor[0], (pgutils.empty_func, (), {}))
+    self.assertEqual(operations_in_initial_executor[0], (pg.utils.empty_func, (), {}))
 
 
 class TestAddOperationFromSettings(unittest.TestCase):
   
   def setUp(self):
-    self.executor = pgoperations.OperationExecutor()
+    self.executor = pg.operations.OperationExecutor()
     self.procedures = operations.create("procedures")
     
     self.procedure_stub = stubs_gimp.PdbProcedureStub(

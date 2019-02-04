@@ -29,8 +29,7 @@ import collections
 from gimp import pdb
 import gimpenums
 
-from export_layers.pygimplib import pgpdb
-from export_layers.pygimplib import pgsetting
+from export_layers import pygimplib as pg
 
 
 def set_active_layer(image, layer, layer_exporter):
@@ -64,7 +63,7 @@ def copy_and_insert_layer(image, layer, parent=None, position=0):
   pdb.gimp_item_set_visible(layer_copy, True)
   
   if pdb.gimp_item_is_group(layer_copy):
-    layer_copy = pgpdb.merge_layer_group(layer_copy)
+    layer_copy = pg.pdb.merge_layer_group(layer_copy)
   
   return layer_copy
 
@@ -136,7 +135,7 @@ _BUILTIN_PROCEDURES_LIST = [
     "function": insert_background_layer,
     "arguments": [
       {
-        "type": pgsetting.SettingTypes.string,
+        "type": pg.setting.SettingTypes.string,
         "name": "tag",
         "default_value": "background",
       },
@@ -148,7 +147,7 @@ _BUILTIN_PROCEDURES_LIST = [
     "function": insert_foreground_layer,
     "arguments": [
       {
-        "type": pgsetting.SettingTypes.string,
+        "type": pg.setting.SettingTypes.string,
         "name": "tag",
         "default_value": "foreground",
       },
@@ -165,7 +164,7 @@ _BUILTIN_PROCEDURES_LIST = [
     "function": autocrop_tagged_layer,
     "arguments": [
       {
-        "type": pgsetting.SettingTypes.string,
+        "type": pg.setting.SettingTypes.string,
         "name": "tag",
         "default_value": "background",
       },
@@ -177,7 +176,7 @@ _BUILTIN_PROCEDURES_LIST = [
     "function": autocrop_tagged_layer,
     "arguments": [
       {
-        "type": pgsetting.SettingTypes.string,
+        "type": pg.setting.SettingTypes.string,
         "name": "tag",
         "default_value": "foreground",
       },

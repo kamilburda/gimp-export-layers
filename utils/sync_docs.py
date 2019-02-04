@@ -27,25 +27,22 @@ because any previous updates to such files are discarded.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-from export_layers import pygimplib
+from export_layers import pygimplib as pg
 from future.builtins import *
 
 import io
 import os
 import shutil
 
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pgutils
-
 from utils import preprocess_document_contents
 
 import export_layers.config
 export_layers.config.init()
 
-pygimplib.init()
+pg.init()
 
 
-MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
+MODULE_DIRPATH = os.path.dirname(pg.utils.get_current_module_filepath())
 PLUGINS_DIRPATH = os.path.dirname(MODULE_DIRPATH)
 
 PATHS_TO_PREPROCESS_FILEPATH = os.path.join(
@@ -89,7 +86,7 @@ def get_filepaths(file_list_filepath):
     return processed_path
   
   with io.open(
-         file_list_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
+         file_list_filepath, "r", encoding=pg.constants.TEXT_FILE_ENCODING) as file_:
     lines = file_.readlines()
   
   lines = [line.strip() for line in lines if line.strip()]

@@ -39,10 +39,7 @@ import gimp
 from gimp import pdb
 import gimpenums
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pggui
-from export_layers.pygimplib import pgpdb
+from export_layers import pygimplib as pg
 
 from export_layers import builtin_constraints
 from export_layers import operations
@@ -51,9 +48,9 @@ from . import gui_preview_base
 
 
 def display_image_preview_failure_message(details, parent=None):
-  pggui.display_error_message(
-    title=pygimplib.config.PLUGIN_TITLE,
-    app_name=pygimplib.config.PLUGIN_TITLE,
+  pg.gui.display_error_message(
+    title=pg.config.PLUGIN_TITLE,
+    app_name=pg.config.PLUGIN_TITLE,
     parent=parent,
     message_type=gtk.MESSAGE_WARNING,
     message_markup=_(
@@ -63,7 +60,7 @@ def display_image_preview_failure_message(details, parent=None):
       "by sending a report with the text in the details to one of the sites below."),
     details=details,
     display_details_initially=False,
-    report_uri_list=pygimplib.config.BUG_REPORT_URL_LIST,
+    report_uri_list=pg.config.BUG_REPORT_URL_LIST,
     report_description="",
     focus_on_button=True)
 
@@ -281,7 +278,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     
     start_update_time = time.time()
     
-    with pgpdb.redirect_messages():
+    with pg.pdb.redirect_messages():
       preview_pixbuf = self._get_in_memory_preview(self.layer_elem.item)
     
     if preview_pixbuf is not None:
@@ -355,7 +352,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       return None
     
     if not image_preview.layers:
-      pgpdb.try_delete_image(image_preview)
+      pg.pdb.try_delete_image(image_preview)
       return None
     
     if image_preview.base_type != gimpenums.RGB:
@@ -396,7 +393,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
         keep_image_copy=True)
     except Exception:
       display_image_preview_failure_message(
-        details=traceback.format_exc(), parent=pggui.get_toplevel_window(self))
+        details=traceback.format_exc(), parent=pg.gui.get_toplevel_window(self))
       image_preview = None
     
     self._layer_exporter.remove_operation(
@@ -542,10 +539,10 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     self._label_layer_name.set_markup(
       "<i>{}</i>".format(
         gobject.markup_escape_text(
-          layer_name.encode(pgconstants.GTK_CHARACTER_ENCODING))))
+          layer_name.encode(pg.constants.GTK_CHARACTER_ENCODING))))
   
   def _on_button_menu_clicked(self, button):
-    pggui.menu_popup_below_widget(self._menu_settings, button)
+    pg.gui.menu_popup_below_widget(self._menu_settings, button)
   
   def _on_menu_item_update_automatically_toggled(self, menu_item):
     if self._menu_item_update_automatically.get_active():

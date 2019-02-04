@@ -35,9 +35,7 @@ import pango
 
 import gimp
 
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pggui
-from export_layers.pygimplib import pginvocation
+from export_layers import pygimplib as pg
 
 
 class MessageLabel(gtk.HBox):
@@ -65,7 +63,7 @@ class MessageLabel(gtk.HBox):
     
     self._init_gui()
     
-    self._popup_hide_context = pggui.PopupHideContext(self._popup_more, self._button_more)
+    self._popup_hide_context = pg.gui.PopupHideContext(self._popup_more, self._button_more)
     
     self._label_message.connect("size-allocate", self._on_label_message_size_allocate)
     self._button_more.connect("clicked", self._on_button_more_clicked)
@@ -118,12 +116,12 @@ class MessageLabel(gtk.HBox):
     if message_type == gtk.MESSAGE_ERROR:
       self._label_message.set_markup(
         '<span foreground="red"><b>{}</b></span>'.format(gobject.markup_escape_text(
-          self._label_text.encode(pgconstants.GTK_CHARACTER_ENCODING))))
+          self._label_text.encode(pg.constants.GTK_CHARACTER_ENCODING))))
       self._timeout_remove_strict(self._clear_delay, self.set_text)
     else:
       self._label_message.set_markup(
         "<b>{}</b>".format(gobject.markup_escape_text(
-          self._label_text.encode(pgconstants.GTK_CHARACTER_ENCODING))))
+          self._label_text.encode(pg.constants.GTK_CHARACTER_ENCODING))))
       self._timeout_add_strict(self._clear_delay, self.set_text, None)
   
   def _init_gui(self):
@@ -172,7 +170,8 @@ class MessageLabel(gtk.HBox):
     self.pack_start(self._button_more, expand=False, fill=False)
   
   def _on_label_message_size_allocate(self, label, allocation):
-    if (pggui.get_label_full_text_width(self._label_message) > self.get_allocation().width
+    if ((pg.gui.get_label_full_text_width(self._label_message)
+         > self.get_allocation().width)
         or len(self._popup_text_lines) >= 1):
       self._button_more.show()
     else:
@@ -181,17 +180,17 @@ class MessageLabel(gtk.HBox):
   def _on_button_more_clicked(self, button):
     lines = list(self._popup_text_lines)
     
-    if (pggui.get_label_full_text_width(self._label_message)
+    if (pg.gui.get_label_full_text_width(self._label_message)
         > self._label_message.get_allocation().width):
       lines.insert(0, self._label_text)
     
     text = "\n".join(lines).strip()
     
     text_buffer = gtk.TextBuffer()
-    text_buffer.set_text(text.encode(pgconstants.GTK_CHARACTER_ENCODING))
+    text_buffer.set_text(text.encode(pg.constants.GTK_CHARACTER_ENCODING))
     self._text_view_more.set_buffer(text_buffer)
     
-    self._popup_more.move(*pggui.get_position_below_widget(self))
+    self._popup_more.move(*pg.gui.get_position_below_widget(self))
     self._popup_more.show()
   
   def _on_popup_more_show(self, popup):
@@ -210,11 +209,11 @@ class MessageLabel(gtk.HBox):
   
   def _timeout_add_strict(self, delay, func, *args, **kwargs):
     if self._should_clear_text_after_delay(delay):
-      pginvocation.timeout_add_strict(delay, func, None, *args, **kwargs)
+      pg.invocation.timeout_add_strict(delay, func, None, *args, **kwargs)
   
   def _timeout_remove_strict(self, delay, func):
     if self._should_clear_text_after_delay(delay):
-      pginvocation.timeout_remove_strict(func)
+      pg.invocation.timeout_remove_strict(func)
   
   def _should_clear_text_after_delay(self, clear_delay):
     return (

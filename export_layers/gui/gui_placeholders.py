@@ -27,11 +27,11 @@ from future.builtins import *
 
 import gimpui
 
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pgsettingpresenters_gtk
+from export_layers import pygimplib as pg
 
 
-class GimpObjectPlaceholdersComboBoxPresenter(pgsettingpresenters_gtk.GtkSettingPresenter):
+class GimpObjectPlaceholdersComboBoxPresenter(
+        pg.settingpresenters_gtk.GtkSettingPresenter):
   """
   This class is a `SettingPresenter` for `gimpui.IntComboBox` elements used for
   `placeholders.PlaceholderSetting`.
@@ -46,7 +46,7 @@ class GimpObjectPlaceholdersComboBoxPresenter(pgsettingpresenters_gtk.GtkSetting
     
     for index, placeholder in enumerate(setting.get_allowed_placeholders()):
       placeholder_names_and_values.extend(
-        (placeholder.display_name.encode(pgconstants.GTK_CHARACTER_ENCODING), index))
+        (placeholder.display_name.encode(pg.constants.GTK_CHARACTER_ENCODING), index))
     
     return gimpui.IntComboBox(tuple(placeholder_names_and_values))
   

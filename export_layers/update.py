@@ -32,15 +32,12 @@ import pygtk
 pygtk.require("2.0")
 import gtk
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pgpath
-from export_layers.pygimplib import pgsettingpersistor
-from export_layers.pygimplib import pgversion
+from export_layers import pygimplib as pg
 
 from export_layers.gui import messages
 
 
-MIN_VERSION_WITHOUT_CLEAN_REINSTALL = pgversion.Version.parse("3.3")
+MIN_VERSION_WITHOUT_CLEAN_REINSTALL = pg.version.Version.parse("3.3")
 
 _UPDATE_STATUSES = (FRESH_START, UPDATE, CLEAR_SETTINGS, ABORT) = (0, 1, 2, 3)
 
@@ -70,16 +67,16 @@ def update(settings, prompt_on_clear=False):
     _save_plugin_version(settings)
     return FRESH_START
   
-  status, unused_ = pgsettingpersistor.SettingPersistor.load(
-    [settings["main/plugin_version"]], [pygimplib.config.SOURCE_PERSISTENT])
+  status, unused_ = pg.settingpersistor.SettingPersistor.load(
+    [settings["main/plugin_version"]], [pg.config.SOURCE_PERSISTENT])
   
-  previous_version = pgversion.Version.parse(settings["main/plugin_version"].value)
+  previous_version = pg.version.Version.parse(settings["main/plugin_version"].value)
   
-  if (status == pgsettingpersistor.SettingPersistor.SUCCESS
+  if (status == pg.settingpersistor.SettingPersistor.SUCCESS
       and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
     _save_plugin_version(settings)
     
-    current_version = pgversion.Version.parse(pygimplib.config.PLUGIN_VERSION)
+    current_version = pg.version.Version.parse(pg.config.PLUGIN_VERSION)
     handle_update(settings, _UPDATE_HANDLERS, previous_version, current_version)
     
     return UPDATE
@@ -102,20 +99,20 @@ def update(settings, prompt_on_clear=False):
 
 
 def clear_setting_sources(settings):
-  pgsettingpersistor.SettingPersistor.clear(
-    [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT])
+  pg.settingpersistor.SettingPersistor.clear(
+    [pg.config.SOURCE_SESSION, pg.config.SOURCE_PERSISTENT])
   
   _save_plugin_version(settings)
 
 
 def handle_update(settings, update_handlers, previous_version, current_version):
   for version_str, update_handler in update_handlers.items():
-    if previous_version < pgversion.Version.parse(version_str) <= current_version:
+    if previous_version < pg.version.Version.parse(version_str) <= current_version:
       update_handler(settings)
 
 
 def rename_settings(settings_to_rename):
-  for source in [pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]:
+  for source in [pg.config.SOURCE_SESSION, pg.config.SOURCE_PERSISTENT]:
     data_dict = source.read_dict()
     
     if data_dict:
@@ -143,7 +140,7 @@ def replace_field_arguments_in_pattern(
     
     return replaced_field_arguments
   
-  string_pattern = pgpath.StringPattern(
+  string_pattern = pg.path.StringPattern(
     pattern,
     fields={
       field_regex: lambda *args: None
@@ -170,17 +167,17 @@ def replace_field_arguments_in_pattern(
       
       processed_pattern_parts.append(field_components)
   
-  return pgpath.StringPattern.reconstruct_pattern(processed_pattern_parts)
+  return pg.path.StringPattern.reconstruct_pattern(processed_pattern_parts)
 
 
 def _is_fresh_start():
-  return not pygimplib.config.SOURCE_PERSISTENT.has_data()
+  return not pg.config.SOURCE_PERSISTENT.has_data()
 
 
 def _save_plugin_version(settings):
   settings["main/plugin_version"].reset()
-  pgsettingpersistor.SettingPersistor.save(
-    [settings["main/plugin_version"]], [pygimplib.config.SOURCE_PERSISTENT])
+  pg.settingpersistor.SettingPersistor.save(
+    [settings["main/plugin_version"]], [pg.config.SOURCE_PERSISTENT])
 
 
 def _update_to_3_3_1(settings):

@@ -28,8 +28,7 @@ import pygtk
 pygtk.require("2.0")
 import gtk
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pggui
+from export_layers import pygimplib as pg
 
 
 def display_message(
@@ -39,10 +38,10 @@ def display_message(
       buttons=gtk.BUTTONS_OK,
       message_in_text_view=False,
       button_response_id_to_focus=None):
-  return pggui.display_message(
+  return pg.gui.display_message(
     message,
     message_type,
-    title=pygimplib.config.PLUGIN_TITLE,
+    title=pg.config.PLUGIN_TITLE,
     parent=parent,
     buttons=buttons,
     message_in_text_view=message_in_text_view,

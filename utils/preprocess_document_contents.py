@@ -60,7 +60,7 @@ The following tags can be specified in the documents:
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-from export_layers import pygimplib
+from export_layers import pygimplib as pg
 from future.builtins import *
 import future.utils
 
@@ -70,12 +70,10 @@ import os
 import re
 import sys
 
-from export_layers.pygimplib import pgconstants
-
 import export_layers.config
 export_layers.config.init()
 
-pygimplib.init()
+pg.init()
 
 
 def preprocess_contents(source_and_dest_filepaths):
@@ -86,7 +84,7 @@ def preprocess_contents(source_and_dest_filepaths):
           source_filepath))
       continue
     
-    with io.open(source_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
+    with io.open(source_filepath, "r", encoding=pg.constants.TEXT_FILE_ENCODING) as file_:
       source_file_contents = file_.read()
     
     preprocessed_contents = source_file_contents
@@ -99,7 +97,7 @@ def preprocess_contents(source_and_dest_filepaths):
       except DocumentNotFoundError as e:
         print(str(e))
     
-    with io.open(dest_filepath, "w", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
+    with io.open(dest_filepath, "w", encoding=pg.constants.TEXT_FILE_ENCODING) as file_:
       file_.writelines(preprocessed_contents)
 
 
@@ -236,7 +234,7 @@ class IncludeSectionTag(CustomLiquidTag):
           document_filepath, self.source_filepath))
     
     with io.open(
-           document_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as document:
+           document_filepath, "r", encoding=pg.constants.TEXT_FILE_ENCODING) as document:
       document_contents = document.read()
       if section_name:
         section_header, section_contents = find_section(document_contents, section_name)
@@ -390,7 +388,7 @@ class IncludeConfigTag(CustomLiquidTag):
     self.args = args
   
   def get_contents(self):
-    return getattr(pygimplib.config, self.args[0], "") if self.args else ""
+    return getattr(pg.config, self.args[0], "") if self.args else ""
 
 
 _TAGS = {

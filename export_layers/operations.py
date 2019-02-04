@@ -77,12 +77,7 @@ from future.builtins import *
 
 import gimpenums
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pgpath
-from export_layers.pygimplib import pgpdb
-from export_layers.pygimplib import pgsetting
-from export_layers.pygimplib import pgsettinggroup
+from export_layers import pygimplib as pg
 
 from . import placeholders
 
@@ -130,7 +125,7 @@ def create(name, initial_operations=None):
   * `"enabled"` - Whether the operation should be executed or not.
   * `"display_name"` - The display name (human-readable name) of the operation.
   * `"operation_group"` - List of groups the operation belongs to, used in
-    `pgoperations.OperationExecutor` and `exportlayers.LayerExporter`.
+    `pygimplib.operations.OperationExecutor` and `exportlayers.LayerExporter`.
   * `"orig_name"` - The original name of the operation. If an operation with the
     same `"name"` field (see below) was previously added, the name of the new
     operation is made unique to allow lookup of both operations. Otherwise,
@@ -170,14 +165,14 @@ def create(name, initial_operations=None):
   * `ValueError` - invalid `"type"` or missing required fields in
     `initial_operations`.
   """
-  operations = pgsettinggroup.SettingGroup(
+  operations = pg.settinggroup.SettingGroup(
     name=name,
     setting_attributes={
       "pdb_type": None,
       "setting_sources": None,
     })
   
-  added_operations = pgsettinggroup.SettingGroup(
+  added_operations = pg.settinggroup.SettingGroup(
     name="added",
     setting_attributes={
       "pdb_type": None,
@@ -187,18 +182,16 @@ def create(name, initial_operations=None):
   operations.add([
     added_operations,
     {
-      "type": pgsetting.SettingTypes.generic,
+      "type": pg.setting.SettingTypes.generic,
       "name": "_added_data",
       "default_value": _get_initial_added_data(initial_operations),
-      "setting_sources": [
-        pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+      "setting_sources": [pg.config.SOURCE_SESSION, pg.config.SOURCE_PERSISTENT]
     },
     {
-      "type": pgsetting.SettingTypes.generic,
+      "type": pg.setting.SettingTypes.generic,
       "name": "_added_data_values",
       "default_value": {},
-      "setting_sources": [
-        pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]
+      "setting_sources": [pg.config.SOURCE_SESSION, pg.config.SOURCE_PERSISTENT]
     },
   ])
   
@@ -294,10 +287,10 @@ def _create_procedure(
   
   def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
     setting_display_name.set_gui(
-      gui_type=pgsetting.SettingGuiTypes.check_button_label,
+      gui_type=pg.setting.SettingGuiTypes.check_button_label,
       gui_element=setting_enabled.gui.element)
   
-  operation = pgsettinggroup.SettingGroup(
+  operation = pg.settinggroup.SettingGroup(
     name,
     tags=["operation", "procedure"],
     setting_attributes={
@@ -305,7 +298,7 @@ def _create_procedure(
       "setting_sources": None,
     })
   
-  arguments_group = pgsettinggroup.SettingGroup(
+  arguments_group = pg.settinggroup.SettingGroup(
     "arguments",
     setting_attributes={
       "pdb_type": None,
@@ -320,26 +313,26 @@ def _create_procedure(
   
   operation.add([
     {
-      "type": pgsetting.SettingTypes.generic,
+      "type": pg.setting.SettingTypes.generic,
       "name": "function",
       "default_value": function,
       "setting_sources": None,
     },
     arguments_group,
     {
-      "type": pgsetting.SettingTypes.boolean,
+      "type": pg.setting.SettingTypes.boolean,
       "name": "enabled",
       "default_value": enabled,
     },
     {
-      "type": pgsetting.SettingTypes.string,
+      "type": pg.setting.SettingTypes.string,
       "name": "display_name",
       "default_value": display_name,
       "gui_type": None,
       "tags": ["ignore_initialize_gui"],
     },
     {
-      "type": pgsetting.SettingTypes.generic,
+      "type": pg.setting.SettingTypes.generic,
       "name": "operation_groups",
       "default_value": operation_groups,
       "gui_type": None,
@@ -349,7 +342,7 @@ def _create_procedure(
   orig_name_value = custom_fields.pop("orig_name", name)
   operation.add([
     {
-      "type": pgsetting.SettingTypes.string,
+      "type": pg.setting.SettingTypes.string,
       "name": "orig_name",
       "default_value": orig_name_value,
       "gui_type": None,
@@ -359,7 +352,7 @@ def _create_procedure(
   for field_name, field_value in custom_fields.items():
     operation.add([
       {
-        "type": pgsetting.SettingTypes.generic,
+        "type": pg.setting.SettingTypes.generic,
         "name": field_name,
         "default_value": field_value,
         "gui_type": None,
@@ -389,7 +382,7 @@ def _create_constraint(name, function, subfilter=None, **create_operation_kwargs
   
   constraint.add([
     {
-      "type": pgsetting.SettingTypes.string,
+      "type": pg.setting.SettingTypes.string,
       "name": "subfilter",
       "default_value": subfilter,
       "gui_type": None,
@@ -430,7 +423,7 @@ def _get_array_length_and_array_settings(operation):
   previous_setting = None
   
   for setting in operation["arguments"]:
-    if isinstance(setting, pgsetting.ArraySetting) and previous_setting is not None:
+    if isinstance(setting, pg.setting.ArraySetting) and previous_setting is not None:
       array_length_and_array_settings.append((previous_setting, setting))
     
     previous_setting = setting
@@ -463,7 +456,7 @@ def add(operations, operation_dict_or_function):
   if isinstance(operation_dict_or_function, dict):
     operation_dict = dict(operation_dict_or_function)
   else:
-    if pgpdb.is_pdb_procedure(operation_dict_or_function):
+    if pg.pdb.is_pdb_procedure(operation_dict_or_function):
       operation_dict = get_operation_dict_for_pdb_procedure(operation_dict_or_function)
     else:
       raise TypeError(
@@ -497,8 +490,8 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
   
   If the procedure contains arguments with the same name, each subsequent
   identical name is made unique (since arguments are internally represented as
-  `pgsetting.Setting` instances, whose names must be unique within a setting
-  group).
+  `pygimplib.setting.Setting` instances, whose names must be unique within a
+  setting group).
   """
   
   def _generate_unique_pdb_procedure_argument_name():
@@ -508,24 +501,24 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
       i += 1
   
   operation_dict = {
-    "name": pdb_procedure.proc_name.decode(pgconstants.GTK_CHARACTER_ENCODING),
-    "function": pdb_procedure.proc_name.decode(pgconstants.GTK_CHARACTER_ENCODING),
+    "name": pdb_procedure.proc_name.decode(pg.constants.GTK_CHARACTER_ENCODING),
+    "function": pdb_procedure.proc_name.decode(pg.constants.GTK_CHARACTER_ENCODING),
     "arguments": [],
-    "display_name": pdb_procedure.proc_name.decode(pgconstants.GTK_CHARACTER_ENCODING),
+    "display_name": pdb_procedure.proc_name.decode(pg.constants.GTK_CHARACTER_ENCODING),
     "is_pdb_procedure": True,
   }
   
   pdb_procedure_argument_names = []
   
   for index, (pdb_param_type, pdb_param_name, unused_) in enumerate(pdb_procedure.params):
-    processed_pdb_param_name = pdb_param_name.decode(pgconstants.GTK_CHARACTER_ENCODING)
+    processed_pdb_param_name = pdb_param_name.decode(pg.constants.GTK_CHARACTER_ENCODING)
     
     try:
-      setting_type = pgsetting.PDB_TYPES_TO_SETTING_TYPES_MAP[pdb_param_type]
+      setting_type = pg.setting.PDB_TYPES_TO_SETTING_TYPES_MAP[pdb_param_type]
     except KeyError:
       raise UnsupportedPdbProcedureError(operation_dict["name"], pdb_param_type)
     
-    unique_pdb_param_name = pgpath.uniquify_string(
+    unique_pdb_param_name = pg.path.uniquify_string(
       processed_pdb_param_name,
       pdb_procedure_argument_names,
       uniquifier_generator=_generate_unique_pdb_procedure_argument_name())
@@ -578,7 +571,7 @@ def _uniquify_operation_name(operations, name):
       i += 1
   
   return (
-    pgpath.uniquify_string(
+    pg.path.uniquify_string(
       name,
       [operation.name for operation in walk(operations)],
       uniquifier_generator=_generate_unique_operation_name()))
@@ -597,7 +590,7 @@ def _uniquify_operation_display_name(operations, display_name):
       i += 1
   
   return (
-    pgpath.uniquify_string(
+    pg.path.uniquify_string(
       display_name,
       [operation["display_name"].value for operation in walk(operations)],
       uniquifier_generator=_generate_unique_display_name()))

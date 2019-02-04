@@ -52,17 +52,12 @@ sys.path.extend([
   PLUGIN_SUBDIRPATH,
   PYGIMPLIB_DIRPATH])
 
-from export_layers import pygimplib
+from export_layers import pygimplib as pg
 from future.builtins import *
 
 import argparse
 
 import git
-
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pglogging
-from export_layers.pygimplib import pgutils
-from export_layers.pygimplib import pgversion
 
 import export_layers.config
 export_layers.config.init()
@@ -70,9 +65,9 @@ export_layers.config.init()
 from utils import make_installers
 from utils import preprocess_document_contents
 
-pygimplib.config.LOG_MODE = pglogging.LOG_NONE
+pg.config.LOG_MODE = pg.logging.LOG_NONE
 
-pygimplib.init()
+pg.init()
 
 
 GITHUB_PAGE_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "gh-pages")
@@ -100,10 +95,10 @@ def make_release(**kwargs):
   release_metadata = _ReleaseMetadata(
     repo,
     gh_pages_repo,
-    current_version=pygimplib.config.PLUGIN_VERSION,
+    current_version=pg.config.PLUGIN_VERSION,
     released_versions=repo.git.tag("-l").strip("\n").split("\n"),
-    username=pygimplib.config.AUTHOR_NAME,
-    remote_repo_name=pygimplib.config.REPOSITORY_NAME,
+    username=pg.config.AUTHOR_NAME,
+    remote_repo_name=pg.config.REPOSITORY_NAME,
     **kwargs)
   
   def handle_sigint(signal, frame):
@@ -184,8 +179,8 @@ def _check_if_tag_with_new_version_already_exists(release_metadata):
 
 def _get_next_version(release_metadata):
   try:
-    ver = pgversion.Version.parse(release_metadata.current_version)
-  except pgversion.InvalidVersionFormatError:
+    ver = pg.version.Version.parse(release_metadata.current_version)
+  except pg.version.InvalidVersionFormatError:
     _print_error_and_exit(
       "Version string '{}' has invalid format; valid format: {}".format(
         release_metadata.current_version, VERSION_STRING_FORMAT))
@@ -214,7 +209,8 @@ def _prompt_to_proceed():
 
 
 def _get_release_notes_and_modify_changelog_first_header(release_metadata):
-  with io.open(CHANGELOG_FILEPATH, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
+  with io.open(
+         CHANGELOG_FILEPATH, "r", encoding=pg.constants.TEXT_FILE_ENCODING) as file_:
     changelog_contents = file_.read()
   
   header_raw, release_notes = (
@@ -249,7 +245,8 @@ def _get_release_notes_and_modify_changelog_first_header(release_metadata):
         changelog_contents,
         count=1)
   
-    with io.open(CHANGELOG_FILEPATH, "w", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
+    with io.open(
+           CHANGELOG_FILEPATH, "w", encoding=pg.constants.TEXT_FILE_ENCODING) as file_:
       file_.write(changelog_contents)
 
 
@@ -267,7 +264,7 @@ def _update_version_and_release_date_in_config(release_metadata):
   with io.open(
          PLUGIN_CONFIG_FILEPATH,
          "r",
-         encoding=pgconstants.TEXT_FILE_ENCODING) as config_file:
+         encoding=pg.constants.TEXT_FILE_ENCODING) as config_file:
     lines = config_file.readlines()
   
   def get_entry_pattern(entry):
@@ -292,7 +289,7 @@ def _update_version_and_release_date_in_config(release_metadata):
   with io.open(
          PLUGIN_CONFIG_FILEPATH,
          "w",
-         encoding=pgconstants.TEXT_FILE_ENCODING) as config_file:
+         encoding=pg.constants.TEXT_FILE_ENCODING) as config_file:
     config_file.writelines(lines)
 
 
@@ -481,7 +478,7 @@ class _ReleaseMetadata(object):
           ("keyword argument '{}' already exists in class {}; to prevent name clashes, "
            "rename conflicting script options").format(name, self.__class__.__name__))
       
-      pgutils.create_read_only_property(self, name, value)
+      pg.utils.create_read_only_property(self, name, value)
   
   @property
   def repo(self):

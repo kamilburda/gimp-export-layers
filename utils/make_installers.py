@@ -40,7 +40,7 @@ sys.path.extend([
   PLUGIN_SUBDIRPATH,
   PYGIMPLIB_DIRPATH])
 
-from export_layers import pygimplib
+from export_layers import pygimplib as pg
 from future.builtins import *
 
 import argparse
@@ -56,9 +56,7 @@ import zipfile
 import git
 import pathspec
 
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pglogging
-from export_layers.pygimplib import _pgpath_dirs
+from export_layers.pygimplib import _path_dirs
 
 from utils import create_user_docs
 from utils import process_local_docs
@@ -66,9 +64,9 @@ from utils import process_local_docs
 import export_layers.config
 export_layers.config.init()
 
-pygimplib.config.LOG_MODE = pglogging.LOG_NONE
+pg.config.LOG_MODE = pg.logging.LOG_NONE
 
-pygimplib.init()
+pg.init()
 
 
 INSTALLERS_DIRPATH = os.path.join(PLUGINS_DIRPATH, "installers")
@@ -90,7 +88,7 @@ def make_installers(
       force_if_dirty=False,
       installers=None,
       generate_docs=True):
-  _pgpath_dirs.make_dirs(installer_dirpath)
+  _path_dirs.make_dirs(installer_dirpath)
   
   temp_repo_files_dirpath = tempfile.mkdtemp()
   
@@ -98,14 +96,14 @@ def make_installers(
     _prepare_repo_files_for_packaging(
       input_dirpath, temp_repo_files_dirpath, force_if_dirty))
   
-  _generate_translation_files(pygimplib.config.LOCALE_DIRPATH)
+  _generate_translation_files(pg.config.LOCALE_DIRPATH)
 
   temp_dirpath = TEMP_INPUT_DIRPATH
   
   _create_temp_dirpath(temp_dirpath)
   
   if generate_docs:
-    _create_user_docs(os.path.join(temp_dirpath, pygimplib.config.PLUGIN_NAME))
+    _create_user_docs(os.path.join(temp_dirpath, pg.config.PLUGIN_NAME))
   
   input_filepaths = _get_filtered_filepaths(input_dirpath, INCLUDE_LIST_FILEPATH)
   user_docs_filepaths = _get_filtered_filepaths(temp_dirpath, INCLUDE_LIST_FILEPATH)
@@ -130,7 +128,7 @@ def make_installers(
   
   shutil.rmtree(temp_dirpath)
   shutil.rmtree(temp_repo_files_dirpath)
-  _remove_pot_files(pygimplib.config.LOCALE_DIRPATH)
+  _remove_pot_files(pg.config.LOCALE_DIRPATH)
 
 
 def _create_temp_dirpath(temp_dirpath):
@@ -139,7 +137,7 @@ def _create_temp_dirpath(temp_dirpath):
   elif os.path.isfile(temp_dirpath):
     os.remove(temp_dirpath)
     
-  _pgpath_dirs.make_dirs(temp_dirpath)
+  _path_dirs.make_dirs(temp_dirpath)
 
 
 def _prepare_repo_files_for_packaging(
@@ -179,7 +177,7 @@ def _move_files_with_filters_to_temporary_location(
     dest_filepath = os.path.join(
       dirpath_with_original_files_with_git_filters, relative_filepath)
     
-    _pgpath_dirs.make_dirs(os.path.dirname(dest_filepath))
+    _path_dirs.make_dirs(os.path.dirname(dest_filepath))
     shutil.copy2(src_filepath, dest_filepath)
     os.remove(src_filepath)
 
@@ -213,7 +211,7 @@ def _get_path_specs_with_git_filters_from_gitattributes(repository_dirpath):
 
 def _get_filtered_filepaths(dirpath, pattern_filepath):
   with io.open(
-         pattern_filepath, "r", encoding=pgconstants.TEXT_FILE_ENCODING) as file_:
+         pattern_filepath, "r", encoding=pg.constants.TEXT_FILE_ENCODING) as file_:
     spec_obj = pathspec.PathSpec.from_lines(
       pathspec.patterns.gitwildmatch.GitWildMatchPattern, file_)
   
@@ -237,11 +235,11 @@ def _generate_pot_file(source_dirpath):
   
   subprocess.call([
     "./generate_pot.sh",
-    pygimplib.config.PLUGIN_NAME,
-    pygimplib.config.PLUGIN_VERSION,
-    pygimplib.config.DOMAIN_NAME,
-    pygimplib.config.AUTHOR_NAME,
-    pygimplib.config.AUTHOR_CONTACT,
+    pg.config.PLUGIN_NAME,
+    pg.config.PLUGIN_VERSION,
+    pg.config.DOMAIN_NAME,
+    pg.config.AUTHOR_NAME,
+    pg.config.AUTHOR_CONTACT,
   ])
   
   os.chdir(orig_cwd)
@@ -256,7 +254,7 @@ def _generate_mo_files(source_dirpath):
       if (os.path.isfile(os.path.join(root_dirpath, filename))
           and filename.endswith(".po")):
         po_file = os.path.join(root_dirpath, filename)
-        language = _pgpath_dirs.split_path(root_dirpath)[-2]
+        language = _path_dirs.split_path(root_dirpath)[-2]
         subprocess.call(["./generate_mo.sh", po_file, language])
   
   os.chdir(orig_cwd)
@@ -273,7 +271,7 @@ def _copy_files_to_temp_filepaths(filepaths, temp_filepaths):
   for src_filepath, temp_filepath in zip(filepaths, temp_filepaths):
     dirpath = os.path.dirname(temp_filepath)
     if not os.path.exists(dirpath):
-      _pgpath_dirs.make_dirs(dirpath)
+      _path_dirs.make_dirs(dirpath)
     shutil.copy2(src_filepath, temp_filepath)
 
 
@@ -322,7 +320,7 @@ def _create_installers(
 def _create_windows_installer(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
   installer_filename_prefix = "{}-{}-windows".format(
-    pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
+    pg.config.PLUGIN_NAME, pg.config.PLUGIN_VERSION)
   
   installer_filepath = os.path.join(installer_dirpath, installer_filename_prefix + ".exe")
   
@@ -337,9 +335,9 @@ def _create_windows_installer(
     "cmd.exe",
     "/c",
     WINDOWS_INSTALLER_COMPILER_COMMAND,
-    pygimplib.config.PLUGIN_NAME,
-    pygimplib.config.PLUGIN_VERSION,
-    pygimplib.config.AUTHOR_NAME,
+    pg.config.PLUGIN_NAME,
+    pg.config.PLUGIN_VERSION,
+    pg.config.AUTHOR_NAME,
     os.path.relpath(input_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
     os.path.relpath(installer_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
     installer_filename_prefix,
@@ -357,11 +355,11 @@ def _create_windows_installer(
 def _create_zip_archive(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
   archive_filename = "{}-{}.zip".format(
-    pygimplib.config.PLUGIN_NAME, pygimplib.config.PLUGIN_VERSION)
+    pg.config.PLUGIN_NAME, pg.config.PLUGIN_VERSION)
   archive_filepath = os.path.join(installer_dirpath, archive_filename)
   
   readme_filepath = os.path.join(
-    input_dirpath, pygimplib.config.PLUGIN_NAME, README_RELATIVE_FILEPATH)
+    input_dirpath, pg.config.PLUGIN_NAME, README_RELATIVE_FILEPATH)
   
   can_create_toplevel_readme = readme_filepath in input_filepaths
   

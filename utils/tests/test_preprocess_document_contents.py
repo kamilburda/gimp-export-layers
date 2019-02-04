@@ -19,7 +19,7 @@
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import division, print_function, unicode_literals
-from export_layers import pygimplib
+from export_layers import pygimplib as pg
 from future.builtins import *
 
 import unittest
@@ -29,7 +29,7 @@ import parameterized
 
 from utils import preprocess_document_contents
 
-pygimplib.init()
+pg.init()
 
 
 class TestParseArgs(unittest.TestCase):
@@ -217,8 +217,8 @@ class TestIncludeConfigTag(unittest.TestCase):
     ["invalid_config_entry", ["ENTRY_THAT_DOES_NOT_EXIST"], ""],
   ])
   def test_include_config(self, test_case_name, args, expected_contents):
-    if args and hasattr(pygimplib.config, args[0]):
-      setattr(pygimplib.config, args[0], expected_contents)
+    if args and hasattr(pg.config, args[0]):
+      setattr(pg.config, args[0], expected_contents)
     
     tag = preprocess_document_contents.IncludeConfigTag(
       self._TEST_SOURCE_FILEPATH, self._TEST_MACTHING_REGEX)

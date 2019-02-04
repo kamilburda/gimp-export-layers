@@ -10,35 +10,35 @@ utils_tests_dirpath = os.path.join(utils_dirpath, "tests")
 sys.path.append(utils_dirpath)
 sys.path.append(utils_tests_dirpath)
 import pygimplib
-import pgruntests
-from pygimplib.tests import test_pgsetting_gui
+import runtests
+from pygimplib.tests import test_setting_gui
 
 
 _ = lambda s: s
-imp.reload(pgruntests)
+imp.reload(runtests)
 _
-pgruntests.run_tests(
+runtests.run_tests(
   plugin_dirpath,
   modules=["export_layers.pygimplib", "export_layers.tests", "export_layers", "utils", "utils.tests"],
   ignored_modules=["export_layers.tests.test_exportlayers_contents"])
 
 
 _ = lambda s: s
-imp.reload(test_pgsetting_gui)
+imp.reload(test_setting_gui)
 _
-test_pgsetting_gui.test_basic_settings_and_gui()
+test_setting_gui.test_basic_settings_and_gui()
 
 
 _ = lambda s: s
-imp.reload(test_pgsetting_gui)
+imp.reload(test_setting_gui)
 _
-test_pgsetting_gui.test_array_settings_and_gui()
+test_setting_gui.test_array_settings_and_gui()
 
 
 _ = lambda s: s
-imp.reload(pgruntests)
+imp.reload(runtests)
 _
-pgruntests.run_tests(
+runtests.run_tests(
   plugin_dirpath,
   modules=["export_layers"],
   ignored_modules=["export_layers.pygimplib.tests"])
@@ -64,5 +64,5 @@ imp.reload(preprocess_document_contents); preprocess_document_contents.main([(os
 
 
 imp.reload(preprocess_document_contents)
-pgruntests.run_tests(utils_tests_dirpath)
+runtests.run_tests(utils_tests_dirpath)
 

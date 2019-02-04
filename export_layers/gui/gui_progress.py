@@ -30,7 +30,7 @@ import gtk
 
 import gimp
 
-from export_layers.pygimplib import pgutils
+from export_layers import pygimplib as pg
 
 
 class ItemProgressIndicator(object):
@@ -69,7 +69,7 @@ class ItemProgressIndicator(object):
     self._progress_callback = gimp.progress_install(
       progress_reset_value,
       progress_reset_value,
-      pgutils.empty_func,
+      pg.utils.empty_func,
       self._progress_set_value_for_status)
   
   def uninstall_progress_for_status(self):

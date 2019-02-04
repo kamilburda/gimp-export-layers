@@ -34,15 +34,12 @@ import pango
 from gimp import pdb
 import gimpui
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pgconstants
-from export_layers.pygimplib import pggui
-from export_layers.pygimplib import pgsetting
+from export_layers import pygimplib as pg
 
 from .. import operations
 
 
-class OperationBox(pggui.ItemBox):
+class OperationBox(pg.gui.ItemBox):
   """
   This class defines a scrollable box that allows the user to add, edit and
   remove operations interactively. Each operation has an associated widget
@@ -98,7 +95,7 @@ class OperationBox(pggui.ItemBox):
         edit_operation_text=None,
         allow_custom_operations=True,
         add_custom_operation_text=None,
-        item_spacing=pggui.ItemBox.ITEM_SPACING,
+        item_spacing=pg.gui.ItemBox.ITEM_SPACING,
         *args,
         **kwargs):
     super().__init__(item_spacing=item_spacing, *args, **kwargs)
@@ -172,7 +169,7 @@ class OperationBox(pggui.ItemBox):
         fill=False)
       
       label_add = gtk.Label(
-        self._add_operation_text.encode(pgconstants.GTK_CHARACTER_ENCODING))
+        self._add_operation_text.encode(pg.constants.GTK_CHARACTER_ENCODING))
       label_add.set_use_underline(True)
       button_hbox.pack_start(label_add, expand=False, fill=False)
       
@@ -206,7 +203,7 @@ class OperationBox(pggui.ItemBox):
     
     # HACK: Prevent displaying horizontal scrollbar by ellipsizing labels. To
     # make ellipsizing work properly, the label width must be set explicitly.
-    if isinstance(operation["enabled"].gui, pgsetting.SettingGuiTypes.check_button):
+    if isinstance(operation["enabled"].gui, pg.setting.SettingGuiTypes.check_button):
       operation["enabled"].gui.element.set_property("width-request", 1)
       operation["enabled"].gui.element.get_child().set_ellipsize(pango.ELLIPSIZE_END)
       operation["enabled"].gui.element.get_child().set_max_width_chars(
@@ -218,7 +215,7 @@ class OperationBox(pggui.ItemBox):
   
   def _on_operation_item_gui_label_size_allocate(
         self, item_gui_label, allocation, item_gui):
-    if pggui.label_fits_text(item_gui_label):
+    if pg.gui.label_fits_text(item_gui_label):
       item_gui.set_tooltip_text(None)
     else:
       item_gui.set_tooltip_text(item_gui_label.get_text())
@@ -271,7 +268,7 @@ class OperationBox(pggui.ItemBox):
   def _add_operation_to_menu_popup(self, operation_dict):
     menu_item = gtk.MenuItem(
       label=operation_dict["display_name"].encode(
-        pgconstants.GTK_CHARACTER_ENCODING),
+        pg.constants.GTK_CHARACTER_ENCODING),
       use_underline=False)
     menu_item.connect("activate", self._on_operations_menu_item_activate, operation_dict)
     self._operations_menu.append(menu_item)
@@ -293,7 +290,7 @@ class OperationBox(pggui.ItemBox):
   def _create_pdb_procedure_browser_dialog(self):
     dialog = gimpui.ProcBrowserDialog(
       _("Procedure Browser"),
-      role=pygimplib.config.PLUGIN_NAME,
+      role=pg.config.PLUGIN_NAME,
       buttons=(gtk.STOCK_ADD, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
     
     dialog.set_default_response(gtk.RESPONSE_OK)
@@ -309,22 +306,22 @@ class OperationBox(pggui.ItemBox):
     if response_id == gtk.RESPONSE_OK:
       procedure_name = dialog.get_selected()
       if procedure_name:
-        pdb_procedure = pdb[procedure_name.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
+        pdb_procedure = pdb[procedure_name.encode(pg.constants.GIMP_CHARACTER_ENCODING)]
         
         try:
           pdb_proc_operation_dict = operations.get_operation_dict_for_pdb_procedure(
             pdb_procedure)
         except operations.UnsupportedPdbProcedureError as e:
-          pggui.display_error_message(
-            title=pygimplib.config.PLUGIN_TITLE,
+          pg.gui.display_error_message(
+            title=pg.config.PLUGIN_TITLE,
             app_name="",
-            parent=pggui.get_toplevel_window(self),
+            parent=pg.gui.get_toplevel_window(self),
             message_type=gtk.MESSAGE_WARNING,
             message_markup=(
               _("Could not add procedure '{}' because the parameter type '{}' "
                 "is not supported.").format(e.procedure_name, e.unsupported_param_type)),
             message_secondary_markup="",
-            report_uri_list=pygimplib.config.BUG_REPORT_URL_LIST,
+            report_uri_list=pg.config.BUG_REPORT_URL_LIST,
             report_description=_(
               "You can help fix this issue by sending a report with the text above "
               "to one of the sites below"),
@@ -341,7 +338,7 @@ class OperationBox(pggui.ItemBox):
           item.operation,
           pdb_procedure,
           title=self._get_operation_edit_dialog_title(item),
-          role=pygimplib.config.PLUGIN_NAME)
+          role=pg.config.PLUGIN_NAME)
         
         operation_edit_dialog.connect(
           "response",
@@ -367,7 +364,7 @@ class OperationBox(pggui.ItemBox):
     
     if item.operation.get_value("is_pdb_procedure", False):
       pdb_procedure = pdb[
-        item.operation["function"].value.encode(pgconstants.GIMP_CHARACTER_ENCODING)]
+        item.operation["function"].value.encode(pg.constants.GIMP_CHARACTER_ENCODING)]
     else:
       pdb_procedure = None
     
@@ -379,7 +376,7 @@ class OperationBox(pggui.ItemBox):
       item.operation,
       pdb_procedure,
       title=self._get_operation_edit_dialog_title(item),
-      role=pygimplib.config.PLUGIN_NAME)
+      role=pg.config.PLUGIN_NAME)
     
     item.operation_edit_dialog = operation_edit_dialog
     
@@ -415,7 +412,7 @@ class OperationBox(pggui.ItemBox):
       return None
 
 
-class _OperationBoxItem(pggui.ItemBoxItem):
+class _OperationBoxItem(pg.gui.ItemBoxItem):
   
   def __init__(self, operation, item_widget):
     super().__init__(item_widget)
@@ -467,7 +464,7 @@ class _OperationEditDialog(gimpui.Dialog):
     self.action_area.pack_start(self._button_reset, expand=False, fill=False)
     self.action_area.set_child_secondary(self._button_reset, True)
     
-    self._label_procedure_name = pggui.EditableLabel()
+    self._label_procedure_name = pg.gui.EditableLabel()
     self._label_procedure_name.label.set_use_markup(True)
     self._label_procedure_name.label.set_ellipsize(pango.ELLIPSIZE_END)
     self._label_procedure_name.label.set_markup(
@@ -520,8 +517,8 @@ class _OperationEditDialog(gimpui.Dialog):
       
       gui_element_to_attach = setting.gui.element
       
-      if not isinstance(setting.gui, pgsetting.SettingGuiTypes.none):
-        if isinstance(setting, pgsetting.ArraySetting):
+      if not isinstance(setting.gui, pg.setting.SettingGuiTypes.none):
+        if isinstance(setting, pg.setting.ArraySetting):
           if setting.element_type.get_allowed_gui_types():
             setting.gui.element.set_property(
               "width-request", self._ARRAY_PARAMETER_GUI_WIDTH)

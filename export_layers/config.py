@@ -26,41 +26,41 @@ from future.builtins import *
 
 import os
 
-from export_layers import pygimplib
+from export_layers import pygimplib as pg
 
 
 def init():
   """
   Initialize pygimplib configuration entries for this plug-in.
   """
-  pygimplib.config.PLUGIN_NAME = "export_layers"
+  pg.config.PLUGIN_NAME = "export_layers"
   
-  pygimplib.config.PLUGIN_SUBDIRPATH = os.path.join(
-    pygimplib.config.PLUGINS_DIRPATH, pygimplib.config.PLUGIN_NAME)
+  pg.config.PLUGIN_SUBDIRPATH = os.path.join(
+    pg.config.PLUGINS_DIRPATH, pg.config.PLUGIN_NAME)
   
-  pygimplib.config.LOCALE_DIRPATH = os.path.join(
-    pygimplib.config.PLUGINS_DIRPATH, pygimplib.config.PLUGIN_NAME, "locale")
+  pg.config.LOCALE_DIRPATH = os.path.join(
+    pg.config.PLUGINS_DIRPATH, pg.config.PLUGIN_NAME, "locale")
   
-  pygimplib.config.LOG_MODE = pygimplib.pglogging.LOG_EXCEPTIONS_ONLY
+  pg.config.LOG_MODE = pg.logging.LOG_OUTPUT_FILES
   
-  pygimplib.config.PLUGIN_TITLE = lambda: _("Export Layers")
-  pygimplib.config.PLUGIN_VERSION = "3.3.1"
-  pygimplib.config.PLUGIN_VERSION_RELEASE_DATE = "February 04, 2019"
-  pygimplib.config.AUTHOR_NAME = "khalim19"
-  pygimplib.config.AUTHOR_CONTACT = "khalim19@gmail.com"
-  pygimplib.config.PAGE_URL = "https://khalim19.github.io/gimp-plugin-export-layers"
-  pygimplib.config.DOCS_URL = pygimplib.config.PAGE_URL + "/sections"
-  pygimplib.config.REPOSITORY_NAME = "gimp-plugin-export-layers"
-  pygimplib.config.REPOSITORY_URL = (
+  pg.config.PLUGIN_TITLE = lambda: _("Export Layers")
+  pg.config.PLUGIN_VERSION = "3.3.1"
+  pg.config.PLUGIN_VERSION_RELEASE_DATE = "February 04, 2019"
+  pg.config.AUTHOR_NAME = "khalim19"
+  pg.config.AUTHOR_CONTACT = "khalim19@gmail.com"
+  pg.config.PAGE_URL = "https://khalim19.github.io/gimp-plugin-export-layers"
+  pg.config.DOCS_URL = pg.config.PAGE_URL + "/sections"
+  pg.config.REPOSITORY_NAME = "gimp-plugin-export-layers"
+  pg.config.REPOSITORY_URL = (
     "https://github.com/khalim19/gimp-plugin-export-layers")
-  pygimplib.config.BUG_REPORT_URL_LIST = [
+  pg.config.BUG_REPORT_URL_LIST = [
     ("GitHub", "https://github.com/khalim19/gimp-plugin-export-layers/issues")
   ]
   
-  pygimplib.config.LOCAL_DOCS_PATH = os.path.join(
-    pygimplib.config.PLUGIN_SUBDIRPATH, "docs", "sections", "index.html")
+  pg.config.LOCAL_DOCS_PATH = os.path.join(
+    pg.config.PLUGIN_SUBDIRPATH, "docs", "sections", "index.html")
   
-  pygimplib.config.COPYRIGHT_YEARS = "2013-2019"
+  pg.config.COPYRIGHT_YEARS = "2013-2019"
   
   # If True, display each step of image/layer editing in GIMP.
-  pygimplib.config.DEBUG_IMAGE_PROCESSING = False
+  pg.config.DEBUG_IMAGE_PROCESSING = False

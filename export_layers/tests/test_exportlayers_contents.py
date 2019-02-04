@@ -28,12 +28,7 @@ import unittest
 import gimp
 from gimp import pdb
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pgfileformats
-from export_layers.pygimplib import pgitemtree
-from export_layers.pygimplib import pgpath
-from export_layers.pygimplib import pgpdb
-from export_layers.pygimplib import pgutils
+from export_layers import pygimplib as pg
 
 from .. import config
 config.init()
@@ -43,10 +38,10 @@ from .. import exportlayers
 from .. import operations
 from .. import settings_plugin
 
-pygimplib.init()
+pg.init()
 
 
-_CURRENT_MODULE_DIRPATH = os.path.dirname(pgutils.get_current_module_filepath())
+_CURRENT_MODULE_DIRPATH = os.path.dirname(pg.utils.get_current_module_filepath())
 TEST_IMAGES_DIRPATH = os.path.join(_CURRENT_MODULE_DIRPATH, "test_images")
 
 DEFAULT_EXPECTED_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "expected_results")
@@ -140,8 +135,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         "autocrop_background-use_image_size"))
   
   def test_foreground(self):
-    layer_tree = pgitemtree.LayerTree(
-      self.test_image, name=pygimplib.config.SOURCE_PERSISTENT_NAME)
+    layer_tree = pg.itemtree.LayerTree(
+      self.test_image, name=pg.config.SOURCE_PERSISTENT_NAME)
     for layer_elem in layer_tree:
       if "background" in layer_elem.tags:
         layer_elem.remove_tag("background")
@@ -224,12 +219,12 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def _compare_layers(
         self, layer, expected_layer, settings, test_case_name, expected_results_dirpath):
-    if not pgpdb.compare_layers([layer, expected_layer]):
+    if not pg.pdb.compare_layers([layer, expected_layer]):
       self._save_incorrect_layers(
         layer, expected_layer, settings, test_case_name, expected_results_dirpath)
     
     self.assertEqual(
-      pgpdb.compare_layers([layer, expected_layer]),
+      pg.pdb.compare_layers([layer, expected_layer]),
       True,
       msg=("Layers are not identical:\nprocessed layer: {}\nexpected layer: {}".format(
         layer.name, expected_layer.name)))
@@ -237,7 +232,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   def _save_incorrect_layers(
         self, layer, expected_layer, settings, test_case_name, expected_results_dirpath):
     incorrect_layers_dirpath = os.path.join(INCORRECT_RESULTS_DIRPATH, test_case_name)
-    pgpath.make_dirs(incorrect_layers_dirpath)
+    pg.path.make_dirs(incorrect_layers_dirpath)
     
     self._copy_incorrect_layer(
       layer, settings, self.output_dirpath, incorrect_layers_dirpath, "_actual")
@@ -280,7 +275,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     Load layers from specified file paths into a new image. Return the image and
     a dict with (layer name: gimp.Layer instance) pairs.
     """
-    image = pgpdb.load_layers(layer_filepaths, image=None, strip_file_extension=True)
+    image = pg.pdb.load_layers(layer_filepaths, image=None, strip_file_extension=True)
     return image, {layer.name: layer for layer in image.layers}
   
   @staticmethod
@@ -301,7 +296,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
 def test_export_for_all_file_formats(layer_exporter, export_settings):
   orig_output_dirpath = export_settings["output_directory"].value
   
-  for file_format in pgfileformats.file_formats:
+  for file_format in pg.fileformats.file_formats:
     for file_extension in file_format.file_extensions:
       export_settings["file_extension"].set_value(file_extension)
       export_settings["output_directory"].set_value(

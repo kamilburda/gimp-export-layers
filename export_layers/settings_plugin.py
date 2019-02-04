@@ -30,11 +30,7 @@ import os
 import gimp
 import gimpenums
 
-from export_layers import pygimplib
-from export_layers.pygimplib import pgoverwrite
-from export_layers.pygimplib import pgpath
-from export_layers.pygimplib import pgsetting
-from export_layers.pygimplib import pgsettinggroup
+from export_layers import pygimplib as pg
 
 from export_layers import builtin_procedures
 from export_layers import builtin_constraints
@@ -43,7 +39,7 @@ from export_layers.gui import settings_gui
 
 
 def create_settings():
-  settings = pgsettinggroup.create_groups({
+  settings = pg.settinggroup.create_groups({
     "name": "all_settings",
     "groups": [
       {
@@ -56,15 +52,14 @@ def create_settings():
       {
         "name": "main",
         "setting_attributes": {
-          "setting_sources": [
-            pygimplib.config.SOURCE_SESSION, pygimplib.config.SOURCE_PERSISTENT]},
+          "setting_sources": [pg.config.SOURCE_SESSION, pg.config.SOURCE_PERSISTENT]},
       }
     ]
   })
   
   settings["special"].add([
     {
-      "type": pgsetting.SettingTypes.enumerated,
+      "type": pg.setting.SettingTypes.enumerated,
       "name": "run_mode",
       "default_value": "non_interactive",
       "items": [
@@ -74,29 +69,29 @@ def create_settings():
       "display_name": _("The run mode"),
     },
     {
-      "type": pgsetting.SettingTypes.image,
+      "type": pg.setting.SettingTypes.image,
       "name": "image",
       "default_value": None,
       "display_name": _("Image"),
     },
     {
-      "type": pgsetting.SettingTypes.boolean,
+      "type": pg.setting.SettingTypes.boolean,
       "name": "first_plugin_run",
       "default_value": True,
       "pdb_type": None,
-      "setting_sources": [pygimplib.config.SOURCE_SESSION],
+      "setting_sources": [pg.config.SOURCE_SESSION],
     },
   ])
   
   settings["main"].add([
     {
-      "type": pgsetting.SettingTypes.file_extension,
+      "type": pg.setting.SettingTypes.file_extension,
       "name": "file_extension",
       "default_value": "png",
       "display_name": "File extension",
     },
     {
-      "type": pgsetting.SettingTypes.string,
+      "type": pg.setting.SettingTypes.string,
       "name": "output_directory",
       "default_value": gimp.user_directory(1),   # `Documents` directory
       "display_name": _("Output directory"),
@@ -104,7 +99,7 @@ def create_settings():
       "tags": ["ignore_reset"],
     },
     {
-      "type": pgsetting.SettingTypes.string,
+      "type": pg.setting.SettingTypes.string,
       "name": "layer_filename_pattern",
       "default_value": "[layer name]",
       "display_name": _("Layer filename pattern"),
@@ -112,46 +107,46 @@ def create_settings():
       "gui_type": None,
     },
     {
-      "type": pgsetting.SettingTypes.generic,
+      "type": pg.setting.SettingTypes.generic,
       "name": "selected_layers",
       # key: image ID; value: set of selected layer IDs
       "default_value": collections.defaultdict(set),
       "display_name": _("Selected layers"),
       "pdb_type": None,
-      "setting_sources": [pygimplib.config.SOURCE_SESSION],
+      "setting_sources": [pg.config.SOURCE_SESSION],
     },
     {
-      "type": pgsetting.SettingTypes.generic,
+      "type": pg.setting.SettingTypes.generic,
       "name": "selected_layers_persistent",
       # key: image file path; value: set of selected layer names
       "default_value": collections.defaultdict(set),
       "display_name": _("Selected layers"),
       "pdb_type": None,
-      "setting_sources": [pygimplib.config.SOURCE_PERSISTENT],
+      "setting_sources": [pg.config.SOURCE_PERSISTENT],
     },
     {
-      "type": pgsetting.SettingTypes.enumerated,
+      "type": pg.setting.SettingTypes.enumerated,
       "name": "overwrite_mode",
       "default_value": "rename_new",
       "items": [
-        ("replace", _("_Replace"), pgoverwrite.OverwriteModes.REPLACE),
-        ("skip", _("_Skip"), pgoverwrite.OverwriteModes.SKIP),
-        ("rename_new", _("Rename _new file"), pgoverwrite.OverwriteModes.RENAME_NEW),
+        ("replace", _("_Replace"), pg.overwrite.OverwriteModes.REPLACE),
+        ("skip", _("_Skip"), pg.overwrite.OverwriteModes.SKIP),
+        ("rename_new", _("Rename _new file"), pg.overwrite.OverwriteModes.RENAME_NEW),
         ("rename_existing", _("Rename _existing file"),
-         pgoverwrite.OverwriteModes.RENAME_EXISTING)],
+         pg.overwrite.OverwriteModes.RENAME_EXISTING)],
       "display_name": _("Overwrite mode (non-interactive run mode only)"),
     },
     {
-      "type": pgsetting.SettingTypes.generic,
+      "type": pg.setting.SettingTypes.generic,
       "name": "available_tags",
       "default_value": operations.BUILTIN_TAGS,
       "pdb_type": None,
       "gui_type": None,
     },
     {
-      "type": pgsetting.SettingTypes.generic,
+      "type": pg.setting.SettingTypes.generic,
       "name": "plugin_version",
-      "default_value": pygimplib.config.PLUGIN_VERSION,
+      "default_value": pg.config.PLUGIN_VERSION,
       "pdb_type": None,
       "gui_type": None,
     },
@@ -208,9 +203,9 @@ def _adjust_error_message_for_use_file_extensions_in_layer_names(
   def _on_use_file_extensions_in_layer_names_enabled_changed(
         use_file_extensions_in_layer_names_enabled, file_extension):
     if not use_file_extensions_in_layer_names_enabled.value:
-      file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = ""
+      file_extension.error_messages[pg.path.FileValidatorErrorStatuses.IS_EMPTY] = ""
     else:
-      file_extension.error_messages[pgpath.FileValidatorErrorStatuses.IS_EMPTY] = _(
+      file_extension.error_messages[pg.path.FileValidatorErrorStatuses.IS_EMPTY] = _(
         "You need to specify default file extension for layers with invalid "
         "or no extension.")
   
