@@ -4,8 +4,8 @@ title: Release Notes
 navbar_active_tab: docs
 ---
 
-Upcoming Changes
-================
+3.3.1
+=====
 
 Changes to the filename pattern entry:
 * Reworked tooltips for each field, now containing usage, details and some examples.
