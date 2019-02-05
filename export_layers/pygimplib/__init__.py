@@ -64,7 +64,7 @@ def _setup_import_of_external_lib_modules(dirpath):
       sys.path.append(external_libs_dirpath)
 
 
-_setup_import_of_external_lib_modules(os.path.join(_PYGIMPLIB_DIRPATH, "lib"))
+_setup_import_of_external_lib_modules(os.path.join(_PYGIMPLIB_DIRPATH, "_lib"))
 
 
 from future.builtins import (
