@@ -84,7 +84,7 @@ def preprocess_contents(source_and_dest_filepaths):
           source_filepath))
       continue
     
-    with io.open(source_filepath, "r", encoding=pg.constants.TEXT_FILE_ENCODING) as file_:
+    with io.open(source_filepath, "r", encoding=pg.TEXT_FILE_ENCODING) as file_:
       source_file_contents = file_.read()
     
     preprocessed_contents = source_file_contents
@@ -97,7 +97,7 @@ def preprocess_contents(source_and_dest_filepaths):
       except DocumentNotFoundError as e:
         print(str(e))
     
-    with io.open(dest_filepath, "w", encoding=pg.constants.TEXT_FILE_ENCODING) as file_:
+    with io.open(dest_filepath, "w", encoding=pg.TEXT_FILE_ENCODING) as file_:
       file_.writelines(preprocessed_contents)
 
 
@@ -233,8 +233,7 @@ class IncludeSectionTag(CustomLiquidTag):
         'Document path "{}" inside "{}" does not exist or is not a file'.format(
           document_filepath, self.source_filepath))
     
-    with io.open(
-           document_filepath, "r", encoding=pg.constants.TEXT_FILE_ENCODING) as document:
+    with io.open(document_filepath, "r", encoding=pg.TEXT_FILE_ENCODING) as document:
       document_contents = document.read()
       if section_name:
         section_header, section_contents = find_section(document_contents, section_name)

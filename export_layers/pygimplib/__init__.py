@@ -74,7 +74,8 @@ from future.builtins import (
 import collections
 import gettext
 
-from . import constants
+from .constants import *
+
 from . import utils
 from . import version
 
@@ -103,7 +104,6 @@ if _gimp_dependent_modules_imported:
 
 __all__ = [
   # Modules
-  "constants",
   "logging",
   "utils",
   "version",
@@ -423,7 +423,7 @@ if _gimp_dependent_modules_imported:
   
   def _display_message_on_setting_value_error(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, setting.SettingValueError):
-      gimp.message(str(exc_value).encode(constants.GIMP_CHARACTER_ENCODING))
+      gimp.message(str(exc_value).encode(GIMP_CHARACTER_ENCODING))
       return True
     else:
       return False

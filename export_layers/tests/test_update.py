@@ -41,10 +41,10 @@ pg.init()
 
 
 @mock.patch(
-  pg.constants.PYGIMPLIB_MODULE_PATH + ".settingsources.gimpshelf.shelf",
+  pg.PYGIMPLIB_MODULE_PATH + ".settingsources.gimpshelf.shelf",
   new_callable=stubs_gimp.ShelfStub)
 @mock.patch(
-  pg.constants.PYGIMPLIB_MODULE_PATH + ".settingsources.gimp",
+  pg.PYGIMPLIB_MODULE_PATH + ".settingsources.gimp",
   new_callable=stubs_gimp.GimpModuleStub)
 @mock.patch("export_layers.update.handle_update")
 @mock.patch("export_layers.gui.messages.display_message")

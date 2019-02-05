@@ -85,8 +85,7 @@ def get_filepaths(file_list_filepath):
     processed_path = os.path.join(path_root, processed_path)
     return processed_path
   
-  with io.open(
-         file_list_filepath, "r", encoding=pg.constants.TEXT_FILE_ENCODING) as file_:
+  with io.open(file_list_filepath, "r", encoding=pg.TEXT_FILE_ENCODING) as file_:
     lines = file_.readlines()
   
   lines = [line.strip() for line in lines if line.strip()]

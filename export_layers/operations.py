@@ -501,17 +501,17 @@ def get_operation_dict_for_pdb_procedure(pdb_procedure):
       i += 1
   
   operation_dict = {
-    "name": pdb_procedure.proc_name.decode(pg.constants.GTK_CHARACTER_ENCODING),
-    "function": pdb_procedure.proc_name.decode(pg.constants.GTK_CHARACTER_ENCODING),
+    "name": pdb_procedure.proc_name.decode(pg.GTK_CHARACTER_ENCODING),
+    "function": pdb_procedure.proc_name.decode(pg.GTK_CHARACTER_ENCODING),
     "arguments": [],
-    "display_name": pdb_procedure.proc_name.decode(pg.constants.GTK_CHARACTER_ENCODING),
+    "display_name": pdb_procedure.proc_name.decode(pg.GTK_CHARACTER_ENCODING),
     "is_pdb_procedure": True,
   }
   
   pdb_procedure_argument_names = []
   
   for index, (pdb_param_type, pdb_param_name, unused_) in enumerate(pdb_procedure.params):
-    processed_pdb_param_name = pdb_param_name.decode(pg.constants.GTK_CHARACTER_ENCODING)
+    processed_pdb_param_name = pdb_param_name.decode(pg.GTK_CHARACTER_ENCODING)
     
     try:
       setting_type = pg.setting.PDB_TYPES_TO_SETTING_TYPES_MAP[pdb_param_type]

@@ -209,8 +209,7 @@ def _prompt_to_proceed():
 
 
 def _get_release_notes_and_modify_changelog_first_header(release_metadata):
-  with io.open(
-         CHANGELOG_FILEPATH, "r", encoding=pg.constants.TEXT_FILE_ENCODING) as file_:
+  with io.open(CHANGELOG_FILEPATH, "r", encoding=pg.TEXT_FILE_ENCODING) as file_:
     changelog_contents = file_.read()
   
   header_raw, release_notes = (
@@ -245,8 +244,7 @@ def _get_release_notes_and_modify_changelog_first_header(release_metadata):
         changelog_contents,
         count=1)
   
-    with io.open(
-           CHANGELOG_FILEPATH, "w", encoding=pg.constants.TEXT_FILE_ENCODING) as file_:
+    with io.open(CHANGELOG_FILEPATH, "w", encoding=pg.TEXT_FILE_ENCODING) as file_:
       file_.write(changelog_contents)
 
 
@@ -262,9 +260,7 @@ def _update_version_and_release_date_in_config(release_metadata):
     return
   
   with io.open(
-         PLUGIN_CONFIG_FILEPATH,
-         "r",
-         encoding=pg.constants.TEXT_FILE_ENCODING) as config_file:
+         PLUGIN_CONFIG_FILEPATH, "r", encoding=pg.TEXT_FILE_ENCODING) as config_file:
     lines = config_file.readlines()
   
   def get_entry_pattern(entry):
@@ -287,9 +283,7 @@ def _update_version_and_release_date_in_config(release_metadata):
       PLUGIN_CONFIG_FILEPATH, ", ".join(entries_to_find)))
   
   with io.open(
-         PLUGIN_CONFIG_FILEPATH,
-         "w",
-         encoding=pg.constants.TEXT_FILE_ENCODING) as config_file:
+         PLUGIN_CONFIG_FILEPATH, "w", encoding=pg.TEXT_FILE_ENCODING) as config_file:
     config_file.writelines(lines)
 
 

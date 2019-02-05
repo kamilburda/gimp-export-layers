@@ -210,8 +210,7 @@ def _get_path_specs_with_git_filters_from_gitattributes(repository_dirpath):
 
 
 def _get_filtered_filepaths(dirpath, pattern_filepath):
-  with io.open(
-         pattern_filepath, "r", encoding=pg.constants.TEXT_FILE_ENCODING) as file_:
+  with io.open(pattern_filepath, "r", encoding=pg.TEXT_FILE_ENCODING) as file_:
     spec_obj = pathspec.PathSpec.from_lines(
       pathspec.patterns.gitwildmatch.GitWildMatchPattern, file_)
   

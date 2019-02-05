@@ -60,18 +60,18 @@ class TestNumberField(unittest.TestCase):
 
 
 @mock.patch(
-  pg.constants.PYGIMPLIB_MODULE_PATH + ".itemtree.pdb",
+  pg.PYGIMPLIB_MODULE_PATH + ".itemtree.pdb",
   new=stubs_gimp.PdbStub())
 @mock.patch(
-  pg.constants.PYGIMPLIB_MODULE_PATH + ".itemtree.gimp.GroupLayer",
+  pg.PYGIMPLIB_MODULE_PATH + ".itemtree.gimp.GroupLayer",
   new=stubs_gimp.LayerGroupStub)
 class TestRenameWithNumberField(unittest.TestCase):
   
   @mock.patch(
-    pg.constants.PYGIMPLIB_MODULE_PATH + ".itemtree.pdb",
+    pg.PYGIMPLIB_MODULE_PATH + ".itemtree.pdb",
     new=stubs_gimp.PdbStub())
   @mock.patch(
-    pg.constants.PYGIMPLIB_MODULE_PATH + ".itemtree.gimp.GroupLayer",
+    pg.PYGIMPLIB_MODULE_PATH + ".itemtree.gimp.GroupLayer",
     new=stubs_gimp.LayerGroupStub)
   def setUp(self):
     layers_string = """

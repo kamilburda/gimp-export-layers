@@ -23,6 +23,13 @@ from future.builtins import *
 
 from . import utils as pgutils
 
+__all__ = [
+  "GTK_CHARACTER_ENCODING",
+  "GIMP_CHARACTER_ENCODING",
+  "TEXT_FILE_ENCODING",
+  "PYGIMPLIB_MODULE_PATH",
+]
+
 
 GTK_CHARACTER_ENCODING = "utf-8"
 GIMP_CHARACTER_ENCODING = "utf-8"

@@ -116,12 +116,12 @@ class MessageLabel(gtk.HBox):
     if message_type == gtk.MESSAGE_ERROR:
       self._label_message.set_markup(
         '<span foreground="red"><b>{}</b></span>'.format(gobject.markup_escape_text(
-          self._label_text.encode(pg.constants.GTK_CHARACTER_ENCODING))))
+          self._label_text.encode(pg.GTK_CHARACTER_ENCODING))))
       self._timeout_remove_strict(self._clear_delay, self.set_text)
     else:
       self._label_message.set_markup(
         "<b>{}</b>".format(gobject.markup_escape_text(
-          self._label_text.encode(pg.constants.GTK_CHARACTER_ENCODING))))
+          self._label_text.encode(pg.GTK_CHARACTER_ENCODING))))
       self._timeout_add_strict(self._clear_delay, self.set_text, None)
   
   def _init_gui(self):
@@ -187,7 +187,7 @@ class MessageLabel(gtk.HBox):
     text = "\n".join(lines).strip()
     
     text_buffer = gtk.TextBuffer()
-    text_buffer.set_text(text.encode(pg.constants.GTK_CHARACTER_ENCODING))
+    text_buffer.set_text(text.encode(pg.GTK_CHARACTER_ENCODING))
     self._text_view_more.set_buffer(text_buffer)
     
     self._popup_more.move(*pg.gui.get_position_below_widget(self))
