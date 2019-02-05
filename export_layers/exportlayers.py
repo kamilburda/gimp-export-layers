@@ -467,14 +467,14 @@ class LayerExporter(object):
   def _setup(self):
     pdb.gimp_context_push()
     
-    self._image_copy = pg.pdb.create_image_from_metadata(self.image)
+    self._image_copy = pg.pdbutils.create_image_from_metadata(self.image)
     pdb.gimp_image_undo_freeze(self._image_copy)
     
     self._operation_executor.execute(
       ["after_create_image_copy"], [self._image_copy], additional_args_position=0)
     
     if self._use_another_image_copy:
-      self._another_image_copy = pg.pdb.create_image_from_metadata(self._image_copy)
+      self._another_image_copy = pg.pdbutils.create_image_from_metadata(self._image_copy)
       pdb.gimp_image_undo_freeze(self._another_image_copy)
     
     if pg.config.DEBUG_IMAGE_PROCESSING:
@@ -490,11 +490,11 @@ class LayerExporter(object):
     
     if ((not self._keep_image_copy or self._use_another_image_copy)
         or exception_occurred):
-      pg.pdb.try_delete_image(self._image_copy)
+      pg.pdbutils.try_delete_image(self._image_copy)
       if self._use_another_image_copy:
         pdb.gimp_image_undo_thaw(self._another_image_copy)
         if exception_occurred:
-          pg.pdb.try_delete_image(self._another_image_copy)
+          pg.pdbutils.try_delete_image(self._another_image_copy)
     
     for tagged_layer_copy in self._tagged_layer_copies.values():
       if tagged_layer_copy is not None:

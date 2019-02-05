@@ -456,7 +456,7 @@ def add(operations, operation_dict_or_function):
   if isinstance(operation_dict_or_function, dict):
     operation_dict = dict(operation_dict_or_function)
   else:
-    if pg.pdb.is_pdb_procedure(operation_dict_or_function):
+    if pg.pdbutils.is_pdb_procedure(operation_dict_or_function):
       operation_dict = get_operation_dict_for_pdb_procedure(operation_dict_or_function)
     else:
       raise TypeError(

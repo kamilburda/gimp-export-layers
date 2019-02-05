@@ -91,7 +91,7 @@ if _gimp_dependent_modules_imported:
   from . import operations
   from . import overwrite
   from . import path
-  from . import pdb
+  from . import pdbutils
   from . import progress
   from . import setting
   from . import settinggroup

@@ -219,12 +219,12 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def _compare_layers(
         self, layer, expected_layer, settings, test_case_name, expected_results_dirpath):
-    if not pg.pdb.compare_layers([layer, expected_layer]):
+    if not pg.pdbutils.compare_layers([layer, expected_layer]):
       self._save_incorrect_layers(
         layer, expected_layer, settings, test_case_name, expected_results_dirpath)
     
     self.assertEqual(
-      pg.pdb.compare_layers([layer, expected_layer]),
+      pg.pdbutils.compare_layers([layer, expected_layer]),
       True,
       msg=("Layers are not identical:\nprocessed layer: {}\nexpected layer: {}".format(
         layer.name, expected_layer.name)))
@@ -275,7 +275,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     Load layers from specified file paths into a new image. Return the image and
     a dict with (layer name: gimp.Layer instance) pairs.
     """
-    image = pg.pdb.load_layers(layer_filepaths, image=None, strip_file_extension=True)
+    image = pg.pdbutils.load_layers(
+      layer_filepaths, image=None, strip_file_extension=True)
     return image, {layer.name: layer for layer in image.layers}
   
   @staticmethod

@@ -63,7 +63,7 @@ def copy_and_insert_layer(image, layer, parent=None, position=0):
   pdb.gimp_item_set_visible(layer_copy, True)
   
   if pdb.gimp_item_is_group(layer_copy):
-    layer_copy = pg.pdb.merge_layer_group(layer_copy)
+    layer_copy = pg.pdbutils.merge_layer_group(layer_copy)
   
   return layer_copy
 

@@ -278,7 +278,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
     
     start_update_time = time.time()
     
-    with pg.pdb.redirect_messages():
+    with pg.pdbutils.redirect_messages():
       preview_pixbuf = self._get_in_memory_preview(self.layer_elem.item)
     
     if preview_pixbuf is not None:
@@ -352,7 +352,7 @@ class ExportImagePreview(gui_preview_base.ExportPreview):
       return None
     
     if not image_preview.layers:
-      pg.pdb.try_delete_image(image_preview)
+      pg.pdbutils.try_delete_image(image_preview)
       return None
     
     if image_preview.base_type != gimpenums.RGB:

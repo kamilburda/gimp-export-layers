@@ -305,7 +305,7 @@ class ExportLayersGui(object):
       layer_tree=self._initial_layer_tree)
     
     if gimp.version[:2] == (2, 8):
-      pg.pdb.suppress_gimp_progress()
+      pg.pdbutils.suppress_gimp_progress()
     
     self._init_settings()
     

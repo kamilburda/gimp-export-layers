@@ -105,11 +105,11 @@ def log_output(
     if stderr_file is not None:
       sys.stderr = SimpleLogger(stderr_file, log_header_title)
   elif log_mode == LOG_OUTPUT_GIMP_CONSOLE:
-    from . import pdb as pgpdb
+    from . import pdbutils as pgpdbutils
     
-    sys.stdout = pgpdb.GimpMessageFile(
+    sys.stdout = pgpdbutils.GimpMessageFile(
       message_delay_milliseconds=gimp_console_message_delay_milliseconds)
-    sys.stderr = pgpdb.GimpMessageFile(
+    sys.stderr = pgpdbutils.GimpMessageFile(
       message_prefix="Error: ",
       message_delay_milliseconds=gimp_console_message_delay_milliseconds)
 
