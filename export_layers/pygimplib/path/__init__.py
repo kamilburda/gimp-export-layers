@@ -15,7 +15,7 @@
 # limitations under the License.
 
 """
-This module contains functions dealing with strings, file paths, directory
+This package contains functions dealing with strings, file paths, directory
 paths and file extensions.
 """
 

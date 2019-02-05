@@ -15,7 +15,7 @@
 # limitations under the License.
 
 """
-This module contains helper functions and classes for managing GUI elements in
+This package contains helper functions and classes for managing GUI elements in
 plug-ins.
 """
 
