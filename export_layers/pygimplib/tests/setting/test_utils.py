@@ -19,35 +19,36 @@ from future.builtins import *
 
 import unittest
 
+from ...setting import group as settinggroup
+from ...setting import settings as settings_
+from ...setting import utils as settingutils
+
 from . import stubs_setting
-from .. import setting as pgsetting
-from .. import settinggroup as pgsettinggroup
-from .. import settingutils as pgsettingutils
 
 
 class TestGetProcessedSettingAttribute(unittest.TestCase):
   
   def test_get_processed_display_name(self):
     self.assertEqual(
-      pgsettingutils.get_processed_display_name(
+      settingutils.get_processed_display_name(
         None, "my_setting_name"), "My setting name")
     self.assertEqual(
-      pgsettingutils.get_processed_display_name(
+      settingutils.get_processed_display_name(
         "My display name", "my_setting_name"), "My display name")
   
   def test_get_processed_description(self):
     self.assertEqual(
-      pgsettingutils.get_processed_description(
+      settingutils.get_processed_description(
         None, "My _Setting Name"), "My Setting Name")
     self.assertEqual(
-      pgsettingutils.get_processed_description(
+      settingutils.get_processed_description(
         "My description", "My _Setting Name"), "My description")
 
 
 def _create_test_settings_for_path():
-  setting = pgsetting.Setting("file_extension", "png")
-  main_settings = pgsettinggroup.SettingGroup("main")
-  advanced_settings = pgsettinggroup.SettingGroup("advanced")
+  setting = settings_.Setting("file_extension", "png")
+  main_settings = settinggroup.SettingGroup("main")
+  advanced_settings = settinggroup.SettingGroup("advanced")
   
   advanced_settings.add([setting])
   main_settings.add([advanced_settings])
@@ -62,7 +63,7 @@ class TestSettingParentMixin(unittest.TestCase):
       _create_test_settings_for_path())
   
   def test_get_parent_empty(self):
-    setting = pgsetting.Setting("file_extension", "png")
+    setting = settings_.Setting("file_extension", "png")
     
     self.assertEqual(setting.parent, None)
   
@@ -81,7 +82,7 @@ class TestSettingEventsMixin(unittest.TestCase):
   
   def setUp(self):
     self.file_extension = stubs_setting.SettingStub("file_extension", "png")
-    self.only_visible = pgsetting.BoolSetting("only_visible_layers", False)
+    self.only_visible = settings_.BoolSetting("only_visible_layers", False)
   
   def test_connect_event_argument_is_not_callable(self):
     with self.assertRaises(TypeError):
@@ -120,7 +121,7 @@ class TestSettingEventsMixin(unittest.TestCase):
     self.assertFalse(self.only_visible.value)
   
   def test_connect_event_with_keyword_arguments(self):
-    use_layer_size = pgsetting.BoolSetting("use_layer_size", False)
+    use_layer_size = settings_.BoolSetting("use_layer_size", False)
     use_layer_size.connect_event(
       "test-event",
       stubs_setting.on_use_layer_size_changed,
@@ -133,7 +134,7 @@ class TestSettingEventsMixin(unittest.TestCase):
     self.assertEqual(self.file_extension.value, "tiff")
   
   def test_invoke_event_with_keyword_arguments(self):
-    use_layer_size = pgsetting.BoolSetting("use_layer_size", False)
+    use_layer_size = settings_.BoolSetting("use_layer_size", False)
     use_layer_size.connect_event(
       "test-event",
       stubs_setting.on_use_layer_size_changed,
@@ -145,7 +146,7 @@ class TestSettingEventsMixin(unittest.TestCase):
     self.assertEqual(self.file_extension.value, "tiff")
   
   def test_invoke_event_places_invoke_event_arguments_first(self):
-    use_layer_size = pgsetting.BoolSetting("use_layer_size", False)
+    use_layer_size = settings_.BoolSetting("use_layer_size", False)
     use_layer_size.connect_event(
       "test-event",
       stubs_setting.on_use_layer_size_changed,
@@ -162,7 +163,7 @@ class TestSettingEventsMixin(unittest.TestCase):
       stubs_setting.on_file_extension_changed,
       self.only_visible)
     
-    use_layer_size = pgsetting.BoolSetting("use_layer_size", False)
+    use_layer_size = settings_.BoolSetting("use_layer_size", False)
     self.file_extension.connect_event(
       "test-event",
       stubs_setting.on_file_extension_changed_with_use_layer_size,
@@ -195,7 +196,7 @@ class TestSettingEventsMixin(unittest.TestCase):
       stubs_setting.on_file_extension_changed,
       self.only_visible)
     
-    use_layer_size = pgsetting.BoolSetting("use_layer_size", False)
+    use_layer_size = settings_.BoolSetting("use_layer_size", False)
     self.file_extension.connect_event(
       "test-event",
       stubs_setting.on_file_extension_changed_with_use_layer_size,
@@ -254,16 +255,16 @@ class TestSettingPath(unittest.TestCase):
       _create_test_settings_for_path())
   
   def test_get_path_no_parent(self):
-    setting = pgsetting.Setting("file_extension", "png")
-    self.assertEqual(pgsettingutils.get_setting_path(setting), "file_extension")
+    setting = settings_.Setting("file_extension", "png")
+    self.assertEqual(settingutils.get_setting_path(setting), "file_extension")
   
   def test_get_path(self):
     self.assertEqual(
-      pgsettingutils.get_setting_path(self.setting), "main/advanced/file_extension")
+      settingutils.get_setting_path(self.setting), "main/advanced/file_extension")
     self.assertEqual(
-      pgsettingutils.get_setting_path(self.advanced_settings), "main/advanced")
+      settingutils.get_setting_path(self.advanced_settings), "main/advanced")
     self.assertEqual(
-      pgsettingutils.get_setting_path(self.main_settings), "main")
+      settingutils.get_setting_path(self.main_settings), "main")
   
   def test_get_path_with_relative_path_from_setting_group(self):
     self._test_get_path_with_relative_path(
@@ -280,7 +281,7 @@ class TestSettingPath(unittest.TestCase):
       self.main_settings, self.main_settings, "")
   
   def test_get_path_with_relative_path_from_non_matching_setting_group(self):
-    special_settings = pgsettinggroup.SettingGroup("special")
+    special_settings = settinggroup.SettingGroup("special")
     
     self._test_get_path_with_relative_path(
       self.setting, special_settings, "main/advanced/file_extension")
@@ -291,15 +292,15 @@ class TestSettingPath(unittest.TestCase):
   
   def test_get_path_without_root_group(self):
     self.assertEqual(
-      pgsettingutils.get_setting_path(self.setting, "root"), "advanced/file_extension")
+      settingutils.get_setting_path(self.setting, "root"), "advanced/file_extension")
     self.assertEqual(
-      pgsettingutils.get_setting_path(self.advanced_settings, "root"), "advanced")
+      settingutils.get_setting_path(self.advanced_settings, "root"), "advanced")
     self.assertEqual(
-      pgsettingutils.get_setting_path(self.main_settings, "root"), "main")
+      settingutils.get_setting_path(self.main_settings, "root"), "main")
   
   def _test_get_path_with_relative_path(
         self, setting, relative_path_setting_group, expected_path):
     self.assertEqual(
-      pgsettingutils.get_setting_path(
+      settingutils.get_setting_path(
         setting, relative_path_setting_group=relative_path_setting_group),
       expected_path)

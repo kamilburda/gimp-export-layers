@@ -41,17 +41,17 @@ pg.init()
 
 
 @mock.patch(
-  pg.PYGIMPLIB_MODULE_PATH + ".settingsources.gimpshelf.shelf",
+  pg.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimpshelf.shelf",
   new_callable=stubs_gimp.ShelfStub)
 @mock.patch(
-  pg.PYGIMPLIB_MODULE_PATH + ".settingsources.gimp",
+  pg.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimp",
   new_callable=stubs_gimp.GimpModuleStub)
 @mock.patch("export_layers.update.handle_update")
 @mock.patch("export_layers.gui.messages.display_message")
 class TestUpdate(unittest.TestCase):
   
   def setUp(self):
-    self.settings = pg.settinggroup.create_groups({
+    self.settings = pg.setting.create_groups({
       "name": "all_settings",
       "groups": [
         {
@@ -98,7 +98,7 @@ class TestUpdate(unittest.TestCase):
     
     status, unused_ = self.settings["main/plugin_version"].load()
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
-    self.assertEqual(status, pg.settingpersistor.SettingPersistor.SUCCESS)
+    self.assertEqual(status, pg.setting.SettingPersistor.SUCCESS)
   
   def test_minimum_version_or_later_is_overwritten_by_new_version(
         self,
@@ -142,7 +142,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
     self.assertEqual(
       self.settings["main/test_setting"].load()[0],
-      pg.settingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
+      pg.setting.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
   def test_prompt_on_clear_positive_response(
         self,
@@ -160,7 +160,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
     self.assertEqual(
       self.settings["main/test_setting"].load()[0],
-      pg.settingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
+      pg.setting.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
   
   def test_prompt_on_clear_negative_response(
         self,
@@ -179,7 +179,7 @@ class TestUpdate(unittest.TestCase):
       self.settings["main/plugin_version"].value, self.old_incompatible_version)
     self.assertEqual(
       self.settings["main/test_setting"].load()[0],
-      pg.settingpersistor.SettingPersistor.SUCCESS)
+      pg.setting.SettingPersistor.SUCCESS)
   
 
 class TestHandleUpdate(unittest.TestCase):
@@ -193,7 +193,7 @@ class TestHandleUpdate(unittest.TestCase):
     
     self._executed_handlers = []
     
-    self.settings = pg.settinggroup.SettingGroup("settings")
+    self.settings = pg.setting.SettingGroup("settings")
   
   @parameterized.parameterized.expand([
     ["previous_version_earlier_than_all_handlers_execute_one_handler",

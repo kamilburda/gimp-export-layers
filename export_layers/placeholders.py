@@ -131,7 +131,7 @@ class PlaceholderSetting(pg.setting.Setting):
   def _validate(self, value):
     if value not in self._ALLOWED_PLACEHOLDERS:
       raise pg.setting.SettingValueError(
-        pg.settingutils.value_to_str_prefix(value) + self.error_messages["invalid_value"])
+        pg.setting.value_to_str_prefix(value) + self.error_messages["invalid_value"])
 
 
 class PlaceholderImageSetting(PlaceholderSetting):

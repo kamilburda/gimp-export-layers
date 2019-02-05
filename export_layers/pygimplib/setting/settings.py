@@ -34,13 +34,49 @@ from gimp import pdb
 import gimpcolor
 import gimpenums
 
-from . import constants as pgconstants
-from . import path as pgpath
-from . import settingpersistor as pgsettingpersistor
-from . import settingpresenter as pgsettingpresenter
-from . import settingutils as pgsettingutils
-from . import utils as pgutils
-from .settingpresenters_gtk import SettingGuiTypes
+from .. import constants as pgconstants
+from .. import path as pgpath
+from .. import utils as pgutils
+
+from . import persistor as settingpersistor
+from . import presenter as settingpresenter
+from . import utils as settingutils
+
+from .presenters_gtk import SettingGuiTypes
+
+__all__ = [
+  "SettingPdbTypes",
+  "Setting",
+  "IntSetting",
+  "FloatSetting",
+  "BoolSetting",
+  "EnumSetting",
+  "StringSetting",
+  "ImageSetting",
+  "ItemSetting",
+  "DrawableSetting",
+  "LayerSetting",
+  "ChannelSetting",
+  "SelectionSetting",
+  "VectorsSetting",
+  "ColorSetting",
+  "ParasiteSetting",
+  "DisplaySetting",
+  "PdbStatusSetting",
+  "FileExtensionSetting",
+  "DirpathSetting",
+  "BrushSetting",
+  "FontSetting",
+  "GradientSetting",
+  "PaletteSetting",
+  "PatternSetting",
+  "ImageIDsAndDirpathsSetting",
+  "ArraySetting",
+  "SettingValueError",
+  "SettingDefaultValueError",
+  "SettingTypes",
+  "PDB_TYPES_TO_SETTING_TYPES_MAP",
+]
 
 
 class SettingPdbTypes(object):
@@ -78,7 +114,7 @@ class SettingPdbTypes(object):
 
 
 @future.utils.python_2_unicode_compatible
-class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMixin):
+class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
   """
   This class holds data about a plug-in setting.
   
@@ -283,7 +319,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     super().__init__()
     
     self._name = name
-    pgsettingutils.check_setting_name(self._name)
+    settingutils.check_setting_name(self._name)
     
     self._default_value = self._get_default_value(default_value)
     
@@ -292,22 +328,22 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     self._allow_empty_values = allow_empty_values
     self._empty_values = list(self._EMPTY_VALUES)
     
-    self._display_name = pgsettingutils.get_processed_display_name(
+    self._display_name = settingutils.get_processed_display_name(
       display_name, self._name)
-    self._description = pgsettingutils.get_processed_description(
+    self._description = settingutils.get_processed_description(
       description, self._display_name)
     
     self._pdb_type = self._get_pdb_type(pdb_type)
-    self._pdb_name = pgsettingutils.get_pdb_name(self._name)
+    self._pdb_name = settingutils.get_pdb_name(self._name)
     
     self._setting_sources = setting_sources
     
-    self._setting_value_synchronizer = pgsettingpresenter.SettingValueSynchronizer()
+    self._setting_value_synchronizer = settingpresenter.SettingValueSynchronizer()
     self._setting_value_synchronizer.apply_gui_value_to_setting = (
       self._apply_gui_value_to_setting)
     
     self._gui_type = self._get_gui_type(gui_type)
-    self._gui = pgsettingpresenter.NullSettingPresenter(
+    self._gui = settingpresenter.NullSettingPresenter(
       self, None, self._setting_value_synchronizer,
       auto_update_gui_to_setting=auto_update_gui_to_setting)
     
@@ -387,7 +423,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     This is a wrapper method for `settingutils.get_setting_path()`. Consult the
     method for more information.
     """
-    return pgsettingutils.get_setting_path(self, relative_path_setting_group)
+    return settingutils.get_setting_path(self, relative_path_setting_group)
   
   def set_value(self, value):
     """
@@ -491,7 +527,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     if gui_type == SettingGuiTypes.automatic:
       gui_type = self._gui_type
     elif gui_type is None:
-      gui_type = pgsettingpresenter.NullSettingPresenter
+      gui_type = settingpresenter.NullSettingPresenter
       # We need to disconnect the "GUI changed" event before removing the GUI.
       self._gui.auto_update_gui_to_setting(False)
     
@@ -520,7 +556,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     If there are no default setting sources or `setting_sources` does not match
     any of the default sources, this method has no effect.
     """
-    return self._load_save(setting_sources, pgsettingpersistor.SettingPersistor.load)
+    return self._load_save(setting_sources, settingpersistor.SettingPersistor.load)
   
   def save(self, setting_sources=None):
     """
@@ -538,7 +574,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     If there are no default setting sources or `setting_sources` does not match
     any of the default sources, this method has no effect.
     """
-    return self._load_save(setting_sources, pgsettingpersistor.SettingPersistor.save)
+    return self._load_save(setting_sources, settingpersistor.SettingPersistor.save)
   
   def is_value_empty(self):
     """
@@ -683,7 +719,7 @@ class Setting(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMix
     else:
       if gui_type in self._ALLOWED_GUI_TYPES:
         gui_type_to_return = gui_type
-      elif gui_type in [SettingGuiTypes.none, pgsettingpresenter.NullSettingPresenter]:
+      elif gui_type in [SettingGuiTypes.none, settingpresenter.NullSettingPresenter]:
         gui_type_to_return = gui_type
       else:
         raise ValueError(
@@ -767,10 +803,10 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   def _validate(self, value):
     if self._min_value is not None and value < self._min_value:
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(value) + self.error_messages["below_min"])
+        settingutils.value_to_str_prefix(value) + self.error_messages["below_min"])
     if self._max_value is not None and value > self._max_value:
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(value) + self.error_messages["above_max"])
+        settingutils.value_to_str_prefix(value) + self.error_messages["above_max"])
 
 
 class IntSetting(NumericSetting):
@@ -1009,7 +1045,7 @@ class EnumSetting(Setting):
     if (value not in self._item_values
         or (not self._allow_empty_values and self._is_value_empty(value))):
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(value) + self.error_messages["invalid_value"])
+        settingutils.value_to_str_prefix(value) + self.error_messages["invalid_value"])
   
   def _get_items_description(self):
     items_description = ""
@@ -1017,7 +1053,7 @@ class EnumSetting(Setting):
     
     for value, display_name in zip(
           self._items.values(), self._items_display_names.values()):
-      description = pgsettingutils.get_processed_description(None, display_name)
+      description = settingutils.get_processed_description(None, display_name)
       items_description += "{} ({}){}".format(description, value, items_sep)
     items_description = items_description[:-len(items_sep)]
     
@@ -1115,7 +1151,7 @@ class ImageSetting(Setting):
   def _validate(self, image):
     if not pdb.gimp_image_is_valid(image):
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(image) + self.error_messages["invalid_value"])
+        settingutils.value_to_str_prefix(image) + self.error_messages["invalid_value"])
 
 
 class ItemSetting(Setting):
@@ -1148,7 +1184,7 @@ class ItemSetting(Setting):
   def _validate(self, item):
     if not isinstance(item, gimp.Item):
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(item)
+        settingutils.value_to_str_prefix(item)
         + self.error_messages["invalid_value"])
 
 
@@ -1182,7 +1218,7 @@ class DrawableSetting(Setting):
   def _validate(self, drawable):
     if not pdb.gimp_item_is_drawable(drawable):
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(drawable)
+        settingutils.value_to_str_prefix(drawable)
         + self.error_messages["invalid_value"])
 
 
@@ -1216,7 +1252,7 @@ class LayerSetting(Setting):
   def _validate(self, layer):
     if not pdb.gimp_item_is_layer(layer):
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(layer)
+        settingutils.value_to_str_prefix(layer)
         + self.error_messages["invalid_value"])
 
 
@@ -1250,7 +1286,7 @@ class ChannelSetting(Setting):
   def _validate(self, channel):
     if not pdb.gimp_item_is_channel(channel):
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(channel)
+        settingutils.value_to_str_prefix(channel)
         + self.error_messages["invalid_value"])
 
 
@@ -1309,7 +1345,7 @@ class VectorsSetting(Setting):
   def _validate(self, vectors):
     if not pdb.gimp_item_is_vectors(vectors):
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(vectors)
+        settingutils.value_to_str_prefix(vectors)
         + self.error_messages["invalid_value"])
 
 
@@ -1339,7 +1375,7 @@ class ColorSetting(Setting):
   def _validate(self, color):
     if not isinstance(color, gimpcolor.RGB):
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(color)
+        settingutils.value_to_str_prefix(color)
         + self.error_messages["invalid_value"])
 
 
@@ -1373,7 +1409,7 @@ class DisplaySetting(Setting):
   def _validate(self, display):
     if not pdb.gimp_display_is_valid(display):
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(display)
+        settingutils.value_to_str_prefix(display)
         + self.error_messages["invalid_value"])
 
 
@@ -1406,7 +1442,7 @@ class ParasiteSetting(Setting):
   def _validate(self, parasite):
     if not isinstance(parasite, gimp.Parasite):
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(parasite)
+        settingutils.value_to_str_prefix(parasite)
         + self.error_messages["invalid_value"])
 
 
@@ -1493,7 +1529,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
           new_status_messages.append(status_message)
       
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(string_)
+        settingutils.value_to_str_prefix(string_)
         + "\n".join([message for message in new_status_messages]))
   
 
@@ -1589,7 +1625,7 @@ class BrushSetting(Setting):
   def _validate(self, brush_tuple):
     if len(brush_tuple) > self._MAX_NUM_TUPLE_ELEMENTS:
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(brush_tuple)
+        settingutils.value_to_str_prefix(brush_tuple)
         + self.error_messages["invalid_value"])
 
 
@@ -1760,7 +1796,7 @@ class ArraySetting(Setting):
   Array settings are useful for manipulating PDB array parameters or for
   storing a collection of values of the same type. For more fine-grained control
   (collection of values of different type, different GUI, etc.), use
-  `settinggroup.SettingGroup` instead.
+  `setting.SettingGroup` instead.
   
   If the `element_type` specified during instantiation has a matching `array_*`
   type in `SettingPdbTypes` (e.g. `float` and `array_float`), then the array
@@ -2015,7 +2051,7 @@ class ArraySetting(Setting):
     if (not isinstance(value_array, collections.Iterable)
         or isinstance(value_array, types.StringTypes)):
       raise SettingValueError(
-        pgsettingutils.value_to_str_prefix(value_array)
+        settingutils.value_to_str_prefix(value_array)
         + self.error_messages["invalid_value"])
     
     if self._min_size < 0:

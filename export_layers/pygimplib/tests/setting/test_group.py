@@ -22,36 +22,38 @@ import unittest
 import mock
 import parameterized
 
+from ... import constants as pgconstants
+
+from ...setting import group as settinggroup
+from ...setting import persistor as settingpersistor
+from ...setting import presenter as settingpresenter
+from ...setting import settings as settings_
+
 from . import stubs_setting
-from . import stubs_settinggroup
-from .. import setting as pgsetting
-from .. import settinggroup as pgsettinggroup
-from .. import settingpersistor as pgsettingpersistor
-from .. import settingpresenter as pgsettingpresenter
-from .. import constants as pgconstants
+from . import stubs_group
 
 
 class TestSettingGroupAttributes(unittest.TestCase):
   
   def setUp(self):
-    self.settings = pgsettinggroup.SettingGroup(name="main")
+    self.settings = settinggroup.SettingGroup(name="main")
   
   def test_invalid_group_name(self):
     with self.assertRaises(ValueError):
-      pgsettinggroup.SettingGroup(name="main/additional")
+      settinggroup.SettingGroup(name="main/additional")
     
     with self.assertRaises(ValueError):
-      pgsettinggroup.SettingGroup(name="main.additional")
+      settinggroup.SettingGroup(name="main.additional")
   
   def test_get_generated_display_name(self):
     self.assertEqual(self.settings.display_name, "Main")
   
   def test_get_generated_description(self):
-    settings = pgsettinggroup.SettingGroup(name="main", display_name="_Main")
+    settings = settinggroup.SettingGroup(name="main", display_name="_Main")
     self.assertEqual(settings.description, "Main")
   
   def test_get_custom_display_name_and_description(self):
-    settings = pgsettinggroup.SettingGroup(
+    settings = settinggroup.SettingGroup(
       name="main", display_name="_Main", description="My description")
     self.assertEqual(settings.display_name, "_Main")
     self.assertEqual(settings.description, "My description")
@@ -64,9 +66,9 @@ class TestSettingGroupAttributes(unittest.TestCase):
 class TestSettingGroupAddWithSettingDict(unittest.TestCase):
   
   def setUp(self):
-    self.settings = pgsettinggroup.SettingGroup("main")
+    self.settings = settinggroup.SettingGroup("main")
     self.setting_dict = {
-      "type": pgsetting.SettingTypes.boolean,
+      "type": settings_.SettingTypes.boolean,
       "name": "use_layer_size",
       "default_value": False}
   
@@ -74,7 +76,7 @@ class TestSettingGroupAddWithSettingDict(unittest.TestCase):
     self.settings.add([self.setting_dict])
     
     self.assertIn("use_layer_size", self.settings)
-    self.assertIsInstance(self.settings["use_layer_size"], pgsetting.BoolSetting)
+    self.assertIsInstance(self.settings["use_layer_size"], settings_.BoolSetting)
     self.assertEqual(self.settings["use_layer_size"].value, False)
   
   def test_add_with_missing_type_attribute(self):
@@ -113,10 +115,10 @@ class TestSettingGroupAddWithSettingDict(unittest.TestCase):
       self.settings.add([self.setting_dict, self.setting_dict])
   
   def test_add_multiple_dicts_with_same_name_in_different_child_groups(self):
-    special_settings = pgsettinggroup.SettingGroup("special")
+    special_settings = settinggroup.SettingGroup("special")
     special_settings.add([self.setting_dict])
     
-    main_settings = pgsettinggroup.SettingGroup("main")
+    main_settings = settinggroup.SettingGroup("main")
     main_settings.add([self.setting_dict])
     
     self.settings.add([special_settings, main_settings])
@@ -130,16 +132,15 @@ class TestSettingGroupAddWithSettingDict(unittest.TestCase):
 class TestSettingGroupAddFromDict(unittest.TestCase):
   
   def test_add_with_group_level_attributes(self):
-    settings = pgsettinggroup.SettingGroup(
-      name="main", setting_attributes={"pdb_type": None})
+    settings = settinggroup.SettingGroup(name="main", setting_attributes={"pdb_type": None})
     settings.add([
       {
-       "type": pgsetting.SettingTypes.boolean,
+       "type": settings_.SettingTypes.boolean,
        "name": "only_visible_layers",
        "default_value": False,
       },
       {
-       "type": pgsetting.SettingTypes.boolean,
+       "type": settings_.SettingTypes.boolean,
        "name": "use_layer_size",
        "default_value": False,
       }
@@ -149,44 +150,43 @@ class TestSettingGroupAddFromDict(unittest.TestCase):
     self.assertEqual(settings["use_layer_size"].pdb_type, None)
   
   def test_add_with_group_level_attributes_overridden_by_setting_attributes(self):
-    settings = pgsettinggroup.SettingGroup(
-      name="main", setting_attributes={"pdb_type": None})
+    settings = settinggroup.SettingGroup(name="main", setting_attributes={"pdb_type": None})
     settings.add([
       {
-       "type": pgsetting.SettingTypes.boolean,
+       "type": settings_.SettingTypes.boolean,
        "name": "only_visible_layers",
        "default_value": False,
       },
       {
-       "type": pgsetting.SettingTypes.boolean,
+       "type": settings_.SettingTypes.boolean,
        "name": "use_layer_size",
        "default_value": False,
-       "pdb_type": pgsetting.SettingPdbTypes.int16
+       "pdb_type": settings_.SettingPdbTypes.int16
       }
     ])
     
     self.assertEqual(settings["only_visible_layers"].pdb_type, None)
     self.assertEqual(
-      settings["use_layer_size"].pdb_type, pgsetting.SettingPdbTypes.int16)
+      settings["use_layer_size"].pdb_type, settings_.SettingPdbTypes.int16)
   
   def test_add_with_group_level_attributes_overridden_by_child_group_attributes(self):
-    additional_settings = pgsettinggroup.SettingGroup(
-      name="additional", setting_attributes={"pdb_type": pgsetting.SettingPdbTypes.int16})
+    additional_settings = settinggroup.SettingGroup(
+      name="additional", setting_attributes={"pdb_type": settings_.SettingPdbTypes.int16})
     
     additional_settings.add([
       {
-       "type": pgsetting.SettingTypes.boolean,
+       "type": settings_.SettingTypes.boolean,
        "name": "use_layer_size",
        "default_value": False
       }
     ])
     
-    settings = pgsettinggroup.SettingGroup(
+    settings = settinggroup.SettingGroup(
       name="main", setting_attributes={"pdb_type": None, "display_name": "Setting name"})
     
     settings.add([
       {
-       "type": pgsetting.SettingTypes.boolean,
+       "type": settings_.SettingTypes.boolean,
        "name": "only_visible_layers",
        "default_value": False,
       },
@@ -195,7 +195,7 @@ class TestSettingGroupAddFromDict(unittest.TestCase):
     
     self.assertEqual(settings["only_visible_layers"].pdb_type, None)
     self.assertEqual(
-      settings["additional/use_layer_size"].pdb_type, pgsetting.SettingPdbTypes.int16)
+      settings["additional/use_layer_size"].pdb_type, settings_.SettingPdbTypes.int16)
     self.assertEqual(settings["only_visible_layers"].display_name, "Setting name")
     self.assertEqual(settings["additional/use_layer_size"].display_name, "Use layer size")
 
@@ -203,7 +203,7 @@ class TestSettingGroupAddFromDict(unittest.TestCase):
 class TestSettingGroupCreateGroupsFromDict(unittest.TestCase):
   
   def test_create_groups_no_groups(self):
-    settings = pgsettinggroup.create_groups({
+    settings = settinggroup.create_groups({
       "name": "main",
       "groups": None,
     })
@@ -211,7 +211,7 @@ class TestSettingGroupCreateGroupsFromDict(unittest.TestCase):
     self.assertEqual(len(settings), 0)
   
   def test_create_groups(self):
-    settings = pgsettinggroup.create_groups({
+    settings = settinggroup.create_groups({
       "name": "main",
       "groups": [
         {
@@ -239,7 +239,7 @@ class TestSettingGroupCreateGroupsFromDict(unittest.TestCase):
   
   def test_create_group_invalid_key(self):
     with self.assertRaises(TypeError):
-      pgsettinggroup.create_groups({
+      settinggroup.create_groups({
         "name": "main",
         "invalid_key": {},
       })
@@ -248,14 +248,14 @@ class TestSettingGroupCreateGroupsFromDict(unittest.TestCase):
 class TestSettingGroup(unittest.TestCase):
   
   def setUp(self):
-    self.settings = stubs_settinggroup.create_test_settings()
+    self.settings = stubs_group.create_test_settings()
     
     self.first_plugin_run_setting_dict = {
-      "type": pgsetting.SettingTypes.boolean,
+      "type": settings_.SettingTypes.boolean,
       "name": "first_plugin_run",
       "default_value": False}
     
-    self.special_settings = pgsettinggroup.SettingGroup("special")
+    self.special_settings = settinggroup.SettingGroup("special")
     self.special_settings.add([self.first_plugin_run_setting_dict])
   
   def test_add_same_setting_in_same_group(self):
@@ -286,10 +286,10 @@ class TestSettingGroup(unittest.TestCase):
       self.special_settings.add([self.special_settings])
   
   def test_add_different_setting_groups_with_same_name_in_different_child_groups(self):
-    main_settings = pgsettinggroup.SettingGroup("main")
+    main_settings = settinggroup.SettingGroup("main")
     main_settings.add([self.special_settings])
     
-    different_special_settings = pgsettinggroup.SettingGroup("special")
+    different_special_settings = settinggroup.SettingGroup("special")
     self.settings.add([main_settings, different_special_settings])
     
     self.assertIn("special", self.settings)
@@ -297,7 +297,7 @@ class TestSettingGroup(unittest.TestCase):
     self.assertNotEqual(self.settings["special"], main_settings["special"])
   
   def test_add_same_setting_group_in_different_child_groups(self):
-    main_settings = pgsettinggroup.SettingGroup("main")
+    main_settings = settinggroup.SettingGroup("main")
     main_settings.add([self.special_settings])
     
     self.settings.add([self.special_settings, main_settings])
@@ -448,7 +448,7 @@ class TestSettingGroup(unittest.TestCase):
 class TestSettingGroupHierarchical(unittest.TestCase):
   
   def setUp(self):
-    self.settings = stubs_settinggroup.create_test_settings_hierarchical()
+    self.settings = stubs_group.create_test_settings_hierarchical()
   
   def test_get_setting_via_paths(self):
     self.assertEqual(
@@ -461,10 +461,10 @@ class TestSettingGroupHierarchical(unittest.TestCase):
       self.settings["advanced"]["overwrite_mode"])
   
   def test_get_setting_via_paths_multiple_levels(self):
-    expert_settings = pgsettinggroup.SettingGroup("expert")
+    expert_settings = settinggroup.SettingGroup("expert")
     expert_settings.add([
         {
-         "type": pgsetting.SettingTypes.integer,
+         "type": settings_.SettingTypes.integer,
          "name": "file_extension_strip_mode",
          "default_value": 0
         }
@@ -628,7 +628,7 @@ class TestSettingGroupHierarchical(unittest.TestCase):
     def _append_setting_name_and_end_group_walk_indicator(setting):
       walked_settings.append(setting.name + "_end")
     
-    walk_callbacks = pgsettinggroup.SettingGroupWalkCallbacks()
+    walk_callbacks = settinggroup.SettingGroupWalkCallbacks()
     walk_callbacks.on_visit_setting = _append_setting_name
     walk_callbacks.on_visit_group = _append_setting_name
     walk_callbacks.on_end_group_walk = _append_setting_name_and_end_group_walk_indicator
@@ -637,19 +637,19 @@ class TestSettingGroupHierarchical(unittest.TestCase):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".settingpersistor.SettingPersistor.save",
-  return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.persistor.SettingPersistor.save",
+  return_value=(settingpersistor.SettingPersistor.SUCCESS, ""))
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + ".settingpersistor.SettingPersistor.load",
-  return_value=(pgsettingpersistor.SettingPersistor.SUCCESS, ""))
+  pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.persistor.SettingPersistor.load",
+  return_value=(settingpersistor.SettingPersistor.SUCCESS, ""))
 class TestSettingGroupLoadSave(unittest.TestCase):
   
   def setUp(self):
-    self.settings = stubs_settinggroup.create_test_settings_load_save()
+    self.settings = stubs_group.create_test_settings_load_save()
   
   def test_load_save_setting_sources_not_in_group_and_in_settings(
         self, mock_load, mock_save):
-    settings = stubs_settinggroup.create_test_settings()
+    settings = stubs_group.create_test_settings()
     
     settings.load()
     self.assertEqual(mock_load.call_count, 1)
@@ -711,41 +711,40 @@ class TestSettingGroupLoadSave(unittest.TestCase):
   
   def test_load_save_return_statuses(self, mock_load, mock_save):
     load_save_calls_return_values = [
-      (pgsettingpersistor.SettingPersistor.SUCCESS, ""),
-      (pgsettingpersistor.SettingPersistor.SUCCESS, ""),
-      (pgsettingpersistor.SettingPersistor.SUCCESS, "")]
+      (settingpersistor.SettingPersistor.SUCCESS, ""),
+      (settingpersistor.SettingPersistor.SUCCESS, ""),
+      (settingpersistor.SettingPersistor.SUCCESS, "")]
     
     mock_load.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.load()
-    self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
+    self.assertEqual(status, settingpersistor.SettingPersistor.SUCCESS)
     
     mock_save.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.save()
-    self.assertEqual(status, pgsettingpersistor.SettingPersistor.SUCCESS)
+    self.assertEqual(status, settingpersistor.SettingPersistor.SUCCESS)
     
     load_save_calls_return_values[1] = (
-      pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND, "")
+      settingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND, "")
     mock_load.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.load()
-    self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
+    self.assertEqual(status, settingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
     
     load_save_calls_return_values[1] = (
-      pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND, "")
+      settingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND, "")
     mock_save.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.save()
-    self.assertEqual(status, pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
+    self.assertEqual(status, settingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
     
     load_save_calls_return_values[2] = (
-      pgsettingpersistor.SettingPersistor.READ_FAIL, "")
+      settingpersistor.SettingPersistor.READ_FAIL, "")
     mock_load.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.load()
-    self.assertEqual(status, pgsettingpersistor.SettingPersistor.READ_FAIL)
+    self.assertEqual(status, settingpersistor.SettingPersistor.READ_FAIL)
     
-    load_save_calls_return_values[2] = (
-      pgsettingpersistor.SettingPersistor.WRITE_FAIL, "")
+    load_save_calls_return_values[2] = settingpersistor.SettingPersistor.WRITE_FAIL, ""
     mock_save.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.save()
-    self.assertEqual(status, pgsettingpersistor.SettingPersistor.WRITE_FAIL)
+    self.assertEqual(status, settingpersistor.SettingPersistor.WRITE_FAIL)
   
   def _test_load_save(
         self,
@@ -773,7 +772,7 @@ class TestSettingGroupLoadSave(unittest.TestCase):
 class TestSettingGroupGui(unittest.TestCase):
 
   def setUp(self):
-    self.settings = pgsettinggroup.SettingGroup("main")
+    self.settings = settinggroup.SettingGroup("main")
     self.settings.add([
       {
         "type": stubs_setting.SettingWithGuiStub,
@@ -812,7 +811,7 @@ class TestSettingGroupGui(unittest.TestCase):
       stubs_setting.CheckButtonPresenterStub)
     self.assertIs(
       type(self.settings["only_visible_layers"].gui),
-      pgsettingpresenter.NullSettingPresenter)
+      settingpresenter.NullSettingPresenter)
   
   def test_initialize_gui_with_custom_gui(self):
     file_extension_widget = stubs_setting.GuiWidgetStub("png")

@@ -26,10 +26,17 @@ import future.utils
 import collections
 import inspect
 
-from . import setting as pgsetting
-from . import settingpersistor as pgsettingpersistor
-from . import settingutils as pgsettingutils
-from . import utils as pgutils
+from .. import utils as pgutils
+
+from . import settings as settings_
+from . import persistor as settingpersistor
+from . import utils as settingutils
+
+__all__ = [
+  "create_groups",
+  "SettingGroup",
+  "SettingGroupWalkCallbacks",
+]
 
 
 def create_groups(setting_dict):
@@ -44,7 +51,7 @@ def create_groups(setting_dict):
   valid keys for `setting_dict`. Other keys raise `TypeError`.
   
   Example:
-    settings = settinggroup.create_groups({
+    settings = create_groups({
       "name": "main",
       "groups": [
         {
@@ -71,7 +78,7 @@ def create_groups(setting_dict):
 
 
 @future.utils.python_2_unicode_compatible
-class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEventsMixin):
+class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
   """
   This class:
   * allows to create a group of related settings (`Setting` objects),
@@ -109,12 +116,12 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     super().__init__()
     
     self._name = name
-    pgsettingutils.check_setting_name(self._name)
+    settingutils.check_setting_name(self._name)
     
-    self._display_name = pgsettingutils.get_processed_display_name(
+    self._display_name = settingutils.get_processed_display_name(
       display_name, self._name)
     
-    self._description = pgsettingutils.get_processed_description(
+    self._description = settingutils.get_processed_description(
       description, self._display_name)
     
     self._tags = set(tags) if tags is not None else set()
@@ -165,7 +172,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     
     If the name or path does not exist, raise `KeyError`.
     """
-    if pgsettingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
+    if settingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
       return self._get_setting_from_path(setting_name_or_path)
     else:
       try:
@@ -175,7 +182,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
           setting_name_or_path, self.name))
   
   def __contains__(self, setting_name_or_path):
-    if pgsettingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
+    if settingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
       try:
         self._get_setting_from_path(setting_name_or_path)
       except KeyError:
@@ -186,7 +193,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
       return setting_name_or_path in self._settings
   
   def _get_setting_from_path(self, setting_path):
-    setting_path_components = setting_path.split(pgsettingutils.SETTING_PATH_SEPARATOR)
+    setting_path_components = setting_path.split(settingutils.SETTING_PATH_SEPARATOR)
     current_group = self
     for group_name in setting_path_components[:-1]:
       if group_name in current_group:
@@ -220,7 +227,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     This is a wrapper method for `settingutils.get_setting_path()`. Consult
     the method for more information.
     """
-    return pgsettingutils.get_setting_path(self, relative_path_setting_group)
+    return settingutils.get_setting_path(self, relative_path_setting_group)
   
   def add(self, setting_list):
     """
@@ -256,7 +263,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     attributes can be overridden by attributes in individual settings.
     """
     for setting in setting_list:
-      if isinstance(setting, (pgsetting.Setting, SettingGroup)):
+      if isinstance(setting, (settings_.Setting, SettingGroup)):
         setting = self._add_setting(setting)
       else:
         setting = self._create_setting(setting)
@@ -289,10 +296,10 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     except KeyError:
       raise TypeError(self._get_missing_required_attributes_message(["name"]))
     
-    if pgsettingutils.SETTING_PATH_SEPARATOR in setting_data_copy["name"]:
+    if settingutils.SETTING_PATH_SEPARATOR in setting_data_copy["name"]:
       raise ValueError(
         "setting name '{}' must not contain path separator '{}'".format(
-          setting_data_copy["name"], pgsettingutils.SETTING_PATH_SEPARATOR))
+          setting_data_copy["name"], settingutils.SETTING_PATH_SEPARATOR))
     
     if setting_data_copy["name"] in self._settings:
       raise ValueError("setting '{}' already exists".format(setting_data_copy["name"]))
@@ -398,7 +405,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
       (setting.get_path("root"), setting.value) for setting in self.walk()])
   
   def _get_setting_and_attribute_names(self, setting_name_and_attribute):
-    parts = setting_name_and_attribute.split(pgsettingutils.SETTING_ATTRIBUTE_SEPARATOR)
+    parts = setting_name_and_attribute.split(settingutils.SETTING_ATTRIBUTE_SEPARATOR)
     if len(parts) == 1:
       setting_name = setting_name_and_attribute
       attribute_name = "value"
@@ -406,7 +413,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
       setting_name, attribute_name = parts
     else:
       raise ValueError("'{}' cannot have more than one '{}' character".format(
-        setting_name_and_attribute, pgsettingutils.SETTING_ATTRIBUTE_SEPARATOR))
+        setting_name_and_attribute, settingutils.SETTING_ATTRIBUTE_SEPARATOR))
     
     return setting_name, attribute_name
   
@@ -546,7 +553,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     """
     return self._load_save_group(
       "ignore_load",
-      pgsettingpersistor.SettingPersistor.load,
+      settingpersistor.SettingPersistor.load,
       setting_sources,
       "before-load-group",
       "after-load-group")
@@ -561,7 +568,7 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     """
     return self._load_save_group(
       "ignore_save",
-      pgsettingpersistor.SettingPersistor.save,
+      settingpersistor.SettingPersistor.save,
       setting_sources,
       "before-save-group",
       "after-save-group")
@@ -590,16 +597,16 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
   def _load_save(self, load_save_ignore_tag, load_save_func, setting_sources):
     
     def _get_worst_status(status_and_messages):
-      worst_status = pgsettingpersistor.SettingPersistor.SUCCESS
+      worst_status = settingpersistor.SettingPersistor.SUCCESS
       
-      if (pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND
+      if (settingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND
           in status_and_messages):
-        worst_status = pgsettingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND
+        worst_status = settingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND
       
-      if pgsettingpersistor.SettingPersistor.READ_FAIL in status_and_messages:
-        worst_status = pgsettingpersistor.SettingPersistor.READ_FAIL
-      elif pgsettingpersistor.SettingPersistor.WRITE_FAIL in status_and_messages:
-        worst_status = pgsettingpersistor.SettingPersistor.WRITE_FAIL
+      if settingpersistor.SettingPersistor.READ_FAIL in status_and_messages:
+        worst_status = settingpersistor.SettingPersistor.READ_FAIL
+      elif settingpersistor.SettingPersistor.WRITE_FAIL in status_and_messages:
+        worst_status = settingpersistor.SettingPersistor.WRITE_FAIL
       
       return worst_status
     
@@ -689,13 +696,13 @@ class SettingGroup(pgsettingutils.SettingParentMixin, pgsettingutils.SettingEven
     for setting in self.walk(include_setting_func=_should_not_ignore):
       try:
         setting.gui.update_setting_value()
-      except pgsetting.SettingValueError as e:
+      except settings_.SettingValueError as e:
         exception_messages.append(str(e))
         exception_settings.append(e.setting)
     
     if exception_messages:
       exception_message = "\n".join(exception_messages)
-      raise pgsetting.SettingValueError(
+      raise settings_.SettingValueError(
         exception_message,
         setting=exception_settings[0],
         messages=exception_messages,

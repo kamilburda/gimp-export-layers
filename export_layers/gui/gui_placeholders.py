@@ -30,8 +30,7 @@ import gimpui
 from export_layers import pygimplib as pg
 
 
-class GimpObjectPlaceholdersComboBoxPresenter(
-        pg.settingpresenters_gtk.GtkSettingPresenter):
+class GimpObjectPlaceholdersComboBoxPresenter(pg.setting.GtkSettingPresenter):
   """
   This class is a `SettingPresenter` for `gimpui.IntComboBox` elements used for
   `placeholders.PlaceholderSetting`.

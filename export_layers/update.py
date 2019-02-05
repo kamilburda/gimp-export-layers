@@ -67,12 +67,12 @@ def update(settings, prompt_on_clear=False):
     _save_plugin_version(settings)
     return FRESH_START
   
-  status, unused_ = pg.settingpersistor.SettingPersistor.load(
+  status, unused_ = pg.setting.SettingPersistor.load(
     [settings["main/plugin_version"]], [pg.config.SOURCE_PERSISTENT])
   
   previous_version = pg.version.Version.parse(settings["main/plugin_version"].value)
   
-  if (status == pg.settingpersistor.SettingPersistor.SUCCESS
+  if (status == pg.setting.SettingPersistor.SUCCESS
       and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
     _save_plugin_version(settings)
     
@@ -99,7 +99,7 @@ def update(settings, prompt_on_clear=False):
 
 
 def clear_setting_sources(settings):
-  pg.settingpersistor.SettingPersistor.clear(
+  pg.setting.SettingPersistor.clear(
     [pg.config.SOURCE_SESSION, pg.config.SOURCE_PERSISTENT])
   
   _save_plugin_version(settings)
@@ -176,7 +176,7 @@ def _is_fresh_start():
 
 def _save_plugin_version(settings):
   settings["main/plugin_version"].reset()
-  pg.settingpersistor.SettingPersistor.save(
+  pg.setting.SettingPersistor.save(
     [settings["main/plugin_version"]], [pg.config.SOURCE_PERSISTENT])
 
 

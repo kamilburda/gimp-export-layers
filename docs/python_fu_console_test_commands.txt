@@ -11,7 +11,7 @@ sys.path.append(utils_dirpath)
 sys.path.append(utils_tests_dirpath)
 import pygimplib
 import runtests
-from pygimplib.tests import test_setting_gui
+from pygimplib.tests.setting import test_setting_gui
 
 
 _ = lambda s: s

@@ -16,7 +16,7 @@
 
 """
 This module provides a simple interface to load and save settings using setting
-sources defined in the `pgsettingsources` module.
+sources defined in the `setting.sources` module.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -24,7 +24,11 @@ from future.builtins import *
 
 import collections
 
-from . import _settingsources_errors
+from . import _sources_errors
+
+__all__ = [
+  "SettingPersistor",
+]
 
 
 class SettingPersistor(object):
@@ -93,9 +97,9 @@ class SettingPersistor(object):
     for source in setting_sources:
       try:
         source.read(settings)
-      except (_settingsources_errors.SettingsNotFoundInSourceError,
-              _settingsources_errors.SettingSourceNotFoundError) as e:
-        if isinstance(e, _settingsources_errors.SettingsNotFoundInSourceError):
+      except (_sources_errors.SettingsNotFoundInSourceError,
+              _sources_errors.SettingSourceNotFoundError) as e:
+        if isinstance(e, _sources_errors.SettingsNotFoundInSourceError):
           settings = e.settings_not_found
         
         if source == setting_sources[-1]:
@@ -104,8 +108,8 @@ class SettingPersistor(object):
           break
         else:
           continue
-      except (_settingsources_errors.SettingSourceReadError,
-              _settingsources_errors.SettingSourceInvalidFormatError) as e:
+      except (_sources_errors.SettingSourceReadError,
+              _sources_errors.SettingSourceInvalidFormatError) as e:
         return cls._status(cls.READ_FAIL, str(e))
       else:
         break
@@ -156,7 +160,7 @@ class SettingPersistor(object):
     for source in setting_sources:
       try:
         source.write(settings)
-      except _settingsources_errors.SettingSourceError as e:
+      except _sources_errors.SettingSourceError as e:
         return cls._status(cls.WRITE_FAIL, str(e))
     
     for setting in settings:

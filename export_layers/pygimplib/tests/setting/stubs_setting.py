@@ -21,8 +21,8 @@ This module provides stubs primarily to be used in the `test_setting` module.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-from .. import setting as pgsetting
-from .. import settingpresenter as pgsettingpresenter
+from ...setting import presenter as settingpresenter
+from ...setting import settings as settings_
 
 
 class GuiWidgetStub(object):
@@ -53,7 +53,7 @@ class CheckButtonStub(GuiWidgetStub):
   pass
 
 
-class SettingPresenterStub(pgsettingpresenter.SettingPresenter):
+class SettingPresenterStub(settingpresenter.SettingPresenter):
   
   def get_sensitive(self):
     return self._element.sensitive
@@ -104,7 +104,7 @@ class YesNoToggleButtonPresenterStub(SettingPresenterStub):
   pass
 
 
-class SettingStub(pgsetting.Setting):
+class SettingStub(settings_.Setting):
   
   _DEFAULT_DEFAULT_VALUE = 0
   _EMPTY_VALUES = [""]
@@ -114,7 +114,7 @@ class SettingStub(pgsetting.Setting):
   
   def _validate(self, value):
     if value is None or value == "":
-      raise pgsetting.SettingValueError(self._error_messages["invalid_value"])
+      raise settings_.SettingValueError(self._error_messages["invalid_value"])
 
 
 class SettingStubWithCallableDefaultDefaultValue(SettingStub):
@@ -124,7 +124,7 @@ class SettingStubWithCallableDefaultDefaultValue(SettingStub):
 
 class SettingRegistrableToPdbStub(SettingStub):
 
-  _ALLOWED_PDB_TYPES = [pgsetting.SettingPdbTypes.string]
+  _ALLOWED_PDB_TYPES = [settings_.SettingPdbTypes.string]
 
 
 class SettingWithGuiStub(SettingStub):

@@ -19,33 +19,35 @@ from future.builtins import *
 
 import unittest
 
-from . import stubs_settinggroup
-from .. import constants as pgconstants
-from .. import setting as pgsetting
-from .. import settingpdb as pgsettingpdb
+from ... import constants as pgconstants
+
+from ...setting import settings as settings_
+from ...setting import pdbparams as settingpdbparams
+
+from . import stubs_group
 
 
 class TestCreateParams(unittest.TestCase):
   
   def setUp(self):
-    self.file_ext_setting = pgsetting.FileExtensionSetting(
+    self.file_ext_setting = settings_.FileExtensionSetting(
       "file_extension", default_value="png", display_name="File extension")
-    self.unregistrable_setting = pgsetting.IntSetting(
-      "num_exported_layers", default_value=0, pdb_type=pgsetting.SettingPdbTypes.none)
-    self.coordinates_setting = pgsetting.ArraySetting(
+    self.unregistrable_setting = settings_.IntSetting(
+      "num_exported_layers", default_value=0, pdb_type=settings_.SettingPdbTypes.none)
+    self.coordinates_setting = settings_.ArraySetting(
       "coordinates",
       default_value=(1.0, 5.0, 10.0),
-      element_type=pgsetting.SettingTypes.float,
+      element_type=settings_.SettingTypes.float,
       element_default_value=0.0)
     
-    self.settings = stubs_settinggroup.create_test_settings_hierarchical()
+    self.settings = stubs_group.create_test_settings_hierarchical()
   
   def test_create_params_single_param(self):
-    params = pgsettingpdb.create_params(self.file_ext_setting)
+    params = settingpdbparams.create_params(self.file_ext_setting)
     param = params[0]
     
     self.assertTrue(len(param), 3)
-    self.assertEqual(param[0], pgsetting.SettingPdbTypes.string)
+    self.assertEqual(param[0], settings_.SettingPdbTypes.string)
     self.assertEqual(
       param[1], "file-extension".encode(pgconstants.GIMP_CHARACTER_ENCODING))
     self.assertEqual(
@@ -53,10 +55,10 @@ class TestCreateParams(unittest.TestCase):
   
   def test_create_params_invalid_argument(self):
     with self.assertRaises(TypeError):
-      pgsettingpdb.create_params([self.file_ext_setting])
+      settingpdbparams.create_params([self.file_ext_setting])
   
   def test_create_multiple_params(self):
-    params = pgsettingpdb.create_params(
+    params = settingpdbparams.create_params(
       self.file_ext_setting, self.coordinates_setting, self.settings)
     
     self.assertTrue(len(params), 3 + len(self.settings))
@@ -68,7 +70,7 @@ class TestCreateParams(unittest.TestCase):
        self.file_ext_setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING)))
     
     # Array length parameter
-    self.assertEqual(params[1][0], pgsetting.SettingPdbTypes.int32)
+    self.assertEqual(params[1][0], settings_.SettingPdbTypes.int32)
     
     self.assertEqual(
       params[2],
@@ -84,53 +86,53 @@ class TestCreateParams(unittest.TestCase):
          setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING)))
   
   def test_create_params_with_unregistrable_setting(self):
-    params = pgsettingpdb.create_params(self.unregistrable_setting)
+    params = settingpdbparams.create_params(self.unregistrable_setting)
     self.assertEqual(params, [])
 
 
 class TestIterArgs(unittest.TestCase):
   
   def setUp(self):
-    self.settings = stubs_settinggroup.create_test_settings_hierarchical()
+    self.settings = stubs_group.create_test_settings_hierarchical()
     self.args = ["png", False, "replace"]
   
   def test_iter_args_number_of_args_equals_number_of_settings(self):
     self.assertListEqual(
-      list(pgsettingpdb.iter_args(self.args, list(self.settings.walk()))),
+      list(settingpdbparams.iter_args(self.args, list(self.settings.walk()))),
       self.args)
   
   def test_iter_args_number_of_args_is_less_than_number_of_settings(self):
     self.assertListEqual(
-      list(pgsettingpdb.iter_args(self.args[:-1], list(self.settings.walk()))),
+      list(settingpdbparams.iter_args(self.args[:-1], list(self.settings.walk()))),
       self.args[:-1])
   
   def test_iter_args_number_of_args_is_more_than_number_of_settings(self):
     self.assertListEqual(
-      list(pgsettingpdb.iter_args(self.args, list(self.settings.walk())[:-1])),
+      list(settingpdbparams.iter_args(self.args, list(self.settings.walk())[:-1])),
       self.args[:-1])
   
   def test_iter_args_with_array_setting(self):
-    coordinates_setting = pgsetting.ArraySetting(
+    coordinates_setting = settings_.ArraySetting(
       "coordinates",
       default_value=(1.0, 5.0, 10.0),
-      element_type=pgsetting.SettingTypes.float,
+      element_type=settings_.SettingTypes.float,
       element_default_value=0.0)
     
     self.settings.add([coordinates_setting])
     self.args.extend([3, (20.0, 50.0, 40.0)])
     
     self.assertListEqual(
-      list(pgsettingpdb.iter_args(self.args, list(self.settings.walk()))),
+      list(settingpdbparams.iter_args(self.args, list(self.settings.walk()))),
       self.args[:-2] + [self.args[-1]])
 
 
 class TestListParamValues(unittest.TestCase):
   
   def setUp(self):
-    self.settings = stubs_settinggroup.create_test_settings_hierarchical()
+    self.settings = stubs_group.create_test_settings_hierarchical()
   
   def test_list_param_values(self):
-    param_values = pgsettingpdb.list_param_values([self.settings])
+    param_values = settingpdbparams.list_param_values([self.settings])
     self.assertEqual(
       param_values[0], self.settings["main/file_extension"].value)
     self.assertEqual(
@@ -139,6 +141,6 @@ class TestListParamValues(unittest.TestCase):
       param_values[2], self.settings["advanced/overwrite_mode"].value)
 
   def test_list_param_values_ignore_run_mode(self):
-    param_values = pgsettingpdb.list_param_values(
-      [pgsetting.IntSetting("run_mode", 0), self.settings])
+    param_values = settingpdbparams.list_param_values(
+      [settings_.IntSetting("run_mode", 0), self.settings])
     self.assertEqual(len(param_values), len(list(self.settings.walk())))

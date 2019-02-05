@@ -127,7 +127,7 @@ def _run_noninteractive(layer_tree, args):
     setting for setting in SETTINGS["main"].walk()
     if setting.can_be_registered_to_pdb()]
   
-  for setting, arg in zip(main_settings, pg.settingpdb.iter_args(args, main_settings)):
+  for setting, arg in zip(main_settings, pg.setting.iter_args(args, main_settings)):
     setting.set_value(arg)
   
   _run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, layer_tree)

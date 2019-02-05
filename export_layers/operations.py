@@ -165,14 +165,14 @@ def create(name, initial_operations=None):
   * `ValueError` - invalid `"type"` or missing required fields in
     `initial_operations`.
   """
-  operations = pg.settinggroup.SettingGroup(
+  operations = pg.setting.SettingGroup(
     name=name,
     setting_attributes={
       "pdb_type": None,
       "setting_sources": None,
     })
   
-  added_operations = pg.settinggroup.SettingGroup(
+  added_operations = pg.setting.SettingGroup(
     name="added",
     setting_attributes={
       "pdb_type": None,
@@ -290,7 +290,7 @@ def _create_procedure(
       gui_type=pg.setting.SettingGuiTypes.check_button_label,
       gui_element=setting_enabled.gui.element)
   
-  operation = pg.settinggroup.SettingGroup(
+  operation = pg.setting.SettingGroup(
     name,
     tags=["operation", "procedure"],
     setting_attributes={
@@ -298,7 +298,7 @@ def _create_procedure(
       "setting_sources": None,
     })
   
-  arguments_group = pg.settinggroup.SettingGroup(
+  arguments_group = pg.setting.SettingGroup(
     "arguments",
     setting_attributes={
       "pdb_type": None,

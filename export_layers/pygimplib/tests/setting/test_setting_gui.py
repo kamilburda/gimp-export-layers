@@ -31,9 +31,10 @@ from gimp import pdb
 import gimpcolor
 import gimpenums
 
-from .. import constants as pgconstants
-from .. import gui as pggui
-from .. import setting as pgsetting
+from ... import constants as pgconstants
+from ... import gui as pggui
+
+from ...setting import settings as settings_
 
 
 def test_basic_settings_and_gui():
@@ -137,19 +138,19 @@ def _get_basic_settings():
   return [
     {
       "name": "integer",
-      "type": pgsetting.SettingTypes.integer,
+      "type": settings_.SettingTypes.integer,
     },
     {
       "name": "float",
-      "type": pgsetting.SettingTypes.float,
+      "type": settings_.SettingTypes.float,
     },
     {
       "name": "boolean",
-      "type": pgsetting.SettingTypes.boolean,
+      "type": settings_.SettingTypes.boolean,
     },
     {
      "name": "enumerated",
-     "type": pgsetting.SettingTypes.enumerated,
+     "type": settings_.SettingTypes.enumerated,
      "items": [("interactive", "RUN-INTERACTIVE"),
       ("non_interactive", "RUN-NONINTERACTIVE"),
       ("run_with_last_vals", "RUN-WITH-LAST-VALS")],
@@ -157,93 +158,93 @@ def _get_basic_settings():
     },
     {
       "name": "string",
-      "type": pgsetting.SettingTypes.string,
+      "type": settings_.SettingTypes.string,
       "default_value": "Test",
     },
     
     {
       "name": "image",
-      "type": pgsetting.SettingTypes.image,
+      "type": settings_.SettingTypes.image,
       "default_value": image,
     },
     {
       "name": "item",
-      "type": pgsetting.SettingTypes.item,
+      "type": settings_.SettingTypes.item,
       "default_value": image.layers[0],
     },
     {
       "name": "drawable",
-      "type": pgsetting.SettingTypes.drawable,
+      "type": settings_.SettingTypes.drawable,
       "default_value": image.layers[0],
     },
     {
       "name": "layer",
-      "type": pgsetting.SettingTypes.layer,
+      "type": settings_.SettingTypes.layer,
       "default_value": image.layers[0],
     },
     {
       "name": "channel",
-      "type": pgsetting.SettingTypes.channel,
+      "type": settings_.SettingTypes.channel,
       "default_value": image.channels[0],
     },
     {
       "name": "selection",
-      "type": pgsetting.SettingTypes.selection,
+      "type": settings_.SettingTypes.selection,
       "default_value": pdb.gimp_image_get_selection(image),
     },
     {
       "name": "vectors",
-      "type": pgsetting.SettingTypes.vectors,
+      "type": settings_.SettingTypes.vectors,
       "default_value": image.vectors[0],
     },
     
     {
       "name": "color",
-      "type": pgsetting.SettingTypes.color,
+      "type": settings_.SettingTypes.color,
     },
     {
       "name": "parasite",
-      "type": pgsetting.SettingTypes.parasite,
+      "type": settings_.SettingTypes.parasite,
     },
     {
       "name": "display",
-      "type": pgsetting.SettingTypes.display,
+      "type": settings_.SettingTypes.display,
       "default_value": gimp.Display(image),
     },
     {
       "name": "pdb_status",
-      "type": pgsetting.SettingTypes.pdb_status,
+      "type": settings_.SettingTypes.pdb_status,
     },
     
     {
       "name": "file_extension",
-      "type": pgsetting.SettingTypes.file_extension,
+      "type": settings_.SettingTypes.file_extension,
       "default_value": "png",
     },
     {
       "name": "directory",
-      "type": pgsetting.SettingTypes.directory,
+      "type": settings_.SettingTypes.directory,
     },
     
     {
       "name": "brush",
-      "type": pgsetting.SettingTypes.brush,
+      "type": settings_.SettingTypes.brush,
     },
     {
       "name": "font",
-      "type": pgsetting.SettingTypes.font,
+      "type": settings_.SettingTypes.font,
     },
     {
       "name": "gradient",
-      "type": pgsetting.SettingTypes.gradient,
+      "type": settings_.SettingTypes.gradient,
     },
     {
       "name": "palette",
-      "type": pgsetting.SettingTypes.palette,
+      "type": settings_.SettingTypes.palette,
     },
     {
       "name": "pattern",
-      "type": pgsetting.SettingTypes.pattern,
+      "type": settings_.SettingTypes.pattern,
     },
   ]
 
@@ -251,35 +252,35 @@ def _get_basic_settings():
 def _get_array_settings():
   return [
     {
-     "type": pgsetting.SettingTypes.array,
+     "type": settings_.SettingTypes.array,
      "name": "array_of_booleans",
      "default_value": (True, False, True),
-     "element_type": pgsetting.SettingTypes.boolean,
+     "element_type": settings_.SettingTypes.boolean,
      "element_default_value": True,
      "min_size": 3,
      "max_size": 10,
     },
     
     {
-     "type": pgsetting.SettingTypes.array,
+     "type": settings_.SettingTypes.array,
      "name": "array_of_floats",
      "default_value": (5.0, 10.0, 30.0),
-     "element_type": pgsetting.SettingTypes.float,
+     "element_type": settings_.SettingTypes.float,
      "element_default_value": 1.0,
      "min_size": 3,
      "max_size": 10,
     },
     
     {
-     "type": pgsetting.SettingTypes.array,
+     "type": settings_.SettingTypes.array,
      "name": "2D_array_of_floats",
      "display_name": "2D array of floats",
      "default_value": ((1.0, 5.0, 10.0), (2.0, 15.0, 25.0), (-5.0, 10.0, 40.0)),
-     "element_type": pgsetting.SettingTypes.array,
+     "element_type": settings_.SettingTypes.array,
      "element_default_value": (0.0, 0.0, 0.0),
      "min_size": 3,
      "max_size": 10,
-     "element_element_type": pgsetting.SettingTypes.float,
+     "element_element_type": settings_.SettingTypes.float,
      "element_element_default_value": 1.0,
      "element_min_size": 1,
      "element_max_size": 3,
@@ -301,7 +302,7 @@ def _on_reset_button_clicked(button, settings):
 
 
 def _set_setting_value_label(setting, setting_value_label):
-  if isinstance(setting, pgsetting.ParasiteSetting):
+  if isinstance(setting, settings_.ParasiteSetting):
     setting_value_str = "'{}', {}, '{}'".format(
       setting.value.name,
       setting.value.flags,
@@ -349,7 +350,7 @@ def _create_test_image():
 
 
 def _display_message_on_setting_value_error(exc_type, exc_value, exc_traceback):
-  if issubclass(exc_type, pgsetting.SettingValueError):
+  if issubclass(exc_type, settings_.SettingValueError):
     gimp.message(str(exc_value).encode(pgconstants.GIMP_CHARACTER_ENCODING))
     return True
   else:

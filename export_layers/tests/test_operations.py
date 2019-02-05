@@ -550,10 +550,10 @@ class TestWalkOperations(unittest.TestCase):
 
 
 @mock.patch(
-  pg.PYGIMPLIB_MODULE_PATH + ".settingsources.gimpshelf.shelf",
+  pg.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimpshelf.shelf",
   new_callable=stubs_gimp.ShelfStub)
 @mock.patch(
-  pg.PYGIMPLIB_MODULE_PATH + ".settingsources.gimp",
+  pg.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimp",
   new_callable=stubs_gimp.GimpModuleStub)
 class TestLoadSaveOperations(unittest.TestCase):
   
@@ -562,11 +562,11 @@ class TestLoadSaveOperations(unittest.TestCase):
     self.procedures = operations.create("procedures")
   
   @mock.patch(
-    pg.PYGIMPLIB_MODULE_PATH + ".settingpersistor.SettingPersistor.save",
-    return_value=(pg.settingpersistor.SettingPersistor.SUCCESS, ""))
+    pg.PYGIMPLIB_MODULE_PATH + ".setting.persistor.SettingPersistor.save",
+    return_value=(pg.setting.SettingPersistor.SUCCESS, ""))
   @mock.patch(
-    pg.PYGIMPLIB_MODULE_PATH + ".settingpersistor.SettingPersistor.load",
-    return_value=(pg.settingpersistor.SettingPersistor.SUCCESS, ""))
+    pg.PYGIMPLIB_MODULE_PATH + ".setting.persistor.SettingPersistor.load",
+    return_value=(pg.setting.SettingPersistor.SUCCESS, ""))
   def test_save_load_affects_only_added_data(
         self, mock_load, mock_save, mock_persistent_source, mock_session_source):
     self.procedures.save()
@@ -765,10 +765,10 @@ class TestManagePdbProceduresAsOperations(unittest.TestCase):
     self.assertEqual(operation["arguments/num-save-options"].value, 0)
   
   @mock.patch(
-    pg.PYGIMPLIB_MODULE_PATH + ".settingsources.gimpshelf.shelf",
+    pg.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimpshelf.shelf",
     new_callable=stubs_gimp.ShelfStub)
   @mock.patch(
-    pg.PYGIMPLIB_MODULE_PATH + ".settingsources.gimp",
+    pg.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimp",
     new_callable=stubs_gimp.GimpModuleStub)
   def test_load_save_pdb_procedure_as_operation(
         self, mock_persistent_source, mock_session_source):

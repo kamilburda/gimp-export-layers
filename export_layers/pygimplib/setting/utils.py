@@ -15,7 +15,8 @@
 # limitations under the License.
 
 """
-This module contains helper classes and functions for `pgsetting*` modules.
+This module contains helper classes and functions for modules in the `setting`
+package.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -23,6 +24,20 @@ from future.builtins import *
 
 import collections
 import itertools
+
+__all__ = [
+  "SettingParentMixin",
+  "SettingEventsMixin",
+  "get_pdb_name",
+  "get_setting_name",
+  "value_to_str_prefix",
+  "get_processed_display_name",
+  "generate_display_name",
+  "get_processed_description",
+  "generate_description",
+  "get_setting_path",
+  "check_setting_name",
+]
 
 
 SETTING_PATH_SEPARATOR = "/"

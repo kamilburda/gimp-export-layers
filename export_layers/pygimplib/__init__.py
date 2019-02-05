@@ -94,13 +94,6 @@ if _gimp_dependent_modules_imported:
   from . import pdbutils
   from . import progress
   from . import setting
-  from . import settinggroup
-  from . import settingpdb
-  from . import settingpersistor
-  from . import settingpresenter
-  from . import settingpresenters_gtk
-  from . import settingsources
-  from . import settingutils
 
 __all__ = [
   # Modules
@@ -126,13 +119,6 @@ if _gimp_dependent_modules_imported:
     "pdb",
     "progress",
     "setting",
-    "settinggroup",
-    "settingpdb",
-    "settingpersistor",
-    "settingpresenter",
-    "settingpresenters_gtk",
-    "settingsources",
-    "settingutils",
     # Global elements defined in this module
     "procedure",
     "main",
@@ -238,9 +224,9 @@ def _init_config_builtin(config):
 
 def _init_config_builtin_delayed(config):
   if _gimp_dependent_modules_imported:
-    config.SOURCE_SESSION = settingsources.SessionWideSettingSource(
+    config.SOURCE_SESSION = setting.SessionWideSettingSource(
       config.SOURCE_SESSION_NAME)
-    config.SOURCE_PERSISTENT = settingsources.PersistentSettingSource(
+    config.SOURCE_PERSISTENT = setting.PersistentSettingSource(
       config.SOURCE_PERSISTENT_NAME)
 
 
@@ -361,9 +347,9 @@ if _gimp_dependent_modules_imported:
       
       if params:
         has_settings = isinstance(
-          params[0], (setting.Setting, settinggroup.SettingGroup))
+          params[0], (setting.Setting, setting.SettingGroup))
         if has_settings:
-          pdb_params = settingpdb.create_params(*params)
+          pdb_params = setting.create_params(*params)
         else:
           pdb_params = params
       

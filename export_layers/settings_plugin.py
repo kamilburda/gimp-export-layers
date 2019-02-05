@@ -39,7 +39,7 @@ from export_layers.gui import settings_gui
 
 
 def create_settings():
-  settings = pg.settinggroup.create_groups({
+  settings = pg.setting.create_groups({
     "name": "all_settings",
     "groups": [
       {

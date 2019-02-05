@@ -15,8 +15,7 @@
 # limitations under the License.
 
 """
-This module defines exceptions used in `pgsettingsources` and
-`pgsettingpersistor` modules.
+This module defines exceptions used in `sources` and `persistor` modules.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

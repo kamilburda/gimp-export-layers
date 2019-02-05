@@ -347,7 +347,7 @@ class ExportLayersGui(object):
     self._settings["main/constraints"].tags.add("ignore_load")
     
     status, status_message = self._settings.load()
-    if status == pg.settingpersistor.SettingPersistor.READ_FAIL:
+    if status == pg.setting.SettingPersistor.READ_FAIL:
       messages.display_message(status_message, gtk.MESSAGE_WARNING)
     
     # Needs to be string to avoid strict directory validation
@@ -674,7 +674,7 @@ class ExportLayersGui(object):
   
   def _save_settings(self):
     status, status_message = self._settings.save()
-    if status == pg.settingpersistor.SettingPersistor.WRITE_FAIL:
+    if status == pg.setting.SettingPersistor.WRITE_FAIL:
       messages.display_message(status_message, gtk.MESSAGE_WARNING, parent=self._dialog)
       return False
     else:

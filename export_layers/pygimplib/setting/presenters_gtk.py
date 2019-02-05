@@ -31,13 +31,47 @@ import gtk
 import gimp
 import gimpui
 
-from . import constants as pgconstants
-from . import gui as pggui
-from . import settingpresenter as pgsettingpresenter
+from .. import constants as pgconstants
+from .. import gui as pggui
+
+from . import presenter as settingpresenter
+
+__all__ = [
+  "GtkSettingPresenter",
+  "GtkIntSpinButtonPresenter",
+  "GtkFloatSpinButtonPresenter",
+  "GtkCheckButtonPresenter",
+  "GtkCheckButtonLabelPresenter",
+  "GtkCheckMenuItemPresenter",
+  "GimpUiIntComboBoxPresenter",
+  "GtkEntryPresenter",
+  "GimpUiImageComboBoxPresenter",
+  "GimpItemComboBoxPresenter",
+  "GimpUiDrawableComboBoxPresenter",
+  "GimpUiLayerComboBoxPresenter",
+  "GimpUiChannelComboBoxPresenter",
+  "GimpUiVectorsComboBoxPresenter",
+  "GimpUiColorButtonPresenter",
+  "ParasiteBoxPresenter",
+  "GtkDisplaySpinButtonPresenter",
+  "ExtendedEntryPresenter",
+  "GtkFolderChooserPresenter",
+  "GimpUiBrushSelectButtonPresenter",
+  "GimpUiFontSelectButtonPresenter",
+  "GimpUiGradientSelectButtonPresenter",
+  "GimpUiPaletteSelectButtonPresenter",
+  "GimpUiPatternSelectButtonPresenter",
+  "ArrayBoxPresenter",
+  "GtkWindowPositionPresenter",
+  "GtkWindowSizePresenter",
+  "GtkExpanderPresenter",
+  "GtkPanedPositionPresenter",
+  "SettingGuiTypes",
+]
 
 
 class GtkSettingPresenter(
-        future.utils.with_metaclass(abc.ABCMeta, pgsettingpresenter.SettingPresenter)):
+        future.utils.with_metaclass(abc.ABCMeta, settingpresenter.SettingPresenter)):
   """
   This class is a `SettingPresenter` subclass for GTK GUI elements.
   """
@@ -828,4 +862,4 @@ class SettingGuiTypes(object):
   paned_position = GtkPanedPositionPresenter
   
   automatic = "automatic"
-  none = pgsettingpresenter.NullSettingPresenter
+  none = settingpresenter.NullSettingPresenter

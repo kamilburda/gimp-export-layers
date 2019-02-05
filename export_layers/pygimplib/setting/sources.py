@@ -37,10 +37,17 @@ import gimp
 import gimpenums
 import gimpshelf
 
-from . import constants as pgconstants
-from . import setting as pgsetting
+from .. import constants as pgconstants
 
-from ._settingsources_errors import *
+from . import settings as settings_
+
+from ._sources_errors import *
+
+__all__ = [
+  "SettingSource",
+  "SessionWideSettingSource",
+  "PersistentSettingSource",
+]
 
 
 class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
@@ -92,7 +99,7 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
       else:
         try:
           setting.set_value(value)
-        except pgsetting.SettingValueError:
+        except settings_.SettingValueError:
           setting.reset()
     
     if settings_not_found:
