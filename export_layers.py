@@ -157,6 +157,5 @@ def _run_plugin_noninteractive(run_mode, layer_tree):
     pass
 
 
-#===============================================================================
-
-pg.main()
+if __name__ == "__main__":
+  pg.main()
