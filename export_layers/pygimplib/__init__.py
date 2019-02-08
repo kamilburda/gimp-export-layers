@@ -95,6 +95,7 @@ if _gimp_dependent_modules_imported:
   from . import progress
   from . import setting
   
+  from gimp import pdb
   from .setting import SettingTypes
 
 __all__ = [
@@ -118,13 +119,14 @@ if _gimp_dependent_modules_imported:
     "operations",
     "overwrite",
     "path",
-    "pdb",
+    "pdbutils",
     "progress",
     "setting",
     # Global elements imported to or defined in this module
-    "SettingTypes",
+    "pdb",
     "procedure",
     "main",
+    "SettingTypes",
   ])
 
 
