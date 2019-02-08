@@ -28,15 +28,15 @@ import abc
 from .. import utils as pgutils
 
 __all__ = [
-  "SettingPresenter",
-  "NullSettingPresenter",
+  "Presenter",
+  "NullPresenter",
 ]
 
 
 class SettingValueSynchronizer(object):
   """
-  This class allows the `Setting` and `SettingPresenter` classes to keep the
-  `Setting` and `SettingPresenter` values in sync.
+  This class allows the `Setting` and `Presenter` classes to keep the values of
+  `Setting` and `Presenter` instances in sync.
   """
   
   def __init__(self):
@@ -44,7 +44,7 @@ class SettingValueSynchronizer(object):
     self.apply_gui_value_to_setting = pgutils.empty_func
 
 
-class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
+class Presenter(future.utils.with_metaclass(abc.ABCMeta, object)):
   """
   This class wraps a GUI element (widget, dialog, etc.).
   
@@ -76,7 +76,7 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
         setting,
         element=None,
         setting_value_synchronizer=None,
-        old_setting_presenter=None,
+        old_presenter=None,
         auto_update_gui_to_setting=True):
     """
     Parameters:
@@ -84,27 +84,25 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     * `element` - A GUI element.
       
       If `element` is `None`, create a new GUI element automatically. If the
-      specific `SettingPresenter` class does not support creating a GUI element,
-      pass an existing GUI element.
+      specific `Presenter` class does not support creating a GUI element, pass
+      an existing GUI element.
     
     * `setting_value_synchronizer` - `SettingValueSynchronizer` instance to
       synchronize values between `setting` and this object.
     
-    * `old_setting_presenter` - `SettingPresenter` object that was previously
-      assigned to `setting` (as the `setting.gui` attribute). The state
-      from that `SettingPresenter` object will be copied to this object. If
-      `old_setting_presenter` is `None`, only `setting.value` will be copied to
-      this object.
+    * `old_presenter` - `Presenter` object that was previously assigned to
+      `setting` (as the `setting.gui` attribute). The state from that
+      `Presenter` object will be copied to this object. If `old_presenter` is
+      `None`, only `setting.value` will be copied to this object.
     
     * `auto_update_gui_to_setting` - If `True`, automatically update the setting
       value if the GUI value is updated. This parameter does not have any effect
       if:
         
-        * the `SettingPresenter` class cannot provide automatic GUI-to-setting
-          update,
+        * the `Presenter` class cannot provide automatic GUI-to-setting update,
         
-        * `old_setting_presenter` is not `None` and the automatic GUI-to-setting
-          update was disabled in that presenter.
+        * `old_presenter` is not `None` and the automatic GUI-to-setting update
+          was disabled in that presenter.
     """
     self._setting = setting
     self._element = element
@@ -127,8 +125,8 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
           "and this class does not support the creation of a GUI element".format(
             type(self).__name__))
     
-    if old_setting_presenter is not None:
-      self._copy_state(old_setting_presenter)
+    if old_presenter is not None:
+      self._copy_state(old_presenter)
     else:
       self._setting_value_synchronizer.apply_setting_value_to_gui(self._setting.value)
     
@@ -192,8 +190,8 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     Enable or disable automatic GUI update.
     
-    If `value` is `True` and the `SettingPresenter` class does not support
-    automatic GUI update, `ValueError` is raised.
+    If `value` is `True` and the `Presenter` class does not support automatic
+    GUI update, `ValueError` is raised.
     """
     if enabled and self._VALUE_CHANGED_SIGNAL is None:
       raise ValueError(
@@ -211,7 +209,7 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     Instantiate and return a new GUI element using the attributes in the
     specified `Setting` instance (e.g. display name as GUI label).
     
-    Return None if the `SettingPresenter` subclass does not support GUI element
+    Return None if the `Presenter` subclass does not support GUI element
     creation.
     """
     return None
@@ -234,12 +232,12 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     pass
   
-  def _copy_state(self, old_setting_presenter):
-    self._set_value(old_setting_presenter._get_value())
-    self.set_sensitive(old_setting_presenter.get_sensitive())
-    self.set_visible(old_setting_presenter.get_visible())
+  def _copy_state(self, old_presenter):
+    self._set_value(old_presenter._get_value())
+    self.set_sensitive(old_presenter.get_sensitive())
+    self.set_visible(old_presenter.get_visible())
     
-    if not old_setting_presenter.gui_update_enabled:
+    if not old_presenter.gui_update_enabled:
       self._value_changed_signal = None
   
   def _update_setting_value(self):
@@ -285,19 +283,18 @@ class SettingPresenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     self._set_value(value)
 
 
-class NullSettingPresenter(SettingPresenter):
+class NullPresenter(Presenter):
   """
-  This class acts as an empty `SettingPresenter` object whose methods do nothing.
+  This class acts as an empty `Presenter` object whose methods do nothing.
   
-  This class is attached to `Setting` objects with no `SettingPresenter` object
+  This class is attached to `Setting` objects with no `Presenter` object
   specified upon its instantiation.
   
-  This class also records the GUI state. In case a proper `SettingPresenter`
-  object is assigned to the setting, the GUI state is copied over to the new
-  object.
+  This class also records the GUI state. In case a proper `Presenter` instance
+  is assigned to the setting, the GUI state is copied over to the new instance.
   """
   
-  # Make `NullSettingPresenter` pretend to update GUI automatically.
+  # Make `NullPresenter` pretend to update GUI automatically.
   _VALUE_CHANGED_SIGNAL = "null_signal"
   _NULL_GUI_ELEMENT = type(b"NullGuiElement", (), {})()
   

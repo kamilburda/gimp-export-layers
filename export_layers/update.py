@@ -67,12 +67,12 @@ def update(settings, prompt_on_clear=False):
     _save_plugin_version(settings)
     return FRESH_START
   
-  status, unused_ = pg.setting.SettingPersistor.load(
-    [settings["main/plugin_version"]], [pg.config.SOURCE_PERSISTENT])
+  status, unused_ = pg.setting.Persistor.load(
+    [settings["main/plugin_version"]], [pg.config.PERSISTENT_SOURCE])
   
   previous_version = pg.version.Version.parse(settings["main/plugin_version"].value)
   
-  if (status == pg.setting.SettingPersistor.SUCCESS
+  if (status == pg.setting.Persistor.SUCCESS
       and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
     _save_plugin_version(settings)
     
@@ -99,8 +99,7 @@ def update(settings, prompt_on_clear=False):
 
 
 def clear_setting_sources(settings):
-  pg.setting.SettingPersistor.clear(
-    [pg.config.SOURCE_SESSION, pg.config.SOURCE_PERSISTENT])
+  pg.setting.Persistor.clear([pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE])
   
   _save_plugin_version(settings)
 
@@ -112,7 +111,7 @@ def handle_update(settings, update_handlers, previous_version, current_version):
 
 
 def rename_settings(settings_to_rename):
-  for source in [pg.config.SOURCE_SESSION, pg.config.SOURCE_PERSISTENT]:
+  for source in [pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]:
     data_dict = source.read_dict()
     
     if data_dict:
@@ -171,13 +170,13 @@ def replace_field_arguments_in_pattern(
 
 
 def _is_fresh_start():
-  return not pg.config.SOURCE_PERSISTENT.has_data()
+  return not pg.config.PERSISTENT_SOURCE.has_data()
 
 
 def _save_plugin_version(settings):
   settings["main/plugin_version"].reset()
-  pg.setting.SettingPersistor.save(
-    [settings["main/plugin_version"]], [pg.config.SOURCE_PERSISTENT])
+  pg.setting.Persistor.save(
+    [settings["main/plugin_version"]], [pg.config.PERSISTENT_SOURCE])
 
 
 def _update_to_3_3_1(settings):

@@ -15,27 +15,28 @@
 # limitations under the License.
 
 """
-This module defines exceptions used in `sources` and `persistor` modules.
+This module defines exceptions used in `setting.sources` and `setting.persistor`
+modules.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
 __all__ = [
-  "SettingSourceError",
+  "SourceError",
   "SettingsNotFoundInSourceError",
-  "SettingSourceNotFoundError",
-  "SettingSourceReadError",
-  "SettingSourceInvalidFormatError",
-  "SettingSourceWriteError",
+  "SourceNotFoundError",
+  "SourceReadError",
+  "SourceInvalidFormatError",
+  "SourceWriteError",
 ]
 
 
-class SettingSourceError(Exception):
+class SourceError(Exception):
   pass
 
 
-class SettingsNotFoundInSourceError(SettingSourceError):
+class SettingsNotFoundInSourceError(SourceError):
   
   def __init__(self, message, settings_not_found=None):
     super().__init__(message)
@@ -43,17 +44,17 @@ class SettingsNotFoundInSourceError(SettingSourceError):
     self.settings_not_found = settings_not_found if settings_not_found is not None else []
 
 
-class SettingSourceNotFoundError(SettingSourceError):
+class SourceNotFoundError(SourceError):
   pass
 
 
-class SettingSourceReadError(SettingSourceError):
+class SourceReadError(SourceError):
   pass
 
 
-class SettingSourceInvalidFormatError(SettingSourceError):
+class SourceInvalidFormatError(SourceError):
   pass
 
 
-class SettingSourceWriteError(SettingSourceError):
+class SourceWriteError(SourceError):
   pass

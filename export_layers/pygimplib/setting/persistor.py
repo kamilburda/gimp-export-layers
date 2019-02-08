@@ -27,14 +27,14 @@ import collections
 from . import _sources_errors
 
 __all__ = [
-  "SettingPersistor",
+  "Persistor",
 ]
 
 
-class SettingPersistor(object):
+class Persistor(object):
   """
   This class:
-  * serves as a wrapper for `SettingSource` classes
+  * serves as a wrapper for `Source` classes
   * reads settings from multiple setting sources
   * write settings to multiple setting sources
   """
@@ -61,10 +61,10 @@ class SettingPersistor(object):
     
     Parameters:
     
-    * `settings_or_groups` - list of `Setting` or `SettingGroup` objects whose
-      values are loaded from `setting_sources`.
+    * `settings_or_groups` - List of `Setting` or `Group` instances whose values
+      are loaded from `setting_sources`.
     
-    * `setting_sources` - list of `SettingSource` instances to read from.
+    * `setting_sources` - List of `Source` instances to read from.
     
     Returns:
     
@@ -98,7 +98,7 @@ class SettingPersistor(object):
       try:
         source.read(settings)
       except (_sources_errors.SettingsNotFoundInSourceError,
-              _sources_errors.SettingSourceNotFoundError) as e:
+              _sources_errors.SourceNotFoundError) as e:
         if isinstance(e, _sources_errors.SettingsNotFoundInSourceError):
           settings = e.settings_not_found
         
@@ -108,8 +108,8 @@ class SettingPersistor(object):
           break
         else:
           continue
-      except (_sources_errors.SettingSourceReadError,
-              _sources_errors.SettingSourceInvalidFormatError) as e:
+      except (_sources_errors.SourceReadError,
+              _sources_errors.SourceInvalidFormatError) as e:
         return cls._status(cls.READ_FAIL, str(e))
       else:
         break
@@ -131,10 +131,10 @@ class SettingPersistor(object):
     
     Parameters:
     
-    * `settings_or_groups` - list of `Setting` or `SettingGroup` objects whose
-      values are saved to `setting_sources`.
+    * `settings_or_groups` - List of `Setting` or `Group` instances whose values
+      are saved to `setting_sources`.
     
-    * `setting_sources` - list of `SettingSource` instances to write to.
+    * `setting_sources` - List of `Source` instances to write to.
     
     Returns:
     
@@ -160,7 +160,7 @@ class SettingPersistor(object):
     for source in setting_sources:
       try:
         source.write(settings)
-      except _sources_errors.SettingSourceError as e:
+      except _sources_errors.SourceError as e:
         return cls._status(cls.WRITE_FAIL, str(e))
     
     for setting in settings:

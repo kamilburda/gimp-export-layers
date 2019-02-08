@@ -193,8 +193,8 @@ def _init_config_builtin(config):
     else:
       return "plug_in_" + config.PLUGIN_NAME
   
-  config.SOURCE_SESSION_NAME = _get_setting_source_name()
-  config.SOURCE_PERSISTENT_NAME = _get_setting_source_name()
+  config.SESSION_SOURCE_NAME = _get_setting_source_name()
+  config.PERSISTENT_SOURCE_NAME = _get_setting_source_name()
   
   config.DEFAULT_LOGS_DIRPATH = os.path.dirname(_PYGIMPLIB_DIRPATH)
   
@@ -220,10 +220,8 @@ def _init_config_builtin(config):
 
 def _init_config_builtin_delayed(config):
   if _gimp_dependent_modules_imported:
-    config.SOURCE_SESSION = setting.SessionWideSettingSource(
-      config.SOURCE_SESSION_NAME)
-    config.SOURCE_PERSISTENT = setting.PersistentSettingSource(
-      config.SOURCE_PERSISTENT_NAME)
+    config.SESSION_SOURCE = setting.SessionSource(config.SESSION_SOURCE_NAME)
+    config.PERSISTENT_SOURCE = setting.PersistentSource(config.PERSISTENT_SOURCE_NAME)
 
 
 _init_config()
@@ -286,8 +284,8 @@ if _gimp_dependent_modules_imported:
       indexed). By default, the procedure can be run for images of any type.
     
     * `parameters` - procedure parameters. This is a list of tuples of three
-      elements: `(PDB type, name, description)`. Alternatively, you may pass
-      a `SettingGroup` instance or a list of `SettingGroup` instances containing
+      elements: `(PDB type, name, description)`. Alternatively, you may pass a
+      `setting.Group` instance or a list of `setting.Group` instances containing
       plug-in settings.
     
     * `return_values` - return values of the procedure, usable when calling the
@@ -343,7 +341,7 @@ if _gimp_dependent_modules_imported:
       
       if params:
         has_settings = isinstance(
-          params[0], (setting.Setting, setting.SettingGroup))
+          params[0], (setting.Setting, setting.Group))
         if has_settings:
           pdb_params = setting.create_params(*params)
         else:

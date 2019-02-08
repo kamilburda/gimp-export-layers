@@ -28,27 +28,27 @@ import inspect
 
 from .. import utils as pgutils
 
+from . import persistor as persistor_
 from . import settings as settings_
-from . import persistor as settingpersistor
-from . import utils as settingutils
+from . import utils as utils_
 
 __all__ = [
   "create_groups",
-  "SettingGroup",
-  "SettingGroupWalkCallbacks",
+  "Group",
+  "GroupWalkCallbacks",
 ]
 
 
 def create_groups(setting_dict):
   """
-  Create a hierarchy of setting groups (`SettingGroup` instances) from a
-  dictionary containing attributes for the groups. This function simplifies
-  adding setting groups (via `SettingGroup.add`).
+  Create a hierarchy of setting groups (`Group` instances) from a dictionary
+  containing attributes for the groups. This function simplifies adding setting
+  groups (via `Group.add`).
   
   Groups are specified under the `"groups"` key as a list of dictionaries.
   
-  Only `"groups"` and the names of parameters for `SettingGroup.__init__` are
-  valid keys for `setting_dict`. Other keys raise `TypeError`.
+  Only `"groups"` and the names of parameters for `Group.__init__` are valid
+  keys for `setting_dict`. Other keys raise `TypeError`.
   
   Example:
     settings = create_groups({
@@ -64,21 +64,21 @@ def create_groups(setting_dict):
     })
   """
   
-  setting_group_dicts = setting_dict.pop("groups", None)
+  group_dicts = setting_dict.pop("groups", None)
   
-  if setting_group_dicts is None:
-    setting_group_dicts = []
+  if group_dicts is None:
+    group_dicts = []
   
-  setting_group = SettingGroup(**setting_dict)
+  group = Group(**setting_dict)
   
-  for setting_group_dict in setting_group_dicts:
-    setting_group.add([create_groups(setting_group_dict)])
+  for group_dict in group_dicts:
+    group.add([create_groups(group_dict)])
   
-  return setting_group
+  return group
 
 
 @future.utils.python_2_unicode_compatible
-class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
+class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   """
   This class:
   * allows to create a group of related settings (`Setting` objects),
@@ -86,7 +86,7 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
   * can perform certain operations on all settings and nested groups at once.
     
   Unless otherwise stated, "settings" in the rest of the documentation for
-  this class refers to both `Setting` and `SettingGroup` objects.
+  this class refers to both `Setting` and `Group` instances.
   
   Attributes:
   
@@ -116,12 +116,12 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
     super().__init__()
     
     self._name = name
-    settingutils.check_setting_name(self._name)
+    utils_.check_setting_name(self._name)
     
-    self._display_name = settingutils.get_processed_display_name(
+    self._display_name = utils_.get_processed_display_name(
       display_name, self._name)
     
-    self._description = settingutils.get_processed_description(
+    self._description = utils_.get_processed_description(
       description, self._display_name)
     
     self._tags = set(tags) if tags is not None else set()
@@ -172,7 +172,7 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
     
     If the name or path does not exist, raise `KeyError`.
     """
-    if settingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
+    if utils_.SETTING_PATH_SEPARATOR in setting_name_or_path:
       return self._get_setting_from_path(setting_name_or_path)
     else:
       try:
@@ -182,7 +182,7 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
           setting_name_or_path, self.name))
   
   def __contains__(self, setting_name_or_path):
-    if settingutils.SETTING_PATH_SEPARATOR in setting_name_or_path:
+    if utils_.SETTING_PATH_SEPARATOR in setting_name_or_path:
       try:
         self._get_setting_from_path(setting_name_or_path)
       except KeyError:
@@ -193,7 +193,7 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
       return setting_name_or_path in self._settings
   
   def _get_setting_from_path(self, setting_path):
-    setting_path_components = setting_path.split(settingutils.SETTING_PATH_SEPARATOR)
+    setting_path_components = setting_path.split(utils_.SETTING_PATH_SEPARATOR)
     current_group = self
     for group_name in setting_path_components[:-1]:
       if group_name in current_group:
@@ -222,12 +222,12 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
   def __len__(self):
     return len(self._settings)
   
-  def get_path(self, relative_path_setting_group=None):
+  def get_path(self, relative_path_group=None):
     """
-    This is a wrapper method for `settingutils.get_setting_path()`. Consult
-    the method for more information.
+    This is a wrapper method for `setting.utils.get_setting_path()`. Consult the
+    method for more information.
     """
-    return settingutils.get_setting_path(self, relative_path_setting_group)
+    return utils_.get_setting_path(self, relative_path_group)
   
   def add(self, setting_list):
     """
@@ -236,8 +236,8 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
     The order of settings in the list corresponds to the order in which the
     settings are iterated.
     
-    `setting_list` is a list that can contain `Setting` objects, `SettingGroup`
-    objects or dictionaries representing `Setting` objects to be created.
+    `setting_list` is a list that can contain `Setting` objects, `Group`
+    instances or dictionaries representing `Setting` objects to be created.
     
     Each dictionary contains (attribute name: value) pairs, where
     `"attribute name"` is a string that represents an argument passed when
@@ -263,7 +263,7 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
     attributes can be overridden by attributes in individual settings.
     """
     for setting in setting_list:
-      if isinstance(setting, (settings_.Setting, SettingGroup)):
+      if isinstance(setting, (settings_.Setting, Group)):
         setting = self._add_setting(setting)
       else:
         setting = self._create_setting(setting)
@@ -296,10 +296,10 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
     except KeyError:
       raise TypeError(self._get_missing_required_attributes_message(["name"]))
     
-    if settingutils.SETTING_PATH_SEPARATOR in setting_data_copy["name"]:
+    if utils_.SETTING_PATH_SEPARATOR in setting_data_copy["name"]:
       raise ValueError(
         "setting name '{}' must not contain path separator '{}'".format(
-          setting_data_copy["name"], settingutils.SETTING_PATH_SEPARATOR))
+          setting_data_copy["name"], utils_.SETTING_PATH_SEPARATOR))
     
     if setting_data_copy["name"] in self._settings:
       raise ValueError("setting '{}' already exists".format(setting_data_copy["name"]))
@@ -371,7 +371,8 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
     
     If any attribute does not exist, raise `AttributeError`. If any setting does
     not exist, raise `KeyError`. If the key has more than one separator for
-    attributes (`settingutils.SETTING_ATTRIBUTE_SEPARATOR`), raise `ValueError`.
+    attributes (`setting.utils.SETTING_ATTRIBUTE_SEPARATOR`), raise
+    `ValueError`.
     
     Example:
       group.get_attributes([
@@ -405,7 +406,7 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
       (setting.get_path("root"), setting.value) for setting in self.walk()])
   
   def _get_setting_and_attribute_names(self, setting_name_and_attribute):
-    parts = setting_name_and_attribute.split(settingutils.SETTING_ATTRIBUTE_SEPARATOR)
+    parts = setting_name_and_attribute.split(utils_.SETTING_ATTRIBUTE_SEPARATOR)
     if len(parts) == 1:
       setting_name = setting_name_and_attribute
       attribute_name = "value"
@@ -413,7 +414,7 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
       setting_name, attribute_name = parts
     else:
       raise ValueError("'{}' cannot have more than one '{}' character".format(
-        setting_name_and_attribute, settingutils.SETTING_ATTRIBUTE_SEPARATOR))
+        setting_name_and_attribute, utils_.SETTING_ATTRIBUTE_SEPARATOR))
     
     return setting_name, attribute_name
   
@@ -467,15 +468,15 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
     
     If `include_groups` is `True`, yield setting groups as well.
     
-    `walk_callbacks` is an `SettingGroupWalkCallbacks` instance that invokes
-    additional commands during the walk of the group. By default, the callbacks
-    do nothing. For more information, see the `SettingGroupWalkCallbacks` class.
+    `walk_callbacks` is an `GroupWalkCallbacks` instance that invokes additional
+    commands during the walk of the group. By default, the callbacks do nothing.
+    For more information, see the `GroupWalkCallbacks` class.
     """
     if include_setting_func is None:
       include_setting_func = pgutils.create_empty_func(return_value=True)
     
     if walk_callbacks is None:
-      walk_callbacks = SettingGroupWalkCallbacks()
+      walk_callbacks = GroupWalkCallbacks()
     
     groups = [self]
     
@@ -489,7 +490,7 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
         groups.pop(0)
         continue
       
-      if isinstance(setting_or_group, SettingGroup):
+      if isinstance(setting_or_group, Group):
         if include_setting_func(setting_or_group):
           groups.insert(0, setting_or_group)
           
@@ -542,8 +543,8 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
     loading is performed for each combination separately.
     
     Return the status and the status message as per
-    `settingpersistor.SettingPersistor.load()`. For multiple combinations of
-    setting sources, return the "worst" status (from the "best" to the "worst":
+    `setting.persistor.Persistor.load()`. For multiple combinations of setting
+    sources, return the "worst" status (from the "best" to the "worst":
     `SUCCESS`, `NOT_ALL_SETTINGS_FOUND`, `READ_FAIL` or `WRITE_FAIL`) and a
     status message containing status messages of all calls to `load()`.
     
@@ -553,7 +554,7 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
     """
     return self._load_save_group(
       "ignore_load",
-      settingpersistor.SettingPersistor.load,
+      persistor_.Persistor.load,
       setting_sources,
       "before-load-group",
       "after-load-group")
@@ -562,13 +563,13 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
     """
     Save all settings in this group. Ignore settings with the `"ignore_save"`
     tag. Return the status and the status message as per
-    `settingpersistor.SettingPersistor.save()`.
+    `setting.persistor.Persistor.save()`.
     
     For more information, see `load()`.
     """
     return self._load_save_group(
       "ignore_save",
-      settingpersistor.SettingPersistor.save,
+      persistor_.Persistor.save,
       setting_sources,
       "before-save-group",
       "after-save-group")
@@ -597,16 +598,15 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
   def _load_save(self, load_save_ignore_tag, load_save_func, setting_sources):
     
     def _get_worst_status(status_and_messages):
-      worst_status = settingpersistor.SettingPersistor.SUCCESS
+      worst_status = persistor_.Persistor.SUCCESS
       
-      if (settingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND
-          in status_and_messages):
-        worst_status = settingpersistor.SettingPersistor.NOT_ALL_SETTINGS_FOUND
+      if persistor_.Persistor.NOT_ALL_SETTINGS_FOUND in status_and_messages:
+        worst_status = persistor_.Persistor.NOT_ALL_SETTINGS_FOUND
       
-      if settingpersistor.SettingPersistor.READ_FAIL in status_and_messages:
-        worst_status = settingpersistor.SettingPersistor.READ_FAIL
-      elif settingpersistor.SettingPersistor.WRITE_FAIL in status_and_messages:
-        worst_status = settingpersistor.SettingPersistor.WRITE_FAIL
+      if persistor_.Persistor.READ_FAIL in status_and_messages:
+        worst_status = persistor_.Persistor.READ_FAIL
+      elif persistor_.Persistor.WRITE_FAIL in status_and_messages:
+        worst_status = persistor_.Persistor.WRITE_FAIL
       
       return worst_status
     
@@ -646,9 +646,10 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
     
     Settings that are not provided with a readily available GUI can have their
     GUI initialized using the `custom_gui` dict. `custom_gui` contains
-    (setting name, list of arguments to `setting.Setting.set_gui`) pairs. The
+    (setting name, list of arguments to `setting.Setting.set_gui()`) pairs. The
     "enable GUI update?" boolean in the list is optional and defaults to `True`.
-    For more information about parameters in the list, see `Setting.set_gui()`.
+    For more information about parameters in the list, see
+    `setting.Setting.set_gui()`.
     
     Example:
     
@@ -709,15 +710,15 @@ class SettingGroup(settingutils.SettingParentMixin, settingutils.SettingEventsMi
         settings=exception_settings)
 
 
-class SettingGroupWalkCallbacks(object):
+class GroupWalkCallbacks(object):
   """
-  This class defines callbacks called during `SettingGroup.walk()`. By default,
-  the callbacks do nothing.
+  This class defines callbacks called during `Group.walk()`. By default, the
+  callbacks do nothing.
   
   `on_visit_setting` is called before the current `Setting` object is yielded.
-  `on_visit_group` is called before the current `SettingGroup` object is
-  yielded. `on_end_group_walk` is called after all children of the current
-  `SettingGroup` object were visited.
+  `on_visit_group` is called before the current `Group` object is yielded.
+  `on_end_group_walk` is called after all children of the current `Group` object
+  are visited.
   """
   
   def __init__(self):

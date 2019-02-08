@@ -142,7 +142,7 @@ class _Stream(object):
     pass
 
 
-SETTINGS = pg.setting.SettingGroup("settings")
+SETTINGS = pg.setting.Group("settings")
 SETTINGS.add([
   {
     "type": pg.setting.SettingTypes.enumerated,

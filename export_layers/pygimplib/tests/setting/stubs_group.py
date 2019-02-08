@@ -15,19 +15,19 @@
 # limitations under the License.
 
 """
-This module provides stubs primarily to be used in the `test_settinggroup`
+This module provides stubs primarily to be used in the `test_group_`
 module.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-from ...setting import group as settinggroup
+from ...setting import group as group_
 from ...setting import settings as settings_
 
 
 def create_test_settings():
-  settings = settinggroup.SettingGroup("main")
+  settings = group_.Group("main")
   settings.add([
     {
       "type": settings_.SettingTypes.file_extension,
@@ -60,7 +60,7 @@ def create_test_settings():
 
 
 def create_test_settings_hierarchical():
-  main_settings = settinggroup.SettingGroup("main")
+  main_settings = group_.Group("main")
   main_settings.add([
     {
       "type": settings_.SettingTypes.file_extension,
@@ -70,7 +70,7 @@ def create_test_settings_hierarchical():
     },
   ])
   
-  advanced_settings = settinggroup.SettingGroup("advanced")
+  advanced_settings = group_.Group("advanced")
   advanced_settings.add([
     {
       "type": settings_.SettingTypes.boolean,
@@ -89,7 +89,7 @@ def create_test_settings_hierarchical():
     },
   ])
   
-  settings = settinggroup.SettingGroup("settings")
+  settings = group_.Group("settings")
   settings.add([main_settings, advanced_settings])
   
   return settings
@@ -98,7 +98,7 @@ def create_test_settings_hierarchical():
 def create_test_settings_load_save():
   dummy_session_source, dummy_persistent_source = "session_source", "persistent_source"
   
-  main_settings = settinggroup.SettingGroup(
+  main_settings = group_.Group(
     name="main",
     setting_attributes={
       "setting_sources": [dummy_session_source, dummy_persistent_source]})
@@ -111,7 +111,7 @@ def create_test_settings_load_save():
     },
   ])
   
-  advanced_settings = settinggroup.SettingGroup(
+  advanced_settings = group_.Group(
     name="advanced", setting_attributes={"setting_sources": [dummy_session_source]})
   
   advanced_settings.add([
@@ -128,7 +128,7 @@ def create_test_settings_load_save():
     },
   ])
   
-  settings = settinggroup.SettingGroup("settings")
+  settings = group_.Group("settings")
   settings.add([main_settings, advanced_settings])
   
   return settings

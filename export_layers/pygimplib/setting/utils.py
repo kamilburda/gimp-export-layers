@@ -46,8 +46,8 @@ SETTING_ATTRIBUTE_SEPARATOR = "."
 
 class SettingParentMixin(object):
   """
-  This mixin provides `Setting` and `SettingGroup` objects with a parent
-  reference, allowing settings and groups to form a tree-like structure.
+  This mixin provides `Setting` and `Group` instances with a parent reference,
+  allowing settings and groups to form a tree-like structure.
   """
   
   def __init__(self):
@@ -79,8 +79,8 @@ class SettingParentMixin(object):
 
 class SettingEventsMixin(object):
   """
-  This mixin provides `Setting` and `SettingGroup` objects with the capability
-  of setting up and invoking events.
+  This mixin provides `Setting` and `Group` instances with the capability of
+  setting up and invoking events.
   """
   
   _event_handler_id_counter = itertools.count(start=1)
@@ -106,7 +106,7 @@ class SettingEventsMixin(object):
     `invoke_event`.
     
     Several event types are invoked automatically. For the list of such event
-    types, consult the documentation for `Setting` or `SettingGroup` classes.
+    types, consult the documentation for `Setting` or `Group` classes.
     
     The `event_handler` function must always contain at least one argument -
     the instance this method is called from (a setting or a setting group).
@@ -255,22 +255,22 @@ def generate_description(display_name):
   return display_name.replace("_", "")
 
 
-def get_setting_path(setting, relative_path_setting_group=None):
+def get_setting_path(setting, relative_path_group=None):
   """
   Get the full setting path consisting of names of parent setting groups and the
   specified setting. The path components are separated by "/".
   
-  If `relative_path_setting_group` is specified, the setting group is used to
+  If `relative_path_group` is specified, the setting group is used to
   relativize the setting path. If the path of the setting group to the topmost
   parent does not match, return the full path.
   
-  If `relative_path_setting_group` is equal to `"root"` and the setting has at
+  If `relative_path_group` is equal to `"root"` and the setting has at
   least one parent, omit the topmost group.
   """
   def _get_setting_path(path_components):
     return SETTING_PATH_SEPARATOR.join([setting.name for setting in path_components])
   
-  if relative_path_setting_group == "root":
+  if relative_path_group == "root":
     if setting.parents:
       setting_path_without_root = _get_setting_path(
         (setting.parents + [setting])[1:])
@@ -280,9 +280,9 @@ def get_setting_path(setting, relative_path_setting_group=None):
   else:
     setting_path = _get_setting_path(setting.parents + [setting])
     
-    if relative_path_setting_group is not None:
+    if relative_path_group is not None:
       root_path = _get_setting_path(
-        relative_path_setting_group.parents + [relative_path_setting_group])
+        relative_path_group.parents + [relative_path_group])
       if setting_path.startswith(root_path):
         return setting_path[len(root_path + SETTING_PATH_SEPARATOR):]
     

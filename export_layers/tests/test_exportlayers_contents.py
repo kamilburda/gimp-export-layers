@@ -136,7 +136,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_foreground(self):
     layer_tree = pg.itemtree.LayerTree(
-      self.test_image, name=pg.config.SOURCE_PERSISTENT_NAME)
+      self.test_image, name=pg.config.PERSISTENT_SOURCE_NAME)
     for layer_elem in layer_tree:
       if "background" in layer_elem.tags:
         layer_elem.remove_tag("background")

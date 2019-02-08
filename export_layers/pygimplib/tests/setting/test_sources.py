@@ -24,7 +24,7 @@ import mock
 from ... import constants as pgconstants
 
 from ...setting import settings as settings_
-from ...setting import sources as settingsources
+from ...setting import sources as sources_
 
 from .. import stubs_gimp
 from . import stubs_group
@@ -33,14 +33,14 @@ from . import stubs_group
 @mock.patch(
   pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimpshelf.shelf",
   new_callable=stubs_gimp.ShelfStub)
-class TestSessionWideSettingSource(unittest.TestCase):
+class TestSessionSource(unittest.TestCase):
   
   @mock.patch(
     pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimpshelf.shelf",
     new=stubs_gimp.ShelfStub())
   def setUp(self):
     self.source_name = "test_settings"
-    self.source = settingsources.SessionWideSettingSource(self.source_name)
+    self.source = sources_.SessionSource(self.source_name)
     self.settings = stubs_group.create_test_settings()
   
   def test_write(self, mock_session_source):
@@ -50,11 +50,11 @@ class TestSessionWideSettingSource(unittest.TestCase):
     self.source.write(self.settings)
     
     self.assertEqual(
-      settingsources.gimpshelf.shelf[self.source_name][
+      sources_.gimpshelf.shelf[self.source_name][
         self.settings["file_extension"].get_path("root")],
       "png")
     self.assertEqual(
-      settingsources.gimpshelf.shelf[self.source_name][
+      sources_.gimpshelf.shelf[self.source_name][
         self.settings["only_visible_layers"].get_path("root")],
       True)
   
@@ -74,7 +74,7 @@ class TestSessionWideSettingSource(unittest.TestCase):
     data = {}
     data[self.settings["file_extension"].get_path("root")] = "png"
     data[self.settings["only_visible_layers"].get_path("root")] = True
-    settingsources.gimpshelf.shelf[self.source_name] = data
+    sources_.gimpshelf.shelf[self.source_name] = data
     
     self.source.read(
       [self.settings["file_extension"], self.settings["only_visible_layers"]])
@@ -84,7 +84,7 @@ class TestSessionWideSettingSource(unittest.TestCase):
   
   def test_read_settings_not_found(self, mock_session_source):
     self.source.write([self.settings["file_extension"]])
-    with self.assertRaises(settingsources.SettingsNotFoundInSourceError):
+    with self.assertRaises(sources_.SettingsNotFoundInSourceError):
       self.source.read(self.settings)
   
   def test_read_settings_invalid_format(self, mock_session_source):
@@ -93,7 +93,7 @@ class TestSessionWideSettingSource(unittest.TestCase):
            + ".setting.sources.gimpshelf.shelf") as temp_mock_session_source:
       temp_mock_session_source.__getitem__.side_effect = Exception
       
-      with self.assertRaises(settingsources.SettingSourceInvalidFormatError):
+      with self.assertRaises(sources_.SourceInvalidFormatError):
         self.source.read(self.settings)
   
   def test_read_invalid_setting_value_set_to_default_value(self, mock_session_source):
@@ -109,7 +109,7 @@ class TestSessionWideSettingSource(unittest.TestCase):
     self.source.write(self.settings)
     self.source.clear()
     
-    with self.assertRaises(settingsources.SettingSourceNotFoundError):
+    with self.assertRaises(sources_.SourceNotFoundError):
       self.source.read(self.settings)
   
   def test_has_data_with_no_data(self, mock_session_source):
@@ -123,14 +123,14 @@ class TestSessionWideSettingSource(unittest.TestCase):
 @mock.patch(
   pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimp",
   new_callable=stubs_gimp.GimpModuleStub)
-class TestPersistentSettingSource(unittest.TestCase):
+class TestPersistentSource(unittest.TestCase):
   
   @mock.patch(
     pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimp.directory",
     new="gimp_directory")
   def setUp(self):
     self.source_name = "test_settings"
-    self.source = settingsources.PersistentSettingSource(self.source_name)
+    self.source = sources_.PersistentSource(self.source_name)
     self.settings = stubs_group.create_test_settings()
   
   def test_write_read(self, mock_persistent_source):
@@ -168,23 +168,23 @@ class TestPersistentSettingSource(unittest.TestCase):
     self.assertEqual(settings["advanced/file_extension"].value, "png")
   
   def test_read_source_not_found(self, mock_persistent_source):
-    with self.assertRaises(settingsources.SettingSourceNotFoundError):
+    with self.assertRaises(sources_.SourceNotFoundError):
       self.source.read(self.settings)
   
   def test_read_settings_not_found(self, mock_persistent_source):
     self.source.write([self.settings["file_extension"]])
-    with self.assertRaises(settingsources.SettingsNotFoundInSourceError):
+    with self.assertRaises(sources_.SettingsNotFoundInSourceError):
       self.source.read(self.settings)
   
   def test_read_settings_invalid_format(self, mock_persistent_source):
     self.source.write(self.settings)
     
     # Simulate formatting error
-    parasite = settingsources.gimp.parasite_find(self.source_name)
+    parasite = sources_.gimp.parasite_find(self.source_name)
     parasite.data = parasite.data[:-1]
-    settingsources.gimp.parasite_attach(parasite)
+    sources_.gimp.parasite_attach(parasite)
     
-    with self.assertRaises(settingsources.SettingSourceInvalidFormatError):
+    with self.assertRaises(sources_.SourceInvalidFormatError):
       self.source.read(self.settings)
   
   def test_read_invalid_setting_value_set_to_default_value(self, mock_persistent_source):
@@ -200,7 +200,7 @@ class TestPersistentSettingSource(unittest.TestCase):
     self.source.write(self.settings)
     self.source.clear()
     
-    with self.assertRaises(settingsources.SettingSourceNotFoundError):
+    with self.assertRaises(sources_.SourceNotFoundError):
       self.source.read(self.settings)
   
   def test_has_data_with_no_data(self, mock_persistent_source):
@@ -217,16 +217,15 @@ class TestPersistentSettingSource(unittest.TestCase):
 @mock.patch(
   pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimp",
   new_callable=stubs_gimp.GimpModuleStub)
-class TestSettingSourceReadWriteDict(unittest.TestCase):
+class TestSourceReadWriteDict(unittest.TestCase):
   
   @mock.patch(
     pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimp.directory",
     new="gimp_directory")
   def setUp(self):
     self.source_name = "test_settings"
-    self.source_session = (
-      settingsources.SessionWideSettingSource(self.source_name))
-    self.source_persistent = settingsources.PersistentSettingSource(self.source_name)
+    self.source_session = sources_.SessionSource(self.source_name)
+    self.source_persistent = sources_.PersistentSource(self.source_name)
     self.settings = stubs_group.create_test_settings()
   
   def test_read_dict(self, mock_persistent_source, mock_session_source):

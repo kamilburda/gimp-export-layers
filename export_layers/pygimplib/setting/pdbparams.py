@@ -23,8 +23,8 @@ them as values to settings.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+from . import group as group_
 from . import settings as settings_
-from . import group as settinggroup
 
 __all__ = [
   "create_params",
@@ -35,8 +35,8 @@ __all__ = [
 
 def create_params(*settings_or_groups):
   """
-  Return a list of GIMP PDB parameters from the specified `Setting` or
-  `SettingGroup` instances.
+  Return a list of GIMP PDB parameters from the specified `Setting` or `Group`
+  instances.
   """
   settings = _list_settings(settings_or_groups)
   
@@ -101,11 +101,11 @@ def _list_settings(settings_or_groups):
   for setting_or_group in settings_or_groups:
     if isinstance(setting_or_group, settings_.Setting):
       settings.append(setting_or_group)
-    elif isinstance(setting_or_group, settinggroup.SettingGroup):
+    elif isinstance(setting_or_group, group_.Group):
       settings.extend(setting_or_group.walk())
     else:
       raise TypeError(
         "{} is not an object of type {} or {}".format(
-          setting_or_group, settings_.Setting, settinggroup.SettingGroup))
+          setting_or_group, settings_.Setting, group_.Group))
   
   return settings

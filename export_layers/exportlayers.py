@@ -56,8 +56,8 @@ class LayerExporter(object):
   
   * `image` - GIMP image to export layers from.
   
-  * `export_settings` - `SettingGroup` instance containing export settings. This
-    class treats them as read-only.
+  * `export_settings` - `setting.Group` instance containing export settings.
+    This class treats them as read-only.
   
   * `overwrite_chooser` - `OverwriteChooser` instance that is invoked if a file
     with the same name already exists. If `None` is passed during
@@ -294,7 +294,7 @@ class LayerExporter(object):
       self._layer_tree = layer_tree
     else:
       self._layer_tree = pg.itemtree.LayerTree(
-        self.image, name=pg.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
+        self.image, name=pg.config.PERSISTENT_SOURCE_NAME, is_filtered=True)
     
     self._keep_image_copy = keep_image_copy
     

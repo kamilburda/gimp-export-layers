@@ -158,9 +158,9 @@ def stop_export(layer_exporter):
 
 def _set_settings(func):
   """
-  This is a decorator for `SettingGroup.apply_gui_values_to_settings()` that
-  prevents the decorated function from being executed if there are invalid
-  setting values. For the invalid values, an error message is displayed.
+  This is a decorator for `Group.apply_gui_values_to_settings()` that prevents
+  the decorated function from being executed if there are invalid setting
+  values. For the invalid values, an error message is displayed.
   
   This decorator is meant to be used in the `_ExportLayersGui` class.
   """
@@ -347,7 +347,7 @@ class ExportLayersGui(object):
     self._settings["main/constraints"].tags.add("ignore_load")
     
     status, status_message = self._settings.load()
-    if status == pg.setting.SettingPersistor.READ_FAIL:
+    if status == pg.setting.Persistor.READ_FAIL:
       messages.display_message(status_message, gtk.MESSAGE_WARNING)
     
     # Needs to be string to avoid strict directory validation
@@ -674,7 +674,7 @@ class ExportLayersGui(object):
   
   def _save_settings(self):
     status, status_message = self._settings.save()
-    if status == pg.setting.SettingPersistor.WRITE_FAIL:
+    if status == pg.setting.Persistor.WRITE_FAIL:
       messages.display_message(status_message, gtk.MESSAGE_WARNING, parent=self._dialog)
       return False
     else:
@@ -839,9 +839,9 @@ class ExportLayersGui(object):
         in self._settings["main/overwrite_mode"].items.values()):
       self._settings["main/overwrite_mode"].set_value(overwrite_chooser.overwrite_mode)
     
-    self._settings["main"].save([pg.config.SOURCE_SESSION])
-    self._settings["gui"].save([pg.config.SOURCE_SESSION])
-    self._settings["gui_session"].save([pg.config.SOURCE_SESSION])
+    self._settings["main"].save([pg.config.SESSION_SOURCE])
+    self._settings["gui"].save([pg.config.SESSION_SOURCE])
+    self._settings["gui_session"].save([pg.config.SESSION_SOURCE])
     
     if should_quit:
       gtk.main_quit()
@@ -958,7 +958,7 @@ class ExportLayersRepeatGui(object):
     self._image = self._layer_tree.image
     self._layer_exporter = None
     
-    self._settings.load([pg.config.SOURCE_SESSION])
+    self._settings.load([pg.config.SESSION_SOURCE])
     
     self._init_gui()
     

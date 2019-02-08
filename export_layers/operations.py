@@ -28,8 +28,8 @@ These events include:
 
 * `"before-add-operation"` - invoked when:
   * calling `add()` before adding an operation,
-  * calling `SettingGroup.load()` or `SettingPersistor.load()` before loading an
-    operation (loading an operation counts as adding),
+  * calling `setting.Group.load()` or `setting.Persistor.load()` before loading
+    an operation (loading an operation counts as adding),
   * calling `clear()` before resetting operations (due to initial operations
     being added back).
   
@@ -37,8 +37,8 @@ These events include:
 
 * `"after-add-operation"` - invoked when:
   * calling `add()` after adding an operation,
-  * calling `SettingGroup.load()` or `SettingPersistor.load()` after loading an
-    operation (loading an operation counts as adding),
+  * calling `setting.Group.load()` or `setting.Persistor.load()` after loading
+    an operation (loading an operation counts as adding),
   * calling `clear()` after resetting operations (due to initial operations
     being added back).
   
@@ -96,16 +96,16 @@ _REQUIRED_OPERATION_FIELDS = ["name"]
 
 def create(name, initial_operations=None):
   """
-  Create a `SettingGroup` instance containing operations.
+  Create a `setting.Group` instance containing operations.
   
   Parameters:
-  * `name` - name of the `SettingGroup` instance.
+  * `name` - name of the `setting.Group` instance.
   * `initial_operations` - list of dictionaries describing operations to be
     added by default. Calling `clear()` will reset the operations returned by
     this function to the initial operations. By default, no initial operations
     are added.
   
-  The resulting `SettingGroup` instance contains the following subgroups:
+  The resulting `setting.Group` instance contains the following subgroups:
   * `"added"` - Contains operations added via `add()` or created in this
     function via `initial_operations` dictionary.
   * `"_added_data"` - Operations stored as dictionaries, used when loading or
@@ -117,11 +117,11 @@ def create(name, initial_operations=None):
     underscore, this subgroup is only for internal use and should not be
     modified outside `operations`.
   
-  Each created operation in the returned group is a nested `SettingGroup`. Each
+  Each created operation in the returned group is a nested `setting.Group`. Each
   operation contains the following settings or subgroups:
   * `"function"` - The function to execute.
-  * `"arguments"` - Arguments to `"function"` as a `SettingGroup` containing
-    arguments as separate `Setting` instances.
+  * `"arguments"` - Arguments to `"function"` as a `setting.Group` instance
+    containing arguments as separate `Setting` instances.
   * `"enabled"` - Whether the operation should be executed or not.
   * `"display_name"` - The display name (human-readable name) of the operation.
   * `"operation_group"` - List of groups the operation belongs to, used in
@@ -139,7 +139,7 @@ def create(name, initial_operations=None):
   * `"function"` - The function to execute.
   * `"arguments"` - Specified as list of dictionaries defining settings. Each
     dictionary must contain required attributes and can contain optional
-    attributes as stated in `SettingGroup.add()`.
+    attributes as stated in `setting.Group.add()`.
   * `"enabled"`
   * `"display_name"`
   * `"operation_group"`
@@ -165,14 +165,14 @@ def create(name, initial_operations=None):
   * `ValueError` - invalid `"type"` or missing required fields in
     `initial_operations`.
   """
-  operations = pg.setting.SettingGroup(
+  operations = pg.setting.Group(
     name=name,
     setting_attributes={
       "pdb_type": None,
       "setting_sources": None,
     })
   
-  added_operations = pg.setting.SettingGroup(
+  added_operations = pg.setting.Group(
     name="added",
     setting_attributes={
       "pdb_type": None,
@@ -185,13 +185,13 @@ def create(name, initial_operations=None):
       "type": pg.setting.SettingTypes.generic,
       "name": "_added_data",
       "default_value": _get_initial_added_data(initial_operations),
-      "setting_sources": [pg.config.SOURCE_SESSION, pg.config.SOURCE_PERSISTENT]
+      "setting_sources": [pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]
     },
     {
       "type": pg.setting.SettingTypes.generic,
       "name": "_added_data_values",
       "default_value": {},
-      "setting_sources": [pg.config.SOURCE_SESSION, pg.config.SOURCE_PERSISTENT]
+      "setting_sources": [pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]
     },
   ])
   
@@ -290,7 +290,7 @@ def _create_procedure(
       gui_type=pg.setting.SettingGuiTypes.check_button_label,
       gui_element=setting_enabled.gui.element)
   
-  operation = pg.setting.SettingGroup(
+  operation = pg.setting.Group(
     name,
     tags=["operation", "procedure"],
     setting_attributes={
@@ -298,7 +298,7 @@ def _create_procedure(
       "setting_sources": None,
     })
   
-  arguments_group = pg.setting.SettingGroup(
+  arguments_group = pg.setting.Group(
     "arguments",
     setting_attributes={
       "pdb_type": None,

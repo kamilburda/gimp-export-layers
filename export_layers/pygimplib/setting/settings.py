@@ -38,9 +38,9 @@ from .. import constants as pgconstants
 from .. import path as pgpath
 from .. import utils as pgutils
 
-from . import persistor as settingpersistor
-from . import presenter as settingpresenter
-from . import utils as settingutils
+from . import persistor as persistor_
+from . import presenter as presenter_
+from . import utils as utils_
 
 from .presenters_gtk import SettingGuiTypes
 
@@ -114,7 +114,7 @@ class SettingPdbTypes(object):
 
 
 @future.utils.python_2_unicode_compatible
-class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
+class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   """
   This class holds data about a plug-in setting.
   
@@ -154,38 +154,37 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
     * `"after-set-gui"` - invoked after `set_gui()` is called.
     
     * `"before-load"` - invoked before loading a setting via
-      `settingpersistor.SettingPersistor.load()`.
+      `setting.persistor.Persistor.load()`.
     
     * `"after-load"` - invoked after loading a setting via
-      `settingpersistor.SettingPersistor.load()`. Events will not be invoked
-      if loading settings failed (i.e. `SettingPersistor` returns `READ_FAIL`
-      status). Events will be invoked for all settings, even if some of them
-      were not found in setting sources (i.e. `SettingPersistor` returns
+      `setting.persistor.Persistor.load()`. Events will not be invoked if
+      loading settings failed (i.e. `Persistor` returns `READ_FAIL` status).
+      Events will be invoked for all settings, even if some of them were not
+      found in setting sources (i.e. `Persistor` returns
       `NOT_ALL_SETTINGS_FOUND` status).
     
     * `"before-save"` - invoked before saving a setting via
-      `settingpersistor.SettingPersistor.save()`.
+      `setting.persistor.Persistor.save()`.
     
     * `"after-save"` - invoked after saving a setting via
-      `settingpersistor.SettingPersistor.save()`. Events will not be invoked if
-      saving settings failed (i.e. `SettingPersistor` returns `SAVE_FAIL`
-      status).
+      `setting.persistor.Persistor.save()`. Events will not be invoked if saving
+      settings failed (i.e. `Persistor` returns `SAVE_FAIL` status).
     
     * `"before-load-group"` - invoked before loading settings in a group via
-      `SettingGroup.load()`.
+      `Group.load()`.
     
     * `"after-load-group"` - invoked after loading settings in a group via
-      `SettingGroup.load()`. This is useful if the group contains settings with
+      `Group.load()`. This is useful if the group contains settings with
       different setting sources so that the event is invoked only once after
       all settings from different sources are loaded. This also applies to
       other related events (`"before-load-group"`, `"before-save-group"`,
       `"after-save-group"`).
     
     * `"before-save-group"` - invoked before saving settings in a group via
-      `SettingGroup.load`.
+      `Group.load()`.
     
     * `"after-save-group"` - invoked after saving settings in a group via
-      `SettingGroup.load`.
+      `Group.load()`.
   
   If a setting subclass supports "empty" values, such values will not be
   considered invalid when used as default values. However, empty values will be
@@ -209,9 +208,9 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
     class uses `None` as the default value. Note that it is still a good
     practice to specify default values explicitly.
   
-  * `gui` (read-only) - `SettingPresenter` instance acting as a wrapper of a GUI
-    element. With `gui`, you may modify GUI-specific attributes, such as
-    visibility or sensitivity.
+  * `gui` (read-only) - `setting.presenter.Presenter` instance acting as a
+    wrapper of a GUI element. With `gui`, you may modify GUI-specific
+    attributes, such as visibility or sensitivity.
   
   * `display_name` (read-only) - Setting name in human-readable format. Useful
     e.g. as GUI labels. The display name may contain underscores, which can be
@@ -319,7 +318,7 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
     super().__init__()
     
     self._name = name
-    settingutils.check_setting_name(self._name)
+    utils_.check_setting_name(self._name)
     
     self._default_value = self._get_default_value(default_value)
     
@@ -328,23 +327,25 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
     self._allow_empty_values = allow_empty_values
     self._empty_values = list(self._EMPTY_VALUES)
     
-    self._display_name = settingutils.get_processed_display_name(
+    self._display_name = utils_.get_processed_display_name(
       display_name, self._name)
-    self._description = settingutils.get_processed_description(
+    self._description = utils_.get_processed_description(
       description, self._display_name)
     
     self._pdb_type = self._get_pdb_type(pdb_type)
-    self._pdb_name = settingutils.get_pdb_name(self._name)
+    self._pdb_name = utils_.get_pdb_name(self._name)
     
     self._setting_sources = setting_sources
     
-    self._setting_value_synchronizer = settingpresenter.SettingValueSynchronizer()
+    self._setting_value_synchronizer = presenter_.SettingValueSynchronizer()
     self._setting_value_synchronizer.apply_gui_value_to_setting = (
       self._apply_gui_value_to_setting)
     
     self._gui_type = self._get_gui_type(gui_type)
-    self._gui = settingpresenter.NullSettingPresenter(
-      self, None, self._setting_value_synchronizer,
+    self._gui = presenter_.NullPresenter(
+      self,
+      None,
+      self._setting_value_synchronizer,
       auto_update_gui_to_setting=auto_update_gui_to_setting)
     
     self._error_messages = {}
@@ -418,12 +419,12 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
   def __str__(self):
     return pgutils.stringify_object(self, self.name)
   
-  def get_path(self, relative_path_setting_group=None):
+  def get_path(self, relative_path_group=None):
     """
-    This is a wrapper method for `settingutils.get_setting_path()`. Consult the
+    This is a wrapper method for `setting.utils.get_setting_path()`. Consult the
     method for more information.
     """
-    return settingutils.get_setting_path(self, relative_path_setting_group)
+    return utils_.get_setting_path(self, relative_path_group)
   
   def set_value(self, value):
     """
@@ -487,13 +488,13 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
         gui_element=None,
         auto_update_gui_to_setting=True):
     """
-    Create a new GUI object (`SettingPresenter` instance) for this setting or
-    remove the GUI. The state of the previous GUI object is copied to the new
-    GUI object (such as its value, visibility and sensitivity).
+    Create a new GUI object (`Presenter` instance) for this setting or remove
+    the GUI. The state of the previous GUI object is copied to the new GUI
+    object (such as its value, visibility and sensitivity).
     
     Parameters:
     
-    * `gui_type` - `SettingPresenter` type to wrap `gui_element` around.
+    * `gui_type` - `Presenter` type to wrap `gui_element` around.
       
       When calling this method, `gui_type` does not have to be one of the
       allowed GUI types specified in the setting.
@@ -508,7 +509,7 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
       If `gui_type` is `None`, remove the GUI and disconnect any events the GUI
       had. The state of the old GUI is still preserved.
     
-    * `gui_element` - A GUI element (wrapped in a `SettingPresenter` instance).
+    * `gui_element` - A GUI element (wrapped in a `Presenter` instance).
     
       If `gui_type` is `SettingGuiTypes.automatic`, `gui_element` is ignored.
       If `gui_type` is not `SettingGuiTypes.automatic` and `gui_element` is
@@ -527,7 +528,7 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
     if gui_type == SettingGuiTypes.automatic:
       gui_type = self._gui_type
     elif gui_type is None:
-      gui_type = settingpresenter.NullSettingPresenter
+      gui_type = presenter_.NullPresenter
       # We need to disconnect the "GUI changed" event before removing the GUI.
       self._gui.auto_update_gui_to_setting(False)
     
@@ -535,7 +536,7 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
       self,
       gui_element,
       setting_value_synchronizer=self._setting_value_synchronizer,
-      old_setting_presenter=self._gui,
+      old_presenter=self._gui,
       auto_update_gui_to_setting=auto_update_gui_to_setting)
     
     self.invoke_event("after-set-gui")
@@ -543,8 +544,8 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
   def load(self, setting_sources=None):
     """
     Load setting value from the specified setting source(s). See
-    `settingpersistor.SettingPersistor.load()` for more information about
-    setting sources.
+    `setting.persistor.Persistor.load()` for more information about setting
+    sources.
     
     If `setting_sources` is `None`, use the default setting sources. If
     specified, use a subset of sources matching the default sources. For
@@ -556,13 +557,13 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
     If there are no default setting sources or `setting_sources` does not match
     any of the default sources, this method has no effect.
     """
-    return self._load_save(setting_sources, settingpersistor.SettingPersistor.load)
+    return self._load_save(setting_sources, persistor_.Persistor.load)
   
   def save(self, setting_sources=None):
     """
     Save setting value to the specified setting source(s). See
-    `settingpersistor.SettingPersistor.save()` for more information about
-    setting sources.
+    `setting.persistor.Persistor.save()` for more information about setting
+    sources.
     
     If `setting_sources` is `None`, use the default setting sources. If
     specified, use a subset of sources matching the default sources. For
@@ -574,7 +575,7 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
     If there are no default setting sources or `setting_sources` does not match
     any of the default sources, this method has no effect.
     """
-    return self._load_save(setting_sources, settingpersistor.SettingPersistor.save)
+    return self._load_save(setting_sources, persistor_.Persistor.save)
   
   def is_value_empty(self):
     """
@@ -719,7 +720,7 @@ class Setting(settingutils.SettingParentMixin, settingutils.SettingEventsMixin):
     else:
       if gui_type in self._ALLOWED_GUI_TYPES:
         gui_type_to_return = gui_type
-      elif gui_type in [SettingGuiTypes.none, settingpresenter.NullSettingPresenter]:
+      elif gui_type in [SettingGuiTypes.none, presenter_.NullPresenter]:
         gui_type_to_return = gui_type
       else:
         raise ValueError(
@@ -803,10 +804,10 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   def _validate(self, value):
     if self._min_value is not None and value < self._min_value:
       raise SettingValueError(
-        settingutils.value_to_str_prefix(value) + self.error_messages["below_min"])
+        utils_.value_to_str_prefix(value) + self.error_messages["below_min"])
     if self._max_value is not None and value > self._max_value:
       raise SettingValueError(
-        settingutils.value_to_str_prefix(value) + self.error_messages["above_max"])
+        utils_.value_to_str_prefix(value) + self.error_messages["above_max"])
 
 
 class IntSetting(NumericSetting):
@@ -1045,7 +1046,7 @@ class EnumSetting(Setting):
     if (value not in self._item_values
         or (not self._allow_empty_values and self._is_value_empty(value))):
       raise SettingValueError(
-        settingutils.value_to_str_prefix(value) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(value) + self.error_messages["invalid_value"])
   
   def _get_items_description(self):
     items_description = ""
@@ -1053,7 +1054,7 @@ class EnumSetting(Setting):
     
     for value, display_name in zip(
           self._items.values(), self._items_display_names.values()):
-      description = settingutils.get_processed_description(None, display_name)
+      description = utils_.get_processed_description(None, display_name)
       items_description += "{} ({}){}".format(description, value, items_sep)
     items_description = items_description[:-len(items_sep)]
     
@@ -1151,7 +1152,7 @@ class ImageSetting(Setting):
   def _validate(self, image):
     if not pdb.gimp_image_is_valid(image):
       raise SettingValueError(
-        settingutils.value_to_str_prefix(image) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(image) + self.error_messages["invalid_value"])
 
 
 class ItemSetting(Setting):
@@ -1184,8 +1185,7 @@ class ItemSetting(Setting):
   def _validate(self, item):
     if not isinstance(item, gimp.Item):
       raise SettingValueError(
-        settingutils.value_to_str_prefix(item)
-        + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(item) + self.error_messages["invalid_value"])
 
 
 class DrawableSetting(Setting):
@@ -1218,8 +1218,7 @@ class DrawableSetting(Setting):
   def _validate(self, drawable):
     if not pdb.gimp_item_is_drawable(drawable):
       raise SettingValueError(
-        settingutils.value_to_str_prefix(drawable)
-        + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(drawable) + self.error_messages["invalid_value"])
 
 
 class LayerSetting(Setting):
@@ -1252,8 +1251,7 @@ class LayerSetting(Setting):
   def _validate(self, layer):
     if not pdb.gimp_item_is_layer(layer):
       raise SettingValueError(
-        settingutils.value_to_str_prefix(layer)
-        + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(layer) + self.error_messages["invalid_value"])
 
 
 class ChannelSetting(Setting):
@@ -1286,8 +1284,7 @@ class ChannelSetting(Setting):
   def _validate(self, channel):
     if not pdb.gimp_item_is_channel(channel):
       raise SettingValueError(
-        settingutils.value_to_str_prefix(channel)
-        + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(channel) + self.error_messages["invalid_value"])
 
 
 class SelectionSetting(ChannelSetting):
@@ -1345,8 +1342,7 @@ class VectorsSetting(Setting):
   def _validate(self, vectors):
     if not pdb.gimp_item_is_vectors(vectors):
       raise SettingValueError(
-        settingutils.value_to_str_prefix(vectors)
-        + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(vectors) + self.error_messages["invalid_value"])
 
 
 class ColorSetting(Setting):
@@ -1375,8 +1371,7 @@ class ColorSetting(Setting):
   def _validate(self, color):
     if not isinstance(color, gimpcolor.RGB):
       raise SettingValueError(
-        settingutils.value_to_str_prefix(color)
-        + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(color) + self.error_messages["invalid_value"])
 
 
 class DisplaySetting(Setting):
@@ -1409,8 +1404,7 @@ class DisplaySetting(Setting):
   def _validate(self, display):
     if not pdb.gimp_display_is_valid(display):
       raise SettingValueError(
-        settingutils.value_to_str_prefix(display)
-        + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(display) + self.error_messages["invalid_value"])
 
 
 class ParasiteSetting(Setting):
@@ -1442,8 +1436,7 @@ class ParasiteSetting(Setting):
   def _validate(self, parasite):
     if not isinstance(parasite, gimp.Parasite):
       raise SettingValueError(
-        settingutils.value_to_str_prefix(parasite)
-        + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(parasite) + self.error_messages["invalid_value"])
 
 
 class PdbStatusSetting(EnumSetting):
@@ -1529,7 +1522,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
           new_status_messages.append(status_message)
       
       raise SettingValueError(
-        settingutils.value_to_str_prefix(string_)
+        utils_.value_to_str_prefix(string_)
         + "\n".join([message for message in new_status_messages]))
   
 
@@ -1625,8 +1618,7 @@ class BrushSetting(Setting):
   def _validate(self, brush_tuple):
     if len(brush_tuple) > self._MAX_NUM_TUPLE_ELEMENTS:
       raise SettingValueError(
-        settingutils.value_to_str_prefix(brush_tuple)
-        + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(brush_tuple) + self.error_messages["invalid_value"])
 
 
 class FontSetting(Setting):
@@ -1796,7 +1788,7 @@ class ArraySetting(Setting):
   Array settings are useful for manipulating PDB array parameters or for
   storing a collection of values of the same type. For more fine-grained control
   (collection of values of different type, different GUI, etc.), use
-  `setting.SettingGroup` instead.
+  `setting.group.Group` instead.
   
   If the `element_type` specified during instantiation has a matching `array_*`
   type in `SettingPdbTypes` (e.g. `float` and `array_float`), then the array
@@ -2051,8 +2043,7 @@ class ArraySetting(Setting):
     if (not isinstance(value_array, collections.Iterable)
         or isinstance(value_array, types.StringTypes)):
       raise SettingValueError(
-        settingutils.value_to_str_prefix(value_array)
-        + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(value_array) + self.error_messages["invalid_value"])
     
     if self._min_size < 0:
       raise SettingValueError(

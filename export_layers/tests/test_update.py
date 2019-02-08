@@ -57,7 +57,7 @@ class TestUpdate(unittest.TestCase):
         {
           "name": "main",
           "setting_attributes": {
-            "setting_sources": [pg.config.SOURCE_PERSISTENT]},
+            "setting_sources": [pg.config.PERSISTENT_SOURCE]},
         }
       ]
     })
@@ -89,7 +89,7 @@ class TestUpdate(unittest.TestCase):
         mock_handle_update,
         mock_persistent_source,
         mock_session_source):
-    self.assertFalse(pg.config.SOURCE_PERSISTENT.has_data())
+    self.assertFalse(pg.config.PERSISTENT_SOURCE.has_data())
     
     status = update.update(self.settings)
     
@@ -98,7 +98,7 @@ class TestUpdate(unittest.TestCase):
     
     status, unused_ = self.settings["main/plugin_version"].load()
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
-    self.assertEqual(status, pg.setting.SettingPersistor.SUCCESS)
+    self.assertEqual(status, pg.setting.Persistor.SUCCESS)
   
   def test_minimum_version_or_later_is_overwritten_by_new_version(
         self,
@@ -142,7 +142,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
     self.assertEqual(
       self.settings["main/test_setting"].load()[0],
-      pg.setting.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
+      pg.setting.Persistor.NOT_ALL_SETTINGS_FOUND)
   
   def test_prompt_on_clear_positive_response(
         self,
@@ -160,7 +160,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
     self.assertEqual(
       self.settings["main/test_setting"].load()[0],
-      pg.setting.SettingPersistor.NOT_ALL_SETTINGS_FOUND)
+      pg.setting.Persistor.NOT_ALL_SETTINGS_FOUND)
   
   def test_prompt_on_clear_negative_response(
         self,
@@ -179,7 +179,7 @@ class TestUpdate(unittest.TestCase):
       self.settings["main/plugin_version"].value, self.old_incompatible_version)
     self.assertEqual(
       self.settings["main/test_setting"].load()[0],
-      pg.setting.SettingPersistor.SUCCESS)
+      pg.setting.Persistor.SUCCESS)
   
 
 class TestHandleUpdate(unittest.TestCase):
@@ -193,7 +193,7 @@ class TestHandleUpdate(unittest.TestCase):
     
     self._executed_handlers = []
     
-    self.settings = pg.setting.SettingGroup("settings")
+    self.settings = pg.setting.Group("settings")
   
   @parameterized.parameterized.expand([
     ["previous_version_earlier_than_all_handlers_execute_one_handler",

@@ -33,9 +33,9 @@ import parameterized
 from ... import constants as pgconstants
 from ... import path as pgpath
 
-from ...setting import persistor as settingpersistor
+from ...setting import persistor as persistor_
 from ...setting import settings as settings_
-from ...setting import sources as settingsources
+from ...setting import sources as sources_
 
 from .. import stubs_gimp
 from . import stubs_setting
@@ -175,7 +175,7 @@ class TestSetting(unittest.TestCase):
      ["one", "two"], ["one"], True, ["one"]),
   ])
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.persistor.SettingPersistor.load")
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.persistor.Persistor.load")
   def test_load(
         self,
         test_case_name_suffix,
@@ -183,13 +183,13 @@ class TestSetting(unittest.TestCase):
         sources_as_parameters,
         was_save_called,
         sources_in_call_args,
-        mock_setting_persistor_load):
+        mock_persistor_load):
     self._test_load_save(
       sources_for_setting,
       sources_as_parameters,
       was_save_called,
       sources_in_call_args,
-      mock_setting_persistor_load,
+      mock_persistor_load,
       "load")
   
   @parameterized.parameterized.expand([
@@ -209,7 +209,7 @@ class TestSetting(unittest.TestCase):
      ["one", "two"], ["one"], True, ["one"]),
   ])
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.persistor.SettingPersistor.save")
+    pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.persistor.Persistor.save")
   def test_save(
         self,
         test_case_name_suffix,
@@ -217,13 +217,13 @@ class TestSetting(unittest.TestCase):
         sources_as_parameters,
         was_save_called,
         sources_in_call_args,
-        mock_setting_persistor_save):
+        mock_persistor_save):
     self._test_load_save(
       sources_for_setting,
       sources_as_parameters,
       was_save_called,
       sources_in_call_args,
-      mock_setting_persistor_save,
+      mock_persistor_save,
       "save")
   
   def _test_load_save(
@@ -314,28 +314,28 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
   def setUp(self):
     self.setting = stubs_setting.SettingWithGuiStub("file_extension", "png")
     self.only_visible_layers = settings_.BoolSetting("only_visible_layers", False)
-    self.session_source = settingsources.SessionWideSettingSource("")
+    self.session_source = sources_.SessionSource("")
   
   def test_before_load_event(self, mock_session_source):
-    settingpersistor.SettingPersistor.save(
+    persistor_.Persistor.save(
       [self.setting, self.only_visible_layers], [self.session_source])
     self.setting.set_value("gif")
     
     self.setting.connect_event(
       "before-load", stubs_setting.on_file_extension_changed, self.only_visible_layers)
-    settingpersistor.SettingPersistor.load([self.setting], [self.session_source])
+    persistor_.Persistor.load([self.setting], [self.session_source])
     
     self.assertEqual(self.setting.value, "png")
     self.assertEqual(self.only_visible_layers.value, True)
   
   def test_after_load_event(self, mock_session_source):
     self.only_visible_layers.set_value(True)
-    settingpersistor.SettingPersistor.save(
+    persistor_.Persistor.save(
       [self.setting, self.only_visible_layers], [self.session_source])
     
     self.setting.connect_event(
       "after-load", stubs_setting.on_file_extension_changed, self.only_visible_layers)
-    settingpersistor.SettingPersistor.load([self.setting], [self.session_source])
+    persistor_.Persistor.load([self.setting], [self.session_source])
     
     self.assertEqual(self.setting.value, "png")
     self.assertEqual(self.only_visible_layers.value, False)
@@ -343,11 +343,11 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
   def test_after_load_event_not_all_settings_found_invoke_for_all_settings(
         self, mock_session_source):
     self.setting.set_value("gif")
-    settingpersistor.SettingPersistor.save([self.setting], [self.session_source])
+    persistor_.Persistor.save([self.setting], [self.session_source])
     
     self.setting.connect_event(
       "after-load", stubs_setting.on_file_extension_changed, self.only_visible_layers)
-    settingpersistor.SettingPersistor.load(
+    persistor_.Persistor.load(
       [self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
@@ -355,7 +355,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
   
   def test_after_load_event_read_fail(self, mock_session_source):
     self.only_visible_layers.set_value(True)
-    settingpersistor.SettingPersistor.save(
+    persistor_.Persistor.save(
       [self.setting, self.only_visible_layers], [self.session_source])
     
     self.setting.connect_event(
@@ -364,9 +364,8 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     with mock.patch(
            pgconstants.PYGIMPLIB_MODULE_PATH
            + ".setting.sources.gimpshelf.shelf") as temp_mock_session_source:
-      temp_mock_session_source.__getitem__.side_effect = (
-        settingsources.SettingSourceReadError)
-      settingpersistor.SettingPersistor.load([self.setting], [self.session_source])
+      temp_mock_session_source.__getitem__.side_effect = sources_.SourceReadError
+      persistor_.Persistor.load([self.setting], [self.session_source])
     
     self.assertEqual(self.setting.value, "png")
     self.assertEqual(self.only_visible_layers.value, True)
@@ -376,13 +375,13 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     
     self.setting.connect_event(
       "before-save", stubs_setting.on_file_extension_changed, self.only_visible_layers)
-    settingpersistor.SettingPersistor.save(
+    persistor_.Persistor.save(
       [self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
     self.assertEqual(self.only_visible_layers.value, True)
     
-    settingpersistor.SettingPersistor.load(
+    persistor_.Persistor.load(
       [self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
@@ -393,13 +392,13 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     
     self.setting.connect_event(
       "after-save", stubs_setting.on_file_extension_changed, self.only_visible_layers)
-    settingpersistor.SettingPersistor.save(
+    persistor_.Persistor.save(
       [self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
     self.assertEqual(self.only_visible_layers.value, True)
     
-    settingpersistor.SettingPersistor.load(
+    persistor_.Persistor.load(
       [self.setting, self.only_visible_layers], [self.session_source])
     
     self.assertEqual(self.setting.value, "gif")
@@ -413,9 +412,8 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     with mock.patch(
            pgconstants.PYGIMPLIB_MODULE_PATH
            + ".setting.sources.gimpshelf.shelf") as temp_mock_session_source:
-      temp_mock_session_source.__setitem__.side_effect = (
-        settingsources.SettingSourceWriteError)
-      settingpersistor.SettingPersistor.save([self.setting], [self.session_source])
+      temp_mock_session_source.__setitem__.side_effect = sources_.SourceWriteError
+      persistor_.Persistor.save([self.setting], [self.session_source])
     
     self.assertEqual(self.only_visible_layers.value, False)
 
@@ -427,11 +425,11 @@ class TestSettingGui(unittest.TestCase):
     self.widget = stubs_setting.GuiWidgetStub("")
   
   def test_set_gui_updates_gui_value(self):
-    self.setting.set_gui(stubs_setting.SettingPresenterStub, self.widget)
+    self.setting.set_gui(stubs_setting.PresenterStub, self.widget)
     self.assertEqual(self.widget.value, "png")
   
   def test_setting_set_value_updates_gui(self):
-    self.setting.set_gui(stubs_setting.SettingPresenterStub, self.widget)
+    self.setting.set_gui(stubs_setting.PresenterStub, self.widget)
     self.setting.set_value("gif")
     self.assertEqual(self.widget.value, "gif")
   
@@ -440,7 +438,7 @@ class TestSettingGui(unittest.TestCase):
     self.setting.gui.set_visible(False)
     self.setting.set_value("gif")
     
-    self.setting.set_gui(stubs_setting.SettingPresenterStub, self.widget)
+    self.setting.set_gui(stubs_setting.PresenterStub, self.widget)
     
     self.assertFalse(self.setting.gui.get_sensitive())
     self.assertFalse(self.setting.gui.get_visible())
@@ -455,9 +453,9 @@ class TestSettingGui(unittest.TestCase):
   
   def test_setting_different_gui_type(self):
     setting = stubs_setting.SettingWithGuiStub(
-      "only_visible_layers", False, gui_type=stubs_setting.SettingPresenterStub)
+      "only_visible_layers", False, gui_type=stubs_setting.PresenterStub)
     setting.set_gui()
-    self.assertIs(type(setting.gui), stubs_setting.SettingPresenterStub)
+    self.assertIs(type(setting.gui), stubs_setting.PresenterStub)
     self.assertIs(type(setting.gui.element), stubs_setting.GuiWidgetStub)
   
   def test_setting_invalid_gui_type_raise_error(self):
@@ -495,12 +493,12 @@ class TestSettingGui(unittest.TestCase):
     setting = stubs_setting.SettingWithGuiStub(
       "only_visible_layers",
       False,
-      gui_type=stubs_setting.SettingPresenterWithoutGuiElementCreationStub)
+      gui_type=stubs_setting.PresenterWithoutGuiElementCreationStub)
     with self.assertRaises(ValueError):
       setting.set_gui()
   
   def test_update_setting_value_manually(self):
-    self.setting.set_gui(stubs_setting.SettingPresenterStub, self.widget)
+    self.setting.set_gui(stubs_setting.PresenterStub, self.widget)
     self.widget.set_value("jpg")
     self.assertEqual(self.setting.value, "png")
     
@@ -509,13 +507,13 @@ class TestSettingGui(unittest.TestCase):
   
   def test_update_setting_value_automatically(self):
     self.setting.set_gui(
-      stubs_setting.SettingPresenterWithValueChangedSignalStub, self.widget)
+      stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
     self.widget.set_value("jpg")
     self.assertEqual(self.setting.value, "jpg")
   
   def test_update_setting_value_triggers_value_changed_event(self):
     self.setting.set_gui(
-      stubs_setting.SettingPresenterWithValueChangedSignalStub, self.widget)
+      stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
     
     only_visible_layers = settings_.BoolSetting("only_visible_layers", False)
     self.setting.connect_event(
@@ -527,7 +525,7 @@ class TestSettingGui(unittest.TestCase):
     self.assertFalse(only_visible_layers.gui.get_sensitive())
   
   def test_reset_updates_gui(self):
-    self.setting.set_gui(stubs_setting.SettingPresenterStub, self.widget)
+    self.setting.set_gui(stubs_setting.PresenterStub, self.widget)
     self.setting.set_value("jpg")
     self.setting.reset()
     self.assertEqual(self.widget.value, "png")
@@ -535,7 +533,7 @@ class TestSettingGui(unittest.TestCase):
   def test_update_setting_value_manually_for_automatically_updated_settings_when_reset_to_disallowed_empty_value(self):
     setting = stubs_setting.SettingWithGuiStub("file_extension", "")
     setting.set_gui(
-      stubs_setting.SettingPresenterWithValueChangedSignalStub, self.widget)
+      stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
     setting.set_value("jpg")
     setting.reset()
     
@@ -544,19 +542,19 @@ class TestSettingGui(unittest.TestCase):
       # values are disallowed (`allow_empty_values` is False).
       setting.gui.update_setting_value()
   
-  def test_null_setting_presenter_has_automatic_gui(self):
+  def test_null_presenter_has_automatic_gui(self):
     setting = stubs_setting.SettingWithGuiStub("file_extension", "")
     self.assertTrue(setting.gui.gui_update_enabled)
   
   def test_manual_gui_update_enabled_is_false(self):
     setting = stubs_setting.SettingWithGuiStub("file_extension", "")
-    setting.set_gui(stubs_setting.SettingPresenterStub, self.widget)
+    setting.set_gui(stubs_setting.PresenterStub, self.widget)
     self.assertFalse(setting.gui.gui_update_enabled)
   
   def test_automatic_gui_update_enabled_is_true(self):
     setting = stubs_setting.SettingWithGuiStub("file_extension", "")
     setting.set_gui(
-      stubs_setting.SettingPresenterWithValueChangedSignalStub, self.widget)
+      stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
     self.assertTrue(setting.gui.gui_update_enabled)
     
     self.widget.set_value("png")
@@ -566,7 +564,7 @@ class TestSettingGui(unittest.TestCase):
     setting = stubs_setting.SettingWithGuiStub(
       "file_extension", "", auto_update_gui_to_setting=False)
     setting.set_gui(
-      stubs_setting.SettingPresenterWithValueChangedSignalStub, self.widget)
+      stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
     self.assertFalse(setting.gui.gui_update_enabled)
     
     self.widget.set_value("png")
@@ -575,7 +573,7 @@ class TestSettingGui(unittest.TestCase):
   def test_set_gui_disable_automatic_setting_value_update(self):
     setting = stubs_setting.SettingWithGuiStub("file_extension", "")
     setting.set_gui(
-      stubs_setting.SettingPresenterWithValueChangedSignalStub,
+      stubs_setting.PresenterWithValueChangedSignalStub,
       self.widget, auto_update_gui_to_setting=False)
     self.assertFalse(setting.gui.gui_update_enabled)
     
@@ -586,7 +584,7 @@ class TestSettingGui(unittest.TestCase):
     setting = stubs_setting.SettingWithGuiStub(
       "file_extension", "", auto_update_gui_to_setting=False)
     setting.set_gui(
-      stubs_setting.SettingPresenterWithValueChangedSignalStub, self.widget)
+      stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
     setting.gui.auto_update_gui_to_setting(True)
     
     self.widget.set_value("png")
@@ -594,7 +592,7 @@ class TestSettingGui(unittest.TestCase):
   
   def test_automatic_gui_update_for_manual_gui_raises_value_error(self):
     setting = stubs_setting.SettingWithGuiStub("file_extension", "")
-    setting.set_gui(stubs_setting.SettingPresenterStub, self.widget)
+    setting.set_gui(stubs_setting.PresenterStub, self.widget)
     
     self.assertFalse(setting.gui.gui_update_enabled)
     

@@ -44,17 +44,17 @@ from . import settings as settings_
 from ._sources_errors import *
 
 __all__ = [
-  "SettingSource",
-  "SessionWideSettingSource",
-  "PersistentSettingSource",
+  "Source",
+  "SessionSource",
+  "PersistentSource",
 ]
 
 
-class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
+class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   """
   This class provides an interface for reading and writing settings to setting
   sources. For easier usage, is is highly recommended to use the
-  `SettingPersistor` class instead.
+  `setting.persistor.Persistor` class instead.
   
   Attributes:
   
@@ -79,14 +79,14 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
       found in the source. All settings that were not found in the source will
       be stored in this exception in the `settings_not_found` attribute.
     
-    * `SettingSourceNotFoundError` - Could not find the source.
+    * `SourceNotFoundError` - Could not find the source.
     
-    * `SettingSourceInvalidFormatError` - The source has an invalid format. This
-      could happen if the source was directly edited manually.
+    * `SourceInvalidFormatError` - The source has an invalid format. This could
+      happen if the source was directly edited manually.
     """
     settings_from_source = self.read_dict()
     if settings_from_source is None:
-      raise SettingSourceNotFoundError(
+      raise SourceNotFoundError(
         _('Could not find setting source "{}".').format(self.source_name))
     
     settings_not_found = []
@@ -153,8 +153,8 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     Raises:
     
-    * `SettingSourceInvalidFormatError` - Data could not be read due to likely
-      being corrupt.
+    * `SourceInvalidFormatError` - Data could not be read due to likely being
+      corrupt.
     """
     pass
   
@@ -181,7 +181,7 @@ class SettingSource(future.utils.with_metaclass(abc.ABCMeta, object)):
     return settings_dict
 
 
-class SessionWideSettingSource(SettingSource):
+class SessionSource(Source):
   """
   This class reads settings from/writes settings to a source that persists
   during one GIMP session.
@@ -204,7 +204,7 @@ class SessionWideSettingSource(SettingSource):
     except KeyError:
       return None
     except Exception:
-      raise SettingSourceInvalidFormatError(
+      raise SourceInvalidFormatError(
         _("Session-wide settings for this plug-in may be corrupt.\n"
           "To fix this, save the settings again or reset them."))
   
@@ -215,7 +215,7 @@ class SessionWideSettingSource(SettingSource):
     return self.source_name.encode(pgconstants.GIMP_CHARACTER_ENCODING)
 
 
-class PersistentSettingSource(SettingSource):
+class PersistentSource(Source):
   """
   This class reads settings from/writes settings to a persistent source.
   
@@ -246,7 +246,7 @@ class PersistentSettingSource(SettingSource):
     try:
       settings_from_source = pickle.loads(parasite.data)
     except Exception:
-      raise SettingSourceInvalidFormatError(
+      raise SourceInvalidFormatError(
         _('Settings for this plug-in stored in "{}" may be corrupt. '
           "This could happen if the file was edited manually.\n"
           "To fix this, save the settings again or reset them.").format(

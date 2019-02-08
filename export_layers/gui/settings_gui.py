@@ -30,11 +30,11 @@ from export_layers import pygimplib as pg
 
 
 def create_gui_settings():
-  gui_settings = pg.setting.SettingGroup(
+  gui_settings = pg.setting.Group(
     name="gui",
     setting_attributes={
       "setting_sources": [
-        pg.config.SOURCE_SESSION, pg.config.SOURCE_PERSISTENT]})
+        pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]})
   
   gui_settings.add([
     {
@@ -93,9 +93,9 @@ def create_gui_settings():
     },
   ])
   
-  session_only_gui_settings = pg.setting.SettingGroup(
+  session_only_gui_settings = pg.setting.Group(
     name="gui_session",
-    setting_attributes={"setting_sources": [pg.config.SOURCE_SESSION]})
+    setting_attributes={"setting_sources": [pg.config.SESSION_SOURCE]})
   
   session_only_gui_settings.add([
     {
@@ -119,9 +119,9 @@ def create_gui_settings():
     },
   ])
   
-  persistent_only_gui_settings = pg.setting.SettingGroup(
+  persistent_only_gui_settings = pg.setting.Group(
     name="gui_persistent",
-    setting_attributes={"setting_sources": [pg.config.SOURCE_PERSISTENT]})
+    setting_attributes={"setting_sources": [pg.config.PERSISTENT_SOURCE]})
   
   persistent_only_gui_settings.add([
     {

@@ -52,7 +52,7 @@ def create_settings():
       {
         "name": "main",
         "setting_attributes": {
-          "setting_sources": [pg.config.SOURCE_SESSION, pg.config.SOURCE_PERSISTENT]},
+          "setting_sources": [pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]},
       }
     ]
   })
@@ -79,7 +79,7 @@ def create_settings():
       "name": "first_plugin_run",
       "default_value": True,
       "pdb_type": None,
-      "setting_sources": [pg.config.SOURCE_SESSION],
+      "setting_sources": [pg.config.SESSION_SOURCE],
     },
   ])
   
@@ -113,7 +113,7 @@ def create_settings():
       "default_value": collections.defaultdict(set),
       "display_name": _("Selected layers"),
       "pdb_type": None,
-      "setting_sources": [pg.config.SOURCE_SESSION],
+      "setting_sources": [pg.config.SESSION_SOURCE],
     },
     {
       "type": pg.setting.SettingTypes.generic,
@@ -122,7 +122,7 @@ def create_settings():
       "default_value": collections.defaultdict(set),
       "display_name": _("Selected layers"),
       "pdb_type": None,
-      "setting_sources": [pg.config.SOURCE_PERSISTENT],
+      "setting_sources": [pg.config.PERSISTENT_SOURCE],
     },
     {
       "type": pg.setting.SettingTypes.enumerated,

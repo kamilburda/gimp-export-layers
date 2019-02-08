@@ -562,11 +562,11 @@ class TestLoadSaveOperations(unittest.TestCase):
     self.procedures = operations.create("procedures")
   
   @mock.patch(
-    pg.PYGIMPLIB_MODULE_PATH + ".setting.persistor.SettingPersistor.save",
-    return_value=(pg.setting.SettingPersistor.SUCCESS, ""))
+    pg.PYGIMPLIB_MODULE_PATH + ".setting.persistor.Persistor.save",
+    return_value=(pg.setting.Persistor.SUCCESS, ""))
   @mock.patch(
-    pg.PYGIMPLIB_MODULE_PATH + ".setting.persistor.SettingPersistor.load",
-    return_value=(pg.setting.SettingPersistor.SUCCESS, ""))
+    pg.PYGIMPLIB_MODULE_PATH + ".setting.persistor.Persistor.load",
+    return_value=(pg.setting.Persistor.SUCCESS, ""))
   def test_save_load_affects_only_added_data(
         self, mock_load, mock_save, mock_persistent_source, mock_session_source):
     self.procedures.save()

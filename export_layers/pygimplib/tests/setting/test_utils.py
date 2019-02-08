@@ -19,9 +19,9 @@ from future.builtins import *
 
 import unittest
 
-from ...setting import group as settinggroup
+from ...setting import group as group_
 from ...setting import settings as settings_
-from ...setting import utils as settingutils
+from ...setting import utils as utils_
 
 from . import stubs_setting
 
@@ -30,25 +30,25 @@ class TestGetProcessedSettingAttribute(unittest.TestCase):
   
   def test_get_processed_display_name(self):
     self.assertEqual(
-      settingutils.get_processed_display_name(
+      utils_.get_processed_display_name(
         None, "my_setting_name"), "My setting name")
     self.assertEqual(
-      settingutils.get_processed_display_name(
+      utils_.get_processed_display_name(
         "My display name", "my_setting_name"), "My display name")
   
   def test_get_processed_description(self):
     self.assertEqual(
-      settingutils.get_processed_description(
+      utils_.get_processed_description(
         None, "My _Setting Name"), "My Setting Name")
     self.assertEqual(
-      settingutils.get_processed_description(
+      utils_.get_processed_description(
         "My description", "My _Setting Name"), "My description")
 
 
 def _create_test_settings_for_path():
   setting = settings_.Setting("file_extension", "png")
-  main_settings = settinggroup.SettingGroup("main")
-  advanced_settings = settinggroup.SettingGroup("advanced")
+  main_settings = group_.Group("main")
+  advanced_settings = group_.Group("advanced")
   
   advanced_settings.add([setting])
   main_settings.add([advanced_settings])
@@ -256,17 +256,17 @@ class TestSettingPath(unittest.TestCase):
   
   def test_get_path_no_parent(self):
     setting = settings_.Setting("file_extension", "png")
-    self.assertEqual(settingutils.get_setting_path(setting), "file_extension")
+    self.assertEqual(utils_.get_setting_path(setting), "file_extension")
   
   def test_get_path(self):
     self.assertEqual(
-      settingutils.get_setting_path(self.setting), "main/advanced/file_extension")
+      utils_.get_setting_path(self.setting), "main/advanced/file_extension")
     self.assertEqual(
-      settingutils.get_setting_path(self.advanced_settings), "main/advanced")
+      utils_.get_setting_path(self.advanced_settings), "main/advanced")
     self.assertEqual(
-      settingutils.get_setting_path(self.main_settings), "main")
+      utils_.get_setting_path(self.main_settings), "main")
   
-  def test_get_path_with_relative_path_from_setting_group(self):
+  def test_get_path_with_relative_path_from_group(self):
     self._test_get_path_with_relative_path(
       self.setting, self.main_settings, "advanced/file_extension")
     self._test_get_path_with_relative_path(
@@ -280,8 +280,8 @@ class TestSettingPath(unittest.TestCase):
     self._test_get_path_with_relative_path(
       self.main_settings, self.main_settings, "")
   
-  def test_get_path_with_relative_path_from_non_matching_setting_group(self):
-    special_settings = settinggroup.SettingGroup("special")
+  def test_get_path_with_relative_path_from_non_matching_group(self):
+    special_settings = group_.Group("special")
     
     self._test_get_path_with_relative_path(
       self.setting, special_settings, "main/advanced/file_extension")
@@ -292,15 +292,15 @@ class TestSettingPath(unittest.TestCase):
   
   def test_get_path_without_root_group(self):
     self.assertEqual(
-      settingutils.get_setting_path(self.setting, "root"), "advanced/file_extension")
+      utils_.get_setting_path(self.setting, "root"), "advanced/file_extension")
     self.assertEqual(
-      settingutils.get_setting_path(self.advanced_settings, "root"), "advanced")
+      utils_.get_setting_path(self.advanced_settings, "root"), "advanced")
     self.assertEqual(
-      settingutils.get_setting_path(self.main_settings, "root"), "main")
+      utils_.get_setting_path(self.main_settings, "root"), "main")
   
   def _test_get_path_with_relative_path(
-        self, setting, relative_path_setting_group, expected_path):
+        self, setting, relative_path_group, expected_path):
     self.assertEqual(
-      settingutils.get_setting_path(
-        setting, relative_path_setting_group=relative_path_setting_group),
+      utils_.get_setting_path(
+        setting, relative_path_group=relative_path_group),
       expected_path)

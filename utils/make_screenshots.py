@@ -178,7 +178,7 @@ def main(settings=None):
   image = pdb.gimp_file_load(TEST_IMAGES_FILEPATH, os.path.basename(TEST_IMAGES_FILEPATH))
   
   layer_tree = pg.itemtree.LayerTree(
-    image, name=pg.config.SOURCE_PERSISTENT_NAME, is_filtered=True)
+    image, name=pg.config.PERSISTENT_SOURCE_NAME, is_filtered=True)
   
   settings["special/image"].set_value(image)
   

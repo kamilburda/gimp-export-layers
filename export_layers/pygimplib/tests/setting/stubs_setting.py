@@ -21,7 +21,7 @@ This module provides stubs primarily to be used in the `test_setting` module.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-from ...setting import presenter as settingpresenter
+from ...setting import presenter as presenter_
 from ...setting import settings as settings_
 
 
@@ -53,7 +53,7 @@ class CheckButtonStub(GuiWidgetStub):
   pass
 
 
-class SettingPresenterStub(settingpresenter.SettingPresenter):
+class PresenterStub(presenter_.Presenter):
   
   def get_sensitive(self):
     return self._element.sensitive
@@ -83,24 +83,24 @@ class SettingPresenterStub(settingpresenter.SettingPresenter):
     self._element.disconnect()
 
 
-class SettingPresenterWithValueChangedSignalStub(SettingPresenterStub):
+class PresenterWithValueChangedSignalStub(PresenterStub):
   
   _VALUE_CHANGED_SIGNAL = "changed"
 
 
-class SettingPresenterWithoutGuiElementCreationStub(SettingPresenterStub):
+class PresenterWithoutGuiElementCreationStub(PresenterStub):
   
   def _create_gui_element(self, setting):
     return None
 
 
-class CheckButtonPresenterStub(SettingPresenterStub):
+class CheckButtonPresenterStub(PresenterStub):
   
   def _create_gui_element(self, setting):
     return CheckButtonStub(setting.value)
 
 
-class YesNoToggleButtonPresenterStub(SettingPresenterStub):
+class YesNoToggleButtonPresenterStub(PresenterStub):
   pass
 
 
@@ -130,9 +130,9 @@ class SettingRegistrableToPdbStub(SettingStub):
 class SettingWithGuiStub(SettingStub):
   
   _ALLOWED_GUI_TYPES = [
-    CheckButtonPresenterStub, SettingPresenterStub,
-    SettingPresenterWithValueChangedSignalStub,
-    SettingPresenterWithoutGuiElementCreationStub]
+    CheckButtonPresenterStub, PresenterStub,
+    PresenterWithValueChangedSignalStub,
+    PresenterWithoutGuiElementCreationStub]
 
 
 def on_file_extension_changed(file_extension, only_visible_layers):
