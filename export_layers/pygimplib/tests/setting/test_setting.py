@@ -174,8 +174,7 @@ class TestSetting(unittest.TestCase):
     ("parameter_matching_a_default_source",
      ["one", "two"], ["one"], True, ["one"]),
   ])
-  @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.persistor.Persistor.load")
+  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.persistor.Persistor.load")
   def test_load(
         self,
         test_case_name_suffix,
@@ -208,8 +207,7 @@ class TestSetting(unittest.TestCase):
     ("parameter_matching_a_default_source",
      ["one", "two"], ["one"], True, ["one"]),
   ])
-  @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.persistor.Persistor.save")
+  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".setting.persistor.Persistor.save")
   def test_save(
         self,
         test_case_name_suffix,

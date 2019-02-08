@@ -46,10 +46,8 @@ class TestCreateLogFile(unittest.TestCase):
     ("invalid_file",
      IOError(), [None, None], None, 2),
   ])
-  @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".logging._path_dirs.make_dirs")
-  @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + ".logging.io.open")
+  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".logging._path_dirs.make_dirs")
+  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".logging.io.open")
   def test_create_log_file(
         self,
         test_case_name_suffix,
