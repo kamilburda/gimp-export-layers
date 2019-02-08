@@ -32,7 +32,7 @@ import gobject
 
 from .. import utils as pgutils
 
-from . import draganddropcontext as guidraganddropcontext
+from . import draganddropcontext as draganddropcontext_
 
 __all__ = [
   "ItemBox",
@@ -55,7 +55,7 @@ class ItemBox(gtk.ScrolledWindow):
     
     self._item_spacing = item_spacing
     
-    self._drag_and_drop_context = guidraganddropcontext.DragAndDropContext()
+    self._drag_and_drop_context = draganddropcontext_.DragAndDropContext()
     self._items = []
     
     self._vbox_items = gtk.VBox(homogeneous=False)

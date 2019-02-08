@@ -27,8 +27,8 @@ import gtk
 
 from .. import utils as pgutils
 
-from . import popuphidecontext as guipopuphidecontext
-from . import utils as guiutils
+from . import popuphidecontext as popuphidecontext_
+from . import utils as utils_
 
 __all__ = [
   "EntryPopup",
@@ -78,7 +78,7 @@ class EntryPopup(object):
     
     self._init_gui(column_types, rows)
     
-    self._popup_hide_context = guipopuphidecontext.PopupHideContext(
+    self._popup_hide_context = popuphidecontext_.PopupHideContext(
       self._popup, self._entry, self.hide)
     
     self._connect_events()
@@ -300,7 +300,7 @@ class EntryPopup(object):
       self._popup_hide_context.exclude_widget_from_hiding_with_button_press(widget)
   
   def _update_position(self):
-    position = guiutils.get_position_below_widget(self._entry)
+    position = utils_.get_position_below_widget(self._entry)
     if position is not None:
       self._popup.move(*position)
   
