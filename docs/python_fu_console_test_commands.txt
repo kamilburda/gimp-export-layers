@@ -1,3 +1,28 @@
+import os
+
+
+pdb.plug_in_run_tests(
+  os.path.join(gimp.directory, "plug-ins - Export Layers"),
+  "test_",
+  0,
+  (),
+  1,
+  ("export_layers.tests.test_exportlayers_contents",),
+  os.path.join(gimp.directory, "plug-ins - Export Layers", "test_output.log"),
+)
+
+
+pdb.plug_in_run_tests(
+  os.path.join(gimp.directory, "plug-ins - Export Layers"),
+  "test_",
+  1,
+  ("export_layers.tests.test_exportlayers_contents",),
+  0,
+  (),
+  os.path.join(gimp.directory, "plug-ins - Export Layers", "test_output.log"),
+)
+
+
 import imp
 import os
 import sys
@@ -5,22 +30,8 @@ plugin_dirpath = os.path.join(gimp.directory, "plug-ins - Export Layers")
 sys.path.append(plugin_dirpath)
 sys.path.append(os.path.join(plugin_dirpath, "export_layers"))
 sys.path.append(os.path.join(plugin_dirpath, "export_layers", "pygimplib"))
-utils_dirpath = os.path.join(plugin_dirpath, "utils")
-utils_tests_dirpath = os.path.join(utils_dirpath, "tests")
-sys.path.append(utils_dirpath)
-sys.path.append(utils_tests_dirpath)
 import pygimplib
-import runtests
 from pygimplib.tests.setting import test_setting_gui
-
-
-_ = lambda s: s
-imp.reload(runtests)
-_
-runtests.run_tests(
-  plugin_dirpath,
-  modules=["export_layers.pygimplib", "export_layers.tests", "export_layers", "utils", "utils.tests"],
-  ignored_modules=["export_layers.tests.test_exportlayers_contents"])
 
 
 _ = lambda s: s
@@ -33,15 +44,6 @@ _ = lambda s: s
 imp.reload(test_setting_gui)
 _
 test_setting_gui.test_array_settings_and_gui()
-
-
-_ = lambda s: s
-imp.reload(runtests)
-_
-runtests.run_tests(
-  plugin_dirpath,
-  modules=["export_layers"],
-  ignored_modules=["export_layers.pygimplib.tests"])
 
 
 import make_installers
@@ -61,8 +63,3 @@ imp.reload(sync_docs); sync_docs.main()
 
 
 imp.reload(preprocess_document_contents); preprocess_document_contents.main([(os.path.join(plugin_dirpath, "docs", "README_raw.md"), os.path.join(plugin_dirpath, "README.md"))])
-
-
-imp.reload(preprocess_document_contents)
-runtests.run_tests(utils_tests_dirpath)
-
