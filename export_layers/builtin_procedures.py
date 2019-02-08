@@ -135,7 +135,7 @@ _BUILTIN_PROCEDURES_LIST = [
     "function": insert_background_layer,
     "arguments": [
       {
-        "type": pg.setting.SettingTypes.string,
+        "type": pg.SettingTypes.string,
         "name": "tag",
         "default_value": "background",
       },
@@ -147,7 +147,7 @@ _BUILTIN_PROCEDURES_LIST = [
     "function": insert_foreground_layer,
     "arguments": [
       {
-        "type": pg.setting.SettingTypes.string,
+        "type": pg.SettingTypes.string,
         "name": "tag",
         "default_value": "foreground",
       },
@@ -164,7 +164,7 @@ _BUILTIN_PROCEDURES_LIST = [
     "function": autocrop_tagged_layer,
     "arguments": [
       {
-        "type": pg.setting.SettingTypes.string,
+        "type": pg.SettingTypes.string,
         "name": "tag",
         "default_value": "background",
       },
@@ -176,7 +176,7 @@ _BUILTIN_PROCEDURES_LIST = [
     "function": autocrop_tagged_layer,
     "arguments": [
       {
-        "type": pg.setting.SettingTypes.string,
+        "type": pg.SettingTypes.string,
         "name": "tag",
         "default_value": "foreground",
       },

@@ -182,13 +182,13 @@ def create(name, initial_operations=None):
   operations.add([
     added_operations,
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "_added_data",
       "default_value": _get_initial_added_data(initial_operations),
       "setting_sources": [pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]
     },
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "_added_data_values",
       "default_value": {},
       "setting_sources": [pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]
@@ -313,26 +313,26 @@ def _create_procedure(
   
   operation.add([
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "function",
       "default_value": function,
       "setting_sources": None,
     },
     arguments_group,
     {
-      "type": pg.setting.SettingTypes.boolean,
+      "type": pg.SettingTypes.boolean,
       "name": "enabled",
       "default_value": enabled,
     },
     {
-      "type": pg.setting.SettingTypes.string,
+      "type": pg.SettingTypes.string,
       "name": "display_name",
       "default_value": display_name,
       "gui_type": None,
       "tags": ["ignore_initialize_gui"],
     },
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "operation_groups",
       "default_value": operation_groups,
       "gui_type": None,
@@ -342,7 +342,7 @@ def _create_procedure(
   orig_name_value = custom_fields.pop("orig_name", name)
   operation.add([
     {
-      "type": pg.setting.SettingTypes.string,
+      "type": pg.SettingTypes.string,
       "name": "orig_name",
       "default_value": orig_name_value,
       "gui_type": None,
@@ -352,7 +352,7 @@ def _create_procedure(
   for field_name, field_value in custom_fields.items():
     operation.add([
       {
-        "type": pg.setting.SettingTypes.generic,
+        "type": pg.SettingTypes.generic,
         "name": field_name,
         "default_value": field_value,
         "gui_type": None,
@@ -382,7 +382,7 @@ def _create_constraint(name, function, subfilter=None, **create_operation_kwargs
   
   constraint.add([
     {
-      "type": pg.setting.SettingTypes.string,
+      "type": pg.SettingTypes.string,
       "name": "subfilter",
       "default_value": subfilter,
       "gui_type": None,

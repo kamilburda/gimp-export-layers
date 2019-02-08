@@ -59,7 +59,7 @@ def create_settings():
   
   settings["special"].add([
     {
-      "type": pg.setting.SettingTypes.enumerated,
+      "type": pg.SettingTypes.enumerated,
       "name": "run_mode",
       "default_value": "non_interactive",
       "items": [
@@ -69,13 +69,13 @@ def create_settings():
       "display_name": _("The run mode"),
     },
     {
-      "type": pg.setting.SettingTypes.image,
+      "type": pg.SettingTypes.image,
       "name": "image",
       "default_value": None,
       "display_name": _("Image"),
     },
     {
-      "type": pg.setting.SettingTypes.boolean,
+      "type": pg.SettingTypes.boolean,
       "name": "first_plugin_run",
       "default_value": True,
       "pdb_type": None,
@@ -85,13 +85,13 @@ def create_settings():
   
   settings["main"].add([
     {
-      "type": pg.setting.SettingTypes.file_extension,
+      "type": pg.SettingTypes.file_extension,
       "name": "file_extension",
       "default_value": "png",
       "display_name": "File extension",
     },
     {
-      "type": pg.setting.SettingTypes.string,
+      "type": pg.SettingTypes.string,
       "name": "output_directory",
       "default_value": gimp.user_directory(1),   # `Documents` directory
       "display_name": _("Output directory"),
@@ -99,7 +99,7 @@ def create_settings():
       "tags": ["ignore_reset"],
     },
     {
-      "type": pg.setting.SettingTypes.string,
+      "type": pg.SettingTypes.string,
       "name": "layer_filename_pattern",
       "default_value": "[layer name]",
       "display_name": _("Layer filename pattern"),
@@ -107,7 +107,7 @@ def create_settings():
       "gui_type": None,
     },
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "selected_layers",
       # key: image ID; value: set of selected layer IDs
       "default_value": collections.defaultdict(set),
@@ -116,7 +116,7 @@ def create_settings():
       "setting_sources": [pg.config.SESSION_SOURCE],
     },
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "selected_layers_persistent",
       # key: image file path; value: set of selected layer names
       "default_value": collections.defaultdict(set),
@@ -125,7 +125,7 @@ def create_settings():
       "setting_sources": [pg.config.PERSISTENT_SOURCE],
     },
     {
-      "type": pg.setting.SettingTypes.enumerated,
+      "type": pg.SettingTypes.enumerated,
       "name": "overwrite_mode",
       "default_value": "rename_new",
       "items": [
@@ -137,14 +137,14 @@ def create_settings():
       "display_name": _("Overwrite mode (non-interactive run mode only)"),
     },
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "available_tags",
       "default_value": operations.BUILTIN_TAGS,
       "pdb_type": None,
       "gui_type": None,
     },
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "plugin_version",
       "default_value": pg.config.PLUGIN_VERSION,
       "pdb_type": None,

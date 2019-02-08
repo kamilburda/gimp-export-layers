@@ -119,9 +119,9 @@ _BUILTIN_CONSTRAINTS_LIST = [
     "function": has_tags,
     "arguments": [
       {
-        "type": pg.setting.SettingTypes.array,
+        "type": pg.SettingTypes.array,
         "name": "tags",
-        "element_type": pg.setting.SettingTypes.string,
+        "element_type": pg.SettingTypes.string,
         "default_value": (),
       },
     ],
@@ -133,9 +133,9 @@ _BUILTIN_CONSTRAINTS_LIST = [
     "function": has_no_tags,
     "arguments": [
       {
-        "type": pg.setting.SettingTypes.array,
+        "type": pg.SettingTypes.array,
         "name": "tags",
-        "element_type": pg.setting.SettingTypes.string,
+        "element_type": pg.SettingTypes.string,
         "default_value": (),
       },
     ],
@@ -153,7 +153,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
     "function": is_layer_in_selected_layers,
     "arguments": [
       {
-        "type": pg.setting.SettingTypes.generic,
+        "type": pg.SettingTypes.generic,
         "name": "selected_layers",
         "default_value": set(),
         "gui_type": None,

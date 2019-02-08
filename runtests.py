@@ -145,7 +145,7 @@ class _Stream(object):
 SETTINGS = pg.setting.Group("settings")
 SETTINGS.add([
   {
-    "type": pg.setting.SettingTypes.enumerated,
+    "type": pg.SettingTypes.enumerated,
     "name": "run_mode",
     "default_value": "non_interactive",
     "items": [
@@ -156,29 +156,29 @@ SETTINGS.add([
     "tags": ["ignore_load", "ignore_save"],
   },
   {
-    "type": pg.setting.SettingTypes.string,
+    "type": pg.SettingTypes.string,
     "name": "dirpath",
     "description": "Directory path containing test modules",
   },
   {
-    "type": pg.setting.SettingTypes.string,
+    "type": pg.SettingTypes.string,
     "name": "prefix",
     "description": "Prefix of test modules",
   },
   {
-    "type": pg.setting.SettingTypes.array,
+    "type": pg.SettingTypes.array,
     "name": "modules",
-    "element_type": pg.setting.SettingTypes.string,
+    "element_type": pg.SettingTypes.string,
     "description": "Modules to include",
   },
   {
-    "type": pg.setting.SettingTypes.array,
+    "type": pg.SettingTypes.array,
     "name": "ignored_modules",
-    "element_type": pg.setting.SettingTypes.string,
+    "element_type": pg.SettingTypes.string,
     "description": "Modules to ignore",
   },
   {
-    "type": pg.setting.SettingTypes.string,
+    "type": pg.SettingTypes.string,
     "name": "output_stream",
     "description": "Output stream",
   },

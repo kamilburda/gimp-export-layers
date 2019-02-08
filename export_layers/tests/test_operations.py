@@ -48,12 +48,12 @@ test_procedures = [
     "operation_groups": ["basic"],
     "arguments": [
       {
-        "type": pg.setting.SettingTypes.integer,
+        "type": pg.SettingTypes.integer,
         "name": "offset_x",
         "default_value": 0,
       },
       {
-        "type": pg.setting.SettingTypes.integer,
+        "type": pg.SettingTypes.integer,
         "name": "offset_y",
         "default_value": 0,
       },

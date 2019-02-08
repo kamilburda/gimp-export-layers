@@ -38,55 +38,55 @@ def create_gui_settings():
   
   gui_settings.add([
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "dialog_position",
       "default_value": (),
     },
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "dialog_size",
       "default_value": (),
     },
     {
-      "type": pg.setting.SettingTypes.boolean,
+      "type": pg.SettingTypes.boolean,
       "name": "show_more_settings",
       "default_value": False,
     },
     {
-      "type": pg.setting.SettingTypes.integer,
+      "type": pg.SettingTypes.integer,
       "name": "paned_outside_previews_position",
       "default_value": 610,
     },
     {
-      "type": pg.setting.SettingTypes.float,
+      "type": pg.SettingTypes.float,
       "name": "paned_between_previews_position",
       "default_value": 360,
     },
     {
-      "type": pg.setting.SettingTypes.float,
+      "type": pg.SettingTypes.float,
       "name": "settings_vpane_position",
       "default_value": 400,
     },
     {
-      "type": pg.setting.SettingTypes.boolean,
+      "type": pg.SettingTypes.boolean,
       "name": "name_preview_sensitive",
       "default_value": True,
       "gui_type": None,
     },
     {
-      "type": pg.setting.SettingTypes.boolean,
+      "type": pg.SettingTypes.boolean,
       "name": "image_preview_sensitive",
       "default_value": True,
       "gui_type": None,
     },
     {
-      "type": pg.setting.SettingTypes.boolean,
+      "type": pg.SettingTypes.boolean,
       "name": "image_preview_automatic_update",
       "default_value": True,
       "gui_type": None,
     },
     {
-      "type": pg.setting.SettingTypes.boolean,
+      "type": pg.SettingTypes.boolean,
       "name": "image_preview_automatic_update_if_below_maximum_duration",
       "default_value": True,
       "gui_type": None,
@@ -99,20 +99,20 @@ def create_gui_settings():
   
   session_only_gui_settings.add([
     {
-      "type": pg.setting.SettingTypes.image_IDs_and_directories,
+      "type": pg.SettingTypes.image_IDs_and_directories,
       "name": "image_ids_and_directories",
       "default_value": {},
       "tags": ["ignore_reset"],
     },
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "name_preview_layers_collapsed_state",
       # key: image ID
       # value: set of layer IDs collapsed in the name preview
       "default_value": collections.defaultdict(set),
     },
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "image_preview_displayed_layers",
       # key: image ID; value: ID of the layer displayed in the preview
       "default_value": collections.defaultdict(pg.utils.return_none_func),
@@ -125,14 +125,14 @@ def create_gui_settings():
   
   persistent_only_gui_settings.add([
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "name_preview_layers_collapsed_state",
       # key: image file path
       # value: set of layer names collapsed in the name preview
       "default_value": collections.defaultdict(set)
     },
     {
-      "type": pg.setting.SettingTypes.generic,
+      "type": pg.SettingTypes.generic,
       "name": "image_preview_displayed_layers",
       # key: image file path
       # value: name of the layer displayed in the preview
