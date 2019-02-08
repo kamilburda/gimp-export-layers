@@ -41,7 +41,7 @@ def init():
   pg.config.LOCALE_DIRPATH = os.path.join(
     pg.config.PLUGINS_DIRPATH, pg.config.PLUGIN_NAME, "locale")
   
-  pg.config.LOG_MODE = pg.logging.LOG_EXCEPTIONS_ONLY
+  pg.config.LOG_MODE = "exceptions"
   
   pg.config.PLUGIN_TITLE = lambda: _("Export Layers")
   pg.config.PLUGIN_VERSION = "3.3.1"
