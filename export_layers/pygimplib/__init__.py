@@ -37,7 +37,7 @@ if _gimp_dependent_modules_imported:
   # Enable logging as early as possible to capture any unexpected errors (such
   # as missing modules) before pygimplib is fully initialized.
   logging.log_output(
-    log_mode=logging.LOG_EXCEPTIONS_ONLY,
+    log_mode="exceptions",
     log_dirpaths=[os.path.dirname(_PYGIMPLIB_DIRPATH), _PYGIMPLIB_DIRPATH],
     log_stdout_filename=None,
     log_stderr_filename="error.log",
@@ -183,7 +183,7 @@ def _init_config():
   config.PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(_PYGIMPLIB_DIRPATH))
   
   if _gimp_dependent_modules_imported:
-    config.LOG_MODE = logging.LOG_EXCEPTIONS_ONLY
+    config.LOG_MODE = "exceptions"
   
   gettext.install(config.DOMAIN_NAME, config.LOCALE_DIRPATH, unicode=True)
   
@@ -245,8 +245,7 @@ def init():
   
   gettext.install(config.DOMAIN_NAME, config.LOCALE_DIRPATH, unicode=True)
   
-  if (_gimp_dependent_modules_imported
-      or config.LOG_MODE != logging.LOG_OUTPUT_GIMP_CONSOLE):
+  if _gimp_dependent_modules_imported or config.LOG_MODE != "gimp_console":
     logging.log_output(
       config.LOG_MODE, config.PLUGINS_LOG_DIRPATHS,
       config.PLUGINS_LOG_STDOUT_FILENAME, config.PLUGINS_LOG_STDERR_FILENAME,

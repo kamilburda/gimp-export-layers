@@ -64,7 +64,7 @@ from utils import process_local_docs
 import export_layers.config
 export_layers.config.init()
 
-pg.config.LOG_MODE = pg.logging.LOG_NONE
+pg.config.LOG_MODE = "none"
 
 pg.init()
 

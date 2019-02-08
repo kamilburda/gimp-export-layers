@@ -42,8 +42,7 @@ import traceback
 from . import _path_dirs
 
 
-_LOG_MODES = (
-  LOG_NONE, LOG_EXCEPTIONS_ONLY, LOG_OUTPUT_FILES, LOG_OUTPUT_GIMP_CONSOLE) = (0, 1, 2, 3)
+_LOG_MODES = ("none", "exceptions", "files", "gimp_console")
 
 _exception_logger = None
 
@@ -62,39 +61,40 @@ def log_output(
   
   * `log_mode` - The log mode. Possible values:
     
-    * LOG_NONE - Do not log anything.
-    * LOG_EXCEPTIONS_ONLY - Only log exceptions to the error log file.
-    * LOG_OUTPUT_FILES - Redirect `stdout` and `stderr` to log files.
-    * LOG_OUTPUT_GIMP_CONSOLE - Redirect `stdout` and `stderr` to the GIMP error
-      console.
+    * "none" - Do not log anything.
+    
+    * "exceptions" - Only log exceptions to the error log file.
+    
+    * "files" - Redirect `stdout` and `stderr` to log files.
+    
+    * "gimp_console" - Redirect `stdout` and `stderr` to the GIMP error console.
   
   * `log_dirpaths` - List of directory paths for log files. If the first path is
     invalid or permission to write is denied, subsequent directories are used.
-    For the `LOG_OUTPUT_GIMP_CONSOLE` mode, this parameter has no effect.
+    For the `"gimp_console"` mode, this parameter has no effect.
   
   * `log_stdout_filename` - Filename of the log file to write standard output
-    to. Applies to the `LOG_OUTPUT_FILES` mode only.
+    to. Applies to the `"files"` mode only.
   
   * `log_stderr_filename` - Filename of the log file to write error output to.
-    Applies to the `LOG_EXCEPTIONS_ONLY` and `LOG_OUTPUT_FILES` modes only.
+    Applies to the `"exceptions"` and `"files"` modes only.
   
   * `log_header_title` - Optional title in the log header, written before the
-    first output to the log files. Applies to the `LOG_EXCEPTIONS_ONLY` and
-    `LOG_OUTPUT_FILES` modes only.
+    first output to the log files. Applies to the `"exceptions"` and `"files"`
+    modes only.
   
   * `gimp_console_message_delay_milliseconds` - The delay to display messages to
-    the GIMP console in milliseconds. Only applies to the
-    `LOG_OUTPUT_GIMP_CONSOLE` mode.
+    the GIMP console in milliseconds. Only applies to the `"gimp_console"` mode.
   """
   _restore_orig_state(log_mode)
   
-  if log_mode == LOG_NONE:
+  if log_mode == "none":
     return
   
-  if log_mode == LOG_EXCEPTIONS_ONLY:
+  if log_mode == "exceptions_only":
     _redirect_exception_output_to_file(
       log_dirpaths, log_stderr_filename, log_header_title)
-  elif log_mode == LOG_OUTPUT_FILES:
+  elif log_mode == "files":
     stdout_file = create_log_file(log_dirpaths, log_stdout_filename)
     
     if stdout_file is not None:
@@ -104,7 +104,7 @@ def log_output(
     
     if stderr_file is not None:
       sys.stderr = SimpleLogger(stderr_file, log_header_title)
-  elif log_mode == LOG_OUTPUT_GIMP_CONSOLE:
+  elif log_mode == "gimp_console":
     from . import pdbutils as pgpdbutils
     
     sys.stdout = pgpdbutils.GimpMessageFile(
@@ -112,6 +112,9 @@ def log_output(
     sys.stderr = pgpdbutils.GimpMessageFile(
       message_prefix="Error: ",
       message_delay_milliseconds=gimp_console_message_delay_milliseconds)
+  else:
+    raise ValueError('invalid log mode "{}"; allowed values: {}'.format(
+      log_mode, ", ".join(_LOG_MODES)))
 
 
 def get_log_header(log_header_title):
