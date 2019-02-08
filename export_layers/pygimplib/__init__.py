@@ -132,13 +132,9 @@ class _Config(object):
   
   def __init__(self):
     super().__setattr__("_config", {})
-    self._config["_can_modify_config"] = True
   
   def __setattr__(self, name, value):
-    if self._can_modify_config:
-      self._config[name] = value
-    else:
-      raise TypeError("cannot modify configuration after plug-in initialization")
+    self._config[name] = value
   
   def __getattr__(self, name):
     if name not in self._config:
@@ -382,8 +378,6 @@ if _gimp_dependent_modules_imported:
       config.PLUGIN_NAME = procedure_name
     
     init()
-    
-    config._can_modify_config = False
     
     procedure = _add_gui_excepthook(
       _procedures_names[procedure_name], procedure_params[0])
