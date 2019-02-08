@@ -56,13 +56,14 @@ from .. import exportlayers
 from .. import renamer
 from .. import settings_plugin
 from .. import update
-from . import gui_message_label
-from . import gui_operations
-from . import gui_preview_image
-from . import gui_preview_name
-from . import gui_previews_controller
-from . import gui_progress
-from . import messages
+
+from . import message_label as message_label_
+from . import operations as operations_
+from . import preview_image as preview_image_
+from . import preview_name as preview_name_
+from . import previews_controller as previews_controller_
+from . import progress as progress_
+from . import messages as messages_
 
 
 def display_export_failure_message(exception, parent=None):
@@ -71,7 +72,7 @@ def display_export_failure_message(exception, parent=None):
     "You can try exporting again if you fix the issue described below.")
   error_message += "\n" + str(exception)
   
-  messages.display_message(
+  messages_.display_message(
     error_message,
     message_type=gtk.MESSAGE_WARNING,
     parent=parent,
@@ -162,7 +163,7 @@ def _set_settings(func):
   the decorated function from being executed if there are invalid setting
   values. For the invalid values, an error message is displayed.
   
-  This decorator is meant to be used in the `_ExportLayersGui` class.
+  This decorator is meant to be used in the `ExportLayersDialog` class.
   """
   
   @functools.wraps(func)
@@ -261,7 +262,7 @@ def _setup_output_directory_changed(settings, current_image):
 #===============================================================================
 
 
-class ExportLayersGui(object):
+class ExportLayersDialog(object):
   
   _DIALOG_SIZE = (900, 610)
   _DIALOG_BORDER_WIDTH = 5
@@ -348,7 +349,7 @@ class ExportLayersGui(object):
     
     status, status_message = self._settings.load()
     if status == pg.setting.Persistor.READ_FAIL:
-      messages.display_message(status_message, gtk.MESSAGE_WARNING)
+      messages_.display_message(status_message, gtk.MESSAGE_WARNING)
     
     # Needs to be string to avoid strict directory validation
     self._settings["gui_session"].add([
@@ -441,7 +442,7 @@ class ExportLayersGui(object):
       default_item=self._settings["main/layer_filename_pattern"].default_value)
     self._filename_pattern_entry.set_activates_default(True)
     
-    self._label_message = gui_message_label.MessageLabel()
+    self._label_message = message_label_.MessageLabel()
     
     self._hbox_export_name_labels = gtk.HBox(homogeneous=False)
     self._hbox_export_name_labels.pack_start(
@@ -475,14 +476,14 @@ class ExportLayersGui(object):
     self._hbox_export_name_and_message.pack_start(
       self._label_message, expand=True, fill=True)
     
-    self._box_procedures = gui_operations.OperationBox(
+    self._box_procedures = operations_.OperationBox(
       self._settings["main/procedures"],
       builtin_procedures.BUILTIN_PROCEDURES,
       _("Add P_rocedure..."),
       _("Edit Procedure"),
       add_custom_operation_text=_("Add Custom Procedure..."))
     
-    self._box_constraints = gui_operations.OperationBox(
+    self._box_constraints = operations_.OperationBox(
       self._settings["main/constraints"],
       builtin_constraints.BUILTIN_CONSTRAINTS,
       _("Add C_onstraint..."),
@@ -656,7 +657,7 @@ class ExportLayersGui(object):
     })
   
   def _init_gui_previews(self):
-    self._name_preview = gui_preview_name.ExportNamePreview(
+    self._name_preview = preview_name_.ExportNamePreview(
       self._layer_exporter_for_previews,
       self._initial_layer_tree,
       self._settings["gui_session/name_preview_layers_collapsed_state"].value[
@@ -664,18 +665,18 @@ class ExportLayersGui(object):
       self._settings["main/selected_layers"].value[self._image.ID],
       self._settings["main/available_tags"])
     
-    self._image_preview = gui_preview_image.ExportImagePreview(
+    self._image_preview = preview_image_.ExportImagePreview(
       self._layer_exporter_for_previews)
     self._image_preview.set_automatic_update(
       self._settings["gui/image_preview_automatic_update"].value)
     
-    self._export_previews_controller = gui_previews_controller.ExportPreviewsController(
+    self._export_previews_controller = previews_controller_.ExportPreviewsController(
       self._name_preview, self._image_preview, self._settings, self._image)
   
   def _save_settings(self):
     status, status_message = self._settings.save()
     if status == pg.setting.Persistor.WRITE_FAIL:
-      messages.display_message(status_message, gtk.MESSAGE_WARNING, parent=self._dialog)
+      messages_.display_message(status_message, gtk.MESSAGE_WARNING, parent=self._dialog)
       return False
     else:
       return True
@@ -799,7 +800,7 @@ class ExportLayersGui(object):
     self._setup_gui_before_export()
     overwrite_chooser, progress_updater = self._setup_layer_exporter()
     
-    item_progress_indicator = gui_progress.ItemProgressIndicator(
+    item_progress_indicator = progress_.ItemProgressIndicator(
       self._progress_bar, progress_updater)
     item_progress_indicator.install_progress_for_status(
       self._progress_set_value_and_show_dialog)
@@ -826,7 +827,7 @@ class ExportLayersGui(object):
       self._settings["special/first_plugin_run"].save()
       
       if not self._layer_exporter.exported_layers:
-        messages.display_message(
+        messages_.display_message(
           _("No layers were exported."), gtk.MESSAGE_INFO, parent=self._dialog)
         should_quit = False
     finally:
@@ -945,7 +946,7 @@ class ExportLayersGui(object):
       return False
 
 
-class ExportLayersRepeatGui(object):
+class ExportLayersRepeatDialog(object):
   
   _BORDER_WIDTH = 8
   _HBOX_HORIZONTAL_SPACING = 8
@@ -995,7 +996,7 @@ class ExportLayersRepeatGui(object):
   
   def export_layers(self):
     progress_updater = pg.gui.GtkProgressUpdater(self._progress_bar)
-    item_progress_indicator = gui_progress.ItemProgressIndicator(
+    item_progress_indicator = progress_.ItemProgressIndicator(
       self._progress_bar, progress_updater)
     item_progress_indicator.install_progress_for_status()
     
@@ -1022,7 +1023,7 @@ class ExportLayersRepeatGui(object):
           traceback.format_exc(), parent=self._dialog)
     else:
       if not self._layer_exporter.exported_layers:
-        messages.display_message(
+        messages_.display_message(
           _("No layers were exported."), gtk.MESSAGE_INFO, parent=self._dialog)
     finally:
       item_progress_indicator.uninstall_progress_for_status()

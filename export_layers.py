@@ -46,7 +46,7 @@ export_layers.config.init()
 from export_layers import exportlayers
 from export_layers import settings_plugin
 from export_layers import update
-from export_layers.gui import gui_plugin
+from export_layers.gui import main as gui_main
 
 pg.init()
 
@@ -140,11 +140,11 @@ def _run_with_last_vals(layer_tree):
 
 
 def _run_export_layers_interactive(layer_tree):
-  gui_plugin.ExportLayersGui(layer_tree, SETTINGS)
+  gui_main.ExportLayersDialog(layer_tree, SETTINGS)
 
 
 def _run_export_layers_repeat_interactive(layer_tree):
-  gui_plugin.ExportLayersRepeatGui(layer_tree, SETTINGS)
+  gui_main.ExportLayersRepeatDialog(layer_tree, SETTINGS)
 
 
 def _run_plugin_noninteractive(run_mode, layer_tree):

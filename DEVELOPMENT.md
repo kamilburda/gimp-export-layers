@@ -178,6 +178,8 @@ Exceptions:
 * internal modules whose public elements should be used directly through a package.
   These modules must define `__all__` to list all public elements to be imported.
 
+When a module inside a package imports another module in the same package, append `_` to the imported module (e.g. `utils` becomes `utils_`) to avoid clashes with variable names.  
+
 
 ### Executing Code
 

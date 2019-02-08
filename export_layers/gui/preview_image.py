@@ -44,7 +44,7 @@ from export_layers import pygimplib as pg
 from export_layers import builtin_constraints
 from export_layers import operations
 
-from . import gui_preview_base
+from . import preview_base as preview_base_
 
 
 def display_image_preview_failure_message(details, parent=None):
@@ -65,7 +65,7 @@ def display_image_preview_failure_message(details, parent=None):
     focus_on_button=True)
 
 
-class ExportImagePreview(gui_preview_base.ExportPreview):
+class ExportImagePreview(preview_base_.ExportPreview):
   """
   This class defines a widget displaying a preview of an image to be exported,
   including its name.

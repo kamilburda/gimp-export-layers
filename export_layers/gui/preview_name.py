@@ -38,10 +38,11 @@ from gimp import pdb
 from export_layers import pygimplib as pg
 
 from .. import builtin_constraints
-from . import gui_preview_base
+
+from . import preview_base as preview_base_
 
 
-class ExportNamePreview(gui_preview_base.ExportPreview):
+class ExportNamePreview(preview_base_.ExportPreview):
   """
   This class defines a widget displaying a preview of exported layers -
   filenames and their folder structure.

@@ -38,7 +38,7 @@ import gimpenums
 
 from export_layers import pygimplib as pg
 
-from .gui import gui_placeholders
+from .gui import placeholders as gui_placeholders
 
 
 class _GimpObjectPlaceholder(object):

@@ -44,7 +44,7 @@ from export_layers import builtin_procedures
 from export_layers import builtin_constraints
 from export_layers import operations
 from export_layers import settings_plugin
-from export_layers.gui import gui_plugin
+from export_layers.gui import main as gui_main
 
 pg.init()
 
@@ -182,6 +182,6 @@ def main(settings=None):
   
   settings["special/image"].set_value(image)
   
-  gui_plugin.ExportLayersGui(layer_tree, settings, run_gui_func=take_screenshots)
+  gui_main.ExportLayersDialog(layer_tree, settings, run_gui_func=take_screenshots)
   
   pdb.gimp_image_delete(image)
