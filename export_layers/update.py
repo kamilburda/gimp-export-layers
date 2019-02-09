@@ -26,6 +26,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import collections
+import os
+import shutil
 import types
 
 import pygtk
@@ -179,6 +181,36 @@ def _save_plugin_version(settings):
     [settings["main/plugin_version"]], [pg.config.PERSISTENT_SOURCE])
 
 
+def _remove_obsolete_pygimplib_files():
+  for filename in os.listdir(pg.PYGIMPLIB_DIRPATH):
+    filepath = os.path.join(pg.PYGIMPLIB_DIRPATH, filename)
+    
+    if filename.startswith("pg") or filename.startswith("_pg"):
+      if os.path.isfile(filepath):
+        try:
+          os.remove(filepath)
+        except Exception:
+          pass
+      elif os.path.isdir(filepath):
+        shutil.rmtree(filepath, ignore_errors=True)
+    elif filename == "lib":
+      if os.path.isdir(filepath):
+        shutil.rmtree(filepath, ignore_errors=True)
+
+
+def _remove_obsolete_plugin_files():
+  gui_package_dirpath = os.path.join(pg.config.PLUGIN_SUBDIRPATH, "gui")
+  
+  for filename in os.listdir(gui_package_dirpath):
+    filepath = os.path.join(gui_package_dirpath, filename)
+    
+    if filename.startswith("gui_") and os.path.isfile(filepath):
+      try:
+        os.remove(filepath)
+      except Exception:
+        pass
+
+
 def _update_to_3_3_1(settings):
   rename_settings([
     ("gui/export_name_preview_sensitive",
@@ -214,6 +246,12 @@ def _update_to_3_3_1(settings):
   settings["main/layer_filename_pattern"].save()
 
 
+def _update_to_3_4(settings):
+  _remove_obsolete_pygimplib_files()
+  _remove_obsolete_plugin_files()
+
+
 _UPDATE_HANDLERS = collections.OrderedDict([
   ("3.3.1", _update_to_3_3_1),
+  ("3.4", _update_to_3_4),
 ])
