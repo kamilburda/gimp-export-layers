@@ -18,7 +18,8 @@
 # along with Export Layers.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-This module defines plug-in configuration.
+This module defines plug-in configuration. Use `c` to access, create or modify
+configuration entries.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
