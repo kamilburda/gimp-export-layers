@@ -32,8 +32,6 @@ from export_layers.pygimplib.tests import utils_itemtree
 
 from .. import renamer
 
-pg.init()
-
 
 class TestNumberField(unittest.TestCase):
   

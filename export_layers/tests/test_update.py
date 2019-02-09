@@ -37,8 +37,6 @@ from export_layers.pygimplib.tests import stubs_gimp
 
 from .. import update
 
-pg.init()
-
 
 @mock.patch(
   pg.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimpshelf.shelf",

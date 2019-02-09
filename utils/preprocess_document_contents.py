@@ -70,11 +70,6 @@ import os
 import re
 import sys
 
-import export_layers.config
-export_layers.config.init()
-
-pg.init()
-
 
 def preprocess_contents(source_and_dest_filepaths):
   for source_filepath, dest_filepath in source_and_dest_filepaths:

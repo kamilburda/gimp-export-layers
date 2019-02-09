@@ -71,6 +71,7 @@ from future.builtins import (
   ascii, bytes, chr, dict, filter, hex, input, int, list, map, next, object,
   oct, open, pow, range, round, str, super, zip)
 
+import __builtin__
 import collections
 import gettext
 
@@ -175,7 +176,8 @@ def _init_config():
   config.PLUGIN_TITLE = lambda: config.PLUGIN_NAME
   config.PLUGIN_VERSION = "1.0"
   
-  config.LOCALE_DIRPATH = lambda: os.path.join(config.PLUGINS_DIRPATH, "locale")
+  config.LOCALE_DIRPATH = (
+    lambda: os.path.join(config.PLUGINS_DIRPATH, config.PLUGIN_NAME, "locale"))
   config.DOMAIN_NAME = _get_domain_name
   
   config.BUG_REPORT_URL_LIST = []
@@ -184,23 +186,17 @@ def _init_config():
   
   if _gimp_dependent_modules_imported:
     config.LOG_MODE = "exceptions"
-  
-  gettext.install(config.DOMAIN_NAME, config.LOCALE_DIRPATH, unicode=True)
+  else:
+    config.LOG_MODE = "none"
   
   _init_config_builtin(config)
+  
+  _init_config_from_file()
+  
+  _init_config_builtin_delayed(config)
 
 
 def _init_config_builtin(config):
-  
-  def _get_setting_source_name():
-    if config.PLUGIN_NAME.startswith("plug_in"):
-      return config.PLUGIN_NAME
-    else:
-      return "plug_in_" + config.PLUGIN_NAME
-  
-  config.SESSION_SOURCE_NAME = _get_setting_source_name()
-  config.PERSISTENT_SOURCE_NAME = _get_setting_source_name()
-  
   config.DEFAULT_LOGS_DIRPATH = os.path.dirname(_PYGIMPLIB_DIRPATH)
   
   config.PLUGINS_LOG_DIRPATHS = []
@@ -223,25 +219,36 @@ def _init_config_builtin(config):
   config.GIMP_CONSOLE_MESSAGE_DELAY_MILLISECONDS = 50
 
 
+def _init_config_from_file():
+  orig_builtin_c = None
+  if hasattr(__builtin__, "c"):
+    orig_builtin_c = __builtin__.c
+  
+  __builtin__.c = config
+  
+  try:
+    from .. import config as plugin_config
+  except ImportError:
+    pass
+  
+  if orig_builtin_c is None:
+    del __builtin__.c
+  else:
+    __builtin__.c = orig_builtin_c
+
+
 def _init_config_builtin_delayed(config):
+  
+  def _get_setting_source_name():
+    if config.PLUGIN_NAME.startswith("plug_in"):
+      return config.PLUGIN_NAME
+    else:
+      return "plug_in_" + config.PLUGIN_NAME
+  
   if _gimp_dependent_modules_imported:
-    config.SESSION_SOURCE = setting.SessionSource(config.SESSION_SOURCE_NAME)
-    config.PERSISTENT_SOURCE = setting.PersistentSource(config.PERSISTENT_SOURCE_NAME)
-
-
-_init_config()
-
-_is_initialized = False
-
-
-def init():
-  global _is_initialized
-  
-  if _is_initialized:
-    return
-  
-  _init_config_builtin(config)
-  _init_config_builtin_delayed(config)
+    config.SOURCE_NAME = _get_setting_source_name()
+    config.SESSION_SOURCE = setting.SessionSource(config.SOURCE_NAME)
+    config.PERSISTENT_SOURCE = setting.PersistentSource(config.SOURCE_NAME)
   
   gettext.install(config.DOMAIN_NAME, config.LOCALE_DIRPATH, unicode=True)
   
@@ -250,8 +257,9 @@ def init():
       config.LOG_MODE, config.PLUGINS_LOG_DIRPATHS,
       config.PLUGINS_LOG_STDOUT_FILENAME, config.PLUGINS_LOG_STDERR_FILENAME,
       config.PLUGIN_TITLE, config.GIMP_CONSOLE_MESSAGE_DELAY_MILLISECONDS)
-  
-  _is_initialized = True
+
+
+_init_config()
 
 
 if _gimp_dependent_modules_imported:
@@ -376,10 +384,11 @@ if _gimp_dependent_modules_imported:
       _install_procedure(procedure, **kwargs)
   
   def _run(procedure_name, procedure_params):
+    global config
+    
     if config.PLUGIN_NAME == config._DEFAULT_PLUGIN_NAME:
       config.PLUGIN_NAME = procedure_name
-    
-    init()
+      _init_config_builtin_delayed(config)
     
     procedure = _add_gui_excepthook(
       _procedures_names[procedure_name], procedure_params[0])

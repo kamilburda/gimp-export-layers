@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # This file is part of Export Layers.
@@ -54,8 +55,6 @@ import pkgutil
 import unittest
 
 import gimpenums
-
-pg.init()
 
 
 def run_tests(

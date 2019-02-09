@@ -61,12 +61,7 @@ from export_layers.pygimplib import _path_dirs
 from utils import create_user_docs
 from utils import process_local_docs
 
-import export_layers.config
-export_layers.config.init()
-
 pg.config.LOG_MODE = "none"
-
-pg.init()
 
 
 INSTALLERS_DIRPATH = os.path.join(PLUGINS_DIRPATH, "installers")

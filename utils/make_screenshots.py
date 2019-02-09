@@ -37,16 +37,11 @@ import gtk
 import gimp
 from gimp import pdb
 
-import export_layers.config
-export_layers.config.init()
-
 from export_layers import builtin_procedures
 from export_layers import builtin_constraints
 from export_layers import operations
 from export_layers import settings_plugin
 from export_layers.gui import main as gui_main
-
-pg.init()
 
 
 PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(pg.utils.get_current_module_filepath()))
@@ -177,8 +172,7 @@ def main(settings=None):
   
   image = pdb.gimp_file_load(TEST_IMAGES_FILEPATH, os.path.basename(TEST_IMAGES_FILEPATH))
   
-  layer_tree = pg.itemtree.LayerTree(
-    image, name=pg.config.PERSISTENT_SOURCE_NAME, is_filtered=True)
+  layer_tree = pg.itemtree.LayerTree(image, name=pg.config.SOURCE_NAME, is_filtered=True)
   
   settings["special/image"].set_value(image)
   

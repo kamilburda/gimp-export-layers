@@ -59,15 +59,10 @@ import argparse
 
 import git
 
-import export_layers.config
-export_layers.config.init()
-
 from utils import make_installers
 from utils import preprocess_document_contents
 
 pg.config.LOG_MODE = "none"
-
-pg.init()
 
 
 GITHUB_PAGE_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "gh-pages")

@@ -30,8 +30,6 @@ from export_layers.pygimplib.tests import stubs_gimp
 
 from .. import placeholders
 
-pg.init()
-
 
 class TestGetReplacedArgsAndKwargs(unittest.TestCase):
   
