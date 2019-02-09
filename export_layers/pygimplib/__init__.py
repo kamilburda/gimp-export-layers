@@ -21,7 +21,7 @@ import os
 import sys
 import traceback
 
-_PYGIMPLIB_DIRPATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
+PYGIMPLIB_DIRPATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
 
 try:
   import gimp
@@ -38,7 +38,7 @@ if _gimp_dependent_modules_imported:
   # as missing modules) before pygimplib is fully initialized.
   logging.log_output(
     log_mode="exceptions",
-    log_dirpaths=[os.path.dirname(_PYGIMPLIB_DIRPATH), _PYGIMPLIB_DIRPATH],
+    log_dirpaths=[os.path.dirname(PYGIMPLIB_DIRPATH), PYGIMPLIB_DIRPATH],
     log_stdout_filename=None,
     log_stderr_filename="error.log",
     log_header_title="pygimplib")
@@ -64,7 +64,7 @@ def _setup_import_of_external_lib_modules(dirpath):
       sys.path.append(external_libs_dirpath)
 
 
-_setup_import_of_external_lib_modules(os.path.join(_PYGIMPLIB_DIRPATH, "_lib"))
+_setup_import_of_external_lib_modules(os.path.join(PYGIMPLIB_DIRPATH, "_lib"))
 
 
 from future.builtins import (
@@ -182,7 +182,7 @@ def _init_config():
   
   config.BUG_REPORT_URL_LIST = []
   
-  config.PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(_PYGIMPLIB_DIRPATH))
+  config.PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(PYGIMPLIB_DIRPATH))
   
   if _gimp_dependent_modules_imported:
     config.LOG_MODE = "exceptions"
@@ -197,7 +197,7 @@ def _init_config():
 
 
 def _init_config_builtin(config):
-  config.DEFAULT_LOGS_DIRPATH = os.path.dirname(_PYGIMPLIB_DIRPATH)
+  config.DEFAULT_LOGS_DIRPATH = os.path.dirname(PYGIMPLIB_DIRPATH)
   
   config.PLUGINS_LOG_DIRPATHS = []
   config.PLUGINS_LOG_DIRPATHS.append(config.DEFAULT_LOGS_DIRPATH)
