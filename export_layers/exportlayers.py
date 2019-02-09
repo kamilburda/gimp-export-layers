@@ -294,7 +294,7 @@ class LayerExporter(object):
       self._layer_tree = layer_tree
     else:
       self._layer_tree = pg.itemtree.LayerTree(
-        self.image, name=pg.config.PERSISTENT_SOURCE_NAME, is_filtered=True)
+        self.image, name=pg.config.SOURCE_NAME, is_filtered=True)
     
     self._keep_image_copy = keep_image_copy
     

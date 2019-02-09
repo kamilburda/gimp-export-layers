@@ -91,7 +91,7 @@ def log_output(
   if log_mode == "none":
     return
   
-  if log_mode == "exceptions_only":
+  if log_mode == "exceptions":
     _redirect_exception_output_to_file(
       log_dirpaths, log_stderr_filename, log_header_title)
   elif log_mode == "files":

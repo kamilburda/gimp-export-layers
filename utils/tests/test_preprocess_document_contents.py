@@ -29,8 +29,6 @@ import parameterized
 
 from utils import preprocess_document_contents
 
-pg.init()
-
 
 class TestParseArgs(unittest.TestCase):
   

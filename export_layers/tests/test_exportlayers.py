@@ -32,14 +32,9 @@ from export_layers import builtin_procedures
 
 from export_layers.pygimplib.tests import stubs_gimp
 
-from .. import config
-config.init()
-
 from .. import exportlayers
 from .. import operations
 from .. import settings_plugin
-
-pg.init()
 
 
 class TestLayerExporterInitialOperations(unittest.TestCase):

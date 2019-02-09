@@ -35,8 +35,6 @@ from export_layers.pygimplib.tests import stubs_gimp
 from .. import operations
 from .. import placeholders
 
-pg.init()
-
 
 test_procedures = [
   {

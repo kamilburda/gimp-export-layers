@@ -30,15 +30,10 @@ from gimp import pdb
 
 from export_layers import pygimplib as pg
 
-from .. import config
-config.init()
-
 from .. import builtin_procedures
 from .. import exportlayers
 from .. import operations
 from .. import settings_plugin
-
-pg.init()
 
 
 _CURRENT_MODULE_DIRPATH = os.path.dirname(pg.utils.get_current_module_filepath())
@@ -135,8 +130,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         "autocrop_background-use_image_size"))
   
   def test_foreground(self):
-    layer_tree = pg.itemtree.LayerTree(
-      self.test_image, name=pg.config.PERSISTENT_SOURCE_NAME)
+    layer_tree = pg.itemtree.LayerTree(self.test_image, name=pg.config.SOURCE_NAME)
     for layer_elem in layer_tree:
       if "background" in layer_elem.tags:
         layer_elem.remove_tag("background")

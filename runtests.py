@@ -56,8 +56,6 @@ import unittest
 
 import gimpenums
 
-pg.init()
-
 
 def run_tests(
       dirpath,

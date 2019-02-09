@@ -37,11 +37,6 @@ import yaml
 
 from utils import process_local_docs
 
-import export_layers.config
-export_layers.config.init()
-
-pg.init()
-
 
 MODULE_DIRPATH = os.path.dirname(pg.utils.get_current_module_filepath())
 
