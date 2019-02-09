@@ -288,19 +288,19 @@ if _gimp_dependent_modules_imported:
     * `date` - Dates (usually years) at which the plug-in development was
       active.
     
-    * `menu_name` - name of the menu entry in the GIMP user interface.
+    * `menu_name` - Name of the menu entry in the GIMP user interface.
     
-    * `menu_path` - path of the menu entry in the GIMP user interface.
+    * `menu_path` - Path of the menu entry in the GIMP user interface.
     
-    * `image_types` - image types to which the procedure applies (e.g. RGB or
-      indexed). By default, the procedure can be run for images of any type.
+    * `image_types` - Image types to which the procedure applies (e.g. RGB or
+      indexed). Defaults to `"*"` (any image type).
     
-    * `parameters` - procedure parameters. This is a list of tuples of three
+    * `parameters` - Procedure parameters. This is a list of tuples of three
       elements: `(PDB type, name, description)`. Alternatively, you may pass a
       `setting.Group` instance or a list of `setting.Group` instances containing
       plug-in settings.
     
-    * `return_values` - return values of the procedure, usable when calling the
+    * `return_values` - Return values of the procedure, usable when calling the
       procedure programmatically. The format of `return_values` is the same as
       `parameters`.
     
