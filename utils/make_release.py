@@ -244,9 +244,15 @@ def _get_release_notes_and_modify_changelog_first_header(release_metadata):
 
 
 def _update_version_and_release_date_in_config(release_metadata):
+  new_version = release_metadata.new_version
+  new_release_date = time.strftime("%B %d, %Y", time.gmtime())
+  
+  pg.config.PLUGIN_VERSION = new_version
+  pg.config.PLUGIN_VERSION_RELEASE_DATE = new_release_date
+  
   entries_to_modify = collections.OrderedDict([
-    ("PLUGIN_VERSION", release_metadata.new_version),
-    ("PLUGIN_VERSION_RELEASE_DATE", time.strftime("%B %d, %Y", time.gmtime()))])
+    ("PLUGIN_VERSION", new_version),
+    ("PLUGIN_VERSION_RELEASE_DATE", new_release_date)])
   
   print("Modifying the following entries in file '{}': {}".format(
     PLUGIN_CONFIG_FILEPATH, ", ".join(entries_to_modify)))
@@ -259,7 +265,7 @@ def _update_version_and_release_date_in_config(release_metadata):
     lines = config_file.readlines()
   
   def get_entry_pattern(entry):
-    return r'^(\s*pygimplib\.config\.' + re.escape(entry) + ' = )"(.*)"$'
+    return r'^(c\.' + re.escape(entry) + ' = )"(.*)"$'
   
   entries_to_find = dict(entries_to_modify)
   
