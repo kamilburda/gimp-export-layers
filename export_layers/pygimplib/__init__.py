@@ -220,11 +220,21 @@ def _init_config_builtin(config):
 
 
 def _init_config_from_file():
+  orig_builtin_c = None
+  if hasattr(__builtin__, "c"):
+    orig_builtin_c = __builtin__.c
+  
   __builtin__.c = config
   
-  from .. import config as plugin_config
+  try:
+    from .. import config as plugin_config
+  except ImportError:
+    pass
   
-  del __builtin__.c
+  if orig_builtin_c is None:
+    del __builtin__.c
+  else:
+    __builtin__.c = orig_builtin_c
 
 
 def _init_config_builtin_delayed(config):
