@@ -1,25 +1,26 @@
 import os
 
+plugins_dirpath = os.path.join(gimp.directory, "plug-ins - Export Layers")
 
 pdb.plug_in_run_tests(
-  os.path.join(gimp.directory, "plug-ins - Export Layers"),
+  plugins_dirpath,
   "test_",
-  0,
-  (),
+  2,
+  ("export_layers", "utils"),
   1,
   ("export_layers.tests.test_exportlayers_contents",),
-  os.path.join(gimp.directory, "plug-ins - Export Layers", "test_output.log"),
+  os.path.join(plugins_dirpath, "test_output.log"),
 )
 
 
 pdb.plug_in_run_tests(
-  os.path.join(gimp.directory, "plug-ins - Export Layers"),
+  plugins_dirpath,
   "test_",
   1,
   ("export_layers.tests.test_exportlayers_contents",),
   0,
   (),
-  os.path.join(gimp.directory, "plug-ins - Export Layers", "test_output.log"),
+  os.path.join(plugins_dirpath, "test_output.log"),
 )
 
 
@@ -46,7 +47,6 @@ _
 test_setting_gui.test_array_settings_and_gui()
 
 
-import make_installers
 import make_screenshots
 import preprocess_document_contents
 import sync_docs
@@ -54,9 +54,6 @@ orig_cwd = os.getcwd()
 
 
 _ = lambda s: s; imp.reload(make_screenshots); _; make_screenshots.main()
-
-
-imp.reload(make_installers); make_installers.main()
 
 
 imp.reload(sync_docs); sync_docs.main()
