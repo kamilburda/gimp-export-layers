@@ -61,10 +61,10 @@ class Persistor(object):
     
     Parameters:
     
-    * `settings_or_groups` - List of `Setting` or `Group` instances whose values
-      are loaded from `setting_sources`.
+    * `settings_or_groups` - List of `settings.Setting` or `group.Group`
+      instances whose values are loaded from `setting_sources`.
     
-    * `setting_sources` - List of `Source` instances to read from.
+    * `setting_sources` - List of `source.Source` instances to read from.
     
     Returns:
     
@@ -131,10 +131,10 @@ class Persistor(object):
     
     Parameters:
     
-    * `settings_or_groups` - List of `Setting` or `Group` instances whose values
-      are saved to `setting_sources`.
+    * `settings_or_groups` - List of `settings.Setting` or `group.Group`
+      instances whose values are saved to `setting_sources`.
     
-    * `setting_sources` - List of `Source` instances to write to.
+    * `setting_sources` - List of `source.Source` instances to write to.
     
     Returns:
     
