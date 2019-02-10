@@ -80,19 +80,10 @@ class ExportImagePreview(preview_base_.ExportPreview):
     * `update_duration_seconds` - Duration of the update in seconds as a float.
       The duration only considers the update of the image contents (i.e. does
       not consider the duration of updating the label of the image name).
-  
-  * `"preview-toggled-automatic-update"` - The preview's option to
-    enable/disable automatic update was toggled.
-    
-    Arguments:
-    
-    * `automatic` - See `set_automatic_update()` for more information.
   """
   
   __gsignals__ = {
     b"preview-updated": (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_FLOAT,)),
-    b"preview-toggled-automatic-update": (
-      gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_BOOLEAN,)),
   }
   
   _MANUAL_UPDATE_LOCK = "_manual_update"
@@ -125,8 +116,6 @@ class ExportImagePreview(preview_base_.ExportPreview):
     self._resize_image_operation_id = None
     self._scale_layer_operation_id = None
     
-    self._should_emit_automatic_update_signal = True
-    
     self.set_scaling()
     
     self._init_gui()
@@ -156,6 +145,10 @@ class ExportImagePreview(preview_base_.ExportPreview):
       self._preview_pixbuf = None
       self._previous_preview_pixbuf_width = None
       self._previous_preview_pixbuf_height = None
+  
+  @property
+  def menu_item_update_automatically(self):
+    return self._menu_item_update_automatically
   
   def update(self):
     update_locked = super().update()
@@ -253,22 +246,6 @@ class ExportImagePreview(preview_base_.ExportPreview):
       self._scale_layer_for_layer_exporter,
       scale_layer_operation_groups,
       ignore_if_exists=True)
-  
-  def set_automatic_update(self, automatic=True):
-    """
-    If `automatic` is `False`, lock `update()` and allow only manual updates via
-    a button within the preview.
-    
-    If `automatic` is `True`, call `update()` and hide the button for the manual
-    update. Calls to `update()` properly updates the preview, provided that the
-    update is not locked by calls to `lock_update()`.
-    
-    The key used to lock the preview for manual update is `_MANUAL_UPDATE_LOCK`.
-    This key should not be directly used outside this class to lock the preview.
-    """
-    self._should_emit_automatic_update_signal = False
-    self._menu_item_update_automatically.set_active(automatic)
-    self._should_emit_automatic_update_signal = True
   
   def _set_contents(self):
     # Sanity check in case `layer_elem` changes before `"size-allocate"` is
@@ -551,11 +528,6 @@ class ExportImagePreview(preview_base_.ExportPreview):
     else:
       self._button_refresh.show()
       self.lock_update(True, self._MANUAL_UPDATE_LOCK)
-    
-    if self._should_emit_automatic_update_signal:
-      self.emit(
-        "preview-toggled-automatic-update",
-        self._menu_item_update_automatically.get_active())
   
   def _on_button_refresh_clicked(self, button):
     if self._MANUAL_UPDATE_LOCK in self._lock_keys:

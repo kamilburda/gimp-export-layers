@@ -638,6 +638,8 @@ class ExportLayersDialog(object):
     self._settings.initialize_gui({
       "main/file_extension": [
         pg.setting.SettingGuiTypes.extended_entry, self._file_extension_entry],
+      "main/layer_filename_pattern": [
+        pg.setting.SettingGuiTypes.extended_entry, self._filename_pattern_entry],
       "gui/dialog_position": [
         pg.setting.SettingGuiTypes.window_position, self._dialog],
       "gui/dialog_size": [
@@ -650,8 +652,9 @@ class ExportLayersDialog(object):
         pg.setting.SettingGuiTypes.paned_position, self._vpaned_previews],
       "gui/settings_vpane_position": [
         pg.setting.SettingGuiTypes.paned_position, self._vpaned_chooser_and_operations],
-      "main/layer_filename_pattern": [
-        pg.setting.SettingGuiTypes.extended_entry, self._filename_pattern_entry],
+      "gui/image_preview_automatic_update": [
+        pg.setting.SettingGuiTypes.check_menu_item,
+        self._image_preview.menu_item_update_automatically],
       "gui_session/current_directory": [
         pg.setting.SettingGuiTypes.folder_chooser, self._folder_chooser],
     })
@@ -667,8 +670,6 @@ class ExportLayersDialog(object):
     
     self._image_preview = preview_image_.ExportImagePreview(
       self._layer_exporter_for_previews)
-    self._image_preview.set_automatic_update(
-      self._settings["gui/image_preview_automatic_update"].value)
     
     self._export_previews_controller = previews_controller_.ExportPreviewsController(
       self._name_preview, self._image_preview, self._settings, self._image)
@@ -743,7 +744,7 @@ class ExportLayersDialog(object):
          "gui/image_preview_automatic_update_if_below_maximum_duration"].value
         and (update_duration_seconds
              >= self._MAXIMUM_IMAGE_PREVIEW_AUTOMATIC_UPDATE_DURATION_SECONDS)):
-      self._image_preview.set_automatic_update(False)
+      self._settings["gui/image_preview_automatic_update"].set_value(False)
       
       self._display_inline_message(
         "{}\n\n{}".format(
@@ -752,10 +753,6 @@ class ExportLayersDialog(object):
             + "You may turn automatic updates back on "
             + "from the menu above the previewed image.")),
         gtk.MESSAGE_INFO)
-      
-      self._settings[
-        "gui/image_preview_automatic_update_if_below_maximum_duration"
-      ].set_value(False)
   
   def _on_dialog_key_press_event(self, dialog, event):
     if gtk.gdk.keyval_name(event.keyval) == "Escape":

@@ -273,17 +273,11 @@ class ExportPreviewsController(object):
       "before-clear-operations", _before_clear_operations)
   
   def _connect_image_preview_menu_setting_changes(self):
-    def _on_preview_toggled_automatic_update(preview, automatic):
-      self._settings["gui/image_preview_automatic_update"].set_value(automatic)
-    
     self._settings["gui/image_preview_automatic_update"].connect_event(
       "value-changed",
       lambda setting, update_if_below_setting: update_if_below_setting.set_value(False),
       self._settings[
         "gui/image_preview_automatic_update_if_below_maximum_duration"])
-    
-    self._image_preview.connect(
-      "preview-toggled-automatic-update", _on_preview_toggled_automatic_update)
   
   def _connect_toplevel_notify_is_active(self):
     toplevel = (
