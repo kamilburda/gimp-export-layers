@@ -64,6 +64,14 @@ class ObjectFilter(object):
     """
     return bool(self._filter_items)
   
+  def __getitem__(self, subfilter_name):
+    """
+    Get the subfilter specified by its name.
+    
+    This method is an alias for `get_subfilter()`.
+    """
+    return self.get_subfilter(subfilter_name)
+  
   def has_rule(self, rule_func):
     return rule_func in self._filter_items
   
@@ -201,6 +209,10 @@ class ObjectFilter(object):
         self.add_rule(rule_func, *rule_func_args)
   
   def has_subfilter(self, subfilter_name):
+    """
+    Return `True` if the subfilter given by its name exists, otherwise return
+    `False`.
+    """
     return subfilter_name in self._filter_items
   
   def add_subfilter(self, subfilter_name, subfilter):
@@ -239,9 +251,6 @@ class ObjectFilter(object):
     item = self._filter_items[subfilter_name]
     
     return item
-  
-  # Provide alias to `get_subfilter` for easier access.
-  __getitem__ = get_subfilter
   
   def remove_subfilter(self, subfilter_name, raise_if_not_found=True):
     """
