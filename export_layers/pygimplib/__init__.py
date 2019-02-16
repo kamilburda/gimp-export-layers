@@ -97,6 +97,7 @@ if _gimp_dependent_modules_imported:
   from . import setting
   
   from gimp import pdb
+  from .setting import SettingGuiTypes
   from .setting import SettingTypes
 
 __all__ = [
@@ -127,6 +128,7 @@ if _gimp_dependent_modules_imported:
     "pdb",
     "procedure",
     "main",
+    "SettingGuiTypes",
     "SettingTypes",
   ])
 
