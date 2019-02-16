@@ -4,6 +4,14 @@ title: Release Notes
 navbar_active_tab: docs
 ---
 
+Upcoming Changes
+================
+
+* Changed "Include..." constraints to "Only..." for simplicity.
+  "Include empty layer groups" is, for the time being, removed without a replacement.
+  Folders for empty groups will now always be created.
+
+
 3.3.1
 =====
 

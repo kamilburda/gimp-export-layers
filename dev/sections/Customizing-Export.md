@@ -268,18 +268,18 @@ Future versions will allow specifying custom constraints.
 
 ### Built-in Constraints
 
-**Include layers**
+**Only layers**
 
 Export all layers that are not groups.
 This constraint is enabled by default.
 
-**Include layer groups**
+Removing or disabling "Only layers" and "Only layer groups" will export both layers within groups and the groups as layers.
+
+**Only layer groups**
 
 Export all layer groups as layers.
 
-**Include empty layer groups**
-
-Create subfolders for empty layer groups.
+Removing or disabling "Only layers" and "Only layer groups" will export both layers within groups and the groups as layers.
 
 **Only visible layers**
 
