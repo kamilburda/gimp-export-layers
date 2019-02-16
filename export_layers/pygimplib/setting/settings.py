@@ -863,7 +863,10 @@ class BoolSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [
     SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
-  _ALLOWED_GUI_TYPES = [SettingGuiTypes.check_button, SettingGuiTypes.check_menu_item]
+  _ALLOWED_GUI_TYPES = [
+    SettingGuiTypes.check_button,
+    SettingGuiTypes.check_menu_item,
+    SettingGuiTypes.expander]
   _DEFAULT_DEFAULT_VALUE = False
   
   @property

@@ -191,6 +191,27 @@ class GtkCheckMenuItemPresenter(GtkPresenter):
     self._element.set_active(value)
 
 
+class GtkExpanderPresenter(GtkPresenter):
+  """
+  This class is a `Presenter` subclass for `gtk.Expander` elements.
+  
+  Value: `True` if the expander is expanded, `False` if collapsed.
+  """
+  
+  _VALUE_CHANGED_SIGNAL = "notify::expanded"
+  
+  def _create_gui_element(self, setting):
+    expander = gtk.Expander(label=setting.display_name)
+    expander.set_use_underline(True)
+    return expander
+  
+  def _get_value(self):
+    return self._element.get_expanded()
+  
+  def _set_value(self, value):
+    self._element.set_expanded(value)
+
+
 class GimpUiIntComboBoxPresenter(GtkPresenter):
   """
   This class is a `Presenter` subclass for `gimpui.IntComboBox` elements.
@@ -757,20 +778,6 @@ class GtkWindowSizePresenter(GtkPresenter):
       self._element.resize(*value)
 
 
-class GtkExpanderPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gtk.Expander` elements.
-  
-  Value: `True` if the expander is expanded, `False` if collapsed.
-  """
-  
-  def _get_value(self):
-    return self._element.get_expanded()
-  
-  def _set_value(self, value):
-    self._element.set_expanded(value)
-
-
 class GtkPanedPositionPresenter(GtkPresenter):
   """
   This class is a `Presenter` subclass for `gtk.Paned` elements.
@@ -833,6 +840,7 @@ class SettingGuiTypes(object):
   check_button = GtkCheckButtonPresenter
   check_button_label = GtkCheckButtonLabelPresenter
   check_menu_item = GtkCheckMenuItemPresenter
+  expander = GtkExpanderPresenter
   combo_box = GimpUiIntComboBoxPresenter
   text_entry = GtkEntryPresenter
   
@@ -860,7 +868,6 @@ class SettingGuiTypes(object):
   
   window_position = GtkWindowPositionPresenter
   window_size = GtkWindowSizePresenter
-  expander = GtkExpanderPresenter
   paned_position = GtkPanedPositionPresenter
   
   automatic = "automatic"
