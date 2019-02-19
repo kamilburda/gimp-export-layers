@@ -1,21 +1,21 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR khalim19
+# German Translation.
+# Copyright (C) 2019 khalim19
 # This file is distributed under the same license as the 'export_layers' package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Vinzenz Vietzke <vinz@vinzv.de>, 2019.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: export_layers 2.5\n"
 "Report-Msgid-Bugs-To: khalim19@gmail.com\n"
 "POT-Creation-Date: 2016-04-22 22:59+0200\n"
-"PO-Revision-Date: 2019-02-19 14:26+0100\n"
+"PO-Revision-Date: 2019-02-19 14:34+0100\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 2.0.7\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Last-Translator: \n"
+"Last-Translator: Vinzenz Vietzke <vinz@vinzv.de>\n"
 "Language: de_DE\n"
 
 msgid "\"{}\" is a reserved name that cannot be used in directory paths.\n"
@@ -96,7 +96,7 @@ msgid "E_xport Layers (repeat)"
 msgstr "Ebenen e_xportieren (wiederholen)"
 
 msgid "E_xport Layers..."
-msgstr "Ebenen e_xportieren"
+msgstr "Ebenen e_xportieren..."
 
 msgid "Export Layers"
 msgstr "Ebenen exportieren"
