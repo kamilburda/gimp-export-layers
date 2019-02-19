@@ -1,0 +1,351 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR khalim19
+# This file is distributed under the same license as the 'export_layers' package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: export_layers 2.5\n"
+"Report-Msgid-Bugs-To: khalim19@gmail.com\n"
+"POT-Creation-Date: 2016-04-22 22:59+0200\n"
+"PO-Revision-Date: 2019-02-19 14:26+0100\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.7\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Last-Translator: \n"
+"Language: de_DE\n"
+
+msgid "\"{}\" is a reserved name that cannot be used in directory paths.\n"
+msgstr ""
+"\"{}\" ist ein reservierter Name, der nicht in Verzeichnispfaden verwendet "
+"werden kann.\n"
+
+msgid "\"{}\" is a reserved name that cannot be used in file paths.\n"
+msgstr ""
+"\"{}\" ist ein reservierter Name, der nicht in Dateipfaden verwendet werden "
+"kann.\n"
+
+msgid "\"{}\" is a reserved name that cannot be used in filenames.\n"
+msgstr ""
+"\"{}\" ist ein reservierter Name, der nicht in Dateinamen verwendet werden "
+"kann.\n"
+
+msgid "(right-click to copy link)"
+msgstr "(Rechtsklick zum Kopieren des Links)"
+
+msgid ""
+"A file named \"{}\" already exists.\n"
+"What would you like to do?"
+msgstr ""
+"Eine Datei mit dem Namen \"{}\" existiert bereits.\n"
+"Was möchtest du tun?"
+
+msgid ""
+"A file with the same name already exists.\n"
+"What would you like to do?"
+msgstr ""
+"Eine Datei mit dem gleichen Namen existiert bereits.\n"
+"Was möchtest du tun?"
+
+msgid "Always strip file extension"
+msgstr "Dateierweiterung immer entfernen"
+
+msgid "Apply action to all files"
+msgstr "Aktion auf alle Dateien anwenden"
+
+msgid "Autocrop layers"
+msgstr "Ebenen automatisch zuschneiden"
+
+msgid "Could not find setting source \"{}\"."
+msgstr "Die Quelle der Einstellung \"{}\" konnte nicht gefunden werden."
+
+msgid "Create folders for empty layer groups"
+msgstr "Ordner für leere Ebenengruppen erstellen"
+
+msgid "Crop mode"
+msgstr "Zuschneidemodus"
+
+msgid "Crop to background"
+msgstr "Auf den Hintergrund zuschneiden"
+
+msgid "Crop to foreground"
+msgstr "Auf den Vordergrund zuschneiden"
+
+msgid "Crop to layer"
+msgstr "Auf Ebene zuschneiden"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Directory path contains invalid characters."
+msgstr "Der Verzeichnispfad enthält ungültige Zeichen."
+
+msgid "Directory path is not specified."
+msgstr "Kein Verzeichnispfad angegeben."
+
+msgid "Do you really want to reset settings?"
+msgstr "Möchtest du die Einstellungen wirklich zurücksetzen?"
+
+msgid "Drive letter contains invalid characters."
+msgstr "Der Laufwerksbuchstabe enthält ungültige Zeichen."
+
+msgid "E_xport Layers (repeat)"
+msgstr "Ebenen e_xportieren (wiederholen)"
+
+msgid "E_xport Layers..."
+msgstr "Ebenen e_xportieren"
+
+msgid "Export Layers"
+msgstr "Ebenen exportieren"
+
+msgid "Export layers as separate images"
+msgstr "Ebenen als separate Bilder exportieren"
+
+msgid "Export only layers matching file extension"
+msgstr "Nur Ebenen exportieren, die der Dateiendung entsprechen"
+
+msgid "File extension cannot end with a period."
+msgstr "Die Dateiendung darf nicht mit einem Punkt enden."
+
+msgid "File extension cannot end with spaces."
+msgstr "Die Dateiendung darf nicht mit Leerzeichen enden."
+
+msgid "File extension contains invalid characters."
+msgstr "Die Dateiendung enthält ungültige Zeichen."
+
+msgid "File extension is not specified."
+msgstr "Keine Dateiendung angegeben."
+
+msgid "File extension stripping"
+msgstr "Entfernen der Dateiendung"
+
+msgid "File extension:"
+msgstr "Dateiendung:"
+
+msgid "File extensions in layer names"
+msgstr "Dateiendungen in Ebenennamen"
+
+msgid "File path contains invalid characters."
+msgstr "Der Dateipfad enthält ungültige Zeichen."
+
+msgid "File path is not specified."
+msgstr "Kein Dateipfad angegeben."
+
+msgid "Filename cannot end with a period."
+msgstr "Der Dateiname darf nicht mit einem Punkt enden."
+
+msgid "Filename cannot end with spaces."
+msgstr "Der Dateiname darf nicht mit Leerzeichen enden."
+
+msgid "Filename contains invalid characters."
+msgstr "Der Dateiname enthält ungültige Zeichen."
+
+msgid "Filename is not specified."
+msgstr "Kein Dateiname angegeben."
+
+msgid ""
+"If the plug-in is run for the first time (i.e. no last values exist), "
+"default values will be used."
+msgstr ""
+"Wenn das Plugin zum ersten Mal ausgeführt wird (d.h. es gibt keine letzten "
+"Werte), werden Standardwerte verwendet."
+
+msgid "Ignore"
+msgstr "Ignorieren"
+
+msgid "Ignore invisible layers"
+msgstr "Unsichtbare Ebenen ignorieren"
+
+msgid "Ignore layer modes"
+msgstr "Ebenenmodi ignorieren"
+
+msgid "Ignore other layers"
+msgstr "Andere Ebenen ignorieren"
+
+msgid "Image"
+msgstr "Bild"
+
+msgid "Invalid drawable."
+msgstr "Ungültige Zeichenfläche."
+
+msgid "Invalid image."
+msgstr "Ungültiges Bild."
+
+msgid "Invalid item value; valid values: {}"
+msgstr "Ungültiger Artikelwert; gültige Werte: {}"
+
+msgid "Layer:"
+msgstr "Ebene:"
+
+msgid "Merge layer groups"
+msgstr "Ebenengruppen zusammenfügen"
+
+msgid "Never strip file extension"
+msgstr "Niemals die Dateiendung entfernen"
+
+msgid "No layers were exported."
+msgstr "Es wurden keine Ebenen exportiert."
+
+msgid "No special handling"
+msgstr "Keine besondere Bearbeitung"
+
+msgid "Oops! Something went wrong."
+msgstr "Hoppla! Etwas ist schief gelaufen."
+
+msgid "Output directory"
+msgstr "Ausgabeverzeichnis"
+
+msgid "Overwrite mode (non-interactive run mode only)"
+msgstr "Überschreibmodus (nur im nicht-interaktiven Ausführungsmodus)"
+
+msgid "Path components in the directory path cannot end with a period."
+msgstr "Pfadkomponenten im Verzeichnispfad dürfen nicht mit einem Punkt enden."
+
+msgid "Path components in the directory path cannot end with spaces."
+msgstr "Pfadkomponenten im Verzeichnispfad dürfen nicht mit Leerzeichen enden."
+
+msgid "Path components in the file path cannot end with a period."
+msgstr "Pfadkomponenten im Dateipfad dürfen nicht mit einem Punkt enden."
+
+msgid "Path components in the file path cannot end with spaces."
+msgstr "Pfadkomponenten im Dateipfad dürfen nicht mit Leerzeichen enden."
+
+msgid "Rename _existing file"
+msgstr "_Bestehende Datei umbenennen"
+
+msgid "Rename _new file"
+msgstr "_Neue Datei umbenennen"
+
+msgid "Reset Settings"
+msgstr "Einstellungen zurücksetzen"
+
+msgid "Run \"{}\" with the last values specified"
+msgstr "Ausführen von \"{}\" mit den zuletzt angegebenen Werten"
+
+msgid "Save Settings"
+msgstr "Einstellungen speichern"
+
+msgid "Save in folder:"
+msgstr "Im Ordner speichern:"
+
+msgid ""
+"Save settings permanently. If you start GIMP again, the saved settings will "
+"be loaded when {} is first opened."
+msgstr ""
+"Einstellungen dauerhaft speichern. Wenn du GIMP erneut startest, werden die "
+"gespeicherten Einstellungen beim ersten Öffnen von {} geladen."
+
+msgid "Saving '{}'"
+msgstr "Speichere '{}'"
+
+msgid ""
+"Settings for this plug-in stored in the \"{}\" file are corrupt. This could "
+"happen if the file was edited manually.\n"
+"To fix this, save the settings again or reset them."
+msgstr ""
+"Die in der Datei \"{}\" gespeicherten Einstellungen für dieses Plug-in sind "
+"fehlerhaft. Dies kann passieren, wenn die Datei manuell bearbeitet wurde.\n"
+"Um dies zu beheben, speichere die Einstellungen erneut oder setze sie zurück."
+
+msgid "Settings reset."
+msgstr "Einstellungen zurückgesetzt."
+
+msgid "Settings successfully saved."
+msgstr "Einstellungen erfolgreich gespeichert."
+
+msgid ""
+"Sorry, but the export was unsuccessful. You can try exporting again if you "
+"fix the issue described below."
+msgstr ""
+"Entschuldigung, aber der Export war erfolglos. Du kannst den Export erneut "
+"versuchen, wenn du das unten beschriebene Problem behebst."
+
+msgid "Specified path is not a directory."
+msgstr "Der angegebene Pfad ist kein Verzeichnis."
+
+msgid "Strip identical file extension"
+msgstr "Identische Dateiendung entfernen"
+
+msgid "The run mode"
+msgstr "Der Betriebsmodus"
+
+msgid ""
+"To use a layer as a background for other layers, type \"[background]\" "
+"before the layer name. For foreground layers, type \"[foreground]\" before "
+"the layer name. To enable handling of tagged layers, select \"Treat specially"
+"\"."
+msgstr ""
+"Um eine Ebene als Hintergrund für andere Ebenen zu verwenden, gib "
+"\"[background]\" vor dem Ebenennamen ein. Bei Vordergrundebenen gibst du "
+"\"[foreground]\" vor dem Ebenennamen ein. Um die Handhabung von markierten "
+"Ebenen zu aktivieren, wählst du \"Sonderbehandlung \"."
+
+msgid "Treat as normal layers"
+msgstr "Als normale Ebenen behandeln"
+
+msgid "Treat layer groups as folders"
+msgstr "Ebenengruppen als Ordner behandeln"
+
+msgid "Treat specially"
+msgstr "Sonderbehandlung"
+
+msgid "Untitled"
+msgstr "Ohne Titel"
+
+msgid "Use as file extensions"
+msgstr "Als Dateiendung verwenden"
+
+msgid "Use image size"
+msgstr "Bildgröße verwenden"
+
+msgid "Value cannot be greater than {}."
+msgstr "Der Wert darf nicht größer als {} sein."
+
+msgid "Value cannot be less than {}."
+msgstr "Der Wert darf nicht kleiner als {} sein."
+
+msgid ""
+"You can help fix this error by sending a report with the text in the details "
+"above to one of the following sites"
+msgstr ""
+"Du kannst helfen, diesen Fehler zu beheben, indem du einen Bericht mit dem "
+"Text in den Details oben an eine der folgenden Seiten schickst"
+
+msgid ""
+"You need to specify default file extension for layers with invalid or no "
+"extension."
+msgstr ""
+"Du musst die Standard-Dateierweiterung für Ebenen mit ungültiger oder keiner "
+"Erweiterung angeben."
+
+msgid "[Tagged] layers"
+msgstr "[Getaggte] Ebenen"
+
+msgid "_Advanced Settings"
+msgstr "_Erweiterte Einstellungen"
+
+msgid "_Apply action to all files"
+msgstr "_Aktion auf alle Dateien anwenden"
+
+msgid "_Cancel"
+msgstr "_Abbrechen"
+
+msgid "_Export Layers"
+msgstr "_Ebenen exportieren"
+
+msgid "_Replace"
+msgstr "_Ersetzen"
+
+msgid "_Skip"
+msgstr "_Überspringen"
+
+msgid "_Stop"
+msgstr "_Stop"
+
+msgid "{} encountered an unexpected error and has to close. Sorry about that!"
+msgstr ""
+"{} ist auf einen unerwarteten Fehler gestoßen und muss geschlossen werden. "
+"Entschuldigung dafür!"
