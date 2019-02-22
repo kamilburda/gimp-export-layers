@@ -28,7 +28,7 @@ to the folder containing plug-ins depending on your version of GIMP, usually one
 * GIMP 2.8: `C:\Users\[your username]\.gimp-2.8\plug-ins`
 * GIMP 2.10: `C:\Users\[your username]\AppData\Roaming\GIMP\2.10\plug-ins`
 
-If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
+If you can't locate the folder, open GIMP, go to `Edit → Preferences → Folders → Plug-Ins` and use one of the listed folders.
 
 
 Linux
@@ -44,10 +44,10 @@ to the folder containing plug-ins depending on your version of GIMP, usually one
 * GIMP 2.8: `/home/[your username]/.gimp-2.8/plug-ins`
 * GIMP 2.10: `/home/[your username]/.config/GIMP/2.10/plug-ins`
 
-If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
+If you can't locate the folder, open GIMP, go to `Edit → Preferences → Folders → Plug-Ins` and use one of the listed folders.
 
-To check if the correct version of Python is installed, start GIMP and go to "Filters → Python-Fu → Console".
-The console must display "Python 2.7" or later from the 2.7.x series.
+To check if the correct version of Python is installed, start GIMP and go to `Filters → Python-Fu → Console`.
+The console must display `Python 2.7` or later from the 2.7.x series.
 If not, install Python 2.7, open `/usr/lib/gimp/2.0/interpreters/pygimp.interp` and change its contents to the following:
 
     python=[path to Python 2.7 executable]
@@ -70,7 +70,7 @@ to the folder containing plug-ins depending on your version of GIMP, usually one
 * GIMP 2.8: `/Users/[your username]/Library/Application Support/GIMP/2.8/plug-ins`
 * GIMP 2.10: `/Users/[your username]/Library/Application Support/GIMP/2.10/plug-ins`
 
-If you can't locate the folder, open GIMP, go to "Edit → Preferences → Folders → Plug-Ins" and use one of the listed folders.
+If you can't locate the folder, open GIMP, go to `Edit → Preferences → Folders → Plug-Ins` and use one of the listed folders.
 
 
 Upgrading to 3.3 <a name="Upgrading-from-Earlier-Versions"></a>
@@ -78,7 +78,7 @@ Upgrading to 3.3 <a name="Upgrading-from-Earlier-Versions"></a>
 
 Due to significant changes in version 3.3, make sure you first perform complete reinstall when upgrading from an earlier version:
 
-1. Still using the old version, run Export Layers, select "Settings → Show More Settings", check "Remove procedures and constraints" and reset settings by pressing the "Reset Settings" button.
+1. Still using the old version, run Export Layers, select `Settings → Show More Settings`, check `Remove procedures and constraints` and reset settings by pressing the `Reset Settings` button.
 2. Close Export Layers.
 3. Close GIMP.
 4. Remove the `export_layers.py` file and the `export_layers` folder from the installation folder.

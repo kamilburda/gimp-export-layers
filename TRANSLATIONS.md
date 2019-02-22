@@ -13,16 +13,16 @@ The following steps apply if you want to use Poedit.
 
 To create a new translation for your language:
 
-1. Open Poedit, select "File → New from POT/PO file..." and select the .pot file in the "export_layers/locale" folder.
+1. Open Poedit, select `File → New from POT/PO file...` and select the .pot file in the `export_layers/locale` folder.
 2. Set the language of the translation.
-3. Translate the strings (by filling in the "Translation" text field for each string).
-4. If desired, go to "Catalog → Properties..." and edit the translation file properties.
-If you don't do this, warning messages may pop up when saving, but they should be harmless.
+3. Translate the strings (by filling in the `Translation` text field for each string).
+4. If desired, go to `Catalog → Properties...` and edit the translation file properties.
+   If you don't do this, warning messages may pop up when saving, but they should be harmless.
 5. When done, save the .po file.
 
 If you spotted some translation errors in the .po file or the plug-in is updated since the last translation was made, you may need to update the translation:
 
-1. Open the .po file, select "Catalog → Update from POT file..." and find the .pot file.
+1. Open the .po file, select `Catalog → Update from POT file...` and find the .pot file.
 2. Update the translated strings.
    In case the plug-in was updated, update is necessary if:
    * new strings were defined in the .pot file,
@@ -43,7 +43,7 @@ To create a new translation for your language:
    
        sudo apt-get install gettext
    
-2. Find the .pot file in the "export_layers/locale" folder.
+2. Find the .pot file in the `export_layers/locale` folder.
 3. Open up terminal and run
    
        cd [folder where you extracted the package]/export_layers/locale
@@ -53,11 +53,11 @@ To create a new translation for your language:
    
    `[language]` represents your language in the format `ll_CC`.
    `ll` is the language code and `CC` is the country code.
-   For example, the French language is represented as "fr_FR".
+   For example, the French language is represented as `fr_FR`.
    If in doubt, you can consult the list of available language and country codes on the following pages:
-   * https://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html
-   * https://www.gnu.org/software/gettext/manual/html_node/Rare-Language-Codes.html
-   * https://www.gnu.org/software/gettext/manual/html_node/Country-Codes.html
+   * [Usual Language Codes](https://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html)
+   * [Rare Language Codes](https://www.gnu.org/software/gettext/manual/html_node/Rare-Language-Codes.html)
+   * [Country Codes](https://www.gnu.org/software/gettext/manual/html_node/Country-Codes.html)
    
 4. Open the .po file in a text editor and translate each string in the `msgid` field to a string in the corresponding `msgstr` field.
 
@@ -68,7 +68,7 @@ If you spotted some translation errors in the .po file or the plug-in is updated
        cd [folder where you extracted the package]/export_layers/locale
        ./update_po.sh [path to .po file] [path to .pot file]
    
-   The old .po file is preserved and has ".po.old" file extension.
+   The old .po file is preserved and has the `.po.old` file extension.
    
 2. Open the .po file in a text editor and update the translated strings.
    In case the plug-in was updated, translation update is necessary if:
@@ -114,7 +114,7 @@ Move and rename the .mo file to
     [GIMP plug-ins folder]/export_layers/locale/[language]/LC_MESSAGES/gimp-plugin-export-layers.mo
    
 where `[language]` is the language in which you translated the plug-in.
-`[language]` is a part of the .po file, e.g. for a file named "fr_FR.po", the language is "fr_FR".
+`[language]` is a part of the .po file, e.g. for a file named `fr_FR.po`, the language is `fr_FR`.
 
 #### Terminal
 

@@ -188,7 +188,7 @@ Exceptions to this rule include:
 * initializing variables or constants,
 * initializing application configuration,
 * initializing a package or a library,
-* standalone scripts such as test runners, git hooks, etc.
+* standalone scripts such as test runners or git hooks.
 
 Do not execute functions from the GIMP API or PDB on the module or class level.
 The modules are executed during GIMP startup when the GIMP API is not fully initialized yet, resulting in error messages and the plug-in procedures failing to register to the GIMP PDB.
