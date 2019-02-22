@@ -39,10 +39,14 @@ You can choose the fields from the dropdown list displayed when clicking on the 
 A number incrementing for each layer.
 The numbering is separate for each layer group.
 
+Arguments:
+* `%n` - Continue numbering across layer groups.
+
 Examples:
 * `[1]` → `1`, `2`, ...
 * `[001]` → `001`, `002`, ..., `009`, `010`, ..., `999`, `1000`, ...
 * `[005]` → `005`, `006`, ...
+* `[001, %n]` → `001`, `002`, ... (continues numbering across layer groups)
 
 **\[layer name\]**
 
@@ -52,12 +56,22 @@ Arguments:
 * `%e` If a layer has a recognized file extension, keep the extension.
 * `%i`: If a layer has a recognized file extension that matches the extension in the "File extension" text entry, keep the extension.
 
+Examples:
+* `[layer name]` → `Frame.png`
+* `[layer name, %e]` → `Frame.png`
+* `[layer name, %i]` → `Frame.png` (if the file extension is `png`)
+* `[layer name, %i]` → `Frame` (if the file extension is `jpg`)
+
 **\[image name\]**
 
 The current image name.
 
 Arguments:
 * `%e`: If the image has a file extension, keep the extension.
+
+Examples:
+* `[layer name]` → `Image`
+* `[layer name, %e]` → `Image.xcf`
 
 **\[layer path\]**
 
@@ -137,8 +151,10 @@ Arguments
     For example, `%pc1` displays percentages rounded to a single decimal digit.
 
 Examples:
-* `[attributes, %w-%h-%x-%y]` → `1000-500-0-40`
-* `[attributes, %w-%h-%x-%y, %pc1]` → `1.0-0.8-0.0-0.1`
+* `[attributes, %w-%h-%x-%y]` → `1000-270-0-40`
+* `[attributes, %w-%h-%x-%y, %pc]` → `1.0-0.54-0.0-0.08`
+* `[attributes, %w-%h-%x-%y, %pc1]` → `1.0-0.5-0.0-0.1`
+* `[attributes, %iw-%ih]` → `1000-500`
 
 
 ### Inserting reserved characters in arguments

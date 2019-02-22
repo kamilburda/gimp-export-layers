@@ -81,20 +81,15 @@ class Field(object):
         substitute_func,
         display_name,
         str_to_insert,
-        usage_lines,
-        details_lines,
         examples_lines):
     self._regex = regex
     self._substitute_func = substitute_func
     self._display_name = display_name
     self._str_to_insert = str_to_insert
-    self._usage_lines = usage_lines
-    self._details_lines = details_lines
     self._examples_lines = examples_lines
   
   def __str__(self):
-    return "\n\n".join(
-      [str_ for str_ in [self.usage, self.details, self.examples] if str_])
+    return self.examples
   
   @property
   def regex(self):
@@ -113,45 +108,8 @@ class Field(object):
     return self._str_to_insert
   
   @property
-  def usage_lines(self):
-    return self._usage_lines
-  
-  @property
-  def details_lines(self):
-    return self._details_lines
-  
-  @property
   def examples_lines(self):
     return self._examples_lines
-  
-  @property
-  def usage(self):
-    if not self.usage_lines:
-      return ""
-    
-    formatted_specs = []
-    
-    for usage_line in self.usage_lines:
-      if len(usage_line) > 1:
-        field_name = usage_line[0]
-        arguments = usage_line[1]
-      else:
-        field_name = self.regex
-        arguments = usage_line[0]
-      
-      if arguments:
-        formatted_specs.append("[{}, {}]".format(field_name, arguments))
-      else:
-        formatted_specs.append("[{}]".format(field_name))
-    
-    return "\n".join([_("Usage:")] + formatted_specs)
-  
-  @property
-  def details(self):
-    if self._details_lines:
-      return "\n".join([_("Details:")] + self._details_lines)
-    else:
-      return ""
   
   @property
   def examples(self):
@@ -166,7 +124,7 @@ class Field(object):
       else:
         formatted_examples_lines.append(*example_line)
     
-    return "\n".join([_("Examples:")] + formatted_examples_lines)
+    return "\n".join(["<b>{}</b>".format(_("Examples"))] + formatted_examples_lines)
   
   def on_renamer_init(self, string_pattern):
     pass
@@ -184,16 +142,11 @@ class NumberField(Field):
       _("image001"),
       "image[001]",
       [
-        ["<i>number</i>", ""],
-        ["<i>number</i>", "%n"],
-      ],
-      [
-        _("%n - do not reset numbering across layer groups"),
-      ],
-      [
         ["[001]", "001, 002, ..."],
         ["[1]", "1, 2, ..."],
         ["[005]", "005, 006, ..."],
+        [_("To continue numbering across layer groups, use %n.")],
+        ["[001, %n]", "001, 002, ..."],
       ],
     )
   
@@ -404,20 +357,13 @@ _FIELDS_LIST = [
     _("Layer name"),
     "[layer name]",
     [
-      [""],
-      ["%e"],
-      ["%i"],
-    ],
-    [
-      _("%e - keep file extension"),
-      _("%i - keep file extension only if matching the specified file extension"),
-    ],
-    [
       [_('Suppose that a layer is named "Frame.png" and the file extension is "png".')],
       ["[layer name]", "Frame"],
       ["[layer name, %e]", "Frame.png"],
       ["[layer name, %i]", "Frame.png"],
       [_('Suppose that a layer is named "Frame.jpg".')],
+      ["[layer name]", "Frame"],
+      ["[layer name, %e]", "Frame.jpg"],
       ["[layer name, %i]", "Frame"],
     ],
   ),
@@ -427,16 +373,9 @@ _FIELDS_LIST = [
     _("Image name"),
     "[image name]",
     [
-      [""],
-      ["%e"],
-    ],
-    [
-      _("%e - keep image file extension"),
-    ],
-    [
-      [_('Suppose that the image is named "Image.png" and the file extension is "png".')],
+      [_('Suppose that the image is named "Image.xcf".')],
       ["[image name]", "Image"],
-      ["[image name, %e]", "Image.png"],
+      ["[image name, %e]", "Image.xcf"],
     ],
   ),
   Field(
@@ -444,17 +383,6 @@ _FIELDS_LIST = [
     _get_layer_path,
     _("Layer path"),
     "[layer path]",
-    [
-      [""],
-      ["<i>separator</i>"],
-      ["<i>separator</i>, <i>wrapper</i>"],
-    ],
-    [
-      _("<i>separator</i> - string separating the layer path components "
-        "(parent groups and the layer)"),
-      _("<i>wrapper</i> - string wrapping each path component; "
-        '"%c" denotes the component itself'),
-    ],
     [
       [_('Suppose that a layer named "Left" has parent groups named '
          '"Hands" and "Body".')],
@@ -469,19 +397,10 @@ _FIELDS_LIST = [
     _("Tags"),
     "[tags]",
     [
-      [""],
-      ["<i>tags...</i>"],
-      ["<i>separator</i>, <i>wrapper</i>, <i>tags...</i>"],
-    ],
-    [
-      _("Without arguments, all tags are included. Tags that do not exist are ignored."),
-      _("<i>separator</i> - string separating the tags"),
-      _('<i>wrapper</i> - string wrapping each tag; "%t" denotes the tag itself'),
-    ],
-    [
       [_('Suppose that a layer has tags "left", "middle" and "right".')],
       ["[tags]", "left-middle-right"],
       ["[tags, left, right]", "left-right"],
+      ["[tags, _, (%t)]", "(left)_(middle)_(right)"],
       ["[tags, _, (%t), left, right]", "(left)_(right)"],
     ],
   ),
@@ -491,14 +410,8 @@ _FIELDS_LIST = [
     _("Current date"),
     "[current date]",
     [
-      [""],
-      ["<i>format</i>"],
-    ],
-    [
-      _('Specify <i>format</i> as per the Python "strftime" function.'),
-    ],
-    [
       ["[current date]", "2019-01-28"],
+      [_('Custom date format uses formatting as per the "strftime" function in Python.')],
       ["[current date, %m.%d.%Y_%H-%M]", "28.01.2019_19-04"],
     ],
   ),
@@ -508,26 +421,13 @@ _FIELDS_LIST = [
     _("Attributes"),
     "[attributes]",
     [
-      ["<i>pattern</i>"],
-      ["<i>pattern</i>, %px"],
-      ["<i>pattern</i>, %pc&lt;<i>number</i>&gt;"],
-    ],
-    [
-      _("<i>pattern</i> can contain the following fields:"),
-      _("%w - the layer width"),
-      _("%h - the layer height"),
-      _("%x - the layer x-offset"),
-      _("%y - the layer y-offset"),
-      _("%iw - the image width"),
-      _("%ih - the image height"),
-      _("For %w, %h, %x and %y, the following arguments apply:"),
-      _("%px - specify layer coordinates/dimensions in pixels (default)"),
-      _("%pc - specify layer coordinates/dimensions in percentages (relative to image);"),
-      _("a number after %pc denotes the number of decimal digits to display"),
-    ],
-    [
-      ["[attributes, %w-%h-%x-%y]", "1000-500-0-40"],
-      ["[attributes, %w-%h-%x-%y, %pc1]", "1.0-0.8-0.0-0.1"],
+      [_("Suppose that a layer has width, height, <i>x</i>-offset and <i>y</i>-offset\n"
+         "of 1000, 540, 0 and 40 pixels, respectively,\n"
+         "and the image has width and height of 1000 and 500 pixels, respectively.")],
+      ["[attributes, %w-%h-%x-%y]", "1000-270-0-40"],
+      ["[attributes, %w-%h-%x-%y, %pc]", "1.0-0.54-0.0-0.08"],
+      ["[attributes, %w-%h-%x-%y, %pc1]", "1.0-0.5-0.0-0.1"],
+      ["[attributes, %iw-%ih]", "1000-500"],
     ],
   ),
 ]
