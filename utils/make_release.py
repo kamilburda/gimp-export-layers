@@ -26,7 +26,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import collections
 import distutils.util
-import getpass
 import inspect
 import io
 import json
@@ -387,19 +386,20 @@ def _create_github_release(release_metadata):
     "body": release_metadata.new_version_release_notes,
   }
   
-  password = _prompt_for_password(release_metadata.username)
+  access_token_header = {
+    "Authorization": "token {}".format(release_metadata.github_access_token)}
   
   response = requests.post(
-    releases_url, data=json.dumps(data_dict), auth=(release_metadata.username, password))
+    releases_url, headers=access_token_header, data=json.dumps(data_dict))
   
   response.raise_for_status()
   
   upload_url = re.sub(r"^(.*)\{.*?$", r"\1", response.json()["upload_url"])
   
-  _upload_installers_to_github(release_metadata, upload_url, password)
+  _upload_installers_to_github(release_metadata, upload_url, access_token_header)
 
 
-def _upload_installers_to_github(release_metadata, upload_url, password):
+def _upload_installers_to_github(release_metadata, upload_url, access_token_header):
   for root_dirpath, unused_, files in os.walk(INSTALLERS_OUTPUT_DIRPATH):
     for filename in files:
       unused_, file_extension = os.path.splitext(filename)
@@ -413,18 +413,13 @@ def _upload_installers_to_github(release_metadata, upload_url, password):
       with io.open(os.path.join(root_dirpath, filename), "rb") as file_:
         file_contents = file_.read()
       
+      headers = dict(access_token_header)
+      headers["Content-Type"] = FILE_EXTENSIONS_AND_MIME_TYPES[file_extension]
+      
       response = requests.post(
-        upload_url,
-        headers={"Content-Type": FILE_EXTENSIONS_AND_MIME_TYPES[file_extension]},
-        data=file_contents,
-        params={"name": filename},
-        auth=(release_metadata.username, password))
+        upload_url, headers=headers, data=file_contents, params={"name": filename})
       
       response.raise_for_status()
-
-
-def _prompt_for_password(username):
-  return getpass.getpass("Password for user '{}': ".format(username))
 
 
 def _rollback(release_metadata):
@@ -506,6 +501,9 @@ def main():
     "release_type",
     choices=["major", "minor", "patch"],
     help="the type of the new release")
+  parser.add_argument(
+    "github_access_token",
+    help="access token for creating GitHub releases")
   parser.add_argument(
     "-f",
     "--force",
