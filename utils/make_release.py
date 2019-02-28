@@ -447,7 +447,7 @@ def _rollback(release_metadata):
 
 def _print_error_and_exit(message, exit_status=1):
   _print_error(message)
-  sys.exit(1)
+  sys.exit(exit_status)
 
 
 def _print_error(message):
