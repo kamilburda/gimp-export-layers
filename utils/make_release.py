@@ -61,8 +61,6 @@ import git
 from utils import make_installers
 from utils import preprocess_document_contents
 
-pg.config.LOG_MODE = "none"
-
 
 GITHUB_PAGE_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "gh-pages")
 GITHUB_PAGE_BRANCH = "gh-pages"
