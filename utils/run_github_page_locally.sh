@@ -17,15 +17,15 @@ cleanup () {
 }
 
 usage () {
-	{
+  {
     echo ""
-		echo "Usage: $SCRIPT_NAME [OPTIONS]..."
+    echo "Usage: $SCRIPT_NAME [OPTIONS]..."
     echo ""
-		echo "Options:"
-		echo "  -r, --release    build site for release packages without having to run Jekyll server"
-		echo "  -h, --help    display this help and exit"
-		echo "" 
-	} 1>&2
+    echo "Options:"
+    echo "  -r, --release    build site for release packages without having to run Jekyll server"
+    echo "  -h, --help    display this help and exit"
+    echo "" 
+  } 1>&2
   
   exit 1
 }
@@ -35,7 +35,7 @@ usage () {
 # Parse options
 
 while [[ "${1:0:1}" = "-" && "$1" != "--" ]]; do
-	case "$1" in
+  case "$1" in
     -r | --release )
       local_config_entries="$local_config_entries"'
 is_release_build: true'
@@ -47,10 +47,10 @@ is_release_build: true'
       [[ "$1" ]] && echo "error: unknown argument: $1"
       usage
     ;;
-	esac
-	
-	shift
-	
+  esac
+  
+  shift
+  
 done
 
 [[ "$1" = "--" ]] && shift
