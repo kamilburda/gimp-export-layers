@@ -19,12 +19,10 @@ Windows
 
 1. Make sure you have GIMP installed with support for Python scripting.
 2. Locate the folder containing GIMP plug-ins - open GIMP and go to `Edit → Preferences → Folders → Plug-Ins`.
-3. Extract the following files and folders:
+3. Extract the following files and folders to one of the folders identified in step 2:
 
        export_layers.py
        export_layers
-
-   to one of the folders identified in step 2.
 
 
 Linux
@@ -32,12 +30,10 @@ Linux
 
 1. Make sure you have Python 2.7 installed.
 2. Locate the folder containing GIMP plug-ins - open GIMP and go to `Edit → Preferences → Folders → Plug-Ins`.
-3. Extract the following files and folders:
+3. Extract the following files and folders to one of the folders identified in step 2:
 
        export_layers.py
        export_layers
-
-   to one of the folders identified in step 2.
 
 To check if GIMP recognizes your Python 2.7 installation, open GIMP and run `Filters → Python-Fu → Console`.
 The console must display `Python 2.7` or later from the 2.7.x series.
@@ -55,12 +51,10 @@ macOS
 
 1. Make sure you have Python 2.7 installed.
 2. Locate the folder containing GIMP plug-ins - open GIMP and go to `Edit → Preferences → Folders → Plug-Ins`.
-3. Extract the following files and folders:
+3. Extract the following files and folders to one of the folders identified in step 2:
 
        export_layers.py
        export_layers
-
-   to one of the folders identified in step 2.
 
 
 Upgrading to 3.3 <a name="Upgrading-from-Earlier-Versions"></a>
