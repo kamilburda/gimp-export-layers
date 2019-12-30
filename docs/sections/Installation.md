@@ -10,45 +10,38 @@ Windows
 
 ### Installer
 
-Simply run the Windows installer and customize plug-in installation path as needed.
-If you have a portable GIMP installation, you will be prompted to specify the path to GIMP and GIMP plug-ins manually.
+1. Make sure you have GIMP installed with support for Python scripting.
+2. Run the Windows installer and customize plug-in installation path as needed.
+   If you have a portable GIMP installation, you will be prompted to specify the path to GIMP and GIMP plug-ins manually.
 
 
 ### Manual installation (ZIP package)
 
-Make sure you have GIMP installed with support for Python scripting.
+1. Make sure you have GIMP installed with support for Python scripting.
+2. Locate the folder containing GIMP plug-ins - open GIMP and go to `Edit → Preferences → Folders → Plug-Ins`.
+3. Extract the following files and folders:
 
-Copy the following files and folders:
+       export_layers.py
+       export_layers
 
-    export_layers.py
-    export_layers
-
-to the folder containing plug-ins depending on your version of GIMP, usually one of the following:
-
-* GIMP 2.8: `C:\Users\[your username]\.gimp-2.8\plug-ins`
-* GIMP 2.10: `C:\Users\[your username]\AppData\Roaming\GIMP\2.10\plug-ins`
-
-If you can't locate the folder, open GIMP, go to `Edit → Preferences → Folders → Plug-Ins` and use one of the listed folders.
+   to one of the folders identified in step 2.
 
 
 Linux
 -----
 
-Copy the following files and folders:
+1. Make sure you have Python 2.7 installed.
+2. Locate the folder containing GIMP plug-ins - open GIMP and go to `Edit → Preferences → Folders → Plug-Ins`.
+3. Extract the following files and folders:
 
-    export_layers.py
-    export_layers
+       export_layers.py
+       export_layers
 
-to the folder containing plug-ins depending on your version of GIMP, usually one of the following:
+   to one of the folders identified in step 2.
 
-* GIMP 2.8: `/home/[your username]/.gimp-2.8/plug-ins`
-* GIMP 2.10: `/home/[your username]/.config/GIMP/2.10/plug-ins`
-
-If you can't locate the folder, open GIMP, go to `Edit → Preferences → Folders → Plug-Ins` and use one of the listed folders.
-
-To check if the correct version of Python is installed, start GIMP and go to `Filters → Python-Fu → Console`.
+To check if GIMP recognizes your Python 2.7 installation, open GIMP and run `Filters → Python-Fu → Console`.
 The console must display `Python 2.7` or later from the 2.7.x series.
-If not, install Python 2.7, open `/usr/lib/gimp/2.0/interpreters/pygimp.interp` and change its contents to the following:
+If this is not the case, open `/usr/lib/gimp/2.0/interpreters/pygimp.interp` and change its contents to the following:
 
     python=[path to Python 2.7 executable]
     /usr/bin/python=[path to Python 2.7 executable]
@@ -60,17 +53,14 @@ If not, install Python 2.7, open `/usr/lib/gimp/2.0/interpreters/pygimp.interp` 
 macOS
 -----
 
-Copy the following files and folders:
+1. Make sure you have Python 2.7 installed.
+2. Locate the folder containing GIMP plug-ins - open GIMP and go to `Edit → Preferences → Folders → Plug-Ins`.
+3. Extract the following files and folders:
 
-    export_layers.py
-    export_layers
+       export_layers.py
+       export_layers
 
-to the folder containing plug-ins depending on your version of GIMP, usually one of the following:
-
-* GIMP 2.8: `/Users/[your username]/Library/Application Support/GIMP/2.8/plug-ins`
-* GIMP 2.10: `/Users/[your username]/Library/Application Support/GIMP/2.10/plug-ins`
-
-If you can't locate the folder, open GIMP, go to `Edit → Preferences → Folders → Plug-Ins` and use one of the listed folders.
+   to one of the folders identified in step 2.
 
 
 Upgrading to 3.3 <a name="Upgrading-from-Earlier-Versions"></a>
