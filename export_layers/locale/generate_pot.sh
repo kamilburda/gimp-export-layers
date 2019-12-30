@@ -22,7 +22,7 @@ author_contact="$5"
 package_name=\'"$plugin_name"\'
 
 input_dirpath='../..'
-output_filepath='./'"$domain_name"'-'"$plugin_version"'.pot'
+output_filepath='./'"$domain_name"'.pot'
 
 find "$input_dirpath" -type f -iname '*.py' | \
 xargs xgettext --language=Python --keyword='_' --keyword='N_' --package-name="$package_name" --package-version="$plugin_version" --copyright-holder="$author_name" --msgid-bugs-address="$author_contact" --output="$output_filepath" --from-code='UTF-8'
