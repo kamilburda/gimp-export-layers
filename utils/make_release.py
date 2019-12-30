@@ -34,6 +34,7 @@ import re
 import requests
 import signal
 import shutil
+import subprocess
 import sys
 import time
 import traceback
@@ -125,6 +126,8 @@ def _make_release(release_metadata):
   _get_release_notes_and_modify_changelog_first_header(release_metadata)
   
   _update_version_and_release_date_in_config(release_metadata)
+  
+  _generate_translation_file(release_metadata)
   
   _create_release_commit(release_metadata, release_metadata.repo)
   _create_release_tag(release_metadata)
@@ -283,6 +286,22 @@ def _update_version_and_release_date_in_config(release_metadata):
   with io.open(
          PLUGIN_CONFIG_FILEPATH, "w", encoding=pg.TEXT_FILE_ENCODING) as config_file:
     config_file.writelines(lines)
+
+
+def _generate_translation_file(release_metadata):
+  orig_cwd = os.getcwdu()
+  os.chdir(pg.config.LOCALE_DIRPATH)
+  
+  subprocess.call([
+    "./generate_pot.sh",
+    pg.config.PLUGIN_NAME,
+    release_metadata.new_version,
+    pg.config.DOMAIN_NAME,
+    pg.config.AUTHOR_NAME,
+    pg.config.AUTHOR_CONTACT,
+  ])
+  
+  os.chdir(orig_cwd)
 
 
 def _create_release_commit(release_metadata, repo):

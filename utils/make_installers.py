@@ -91,7 +91,7 @@ def make_installers(
     _prepare_repo_files_for_packaging(
       input_dirpath, temp_repo_files_dirpath, force_if_dirty))
   
-  _generate_translation_files(pg.config.LOCALE_DIRPATH)
+  _compile_translation_files(pg.config.LOCALE_DIRPATH)
 
   temp_dirpath = TEMP_INPUT_DIRPATH
   
@@ -123,7 +123,6 @@ def make_installers(
   
   shutil.rmtree(temp_dirpath)
   shutil.rmtree(temp_repo_files_dirpath)
-  _remove_pot_files(pg.config.LOCALE_DIRPATH)
 
 
 def _create_temp_dirpath(temp_dirpath):
@@ -216,30 +215,7 @@ def _get_relative_filepaths(filepaths, root_dirpath):
   return [filepath[len(root_dirpath) + 1:] for filepath in filepaths]
 
 
-def _generate_translation_files(source_dirpath):
-  _remove_pot_files(source_dirpath)
-  
-  _generate_pot_file(source_dirpath)
-  _generate_mo_files(source_dirpath)
-
-
-def _generate_pot_file(source_dirpath):
-  orig_cwd = os.getcwdu()
-  os.chdir(source_dirpath)
-  
-  subprocess.call([
-    "./generate_pot.sh",
-    pg.config.PLUGIN_NAME,
-    pg.config.PLUGIN_VERSION,
-    pg.config.DOMAIN_NAME,
-    pg.config.AUTHOR_NAME,
-    pg.config.AUTHOR_CONTACT,
-  ])
-  
-  os.chdir(orig_cwd)
-
-
-def _generate_mo_files(source_dirpath):
+def _compile_translation_files(source_dirpath):
   orig_cwd = os.getcwdu()
   os.chdir(source_dirpath)
   
@@ -252,13 +228,6 @@ def _generate_mo_files(source_dirpath):
         subprocess.call(["./generate_mo.sh", po_file, language])
   
   os.chdir(orig_cwd)
-
-
-def _remove_pot_files(source_dirpath):
-  for filename in os.listdir(source_dirpath):
-    if os.path.isfile(os.path.join(source_dirpath, filename)):
-      if filename.endswith(".pot"):
-        os.remove(os.path.join(source_dirpath, filename))
 
 
 def _copy_files_to_temp_filepaths(filepaths, temp_filepaths):
