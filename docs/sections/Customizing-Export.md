@@ -103,7 +103,7 @@ See [Tagging Layers](#tagging-layers) for information about layer tags.
 Arguments:
 * *separator*: A string separating the tags.
   Defaults to `-`.
-* *wrapper*: A string that wraps around each path component.
+* *wrapper*: A string that wraps around each tag.
   The wrapper must contain `%t` denoting the tag.
 * *tags...*: Specific tag names as comma-separated arguments.
   If omitted, all tags are inserted.
