@@ -19,7 +19,7 @@ Beyond the basic features, Export Layers allows you to:
 * apply additional procedures before the export (insert background, scale down...)
 * selecting which layers to export by applying constraints (only visible layers, ...)
 
-To enable customization, press the "Settings" button and choose "Show More Settings".
+To enable customization, press the `Settings` button and choose `Show More Settings`.
 
 ![Dialog of Export Layers with additional customization](../images/screenshot_dialog_customizing_export.png)
 
@@ -30,10 +30,10 @@ Customizing Layer Names
 -----------------------
 
 By default, layer names are used as filenames.
-The text entry next to "Save as" lets you customize the filenames.
+The text entry next to `Save as` lets you customize the filenames.
 
 There are several built-in *fields* that you can combine to form a filename pattern.
-For example, "image\[001\]" renames the layers to "image001", "image002" and so on.
+For example, `image[001]` renames the layers to `image001`, `image002` and so on.
 
 The preview automatically updates as you change the filename pattern and so can greatly help you figure out how your specified pattern affects the layer names.
 
@@ -52,10 +52,14 @@ You can choose the fields from the dropdown list displayed when clicking on the 
 A number incrementing for each layer.
 The numbering is separate for each layer group.
 
+Arguments:
+* `%n` - Continue numbering across layer groups.
+
 Examples:
 * `[1]` → `1`, `2`, ...
 * `[001]` → `001`, `002`, ..., `009`, `010`, ..., `999`, `1000`, ...
 * `[005]` → `005`, `006`, ...
+* `[001, %n]` → `001`, `002`, ... (continues numbering across layer groups)
 
 **\[layer name\]**
 
@@ -63,7 +67,13 @@ The layer name.
 
 Arguments:
 * `%e` If a layer has a recognized file extension, keep the extension.
-* `%i`: If a layer has a recognized file extension that matches the extension in the "File extension" text entry, keep the extension.
+* `%i`: If a layer has a recognized file extension that matches the extension in the `File extension` text entry, keep the extension.
+
+Examples:
+* `[layer name]` → `Frame.png`
+* `[layer name, %e]` → `Frame.png`
+* `[layer name, %i]` → `Frame.png` (if the file extension is `png`)
+* `[layer name, %i]` → `Frame` (if the file extension is `jpg`)
 
 **\[image name\]**
 
@@ -71,6 +81,10 @@ The current image name.
 
 Arguments:
 * `%e`: If the image has a file extension, keep the extension.
+
+Examples:
+* `[layer name]` → `Image`
+* `[layer name, %e]` → `Image.xcf`
 
 **\[layer path\]**
 
@@ -102,7 +116,7 @@ See [Tagging Layers](#tagging-layers) for information about layer tags.
 Arguments:
 * *separator*: A string separating the tags.
   Defaults to `-`.
-* *wrapper*: A string that wraps around each path component.
+* *wrapper*: A string that wraps around each tag.
   The wrapper must contain `%t` denoting the tag.
 * *tags...*: Specific tag names as comma-separated arguments.
   If omitted, all tags are inserted.
@@ -150,8 +164,10 @@ Arguments
     For example, `%pc1` displays percentages rounded to a single decimal digit.
 
 Examples:
-* `[attributes, %w-%h-%x-%y]` → `1000-500-0-40`
-* `[attributes, %w-%h-%x-%y, %pc1]` → `1.0-0.8-0.0-0.1`
+* `[attributes, %w-%h-%x-%y]` → `1000-270-0-40`
+* `[attributes, %w-%h-%x-%y, %pc]` → `1.0-0.54-0.0-0.08`
+* `[attributes, %w-%h-%x-%y, %pc1]` → `1.0-0.5-0.0-0.1`
+* `[attributes, %iw-%ih]` → `1000-500`
 
 
 ### Inserting reserved characters in arguments
@@ -174,7 +190,7 @@ Customizing Export with Procedures
 ----------------------------------
 
 Procedures allow you to process layers before they are exported.
-To add procedures before the export of each layer, press the "Add Procedure..." button and select one of the available procedures, or add a [custom procedure](#Adding-Custom-Procedures).
+To add procedures before the export of each layer, press the `Add Procedure...` button and select one of the available procedures, or add a [custom procedure](#Adding-Custom-Procedures).
 
 For each added procedure, you may perform any of the following:
 * enable and disable the procedure,
@@ -190,29 +206,29 @@ You can add the same procedure multiple times.
 
 **Insert background layers**
 
-Insert layers tagged with "Background" as background for each layer.
+Insert layers tagged with `Background` as background for each layer.
 To set a layer as a background layer, see [Tagging Layers](#tagging-layers).
 
-Note that even background layers get exported - to prevent this behavior, enable the "Only layers without tags" constraint.
+Note that even background layers get exported - to prevent this behavior, enable the `Only layers without tags` constraint.
 
-You may modify the tag representing the background layers by editing the procedure argument "Tag".
+You may modify the tag representing the background layers by editing the procedure argument `Tag`.
 
 In the dialog, this procedure is always inserted in the first position.
-This prevents potential confusion when "Use layer size" is unchecked and the background is offset relative to the layer rather than the image canvas.
-If this is your intention, you can always move this procedure below "Use layer size".
+This prevents potential confusion when `Use layer size` is unchecked and the background is offset relative to the layer rather than the image canvas.
+If this is your intention, you can always move this procedure below `Use layer size`.
 
 **Insert foreground layers**
 
-Insert layers tagged with "Foreground" as foreground for each layer.
+Insert layers tagged with `Foreground` as foreground for each layer.
 To set a layer as a foreground layer, see [Tagging Layers](#tagging-layers).
 
-Note that even foreground layers get exported - to prevent this behavior, enable the "Only layers without tags" constraint.
+Note that even foreground layers get exported - to prevent this behavior, enable the `Only layers without tags` constraint.
 
-You may modify the tag representing the foreground layers by editing the procedure argument "Tag".
+You may modify the tag representing the foreground layers by editing the procedure argument `Tag`.
 
 In the dialog, this procedure is always inserted in the first position.
-This prevents potential confusion when "Use layer size" is unchecked and the foreground is offset relative to the layer rather than the image canvas.
-If this is your intention, you can always move this procedure below "Use layer size".
+This prevents potential confusion when `Use layer size` is unchecked and the foreground is offset relative to the layer rather than the image canvas.
+If this is your intention, you can always move this procedure below `Use layer size`.
 
 **Inherit transparency from layer groups**
 
@@ -223,12 +239,12 @@ For example, if a layer has 50% opacity and its parent group also has 50% opacit
 
 **Autocrop background**
 
-Automatically crop the background formed by layers tagged with "Background".
+Automatically crop the background formed by layers tagged with `Background`.
 Note that autocrop is performed on the entire background, not on the background layers individually.
 
 **Autocrop foreground**
 
-Same as "Autocrop background", but works on the foreground layers instead.
+Same as `Autocrop background`, but works on the foreground layers instead.
 
 **Ignore folder structure**
 
@@ -236,7 +252,7 @@ Export all layers to the output directory on the same level, i.e. do not create 
 
 **Use file extensions in layer names**
 
-If a layer has a recognized file extension, use that file extension instead of the file extension in the "File extension" text entry.
+If a layer has a recognized file extension, use that file extension instead of the file extension in the `File extension` text entry.
 
 **Use layer size**
 
@@ -250,15 +266,15 @@ To export the entire layer, leave this setting enabled.
 
 ### Adding Custom Procedures <a name="Adding-Custom-Procedures"></a>
 
-You can add any procedure available in the GIMP Procedural Database (PDB) by pressing "Add Procedure..." and then selecting "Add Custom Procedure...".
-Select the desired procedure from the browser dialog and press "Add".
+You can add any procedure available in the GIMP Procedural Database (PDB) by pressing `Add Procedure...` and then selecting `Add Custom Procedure...`.
+Select the desired procedure from the browser dialog and press `Add`.
 The edit dialog allows you to edit the procedure name and the values of its arguments.
 
 
 Selecting Layers to Export with Constraints
 -------------------------------------------
 
-To include or exclude layers from the export according to specific criteria, press the "Add Constraint..." button and select one of the available constraints.
+To include or exclude layers from the export according to specific criteria, press the `Add Constraint...` button and select one of the available constraints.
 As with procedures, you can enable, disable, reorder, edit or remove constraints as needed.
 Adding the same constraint multiple times is also possible.
 
@@ -268,18 +284,18 @@ Future versions will allow specifying custom constraints.
 
 ### Built-in Constraints
 
-**Only layers**
+**Include layers**
 
 Export all layers that are not groups.
 This constraint is enabled by default.
 
-Removing or disabling "Only layers" and "Only layer groups" will export both layers within groups and the groups as layers.
-
-**Only layer groups**
+**Include layer groups**
 
 Export all layer groups as layers.
 
-Removing or disabling "Only layers" and "Only layer groups" will export both layers within groups and the groups as layers.
+**Include empty layer groups**
+
+Create subfolders for empty layer groups.
 
 **Only visible layers**
 
@@ -295,8 +311,8 @@ Export only layers at the top of the layer tree (i.e. do not export layers insid
 Export only layers with tags.
 
 By default, all layers without tags are excluded from export.
-To export only layers with specific tags, edit this constraint and add the tags for the "Tags" argument.
-For example, adding "background" will export only layers containing the "background" tag.
+To export only layers with specific tags, edit this constraint and add the tags for the `Tags` argument.
+For example, adding `background` will export only layers containing the `background` tag.
 Other tagged layers will be excluded.
 
 See [Tagging Layers](#tagging-layers) for information about tags.
@@ -306,7 +322,7 @@ See [Tagging Layers](#tagging-layers) for information about tags.
 Export only layers with no tags.
 
 By default, all layers with tags are excluded from export.
-To ignore only specific tags, edit this constraint and add the tags for the "Tags" argument.
+To ignore only specific tags, edit this constraint and add the tags for the `Tags` argument.
 
 See [Tagging Layers](#tagging-layers) for information about tags.
 
@@ -330,8 +346,8 @@ Tagged layers are indicated with a tag icon in the preview.
 Adding or removing tags modifies the current image.
 Save the image to keep the tags permanently.
 
-By default, Export Layers defines "Background" and "Foreground" tags.
-To add custom tags, right-click anywhere on the preview, select "Add New Tag..." and name your new tag.
+By default, Export Layers defines `Background` and `Foreground` tags.
+To add custom tags, right-click anywhere on the preview, select `Add New Tag...` and name your new tag.
 The new tag will be immediately added to the currently selected layer(s).
 
-To remove custom tags, remove them first from all layers, then right-click anywhere on the preview, select "Remove Tag..." and select the tag you wish to remove.
+To remove custom tags, remove them first from all layers, then right-click anywhere on the preview, select `Remove Tag...` and select the tag you wish to remove.
