@@ -352,6 +352,7 @@ class OperationBox(pg.gui.ItemBox):
     dialog.destroy()
     
     if response_id == gtk.RESPONSE_OK:
+      item.operation["arguments"].apply_gui_values_to_settings()
       item.operation["enabled"].set_value(True)
     else:
       self.remove_item(item)
