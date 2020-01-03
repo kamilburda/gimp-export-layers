@@ -75,11 +75,11 @@ test_procedures = [
 
 test_constraints = [
   {
-    "name": "include_layers",
+    "name": "only_layers",
     "type": "constraint",
     "function": pg.utils.empty_func,
     "enabled": True,
-    "display_name": "Include layers",
+    "display_name": "Only layers",
     "subfilter": "layer_types",
   },
   {
@@ -146,7 +146,7 @@ class TestCreateOperations(unittest.TestCase):
     ("constraint_with_custom_subfilter",
      "constraints",
      test_constraints,
-     "include_layers",
+     "only_layers",
      ["operation", "constraint"],
      {
        "operation_groups": [operations.DEFAULT_CONSTRAINTS_GROUP],
@@ -452,7 +452,7 @@ class TestWalkOperations(unittest.TestCase):
      ["autocrop",
       "autocrop_background",
       "autocrop_foreground",
-      "include_layers",
+      "only_layers",
       "only_visible_layers"]),
     
     ("specific_type_entire_operations",
@@ -468,7 +468,7 @@ class TestWalkOperations(unittest.TestCase):
      ["autocrop/enabled",
       "autocrop_background/enabled",
       "autocrop_foreground/enabled",
-      "include_layers/enabled",
+      "only_layers/enabled",
       "only_visible_layers/enabled"]),
     
     ("specific_types_specific_setting",
