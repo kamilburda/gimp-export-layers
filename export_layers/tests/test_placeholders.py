@@ -24,8 +24,6 @@ import unittest
 
 import parameterized
 
-from export_layers import pygimplib as pg
-
 from export_layers.pygimplib.tests import stubs_gimp
 
 from .. import placeholders
