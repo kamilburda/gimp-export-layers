@@ -105,8 +105,8 @@ def run_tests(
   stream = _get_output_stream(output_stream)
   
   for module_name in module_names:
-    module = importlib.import_module(module_name)
     if module_name.split(".")[-1].startswith(test_module_name_prefix):
+      module = importlib.import_module(module_name)
       run_test(module, stream=stream)
   
   stream.close()
