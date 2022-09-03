@@ -488,6 +488,10 @@ class LayerExporter(object):
     if pg.config.DEBUG_IMAGE_PROCESSING:
       pdb.gimp_display_delete(self._display_id)
     
+    for tagged_layer_copy in self._tagged_layer_copies.values():
+      if tagged_layer_copy is not None:
+        pdb.gimp_item_delete(tagged_layer_copy)
+    
     if ((not self._keep_image_copy or self._use_another_image_copy)
         or exception_occurred):
       pg.pdbutils.try_delete_image(self._image_copy)
@@ -495,10 +499,6 @@ class LayerExporter(object):
         pdb.gimp_image_undo_thaw(self._another_image_copy)
         if exception_occurred:
           pg.pdbutils.try_delete_image(self._another_image_copy)
-    
-    for tagged_layer_copy in self._tagged_layer_copies.values():
-      if tagged_layer_copy is not None:
-        pdb.gimp_item_delete(tagged_layer_copy)
     
     pdb.gimp_context_pop()
   
