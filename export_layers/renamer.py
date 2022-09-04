@@ -32,7 +32,7 @@ import string
 
 from export_layers import pygimplib as pg
 
-from . import operations
+from export_layers import operations
 
 
 class LayerNameRenamer(object):

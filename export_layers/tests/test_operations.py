@@ -32,8 +32,8 @@ from export_layers import pygimplib as pg
 
 from export_layers.pygimplib.tests import stubs_gimp
 
-from .. import operations
-from .. import placeholders
+from export_layers import operations
+from export_layers import placeholders
 
 
 test_procedures = [

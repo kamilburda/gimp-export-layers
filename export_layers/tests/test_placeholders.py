@@ -26,7 +26,7 @@ import parameterized
 
 from export_layers.pygimplib.tests import stubs_gimp
 
-from .. import placeholders
+from export_layers import placeholders
 
 
 class TestGetReplacedArgsAndKwargs(unittest.TestCase):

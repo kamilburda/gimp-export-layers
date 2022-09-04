@@ -30,10 +30,10 @@ from gimp import pdb
 
 from export_layers import pygimplib as pg
 
-from .. import builtin_procedures
-from .. import exportlayers
-from .. import operations
-from .. import settings_plugin
+from export_layers import builtin_procedures
+from export_layers import exportlayers
+from export_layers import operations
+from export_layers import settings_plugin
 
 
 _CURRENT_MODULE_DIRPATH = os.path.dirname(pg.utils.get_current_module_filepath())

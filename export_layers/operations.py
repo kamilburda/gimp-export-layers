@@ -79,7 +79,7 @@ import gimpenums
 
 from export_layers import pygimplib as pg
 
-from . import placeholders
+from export_layers import placeholders
 
 
 BUILTIN_TAGS = {

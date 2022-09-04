@@ -28,13 +28,12 @@ import gimpenums
 
 from export_layers import pygimplib as pg
 
-from export_layers import builtin_procedures
-
 from export_layers.pygimplib.tests import stubs_gimp
 
-from .. import exportlayers
-from .. import operations
-from .. import settings_plugin
+from export_layers import builtin_procedures
+from export_layers import exportlayers
+from export_layers import operations
+from export_layers import settings_plugin
 
 
 class TestLayerExporterInitialOperations(unittest.TestCase):

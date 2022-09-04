@@ -36,7 +36,7 @@ import gimpui
 
 from export_layers import pygimplib as pg
 
-from .. import operations
+from export_layers import operations
 
 
 class OperationBox(pg.gui.ItemBox):

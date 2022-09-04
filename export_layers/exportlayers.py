@@ -35,11 +35,11 @@ import gimpenums
 
 from export_layers import pygimplib as pg
 
-from . import builtin_procedures
-from . import builtin_constraints
-from . import operations
-from . import placeholders
-from . import renamer
+from export_layers import builtin_procedures
+from export_layers import builtin_constraints
+from export_layers import operations
+from export_layers import placeholders
+from export_layers import renamer
 
 
 class LayerExporter(object):

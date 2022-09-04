@@ -49,21 +49,21 @@ import gimpui
 
 from export_layers import pygimplib as pg
 
-from .. import builtin_constraints
-from .. import builtin_procedures
-from .. import operations
-from .. import exportlayers
-from .. import renamer
-from .. import settings_plugin
-from .. import update
+from export_layers import builtin_constraints
+from export_layers import builtin_procedures
+from export_layers import operations
+from export_layers import exportlayers
+from export_layers import renamer
+from export_layers import settings_plugin
+from export_layers import update
 
-from . import message_label as message_label_
-from . import operations as operations_
-from . import preview_image as preview_image_
-from . import preview_name as preview_name_
-from . import previews_controller as previews_controller_
-from . import progress as progress_
-from . import messages as messages_
+from export_layers.gui import message_label as message_label_
+from export_layers.gui import operations as operations_
+from export_layers.gui import preview_image as preview_image_
+from export_layers.gui import preview_name as preview_name_
+from export_layers.gui import previews_controller as previews_controller_
+from export_layers.gui import progress as progress_
+from export_layers.gui import messages as messages_
 
 
 def display_export_failure_message(exception, parent=None):

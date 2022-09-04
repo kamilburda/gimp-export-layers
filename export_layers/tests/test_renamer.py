@@ -30,7 +30,7 @@ from export_layers import pygimplib as pg
 from export_layers.pygimplib.tests import stubs_gimp
 from export_layers.pygimplib.tests import utils_itemtree
 
-from .. import renamer
+from export_layers import renamer
 
 
 class TestNumberField(unittest.TestCase):

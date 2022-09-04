@@ -37,9 +37,9 @@ from gimp import pdb
 
 from export_layers import pygimplib as pg
 
-from .. import builtin_constraints
+from export_layers import builtin_constraints
 
-from . import preview_base as preview_base_
+from export_layers.gui import preview_base as preview_base_
 
 
 class ExportNamePreview(preview_base_.ExportPreview):

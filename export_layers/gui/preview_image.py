@@ -44,7 +44,7 @@ from export_layers import pygimplib as pg
 from export_layers import builtin_constraints
 from export_layers import operations
 
-from . import preview_base as preview_base_
+from export_layers.gui import preview_base as preview_base_
 
 
 def display_image_preview_failure_message(details, parent=None):
