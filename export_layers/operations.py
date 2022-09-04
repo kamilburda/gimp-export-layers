@@ -125,7 +125,7 @@ def create(name, initial_operations=None):
   * `"enabled"` - Whether the operation should be executed or not.
   * `"display_name"` - The display name (human-readable name) of the operation.
   * `"operation_group"` - List of groups the operation belongs to, used in
-    `pygimplib.operations.OperationExecutor` and `exportlayers.LayerExporter`.
+    `pygimplib.executor.Executor` and `exportlayers.LayerExporter`.
   * `"orig_name"` - The original name of the operation. If an operation with the
     same `"name"` field (see below) was previously added, the name of the new
     operation is made unique to allow lookup of both operations. Otherwise,

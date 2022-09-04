@@ -110,7 +110,7 @@ def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
     layer_copy = copy_and_insert_layer(
       image, layer_elem.item, None, first_tagged_layer_position + i)
     layer_copy.visible = True
-    layer_exporter.operation_executor.execute(
+    layer_exporter.executor.execute(
       ["after_insert_layer"], [image, layer_copy, layer_exporter])
   
   if len(layer_exporter.tagged_layer_elems[tag]) == 1:

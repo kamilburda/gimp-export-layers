@@ -66,14 +66,14 @@ class TestLayerExporterInitialOperations(unittest.TestCase):
     
     layer_exporter.export(processing_groups=[])
     
-    added_operation_items = layer_exporter.operation_executor.list_operations(
+    added_operation_items = layer_exporter.executor.list_operations(
       group=operations.DEFAULT_PROCEDURES_GROUP)
     
     # Includes built-in procedures added by default
     self.assertEqual(len(added_operation_items), 4)
     
     initial_executor = added_operation_items[1]
-    self.assertIsInstance(initial_executor, pg.operations.OperationExecutor)
+    self.assertIsInstance(initial_executor, pg.executor.Executor)
     
     operations_in_initial_executor = initial_executor.list_operations(
       group=operations.DEFAULT_PROCEDURES_GROUP)
@@ -84,7 +84,7 @@ class TestLayerExporterInitialOperations(unittest.TestCase):
 class TestAddOperationFromSettings(unittest.TestCase):
   
   def setUp(self):
-    self.executor = pg.operations.OperationExecutor()
+    self.executor = pg.executor.Executor()
     self.procedures = operations.create("procedures")
     
     self.procedure_stub = stubs_gimp.PdbProcedureStub(

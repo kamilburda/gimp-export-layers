@@ -84,12 +84,12 @@ if _gimp_dependent_modules_imported:
   import gimpenums
   import gimpui
   
+  from . import executor
   from . import fileformats
   from . import invocation
   from . import gui
   from . import itemtree
   from . import objectfilter
-  from . import operations
   from . import overwrite
   from . import path
   from . import pdbutils
@@ -112,12 +112,12 @@ __all__ = [
 if _gimp_dependent_modules_imported:
   __all__.extend([
     # Modules
+    "executor",
     "fileformats",
     "invocation",
     "gui",
     "itemtree",
     "objectfilter",
-    "operations",
     "overwrite",
     "path",
     "pdbutils",

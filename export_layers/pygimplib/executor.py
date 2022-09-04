@@ -15,8 +15,9 @@
 # limitations under the License.
 
 """
-This module provides the means to manipulate a list of functions (operations)
-executed sequentially.
+This module provides the means to execute a list of functions sequentially, with
+convenience wrappers such as fixed functions executed before and/or after each
+function.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -27,18 +28,18 @@ import inspect
 import itertools
 
 
-class OperationExecutor(object):
+class Executor(object):
   """
-  This class executes a sequence of functions while allowing to modify which
-  functions in the sequence are executed and what order they are executed in.
-  A function is hereinafter referred to as an "operation".
+  This class allows executing a sequence of functions, hereinafter "operations".
   
-  Additional features include:
+  Features include:
+  * adding and removing operations,
+  * reordering operations,
   * grouping operations and executing only operations in specified groups,
-  * adding operations to be executed before or after each operation ("for-each"
-    operations),
-  * adding another `OperationExecutor` instance as an operation (i.e. nesting
-    the current instance inside another instance).
+  * adding operations to be executed before or after each operation, hereinafter
+    "for-each operations",
+  * adding another `Executor` instance as an operation (i.e. nesting the current
+    instance inside another instance).
   """
   
   _OPERATION_TYPES = _TYPE_OPERATION, _TYPE_FOREACH_OPERATION, _TYPE_EXECUTOR = (0, 1, 2)
@@ -60,8 +61,7 @@ class OperationExecutor(object):
     self._foreach_operation_functions = collections.defaultdict(
       lambda: collections.defaultdict(int))
     
-    # key: operation group
-    # value: dict of (`OperationExecutor` instance: count) pairs
+    # key: operation group; value: dict of (`Executor` instance: count) pairs
     self._executors = collections.defaultdict(lambda: collections.defaultdict(int))
     
     # key: operation ID; value: `_OperationItem` instance
@@ -82,7 +82,7 @@ class OperationExecutor(object):
     An operation can be:
     * a function, in which case optional arguments (`args`, a list or tuple) and
       keyword arguments (`kwargs`, a dict) can be specified,
-    * an `OperationExecutor` instance.
+    * an `Executor` instance.
     
     To control which operations are executed, you may want to group them.
     
@@ -101,9 +101,9 @@ class OperationExecutor(object):
     
     If `foreach` is `True` and the operation is a function, the operation is
     treated as a "for-each" operation. By default, a for-each operation is
-    executed after each regular operation (function or `OperationExecutor`
-    instance). To customize this behavior, use the `yield` statement in the
-    for-each operation to specify where it is desired to execute each operation.
+    executed after each regular operation (function or `Executor` instance). To
+    customize this behavior, use the `yield` statement in the for-each operation
+    to specify where it is desired to execute each operation.
     For example:
     
       def foo():
@@ -131,7 +131,7 @@ class OperationExecutor(object):
     will print `bar1`, `bar2`, then execute the operation (only once), and then
     print `baz1` and `baz2`.
     
-    To make an `OperationExecutor` instance behave as a for-each operation, wrap
+    To make an `Executor` instance behave as a for-each operation, wrap
     the instance in a function as shown above. For example:
       
       def execute_before_each_operation():
@@ -139,7 +139,7 @@ class OperationExecutor(object):
         yield
     
     If `ignore_if_exists` is `True`, do not add the operation if the same
-    function or `OperationExecutor` instance is already added in at least one of
+    function or `Executor` instance is already added in at least one of
     the specified groups and return `None`. Note that the same function with
     different arguments is still treated as one function.
     """
@@ -186,7 +186,7 @@ class OperationExecutor(object):
     
     If any of the `groups` do not exist, raise `ValueError`.
     
-    If `operation` is an `OperationExecutor` instance, the instance will execute
+    If `operation` is an `Executor` instance, the instance will execute
     operations in the specified groups.
     
     Additional arguments and keyword arguments to all operations in the group
@@ -198,7 +198,7 @@ class OperationExecutor(object):
     `additional_args` are appended to the argument list by default. Specify
     `additional_args_position` as an integer to change the insertion position of
     `additional_args`. `additional_args_position` also applies to nested
-    `OperationExecutor` instances.
+    `Executor` instances.
     """
     
     def _execute_operation(operation, operation_args, operation_kwargs):
@@ -281,7 +281,7 @@ class OperationExecutor(object):
   def contains(self, operation, groups=None, foreach=False):
     """
     Return `True` if the specified operation exists, `False` otherwise.
-    `operation` can be a function or `OperationExecutor` instance.
+    `operation` can be a function or `Executor` instance.
     
     For information about the `groups` parameter, see `has_operation()`.
     
@@ -299,7 +299,7 @@ class OperationExecutor(object):
   def find(self, operation, groups=None, foreach=False):
     """
     Return operation IDs matching the specified operation. `operation` can be a
-    function or `OperationExecutor` instance.
+    function or `Executor` instance.
     
     For information about the `groups` parameter, see `has_operation()`.
     
@@ -681,5 +681,5 @@ class _OperationItem(object):
     self.operation_id = operation_id
     self.groups = groups if groups is not None else set()
     self.operation_type = (
-      operation_type if operation_type is not None else OperationExecutor._TYPE_OPERATION)
+      operation_type if operation_type is not None else Executor._TYPE_OPERATION)
     self.operation_function = operation_function

@@ -21,7 +21,7 @@ import unittest
 
 import parameterized
 
-from .. import operations as pgoperations
+from export_layers.pygimplib import executor as pgexecutor
 
 
 def append_test(list_):
@@ -77,13 +77,13 @@ def append_to_list_again(list_):
   list_.append(arg)
 
 
-class OperationExecutorTestCase(unittest.TestCase):
+class ExecutorTestCase(unittest.TestCase):
   
   def setUp(self):
-    self.executor = pgoperations.OperationExecutor()
+    self.executor = pgexecutor.Executor()
 
 
-class TestOperationExecutor(OperationExecutorTestCase):
+class TestExecutor(ExecutorTestCase):
   
   @parameterized.parameterized.expand([
     ("default_group",
@@ -136,7 +136,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
     operation_ids.append(
       self.executor.add(append_to_list_before, args=[test_list, 3], foreach=True))
     
-    additional_executor = pgoperations.OperationExecutor()
+    additional_executor = pgexecutor.Executor()
     operation_ids.append(self.executor.add(additional_executor))
     operation_ids.append(self.executor.add(additional_executor))
     
@@ -145,7 +145,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
   def test_add_return_unique_ids_across_multiple_executors(self):
     operation_id = self.executor.add(append_test)
     
-    additional_executor = pgoperations.OperationExecutor()
+    additional_executor = pgexecutor.Executor()
     additional_operation_id = additional_executor.add(append_test)
     
     self.assertNotEqual(operation_id, additional_operation_id)
@@ -182,7 +182,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
     self.assertEqual(len(self.executor.list_operations("main")), 1)
     self.assertEqual(len(self.executor.list_operations("main", foreach=True)), 1)
     
-    additional_executor = pgoperations.OperationExecutor()
+    additional_executor = pgexecutor.Executor()
     executor_id = self.executor.add(additional_executor, ["main"])
     
     self.executor.add_to_groups(executor_id, ["additional"])
@@ -220,7 +220,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
     self.executor.add(append_test, args=[test_list])
     self.assertTrue(self.executor.contains(append_test))
     
-    additional_executor = pgoperations.OperationExecutor()
+    additional_executor = pgexecutor.Executor()
     self.executor.add(additional_executor)
     self.assertTrue(self.executor.contains(additional_executor))
     
@@ -276,7 +276,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
       self.executor.add(
         append_to_list_before, ["main", "additional"], [test_list, 2], foreach=True))
     
-    additional_executor = pgoperations.OperationExecutor()
+    additional_executor = pgexecutor.Executor()
     operation_ids.append(self.executor.add(additional_executor, ["main"]))
     
     self.executor.remove(operation_ids[2], ["main"])
@@ -311,7 +311,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
       self.executor.add(
         append_to_list_before, ["additional"], [test_list, 4], foreach=True))
     
-    additional_executor = pgoperations.OperationExecutor()
+    additional_executor = pgexecutor.Executor()
     operation_ids.append(self.executor.add(additional_executor, ["main"]))
     
     self.assertEqual(
@@ -365,7 +365,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
     operation_ids.append(
       self.executor.add(append_to_list_before, args=[test_list, 3], foreach=True))
     
-    additional_executor = pgoperations.OperationExecutor()
+    additional_executor = pgexecutor.Executor()
     operation_ids.append(self.executor.add(additional_executor))
     
     self.assertEqual(
@@ -449,7 +449,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
     operation_ids.append(
       self.executor.add(append_to_list_before, args=[test_list, 3], foreach=True))
     
-    additional_executor = pgoperations.OperationExecutor()
+    additional_executor = pgexecutor.Executor()
     operation_ids.append(self.executor.add(additional_executor))
     
     self.executor.remove(operation_ids[0])
@@ -492,7 +492,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
     self.assertFalse(self.executor.has_operation(operation_ids[3]))
     self.assertFalse(self.executor.contains(append_to_list_before, foreach=True))
     
-    additional_executor = pgoperations.OperationExecutor()
+    additional_executor = pgexecutor.Executor()
     operation_ids.append(self.executor.add(additional_executor))
     operation_ids.append(self.executor.add(additional_executor))
     
@@ -583,7 +583,7 @@ class TestOperationExecutor(OperationExecutorTestCase):
       self.fail("removing a non-existent group should not raise exception")
 
 
-class TestOperationExecutorExecuteOperations(OperationExecutorTestCase):
+class TestExecutorExecuteOperations(ExecutorTestCase):
   
   @parameterized.parameterized.expand([
     ("default",
@@ -687,7 +687,7 @@ class TestOperationExecutorExecuteOperations(OperationExecutorTestCase):
       self.fail("executing no operations for the given group should not raise exception")
 
 
-class TestOperationExecutorExecuteForeachOperations(OperationExecutorTestCase):
+class TestExecutorExecuteForeachOperations(ExecutorTestCase):
   
   @parameterized.parameterized.expand([
     ("default",
@@ -778,7 +778,7 @@ class TestOperationExecutorExecuteForeachOperations(OperationExecutorTestCase):
   
   def test_execute_foreach_does_nothing_in_another_executor(self):
     test_list = []
-    another_executor = pgoperations.OperationExecutor()
+    another_executor = pgexecutor.Executor()
     another_executor.add(append_to_list, args=[test_list, 1])
     another_executor.add(append_to_list, args=[test_list, 2])
     
@@ -800,7 +800,7 @@ class TestOperationExecutorExecuteForeachOperations(OperationExecutorTestCase):
     self.executor.add(append_to_list, args=[test_list, 1])
     self.executor.add(append_to_list, args=[test_list, 2])
     
-    another_executor = pgoperations.OperationExecutor()
+    another_executor = pgexecutor.Executor()
     another_executor.add(append_to_list, args=[test_list, 3])
     another_executor.add(append_to_list, args=[test_list, 4])
     
@@ -811,11 +811,11 @@ class TestOperationExecutorExecuteForeachOperations(OperationExecutorTestCase):
     self.assertListEqual(test_list, [3, 4, 1, 3, 4, 2])
 
 
-class TestOperationExecutorExecuteWithExecutor(OperationExecutorTestCase):
+class TestExecutorExecuteWithExecutor(ExecutorTestCase):
   
   def test_execute(self):
     test_list = []
-    another_executor = pgoperations.OperationExecutor()
+    another_executor = pgexecutor.Executor()
     another_executor.add(append_to_list, args=[test_list, 1])
     another_executor.add(append_test, args=[test_list])
     
@@ -828,7 +828,7 @@ class TestOperationExecutorExecuteWithExecutor(OperationExecutorTestCase):
   
   def test_execute_after_adding_operations_to_executor(self):
     test_list = []
-    another_executor = pgoperations.OperationExecutor()
+    another_executor = pgexecutor.Executor()
     
     self.executor.add(append_to_list, args=[test_list, 2])
     self.executor.add(another_executor)
@@ -842,7 +842,7 @@ class TestOperationExecutorExecuteWithExecutor(OperationExecutorTestCase):
   
   def test_execute_multiple_executors_after_adding_operations_to_them(self):
     test_list = []
-    more_executors = [pgoperations.OperationExecutor(), pgoperations.OperationExecutor()]
+    more_executors = [pgexecutor.Executor(), pgexecutor.Executor()]
     
     self.executor.add(append_to_list, args=[test_list, 2])
     self.executor.add(more_executors[0])
@@ -859,9 +859,9 @@ class TestOperationExecutorExecuteWithExecutor(OperationExecutorTestCase):
     self.assertListEqual(test_list, [2, 1, "test", 3, 4])
   
   def test_execute_empty_group(self):
-    another_executor = pgoperations.OperationExecutor()
+    another_executor = pgexecutor.Executor()
     try:
       self.executor.add(another_executor, ["invalid_group"])
     except Exception:
       self.fail("adding operations from an empty group from another "
-                "OperationExecutor instance should not raise exception")
+                "Executor instance should not raise exception")

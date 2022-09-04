@@ -84,7 +84,7 @@ class LayerExporter(object):
   * `current_layer_elem` (read-only) - The `itemtree._ItemTreeElement` instance
     being currently exported.
   
-  * `operation_executor` - `pygimplib.operations.OperationExecutor` instance to
+  * `executor` - `pygimplib.operations.Executor` instance to
     manage operations applied on layers. This property is not `None` only during
     `export()` and can be used to modify the execution of operations while
     processing layers.
@@ -145,8 +145,8 @@ class LayerExporter(object):
       for function in functions:
         self._processing_groups_functions[function.__name__] = function
     
-    self._operation_executor = None
-    self._initial_operation_executor = pg.operations.OperationExecutor()
+    self._executor = None
+    self._initial_executor = pg.executor.Executor()
   
   @property
   def layer_tree(self):
@@ -177,8 +177,8 @@ class LayerExporter(object):
     return self._tagged_layer_copies
   
   @property
-  def operation_executor(self):
-    return self._operation_executor
+  def executor(self):
+    return self._executor
   
   def export(self, processing_groups=None, layer_tree=None, keep_image_copy=False):
     """
@@ -247,7 +247,7 @@ class LayerExporter(object):
   def add_procedure(self, *args, **kwargs):
     """
     Add a procedure to be executed during `export()`. The signature is the same
-    as for `pygimplib.operations.OperationExecutor.add()`.
+    as for `pygimplib.operations.Executor.add()`.
     
     Procedures added by this method are placed before procedures added by
     `operations.add()`.
@@ -256,36 +256,36 @@ class LayerExporter(object):
     settings, i.e. they are merely functions without GUI, are not saved
     persistently and are always enabled.
     """
-    return self._initial_operation_executor.add(*args, **kwargs)
+    return self._initial_executor.add(*args, **kwargs)
   
   def add_constraint(self, func, *args, **kwargs):
     """
     Add a constraint to be applied during `export()`. The first argument is the
     function to act as a filter (returning `True` or `False`). The rest of the
-    signature is the same as for `pygimplib.operations.OperationExecutor.add()`.
+    signature is the same as for `pygimplib.operations.Executor.add()`.
     
     For more information, see `add_procedure()`.
     """
-    return self._initial_operation_executor.add(
+    return self._initial_executor.add(
       _get_constraint_func(func), *args, **kwargs)
   
   def remove_operation(self, *args, **kwargs):
     """
     Remove an operation originally scheduled to be executed during `export()`.
     The signature is the same as for
-    `pygimplib.operations.OperationExecutor.remove()`.
+    `pygimplib.operations.Executor.remove()`.
     """
-    self._initial_operation_executor.remove(*args, **kwargs)
+    self._initial_executor.remove(*args, **kwargs)
   
   def reorder_operation(self, *args, **kwargs):
     """
     Reorder an operation to be executed during `export()`. The signature is the
-    same as for `pygimplib.operations.OperationExecutor.reorder()`.
+    same as for `pygimplib.operations.Executor.reorder()`.
     """
-    self._initial_operation_executor.reorder(*args, **kwargs)
+    self._initial_executor.reorder(*args, **kwargs)
   
   def _init_attributes(self, processing_groups, layer_tree, keep_image_copy):
-    self._operation_executor = pg.operations.OperationExecutor()
+    self._executor = pg.executor.Executor()
     self._add_operations()
     
     self._enable_disable_processing_groups(processing_groups)
@@ -332,23 +332,23 @@ class LayerExporter(object):
     self._layer_name_renamer = renamer.LayerNameRenamer(self, pattern)
   
   def _add_operations(self):
-    self._operation_executor.add(
+    self._executor.add(
       builtin_procedures.set_active_layer, [operations.DEFAULT_PROCEDURES_GROUP])
     
-    self._operation_executor.add(
+    self._executor.add(
       builtin_procedures.set_active_layer_after_operation,
       [operations.DEFAULT_PROCEDURES_GROUP],
       foreach=True)
     
-    self._operation_executor.add(
-      self._initial_operation_executor,
-      self._initial_operation_executor.list_groups(include_empty_groups=True))
+    self._executor.add(
+      self._initial_executor,
+      self._initial_executor.list_groups(include_empty_groups=True))
     
     for procedure in operations.walk(self.export_settings["procedures"]):
-      add_operation_from_settings(procedure, self._operation_executor)
+      add_operation_from_settings(procedure, self._executor)
     
     for constraint in operations.walk(self.export_settings["constraints"]):
-      add_operation_from_settings(constraint, self._operation_executor)
+      add_operation_from_settings(constraint, self._executor)
   
   def _enable_disable_processing_groups(self, processing_groups):
     for functions in self._processing_groups.values():
@@ -403,14 +403,14 @@ class LayerExporter(object):
     self._layer_tree.filter.add_subfilter(
       "layer_types", pg.objectfilter.ObjectFilter(pg.objectfilter.ObjectFilter.MATCH_ANY))
     
-    self._operation_executor.execute(
+    self._executor.execute(
       [builtin_constraints.CONSTRAINTS_LAYER_TYPES_GROUP],
       [self],
       additional_args_position=_LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
     
     self._init_tagged_layer_elems()
     
-    self._operation_executor.execute(
+    self._executor.execute(
       [operations.DEFAULT_CONSTRAINTS_GROUP],
       [self],
       additional_args_position=_LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
@@ -470,7 +470,7 @@ class LayerExporter(object):
     self._image_copy = pg.pdbutils.create_image_from_metadata(self.image)
     pdb.gimp_image_undo_freeze(self._image_copy)
     
-    self._operation_executor.execute(
+    self._executor.execute(
       ["after_create_image_copy"], [self._image_copy], additional_args_position=0)
     
     if self._use_another_image_copy:
@@ -504,10 +504,10 @@ class LayerExporter(object):
   
   def _process_layer(self, layer_elem, image, layer):
     layer_copy = builtin_procedures.copy_and_insert_layer(image, layer, None, 0)
-    self._operation_executor.execute(
+    self._executor.execute(
       ["after_insert_layer"], [image, layer_copy, self], additional_args_position=0)
     
-    self._operation_executor.execute(
+    self._executor.execute(
       [operations.DEFAULT_PROCEDURES_GROUP],
       [image, layer_copy, self],
       additional_args_position=0)
@@ -518,7 +518,7 @@ class LayerExporter(object):
     
     layer_copy.name = layer.name
     
-    self._operation_executor.execute(
+    self._executor.execute(
       ["after_process_layer"], [image, layer_copy, self], additional_args_position=0)
     
     return layer_copy
