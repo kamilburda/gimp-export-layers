@@ -272,15 +272,14 @@ class LayerExporter(object):
   def remove_operation(self, *args, **kwargs):
     """
     Remove an operation originally scheduled to be executed during `export()`.
-    The signature is the same as for
-    `pygimplib.operations.Executor.remove()`.
+    The signature is the same as for `pygimplib.operations.Executor.remove()`.
     """
     self._initial_executor.remove(*args, **kwargs)
   
   def reorder_operation(self, *args, **kwargs):
     """
-    Reorder an operation to be executed during `export()`. The signature is the
-    same as for `pygimplib.operations.Executor.reorder()`.
+    Reorder an operation to be executed during `export()`.
+    The signature is the same as for `pygimplib.operations.Executor.reorder()`.
     """
     self._initial_executor.reorder(*args, **kwargs)
   
