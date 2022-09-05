@@ -22,16 +22,16 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 import pango
 
 __all__ = [
-  "get_toplevel_window",
-  "label_fits_text",
-  "get_label_full_text_width",
-  "menu_popup_below_widget",
-  "get_position_below_widget",
+  'get_toplevel_window',
+  'label_fits_text',
+  'get_label_full_text_width',
+  'menu_popup_below_widget',
+  'get_position_below_widget',
 ]
 
 
@@ -65,7 +65,7 @@ def get_label_full_text_width(label, use_markup=True):
   full_text_layout = pango.Layout(label.get_pango_context())
   
   if use_markup:
-    full_text_layout.set_markup_with_accel(label.get_label(), "_")
+    full_text_layout.set_markup_with_accel(label.get_label(), '_')
   else:
     full_text_layout.set_text(label.get_text())
   

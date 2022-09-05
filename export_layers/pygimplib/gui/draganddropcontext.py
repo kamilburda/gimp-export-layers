@@ -23,11 +23,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 
 __all__ = [
-  "DragAndDropContext",
+  'DragAndDropContext',
 ]
 
 
@@ -72,7 +72,7 @@ class DragAndDropContext(object):
       drag_data_receive_args = ()
     
     widget.connect(
-      "drag-data-get",
+      'drag-data-get',
       self._on_widget_drag_data_get,
       get_drag_data_func,
       get_drag_data_args)
@@ -80,7 +80,7 @@ class DragAndDropContext(object):
       gtk.gdk.BUTTON1_MASK, [(self._drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
     
     widget.connect(
-      "drag-data-received",
+      'drag-data-received',
       self._on_widget_drag_data_received,
       drag_data_receive_func,
       *drag_data_receive_args)
@@ -88,12 +88,12 @@ class DragAndDropContext(object):
       gtk.DEST_DEFAULT_ALL, [(self._drag_type, 0, 0)], gtk.gdk.ACTION_MOVE)
     
     widget.connect(
-      "drag-begin", self._on_widget_drag_begin, scrolled_window)
-    widget.connect("drag-motion", self._on_widget_drag_motion)
-    widget.connect("drag-failed", self._on_widget_drag_failed)
+      'drag-begin', self._on_widget_drag_begin, scrolled_window)
+    widget.connect('drag-motion', self._on_widget_drag_motion)
+    widget.connect('drag-failed', self._on_widget_drag_failed)
   
   def _get_unique_drag_type(self):
-    return str("{}_{}".format(self.__class__.__name__, id(self)))
+    return str('{}_{}'.format(self.__class__.__name__, id(self)))
   
   def _on_widget_drag_data_get(
         self,

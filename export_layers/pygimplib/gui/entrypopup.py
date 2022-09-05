@@ -22,7 +22,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 
 from .. import utils as pgutils
@@ -31,7 +31,7 @@ from . import popuphidecontext as popuphidecontext_
 from . import utils as utils_
 
 __all__ = [
-  "EntryPopup",
+  'EntryPopup',
 ]
 
 
@@ -66,7 +66,7 @@ class EntryPopup(object):
     
     self._filter_rows_func = None
     
-    self._last_assigned_entry_text = ""
+    self._last_assigned_entry_text = ''
     self._previous_assigned_entry_text_position = None
     self._previous_assigned_entry_text = None
     
@@ -157,7 +157,7 @@ class EntryPopup(object):
     else:
       cell_height = 0
     
-    vertical_spacing = self._tree_view.style_get_property("vertical-separator")
+    vertical_spacing = self._tree_view.style_get_property('vertical-separator')
     row_height = cell_height + vertical_spacing
     num_visible_rows = min(num_rows, self._max_num_visible_rows)
     
@@ -180,7 +180,7 @@ class EntryPopup(object):
     
     if row_path is not None:
       self._rows_filtered.emit(
-        "row-changed", row_path, self._rows_filtered.get_iter(row_path))
+        'row-changed', row_path, self._rows_filtered.get_iter(row_path))
   
   def select_row(self, row_num):
     self._tree_view.set_cursor((row_num,))
@@ -282,14 +282,14 @@ class EntryPopup(object):
     self._scrolled_window.show_all()
   
   def _connect_events(self):
-    self._entry.connect("changed", self._on_entry_changed)
-    self._entry.connect("button-press-event", self._on_entry_left_mouse_button_press)
-    self._entry.connect("key-press-event", self._on_entry_key_press_event)
+    self._entry.connect('changed', self._on_entry_changed)
+    self._entry.connect('button-press-event', self._on_entry_left_mouse_button_press)
+    self._entry.connect('key-press-event', self._on_entry_key_press_event)
     
-    self._entry.connect("focus-out-event", self._on_entry_focus_out_event)
+    self._entry.connect('focus-out-event', self._on_entry_focus_out_event)
     
-    self._tree_view.connect_after("realize", self._on_after_tree_view_realize)
-    self._tree_view.connect("button-press-event", self._on_tree_view_button_press_event)
+    self._tree_view.connect_after('realize', self._on_after_tree_view_realize)
+    self._tree_view.connect('button-press-event', self._on_tree_view_button_press_event)
     
     wigets_to_exclude_from_hiding_popup_with_button_press = [
       self._entry,
@@ -315,8 +315,8 @@ class EntryPopup(object):
     
     if (not self.is_shown()
         and key_name in [
-          "Up", "KP_Up", "Down", "KP_Down",
-          "Page_Up", "KP_Page_Up", "Page_Down", "KP_Page_Down"]):
+          'Up', 'KP_Up', 'Down', 'KP_Down',
+          'Page_Up', 'KP_Page_Up', 'Page_Down', 'KP_Page_Down']):
       self.on_entry_key_press_before_show_popup()
       
       show_popup_first_time = self._show_popup_first_time
@@ -332,35 +332,35 @@ class EntryPopup(object):
       tree_path, unused_ = self._tree_view.get_cursor()
       stop_event_propagation = True
       
-      if key_name in ["Up", "KP_Up"]:
+      if key_name in ['Up', 'KP_Up']:
         self.select_and_assign_row_after_key_press(
           tree_path,
           next_row=lambda tree_path: tree_path[0] - 1,
           next_row_if_no_current_selection=len(self._rows_filtered) - 1,
           current_row_before_unselection=0)
-      elif key_name in ["Down", "KP_Down"]:
+      elif key_name in ['Down', 'KP_Down']:
         self.select_and_assign_row_after_key_press(
           tree_path,
           next_row=lambda tree_path: tree_path[0] + 1,
           next_row_if_no_current_selection=0,
           current_row_before_unselection=len(self._rows_filtered) - 1)
-      elif key_name in ["Page_Up", "KP_Page_Up"]:
+      elif key_name in ['Page_Up', 'KP_Page_Up']:
         self.select_and_assign_row_after_key_press(
           tree_path,
           next_row=lambda tree_path: max(tree_path[0] - self._max_num_visible_rows, 0),
           next_row_if_no_current_selection=len(self._rows_filtered) - 1,
           current_row_before_unselection=0)
-      elif key_name in ["Page_Down", "KP_Page_Down"]:
+      elif key_name in ['Page_Down', 'KP_Page_Down']:
         self.select_and_assign_row_after_key_press(
           tree_path,
           next_row=lambda tree_path: min(
             tree_path[0] + self._max_num_visible_rows, len(self._rows_filtered) - 1),
           next_row_if_no_current_selection=0,
           current_row_before_unselection=len(self._rows_filtered) - 1)
-      elif key_name in ["Return", "KP_Enter"]:
+      elif key_name in ['Return', 'KP_Enter']:
         self.save_last_value()
         self.hide()
-      elif key_name == "Escape":
+      elif key_name == 'Escape':
         self.assign_last_value()
         self.hide()
       else:
@@ -413,7 +413,7 @@ class EntryPopup(object):
         self.resize(num_rows=len(self._rows_filtered))
       
       # No need to resize the tree view after showing the popup for the first
-      # time - the "realize" signal handler automatically resizes the tree view.
+      # time - the 'realize' signal handler automatically resizes the tree view.
       self.show()
       
       self.unselect()

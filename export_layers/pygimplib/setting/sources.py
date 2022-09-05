@@ -44,9 +44,9 @@ from . import settings as settings_
 from ._sources_errors import *
 
 __all__ = [
-  "Source",
-  "SessionSource",
-  "PersistentSource",
+  'Source',
+  'SessionSource',
+  'PersistentSource',
 ]
 
 
@@ -93,7 +93,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     for setting in settings:
       try:
-        value = settings_from_source[setting.get_path("root")]
+        value = settings_from_source[setting.get_path('root')]
       except KeyError:
         settings_not_found.append(setting)
       else:
@@ -104,8 +104,8 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     if settings_not_found:
       raise SettingsNotFoundInSourceError(
-        _("The following settings could not be found:\n{}").format(
-          "\n".join(setting.get_path() for setting in settings_not_found)),
+        _('The following settings could not be found:\n{}').format(
+          '\n'.join(setting.get_path() for setting in settings_not_found)),
         settings_not_found)
   
   def write(self, settings):
@@ -176,7 +176,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   def _settings_to_dict(self, settings):
     settings_dict = collections.OrderedDict()
     for setting in settings:
-      settings_dict[setting.get_path("root")] = setting.value
+      settings_dict[setting.get_path('root')] = setting.value
     
     return settings_dict
 
@@ -205,8 +205,8 @@ class SessionSource(Source):
       return None
     except Exception:
       raise SourceInvalidFormatError(
-        _("Session-wide settings for this plug-in may be corrupt.\n"
-          "To fix this, save the settings again or reset them."))
+        _('Session-wide settings for this plug-in may be corrupt.\n'
+          'To fix this, save the settings again or reset them.'))
   
   def write_dict(self, setting_names_and_values):
     gimpshelf.shelf[self._get_key()] = setting_names_and_values
@@ -227,7 +227,7 @@ class PersistentSource(Source):
   def __init__(self, source_name):
     super().__init__(source_name)
     
-    self._parasite_filepath = os.path.join(gimp.directory, "parasiterc")
+    self._parasite_filepath = os.path.join(gimp.directory, 'parasiterc')
   
   def clear(self):
     if gimp.parasite_find(self.source_name) is None:
@@ -248,8 +248,8 @@ class PersistentSource(Source):
     except Exception:
       raise SourceInvalidFormatError(
         _('Settings for this plug-in stored in "{}" may be corrupt. '
-          "This could happen if the file was edited manually.\n"
-          "To fix this, save the settings again or reset them.").format(
+          'This could happen if the file was edited manually.\n'
+          'To fix this, save the settings again or reset them.').format(
             self._parasite_filepath))
     
     return settings_from_source

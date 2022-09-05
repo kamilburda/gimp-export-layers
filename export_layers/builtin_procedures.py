@@ -111,7 +111,7 @@ def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
       image, layer_elem.item, None, first_tagged_layer_position + i)
     layer_copy.visible = True
     layer_exporter.executor.execute(
-      ["after_insert_layer"], [image, layer_copy, layer_exporter])
+      ['after_insert_layer'], [image, layer_copy, layer_exporter])
   
   if len(layer_exporter.tagged_layer_elems[tag]) == 1:
     merged_layer_for_tag = image.layers[first_tagged_layer_position]
@@ -131,74 +131,74 @@ def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
 
 _BUILTIN_PROCEDURES_LIST = [
   {
-    "name": "insert_background_layers",
-    "function": insert_background_layer,
-    "arguments": [
+    'name': 'insert_background_layers',
+    'function': insert_background_layer,
+    'arguments': [
       {
-        "type": pg.SettingTypes.string,
-        "name": "tag",
-        "default_value": "background",
+        'type': pg.SettingTypes.string,
+        'name': 'tag',
+        'default_value': 'background',
       },
     ],
-    "display_name": _("Insert background layers"),
+    'display_name': _('Insert background layers'),
   },
   {
-    "name": "insert_foreground_layers",
-    "function": insert_foreground_layer,
-    "arguments": [
+    'name': 'insert_foreground_layers',
+    'function': insert_foreground_layer,
+    'arguments': [
       {
-        "type": pg.SettingTypes.string,
-        "name": "tag",
-        "default_value": "foreground",
+        'type': pg.SettingTypes.string,
+        'name': 'tag',
+        'default_value': 'foreground',
       },
     ],
-    "display_name": _("Insert foreground layers"),
+    'display_name': _('Insert foreground layers'),
   },
   {
-    "name": "inherit_transparency_from_layer_groups",
-    "function": inherit_transparency_from_layer_groups,
-    "display_name": _("Inherit transparency from layer groups"),
+    'name': 'inherit_transparency_from_layer_groups',
+    'function': inherit_transparency_from_layer_groups,
+    'display_name': _('Inherit transparency from layer groups'),
   },
   {
-    "name": "autocrop_background",
-    "function": autocrop_tagged_layer,
-    "arguments": [
+    'name': 'autocrop_background',
+    'function': autocrop_tagged_layer,
+    'arguments': [
       {
-        "type": pg.SettingTypes.string,
-        "name": "tag",
-        "default_value": "background",
+        'type': pg.SettingTypes.string,
+        'name': 'tag',
+        'default_value': 'background',
       },
     ],
-    "display_name": _("Autocrop background"),
+    'display_name': _('Autocrop background'),
   },
   {
-    "name": "autocrop_foreground",
-    "function": autocrop_tagged_layer,
-    "arguments": [
+    'name': 'autocrop_foreground',
+    'function': autocrop_tagged_layer,
+    'arguments': [
       {
-        "type": pg.SettingTypes.string,
-        "name": "tag",
-        "default_value": "foreground",
+        'type': pg.SettingTypes.string,
+        'name': 'tag',
+        'default_value': 'foreground',
       },
     ],
-    "display_name": _("Autocrop foreground"),
+    'display_name': _('Autocrop foreground'),
   },
   {
-    "name": "ignore_folder_structure",
-    "function": None,
-    "display_name": _("Ignore folder structure"),
+    'name': 'ignore_folder_structure',
+    'function': None,
+    'display_name': _('Ignore folder structure'),
   },
   {
-    "name": "use_file_extensions_in_layer_names",
-    "function": None,
-    "display_name": _("Use file extensions in layer names"),
+    'name': 'use_file_extensions_in_layer_names',
+    'function': None,
+    'display_name': _('Use file extensions in layer names'),
   },
   {
-    "name": "use_layer_size",
-    "function": resize_to_layer_size,
-    "display_name": _("Use layer size"),
+    'name': 'use_layer_size',
+    'function': resize_to_layer_size,
+    'display_name': _('Use layer size'),
   },
 ]
 
 BUILTIN_PROCEDURES = collections.OrderedDict(
-  (operation_dict["name"], operation_dict) for operation_dict in _BUILTIN_PROCEDURES_LIST)
+  (operation_dict['name'], operation_dict) for operation_dict in _BUILTIN_PROCEDURES_LIST)

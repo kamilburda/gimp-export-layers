@@ -48,17 +48,17 @@ class TestLayerExporterInitialOperations(unittest.TestCase):
   
   def test_add_procedure_added_procedure_is_first_in_execution_list(self):
     settings = settings_plugin.create_settings()
-    settings["special/image"].set_value(self.image)
-    settings["main/file_extension"].set_value("xcf")
+    settings['special/image'].set_value(self.image)
+    settings['main/file_extension'].set_value('xcf')
     
     layer_exporter = exportlayers.LayerExporter(
-      settings["special/run_mode"].value,
-      settings["special/image"].value,
-      settings["main"])
+      settings['special/run_mode'].value,
+      settings['special/image'].value,
+      settings['main'])
     
     operations.add(
-      settings["main/procedures"],
-      builtin_procedures.BUILTIN_PROCEDURES["insert_background_layers"])
+      settings['main/procedures'],
+      builtin_procedures.BUILTIN_PROCEDURES['insert_background_layers'])
     
     layer_exporter.add_procedure(
       pg.utils.empty_func, [operations.DEFAULT_PROCEDURES_GROUP])
@@ -84,21 +84,21 @@ class TestAddOperationFromSettings(unittest.TestCase):
   
   def setUp(self):
     self.executor = pg.executor.Executor()
-    self.procedures = operations.create("procedures")
+    self.procedures = operations.create('procedures')
     
     self.procedure_stub = stubs_gimp.PdbProcedureStub(
-      name="file-png-save",
+      name='file-png-save',
       type_=gimpenums.PLUGIN,
       params=(
-        (gimpenums.PDB_INT32, "run-mode", "The run mode"),
-        (gimpenums.PDB_INT32ARRAY, "save-options", "Save options"),
-        (gimpenums.PDB_STRING, "filename", "Filename to save the image in")),
+        (gimpenums.PDB_INT32, 'run-mode', 'The run mode'),
+        (gimpenums.PDB_INT32ARRAY, 'save-options', 'Save options'),
+        (gimpenums.PDB_STRING, 'filename', 'Filename to save the image in')),
       return_vals=None,
-      blurb="Saves files in PNG file format")
+      blurb='Saves files in PNG file format')
   
   def test_add_operation_from_settings(self):
     procedure = operations.add(
-      self.procedures, builtin_procedures.BUILTIN_PROCEDURES["insert_background_layers"])
+      self.procedures, builtin_procedures.BUILTIN_PROCEDURES['insert_background_layers'])
     
     exportlayers.add_operation_from_settings(procedure, self.executor)
     
@@ -106,21 +106,21 @@ class TestAddOperationFromSettings(unittest.TestCase):
       group=operations.DEFAULT_PROCEDURES_GROUP)
     
     self.assertEqual(len(added_operation_items), 1)
-    self.assertEqual(added_operation_items[0][1], ("background",))
+    self.assertEqual(added_operation_items[0][1], ('background',))
     self.assertEqual(added_operation_items[0][2], {})
   
   def test_add_pdb_proc_as_operation_without_run_mode(self):
     self.procedure_stub.params = self.procedure_stub.params[1:]
-    self._test_add_pdb_proc_as_operation(self.procedure_stub, ((), ""), {})
+    self._test_add_pdb_proc_as_operation(self.procedure_stub, ((), ''), {})
   
   def test_add_pdb_proc_as_operation_with_run_mode(self):
     self._test_add_pdb_proc_as_operation(
-      self.procedure_stub, ((), ""), {"run_mode": gimpenums.RUN_NONINTERACTIVE})
+      self.procedure_stub, ((), ''), {'run_mode': gimpenums.RUN_NONINTERACTIVE})
   
   def _test_add_pdb_proc_as_operation(self, pdb_procedure, expected_args, expected_kwargs):
     procedure = operations.add(self.procedures, pdb_procedure)
     
-    with mock.patch("export_layers.exportlayers.pdb") as pdb_mock:
+    with mock.patch('export_layers.exportlayers.pdb') as pdb_mock:
       pdb_mock.__getitem__.return_value = pdb_procedure
       
       exportlayers.add_operation_from_settings(procedure, self.executor)

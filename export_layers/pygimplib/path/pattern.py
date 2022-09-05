@@ -30,7 +30,7 @@ import types
 from .. import utils as pgutils
 
 __all__ = [
-  "StringPattern",
+  'StringPattern',
 ]
 
 
@@ -119,7 +119,7 @@ class StringPattern(object):
       else:
         pattern_parts.append(self._process_field(part))
     
-    return "".join(pattern_parts)
+    return ''.join(pattern_parts)
   
   @classmethod
   def get_field_at_position(cls, pattern, position):
@@ -155,16 +155,16 @@ class StringPattern(object):
       else:
         if not part:
           raise ValueError(
-            "lists representing fields must always contain at least one element")
+            'lists representing fields must always contain at least one element')
         
         field_components = [part[0]]
         
         if len(part) > 1:
           field_components.extend([str(arg) for arg in part[1]])
         
-        processed_pattern_parts.append("[{}]".format(", ".join(field_components)))
+        processed_pattern_parts.append('[{}]'.format(', '.join(field_components)))
     
-    return "".join(processed_pattern_parts)
+    return ''.join(processed_pattern_parts)
   
   @staticmethod
   def get_first_matching_field_regex(parsed_field_str, field_regexes):
@@ -202,11 +202,11 @@ class StringPattern(object):
         pattern_parts.append(pattern[start_index:])
     
     while index < len(pattern):
-      if pattern[index] == "[":
-        is_escaped = cls._is_field_symbol_escaped(pattern, index, "[")
+      if pattern[index] == '[':
+        is_escaped = cls._is_field_symbol_escaped(pattern, index, '[')
         if field_depth == 0 and is_escaped:
           _add_pattern_part(index)
-          pattern_parts.append("[")
+          pattern_parts.append('[')
           last_constant_substring_index = index + 2
           index += 2
           continue
@@ -221,11 +221,11 @@ class StringPattern(object):
           continue
         elif field_depth > 1 and not is_escaped:
           field_depth += 1
-      elif pattern[index] == "]":
-        is_escaped = cls._is_field_symbol_escaped(pattern, index, "]")
+      elif pattern[index] == ']':
+        is_escaped = cls._is_field_symbol_escaped(pattern, index, ']')
         if field_depth == 0 and is_escaped:
           _add_pattern_part(index)
-          pattern_parts.append("]")
+          pattern_parts.append(']')
           last_constant_substring_index = index + 2
           index += 2
           continue
@@ -273,7 +273,7 @@ class StringPattern(object):
   
   @classmethod
   def _parse_field(cls, field_str):
-    field_name_end_index = field_str.find(",")
+    field_name_end_index = field_str.find(',')
     if field_name_end_index == -1:
       return field_str.strip(), []
     
@@ -281,7 +281,7 @@ class StringPattern(object):
     field_args_str = field_str[field_name_end_index + 1:]
     # Make parsing simpler without having to post-process the last argument
     # outside the main loop.
-    field_args_str += ","
+    field_args_str += ','
     
     is_in_field_arg = False
     last_field_arg_end_index = 0
@@ -295,30 +295,30 @@ class StringPattern(object):
         if not processed_arg:
           continue
         
-        if processed_arg[0] == "[" and processed_arg[-1] == "]":
+        if processed_arg[0] == '[' and processed_arg[-1] == ']':
           processed_arg = processed_arg[1:-1]
-        processed_arg = processed_arg.replace("[[", "[").replace("]]", "]")
+        processed_arg = processed_arg.replace('[[', '[').replace(']]', ']')
         
         processed_field_args.append(processed_arg)
       
       return processed_field_args
     
     while index < len(field_args_str):
-      if field_args_str[index] == ",":
+      if field_args_str[index] == ',':
         if is_in_field_arg:
           index += 1
           continue
         else:
           field_args.append(field_args_str[last_field_arg_end_index:index])
           last_field_arg_end_index = index + 1
-      elif field_args_str[index] == "[":
-        if cls._is_field_symbol_escaped(field_args_str, index, "["):
+      elif field_args_str[index] == '[':
+        if cls._is_field_symbol_escaped(field_args_str, index, '['):
           index += 2
           continue
         else:
           is_in_field_arg = True
-      elif field_args_str[index] == "]":
-        if cls._is_field_symbol_escaped(field_args_str, index, "]"):
+      elif field_args_str[index] == ']':
+        if cls._is_field_symbol_escaped(field_args_str, index, ']'):
           index += 2
           continue
         else:
@@ -336,8 +336,8 @@ class StringPattern(object):
     
     if argspec.keywords:
       raise ValueError(
-        "{}: field functions with variable keyword arguments (**kwargs) "
-        "are not supported".format(field_func.__name__))
+        '{}: field functions with variable keyword arguments (**kwargs) '
+        'are not supported'.format(field_func.__name__))
     
     if not argspec.varargs:
       num_defaults = len(argspec.defaults) if argspec.defaults is not None else 0
@@ -367,6 +367,6 @@ class StringPattern(object):
     try:
       return_value = field_func(field[0], *field[1])
     except Exception:
-      return "[{}]".format(field[2])
+      return '[{}]'.format(field[2])
     else:
       return str(return_value)

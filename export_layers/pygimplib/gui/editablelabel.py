@@ -23,12 +23,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 import gobject
 
 __all__ = [
-  "EditableLabel",
+  'EditableLabel',
 ]
 
 
@@ -40,12 +40,12 @@ class EditableLabel(gtk.VBox):
   
   Signals:
   
-  * `"changed"` - The user finished editing the label text.
+  * `'changed'` - The user finished editing the label text.
   """
   
   _LABEL_EDIT_BUTTON_SPACING = 4
   
-  __gsignals__ = {b"changed": (gobject.SIGNAL_RUN_FIRST, None, ())}
+  __gsignals__ = {b'changed': (gobject.SIGNAL_RUN_FIRST, None, ())}
   
   def __init__(self, text=None, **kwargs):
     super().__init__(self, **kwargs)
@@ -75,9 +75,9 @@ class EditableLabel(gtk.VBox):
     self.pack_start(self._hbox, expand=False, fill=False)
     self.pack_start(self._entry, expand=False, fill=False)
     
-    self._button_edit.connect("clicked", self._on_button_edit_clicked)
-    self._entry.connect("activate", self._on_entry_finished_editing)
-    self._entry.connect("focus-out-event", self._on_entry_finished_editing)
+    self._button_edit.connect('clicked', self._on_button_edit_clicked)
+    self._entry.connect('activate', self._on_entry_finished_editing)
+    self._entry.connect('focus-out-event', self._on_entry_finished_editing)
   
   @property
   def label(self):
@@ -97,7 +97,7 @@ class EditableLabel(gtk.VBox):
     self._label.set_text(self._entry.get_text())
     self._hbox.show()
     
-    self.emit("changed")
+    self.emit('changed')
 
 
 gobject.type_register(EditableLabel)

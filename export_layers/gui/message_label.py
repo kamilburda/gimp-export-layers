@@ -28,7 +28,7 @@ from future.builtins import *
 import os
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 import gobject
 import pango
@@ -56,7 +56,7 @@ class MessageLabel(gtk.HBox):
   def __init__(self):
     super().__init__(homogeneous=False)
     
-    self._label_text = ""
+    self._label_text = ''
     self._popup_text_lines = []
     self._message_type = None
     self._clear_delay = None
@@ -65,11 +65,11 @@ class MessageLabel(gtk.HBox):
     
     self._popup_hide_context = pg.gui.PopupHideContext(self._popup_more, self._button_more)
     
-    self._label_message.connect("size-allocate", self._on_label_message_size_allocate)
-    self._button_more.connect("clicked", self._on_button_more_clicked)
+    self._label_message.connect('size-allocate', self._on_label_message_size_allocate)
+    self._button_more.connect('clicked', self._on_button_more_clicked)
     
-    self._popup_more.connect("show", self._on_popup_more_show)
-    self._popup_more.connect("hide", self._on_popup_more_hide)
+    self._popup_more.connect('show', self._on_popup_more_show)
+    self._popup_more.connect('hide', self._on_popup_more_hide)
     
     wigets_to_exclude_from_hiding_popup_with_button_press = [
       self._popup_more,
@@ -96,17 +96,17 @@ class MessageLabel(gtk.HBox):
     displayed and restarted if the popup gets hidden.
     """
     if not text:
-      self._label_text = ""
+      self._label_text = ''
       self._popup_text_lines = []
       self._label_message.set_text(self._label_text)
       return
     
-    lines = text.strip().split("\n")
+    lines = text.strip().split('\n')
     
     first_line = lines[0]
     first_line = first_line[0].upper() + first_line[1:]
-    if not first_line.endswith("."):
-      first_line += "."
+    if not first_line.endswith('.'):
+      first_line += '.'
     
     self._label_text = first_line
     self._popup_text_lines = lines[1:]
@@ -120,7 +120,7 @@ class MessageLabel(gtk.HBox):
       self._timeout_remove_strict(self._clear_delay, self.set_text)
     else:
       self._label_message.set_markup(
-        "<b>{}</b>".format(gobject.markup_escape_text(
+        '<b>{}</b>'.format(gobject.markup_escape_text(
           self._label_text.encode(pg.GTK_CHARACTER_ENCODING))))
       self._timeout_add_strict(self._clear_delay, self.set_text, None)
   
@@ -129,7 +129,7 @@ class MessageLabel(gtk.HBox):
     self._label_message.set_alignment(0.0, 0.5)
     self._label_message.set_ellipsize(pango.ELLIPSIZE_END)
     
-    self._label_button_more = gtk.Label(_("_More"))
+    self._label_button_more = gtk.Label(_('_More'))
     self._label_button_more.set_use_underline(True)
     
     self._hbox_button_more = gtk.HBox()
@@ -160,7 +160,7 @@ class MessageLabel(gtk.HBox):
     self._popup_more = gtk.Window(type=gtk.WINDOW_POPUP)
     self._popup_more.set_resizable(False)
     self._popup_more.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_TOOLTIP)
-    self._popup_more.set_property("width-request", self._POPUP_WIDTH)
+    self._popup_more.set_property('width-request', self._POPUP_WIDTH)
     self._popup_more.add(self._scrolled_window_more)
     self._popup_more.show_all()
     self._popup_more.hide()
@@ -184,7 +184,7 @@ class MessageLabel(gtk.HBox):
         > self._label_message.get_allocation().width):
       lines.insert(0, self._label_text)
     
-    text = "\n".join(lines).strip()
+    text = '\n'.join(lines).strip()
     
     text_buffer = gtk.TextBuffer()
     text_buffer.set_text(text.encode(pg.GTK_CHARACTER_ENCODING))
@@ -219,7 +219,7 @@ class MessageLabel(gtk.HBox):
     return (
       clear_delay is not None
       and clear_delay > 0
-      and not (os.name == "nt" and ((2, 10, 0) <= gimp.version < (2, 10, 6))))
+      and not (os.name == 'nt' and ((2, 10, 0) <= gimp.version < (2, 10, 6))))
 
 
 gobject.type_register(MessageLabel)

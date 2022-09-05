@@ -25,7 +25,7 @@ from future.builtins import *
 import pango
 
 __all__ = [
-  "EntryExpander",
+  'EntryExpander',
 ]
 
 
@@ -43,7 +43,7 @@ class EntryExpander(object):
     
     if self._minimum_width_chars > self._maximum_width_chars:
       raise ValueError(
-        "minimum width in characters ({0}) cannot be greater than maximum ({1})".format(
+        'minimum width in characters ({0}) cannot be greater than maximum ({1})'.format(
           self._minimum_width_chars, self._maximum_width_chars))
     
     self._minimum_width = -1
@@ -52,8 +52,8 @@ class EntryExpander(object):
     
     self._pango_layout = pango.Layout(self._entry.get_pango_context())
     
-    self._entry.connect("changed", self._on_entry_changed)
-    self._entry.connect("size-allocate", self._on_entry_size_allocate)
+    self._entry.connect('changed', self._on_entry_changed)
+    self._entry.connect('size-allocate', self._on_entry_size_allocate)
   
   def _on_entry_changed(self, entry):
     if self._entry.get_realized():
@@ -73,9 +73,9 @@ class EntryExpander(object):
     self._pango_layout.set_text(self._entry.get_text())
     
     offset_pixel_width = (
-      (self._entry.get_layout_offsets()[0] + self._entry.get_property("scroll-offset"))
+      (self._entry.get_layout_offsets()[0] + self._entry.get_property('scroll-offset'))
       * 2)
     text_pixel_width = self._pango_layout.get_pixel_size()[0] + offset_pixel_width
     self._entry.set_property(
-      "width-request",
+      'width-request',
       max(min(text_pixel_width, self._maximum_width), self._minimum_width))

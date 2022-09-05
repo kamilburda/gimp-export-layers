@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 import gobject
 import pango
@@ -53,13 +53,13 @@ class OperationBox(pg.gui.ItemBox):
   
   Signals:
   
-  * `"operation-box-item-added"` - An item was added via `add_item()`.
+  * `'operation-box-item-added'` - An item was added via `add_item()`.
     
     Arguments:
     
     * `item` - The added item.
     
-  * `"operation-box-item-reordered"` - An item was reordered via
+  * `'operation-box-item-reordered'` - An item was reordered via
     `reorder_item()`.
     
     Arguments:
@@ -67,7 +67,7 @@ class OperationBox(pg.gui.ItemBox):
     * `item` - The reordered item.
     * `new_position` - The new position of the reordered item (starting from 0).
     
-  * `"operation-box-item-removed"` - An item was removed via `remove_item()`.
+  * `'operation-box-item-removed'` - An item was removed via `remove_item()`.
     
     Arguments:
     
@@ -75,11 +75,11 @@ class OperationBox(pg.gui.ItemBox):
   """
   
   __gsignals__ = {
-    b"operation-box-item-added": (
+    b'operation-box-item-added': (
       gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT,)),
-    b"operation-box-item-reordered": (
+    b'operation-box-item-reordered': (
       gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT, gobject.TYPE_INT)),
-    b"operation-box-item-removed": (
+    b'operation-box-item-removed': (
       gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT,)),
   }
   
@@ -113,21 +113,21 @@ class OperationBox(pg.gui.ItemBox):
     self._init_gui()
     
     self._after_add_operation_event_id = self._operations.connect_event(
-      "after-add-operation",
+      'after-add-operation',
       lambda operations_, operation, orig_operation_dict: (
         self._add_item_from_operation(operation)))
     
     self._after_reorder_operation_event_id = self._operations.connect_event(
-      "after-reorder-operation",
+      'after-reorder-operation',
       lambda operations_, operation, current_position, new_position: (
         self._reorder_operation(operation, new_position)))
     
     self._before_remove_operation_event_id = self._operations.connect_event(
-      "before-remove-operation",
+      'before-remove-operation',
       lambda operations_, operation: self._remove_operation(operation))
     
     self._before_clear_operations_event_id = self._operations.connect_event(
-      "before-clear-operations", lambda operations_: self._clear())
+      'before-clear-operations', lambda operations_: self._clear())
   
   def add_item(self, operation_dict_or_function):
     self._operations.set_event_enabled(self._after_add_operation_event_id, False)
@@ -136,7 +136,7 @@ class OperationBox(pg.gui.ItemBox):
     
     item = self._add_item_from_operation(operation)
     
-    self.emit("operation-box-item-added", item)
+    self.emit('operation-box-item-added', item)
     
     return item
   
@@ -147,7 +147,7 @@ class OperationBox(pg.gui.ItemBox):
     operations.reorder(self._operations, item.operation.name, processed_new_position)
     self._operations.set_event_enabled(self._after_reorder_operation_event_id, True)
     
-    self.emit("operation-box-item-reordered", item, new_position)
+    self.emit('operation-box-item-reordered', item, new_position)
   
   def remove_item(self, item):
     self._remove_item(item)
@@ -156,7 +156,7 @@ class OperationBox(pg.gui.ItemBox):
     operations.remove(self._operations, item.operation.name)
     self._operations.set_event_enabled(self._before_remove_operation_event_id, True)
     
-    self.emit("operation-box-item-removed", item)
+    self.emit('operation-box-item-removed', item)
   
   def _init_gui(self):
     if self._add_operation_text is not None:
@@ -177,7 +177,7 @@ class OperationBox(pg.gui.ItemBox):
       self._button_add = gtk.Button(stock=gtk.STOCK_ADD)
     
     self._button_add.set_relief(gtk.RELIEF_NONE)
-    self._button_add.connect("clicked", self._on_button_add_clicked)
+    self._button_add.connect('clicked', self._on_button_add_clicked)
     
     self._vbox.pack_start(self._button_add, expand=False, fill=False)
     
@@ -187,13 +187,13 @@ class OperationBox(pg.gui.ItemBox):
   def _add_item_from_operation(self, operation):
     self._init_operation_item_gui(operation)
     
-    item = _OperationBoxItem(operation, operation["enabled"].gui.element)
+    item = _OperationBoxItem(operation, operation['enabled'].gui.element)
     
     super().add_item(item)
     
-    item.button_edit.connect("clicked", self._on_item_button_edit_clicked, item)
+    item.button_edit.connect('clicked', self._on_item_button_edit_clicked, item)
     item.button_remove.connect(
-      "clicked", self._on_item_button_remove_clicked_remove_operation_edit_dialog, item)
+      'clicked', self._on_item_button_remove_clicked_remove_operation_edit_dialog, item)
     
     return item
   
@@ -202,15 +202,15 @@ class OperationBox(pg.gui.ItemBox):
     
     # HACK: Prevent displaying horizontal scrollbar by ellipsizing labels. To
     # make ellipsizing work properly, the label width must be set explicitly.
-    if isinstance(operation["enabled"].gui, pg.setting.SettingGuiTypes.check_button):
-      operation["enabled"].gui.element.set_property("width-request", 1)
-      operation["enabled"].gui.element.get_child().set_ellipsize(pango.ELLIPSIZE_END)
-      operation["enabled"].gui.element.get_child().set_max_width_chars(
+    if isinstance(operation['enabled'].gui, pg.setting.SettingGuiTypes.check_button):
+      operation['enabled'].gui.element.set_property('width-request', 1)
+      operation['enabled'].gui.element.get_child().set_ellipsize(pango.ELLIPSIZE_END)
+      operation['enabled'].gui.element.get_child().set_max_width_chars(
         self._OPERATION_ENABLED_LABEL_MAX_CHAR_WIDTH)
-      operation["enabled"].gui.element.get_child().connect(
-        "size-allocate",
+      operation['enabled'].gui.element.get_child().connect(
+        'size-allocate',
         self._on_operation_item_gui_label_size_allocate,
-        operation["enabled"].gui.element)
+        operation['enabled'].gui.element)
   
   def _on_operation_item_gui_label_size_allocate(
         self, item_gui_label, allocation, item_gui):
@@ -225,7 +225,7 @@ class OperationBox(pg.gui.ItemBox):
     if item is not None:
       self._reorder_item(item, new_position)
     else:
-      raise ValueError("operation '{}' does not match any item in '{}'".format(
+      raise ValueError('operation "{}" does not match any item in "{}"'.format(
         operation.name, self))
   
   def _reorder_item(self, item, new_position):
@@ -238,7 +238,7 @@ class OperationBox(pg.gui.ItemBox):
     if item is not None:
       self._remove_item(item)
     else:
-      raise ValueError("operation '{}' does not match any item in '{}'".format(
+      raise ValueError('operation "{}" does not match any item in "{}"'.format(
         operation.get_path(), self))
   
   def _remove_item(self, item):
@@ -266,9 +266,9 @@ class OperationBox(pg.gui.ItemBox):
   
   def _add_operation_to_menu_popup(self, operation_dict):
     menu_item = gtk.MenuItem(
-      label=operation_dict["display_name"].encode(pg.GTK_CHARACTER_ENCODING),
+      label=operation_dict['display_name'].encode(pg.GTK_CHARACTER_ENCODING),
       use_underline=False)
-    menu_item.connect("activate", self._on_operations_menu_item_activate, operation_dict)
+    menu_item.connect('activate', self._on_operations_menu_item_activate, operation_dict)
     self._operations_menu.append(menu_item)
   
   def _on_operations_menu_item_activate(self, menu_item, operation_dict_or_function):
@@ -276,7 +276,7 @@ class OperationBox(pg.gui.ItemBox):
   
   def _add_add_custom_operation_to_menu_popup(self):
     menu_item = gtk.MenuItem(label=self._add_custom_operation_text, use_underline=False)
-    menu_item.connect("activate", self._on_add_custom_operation_menu_item_activate)
+    menu_item.connect('activate', self._on_add_custom_operation_menu_item_activate)
     self._operations_menu.append(menu_item)
   
   def _on_add_custom_operation_menu_item_activate(self, menu_item):
@@ -287,14 +287,14 @@ class OperationBox(pg.gui.ItemBox):
   
   def _create_pdb_procedure_browser_dialog(self):
     dialog = gimpui.ProcBrowserDialog(
-      _("Procedure Browser"),
+      _('Procedure Browser'),
       role=pg.config.PLUGIN_NAME,
       buttons=(gtk.STOCK_ADD, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
     
     dialog.set_default_response(gtk.RESPONSE_OK)
     dialog.set_alternative_button_order((gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL))
     
-    dialog.connect("response", self._on_pdb_procedure_browser_dialog_response)
+    dialog.connect('response', self._on_pdb_procedure_browser_dialog_response)
     
     dialog.show_all()
     
@@ -312,23 +312,23 @@ class OperationBox(pg.gui.ItemBox):
         except operations.UnsupportedPdbProcedureError as e:
           pg.gui.display_error_message(
             title=pg.config.PLUGIN_TITLE,
-            app_name="",
+            app_name='',
             parent=pg.gui.get_toplevel_window(self),
             message_type=gtk.MESSAGE_WARNING,
             message_markup=(
-              _("Could not add procedure '{}' because the parameter type '{}' "
-                "is not supported.").format(e.procedure_name, e.unsupported_param_type)),
-            message_secondary_markup="",
+              _('Could not add procedure "{}" because the parameter type "{}" '
+                'is not supported.').format(e.procedure_name, e.unsupported_param_type)),
+            message_secondary_markup='',
             report_uri_list=pg.config.BUG_REPORT_URL_LIST,
             report_description=_(
-              "You can help fix this issue by sending a report with the text above "
-              "to one of the sites below"),
+              'You can help fix this issue by sending a report with the text above '
+              'to one of the sites below'),
             focus_on_button=True)
           
           dialog.hide()
           return
         
-        pdb_proc_operation_dict["enabled"] = False
+        pdb_proc_operation_dict['enabled'] = False
         
         item = self.add_item(pdb_proc_operation_dict)
         
@@ -339,7 +339,7 @@ class OperationBox(pg.gui.ItemBox):
           role=pg.config.PLUGIN_NAME)
         
         operation_edit_dialog.connect(
-          "response",
+          'response',
           self._on_operation_edit_dialog_for_new_operation_response,
           item)
         
@@ -352,8 +352,8 @@ class OperationBox(pg.gui.ItemBox):
     dialog.destroy()
     
     if response_id == gtk.RESPONSE_OK:
-      item.operation["arguments"].apply_gui_values_to_settings()
-      item.operation["enabled"].set_value(True)
+      item.operation['arguments'].apply_gui_values_to_settings()
+      item.operation['enabled'].set_value(True)
     else:
       self.remove_item(item)
   
@@ -361,9 +361,9 @@ class OperationBox(pg.gui.ItemBox):
     if item.is_being_edited():
       return
     
-    if item.operation.get_value("is_pdb_procedure", False):
+    if item.operation.get_value('is_pdb_procedure', False):
       pdb_procedure = pdb[
-        item.operation["function"].value.encode(pg.GIMP_CHARACTER_ENCODING)]
+        item.operation['function'].value.encode(pg.GIMP_CHARACTER_ENCODING)]
     else:
       pdb_procedure = None
     
@@ -380,7 +380,7 @@ class OperationBox(pg.gui.ItemBox):
     item.operation_edit_dialog = operation_edit_dialog
     
     operation_edit_dialog.connect(
-      "response",
+      'response',
       self._on_operation_edit_dialog_for_existing_operation_response,
       item,
       operation_values_before_dialog)
@@ -392,7 +392,7 @@ class OperationBox(pg.gui.ItemBox):
     dialog.destroy()
     
     if response_id == gtk.RESPONSE_OK:
-      item.operation["arguments"].apply_gui_values_to_settings()
+      item.operation['arguments'].apply_gui_values_to_settings()
     else:
       item.operation.set_values(operation_values_before_dialog)
     
@@ -405,8 +405,8 @@ class OperationBox(pg.gui.ItemBox):
   
   def _get_operation_edit_dialog_title(self, item):
     if self._edit_operation_text is not None:
-      return "{} {}".format(
-        self._edit_operation_text, item.operation["display_name"].value)
+      return '{} {}'.format(
+        self._edit_operation_text, item.operation['display_name'].value)
     else:
       return None
 
@@ -459,7 +459,7 @@ class _OperationEditDialog(gimpui.Dialog):
     self.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
     
     self._button_reset = gtk.Button()
-    self._button_reset.set_label(_("_Reset"))
+    self._button_reset.set_label(_('_Reset'))
     self.action_area.pack_start(self._button_reset, expand=False, fill=False)
     self.action_area.set_child_secondary(self._button_reset, True)
     
@@ -467,9 +467,9 @@ class _OperationEditDialog(gimpui.Dialog):
     self._label_procedure_name.label.set_use_markup(True)
     self._label_procedure_name.label.set_ellipsize(pango.ELLIPSIZE_END)
     self._label_procedure_name.label.set_markup(
-      "<b>{}</b>".format(gobject.markup_escape_text(operation["display_name"].value)))
+      '<b>{}</b>'.format(gobject.markup_escape_text(operation['display_name'].value)))
     self._label_procedure_name.connect(
-      "changed", self._on_label_procedure_name_changed, operation)
+      'changed', self._on_label_procedure_name_changed, operation)
     
     if pdb_procedure is not None:
       self._label_procedure_short_description = gtk.Label()
@@ -499,11 +499,11 @@ class _OperationEditDialog(gimpui.Dialog):
     
     self.set_focus(self._button_ok)
     
-    self._button_reset.connect("clicked", self._on_button_reset_clicked, operation)
-    self.connect("response", self._on_operation_edit_dialog_response)
+    self._button_reset.connect('clicked', self._on_button_reset_clicked, operation)
+    self.connect('response', self._on_operation_edit_dialog_response)
   
   def _set_arguments(self, operation, pdb_procedure):
-    for i, setting in enumerate(operation["arguments"]):
+    for i, setting in enumerate(operation['arguments']):
       if not setting.gui.get_visible():
         continue
       
@@ -520,7 +520,7 @@ class _OperationEditDialog(gimpui.Dialog):
         if isinstance(setting, pg.setting.ArraySetting):
           if setting.element_type.get_allowed_gui_types():
             setting.gui.element.set_property(
-              "width-request", self._ARRAY_PARAMETER_GUI_WIDTH)
+              'width-request', self._ARRAY_PARAMETER_GUI_WIDTH)
             setting.gui.element.max_height = self._ARRAY_PARAMETER_GUI_MAX_HEIGHT
           else:
             gui_element_to_attach = self._create_placeholder_widget()
@@ -530,13 +530,13 @@ class _OperationEditDialog(gimpui.Dialog):
       self._table_operation_arguments.attach(gui_element_to_attach, 1, 2, i, i + 1)
   
   def _on_button_reset_clicked(self, button, operation):
-    operation["arguments"].reset()
+    operation['arguments'].reset()
   
   def _on_label_procedure_name_changed(self, editable_label, operation):
-    operation["display_name"].set_value(editable_label.label.get_text())
+    operation['display_name'].set_value(editable_label.label.get_text())
     
     editable_label.label.set_markup(
-      "<b>{}</b>".format(gobject.markup_escape_text(editable_label.label.get_text())))
+      '<b>{}</b>'.format(gobject.markup_escape_text(editable_label.label.get_text())))
   
   def _on_operation_edit_dialog_response(self, dialog, response_id):
     for child in list(self._table_operation_arguments.get_children()):
@@ -555,7 +555,7 @@ class _OperationEditDialog(gimpui.Dialog):
     label.set_use_markup(True)
     label.set_markup(
       '<span font_size="small">{}</span>'.format(
-        gobject.markup_escape_text(_("Cannot modify this parameter"))))
+        gobject.markup_escape_text(_('Cannot modify this parameter'))))
     
     hbox.pack_start(label, expand=False, fill=False)
     

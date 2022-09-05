@@ -30,7 +30,7 @@ from .. import constants as pgconstants
 class PdbStub(object):
   
   def __init__(self):
-    self._attr_name = b""
+    self._attr_name = b''
   
   def __getattr__(self, name):
     self._attr_name = name
@@ -76,11 +76,11 @@ class PdbProcedureStub(object):
         type_,
         params,
         return_vals=None,
-        author="",
-        blurb="",
-        help_="",
-        copyright_="",
-        date=""):
+        author='',
+        blurb='',
+        help_='',
+        copyright_='',
+        date=''):
     self.proc_name = name
     self.proc_type = type_
     self.params = params
@@ -146,9 +146,9 @@ class ImageStub(ParasiteFunctionsStubMixin):
     self.image_type = None
     self.layers = []
     self.name = name.encode(
-      pgconstants.GIMP_CHARACTER_ENCODING) if name is not None else b""
-    self.filename = b""
-    self.uri = b""
+      pgconstants.GIMP_CHARACTER_ENCODING) if name is not None else b''
+    self.filename = b''
+    self.uri = b''
     self.valid = True
 
 
@@ -166,7 +166,7 @@ class ItemStub(ParasiteFunctionsStubMixin):
     self.visible = visible
     self.offsets = (0, 0)
     self.name = name.encode(
-      pgconstants.GIMP_CHARACTER_ENCODING) if name is not None else b""
+      pgconstants.GIMP_CHARACTER_ENCODING) if name is not None else b''
     self.image = None
     self.children = []
 
@@ -215,7 +215,7 @@ class ShelfStub(object):
     self._shelf[key] = value
   
   def __delitem__(self, key):
-    self._shelf[key] = b""
+    self._shelf[key] = b''
   
   def has_key(self, key):
     return key in self._shelf

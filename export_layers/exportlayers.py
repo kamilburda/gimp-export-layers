@@ -108,7 +108,7 @@ class LayerExporter(object):
     self.overwrite_chooser = (
       overwrite_chooser if overwrite_chooser is not None
       else pg.overwrite.NoninteractiveOverwriteChooser(
-        self.export_settings["overwrite_mode"].value))
+        self.export_settings['overwrite_mode'].value))
     
     self.progress_updater = (
       progress_updater if progress_updater is not None
@@ -131,13 +131,13 @@ class LayerExporter(object):
     self._should_stop = False
     
     self._processing_groups = {
-      "layer_contents": [
+      'layer_contents': [
         self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
-      "layer_name": [
+      'layer_name': [
         self._preprocess_layer_name, self._preprocess_empty_group_name,
         self._process_layer_name],
-      "_postprocess_layer_name": [self._postprocess_layer_name],
-      "export": [self._make_dirs, self._export]
+      '_postprocess_layer_name': [self._postprocess_layer_name],
+      'export': [self._make_dirs, self._export]
     }
     
     self._processing_groups_functions = {}
@@ -188,15 +188,15 @@ class LayerExporter(object):
     the export. Multiple groups can be specified. The following groups are
     supported:
     
-    * `"layer_contents"` - Perform only operations manipulating the layer
+    * `'layer_contents'` - Perform only operations manipulating the layer
       itself, such as cropping, resizing, etc. This is useful to preview the
       layer(s).
     
-    * `"layer_name"` - Perform only operations manipulating layer names
+    * `'layer_name'` - Perform only operations manipulating layer names
       and layer tree (but not layer contents). This is useful to preview the
       names of the exported layers.
     
-    * `"export"` - Perform only operations that export the layer or create
+    * `'export'` - Perform only operations that export the layer or create
       directories for the layer.
     
     If `processing_groups` is `None` or empty, perform normal export.
@@ -304,7 +304,7 @@ class LayerExporter(object):
     
     self._current_layer_elem = None
     
-    self._output_directory = self.export_settings["output_directory"].value
+    self._output_directory = self.export_settings['output_directory'].value
     
     self._image_copy = None
     self._tagged_layer_elems = collections.defaultdict(list)
@@ -318,15 +318,15 @@ class LayerExporter(object):
     
     self._file_extension_properties = _get_prefilled_file_extension_properties()
     self._default_file_extension = (
-      self.export_settings["file_extension"].value.lstrip(".").lower())
+      self.export_settings['file_extension'].value.lstrip('.').lower())
     self._current_file_extension = self._default_file_extension
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
     
-    if self.export_settings["layer_filename_pattern"].value:
-      pattern = self.export_settings["layer_filename_pattern"].value
+    if self.export_settings['layer_filename_pattern'].value:
+      pattern = self.export_settings['layer_filename_pattern'].value
     else:
-      pattern = self.export_settings["layer_filename_pattern"].default_value
+      pattern = self.export_settings['layer_filename_pattern'].default_value
     
     self._layer_name_renamer = renamer.LayerNameRenamer(self, pattern)
   
@@ -343,10 +343,10 @@ class LayerExporter(object):
       self._initial_executor,
       self._initial_executor.list_groups(include_empty_groups=True))
     
-    for procedure in operations.walk(self.export_settings["procedures"]):
+    for procedure in operations.walk(self.export_settings['procedures']):
       add_operation_from_settings(procedure, self._executor)
     
-    for constraint in operations.walk(self.export_settings["constraints"]):
+    for constraint in operations.walk(self.export_settings['constraints']):
       add_operation_from_settings(constraint, self._executor)
   
   def _enable_disable_processing_groups(self, processing_groups):
@@ -356,8 +356,8 @@ class LayerExporter(object):
           self, function.__name__, self._processing_groups_functions[function.__name__])
     
     if processing_groups:
-      if "layer_name" in processing_groups:
-        processing_groups.append("_postprocess_layer_name")
+      if 'layer_name' in processing_groups:
+        processing_groups.append('_postprocess_layer_name')
       
       for processing_group, functions in self._processing_groups.items():
         if processing_group not in processing_groups:
@@ -369,7 +369,7 @@ class LayerExporter(object):
       self._layer_tree.reset_filter()
     
     if self.export_settings.get_value(
-         "procedures/added/ignore_folder_structure/enabled", False):
+         'procedures/added/ignore_folder_structure/enabled', False):
       self._remove_parents_in_layer_elems()
     else:
       self._reset_parents_in_layer_elems()
@@ -379,7 +379,7 @@ class LayerExporter(object):
     self.progress_updater.num_total_tasks = len(self._layer_tree)
     
     if self._keep_image_copy:
-      with self._layer_tree.filter["layer_types"].remove_rule_temp(
+      with self._layer_tree.filter['layer_types'].remove_rule_temp(
              builtin_constraints.is_empty_group, False):
         num_layers_and_nonempty_groups = len(self._layer_tree)
         if num_layers_and_nonempty_groups > 1:
@@ -400,7 +400,7 @@ class LayerExporter(object):
   
   def _set_layer_constraints(self):
     self._layer_tree.filter.add_subfilter(
-      "layer_types", pg.objectfilter.ObjectFilter(pg.objectfilter.ObjectFilter.MATCH_ANY))
+      'layer_types', pg.objectfilter.ObjectFilter(pg.objectfilter.ObjectFilter.MATCH_ANY))
     
     self._executor.execute(
       [builtin_constraints.CONSTRAINTS_LAYER_TYPES_GROUP],
@@ -416,7 +416,7 @@ class LayerExporter(object):
   
   def _init_tagged_layer_elems(self):
     with self._layer_tree.filter.add_rule_temp(builtin_constraints.has_tags):
-      with self._layer_tree.filter["layer_types"].add_rule_temp(
+      with self._layer_tree.filter['layer_types'].add_rule_temp(
              builtin_constraints.is_nonempty_group):
         for layer_elem in self._layer_tree:
           for tag in layer_elem.tags:
@@ -425,7 +425,7 @@ class LayerExporter(object):
   def _export_layers(self):
     for layer_elem in self._layer_tree:
       if self._should_stop:
-        raise ExportLayersCancelError("export stopped by user")
+        raise ExportLayersCancelError('export stopped by user')
       
       self._current_layer_elem = layer_elem
       
@@ -435,7 +435,7 @@ class LayerExporter(object):
         self._process_empty_group(layer_elem)
       else:
         raise ValueError(
-          "invalid/unsupported item type '{}' in {}".format(
+          'invalid/unsupported item type "{}" in {}'.format(
             layer_elem.item_type, layer_elem))
   
   def _process_and_export_item(self, layer_elem):
@@ -470,7 +470,7 @@ class LayerExporter(object):
     pdb.gimp_image_undo_freeze(self._image_copy)
     
     self._executor.execute(
-      ["after_create_image_copy"], [self._image_copy], additional_args_position=0)
+      ['after_create_image_copy'], [self._image_copy], additional_args_position=0)
     
     if self._use_another_image_copy:
       self._another_image_copy = pg.pdbutils.create_image_from_metadata(self._image_copy)
@@ -504,7 +504,7 @@ class LayerExporter(object):
   def _process_layer(self, layer_elem, image, layer):
     layer_copy = builtin_procedures.copy_and_insert_layer(image, layer, None, 0)
     self._executor.execute(
-      ["after_insert_layer"], [image, layer_copy, self], additional_args_position=0)
+      ['after_insert_layer'], [image, layer_copy, self], additional_args_position=0)
     
     self._executor.execute(
       [operations.DEFAULT_PROCEDURES_GROUP],
@@ -518,7 +518,7 @@ class LayerExporter(object):
     layer_copy.name = layer.name
     
     self._executor.execute(
-      ["after_process_layer"], [image, layer_copy, self], additional_args_position=0)
+      ['after_process_layer'], [image, layer_copy, self], additional_args_position=0)
     
     return layer_copy
   
@@ -562,7 +562,7 @@ class LayerExporter(object):
   
   def _set_file_extension(self, layer_elem):
     if self.export_settings.get_value(
-         "procedures/added/use_file_extensions_in_layer_names/enabled", False):
+         'procedures/added/use_file_extensions_in_layer_names/enabled', False):
       orig_file_extension = layer_elem.get_file_extension_from_orig_name()
       if (orig_file_extension
           and self._file_extension_properties[orig_file_extension].is_valid):
@@ -572,10 +572,10 @@ class LayerExporter(object):
       layer_elem.set_file_extension(
         self._current_file_extension, keep_extra_trailing_periods=True)
     else:
-      layer_elem.name += "." + self._current_file_extension
+      layer_elem.name += '.' + self._current_file_extension
   
   def _get_uniquifier_position(self, str_):
-    return len(str_) - len("." + self._current_file_extension)
+    return len(str_) - len('.' + self._current_file_extension)
   
   def _export_layer(self, layer_elem, image, layer):
     self._process_layer_name(layer_elem)
@@ -596,7 +596,7 @@ class LayerExporter(object):
       self._get_uniquifier_position(output_filepath))
     
     if self._current_overwrite_mode == pg.overwrite.OverwriteModes.CANCEL:
-      raise ExportLayersCancelError("cancelled")
+      raise ExportLayersCancelError('cancelled')
     
     if self._current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
       self._make_dirs(os.path.dirname(output_filepath), self)
@@ -666,12 +666,12 @@ class LayerExporter(object):
   
   def _was_export_canceled_by_user(self, exception_message):
     return any(
-      message in exception_message.lower() for message in ["cancelled", "canceled"])
+      message in exception_message.lower() for message in ['cancelled', 'canceled'])
   
   def _should_export_again_with_interactive_run_mode(
         self, exception_message, current_run_mode):
     return (
-      "calling error" in exception_message.lower()
+      'calling error' in exception_message.lower()
       and current_run_mode in (
         gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE))
   
@@ -705,42 +705,42 @@ _LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
 
 
 def add_operation_from_settings(operation, executor):
-  if operation.get_value("is_pdb_procedure", False):
+  if operation.get_value('is_pdb_procedure', False):
     try:
-      function = pdb[operation["function"].value.encode(pg.GIMP_CHARACTER_ENCODING)]
+      function = pdb[operation['function'].value.encode(pg.GIMP_CHARACTER_ENCODING)]
     except KeyError:
       raise InvalidPdbProcedureError(
-        "invalid PDB procedure '{}'".format(operation["function"].value))
+        'invalid PDB procedure "{}"'.format(operation['function'].value))
   else:
-    function = operation["function"].value
+    function = operation['function'].value
   
   if function is None:
     return
   
-  function_args = tuple(arg_setting.value for arg_setting in operation["arguments"])
+  function_args = tuple(arg_setting.value for arg_setting in operation['arguments'])
   function_kwargs = {}
   
-  if operation.get_value("is_pdb_procedure", False):
+  if operation.get_value('is_pdb_procedure', False):
     if _has_run_mode_param(function):
-      function_kwargs = {b"run_mode": function_args[0]}
+      function_kwargs = {b'run_mode': function_args[0]}
       function_args = function_args[1:]
     
     function = _get_operation_func_for_pdb_procedure(function)
   
-  if "constraint" not in operation.tags:
+  if 'constraint' not in operation.tags:
     function = _get_operation_func_with_replaced_placeholders(function)
   
-  if "constraint" in operation.tags:
-    function = _get_constraint_func(function, subfilter=operation["subfilter"].value)
+  if 'constraint' in operation.tags:
+    function = _get_constraint_func(function, subfilter=operation['subfilter'].value)
   
-  function = _execute_operation_only_if_enabled(function, operation["enabled"])
+  function = _execute_operation_only_if_enabled(function, operation['enabled'])
   
   executor.add(
-    function, operation["operation_groups"].value, function_args, function_kwargs)
+    function, operation['operation_groups'].value, function_args, function_kwargs)
 
 
 def _has_run_mode_param(pdb_procedure):
-  return pdb_procedure.params and pdb_procedure.params[0][1] == "run-mode"
+  return pdb_procedure.params and pdb_procedure.params[0][1] == 'run-mode'
 
 
 def _get_operation_func_for_pdb_procedure(pdb_procedure):
@@ -786,7 +786,7 @@ def _get_constraint_func(rule_func, subfilter=None):
 def _get_args_for_constraint_func(rule_func, args):
   try:
     layer_exporter_arg_position = (
-      inspect.getargspec(rule_func).args.index("layer_exporter"))
+      inspect.getargspec(rule_func).args.index('layer_exporter'))
   except ValueError:
     layer_exporter_arg_position = None
   
@@ -832,7 +832,7 @@ def _get_prefilled_file_extension_properties():
   for file_format in pg.fileformats.file_formats:
     # This ensures that the file format dialog will be displayed only once per
     # file format if multiple file extensions for the same format are used
-    # (e.g. "jpg", "jpeg" or "jpe" for the JPEG format).
+    # (e.g. 'jpg', 'jpeg' or 'jpe' for the JPEG format).
     extension_properties = _FileExtension()
     for file_extension in file_format.file_extensions:
       file_extension_properties[file_extension] = extension_properties
@@ -843,7 +843,7 @@ def _get_prefilled_file_extension_properties():
 @future.utils.python_2_unicode_compatible
 class ExportLayersError(Exception):
   
-  def __init__(self, message="", layer=None, file_extension=None):
+  def __init__(self, message='', layer=None, file_extension=None):
     super().__init__()
     
     self._message = message
@@ -859,9 +859,9 @@ class ExportLayersError(Exception):
     str_ = self._message
     
     if self.layer_name:
-      str_ += "\n" + _("Layer:") + " " + self.layer_name
+      str_ += '\n' + _('Layer:') + ' ' + self.layer_name
     if self.file_extension:
-      str_ += "\n" + _("File extension:") + " " + self.file_extension
+      str_ += '\n' + _('File extension:') + ' ' + self.file_extension
     
     return str_
 

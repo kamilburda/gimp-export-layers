@@ -24,8 +24,8 @@ from future.builtins import *
 from .. import fileformats as pgfileformats
 
 __all__ = [
-  "get_file_extension",
-  "get_filename_with_new_file_extension",
+  'get_file_extension',
+  'get_filename_with_new_file_extension',
 ]
 
 
@@ -42,13 +42,13 @@ def get_file_extension(filename):
   """
   filename_lowercase = filename.lower()
   
-  if "." not in filename_lowercase:
-    return ""
+  if '.' not in filename_lowercase:
+    return ''
   
   file_extension = filename_lowercase
   
   while file_extension:
-    next_period_index = file_extension.find(".")
+    next_period_index = file_extension.find('.')
     if next_period_index == -1:
       return file_extension
     
@@ -56,7 +56,7 @@ def get_file_extension(filename):
     if file_extension in pgfileformats.file_formats_dict:
       return file_extension
   
-  return ""
+  return ''
 
 
 def get_filename_with_new_file_extension(
@@ -65,7 +65,7 @@ def get_filename_with_new_file_extension(
   Return a new filename with the specified new file extension.
   
   To remove the file extension from `filename`, pass an empty string, `None`, or
-  a period (".").
+  a period ('.').
   
   If `keep_extra_trailing_periods` is `True`, do not remove duplicate periods
   before the file extension.
@@ -76,15 +76,15 @@ def get_filename_with_new_file_extension(
     filename_without_extension = filename[0:len(filename) - len(filename_extension) - 1]
   else:
     filename_without_extension = filename
-    if filename_without_extension.endswith(".") and not keep_extra_trailing_periods:
-      filename_without_extension = filename_without_extension.rstrip(".")
+    if filename_without_extension.endswith('.') and not keep_extra_trailing_periods:
+      filename_without_extension = filename_without_extension.rstrip('.')
   
-  if file_extension and file_extension.startswith("."):
-    file_extension = file_extension.lstrip(".")
+  if file_extension and file_extension.startswith('.'):
+    file_extension = file_extension.lstrip('.')
   
   if file_extension:
     file_extension = file_extension.lower()
-    new_filename = ".".join((filename_without_extension, file_extension))
+    new_filename = '.'.join((filename_without_extension, file_extension))
   else:
     new_filename = filename_without_extension
   

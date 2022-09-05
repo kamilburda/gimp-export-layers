@@ -23,7 +23,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 import gobject
 
@@ -32,7 +32,7 @@ import gimp
 from .. import constants as pgconstants
 
 __all__ = [
-  "ParasiteBox",
+  'ParasiteBox',
 ]
 
 
@@ -43,10 +43,10 @@ class ParasiteBox(gtk.HBox):
   
   Signals:
   
-  * `"parasite-changed"` - The parasite was modified by the user.
+  * `'parasite-changed'` - The parasite was modified by the user.
   """
   
-  __gsignals__ = {b"parasite-changed": (gobject.SIGNAL_RUN_FIRST, None, ())}
+  __gsignals__ = {b'parasite-changed': (gobject.SIGNAL_RUN_FIRST, None, ())}
   
   _HBOX_SPACING = 5
   _VBOX_SPACING = 3
@@ -81,7 +81,7 @@ class ParasiteBox(gtk.HBox):
     self._parasite_data_entry = gtk.Entry()
     
     self._vbox_name_label = gtk.Label(
-      _("Name").encode(pgconstants.GTK_CHARACTER_ENCODING))
+      _('Name').encode(pgconstants.GTK_CHARACTER_ENCODING))
     self._vbox_name_label.set_alignment(0.0, 0.5)
     
     self._vbox_name = gtk.VBox()
@@ -90,7 +90,7 @@ class ParasiteBox(gtk.HBox):
     self._vbox_name.pack_start(self._parasite_name_entry, expand=False, fill=False)
     
     self._vbox_flags_label = gtk.Label(
-      _("Flags").encode(pgconstants.GTK_CHARACTER_ENCODING))
+      _('Flags').encode(pgconstants.GTK_CHARACTER_ENCODING))
     self._vbox_flags_label.set_alignment(0.0, 0.5)
     
     self._vbox_flags = gtk.VBox()
@@ -100,7 +100,7 @@ class ParasiteBox(gtk.HBox):
       self._parasite_flags_spin_button, expand=False, fill=False)
     
     self._vbox_data_label = gtk.Label(
-      _("Data").encode(pgconstants.GTK_CHARACTER_ENCODING))
+      _('Data').encode(pgconstants.GTK_CHARACTER_ENCODING))
     self._vbox_data_label.set_alignment(0.0, 0.5)
     
     self._vbox_data = gtk.VBox()
@@ -134,13 +134,13 @@ class ParasiteBox(gtk.HBox):
     self._should_invoke_parasite_changed_signal = True
   
   def _connect_changed_events(self):
-    self._parasite_name_entry.connect("changed", self._on_parasite_changed)
-    self._parasite_flags_spin_button.connect("value-changed", self._on_parasite_changed)
-    self._parasite_data_entry.connect("changed", self._on_parasite_changed)
+    self._parasite_name_entry.connect('changed', self._on_parasite_changed)
+    self._parasite_flags_spin_button.connect('value-changed', self._on_parasite_changed)
+    self._parasite_data_entry.connect('changed', self._on_parasite_changed)
   
   def _on_parasite_changed(self, widget, *args, **kwargs):
     if self._should_invoke_parasite_changed_signal:
-      self.emit("parasite-changed")
+      self.emit('parasite-changed')
 
 
 gobject.type_register(ParasiteBox)

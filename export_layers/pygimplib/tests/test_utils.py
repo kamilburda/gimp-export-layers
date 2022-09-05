@@ -28,47 +28,47 @@ class TestGetModuleRoot(unittest.TestCase):
   def test_get_module_root(self):
     self.assertEqual(
       pgutils.get_module_root(
-        "export_layers.pygimplib.tests.test_utils", "export_layers"),
-      "export_layers")
+        'export_layers.pygimplib.tests.test_utils', 'export_layers'),
+      'export_layers')
     self.assertEqual(
-      pgutils.get_module_root("export_layers.pygimplib.tests.test_utils", "pygimplib"),
-      "export_layers.pygimplib")
+      pgutils.get_module_root('export_layers.pygimplib.tests.test_utils', 'pygimplib'),
+      'export_layers.pygimplib')
     self.assertEqual(
-      pgutils.get_module_root("export_layers.pygimplib.tests.test_utils", "tests"),
-      "export_layers.pygimplib.tests")
+      pgutils.get_module_root('export_layers.pygimplib.tests.test_utils', 'tests'),
+      'export_layers.pygimplib.tests')
     self.assertEqual(
       pgutils.get_module_root(
-        "export_layers.pygimplib.tests.test_utils", "test_utils"),
-      "export_layers.pygimplib.tests.test_utils")
+        'export_layers.pygimplib.tests.test_utils', 'test_utils'),
+      'export_layers.pygimplib.tests.test_utils')
   
   def test_get_module_root_nonexistent_name_component(self):
     self.assertEqual(
       pgutils.get_module_root(
-        "export_layers.pygimplib.tests.test_utils", "nonexistent_name_component"),
-      "export_layers.pygimplib.tests.test_utils")
+        'export_layers.pygimplib.tests.test_utils', 'nonexistent_name_component'),
+      'export_layers.pygimplib.tests.test_utils')
     
     self.assertEqual(
       pgutils.get_module_root(
-        "export_layers.pygimplib.tests.test_utils", ".pygimplib"),
-      "export_layers.pygimplib.tests.test_utils")
+        'export_layers.pygimplib.tests.test_utils', '.pygimplib'),
+      'export_layers.pygimplib.tests.test_utils')
     
     self.assertEqual(
       pgutils.get_module_root(
-        "export_layers.pygimplib.tests.test_utils", "export_layers.pygimplib"),
-      "export_layers.pygimplib.tests.test_utils")
+        'export_layers.pygimplib.tests.test_utils', 'export_layers.pygimplib'),
+      'export_layers.pygimplib.tests.test_utils')
   
   def test_get_module_root_empty_module_name(self):
-    self.assertEqual(pgutils.get_module_root("", "pygimplib"), "")
-    self.assertEqual(pgutils.get_module_root(".", "pygimplib"), ".")
+    self.assertEqual(pgutils.get_module_root('', 'pygimplib'), '')
+    self.assertEqual(pgutils.get_module_root('.', 'pygimplib'), '.')
   
   def test_get_module_root_empty_name_component(self):
     self.assertEqual(
-      pgutils.get_module_root("export_layers.pygimplib.tests.test_utils", ""),
-      "export_layers.pygimplib.tests.test_utils")
+      pgutils.get_module_root('export_layers.pygimplib.tests.test_utils', ''),
+      'export_layers.pygimplib.tests.test_utils')
     
     self.assertEqual(
-      pgutils.get_module_root("export_layers.pygimplib.tests.test_utils", "."),
-      "export_layers.pygimplib.tests.test_utils")
+      pgutils.get_module_root('export_layers.pygimplib.tests.test_utils', '.'),
+      'export_layers.pygimplib.tests.test_utils')
 
 
 class TestGetCurrentModuleFilepath(unittest.TestCase):

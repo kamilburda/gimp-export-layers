@@ -1,19 +1,19 @@
 import os
 
-plugins_dirpath = os.path.join(gimp.directory, "plug-ins - Export Layers")
+plugins_dirpath = os.path.join(gimp.directory, 'plug-ins - Export Layers')
 
-pdb.plug_in_run_tests(plugins_dirpath, "test_", 2, ("export_layers", "utils"), 1, ("export_layers.tests.test_exportlayers_contents",), os.path.join(plugins_dirpath, "test_output.log"))
+pdb.plug_in_run_tests(plugins_dirpath, 'test_', 2, ('export_layers', 'utils'), 1, ('export_layers.tests.test_exportlayers_contents',), os.path.join(plugins_dirpath, 'test_output.log'))
 
-pdb.plug_in_run_tests(plugins_dirpath, "test_", 1, ("export_layers.tests.test_exportlayers_contents",), 0, (), os.path.join(plugins_dirpath, "test_output.log"))
+pdb.plug_in_run_tests(plugins_dirpath, 'test_', 1, ('export_layers.tests.test_exportlayers_contents',), 0, (), os.path.join(plugins_dirpath, 'test_output.log'))
 
 
 import imp
 import os
 import sys
-plugin_dirpath = os.path.join(gimp.directory, "plug-ins - Export Layers")
+plugin_dirpath = os.path.join(gimp.directory, 'plug-ins - Export Layers')
 sys.path.append(plugin_dirpath)
-sys.path.append(os.path.join(plugin_dirpath, "export_layers"))
-sys.path.append(os.path.join(plugin_dirpath, "export_layers", "pygimplib"))
+sys.path.append(os.path.join(plugin_dirpath, 'export_layers'))
+sys.path.append(os.path.join(plugin_dirpath, 'export_layers', 'pygimplib'))
 import export_layers.pygimplib
 from export_layers.pygimplib.tests.setting import test_setting_gui
 
@@ -42,4 +42,4 @@ _ = lambda s: s; imp.reload(make_screenshots); _; make_screenshots.main()
 imp.reload(sync_docs); sync_docs.main()
 
 
-imp.reload(preprocess_document_contents); preprocess_document_contents.main([(os.path.join(plugin_dirpath, "docs", "README_raw.md"), os.path.join(plugin_dirpath, "README.md"))])
+imp.reload(preprocess_document_contents); preprocess_document_contents.main([(os.path.join(plugin_dirpath, 'docs', 'README_raw.md'), os.path.join(plugin_dirpath, 'README.md'))])

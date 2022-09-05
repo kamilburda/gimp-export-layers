@@ -111,7 +111,7 @@ class InteractiveOverwriteChooser(
     
     if default_value not in self._values:
       raise ValueError(
-        "invalid default value '{}'; must be one of the following: {}".format(
+        'invalid default value "{}"; must be one of the following: {}'.format(
           default_value, self._values))
     
     self.default_value = default_value
@@ -157,7 +157,7 @@ def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
   
   If the overwrite mode indicates that the file path should be renamed and
   `uniquifier_position` is not `None`, the `uniquifier_position` specifies where
-  in the file path to insert a unique substring (`" (number)"`). By default, the
+  in the file path to insert a unique substring (`' (number)'`). By default, the
   uniquifier is inserted at the end of the file path to be renamed.
   
   Returns:

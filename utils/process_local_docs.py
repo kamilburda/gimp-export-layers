@@ -43,62 +43,62 @@ except ImportError:
 import yaml
 
 
-FILE_ENCODING = "utf-8"
+FILE_ENCODING = 'utf-8'
 
 FILENAMES_TO_REMOVE = [
-  "Gemfile",
-  "Gemfile.lock",
-  "robots.txt",
-  "sitemap.xml",
-  "index.html",
-  "dev",
+  'Gemfile',
+  'Gemfile.lock',
+  'robots.txt',
+  'sitemap.xml',
+  'index.html',
+  'dev',
 ]
 
 RELATIVE_PATHS_TO_MOVE = collections.OrderedDict([
-  ("favicon.ico", "docs/favicon.ico"),
-  ("assets", "docs/assets"),
-  ("images", "docs/images"),
-  ("sections", "docs/sections"),
+  ('favicon.ico', 'docs/favicon.ico'),
+  ('assets', 'docs/assets'),
+  ('images', 'docs/images'),
+  ('sections', 'docs/sections'),
 ])
 
-HTML_DOCTYPE_DECLARATION = "<!DOCTYPE html>"
-INDEX_HTML = "index.html"
+HTML_DOCTYPE_DECLARATION = '<!DOCTYPE html>'
+INDEX_HTML = 'index.html'
 
 HTML_VOID_ELEMENTS = set([
-  "area", "base", "br", "col", "embed", "hr", "img", "input", "keygen", "link",
-  "menuitem", "meta", "param", "source", "track", "wbr"
+  'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen', 'link',
+  'menuitem', 'meta', 'param', 'source', 'track', 'wbr'
 ])
 
 HTML_ELEMENTS_WITH_URLS = collections.OrderedDict([
-  ("a", ["href"]),
-  ("applet", ["codebase"]),
-  ("area", ["href"]),
-  ("base", ["href"]),
-  ("blockquote", ["cite"]),
-  ("body", ["background"]),
-  ("del", ["cite"]),
-  ("form", ["action"]),
-  ("frame", ["longdesc", "src"]),
-  ("head", ["profile"]),
-  ("iframe", ["longdesc", "src"]),
-  ("img", ["longdesc", "src", "usemap"]),
-  ("input", ["src", "usemap"]),
-  ("ins", ["cite"]),
-  ("link", ["href"]),
-  ("object", ["classid", "codebase", "data", "usemap"]),
-  ("q", ["cite"]),
-  ("script", ["src"]),
-  ("audio", ["src"]),
-  ("button", ["formaction"]),
-  ("command", ["icon"]),
-  ("embed", ["src"]),
-  ("html", ["manifest"]),
-  ("input", ["formaction"]),
-  ("source", ["src"]),
-  ("video", ["poster", "src"]),
+  ('a', ['href']),
+  ('applet', ['codebase']),
+  ('area', ['href']),
+  ('base', ['href']),
+  ('blockquote', ['cite']),
+  ('body', ['background']),
+  ('del', ['cite']),
+  ('form', ['action']),
+  ('frame', ['longdesc', 'src']),
+  ('head', ['profile']),
+  ('iframe', ['longdesc', 'src']),
+  ('img', ['longdesc', 'src', 'usemap']),
+  ('input', ['src', 'usemap']),
+  ('ins', ['cite']),
+  ('link', ['href']),
+  ('object', ['classid', 'codebase', 'data', 'usemap']),
+  ('q', ['cite']),
+  ('script', ['src']),
+  ('audio', ['src']),
+  ('button', ['formaction']),
+  ('command', ['icon']),
+  ('embed', ['src']),
+  ('html', ['manifest']),
+  ('input', ['formaction']),
+  ('source', ['src']),
+  ('video', ['poster', 'src']),
 ])
 
-PAGE_CONFIG_FILENAME = "_config.yml"
+PAGE_CONFIG_FILENAME = '_config.yml'
 PAGE_CONFIG = None
 
 
@@ -148,7 +148,7 @@ def get_html_filepaths(site_dirpath):
   
   for root, unused_, filenames in os.walk(site_dirpath):
     for filename in filenames:
-      if filename.endswith(".html"):
+      if filename.endswith('.html'):
         html_filepaths.append(os.path.join(root, filename))
   
   return html_filepaths
@@ -170,16 +170,16 @@ def remove_baseurl_in_url_attributes(html_relative_filepath, html_tree):
     return
   
   if len(html_relative_filepath_components) == 1:
-    new_baseurl = "."
+    new_baseurl = '.'
   else:
-    new_baseurl = "../" * (len(html_relative_filepath_components) - 1)
-    new_baseurl = new_baseurl.rstrip("/")
+    new_baseurl = '../' * (len(html_relative_filepath_components) - 1)
+    new_baseurl = new_baseurl.rstrip('/')
   
   def _get_relative_url_without_baseurl(url_attribute_value):
     new_url_attribute_value = url_attribute_value
     new_url_attribute_value = re.sub(
-      r"^" + re.escape(PAGE_CONFIG["baseurl"]), new_baseurl, new_url_attribute_value)
-    new_url_attribute_value = re.sub(r"/$", r"/" + INDEX_HTML, new_url_attribute_value)
+      r'^' + re.escape(PAGE_CONFIG['baseurl']), new_baseurl, new_url_attribute_value)
+    new_url_attribute_value = re.sub(r'/$', r'/' + INDEX_HTML, new_url_attribute_value)
     
     return new_url_attribute_value
   
@@ -194,7 +194,7 @@ def rename_paths_in_url_attributes(
   """
   
   def _get_renamed_url(url_attribute_value):
-    is_url_attribute_relative_path = url_attribute_value.startswith(".")
+    is_url_attribute_relative_path = url_attribute_value.startswith('.')
     
     if not is_url_attribute_relative_path:
       return url_attribute_value
@@ -223,8 +223,8 @@ def rename_paths_in_url_attributes(
     new_url_attribute_value = os.path.relpath(
       renamed_resolved_relative_url, renamed_html_relative_dirpath)
     
-    if not new_url_attribute_value.startswith("."):
-      new_url_attribute_value = os.path.join(".", new_url_attribute_value)
+    if not new_url_attribute_value.startswith('.'):
+      new_url_attribute_value = os.path.join('.', new_url_attribute_value)
     
     new_url_attribute_value = pathlib.Path(new_url_attribute_value).as_posix()
     
@@ -279,14 +279,14 @@ def reorganize_files(site_dirpath):
 
 
 def write_to_html_file(html_tree, html_file):
-  html_file.write(bytes(HTML_DOCTYPE_DECLARATION) + b"\n")
-  html_tree.write(html_file, encoding=FILE_ENCODING, xml_declaration=False, method="html")
+  html_file.write(bytes(HTML_DOCTYPE_DECLARATION) + b'\n')
+  html_tree.write(html_file, encoding=FILE_ENCODING, xml_declaration=False, method='html')
 
 
 def get_html_parser(html_filepath):
   parser = LocalJekyllHTMLParser()
   
-  with io.open(html_filepath, "r", encoding=FILE_ENCODING) as html_file:
+  with io.open(html_filepath, 'r', encoding=FILE_ENCODING) as html_file:
     parser.feed(html_file.read())
   
   parser.close()
@@ -298,7 +298,7 @@ def init_page_config(page_config_filepath):
   global PAGE_CONFIG
   
   if PAGE_CONFIG is None:
-    with io.open(page_config_filepath, "r", encoding=FILE_ENCODING) as page_config_file:
+    with io.open(page_config_filepath, 'r', encoding=FILE_ENCODING) as page_config_file:
       PAGE_CONFIG = yaml.load(page_config_file.read())
 
 
@@ -313,7 +313,7 @@ def modify_url_attributes_in_file(
   
   modify_url_attributes(parser.tree, get_new_url_attribute_value_func)
   
-  with io.open(output_html_filepath, "wb") as toplevel_html_file:
+  with io.open(output_html_filepath, 'wb') as toplevel_html_file:
     write_to_html_file(parser.tree, toplevel_html_file)
 
 
@@ -333,11 +333,11 @@ def main(site_dirpath, page_config_filepath):
     rename_paths_in_url_attributes(
       RELATIVE_PATHS_TO_MOVE, html_relative_filepath, parser.tree)
     
-    with io.open(html_filepath, "wb") as html_file:
+    with io.open(html_filepath, 'wb') as html_file:
       write_to_html_file(parser.tree, html_file)
   
   reorganize_files(site_dirpath)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   main(sys.argv[1], sys.argv[2])

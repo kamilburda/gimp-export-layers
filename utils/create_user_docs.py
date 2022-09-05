@@ -40,21 +40,21 @@ from utils import process_local_docs
 
 MODULE_DIRPATH = os.path.dirname(pg.utils.get_current_module_filepath())
 
-FILE_ENCODING = "utf-8"
+FILE_ENCODING = 'utf-8'
 
-PAGE_CONFIG_FILENAME = "_config.yml"
-SITE_DIRNAME = "_site"
-JEKYLL_SERVER_LOCALHOST_IP = "127.0.0.1"
-JEKYLL_SERVER_PORT = "4000"
+PAGE_CONFIG_FILENAME = '_config.yml'
+SITE_DIRNAME = '_site'
+JEKYLL_SERVER_LOCALHOST_IP = '127.0.0.1'
+JEKYLL_SERVER_PORT = '4000'
 
 
 def run_github_page_locally(github_page_dirpath):
   run_github_page_locally_process = psutil.Popen(
-    [os.path.join(MODULE_DIRPATH, "run_github_page_locally.sh"), "--release"])
+    [os.path.join(MODULE_DIRPATH, 'run_github_page_locally.sh'), '--release'])
   
   page_config_filepath = os.path.join(github_page_dirpath, PAGE_CONFIG_FILENAME)
   
-  with io.open(page_config_filepath, "r", encoding=FILE_ENCODING) as page_config_file:
+  with io.open(page_config_filepath, 'r', encoding=FILE_ENCODING) as page_config_file:
     page_config = yaml.load(page_config_file.read())
   
   page_ready = False
@@ -62,8 +62,8 @@ def run_github_page_locally(github_page_dirpath):
   while not page_ready:
     try:
       requests.get(
-        "http://{}:{}{}/".format(
-          JEKYLL_SERVER_LOCALHOST_IP, JEKYLL_SERVER_PORT, page_config["baseurl"]))
+        'http://{}:{}{}/'.format(
+          JEKYLL_SERVER_LOCALHOST_IP, JEKYLL_SERVER_PORT, page_config['baseurl']))
     except requests.ConnectionError:
       pass
     else:
@@ -103,7 +103,7 @@ def main(github_page_dirpath, output_dirpath):
   _process_local_docs(github_page_dirpath, output_dirpath)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   github_page_absolute_dirpath = os.path.abspath(sys.argv[1])
   output_absolute_dirpath = os.path.abspath(sys.argv[2])
   

@@ -37,11 +37,11 @@ from export_layers import settings_plugin
 
 
 _CURRENT_MODULE_DIRPATH = os.path.dirname(pg.utils.get_current_module_filepath())
-TEST_IMAGES_DIRPATH = os.path.join(_CURRENT_MODULE_DIRPATH, "test_images")
+TEST_IMAGES_DIRPATH = os.path.join(_CURRENT_MODULE_DIRPATH, 'test_images')
 
-DEFAULT_EXPECTED_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "expected_results")
-OUTPUT_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "temp_output")
-INCORRECT_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, "incorrect_results")
+DEFAULT_EXPECTED_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, 'expected_results')
+OUTPUT_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, 'temp_output')
+INCORRECT_RESULTS_DIRPATH = os.path.join(TEST_IMAGES_DIRPATH, 'incorrect_results')
 
 
 class TestExportLayersCompareLayerContents(unittest.TestCase):
@@ -51,7 +51,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     pdb.gimp_context_push()
     
     cls.test_image_filepath = os.path.join(
-      TEST_IMAGES_DIRPATH, "test_export_layers_contents.xcf")
+      TEST_IMAGES_DIRPATH, 'test_export_layers_contents.xcf')
     cls.test_image = cls._load_image()
     
     cls.output_dirpath = OUTPUT_DIRPATH
@@ -64,8 +64,8 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     
     version_specific_expected_results_dirpath = (
       DEFAULT_EXPECTED_RESULTS_DIRPATH
-      + "_"
-      + "-".join([str(version_number_part) for version_number_part in gimp.version[:2]]))
+      + '_'
+      + '-'.join([str(version_number_part) for version_number_part in gimp.version[:2]]))
     
     if os.path.isdir(version_specific_expected_results_dirpath):
       cls.expected_results_root_dirpath = version_specific_expected_results_dirpath
@@ -100,46 +100,46 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_use_image_size(self):
     self.compare(
-      procedure_names_to_remove=["use_layer_size"],
+      procedure_names_to_remove=['use_layer_size'],
       expected_results_dirpath=os.path.join(
-        self.expected_results_root_dirpath, "use_image_size"))
+        self.expected_results_root_dirpath, 'use_image_size'))
   
   def test_background(self):
     self.compare(
-      procedure_names_to_add={"insert_background_layers": 0},
+      procedure_names_to_add={'insert_background_layers': 0},
       expected_results_dirpath=os.path.join(
-        self.expected_results_root_dirpath, "background"))
+        self.expected_results_root_dirpath, 'background'))
   
   def test_background_autocrop_background(self):
     self.compare(
       procedure_names_to_add={
-        "insert_background_layers": 0,
-        "autocrop_background": None},
+        'insert_background_layers': 0,
+        'autocrop_background': None},
       expected_results_dirpath=os.path.join(
-        self.expected_results_root_dirpath, "background"))
+        self.expected_results_root_dirpath, 'background'))
   
   def test_background_autocrop_background_use_image_size(self):
     self.compare(
       procedure_names_to_add={
-        "insert_background_layers": 0,
-        "autocrop_background": None},
-      procedure_names_to_remove=["use_layer_size"],
+        'insert_background_layers': 0,
+        'autocrop_background': None},
+      procedure_names_to_remove=['use_layer_size'],
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath,
-        "background",
-        "autocrop_background-use_image_size"))
+        'background',
+        'autocrop_background-use_image_size'))
   
   def test_foreground(self):
     layer_tree = pg.itemtree.LayerTree(self.test_image, name=pg.config.SOURCE_NAME)
     for layer_elem in layer_tree:
-      if "background" in layer_elem.tags:
-        layer_elem.remove_tag("background")
-        layer_elem.add_tag("foreground")
+      if 'background' in layer_elem.tags:
+        layer_elem.remove_tag('background')
+        layer_elem.add_tag('foreground')
     
     self.compare(
-      procedure_names_to_add={"insert_foreground_layers": 0},
+      procedure_names_to_add={'insert_foreground_layers': 0},
       expected_results_dirpath=os.path.join(
-        self.expected_results_root_dirpath, "foreground"))
+        self.expected_results_root_dirpath, 'foreground'))
     
     self._reload_image()
   
@@ -150,9 +150,9 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         different_results_and_expected_layers=None,
         expected_results_dirpath=None):
     settings = settings_plugin.create_settings()
-    settings["special/image"].set_value(self.test_image)
-    settings["main/output_directory"].set_value(self.output_dirpath)
-    settings["main/file_extension"].set_value("xcf")
+    settings['special/image'].set_value(self.test_image)
+    settings['main/output_directory'].set_value(self.output_dirpath)
+    settings['main/file_extension'].set_value('xcf')
     
     if expected_results_dirpath is None:
       expected_results_dirpath = self.expected_results_root_dirpath
@@ -192,24 +192,24 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     
     for procedure_name, order in procedure_names_to_add.items():
       operations.add(
-        settings["main/procedures"],
+        settings['main/procedures'],
         builtin_procedures.BUILTIN_PROCEDURES[procedure_name])
       if order is not None:
-        operations.reorder(settings["main/procedures"], procedure_name, order)
+        operations.reorder(settings['main/procedures'], procedure_name, order)
     
     for procedure_name in procedure_names_to_remove:
-      if procedure_name in settings["main/procedures/added"]:
-        operations.remove(settings["main/procedures"], procedure_name)
+      if procedure_name in settings['main/procedures/added']:
+        operations.remove(settings['main/procedures'], procedure_name)
     
     layer_exporter = exportlayers.LayerExporter(
-      settings["special/run_mode"].value,
-      settings["special/image"].value,
-      settings["main"])
+      settings['special/run_mode'].value,
+      settings['special/image'].value,
+      settings['main'])
     
     layer_exporter.export()
     
     for procedure_name in procedure_names_to_add:
-      operations.remove(settings["main/procedures"], procedure_name)
+      operations.remove(settings['main/procedures'], procedure_name)
   
   def _compare_layers(
         self, layer, expected_layer, settings, test_case_name, expected_results_dirpath):
@@ -220,7 +220,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     self.assertEqual(
       pg.pdbutils.compare_layers([layer, expected_layer]),
       True,
-      msg=("Layers are not identical:\nprocessed layer: {}\nexpected layer: {}".format(
+      msg=('Layers are not identical:\nprocessed layer: {}\nexpected layer: {}'.format(
         layer.name, expected_layer.name)))
   
   def _save_incorrect_layers(
@@ -229,21 +229,21 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     pg.path.make_dirs(incorrect_layers_dirpath)
     
     self._copy_incorrect_layer(
-      layer, settings, self.output_dirpath, incorrect_layers_dirpath, "_actual")
+      layer, settings, self.output_dirpath, incorrect_layers_dirpath, '_actual')
     self._copy_incorrect_layer(
       expected_layer,
       settings,
       expected_results_dirpath,
       incorrect_layers_dirpath,
-      "_expected")
+      '_expected')
   
   @staticmethod
   def _copy_incorrect_layer(
         layer, settings, layer_dirpath, incorrect_layers_dirpath, filename_suffix):
-    layer_input_filename = "{}.{}".format(
-      layer.name, settings["main/file_extension"].value)
-    layer_output_filename = "{}{}.{}".format(
-      layer.name, filename_suffix, settings["main/file_extension"].value)
+    layer_input_filename = '{}.{}'.format(
+      layer.name, settings['main/file_extension'].value)
+    layer_output_filename = '{}{}.{}'.format(
+      layer.name, filename_suffix, settings['main/file_extension'].value)
     
     shutil.copy(
       os.path.join(layer_dirpath, layer_input_filename),
@@ -289,12 +289,12 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
 
 
 def test_export_for_all_file_formats(layer_exporter, export_settings):
-  orig_output_dirpath = export_settings["output_directory"].value
+  orig_output_dirpath = export_settings['output_directory'].value
   
   for file_format in pg.fileformats.file_formats:
     for file_extension in file_format.file_extensions:
-      export_settings["file_extension"].set_value(file_extension)
-      export_settings["output_directory"].set_value(
+      export_settings['file_extension'].set_value(file_extension)
+      export_settings['output_directory'].set_value(
         os.path.join(orig_output_dirpath, file_extension))
       try:
         layer_exporter.export()
@@ -308,9 +308,9 @@ def test_add_all_pdb_procedures_as_operations():
   Add all PDB procedures as operations to check if all setting types are
   properly supported.
   """
-  procedures = operations.create("all_pdb_procedures")
+  procedures = operations.create('all_pdb_procedures')
   
-  unused_, procedure_names = pdb.gimp_procedural_db_query("", "", "", "", "", "", "")
+  unused_, procedure_names = pdb.gimp_procedural_db_query('', '', '', '', '', '', '')
   
   for procedure_name in procedure_names:
     operations.add(procedures, pdb[procedure_name])

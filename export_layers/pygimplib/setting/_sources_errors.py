@@ -23,12 +23,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 __all__ = [
-  "SourceError",
-  "SettingsNotFoundInSourceError",
-  "SourceNotFoundError",
-  "SourceReadError",
-  "SourceInvalidFormatError",
-  "SourceWriteError",
+  'SourceError',
+  'SettingsNotFoundInSourceError',
+  'SourceNotFoundError',
+  'SourceReadError',
+  'SourceInvalidFormatError',
+  'SourceWriteError',
 ]
 
 

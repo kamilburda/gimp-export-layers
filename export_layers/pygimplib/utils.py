@@ -82,7 +82,7 @@ def is_bound_method(func):
   """
   Return `True` if `func` is a bound method, `False` otherwise.
   """
-  return hasattr(func, "__self__") and func.__self__ is not None
+  return hasattr(func, '__self__') and func.__self__ is not None
 
 
 def stringify_object(object_, name):
@@ -92,22 +92,22 @@ def stringify_object(object_, name):
   `__str__()` method to return a more readable string representation than the
   default.
   """
-  return "<{} '{}'>".format(type(object_).__name__, name)
+  return '<{} "{}">'.format(type(object_).__name__, name)
 
 
 def get_module_root(full_module_name, name_component_to_trim_after):
   """
-  Return the part of the full module name (separated by "." characters) from the
+  Return the part of the full module name (separated by '.' characters) from the
   beginning up to the matching module name component including that component.
   
   If `name_component_to_trim_after` does not match any name component from
   `full_module_name`, return `full_module_name`.
   """
-  module_name_components = full_module_name.split(".")
+  module_name_components = full_module_name.split('.')
   
   if name_component_to_trim_after in module_name_components:
     name_component_index = module_name_components.index(name_component_to_trim_after)
-    return ".".join(module_name_components[:name_component_index + 1])
+    return '.'.join(module_name_components[:name_component_index + 1])
   else:
     return full_module_name
 
@@ -124,8 +124,8 @@ def create_read_only_property(obj, name, value):
   For the given `obj` object, create a private attribute named `_[name]` and a
   read-only property named `name` returning the value of the private attribute.
   """
-  setattr(obj, "_" + name, value)
+  setattr(obj, '_' + name, value)
   setattr(
     obj.__class__,
     name,
-    property(fget=lambda obj, name=name: getattr(obj, "_" + name)))
+    property(fget=lambda obj, name=name: getattr(obj, '_' + name)))

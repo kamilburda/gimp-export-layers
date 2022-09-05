@@ -140,11 +140,12 @@ Example:
 
 ### Quotes in and Around Strings
 
-Use double quotes everywhere except cases where single quotes or backquotes are used.
+Use single quotes except for cases when double quotes should be used.
 
-Use single quotes:
-* in element names in non-user messages (to be consistent with e.g. Python exception messages),
-* in any string containing double quotes (to avoid inserting backslashes).
+Use double quotes:
+* for docstrings,
+* for emphasizing text in docstrings or comments,
+* in any string literal enclosed in single quotes (to avoid inserting backslashes).
 
 In comments and docstrings, wrap element names in backquotes.
 Format function and method names as `function()`.

@@ -366,7 +366,7 @@ def merge_layer_group(layer_group):
   This function can handle both top-level and nested layer groups.
   """
   if not pdb.gimp_item_is_group(layer_group):
-    raise TypeError("'{}': not a layer group".format(layer_group.name))
+    raise TypeError('"{}": not a layer group'.format(layer_group.name))
   
   image = layer_group.image
   
@@ -443,7 +443,7 @@ class GimpMessageFile(object):
         message_prefix=None,
         message_delay_milliseconds=0):
     self._message_handler = message_handler
-    self._message_prefix = str(message_prefix) if message_prefix is not None else ""
+    self._message_prefix = str(message_prefix) if message_prefix is not None else ''
     self._message_delay_milliseconds = message_delay_milliseconds
     
     self._buffer_size = 4096
@@ -523,6 +523,6 @@ def is_pdb_procedure(function):
   Return `True` if the given function is a PDB procedure, `False` otherwise.
   """
   return (
-    hasattr(function, "proc_name")
-    and hasattr(function, "params")
+    hasattr(function, 'proc_name')
+    and hasattr(function, 'params')
     and callable(function))

@@ -29,7 +29,7 @@ import collections
 import os
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 import gobject
 
@@ -57,18 +57,18 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   Signals:
   
-  * `"preview-selection-changed"` - The selection in the preview was modified
+  * `'preview-selection-changed'` - The selection in the preview was modified
     by the user or by calling `set_selected_items()`.
-  * `"preview-updated"` - The preview was updated by calling `update()`. This
+  * `'preview-updated'` - The preview was updated by calling `update()`. This
     signal is not emitted if the update is locked.
-  * `"preview-tags-changed"` - An existing tag was added to or removed from a
+  * `'preview-tags-changed'` - An existing tag was added to or removed from a
     layer.
   """
   
   __gsignals__ = {
-    b"preview-selection-changed": (gobject.SIGNAL_RUN_FIRST, None, ()),
-    b"preview-updated": (gobject.SIGNAL_RUN_FIRST, None, ()),
-    b"preview-tags-changed": (gobject.SIGNAL_RUN_FIRST, None, ()),
+    b'preview-selection-changed': (gobject.SIGNAL_RUN_FIRST, None, ()),
+    b'preview-updated': (gobject.SIGNAL_RUN_FIRST, None, ()),
+    b'preview-tags-changed': (gobject.SIGNAL_RUN_FIRST, None, ()),
   }
   
   _ADD_TAG_POPUP_HBOX_SPACING = 5
@@ -112,9 +112,9 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self._initial_scroll_to_selection = True
     
     self._icon_image_filepath = os.path.join(
-      pg.config.PLUGIN_SUBDIRPATH, "images", "icon_image.png")
+      pg.config.PLUGIN_SUBDIRPATH, 'images', 'icon_image.png')
     self._icon_tag_filepath = os.path.join(
-      pg.config.PLUGIN_SUBDIRPATH, "images", "icon_tag.png")
+      pg.config.PLUGIN_SUBDIRPATH, 'images', 'icon_tag.png')
     
     self._init_gui()
   
@@ -158,7 +158,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     self._tree_view.columns_autosize()
     
-    self.emit("preview-updated")
+    self.emit('preview-updated')
   
   def clear(self):
     """
@@ -182,7 +182,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
     """
     self._selected_items = selected_items
     self._set_selection()
-    self.emit("preview-selection-changed")
+    self.emit('preview-selection-changed')
   
   def get_layer_elems_from_selected_rows(self):
     return [self._layer_exporter.layer_tree[layer_id]
@@ -220,14 +220,14 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     self._init_tags_menu()
     
-    column = gtk.TreeViewColumn(b"")
+    column = gtk.TreeViewColumn(b'')
     
     cell_renderer_icon_layer = gtk.CellRendererPixbuf()
     column.pack_start(cell_renderer_icon_layer, expand=False)
     column.set_attributes(cell_renderer_icon_layer, pixbuf=self._COLUMN_ICON_LAYER[0])
     
     cell_renderer_icon_tag = gtk.CellRendererPixbuf()
-    cell_renderer_icon_tag.set_property("pixbuf", self._icons["tag"])
+    cell_renderer_icon_tag.set_property('pixbuf', self._icons['tag'])
     column.pack_start(cell_renderer_icon_tag, expand=False)
     column.set_attributes(
       cell_renderer_icon_tag,
@@ -248,37 +248,37 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     self.pack_start(self._scrolled_window)
     
-    self._tree_view.connect("row-collapsed", self._on_tree_view_row_collapsed)
-    self._tree_view.connect("row-expanded", self._on_tree_view_row_expanded)
-    self._tree_view.get_selection().connect("changed", self._on_tree_selection_changed)
-    self._tree_view.connect("event", self._on_tree_view_right_button_press_event)
+    self._tree_view.connect('row-collapsed', self._on_tree_view_row_collapsed)
+    self._tree_view.connect('row-expanded', self._on_tree_view_row_expanded)
+    self._tree_view.get_selection().connect('changed', self._on_tree_selection_changed)
+    self._tree_view.connect('event', self._on_tree_view_right_button_press_event)
   
   def _init_icons(self):
     self._icons = {}
-    self._icons["layer_group"] = self._tree_view.render_icon(
+    self._icons['layer_group'] = self._tree_view.render_icon(
       gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
-    self._icons["layer"] = gtk.gdk.pixbuf_new_from_file_at_size(
-      self._icon_image_filepath, -1, self._icons["layer_group"].props.height)
-    self._icons["tag"] = gtk.gdk.pixbuf_new_from_file_at_size(
-      self._icon_tag_filepath, -1, self._icons["layer_group"].props.height)
+    self._icons['layer'] = gtk.gdk.pixbuf_new_from_file_at_size(
+      self._icon_image_filepath, -1, self._icons['layer_group'].props.height)
+    self._icons['tag'] = gtk.gdk.pixbuf_new_from_file_at_size(
+      self._icon_tag_filepath, -1, self._icons['layer_group'].props.height)
     
-    self._icons["exported_layer_group"] = self._icons["layer"].copy()
+    self._icons['exported_layer_group'] = self._icons['layer'].copy()
     
     scaling_factor = 0.8
-    width_unscaled = self._icons["layer_group"].props.width
+    width_unscaled = self._icons['layer_group'].props.width
     width = int(width_unscaled * scaling_factor)
-    height_unscaled = self._icons["layer_group"].props.height
+    height_unscaled = self._icons['layer_group'].props.height
     height = int(height_unscaled * scaling_factor)
     x_offset_unscaled = (
-      self._icons["exported_layer_group"].props.width
-      - self._icons["layer_group"].props.width)
+      self._icons['exported_layer_group'].props.width
+      - self._icons['layer_group'].props.width)
     x_offset = x_offset_unscaled + width_unscaled - width
     y_offset_unscaled = (
-      self._icons["exported_layer_group"].props.height
-      - self._icons["layer_group"].props.height)
+      self._icons['exported_layer_group'].props.height
+      - self._icons['layer_group'].props.height)
     y_offset = y_offset_unscaled + height_unscaled - height
     
-    self._icons["layer_group"].composite(self._icons["exported_layer_group"],
+    self._icons['layer_group'].composite(self._icons['exported_layer_group'],
       x_offset, y_offset, width, height, x_offset, y_offset,
       scaling_factor, scaling_factor, gtk.gdk.INTERP_BILINEAR, 255)
   
@@ -293,11 +293,11 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     self._tags_menu.append(gtk.SeparatorMenuItem())
     
-    self._menu_item_add_tag = gtk.MenuItem(_("Add New Tag..."))
-    self._menu_item_add_tag.connect("activate", self._on_menu_item_add_tag_activate)
+    self._menu_item_add_tag = gtk.MenuItem(_('Add New Tag...'))
+    self._menu_item_add_tag.connect('activate', self._on_menu_item_add_tag_activate)
     self._tags_menu.append(self._menu_item_add_tag)
     
-    self._menu_item_remove_tag = gtk.MenuItem(_("Remove Tag"))
+    self._menu_item_remove_tag = gtk.MenuItem(_('Remove Tag'))
     self._menu_item_remove_tag.set_submenu(self._tags_remove_submenu)
     self._tags_menu.append(self._menu_item_remove_tag)
     
@@ -348,7 +348,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _add_tag_menu_item(self, tag, tag_display_name):
     self._tags_menu_items[tag] = gtk.CheckMenuItem(tag_display_name)
-    self._tags_menu_items[tag].connect("toggled", self._on_tags_menu_item_toggled, tag)
+    self._tags_menu_items[tag].connect('toggled', self._on_tags_menu_item_toggled, tag)
     self._tags_menu_items[tag].show()
     self._tags_menu.prepend(self._tags_menu_items[tag])
     
@@ -357,7 +357,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
   def _add_remove_tag_menu_item(self, tag, tag_display_name):
     self._tags_remove_submenu_items[tag] = gtk.MenuItem(tag_display_name)
     self._tags_remove_submenu_items[tag].connect(
-      "activate", self._on_tags_remove_submenu_item_activate, tag)
+      'activate', self._on_tags_remove_submenu_item_activate, tag)
     self._tags_remove_submenu_items[tag].show()
     self._tags_remove_submenu.prepend(self._tags_remove_submenu_items[tag])
   
@@ -415,7 +415,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
       # differently, hence update the whole preview.
       self.update(update_existing_contents_only=True)
       
-      self.emit("preview-tags-changed")
+      self.emit('preview-tags-changed')
   
   def _on_menu_item_add_tag_activate(self, menu_item_add_tag):
     def _on_popup_focus_out_event(popup, event):
@@ -423,7 +423,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     def _on_popup_key_press_event(popup, event):
       key_name = gtk.gdk.keyval_name(event.keyval)
-      if key_name in ["Return", "KP_Enter"]:
+      if key_name in ['Return', 'KP_Enter']:
         entry_text = entry_add_tag.get_text()
         if entry_text and entry_text not in self._tags_menu_items:
           menu_item = self._add_tag_menu_item(entry_text, entry_text)
@@ -432,7 +432,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
         
         popup.destroy()
         return True
-      elif key_name == "Escape":
+      elif key_name == 'Escape':
         popup.destroy()
         return True
     
@@ -455,7 +455,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     _set_popup_position(popup_add_tag, toplevel)
     
-    label_tag_name = gtk.Label(_("Tag Name:"))
+    label_tag_name = gtk.Label(_('Tag Name:'))
     
     entry_add_tag = gtk.Entry()
     
@@ -470,8 +470,8 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     popup_add_tag.add(frame)
     
-    popup_add_tag.connect("focus-out-event", _on_popup_focus_out_event)
-    popup_add_tag.connect("key-press-event", _on_popup_key_press_event)
+    popup_add_tag.connect('focus-out-event', _on_popup_focus_out_event)
+    popup_add_tag.connect('key-press-event', _on_popup_key_press_event)
     
     popup_add_tag.show_all()
   
@@ -508,7 +508,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
       previous_selected_items = self._selected_items
       self._selected_items = self._get_layer_ids_in_current_selection()
       
-      self.emit("preview-selection-changed")
+      self.emit('preview-selection-changed')
       
       if self.is_filtering and self._selected_items != previous_selected_items:
         self.update(update_existing_contents_only=True)
@@ -534,7 +534,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
     else:
       layer_tree = None
     
-    self._layer_exporter.export(processing_groups=["layer_name"], layer_tree=layer_tree)
+    self._layer_exporter.export(processing_groups=['layer_name'], layer_tree=layer_tree)
   
   def _update_items(self):
     for layer_elem in self._layer_exporter.layer_tree:
@@ -623,14 +623,14 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _get_icon_from_item_elem(self, item_elem):
     if item_elem.item_type == item_elem.ITEM:
-      return self._icons["layer"]
+      return self._icons['layer']
     elif item_elem.item_type == item_elem.NONEMPTY_GROUP:
       if not self._layer_exporter.has_exported_layer(item_elem.item):
-        return self._icons["layer_group"]
+        return self._icons['layer_group']
       else:
-        return self._icons["exported_layer_group"]
+        return self._icons['exported_layer_group']
     elif item_elem.item_type == item_elem.EMPTY_GROUP:
-      return self._icons["layer_group"]
+      return self._icons['layer_group']
     else:
       return None
   

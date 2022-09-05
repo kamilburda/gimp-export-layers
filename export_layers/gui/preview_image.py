@@ -30,7 +30,7 @@ import time
 import traceback
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 import gobject
 import pango
@@ -54,14 +54,14 @@ def display_image_preview_failure_message(details, parent=None):
     parent=parent,
     message_type=gtk.MESSAGE_WARNING,
     message_markup=_(
-      "There was a problem with updating the image preview."),
+      'There was a problem with updating the image preview.'),
     message_secondary_markup=_(
-      "If you believe this is an error in the plug-in, you can help fix it "
-      "by sending a report with the text in the details to one of the sites below."),
+      'If you believe this is an error in the plug-in, you can help fix it '
+      'by sending a report with the text in the details to one of the sites below.'),
     details=details,
     display_details_initially=False,
     report_uri_list=pg.config.BUG_REPORT_URL_LIST,
-    report_description="",
+    report_description='',
     focus_on_button=True)
 
 
@@ -72,7 +72,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
   
   Signals:
   
-  * `"preview-updated"` - The preview was updated by calling `update()`. This
+  * `'preview-updated'` - The preview was updated by calling `update()`. This
     signal is not emitted if the update is locked.
     
     Arguments:
@@ -83,10 +83,10 @@ class ExportImagePreview(preview_base_.ExportPreview):
   """
   
   __gsignals__ = {
-    b"preview-updated": (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_FLOAT,)),
+    b'preview-updated': (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_FLOAT,)),
   }
   
-  _MANUAL_UPDATE_LOCK = "_manual_update"
+  _MANUAL_UPDATE_LOCK = '_manual_update'
   
   _WIDGET_SPACING = 5
   _BORDER_WIDTH = 6
@@ -124,15 +124,15 @@ class ExportImagePreview(preview_base_.ExportPreview):
       int(hex(shade)[2:] * 4, 16) for shade in gimp.checks_get_shades(gimp.check_type()))
     
     self._placeholder_image_size = gtk.icon_size_lookup(
-      self._placeholder_image.get_property("icon-size"))
+      self._placeholder_image.get_property('icon-size'))
     
-    self.connect("size-allocate", self._on_size_allocate)
-    self._preview_image.connect("size-allocate", self._on_preview_image_size_allocate)
+    self.connect('size-allocate', self._on_size_allocate)
+    self._preview_image.connect('size-allocate', self._on_preview_image_size_allocate)
     
-    self._button_menu.connect("clicked", self._on_button_menu_clicked)
+    self._button_menu.connect('clicked', self._on_button_menu_clicked)
     self._menu_item_update_automatically.connect(
-      "toggled", self._on_menu_item_update_automatically_toggled)
-    self._button_refresh.connect("clicked", self._on_button_refresh_clicked)
+      'toggled', self._on_menu_item_update_automatically_toggled)
+    self._button_refresh.connect('clicked', self._on_button_refresh_clicked)
   
   @property
   def layer_elem(self):
@@ -226,13 +226,13 @@ class ExportImagePreview(preview_base_.ExportPreview):
     at the start of the processing.
     """
     if resize_image_operation_groups is None:
-      resize_image_operation_groups = ["after_create_image_copy"]
+      resize_image_operation_groups = ['after_create_image_copy']
     
     if scale_layer_operation_groups is None:
-      scale_layer_operation_groups = ["after_insert_layer"]
+      scale_layer_operation_groups = ['after_insert_layer']
     
     self._layer_exporter.remove_operation(
-      self._resize_image_operation_id, groups="all", ignore_if_not_exists=True)
+      self._resize_image_operation_id, groups='all', ignore_if_not_exists=True)
     
     self._resize_image_operation_id = self._layer_exporter.add_procedure(
       self._resize_image_for_layer_exporter,
@@ -240,7 +240,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
       ignore_if_exists=True)
     
     self._layer_exporter.remove_operation(
-      self._scale_layer_operation_id, groups="all", ignore_if_not_exists=True)
+      self._scale_layer_operation_id, groups='all', ignore_if_not_exists=True)
     
     self._scale_layer_operation_id = self._layer_exporter.add_procedure(
       self._scale_layer_for_layer_exporter,
@@ -248,7 +248,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
       ignore_if_exists=True)
   
   def _set_contents(self):
-    # Sanity check in case `layer_elem` changes before `"size-allocate"` is
+    # Sanity check in case `layer_elem` changes before `'size-allocate'` is
     # emitted.
     if self.layer_elem is None:
       return
@@ -269,7 +269,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     update_duration_seconds = time.time() - start_update_time
     
-    self.emit("preview-updated", update_duration_seconds)
+    self.emit('preview-updated', update_duration_seconds)
   
   def _init_gui(self):
     self._button_menu = gtk.Button()
@@ -277,7 +277,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     self._button_menu.add(gtk.Arrow(gtk.ARROW_DOWN, gtk.SHADOW_IN))
     
     self._menu_item_update_automatically = gtk.CheckMenuItem(
-      _("Update Preview Automatically"))
+      _('Update Preview Automatically'))
     self._menu_item_update_automatically.set_active(True)
     
     self._menu_settings = gtk.Menu()
@@ -285,7 +285,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     self._menu_settings.show_all()
     
     self._button_refresh = gtk.Button()
-    self._button_refresh.set_tooltip_text(_("Update Preview"))
+    self._button_refresh.set_tooltip_text(_('Update Preview'))
     self._button_refresh.set_relief(gtk.RELIEF_NONE)
     self._button_refresh.add(gtk.image_new_from_pixbuf(
       self._button_refresh.render_icon(gtk.STOCK_REFRESH, gtk.ICON_SIZE_MENU)))
@@ -365,7 +365,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     try:
       image_preview = self._layer_exporter.export(
-        processing_groups=["layer_contents"],
+        processing_groups=['layer_contents'],
         layer_tree=layer_tree,
         keep_image_copy=True)
     except Exception:
@@ -510,11 +510,11 @@ class ExportImagePreview(preview_base_.ExportPreview):
   def _show_placeholder_image(self, use_layer_name=False):
     self._placeholder_image.show()
     if not use_layer_name:
-      self._set_layer_name_label(_("No selection"))
+      self._set_layer_name_label(_('No selection'))
   
   def _set_layer_name_label(self, layer_name):
     self._label_layer_name.set_markup(
-      "<i>{}</i>".format(
+      '<i>{}</i>'.format(
         gobject.markup_escape_text(layer_name.encode(pg.GTK_CHARACTER_ENCODING))))
   
   def _on_button_menu_clicked(self, button):
@@ -602,7 +602,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     return (
       actual_preview_width,
       actual_preview_height,
-      array.array(b"B", preview_data).tostring())
+      array.array(b'B', preview_data).tostring())
 
 
 gobject.type_register(ExportImagePreview)

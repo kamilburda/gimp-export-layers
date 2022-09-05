@@ -33,9 +33,9 @@ from . import settings as settings_
 from . import utils as utils_
 
 __all__ = [
-  "create_groups",
-  "Group",
-  "GroupWalkCallbacks",
+  'create_groups',
+  'Group',
+  'GroupWalkCallbacks',
 ]
 
 
@@ -45,26 +45,26 @@ def create_groups(setting_dict):
   containing attributes for the groups. This function simplifies adding setting
   groups (via `Group.add`).
   
-  Groups are specified under the `"groups"` key as a list of dictionaries.
+  Groups are specified under the `'groups'` key as a list of dictionaries.
   
-  Only `"groups"` and the names of parameters for `Group.__init__` are valid
+  Only `'groups'` and the names of parameters for `Group.__init__` are valid
   keys for `setting_dict`. Other keys raise `TypeError`.
   
   Example:
     settings = create_groups({
-      "name": "main",
-      "groups": [
+      'name': 'main',
+      'groups': [
         {
-          "name": "procedures"
+          'name': 'procedures'
         },
         {
-          "name": "constraints"
+          'name': 'constraints'
         }
       ]
     })
   """
   
-  group_dicts = setting_dict.pop("groups", None)
+  group_dicts = setting_dict.pop('groups', None)
   
   if group_dicts is None:
     group_dicts = []
@@ -164,11 +164,11 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     If a setting is inside a nested group, you can access the setting as
     follows:
       
-      settings["main"]["file_extension"]
+      settings['main']['file_extension']
     
     As a more compact alternative, you may specify a setting path:
     
-      settings["main/file_extension"]
+      settings['main/file_extension']
     
     If the name or path does not exist, raise `KeyError`.
     """
@@ -178,7 +178,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       try:
         return self._settings[setting_name_or_path]
       except KeyError:
-        raise KeyError("setting '{}' not found in group '{}'".format(
+        raise KeyError('setting "{}" not found in group "{}"'.format(
           setting_name_or_path, self.name))
   
   def __contains__(self, setting_name_or_path):
@@ -199,13 +199,13 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       if group_name in current_group:
         current_group = current_group._settings[group_name]
       else:
-        raise KeyError("group '{}' in path '{}' does not exist".format(
+        raise KeyError('group "{}" in path "{}" does not exist'.format(
           group_name, setting_path))
     
     try:
       setting = current_group[setting_path_components[-1]]
     except KeyError:
-      raise KeyError("setting '{}' not found in path '{}'".format(
+      raise KeyError('setting "{}" not found in path "{}"'.format(
         setting_path_components[-1], setting_path))
     
     return setting
@@ -240,13 +240,13 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     instances or dictionaries representing `Setting` objects to be created.
     
     Each dictionary contains (attribute name: value) pairs, where
-    `"attribute name"` is a string that represents an argument passed when
+    `'attribute name'` is a string that represents an argument passed when
     instantiating the setting. The following attributes must always be
     specified:
-      * `"type"` - Type of the Setting object to instantiate.
-      * `"name"` - Setting name.
+      * `'type'` - Type of the Setting object to instantiate.
+      * `'name'` - Setting name.
     
-    The `"name"` attribute must not contain forward slashes (`"/"`) (which are
+    The `'name'` attribute must not contain forward slashes (`'/'`) (which are
     used to access settings via paths).
     
     For more attributes, check the documentation of the setting classes. Some
@@ -255,8 +255,8 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     Multiple settings with the same name and in different nested groups are
     possible. Each such setting can be accessed like any other:
     
-      settings["main/file_extension"]
-      settings["advanced/file_extension"]
+      settings['main/file_extension']
+      settings['advanced/file_extension']
     
     Settings created from dictionaries are by default assigned setting
     attributes specified during the initialization of this class. These
@@ -272,10 +272,10 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   
   def _add_setting(self, setting):
     if setting.name in self._settings:
-      raise ValueError("{} already exists in {}".format(setting, self))
+      raise ValueError('{} already exists in {}'.format(setting, self))
     
     if setting == self:
-      raise ValueError("cannot add {} as a child of itself".format(setting))
+      raise ValueError('cannot add {} as a child of itself'.format(setting))
     
     self._settings[setting.name] = setting
     
@@ -283,26 +283,26 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   
   def _create_setting(self, setting_data):
     try:
-      setting_type = setting_data["type"]
+      setting_type = setting_data['type']
     except KeyError:
-      raise TypeError(self._get_missing_required_attributes_message(["type"]))
+      raise TypeError(self._get_missing_required_attributes_message(['type']))
     
     # Do not modify the original `setting_data` in case it is expected to be
     # reused.
-    setting_data_copy = {key: setting_data[key] for key in setting_data if key != "type"}
+    setting_data_copy = {key: setting_data[key] for key in setting_data if key != 'type'}
     
     try:
-      setting_data_copy["name"]
+      setting_data_copy['name']
     except KeyError:
-      raise TypeError(self._get_missing_required_attributes_message(["name"]))
+      raise TypeError(self._get_missing_required_attributes_message(['name']))
     
-    if utils_.SETTING_PATH_SEPARATOR in setting_data_copy["name"]:
+    if utils_.SETTING_PATH_SEPARATOR in setting_data_copy['name']:
       raise ValueError(
-        "setting name '{}' must not contain path separator '{}'".format(
-          setting_data_copy["name"], utils_.SETTING_PATH_SEPARATOR))
+        'setting name "{}" must not contain path separator "{}"'.format(
+          setting_data_copy['name'], utils_.SETTING_PATH_SEPARATOR))
     
-    if setting_data_copy["name"] in self._settings:
-      raise ValueError("setting '{}' already exists".format(setting_data_copy["name"]))
+    if setting_data_copy['name'] in self._settings:
+      raise ValueError('setting "{}" already exists'.format(setting_data_copy['name']))
     
     for setting_attribute, setting_attribute_value in self._setting_attributes.items():
       if setting_attribute not in setting_data_copy:
@@ -325,7 +325,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
         message = str(e)
       raise TypeError(message)
     
-    self._settings[setting_data_copy["name"]] = setting
+    self._settings[setting_data_copy['name']] = setting
     
     return setting
   
@@ -339,14 +339,14 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     num_required_args = len(arg_spec[0]) - len(arg_default_values)
     
     required_args = arg_spec[0][0:num_required_args]
-    if required_args[0] == "self":
+    if required_args[0] == 'self':
       del required_args[0]
     
     return required_args
   
   def _get_missing_required_attributes_message(self, attribute_names):
-    return "missing the following required setting attributes: {}".format(
-      ", ".join(attribute_names))
+    return 'missing the following required setting attributes: {}'.format(
+      ', '.join(attribute_names))
   
   def get_value(self, setting_name_or_path, default_value=None):
     """
@@ -376,14 +376,14 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     
     Example:
       group.get_attributes([
-        "main/file_extension",
-        "main/file_extension.display_name"])
+        'main/file_extension',
+        'main/file_extension.display_name'])
     
     returns
       
       {
-        "main/file_extension": "png",
-        "main/file_extension.display_name": "File Extension"
+        'main/file_extension': 'png',
+        'main/file_extension.display_name': 'File Extension'
       }
     """
     setting_attributes_and_values = collections.OrderedDict()
@@ -403,17 +403,17 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     all settings in this group.
     """
     return collections.OrderedDict([
-      (setting.get_path("root"), setting.value) for setting in self.walk()])
+      (setting.get_path('root'), setting.value) for setting in self.walk()])
   
   def _get_setting_and_attribute_names(self, setting_name_and_attribute):
     parts = setting_name_and_attribute.split(utils_.SETTING_ATTRIBUTE_SEPARATOR)
     if len(parts) == 1:
       setting_name = setting_name_and_attribute
-      attribute_name = "value"
+      attribute_name = 'value'
     elif len(parts) == 2:
       setting_name, attribute_name = parts
     else:
-      raise ValueError("'{}' cannot have more than one '{}' character".format(
+      raise ValueError('"{}" cannot have more than one "{}" character'.format(
         setting_name_and_attribute, utils_.SETTING_ATTRIBUTE_SEPARATOR))
     
     return setting_name, attribute_name
@@ -427,8 +427,8 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     
     Example:
       group.set_values({
-        "main/file_extension": "png",
-        "main/output_directory": "/sample/directory",
+        'main/file_extension': 'png',
+        'main/output_directory': '/sample/directory',
       })
     """
     for setting_name, value in settings_and_values.items():
@@ -444,7 +444,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       if setting_name in self._settings:
         del self._settings[setting_name]
       else:
-        raise KeyError("setting '{}' not found".format(setting_name))
+        raise KeyError('setting "{}" not found'.format(setting_name))
   
   def walk(
         self,
@@ -526,18 +526,18 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   
   def reset(self):
     """
-    Reset all settings in this group. Ignore settings with the `"ignore_reset"`
+    Reset all settings in this group. Ignore settings with the `'ignore_reset'`
     tag.
     """
     def _has_ignore_reset_tag(setting):
-      return "ignore_reset" not in setting.tags
+      return 'ignore_reset' not in setting.tags
     
     for setting in self.walk(include_setting_func=_has_ignore_reset_tag):
       setting.reset()
   
   def load(self, setting_sources=None):
     """
-    Load all settings in this group. Ignore settings with the `"ignore_load"`
+    Load all settings in this group. Ignore settings with the `'ignore_load'`
     tag. If there are multiple combinations of setting sources within the group
     (e.g. some settings within this group having their own setting sources),
     loading is performed for each combination separately.
@@ -553,26 +553,26 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     will be loaded, and only from `setting_sources`.
     """
     return self._load_save_group(
-      "ignore_load",
+      'ignore_load',
       persistor_.Persistor.load,
       setting_sources,
-      "before-load-group",
-      "after-load-group")
+      'before-load-group',
+      'after-load-group')
   
   def save(self, setting_sources=None):
     """
-    Save all settings in this group. Ignore settings with the `"ignore_save"`
+    Save all settings in this group. Ignore settings with the `'ignore_save'`
     tag. Return the status and the status message as per
     `setting.persistor.Persistor.save()`.
     
     For more information, see `load()`.
     """
     return self._load_save_group(
-      "ignore_save",
+      'ignore_save',
       persistor_.Persistor.save,
       setting_sources,
-      "before-save-group",
-      "after-save-group")
+      'before-save-group',
+      'after-save-group')
   
   def _load_save_group(
         self,
@@ -637,17 +637,17 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     
     worst_status = _get_worst_status(status_and_messages)
     
-    return worst_status, status_and_messages.get(worst_status, "")
+    return worst_status, status_and_messages.get(worst_status, '')
   
   def initialize_gui(self, custom_gui=None):
     """
     Initialize GUI for all settings. Ignore settings with the
-    `"ignore_initialize_gui"` tag.
+    `'ignore_initialize_gui'` tag.
     
     Settings that are not provided with a readily available GUI can have their
     GUI initialized using the `custom_gui` dict. `custom_gui` contains
     (setting name, list of arguments to `setting.Setting.set_gui()`) pairs. The
-    "enable GUI update?" boolean in the list is optional and defaults to `True`.
+    'enable GUI update?' boolean in the list is optional and defaults to `True`.
     For more information about parameters in the list, see
     `setting.Setting.set_gui()`.
     
@@ -656,28 +656,28 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       file_extension_entry = gtk.Entry()
       ...
       main_settings.initialize_gui({
-        "file_extension": [SettingGuiTypes.text_entry, file_extension_entry]
+        'file_extension': [SettingGuiTypes.text_entry, file_extension_entry]
         ...
       })
     """
     
     def _should_not_ignore(setting):
-      return "ignore_initialize_gui" not in setting.tags
+      return 'ignore_initialize_gui' not in setting.tags
     
     if custom_gui is None:
       custom_gui = {}
     
     for setting in self.walk(include_setting_func=_should_not_ignore):
-      if setting.get_path("root") not in custom_gui:
+      if setting.get_path('root') not in custom_gui:
         setting.set_gui()
       else:
-        set_gui_args = custom_gui[setting.get_path("root")]
+        set_gui_args = custom_gui[setting.get_path('root')]
         setting.set_gui(*set_gui_args)
   
   def apply_gui_values_to_settings(self):
     """
     Apply GUI element values, entered by the user, to settings.
-    Ignore settings with the `"ignore_apply_gui_value_to_setting"` tag.
+    Ignore settings with the `'ignore_apply_gui_value_to_setting'` tag.
     
     This method will not have any effect on settings with automatic
     GUI-to-setting value updating.
@@ -689,7 +689,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     """
     
     def _should_not_ignore(setting):
-      return "ignore_apply_gui_value_to_setting" not in setting.tags
+      return 'ignore_apply_gui_value_to_setting' not in setting.tags
     
     exception_messages = []
     exception_settings = []
@@ -702,7 +702,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
         exception_settings.append(e.setting)
     
     if exception_messages:
-      exception_message = "\n".join(exception_messages)
+      exception_message = '\n'.join(exception_messages)
       raise settings_.SettingValueError(
         exception_message,
         setting=exception_settings[0],

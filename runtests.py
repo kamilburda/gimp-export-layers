@@ -21,7 +21,7 @@
 """
 This GIMP plug-in runs automated tests for modules requiring GIMP to be running.
 
-By default, all modules starting with the `"test_"` prefix will be executed.
+By default, all modules starting with the `'test_'` prefix will be executed.
 
 To run tests in GIMP:
 
@@ -40,8 +40,8 @@ import os
 import sys
 
 # Fix Windows installation failing to import modules from subdirectories in the
-# "plug-ins" directory.
-if os.name == "nt":
+# 'plug-ins' directory.
+if os.name == 'nt':
   current_module_dirpath = os.path.dirname(inspect.getfile(inspect.currentframe()))
   if current_module_dirpath not in sys.path:
     sys.path.append(current_module_dirpath)
@@ -59,10 +59,10 @@ import gimpenums
 
 def run_tests(
       dirpath,
-      test_module_name_prefix="test_",
+      test_module_name_prefix='test_',
       modules=None,
       ignored_modules=None,
-      output_stream="stderr"):
+      output_stream='stderr'):
   """
   Execute all modules containing tests located in the specified directory path.
   The names of the test modules start with the specified prefix.
@@ -75,8 +75,8 @@ def run_tests(
   matching the prefixes specified in `modules`. `ignored_modules` can be used to
   exclude submodules in `modules`.
   
-  `output_stream` is the name of the stream to print the output to - `"stdout"`,
-  `"stderr"` or a file path. Defaults to `"stderr"`.
+  `output_stream` is the name of the stream to print the output to - `'stdout'`,
+  `'stderr'` or a file path. Defaults to `'stderr'`.
   """
   module_names = []
   
@@ -105,7 +105,7 @@ def run_tests(
   stream = _get_output_stream(output_stream)
   
   for module_name in module_names:
-    if module_name.split(".")[-1].startswith(test_module_name_prefix):
+    if module_name.split('.')[-1].startswith(test_module_name_prefix):
       module = importlib.import_module(module_name)
       run_test(module, stream=stream)
   
@@ -122,7 +122,7 @@ def _get_output_stream(stream_or_filepath):
   if hasattr(sys, stream_or_filepath):
     return _Stream(getattr(sys, stream_or_filepath))
   else:
-    return io.open(stream_or_filepath, "wb")
+    return io.open(stream_or_filepath, 'wb')
   
 
 class _Stream(object):
@@ -134,58 +134,58 @@ class _Stream(object):
     self.stream.write(data)
   
   def flush(self):
-    if hasattr(self.stream, "flush"):
+    if hasattr(self.stream, 'flush'):
       self.stream.flush()
   
   def close(self):
     pass
 
 
-SETTINGS = pg.setting.Group("settings")
+SETTINGS = pg.setting.Group('settings')
 SETTINGS.add([
   {
-    "type": pg.SettingTypes.enumerated,
-    "name": "run_mode",
-    "default_value": "non_interactive",
-    "items": [
-      ("interactive", "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
-      ("non_interactive", "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
-      ("run_with_last_vals", "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)],
-    "display_name": "The run mode",
-    "tags": ["ignore_load", "ignore_save"],
+    'type': pg.SettingTypes.enumerated,
+    'name': 'run_mode',
+    'default_value': 'non_interactive',
+    'items': [
+      ('interactive', 'RUN-INTERACTIVE', gimpenums.RUN_INTERACTIVE),
+      ('non_interactive', 'RUN-NONINTERACTIVE', gimpenums.RUN_NONINTERACTIVE),
+      ('run_with_last_vals', 'RUN-WITH-LAST-VALS', gimpenums.RUN_WITH_LAST_VALS)],
+    'display_name': 'The run mode',
+    'tags': ['ignore_load', 'ignore_save'],
   },
   {
-    "type": pg.SettingTypes.string,
-    "name": "dirpath",
-    "description": "Directory path containing test modules",
+    'type': pg.SettingTypes.string,
+    'name': 'dirpath',
+    'description': 'Directory path containing test modules',
   },
   {
-    "type": pg.SettingTypes.string,
-    "name": "prefix",
-    "description": "Prefix of test modules",
+    'type': pg.SettingTypes.string,
+    'name': 'prefix',
+    'description': 'Prefix of test modules',
   },
   {
-    "type": pg.SettingTypes.array,
-    "name": "modules",
-    "element_type": pg.SettingTypes.string,
-    "description": "Modules to include",
+    'type': pg.SettingTypes.array,
+    'name': 'modules',
+    'element_type': pg.SettingTypes.string,
+    'description': 'Modules to include',
   },
   {
-    "type": pg.SettingTypes.array,
-    "name": "ignored_modules",
-    "element_type": pg.SettingTypes.string,
-    "description": "Modules to ignore",
+    'type': pg.SettingTypes.array,
+    'name': 'ignored_modules',
+    'element_type': pg.SettingTypes.string,
+    'description': 'Modules to ignore',
   },
   {
-    "type": pg.SettingTypes.string,
-    "name": "output_stream",
-    "description": "Output stream",
+    'type': pg.SettingTypes.string,
+    'name': 'output_stream',
+    'description': 'Output stream',
   },
 ])
 
 
 @pg.procedure(
-  blurb="Run automated tests in the specified directory path.",
+  blurb='Run automated tests in the specified directory path.',
   parameters=[SETTINGS],
 )
 def plug_in_run_tests(run_mode, *args):
@@ -193,5 +193,5 @@ def plug_in_run_tests(run_mode, *args):
   run_tests(*processed_args[1:])
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   pg.main()

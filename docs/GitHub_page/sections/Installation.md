@@ -9,4 +9,4 @@ next_doc_title: Usage
 * TOC
 {:toc}
 
-{% include-section "../../sections/Installation.md" %}
+{% include-section '../../sections/Installation.md' %}

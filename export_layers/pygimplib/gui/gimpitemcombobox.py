@@ -25,7 +25,7 @@ from future.builtins import *
 import collections
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 import gobject
 
@@ -35,7 +35,7 @@ import gimpui
 from .. import constants as pgconstants
 
 __all__ = [
-  "GimpItemComboBox",
+  'GimpItemComboBox',
 ]
 
 
@@ -46,7 +46,7 @@ class GimpItemComboBox(gtk.VBox):
   
   Signals:
   
-  * `"changed"` - The user changed the selection either in the combo box
+  * `'changed'` - The user changed the selection either in the combo box
     containing available item types or in the combo box for the selected item
     type.
     
@@ -55,11 +55,11 @@ class GimpItemComboBox(gtk.VBox):
     * `selected_item` - The currently selected `gimp.Item` object.
   """
   
-  __gsignals__ = {b"changed": (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT,))}
+  __gsignals__ = {b'changed': (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT,))}
   
   _GimpItemComboBox = collections.namedtuple(
-    "_GimpItemComboBox",
-    ["name", "widget", "get_active_item_func", "set_active_item_func", "gimp_item_type"])
+    '_GimpItemComboBox',
+    ['name', 'widget', 'get_active_item_func', 'set_active_item_func', 'gimp_item_type'])
   
   _COMBO_BOX_SPACING = 4
   
@@ -74,19 +74,19 @@ class GimpItemComboBox(gtk.VBox):
     
     self._item_combo_boxes = [
       self._GimpItemComboBox(
-        _("Layer"),
+        _('Layer'),
         self._layer_combo_box,
         self._layer_combo_box.get_active_layer,
         self._layer_combo_box.set_active_layer,
         gimp.Layer),
       self._GimpItemComboBox(
-        _("Channel"),
+        _('Channel'),
         self._channel_combo_box,
         self._channel_combo_box.get_active_channel,
         self._channel_combo_box.set_active_channel,
         gimp.Channel),
       self._GimpItemComboBox(
-        _("Vectors"),
+        _('Vectors'),
         self._vectors_combo_box,
         self._vectors_combo_box.get_active_vectors,
         self._vectors_combo_box.set_active_vectors,
@@ -106,9 +106,9 @@ class GimpItemComboBox(gtk.VBox):
       
       self.pack_start(combo_box.widget, expand=True, fill=True)
       
-      combo_box.widget.connect("changed", self._on_combo_box_changed)
+      combo_box.widget.connect('changed', self._on_combo_box_changed)
     
-    self._item_types_combo_box.connect("changed", self._on_item_types_combo_box_changed)
+    self._item_types_combo_box.connect('changed', self._on_item_types_combo_box_changed)
     
     self._item_types_combo_box.set_active(0)
   
@@ -129,15 +129,15 @@ class GimpItemComboBox(gtk.VBox):
     
     if matching_combo_box is None:
       raise TypeError(
-        "argument must be one of the following types: {}".format(
-          ", ".join(
+        'argument must be one of the following types: {}'.format(
+          ', '.join(
             str(combo_box.gimp_item_type) for combo_box in self._item_combo_boxes)))
     
     matching_combo_box.set_active_item_func(item)
     self._item_types_combo_box.set_active(matching_index)
   
   def _on_combo_box_changed(self, *args, **kwargs):
-    self.emit("changed", self.get_active_item())
+    self.emit('changed', self.get_active_item())
   
   def _on_item_types_combo_box_changed(self, combo_box):
     if self._displayed_item_combo_box is not None:
@@ -148,7 +148,7 @@ class GimpItemComboBox(gtk.VBox):
     
     self._displayed_item_combo_box = self._item_combo_boxes[index]
     
-    self.emit("changed", self.get_active_item())
+    self.emit('changed', self.get_active_item())
 
 
 gobject.type_register(GimpItemComboBox)

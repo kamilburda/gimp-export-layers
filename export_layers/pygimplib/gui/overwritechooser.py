@@ -24,7 +24,7 @@ from future.builtins import *
 import os
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 import gobject
 
@@ -33,7 +33,7 @@ import gimpui
 from .. import overwrite as pgoverwrite
 
 __all__ = [
-  "GtkDialogOverwriteChooser",
+  'GtkDialogOverwriteChooser',
 ]
 
 
@@ -54,7 +54,7 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
         values_and_display_names,
         default_value,
         default_response,
-        title="",
+        title='',
         parent=None):
     
     super().__init__(values_and_display_names, default_value, default_response)
@@ -66,7 +66,7 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
   
   def _init_gui(self):
     self._dialog = gimpui.Dialog(
-      title="",
+      title='',
       role=None,
       parent=self._parent,
       flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
@@ -78,7 +78,7 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
     self._dialog_icon = gtk.Image()
     self._dialog_icon.set_from_stock(gtk.STOCK_DIALOG_QUESTION, gtk.ICON_SIZE_DIALOG)
     
-    self._dialog_text = gtk.Label("")
+    self._dialog_text = gtk.Label('')
     self._dialog_text.set_line_wrap(True)
     self._dialog_text.set_use_markup(True)
     
@@ -92,7 +92,7 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
       self._dialog_text_event_box, expand=False, fill=False)
     
     self._checkbutton_apply_to_all = gtk.CheckButton(
-      label=_("_Apply action to all files"))
+      label=_('_Apply action to all files'))
     self._checkbutton_apply_to_all.set_use_underline(True)
     
     self._dialog.vbox.set_spacing(self._DIALOG_VBOX_SPACING)
@@ -106,11 +106,11 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
     self._dialog.action_area.set_spacing(self._DIALOG_ACTION_AREA_SPACING)
     
     self._checkbutton_apply_to_all.connect(
-      "toggled", self._on_checkbutton_apply_to_all_toggled)
+      'toggled', self._on_checkbutton_apply_to_all_toggled)
     
     self._is_dialog_text_allocated_size = False
     self._dialog_text_event_box.connect(
-      "size-allocate", self._on_dialog_text_event_box_size_allocate)
+      'size-allocate', self._on_dialog_text_event_box_size_allocate)
     
     self._dialog.set_focus(self._buttons[self.default_value])
   
@@ -124,9 +124,9 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
       else:
         text_choose = _('A file named "{}" already exists.\n').format(filename)
     else:
-      text_choose = _("A file with the same name already exists.\n")
+      text_choose = _('A file with the same name already exists.\n')
     
-    text_choose += _("What would you like to do?")
+    text_choose += _('What would you like to do?')
     
     self._dialog_text.set_markup(
       '<span font_size="large"><b>{}</b></span>'.format(
@@ -154,4 +154,4 @@ class GtkDialogOverwriteChooser(pgoverwrite.InteractiveOverwriteChooser):
       dialog_text_allocation = dialog_text_event_box.get_allocation()
       dialog_vbox_allocation = self._dialog.vbox.get_allocation()
       self._dialog_text.set_property(
-        "width-request", dialog_vbox_allocation.width - dialog_text_allocation.x)
+        'width-request', dialog_vbox_allocation.width - dialog_text_allocation.x)

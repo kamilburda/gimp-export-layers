@@ -24,11 +24,11 @@ from future.builtins import *
 import collections
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 
 __all__ = [
-  "EntryUndoContext",
+  'EntryUndoContext',
 ]
 
 
@@ -42,9 +42,9 @@ class EntryUndoContext(object):
     the undo history.
   """
   
-  _ActionData = collections.namedtuple("_ActionData", ["action_type", "position", "text"])
+  _ActionData = collections.namedtuple('_ActionData', ['action_type', 'position', 'text'])
   
-  _ACTION_TYPES = ["insert", "delete"]
+  _ACTION_TYPES = ['insert', 'delete']
   
   def __init__(self, entry):
     self._entry = entry
@@ -59,23 +59,23 @@ class EntryUndoContext(object):
     
     self._cursor_changed_by_action = False
     
-    self._entry.connect("insert-text", self._on_entry_insert_text)
-    self._entry.connect("delete-text", self._on_entry_delete_text)
-    self._entry.connect("notify::cursor-position", self._on_entry_notify_cursor_position)
-    self._entry.connect("key-press-event", self._on_entry_key_press_event)
+    self._entry.connect('insert-text', self._on_entry_insert_text)
+    self._entry.connect('delete-text', self._on_entry_delete_text)
+    self._entry.connect('notify::cursor-position', self._on_entry_notify_cursor_position)
+    self._entry.connect('key-press-event', self._on_entry_key_press_event)
   
   def undo(self):
     self._undo_redo(
       self._undo_stack,
       self._redo_stack,
       action_handlers={
-        "insert": lambda action_data: self._entry.delete_text(
+        'insert': lambda action_data: self._entry.delete_text(
           action_data.position, action_data.position + len(action_data.text)),
-        "delete": lambda action_data: self._entry.insert_text(
+        'delete': lambda action_data: self._entry.insert_text(
           action_data.text, action_data.position)},
       action_handlers_get_cursor_position={
-        "insert": lambda last_action_data: last_action_data.position,
-        "delete": lambda last_action_data: (
+        'insert': lambda last_action_data: last_action_data.position,
+        'delete': lambda last_action_data: (
           last_action_data.position + len(last_action_data.text))},
       actions_iterator=reversed)
   
@@ -84,14 +84,14 @@ class EntryUndoContext(object):
       self._redo_stack,
       self._undo_stack,
       action_handlers={
-        "insert": lambda action_data: self._entry.insert_text(
+        'insert': lambda action_data: self._entry.insert_text(
           action_data.text, action_data.position),
-        "delete": lambda action_data: self._entry.delete_text(
+        'delete': lambda action_data: self._entry.delete_text(
           action_data.position, action_data.position + len(action_data.text))},
       action_handlers_get_cursor_position={
-        "insert": lambda last_action_data: (
+        'insert': lambda last_action_data: (
           last_action_data.position + len(last_action_data.text)),
-        "delete": lambda last_action_data: last_action_data.position})
+        'delete': lambda last_action_data: last_action_data.position})
   
   def undo_push(self, undo_push_list):
     """
@@ -108,8 +108,8 @@ class EntryUndoContext(object):
     Parameters:
     
     * `undo_push_list` - List of `(action_type, position, text)` tuples to add
-      as one undo action. `action_type` can be "insert" for text insertion or
-      "delete" for text deletion (other values raise `ValueError`). `position`
+      as one undo action. `action_type` can be 'insert' for text insertion or
+      'delete' for text deletion (other values raise `ValueError`). `position`
       is the starting entry cursor position of the changed text. `text` is the
       changed text.
     
@@ -123,7 +123,7 @@ class EntryUndoContext(object):
     
     for action_type, position, text in undo_push_list:
       if action_type not in self._ACTION_TYPES:
-        raise ValueError("invalid action type '{0}'".format(action_type))
+        raise ValueError('invalid action type "{0}"'.format(action_type))
       self._last_action_group.append(self._ActionData(action_type, position, text))
     
     self._undo_stack_push()
@@ -136,13 +136,13 @@ class EntryUndoContext(object):
   
   def _on_entry_insert_text(self, entry, new_text, new_text_length, position):
     if self.undo_enabled and new_text:
-      self._on_entry_action(entry.get_position(), new_text, "insert")
+      self._on_entry_action(entry.get_position(), new_text, 'insert')
    
   def _on_entry_delete_text(self, entry, start, end):
     if self.undo_enabled:
       text_to_delete = entry.get_text()[start:end]
       if text_to_delete:
-        self._on_entry_action(start, text_to_delete, "delete")
+        self._on_entry_action(start, text_to_delete, 'delete')
   
   def _on_entry_notify_cursor_position(self, entry, property_spec):
     if self._cursor_changed_by_action:
@@ -153,10 +153,10 @@ class EntryUndoContext(object):
   def _on_entry_key_press_event(self, entry, event):
     if (event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.CONTROL_MASK:
       key_name = gtk.gdk.keyval_name(gtk.gdk.keyval_to_lower(event.keyval))
-      if key_name == "z":
+      if key_name == 'z':
         self.undo()
         return True
-      elif key_name == "y":
+      elif key_name == 'y':
         self.redo()
         return True
   

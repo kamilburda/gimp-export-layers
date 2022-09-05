@@ -47,13 +47,13 @@ class ExportPreviewsController(object):
     self._is_initial_selection_set = False
     
     self._paned_outside_previews_previous_position = (
-      self._settings["gui/paned_outside_previews_position"].value)
+      self._settings['gui/paned_outside_previews_position'].value)
     self._paned_between_previews_previous_position = (
-      self._settings["gui/paned_between_previews_position"].value)
+      self._settings['gui/paned_between_previews_position'].value)
   
   def connect_setting_changes_to_previews(self):
-    self._connect_operations_changed(self._settings["main/procedures"])
-    self._connect_operations_changed(self._settings["main/constraints"])
+    self._connect_operations_changed(self._settings['main/procedures'])
+    self._connect_operations_changed(self._settings['main/constraints'])
     
     self._connect_setting_after_reset_collapsed_layers_in_name_preview()
     self._connect_setting_after_reset_selected_layers_in_name_preview()
@@ -67,36 +67,36 @@ class ExportPreviewsController(object):
   
   def connect_name_preview_events(self):
     self._name_preview.connect(
-      "preview-selection-changed", self._on_name_preview_selection_changed)
+      'preview-selection-changed', self._on_name_preview_selection_changed)
     self._name_preview.connect(
-      "preview-updated", self._on_name_preview_updated)
+      'preview-updated', self._on_name_preview_updated)
     self._name_preview.connect(
-      "preview-tags-changed", self._on_name_preview_tags_changed)
+      'preview-tags-changed', self._on_name_preview_tags_changed)
   
   def on_paned_outside_previews_notify_position(self, paned, property_spec):
     current_position = paned.get_position()
-    max_position = paned.get_property("max-position")
+    max_position = paned.get_property('max-position')
     
     if (current_position == max_position
         and self._paned_outside_previews_previous_position != max_position):
       self._disable_preview_on_paned_drag(
         self._name_preview,
-        self._settings["gui/name_preview_sensitive"],
-        "previews_sensitive")
+        self._settings['gui/name_preview_sensitive'],
+        'previews_sensitive')
       self._disable_preview_on_paned_drag(
         self._image_preview,
-        self._settings["gui/image_preview_sensitive"],
-        "previews_sensitive")
+        self._settings['gui/image_preview_sensitive'],
+        'previews_sensitive')
     elif (current_position != max_position
           and self._paned_outside_previews_previous_position == max_position):
       self._enable_preview_on_paned_drag(
         self._name_preview,
-        self._settings["gui/name_preview_sensitive"],
-        "previews_sensitive")
+        self._settings['gui/name_preview_sensitive'],
+        'previews_sensitive')
       self._enable_preview_on_paned_drag(
         self._image_preview,
-        self._settings["gui/image_preview_sensitive"],
-        "previews_sensitive")
+        self._settings['gui/image_preview_sensitive'],
+        'previews_sensitive')
     elif current_position != self._paned_outside_previews_previous_position:
       if self._image_preview.is_larger_than_image():
         pg.invocation.timeout_add_strict(
@@ -110,33 +110,33 @@ class ExportPreviewsController(object):
   
   def on_paned_between_previews_notify_position(self, paned, property_spec):
     current_position = paned.get_position()
-    max_position = paned.get_property("max-position")
-    min_position = paned.get_property("min-position")
+    max_position = paned.get_property('max-position')
+    min_position = paned.get_property('min-position')
     
     if (current_position == max_position
         and self._paned_between_previews_previous_position != max_position):
       self._disable_preview_on_paned_drag(
         self._image_preview,
-        self._settings["gui/image_preview_sensitive"],
-        "vpaned_preview_sensitive")
+        self._settings['gui/image_preview_sensitive'],
+        'vpaned_preview_sensitive')
     elif (current_position != max_position
           and self._paned_between_previews_previous_position == max_position):
       self._enable_preview_on_paned_drag(
         self._image_preview,
-        self._settings["gui/image_preview_sensitive"],
-        "vpaned_preview_sensitive")
+        self._settings['gui/image_preview_sensitive'],
+        'vpaned_preview_sensitive')
     elif (current_position == min_position
           and self._paned_between_previews_previous_position != min_position):
       self._disable_preview_on_paned_drag(
         self._name_preview,
-        self._settings["gui/name_preview_sensitive"],
-        "vpaned_preview_sensitive")
+        self._settings['gui/name_preview_sensitive'],
+        'vpaned_preview_sensitive')
     elif (current_position != min_position
           and self._paned_between_previews_previous_position == min_position):
       self._enable_preview_on_paned_drag(
         self._name_preview,
-        self._settings["gui/name_preview_sensitive"],
-        "vpaned_preview_sensitive")
+        self._settings['gui/name_preview_sensitive'],
+        'vpaned_preview_sensitive')
     elif current_position != self._paned_between_previews_previous_position:
       if self._image_preview.is_larger_than_image():
         pg.invocation.timeout_add_strict(
@@ -150,24 +150,24 @@ class ExportPreviewsController(object):
   
   def _connect_operations_changed(self, operations_):
     def _on_after_add_operation(operations_, operation, *args, **kwargs):
-      if operation["enabled"].value:
-        self._update_previews_on_setting_change(operation["enabled"])
-      operation["enabled"].connect_event(
-        "value-changed", self._update_previews_on_setting_change)
+      if operation['enabled'].value:
+        self._update_previews_on_setting_change(operation['enabled'])
+      operation['enabled'].connect_event(
+        'value-changed', self._update_previews_on_setting_change)
     
     def _on_after_reorder_operation(operations_, operation, *args, **kwargs):
-      if operation["enabled"].value:
-        self._update_previews_on_setting_change(operation["enabled"])
+      if operation['enabled'].value:
+        self._update_previews_on_setting_change(operation['enabled'])
     
     def _on_before_remove_operation(operations_, operation, *args, **kwargs):
-      if operation["enabled"].value:
-        # Changing the enabled state triggers the "value-changed" event and thus
+      if operation['enabled'].value:
+        # Changing the enabled state triggers the 'value-changed' event and thus
         # properly keeps the previews in sync after operation removal.
-        operation["enabled"].set_value(False)
+        operation['enabled'].set_value(False)
     
-    operations_.connect_event("after-add-operation", _on_after_add_operation)
-    operations_.connect_event("after-reorder-operation", _on_after_reorder_operation)
-    operations_.connect_event("before-remove-operation", _on_before_remove_operation)
+    operations_.connect_event('after-add-operation', _on_after_add_operation)
+    operations_.connect_event('after-reorder-operation', _on_after_reorder_operation)
+    operations_.connect_event('before-remove-operation', _on_before_remove_operation)
   
   def _update_previews_on_setting_change(self, setting):
     pg.invocation.timeout_add_strict(
@@ -177,14 +177,14 @@ class ExportPreviewsController(object):
   
   def _connect_setting_after_reset_collapsed_layers_in_name_preview(self):
     self._settings[
-      "gui_session/name_preview_layers_collapsed_state"].connect_event(
-        "after-reset",
+      'gui_session/name_preview_layers_collapsed_state'].connect_event(
+        'after-reset',
         lambda setting: self._name_preview.set_collapsed_items(
           setting.value[self._image.ID]))
   
   def _connect_setting_after_reset_selected_layers_in_name_preview(self):
-    self._settings["main/selected_layers"].connect_event(
-      "after-reset",
+    self._settings['main/selected_layers'].connect_event(
+      'after-reset',
       lambda setting: self._name_preview.set_selected_items(
         setting.value[self._image.ID]))
   
@@ -192,16 +192,16 @@ class ExportPreviewsController(object):
     def _clear_image_preview(setting):
       self._image_preview.clear()
     
-    self._settings["gui_session/image_preview_displayed_layers"].connect_event(
-      "after-reset", _clear_image_preview)
+    self._settings['gui_session/image_preview_displayed_layers'].connect_event(
+      'after-reset', _clear_image_preview)
   
   def _connect_toggle_name_preview_filtering(self):
     def _after_add_only_selected_layers(constraints, constraint, orig_constraint_dict):
-      if constraint["orig_name"].value == "only_selected_layers":
+      if constraint['orig_name'].value == 'only_selected_layers':
         self._only_selected_layers_constraints[constraint.name] = constraint
         
-        _on_enabled_changed(constraint["enabled"])
-        constraint["enabled"].connect_event("value-changed", _on_enabled_changed)
+        _on_enabled_changed(constraint['enabled'])
+        constraint['enabled'].connect_event('value-changed', _on_enabled_changed)
     
     def _before_remove_only_selected_layers(constraints, constraint):
       if constraint.name in self._only_selected_layers_constraints:
@@ -213,26 +213,26 @@ class ExportPreviewsController(object):
     
     def _on_enabled_changed(constraint_enabled):
       self._name_preview.is_filtering = (
-        any(constraint["enabled"].value
+        any(constraint['enabled'].value
             for constraint in self._only_selected_layers_constraints.values()))
     
-    self._settings["main/constraints"].connect_event(
-      "after-add-operation", _after_add_only_selected_layers)
+    self._settings['main/constraints'].connect_event(
+      'after-add-operation', _after_add_only_selected_layers)
     
-    self._settings["main/constraints"].connect_event(
-      "before-remove-operation", _before_remove_only_selected_layers)
+    self._settings['main/constraints'].connect_event(
+      'before-remove-operation', _before_remove_only_selected_layers)
     
-    self._settings["main/constraints"].connect_event(
-      "before-clear-operations", _before_clear_constraints)
+    self._settings['main/constraints'].connect_event(
+      'before-clear-operations', _before_clear_constraints)
   
   def _connect_set_image_preview_scaling(self):
     def _after_add_operation(
           operations, operation, orig_operation_dict, builtin_operations):
-      if operation["orig_name"].value not in builtin_operations:
+      if operation['orig_name'].value not in builtin_operations:
         self._custom_operations[operation.name] = operation
         
-        _set_image_preview_scaling(operation["enabled"])
-        operation["enabled"].connect_event("value-changed", _set_image_preview_scaling)
+        _set_image_preview_scaling(operation['enabled'])
+        operation['enabled'].connect_event('value-changed', _set_image_preview_scaling)
     
     def _before_remove_operation(operations, operation):
       if operation.name in self._custom_operations:
@@ -243,48 +243,48 @@ class ExportPreviewsController(object):
       self._image_preview.set_scaling()
     
     def _set_image_preview_scaling(operation_enabled):
-      if not any(operation["enabled"].value
+      if not any(operation['enabled'].value
                  for operation in self._custom_operations.values()):
         self._image_preview.set_scaling()
       else:
         self._image_preview.set_scaling(
-          ["after_process_layer"], ["after_process_layer"])
+          ['after_process_layer'], ['after_process_layer'])
     
-    self._settings["main/procedures"].connect_event(
-      "after-add-operation",
+    self._settings['main/procedures'].connect_event(
+      'after-add-operation',
       _after_add_operation,
       builtin_procedures.BUILTIN_PROCEDURES)
     
-    self._settings["main/procedures"].connect_event(
-      "before-remove-operation", _before_remove_operation)
+    self._settings['main/procedures'].connect_event(
+      'before-remove-operation', _before_remove_operation)
     
-    self._settings["main/procedures"].connect_event(
-      "before-clear-operations", _before_clear_operations)
+    self._settings['main/procedures'].connect_event(
+      'before-clear-operations', _before_clear_operations)
     
-    self._settings["main/constraints"].connect_event(
-      "after-add-operation",
+    self._settings['main/constraints'].connect_event(
+      'after-add-operation',
       _after_add_operation,
       builtin_constraints.BUILTIN_CONSTRAINTS)
     
-    self._settings["main/constraints"].connect_event(
-      "before-remove-operation", _before_remove_operation)
+    self._settings['main/constraints'].connect_event(
+      'before-remove-operation', _before_remove_operation)
     
-    self._settings["main/constraints"].connect_event(
-      "before-clear-operations", _before_clear_operations)
+    self._settings['main/constraints'].connect_event(
+      'before-clear-operations', _before_clear_operations)
   
   def _connect_image_preview_menu_setting_changes(self):
-    self._settings["gui/image_preview_automatic_update"].connect_event(
-      "value-changed",
+    self._settings['gui/image_preview_automatic_update'].connect_event(
+      'value-changed',
       lambda setting, update_if_below_setting: update_if_below_setting.set_value(False),
       self._settings[
-        "gui/image_preview_automatic_update_if_below_maximum_duration"])
+        'gui/image_preview_automatic_update_if_below_maximum_duration'])
   
   def _connect_toplevel_notify_is_active(self):
     toplevel = (
       pg.gui.get_toplevel_window(self._name_preview)
       or pg.gui.get_toplevel_window(self._image_preview))
     if toplevel is not None:
-      toplevel.connect("notify::is-active", self._on_toplevel_notify_is_active)
+      toplevel.connect('notify::is-active', self._on_toplevel_notify_is_active)
    
   def _on_name_preview_selection_changed(self, preview):
     self._update_selected_layers()
@@ -326,10 +326,10 @@ class ExportPreviewsController(object):
   
   def _set_initial_selection_and_update_image_preview(self):
     layer_id_to_display = self._settings[
-      "gui_session/image_preview_displayed_layers"].value[self._image.ID]
+      'gui_session/image_preview_displayed_layers'].value[self._image.ID]
     
     if (layer_id_to_display is None
-        and not self._settings["main/selected_layers"].value[self._image.ID]
+        and not self._settings['main/selected_layers'].value[self._image.ID]
         and self._image.active_layer is not None):
       layer_id_to_display = self._image.active_layer.ID
       # This triggers an event that updates the image preview as well.
@@ -341,9 +341,9 @@ class ExportPreviewsController(object):
     self._is_initial_selection_set = True
   
   def _update_selected_layers(self):
-    selected_layers_dict = self._settings["main/selected_layers"].value
+    selected_layers_dict = self._settings['main/selected_layers'].value
     selected_layers_dict[self._image.ID] = self._name_preview.selected_items
-    self._settings["main/selected_layers"].set_value(selected_layers_dict)
+    self._settings['main/selected_layers'].set_value(selected_layers_dict)
   
   def _update_image_preview(self):
     layer_elem_from_cursor = self._name_preview.get_layer_elem_from_cursor()

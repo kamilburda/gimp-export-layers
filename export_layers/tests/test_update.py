@@ -23,7 +23,7 @@ from future.builtins import *
 import collections
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 
 import unittest
@@ -39,45 +39,45 @@ from export_layers import update
 
 
 @mock.patch(
-  pg.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimpshelf.shelf",
+  pg.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimpshelf.shelf',
   new_callable=stubs_gimp.ShelfStub)
 @mock.patch(
-  pg.PYGIMPLIB_MODULE_PATH + ".setting.sources.gimp",
+  pg.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimp',
   new_callable=stubs_gimp.GimpModuleStub)
-@mock.patch("export_layers.update.handle_update")
-@mock.patch("export_layers.gui.messages.display_message")
+@mock.patch('export_layers.update.handle_update')
+@mock.patch('export_layers.gui.messages.display_message')
 class TestUpdate(unittest.TestCase):
   
   def setUp(self):
     self.settings = pg.setting.create_groups({
-      "name": "all_settings",
-      "groups": [
+      'name': 'all_settings',
+      'groups': [
         {
-          "name": "main",
-          "setting_attributes": {
-            "setting_sources": [pg.config.PERSISTENT_SOURCE]},
+          'name': 'main',
+          'setting_attributes': {
+            'setting_sources': [pg.config.PERSISTENT_SOURCE]},
         }
       ]
     })
     
-    self.current_version = "3.3"
-    self.new_version = "3.4"
-    self.old_incompatible_version = "0.1"
+    self.current_version = '3.3'
+    self.new_version = '3.4'
+    self.old_incompatible_version = '0.1'
     
-    self.settings["main"].add([
+    self.settings['main'].add([
       {
-        "type": pg.SettingTypes.generic,
-        "name": "plugin_version",
-        "default_value": self.new_version,
-        "pdb_type": None,
-        "gui_type": None,
+        'type': pg.SettingTypes.generic,
+        'name': 'plugin_version',
+        'default_value': self.new_version,
+        'pdb_type': None,
+        'gui_type': None,
       },
       {
-        "type": pg.SettingTypes.generic,
-        "name": "test_setting",
-        "default_value": "test",
-        "pdb_type": None,
-        "gui_type": None,
+        'type': pg.SettingTypes.generic,
+        'name': 'test_setting',
+        'default_value': 'test',
+        'pdb_type': None,
+        'gui_type': None,
       },
     ])
   
@@ -92,10 +92,10 @@ class TestUpdate(unittest.TestCase):
     status = update.update(self.settings)
     
     self.assertEqual(status, update.FRESH_START)
-    self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
+    self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
     
-    status, unused_ = self.settings["main/plugin_version"].load()
-    self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
+    status, unused_ = self.settings['main/plugin_version'].load()
+    self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
     self.assertEqual(status, pg.setting.Persistor.SUCCESS)
   
   def test_minimum_version_or_later_is_overwritten_by_new_version(
@@ -104,13 +104,13 @@ class TestUpdate(unittest.TestCase):
         mock_handle_update,
         mock_persistent_source,
         mock_session_source):
-    self.settings["main/plugin_version"].set_value(self.current_version)
-    self.settings["main/plugin_version"].save()
+    self.settings['main/plugin_version'].set_value(self.current_version)
+    self.settings['main/plugin_version'].save()
     
     status = update.update(self.settings)
     
     self.assertEqual(status, update.UPDATE)
-    self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
+    self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
   
   def test_persistent_source_has_data_but_not_version_clears_setting_sources(
         self,
@@ -118,12 +118,12 @@ class TestUpdate(unittest.TestCase):
         mock_handle_update,
         mock_persistent_source,
         mock_session_source):
-    self.settings["main/test_setting"].save()
+    self.settings['main/test_setting'].save()
     
     status = update.update(self.settings)
     
     self.assertEqual(status, update.CLEAR_SETTINGS)
-    self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
+    self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
   
   def test_less_than_minimum_version_clears_setting_sources(
         self,
@@ -131,15 +131,15 @@ class TestUpdate(unittest.TestCase):
         mock_handle_update,
         mock_persistent_source,
         mock_session_source):
-    self.settings["main/plugin_version"].set_value(self.old_incompatible_version)
-    self.settings["main"].save()
+    self.settings['main/plugin_version'].set_value(self.old_incompatible_version)
+    self.settings['main'].save()
     
     status = update.update(self.settings)
     
     self.assertEqual(status, update.CLEAR_SETTINGS)
-    self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
+    self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
     self.assertEqual(
-      self.settings["main/test_setting"].load()[0],
+      self.settings['main/test_setting'].load()[0],
       pg.setting.Persistor.NOT_ALL_SETTINGS_FOUND)
   
   def test_prompt_on_clear_positive_response(
@@ -150,14 +150,14 @@ class TestUpdate(unittest.TestCase):
         mock_session_source):
     mock_display_message.return_value = gtk.RESPONSE_YES
     
-    self.settings["main/plugin_version"].set_value(self.old_incompatible_version)
-    self.settings["main"].save()
+    self.settings['main/plugin_version'].set_value(self.old_incompatible_version)
+    self.settings['main'].save()
     
     status = update.update(self.settings, prompt_on_clear=True)
     self.assertEqual(status, update.CLEAR_SETTINGS)
-    self.assertEqual(self.settings["main/plugin_version"].value, self.new_version)
+    self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
     self.assertEqual(
-      self.settings["main/test_setting"].load()[0],
+      self.settings['main/test_setting'].load()[0],
       pg.setting.Persistor.NOT_ALL_SETTINGS_FOUND)
   
   def test_prompt_on_clear_negative_response(
@@ -168,15 +168,15 @@ class TestUpdate(unittest.TestCase):
         mock_session_source):
     mock_display_message.return_value = gtk.RESPONSE_NO
     
-    self.settings["main/plugin_version"].set_value(self.old_incompatible_version)
-    self.settings["main"].save()
+    self.settings['main/plugin_version'].set_value(self.old_incompatible_version)
+    self.settings['main'].save()
     
     status = update.update(self.settings, prompt_on_clear=True)
     self.assertEqual(status, update.ABORT)
     self.assertEqual(
-      self.settings["main/plugin_version"].value, self.old_incompatible_version)
+      self.settings['main/plugin_version'].value, self.old_incompatible_version)
     self.assertEqual(
-      self.settings["main/test_setting"].load()[0],
+      self.settings['main/test_setting'].load()[0],
       pg.setting.Persistor.SUCCESS)
   
 
@@ -184,30 +184,30 @@ class TestHandleUpdate(unittest.TestCase):
   
   def setUp(self):
     self.update_handlers = collections.OrderedDict([
-      ("3.3.1", lambda *args, **kwargs: self._executed_handlers.append("3.3.1")),
-      ("3.4", lambda *args, **kwargs: self._executed_handlers.append("3.4")),
-      ("3.5", lambda *args, **kwargs: self._executed_handlers.append("3.5")),
+      ('3.3.1', lambda *args, **kwargs: self._executed_handlers.append('3.3.1')),
+      ('3.4', lambda *args, **kwargs: self._executed_handlers.append('3.4')),
+      ('3.5', lambda *args, **kwargs: self._executed_handlers.append('3.5')),
     ])
     
     self._executed_handlers = []
     
-    self.settings = pg.setting.Group("settings")
+    self.settings = pg.setting.Group('settings')
   
   @parameterized.parameterized.expand([
-    ["previous_version_earlier_than_all_handlers_execute_one_handler",
-     "3.3", "3.3.1", ["3.3.1"]],
-    ["previous_version_earlier_than_all_handlers_execute_multiple_handlers",
-     "3.3", "3.4", ["3.3.1", "3.4"]],
-    ["equal_previous_and_current_version_execute_no_handler",
-     "3.5", "3.5", []],
-    ["equal_previous_and_current_version_and_globally_not_latest_execute_no_handler",
-     "3.3.1", "3.3.1", []],
-    ["previous_version_equal_to_first_handler_execute_one_handler",
-     "3.3.1", "3.4", ["3.4"]],
-    ["previous_version_equal_to_latest_handler_execute_no_handler",
-     "3.5", "3.6", []],
-    ["previous_greater_than_handlers_execute_no_handler",
-     "3.6", "3.6", []],
+    ['previous_version_earlier_than_all_handlers_execute_one_handler',
+     '3.3', '3.3.1', ['3.3.1']],
+    ['previous_version_earlier_than_all_handlers_execute_multiple_handlers',
+     '3.3', '3.4', ['3.3.1', '3.4']],
+    ['equal_previous_and_current_version_execute_no_handler',
+     '3.5', '3.5', []],
+    ['equal_previous_and_current_version_and_globally_not_latest_execute_no_handler',
+     '3.3.1', '3.3.1', []],
+    ['previous_version_equal_to_first_handler_execute_one_handler',
+     '3.3.1', '3.4', ['3.4']],
+    ['previous_version_equal_to_latest_handler_execute_no_handler',
+     '3.5', '3.6', []],
+    ['previous_greater_than_handlers_execute_no_handler',
+     '3.6', '3.6', []],
   ])
   def test_handle_update(
         self,
@@ -229,21 +229,21 @@ class TestHandleUpdate(unittest.TestCase):
 class TestReplaceFieldArgumentsInPattern(unittest.TestCase):
   
   @parameterized.parameterized.expand([
-    ["single_argument_per_field",
-     {"layer name": [("keep extension", "%e")], "tags": [("$$", "%t")]},
-     "[layer name, keep extension]_[layer name]_[tags, _, ($$)]",
-     "[layer name, %e]_[layer name]_[tags, _, (%t)]"],
+    ['single_argument_per_field',
+     {'layer name': [('keep extension', '%e')], 'tags': [('$$', '%t')]},
+     '[layer name, keep extension]_[layer name]_[tags, _, ($$)]',
+     '[layer name, %e]_[layer name]_[tags, _, (%t)]'],
     
-    ["multiple_arguments_per_field",
-     {"layer name": [("keep extension", "%e"), ("lowercase", "%l")],
-      "tags": [("$$", "%t")]},
-     "[layer name, lowercase, keep extension]_[layer name]_[tags, _, ($$)]",
-     "[layer name, %l, %e]_[layer name]_[tags, _, (%t)]"],
+    ['multiple_arguments_per_field',
+     {'layer name': [('keep extension', '%e'), ('lowercase', '%l')],
+      'tags': [('$$', '%t')]},
+     '[layer name, lowercase, keep extension]_[layer name]_[tags, _, ($$)]',
+     '[layer name, %l, %e]_[layer name]_[tags, _, (%t)]'],
     
-    ["unspecified_fields_remain_unmodified",
-     {"layer name": [("keep extension", "%e")], "tags": [("$$", "%t")]},
-     "[layer name, keep extension]_[001]_[tags, _, ($$)]",
-     "[layer name, %e]_[001]_[tags, _, (%t)]"],
+    ['unspecified_fields_remain_unmodified',
+     {'layer name': [('keep extension', '%e')], 'tags': [('$$', '%t')]},
+     '[layer name, keep extension]_[001]_[tags, _, ($$)]',
+     '[layer name, %e]_[001]_[tags, _, (%t)]'],
   ])
   def test_replace_field_arguments_in_pattern(
         self, test_case_name_suffix, fields_and_replacements, pattern, expected_output):

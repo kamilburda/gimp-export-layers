@@ -26,7 +26,7 @@ import collections
 import contextlib
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 import gobject
 
@@ -35,9 +35,9 @@ from .. import utils as pgutils
 from . import draganddropcontext as draganddropcontext_
 
 __all__ = [
-  "ItemBox",
-  "ArrayBox",
-  "ItemBoxItem",
+  'ItemBox',
+  'ArrayBox',
+  'ItemBoxItem',
 ]
 
 
@@ -72,8 +72,8 @@ class ItemBox(gtk.ScrolledWindow):
   def add_item(self, item):
     self._vbox_items.pack_start(item.widget, expand=False, fill=False)
     
-    item.button_remove.connect("clicked", self._on_item_button_remove_clicked, item)
-    item.widget.connect("key-press-event", self._on_item_widget_key_press_event, item)
+    item.button_remove.connect('clicked', self._on_item_button_remove_clicked, item)
+    item.widget.connect('key-press-event', self._on_item_widget_key_press_event, item)
     
     self._setup_drag(item)
     
@@ -125,10 +125,10 @@ class ItemBox(gtk.ScrolledWindow):
   def _on_item_widget_key_press_event(self, widget, event, item):
     if event.state & gtk.gdk.MOD1_MASK:     # Alt key
       key_name = gtk.gdk.keyval_name(event.keyval)
-      if key_name in ["Up", "KP_Up"]:
+      if key_name in ['Up', 'KP_Up']:
         self.reorder_item(
           item, self._get_item_position(item) - 1)
-      elif key_name in ["Down", "KP_Down"]:
+      elif key_name in ['Down', 'KP_Down']:
         self.reorder_item(
           item, self._get_item_position(item) + 1)
   
@@ -167,14 +167,14 @@ class ItemBoxItem(object):
     self._button_remove = gtk.Button()
     self._setup_item_button(self._button_remove, gtk.STOCK_CLOSE)
     
-    self._event_box.connect("enter-notify-event", self._on_event_box_enter_notify_event)
-    self._event_box.connect("leave-notify-event", self._on_event_box_leave_notify_event)
+    self._event_box.connect('enter-notify-event', self._on_event_box_enter_notify_event)
+    self._event_box.connect('leave-notify-event', self._on_event_box_leave_notify_event)
     
     self._is_event_box_allocated_size = False
     self._buttons_allocation = None
-    self._event_box.connect("size-allocate", self._on_event_box_size_allocate)
+    self._event_box.connect('size-allocate', self._on_event_box_size_allocate)
     self._event_box_buttons.connect(
-      "size-allocate", self._on_event_box_buttons_size_allocate)
+      'size-allocate', self._on_event_box_buttons_size_allocate)
     
     self._event_box.show_all()
     
@@ -226,7 +226,7 @@ class ItemBoxItem(object):
     # Assign enough height to the HBox to make sure it does not resize when
     # showing buttons.
     if self._buttons_allocation.height >= allocation.height:
-      self._hbox.set_property("height-request", allocation.height)
+      self._hbox.set_property('height-request', allocation.height)
   
   def _on_event_box_buttons_size_allocate(self, event_box, allocation):
     if self._buttons_allocation is not None:
@@ -238,7 +238,7 @@ class ItemBoxItem(object):
     # buttons are hidden. This avoids a problem with unreachable buttons when
     # the horizontal scrollbar is displayed.
     self._event_box_buttons.set_property(
-      "width-request", self._buttons_allocation.width)
+      'width-request', self._buttons_allocation.width)
     
     self._hbox_buttons.hide()
 
@@ -249,15 +249,15 @@ class ArrayBox(ItemBox):
   
   Signals:
   
-  * `"array-box-changed"` - An item was added, reordered or removed by the user.
-  * `"array-box-item-changed"` - The contents of an item was modified by the
+  * `'array-box-changed'` - An item was added, reordered or removed by the user.
+  * `'array-box-item-changed'` - The contents of an item was modified by the
     user. Currently, this signal is not invoked in this widget and can only be
-    invoked explicitly by calling `ArrayBox.emit("array-box-item-changed")`.
+    invoked explicitly by calling `ArrayBox.emit('array-box-item-changed')`.
   """
   
   __gsignals__ = {
-    b"array-box-changed": (gobject.SIGNAL_RUN_FIRST, None, ()),
-    b"array-box-item-changed": (gobject.SIGNAL_RUN_FIRST, None, ())}
+    b'array-box-changed': (gobject.SIGNAL_RUN_FIRST, None, ()),
+    b'array-box-item-changed': (gobject.SIGNAL_RUN_FIRST, None, ())}
   
   _SIZE_HBOX_SPACING = 6
   
@@ -330,7 +330,7 @@ class ArrayBox(ItemBox):
     self._size_spin_button.set_numeric(True)
     self._size_spin_button.set_value(0)
     
-    self._size_spin_button_label = gtk.Label(_("Size"))
+    self._size_spin_button_label = gtk.Label(_('Size'))
     
     self._size_hbox = gtk.HBox()
     self._size_hbox.set_spacing(self._SIZE_HBOX_SPACING)
@@ -341,7 +341,7 @@ class ArrayBox(ItemBox):
     self._vbox.reorder_child(self._size_hbox, 0)
     
     self._size_spin_button.connect(
-      "value-changed", self._on_size_spin_button_value_changed)
+      'value-changed', self._on_size_spin_button_value_changed)
   
   def add_item(self, item_value=None, index=None):
     if item_value is None:
@@ -353,17 +353,17 @@ class ArrayBox(ItemBox):
     
     super().add_item(item)
     
-    item.widget.connect("size-allocate", self._on_item_widget_size_allocate, item)
+    item.widget.connect('size-allocate', self._on_item_widget_size_allocate, item)
     
     if index is None:
       item.label.set_label(self._get_item_name(len(self._items)))
     
     if index is not None:
-      with self._locker.lock_temp("emit_array_box_changed_on_reorder"):
+      with self._locker.lock_temp('emit_array_box_changed_on_reorder'):
         self.reorder_item(item, index)
     
-    if self._locker.is_unlocked("update_spin_button"):
-      with self._locker.lock_temp("emit_size_spin_button_value_changed"):
+    if self._locker.is_unlocked('update_spin_button'):
+      with self._locker.lock_temp('emit_size_spin_button_value_changed'):
         self._size_spin_button.spin(gtk.SPIN_STEP_FORWARD, increment=1)
     
     return item
@@ -376,16 +376,16 @@ class ArrayBox(ItemBox):
     
     self._rename_item_names(min(orig_position, processed_new_position))
     
-    if self._locker.is_unlocked("emit_array_box_changed_on_reorder"):
-      self.emit("array-box-changed")
+    if self._locker.is_unlocked('emit_array_box_changed_on_reorder'):
+      self.emit('array-box-changed')
   
   def remove_item(self, item):
-    if (self._locker.is_unlocked("prevent_removal_below_min_size")
+    if (self._locker.is_unlocked('prevent_removal_below_min_size')
         and len(self._items) == self._min_size):
       return
     
-    if self._locker.is_unlocked("update_spin_button"):
-      with self._locker.lock_temp("emit_size_spin_button_value_changed"):
+    if self._locker.is_unlocked('update_spin_button'):
+      with self._locker.lock_temp('emit_size_spin_button_value_changed'):
         self._size_spin_button.spin(gtk.SPIN_STEP_BACKWARD, increment=1)
     
     item_position = self._get_item_position(item)
@@ -401,8 +401,8 @@ class ArrayBox(ItemBox):
     self._rename_item_names(item_position)
   
   def set_values(self, values):
-    self._locker.lock("emit_size_spin_button_value_changed")
-    self._locker.lock("prevent_removal_below_min_size")
+    self._locker.lock('emit_size_spin_button_value_changed')
+    self._locker.lock('prevent_removal_below_min_size')
     
     orig_on_remove_item = self.on_remove_item
     self.on_remove_item = pgutils.empty_func
@@ -411,7 +411,7 @@ class ArrayBox(ItemBox):
     
     # This fixes an issue of items being allocated height of 1 when the array
     # size was previously 0.
-    self.set_property("height-request", -1)
+    self.set_property('height-request', -1)
     
     for index, value in enumerate(values):
       self.add_item(value, index)
@@ -420,8 +420,8 @@ class ArrayBox(ItemBox):
     
     self._size_spin_button.set_value(len(values))
     
-    self._locker.unlock("prevent_removal_below_min_size")
-    self._locker.unlock("emit_size_spin_button_value_changed")
+    self._locker.unlock('prevent_removal_below_min_size')
+    self._locker.unlock('emit_size_spin_button_value_changed')
   
   def _setup_drag(self, item):
     self._drag_and_drop_context.setup_drag(
@@ -437,8 +437,8 @@ class ArrayBox(ItemBox):
       self)
   
   def _on_size_spin_button_value_changed(self, size_spin_button):
-    if self._locker.is_unlocked("emit_size_spin_button_value_changed"):
-      self._locker.lock("update_spin_button")
+    if self._locker.is_unlocked('emit_size_spin_button_value_changed'):
+      self._locker.lock('update_spin_button')
       
       new_size = size_spin_button.get_value_as_int()
       
@@ -451,23 +451,23 @@ class ArrayBox(ItemBox):
         for unused_ in range(num_elements_to_remove):
           self.remove_item(self._items[-1])
       
-      self.emit("array-box-changed")
+      self.emit('array-box-changed')
       
-      self._locker.unlock("update_spin_button")
+      self._locker.unlock('update_spin_button')
   
   def _on_item_button_remove_clicked(self, button, item):
-    self._locker.lock("emit_size_spin_button_value_changed")
+    self._locker.lock('emit_size_spin_button_value_changed')
     
     should_emit_signal = (
       len(self._items) > self._min_size
-      or self._locker.is_locked("prevent_removal_below_min_size"))
+      or self._locker.is_locked('prevent_removal_below_min_size'))
     
     super()._on_item_button_remove_clicked(button, item)
     
     if should_emit_signal:
-      self.emit("array-box-changed")
+      self.emit('array-box-changed')
     
-    self._locker.unlock("emit_size_spin_button_value_changed")
+    self._locker.unlock('emit_size_spin_button_value_changed')
   
   def _on_item_widget_size_allocate(self, item_widget, allocation, item):
     if item in self._items_allocations:
@@ -488,7 +488,7 @@ class ArrayBox(ItemBox):
         width_diff,
         self._items_total_width,
         self.max_width,
-        "width-request")
+        'width-request')
       
       self._items_total_width = self._items_total_width + width_diff
   
@@ -501,7 +501,7 @@ class ArrayBox(ItemBox):
         height_diff,
         self._items_total_height,
         self.max_height,
-        "height-request")
+        'height-request')
       
       self._items_total_height = self._items_total_height + height_diff
   
@@ -542,7 +542,7 @@ class ArrayBox(ItemBox):
   
   @staticmethod
   def _get_item_name(index):
-    return _("Element") + " " + str(index)
+    return _('Element') + ' ' + str(index)
 
 
 class _ArrayBoxItem(ItemBoxItem):

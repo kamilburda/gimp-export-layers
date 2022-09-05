@@ -45,37 +45,37 @@ from . import utils as utils_
 from .presenters_gtk import SettingGuiTypes
 
 __all__ = [
-  "SettingPdbTypes",
-  "Setting",
-  "IntSetting",
-  "FloatSetting",
-  "BoolSetting",
-  "EnumSetting",
-  "StringSetting",
-  "ImageSetting",
-  "ItemSetting",
-  "DrawableSetting",
-  "LayerSetting",
-  "ChannelSetting",
-  "SelectionSetting",
-  "VectorsSetting",
-  "ColorSetting",
-  "ParasiteSetting",
-  "DisplaySetting",
-  "PdbStatusSetting",
-  "FileExtensionSetting",
-  "DirpathSetting",
-  "BrushSetting",
-  "FontSetting",
-  "GradientSetting",
-  "PaletteSetting",
-  "PatternSetting",
-  "ImageIDsAndDirpathsSetting",
-  "ArraySetting",
-  "SettingValueError",
-  "SettingDefaultValueError",
-  "SettingTypes",
-  "PDB_TYPES_TO_SETTING_TYPES_MAP",
+  'SettingPdbTypes',
+  'Setting',
+  'IntSetting',
+  'FloatSetting',
+  'BoolSetting',
+  'EnumSetting',
+  'StringSetting',
+  'ImageSetting',
+  'ItemSetting',
+  'DrawableSetting',
+  'LayerSetting',
+  'ChannelSetting',
+  'SelectionSetting',
+  'VectorsSetting',
+  'ColorSetting',
+  'ParasiteSetting',
+  'DisplaySetting',
+  'PdbStatusSetting',
+  'FileExtensionSetting',
+  'DirpathSetting',
+  'BrushSetting',
+  'FontSetting',
+  'GradientSetting',
+  'PaletteSetting',
+  'PatternSetting',
+  'ImageIDsAndDirpathsSetting',
+  'ArraySetting',
+  'SettingValueError',
+  'SettingDefaultValueError',
+  'SettingTypes',
+  'PDB_TYPES_TO_SETTING_TYPES_MAP',
 ]
 
 
@@ -110,7 +110,7 @@ class SettingPdbTypes(object):
   array_color = gimpenums.PDB_COLORARRAY
   
   none = None
-  automatic = "automatic"
+  automatic = 'automatic'
 
 
 @future.utils.python_2_unicode_compatible
@@ -138,52 +138,52 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
 
   The following specific event types are invoked for settings:
   
-    * `"value-changed"` - invoked after `set_value()` or `reset()` is called
-      and before events of type `"after-set-value"` or `"after-reset"`.
+    * `'value-changed'` - invoked after `set_value()` or `reset()` is called
+      and before events of type `'after-set-value'` or `'after-reset'`.
     
-    * `"before-set-value"` - invoked before `set_value()` is called.
+    * `'before-set-value'` - invoked before `set_value()` is called.
     
-    * `"after-set-value"` - invoked after `set_value()` is called.
+    * `'after-set-value'` - invoked after `set_value()` is called.
     
-    * `"before-reset"` - invoked before `reset()` is called.
+    * `'before-reset'` - invoked before `reset()` is called.
     
-    * `"after-reset"` - invoked after `reset()` is called.
+    * `'after-reset'` - invoked after `reset()` is called.
     
-    * `"before-set-gui"` - invoked before `set_gui()` is called.
+    * `'before-set-gui'` - invoked before `set_gui()` is called.
     
-    * `"after-set-gui"` - invoked after `set_gui()` is called.
+    * `'after-set-gui'` - invoked after `set_gui()` is called.
     
-    * `"before-load"` - invoked before loading a setting via
+    * `'before-load'` - invoked before loading a setting via
       `setting.persistor.Persistor.load()`.
     
-    * `"after-load"` - invoked after loading a setting via
+    * `'after-load'` - invoked after loading a setting via
       `setting.persistor.Persistor.load()`. Events will not be invoked if
       loading settings failed (i.e. `Persistor` returns `READ_FAIL` status).
       Events will be invoked for all settings, even if some of them were not
       found in setting sources (i.e. `Persistor` returns
       `NOT_ALL_SETTINGS_FOUND` status).
     
-    * `"before-save"` - invoked before saving a setting via
+    * `'before-save'` - invoked before saving a setting via
       `setting.persistor.Persistor.save()`.
     
-    * `"after-save"` - invoked after saving a setting via
+    * `'after-save'` - invoked after saving a setting via
       `setting.persistor.Persistor.save()`. Events will not be invoked if saving
       settings failed (i.e. `Persistor` returns `SAVE_FAIL` status).
     
-    * `"before-load-group"` - invoked before loading settings in a group via
+    * `'before-load-group'` - invoked before loading settings in a group via
       `Group.load()`.
     
-    * `"after-load-group"` - invoked after loading settings in a group via
+    * `'after-load-group'` - invoked after loading settings in a group via
       `Group.load()`. This is useful if the group contains settings with
       different setting sources so that the event is invoked only once after
       all settings from different sources are loaded. This also applies to
-      other related events (`"before-load-group"`, `"before-save-group"`,
-      `"after-save-group"`).
+      other related events (`'before-load-group'`, `'before-save-group'`,
+      `'after-save-group'`).
     
-    * `"before-save-group"` - invoked before saving settings in a group via
+    * `'before-save-group'` - invoked before saving settings in a group via
       `Group.load()`.
     
-    * `"after-save-group"` - invoked after saving settings in a group via
+    * `'after-save-group'` - invoked after saving settings in a group via
       `Group.load()`.
   
   If a setting subclass supports "empty" values, such values will not be
@@ -245,7 +245,7 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     to e.g. iterate over a specific subset of settings.
   """
   
-  DEFAULT_VALUE = type(b"DefaultValue", (), {})()
+  DEFAULT_VALUE = type(b'DefaultValue', (), {})()
   
   _ALLOWED_PDB_TYPES = []
   _ALLOWED_GUI_TYPES = []
@@ -437,21 +437,21 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     assigned, the value is recorded. Once a GUI element is assigned to the
     setting, the recorded value is copied over to the GUI element.
     
-    Invoke event handlers of types `"before-set-value"` before assigning the
-    value and `"value-changed"` and `"after-set-value"` (in this order) after
+    Invoke event handlers of types `'before-set-value'` before assigning the
+    value and `'value-changed'` and `'after-set-value'` (in this order) after
     assigning the value.
     
     Note: This is a method and not a property because of the additional overhead
     introduced by validation, GUI updating and event handling. `value` still
     remains a property for the sake of brevity.
     """
-    self.invoke_event("before-set-value")
+    self.invoke_event('before-set-value')
     
     self._validate_and_assign_value(value)
     self._setting_value_synchronizer.apply_setting_value_to_gui(value)
     
-    self.invoke_event("value-changed")
-    self.invoke_event("after-set-value")
+    self.invoke_event('value-changed')
+    self.invoke_event('after-set-value')
   
   def reset(self):
     """
@@ -463,24 +463,24 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     
     in that `reset()` does not validate the default value.
     
-    Invoke event handlers of types `"before-reset"` before resetting and
-    `"value-changed"` and `"after-reset"` (in this order) after resetting.
+    Invoke event handlers of types `'before-reset'` before resetting and
+    `'value-changed'` and `'after-reset'` (in this order) after resetting.
     
     `reset()` also updates the GUI.
     
     If the default value is an empty container (list, dict, ...), resetting
     works properly. If the default value is a non-empty container, it is the
     responsibility of the caller to ensure that the default value does not get
-    modified, for example by connecting a `"before-reset"` event that sets the
+    modified, for example by connecting a `'before-reset'` event that sets the
     value to the correct default value before resetting.
     """
-    self.invoke_event("before-reset")
+    self.invoke_event('before-reset')
     
     self._value = self._copy_value(self._default_value)
     self._setting_value_synchronizer.apply_setting_value_to_gui(self._value)
     
-    self.invoke_event("value-changed")
-    self.invoke_event("after-reset")
+    self.invoke_event('value-changed')
+    self.invoke_event('after-reset')
   
   def set_gui(
         self,
@@ -519,11 +519,11 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       in `__init__()`.
     """
     if gui_type != SettingGuiTypes.automatic and gui_element is None:
-      raise ValueError("gui_element cannot be None if gui_type is automatic")
+      raise ValueError('gui_element cannot be None if gui_type is automatic')
     if gui_type == SettingGuiTypes.automatic and gui_element is not None:
-      raise ValueError("gui_type cannot be automatic if gui_element is not None")
+      raise ValueError('gui_type cannot be automatic if gui_element is not None')
     
-    self.invoke_event("before-set-gui")
+    self.invoke_event('before-set-gui')
     
     if gui_type == SettingGuiTypes.automatic:
       gui_type = self._gui_type
@@ -539,7 +539,7 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       old_presenter=self._gui,
       auto_update_gui_to_setting=auto_update_gui_to_setting)
     
-    self.invoke_event("after-set-gui")
+    self.invoke_event('after-set-gui')
   
   def load(self, setting_sources=None):
     """
@@ -659,7 +659,7 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   
   def _apply_gui_value_to_setting(self, value):
     self._validate_and_assign_value(value)
-    self.invoke_event("value-changed")
+    self.invoke_event('value-changed')
   
   def _validate_setting(self, value):
     try:
@@ -698,8 +698,8 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       return pdb_type
     else:
       raise ValueError(
-        "GIMP PDB type '{}' not allowed; for the list of allowed PDB types, refer to "
-        "the documentation of the appropriate Setting class".format(pdb_type))
+        'GIMP PDB type "{}" not allowed; for the list of allowed PDB types, refer to '
+        'the documentation of the appropriate Setting class'.format(pdb_type))
   
   def _get_default_pdb_type(self):
     if self._ALLOWED_PDB_TYPES:
@@ -724,7 +724,7 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
         gui_type_to_return = gui_type
       else:
         raise ValueError(
-          "{}: invalid GUI type '{}'; must be one of {}".format(
+          '{}: invalid GUI type "{}"; must be one of {}'.format(
             self.name,
             gui_type,
             [type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
@@ -765,9 +765,9 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   
   Error messages:
   
-  * `"below_min"` - The value assigned is less than `min_value`.
+  * `'below_min'` - The value assigned is less than `min_value`.
   
-  * `"above_max"` - The value assigned is greater than `max_value`.
+  * `'above_max'` - The value assigned is greater than `max_value`.
   """
   
   def __init__(self, name, min_value=None, max_value=None, **kwargs):
@@ -777,10 +777,10 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
     super().__init__(name, **kwargs)
   
   def _init_error_messages(self):
-    self.error_messages["below_min"] = (
-      _("Value cannot be less than {}.").format(self._min_value))
-    self.error_messages["above_max"] = (
-      _("Value cannot be greater than {}.").format(self._max_value))
+    self.error_messages['below_min'] = (
+      _('Value cannot be less than {}.').format(self._min_value))
+    self.error_messages['above_max'] = (
+      _('Value cannot be greater than {}.').format(self._max_value))
   
   @property
   def min_value(self):
@@ -793,21 +793,21 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   @property
   def description(self):
     if self._min_value is not None and self._max_value is None:
-      return "{} >= {}".format(self._pdb_name, self._min_value)
+      return '{} >= {}'.format(self._pdb_name, self._min_value)
     elif self._min_value is None and self._max_value is not None:
-      return "{} <= {}".format(self._pdb_name, self._max_value)
+      return '{} <= {}'.format(self._pdb_name, self._max_value)
     elif self._min_value is not None and self._max_value is not None:
-      return "{} <= {} <= {}".format(self._min_value, self._pdb_name, self._max_value)
+      return '{} <= {} <= {}'.format(self._min_value, self._pdb_name, self._max_value)
     else:
       return self._display_name
   
   def _validate(self, value):
     if self._min_value is not None and value < self._min_value:
       raise SettingValueError(
-        utils_.value_to_str_prefix(value) + self.error_messages["below_min"])
+        utils_.value_to_str_prefix(value) + self.error_messages['below_min'])
     if self._max_value is not None and value > self._max_value:
       raise SettingValueError(
-        utils_.value_to_str_prefix(value) + self.error_messages["above_max"])
+        utils_.value_to_str_prefix(value) + self.error_messages['above_max'])
 
 
 class IntSetting(NumericSetting):
@@ -871,7 +871,7 @@ class BoolSetting(Setting):
   
   @property
   def description(self):
-    return self._description + "?"
+    return self._description + '?'
   
   def _assign_value(self, value):
     self._value = bool(value)
@@ -912,9 +912,9 @@ class EnumSetting(Setting):
   
   Raises:
   
-  * `SettingValueError` - See `"invalid_value"` error message below.
+  * `SettingValueError` - See `'invalid_value'` error message below.
   
-  * `SettingDefaultValueError` - See `"invalid_default_value"` error message
+  * `SettingDefaultValueError` - See `'invalid_default_value'` error message
     below.
   
   * `ValueError` - no items were specified, the same value was assigned to
@@ -925,10 +925,10 @@ class EnumSetting(Setting):
   
   Error messages:
   
-  * `"invalid_value"` - The value assigned is not one of the items in this
+  * `'invalid_value'` - The value assigned is not one of the items in this
     setting.
   
-  * `"invalid_default_value"` - Item name is invalid (not found in the `items`
+  * `'invalid_default_value'` - Item name is invalid (not found in the `items`
     parameter when instantiating the object).
   """
   
@@ -959,16 +959,16 @@ class EnumSetting(Setting):
     # still be accessible before the instantiation if need be.
     self._error_messages = {}
     
-    self._error_messages["invalid_value"] = (
-      _("Invalid item value; valid values: {}").format(list(self._item_values)))
+    self._error_messages['invalid_value'] = (
+      _('Invalid item value; valid values: {}').format(list(self._item_values)))
     
-    self._error_messages["invalid_default_value"] = (
-      "invalid identifier for the default value; must be one of {}").format(
+    self._error_messages['invalid_default_value'] = (
+      'invalid identifier for the default value; must be one of {}').format(
         list(self._items))
     
-    if "error_messages" in kwargs:
-      self._error_messages.update(kwargs["error_messages"])
-    kwargs["error_messages"] = self._error_messages
+    if 'error_messages' in kwargs:
+      self._error_messages.update(kwargs['error_messages'])
+    kwargs['error_messages'] = self._error_messages
     
     self._empty_value = self._get_empty_value(empty_value)
     
@@ -980,7 +980,7 @@ class EnumSetting(Setting):
   
   @property
   def description(self):
-    return self._description + " " + self._items_description
+    return self._description + ' ' + self._items_description
   
   @property
   def items(self):
@@ -1043,25 +1043,25 @@ class EnumSetting(Setting):
         # value (integer) must be passed to the setting initialization.
         return self._items[default_value]
       else:
-        raise SettingDefaultValueError(self._error_messages["invalid_default_value"])
+        raise SettingDefaultValueError(self._error_messages['invalid_default_value'])
   
   def _validate(self, value):
     if (value not in self._item_values
         or (not self._allow_empty_values and self._is_value_empty(value))):
       raise SettingValueError(
-        utils_.value_to_str_prefix(value) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(value) + self.error_messages['invalid_value'])
   
   def _get_items_description(self):
-    items_description = ""
-    items_sep = ", "
+    items_description = ''
+    items_sep = ', '
     
     for value, display_name in zip(
           self._items.values(), self._items_display_names.values()):
       description = utils_.get_processed_description(None, display_name)
-      items_description += "{} ({}){}".format(description, value, items_sep)
+      items_description += '{} ({}){}'.format(description, value, items_sep)
     items_description = items_description[:-len(items_sep)]
     
-    return "{ " + items_description + " }"
+    return '{ ' + items_description + ' }'
   
   def _create_item_attributes(self, input_items):
     items = collections.OrderedDict()
@@ -1069,7 +1069,7 @@ class EnumSetting(Setting):
     item_values = set()
     
     if not input_items:
-      raise ValueError("must specify at least one item")
+      raise ValueError('must specify at least one item')
     if all(len(elem) == 2 for elem in input_items):
       for i, (item_name, item_display_name) in enumerate(input_items):
         items[item_name] = i
@@ -1079,15 +1079,15 @@ class EnumSetting(Setting):
       for item_name, item_display_name, item_value in input_items:
         if item_value in item_values:
           raise ValueError(
-            "cannot set the same value for multiple items - they must be unique")
+            'cannot set the same value for multiple items - they must be unique')
         
         items[item_name] = item_value
         items_display_names[item_name] = item_display_name
         item_values.add(item_value)
     else:
       raise ValueError(
-        "wrong number of tuple elements in items - must be only 2- "
-        "or only 3-element tuples")
+        'wrong number of tuple elements in items - must be only 2- '
+        'or only 3-element tuples')
     
     return items, items_display_names, item_values
   
@@ -1097,7 +1097,7 @@ class EnumSetting(Setting):
         return self._items[empty_value_name]
       else:
         raise ValueError(
-          "invalid identifier for the empty value; must be one of {}".format(
+          'invalid identifier for the empty value; must be one of {}'.format(
             list(self._items)))
     else:
       return None
@@ -1111,12 +1111,12 @@ class StringSetting(Setting):
   
   * `SettingPdbTypes.string`
   
-  Default value: `""`
+  Default value: `''`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
-  _DEFAULT_DEFAULT_VALUE = ""
+  _DEFAULT_DEFAULT_VALUE = ''
   
   def set_value(self, value):
     if isinstance(value, bytes):
@@ -1139,7 +1139,7 @@ class ImageSetting(Setting):
   
   Error messages:
   
-  * `"invalid_value"` - The image assigned is invalid.
+  * `'invalid_value'` - The image assigned is invalid.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.image]
@@ -1150,12 +1150,12 @@ class ImageSetting(Setting):
     return value
   
   def _init_error_messages(self):
-    self.error_messages["invalid_value"] = _("Invalid image.")
+    self.error_messages['invalid_value'] = _('Invalid image.')
   
   def _validate(self, image):
     if not pdb.gimp_image_is_valid(image):
       raise SettingValueError(
-        utils_.value_to_str_prefix(image) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(image) + self.error_messages['invalid_value'])
 
 
 class ItemSetting(Setting):
@@ -1172,7 +1172,7 @@ class ItemSetting(Setting):
   
   Error messages:
   
-  * `"invalid_value"` - The item assigned is invalid.
+  * `'invalid_value'` - The item assigned is invalid.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.item]
@@ -1183,12 +1183,12 @@ class ItemSetting(Setting):
     return value
   
   def _init_error_messages(self):
-    self.error_messages["invalid_value"] = _("Invalid item.")
+    self.error_messages['invalid_value'] = _('Invalid item.')
   
   def _validate(self, item):
     if not isinstance(item, gimp.Item):
       raise SettingValueError(
-        utils_.value_to_str_prefix(item) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(item) + self.error_messages['invalid_value'])
 
 
 class DrawableSetting(Setting):
@@ -1205,7 +1205,7 @@ class DrawableSetting(Setting):
   
   Error messages:
   
-  * `"invalid_value"` - The drawable assigned is invalid.
+  * `'invalid_value'` - The drawable assigned is invalid.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.drawable]
@@ -1216,12 +1216,12 @@ class DrawableSetting(Setting):
     return value
     
   def _init_error_messages(self):
-    self.error_messages["invalid_value"] = _("Invalid drawable.")
+    self.error_messages['invalid_value'] = _('Invalid drawable.')
   
   def _validate(self, drawable):
     if not pdb.gimp_item_is_drawable(drawable):
       raise SettingValueError(
-        utils_.value_to_str_prefix(drawable) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(drawable) + self.error_messages['invalid_value'])
 
 
 class LayerSetting(Setting):
@@ -1238,7 +1238,7 @@ class LayerSetting(Setting):
   
   Error messages:
   
-  * `"invalid_value"` - The layer assigned is invalid.
+  * `'invalid_value'` - The layer assigned is invalid.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.layer]
@@ -1249,12 +1249,12 @@ class LayerSetting(Setting):
     return value
   
   def _init_error_messages(self):
-    self.error_messages["invalid_value"] = _("Invalid layer.")
+    self.error_messages['invalid_value'] = _('Invalid layer.')
   
   def _validate(self, layer):
     if not pdb.gimp_item_is_layer(layer):
       raise SettingValueError(
-        utils_.value_to_str_prefix(layer) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(layer) + self.error_messages['invalid_value'])
 
 
 class ChannelSetting(Setting):
@@ -1271,7 +1271,7 @@ class ChannelSetting(Setting):
   
   Error messages:
   
-  * `"invalid_value"` - The channel assigned is invalid.
+  * `'invalid_value'` - The channel assigned is invalid.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.channel]
@@ -1282,12 +1282,12 @@ class ChannelSetting(Setting):
     return value
   
   def _init_error_messages(self):
-    self.error_messages["invalid_value"] = _("Invalid channel.")
+    self.error_messages['invalid_value'] = _('Invalid channel.')
   
   def _validate(self, channel):
     if not pdb.gimp_item_is_channel(channel):
       raise SettingValueError(
-        utils_.value_to_str_prefix(channel) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(channel) + self.error_messages['invalid_value'])
 
 
 class SelectionSetting(ChannelSetting):
@@ -1307,7 +1307,7 @@ class SelectionSetting(ChannelSetting):
   
   Error messages:
   
-  * `"invalid_value"` - The channel assigned is invalid.
+  * `'invalid_value'` - The channel assigned is invalid.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.selection]
@@ -1329,7 +1329,7 @@ class VectorsSetting(Setting):
   
   Error messages:
   
-  * `"invalid_value"` - The vectors instance assigned is invalid.
+  * `'invalid_value'` - The vectors instance assigned is invalid.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.vectors, SettingPdbTypes.path]
@@ -1340,12 +1340,12 @@ class VectorsSetting(Setting):
     return value
   
   def _init_error_messages(self):
-    self.error_messages["invalid_value"] = _("Invalid vectors.")
+    self.error_messages['invalid_value'] = _('Invalid vectors.')
   
   def _validate(self, vectors):
     if not pdb.gimp_item_is_vectors(vectors):
       raise SettingValueError(
-        utils_.value_to_str_prefix(vectors) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(vectors) + self.error_messages['invalid_value'])
 
 
 class ColorSetting(Setting):
@@ -1360,7 +1360,7 @@ class ColorSetting(Setting):
   
   Error messages:
   
-  * `"invalid_value"` - The color assigned is invalid.
+  * `'invalid_value'` - The color assigned is invalid.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.color]
@@ -1369,12 +1369,12 @@ class ColorSetting(Setting):
   _DEFAULT_DEFAULT_VALUE = lambda self: gimpcolor.RGB(0, 0, 0)
   
   def _init_error_messages(self):
-    self.error_messages["invalid_value"] = _("Invalid color.")
+    self.error_messages['invalid_value'] = _('Invalid color.')
   
   def _validate(self, color):
     if not isinstance(color, gimpcolor.RGB):
       raise SettingValueError(
-        utils_.value_to_str_prefix(color) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(color) + self.error_messages['invalid_value'])
 
 
 class DisplaySetting(Setting):
@@ -1387,7 +1387,7 @@ class DisplaySetting(Setting):
   
   Error messages:
   
-  * `"invalid_value"` - The display assigned is invalid.
+  * `'invalid_value'` - The display assigned is invalid.
   
   Empty values:
   
@@ -1402,12 +1402,12 @@ class DisplaySetting(Setting):
     return value
   
   def _init_error_messages(self):
-    self.error_messages["invalid_value"] = _("Invalid display.")
+    self.error_messages['invalid_value'] = _('Invalid display.')
   
   def _validate(self, display):
     if not pdb.gimp_display_is_valid(display):
       raise SettingValueError(
-        utils_.value_to_str_prefix(display) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(display) + self.error_messages['invalid_value'])
 
 
 class ParasiteSetting(Setting):
@@ -1419,27 +1419,27 @@ class ParasiteSetting(Setting):
   * `SettingPdbTypes.parasite`
   
   Default value: `gimp.Parasite` instance whose name is equal to the setting
-  name, all flags are disabled (i.e. equal to 0) and data are empty (`""`).
+  name, all flags are disabled (i.e. equal to 0) and data are empty (`''`).
   
   Error messages:
   
-  * `"invalid_value"` - The value is not a `gimp.Parasite` instance.
+  * `'invalid_value'` - The value is not a `gimp.Parasite` instance.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.parasite]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.parasite_box]
-  _DEFAULT_DEFAULT_VALUE = lambda self: gimp.Parasite(self.name, 0, "")
+  _DEFAULT_DEFAULT_VALUE = lambda self: gimp.Parasite(self.name, 0, '')
   
   def _copy_value(self, value):
     return value
   
   def _init_error_messages(self):
-    self.error_messages["invalid_value"] = _("Invalid parasite.")
+    self.error_messages['invalid_value'] = _('Invalid parasite.')
   
   def _validate(self, parasite):
     if not isinstance(parasite, gimp.Parasite):
       raise SettingValueError(
-        utils_.value_to_str_prefix(parasite) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(parasite) + self.error_messages['invalid_value'])
 
 
 class PdbStatusSetting(EnumSetting):
@@ -1464,11 +1464,11 @@ class PdbStatusSetting(EnumSetting):
   
   def __init__(self, name, **kwargs):
     self._pdb_statuses = [
-      ("PDB_EXECUTION_ERROR", "PDB_EXECUTION_ERROR", gimpenums.PDB_EXECUTION_ERROR),
-      ("PDB_CALLING_ERROR", "PDB_CALLING_ERROR", gimpenums.PDB_CALLING_ERROR),
-      ("PDB_PASS_THROUGH", "PDB_PASS_THROUGH", gimpenums.PDB_PASS_THROUGH),
-      ("PDB_SUCCESS", "PDB_SUCCESS", gimpenums.PDB_SUCCESS),
-      ("PDB_CANCEL", "PDB_CANCEL", gimpenums.PDB_CANCEL)]
+      ('PDB_EXECUTION_ERROR', 'PDB_EXECUTION_ERROR', gimpenums.PDB_EXECUTION_ERROR),
+      ('PDB_CALLING_ERROR', 'PDB_CALLING_ERROR', gimpenums.PDB_CALLING_ERROR),
+      ('PDB_PASS_THROUGH', 'PDB_PASS_THROUGH', gimpenums.PDB_PASS_THROUGH),
+      ('PDB_SUCCESS', 'PDB_SUCCESS', gimpenums.PDB_SUCCESS),
+      ('PDB_CANCEL', 'PDB_CANCEL', gimpenums.PDB_CANCEL)]
     
     super().__init__(name, self._pdb_statuses, empty_value=None, **kwargs)
 
@@ -1504,15 +1504,15 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
     """
     self._string_validator = string_validator
     
-    if "default_value" in kwargs and isinstance(kwargs["default_value"], bytes):
-      kwargs["default_value"] = (
-        kwargs["default_value"].decode(pgconstants.GIMP_CHARACTER_ENCODING))
+    if 'default_value' in kwargs and isinstance(kwargs['default_value'], bytes):
+      kwargs['default_value'] = (
+        kwargs['default_value'].decode(pgconstants.GIMP_CHARACTER_ENCODING))
     
     super().__init__(name, **kwargs)
   
   def _init_error_messages(self):
     for status in pgpath.FileValidatorErrorStatuses.ERROR_STATUSES:
-      self.error_messages[status] = ""
+      self.error_messages[status] = ''
   
   def _validate(self, string_):
     is_valid, status_messages = self._string_validator.is_valid(string_)
@@ -1526,7 +1526,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
       
       raise SettingValueError(
         utils_.value_to_str_prefix(string_)
-        + "\n".join([message for message in new_status_messages]))
+        + '\n'.join([message for message in new_status_messages]))
   
 
 class FileExtensionSetting(ValidatableStringSetting):
@@ -1542,11 +1542,11 @@ class FileExtensionSetting(ValidatableStringSetting):
   
   Empty values:
   
-  * `""`
+  * `''`
   """
   
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
-  _EMPTY_VALUES = [""]
+  _EMPTY_VALUES = ['']
   
   def __init__(self, name, **kwargs):
     super().__init__(name, pgpath.FileExtensionValidator, **kwargs)
@@ -1566,11 +1566,11 @@ class DirpathSetting(ValidatableStringSetting):
   Empty values:
   
   * `None`
-  * `""`
+  * `''`
   """
   
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.folder_chooser]
-  _EMPTY_VALUES = [None, ""]
+  _EMPTY_VALUES = [None, '']
   
   def __init__(self, name, **kwargs):
     super().__init__(name, pgpath.DirpathValidator, **kwargs)
@@ -1597,7 +1597,7 @@ class BrushSetting(Setting):
   
   Error messages:
   
-  * `"invalid_value"` - Invalid number of tuple elements.
+  * `'invalid_value'` - Invalid number of tuple elements.
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
@@ -1614,14 +1614,14 @@ class BrushSetting(Setting):
     super().set_value(value)
   
   def _init_error_messages(self):
-    self.error_messages["invalid_value"] = _(
-      "Invalid number of tuple elements (must be at most {}).".format(
+    self.error_messages['invalid_value'] = _(
+      'Invalid number of tuple elements (must be at most {}).'.format(
         self._MAX_NUM_TUPLE_ELEMENTS))
   
   def _validate(self, brush_tuple):
     if len(brush_tuple) > self._MAX_NUM_TUPLE_ELEMENTS:
       raise SettingValueError(
-        utils_.value_to_str_prefix(brush_tuple) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(brush_tuple) + self.error_messages['invalid_value'])
 
 
 class FontSetting(Setting):
@@ -1632,17 +1632,17 @@ class FontSetting(Setting):
   
   * SettingPdbTypes.string
   
-  Default value: `""`
+  Default value: `''`
   
   Empty values:
   
-  * `""`
+  * `''`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.font_select_button]
-  _DEFAULT_DEFAULT_VALUE = ""
-  _EMPTY_VALUES = [""]
+  _DEFAULT_DEFAULT_VALUE = ''
+  _EMPTY_VALUES = ['']
 
 
 class GradientSetting(Setting):
@@ -1654,17 +1654,17 @@ class GradientSetting(Setting):
   
   * SettingPdbTypes.string
   
-  Default value: `""`
+  Default value: `''`
   
   Empty values:
   
-  * `""`
+  * `''`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.gradient_select_button]
-  _DEFAULT_DEFAULT_VALUE = ""
-  _EMPTY_VALUES = [""]
+  _DEFAULT_DEFAULT_VALUE = ''
+  _EMPTY_VALUES = ['']
 
 
 class PaletteSetting(Setting):
@@ -1676,17 +1676,17 @@ class PaletteSetting(Setting):
   
   * SettingPdbTypes.string
   
-  Default value: `""`
+  Default value: `''`
   
   Empty values:
   
-  * `""`
+  * `''`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.palette_select_button]
-  _DEFAULT_DEFAULT_VALUE = ""
-  _EMPTY_VALUES = [""]
+  _DEFAULT_DEFAULT_VALUE = ''
+  _EMPTY_VALUES = ['']
 
 
 class PatternSetting(Setting):
@@ -1697,17 +1697,17 @@ class PatternSetting(Setting):
   
   * SettingPdbTypes.string
   
-  Default value: `""`
+  Default value: `''`
   
   Empty values:
   
-  * `""`
+  * `''`
   """
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.pattern_select_button]
-  _DEFAULT_DEFAULT_VALUE = ""
-  _EMPTY_VALUES = [""]
+  _DEFAULT_DEFAULT_VALUE = ''
+  _EMPTY_VALUES = ['']
 
 
 class ImageIDsAndDirpathsSetting(Setting):
@@ -1810,26 +1810,26 @@ class ArraySetting(Setting):
   
   Error messages:
   
-  * `"invalid_value"` - The value is not a tuple or an iterable container.
+  * `'invalid_value'` - The value is not a tuple or an iterable container.
   
-  * `"negative_min_size"` - `min_size` is negative.
+  * `'negative_min_size'` - `min_size` is negative.
   
-  * `"min_size_greater_than_max_size"` - `min_size` is greater than `max_size`.
+  * `'min_size_greater_than_max_size'` - `min_size` is greater than `max_size`.
   
-  * `"min_size_greater_than_value_length"` - `min_size` is greater than the
+  * `'min_size_greater_than_value_length'` - `min_size` is greater than the
     length of the value.
   
-  * `"max_size_less_than_value_length"` - `max_size` is less than the length of
+  * `'max_size_less_than_value_length'` - `max_size` is less than the length of
     the value.
   
-  * `"delete_below_min_size"` - deleting an element causes the array to have
+  * `'delete_below_min_size'` - deleting an element causes the array to have
     fewer than `min_size` elements.
   
-  * `"add_above_max_size"` - adding an element causes the array to have more
+  * `'add_above_max_size'` - adding an element causes the array to have more
     than `max_size` elements.
   """
   
-  ELEMENT_DEFAULT_VALUE = type(b"DefaultElementValue", (), {})()
+  ELEMENT_DEFAULT_VALUE = type(b'DefaultElementValue', (), {})()
   
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.array_box]
   _DEFAULT_DEFAULT_VALUE = ()
@@ -1847,18 +1847,18 @@ class ArraySetting(Setting):
     """
     Additional parameters include all parameters that would be passed to the
     setting class this array is composed of (i.e. array elements). These
-    parameters must be prefixed with `"element_"` (e.g.
+    parameters must be prefixed with `'element_'` (e.g.
     `element_default_value`). Required parameters for the basic setting classes
     include:
     * `element_type` - setting type of each array element. Passing
       `ArraySetting` is also possible, allowing to create multidimensional
       arrays. Note that in that case, required parameters for elements of each
-      subsequent dimension must be specified and must have an extra `"element_"`
+      subsequent dimension must be specified and must have an extra `'element_'`
       prefix. For example, for the second dimension of a 2D array,
       `element_element_type` must also be specified.
     * all other required parameters as per individual setting classes.
     
-    All parameters prefixed with `"element_"` will be created in the array
+    All parameters prefixed with `'element_'` will be created in the array
     setting as read-only properties. `element_default_value` will always be
     created.
     
@@ -1873,21 +1873,21 @@ class ArraySetting(Setting):
     self._max_size = max_size
     
     self._element_kwargs = {
-      key[len("element_"):]: value for key, value in kwargs.items()
-      if key.startswith("element_")}
+      key[len('element_'):]: value for key, value in kwargs.items()
+      if key.startswith('element_')}
     
     self._reference_element = self._create_reference_element()
     
-    if "default_value" not in self._element_kwargs:
-      self._element_kwargs["default_value"] = self._reference_element.default_value
+    if 'default_value' not in self._element_kwargs:
+      self._element_kwargs['default_value'] = self._reference_element.default_value
     
     for key, value in self._element_kwargs.items():
-      pgutils.create_read_only_property(self, "element_" + key, value)
+      pgutils.create_read_only_property(self, 'element_' + key, value)
     
     self._elements = []
     
     array_kwargs = {
-      key: value for key, value in kwargs.items() if not key.startswith("element_")}
+      key: value for key, value in kwargs.items() if not key.startswith('element_')}
     
     super().__init__(name, **array_kwargs)
   
@@ -1919,13 +1919,13 @@ class ArraySetting(Setting):
   def __delitem__(self, index):
     if len(self._elements) == self._min_size:
       raise SettingValueError(
-        self.error_messages["delete_below_min_size"].format(self._min_size))
+        self.error_messages['delete_below_min_size'].format(self._min_size))
     
-    self.invoke_event("before-delete-element", index)
+    self.invoke_event('before-delete-element', index)
     
     del self._elements[index]
     
-    self.invoke_event("after-delete-element")
+    self.invoke_event('after-delete-element')
   
   def __len__(self):
     """
@@ -1943,12 +1943,12 @@ class ArraySetting(Setting):
     """
     if len(self._elements) == self._max_size:
       raise SettingValueError(
-        self.error_messages["add_above_max_size"].format(self._max_size))
+        self.error_messages['add_above_max_size'].format(self._max_size))
     
     if isinstance(value, type(self.ELEMENT_DEFAULT_VALUE)):
       value = self._reference_element.default_value
     
-    self.invoke_event("before-add-element", index, value)
+    self.invoke_event('before-add-element', index, value)
     
     element = self._create_element(value)
     
@@ -1959,7 +1959,7 @@ class ArraySetting(Setting):
       self._elements.insert(index, element)
       insertion_index = index if index >= 0 else index - 1
     
-    self.invoke_event("after-add-element", insertion_index, value)
+    self.invoke_event('after-add-element', insertion_index, value)
     
     return element
   
@@ -1968,7 +1968,7 @@ class ArraySetting(Setting):
     Change the order of an array element at `index` to a new position specified
     by `new_index`. Both indexes start from 0.
     """
-    self.invoke_event("before-reorder-element", index)
+    self.invoke_event('before-reorder-element', index)
     
     element = self._elements.pop(index)
   
@@ -1977,7 +1977,7 @@ class ArraySetting(Setting):
     
     self._elements.insert(new_index, element)
     
-    self.invoke_event("after-reorder-element", index, new_index)
+    self.invoke_event('after-reorder-element', index, new_index)
   
   def remove_element(self, index):
     """
@@ -2006,13 +2006,13 @@ class ArraySetting(Setting):
     """
     if self.can_be_registered_to_pdb():
       if length_name is None:
-        length_name = "{}-length".format(self.name)
+        length_name = '{}-length'.format(self.name)
       
       if not isinstance(length_name, bytes):
         length_name = length_name.encode(pgconstants.GIMP_CHARACTER_ENCODING)
       
       if length_description is None:
-        length_description = _("Number of elements in '{}'").format(self.name)
+        length_description = _('Number of elements in "{}"').format(self.name)
       
       if not isinstance(length_description, bytes):
         length_description = length_description.encode(
@@ -2028,40 +2028,40 @@ class ArraySetting(Setting):
       return None
   
   def _init_error_messages(self):
-    self.error_messages["invalid_value"] = _("Not an array.")
-    self.error_messages["negative_min_size"] = _(
-      "Minimum array size ({}) cannot be negative.")
-    self.error_messages["min_size_greater_than_max_size"] = _(
-      "Minimum array size ({}) cannot be greater than maximum array size ({}).")
-    self.error_messages["min_size_greater_than_value_length"] = _(
-      "Minimum array size ({}) cannot be greater than the length of the value ({}).")
-    self.error_messages["max_size_less_than_value_length"] = _(
-      "Maximum array size ({}) cannot be less than the length of the value ({}).")
-    self.error_messages["delete_below_min_size"] = _(
-      "Cannot delete any more elements - array must have at least {} elements.")
-    self.error_messages["add_above_max_size"] = _(
-      "Cannot add any more elements - array must have at most {} elements.")
+    self.error_messages['invalid_value'] = _('Not an array.')
+    self.error_messages['negative_min_size'] = _(
+      'Minimum array size ({}) cannot be negative.')
+    self.error_messages['min_size_greater_than_max_size'] = _(
+      'Minimum array size ({}) cannot be greater than maximum array size ({}).')
+    self.error_messages['min_size_greater_than_value_length'] = _(
+      'Minimum array size ({}) cannot be greater than the length of the value ({}).')
+    self.error_messages['max_size_less_than_value_length'] = _(
+      'Maximum array size ({}) cannot be less than the length of the value ({}).')
+    self.error_messages['delete_below_min_size'] = _(
+      'Cannot delete any more elements - array must have at least {} elements.')
+    self.error_messages['add_above_max_size'] = _(
+      'Cannot add any more elements - array must have at most {} elements.')
   
   def _validate(self, value_array):
     if (not isinstance(value_array, collections.Iterable)
         or isinstance(value_array, types.StringTypes)):
       raise SettingValueError(
-        utils_.value_to_str_prefix(value_array) + self.error_messages["invalid_value"])
+        utils_.value_to_str_prefix(value_array) + self.error_messages['invalid_value'])
     
     if self._min_size < 0:
       raise SettingValueError(
-        self.error_messages["negative_min_size"].format(self._min_size))
+        self.error_messages['negative_min_size'].format(self._min_size))
     elif self._max_size is not None and self._min_size > self._max_size:
       raise SettingValueError(
-        self.error_messages["min_size_greater_than_max_size"].format(
+        self.error_messages['min_size_greater_than_max_size'].format(
           self._min_size, self._max_size))
     elif self._min_size > len(value_array):
       raise SettingValueError(
-        self.error_messages["min_size_greater_than_value_length"].format(
+        self.error_messages['min_size_greater_than_value_length'].format(
           self._min_size, len(value_array)))
     elif self._max_size is not None and self._max_size < len(value_array):
       raise SettingValueError(
-        self.error_messages["max_size_less_than_value_length"].format(
+        self.error_messages['max_size_less_than_value_length'].format(
           self._max_size, len(value_array)))
   
   def _assign_value(self, value_array):
@@ -2077,7 +2077,7 @@ class ArraySetting(Setting):
         exception_occurred = True
     
     if exception_occurred:
-      raise SettingValueError("\n".join([str(e) for e in exceptions]))
+      raise SettingValueError('\n'.join([str(e) for e in exceptions]))
     
     self._elements = elements
     self._value = self._get_element_values()
@@ -2085,14 +2085,14 @@ class ArraySetting(Setting):
   def _apply_gui_value_to_setting(self, value):
     # No assignment takes place to prevent breaking the sync between the array
     # and the GUI.
-    self.invoke_event("value-changed")
+    self.invoke_event('value-changed')
   
   def _copy_value(self, value):
     self._elements = [self._create_element(element_value) for element_value in value]
     return self._get_element_values()
   
   def _get_default_pdb_type(self):
-    if hasattr(self, "_element_pdb_type"):
+    if hasattr(self, '_element_pdb_type'):
       if self._element_pdb_type in self._ARRAY_PDB_TYPES:
         return self._ARRAY_PDB_TYPES[self._element_pdb_type]
     elif self._element_type._ALLOWED_PDB_TYPES:
@@ -2106,13 +2106,13 @@ class ArraySetting(Setting):
     """
     # Rely on the underlying element setting type to perform validation of the
     # default value.
-    return self._element_type(name="element", **dict(self._element_kwargs, gui_type=None))
+    return self._element_type(name='element', **dict(self._element_kwargs, gui_type=None))
   
   def _create_element(self, value):
     kwargs = dict(
       dict(
-        name="element",
-        display_name="",
+        name='element',
+        display_name='',
         pdb_type=None),
       **self._element_kwargs)
     
@@ -2132,7 +2132,7 @@ class SettingValueError(Exception):
   """
   
   def __init__(self, *args, **kwargs):
-    for kwarg in ["setting", "settings", "messages"]:
+    for kwarg in ['setting', 'settings', 'messages']:
       setattr(self, kwarg, kwargs.pop(kwarg, None))
     
     super().__init__(*args, **kwargs)
@@ -2207,10 +2207,10 @@ PDB_TYPES_TO_SETTING_TYPES_MAP = {
   gimpenums.PDB_DISPLAY: DisplaySetting,
   gimpenums.PDB_STATUS: PdbStatusSetting,
   
-  gimpenums.PDB_INT32ARRAY: {"type": ArraySetting, "element_type": IntSetting},
-  gimpenums.PDB_INT16ARRAY: {"type": ArraySetting, "element_type": IntSetting},
-  gimpenums.PDB_INT8ARRAY: {"type": ArraySetting, "element_type": IntSetting},
-  gimpenums.PDB_FLOATARRAY: {"type": ArraySetting, "element_type": FloatSetting},
-  gimpenums.PDB_STRINGARRAY: {"type": ArraySetting, "element_type": StringSetting},
-  gimpenums.PDB_COLORARRAY: {"type": ArraySetting, "element_type": ColorSetting},
+  gimpenums.PDB_INT32ARRAY: {'type': ArraySetting, 'element_type': IntSetting},
+  gimpenums.PDB_INT16ARRAY: {'type': ArraySetting, 'element_type': IntSetting},
+  gimpenums.PDB_INT8ARRAY: {'type': ArraySetting, 'element_type': IntSetting},
+  gimpenums.PDB_FLOATARRAY: {'type': ArraySetting, 'element_type': FloatSetting},
+  gimpenums.PDB_STRINGARRAY: {'type': ArraySetting, 'element_type': StringSetting},
+  gimpenums.PDB_COLORARRAY: {'type': ArraySetting, 'element_type': ColorSetting},
 }

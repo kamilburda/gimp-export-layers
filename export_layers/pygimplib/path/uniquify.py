@@ -24,9 +24,9 @@ from future.builtins import *
 import os
 
 __all__ = [
-  "uniquify_string",
-  "uniquify_filepath",
-  "uniquify_string_generic",
+  'uniquify_string',
+  'uniquify_filepath',
+  'uniquify_string_generic',
 ]
 
 
@@ -34,7 +34,7 @@ def uniquify_string(
       str_, existing_strings, uniquifier_position=None, uniquifier_generator=None):
   """
   If string `str_` is in the `existing_strings` list, return a unique string
-  by inserting a "uniquifier" (a string that makes the whole input string
+  by inserting a 'uniquifier' (a string that makes the whole input string
   unique) in `str_`. Otherwise, return `str_`.
   
   Parameters:
@@ -118,13 +118,13 @@ def uniquify_string_generic(
   """
   
   def _get_uniquified_string(uniquifier_generator):
-    return "{}{}{}".format(
+    return '{}{}{}'.format(
       str_[0:uniquifier_position], next(uniquifier_generator), str_[uniquifier_position:])
 
   def _generate_unique_number():
     i = 1
     while True:
-      yield " ({})".format(i)
+      yield ' ({})'.format(i)
       i += 1
   
   if is_unique_func(str_):

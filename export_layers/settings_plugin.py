@@ -40,147 +40,147 @@ from export_layers.gui import settings_gui
 
 def create_settings():
   settings = pg.setting.create_groups({
-    "name": "all_settings",
-    "groups": [
+    'name': 'all_settings',
+    'groups': [
       {
         # These settings require special handling in the code, hence their separation
         # from the other settings.
-        "name": "special",
-        "tags": ["ignore_reset", "ignore_load", "ignore_save"],
-        "setting_attributes": {"gui_type": None},
+        'name': 'special',
+        'tags': ['ignore_reset', 'ignore_load', 'ignore_save'],
+        'setting_attributes': {'gui_type': None},
       },
       {
-        "name": "main",
-        "setting_attributes": {
-          "setting_sources": [pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]},
+        'name': 'main',
+        'setting_attributes': {
+          'setting_sources': [pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]},
       }
     ]
   })
   
-  settings["special"].add([
+  settings['special'].add([
     {
-      "type": pg.SettingTypes.enumerated,
-      "name": "run_mode",
-      "default_value": "non_interactive",
-      "items": [
-        ("interactive", "RUN-INTERACTIVE", gimpenums.RUN_INTERACTIVE),
-        ("non_interactive", "RUN-NONINTERACTIVE", gimpenums.RUN_NONINTERACTIVE),
-        ("run_with_last_vals", "RUN-WITH-LAST-VALS", gimpenums.RUN_WITH_LAST_VALS)],
-      "display_name": _("The run mode"),
+      'type': pg.SettingTypes.enumerated,
+      'name': 'run_mode',
+      'default_value': 'non_interactive',
+      'items': [
+        ('interactive', 'RUN-INTERACTIVE', gimpenums.RUN_INTERACTIVE),
+        ('non_interactive', 'RUN-NONINTERACTIVE', gimpenums.RUN_NONINTERACTIVE),
+        ('run_with_last_vals', 'RUN-WITH-LAST-VALS', gimpenums.RUN_WITH_LAST_VALS)],
+      'display_name': _('The run mode'),
     },
     {
-      "type": pg.SettingTypes.image,
-      "name": "image",
-      "default_value": None,
-      "display_name": _("Image"),
+      'type': pg.SettingTypes.image,
+      'name': 'image',
+      'default_value': None,
+      'display_name': _('Image'),
     },
     {
-      "type": pg.SettingTypes.boolean,
-      "name": "first_plugin_run",
-      "default_value": True,
-      "pdb_type": None,
-      "setting_sources": [pg.config.SESSION_SOURCE],
+      'type': pg.SettingTypes.boolean,
+      'name': 'first_plugin_run',
+      'default_value': True,
+      'pdb_type': None,
+      'setting_sources': [pg.config.SESSION_SOURCE],
     },
   ])
   
-  settings["main"].add([
+  settings['main'].add([
     {
-      "type": pg.SettingTypes.file_extension,
-      "name": "file_extension",
-      "default_value": "png",
-      "display_name": "File extension",
+      'type': pg.SettingTypes.file_extension,
+      'name': 'file_extension',
+      'default_value': 'png',
+      'display_name': 'File extension',
     },
     {
-      "type": pg.SettingTypes.string,
-      "name": "output_directory",
-      "default_value": gimp.user_directory(1),   # `Documents` directory
-      "display_name": _("Output directory"),
-      "gui_type": None,
-      "tags": ["ignore_reset"],
+      'type': pg.SettingTypes.string,
+      'name': 'output_directory',
+      'default_value': gimp.user_directory(1),   # `Documents` directory
+      'display_name': _('Output directory'),
+      'gui_type': None,
+      'tags': ['ignore_reset'],
     },
     {
-      "type": pg.SettingTypes.string,
-      "name": "layer_filename_pattern",
-      "default_value": "[layer name]",
-      "display_name": _("Layer filename pattern"),
-      "description": _("Layer filename pattern (empty string = layer name)"),
-      "gui_type": None,
+      'type': pg.SettingTypes.string,
+      'name': 'layer_filename_pattern',
+      'default_value': '[layer name]',
+      'display_name': _('Layer filename pattern'),
+      'description': _('Layer filename pattern (empty string = layer name)'),
+      'gui_type': None,
     },
     {
-      "type": pg.SettingTypes.generic,
-      "name": "selected_layers",
+      'type': pg.SettingTypes.generic,
+      'name': 'selected_layers',
       # key: image ID; value: set of selected layer IDs
-      "default_value": collections.defaultdict(set),
-      "display_name": _("Selected layers"),
-      "pdb_type": None,
-      "setting_sources": [pg.config.SESSION_SOURCE],
+      'default_value': collections.defaultdict(set),
+      'display_name': _('Selected layers'),
+      'pdb_type': None,
+      'setting_sources': [pg.config.SESSION_SOURCE],
     },
     {
-      "type": pg.SettingTypes.generic,
-      "name": "selected_layers_persistent",
+      'type': pg.SettingTypes.generic,
+      'name': 'selected_layers_persistent',
       # key: image file path; value: set of selected layer names
-      "default_value": collections.defaultdict(set),
-      "display_name": _("Selected layers"),
-      "pdb_type": None,
-      "setting_sources": [pg.config.PERSISTENT_SOURCE],
+      'default_value': collections.defaultdict(set),
+      'display_name': _('Selected layers'),
+      'pdb_type': None,
+      'setting_sources': [pg.config.PERSISTENT_SOURCE],
     },
     {
-      "type": pg.SettingTypes.enumerated,
-      "name": "overwrite_mode",
-      "default_value": "rename_new",
-      "items": [
-        ("replace", _("_Replace"), pg.overwrite.OverwriteModes.REPLACE),
-        ("skip", _("_Skip"), pg.overwrite.OverwriteModes.SKIP),
-        ("rename_new", _("Rename _new file"), pg.overwrite.OverwriteModes.RENAME_NEW),
-        ("rename_existing", _("Rename _existing file"),
+      'type': pg.SettingTypes.enumerated,
+      'name': 'overwrite_mode',
+      'default_value': 'rename_new',
+      'items': [
+        ('replace', _('_Replace'), pg.overwrite.OverwriteModes.REPLACE),
+        ('skip', _('_Skip'), pg.overwrite.OverwriteModes.SKIP),
+        ('rename_new', _('Rename _new file'), pg.overwrite.OverwriteModes.RENAME_NEW),
+        ('rename_existing', _('Rename _existing file'),
          pg.overwrite.OverwriteModes.RENAME_EXISTING)],
-      "display_name": _("Overwrite mode (non-interactive run mode only)"),
+      'display_name': _('Overwrite mode (non-interactive run mode only)'),
     },
     {
-      "type": pg.SettingTypes.generic,
-      "name": "available_tags",
-      "default_value": operations.BUILTIN_TAGS,
-      "pdb_type": None,
-      "gui_type": None,
+      'type': pg.SettingTypes.generic,
+      'name': 'available_tags',
+      'default_value': operations.BUILTIN_TAGS,
+      'pdb_type': None,
+      'gui_type': None,
     },
     {
-      "type": pg.SettingTypes.generic,
-      "name": "plugin_version",
-      "default_value": pg.config.PLUGIN_VERSION,
-      "pdb_type": None,
-      "gui_type": None,
+      'type': pg.SettingTypes.generic,
+      'name': 'plugin_version',
+      'default_value': pg.config.PLUGIN_VERSION,
+      'pdb_type': None,
+      'gui_type': None,
     },
   ])
   
   settings.add(settings_gui.create_gui_settings())
   
-  settings["main"].add([operations.create(
-    name="procedures",
-    initial_operations=[builtin_procedures.BUILTIN_PROCEDURES["use_layer_size"]]),
+  settings['main'].add([operations.create(
+    name='procedures',
+    initial_operations=[builtin_procedures.BUILTIN_PROCEDURES['use_layer_size']]),
   ])
   
-  settings["main"].add([operations.create(
-    name="constraints",
+  settings['main'].add([operations.create(
+    name='constraints',
     initial_operations=[
-      builtin_constraints.BUILTIN_CONSTRAINTS["include_layers"],
-      builtin_constraints.BUILTIN_CONSTRAINTS["only_visible_layers"]]),
+      builtin_constraints.BUILTIN_CONSTRAINTS['include_layers'],
+      builtin_constraints.BUILTIN_CONSTRAINTS['only_visible_layers']]),
   ])
   
-  settings["main/procedures"].connect_event(
-    "after-add-operation", _on_after_add_procedure, settings["main/file_extension"])
+  settings['main/procedures'].connect_event(
+    'after-add-operation', _on_after_add_procedure, settings['main/file_extension'])
   
-  settings["main/constraints"].connect_event(
-    "after-add-operation",
+  settings['main/constraints'].connect_event(
+    'after-add-operation',
     _on_after_add_constraint,
-    settings["main/selected_layers"],
-    settings["special/image"])
+    settings['main/selected_layers'],
+    settings['special/image'])
   
   return settings
 
 
 def _on_after_add_procedure(
       procedures, procedure, orig_procedure_dict, file_extension_setting):
-  if orig_procedure_dict["name"] == "use_file_extensions_in_layer_names":
+  if orig_procedure_dict['name'] == 'use_file_extensions_in_layer_names':
     _adjust_error_message_for_use_file_extensions_in_layer_names(
       procedure, file_extension_setting)
 
@@ -191,8 +191,8 @@ def _on_after_add_constraint(
       orig_constraint_dict,
       selected_layers_setting,
       image_setting):
-  if orig_constraint_dict["name"] == "only_selected_layers":
-    constraint["arguments/selected_layers"].gui.set_visible(False)
+  if orig_constraint_dict['name'] == 'only_selected_layers':
+    constraint['arguments/selected_layers'].gui.set_visible(False)
     _sync_selected_layers_and_only_selected_layers_constraint(
       selected_layers_setting, constraint, image_setting)
 
@@ -203,19 +203,19 @@ def _adjust_error_message_for_use_file_extensions_in_layer_names(
   def _on_use_file_extensions_in_layer_names_enabled_changed(
         use_file_extensions_in_layer_names_enabled, file_extension):
     if not use_file_extensions_in_layer_names_enabled.value:
-      file_extension.error_messages[pg.path.FileValidatorErrorStatuses.IS_EMPTY] = ""
+      file_extension.error_messages[pg.path.FileValidatorErrorStatuses.IS_EMPTY] = ''
     else:
       file_extension.error_messages[pg.path.FileValidatorErrorStatuses.IS_EMPTY] = _(
-        "You need to specify default file extension for layers with invalid "
-        "or no extension.")
+        'You need to specify default file extension for layers with invalid '
+        'or no extension.')
   
-  if procedure["enabled"].value:
-    # Invoke manually in case "enabled" is True upon adding.
+  if procedure['enabled'].value:
+    # Invoke manually in case 'enabled' is True upon adding.
     _on_use_file_extensions_in_layer_names_enabled_changed(
-      procedure["enabled"], file_extension_setting)
+      procedure['enabled'], file_extension_setting)
   
-  procedure["enabled"].connect_event(
-    "value-changed",
+  procedure['enabled'].connect_event(
+    'value-changed',
     _on_use_file_extensions_in_layer_names_enabled_changed,
     file_extension_setting)
 
@@ -226,13 +226,13 @@ def _sync_selected_layers_and_only_selected_layers_constraint(
   def _on_selected_layers_changed(
         selected_layers_setting, only_selected_layers_constraint, image_setting):
     if image_setting.value is not None:
-      only_selected_layers_constraint["arguments/selected_layers"].set_value(
+      only_selected_layers_constraint['arguments/selected_layers'].set_value(
         selected_layers_setting.value[image_setting.value.ID])
   
   _on_selected_layers_changed(selected_layers_setting, constraint, image_setting)
   
   selected_layers_setting.connect_event(
-    "value-changed", _on_selected_layers_changed, constraint, image_setting)
+    'value-changed', _on_selected_layers_changed, constraint, image_setting)
 
 
 #===============================================================================
@@ -273,17 +273,17 @@ def setup_image_ids_and_filepaths_settings(
     assign_filepath_to_image_id_func_args = []
   
   image_filepaths_dict_setting.connect_event(
-    "after-load-group", _remove_invalid_image_filepaths)
+    'after-load-group', _remove_invalid_image_filepaths)
   
   image_filepaths_dict_setting.connect_event(
-    "before-save",
+    'before-save',
     _update_image_filepaths,
     image_ids_dict_setting,
     assign_image_id_to_filepath_func,
     assign_image_id_to_filepath_func_args)
   
   image_ids_dict_setting.connect_event(
-    "after-load-group",
+    'after-load-group',
     _update_image_ids,
     image_filepaths_dict_setting,
     assign_filepath_to_image_id_func,

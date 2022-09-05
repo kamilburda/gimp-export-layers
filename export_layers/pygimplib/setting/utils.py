@@ -26,22 +26,22 @@ import collections
 import itertools
 
 __all__ = [
-  "SettingParentMixin",
-  "SettingEventsMixin",
-  "get_pdb_name",
-  "get_setting_name",
-  "value_to_str_prefix",
-  "get_processed_display_name",
-  "generate_display_name",
-  "get_processed_description",
-  "generate_description",
-  "get_setting_path",
-  "check_setting_name",
+  'SettingParentMixin',
+  'SettingEventsMixin',
+  'get_pdb_name',
+  'get_setting_name',
+  'value_to_str_prefix',
+  'get_processed_display_name',
+  'generate_display_name',
+  'get_processed_description',
+  'generate_description',
+  'get_setting_path',
+  'check_setting_name',
 ]
 
 
-SETTING_PATH_SEPARATOR = "/"
-SETTING_ATTRIBUTE_SEPARATOR = "."
+SETTING_PATH_SEPARATOR = '/'
+SETTING_ATTRIBUTE_SEPARATOR = '.'
 
 
 class SettingParentMixin(object):
@@ -136,7 +136,7 @@ class SettingEventsMixin(object):
       arguments was passed in `event_handler_args`.
     """
     if not callable(event_handler):
-      raise TypeError("not a function")
+      raise TypeError('not a function')
     
     event_id = self._event_handler_id_counter.next()
     self._event_handlers[event_type][event_id] = [
@@ -151,7 +151,7 @@ class SettingEventsMixin(object):
     `connect_event()`.
     """
     if event_id not in self._event_handler_ids_and_types:
-      raise ValueError("event handler with ID {} does not exist".format(event_id))
+      raise ValueError('event handler with ID {} does not exist'.format(event_id))
     
     event_type = self._event_handler_ids_and_types[event_id]
     del self._event_handlers[event_type][event_id]
@@ -169,7 +169,7 @@ class SettingEventsMixin(object):
     * `ValueError` - Event ID is invalid.
     """
     if not self.has_event(event_id):
-      raise ValueError("event ID {} is invalid".format(event_id))
+      raise ValueError('event ID {} is invalid'.format(event_id))
     
     event_type = self._event_handler_ids_and_types[event_id]
     self._event_handlers[event_type][event_id][3] = enabled
@@ -205,14 +205,14 @@ def get_pdb_name(setting_name):
   """
   Return name suitable for the description of the setting in the GIMP PDB.
   """
-  return setting_name.replace("_", "-")
+  return setting_name.replace('_', '-')
 
 
 def get_setting_name(pdb_name):
   """
   Return setting name based on the specified name from GIMP PDB.
   """
-  return pdb_name.replace("-", "_")
+  return pdb_name.replace('-', '_')
 
 
 def value_to_str_prefix(value):
@@ -224,7 +224,7 @@ def value_to_str_prefix(value):
   if value:
     return '"{}": '.format(value)
   else:
-    return ""
+    return ''
 
 
 def get_processed_display_name(setting_display_name, setting_name):
@@ -235,7 +235,7 @@ def get_processed_display_name(setting_display_name, setting_name):
 
 
 def generate_display_name(setting_name):
-  return setting_name.replace("_", " ").capitalize()
+  return setting_name.replace('_', ' ').capitalize()
 
 
 def get_processed_description(setting_description, setting_display_name):
@@ -252,25 +252,25 @@ def generate_description(display_name):
   Underscores in display names used as mnemonics are usually undesired in
   descriptions, hence their removal.
   """
-  return display_name.replace("_", "")
+  return display_name.replace('_', '')
 
 
 def get_setting_path(setting, relative_path_group=None):
   """
   Get the full setting path consisting of names of parent setting groups and the
-  specified setting. The path components are separated by "/".
+  specified setting. The path components are separated by '/'.
   
   If `relative_path_group` is specified, the setting group is used to
   relativize the setting path. If the path of the setting group to the topmost
   parent does not match, return the full path.
   
-  If `relative_path_group` is equal to `"root"` and the setting has at
+  If `relative_path_group` is equal to `'root'` and the setting has at
   least one parent, omit the topmost group.
   """
   def _get_setting_path(path_components):
     return SETTING_PATH_SEPARATOR.join([setting.name for setting in path_components])
   
-  if relative_path_group == "root":
+  if relative_path_group == 'root':
     if setting.parents:
       setting_path_without_root = _get_setting_path(
         (setting.parents + [setting])[1:])
@@ -298,4 +298,4 @@ def check_setting_name(setting_name):
   """
   if (SETTING_PATH_SEPARATOR in setting_name
       or SETTING_ATTRIBUTE_SEPARATOR in setting_name):
-    raise ValueError("setting name '{}' is not valid".format(setting_name))
+    raise ValueError('setting name "{}" is not valid'.format(setting_name))

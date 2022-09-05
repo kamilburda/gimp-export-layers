@@ -35,15 +35,15 @@ class Version(object):
     self.prerelease_patch = prerelease_patch
   
   def __str__(self):
-    version_str = "{}.{}".format(self.major, self.minor)
+    version_str = '{}.{}'.format(self.major, self.minor)
     
     if self.patch is not None:
-      version_str += ".{}".format(self.patch)
+      version_str += '.{}'.format(self.patch)
     
     if self.prerelease is not None:
-      version_str += "-{}".format(self.prerelease)
+      version_str += '-{}'.format(self.prerelease)
       if self.prerelease_patch is not None:
-        version_str += ".{}".format(self.prerelease_patch)
+        version_str += '.{}'.format(self.prerelease_patch)
     
     return version_str
   
@@ -94,21 +94,21 @@ class Version(object):
     """
     Increment the version as per `component_to_increment` and `prerelease`.
     
-    `component_to_increment` can be `"major"`, `"minor"` or `"patch"`. Given the
-    format `X.Y.Z`, `"major"` increments `X`, `"minor"` increments `Y` and
-    `"patch"` increments `Z`. If `patch` attribute is `None` and `"patch"` is
+    `component_to_increment` can be `'major'`, `'minor'` or `'patch'`. Given the
+    format `X.Y.Z`, `'major'` increments `X`, `'minor'` increments `Y` and
+    `'patch'` increments `Z`. If `patch` attribute is `None` and `'patch'` is
     specified, `1` will be assigned (e.g. `3.3` becomes `3.3.1`).
     
     If the `prerelease` string is not `None` and non-empty, append the
-    pre-release to the version. For example, `3.3` with `"major"` compoment and
-    `"alpha"` as the pre-release string becomes `4.0-alpha`.
+    pre-release to the version. For example, `3.3` with `'major'` compoment and
+    `'alpha'` as the pre-release string becomes `4.0-alpha`.
     
     If the version already has the same pre-release, append a number to the
     pre-release (e.g. `4.0-alpha` becomes `4.0-alpha.2`).
     
     If the version already has a different pre-release (lexically earlier than
     `prerelease`), replace the existing pre-release with `prerelease` (e.g.
-    `4.0-alpha` with the `"beta"` pre-release becomes `4.0-beta`).
+    `4.0-alpha` with the `'beta'` pre-release becomes `4.0-beta`).
     
     Raises:
     
@@ -118,17 +118,17 @@ class Version(object):
       * The specified `prerelease` contains non-alphanumeric characters or is
         lexically earlier than the existing `prerelease` attribute.
     """
-    if component_to_increment not in ["major", "minor", "patch"]:
-      raise ValueError("invalid version component '{}'".format(component_to_increment))
+    if component_to_increment not in ['major', 'minor', 'patch']:
+      raise ValueError('invalid version component "{}"'.format(component_to_increment))
     
     if prerelease:
-      if not re.search(r"^[a-zA-Z0-9]+$", prerelease):
-        raise ValueError("invalid pre-release format '{}'".format(prerelease))
+      if not re.search(r'^[a-zA-Z0-9]+$', prerelease):
+        raise ValueError('invalid pre-release format "{}"'.format(prerelease))
       
       if prerelease < self.prerelease:
         raise ValueError(
-          "the specified pre-release '{}' is lexically earlier than "
-          "the existing pre-release '{}'".format(prerelease, self.prerelease))
+          'the specified pre-release "{}" is lexically earlier than '
+          'the existing pre-release "{}"'.format(prerelease, self.prerelease))
     
     if not prerelease:
       prerelease = None
@@ -160,11 +160,11 @@ class Version(object):
         self.prerelease_patch = 1
       self.prerelease_patch += 1
     
-    if component_to_increment == "major":
+    if component_to_increment == 'major':
       increment_component_func = increment_major
-    elif component_to_increment == "minor":
+    elif component_to_increment == 'minor':
       increment_component_func = increment_minor
-    elif component_to_increment == "patch":
+    elif component_to_increment == 'patch':
       increment_component_func = increment_patch
     
     if prerelease is None:
@@ -195,7 +195,7 @@ class Version(object):
   
   @classmethod
   def _fill_version_components(cls, version_obj, version_str):
-    version_str_components = version_str.split("-")
+    version_str_components = version_str.split('-')
     
     if len(version_str_components) > 2:
       raise InvalidVersionFormatError

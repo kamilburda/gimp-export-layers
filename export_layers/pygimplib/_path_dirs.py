@@ -28,8 +28,8 @@ str = unicode
 import os
 
 __all__ = [
-  "make_dirs",
-  "split_path",
+  'make_dirs',
+  'split_path',
 ]
 
 
@@ -50,7 +50,7 @@ def make_dirs(dirpath):
       pass
     elif exc.errno == os.errno.EACCES and os.path.isdir(dirpath):
       # This can happen if `os.makedirs` is called on a root directory
-      # in Windows (e.g. `os.makedirs("C:\\")`).
+      # in Windows (e.g. `os.makedirs('C:\\')`).
       pass
     else:
       raise

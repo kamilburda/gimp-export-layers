@@ -27,7 +27,7 @@ import gobject
 from . import utils as utils_
 
 __all__ = [
-  "PopupHideContext",
+  'PopupHideContext',
 ]
 
 
@@ -60,28 +60,28 @@ class PopupHideContext(object):
     self._widgets_with_entered_pointers = set()
     
     self._popup_owner_widget.connect(
-      "focus-out-event", self._on_popup_owner_widget_focus_out_event)
+      'focus-out-event', self._on_popup_owner_widget_focus_out_event)
   
   def connect_button_press_events_for_hiding(self):
     self._button_press_emission_hook_id = gobject.add_emission_hook(
       self._popup_owner_widget,
-      "button-press-event",
+      'button-press-event',
       self._on_emission_hook_button_press_event)
     
     toplevel = utils_.get_toplevel_window(self._popup_owner_widget)
     if toplevel is not None:
       toplevel.get_group().add_window(self._popup_to_hide)
       # Button presses on the window decoration cannot be intercepted via the
-      # `"button-press-event"` emission hooks, hence this workaround.
+      # `'button-press-event'` emission hooks, hence this workaround.
       self._toplevel_configure_event_id = toplevel.connect(
-        "configure-event", self._on_toplevel_configure_event)
+        'configure-event', self._on_toplevel_configure_event)
       self._toplevel_position = toplevel.get_position()
   
   def disconnect_button_press_events_for_hiding(self):
     if self._button_press_emission_hook_id is not None:
       gobject.remove_emission_hook(
         self._popup_owner_widget,
-        "button-press-event",
+        'button-press-event',
         self._button_press_emission_hook_id)
     
     toplevel = utils_.get_toplevel_window(self._popup_owner_widget)
@@ -92,8 +92,8 @@ class PopupHideContext(object):
       self._toplevel_configure_event_id = None
   
   def exclude_widget_from_hiding_with_button_press(self, widget):
-    widget.connect("enter-notify-event", self._on_widget_enter_notify_event)
-    widget.connect("leave-notify-event", self._on_widget_leave_notify_event)
+    widget.connect('enter-notify-event', self._on_widget_enter_notify_event)
+    widget.connect('leave-notify-event', self._on_widget_leave_notify_event)
   
   def _on_popup_owner_widget_focus_out_event(self, widget, event):
     self._hide_callback()

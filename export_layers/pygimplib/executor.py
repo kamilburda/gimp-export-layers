@@ -86,14 +86,14 @@ class Executor(object):
     
     To control which operations are executed, you may want to group them.
     
-    If `groups` is `None` or `"default"`, the operation is added to a default
-    group appropriately named `"default"`.
+    If `groups` is `None` or `'default'`, the operation is added to a default
+    group appropriately named `'default'`.
     
     If `groups` is a list of group names (strings), the operation is added to
     the specified groups. Groups are created automatically if they previously
     did not exist.
     
-    If `groups` is `"all"`, the operation is added to all existing groups. The
+    If `groups` is `'all'`, the operation is added to all existing groups. The
     operation will not be added to the default group if it does not exist.
     
     The operation is added at the end of the list of operations in the specified
@@ -107,29 +107,29 @@ class Executor(object):
     For example:
     
       def foo():
-        print("bar")
+        print('bar')
         yield
-        print("baz")
+        print('baz')
     
-    first prints `bar`, then executes the operation and finally prints `baz`.
-    Multiple `yield` statements can be specified to execute the wrapped
+    first prints `'bar'`, then executes the operation and finally prints
+    `'baz'`. Multiple `yield` statements can be specified to execute the wrapped
     operation multiple times.
     
     If multiple for-each operations are added, they are executed in the order
     they were added by this method. For example:
       
       def foo1():
-        print("bar1")
+        print('bar1')
         yield
-        print("baz1")
+        print('baz1')
       
       def foo2():
-        print("bar2")
+        print('bar2')
         yield
-        print("baz2")
+        print('baz2')
     
-    will print `bar1`, `bar2`, then execute the operation (only once), and then
-    print `baz1` and `baz2`.
+    will print `'bar1'`, `'bar2'`, then execute the operation (only once), and
+    then print `'baz1'` and `'baz2'`.
     
     To make an `Executor` instance behave as a for-each operation, wrap
     the instance in a function as shown above. For example:
@@ -176,13 +176,13 @@ class Executor(object):
     """
     Execute operations.
     
-    If `groups` is `None` or `"default"`, execute operations in the default
+    If `groups` is `None` or `'default'`, execute operations in the default
     group.
     
     If `groups` is a list of group names (strings), execute operations in the
     specified groups.
     
-    If `groups` is `"all"`, execute operations in all existing groups.
+    If `groups` is `'all'`, execute operations in all existing groups.
     
     If any of the `groups` do not exist, raise `ValueError`.
     
@@ -329,9 +329,9 @@ class Executor(object):
     existing operation in at least one of the specified groups.
     
     `group` can have one of the following values:
-      * `None` or `"default"` - the default group,
+      * `None` or `'default'` - the default group,
       * list of group names (strings) - specific groups,
-      * `"all"` - all existing groups.
+      * `'all'` - all existing groups.
     """
     return (
       operation_id in self._operation_items
@@ -350,13 +350,13 @@ class Executor(object):
   def get_position(self, operation_id, group=None):
     """
     Return the position of the operation specified by its ID in the specified
-    group. If `group` is `None` or `"default"`, use the default group.
+    group. If `group` is `None` or `'default'`, use the default group.
     
     If the ID is not valid or the operation is not in the group, raise
     `ValueError`.
     """
     if group is None:
-      group = "default"
+      group = 'default'
     
     self._check_operation_id_is_valid(operation_id)
     self._check_operation_in_group(operation_id, group)
@@ -375,7 +375,7 @@ class Executor(object):
     If `foreach` is `True`, return for-each operations instead.
     """
     if group is None:
-      group = "default"
+      group = 'default'
     
     if not foreach:
       operation_items = self._operations
@@ -408,7 +408,7 @@ class Executor(object):
     """
     Change the execution order of the operation specified by its ID in the
     specified group to the specified position. If `group` is `None` or
-    `"default"`, use the default group.
+    `'default'`, use the default group.
     
     A position of 0 moves the operation to the beginning of the execution order.
     Negative numbers move the operation to the n-th to last position, i.e. -1
@@ -420,7 +420,7 @@ class Executor(object):
       * operation is not in the group
     """
     if group is None:
-      group = "default"
+      group = 'default'
     
     self._check_operation_id_is_valid(operation_id)
     self._check_group_exists(group)
@@ -623,9 +623,9 @@ class Executor(object):
       del self._operation_items[operation_id]
   
   def _process_groups_arg(self, groups):
-    if groups is None or groups == "default":
-      return ["default"]
-    elif groups == "all":
+    if groups is None or groups == 'default':
+      return ['default']
+    elif groups == 'all':
       return self.list_groups()
     else:
       return groups
@@ -648,23 +648,23 @@ class Executor(object):
       return self._operations, self._executors
     else:
       raise ValueError(
-        "invalid operation type {}; must be one of {}".format(
+        'invalid operation type {}; must be one of {}'.format(
           operation_type, self._OPERATION_TYPES))
   
   def _check_operation_id_is_valid(self, operation_id):
     if operation_id not in self._operation_items:
-      raise ValueError("operation with ID {} does not exist".format(operation_id))
+      raise ValueError('operation with ID {} does not exist'.format(operation_id))
   
   def _check_group_exists(self, group, groups=None):
     if groups is None:
       groups = self.list_groups()
     
     if group not in groups:
-      raise ValueError("group '{}' does not exist".format(group))
+      raise ValueError('group "{}" does not exist'.format(group))
   
   def _check_operation_in_group(self, operation_id, group):
     if group not in self._operation_items[operation_id].groups:
-      raise ValueError("operation with ID {} is not in group '{}'".format(
+      raise ValueError('operation with ID {} is not in group "{}"'.format(
         operation_id, group))
 
   

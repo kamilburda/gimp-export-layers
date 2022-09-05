@@ -47,12 +47,12 @@ def parse_layers(layer_tree_string):
     
     layer = None
     
-    if current_symbol.endswith(" {"):
-      layer = stubs_gimp.LayerGroupStub(current_symbol.rstrip(" {"))
+    if current_symbol.endswith(' {'):
+      layer = stubs_gimp.LayerGroupStub(current_symbol.rstrip(' {'))
       current_parent.layers.append(layer)
       current_parent = layer
       parents.append(current_parent)
-    elif current_symbol == "}":
+    elif current_symbol == '}':
       parents.pop()
       current_parent = parents[-1]
     else:

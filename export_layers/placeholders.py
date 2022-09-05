@@ -23,10 +23,10 @@ when executing GIMP PDB procedures during export.
 
 The following placeholder objects are defined:
 
-* `PLACEHOLDERS["current_image"]` - Represents the image currently being
+* `PLACEHOLDERS['current_image']` - Represents the image currently being
   processed.
 
-* `PLACEHOLDERS["current_layer"]` - Represents the layer currently being
+* `PLACEHOLDERS['current_layer']` - Represents the layer currently being
   processed in the current image. This placeholder is currently also used for
   PDB procedures containing `gimp.Drawable` or `gimp.Item` parameters.
 """
@@ -64,8 +64,8 @@ def _get_current_layer(image, layer, layer_exporter):
 
 
 _PLACEHOLDERS = {
-  "current_image": _GimpObjectPlaceholder(_("Current Image"), _get_current_image),
-  "current_layer": _GimpObjectPlaceholder(_("Current Layer"), _get_current_layer),
+  'current_image': _GimpObjectPlaceholder(_('Current Image'), _get_current_image),
+  'current_layer': _GimpObjectPlaceholder(_('Current Layer'), _get_current_layer),
 }
 
 
@@ -126,36 +126,36 @@ class PlaceholderSetting(pg.setting.Setting):
       if placeholder_name in cls._ALLOWED_PLACEHOLDERS]
   
   def _init_error_messages(self):
-    self.error_messages["invalid_value"] = _("Invalid placeholder.")
+    self.error_messages['invalid_value'] = _('Invalid placeholder.')
   
   def _validate(self, value):
     if value not in self._ALLOWED_PLACEHOLDERS:
       raise pg.setting.SettingValueError(
-        pg.setting.value_to_str_prefix(value) + self.error_messages["invalid_value"])
+        pg.setting.value_to_str_prefix(value) + self.error_messages['invalid_value'])
 
 
 class PlaceholderImageSetting(PlaceholderSetting):
   
-  _DEFAULT_DEFAULT_VALUE = "current_image"
-  _ALLOWED_PLACEHOLDERS = ["current_image"]
+  _DEFAULT_DEFAULT_VALUE = 'current_image'
+  _ALLOWED_PLACEHOLDERS = ['current_image']
 
 
 class PlaceholderDrawableSetting(PlaceholderSetting):
   
-  _DEFAULT_DEFAULT_VALUE = "current_layer"
-  _ALLOWED_PLACEHOLDERS = ["current_layer"]
+  _DEFAULT_DEFAULT_VALUE = 'current_layer'
+  _ALLOWED_PLACEHOLDERS = ['current_layer']
 
 
 class PlaceholderLayerSetting(PlaceholderSetting):
   
-  _DEFAULT_DEFAULT_VALUE = "current_layer"
-  _ALLOWED_PLACEHOLDERS = ["current_layer"]
+  _DEFAULT_DEFAULT_VALUE = 'current_layer'
+  _ALLOWED_PLACEHOLDERS = ['current_layer']
 
 
 class PlaceholderItemSetting(PlaceholderSetting):
   
-  _DEFAULT_DEFAULT_VALUE = "current_layer"
-  _ALLOWED_PLACEHOLDERS = ["current_layer"]
+  _DEFAULT_DEFAULT_VALUE = 'current_layer'
+  _ALLOWED_PLACEHOLDERS = ['current_layer']
 
 
 PDB_TYPES_TO_PLACEHOLDER_SETTING_TYPES_MAP = {

@@ -188,7 +188,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     unique among all other, already uniquified `_ItemTreeElement` objects.
     
     To achieve uniquification, a string ("uniquifier") in the form of
-    `" (<number>)"` is inserted at the end of the item names.
+    `' (<number>)'` is inserted at the end of the item names.
     
     Parameters:
     
@@ -407,14 +407,14 @@ class _ItemTreeElement(object):
     `tags_source_name` attribute.
   
   * `tags_source_name` - Name of the persistent source for the `tags` attribute.
-    Defaults to `"tags"` if `None`.
+    Defaults to `'tags'` if `None`.
   """
   
   _ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP = (0, 1, 2)
   
   def __init__(self, item, parents=None, children=None, tags_source_name=None):
     if item is None:
-      raise TypeError("item cannot be None")
+      raise TypeError('item cannot be None')
     
     self._item = item
     self._parents = parents if parents is not None else []
@@ -429,7 +429,7 @@ class _ItemTreeElement(object):
     self._orig_parents = self._parents
     self._orig_children = self._children
     
-    self._tags_source_name = tags_source_name if tags_source_name else "tags"
+    self._tags_source_name = tags_source_name if tags_source_name else 'tags'
     self._tags = self._load_tags()
   
   @property
@@ -508,7 +508,7 @@ class _ItemTreeElement(object):
   
   def __repr__(self):
     return pgutils.stringify_object(
-      self, " ".join([self.orig_name, str(type(self.item))]))
+      self, ' '.join([self.orig_name, str(type(self.item))]))
   
   def get_file_extension(self):
     """
@@ -563,7 +563,7 @@ class _ItemTreeElement(object):
     topmost parent.
     """
     if dirpath is None:
-      dirpath = ""
+      dirpath = ''
     
     path = os.path.abspath(dirpath)
     
@@ -598,7 +598,7 @@ class _ItemTreeElement(object):
     `ValueError`.
     """
     if tag not in self._tags:
-      raise ValueError("tag '{}' not found in {}".format(tag, self))
+      raise ValueError('tag "{}" not found in {}'.format(tag, self))
     
     self._tags.remove(tag)
     

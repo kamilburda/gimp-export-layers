@@ -27,9 +27,9 @@ from . import group as group_
 from . import settings as settings_
 
 __all__ = [
-  "create_params",
-  "iter_args",
-  "list_param_values",
+  'create_params',
+  'iter_args',
+  'list_param_values',
 ]
 
 
@@ -81,15 +81,15 @@ def list_param_values(settings_or_groups, ignore_run_mode=True):
   """
   Return a list of values of settings registrable to PDB.
   
-  If `ignore_run_mode` is `True`, ignore setting(s) named `"run_mode"`. This
+  If `ignore_run_mode` is `True`, ignore setting(s) named `'run_mode'`. This
   makes it possible to call PDB functions with the setting values without
-  manually omitting the `"run_mode"` setting.
+  manually omitting the `'run_mode'` setting.
   """
   settings = _list_settings(settings_or_groups)
   
   if ignore_run_mode:
     for i, setting in enumerate(settings):
-      if setting.name == "run_mode":
+      if setting.name == 'run_mode':
         del settings[i]
         break
   
@@ -105,7 +105,7 @@ def _list_settings(settings_or_groups):
       settings.extend(setting_or_group.walk())
     else:
       raise TypeError(
-        "{} is not an object of type {} or {}".format(
+        '{} is not an object of type {} or {}'.format(
           setting_or_group, settings_.Setting, group_.Group))
   
   return settings

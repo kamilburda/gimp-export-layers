@@ -47,18 +47,18 @@ else:
   _webbrowser_module_found = True
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 import gobject
 import pango
 
 __all__ = [
-  "display_error_message",
-  "display_message",
-  "add_gui_excepthook",
-  "set_gui_excepthook",
-  "set_gui_excepthook_parent",
-  "set_gui_excepthook_additional_callback",
+  'display_error_message',
+  'display_message',
+  'add_gui_excepthook',
+  'set_gui_excepthook',
+  'set_gui_excepthook_parent',
+  'set_gui_excepthook_additional_callback',
 ]
 
 
@@ -119,32 +119,32 @@ def display_error_message(
     If `False`, focus on the box with details if `details` is not `None`,
     otherwise let the message dialog determine the focus widget.
   """
-  if not ("_" in __builtin__.__dict__ or "_" in globals()):
+  if not ('_' in __builtin__.__dict__ or '_' in globals()):
     # This is a placeholder function until `gettext` is properly initialized.
     def _(str_):
       return str_
   else:
     # This is necessary since defining a local variable/function, even inside a
     # condition, obscures a global variable/function of the same name.
-    _ = __builtin__.__dict__.get("_", None) or globals()["_"]
+    _ = __builtin__.__dict__.get('_', None) or globals()['_']
   
   if app_name is None:
-    app_name = _("Plug-in")
+    app_name = _('Plug-in')
   
   if message_markup is None:
     message_markup = (
       '<span font_size="large"><b>{0}</b></span>'.format(
-        _("Oops. Something went wrong.")))
+        _('Oops. Something went wrong.')))
   
   if message_secondary_markup is None:
     message_secondary_markup = _(
-      "{0} encountered an unexpected error and has to close. Sorry about that!").format(
+      '{0} encountered an unexpected error and has to close. Sorry about that!').format(
         gobject.markup_escape_text(app_name))
   
   if report_description is None:
     report_description = _(
-      "You can help fix this error by sending a report with the text "
-      "in the details above to one of the following sites")
+      'You can help fix this error by sending a report with the text '
+      'in the details above to one of the following sites')
   
   dialog = gtk.MessageDialog(parent, type=message_type, flags=flags)
   dialog.set_transient_for(parent)
@@ -155,7 +155,7 @@ def display_error_message(
   dialog.format_secondary_markup(message_secondary_markup)
   
   if details is not None:
-    expander = _get_details_expander(details, _("Details"))
+    expander = _get_details_expander(details, _('Details'))
     if display_details_initially:
       expander.set_expanded(True)
   else:
@@ -163,7 +163,7 @@ def display_error_message(
   
   if report_uri_list:
     vbox_labels_report = _get_report_link_buttons(
-      report_uri_list, report_description, _("(right-click to copy link)"))
+      report_uri_list, report_description, _('(right-click to copy link)'))
     dialog.vbox.pack_end(vbox_labels_report, expand=False, fill=False)
   
   if expander is not None:
@@ -191,7 +191,7 @@ def display_error_message(
 def _get_details_expander(details_text, details_label):
   expander = gtk.Expander()
   expander.set_use_markup(True)
-  expander.set_label("<b>" + details_label + "</b>")
+  expander.set_label('<b>' + details_label + '</b>')
   
   scrolled_window = gtk.ScrolledWindow()
   scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -225,8 +225,8 @@ def _get_report_link_buttons(
   if report_description:
     label_report_text = report_description
     if not _webbrowser_module_found:
-      label_report_text += " " + label_report_text_instructions
-    label_report_text += ":"
+      label_report_text += ' ' + label_report_text_instructions
+    label_report_text += ':'
     
     label_report = gtk.Label(label_report_text)
     label_report.set_alignment(0, 0.5)
@@ -249,7 +249,7 @@ def _get_report_link_buttons(
     # solution.
     for linkbutton in report_linkbuttons:
       linkbutton.connect(
-        "clicked", lambda linkbutton: webbrowser.open_new_tab(linkbutton.get_uri()))
+        'clicked', lambda linkbutton: webbrowser.open_new_tab(linkbutton.get_uri()))
   
   return vbox_link_buttons
 
@@ -292,7 +292,7 @@ def display_message(
   if title is not None:
     dialog.set_title(title)
   
-  messages = message.split("\n", 1)
+  messages = message.split('\n', 1)
   if len(messages) > 1:
     dialog.set_markup(gobject.markup_escape_text(messages[0]))
     
@@ -308,7 +308,7 @@ def display_message(
       
       scrolled_window = gtk.ScrolledWindow()
       scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-      scrolled_window.set_property("height-request", 100)
+      scrolled_window.set_property('height-request', 100)
       scrolled_window.set_shadow_type(gtk.SHADOW_IN)
       
       scrolled_window.add(text_view)
@@ -459,7 +459,7 @@ def _gui_excepthook_generic(
   orig_sys_excepthook(exc_type, exc_value, exc_traceback)
   
   if issubclass(exc_type, Exception):
-    exception_message = "".join(
+    exception_message = ''.join(
       traceback.format_exception(exc_type, exc_value, exc_traceback))
     
     display_error_message(

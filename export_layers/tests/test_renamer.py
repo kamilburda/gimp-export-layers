@@ -36,18 +36,18 @@ from export_layers import renamer
 class TestNumberField(unittest.TestCase):
   
   @parameterized.parameterized.expand([
-    ("two_padding_zeroes",
-     3, 1, ["001", "002", "003"]),
-    ("one_padding_zero",
-     2, 1, ["01", "02", "03"]),
-    ("start_from_number_greater_than_one",
-     3, 5, ["005", "006", "007"]),
-    ("incrementing_number_to_two_digits_removes_one_padded_zero",
-     3, 9, ["009", "010", "011"]),
-    ("incrementing_number_to_digits_without_padding_removes_last_padded_zero",
-     3, 99, ["099", "100", "101"]),
-    ("incrementing_number_to_more_digits_than_padding",
-     3, 999, ["999", "1000", "1001"]),
+    ('two_padding_zeroes',
+     3, 1, ['001', '002', '003']),
+    ('one_padding_zero',
+     2, 1, ['01', '02', '03']),
+    ('start_from_number_greater_than_one',
+     3, 5, ['005', '006', '007']),
+    ('incrementing_number_to_two_digits_removes_one_padded_zero',
+     3, 9, ['009', '010', '011']),
+    ('incrementing_number_to_digits_without_padding_removes_last_padded_zero',
+     3, 99, ['099', '100', '101']),
+    ('incrementing_number_to_more_digits_than_padding',
+     3, 999, ['999', '1000', '1001']),
   ])
   def test_generate_number(
         self, test_case_name_suffix, padding, initial_number, expected_outputs):
@@ -58,18 +58,18 @@ class TestNumberField(unittest.TestCase):
 
 
 @mock.patch(
-  pg.PYGIMPLIB_MODULE_PATH + ".itemtree.pdb",
+  pg.PYGIMPLIB_MODULE_PATH + '.itemtree.pdb',
   new=stubs_gimp.PdbStub())
 @mock.patch(
-  pg.PYGIMPLIB_MODULE_PATH + ".itemtree.gimp.GroupLayer",
+  pg.PYGIMPLIB_MODULE_PATH + '.itemtree.gimp.GroupLayer',
   new=stubs_gimp.LayerGroupStub)
 class TestRenameWithNumberField(unittest.TestCase):
   
   @mock.patch(
-    pg.PYGIMPLIB_MODULE_PATH + ".itemtree.pdb",
+    pg.PYGIMPLIB_MODULE_PATH + '.itemtree.pdb',
     new=stubs_gimp.PdbStub())
   @mock.patch(
-    pg.PYGIMPLIB_MODULE_PATH + ".itemtree.gimp.GroupLayer",
+    pg.PYGIMPLIB_MODULE_PATH + '.itemtree.gimp.GroupLayer',
     new=stubs_gimp.LayerGroupStub)
   def setUp(self):
     layers_string = """
@@ -95,8 +95,8 @@ class TestRenameWithNumberField(unittest.TestCase):
     self.image = utils_itemtree.parse_layers(layers_string)
   
   @parameterized.parameterized.expand([
-    ("start_from_one",
-     "image[001]",
+    ('start_from_one',
+     'image[001]',
      """
      image001
      Corners {
@@ -117,8 +117,8 @@ class TestRenameWithNumberField(unittest.TestCase):
      image003
       """),
     
-    ("start_with_offset",
-     "image[003]",
+    ('start_with_offset',
+     'image[003]',
      """
      image003
      Corners {
@@ -139,8 +139,8 @@ class TestRenameWithNumberField(unittest.TestCase):
      image005
       """),
     
-    ("multiple_number_fields_increment_independently",
-     "image[001]_[005]",
+    ('multiple_number_fields_increment_independently',
+     'image[001]_[005]',
      """
      image001_005
      Corners {

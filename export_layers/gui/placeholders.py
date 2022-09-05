@@ -38,7 +38,7 @@ class GimpObjectPlaceholdersComboBoxPresenter(pg.setting.GtkPresenter):
   Value: `placeholders.PlaceholderSetting` instance selected in the combo box.
   """
   
-  _VALUE_CHANGED_SIGNAL = "changed"
+  _VALUE_CHANGED_SIGNAL = 'changed'
   
   def _create_gui_element(self, setting):
     placeholder_names_and_values = []

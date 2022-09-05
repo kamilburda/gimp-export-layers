@@ -31,8 +31,8 @@ import inspect
 UTILS_DIRPATH = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
 
 PLUGINS_DIRPATH = os.path.dirname(UTILS_DIRPATH)
-PLUGIN_SUBDIRPATH = os.path.join(PLUGINS_DIRPATH, "export_layers")
-PYGIMPLIB_DIRPATH = os.path.join(PLUGIN_SUBDIRPATH, "pygimplib")
+PLUGIN_SUBDIRPATH = os.path.join(PLUGINS_DIRPATH, 'export_layers')
+PYGIMPLIB_DIRPATH = os.path.join(PLUGIN_SUBDIRPATH, 'pygimplib')
 
 sys.path.extend([
   UTILS_DIRPATH,
@@ -61,20 +61,20 @@ from export_layers.pygimplib import _path_dirs
 from utils import create_user_docs
 from utils import process_local_docs
 
-pg.config.LOG_MODE = "none"
+pg.config.LOG_MODE = 'none'
 
 
-INSTALLERS_DIRPATH = os.path.join(PLUGINS_DIRPATH, "installers")
+INSTALLERS_DIRPATH = os.path.join(PLUGINS_DIRPATH, 'installers')
 
-TEMP_INPUT_DIRPATH = os.path.join(INSTALLERS_DIRPATH, "temp_input")
-OUTPUT_DIRPATH_DEFAULT = os.path.join(INSTALLERS_DIRPATH, "output")
+TEMP_INPUT_DIRPATH = os.path.join(INSTALLERS_DIRPATH, 'temp_input')
+OUTPUT_DIRPATH_DEFAULT = os.path.join(INSTALLERS_DIRPATH, 'output')
 
-INCLUDE_LIST_FILEPATH = os.path.join(UTILS_DIRPATH, "make_installers_included_files.txt")
+INCLUDE_LIST_FILEPATH = os.path.join(UTILS_DIRPATH, 'make_installers_included_files.txt')
 
-GITHUB_PAGE_DIRPATH = os.path.join(PLUGINS_DIRPATH, "docs", "gh-pages")
+GITHUB_PAGE_DIRPATH = os.path.join(PLUGINS_DIRPATH, 'docs', 'gh-pages')
 
-README_RELATIVE_FILEPATH = os.path.join("docs", "sections", "index.html")
-README_RELATIVE_OUTPUT_FILEPATH = os.path.join("Readme.html")
+README_RELATIVE_FILEPATH = os.path.join('docs', 'sections', 'index.html')
+README_RELATIVE_OUTPUT_FILEPATH = os.path.join('Readme.html')
 
 
 def make_installers(
@@ -138,9 +138,9 @@ def _prepare_repo_files_for_packaging(
       repository_dirpath, dirpath_with_original_files_with_git_filters, force_if_dirty):
   repo = git.Repo(repository_dirpath)
   
-  if not force_if_dirty and repo.git.status("--porcelain"):
-    print(("Repository contains local changes."
-           " Please remove or commit changes before proceeding."),
+  if not force_if_dirty and repo.git.status('--porcelain'):
+    print(('Repository contains local changes.'
+           ' Please remove or commit changes before proceeding.'),
           file=sys.stderr)
     exit(1)
   
@@ -194,9 +194,9 @@ def _restore_repo_files(
 def _get_path_specs_with_git_filters_from_gitattributes(repository_dirpath):
   path_specs = []
   
-  with io.open(os.path.join(repository_dirpath, ".gitattributes")) as gitattributes_file:
+  with io.open(os.path.join(repository_dirpath, '.gitattributes')) as gitattributes_file:
     for line in gitattributes_file:
-      match = re.search(r"\s*(.*?)\s+filter=", line)
+      match = re.search(r'\s*(.*?)\s+filter=', line)
       if match:
         path_specs.append(match.group(1))
   
@@ -204,7 +204,7 @@ def _get_path_specs_with_git_filters_from_gitattributes(repository_dirpath):
 
 
 def _get_filtered_filepaths(dirpath, pattern_filepath):
-  with io.open(pattern_filepath, "r", encoding=pg.TEXT_FILE_ENCODING) as file_:
+  with io.open(pattern_filepath, 'r', encoding=pg.TEXT_FILE_ENCODING) as file_:
     spec_obj = pathspec.PathSpec.from_lines(
       pathspec.patterns.gitwildmatch.GitWildMatchPattern, file_)
   
@@ -222,10 +222,10 @@ def _compile_translation_files(source_dirpath):
   for root_dirpath, unused_, filenames in os.walk(source_dirpath):
     for filename in filenames:
       if (os.path.isfile(os.path.join(root_dirpath, filename))
-          and filename.endswith(".po")):
+          and filename.endswith('.po')):
         po_file = os.path.join(root_dirpath, filename)
         language = _path_dirs.split_path(root_dirpath)[-2]
-        subprocess.call(["./generate_mo.sh", po_file, language])
+        subprocess.call(['./generate_mo.sh', po_file, language])
   
   os.chdir(orig_cwd)
 
@@ -265,11 +265,11 @@ def _create_installers(
   installers = list(collections.OrderedDict.fromkeys(installers))
   
   installer_funcs = collections.OrderedDict([
-    ("windows", _create_windows_installer),
-    ("zip", _create_zip_archive),
+    ('windows', _create_windows_installer),
+    ('zip', _create_zip_archive),
   ])
   
-  if "all" in installers:
+  if 'all' in installers:
     installer_funcs_to_execute = list(installer_funcs.values())
   else:
     installer_funcs_to_execute = [
@@ -282,21 +282,21 @@ def _create_installers(
 
 def _create_windows_installer(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
-  installer_filename_prefix = "{}-{}-windows".format(
+  installer_filename_prefix = '{}-{}-windows'.format(
     pg.config.PLUGIN_NAME, pg.config.PLUGIN_VERSION)
   
-  installer_filepath = os.path.join(installer_dirpath, installer_filename_prefix + ".exe")
+  installer_filepath = os.path.join(installer_dirpath, installer_filename_prefix + '.exe')
   
-  WINDOWS_INSTALLER_SCRIPT_DIRPATH = os.path.join(INSTALLERS_DIRPATH, "windows")
-  WINDOWS_INSTALLER_SCRIPT_FILENAME = "installer.iss"
-  WINDOWS_INSTALLER_COMPILER_COMMAND = "compile_installer.bat"
+  WINDOWS_INSTALLER_SCRIPT_DIRPATH = os.path.join(INSTALLERS_DIRPATH, 'windows')
+  WINDOWS_INSTALLER_SCRIPT_FILENAME = 'installer.iss'
+  WINDOWS_INSTALLER_COMPILER_COMMAND = 'compile_installer.bat'
   
   orig_cwd = os.getcwd()
   os.chdir(WINDOWS_INSTALLER_SCRIPT_DIRPATH)
   
   return_code = subprocess.call([
-    "cmd.exe",
-    "/c",
+    'cmd.exe',
+    '/c',
     WINDOWS_INSTALLER_COMPILER_COMMAND,
     pg.config.PLUGIN_NAME,
     pg.config.PLUGIN_VERSION,
@@ -310,14 +310,14 @@ def _create_windows_installer(
   os.chdir(orig_cwd)
   
   if return_code == 0:
-    print("Windows installer successfully created:", installer_filepath)
+    print('Windows installer successfully created:', installer_filepath)
   else:
-    print("Failed to create Windows installer:", installer_filepath)
+    print('Failed to create Windows installer:', installer_filepath)
 
 
 def _create_zip_archive(
       installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
-  archive_filename = "{}-{}.zip".format(
+  archive_filename = '{}-{}.zip'.format(
     pg.config.PLUGIN_NAME, pg.config.PLUGIN_VERSION)
   archive_filepath = os.path.join(installer_dirpath, archive_filename)
   
@@ -330,11 +330,11 @@ def _create_zip_archive(
     input_filepaths.append(_create_toplevel_readme_for_zip_archive(readme_filepath))
     output_filepaths.append(README_RELATIVE_OUTPUT_FILEPATH)
   
-  with zipfile.ZipFile(archive_filepath, "w", zipfile.ZIP_STORED) as archive_file:
+  with zipfile.ZipFile(archive_filepath, 'w', zipfile.ZIP_STORED) as archive_file:
     for input_filepath, output_filepath in zip(input_filepaths, output_filepaths):
       archive_file.write(input_filepath, output_filepath)
   
-  print("ZIP archive successfully created:", archive_filepath)
+  print('ZIP archive successfully created:', archive_filepath)
   
   if can_create_toplevel_readme:
     input_filepaths.pop()
@@ -371,42 +371,42 @@ def _create_toplevel_readme_for_zip_archive(readme_filepath):
 
 
 def main():
-  parser = argparse.ArgumentParser(description="Create installers for the GIMP plug-in.")
+  parser = argparse.ArgumentParser(description='Create installers for the GIMP plug-in.')
   parser.add_argument(
-    "-d",
-    "--dest-dir",
+    '-d',
+    '--dest-dir',
     default=OUTPUT_DIRPATH_DEFAULT,
-    help="destination directory of the created installers",
-    metavar="DIRECTORY",
-    dest="installer_dirpath")
+    help='destination directory of the created installers',
+    metavar='DIRECTORY',
+    dest='installer_dirpath')
   parser.add_argument(
-    "-f",
-    "--force",
-    action="store_true",
+    '-f',
+    '--force',
+    action='store_true',
     default=False,
-    help="make installers even if the repository contains local changes",
-    dest="force_if_dirty")
+    help='make installers even if the repository contains local changes',
+    dest='force_if_dirty')
   parser.add_argument(
-    "-i",
-    "--installers",
-    nargs="*",
-    default=["zip"],
-    choices=["windows", "zip", "all"],
+    '-i',
+    '--installers',
+    nargs='*',
+    default=['zip'],
+    choices=['windows', 'zip', 'all'],
     help=(
-      "installers to create; "
-      "note that creating a Windows installer may not be possible on *nix systems"),
-    dest="installers")
+      'installers to create; '
+      'note that creating a Windows installer may not be possible on *nix systems'),
+    dest='installers')
   parser.add_argument(
-    "-n",
-    "--no-docs",
-    action="store_false",
+    '-n',
+    '--no-docs',
+    action='store_false',
     default=True,
-    help="do not generate documentation",
-    dest="generate_docs")
+    help='do not generate documentation',
+    dest='generate_docs')
   
   parsed_args = parser.parse_args(sys.argv[1:])
   make_installers(**dict(parsed_args.__dict__))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   main()

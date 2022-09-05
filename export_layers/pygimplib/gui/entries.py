@@ -23,7 +23,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 import gobject
 import pango
@@ -38,9 +38,9 @@ from . import entrypopup as entrypopup_
 from . import entryundocontext as entryundocontext_
 
 __all__ = [
-  "ExtendedEntry",
-  "FilenamePatternEntry",
-  "FileExtensionEntry",
+  'ExtendedEntry',
+  'FilenamePatternEntry',
+  'FileExtensionEntry',
 ]
 
 
@@ -75,9 +75,9 @@ class ExtendedEntry(gtk.Entry):
     * `placeholder_text` - Text to display as a placeholder if the entry is
       empty. If `None`, do not display any placeholder.
     """
-    self._minimum_width_chars = kwargs.pop("minimum_width_chars", -1)
-    self._maximum_width_chars = kwargs.pop("maximum_width_chars", -1)
-    self._placeholder_text = kwargs.pop("placeholder_text", None)
+    self._minimum_width_chars = kwargs.pop('minimum_width_chars', -1)
+    self._maximum_width_chars = kwargs.pop('maximum_width_chars', -1)
+    self._placeholder_text = kwargs.pop('placeholder_text', None)
     
     super().__init__(*args, **kwargs)
     
@@ -88,9 +88,9 @@ class ExtendedEntry(gtk.Entry):
     
     self._has_placeholder_text_assigned = False
     
-    self.connect("focus-in-event", self._on_extended_entry_focus_in_event)
-    self.connect("focus-out-event", self._on_extended_entry_focus_out_event)
-    self.connect_after("realize", self._on_after_extended_entry_realize)
+    self.connect('focus-in-event', self._on_extended_entry_focus_in_event)
+    self.connect('focus-out-event', self._on_extended_entry_focus_out_event)
+    self.connect_after('realize', self._on_after_extended_entry_realize)
   
   @property
   def undo_context(self):
@@ -119,7 +119,7 @@ class ExtendedEntry(gtk.Entry):
     if not self._has_placeholder_text_assigned:
       return super().get_text()
     else:
-      return b""
+      return b''
   
   def _do_assign_text(self, text, enable_undo=False):
     """
@@ -156,7 +156,7 @@ class ExtendedEntry(gtk.Entry):
     if self._has_placeholder_text_assigned:
       self._has_placeholder_text_assigned = False
       self._modify_font_for_placeholder_text(gtk.STATE_NORMAL, pango.STYLE_NORMAL)
-      self._do_assign_text(b"")
+      self._do_assign_text(b'')
       self._popup.save_last_value()
   
   def _modify_font_for_placeholder_text(self, state_for_color, style):
@@ -220,7 +220,7 @@ class FilenamePatternEntry(ExtendedEntry):
       that is displayed as placeholder text, or `None` for no default item. This
       argument replaces the `placeholder_text` parameter from `ExtendedEntry`.
     """
-    self._default_item_value = kwargs.pop("default_item", None)
+    self._default_item_value = kwargs.pop('default_item', None)
     
     self._item_regexes_and_descriptions = {item[2]: item[3] for item in suggested_items}
     
@@ -231,7 +231,7 @@ class FilenamePatternEntry(ExtendedEntry):
         'default item "{0}" not in the list of suggested items: {1}'.format(
           self._default_item_value, suggested_item_values))
     
-    kwargs["placeholder_text"] = (
+    kwargs['placeholder_text'] = (
       suggested_items[suggested_item_values.index(self._default_item_value)][0]
       if self._default_item_value is not None else None)
     
@@ -241,7 +241,7 @@ class FilenamePatternEntry(ExtendedEntry):
     self._cursor_position_before_assigning_from_row = None
     self._reset_cursor_position_before_assigning_from_row = True
     
-    self._last_field_with_tooltip = ""
+    self._last_field_with_tooltip = ''
     
     self._pango_layout = pango.Layout(self.get_pango_context())
     
@@ -259,12 +259,12 @@ class FilenamePatternEntry(ExtendedEntry):
     
     self._add_columns()
     
-    self.connect("insert-text", self._on_filename_pattern_entry_insert_text)
-    self.connect("delete-text", self._on_filename_pattern_entry_delete_text)
+    self.connect('insert-text', self._on_filename_pattern_entry_insert_text)
+    self.connect('delete-text', self._on_filename_pattern_entry_delete_text)
     self.connect(
-      "notify::cursor-position", self._on_filename_pattern_entry_notify_cursor_position)
-    self.connect("changed", self._on_filename_pattern_entry_changed)
-    self.connect("focus-out-event", self._on_filename_pattern_entry_focus_out_event)
+      'notify::cursor-position', self._on_filename_pattern_entry_notify_cursor_position)
+    self.connect('changed', self._on_filename_pattern_entry_changed)
+    self.connect('focus-out-event', self._on_filename_pattern_entry_focus_out_event)
   
   @property
   def popup(self):
@@ -284,7 +284,7 @@ class FilenamePatternEntry(ExtendedEntry):
     self._field_tooltip_window.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_TOOLTIP)
     self._field_tooltip_window.set_resizable(False)
     # This copies the style of GTK tooltips.
-    self._field_tooltip_window.set_name("gtk-tooltips")
+    self._field_tooltip_window.set_name('gtk-tooltips')
     
     self._field_tooltip_text = gtk.Label()
     
@@ -340,7 +340,7 @@ class FilenamePatternEntry(ExtendedEntry):
   def _show_field_tooltip(self, tooltip_text=None, force_update_position=False):
     if not self._field_tooltip_window.get_mapped() or force_update_position:
       if tooltip_text is None:
-        tooltip_text = ""
+        tooltip_text = ''
       self._field_tooltip_text.set_markup(tooltip_text)
       self._field_tooltip_window.show()
       self._update_field_tooltip_position()
@@ -388,7 +388,7 @@ class FilenamePatternEntry(ExtendedEntry):
     current_text = self._get_text_decoded()
     
     if (self._cursor_position > 0 and len(current_text) >= self._cursor_position
-        and current_text[self._cursor_position - 1] == "[" and item and item[0] != "["):
+        and current_text[self._cursor_position - 1] == '[' and item and item[0] != '['):
       return False
     else:
       return True
@@ -403,7 +403,7 @@ class FilenamePatternEntry(ExtendedEntry):
       self._popup.last_assigned_entry_text.decode(pgconstants.GTK_CHARACTER_ENCODING))
     
     if (cursor_position > 0 and len(last_assigned_entry_text) >= cursor_position
-        and last_assigned_entry_text[cursor_position - 1] == "["):
+        and last_assigned_entry_text[cursor_position - 1] == '['):
       suggested_item = suggested_item[1:]
     
     self.assign_text(
@@ -433,12 +433,12 @@ class FilenamePatternEntry(ExtendedEntry):
     if current_text:
       if len(current_text) > 1 and len(current_text) >= self._cursor_position:
         return (
-          current_text[self._cursor_position - 1] == "["
-          and current_text[self._cursor_position - 2] != "["
+          current_text[self._cursor_position - 1] == '['
+          and current_text[self._cursor_position - 2] != '['
           and not pgpath.StringPattern.get_field_at_position(
             current_text, self._cursor_position - 1))
       else:
-        return current_text[0] == "["
+        return current_text[0] == '['
     else:
       return True
   
@@ -447,10 +447,10 @@ class FilenamePatternEntry(ExtendedEntry):
     
     position, text = self._popup.assign_from_selected_row()
     if position is not None and text:
-      self.undo_context.undo_push([("insert", position, text)])
+      self.undo_context.undo_push([('insert', position, text)])
   
   def _on_entry_key_press(self, key_name, tree_path, stop_event_propagation):
-    if key_name in ["Return", "KP_Enter", "Escape"]:
+    if key_name in ['Return', 'KP_Enter', 'Escape']:
       self._hide_field_tooltip()
       self._cursor_position_before_assigning_from_row = None
     
@@ -461,10 +461,10 @@ class FilenamePatternEntry(ExtendedEntry):
     undo_push_list = []
     
     if previous_text:
-      undo_push_list.append(("delete", previous_position, previous_text))
+      undo_push_list.append(('delete', previous_position, previous_text))
     
     if position is not None and text:
-      undo_push_list.append(("insert", position, text))
+      undo_push_list.append(('insert', position, text))
     
     if undo_push_list:
       self.undo_context.undo_push(undo_push_list)
@@ -519,10 +519,10 @@ class FileExtensionEntry(ExtendedEntry):
     self._add_columns()
     
     self._popup.tree_view.connect(
-      "motion-notify-event", self._on_tree_view_motion_notify_event)
-    self._popup.tree_view.connect_after("realize", self._on_after_tree_view_realize)
+      'motion-notify-event', self._on_tree_view_motion_notify_event)
+    self._popup.tree_view.connect_after('realize', self._on_after_tree_view_realize)
     self._popup.tree_view.get_selection().connect(
-      "changed", self._on_tree_selection_changed)
+      'changed', self._on_tree_selection_changed)
   
   @property
   def popup(self):
@@ -541,15 +541,15 @@ class FileExtensionEntry(ExtendedEntry):
     
     self._cell_renderer_description = gtk.CellRendererText()
     self._cell_renderer_extensions = cellrenderers_.CellRendererTextList()
-    _add_column(self._cell_renderer_description, "text", self._COLUMN_DESCRIPTION)
-    _add_column(self._cell_renderer_extensions, "markup-list", self._COLUMN_EXTENSIONS)
+    _add_column(self._cell_renderer_description, 'text', self._COLUMN_DESCRIPTION)
+    _add_column(self._cell_renderer_extensions, 'markup-list', self._COLUMN_EXTENSIONS)
   
   def _on_tree_view_motion_notify_event(self, tree_view, event):
     self._highlight_extension_at_pos(int(event.x), int(event.y))
   
   def _on_after_tree_view_realize(self, tree_view):
     self._extensions_separator_text_pixel_size = self._get_text_pixel_size(
-      self._cell_renderer_extensions.get_property("text-list-separator"),
+      self._cell_renderer_extensions.get_property('text-list-separator'),
       pango.Layout(self._popup.tree_view.get_pango_context()))
     
     self._fill_extensions_text_pixel_rects()
@@ -568,8 +568,8 @@ class FileExtensionEntry(ExtendedEntry):
         text_pixel_rects = self._get_text_pixel_rects(
           file_extensions, pango_layout, self._extensions_separator_text_pixel_size[0])
         for rect in text_pixel_rects:
-          rect.x += self._cell_renderer_extensions.get_property("xpad")
-          rect.x += self._popup.tree_view.style_get_property("horizontal-separator")
+          rect.x += self._cell_renderer_extensions.get_property('xpad')
+          rect.x += self._popup.tree_view.style_get_property('horizontal-separator')
           rect.x += (
             self._popup.tree_view.get_column(self._COLUMN_EXTENSIONS).get_spacing())
           
@@ -627,15 +627,15 @@ class FileExtensionEntry(ExtendedEntry):
     self._unhighlight_extension()
   
   def _on_tab_keys_pressed(self, key_name, selected_tree_path, stop_event_propagation):
-    if key_name in ["Tab", "KP_Tab", "ISO_Left_Tab"]:
+    if key_name in ['Tab', 'KP_Tab', 'ISO_Left_Tab']:
       # Tree paths can sometimes point at the first row even though no row is
       # selected, hence the `tree_iter` usage.
       unused_, tree_iter = self._popup.tree_view.get_selection().get_selected()
       
       if tree_iter is not None:
-        if key_name in ["Tab", "KP_Tab"]:
+        if key_name in ['Tab', 'KP_Tab']:
           self._highlight_extension_next(selected_tree_path)
-        elif key_name == "ISO_Left_Tab":    # Shift + Tab
+        elif key_name == 'ISO_Left_Tab':    # Shift + Tab
           self._highlight_extension_previous(selected_tree_path)
         
         previous_position, previous_text = 0, self.get_text()
@@ -657,10 +657,10 @@ class FileExtensionEntry(ExtendedEntry):
     undo_push_list = []
     
     if previous_text:
-      undo_push_list.append(("delete", previous_position, previous_text))
+      undo_push_list.append(('delete', previous_position, previous_text))
     
     if position is not None and text:
-      undo_push_list.append(("insert", position, text))
+      undo_push_list.append(('insert', position, text))
     
     if undo_push_list:
       self.undo_context.undo_push(undo_push_list)
@@ -688,7 +688,7 @@ class FileExtensionEntry(ExtendedEntry):
       if len(extensions) <= 1:
         # Do not highlight any extension.
         if not extensions:
-          self._highlighted_extension = ""
+          self._highlighted_extension = ''
         elif len(extensions) == 1:
           self._highlighted_extension = extensions[0]
         

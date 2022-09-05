@@ -60,7 +60,7 @@ class ProgressUpdater(object):
     * `ValueError` - Number of finished tasks exceeds the number of total tasks.
     """
     if self._num_finished_tasks + num_tasks > self.num_total_tasks:
-      raise ValueError("number of finished tasks exceeds the number of total tasks")
+      raise ValueError('number of finished tasks exceeds the number of total tasks')
     
     self._num_finished_tasks += num_tasks
     
@@ -72,7 +72,7 @@ class ProgressUpdater(object):
     text.
     """
     if text is None:
-      text = ""
+      text = ''
     self._set_text_progress_bar(text)
   
   def reset(self):
@@ -82,7 +82,7 @@ class ProgressUpdater(object):
     self._num_finished_tasks = 0
     if self.num_total_tasks > 0:
       self._fill_progress_bar()
-    self._set_text_progress_bar("")
+    self._set_text_progress_bar('')
   
   def _fill_progress_bar(self):
     """

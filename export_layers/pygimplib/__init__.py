@@ -37,11 +37,11 @@ if _gimp_dependent_modules_imported:
   # Enable logging as early as possible to capture any unexpected errors (such
   # as missing modules) before pygimplib is fully initialized.
   logging.log_output(
-    log_mode="exceptions",
+    log_mode='exceptions',
     log_dirpaths=[os.path.dirname(PYGIMPLIB_DIRPATH), PYGIMPLIB_DIRPATH],
     log_stdout_filename=None,
-    log_stderr_filename="error.log",
-    log_header_title="pygimplib")
+    log_stderr_filename='error.log',
+    log_header_title='pygimplib')
 
 if _gimp_dependent_modules_imported:
   from . import _gui_messages
@@ -64,7 +64,7 @@ def _setup_import_of_external_lib_modules(dirpath):
       sys.path.append(external_libs_dirpath)
 
 
-_setup_import_of_external_lib_modules(os.path.join(PYGIMPLIB_DIRPATH, "_lib"))
+_setup_import_of_external_lib_modules(os.path.join(PYGIMPLIB_DIRPATH, '_lib'))
 
 
 from future.builtins import (
@@ -102,34 +102,34 @@ if _gimp_dependent_modules_imported:
 
 __all__ = [
   # Modules
-  "logging",
-  "utils",
-  "version",
+  'logging',
+  'utils',
+  'version',
   # Global elements imported to or defined in this module
-  "config",
-  "init",
+  'config',
+  'init',
 ]
 
 if _gimp_dependent_modules_imported:
   __all__.extend([
     # Modules
-    "executor",
-    "fileformats",
-    "invocation",
-    "gui",
-    "itemtree",
-    "objectfilter",
-    "overwrite",
-    "path",
-    "pdbutils",
-    "progress",
-    "setting",
+    'executor',
+    'fileformats',
+    'invocation',
+    'gui',
+    'itemtree',
+    'objectfilter',
+    'overwrite',
+    'path',
+    'pdbutils',
+    'progress',
+    'setting',
     # Global elements imported to or defined in this module
-    "pdb",
-    "procedure",
-    "main",
-    "SettingGuiTypes",
-    "SettingTypes",
+    'pdb',
+    'procedure',
+    'main',
+    'SettingGuiTypes',
+    'SettingTypes',
   ])
 
 
@@ -139,14 +139,14 @@ config = None
 class _Config(object):
   
   def __init__(self):
-    super().__setattr__("_config", {})
+    super().__setattr__('_config', {})
   
   def __setattr__(self, name, value):
     self._config[name] = value
   
   def __getattr__(self, name):
     if name not in self._config:
-      raise AttributeError("configuration entry '{}' not found".format(name))
+      raise AttributeError('configuration entry "{}" not found'.format(name))
     
     attr = self._config[name]
     
@@ -167,19 +167,19 @@ def _init_config():
   
   def _get_domain_name():
     if config.PLUGIN_NAME == config._DEFAULT_PLUGIN_NAME:
-      return "gimp20-python"
+      return 'gimp20-python'
     else:
-      return "gimp-plugin-" + config.PLUGIN_NAME.replace("_", "-")
+      return 'gimp-plugin-' + config.PLUGIN_NAME.replace('_', '-')
   
   config = _Config()
   
-  config._DEFAULT_PLUGIN_NAME = "gimp_plugin"
+  config._DEFAULT_PLUGIN_NAME = 'gimp_plugin'
   config.PLUGIN_NAME = config._DEFAULT_PLUGIN_NAME
   config.PLUGIN_TITLE = lambda: config.PLUGIN_NAME
-  config.PLUGIN_VERSION = "1.0"
+  config.PLUGIN_VERSION = '1.0'
   
   config.LOCALE_DIRPATH = (
-    lambda: os.path.join(config.PLUGINS_DIRPATH, config.PLUGIN_NAME, "locale"))
+    lambda: os.path.join(config.PLUGINS_DIRPATH, config.PLUGIN_NAME, 'locale'))
   config.DOMAIN_NAME = _get_domain_name
   
   config.BUG_REPORT_URL_LIST = []
@@ -187,9 +187,9 @@ def _init_config():
   config.PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(PYGIMPLIB_DIRPATH))
   
   if _gimp_dependent_modules_imported:
-    config.LOG_MODE = "exceptions"
+    config.LOG_MODE = 'exceptions'
   else:
-    config.LOG_MODE = "none"
+    config.LOG_MODE = 'none'
   
   _init_config_builtin(config)
   
@@ -205,7 +205,7 @@ def _init_config_builtin(config):
   config.PLUGINS_LOG_DIRPATHS.append(config.DEFAULT_LOGS_DIRPATH)
   
   if _gimp_dependent_modules_imported:
-    plugins_dirpath_alternate = os.path.join(gimp.directory, "plug-ins")
+    plugins_dirpath_alternate = os.path.join(gimp.directory, 'plug-ins')
     if plugins_dirpath_alternate != config.DEFAULT_LOGS_DIRPATH:
       # Add `[user directory]/[GIMP directory]/plug-ins` as another log path in
       # case the plug-in was installed system-wide and there is no permission to
@@ -215,15 +215,15 @@ def _init_config_builtin(config):
   config.PLUGINS_LOG_STDOUT_DIRPATH = config.DEFAULT_LOGS_DIRPATH
   config.PLUGINS_LOG_STDERR_DIRPATH = config.DEFAULT_LOGS_DIRPATH
   
-  config.PLUGINS_LOG_STDOUT_FILENAME = "output.log"
-  config.PLUGINS_LOG_STDERR_FILENAME = "error.log"
+  config.PLUGINS_LOG_STDOUT_FILENAME = 'output.log'
+  config.PLUGINS_LOG_STDERR_FILENAME = 'error.log'
   
   config.GIMP_CONSOLE_MESSAGE_DELAY_MILLISECONDS = 50
 
 
 def _init_config_from_file():
   orig_builtin_c = None
-  if hasattr(__builtin__, "c"):
+  if hasattr(__builtin__, 'c'):
     orig_builtin_c = __builtin__.c
   
   __builtin__.c = config
@@ -242,10 +242,10 @@ def _init_config_from_file():
 def _init_config_builtin_delayed(config):
   
   def _get_setting_source_name():
-    if config.PLUGIN_NAME.startswith("plug_in"):
+    if config.PLUGIN_NAME.startswith('plug_in'):
       return config.PLUGIN_NAME
     else:
-      return "plug_in_" + config.PLUGIN_NAME
+      return 'plug_in_' + config.PLUGIN_NAME
   
   if _gimp_dependent_modules_imported:
     config.SOURCE_NAME = _get_setting_source_name()
@@ -254,7 +254,7 @@ def _init_config_builtin_delayed(config):
   
   gettext.install(config.DOMAIN_NAME, config.LOCALE_DIRPATH, unicode=True)
   
-  if _gimp_dependent_modules_imported or config.LOG_MODE != "gimp_console":
+  if _gimp_dependent_modules_imported or config.LOG_MODE != 'gimp_console':
     logging.log_output(
       config.LOG_MODE, config.PLUGINS_LOG_DIRPATHS,
       config.PLUGINS_LOG_STDOUT_FILENAME, config.PLUGINS_LOG_STDERR_FILENAME,
@@ -295,7 +295,7 @@ if _gimp_dependent_modules_imported:
     * `menu_path` - Path of the menu entry in the GIMP user interface.
     
     * `image_types` - Image types to which the procedure applies (e.g. RGB or
-      indexed). Defaults to `"*"` (any image type).
+      indexed). Defaults to `'*'` (any image type).
     
     * `parameters` - Procedure parameters. This is a list of tuples of three
       elements: `(PDB type, name, description)`. Alternatively, you may pass a
@@ -311,14 +311,14 @@ if _gimp_dependent_modules_imported:
       import pygimplib as pg
       
       \@pg.procedure(
-        blurb="Export layers as separate images",
-        author="John Doe",
-        menu_name=_("E_xport Layers..."),
-        menu_path="<Image>/File/Export",
+        blurb='Export layers as separate images',
+        author='John Doe',
+        menu_name=_('E_xport Layers...'),
+        menu_path='<Image>/File/Export',
         parameters=[
-          (gimpenums.PDB_INT32, "run-mode", "The run mode"),
-          (gimpenums.PDB_IMAGE, "image", "The current image"),
-          (gimpenums.PDB_STRING, "dirpath", "The export directory path")]
+          (gimpenums.PDB_INT32, 'run-mode', 'The run mode'),
+          (gimpenums.PDB_IMAGE, 'image', 'The current image'),
+          (gimpenums.PDB_STRING, 'dirpath', 'The export directory path')]
       )
       def plug_in_export_layers(run_mode, image, *args):
         ...
@@ -339,14 +339,14 @@ if _gimp_dependent_modules_imported:
   
   def _install_procedure(
         procedure,
-        blurb="",
-        description="",
-        author="",
-        copyright_notice="",
-        date="",
-        menu_name="",
+        blurb='',
+        description='',
+        author='',
+        copyright_notice='',
+        date='',
+        menu_name='',
         menu_path=None,
-        image_types="*",
+        image_types='*',
         parameters=None,
         return_values=None):
     
@@ -395,7 +395,7 @@ if _gimp_dependent_modules_imported:
     procedure = _add_gui_excepthook(
       _procedures_names[procedure_name], procedure_params[0])
     
-    if hasattr(gimpui, "gimp_ui_init"):
+    if hasattr(gimpui, 'gimp_ui_init'):
       gimpui.gimp_ui_init()
     
     procedure(*procedure_params)

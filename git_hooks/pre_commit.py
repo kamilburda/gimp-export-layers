@@ -20,7 +20,7 @@
 
 """
 This script provides automatic update and staging of end-user documentation
-files when "raw" documentation files have been changed.
+files when 'raw' documentation files have been changed.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -64,7 +64,7 @@ def main():
   
   staged_filepaths = [
     os.path.normpath(os.path.join(REPOSITORY_ROOT_DIRPATH, diff.a_path))
-    for diff in repo.index.diff("HEAD")]
+    for diff in repo.index.diff('HEAD')]
   
   filepaths_to_sync = sync_docs.get_filepaths(sync_docs.PATHS_TO_PREPROCESS_FILEPATH)
   filepaths_to_sync.extend(sync_docs.get_filepaths(sync_docs.PATHS_TO_COPY_FILEPATH))
@@ -81,5 +81,5 @@ def main():
   repo.git.add(filtered_synced_filepaths_to_stage)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   main()

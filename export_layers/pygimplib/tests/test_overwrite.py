@@ -49,8 +49,8 @@ class TestInteractiveOverwriteChooser(unittest.TestCase):
   
   def setUp(self):
     self.values_and_display_names = [
-      (self.SKIP, "Skip"), (self.REPLACE, "Replace"),
-      (self.RENAME_NEW, "Rename new"), (self.RENAME_EXISTING, "Rename existing")]
+      (self.SKIP, 'Skip'), (self.REPLACE, 'Replace'),
+      (self.RENAME_NEW, 'Rename new'), (self.RENAME_EXISTING, 'Rename existing')]
     self.default_value = self.REPLACE
     self.default_response = self.SKIP
     self.overwrite_chooser = InteractiveOverwriteChooserStub(
@@ -75,11 +75,11 @@ class TestInteractiveOverwriteChooser(unittest.TestCase):
 class TestHandleOverwrite(unittest.TestCase):
   
   def setUp(self):
-    self.filepath = "/test/image.png"
+    self.filepath = '/test/image.png'
     self.overwrite_chooser = pgoverwrite.NoninteractiveOverwriteChooser(
       pgoverwrite.OverwriteModes.REPLACE)
   
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".overwrite.os.path.exists")
+  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + '.overwrite.os.path.exists')
   def test_handle_overwrite_file_exists(self, mock_os_path_exists):
     mock_os_path_exists.return_value = True
     
@@ -87,7 +87,7 @@ class TestHandleOverwrite(unittest.TestCase):
       pgoverwrite.handle_overwrite(self.filepath, self.overwrite_chooser),
       (self.overwrite_chooser.overwrite_mode, self.filepath))
   
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + ".overwrite.os.path.exists")
+  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + '.overwrite.os.path.exists')
   def test_handle_overwrite_file_does_not_exist(self, mock_os_path_exists):
     mock_os_path_exists.return_value = False
     

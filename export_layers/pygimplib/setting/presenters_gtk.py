@@ -25,7 +25,7 @@ import future.utils
 import abc
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 
 import gimp
@@ -37,36 +37,36 @@ from .. import gui as pggui
 from . import presenter as presenter_
 
 __all__ = [
-  "GtkPresenter",
-  "GtkIntSpinButtonPresenter",
-  "GtkFloatSpinButtonPresenter",
-  "GtkCheckButtonPresenter",
-  "GtkCheckButtonLabelPresenter",
-  "GtkCheckMenuItemPresenter",
-  "GimpUiIntComboBoxPresenter",
-  "GtkEntryPresenter",
-  "GimpUiImageComboBoxPresenter",
-  "GimpItemComboBoxPresenter",
-  "GimpUiDrawableComboBoxPresenter",
-  "GimpUiLayerComboBoxPresenter",
-  "GimpUiChannelComboBoxPresenter",
-  "GimpUiVectorsComboBoxPresenter",
-  "GimpUiColorButtonPresenter",
-  "ParasiteBoxPresenter",
-  "GtkDisplaySpinButtonPresenter",
-  "ExtendedEntryPresenter",
-  "GtkFolderChooserPresenter",
-  "GimpUiBrushSelectButtonPresenter",
-  "GimpUiFontSelectButtonPresenter",
-  "GimpUiGradientSelectButtonPresenter",
-  "GimpUiPaletteSelectButtonPresenter",
-  "GimpUiPatternSelectButtonPresenter",
-  "ArrayBoxPresenter",
-  "GtkWindowPositionPresenter",
-  "GtkWindowSizePresenter",
-  "GtkExpanderPresenter",
-  "GtkPanedPositionPresenter",
-  "SettingGuiTypes",
+  'GtkPresenter',
+  'GtkIntSpinButtonPresenter',
+  'GtkFloatSpinButtonPresenter',
+  'GtkCheckButtonPresenter',
+  'GtkCheckButtonLabelPresenter',
+  'GtkCheckMenuItemPresenter',
+  'GimpUiIntComboBoxPresenter',
+  'GtkEntryPresenter',
+  'GimpUiImageComboBoxPresenter',
+  'GimpItemComboBoxPresenter',
+  'GimpUiDrawableComboBoxPresenter',
+  'GimpUiLayerComboBoxPresenter',
+  'GimpUiChannelComboBoxPresenter',
+  'GimpUiVectorsComboBoxPresenter',
+  'GimpUiColorButtonPresenter',
+  'ParasiteBoxPresenter',
+  'GtkDisplaySpinButtonPresenter',
+  'ExtendedEntryPresenter',
+  'GtkFolderChooserPresenter',
+  'GimpUiBrushSelectButtonPresenter',
+  'GimpUiFontSelectButtonPresenter',
+  'GimpUiGradientSelectButtonPresenter',
+  'GimpUiPaletteSelectButtonPresenter',
+  'GimpUiPatternSelectButtonPresenter',
+  'ArrayBoxPresenter',
+  'GtkWindowPositionPresenter',
+  'GtkWindowSizePresenter',
+  'GtkExpanderPresenter',
+  'GtkPanedPositionPresenter',
+  'SettingGuiTypes',
 ]
 
 
@@ -108,7 +108,7 @@ class GtkIntSpinButtonPresenter(GtkPresenter):
   Value: Integer value of the spin button.
   """
   
-  _VALUE_CHANGED_SIGNAL = "value-changed"
+  _VALUE_CHANGED_SIGNAL = 'value-changed'
   
   def _create_gui_element(self, setting):
     return _create_spin_button(setting)
@@ -127,7 +127,7 @@ class GtkFloatSpinButtonPresenter(GtkPresenter):
   Value: Floating point value of the spin button.
   """
   
-  _VALUE_CHANGED_SIGNAL = "value-changed"
+  _VALUE_CHANGED_SIGNAL = 'value-changed'
   
   def _create_gui_element(self, setting):
     return _create_spin_button(setting, digits=1)
@@ -146,7 +146,7 @@ class GtkCheckButtonPresenter(GtkPresenter):
   Value: Checked state of the check button (checked/unchecked).
   """
   
-  _VALUE_CHANGED_SIGNAL = "clicked"
+  _VALUE_CHANGED_SIGNAL = 'clicked'
   
   def _create_gui_element(self, setting):
     return gtk.CheckButton(setting.display_name, use_underline=False)
@@ -179,7 +179,7 @@ class GtkCheckMenuItemPresenter(GtkPresenter):
   Value: Checked state of the menu item (checked/unchecked).
   """
   
-  _VALUE_CHANGED_SIGNAL = "toggled"
+  _VALUE_CHANGED_SIGNAL = 'toggled'
   
   def _create_gui_element(self, setting):
     return gtk.CheckMenuItem(setting.display_name)
@@ -198,7 +198,7 @@ class GtkExpanderPresenter(GtkPresenter):
   Value: `True` if the expander is expanded, `False` if collapsed.
   """
   
-  _VALUE_CHANGED_SIGNAL = "notify::expanded"
+  _VALUE_CHANGED_SIGNAL = 'notify::expanded'
   
   def _create_gui_element(self, setting):
     expander = gtk.Expander(label=setting.display_name)
@@ -219,7 +219,7 @@ class GimpUiIntComboBoxPresenter(GtkPresenter):
   Value: Item selected in the combo box.
   """
   
-  _VALUE_CHANGED_SIGNAL = "changed"
+  _VALUE_CHANGED_SIGNAL = 'changed'
   
   def _create_gui_element(self, setting):
     labels_and_values = setting.get_item_display_names_and_values()
@@ -263,7 +263,7 @@ class GimpUiImageComboBoxPresenter(GtkPresenter):
   Value: `gimp.Image` selected in the combo box.
   """
   
-  _VALUE_CHANGED_SIGNAL = "changed"
+  _VALUE_CHANGED_SIGNAL = 'changed'
   
   def _create_gui_element(self, setting):
     return gimpui.ImageComboBox()
@@ -289,7 +289,7 @@ class GimpItemComboBoxPresenter(GtkPresenter):
   Value: `gimp.Item` selected in the combo box.
   """
   
-  _VALUE_CHANGED_SIGNAL = "changed"
+  _VALUE_CHANGED_SIGNAL = 'changed'
   
   def _create_gui_element(self, setting):
     return _create_item_combo_box(pggui.GimpItemComboBox, setting)
@@ -315,7 +315,7 @@ class GimpUiDrawableComboBoxPresenter(GtkPresenter):
   Value: `gimp.Drawable` selected in the combo box.
   """
   
-  _VALUE_CHANGED_SIGNAL = "changed"
+  _VALUE_CHANGED_SIGNAL = 'changed'
   
   def _create_gui_element(self, setting):
     return _create_item_combo_box(gimpui.DrawableComboBox, setting)
@@ -341,7 +341,7 @@ class GimpUiLayerComboBoxPresenter(GtkPresenter):
   Value: `gimp.Layer` selected in the combo box.
   """
   
-  _VALUE_CHANGED_SIGNAL = "changed"
+  _VALUE_CHANGED_SIGNAL = 'changed'
   
   def _create_gui_element(self, setting):
     return _create_item_combo_box(gimpui.LayerComboBox, setting)
@@ -367,7 +367,7 @@ class GimpUiChannelComboBoxPresenter(GtkPresenter):
   Value: `gimp.Channel` selected in the combo box.
   """
   
-  _VALUE_CHANGED_SIGNAL = "changed"
+  _VALUE_CHANGED_SIGNAL = 'changed'
   
   def _create_gui_element(self, setting):
     return _create_item_combo_box(gimpui.ChannelComboBox, setting)
@@ -393,7 +393,7 @@ class GimpUiVectorsComboBoxPresenter(GtkPresenter):
   Value: `gimp.Vectors` selected in the combo box.
   """
   
-  _VALUE_CHANGED_SIGNAL = "changed"
+  _VALUE_CHANGED_SIGNAL = 'changed'
   
   def _create_gui_element(self, setting):
     return _create_item_combo_box(gimpui.VectorsComboBox, setting)
@@ -417,7 +417,7 @@ class GimpUiColorButtonPresenter(GtkPresenter):
   Value: `gimpcolor.RGB` instance representing color in RGB.
   """
   
-  _VALUE_CHANGED_SIGNAL = "color-changed"
+  _VALUE_CHANGED_SIGNAL = 'color-changed'
   
   def _create_gui_element(self, setting):
     return gimpui.ColorButton(
@@ -437,7 +437,7 @@ class ParasiteBoxPresenter(GtkPresenter):
   Value: `gimp.Parasite` instance.
   """
   
-  _VALUE_CHANGED_SIGNAL = "parasite-changed"
+  _VALUE_CHANGED_SIGNAL = 'parasite-changed'
   
   def _create_gui_element(self, setting):
     return pggui.ParasiteBox(setting.value)
@@ -457,10 +457,10 @@ class GtkDisplaySpinButtonPresenter(GtkPresenter):
   button.
   """
   
-  _VALUE_CHANGED_SIGNAL = "value-changed"
+  _VALUE_CHANGED_SIGNAL = 'value-changed'
   
   def _create_gui_element(self, setting):
-    display_id = getattr(setting.value, "ID", 0)
+    display_id = getattr(setting.value, 'ID', 0)
     
     spin_button = gtk.SpinButton(
       gtk.Adjustment(
@@ -529,7 +529,7 @@ class GtkFolderChooserPresenter(GtkPresenter):
     if dirpath is not None:
       encoded_dirpath = dirpath.encode(pgconstants.GTK_CHARACTER_ENCODING)
     else:
-      encoded_dirpath = b""
+      encoded_dirpath = b''
     
     self._element.set_current_folder(encoded_dirpath)
   
@@ -549,8 +549,8 @@ class GimpUiBrushSelectButtonPresenter(GtkPresenter):
   Value: Tuple representing a brush.
   """
   
-  _VALUE_CHANGED_SIGNAL = "brush-set"
-  _BRUSH_PROPERTIES = ["brush-name", "brush-opacity", "brush-spacing", "brush-paint-mode"]
+  _VALUE_CHANGED_SIGNAL = 'brush-set'
+  _BRUSH_PROPERTIES = ['brush-name', 'brush-opacity', 'brush-spacing', 'brush-paint-mode']
   
   def _create_gui_element(self, setting):
     return gimpui.BrushSelectButton(setting.display_name, *setting.value)
@@ -570,7 +570,7 @@ class GimpUiFontSelectButtonPresenter(GtkPresenter):
   Value: String representing a font.
   """
   
-  _VALUE_CHANGED_SIGNAL = "font-set"
+  _VALUE_CHANGED_SIGNAL = 'font-set'
   
   def _create_gui_element(self, setting):
     return gimpui.FontSelectButton(setting.display_name, setting.value)
@@ -590,7 +590,7 @@ class GimpUiGradientSelectButtonPresenter(GtkPresenter):
   Value: String representing a gradient.
   """
   
-  _VALUE_CHANGED_SIGNAL = "gradient-set"
+  _VALUE_CHANGED_SIGNAL = 'gradient-set'
   
   def _create_gui_element(self, setting):
     return gimpui.GradientSelectButton(setting.display_name, setting.value)
@@ -610,7 +610,7 @@ class GimpUiPaletteSelectButtonPresenter(GtkPresenter):
   Value: String representing a color palette.
   """
   
-  _VALUE_CHANGED_SIGNAL = "palette-set"
+  _VALUE_CHANGED_SIGNAL = 'palette-set'
   
   def _create_gui_element(self, setting):
     return gimpui.PaletteSelectButton(setting.display_name, setting.value)
@@ -630,7 +630,7 @@ class GimpUiPatternSelectButtonPresenter(GtkPresenter):
   Value: String representing a pattern.
   """
   
-  _VALUE_CHANGED_SIGNAL = "pattern-set"
+  _VALUE_CHANGED_SIGNAL = 'pattern-set'
   
   def _create_gui_element(self, setting):
     return gimpui.PatternSelectButton(setting.display_name, setting.value)
@@ -650,8 +650,8 @@ class ArrayBoxPresenter(GtkPresenter):
   `gui.ArraySetting` instance.
   """
   
-  _VALUE_CHANGED_SIGNAL = "array-box-changed"
-  _ITEM_CHANGED_SIGNAL = "array-box-item-changed"
+  _VALUE_CHANGED_SIGNAL = 'array-box-changed'
+  _ITEM_CHANGED_SIGNAL = 'array-box-item-changed'
   
   def __init__(self, *args, **kwargs):
     self._item_changed_event_handler_id = None
@@ -725,12 +725,12 @@ class ArrayBoxPresenter(GtkPresenter):
   
   def _add_array_element(self, array_element, array_box):
     def _on_array_box_item_changed(array_element):
-      array_box.emit("array-box-item-changed")
+      array_box.emit('array-box-item-changed')
     
     array_element.set_gui()
     
     if array_element not in self._array_elements_with_events:
-      array_element.connect_event("value-changed", _on_array_box_item_changed)
+      array_element.connect_event('value-changed', _on_array_box_item_changed)
       self._array_elements_with_events.add(array_element)
     
     return array_element.gui.element
@@ -793,12 +793,12 @@ class GtkPanedPositionPresenter(GtkPresenter):
 
 
 def _create_spin_button(setting, digits=0):
-  if hasattr(setting, "min_value") and setting.min_value is not None:
+  if hasattr(setting, 'min_value') and setting.min_value is not None:
     min_value = setting.min_value
   else:
     min_value = -2**32
   
-  if hasattr(setting, "max_value") and setting.max_value is not None:
+  if hasattr(setting, 'max_value') and setting.max_value is not None:
     max_value = setting.max_value
   else:
     max_value = 2**32
@@ -820,7 +820,7 @@ def _create_spin_button(setting, digits=0):
 
 
 def _create_item_combo_box(item_combo_box_type, setting):
-  if hasattr(setting.value, "image"):
+  if hasattr(setting.value, 'image'):
     def _image_matches_setting_image(image, item, setting_image):
       return image == setting_image
     
@@ -870,5 +870,5 @@ class SettingGuiTypes(object):
   window_size = GtkWindowSizePresenter
   paned_position = GtkPanedPositionPresenter
   
-  automatic = "automatic"
+  automatic = 'automatic'
   none = presenter_.NullPresenter

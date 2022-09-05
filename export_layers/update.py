@@ -31,7 +31,7 @@ import shutil
 import types
 
 import pygtk
-pygtk.require("2.0")
+pygtk.require('2.0')
 import gtk
 
 from export_layers import pygimplib as pg
@@ -39,7 +39,7 @@ from export_layers import pygimplib as pg
 from export_layers.gui import messages
 
 
-MIN_VERSION_WITHOUT_CLEAN_REINSTALL = pg.version.Version.parse("3.3")
+MIN_VERSION_WITHOUT_CLEAN_REINSTALL = pg.version.Version.parse('3.3')
 
 _UPDATE_STATUSES = (FRESH_START, UPDATE, CLEAR_SETTINGS, ABORT) = (0, 1, 2, 3)
 
@@ -62,7 +62,7 @@ def update(settings, prompt_on_clear=False):
     cancelled clearing settings interactively.
   
   If `prompt_on_clear` is `True` and the plug-in requires clearing settings,
-  display a message dialog to prompt the user to proceed with clearing. If "No"
+  display a message dialog to prompt the user to proceed with clearing. If 'No'
   is chosen, do not clear settings and return `ABORT`.
   """
   if _is_fresh_start():
@@ -70,9 +70,9 @@ def update(settings, prompt_on_clear=False):
     return FRESH_START
   
   status, unused_ = pg.setting.Persistor.load(
-    [settings["main/plugin_version"]], [pg.config.PERSISTENT_SOURCE])
+    [settings['main/plugin_version']], [pg.config.PERSISTENT_SOURCE])
   
-  previous_version = pg.version.Version.parse(settings["main/plugin_version"].value)
+  previous_version = pg.version.Version.parse(settings['main/plugin_version'].value)
   
   if (status == pg.setting.Persistor.SUCCESS
       and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
@@ -85,7 +85,7 @@ def update(settings, prompt_on_clear=False):
   
   if prompt_on_clear:
     response = messages.display_message(
-      _("Due to significant changes in the plug-in, settings need to be reset. Proceed?"),
+      _('Due to significant changes in the plug-in, settings need to be reset. Proceed?'),
       gtk.MESSAGE_WARNING,
       buttons=gtk.BUTTONS_YES_NO,
       button_response_id_to_focus=gtk.RESPONSE_NO)
@@ -176,16 +176,16 @@ def _is_fresh_start():
 
 
 def _save_plugin_version(settings):
-  settings["main/plugin_version"].reset()
+  settings['main/plugin_version'].reset()
   pg.setting.Persistor.save(
-    [settings["main/plugin_version"]], [pg.config.PERSISTENT_SOURCE])
+    [settings['main/plugin_version']], [pg.config.PERSISTENT_SOURCE])
 
 
 def _remove_obsolete_pygimplib_files():
   for filename in os.listdir(pg.PYGIMPLIB_DIRPATH):
     filepath = os.path.join(pg.PYGIMPLIB_DIRPATH, filename)
     
-    if filename.startswith("pg") or filename.startswith("_pg"):
+    if filename.startswith('pg') or filename.startswith('_pg'):
       if os.path.isfile(filepath):
         try:
           os.remove(filepath)
@@ -193,18 +193,18 @@ def _remove_obsolete_pygimplib_files():
           pass
       elif os.path.isdir(filepath):
         shutil.rmtree(filepath, ignore_errors=True)
-    elif filename == "lib":
+    elif filename == 'lib':
       if os.path.isdir(filepath):
         shutil.rmtree(filepath, ignore_errors=True)
 
 
 def _remove_obsolete_plugin_files():
-  gui_package_dirpath = os.path.join(pg.config.PLUGIN_SUBDIRPATH, "gui")
+  gui_package_dirpath = os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'gui')
   
   for filename in os.listdir(gui_package_dirpath):
     filepath = os.path.join(gui_package_dirpath, filename)
     
-    if filename.startswith("gui_") and os.path.isfile(filepath):
+    if filename.startswith('gui_') and os.path.isfile(filepath):
       try:
         os.remove(filepath)
       except Exception:
@@ -213,37 +213,37 @@ def _remove_obsolete_plugin_files():
 
 def _update_to_3_3_1(settings):
   rename_settings([
-    ("gui/export_name_preview_sensitive",
-     "gui/name_preview_sensitive"),
-    ("gui/export_image_preview_sensitive",
-     "gui/image_preview_sensitive"),
-    ("gui/export_image_preview_automatic_update",
-     "gui/image_preview_automatic_update"),
-    ("gui/export_image_preview_automatic_update_if_below_maximum_duration",
-     "gui/image_preview_automatic_update_if_below_maximum_duration"),
-    ("gui_session/export_name_preview_layers_collapsed_state",
-     "gui_session/name_preview_layers_collapsed_state"),
-    ("gui_session/export_image_preview_displayed_layers",
-     "gui_session/image_preview_displayed_layers"),
-    ("gui_persistent/export_name_preview_layers_collapsed_state",
-     "gui_persistent/name_preview_layers_collapsed_state"),
-    ("gui_persistent/export_image_preview_displayed_layers",
-     "gui_persistent/image_preview_displayed_layers"),
+    ('gui/export_name_preview_sensitive',
+     'gui/name_preview_sensitive'),
+    ('gui/export_image_preview_sensitive',
+     'gui/image_preview_sensitive'),
+    ('gui/export_image_preview_automatic_update',
+     'gui/image_preview_automatic_update'),
+    ('gui/export_image_preview_automatic_update_if_below_maximum_duration',
+     'gui/image_preview_automatic_update_if_below_maximum_duration'),
+    ('gui_session/export_name_preview_layers_collapsed_state',
+     'gui_session/name_preview_layers_collapsed_state'),
+    ('gui_session/export_image_preview_displayed_layers',
+     'gui_session/image_preview_displayed_layers'),
+    ('gui_persistent/export_name_preview_layers_collapsed_state',
+     'gui_persistent/name_preview_layers_collapsed_state'),
+    ('gui_persistent/export_image_preview_displayed_layers',
+     'gui_persistent/image_preview_displayed_layers'),
   ])
   
-  settings["main/layer_filename_pattern"].load()
+  settings['main/layer_filename_pattern'].load()
   
-  settings["main/layer_filename_pattern"].set_value(
+  settings['main/layer_filename_pattern'].set_value(
     replace_field_arguments_in_pattern(
-      settings["main/layer_filename_pattern"].value,
+      settings['main/layer_filename_pattern'].value,
       {
-        "layer name": [("keep extension", "%e"), ("keep only identical extension", "%i")],
-        "image name": [("keep extension", "%e")],
-        "layer path": [("$$", "%c")],
-        "tags": [("$$", "%t")],
+        'layer name': [('keep extension', '%e'), ('keep only identical extension', '%i')],
+        'image name': [('keep extension', '%e')],
+        'layer path': [('$$', '%c')],
+        'tags': [('$$', '%t')],
       }))
   
-  settings["main/layer_filename_pattern"].save()
+  settings['main/layer_filename_pattern'].save()
 
 
 def _update_to_3_4(settings):
@@ -252,6 +252,6 @@ def _update_to_3_4(settings):
 
 
 _UPDATE_HANDLERS = collections.OrderedDict([
-  ("3.3.1", _update_to_3_3_1),
-  ("3.4", _update_to_3_4),
+  ('3.3.1', _update_to_3_3_1),
+  ('3.4', _update_to_3_4),
 ])

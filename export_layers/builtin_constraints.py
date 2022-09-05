@@ -29,7 +29,7 @@ import collections
 from export_layers import pygimplib as pg
 
 
-CONSTRAINTS_LAYER_TYPES_GROUP = "constraints_layer_types"
+CONSTRAINTS_LAYER_TYPES_GROUP = 'constraints_layer_types'
 
 
 def is_layer(layer_elem):
@@ -77,92 +77,92 @@ def is_layer_in_selected_layers(layer_elem, selected_layers):
 
 _BUILTIN_CONSTRAINTS_LIST = [
   {
-    "name": "include_layers",
-    "type": "constraint",
-    "function": is_layer,
-    "display_name": _("Include layers"),
-    "subfilter": "layer_types",
-    "operation_groups": [CONSTRAINTS_LAYER_TYPES_GROUP],
+    'name': 'include_layers',
+    'type': 'constraint',
+    'function': is_layer,
+    'display_name': _('Include layers'),
+    'subfilter': 'layer_types',
+    'operation_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
   },
   {
-    "name": "include_layer_groups",
-    "type": "constraint",
-    "function": is_nonempty_group,
-    "display_name": _("Include layer groups"),
-    "subfilter": "layer_types",
-    "operation_groups": [CONSTRAINTS_LAYER_TYPES_GROUP],
+    'name': 'include_layer_groups',
+    'type': 'constraint',
+    'function': is_nonempty_group,
+    'display_name': _('Include layer groups'),
+    'subfilter': 'layer_types',
+    'operation_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
   },
   {
-    "name": "include_empty_layer_groups",
-    "type": "constraint",
-    "function": is_empty_group,
-    "display_name": _("Include empty layer groups"),
-    "subfilter": "layer_types",
-    "operation_groups": [CONSTRAINTS_LAYER_TYPES_GROUP],
+    'name': 'include_empty_layer_groups',
+    'type': 'constraint',
+    'function': is_empty_group,
+    'display_name': _('Include empty layer groups'),
+    'subfilter': 'layer_types',
+    'operation_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
   },
   {
-    "name": "only_visible_layers",
-    "type": "constraint",
-    "function": is_path_visible,
-    "enabled": False,
-    "display_name": _("Only visible layers"),
+    'name': 'only_visible_layers',
+    'type': 'constraint',
+    'function': is_path_visible,
+    'enabled': False,
+    'display_name': _('Only visible layers'),
   },
   {
-    "name": "only_toplevel_layers",
-    "type": "constraint",
-    "function": is_top_level,
-    "display_name": _("Only top-level layers"),
+    'name': 'only_toplevel_layers',
+    'type': 'constraint',
+    'function': is_top_level,
+    'display_name': _('Only top-level layers'),
   },
   {
-    "name": "only_layers_with_tags",
-    "type": "constraint",
-    "function": has_tags,
-    "arguments": [
+    'name': 'only_layers_with_tags',
+    'type': 'constraint',
+    'function': has_tags,
+    'arguments': [
       {
-        "type": pg.SettingTypes.array,
-        "name": "tags",
-        "element_type": pg.SettingTypes.string,
-        "default_value": (),
+        'type': pg.SettingTypes.array,
+        'name': 'tags',
+        'element_type': pg.SettingTypes.string,
+        'default_value': (),
       },
     ],
-    "display_name": _("Only layers with tags"),
+    'display_name': _('Only layers with tags'),
   },
   {
-    "name": "only_layers_without_tags",
-    "type": "constraint",
-    "function": has_no_tags,
-    "arguments": [
+    'name': 'only_layers_without_tags',
+    'type': 'constraint',
+    'function': has_no_tags,
+    'arguments': [
       {
-        "type": pg.SettingTypes.array,
-        "name": "tags",
-        "element_type": pg.SettingTypes.string,
-        "default_value": (),
+        'type': pg.SettingTypes.array,
+        'name': 'tags',
+        'element_type': pg.SettingTypes.string,
+        'default_value': (),
       },
     ],
-    "display_name": _("Only layers without tags"),
+    'display_name': _('Only layers without tags'),
   },
   {
-    "name": "only_layers_matching_file_extension",
-    "type": "constraint",
-    "function": has_matching_default_file_extension,
-    "display_name": _("Only layers matching file extension"),
+    'name': 'only_layers_matching_file_extension',
+    'type': 'constraint',
+    'function': has_matching_default_file_extension,
+    'display_name': _('Only layers matching file extension'),
   },
   {
-    "name": "only_selected_layers",
-    "type": "constraint",
-    "function": is_layer_in_selected_layers,
-    "arguments": [
+    'name': 'only_selected_layers',
+    'type': 'constraint',
+    'function': is_layer_in_selected_layers,
+    'arguments': [
       {
-        "type": pg.SettingTypes.generic,
-        "name": "selected_layers",
-        "default_value": set(),
-        "gui_type": None,
+        'type': pg.SettingTypes.generic,
+        'name': 'selected_layers',
+        'default_value': set(),
+        'gui_type': None,
       },
     ],
-    "display_name": _("Only layers selected in preview"),
+    'display_name': _('Only layers selected in preview'),
   },
 ]
 
 BUILTIN_CONSTRAINTS = collections.OrderedDict(
-  (operation_dict["name"], operation_dict)
+  (operation_dict['name'], operation_dict)
   for operation_dict in _BUILTIN_CONSTRAINTS_LIST)

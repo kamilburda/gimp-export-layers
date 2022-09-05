@@ -28,8 +28,8 @@ import abc
 from .. import utils as pgutils
 
 __all__ = [
-  "Presenter",
-  "NullPresenter",
+  'Presenter',
+  'NullPresenter',
 ]
 
 
@@ -53,7 +53,7 @@ class Presenter(future.utils.with_metaclass(abc.ABCMeta, object)):
   be accessed with the same name.
   
   Subclasses can wrap any attribute of a GUI element into their `_get_value()`
-  and `_set_value()` methods. The value does not have to be a "direct" value,
+  and `_set_value()` methods. The value does not have to be a 'direct' value,
   e.g. the checked state of a check button, but also e.g. the label of the
   check button.
   
@@ -121,8 +121,8 @@ class Presenter(future.utils.with_metaclass(abc.ABCMeta, object)):
       
       if self._element is None:
         raise ValueError(
-          "cannot instantiate class '{}': attribute 'element' is None "
-          "and this class does not support the creation of a GUI element".format(
+          'cannot instantiate class "{}": attribute "element" is None '
+          'and this class does not support the creation of a GUI element'.format(
             type(self).__name__))
     
     if old_presenter is not None:
@@ -195,7 +195,7 @@ class Presenter(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     if enabled and self._VALUE_CHANGED_SIGNAL is None:
       raise ValueError(
-        "class '{}' does not support automatic GUI update".format(type(self).__name__))
+        'class "{}" does not support automatic GUI update'.format(type(self).__name__))
     
     if enabled:
       self._value_changed_signal = self._VALUE_CHANGED_SIGNAL
@@ -295,8 +295,8 @@ class NullPresenter(Presenter):
   """
   
   # Make `NullPresenter` pretend to update GUI automatically.
-  _VALUE_CHANGED_SIGNAL = "null_signal"
-  _NULL_GUI_ELEMENT = type(b"NullGuiElement", (), {})()
+  _VALUE_CHANGED_SIGNAL = 'null_signal'
+  _NULL_GUI_ELEMENT = type(b'NullGuiElement', (), {})()
   
   def __init__(self, setting, element, *args, **kwargs):
     """

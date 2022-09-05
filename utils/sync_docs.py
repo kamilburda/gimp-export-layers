@@ -19,7 +19,7 @@
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-This script propagates changes in "raw" documentation to the files comprising
+This script propagates changes in 'raw' documentation to the files comprising
 the end-user documentation.
 
 Care must be taken to select only files that should not be updated manually,
@@ -41,9 +41,9 @@ MODULE_DIRPATH = os.path.dirname(pg.utils.get_current_module_filepath())
 PLUGINS_DIRPATH = os.path.dirname(MODULE_DIRPATH)
 
 PATHS_TO_PREPROCESS_FILEPATH = os.path.join(
-  MODULE_DIRPATH, "sync_docs_files_to_preprocess.txt")
+  MODULE_DIRPATH, 'sync_docs_files_to_preprocess.txt')
 PATHS_TO_COPY_FILEPATH = os.path.join(
-  MODULE_DIRPATH, "sync_docs_files_to_copy.txt")
+  MODULE_DIRPATH, 'sync_docs_files_to_copy.txt')
 
 
 def sync_files(filepaths_to_preprocess, filepaths_to_copy):
@@ -80,7 +80,7 @@ def get_filepaths(file_list_filepath):
     processed_path = os.path.join(path_root, processed_path)
     return processed_path
   
-  with io.open(file_list_filepath, "r", encoding=pg.TEXT_FILE_ENCODING) as file_:
+  with io.open(file_list_filepath, 'r', encoding=pg.TEXT_FILE_ENCODING) as file_:
     lines = file_.readlines()
   
   lines = [line.strip() for line in lines if line.strip()]
@@ -118,5 +118,5 @@ def main():
     get_filepaths(PATHS_TO_PREPROCESS_FILEPATH), get_filepaths(PATHS_TO_COPY_FILEPATH))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   main()
