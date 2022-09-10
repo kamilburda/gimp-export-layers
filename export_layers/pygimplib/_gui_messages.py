@@ -21,8 +21,8 @@ This module defines:
 * wrapper for `sys.excepthook` that displays the GTK exception dialog when an
   unhandled exception is raised
 
-This module should not be used directly. Use `pggui` as the contents of this
-module are included in `pggui`.
+This module should not be used directly. Use the `gui` package as the contents
+of this module are included in the package.
 """
 
 # NOTE: In order to allow logging errors as early as possible (before plug-in

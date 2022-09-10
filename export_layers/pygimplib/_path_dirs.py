@@ -17,8 +17,8 @@
 """
 This module contains functions related to directory manipulations.
 
-This module should not be used directly. Use `pgpath` as the contents of this
-module are included in `pgpath`.
+This module should not be used directly. Use the `path` package as the contents
+of this module are included in the package.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
