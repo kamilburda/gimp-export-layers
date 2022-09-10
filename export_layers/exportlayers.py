@@ -17,10 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This module is the core of the plug-in and provides a class to export layers as
-separate images.
-"""
+"""Plug-in core - exporting layers as separate images."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

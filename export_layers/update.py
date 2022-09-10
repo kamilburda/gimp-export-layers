@@ -17,9 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This module provides necessary steps to update the plug-in to the latest version
-(e.g. due to settings being reorganized or removed).
+"""Steps to upgrade the plug-in to the latest version (e.g. due to files or
+settings being reorganized or removed).
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

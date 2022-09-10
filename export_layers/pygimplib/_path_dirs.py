@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module contains functions related to directory manipulations.
+"""Functions related to directory manipulations, imported before the rest of
+pygimplib is initialized.
 
 This module should not be used directly. Use the `path` package as the contents
 of this module are included in the package.

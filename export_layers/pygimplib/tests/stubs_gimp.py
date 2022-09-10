@@ -14,10 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module provides stubs for GIMP objects, classes, etc. that can be used in
-unit tests.
-"""
+"""Stubs for GIMP objects, classes, etc. usable in automated tests."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

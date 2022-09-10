@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module defines miscellaneous utility functions dealing with GTK widgets.
-"""
+"""Miscellaneous utility functions related to GTK widgets."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

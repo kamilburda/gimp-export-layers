@@ -18,9 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This script automatically takes and processes screenshots of the plug-in dialog
-for documentation purposes.
+"""Automatic taking and processing screenshots of the plug-in dialog for
+documentation purposes.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

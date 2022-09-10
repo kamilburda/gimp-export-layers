@@ -14,23 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module defines the following classes:
-
-* `ItemTree` - an associative, tree-like structure that stores all GIMP items
-  and item groups of a certain type
-
-* subclasses of `ItemTree`:
-  
-  * `LayerTree` for layers
-  
-  * `ChannelTree` for channels
-  
-  * `VectorTree` for vectors (paths)
-
-* `_ItemTreeElement` - wrapper for `gimp.Item` objects containing custom
-  attributes derived from the original `gimp.Item` attributes
-"""
+"""Classes organizing GIMP items (e.g. layers) in a tree-like structure."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

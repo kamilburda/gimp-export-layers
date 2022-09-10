@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module contains a class providing a string template to substitute fields
-and their arguments.
+"""Class providing a string template to substitute fields and their arguments.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

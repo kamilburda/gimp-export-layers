@@ -18,10 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This script pre-processes documents (HTML pages, plain text files), replacing
-lines containing a Liquid-style tag and its arguments with the corresponding
-content.
+"""Pre-processing of documents (HTML pages, plain text files), replacing lines
+containing a Liquid-style tag and its arguments with the corresponding content.
 
 Usage:
 `<script name> <source file paths> <destination file paths>`

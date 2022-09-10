@@ -14,11 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module defines setting sources - the means to load and save settings:
-* persistently
-* session-wide - settings persist during one GIMP session
-"""
+"""Classes allowing loading and saving settings."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

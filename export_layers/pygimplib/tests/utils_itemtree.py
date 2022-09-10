@@ -14,10 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module provides various utility functions and classes for the
-`test_itemtree` module.
-"""
+"""Utility functions for the `test_itemtree` module."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

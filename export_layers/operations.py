@@ -17,9 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This module defines the means to create and manipulate plug-in operations -
-procedures and constraints.
+"""Creation and management of plug-in operations - procedures and constraints.
 
 Most functions take a setting group containing operations as its first argument.
 

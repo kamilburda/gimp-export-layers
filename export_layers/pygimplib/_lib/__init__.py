@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This package contains the following external libraries used in pygimplib:
+"""This package contains the following external libraries used in pygimplib:
 * `mock`: http://www.voidspace.org.uk/python/mock/
 * `future`: https://pypi.python.org/pypi/future
 

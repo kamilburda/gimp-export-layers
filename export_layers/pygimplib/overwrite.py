@@ -14,12 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module defines:
-* overwrite chooser - an indication on how to handle existing files (skip,
-  replace, rename, etc.),
-* `handle_overwrite` convenience function to handle conflicting files.
-"""
+"""Handling of conflicting files - overwrite, skip, etc."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

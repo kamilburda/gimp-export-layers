@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module contains functions to make strings or file paths unique.
-"""
+"""Functions to modify strings or file paths to make them unique."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

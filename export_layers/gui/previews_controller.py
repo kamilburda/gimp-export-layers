@@ -17,10 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This module provides a class to interconnect the widgets displaying previews of
-layer names and images to be exported.
-"""
+"""Class interconnecting preview widgets for layer names and images."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

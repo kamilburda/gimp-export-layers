@@ -14,12 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module:
-* provides logging of unhandled exceptions and debug information (if
-debugging is enabled),
-* defines a class to duplicate ("tee") standard output or error output.
-"""
+"""Logging-related classes."""
 
 # NOTE: In order to allow logging errors as early as possible (before plug-in
 # initialization):

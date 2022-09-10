@@ -18,9 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This script creates installers for releases from the plug-in source.
-"""
+"""Creating installers for releases from the plug-in source."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 

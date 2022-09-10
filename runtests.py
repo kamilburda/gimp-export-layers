@@ -18,8 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This GIMP plug-in runs automated tests for modules requiring GIMP to be running.
+"""Running automated tests.
 
 By default, all modules starting with the `'test_'` prefix will be executed.
 

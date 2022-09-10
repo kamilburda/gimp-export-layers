@@ -14,10 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module provides additional functions dealing with GIMP objects (images,
-layers, etc.) not defined in the GIMP procedural database (PDB) or the GIMP
-Python API.
+"""Additional functions dealing with GIMP objects (images, layers, etc.) not
+defined in the GIMP procedural database (PDB) or the GIMP Python API.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module provides stubs primarily to be used in the `test_setting` module.
-"""
+"""Stubs primarily to be used in the `test_setting` module."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

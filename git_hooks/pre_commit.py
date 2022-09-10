@@ -18,9 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This script provides automatic update and staging of end-user documentation
-files when 'raw' documentation files have been changed.
+"""Git hook for updating and staging of end-user documentation files when "raw"
+documentation files have been changed.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

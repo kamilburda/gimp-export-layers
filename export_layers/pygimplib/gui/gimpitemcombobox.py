@@ -14,10 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module defines a custom GUI widget for `gimp.Item` objects not currently
-available in GIMP Python API.
-"""
+"""Combo box widget for `gimp.Item` objects."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

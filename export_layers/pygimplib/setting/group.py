@@ -14,10 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module defines a class to group settings together for their easier creation
-and management.
-"""
+"""Class that groups settings for easier setting creation and management."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

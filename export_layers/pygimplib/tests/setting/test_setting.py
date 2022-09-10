@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module tests the `setting.setting` and `setting.presenter` modules.
-"""
+"""Tests for the `setting.setting` and `setting.presenter` modules."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

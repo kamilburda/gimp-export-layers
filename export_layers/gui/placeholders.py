@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This module defines GUI for placeholder GIMP objects (images, layers). During
-processing, these placeholders are replaced with real objects.
+"""Widget for placeholder GIMP objects (images, layers) such as "Current layer".
+
+During processing, these placeholders are replaced with real objects.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

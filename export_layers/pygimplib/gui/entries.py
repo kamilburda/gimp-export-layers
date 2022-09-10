@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module defines text entries with enhanced capabilities, such as undo/redo
-history or a customizable popup.
+"""GTK text entries (fields) with enhanced features.
+
+Enhanced features include undo/redo history and a customizable popup.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

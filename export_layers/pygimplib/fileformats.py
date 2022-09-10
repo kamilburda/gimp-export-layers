@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module contains a list of built-in and several third-party file formats
-supported by GIMP.
+"""List of built-in and several third-party file formats supported by GIMP.
 
 Each element of the list is a tuple:
 

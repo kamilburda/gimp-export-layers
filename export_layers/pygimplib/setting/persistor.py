@@ -14,9 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module provides a simple interface to load and save settings using setting
-sources defined in the `setting.sources` module.
+"""Simple class to load and save settings.
+
+The class allows loading/saving using setting sources defined in the
+`setting.sources` module.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

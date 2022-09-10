@@ -14,11 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module provides the means to execute a list of functions sequentially, with
-convenience wrappers such as fixed functions executed before and/or after each
-function.
-"""
+"""Class to manage and execute a list of functions sequentially."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

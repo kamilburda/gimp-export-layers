@@ -14,10 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This package contains helper functions and classes for managing GUI elements in
-plug-ins.
-"""
+"""Helper functions and classes for managing GUI elements in plug-ins."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

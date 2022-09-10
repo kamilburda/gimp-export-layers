@@ -14,10 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module provides validation of file paths, directory paths and file
-extensions.
-"""
+"""Validation of file paths, directory paths and file extensions."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

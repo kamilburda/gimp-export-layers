@@ -14,10 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module contains a class to generate GIMP PDB parameters out of settings
-(`setting.Setting` instances) and parse GIMP procedure arguments to assign
-them as values to settings.
+"""Class to generate GIMP PDB parameters out of settings and parse GIMP
+procedure arguments to assign them as values to settings.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

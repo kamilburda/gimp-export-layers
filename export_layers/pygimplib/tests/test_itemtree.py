@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module tests the `itemtree` module.
+"""Tests for the `itemtree` module.
 
 Because the public interface to test is identical for all `ItemTree` subclasses,
 it is sufficient to test `itemtree` using one of the subclasses. `LayerTree`

@@ -14,10 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module defines a widget containing a text label that can be optionally
-edited.
-"""
+"""Widget containing a text label that can be optionally edited."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

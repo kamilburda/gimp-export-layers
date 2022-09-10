@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module provides a class to store and increment version numbers.
-"""
+"""Management of version numbers (particularly incrementing)."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

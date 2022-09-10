@@ -17,9 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This module defines placeholder GIMP objects that are replaced with real objects
-when executing GIMP PDB procedures during export.
+"""Placeholder objects replaced with real GIMP objects when executing GIMP PDB
+procedures during export.
 
 The following placeholder objects are defined:
 

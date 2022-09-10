@@ -14,10 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module defines a class to filter objects according to specified filter
-rules.
-"""
+"""Class to filter objects according to specified filter rules."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

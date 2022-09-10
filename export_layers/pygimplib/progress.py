@@ -14,10 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module defines the interface to update the progress of the work done so
-far.
-"""
+"""Interface for updating the progress of the work done so far."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

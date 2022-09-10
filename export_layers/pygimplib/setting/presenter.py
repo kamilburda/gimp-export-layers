@@ -14,10 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module defines classes to keep GUI elements and their associated settings
-in sync.
-"""
+"""Classes to keep settings and their associated GUI elements in sync."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

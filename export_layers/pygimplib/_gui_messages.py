@@ -14,8 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module defines:
+"""Widgets and functions to display GUI messages (particularly error messages),
+imported before the rest of pygimplib is initialized.
+
+This module contains:
 * GTK exception dialog
 * GTK generic message dialog
 * wrapper for `sys.excepthook` that displays the GTK exception dialog when an

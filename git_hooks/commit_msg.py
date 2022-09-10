@@ -18,10 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This script automatically formats commit messages (header and body) and prevents
-a commit from proceeding if some formatting conventions are violated (e.g. too
-long commit header).
+"""Git hook for automatic formatting of commit messages (header and body).
+
+The hook also prevents a commit from proceeding if some formatting conventions
+are violated (e.g. too long commit header).
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

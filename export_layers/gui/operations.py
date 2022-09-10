@@ -17,10 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Export Layers.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-This module defines the means to interactively edit a list of operations
-executed in the plug-in.
-"""
+"""Widgets to interactively edit operations (procedures/constraints)."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This package provides API for handling plug-in settings.
-"""
+"""API for plug-in settings."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
