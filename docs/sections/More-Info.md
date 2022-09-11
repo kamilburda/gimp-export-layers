@@ -17,4 +17,4 @@ If you would like to provide translations, see [TRANSLATIONS](TRANSLATIONS.md) f
 License
 -------
 
-Export Layers is licensed under the [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) license.
+Export Layers is licensed under the [BSD 3-Clause](LICENSE) license.
