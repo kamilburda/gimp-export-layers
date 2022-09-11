@@ -11,7 +11,7 @@ import gtk
 
 from .. import utils as pgutils
 
-from . import popuphidecontext as popuphidecontext_
+from . import popup_hide_context as popup_hide_context_
 from . import utils as utils_
 
 __all__ = [
@@ -62,7 +62,7 @@ class EntryPopup(object):
     
     self._init_gui(column_types, rows)
     
-    self._popup_hide_context = popuphidecontext_.PopupHideContext(
+    self._popup_hide_context = popup_hide_context_.PopupHideContext(
       self._popup, self._entry, self.hide)
     
     self._connect_events()

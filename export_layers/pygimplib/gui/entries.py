@@ -18,10 +18,10 @@ from .. import constants as pgconstants
 from .. import fileformats as pgfileformats
 from .. import path as pgpath
 
-from . import cellrenderers as cellrenderers_
-from . import entryexpander as entryexpander_
-from . import entrypopup as entrypopup_
-from . import entryundocontext as entryundocontext_
+from . import cell_renderers as cell_renderers_
+from . import entry_expander as entry_expander_
+from . import entry_popup as entry_popup_
+from . import entry_undo_context as entry_undo_context_
 
 __all__ = [
   'ExtendedEntry',
@@ -67,9 +67,9 @@ class ExtendedEntry(gtk.Entry):
     
     super().__init__(*args, **kwargs)
     
-    self._undo_context = entryundocontext_.EntryUndoContext(self)
+    self._undo_context = entry_undo_context_.EntryUndoContext(self)
     self._popup = None
-    self._expander = entryexpander_.EntryExpander(
+    self._expander = entry_expander_.EntryExpander(
       self, self._minimum_width_chars, self._maximum_width_chars)
     
     self._has_placeholder_text_assigned = False
@@ -231,7 +231,7 @@ class FilenamePatternEntry(ExtendedEntry):
     
     self._pango_layout = pango.Layout(self.get_pango_context())
     
-    self._popup = entrypopup_.EntryPopup(self, self._COLUMN_TYPES, suggested_items)
+    self._popup = entry_popup_.EntryPopup(self, self._COLUMN_TYPES, suggested_items)
     self._popup.filter_rows_func = self._filter_suggested_items
     self._popup.on_assign_from_selected_row = self._on_assign_from_selected_row
     self._popup.on_assign_last_value = self._assign_last_value
@@ -490,7 +490,7 @@ class FileExtensionEntry(ExtendedEntry):
     self._extensions_separator_text_pixel_size = None
     self._extensions_text_pixel_rects = []
     
-    self._popup = entrypopup_.EntryPopup(
+    self._popup = entry_popup_.EntryPopup(
       self, self._COLUMN_TYPES, self._get_file_formats(pgfileformats.file_formats))
     self._popup.filter_rows_func = self._filter_file_formats
     self._popup.on_assign_from_selected_row = self._on_assign_from_selected_row
@@ -526,7 +526,7 @@ class FileExtensionEntry(ExtendedEntry):
       self._popup.tree_view.append_column(column)
     
     self._cell_renderer_description = gtk.CellRendererText()
-    self._cell_renderer_extensions = cellrenderers_.CellRendererTextList()
+    self._cell_renderer_extensions = cell_renderers_.CellRendererTextList()
     _add_column(self._cell_renderer_description, 'text', self._COLUMN_DESCRIPTION)
     _add_column(self._cell_renderer_extensions, 'markup-list', self._COLUMN_EXTENSIONS)
   

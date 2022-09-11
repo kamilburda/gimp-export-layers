@@ -299,55 +299,55 @@ msgstr ""
 msgid "Invalid placeholder."
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/gimpitemcombobox.py:77
+#: ../../export_layers/pygimplib/gui/gimp_item_combo_box.py:77
 msgid "Layer"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/gimpitemcombobox.py:83
+#: ../../export_layers/pygimplib/gui/gimp_item_combo_box.py:83
 msgid "Channel"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/gimpitemcombobox.py:89
+#: ../../export_layers/pygimplib/gui/gimp_item_combo_box.py:89
 msgid "Vectors"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/itembox.py:333
+#: ../../export_layers/pygimplib/gui/item_box.py:333
 msgid "Size"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/itembox.py:545
+#: ../../export_layers/pygimplib/gui/item_box.py:545
 msgid "Element"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/overwritechooser.py:95
+#: ../../export_layers/pygimplib/gui/overwrite_chooser.py:95
 msgid "_Apply action to all files"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/overwritechooser.py:122
+#: ../../export_layers/pygimplib/gui/overwrite_chooser.py:122
 msgid "A file named \"{}\" already exists in \"{}\". "
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/overwritechooser.py:125
+#: ../../export_layers/pygimplib/gui/overwrite_chooser.py:125
 msgid "A file named \"{}\" already exists.\n"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/overwritechooser.py:127
+#: ../../export_layers/pygimplib/gui/overwrite_chooser.py:127
 msgid "A file with the same name already exists.\n"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/overwritechooser.py:129
+#: ../../export_layers/pygimplib/gui/overwrite_chooser.py:129
 msgid "What would you like to do?"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/parasitebox.py:84
+#: ../../export_layers/pygimplib/gui/parasite_box.py:84
 msgid "Name"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/parasitebox.py:93
+#: ../../export_layers/pygimplib/gui/parasite_box.py:93
 msgid "Flags"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/parasitebox.py:103
+#: ../../export_layers/pygimplib/gui/parasite_box.py:103
 msgid "Data"
 msgstr ""
 
