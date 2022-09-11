@@ -8,7 +8,7 @@ How do I translate the plug-in?
 -------------------------------
 
 First, make sure you use the `gimp-plugin-export-layers.pot` file for the latest plug-in version.
-Either use the .pot file in the `export_layers/locale` folder (inside the folder with the installed plug-in), or, if in doubt, [download the latest version](https://github.com/khalim19/gimp-plugin-export-layers/blob/master/export_layers/locale/gimp-plugin-export-layers.pot).
+Either use the .pot file in the `export_layers/locale` folder (inside the folder with the installed plug-in), or, if in doubt, [download the latest version](https://github.com/khalim19/gimp-plugin-export-layers/blob/main/export_layers/locale/gimp-plugin-export-layers.pot).
 
 
 ### Poedit

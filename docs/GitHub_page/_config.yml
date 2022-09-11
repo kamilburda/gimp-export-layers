@@ -14,7 +14,7 @@ plugin_version_release_date: "{% include-config 'PLUGIN_VERSION_RELEASE_DATE' %}
 download_windows_suffix: "-windows.exe"
 download_zip_suffix: ".zip"
 sections_url: "/sections/"
-license_remote_url: "blob/master/LICENSE"
+license_remote_url: "blob/main/LICENSE"
 license_local_filename: "LICENSE.txt"
 
 plugins:

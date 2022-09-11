@@ -30,7 +30,7 @@ If you cannot run the script, perform manual setup as per the instructions below
 
 ### Setting up Repositories
 
-Clone the master branch of the repository to a directory named e.g. `plug-ins - Export Layers` inside the directory for local GIMP plug-ins - `.gimp-2.8` for GIMP 2.8, `.config/GIMP/[version]` for later GIMP versions such as 2.10.
+Clone the main branch of the repository to a directory named e.g. `plug-ins - Export Layers` inside the directory for local GIMP plug-ins - `.gimp-2.8` for GIMP 2.8, `.config/GIMP/[version]` for later GIMP versions such as 2.10.
 
 To make GIMP recognize the new directory as a directory containing GIMP plug-ins, open up GIMP, go to `Edit → Preferences → Folders → Plug-ins` and add the new directory to the list.
 GIMP needs to be restarted for changes to take effect.

@@ -113,7 +113,7 @@ fi
 
 # Repository initialization
 
-echo 'Cloning master branch of '"$repo_url"' into '\'"$repo_dirpath"\'
+echo 'Cloning main branch of '"$repo_url"' into '\'"$repo_dirpath"\'
 git clone --recurse-submodules -- "$repo_url" "$repo_dirpath"
 
 cd "$repo_dirpath"

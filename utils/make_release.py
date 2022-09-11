@@ -540,8 +540,8 @@ def main():
   parser.add_argument(
     '-b',
     '--remote-branch',
-    default='master',
-    help='name of the branch (defaults to "master")',
+    default='main',
+    help='name of the branch (defaults to "main")',
     dest='remote_branch')
   parser.add_argument(
     '-y',
