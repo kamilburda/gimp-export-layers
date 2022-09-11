@@ -402,6 +402,9 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   def __str__(self):
     return pgutils.stringify_object(self, self.name)
   
+  def __repr__(self):
+    return pgutils.reprify_object(self, self.name)
+  
   def get_path(self, relative_path_group=None):
     """
     This is a wrapper method for `setting.utils.get_setting_path()`. Consult the

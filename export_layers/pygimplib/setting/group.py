@@ -140,6 +140,9 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   def __str__(self):
     return pgutils.stringify_object(self, self.name)
   
+  def __repr__(self):
+    return pgutils.reprify_object(self, self.name)
+  
   def __getitem__(self, setting_name_or_path):
     """
     Access the setting or group by its name (string).

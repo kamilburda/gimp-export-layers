@@ -78,6 +78,32 @@ def stringify_object(object_, name):
   return '<{} "{}">'.format(type(object_).__name__, name)
 
 
+def reprify_object(object_, name=None):
+  """Return a string representation of the object useful for `repr()` calls.
+  
+  The first part of the string, the class path, starts from the `'pygimplib'`
+  module. If the full class path is not available, only the class name is given.
+  
+  A custom `name`, if not `None`, replaces the default `'object'` inserted in
+  the string.
+  """
+  object_type = type(object_)
+  
+  if hasattr(object_type, '__module__'):
+    object_type_path = (
+      object_type.__module__[object_type.__module__.find('pygimplib'):]
+      + '.' + object_type.__name__
+    )
+  else:
+    object_type_path = object_type.__name__
+  
+  return '<{} {} at {}>'.format(
+    object_type_path,
+    '"{}"'.format(name) if name is not None else 'object',
+    hex(id(object_)).rstrip('L'),
+  )
+
+
 def get_module_root(full_module_name, name_component_to_trim_after):
   """
   Return the part of the full module name (separated by '.' characters) from the

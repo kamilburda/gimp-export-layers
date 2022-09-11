@@ -477,7 +477,7 @@ class _ItemTreeElement(object):
     return pgutils.stringify_object(self, self.orig_name)
   
   def __repr__(self):
-    return pgutils.stringify_object(
+    return pgutils.reprify_object(
       self, ' '.join([self.orig_name, str(type(self.item))]))
   
   def get_file_extension(self):

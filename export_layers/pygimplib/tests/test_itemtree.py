@@ -354,7 +354,11 @@ class TestLayerTreeElement(unittest.TestCase):
   def test_repr(self):
     self.assertEqual(
       repr(self.layer_elem),
-      '<_ItemTreeElement "main-background.jpg {}">'.format(type(self.layer_elem.item)))
+      '<pygimplib.itemtree._ItemTreeElement "main-background.jpg {}" at {}>'.format(
+        type(self.layer_elem.item),
+        hex(id(self.layer_elem)).rstrip('L'),
+      ),
+    )
   
   def test_get_base_name(self):
     self.layer_elem.name = 'main-background'
