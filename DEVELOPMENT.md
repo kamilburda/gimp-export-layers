@@ -89,9 +89,7 @@ Coding Conventions <a name="Coding-Conventions"></a>
 
 For Python modules, stick to PEP 8 unless overridden below.
 
-Use pep8 and PyLint to enforce coding conventions with their respective configuration files:
-* [pep8 configuration for PyDev](ide/org.python.pydev.analysis.yaml)
-* [PyLint](ide/pylintrc)
+Use [pep8 configuration for PyDev](ide/org.python.pydev.analysis.yaml) to enforce coding conventions.
 
 Additional conventions complementing aforementioned conventions are specified below.
 
