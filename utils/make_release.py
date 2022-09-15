@@ -514,7 +514,7 @@ def main():
     '--installers',
     nargs='*',
     default=['all'],
-    choices=['windows', 'zip', 'all'],
+    choices=['zip', 'all'],
     help=(
       'installers to create; see help for "make_installers.py" for more information'),
     dest='installers')

@@ -8,15 +8,6 @@ Requirements
 Windows
 -------
 
-### Installer
-
-1. Make sure you have GIMP installed with support for Python scripting.
-2. Run the Windows installer and customize plug-in installation path as needed.
-   If you have a portable GIMP installation, you will be prompted to specify the path to GIMP and GIMP plug-ins manually.
-
-
-### Manual installation (ZIP package)
-
 1. Make sure you have GIMP installed with support for Python scripting.
 2. Locate the folder containing GIMP plug-ins - open GIMP and go to `Edit → Preferences → Folders → Plug-Ins`.
 3. Extract the following files and folders to one of the folders identified in step 2:

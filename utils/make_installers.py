@@ -246,7 +246,6 @@ def _create_installers(
   installers = list(collections.OrderedDict.fromkeys(installers))
   
   installer_funcs = collections.OrderedDict([
-    ('windows', _create_windows_installer),
     ('zip', _create_zip_archive),
   ])
   
@@ -259,41 +258,6 @@ def _create_installers(
   
   for installer_func in installer_funcs_to_execute:
     installer_func(installer_dirpath, input_dirpath, input_filepaths, output_filepaths)
-
-
-def _create_windows_installer(
-      installer_dirpath, input_dirpath, input_filepaths, output_filepaths):
-  installer_filename_prefix = '{}-{}-windows'.format(
-    pg.config.PLUGIN_NAME, pg.config.PLUGIN_VERSION)
-  
-  installer_filepath = os.path.join(installer_dirpath, installer_filename_prefix + '.exe')
-  
-  WINDOWS_INSTALLER_SCRIPT_DIRPATH = os.path.join(INSTALLERS_DIRPATH, 'windows')
-  WINDOWS_INSTALLER_SCRIPT_FILENAME = 'installer.iss'
-  WINDOWS_INSTALLER_COMPILER_COMMAND = 'compile_installer.bat'
-  
-  orig_cwd = os.getcwd()
-  os.chdir(WINDOWS_INSTALLER_SCRIPT_DIRPATH)
-  
-  return_code = subprocess.call([
-    'cmd.exe',
-    '/c',
-    WINDOWS_INSTALLER_COMPILER_COMMAND,
-    pg.config.PLUGIN_NAME,
-    pg.config.PLUGIN_VERSION,
-    pg.config.AUTHOR_NAME,
-    os.path.relpath(input_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
-    os.path.relpath(installer_dirpath, WINDOWS_INSTALLER_SCRIPT_DIRPATH),
-    installer_filename_prefix,
-    WINDOWS_INSTALLER_SCRIPT_FILENAME,
-  ])
-  
-  os.chdir(orig_cwd)
-  
-  if return_code == 0:
-    print('Windows installer successfully created:', installer_filepath)
-  else:
-    print('Failed to create Windows installer:', installer_filepath)
 
 
 def _create_zip_archive(
@@ -372,10 +336,8 @@ def main():
     '--installers',
     nargs='*',
     default=['zip'],
-    choices=['windows', 'zip', 'all'],
-    help=(
-      'installers to create; '
-      'note that creating a Windows installer may not be possible on *nix systems'),
+    choices=['zip', 'all'],
+    help='installers to create',
     dest='installers')
   parser.add_argument(
     '-n',
