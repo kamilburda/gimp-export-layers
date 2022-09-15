@@ -14,7 +14,7 @@ c.PLUGIN_NAME = 'export_layers'
 c.PLUGIN_SUBDIRPATH = os.path.join(c.PLUGINS_DIRPATH, c.PLUGIN_NAME)
 c.LOCALE_DIRPATH = os.path.join(c.PLUGINS_DIRPATH, c.PLUGIN_NAME, 'locale')
 
-c.LOG_MODE = "exceptions"
+c.LOG_MODE = 'exceptions'
 
 c.PLUGIN_TITLE = lambda: _('Export Layers')
 c.PLUGIN_VERSION = '3.3.1'

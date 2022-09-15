@@ -122,10 +122,6 @@ echo 'Setting up git hooks'
 ln -s 'git_hooks/commit_msg.py' '.git/hooks/commit-msg'
 ln -s 'git_hooks/pre_commit.py' '.git/hooks/pre-commit'
 
-echo 'Setting up filters to ignore modifications to specific lines'
-git config --local 'filter.ignore_config_entries.clean' "sed 's/c\\.LOG_MODE = .*/c\\.LOG_MODE = \"exceptions\"/' | sed 's/c\\.DEBUG_IMAGE_PROCESSING = .*/c\\.DEBUG_IMAGE_PROCESSING = False/'"
-git config --local 'filter.ignore_config_entries.smudge' 'cat'
-
 echo 'Enabling core.autocrlf in git config'
 git config --local 'core.autocrlf' 'true'
 

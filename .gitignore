@@ -3,6 +3,7 @@
 #################
 
 *.log
+export_layers/config_dev.py
 export_layers/tests/test_images/temp_output/
 export_layers/tests/test_images/incorrect_results/
 docs/gh-pages/
