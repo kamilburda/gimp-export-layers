@@ -7,16 +7,16 @@ import inspect
 import os
 import sys
 
-# Fix Windows installation failing to import modules from subdirectories in the
-# 'plug-ins' directory.
-if os.name == 'nt':
-  current_module_dirpath = os.path.dirname(inspect.getfile(inspect.currentframe()))
-  if current_module_dirpath not in sys.path:
-    sys.path.append(current_module_dirpath)
+
+# Allow importing modules in directories in the 'plug-ins' directory.
+current_module_dirpath = os.path.dirname(inspect.getfile(inspect.currentframe()))
+if current_module_dirpath not in sys.path:
+  sys.path.append(current_module_dirpath)
 
 # Disable overlay scrollbar (notably used in Ubuntu) to be consistent with the
 # Export menu.
 os.environ['LIBOVERLAY_SCROLLBAR'] = '0'
+
 
 from export_layers import pygimplib as pg
 from future.builtins import *
