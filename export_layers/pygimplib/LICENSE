@@ -1,6 +1,6 @@
 This software is licensed under the BSD 3-Clause License.
 
-The `lib` directory contains external libraries, each with their own LICENSE
+The `_lib` directory contains external libraries, each with their own LICENSE
 file.
 
 
