@@ -256,10 +256,13 @@ if _gimp_dependent_modules_imported:
   _procedures_names = collections.OrderedDict()
   
   def procedure(**kwargs):
-    """
-    This function is a decorator that installs the wrapped function as a GIMP
-    procedure. The procedure can then be accessed via the GIMP procedural
-    database (PDB) and optionally from the GIMP user interface.
+    """Installs a function as a GIMP procedure.
+    
+    Use this function as a decorator over a function to be exposed to the GIMP
+    procedural database (PDB).
+    
+    The installed procedure can then be accessed via the GIMP (PDB) and,
+    optionally, from the GIMP user interface.
     
     The function name is used as the procedure name as found in the GIMP PDB.
     
@@ -318,8 +321,9 @@ if _gimp_dependent_modules_imported:
     return procedure_wrapper
   
   def main():
-    """
-    Enable the installation and execution of GIMP procedures.
+    """Enables installation and execution of GIMP procedures.
+    
+    Call this function at the end of your main plug-in file.
     """
     gimp.main(None, None, _query, _run)
   
