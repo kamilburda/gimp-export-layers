@@ -1,3 +1,10 @@
+3.3.2 (upcoming)
+================
+
+* Fixed a crash while finishing export when using back- or foreground layers.
+* Fixed export when using a custom procedure containing a Color argument.
+
+
 3.3.1
 =====
 
