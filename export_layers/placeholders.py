@@ -59,10 +59,12 @@ def get_replaced_arg(arg, image, layer, layer_exporter):
   Arguments after `args` are required arguments for operations and are used to
   determine the real object that replaces the placeholder.
   """
-  if arg in _PLACEHOLDERS.keys():
-    return _PLACEHOLDERS[arg].replace_args(image, layer, layer_exporter)
-  else:
+  try:
+    placeholder = _PLACEHOLDERS[arg]
+  except (KeyError, TypeError):
     return arg
+  else:
+    return placeholder.replace_args(image, layer, layer_exporter)
 
 
 def get_replaced_args_and_kwargs(func_args, func_kwargs, image, layer, layer_exporter):
