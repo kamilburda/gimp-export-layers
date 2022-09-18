@@ -507,13 +507,10 @@ class LayerExporter(object):
       pdb.gimp_image_remove_layer(image, layer)
     else:
       if self._use_another_image_copy:
-        another_layer_copy = pdb.gimp_layer_new_from_drawable(
-          layer, self._another_image_copy)
-        pdb.gimp_image_insert_layer(
-          self._another_image_copy,
-          another_layer_copy,
-          None,
-          len(self._another_image_copy.layers))
+        another_layer_copy = pg.pdbutils.copy_and_paste_layer(
+          layer, self._another_image_copy, None, len(self._another_image_copy.layers),
+          remove_lock_attributes=True)
+        
         another_layer_copy.name = layer.name
         
         pdb.gimp_image_remove_layer(image, layer)

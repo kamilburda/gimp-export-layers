@@ -38,9 +38,12 @@ def insert_foreground_layer(image, layer, layer_exporter, tag):
   _insert_tagged_layer(image, layer_exporter, tag, position=0)
 
 
-def copy_and_insert_layer(image, layer, parent=None, position=0):
-  layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
-  pdb.gimp_image_insert_layer(image, layer_copy, parent, position)
+def copy_and_insert_layer(
+      image, layer, parent=None, position=0,
+      remove_lock_attributes=True):
+  layer_copy = pg.pdbutils.copy_and_paste_layer(
+    layer, image, parent, position, remove_lock_attributes)
+  
   pdb.gimp_item_set_visible(layer_copy, True)
   
   if pdb.gimp_item_is_group(layer_copy):
@@ -75,11 +78,13 @@ def _insert_tagged_layer(image, layer_exporter, tag, position=0):
     layer_exporter.inserted_tagged_layers[tag] = (
       _insert_merged_tagged_layer(image, layer_exporter, tag, position))
     
-    layer_exporter.tagged_layer_copies[tag] = (
-      pdb.gimp_layer_copy(layer_exporter.inserted_tagged_layers[tag], True))
+    layer_exporter.tagged_layer_copies[tag] = pdb.gimp_layer_copy(
+      layer_exporter.inserted_tagged_layers[tag], True)
+    _remove_locks_from_layer(layer_exporter.tagged_layer_copies[tag])
   else:
-    layer_exporter.inserted_tagged_layers[tag] = (
-      pdb.gimp_layer_copy(layer_exporter.tagged_layer_copies[tag], True))
+    layer_exporter.inserted_tagged_layers[tag] = pdb.gimp_layer_copy(
+      layer_exporter.tagged_layer_copies[tag], True)
+    _remove_locks_from_layer(layer_exporter.inserted_tagged_layers[tag])
     pdb.gimp_image_insert_layer(
       image, layer_exporter.inserted_tagged_layers[tag], None, position)
 
@@ -108,6 +113,12 @@ def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
         image, image.layers[i], gimpenums.EXPAND_AS_NECESSARY)
   
   return merged_layer_for_tag
+
+
+def _remove_locks_from_layer(layer):
+  pdb.gimp_item_set_lock_content(layer, False)
+  pdb.gimp_item_set_lock_position(layer, False)
+  pdb.gimp_layer_set_lock_alpha(layer, False)
 
 
 _BUILTIN_PROCEDURES_LIST = [

@@ -181,16 +181,24 @@ def load_layers(filepaths, image=None, strip_file_extension=False):
   return image
 
 
-def copy_and_paste_layer(layer, image, parent=None, position=0):
+def copy_and_paste_layer(layer, image, parent=None, position=0, remove_lock_attributes=False):
   """
   Copy the specified layer into the specified image, parent layer group and
   position in the group. Return the copied layer.
   
   If `parent` is `None`, insert the layer in the main stack (outside of any
   layer group).
+  
+  If `remove_lock_attributes` is `True`, remove all lock-related attributes
+  (lock position, alpha channel, etc.) for the layer copy.
   """
   layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
   pdb.gimp_image_insert_layer(image, layer_copy, parent, position)
+  
+  if remove_lock_attributes:
+    pdb.gimp_item_set_lock_content(layer_copy, False)
+    pdb.gimp_item_set_lock_position(layer_copy, False)
+    pdb.gimp_layer_set_lock_alpha(layer_copy, False)
   
   return layer_copy
 
@@ -227,7 +235,7 @@ def compare_layers(
     pdb.gimp_image_insert_layer(image, layer_group, parent, position)
     
     for layer in layers:
-      copy_and_paste_layer(layer, image, parent=layer_group)
+      copy_and_paste_layer(layer, image, layer_group, 0, remove_lock_attributes=True)
     
     for layer in layer_group.children:
       layer.visible = True
