@@ -64,7 +64,7 @@ class LayerExporter(object):
   * `current_layer_elem` (read-only) - The `itemtree._ItemTreeElement` instance
     being currently exported.
   
-  * `executor` - `pygimplib.operations.Executor` instance to
+  * `executor` - `pygimplib.executor.Executor` instance to
     manage operations applied on layers. This property is not `None` only during
     `export()` and can be used to modify the execution of operations while
     processing layers.
@@ -227,7 +227,7 @@ class LayerExporter(object):
   def add_procedure(self, *args, **kwargs):
     """
     Add a procedure to be executed during `export()`. The signature is the same
-    as for `pygimplib.operations.Executor.add()`.
+    as for `pygimplib.executor.Executor.add()`.
     
     Procedures added by this method are placed before procedures added by
     `operations.add()`.
@@ -242,7 +242,7 @@ class LayerExporter(object):
     """
     Add a constraint to be applied during `export()`. The first argument is the
     function to act as a filter (returning `True` or `False`). The rest of the
-    signature is the same as for `pygimplib.operations.Executor.add()`.
+    signature is the same as for `pygimplib.executor.Executor.add()`.
     
     For more information, see `add_procedure()`.
     """
@@ -252,14 +252,14 @@ class LayerExporter(object):
   def remove_operation(self, *args, **kwargs):
     """
     Remove an operation originally scheduled to be executed during `export()`.
-    The signature is the same as for `pygimplib.operations.Executor.remove()`.
+    The signature is the same as for `pygimplib.executor.Executor.remove()`.
     """
     self._initial_executor.remove(*args, **kwargs)
   
   def reorder_operation(self, *args, **kwargs):
     """
     Reorder an operation to be executed during `export()`.
-    The signature is the same as for `pygimplib.operations.Executor.reorder()`.
+    The signature is the same as for `pygimplib.executor.Executor.reorder()`.
     """
     self._initial_executor.reorder(*args, **kwargs)
   
