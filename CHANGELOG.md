@@ -3,6 +3,7 @@
 
 * Fixed a crash while finishing export when using back- or foreground layers.
 * Fixed export when using a custom procedure containing a Color argument.
+* Removed the .exe installer for Windows.
 
 
 3.3.1
