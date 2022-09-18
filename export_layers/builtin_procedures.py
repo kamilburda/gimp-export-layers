@@ -70,6 +70,13 @@ def autocrop_tagged_layer(image, layer, layer_exporter, tag):
     return False
 
 
+def remove_folder_hierarchy_from_layer(image, layer, layer_exporter):
+  layer_elem = layer_exporter.current_layer_elem
+
+  layer_elem.parents = []
+  layer_elem.children = None if layer_elem.item_type == layer_elem.ITEM else []
+
+
 def _insert_tagged_layer(image, layer_exporter, tag, position=0):
   if not layer_exporter.tagged_layer_elems[tag]:
     return
@@ -177,7 +184,7 @@ _BUILTIN_PROCEDURES_LIST = [
   },
   {
     'name': 'ignore_folder_structure',
-    'function': None,
+    'function': remove_folder_hierarchy_from_layer,
     'display_name': _('Ignore folder structure'),
   },
   {

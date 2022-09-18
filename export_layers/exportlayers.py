@@ -348,11 +348,7 @@ class LayerExporter(object):
     if self._layer_tree.filter:
       self._layer_tree.reset_filter()
     
-    if self.export_settings.get_value(
-         'procedures/added/ignore_folder_structure/enabled', False):
-      self._remove_parents_in_layer_elems()
-    else:
-      self._reset_parents_in_layer_elems()
+    self._reset_parents_in_layer_elems()
     
     self._set_layer_constraints()
     
@@ -366,11 +362,6 @@ class LayerExporter(object):
           self._use_another_image_copy = True
         elif num_layers_and_nonempty_groups < 1:
           self._keep_image_copy = False
-  
-  def _remove_parents_in_layer_elems(self):
-    for layer_elem in self._layer_tree:
-      layer_elem.parents = []
-      layer_elem.children = None if layer_elem.item_type == layer_elem.ITEM else []
   
   def _reset_parents_in_layer_elems(self):
     for layer_elem in self._layer_tree:
