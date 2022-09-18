@@ -257,13 +257,14 @@ def _set_values_for_operations(added_data_values_setting, added_operations_group
         added_data_values_setting.value[setting.get_path(added_operations_group)])
 
 
-def _create_procedure(
+def _create_operation(
       name,
       function=None,
       arguments=None,
       enabled=True,
       display_name=None,
       operation_groups=None,
+      tags=None,
       **custom_fields):
   
   def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
@@ -273,7 +274,7 @@ def _create_procedure(
   
   operation = pg.setting.Group(
     name,
-    tags=['operation', 'procedure'],
+    tags=tags,
     setting_attributes={
       'pdb_type': None,
       'setting_sources': None,
@@ -288,9 +289,6 @@ def _create_procedure(
   
   if arguments:
     arguments_group.add(arguments)
-  
-  if operation_groups is None:
-    operation_groups = [DEFAULT_PROCEDURES_GROUP]
   
   operation.add([
     {
@@ -352,14 +350,51 @@ def _create_procedure(
   return operation
 
 
-def _create_constraint(name, function, subfilter=None, **create_operation_kwargs):
-  if create_operation_kwargs.get('operation_groups', None) is None:
-    create_operation_kwargs['operation_groups'] = [DEFAULT_CONSTRAINTS_GROUP]
+def _create_procedure(
+      name,
+      function,
+      arguments=None,
+      enabled=True,
+      display_name=None,
+      additional_tags=None,
+      operation_groups=(DEFAULT_PROCEDURES_GROUP,),
+      **custom_fields):
+  tags = ['operation', 'procedure']
+  if additional_tags is not None:
+    tags += additional_tags
   
-  constraint = _create_procedure(name, function, **create_operation_kwargs)
+  if operation_groups is not None:
+    operation_groups = list(operation_groups)
   
-  constraint.tags.remove('procedure')
-  constraint.tags.add('constraint')
+  return _create_operation(
+    name, function, arguments, enabled, display_name,
+    operation_groups=operation_groups,
+    tags=tags,
+    **custom_fields)
+
+
+def _create_constraint(
+      name,
+      function,
+      arguments=None,
+      enabled=True,
+      display_name=None,
+      additional_tags=None,
+      operation_groups=(DEFAULT_CONSTRAINTS_GROUP,),
+      subfilter=None,
+      **custom_fields):
+  tags = ['operation', 'constraint']
+  if additional_tags is not None:
+    tags += additional_tags
+  
+  if operation_groups is not None:
+    operation_groups = list(operation_groups)
+  
+  constraint = _create_operation(
+    name, function, arguments, enabled, display_name,
+    operation_groups=operation_groups,
+    tags=tags,
+    **custom_fields)
   
   constraint.add([
     {
