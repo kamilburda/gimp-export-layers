@@ -4,6 +4,7 @@
 * Fixed a crash while finishing export when using back- or foreground layers.
 * Fixed export when using a custom procedure containing a Color argument.
 * Fixed export of layers with locks (position, alpha channel, etc.). All locks are now ignored during export.
+* When the "Ignore folder structure" procedure is added, the full layer path is maintained in the exported layer filenames.
 * Removed the .exe installer for Windows.
 * Changed the plug-in license to BSD 3-Clause.
 
