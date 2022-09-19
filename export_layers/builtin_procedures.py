@@ -7,6 +7,7 @@ from future.builtins import *
 
 import collections
 
+import gimp
 from gimp import pdb
 import gimpenums
 
@@ -124,8 +125,9 @@ def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
 
 def _remove_locks_from_layer(layer):
   pdb.gimp_item_set_lock_content(layer, False)
-  pdb.gimp_item_set_lock_position(layer, False)
-  pdb.gimp_layer_set_lock_alpha(layer, False)
+  if not isinstance(layer, gimp.GroupLayer):
+    pdb.gimp_item_set_lock_position(layer, False)
+    pdb.gimp_layer_set_lock_alpha(layer, False)
 
 
 _BUILTIN_PROCEDURES_LIST = [
