@@ -117,8 +117,14 @@ class LayerExporter(object):
         self._preprocess_layer_name, self._preprocess_empty_group_name,
         self._process_layer_name],
       '_postprocess_layer_name': [self._postprocess_layer_name],
-      'export': [self._make_dirs, self._export]
+      'export': [self._make_dirs, self._export],
+      'layer_name_for_preview': [self._process_layer_name_for_preview],
     }
+    self._default_processing_groups = [
+      'layer_contents',
+      'layer_name',
+      'export',
+    ]
     
     self._processing_groups_functions = {}
     for functions in self._processing_groups.values():
@@ -127,6 +133,7 @@ class LayerExporter(object):
     
     self._executor = None
     self._initial_executor = pg.executor.Executor()
+    self._NAME_ONLY_OPERATION_GROUP = 'name'
   
   @property
   def layer_tree(self):
@@ -266,6 +273,7 @@ class LayerExporter(object):
   def _init_attributes(self, processing_groups, layer_tree, keep_image_copy):
     self._executor = pg.executor.Executor()
     self._add_operations()
+    self._add_name_only_operations()
     
     self._enable_disable_processing_groups(processing_groups)
     
@@ -329,20 +337,32 @@ class LayerExporter(object):
     for constraint in operations.walk(self.export_settings['constraints']):
       add_operation_from_settings(constraint, self._executor)
   
+  def _add_name_only_operations(self):
+    for procedure in operations.walk(self.export_settings['procedures']):
+      add_operation_from_settings(
+        procedure, self._executor,
+        [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_OPERATION_GROUP])
+    
+    for constraint in operations.walk(self.export_settings['constraints']):
+      add_operation_from_settings(
+        constraint, self._executor,
+        [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_OPERATION_GROUP])
+  
   def _enable_disable_processing_groups(self, processing_groups):
     for functions in self._processing_groups.values():
       for function in functions:
-        setattr(
-          self, function.__name__, self._processing_groups_functions[function.__name__])
+        setattr(self, function.__name__, self._processing_groups_functions[function.__name__])
     
-    if processing_groups:
-      if 'layer_name' in processing_groups:
-        processing_groups.append('_postprocess_layer_name')
-      
-      for processing_group, functions in self._processing_groups.items():
-        if processing_group not in processing_groups:
-          for function in functions:
-            setattr(self, function.__name__, pg.utils.empty_func)
+    if processing_groups is None:
+      processing_groups = self._default_processing_groups
+    
+    if 'layer_name' in processing_groups:
+      processing_groups.append('_postprocess_layer_name')
+    
+    for processing_group, functions in self._processing_groups.items():
+      if processing_group not in processing_groups:
+        for function in functions:
+          setattr(self, function.__name__, pg.utils.empty_func)
   
   def _preprocess_layers(self):
     if self._layer_tree.filter:
@@ -411,8 +431,9 @@ class LayerExporter(object):
   
   def _process_and_export_item(self, layer_elem):
     layer = layer_elem.item
-    layer_copy = self._process_layer(layer_elem, self._image_copy, layer)
     self._preprocess_layer_name(layer_elem)
+    layer_copy = self._process_layer(layer_elem, self._image_copy, layer)
+    self._process_layer_name_for_preview(self._image_copy, layer_copy)
     self._export_layer(layer_elem, self._image_copy, layer_copy)
     self._postprocess_layer(self._image_copy, layer_copy)
     self._postprocess_layer_name(layer_elem)
@@ -519,6 +540,12 @@ class LayerExporter(object):
   def _preprocess_empty_group_name(self, layer_elem):
     self._layer_tree.validate_name(layer_elem)
     self._layer_tree.uniquify_name(layer_elem)
+  
+  def _process_layer_name_for_preview(self, image, layer):
+    self._executor.execute(
+      [self._NAME_ONLY_OPERATION_GROUP],
+      [image, layer, self],
+      additional_args_position=0)
   
   def _process_layer_name(self, layer_elem):
     self._layer_tree.uniquify_name(
@@ -672,7 +699,7 @@ class LayerExporter(object):
 _LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
 
 
-def add_operation_from_settings(operation, executor):
+def add_operation_from_settings(operation, executor, tags=None, operation_groups=None):
   if operation.get_value('is_pdb_procedure', False):
     try:
       function = pdb[operation['function'].value.encode(pg.GIMP_CHARACTER_ENCODING)]
@@ -683,6 +710,9 @@ def add_operation_from_settings(operation, executor):
     function = operation['function'].value
   
   if function is None:
+    return
+  
+  if tags is not None and not any(tag in operation.tags for tag in tags):
     return
   
   function_args = tuple(arg_setting.value for arg_setting in operation['arguments'])
@@ -703,8 +733,10 @@ def add_operation_from_settings(operation, executor):
   
   function = _execute_operation_only_if_enabled(function, operation['enabled'])
   
-  executor.add(
-    function, operation['operation_groups'].value, function_args, function_kwargs)
+  if operation_groups is None:
+    operation_groups = operation['operation_groups'].value
+  
+  executor.add(function, operation_groups, function_args, function_kwargs)
 
 
 def _has_run_mode_param(pdb_procedure):

@@ -14,6 +14,9 @@ import gimpenums
 from export_layers import pygimplib as pg
 
 
+NAME_ONLY_TAG = 'name'
+
+
 def set_active_layer(image, layer, layer_exporter):
   image.active_layer = layer
 
@@ -188,11 +191,13 @@ _BUILTIN_PROCEDURES_LIST = [
     'name': 'ignore_folder_structure',
     'function': remove_folder_hierarchy_from_layer,
     'display_name': _('Ignore folder structure'),
+    'additional_tags': [NAME_ONLY_TAG],
   },
   {
     'name': 'use_file_extensions_in_layer_names',
     'function': None,
     'display_name': _('Use file extensions in layer names'),
+    'additional_tags': [NAME_ONLY_TAG],
   },
   {
     'name': 'use_layer_size',

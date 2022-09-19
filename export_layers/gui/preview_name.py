@@ -514,7 +514,9 @@ class ExportNamePreview(preview_base_.ExportPreview):
     else:
       layer_tree = None
     
-    self._layer_exporter.export(processing_groups=['layer_name'], layer_tree=layer_tree)
+    self._layer_exporter.export(
+      processing_groups=['layer_name', 'layer_name_for_preview'],
+      layer_tree=layer_tree)
   
   def _update_items(self):
     for layer_elem in self._layer_exporter.layer_tree:
