@@ -64,7 +64,7 @@ class Executor(object):
     An operation can be:
     * a function, in which case optional arguments (`args`, a list or tuple) and
       keyword arguments (`kwargs`, a dict) can be specified,
-    * an `Executor` instance.
+    * another `Executor` instance.
     
     To control which operations are executed, you may want to group them.
     
@@ -80,6 +80,31 @@ class Executor(object):
     
     The operation is added at the end of the list of operations in the specified
     group(s). To modify the order of the added operation, call `reorder()`.
+    
+    Operation as a function can also be a generator. This allows customizing
+    which parts of the code of the function are called on each execution.
+    For example:
+      
+      def foo():
+        print('bar')
+        while True:
+          args, kwargs = yield
+          print('baz')
+    
+    prints `'bar'` the first time the function is called and `'baz'` all
+    subsequent times. This allows to e.g. initialize objects to an initial state
+    in the first part and then use that state in subsequent executions of this
+    function.
+    
+    The generator function must contain at least one `yield` statement. If you
+    pass arguments and want to use the arguments in the function, the yield
+    statement must be in the form `args, kwargs = yield`.
+    
+    To make sure the generator function can be called an arbitrary number of
+    times, place a `yield` statement in an infinite loop. To limit the number of
+    calls, simply do not use an infinite loop. In such a case, the operation is
+    permanently removed for the group(s) `execute()` was called for once no more
+    yield statements are encountered.
     
     If `foreach` is `True` and the operation is a function, the operation is
     treated as a "for-each" operation. By default, a for-each operation is
@@ -183,7 +208,25 @@ class Executor(object):
     `Executor` instances.
     """
     
-    def _execute_operation(operation, operation_args, operation_kwargs):
+    def _execute_operation(item, group):
+      operation, operation_args, operation_kwargs = item.operation
+      args = _get_args(operation_args)
+      kwargs = dict(operation_kwargs, **additional_kwargs)
+      
+      if not item.is_generator:
+        return operation(*args, **kwargs)
+      else:
+        if group not in item.generators_per_group:
+          generator = operation(*args, **kwargs)
+          item.generators_per_group[group] = generator
+          return next(generator)
+        else:
+          try:
+            return item.generators_per_group[group].send([args, kwargs])
+          except StopIteration:
+            item.should_be_removed_from_group = True
+    
+    def _prepare_foreach_operation(operation, operation_args, operation_kwargs):
       args = _get_args(operation_args)
       kwargs = dict(operation_kwargs, **additional_kwargs)
       return operation(*args, **kwargs)
@@ -196,18 +239,21 @@ class Executor(object):
         args[additional_args_position:additional_args_position] = additional_args
         return tuple(args)
     
-    def _execute_operation_with_foreach_operations(
-          operation, operation_args, operation_kwargs, group):
+    def _execute_operation_with_foreach_operations(item, group):
       operation_generators = [
-        _execute_operation(*item.operation)
-        for item in self._foreach_operations[group]]
+        _prepare_foreach_operation(*foreach_item.operation)
+        for foreach_item in self._foreach_operations[group]]
       
       _execute_foreach_operations_once(operation_generators)
       
       while operation_generators:
-        result_from_operation = _execute_operation(
-          operation, operation_args, operation_kwargs)
+        result_from_operation = _execute_operation(item, group)
         _execute_foreach_operations_once(operation_generators, result_from_operation)
+        
+        if item.should_be_removed_from_group:
+          self.remove(item.operation_id, [group])
+          item.should_be_removed_from_group = False
+          return
     
     def _execute_foreach_operations_once(
           operation_generators, result_from_operation=None):
@@ -235,12 +281,14 @@ class Executor(object):
       
       for item in self._operations[group]:
         if item.operation_type != self._TYPE_EXECUTOR:
-          operation, operation_args, operation_kwargs = item.operation
           if self._foreach_operations[group]:
-            _execute_operation_with_foreach_operations(
-              operation, operation_args, operation_kwargs, group)
+            _execute_operation_with_foreach_operations(item, group)
           else:
-            _execute_operation(operation, operation_args, operation_kwargs)
+            _execute_operation(item, group)
+            
+            if item.should_be_removed_from_group:
+              self.remove(item.operation_id, [group])
+              item.should_be_removed_from_group = False
         else:
           _execute_executor(item.operation, group)
   
@@ -649,7 +697,7 @@ class Executor(object):
       raise ValueError('operation with ID {} is not in group "{}"'.format(
         operation_id, group))
 
-  
+
 class _OperationItem(object):
   
   def __init__(
@@ -665,3 +713,7 @@ class _OperationItem(object):
     self.operation_type = (
       operation_type if operation_type is not None else Executor._TYPE_OPERATION)
     self.operation_function = operation_function
+    
+    self.is_generator = inspect.isgeneratorfunction(self.operation_function)
+    self.generators_per_group = {}
+    self.should_be_removed_from_group = False

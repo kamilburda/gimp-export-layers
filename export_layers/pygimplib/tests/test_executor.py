@@ -33,6 +33,21 @@ def update_dict(dict_, **kwargs):
   dict_.update(kwargs)
 
 
+def append_to_list_via_generator(list_, arg):
+  list_.append(1)
+  
+  while True:
+    (list_, arg), _ = yield
+    list_.append(arg)
+
+
+def append_to_list_via_generator_finite(list_, arg):
+  list_.append(1)
+  
+  (list_, arg), _ = yield
+  list_.append(arg)
+
+
 def append_to_list_before(list_, arg):
   list_.append(arg)
   yield
@@ -671,6 +686,41 @@ class TestExecutorExecuteOperations(ExecutorTestCase):
       self.executor.execute()
     except Exception:
       self.fail('executing no operations for the given group should not raise exception')
+  
+  def test_execute_with_generator(self):
+    test_list = []
+    
+    self.executor.add(append_to_list_via_generator, args=[test_list])
+    self.executor.execute(additional_args=[2])  # Should be ignored for this (first) call
+    self.executor.execute(additional_args=[2])
+    self.executor.execute(additional_args=[3])
+    
+    self.assertEqual(test_list, [1, 2, 3])
+  
+  def test_execute_with_generator_finite(self):
+    test_list = []
+    
+    self.executor.add(append_to_list_via_generator_finite, args=[test_list])
+    self.executor.execute(additional_args=[2])  # Should be ignored for this (first) call
+    self.executor.execute(additional_args=[2])
+    self.executor.execute(additional_args=[3])  # Should do nothing
+    
+    self.assertEqual(test_list, [1, 2])
+  
+  def test_execute_with_generator_finite_multiple_groups(self):
+    test_list = []
+    
+    self.executor.add(append_to_list_via_generator_finite, groups=['a', 'b'], args=[test_list])
+    self.executor.execute(['a'], additional_args=[2])
+    self.executor.execute(['a'], additional_args=[2])
+    self.executor.execute(['a'], additional_args=[3])  # Should do nothing
+    
+    # Should do nothing - generator is "finished" regardless of the group
+    self.executor.execute(['b'], additional_args=[4])
+    self.executor.execute(['b'], additional_args=[5])
+    self.executor.execute(['b'], additional_args=[5])
+    
+    self.assertEqual(test_list, [1, 2, 1, 5])
 
 
 class TestExecutorExecuteForeachOperations(ExecutorTestCase):
