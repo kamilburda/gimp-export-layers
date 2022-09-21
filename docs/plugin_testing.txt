@@ -82,12 +82,12 @@ Setting persistence
 * session-persistent source only
 * both setting sources
 
-Built-in operations
+Built-in actions
 * procedures
 * constraints
   * Only visible layers - visible layers with invisible parents must also be ignored
 
-Custom operations
+Custom actions
 * add
 * edit
   * adjust argument values
@@ -96,7 +96,7 @@ Custom operations
   * Cancel
 * remove
 
-Tagged layers in built-in operations
+Tagged layers in built-in actions
 
 Preview
 * layer names

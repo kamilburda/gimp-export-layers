@@ -330,7 +330,7 @@ def add_gui_excepthook(title, app_name, report_uri_list=None, parent=None):
   """
   Return a decorator that modifies `sys.excepthook` to display an error dialog
   for unhandled exceptions and terminates the application. `sys.excepthook` is
-  restored once the decorated function finishes its execution.
+  restored after the decorated function is finished.
   
   The dialog will not be displayed for exceptions which are not subclasses of
   `Exception` (such as `SystemExit` or `KeyboardInterrupt`).
@@ -417,7 +417,7 @@ def set_gui_excepthook_parent(parent):
 
 def set_gui_excepthook_additional_callback(callback):
   """
-  Set a callback to be executed at the beginning of exception handling. If the
+  Set a callback to be invoked at the beginning of exception handling. If the
   callback returns `True`, terminate exception handling at this point. Returning
   `True` consequently prevents the error dialog from being displayed and the
   application from being terminated.

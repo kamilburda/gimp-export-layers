@@ -21,10 +21,10 @@ def set_active_layer(image, layer, layer_exporter):
   image.active_layer = layer
 
 
-def set_active_layer_after_operation(image, layer, layer_exporter):
-  operation_executed = yield
+def set_active_layer_after_action(image, layer, layer_exporter):
+  action_applied = yield
   
-  if operation_executed or operation_executed is None:
+  if action_applied or action_applied is None:
     set_active_layer(image, layer, layer_exporter)
 
 
@@ -107,7 +107,7 @@ def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
     layer_copy = copy_and_insert_layer(
       image, layer_elem.item, None, first_tagged_layer_position + i)
     layer_copy.visible = True
-    layer_exporter.executor.execute(
+    layer_exporter.invoker.invoke(
       ['after_insert_layer'], [image, layer_copy, layer_exporter])
   
   if len(layer_exporter.tagged_layer_elems[tag]) == 1:
@@ -213,4 +213,4 @@ _BUILTIN_PROCEDURES_LIST = [
 ]
 
 BUILTIN_PROCEDURES = collections.OrderedDict(
-  (operation_dict['name'], operation_dict) for operation_dict in _BUILTIN_PROCEDURES_LIST)
+  (action_dict['name'], action_dict) for action_dict in _BUILTIN_PROCEDURES_LIST)

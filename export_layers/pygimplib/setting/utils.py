@@ -94,8 +94,8 @@ class SettingEventsMixin(object):
     The `event_handler` function must always contain at least one argument -
     the instance this method is called from (a setting or a setting group).
     
-    Multiple event handlers can be connected. Each new event handler is
-    executed as the last.
+    Multiple event handlers can be connected. Each new event handler is invoked
+    as the last.
     
     Parameters:
     

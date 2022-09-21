@@ -3,7 +3,7 @@
 
 """Running automated tests.
 
-By default, all modules starting with the `'test_'` prefix will be executed.
+By default, all modules starting with the `'test_'` prefix will be run.
 
 To run tests in GIMP:
 
@@ -44,7 +44,7 @@ def run_tests(
       ignored_modules=None,
       output_stream='stderr'):
   """
-  Execute all modules containing tests located in the specified directory path.
+  Run all modules containing tests located in the specified directory path.
   The names of the test modules start with the specified prefix.
   
   `ignored_modules` is a list of prefixes matching test modules or packages to

@@ -15,7 +15,7 @@ from export_layers import pygimplib as pg
 
 from export_layers import builtin_procedures
 from export_layers import exportlayers
-from export_layers import operations
+from export_layers import actions
 from export_layers import settings_plugin
 
 
@@ -174,15 +174,15 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       procedure_names_to_remove = []
     
     for procedure_name, order in procedure_names_to_add.items():
-      operations.add(
+      actions.add(
         settings['main/procedures'],
         builtin_procedures.BUILTIN_PROCEDURES[procedure_name])
       if order is not None:
-        operations.reorder(settings['main/procedures'], procedure_name, order)
+        actions.reorder(settings['main/procedures'], procedure_name, order)
     
     for procedure_name in procedure_names_to_remove:
       if procedure_name in settings['main/procedures/added']:
-        operations.remove(settings['main/procedures'], procedure_name)
+        actions.remove(settings['main/procedures'], procedure_name)
     
     layer_exporter = exportlayers.LayerExporter(
       settings['special/run_mode'].value,
@@ -192,7 +192,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     layer_exporter.export()
     
     for procedure_name in procedure_names_to_add:
-      operations.remove(settings['main/procedures'], procedure_name)
+      actions.remove(settings['main/procedures'], procedure_name)
   
   def _compare_layers(
         self, layer, expected_layer, settings, test_case_name, expected_results_dirpath):
@@ -282,18 +282,18 @@ def test_export_for_all_file_formats(layer_exporter, export_settings):
       try:
         layer_exporter.export()
       except exportlayers.ExportLayersError:
-        # Do not stop execution when one file format causes an error.
+        # Do not stop if one file format causes an error.
         continue
 
 
-def test_add_all_pdb_procedures_as_operations():
+def test_add_all_pdb_procedures_as_actions():
   """
-  Add all PDB procedures as operations to check if all setting types are
+  Add all PDB procedures as actions to check if all setting types are
   properly supported.
   """
-  procedures = operations.create('all_pdb_procedures')
+  procedures = actions.create('all_pdb_procedures')
   
   unused_, procedure_names = pdb.gimp_procedural_db_query('', '', '', '', '', '', '')
   
   for procedure_name in procedure_names:
-    operations.add(procedures, pdb[procedure_name])
+    actions.add(procedures, pdb[procedure_name])

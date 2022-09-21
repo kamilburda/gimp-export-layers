@@ -167,29 +167,29 @@ class TestHandleUpdate(unittest.TestCase):
   
   def setUp(self):
     self.update_handlers = collections.OrderedDict([
-      ('3.3.1', lambda *args, **kwargs: self._executed_handlers.append('3.3.1')),
-      ('3.4', lambda *args, **kwargs: self._executed_handlers.append('3.4')),
-      ('3.5', lambda *args, **kwargs: self._executed_handlers.append('3.5')),
+      ('3.3.1', lambda *args, **kwargs: self._invoked_handlers.append('3.3.1')),
+      ('3.4', lambda *args, **kwargs: self._invoked_handlers.append('3.4')),
+      ('3.5', lambda *args, **kwargs: self._invoked_handlers.append('3.5')),
     ])
     
-    self._executed_handlers = []
+    self._invoked_handlers = []
     
     self.settings = pg.setting.Group('settings')
   
   @parameterized.parameterized.expand([
-    ['previous_version_earlier_than_all_handlers_execute_one_handler',
+    ['previous_version_earlier_than_all_handlers_invoke_one_handler',
      '3.3', '3.3.1', ['3.3.1']],
-    ['previous_version_earlier_than_all_handlers_execute_multiple_handlers',
+    ['previous_version_earlier_than_all_handlers_invoke_multiple_handlers',
      '3.3', '3.4', ['3.3.1', '3.4']],
-    ['equal_previous_and_current_version_execute_no_handler',
+    ['equal_previous_and_current_version_invoke_no_handler',
      '3.5', '3.5', []],
-    ['equal_previous_and_current_version_and_globally_not_latest_execute_no_handler',
+    ['equal_previous_and_current_version_and_globally_not_latest_invoke_no_handler',
      '3.3.1', '3.3.1', []],
-    ['previous_version_equal_to_first_handler_execute_one_handler',
+    ['previous_version_equal_to_first_handler_invoke_one_handler',
      '3.3.1', '3.4', ['3.4']],
-    ['previous_version_equal_to_latest_handler_execute_no_handler',
+    ['previous_version_equal_to_latest_handler_invoke_no_handler',
      '3.5', '3.6', []],
-    ['previous_greater_than_handlers_execute_no_handler',
+    ['previous_greater_than_handlers_invoke_no_handler',
      '3.6', '3.6', []],
   ])
   def test_handle_update(
@@ -197,8 +197,8 @@ class TestHandleUpdate(unittest.TestCase):
         test_case_name_suffix,
         previous_version_str,
         current_version_str,
-        executed_handlers):
-    self._executed_handlers = []
+        invoked_handlers):
+    self._invoked_handlers = []
     
     update.handle_update(
       self.settings,
@@ -206,7 +206,7 @@ class TestHandleUpdate(unittest.TestCase):
       pg.version.Version.parse(previous_version_str),
       pg.version.Version.parse(current_version_str))
     
-    self.assertEqual(self._executed_handlers, executed_handlers)
+    self.assertEqual(self._invoked_handlers, invoked_handlers)
 
 
 class TestReplaceFieldArgumentsInPattern(unittest.TestCase):

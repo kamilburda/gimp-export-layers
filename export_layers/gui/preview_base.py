@@ -18,7 +18,7 @@ class ExportPreview(gtk.VBox):
     self._update_locked = False
     self._lock_keys = set()
     
-    self._functions_to_execute_at_update = []
+    self._functions_to_invoke_at_update = []
   
   def update(self):
     """
@@ -27,8 +27,8 @@ class ExportPreview(gtk.VBox):
     if self._update_locked:
       return True
     
-    while self._functions_to_execute_at_update:
-      func, func_args, func_kwargs = self._functions_to_execute_at_update.pop(0)
+    while self._functions_to_invoke_at_update:
+      func, func_args, func_kwargs = self._functions_to_invoke_at_update.pop(0)
       func(*func_args, **func_kwargs)
     
     return False
@@ -63,11 +63,11 @@ class ExportPreview(gtk.VBox):
   
   def add_function_at_update(self, func, *func_args, **func_kwargs):
     """
-    Add a function to a list of functions to execute at the beginning of
+    Add a function to a list of functions to invoke at the beginning of
     `update()`.
     
-    The functions will be executed in the order in which they were added and
-    only if the preview is unlocked. This is useful to postpone execution of
+    The functions will be invoked in the order in which they were added and
+    only if the preview is unlocked. This is useful to postpone invocation of
     functions until the preview is available again.
     """
-    self._functions_to_execute_at_update.append((func, func_args, func_kwargs))
+    self._functions_to_invoke_at_update.append((func, func_args, func_kwargs))

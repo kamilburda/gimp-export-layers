@@ -15,11 +15,11 @@ from export_layers.pygimplib.tests import stubs_gimp
 
 from export_layers import builtin_procedures
 from export_layers import exportlayers
-from export_layers import operations
+from export_layers import actions
 from export_layers import settings_plugin
 
 
-class TestLayerExporterInitialOperations(unittest.TestCase):
+class TestLayerExporterInitialActions(unittest.TestCase):
   
   @classmethod
   def setUpClass(cls):
@@ -29,7 +29,7 @@ class TestLayerExporterInitialOperations(unittest.TestCase):
   def tearDownClass(cls):
     pdb.gimp_image_delete(cls.image)
   
-  def test_add_procedure_added_procedure_is_first_in_execution_list(self):
+  def test_add_procedure_added_procedure_is_first_in_action_list(self):
     settings = settings_plugin.create_settings()
     settings['special/image'].set_value(self.image)
     settings['main/file_extension'].set_value('xcf')
@@ -39,35 +39,35 @@ class TestLayerExporterInitialOperations(unittest.TestCase):
       settings['special/image'].value,
       settings['main'])
     
-    operations.add(
+    actions.add(
       settings['main/procedures'],
       builtin_procedures.BUILTIN_PROCEDURES['insert_background_layers'])
     
     layer_exporter.add_procedure(
-      pg.utils.empty_func, [operations.DEFAULT_PROCEDURES_GROUP])
+      pg.utils.empty_func, [actions.DEFAULT_PROCEDURES_GROUP])
     
     layer_exporter.export(processing_groups=[])
     
-    added_operation_items = layer_exporter.executor.list_operations(
-      group=operations.DEFAULT_PROCEDURES_GROUP)
+    added_action_items = layer_exporter.invoker.list_actions(
+      group=actions.DEFAULT_PROCEDURES_GROUP)
     
     # Includes built-in procedures added by default
-    self.assertEqual(len(added_operation_items), 4)
+    self.assertEqual(len(added_action_items), 4)
     
-    initial_executor = added_operation_items[1]
-    self.assertIsInstance(initial_executor, pg.executor.Executor)
+    initial_invoker = added_action_items[1]
+    self.assertIsInstance(initial_invoker, pg.invoker.Invoker)
     
-    operations_in_initial_executor = initial_executor.list_operations(
-      group=operations.DEFAULT_PROCEDURES_GROUP)
-    self.assertEqual(len(operations_in_initial_executor), 1)
-    self.assertEqual(operations_in_initial_executor[0], (pg.utils.empty_func, (), {}))
+    actions_in_initial_invoker = initial_invoker.list_actions(
+      group=actions.DEFAULT_PROCEDURES_GROUP)
+    self.assertEqual(len(actions_in_initial_invoker), 1)
+    self.assertEqual(actions_in_initial_invoker[0], (pg.utils.empty_func, (), {}))
 
 
-class TestAddOperationFromSettings(unittest.TestCase):
+class TestAddActionFromSettings(unittest.TestCase):
   
   def setUp(self):
-    self.executor = pg.executor.Executor()
-    self.procedures = operations.create('procedures')
+    self.invoker = pg.invoker.Invoker()
+    self.procedures = actions.create('procedures')
     
     self.procedure_stub = stubs_gimp.PdbProcedureStub(
       name='file-png-save',
@@ -79,38 +79,38 @@ class TestAddOperationFromSettings(unittest.TestCase):
       return_vals=None,
       blurb='Saves files in PNG file format')
   
-  def test_add_operation_from_settings(self):
-    procedure = operations.add(
+  def test_add_action_from_settings(self):
+    procedure = actions.add(
       self.procedures, builtin_procedures.BUILTIN_PROCEDURES['insert_background_layers'])
     
-    exportlayers.add_operation_from_settings(procedure, self.executor)
+    exportlayers.add_action_from_settings(procedure, self.invoker)
     
-    added_operation_items = self.executor.list_operations(
-      group=operations.DEFAULT_PROCEDURES_GROUP)
+    added_action_items = self.invoker.list_actions(
+      group=actions.DEFAULT_PROCEDURES_GROUP)
     
-    self.assertEqual(len(added_operation_items), 1)
-    self.assertEqual(added_operation_items[0][1], ('background',))
-    self.assertEqual(added_operation_items[0][2], {})
+    self.assertEqual(len(added_action_items), 1)
+    self.assertEqual(added_action_items[0][1], ('background',))
+    self.assertEqual(added_action_items[0][2], {})
   
-  def test_add_pdb_proc_as_operation_without_run_mode(self):
+  def test_add_pdb_proc_as_action_without_run_mode(self):
     self.procedure_stub.params = self.procedure_stub.params[1:]
-    self._test_add_pdb_proc_as_operation(self.procedure_stub, ((), ''), {})
+    self._test_add_pdb_proc_as_action(self.procedure_stub, ((), ''), {})
   
-  def test_add_pdb_proc_as_operation_with_run_mode(self):
-    self._test_add_pdb_proc_as_operation(
+  def test_add_pdb_proc_as_action_with_run_mode(self):
+    self._test_add_pdb_proc_as_action(
       self.procedure_stub, ((), ''), {'run_mode': gimpenums.RUN_NONINTERACTIVE})
   
-  def _test_add_pdb_proc_as_operation(self, pdb_procedure, expected_args, expected_kwargs):
-    procedure = operations.add(self.procedures, pdb_procedure)
+  def _test_add_pdb_proc_as_action(self, pdb_procedure, expected_args, expected_kwargs):
+    procedure = actions.add(self.procedures, pdb_procedure)
     
     with mock.patch('export_layers.exportlayers.pdb') as pdb_mock:
       pdb_mock.__getitem__.return_value = pdb_procedure
       
-      exportlayers.add_operation_from_settings(procedure, self.executor)
+      exportlayers.add_action_from_settings(procedure, self.invoker)
     
-    added_operation_items = self.executor.list_operations(
-      group=operations.DEFAULT_PROCEDURES_GROUP)
+    added_action_items = self.invoker.list_actions(
+      group=actions.DEFAULT_PROCEDURES_GROUP)
     
-    self.assertEqual(len(added_operation_items), 1)
-    self.assertEqual(added_operation_items[0][1], expected_args)
-    self.assertDictEqual(added_operation_items[0][2], expected_kwargs)
+    self.assertEqual(len(added_action_items), 1)
+    self.assertEqual(added_action_items[0][1], expected_args)
+    self.assertDictEqual(added_action_items[0][2], expected_kwargs)

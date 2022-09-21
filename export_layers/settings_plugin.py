@@ -15,7 +15,7 @@ from export_layers import pygimplib as pg
 
 from export_layers import builtin_procedures
 from export_layers import builtin_constraints
-from export_layers import operations
+from export_layers import actions
 from export_layers.gui import settings_gui
 
 
@@ -120,7 +120,7 @@ def create_settings():
     {
       'type': pg.SettingTypes.generic,
       'name': 'available_tags',
-      'default_value': operations.BUILTIN_TAGS,
+      'default_value': actions.BUILTIN_TAGS,
       'pdb_type': None,
       'gui_type': None,
     },
@@ -135,23 +135,23 @@ def create_settings():
   
   settings.add(settings_gui.create_gui_settings())
   
-  settings['main'].add([operations.create(
+  settings['main'].add([actions.create(
     name='procedures',
-    initial_operations=[builtin_procedures.BUILTIN_PROCEDURES['use_layer_size']]),
+    initial_actions=[builtin_procedures.BUILTIN_PROCEDURES['use_layer_size']]),
   ])
   
-  settings['main'].add([operations.create(
+  settings['main'].add([actions.create(
     name='constraints',
-    initial_operations=[
+    initial_actions=[
       builtin_constraints.BUILTIN_CONSTRAINTS['include_layers'],
       builtin_constraints.BUILTIN_CONSTRAINTS['only_visible_layers']]),
   ])
   
   settings['main/procedures'].connect_event(
-    'after-add-operation', _on_after_add_procedure, settings['main/file_extension'])
+    'after-add-action', _on_after_add_procedure, settings['main/file_extension'])
   
   settings['main/constraints'].connect_event(
-    'after-add-operation',
+    'after-add-action',
     _on_after_add_constraint,
     settings['main/selected_layers'],
     settings['special/image'])

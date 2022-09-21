@@ -21,7 +21,7 @@ from gimp import pdb
 
 from export_layers import builtin_procedures
 from export_layers import builtin_constraints
-from export_layers import operations
+from export_layers import actions
 from export_layers import settings_plugin
 from export_layers.gui import main as gui_main
 
@@ -67,17 +67,17 @@ def take_screenshots(gui, dialog, settings):
   
   settings['gui/show_more_settings'].set_value(True)
   
-  operations.clear(settings['main/procedures'])
-  operations.clear(settings['main/constraints'])
+  actions.clear(settings['main/procedures'])
+  actions.clear(settings['main/constraints'])
   
-  operations.add(
+  actions.add(
     settings['main/procedures'],
     builtin_procedures.BUILTIN_PROCEDURES['insert_background_layers'])
-  operations.reorder(
+  actions.reorder(
     settings['main/procedures'], 'insert_background_layers', 0)
   settings['main/procedures/added/use_layer_size/enabled'].set_value(False)
   
-  operations.add(
+  actions.add(
     settings['main/constraints'],
     builtin_constraints.BUILTIN_CONSTRAINTS['only_layers_without_tags'])
   

@@ -32,14 +32,14 @@ from export_layers import pygimplib as pg
 
 from export_layers import builtin_constraints
 from export_layers import builtin_procedures
-from export_layers import operations
+from export_layers import actions
 from export_layers import exportlayers
 from export_layers import renamer
 from export_layers import settings_plugin
 from export_layers import update
 
 from export_layers.gui import message_label as message_label_
-from export_layers.gui import operations as operations_
+from export_layers.gui import actions as actions_
 from export_layers.gui import preview_image as preview_image_
 from export_layers.gui import preview_name as preview_name_
 from export_layers.gui import previews_controller as previews_controller_
@@ -94,9 +94,9 @@ def display_reset_prompt(parent=None, more_settings_shown=False):
     gobject.markup_escape_text(_('Are you sure you want to reset settings?')))
   
   if more_settings_shown:
-    checkbutton_reset_operations = gtk.CheckButton(
+    checkbutton_reset_actions = gtk.CheckButton(
       label=_('Remove procedures and constraints'), use_underline=False)
-    dialog.vbox.pack_start(checkbutton_reset_operations, expand=False, fill=False)
+    dialog.vbox.pack_start(checkbutton_reset_actions, expand=False, fill=False)
   
   dialog.set_focus(dialog.get_widget_for_response(gtk.RESPONSE_NO))
   
@@ -104,10 +104,10 @@ def display_reset_prompt(parent=None, more_settings_shown=False):
   response_id = dialog.run()
   dialog.destroy()
   
-  clear_operations = (
-    checkbutton_reset_operations.get_active() if more_settings_shown else False)
+  clear_actions = (
+    checkbutton_reset_actions.get_active() if more_settings_shown else False)
   
-  return response_id, clear_operations
+  return response_id, clear_actions
 
 
 @contextlib.contextmanager
@@ -141,7 +141,7 @@ def stop_export(layer_exporter):
 def _set_settings(func):
   """
   This is a decorator for `Group.apply_gui_values_to_settings()` that prevents
-  the decorated function from being executed if there are invalid setting
+  the decorated function from being invoked if there are invalid setting
   values. For the invalid values, an error message is displayed.
   
   This decorator is meant to be used in the `ExportLayersDialog` class.
@@ -295,7 +295,7 @@ class ExportLayersDialog(object):
     self._assign_gui_to_settings()
     self._connect_events()
     
-    self._init_operations()
+    self._init_actions()
     
     self._finish_init_and_show()
     
@@ -343,7 +343,7 @@ class ExportLayersDialog(object):
       self._settings, self._settings['gui_session/current_directory'], self._image)
     _setup_output_directory_changed(self._settings, self._image)
   
-  def _init_operations(self):
+  def _init_actions(self):
     self._settings['main/procedures'].tags.discard('ignore_load')
     self._settings['main/procedures'].load()
     
@@ -457,25 +457,25 @@ class ExportLayersDialog(object):
     self._hbox_export_name_and_message.pack_start(
       self._label_message, expand=True, fill=True)
     
-    self._box_procedures = operations_.OperationBox(
+    self._box_procedures = actions_.ActionBox(
       self._settings['main/procedures'],
       builtin_procedures.BUILTIN_PROCEDURES,
       _('Add P_rocedure...'),
       _('Edit Procedure'),
-      add_custom_operation_text=_('Add Custom Procedure...'))
+      add_custom_action_text=_('Add Custom Procedure...'))
     
-    self._box_constraints = operations_.OperationBox(
+    self._box_constraints = actions_.ActionBox(
       self._settings['main/constraints'],
       builtin_constraints.BUILTIN_CONSTRAINTS,
       _('Add C_onstraint...'),
       _('Edit Constraint'),
-      allow_custom_operations=False)
+      allow_custom_actions=False)
     
-    self._hbox_operations = gtk.HBox(homogeneous=True)
-    self._hbox_operations.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
-    self._hbox_operations.set_border_width(self._MORE_SETTINGS_BORDER_WIDTH)
-    self._hbox_operations.pack_start(self._box_procedures, expand=True, fill=True)
-    self._hbox_operations.pack_start(self._box_constraints, expand=True, fill=True)
+    self._hbox_actions = gtk.HBox(homogeneous=True)
+    self._hbox_actions.set_spacing(self._MORE_SETTINGS_HORIZONTAL_SPACING)
+    self._hbox_actions.set_border_width(self._MORE_SETTINGS_BORDER_WIDTH)
+    self._hbox_actions.pack_start(self._box_procedures, expand=True, fill=True)
+    self._hbox_actions.pack_start(self._box_constraints, expand=True, fill=True)
     
     self._vbox_chooser_and_settings = gtk.VBox()
     self._vbox_chooser_and_settings.set_spacing(self._DIALOG_VBOX_SPACING)
@@ -484,15 +484,15 @@ class ExportLayersDialog(object):
     self._vbox_chooser_and_settings.pack_start(
       self._hbox_export_name_and_message, expand=False, fill=False)
     
-    self._vpaned_chooser_and_operations = gtk.VPaned()
-    self._vpaned_chooser_and_operations.pack1(
+    self._vpaned_chooser_and_actions = gtk.VPaned()
+    self._vpaned_chooser_and_actions.pack1(
       self._vbox_chooser_and_settings, resize=True, shrink=False)
-    self._vpaned_chooser_and_operations.pack2(
-      self._hbox_operations, resize=False, shrink=True)
+    self._vpaned_chooser_and_actions.pack2(
+      self._hbox_actions, resize=False, shrink=True)
     
     self._hpaned_settings_and_previews = gtk.HPaned()
     self._hpaned_settings_and_previews.pack1(
-      self._vpaned_chooser_and_operations, resize=True, shrink=False)
+      self._vpaned_chooser_and_actions, resize=True, shrink=False)
     self._hpaned_settings_and_previews.pack2(
       self._frame_previews, resize=True, shrink=True)
     
@@ -559,7 +559,7 @@ class ExportLayersDialog(object):
   
   def _connect_events(self):
     self._box_procedures.connect(
-      'operation-box-item-added', self._on_box_procedures_item_added)
+      'action-box-item-added', self._on_box_procedures_item_added)
     
     self._button_export.connect('clicked', self._on_button_export_clicked, 'exporting')
     self._button_cancel.connect('clicked', self._on_button_cancel_clicked)
@@ -632,7 +632,7 @@ class ExportLayersDialog(object):
       'gui/paned_between_previews_position': [
         pg.setting.SettingGuiTypes.paned_position, self._vpaned_previews],
       'gui/settings_vpane_position': [
-        pg.setting.SettingGuiTypes.paned_position, self._vpaned_chooser_and_operations],
+        pg.setting.SettingGuiTypes.paned_position, self._vpaned_chooser_and_actions],
       'gui/image_preview_automatic_update': [
         pg.setting.SettingGuiTypes.check_menu_item,
         self._image_preview.menu_item_update_automatically],
@@ -688,23 +688,23 @@ class ExportLayersDialog(object):
         self._name_preview.update)
   
   def _on_box_procedures_item_added(self, box_procedures, item):
-    if any(item.operation['orig_name'].value == name
+    if any(item.action['orig_name'].value == name
            for name in ['insert_background_layers', 'insert_foreground_layers']):
-      operations.reorder(self._settings['main/procedures'], item.operation.name, 0)
+      actions.reorder(self._settings['main/procedures'], item.action.name, 0)
   
   def _on_menu_item_show_more_settings_toggled(self, menu_item):
     self._show_hide_more_settings()
   
   def _show_hide_more_settings(self):
     if self._menu_item_show_more_settings.get_active():
-      self._hbox_operations.show()
+      self._hbox_actions.show()
       
       self._file_extension_label.hide()
       self._save_as_label.show()
       self._dot_label.show()
       self._filename_pattern_entry.show()
     else:
-      self._hbox_operations.hide()
+      self._hbox_actions.hide()
       
       self._file_extension_label.show()
       self._save_as_label.hide()
@@ -750,14 +750,14 @@ class ExportLayersDialog(object):
       self._display_inline_message(_('Settings successfully saved.'), gtk.MESSAGE_INFO)
   
   def _on_reset_settings_activate(self, menu_item):
-    response_id, clear_operations = display_reset_prompt(
+    response_id, clear_actions = display_reset_prompt(
       parent=self._dialog,
       more_settings_shown=self._settings['gui/show_more_settings'].value)
     
     if response_id == gtk.RESPONSE_YES:
-      if clear_operations:
-        operations.clear(self._settings['main/procedures'])
-        operations.clear(self._settings['main/constraints'])
+      if clear_actions:
+        actions.clear(self._settings['main/procedures'])
+        actions.clear(self._settings['main/constraints'])
       else:
         self._settings['main/procedures'].tags.add('ignore_reset')
         self._settings['main/constraints'].tags.add('ignore_reset')
@@ -765,7 +765,7 @@ class ExportLayersDialog(object):
       self._reset_settings()
       self._save_settings()
       
-      if clear_operations:
+      if clear_actions:
         update.clear_setting_sources(self._settings)
       else:
         self._settings['main/procedures'].tags.remove('ignore_reset')

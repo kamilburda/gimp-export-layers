@@ -23,7 +23,7 @@ This section explains how to set up development environment for Export Layers.
 A Linux distribution is recommended as the environment contains several bash scripts.
 For Windows, see [Development Setup on Windows](#Development-Setup-on-Windows) for options.
 
-The easiest way is to download and execute the [bash script](utils/init_repo.sh) that automatically installs any required dependencies and sets up the environment.
+The easiest way is to download and run the [bash script](utils/init_repo.sh) that automatically installs any required dependencies and sets up the environment.
 
 If you cannot run the script, perform manual setup as per the instructions below.
 
@@ -180,26 +180,26 @@ Exceptions:
 When a module inside a package imports another module in the same package, append `_` to the imported module (e.g. `utils` becomes `utils_`) to avoid clashes with variable names.  
 
 
-### Executing Code
+### Module- and class-level code
 
-Do not execute code on the module or class level.
+Do not call code directly on the module or class level.
 Exceptions to this rule include:
 * initializing variables or constants,
 * initializing application configuration,
 * initializing a package or a library,
 * standalone scripts such as test runners or git hooks.
 
-Do not execute functions from the GIMP API or PDB on the module or class level.
-The modules are executed during GIMP startup when the GIMP API is not fully initialized yet, resulting in error messages and the plug-in procedures failing to register to the GIMP PDB.
+Do not call functions from the GIMP API or PDB on the module or class level.
+This otherwise results in error messages during GIMP startup and the plug-in procedures failing to register to the GIMP PDB (as GIMP API is not fully initialized yet at this point).
 
 Do not wrap module- or class-level translatable strings with the `_` function.
 You need to defer the translation until the strings are used in the local scope.
 Instead, define `N_` as a function to mark the module- and class-level strings as translatable and then use the `_` function in the local scope to perform the actual translation.
 
 
-#### Execution in `__main__`
+#### Code inside `__main__`
 
-Execution of code inside `__main__` must be enclosed in a function in order to avoid introducing global variables.
+Code inside `__main__` must be enclosed in a single function in order to avoid introducing global variables.
 The name of the enclosing function should be `main()`.
 
 Wrong:

@@ -63,7 +63,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'function': is_layer,
     'display_name': _('Include layers'),
     'subfilter': 'layer_types',
-    'operation_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
+    'action_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
   },
   {
     'name': 'include_layer_groups',
@@ -71,7 +71,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'function': is_nonempty_group,
     'display_name': _('Include layer groups'),
     'subfilter': 'layer_types',
-    'operation_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
+    'action_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
   },
   {
     'name': 'include_empty_layer_groups',
@@ -79,7 +79,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'function': is_empty_group,
     'display_name': _('Include empty layer groups'),
     'subfilter': 'layer_types',
-    'operation_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
+    'action_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
   },
   {
     'name': 'only_visible_layers',
@@ -145,5 +145,5 @@ _BUILTIN_CONSTRAINTS_LIST = [
 ]
 
 BUILTIN_CONSTRAINTS = collections.OrderedDict(
-  (operation_dict['name'], operation_dict)
-  for operation_dict in _BUILTIN_CONSTRAINTS_LIST)
+  (action_dict['name'], action_dict)
+  for action_dict in _BUILTIN_CONSTRAINTS_LIST)

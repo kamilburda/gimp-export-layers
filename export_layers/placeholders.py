@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Placeholder objects replaced with real GIMP objects when executing GIMP PDB
+"""Placeholder objects replaced with real GIMP objects when calling GIMP PDB
 procedures during export.
 
 The following placeholder objects are defined:
@@ -56,7 +56,7 @@ def get_replaced_arg(arg, image, layer, layer_exporter):
   If `arg` is a placeholder object, return a real object replacing the
   placeholder. Otherwise, return `arg`.
   
-  Arguments after `args` are required arguments for operations and are used to
+  Arguments after `args` are required arguments for actions and are used to
   determine the real object that replaces the placeholder.
   """
   try:
@@ -72,7 +72,7 @@ def get_replaced_args_and_kwargs(func_args, func_kwargs, image, layer, layer_exp
   Return arguments and keyword arguments for a function whose placeholder
   objects are replaced with real objects.
   
-  Arguments after `func_kwargs` are required arguments for operations and are
+  Arguments after `func_kwargs` are required arguments for actions and are
   used to determine the real object that replaces the placeholder.
   """
   new_func_args = [

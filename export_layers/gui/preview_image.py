@@ -22,7 +22,7 @@ import gimpenums
 from export_layers import pygimplib as pg
 
 from export_layers import builtin_constraints
-from export_layers import operations
+from export_layers import actions
 
 from export_layers.gui import preview_base as preview_base_
 
@@ -93,8 +93,8 @@ class ExportImagePreview(preview_base_.ExportPreview):
     self._preview_height = None
     self._preview_scaling_factor = None
     
-    self._resize_image_operation_id = None
-    self._scale_layer_operation_id = None
+    self._resize_image_action_id = None
+    self._scale_layer_action_id = None
     
     self.set_scaling()
     
@@ -195,36 +195,36 @@ class ExportImagePreview(preview_base_.ExportPreview):
         self._set_layer_name_label(self.layer_elem.name)
   
   def set_scaling(
-        self, resize_image_operation_groups=None, scale_layer_operation_groups=None):
+        self, resize_image_action_groups=None, scale_layer_action_groups=None):
     """
-    Add operations that scale the previewed image to the size of the widget.
+    Add actions that scale the previewed image to the size of the widget.
     
-    Subsequent calls to this method will remove the previously added operations.
+    Subsequent calls to this method will remove the previously added actions.
     
-    The optional operation groups allow to customize at which point during
+    The optional action groups allow to customize at which point during
     processing the scaling should be performed. By default, scaling is performed
     at the start of the processing.
     """
-    if resize_image_operation_groups is None:
-      resize_image_operation_groups = ['after_create_image_copy']
+    if resize_image_action_groups is None:
+      resize_image_action_groups = ['after_create_image_copy']
     
-    if scale_layer_operation_groups is None:
-      scale_layer_operation_groups = ['after_insert_layer']
+    if scale_layer_action_groups is None:
+      scale_layer_action_groups = ['after_insert_layer']
     
-    self._layer_exporter.remove_operation(
-      self._resize_image_operation_id, groups='all', ignore_if_not_exists=True)
+    self._layer_exporter.remove_action(
+      self._resize_image_action_id, groups='all', ignore_if_not_exists=True)
     
-    self._resize_image_operation_id = self._layer_exporter.add_procedure(
+    self._resize_image_action_id = self._layer_exporter.add_procedure(
       self._resize_image_for_layer_exporter,
-      resize_image_operation_groups,
+      resize_image_action_groups,
       ignore_if_exists=True)
     
-    self._layer_exporter.remove_operation(
-      self._scale_layer_operation_id, groups='all', ignore_if_not_exists=True)
+    self._layer_exporter.remove_action(
+      self._scale_layer_action_id, groups='all', ignore_if_not_exists=True)
     
-    self._scale_layer_operation_id = self._layer_exporter.add_procedure(
+    self._scale_layer_action_id = self._layer_exporter.add_procedure(
       self._scale_layer_for_layer_exporter,
-      scale_layer_operation_groups,
+      scale_layer_action_groups,
       ignore_if_exists=True)
   
   def _set_contents(self):
@@ -340,7 +340,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     only_selected_layer_constraint_id = self._layer_exporter.add_constraint(
       builtin_constraints.is_layer_in_selected_layers,
-      groups=[operations.DEFAULT_CONSTRAINTS_GROUP],
+      groups=[actions.DEFAULT_CONSTRAINTS_GROUP],
       args=[[self.layer_elem.item.ID]])
     
     try:
@@ -353,8 +353,8 @@ class ExportImagePreview(preview_base_.ExportPreview):
         details=traceback.format_exc(), parent=pg.gui.get_toplevel_window(self))
       image_preview = None
     
-    self._layer_exporter.remove_operation(
-      only_selected_layer_constraint_id, [operations.DEFAULT_CONSTRAINTS_GROUP])
+    self._layer_exporter.remove_action(
+      only_selected_layer_constraint_id, [actions.DEFAULT_CONSTRAINTS_GROUP])
     
     if layer_tree_filter is not None:
       self._layer_exporter.layer_tree.filter = layer_tree_filter

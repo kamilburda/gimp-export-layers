@@ -250,13 +250,13 @@ def _create_installers(
   ])
   
   if 'all' in installers:
-    installer_funcs_to_execute = list(installer_funcs.values())
+    installer_funcs_to_invoke = list(installer_funcs.values())
   else:
-    installer_funcs_to_execute = [
+    installer_funcs_to_invoke = [
       installer_funcs[installer] for installer in installers
       if installer in installer_funcs]
   
-  for installer_func in installer_funcs_to_execute:
+  for installer_func in installer_funcs_to_invoke:
     installer_func(installer_dirpath, input_dirpath, input_filepaths, output_filepaths)
 
 

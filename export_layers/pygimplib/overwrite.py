@@ -129,7 +129,7 @@ class InteractiveOverwriteChooser(
 def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
   """
   If a file with the specified file path exists, handle the file path conflict
-  by executing the `overwrite_chooser` (an `OverwriteChooser` instance).
+  via `overwrite_chooser` (an `OverwriteChooser` instance).
   `filepath` indicates a file path for a new file to be saved.
   
   `overwrite_chooser` should support all overwrite modes specified in

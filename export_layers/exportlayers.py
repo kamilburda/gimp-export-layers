@@ -17,7 +17,7 @@ from export_layers import pygimplib as pg
 
 from export_layers import builtin_procedures
 from export_layers import builtin_constraints
-from export_layers import operations
+from export_layers import actions
 from export_layers import placeholders
 from export_layers import renamer
 
@@ -25,7 +25,7 @@ from export_layers import renamer
 class LayerExporter(object):
   """
   This class exports layers as separate images, with the support for additional
-  operations applied on layers (resize, rename, ...).
+  actions applied on layers (resize, rename, ...).
   
   Attributes:
   
@@ -64,10 +64,9 @@ class LayerExporter(object):
   * `current_layer_elem` (read-only) - The `itemtree._ItemTreeElement` instance
     being currently exported.
   
-  * `executor` - `pygimplib.executor.Executor` instance to
-    manage operations applied on layers. This property is not `None` only during
-    `export()` and can be used to modify the execution of operations while
-    processing layers.
+  * `invoker` - `pygimplib.invoker.Invoker` instance to
+    manage procedures and constraints applied on layers. This property is not
+    `None` only during `export()`.
   """
   
   def __init__(
@@ -131,9 +130,9 @@ class LayerExporter(object):
       for function in functions:
         self._processing_groups_functions[function.__name__] = function
     
-    self._executor = None
-    self._initial_executor = pg.executor.Executor()
-    self._NAME_ONLY_OPERATION_GROUP = 'name'
+    self._invoker = None
+    self._initial_invoker = pg.invoker.Invoker()
+    self._NAME_ONLY_ACTION_GROUP = 'name'
   
   @property
   def layer_tree(self):
@@ -164,26 +163,26 @@ class LayerExporter(object):
     return self._tagged_layer_copies
   
   @property
-  def executor(self):
-    return self._executor
+  def invoker(self):
+    return self._invoker
   
   def export(self, processing_groups=None, layer_tree=None, keep_image_copy=False):
     """
     Export layers as separate images from the specified image.
     
-    `processing_groups` is a list of strings that constrains the execution of
-    the export. Multiple groups can be specified. The following groups are
-    supported:
+    `processing_groups` is a list of strings that control which parts of the
+    export are effective and which are ignored. Multiple groups can be
+    specified. The following groups are supported:
     
-    * `'layer_contents'` - Perform only operations manipulating the layer
+    * `'layer_contents'` - Perform only actions manipulating the layer
       itself, such as cropping, resizing, etc. This is useful to preview the
       layer(s).
     
-    * `'layer_name'` - Perform only operations manipulating layer names
+    * `'layer_name'` - Perform only actions manipulating layer names
       and layer tree (but not layer contents). This is useful to preview the
       names of the exported layers.
     
-    * `'export'` - Perform only operations that export the layer or create
+    * `'export'` - Perform only actions that export the layer or create
       directories for the layer.
     
     If `processing_groups` is `None` or empty, perform normal export.
@@ -233,47 +232,47 @@ class LayerExporter(object):
   
   def add_procedure(self, *args, **kwargs):
     """
-    Add a procedure to be executed during `export()`. The signature is the same
-    as for `pygimplib.executor.Executor.add()`.
+    Add a procedure to be applied during `export()`. The signature is the same
+    as for `pygimplib.invoker.Invoker.add()`.
     
     Procedures added by this method are placed before procedures added by
-    `operations.add()`.
+    `actions.add()`.
     
-    Unlike `operations.add()`, procedures added by this method do not act as
+    Unlike `actions.add()`, procedures added by this method do not act as
     settings, i.e. they are merely functions without GUI, are not saved
     persistently and are always enabled.
     """
-    return self._initial_executor.add(*args, **kwargs)
+    return self._initial_invoker.add(*args, **kwargs)
   
   def add_constraint(self, func, *args, **kwargs):
     """
     Add a constraint to be applied during `export()`. The first argument is the
     function to act as a filter (returning `True` or `False`). The rest of the
-    signature is the same as for `pygimplib.executor.Executor.add()`.
+    signature is the same as for `pygimplib.invoker.Invoker.add()`.
     
     For more information, see `add_procedure()`.
     """
-    return self._initial_executor.add(
+    return self._initial_invoker.add(
       _get_constraint_func(func), *args, **kwargs)
   
-  def remove_operation(self, *args, **kwargs):
+  def remove_action(self, *args, **kwargs):
     """
-    Remove an operation originally scheduled to be executed during `export()`.
-    The signature is the same as for `pygimplib.executor.Executor.remove()`.
+    Remove an action originally scheduled to be applied during `export()`.
+    The signature is the same as for `pygimplib.invoker.Invoker.remove()`.
     """
-    self._initial_executor.remove(*args, **kwargs)
+    self._initial_invoker.remove(*args, **kwargs)
   
-  def reorder_operation(self, *args, **kwargs):
+  def reorder_action(self, *args, **kwargs):
     """
-    Reorder an operation to be executed during `export()`.
-    The signature is the same as for `pygimplib.executor.Executor.reorder()`.
+    Reorder an action to be applied during `export()`.
+    The signature is the same as for `pygimplib.invoker.Invoker.reorder()`.
     """
-    self._initial_executor.reorder(*args, **kwargs)
+    self._initial_invoker.reorder(*args, **kwargs)
   
   def _init_attributes(self, processing_groups, layer_tree, keep_image_copy):
-    self._executor = pg.executor.Executor()
-    self._add_operations()
-    self._add_name_only_operations()
+    self._invoker = pg.invoker.Invoker()
+    self._add_actions()
+    self._add_name_only_actions()
     
     self._enable_disable_processing_groups(processing_groups)
     
@@ -318,35 +317,35 @@ class LayerExporter(object):
     
     self._layer_name_renamer = renamer.LayerNameRenamer(self, pattern)
   
-  def _add_operations(self):
-    self._executor.add(
-      builtin_procedures.set_active_layer, [operations.DEFAULT_PROCEDURES_GROUP])
+  def _add_actions(self):
+    self._invoker.add(
+      builtin_procedures.set_active_layer, [actions.DEFAULT_PROCEDURES_GROUP])
     
-    self._executor.add(
-      builtin_procedures.set_active_layer_after_operation,
-      [operations.DEFAULT_PROCEDURES_GROUP],
+    self._invoker.add(
+      builtin_procedures.set_active_layer_after_action,
+      [actions.DEFAULT_PROCEDURES_GROUP],
       foreach=True)
     
-    self._executor.add(
-      self._initial_executor,
-      self._initial_executor.list_groups(include_empty_groups=True))
+    self._invoker.add(
+      self._initial_invoker,
+      self._initial_invoker.list_groups(include_empty_groups=True))
     
-    for procedure in operations.walk(self.export_settings['procedures']):
-      add_operation_from_settings(procedure, self._executor)
+    for procedure in actions.walk(self.export_settings['procedures']):
+      add_action_from_settings(procedure, self._invoker)
     
-    for constraint in operations.walk(self.export_settings['constraints']):
-      add_operation_from_settings(constraint, self._executor)
+    for constraint in actions.walk(self.export_settings['constraints']):
+      add_action_from_settings(constraint, self._invoker)
   
-  def _add_name_only_operations(self):
-    for procedure in operations.walk(self.export_settings['procedures']):
-      add_operation_from_settings(
-        procedure, self._executor,
-        [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_OPERATION_GROUP])
+  def _add_name_only_actions(self):
+    for procedure in actions.walk(self.export_settings['procedures']):
+      add_action_from_settings(
+        procedure, self._invoker,
+        [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
     
-    for constraint in operations.walk(self.export_settings['constraints']):
-      add_operation_from_settings(
-        constraint, self._executor,
-        [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_OPERATION_GROUP])
+    for constraint in actions.walk(self.export_settings['constraints']):
+      add_action_from_settings(
+        constraint, self._invoker,
+        [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
   
   def _enable_disable_processing_groups(self, processing_groups):
     for functions in self._processing_groups.values():
@@ -393,15 +392,15 @@ class LayerExporter(object):
     self._layer_tree.filter.add_subfilter(
       'layer_types', pg.objectfilter.ObjectFilter(pg.objectfilter.ObjectFilter.MATCH_ANY))
     
-    self._executor.execute(
+    self._invoker.invoke(
       [builtin_constraints.CONSTRAINTS_LAYER_TYPES_GROUP],
       [self],
       additional_args_position=_LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
     
     self._init_tagged_layer_elems()
     
-    self._executor.execute(
-      [operations.DEFAULT_CONSTRAINTS_GROUP],
+    self._invoker.invoke(
+      [actions.DEFAULT_CONSTRAINTS_GROUP],
       [self],
       additional_args_position=_LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
   
@@ -461,7 +460,7 @@ class LayerExporter(object):
     self._image_copy = pg.pdbutils.create_image_from_metadata(self.image)
     pdb.gimp_image_undo_freeze(self._image_copy)
     
-    self._executor.execute(
+    self._invoker.invoke(
       ['after_create_image_copy'], [self._image_copy], additional_args_position=0)
     
     if self._use_another_image_copy:
@@ -495,11 +494,11 @@ class LayerExporter(object):
   
   def _process_layer(self, layer_elem, image, layer):
     layer_copy = builtin_procedures.copy_and_insert_layer(image, layer, None, 0)
-    self._executor.execute(
+    self._invoker.invoke(
       ['after_insert_layer'], [image, layer_copy, self], additional_args_position=0)
     
-    self._executor.execute(
-      [operations.DEFAULT_PROCEDURES_GROUP],
+    self._invoker.invoke(
+      [actions.DEFAULT_PROCEDURES_GROUP],
       [image, layer_copy, self],
       additional_args_position=0)
     
@@ -509,7 +508,7 @@ class LayerExporter(object):
     
     layer_copy.name = layer.name
     
-    self._executor.execute(
+    self._invoker.invoke(
       ['after_process_layer'], [image, layer_copy, self], additional_args_position=0)
     
     return layer_copy
@@ -542,8 +541,8 @@ class LayerExporter(object):
     self._layer_tree.uniquify_name(layer_elem)
   
   def _process_layer_name_for_preview(self, image, layer):
-    self._executor.execute(
-      [self._NAME_ONLY_OPERATION_GROUP],
+    self._invoker.invoke(
+      [self._NAME_ONLY_ACTION_GROUP],
       [image, layer, self],
       additional_args_position=0)
   
@@ -699,74 +698,74 @@ class LayerExporter(object):
 _LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
 
 
-def add_operation_from_settings(operation, executor, tags=None, operation_groups=None):
-  if operation.get_value('is_pdb_procedure', False):
+def add_action_from_settings(action, invoker, tags=None, action_groups=None):
+  if action.get_value('is_pdb_procedure', False):
     try:
-      function = pdb[operation['function'].value.encode(pg.GIMP_CHARACTER_ENCODING)]
+      function = pdb[action['function'].value.encode(pg.GIMP_CHARACTER_ENCODING)]
     except KeyError:
       raise InvalidPdbProcedureError(
-        'invalid PDB procedure "{}"'.format(operation['function'].value))
+        'invalid PDB procedure "{}"'.format(action['function'].value))
   else:
-    function = operation['function'].value
+    function = action['function'].value
   
   if function is None:
     return
   
-  if tags is not None and not any(tag in operation.tags for tag in tags):
+  if tags is not None and not any(tag in action.tags for tag in tags):
     return
   
-  function_args = tuple(arg_setting.value for arg_setting in operation['arguments'])
+  function_args = tuple(arg_setting.value for arg_setting in action['arguments'])
   function_kwargs = {}
   
-  if operation.get_value('is_pdb_procedure', False):
+  if action.get_value('is_pdb_procedure', False):
     if _has_run_mode_param(function):
       function_kwargs = {b'run_mode': function_args[0]}
       function_args = function_args[1:]
     
-    function = _get_operation_func_for_pdb_procedure(function)
+    function = _get_action_func_for_pdb_procedure(function)
   
-  if 'constraint' not in operation.tags:
-    function = _get_operation_func_with_replaced_placeholders(function)
+  if 'constraint' not in action.tags:
+    function = _get_action_func_with_replaced_placeholders(function)
   
-  if 'constraint' in operation.tags:
-    function = _get_constraint_func(function, subfilter=operation['subfilter'].value)
+  if 'constraint' in action.tags:
+    function = _get_constraint_func(function, subfilter=action['subfilter'].value)
   
-  function = _execute_operation_only_if_enabled(function, operation['enabled'])
+  function = _apply_action_only_if_enabled(function, action['enabled'])
   
-  if operation_groups is None:
-    operation_groups = operation['operation_groups'].value
+  if action_groups is None:
+    action_groups = action['action_groups'].value
   
-  executor.add(function, operation_groups, function_args, function_kwargs)
+  invoker.add(function, action_groups, function_args, function_kwargs)
 
 
 def _has_run_mode_param(pdb_procedure):
   return pdb_procedure.params and pdb_procedure.params[0][1] == 'run-mode'
 
 
-def _get_operation_func_for_pdb_procedure(pdb_procedure):
-  def _pdb_procedure_as_operation(image, layer, layer_exporter, *args, **kwargs):
+def _get_action_func_for_pdb_procedure(pdb_procedure):
+  def _pdb_procedure_as_action(image, layer, layer_exporter, *args, **kwargs):
     pdb_procedure(*args, **kwargs)
   
-  return _pdb_procedure_as_operation
+  return _pdb_procedure_as_action
 
 
-def _get_operation_func_with_replaced_placeholders(function):
-  def _operation(image, layer, layer_exporter, *args, **kwargs):
+def _get_action_func_with_replaced_placeholders(function):
+  def _action(image, layer, layer_exporter, *args, **kwargs):
     new_args, new_kwargs = placeholders.get_replaced_args_and_kwargs(
       args, kwargs, image, layer, layer_exporter)
     function(image, layer, layer_exporter, *new_args, **new_kwargs)
   
-  return _operation
+  return _action
 
 
-def _execute_operation_only_if_enabled(operation, setting_enabled):
-  def _execute_operation(*operation_args, **operation_kwargs):
+def _apply_action_only_if_enabled(action, setting_enabled):
+  def _apply_action(*action_args, **action_kwargs):
     if setting_enabled.value:
-      return operation(*operation_args, **operation_kwargs)
+      return action(*action_args, **action_kwargs)
     else:
       return False
   
-  return _execute_operation
+  return _apply_action
 
 
 def _get_constraint_func(rule_func, subfilter=None):

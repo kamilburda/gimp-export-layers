@@ -12,7 +12,7 @@ import string
 
 from export_layers import pygimplib as pg
 
-from export_layers import operations
+from export_layers import actions
 
 
 class LayerNameRenamer(object):
@@ -236,15 +236,15 @@ def _get_tags(layer_exporter, field_value, *args):
   tags_to_insert = []
   
   def _insert_tag(tag):
-    if tag in operations.BUILTIN_TAGS:
-      tag_display_name = operations.BUILTIN_TAGS[tag]
+    if tag in actions.BUILTIN_TAGS:
+      tag_display_name = actions.BUILTIN_TAGS[tag]
     else:
       tag_display_name = tag
     tags_to_insert.append(tag_display_name)
   
   def _get_tag_from_tag_display_name(tag_display_name):
-    builtin_tags_keys = list(operations.BUILTIN_TAGS)
-    builtin_tags_values = list(operations.BUILTIN_TAGS.values())
+    builtin_tags_keys = list(actions.BUILTIN_TAGS)
+    builtin_tags_values = list(actions.BUILTIN_TAGS.values())
     return builtin_tags_keys[builtin_tags_values.index(tag_display_name)]
   
   def _insert_all_tags():
@@ -255,9 +255,9 @@ def _get_tags(layer_exporter, field_value, *args):
   
   def _insert_specified_tags(tags):
     for tag in tags:
-      if tag in operations.BUILTIN_TAGS:
+      if tag in actions.BUILTIN_TAGS:
         continue
-      if tag in operations.BUILTIN_TAGS.values():
+      if tag in actions.BUILTIN_TAGS.values():
         tag = _get_tag_from_tag_display_name(tag)
       if tag in layer_exporter.current_layer_elem.tags:
         _insert_tag(tag)

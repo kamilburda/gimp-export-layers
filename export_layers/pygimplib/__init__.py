@@ -70,7 +70,7 @@ if _gimp_dependent_modules_imported:
   import gimpenums
   import gimpui
   
-  from . import executor
+  from . import invoker
   from . import fileformats
   from . import invocation
   from . import gui
@@ -99,7 +99,7 @@ __all__ = [
 if _gimp_dependent_modules_imported:
   __all__.extend([
     # Modules
-    'executor',
+    'invoker',
     'fileformats',
     'invocation',
     'gui',
@@ -327,7 +327,7 @@ if _gimp_dependent_modules_imported:
     return procedure_wrapper
   
   def main():
-    """Enables installation and execution of GIMP procedures.
+    """Enables installation and running of GIMP procedures.
     
     Call this function at the end of your main plug-in file.
     """

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Widgets to interactively edit operations (procedures/constraints)."""
+"""Widgets to interactively edit actions (procedures/constraints)."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
@@ -16,30 +16,30 @@ import gimpui
 
 from export_layers import pygimplib as pg
 
-from export_layers import operations
+from export_layers import actions
 
 
-class OperationBox(pg.gui.ItemBox):
+class ActionBox(pg.gui.ItemBox):
   """
   This class defines a scrollable box that allows the user to add, edit and
-  remove operations interactively. Each operation has an associated widget
+  remove actions interactively. Each action has an associated widget
   (item) displayed in the box.
   
-  The box connects events to the passed operations that keeps the operations and
-  the box in sync. For example, when adding an operation via `operations.add()`,
-  the item for the operation is automatically added to the box. Conversely, when
-  calling `add_item()` from this class, both the operation and the item are
-  added to the operations and the GUI, respectively.
+  The box connects events to the passed actions that keeps the actions and
+  the box in sync. For example, when adding an action via `actions.add()`,
+  the item for the action is automatically added to the box. Conversely, when
+  calling `add_item()` from this class, both the action and the item are
+  added to the actions and the GUI, respectively.
   
   Signals:
   
-  * `'operation-box-item-added'` - An item was added via `add_item()`.
+  * `'action-box-item-added'` - An item was added via `add_item()`.
     
     Arguments:
     
     * `item` - The added item.
     
-  * `'operation-box-item-reordered'` - An item was reordered via
+  * `'action-box-item-reordered'` - An item was reordered via
     `reorder_item()`.
     
     Arguments:
@@ -47,7 +47,7 @@ class OperationBox(pg.gui.ItemBox):
     * `item` - The reordered item.
     * `new_position` - The new position of the reordered item (starting from 0).
     
-  * `'operation-box-item-removed'` - An item was removed via `remove_item()`.
+  * `'action-box-item-removed'` - An item was removed via `remove_item()`.
     
     Arguments:
     
@@ -55,91 +55,91 @@ class OperationBox(pg.gui.ItemBox):
   """
   
   __gsignals__ = {
-    b'operation-box-item-added': (
+    b'action-box-item-added': (
       gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT,)),
-    b'operation-box-item-reordered': (
+    b'action-box-item-reordered': (
       gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT, gobject.TYPE_INT)),
-    b'operation-box-item-removed': (
+    b'action-box-item-removed': (
       gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT,)),
   }
   
   _ADD_BUTTON_HBOX_SPACING = 6
   
-  _OPERATION_ENABLED_LABEL_MAX_CHAR_WIDTH = 1000
+  _ACTION_ENABLED_LABEL_MAX_CHAR_WIDTH = 1000
   
   def __init__(
         self,
-        operations_,
-        builtin_operations=None,
-        add_operation_text=None,
-        edit_operation_text=None,
-        allow_custom_operations=True,
-        add_custom_operation_text=None,
+        actions_,
+        builtin_actions=None,
+        add_action_text=None,
+        edit_action_text=None,
+        allow_custom_actions=True,
+        add_custom_action_text=None,
         item_spacing=pg.gui.ItemBox.ITEM_SPACING,
         *args,
         **kwargs):
     super().__init__(item_spacing=item_spacing, *args, **kwargs)
     
-    self._operations = operations_
-    self._builtin_operations = (
-      builtin_operations if builtin_operations is not None else {})
-    self._add_operation_text = add_operation_text
-    self._edit_operation_text = edit_operation_text
-    self._allow_custom_operations = allow_custom_operations
-    self._add_custom_operation_text = add_custom_operation_text
+    self._actions = actions_
+    self._builtin_actions = (
+      builtin_actions if builtin_actions is not None else {})
+    self._add_action_text = add_action_text
+    self._edit_action_text = edit_action_text
+    self._allow_custom_actions = allow_custom_actions
+    self._add_custom_action_text = add_custom_action_text
     
     self._pdb_procedure_browser_dialog = None
     
     self._init_gui()
     
-    self._after_add_operation_event_id = self._operations.connect_event(
-      'after-add-operation',
-      lambda operations_, operation, orig_operation_dict: (
-        self._add_item_from_operation(operation)))
+    self._after_add_action_event_id = self._actions.connect_event(
+      'after-add-action',
+      lambda actions_, action, orig_action_dict: (
+        self._add_item_from_action(action)))
     
-    self._after_reorder_operation_event_id = self._operations.connect_event(
-      'after-reorder-operation',
-      lambda operations_, operation, current_position, new_position: (
-        self._reorder_operation(operation, new_position)))
+    self._after_reorder_action_event_id = self._actions.connect_event(
+      'after-reorder-action',
+      lambda actions_, action, current_position, new_position: (
+        self._reorder_action(action, new_position)))
     
-    self._before_remove_operation_event_id = self._operations.connect_event(
-      'before-remove-operation',
-      lambda operations_, operation: self._remove_operation(operation))
+    self._before_remove_action_event_id = self._actions.connect_event(
+      'before-remove-action',
+      lambda actions_, action: self._remove_action(action))
     
-    self._before_clear_operations_event_id = self._operations.connect_event(
-      'before-clear-operations', lambda operations_: self._clear())
+    self._before_clear_actions_event_id = self._actions.connect_event(
+      'before-clear-actions', lambda actions_: self._clear())
   
-  def add_item(self, operation_dict_or_function):
-    self._operations.set_event_enabled(self._after_add_operation_event_id, False)
-    operation = operations.add(self._operations, operation_dict_or_function)
-    self._operations.set_event_enabled(self._after_add_operation_event_id, True)
+  def add_item(self, action_dict_or_function):
+    self._actions.set_event_enabled(self._after_add_action_event_id, False)
+    action = actions.add(self._actions, action_dict_or_function)
+    self._actions.set_event_enabled(self._after_add_action_event_id, True)
     
-    item = self._add_item_from_operation(operation)
+    item = self._add_item_from_action(action)
     
-    self.emit('operation-box-item-added', item)
+    self.emit('action-box-item-added', item)
     
     return item
   
   def reorder_item(self, item, new_position):
     processed_new_position = self._reorder_item(item, new_position)
     
-    self._operations.set_event_enabled(self._after_reorder_operation_event_id, False)
-    operations.reorder(self._operations, item.operation.name, processed_new_position)
-    self._operations.set_event_enabled(self._after_reorder_operation_event_id, True)
+    self._actions.set_event_enabled(self._after_reorder_action_event_id, False)
+    actions.reorder(self._actions, item.action.name, processed_new_position)
+    self._actions.set_event_enabled(self._after_reorder_action_event_id, True)
     
-    self.emit('operation-box-item-reordered', item, new_position)
+    self.emit('action-box-item-reordered', item, new_position)
   
   def remove_item(self, item):
     self._remove_item(item)
     
-    self._operations.set_event_enabled(self._before_remove_operation_event_id, False)
-    operations.remove(self._operations, item.operation.name)
-    self._operations.set_event_enabled(self._before_remove_operation_event_id, True)
+    self._actions.set_event_enabled(self._before_remove_action_event_id, False)
+    actions.remove(self._actions, item.action.name)
+    self._actions.set_event_enabled(self._before_remove_action_event_id, True)
     
-    self.emit('operation-box-item-removed', item)
+    self.emit('action-box-item-removed', item)
   
   def _init_gui(self):
-    if self._add_operation_text is not None:
+    if self._add_action_text is not None:
       self._button_add = gtk.Button()
       button_hbox = gtk.HBox()
       button_hbox.set_spacing(self._ADD_BUTTON_HBOX_SPACING)
@@ -148,7 +148,7 @@ class OperationBox(pg.gui.ItemBox):
         expand=False,
         fill=False)
       
-      label_add = gtk.Label(self._add_operation_text.encode(pg.GTK_CHARACTER_ENCODING))
+      label_add = gtk.Label(self._add_action_text.encode(pg.GTK_CHARACTER_ENCODING))
       label_add.set_use_underline(True)
       button_hbox.pack_start(label_add, expand=False, fill=False)
       
@@ -161,65 +161,65 @@ class OperationBox(pg.gui.ItemBox):
     
     self._vbox.pack_start(self._button_add, expand=False, fill=False)
     
-    self._operations_menu = gtk.Menu()
-    self._init_operations_menu_popup()
+    self._actions_menu = gtk.Menu()
+    self._init_actions_menu_popup()
   
-  def _add_item_from_operation(self, operation):
-    self._init_operation_item_gui(operation)
+  def _add_item_from_action(self, action):
+    self._init_action_item_gui(action)
     
-    item = _OperationBoxItem(operation, operation['enabled'].gui.element)
+    item = _ActionBoxItem(action, action['enabled'].gui.element)
     
     super().add_item(item)
     
     item.button_edit.connect('clicked', self._on_item_button_edit_clicked, item)
     item.button_remove.connect(
-      'clicked', self._on_item_button_remove_clicked_remove_operation_edit_dialog, item)
+      'clicked', self._on_item_button_remove_clicked_remove_action_edit_dialog, item)
     
     return item
   
-  def _init_operation_item_gui(self, operation):
-    operation.initialize_gui()
+  def _init_action_item_gui(self, action):
+    action.initialize_gui()
     
     # HACK: Prevent displaying horizontal scrollbar by ellipsizing labels. To
     # make ellipsizing work properly, the label width must be set explicitly.
-    if isinstance(operation['enabled'].gui, pg.setting.SettingGuiTypes.check_button):
-      operation['enabled'].gui.element.set_property('width-request', 1)
-      operation['enabled'].gui.element.get_child().set_ellipsize(pango.ELLIPSIZE_END)
-      operation['enabled'].gui.element.get_child().set_max_width_chars(
-        self._OPERATION_ENABLED_LABEL_MAX_CHAR_WIDTH)
-      operation['enabled'].gui.element.get_child().connect(
+    if isinstance(action['enabled'].gui, pg.setting.SettingGuiTypes.check_button):
+      action['enabled'].gui.element.set_property('width-request', 1)
+      action['enabled'].gui.element.get_child().set_ellipsize(pango.ELLIPSIZE_END)
+      action['enabled'].gui.element.get_child().set_max_width_chars(
+        self._ACTION_ENABLED_LABEL_MAX_CHAR_WIDTH)
+      action['enabled'].gui.element.get_child().connect(
         'size-allocate',
-        self._on_operation_item_gui_label_size_allocate,
-        operation['enabled'].gui.element)
+        self._on_action_item_gui_label_size_allocate,
+        action['enabled'].gui.element)
   
-  def _on_operation_item_gui_label_size_allocate(
+  def _on_action_item_gui_label_size_allocate(
         self, item_gui_label, allocation, item_gui):
     if pg.gui.label_fits_text(item_gui_label):
       item_gui.set_tooltip_text(None)
     else:
       item_gui.set_tooltip_text(item_gui_label.get_text())
   
-  def _reorder_operation(self, operation, new_position):
+  def _reorder_action(self, action, new_position):
     item = next(
-      (item_ for item_ in self._items if item_.operation.name == operation.name), None)
+      (item_ for item_ in self._items if item_.action.name == action.name), None)
     if item is not None:
       self._reorder_item(item, new_position)
     else:
-      raise ValueError('operation "{}" does not match any item in "{}"'.format(
-        operation.name, self))
+      raise ValueError('action "{}" does not match any item in "{}"'.format(
+        action.name, self))
   
   def _reorder_item(self, item, new_position):
     return super().reorder_item(item, new_position)
   
-  def _remove_operation(self, operation):
+  def _remove_action(self, action):
     item = next(
-      (item_ for item_ in self._items if item_.operation.name == operation.name), None)
+      (item_ for item_ in self._items if item_.action.name == action.name), None)
     
     if item is not None:
       self._remove_item(item)
     else:
-      raise ValueError('operation "{}" does not match any item in "{}"'.format(
-        operation.get_path(), self))
+      raise ValueError('action "{}" does not match any item in "{}"'.format(
+        action.get_path(), self))
   
   def _remove_item(self, item):
     if self._get_item_position(item) == len(self._items) - 1:
@@ -231,35 +231,35 @@ class OperationBox(pg.gui.ItemBox):
     for unused_ in range(len(self._items)):
       self._remove_item(self._items[0])
   
-  def _init_operations_menu_popup(self):
-    for operation_dict in self._builtin_operations.values():
-      self._add_operation_to_menu_popup(operation_dict)
+  def _init_actions_menu_popup(self):
+    for action_dict in self._builtin_actions.values():
+      self._add_action_to_menu_popup(action_dict)
     
-    if self._allow_custom_operations:
-      self._operations_menu.append(gtk.SeparatorMenuItem())
-      self._add_add_custom_operation_to_menu_popup()
+    if self._allow_custom_actions:
+      self._actions_menu.append(gtk.SeparatorMenuItem())
+      self._add_add_custom_action_to_menu_popup()
     
-    self._operations_menu.show_all()
+    self._actions_menu.show_all()
   
   def _on_button_add_clicked(self, button):
-    self._operations_menu.popup(None, None, None, 0, 0)
+    self._actions_menu.popup(None, None, None, 0, 0)
   
-  def _add_operation_to_menu_popup(self, operation_dict):
+  def _add_action_to_menu_popup(self, action_dict):
     menu_item = gtk.MenuItem(
-      label=operation_dict['display_name'].encode(pg.GTK_CHARACTER_ENCODING),
+      label=action_dict['display_name'].encode(pg.GTK_CHARACTER_ENCODING),
       use_underline=False)
-    menu_item.connect('activate', self._on_operations_menu_item_activate, operation_dict)
-    self._operations_menu.append(menu_item)
+    menu_item.connect('activate', self._on_actions_menu_item_activate, action_dict)
+    self._actions_menu.append(menu_item)
   
-  def _on_operations_menu_item_activate(self, menu_item, operation_dict_or_function):
-    self.add_item(operation_dict_or_function)
+  def _on_actions_menu_item_activate(self, menu_item, action_dict_or_function):
+    self.add_item(action_dict_or_function)
   
-  def _add_add_custom_operation_to_menu_popup(self):
-    menu_item = gtk.MenuItem(label=self._add_custom_operation_text, use_underline=False)
-    menu_item.connect('activate', self._on_add_custom_operation_menu_item_activate)
-    self._operations_menu.append(menu_item)
+  def _add_add_custom_action_to_menu_popup(self):
+    menu_item = gtk.MenuItem(label=self._add_custom_action_text, use_underline=False)
+    menu_item.connect('activate', self._on_add_custom_action_menu_item_activate)
+    self._actions_menu.append(menu_item)
   
-  def _on_add_custom_operation_menu_item_activate(self, menu_item):
+  def _on_add_custom_action_menu_item_activate(self, menu_item):
     if self._pdb_procedure_browser_dialog:
       self._pdb_procedure_browser_dialog.show()
     else:
@@ -287,9 +287,9 @@ class OperationBox(pg.gui.ItemBox):
         pdb_procedure = pdb[procedure_name.encode(pg.GIMP_CHARACTER_ENCODING)]
         
         try:
-          pdb_proc_operation_dict = operations.get_operation_dict_for_pdb_procedure(
+          pdb_proc_action_dict = actions.get_action_dict_for_pdb_procedure(
             pdb_procedure)
-        except operations.UnsupportedPdbProcedureError as e:
+        except actions.UnsupportedPdbProcedureError as e:
           pg.gui.display_error_message(
             title=pg.config.PLUGIN_TITLE,
             app_name='',
@@ -308,32 +308,32 @@ class OperationBox(pg.gui.ItemBox):
           dialog.hide()
           return
         
-        pdb_proc_operation_dict['enabled'] = False
+        pdb_proc_action_dict['enabled'] = False
         
-        item = self.add_item(pdb_proc_operation_dict)
+        item = self.add_item(pdb_proc_action_dict)
         
-        operation_edit_dialog = _OperationEditDialog(
-          item.operation,
+        action_edit_dialog = _ActionEditDialog(
+          item.action,
           pdb_procedure,
-          title=self._get_operation_edit_dialog_title(item),
+          title=self._get_action_edit_dialog_title(item),
           role=pg.config.PLUGIN_NAME)
         
-        operation_edit_dialog.connect(
+        action_edit_dialog.connect(
           'response',
-          self._on_operation_edit_dialog_for_new_operation_response,
+          self._on_action_edit_dialog_for_new_action_response,
           item)
         
-        operation_edit_dialog.show_all()
+        action_edit_dialog.show_all()
     
     dialog.hide()
   
-  def _on_operation_edit_dialog_for_new_operation_response(
+  def _on_action_edit_dialog_for_new_action_response(
         self, dialog, response_id, item):
     dialog.destroy()
     
     if response_id == gtk.RESPONSE_OK:
-      item.operation['arguments'].apply_gui_values_to_settings()
-      item.operation['enabled'].set_value(True)
+      item.action['arguments'].apply_gui_values_to_settings()
+      item.action['enabled'].set_value(True)
     else:
       self.remove_item(item)
   
@@ -341,81 +341,81 @@ class OperationBox(pg.gui.ItemBox):
     if item.is_being_edited():
       return
     
-    if item.operation.get_value('is_pdb_procedure', False):
+    if item.action.get_value('is_pdb_procedure', False):
       pdb_procedure = pdb[
-        item.operation['function'].value.encode(pg.GIMP_CHARACTER_ENCODING)]
+        item.action['function'].value.encode(pg.GIMP_CHARACTER_ENCODING)]
     else:
       pdb_procedure = None
     
-    operation_values_before_dialog = {
-      setting.get_path(item.operation): setting.value
-      for setting in item.operation.walk()}
+    action_values_before_dialog = {
+      setting.get_path(item.action): setting.value
+      for setting in item.action.walk()}
     
-    operation_edit_dialog = _OperationEditDialog(
-      item.operation,
+    action_edit_dialog = _ActionEditDialog(
+      item.action,
       pdb_procedure,
-      title=self._get_operation_edit_dialog_title(item),
+      title=self._get_action_edit_dialog_title(item),
       role=pg.config.PLUGIN_NAME)
     
-    item.operation_edit_dialog = operation_edit_dialog
+    item.action_edit_dialog = action_edit_dialog
     
-    operation_edit_dialog.connect(
+    action_edit_dialog.connect(
       'response',
-      self._on_operation_edit_dialog_for_existing_operation_response,
+      self._on_action_edit_dialog_for_existing_action_response,
       item,
-      operation_values_before_dialog)
+      action_values_before_dialog)
     
-    operation_edit_dialog.show_all()
+    action_edit_dialog.show_all()
   
-  def _on_operation_edit_dialog_for_existing_operation_response(
-        self, dialog, response_id, item, operation_values_before_dialog):
+  def _on_action_edit_dialog_for_existing_action_response(
+        self, dialog, response_id, item, action_values_before_dialog):
     dialog.destroy()
     
     if response_id == gtk.RESPONSE_OK:
-      item.operation['arguments'].apply_gui_values_to_settings()
+      item.action['arguments'].apply_gui_values_to_settings()
     else:
-      item.operation.set_values(operation_values_before_dialog)
+      item.action.set_values(action_values_before_dialog)
     
-    item.operation_edit_dialog = None
+    item.action_edit_dialog = None
   
-  def _on_item_button_remove_clicked_remove_operation_edit_dialog(
+  def _on_item_button_remove_clicked_remove_action_edit_dialog(
         self, button_remove, item):
     if item.is_being_edited():
-      item.operation_edit_dialog.response(gtk.RESPONSE_CANCEL)
+      item.action_edit_dialog.response(gtk.RESPONSE_CANCEL)
   
-  def _get_operation_edit_dialog_title(self, item):
-    if self._edit_operation_text is not None:
+  def _get_action_edit_dialog_title(self, item):
+    if self._edit_action_text is not None:
       return '{} {}'.format(
-        self._edit_operation_text, item.operation['display_name'].value)
+        self._edit_action_text, item.action['display_name'].value)
     else:
       return None
 
 
-class _OperationBoxItem(pg.gui.ItemBoxItem):
+class _ActionBoxItem(pg.gui.ItemBoxItem):
   
-  def __init__(self, operation, item_widget):
+  def __init__(self, action, item_widget):
     super().__init__(item_widget)
     
-    self.operation_edit_dialog = None
+    self.action_edit_dialog = None
     
-    self._operation = operation
+    self._action = action
     
     self._button_edit = gtk.Button()
     self._setup_item_button(self._button_edit, gtk.STOCK_EDIT, position=0)
   
   @property
-  def operation(self):
-    return self._operation
+  def action(self):
+    return self._action
   
   @property
   def button_edit(self):
     return self._button_edit
   
   def is_being_edited(self):
-    return self.operation_edit_dialog is not None
+    return self.action_edit_dialog is not None
 
 
-class _OperationEditDialog(gimpui.Dialog):
+class _ActionEditDialog(gimpui.Dialog):
   
   _DIALOG_BORDER_WIDTH = 8
   _DIALOG_VBOX_SPACING = 8
@@ -428,7 +428,7 @@ class _OperationEditDialog(gimpui.Dialog):
   
   _PLACEHOLDER_WIDGET_HORIZONTAL_SPACING_BETWEEN_ELEMENTS = 5
   
-  def __init__(self, operation, pdb_procedure, *args, **kwargs):
+  def __init__(self, action, pdb_procedure, *args, **kwargs):
     super().__init__(*args, **kwargs)
     
     self.set_transient()
@@ -447,9 +447,9 @@ class _OperationEditDialog(gimpui.Dialog):
     self._label_procedure_name.label.set_use_markup(True)
     self._label_procedure_name.label.set_ellipsize(pango.ELLIPSIZE_END)
     self._label_procedure_name.label.set_markup(
-      '<b>{}</b>'.format(gobject.markup_escape_text(operation['display_name'].value)))
+      '<b>{}</b>'.format(gobject.markup_escape_text(action['display_name'].value)))
     self._label_procedure_name.connect(
-      'changed', self._on_label_procedure_name_changed, operation)
+      'changed', self._on_label_procedure_name_changed, action)
     
     if pdb_procedure is not None:
       self._label_procedure_short_description = gtk.Label()
@@ -458,9 +458,9 @@ class _OperationEditDialog(gimpui.Dialog):
       self._label_procedure_short_description.set_label(pdb_procedure.proc_blurb)
       self._label_procedure_short_description.set_tooltip_text(pdb_procedure.proc_help)
     
-    self._table_operation_arguments = gtk.Table(homogeneous=False)
-    self._table_operation_arguments.set_row_spacings(self._TABLE_ROW_SPACING)
-    self._table_operation_arguments.set_col_spacings(self._TABLE_COLUMN_SPACING)
+    self._table_action_arguments = gtk.Table(homogeneous=False)
+    self._table_action_arguments.set_row_spacings(self._TABLE_ROW_SPACING)
+    self._table_action_arguments.set_col_spacings(self._TABLE_COLUMN_SPACING)
     
     # Put widgets in a custom `VBox` because the action area would otherwise
     # have excessively thick borders for some reason.
@@ -471,19 +471,19 @@ class _OperationEditDialog(gimpui.Dialog):
     if pdb_procedure is not None:
       self._vbox.pack_start(
         self._label_procedure_short_description, expand=False, fill=False)
-    self._vbox.pack_start(self._table_operation_arguments, expand=True, fill=True)
+    self._vbox.pack_start(self._table_action_arguments, expand=True, fill=True)
     
     self.vbox.pack_start(self._vbox, expand=False, fill=False)
     
-    self._set_arguments(operation, pdb_procedure)
+    self._set_arguments(action, pdb_procedure)
     
     self.set_focus(self._button_ok)
     
-    self._button_reset.connect('clicked', self._on_button_reset_clicked, operation)
-    self.connect('response', self._on_operation_edit_dialog_response)
+    self._button_reset.connect('clicked', self._on_button_reset_clicked, action)
+    self.connect('response', self._on_action_edit_dialog_response)
   
-  def _set_arguments(self, operation, pdb_procedure):
-    for i, setting in enumerate(operation['arguments']):
+  def _set_arguments(self, action, pdb_procedure):
+    for i, setting in enumerate(action['arguments']):
       if not setting.gui.get_visible():
         continue
       
@@ -492,7 +492,7 @@ class _OperationEditDialog(gimpui.Dialog):
       if pdb_procedure is not None:
         label.set_tooltip_text(pdb_procedure.params[i][2])
       
-      self._table_operation_arguments.attach(label, 0, 1, i, i + 1)
+      self._table_action_arguments.attach(label, 0, 1, i, i + 1)
       
       gui_element_to_attach = setting.gui.element
       
@@ -507,20 +507,20 @@ class _OperationEditDialog(gimpui.Dialog):
       else:
         gui_element_to_attach = self._create_placeholder_widget()
       
-      self._table_operation_arguments.attach(gui_element_to_attach, 1, 2, i, i + 1)
+      self._table_action_arguments.attach(gui_element_to_attach, 1, 2, i, i + 1)
   
-  def _on_button_reset_clicked(self, button, operation):
-    operation['arguments'].reset()
+  def _on_button_reset_clicked(self, button, action):
+    action['arguments'].reset()
   
-  def _on_label_procedure_name_changed(self, editable_label, operation):
-    operation['display_name'].set_value(editable_label.label.get_text())
+  def _on_label_procedure_name_changed(self, editable_label, action):
+    action['display_name'].set_value(editable_label.label.get_text())
     
     editable_label.label.set_markup(
       '<b>{}</b>'.format(gobject.markup_escape_text(editable_label.label.get_text())))
   
-  def _on_operation_edit_dialog_response(self, dialog, response_id):
-    for child in list(self._table_operation_arguments.get_children()):
-      self._table_operation_arguments.remove(child)
+  def _on_action_edit_dialog_response(self, dialog, response_id):
+    for child in list(self._table_action_arguments.get_children()):
+      self._table_action_arguments.remove(child)
   
   def _create_placeholder_widget(self):
     hbox = gtk.HBox()

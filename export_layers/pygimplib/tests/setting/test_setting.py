@@ -72,7 +72,7 @@ class TestSetting(unittest.TestCase):
     setting.set_value('')
     self.assertEqual(setting.value, '')
   
-  def test_value_invalid_assignment_operation(self):
+  def test_value_direct_assignment_not_allowed(self):
     with self.assertRaises(AttributeError):
       self.setting.value = 'jpg'
   

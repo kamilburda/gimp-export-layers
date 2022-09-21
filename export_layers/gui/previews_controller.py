@@ -23,7 +23,7 @@ class ExportPreviewsController(object):
     self._image = image
     
     self._only_selected_layers_constraints = {}
-    self._custom_operations = {}
+    self._custom_actions = {}
     self._is_initial_selection_set = False
     
     self._paned_outside_previews_previous_position = (
@@ -32,8 +32,8 @@ class ExportPreviewsController(object):
       self._settings['gui/paned_between_previews_position'].value)
   
   def connect_setting_changes_to_previews(self):
-    self._connect_operations_changed(self._settings['main/procedures'])
-    self._connect_operations_changed(self._settings['main/constraints'])
+    self._connect_actions_changed(self._settings['main/procedures'])
+    self._connect_actions_changed(self._settings['main/constraints'])
     
     self._connect_setting_after_reset_collapsed_layers_in_name_preview()
     self._connect_setting_after_reset_selected_layers_in_name_preview()
@@ -128,26 +128,26 @@ class ExportPreviewsController(object):
     
     self._paned_between_previews_previous_position = current_position
   
-  def _connect_operations_changed(self, operations_):
-    def _on_after_add_operation(operations_, operation, *args, **kwargs):
-      if operation['enabled'].value:
-        self._update_previews_on_setting_change(operation['enabled'])
-      operation['enabled'].connect_event(
+  def _connect_actions_changed(self, actions_):
+    def _on_after_add_action(actions_, action, *args, **kwargs):
+      if action['enabled'].value:
+        self._update_previews_on_setting_change(action['enabled'])
+      action['enabled'].connect_event(
         'value-changed', self._update_previews_on_setting_change)
     
-    def _on_after_reorder_operation(operations_, operation, *args, **kwargs):
-      if operation['enabled'].value:
-        self._update_previews_on_setting_change(operation['enabled'])
+    def _on_after_reorder_action(actions_, action, *args, **kwargs):
+      if action['enabled'].value:
+        self._update_previews_on_setting_change(action['enabled'])
     
-    def _on_before_remove_operation(operations_, operation, *args, **kwargs):
-      if operation['enabled'].value:
+    def _on_before_remove_action(actions_, action, *args, **kwargs):
+      if action['enabled'].value:
         # Changing the enabled state triggers the 'value-changed' event and thus
-        # properly keeps the previews in sync after operation removal.
-        operation['enabled'].set_value(False)
+        # properly keeps the previews in sync after action removal.
+        action['enabled'].set_value(False)
     
-    operations_.connect_event('after-add-operation', _on_after_add_operation)
-    operations_.connect_event('after-reorder-operation', _on_after_reorder_operation)
-    operations_.connect_event('before-remove-operation', _on_before_remove_operation)
+    actions_.connect_event('after-add-action', _on_after_add_action)
+    actions_.connect_event('after-reorder-action', _on_after_reorder_action)
+    actions_.connect_event('before-remove-action', _on_before_remove_action)
   
   def _update_previews_on_setting_change(self, setting):
     pg.invocation.timeout_add_strict(
@@ -197,60 +197,60 @@ class ExportPreviewsController(object):
             for constraint in self._only_selected_layers_constraints.values()))
     
     self._settings['main/constraints'].connect_event(
-      'after-add-operation', _after_add_only_selected_layers)
+      'after-add-action', _after_add_only_selected_layers)
     
     self._settings['main/constraints'].connect_event(
-      'before-remove-operation', _before_remove_only_selected_layers)
+      'before-remove-action', _before_remove_only_selected_layers)
     
     self._settings['main/constraints'].connect_event(
-      'before-clear-operations', _before_clear_constraints)
+      'before-clear-actions', _before_clear_constraints)
   
   def _connect_set_image_preview_scaling(self):
-    def _after_add_operation(
-          operations, operation, orig_operation_dict, builtin_operations):
-      if operation['orig_name'].value not in builtin_operations:
-        self._custom_operations[operation.name] = operation
+    def _after_add_action(
+          actions, action, orig_action_dict, builtin_actions):
+      if action['orig_name'].value not in builtin_actions:
+        self._custom_actions[action.name] = action
         
-        _set_image_preview_scaling(operation['enabled'])
-        operation['enabled'].connect_event('value-changed', _set_image_preview_scaling)
+        _set_image_preview_scaling(action['enabled'])
+        action['enabled'].connect_event('value-changed', _set_image_preview_scaling)
     
-    def _before_remove_operation(operations, operation):
-      if operation.name in self._custom_operations:
-        del self._custom_operations[operation.name]
+    def _before_remove_action(actions, action):
+      if action.name in self._custom_actions:
+        del self._custom_actions[action.name]
     
-    def _before_clear_operations(operations):
-      self._custom_operations = {}
+    def _before_clear_actions(actions):
+      self._custom_actions = {}
       self._image_preview.set_scaling()
     
-    def _set_image_preview_scaling(operation_enabled):
-      if not any(operation['enabled'].value
-                 for operation in self._custom_operations.values()):
+    def _set_image_preview_scaling(action_enabled):
+      if not any(action['enabled'].value
+                 for action in self._custom_actions.values()):
         self._image_preview.set_scaling()
       else:
         self._image_preview.set_scaling(
           ['after_process_layer'], ['after_process_layer'])
     
     self._settings['main/procedures'].connect_event(
-      'after-add-operation',
-      _after_add_operation,
+      'after-add-action',
+      _after_add_action,
       builtin_procedures.BUILTIN_PROCEDURES)
     
     self._settings['main/procedures'].connect_event(
-      'before-remove-operation', _before_remove_operation)
+      'before-remove-action', _before_remove_action)
     
     self._settings['main/procedures'].connect_event(
-      'before-clear-operations', _before_clear_operations)
+      'before-clear-actions', _before_clear_actions)
     
     self._settings['main/constraints'].connect_event(
-      'after-add-operation',
-      _after_add_operation,
+      'after-add-action',
+      _after_add_action,
       builtin_constraints.BUILTIN_CONSTRAINTS)
     
     self._settings['main/constraints'].connect_event(
-      'before-remove-operation', _before_remove_operation)
+      'before-remove-action', _before_remove_action)
     
     self._settings['main/constraints'].connect_event(
-      'before-clear-operations', _before_clear_operations)
+      'before-clear-actions', _before_clear_actions)
   
   def _connect_image_preview_menu_setting_changes(self):
     self._settings['gui/image_preview_automatic_update'].connect_event(
