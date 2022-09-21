@@ -432,8 +432,8 @@ class LayerExporter(object):
   def _process_and_export_item(self, layer_elem):
     layer = layer_elem.item
     self._preprocess_layer_name(layer_elem)
+    self._process_layer_name_for_preview(self._image_copy, layer)
     layer_copy = self._process_layer(layer_elem, self._image_copy, layer)
-    self._process_layer_name_for_preview(self._image_copy, layer_copy)
     self._export_layer(layer_elem, self._image_copy, layer_copy)
     self._postprocess_layer(self._image_copy, layer_copy)
     self._postprocess_layer_name(layer_elem)
