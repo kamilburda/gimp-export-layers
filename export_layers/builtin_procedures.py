@@ -135,6 +135,36 @@ def _remove_locks_from_layer(layer):
 
 _BUILTIN_PROCEDURES_LIST = [
   {
+    'name': 'autocrop_background',
+    'function': autocrop_tagged_layer,
+    'arguments': [
+      {
+        'type': pg.SettingTypes.string,
+        'name': 'tag',
+        'default_value': 'background',
+      },
+    ],
+    'display_name': _('Autocrop background'),
+  },
+  {
+    'name': 'autocrop_foreground',
+    'function': autocrop_tagged_layer,
+    'arguments': [
+      {
+        'type': pg.SettingTypes.string,
+        'name': 'tag',
+        'default_value': 'foreground',
+      },
+    ],
+    'display_name': _('Autocrop foreground'),
+  },
+  {
+    'name': 'ignore_folder_structure',
+    'function': remove_folder_hierarchy_from_layer,
+    'display_name': _('Ignore folder structure'),
+    'additional_tags': [NAME_ONLY_TAG],
+  },
+  {
     'name': 'insert_background_layers',
     'function': insert_background_layer,
     'arguments': [
@@ -164,33 +194,9 @@ _BUILTIN_PROCEDURES_LIST = [
     'display_name': _('Inherit transparency from layer groups'),
   },
   {
-    'name': 'autocrop_background',
-    'function': autocrop_tagged_layer,
-    'arguments': [
-      {
-        'type': pg.SettingTypes.string,
-        'name': 'tag',
-        'default_value': 'background',
-      },
-    ],
-    'display_name': _('Autocrop background'),
-  },
-  {
-    'name': 'autocrop_foreground',
-    'function': autocrop_tagged_layer,
-    'arguments': [
-      {
-        'type': pg.SettingTypes.string,
-        'name': 'tag',
-        'default_value': 'foreground',
-      },
-    ],
-    'display_name': _('Autocrop foreground'),
-  },
-  {
-    'name': 'ignore_folder_structure',
-    'function': remove_folder_hierarchy_from_layer,
-    'display_name': _('Ignore folder structure'),
+    'name': 'rename_layer',
+    'function': None,
+    'display_name': _('Rename layer'),
     'additional_tags': [NAME_ONLY_TAG],
   },
   {
