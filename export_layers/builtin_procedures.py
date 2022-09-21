@@ -28,20 +28,6 @@ def set_active_layer_after_action(image, layer, layer_exporter):
     set_active_layer(image, layer, layer_exporter)
 
 
-def resize_to_layer_size(image, layer, layer_exporter):
-  layer_offset_x, layer_offset_y = layer.offsets
-  pdb.gimp_image_resize(
-    image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
-
-
-def insert_background_layer(image, layer, layer_exporter, tag):
-  _insert_tagged_layer(image, layer_exporter, tag, position=len(image.layers))
-
-
-def insert_foreground_layer(image, layer, layer_exporter, tag):
-  _insert_tagged_layer(image, layer_exporter, tag, position=0)
-
-
 def copy_and_insert_layer(
       image, layer, parent=None, position=0,
       remove_lock_attributes=True):
@@ -54,14 +40,6 @@ def copy_and_insert_layer(
     layer_copy = pg.pdbutils.merge_layer_group(layer_copy)
   
   return layer_copy
-
-
-def inherit_transparency_from_layer_groups(image, layer, layer_exporter):
-  new_layer_opacity = layer_exporter.current_layer_elem.item.opacity / 100.0
-  for parent_elem in layer_exporter.current_layer_elem.parents:
-    new_layer_opacity = new_layer_opacity * (parent_elem.item.opacity / 100.0)
-  
-  layer.opacity = new_layer_opacity * 100.0
 
 
 def autocrop_tagged_layer(image, layer, layer_exporter, tag):
@@ -79,6 +57,28 @@ def remove_folder_hierarchy_from_layer(image, layer, layer_exporter):
 
   layer_elem.parents = []
   layer_elem.children = None if layer_elem.item_type == layer_elem.ITEM else []
+
+
+def insert_background_layer(image, layer, layer_exporter, tag):
+  _insert_tagged_layer(image, layer_exporter, tag, position=len(image.layers))
+
+
+def insert_foreground_layer(image, layer, layer_exporter, tag):
+  _insert_tagged_layer(image, layer_exporter, tag, position=0)
+
+
+def inherit_transparency_from_layer_groups(image, layer, layer_exporter):
+  new_layer_opacity = layer_exporter.current_layer_elem.item.opacity / 100.0
+  for parent_elem in layer_exporter.current_layer_elem.parents:
+    new_layer_opacity = new_layer_opacity * (parent_elem.item.opacity / 100.0)
+  
+  layer.opacity = new_layer_opacity * 100.0
+
+
+def resize_to_layer_size(image, layer, layer_exporter):
+  layer_offset_x, layer_offset_y = layer.offsets
+  pdb.gimp_image_resize(
+    image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
 
 
 def _insert_tagged_layer(image, layer_exporter, tag, position=0):
