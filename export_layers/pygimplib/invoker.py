@@ -54,7 +54,8 @@ class Invoker(object):
         args=None,
         kwargs=None,
         foreach=False,
-        ignore_if_exists=False):
+        ignore_if_exists=False,
+        run_generator=True):
     """Adds an action to be invoked by `invoke()`.
     
     The ID of the newly added action is returned.
@@ -79,9 +80,9 @@ class Invoker(object):
     The action is added at the end of the list of actions in the specified
     group(s). To modify the order of the added action, call `reorder()`.
     
-    Action as a function can also be a generator. This allows customizing
-    which parts of the code of the function are called on each invocation.
-    For example:
+    Action as a function can also be a generator function or return a generator.
+    This allows customizing which parts of the code of the function are called
+    on each invocation. For example:
       
       def foo():
         print('bar')
@@ -95,15 +96,18 @@ class Invoker(object):
     function, effectively eliminating the need for global variables for the same
     purpose.
     
-    The generator function must contain at least one `yield` statement. If you
-    pass arguments and want to use the arguments in the function, the yield
-    statement must be in the form `args, kwargs = yield`.
+    The generator must contain at least one `yield` statement. If you pass
+    arguments and want to use the arguments in the function, the yield statement
+    must be in the form `args, kwargs = yield`.
     
-    To make sure the generator function can be called an arbitrary number of
-    times, place a `yield` statement in an infinite loop. To limit the number of
-    calls, simply do not use an infinite loop. In such a case, the action is
+    To make sure the generator can be called an arbitrary number of times, place
+    a `yield` statement in an infinite loop. To limit the number of calls,
+    simply do not use an infinite loop. In such a case, the action is
     permanently removed for the group(s) `invoke()` was called for once no more
     yield statements are encountered.
+    
+    To prevent activating generators and to treat generator functions as regular
+    functions, set `run_generator` to `False`.
     
     If `foreach` is `True` and the action is a function, the action is
     treated as a "for-each" action. By default, a for-each action is
@@ -166,7 +170,8 @@ class Invoker(object):
           action,
           group,
           args if args is not None else (),
-          kwargs if kwargs is not None else {})
+          kwargs if kwargs is not None else {},
+          run_generator)
     else:
       for group in self._process_groups_arg(groups):
         self._add_invoker(action_id, action, group)
@@ -211,13 +216,17 @@ class Invoker(object):
       args = _get_args(action_args)
       kwargs = dict(action_kwargs, **additional_kwargs)
       
-      if not item.is_generator:
-        return action(*args, **kwargs)
+      result = action(*args, **kwargs)
+      
+      if inspect.isgenerator(result):
+        item.is_generator = True
+      
+      if not (item.is_generator and item.run_generator):
+        return result
       else:
         if group not in item.generators_per_group:
-          generator = action(*args, **kwargs)
-          item.generators_per_group[group] = generator
-          return next(generator)
+          item.generators_per_group[group] = result
+          return next(item.generators_per_group[group])
         else:
           try:
             return item.generators_per_group[group].send([args, kwargs])
@@ -533,18 +542,20 @@ class Invoker(object):
         action_item.action[0],
         group,
         action_item.action[1],
-        action_item.action[2])
+        action_item.action[2],
+        action_item.run_generator)
     elif action_item.action_type == self._TYPE_FOREACH_ACTION:
       self._add_foreach_action(
         action_item.action_id,
         action_item.action[0],
         group,
         action_item.action[1],
-        action_item.action[2])
+        action_item.action[2],
+        action_item.run_generator)
     elif action_item.action_type == self._TYPE_INVOKER:
       self._add_invoker(action_item.action_id, action_item.action, group)
   
-  def _add_action(self, action_id, action, group, action_args, action_kwargs):
+  def _add_action(self, action_id, action, group, action_args, action_kwargs, run_generator):
     self._init_group(group)
     
     action_item = self._set_action_item(
@@ -552,7 +563,8 @@ class Invoker(object):
       group,
       (action, action_args, action_kwargs),
       self._TYPE_ACTION,
-      action)
+      action,
+      run_generator)
     
     self._actions[group].append(action_item)
     self._action_functions[group][action] += 1
@@ -563,7 +575,8 @@ class Invoker(object):
         foreach_action,
         group,
         foreach_action_args,
-        foreach_action_kwargs):
+        foreach_action_kwargs,
+        run_generator):
     self._init_group(group)
     
     if not inspect.isgeneratorfunction(foreach_action):
@@ -582,7 +595,8 @@ class Invoker(object):
        foreach_action_args,
        foreach_action_kwargs),
       self._TYPE_FOREACH_ACTION,
-      foreach_action)
+      foreach_action,
+      run_generator)
     
     self._foreach_actions[group].append(action_item)
     self._foreach_action_functions[group][foreach_action] += 1
@@ -590,7 +604,8 @@ class Invoker(object):
   def _add_invoker(self, action_id, invoker, group):
     self._init_group(group)
     
-    action_item = self._set_action_item(action_id, group, invoker, self._TYPE_INVOKER, invoker)
+    action_item = self._set_action_item(
+      action_id, group, invoker, self._TYPE_INVOKER, invoker, False)
     
     self._actions[group].append(action_item)
     self._invokers[group][invoker] += 1
@@ -604,10 +619,11 @@ class Invoker(object):
         group,
         action,
         action_type,
-        action_function):
+        action_function,
+        run_generator):
     if action_id not in self._action_items:
       self._action_items[action_id] = _ActionItem(
-        action, action_id, None, action_type, action_function)
+        action, action_id, None, action_type, action_function, run_generator)
     
     self._action_items[action_id].groups.add(group)
     
@@ -675,13 +691,14 @@ class Invoker(object):
 
 class _ActionItem(object):
   
-  def __init__(self, action, action_id, groups, action_type, action_function):
+  def __init__(self, action, action_id, groups, action_type, action_function, run_generator):
     self.action = action
     self.action_id = action_id
     self.groups = groups if groups is not None else set()
     self.action_type = action_type if action_type is not None else Invoker._TYPE_ACTION
     self.action_function = action_function
+    self.run_generator = run_generator
     
-    self.is_generator = inspect.isgeneratorfunction(self.action_function)
+    self.is_generator = False
     self.generators_per_group = {}
     self.should_be_removed_from_group = False

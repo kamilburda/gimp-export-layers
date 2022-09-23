@@ -697,6 +697,29 @@ class TestInvokerInvokeActions(InvokerTestCase):
     
     self.assertEqual(test_list, [1, 2, 3])
   
+  def test_invoke_with_generator_without_running_generator(self):
+    test_list = []
+    
+    self.invoker.add(append_to_list_via_generator, args=[test_list], run_generator=False)
+    self.invoker.invoke(additional_args=[2])
+    self.invoker.invoke(additional_args=[2])
+    self.invoker.invoke(additional_args=[3])
+    
+    self.assertEqual(test_list, [])
+  
+  def test_invoke_with_generator_wrapped_in_regular_function(self):
+    def _func(*args):
+      return append_to_list_via_generator(*args)
+    
+    test_list = []
+    
+    self.invoker.add(_func, args=[test_list])
+    self.invoker.invoke(additional_args=[2])  # Should be ignored for this (first) call
+    self.invoker.invoke(additional_args=[2])
+    self.invoker.invoke(additional_args=[3])
+    
+    self.assertEqual(test_list, [1, 2, 3])
+  
   def test_invoke_with_generator_finite(self):
     test_list = []
     
