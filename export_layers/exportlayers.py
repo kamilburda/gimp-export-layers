@@ -744,7 +744,7 @@ def _has_run_mode_param(pdb_procedure):
 
 def _get_action_func_for_pdb_procedure(pdb_procedure):
   def _pdb_procedure_as_action(image, layer, layer_exporter, *args, **kwargs):
-    pdb_procedure(*args, **kwargs)
+    return pdb_procedure(*args, **kwargs)
   
   return _pdb_procedure_as_action
 
@@ -753,7 +753,7 @@ def _get_action_func_with_replaced_placeholders(function):
   def _action(image, layer, layer_exporter, *args, **kwargs):
     new_args, new_kwargs = placeholders.get_replaced_args_and_kwargs(
       args, kwargs, image, layer, layer_exporter)
-    function(image, layer, layer_exporter, *new_args, **new_kwargs)
+    return function(image, layer, layer_exporter, *new_args, **new_kwargs)
   
   return _action
 

@@ -13,6 +13,8 @@ import gimpenums
 
 from export_layers import pygimplib as pg
 
+from export_layers import renamer as renamer_
+
 
 NAME_ONLY_TAG = 'name'
 
@@ -73,6 +75,14 @@ def inherit_transparency_from_layer_groups(image, layer, layer_exporter):
     new_layer_opacity = new_layer_opacity * (parent_elem.item.opacity / 100.0)
   
   layer.opacity = new_layer_opacity * 100.0
+
+
+def rename_layer(image, layer, layer_exporter, pattern):
+  renamer = renamer_.LayerNameRenamer(layer_exporter, pattern)
+  
+  while True:
+    renamer.rename(layer_exporter.current_layer_elem)
+    unused_ = yield
 
 
 def resize_to_layer_size(image, layer, layer_exporter):
@@ -195,7 +205,15 @@ _BUILTIN_PROCEDURES_LIST = [
   },
   {
     'name': 'rename_layer',
-    'function': None,
+    'function': rename_layer,
+    'arguments': [
+      {
+        'type': pg.SettingTypes.string,
+        'name': 'pattern',
+        'default_value': '[layer name]',
+        'display_name': _('Layer filename pattern'),
+      },
+    ],
     'display_name': _('Rename layer'),
     'additional_tags': [NAME_ONLY_TAG],
   },
