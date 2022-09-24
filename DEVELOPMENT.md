@@ -97,7 +97,7 @@ Additional conventions complementing aforementioned conventions are specified be
 ### Line length
 
 Maximum line length is:
-* 90 characters for code,
+* 100 characters for code,
 * 80 characters for docstrings and comments.
 
 
