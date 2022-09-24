@@ -143,6 +143,22 @@ def _remove_locks_from_layer(layer):
     pdb.gimp_layer_set_lock_alpha(layer, False)
 
 
+class FilenamePatternEntryPresenter(pg.setting.presenters_gtk.ExtendedEntryPresenter):
+  """`pygimplib.setting.Presenter` subclass for
+  `pygimplib.gui.FilenamePatternEntry` elements.
+  
+  Value: Text in the entry.
+  """
+  
+  def _create_gui_element(self, setting):
+    return pg.gui.FilenamePatternEntry(renamer_.get_field_descriptions(renamer_.FIELDS))
+
+
+class FilenamePatternEntrySetting(pg.setting.StringSetting):
+  
+  _ALLOWED_GUI_TYPES = [FilenamePatternEntryPresenter]
+
+
 _BUILTIN_PROCEDURES_LIST = [
   {
     'name': 'autocrop_background',
@@ -208,10 +224,11 @@ _BUILTIN_PROCEDURES_LIST = [
     'function': rename_layer,
     'arguments': [
       {
-        'type': pg.SettingTypes.string,
+        'type': FilenamePatternEntrySetting,
         'name': 'pattern',
         'default_value': '[layer name]',
         'display_name': _('Layer filename pattern'),
+        'gui_type': FilenamePatternEntryPresenter,
       },
     ],
     'display_name': _('Rename layer'),
