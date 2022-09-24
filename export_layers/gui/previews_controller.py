@@ -227,8 +227,7 @@ class ExportPreviewsController(object):
                  for action in self._custom_actions.values()):
         self._image_preview.set_scaling()
       else:
-        self._image_preview.set_scaling(
-          ['after_process_layer'], ['after_process_layer'])
+        self._image_preview.set_scaling(['after_process_layer'], ['after_process_layer'])
     
     self._settings['main/procedures'].connect_event(
       'after-add-action',

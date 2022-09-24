@@ -30,9 +30,7 @@ def set_active_layer_after_action(image, layer, layer_exporter):
     set_active_layer(image, layer, layer_exporter)
 
 
-def copy_and_insert_layer(
-      image, layer, parent=None, position=0,
-      remove_lock_attributes=True):
+def copy_and_insert_layer(image, layer, parent=None, position=0, remove_lock_attributes=True):
   layer_copy = pg.pdbutils.copy_and_paste_layer(
     layer, image, parent, position, remove_lock_attributes)
   
@@ -87,8 +85,7 @@ def rename_layer(image, layer, layer_exporter, pattern):
 
 def resize_to_layer_size(image, layer, layer_exporter):
   layer_offset_x, layer_offset_y = layer.offsets
-  pdb.gimp_image_resize(
-    image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
+  pdb.gimp_image_resize(image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
 
 
 def _insert_tagged_layer(image, layer_exporter, tag, position=0):
@@ -96,8 +93,8 @@ def _insert_tagged_layer(image, layer_exporter, tag, position=0):
     return
   
   if layer_exporter.tagged_layer_copies[tag] is None:
-    layer_exporter.inserted_tagged_layers[tag] = (
-      _insert_merged_tagged_layer(image, layer_exporter, tag, position))
+    layer_exporter.inserted_tagged_layers[tag] = _insert_merged_tagged_layer(
+      image, layer_exporter, tag, position)
     
     layer_exporter.tagged_layer_copies[tag] = pdb.gimp_layer_copy(
       layer_exporter.inserted_tagged_layers[tag], True)
@@ -106,8 +103,7 @@ def _insert_tagged_layer(image, layer_exporter, tag, position=0):
     layer_exporter.inserted_tagged_layers[tag] = pdb.gimp_layer_copy(
       layer_exporter.tagged_layer_copies[tag], True)
     _remove_locks_from_layer(layer_exporter.inserted_tagged_layers[tag])
-    pdb.gimp_image_insert_layer(
-      image, layer_exporter.inserted_tagged_layers[tag], None, position)
+    pdb.gimp_image_insert_layer(image, layer_exporter.inserted_tagged_layers[tag], None, position)
 
 
 def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
@@ -117,8 +113,7 @@ def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
     layer_copy = copy_and_insert_layer(
       image, layer_elem.item, None, first_tagged_layer_position + i)
     layer_copy.visible = True
-    layer_exporter.invoker.invoke(
-      ['after_insert_layer'], [image, layer_copy, layer_exporter])
+    layer_exporter.invoker.invoke(['after_insert_layer'], [image, layer_copy, layer_exporter])
   
   if len(layer_exporter.tagged_layer_elems[tag]) == 1:
     merged_layer_for_tag = image.layers[first_tagged_layer_position]
