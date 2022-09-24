@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-"""Class to rename layer names according to the specified pattern."""
+"""Renaming layer names according to the specified pattern.
+
+The pattern can contain one or more fields provided in this module.
+"""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *

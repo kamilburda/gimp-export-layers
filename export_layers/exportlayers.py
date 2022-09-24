@@ -310,12 +310,8 @@ class LayerExporter(object):
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
     
-    if self.export_settings['layer_filename_pattern'].value:
-      pattern = self.export_settings['layer_filename_pattern'].value
-    else:
-      pattern = self.export_settings['layer_filename_pattern'].default_value
-    
-    self._layer_name_renamer = renamer.LayerNameRenamer(self, pattern)
+    self._layer_name_renamer = renamer.LayerNameRenamer(
+      self, self.export_settings['layer_filename_pattern'].value)
   
   def _add_actions(self):
     self._invoker.add(

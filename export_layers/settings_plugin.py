@@ -13,9 +13,10 @@ import gimpenums
 
 from export_layers import pygimplib as pg
 
+from export_layers import actions
 from export_layers import builtin_procedures
 from export_layers import builtin_constraints
-from export_layers import actions
+from export_layers import filename_pattern
 from export_layers.gui import settings_gui
 
 
@@ -80,7 +81,7 @@ def create_settings():
       'tags': ['ignore_reset'],
     },
     {
-      'type': pg.SettingTypes.string,
+      'type': filename_pattern.FilenamePatternSetting,
       'name': 'layer_filename_pattern',
       'default_value': '[layer name]',
       'display_name': _('Layer filename pattern'),
