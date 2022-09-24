@@ -306,6 +306,7 @@ a {
 
 .download-buttons a {
   text-align: center;
+  font-weight: bold;
   
   @include large {
     min-width: 15%;
