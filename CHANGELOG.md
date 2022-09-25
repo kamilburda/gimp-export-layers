@@ -7,6 +7,7 @@
 * When the "Ignore folder structure" procedure is added, the full layer path is maintained in the exported layer filenames.
 * Added an explicit "Rename layer" procedure, overriding the filename pattern for the text field next to "Save as:".
 This allows e.g. retaining the old behavior of "Ignore folder structure".
+* The file extension can now also be specified in uppercase.
 * Removed the .exe installer for Windows.
 * Changed the plug-in license to BSD 3-Clause.
 
