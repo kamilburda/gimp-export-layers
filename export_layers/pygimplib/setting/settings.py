@@ -1538,9 +1538,22 @@ class FileExtensionSetting(ValidatableStringSetting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
   _EMPTY_VALUES = ['']
   
-  def __init__(self, name, **kwargs):
+  def __init__(self, name, adjust_value=False, **kwargs):
+    """
+    Additional parameters:
+    
+    * `adjust_value` - if `True`, pre-process the new value when `set_value()`
+      is called. This involves removing leading '.' characters and converting
+      the file extension to lowercase.
+    """
     super().__init__(name, pgpath.FileExtensionValidator, **kwargs)
+    
+    if adjust_value:
+      self._assign_value = self._adjust_value
   
+  def _adjust_value(self, value):
+    self._value = value.lstrip('.').lower()
+
 
 class DirpathSetting(ValidatableStringSetting):
   """
