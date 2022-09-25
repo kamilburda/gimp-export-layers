@@ -14,7 +14,7 @@ import gimpenums
 from export_layers import pygimplib as pg
 
 from export_layers import renamer as renamer_
-from export_layers import filename_pattern
+from export_layers import settings_custom
 
 
 NAME_ONLY_TAG = 'name'
@@ -204,11 +204,11 @@ _BUILTIN_PROCEDURES_LIST = [
     'function': rename_layer,
     'arguments': [
       {
-        'type': filename_pattern.FilenamePatternSetting,
+        'type': settings_custom.FilenamePatternSetting,
         'name': 'pattern',
         'default_value': '[layer name]',
         'display_name': _('Layer filename pattern'),
-        'gui_type': filename_pattern.FilenamePatternEntryPresenter,
+        'gui_type': settings_custom.FilenamePatternEntryPresenter,
       },
     ],
     'display_name': _('Rename layer'),
