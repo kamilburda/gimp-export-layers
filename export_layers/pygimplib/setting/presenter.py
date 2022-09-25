@@ -28,8 +28,7 @@ class SettingValueSynchronizer(object):
 
 
 class Presenter(future.utils.with_metaclass(abc.ABCMeta, object)):
-  """
-  This class wraps a GUI element (widget, dialog, etc.).
+  """Wrapper of a GUI element (widget, dialog, etc.) for settings.
   
   Various GUI elements have different attributes or methods to access their
   properties. This class wraps some of these attributes/methods so that they can
@@ -39,6 +38,9 @@ class Presenter(future.utils.with_metaclass(abc.ABCMeta, object)):
   and `_set_value()` methods. The value does not have to be a 'direct' value,
   e.g. the checked state of a check button, but also e.g. the label of the
   check button.
+  
+  This class should not be created directly. Instead, use `Setting.gui` to
+  access a setting's `Presenter` instance.
   
   Attributes:
   
