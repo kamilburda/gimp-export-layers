@@ -579,6 +579,11 @@ class ExportLayersDialog(object):
       self._on_text_entry_changed,
       self._settings['main/file_extension'],
       'invalid_file_extension')
+    self._file_extension_entry.connect(
+      'focus-out-event',
+      self._on_file_extension_entry_focus_out_event,
+      self._settings['main/file_extension'])
+    
     self._filename_pattern_entry.connect(
       'changed',
       self._on_text_entry_changed,
@@ -686,6 +691,9 @@ class ExportLayersDialog(object):
       pg.invocation.timeout_add_strict(
         self._DELAY_NAME_PREVIEW_UPDATE_TEXT_ENTRIES_MILLISECONDS,
         self._name_preview.update)
+  
+  def _on_file_extension_entry_focus_out_event(self, entry, event, setting):
+    setting.apply_to_gui()
   
   def _on_box_procedures_item_added(self, box_procedures, item):
     if any(item.action['orig_name'].value == name

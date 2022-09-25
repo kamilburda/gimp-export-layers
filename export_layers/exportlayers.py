@@ -304,8 +304,7 @@ class LayerExporter(object):
     self.progress_updater.reset()
     
     self._file_extension_properties = _get_prefilled_file_extension_properties()
-    self._default_file_extension = (
-      self.export_settings['file_extension'].value.lstrip('.').lower())
+    self._default_file_extension = self.export_settings['file_extension'].value
     self._current_file_extension = self._default_file_extension
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
