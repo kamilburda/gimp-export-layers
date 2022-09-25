@@ -303,7 +303,7 @@ class LayerExporter(object):
     
     self.progress_updater.reset()
     
-    self._file_extension_properties = _get_prefilled_file_extension_properties()
+    self._file_extension_properties = _FileExtensionProperties()
     self._default_file_extension = self.export_settings['file_extension'].value
     self._current_file_extension = self._default_file_extension
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
@@ -820,18 +820,25 @@ class _FileExtension(object):
     self.processed_count = 0
 
 
-def _get_prefilled_file_extension_properties():
-  file_extension_properties = collections.defaultdict(_FileExtension)
+class _FileExtensionProperties(object):
+  """Mapping of file extensions from `pygimplib.fileformats.file_formats` to
+  `_FileExtension` instances.
   
-  for file_format in pg.fileformats.file_formats:
-    # This ensures that the file format dialog will be displayed only once per
-    # file format if multiple file extensions for the same format are used
-    # (e.g. 'jpg', 'jpeg' or 'jpe' for the JPEG format).
-    extension_properties = _FileExtension()
-    for file_extension in file_format.file_extensions:
-      file_extension_properties[file_extension] = extension_properties
+  File extension as a key is always converted to lowercase.
+  """
+  def __init__(self):
+    self._properties = collections.defaultdict(_FileExtension)
+    
+    for file_format in pg.fileformats.file_formats:
+      # This ensures that the file format dialog will be displayed only once per
+      # file format if multiple file extensions for the same format are used
+      # (e.g. 'jpg', 'jpeg' or 'jpe' for the JPEG format).
+      extension_properties = _FileExtension()
+      for file_extension in file_format.file_extensions:
+        self._properties[file_extension.lower()] = extension_properties
   
-  return file_extension_properties
+  def __getitem__(self, key):
+    return self._properties[key.lower()]
 
 
 @future.utils.python_2_unicode_compatible

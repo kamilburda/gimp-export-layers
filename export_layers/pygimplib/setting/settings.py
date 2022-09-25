@@ -1552,7 +1552,7 @@ class FileExtensionSetting(ValidatableStringSetting):
       self._assign_value = self._adjust_value
   
   def _adjust_value(self, value):
-    self._value = value.lstrip('.').lower()
+    self._value = value.lstrip('.')
 
 
 class DirpathSetting(ValidatableStringSetting):

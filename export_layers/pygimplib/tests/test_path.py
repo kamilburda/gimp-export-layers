@@ -398,7 +398,7 @@ class TestGetFileExtension(unittest.TestCase):
   @parameterized.parameterized.expand([
     ('', 'background.jpg', 'jpg'),
     ('empty_string', '', ''),
-    ('returns_lowercase', 'background.JPG', 'jpg'),
+    ('case_sensitive', 'background.JPG', 'JPG'),
     ('string_beginning_with_period', '.jpg', 'jpg'),
     ('no_extension', 'main-background', ''),
     ('no_extension_with_trailing_period', 'main-background.', ''),
@@ -410,6 +410,9 @@ class TestGetFileExtension(unittest.TestCase):
   ])
   def test_get_file_extension(self, test_case_name_suffix, str_, expected_output):
     self.assertEqual(pgpath.get_file_extension(str_), expected_output)
+  
+  def test_get_file_extension_with_lowercase(self):
+    self.assertEqual(pgpath.get_file_extension('background.JPG', lowercase=True), 'jpg')
 
 
 class TestGetFilenameWithNewFileExtension(unittest.TestCase):
@@ -420,7 +423,7 @@ class TestGetFilenameWithNewFileExtension(unittest.TestCase):
     ('string_without_extension', 'background', 'png', 'background.png'),
     ('new_extension_with_leading_period', 'background.jpg', '.png', 'background.png'),
     ('string_with_trailing_period', 'background.', 'png', 'background.png'),
-    ('new_extension_is_set_lowercase', 'background.jpg', 'PNG', 'background.png'),
+    ('new_extension_is_set_lowercase', 'background.jpg', 'PNG', 'background.PNG'),
     ('empty_new_extension_removes_extension', 'background.jpg', '', 'background'),
     ('new_extension_as_none_removes_extension', 'background.jpg', None, 'background'),
     ('new_extension_as_single_period_removes_extension',

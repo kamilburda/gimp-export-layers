@@ -13,9 +13,8 @@ __all__ = [
 ]
 
 
-def get_file_extension(filename):
-  """
-  Get file extension from `filename` in lowercase.
+def get_file_extension(filename, lowercase=False):
+  """Returns the file extension from `filename`.
   
   If `filename` has no file extension, return an empty string.
   
@@ -23,13 +22,18 @@ def get_file_extension(filename):
   `fileformats.file_formats_dict` for a matching file extension containing
   periods. If there is no such extension, return the substring after the last
   period.
-  """
-  filename_lowercase = filename.lower()
   
-  if '.' not in filename_lowercase:
+  If `lowercase` is `True`, convert the file extension to lowercase.
+  """
+  if lowercase:
+    filename_processed = filename.lower()
+  else:
+    filename_processed = filename
+  
+  if '.' not in filename_processed:
     return ''
   
-  file_extension = filename_lowercase
+  file_extension = filename_processed
   
   while file_extension:
     next_period_index = file_extension.find('.')
@@ -37,7 +41,7 @@ def get_file_extension(filename):
       return file_extension
     
     file_extension = file_extension[next_period_index + 1:]
-    if file_extension in pgfileformats.file_formats_dict:
+    if file_extension.lower() in pgfileformats.file_formats_dict:
       return file_extension
   
   return ''
@@ -45,8 +49,7 @@ def get_file_extension(filename):
 
 def get_filename_with_new_file_extension(
       filename, file_extension, keep_extra_trailing_periods=False):
-  """
-  Return a new filename with the specified new file extension.
+  """Returns a new filename with the specified new file extension.
   
   To remove the file extension from `filename`, pass an empty string, `None`, or
   a period ('.').
@@ -67,7 +70,7 @@ def get_filename_with_new_file_extension(
     file_extension = file_extension.lstrip('.')
   
   if file_extension:
-    file_extension = file_extension.lower()
+    file_extension = file_extension
     new_filename = '.'.join((filename_without_extension, file_extension))
   else:
     new_filename = filename_without_extension

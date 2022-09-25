@@ -45,11 +45,11 @@ def has_no_tags(layer_elem, tags=None):
 
 
 def has_matching_file_extension(layer_elem, file_extension):
-  return layer_elem.get_file_extension() == file_extension.lower()
+  return layer_elem.get_file_extension().lower() == file_extension.lower()
 
 
 def has_matching_default_file_extension(layer_elem, layer_exporter):
-  return layer_elem.get_file_extension() == layer_exporter.default_file_extension
+  return layer_elem.get_file_extension().lower() == layer_exporter.default_file_extension.lower()
 
 
 def is_layer_in_selected_layers(layer_elem, selected_layers):
