@@ -468,6 +468,10 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     self.invoke_event('value-changed')
     self.invoke_event('after-reset')
   
+  def apply_to_gui(self):
+    """Manually applies the current setting value to the setting's GUI."""
+    self._setting_value_synchronizer.apply_setting_value_to_gui(self._value)
+  
   def set_gui(
         self,
         gui_type=SettingGuiTypes.automatic,
