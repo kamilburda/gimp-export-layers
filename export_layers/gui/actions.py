@@ -451,12 +451,17 @@ class _ActionEditDialog(gimpui.Dialog):
     self._label_procedure_name.connect(
       'changed', self._on_label_procedure_name_changed, action)
     
-    if pdb_procedure is not None:
-      self._label_procedure_short_description = gtk.Label()
-      self._label_procedure_short_description.set_line_wrap(True)
-      self._label_procedure_short_description.set_alignment(0.0, 0.5)
-      self._label_procedure_short_description.set_label(pdb_procedure.proc_blurb)
-      self._label_procedure_short_description.set_tooltip_text(pdb_procedure.proc_help)
+    self._label_procedure_description = None
+    
+    print(action['display_name'].value)
+    print(action['description'].value)
+    
+    if action['description'].value:
+      self._label_procedure_description = self._create_label_description(
+        action['description'].value)
+    elif pdb_procedure is not None:
+      self._label_procedure_description = self._create_label_description(
+        pdb_procedure.proc_blurb, pdb_procedure.proc_help)
     
     self._table_action_arguments = gtk.Table(homogeneous=False)
     self._table_action_arguments.set_row_spacings(self._TABLE_ROW_SPACING)
@@ -468,9 +473,8 @@ class _ActionEditDialog(gimpui.Dialog):
     self._vbox.set_border_width(self._DIALOG_BORDER_WIDTH)
     self._vbox.set_spacing(self._DIALOG_VBOX_SPACING)
     self._vbox.pack_start(self._label_procedure_name, expand=False, fill=False)
-    if pdb_procedure is not None:
-      self._vbox.pack_start(
-        self._label_procedure_short_description, expand=False, fill=False)
+    if self._label_procedure_description is not None:
+      self._vbox.pack_start(self._label_procedure_description, expand=False, fill=False)
     self._vbox.pack_start(self._table_action_arguments, expand=True, fill=True)
     
     self.vbox.pack_start(self._vbox, expand=False, fill=False)
@@ -481,6 +485,16 @@ class _ActionEditDialog(gimpui.Dialog):
     
     self._button_reset.connect('clicked', self._on_button_reset_clicked, action)
     self.connect('response', self._on_action_edit_dialog_response)
+  
+  def _create_label_description(self, summary, full_description=None):
+    label_description = gtk.Label()
+    label_description.set_line_wrap(True)
+    label_description.set_alignment(0.0, 0.5)
+    label_description.set_label(summary)
+    if full_description:
+      label_description.set_tooltip_text(full_description)
+    
+    return label_description
   
   def _set_arguments(self, action, pdb_procedure):
     for i, setting in enumerate(action['arguments']):

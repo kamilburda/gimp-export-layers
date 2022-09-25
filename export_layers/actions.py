@@ -263,6 +263,7 @@ def _create_action(
       arguments=None,
       enabled=True,
       display_name=None,
+      description=None,
       action_groups=None,
       tags=None,
       **custom_fields):
@@ -311,6 +312,12 @@ def _create_action(
       'tags': ['ignore_initialize_gui'],
     },
     {
+      'type': pg.SettingTypes.string,
+      'name': 'description',
+      'default_value': description,
+      'gui_type': None,
+    },
+    {
       'type': pg.SettingTypes.generic,
       'name': 'action_groups',
       'default_value': action_groups,
@@ -353,12 +360,9 @@ def _create_action(
 def _create_procedure(
       name,
       function,
-      arguments=None,
-      enabled=True,
-      display_name=None,
       additional_tags=None,
       action_groups=(DEFAULT_PROCEDURES_GROUP,),
-      **custom_fields):
+      **kwargs_and_custom_fields):
   tags = ['action', 'procedure']
   if additional_tags is not None:
     tags += additional_tags
@@ -367,22 +371,20 @@ def _create_procedure(
     action_groups = list(action_groups)
   
   return _create_action(
-    name, function, arguments, enabled, display_name,
+    name,
+    function,
     action_groups=action_groups,
     tags=tags,
-    **custom_fields)
+    **kwargs_and_custom_fields)
 
 
 def _create_constraint(
       name,
       function,
-      arguments=None,
-      enabled=True,
-      display_name=None,
       additional_tags=None,
       action_groups=(DEFAULT_CONSTRAINTS_GROUP,),
       subfilter=None,
-      **custom_fields):
+      **kwargs_and_custom_fields):
   tags = ['action', 'constraint']
   if additional_tags is not None:
     tags += additional_tags
@@ -391,10 +393,11 @@ def _create_constraint(
     action_groups = list(action_groups)
   
   constraint = _create_action(
-    name, function, arguments, enabled, display_name,
+    name,
+    function,
     action_groups=action_groups,
     tags=tags,
-    **custom_fields)
+    **kwargs_and_custom_fields)
   
   constraint.add([
     {
