@@ -453,9 +453,6 @@ class _ActionEditDialog(gimpui.Dialog):
     
     self._label_procedure_description = None
     
-    print(action['display_name'].value)
-    print(action['description'].value)
-    
     if action['description'].value:
       self._label_procedure_description = self._create_label_description(
         action['description'].value)
