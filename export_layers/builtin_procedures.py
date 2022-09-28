@@ -76,11 +76,12 @@ def inherit_transparency_from_layer_groups(image, layer, layer_exporter):
   layer.opacity = new_layer_opacity * 100.0
 
 
-def rename_layer(image, layer, layer_exporter, pattern):
+def rename_layer(image, layer, layer_exporter, pattern, file_extension):
   renamer = renamer_.LayerNameRenamer(layer_exporter, pattern)
   
   while True:
     renamer.rename(layer_exporter.current_layer_elem)
+    layer_exporter.current_layer_elem.name += '.' + file_extension
     unused_ = yield
 
 
@@ -209,6 +210,14 @@ _BUILTIN_PROCEDURES_LIST = [
         'default_value': '[layer name]',
         'display_name': _('Layer filename pattern'),
         'gui_type': settings_custom.FilenamePatternEntryPresenter,
+      },
+      {
+        'type': pg.SettingTypes.file_extension,
+        'name': 'file_extension',
+        'default_value': 'png',
+        'display_name': _('File extension'),
+        'gui_type': pg.SettingGuiTypes.file_extension_entry,
+        'adjust_value': True,
       },
     ],
     'display_name': _('Rename layer'),

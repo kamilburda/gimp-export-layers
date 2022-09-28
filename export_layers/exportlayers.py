@@ -528,8 +528,8 @@ class LayerExporter(object):
   
   def _preprocess_layer_name(self, layer_elem):
     self._layer_name_renamer.rename(layer_elem)
+    layer_elem.name += '.' + self._default_file_extension
     self._set_file_extension(layer_elem)
-    self._layer_tree.validate_name(layer_elem)
   
   def _preprocess_empty_group_name(self, layer_elem):
     self._layer_tree.validate_name(layer_elem)
@@ -542,6 +542,7 @@ class LayerExporter(object):
       additional_args_position=0)
   
   def _process_layer_name(self, layer_elem):
+    self._layer_tree.validate_name(layer_elem)
     self._layer_tree.uniquify_name(
       layer_elem, uniquifier_position=self._get_uniquifier_position(layer_elem.name))
   
@@ -560,8 +561,6 @@ class LayerExporter(object):
         self._current_file_extension = self._default_file_extension
       layer_elem.set_file_extension(
         self._current_file_extension, keep_extra_trailing_periods=True)
-    else:
-      layer_elem.name += '.' + self._current_file_extension
   
   def _get_uniquifier_position(self, str_):
     return len(str_) - len('.' + self._current_file_extension)
@@ -571,7 +570,8 @@ class LayerExporter(object):
     self._export(layer_elem, image, layer)
     
     if self._current_layer_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
-      self._set_file_extension(layer_elem)
+      layer_elem.set_file_extension(
+        self._default_file_extension, keep_extra_trailing_periods=True)
       self._process_layer_name(layer_elem)
       self._export(layer_elem, image, layer)
   
