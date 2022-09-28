@@ -70,7 +70,7 @@ def create_settings():
       'type': pg.SettingTypes.file_extension,
       'name': 'file_extension',
       'default_value': 'png',
-      'display_name': 'File extension',
+      'display_name': _('File extension'),
       'adjust_value': True,
     },
     {
