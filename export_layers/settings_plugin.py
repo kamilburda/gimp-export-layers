@@ -163,8 +163,8 @@ def create_settings():
 
 def _on_after_add_procedure(
       procedures, procedure, orig_procedure_dict, file_extension_setting):
-  if orig_procedure_dict['name'] == 'use_file_extensions_in_layer_names':
-    _adjust_error_message_for_use_file_extensions_in_layer_names(
+  if orig_procedure_dict['name'] == 'use_file_extension_in_layer_name':
+    _adjust_error_message_for_use_file_extension_in_layer_name(
       procedure, file_extension_setting)
 
 
@@ -180,12 +180,12 @@ def _on_after_add_constraint(
       selected_layers_setting, constraint, image_setting)
 
 
-def _adjust_error_message_for_use_file_extensions_in_layer_names(
+def _adjust_error_message_for_use_file_extension_in_layer_name(
       procedure, file_extension_setting):
   
-  def _on_use_file_extensions_in_layer_names_enabled_changed(
-        use_file_extensions_in_layer_names_enabled, file_extension):
-    if not use_file_extensions_in_layer_names_enabled.value:
+  def _on_use_file_extension_in_layer_name_enabled_changed(
+        use_file_extension_in_layer_name_enabled, file_extension):
+    if not use_file_extension_in_layer_name_enabled.value:
       file_extension.error_messages[pg.path.FileValidatorErrorStatuses.IS_EMPTY] = ''
     else:
       file_extension.error_messages[pg.path.FileValidatorErrorStatuses.IS_EMPTY] = _(
@@ -194,12 +194,12 @@ def _adjust_error_message_for_use_file_extensions_in_layer_names(
   
   if procedure['enabled'].value:
     # Invoke manually in case 'enabled' is True upon adding.
-    _on_use_file_extensions_in_layer_names_enabled_changed(
+    _on_use_file_extension_in_layer_name_enabled_changed(
       procedure['enabled'], file_extension_setting)
   
   procedure['enabled'].connect_event(
     'value-changed',
-    _on_use_file_extensions_in_layer_names_enabled_changed,
+    _on_use_file_extension_in_layer_name_enabled_changed,
     file_extension_setting)
 
 

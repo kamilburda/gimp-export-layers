@@ -233,9 +233,9 @@ _BUILTIN_PROCEDURES_LIST = [
     'additional_tags': [NAME_ONLY_TAG],
   },
   {
-    'name': 'use_file_extensions_in_layer_names',
-    'display_name': _('Use file extensions in layer names'),
+    'name': 'use_file_extension_in_layer_name',
     'function': use_file_extension_in_layer_name,
+    'display_name': _('Use file extension in layer name'),
     'additional_tags': [NAME_ONLY_TAG],
   },
   {

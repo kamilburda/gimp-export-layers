@@ -237,7 +237,7 @@ Same as `Autocrop background`, but works on the foreground layers instead.
 
 Export all layers to the output directory on the same level, i.e. do not create subfolders for layer groups.
 
-**Use file extensions in layer names**
+**Use file extension in layer name**
 
 If a layer has a recognized file extension, use that file extension instead of the file extension in the `File extension` text entry.
 
