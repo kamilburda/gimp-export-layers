@@ -482,6 +482,16 @@ class ExtendedEntryPresenter(GtkPresenter):
     self._element.assign_text(value.encode(pgconstants.GTK_CHARACTER_ENCODING))
 
 
+class FileExtensionEntryPresenter(ExtendedEntryPresenter):
+  """`Presenter` subclass for `gui.FileExtensionEntry` elements.
+  
+  Value: Text in the entry.
+  """
+  
+  def _create_gui_element(self, setting):
+    return pggui.FileExtensionEntry()
+
+
 class GtkFolderChooserPresenter(GtkPresenter):
   """
   This class is a `Presenter` subclass for `gtk.FileChooserWidget` elements
@@ -827,6 +837,7 @@ class SettingGuiTypes(object):
   expander = GtkExpanderPresenter
   combo_box = GimpUiIntComboBoxPresenter
   text_entry = GtkEntryPresenter
+  folder_chooser = GtkFolderChooserPresenter
   
   image_combo_box = GimpUiImageComboBoxPresenter
   item_combo_box = GimpItemComboBoxPresenter
@@ -840,7 +851,7 @@ class SettingGuiTypes(object):
   display_spin_button = GtkDisplaySpinButtonPresenter
   
   extended_entry = ExtendedEntryPresenter
-  folder_chooser = GtkFolderChooserPresenter
+  file_extension_entry = FileExtensionEntryPresenter
   
   brush_select_button = GimpUiBrushSelectButtonPresenter
   font_select_button = GimpUiFontSelectButtonPresenter

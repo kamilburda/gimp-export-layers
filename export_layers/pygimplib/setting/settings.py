@@ -1535,7 +1535,7 @@ class FileExtensionSetting(ValidatableStringSetting):
   * `''`
   """
   
-  _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry, SettingGuiTypes.file_extension_entry]
   _EMPTY_VALUES = ['']
   
   def __init__(self, name, adjust_value=False, **kwargs):
