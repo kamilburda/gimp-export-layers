@@ -90,6 +90,14 @@ def resize_to_layer_size(image, layer, layer_exporter):
   pdb.gimp_image_resize(image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
 
 
+def use_file_extension_in_layer_name(image, layer, layer_exporter):
+  layer_elem = layer_exporter.current_layer_elem
+  
+  orig_file_extension = layer_elem.get_file_extension_from_orig_name()
+  if orig_file_extension and orig_file_extension != layer_elem.get_file_extension():
+    layer_elem.set_file_extension(orig_file_extension, keep_extra_trailing_periods=True)
+
+
 def _insert_tagged_layer(image, layer_exporter, tag, position=0):
   if not layer_exporter.tagged_layer_elems[tag]:
     return
@@ -226,8 +234,8 @@ _BUILTIN_PROCEDURES_LIST = [
   },
   {
     'name': 'use_file_extensions_in_layer_names',
-    'function': None,
     'display_name': _('Use file extensions in layer names'),
+    'function': use_file_extension_in_layer_name,
     'additional_tags': [NAME_ONLY_TAG],
   },
   {
