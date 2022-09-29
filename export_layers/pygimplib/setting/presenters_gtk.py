@@ -142,6 +142,17 @@ class GtkCheckButtonPresenter(GtkPresenter):
     self._element.set_active(value)
 
 
+class GtkCheckButtonNoTextPresenter(GtkCheckButtonPresenter):
+  """`Presenter` subclass for `gtk.CheckButton` elements without text next to
+  the checkbox.
+  
+  Value: Checked state of the check button (checked/unchecked).
+  """
+  
+  def _create_gui_element(self, setting):
+    return gtk.CheckButton(None, use_underline=False)
+
+
 class GtkCheckButtonLabelPresenter(GtkPresenter):
   """
   This class is a `Presenter` subclass for `gtk.CheckButton` elements.
@@ -832,6 +843,7 @@ class SettingGuiTypes(object):
   int_spin_button = GtkIntSpinButtonPresenter
   float_spin_button = GtkFloatSpinButtonPresenter
   check_button = GtkCheckButtonPresenter
+  check_button_no_text = GtkCheckButtonNoTextPresenter
   check_button_label = GtkCheckButtonLabelPresenter
   check_menu_item = GtkCheckMenuItemPresenter
   expander = GtkExpanderPresenter

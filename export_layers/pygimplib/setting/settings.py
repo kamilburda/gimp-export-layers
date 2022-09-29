@@ -855,6 +855,7 @@ class BoolSetting(Setting):
     SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
   _ALLOWED_GUI_TYPES = [
     SettingGuiTypes.check_button,
+    SettingGuiTypes.check_button_no_text,
     SettingGuiTypes.check_menu_item,
     SettingGuiTypes.expander]
   _DEFAULT_DEFAULT_VALUE = False
