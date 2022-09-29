@@ -103,6 +103,7 @@ class LayerExporter(object):
       export_context_manager_args if export_context_manager_args is not None else [])
     
     self.default_file_extension = None
+    self._file_extension_properties = None
     
     self._exported_layers = []
     self._exported_layers_ids = set()
@@ -158,6 +159,10 @@ class LayerExporter(object):
   @property
   def tagged_layer_copies(self):
     return self._tagged_layer_copies
+  
+  @property
+  def file_extension_properties(self):
+    return self._file_extension_properties
   
   @property
   def invoker(self):
@@ -301,8 +306,8 @@ class LayerExporter(object):
     self.progress_updater.reset()
     
     self.default_file_extension = self.export_settings['file_extension'].value
-    
     self._file_extension_properties = _FileExtensionProperties()
+    
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
     

@@ -95,7 +95,9 @@ def use_file_extension_in_layer_name(image, layer, layer_exporter):
   layer_elem = layer_exporter.current_layer_elem
   
   orig_file_extension = layer_elem.get_file_extension_from_orig_name()
-  if orig_file_extension and orig_file_extension != layer_elem.get_file_extension():
+  if (orig_file_extension
+      and orig_file_extension != layer_elem.get_file_extension()
+      and layer_exporter.file_extension_properties[orig_file_extension].is_valid):
     layer_elem.set_file_extension(orig_file_extension, keep_extra_trailing_periods=True)
 
 
