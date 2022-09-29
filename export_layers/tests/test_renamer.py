@@ -152,7 +152,7 @@ class TestRenameWithNumberField(unittest.TestCase):
     
     for layer_elem in layer_tree:
       if layer_elem.item_type == layer_elem.ITEM:
-        layer_name_renamer.rename(layer_elem)
+        layer_elem.name = layer_name_renamer.rename(layer_elem)
     
     expected_layer_tree = (
       pg.itemtree.LayerTree(utils_itemtree.parse_layers(expected_layer_names_str)))

@@ -36,7 +36,7 @@ class LayerNameRenamer(object):
     for field in self._fields:
       field.process_before_rename(layer_elem)
     
-    layer_elem.name = self._filename_pattern.substitute()
+    return self._filename_pattern.substitute()
   
   def _get_fields_and_substitute_funcs(self):
     return {

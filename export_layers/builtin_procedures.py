@@ -78,9 +78,10 @@ def inherit_transparency_from_layer_groups(image, layer, layer_exporter):
 
 def rename_layer(image, layer, layer_exporter, pattern, file_extension):
   renamer = renamer_.LayerNameRenamer(layer_exporter, pattern)
+  layer_exporter.default_file_extension = file_extension
   
   while True:
-    renamer.rename(layer_exporter.current_layer_elem)
+    layer_exporter.current_layer_elem.name = renamer.rename(layer_exporter.current_layer_elem)
     layer_exporter.current_layer_elem.name += '.' + file_extension
     unused_ = yield
 

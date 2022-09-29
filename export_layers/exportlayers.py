@@ -102,10 +102,11 @@ class LayerExporter(object):
     self.export_context_manager_args = (
       export_context_manager_args if export_context_manager_args is not None else [])
     
+    self.default_file_extension = None
+    
     self._exported_layers = []
     self._exported_layers_ids = set()
     self._current_layer_elem = None
-    self._default_file_extension = None
     
     self._should_stop = False
     
@@ -145,10 +146,6 @@ class LayerExporter(object):
   @property
   def current_layer_elem(self):
     return self._current_layer_elem
-  
-  @property
-  def default_file_extension(self):
-    return self._default_file_extension
   
   @property
   def tagged_layer_elems(self):
@@ -303,8 +300,9 @@ class LayerExporter(object):
     
     self.progress_updater.reset()
     
+    self.default_file_extension = self.export_settings['file_extension'].value
+    
     self._file_extension_properties = _FileExtensionProperties()
-    self._default_file_extension = self.export_settings['file_extension'].value
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
     
@@ -526,8 +524,8 @@ class LayerExporter(object):
     return layer
   
   def _preprocess_layer_name(self, layer_elem):
-    self._layer_name_renamer.rename(layer_elem)
-    layer_elem.name += '.' + self._default_file_extension
+    layer_elem.name = self._layer_name_renamer.rename(layer_elem)
+    layer_elem.name += '.' + self.default_file_extension
   
   def _preprocess_empty_group_name(self, layer_elem):
     self._layer_tree.validate_name(layer_elem)
@@ -559,7 +557,7 @@ class LayerExporter(object):
     
     if self._current_layer_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
       layer_elem.set_file_extension(
-        self._default_file_extension, keep_extra_trailing_periods=True)
+        self.default_file_extension, keep_extra_trailing_periods=True)
       self._process_layer_name(layer_elem)
       self._export(layer_elem, image, layer)
   
@@ -639,7 +637,7 @@ class LayerExporter(object):
       elif self._should_export_again_with_default_file_extension(file_extension):
         self._prepare_export_with_default_file_extension(file_extension)
       else:
-        raise ExportLayersError(str(e), layer, self._default_file_extension)
+        raise ExportLayersError(str(e), layer, self.default_file_extension)
     else:
       self._current_layer_export_status = ExportStatuses.EXPORT_SUCCESSFUL
   
@@ -658,7 +656,7 @@ class LayerExporter(object):
     self._current_layer_export_status = ExportStatuses.FORCE_INTERACTIVE
   
   def _should_export_again_with_default_file_extension(self, file_extension):
-    return file_extension != self._default_file_extension
+    return file_extension != self.default_file_extension
   
   def _prepare_export_with_default_file_extension(self, file_extension):
     self._file_extension_properties[file_extension].is_valid = False
