@@ -20,11 +20,11 @@ from export_layers import actions
 
 class LayerNameRenamer(object):
   
-  def __init__(self, layer_exporter, pattern, fields=None):
+  def __init__(self, layer_exporter, pattern, fields_raw=None):
     self._layer_exporter = layer_exporter
     self._pattern = pattern
     
-    self._fields = fields if fields is not None else _FIELDS_LIST
+    self._fields = _init_fields(fields_raw)
     
     self._filename_pattern = pg.path.StringPattern(
       pattern=self._pattern, fields=self._get_fields_and_substitute_funcs())
@@ -50,10 +50,50 @@ class LayerNameRenamer(object):
     return substitute_func_wrapper
 
 
+def _init_fields(fields_raw):
+  if fields_raw is None:
+    fields_raw = _FIELDS_LIST
+  
+  fields = []
+  
+  for field_raw in fields_raw:
+    # Use a copy to avoid modifying the original that could be reused.
+    field_raw_copy = field_raw.copy()
+    
+    field_type = field_raw_copy.pop('type')
+    fields.append(field_type(**field_raw_copy))
+  
+  return fields
+
+
 def get_field_descriptions(fields):
-  return [
-    (field.display_name, field.str_to_insert, field.regex, str(field))
-    for field in fields.values()]
+  descriptions = []
+  
+  for field in fields.values():
+    if isinstance(field, Field):
+      descriptions.append(
+        (field.display_name, field.str_to_insert, field.regex, str(field)))
+    else:
+      descriptions.append(
+        (field['display_name'], field['str_to_insert'], field['regex'],
+         _get_formatted_examples(field['examples_lines'])))
+  
+  return descriptions
+
+
+def _get_formatted_examples(examples_lines):
+  if not examples_lines:
+    return ''
+  
+  formatted_examples_lines = []
+  
+  for example_line in examples_lines:
+    if len(example_line) > 1:
+      formatted_examples_lines.append(' \u2192 '.join(example_line))
+    else:
+      formatted_examples_lines.append(*example_line)
+  
+  return '\n'.join(['<b>{}</b>'.format(_('Examples'))] + formatted_examples_lines)
 
 
 class Field(object):
@@ -96,18 +136,7 @@ class Field(object):
   
   @property
   def examples(self):
-    if not self._examples_lines:
-      return ''
-    
-    formatted_examples_lines = []
-    
-    for example_line in self._examples_lines:
-      if len(example_line) > 1:
-        formatted_examples_lines.append(' \u2192 '.join(example_line))
-      else:
-        formatted_examples_lines.append(*example_line)
-    
-    return '\n'.join(['<b>{}</b>'.format(_('Examples'))] + formatted_examples_lines)
+    return _get_formatted_examples(self._examples_lines)
   
   def on_renamer_init(self, string_pattern):
     pass
@@ -118,19 +147,18 @@ class Field(object):
 
 class NumberField(Field):
   
-  def __init__(self):
+  def __init__(
+        self,
+        regex,
+        display_name,
+        str_to_insert,
+        examples_lines):
     super().__init__(
-      '^[0-9]+$',
+      regex,
       self._get_number,
-      _('image001'),
-      'image[001]',
-      [
-        ['[001]', '001, 002, ...'],
-        ['[1]', '1, 2, ...'],
-        ['[005]', '005, 006, ...'],
-        [_('To continue numbering across layer groups, use %n.')],
-        ['[001, %n]', '001, 002, ...'],
-      ],
+      display_name,
+      str_to_insert,
+      examples_lines,
     )
   
   def on_renamer_init(self, string_pattern):
@@ -333,13 +361,26 @@ def _get_attributes(layer_exporter, field_value, pattern, measure='%px'):
 
 
 _FIELDS_LIST = [
-  NumberField(),
-  Field(
-    'layer name',
-    _get_layer_name,
-    _('Layer name'),
-    '[layer name]',
-    [
+  {
+    'type': NumberField,
+    'regex': '^[0-9]+$',
+    'display_name': _('image001'),
+    'str_to_insert': 'image[001]',
+    'examples_lines': [
+      ['[001]', '001, 002, ...'],
+      ['[1]', '1, 2, ...'],
+      ['[005]', '005, 006, ...'],
+      [_('To continue numbering across layer groups, use %n.')],
+      ['[001, %n]', '001, 002, ...'],
+    ],
+  },
+  {
+    'type': Field,
+    'regex': 'layer name',
+    'substitute_func': _get_layer_name,
+    'display_name': _('Layer name'),
+    'str_to_insert': '[layer name]',
+    'examples_lines': [
       [_('Suppose that a layer is named "Frame.png" and the file extension is "png".')],
       ['[layer name]', 'Frame'],
       ['[layer name, %e]', 'Frame.png'],
@@ -349,61 +390,66 @@ _FIELDS_LIST = [
       ['[layer name, %e]', 'Frame.jpg'],
       ['[layer name, %i]', 'Frame'],
     ],
-  ),
-  Field(
-    'image name',
-    _get_image_name,
-    _('Image name'),
-    '[image name]',
-    [
+  },
+  {
+    'type': Field,
+    'regex': 'image name',
+    'substitute_func': _get_image_name,
+    'display_name': _('Image name'),
+    'str_to_insert': '[image name]',
+    'examples_lines': [
       [_('Suppose that the image is named "Image.xcf".')],
       ['[image name]', 'Image'],
       ['[image name, %e]', 'Image.xcf'],
     ],
-  ),
-  Field(
-    'layer path',
-    _get_layer_path,
-    _('Layer path'),
-    '[layer path]',
-    [
+  },
+  {
+    'type': Field,
+    'regex': 'layer path',
+    'substitute_func': _get_layer_path,
+    'display_name': _('Layer path'),
+    'str_to_insert': '[layer path]',
+    'examples_lines': [
       [_('Suppose that a layer named "Left" has parent groups named '
          '"Hands" and "Body".')],
       ['[layer path]', 'Body-Hands-Left'],
       ['[layer path, _]', 'Body_Hands_Left'],
       ['[layer path, _, (%c)]', '(Body)_(Hands)_(Left)'],
     ],
-  ),
-  Field(
-    'tags',
-    _get_tags,
-    _('Tags'),
-    '[tags]',
-    [
+  },
+  {
+    'type': Field,
+    'regex': 'tags',
+    'substitute_func': _get_tags,
+    'display_name': _('Tags'),
+    'str_to_insert': '[tags]',
+    'examples_lines': [
       [_('Suppose that a layer has tags "left", "middle" and "right".')],
       ['[tags]', 'left-middle-right'],
       ['[tags, left, right]', 'left-right'],
       ['[tags, _, (%t)]', '(left)_(middle)_(right)'],
       ['[tags, _, (%t), left, right]', '(left)_(right)'],
     ],
-  ),
-  Field(
-    'current date',
-    _get_current_date,
-    _('Current date'),
-    '[current date]',
-    [
+  },
+  {
+    'type': Field,
+    'regex': 'current date',
+    'substitute_func': _get_current_date,
+    'display_name': _('Current date'),
+    'str_to_insert': '[current date]',
+    'examples_lines': [
       ['[current date]', '2019-01-28'],
       [_('Custom date format uses formatting as per the "strftime" function in Python.')],
       ['[current date, %m.%d.%Y_%H-%M]', '28.01.2019_19-04'],
     ],
-  ),
-  Field(
-    'attributes',
-    _get_attributes,
-    _('Attributes'),
-    '[attributes]',
-    [
+  },
+  {
+    'type': Field,
+    'regex': 'attributes',
+    'substitute_func': _get_attributes,
+    'display_name': _('Attributes'),
+    'str_to_insert': '[attributes]',
+    'examples_lines': [
       [_('Suppose that a layer has width, height, <i>x</i>-offset and <i>y</i>-offset\n'
          'of 1000, 540, 0 and 40 pixels, respectively,\n'
          'and the image has width and height of 1000 and 500 pixels, respectively.')],
@@ -412,7 +458,7 @@ _FIELDS_LIST = [
       ['[attributes, %w-%h-%x-%y, %pc1]', '1.0-0.5-0.0-0.1'],
       ['[attributes, %iw-%ih]', '1000-500'],
     ],
-  ),
+  },
 ]
 
-FIELDS = collections.OrderedDict([(field.regex, field) for field in _FIELDS_LIST])
+FIELDS = collections.OrderedDict([(field['regex'], field) for field in _FIELDS_LIST])

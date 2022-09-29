@@ -148,7 +148,7 @@ class TestRenameWithNumberField(unittest.TestCase):
     layer_tree = pg.itemtree.LayerTree(self.image)
     
     layer_name_renamer = (
-      renamer.LayerNameRenamer(None, pattern, fields=[renamer.NumberField()]))
+      renamer.LayerNameRenamer(None, pattern, fields_raw=[renamer.FIELDS['^[0-9]+$']]))
     
     for layer_elem in layer_tree:
       if layer_elem.item_type == layer_elem.ITEM:
