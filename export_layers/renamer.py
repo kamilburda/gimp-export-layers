@@ -244,7 +244,8 @@ def _get_image_name(layer_exporter, field_value, keep_extension_str=''):
     return pg.path.get_filename_with_new_file_extension(image_name, '')
 
 
-def _get_layer_path(layer_exporter, field_value, separator='-', wrapper=None):
+def _get_layer_path(
+      layer_exporter, field_value, separator='-', wrapper=None, file_extension_strip_mode=''):
   path_component_token = '%c'
   
   if wrapper is None:
@@ -255,12 +256,10 @@ def _get_layer_path(layer_exporter, field_value, separator='-', wrapper=None):
     else:
       wrapper = '{}'
   
-  path_components = (
-    [parent.name for parent in layer_exporter.current_layer_elem.parents]
-    + [layer_exporter.current_layer_elem.name])
+  path_components = [parent.name for parent in layer_exporter.current_layer_elem.parents]
+  path_components += [_get_layer_name(layer_exporter, field_value, file_extension_strip_mode)]
   
-  return separator.join(
-    [wrapper.format(path_component) for path_component in path_components])
+  return separator.join([wrapper.format(path_component) for path_component in path_components])
 
 
 def _get_tags(layer_exporter, field_value, *args):
@@ -410,11 +409,14 @@ _FIELDS_LIST = [
     'display_name': _('Layer path'),
     'str_to_insert': '[layer path]',
     'examples_lines': [
-      [_('Suppose that a layer named "Left" has parent groups named '
-         '"Hands" and "Body".')],
+      [_('Suppose that a layer named "Left" has parent groups named "Hands" and "Body".')],
       ['[layer path]', 'Body-Hands-Left'],
       ['[layer path, _]', 'Body_Hands_Left'],
       ['[layer path, _, (%c)]', '(Body)_(Hands)_(Left)'],
+      [_('Suppose that the layer is named "Left.jpg" and the file extension is "png".')],
+      ['[layer path]', 'Body-Hands-Left'],
+      ['[layer path, -, %c, %e]', 'Body-Hands-Left.jpg'],
+      ['[layer path, -, %c, %i]', 'Body-Hands-Left'],
     ],
   },
   {
