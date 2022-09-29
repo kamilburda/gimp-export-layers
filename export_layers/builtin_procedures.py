@@ -232,7 +232,6 @@ _BUILTIN_PROCEDURES_LIST = [
       },
     ],
     'display_name': _('Rename layer'),
-    'description': _('Overrides the layer filename pattern next to "Save as:".'),
     'additional_tags': [NAME_ONLY_TAG],
   },
   {
