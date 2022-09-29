@@ -410,9 +410,6 @@ class TestGetFileExtension(unittest.TestCase):
   ])
   def test_get_file_extension(self, test_case_name_suffix, str_, expected_output):
     self.assertEqual(pgpath.get_file_extension(str_), expected_output)
-  
-  def test_get_file_extension_with_lowercase(self):
-    self.assertEqual(pgpath.get_file_extension('background.JPG', lowercase=True), 'jpg')
 
 
 class TestGetFilenameWithNewFileExtension(unittest.TestCase):

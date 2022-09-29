@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 
-def get_file_extension(filename, lowercase=False):
+def get_file_extension(filename):
   """Returns the file extension from `filename`.
   
   If `filename` has no file extension, return an empty string.
@@ -22,18 +22,11 @@ def get_file_extension(filename, lowercase=False):
   `fileformats.file_formats_dict` for a matching file extension containing
   periods. If there is no such extension, return the substring after the last
   period.
-  
-  If `lowercase` is `True`, convert the file extension to lowercase.
   """
-  if lowercase:
-    filename_processed = filename.lower()
-  else:
-    filename_processed = filename
-  
-  if '.' not in filename_processed:
+  if '.' not in filename:
     return ''
   
-  file_extension = filename_processed
+  file_extension = filename
   
   while file_extension:
     next_period_index = file_extension.find('.')
