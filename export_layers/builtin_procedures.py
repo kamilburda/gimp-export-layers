@@ -76,13 +76,11 @@ def inherit_transparency_from_layer_groups(image, layer, layer_exporter):
   layer.opacity = new_layer_opacity * 100.0
 
 
-def rename_layer(image, layer, layer_exporter, pattern, file_extension):
+def rename_layer(image, layer, layer_exporter, pattern):
   renamer = renamer_.LayerNameRenamer(layer_exporter, pattern)
-  layer_exporter.default_file_extension = file_extension
   
   while True:
     layer_exporter.current_layer_elem.name = renamer.rename(layer_exporter.current_layer_elem)
-    layer_exporter.current_layer_elem.name += '.' + file_extension
     unused_ = yield
 
 
@@ -102,7 +100,7 @@ def use_file_extension_in_layer_name(
     if convert_file_extension_to_lowercase:
       orig_file_extension = orig_file_extension.lower()
     
-    layer_elem.set_file_extension(orig_file_extension, keep_extra_trailing_periods=True)
+    layer_exporter.current_file_extension = orig_file_extension
 
 
 def _insert_tagged_layer(image, layer_exporter, tag, position=0):
@@ -225,14 +223,6 @@ _BUILTIN_PROCEDURES_LIST = [
         'default_value': '[layer name]',
         'display_name': _('Layer filename pattern'),
         'gui_type': settings_custom.FilenamePatternEntryPresenter,
-      },
-      {
-        'type': pg.SettingTypes.file_extension,
-        'name': 'file_extension',
-        'default_value': 'png',
-        'display_name': _('File extension'),
-        'gui_type': pg.SettingGuiTypes.file_extension_entry,
-        'adjust_value': True,
       },
     ],
     'display_name': _('Rename layer'),
