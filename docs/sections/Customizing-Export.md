@@ -127,8 +127,8 @@ While the square brackets (`[` and `]`) enclosing the first three field argument
 
 Examples:
 * `[replace, [layer name], [a], [b] ]` → `Animbl copy #1`
-* `[replace, [layer name], [a], [b], 1, ignorecase]` → `bnimal copy #1`],
-* `[replace, [layer name], [ copy(?: #[[0-9]]+)*$], [] ]` → `Animal`],
+* `[replace, [layer name], [a], [b], 1, ignorecase]` → `bnimal copy #1`,
+* `[replace, [layer name], [ copy(?: #[[0-9]]+)*$], [] ]` → `Animal`,
 
 **\[tags\]**
 
