@@ -154,8 +154,13 @@ class NumberField(Field):
     self._global_number_generators = collections.defaultdict(dict)
   
   @staticmethod
-  def generate_number(initial_number, padding):
+  def generate_number(initial_number, padding, ascending=True):
     i = initial_number
+    if ascending:
+      increment = 1
+    else:
+      increment = -1
+    
     while True:
       str_i = str(i)
       
@@ -163,25 +168,53 @@ class NumberField(Field):
         str_i = '0' * (padding - len(str_i)) + str_i
       
       yield str_i
-      i += 1
+      i += increment
   
-  def _get_number(self, layer_exporter, field_value, reset_numbering_on_parent_str=''):
-    reset_numbering_on_parent = reset_numbering_on_parent_str != '%n'
+  def _get_number(self, layer_exporter, field_value, *args):
+    reset_numbering_on_parent = True
+    ascending = True
+    padding = None
+    
+    for arg in args:
+      if arg == '%n':
+        reset_numbering_on_parent = False
+      elif arg.startswith('%d'):
+        ascending = False
+        try:
+          padding = int(arg[len('%d'):])
+        except ValueError:
+          pass
     
     if reset_numbering_on_parent:
       layer_elem = layer_exporter.current_layer_elem
-      parent = layer_elem.parent.item.ID if layer_elem.parent is not None else None
+      parent_elem = layer_elem.parent if layer_elem.parent is not None else None
+      parent_id = parent_elem.item.ID if parent_elem is not None else None
     else:
-      parent = None
+      parent_elem = None
+      parent_id = None
     
-    if parent not in self._global_number_generators[field_value]:
-      initial_number = int(field_value)
-      padding = len(field_value)
+    if parent_id not in self._global_number_generators[field_value]:
+      padding = padding if padding is not None else len(field_value)
       
-      self._global_number_generators[field_value][parent] = self.generate_number(
-        initial_number, padding)
+      initial_number = int(field_value)
+      
+      if initial_number == 0 and not ascending:
+        if reset_numbering_on_parent:
+          if parent_elem is not None:
+            initial_number = len([
+              item_elem for item_elem in layer_exporter.layer_tree
+              if item_elem.depth == parent_elem.depth + 1 and item_elem.parent == parent_elem])
+          else:
+            initial_number = len([
+              item_elem for item_elem in layer_exporter.layer_tree
+              if item_elem.depth == 0])
+        else:
+          initial_number = len(layer_exporter.layer_tree)
+      
+      self._global_number_generators[field_value][parent_id] = self.generate_number(
+        initial_number, padding, ascending)
     
-    return next(self._global_number_generators[field_value][parent])
+    return next(self._global_number_generators[field_value][parent_id])
 
 
 class _PercentTemplate(string.Template):
@@ -341,6 +374,10 @@ _FIELDS_LIST = [
       ['[005]', '005, 006, ...'],
       [_('To continue numbering across layer groups, use %n.')],
       ['[001, %n]', '001, 002, ...'],
+      [_('To use descending numbers, use %d.')],
+      [_('Suppose that the number of layers to export is 5:')],
+      ['[000, %d]', '005, 004, ...'],
+      ['[10, %d2]', '10, 09, ...'],
     ],
   },
   {

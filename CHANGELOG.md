@@ -18,6 +18,7 @@ Also added an option to convert file extensions in layer names to lowercase.
 Changes to the filename pattern entry:
 * The `[layer path]` field now strips the file extension by default just like `[layer name]`.
 Added options (same as in `[layer name]`) to allow retaining the old behavior.
+* Added an option to the number field (such as `[001]`) to specify descending numbers.
 
 
 3.3.1

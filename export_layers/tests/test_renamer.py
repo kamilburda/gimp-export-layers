@@ -98,7 +98,7 @@ class TestRenameWithNumberField(unittest.TestCase):
      Overlay {
      }
      image003
-      """),
+     """),
     
     ('start_with_offset',
      'image[003]',
@@ -120,9 +120,53 @@ class TestRenameWithNumberField(unittest.TestCase):
      Overlay {
      }
      image005
-      """),
+     """),
     
-    ('multiple_number_fields_increment_independently',
+    ('start_from_tree_length_descending',
+     'image[0, %d]',
+     """
+     image3
+     Corners {
+       image2
+       top-left-corner {
+         image3
+         image2
+         image1
+       }
+       image1
+     }
+     Frames {
+       image1
+     }
+     image2
+     Overlay {
+     }
+     image1
+     """),
+    
+    ('start_from_tree_length_descending_custom_padding',
+     'image[0, %d2]',
+     """
+     image03
+     Corners {
+       image02
+       top-left-corner {
+         image03
+         image02
+         image01
+       }
+       image01
+     }
+     Frames {
+       image01
+     }
+     image02
+     Overlay {
+     }
+     image01
+     """),
+    
+    ('multiple_different_number_fields_increment_independently',
      'image[001]_[005]',
      """
      image001_005
@@ -145,9 +189,11 @@ class TestRenameWithNumberField(unittest.TestCase):
      """),
   ])
   def test_rename(self, test_case_name_suffix, pattern, expected_layer_names_str):
-    layer_tree = pg.itemtree.LayerTree(self.image)
+    layer_tree = pg.itemtree.LayerTree(self.image, is_filtered=True)
+    layer_tree.filter.add_rule(lambda layer_elem: layer_elem.item_type == layer_elem.ITEM)
     
     layer_exporter_mock = mock.Mock()
+    layer_exporter_mock.layer_tree = layer_tree
     
     layer_name_renamer = renamer.LayerNameRenamer(
       layer_exporter_mock, pattern, fields_raw=[renamer.FIELDS['^[0-9]+$']])
@@ -155,8 +201,9 @@ class TestRenameWithNumberField(unittest.TestCase):
     for layer_elem in layer_tree:
       layer_exporter_mock.current_layer_elem = layer_elem
       
-      if layer_elem.item_type == layer_elem.ITEM:
-        layer_elem.name = layer_name_renamer.rename(layer_elem)
+      layer_elem.name = layer_name_renamer.rename(layer_elem)
+    
+    layer_tree.is_filtered = False
     
     expected_layer_tree = (
       pg.itemtree.LayerTree(utils_itemtree.parse_layers(expected_layer_names_str)))
