@@ -20,21 +20,21 @@ class TestNumberField(unittest.TestCase):
   
   @parameterized.parameterized.expand([
     ('two_padding_zeroes',
-     3, 1, ['001', '002', '003']),
+     1, 3, ['001', '002', '003']),
     ('one_padding_zero',
-     2, 1, ['01', '02', '03']),
+     1, 2, ['01', '02', '03']),
     ('start_from_number_greater_than_one',
-     3, 5, ['005', '006', '007']),
+     5, 3, ['005', '006', '007']),
     ('incrementing_number_to_two_digits_removes_one_padded_zero',
-     3, 9, ['009', '010', '011']),
+     9, 3, ['009', '010', '011']),
     ('incrementing_number_to_digits_without_padding_removes_last_padded_zero',
-     3, 99, ['099', '100', '101']),
+     99, 3, ['099', '100', '101']),
     ('incrementing_number_to_more_digits_than_padding',
-     3, 999, ['999', '1000', '1001']),
+     999, 3, ['999', '1000', '1001']),
   ])
   def test_generate_number(
-        self, test_case_name_suffix, padding, initial_number, expected_outputs):
-    number_generator = renamer.NumberField.generate_number(padding, initial_number)
+        self, test_case_name_suffix, initial_number, padding, expected_outputs):
+    number_generator = renamer.NumberField.generate_number(initial_number, padding)
     outputs = [next(number_generator) for unused_ in range(len(expected_outputs))]
     
     self.assertListEqual(outputs, expected_outputs)
@@ -147,10 +147,14 @@ class TestRenameWithNumberField(unittest.TestCase):
   def test_rename(self, test_case_name_suffix, pattern, expected_layer_names_str):
     layer_tree = pg.itemtree.LayerTree(self.image)
     
-    layer_name_renamer = (
-      renamer.LayerNameRenamer(None, pattern, fields_raw=[renamer.FIELDS['^[0-9]+$']]))
+    layer_exporter_mock = mock.Mock()
+    
+    layer_name_renamer = renamer.LayerNameRenamer(
+      layer_exporter_mock, pattern, fields_raw=[renamer.FIELDS['^[0-9]+$']])
     
     for layer_elem in layer_tree:
+      layer_exporter_mock.current_layer_elem = layer_elem
+      
       if layer_elem.item_type == layer_elem.ITEM:
         layer_elem.name = layer_name_renamer.rename(layer_elem)
     

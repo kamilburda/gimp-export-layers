@@ -28,14 +28,8 @@ class LayerNameRenamer(object):
     
     self._filename_pattern = pg.path.StringPattern(
       pattern=self._pattern, fields=self._get_fields_and_substitute_funcs())
-    
-    for field in self._fields:
-      field.on_renamer_init(self._filename_pattern)
   
   def rename(self, layer_elem):
-    for field in self._fields:
-      field.process_before_rename(layer_elem)
-    
     return self._filename_pattern.substitute()
   
   def _get_fields_and_substitute_funcs(self):
@@ -137,12 +131,6 @@ class Field(object):
   @property
   def examples(self):
     return _get_formatted_examples(self._examples_lines)
-  
-  def on_renamer_init(self, string_pattern):
-    pass
-  
-  def process_before_rename(self, layer_elem):
-    pass
 
 
 class NumberField(Field):
@@ -160,31 +148,13 @@ class NumberField(Field):
       str_to_insert,
       examples_lines,
     )
-  
-  def on_renamer_init(self, string_pattern):
-    self._number_fields = set([
-      field_value
-      for field_value, field_regex
-      in string_pattern.parsed_fields_and_matching_regexes.items()
-      if field_regex == self.regex])
     
-    # key: `_ItemTreeElement` parent ID (`None` for root)
-    # value: dictionary of (field value, number generators) pairs
-    self._parents_and_number_generators = {}
-    self._current_parent = None
-    
-    self._global_number_generators = self._get_initial_number_generators()
-  
-  def process_before_rename(self, layer_elem):
-    self._current_parent = (
-      layer_elem.parent.item.ID if layer_elem.parent is not None else None)
-    
-    if self._current_parent not in self._parents_and_number_generators:
-      self._parents_and_number_generators[self._current_parent] = (
-        self._get_initial_number_generators())
+    # key: field value
+    # value: dict of (parent or None, number generator) pairs
+    self._global_number_generators = collections.defaultdict(dict)
   
   @staticmethod
-  def generate_number(padding, initial_number):
+  def generate_number(initial_number, padding):
     i = initial_number
     while True:
       str_i = str(i)
@@ -195,23 +165,23 @@ class NumberField(Field):
       yield str_i
       i += 1
   
-  def _get_number(self, layer_exporter, field_value, reset_numbering_on_parent=True):
-    if reset_numbering_on_parent == '%n':
-      reset_numbering_on_parent = False
+  def _get_number(self, layer_exporter, field_value, reset_numbering_on_parent_str=''):
+    reset_numbering_on_parent = reset_numbering_on_parent_str != '%n'
     
     if reset_numbering_on_parent:
-      return next(self._parents_and_number_generators[self._current_parent][field_value])
+      layer_elem = layer_exporter.current_layer_elem
+      parent = layer_elem.parent.item.ID if layer_elem.parent is not None else None
     else:
-      return next(self._global_number_generators[field_value])
-  
-  def _get_initial_number_generators(self):
-    return {
-      field_value: self._get_initial_number_generator(field_value)
-      for field_value in self._number_fields}
-  
-  def _get_initial_number_generator(self, field_value):
-    return self.generate_number(
-      padding=len(field_value), initial_number=int(field_value))
+      parent = None
+    
+    if parent not in self._global_number_generators[field_value]:
+      initial_number = int(field_value)
+      padding = len(field_value)
+      
+      self._global_number_generators[field_value][parent] = self.generate_number(
+        initial_number, padding)
+    
+    return next(self._global_number_generators[field_value][parent])
 
 
 class _PercentTemplate(string.Template):
