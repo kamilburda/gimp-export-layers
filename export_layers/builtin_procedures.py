@@ -157,6 +157,7 @@ _BUILTIN_PROCEDURES_LIST = [
   {
     'name': 'autocrop_background',
     'function': autocrop_tagged_layer,
+    'display_name': _('Autocrop background'),
     'arguments': [
       {
         'type': pg.SettingTypes.string,
@@ -164,11 +165,11 @@ _BUILTIN_PROCEDURES_LIST = [
         'default_value': 'background',
       },
     ],
-    'display_name': _('Autocrop background'),
   },
   {
     'name': 'autocrop_foreground',
     'function': autocrop_tagged_layer,
+    'display_name': _('Autocrop foreground'),
     'arguments': [
       {
         'type': pg.SettingTypes.string,
@@ -176,7 +177,6 @@ _BUILTIN_PROCEDURES_LIST = [
         'default_value': 'foreground',
       },
     ],
-    'display_name': _('Autocrop foreground'),
   },
   {
     'name': 'ignore_folder_structure',
@@ -187,6 +187,7 @@ _BUILTIN_PROCEDURES_LIST = [
   {
     'name': 'insert_background_layers',
     'function': insert_background_layer,
+    'display_name': _('Insert background layers'),
     'arguments': [
       {
         'type': pg.SettingTypes.string,
@@ -194,11 +195,11 @@ _BUILTIN_PROCEDURES_LIST = [
         'default_value': 'background',
       },
     ],
-    'display_name': _('Insert background layers'),
   },
   {
     'name': 'insert_foreground_layers',
     'function': insert_foreground_layer,
+    'display_name': _('Insert foreground layers'),
     'arguments': [
       {
         'type': pg.SettingTypes.string,
@@ -206,7 +207,6 @@ _BUILTIN_PROCEDURES_LIST = [
         'default_value': 'foreground',
       },
     ],
-    'display_name': _('Insert foreground layers'),
   },
   {
     'name': 'inherit_transparency_from_layer_groups',
@@ -216,6 +216,8 @@ _BUILTIN_PROCEDURES_LIST = [
   {
     'name': 'rename_layer',
     'function': rename_layer,
+    'display_name': _('Rename layer'),
+    'additional_tags': [NAME_ONLY_TAG],
     'arguments': [
       {
         'type': settings_custom.FilenamePatternSetting,
@@ -225,12 +227,12 @@ _BUILTIN_PROCEDURES_LIST = [
         'gui_type': settings_custom.FilenamePatternEntryPresenter,
       },
     ],
-    'display_name': _('Rename layer'),
-    'additional_tags': [NAME_ONLY_TAG],
   },
   {
     'name': 'use_file_extension_in_layer_name',
     'function': use_file_extension_in_layer_name,
+    'display_name': _('Use file extension in layer name'),
+    'additional_tags': [NAME_ONLY_TAG],
     'arguments': [
       {
         'type': pg.SettingTypes.boolean,
@@ -240,8 +242,6 @@ _BUILTIN_PROCEDURES_LIST = [
         'gui_type': pg.SettingGuiTypes.check_button_no_text,
       },
     ],
-    'display_name': _('Use file extension in layer name'),
-    'additional_tags': [NAME_ONLY_TAG],
   },
   {
     'name': 'use_layer_size',
