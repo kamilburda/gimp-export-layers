@@ -101,6 +101,35 @@ Examples:
 * `[layer name, _, (%c), %i]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
 * `[layer name, _, (%c), %i]` → `Body-Hands-Left` (if the layer name is `Left.png` and the file extension is e.g. `jpg`)
 
+**\[replace\]**
+
+Replaces a part of the specified field with another string.
+This essentially allows to fine-tune the field.
+Regular expressions are supported as well.
+
+Arguments:
+* *field name*: Any recognized field described in this section, except "Number".
+The field can be specified with arguments; if so, enclose the field in square brackets (`[` and `]`).
+* *pattern*: Part of the field to replace.
+The pattern can also be a regular expression using the same syntax as defined for the [`re` module for Python](https://docs.python.org/2/library/re.html).
+* *replacement*: Contents that should replace *pattern*.
+The replacement can also be a regular expression using the same syntax as defined for the [`re` module for Python](https://docs.python.org/2/library/re.html).
+* (optional) *count*: Number of replacements to perform if the pattern matches multiple parts.
+If 0, perform replacements for all parts.
+* (optional) *flags*: Flags further adjusting how the replacement should be performed.
+Flags are specified in the [`re` module for Python](https://docs.python.org/2/library/re.html).
+Use the name without the `re.` prefix.
+For example, to ignore case, type `IGNORECASE` or `ignorecase`.
+You can specify multiple flags separated by commas.
+
+For the example below, suppose that a layer is named "Animal copy #1".
+While the square brackets (`[` and `]`) enclosing the first three field arguments are optional, they are necessary in case you need to specify an empty string (`[]`), leading spaces or commas.
+
+Examples:
+* `[replace, [layer name], [a], [b] ]` → `Animbl copy #1`
+* `[replace, [layer name], [a], [b], 1, ignorecase]` → `bnimal copy #1`],
+* `[replace, [layer name], [ copy(?: #[[0-9]]+)*$], [] ]` → `Animal`],
+
 **\[tags\]**
 
 All tags assigned to a layer.

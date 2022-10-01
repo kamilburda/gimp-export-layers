@@ -7,7 +7,7 @@ General changes:
 * Fixed export of layers with locks (position, alpha channel, etc.). All locks are now ignored during export.
 * When the "Ignore folder structure" procedure is added, the full layer path is maintained in the exported layer filenames.
 * Added an explicit "Rename layer" procedure, overriding the filename pattern for the text field next to "Save as:".
-This allows e.g. retaining the old behavior of "Ignore folder structure".
+This allows e.g. retaining the old behavior of "Ignore folder structure", or to chain a sequence of replacements via the new `[replace]` field (see below).
 * The file extension can now also be specified in uppercase.
 * The file extension text entry now automatically adjusts the text (removing extra leading '.', reverting to the last valid value) upon clicking outside the entry.
 * Renamed `Use file extensions in layer names` to `Use file extension in layer name` for clarity.
@@ -16,6 +16,9 @@ Also added an option to convert file extensions in layer names to lowercase.
 * Changed the plug-in license to BSD 3-Clause.
 
 Changes to the filename pattern entry:
+* Added a new field named `[replace]`.
+This field allows to fine-tune another field, optionally via regular expressions.
+This allows to e.g. remove " copy #1" from layer names that GIMP appends to duplicated layers.
 * The `[layer path]` field now strips the file extension by default just like `[layer name]`.
 Added options (same as in `[layer name]`) to allow retaining the old behavior.
 * Added an option to the number field (such as `[001]`) to specify descending numbers.

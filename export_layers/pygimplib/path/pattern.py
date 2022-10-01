@@ -75,7 +75,7 @@ class StringPattern(object):
     self._fields = collections.OrderedDict(fields if fields is not None else [])
     
     self._pattern_parts, unused_, self._parsed_fields_and_matching_regexes = (
-      self._parse_pattern(self._pattern, self._fields))
+      self.parse_pattern(self._pattern, self._fields))
   
   @property
   def pattern(self):
@@ -111,7 +111,7 @@ class StringPattern(object):
     If the pattern contains a field at the given character position (starting
     from 0), return the field name, otherwise return `None`.
     """
-    unused_, parsed_fields, unused_ = cls._parse_pattern(pattern, fields=None)
+    unused_, parsed_fields, unused_ = cls.parse_pattern(pattern, fields=None)
     
     for parsed_field in parsed_fields:
       indices = parsed_field[3]
@@ -163,7 +163,7 @@ class StringPattern(object):
       None)
   
   @classmethod
-  def _parse_pattern(cls, pattern, fields=None):
+  def parse_pattern(cls, pattern, fields=None):
     index = 0
     start_of_field_index = 0
     last_constant_substring_index = 0
@@ -228,7 +228,7 @@ class StringPattern(object):
         
         parsed_field_str = pattern[start_of_field_index + 1:index]
         parsed_field = (
-          list(cls._parse_field(parsed_field_str))
+          list(cls.parse_field(parsed_field_str))
           + [parsed_field_str]
           + [(start_of_field_index + 1, index)])
         
@@ -256,7 +256,7 @@ class StringPattern(object):
     return pattern_parts, parsed_fields, parsed_fields_and_matching_regexes
   
   @classmethod
-  def _parse_field(cls, field_str):
+  def parse_field(cls, field_str):
     field_name_end_index = field_str.find(',')
     if field_name_end_index == -1:
       return field_str.strip(), []

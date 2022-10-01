@@ -362,6 +362,32 @@ def _get_attributes(layer_exporter, field_value, pattern, measure='%px'):
   return _PercentTemplate(pattern).safe_substitute(fields)
 
 
+def _replace(
+      layer_exporter, field_value, field_to_replace_str, pattern, replacement, *count_and_flags):
+  field_name, field_args = pg.path.StringPattern.parse_field(field_to_replace_str)
+  
+  try:
+    field_func = FIELDS[field_name]['substitute_func']
+  except KeyError:
+    return ''
+  
+  str_to_process = field_func(layer_exporter, field_name, *field_args)
+  
+  count = 0
+  flags = 0
+  
+  if len(count_and_flags) >= 1:
+    try:
+      count = int(count_and_flags[0])
+    except ValueError:
+      pass
+  
+  for flag_name in count_and_flags[1:]:
+    flags |= getattr(re, flag_name.upper())
+  
+  return re.sub(pattern, replacement, str_to_process, count=count, flags=flags)
+
+
 _FIELDS_LIST = [
   {
     'type': NumberField,
@@ -424,6 +450,21 @@ _FIELDS_LIST = [
       ['[layer path]', 'Body-Hands-Left'],
       ['[layer path, -, %c, %e]', 'Body-Hands-Left.jpg'],
       ['[layer path, -, %c, %i]', 'Body-Hands-Left'],
+    ],
+  },
+  {
+    'type': Field,
+    'regex': 'replace',
+    'substitute_func': _replace,
+    'display_name': _('Replace'),
+    'str_to_insert': '[replace]',
+    'examples_lines': [
+      [_('Suppose that a layer is named "Animal copy #1".')],
+      ['[replace, [layer name], [a], [b] ]', 'Animbl copy #1'],
+      [_('You can use the regular expression syntax as defined in the "re" module for Python.')],
+      ['[replace, [layer name], [ copy(?: #[[0-9]]+)*$], [] ]', 'Animal'],
+      [_('You can specify the number of replacements and flags as defined in the "re" module for Python.')],
+      ['[replace, [layer name], [a], [b], 1, ignorecase]', 'bnimal copy #1'],
     ],
   },
   {
