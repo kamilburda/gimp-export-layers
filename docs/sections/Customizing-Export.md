@@ -170,17 +170,13 @@ Examples:
 
 ### Inserting reserved characters in arguments
 
-To insert a literal space, comma or square brackets (`[` and `]`) in an argument, enclose the argument with square brackets.
-Literal square brackets must be doubled.
+To insert a literal space or comma in a field argument, enclose the argument with square brackets.
+To insert a literal square bracket (`[` or `]`), double the bracket and enclose the argument with square brackets (e.g. `[[[]` to insert a literal `[`).
 
 If the last argument is enclosed in square brackets, leave a single space between the last and the second to last closing square bracket.
 
-To insert a literal `%` character, double the character.
-
 Examples:
-* `[layer path, [ ], %c]` → `Body Hands Left`
 * `[layer path, [ ] ]` → `Body Hands Left`
-* `[layer path, [ ], %%%c%%]` → `%Body% %Hands% %Left%`
 * `[layer path, [,], [[[%c]]] ]` → `[Body],[Hands],[Left]`
 
 
