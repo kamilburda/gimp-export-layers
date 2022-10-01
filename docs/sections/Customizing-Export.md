@@ -3,7 +3,7 @@ Introduction
 
 Beyond the basic features, Export Layers allows you to:
 * customize the layer name,
-* apply additional procedures before the export (insert background, scale down...)
+* apply additional procedures before the export (insert background, scale down, ...)
 * selecting which layers to export by applying constraints (only visible layers, ...)
 
 To enable customization, press the `Settings` button and choose `Show More Settings`.
@@ -21,12 +21,12 @@ The text entry next to `Save as` lets you customize the filenames.
 
 There are several built-in *fields* that you can combine to form a filename pattern.
 For example, `image[001]` renames the layers to `image001`, `image002` and so on.
+The text entry can show you examples of how each field is used if you place the text cursor inside a field.
+The fields are described below in detail.
 
 The preview automatically updates as you change the filename pattern and so can greatly help you figure out how your specified pattern affects the layer names.
 
 Fields must be enclosed in square brackets and must have a correct number of arguments.
-If you place the text cursor inside a field, a corresponding tooltip above the text entry shows you the correct usage along with examples.
-
 Arguments must be separated by commas.
 Invalid arguments result in the field being inserted literally.
 
@@ -53,8 +53,9 @@ Examples:
 The layer name.
 
 Arguments:
-* `%e` If a layer has a recognized file extension, keep the extension.
-* `%i`: If a layer has a recognized file extension that matches the extension in the `File extension` text entry, keep the extension.
+* *file extension strip mode*:
+	* `%e`: If a layer has a recognized file extension, keep the extension.
+	* `%i`: If a layer has a recognized file extension that matches the one in the `File extension` text entry, keep the extension.
 
 Examples:
 * `[layer name]` → `Frame.png`
@@ -84,11 +85,17 @@ Arguments:
 * *wrapper*: A string that wraps around each path component.
   The wrapper must contain `%c` denoting the path component.
   Defaults to `%c`.
+* *file extension strip mode*:
+	* `%e`: If a layer has a recognized file extension, keep the extension.
+	* `%i`: If a layer has a recognized file extension that matches the one in the `File extension` text entry, keep the extension.
 
 Examples:
 * `[layer path]` → `Body-Hands-Left`
 * `[layer path, _]` → `Body_Hands_Left`
 * `[layer path, _, (%c)]` → `(Body)_(Hands)_(Left)`
+* `[layer name, _, (%c), %e]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
+* `[layer name, _, (%c), %i]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
+* `[layer name, _, (%c), %i]` → `Body-Hands-Left` (if the layer name is `Left.png` and the file extension is e.g. `jpg`)
 
 **\[tags\]**
 
@@ -191,6 +198,26 @@ You can add the same procedure multiple times.
 
 ### Built-in Procedures
 
+**Autocrop background**
+
+Automatically crop the background formed by layers tagged with `Background`.
+Note that autocrop is performed on the entire background, not on the background layers individually.
+
+**Autocrop foreground**
+
+Same as `Autocrop background`, but works on the foreground layers instead.
+
+**Ignore folder structure**
+
+Export all layers to the output directory on the same level, i.e. do not create subfolders for layer groups.
+
+**Inherit transparency from layer groups**
+
+Combine opacity from all parent layer groups for each layer.
+This corresponds to how the layer is actually displayed in the image canvas.
+
+For example, if a layer has 50% opacity and its parent group also has 50% opacity, the resulting opacity of the exported layer will be 25%.
+
 **Insert background layers**
 
 Insert layers tagged with `Background` as background for each layer.
@@ -217,29 +244,18 @@ In the dialog, this procedure is always inserted in the first position.
 This prevents potential confusion when `Use layer size` is unchecked and the foreground is offset relative to the layer rather than the image canvas.
 If this is your intention, you can always move this procedure below `Use layer size`.
 
-**Inherit transparency from layer groups**
+**Rename layer**
 
-Combine opacity from all parent layer groups for each layer.
-This corresponds to how the layer is actually displayed in the image canvas.
+Rename a layer according to the specified pattern.
+This procedure is identical to the text entry next to `Save as` as described in [Customizing Layer Names](#customizing-layer-names).
 
-For example, if a layer has 50% opacity and its parent group also has 50% opacity, the resulting opacity of the exported layer will be 25%.
-
-**Autocrop background**
-
-Automatically crop the background formed by layers tagged with `Background`.
-Note that autocrop is performed on the entire background, not on the background layers individually.
-
-**Autocrop foreground**
-
-Same as `Autocrop background`, but works on the foreground layers instead.
-
-**Ignore folder structure**
-
-Export all layers to the output directory on the same level, i.e. do not create subfolders for layer groups.
+This procedure is useful if other custom procedures modify layer names and you need to apply renaming after these procedures.
 
 **Use file extension in layer name**
 
-If a layer has a recognized file extension, use that file extension instead of the file extension in the `File extension` text entry.
+If a layer has a recognized file extension, use that file extension instead of the one in the `File extension` text entry.
+
+You may optionally convert file extensions in layer names to lowercase.
 
 **Use layer size**
 
