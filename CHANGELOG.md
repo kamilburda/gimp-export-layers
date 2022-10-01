@@ -1,6 +1,7 @@
 3.3.2 (upcoming)
 ================
 
+General changes:
 * Fixed a crash while finishing export when using back- or foreground layers.
 * Fixed export when using a custom procedure containing a Color argument.
 * Fixed export of layers with locks (position, alpha channel, etc.). All locks are now ignored during export.
@@ -8,8 +9,15 @@
 * Added an explicit "Rename layer" procedure, overriding the filename pattern for the text field next to "Save as:".
 This allows e.g. retaining the old behavior of "Ignore folder structure".
 * The file extension can now also be specified in uppercase.
+* The file extension text entry now automatically adjusts the text (removing extra leading '.', reverting to the last valid value) upon clicking outside the entry.
+* Renamed `Use file extensions in layer names` to `Use file extension in layer name` for clarity.
+Also added an option to convert file extensions in layer names to lowercase.
 * Removed the .exe installer for Windows.
 * Changed the plug-in license to BSD 3-Clause.
+
+Changes to the filename pattern entry:
+* The `[layer path]` field now strips the file extension by default just like `[layer name]`.
+Added options (same as in `[layer name]`) to allow retaining the old behavior.
 
 
 3.3.1
@@ -18,7 +26,7 @@ This allows e.g. retaining the old behavior of "Ignore folder structure".
 Changes to the filename pattern entry:
 * Reworked tooltips for each field, now containing usage, details and some examples.
 * Explicitly specified tags are no longer sorted alphabetically.
-* Changed the default separator and wrapper for the `Tags` field.
+* Changed the default separator and wrapper for the `[tags]` field.
 * Modified several arguments to use the `%` notation for brevity and consistency.
 * Added a field to specify several layer or image attributes - layer width, height, *x*- and *y*-offsets and image width and height.
 * Added an option to the number field (such as `[001]`) to disable resetting numbering across layer groups.
