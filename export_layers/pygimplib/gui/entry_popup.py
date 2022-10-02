@@ -260,7 +260,7 @@ class EntryPopup(object):
     # text entry.
     self._popup = gtk.Window(type=gtk.WINDOW_POPUP)
     self._popup.set_resizable(False)
-    self._popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_COMBO)
+    self._popup.set_type_hint(gtk.gdk.WINDOW_TYPE_HINT_TOOLTIP)
     self._popup.add(self._scrolled_window)
     
     self._scrolled_window.show_all()
