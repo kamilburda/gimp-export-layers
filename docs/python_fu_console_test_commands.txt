@@ -14,7 +14,7 @@ plugin_dirpath = os.path.join(gimp.directory, 'plug-ins - Export Layers')
 sys.path.append(plugin_dirpath)
 sys.path.append(os.path.join(plugin_dirpath, 'export_layers'))
 sys.path.append(os.path.join(plugin_dirpath, 'export_layers', 'pygimplib'))
-import export_layers.pygimplib
+import export_layers.pygimplib as pg
 from export_layers.pygimplib.tests.setting import test_setting_gui
 
 
