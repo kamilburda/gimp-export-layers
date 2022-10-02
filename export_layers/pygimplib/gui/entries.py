@@ -273,6 +273,7 @@ class FilenamePatternEntry(ExtendedEntry):
     self._field_tooltip_window.set_name('gtk-tooltips')
     
     self._field_tooltip_text = gtk.Label()
+    self._field_tooltip_text.set_selectable(True)
     
     self._field_tooltip_hbox = gtk.HBox(homogeneous=False)
     self._field_tooltip_hbox.pack_start(
