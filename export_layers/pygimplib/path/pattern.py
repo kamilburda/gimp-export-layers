@@ -164,6 +164,20 @@ class StringPattern(object):
   
   @classmethod
   def parse_pattern(cls, pattern, fields=None):
+    """Parses the given string pattern.
+    
+    Optionally, only the specified fields will be parsed. `fields` is a
+    dictionary containing (field regex, function) pairs.
+    
+    The following tuple is returned:
+    * List of parts forming the pattern. The list contains substrings outside
+      fields and parsed fields (the second tuple item).
+    * List of parsed fields. Each parsed field contains the following elements:
+      field name, list of field arguments, the entire field as a string, tuple
+      of (field start position in `pattern`, field end position in `pattern`).
+    * List of parsed fields and matching field regexes, if `fields` is not
+      `None`.
+    """
     index = 0
     start_of_field_index = 0
     last_constant_substring_index = 0
@@ -257,6 +271,13 @@ class StringPattern(object):
   
   @classmethod
   def parse_field(cls, field_str):
+    """Parses the given field as a string.
+    
+    `field_str` must be specified without `[` and `]` at the beginning and end,
+    respectively.
+    
+    A tuple of (field name, list of field arguments) is returned.
+    """
     field_name_end_index = field_str.find(',')
     if field_name_end_index == -1:
       return field_str.strip(), []
