@@ -12,6 +12,7 @@ This allows e.g. retaining the old behavior of "Ignore folder structure", or to 
 * The file extension text entry now automatically adjusts the text (removing extra leading '.', reverting to the last valid value) upon clicking outside the entry.
 * Renamed `Use file extensions in layer names` to `Use file extension in layer name` for clarity.
 Also added an option to convert file extensions in layer names to lowercase.
+* Added outer shadows to pop-ups for the filename pattern entry and the file extension entry for consistency and better visibility.
 * Removed the .exe installer for Windows.
 * Changed the plug-in license to BSD 3-Clause.
 
