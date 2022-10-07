@@ -50,6 +50,9 @@ __all__ = [
 ]
 
 
+ERROR_EXIT_STATUS = 1
+
+
 def display_error_message(
       title=None,
       app_name=None,
@@ -461,3 +464,5 @@ def _gui_excepthook_generic(
     # mess up the application state.
     if gtk.main_level() > 0:
       gtk.main_quit()
+    
+    sys.exit(ERROR_EXIT_STATUS)
