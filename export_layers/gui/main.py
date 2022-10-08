@@ -299,7 +299,6 @@ class ExportLayersDialog(object):
     
     self._finish_init_and_show()
     
-    pg.gui.set_gui_excepthook_parent(self._dialog)
     pg.gui.set_gui_excepthook_additional_callback(
       self._display_inline_message_on_setting_value_error)
     
@@ -358,6 +357,8 @@ class ExportLayersDialog(object):
     self._dialog.set_default_size(*self._DIALOG_SIZE)
     self._dialog.set_border_width(self._DIALOG_BORDER_WIDTH)
     self._dialog.set_default_response(gtk.RESPONSE_CANCEL)
+    
+    pg.gui.set_gui_excepthook_parent(self._dialog)
     
     self._folder_chooser_label = gtk.Label()
     self._folder_chooser_label.set_markup('<b>' + _('Save in folder:') + '</b>')
