@@ -279,7 +279,6 @@ def _generate_translation_file(release_metadata):
     release_metadata.new_version,
     pg.config.DOMAIN_NAME,
     pg.config.AUTHOR_NAME,
-    pg.config.AUTHOR_CONTACT,
   ])
   
   os.chdir(orig_cwd)
