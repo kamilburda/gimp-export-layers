@@ -90,7 +90,7 @@ def resize_to_layer_size(image, layer, layer_exporter):
 
 
 def use_file_extension_in_layer_name(
-      image, layer, layer_exporter, convert_file_extension_to_lowercase):
+      image, layer, layer_exporter, convert_file_extension_to_lowercase=False):
   layer_elem = layer_exporter.current_layer_elem
   
   orig_file_extension = layer_elem.get_file_extension_from_orig_name()
