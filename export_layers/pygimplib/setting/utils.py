@@ -9,6 +9,8 @@ import collections
 import itertools
 
 __all__ = [
+  'SETTING_PATH_SEPARATOR',
+  'SETTING_ATTRIBUTE_SEPARATOR',
   'SettingParentMixin',
   'SettingEventsMixin',
   'get_pdb_name',
