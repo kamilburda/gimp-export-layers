@@ -6,7 +6,6 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: export_layers 2.5\n"
-"Report-Msgid-Bugs-To: khalim19@gmail.com\n"
 "POT-Creation-Date: 2016-04-22 22:59+0200\n"
 "PO-Revision-Date: 2017-09-07 00:03+0200\n"
 "Language-Team: \n"

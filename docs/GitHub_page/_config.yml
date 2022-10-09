@@ -5,7 +5,6 @@ baseurl: "/gimp-plugin-export-layers"
 url: "https://khalim19.github.io"
 repository: "khalim19/gimp-plugin-export-layers"
 github_username: "{% include-config 'AUTHOR_NAME' %}"
-email: "{% include-config 'AUTHOR_CONTACT' %}"
 copyright_years: "{% include-config 'COPYRIGHT_YEARS' %}"
 
 plugin_name: "{% include-config 'PLUGIN_NAME' %}"

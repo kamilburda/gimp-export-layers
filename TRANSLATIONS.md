@@ -100,13 +100,11 @@ OK, I have finished the translation. What next?
 
 You may want to test your translation first to make sure it works correctly, as described in the next section.
 
-It would also be a great idea if you shared your translation with the rest of the world.
-You can do so by submitting your translated .po file in one of the following ways:
+You may also want share your translation with the rest of the world.
+You can do so by submitting your translated .po file as follows:
 
-* Send the .po file to the following email: khalim19 AT gmail DOT com.
-  The translation will be added to the plug-in.
-* Open a git pull request for the [plug-in repository](https://github.com/khalim19/gimp-plugin-export-layers).
-  Create a commit titled `Add [full language name] translation ([language])` (e.g. `Add French translation (fr_FR)`) that adds the translated .po file to the following path:
+1. Open a git pull request for the [plug-in repository](https://github.com/khalim19/gimp-plugin-export-layers).
+2. Create a commit titled `Add [full language name] translation ([language])` (e.g. `Add French translation (fr_FR)`) that adds the translated .po file to the following path:
   
       [repository root]/export_layers/locale/[language]/LC_MESSAGES/gimp-plugin-export-layers.po
   

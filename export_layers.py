@@ -34,7 +34,7 @@ SETTINGS = settings_plugin.create_settings()
 
 @pg.procedure(
   blurb=_('Export layers as separate images'),
-  author='{} <{}>'.format(pg.config.AUTHOR_NAME, pg.config.AUTHOR_CONTACT),
+  author=pg.config.AUTHOR_NAME,
   copyright_notice=pg.config.AUTHOR_NAME,
   date=pg.config.COPYRIGHT_YEARS,
   menu_name=_('E_xport Layers...'),
@@ -65,7 +65,7 @@ def plug_in_export_layers(run_mode, image, *args):
   description=_(
     'If the plug-in is run for the first time (i.e. no last values exist), '
     'default values will be used.'),
-  author='{} <{}>'.format(pg.config.AUTHOR_NAME, pg.config.AUTHOR_CONTACT),
+  author=pg.config.AUTHOR_NAME,
   copyright_notice=pg.config.AUTHOR_NAME,
   date=pg.config.COPYRIGHT_YEARS,
   menu_name=_('E_xport Layers (repeat)'),

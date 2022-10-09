@@ -8,7 +8,6 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 'export_layers' 3.3\n"
-"Report-Msgid-Bugs-To: khalim19@gmail.com\n"
 "POT-Creation-Date: 2019-02-04 15:23+0100\n"
 "PO-Revision-Date: 2019-08-31 14:37+0200\n"
 "Last-Translator: Vinzenz Vietzke <vinz@vinzv.de>\n"

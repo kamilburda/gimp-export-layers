@@ -20,7 +20,6 @@ c.PLUGIN_TITLE = lambda: _('Export Layers')
 c.PLUGIN_VERSION = '3.3.1'
 c.PLUGIN_VERSION_RELEASE_DATE = 'February 04, 2019'
 c.AUTHOR_NAME = 'khalim19'
-c.AUTHOR_CONTACT = 'khalim19@gmail.com'
 c.COPYRIGHT_YEARS = '2013-2022'
 c.PAGE_URL = 'https://khalim19.github.io/gimp-plugin-export-layers'
 c.DOCS_URL = c.PAGE_URL + '/sections'
