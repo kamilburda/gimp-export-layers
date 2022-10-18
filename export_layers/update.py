@@ -122,26 +122,10 @@ def rename_settings(settings_to_rename):
 
 
 def replace_field_arguments_in_pattern(
-      pattern, field_regexes_and_argument_values_and_replacements):
-  
-  def _replace_field_arguments(field_arguments, values_and_replacements):
-    replaced_field_arguments = []
-    
-    for argument in field_arguments:
-      replaced_argument = argument
-      
-      for value, replacement in values_and_replacements:
-        replaced_argument = replaced_argument.replace(value, replacement)
-      
-      replaced_field_arguments.append(replaced_argument)
-    
-    return replaced_field_arguments
-  
+      pattern, field_regexes_arguments_and_replacements, as_lists=False):
   string_pattern = pg.path.StringPattern(
     pattern,
-    fields={
-      field_regex: lambda *args: None
-      for field_regex in field_regexes_and_argument_values_and_replacements})
+    fields={item[0]: lambda *args: None for item in field_regexes_arguments_and_replacements})
   
   processed_pattern_parts = []
   
@@ -150,19 +134,36 @@ def replace_field_arguments_in_pattern(
       processed_pattern_parts.append(part)
     else:
       field_regex = part[0]
-      
-      if field_regex not in field_regexes_and_argument_values_and_replacements:
-        continue
-      
-      field_components = [field_regex]
+      new_arguments = []
       
       if len(part) > 1:
-        field_components.append(
-          _replace_field_arguments(
-            part[1],
-            field_regexes_and_argument_values_and_replacements[field_regex]))
+        if not as_lists:
+          for argument in part[1]:
+            new_argument = argument
+            for item in field_regexes_arguments_and_replacements:
+              if field_regex != item[0]:
+                continue
+              
+              new_argument = re.sub(item[1], item[2], new_argument)
+            
+            new_arguments.append(new_argument)
+        else:
+          new_arguments = list(part[1])
+          
+          for item in field_regexes_arguments_and_replacements:
+            if field_regex != item[0]:
+              continue
+          
+            if len(item[1]) != len(part[1]):
+              continue
+            
+            for i in range(len(item[1])):
+              new_arguments[i] = re.sub(item[1][i], item[2][i], new_arguments[i])
+            
+            for i in range(len(item[1]), len(item[2])):
+              new_arguments.append(item[2][i])
       
-      processed_pattern_parts.append(field_components)
+      processed_pattern_parts.append((field_regex, new_arguments))
   
   return pg.path.StringPattern.reconstruct_pattern(processed_pattern_parts)
 
@@ -191,18 +192,32 @@ def _update_to_3_3_1(settings):
   settings['main/layer_filename_pattern'].set_value(
     replace_field_arguments_in_pattern(
       settings['main/layer_filename_pattern'].value,
-      {
-        'layer name': [('keep extension', '%e'), ('keep only identical extension', '%i')],
-        'image name': [('keep extension', '%e')],
-        'layer path': [('$$', '%c')],
-        'tags': [('$$', '%t')],
-      }))
+      [
+        ['layer name', 'keep extension', '%e'],
+        ['layer name', 'keep only identical extension', '%i']
+        ['image name', 'keep extension', '%e'],
+        ['layer path', r'\$\$', '%c'],
+        ['tags', r'\$\$', '%t'],
+      ]))
   settings['main/layer_filename_pattern'].save()
 
 
 def _update_to_3_3_2(settings):
   _remove_obsolete_pygimplib_files_3_3_2()
   _remove_obsolete_plugin_files_3_3_2()
+  
+  settings['main/layer_filename_pattern'].load()
+  settings['main/layer_filename_pattern'].set_value(
+    replace_field_arguments_in_pattern(
+      settings['main/layer_filename_pattern'].value,
+      [
+        ['layer path', [r'(.*)', r'(.*)'], [r'\1', r'\1', '%e']],
+        ['layer path', [r'(.*)'], [r'\1', '%c', '%e']],
+        ['layer path', [], ['-', '%c', '%e']],
+      ],
+      as_lists=True,
+    ))
+  settings['main/layer_filename_pattern'].save()
   
   settings['main/procedures'].load()
   settings['main/constraints'].load()

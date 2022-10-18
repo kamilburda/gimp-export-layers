@@ -213,18 +213,19 @@ class TestReplaceFieldArgumentsInPattern(unittest.TestCase):
   
   @parameterized.parameterized.expand([
     ['single_argument_per_field',
-     {'layer name': [('keep extension', '%e')], 'tags': [('$$', '%t')]},
+     [['layer name', r'keep extension', r'%e'], ['tags', r'\$\$', r'%t']],
      '[layer name, keep extension]_[layer name]_[tags, _, ($$)]',
      '[layer name, %e]_[layer name]_[tags, _, (%t)]'],
     
     ['multiple_arguments_per_field',
-     {'layer name': [('keep extension', '%e'), ('lowercase', '%l')],
-      'tags': [('$$', '%t')]},
+     [['layer name', r'keep extension', r'%e'],
+      ['layer name', r'lowercase', r'%l'],
+      ['tags', r'\$\$', r'%t']],
      '[layer name, lowercase, keep extension]_[layer name]_[tags, _, ($$)]',
      '[layer name, %l, %e]_[layer name]_[tags, _, (%t)]'],
     
     ['unspecified_fields_remain_unmodified',
-     {'layer name': [('keep extension', '%e')], 'tags': [('$$', '%t')]},
+     [['layer name', r'keep extension', r'%e'], ['tags', r'\$\$', r'%t']],
      '[layer name, keep extension]_[001]_[tags, _, ($$)]',
      '[layer name, %e]_[001]_[tags, _, (%t)]'],
   ])
@@ -232,4 +233,20 @@ class TestReplaceFieldArgumentsInPattern(unittest.TestCase):
         self, test_case_name_suffix, fields_and_replacements, pattern, expected_output):
     self.assertEqual(
       update.replace_field_arguments_in_pattern(pattern, fields_and_replacements),
+      expected_output)
+  
+  @parameterized.parameterized.expand([
+    ['multiple_arguments_per_field',
+     [
+       ['layer path', [r'(.*)', r'(.*)'], [r'\1', r'\1', '%e']],
+       ['layer path', [r'(.*)'], [r'\1', '%c', '%e']],
+       ['layer path', [], ['-', '%c', '%e']],
+     ],
+     '[layer path]_[layer path, _, (%c)]_[tags, _, (%t)]',
+     '[layer path, -, %c, %e]_[layer path, _, (%c), %e]_[tags, _, (%t)]'],
+  ])
+  def test_replace_field_arguments_in_pattern_with_lists(
+        self, test_case_name_suffix, fields_and_replacements, pattern, expected_output):
+    self.assertEqual(
+      update.replace_field_arguments_in_pattern(pattern, fields_and_replacements, as_lists=True),
       expected_output)
