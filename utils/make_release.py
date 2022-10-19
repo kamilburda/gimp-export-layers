@@ -276,6 +276,9 @@ def _update_version_and_release_date_in_config(release_metadata):
 
 
 def _generate_translation_file(release_metadata):
+  if release_metadata.dry_run and not release_metadata.force_make_output:
+    return
+  
   orig_cwd = os.getcwdu()
   os.chdir(pg.config.LOCALE_DIRPATH)
   
@@ -338,7 +341,7 @@ def _prepare_gh_pages_for_update(release_metadata):
 def _make_installers(release_metadata):
   print('Creating installers')
   
-  if release_metadata.dry_run:
+  if release_metadata.dry_run and not release_metadata.force_make_output:
     return
   
   if os.path.isdir(INSTALLERS_OUTPUT_DIRPATH):
@@ -530,6 +533,12 @@ def main():
     default=False,
     help='do not make an actual release, only produce output',
     dest='dry_run')
+  parser.add_argument(
+    '--force-make-output',
+    action='store_true',
+    default=False,
+    help='make installers and translation files even if --dry-run is specified',
+    dest='force_make_output')
   parser.add_argument(
     '-p',
     '--prerelease',
