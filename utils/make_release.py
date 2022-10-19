@@ -44,6 +44,12 @@ from utils import make_installers
 from utils import preprocess_document_contents
 
 
+# HACK: This fixes GitPython throwing errors when the `str` type from the
+# `future` library is not accepted as a string when GitPython calls
+# subprocesses.
+str = unicode
+
+
 GITHUB_PAGE_DIRPATH = os.path.join(PLUGINS_DIRPATH, 'docs', 'gh-pages')
 GITHUB_PAGE_BRANCH = 'gh-pages'
 
