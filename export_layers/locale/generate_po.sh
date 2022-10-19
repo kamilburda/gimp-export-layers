@@ -2,10 +2,10 @@
 
 # This script generates a new .po file from the specified .pot file and language.
 
-PROGNAME="$(basename "$0")"
+SCRIPT_NAME="$(basename -- "$0")"
 
 if [ ! -f "$1" ]; then
-   echo "$PROGNAME: '$1': .pot file not found" 1>&2
+   echo "$SCRIPT_NAME: '$1': .pot file not found" 1>&2
    exit 1
 fi
 
@@ -14,7 +14,7 @@ shift
 
 
 if [ -z "$1" ]; then
-   echo "$PROGNAME: language not specified" 1>&2
+   echo "$SCRIPT_NAME: language not specified" 1>&2
    exit 1
 fi
 
