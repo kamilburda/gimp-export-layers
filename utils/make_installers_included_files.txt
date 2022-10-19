@@ -21,3 +21,4 @@
 !/export_layers/tests/
 !/export_layers/pygimplib/tests/
 !/export_layers/pygimplib/_lib/mock/
+!/export_layers/config_dev.py
