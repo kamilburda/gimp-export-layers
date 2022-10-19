@@ -276,6 +276,8 @@ def _update_version_and_release_date_in_config(release_metadata):
 
 
 def _generate_translation_file(release_metadata):
+  print('Generating .pot file for translations')
+  
   if release_metadata.dry_run and not release_metadata.force_make_output:
     return
   
