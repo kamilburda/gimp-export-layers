@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import collections
 import distutils.util
+import getpass
 import inspect
 import io
 import json
@@ -395,7 +396,7 @@ def _create_github_release(release_metadata):
   }
   
   access_token_header = {
-    'Authorization': 'token {}'.format(release_metadata.github_access_token)}
+    'Authorization': 'token {}'.format(getpass.getpass('Enter your GitHub access token:'))}
   
   response = requests.post(
     releases_url, headers=access_token_header, data=json.dumps(data_dict))
@@ -509,9 +510,6 @@ def main():
     'release_type',
     choices=['major', 'minor', 'patch'],
     help='the type of the new release')
-  parser.add_argument(
-    'github_access_token',
-    help='access token for creating GitHub releases')
   parser.add_argument(
     '-f',
     '--force',
