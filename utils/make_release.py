@@ -503,13 +503,15 @@ class _ReleaseMetadata(object):
 #===============================================================================
 
 
-def main():
+def parse_args(args):
   parser = argparse.ArgumentParser(
     description='Create a new release for the GIMP plug-in.')
+  
   parser.add_argument(
     'release_type',
     choices=['major', 'minor', 'patch'],
     help='the type of the new release')
+  
   parser.add_argument(
     '-f',
     '--force',
@@ -517,6 +519,7 @@ def main():
     default=False,
     help='make release even if the repository contains local changes',
     dest='force')
+  
   parser.add_argument(
     '-i',
     '--installers',
@@ -526,6 +529,7 @@ def main():
     help=(
       'installers to create; see help for "make_installers.py" for more information'),
     dest='installers')
+  
   parser.add_argument(
     '-n',
     '--dry-run',
@@ -533,39 +537,48 @@ def main():
     default=False,
     help='do not make an actual release, only produce output',
     dest='dry_run')
+  
   parser.add_argument(
     '--force-make-output',
     action='store_true',
     default=False,
     help='make installers and translation files even if --dry-run is specified',
     dest='force_make_output')
+  
   parser.add_argument(
     '-p',
     '--prerelease',
     default=None,
     help='pre-release suffix (e.g. "alpha")',
     dest='prerelease')
+  
   parser.add_argument(
     '-r',
     '--remote-name',
     default='origin',
     help='name of remote (defaults to "origin")',
     dest='remote_name')
+  
   parser.add_argument(
     '-b',
     '--remote-branch',
     default='main',
     help='name of the branch (defaults to "main")',
     dest='remote_branch')
+  
   parser.add_argument(
     '-y',
     '--yes',
     action='store_false',
     default=True,
-    help='assume "yes" as answer to all prompts (run non-interactively)',
+    help='assume "yes" as answer to all yes/no prompts',
     dest='interactive')
   
-  parsed_args = parser.parse_args(sys.argv[1:])
+  return parser.parse_args(args)
+
+
+def main():
+  parsed_args = parse_args(sys.argv[1:])
   make_release(**dict(parsed_args.__dict__))
 
 
