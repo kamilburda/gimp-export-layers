@@ -29,7 +29,7 @@ from export_layers.gui import messages
 
 MIN_VERSION_WITHOUT_CLEAN_REINSTALL = pg.version.Version.parse('3.3')
 
-_UPDATE_STATUSES = (FRESH_START, UPDATE, CLEAR_SETTINGS, ABORT) = (0, 1, 2, 3)
+_UPDATE_STATUSES = (FRESH_START, UPDATE, CLEAR_SETTINGS, NO_ACTION, ABORT) = (0, 1, 2, 3, 4)
 
 
 def update(settings, prompt_on_clear=False):
@@ -45,7 +45,10 @@ def update(settings, prompt_on_clear=False):
   
   * `CLEAR_SETTINGS` - An old version of the plug-in (incompatible with the
     changes in later versions) was used that required clearing stored settings.
-    
+  
+  * `NO_ACTION` - No update was performed as the plug-in version remains the
+    same.
+  
   * `ABORT` - No update was performed. This value is returned if the user
     cancelled clearing settings interactively.
   
@@ -64,12 +67,15 @@ def update(settings, prompt_on_clear=False):
   
   if (status == pg.setting.Persistor.READ_FAIL
       and current_version >= pg.version.Version(3, 3, 2)):
-    _fix_module_paths_in_global_parasite_3_3_2()
-  
-  status, unused_ = pg.setting.Persistor.load(
-    [settings['main/plugin_version']], [pg.config.PERSISTENT_SOURCE])
+    _fix_module_paths_in_parasites_3_3_2()
+    
+    status, unused_ = pg.setting.Persistor.load(
+      [settings['main/plugin_version']], [pg.config.PERSISTENT_SOURCE])
   
   previous_version = pg.version.Version.parse(settings['main/plugin_version'].value)
+  
+  if status == pg.setting.Persistor.SUCCESS and previous_version == current_version:
+    return NO_ACTION
   
   if (status == pg.setting.Persistor.SUCCESS
       and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
@@ -96,8 +102,11 @@ def update(settings, prompt_on_clear=False):
     return CLEAR_SETTINGS
 
 
-def clear_setting_sources(settings):
-  pg.setting.Persistor.clear([pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE])
+def clear_setting_sources(settings, sources=None):
+  if sources is None:
+    sources = [pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]
+  
+  pg.setting.Persistor.clear(sources)
   
   _save_plugin_version(settings)
 
@@ -354,23 +363,34 @@ def _remove_obsolete_plugin_files_3_3_2():
       _try_remove_file(filepath)
   
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'operations.py'))
+  _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'operations.pyc'))
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'gui', 'operations.py'))
+  _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'gui', 'operations.pyc'))
 
 
-def _fix_module_paths_in_global_parasite_3_3_2():
-  parasite = gimp.parasite_find('plug_in_export_layers')
-  if parasite is not None:
-    paths_to_rename = [
-      (b'export_layers.pygimplib.pgsetting', b'export_layers.pygimplib.setting'),
-      (b'export_layers.pygimplib.pgutils', b'export_layers.pygimplib.utils'),
-    ]
-    
-    new_data = parasite.data
+def _fix_module_paths_in_parasites_3_3_2():
+  key = b'plug_in_export_layers'
+  paths_to_rename = [
+    (b'export_layers.pygimplib.pgsetting', b'export_layers.pygimplib.setting'),
+    (b'export_layers.pygimplib.pgutils', b'export_layers.pygimplib.utils'),
+  ]
+  
+  persistent_parasite = gimp.parasite_find(key)
+  if persistent_parasite is not None:
+    new_data = persistent_parasite.data
     for old_path, new_path in paths_to_rename:
       new_data = new_data.replace(old_path, new_path)
     
     gimp.parasite_attach(
         gimp.Parasite('plug_in_export_layers', gimpenums.PARASITE_PERSISTENT, new_data))
+  
+  session_parasite = gimp.get_data(key)
+  if session_parasite:
+    new_data = session_parasite
+    for old_path, new_path in paths_to_rename:
+      new_data = new_data.replace(old_path, new_path)
+    
+    gimp.set_data(key, new_data)
 
 
 _UPDATE_HANDLERS = collections.OrderedDict([
