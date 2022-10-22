@@ -105,12 +105,13 @@ def _make_release(release_metadata):
   print('Active branch:', release_metadata.repo.active_branch.name)
   
   release_metadata.new_version = _get_next_version(release_metadata)
-  release_metadata.access_token = _get_access_token(release_metadata)
   
   _check_if_tag_with_new_version_already_exists(release_metadata)
   
   if release_metadata.interactive:
     _prompt_to_proceed()
+  
+  release_metadata.access_token = _get_access_token(release_metadata)
   
   _get_release_notes_and_modify_changelog_first_header(release_metadata)
   
