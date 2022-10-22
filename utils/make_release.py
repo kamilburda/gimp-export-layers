@@ -105,6 +105,7 @@ def _make_release(release_metadata):
   print('Active branch:', release_metadata.repo.active_branch.name)
   
   release_metadata.new_version = _get_next_version(release_metadata)
+  release_metadata.access_token = _get_access_token(release_metadata)
   
   _check_if_tag_with_new_version_already_exists(release_metadata)
   
@@ -177,6 +178,13 @@ def _get_next_version(release_metadata):
   print('New version:', str(ver))
   
   return str(ver)
+
+
+def _get_access_token(release_metadata):
+  if release_metadata.dry_run:
+    return None
+  
+  return getpass.getpass('Enter your GitHub access token:')
 
 
 def _prompt_to_proceed():
@@ -396,7 +404,9 @@ def _create_github_release(release_metadata):
   }
   
   access_token_header = {
-    'Authorization': 'token {}'.format(getpass.getpass('Enter your GitHub access token:'))}
+    'Accept': 'application/vnd.github+json',
+    'Authorization': 'Bearer {}'.format(release_metadata.access_token),
+  }
   
   response = requests.post(
     releases_url, headers=access_token_header, data=json.dumps(data_dict))
