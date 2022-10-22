@@ -14,12 +14,12 @@ next_doc_title: Customizing Export
 Basic Usage
 -----------
 
-Open your image in GIMP and select "File → Export Layers...".
+Open your image in GIMP and select `File → Export Layers...`.
 A dialog that appears allows you to choose the output folder and file extension.
 
 ![Dialog for basic usage of Export Layers](../images/screenshot_dialog_basic_usage.png)
 
-To export layers, press the "Export" button.
+To export layers, press the `Export` button.
 A dialog corresponding to the file format appears, allowing you to adjust export settings.
 Some file formats do not display dialogs, while some display the dialog for each layer (this cannot be prevented because such a file format only allows an interactive export).
 
@@ -27,13 +27,13 @@ Some file formats do not display dialogs, while some display the dialog for each
 Repeating Last Export
 ---------------------
 
-If you made changes to your image and you want to export again with the same settings, you can do so simply by running "File → Export Layers (repeat)".
+If you made changes to your image and you want to export again with the same settings, you can do so simply by running `File → Export Layers (repeat)`.
 
 
 Changing File Extension
 -----------------------
 
-Type or choose your desired file extension in the "File extension" text entry.
+Type or choose your desired file extension in the `File extension` text entry.
 The dropdown list displays available file formats alongside their associated file extensions.
 If a file format contains multiple file extensions, the first is selected by default, but you may also choose from the other extensions (by clicking or pressing Tab).
 
@@ -52,7 +52,7 @@ You can also adjust the height of the previewed image by dragging the separator 
 
 If the previewed image takes too long to render, the preview is no longer updated automatically.
 A button next to the arrow button above the image is displayed that allows you to manually update the image.
-To switch between automatic and manual update, click on the arrow button and select "Update Preview Automatically".
+To switch between automatic and manual update, click on the arrow button and select `Update Preview Automatically`.
 
 
 Managing Settings
@@ -61,9 +61,9 @@ Managing Settings
 After a successful export, your settings (output folder, file extension, dialog position and size, etc.) are preserved while GIMP is running.
 If you close GIMP, the settings will be reset.
 
-To save settings permanently, press the "Settings" button and choose "Save Settings".
+To save settings permanently, press the `Settings` button and choose `Save Settings`.
 
-To reset settings to their default values, press the "Settings" button and choose "Reset Settings".
+To reset settings to their default values, press the `Settings` button and choose `Reset Settings`.
 
 
 More Customization

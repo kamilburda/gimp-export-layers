@@ -11,33 +11,46 @@ If you want to provide translations for Export Layers, it is recommended to use 
 How do I translate the plug-in?
 -------------------------------
 
+First, make sure you use the `gimp-plugin-export-layers.pot` file for the latest plug-in version.
+Either use the .pot file in the `export_layers/locale` folder (inside the folder with the installed plug-in), or, if in doubt, [download the latest version](https://github.com/khalim19/gimp-plugin-export-layers/blob/main/export_layers/locale/gimp-plugin-export-layers.pot).
+
+
 ### Poedit
 
 The following steps apply if you want to use Poedit.
 
+
+#### Creating a New Translation
+
 To create a new translation for your language:
 
-1. Open Poedit, select "File → New from POT/PO file..." and select the .pot file in the "export_layers/locale" folder.
+1. Open Poedit, select `File → New from POT/PO file...` and select the `gimp-plugin-export-layers.pot` file in the `export_layers/locale` folder.
 2. Set the language of the translation.
-3. Translate the strings (by filling in the "Translation" text field for each string).
-4. If desired, go to "Catalog → Properties..." and edit the translation file properties.
-If you don't do this, warning messages may pop up when saving, but they should be harmless.
-5. When done, save the .po file.
+3. Translate the strings (by filling in the `Translation` text field for each string).
+4. If desired, go to `Catalog → Properties...` and edit the translation file properties.
+   If you don't do this, warning messages may pop up when saving, but they should be harmless.
+5. When done, save your .po file.
 
-If you spotted some translation errors in the .po file or the plug-in is updated since the last translation was made, you may need to update the translation:
 
-1. Open the .po file, select "Catalog → Update from POT file..." and find the .pot file.
+#### Updating an Existing Translation
+
+If you spotted some translation errors in your .po file or the plug-in was updated since the last translation was made, you may need to update the translation:
+
+1. Open your .po file, select `Catalog → Update from POT file...` and select the `gimp-plugin-export-layers.pot` file for the latest plug-in version.
 2. Update the translated strings.
-   In case the plug-in was updated, update is necessary if:
-   * new strings were defined in the .pot file,
-   * existing strings in the .pot file were modified and thus the translated strings may no longer be up-to-date.
-     These strings have a so-called "fuzzy" translation and have a different color than other strings.
-     If you don't correct the fuzzy strings, they will show up untranslated in the plug-in.
+   Make sure to check for:
+   * new strings,
+   * existing strings that were updated in the plug-in.
+     Such strings may no longer be up-to-date and have a so-called "fuzzy" translation (and have a different color than other strings).
+     Fuzzy strings that are not corrected will show up in the plug-in untranslated.
 
 
 ### Terminal
 
 If you don't want to use Poedit, you may use the terminal on Linux (or a Unix-like environment for Windows, such as Cygwin).
+
+
+#### Creating a New Translation
 
 To create a new translation for your language:
 
@@ -47,7 +60,7 @@ To create a new translation for your language:
    
        sudo apt-get install gettext
    
-2. Find the .pot file in the "export_layers/locale" folder.
+2. Find the .pot file in the `export_layers/locale` folder.
 3. Open up terminal and run
    
        cd [folder where you extracted the package]/export_layers/locale
@@ -57,13 +70,16 @@ To create a new translation for your language:
    
    `[language]` represents your language in the format `ll_CC`.
    `ll` is the language code and `CC` is the country code.
-   For example, the French language is represented as "fr_FR".
+   For example, the French language is represented as `fr_FR`.
    If in doubt, you can consult the list of available language and country codes on the following pages:
-   * https://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html
-   * https://www.gnu.org/software/gettext/manual/html_node/Rare-Language-Codes.html
-   * https://www.gnu.org/software/gettext/manual/html_node/Country-Codes.html
+   * [Usual Language Codes](https://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html)
+   * [Rare Language Codes](https://www.gnu.org/software/gettext/manual/html_node/Rare-Language-Codes.html)
+   * [Country Codes](https://www.gnu.org/software/gettext/manual/html_node/Country-Codes.html)
    
 4. Open the .po file in a text editor and translate each string in the `msgid` field to a string in the corresponding `msgstr` field.
+
+
+#### Updating an Existing Translation
 
 If you spotted some translation errors in the .po file or the plug-in is updated since the last translation was made, you may need to update the translation:
 
@@ -72,15 +88,15 @@ If you spotted some translation errors in the .po file or the plug-in is updated
        cd [folder where you extracted the package]/export_layers/locale
        ./update_po.sh [path to .po file] [path to .pot file]
    
-   The old .po file is preserved and has ".po.old" file extension.
+   The old .po file is preserved and has the `.po.old` file extension.
    
 2. Open the .po file in a text editor and update the translated strings.
-   In case the plug-in was updated, translation update is necessary if:
-   * new strings were defined in the .pot file,
-   * existing strings in the .pot file were modified and thus the translated strings may no longer be up-to-date.
-     These strings have a so-called "fuzzy" translation.
-     Above each of these strings is a `, fuzzy` comment.
-     Once you updated the translated string, make sure to remove the `, fuzzy` comment, otherwise the string will show up untranslated in the plug-in.
+   Make sure to check for:
+   * new strings,
+   * existing strings that were updated in the plug-in.
+     Such strings may no longer be up-to-date and have a so-called "fuzzy" translation.
+     Fuzzy strings are marked with a `, fuzzy` comment above them.
+     Once you update the translated string, make sure to remove the `, fuzzy` comment, otherwise the string will show up untranslated in the plug-in.
 
 
 OK, I have finished the translation. What next?
@@ -88,13 +104,11 @@ OK, I have finished the translation. What next?
 
 You may want to test your translation first to make sure it works correctly, as described in the next section.
 
-It would also be a great idea if you shared your translation with the rest of the world.
-You can do so by submitting your translated .po file in one of the following ways:
+You may also want share your translation with the rest of the world.
+You can do so by submitting your translated .po file as follows:
 
-* Send the .po file to the following email: khalim19 AT gmail DOT com.
-  The translation will be added to the plug-in.
-* Open a git pull request for the [plug-in repository](https://github.com/khalim19/gimp-plugin-export-layers).
-  Create a commit titled `Add [full language name] translation ([language])` (e.g. `Add French translation (fr_FR)`) that adds the translated .po file to the following path:
+1. Open a git pull request for the [plug-in repository](https://github.com/khalim19/gimp-plugin-export-layers).
+2. Create a commit titled `Add [full language name] translation ([language])` (e.g. `Add French translation (fr_FR)`) that adds the translated .po file to the following path:
   
       [repository root]/export_layers/locale/[language]/LC_MESSAGES/gimp-plugin-export-layers.po
   
@@ -118,7 +132,7 @@ Move and rename the .mo file to
     [GIMP plug-ins folder]/export_layers/locale/[language]/LC_MESSAGES/gimp-plugin-export-layers.mo
    
 where `[language]` is the language in which you translated the plug-in.
-`[language]` is a part of the .po file, e.g. for a file named "fr_FR.po", the language is "fr_FR".
+`[language]` is a part of the .po file, e.g. for a file named `fr_FR.po`, the language is `fr_FR`.
 
 #### Terminal
 

@@ -4,8 +4,8 @@ title: Release Notes
 navbar_active_tab: docs
 ---
 
-3.3.2 (upcoming)
-================
+3.3.2
+=====
 
 General changes:
 * Fixed a crash while finishing export when using back- or foreground layers.
