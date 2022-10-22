@@ -57,6 +57,7 @@ GITHUB_PAGE_BRANCH = 'gh-pages'
 VERSION_STRING_FORMAT = 'major.minor[.patch[-prerelease[.patch]]]'
 
 PLUGIN_CONFIG_FILEPATH = os.path.join(PLUGIN_SUBDIRPATH, 'config.py')
+PLUGIN_CONFIG_DEV_FILEPATH = os.path.join(PLUGIN_SUBDIRPATH, 'config_dev.py')
 CHANGELOG_FILEPATH = os.path.join(PLUGINS_DIRPATH, 'CHANGELOG.md')
 
 INSTALLERS_OUTPUT_DIRPATH = make_installers.OUTPUT_DIRPATH_DEFAULT
@@ -115,7 +116,9 @@ def _make_release(release_metadata):
   
   _get_release_notes_and_modify_changelog_first_header(release_metadata)
   
-  _update_version_and_release_date_in_config(release_metadata)
+  _update_version_and_release_date_in_config(release_metadata, PLUGIN_CONFIG_FILEPATH)
+  if os.path.isfile(PLUGIN_CONFIG_DEV_FILEPATH):
+    _update_version_and_release_date_in_config(release_metadata, PLUGIN_CONFIG_DEV_FILEPATH)
   
   _generate_translation_file(release_metadata)
   
@@ -240,25 +243,22 @@ def _get_release_notes_and_modify_changelog_first_header(release_metadata):
       file_.write(changelog_contents)
 
 
-def _update_version_and_release_date_in_config(release_metadata):
-  new_version = release_metadata.new_version
-  new_release_date = time.strftime('%B %d, %Y', time.gmtime())
-  
-  pg.config.PLUGIN_VERSION = new_version
-  pg.config.PLUGIN_VERSION_RELEASE_DATE = new_release_date
+def _update_version_and_release_date_in_config(release_metadata, plugin_config_filepath):
+  pg.config.PLUGIN_VERSION = release_metadata.new_version
+  pg.config.PLUGIN_VERSION_RELEASE_DATE = release_metadata.new_version_release_date
   
   entries_to_modify = collections.OrderedDict([
-    ('PLUGIN_VERSION', new_version),
-    ('PLUGIN_VERSION_RELEASE_DATE', new_release_date)])
+    ('PLUGIN_VERSION', release_metadata.new_version),
+    ('PLUGIN_VERSION_RELEASE_DATE', release_metadata.new_version_release_date)])
   
   print('Modifying the following entries in file "{}": {}'.format(
-    PLUGIN_CONFIG_FILEPATH, ', '.join(entries_to_modify)))
+    plugin_config_filepath, ', '.join(entries_to_modify)))
   
   if release_metadata.dry_run:
     return
   
   with io.open(
-         PLUGIN_CONFIG_FILEPATH, 'r', encoding=pg.TEXT_FILE_ENCODING) as config_file:
+         plugin_config_filepath, 'r', encoding=pg.TEXT_FILE_ENCODING) as config_file:
     lines = config_file.readlines()
   
   def get_entry_pattern(entry):
@@ -278,10 +278,10 @@ def _update_version_and_release_date_in_config(release_metadata):
   
   if entries_to_find:
     _print_error_and_exit('Error: missing the following entries in file "{}": {}'.format(
-      PLUGIN_CONFIG_FILEPATH, ', '.join(entries_to_find)))
+      plugin_config_filepath, ', '.join(entries_to_find)))
   
   with io.open(
-         PLUGIN_CONFIG_FILEPATH, 'w', encoding=pg.TEXT_FILE_ENCODING) as config_file:
+         plugin_config_filepath, 'w', encoding=pg.TEXT_FILE_ENCODING) as config_file:
     config_file.writelines(lines)
 
 
@@ -477,6 +477,7 @@ class _ReleaseMetadata(object):
     
     self.new_version = None
     self.new_version_release_notes = ''
+    self.new_version_release_date = time.strftime('%B %d, %Y', time.gmtime())
     
     self._last_commit_id_before_release = self._repo.git.rev_parse('HEAD')
     self._last_gh_pages_commit_id_before_release = (
