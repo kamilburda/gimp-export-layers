@@ -1,3 +1,10 @@
+3.3.3 (upcoming)
+================
+
+* Fixed a fatal bug preventing the plug-in from starting.
+* Improved safeguards against empty fields in the GUI that could possibly cause the plug-in to crash.
+
+
 3.3.2
 =====
 
