@@ -22,10 +22,10 @@ from export_layers import update
 
 
 @mock.patch(
-  pg.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimpshelf.shelf',
+  pg.utils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
   new_callable=stubs_gimp.ShelfStub)
 @mock.patch(
-  pg.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimp',
+  pg.utils.get_pygimplib_module_path() + '.setting.sources.gimp',
   new_callable=stubs_gimp.GimpModuleStub)
 @mock.patch('export_layers.update.handle_update')
 @mock.patch('export_layers.gui.messages.display_message')

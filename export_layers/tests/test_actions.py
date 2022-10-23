@@ -531,10 +531,10 @@ class TestWalkActions(unittest.TestCase):
 
 
 @mock.patch(
-  pg.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimpshelf.shelf',
+  pg.utils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
   new_callable=stubs_gimp.ShelfStub)
 @mock.patch(
-  pg.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimp',
+  pg.utils.get_pygimplib_module_path() + '.setting.sources.gimp',
   new_callable=stubs_gimp.GimpModuleStub)
 class TestLoadSaveActions(unittest.TestCase):
   
@@ -543,10 +543,10 @@ class TestLoadSaveActions(unittest.TestCase):
     self.procedures = actions.create('procedures')
   
   @mock.patch(
-    pg.PYGIMPLIB_MODULE_PATH + '.setting.persistor.Persistor.save',
+    pg.utils.get_pygimplib_module_path() + '.setting.persistor.Persistor.save',
     return_value=(pg.setting.Persistor.SUCCESS, ''))
   @mock.patch(
-    pg.PYGIMPLIB_MODULE_PATH + '.setting.persistor.Persistor.load',
+    pg.utils.get_pygimplib_module_path() + '.setting.persistor.Persistor.load',
     return_value=(pg.setting.Persistor.SUCCESS, ''))
   def test_save_load_affects_only_added_data(
         self, mock_load, mock_save, mock_persistent_source, mock_session_source):
@@ -746,10 +746,10 @@ class TestManagePdbProceduresAsActions(unittest.TestCase):
     self.assertEqual(action['arguments/num-save-options'].value, 0)
   
   @mock.patch(
-    pg.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimpshelf.shelf',
+    pg.utils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
     new_callable=stubs_gimp.ShelfStub)
   @mock.patch(
-    pg.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimp',
+    pg.utils.get_pygimplib_module_path() + '.setting.sources.gimp',
     new_callable=stubs_gimp.GimpModuleStub)
   def test_load_save_pdb_procedure_as_action(
         self, mock_persistent_source, mock_session_source):
