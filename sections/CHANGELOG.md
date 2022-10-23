@@ -4,8 +4,8 @@ title: Release Notes
 navbar_active_tab: docs
 ---
 
-3.3.3 (upcoming)
-================
+3.3.3
+=====
 
 * Fixed a fatal bug preventing the plug-in from starting.
 * Improved safeguards against empty fields in the GUI that could possibly cause the plug-in to crash.
