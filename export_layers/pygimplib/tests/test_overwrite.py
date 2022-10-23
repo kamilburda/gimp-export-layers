@@ -7,8 +7,8 @@ import unittest
 
 import mock
 
-from .. import constants as pgconstants
 from .. import overwrite as pgoverwrite
+from .. import utils as pgutils
 
 
 class InteractiveOverwriteChooserStub(pgoverwrite.InteractiveOverwriteChooser):
@@ -65,7 +65,7 @@ class TestHandleOverwrite(unittest.TestCase):
     self.overwrite_chooser = pgoverwrite.NoninteractiveOverwriteChooser(
       pgoverwrite.OverwriteModes.REPLACE)
   
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + '.overwrite.os.path.exists')
+  @mock.patch(pgutils.get_pygimplib_module_path() + '.overwrite.os.path.exists')
   def test_handle_overwrite_file_exists(self, mock_os_path_exists):
     mock_os_path_exists.return_value = True
     
@@ -73,7 +73,7 @@ class TestHandleOverwrite(unittest.TestCase):
       pgoverwrite.handle_overwrite(self.filepath, self.overwrite_chooser),
       (self.overwrite_chooser.overwrite_mode, self.filepath))
   
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + '.overwrite.os.path.exists')
+  @mock.patch(pgutils.get_pygimplib_module_path() + '.overwrite.os.path.exists')
   def test_handle_overwrite_file_does_not_exist(self, mock_os_path_exists):
     mock_os_path_exists.return_value = False
     

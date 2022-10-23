@@ -7,7 +7,7 @@ import unittest
 
 import mock
 
-from ... import constants as pgconstants
+from ... import utils as pgutils
 
 from ...setting import settings as settings_
 from ...setting import sources as sources_
@@ -17,12 +17,12 @@ from . import stubs_group
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimpshelf.shelf',
+  pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
   new_callable=stubs_gimp.ShelfStub)
 class TestSessionSource(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimpshelf.shelf',
+    pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
     new=stubs_gimp.ShelfStub())
   def setUp(self):
     self.source_name = 'test_settings'
@@ -75,7 +75,7 @@ class TestSessionSource(unittest.TestCase):
   
   def test_read_settings_invalid_format(self, mock_session_source):
     with mock.patch(
-           pgconstants.PYGIMPLIB_MODULE_PATH
+           pgutils.get_pygimplib_module_path()
            + '.setting.sources.gimpshelf.shelf') as temp_mock_session_source:
       temp_mock_session_source.__getitem__.side_effect = Exception
       
@@ -107,12 +107,12 @@ class TestSessionSource(unittest.TestCase):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimp',
+  pgutils.get_pygimplib_module_path() + '.setting.sources.gimp',
   new_callable=stubs_gimp.GimpModuleStub)
 class TestPersistentSource(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimp.directory',
+    pgutils.get_pygimplib_module_path() + '.setting.sources.gimp.directory',
     new='gimp_directory')
   def setUp(self):
     self.source_name = 'test_settings'
@@ -198,15 +198,15 @@ class TestPersistentSource(unittest.TestCase):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimpshelf.shelf',
+  pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
   new_callable=stubs_gimp.ShelfStub)
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimp',
+  pgutils.get_pygimplib_module_path() + '.setting.sources.gimp',
   new_callable=stubs_gimp.GimpModuleStub)
 class TestSourceReadWriteDict(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimp.directory',
+    pgutils.get_pygimplib_module_path() + '.setting.sources.gimp.directory',
     new='gimp_directory')
   def setUp(self):
     self.source_name = 'test_settings'

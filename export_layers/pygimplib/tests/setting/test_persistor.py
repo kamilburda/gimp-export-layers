@@ -7,7 +7,7 @@ import unittest
 
 import mock
 
-from ... import constants as pgconstants
+from ... import utils as pgutils
 
 from ...setting import persistor as persistor_
 from ...setting import sources as sources_
@@ -17,18 +17,18 @@ from . import stubs_group
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimpshelf.shelf',
+  pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
   new_callable=stubs_gimp.ShelfStub)
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimp',
+  pgutils.get_pygimplib_module_path() + '.setting.sources.gimp',
   new_callable=stubs_gimp.GimpModuleStub)
 class TestPersistor(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimpshelf.shelf',
+    pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
     new=stubs_gimp.ShelfStub())
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimp.directory',
+    pgutils.get_pygimplib_module_path() + '.setting.sources.gimp.directory',
     new='gimp_directory')
   def setUp(self):
     self.settings = stubs_group.create_test_settings()
@@ -117,7 +117,7 @@ class TestPersistor(unittest.TestCase):
   
   def test_load_write_fail(self, mock_persistent_source, mock_session_source):
     with mock.patch(
-           pgconstants.PYGIMPLIB_MODULE_PATH
+           pgutils.get_pygimplib_module_path()
            + '.setting.sources.gimp') as temp_mock_persistent_source:
       temp_mock_persistent_source.parasite_find.side_effect = sources_.SourceWriteError
       status, unused_ = persistor_.Persistor.save(

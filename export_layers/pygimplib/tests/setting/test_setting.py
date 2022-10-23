@@ -14,7 +14,7 @@ import gimpenums
 import mock
 import parameterized
 
-from ... import constants as pgconstants
+from ... import utils as pgutils
 from ... import path as pgpath
 
 from ...setting import persistor as persistor_
@@ -158,7 +158,7 @@ class TestSetting(unittest.TestCase):
     ('parameter_matching_a_default_source',
      ['one', 'two'], ['one'], True, ['one']),
   ])
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.persistor.Persistor.load')
+  @mock.patch(pgutils.get_pygimplib_module_path() + '.setting.persistor.Persistor.load')
   def test_load(
         self,
         test_case_name_suffix,
@@ -191,7 +191,7 @@ class TestSetting(unittest.TestCase):
     ('parameter_matching_a_default_source',
      ['one', 'two'], ['one'], True, ['one']),
   ])
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.persistor.Persistor.save')
+  @mock.patch(pgutils.get_pygimplib_module_path() + '.setting.persistor.Persistor.save')
   def test_save(
         self,
         test_case_name_suffix,
@@ -286,12 +286,12 @@ class TestSettingEvents(unittest.TestCase):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimpshelf.shelf',
+  pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
   new_callable=stubs_gimp.ShelfStub)
 class TestSettingLoadSaveEvents(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.sources.gimpshelf.shelf',
+    pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
     new=stubs_gimp.ShelfStub())
   def setUp(self):
     self.setting = stubs_setting.SettingWithGuiStub('file_extension', 'png')
@@ -344,7 +344,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
       'after-load', stubs_setting.on_file_extension_changed, self.only_visible_layers)
     
     with mock.patch(
-           pgconstants.PYGIMPLIB_MODULE_PATH
+           pgutils.get_pygimplib_module_path()
            + '.setting.sources.gimpshelf.shelf') as temp_mock_session_source:
       temp_mock_session_source.__getitem__.side_effect = sources_.SourceReadError
       persistor_.Persistor.load([self.setting], [self.session_source])
@@ -392,7 +392,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
       'after-save', stubs_setting.on_file_extension_changed, self.only_visible_layers)
     
     with mock.patch(
-           pgconstants.PYGIMPLIB_MODULE_PATH
+           pgutils.get_pygimplib_module_path()
            + '.setting.sources.gimpshelf.shelf') as temp_mock_session_source:
       temp_mock_session_source.__setitem__.side_effect = sources_.SourceWriteError
       persistor_.Persistor.save([self.setting], [self.session_source])
@@ -782,7 +782,7 @@ class TestEnumSetting(unittest.TestCase):
 class TestImageSetting(unittest.TestCase):
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.settings.pdb', new=stubs_gimp.PdbStub())
+    pgutils.get_pygimplib_module_path() + '.setting.settings.pdb', new=stubs_gimp.PdbStub())
   def test_set_invalid_image(self):
     pdb = stubs_gimp.PdbStub()
     image = pdb.gimp_image_new(2, 2, gimpenums.RGB)
@@ -794,7 +794,7 @@ class TestImageSetting(unittest.TestCase):
       setting.set_value(image)
   
   @mock.patch(
-    pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.settings.pdb', new=stubs_gimp.PdbStub())
+    pgutils.get_pygimplib_module_path() + '.setting.settings.pdb', new=stubs_gimp.PdbStub())
   def test_empty_value_as_default_value(self):
     try:
       settings_.ImageSetting('image', None)
@@ -933,7 +933,7 @@ class TestImageIDsAndDirpathsSetting(unittest.TestCase):
       self._create_image_list([(5, '/test/new_image.png'), (6, None)]))
     
     with mock.patch(
-           pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.settings.gimp.image_list',
+           pgutils.get_pygimplib_module_path() + '.setting.settings.gimp.image_list',
            new=self.get_image_list):
       self.setting.update_image_ids_and_dirpaths()
     
@@ -944,7 +944,7 @@ class TestImageIDsAndDirpathsSetting(unittest.TestCase):
     self.image_list.pop(1)
     
     with mock.patch(
-           pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.settings.gimp.image_list',
+           pgutils.get_pygimplib_module_path() + '.setting.settings.gimp.image_list',
            new=self.get_image_list):
       self.setting.update_image_ids_and_dirpaths()
     

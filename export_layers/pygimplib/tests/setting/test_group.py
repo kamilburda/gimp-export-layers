@@ -8,7 +8,7 @@ import unittest
 import mock
 import parameterized
 
-from ... import constants as pgconstants
+from ... import utils as pgutils
 
 from ...setting import group as group_
 from ...setting import persistor as persistor_
@@ -623,10 +623,10 @@ class TestGroupHierarchical(unittest.TestCase):
 
 
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.persistor.Persistor.save',
+  pgutils.get_pygimplib_module_path() + '.setting.persistor.Persistor.save',
   return_value=(persistor_.Persistor.SUCCESS, ''))
 @mock.patch(
-  pgconstants.PYGIMPLIB_MODULE_PATH + '.setting.persistor.Persistor.load',
+  pgutils.get_pygimplib_module_path() + '.setting.persistor.Persistor.load',
   return_value=(persistor_.Persistor.SUCCESS, ''))
 class TestGroupLoadSave(unittest.TestCase):
   

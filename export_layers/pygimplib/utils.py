@@ -121,6 +121,11 @@ def get_module_root(full_module_name, name_component_to_trim_after):
     return full_module_name
 
 
+def get_pygimplib_module_path():
+  """Returns the absolute module path to the root of the pygimplib library."""
+  return get_module_root(__name__, 'pygimplib')
+
+
 def get_current_module_filepath():
   """
   Get the full path name of the module this function is called from.

@@ -10,8 +10,8 @@ import unittest
 import mock
 import parameterized
 
-from .. import constants as pgconstants
 from .. import logging as pglogging
+from .. import utils as pgutils
 
 
 class TestCreateLogFile(unittest.TestCase):
@@ -32,8 +32,8 @@ class TestCreateLogFile(unittest.TestCase):
     ('invalid_file',
      IOError(), [None, None], None, 2),
   ])
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + '.logging._path_dirs.make_dirs')
-  @mock.patch(pgconstants.PYGIMPLIB_MODULE_PATH + '.logging.io.open')
+  @mock.patch(pgutils.get_pygimplib_module_path() + '.logging._path_dirs.make_dirs')
+  @mock.patch(pgutils.get_pygimplib_module_path() + '.logging.io.open')
   def test_create_log_file(
         self,
         test_case_name_suffix,
