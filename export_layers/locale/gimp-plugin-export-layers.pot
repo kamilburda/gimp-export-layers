@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: 'export_layers' 3.3.2\n"
+"Project-Id-Version: 'export_layers' 3.3.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-22 19:52+0200\n"
+"POT-Creation-Date: 2022-10-23 10:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -142,11 +142,11 @@ msgid ""
 "of the sites below"
 msgstr ""
 
-#: ../../export_layers/gui/actions.py:442
+#: ../../export_layers/gui/actions.py:441
 msgid "_Reset"
 msgstr ""
 
-#: ../../export_layers/gui/actions.py:549
+#: ../../export_layers/gui/actions.py:548
 msgid "Cannot modify this parameter"
 msgstr ""
 
@@ -176,89 +176,89 @@ msgstr ""
 msgid "Remove procedures and constraints"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:364
+#: ../../export_layers/gui/main.py:363
 msgid "Save in folder:"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:382
+#: ../../export_layers/gui/main.py:381
 msgid "Preview"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:414
+#: ../../export_layers/gui/main.py:413
 msgid "Save as"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:464
+#: ../../export_layers/gui/main.py:463
 msgid "Add P_rocedure..."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:465
+#: ../../export_layers/gui/main.py:464
 msgid "Edit Procedure"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:466
+#: ../../export_layers/gui/main.py:465
 msgid "Add Custom Procedure..."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:471
+#: ../../export_layers/gui/main.py:470
 msgid "Add C_onstraint..."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:472
+#: ../../export_layers/gui/main.py:471
 msgid "Edit Constraint"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:500
+#: ../../export_layers/gui/main.py:499
 msgid "_Export"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:504
+#: ../../export_layers/gui/main.py:503
 msgid "_Cancel"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:510 ../../export_layers/gui/main.py:966
+#: ../../export_layers/gui/main.py:509 ../../export_layers/gui/main.py:965
 msgid "_Stop"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:513
+#: ../../export_layers/gui/main.py:512
 msgid "_Settings"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:525
+#: ../../export_layers/gui/main.py:524
 msgid "Show More Settings"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:526
+#: ../../export_layers/gui/main.py:525
 msgid "Save Settings"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:527
+#: ../../export_layers/gui/main.py:526
 msgid "Reset settings"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:541
+#: ../../export_layers/gui/main.py:540
 msgid "_Help"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:741
+#: ../../export_layers/gui/main.py:740
 msgid "Disabling automatic preview update."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:742
+#: ../../export_layers/gui/main.py:741
 msgid ""
 "The preview takes too long to update. You may turn automatic updates back on "
 "from the menu above the previewed image."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:759
+#: ../../export_layers/gui/main.py:758
 msgid "Settings successfully saved."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:783
+#: ../../export_layers/gui/main.py:782
 msgid "Settings reset."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:818 ../../export_layers/gui/main.py:1014
+#: ../../export_layers/gui/main.py:817 ../../export_layers/gui/main.py:1013
 msgid "No layers were exported."
 msgstr ""
 
@@ -352,15 +352,15 @@ msgstr ""
 msgid "What would you like to do?"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/parasite_box.py:67
+#: ../../export_layers/pygimplib/gui/parasite_box.py:66
 msgid "Name"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/parasite_box.py:76
+#: ../../export_layers/pygimplib/gui/parasite_box.py:74
 msgid "Flags"
 msgstr ""
 
-#: ../../export_layers/pygimplib/gui/parasite_box.py:86
+#: ../../export_layers/pygimplib/gui/parasite_box.py:83
 msgid "Data"
 msgstr ""
 
@@ -454,89 +454,89 @@ msgstr ""
 msgid "File extension cannot end with a period."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:771
+#: ../../export_layers/pygimplib/setting/settings.py:770
 msgid "Value cannot be less than {}."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:773
+#: ../../export_layers/pygimplib/setting/settings.py:772
 msgid "Value cannot be greater than {}."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:954
+#: ../../export_layers/pygimplib/setting/settings.py:953
 msgid "Invalid item value; valid values: {}"
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1144
+#: ../../export_layers/pygimplib/setting/settings.py:1143
 msgid "Invalid image."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1177
+#: ../../export_layers/pygimplib/setting/settings.py:1176
 msgid "Invalid item."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1210
+#: ../../export_layers/pygimplib/setting/settings.py:1209
 msgid "Invalid drawable."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1243
+#: ../../export_layers/pygimplib/setting/settings.py:1242
 msgid "Invalid layer."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1276
+#: ../../export_layers/pygimplib/setting/settings.py:1275
 msgid "Invalid channel."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1334
+#: ../../export_layers/pygimplib/setting/settings.py:1333
 msgid "Invalid vectors."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1363
+#: ../../export_layers/pygimplib/setting/settings.py:1362
 msgid "Invalid color."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1396
+#: ../../export_layers/pygimplib/setting/settings.py:1395
 msgid "Invalid display."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1428
+#: ../../export_layers/pygimplib/setting/settings.py:1427
 msgid "Invalid parasite."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1622
+#: ../../export_layers/pygimplib/setting/settings.py:1620
 msgid "Invalid number of tuple elements (must be at most {})."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2019
+#: ../../export_layers/pygimplib/setting/settings.py:2017
 msgid "Number of elements in \"{}\""
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2035
+#: ../../export_layers/pygimplib/setting/settings.py:2032
 msgid "Not an array."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2037
+#: ../../export_layers/pygimplib/setting/settings.py:2034
 msgid "Minimum array size ({}) cannot be negative."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2039
+#: ../../export_layers/pygimplib/setting/settings.py:2036
 msgid "Minimum array size ({}) cannot be greater than maximum array size ({})."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2041
+#: ../../export_layers/pygimplib/setting/settings.py:2038
 msgid ""
 "Minimum array size ({}) cannot be greater than the length of the value ({})."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2043
+#: ../../export_layers/pygimplib/setting/settings.py:2040
 msgid ""
 "Maximum array size ({}) cannot be less than the length of the value ({})."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2045
+#: ../../export_layers/pygimplib/setting/settings.py:2042
 msgid "Cannot delete any more elements - array must have at least {} elements."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2047
+#: ../../export_layers/pygimplib/setting/settings.py:2044
 msgid "Cannot add any more elements - array must have at most {} elements."
 msgstr ""
 

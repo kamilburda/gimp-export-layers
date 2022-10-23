@@ -17,8 +17,8 @@ c.LOCALE_DIRPATH = os.path.join(c.PLUGINS_DIRPATH, c.PLUGIN_NAME, 'locale')
 c.LOG_MODE = 'exceptions'
 
 c.PLUGIN_TITLE = lambda: _('Export Layers')
-c.PLUGIN_VERSION = '3.3.2'
-c.PLUGIN_VERSION_RELEASE_DATE = 'October 22, 2022'
+c.PLUGIN_VERSION = '3.3.3'
+c.PLUGIN_VERSION_RELEASE_DATE = 'October 23, 2022'
 c.AUTHOR_NAME = 'khalim19'
 c.COPYRIGHT_YEARS = '2013-2022'
 c.PAGE_URL = 'https://khalim19.github.io/gimp-plugin-export-layers'
