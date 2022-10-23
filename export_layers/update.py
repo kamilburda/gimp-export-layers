@@ -384,7 +384,11 @@ def _fix_module_paths_in_parasites_3_3_2():
     gimp.parasite_attach(
         gimp.Parasite('plug_in_export_layers', gimpenums.PARASITE_PERSISTENT, new_data))
   
-  session_parasite = gimp.get_data(key)
+  try:
+    session_parasite = gimp.get_data(key)
+  except gimp.error:
+    session_parasite = None
+  
   if session_parasite:
     new_data = session_parasite
     for old_path, new_path in paths_to_rename:
