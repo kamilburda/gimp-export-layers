@@ -494,8 +494,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
   
   def _set_layer_name_label(self, layer_name):
     self._label_layer_name.set_markup(
-      '<i>{}</i>'.format(
-        gobject.markup_escape_text(layer_name.encode(pg.GTK_CHARACTER_ENCODING))))
+      '<i>{}</i>'.format(gobject.markup_escape_text(pg.utils.safe_encode_gtk(layer_name))))
   
   def _on_button_menu_clicked(self, button):
     pg.gui.menu_popup_below_widget(self._menu_settings, button)

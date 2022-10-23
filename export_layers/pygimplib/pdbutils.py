@@ -14,7 +14,6 @@ import gimp
 from gimp import pdb
 import gimpenums
 
-from . import constants as pgconstants
 from . import invocation as pginvocation
 from . import utils as pgutils
 
@@ -464,7 +463,7 @@ class GimpMessageFile(object):
       self.flush()
   
   def flush(self):
-    gimp.message(self._message_buffer.encode(pgconstants.GIMP_CHARACTER_ENCODING))
+    gimp.message(pgutils.safe_encode_gimp(self._message_buffer))
     self._message_buffer = self._message_prefix
   
   def close(self):

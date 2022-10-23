@@ -148,7 +148,7 @@ class ActionBox(pg.gui.ItemBox):
         expand=False,
         fill=False)
       
-      label_add = gtk.Label(self._add_action_text.encode(pg.GTK_CHARACTER_ENCODING))
+      label_add = gtk.Label(pg.utils.safe_encode_gtk(self._add_action_text))
       label_add.set_use_underline(True)
       button_hbox.pack_start(label_add, expand=False, fill=False)
       
@@ -246,7 +246,7 @@ class ActionBox(pg.gui.ItemBox):
   
   def _add_action_to_menu_popup(self, action_dict):
     menu_item = gtk.MenuItem(
-      label=action_dict['display_name'].encode(pg.GTK_CHARACTER_ENCODING),
+      label=pg.utils.safe_encode_gtk(action_dict['display_name']),
       use_underline=False)
     menu_item.connect('activate', self._on_actions_menu_item_activate, action_dict)
     self._actions_menu.append(menu_item)
@@ -284,7 +284,7 @@ class ActionBox(pg.gui.ItemBox):
     if response_id == gtk.RESPONSE_OK:
       procedure_name = dialog.get_selected()
       if procedure_name:
-        pdb_procedure = pdb[procedure_name.encode(pg.GIMP_CHARACTER_ENCODING)]
+        pdb_procedure = pdb[pg.utils.safe_encode_gimp(procedure_name)]
         
         try:
           pdb_proc_action_dict = actions.get_action_dict_for_pdb_procedure(
@@ -342,8 +342,7 @@ class ActionBox(pg.gui.ItemBox):
       return
     
     if item.action.get_value('is_pdb_procedure', False):
-      pdb_procedure = pdb[
-        item.action['function'].value.encode(pg.GIMP_CHARACTER_ENCODING)]
+      pdb_procedure = pdb[pg.utils.safe_encode_gimp(item.action['function'].value)]
     else:
       pdb_procedure = None
     

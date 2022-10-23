@@ -539,7 +539,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
       [self._get_icon_from_item_elem(item_elem),
        bool(item_elem.tags),
        True,
-       item_elem.name.encode(pg.GTK_CHARACTER_ENCODING),
+       pg.utils.safe_encode_gtk(item_elem.name),
        item_elem.item.ID])
     self._tree_iters[item_elem.item.ID] = tree_iter
     
@@ -553,7 +553,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
       self._COLUMN_LAYER_NAME_SENSITIVE[0],
       True,
       self._COLUMN_LAYER_NAME[0],
-      item_elem.name.encode(pg.GTK_CHARACTER_ENCODING))
+      pg.utils.safe_encode_gtk(item_elem.name))
   
   def _insert_parent_item_elems(self, item_elem):
     for parent_elem in item_elem.parents:

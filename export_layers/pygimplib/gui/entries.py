@@ -14,9 +14,9 @@ import gtk
 import gobject
 import pango
 
-from .. import constants as pgconstants
 from .. import fileformats as pgfileformats
 from .. import path as pgpath
+from .. import utils as pgutils
 
 from . import cell_renderers as cell_renderers_
 from . import entry_expander as entry_expander_
@@ -125,7 +125,7 @@ class ExtendedEntry(gtk.Entry):
       self._popup.trigger_popup = True
   
   def _get_text_decoded(self):
-    return self.get_text().decode(pgconstants.GTK_CHARACTER_ENCODING)
+    return pgutils.safe_decode_gtk(self.get_text())
   
   def _assign_placeholder_text(self):
     if self._placeholder_text is not None:
@@ -292,8 +292,7 @@ class FilenamePatternEntry(ExtendedEntry):
   
   def _on_filename_pattern_entry_insert_text(
         self, entry, new_text, new_text_length, position):
-    self._cursor_position = (
-      self.get_position() + len(new_text.decode(pgconstants.GTK_CHARACTER_ENCODING)))
+    self._cursor_position = self.get_position() + len(pgutils.safe_decode_gtk(new_text))
   
   def _on_filename_pattern_entry_delete_text(self, entry, start, end):
     self._cursor_position = start
@@ -345,8 +344,7 @@ class FilenamePatternEntry(ExtendedEntry):
     
     if move_with_text_cursor:
       text_up_to_cursor_position = self._get_text_decoded()[:self._cursor_position]
-      self._pango_layout.set_text(
-        text_up_to_cursor_position.encode(pgconstants.GTK_CHARACTER_ENCODING))
+      self._pango_layout.set_text(pgutils.safe_encode_gtk(text_up_to_cursor_position))
       
       x_offset = min(
         self._pango_layout.get_pixel_size()[0] + self.get_layout_offsets()[0],
@@ -386,17 +384,16 @@ class FilenamePatternEntry(ExtendedEntry):
     cursor_position = self._cursor_position_before_assigning_from_row
     
     suggested_item = str(tree_model[selected_tree_iter][self._COLUMN_ITEMS_TO_INSERT])
-    last_assigned_entry_text = (
-      self._popup.last_assigned_entry_text.decode(pgconstants.GTK_CHARACTER_ENCODING))
+    last_assigned_entry_text = pgutils.safe_decode_gtk(self._popup.last_assigned_entry_text)
     
     if (cursor_position > 0 and len(last_assigned_entry_text) >= cursor_position
         and last_assigned_entry_text[cursor_position - 1] == '['):
       suggested_item = suggested_item[1:]
     
     self.assign_text(
-      (last_assigned_entry_text[:cursor_position] + suggested_item
-       + last_assigned_entry_text[cursor_position:]).encode(
-           pgconstants.GTK_CHARACTER_ENCODING))
+      pgutils.safe_encode_gtk(
+        (last_assigned_entry_text[:cursor_position] + suggested_item
+         + last_assigned_entry_text[cursor_position:])))
     
     self.set_position(cursor_position + len(suggested_item))
     self._cursor_position = self.get_position()

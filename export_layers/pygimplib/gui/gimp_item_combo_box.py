@@ -15,7 +15,7 @@ import gobject
 import gimp
 import gimpui
 
-from .. import constants as pgconstants
+from .. import utils as pgutils
 
 __all__ = [
   'GimpItemComboBox',
@@ -84,8 +84,7 @@ class GimpItemComboBox(gtk.VBox):
       combo_box.widget.hide()
       combo_box.widget.set_no_show_all(True)
       
-      self._item_types_combo_box.append_text(
-        combo_box.name.encode(pgconstants.GTK_CHARACTER_ENCODING))
+      self._item_types_combo_box.append_text(pgutils.safe_encode_gtk(combo_box.name))
       
       self.pack_start(combo_box.widget, expand=True, fill=True)
       

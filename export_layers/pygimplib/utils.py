@@ -5,6 +5,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+from . import constants as pgconstants
+
 import inspect
 
 
@@ -143,3 +145,43 @@ def create_read_only_property(obj, name, value):
     obj.__class__,
     name,
     property(fget=lambda obj, name=name: getattr(obj, '_' + name)))
+
+
+def safe_encode(str_, encoding):
+  """Encodes a string. If the string is `None`, an empty string is returned."""
+  if str_ is not None:
+    return str_.encode(encoding)
+  else:
+    return b''
+
+
+def safe_encode_gtk(str_):
+  """Encodes a string for GTK API. If the string is `None`, an empty string is
+  returned."""
+  return safe_encode(str_, pgconstants.GTK_CHARACTER_ENCODING)
+
+
+def safe_encode_gimp(str_):
+  """Encodes a string for GIMP API. If the string is `None`, an empty string is
+  returned."""
+  return safe_encode(str_, pgconstants.GIMP_CHARACTER_ENCODING)
+
+
+def safe_decode(str_, encoding):
+  """Decodes a string. If the string is `None`, an empty string is returned."""
+  if str_ is not None:
+    return str_.decode(encoding)
+  else:
+    return ''
+
+
+def safe_decode_gtk(str_):
+  """Decodes a string for GTK API. If the string is `None`, an empty string is
+  returned."""
+  return safe_decode(str_, pgconstants.GTK_CHARACTER_ENCODING)
+
+
+def safe_decode_gimp(str_):
+  """Decodes a string for GIMP API. If the string is `None`, an empty string is
+  returned."""
+  return safe_decode(str_, pgconstants.GIMP_CHARACTER_ENCODING)

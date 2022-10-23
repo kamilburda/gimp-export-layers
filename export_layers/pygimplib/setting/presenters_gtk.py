@@ -15,8 +15,8 @@ import gtk
 import gimp
 import gimpui
 
-from .. import constants as pgconstants
 from .. import gui as pggui
+from .. import utils as pgutils
 
 from . import presenter as presenter_
 
@@ -161,10 +161,10 @@ class GtkCheckButtonLabelPresenter(GtkPresenter):
   """
   
   def _get_value(self):
-    return self._element.get_label().decode(pgconstants.GTK_CHARACTER_ENCODING)
+    return pgutils.safe_decode_gtk(self._element.get_label())
   
   def _set_value(self, value):
-    self._element.set_label(value.encode(pgconstants.GTK_CHARACTER_ENCODING))
+    self._element.set_label(pgutils.safe_encode_gtk(value))
 
 
 class GtkCheckMenuItemPresenter(GtkPresenter):
@@ -220,8 +220,7 @@ class GimpUiIntComboBoxPresenter(GtkPresenter):
     labels_and_values = setting.get_item_display_names_and_values()
     
     for i in range(0, len(labels_and_values), 2):
-      labels_and_values[i] = (
-        labels_and_values[i].encode(pgconstants.GTK_CHARACTER_ENCODING))
+      labels_and_values[i] = pgutils.safe_encode_gtk(labels_and_values[i])
     
     return gimpui.IntComboBox(tuple(labels_and_values))
   
@@ -243,10 +242,10 @@ class GtkEntryPresenter(GtkPresenter):
     return gtk.Entry()
   
   def _get_value(self):
-    return self._element.get_text().decode(pgconstants.GTK_CHARACTER_ENCODING)
+    return pgutils.safe_decode_gtk(self._element.get_text())
   
   def _set_value(self, value):
-    self._element.set_text(value.encode(pgconstants.GTK_CHARACTER_ENCODING))
+    self._element.set_text(pgutils.safe_encode_gtk(value))
     # Place the cursor at the end of the text entry.
     self._element.set_position(-1)
 
@@ -487,10 +486,10 @@ class ExtendedEntryPresenter(GtkPresenter):
   """
   
   def _get_value(self):
-    return self._element.get_text().decode(pgconstants.GTK_CHARACTER_ENCODING)
+    return pgutils.safe_decode_gtk(self._element.get_text())
   
   def _set_value(self, value):
-    self._element.assign_text(value.encode(pgconstants.GTK_CHARACTER_ENCODING))
+    self._element.assign_text(pgutils.safe_encode_gtk(value))
 
 
 class FileExtensionEntryPresenter(ExtendedEntryPresenter):
@@ -526,17 +525,12 @@ class GtkFolderChooserPresenter(GtkPresenter):
       dirpath = self._element.get_filename()
     
     if dirpath is not None:
-      return dirpath.decode(pgconstants.GTK_CHARACTER_ENCODING)
+      return pgutils.safe_decode_gtk(dirpath)
     else:
       return None
   
   def _set_value(self, dirpath):
-    if dirpath is not None:
-      encoded_dirpath = dirpath.encode(pgconstants.GTK_CHARACTER_ENCODING)
-    else:
-      encoded_dirpath = b''
-    
-    self._element.set_current_folder(encoded_dirpath)
+    self._element.set_current_folder(pgutils.safe_encode_gtk(dirpath))
   
   def _get_location_toggle_button(self):
     return (

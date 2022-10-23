@@ -7,7 +7,7 @@ from future.builtins import *
 
 import itertools
 
-from .. import constants as pgconstants
+from .. import utils as pgutils
 
 
 class PdbStub(object):
@@ -128,8 +128,7 @@ class ImageStub(ParasiteFunctionsStubMixin):
     self.height = 0
     self.image_type = None
     self.layers = []
-    self.name = name.encode(
-      pgconstants.GIMP_CHARACTER_ENCODING) if name is not None else b''
+    self.name = pgutils.safe_encode_gimp(name)
     self.filename = b''
     self.uri = b''
     self.valid = True
@@ -148,8 +147,7 @@ class ItemStub(ParasiteFunctionsStubMixin):
     self.valid = True
     self.visible = visible
     self.offsets = (0, 0)
-    self.name = name.encode(
-      pgconstants.GIMP_CHARACTER_ENCODING) if name is not None else b''
+    self.name = pgutils.safe_encode_gimp(name)
     self.image = None
     self.children = []
 

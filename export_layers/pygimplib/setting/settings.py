@@ -17,7 +17,6 @@ from gimp import pdb
 import gimpcolor
 import gimpenums
 
-from .. import constants as pgconstants
 from .. import path as pgpath
 from .. import utils as pgutils
 
@@ -594,8 +593,8 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     if self.can_be_registered_to_pdb():
       return [(
         self.pdb_type,
-        self.pdb_name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
-        self.description.encode(pgconstants.GIMP_CHARACTER_ENCODING))]
+        pgutils.safe_encode_gimp(self.pdb_name),
+        pgutils.safe_encode_gimp(self.description))]
     else:
       return None
   
@@ -1111,7 +1110,7 @@ class StringSetting(Setting):
   
   def set_value(self, value):
     if isinstance(value, bytes):
-      value = value.decode(pgconstants.GIMP_CHARACTER_ENCODING)
+      value = pgutils.safe_decode_gimp(value)
     
     super().set_value(value)
 
@@ -1496,8 +1495,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
     self._string_validator = string_validator
     
     if 'default_value' in kwargs and isinstance(kwargs['default_value'], bytes):
-      kwargs['default_value'] = (
-        kwargs['default_value'].decode(pgconstants.GIMP_CHARACTER_ENCODING))
+      kwargs['default_value'] = pgutils.safe_decode_gimp(kwargs['default_value'])
     
     super().__init__(name, **kwargs)
   
@@ -1773,7 +1771,7 @@ class ImageIDsAndDirpathsSetting(Setting):
   
   def _get_image_import_dirpath(self, image):
     if image.filename is not None:
-      return os.path.dirname(image.filename.decode(pgconstants.GIMP_CHARACTER_ENCODING))
+      return os.path.dirname(pgutils.safe_decode_gimp(image.filename))
     else:
       return None
 
@@ -2013,20 +2011,19 @@ class ArraySetting(Setting):
         length_name = '{}-length'.format(self.name)
       
       if not isinstance(length_name, bytes):
-        length_name = length_name.encode(pgconstants.GIMP_CHARACTER_ENCODING)
+        length_name = pgutils.safe_encode_gimp(length_name)
       
       if length_description is None:
         length_description = _('Number of elements in "{}"').format(self.name)
       
       if not isinstance(length_description, bytes):
-        length_description = length_description.encode(
-          pgconstants.GIMP_CHARACTER_ENCODING)
+        length_description = pgutils.safe_encode_gimp(length_description)
       
       return [
         (SettingPdbTypes.int32, length_name, length_description),
         (self.pdb_type,
-         self.name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
-         self.description.encode(pgconstants.GIMP_CHARACTER_ENCODING))
+         pgutils.safe_encode_gimp(self.name),
+         pgutils.safe_encode_gimp(self.description))
       ]
     else:
       return None

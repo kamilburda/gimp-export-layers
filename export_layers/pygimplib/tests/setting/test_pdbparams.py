@@ -5,7 +5,7 @@ from future.builtins import *
 
 import unittest
 
-from ... import constants as pgconstants
+from ... import utils as pgutils
 
 from ...setting import pdbparams as pdbparams_
 from ...setting import settings as settings_
@@ -35,9 +35,9 @@ class TestCreateParams(unittest.TestCase):
     self.assertTrue(len(param), 3)
     self.assertEqual(param[0], settings_.SettingPdbTypes.string)
     self.assertEqual(
-      param[1], 'file-extension'.encode(pgconstants.GIMP_CHARACTER_ENCODING))
+      param[1], pgutils.safe_encode_gimp('file-extension'))
     self.assertEqual(
-      param[2], 'File extension'.encode(pgconstants.GIMP_CHARACTER_ENCODING))
+      param[2], pgutils.safe_encode_gimp('File extension'))
   
   def test_create_params_invalid_argument(self):
     with self.assertRaises(TypeError):
@@ -52,8 +52,8 @@ class TestCreateParams(unittest.TestCase):
     self.assertEqual(
       params[0],
       (self.file_ext_setting.pdb_type,
-       self.file_ext_setting.pdb_name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
-       self.file_ext_setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING)))
+       pgutils.safe_encode_gimp(self.file_ext_setting.pdb_name),
+       pgutils.safe_encode_gimp(self.file_ext_setting.description)))
     
     # Array length parameter
     self.assertEqual(params[1][0], settings_.SettingPdbTypes.int32)
@@ -61,15 +61,15 @@ class TestCreateParams(unittest.TestCase):
     self.assertEqual(
       params[2],
       (self.coordinates_setting.pdb_type,
-       self.coordinates_setting.pdb_name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
-       self.coordinates_setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING)))
+       pgutils.safe_encode_gimp(self.coordinates_setting.pdb_name),
+       pgutils.safe_encode_gimp(self.coordinates_setting.description)))
     
     for param, setting in zip(params[3:], self.settings.walk()):
       self.assertEqual(
         param,
         (setting.pdb_type,
-         setting.pdb_name.encode(pgconstants.GIMP_CHARACTER_ENCODING),
-         setting.description.encode(pgconstants.GIMP_CHARACTER_ENCODING)))
+         pgutils.safe_encode_gimp(setting.pdb_name),
+         pgutils.safe_encode_gimp(setting.description)))
   
   def test_create_params_with_unregistrable_setting(self):
     params = pdbparams_.create_params(self.unregistrable_setting)

@@ -18,8 +18,8 @@ from gimp import pdb
 import gimpcolor
 import gimpenums
 
-from ... import constants as pgconstants
 from ... import gui as pggui
+from ... import utils as pgutils
 
 from ...setting import settings as settings_
 
@@ -290,12 +290,12 @@ def _on_reset_button_clicked(button, settings):
 
 def _set_setting_value_label(setting, setting_value_label):
   if isinstance(setting, settings_.ParasiteSetting):
-    setting_value_str = '"{}", {}, "{}"'.format(
+    setting_value_str = pgutils.safe_encode_gtk('"{}", {}, "{}"'.format(
       setting.value.name,
       setting.value.flags,
-      setting.value.data).encode(pgconstants.GTK_CHARACTER_ENCODING)
+      setting.value.data))
   else:
-    setting_value_str = str(setting.value).encode(pgconstants.GTK_CHARACTER_ENCODING)
+    setting_value_str = pgutils.safe_encode_gtk(str(setting.value))
   
   setting_value_label.set_label(setting_value_str)
 
@@ -338,7 +338,7 @@ def _create_test_image():
 
 def _display_message_on_setting_value_error(exc_type, exc_value, exc_traceback):
   if issubclass(exc_type, settings_.SettingValueError):
-    gimp.message(str(exc_value).encode(pgconstants.GIMP_CHARACTER_ENCODING))
+    gimp.message(pgutils.safe_encode_gimp(str(exc_value)))
     return True
   else:
     return False

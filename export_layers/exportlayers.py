@@ -645,8 +645,8 @@ class LayerExporter(object):
         run_mode,
         image,
         layer,
-        output_filepath.encode(pg.GIMP_CHARACTER_ENCODING),
-        os.path.basename(output_filepath).encode(pg.GIMP_CHARACTER_ENCODING))
+        pg.utils.safe_encode_gimp(output_filepath),
+        pg.utils.safe_encode_gimp(os.path.basename(output_filepath)))
     except RuntimeError as e:
       # HACK: Examining the exception message seems to be the only way to determine
       # some specific cases of export failure.
@@ -703,7 +703,7 @@ _LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
 def add_action_from_settings(action, invoker, tags=None, action_groups=None):
   if action.get_value('is_pdb_procedure', False):
     try:
-      function = pdb[action['function'].value.encode(pg.GIMP_CHARACTER_ENCODING)]
+      function = pdb[pg.utils.safe_encode_gimp(action['function'].value)]
     except KeyError:
       raise InvalidPdbProcedureError(
         'invalid PDB procedure "{}"'.format(action['function'].value))

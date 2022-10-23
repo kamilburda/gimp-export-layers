@@ -412,7 +412,7 @@ if _gimp_dependent_modules_imported:
   
   def _display_message_on_setting_value_error(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, setting.SettingValueError):
-      gimp.message(str(exc_value).encode(GIMP_CHARACTER_ENCODING))
+      gimp.message(utils.safe_encode_gimp(str(exc_value)))
       return True
     else:
       return False

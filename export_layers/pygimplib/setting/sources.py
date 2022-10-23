@@ -19,7 +19,7 @@ import gimp
 import gimpenums
 import gimpshelf
 
-from .. import constants as pgconstants
+from .. import utils as pgutils
 
 from . import settings as settings_
 
@@ -194,7 +194,7 @@ class SessionSource(Source):
     gimpshelf.shelf[self._get_key()] = setting_names_and_values
   
   def _get_key(self):
-    return self.source_name.encode(pgconstants.GIMP_CHARACTER_ENCODING)
+    return pgutils.safe_encode_gimp(self.source_name)
 
 
 class PersistentSource(Source):
