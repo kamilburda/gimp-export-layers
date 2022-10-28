@@ -30,6 +30,7 @@ This allows to e.g. remove " copy #1" from layer names that GIMP appends to dupl
 * The `[layer path]` field now strips the file extension by default just like `[layer name]`.
 Added options (same as in `[layer name]`) to allow retaining the old behavior.
 * Added an option to the number field (such as `[001]`) to specify descending numbers.
+* Removed description and details from tooltips to avoid displaying too much information and improved examples instead.
 * Tooltip text can now be selected and copied.
 
 
