@@ -427,6 +427,9 @@ class _ActionEditDialog(gimpui.Dialog):
   
   _PLACEHOLDER_WIDGET_HORIZONTAL_SPACING_BETWEEN_ELEMENTS = 5
   
+  _MORE_OPTIONS_SPACING = 4
+  _MORE_OPTIONS_BORDER_WIDTH = 4
+  
   def __init__(self, action, pdb_procedure, *args, **kwargs):
     super().__init__(*args, **kwargs)
     
@@ -463,6 +466,14 @@ class _ActionEditDialog(gimpui.Dialog):
     self._table_action_arguments.set_row_spacings(self._TABLE_ROW_SPACING)
     self._table_action_arguments.set_col_spacings(self._TABLE_COLUMN_SPACING)
     
+    self._vbox_more_options = gtk.VBox()
+    self._vbox_more_options.set_spacing(self._MORE_OPTIONS_SPACING)
+    self._vbox_more_options.set_border_width(self._MORE_OPTIONS_BORDER_WIDTH)
+    self._vbox_more_options.pack_start(
+      action['enabled_for_previews'].gui.element, expand=False, fill=False)
+    
+    action['more_options_expanded'].gui.element.add(self._vbox_more_options)
+    
     # Put widgets in a custom `VBox` because the action area would otherwise
     # have excessively thick borders for some reason.
     self._vbox = gtk.VBox()
@@ -472,6 +483,7 @@ class _ActionEditDialog(gimpui.Dialog):
     if self._label_procedure_description is not None:
       self._vbox.pack_start(self._label_procedure_description, expand=False, fill=False)
     self._vbox.pack_start(self._table_action_arguments, expand=True, fill=True)
+    self._vbox.pack_start(action['more_options_expanded'].gui.element, expand=False, fill=False)
     
     self.vbox.pack_start(self._vbox, expand=False, fill=False)
     
@@ -480,7 +492,7 @@ class _ActionEditDialog(gimpui.Dialog):
     self.set_focus(self._button_ok)
     
     self._button_reset.connect('clicked', self._on_button_reset_clicked, action)
-    self.connect('response', self._on_action_edit_dialog_response)
+    self.connect('response', self._on_action_edit_dialog_response, action)
   
   def _create_label_description(self, summary, full_description=None):
     label_description = gtk.Label()
@@ -509,8 +521,7 @@ class _ActionEditDialog(gimpui.Dialog):
       if not isinstance(setting.gui, pg.setting.SettingGuiTypes.none):
         if isinstance(setting, pg.setting.ArraySetting):
           if setting.element_type.get_allowed_gui_types():
-            setting.gui.element.set_property(
-              'width-request', self._ARRAY_PARAMETER_GUI_WIDTH)
+            setting.gui.element.set_property('width-request', self._ARRAY_PARAMETER_GUI_WIDTH)
             setting.gui.element.max_height = self._ARRAY_PARAMETER_GUI_MAX_HEIGHT
           else:
             gui_element_to_attach = self._create_placeholder_widget()
@@ -528,9 +539,13 @@ class _ActionEditDialog(gimpui.Dialog):
     editable_label.label.set_markup(
       '<b>{}</b>'.format(gobject.markup_escape_text(editable_label.label.get_text())))
   
-  def _on_action_edit_dialog_response(self, dialog, response_id):
+  def _on_action_edit_dialog_response(self, dialog, response_id, action):
     for child in list(self._table_action_arguments.get_children()):
       self._table_action_arguments.remove(child)
+    
+    self._vbox_more_options.remove(action['enabled_for_previews'].gui.element)
+    action['more_options_expanded'].gui.element.remove(self._vbox_more_options)
+    self._vbox.remove(action['more_options_expanded'].gui.element)
   
   def _create_placeholder_widget(self):
     hbox = gtk.HBox()

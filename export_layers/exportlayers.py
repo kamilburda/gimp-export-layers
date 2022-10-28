@@ -95,6 +95,8 @@ class LayerExporter(object):
     
     self._layer_tree = layer_tree
     
+    self._is_preview = False
+    
     self.export_context_manager = (
       export_context_manager if export_context_manager is not None
       else pg.utils.EmptyContext)
@@ -143,6 +145,10 @@ class LayerExporter(object):
     return self._layer_tree
   
   @property
+  def is_preview(self):
+    return self._is_preview
+  
+  @property
   def exported_layers(self):
     return self._exported_layers
   
@@ -174,7 +180,8 @@ class LayerExporter(object):
   def invoker(self):
     return self._invoker
   
-  def export(self, processing_groups=None, layer_tree=None, keep_image_copy=False):
+  def export(
+        self, processing_groups=None, layer_tree=None, keep_image_copy=False, is_preview=False):
     """
     Export layers as separate images from the specified image.
     
@@ -205,8 +212,12 @@ class LayerExporter(object):
     copy, pass `True` to `keep_image_copy`. In that case, this method returns
     the image copy. If an exception was raised or if no layer was exported, this
     method returns `None` and the image copy will be destroyed.
+    
+    If `is_preview` is `True`, only procedures and constraints that are marked
+    as enabled for previews will be applied for previews. This has no effect
+    during real export.
     """
-    self._init_attributes(processing_groups, layer_tree, keep_image_copy)
+    self._init_attributes(processing_groups, layer_tree, keep_image_copy, is_preview)
     self._preprocess_layers()
     
     exception_occurred = False
@@ -277,7 +288,7 @@ class LayerExporter(object):
     """
     self._initial_invoker.reorder(*args, **kwargs)
   
-  def _init_attributes(self, processing_groups, layer_tree, keep_image_copy):
+  def _init_attributes(self, processing_groups, layer_tree, keep_image_copy, is_preview):
     self._invoker = pg.invoker.Invoker()
     self._add_actions()
     self._add_name_only_actions()
@@ -291,6 +302,7 @@ class LayerExporter(object):
         self.image, name=pg.config.SOURCE_NAME, is_filtered=True)
     
     self._keep_image_copy = keep_image_copy
+    self._is_preview = is_preview
     
     self._should_stop = False
     
@@ -336,21 +348,19 @@ class LayerExporter(object):
       self._initial_invoker.list_groups(include_empty_groups=True))
     
     for procedure in actions.walk(self.export_settings['procedures']):
-      add_action_from_settings(procedure, self._invoker)
+      add_action_from_settings(procedure, self)
     
     for constraint in actions.walk(self.export_settings['constraints']):
-      add_action_from_settings(constraint, self._invoker)
+      add_action_from_settings(constraint, self)
   
   def _add_name_only_actions(self):
     for procedure in actions.walk(self.export_settings['procedures']):
       add_action_from_settings(
-        procedure, self._invoker,
-        [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
+        procedure, self, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
     
     for constraint in actions.walk(self.export_settings['constraints']):
       add_action_from_settings(
-        constraint, self._invoker,
-        [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
+        constraint, self, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
   
   def _enable_disable_processing_groups(self, processing_groups):
     for functions in self._processing_groups.values():
@@ -700,7 +710,7 @@ class LayerExporter(object):
 _LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
 
 
-def add_action_from_settings(action, invoker, tags=None, action_groups=None):
+def add_action_from_settings(action, layer_exporter, tags=None, action_groups=None):
   if action.get_value('is_pdb_procedure', False):
     try:
       function = pdb[pg.utils.safe_encode_gimp(action['function'].value)]
@@ -732,12 +742,12 @@ def add_action_from_settings(action, invoker, tags=None, action_groups=None):
   if 'constraint' in action.tags:
     function = _get_constraint_func(function, subfilter=action['subfilter'].value)
   
-  function = _apply_action_only_if_enabled(function, action['enabled'])
+  function = _apply_action_only_if_enabled(function, action, layer_exporter)
   
   if action_groups is None:
     action_groups = action['action_groups'].value
   
-  invoker.add(function, action_groups, function_args, function_kwargs)
+  layer_exporter.invoker.add(function, action_groups, function_args, function_kwargs)
 
 
 def _has_run_mode_param(pdb_procedure):
@@ -760,14 +770,23 @@ def _get_action_func_with_replaced_placeholders(function):
   return _action
 
 
-def _apply_action_only_if_enabled(action, setting_enabled):
-  def _apply_action(*action_args, **action_kwargs):
-    if setting_enabled.value:
-      return action(*action_args, **action_kwargs)
-    else:
-      return False
-  
-  return _apply_action
+def _apply_action_only_if_enabled(function, action, layer_exporter):
+  if layer_exporter.is_preview:
+    def _apply_action_in_preview(*action_args, **action_kwargs):
+      if action['enabled'].value and action['enabled_for_previews'].value:
+        return function(*action_args, **action_kwargs)
+      else:
+        return False
+    
+    return _apply_action_in_preview
+  else:
+    def _apply_action(*action_args, **action_kwargs):
+      if action['enabled'].value:
+        return function(*action_args, **action_kwargs)
+      else:
+        return False
+    
+    return _apply_action
 
 
 def _get_constraint_func(rule_func, subfilter=None):

@@ -347,7 +347,8 @@ class ExportImagePreview(preview_base_.ExportPreview):
       image_preview = self._layer_exporter.export(
         processing_groups=['layer_contents'],
         layer_tree=layer_tree,
-        keep_image_copy=True)
+        keep_image_copy=True,
+        is_preview=True)
     except Exception:
       display_image_preview_failure_message(
         details=traceback.format_exc(), parent=pg.gui.get_toplevel_window(self))

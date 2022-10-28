@@ -246,15 +246,13 @@ def _get_values_from_actions(added_data_values_setting, added_actions_group):
   added_data_values_setting.reset()
   
   for setting in added_actions_group.walk():
-    added_data_values_setting.value[
-      setting.get_path(added_actions_group)] = setting.value
+    added_data_values_setting.value[setting.get_path(added_actions_group)] = setting.value
 
 
 def _set_values_for_actions(added_data_values_setting, added_actions_group):
   for setting in added_actions_group.walk():
     if setting.get_path(added_actions_group) in added_data_values_setting.value:
-      setting.set_value(
-        added_data_values_setting.value[setting.get_path(added_actions_group)])
+      setting.set_value(added_data_values_setting.value[setting.get_path(added_actions_group)])
 
 
 def _create_action(
@@ -266,6 +264,8 @@ def _create_action(
       description=None,
       action_groups=None,
       tags=None,
+      more_options_expanded=False,
+      enabled_for_previews=True,
       **custom_fields):
   
   def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
@@ -322,6 +322,19 @@ def _create_action(
       'name': 'action_groups',
       'default_value': action_groups,
       'gui_type': None,
+    },
+    {
+      "type": pg.SettingTypes.boolean,
+      "name": 'more_options_expanded',
+      "default_value": more_options_expanded,
+      "display_name": _('_More options'),
+      "gui_type": pg.SettingGuiTypes.expander,
+    },
+    {
+      "type": pg.SettingTypes.boolean,
+      "name": 'enabled_for_previews',
+      "default_value": enabled_for_previews,
+      "display_name": _('Enable for previews'),
     },
   ])
   

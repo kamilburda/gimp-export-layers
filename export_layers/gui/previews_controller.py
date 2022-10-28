@@ -206,8 +206,7 @@ class ExportPreviewsController(object):
       'before-clear-actions', _before_clear_constraints)
   
   def _connect_set_image_preview_scaling(self):
-    def _after_add_action(
-          actions, action, orig_action_dict, builtin_actions):
+    def _after_add_action(actions, action, orig_action_dict, builtin_actions):
       if action['orig_name'].value not in builtin_actions:
         self._custom_actions[action.name] = action
         
@@ -223,8 +222,7 @@ class ExportPreviewsController(object):
       self._image_preview.set_scaling()
     
     def _set_image_preview_scaling(action_enabled):
-      if not any(action['enabled'].value
-                 for action in self._custom_actions.values()):
+      if not any(action['enabled'].value for action in self._custom_actions.values()):
         self._image_preview.set_scaling()
       else:
         self._image_preview.set_scaling(['after_process_layer'], ['after_process_layer'])
@@ -255,8 +253,7 @@ class ExportPreviewsController(object):
     self._settings['gui/image_preview_automatic_update'].connect_event(
       'value-changed',
       lambda setting, update_if_below_setting: update_if_below_setting.set_value(False),
-      self._settings[
-        'gui/image_preview_automatic_update_if_below_maximum_duration'])
+      self._settings['gui/image_preview_automatic_update_if_below_maximum_duration'])
   
   def _connect_toplevel_notify_is_active(self):
     toplevel = (
