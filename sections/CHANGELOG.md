@@ -4,6 +4,11 @@ title: Release Notes
 navbar_active_tab: docs
 ---
 
+3.3.4 (upcoming)
+================
+
+* Added option to not apply a procedure for previews. This is useful for very slow procedures having little effect on the exported image if you want to keep the preview updated automatically, or procedures that e.g. manipulate the file system (such as export procedures) to avoid saving previewed images.
+
 3.3.3
 =====
 
@@ -36,6 +41,7 @@ This allows to e.g. remove " copy #1" from layer names that GIMP appends to dupl
 * The `[layer path]` field now strips the file extension by default just like `[layer name]`.
 Added options (same as in `[layer name]`) to allow retaining the old behavior.
 * Added an option to the number field (such as `[001]`) to specify descending numbers.
+* Removed description and details from tooltips to avoid displaying too much information and improved examples instead.
 * Tooltip text can now be selected and copied.
 
 
