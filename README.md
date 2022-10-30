@@ -1,4 +1,4 @@
-# [![](docs/images/logo_small.svg)](https://khalim19.github.io/gimp-plugin-export-layers/) Export Layers
+# [![](docs/images/logo_small.svg)](https://kamilburda.github.io/gimp-export-layers/) Export Layers
 
 Export Layers is a [GIMP](https://www.gimp.org/) plug-in that exports layers as separate images.
 
@@ -10,19 +10,19 @@ Features
 * Customize export with additional procedures and constraints
 
 
-[**Download latest release**](https://github.com/khalim19/gimp-plugin-export-layers/releases/tag/3.3.3) (3.3.3, October 23, 2022)
+[**Download latest release**](https://github.com/kamilburda/gimp-export-layers/releases/tag/3.3.3) (3.3.3, October 23, 2022)
 
-See the [documentation](https://khalim19.github.io/gimp-plugin-export-layers/sections) for information about installation, usage and known issues.
+See the [documentation](https://kamilburda.github.io/gimp-export-layers/sections) for information about installation, usage and known issues.
 
 
 Support
 -------
 
-You can report issues, ask questions or request new features on the [GitHub Issues page](https://github.com/khalim19/gimp-plugin-export-layers/issues).
+You can report issues, ask questions or request new features on the [GitHub Issues page](https://github.com/kamilburda/gimp-export-layers/issues).
 
 Before submitting a bug report:
 * Check for [known issues](docs/sections/Known-Issues.md) that cannot be fixed in the plug-in.
-* Check the [GitHub Issues page](https://github.com/khalim19/gimp-plugin-export-layers/issues) for current issues.
+* Check the [GitHub Issues page](https://github.com/kamilburda/gimp-export-layers/issues) for current issues.
 
 
 Translations

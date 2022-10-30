@@ -1,5 +1,5 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR khalim19
+# Copyright (C) YEAR Kamil Burda
 # This file is distributed under the same license as the 'export_layers' package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #

@@ -18,7 +18,7 @@ See [Customizing Export](Customizing-Export.html).
 
 ### Having trouble?
 
-See the [known issues](Known-Issues.html) or feel free to [report other issues or ask questions](https://github.com/khalim19/gimp-plugin-export-layers/issues).
+See the [known issues](Known-Issues.html) or feel free to [report other issues or ask questions](https://github.com/kamilburda/gimp-export-layers/issues).
 
 
 ### Want to translate {% include-config 'PLUGIN_TITLE' %} into your language?

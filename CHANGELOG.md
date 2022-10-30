@@ -2,6 +2,9 @@
 ================
 
 * Added option to not apply a procedure for previews. This is useful for very slow procedures having little effect on the exported image if you want to keep the preview updated automatically, or procedures that e.g. manipulate the file system (such as export procedures) to avoid saving previewed images.
+* Moved the source code repository to a new location: https://github.com/kamilburda/gimp-export-layers
+* Moved the site to a new location: https://kamilburda.github.io/gimp-export-layers/
+
 
 3.3.3
 =====
@@ -57,7 +60,7 @@ Misc. changes:
 3.3
 ===
 
-* **Due to significant changes in 3.3, make sure to perform a [clean reinstall](https://khalim19.github.io/gimp-plugin-export-layers/sections/Installation.html#Upgrading-from-Earlier-Versions).** The plug-in can still function without performing a clean reinstall (a warning dialog will ask you to clear settings), but will likely not be usable from the command line.
+* **Due to significant changes in 3.3, make sure to perform a [clean reinstall](https://kamilburda.github.io/gimp-export-layers/sections/Installation.html#Upgrading-from-Earlier-Versions).** The plug-in can still function without performing a clean reinstall (a warning dialog will ask you to clear settings), but will likely not be usable from the command line.
 * Removed installers for Linux and macOS. The installers were not flexible enough to handle the diversity of available GIMP installers and different installation directories. The manual package is simple enough to install anyway (in some cases, simpler than the installers).
 * Added the ability to add any PDB procedures to apply to all layers before export (blur, scale, drop shadows, ...). The argument values of any procedure can be adjusted by clicking the edit button.
 * "Operations" are now referred to as "procedures".

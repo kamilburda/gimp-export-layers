@@ -8,7 +8,7 @@
 
 SCRIPT_NAME="$(basename -- "$0")"
 
-DOMAIN_NAME='gimp-plugin-export-layers'
+DOMAIN_NAME='gimp-export-layers'
 
 LOCALE_DIRPATH='.'
 LC_MESSAGES_DIRPATH='LC_MESSAGES'

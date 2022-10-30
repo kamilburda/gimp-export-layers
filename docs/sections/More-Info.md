@@ -1,11 +1,11 @@
 Support
 -------
 
-You can report issues, ask questions or request new features on the [GitHub Issues page](https://github.com/khalim19/gimp-plugin-export-layers/issues).
+You can report issues, ask questions or request new features on the [GitHub Issues page](https://github.com/kamilburda/gimp-export-layers/issues).
 
 Before submitting a bug report:
 * Check for [known issues](docs/sections/Known-Issues.md) that cannot be fixed in the plug-in.
-* Check the [GitHub Issues page](https://github.com/khalim19/gimp-plugin-export-layers/issues) for current issues.
+* Check the [GitHub Issues page](https://github.com/kamilburda/gimp-export-layers/issues) for current issues.
 
 
 Translations

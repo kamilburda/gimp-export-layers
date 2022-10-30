@@ -1,6 +1,6 @@
 # German translations for 'export_layers' package
 # German translation for 'export_layers'.
-# Copyright (C) 2019 khalim19
+# Copyright (C) 2019 Kamil Burda
 # This file is distributed under the same license as the 'export_layers' package.
 #
 # Automatically generated, 2019.

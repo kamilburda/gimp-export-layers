@@ -35,7 +35,7 @@ Clone the main branch of the repository to a directory named e.g. `plug-ins - Ex
 To make GIMP recognize the new directory as a directory containing GIMP plug-ins, open up GIMP, go to `Edit → Preferences → Folders → Plug-ins` and add the new directory to the list.
 GIMP needs to be restarted for changes to take effect.
 
-Clone the `gh-pages` branch (acting as the [GitHub page for Export Layers](https://khalim19.github.io/gimp-plugin-export-layers/)) to `docs/gh-pages`.
+Clone the `gh-pages` branch (acting as the [GitHub page for Export Layers](https://kamilburda.github.io/gimp-export-layers/)) to `docs/gh-pages`.
 Several scripts depend on this directory location.
 
 Some scripts require that the GitHub page be run locally.

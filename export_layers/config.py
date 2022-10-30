@@ -19,15 +19,15 @@ c.LOG_MODE = 'exceptions'
 c.PLUGIN_TITLE = lambda: _('Export Layers')
 c.PLUGIN_VERSION = '3.3.3'
 c.PLUGIN_VERSION_RELEASE_DATE = 'October 23, 2022'
-c.AUTHOR_NAME = 'khalim19'
+c.AUTHOR_NAME = 'Kamil Burda'
 c.COPYRIGHT_YEARS = '2013-2022'
-c.PAGE_URL = 'https://khalim19.github.io/gimp-plugin-export-layers'
+c.PAGE_URL = 'https://kamilburda.github.io/gimp-export-layers'
 c.DOCS_URL = c.PAGE_URL + '/sections'
 c.LOCAL_DOCS_PATH = os.path.join(c.PLUGIN_SUBDIRPATH, 'docs', 'sections', 'index.html')
-c.REPOSITORY_NAME = 'gimp-plugin-export-layers'
-c.REPOSITORY_URL = 'https://github.com/khalim19/gimp-plugin-export-layers'
+c.REPOSITORY_NAME = 'gimp-export-layers'
+c.REPOSITORY_URL = 'https://github.com/kamilburda/gimp-export-layers'
 c.BUG_REPORT_URL_LIST = [
-  ('GitHub', 'https://github.com/khalim19/gimp-plugin-export-layers/issues')
+  ('GitHub', 'https://github.com/kamilburda/gimp-export-layers/issues')
 ]
 
 # If True, display each step of image/layer editing in GIMP.
