@@ -24,6 +24,7 @@ c.COPYRIGHT_YEARS = '2013-2022'
 c.PAGE_URL = 'https://kamilburda.github.io/gimp-export-layers'
 c.DOCS_URL = c.PAGE_URL + '/sections'
 c.LOCAL_DOCS_PATH = os.path.join(c.PLUGIN_SUBDIRPATH, 'docs', 'sections', 'index.html')
+c.REPOSITORY_USERNAME = 'kamilburda'
 c.REPOSITORY_NAME = 'gimp-export-layers'
 c.REPOSITORY_URL = 'https://github.com/kamilburda/gimp-export-layers'
 c.BUG_REPORT_URL_LIST = [

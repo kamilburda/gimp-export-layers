@@ -79,7 +79,7 @@ def make_release(**kwargs):
     gh_pages_repo,
     current_version=pg.config.PLUGIN_VERSION,
     released_versions=repo.git.tag('-l').strip('\n').split('\n'),
-    username=pg.config.AUTHOR_NAME,
+    username=pg.config.REPOSITORY_USERNAME,
     remote_repo_name=pg.config.REPOSITORY_NAME,
     **kwargs)
   
