@@ -1,5 +1,5 @@
-3.3.4 (upcoming)
-================
+3.3.4
+=====
 
 * Added option to not apply a procedure for previews. This is useful for very slow procedures having little effect on the exported image if you want to keep the preview updated automatically, or procedures that e.g. manipulate the file system (such as export procedures) to avoid saving previewed images.
 * Moved the source code repository to a new location: https://github.com/kamilburda/gimp-export-layers
