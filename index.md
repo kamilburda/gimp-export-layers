@@ -16,7 +16,7 @@ See [Customizing Export](sections/Customizing-Export.html).
 
 ### Having trouble?
 
-See the [known issues](sections/Known-Issues.html) or feel free to [report other issues or ask questions](https://github.com/khalim19/gimp-plugin-export-layers/issues).
+See the [known issues](sections/Known-Issues.html) or feel free to [report other issues or ask questions](https://github.com/kamilburda/gimp-export-layers/issues).
 
 
 ### Want to translate Export Layers into your language?

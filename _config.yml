@@ -1,10 +1,10 @@
 # Site settings
 title: Export Layers
 description: "GIMP plug-in that exports layers as separate images"
-baseurl: "/gimp-plugin-export-layers"
-url: "https://khalim19.github.io"
-repository: "khalim19/gimp-plugin-export-layers"
-github_username: "khalim19"
+baseurl: "/gimp-export-layers"
+url: "https://kamilburda.github.io"
+repository: "kamilburda/gimp-export-layers"
+github_username: "Kamil Burda"
 copyright_years: "2013-2022"
 
 plugin_name: "export_layers"
