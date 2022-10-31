@@ -34,7 +34,7 @@ class TestLayerExporterInitialActions(unittest.TestCase):
     settings['special/image'].set_value(self.image)
     settings['main/file_extension'].set_value('xcf')
     
-    layer_exporter = exportlayers.LayerExporter(
+    exporter = exportlayers.LayerExporter(
       settings['special/run_mode'].value,
       settings['special/image'].value,
       settings['main'])
@@ -43,13 +43,11 @@ class TestLayerExporterInitialActions(unittest.TestCase):
       settings['main/procedures'],
       builtin_procedures.BUILTIN_PROCEDURES['insert_background_layers'])
     
-    layer_exporter.add_procedure(
-      pg.utils.empty_func, [actions.DEFAULT_PROCEDURES_GROUP])
+    exporter.add_procedure(pg.utils.empty_func, [actions.DEFAULT_PROCEDURES_GROUP])
     
-    layer_exporter.export(processing_groups=[])
+    exporter.export(processing_groups=[])
     
-    added_action_items = layer_exporter.invoker.list_actions(
-      group=actions.DEFAULT_PROCEDURES_GROUP)
+    added_action_items = exporter.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
     
     # Includes built-in procedures added by default
     self.assertEqual(len(added_action_items), 4)
@@ -66,10 +64,10 @@ class TestLayerExporterInitialActions(unittest.TestCase):
 class TestAddActionFromSettings(unittest.TestCase):
   
   def setUp(self):
-    self.layer_exporter_mock = mock.Mock()
+    self.exporter_mock = mock.Mock()
     self.invoker = pg.invoker.Invoker()
     
-    self.layer_exporter_mock.invoker = self.invoker
+    self.exporter_mock.invoker = self.invoker
     
     self.procedures = actions.create('procedures')
     
@@ -87,10 +85,9 @@ class TestAddActionFromSettings(unittest.TestCase):
     procedure = actions.add(
       self.procedures, builtin_procedures.BUILTIN_PROCEDURES['insert_background_layers'])
     
-    exportlayers.add_action_from_settings(procedure, self.layer_exporter_mock)
+    exportlayers.add_action_from_settings(procedure, self.exporter_mock)
     
-    added_action_items = self.invoker.list_actions(
-      group=actions.DEFAULT_PROCEDURES_GROUP)
+    added_action_items = self.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
     
     self.assertEqual(len(added_action_items), 1)
     self.assertEqual(added_action_items[0][1], ('background',))
@@ -110,10 +107,9 @@ class TestAddActionFromSettings(unittest.TestCase):
     with mock.patch('export_layers.exportlayers.pdb') as pdb_mock:
       pdb_mock.__getitem__.return_value = pdb_procedure
       
-      exportlayers.add_action_from_settings(procedure, self.layer_exporter_mock)
+      exportlayers.add_action_from_settings(procedure, self.exporter_mock)
     
-    added_action_items = self.invoker.list_actions(
-      group=actions.DEFAULT_PROCEDURES_GROUP)
+    added_action_items = self.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
     
     self.assertEqual(len(added_action_items), 1)
     self.assertEqual(added_action_items[0][1], expected_args)

@@ -73,10 +73,10 @@ class ExportImagePreview(preview_base_.ExportPreview):
   _MAX_PREVIEW_SIZE_PIXELS = 1024
   _PREVIEW_ALPHA_CHECK_SIZE = 4
   
-  def __init__(self, layer_exporter):
+  def __init__(self, exporter):
     super().__init__()
     
-    self._layer_exporter = layer_exporter
+    self._exporter = exporter
     
     self._layer_elem = None
     
@@ -179,18 +179,18 @@ class ExportImagePreview(preview_base_.ExportPreview):
   def update_layer_elem(self, layer_id=None):
     if layer_id is None:
       if (self.layer_elem is not None
-          and self._layer_exporter.layer_tree is not None
-          and self.layer_elem.item.ID in self._layer_exporter.layer_tree):
+          and self._exporter.item_tree is not None
+          and self.layer_elem.item.ID in self._exporter.item_tree):
         layer_id = self.layer_elem.item.ID
         should_update = True
       else:
         should_update = False
     else:
-      should_update = layer_id in self._layer_exporter.layer_tree
+      should_update = layer_id in self._exporter.item_tree
     
     if should_update:
-      layer_elem = self._layer_exporter.layer_tree[layer_id]
-      if self._layer_exporter.layer_tree.filter.is_match(layer_elem):
+      layer_elem = self._exporter.item_tree[layer_id]
+      if self._exporter.item_tree.filter.is_match(layer_elem):
         self.layer_elem = layer_elem
         self._set_layer_name_label(self.layer_elem.name)
   
@@ -211,19 +211,19 @@ class ExportImagePreview(preview_base_.ExportPreview):
     if scale_layer_action_groups is None:
       scale_layer_action_groups = ['after_insert_layer']
     
-    self._layer_exporter.remove_action(
+    self._exporter.remove_action(
       self._resize_image_action_id, groups='all', ignore_if_not_exists=True)
     
-    self._resize_image_action_id = self._layer_exporter.add_procedure(
-      self._resize_image_for_layer_exporter,
+    self._resize_image_action_id = self._exporter.add_procedure(
+      self._resize_image_for_exporter,
       resize_image_action_groups,
       ignore_if_exists=True)
     
-    self._layer_exporter.remove_action(
+    self._exporter.remove_action(
       self._scale_layer_action_id, groups='all', ignore_if_not_exists=True)
     
-    self._scale_layer_action_id = self._layer_exporter.add_procedure(
-      self._scale_layer_for_layer_exporter,
+    self._scale_layer_action_id = self._exporter.add_procedure(
+      self._scale_layer_for_exporter,
       scale_layer_action_groups,
       ignore_if_exists=True)
   
@@ -335,18 +335,18 @@ class ExportImagePreview(preview_base_.ExportPreview):
     return layer_preview_pixbuf
   
   def _get_image_preview(self):
-    layer_tree = self._layer_exporter.layer_tree
-    layer_tree_filter = layer_tree.filter if layer_tree is not None else None
+    item_tree = self._exporter.item_tree
+    item_tree_filter = item_tree.filter if item_tree is not None else None
     
-    only_selected_layer_constraint_id = self._layer_exporter.add_constraint(
+    only_selected_layer_constraint_id = self._exporter.add_constraint(
       builtin_constraints.is_layer_in_selected_layers,
       groups=[actions.DEFAULT_CONSTRAINTS_GROUP],
       args=[[self.layer_elem.item.ID]])
     
     try:
-      image_preview = self._layer_exporter.export(
+      image_preview = self._exporter.export(
         processing_groups=['layer_contents'],
-        layer_tree=layer_tree,
+        item_tree=item_tree,
         keep_image_copy=True,
         is_preview=True)
     except Exception:
@@ -354,15 +354,15 @@ class ExportImagePreview(preview_base_.ExportPreview):
         details=traceback.format_exc(), parent=pg.gui.get_toplevel_window(self))
       image_preview = None
     
-    self._layer_exporter.remove_action(
+    self._exporter.remove_action(
       only_selected_layer_constraint_id, [actions.DEFAULT_CONSTRAINTS_GROUP])
     
-    if layer_tree_filter is not None:
-      self._layer_exporter.layer_tree.filter = layer_tree_filter
+    if item_tree_filter is not None:
+      self._exporter.item_tree.filter = item_tree_filter
     
     return image_preview
   
-  def _resize_image_for_layer_exporter(self, image, *args, **kwargs):
+  def _resize_image_for_exporter(self, image, *args, **kwargs):
     pdb.gimp_image_resize(
       image,
       max(1, int(round(image.width * self._preview_scaling_factor))),
@@ -372,7 +372,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_LINEAR)
   
-  def _scale_layer_for_layer_exporter(self, image, layer, layer_exporter):
+  def _scale_layer_for_exporter(self, image, layer, exporter):
     if not pdb.gimp_item_is_group(layer):
       pdb.gimp_item_transform_scale(
         layer,

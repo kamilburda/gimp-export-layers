@@ -20,8 +20,8 @@ from export_layers import actions
 
 class LayerNameRenamer(object):
   
-  def __init__(self, layer_exporter, pattern, fields_raw=None):
-    self._layer_exporter = layer_exporter
+  def __init__(self, exporter, pattern, fields_raw=None):
+    self._exporter = exporter
     self._pattern = pattern
     
     self._fields = _init_fields(fields_raw)
@@ -39,7 +39,7 @@ class LayerNameRenamer(object):
   
   def _get_field_substitute_func(self, func):
     def substitute_func_wrapper(*args):
-      return func(self._layer_exporter, *args)
+      return func(self._exporter, *args)
     
     return substitute_func_wrapper
 
@@ -170,7 +170,7 @@ class NumberField(Field):
       yield str_i
       i += increment
   
-  def _get_number(self, layer_exporter, field_value, *args):
+  def _get_number(self, exporter, field_value, *args):
     reset_numbering_on_parent = True
     ascending = True
     padding = None
@@ -186,7 +186,7 @@ class NumberField(Field):
           pass
     
     if reset_numbering_on_parent:
-      layer_elem = layer_exporter.current_layer_elem
+      layer_elem = exporter.current_layer_elem
       parent_elem = layer_elem.parent if layer_elem.parent is not None else None
       parent_id = parent_elem.item.ID if parent_elem is not None else None
     else:
@@ -202,14 +202,14 @@ class NumberField(Field):
         if reset_numbering_on_parent:
           if parent_elem is not None:
             initial_number = len([
-              item_elem for item_elem in layer_exporter.layer_tree
+              item_elem for item_elem in exporter.item_tree
               if item_elem.depth == parent_elem.depth + 1 and item_elem.parent == parent_elem])
           else:
             initial_number = len([
-              item_elem for item_elem in layer_exporter.layer_tree
+              item_elem for item_elem in exporter.item_tree
               if item_elem.depth == 0])
         else:
-          initial_number = len(layer_exporter.layer_tree)
+          initial_number = len(exporter.item_tree)
       
       self._global_number_generators[field_value][parent_id] = self.generate_number(
         initial_number, padding, ascending)
@@ -222,14 +222,14 @@ class _PercentTemplate(string.Template):
   delimiter = '%'
 
 
-def _get_layer_name(layer_exporter, field_value, file_extension_strip_mode=''):
-  layer_elem = layer_exporter.current_layer_elem
+def _get_layer_name(exporter, field_value, file_extension_strip_mode=''):
+  layer_elem = exporter.current_layer_elem
   
   if file_extension_strip_mode in ['%e', '%i']:
     file_extension = layer_elem.get_file_extension_from_orig_name()
     if file_extension:
       if file_extension_strip_mode == '%i':
-        if file_extension == layer_exporter.default_file_extension:
+        if file_extension == exporter.default_file_extension:
           return layer_elem.name
       else:
         return layer_elem.name
@@ -237,9 +237,9 @@ def _get_layer_name(layer_exporter, field_value, file_extension_strip_mode=''):
   return layer_elem.get_base_name()
 
 
-def _get_image_name(layer_exporter, field_value, keep_extension_str=''):
+def _get_image_name(exporter, field_value, keep_extension_str=''):
   image_name = (
-    layer_exporter.image.name if layer_exporter.image.name is not None else _('Untitled'))
+    exporter.image.name if exporter.image.name is not None else _('Untitled'))
   
   if keep_extension_str == '%e':
     return image_name
@@ -248,7 +248,7 @@ def _get_image_name(layer_exporter, field_value, keep_extension_str=''):
 
 
 def _get_layer_path(
-      layer_exporter, field_value, separator='-', wrapper=None, file_extension_strip_mode=''):
+      exporter, field_value, separator='-', wrapper=None, file_extension_strip_mode=''):
   path_component_token = '%c'
   
   if wrapper is None:
@@ -259,13 +259,13 @@ def _get_layer_path(
     else:
       wrapper = '{}'
   
-  path_components = [parent.name for parent in layer_exporter.current_layer_elem.parents]
-  path_components += [_get_layer_name(layer_exporter, field_value, file_extension_strip_mode)]
+  path_components = [parent.name for parent in exporter.current_layer_elem.parents]
+  path_components += [_get_layer_name(exporter, field_value, file_extension_strip_mode)]
   
   return separator.join([wrapper.format(path_component) for path_component in path_components])
 
 
-def _get_tags(layer_exporter, field_value, *args):
+def _get_tags(exporter, field_value, *args):
   tags_to_insert = []
   
   def _insert_tag(tag):
@@ -281,7 +281,7 @@ def _get_tags(layer_exporter, field_value, *args):
     return builtin_tags_keys[builtin_tags_values.index(tag_display_name)]
   
   def _insert_all_tags():
-    for tag in layer_exporter.current_layer_elem.tags:
+    for tag in exporter.current_layer_elem.tags:
       _insert_tag(tag)
     
     tags_to_insert.sort(key=lambda tag: tag.lower())
@@ -292,7 +292,7 @@ def _get_tags(layer_exporter, field_value, *args):
         continue
       if tag in actions.BUILTIN_TAGS.values():
         tag = _get_tag_from_tag_display_name(tag)
-      if tag in layer_exporter.current_layer_elem.tags:
+      if tag in exporter.current_layer_elem.tags:
         _insert_tag(tag)
   
   tag_separator = '-'
@@ -319,13 +319,13 @@ def _get_tags(layer_exporter, field_value, *args):
   return tag_separator.join([tag_wrapper.format(tag) for tag in tags_to_insert])
 
 
-def _get_current_date(layer_exporter, field_value, date_format='%Y-%m-%d'):
+def _get_current_date(exporter, field_value, date_format='%Y-%m-%d'):
   return datetime.datetime.now().strftime(date_format)
 
 
-def _get_attributes(layer_exporter, field_value, pattern, measure='%px'):
-  layer_elem = layer_exporter.current_layer_elem
-  image = layer_exporter.image
+def _get_attributes(exporter, field_value, pattern, measure='%px'):
+  layer_elem = exporter.current_layer_elem
+  image = exporter.image
   
   fields = {
     'iw': image.width,
@@ -363,7 +363,7 @@ def _get_attributes(layer_exporter, field_value, pattern, measure='%px'):
 
 
 def _replace(
-      layer_exporter, field_value, field_to_replace_str, pattern, replacement, *count_and_flags):
+      exporter, field_value, field_to_replace_str, pattern, replacement, *count_and_flags):
   field_name, field_args = pg.path.StringPattern.parse_field(field_to_replace_str)
   
   try:
@@ -371,7 +371,7 @@ def _replace(
   except KeyError:
     return ''
   
-  str_to_process = field_func(layer_exporter, field_name, *field_args)
+  str_to_process = field_func(exporter, field_name, *field_args)
   
   count = 0
   flags = 0

@@ -20,15 +20,15 @@ from export_layers import settings_custom
 NAME_ONLY_TAG = 'name'
 
 
-def set_active_layer(image, layer, layer_exporter):
+def set_active_layer(image, layer, exporter):
   image.active_layer = layer
 
 
-def set_active_layer_after_action(image, layer, layer_exporter):
+def set_active_layer_after_action(image, layer, exporter):
   action_applied = yield
   
   if action_applied or action_applied is None:
-    set_active_layer(image, layer, layer_exporter)
+    set_active_layer(image, layer, exporter)
 
 
 def copy_and_insert_layer(image, layer, parent=None, position=0, remove_lock_attributes=True):
@@ -43,8 +43,8 @@ def copy_and_insert_layer(image, layer, parent=None, position=0, remove_lock_att
   return layer_copy
 
 
-def autocrop_tagged_layer(image, layer, layer_exporter, tag):
-  tagged_layer = layer_exporter.inserted_tagged_layers[tag]
+def autocrop_tagged_layer(image, layer, exporter, tag):
+  tagged_layer = exporter.inserted_tagged_layers[tag]
   if tagged_layer is not None:
     image.active_layer = tagged_layer
     pdb.plug_in_autocrop_layer(image, tagged_layer)
@@ -53,88 +53,88 @@ def autocrop_tagged_layer(image, layer, layer_exporter, tag):
     return False
 
 
-def remove_folder_hierarchy_from_layer(image, layer, layer_exporter):
-  layer_elem = layer_exporter.current_layer_elem
+def remove_folder_hierarchy_from_layer(image, layer, exporter):
+  layer_elem = exporter.current_layer_elem
 
   layer_elem.parents = []
   layer_elem.children = None if layer_elem.item_type == layer_elem.ITEM else []
 
 
-def insert_background_layer(image, layer, layer_exporter, tag):
-  _insert_tagged_layer(image, layer_exporter, tag, position=len(image.layers))
+def insert_background_layer(image, layer, exporter, tag):
+  _insert_tagged_layer(image, exporter, tag, position=len(image.layers))
 
 
-def insert_foreground_layer(image, layer, layer_exporter, tag):
-  _insert_tagged_layer(image, layer_exporter, tag, position=0)
+def insert_foreground_layer(image, layer, exporter, tag):
+  _insert_tagged_layer(image, exporter, tag, position=0)
 
 
-def inherit_transparency_from_layer_groups(image, layer, layer_exporter):
-  new_layer_opacity = layer_exporter.current_layer_elem.item.opacity / 100.0
-  for parent_elem in layer_exporter.current_layer_elem.parents:
+def inherit_transparency_from_layer_groups(image, layer, exporter):
+  new_layer_opacity = exporter.current_layer_elem.item.opacity / 100.0
+  for parent_elem in exporter.current_layer_elem.parents:
     new_layer_opacity = new_layer_opacity * (parent_elem.item.opacity / 100.0)
   
   layer.opacity = new_layer_opacity * 100.0
 
 
-def rename_layer(image, layer, layer_exporter, pattern):
-  renamer = renamer_.LayerNameRenamer(layer_exporter, pattern)
+def rename_layer(image, layer, exporter, pattern):
+  renamer = renamer_.LayerNameRenamer(exporter, pattern)
   
   while True:
-    layer_exporter.current_layer_elem.name = renamer.rename(layer_exporter.current_layer_elem)
+    exporter.current_layer_elem.name = renamer.rename(exporter.current_layer_elem)
     unused_ = yield
 
 
-def resize_to_layer_size(image, layer, layer_exporter):
+def resize_to_layer_size(image, layer, exporter):
   layer_offset_x, layer_offset_y = layer.offsets
   pdb.gimp_image_resize(image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
 
 
 def use_file_extension_in_layer_name(
-      image, layer, layer_exporter, convert_file_extension_to_lowercase=False):
-  layer_elem = layer_exporter.current_layer_elem
+      image, layer, exporter, convert_file_extension_to_lowercase=False):
+  layer_elem = exporter.current_layer_elem
   
   orig_file_extension = layer_elem.get_file_extension_from_orig_name()
   if (orig_file_extension
       and orig_file_extension.lower() != layer_elem.get_file_extension().lower()
-      and layer_exporter.file_extension_properties[orig_file_extension].is_valid):
+      and exporter.file_extension_properties[orig_file_extension].is_valid):
     if convert_file_extension_to_lowercase:
       orig_file_extension = orig_file_extension.lower()
     
-    layer_exporter.current_file_extension = orig_file_extension
+    exporter.current_file_extension = orig_file_extension
 
 
-def _insert_tagged_layer(image, layer_exporter, tag, position=0):
-  if not layer_exporter.tagged_layer_elems[tag]:
+def _insert_tagged_layer(image, exporter, tag, position=0):
+  if not exporter.tagged_layer_elems[tag]:
     return
   
-  if layer_exporter.tagged_layer_copies[tag] is None:
-    layer_exporter.inserted_tagged_layers[tag] = _insert_merged_tagged_layer(
-      image, layer_exporter, tag, position)
+  if exporter.tagged_layer_copies[tag] is None:
+    exporter.inserted_tagged_layers[tag] = _insert_merged_tagged_layer(
+      image, exporter, tag, position)
     
-    layer_exporter.tagged_layer_copies[tag] = pdb.gimp_layer_copy(
-      layer_exporter.inserted_tagged_layers[tag], True)
-    _remove_locks_from_layer(layer_exporter.tagged_layer_copies[tag])
+    exporter.tagged_layer_copies[tag] = pdb.gimp_layer_copy(
+      exporter.inserted_tagged_layers[tag], True)
+    _remove_locks_from_layer(exporter.tagged_layer_copies[tag])
   else:
-    layer_exporter.inserted_tagged_layers[tag] = pdb.gimp_layer_copy(
-      layer_exporter.tagged_layer_copies[tag], True)
-    _remove_locks_from_layer(layer_exporter.inserted_tagged_layers[tag])
-    pdb.gimp_image_insert_layer(image, layer_exporter.inserted_tagged_layers[tag], None, position)
+    exporter.inserted_tagged_layers[tag] = pdb.gimp_layer_copy(
+      exporter.tagged_layer_copies[tag], True)
+    _remove_locks_from_layer(exporter.inserted_tagged_layers[tag])
+    pdb.gimp_image_insert_layer(image, exporter.inserted_tagged_layers[tag], None, position)
 
 
-def _insert_merged_tagged_layer(image, layer_exporter, tag, position=0):
+def _insert_merged_tagged_layer(image, exporter, tag, position=0):
   first_tagged_layer_position = position
   
-  for i, layer_elem in enumerate(layer_exporter.tagged_layer_elems[tag]):
+  for i, layer_elem in enumerate(exporter.tagged_layer_elems[tag]):
     layer_copy = copy_and_insert_layer(
       image, layer_elem.item, None, first_tagged_layer_position + i)
     layer_copy.visible = True
-    layer_exporter.invoker.invoke(['after_insert_layer'], [image, layer_copy, layer_exporter])
+    exporter.invoker.invoke(['after_insert_layer'], [image, layer_copy, exporter])
   
-  if len(layer_exporter.tagged_layer_elems[tag]) == 1:
+  if len(exporter.tagged_layer_elems[tag]) == 1:
     merged_layer_for_tag = image.layers[first_tagged_layer_position]
   else:
     second_to_last_tagged_layer_position = (
-      first_tagged_layer_position + len(layer_exporter.tagged_layer_elems[tag]) - 2)
+      first_tagged_layer_position + len(exporter.tagged_layer_elems[tag]) - 2)
     
     for i in range(
           second_to_last_tagged_layer_position,

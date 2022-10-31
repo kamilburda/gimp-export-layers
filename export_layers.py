@@ -124,11 +124,10 @@ def _run_export_layers_repeat_interactive(layer_tree):
 
 
 def _run_plugin_noninteractive(run_mode, layer_tree):
-  layer_exporter = exportlayers.LayerExporter(
-    run_mode, layer_tree.image, SETTINGS['main'])
+  exporter = exportlayers.LayerExporter(run_mode, layer_tree.image, SETTINGS['main'])
   
   try:
-    layer_exporter.export(layer_tree=layer_tree)
+    exporter.export(item_tree=layer_tree)
   except exportlayers.ExportLayersCancelError:
     pass
 

@@ -47,7 +47,7 @@ class LayerExporter(object):
   * `progress_updater` - `ProgressUpdater` instance that indicates the number of
     layers exported. If no progress update is desired, pass `None`.
   
-  * `layer_tree` - `LayerTree` instance containing layers to be exported.
+  * `item_tree` - `ItemTree` instance containing layers to be exported.
     Defaults to `None` if no export has been performed yet.
   
   * `exported_layers` - List of layers that were successfully exported. Does not
@@ -76,7 +76,7 @@ class LayerExporter(object):
         export_settings,
         overwrite_chooser=None,
         progress_updater=None,
-        layer_tree=None,
+        item_tree=None,
         export_context_manager=None,
         export_context_manager_args=None):
     
@@ -93,7 +93,7 @@ class LayerExporter(object):
       progress_updater if progress_updater is not None
       else pg.progress.ProgressUpdater(None))
     
-    self._layer_tree = layer_tree
+    self._item_tree = item_tree
     
     self._is_preview = False
     
@@ -141,8 +141,8 @@ class LayerExporter(object):
     self._NAME_ONLY_ACTION_GROUP = 'name'
   
   @property
-  def layer_tree(self):
-    return self._layer_tree
+  def item_tree(self):
+    return self._item_tree
   
   @property
   def is_preview(self):
@@ -181,7 +181,7 @@ class LayerExporter(object):
     return self._invoker
   
   def export(
-        self, processing_groups=None, layer_tree=None, keep_image_copy=False, is_preview=False):
+        self, processing_groups=None, item_tree=None, keep_image_copy=False, is_preview=False):
     """
     Export layers as separate images from the specified image.
     
@@ -202,8 +202,8 @@ class LayerExporter(object):
     
     If `processing_groups` is `None` or empty, perform normal export.
     
-    If `layer_tree` is not `None`, use an existing instance of
-    `itemtree.LayerTree` instead of creating a new one. If the instance had
+    If `item_tree` is not `None`, use an existing instance of
+    `itemtree.ItemTree` instead of creating a new one. If the instance had
     constraints set, they will be reset.
     
     A copy of the image and the layers to be exported are created so that the
@@ -217,7 +217,7 @@ class LayerExporter(object):
     as enabled for previews will be applied for previews. This has no effect
     during real export.
     """
-    self._init_attributes(processing_groups, layer_tree, keep_image_copy, is_preview)
+    self._init_attributes(processing_groups, item_tree, keep_image_copy, is_preview)
     self._preprocess_layers()
     
     exception_occurred = False
@@ -288,17 +288,17 @@ class LayerExporter(object):
     """
     self._initial_invoker.reorder(*args, **kwargs)
   
-  def _init_attributes(self, processing_groups, layer_tree, keep_image_copy, is_preview):
+  def _init_attributes(self, processing_groups, item_tree, keep_image_copy, is_preview):
     self._invoker = pg.invoker.Invoker()
     self._add_actions()
     self._add_name_only_actions()
     
     self._enable_disable_processing_groups(processing_groups)
     
-    if layer_tree is not None:
-      self._layer_tree = layer_tree
+    if item_tree is not None:
+      self._item_tree = item_tree
     else:
-      self._layer_tree = pg.itemtree.LayerTree(
+      self._item_tree = pg.itemtree.LayerTree(
         self.image, name=pg.config.SOURCE_NAME, is_filtered=True)
     
     self._keep_image_copy = keep_image_copy
@@ -379,56 +379,56 @@ class LayerExporter(object):
           setattr(self, function.__name__, pg.utils.empty_func)
   
   def _preprocess_layers(self):
-    if self._layer_tree.filter:
-      self._layer_tree.reset_filter()
+    if self._item_tree.filter:
+      self._item_tree.reset_filter()
     
     self._reset_parents_in_layer_elems()
     
     self._set_layer_constraints()
     
-    self.progress_updater.num_total_tasks = len(self._layer_tree)
+    self.progress_updater.num_total_tasks = len(self._item_tree)
     
     if self._keep_image_copy:
-      with self._layer_tree.filter['layer_types'].remove_rule_temp(
+      with self._item_tree.filter['layer_types'].remove_rule_temp(
              builtin_constraints.is_empty_group, False):
-        num_layers_and_nonempty_groups = len(self._layer_tree)
+        num_layers_and_nonempty_groups = len(self._item_tree)
         if num_layers_and_nonempty_groups > 1:
           self._use_another_image_copy = True
         elif num_layers_and_nonempty_groups < 1:
           self._keep_image_copy = False
   
   def _reset_parents_in_layer_elems(self):
-    for layer_elem in self._layer_tree:
+    for layer_elem in self._item_tree:
       layer_elem.parents = list(layer_elem.orig_parents)
       layer_elem.children = (
         list(layer_elem.orig_children) if layer_elem.orig_children is not None else None)
   
   def _set_layer_constraints(self):
-    self._layer_tree.filter.add_subfilter(
+    self._item_tree.filter.add_subfilter(
       'layer_types', pg.objectfilter.ObjectFilter(pg.objectfilter.ObjectFilter.MATCH_ANY))
     
     self._invoker.invoke(
       [builtin_constraints.CONSTRAINTS_LAYER_TYPES_GROUP],
       [self],
-      additional_args_position=_LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
     
     self._init_tagged_layer_elems()
     
     self._invoker.invoke(
       [actions.DEFAULT_CONSTRAINTS_GROUP],
       [self],
-      additional_args_position=_LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
   
   def _init_tagged_layer_elems(self):
-    with self._layer_tree.filter.add_rule_temp(builtin_constraints.has_tags):
-      with self._layer_tree.filter['layer_types'].add_rule_temp(
+    with self._item_tree.filter.add_rule_temp(builtin_constraints.has_tags):
+      with self._item_tree.filter['layer_types'].add_rule_temp(
              builtin_constraints.is_nonempty_group):
-        for layer_elem in self._layer_tree:
+        for layer_elem in self._item_tree:
           for tag in layer_elem.tags:
             self._tagged_layer_elems[tag].append(layer_elem)
   
   def _export_layers(self):
-    for layer_elem in self._layer_tree:
+    for layer_elem in self._item_tree:
       if self._should_stop:
         raise ExportLayersCancelError('export stopped by user')
       
@@ -551,8 +551,8 @@ class LayerExporter(object):
     self.current_file_extension = self._default_file_extension
   
   def _preprocess_empty_group_name(self, layer_elem):
-    self._layer_tree.validate_name(layer_elem)
-    self._layer_tree.uniquify_name(layer_elem)
+    self._item_tree.validate_name(layer_elem)
+    self._item_tree.uniquify_name(layer_elem)
   
   def _process_layer_name_for_preview(self, image, layer):
     self._invoker.invoke(
@@ -570,15 +570,15 @@ class LayerExporter(object):
       layer_elem.set_file_extension(
         self._default_file_extension, keep_extra_trailing_periods=True)
     
-    self._layer_tree.validate_name(layer_elem)
-    self._layer_tree.uniquify_name(
+    self._item_tree.validate_name(layer_elem)
+    self._item_tree.uniquify_name(
       layer_elem,
       uniquifier_position=self._get_uniquifier_position(
         layer_elem.name, layer_elem.get_file_extension()))
   
   def _postprocess_layer_name(self, layer_elem):
     if layer_elem.item_type == layer_elem.NONEMPTY_GROUP:
-      self._layer_tree.reset_name(layer_elem)
+      self._item_tree.reset_name(layer_elem)
   
   def _get_uniquifier_position(self, str_, file_extension):
     return len(str_) - len('.' + file_extension)
@@ -617,7 +617,7 @@ class LayerExporter(object):
           gimpenums.RUN_INTERACTIVE,
           image, layer, output_filepath, file_extension)
   
-  def _make_dirs(self, dirpath, layer_exporter):
+  def _make_dirs(self, dirpath, exporter):
     try:
       pg.path.make_dirs(dirpath)
     except OSError as e:
@@ -629,7 +629,7 @@ class LayerExporter(object):
         message = str(e)
       
       raise InvalidOutputDirectoryError(
-        message, layer_exporter.current_layer_elem, layer_exporter.default_file_extension)
+        message, exporter.current_layer_elem, exporter.default_file_extension)
   
   def _export_once_wrapper(
         self, export_func, run_mode, image, layer, output_filepath, file_extension):
@@ -707,10 +707,10 @@ class LayerExporter(object):
 #===============================================================================
 
 
-_LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
+_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
 
 
-def add_action_from_settings(action, layer_exporter, tags=None, action_groups=None):
+def add_action_from_settings(action, exporter, tags=None, action_groups=None):
   if action.get_value('is_pdb_procedure', False):
     try:
       function = pdb[pg.utils.safe_encode_gimp(action['function'].value)]
@@ -742,12 +742,12 @@ def add_action_from_settings(action, layer_exporter, tags=None, action_groups=No
   if 'constraint' in action.tags:
     function = _get_constraint_func(function, subfilter=action['subfilter'].value)
   
-  function = _apply_action_only_if_enabled(function, action, layer_exporter)
+  function = _apply_action_only_if_enabled(function, action, exporter)
   
   if action_groups is None:
     action_groups = action['action_groups'].value
   
-  layer_exporter.invoker.add(function, action_groups, function_args, function_kwargs)
+  exporter.invoker.add(function, action_groups, function_args, function_kwargs)
 
 
 def _has_run_mode_param(pdb_procedure):
@@ -755,23 +755,23 @@ def _has_run_mode_param(pdb_procedure):
 
 
 def _get_action_func_for_pdb_procedure(pdb_procedure):
-  def _pdb_procedure_as_action(image, layer, layer_exporter, *args, **kwargs):
+  def _pdb_procedure_as_action(image, layer, exporter, *args, **kwargs):
     return pdb_procedure(*args, **kwargs)
   
   return _pdb_procedure_as_action
 
 
 def _get_action_func_with_replaced_placeholders(function):
-  def _action(image, layer, layer_exporter, *args, **kwargs):
+  def _action(image, layer, exporter, *args, **kwargs):
     new_args, new_kwargs = placeholders.get_replaced_args_and_kwargs(
-      args, kwargs, image, layer, layer_exporter)
-    return function(image, layer, layer_exporter, *new_args, **new_kwargs)
+      args, kwargs, image, layer, exporter)
+    return function(image, layer, exporter, *new_args, **new_kwargs)
   
   return _action
 
 
-def _apply_action_only_if_enabled(function, action, layer_exporter):
-  if layer_exporter.is_preview:
+def _apply_action_only_if_enabled(function, action, exporter):
+  if exporter.is_preview:
     def _apply_action_in_preview(*action_args, **action_kwargs):
       if action['enabled'].value and action['enabled_for_previews'].value:
         return function(*action_args, **action_kwargs)
@@ -791,12 +791,12 @@ def _apply_action_only_if_enabled(function, action, layer_exporter):
 
 def _get_constraint_func(rule_func, subfilter=None):
   def _add_rule_func(*args):
-    layer_exporter, rule_func_args = _get_args_for_constraint_func(rule_func, args)
+    exporter, rule_func_args = _get_args_for_constraint_func(rule_func, args)
     
     if subfilter is None:
-      object_filter = layer_exporter.layer_tree.filter
+      object_filter = exporter.item_tree.filter
     else:
-      object_filter = layer_exporter.layer_tree.filter[subfilter]
+      object_filter = exporter.item_tree.filter[subfilter]
     
     object_filter.add_rule(rule_func, *rule_func_args)
   
@@ -805,27 +805,23 @@ def _get_constraint_func(rule_func, subfilter=None):
 
 def _get_args_for_constraint_func(rule_func, args):
   try:
-    layer_exporter_arg_position = (
-      inspect.getargspec(rule_func).args.index('layer_exporter'))
+    exporter_arg_position = inspect.getargspec(rule_func).args.index('exporter')
   except ValueError:
-    layer_exporter_arg_position = None
+    exporter_arg_position = None
   
-  if layer_exporter_arg_position is not None:
-    layer_exporter = args[layer_exporter_arg_position - 1]
+  if exporter_arg_position is not None:
+    exporter = args[exporter_arg_position - 1]
     rule_func_args = args
   else:
     if len(args) > 1:
-      layer_exporter_arg_position = (
-        _LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
+      exporter_arg_position = _EXPORTER_ARG_POSITION_IN_CONSTRAINTS
     else:
-      layer_exporter_arg_position = (
-        _LAYER_EXPORTER_ARG_POSITION_IN_CONSTRAINTS - 1)
+      exporter_arg_position = _EXPORTER_ARG_POSITION_IN_CONSTRAINTS - 1
     
-    layer_exporter = args[layer_exporter_arg_position]
-    rule_func_args = (
-      args[:layer_exporter_arg_position] + args[layer_exporter_arg_position + 1:])
+    exporter = args[exporter_arg_position]
+    rule_func_args = args[:exporter_arg_position] + args[exporter_arg_position + 1:]
   
-  return layer_exporter, rule_func_args
+  return exporter, rule_func_args
 
 
 class _FileExtension(object):

@@ -68,15 +68,15 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def __init__(
         self,
-        layer_exporter,
-        initial_layer_tree=None,
+        exporter,
+        initial_item_tree=None,
         collapsed_items=None,
         selected_items=None,
         available_tags_setting=None):
     super().__init__()
     
-    self._layer_exporter = layer_exporter
-    self._initial_layer_tree = initial_layer_tree
+    self._exporter = exporter
+    self._initial_item_tree = initial_item_tree
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
     self._selected_items = selected_items if selected_items is not None else []
     self._available_tags_setting = available_tags_setting
@@ -165,14 +165,14 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self.emit('preview-selection-changed')
   
   def get_layer_elems_from_selected_rows(self):
-    return [self._layer_exporter.layer_tree[layer_id]
+    return [self._exporter.item_tree[layer_id]
             for layer_id in self._get_layer_ids_in_current_selection()]
   
   def get_layer_elem_from_cursor(self):
     tree_path, unused_ = self._tree_view.get_cursor()
     if tree_path is not None:
       layer_id = self._get_layer_id(self._tree_model.get_iter(tree_path))
-      return self._layer_exporter.layer_tree[layer_id]
+      return self._exporter.item_tree[layer_id]
     else:
       return None
   
@@ -287,17 +287,17 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self._tags_menu.show_all()
   
   def _update_available_tags(self):
-    self._layer_exporter.layer_tree.is_filtered = False
+    self._exporter.item_tree.is_filtered = False
     
     used_tags = set()
-    for layer_elem in self._layer_exporter.layer_tree:
+    for layer_elem in self._exporter.item_tree:
       for tag in layer_elem.tags:
         used_tags.add(tag)
         if tag not in self._tags_menu_items:
           self._add_tag_menu_item(tag, tag)
           self._add_remove_tag_menu_item(tag, tag)
     
-    self._layer_exporter.layer_tree.is_filtered = True
+    self._exporter.item_tree.is_filtered = True
     
     for tag, menu_item in self._tags_remove_submenu_items.items():
       menu_item.set_sensitive(tag not in used_tags)
@@ -361,7 +361,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
       
       self._toggle_tag_interactive = False
       
-      layer_elems = [self._layer_exporter.layer_tree[layer_id] for layer_id in layer_ids]
+      layer_elems = [self._exporter.item_tree[layer_id] for layer_id in layer_ids]
       for tag, tags_menu_item in self._tags_menu_items.items():
         tags_menu_item.set_active(
           all(tag in layer_elem.tags for layer_elem in layer_elems))
@@ -379,17 +379,17 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _on_tags_menu_item_toggled(self, tags_menu_item, tag):
     if self._toggle_tag_interactive:
-      pdb.gimp_image_undo_group_start(self._layer_exporter.image)
+      pdb.gimp_image_undo_group_start(self._exporter.image)
       
       for layer_id in self._get_layer_ids_in_current_selection():
-        layer_elem = self._layer_exporter.layer_tree[layer_id]
+        layer_elem = self._exporter.item_tree[layer_id]
         
         if tags_menu_item.get_active():
           layer_elem.add_tag(tag)
         else:
           layer_elem.remove_tag(tag)
       
-      pdb.gimp_image_undo_group_end(self._layer_exporter.image)
+      pdb.gimp_image_undo_group_end(self._exporter.image)
       
       # Modifying just one layer could result in renaming other layers
       # differently, hence update the whole preview.
@@ -504,28 +504,28 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _process_items(self, reset_items=False):
     if not reset_items:
-      if self._initial_layer_tree is not None:
-        layer_tree = self._initial_layer_tree
-        self._initial_layer_tree = None
+      if self._initial_item_tree is not None:
+        item_tree = self._initial_item_tree
+        self._initial_item_tree = None
       else:
-        if self._layer_exporter.layer_tree is not None:
-          self._layer_exporter.layer_tree.reset_all_names()
-        layer_tree = self._layer_exporter.layer_tree
+        if self._exporter.item_tree is not None:
+          self._exporter.item_tree.reset_all_names()
+        item_tree = self._exporter.item_tree
     else:
-      layer_tree = None
+      item_tree = None
     
-    self._layer_exporter.export(
+    self._exporter.export(
       processing_groups=['layer_name', 'layer_name_for_preview'],
-      layer_tree=layer_tree,
+      item_tree=item_tree,
       is_preview=True)
   
   def _update_items(self):
-    for layer_elem in self._layer_exporter.layer_tree:
+    for layer_elem in self._exporter.item_tree:
       self._update_parent_item_elems(layer_elem)
       self._update_item_elem(layer_elem)
   
   def _insert_items(self):
-    for layer_elem in self._layer_exporter.layer_tree:
+    for layer_elem in self._exporter.item_tree:
       self._insert_parent_item_elems(layer_elem)
       self._insert_item_elem(layer_elem)
   
@@ -568,17 +568,17 @@ class ExportNamePreview(preview_base_.ExportPreview):
   def _enable_filtered_items(self, enabled):
     if self.is_filtering:
       if not enabled:
-        self._layer_exporter.layer_tree.filter.add_rule(
+        self._exporter.item_tree.filter.add_rule(
           builtin_constraints.is_layer_in_selected_layers, self._selected_items)
       else:
-        self._layer_exporter.layer_tree.filter.remove_rule(
+        self._exporter.item_tree.filter.remove_rule(
           builtin_constraints.is_layer_in_selected_layers, raise_if_not_found=False)
   
   def _set_items_sensitive(self):
     if self.is_filtering:
-      self._set_item_elems_sensitive(self._layer_exporter.layer_tree, False)
+      self._set_item_elems_sensitive(self._exporter.item_tree, False)
       self._set_item_elems_sensitive(
-        [self._layer_exporter.layer_tree[item_id] for item_id in self._selected_items],
+        [self._exporter.item_tree[item_id] for item_id in self._selected_items],
         True)
   
   def _get_item_elem_sensitive(self, item_elem):
@@ -608,7 +608,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
     if item_elem.item_type == item_elem.ITEM:
       return self._icons['layer']
     elif item_elem.item_type == item_elem.NONEMPTY_GROUP:
-      if not self._layer_exporter.has_exported_layer(item_elem.item):
+      if not self._exporter.has_exported_layer(item_elem.item):
         return self._icons['layer_group']
       else:
         return self._icons['exported_layer_group']
@@ -646,14 +646,14 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self._row_expand_collapse_interactive = True
   
   def _remove_no_longer_valid_collapsed_items(self):
-    if self._layer_exporter.layer_tree is None:
+    if self._exporter.item_tree is None:
       return
     
-    self._layer_exporter.layer_tree.is_filtered = False
+    self._exporter.item_tree.is_filtered = False
     self._collapsed_items = set(
       [collapsed_item for collapsed_item in self._collapsed_items
-       if collapsed_item in self._layer_exporter.layer_tree])
-    self._layer_exporter.layer_tree.is_filtered = True
+       if collapsed_item in self._exporter.item_tree])
+    self._exporter.item_tree.is_filtered = True
   
   def _set_selection(self):
     self._row_select_interactive = False
