@@ -55,6 +55,7 @@ class Invoker(object):
         kwargs=None,
         foreach=False,
         ignore_if_exists=False,
+        position=None,
         run_generator=True):
     """Adds an action to be invoked by `invoke()`.
     
@@ -77,13 +78,15 @@ class Invoker(object):
     If `groups` is `'all'`, the action is added to all existing groups. The
     action will not be added to the default group if it does not exist.
     
-    The action is added at the end of the list of actions in the specified
-    group(s). To modify the order of the added action, call `reorder()`.
+    By default, the action is added at the end of the list of actions in the
+    specified group(s). Pass an integer to the `position` parameter to customize
+    the insertion position. A negative value represents an n-th to last
+    position.
     
     Action as a function can also be a generator function or return a generator.
     This allows customizing which parts of the code of the function are called
     on each invocation. For example:
-      
+    
       def foo():
         print('bar')
         while True:
@@ -171,10 +174,11 @@ class Invoker(object):
           group,
           args if args is not None else (),
           kwargs if kwargs is not None else {},
+          position,
           run_generator)
     else:
       for group in self._process_groups_arg(groups):
-        self._add_invoker(action_id, action, group)
+        self._add_invoker(action_id, action, group, position)
     
     return action_id
   
@@ -297,7 +301,7 @@ class Invoker(object):
         else:
           _invoke_invoker(item.action, group)
   
-  def add_to_groups(self, action_id, groups=None):
+  def add_to_groups(self, action_id, groups=None, position=None):
     """
     Add an existing action specified by its ID to the specified groups. For
     more information about the `groups` parameter, see `add()`.
@@ -305,13 +309,18 @@ class Invoker(object):
     If the action was already added to one of the specified groups, it will
     not be added again (call `add()` for that purpose).
     
+    By default, the action is added at the end of the list of actions in the
+    specified group(s). Pass an integer to the `position` parameter to customize
+    the insertion position. A negative value represents an n-th-to-last
+    position.
+    
     If the action ID is not valid, raise `ValueError`.
     """
     self._check_action_id_is_valid(action_id)
     
     for group in self._process_groups_arg(groups):
       if group not in self._action_items[action_id].groups:
-        self._add_action_to_group(self._action_items[action_id], group)
+        self._add_action_to_group(self._action_items[action_id], group, position)
   
   def contains(self, action, groups=None, foreach=False):
     """
@@ -535,7 +544,7 @@ class Invoker(object):
       self._actions[group] = []
       self._foreach_actions[group] = []
   
-  def _add_action_to_group(self, action_item, group):
+  def _add_action_to_group(self, action_item, group, position):
     if action_item.action_type == self._TYPE_ACTION:
       self._add_action(
         action_item.action_id,
@@ -543,6 +552,7 @@ class Invoker(object):
         group,
         action_item.action[1],
         action_item.action[2],
+        position,
         action_item.run_generator)
     elif action_item.action_type == self._TYPE_FOREACH_ACTION:
       self._add_foreach_action(
@@ -551,11 +561,13 @@ class Invoker(object):
         group,
         action_item.action[1],
         action_item.action[2],
+        position,
         action_item.run_generator)
     elif action_item.action_type == self._TYPE_INVOKER:
-      self._add_invoker(action_item.action_id, action_item.action, group)
+      self._add_invoker(action_item.action_id, action_item.action, group, position)
   
-  def _add_action(self, action_id, action, group, action_args, action_kwargs, run_generator):
+  def _add_action(
+        self, action_id, action, group, action_args, action_kwargs, position, run_generator):
     self._init_group(group)
     
     action_item = self._set_action_item(
@@ -566,7 +578,11 @@ class Invoker(object):
       action,
       run_generator)
     
-    self._actions[group].append(action_item)
+    if position is None:
+      self._actions[group].append(action_item)
+    else:
+      self._actions[group].insert(position, action_item)
+    
     self._action_functions[group][action] += 1
   
   def _add_foreach_action(
@@ -576,6 +592,7 @@ class Invoker(object):
         group,
         foreach_action_args,
         foreach_action_kwargs,
+        position,
         run_generator):
     self._init_group(group)
     
@@ -598,16 +615,24 @@ class Invoker(object):
       foreach_action,
       run_generator)
     
-    self._foreach_actions[group].append(action_item)
+    if position is None:
+      self._foreach_actions[group].append(action_item)
+    else:
+      self._foreach_actions[group].insert(position, action_item)
+    
     self._foreach_action_functions[group][foreach_action] += 1
   
-  def _add_invoker(self, action_id, invoker, group):
+  def _add_invoker(self, action_id, invoker, group, position):
     self._init_group(group)
     
     action_item = self._set_action_item(
       action_id, group, invoker, self._TYPE_INVOKER, invoker, False)
     
-    self._actions[group].append(action_item)
+    if position is None:
+      self._actions[group].append(action_item)
+    else:
+      self._actions[group].insert(position, action_item)
+    
     self._invokers[group][invoker] += 1
   
   def _get_action_id(self):

@@ -211,6 +211,36 @@ class TestInvoker(InvokerTestCase):
     self.assertEqual(len(self.invoker.list_actions()), 1)
     self.assertIsNone(action_id)
   
+  def test_add_different_order(self):
+    test_list = []
+    self.invoker.add(append_to_list, args=[test_list, 1])
+    self.invoker.add(append_to_list, args=[test_list, 2], position=0)
+    
+    self.assertListEqual(
+      self.invoker.list_actions(),
+      [(append_to_list, [test_list, 2], {}), (append_to_list, [test_list, 1], {})])
+  
+  def test_add_foreach_action_different_order(self):
+    test_list = []
+    self.invoker.add(append_to_list_before, args=[test_list, 1], foreach=True)
+    self.invoker.add(append_to_list_before, args=[test_list, 2], foreach=True, position=0)
+    
+    self.assertListEqual(
+      self.invoker.list_actions(foreach=True),
+      [(append_to_list_before, [test_list, 2], {}),
+       (append_to_list_before, [test_list, 1], {})])
+  
+  def test_add_invoker_different_order(self):
+    additional_invoker = pginvoker.Invoker()
+    additional_invoker_2 = pginvoker.Invoker()
+    
+    self.invoker.add(additional_invoker)
+    self.invoker.add(additional_invoker_2, position=0)
+    
+    self.assertListEqual(
+      self.invoker.list_actions(),
+      [additional_invoker_2, additional_invoker])
+  
   def test_has_action(self):
     action_id = self.invoker.add(append_to_list)
     self.assertTrue(self.invoker.has_action(action_id))
