@@ -347,9 +347,8 @@ class _ItemTreeElement(object):
   
   * `children` (read-only) - List of `_ItemTreeElement` children for this item.
   
-  * `name` - Item name as a `unicode` string, initially equal to the `orig_name`
-     attribute. Modify this attribute instead of `gimp.Item.name` to avoid
-     modifying the original item.
+  * `name` - Item name as a string, initially equal to `orig_name`. Modify this
+     attribute instead of `gimp.Item.name` to avoid modifying the original item.
   
   * `depth` (read-only) - Integer indicating the depth of the item in the item
     tree. 0 means the item is at the top level. The greater the depth, the lower
@@ -367,7 +366,7 @@ class _ItemTreeElement(object):
     item. If all items are visible, `path_visible` is `True`. If at least one
     of these items is invisible, `path_visible` is `False`.
   
-  * `orig_name` (read-only) - Original `gimp.Item.name` as a Unicode string.
+  * `orig_name` (read-only) - Original `gimp.Item.name` as a string.
   
   * `tags` - Set of arbitrary strings attached to the item. Tags can be used for
     a variety of purposes, such as special handling of items with specific tags.

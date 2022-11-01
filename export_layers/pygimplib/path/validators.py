@@ -43,8 +43,6 @@ class StringValidator(future.utils.with_metaclass(abc.ABCMeta, object)):
   """
   This class is an interface to validate strings.
   
-  Strings are assumed to be Unicode strings.
-  
   This class does not specify what strings are valid (whether they contain
   invalid characters, substrings, etc.). This should be handled by subclasses.
   """
