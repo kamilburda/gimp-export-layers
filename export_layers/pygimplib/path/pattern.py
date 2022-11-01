@@ -89,19 +89,23 @@ class StringPattern(object):
   def parsed_fields_and_matching_regexes(self):
     return self._parsed_fields_and_matching_regexes
   
-  def substitute(self):
+  def substitute(self, *additional_args):
     """
     Substitute fields in the string pattern. Return the processed string.
     
     If any substitution function raises an exception, the original string
     pattern is returned.
+    
+    You may pass additional arguments if `fields` contains functions expecting
+    more arguments outside the parsed arguments. These arguments are prepended
+    to each function.
     """
     pattern_parts = []
     for part in self._pattern_parts:
       if not self._is_field(part):
         pattern_parts.append(part)
       else:
-        pattern_parts.append(self._process_field(part))
+        pattern_parts.append(self._process_field(part, additional_args))
     
     return ''.join(pattern_parts)
   
@@ -341,20 +345,8 @@ class StringPattern(object):
     
     if argspec.keywords:
       raise ValueError(
-        '{}: field functions with variable keyword arguments (**kwargs) '
-        'are not supported'.format(field_func.__name__))
-    
-    if not argspec.varargs:
-      num_defaults = len(argspec.defaults) if argspec.defaults is not None else 0
-      # The field value should always be the first argument, hence `- 1`.
-      num_required_args = len(argspec.args) - num_defaults - 1
-      
-      if pgutils.is_bound_method(field_func):
-        num_required_args -= 1
-      
-      if (len(parsed_field[1]) < num_required_args
-          or len(parsed_field[1]) > len(argspec.args)):
-        return False
+        '{}: field functions with variable keyword arguments (**kwargs)'
+        ' are not supported'.format(field_func.__name__))
     
     return True
   
@@ -366,11 +358,12 @@ class StringPattern(object):
   def _is_field(pattern_part):
     return not isinstance(pattern_part, types.StringTypes)
   
-  def _process_field(self, field):
+  def _process_field(self, field, additional_args):
     field_func = self._fields[self._parsed_fields_and_matching_regexes[field[0]]]
+    field_func_args = list(additional_args) + [field[0]] + list(field[1])
     
     try:
-      return_value = field_func(field[0], *field[1])
+      return_value = field_func(*field_func_args)
     except Exception:
       return '[{}]'.format(field[2])
     else:
