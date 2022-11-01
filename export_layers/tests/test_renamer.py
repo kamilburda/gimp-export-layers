@@ -199,7 +199,7 @@ class TestRenameWithNumberField(unittest.TestCase):
       exporter_mock, pattern, fields_raw=[renamer.FIELDS['^[0-9]+$']])
     
     for layer_elem in layer_tree:
-      exporter_mock.current_layer_elem = layer_elem
+      exporter_mock.current_item = layer_elem
       
       layer_elem.name = layer_name_renamer.rename(layer_elem)
     

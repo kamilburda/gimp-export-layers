@@ -52,7 +52,7 @@ def take_screenshots(gui, dialog, settings):
   
   #HACK: Accessing private members
   gui._name_preview.set_selected_items(set([
-    gui._name_preview._exporter.item_tree['main-background'].item.ID]))
+    gui._name_preview._exporter.item_tree['main-background'].raw.ID]))
   
   dialog.set_focus(gui._name_preview.tree_view)
   
@@ -86,7 +86,7 @@ def take_screenshots(gui, dialog, settings):
   
   #HACK: Accessing private members
   gui._name_preview.set_selected_items(set([
-    gui._name_preview._exporter.item_tree['bottom-frame'].item.ID]))
+    gui._name_preview._exporter.item_tree['bottom-frame'].raw.ID]))
   
   while gtk.events_pending():
     gtk.main_iteration()

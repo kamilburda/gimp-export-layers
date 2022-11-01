@@ -334,7 +334,7 @@ def convert_set_of_layer_ids_to_names(
 def convert_set_of_layer_names_to_ids(
       image_id, image_filepath, image_ids_setting, image_filepaths_setting, layer_tree):
   image_ids_setting.value[image_id] = set(
-    [layer_tree[layer_orig_name].item.ID
+    [layer_tree[layer_orig_name].raw.ID
      for layer_orig_name in image_filepaths_setting.value[image_filepath]
      if layer_orig_name in layer_tree])
 
@@ -350,4 +350,4 @@ def convert_layer_name_to_id(
       image_id, image_filepath, image_ids_setting, image_filepaths_setting, layer_tree):
   layer_orig_name = image_filepaths_setting.value[image_filepath]
   image_ids_setting.value[image_id] = (
-    layer_tree[layer_orig_name].item.ID if layer_orig_name in layer_tree else None)
+    layer_tree[layer_orig_name].raw.ID if layer_orig_name in layer_tree else None)

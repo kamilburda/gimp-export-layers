@@ -341,21 +341,21 @@ class TestLayerTreeElement(unittest.TestCase):
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.pdb', new=stubs_gimp.PdbStub())
   def setUp(self):
-    self.layer_elem = pgitemtree._ItemTreeElement(
+    self.layer_elem = pgitemtree._Item(
       stubs_gimp.LayerStub('main-background.jpg'))
   
   def test_str(self):
-    self.assertEqual(str(self.layer_elem), '<_ItemTreeElement "main-background.jpg">')
+    self.assertEqual(str(self.layer_elem), '<_Item "main-background.jpg">')
     
     self.layer_elem.name = 'main-background'
     
-    self.assertEqual(str(self.layer_elem), '<_ItemTreeElement "main-background.jpg">')
+    self.assertEqual(str(self.layer_elem), '<_Item "main-background.jpg">')
   
   def test_repr(self):
     self.assertEqual(
       repr(self.layer_elem),
-      '<pygimplib.itemtree._ItemTreeElement "main-background.jpg {}" at {}>'.format(
-        type(self.layer_elem.item),
+      '<pygimplib.itemtree._Item "main-background.jpg {}" at {}>'.format(
+        type(self.layer_elem.raw),
         hex(id(self.layer_elem)).rstrip('L'),
       ),
     )
@@ -403,7 +403,7 @@ class TestLayerTreeElement(unittest.TestCase):
     
     self.assertNotIn('background', self.layer_elem.tags)
     self.assertFalse(self.layer_elem.tags)
-    self.assertFalse(self.layer_elem.item.parasite_list())
+    self.assertFalse(self.layer_elem.raw.parasite_list())
   
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.gimp',
@@ -416,7 +416,7 @@ class TestLayerTreeElement(unittest.TestCase):
       stubs_gimp.ParasiteStub(
         layer_elem_tags_source_name, 0, pickle.dumps(set(['background']))))
     
-    layer_elem = pgitemtree._ItemTreeElement(
+    layer_elem = pgitemtree._Item(
       layer, tags_source_name=layer_elem_tags_source_name)
     self.assertIn('background', layer_elem.tags)
   
@@ -430,6 +430,6 @@ class TestLayerTreeElement(unittest.TestCase):
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(layer_elem_tags_source_name, 0, 'invalid_data'))
     
-    layer_elem = pgitemtree._ItemTreeElement(
+    layer_elem = pgitemtree._Item(
       layer, tags_source_name=layer_elem_tags_source_name)
     self.assertFalse(layer_elem.tags)

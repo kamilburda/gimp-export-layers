@@ -325,7 +325,7 @@ class ExportPreviewsController(object):
     layer_elem_from_cursor = self._name_preview.get_layer_elem_from_cursor()
     if layer_elem_from_cursor is not None:
       if (self._image_preview.layer_elem is None
-          or (layer_elem_from_cursor.item.ID != self._image_preview.layer_elem.item.ID)):
+          or (layer_elem_from_cursor.raw.ID != self._image_preview.layer_elem.raw.ID)):
         self._image_preview.layer_elem = layer_elem_from_cursor
         self._image_preview.update()
     else:

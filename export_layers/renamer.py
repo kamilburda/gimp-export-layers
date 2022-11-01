@@ -186,11 +186,11 @@ class NumberField(Field):
           pass
     
     if reset_numbering_on_parent:
-      layer_elem = exporter.current_layer_elem
-      parent_elem = layer_elem.parent if layer_elem.parent is not None else None
-      parent_id = parent_elem.item.ID if parent_elem is not None else None
+      current_item = exporter.current_item
+      parent_item = current_item.parent if current_item.parent is not None else None
+      parent_id = parent_item.raw.ID if parent_item is not None else None
     else:
-      parent_elem = None
+      parent_item = None
       parent_id = None
     
     if parent_id not in self._global_number_generators[field_value]:
@@ -200,14 +200,12 @@ class NumberField(Field):
       
       if initial_number == 0 and not ascending:
         if reset_numbering_on_parent:
-          if parent_elem is not None:
+          if parent_item is not None:
             initial_number = len([
-              item_elem for item_elem in exporter.item_tree
-              if item_elem.depth == parent_elem.depth + 1 and item_elem.parent == parent_elem])
+              item for item in exporter.item_tree
+              if item.depth == parent_item.depth + 1 and item.parent == parent_item])
           else:
-            initial_number = len([
-              item_elem for item_elem in exporter.item_tree
-              if item_elem.depth == 0])
+            initial_number = len([item for item in exporter.item_tree if item.depth == 0])
         else:
           initial_number = len(exporter.item_tree)
       
@@ -223,7 +221,7 @@ class _PercentTemplate(string.Template):
 
 
 def _get_layer_name(exporter, field_value, file_extension_strip_mode=''):
-  layer_elem = exporter.current_layer_elem
+  layer_elem = exporter.current_item
   
   if file_extension_strip_mode in ['%e', '%i']:
     file_extension = layer_elem.get_file_extension_from_orig_name()
@@ -259,7 +257,7 @@ def _get_layer_path(
     else:
       wrapper = '{}'
   
-  path_components = [parent.name for parent in exporter.current_layer_elem.parents]
+  path_components = [parent.name for parent in exporter.current_item.parents]
   path_components += [_get_layer_name(exporter, field_value, file_extension_strip_mode)]
   
   return separator.join([wrapper.format(path_component) for path_component in path_components])
@@ -281,7 +279,7 @@ def _get_tags(exporter, field_value, *args):
     return builtin_tags_keys[builtin_tags_values.index(tag_display_name)]
   
   def _insert_all_tags():
-    for tag in exporter.current_layer_elem.tags:
+    for tag in exporter.current_item.tags:
       _insert_tag(tag)
     
     tags_to_insert.sort(key=lambda tag: tag.lower())
@@ -292,7 +290,7 @@ def _get_tags(exporter, field_value, *args):
         continue
       if tag in actions.BUILTIN_TAGS.values():
         tag = _get_tag_from_tag_display_name(tag)
-      if tag in exporter.current_layer_elem.tags:
+      if tag in exporter.current_item.tags:
         _insert_tag(tag)
   
   tag_separator = '-'
@@ -324,7 +322,7 @@ def _get_current_date(exporter, field_value, date_format='%Y-%m-%d'):
 
 
 def _get_attributes(exporter, field_value, pattern, measure='%px'):
-  layer_elem = exporter.current_layer_elem
+  layer_elem = exporter.current_item
   image = exporter.image
   
   fields = {
@@ -336,10 +334,10 @@ def _get_attributes(exporter, field_value, pattern, measure='%px'):
   
   if measure == '%px':
     layer_fields = {
-      'w': layer_elem.item.width,
-      'h': layer_elem.item.height,
-      'x': layer_elem.item.offsets[0],
-      'y': layer_elem.item.offsets[1],
+      'w': layer_elem.raw.width,
+      'h': layer_elem.raw.height,
+      'x': layer_elem.raw.offsets[0],
+      'y': layer_elem.raw.offsets[1],
     }
   elif measure.startswith('%pc'):
     match = re.match(r'^' + re.escape('%pc') + r'([0-9]*)$', measure)
@@ -351,10 +349,10 @@ def _get_attributes(exporter, field_value, pattern, measure='%px'):
         round_digits = 2
       
       layer_fields = {
-        'w': round(layer_elem.item.width / image.width, round_digits),
-        'h': round(layer_elem.item.height / image.height, round_digits),
-        'x': round(layer_elem.item.offsets[0] / image.width, round_digits),
-        'y': round(layer_elem.item.offsets[1] / image.height, round_digits),
+        'w': round(layer_elem.raw.width / image.width, round_digits),
+        'h': round(layer_elem.raw.height / image.height, round_digits),
+        'x': round(layer_elem.raw.offsets[0] / image.width, round_digits),
+        'y': round(layer_elem.raw.offsets[1] / image.height, round_digits),
       }
   
   fields.update(layer_fields)

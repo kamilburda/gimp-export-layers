@@ -1076,8 +1076,8 @@ class EnumSetting(Setting):
         item_values.add(item_value)
     else:
       raise ValueError(
-        'wrong number of tuple elements in items - must be only 2- '
-        'or only 3-element tuples')
+        'wrong number of tuple elements in items - must be only 2-'
+        ' or only 3-element tuples')
     
     return items, items_display_names, item_values
   

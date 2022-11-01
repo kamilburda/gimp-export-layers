@@ -61,8 +61,8 @@ class LayerExporter(object):
   * `export_context_manager_args` - Additional arguments passed to
     `export_context_manager`.
   
-  * `current_layer_elem` (read-only) - The `itemtree._ItemTreeElement` instance
-    being currently exported.
+  * `current_item` (read-only) - An `itemtree._Item` instance being
+    currently exported.
   
   * `invoker` - `pygimplib.invoker.Invoker` instance to
     manage procedures and constraints applied on layers. This property is not
@@ -111,7 +111,7 @@ class LayerExporter(object):
     
     self._exported_layers = []
     self._exported_layers_ids = set()
-    self._current_layer_elem = None
+    self._current_item = None
     
     self._should_stop = False
     
@@ -153,8 +153,8 @@ class LayerExporter(object):
     return self._exported_layers
   
   @property
-  def current_layer_elem(self):
-    return self._current_layer_elem
+  def current_item(self):
+    return self._current_item
   
   @property
   def tagged_layer_elems(self):
@@ -309,7 +309,7 @@ class LayerExporter(object):
     self._exported_layers = []
     self._exported_layers_ids = set()
     
-    self._current_layer_elem = None
+    self._current_item = None
     
     self._output_directory = self.export_settings['output_directory'].value
     
@@ -432,7 +432,7 @@ class LayerExporter(object):
       if self._should_stop:
         raise ExportLayersCancelError('export stopped by user')
       
-      self._current_layer_elem = layer_elem
+      self._current_item = layer_elem
       
       if layer_elem.item_type in (layer_elem.ITEM, layer_elem.NONEMPTY_GROUP):
         self._process_and_export_item(layer_elem)
@@ -444,7 +444,7 @@ class LayerExporter(object):
             layer_elem.item_type, layer_elem))
   
   def _process_and_export_item(self, layer_elem):
-    layer = layer_elem.item
+    layer = layer_elem.raw
     self._preprocess_layer_name(layer_elem)
     self._process_layer_name_for_preview(self._image_copy, layer)
     layer_copy = self._process_layer(layer_elem, self._image_copy, layer)
@@ -629,7 +629,7 @@ class LayerExporter(object):
         message = str(e)
       
       raise InvalidOutputDirectoryError(
-        message, exporter.current_layer_elem, exporter.default_file_extension)
+        message, exporter.current_item, exporter.default_file_extension)
   
   def _export_once_wrapper(
         self, export_func, run_mode, image, layer, output_filepath, file_extension):

@@ -54,7 +54,7 @@ def autocrop_tagged_layer(image, layer, exporter, tag):
 
 
 def remove_folder_hierarchy_from_layer(image, layer, exporter):
-  layer_elem = exporter.current_layer_elem
+  layer_elem = exporter.current_item
 
   layer_elem.parents = []
   layer_elem.children = None if layer_elem.item_type == layer_elem.ITEM else []
@@ -69,9 +69,9 @@ def insert_foreground_layer(image, layer, exporter, tag):
 
 
 def inherit_transparency_from_layer_groups(image, layer, exporter):
-  new_layer_opacity = exporter.current_layer_elem.item.opacity / 100.0
-  for parent_elem in exporter.current_layer_elem.parents:
-    new_layer_opacity = new_layer_opacity * (parent_elem.item.opacity / 100.0)
+  new_layer_opacity = exporter.current_item.raw.opacity / 100.0
+  for parent_elem in exporter.current_item.parents:
+    new_layer_opacity = new_layer_opacity * (parent_elem.raw.opacity / 100.0)
   
   layer.opacity = new_layer_opacity * 100.0
 
@@ -80,7 +80,7 @@ def rename_layer(image, layer, exporter, pattern):
   renamer = renamer_.LayerNameRenamer(exporter, pattern)
   
   while True:
-    exporter.current_layer_elem.name = renamer.rename(exporter.current_layer_elem)
+    exporter.current_item.name = renamer.rename(exporter.current_item)
     unused_ = yield
 
 
@@ -91,7 +91,7 @@ def resize_to_layer_size(image, layer, exporter):
 
 def use_file_extension_in_layer_name(
       image, layer, exporter, convert_file_extension_to_lowercase=False):
-  layer_elem = exporter.current_layer_elem
+  layer_elem = exporter.current_item
   
   orig_file_extension = layer_elem.get_file_extension_from_orig_name()
   if (orig_file_extension
@@ -126,7 +126,7 @@ def _insert_merged_tagged_layer(image, exporter, tag, position=0):
   
   for i, layer_elem in enumerate(exporter.tagged_layer_elems[tag]):
     layer_copy = copy_and_insert_layer(
-      image, layer_elem.item, None, first_tagged_layer_position + i)
+      image, layer_elem.raw, None, first_tagged_layer_position + i)
     layer_copy.visible = True
     exporter.invoker.invoke(['after_insert_layer'], [image, layer_copy, exporter])
   

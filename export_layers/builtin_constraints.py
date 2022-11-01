@@ -53,7 +53,7 @@ def has_matching_default_file_extension(layer_elem, exporter):
 
 
 def is_layer_in_selected_layers(layer_elem, selected_layers):
-  return layer_elem.item.ID in selected_layers
+  return layer_elem.raw.ID in selected_layers
 
 
 _BUILTIN_CONSTRAINTS_LIST = [

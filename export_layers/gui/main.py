@@ -164,7 +164,7 @@ def _set_settings(func):
         self._image.ID] = self._name_preview.selected_items
       self._settings['gui_session/image_preview_displayed_layers'].value[
         self._image.ID] = (
-          self._image_preview.layer_elem.item.ID
+          self._image_preview.layer_elem.raw.ID
           if self._image_preview.layer_elem is not None else None)
     except pg.setting.SettingValueError as e:
       self._display_inline_message(str(e), gtk.MESSAGE_ERROR, e.setting)

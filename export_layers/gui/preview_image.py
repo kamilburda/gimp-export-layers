@@ -138,7 +138,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     if self.layer_elem is None:
       return
     
-    if not pdb.gimp_item_is_valid(self.layer_elem.item):
+    if not pdb.gimp_item_is_valid(self.layer_elem.raw):
       self.clear()
       return
     
@@ -180,8 +180,8 @@ class ExportImagePreview(preview_base_.ExportPreview):
     if layer_id is None:
       if (self.layer_elem is not None
           and self._exporter.item_tree is not None
-          and self.layer_elem.item.ID in self._exporter.item_tree):
-        layer_id = self.layer_elem.item.ID
+          and self.layer_elem.raw.ID in self._exporter.item_tree):
+        layer_id = self.layer_elem.raw.ID
         should_update = True
       else:
         should_update = False
@@ -236,7 +236,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     start_update_time = time.time()
     
     with pg.pdbutils.redirect_messages():
-      preview_pixbuf = self._get_in_memory_preview(self.layer_elem.item)
+      preview_pixbuf = self._get_in_memory_preview(self.layer_elem.raw)
     
     if preview_pixbuf is not None:
       self._preview_image.set_from_pixbuf(preview_pixbuf)
@@ -341,7 +341,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     only_selected_layer_constraint_id = self._exporter.add_constraint(
       builtin_constraints.is_layer_in_selected_layers,
       groups=[actions.DEFAULT_CONSTRAINTS_GROUP],
-      args=[[self.layer_elem.item.ID]])
+      args=[[self.layer_elem.raw.ID]])
     
     try:
       image_preview = self._exporter.export(

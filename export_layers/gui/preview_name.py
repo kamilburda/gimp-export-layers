@@ -130,7 +130,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
       self._update_items()
     
     self._set_selection()
-    self._set_items_sensitive()
+    self._set_item_tree_sensitive_for_selected()
     
     self._enable_filtered_items(enabled=False)
     
@@ -521,49 +521,49 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _update_items(self):
     for layer_elem in self._exporter.item_tree:
-      self._update_parent_item_elems(layer_elem)
-      self._update_item_elem(layer_elem)
+      self._update_parent_items(layer_elem)
+      self._update_item(layer_elem)
   
   def _insert_items(self):
     for layer_elem in self._exporter.item_tree:
-      self._insert_parent_item_elems(layer_elem)
-      self._insert_item_elem(layer_elem)
+      self._insert_parent_items(layer_elem)
+      self._insert_item(layer_elem)
   
-  def _insert_item_elem(self, item_elem):
-    if item_elem.parent:
-      parent_tree_iter = self._tree_iters[item_elem.parent.item.ID]
+  def _insert_item(self, item):
+    if item.parent:
+      parent_tree_iter = self._tree_iters[item.parent.raw.ID]
     else:
       parent_tree_iter = None
     
     tree_iter = self._tree_model.append(
       parent_tree_iter,
-      [self._get_icon_from_item_elem(item_elem),
-       bool(item_elem.tags),
+      [self._get_icon_from_item(item),
+       bool(item.tags),
        True,
-       pg.utils.safe_encode_gtk(item_elem.name),
-       item_elem.item.ID])
-    self._tree_iters[item_elem.item.ID] = tree_iter
+       pg.utils.safe_encode_gtk(item.name),
+       item.raw.ID])
+    self._tree_iters[item.raw.ID] = tree_iter
     
     return tree_iter
   
-  def _update_item_elem(self, item_elem):
+  def _update_item(self, item):
     self._tree_model.set(
-      self._tree_iters[item_elem.item.ID],
+      self._tree_iters[item.raw.ID],
       self._COLUMN_ICON_TAG_VISIBLE[0],
-      bool(item_elem.tags),
+      bool(item.tags),
       self._COLUMN_LAYER_NAME_SENSITIVE[0],
       True,
       self._COLUMN_LAYER_NAME[0],
-      pg.utils.safe_encode_gtk(item_elem.name))
+      pg.utils.safe_encode_gtk(item.name))
   
-  def _insert_parent_item_elems(self, item_elem):
-    for parent_elem in item_elem.parents:
-      if not self._tree_iters[parent_elem.item.ID]:
-        self._insert_item_elem(parent_elem)
+  def _insert_parent_items(self, item):
+    for parent_elem in item.parents:
+      if not self._tree_iters[parent_elem.raw.ID]:
+        self._insert_item(parent_elem)
   
-  def _update_parent_item_elems(self, item_elem):
-    for parent_elem in item_elem.parents:
-      self._update_item_elem(parent_elem)
+  def _update_parent_items(self, item):
+    for parent_elem in item.parents:
+      self._update_item(parent_elem)
   
   def _enable_filtered_items(self, enabled):
     if self.is_filtering:
@@ -574,45 +574,45 @@ class ExportNamePreview(preview_base_.ExportPreview):
         self._exporter.item_tree.filter.remove_rule(
           builtin_constraints.is_layer_in_selected_layers, raise_if_not_found=False)
   
-  def _set_items_sensitive(self):
+  def _set_item_tree_sensitive_for_selected(self):
     if self.is_filtering:
-      self._set_item_elems_sensitive(self._exporter.item_tree, False)
-      self._set_item_elems_sensitive(
+      self._set_items_sensitive(self._exporter.item_tree, False)
+      self._set_items_sensitive(
         [self._exporter.item_tree[item_id] for item_id in self._selected_items],
         True)
   
-  def _get_item_elem_sensitive(self, item_elem):
+  def _get_item_sensitive(self, item):
     return self._tree_model.get_value(
-      self._tree_iters[item_elem.item.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0])
+      self._tree_iters[item.raw.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0])
   
-  def _set_item_elem_sensitive(self, item_elem, sensitive):
-    if self._tree_iters[item_elem.item.ID] is not None:
+  def _set_item_sensitive(self, item, sensitive):
+    if self._tree_iters[item.raw.ID] is not None:
       self._tree_model.set_value(
-        self._tree_iters[item_elem.item.ID],
+        self._tree_iters[item.raw.ID],
         self._COLUMN_LAYER_NAME_SENSITIVE[0],
         sensitive)
   
-  def _set_parent_item_elems_sensitive(self, item_elem):
-    for parent_elem in reversed(list(item_elem.parents)):
+  def _set_parent_items_sensitive(self, item):
+    for parent_elem in reversed(list(item.parents)):
       parent_sensitive = any(
-        self._get_item_elem_sensitive(child_elem) for child_elem in parent_elem.children
-        if child_elem.item.ID in self._tree_iters)
-      self._set_item_elem_sensitive(parent_elem, parent_sensitive)
+        self._get_item_sensitive(child_elem) for child_elem in parent_elem.children
+        if child_elem.raw.ID in self._tree_iters)
+      self._set_item_sensitive(parent_elem, parent_sensitive)
   
-  def _set_item_elems_sensitive(self, item_elems, sensitive):
-    for item_elem in item_elems:
-      self._set_item_elem_sensitive(item_elem, sensitive)
-      self._set_parent_item_elems_sensitive(item_elem)
+  def _set_items_sensitive(self, items, sensitive):
+    for item in items:
+      self._set_item_sensitive(item, sensitive)
+      self._set_parent_items_sensitive(item)
   
-  def _get_icon_from_item_elem(self, item_elem):
-    if item_elem.item_type == item_elem.ITEM:
+  def _get_icon_from_item(self, item):
+    if item.item_type == item.ITEM:
       return self._icons['layer']
-    elif item_elem.item_type == item_elem.NONEMPTY_GROUP:
-      if not self._exporter.has_exported_layer(item_elem.item):
+    elif item.item_type == item.NONEMPTY_GROUP:
+      if not self._exporter.has_exported_layer(item.raw):
         return self._icons['layer_group']
       else:
         return self._icons['exported_layer_group']
-    elif item_elem.item_type == item_elem.EMPTY_GROUP:
+    elif item.item_type == item.EMPTY_GROUP:
       return self._icons['layer_group']
     else:
       return None
