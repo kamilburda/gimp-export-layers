@@ -332,7 +332,7 @@ class LayerExporter(object):
     self._current_overwrite_mode = None
     
     self._layer_name_renamer = renamer.LayerNameRenamer(
-      self, self.export_settings['layer_filename_pattern'].value)
+      self.export_settings['layer_filename_pattern'].value)
   
   def _add_actions(self):
     self._invoker.add(
@@ -547,7 +547,7 @@ class LayerExporter(object):
     return layer
   
   def _preprocess_layer_name(self, layer_elem):
-    layer_elem.name = self._layer_name_renamer.rename(layer_elem)
+    layer_elem.name = self._layer_name_renamer.rename(self)
     self.current_file_extension = self._default_file_extension
   
   def _preprocess_empty_group_name(self, layer_elem):

@@ -20,28 +20,19 @@ from export_layers import actions
 
 class LayerNameRenamer(object):
   
-  def __init__(self, exporter, pattern, fields_raw=None):
-    self._exporter = exporter
-    self._pattern = pattern
-    
-    self._fields = _init_fields(fields_raw)
-    
+  def __init__(self, pattern, fields_raw=None):
     self._filename_pattern = pg.path.StringPattern(
-      pattern=self._pattern, fields=self._get_fields_and_substitute_funcs())
+      pattern=pattern,
+      fields=_get_fields_and_substitute_funcs(_init_fields(fields_raw)))
   
-  def rename(self, layer_elem):
-    return self._filename_pattern.substitute()
-  
-  def _get_fields_and_substitute_funcs(self):
-    return {
-      field.regex: self._get_field_substitute_func(field.substitute_func)
-      for field in self._fields if field.substitute_func is not None}
-  
-  def _get_field_substitute_func(self, func):
-    def substitute_func_wrapper(*args):
-      return func(self._exporter, *args)
-    
-    return substitute_func_wrapper
+  def rename(self, exporter):
+    return self._filename_pattern.substitute(exporter)
+
+
+def _get_fields_and_substitute_funcs(fields):
+  return {
+    field.regex: field.substitute_func
+    for field in fields if field.substitute_func is not None}
 
 
 def _init_fields(fields_raw):

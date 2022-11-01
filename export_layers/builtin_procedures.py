@@ -77,10 +77,10 @@ def inherit_transparency_from_layer_groups(image, layer, exporter):
 
 
 def rename_layer(image, layer, exporter, pattern):
-  renamer = renamer_.LayerNameRenamer(exporter, pattern)
+  renamer = renamer_.LayerNameRenamer(pattern)
   
   while True:
-    exporter.current_item.name = renamer.rename(exporter.current_item)
+    exporter.current_item.name = renamer.rename(exporter)
     unused_ = yield
 
 
