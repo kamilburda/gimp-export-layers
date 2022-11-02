@@ -114,10 +114,10 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
   
   def test_foreground(self):
     layer_tree = pg.itemtree.LayerTree(self.test_image, name=pg.config.SOURCE_NAME)
-    for layer_elem in layer_tree:
-      if 'background' in layer_elem.tags:
-        layer_elem.remove_tag('background')
-        layer_elem.add_tag('foreground')
+    for item in layer_tree:
+      if 'background' in item.tags:
+        item.remove_tag('background')
+        item.add_tag('foreground')
     
     self.compare(
       procedure_names_to_add={'insert_foreground_layers': 0},

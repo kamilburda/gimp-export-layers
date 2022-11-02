@@ -30,20 +30,20 @@ from .. import utils as pgutils
 class LayerFilterRules(object):
   
   @staticmethod
-  def is_layer(layer_elem):
-    return layer_elem.item_type == layer_elem.ITEM
+  def is_layer(item):
+    return item.item_type == item.ITEM
   
   @staticmethod
-  def is_layer_or_empty_group(layer_elem):
-    return layer_elem.item_type in (layer_elem.ITEM, layer_elem.EMPTY_GROUP)
+  def is_layer_or_empty_group(item):
+    return item.item_type in (item.ITEM, item.EMPTY_GROUP)
   
   @staticmethod
-  def is_path_visible(layer_elem):
-    return layer_elem.path_visible
+  def is_path_visible(item):
+    return item.path_visible
   
   @staticmethod
-  def has_matching_file_extension(layer_elem, file_extension):
-    return layer_elem.name.endswith('.' + file_extension)
+  def has_matching_file_extension(item, file_extension):
+    return item.name.endswith('.' + file_extension)
 
 
 @mock.patch(
@@ -95,7 +95,7 @@ class TestLayerTree(unittest.TestCase):
     self.layer_tree = pgitemtree.LayerTree(image)
   
   def test_get_item_tree_element_attributes(self):
-    layer_elem_tree = collections.OrderedDict([
+    item_tree = collections.OrderedDict([
       ('Corners',
        [[],
         ['top-left-corner', 'top-right-corner',
@@ -123,25 +123,25 @@ class TestLayerTree(unittest.TestCase):
       ('alt-corners', [['main-background.jpg::'], None]),
     ])
     
-    for layer_elem, orig_name in zip(self.layer_tree, layer_elem_tree):
-      self.assertEqual(layer_elem.orig_name, orig_name)
+    for item, orig_name in zip(self.layer_tree, item_tree):
+      self.assertEqual(item.orig_name, orig_name)
     
-    for layer_elem, parents_and_children in zip(
-          self.layer_tree, layer_elem_tree.values()):
+    for item, parents_and_children in zip(
+          self.layer_tree, item_tree.values()):
       parents = parents_and_children[0]
       children = parents_and_children[1]
       
-      self.assertListEqual([parent.orig_name for parent in layer_elem.parents], parents)
+      self.assertListEqual([parent.orig_name for parent in item.parents], parents)
       
       if children is not None:
-        self.assertListEqual([child.orig_name for child in layer_elem.children], children)
+        self.assertListEqual([child.orig_name for child in item.children], children)
       else:
-        self.assertIsNone(layer_elem.children)
+        self.assertIsNone(item.children)
       
-      self.assertEqual(layer_elem.parents, list(layer_elem.orig_parents))
+      self.assertEqual(item.parents, list(item.orig_parents))
       self.assertEqual(
-        layer_elem.children,
-        list(layer_elem.orig_children) if layer_elem.orig_children is not None else None)
+        item.children,
+        list(item.orig_children) if item.orig_children is not None else None)
   
   def test_get_len(self):
     layer_count_total = 20
@@ -157,23 +157,23 @@ class TestLayerTree(unittest.TestCase):
   def test_get_filepath(self):
     output_dirpath = os.path.join('D:', os.sep, 'testgimp')
     
-    # `layer_elem` with parents
-    layer_elem = self.layer_tree['bottom-right-corner']
+    # `item` with parents
+    item = self.layer_tree['bottom-right-corner']
     
     self.assertEqual(
-      layer_elem.get_filepath(output_dirpath),
-      os.path.join(output_dirpath, 'Corners', 'top-left-corner::', layer_elem.name))
+      item.get_filepath(output_dirpath),
+      os.path.join(output_dirpath, 'Corners', 'top-left-corner::', item.name))
     self.assertEqual(
-      layer_elem.get_filepath(output_dirpath, include_item_path=False),
-      os.path.join(output_dirpath, layer_elem.name))
+      item.get_filepath(output_dirpath, include_item_path=False),
+      os.path.join(output_dirpath, item.name))
     self.assertEqual(
-      layer_elem.get_filepath('testgimp'),
+      item.get_filepath('testgimp'),
       os.path.join(
-        os.getcwd(), 'testgimp', 'Corners', 'top-left-corner::', layer_elem.name))
+        os.getcwd(), 'testgimp', 'Corners', 'top-left-corner::', item.name))
     self.assertEqual(
-      layer_elem.get_filepath(None),
+      item.get_filepath(None),
       os.path.join(
-        os.getcwd(), 'Corners', 'top-left-corner::', layer_elem.name))
+        os.getcwd(), 'Corners', 'top-left-corner::', item.name))
     
     itemtree_empty_layer_group = self.layer_tree['top-left-corner:']
     
@@ -219,9 +219,9 @@ class TestLayerTree(unittest.TestCase):
     self.layer_tree.is_filtered = True
     self.layer_tree.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     
-    for layer_elem in self.layer_tree:
-      self.layer_tree.validate_name(layer_elem)
-      self.layer_tree.uniquify_name(layer_elem, include_item_path=False)
+    for item in self.layer_tree:
+      self.layer_tree.validate_name(item)
+      self.layer_tree.uniquify_name(item, include_item_path=False)
     self._compare_uniquified_without_parents(self.layer_tree, uniquified_names)
   
   def _compare_uniquified_without_parents(self, item_tree, uniquified_names):
@@ -260,9 +260,9 @@ class TestLayerTree(unittest.TestCase):
     self.layer_tree.is_filtered = True
     self.layer_tree.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     
-    for layer_elem in self.layer_tree:
-      self.layer_tree.validate_name(layer_elem)
-      self.layer_tree.uniquify_name(layer_elem, include_item_path=True)
+    for item in self.layer_tree:
+      self.layer_tree.validate_name(item)
+      self.layer_tree.uniquify_name(item, include_item_path=True)
     self._compare_uniquified_with_parents(self.layer_tree, uniquified_names)
   
   def test_uniquify_with_regards_to_file_extension(self):
@@ -281,12 +281,12 @@ class TestLayerTree(unittest.TestCase):
     self.layer_tree.is_filtered = True
     self.layer_tree.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
     
-    for layer_elem in self.layer_tree:
-      self.layer_tree.validate_name(layer_elem)
+    for item in self.layer_tree:
+      self.layer_tree.validate_name(item)
       self.layer_tree.uniquify_name(
-        layer_elem,
+        item,
         include_item_path=True,
-        uniquifier_position=_get_file_extension_start_position(layer_elem.name))
+        uniquifier_position=_get_file_extension_start_position(item.name))
     self._compare_uniquified_with_parents(self.layer_tree, uniquified_names)
   
   def _compare_uniquified_with_parents(self, item_tree, uniquified_names):
@@ -341,95 +341,95 @@ class TestLayerTreeElement(unittest.TestCase):
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.pdb', new=stubs_gimp.PdbStub())
   def setUp(self):
-    self.layer_elem = pgitemtree._Item(
+    self.item = pgitemtree._Item(
       stubs_gimp.LayerStub('main-background.jpg'))
   
   def test_str(self):
-    self.assertEqual(str(self.layer_elem), '<_Item "main-background.jpg">')
+    self.assertEqual(str(self.item), '<_Item "main-background.jpg">')
     
-    self.layer_elem.name = 'main-background'
+    self.item.name = 'main-background'
     
-    self.assertEqual(str(self.layer_elem), '<_Item "main-background.jpg">')
+    self.assertEqual(str(self.item), '<_Item "main-background.jpg">')
   
   def test_repr(self):
     self.assertEqual(
-      repr(self.layer_elem),
+      repr(self.item),
       '<pygimplib.itemtree._Item "main-background.jpg {}" at {}>'.format(
-        type(self.layer_elem.raw),
-        hex(id(self.layer_elem)).rstrip('L'),
+        type(self.item.raw),
+        hex(id(self.item)).rstrip('L'),
       ),
     )
   
   def test_get_base_name(self):
-    self.layer_elem.name = 'main-background'
-    self.assertEqual(self.layer_elem.get_base_name(), 'main-background')
-    self.layer_elem.name = 'main-background.'
-    self.assertEqual(self.layer_elem.get_base_name(), 'main-background.')
-    self.layer_elem.name = 'main-background.jpg'
-    self.assertEqual(self.layer_elem.get_base_name(), 'main-background')
-    self.layer_elem.name = 'main-background..jpg'
-    self.assertEqual(self.layer_elem.get_base_name(), 'main-background.')
-    self.layer_elem.name = '..jpg'
-    self.assertEqual(self.layer_elem.get_base_name(), '.')
-    self.layer_elem.name = '.jpg'
-    self.assertEqual(self.layer_elem.get_base_name(), '')
-    self.layer_elem.name = '.'
-    self.assertEqual(self.layer_elem.get_base_name(), '.')
+    self.item.name = 'main-background'
+    self.assertEqual(self.item.get_base_name(), 'main-background')
+    self.item.name = 'main-background.'
+    self.assertEqual(self.item.get_base_name(), 'main-background.')
+    self.item.name = 'main-background.jpg'
+    self.assertEqual(self.item.get_base_name(), 'main-background')
+    self.item.name = 'main-background..jpg'
+    self.assertEqual(self.item.get_base_name(), 'main-background.')
+    self.item.name = '..jpg'
+    self.assertEqual(self.item.get_base_name(), '.')
+    self.item.name = '.jpg'
+    self.assertEqual(self.item.get_base_name(), '')
+    self.item.name = '.'
+    self.assertEqual(self.item.get_base_name(), '.')
   
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.gimp',
     new=stubs_gimp.GimpModuleStub())
   def test_add_tag(self):
-    self.assertEqual(self.layer_elem.tags, set())
+    self.assertEqual(self.item.tags, set())
     
-    self.layer_elem.add_tag('background')
-    self.assertIn('background', self.layer_elem.tags)
+    self.item.add_tag('background')
+    self.assertIn('background', self.item.tags)
     
-    self.layer_elem.add_tag('foreground')
-    self.assertIn('background', self.layer_elem.tags)
-    self.assertIn('foreground', self.layer_elem.tags)
+    self.item.add_tag('foreground')
+    self.assertIn('background', self.item.tags)
+    self.assertIn('foreground', self.item.tags)
   
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.gimp',
     new=stubs_gimp.GimpModuleStub())
   def test_remove_tag(self):
-    self.assertEqual(self.layer_elem.tags, set())
+    self.assertEqual(self.item.tags, set())
     
     with self.assertRaises(ValueError):
-      self.layer_elem.remove_tag('background')
+      self.item.remove_tag('background')
     
-    self.layer_elem.add_tag('background')
-    self.layer_elem.remove_tag('background')
+    self.item.add_tag('background')
+    self.item.remove_tag('background')
     
-    self.assertNotIn('background', self.layer_elem.tags)
-    self.assertFalse(self.layer_elem.tags)
-    self.assertFalse(self.layer_elem.raw.parasite_list())
+    self.assertNotIn('background', self.item.tags)
+    self.assertFalse(self.item.tags)
+    self.assertFalse(self.item.raw.parasite_list())
   
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.gimp',
     new=stubs_gimp.GimpModuleStub())
   def test_initial_tags(self):
-    layer_elem_tags_source_name = 'test'
+    item_tags_source_name = 'test'
     
     layer = stubs_gimp.LayerStub('layer')
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(
-        layer_elem_tags_source_name, 0, pickle.dumps(set(['background']))))
+        item_tags_source_name, 0, pickle.dumps(set(['background']))))
     
-    layer_elem = pgitemtree._Item(
-      layer, tags_source_name=layer_elem_tags_source_name)
-    self.assertIn('background', layer_elem.tags)
+    item = pgitemtree._Item(
+      layer, tags_source_name=item_tags_source_name)
+    self.assertIn('background', item.tags)
   
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.gimp',
     new=stubs_gimp.GimpModuleStub())
   def test_initial_tags_with_invalid_data(self):
-    layer_elem_tags_source_name = 'test'
+    item_tags_source_name = 'test'
     
     layer = stubs_gimp.LayerStub('layer')
     layer.parasite_attach(
-      stubs_gimp.ParasiteStub(layer_elem_tags_source_name, 0, 'invalid_data'))
+      stubs_gimp.ParasiteStub(item_tags_source_name, 0, 'invalid_data'))
     
-    layer_elem = pgitemtree._Item(
-      layer, tags_source_name=layer_elem_tags_source_name)
-    self.assertFalse(layer_elem.tags)
+    item = pgitemtree._Item(
+      layer, tags_source_name=item_tags_source_name)
+    self.assertFalse(item.tags)

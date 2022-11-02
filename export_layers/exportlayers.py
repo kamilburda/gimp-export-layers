@@ -116,18 +116,18 @@ class LayerExporter(object):
     self._should_stop = False
     
     self._processing_groups = {
-      'layer_contents': [
-        self._setup, self._cleanup, self._process_layer, self._postprocess_layer],
-      'layer_name': [
-        self._preprocess_layer_name, self._preprocess_empty_group_name,
-        self._process_layer_name],
-      '_postprocess_layer_name': [self._postprocess_layer_name],
+      'item_contents': [
+        self._setup, self._cleanup, self._process_item, self._postprocess_item],
+      'item_name': [
+        self._preprocess_item_name, self._preprocess_empty_group_name,
+        self._process_item_name],
+      '_postprocess_item_name': [self._postprocess_item_name],
       'export': [self._make_dirs, self._export],
-      'layer_name_for_preview': [self._process_layer_name_for_preview],
+      'item_name_for_preview': [self._process_item_name_for_preview],
     }
     self._default_processing_groups = [
-      'layer_contents',
-      'layer_name',
+      'item_contents',
+      'item_name',
       'export',
     ]
     
@@ -157,8 +157,8 @@ class LayerExporter(object):
     return self._current_item
   
   @property
-  def tagged_layer_elems(self):
-    return self._tagged_layer_elems
+  def tagged_items(self):
+    return self._tagged_items
   
   @property
   def inserted_tagged_layers(self):
@@ -189,11 +189,11 @@ class LayerExporter(object):
     export are effective and which are ignored. Multiple groups can be
     specified. The following groups are supported:
     
-    * `'layer_contents'` - Perform only actions manipulating the layer
+    * `'item_contents'` - Perform only actions manipulating the layer
       itself, such as cropping, resizing, etc. This is useful to preview the
       layer(s).
     
-    * `'layer_name'` - Perform only actions manipulating layer names
+    * `'item_name'` - Perform only actions manipulating layer names
       and layer tree (but not layer contents). This is useful to preview the
       names of the exported layers.
     
@@ -218,7 +218,7 @@ class LayerExporter(object):
     during real export.
     """
     self._init_attributes(processing_groups, item_tree, keep_image_copy, is_preview)
-    self._preprocess_layers()
+    self._preprocess_items()
     
     exception_occurred = False
     
@@ -314,7 +314,7 @@ class LayerExporter(object):
     self._output_directory = self.export_settings['output_directory'].value
     
     self._image_copy = None
-    self._tagged_layer_elems = collections.defaultdict(list)
+    self._tagged_items = collections.defaultdict(list)
     self._tagged_layer_copies = collections.defaultdict(pg.utils.return_none_func)
     self._inserted_tagged_layers = collections.defaultdict(pg.utils.return_none_func)
     
@@ -370,19 +370,19 @@ class LayerExporter(object):
     if processing_groups is None:
       processing_groups = self._default_processing_groups
     
-    if 'layer_name' in processing_groups:
-      processing_groups.append('_postprocess_layer_name')
+    if 'item_name' in processing_groups:
+      processing_groups.append('_postprocess_item_name')
     
     for processing_group, functions in self._processing_groups.items():
       if processing_group not in processing_groups:
         for function in functions:
           setattr(self, function.__name__, pg.utils.empty_func)
   
-  def _preprocess_layers(self):
+  def _preprocess_items(self):
     if self._item_tree.filter:
       self._item_tree.reset_filter()
     
-    self._reset_parents_in_layer_elems()
+    self._reset_parents_in_items()
     
     self._set_layer_constraints()
     
@@ -397,11 +397,11 @@ class LayerExporter(object):
         elif num_layers_and_nonempty_groups < 1:
           self._keep_image_copy = False
   
-  def _reset_parents_in_layer_elems(self):
-    for layer_elem in self._item_tree:
-      layer_elem.parents = list(layer_elem.orig_parents)
-      layer_elem.children = (
-        list(layer_elem.orig_children) if layer_elem.orig_children is not None else None)
+  def _reset_parents_in_items(self):
+    for item in self._item_tree:
+      item.parents = list(item.orig_parents)
+      item.children = (
+        list(item.orig_children) if item.orig_children is not None else None)
   
   def _set_layer_constraints(self):
     self._item_tree.filter.add_subfilter(
@@ -412,57 +412,57 @@ class LayerExporter(object):
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
     
-    self._init_tagged_layer_elems()
+    self._init_tagged_items()
     
     self._invoker.invoke(
       [actions.DEFAULT_CONSTRAINTS_GROUP],
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
   
-  def _init_tagged_layer_elems(self):
+  def _init_tagged_items(self):
     with self._item_tree.filter.add_rule_temp(builtin_constraints.has_tags):
       with self._item_tree.filter['layer_types'].add_rule_temp(
              builtin_constraints.is_nonempty_group):
-        for layer_elem in self._item_tree:
-          for tag in layer_elem.tags:
-            self._tagged_layer_elems[tag].append(layer_elem)
+        for item in self._item_tree:
+          for tag in item.tags:
+            self._tagged_items[tag].append(item)
   
   def _export_layers(self):
-    for layer_elem in self._item_tree:
+    for item in self._item_tree:
       if self._should_stop:
         raise ExportLayersCancelError('export stopped by user')
       
-      self._current_item = layer_elem
+      self._current_item = item
       
-      if layer_elem.item_type in (layer_elem.ITEM, layer_elem.NONEMPTY_GROUP):
-        self._process_and_export_item(layer_elem)
-      elif layer_elem.item_type == layer_elem.EMPTY_GROUP:
-        self._process_empty_group(layer_elem)
+      if item.item_type in (item.ITEM, item.NONEMPTY_GROUP):
+        self._process_and_export_item(item)
+      elif item.item_type == item.EMPTY_GROUP:
+        self._process_empty_group(item)
       else:
         raise ValueError(
           'invalid/unsupported item type "{}" in {}'.format(
-            layer_elem.item_type, layer_elem))
+            item.item_type, item))
   
-  def _process_and_export_item(self, layer_elem):
-    layer = layer_elem.raw
-    self._preprocess_layer_name(layer_elem)
-    self._process_layer_name_for_preview(self._image_copy, layer)
-    layer_copy = self._process_layer(layer_elem, self._image_copy, layer)
-    self._export_layer(layer_elem, self._image_copy, layer_copy)
-    self._postprocess_layer(self._image_copy, layer_copy)
-    self._postprocess_layer_name(layer_elem)
+  def _process_and_export_item(self, item):
+    layer = item.raw
+    self._preprocess_item_name(item)
+    self._process_item_name_for_preview(self._image_copy, layer)
+    layer_copy = self._process_item(item, self._image_copy, layer)
+    self._export_layer(item, self._image_copy, layer_copy)
+    self._postprocess_item(self._image_copy, layer_copy)
+    self._postprocess_item_name(item)
     
     self.progress_updater.update_tasks()
     
     if self._current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
       self._exported_layers.append(layer)
       self._exported_layers_ids.add(layer.ID)
-      self._file_extension_properties[layer_elem.get_file_extension()].processed_count += 1
+      self._file_extension_properties[item.get_file_extension()].processed_count += 1
   
-  def _process_empty_group(self, layer_elem):
-    self._preprocess_empty_group_name(layer_elem)
+  def _process_empty_group(self, item):
+    self._preprocess_empty_group_name(item)
     
-    empty_group_dirpath = layer_elem.get_filepath(self._output_directory)
+    empty_group_dirpath = item.get_filepath(self._output_directory)
     self._make_dirs(empty_group_dirpath, self)
     
     self.progress_updater.update_text(
@@ -507,10 +507,10 @@ class LayerExporter(object):
     
     pdb.gimp_context_pop()
   
-  def _process_layer(self, layer_elem, image, layer):
+  def _process_item(self, item, image, layer):
     layer_copy = builtin_procedures.copy_and_insert_layer(image, layer, None, 0)
     self._invoker.invoke(
-      ['after_insert_layer'], [image, layer_copy, self], additional_args_position=0)
+      ['after_insert_item'], [image, layer_copy, self], additional_args_position=0)
     
     self._invoker.invoke(
       [actions.DEFAULT_PROCEDURES_GROUP],
@@ -524,11 +524,11 @@ class LayerExporter(object):
     layer_copy.name = layer.name
     
     self._invoker.invoke(
-      ['after_process_layer'], [image, layer_copy, self], additional_args_position=0)
+      ['after_process_item'], [image, layer_copy, self], additional_args_position=0)
     
     return layer_copy
   
-  def _postprocess_layer(self, image, layer):
+  def _postprocess_item(self, image, layer):
     if not self._keep_image_copy:
       pdb.gimp_image_remove_layer(image, layer)
     else:
@@ -546,54 +546,54 @@ class LayerExporter(object):
     pdb.gimp_layer_resize_to_image_size(layer)
     return layer
   
-  def _preprocess_layer_name(self, layer_elem):
-    layer_elem.name = self._layer_name_renamer.rename(self)
+  def _preprocess_item_name(self, item):
+    item.name = self._layer_name_renamer.rename(self)
     self.current_file_extension = self._default_file_extension
   
-  def _preprocess_empty_group_name(self, layer_elem):
-    self._item_tree.validate_name(layer_elem)
-    self._item_tree.uniquify_name(layer_elem)
+  def _preprocess_empty_group_name(self, item):
+    self._item_tree.validate_name(item)
+    self._item_tree.uniquify_name(item)
   
-  def _process_layer_name_for_preview(self, image, layer):
+  def _process_item_name_for_preview(self, image, layer):
     self._invoker.invoke(
       [self._NAME_ONLY_ACTION_GROUP],
       [image, layer, self],
       additional_args_position=0)
   
-  def _process_layer_name(self, layer_elem, force_default_file_extension):
+  def _process_item_name(self, item, force_default_file_extension):
     if not force_default_file_extension:
       if self.current_file_extension == self._default_file_extension:
-        layer_elem.name += '.' + self._default_file_extension
+        item.name += '.' + self._default_file_extension
       else:
-        layer_elem.set_file_extension(self.current_file_extension, keep_extra_trailing_periods=True)
+        item.set_file_extension(self.current_file_extension, keep_extra_trailing_periods=True)
     else:
-      layer_elem.set_file_extension(
+      item.set_file_extension(
         self._default_file_extension, keep_extra_trailing_periods=True)
     
-    self._item_tree.validate_name(layer_elem)
+    self._item_tree.validate_name(item)
     self._item_tree.uniquify_name(
-      layer_elem,
+      item,
       uniquifier_position=self._get_uniquifier_position(
-        layer_elem.name, layer_elem.get_file_extension()))
+        item.name, item.get_file_extension()))
   
-  def _postprocess_layer_name(self, layer_elem):
-    if layer_elem.item_type == layer_elem.NONEMPTY_GROUP:
-      self._item_tree.reset_name(layer_elem)
+  def _postprocess_item_name(self, item):
+    if item.item_type == item.NONEMPTY_GROUP:
+      self._item_tree.reset_name(item)
   
   def _get_uniquifier_position(self, str_, file_extension):
     return len(str_) - len('.' + file_extension)
   
-  def _export_layer(self, layer_elem, image, layer):
-    self._process_layer_name(layer_elem, False)
-    self._export(layer_elem, image, layer)
+  def _export_layer(self, item, image, layer):
+    self._process_item_name(item, False)
+    self._export(item, image, layer)
     
     if self._current_layer_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
-      self._process_layer_name(layer_elem, True)
-      self._export(layer_elem, image, layer)
+      self._process_item_name(item, True)
+      self._export(item, image, layer)
   
-  def _export(self, layer_elem, image, layer):
-    output_filepath = layer_elem.get_filepath(self._output_directory)
-    file_extension = layer_elem.get_file_extension()
+  def _export(self, item, image, layer):
+    output_filepath = item.get_filepath(self._output_directory)
+    file_extension = item.get_file_extension()
     
     self.progress_updater.update_text(_('Saving "{}"').format(output_filepath))
     

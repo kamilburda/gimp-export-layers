@@ -225,7 +225,7 @@ class ExportPreviewsController(object):
       if not any(action['enabled'].value for action in self._custom_actions.values()):
         self._image_preview.set_scaling()
       else:
-        self._image_preview.set_scaling(['after_process_layer'], ['after_process_layer'])
+        self._image_preview.set_scaling(['after_process_item'], ['after_process_item'])
     
     self._settings['main/procedures'].connect_event(
       'after-add-action',
@@ -267,7 +267,7 @@ class ExportPreviewsController(object):
     self._update_image_preview()
   
   def _on_name_preview_updated(self, preview):
-    self._image_preview.update_layer_elem()
+    self._image_preview.update_item()
   
   def _on_name_preview_tags_changed(self, preview):
     self._update_image_preview()
@@ -301,17 +301,17 @@ class ExportPreviewsController(object):
     preview_sensitive_setting.set_value(False)
   
   def _set_initial_selection_and_update_image_preview(self):
-    layer_id_to_display = self._settings[
+    raw_item_id_to_display = self._settings[
       'gui_session/image_preview_displayed_layers'].value[self._image.ID]
     
-    if (layer_id_to_display is None
+    if (raw_item_id_to_display is None
         and not self._settings['main/selected_layers'].value[self._image.ID]
         and self._image.active_layer is not None):
-      layer_id_to_display = self._image.active_layer.ID
+      raw_item_id_to_display = self._image.active_layer.ID
       # This triggers an event that updates the image preview as well.
-      self._name_preview.set_selected_items([layer_id_to_display])
+      self._name_preview.set_selected_items([raw_item_id_to_display])
     else:
-      self._image_preview.update_layer_elem(layer_id_to_display)
+      self._image_preview.update_item(raw_item_id_to_display)
       self._image_preview.update()
     
     self._is_initial_selection_set = True
@@ -322,17 +322,16 @@ class ExportPreviewsController(object):
     self._settings['main/selected_layers'].set_value(selected_layers_dict)
   
   def _update_image_preview(self):
-    layer_elem_from_cursor = self._name_preview.get_layer_elem_from_cursor()
-    if layer_elem_from_cursor is not None:
-      if (self._image_preview.layer_elem is None
-          or (layer_elem_from_cursor.raw.ID != self._image_preview.layer_elem.raw.ID)):
-        self._image_preview.layer_elem = layer_elem_from_cursor
+    item_from_cursor = self._name_preview.get_item_from_cursor()
+    if item_from_cursor is not None:
+      if (self._image_preview.item is None
+          or item_from_cursor.raw.ID != self._image_preview.item.raw.ID):
+        self._image_preview.item = item_from_cursor
         self._image_preview.update()
     else:
-      layer_elems_from_selected_rows = (
-        self._name_preview.get_layer_elems_from_selected_rows())
-      if layer_elems_from_selected_rows:
-        self._image_preview.layer_elem = layer_elems_from_selected_rows[0]
+      items_from_selected_rows = self._name_preview.get_items_from_selected_rows()
+      if items_from_selected_rows:
+        self._image_preview.item = items_from_selected_rows[0]
         self._image_preview.update()
       else:
         self._image_preview.clear()

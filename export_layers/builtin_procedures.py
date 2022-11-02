@@ -54,10 +54,10 @@ def autocrop_tagged_layer(image, layer, exporter, tag):
 
 
 def remove_folder_hierarchy_from_layer(image, layer, exporter):
-  layer_elem = exporter.current_item
+  item = exporter.current_item
 
-  layer_elem.parents = []
-  layer_elem.children = None if layer_elem.item_type == layer_elem.ITEM else []
+  item.parents = []
+  item.children = None if item.item_type == item.ITEM else []
 
 
 def insert_background_layer(image, layer, exporter, tag):
@@ -91,11 +91,11 @@ def resize_to_layer_size(image, layer, exporter):
 
 def use_file_extension_in_layer_name(
       image, layer, exporter, convert_file_extension_to_lowercase=False):
-  layer_elem = exporter.current_item
+  item = exporter.current_item
   
-  orig_file_extension = layer_elem.get_file_extension_from_orig_name()
+  orig_file_extension = item.get_file_extension_from_orig_name()
   if (orig_file_extension
-      and orig_file_extension.lower() != layer_elem.get_file_extension().lower()
+      and orig_file_extension.lower() != item.get_file_extension().lower()
       and exporter.file_extension_properties[orig_file_extension].is_valid):
     if convert_file_extension_to_lowercase:
       orig_file_extension = orig_file_extension.lower()
@@ -104,7 +104,7 @@ def use_file_extension_in_layer_name(
 
 
 def _insert_tagged_layer(image, exporter, tag, position=0):
-  if not exporter.tagged_layer_elems[tag]:
+  if not exporter.tagged_items[tag]:
     return
   
   if exporter.tagged_layer_copies[tag] is None:
@@ -124,17 +124,17 @@ def _insert_tagged_layer(image, exporter, tag, position=0):
 def _insert_merged_tagged_layer(image, exporter, tag, position=0):
   first_tagged_layer_position = position
   
-  for i, layer_elem in enumerate(exporter.tagged_layer_elems[tag]):
+  for i, item in enumerate(exporter.tagged_items[tag]):
     layer_copy = copy_and_insert_layer(
-      image, layer_elem.raw, None, first_tagged_layer_position + i)
+      image, item.raw, None, first_tagged_layer_position + i)
     layer_copy.visible = True
-    exporter.invoker.invoke(['after_insert_layer'], [image, layer_copy, exporter])
+    exporter.invoker.invoke(['after_insert_item'], [image, layer_copy, exporter])
   
-  if len(exporter.tagged_layer_elems[tag]) == 1:
+  if len(exporter.tagged_items[tag]) == 1:
     merged_layer_for_tag = image.layers[first_tagged_layer_position]
   else:
     second_to_last_tagged_layer_position = (
-      first_tagged_layer_position + len(exporter.tagged_layer_elems[tag]) - 2)
+      first_tagged_layer_position + len(exporter.tagged_items[tag]) - 2)
     
     for i in range(
           second_to_last_tagged_layer_position,

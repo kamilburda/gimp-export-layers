@@ -13,47 +13,47 @@ from export_layers import pygimplib as pg
 CONSTRAINTS_LAYER_TYPES_GROUP = 'constraints_layer_types'
 
 
-def is_layer(layer_elem):
-  return layer_elem.item_type == layer_elem.ITEM
+def is_layer(item):
+  return item.item_type == item.ITEM
 
 
-def is_nonempty_group(layer_elem):
-  return layer_elem.item_type == layer_elem.NONEMPTY_GROUP
+def is_nonempty_group(item):
+  return item.item_type == item.NONEMPTY_GROUP
 
 
-def is_empty_group(layer_elem):
-  return layer_elem.item_type == layer_elem.EMPTY_GROUP
+def is_empty_group(item):
+  return item.item_type == item.EMPTY_GROUP
 
 
-def is_path_visible(layer_elem):
-  return layer_elem.path_visible
+def is_path_visible(item):
+  return item.path_visible
 
 
-def is_top_level(layer_elem):
-  return layer_elem.depth == 0
+def is_top_level(item):
+  return item.depth == 0
 
 
-def has_tags(layer_elem, tags=None):
+def has_tags(item, tags=None):
   if tags:
-    return any(tag for tag in tags if tag in layer_elem.tags)
+    return any(tag for tag in tags if tag in item.tags)
   else:
-    return bool(layer_elem.tags)
+    return bool(item.tags)
 
 
-def has_no_tags(layer_elem, tags=None):
-  return not has_tags(layer_elem, tags)
+def has_no_tags(item, tags=None):
+  return not has_tags(item, tags)
 
 
-def has_matching_file_extension(layer_elem, file_extension):
-  return layer_elem.get_file_extension().lower() == file_extension.lower()
+def has_matching_file_extension(item, file_extension):
+  return item.get_file_extension().lower() == file_extension.lower()
 
 
-def has_matching_default_file_extension(layer_elem, exporter):
-  return layer_elem.get_file_extension().lower() == exporter.default_file_extension.lower()
+def has_matching_default_file_extension(item, exporter):
+  return item.get_file_extension().lower() == exporter.default_file_extension.lower()
 
 
-def is_layer_in_selected_layers(layer_elem, selected_layers):
-  return layer_elem.raw.ID in selected_layers
+def is_item_in_selected_items(item, selected_layers):
+  return item.raw.ID in selected_layers
 
 
 _BUILTIN_CONSTRAINTS_LIST = [
@@ -131,7 +131,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
   {
     'name': 'only_selected_layers',
     'type': 'constraint',
-    'function': is_layer_in_selected_layers,
+    'function': is_item_in_selected_items,
     'arguments': [
       {
         'type': pg.SettingTypes.generic,

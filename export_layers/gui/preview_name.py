@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Preview widget displaying the names of layers to be exported."""
+"""Preview widget displaying the names of items to be exported."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
@@ -23,17 +23,16 @@ from export_layers.gui import preview_base as preview_base_
 
 
 class ExportNamePreview(preview_base_.ExportPreview):
-  """
-  This class defines a widget displaying a preview of exported layers -
-  filenames and their folder structure.
+  """A widget displaying a preview of exported items - filenames and their
+  folder structure.
   
   Additional features:
-  * toggling "filter mode" - unselected layers are not sensitive.
-  * assigning tags to layers.
+  * toggling "filter mode" - unselected items are not sensitive.
+  * assigning tags to items.
   
   Attributes:
   
-  * `is_filtering` - If enabled, unselected layers are not sensitive.
+  * `is_filtering` - If enabled, unselected items are not sensitive.
   
   Signals:
   
@@ -41,8 +40,8 @@ class ExportNamePreview(preview_base_.ExportPreview):
     by the user or by calling `set_selected_items()`.
   * `'preview-updated'` - The preview was updated by calling `update()`. This
     signal is not emitted if the update is locked.
-  * `'preview-tags-changed'` - An existing tag was added to or removed from a
-    layer.
+  * `'preview-tags-changed'` - An existing tag was added to or removed from an
+    item.
   """
   
   __gsignals__ = {
@@ -55,11 +54,11 @@ class ExportNamePreview(preview_base_.ExportPreview):
   _ADD_TAG_POPUP_BORDER_WIDTH = 5
   
   _COLUMNS = (
-    _COLUMN_ICON_LAYER,
+    _COLUMN_ICON_ITEM,
     _COLUMN_ICON_TAG_VISIBLE,
-    _COLUMN_LAYER_NAME_SENSITIVE,
-    _COLUMN_LAYER_NAME,
-    _COLUMN_LAYER_ID) = (
+    _COLUMN_ITEM_NAME_SENSITIVE,
+    _COLUMN_ITEM_NAME,
+    _COLUMN_ITEM_ID) = (
     [0, gtk.gdk.Pixbuf],
     [1, gobject.TYPE_BOOLEAN],
     [2, gobject.TYPE_BOOLEAN],
@@ -100,11 +99,11 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def update(self, reset_items=False, update_existing_contents_only=False):
     """
-    Update the preview (add/remove layer, move layer to a different parent layer
+    Update the preview (add/remove item, move item to a different parent item
     group, etc.).
     
-    If `reset_items` is `True`, perform full update - add new layers, remove
-    non-existent layers, etc. Note that setting this to `True` may introduce a
+    If `reset_items` is `True`, perform full update - add new items, remove
+    non-existent items, etc. Note that setting this to `True` may introduce a
     performance penalty for hundreds of items.
     
     If `update_existing_contents_only` is `True`, only update the contents of
@@ -164,15 +163,15 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self._set_selection()
     self.emit('preview-selection-changed')
   
-  def get_layer_elems_from_selected_rows(self):
-    return [self._exporter.item_tree[layer_id]
-            for layer_id in self._get_layer_ids_in_current_selection()]
+  def get_items_from_selected_rows(self):
+    return [self._exporter.item_tree[item_id]
+            for item_id in self._get_item_ids_in_current_selection()]
   
-  def get_layer_elem_from_cursor(self):
+  def get_item_from_cursor(self):
     tree_path, unused_ = self._tree_view.get_cursor()
     if tree_path is not None:
-      layer_id = self._get_layer_id(self._tree_model.get_iter(tree_path))
-      return self._exporter.item_tree[layer_id]
+      item_id = self._get_item_id(self._tree_model.get_iter(tree_path))
+      return self._exporter.item_tree[item_id]
     else:
       return None
   
@@ -202,9 +201,9 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     column = gtk.TreeViewColumn(b'')
     
-    cell_renderer_icon_layer = gtk.CellRendererPixbuf()
-    column.pack_start(cell_renderer_icon_layer, expand=False)
-    column.set_attributes(cell_renderer_icon_layer, pixbuf=self._COLUMN_ICON_LAYER[0])
+    cell_renderer_icon_item = gtk.CellRendererPixbuf()
+    column.pack_start(cell_renderer_icon_item, expand=False)
+    column.set_attributes(cell_renderer_icon_item, pixbuf=self._COLUMN_ICON_ITEM[0])
     
     cell_renderer_icon_tag = gtk.CellRendererPixbuf()
     cell_renderer_icon_tag.set_property('pixbuf', self._icons['tag'])
@@ -213,12 +212,12 @@ class ExportNamePreview(preview_base_.ExportPreview):
       cell_renderer_icon_tag,
       visible=self._COLUMN_ICON_TAG_VISIBLE[0])
     
-    cell_renderer_layer_name = gtk.CellRendererText()
-    column.pack_start(cell_renderer_layer_name, expand=False)
+    cell_renderer_item_name = gtk.CellRendererText()
+    column.pack_start(cell_renderer_item_name, expand=False)
     column.set_attributes(
-      cell_renderer_layer_name,
-      text=self._COLUMN_LAYER_NAME[0],
-      sensitive=self._COLUMN_LAYER_NAME_SENSITIVE[0])
+      cell_renderer_item_name,
+      text=self._COLUMN_ITEM_NAME[0],
+      sensitive=self._COLUMN_ITEM_NAME_SENSITIVE[0])
     
     self._tree_view.append_column(column)
     
@@ -235,30 +234,30 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _init_icons(self):
     self._icons = {}
-    self._icons['layer_group'] = self._tree_view.render_icon(
+    self._icons['item_group'] = self._tree_view.render_icon(
       gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
-    self._icons['layer'] = gtk.gdk.pixbuf_new_from_file_at_size(
-      self._icon_image_filepath, -1, self._icons['layer_group'].props.height)
+    self._icons['item'] = gtk.gdk.pixbuf_new_from_file_at_size(
+      self._icon_image_filepath, -1, self._icons['item_group'].props.height)
     self._icons['tag'] = gtk.gdk.pixbuf_new_from_file_at_size(
-      self._icon_tag_filepath, -1, self._icons['layer_group'].props.height)
+      self._icon_tag_filepath, -1, self._icons['item_group'].props.height)
     
-    self._icons['exported_layer_group'] = self._icons['layer'].copy()
+    self._icons['exported_item_group'] = self._icons['item'].copy()
     
     scaling_factor = 0.8
-    width_unscaled = self._icons['layer_group'].props.width
+    width_unscaled = self._icons['item_group'].props.width
     width = int(width_unscaled * scaling_factor)
-    height_unscaled = self._icons['layer_group'].props.height
+    height_unscaled = self._icons['item_group'].props.height
     height = int(height_unscaled * scaling_factor)
     x_offset_unscaled = (
-      self._icons['exported_layer_group'].props.width
-      - self._icons['layer_group'].props.width)
+      self._icons['exported_item_group'].props.width
+      - self._icons['item_group'].props.width)
     x_offset = x_offset_unscaled + width_unscaled - width
     y_offset_unscaled = (
-      self._icons['exported_layer_group'].props.height
-      - self._icons['layer_group'].props.height)
+      self._icons['exported_item_group'].props.height
+      - self._icons['item_group'].props.height)
     y_offset = y_offset_unscaled + height_unscaled - height
     
-    self._icons['layer_group'].composite(self._icons['exported_layer_group'],
+    self._icons['item_group'].composite(self._icons['exported_item_group'],
       x_offset, y_offset, width, height, x_offset, y_offset,
       scaling_factor, scaling_factor, gtk.gdk.INTERP_BILINEAR, 255)
   
@@ -290,8 +289,8 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self._exporter.item_tree.is_filtered = False
     
     used_tags = set()
-    for layer_elem in self._exporter.item_tree:
-      for tag in layer_elem.tags:
+    for item in self._exporter.item_tree:
+      for tag in item.tags:
         used_tags.add(tag)
         if tag not in self._tags_menu_items:
           self._add_tag_menu_item(tag, tag)
@@ -343,7 +342,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _on_tree_view_right_button_press_event(self, tree_view, event):
     if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
-      layer_ids = []
+      item_ids = []
       stop_event_propagation = False
       
       # Get the current selection. We cannot use `TreeSelection.get_selection()`
@@ -352,23 +351,23 @@ class ExportNamePreview(preview_base_.ExportPreview):
       
       if (selection_at_pos is not None
           and self._tree_view.get_selection().count_selected_rows() > 1):
-        layer_ids = self._get_layer_ids_in_current_selection()
+        item_ids = self._get_item_ids_in_current_selection()
         stop_event_propagation = True
       else:
         if selection_at_pos is not None:
           tree_iter = self._tree_model.get_iter(selection_at_pos[0])
-          layer_ids = [self._get_layer_id(tree_iter)]
+          item_ids = [self._get_item_id(tree_iter)]
       
       self._toggle_tag_interactive = False
       
-      layer_elems = [self._exporter.item_tree[layer_id] for layer_id in layer_ids]
+      items = [self._exporter.item_tree[item_id] for item_id in item_ids]
       for tag, tags_menu_item in self._tags_menu_items.items():
         tags_menu_item.set_active(
-          all(tag in layer_elem.tags for layer_elem in layer_elems))
+          all(tag in item.tags for item in items))
       
       self._toggle_tag_interactive = True
       
-      if len(layer_ids) >= 1:
+      if len(item_ids) >= 1:
         self._tags_menu.popup(None, None, None, event.button, event.time)
         
         toplevel_window = pg.gui.get_toplevel_window(self)
@@ -381,17 +380,17 @@ class ExportNamePreview(preview_base_.ExportPreview):
     if self._toggle_tag_interactive:
       pdb.gimp_image_undo_group_start(self._exporter.image)
       
-      for layer_id in self._get_layer_ids_in_current_selection():
-        layer_elem = self._exporter.item_tree[layer_id]
+      for item_id in self._get_item_ids_in_current_selection():
+        item = self._exporter.item_tree[item_id]
         
         if tags_menu_item.get_active():
-          layer_elem.add_tag(tag)
+          item.add_tag(tag)
         else:
-          layer_elem.remove_tag(tag)
+          item.remove_tag(tag)
       
       pdb.gimp_image_undo_group_end(self._exporter.image)
       
-      # Modifying just one layer could result in renaming other layers
+      # Modifying just one item could result in renaming other items
       # differently, hence update the whole preview.
       self.update(update_existing_contents_only=True)
       
@@ -470,14 +469,14 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _on_tree_view_row_collapsed(self, tree_view, tree_iter, tree_path):
     if self._row_expand_collapse_interactive:
-      self._collapsed_items.add(self._get_layer_id(tree_iter))
+      self._collapsed_items.add(self._get_item_id(tree_iter))
       self._tree_view.columns_autosize()
   
   def _on_tree_view_row_expanded(self, tree_view, tree_iter, tree_path):
     if self._row_expand_collapse_interactive:
-      layer_id = self._get_layer_id(tree_iter)
-      if layer_id in self._collapsed_items:
-        self._collapsed_items.remove(layer_id)
+      item_id = self._get_item_id(tree_iter)
+      if item_id in self._collapsed_items:
+        self._collapsed_items.remove(item_id)
       
       self._set_expanded_items(tree_path)
       
@@ -486,21 +485,21 @@ class ExportNamePreview(preview_base_.ExportPreview):
   def _on_tree_selection_changed(self, tree_selection):
     if not self._clearing_preview and self._row_select_interactive:
       previous_selected_items = self._selected_items
-      self._selected_items = self._get_layer_ids_in_current_selection()
+      self._selected_items = self._get_item_ids_in_current_selection()
       
       self.emit('preview-selection-changed')
       
       if self.is_filtering and self._selected_items != previous_selected_items:
         self.update(update_existing_contents_only=True)
   
-  def _get_layer_ids_in_current_selection(self):
+  def _get_item_ids_in_current_selection(self):
     unused_, tree_paths = self._tree_view.get_selection().get_selected_rows()
     return [
-      self._get_layer_id(self._tree_model.get_iter(tree_path))
+      self._get_item_id(self._tree_model.get_iter(tree_path))
       for tree_path in tree_paths]
   
-  def _get_layer_id(self, tree_iter):
-    return self._tree_model.get_value(tree_iter, column=self._COLUMN_LAYER_ID[0])
+  def _get_item_id(self, tree_iter):
+    return self._tree_model.get_value(tree_iter, column=self._COLUMN_ITEM_ID[0])
   
   def _process_items(self, reset_items=False):
     if not reset_items:
@@ -515,19 +514,19 @@ class ExportNamePreview(preview_base_.ExportPreview):
       item_tree = None
     
     self._exporter.export(
-      processing_groups=['layer_name', 'layer_name_for_preview'],
+      processing_groups=['item_name', 'item_name_for_preview'],
       item_tree=item_tree,
       is_preview=True)
   
   def _update_items(self):
-    for layer_elem in self._exporter.item_tree:
-      self._update_parent_items(layer_elem)
-      self._update_item(layer_elem)
+    for item in self._exporter.item_tree:
+      self._update_parent_items(item)
+      self._update_item(item)
   
   def _insert_items(self):
-    for layer_elem in self._exporter.item_tree:
-      self._insert_parent_items(layer_elem)
-      self._insert_item(layer_elem)
+    for item in self._exporter.item_tree:
+      self._insert_parent_items(item)
+      self._insert_item(item)
   
   def _insert_item(self, item):
     if item.parent:
@@ -551,9 +550,9 @@ class ExportNamePreview(preview_base_.ExportPreview):
       self._tree_iters[item.raw.ID],
       self._COLUMN_ICON_TAG_VISIBLE[0],
       bool(item.tags),
-      self._COLUMN_LAYER_NAME_SENSITIVE[0],
+      self._COLUMN_ITEM_NAME_SENSITIVE[0],
       True,
-      self._COLUMN_LAYER_NAME[0],
+      self._COLUMN_ITEM_NAME[0],
       pg.utils.safe_encode_gtk(item.name))
   
   def _insert_parent_items(self, item):
@@ -569,10 +568,10 @@ class ExportNamePreview(preview_base_.ExportPreview):
     if self.is_filtering:
       if not enabled:
         self._exporter.item_tree.filter.add_rule(
-          builtin_constraints.is_layer_in_selected_layers, self._selected_items)
+          builtin_constraints.is_item_in_selected_items, self._selected_items)
       else:
         self._exporter.item_tree.filter.remove_rule(
-          builtin_constraints.is_layer_in_selected_layers, raise_if_not_found=False)
+          builtin_constraints.is_item_in_selected_items, raise_if_not_found=False)
   
   def _set_item_tree_sensitive_for_selected(self):
     if self.is_filtering:
@@ -583,13 +582,13 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _get_item_sensitive(self, item):
     return self._tree_model.get_value(
-      self._tree_iters[item.raw.ID], self._COLUMN_LAYER_NAME_SENSITIVE[0])
+      self._tree_iters[item.raw.ID], self._COLUMN_ITEM_NAME_SENSITIVE[0])
   
   def _set_item_sensitive(self, item, sensitive):
     if self._tree_iters[item.raw.ID] is not None:
       self._tree_model.set_value(
         self._tree_iters[item.raw.ID],
-        self._COLUMN_LAYER_NAME_SENSITIVE[0],
+        self._COLUMN_ITEM_NAME_SENSITIVE[0],
         sensitive)
   
   def _set_parent_items_sensitive(self, item):
@@ -606,14 +605,14 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _get_icon_from_item(self, item):
     if item.item_type == item.ITEM:
-      return self._icons['layer']
+      return self._icons['item']
     elif item.item_type == item.NONEMPTY_GROUP:
       if not self._exporter.has_exported_layer(item.raw):
-        return self._icons['layer_group']
+        return self._icons['item_group']
       else:
-        return self._icons['exported_layer_group']
+        return self._icons['exported_item_group']
     elif item.item_type == item.EMPTY_GROUP:
-      return self._icons['layer_group']
+      return self._icons['item_group']
     else:
       return None
   
@@ -633,15 +632,15 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     self._remove_no_longer_valid_collapsed_items()
     
-    for layer_id in self._collapsed_items:
-      if layer_id in self._tree_iters:
-        layer_elem_tree_iter = self._tree_iters[layer_id]
-        if layer_elem_tree_iter is None:
+    for item_id in self._collapsed_items:
+      if item_id in self._tree_iters:
+        item_tree_iter = self._tree_iters[item_id]
+        if item_tree_iter is None:
           continue
         
-        layer_elem_tree_path = self._tree_model.get_path(layer_elem_tree_iter)
-        if tree_path is None or self._tree_view.row_expanded(layer_elem_tree_path):
-          self._tree_view.collapse_row(layer_elem_tree_path)
+        item_tree_path = self._tree_model.get_path(item_tree_iter)
+        if tree_path is None or self._tree_view.row_expanded(item_tree_path):
+          self._tree_view.collapse_row(item_tree_path)
     
     self._row_expand_collapse_interactive = True
   

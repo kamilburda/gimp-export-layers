@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Preview widget displaying a scaled-down layer to be exported."""
+"""Preview widget displaying a scaled-down image to be exported."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
@@ -78,7 +78,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     self._exporter = exporter
     
-    self._layer_elem = None
+    self._item = None
     
     self._preview_pixbuf = None
     self._previous_preview_pixbuf_width = None
@@ -94,7 +94,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     self._preview_scaling_factor = None
     
     self._resize_image_action_id = None
-    self._scale_layer_action_id = None
+    self._scale_item_action_id = None
     
     self.set_scaling()
     
@@ -115,12 +115,12 @@ class ExportImagePreview(preview_base_.ExportPreview):
     self._button_refresh.connect('clicked', self._on_button_refresh_clicked)
   
   @property
-  def layer_elem(self):
-    return self._layer_elem
+  def item(self):
+    return self._item
   
-  @layer_elem.setter
-  def layer_elem(self, value):
-    self._layer_elem = value
+  @item.setter
+  def item(self, value):
+    self._item = value
     if value is None:
       self._preview_pixbuf = None
       self._previous_preview_pixbuf_width = None
@@ -135,10 +135,10 @@ class ExportImagePreview(preview_base_.ExportPreview):
     if update_locked:
       return
     
-    if self.layer_elem is None:
+    if self.item is None:
       return
     
-    if not pdb.gimp_item_is_valid(self.layer_elem.raw):
+    if not pdb.gimp_item_is_valid(self.item.raw):
       self.clear()
       return
     
@@ -146,16 +146,16 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     self._placeholder_image.hide()
     self._preview_image.show()
-    self._set_layer_name_label(self.layer_elem.name)
+    self._set_item_name_label(self.item.name)
     
     if self._is_preview_image_allocated_size:
       self._set_contents()
   
-  def clear(self, use_layer_name=False):
-    self.layer_elem = None
+  def clear(self, use_item_name=False):
+    self.item = None
     self._preview_image.clear()
     self._preview_image.hide()
-    self._show_placeholder_image(use_layer_name)
+    self._show_placeholder_image(use_item_name)
   
   def resize(self, update_when_larger_than_image_size=False):
     """
@@ -176,28 +176,26 @@ class ExportImagePreview(preview_base_.ExportPreview):
       and allocation.width > self._preview_pixbuf.get_width()
       and allocation.height > self._preview_pixbuf.get_height())
   
-  def update_layer_elem(self, layer_id=None):
-    if layer_id is None:
-      if (self.layer_elem is not None
+  def update_item(self, raw_item_id=None):
+    if raw_item_id is None:
+      if (self.item is not None
           and self._exporter.item_tree is not None
-          and self.layer_elem.raw.ID in self._exporter.item_tree):
-        layer_id = self.layer_elem.raw.ID
+          and self.item.raw.ID in self._exporter.item_tree):
+        raw_item_id = self.item.raw.ID
         should_update = True
       else:
         should_update = False
     else:
-      should_update = layer_id in self._exporter.item_tree
+      should_update = raw_item_id in self._exporter.item_tree
     
     if should_update:
-      layer_elem = self._exporter.item_tree[layer_id]
-      if self._exporter.item_tree.filter.is_match(layer_elem):
-        self.layer_elem = layer_elem
-        self._set_layer_name_label(self.layer_elem.name)
+      item = self._exporter.item_tree[raw_item_id]
+      if self._exporter.item_tree.filter.is_match(item):
+        self.item = item
+        self._set_item_name_label(self.item.name)
   
-  def set_scaling(
-        self, resize_image_action_groups=None, scale_layer_action_groups=None):
-    """
-    Add actions that scale the previewed image to the size of the widget.
+  def set_scaling(self, resize_image_action_groups=None, scale_item_action_groups=None):
+    """Adds actions that scale the previewed image to the size of the widget.
     
     Subsequent calls to this method will remove the previously added actions.
     
@@ -208,8 +206,8 @@ class ExportImagePreview(preview_base_.ExportPreview):
     if resize_image_action_groups is None:
       resize_image_action_groups = ['after_create_image_copy']
     
-    if scale_layer_action_groups is None:
-      scale_layer_action_groups = ['after_insert_layer']
+    if scale_item_action_groups is None:
+      scale_item_action_groups = ['after_insert_item']
     
     self._exporter.remove_action(
       self._resize_image_action_id, groups='all', ignore_if_not_exists=True)
@@ -220,28 +218,27 @@ class ExportImagePreview(preview_base_.ExportPreview):
       ignore_if_exists=True)
     
     self._exporter.remove_action(
-      self._scale_layer_action_id, groups='all', ignore_if_not_exists=True)
+      self._scale_item_action_id, groups='all', ignore_if_not_exists=True)
     
-    self._scale_layer_action_id = self._exporter.add_procedure(
-      self._scale_layer_for_exporter,
-      scale_layer_action_groups,
+    self._scale_item_action_id = self._exporter.add_procedure(
+      self._scale_item_for_exporter,
+      scale_item_action_groups,
       ignore_if_exists=True)
   
   def _set_contents(self):
-    # Sanity check in case `layer_elem` changes before `'size-allocate'` is
-    # emitted.
-    if self.layer_elem is None:
+    # Sanity check in case `item` changes before `'size-allocate'` is emitted.
+    if self.item is None:
       return
     
     start_update_time = time.time()
     
     with pg.pdbutils.redirect_messages():
-      preview_pixbuf = self._get_in_memory_preview(self.layer_elem.raw)
+      preview_pixbuf = self._get_in_memory_preview(self.item.raw)
     
     if preview_pixbuf is not None:
       self._preview_image.set_from_pixbuf(preview_pixbuf)
     else:
-      self.clear(use_layer_name=True)
+      self.clear(use_item_name=True)
     
     self.queue_draw()
     
@@ -285,8 +282,8 @@ class ExportImagePreview(preview_base_.ExportPreview):
       gtk.STOCK_DIALOG_QUESTION, gtk.ICON_SIZE_DIALOG)
     self._placeholder_image.set_no_show_all(True)
     
-    self._label_layer_name = gtk.Label()
-    self._label_layer_name.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+    self._label_item_name = gtk.Label()
+    self._label_item_name.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
     
     self.set_spacing(self._WIDGET_SPACING)
     self.set_border_width(self._BORDER_WIDTH)
@@ -294,14 +291,14 @@ class ExportImagePreview(preview_base_.ExportPreview):
     self.pack_start(self._hbox_buttons, expand=False, fill=False)
     self.pack_start(self._preview_image, expand=True, fill=True)
     self.pack_start(self._placeholder_image, expand=True, fill=True)
-    self.pack_start(self._label_layer_name, expand=False, fill=False)
+    self.pack_start(self._label_item_name, expand=False, fill=False)
         
     self._show_placeholder_image()
   
-  def _get_in_memory_preview(self, layer):
+  def _get_in_memory_preview(self, raw_item):
     self._preview_width, self._preview_height = self._get_preview_size(
-      layer.width, layer.height)
-    self._preview_scaling_factor = self._preview_width / layer.width
+      raw_item.width, raw_item.height)
+    self._preview_scaling_factor = self._preview_width / raw_item.width
     
     image_preview = self._get_image_preview()
     
@@ -315,37 +312,37 @@ class ExportImagePreview(preview_base_.ExportPreview):
     if image_preview.base_type != gimpenums.RGB:
       pdb.gimp_image_convert_rgb(image_preview)
     
-    layer_preview = image_preview.layers[0]
+    raw_item_preview = image_preview.layers[0]
     
-    if layer_preview.mask is not None:
-      layer_preview.remove_mask(gimpenums.MASK_APPLY)
+    if raw_item_preview.mask is not None:
+      raw_item_preview.remove_mask(gimpenums.MASK_APPLY)
     
-    # Recompute the size as the layer may have been resized during the export.
+    # Recompute the size as the item may have been resized during the export.
     self._preview_width, self._preview_height = self._get_preview_size(
-      layer_preview.width, layer_preview.height)
+      raw_item_preview.width, raw_item_preview.height)
     
     self._preview_width, self._preview_height, preview_data = self._get_preview_data(
-      layer_preview, self._preview_width, self._preview_height)
+      raw_item_preview, self._preview_width, self._preview_height)
     
-    layer_preview_pixbuf = self._get_preview_pixbuf(
-      layer_preview, self._preview_width, self._preview_height, preview_data)
+    raw_item_preview_pixbuf = self._get_preview_pixbuf(
+      raw_item_preview, self._preview_width, self._preview_height, preview_data)
     
     pdb.gimp_image_delete(image_preview)
     
-    return layer_preview_pixbuf
+    return raw_item_preview_pixbuf
   
   def _get_image_preview(self):
     item_tree = self._exporter.item_tree
     item_tree_filter = item_tree.filter if item_tree is not None else None
     
-    only_selected_layer_constraint_id = self._exporter.add_constraint(
-      builtin_constraints.is_layer_in_selected_layers,
+    only_selected_item_constraint_id = self._exporter.add_constraint(
+      builtin_constraints.is_item_in_selected_items,
       groups=[actions.DEFAULT_CONSTRAINTS_GROUP],
-      args=[[self.layer_elem.raw.ID]])
+      args=[[self.item.raw.ID]])
     
     try:
       image_preview = self._exporter.export(
-        processing_groups=['layer_contents'],
+        processing_groups=['item_contents'],
         item_tree=item_tree,
         keep_image_copy=True,
         is_preview=True)
@@ -355,7 +352,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
       image_preview = None
     
     self._exporter.remove_action(
-      only_selected_layer_constraint_id, [actions.DEFAULT_CONSTRAINTS_GROUP])
+      only_selected_item_constraint_id, [actions.DEFAULT_CONSTRAINTS_GROUP])
     
     if item_tree_filter is not None:
       self._exporter.item_tree.filter = item_tree_filter
@@ -372,40 +369,40 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_LINEAR)
   
-  def _scale_layer_for_exporter(self, image, layer, exporter):
-    if not pdb.gimp_item_is_group(layer):
+  def _scale_item_for_exporter(self, image, raw_item, exporter):
+    if not pdb.gimp_item_is_group(raw_item):
       pdb.gimp_item_transform_scale(
-        layer,
-        layer.offsets[0] * self._preview_scaling_factor,
-        layer.offsets[1] * self._preview_scaling_factor,
-        (layer.offsets[0] + layer.width) * self._preview_scaling_factor,
-        (layer.offsets[1] + layer.height) * self._preview_scaling_factor)
+        raw_item,
+        raw_item.offsets[0] * self._preview_scaling_factor,
+        raw_item.offsets[1] * self._preview_scaling_factor,
+        (raw_item.offsets[0] + raw_item.width) * self._preview_scaling_factor,
+        (raw_item.offsets[1] + raw_item.height) * self._preview_scaling_factor)
   
-  def _get_preview_pixbuf(self, layer, preview_width, preview_height, preview_data):
+  def _get_preview_pixbuf(self, raw_item, preview_width, preview_height, preview_data):
     # The following code is largely based on the implementation of
     # `gimp_pixbuf_from_data` from:
     # https://github.com/GNOME/gimp/blob/gimp-2-8/libgimp/gimppixbuf.c
-    layer_preview_pixbuf = gtk.gdk.pixbuf_new_from_data(
+    raw_item_preview_pixbuf = gtk.gdk.pixbuf_new_from_data(
       preview_data,
       gtk.gdk.COLORSPACE_RGB,
-      layer.has_alpha,
+      raw_item.has_alpha,
       8,
       preview_width,
       preview_height,
-      preview_width * layer.bpp)
+      preview_width * raw_item.bpp)
     
-    self._preview_pixbuf = layer_preview_pixbuf
+    self._preview_pixbuf = raw_item_preview_pixbuf
     
-    if layer.has_alpha:
-      layer_preview_pixbuf = self._add_alpha_background_to_pixbuf(
-        layer_preview_pixbuf,
-        layer.opacity,
+    if raw_item.has_alpha:
+      raw_item_preview_pixbuf = self._add_alpha_background_to_pixbuf(
+        raw_item_preview_pixbuf,
+        raw_item.opacity,
         self.draw_checkboard_alpha_background,
         self._PREVIEW_ALPHA_CHECK_SIZE,
         self._preview_alpha_check_color_first,
         self._preview_alpha_check_color_second)
     
-    return layer_preview_pixbuf
+    return raw_item_preview_pixbuf
   
   def _get_preview_size(self, width, height):
     preview_widget_allocation = self._preview_image.get_allocation()
@@ -473,7 +470,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
         allocation.height
         - self._hbox_buttons.get_allocation().height
         - self._WIDGET_SPACING
-        - self._label_layer_name.get_allocation().height
+        - self._label_item_name.get_allocation().height
         - self._WIDGET_SPACING
         - self._BORDER_WIDTH * 2)
       
@@ -488,14 +485,14 @@ class ExportImagePreview(preview_base_.ExportPreview):
       self._set_contents()
       self._is_preview_image_allocated_size = True
   
-  def _show_placeholder_image(self, use_layer_name=False):
+  def _show_placeholder_image(self, use_item_name=False):
     self._placeholder_image.show()
-    if not use_layer_name:
-      self._set_layer_name_label(_('No selection'))
+    if not use_item_name:
+      self._set_item_name_label(_('No selection'))
   
-  def _set_layer_name_label(self, layer_name):
-    self._label_layer_name.set_markup(
-      '<i>{}</i>'.format(gobject.markup_escape_text(pg.utils.safe_encode_gtk(layer_name))))
+  def _set_item_name_label(self, item_name):
+    self._label_item_name.set_markup(
+      '<i>{}</i>'.format(gobject.markup_escape_text(pg.utils.safe_encode_gtk(item_name))))
   
   def _on_button_menu_clicked(self, button):
     pg.gui.menu_popup_below_widget(self._menu_settings, button)
@@ -575,9 +572,9 @@ class ExportImagePreview(preview_base_.ExportPreview):
     return pixbuf_with_alpha_background
   
   @staticmethod
-  def _get_preview_data(layer, preview_width, preview_height):
+  def _get_preview_data(raw_item, preview_width, preview_height):
     actual_preview_width, actual_preview_height, unused_, unused_, preview_data = (
-      pdb.gimp_drawable_thumbnail(layer, preview_width, preview_height))
+      pdb.gimp_drawable_thumbnail(raw_item, preview_width, preview_height))
     
     return (
       actual_preview_width,

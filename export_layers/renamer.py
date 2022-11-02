@@ -212,18 +212,18 @@ class _PercentTemplate(string.Template):
 
 
 def _get_layer_name(exporter, field_value, file_extension_strip_mode=''):
-  layer_elem = exporter.current_item
+  item = exporter.current_item
   
   if file_extension_strip_mode in ['%e', '%i']:
-    file_extension = layer_elem.get_file_extension_from_orig_name()
+    file_extension = item.get_file_extension_from_orig_name()
     if file_extension:
       if file_extension_strip_mode == '%i':
         if file_extension == exporter.default_file_extension:
-          return layer_elem.name
+          return item.name
       else:
-        return layer_elem.name
+        return item.name
   
-  return layer_elem.get_base_name()
+  return item.get_base_name()
 
 
 def _get_image_name(exporter, field_value, keep_extension_str=''):
@@ -313,7 +313,7 @@ def _get_current_date(exporter, field_value, date_format='%Y-%m-%d'):
 
 
 def _get_attributes(exporter, field_value, pattern, measure='%px'):
-  layer_elem = exporter.current_item
+  item = exporter.current_item
   image = exporter.image
   
   fields = {
@@ -325,10 +325,10 @@ def _get_attributes(exporter, field_value, pattern, measure='%px'):
   
   if measure == '%px':
     layer_fields = {
-      'w': layer_elem.raw.width,
-      'h': layer_elem.raw.height,
-      'x': layer_elem.raw.offsets[0],
-      'y': layer_elem.raw.offsets[1],
+      'w': item.raw.width,
+      'h': item.raw.height,
+      'x': item.raw.offsets[0],
+      'y': item.raw.offsets[1],
     }
   elif measure.startswith('%pc'):
     match = re.match(r'^' + re.escape('%pc') + r'([0-9]*)$', measure)
@@ -340,10 +340,10 @@ def _get_attributes(exporter, field_value, pattern, measure='%px'):
         round_digits = 2
       
       layer_fields = {
-        'w': round(layer_elem.raw.width / image.width, round_digits),
-        'h': round(layer_elem.raw.height / image.height, round_digits),
-        'x': round(layer_elem.raw.offsets[0] / image.width, round_digits),
-        'y': round(layer_elem.raw.offsets[1] / image.height, round_digits),
+        'w': round(item.raw.width / image.width, round_digits),
+        'h': round(item.raw.height / image.height, round_digits),
+        'x': round(item.raw.offsets[0] / image.width, round_digits),
+        'y': round(item.raw.offsets[1] / image.height, round_digits),
       }
   
   fields.update(layer_fields)
