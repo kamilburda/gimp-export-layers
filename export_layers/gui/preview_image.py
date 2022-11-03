@@ -359,7 +359,9 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     return image_preview
   
-  def _resize_image_for_exporter(self, image, *args, **kwargs):
+  def _resize_image_for_exporter(self, exporter, *args, **kwargs):
+    image = exporter.current_image
+    
     pdb.gimp_image_resize(
       image,
       max(1, int(round(image.width * self._preview_scaling_factor))),
@@ -369,7 +371,10 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_LINEAR)
   
-  def _scale_item_for_exporter(self, image, raw_item, exporter):
+  def _scale_item_for_exporter(self, exporter, raw_item=None):
+    if raw_item is None:
+      raw_item = exporter.current_raw_item
+    
     if not pdb.gimp_item_is_group(raw_item):
       pdb.gimp_item_transform_scale(
         raw_item,

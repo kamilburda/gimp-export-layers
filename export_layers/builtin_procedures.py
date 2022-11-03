@@ -20,15 +20,15 @@ from export_layers import settings_custom
 NAME_ONLY_TAG = 'name'
 
 
-def set_active_layer(image, layer, exporter):
-  image.active_layer = layer
+def set_active_layer(exporter):
+  exporter.current_image.active_layer = exporter.current_raw_item
 
 
-def set_active_layer_after_action(image, layer, exporter):
+def set_active_layer_after_action(exporter):
   action_applied = yield
   
   if action_applied or action_applied is None:
-    set_active_layer(image, layer, exporter)
+    set_active_layer(exporter)
 
 
 def copy_and_insert_layer(image, layer, parent=None, position=0, remove_lock_attributes=True):
@@ -43,40 +43,40 @@ def copy_and_insert_layer(image, layer, parent=None, position=0, remove_lock_att
   return layer_copy
 
 
-def autocrop_tagged_layer(image, layer, exporter, tag):
+def autocrop_tagged_layer(exporter, tag):
   tagged_layer = exporter.inserted_tagged_layers[tag]
   if tagged_layer is not None:
-    image.active_layer = tagged_layer
-    pdb.plug_in_autocrop_layer(image, tagged_layer)
+    exporter.current_image.active_layer = tagged_layer
+    pdb.plug_in_autocrop_layer(exporter.current_image, tagged_layer)
     return True
   else:
     return False
 
 
-def remove_folder_hierarchy_from_layer(image, layer, exporter):
+def remove_folder_hierarchy_from_layer(exporter):
   item = exporter.current_item
 
   item.parents = []
   item.children = None if item.item_type == item.ITEM else []
 
 
-def insert_background_layer(image, layer, exporter, tag):
-  _insert_tagged_layer(image, exporter, tag, position=len(image.layers))
+def insert_background_layer(exporter, tag):
+  _insert_tagged_layer(exporter, tag, position=len(exporter.current_image.layers))
 
 
-def insert_foreground_layer(image, layer, exporter, tag):
-  _insert_tagged_layer(image, exporter, tag, position=0)
+def insert_foreground_layer(exporter, tag):
+  _insert_tagged_layer(exporter, tag, position=0)
 
 
-def inherit_transparency_from_layer_groups(image, layer, exporter):
+def inherit_transparency_from_layer_groups(exporter):
   new_layer_opacity = exporter.current_item.raw.opacity / 100.0
   for parent_elem in exporter.current_item.parents:
     new_layer_opacity = new_layer_opacity * (parent_elem.raw.opacity / 100.0)
   
-  layer.opacity = new_layer_opacity * 100.0
+  exporter.current_raw_item.opacity = new_layer_opacity * 100.0
 
 
-def rename_layer(image, layer, exporter, pattern):
+def rename_layer(exporter, pattern):
   renamer = renamer_.LayerNameRenamer(pattern)
   
   while True:
@@ -84,13 +84,15 @@ def rename_layer(image, layer, exporter, pattern):
     unused_ = yield
 
 
-def resize_to_layer_size(image, layer, exporter):
+def resize_to_layer_size(exporter):
+  image = exporter.current_image
+  layer = exporter.current_raw_item
+  
   layer_offset_x, layer_offset_y = layer.offsets
   pdb.gimp_image_resize(image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
 
 
-def use_file_extension_in_layer_name(
-      image, layer, exporter, convert_file_extension_to_lowercase=False):
+def use_file_extension_in_layer_name(exporter, convert_file_extension_to_lowercase=False):
   item = exporter.current_item
   
   orig_file_extension = item.get_file_extension_from_orig_name()
@@ -103,7 +105,9 @@ def use_file_extension_in_layer_name(
     exporter.current_file_extension = orig_file_extension
 
 
-def _insert_tagged_layer(image, exporter, tag, position=0):
+def _insert_tagged_layer(exporter, tag, position=0):
+  image = exporter.current_image
+  
   if not exporter.tagged_items[tag]:
     return
   
@@ -128,7 +132,7 @@ def _insert_merged_tagged_layer(image, exporter, tag, position=0):
     layer_copy = copy_and_insert_layer(
       image, item.raw, None, first_tagged_layer_position + i)
     layer_copy.visible = True
-    exporter.invoker.invoke(['after_insert_item'], [image, layer_copy, exporter])
+    exporter.invoker.invoke(['after_insert_item'], [exporter, layer_copy])
   
   if len(exporter.tagged_items[tag]) == 1:
     merged_layer_for_tag = image.layers[first_tagged_layer_position]

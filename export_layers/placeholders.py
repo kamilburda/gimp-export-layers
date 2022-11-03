@@ -37,12 +37,12 @@ class _GimpObjectPlaceholder(object):
     return self._replacement_func(*args)
 
 
-def _get_current_image(image, layer, exporter):
-  return image
+def _get_current_image(exporter):
+  return exporter.current_image
 
 
-def _get_current_layer(image, layer, exporter):
-  return layer
+def _get_current_layer(exporter):
+  return exporter.current_raw_item
 
 
 _PLACEHOLDERS = {
@@ -51,7 +51,7 @@ _PLACEHOLDERS = {
 }
 
 
-def get_replaced_arg(arg, image, layer, exporter):
+def get_replaced_arg(arg, exporter):
   """
   If `arg` is a placeholder object, return a real object replacing the
   placeholder. Otherwise, return `arg`.
@@ -64,10 +64,10 @@ def get_replaced_arg(arg, image, layer, exporter):
   except (KeyError, TypeError):
     return arg
   else:
-    return placeholder.replace_args(image, layer, exporter)
+    return placeholder.replace_args(exporter)
 
 
-def get_replaced_args_and_kwargs(func_args, func_kwargs, image, layer, exporter):
+def get_replaced_args_and_kwargs(func_args, func_kwargs, exporter):
   """
   Return arguments and keyword arguments for a function whose placeholder
   objects are replaced with real objects.
@@ -75,11 +75,10 @@ def get_replaced_args_and_kwargs(func_args, func_kwargs, image, layer, exporter)
   Arguments after `func_kwargs` are required arguments for actions and are
   used to determine the real object that replaces the placeholder.
   """
-  new_func_args = [
-    get_replaced_arg(arg, image, layer, exporter) for arg in func_args]
+  new_func_args = [get_replaced_arg(arg, exporter) for arg in func_args]
   
   new_func_kwargs = {
-    name: get_replaced_arg(value, image, layer, exporter)
+    name: get_replaced_arg(value, exporter)
     for name, value in func_kwargs.items()}
   
   return new_func_args, new_func_kwargs

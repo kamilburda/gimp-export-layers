@@ -109,9 +109,12 @@ class LayerExporter(object):
     
     self.current_file_extension = None
     
+    self._current_item = None
+    self._current_raw_item = None
+    self._current_image = None
+    
     self._exported_layers = []
     self._exported_layers_ids = set()
-    self._current_item = None
     
     self._should_stop = False
     
@@ -155,6 +158,14 @@ class LayerExporter(object):
   @property
   def current_item(self):
     return self._current_item
+  
+  @property
+  def current_raw_item(self):
+    return self._current_raw_item
+  
+  @property
+  def current_image(self):
+    return self._current_image
   
   @property
   def tagged_items(self):
@@ -309,8 +320,6 @@ class LayerExporter(object):
     self._exported_layers = []
     self._exported_layers_ids = set()
     
-    self._current_item = None
-    
     self._output_directory = self.export_settings['output_directory'].value
     
     self._image_copy = None
@@ -327,6 +336,10 @@ class LayerExporter(object):
     self._file_extension_properties = _FileExtensionProperties()
     
     self.current_file_extension = self._default_file_extension
+    
+    self._current_item = None
+    self._current_raw_item = None
+    self._current_image = None
     
     self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
@@ -445,8 +458,11 @@ class LayerExporter(object):
   
   def _process_and_export_item(self, item):
     layer = item.raw
+    
+    self._current_raw_item = layer
+    
     self._preprocess_item_name(item)
-    self._process_item_name_for_preview(self._image_copy, layer)
+    self._process_item_name_for_preview(layer)
     layer_copy = self._process_item(item, self._image_copy, layer)
     self._export_layer(item, self._image_copy, layer_copy)
     self._postprocess_item(self._image_copy, layer_copy)
@@ -475,8 +491,12 @@ class LayerExporter(object):
     self._image_copy = pg.pdbutils.create_image_from_metadata(self.image)
     pdb.gimp_image_undo_freeze(self._image_copy)
     
+    self._current_image = self._image_copy
+    
     self._invoker.invoke(
-      ['after_create_image_copy'], [self._image_copy], additional_args_position=0)
+      ['after_create_image_copy'],
+      [self],
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_ACTIONS)
     
     if self._use_another_image_copy:
       self._another_image_copy = pg.pdbutils.create_image_from_metadata(self._image_copy)
@@ -509,13 +529,18 @@ class LayerExporter(object):
   
   def _process_item(self, item, image, layer):
     layer_copy = builtin_procedures.copy_and_insert_layer(image, layer, None, 0)
+    
+    self._current_raw_item = layer_copy
+    
     self._invoker.invoke(
-      ['after_insert_item'], [image, layer_copy, self], additional_args_position=0)
+      ['after_insert_item'],
+      [self, layer_copy],
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_ACTIONS)
     
     self._invoker.invoke(
       [actions.DEFAULT_PROCEDURES_GROUP],
-      [image, layer_copy, self],
-      additional_args_position=0)
+      [self],
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_ACTIONS)
     
     layer_copy = self._merge_and_resize_layer(image, layer_copy)
     
@@ -523,8 +548,12 @@ class LayerExporter(object):
     
     layer_copy.name = layer.name
     
+    self._current_raw_item = layer_copy
+    
     self._invoker.invoke(
-      ['after_process_item'], [image, layer_copy, self], additional_args_position=0)
+      ['after_process_item'],
+      [self],
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_ACTIONS)
     
     return layer_copy
   
@@ -554,11 +583,11 @@ class LayerExporter(object):
     self._item_tree.validate_name(item)
     self._item_tree.uniquify_name(item)
   
-  def _process_item_name_for_preview(self, image, layer):
+  def _process_item_name_for_preview(self, layer):
     self._invoker.invoke(
       [self._NAME_ONLY_ACTION_GROUP],
-      [image, layer, self],
-      additional_args_position=0)
+      [self],
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_ACTIONS)
   
   def _process_item_name(self, item, force_default_file_extension):
     if not force_default_file_extension:
@@ -708,6 +737,7 @@ class LayerExporter(object):
 
 
 _EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
+_EXPORTER_ARG_POSITION_IN_ACTIONS = 0
 
 
 def add_action_from_settings(action, exporter, tags=None, action_groups=None):
@@ -755,17 +785,16 @@ def _has_run_mode_param(pdb_procedure):
 
 
 def _get_action_func_for_pdb_procedure(pdb_procedure):
-  def _pdb_procedure_as_action(image, layer, exporter, *args, **kwargs):
+  def _pdb_procedure_as_action(exporter, *args, **kwargs):
     return pdb_procedure(*args, **kwargs)
   
   return _pdb_procedure_as_action
 
 
 def _get_action_func_with_replaced_placeholders(function):
-  def _action(image, layer, exporter, *args, **kwargs):
-    new_args, new_kwargs = placeholders.get_replaced_args_and_kwargs(
-      args, kwargs, image, layer, exporter)
-    return function(image, layer, exporter, *new_args, **new_kwargs)
+  def _action(exporter, *args, **kwargs):
+    new_args, new_kwargs = placeholders.get_replaced_args_and_kwargs(args, kwargs, exporter)
+    return function(exporter, *new_args, **new_kwargs)
   
   return _action
 
