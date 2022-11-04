@@ -45,10 +45,6 @@ class FilterRules(object):
   @staticmethod
   def has_green_color(obj):
     return 'green' in obj.colors
-  
-  @staticmethod
-  def invalid_rule_func():
-    pass
 
 
 class TestObjectFilter(unittest.TestCase):
@@ -74,9 +70,6 @@ class TestObjectFilter(unittest.TestCase):
   def test_add_remove_rule(self):
     with self.assertRaises(TypeError):
       self.filter.add_rule(None)
-    
-    with self.assertRaises(TypeError):
-      self.filter.add_rule(FilterRules.invalid_rule_func)
     
     with self.assertRaises(ValueError):
       self.filter.remove_rule(FilterRules.has_uppercase_letters)
