@@ -770,8 +770,7 @@ def add_action_from_settings(exporter, action, tags=None, action_groups=None):
     
     function = _get_action_func_for_pdb_procedure(function)
   
-  if 'constraint' not in action.tags:
-    function = _get_action_func_with_replaced_placeholders(exporter, function)
+  function = _get_action_func_with_replaced_placeholders(exporter, function)
   
   if 'constraint' in action.tags:
     function = _get_constraint_func(function, subfilter=action['subfilter'].value)
