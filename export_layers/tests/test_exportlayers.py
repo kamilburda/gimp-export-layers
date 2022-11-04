@@ -85,7 +85,7 @@ class TestAddActionFromSettings(unittest.TestCase):
     procedure = actions.add(
       self.procedures, builtin_procedures.BUILTIN_PROCEDURES['insert_background_layers'])
     
-    exportlayers.add_action_from_settings(procedure, self.exporter_mock)
+    exportlayers.add_action_from_settings(self.exporter_mock, procedure)
     
     added_action_items = self.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
     
@@ -107,7 +107,7 @@ class TestAddActionFromSettings(unittest.TestCase):
     with mock.patch('export_layers.exportlayers.pdb') as pdb_mock:
       pdb_mock.__getitem__.return_value = pdb_procedure
       
-      exportlayers.add_action_from_settings(procedure, self.exporter_mock)
+      exportlayers.add_action_from_settings(self.exporter_mock, procedure)
     
     added_action_items = self.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
     

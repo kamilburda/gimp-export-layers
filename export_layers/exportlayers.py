@@ -361,19 +361,19 @@ class LayerExporter(object):
       self._initial_invoker.list_groups(include_empty_groups=True))
     
     for procedure in actions.walk(self.export_settings['procedures']):
-      add_action_from_settings(procedure, self)
+      add_action_from_settings(self, procedure)
     
     for constraint in actions.walk(self.export_settings['constraints']):
-      add_action_from_settings(constraint, self)
+      add_action_from_settings(self, constraint)
   
   def _add_name_only_actions(self):
     for procedure in actions.walk(self.export_settings['procedures']):
       add_action_from_settings(
-        procedure, self, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
+        self, procedure, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
     
     for constraint in actions.walk(self.export_settings['constraints']):
       add_action_from_settings(
-        constraint, self, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
+        self, constraint, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
   
   def _enable_disable_processing_groups(self, processing_groups):
     for functions in self._processing_groups.values():
@@ -744,7 +744,7 @@ _EXPORTER_ARG_POSITION_IN_PROCEDURES = 0
 _EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
 
 
-def add_action_from_settings(action, exporter, tags=None, action_groups=None):
+def add_action_from_settings(exporter, action, tags=None, action_groups=None):
   if action.get_value('is_pdb_procedure', False):
     try:
       function = pdb[pg.utils.safe_encode_gimp(action['function'].value)]
@@ -771,12 +771,12 @@ def add_action_from_settings(action, exporter, tags=None, action_groups=None):
     function = _get_action_func_for_pdb_procedure(function)
   
   if 'constraint' not in action.tags:
-    function = _get_action_func_with_replaced_placeholders(function)
+    function = _get_action_func_with_replaced_placeholders(exporter, function)
   
   if 'constraint' in action.tags:
     function = _get_constraint_func(function, subfilter=action['subfilter'].value)
   
-  function = _apply_action_only_if_enabled(function, action, exporter)
+  function = _apply_action_only_if_enabled(exporter, function, action)
   
   if action_groups is None:
     action_groups = action['action_groups'].value
@@ -795,15 +795,15 @@ def _get_action_func_for_pdb_procedure(pdb_procedure):
   return _pdb_procedure_as_action
 
 
-def _get_action_func_with_replaced_placeholders(function):
-  def _action(exporter, *args, **kwargs):
+def _get_action_func_with_replaced_placeholders(exporter, function):
+  def _action(*args, **kwargs):
     new_args, new_kwargs = placeholders.get_replaced_args_and_kwargs(args, kwargs, exporter)
-    return function(exporter, *new_args, **new_kwargs)
+    return function(*new_args, **new_kwargs)
   
   return _action
 
 
-def _apply_action_only_if_enabled(function, action, exporter):
+def _apply_action_only_if_enabled(exporter, function, action):
   if exporter.is_preview:
     def _apply_action_in_preview(*action_args, **action_kwargs):
       if action['enabled'].value and action['enabled_for_previews'].value:
