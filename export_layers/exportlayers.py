@@ -496,7 +496,7 @@ class LayerExporter(object):
     self._invoker.invoke(
       ['after_create_image_copy'],
       [self],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_ACTIONS)
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
     if self._use_another_image_copy:
       self._another_image_copy = pg.pdbutils.create_image_from_metadata(self._image_copy)
@@ -535,12 +535,12 @@ class LayerExporter(object):
     self._invoker.invoke(
       ['after_insert_item'],
       [self, layer_copy],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_ACTIONS)
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
       [actions.DEFAULT_PROCEDURES_GROUP],
       [self],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_ACTIONS)
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
     layer_copy = self._merge_and_resize_layer(image, layer_copy)
     
@@ -553,7 +553,7 @@ class LayerExporter(object):
     self._invoker.invoke(
       ['after_process_item'],
       [self],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_ACTIONS)
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
     return layer_copy
   
@@ -587,7 +587,7 @@ class LayerExporter(object):
     self._invoker.invoke(
       [self._NAME_ONLY_ACTION_GROUP],
       [self],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_ACTIONS)
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
   
   def _process_item_name(self, item, force_default_file_extension):
     if not force_default_file_extension:
@@ -736,8 +736,8 @@ class LayerExporter(object):
 #===============================================================================
 
 
+_EXPORTER_ARG_POSITION_IN_PROCEDURES = 0
 _EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
-_EXPORTER_ARG_POSITION_IN_ACTIONS = 0
 
 
 def add_action_from_settings(action, exporter, tags=None, action_groups=None):
