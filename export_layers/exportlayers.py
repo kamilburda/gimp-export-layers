@@ -526,6 +526,10 @@ class LayerExporter(object):
           pg.pdbutils.try_delete_image(self._another_image_copy)
     
     pdb.gimp_context_pop()
+    
+    self._current_item = None
+    self._current_raw_item = None
+    self._current_image = None
   
   def _process_item(self, item, image, layer):
     layer_copy = builtin_procedures.copy_and_insert_layer(image, layer, None, 0)
