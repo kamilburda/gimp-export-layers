@@ -22,7 +22,7 @@ from gimp import pdb
 from export_layers import builtin_procedures
 from export_layers import builtin_constraints
 from export_layers import actions
-from export_layers import settings_plugin
+from export_layers import settings_main
 from export_layers.gui import main as gui_main
 
 
@@ -150,7 +150,7 @@ def crop_to_dialog(image, settings, decoration_offsets):
 
 def main(settings=None):
   if not settings:
-    settings = settings_plugin.create_settings()
+    settings = settings_main.create_settings()
   
   image = pdb.gimp_file_load(TEST_IMAGES_FILEPATH, os.path.basename(TEST_IMAGES_FILEPATH))
   

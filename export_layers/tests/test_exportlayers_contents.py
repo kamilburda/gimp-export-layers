@@ -16,7 +16,7 @@ from export_layers import pygimplib as pg
 from export_layers import builtin_procedures
 from export_layers import exportlayers
 from export_layers import actions
-from export_layers import settings_plugin
+from export_layers import settings_main
 
 
 _CURRENT_MODULE_DIRPATH = os.path.dirname(pg.utils.get_current_module_filepath())
@@ -132,7 +132,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         procedure_names_to_remove=None,
         different_results_and_expected_layers=None,
         expected_results_dirpath=None):
-    settings = settings_plugin.create_settings()
+    settings = settings_main.create_settings()
     settings['special/image'].set_value(self.test_image)
     settings['main/output_directory'].set_value(self.output_dirpath)
     settings['main/file_extension'].set_value('xcf')

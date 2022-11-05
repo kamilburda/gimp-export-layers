@@ -90,7 +90,7 @@ msgid "Rename layer"
 msgstr ""
 
 #: ../../export_layers/builtin_procedures.py:226
-#: ../../export_layers/settings_plugin.py:88
+#: ../../export_layers/settings_main.py:88
 msgid "Layer filename pattern"
 msgstr ""
 
@@ -698,52 +698,52 @@ msgid ""
 "and the image has width and height of 1000 and 500 pixels, respectively."
 msgstr ""
 
-#: ../../export_layers/settings_plugin.py:51
+#: ../../export_layers/settings_main.py:51
 msgid "The run mode"
 msgstr ""
 
-#: ../../export_layers/settings_plugin.py:57
+#: ../../export_layers/settings_main.py:57
 msgid "Image"
 msgstr ""
 
-#: ../../export_layers/settings_plugin.py:73
+#: ../../export_layers/settings_main.py:73
 msgid "File extension"
 msgstr ""
 
-#: ../../export_layers/settings_plugin.py:80
+#: ../../export_layers/settings_main.py:80
 msgid "Output directory"
 msgstr ""
 
-#: ../../export_layers/settings_plugin.py:89
+#: ../../export_layers/settings_main.py:89
 msgid "Layer filename pattern (empty string = layer name)"
 msgstr ""
 
-#: ../../export_layers/settings_plugin.py:97
-#: ../../export_layers/settings_plugin.py:106
+#: ../../export_layers/settings_main.py:97
+#: ../../export_layers/settings_main.py:106
 msgid "Selected layers"
 msgstr ""
 
-#: ../../export_layers/settings_plugin.py:115
+#: ../../export_layers/settings_main.py:115
 msgid "_Replace"
 msgstr ""
 
-#: ../../export_layers/settings_plugin.py:116
+#: ../../export_layers/settings_main.py:116
 msgid "_Skip"
 msgstr ""
 
-#: ../../export_layers/settings_plugin.py:117
+#: ../../export_layers/settings_main.py:117
 msgid "Rename _new file"
 msgstr ""
 
-#: ../../export_layers/settings_plugin.py:118
+#: ../../export_layers/settings_main.py:118
 msgid "Rename _existing file"
 msgstr ""
 
-#: ../../export_layers/settings_plugin.py:120
+#: ../../export_layers/settings_main.py:120
 msgid "Overwrite mode (non-interactive run mode only)"
 msgstr ""
 
-#: ../../export_layers/settings_plugin.py:192
+#: ../../export_layers/settings_main.py:192
 msgid ""
 "You need to specify default file extension for layers with invalid or no "
 "extension."

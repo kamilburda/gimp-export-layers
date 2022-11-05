@@ -16,7 +16,7 @@ from export_layers.pygimplib.tests import stubs_gimp
 from export_layers import builtin_procedures
 from export_layers import exportlayers
 from export_layers import actions
-from export_layers import settings_plugin
+from export_layers import settings_main
 
 
 class TestLayerExporterInitialActions(unittest.TestCase):
@@ -30,7 +30,7 @@ class TestLayerExporterInitialActions(unittest.TestCase):
     pdb.gimp_image_delete(cls.image)
   
   def test_add_procedure_added_procedure_is_first_in_action_list(self):
-    settings = settings_plugin.create_settings()
+    settings = settings_main.create_settings()
     settings['special/image'].set_value(self.image)
     settings['main/file_extension'].set_value('xcf')
     

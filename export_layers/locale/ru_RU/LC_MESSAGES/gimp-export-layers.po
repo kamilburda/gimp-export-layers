@@ -218,15 +218,15 @@ msgstr ""
 "произойти, если файл редактировался вручную.\n"
 "Для исправления, снова сохраните настройки или сбросьте их."
 
-#: ../../export_layers/settings_plugin.py:58
+#: ../../export_layers/settings_main.py:58
 msgid "The run mode"
 msgstr "Режим запуска"
 
-#: ../../export_layers/settings_plugin.py:64
+#: ../../export_layers/settings_main.py:64
 msgid "Image"
 msgstr "Изображение"
 
-#: ../../export_layers/settings_plugin.py:85
+#: ../../export_layers/settings_main.py:85
 msgid ""
 "You need to specify default file extension for layers with invalid or no "
 "extension."
@@ -234,128 +234,128 @@ msgstr ""
 "Вам нужно указать расширение файла по-умолчанию для слоя с неверным или без "
 "расширения."
 
-#: ../../export_layers/settings_plugin.py:92
+#: ../../export_layers/settings_main.py:92
 msgid "Output directory"
 msgstr "Конечный каталог"
 
-#: ../../export_layers/settings_plugin.py:98
+#: ../../export_layers/settings_main.py:98
 msgid "Treat layer groups as folders"
 msgstr "Рассматривать группы слоёв как каталоги"
 
-#: ../../export_layers/settings_plugin.py:104
+#: ../../export_layers/settings_main.py:104
 msgid "Ignore invisible layers"
 msgstr "Игнорировать скрытые слои"
 
-#: ../../export_layers/settings_plugin.py:110
+#: ../../export_layers/settings_main.py:110
 msgid "Autocrop layers"
 msgstr "Автоматически кадрировать слои"
 
-#: ../../export_layers/settings_plugin.py:116
+#: ../../export_layers/settings_main.py:116
 msgid "Use image size"
 msgstr "Применить размер изображения"
 
-#: ../../export_layers/settings_plugin.py:122
+#: ../../export_layers/settings_main.py:122
 msgid "No special handling"
 msgstr "Нет особенного действия"
 
-#: ../../export_layers/settings_plugin.py:123
+#: ../../export_layers/settings_main.py:123
 msgid "Export only layers matching file extension"
 msgstr "Экспортировать только те слои, которые имеют расширение"
 
-#: ../../export_layers/settings_plugin.py:124
+#: ../../export_layers/settings_main.py:124
 msgid "Use as file extensions"
 msgstr "Использовать как расширение файла"
 
-#: ../../export_layers/settings_plugin.py:125
+#: ../../export_layers/settings_main.py:125
 msgid "File extensions in layer names"
 msgstr "Расширение файла в имени слоя"
 
-#: ../../export_layers/settings_plugin.py:131
+#: ../../export_layers/settings_main.py:131
 msgid "Always strip file extension"
 msgstr "Всегда пропускать расширение слоя"
 
-#: ../../export_layers/settings_plugin.py:132
+#: ../../export_layers/settings_main.py:132
 msgid "Strip identical file extension"
 msgstr "Пропускать одинаковые расширения файла"
 
-#: ../../export_layers/settings_plugin.py:133
+#: ../../export_layers/settings_main.py:133
 msgid "Never strip file extension"
 msgstr "Никогда не пропускать расширение файла"
 
-#: ../../export_layers/settings_plugin.py:134
+#: ../../export_layers/settings_main.py:134
 msgid "File extension stripping"
 msgstr "Расширение файла исключено"
 
-#: ../../export_layers/settings_plugin.py:140
+#: ../../export_layers/settings_main.py:140
 msgid "Treat as normal layers"
 msgstr "Обрабатывать как обычные слои"
 
-#: ../../export_layers/settings_plugin.py:141
+#: ../../export_layers/settings_main.py:141
 msgid "Treat specially"
 msgstr "Обработать особо"
 
-#: ../../export_layers/settings_plugin.py:142
+#: ../../export_layers/settings_main.py:142
 msgid "Ignore"
 msgstr "Игнорировать"
 
-#: ../../export_layers/settings_plugin.py:143
+#: ../../export_layers/settings_main.py:143
 msgid "Ignore other layers"
 msgstr "Игнорировать другие слои"
 
-#: ../../export_layers/settings_plugin.py:144
+#: ../../export_layers/settings_main.py:144
 msgid "[Tagged] layers"
 msgstr "[Tagged] слои"
 
-#: ../../export_layers/settings_plugin.py:150
+#: ../../export_layers/settings_main.py:150
 msgid "Crop to layer"
 msgstr "Кадрировать к слою"
 
-#: ../../export_layers/settings_plugin.py:151
+#: ../../export_layers/settings_main.py:151
 msgid "Crop to background"
 msgstr "Кадрировать к фону"
 
-#: ../../export_layers/settings_plugin.py:152
+#: ../../export_layers/settings_main.py:152
 msgid "Crop to foreground"
 msgstr "Кадрировать к переднему плану"
 
-#: ../../export_layers/settings_plugin.py:153
+#: ../../export_layers/settings_main.py:153
 msgid "Crop mode"
 msgstr "Режим кадрирования"
 
-#: ../../export_layers/settings_plugin.py:159
+#: ../../export_layers/settings_main.py:159
 msgid "Merge layer groups"
 msgstr "Объединить группы слоёв"
 
-#: ../../export_layers/settings_plugin.py:165
+#: ../../export_layers/settings_main.py:165
 msgid "Create folders for empty layer groups"
 msgstr "Создать каталоги для пустых групп слоёв"
 
-#: ../../export_layers/settings_plugin.py:171
+#: ../../export_layers/settings_main.py:171
 msgid "Ignore layer modes"
 msgstr "Игнорировать режим слоёв"
 
-#: ../../export_layers/settings_plugin.py:177
+#: ../../export_layers/settings_main.py:177
 msgid "_Replace"
 msgstr "_Зименить"
 
-#: ../../export_layers/settings_plugin.py:178
+#: ../../export_layers/settings_main.py:178
 msgid "_Skip"
 msgstr "_Пропустить"
 
-#: ../../export_layers/settings_plugin.py:179
+#: ../../export_layers/settings_main.py:179
 msgid "Rename _new file"
 msgstr "Переименовать _новый файл"
 
-#: ../../export_layers/settings_plugin.py:180
+#: ../../export_layers/settings_main.py:180
 msgid "Rename _existing file"
 msgstr "Переименовать _существующий файл"
 
-#: ../../export_layers/settings_plugin.py:181
+#: ../../export_layers/settings_main.py:181
 #: ../../export_layers/gui_plugin.py:359
 msgid "_Cancel"
 msgstr "Отменить"
 
-#: ../../export_layers/settings_plugin.py:182
+#: ../../export_layers/settings_main.py:182
 msgid "Overwrite mode (non-interactive run mode only)"
 msgstr "Режим перезаписи (только для без-интерактивного режима)"
 

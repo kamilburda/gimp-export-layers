@@ -820,52 +820,52 @@ msgstr ""
 "eine Zahl nach %pc bezeichnet die Anzahl der Dezimalstellen, die angezeigt"
 " werden sollen"
 
-#: ../../export_layers/settings_plugin.py:74
+#: ../../export_layers/settings_main.py:74
 msgid "The run mode"
 msgstr "Der Betriebsmodus"
 
-#: ../../export_layers/settings_plugin.py:80
+#: ../../export_layers/settings_main.py:80
 msgid "Image"
 msgstr "Bild"
 
-#: ../../export_layers/settings_plugin.py:102
+#: ../../export_layers/settings_main.py:102
 msgid "Output directory"
 msgstr "Ausgabeverzeichnis"
 
-#: ../../export_layers/settings_plugin.py:110
+#: ../../export_layers/settings_main.py:110
 msgid "Layer filename pattern"
 msgstr "Dateinamensmuster für Ebenen"
 
-#: ../../export_layers/settings_plugin.py:111
+#: ../../export_layers/settings_main.py:111
 msgid "Layer filename pattern (empty string = layer name)"
 msgstr "Dateinamensmuster für Ebenen (leere Zeichenkette = Ebenenname)"
 
-#: ../../export_layers/settings_plugin.py:119
-#: ../../export_layers/settings_plugin.py:128
+#: ../../export_layers/settings_main.py:119
+#: ../../export_layers/settings_main.py:128
 msgid "Selected layers"
 msgstr "Gewählte Ebenen"
 
-#: ../../export_layers/settings_plugin.py:137
+#: ../../export_layers/settings_main.py:137
 msgid "_Replace"
 msgstr "_Ersetzen"
 
-#: ../../export_layers/settings_plugin.py:138
+#: ../../export_layers/settings_main.py:138
 msgid "_Skip"
 msgstr "_Überspringen"
 
-#: ../../export_layers/settings_plugin.py:139
+#: ../../export_layers/settings_main.py:139
 msgid "Rename _new file"
 msgstr "_Neue Datei umbenennen"
 
-#: ../../export_layers/settings_plugin.py:140
+#: ../../export_layers/settings_main.py:140
 msgid "Rename _existing file"
 msgstr "_Bestehende Datei umbenennen"
 
-#: ../../export_layers/settings_plugin.py:142
+#: ../../export_layers/settings_main.py:142
 msgid "Overwrite mode (non-interactive run mode only)"
 msgstr "Überschreibmodus (nur im nicht-interaktiven Ausführungsmodus)"
 
-#: ../../export_layers/settings_plugin.py:214
+#: ../../export_layers/settings_main.py:214
 msgid ""
 "You need to specify default file extension for layers with invalid or no "
 "extension."

@@ -258,6 +258,13 @@ def _update_to_3_3_2(settings):
   settings['main/constraints'].save()
   actions_.clear(settings['main/constraints'])
 
+
+def _update_to_3_4(settings):
+  plugin_subdirectory_dirpath = pg.config.PLUGIN_SUBDIRPATH
+  _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'settings_plugin.py'))
+  _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'settings_plugin.pyc'))
+
+
 def _refresh_actions(actions_list, actions_root, old_action_prefix, new_action_prefix):
   removed_actions = []
   for index, action in enumerate(actions_list):
@@ -400,4 +407,5 @@ def _fix_module_paths_in_parasites_3_3_2():
 _UPDATE_HANDLERS = collections.OrderedDict([
   ('3.3.1', _update_to_3_3_1),
   ('3.3.2', _update_to_3_3_2),
+  ('3.4', _update_to_3_4),
 ])

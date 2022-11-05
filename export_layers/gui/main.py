@@ -35,7 +35,7 @@ from export_layers import builtin_procedures
 from export_layers import actions
 from export_layers import exportlayers
 from export_layers import renamer
-from export_layers import settings_plugin
+from export_layers import settings_main
 from export_layers import update
 
 from export_layers.gui import message_label as message_label_
@@ -307,20 +307,20 @@ class ExportLayersDialog(object):
       run_gui_func(self, self._dialog, self._settings)
   
   def _init_settings(self):
-    settings_plugin.setup_image_ids_and_filepaths_settings(
+    settings_main.setup_image_ids_and_filepaths_settings(
       self._settings['gui_session/name_preview_layers_collapsed_state'],
       self._settings['gui_persistent/name_preview_layers_collapsed_state'],
-      settings_plugin.item_ids_to_names,
+      settings_main.item_ids_to_names,
       [self._exporter_for_previews.item_tree],
-      settings_plugin.item_names_to_ids,
+      settings_main.item_names_to_ids,
       [self._exporter_for_previews.item_tree])
     
-    settings_plugin.setup_image_ids_and_filepaths_settings(
+    settings_main.setup_image_ids_and_filepaths_settings(
       self._settings['gui_session/image_preview_displayed_layers'],
       self._settings['gui_persistent/image_preview_displayed_layers'],
-      settings_plugin.item_id_to_name,
+      settings_main.item_id_to_name,
       [self._exporter_for_previews.item_tree],
-      settings_plugin.item_name_to_id,
+      settings_main.item_name_to_id,
       [self._exporter_for_previews.item_tree])
     
     self._settings['main/procedures'].tags.add('ignore_load')

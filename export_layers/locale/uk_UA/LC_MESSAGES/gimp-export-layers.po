@@ -217,15 +217,15 @@ msgstr ""
 "статися, якщо файл був редагований вручну.\n"
 "Щоб це виправити, знову збережіть налаштування або скиньте їх."
 
-#: ../../export_layers/settings_plugin.py:58
+#: ../../export_layers/settings_main.py:58
 msgid "The run mode"
 msgstr "Режим запуску"
 
-#: ../../export_layers/settings_plugin.py:64
+#: ../../export_layers/settings_main.py:64
 msgid "Image"
 msgstr "Зображення"
 
-#: ../../export_layers/settings_plugin.py:85
+#: ../../export_layers/settings_main.py:85
 msgid ""
 "You need to specify default file extension for layers with invalid or no "
 "extension."
@@ -233,128 +233,128 @@ msgstr ""
 "Вам потрібно вказати розширення файлу за замовчуванням для шару з недійсним "
 "або без розширення."
 
-#: ../../export_layers/settings_plugin.py:92
+#: ../../export_layers/settings_main.py:92
 msgid "Output directory"
 msgstr "Вихідний каталог"
 
-#: ../../export_layers/settings_plugin.py:98
+#: ../../export_layers/settings_main.py:98
 msgid "Treat layer groups as folders"
 msgstr "Розлядати групи шарів як каталоги"
 
-#: ../../export_layers/settings_plugin.py:104
+#: ../../export_layers/settings_main.py:104
 msgid "Ignore invisible layers"
 msgstr "Ігнорувати невидимі шари"
 
-#: ../../export_layers/settings_plugin.py:110
+#: ../../export_layers/settings_main.py:110
 msgid "Autocrop layers"
 msgstr "Автоматично кадрувати шари"
 
-#: ../../export_layers/settings_plugin.py:116
+#: ../../export_layers/settings_main.py:116
 msgid "Use image size"
 msgstr "Застосувати розмір зображення"
 
-#: ../../export_layers/settings_plugin.py:122
+#: ../../export_layers/settings_main.py:122
 msgid "No special handling"
 msgstr "Немає особих дій"
 
-#: ../../export_layers/settings_plugin.py:123
+#: ../../export_layers/settings_main.py:123
 msgid "Export only layers matching file extension"
 msgstr "Експортувати лише шари, що мають розширення файлу"
 
-#: ../../export_layers/settings_plugin.py:124
+#: ../../export_layers/settings_main.py:124
 msgid "Use as file extensions"
 msgstr "Використовувати як розширення файлу"
 
-#: ../../export_layers/settings_plugin.py:125
+#: ../../export_layers/settings_main.py:125
 msgid "File extensions in layer names"
 msgstr "Розширення файлу в імені шару"
 
-#: ../../export_layers/settings_plugin.py:131
+#: ../../export_layers/settings_main.py:131
 msgid "Always strip file extension"
 msgstr "Завжди пропускати розширення файлу"
 
-#: ../../export_layers/settings_plugin.py:132
+#: ../../export_layers/settings_main.py:132
 msgid "Strip identical file extension"
 msgstr "Пропускати однакове розширення файлу"
 
-#: ../../export_layers/settings_plugin.py:133
+#: ../../export_layers/settings_main.py:133
 msgid "Never strip file extension"
 msgstr "Ніколи не пропускати розширення файлу"
 
-#: ../../export_layers/settings_plugin.py:134
+#: ../../export_layers/settings_main.py:134
 msgid "File extension stripping"
 msgstr "Розширення файлу виключено"
 
-#: ../../export_layers/settings_plugin.py:140
+#: ../../export_layers/settings_main.py:140
 msgid "Treat as normal layers"
 msgstr "Обробити як звичайні шари"
 
-#: ../../export_layers/settings_plugin.py:141
+#: ../../export_layers/settings_main.py:141
 msgid "Treat specially"
 msgstr "Особливі дії"
 
-#: ../../export_layers/settings_plugin.py:142
+#: ../../export_layers/settings_main.py:142
 msgid "Ignore"
 msgstr "Ігнорувати"
 
-#: ../../export_layers/settings_plugin.py:143
+#: ../../export_layers/settings_main.py:143
 msgid "Ignore other layers"
 msgstr "Ігнорувати інші шари"
 
-#: ../../export_layers/settings_plugin.py:144
+#: ../../export_layers/settings_main.py:144
 msgid "[Tagged] layers"
 msgstr "[Помічені] шари"
 
-#: ../../export_layers/settings_plugin.py:150
+#: ../../export_layers/settings_main.py:150
 msgid "Crop to layer"
 msgstr "Кадрувати до шару"
 
-#: ../../export_layers/settings_plugin.py:151
+#: ../../export_layers/settings_main.py:151
 msgid "Crop to background"
 msgstr "Кадрувати до фону"
 
-#: ../../export_layers/settings_plugin.py:152
+#: ../../export_layers/settings_main.py:152
 msgid "Crop to foreground"
 msgstr "Кадрувати до переднього плану"
 
-#: ../../export_layers/settings_plugin.py:153
+#: ../../export_layers/settings_main.py:153
 msgid "Crop mode"
 msgstr "Режим кадрування"
 
-#: ../../export_layers/settings_plugin.py:159
+#: ../../export_layers/settings_main.py:159
 msgid "Merge layer groups"
 msgstr "Об'єднати групи шарів"
 
-#: ../../export_layers/settings_plugin.py:165
+#: ../../export_layers/settings_main.py:165
 msgid "Create folders for empty layer groups"
 msgstr "Створити каталоги для порожніх груп шарів"
 
-#: ../../export_layers/settings_plugin.py:171
+#: ../../export_layers/settings_main.py:171
 msgid "Ignore layer modes"
 msgstr "Ігнорувати режими шарів"
 
-#: ../../export_layers/settings_plugin.py:177
+#: ../../export_layers/settings_main.py:177
 msgid "_Replace"
 msgstr "_Замінити"
 
-#: ../../export_layers/settings_plugin.py:178
+#: ../../export_layers/settings_main.py:178
 msgid "_Skip"
 msgstr "_Пропустити"
 
-#: ../../export_layers/settings_plugin.py:179
+#: ../../export_layers/settings_main.py:179
 msgid "Rename _new file"
 msgstr "Перейменувати _новий файл"
 
-#: ../../export_layers/settings_plugin.py:180
+#: ../../export_layers/settings_main.py:180
 msgid "Rename _existing file"
 msgstr "Перейменувати _існуючий файл"
 
-#: ../../export_layers/settings_plugin.py:181
+#: ../../export_layers/settings_main.py:181
 #: ../../export_layers/gui_plugin.py:359
 msgid "_Cancel"
 msgstr "Відмінити"
 
-#: ../../export_layers/settings_plugin.py:182
+#: ../../export_layers/settings_main.py:182
 msgid "Overwrite mode (non-interactive run mode only)"
 msgstr "Режим перезапису (лише для без інтерактивного режиму)"
 

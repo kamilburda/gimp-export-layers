@@ -24,12 +24,12 @@ from future.builtins import *
 import gimpenums
 
 from export_layers import exportlayers
-from export_layers import settings_plugin
+from export_layers import settings_main
 from export_layers import update
 from export_layers.gui import main as gui_main
 
 
-SETTINGS = settings_plugin.create_settings()
+SETTINGS = settings_main.create_settings()
 
 
 @pg.procedure(
@@ -91,11 +91,11 @@ def plug_in_export_layers_repeat(run_mode, image):
 
 
 def _setup_settings_additional(settings, layer_tree):
-  settings_plugin.setup_image_ids_and_filepaths_settings(
+  settings_main.setup_image_ids_and_filepaths_settings(
     settings['main/selected_layers'],
     settings['main/selected_layers_persistent'],
-    settings_plugin.item_ids_to_names, [layer_tree],
-    settings_plugin.item_names_to_ids, [layer_tree])
+    settings_main.item_ids_to_names, [layer_tree],
+    settings_main.item_names_to_ids, [layer_tree])
 
 
 def _run_noninteractive(layer_tree, args):
