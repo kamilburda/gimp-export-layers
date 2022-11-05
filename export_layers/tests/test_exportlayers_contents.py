@@ -281,7 +281,7 @@ def test_export_for_all_file_formats(exporter, export_settings):
         os.path.join(orig_output_dirpath, file_extension))
       try:
         exporter.export()
-      except exportlayers.ExportLayersError:
+      except exportlayers.ExportError:
         # Do not stop if one file format causes an error.
         continue
 

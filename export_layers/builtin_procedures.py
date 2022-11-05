@@ -53,7 +53,7 @@ def autocrop_tagged_layer(exporter, tag):
     return False
 
 
-def remove_folder_hierarchy_from_layer(exporter):
+def remove_folder_hierarchy_from_item(exporter):
   item = exporter.current_item
 
   item.parents = []
@@ -92,7 +92,7 @@ def resize_to_layer_size(exporter):
   pdb.gimp_image_resize(image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
 
 
-def use_file_extension_in_layer_name(exporter, convert_file_extension_to_lowercase=False):
+def use_file_extension_in_item_name(exporter, convert_file_extension_to_lowercase=False):
   item = exporter.current_item
   
   orig_file_extension = item.get_file_extension_from_orig_name()
@@ -184,7 +184,7 @@ _BUILTIN_PROCEDURES_LIST = [
   },
   {
     'name': 'ignore_folder_structure',
-    'function': remove_folder_hierarchy_from_layer,
+    'function': remove_folder_hierarchy_from_item,
     'display_name': _('Ignore folder structure'),
     'additional_tags': [NAME_ONLY_TAG],
   },
@@ -234,7 +234,7 @@ _BUILTIN_PROCEDURES_LIST = [
   },
   {
     'name': 'use_file_extension_in_layer_name',
-    'function': use_file_extension_in_layer_name,
+    'function': use_file_extension_in_item_name,
     'display_name': _('Use file extension in layer name'),
     'additional_tags': [NAME_ONLY_TAG],
     'arguments': [

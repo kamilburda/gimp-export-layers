@@ -27,14 +27,14 @@ from .. import itemtree as pgitemtree
 from .. import utils as pgutils
 
 
-class LayerFilterRules(object):
+class FilterRules(object):
   
   @staticmethod
-  def is_layer(item):
+  def is_item(item):
     return item.item_type == item.ITEM
   
   @staticmethod
-  def is_layer_or_empty_group(item):
+  def is_item_or_empty_group(item):
     return item.item_type in (item.ITEM, item.EMPTY_GROUP)
   
   @staticmethod
@@ -61,7 +61,7 @@ class TestLayerTree(unittest.TestCase):
     pgutils.get_pygimplib_module_path() + '.itemtree.gimp.GroupLayer',
     new=stubs_gimp.LayerGroupStub)
   def setUp(self):
-    layers_string = """
+    items_string = """
       Corners {
         top-left-corner
         top-right-corner
@@ -91,8 +91,8 @@ class TestLayerTree(unittest.TestCase):
       }
     """
     
-    image = utils_itemtree.parse_layers(layers_string)
-    self.layer_tree = pgitemtree.LayerTree(image)
+    image = utils_itemtree.parse_layers(items_string)
+    self.item_tree = pgitemtree.LayerTree(image)
   
   def test_get_item_tree_element_attributes(self):
     item_tree = collections.OrderedDict([
@@ -123,11 +123,11 @@ class TestLayerTree(unittest.TestCase):
       ('alt-corners', [['main-background.jpg::'], None]),
     ])
     
-    for item, orig_name in zip(self.layer_tree, item_tree):
+    for item, orig_name in zip(self.item_tree, item_tree):
       self.assertEqual(item.orig_name, orig_name)
     
     for item, parents_and_children in zip(
-          self.layer_tree, item_tree.values()):
+          self.item_tree, item_tree.values()):
       parents = parents_and_children[0]
       children = parents_and_children[1]
       
@@ -144,21 +144,21 @@ class TestLayerTree(unittest.TestCase):
         list(item.orig_children) if item.orig_children is not None else None)
   
   def test_get_len(self):
-    layer_count_total = 20
-    layer_count_only_layers = 13
+    item_count_total = 20
+    item_count_only_items = 13
     
-    self.assertEqual(len(self.layer_tree), layer_count_total)
+    self.assertEqual(len(self.item_tree), item_count_total)
     
-    self.layer_tree.is_filtered = True
-    self.layer_tree.filter.add_rule(LayerFilterRules.is_layer)
+    self.item_tree.is_filtered = True
+    self.item_tree.filter.add_rule(FilterRules.is_item)
     
-    self.assertEqual(len(self.layer_tree), layer_count_only_layers)
+    self.assertEqual(len(self.item_tree), item_count_only_items)
   
   def test_get_filepath(self):
     output_dirpath = os.path.join('D:', os.sep, 'testgimp')
     
     # `item` with parents
-    item = self.layer_tree['bottom-right-corner']
+    item = self.item_tree['bottom-right-corner']
     
     self.assertEqual(
       item.get_filepath(output_dirpath),
@@ -175,28 +175,27 @@ class TestLayerTree(unittest.TestCase):
       os.path.join(
         os.getcwd(), 'Corners', 'top-left-corner::', item.name))
     
-    itemtree_empty_layer_group = self.layer_tree['top-left-corner:']
+    itemtree_empty_group = self.item_tree['top-left-corner:']
     
     self.assertEqual(
-      itemtree_empty_layer_group.get_filepath(output_dirpath),
-      os.path.join(output_dirpath, 'Corners', itemtree_empty_layer_group.name))
+      itemtree_empty_group.get_filepath(output_dirpath),
+      os.path.join(output_dirpath, 'Corners', itemtree_empty_group.name))
     self.assertEqual(
-      itemtree_empty_layer_group.get_filepath(output_dirpath, include_item_path=False),
-      os.path.join(output_dirpath, itemtree_empty_layer_group.name))
+      itemtree_empty_group.get_filepath(output_dirpath, include_item_path=False),
+      os.path.join(output_dirpath, itemtree_empty_group.name))
     
-    itemtree_empty_layer_group_no_parents = self.layer_tree['Overlay']
+    itemtree_empty_group_no_parents = self.item_tree['Overlay']
     
     self.assertEqual(
-      itemtree_empty_layer_group_no_parents.get_filepath(output_dirpath),
-      os.path.join(output_dirpath, itemtree_empty_layer_group_no_parents.name))
+      itemtree_empty_group_no_parents.get_filepath(output_dirpath),
+      os.path.join(output_dirpath, itemtree_empty_group_no_parents.name))
     self.assertEqual(
-      itemtree_empty_layer_group_no_parents.get_filepath(output_dirpath),
-      itemtree_empty_layer_group_no_parents.get_filepath(
-        output_dirpath, include_item_path=False))
+      itemtree_empty_group_no_parents.get_filepath(output_dirpath),
+      itemtree_empty_group_no_parents.get_filepath(output_dirpath, include_item_path=False))
   
   #-----------------------------------------------------------------------------
   
-  def test_uniquify_without_layer_groups(self):
+  def test_uniquify_without_groups(self):
     uniquified_names = collections.OrderedDict([
       ('top-left-corner', 'top-left-corner'),
       ('top-right-corner', 'top-right-corner'),
@@ -214,15 +213,15 @@ class TestLayerTree(unittest.TestCase):
     
     # This is to make uniquification work properly for these tests. The code is
     # not inside `uniquify_names()` as the code that uses this method may need
-    # to uniquify non-empty layer groups in some scenarios (such as when merging
-    # non-empty layer groups into layers, which would not match the filter).
-    self.layer_tree.is_filtered = True
-    self.layer_tree.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
+    # to uniquify non-empty groups in some scenarios (such as when merging
+    # non-empty groups into items, which would not match the filter).
+    self.item_tree.is_filtered = True
+    self.item_tree.filter.add_rule(FilterRules.is_item_or_empty_group)
     
-    for item in self.layer_tree:
-      self.layer_tree.validate_name(item)
-      self.layer_tree.uniquify_name(item, include_item_path=False)
-    self._compare_uniquified_without_parents(self.layer_tree, uniquified_names)
+    for item in self.item_tree:
+      self.item_tree.validate_name(item)
+      self.item_tree.uniquify_name(item, include_item_path=False)
+    self._compare_uniquified_without_parents(self.item_tree, uniquified_names)
   
   def _compare_uniquified_without_parents(self, item_tree, uniquified_names):
     for key, name in uniquified_names.items():
@@ -231,7 +230,7 @@ class TestLayerTree(unittest.TestCase):
         name,
         '"{}": "{}" != "{}"'.format(key, item_tree[key].name, name))
   
-  def test_uniquify_with_layer_groups(self):
+  def test_uniquify_with_groups(self):
     uniquified_names = collections.OrderedDict([
       ('Corners', ['Corners']),
       ('top-left-corner', ['Corners', 'top-left-corner']),
@@ -257,13 +256,13 @@ class TestLayerTree(unittest.TestCase):
       ('alt-corners', ['main-background.jpg (2)', 'alt-corners']),
     ])
     
-    self.layer_tree.is_filtered = True
-    self.layer_tree.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
+    self.item_tree.is_filtered = True
+    self.item_tree.filter.add_rule(FilterRules.is_item_or_empty_group)
     
-    for item in self.layer_tree:
-      self.layer_tree.validate_name(item)
-      self.layer_tree.uniquify_name(item, include_item_path=True)
-    self._compare_uniquified_with_parents(self.layer_tree, uniquified_names)
+    for item in self.item_tree:
+      self.item_tree.validate_name(item)
+      self.item_tree.uniquify_name(item, include_item_path=True)
+    self._compare_uniquified_with_parents(self.item_tree, uniquified_names)
   
   def test_uniquify_with_regards_to_file_extension(self):
     def _get_file_extension_start_position(str_):
@@ -278,16 +277,16 @@ class TestLayerTree(unittest.TestCase):
       ('main-background.jpg::', ['main-background.jpg (1)'])
     ])
     
-    self.layer_tree.is_filtered = True
-    self.layer_tree.filter.add_rule(LayerFilterRules.is_layer_or_empty_group)
+    self.item_tree.is_filtered = True
+    self.item_tree.filter.add_rule(FilterRules.is_item_or_empty_group)
     
-    for item in self.layer_tree:
-      self.layer_tree.validate_name(item)
-      self.layer_tree.uniquify_name(
+    for item in self.item_tree:
+      self.item_tree.validate_name(item)
+      self.item_tree.uniquify_name(
         item,
         include_item_path=True,
         uniquifier_position=_get_file_extension_start_position(item.name))
-    self._compare_uniquified_with_parents(self.layer_tree, uniquified_names)
+    self._compare_uniquified_with_parents(self.item_tree, uniquified_names)
   
   def _compare_uniquified_with_parents(self, item_tree, uniquified_names):
     for key, item_path in uniquified_names.items():
@@ -300,38 +299,38 @@ class TestLayerTree(unittest.TestCase):
       self.assertEqual(
         item_tree[key].name,
         name,
-        'layer name: "{}": "{}" != "{}"'.format(key, item_tree[key].name, name))
+        'item name: "{}": "{}" != "{}"'.format(key, item_tree[key].name, name))
   
   def test_reset_name(self):
-    self.layer_tree['Corners'].name = 'Corners.png'
+    self.item_tree['Corners'].name = 'Corners.png'
     
-    self.layer_tree.validate_name(self.layer_tree['Corners'])
-    self.layer_tree.uniquify_name(self.layer_tree['Corners'])
+    self.item_tree.validate_name(self.item_tree['Corners'])
+    self.item_tree.uniquify_name(self.item_tree['Corners'])
     
-    self.layer_tree.validate_name(self.layer_tree['Corners::'])
-    self.layer_tree.uniquify_name(self.layer_tree['Corners::'])
+    self.item_tree.validate_name(self.item_tree['Corners::'])
+    self.item_tree.uniquify_name(self.item_tree['Corners::'])
     
-    self.layer_tree.reset_name(self.layer_tree['Corners'])
+    self.item_tree.reset_name(self.item_tree['Corners'])
     
-    self.layer_tree.validate_name(self.layer_tree['Corners'])
-    self.layer_tree.uniquify_name(self.layer_tree['Corners'])
+    self.item_tree.validate_name(self.item_tree['Corners'])
+    self.item_tree.uniquify_name(self.item_tree['Corners'])
     
-    self.assertEqual(self.layer_tree['Corners::'].name, 'Corners')
-    self.assertEqual(self.layer_tree['Corners'].name, 'Corners (1)')
+    self.assertEqual(self.item_tree['Corners::'].name, 'Corners')
+    self.assertEqual(self.item_tree['Corners'].name, 'Corners (1)')
   
   def test_reset_all_names(self):
-    self.layer_tree['Corners'].name = 'Corners.png'
-    self.layer_tree['Corners:'].name = 'Corners.png:'
+    self.item_tree['Corners'].name = 'Corners.png'
+    self.item_tree['Corners:'].name = 'Corners.png:'
     
-    self.layer_tree.validate_name(self.layer_tree['Corners'])
-    self.layer_tree.uniquify_name(self.layer_tree['Corners'])
-    self.layer_tree.validate_name(self.layer_tree['Corners:'])
-    self.layer_tree.uniquify_name(self.layer_tree['Corners:'])
+    self.item_tree.validate_name(self.item_tree['Corners'])
+    self.item_tree.uniquify_name(self.item_tree['Corners'])
+    self.item_tree.validate_name(self.item_tree['Corners:'])
+    self.item_tree.uniquify_name(self.item_tree['Corners:'])
     
-    self.layer_tree.reset_all_names()
+    self.item_tree.reset_all_names()
     
-    self.assertEqual(self.layer_tree['Corners'].name, 'Corners')
-    self.assertEqual(self.layer_tree['Corners:'].name, 'Corners:')
+    self.assertEqual(self.item_tree['Corners'].name, 'Corners')
+    self.assertEqual(self.item_tree['Corners:'].name, 'Corners:')
 
 
 @mock.patch(
@@ -413,11 +412,9 @@ class TestLayerTreeElement(unittest.TestCase):
     
     layer = stubs_gimp.LayerStub('layer')
     layer.parasite_attach(
-      stubs_gimp.ParasiteStub(
-        item_tags_source_name, 0, pickle.dumps(set(['background']))))
+      stubs_gimp.ParasiteStub(item_tags_source_name, 0, pickle.dumps(set(['background']))))
     
-    item = pgitemtree._Item(
-      layer, tags_source_name=item_tags_source_name)
+    item = pgitemtree._Item(layer, tags_source_name=item_tags_source_name)
     self.assertIn('background', item.tags)
   
   @mock.patch(
@@ -430,6 +427,5 @@ class TestLayerTreeElement(unittest.TestCase):
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(item_tags_source_name, 0, 'invalid_data'))
     
-    item = pgitemtree._Item(
-      layer, tags_source_name=item_tags_source_name)
+    item = pgitemtree._Item(layer, tags_source_name=item_tags_source_name)
     self.assertFalse(item.tags)

@@ -8,18 +8,18 @@ from future.builtins import *
 from . import stubs_gimp
 
 
-def parse_layers(layer_tree_string):
-  """
-  From a given string containing layer names separated by lines and
-  curly braces (each on a separate line), return an image containing parsed
-  layers.
+def parse_layers(tree_string):
+  """Parses layer names from a given string and returns an image stub containing
+  layer stubs.
   
-  Leading or trailing spaces in each line in the string are truncated.
+  The string must contain layer names separated by lines and curly braces (each
+  on a separate line). Leading or trailing spaces in each line in the string are
+  truncated.
   """
   image = stubs_gimp.ImageStub()
   
-  layer_tree_string = layer_tree_string.strip()
-  lines = layer_tree_string.splitlines(False)
+  tree_string = tree_string.strip()
+  lines = tree_string.splitlines(False)
   
   num_lines = len(lines)
   parents = [image]

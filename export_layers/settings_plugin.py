@@ -164,7 +164,7 @@ def create_settings():
 def _on_after_add_procedure(
       procedures, procedure, orig_procedure_dict, file_extension_setting):
   if orig_procedure_dict['name'] == 'use_file_extension_in_layer_name':
-    _adjust_error_message_for_use_file_extension_in_layer_name(
+    _adjust_error_message_for_use_file_extension_in_item_name(
       procedure, file_extension_setting)
 
 
@@ -172,20 +172,20 @@ def _on_after_add_constraint(
       constraints,
       constraint,
       orig_constraint_dict,
-      selected_layers_setting,
+      selected_items_setting,
       image_setting):
   if orig_constraint_dict['name'] == 'only_selected_layers':
     constraint['arguments/selected_layers'].gui.set_visible(False)
-    _sync_selected_layers_and_only_selected_layers_constraint(
-      selected_layers_setting, constraint, image_setting)
+    _sync_selected_items_and_only_selected_items_constraint(
+      selected_items_setting, constraint, image_setting)
 
 
-def _adjust_error_message_for_use_file_extension_in_layer_name(
+def _adjust_error_message_for_use_file_extension_in_item_name(
       procedure, file_extension_setting):
   
-  def _on_use_file_extension_in_layer_name_enabled_changed(
-        use_file_extension_in_layer_name_enabled, file_extension):
-    if not use_file_extension_in_layer_name_enabled.value:
+  def _on_use_file_extension_in_item_name_enabled_changed(
+        use_file_extension_in_item_name_enabled, file_extension):
+    if not use_file_extension_in_item_name_enabled.value:
       file_extension.error_messages[pg.path.FileValidatorErrorStatuses.IS_EMPTY] = ''
     else:
       file_extension.error_messages[pg.path.FileValidatorErrorStatuses.IS_EMPTY] = _(
@@ -194,28 +194,28 @@ def _adjust_error_message_for_use_file_extension_in_layer_name(
   
   if procedure['enabled'].value:
     # Invoke manually in case 'enabled' is True upon adding.
-    _on_use_file_extension_in_layer_name_enabled_changed(
+    _on_use_file_extension_in_item_name_enabled_changed(
       procedure['enabled'], file_extension_setting)
   
   procedure['enabled'].connect_event(
     'value-changed',
-    _on_use_file_extension_in_layer_name_enabled_changed,
+    _on_use_file_extension_in_item_name_enabled_changed,
     file_extension_setting)
 
 
-def _sync_selected_layers_and_only_selected_layers_constraint(
-      selected_layers_setting, constraint, image_setting):
+def _sync_selected_items_and_only_selected_items_constraint(
+      selected_items_setting, constraint, image_setting):
   
-  def _on_selected_layers_changed(
-        selected_layers_setting, only_selected_layers_constraint, image_setting):
+  def _on_selected_items_changed(
+        selected_items_setting, only_selected_items_constraint, image_setting):
     if image_setting.value is not None:
-      only_selected_layers_constraint['arguments/selected_layers'].set_value(
-        selected_layers_setting.value[image_setting.value.ID])
+      only_selected_items_constraint['arguments/selected_layers'].set_value(
+        selected_items_setting.value[image_setting.value.ID])
   
-  _on_selected_layers_changed(selected_layers_setting, constraint, image_setting)
+  _on_selected_items_changed(selected_items_setting, constraint, image_setting)
   
-  selected_layers_setting.connect_event(
-    'value-changed', _on_selected_layers_changed, constraint, image_setting)
+  selected_items_setting.connect_event(
+    'value-changed', _on_selected_items_changed, constraint, image_setting)
 
 
 #===============================================================================
@@ -324,30 +324,30 @@ def _update_image_ids(
         *assign_filepath_to_image_id_func_args)
 
 
-def convert_set_of_layer_ids_to_names(
-      image_id, image_filepath, image_ids_setting, image_filepaths_setting, layer_tree):
+def item_ids_to_names(
+      image_id, image_filepath, image_ids_setting, image_filepaths_setting, item_tree):
   image_filepaths_setting.value[image_filepath] = set(
-    [layer_tree[layer_id].orig_name for layer_id in image_ids_setting.value[image_id]
-     if layer_id in layer_tree])
+    [item_tree[item_id].orig_name for item_id in image_ids_setting.value[image_id]
+     if item_id in item_tree])
 
 
-def convert_set_of_layer_names_to_ids(
-      image_id, image_filepath, image_ids_setting, image_filepaths_setting, layer_tree):
+def item_names_to_ids(
+      image_id, image_filepath, image_ids_setting, image_filepaths_setting, item_tree):
   image_ids_setting.value[image_id] = set(
-    [layer_tree[layer_orig_name].raw.ID
-     for layer_orig_name in image_filepaths_setting.value[image_filepath]
-     if layer_orig_name in layer_tree])
+    [item_tree[item_orig_name].raw.ID
+     for item_orig_name in image_filepaths_setting.value[image_filepath]
+     if item_orig_name in item_tree])
 
 
-def convert_layer_id_to_name(
-      image_id, image_filepath, image_ids_setting, image_filepaths_setting, layer_tree):
-  layer_id = image_ids_setting.value[image_id]
+def item_id_to_name(
+      image_id, image_filepath, image_ids_setting, image_filepaths_setting, item_tree):
+  item_id = image_ids_setting.value[image_id]
   image_filepaths_setting.value[image_filepath] = (
-    layer_tree[layer_id].orig_name if layer_id in layer_tree else None)
+    item_tree[item_id].orig_name if item_id in item_tree else None)
 
 
-def convert_layer_name_to_id(
-      image_id, image_filepath, image_ids_setting, image_filepaths_setting, layer_tree):
-  layer_orig_name = image_filepaths_setting.value[image_filepath]
+def item_name_to_id(
+      image_id, image_filepath, image_ids_setting, image_filepaths_setting, item_tree):
+  item_orig_name = image_filepaths_setting.value[image_filepath]
   image_ids_setting.value[image_id] = (
-    layer_tree[layer_orig_name].raw.ID if layer_orig_name in layer_tree else None)
+    item_tree[item_orig_name].raw.ID if item_orig_name in item_tree else None)

@@ -19,7 +19,7 @@ class TestCreateParams(unittest.TestCase):
     self.file_ext_setting = settings_.FileExtensionSetting(
       'file_extension', default_value='png', display_name='File extension')
     self.unregistrable_setting = settings_.IntSetting(
-      'num_exported_layers', default_value=0, pdb_type=settings_.SettingPdbTypes.none)
+      'num_exported_items', default_value=0, pdb_type=settings_.SettingPdbTypes.none)
     self.coordinates_setting = settings_.ArraySetting(
       'coordinates',
       default_value=(1.0, 5.0, 10.0),

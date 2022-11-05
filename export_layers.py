@@ -94,8 +94,8 @@ def _setup_settings_additional(settings, layer_tree):
   settings_plugin.setup_image_ids_and_filepaths_settings(
     settings['main/selected_layers'],
     settings['main/selected_layers_persistent'],
-    settings_plugin.convert_set_of_layer_ids_to_names, [layer_tree],
-    settings_plugin.convert_set_of_layer_names_to_ids, [layer_tree])
+    settings_plugin.item_ids_to_names, [layer_tree],
+    settings_plugin.item_names_to_ids, [layer_tree])
 
 
 def _run_noninteractive(layer_tree, args):
@@ -128,7 +128,7 @@ def _run_plugin_noninteractive(run_mode, layer_tree):
   
   try:
     exporter.export(item_tree=layer_tree)
-  except exportlayers.ExportLayersCancelError:
+  except exportlayers.ExportCancelError:
     pass
 
 

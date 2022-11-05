@@ -607,7 +607,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
     if item.item_type == item.ITEM:
       return self._icons['item']
     elif item.item_type == item.NONEMPTY_GROUP:
-      if not self._exporter.has_exported_layer(item.raw):
+      if not self._exporter.has_exported_item(item.raw):
         return self._icons['item_group']
       else:
         return self._icons['exported_item_group']

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Class interconnecting preview widgets for layer names and images."""
+"""Class interconnecting preview widgets for item names and images."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
@@ -22,7 +22,7 @@ class ExportPreviewsController(object):
     self._settings = settings
     self._image = image
     
-    self._only_selected_layers_constraints = {}
+    self._only_selected_items_constraints = {}
     self._custom_actions = {}
     self._is_initial_selection_set = False
     
@@ -35,9 +35,9 @@ class ExportPreviewsController(object):
     self._connect_actions_changed(self._settings['main/procedures'])
     self._connect_actions_changed(self._settings['main/constraints'])
     
-    self._connect_setting_after_reset_collapsed_layers_in_name_preview()
-    self._connect_setting_after_reset_selected_layers_in_name_preview()
-    self._connect_setting_after_reset_displayed_layers_in_image_preview()
+    self._connect_setting_after_reset_collapsed_items_in_name_preview()
+    self._connect_setting_after_reset_selected_items_in_name_preview()
+    self._connect_setting_after_reset_displayed_items_in_image_preview()
     
     self._connect_toggle_name_preview_filtering()
     self._connect_set_image_preview_scaling()
@@ -155,20 +155,20 @@ class ExportPreviewsController(object):
     pg.invocation.timeout_add_strict(
       self._DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS, self._image_preview.update)
   
-  def _connect_setting_after_reset_collapsed_layers_in_name_preview(self):
+  def _connect_setting_after_reset_collapsed_items_in_name_preview(self):
     self._settings[
       'gui_session/name_preview_layers_collapsed_state'].connect_event(
         'after-reset',
         lambda setting: self._name_preview.set_collapsed_items(
           setting.value[self._image.ID]))
   
-  def _connect_setting_after_reset_selected_layers_in_name_preview(self):
+  def _connect_setting_after_reset_selected_items_in_name_preview(self):
     self._settings['main/selected_layers'].connect_event(
       'after-reset',
       lambda setting: self._name_preview.set_selected_items(
         setting.value[self._image.ID]))
   
-  def _connect_setting_after_reset_displayed_layers_in_image_preview(self):
+  def _connect_setting_after_reset_displayed_items_in_image_preview(self):
     def _clear_image_preview(setting):
       self._image_preview.clear()
     
@@ -176,31 +176,31 @@ class ExportPreviewsController(object):
       'after-reset', _clear_image_preview)
   
   def _connect_toggle_name_preview_filtering(self):
-    def _after_add_only_selected_layers(constraints, constraint, orig_constraint_dict):
+    def _after_add_only_selected_items(constraints, constraint, orig_constraint_dict):
       if constraint['orig_name'].value == 'only_selected_layers':
-        self._only_selected_layers_constraints[constraint.name] = constraint
+        self._only_selected_items_constraints[constraint.name] = constraint
         
         _on_enabled_changed(constraint['enabled'])
         constraint['enabled'].connect_event('value-changed', _on_enabled_changed)
     
-    def _before_remove_only_selected_layers(constraints, constraint):
-      if constraint.name in self._only_selected_layers_constraints:
-        del self._only_selected_layers_constraints[constraint.name]
+    def _before_remove_only_selected_items(constraints, constraint):
+      if constraint.name in self._only_selected_items_constraints:
+        del self._only_selected_items_constraints[constraint.name]
     
     def _before_clear_constraints(constraints):
-      self._only_selected_layers_constraints = {}
+      self._only_selected_items_constraints = {}
       self._name_preview.is_filtering = False
     
     def _on_enabled_changed(constraint_enabled):
       self._name_preview.is_filtering = (
         any(constraint['enabled'].value
-            for constraint in self._only_selected_layers_constraints.values()))
+            for constraint in self._only_selected_items_constraints.values()))
     
     self._settings['main/constraints'].connect_event(
-      'after-add-action', _after_add_only_selected_layers)
+      'after-add-action', _after_add_only_selected_items)
     
     self._settings['main/constraints'].connect_event(
-      'before-remove-action', _before_remove_only_selected_layers)
+      'before-remove-action', _before_remove_only_selected_items)
     
     self._settings['main/constraints'].connect_event(
       'before-clear-actions', _before_clear_constraints)
@@ -263,7 +263,7 @@ class ExportPreviewsController(object):
       toplevel.connect('notify::is-active', self._on_toplevel_notify_is_active)
    
   def _on_name_preview_selection_changed(self, preview):
-    self._update_selected_layers()
+    self._update_selected_items()
     self._update_image_preview()
   
   def _on_name_preview_updated(self, preview):
@@ -316,10 +316,10 @@ class ExportPreviewsController(object):
     
     self._is_initial_selection_set = True
   
-  def _update_selected_layers(self):
-    selected_layers_dict = self._settings['main/selected_layers'].value
-    selected_layers_dict[self._image.ID] = self._name_preview.selected_items
-    self._settings['main/selected_layers'].set_value(selected_layers_dict)
+  def _update_selected_items(self):
+    selected_items_dict = self._settings['main/selected_layers'].value
+    selected_items_dict[self._image.ID] = self._name_preview.selected_items
+    self._settings['main/selected_layers'].set_value(selected_items_dict)
   
   def _update_image_preview(self):
     item_from_cursor = self._name_preview.get_item_from_cursor()

@@ -310,17 +310,17 @@ class ExportLayersDialog(object):
     settings_plugin.setup_image_ids_and_filepaths_settings(
       self._settings['gui_session/name_preview_layers_collapsed_state'],
       self._settings['gui_persistent/name_preview_layers_collapsed_state'],
-      settings_plugin.convert_set_of_layer_ids_to_names,
+      settings_plugin.item_ids_to_names,
       [self._exporter_for_previews.item_tree],
-      settings_plugin.convert_set_of_layer_names_to_ids,
+      settings_plugin.item_names_to_ids,
       [self._exporter_for_previews.item_tree])
     
     settings_plugin.setup_image_ids_and_filepaths_settings(
       self._settings['gui_session/image_preview_displayed_layers'],
       self._settings['gui_persistent/image_preview_displayed_layers'],
-      settings_plugin.convert_layer_id_to_name,
+      settings_plugin.item_id_to_name,
       [self._exporter_for_previews.item_tree],
-      settings_plugin.convert_layer_name_to_id,
+      settings_plugin.item_name_to_id,
       [self._exporter_for_previews.item_tree])
     
     self._settings['main/procedures'].tags.add('ignore_load')
@@ -797,9 +797,9 @@ class ExportLayersDialog(object):
     
     try:
       self._exporter.export()
-    except exportlayers.ExportLayersCancelError as e:
+    except exportlayers.ExportCancelError as e:
       should_quit = False
-    except exportlayers.ExportLayersError as e:
+    except exportlayers.ExportError as e:
       display_export_failure_message(e, parent=self._dialog)
       should_quit = False
     except Exception as e:
@@ -812,7 +812,7 @@ class ExportLayersDialog(object):
       self._settings['special/first_plugin_run'].set_value(False)
       self._settings['special/first_plugin_run'].save()
       
-      if not self._exporter.exported_layers:
+      if not self._exporter.exported_raw_items:
         messages_.display_message(
           _('No layers were exported.'), gtk.MESSAGE_INFO, parent=self._dialog)
         should_quit = False
@@ -997,9 +997,9 @@ class ExportLayersRepeatDialog(object):
       export_context_manager_args=[self._dialog])
     try:
       self._exporter.export(item_tree=self._layer_tree)
-    except exportlayers.ExportLayersCancelError:
+    except exportlayers.ExportCancelError:
       pass
-    except exportlayers.ExportLayersError as e:
+    except exportlayers.ExportError as e:
       display_export_failure_message(e, parent=self._dialog)
     except Exception as e:
       if pdb.gimp_image_is_valid(self._image):
@@ -1008,7 +1008,7 @@ class ExportLayersRepeatDialog(object):
         display_export_failure_invalid_image_message(
           traceback.format_exc(), parent=self._dialog)
     else:
-      if not self._exporter.exported_layers:
+      if not self._exporter.exported_raw_items:
         messages_.display_message(
           _('No layers were exported.'), gtk.MESSAGE_INFO, parent=self._dialog)
     finally:

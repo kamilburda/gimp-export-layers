@@ -54,8 +54,8 @@ class LayerExporter(object):
   * `item_tree` - `ItemTree` instance containing layers to be exported.
     Defaults to `None` if no export has been performed yet.
   
-  * `exported_layers` - List of layers that were successfully exported. Does not
-    include skipped layers (when files with the same names already exist).
+  * `exported_raw_items` - List of layers that were successfully exported. Does
+    not include skipped layers (when files with the same names already exist).
   
   * `export_context_manager` - Context manager that wraps exporting a single
     layer. This can be used to perform GUI updates before and after export.
@@ -117,14 +117,14 @@ class LayerExporter(object):
     self._current_raw_item = None
     self._current_image = None
     
-    self._exported_layers = []
-    self._exported_layers_ids = set()
+    self._exported_raw_items = []
+    self._exported_raw_items_ids = set()
     
     self._should_stop = False
     
     self._processing_groups = {
       'item_contents': [
-        self._setup, self._cleanup, self._process_item, self._postprocess_item],
+        self._setup, self._cleanup, self._process_item_with_actions, self._postprocess_item],
       'item_name': [
         self._preprocess_item_name, self._preprocess_empty_group_name,
         self._process_item_name],
@@ -156,8 +156,8 @@ class LayerExporter(object):
     return self._is_preview
   
   @property
-  def exported_layers(self):
-    return self._exported_layers
+  def exported_raw_items(self):
+    return self._exported_raw_items
   
   @property
   def current_item(self):
@@ -239,7 +239,7 @@ class LayerExporter(object):
     
     self._setup()
     try:
-      self._export_layers()
+      self._process_items()
     except Exception:
       exception_occurred = True
       raise
@@ -254,12 +254,11 @@ class LayerExporter(object):
     else:
       return None
   
-  def has_exported_layer(self, layer):
+  def has_exported_item(self, raw_item):
+    """Returns `True` if the GIMP item was exported in the last export, `False`
+    otherwise.
     """
-    Return `True` if the specified `gimp.Layer` was exported in the last export,
-    `False` otherwise.
-    """
-    return layer.ID in self._exported_layers_ids
+    return raw_item.ID in self._exported_raw_items_ids
   
   def stop(self):
     self._should_stop = True
@@ -439,8 +438,8 @@ class LayerExporter(object):
     
     self._should_stop = False
     
-    self._exported_layers = []
-    self._exported_layers_ids = set()
+    self._exported_raw_items = []
+    self._exported_raw_items_ids = set()
     
     self._output_directory = self.export_settings['output_directory'].value
     
@@ -463,11 +462,10 @@ class LayerExporter(object):
     self._current_raw_item = None
     self._current_image = None
     
-    self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
+    self._current_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
     
-    self._layer_name_renamer = renamer.LayerNameRenamer(
-      self.export_settings['layer_filename_pattern'].value)
+    self._renamer = renamer.LayerNameRenamer(self.export_settings['layer_filename_pattern'].value)
   
   def _add_actions(self):
     self._invoker.add(
@@ -519,17 +517,17 @@ class LayerExporter(object):
     
     self._reset_parents_in_items()
     
-    self._set_layer_constraints()
+    self._set_constraints()
     
     self.progress_updater.num_total_tasks = len(self._item_tree)
     
     if self._keep_image_copy:
       with self._item_tree.filter['layer_types'].remove_rule_temp(
              builtin_constraints.is_empty_group, False):
-        num_layers_and_nonempty_groups = len(self._item_tree)
-        if num_layers_and_nonempty_groups > 1:
+        num_items_and_nonempty_groups = len(self._item_tree)
+        if num_items_and_nonempty_groups > 1:
           self._use_another_image_copy = True
-        elif num_layers_and_nonempty_groups < 1:
+        elif num_items_and_nonempty_groups < 1:
           self._keep_image_copy = False
   
   def _reset_parents_in_items(self):
@@ -538,7 +536,7 @@ class LayerExporter(object):
       item.children = (
         list(item.orig_children) if item.orig_children is not None else None)
   
-  def _set_layer_constraints(self):
+  def _set_constraints(self):
     self._item_tree.filter.add_subfilter(
       'layer_types', pg.objectfilter.ObjectFilter(pg.objectfilter.ObjectFilter.MATCH_ANY))
     
@@ -562,39 +560,38 @@ class LayerExporter(object):
           for tag in item.tags:
             self._tagged_items[tag].append(item)
   
-  def _export_layers(self):
+  def _process_items(self):
     for item in self._item_tree:
       if self._should_stop:
-        raise ExportLayersCancelError('export stopped by user')
+        raise ExportCancelError('export stopped by user')
       
       self._current_item = item
       
       if item.item_type in (item.ITEM, item.NONEMPTY_GROUP):
-        self._process_and_export_item(item)
+        self._process_item(item)
       elif item.item_type == item.EMPTY_GROUP:
         self._process_empty_group(item)
       else:
         raise ValueError(
-          'invalid/unsupported item type "{}" in {}'.format(
-            item.item_type, item))
+          'invalid/unsupported item type "{}" in {}'.format(item.item_type, item))
   
-  def _process_and_export_item(self, item):
-    layer = item.raw
+  def _process_item(self, item):
+    raw_item = item.raw
     
-    self._current_raw_item = layer
+    self._current_raw_item = raw_item
     
     self._preprocess_item_name(item)
-    self._process_item_name_for_preview(layer)
-    layer_copy = self._process_item(item, self._image_copy, layer)
-    self._export_layer(item, self._image_copy, layer_copy)
-    self._postprocess_item(self._image_copy, layer_copy)
+    self._process_item_name_for_preview()
+    raw_item_copy = self._process_item_with_actions(item, self._image_copy, raw_item)
+    self._export_item(item, self._image_copy, raw_item_copy)
+    self._postprocess_item(self._image_copy, raw_item_copy)
     self._postprocess_item_name(item)
     
     self.progress_updater.update_tasks()
     
     if self._current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
-      self._exported_layers.append(layer)
-      self._exported_layers_ids.add(layer.ID)
+      self._exported_raw_items.append(raw_item)
+      self._exported_raw_items_ids.add(raw_item.ID)
       self._file_extension_properties[item.get_file_extension()].processed_count += 1
   
   def _process_empty_group(self, item):
@@ -653,14 +650,14 @@ class LayerExporter(object):
     self._current_raw_item = None
     self._current_image = None
   
-  def _process_item(self, item, image, layer):
-    layer_copy = builtin_procedures.copy_and_insert_layer(image, layer, None, 0)
+  def _process_item_with_actions(self, item, image, raw_item):
+    raw_item_copy = builtin_procedures.copy_and_insert_layer(image, raw_item, None, 0)
     
-    self._current_raw_item = layer_copy
+    self._current_raw_item = raw_item_copy
     
     self._invoker.invoke(
       ['after_insert_item'],
-      [self, layer_copy],
+      [self, raw_item_copy],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
@@ -668,48 +665,46 @@ class LayerExporter(object):
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
-    layer_copy = self._merge_and_resize_layer(image, layer_copy)
+    raw_item_copy = self._merge_and_resize_layer(image, raw_item_copy)
+    image.active_layer = raw_item_copy
+    raw_item_copy.name = raw_item.name
     
-    image.active_layer = layer_copy
-    
-    layer_copy.name = layer.name
-    
-    self._current_raw_item = layer_copy
+    self._current_raw_item = raw_item_copy
     
     self._invoker.invoke(
       ['after_process_item'],
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
-    return layer_copy
+    return raw_item_copy
   
-  def _postprocess_item(self, image, layer):
+  def _postprocess_item(self, image, raw_item):
     if not self._keep_image_copy:
-      pdb.gimp_image_remove_layer(image, layer)
+      pdb.gimp_image_remove_layer(image, raw_item)
     else:
       if self._use_another_image_copy:
-        another_layer_copy = pg.pdbutils.copy_and_paste_layer(
-          layer, self._another_image_copy, None, len(self._another_image_copy.layers),
+        another_raw_item_copy = pg.pdbutils.copy_and_paste_layer(
+          raw_item, self._another_image_copy, None, len(self._another_image_copy.layers),
           remove_lock_attributes=True)
         
-        another_layer_copy.name = layer.name
+        another_raw_item_copy.name = raw_item.name
         
-        pdb.gimp_image_remove_layer(image, layer)
+        pdb.gimp_image_remove_layer(image, raw_item)
   
-  def _merge_and_resize_layer(self, image, layer):
-    layer = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
-    pdb.gimp_layer_resize_to_image_size(layer)
-    return layer
+  def _merge_and_resize_layer(self, image, raw_item):
+    raw_item = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
+    pdb.gimp_layer_resize_to_image_size(raw_item)
+    return raw_item
   
   def _preprocess_item_name(self, item):
-    item.name = self._layer_name_renamer.rename(self)
+    item.name = self._renamer.rename(self)
     self.current_file_extension = self._default_file_extension
   
   def _preprocess_empty_group_name(self, item):
     self._item_tree.validate_name(item)
     self._item_tree.uniquify_name(item)
   
-  def _process_item_name_for_preview(self, layer):
+  def _process_item_name_for_preview(self):
     self._invoker.invoke(
       [self._NAME_ONLY_ACTION_GROUP],
       [self],
@@ -738,15 +733,15 @@ class LayerExporter(object):
   def _get_uniquifier_position(self, str_, file_extension):
     return len(str_) - len('.' + file_extension)
   
-  def _export_layer(self, item, image, layer):
+  def _export_item(self, item, image, raw_item):
     self._process_item_name(item, False)
-    self._export(item, image, layer)
+    self._export(item, image, raw_item)
     
-    if self._current_layer_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
+    if self._current_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
       self._process_item_name(item, True)
-      self._export(item, image, layer)
+      self._export(item, image, raw_item)
   
-  def _export(self, item, image, layer):
+  def _export(self, item, image, raw_item):
     output_filepath = item.get_filepath(self._output_directory)
     file_extension = item.get_file_extension()
     
@@ -757,7 +752,7 @@ class LayerExporter(object):
       self._get_uniquifier_position(output_filepath, file_extension))
     
     if self._current_overwrite_mode == pg.overwrite.OverwriteModes.CANCEL:
-      raise ExportLayersCancelError('cancelled')
+      raise ExportCancelError('cancelled')
     
     if self._current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
       self._make_dirs(os.path.dirname(output_filepath), self)
@@ -765,12 +760,12 @@ class LayerExporter(object):
       self._export_once_wrapper(
         self._get_export_func(file_extension),
         self._get_run_mode(file_extension),
-        image, layer, output_filepath, file_extension)
-      if self._current_layer_export_status == ExportStatuses.FORCE_INTERACTIVE:
+        image, raw_item, output_filepath, file_extension)
+      if self._current_export_status == ExportStatuses.FORCE_INTERACTIVE:
         self._export_once_wrapper(
           self._get_export_func(file_extension),
           gimpenums.RUN_INTERACTIVE,
-          image, layer, output_filepath, file_extension)
+          image, raw_item, output_filepath, file_extension)
   
   def _make_dirs(self, dirpath, exporter):
     try:
@@ -787,10 +782,10 @@ class LayerExporter(object):
         message, exporter.current_item, exporter.default_file_extension)
   
   def _export_once_wrapper(
-        self, export_func, run_mode, image, layer, output_filepath, file_extension):
+        self, export_func, run_mode, image, raw_item, output_filepath, file_extension):
     with self.export_context_manager(
-           run_mode, image, layer, output_filepath, *self.export_context_manager_args):
-      self._export_once(export_func, run_mode, image, layer, output_filepath, file_extension)
+           run_mode, image, raw_item, output_filepath, *self.export_context_manager_args):
+      self._export_once(export_func, run_mode, image, raw_item, output_filepath, file_extension)
   
   def _get_run_mode(self, file_extension):
     file_extension_property = self._file_extension_properties[file_extension]
@@ -802,29 +797,29 @@ class LayerExporter(object):
   def _get_export_func(self, file_extension):
     return pg.fileformats.get_save_procedure(file_extension)
   
-  def _export_once(self, export_func, run_mode, image, layer, output_filepath, file_extension):
-    self._current_layer_export_status = ExportStatuses.NOT_EXPORTED_YET
+  def _export_once(self, export_func, run_mode, image, raw_item, output_filepath, file_extension):
+    self._current_export_status = ExportStatuses.NOT_EXPORTED_YET
     
     try:
       export_func(
         run_mode,
         image,
-        layer,
+        raw_item,
         pg.utils.safe_encode_gimp(output_filepath),
         pg.utils.safe_encode_gimp(os.path.basename(output_filepath)))
     except RuntimeError as e:
       # HACK: Examining the exception message seems to be the only way to determine
       # some specific cases of export failure.
       if self._was_export_canceled_by_user(str(e)):
-        raise ExportLayersCancelError(str(e))
+        raise ExportCancelError(str(e))
       elif self._should_export_again_with_interactive_run_mode(str(e), run_mode):
         self._prepare_export_with_interactive_run_mode()
       elif self._should_export_again_with_default_file_extension(file_extension):
         self._prepare_export_with_default_file_extension(file_extension)
       else:
-        raise ExportLayersError(str(e), layer, self._default_file_extension)
+        raise ExportError(str(e), raw_item.name, self._default_file_extension)
     else:
-      self._current_layer_export_status = ExportStatuses.EXPORT_SUCCESSFUL
+      self._current_export_status = ExportStatuses.EXPORT_SUCCESSFUL
   
   def _was_export_canceled_by_user(self, exception_message):
     return any(
@@ -838,14 +833,14 @@ class LayerExporter(object):
         gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE))
   
   def _prepare_export_with_interactive_run_mode(self):
-    self._current_layer_export_status = ExportStatuses.FORCE_INTERACTIVE
+    self._current_export_status = ExportStatuses.FORCE_INTERACTIVE
   
   def _should_export_again_with_default_file_extension(self, file_extension):
     return file_extension != self._default_file_extension
   
   def _prepare_export_with_default_file_extension(self, file_extension):
     self._file_extension_properties[file_extension].is_valid = False
-    self._current_layer_export_status = ExportStatuses.USE_DEFAULT_FILE_EXTENSION
+    self._current_export_status = ExportStatuses.USE_DEFAULT_FILE_EXTENSION
   
   @staticmethod
   def _copy_non_modifying_parasites(src_image, dest_image):
@@ -899,40 +894,35 @@ class _FileExtensionProperties(object):
 
 
 @future.utils.python_2_unicode_compatible
-class ExportLayersError(Exception):
+class ExportError(Exception):
   
-  def __init__(self, message='', layer=None, file_extension=None):
+  def __init__(self, message='', item_name=None, file_extension=None):
     super().__init__()
     
     self._message = message
-    
-    try:
-      self.layer_name = layer.name
-    except AttributeError:
-      self.layer_name = None
-    
+    self.item_name = item_name
     self.file_extension = file_extension
   
   def __str__(self):
     str_ = self._message
     
-    if self.layer_name:
-      str_ += '\n' + _('Layer:') + ' ' + self.layer_name
+    if self.item_name:
+      str_ += '\n' + _('Layer:') + ' ' + self.item_name
     if self.file_extension:
       str_ += '\n' + _('File extension:') + ' ' + self.file_extension
     
     return str_
 
 
-class ExportLayersCancelError(ExportLayersError):
+class ExportCancelError(ExportError):
   pass
 
 
-class InvalidOutputDirectoryError(ExportLayersError):
+class InvalidOutputDirectoryError(ExportError):
   pass
 
 
-class InvalidPdbProcedureError(ExportLayersError):
+class InvalidPdbProcedureError(ExportError):
   pass
 
 
