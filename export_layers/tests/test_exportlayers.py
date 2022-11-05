@@ -64,10 +64,16 @@ class TestLayerExporterInitialActions(unittest.TestCase):
 class TestAddActionFromSettings(unittest.TestCase):
   
   def setUp(self):
-    self.exporter_mock = mock.Mock()
+    self.exporter = exportlayers.LayerExporter(
+      initial_run_mode=0,
+      image=mock.MagicMock(),
+      export_settings=mock.MagicMock(),
+      overwrite_chooser=mock.MagicMock(),
+      progress_updater=mock.MagicMock())
+    
     self.invoker = pg.invoker.Invoker()
     
-    self.exporter_mock.invoker = self.invoker
+    self.exporter._invoker = self.invoker
     
     self.procedures = actions.create('procedures')
     
@@ -85,7 +91,7 @@ class TestAddActionFromSettings(unittest.TestCase):
     procedure = actions.add(
       self.procedures, builtin_procedures.BUILTIN_PROCEDURES['insert_background_layers'])
     
-    exportlayers.add_action_from_settings(self.exporter_mock, procedure)
+    self.exporter._add_action_from_settings(procedure)
     
     added_action_items = self.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
     
@@ -107,7 +113,7 @@ class TestAddActionFromSettings(unittest.TestCase):
     with mock.patch('export_layers.exportlayers.pdb') as pdb_mock:
       pdb_mock.__getitem__.return_value = pdb_procedure
       
-      exportlayers.add_action_from_settings(self.exporter_mock, procedure)
+      self.exporter._add_action_from_settings(procedure)
     
     added_action_items = self.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
     

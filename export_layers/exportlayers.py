@@ -22,6 +22,10 @@ from export_layers import placeholders
 from export_layers import renamer
 
 
+_EXPORTER_ARG_POSITION_IN_PROCEDURES = 0
+_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
+
+
 class LayerExporter(object):
   """
   This class exports layers as separate images, with the support for additional
@@ -283,7 +287,7 @@ class LayerExporter(object):
     For more information, see `add_procedure()`.
     """
     return self._initial_invoker.add(
-      _get_constraint_func(func), *args, **kwargs)
+      self._get_constraint_func(func), *args, **kwargs)
   
   def remove_action(self, *args, **kwargs):
     """
@@ -298,6 +302,124 @@ class LayerExporter(object):
     The signature is the same as for `pygimplib.invoker.Invoker.reorder()`.
     """
     self._initial_invoker.reorder(*args, **kwargs)
+  
+  def _add_action_from_settings(self, action, tags=None, action_groups=None):
+    """Adds an action and wraps/processes the action's function according to the
+    action's settings.
+    
+    For PDB procedures, the function name is converted to a proper function
+    object. For constraints, the function is wrapped to act as a proper filter
+    rule for `item_tree.filter`. Any placeholder objects (e.g. "current image")
+    as function arguments are replaced with real objects during processing of
+    each item.
+    
+    If `tags` is not `None`, the action will not be added if it does not contain
+    any of the specified tags.
+    
+    If `action_groups` is not `None`, the action will be added to the specified
+    action groups instead of the groups defined in `action['action_groups']`.
+    """
+    if action.get_value('is_pdb_procedure', False):
+      try:
+        function = pdb[pg.utils.safe_encode_gimp(action['function'].value)]
+      except KeyError:
+        raise InvalidPdbProcedureError(
+          'invalid PDB procedure "{}"'.format(action['function'].value))
+    else:
+      function = action['function'].value
+    
+    if function is None:
+      return
+    
+    if tags is not None and not any(tag in action.tags for tag in tags):
+      return
+    
+    function_args = tuple(arg_setting.value for arg_setting in action['arguments'])
+    function_kwargs = {}
+    
+    if action.get_value('is_pdb_procedure', False):
+      if self._has_run_mode_param(function):
+        function_kwargs = {b'run_mode': function_args[0]}
+        function_args = function_args[1:]
+      
+      function = self._get_action_func_for_pdb_procedure(function)
+    
+    function = self._get_action_func_with_replaced_placeholders(function)
+    
+    if 'constraint' in action.tags:
+      function = self._get_constraint_func(function, subfilter=action['subfilter'].value)
+    
+    function = self._apply_action_only_if_enabled(function, action)
+    
+    if action_groups is None:
+      action_groups = action['action_groups'].value
+    
+    self.invoker.add(function, action_groups, function_args, function_kwargs)
+  
+  def _has_run_mode_param(self, pdb_procedure):
+    return pdb_procedure.params and pdb_procedure.params[0][1] == 'run-mode'
+  
+  def _get_action_func_for_pdb_procedure(self, pdb_procedure):
+    def _pdb_procedure_as_action(exporter, *args, **kwargs):
+      return pdb_procedure(*args, **kwargs)
+    
+    return _pdb_procedure_as_action
+  
+  def _get_action_func_with_replaced_placeholders(self, function):
+    def _action(*args, **kwargs):
+      new_args, new_kwargs = placeholders.get_replaced_args_and_kwargs(args, kwargs, self)
+      return function(*new_args, **new_kwargs)
+    
+    return _action
+  
+  def _apply_action_only_if_enabled(self, function, action):
+    if self.is_preview:
+      def _apply_action_in_preview(*action_args, **action_kwargs):
+        if action['enabled'].value and action['enabled_for_previews'].value:
+          return function(*action_args, **action_kwargs)
+        else:
+          return False
+      
+      return _apply_action_in_preview
+    else:
+      def _apply_action(*action_args, **action_kwargs):
+        if action['enabled'].value:
+          return function(*action_args, **action_kwargs)
+        else:
+          return False
+      
+      return _apply_action
+  
+  def _get_constraint_func(self, rule_func, subfilter=None):
+    def _add_rule_func(*args):
+      rule_func_args = self._get_args_for_constraint_func(rule_func, args)
+      
+      if subfilter is None:
+        object_filter = self.item_tree.filter
+      else:
+        object_filter = self.item_tree.filter[subfilter]
+      
+      object_filter.add_rule(rule_func, *rule_func_args)
+    
+    return _add_rule_func
+  
+  def _get_args_for_constraint_func(self, rule_func, args):
+    try:
+      exporter_arg_position = inspect.getargspec(rule_func).args.index('exporter')
+    except ValueError:
+      exporter_arg_position = None
+    
+    if exporter_arg_position is not None:
+      rule_func_args = args
+    else:
+      if len(args) > 1:
+        exporter_arg_position = _EXPORTER_ARG_POSITION_IN_CONSTRAINTS
+      else:
+        exporter_arg_position = _EXPORTER_ARG_POSITION_IN_CONSTRAINTS - 1
+      
+      rule_func_args = args[:exporter_arg_position] + args[exporter_arg_position + 1:]
+    
+    return rule_func_args
   
   def _init_attributes(self, processing_groups, item_tree, keep_image_copy, is_preview):
     self._invoker = pg.invoker.Invoker()
@@ -361,19 +483,19 @@ class LayerExporter(object):
       self._initial_invoker.list_groups(include_empty_groups=True))
     
     for procedure in actions.walk(self.export_settings['procedures']):
-      add_action_from_settings(self, procedure)
+      self._add_action_from_settings(procedure)
     
     for constraint in actions.walk(self.export_settings['constraints']):
-      add_action_from_settings(self, constraint)
+      self._add_action_from_settings(constraint)
   
   def _add_name_only_actions(self):
     for procedure in actions.walk(self.export_settings['procedures']):
-      add_action_from_settings(
-        self, procedure, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
+      self._add_action_from_settings(
+        procedure, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
     
     for constraint in actions.walk(self.export_settings['constraints']):
-      add_action_from_settings(
-        self, constraint, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
+      self._add_action_from_settings(
+        constraint, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
   
   def _enable_disable_processing_groups(self, processing_groups):
     for functions in self._processing_groups.values():
@@ -735,125 +857,6 @@ class LayerExporter(object):
         # `dest_image`.
         if parasite.flags == 0:
           dest_image.parasite_attach(parasite)
-
-
-#===============================================================================
-
-
-_EXPORTER_ARG_POSITION_IN_PROCEDURES = 0
-_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
-
-
-def add_action_from_settings(exporter, action, tags=None, action_groups=None):
-  if action.get_value('is_pdb_procedure', False):
-    try:
-      function = pdb[pg.utils.safe_encode_gimp(action['function'].value)]
-    except KeyError:
-      raise InvalidPdbProcedureError(
-        'invalid PDB procedure "{}"'.format(action['function'].value))
-  else:
-    function = action['function'].value
-  
-  if function is None:
-    return
-  
-  if tags is not None and not any(tag in action.tags for tag in tags):
-    return
-  
-  function_args = tuple(arg_setting.value for arg_setting in action['arguments'])
-  function_kwargs = {}
-  
-  if action.get_value('is_pdb_procedure', False):
-    if _has_run_mode_param(function):
-      function_kwargs = {b'run_mode': function_args[0]}
-      function_args = function_args[1:]
-    
-    function = _get_action_func_for_pdb_procedure(function)
-  
-  function = _get_action_func_with_replaced_placeholders(exporter, function)
-  
-  if 'constraint' in action.tags:
-    function = _get_constraint_func(function, subfilter=action['subfilter'].value)
-  
-  function = _apply_action_only_if_enabled(exporter, function, action)
-  
-  if action_groups is None:
-    action_groups = action['action_groups'].value
-  
-  exporter.invoker.add(function, action_groups, function_args, function_kwargs)
-
-
-def _has_run_mode_param(pdb_procedure):
-  return pdb_procedure.params and pdb_procedure.params[0][1] == 'run-mode'
-
-
-def _get_action_func_for_pdb_procedure(pdb_procedure):
-  def _pdb_procedure_as_action(exporter, *args, **kwargs):
-    return pdb_procedure(*args, **kwargs)
-  
-  return _pdb_procedure_as_action
-
-
-def _get_action_func_with_replaced_placeholders(exporter, function):
-  def _action(*args, **kwargs):
-    new_args, new_kwargs = placeholders.get_replaced_args_and_kwargs(args, kwargs, exporter)
-    return function(*new_args, **new_kwargs)
-  
-  return _action
-
-
-def _apply_action_only_if_enabled(exporter, function, action):
-  if exporter.is_preview:
-    def _apply_action_in_preview(*action_args, **action_kwargs):
-      if action['enabled'].value and action['enabled_for_previews'].value:
-        return function(*action_args, **action_kwargs)
-      else:
-        return False
-    
-    return _apply_action_in_preview
-  else:
-    def _apply_action(*action_args, **action_kwargs):
-      if action['enabled'].value:
-        return function(*action_args, **action_kwargs)
-      else:
-        return False
-    
-    return _apply_action
-
-
-def _get_constraint_func(rule_func, subfilter=None):
-  def _add_rule_func(*args):
-    exporter, rule_func_args = _get_args_for_constraint_func(rule_func, args)
-    
-    if subfilter is None:
-      object_filter = exporter.item_tree.filter
-    else:
-      object_filter = exporter.item_tree.filter[subfilter]
-    
-    object_filter.add_rule(rule_func, *rule_func_args)
-  
-  return _add_rule_func
-
-
-def _get_args_for_constraint_func(rule_func, args):
-  try:
-    exporter_arg_position = inspect.getargspec(rule_func).args.index('exporter')
-  except ValueError:
-    exporter_arg_position = None
-  
-  if exporter_arg_position is not None:
-    exporter = args[exporter_arg_position - 1]
-    rule_func_args = args
-  else:
-    if len(args) > 1:
-      exporter_arg_position = _EXPORTER_ARG_POSITION_IN_CONSTRAINTS
-    else:
-      exporter_arg_position = _EXPORTER_ARG_POSITION_IN_CONSTRAINTS - 1
-    
-    exporter = args[exporter_arg_position]
-    rule_func_args = args[:exporter_arg_position] + args[exporter_arg_position + 1:]
-  
-  return exporter, rule_func_args
 
 
 class _FileExtension(object):
