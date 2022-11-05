@@ -65,9 +65,8 @@ def update(settings, prompt_on_clear=False):
   status, unused_ = pg.setting.Persistor.load(
     [settings['main/plugin_version']], [pg.config.PERSISTENT_SOURCE])
   
-  if (status == pg.setting.Persistor.READ_FAIL
-      and current_version >= pg.version.Version(3, 3, 2)):
-    _fix_module_paths_in_parasites_3_3_2()
+  if status == pg.setting.Persistor.READ_FAIL:
+    _fix_parasites(_FIX_PARASITE_HANDLERS, current_version)
     
     status, unused_ = pg.setting.Persistor.load(
       [settings['main/plugin_version']], [pg.config.PERSISTENT_SOURCE])
@@ -115,6 +114,12 @@ def handle_update(settings, update_handlers, previous_version, current_version):
   for version_str, update_handler in update_handlers.items():
     if previous_version < pg.version.Version.parse(version_str) <= current_version:
       update_handler(settings)
+
+
+def _fix_parasites(fix_parasite_handlers, current_version):
+  for version_str, fix_parasite_handler in fix_parasite_handlers.items():
+    if pg.version.Version.parse(version_str) <= current_version:
+      fix_parasite_handler()
 
 
 def rename_settings(settings_to_rename):
@@ -375,12 +380,8 @@ def _remove_obsolete_plugin_files_3_3_2():
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'gui', 'operations.pyc'))
 
 
-def _fix_module_paths_in_parasites_3_3_2():
+def _fix_element_paths_in_parasites(paths_to_rename):
   key = b'plug_in_export_layers'
-  paths_to_rename = [
-    (b'export_layers.pygimplib.pgsetting', b'export_layers.pygimplib.setting'),
-    (b'export_layers.pygimplib.pgutils', b'export_layers.pygimplib.utils'),
-  ]
   
   persistent_parasite = gimp.parasite_find(key)
   if persistent_parasite is not None:
@@ -388,8 +389,7 @@ def _fix_module_paths_in_parasites_3_3_2():
     for old_path, new_path in paths_to_rename:
       new_data = new_data.replace(old_path, new_path)
     
-    gimp.parasite_attach(
-        gimp.Parasite('plug_in_export_layers', gimpenums.PARASITE_PERSISTENT, new_data))
+    gimp.parasite_attach(gimp.Parasite(key, gimpenums.PARASITE_PERSISTENT, new_data))
   
   try:
     session_parasite = gimp.get_data(key)
@@ -404,8 +404,32 @@ def _fix_module_paths_in_parasites_3_3_2():
     gimp.set_data(key, new_data)
 
 
+def _fix_element_paths_in_parasites_3_3_2():
+  _fix_element_paths_in_parasites([
+    (b'export_layers.pygimplib.pgsetting', b'export_layers.pygimplib.setting'),
+    (b'export_layers.pygimplib.pgutils', b'export_layers.pygimplib.utils'),
+  ])
+
+
+def _fix_element_paths_in_parasites_3_4():
+  _fix_element_paths_in_parasites([
+    (b'builtin_procedures\nuse_file_extension_in_layer_name',
+     b'builtin_procedures\nuse_file_extension_in_item_name'),
+    (b'builtin_procedures\nremove_folder_hierarchy_from_layer',
+     b'builtin_procedures\nremove_folder_hierarchy_from_item'),
+    (b'builtin_constraints\nis_layer_in_selected_layers',
+     b'builtin_constraints\nis_item_in_selected_items'),
+  ])
+
+
 _UPDATE_HANDLERS = collections.OrderedDict([
   ('3.3.1', _update_to_3_3_1),
   ('3.3.2', _update_to_3_3_2),
   ('3.4', _update_to_3_4),
+])
+
+
+_FIX_PARASITE_HANDLERS = collections.OrderedDict([
+  ('3.3.2', _fix_element_paths_in_parasites_3_3_2),
+  ('3.4', _fix_element_paths_in_parasites_3_4),
 ])
