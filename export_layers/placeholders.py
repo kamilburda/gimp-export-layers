@@ -75,7 +75,7 @@ def get_replaced_args_and_kwargs(func_args, func_kwargs, exporter):
   Arguments after `func_kwargs` are required arguments for actions and are
   used to determine the real object that replaces the placeholder.
   """
-  new_func_args = [get_replaced_arg(arg, exporter) for arg in func_args]
+  new_func_args = tuple(get_replaced_arg(arg, exporter) for arg in func_args)
   
   new_func_kwargs = {
     name: get_replaced_arg(value, exporter)
