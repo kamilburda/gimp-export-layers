@@ -333,6 +333,7 @@ class LayerExporter(object):
     if tags is not None and not any(tag in action.tags for tag in tags):
       return
     
+    orig_function = function
     function_args = tuple(arg_setting.value for arg_setting in action['arguments'])
     function_kwargs = {}
     
@@ -346,7 +347,8 @@ class LayerExporter(object):
     function = self._get_action_func_with_replaced_placeholders(function)
     
     if 'constraint' in action.tags:
-      function = self._get_constraint_func(function, subfilter=action['subfilter'].value)
+      function = self._get_constraint_func(
+        function, orig_function, subfilter=action['subfilter'].value)
     
     function = self._apply_action_only_if_enabled(function, action)
     
@@ -389,9 +391,10 @@ class LayerExporter(object):
       
       return _apply_action
   
-  def _get_constraint_func(self, rule_func, subfilter=None):
+  def _get_constraint_func(self, rule_func, orig_rule_func=None, subfilter=None):
     def _add_rule_func(*args):
-      rule_func_args = self._get_args_for_constraint_func(rule_func, args)
+      rule_func_args = self._get_args_for_constraint_func(
+        orig_rule_func if orig_rule_func is not None else rule_func, args)
       
       if subfilter is None:
         object_filter = self.item_tree.filter
