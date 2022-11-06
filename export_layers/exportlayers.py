@@ -23,7 +23,7 @@ from export_layers import renamer
 
 
 _EXPORTER_ARG_POSITION_IN_PROCEDURES = 0
-_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 1
+_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 0
 
 
 class LayerExporter(object):
@@ -417,7 +417,7 @@ class LayerExporter(object):
       if len(args) > 1:
         exporter_arg_position = _EXPORTER_ARG_POSITION_IN_CONSTRAINTS
       else:
-        exporter_arg_position = _EXPORTER_ARG_POSITION_IN_CONSTRAINTS - 1
+        exporter_arg_position = 0
       
       rule_func_args = args[:exporter_arg_position] + args[exporter_arg_position + 1:]
     
