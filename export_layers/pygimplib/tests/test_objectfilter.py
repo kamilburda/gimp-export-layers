@@ -116,7 +116,7 @@ class TestObjectFilter(unittest.TestCase):
       self.fail('ValueError should not be raised if raise_if_not_found=False')
   
   def test_remove_rule_temp_add_upon_exception(self):
-    self.filter.add_rule(FilterRules.has_matching_file_extension, 'jpg')
+    self.filter.add_rule(FilterRules.has_matching_file_extension, ['jpg'])
     try:
       with self.filter.remove_rule_temp(FilterRules.has_matching_file_extension):
         raise RuntimeError('testing')
@@ -184,18 +184,26 @@ class TestObjectFilter(unittest.TestCase):
     self.assertTrue(self.filter_match_any.is_match(FilterableObject(2, 'Hi There')))
   
   def test_match_custom_args(self):
-    self.filter.add_rule(FilterRules.has_matching_file_extension, 'jpg')
+    self.filter.add_rule(FilterRules.has_matching_file_extension, ['jpg'])
     self.assertTrue(self.filter.is_match(FilterableObject(2, 'Hi There.jpg')))
     self.assertTrue(self.filter.is_match(FilterableObject(2, 'Hi There.Jpg')))
     self.filter.remove_rule(FilterRules.has_matching_file_extension)
     
-    self.filter.add_rule(FilterRules.has_matching_file_extension, 'Jpg', True)
+    self.filter.add_rule(FilterRules.has_matching_file_extension, ['Jpg', True])
+    self.assertFalse(self.filter.is_match(FilterableObject(2, 'Hi There.jpg')))
+    self.assertTrue(self.filter.is_match(FilterableObject(2, 'Hi There.Jpg')))
+    self.filter.remove_rule(FilterRules.has_matching_file_extension)
+  
+  def test_match_custom_kwargs(self):
+    self.filter.add_rule(
+      FilterRules.has_matching_file_extension,
+      func_kwargs={'file_extension': 'Jpg', 'case_sensitive': True})
     self.assertFalse(self.filter.is_match(FilterableObject(2, 'Hi There.jpg')))
     self.assertTrue(self.filter.is_match(FilterableObject(2, 'Hi There.Jpg')))
     self.filter.remove_rule(FilterRules.has_matching_file_extension)
   
   def test_match_add_rule_temp(self):
-    with self.filter.add_rule_temp(FilterRules.has_matching_file_extension, 'jpg'):
+    with self.filter.add_rule_temp(FilterRules.has_matching_file_extension, ['jpg']):
       self.assertTrue(self.filter.is_match(FilterableObject(2, 'Hi There.jpg')))
       self.assertTrue(self.filter.is_match(FilterableObject(2, 'Hi There.Jpg')))
   

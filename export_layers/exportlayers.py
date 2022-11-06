@@ -391,37 +391,37 @@ class LayerExporter(object):
       
       return _apply_action
   
-  def _get_constraint_func(self, rule_func, orig_rule_func=None, subfilter=None):
-    def _add_rule_func(*args):
-      rule_func_args = self._get_args_for_constraint_func(
-        orig_rule_func if orig_rule_func is not None else rule_func, args)
+  def _get_constraint_func(self, func, orig_func=None, subfilter=None):
+    def _add_func(*args, **kwargs):
+      func_args = self._get_args_for_constraint_func(
+        orig_func if orig_func is not None else func, args)
       
       if subfilter is None:
         object_filter = self.item_tree.filter
       else:
         object_filter = self.item_tree.filter[subfilter]
       
-      object_filter.add_rule(rule_func, *rule_func_args)
+      object_filter.add_rule(func, func_args, kwargs)
     
-    return _add_rule_func
+    return _add_func
   
-  def _get_args_for_constraint_func(self, rule_func, args):
+  def _get_args_for_constraint_func(self, func, args):
     try:
-      exporter_arg_position = inspect.getargspec(rule_func).args.index('exporter')
+      exporter_arg_position = inspect.getargspec(func).args.index('exporter')
     except ValueError:
       exporter_arg_position = None
     
     if exporter_arg_position is not None:
-      rule_func_args = args
+      func_args = args
     else:
       if len(args) > 1:
         exporter_arg_position = _EXPORTER_ARG_POSITION_IN_CONSTRAINTS
       else:
         exporter_arg_position = 0
       
-      rule_func_args = args[:exporter_arg_position] + args[exporter_arg_position + 1:]
+      func_args = args[:exporter_arg_position] + args[exporter_arg_position + 1:]
     
-    return rule_func_args
+    return func_args
   
   def _init_attributes(self, processing_groups, item_tree, keep_image_copy, is_preview):
     self._invoker = pg.invoker.Invoker()

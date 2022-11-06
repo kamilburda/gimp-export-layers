@@ -568,7 +568,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
     if self.is_filtering:
       if not enabled:
         self._exporter.item_tree.filter.add_rule(
-          builtin_constraints.is_item_in_selected_items, self._selected_items)
+          builtin_constraints.is_item_in_selected_items, [self._selected_items])
       else:
         self._exporter.item_tree.filter.remove_rule(
           builtin_constraints.is_item_in_selected_items, raise_if_not_found=False)
