@@ -323,13 +323,6 @@ class ObjectFilter(object):
     elif self._match_type == self.MATCH_ANY:
       return self._is_match_any(object_to_match)
   
-  def reset(self):
-    """Resets the filter, removing all rules and subfilters.
-    
-    The match type is preserved.
-    """
-    self._filter_items.clear()
-  
   def _is_match_all(self, object_to_match):
     is_match = True
     
@@ -357,6 +350,17 @@ class ObjectFilter(object):
         break
     
     return is_match
+  
+  def list_rules(self):
+    """Returns a list of rules and subfilters."""
+    return list(self._filter_items.values())
+  
+  def reset(self):
+    """Resets the filter, removing all rules and subfilters.
+    
+    The match type is preserved.
+    """
+    self._filter_items.clear()
 
 
 _Rule = collections.namedtuple('_Rule', ['function', 'args', 'kwargs', 'name'])

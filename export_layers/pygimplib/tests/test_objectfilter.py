@@ -86,6 +86,17 @@ class TestObjectFilter(unittest.TestCase):
     self.assertEqual(len(rules), 1)
     self.assertEqual(rules[0].name, 'is_upper')
   
+  def test_list_rules(self):
+    self.filter.add_rule(FilterRules.has_uppercase_letters)
+    
+    subfilter = pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL)
+    self.filter.add_subfilter('item_types', subfilter)
+    rules = self.filter.list_rules()
+    
+    self.assertEqual(len(rules), 2)
+    self.assertEqual(rules[0].function, FilterRules.has_uppercase_letters)
+    self.assertEqual(rules[1], subfilter)
+  
   def test_add_rule_temp(self):
     with self.filter.add_rule_temp(FilterRules.has_uppercase_letters):
       self.assertTrue(self.filter.has_rule(FilterRules.has_uppercase_letters))
