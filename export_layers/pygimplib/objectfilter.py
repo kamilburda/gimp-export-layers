@@ -57,7 +57,7 @@ class ObjectFilter(object):
     """
     return func in self._filter_items
   
-  def add_rule(self, func, func_args=None, func_kwargs=None):
+  def add_rule(self, func, func_args=None, func_kwargs=None, name=None):
     """Adds the specified rule as a function to the filter.
     
     If `func` already exists in the filter, do nothing.
@@ -76,11 +76,13 @@ class ObjectFilter(object):
     
     * `func_kwargs` - Keyword arguments for `func`.
     
+    * `name` - Name of the added rule. This defaults to the `__name__` attribute
+      of `func`. If `func` does not have the `__name__` attribute, an empty
+      string is used.
+    
     Raises:
     
     * `TypeError` - `func` is not callable.
-    
-    * `ValueError` - `func` does not have at least one argument.
     """
     func_args = func_args if func_args is not None else ()
     func_kwargs = func_kwargs if func_kwargs is not None else {}
@@ -91,7 +93,17 @@ class ObjectFilter(object):
     if not callable(func):
       raise TypeError('not a function')
     
-    self._filter_items[func] = _Rule(func, func_args, func_kwargs, func.__name__)
+    self._filter_items[func] = _Rule(
+      func, func_args, func_kwargs, self._get_rule_name(func, name))
+  
+  def _get_rule_name(self, func, name):
+    if name is None:
+      if hasattr(func, '__name__'):
+        return func.__name__
+      else:
+        return ''
+    else:
+      return name
   
   def remove_rule(self, func, raise_if_not_found=True):
     """Removes the rule (`func` function) from the filter.
@@ -115,7 +127,7 @@ class ObjectFilter(object):
         raise ValueError('"{}" not found in filter'.format(func))
   
   @contextlib.contextmanager
-  def add_rule_temp(self, func, func_args=None, func_kwargs=None):
+  def add_rule_temp(self, func, func_args=None, func_kwargs=None, name=None):
     """Temporarily adds a rule. Use as a context manager:
     
       with filter.add_rule_temp(func):
@@ -124,12 +136,7 @@ class ObjectFilter(object):
     If `func` already exists in the filter, the existing rule will not be
     overridden and will not be removed.
     
-    Parameters:
-    
-    * `func` - Function to filter objects by. The function must always have at
-      least one argument - the object to match (used by `is_match()`).
-    
-    * `*func_args` - Arguments for `func`.
+    See `add_rule` for the parameters.
     
     Raises:
     
@@ -140,7 +147,7 @@ class ObjectFilter(object):
     func_kwargs = func_kwargs if func_kwargs is not None else {}
     
     if not has_rule_already:
-      self.add_rule(func, func_args, func_kwargs)
+      self.add_rule(func, func_args, func_kwargs, name)
     try:
       yield
     finally:
@@ -179,7 +186,7 @@ class ObjectFilter(object):
       yield
     finally:
       if has_rule:
-        self.add_rule(func, rule.args, rule.kwargs)
+        self.add_rule(func, rule.args, rule.kwargs, rule.name)
   
   def has_subfilter(self, subfilter_name):
     """Returns `True` if the given subfilter exists, `False` otherwise."""

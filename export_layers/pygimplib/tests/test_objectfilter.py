@@ -79,6 +79,13 @@ class TestObjectFilter(unittest.TestCase):
     except ValueError:
       self.fail('ValueError should not be raised if raise_if_not_found is False')
   
+  def test_add_rule_with_custom_name(self):
+    self.filter.add_rule(FilterRules.has_uppercase_letters, name='is_upper')
+    rules = self.filter.list_rules()
+    
+    self.assertEqual(len(rules), 1)
+    self.assertEqual(rules[0].name, 'is_upper')
+  
   def test_add_rule_temp(self):
     with self.filter.add_rule_temp(FilterRules.has_uppercase_letters):
       self.assertTrue(self.filter.has_rule(FilterRules.has_uppercase_letters))
