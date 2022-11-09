@@ -29,7 +29,7 @@ class ObjectFilter(object):
   
   _MATCH_TYPES = MATCH_ALL, MATCH_ANY = (0, 1)
   
-  def __init__(self, match_type):
+  def __init__(self, match_type=MATCH_ALL):
     self._match_type = match_type
     
     # Key: function (func)
