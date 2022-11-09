@@ -44,12 +44,18 @@ class ObjectFilter(object):
     """Returns `True` if the filter is not empty, `False` otherwise."""
     return bool(self._filter_items)
   
-  def __getitem__(self, subfilter_name):
-    """Returns the subfilter specified by its name.
+  def __getitem__(self, function_or_name):
+    """Returns the specified rule - a `_Rule` instance or a nested filter.
+        
+    Parameters:
     
-    This method is an alias for `get_subfilter()`.
+    * `function_or_name` - Function or nested filter specified by its name.
+    
+    Raises
+    
+    * `KeyError` - `function_or_name` is not found in the filter.
     """
-    return self.get_subfilter(subfilter_name)
+    return self._filter_items[function_or_name]
   
   def __contains__(self, func_or_subfilter):
     """Returns `True` if the filter contains the given rule or subfilter,
@@ -183,22 +189,6 @@ class ObjectFilter(object):
           self.add(rule, None, None, func_or_filter_name)
         else:
           self.add(rule.function, rule.args, rule.kwargs, rule.name)
-  
-  def get_subfilter(self, subfilter_name):
-    """Returns the subfilter specified by its name.
-    
-    Raises:
-    
-    * `ValueError` - `subfilter_name` does not exist in the filter or the value
-      associated with `subfilter_name` is not a subfilter.
-    """
-    if subfilter_name not in self:
-      raise ValueError(
-        'subfilter named "{}" not found in filter'.format(subfilter_name))
-    
-    item = self._filter_items[subfilter_name]
-    
-    return item
   
   def is_match(self, object_to_match):
     """Returns `True` if the specified objects matches the rules, `False`

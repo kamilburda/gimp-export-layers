@@ -50,22 +50,36 @@ class FilterRules(object):
 class TestObjectFilter(unittest.TestCase):
   
   def setUp(self):
-    self.filter = pgobjectfilter.ObjectFilter(
-      pgobjectfilter.ObjectFilter.MATCH_ALL)
-    self.filter_match_any = pgobjectfilter.ObjectFilter(
-      pgobjectfilter.ObjectFilter.MATCH_ANY)
+    self.filter = pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL)
   
   def test_is_filter_nonempty(self):
     self.assertFalse(bool(self.filter))
     self.filter.add(FilterRules.has_uppercase_letters)
     self.assertTrue(bool(self.filter))
   
-  def test_has_rule(self):
+  def test_contains(self):
     self.assertNotIn(FilterRules.has_uppercase_letters, self.filter)
     self.filter.add(FilterRules.has_uppercase_letters)
     self.assertIn(FilterRules.has_uppercase_letters, self.filter)
     self.filter.remove(FilterRules.has_uppercase_letters)
     self.assertNotIn(FilterRules.has_uppercase_letters, self.filter)
+  
+  def test_getitem(self):
+    self.filter.add(FilterRules.has_uppercase_letters)
+    rule = self.filter[FilterRules.has_uppercase_letters]
+    
+    self.assertEquals(rule.function, FilterRules.has_uppercase_letters)
+  
+  def test_getitem_nested_filter(self):
+    nested_filter = pgobjectfilter.ObjectFilter()
+    self.filter.add(nested_filter, name='item_types')
+    rule = self.filter['item_types']
+    
+    self.assertEquals(rule, nested_filter)
+  
+  def test_getitem_does_not_exist_raises_error(self):
+    with self.assertRaises(KeyError):
+      self.filter['nonexistent_nested_filter']
   
   def test_add_remove(self):
     with self.assertRaises(TypeError):
@@ -93,7 +107,7 @@ class TestObjectFilter(unittest.TestCase):
   def test_list_rules(self):
     self.filter.add(FilterRules.has_uppercase_letters)
     
-    subfilter = pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL)
+    subfilter = pgobjectfilter.ObjectFilter()
     self.filter.add(subfilter, name='item_types')
     rules = self.filter.list_rules()
     
@@ -112,8 +126,7 @@ class TestObjectFilter(unittest.TestCase):
     self.assertIn(FilterRules.has_uppercase_letters, self.filter)
   
   def test_add_temp_nested_filter(self):
-    with self.filter.add_temp(
-           pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL), name='item_types'):
+    with self.filter.add_temp(pgobjectfilter.ObjectFilter(), name='item_types'):
       self.assertIn('item_types', self.filter)
     self.assertNotIn('item_types', self.filter)
   
@@ -156,17 +169,12 @@ class TestObjectFilter(unittest.TestCase):
     self.assertTrue(self.filter.is_match(FilterableObject(2, 'Hi There.jpg')))
     self.assertFalse(self.filter.is_match(FilterableObject(2, 'Hi There.png')))
   
-  def test_get_subfilter_does_not_exist(self):
-    with self.assertRaises(ValueError):
-      self.filter.get_subfilter('subfilter_does_not_exist')
-  
   def test_remove_does_not_exist(self):
     with self.assertRaises(ValueError):
       self.filter.remove(FilterRules.has_matching_file_extension)
 
   def test_remove_temp_nested_filter(self):
-    self.filter.add(
-      pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ALL), name='item_types')
+    self.filter.add(pgobjectfilter.ObjectFilter(), name='item_types')
     with self.filter.remove_temp('item_types'):
       self.assertNotIn('item_types', self.filter)
     self.assertIn('item_types', self.filter)
@@ -181,17 +189,20 @@ class TestObjectFilter(unittest.TestCase):
     self.assertFalse(self.filter.is_match(FilterableObject(1, 'hi there')))
   
   def test_match_any(self):
-    self.filter_match_any.add(FilterRules.has_uppercase_letters)
-    self.filter_match_any.add(FilterRules.is_object_id_even)
+    filter_match_any = pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ANY)
+    filter_match_any.add(FilterRules.has_uppercase_letters)
+    filter_match_any.add(FilterRules.is_object_id_even)
     
-    self.assertTrue(self.filter_match_any.is_match(FilterableObject(2, 'Hi There')))
-    self.assertTrue(self.filter_match_any.is_match(FilterableObject(1, 'Hi There')))
-    self.assertTrue(self.filter_match_any.is_match(FilterableObject(2, 'hi there')))
-    self.assertFalse(self.filter_match_any.is_match(FilterableObject(1, 'hi there')))
+    self.assertTrue(filter_match_any.is_match(FilterableObject(2, 'Hi There')))
+    self.assertTrue(filter_match_any.is_match(FilterableObject(1, 'Hi There')))
+    self.assertTrue(filter_match_any.is_match(FilterableObject(2, 'hi there')))
+    self.assertFalse(filter_match_any.is_match(FilterableObject(1, 'hi there')))
   
   def test_match_empty_filter(self):
+    filter_match_any = pgobjectfilter.ObjectFilter(pgobjectfilter.ObjectFilter.MATCH_ANY)
+    
     self.assertTrue(self.filter.is_match(FilterableObject(2, 'Hi There')))
-    self.assertTrue(self.filter_match_any.is_match(FilterableObject(2, 'Hi There')))
+    self.assertTrue(filter_match_any.is_match(FilterableObject(2, 'Hi There')))
   
   def test_match_custom_args(self):
     self.filter.add(FilterRules.has_matching_file_extension, ['jpg'])
@@ -262,8 +273,7 @@ class TestObjectFilter(unittest.TestCase):
     
     obj_properties_subfilter = self.filter['obj_properties']
     obj_properties_subfilter.add(FilterRules.is_empty)
-    obj_properties_subfilter.add(
-      pgobjectfilter.ObjectFilter(self.filter.MATCH_ALL), name='colors')
+    obj_properties_subfilter.add(pgobjectfilter.ObjectFilter(), name='colors')
     
     color_subfilter = obj_properties_subfilter['colors']
     color_subfilter.add(FilterRules.has_red_color)
