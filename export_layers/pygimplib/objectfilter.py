@@ -24,7 +24,7 @@ class ObjectFilter(object):
       at least one rule.
   
   For greater flexibility, the filter can also contain nested `ObjectFilter`
-  objects, called "subfilters", each with their own set of rules and match type.
+  objects, each with their own set of rules and match type.
   """
   
   _MATCH_TYPES = MATCH_ALL, MATCH_ANY = (0, 1)
@@ -33,7 +33,7 @@ class ObjectFilter(object):
     self._match_type = match_type
     
     # Key: function (func)
-    # Value: `_Rule` or ObjectFilter instance (a subfilter)
+    # Value: `_Rule` or `ObjectFilter` instance
     self._filter_items = collections.OrderedDict()
   
   @property
@@ -51,165 +51,138 @@ class ObjectFilter(object):
     """
     return self.get_subfilter(subfilter_name)
   
-  def has_rule(self, func):
-    """Returns `True` if the filter contains the specified rule, `False`
-    otherwise.
+  def __contains__(self, func_or_subfilter):
+    """Returns `True` if the filter contains the given rule or subfilter,
+    `False` otherwise.
     """
-    return func in self._filter_items
+    return func_or_subfilter in self._filter_items
   
-  def add_rule(self, func, func_args=None, func_kwargs=None, name=None):
-    """Adds the specified rule as a function to the filter.
+  def add(self, func_or_filter, func_args=None, func_kwargs=None, name=''):
+    """Adds the specified function or a nested filter as a rule to the filter.
     
-    If `func` already exists in the filter, do nothing.
+    If `func_or_filter` already exists in the filter, do nothing.
     
-    If you need to later remove the rule from the filter (using
-    `remove_rule()`), pass a named function rather than an inline lambda
-    expression. Alternatively, you can use `add_rule_temp()` for temporary
-    filters.
+    If you need to later remove the rule (via `remove`), pass a named function
+    rather than an inline lambda expression. Alternatively, you can use
+    `add_temp()` for temporary filters.
     
     Parameters:
     
-    * `func` - Function to filter objects by. The function must always have
-      at least one argument - the object to match (used by `is_match()`).
+    * `func_or_filter` - Function or nested filter to filter objects by. If a
+      function, it always have at least one argument - the object to match (used
+      by `is_match()`).
     
-    * `func_args` - Arguments for `func`.
+    * `func_args` - Arguments for `func_or_filter` if it is a function.
     
-    * `func_kwargs` - Keyword arguments for `func`.
+    * `func_kwargs` - Keyword arguments for `func_or_filter` if it is a function.
     
-    * `name` - Name of the added rule. This defaults to the `__name__` attribute
-      of `func`. If `func` does not have the `__name__` attribute, an empty
-      string is used.
+    * `name` - Name of the added rule. For functions, this defaults to its
+      `__name__` attribute. If a function does not have the `__name__`
+      attribute, an empty string is used.
     
     Raises:
     
-    * `TypeError` - `func` is not callable.
+    * `TypeError` - `func_or_filter` is not a function or an `ObjectFilter`
+      instance.
     """
     func_args = func_args if func_args is not None else ()
     func_kwargs = func_kwargs if func_kwargs is not None else {}
     
-    if self.has_rule(func):
+    if func_or_filter in self:
       return
     
-    if not callable(func):
-      raise TypeError('not a function')
-    
-    self._filter_items[func] = _Rule(
-      func, func_args, func_kwargs, self._get_rule_name(func, name))
+    if isinstance(func_or_filter, ObjectFilter):
+      self._filter_items[name] = func_or_filter
+    elif callable(func_or_filter):
+      func = func_or_filter
+      self._filter_items[func] = _Rule(
+        func, func_args, func_kwargs, self._get_rule_name_for_func(func, name))
+    else:
+      raise TypeError('"{}": not a function or ObjectFilter instance'.format(func_or_filter))
   
-  def _get_rule_name(self, func, name):
-    if name is None:
-      if hasattr(func, '__name__'):
-        return func.__name__
-      else:
-        return ''
+  def _get_rule_name_for_func(self, func, name):
+    if not name and hasattr(func, '__name__'):
+      return func.__name__
     else:
       return name
   
-  def remove_rule(self, func, raise_if_not_found=True):
-    """Removes the rule (`func` function) from the filter.
+  def remove(self, func_or_filter_name, raise_if_not_found=True):
+    """Removes the specified rule (function or nested filter) from the filter.
     
     Parameters:
     
-    * `func` - Function to remove from the filter.
+    * `func_or_filter` - Function or nested filter name to remove from the
+      filter.
     
-    * `raise_if_not_found` - If `True`, raise `ValueError` if `func` is not
-      found in the filter.
+    * `raise_if_not_found` - If `True`, raise `ValueError` if `func_or_filter`
+      is not found in the filter.
     
     Raises:
     
-    * `ValueError` - `func` is not found in the filter and `raise_if_not_found`
-    is `True`.
+    * `ValueError` - `func_or_filter` is not found in the filter and
+      `raise_if_not_found` is `True`.
     """
-    if self.has_rule(func):
-      del self._filter_items[func]
+    if func_or_filter_name in self:
+      del self._filter_items[func_or_filter_name]
     else:
       if raise_if_not_found:
-        raise ValueError('"{}" not found in filter'.format(func))
+        raise ValueError('"{}" not found in filter'.format(func_or_filter_name))
   
   @contextlib.contextmanager
-  def add_rule_temp(self, func, func_args=None, func_kwargs=None, name=None):
-    """Temporarily adds a rule. Use as a context manager:
+  def add_temp(self, func_or_filter, func_args=None, func_kwargs=None, name=''):
+    """Temporarily adds a function or nested filter as a rule to the filter.
     
-      with filter.add_rule_temp(func):
+    Use this function as a context manager:
+    
+      with filter.add_temp(func_or_filter):
         # do stuff
     
-    If `func` already exists in the filter, the existing rule will not be
-    overridden and will not be removed.
+    If `func_or_filter` already exists in the filter, the existing rule will not
+    be overridden and will not be removed.
     
-    See `add_rule` for the parameters.
-    
-    Raises:
-    
-    * `TypeError` - `func` is not callable.
+    See `add()` for further information about parameters and exceptions.
     """
-    has_rule_already = self.has_rule(func)
+    has_func_or_filter_already = func_or_filter in self
     func_args = func_args if func_args is not None else ()
     func_kwargs = func_kwargs if func_kwargs is not None else {}
     
-    if not has_rule_already:
-      self.add_rule(func, func_args, func_kwargs, name)
+    if not has_func_or_filter_already:
+      self.add(func_or_filter, func_args, func_kwargs, name)
     try:
       yield
     finally:
-      if not has_rule_already:
-        self.remove_rule(func)
+      if not has_func_or_filter_already:
+        if isinstance(func_or_filter, ObjectFilter):
+          self.remove(name)
+        else:
+          self.remove(func_or_filter)
   
   @contextlib.contextmanager
-  def remove_rule_temp(self, func, raise_if_not_found=True):
+  def remove_temp(self, func_or_filter_name, raise_if_not_found=True):
     """Temporarily removes a rule. Use as a context manager:
     
-      with filter.remove_rule_temp(func):
+      with filter.remove_temp(func_or_filter_name):
         # do stuff
     
-    Parameters:
-    
-    * `func` - Function to remove from the filter.
-    
-    * `raise_if_not_found` - If `True`, raise `ValueError` if `func` is not in
-      the filter.
-    
-    Raises:
-    
-    * `ValueError` - `func` is not found in the filter and `raise_if_not_found`
-      is `True`.
+    See `remove()` for further information about parameters and exceptions.
     """
-    has_rule = self.has_rule(func)
+    has_rule = func_or_filter_name in self
     
     if not has_rule:
       if raise_if_not_found:
-        raise ValueError('"{}" not found in filter'.format(func))
+        raise ValueError('"{}" not found in filter'.format(func_or_filter_name))
     else:
-      rule = self._filter_items[func]
-      self.remove_rule(func)
+      rule = self._filter_items[func_or_filter_name]
+      self.remove(func_or_filter_name)
     
     try:
       yield
     finally:
       if has_rule:
-        self.add_rule(func, rule.args, rule.kwargs, rule.name)
-  
-  def has_subfilter(self, subfilter_name):
-    """Returns `True` if the given subfilter exists, `False` otherwise."""
-    return subfilter_name in self._filter_items
-  
-  def add_subfilter(self, subfilter_name, subfilter):
-    """Adds the specified subfilter (`ObjectFilter` instance) to the filter.
-    
-    The subfilter can be later accessed by `get_subfilter()`.
-    
-    Raises:
-    
-    * `ValueError` - `subfilter_name` already exists in the filter.
-    """
-    if self.has_subfilter(subfilter_name):
-      raise ValueError(
-        'subfilter named "{}" already exists in the filter'.format(subfilter_name))
-    
-    if not isinstance(subfilter, ObjectFilter):
-      raise ValueError(
-        'subfilter named "{}" is not a subfilter'.format(subfilter_name))
-    
-    self._filter_items[subfilter_name] = subfilter
+        if isinstance(rule, ObjectFilter):
+          self.add(rule, None, None, func_or_filter_name)
+        else:
+          self.add(rule.function, rule.args, rule.kwargs, rule.name)
   
   def get_subfilter(self, subfilter_name):
     """Returns the subfilter specified by its name.
@@ -219,87 +192,13 @@ class ObjectFilter(object):
     * `ValueError` - `subfilter_name` does not exist in the filter or the value
       associated with `subfilter_name` is not a subfilter.
     """
-    if not self.has_subfilter(subfilter_name):
+    if subfilter_name not in self:
       raise ValueError(
         'subfilter named "{}" not found in filter'.format(subfilter_name))
     
     item = self._filter_items[subfilter_name]
     
     return item
-  
-  def remove_subfilter(self, subfilter_name, raise_if_not_found=True):
-    """Remove the subfilter with the corresponding subfilter name.
-    
-    Parameters:
-    
-    * `subfilter name` - Subfilter name.
-    
-    * `raise_if_not_found` - If `True`, raise `ValueError` if `subfilter_name`
-      is not found in the filter.
-    
-    Raises:
-    
-    * `ValueError` - `subfilter_name` is not found in the filter and
-      `raise_if_not_found` is `True`.
-    """
-    if self.has_subfilter(subfilter_name):
-      del self._filter_items[subfilter_name]
-    else:
-      if raise_if_not_found:
-        raise ValueError(
-          'subfilter named "{}" not found in filter'.format(subfilter_name))
-  
-  @contextlib.contextmanager
-  def add_subfilter_temp(self, subfilter_name, subfilter):
-    """Temporarily adds a subfilter. Use as a context manager:
-    
-      with filter.add_subfilter_temp(subfilter_name, subfilter):
-        # do stuff
-    
-    Raises:
-    
-    * `ValueError` - `subfilter_name` already exists in the filter.
-    """
-    self.add_subfilter(subfilter_name, subfilter)
-    try:
-      yield
-    finally:
-      self.remove_subfilter(subfilter_name)
-  
-  @contextlib.contextmanager
-  def remove_subfilter_temp(self, subfilter_name, raise_if_not_found=True):
-    """Temporarily removes a subfilter. Use as a context manager:
-    
-      with filter.remove_subfilter_temp(subfilter_name):
-        # do stuff
-    
-    Parameters:
-    
-    * `subfilter name` - Subfilter name.
-    
-    * `raise_if_not_found` - If `True`, raise `ValueError` if `subfilter_name`
-      is not found in the filter.
-    
-    Raises:
-    
-    * `ValueError` - `subfilter_name` is not found in the filter and
-      `raise_if_not_found` is `True`.
-    """
-    has_subfilter = self.has_subfilter(subfilter_name)
-    
-    if not has_subfilter:
-      if raise_if_not_found:
-        raise ValueError(
-          'subfilter named "{}" not found in filter'.format(subfilter_name))
-    else:
-      subfilter = self._filter_items[subfilter_name]
-      self.remove_subfilter(subfilter_name)
-    
-    try:
-      yield
-    finally:
-      if has_subfilter:
-        self.add_subfilter(subfilter_name, subfilter)
   
   def is_match(self, object_to_match):
     """Returns `True` if the specified objects matches the rules, `False`

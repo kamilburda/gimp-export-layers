@@ -150,7 +150,7 @@ class TestLayerTree(unittest.TestCase):
     self.assertEqual(len(self.item_tree), item_count_total)
     
     self.item_tree.is_filtered = True
-    self.item_tree.filter.add_rule(FilterRules.is_item)
+    self.item_tree.filter.add(FilterRules.is_item)
     
     self.assertEqual(len(self.item_tree), item_count_only_items)
   
@@ -216,7 +216,7 @@ class TestLayerTree(unittest.TestCase):
     # to uniquify non-empty groups in some scenarios (such as when merging
     # non-empty groups into items, which would not match the filter).
     self.item_tree.is_filtered = True
-    self.item_tree.filter.add_rule(FilterRules.is_item_or_empty_group)
+    self.item_tree.filter.add(FilterRules.is_item_or_empty_group)
     
     for item in self.item_tree:
       self.item_tree.validate_name(item)
@@ -257,7 +257,7 @@ class TestLayerTree(unittest.TestCase):
     ])
     
     self.item_tree.is_filtered = True
-    self.item_tree.filter.add_rule(FilterRules.is_item_or_empty_group)
+    self.item_tree.filter.add(FilterRules.is_item_or_empty_group)
     
     for item in self.item_tree:
       self.item_tree.validate_name(item)
@@ -278,7 +278,7 @@ class TestLayerTree(unittest.TestCase):
     ])
     
     self.item_tree.is_filtered = True
-    self.item_tree.filter.add_rule(FilterRules.is_item_or_empty_group)
+    self.item_tree.filter.add(FilterRules.is_item_or_empty_group)
     
     for item in self.item_tree:
       self.item_tree.validate_name(item)

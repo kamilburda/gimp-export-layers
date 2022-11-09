@@ -401,7 +401,7 @@ class LayerExporter(object):
       else:
         object_filter = self.item_tree.filter[subfilter]
       
-      object_filter.add_rule(func, func_args, kwargs)
+      object_filter.add(func, func_args, kwargs)
     
     return _add_func
   
@@ -525,7 +525,7 @@ class LayerExporter(object):
     self.progress_updater.num_total_tasks = len(self._item_tree)
     
     if self._keep_image_copy:
-      with self._item_tree.filter['layer_types'].remove_rule_temp(
+      with self._item_tree.filter['layer_types'].remove_temp(
              builtin_constraints.is_empty_group, False):
         num_items_and_nonempty_groups = len(self._item_tree)
         if num_items_and_nonempty_groups > 1:
@@ -540,8 +540,8 @@ class LayerExporter(object):
         list(item.orig_children) if item.orig_children is not None else None)
   
   def _set_constraints(self):
-    self._item_tree.filter.add_subfilter(
-      'layer_types', pg.objectfilter.ObjectFilter(pg.objectfilter.ObjectFilter.MATCH_ANY))
+    self._item_tree.filter.add(
+      pg.objectfilter.ObjectFilter(pg.objectfilter.ObjectFilter.MATCH_ANY), name='layer_types')
     
     self._invoker.invoke(
       [builtin_constraints.CONSTRAINTS_LAYER_TYPES_GROUP],
@@ -556,9 +556,8 @@ class LayerExporter(object):
       additional_args_position=_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
   
   def _init_tagged_items(self):
-    with self._item_tree.filter.add_rule_temp(builtin_constraints.has_tags):
-      with self._item_tree.filter['layer_types'].add_rule_temp(
-             builtin_constraints.is_nonempty_group):
+    with self._item_tree.filter.add_temp(builtin_constraints.has_tags):
+      with self._item_tree.filter['layer_types'].add_temp(builtin_constraints.is_nonempty_group):
         for item in self._item_tree:
           for tag in item.tags:
             self._tagged_items[tag].append(item)
