@@ -135,9 +135,9 @@ def create(name, initial_actions=None):
     `DEFAULT_CONSTRAINTS_GROUP` if not defined.
   
   Additional allowed fields for type `'constraint'` include:
-  * `'subfilter'` - The name of a subfilter for an `ObjectFilter` instance
+  * `'subfilter'` - The name of a nested filter for an `ObjectFilter` instance
     where constraints should be added. By default, `'subfilter'` is `None` (no
-    subfilter is assumed).
+    nested filter is assumed).
   
   Custom fields are accepted as well. For each field, a separate setting is
   created, using the field name as the setting name.

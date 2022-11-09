@@ -107,13 +107,13 @@ class TestObjectFilter(unittest.TestCase):
   def test_list_rules(self):
     self.filter.add(FilterRules.has_uppercase_letters)
     
-    subfilter = pgobjectfilter.ObjectFilter()
-    self.filter.add(subfilter, name='item_types')
+    nested_filter = pgobjectfilter.ObjectFilter()
+    self.filter.add(nested_filter, name='item_types')
     rules = self.filter.list_rules()
     
     self.assertEqual(len(rules), 2)
     self.assertEqual(rules[0].function, FilterRules.has_uppercase_letters)
-    self.assertEqual(rules[1], subfilter)
+    self.assertEqual(rules[1], nested_filter)
   
   def test_add_temp(self):
     with self.filter.add_temp(FilterRules.has_uppercase_letters):
@@ -234,10 +234,10 @@ class TestObjectFilter(unittest.TestCase):
       self.assertTrue(self.filter.is_match(FilterableObject(3, '')))
       self.assertTrue(self.filter.is_match(FilterableObject(4, '')))
   
-  def test_match_with_subfilters_simple(self):
+  def test_match_with_nested_filter_simple(self):
     # filter - MATCH_ALL
       # * rule
-      # * subfilter - MATCH_ANY
+      # * filter - MATCH_ANY
         # * rule
         # * rule
     
@@ -259,25 +259,25 @@ class TestObjectFilter(unittest.TestCase):
     self.assertFalse(
       self.filter.is_match(FilterableObject(1, 'hi there.jpg', is_empty=False)))
   
-  def test_match_with_subfilters_nested(self):
+  def test_match_with_nested_filter_nested(self):
     # filter - MATCH_ALL
       # * rule
-      # * subfilter - MATCH_ANY
+      # * filter - MATCH_ANY
         # * rule
-        # * subfilter - MATCH_ALL
+        # * filter - MATCH_ALL
           # * rule
           # * rule
     
     self.filter.add(FilterRules.is_object_id_even)
     self.filter.add(pgobjectfilter.ObjectFilter(self.filter.MATCH_ANY), name='obj_properties')
     
-    obj_properties_subfilter = self.filter['obj_properties']
-    obj_properties_subfilter.add(FilterRules.is_empty)
-    obj_properties_subfilter.add(pgobjectfilter.ObjectFilter(), name='colors')
+    obj_properties_nested_filter = self.filter['obj_properties']
+    obj_properties_nested_filter.add(FilterRules.is_empty)
+    obj_properties_nested_filter.add(pgobjectfilter.ObjectFilter(), name='colors')
     
-    color_subfilter = obj_properties_subfilter['colors']
-    color_subfilter.add(FilterRules.has_red_color)
-    color_subfilter.add(FilterRules.has_green_color)
+    color_nested_filter = obj_properties_nested_filter['colors']
+    color_nested_filter.add(FilterRules.has_red_color)
+    color_nested_filter.add(FilterRules.has_green_color)
     
     self.assertTrue(self.filter.is_match(
       FilterableObject(2, '', is_empty=True, colors={'red', 'green'})))

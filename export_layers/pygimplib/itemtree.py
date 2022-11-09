@@ -55,7 +55,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     (`ObjectFilter`) in this object when iterating.
   
   * `filter` - `ObjectFilter` instance that allows filtering items based on
-    filters and subfilters.
+    rules.
   """
   
   def __init__(

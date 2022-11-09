@@ -57,11 +57,11 @@ class ObjectFilter(object):
     """
     return self._filter_items[function_or_name]
   
-  def __contains__(self, func_or_subfilter):
-    """Returns `True` if the filter contains the given rule or subfilter,
+  def __contains__(self, func_or_filter):
+    """Returns `True` if the filter contains the given rule or nested filter,
     `False` otherwise.
     """
-    return func_or_subfilter in self._filter_items
+    return func_or_filter in self._filter_items
   
   def add(self, func_or_filter, func_args=None, func_kwargs=None, name=''):
     """Adds the specified function or a nested filter as a rule to the filter.
@@ -195,12 +195,12 @@ class ObjectFilter(object):
     otherwise.
     
     If `match_type` attribute is `MATCH_ALL`, return `True` if `object_to_match`
-    matches all specified filter rules and all top-level subfilters return
+    matches all specified filter rules and all top-level nested filters return
     `True`. Otherwise return `False`.
     
     If `match_type` attribute is `MATCH_ANY`, return `True` if `object_to_match`
-    matches at least one specified filter rule or at least one top-level
-    subfilter returns `True`. Otherwise return `False`.
+    matches at least one specified filter rule or at least one top-level nested
+    filter returns `True`. Otherwise return `False`.
     
     If no filter rules are specified, return `True`.
     """
@@ -241,14 +241,11 @@ class ObjectFilter(object):
     return is_match
   
   def list_rules(self):
-    """Returns a list of rules and subfilters."""
+    """Returns a list of rules (functions and nested filters)."""
     return list(self._filter_items.values())
   
   def reset(self):
-    """Resets the filter, removing all rules and subfilters.
-    
-    The match type is preserved.
-    """
+    """Resets the filter, removing all rules. The match type is preserved."""
     self._filter_items.clear()
 
 
