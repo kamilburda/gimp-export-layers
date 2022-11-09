@@ -81,6 +81,17 @@ class TestObjectFilter(unittest.TestCase):
     with self.assertRaises(KeyError):
       self.filter['nonexistent_nested_filter']
   
+  def test_len(self):
+    self.filter.add(FilterRules.has_uppercase_letters)
+    nested_filter = pgobjectfilter.ObjectFilter()
+    nested_filter.add(FilterRules.is_object_id_even)
+    nested_filter.add(FilterRules.is_empty)
+    nested_filter.add(FilterRules.has_red_color)
+    self.filter.add(nested_filter)
+    
+    self.assertEquals(len(self.filter), 2)
+    self.assertEquals(len(nested_filter), 3)
+  
   def test_add_remove(self):
     with self.assertRaises(TypeError):
       self.filter.add(None)

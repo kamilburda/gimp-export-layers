@@ -63,6 +63,13 @@ class ObjectFilter(object):
     """
     return func_or_filter in self._filter_items
   
+  def __len__(self):
+    """Returns the number of rules in the filter.
+    
+    Rules within nested filters do not count.
+    """
+    return len(self._filter_items)
+  
   def add(self, func_or_filter, func_args=None, func_kwargs=None, name=''):
     """Adds the specified function or a nested filter as a rule to the filter.
     
