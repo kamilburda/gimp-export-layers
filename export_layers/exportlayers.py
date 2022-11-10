@@ -400,7 +400,11 @@ class LayerExporter(object):
       if subfilter is None:
         object_filter = self.item_tree.filter
       else:
-        object_filter = self.item_tree.filter[subfilter]
+        subfilter_ids = self.item_tree.filter.find(name=subfilter)
+        if subfilter_ids:
+          object_filter = self.item_tree.filter[subfilter_ids[0]]
+        else:
+          object_filter = self.item_tree.filter.add(pg.objectfilter.ObjectFilter(name=subfilter))
       
       object_filter.add(func, func_args, kwargs)
     
