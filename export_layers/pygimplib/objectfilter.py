@@ -42,7 +42,7 @@ class ObjectFilter(object):
     
     # Key: rule/nested filter ID
     # Value: `_Rule` or `ObjectFilter` instance
-    self._filter_items = collections.OrderedDict()
+    self._rules = collections.OrderedDict()
   
   @property
   def match_type(self):
@@ -54,7 +54,7 @@ class ObjectFilter(object):
   
   def __bool__(self):
     """Returns `True` if the filter is not empty, `False` otherwise."""
-    return bool(self._filter_items)
+    return bool(self._rules)
   
   def __contains__(self, rule_id):
     """Returns `True` if the filter contains the given rule, `False` otherwise.
@@ -63,7 +63,7 @@ class ObjectFilter(object):
     
     * `rule_id` -  rule ID as returned by `add()`.
     """
-    return rule_id in self._filter_items
+    return rule_id in self._rules
   
   def __getitem__(self, rule_id):
     """Returns the specified rule - a `_Rule` instance or a nested filter.
@@ -76,23 +76,23 @@ class ObjectFilter(object):
     
     * `KeyError` - `rule_id` is not found in the filter.
     """
-    return self._filter_items[rule_id]
+    return self._rules[rule_id]
   
   def __len__(self):
     """Returns the number of rules in the filter.
     
     Rules within nested filters do not count.
     """
-    return len(self._filter_items)
+    return len(self._rules)
   
   def add(self, func_or_filter, args=None, kwargs=None, name=''):
-    """Adds the specified function or a nested filter as a rule to the filter.
+    """Adds the specified callable or a nested filter as a rule to the filter.
     
     Parameters:
     
-    * `func_or_filter` - A callable or nested filter to filter objects by. If a
-      callable, it must have at least one argument - the object to match (used
-      by `is_match()`).
+    * `func_or_filter` - A callable (function) or nested filter to filter
+      objects by. If a callable, it must have at least one argument - the object
+      to match (used by `is_match()`).
     
     * `args` - Arguments for `func_or_filter` if it is a callable.
     
@@ -122,7 +122,7 @@ class ObjectFilter(object):
     rule_id = self._get_rule_id()
     
     if isinstance(func_or_filter, ObjectFilter):
-      self._filter_items[rule_id] = func_or_filter
+      self._rules[rule_id] = func_or_filter
       
       return rule_id
     elif callable(func_or_filter):
@@ -133,7 +133,7 @@ class ObjectFilter(object):
         kwargs,
         self._get_rule_name_for_func(func, name),
         rule_id)
-      self._filter_items[rule_id] = rule
+      self._rules[rule_id] = rule
       
       return rule
     else:
@@ -164,7 +164,7 @@ class ObjectFilter(object):
       `raise_if_not_found` is `True`.
     """
     if rule_id in self:
-      del self._filter_items[rule_id]
+      del self._rules[rule_id]
     else:
       if raise_if_not_found:
         raise ValueError('Rule with ID {} not found in filter'.format(rule_id))
@@ -214,14 +214,14 @@ class ObjectFilter(object):
       if raise_if_not_found:
         raise ValueError('Rule with ID {} not found in filter'.format(rule_id))
     else:
-      rule_or_filter = self._filter_items[rule_id]
+      rule_or_filter = self._rules[rule_id]
       self.remove(rule_id)
     
     try:
       yield rule_or_filter
     finally:
       if has_rule:
-        self._filter_items[rule_id] = rule_or_filter
+        self._rules[rule_id] = rule_or_filter
   
   def is_match(self, object_to_match):
     """Returns `True` if the specified objects matches the rules, `False`
@@ -237,7 +237,7 @@ class ObjectFilter(object):
     
     If no filter rules are specified, return `True`.
     """
-    if not self._filter_items:
+    if not self._rules:
       return True
     
     if self._match_type == self.MATCH_ALL:
@@ -248,7 +248,7 @@ class ObjectFilter(object):
   def _is_match_all(self, object_to_match):
     is_match = True
     
-    for value in self._filter_items.values():
+    for value in self._rules.values():
       if isinstance(value, ObjectFilter):
         is_match = is_match and value.is_match(object_to_match)
       else:
@@ -262,7 +262,7 @@ class ObjectFilter(object):
   def _is_match_any(self, object_to_match):
     is_match = False
     
-    for value in self._filter_items.values():
+    for value in self._rules.values():
       if isinstance(value, ObjectFilter):
         is_match = is_match or value.is_match(object_to_match)
       else:
@@ -275,11 +275,12 @@ class ObjectFilter(object):
   
   def list_rules(self):
     """Returns a dictionary of (rule ID, rule) pairs."""
-    return collections.OrderedDict(self._filter_items)
+    # Return a copy to prevent modifying the original.
+    return collections.OrderedDict(self._rules)
   
   def reset(self):
     """Resets the filter, removing all rules. The match type is preserved."""
-    self._filter_items.clear()
+    self._rules.clear()
 
 
 _Rule = collections.namedtuple('_Rule', ['function', 'args', 'kwargs', 'name', 'id'])
