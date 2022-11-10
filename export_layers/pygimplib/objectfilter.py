@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Class to filter objects according to specified filter rules."""
+"""Class to filter objects according to the specified rules."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
@@ -18,18 +18,18 @@ class ObjectFilter(object):
   
   * `match_type` (read-only) - Match type. Possible match types:
     
-    * MATCH_ALL - For `is_match()` to return `True`, the object must match
+    * MATCH_ALL - For `is_match()` to return `True`, an object must match
       all rules.
     
-    * MATCH_ANY - For `is_match()` to return `True`, the object must match
+    * MATCH_ANY - For `is_match()` to return `True`, an object must match
       at least one rule.
   
   * `name` (read-only) - Name of the filter. The name does not have to be unique
     and can be used to manipulate multiple rules (functions or nested filters)
     with the same name at once (e.g. by removing them with `remove()`).
   
-  For greater flexibility, the filter can also contain nested `ObjectFilter`
-  objects, each with their own set of rules and match type.
+  A rule can be a callable (function) or a nested `ObjectFilter` instance (with
+  its own rules and different matching type if needed).
   """
   
   _MATCH_TYPES = MATCH_ALL, MATCH_ANY = (0, 1)
@@ -223,51 +223,51 @@ class ObjectFilter(object):
       if has_rule:
         self._rules[rule_id] = rule_or_filter
   
-  def is_match(self, object_to_match):
-    """Returns `True` if the specified objects matches the rules, `False`
+  def is_match(self, obj):
+    """Returns `True` if the specified object matches the rules, `False`
     otherwise.
     
-    If `match_type` attribute is `MATCH_ALL`, return `True` if `object_to_match`
-    matches all specified filter rules and all top-level nested filters return
-    `True`. Otherwise return `False`.
+    If `match_type` is `MATCH_ALL`, `True` is returned if the object matches all
+    rules and all top-level nested filters return `True`. Otherwise, `False` is
+    returned.
     
-    If `match_type` attribute is `MATCH_ANY`, return `True` if `object_to_match`
-    matches at least one specified filter rule or at least one top-level nested
-    filter returns `True`. Otherwise return `False`.
+    If `match_type` is `MATCH_ANY`, `True` is returned if the object matches at
+    least one rule or at least one top-level nested filter returns `True`.
+    Otherwise, `False` is returned.
     
-    If no filter rules are specified, return `True`.
+    If no rules are specified, `True` is returned.
     """
     if not self._rules:
       return True
     
     if self._match_type == self.MATCH_ALL:
-      return self._is_match_all(object_to_match)
+      return self._is_match_all(obj)
     elif self._match_type == self.MATCH_ANY:
-      return self._is_match_any(object_to_match)
+      return self._is_match_any(obj)
   
-  def _is_match_all(self, object_to_match):
+  def _is_match_all(self, obj):
     is_match = True
     
     for value in self._rules.values():
       if isinstance(value, ObjectFilter):
-        is_match = is_match and value.is_match(object_to_match)
+        is_match = is_match and value.is_match(obj)
       else:
         rule = value
-        is_match = is_match and rule.function(object_to_match, *rule.args, **rule.kwargs)
+        is_match = is_match and rule.function(obj, *rule.args, **rule.kwargs)
       if not is_match:
         break
     
     return is_match
   
-  def _is_match_any(self, object_to_match):
+  def _is_match_any(self, obj):
     is_match = False
     
     for value in self._rules.values():
       if isinstance(value, ObjectFilter):
-        is_match = is_match or value.is_match(object_to_match)
+        is_match = is_match or value.is_match(obj)
       else:
         rule = value
-        is_match = is_match or rule.function(object_to_match, *rule.args, **rule.kwargs)
+        is_match = is_match or rule.function(obj, *rule.args, **rule.kwargs)
       if is_match:
         break
     
