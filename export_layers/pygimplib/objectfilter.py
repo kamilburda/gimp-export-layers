@@ -273,6 +273,61 @@ class ObjectFilter(object):
     
     return is_match
   
+  def find(self, name=None, obj=None, count=0):
+    """Finds rule IDs matching the specified name or object (callable or nested
+    filter).
+    
+    Both `name` and `obj` can be specified at the same time.
+    
+    Parameters:
+    
+    * `name` - Name of the added rule (callable or nested filter).
+    
+    * `obj` - Callable (e.g. a function) or a nested `ObjectFilter` instance.
+    
+    * `count` - If 0, return all occurrences. If greater than 0, return up to
+      the first `count` occurrences. If less than 0, return up to the last
+      `count` occurrences.
+    
+    Returns:
+    
+      List of IDs of matching `_Rule` instances or nested filters, or an empty
+      list if there is no match.
+    
+    Raises:
+      
+    * `ValueError` - If both `name` and `obj` are `None`.
+    """
+    if name is None and obj is None:
+      raise ValueError('at least a name or object must be specified')
+    
+    matching_rule_ids = []
+    
+    for rule_id, rule_or_filter in self._rules.items():
+      rule_id_appended = False
+      
+      if name is not None:
+        if rule_or_filter.name == name and not rule_id_appended:
+          matching_rule_ids.append(rule_id)
+          rule_id_appended = True
+      
+      if obj is not None:
+        if isinstance(rule_or_filter, _Rule):
+          if rule_or_filter.function == obj and not rule_id_appended:
+            matching_rule_ids.append(rule_id)
+            rule_id_appended = True
+        else:
+          if rule_or_filter == obj and not rule_id_appended:
+            matching_rule_ids.append(rule_id)
+            rule_id_appended = True
+    
+    if count == 0:
+      return matching_rule_ids
+    elif count > 0:
+      return matching_rule_ids[:count]
+    else:
+      return matching_rule_ids[count:]
+  
   def list_rules(self):
     """Returns a dictionary of (rule ID, rule) pairs."""
     # Return a copy to prevent modifying the original.

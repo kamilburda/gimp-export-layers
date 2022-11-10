@@ -88,7 +88,7 @@ class TestObjectFilter(unittest.TestCase):
     self.assertEquals(len(self.filter), 2)
     self.assertEquals(len(nested_filter), 3)
   
-  def test_add_with_the_same_function(self):
+  def test_add_with_the_same_callable(self):
     rule = self.filter.add(FilterRules.has_uppercase_letters)
     rule_2 = self.filter.add(FilterRules.has_uppercase_letters)
   
@@ -137,7 +137,7 @@ class TestObjectFilter(unittest.TestCase):
       self.assertIn(rule.id, self.filter)
     self.assertNotIn(rule.id, self.filter)
   
-  def test_add_temp_with_the_same_function(self):
+  def test_add_temp_with_the_same_callable(self):
     rule = self.filter.add(FilterRules.has_uppercase_letters)
     
     with self.filter.add_temp(FilterRules.has_uppercase_letters) as rule_2:
@@ -319,6 +319,92 @@ class TestObjectFilter(unittest.TestCase):
       FilterableObject(2, '', is_empty=False, colors={'green'})))
     self.assertFalse(self.filter.is_match(
       FilterableObject(1, '', is_empty=True, colors={'red', 'green'})))
+  
+  def test_find_by_name(self):
+    rule = self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
+    self.filter.add(FilterRules.is_empty, name='another_name')
+    
+    obj_properties_filter = pgobjectfilter.ObjectFilter(name='custom_name')
+    obj_properties_filter_id = self.filter.add(obj_properties_filter)
+    self.filter[obj_properties_filter_id].add(FilterRules.is_empty)
+    
+    rule_ids = self.filter.find(name='custom_name')
+    self.assertEqual(len(rule_ids), 2)
+    self.assertEqual(rule_ids[0], rule.id)
+    self.assertEqual(self.filter[rule_ids[0]].function, FilterRules.has_uppercase_letters)
+    self.assertEqual(self.filter[rule_ids[0]].name, 'custom_name')
+    self.assertEqual(rule_ids[1], obj_properties_filter_id)
+    self.assertEqual(self.filter[rule_ids[1]], obj_properties_filter)
+    self.assertEqual(self.filter[rule_ids[1]].name, 'custom_name')
+    
+  def test_find_by_object(self):
+    rule = self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
+    rule_2 = self.filter.add(FilterRules.has_uppercase_letters, name='another_name')
+    
+    self.filter.add(pgobjectfilter.ObjectFilter(name='custom_name'))
+    
+    rule_ids = self.filter.find(obj=FilterRules.has_uppercase_letters)
+    self.assertEqual(len(rule_ids), 2)
+    self.assertEqual(rule_ids[0], rule.id)
+    self.assertEqual(self.filter[rule_ids[0]].function, FilterRules.has_uppercase_letters)
+    self.assertEqual(self.filter[rule_ids[0]].name, 'custom_name')
+    self.assertEqual(rule_ids[1], rule_2.id)
+    self.assertEqual(self.filter[rule_ids[1]].function, FilterRules.has_uppercase_letters)
+    self.assertEqual(self.filter[rule_ids[1]].name, 'another_name')
+  
+  def test_find_by_name_or_object(self):
+    rule = self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
+    rule_2 = self.filter.add(FilterRules.has_uppercase_letters, name='another_name')
+    self.filter.add(FilterRules.is_empty, name='another_name')
+    
+    obj_properties_filter = pgobjectfilter.ObjectFilter(name='custom_name')
+    obj_properties_filter_id = self.filter.add(obj_properties_filter)
+    self.filter[obj_properties_filter_id].add(FilterRules.is_empty)
+    
+    rule_ids = self.filter.find(name='custom_name', obj=FilterRules.has_uppercase_letters)
+    self.assertEqual(len(rule_ids), 3)
+    self.assertEqual(rule_ids[0], rule.id)
+    self.assertEqual(self.filter[rule_ids[0]].function, FilterRules.has_uppercase_letters)
+    self.assertEqual(self.filter[rule_ids[0]].name, 'custom_name')
+    self.assertEqual(rule_ids[1], rule_2.id)
+    self.assertEqual(self.filter[rule_ids[1]].function, FilterRules.has_uppercase_letters)
+    self.assertEqual(self.filter[rule_ids[1]].name, 'another_name')
+    self.assertEqual(rule_ids[2], obj_properties_filter_id)
+    self.assertEqual(self.filter[rule_ids[2]], obj_properties_filter)
+    self.assertEqual(self.filter[rule_ids[2]].name, 'custom_name')
+  
+  def test_find_no_match(self):
+    self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
+    self.filter.add(FilterRules.is_empty, name='another_name')
+    
+    obj_properties_filter_id = self.filter.add(pgobjectfilter.ObjectFilter(name='custom_name'))
+    self.filter[obj_properties_filter_id].add(FilterRules.is_empty)
+    
+    rule_ids = self.filter.find(name='no_matching_name')
+    self.assertEqual(len(rule_ids), 0)
+  
+  def test_find_limit_count_first_matches(self):
+    rule = self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
+    self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
+    self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
+    
+    rule_ids = self.filter.find(name='custom_name', count=1)
+    self.assertEqual(len(rule_ids), 1)
+    self.assertEqual(rule_ids[0], rule.id)
+  
+  def test_find_limit_count_last_matches(self):
+    self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
+    rule_2 = self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
+    rule_3 = self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
+    
+    rule_ids = self.filter.find(name='custom_name', count=-2)
+    self.assertEqual(len(rule_ids), 2)
+    self.assertEqual(rule_ids[0], rule_2.id)
+    self.assertEqual(rule_ids[1], rule_3.id)
+  
+  def test_find_missing_criteria_raises_error(self):
+    with self.assertRaises(ValueError):
+      self.filter.find()
   
   def test_reset(self):
     self.filter.reset()
