@@ -81,6 +81,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self._available_tags_setting = available_tags_setting
     
     self.is_filtering = False
+    self._is_item_in_selected_items_rule = None
     
     self._tree_iters = collections.defaultdict(pg.utils.return_none_func)
     
@@ -567,11 +568,11 @@ class ExportNamePreview(preview_base_.ExportPreview):
   def _enable_filtered_items(self, enabled):
     if self.is_filtering:
       if not enabled:
-        self._exporter.item_tree.filter.add(
+        self._is_item_in_selected_items_rule = self._exporter.item_tree.filter.add(
           builtin_constraints.is_item_in_selected_items, [self._selected_items])
       else:
         self._exporter.item_tree.filter.remove(
-          builtin_constraints.is_item_in_selected_items, raise_if_not_found=False)
+          self._is_item_in_selected_items_rule.id, raise_if_not_found=False)
   
   def _set_item_tree_sensitive_for_selected(self):
     if self.is_filtering:

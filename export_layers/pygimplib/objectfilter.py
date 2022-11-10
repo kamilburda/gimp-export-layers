@@ -7,6 +7,7 @@ from future.builtins import *
 
 import collections
 import contextlib
+import itertools
 
 
 class ObjectFilter(object):
@@ -23,16 +24,23 @@ class ObjectFilter(object):
     * MATCH_ANY - For `is_match()` to return `True`, the object must match
       at least one rule.
   
+  * `name` (read-only) - Name of the filter. The name does not have to be unique
+    and can be used to manipulate multiple rules (functions or nested filters)
+    with the same name at once (e.g. by removing them with `remove()`).
+  
   For greater flexibility, the filter can also contain nested `ObjectFilter`
   objects, each with their own set of rules and match type.
   """
   
   _MATCH_TYPES = MATCH_ALL, MATCH_ANY = (0, 1)
   
-  def __init__(self, match_type=MATCH_ALL):
+  _rule_id_counter = itertools.count(start=1)
+  
+  def __init__(self, match_type=MATCH_ALL, name=''):
     self._match_type = match_type
+    self._name = name
     
-    # Key: function (func)
+    # Key: rule/nested filter ID
     # Value: `_Rule` or `ObjectFilter` instance
     self._filter_items = collections.OrderedDict()
   
@@ -40,28 +48,35 @@ class ObjectFilter(object):
   def match_type(self):
     return self._match_type
   
+  @property
+  def name(self):
+    return self._name
+  
   def __bool__(self):
     """Returns `True` if the filter is not empty, `False` otherwise."""
     return bool(self._filter_items)
   
-  def __getitem__(self, function_or_name):
-    """Returns the specified rule - a `_Rule` instance or a nested filter.
-        
+  def __contains__(self, rule_id):
+    """Returns `True` if the filter contains the given rule, `False` otherwise.
+    
     Parameters:
     
-    * `function_or_name` - Function or nested filter specified by its name.
+    * `rule_id` -  rule ID as returned by `add()`.
+    """
+    return rule_id in self._filter_items
+  
+  def __getitem__(self, rule_id):
+    """Returns the specified rule - a `_Rule` instance or a nested filter.
+    
+    Parameters:
+    
+    * `rule_id` -  rule ID as returned by `add()`.
     
     Raises
     
-    * `KeyError` - `function_or_name` is not found in the filter.
+    * `KeyError` - `rule_id` is not found in the filter.
     """
-    return self._filter_items[function_or_name]
-  
-  def __contains__(self, func_or_filter):
-    """Returns `True` if the filter contains the given rule or nested filter,
-    `False` otherwise.
-    """
-    return func_or_filter in self._filter_items
+    return self._filter_items[rule_id]
   
   def __len__(self):
     """Returns the number of rules in the filter.
@@ -70,48 +85,59 @@ class ObjectFilter(object):
     """
     return len(self._filter_items)
   
-  def add(self, func_or_filter, func_args=None, func_kwargs=None, name=''):
+  def add(self, func_or_filter, args=None, kwargs=None, name=''):
     """Adds the specified function or a nested filter as a rule to the filter.
-    
-    If `func_or_filter` already exists in the filter, do nothing.
-    
-    If you need to later remove the rule (via `remove`), pass a named function
-    rather than an inline lambda expression. Alternatively, you can use
-    `add_temp()` for temporary filters.
     
     Parameters:
     
-    * `func_or_filter` - Function or nested filter to filter objects by. If a
-      function, it always have at least one argument - the object to match (used
+    * `func_or_filter` - A callable or nested filter to filter objects by. If a
+      callable, it must have at least one argument - the object to match (used
       by `is_match()`).
     
-    * `func_args` - Arguments for `func_or_filter` if it is a function.
+    * `args` - Arguments for `func_or_filter` if it is a callable.
     
-    * `func_kwargs` - Keyword arguments for `func_or_filter` if it is a function.
+    * `kwargs` - Keyword arguments for `func_or_filter` if it is a callable.
     
-    * `name` - Name of the added rule. For functions, this defaults to its
-      `__name__` attribute. If a function does not have the `__name__`
-      attribute, an empty string is used.
+    * `name` - Name of the added rule if `func_or_filter` is a callable. If an
+      empty string, the `__name__` attribute is used if it exists. `name` does
+      not have to be unique and can be used to manipulate multiple rules with
+      the same name at once (e.g. by removing them with `remove()`).
+    
+    Returns:
+      
+      If `func_or_filter` is a callable, a `_Rule` instance is returned,
+      containing the input parameters and a unique identifier. If
+      `func_or_filter` is a nested filter, a unique identifier is used. The
+      identifier can be used to e.g. access (via `__getitem__`) or remove a
+      rule.
     
     Raises:
     
-    * `TypeError` - `func_or_filter` is not a function or an `ObjectFilter`
+    * `TypeError` - `func_or_filter` is not a callable or an `ObjectFilter`
       instance.
     """
-    func_args = func_args if func_args is not None else ()
-    func_kwargs = func_kwargs if func_kwargs is not None else {}
+    args = args if args is not None else ()
+    kwargs = kwargs if kwargs is not None else {}
     
-    if func_or_filter in self:
-      return
+    rule_id = self._get_rule_id()
     
     if isinstance(func_or_filter, ObjectFilter):
-      self._filter_items[name] = func_or_filter
+      self._filter_items[rule_id] = func_or_filter
+      
+      return rule_id
     elif callable(func_or_filter):
       func = func_or_filter
-      self._filter_items[func] = _Rule(
-        func, func_args, func_kwargs, self._get_rule_name_for_func(func, name))
+      rule = _Rule(
+        func,
+        args,
+        kwargs,
+        self._get_rule_name_for_func(func, name),
+        rule_id)
+      self._filter_items[rule_id] = rule
+      
+      return rule
     else:
-      raise TypeError('"{}": not a function or ObjectFilter instance'.format(func_or_filter))
+      raise TypeError('"{}": not a callable or ObjectFilter instance'.format(func_or_filter))
   
   def _get_rule_name_for_func(self, func, name):
     if not name and hasattr(func, '__name__'):
@@ -119,83 +145,83 @@ class ObjectFilter(object):
     else:
       return name
   
-  def remove(self, func_or_filter_name, raise_if_not_found=True):
-    """Removes the specified rule (function or nested filter) from the filter.
+  def _get_rule_id(self):
+    return self._rule_id_counter.next()
+  
+  def remove(self, rule_id, raise_if_not_found=True):
+    """Removes the specified rule (callable or nested filter) from the filter.
     
     Parameters:
     
-    * `func_or_filter` - Function or nested filter name to remove from the
-      filter.
+    * `rule_id` -  rule ID as returned by `add()`.
     
-    * `raise_if_not_found` - If `True`, raise `ValueError` if `func_or_filter`
-      is not found in the filter.
+    * `raise_if_not_found` - If `True`, raise `ValueError` if `rule_id` is not
+      found in the filter.
     
     Raises:
     
-    * `ValueError` - `func_or_filter` is not found in the filter and
+    * `ValueError` - `rule_id` is not found in the filter and
       `raise_if_not_found` is `True`.
     """
-    if func_or_filter_name in self:
-      del self._filter_items[func_or_filter_name]
+    if rule_id in self:
+      del self._filter_items[rule_id]
     else:
       if raise_if_not_found:
-        raise ValueError('"{}" not found in filter'.format(func_or_filter_name))
+        raise ValueError('Rule with ID {} not found in filter'.format(rule_id))
   
   @contextlib.contextmanager
-  def add_temp(self, func_or_filter, func_args=None, func_kwargs=None, name=''):
-    """Temporarily adds a function or nested filter as a rule to the filter.
+  def add_temp(self, func_or_filter, args=None, kwargs=None, name=''):
+    """Temporarily adds a callable or nested filter as a rule to the filter.
     
     Use this function as a context manager:
     
-      with filter.add_temp(func_or_filter):
+      with filter.add_temp(func_or_filter) as rule_or_id:
         # do stuff
-    
-    If `func_or_filter` already exists in the filter, the existing rule will not
-    be overridden and will not be removed.
     
     See `add()` for further information about parameters and exceptions.
     """
     has_func_or_filter_already = func_or_filter in self
-    func_args = func_args if func_args is not None else ()
-    func_kwargs = func_kwargs if func_kwargs is not None else {}
+    args = args if args is not None else ()
+    kwargs = kwargs if kwargs is not None else {}
     
     if not has_func_or_filter_already:
-      self.add(func_or_filter, func_args, func_kwargs, name)
+      rule_or_id = self.add(func_or_filter, args, kwargs, name)
     try:
-      yield
+      yield rule_or_id
     finally:
       if not has_func_or_filter_already:
-        if isinstance(func_or_filter, ObjectFilter):
-          self.remove(name)
+        if isinstance(rule_or_id, _Rule):
+          self.remove(rule_or_id.id)
         else:
-          self.remove(func_or_filter)
+          self.remove(rule_or_id)
   
   @contextlib.contextmanager
-  def remove_temp(self, func_or_filter_name, raise_if_not_found=True):
+  def remove_temp(self, rule_id, raise_if_not_found=True):
     """Temporarily removes a rule. Use as a context manager:
     
-      with filter.remove_temp(func_or_filter_name):
+      with filter.remove_temp(rule_id) as rule_or_filter:
         # do stuff
+    
+    The identifier (ID) of the temporarily removed rule is preserved once added
+    back.
     
     See `remove()` for further information about parameters and exceptions.
     """
-    has_rule = func_or_filter_name in self
+    has_rule = rule_id in self
+    rule_or_filter = None
     
     if not has_rule:
       if raise_if_not_found:
-        raise ValueError('"{}" not found in filter'.format(func_or_filter_name))
+        raise ValueError('Rule with ID {} not found in filter'.format(rule_id))
     else:
-      rule = self._filter_items[func_or_filter_name]
-      self.remove(func_or_filter_name)
+      rule_or_filter = self._filter_items[rule_id]
+      self.remove(rule_id)
     
     try:
-      yield
+      yield rule_or_filter
     finally:
       if has_rule:
-        if isinstance(rule, ObjectFilter):
-          self.add(rule, None, None, func_or_filter_name)
-        else:
-          self.add(rule.function, rule.args, rule.kwargs, rule.name)
+        self._filter_items[rule_id] = rule_or_filter
   
   def is_match(self, object_to_match):
     """Returns `True` if the specified objects matches the rules, `False`
@@ -222,12 +248,12 @@ class ObjectFilter(object):
   def _is_match_all(self, object_to_match):
     is_match = True
     
-    for key, value in self._filter_items.items():
+    for value in self._filter_items.values():
       if isinstance(value, ObjectFilter):
         is_match = is_match and value.is_match(object_to_match)
       else:
-        func, rule = key, value
-        is_match = is_match and func(object_to_match, *rule.args, **rule.kwargs)
+        rule = value
+        is_match = is_match and rule.function(object_to_match, *rule.args, **rule.kwargs)
       if not is_match:
         break
     
@@ -236,24 +262,24 @@ class ObjectFilter(object):
   def _is_match_any(self, object_to_match):
     is_match = False
     
-    for key, value in self._filter_items.items():
+    for value in self._filter_items.values():
       if isinstance(value, ObjectFilter):
         is_match = is_match or value.is_match(object_to_match)
       else:
-        func, rule = key, value
-        is_match = is_match or func(object_to_match, *rule.args, **rule.kwargs)
+        rule = value
+        is_match = is_match or rule.function(object_to_match, *rule.args, **rule.kwargs)
       if is_match:
         break
     
     return is_match
   
   def list_rules(self):
-    """Returns a list of rules (functions and nested filters)."""
-    return list(self._filter_items.values())
+    """Returns a dictionary of (rule ID, rule) pairs."""
+    return collections.OrderedDict(self._filter_items)
   
   def reset(self):
     """Resets the filter, removing all rules. The match type is preserved."""
     self._filter_items.clear()
 
 
-_Rule = collections.namedtuple('_Rule', ['function', 'args', 'kwargs', 'name'])
+_Rule = collections.namedtuple('_Rule', ['function', 'args', 'kwargs', 'name', 'id'])
