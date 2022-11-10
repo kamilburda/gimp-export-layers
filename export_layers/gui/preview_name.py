@@ -571,8 +571,9 @@ class ExportNamePreview(preview_base_.ExportPreview):
         self._is_item_in_selected_items_rule = self._exporter.item_tree.filter.add(
           builtin_constraints.is_item_in_selected_items, [self._selected_items])
       else:
-        self._exporter.item_tree.filter.remove(
-          self._is_item_in_selected_items_rule.id, raise_if_not_found=False)
+        if self._is_item_in_selected_items_rule is not None:
+          self._exporter.item_tree.filter.remove(
+            self._is_item_in_selected_items_rule.id, raise_if_not_found=False)
   
   def _set_item_tree_sensitive_for_selected(self):
     if self.is_filtering:
