@@ -108,11 +108,11 @@ class TestObjectFilter(unittest.TestCase):
     with self.assertRaises(ValueError):
       self.filter.remove(42)
   
-  def test_remove_invalid_id_without_raise_if_not_found(self):
+  def test_remove_invalid_id_with_ignore_error(self):
     try:
-      self.filter.remove(42, raise_if_not_found=False)
+      self.filter.remove(42, ignore_error=True)
     except ValueError:
-      self.fail('ValueError should not be raised if raise_if_not_found is False')
+      self.fail('ValueError should not be raised if ignore_error is True')
   
   def test_add_with_custom_name(self):
     self.filter.add(FilterRules.has_uppercase_letters, name='is_upper')
@@ -180,12 +180,12 @@ class TestObjectFilter(unittest.TestCase):
       with self.filter.remove_temp(42):
         pass
   
-  def test_remove_temp_invalid_id_without_raise_if_not_found(self):
+  def test_remove_temp_invalid_id_without_ignore_error(self):
     try:
-      with self.filter.remove_temp(42, raise_if_not_found=False):
+      with self.filter.remove_temp(42, ignore_error=True):
         pass
     except ValueError:
-      self.fail('ValueError should not be raised if raise_if_not_found=False')
+      self.fail('ValueError should not be raised if ignore_error is True')
   
   def test_remove_temp_add_upon_exception(self):
     rule = self.filter.add(FilterRules.has_uppercase_letters)

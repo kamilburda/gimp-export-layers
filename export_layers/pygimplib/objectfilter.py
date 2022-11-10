@@ -148,25 +148,25 @@ class ObjectFilter(object):
   def _get_rule_id(self):
     return self._rule_id_counter.next()
   
-  def remove(self, rule_id, raise_if_not_found=True):
+  def remove(self, rule_id, ignore_error=False):
     """Removes the specified rule (callable or nested filter) from the filter.
     
     Parameters:
     
     * `rule_id` -  rule ID as returned by `add()`.
     
-    * `raise_if_not_found` - If `True`, raise `ValueError` if `rule_id` is not
+    * `ignore_error` - If `True`, do not raise `ValueError` if `rule_id` is not
       found in the filter.
     
     Raises:
     
-    * `ValueError` - `rule_id` is not found in the filter and
-      `raise_if_not_found` is `True`.
+    * `ValueError` - `rule_id` is not found in the filter and `ignore_error` is
+      `False`.
     """
     if rule_id in self:
       del self._rules[rule_id]
     else:
-      if raise_if_not_found:
+      if not ignore_error:
         raise ValueError('Rule with ID {} not found in filter'.format(rule_id))
   
   @contextlib.contextmanager
@@ -196,7 +196,7 @@ class ObjectFilter(object):
           self.remove(rule_or_id)
   
   @contextlib.contextmanager
-  def remove_temp(self, rule_id, raise_if_not_found=True):
+  def remove_temp(self, rule_id, ignore_error=False):
     """Temporarily removes a rule. Use as a context manager:
     
       with filter.remove_temp(rule_id) as rule_or_filter:
@@ -211,7 +211,7 @@ class ObjectFilter(object):
     rule_or_filter = None
     
     if not has_rule:
-      if raise_if_not_found:
+      if not ignore_error:
         raise ValueError('Rule with ID {} not found in filter'.format(rule_id))
     else:
       rule_or_filter = self._rules[rule_id]
