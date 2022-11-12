@@ -180,7 +180,7 @@ class TestObjectFilter(unittest.TestCase):
       with self.filter.remove_temp(42):
         pass
   
-  def test_remove_temp_invalid_id_without_ignore_error(self):
+  def test_remove_temp_invalid_id_with_ignore_error(self):
     try:
       with self.filter.remove_temp(42, ignore_error=True):
         pass
