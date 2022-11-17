@@ -67,7 +67,7 @@ macOS
        export_layers
 
 
-Upgrading to 3.3 <a name="Upgrading-from-Earlier-Versions"></a>
+Upgrading to 3.3
 ----------------
 
 Due to significant changes in version 3.3, make sure you first perform complete reinstall when upgrading from an earlier version:
