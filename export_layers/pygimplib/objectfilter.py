@@ -180,20 +180,18 @@ class ObjectFilter(object):
     
     See `add()` for further information about parameters and exceptions.
     """
-    has_func_or_filter_already = func_or_filter in self
     args = args if args is not None else ()
     kwargs = kwargs if kwargs is not None else {}
     
-    if not has_func_or_filter_already:
-      rule_or_id = self.add(func_or_filter, args, kwargs, name)
+    rule_or_id = self.add(func_or_filter, args, kwargs, name)
+    
     try:
       yield rule_or_id
     finally:
-      if not has_func_or_filter_already:
-        if isinstance(rule_or_id, _Rule):
-          self.remove(rule_or_id.id)
-        else:
-          self.remove(rule_or_id)
+      if isinstance(rule_or_id, _Rule):
+        self.remove(rule_or_id.id)
+      else:
+        self.remove(rule_or_id)
   
   @contextlib.contextmanager
   def remove_temp(self, rule_id, ignore_error=False):
