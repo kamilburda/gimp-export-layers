@@ -69,7 +69,7 @@ def insert_foreground_layer(exporter, tag):
 
 
 def inherit_transparency_from_layer_groups(exporter):
-  new_layer_opacity = exporter.current_item.raw.opacity / 100.0
+  new_layer_opacity = exporter.current_raw_item.opacity / 100.0
   for parent_elem in exporter.current_item.parents:
     new_layer_opacity = new_layer_opacity * (parent_elem.raw.opacity / 100.0)
   

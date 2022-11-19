@@ -1,6 +1,7 @@
 3.4 (upcoming)
 ==============
 
+* "Inherit transparency from layer groups" now uses the most recent layer opacity in case a custom procedure adjusting the opacity is applied before.
 * Fixed multiple constraints with arguments (e.g. Only layers without tags) where only one of them would be active at the same time even if all of them are enabled.
 
 
