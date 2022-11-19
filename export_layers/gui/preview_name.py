@@ -180,6 +180,10 @@ class ExportNamePreview(preview_base_.ExportPreview):
       return None
   
   @property
+  def exporter(self):
+    return self._exporter
+  
+  @property
   def tree_view(self):
     return self._tree_view
   

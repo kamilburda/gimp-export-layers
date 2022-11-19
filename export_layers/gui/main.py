@@ -306,6 +306,14 @@ class ExportLayersDialog(object):
     else:
       run_gui_func(self, self._dialog, self._settings)
   
+  @property
+  def name_preview(self):
+    return self._name_preview
+  
+  @property
+  def image_preview(self):
+    return self._image_preview
+  
   def _init_settings(self):
     settings_main.setup_image_ids_and_filepaths_settings(
       self._settings['gui_session/name_preview_layers_collapsed_state'],
