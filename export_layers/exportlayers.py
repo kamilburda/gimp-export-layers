@@ -349,7 +349,7 @@ class LayerExporter(object):
     
     if 'constraint' in action.tags:
       function = self._get_constraint_func(
-        function, orig_function, subfilter=action['subfilter'].value)
+        function, orig_function, action['orig_name'].value, action['subfilter'].value)
     
     function = self._apply_action_only_if_enabled(function, action)
     
@@ -392,7 +392,7 @@ class LayerExporter(object):
       
       return _apply_action
   
-  def _get_constraint_func(self, func, orig_func=None, subfilter=None):
+  def _get_constraint_func(self, func, orig_func=None, name='', subfilter=None):
     def _add_func(*args, **kwargs):
       func_args = self._get_args_for_constraint_func(
         orig_func if orig_func is not None else func, args)
@@ -406,7 +406,7 @@ class LayerExporter(object):
         else:
           object_filter = self.item_tree.filter.add(pg.objectfilter.ObjectFilter(name=subfilter))
       
-      object_filter.add(func, func_args, kwargs)
+      object_filter.add(func, func_args, kwargs, name=name)
     
     return _add_func
   

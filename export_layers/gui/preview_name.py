@@ -71,6 +71,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
         initial_item_tree=None,
         collapsed_items=None,
         selected_items=None,
+        selected_items_filter_name='only_selected_items',
         available_tags_setting=None):
     super().__init__()
     
@@ -78,10 +79,12 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self._initial_item_tree = initial_item_tree
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
     self._selected_items = selected_items if selected_items is not None else []
+    self._selected_items_filter_name = selected_items_filter_name
     self._available_tags_setting = available_tags_setting
     
     self.is_filtering = False
     self._is_item_in_selected_items_rule = None
+    self._selected_items_filter_rules = []
     
     self._tree_iters = collections.defaultdict(pg.utils.return_none_func)
     
@@ -569,11 +572,21 @@ class ExportNamePreview(preview_base_.ExportPreview):
     if self.is_filtering:
       if not enabled:
         self._is_item_in_selected_items_rule = self._exporter.item_tree.filter.add(
-          builtin_constraints.is_item_in_selected_items, [self._selected_items])
+          builtin_constraints.is_item_in_selected_items,
+          [self._selected_items])
+        
+        for rule in self._selected_items_filter_rules:
+          self._exporter.item_tree.filter.add(
+            rule.function,
+            rule.args,
+            rule.kwargs,
+            name=self._selected_items_filter_name)
       else:
+        self._selected_items_filter_rules, unused_ = (
+          self._exporter.item_tree.filter.remove(name=self._selected_items_filter_name))
+        
         if self._is_item_in_selected_items_rule is not None:
-          self._exporter.item_tree.filter.remove(
-            func_or_filter=self._is_item_in_selected_items_rule.id)
+          self._exporter.item_tree.filter.remove(self._is_item_in_selected_items_rule.id)
   
   def _set_item_tree_sensitive_for_selected(self):
     if self.is_filtering:
