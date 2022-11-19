@@ -316,6 +316,17 @@ Select the desired procedure from the browser dialog and press `Add`.
 The edit dialog allows you to edit the procedure name and the values of its arguments.
 
 
+### Editing procedures
+
+When editing a procedure, you may adjust its arguments or expand `More options` for further customization.
+Settings under `More options` are described below.
+
+**Enable for previews**
+
+If checked, the procedure is applied to previews.
+You may want to uncheck this if a procedure is very slow or e.g. manipulates the file system (reads or saves files).
+
+
 Selecting Layers to Export with Constraints
 -------------------------------------------
 
