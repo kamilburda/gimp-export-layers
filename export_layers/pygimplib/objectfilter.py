@@ -148,26 +148,42 @@ class ObjectFilter(object):
   def _get_rule_id(self):
     return self._rule_id_counter.next()
   
-  def remove(self, rule_id, ignore_error=False):
-    """Removes the specified rule (callable or nested filter) from the filter.
+  def remove(self, rule_id=None, name=None, func_or_filter=None, count=0):
+    """Removes rules from the filter matching one or more criteria.
     
     Parameters:
     
     * `rule_id` -  rule ID as returned by `add()`.
     
-    * `ignore_error` - If `True`, do not raise `ValueError` if `rule_id` is not
-      found in the filter.
+    * `name` - See `find()`.
+    
+    * `func_or_filter` - See `find()`.
+    
+    * `count` - See `find()`.
     
     Raises:
+      
+    * `ValueError` - If `rule_id`, `name` and `func_or_filter` are all `None`.
     
-    * `ValueError` - `rule_id` is not found in the filter and `ignore_error` is
-      `False`.
+    Returns:
+      
+      A list of removed removed rules (callables or nested filters) and a list
+      of the corresponding IDs.
     """
-    if rule_id in self:
-      del self._rules[rule_id]
-    else:
-      if not ignore_error:
-        raise ValueError('Rule with ID {} not found in filter'.format(rule_id))
+    if rule_id is None and name is None and func_or_filter is None:
+      raise ValueError('at least one removal criterion must be specified')
+    
+    matching_ids = []
+    
+    if name is not None or func_or_filter is not None:
+      matching_ids = self.find(name=name, func_or_filter=func_or_filter, count=count)
+    
+    if rule_id in self and rule_id not in matching_ids:
+      matching_ids.append(rule_id)
+    
+    matching_rules = [self._rules.pop(id_) for id_ in matching_ids]
+    
+    return matching_rules, matching_ids
   
   @contextlib.contextmanager
   def add_temp(self, func_or_filter, args=None, kwargs=None, name=''):
@@ -194,32 +210,29 @@ class ObjectFilter(object):
         self.remove(rule_or_id)
   
   @contextlib.contextmanager
-  def remove_temp(self, rule_id, ignore_error=False):
-    """Temporarily removes a rule. Use as a context manager:
+  def remove_temp(self, rule_id=None, name=None, func_or_filter=None, count=0):
+    """Temporarily removes rules from the filter matching one or more criteria.
     
-      with filter.remove_temp(rule_id) as rule_or_filter:
+    Use as a context manager:
+      
+      rule_id = filter.add(...)
+      
+      with filter.remove_temp(rule_id=rule_id) as rules_and_ids:
         # do stuff
     
-    The identifier (ID) of the temporarily removed rule is preserved once added
-    back.
+    The identifiers (IDs) of the temporarily removed rules are preserved once
+    added back.
     
     See `remove()` for further information about parameters and exceptions.
     """
-    has_rule = rule_id in self
-    rule_or_filter = None
-    
-    if not has_rule:
-      if not ignore_error:
-        raise ValueError('Rule with ID {} not found in filter'.format(rule_id))
-    else:
-      rule_or_filter = self._rules[rule_id]
-      self.remove(rule_id)
+    matching_rules, matching_ids = self.remove(
+      rule_id=rule_id, name=name, func_or_filter=func_or_filter, count=count)
     
     try:
-      yield rule_or_filter
+      yield matching_rules, matching_ids
     finally:
-      if has_rule:
-        self._rules[rule_id] = rule_or_filter
+      for rule_id, rule in zip(matching_ids, matching_rules):
+        self._rules[rule_id] = rule
   
   def is_match(self, obj):
     """Returns `True` if the specified object matches the rules, `False`
@@ -271,17 +284,18 @@ class ObjectFilter(object):
     
     return is_match
   
-  def find(self, name=None, obj=None, count=0):
+  def find(self, name=None, func_or_filter=None, count=0):
     """Finds rule IDs matching the specified name or object (callable or nested
     filter).
     
-    Both `name` and `obj` can be specified at the same time.
+    Both `name` and `func_or_filter` can be specified at the same time.
     
     Parameters:
     
     * `name` - Name of the added rule (callable or nested filter).
     
-    * `obj` - Callable (e.g. a function) or a nested `ObjectFilter` instance.
+    * `func_or_filter` - Callable (e.g. a function) or a nested `ObjectFilter`
+      instance.
     
     * `count` - If 0, return all occurrences. If greater than 0, return up to
       the first `count` occurrences. If less than 0, return up to the last
@@ -294,30 +308,29 @@ class ObjectFilter(object):
     
     Raises:
       
-    * `ValueError` - If both `name` and `obj` are `None`.
+    * `ValueError` - If both `name` and `func_or_filter` are `None`.
     """
-    if name is None and obj is None:
+    if name is None and func_or_filter is None:
       raise ValueError('at least a name or object must be specified')
     
-    matching_rule_ids = []
+    # We are exploiting `OrderedDict` to keep unique IDs in the order they were
+    # found.
+    matching_rule_ids = collections.OrderedDict()
     
     for rule_id, rule_or_filter in self._rules.items():
-      rule_id_appended = False
-      
       if name is not None:
-        if rule_or_filter.name == name and not rule_id_appended:
-          matching_rule_ids.append(rule_id)
-          rule_id_appended = True
+        if rule_or_filter.name == name:
+          matching_rule_ids[rule_id] = None
       
-      if obj is not None:
+      if func_or_filter is not None:
         if isinstance(rule_or_filter, _Rule):
-          if rule_or_filter.function == obj and not rule_id_appended:
-            matching_rule_ids.append(rule_id)
-            rule_id_appended = True
+          if rule_or_filter.function == func_or_filter:
+            matching_rule_ids[rule_id] = None
         else:
-          if rule_or_filter == obj and not rule_id_appended:
-            matching_rule_ids.append(rule_id)
-            rule_id_appended = True
+          if rule_or_filter == func_or_filter:
+            matching_rule_ids[rule_id] = None
+    
+    matching_rule_ids = list(matching_rule_ids)
     
     if count == 0:
       return matching_rule_ids

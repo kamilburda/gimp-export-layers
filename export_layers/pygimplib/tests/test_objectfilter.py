@@ -104,15 +104,36 @@ class TestObjectFilter(unittest.TestCase):
     with self.assertRaises(TypeError):
       self.filter.add('invalid_type')
   
-  def test_remove_invalid_id_raises_error(self):
+  def test_remove_no_criteria_raises_error(self):
     with self.assertRaises(ValueError):
-      self.filter.remove(42)
+      self.filter.remove()
   
-  def test_remove_invalid_id_with_ignore_error(self):
+  def test_remove_no_match_does_not_raise_error(self):
     try:
-      self.filter.remove(42, ignore_error=True)
-    except ValueError:
-      self.fail('ValueError should not be raised if ignore_error is True')
+      self.filter.remove(42)
+    except Exception:
+      self.fail('No exception should not be raised if there are no matching rules to remove')
+  
+  def test_remove_by_name_or_rule(self):
+    rule = self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
+    rule_2 = self.filter.add(FilterRules.has_uppercase_letters, name='another_name')
+    rule_3 = self.filter.add(FilterRules.is_empty, name='another_name')
+    
+    obj_properties_filter = pgobjectfilter.ObjectFilter(name='custom_name')
+    obj_properties_filter_id = self.filter.add(obj_properties_filter)
+    
+    rules, rule_ids = self.filter.remove(
+      name='custom_name', func_or_filter=FilterRules.has_uppercase_letters)
+    
+    self.assertEqual(rules, [rule, rule_2, obj_properties_filter])
+    self.assertEqual(rule_ids, [rule.id, rule_2.id, obj_properties_filter_id])
+    
+    rules, rule_ids = self.filter.remove(func_or_filter=FilterRules.is_empty)
+    
+    self.assertEqual(rules, [rule_3])
+    self.assertEqual(rule_ids, [rule_3.id])
+    
+    self.assertFalse(self.filter)
   
   def test_add_with_custom_name(self):
     self.filter.add(FilterRules.has_uppercase_letters, name='is_upper')
@@ -169,42 +190,53 @@ class TestObjectFilter(unittest.TestCase):
   
   def test_remove_temp(self):
     rule = self.filter.add(FilterRules.has_uppercase_letters)
-    with self.filter.remove_temp(rule.id) as rule:
+    with self.filter.remove_temp(rule.id) as rules_and_ids:
+      self.assertEqual(len(rules_and_ids[0]), 1)
+      self.assertEqual(len(rules_and_ids[1]), 1)
       self.assertNotIn(rule.id, self.filter)
     self.assertIn(rule.id, self.filter)
     self.assertEqual(len(self.filter), 1)
     self.assertEqual(self.filter[rule.id], rule)
   
-  def test_remove_temp_invalid_id_raises_error(self):
-    with self.assertRaises(ValueError):
+  def test_remove_temp_no_match_does_not_raise_error(self):
+    try:
       with self.filter.remove_temp(42):
         pass
-  
-  def test_remove_temp_invalid_id_with_ignore_error(self):
-    try:
-      with self.filter.remove_temp(42, ignore_error=True):
-        pass
-    except ValueError:
-      self.fail('ValueError should not be raised if ignore_error is True')
+    except Exception:
+      self.fail('No exception should not be raised if there are no matching rules to remove')
   
   def test_remove_temp_add_upon_exception(self):
     rule = self.filter.add(FilterRules.has_uppercase_letters)
     try:
-      with self.filter.remove_temp(rule.id) as rule_or_filter:
+      with self.filter.remove_temp(rule.id) as rules_and_ids:
         raise RuntimeError('testing')
     except RuntimeError:
       pass
     
     self.assertIn(rule.id, self.filter)
     self.assertEqual(len(self.filter), 1)
-    self.assertEqual(self.filter[rule.id], rule_or_filter)
+    self.assertEqual(self.filter[rule.id], rules_and_ids[0][0])
 
-  def test_remove_temp_nested_filter(self):
-    nested_filter_id = self.filter.add(pgobjectfilter.ObjectFilter(name='item_types'))
-    with self.filter.remove_temp(nested_filter_id) as nested_filter:
-      self.assertNotIn(nested_filter_id, self.filter)
-    self.assertIn(nested_filter_id, self.filter)
-    self.assertEqual(self.filter[nested_filter_id], nested_filter)
+  def test_remove_temp_by_name_or_rule(self):
+    rule = self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
+    rule_2 = self.filter.add(FilterRules.has_uppercase_letters, name='another_name')
+    self.filter.add(FilterRules.is_empty, name='another_name')
+    
+    obj_properties_filter = pgobjectfilter.ObjectFilter(name='custom_name')
+    obj_properties_filter_id = self.filter.add(obj_properties_filter)
+    
+    with self.filter.remove_temp(
+          name='custom_name',
+          func_or_filter=FilterRules.has_uppercase_letters) as rules_and_ids:
+      rules, rule_ids = rules_and_ids
+      
+      self.assertEqual(rules, [rule, rule_2, obj_properties_filter])
+      self.assertEqual(rule_ids, [rule.id, rule_2.id, obj_properties_filter_id])
+    
+    self.assertEqual(len(self.filter), 4)
+    for rule, rule_id in zip(*rules_and_ids):
+      self.assertIn(rule_id, self.filter)
+      self.assertEqual(self.filter[rule_id], rule)
   
   def test_match_all(self):
     self.filter.add(FilterRules.has_uppercase_letters)
@@ -337,13 +369,13 @@ class TestObjectFilter(unittest.TestCase):
     self.assertEqual(self.filter[rule_ids[1]], obj_properties_filter)
     self.assertEqual(self.filter[rule_ids[1]].name, 'custom_name')
     
-  def test_find_by_object(self):
+  def test_find_by_rule(self):
     rule = self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
     rule_2 = self.filter.add(FilterRules.has_uppercase_letters, name='another_name')
     
     self.filter.add(pgobjectfilter.ObjectFilter(name='custom_name'))
     
-    rule_ids = self.filter.find(obj=FilterRules.has_uppercase_letters)
+    rule_ids = self.filter.find(func_or_filter=FilterRules.has_uppercase_letters)
     self.assertEqual(len(rule_ids), 2)
     self.assertEqual(rule_ids[0], rule.id)
     self.assertEqual(self.filter[rule_ids[0]].function, FilterRules.has_uppercase_letters)
@@ -352,7 +384,7 @@ class TestObjectFilter(unittest.TestCase):
     self.assertEqual(self.filter[rule_ids[1]].function, FilterRules.has_uppercase_letters)
     self.assertEqual(self.filter[rule_ids[1]].name, 'another_name')
   
-  def test_find_by_name_or_object(self):
+  def test_find_by_name_or_rule(self):
     rule = self.filter.add(FilterRules.has_uppercase_letters, name='custom_name')
     rule_2 = self.filter.add(FilterRules.has_uppercase_letters, name='another_name')
     self.filter.add(FilterRules.is_empty, name='another_name')
@@ -361,7 +393,8 @@ class TestObjectFilter(unittest.TestCase):
     obj_properties_filter_id = self.filter.add(obj_properties_filter)
     self.filter[obj_properties_filter_id].add(FilterRules.is_empty)
     
-    rule_ids = self.filter.find(name='custom_name', obj=FilterRules.has_uppercase_letters)
+    rule_ids = self.filter.find(
+      name='custom_name', func_or_filter=FilterRules.has_uppercase_letters)
     self.assertEqual(len(rule_ids), 3)
     self.assertEqual(rule_ids[0], rule.id)
     self.assertEqual(self.filter[rule_ids[0]].function, FilterRules.has_uppercase_letters)

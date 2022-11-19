@@ -573,7 +573,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
       else:
         if self._is_item_in_selected_items_rule is not None:
           self._exporter.item_tree.filter.remove(
-            self._is_item_in_selected_items_rule.id, ignore_error=True)
+            func_or_filter=self._is_item_in_selected_items_rule.id)
   
   def _set_item_tree_sensitive_for_selected(self):
     if self.is_filtering:

@@ -530,8 +530,7 @@ class LayerExporter(object):
     self.progress_updater.num_total_tasks = len(self._item_tree)
     
     if self._keep_image_copy:
-      with self._layer_types_filter.remove_temp(
-             builtin_constraints.is_empty_group, ignore_error=True):
+      with self._layer_types_filter.remove_temp(func_or_filter=builtin_constraints.is_empty_group):
         num_items_and_nonempty_groups = len(self._item_tree)
         if num_items_and_nonempty_groups > 1:
           self._use_another_image_copy = True
