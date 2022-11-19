@@ -4,6 +4,12 @@ title: Release Notes
 navbar_active_tab: docs
 ---
 
+3.4 (upcoming)
+==============
+
+* Fixed multiple constraints with arguments (e.g. Only layers without tags) where only one of them would be active at the same time even if all of them are enabled.
+
+
 3.3.4
 =====
 
