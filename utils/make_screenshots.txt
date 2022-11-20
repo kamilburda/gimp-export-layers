@@ -3,7 +3,7 @@
 import os
 import sys
 
-plugin_dirpath = os.path.join(gimp.directory, 'plug-ins - Export Layers')
+plugin_dirpath = os.path.join(gimp.directory, 'gimp-export-layers')
 sys.path.append(plugin_dirpath)
 sys.path.append(os.path.join(plugin_dirpath, 'export_layers'))
 sys.path.append(os.path.join(plugin_dirpath, 'utils'))

@@ -82,7 +82,7 @@ else
   exit 1
 fi
 
-plugin_main_repo_dirname='plug-ins - Export Layers'
+plugin_main_repo_dirname='gimp-export-layers'
 plugin_page_branch_name='gh-pages'
 repo_url='https://github.com/kamilburda/gimp-export-layers.git'
 repo_dirpath="$gimp_local_dirpath"'/'"$plugin_main_repo_dirname"

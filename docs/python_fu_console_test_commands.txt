@@ -1,6 +1,6 @@
 import os
 
-plugins_dirpath = os.path.join(gimp.directory, 'plug-ins - Export Layers')
+plugins_dirpath = os.path.join(gimp.directory, 'gimp-export-layers')
 
 pdb.plug_in_run_tests(plugins_dirpath, 'test_', 2, ('export_layers', 'utils'), 1, ('export_layers.tests.test_exportlayers_contents',), os.path.join(plugins_dirpath, 'test_output.log'))
 
@@ -10,7 +10,7 @@ pdb.plug_in_run_tests(plugins_dirpath, 'test_', 1, ('export_layers.tests.test_ex
 import imp
 import os
 import sys
-plugin_dirpath = os.path.join(gimp.directory, 'plug-ins - Export Layers')
+plugin_dirpath = os.path.join(gimp.directory, 'gimp-export-layers')
 sys.path.append(plugin_dirpath)
 sys.path.append(os.path.join(plugin_dirpath, 'export_layers'))
 sys.path.append(os.path.join(plugin_dirpath, 'export_layers', 'pygimplib'))
