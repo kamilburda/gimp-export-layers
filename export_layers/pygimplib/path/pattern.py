@@ -11,8 +11,6 @@ import inspect
 import re
 import types
 
-from .. import utils as pgutils
-
 __all__ = [
   'StringPattern',
 ]
