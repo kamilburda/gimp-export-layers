@@ -76,11 +76,18 @@ def inherit_transparency_from_layer_groups(exporter):
   exporter.current_raw_item.opacity = new_layer_opacity * 100.0
 
 
-def rename_layer(exporter, pattern):
+def rename_layer(exporter, pattern, rename_groups=False):
   renamer = renamer_.LayerNameRenamer(pattern)
+  
+  renamed_groups = set()
   
   while True:
     exporter.current_item.name = renamer.rename(exporter)
+    if rename_groups:
+      for parent in exporter.current_item.parents:
+        if parent not in renamed_groups:
+          parent.name = renamer.rename(exporter, item=parent)
+          renamed_groups.add(parent)
     unused_ = yield
 
 
@@ -229,6 +236,13 @@ _BUILTIN_PROCEDURES_LIST = [
         'default_value': '[layer name]',
         'display_name': _('Layer filename pattern'),
         'gui_type': settings_custom.FilenamePatternEntryPresenter,
+      },
+      {
+        'type': pg.SettingTypes.boolean,
+        'name': 'rename_groups',
+        'default_value': False,
+        'display_name': _('Rename layer groups'),
+        'gui_type': pg.SettingGuiTypes.check_button_no_text,
       },
     ],
   },
