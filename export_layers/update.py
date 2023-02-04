@@ -264,7 +264,7 @@ def _update_to_3_3_2(settings):
   actions_.clear(settings['main/constraints'])
 
 
-def _update_to_3_4(settings):
+def _update_to_3_3_5(settings):
   plugin_subdirectory_dirpath = pg.config.PLUGIN_SUBDIRPATH
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'settings_plugin.py'))
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'settings_plugin.pyc'))
@@ -411,7 +411,7 @@ def _fix_element_paths_in_parasites_3_3_2():
   ])
 
 
-def _fix_element_paths_in_parasites_3_4():
+def _fix_element_paths_in_parasites_3_3_5():
   _fix_element_paths_in_parasites([
     (b'builtin_procedures\nuse_file_extension_in_layer_name',
      b'builtin_procedures\nuse_file_extension_in_item_name'),
@@ -425,11 +425,11 @@ def _fix_element_paths_in_parasites_3_4():
 _UPDATE_HANDLERS = collections.OrderedDict([
   ('3.3.1', _update_to_3_3_1),
   ('3.3.2', _update_to_3_3_2),
-  ('3.4', _update_to_3_4),
+  ('3.3.5', _update_to_3_3_5),
 ])
 
 
 _FIX_PARASITE_HANDLERS = collections.OrderedDict([
   ('3.3.2', _fix_element_paths_in_parasites_3_3_2),
-  ('3.4', _fix_element_paths_in_parasites_3_4),
+  ('3.3.5', _fix_element_paths_in_parasites_3_3_5),
 ])
