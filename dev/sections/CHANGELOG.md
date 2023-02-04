@@ -4,9 +4,11 @@ title: Release Notes
 navbar_active_tab: docs
 ---
 
-3.4 (upcoming)
-==============
+3.3.5 (upcoming)
+================
 
+* The "Rename" procedure can now optionally rename layer groups.
+* "Inherit transparency from layer groups" now uses the most recent layer opacity in case a custom procedure adjusting the opacity is applied before.
 * Fixed multiple constraints with arguments (e.g. Only layers without tags) where only one of them would be active at the same time even if all of them are enabled.
 
 
