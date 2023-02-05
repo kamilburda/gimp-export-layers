@@ -291,7 +291,9 @@ If this is your intention, you can always move this procedure below `Use layer s
 Rename a layer according to the specified pattern.
 This procedure is identical to the text entry next to `Save as` as described in [Customizing Layer Names](#customizing-layer-names).
 
-This procedure is useful if other custom procedures modify layer names and you need to apply renaming after these procedures.
+Additionally, this procedure allows renaming layer groups as well by enabling `Rename layer groups`.
+
+This procedure is also useful if other custom procedures modify layer names and you need to apply renaming after these procedures.
 
 **Use file extension in layer name**
 
@@ -314,6 +316,17 @@ To export the entire layer, leave this setting enabled.
 You can add any procedure available in the GIMP Procedural Database (PDB) by pressing `Add Procedure...` and then selecting `Add Custom Procedure...`.
 Select the desired procedure from the browser dialog and press `Add`.
 The edit dialog allows you to edit the procedure name and the values of its arguments.
+
+
+### Editing procedures
+
+When editing a procedure, you may adjust its arguments or expand `More options` for further customization.
+Settings under `More options` are described below.
+
+**Enable for previews**
+
+If checked, the procedure is applied to previews.
+You may want to uncheck this if a procedure is very slow or e.g. manipulates the file system (reads or saves files).
 
 
 Selecting Layers to Export with Constraints
