@@ -1,5 +1,5 @@
-3.3.5 (upcoming)
-================
+3.3.5
+=====
 
 * The "Rename" procedure can now optionally rename layer groups.
 * "Inherit transparency from layer groups" now uses the most recent layer opacity in case a custom procedure adjusting the opacity is applied before.
