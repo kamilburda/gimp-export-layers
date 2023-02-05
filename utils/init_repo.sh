@@ -25,6 +25,7 @@ liblzma-dev
 libgmp-dev
 libffi-dev
 gcc
+gettext
 python
 python-pip
 gimp'
@@ -35,6 +36,7 @@ else
 ruby
 python27
 python-pip
+gettext
 gimp'
 
   echo 'Make sure the following packages are installed:'
