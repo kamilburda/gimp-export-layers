@@ -562,14 +562,11 @@ class LayerExporter(object):
       additional_args_position=_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
   
   def _init_tagged_items(self):
-    self._item_tree.is_filtered = False
-
-    for item in self._item_tree:
-      if builtin_constraints.has_tags(item):
-        for tag in item.tags:
-          self._tagged_items[tag].append(item)
-    
-    self._item_tree.is_filtered = True
+    with self._item_tree.filter.add_temp(builtin_constraints.has_tags):
+      with self._layer_types_filter.add_temp(builtin_constraints.is_nonempty_group):
+        for item in self._item_tree:
+          for tag in item.tags:
+            self._tagged_items[tag].append(item)
   
   def _process_items(self):
     for item in self._item_tree:
