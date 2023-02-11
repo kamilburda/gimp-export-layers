@@ -72,18 +72,18 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     # Contains all items in the item tree (including item groups).
     # key: `_Item.raw.ID`
-    # value: `_Item` object
+    # value: `_Item` instance
     self._itemtree = collections.OrderedDict()
     
-    # key: `_Item.orig_name` (derived from `gimp.Item.name`)
-    # value: `_Item` object
+    # key: `_Item.orig_name` (derived from `_Item.raw.name`)
+    # value: `_Item` instance
     self._itemtree_names = {}
     
-    # key: `_Item` object (parent) or None (root of the item tree)
-    # value: set of `_Item` objects
+    # key: `_Item` instance (parent) or None (item tree root)
+    # value: set of `_Item` instances
     self._uniquified_itemtree = {}
     
-    # key: `_Item` object (parent) or None (root of the item tree)
+    # key: `_Item` instance (parent) or None (item tree root)
     # value: set of `_Item.name` strings
     self._uniquified_itemtree_names = {}
     
