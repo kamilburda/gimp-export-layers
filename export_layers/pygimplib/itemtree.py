@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Classes organizing GIMP items (e.g. layers) in a tree-like structure."""
+"""Managing items of a GIMP image (e.g. layers) in a tree-like structure."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
@@ -26,11 +26,7 @@ from . import utils as pgutils
 
 @future.utils.python_2_unicode_compatible
 class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
-  """
-  This class is an interface to store all items (and item groups) of a certain
-  type (e.g. layers, channels or paths) of a GIMP image in an ordered
-  dictionary, allowing to access the items via their IDs or names and get
-  various custom attributes derived from the existing item attributes.
+  """Interface to store `gimp.Item` objects in a tree-like structure.
   
   Use one of the subclasses for items of a certain type:
   
@@ -40,8 +36,10 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     * `VectorTree` for vectors (paths).
   
-  For custom item attributes, see the documentation for the `_Item` class.
-  `_Item` is common for all `ItemTree` subclasses.
+  Each item in the tree is an `_Item` instance. Each item contains `gimp.Item`
+  attributes and additional derived attributes.
+  
+  Items can be directly accessed via their ID or name.
   
   Attributes:
   
@@ -113,22 +111,21 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     return item
   
   def __contains__(self, id_or_name):
-    """
-    Return `True` if an `_Item` object is in the item tree, regardless of
+    """Returns `True` if an `_Item` object is in the item tree, regardless of
     filters. Return `False` otherwise. The `_Item` object is specified by its
     `_Item.raw.ID` attribute or its `orig_name` attribute.
     """
     return id_or_name in self._itemtree or id_or_name in self._itemtree_names
   
   def __len__(self):
-    """
-    Return the number of all item tree elements - that is, all immediate
+    """Returns the number of all item tree elements - that is, all immediate
     children of the image and all nested children.
     """
     return len([item for item in self])
   
   def __iter__(self):
-    """
+    """Iterates over items.
+    
     If the `is_filtered` attribute is `False`, iterate over all items. If
     `is_filtered` is `True`, iterate only over items that match the filter.
     
@@ -150,9 +147,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
         include_item_path=True,
         uniquifier_position=None,
         uniquifier_position_parents=None):
-    """
-    Make the `name` attribute in the specified `_Item` object unique among all
-    other, already uniquified `_Item` objects.
+    """Makes the `name` attribute in the specified `_Item` object unique among
+    all other, already uniquified `_Item` objects.
     
     To achieve uniquification, a string ("uniquifier") in the form of
     `' (<number>)'` is inserted at the end of the item names.
@@ -205,9 +201,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
       self._uniquified_itemtree_names[parent].add(item.name)
   
   def validate_name(self, item, force_validation=False):
-    """
-    Validate the `name` attribute of the specified item and all of its parents
-    if not validated already or if `force_validation` is `True`.
+    """Validates the `name` attribute of the specified item and all of its
+    parents if not validated already or if `force_validation` is `True`.
     """
     for parent_or_item in list(item.parents) + [item]:
       if parent_or_item not in self._validated_itemtree or force_validation:
@@ -215,10 +210,10 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
         self._validated_itemtree.add(parent_or_item)
   
   def reset_name(self, item):
-    """
-    Reset the name of the specified item to its original name. In addition,
-    allow the item to be validated or uniquified again (using `validate_name`
-    or `uniquify_name`, respectively).
+    """Resets the name of the specified item to its original name.
+    
+    In addition, the item can be validated or uniquified again (using
+    `validate_name` or `uniquify_name`, respectively).
     """
     item.name = item.orig_name
     
@@ -228,9 +223,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
       self._uniquified_itemtree[item.parent].remove(item)
   
   def reset_all_names(self):
-    """
-    Reset the `name` attribute of all `_Item` instances (regardless of item
-    filtering) and clear cache for already uniquified and validated `_Item`
+    """Resets the `name` attribute of all `_Item` instances (regardless of item
+    filtering) and clears cache for already uniquified and validated `_Item`
     instances.
     """
     for item in self._itemtree.values():
@@ -241,15 +235,11 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     self._validated_itemtree.clear()
   
   def reset_filter(self):
-    """
-    Reset the filter, creating a new empty `ObjectFilter`.
-    """
+    """Resets the filter, creating a new empty `ObjectFilter`."""
     self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
   
   def _fill_item_tree(self):
-    """
-    Fill the `_itemtree` and `_itemtree_names` dictionaries.
-    """
+    """Fills the `_itemtree` and `_itemtree_names` dictionaries."""
     child_raw_items = self._get_children_from_image(self._image)
     child_items = [_Item(raw_item, [], None, self._name) for raw_item in child_raw_items]
     
@@ -282,17 +272,16 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   @abc.abstractmethod
   def _get_children_from_image(self, image):
-    """
-    Return a list of immediate child items from the specified image.
+    """Returns a list of immediate child items from the specified image.
     
-    If no child items exist, return an empty list.
+    If no child items exist, an empty list is returned.
     """
     pass
   
   def _get_children_from_raw_item(self, raw_item):
     """Returns a list of immediate child items.
     
-    If no child items exist, return an empty list.
+    If no child items exist, an empty list is returned.
     """
     return raw_item.children
   
@@ -472,22 +461,21 @@ class _Item(object):
       self, ' '.join([self.orig_name, str(type(self.raw))]))
   
   def get_file_extension(self):
-    """
-    Get file extension from the `name` attribute, in lowercase. If `name` has no
-    file extension, return an empty string.
+    """Returns file extension from the `name` attribute, in lowercase.
+    
+    If `name` has no file extension, an empty string is returned.
     """
     return pgpath.get_file_extension(self.name)
   
   def get_file_extension_from_orig_name(self):
-    """
-    Get file extension from the `orig_name` attribute, in lowercase. If
-    `orig_name` has no file extension, return an empty string.
+    """Returns file extension from the `orig_name` attribute, in lowercase.
+    
+    If `orig_name` has no file extension, an empty string is returned.
     """
     return pgpath.get_file_extension(self.orig_name)
   
   def set_file_extension(self, file_extension, keep_extra_trailing_periods=False):
-    """
-    Set file extension in the `name` attribute.
+    """Sets file extension in the `name` attribute.
     
     For more information, see `pgpath.get_filename_with_new_file_extension()`.
     """
@@ -495,9 +483,7 @@ class _Item(object):
       self.name, file_extension, keep_extra_trailing_periods)
   
   def get_base_name(self):
-    """
-    Return the item name without its file extension.
-    """
+    """Returns the item name without its file extension."""
     file_extension = self.get_file_extension()
     if file_extension:
       return self.name[:-(len(file_extension) + 1)]
@@ -505,9 +491,8 @@ class _Item(object):
       return self.name
   
   def get_filepath(self, dirpath, include_item_path=True):
-    """
-    Return file path given the specified directory path, item name and names of
-    its parents.
+    """Returns file path given the specified directory path, item name and names
+    of its parents.
     
     If `include_item_path` is `True`, create file path in the following format:
       
@@ -536,15 +521,15 @@ class _Item(object):
     return os.path.join(path, self.name)
   
   def get_path_components(self):
-    """
-    Return a list of names of all parents of this item as path components.
+    """Returns a list of names of all parents of this item as path components.
     """
     return [parent.name for parent in self.parents]
   
   def add_tag(self, tag):
-    """
-    Add the specified tag to the item. If the tag already exists, do nothing.
-    The tag is saved to the item persistently.
+    """Adds the specified tag to the item.
+    
+    If the tag already exists, do nothing. The tag is saved to the item
+    persistently.
     """
     if tag in self._tags:
       return
@@ -554,9 +539,9 @@ class _Item(object):
     self._save_tags()
   
   def remove_tag(self, tag):
-    """
-    Remove the specified tag from the item. If the tag does not exist, raise
-    `ValueError`.
+    """Removes the specified tag from the item.
+    
+    If the tag does not exist, raise `ValueError`.
     """
     if tag not in self._tags:
       raise ValueError('tag "{}" not found in {}'.format(tag, self))
@@ -566,9 +551,8 @@ class _Item(object):
     self._save_tags()
   
   def _get_path_visibility(self):
-    """
-    If this item and all of its parents are visible, return `True`, otherwise
-    return `False`.
+    """Returns `True` if this item and all of its parents are visible, `False`
+    otherwise.
     """
     path_visible = True
     if not self._raw_item.visible:
@@ -581,9 +565,7 @@ class _Item(object):
     return path_visible
   
   def _save_tags(self):
-    """
-    Save tags persistently to the item.
-    """
+    """Saves tags persistently to the item."""
     self._raw_item.parasite_detach(self._tags_source_name)
     
     if self._tags:
