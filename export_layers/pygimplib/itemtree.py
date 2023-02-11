@@ -118,8 +118,11 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     return id_or_name in self._itemtree or id_or_name in self._itemtree_names
   
   def __len__(self):
-    """Returns the number of all item tree elements - that is, all immediate
-    children of the image and all nested children.
+    """Returns the number of all items in the tree.
+    
+    This includes all immediate children of the image and all nested children.
+    The returned number of items depends on whether `is_filtered` is `True` or
+    `False`.
     """
     return len([item for item in self])
   
