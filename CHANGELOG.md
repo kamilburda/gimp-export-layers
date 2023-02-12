@@ -1,3 +1,8 @@
+Upcoming
+========
+
+* Removed "Include empty layer groups" constraint. Empty folders are no longer created.
+
 3.3.5
 =====
 
