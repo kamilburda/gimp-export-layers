@@ -31,11 +31,11 @@ class FilterRules(object):
   
   @staticmethod
   def is_item(item):
-    return item.item_type == item.ITEM
+    return item.type == item.ITEM
   
   @staticmethod
   def is_item_or_empty_group(item):
-    return item.item_type in (item.ITEM, item.EMPTY_GROUP)
+    return item.type in (item.ITEM, item.EMPTY_GROUP)
   
   @staticmethod
   def is_path_visible(item):
@@ -126,6 +126,9 @@ class TestLayerTree(unittest.TestCase):
     for item, orig_name in zip(self.item_tree, item_tree):
       self.assertEqual(item.orig_name, orig_name)
     
+    for item in self.item_tree:
+      self.assertNotEqual(item.type, item.FOLDER)
+    
     for item, parents_and_children in zip(
           self.item_tree, item_tree.values()):
       parents = parents_and_children[0]
@@ -143,16 +146,53 @@ class TestLayerTree(unittest.TestCase):
         item.children,
         list(item.orig_children) if item.orig_children is not None else None)
   
-  def test_get_len(self):
-    item_count_total = 20
-    item_count_only_items = 13
+  def test_iter_with_folders(self):
+    item_names_and_types = [
+      ('Corners', pgitemtree._Item.FOLDER),
+      ('Corners', pgitemtree._Item.NONEMPTY_GROUP),
+      ('top-left-corner', pgitemtree._Item.ITEM),
+      ('top-right-corner', pgitemtree._Item.ITEM),
+      ('top-left-corner:', pgitemtree._Item.FOLDER),
+      ('top-left-corner:', pgitemtree._Item.EMPTY_GROUP),
+      ('top-left-corner::', pgitemtree._Item.FOLDER),
+      ('top-left-corner::', pgitemtree._Item.NONEMPTY_GROUP),
+      ('bottom-right-corner', pgitemtree._Item.ITEM),
+      ('bottom-right-corner:', pgitemtree._Item.ITEM),
+      ('bottom-left-corner', pgitemtree._Item.ITEM),
+      ('Corners:', pgitemtree._Item.FOLDER),
+      ('Corners:', pgitemtree._Item.NONEMPTY_GROUP),
+      ('top-left-corner:::', pgitemtree._Item.ITEM),
+      ('Frames', pgitemtree._Item.FOLDER),
+      ('Frames', pgitemtree._Item.NONEMPTY_GROUP),
+      ('top-frame', pgitemtree._Item.ITEM),
+      ('main-background.jpg', pgitemtree._Item.ITEM),
+      ('main-background.jpg:', pgitemtree._Item.ITEM),
+      ('Overlay', pgitemtree._Item.FOLDER),
+      ('Overlay', pgitemtree._Item.EMPTY_GROUP),
+      ('Corners::', pgitemtree._Item.ITEM),
+      ('top-left-corner::::', pgitemtree._Item.ITEM),
+      ('main-background.jpg::', pgitemtree._Item.FOLDER),
+      ('main-background.jpg::', pgitemtree._Item.NONEMPTY_GROUP),
+      ('alt-frames', pgitemtree._Item.ITEM),
+      ('alt-corners', pgitemtree._Item.ITEM),
+    ]
     
-    self.assertEqual(len(self.item_tree), item_count_total)
+    for item, (item_name, item_type) in zip(self.item_tree.iter(), item_names_and_types):
+      self.assertEqual(item.name, item_name)
+      self.assertEqual(item.type, item_type)
+  
+  def test_get_len(self):
+    item_count_total_with_folders = 27
+    item_count_total_without_folders = 20
+    item_count_total_without_folders_filtered = 13
+    
+    self.assertEqual(len(list(self.item_tree.iter())), item_count_total_with_folders)
+    self.assertEqual(len(self.item_tree), item_count_total_without_folders)
     
     self.item_tree.is_filtered = True
     self.item_tree.filter.add(FilterRules.is_item)
     
-    self.assertEqual(len(self.item_tree), item_count_only_items)
+    self.assertEqual(len(self.item_tree), item_count_total_without_folders_filtered)
   
   def test_get_filepath(self):
     output_dirpath = os.path.join('D:', os.sep, 'testgimp')
@@ -221,6 +261,7 @@ class TestLayerTree(unittest.TestCase):
     for item in self.item_tree:
       self.item_tree.validate_name(item)
       self.item_tree.uniquify_name(item, include_item_path=False)
+    
     self._compare_uniquified_without_parents(self.item_tree, uniquified_names)
   
   def _compare_uniquified_without_parents(self, item_tree, uniquified_names):

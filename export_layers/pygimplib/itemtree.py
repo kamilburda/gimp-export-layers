@@ -39,7 +39,16 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
   Each item in the tree is an `_Item` instance. Each item contains `gimp.Item`
   attributes and additional derived attributes.
   
-  Items can be directly accessed via their ID or name.
+  Items can be directly accessed via their ID or name. Both ID and name are
+  unique in the entire tree (GIMP readily ensures that item names are unique).
+  
+  Item groups (e.g. layer groups) are inserted twice in the tree - as folders
+  and as items. Parents of items are always folders.
+  
+  `ItemTree` is a static data structure, i.e. it does not account for
+  modifications, additions or removal of GIMP items by GIMP procedures outside
+  this class. To refresh the contents of the tree, create a new `ItemTree`
+  instance instead.
   
   Attributes:
   
@@ -56,6 +65,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     rules.
   """
   
+  FOLDER_KEY = 'folder'
+  
   def __init__(
         self,
         image,
@@ -71,11 +82,13 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
     
     # Contains all items in the item tree (including item groups).
-    # key: `_Item.raw.ID`
+    # key: `_Item.raw.ID` or (`_Item.raw.ID`, `FOLDER_KEY`) in case of folders
     # value: `_Item` instance
     self._itemtree = collections.OrderedDict()
     
-    # key: `_Item.orig_name` (derived from `_Item.raw.name`)
+    # key:
+    #  `_Item.orig_name` (derived from `_Item.raw.name`)
+    #   or (`_Item.raw.ID`, `FOLDER_KEY`) in case of folders
     # value: `_Item` instance
     self._itemtree_names = {}
     
@@ -89,7 +102,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     self._validated_itemtree = set()
     
-    self._fill_item_tree()
+    self._build_tree()
   
   @property
   def image(self):
@@ -100,15 +113,20 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     return self._name
   
   def __getitem__(self, id_or_name):
-    """Returns an `_Item` object by its `_Item.raw.ID` attribute or its
-    `orig_name` attribute.
+    """Returns an `_Item` object by its ID or original name.
+    
+    An item's ID is the `_Item.raw.ID` attribute. An item's original name is the
+    `_Item.orig_name` attribute.
+    
+    To access an item group as a folder, pass a tuple `(ID or name, 'folder')`.
+    For example:
+        
+        item_tree[4, 'folder']
     """
     try:
-      item = self._itemtree[id_or_name]
+      return self._itemtree[id_or_name]
     except KeyError:
-      item = self._itemtree_names[id_or_name]
-    
-    return item
+      return self._itemtree_names[id_or_name]
   
   def __contains__(self, id_or_name):
     """Returns `True` if an `_Item` object is in the item tree, regardless of
@@ -127,7 +145,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     return len([item for item in self])
   
   def __iter__(self):
-    """Iterates over items.
+    """Iterates over items, excluding folders.
     
     If the `is_filtered` attribute is `False`, iterate over all items. If
     `is_filtered` is `True`, iterate only over items that match the filter.
@@ -138,11 +156,38 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     if not self.is_filtered:
       for item in self._itemtree.values():
-        yield item
+        if item.type != item.FOLDER:
+          yield item
     else:
       for item in self._itemtree.values():
-        if self.filter.is_match(item):
+        if item.type != item.FOLDER and self.filter.is_match(item):
           yield item
+  
+  def iter(self, with_folders=True):
+    """Iterates over items, including folders.
+    
+    If the `is_filtered` attribute is `False`, iterate over all items. If
+    `is_filtered` is `True`, iterate only over items that match the filter.
+    
+    Parameters:
+    
+    * `with_folders` - If `True`, include folders. If `False`, this is
+      equivalent to `__iter__()`.
+    
+    Yields:
+    
+    * `item` - The current `_Item` object.
+    """
+    if with_folders:
+      if not self.is_filtered:
+        for item in self._itemtree.values():
+          yield item
+      else:
+        for item in self._itemtree.values():
+          if self.filter.is_match(item):
+            yield item
+    else:
+      yield self.__iter__()
   
   def uniquify_name(
         self,
@@ -241,8 +286,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     """Resets the filter, creating a new empty `ObjectFilter`."""
     self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
   
-  def _fill_item_tree(self):
-    """Fills the `_itemtree` and `_itemtree_names` dictionaries."""
+  def _build_tree(self):
     child_raw_items = self._get_children_from_image(self._image)
     child_items = [_Item(raw_item, [], None, self._name) for raw_item in child_raw_items]
     
@@ -250,9 +294,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     while item_tree:
       item = item_tree.pop(0)
-      
-      self._itemtree[item.raw.ID] = item
-      self._itemtree_names[item.orig_name] = item
       
       item_parents = list(item.parents)
       
@@ -262,7 +303,17 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
         child_raw_items = None
       
       if child_raw_items is not None:
-        item_parents.append(item)
+        folder_item = _Item(
+          item.raw, item_parents, item.children, self._name, is_folder=True)
+        item_parents.append(folder_item)
+        
+        self._itemtree[(folder_item.raw.ID, self.FOLDER_KEY)] = folder_item
+        self._itemtree_names[(folder_item.orig_name, self.FOLDER_KEY)] = folder_item
+      
+      self._itemtree[item.raw.ID] = item
+      self._itemtree_names[item.orig_name] = item
+      
+      if child_raw_items is not None:
         child_items = [
           _Item(raw_item, item_parents, None, self._name) for raw_item in child_raw_items]
         
@@ -342,10 +393,11 @@ class _Item(object):
   * `parent` (read-only) - Immediate `_Item` parent of this object.
     If this object has no parent, return `None`.
   
-  * `item_type` (read-only) - Item type - one of the following:
-      * `ITEM` - normal item,
-      * `NONEMPTY_GROUP` - non-empty item group (contains children),
-      * `EMPTY_GROUP` - empty item group (contains no children).
+  * `type` (read-only) - Item type - one of the following:
+      * `ITEM` - regular item
+      * `NONEMPTY_GROUP` - non-empty item group (contains children)
+      * `EMPTY_GROUP` - empty item group (contains no children)
+      * `FOLDER` - contains child items or groups
   
   * `path_visible` (read-only) - Visibility of all item's parents and this
     item. If all items are visible, `path_visible` is `True`. If at least one
@@ -363,19 +415,23 @@ class _Item(object):
     Defaults to `'tags'` if `None`.
   """
   
-  _ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP = (0, 1, 2)
+  _ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP, FOLDER = (0, 1, 2, 3)
   
-  def __init__(self, raw_item, parents=None, children=None, tags_source_name=None):
+  def __init__(
+        self, raw_item, parents=None, children=None, tags_source_name=None, is_folder=False):
     if raw_item is None:
       raise TypeError('item cannot be None')
     
     self._raw_item = raw_item
     self._parents = parents if parents is not None else []
     self._children = children
+    self._is_folder = is_folder
     
     self.name = pgutils.safe_decode_gimp(raw_item.name)
     
-    self._item_type = None
+    # These attributes are lazily initialized since children and parents are
+    # dynamically modified while constructing the item tree.
+    self._type = None
     self._path_visible = None
     
     self._orig_name = self.name
@@ -414,17 +470,20 @@ class _Item(object):
     return self._parents[-1] if self._parents else None
   
   @property
-  def item_type(self):
-    if self._item_type is None:
-      if self._children is None:
-        self._item_type = self.ITEM
+  def type(self):
+    if self._type is None:
+      if self._is_folder:
+        self._type = self.FOLDER
       else:
-        if self._children:
-          self._item_type = self.NONEMPTY_GROUP
+        if self._children is None:
+          self._type = self.ITEM
         else:
-          self._item_type = self.EMPTY_GROUP
+          if self._children:
+            self._type = self.NONEMPTY_GROUP
+          else:
+            self._type = self.EMPTY_GROUP
     
-    return self._item_type
+    return self._type
   
   @property
   def path_visible(self):

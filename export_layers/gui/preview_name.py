@@ -242,30 +242,27 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _init_icons(self):
     self._icons = {}
-    self._icons['item_group'] = self._tree_view.render_icon(
+    self._icons['folder'] = self._tree_view.render_icon(
       gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_MENU)
     self._icons['item'] = gtk.gdk.pixbuf_new_from_file_at_size(
-      self._icon_image_filepath, -1, self._icons['item_group'].props.height)
+      self._icon_image_filepath, -1, self._icons['folder'].props.height)
     self._icons['tag'] = gtk.gdk.pixbuf_new_from_file_at_size(
-      self._icon_tag_filepath, -1, self._icons['item_group'].props.height)
+      self._icon_tag_filepath, -1, self._icons['folder'].props.height)
     
-    self._icons['exported_item_group'] = self._icons['item'].copy()
+    self._icons['group'] = self._icons['item'].copy()
     
     scaling_factor = 0.8
-    width_unscaled = self._icons['item_group'].props.width
+    width_unscaled = self._icons['folder'].props.width
     width = int(width_unscaled * scaling_factor)
-    height_unscaled = self._icons['item_group'].props.height
+    height_unscaled = self._icons['folder'].props.height
     height = int(height_unscaled * scaling_factor)
-    x_offset_unscaled = (
-      self._icons['exported_item_group'].props.width
-      - self._icons['item_group'].props.width)
+    x_offset_unscaled = self._icons['group'].props.width - self._icons['folder'].props.width
     x_offset = x_offset_unscaled + width_unscaled - width
-    y_offset_unscaled = (
-      self._icons['exported_item_group'].props.height
-      - self._icons['item_group'].props.height)
+    y_offset_unscaled = self._icons['group'].props.height - self._icons['folder'].props.height
     y_offset = y_offset_unscaled + height_unscaled - height
     
-    self._icons['item_group'].composite(self._icons['exported_item_group'],
+    self._icons['folder'].composite(
+      self._icons['group'],
       x_offset, y_offset, width, height, x_offset, y_offset,
       scaling_factor, scaling_factor, gtk.gdk.INTERP_BILINEAR, 255)
   
@@ -623,15 +620,17 @@ class ExportNamePreview(preview_base_.ExportPreview):
       self._set_parent_items_sensitive(item)
   
   def _get_icon_from_item(self, item):
-    if item.item_type == item.ITEM:
+    if item.type == item.ITEM:
       return self._icons['item']
-    elif item.item_type == item.NONEMPTY_GROUP:
+    elif item.type == item.NONEMPTY_GROUP:
       if not self._exporter.has_exported_item(item.raw):
-        return self._icons['item_group']
+        return self._icons['folder']
       else:
-        return self._icons['exported_item_group']
-    elif item.item_type == item.EMPTY_GROUP:
-      return self._icons['item_group']
+        return self._icons['group']
+    elif item.type == item.EMPTY_GROUP:
+      return self._icons['folder']
+    elif item.type == item.FOLDER:
+      return self._icons['folder']
     else:
       return None
   

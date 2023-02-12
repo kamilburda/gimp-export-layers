@@ -14,15 +14,15 @@ CONSTRAINTS_LAYER_TYPES_GROUP = 'constraints_layer_types'
 
 
 def is_layer(item):
-  return item.item_type == item.ITEM
+  return item.type == item.ITEM
 
 
 def is_nonempty_group(item):
-  return item.item_type == item.NONEMPTY_GROUP
+  return item.type == item.NONEMPTY_GROUP
 
 
 def is_empty_group(item):
-  return item.item_type == item.EMPTY_GROUP
+  return item.type == item.EMPTY_GROUP
 
 
 def is_path_visible(item):

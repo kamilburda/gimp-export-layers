@@ -575,13 +575,13 @@ class LayerExporter(object):
       
       self._current_item = item
       
-      if item.item_type in (item.ITEM, item.NONEMPTY_GROUP):
+      if item.type in (item.ITEM, item.NONEMPTY_GROUP):
         self._process_item(item)
-      elif item.item_type == item.EMPTY_GROUP:
+      elif item.type == item.EMPTY_GROUP:
         self._process_empty_group(item)
       else:
         raise ValueError(
-          'invalid/unsupported item type "{}" in {}'.format(item.item_type, item))
+          'invalid/unsupported item type "{}" in {}'.format(item.type, item))
   
   def _process_item(self, item):
     raw_item = item.raw
@@ -735,7 +735,7 @@ class LayerExporter(object):
         item.name, item.get_file_extension()))
   
   def _postprocess_item_name(self, item):
-    if item.item_type == item.NONEMPTY_GROUP:
+    if item.type == item.NONEMPTY_GROUP:
       self._item_tree.reset_name(item)
   
   def _get_uniquifier_position(self, str_, file_extension):
