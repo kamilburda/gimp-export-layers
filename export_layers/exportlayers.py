@@ -127,8 +127,7 @@ class LayerExporter(object):
       'item_contents': [
         self._setup, self._cleanup, self._process_item_with_actions, self._postprocess_item],
       'item_name': [
-        self._preprocess_item_name, self._preprocess_empty_group_name,
-        self._process_item_name],
+        self._preprocess_item_name, self._process_folder_name, self._process_item_name],
       '_postprocess_item_name': [self._postprocess_item_name],
       'export': [self._make_dirs, self._export],
       'item_name_for_preview': [self._process_item_name_for_preview],
@@ -530,11 +529,11 @@ class LayerExporter(object):
     self.progress_updater.num_total_tasks = len(self._item_tree)
     
     if self._keep_image_copy:
-      with self._layer_types_filter.remove_temp(func_or_filter=builtin_constraints.is_empty_group):
-        num_items_and_nonempty_groups = len(self._item_tree)
-        if num_items_and_nonempty_groups > 1:
+      with self._layer_types_filter.remove_temp(func_or_filter=builtin_constraints.is_group):
+        num_items = len(self._item_tree)
+        if num_items > 1:
           self._use_another_image_copy = True
-        elif num_items_and_nonempty_groups < 1:
+        elif num_items < 1:
           self._keep_image_copy = False
   
   def _reset_parents_in_items(self):
@@ -563,22 +562,22 @@ class LayerExporter(object):
   
   def _init_tagged_items(self):
     with self._item_tree.filter.add_temp(builtin_constraints.has_tags):
-      with self._layer_types_filter.add_temp(builtin_constraints.is_nonempty_group):
+      with self._layer_types_filter.add_temp(builtin_constraints.is_group):
         for item in self._item_tree:
           for tag in item.tags:
             self._tagged_items[tag].append(item)
   
   def _process_items(self):
-    for item in self._item_tree:
+    for item in self._item_tree.iter():
       if self._should_stop:
         raise ExportCancelError('export stopped by user')
       
       self._current_item = item
       
-      if item.type in (item.ITEM, item.NONEMPTY_GROUP):
+      if item.type in (item.ITEM, item.GROUP):
         self._process_item(item)
-      elif item.type == item.EMPTY_GROUP:
-        self._process_empty_group(item)
+      elif item.type == item.FOLDER:
+        self._process_folder_name(item)
       else:
         raise ValueError(
           'invalid/unsupported item type "{}" in {}'.format(item.type, item))
@@ -601,16 +600,6 @@ class LayerExporter(object):
       self._exported_raw_items.append(raw_item)
       self._exported_raw_items_ids.add(raw_item.ID)
       self._file_extension_properties[item.get_file_extension()].processed_count += 1
-  
-  def _process_empty_group(self, item):
-    self._preprocess_empty_group_name(item)
-    
-    empty_group_dirpath = item.get_filepath(self._output_directory)
-    self._make_dirs(empty_group_dirpath, self)
-    
-    self.progress_updater.update_text(
-      _('Creating empty directory "{}"').format(empty_group_dirpath))
-    self.progress_updater.update_tasks()
   
   def _setup(self):
     pdb.gimp_context_push()
@@ -708,7 +697,7 @@ class LayerExporter(object):
     item.name = self._renamer.rename(self)
     self.current_file_extension = self._default_file_extension
   
-  def _preprocess_empty_group_name(self, item):
+  def _process_folder_name(self, item):
     self._item_tree.validate_name(item)
     self._item_tree.uniquify_name(item)
   
@@ -735,7 +724,7 @@ class LayerExporter(object):
         item.name, item.get_file_extension()))
   
   def _postprocess_item_name(self, item):
-    if item.type == item.NONEMPTY_GROUP:
+    if item.type == item.GROUP:
       self._item_tree.reset_name(item)
   
   def _get_uniquifier_position(self, str_, file_extension):

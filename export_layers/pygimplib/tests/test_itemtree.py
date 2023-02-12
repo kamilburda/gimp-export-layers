@@ -34,8 +34,8 @@ class FilterRules(object):
     return item.type == item.ITEM
   
   @staticmethod
-  def is_item_or_empty_group(item):
-    return item.type in (item.ITEM, item.EMPTY_GROUP)
+  def is_item_or_group(item):
+    return item.type in (item.ITEM, item.GROUP)
   
   @staticmethod
   def is_path_visible(item):
@@ -146,55 +146,83 @@ class TestLayerTree(unittest.TestCase):
         item.children,
         list(item.orig_children) if item.orig_children is not None else None)
   
-  def test_iter_with_folders(self):
+  def test_iter(self):
     item_names_and_types = [
       ('Corners', pgitemtree._Item.FOLDER),
-      ('Corners', pgitemtree._Item.NONEMPTY_GROUP),
+      ('Corners', pgitemtree._Item.GROUP),
       ('top-left-corner', pgitemtree._Item.ITEM),
       ('top-right-corner', pgitemtree._Item.ITEM),
       ('top-left-corner:', pgitemtree._Item.FOLDER),
-      ('top-left-corner:', pgitemtree._Item.EMPTY_GROUP),
+      ('top-left-corner:', pgitemtree._Item.GROUP),
       ('top-left-corner::', pgitemtree._Item.FOLDER),
-      ('top-left-corner::', pgitemtree._Item.NONEMPTY_GROUP),
+      ('top-left-corner::', pgitemtree._Item.GROUP),
       ('bottom-right-corner', pgitemtree._Item.ITEM),
       ('bottom-right-corner:', pgitemtree._Item.ITEM),
       ('bottom-left-corner', pgitemtree._Item.ITEM),
       ('Corners:', pgitemtree._Item.FOLDER),
-      ('Corners:', pgitemtree._Item.NONEMPTY_GROUP),
+      ('Corners:', pgitemtree._Item.GROUP),
       ('top-left-corner:::', pgitemtree._Item.ITEM),
       ('Frames', pgitemtree._Item.FOLDER),
-      ('Frames', pgitemtree._Item.NONEMPTY_GROUP),
+      ('Frames', pgitemtree._Item.GROUP),
       ('top-frame', pgitemtree._Item.ITEM),
       ('main-background.jpg', pgitemtree._Item.ITEM),
       ('main-background.jpg:', pgitemtree._Item.ITEM),
       ('Overlay', pgitemtree._Item.FOLDER),
-      ('Overlay', pgitemtree._Item.EMPTY_GROUP),
+      ('Overlay', pgitemtree._Item.GROUP),
       ('Corners::', pgitemtree._Item.ITEM),
       ('top-left-corner::::', pgitemtree._Item.ITEM),
       ('main-background.jpg::', pgitemtree._Item.FOLDER),
-      ('main-background.jpg::', pgitemtree._Item.NONEMPTY_GROUP),
+      ('main-background.jpg::', pgitemtree._Item.GROUP),
       ('alt-frames', pgitemtree._Item.ITEM),
       ('alt-corners', pgitemtree._Item.ITEM),
     ]
     
-    for item, (item_name, item_type) in zip(self.item_tree.iter(), item_names_and_types):
+    item_names_and_types_without_empty_groups = list(item_names_and_types)
+    del item_names_and_types_without_empty_groups[
+      item_names_and_types_without_empty_groups.index(
+        ('Overlay', pgitemtree._Item.FOLDER)) + 1]
+    del item_names_and_types_without_empty_groups[
+      item_names_and_types_without_empty_groups.index(
+        ('top-left-corner:', pgitemtree._Item.FOLDER)) + 1]
+    
+    item_names_and_types_without_folders_and_empty_groups = [
+      (name, type_) for name, type_ in item_names_and_types if type_ != pgitemtree._Item.FOLDER]
+    del item_names_and_types_without_folders_and_empty_groups[
+      item_names_and_types_without_folders_and_empty_groups.index(
+        ('Overlay', pgitemtree._Item.GROUP))]
+    del item_names_and_types_without_folders_and_empty_groups[
+      item_names_and_types_without_folders_and_empty_groups.index(
+        ('top-left-corner:', pgitemtree._Item.GROUP))]
+    
+    for item, (item_name, item_type) in zip(
+          self.item_tree.iter(with_empty_groups=True), item_names_and_types):
+      self.assertEqual(item.name, item_name)
+      self.assertEqual(item.type, item_type)
+    
+    for item, (item_name, item_type) in zip(
+          self.item_tree.iter(), item_names_and_types_without_empty_groups):
+      self.assertEqual(item.name, item_name)
+      self.assertEqual(item.type, item_type)
+    
+    for item, (item_name, item_type) in zip(
+          self.item_tree.iter(with_folders=False),
+          item_names_and_types_without_folders_and_empty_groups):
       self.assertEqual(item.name, item_name)
       self.assertEqual(item.type, item_type)
   
   def test_get_len(self):
-    item_count_total_with_folders = 27
-    item_count_total_without_folders = 20
-    item_count_total_without_folders_filtered = 13
+    self.assertEqual(len(list(self.item_tree.iter())), 25)
+    self.assertEqual(len(list(self.item_tree.iter(with_empty_groups=True))), 27)
     
-    self.assertEqual(len(list(self.item_tree.iter())), item_count_total_with_folders)
-    self.assertEqual(len(self.item_tree), item_count_total_without_folders)
+    self.assertEqual(len(self.item_tree), 20)
     
     self.item_tree.is_filtered = True
     self.item_tree.filter.add(FilterRules.is_item)
     
-    self.assertEqual(len(self.item_tree), item_count_total_without_folders_filtered)
+    self.assertEqual(len(self.item_tree), 13)
   
   def test_get_filepath(self):
+    # TODO: Is this test still relevant?
     output_dirpath = os.path.join('D:', os.sep, 'testgimp')
     
     # `item` with parents
@@ -256,7 +284,7 @@ class TestLayerTree(unittest.TestCase):
     # to uniquify non-empty groups in some scenarios (such as when merging
     # non-empty groups into items, which would not match the filter).
     self.item_tree.is_filtered = True
-    self.item_tree.filter.add(FilterRules.is_item_or_empty_group)
+    self.item_tree.filter.add(FilterRules.is_item_or_group)
     
     for item in self.item_tree:
       self.item_tree.validate_name(item)
@@ -298,7 +326,7 @@ class TestLayerTree(unittest.TestCase):
     ])
     
     self.item_tree.is_filtered = True
-    self.item_tree.filter.add(FilterRules.is_item_or_empty_group)
+    self.item_tree.filter.add(FilterRules.is_item_or_group)
     
     for item in self.item_tree:
       self.item_tree.validate_name(item)
@@ -319,7 +347,7 @@ class TestLayerTree(unittest.TestCase):
     ])
     
     self.item_tree.is_filtered = True
-    self.item_tree.filter.add(FilterRules.is_item_or_empty_group)
+    self.item_tree.filter.add(FilterRules.is_item_or_group)
     
     for item in self.item_tree:
       self.item_tree.validate_name(item)

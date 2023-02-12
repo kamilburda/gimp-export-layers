@@ -17,12 +17,8 @@ def is_layer(item):
   return item.type == item.ITEM
 
 
-def is_nonempty_group(item):
-  return item.type == item.NONEMPTY_GROUP
-
-
-def is_empty_group(item):
-  return item.type == item.EMPTY_GROUP
+def is_group(item):
+  return item.type == item.GROUP
 
 
 def is_path_visible(item):
@@ -68,16 +64,8 @@ _BUILTIN_CONSTRAINTS_LIST = [
   {
     'name': 'include_layer_groups',
     'type': 'constraint',
-    'function': is_nonempty_group,
+    'function': is_group,
     'display_name': _('Include layer groups'),
-    'subfilter': 'layer_types',
-    'action_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
-  },
-  {
-    'name': 'include_empty_layer_groups',
-    'type': 'constraint',
-    'function': is_empty_group,
-    'display_name': _('Include empty layer groups'),
     'subfilter': 'layer_types',
     'action_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
   },

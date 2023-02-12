@@ -136,16 +136,18 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     return id_or_name in self._itemtree or id_or_name in self._itemtree_names
   
   def __len__(self):
-    """Returns the number of all items in the tree.
+    """Returns the number of items in the tree.
     
-    This includes all immediate children of the image and all nested children.
+    This includes immediate children of the image and nested children. Empty
+    item groups (i.e. groups with no children) are excluded.
+    
     The returned number of items depends on whether `is_filtered` is `True` or
     `False`.
     """
     return len([item for item in self])
   
   def __iter__(self):
-    """Iterates over items, excluding folders.
+    """Iterates over items, excluding folders and empty item groups.
     
     If the `is_filtered` attribute is `False`, iterate over all items. If
     `is_filtered` is `True`, iterate only over items that match the filter.
@@ -163,31 +165,38 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
         if item.type != item.FOLDER and self.filter.is_match(item):
           yield item
   
-  def iter(self, with_folders=True):
-    """Iterates over items, including folders.
+  def iter(self, with_folders=True, with_empty_groups=False):
+    """Iterates over items, optionally including folders and empty item groups.
     
     If the `is_filtered` attribute is `False`, iterate over all items. If
     `is_filtered` is `True`, iterate only over items that match the filter.
     
     Parameters:
     
-    * `with_folders` - If `True`, include folders. If `False`, this is
-      equivalent to `__iter__()`.
+    * `with_folders` - If `True`, include folders.
+    
+    * `with_empty_groups` - If `True`, include empty item groups. Empty item
+      groups as folders are still yielded if `with_folders` is `True`.
     
     Yields:
     
     * `item` - The current `_Item` object.
     """
-    if with_folders:
-      if not self.is_filtered:
-        for item in self._itemtree.values():
-          yield item
-      else:
-        for item in self._itemtree.values():
-          if self.filter.is_match(item):
-            yield item
-    else:
-      yield self.__iter__()
+    for item in self._itemtree.values():
+      should_yield_item = True
+      
+      if not with_folders and item.type == item.FOLDER:
+        should_yield_item = False
+      
+      if not with_empty_groups and (item.type == item.GROUP and not item.children):
+        should_yield_item = False
+      
+      if should_yield_item:
+        if self.is_filtered and not self.filter.is_match(item):
+          should_yield_item = False
+      
+      if should_yield_item:
+        yield item
   
   def uniquify_name(
         self,
@@ -395,9 +404,8 @@ class _Item(object):
   
   * `type` (read-only) - Item type - one of the following:
       * `ITEM` - regular item
-      * `NONEMPTY_GROUP` - non-empty item group (contains children)
-      * `EMPTY_GROUP` - empty item group (contains no children)
-      * `FOLDER` - contains child items or groups
+      * `GROUP` - item group (contains children, but acts as an item)
+      * `FOLDER` - contains children
   
   * `path_visible` (read-only) - Visibility of all item's parents and this
     item. If all items are visible, `path_visible` is `True`. If at least one
@@ -415,7 +423,7 @@ class _Item(object):
     Defaults to `'tags'` if `None`.
   """
   
-  _ITEM_TYPES = ITEM, NONEMPTY_GROUP, EMPTY_GROUP, FOLDER = (0, 1, 2, 3)
+  _ITEM_TYPES = ITEM, GROUP, FOLDER = (0, 1, 2)
   
   def __init__(
         self, raw_item, parents=None, children=None, tags_source_name=None, is_folder=False):
@@ -478,10 +486,7 @@ class _Item(object):
         if self._children is None:
           self._type = self.ITEM
         else:
-          if self._children:
-            self._type = self.NONEMPTY_GROUP
-          else:
-            self._type = self.EMPTY_GROUP
+          self._type = self.GROUP
     
     return self._type
   

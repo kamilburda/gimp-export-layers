@@ -622,13 +622,8 @@ class ExportNamePreview(preview_base_.ExportPreview):
   def _get_icon_from_item(self, item):
     if item.type == item.ITEM:
       return self._icons['item']
-    elif item.type == item.NONEMPTY_GROUP:
-      if not self._exporter.has_exported_item(item.raw):
-        return self._icons['folder']
-      else:
-        return self._icons['group']
-    elif item.type == item.EMPTY_GROUP:
-      return self._icons['folder']
+    elif item.type == item.GROUP:
+      return self._icons['group']
     elif item.type == item.FOLDER:
       return self._icons['folder']
     else:
