@@ -66,6 +66,9 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
   """
   
   FOLDER_KEY = 'folder'
+  """Key used to access items as folders in the tree via `__getitem__()`.
+  See `__getitem__()` for more information.
+  """
   
   def __init__(
         self,
