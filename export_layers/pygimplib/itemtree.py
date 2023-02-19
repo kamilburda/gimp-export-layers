@@ -304,8 +304,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     while item_tree:
       item = item_tree.pop(0)
       
-      item_parents = list(item.parents)
-      
       if self._is_group(item.raw):
         child_raw_items = self._get_children_from_raw_item(item.raw)
       else:
@@ -313,8 +311,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
       
       if child_raw_items is not None:
         folder_item = _Item(
-          item.raw, item_parents, item.children, self._name, is_folder=True)
-        item_parents.append(folder_item)
+          item.raw, list(item.parents), item.children, self._name, is_folder=True)
         
         self._itemtree[(folder_item.raw.ID, self.FOLDER_KEY)] = folder_item
         self._itemtree_names[(folder_item.orig_name, self.FOLDER_KEY)] = folder_item
@@ -323,8 +320,11 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
       self._itemtree_names[item.orig_name] = item
       
       if child_raw_items is not None:
+        parents_for_child = list(item.parents)
+        parents_for_child.append(folder_item)
+        
         child_items = [
-          _Item(raw_item, item_parents, None, self._name) for raw_item in child_raw_items]
+          _Item(raw_item, parents_for_child, None, self._name) for raw_item in child_raw_items]
         
         # We break the convention here and access private attributes from `_Item`.
         item._orig_children = child_items
