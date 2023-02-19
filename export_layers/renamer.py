@@ -216,7 +216,7 @@ class _PercentTemplate(string.Template):
 
 def _get_layer_name(exporter, item, field_value, file_extension_strip_mode=''):
   if file_extension_strip_mode in ['%e', '%i']:
-    file_extension = item.get_file_extension_from_orig_name()
+    file_extension = pg.path.get_file_extension(item.orig_name)
     if file_extension:
       if file_extension_strip_mode == '%i':
         if file_extension == exporter.default_file_extension:
@@ -224,7 +224,7 @@ def _get_layer_name(exporter, item, field_value, file_extension_strip_mode=''):
       else:
         return item.name
   
-  return item.get_base_name()
+  return pg.path.get_filename_root(item.name)
 
 
 def _get_image_name(exporter, item, field_value, keep_extension_str=''):

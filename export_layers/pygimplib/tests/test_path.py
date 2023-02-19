@@ -449,6 +449,22 @@ class TestGetFilenameWithNewFileExtension(unittest.TestCase):
       expected_output)
 
 
+class TestGetBaseName(unittest.TestCase):
+  
+  @parameterized.parameterized.expand([
+    ('main-background', 'main-background'),
+    ('main-background.', 'main-background.'),
+    ('main-background.jpg', 'main-background'),
+    ('main-background..jpg', 'main-background.'),
+    ('..jpg', '.'),
+    ('.jpg', ''),
+    ('.', '.'),
+    ('', ''),
+  ])
+  def test_get_filename_root(self, filename, expected_output):
+    self.assertEqual(pgpath.get_filename_root(filename), expected_output)
+
+
 class TestFilenameValidator(unittest.TestCase):
   
   def test_is_valid_returns_no_status_messages(self):

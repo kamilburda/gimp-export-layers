@@ -164,12 +164,14 @@ class TestUniquify(unittest.TestCase):
   
   def _compare_uniquified_names(self, item_tree, uniquified_names):
     for key, item_path in uniquified_names.items():
-      path_components, name = item_path[:-1], item_path[-1]
+      expected_path_components, name = item_path[:-1], item_path[-1]
+      actual_path_components = [parent.name for parent in item_tree[key].parents]
+      
       self.assertEqual(
-        item_tree[key].get_path_components(),
-        path_components,
+        actual_path_components,
+        expected_path_components,
         'parents: "{}": "{}" != "{}"'.format(
-          key, item_tree[key].get_path_components(), path_components))
+          key, actual_path_components, expected_path_components))
       self.assertEqual(
         item_tree[key].name,
         name,

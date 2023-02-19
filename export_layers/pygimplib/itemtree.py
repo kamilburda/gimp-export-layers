@@ -8,7 +8,6 @@ import future.utils
 
 import abc
 import collections
-import os
 
 try:
   import cPickle as pickle
@@ -20,7 +19,6 @@ from gimp import pdb
 import gimpenums
 
 from . import objectfilter as pgobjectfilter
-from . import path as pgpath
 from . import utils as pgutils
 
 
@@ -428,71 +426,6 @@ class _Item(object):
   def __repr__(self):
     return pgutils.reprify_object(
       self, ' '.join([self.orig_name, str(type(self.raw))]))
-  
-  def get_file_extension(self):
-    """Returns file extension from the `name` attribute, in lowercase.
-    
-    If `name` has no file extension, an empty string is returned.
-    """
-    return pgpath.get_file_extension(self.name)
-  
-  def get_file_extension_from_orig_name(self):
-    """Returns file extension from the `orig_name` attribute, in lowercase.
-    
-    If `orig_name` has no file extension, an empty string is returned.
-    """
-    return pgpath.get_file_extension(self.orig_name)
-  
-  def set_file_extension(self, file_extension, keep_extra_trailing_periods=False):
-    """Sets file extension in the `name` attribute.
-    
-    For more information, see `pgpath.get_filename_with_new_file_extension()`.
-    """
-    self.name = pgpath.get_filename_with_new_file_extension(
-      self.name, file_extension, keep_extra_trailing_periods)
-  
-  def get_base_name(self):
-    """Returns the item name without its file extension."""
-    file_extension = self.get_file_extension()
-    if file_extension:
-      return self.name[:-(len(file_extension) + 1)]
-    else:
-      return self.name
-  
-  def get_filepath(self, dirpath, include_folders=True):
-    """Returns file path given the specified directory path, item name and names
-    of its parents.
-    
-    If `include_folders` is `True`, create file path in the following format:
-      
-      <directory path>/<item path components>/<item name>
-    
-    If `include_folders` is `False`, create file path in the following format:
-      
-      <directory path>/<item name>
-    
-    If the directory path is not an absolute path or is `None`, prepend the
-    current working directory.
-    
-    Item path components consist of parents' item names, starting with the
-    topmost parent.
-    """
-    if dirpath is None:
-      dirpath = ''
-    
-    path = os.path.abspath(dirpath)
-    
-    if include_folders:
-      path_components = self.get_path_components()
-      if path_components:
-        path = os.path.join(path, os.path.join(*path_components))
-    
-    return os.path.join(path, self.name)
-  
-  def get_path_components(self):
-    """Returns a list of names of all parents of this item as path components.
-    """
-    return [parent.name for parent in self.parents]
   
   def add_tag(self, tag):
     """Adds the specified tag to the item.

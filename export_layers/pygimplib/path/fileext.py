@@ -10,6 +10,7 @@ from .. import fileformats as pgfileformats
 __all__ = [
   'get_file_extension',
   'get_filename_with_new_file_extension',
+  'get_filename_root',
 ]
 
 
@@ -69,3 +70,12 @@ def get_filename_with_new_file_extension(
     new_filename = filename_without_extension
   
   return new_filename
+
+
+def get_filename_root(filename):
+  """Returns the filename without its file extension."""
+  file_extension = get_file_extension(filename)
+  if file_extension:
+    return filename[:-(len(file_extension) + 1)]
+  else:
+    return filename

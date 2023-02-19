@@ -102,9 +102,10 @@ def resize_to_layer_size(exporter):
 def use_file_extension_in_item_name(exporter, convert_file_extension_to_lowercase=False):
   item = exporter.current_item
   
-  orig_file_extension = item.get_file_extension_from_orig_name()
+  orig_file_extension = pg.path.get_file_extension(item.orig_name)
+  item_file_extension = pg.path.get_file_extension(item.name)
   if (orig_file_extension
-      and orig_file_extension.lower() != item.get_file_extension().lower()
+      and orig_file_extension.lower() != item_file_extension.lower()
       and exporter.file_extension_properties[orig_file_extension].is_valid):
     if convert_file_extension_to_lowercase:
       orig_file_extension = orig_file_extension.lower()

@@ -41,11 +41,11 @@ def has_no_tags(item, tags=None):
 
 
 def has_matching_file_extension(item, file_extension):
-  return item.get_file_extension().lower() == file_extension.lower()
+  return pg.path.get_file_extension(item.name).lower() == file_extension.lower()
 
 
 def has_matching_default_file_extension(item, exporter):
-  return item.get_file_extension().lower() == exporter.default_file_extension.lower()
+  return pg.path.get_file_extension(item.name).lower() == exporter.default_file_extension.lower()
 
 
 def is_item_in_selected_items(item, selected_layers):

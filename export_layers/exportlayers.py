@@ -591,7 +591,7 @@ class LayerExporter(object):
     if self._current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
       self._exported_raw_items.append(raw_item)
       self._exported_raw_items_ids.add(raw_item.ID)
-      self._file_extension_properties[item.get_file_extension()].processed_count += 1
+      self._file_extension_properties[pg.path.get_file_extension(item.name)].processed_count += 1
   
   def _setup(self):
     pdb.gimp_context_push()
@@ -700,14 +700,17 @@ class LayerExporter(object):
       if self.current_file_extension == self._default_file_extension:
         item.name += '.' + self._default_file_extension
       else:
-        item.set_file_extension(self.current_file_extension, keep_extra_trailing_periods=True)
+        item.name = pg.path.get_filename_with_new_file_extension(
+          item.name, self.current_file_extension, keep_extra_trailing_periods=True)
     else:
-      item.set_file_extension(
-        self._default_file_extension, keep_extra_trailing_periods=True)
+      item.name = pg.path.get_filename_with_new_file_extension(
+        item.name, self._default_file_extension, keep_extra_trailing_periods=True)
     
     self._validate_name(item)
     self._uniquifier.uniquify(
-      item, position=self._get_unique_substring_position(item.name, item.get_file_extension()))
+      item,
+      position=self._get_unique_substring_position(
+        item.name, pg.path.get_file_extension(item.name)))
   
   @staticmethod
   def _validate_name(item):
@@ -734,8 +737,8 @@ class LayerExporter(object):
         self._processed_parent_names.add(parent)
   
   def _export(self, item, image, raw_item):
-    output_filepath = item.get_filepath(self._output_directory)
-    file_extension = item.get_file_extension()
+    output_filepath = self._get_item_filepath(item, self._output_directory)
+    file_extension = pg.path.get_file_extension(item.name)
     
     self.progress_updater.update_text(_('Saving "{}"').format(output_filepath))
     
@@ -758,6 +761,32 @@ class LayerExporter(object):
           self._get_export_func(file_extension),
           gimpenums.RUN_INTERACTIVE,
           image, raw_item, output_filepath, file_extension)
+  
+  @staticmethod
+  def _get_item_filepath(item, dirpath):
+    """Returns a file path based on the specified directory path and the name of
+    the item and its parents.
+    
+    The file path created has the following format:
+      
+      <directory path>/<item path components>/<item name>
+    
+    If the directory path is not an absolute path or is `None`, the
+    current working directory is prepended.
+    
+    Item path components consist of parents' item names, starting with the
+    topmost parent.
+    """
+    if dirpath is None:
+      dirpath = ''
+    
+    path = os.path.abspath(dirpath)
+    
+    path_components = [parent.name for parent in item.parents]
+    if path_components:
+      path = os.path.join(path, os.path.join(*path_components))
+    
+    return os.path.join(path, item.name)
   
   def _make_dirs(self, dirpath, exporter):
     try:

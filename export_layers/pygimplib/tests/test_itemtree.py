@@ -10,7 +10,6 @@ was chosen for this purpose.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-import os
 import unittest
 
 try:
@@ -166,46 +165,6 @@ class TestLayerTree(unittest.TestCase):
     self.item_tree.filter.add(lambda item: item.type == item.ITEM)
     
     self.assertEqual(len(self.item_tree), 6)
-  
-  def test_get_filepath(self):
-    # TODO: Is this test still relevant?
-    output_dirpath = os.path.join('D:', os.sep, 'testgimp')
-    
-    # `item` with parents
-    item = self.item_tree['bottom-right-corner']
-    
-    self.assertEqual(
-      item.get_filepath(output_dirpath),
-      os.path.join(output_dirpath, 'Corners', 'top-left-corner::', item.name))
-    self.assertEqual(
-      item.get_filepath(output_dirpath, include_folders=False),
-      os.path.join(output_dirpath, item.name))
-    self.assertEqual(
-      item.get_filepath('testgimp'),
-      os.path.join(
-        os.getcwd(), 'testgimp', 'Corners', 'top-left-corner::', item.name))
-    self.assertEqual(
-      item.get_filepath(None),
-      os.path.join(
-        os.getcwd(), 'Corners', 'top-left-corner::', item.name))
-    
-    itemtree_empty_group = self.item_tree['top-left-corner:']
-    
-    self.assertEqual(
-      itemtree_empty_group.get_filepath(output_dirpath),
-      os.path.join(output_dirpath, 'Corners', itemtree_empty_group.name))
-    self.assertEqual(
-      itemtree_empty_group.get_filepath(output_dirpath, include_folders=False),
-      os.path.join(output_dirpath, itemtree_empty_group.name))
-    
-    itemtree_empty_group_no_parents = self.item_tree['Overlay']
-    
-    self.assertEqual(
-      itemtree_empty_group_no_parents.get_filepath(output_dirpath),
-      os.path.join(output_dirpath, itemtree_empty_group_no_parents.name))
-    self.assertEqual(
-      itemtree_empty_group_no_parents.get_filepath(output_dirpath),
-      itemtree_empty_group_no_parents.get_filepath(output_dirpath, include_folders=False))
 
 
 @mock.patch(
@@ -233,22 +192,6 @@ class TestItem(unittest.TestCase):
         hex(id(self.item)).rstrip('L'),
       ),
     )
-  
-  def test_get_base_name(self):
-    self.item.name = 'main-background'
-    self.assertEqual(self.item.get_base_name(), 'main-background')
-    self.item.name = 'main-background.'
-    self.assertEqual(self.item.get_base_name(), 'main-background.')
-    self.item.name = 'main-background.jpg'
-    self.assertEqual(self.item.get_base_name(), 'main-background')
-    self.item.name = 'main-background..jpg'
-    self.assertEqual(self.item.get_base_name(), 'main-background.')
-    self.item.name = '..jpg'
-    self.assertEqual(self.item.get_base_name(), '.')
-    self.item.name = '.jpg'
-    self.assertEqual(self.item.get_base_name(), '')
-    self.item.name = '.'
-    self.assertEqual(self.item.get_base_name(), '.')
   
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.gimp',
