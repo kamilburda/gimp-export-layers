@@ -128,7 +128,7 @@ class LayerExporter(object):
       'item_contents': [
         self._setup, self._cleanup, self._process_item_with_actions, self._postprocess_item],
       'item_name': [
-        self._preprocess_item_name, self._process_folder_name, self._process_item_name],
+        self._preprocess_item_name, self._process_parent_folder_names, self._process_item_name],
       'export': [self._make_dirs, self._export],
       'item_name_for_preview': [self._process_item_name_for_preview],
     }
@@ -474,6 +474,7 @@ class LayerExporter(object):
     
     self._renamer = renamer.LayerNameRenamer(self.export_settings['layer_filename_pattern'].value)
     self._uniquifier = uniquifier.ItemUniquifier()
+    self._processed_parent_names = set()
   
   def _add_actions(self):
     self._invoker.add(
@@ -566,19 +567,13 @@ class LayerExporter(object):
             self._tagged_items[tag].append(item)
   
   def _process_items(self):
-    for item in self._item_tree.iter():
+    for item in self._item_tree:
       if self._should_stop:
         raise ExportCancelError('export stopped by user')
       
       self._current_item = item
       
-      if item.type in (item.ITEM, item.GROUP):
-        self._process_item(item)
-      elif item.type == item.FOLDER:
-        self._process_folder_name(item)
-      else:
-        raise ValueError(
-          'invalid/unsupported item type "{}" in {}'.format(item.type, item))
+      self._process_item(item)
   
   def _process_item(self, item):
     raw_item = item.raw
@@ -694,10 +689,6 @@ class LayerExporter(object):
     item.name = self._renamer.rename(self)
     self.current_file_extension = self._default_file_extension
   
-  def _process_folder_name(self, item):
-    self._validate_name(item)
-    self._uniquifier.uniquify(item)
-  
   def _process_item_name_for_preview(self):
     self._invoker.invoke(
       [self._NAME_ONLY_ACTION_GROUP],
@@ -726,12 +717,21 @@ class LayerExporter(object):
     return len(str_) - len('.' + file_extension)
   
   def _export_item(self, item, image, raw_item):
+    self._process_parent_folder_names(item)
     self._process_item_name(item, False)
     self._export(item, image, raw_item)
     
     if self._current_export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
       self._process_item_name(item, True)
       self._export(item, image, raw_item)
+  
+  def _process_parent_folder_names(self, item):
+    for parent in item.parents:
+      if parent not in self._processed_parent_names:
+        self._validate_name(parent)
+        self._uniquifier.uniquify(parent)
+        
+        self._processed_parent_names.add(parent)
   
   def _export(self, item, image, raw_item):
     output_filepath = item.get_filepath(self._output_directory)
