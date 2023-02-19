@@ -20,6 +20,7 @@ from export_layers import builtin_constraints
 from export_layers import actions
 from export_layers import placeholders
 from export_layers import renamer
+from export_layers import uniquifier
 
 
 _EXPORTER_ARG_POSITION_IN_PROCEDURES = 0
@@ -128,7 +129,6 @@ class LayerExporter(object):
         self._setup, self._cleanup, self._process_item_with_actions, self._postprocess_item],
       'item_name': [
         self._preprocess_item_name, self._process_folder_name, self._process_item_name],
-      '_postprocess_item_name': [self._postprocess_item_name],
       'export': [self._make_dirs, self._export],
       'item_name_for_preview': [self._process_item_name_for_preview],
     }
@@ -473,6 +473,7 @@ class LayerExporter(object):
     self._current_overwrite_mode = None
     
     self._renamer = renamer.LayerNameRenamer(self.export_settings['layer_filename_pattern'].value)
+    self._uniquifier = uniquifier.ItemUniquifier()
   
   def _add_actions(self):
     self._invoker.add(
@@ -509,9 +510,6 @@ class LayerExporter(object):
     
     if processing_groups is None:
       processing_groups = self._default_processing_groups
-    
-    if 'item_name' in processing_groups:
-      processing_groups.append('_postprocess_item_name')
     
     for processing_group, functions in self._processing_groups.items():
       if processing_group not in processing_groups:
@@ -592,7 +590,6 @@ class LayerExporter(object):
     raw_item_copy = self._process_item_with_actions(item, self._image_copy, raw_item)
     self._export_item(item, self._image_copy, raw_item_copy)
     self._postprocess_item(self._image_copy, raw_item_copy)
-    self._postprocess_item_name(item)
     
     self.progress_updater.update_tasks()
     
@@ -698,8 +695,8 @@ class LayerExporter(object):
     self.current_file_extension = self._default_file_extension
   
   def _process_folder_name(self, item):
-    self._item_tree.validate_name(item)
-    self._item_tree.uniquify_name(item)
+    self._validate_name(item)
+    self._uniquifier.uniquify(item)
   
   def _process_item_name_for_preview(self):
     self._invoker.invoke(
@@ -717,17 +714,15 @@ class LayerExporter(object):
       item.set_file_extension(
         self._default_file_extension, keep_extra_trailing_periods=True)
     
-    self._item_tree.validate_name(item)
-    self._item_tree.uniquify_name(
-      item,
-      uniquifier_position=self._get_uniquifier_position(
-        item.name, item.get_file_extension()))
+    self._validate_name(item)
+    self._uniquifier.uniquify(
+      item, position=self._get_unique_substring_position(item.name, item.get_file_extension()))
   
-  def _postprocess_item_name(self, item):
-    if item.type == item.GROUP:
-      self._item_tree.reset_name(item)
+  @staticmethod
+  def _validate_name(item):
+    item.name = pg.path.FilenameValidator.validate(item.name)
   
-  def _get_uniquifier_position(self, str_, file_extension):
+  def _get_unique_substring_position(self, str_, file_extension):
     return len(str_) - len('.' + file_extension)
   
   def _export_item(self, item, image, raw_item):
@@ -746,7 +741,7 @@ class LayerExporter(object):
     
     self._current_overwrite_mode, output_filepath = pg.overwrite.handle_overwrite(
       output_filepath, self.overwrite_chooser,
-      self._get_uniquifier_position(output_filepath, file_extension))
+      self._get_unique_substring_position(output_filepath, file_extension))
     
     if self._current_overwrite_mode == pg.overwrite.OverwriteModes.CANCEL:
       raise ExportCancelError('cancelled')
@@ -776,7 +771,7 @@ class LayerExporter(object):
         message = str(e)
       
       raise InvalidOutputDirectoryError(
-        message, exporter.current_item, exporter.default_file_extension)
+        message, exporter.current_item.name, exporter.default_file_extension)
   
   def _export_once_wrapper(
         self, export_func, run_mode, image, raw_item, output_filepath, file_extension):

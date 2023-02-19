@@ -14,12 +14,11 @@ __all__ = [
 ]
 
 
-def uniquify_string(
-      str_, existing_strings, uniquifier_position=None, uniquifier_generator=None):
+def uniquify_string(str_, existing_strings, position=None, generator=None):
   """
   If string `str_` is in the `existing_strings` list, return a unique string
-  by inserting a 'uniquifier' (a string that makes the whole input string
-  unique) in `str_`. Otherwise, return `str_`.
+  by inserting a substring that makes `str_` unique. Otherwise, return original
+  `str_`.
   
   Parameters:
   
@@ -27,20 +26,19 @@ def uniquify_string(
   
   * `existing_strings` - List of strings to compare against `str_`.
   
-  * `uniquifier_position` - See the `uniquifier_position` parameter in
-    `uniquify_string_generic()` for more information.
+  * `position` - See the `position` parameter in `uniquify_string_generic()` for
+    more information.
   
-  * `uniquifier_generator` - See the `uniquifier_generator` parameter in
-    `uniquify_string_generic()`.
+  * `generator` - See the `generator` parameter in `uniquify_string_generic()`.
   """
   return uniquify_string_generic(
     str_,
     lambda str_param: str_param not in existing_strings,
-    uniquifier_position,
-    uniquifier_generator)
+    position,
+    generator)
   
 
-def uniquify_filepath(filepath, uniquifier_position=None, uniquifier_generator=None):
+def uniquify_filepath(filepath, position=None, generator=None):
   """
   If a file at the specified path already exists, return a unique file path.
   
@@ -48,25 +46,23 @@ def uniquify_filepath(filepath, uniquifier_position=None, uniquifier_generator=N
   
   * `filepath` - File path to uniquify.
   
-  * `uniquifier_position` - See the `uniquifier_position` parameter in
-    `uniquify_string_generic()` for more information.
+  * `position` - See the `position` parameter in `uniquify_string_generic()` for
+    more information.
   
-  * `uniquifier_generator` - See the `uniquifier_generator` parameter in
-    `uniquify_string_generic()`.
+  * `generator` - See the `generator` parameter in `uniquify_string_generic()`.
   """
   return uniquify_string_generic(
     filepath,
     lambda filepath_param: not os.path.exists(filepath_param),
-    uniquifier_position,
-    uniquifier_generator)
+    position,
+    generator)
 
 
-def uniquify_string_generic(
-      str_, is_unique_func, uniquifier_position=None, uniquifier_generator=None):
+def uniquify_string_generic(str_, is_unique_func, position=None, generator=None):
   """
   If string `str_` is not unique according to `is_unique_func`, return a unique
-  string by inserting a "uniquifier" (a string that makes the whole input string
-  unique) in `str_`. Otherwise, return `str_`.
+  string by inserting a substring that makes `str_` unique. Otherwise, return
+  original `str_`.
   
   Parameters:
   
@@ -75,35 +71,35 @@ def uniquify_string_generic(
   * `is_unique_func` - Function that returns `True` if `str_` is unique, `False`
     otherwise. `is_unique_func` must contain `str_` as its only parameter.
   
-  * `uniquifier_position` - Position (index) where the uniquifier is inserted.
-    If the position is `None`, insert the uniquifier at the end of `str_` (i.e.
+  * `position` - Position (index) where the substring is inserted.
+    If the position is `None`, insert the substring at the end of `str_` (i.e.
     append it).
   
-  * `uniquifier_generator` - A generator object that generates a unique string
-    (uniquifier) in each iteration. If `None`, the generator yields default
-    strings - " (1)", " (2)", etc.
+  * `generator` - A generator object that generates a unique substring in each
+    iteration. If `None`, the generator yields default strings - " (1)", " (2)",
+    etc.
     
-    An example of a custom uniquifier generator:
+    An example of a custom generator:
 
       def _generate_unique_copy_string():
-        uniquifier = " - copy"
-        yield uniquifier
+        substr = " - copy"
+        yield substr
         
-        uniquifier = " - another copy"
-        yield uniquifier
+        substr = " - another copy"
+        yield substr
          
         i = 2
         while True:
-          yield "{} {}".format(uniquifier, i)
+          yield "{} {}".format(substr, i)
           i += 1
     
     This generator yields " - copy", " - another copy", " - another copy 2",
     etc.
   """
   
-  def _get_uniquified_string(uniquifier_generator):
+  def _get_uniquified_string(generator):
     return '{}{}{}'.format(
-      str_[0:uniquifier_position], next(uniquifier_generator), str_[uniquifier_position:])
+      str_[0:position], next(generator), str_[position:])
 
   def _generate_unique_number():
     i = 1
@@ -114,14 +110,14 @@ def uniquify_string_generic(
   if is_unique_func(str_):
     return str_
   
-  if uniquifier_position is None:
-    uniquifier_position = len(str_)
+  if position is None:
+    position = len(str_)
   
-  if uniquifier_generator is None:
-    uniquifier_generator = _generate_unique_number()
+  if generator is None:
+    generator = _generate_unique_number()
   
-  uniq_str = _get_uniquified_string(uniquifier_generator)
+  uniq_str = _get_uniquified_string(generator)
   while not is_unique_func(uniq_str):
-    uniq_str = _get_uniquified_string(uniquifier_generator)
+    uniq_str = _get_uniquified_string(generator)
   
   return uniq_str

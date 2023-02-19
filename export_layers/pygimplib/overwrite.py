@@ -126,7 +126,7 @@ class InteractiveOverwriteChooser(
     pass
 
 
-def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
+def handle_overwrite(filepath, overwrite_chooser, position=None):
   """
   If a file with the specified file path exists, handle the file path conflict
   via `overwrite_chooser` (an `OverwriteChooser` instance).
@@ -137,9 +137,9 @@ def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
   `RENAME_EXISTING` renames the existing file in the file system.
   
   If the overwrite mode indicates that the file path should be renamed and
-  `uniquifier_position` is not `None`, the `uniquifier_position` specifies where
-  in the file path to insert a unique substring (`' (number)'`). By default, the
-  uniquifier is inserted at the end of the file path to be renamed.
+  `position` is not `None`, the `position` specifies where in the file path to
+  insert a unique substring (`' (number)'`). By default, the substring is
+  inserted at the end of the file path to be renamed.
   
   Returns:
   
@@ -154,7 +154,7 @@ def handle_overwrite(filepath, overwrite_chooser, uniquifier_position=None):
     
     if overwrite_chooser.overwrite_mode in (
          OverwriteModes.RENAME_NEW, OverwriteModes.RENAME_EXISTING):
-      uniq_filepath = pgpath.uniquify_filepath(filepath, uniquifier_position)
+      uniq_filepath = pgpath.uniquify_filepath(filepath, position)
       if overwrite_chooser.overwrite_mode == OverwriteModes.RENAME_NEW:
         filepath = uniq_filepath
       else:

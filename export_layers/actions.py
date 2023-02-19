@@ -553,7 +553,7 @@ def get_action_dict_for_pdb_procedure(pdb_procedure):
     unique_pdb_param_name = pg.path.uniquify_string(
       processed_pdb_param_name,
       pdb_procedure_argument_names,
-      uniquifier_generator=_generate_unique_pdb_procedure_argument_name())
+      generator=_generate_unique_pdb_procedure_argument_name())
     
     pdb_procedure_argument_names.append(unique_pdb_param_name)
     
@@ -606,7 +606,7 @@ def _uniquify_action_name(actions, name):
     pg.path.uniquify_string(
       name,
       [action.name for action in walk(actions)],
-      uniquifier_generator=_generate_unique_action_name()))
+      generator=_generate_unique_action_name()))
 
 
 def _uniquify_action_display_name(actions, display_name):
@@ -625,7 +625,7 @@ def _uniquify_action_display_name(actions, display_name):
     pg.path.uniquify_string(
       display_name,
       [action['display_name'].value for action in walk(actions)],
-      uniquifier_generator=_generate_unique_display_name()))
+      generator=_generate_unique_display_name()))
 
 
 def reorder(actions, action_name, new_position):

@@ -92,16 +92,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     # value: `_Item` instance
     self._itemtree_names = {}
     
-    # key: `_Item` instance (parent) or None (item tree root)
-    # value: set of `_Item` instances
-    self._uniquified_itemtree = {}
-    
-    # key: `_Item` instance (parent) or None (item tree root)
-    # value: set of `_Item.name` strings
-    self._uniquified_itemtree_names = {}
-    
-    self._validated_itemtree = set()
-    
     self._build_tree()
   
   @property
@@ -156,14 +146,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     * `item` - The current `_Item` object.
     """
-    if not self.is_filtered:
-      for item in self._itemtree.values():
-        if item.type != item.FOLDER:
-          yield item
-    else:
-      for item in self._itemtree.values():
-        if item.type != item.FOLDER and self.filter.is_match(item):
-          yield item
+    return self.iter(with_folders=False, with_empty_groups=False)
   
   def iter(self, with_folders=True, with_empty_groups=False):
     """Iterates over items, optionally including folders and empty item groups.
@@ -198,98 +181,12 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
       if should_yield_item:
         yield item
   
-  def uniquify_name(
-        self,
-        item,
-        include_item_path=True,
-        uniquifier_position=None,
-        uniquifier_position_parents=None):
-    """Makes the `name` attribute in the specified `_Item` object unique among
-    all other, already uniquified `_Item` objects.
-    
-    To achieve uniquification, a string ("uniquifier") in the form of
-    `' (<number>)'` is inserted at the end of the item names.
-    
-    Parameters:
-    
-    * `item` - `_Item` object whose `name` attribute will be uniquified.
-    
-    * `include_item_path` - If `True`, take the item path into account when
-      uniquifying.
-      
-    * `uniquifier_position` - Position (index) where the uniquifier is inserted
-      into the current item. If the position is `None`, insert the uniquifier at
-      the end of the item name (i.e. append it).
-      
-    * `uniquifier_position_parents` - Position (index) where the uniquifier is
-      inserted into the parents of the current item. If the position is `None`,
-      insert the uniquifier at the end of the name of each parent. This
-      parameter has no effect if `include_item_path` is `False`.
-    """
-    if include_item_path:
-      for parent_or_item in list(item.parents) + [item]:
-        parent = parent_or_item.parent
-        
-        if parent not in self._uniquified_itemtree:
-          self._uniquified_itemtree[parent] = set()
-          self._uniquified_itemtree_names[parent] = set()
-        
-        if parent_or_item not in self._uniquified_itemtree[parent]:
-          if parent_or_item.name in self._uniquified_itemtree_names[parent]:
-            if parent_or_item == item:
-              position = uniquifier_position
-            else:
-              position = uniquifier_position_parents
-            
-            parent_or_item.name = pgpath.uniquify_string(
-              parent_or_item.name, self._uniquified_itemtree_names[parent], position)
-          
-          self._uniquified_itemtree[parent].add(parent_or_item)
-          self._uniquified_itemtree_names[parent].add(parent_or_item.name)
-    else:
-      # Use None as the root of the item tree.
-      parent = None
-      
-      if parent not in self._uniquified_itemtree_names:
-        self._uniquified_itemtree_names[parent] = set()
-      
-      item.name = pgpath.uniquify_string(
-        item.name, self._uniquified_itemtree_names[parent], uniquifier_position)
-      self._uniquified_itemtree_names[parent].add(item.name)
-  
-  def validate_name(self, item, force_validation=False):
-    """Validates the `name` attribute of the specified item and all of its
-    parents if not validated already or if `force_validation` is `True`.
-    """
-    for parent_or_item in list(item.parents) + [item]:
-      if parent_or_item not in self._validated_itemtree or force_validation:
-        parent_or_item.name = pgpath.FilenameValidator.validate(parent_or_item.name)
-        self._validated_itemtree.add(parent_or_item)
-  
-  def reset_name(self, item):
-    """Resets the name of the specified item to its original name.
-    
-    In addition, the item can be validated or uniquified again (using
-    `validate_name` or `uniquify_name`, respectively).
-    """
-    item.name = item.orig_name
-    
-    if item in self._validated_itemtree:
-      self._validated_itemtree.remove(item)
-    if item.parent in self._uniquified_itemtree:
-      self._uniquified_itemtree[item.parent].remove(item)
-  
   def reset_all_names(self):
-    """Resets the `name` attribute of all `_Item` instances (regardless of item
-    filtering) and clears cache for already uniquified and validated `_Item`
-    instances.
+    """Resets the `name` attribute of all `_Item` instances, regardless of item
+    filtering.
     """
     for item in self._itemtree.values():
       item.name = item.orig_name
-    
-    self._uniquified_itemtree.clear()
-    self._uniquified_itemtree_names.clear()
-    self._validated_itemtree.clear()
   
   def reset_filter(self):
     """Resets the filter, creating a new empty `ObjectFilter`."""
@@ -329,6 +226,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
         # We break the convention here and access private attributes from `_Item`.
         item._orig_children = child_items
         item._children = child_items
+        folder_item._orig_children = child_items
+        folder_item._children = child_items
         
         for child_item in reversed(child_items):
           item_tree.insert(0, child_item)
@@ -557,15 +456,15 @@ class _Item(object):
     else:
       return self.name
   
-  def get_filepath(self, dirpath, include_item_path=True):
+  def get_filepath(self, dirpath, include_folders=True):
     """Returns file path given the specified directory path, item name and names
     of its parents.
     
-    If `include_item_path` is `True`, create file path in the following format:
+    If `include_folders` is `True`, create file path in the following format:
       
       <directory path>/<item path components>/<item name>
     
-    If `include_item_path` is `False`, create file path in the following format:
+    If `include_folders` is `False`, create file path in the following format:
       
       <directory path>/<item name>
     
@@ -580,7 +479,7 @@ class _Item(object):
     
     path = os.path.abspath(dirpath)
     
-    if include_item_path:
+    if include_folders:
       path_components = self.get_path_components()
       if path_components:
         path = os.path.join(path, os.path.join(*path_components))

@@ -10,7 +10,6 @@ was chosen for this purpose.
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-import collections
 import os
 import unittest
 
@@ -25,25 +24,6 @@ from . import stubs_gimp
 from . import utils_itemtree
 from .. import itemtree as pgitemtree
 from .. import utils as pgutils
-
-
-class FilterRules(object):
-  
-  @staticmethod
-  def is_item(item):
-    return item.type == item.ITEM
-  
-  @staticmethod
-  def is_item_or_group(item):
-    return item.type in (item.ITEM, item.GROUP)
-  
-  @staticmethod
-  def is_path_visible(item):
-    return item.path_visible
-  
-  @staticmethod
-  def has_matching_file_extension(item, file_extension):
-    return item.name.endswith('.' + file_extension)
 
 
 @mock.patch(
@@ -69,73 +49,61 @@ class TestLayerTree(unittest.TestCase):
         }
         top-left-corner:: {
           bottom-right-corner
-          bottom-right-corner:
           bottom-left-corner
         }
-      }
-      Corners: {
-        top-left-corner:::
       }
       Frames {
         top-frame
       }
       main-background.jpg
-      main-background.jpg:
       Overlay {
-      }
-      Corners::
-      top-left-corner::::
-      main-background.jpg:: {
-        alt-frames
-        alt-corners
       }
     """
     
     image = utils_itemtree.parse_layers(items_string)
     self.item_tree = pgitemtree.LayerTree(image)
-  
-  def test_get_item_tree_element_attributes(self):
-    item_tree = collections.OrderedDict([
+    
+    self.ITEM = pgitemtree._Item.ITEM
+    self.GROUP = pgitemtree._Item.GROUP
+    self.FOLDER = pgitemtree._Item.FOLDER
+    
+    self.item_properties = [
       ('Corners',
-       [[],
-        ['top-left-corner', 'top-right-corner',
-         'top-left-corner:', 'top-left-corner::']]),
-      ('top-left-corner', [['Corners'], None]),
-      ('top-right-corner', [['Corners'], None]),
-      ('top-left-corner:', [['Corners'], []]),
+       self.FOLDER,
+       [],
+       ['top-left-corner', 'top-right-corner', 'top-left-corner:', 'top-left-corner::']),
+      ('Corners',
+       self.GROUP,
+       [],
+       ['top-left-corner', 'top-right-corner', 'top-left-corner:', 'top-left-corner::']),
+      ('top-left-corner', self.ITEM, ['Corners'], None),
+      ('top-right-corner', self.ITEM, ['Corners'], None),
+      ('top-left-corner:', self.FOLDER, ['Corners'], []),
+      ('top-left-corner:', self.GROUP, ['Corners'], []),
       ('top-left-corner::',
-       [['Corners'],
-        ['bottom-right-corner', 'bottom-right-corner:', 'bottom-left-corner']]),
-      ('bottom-right-corner', [['Corners', 'top-left-corner::'], None]),
-      ('bottom-right-corner:', [['Corners', 'top-left-corner::'], None]),
-      ('bottom-left-corner', [['Corners', 'top-left-corner::'], None]),
-      ('Corners:', [[], ['top-left-corner:::']]),
-      ('top-left-corner:::', [['Corners:'], None]),
-      ('Frames', [[], ['top-frame']]),
-      ('top-frame', [['Frames'], None]),
-      ('main-background.jpg', [[], None]),
-      ('main-background.jpg:', [[], None]),
-      ('Overlay', [[], []]),
-      ('Corners::', [[], None]),
-      ('top-left-corner::::', [[], None]),
-      ('main-background.jpg::', [[], ['alt-frames', 'alt-corners']]),
-      ('alt-frames', [['main-background.jpg::'], None]),
-      ('alt-corners', [['main-background.jpg::'], None]),
-    ])
-    
-    for item, orig_name in zip(self.item_tree, item_tree):
-      self.assertEqual(item.orig_name, orig_name)
-    
-    for item in self.item_tree:
-      self.assertNotEqual(item.type, item.FOLDER)
-    
-    for item, parents_and_children in zip(
-          self.item_tree, item_tree.values()):
-      parents = parents_and_children[0]
-      children = parents_and_children[1]
+       self.FOLDER, ['Corners'], ['bottom-right-corner', 'bottom-left-corner']),
+      ('top-left-corner::',
+       self.GROUP, ['Corners'], ['bottom-right-corner', 'bottom-left-corner']),
+      ('bottom-right-corner', self.ITEM, ['Corners', 'top-left-corner::'], None),
+      ('bottom-left-corner', self.ITEM, ['Corners', 'top-left-corner::'], None),
+      ('Frames', self.FOLDER, [], ['top-frame']),
+      ('Frames', self.GROUP, [], ['top-frame']),
+      ('top-frame', self.ITEM, ['Frames'], None),
+      ('main-background.jpg', self.ITEM, [], None),
+      ('Overlay', self.FOLDER, [], []),
+      ('Overlay', self.GROUP, [], []),
+    ]
+  
+  def test_item_attributes(self):
+    for item, properties in zip(
+          self.item_tree.iter(with_folders=True, with_empty_groups=True), self.item_properties):
+      self.assertEqual(item.orig_name, properties[0])
+      self.assertEqual(item.type, properties[1])
+      
+      parents = properties[2]
+      children = properties[3]
       
       self.assertListEqual([parent.orig_name for parent in item.parents], parents)
-      
       if children is not None:
         self.assertListEqual([child.orig_name for child in item.children], children)
       else:
@@ -146,80 +114,58 @@ class TestLayerTree(unittest.TestCase):
         item.children,
         list(item.orig_children) if item.orig_children is not None else None)
   
-  def test_iter(self):
-    item_names_and_types = [
-      ('Corners', pgitemtree._Item.FOLDER),
-      ('Corners', pgitemtree._Item.GROUP),
-      ('top-left-corner', pgitemtree._Item.ITEM),
-      ('top-right-corner', pgitemtree._Item.ITEM),
-      ('top-left-corner:', pgitemtree._Item.FOLDER),
-      ('top-left-corner:', pgitemtree._Item.GROUP),
-      ('top-left-corner::', pgitemtree._Item.FOLDER),
-      ('top-left-corner::', pgitemtree._Item.GROUP),
-      ('bottom-right-corner', pgitemtree._Item.ITEM),
-      ('bottom-right-corner:', pgitemtree._Item.ITEM),
-      ('bottom-left-corner', pgitemtree._Item.ITEM),
-      ('Corners:', pgitemtree._Item.FOLDER),
-      ('Corners:', pgitemtree._Item.GROUP),
-      ('top-left-corner:::', pgitemtree._Item.ITEM),
-      ('Frames', pgitemtree._Item.FOLDER),
-      ('Frames', pgitemtree._Item.GROUP),
-      ('top-frame', pgitemtree._Item.ITEM),
-      ('main-background.jpg', pgitemtree._Item.ITEM),
-      ('main-background.jpg:', pgitemtree._Item.ITEM),
-      ('Overlay', pgitemtree._Item.FOLDER),
-      ('Overlay', pgitemtree._Item.GROUP),
-      ('Corners::', pgitemtree._Item.ITEM),
-      ('top-left-corner::::', pgitemtree._Item.ITEM),
-      ('main-background.jpg::', pgitemtree._Item.FOLDER),
-      ('main-background.jpg::', pgitemtree._Item.GROUP),
-      ('alt-frames', pgitemtree._Item.ITEM),
-      ('alt-corners', pgitemtree._Item.ITEM),
-    ]
+  def test_iter_with_different_item_types_excluded(self):
+    limited_item_properties = [properties[:2] for properties in self.item_properties]
     
-    item_names_and_types_without_empty_groups = list(item_names_and_types)
-    del item_names_and_types_without_empty_groups[
-      item_names_and_types_without_empty_groups.index(
+    item_properties_without_empty_groups = list(limited_item_properties)
+    del item_properties_without_empty_groups[
+      item_properties_without_empty_groups.index(
         ('Overlay', pgitemtree._Item.FOLDER)) + 1]
-    del item_names_and_types_without_empty_groups[
-      item_names_and_types_without_empty_groups.index(
+    del item_properties_without_empty_groups[
+      item_properties_without_empty_groups.index(
         ('top-left-corner:', pgitemtree._Item.FOLDER)) + 1]
     
-    item_names_and_types_without_folders_and_empty_groups = [
-      (name, type_) for name, type_ in item_names_and_types if type_ != pgitemtree._Item.FOLDER]
-    del item_names_and_types_without_folders_and_empty_groups[
-      item_names_and_types_without_folders_and_empty_groups.index(
+    item_properties_without_folders_and_empty_groups = [
+      (name, type_) for name, type_ in limited_item_properties if type_ != self.FOLDER]
+    del item_properties_without_folders_and_empty_groups[
+      item_properties_without_folders_and_empty_groups.index(
         ('Overlay', pgitemtree._Item.GROUP))]
-    del item_names_and_types_without_folders_and_empty_groups[
-      item_names_and_types_without_folders_and_empty_groups.index(
+    del item_properties_without_folders_and_empty_groups[
+      item_properties_without_folders_and_empty_groups.index(
         ('top-left-corner:', pgitemtree._Item.GROUP))]
     
     for item, (item_name, item_type) in zip(
-          self.item_tree.iter(with_empty_groups=True), item_names_and_types):
+          self.item_tree.iter(with_empty_groups=True), limited_item_properties):
       self.assertEqual(item.name, item_name)
       self.assertEqual(item.type, item_type)
     
     for item, (item_name, item_type) in zip(
-          self.item_tree.iter(), item_names_and_types_without_empty_groups):
+          self.item_tree.iter(), item_properties_without_empty_groups):
       self.assertEqual(item.name, item_name)
       self.assertEqual(item.type, item_type)
     
     for item, (item_name, item_type) in zip(
           self.item_tree.iter(with_folders=False),
-          item_names_and_types_without_folders_and_empty_groups):
+          item_properties_without_folders_and_empty_groups):
+      self.assertEqual(item.name, item_name)
+      self.assertEqual(item.type, item_type)
+    
+    for item, (item_name, item_type) in zip(
+          self.item_tree,
+          item_properties_without_folders_and_empty_groups):
       self.assertEqual(item.name, item_name)
       self.assertEqual(item.type, item_type)
   
-  def test_get_len(self):
-    self.assertEqual(len(list(self.item_tree.iter())), 25)
-    self.assertEqual(len(list(self.item_tree.iter(with_empty_groups=True))), 27)
+  def test_len(self):
+    self.assertEqual(len(list(self.item_tree.iter())), 14)
+    self.assertEqual(len(list(self.item_tree.iter(with_empty_groups=True))), 16)
     
-    self.assertEqual(len(self.item_tree), 20)
+    self.assertEqual(len(self.item_tree), 9)
     
     self.item_tree.is_filtered = True
-    self.item_tree.filter.add(FilterRules.is_item)
+    self.item_tree.filter.add(lambda item: item.type == item.ITEM)
     
-    self.assertEqual(len(self.item_tree), 13)
+    self.assertEqual(len(self.item_tree), 6)
   
   def test_get_filepath(self):
     # TODO: Is this test still relevant?
@@ -232,7 +178,7 @@ class TestLayerTree(unittest.TestCase):
       item.get_filepath(output_dirpath),
       os.path.join(output_dirpath, 'Corners', 'top-left-corner::', item.name))
     self.assertEqual(
-      item.get_filepath(output_dirpath, include_item_path=False),
+      item.get_filepath(output_dirpath, include_folders=False),
       os.path.join(output_dirpath, item.name))
     self.assertEqual(
       item.get_filepath('testgimp'),
@@ -249,7 +195,7 @@ class TestLayerTree(unittest.TestCase):
       itemtree_empty_group.get_filepath(output_dirpath),
       os.path.join(output_dirpath, 'Corners', itemtree_empty_group.name))
     self.assertEqual(
-      itemtree_empty_group.get_filepath(output_dirpath, include_item_path=False),
+      itemtree_empty_group.get_filepath(output_dirpath, include_folders=False),
       os.path.join(output_dirpath, itemtree_empty_group.name))
     
     itemtree_empty_group_no_parents = self.item_tree['Overlay']
@@ -259,152 +205,12 @@ class TestLayerTree(unittest.TestCase):
       os.path.join(output_dirpath, itemtree_empty_group_no_parents.name))
     self.assertEqual(
       itemtree_empty_group_no_parents.get_filepath(output_dirpath),
-      itemtree_empty_group_no_parents.get_filepath(output_dirpath, include_item_path=False))
-  
-  #-----------------------------------------------------------------------------
-  
-  def test_uniquify_without_groups(self):
-    uniquified_names = collections.OrderedDict([
-      ('top-left-corner', 'top-left-corner'),
-      ('top-right-corner', 'top-right-corner'),
-      ('top-left-corner:', 'top-left-corner (1)'),
-      ('bottom-right-corner', 'bottom-right-corner'),
-      ('bottom-right-corner:', 'bottom-right-corner (1)'),
-      ('bottom-left-corner', 'bottom-left-corner'),
-      ('top-left-corner:::', 'top-left-corner (2)'),
-      ('top-frame', 'top-frame'),
-      ('main-background.jpg', 'main-background.jpg'),
-      ('main-background.jpg:', 'main-background.jpg (1)'),
-      ('Corners', 'Corners'),
-      ('top-left-corner::::', 'top-left-corner (3)')
-    ])
-    
-    # This is to make uniquification work properly for these tests. The code is
-    # not inside `uniquify_names()` as the code that uses this method may need
-    # to uniquify non-empty groups in some scenarios (such as when merging
-    # non-empty groups into items, which would not match the filter).
-    self.item_tree.is_filtered = True
-    self.item_tree.filter.add(FilterRules.is_item_or_group)
-    
-    for item in self.item_tree:
-      self.item_tree.validate_name(item)
-      self.item_tree.uniquify_name(item, include_item_path=False)
-    
-    self._compare_uniquified_without_parents(self.item_tree, uniquified_names)
-  
-  def _compare_uniquified_without_parents(self, item_tree, uniquified_names):
-    for key, name in uniquified_names.items():
-      self.assertEqual(
-        item_tree[key].name,
-        name,
-        '"{}": "{}" != "{}"'.format(key, item_tree[key].name, name))
-  
-  def test_uniquify_with_groups(self):
-    uniquified_names = collections.OrderedDict([
-      ('Corners', ['Corners']),
-      ('top-left-corner', ['Corners', 'top-left-corner']),
-      ('top-right-corner', ['Corners', 'top-right-corner']),
-      ('top-left-corner:', ['Corners', 'top-left-corner (1)']),
-      ('top-left-corner::', ['Corners', 'top-left-corner (2)']),
-      ('bottom-right-corner',
-       ['Corners', 'top-left-corner (2)', 'bottom-right-corner']),
-      ('bottom-right-corner:',
-       ['Corners', 'top-left-corner (2)', 'bottom-right-corner (1)']),
-      ('bottom-left-corner',
-       ['Corners', 'top-left-corner (2)', 'bottom-left-corner']),
-      ('Corners:', ['Corners (1)']),
-      ('top-left-corner:::', ['Corners (1)', 'top-left-corner']),
-      ('Frames', ['Frames']),
-      ('top-frame', ['Frames', 'top-frame']),
-      ('main-background.jpg', ['main-background.jpg']),
-      ('main-background.jpg:', ['main-background.jpg (1)']),
-      ('Corners::', ['Corners (2)']),
-      ('top-left-corner::::', ['top-left-corner']),
-      ('main-background.jpg::', ['main-background.jpg (2)']),
-      ('alt-frames', ['main-background.jpg (2)', 'alt-frames']),
-      ('alt-corners', ['main-background.jpg (2)', 'alt-corners']),
-    ])
-    
-    self.item_tree.is_filtered = True
-    self.item_tree.filter.add(FilterRules.is_item_or_group)
-    
-    for item in self.item_tree:
-      self.item_tree.validate_name(item)
-      self.item_tree.uniquify_name(item, include_item_path=True)
-    self._compare_uniquified_with_parents(self.item_tree, uniquified_names)
-  
-  def test_uniquify_with_regards_to_file_extension(self):
-    def _get_file_extension_start_position(str_):
-      position = str_.rfind('.')
-      if position == -1:
-        position = len(str_)
-      return position
-    
-    uniquified_names = collections.OrderedDict([
-      ('main-background.jpg', ['main-background.jpg']),
-      ('main-background.jpg:', ['main-background (1).jpg']),
-      ('main-background.jpg::', ['main-background.jpg (1)'])
-    ])
-    
-    self.item_tree.is_filtered = True
-    self.item_tree.filter.add(FilterRules.is_item_or_group)
-    
-    for item in self.item_tree:
-      self.item_tree.validate_name(item)
-      self.item_tree.uniquify_name(
-        item,
-        include_item_path=True,
-        uniquifier_position=_get_file_extension_start_position(item.name))
-    self._compare_uniquified_with_parents(self.item_tree, uniquified_names)
-  
-  def _compare_uniquified_with_parents(self, item_tree, uniquified_names):
-    for key, item_path in uniquified_names.items():
-      path_components, name = item_path[:-1], item_path[-1]
-      self.assertEqual(
-        item_tree[key].get_path_components(),
-        path_components,
-        'parents: "{}": "{}" != "{}"'.format(
-          key, item_tree[key].get_path_components(), path_components))
-      self.assertEqual(
-        item_tree[key].name,
-        name,
-        'item name: "{}": "{}" != "{}"'.format(key, item_tree[key].name, name))
-  
-  def test_reset_name(self):
-    self.item_tree['Corners'].name = 'Corners.png'
-    
-    self.item_tree.validate_name(self.item_tree['Corners'])
-    self.item_tree.uniquify_name(self.item_tree['Corners'])
-    
-    self.item_tree.validate_name(self.item_tree['Corners::'])
-    self.item_tree.uniquify_name(self.item_tree['Corners::'])
-    
-    self.item_tree.reset_name(self.item_tree['Corners'])
-    
-    self.item_tree.validate_name(self.item_tree['Corners'])
-    self.item_tree.uniquify_name(self.item_tree['Corners'])
-    
-    self.assertEqual(self.item_tree['Corners::'].name, 'Corners')
-    self.assertEqual(self.item_tree['Corners'].name, 'Corners (1)')
-  
-  def test_reset_all_names(self):
-    self.item_tree['Corners'].name = 'Corners.png'
-    self.item_tree['Corners:'].name = 'Corners.png:'
-    
-    self.item_tree.validate_name(self.item_tree['Corners'])
-    self.item_tree.uniquify_name(self.item_tree['Corners'])
-    self.item_tree.validate_name(self.item_tree['Corners:'])
-    self.item_tree.uniquify_name(self.item_tree['Corners:'])
-    
-    self.item_tree.reset_all_names()
-    
-    self.assertEqual(self.item_tree['Corners'].name, 'Corners')
-    self.assertEqual(self.item_tree['Corners:'].name, 'Corners:')
+      itemtree_empty_group_no_parents.get_filepath(output_dirpath, include_folders=False))
 
 
 @mock.patch(
   pgutils.get_pygimplib_module_path() + '.itemtree.pdb', new=stubs_gimp.PdbStub())
-class TestLayerTreeElement(unittest.TestCase):
+class TestItem(unittest.TestCase):
   
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.pdb', new=stubs_gimp.PdbStub())
