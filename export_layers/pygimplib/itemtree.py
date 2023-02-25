@@ -157,7 +157,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     Parameters:
     
-    * `with_folders` - If `True`, include folders.
+    * `with_folders` - If `True`, include folders. Topmost folders are yielded
+      first. Items are always yielded after all of its parent folders.
     
     * `with_empty_groups` - If `True`, include empty item groups. Empty item
       groups as folders are still yielded if `with_folders` is `True`.
