@@ -244,6 +244,7 @@ def _update_to_3_3_2(settings):
     settings['main/procedures'],
     'use_file_extensions_in_layer_names',
     'use_file_extension_in_layer_name',
+    builtin_procedures.BUILTIN_PROCEDURES,
   )
   
   _refresh_actions(
@@ -251,6 +252,7 @@ def _update_to_3_3_2(settings):
     settings['main/procedures'],
     'ignore_folder_structure',
     'ignore_folder_structure',
+    builtin_procedures.BUILTIN_PROCEDURES,
   )
   
   _rename_generic_setting_in_actions(
@@ -270,7 +272,19 @@ def _update_to_3_3_5(settings):
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'settings_plugin.pyc'))
 
 
-def _refresh_actions(actions_list, actions_root, old_action_prefix, new_action_prefix):
+def _update_to_3_4(settings):
+  settings['main/constraints'].load()
+  
+  constraints = _get_actions(settings['main/constraints'])
+  
+  _remove_actions(constraints, settings['main/constraints'], 'include_empty_layer_groups')
+  
+  settings['main/constraints'].save()
+  actions_.clear(settings['main/constraints'])
+
+
+def _refresh_actions(
+      actions_list, actions_root, old_action_prefix, new_action_prefix, builtin_actions_dict):
   removed_actions = []
   for index, action in enumerate(actions_list):
     if action.name.startswith(old_action_prefix):
@@ -278,10 +292,16 @@ def _refresh_actions(actions_list, actions_root, old_action_prefix, new_action_p
       actions_.remove(actions_root, action.name)
   
   for index, removed_action in removed_actions:
-    action_dict = builtin_procedures.BUILTIN_PROCEDURES[new_action_prefix]
+    action_dict = builtin_actions_dict[new_action_prefix]
     action_dict['enabled'] = removed_action['enabled'].value
     action = actions_.add(actions_root, action_dict)
     actions_.reorder(actions_root, action.name, index)
+
+
+def _remove_actions(actions_list, actions_root, action_prefix):
+  for action in actions_list:
+    if action.name.startswith(action_prefix):
+      actions_.remove(actions_root, action.name)
 
 
 def _rename_generic_setting_in_actions(actions_list, actions, orig_name, new_name):
@@ -422,14 +442,25 @@ def _fix_element_paths_in_parasites_3_3_5():
   ])
 
 
+def _fix_element_paths_in_parasites_3_4():
+  _fix_element_paths_in_parasites([
+    (b'builtin_constraints\nis_nonempty_group',
+     b'builtin_constraints\nis_group'),
+    (b'builtin_constraints\nis_empty_group',
+     b'export_layers.pygimplib.utils\nempty_func'),
+  ])
+
+
 _UPDATE_HANDLERS = collections.OrderedDict([
   ('3.3.1', _update_to_3_3_1),
   ('3.3.2', _update_to_3_3_2),
   ('3.3.5', _update_to_3_3_5),
+  ('3.4', _update_to_3_4),
 ])
 
 
 _FIX_PARASITE_HANDLERS = collections.OrderedDict([
   ('3.3.2', _fix_element_paths_in_parasites_3_3_2),
   ('3.3.5', _fix_element_paths_in_parasites_3_3_5),
+  ('3.4', _fix_element_paths_in_parasites_3_4),
 ])
