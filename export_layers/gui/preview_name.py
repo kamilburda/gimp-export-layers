@@ -561,13 +561,13 @@ class ExportNamePreview(preview_base_.ExportPreview):
       pg.utils.safe_encode_gtk(item.name))
   
   def _insert_parent_items(self, item):
-    for parent_elem in item.parents:
-      if not self._tree_iters[parent_elem.raw.ID]:
-        self._insert_item(parent_elem)
+    for parent in item.parents:
+      if not self._tree_iters[parent.raw.ID]:
+        self._insert_item(parent)
   
   def _update_parent_items(self, item):
-    for parent_elem in item.parents:
-      self._update_item(parent_elem)
+    for parent in item.parents:
+      self._update_item(parent)
   
   def _enable_filtered_items(self, enabled):
     if self.is_filtering:
@@ -608,11 +608,11 @@ class ExportNamePreview(preview_base_.ExportPreview):
         sensitive)
   
   def _set_parent_items_sensitive(self, item):
-    for parent_elem in reversed(list(item.parents)):
+    for parent in reversed(list(item.parents)):
       parent_sensitive = any(
-        self._get_item_sensitive(child_elem) for child_elem in parent_elem.children
-        if child_elem.raw.ID in self._tree_iters)
-      self._set_item_sensitive(parent_elem, parent_sensitive)
+        self._get_item_sensitive(child) for child in parent.children
+        if child.raw.ID in self._tree_iters)
+      self._set_item_sensitive(parent, parent_sensitive)
   
   def _set_items_sensitive(self, items, sensitive):
     for item in items:
