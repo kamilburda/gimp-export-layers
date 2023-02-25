@@ -182,6 +182,93 @@ def replace_field_arguments_in_pattern(
   return pg.path.StringPattern.reconstruct_pattern(processed_pattern_parts)
 
 
+def _refresh_actions(
+      actions_list, actions_root, old_action_prefix, new_action_prefix, builtin_actions_dict):
+  removed_actions = []
+  for index, action in enumerate(actions_list):
+    if action.name.startswith(old_action_prefix):
+      removed_actions.append((index, action))
+      actions_.remove(actions_root, action.name)
+  
+  for index, removed_action in removed_actions:
+    action_dict = builtin_actions_dict[new_action_prefix]
+    action_dict['enabled'] = removed_action['enabled'].value
+    action = actions_.add(actions_root, action_dict)
+    actions_.reorder(actions_root, action.name, index)
+
+
+def _remove_actions(actions_list, actions_root, action_prefix):
+  for action in actions_list:
+    if action.name.startswith(action_prefix):
+      actions_.remove(actions_root, action.name)
+
+
+def _rename_generic_setting_in_actions(actions_list, actions, orig_name, new_name):
+  for action in actions_list:
+    if orig_name in action:
+      if new_name in action:
+        action[new_name].set_value(action[orig_name].value)
+      else:
+        action.add([
+          {
+            'type': pg.SettingTypes.generic,
+            'name': new_name,
+            'default_value': action[orig_name].value,
+            'gui_type': None,
+          },
+        ])
+      
+      action.remove([orig_name])
+  
+  for added_data_dict in actions['_added_data'].value:
+    if orig_name in added_data_dict:
+      added_data_dict[new_name] = added_data_dict[orig_name]
+      del added_data_dict[orig_name]
+  
+  added_data_values_keys_to_rename = [
+    key for key in actions['_added_data_values'].value
+    if key.endswith(pg.setting.SETTING_PATH_SEPARATOR + orig_name)
+  ]
+  for key in added_data_values_keys_to_rename:
+    new_key = re.sub(
+      pg.setting.SETTING_PATH_SEPARATOR + orig_name + r'$',
+      pg.setting.SETTING_PATH_SEPARATOR + new_name,
+      key)
+    actions['_added_data_values'].value[new_key] = actions['_added_data_values'].value[key]
+    del actions['_added_data_values'].value[key]
+
+
+def _get_action_settings(settings):
+  return [
+    setting for setting in settings.walk()
+    if isinstance(setting, pg.setting.Setting) and 'action' in setting.parent.tags
+  ]
+
+
+def _get_actions(settings):
+  return [
+    setting for setting in settings.walk(include_groups=True)
+    if isinstance(setting, pg.setting.Group) and 'action' in setting.tags
+  ]
+
+
+def _is_fresh_start():
+  return not pg.config.PERSISTENT_SOURCE.has_data()
+
+
+def _save_plugin_version(settings):
+  settings['main/plugin_version'].reset()
+  pg.setting.Persistor.save(
+    [settings['main/plugin_version']], [pg.config.PERSISTENT_SOURCE])
+
+
+def _try_remove_file(filepath):
+  try:
+    os.remove(filepath)
+  except Exception:
+    pass
+
+
 def _update_to_3_3_1(settings):
   rename_settings([
     ('gui/export_name_preview_sensitive',
@@ -281,93 +368,6 @@ def _update_to_3_4(settings):
   
   settings['main/constraints'].save()
   actions_.clear(settings['main/constraints'])
-
-
-def _refresh_actions(
-      actions_list, actions_root, old_action_prefix, new_action_prefix, builtin_actions_dict):
-  removed_actions = []
-  for index, action in enumerate(actions_list):
-    if action.name.startswith(old_action_prefix):
-      removed_actions.append((index, action))
-      actions_.remove(actions_root, action.name)
-  
-  for index, removed_action in removed_actions:
-    action_dict = builtin_actions_dict[new_action_prefix]
-    action_dict['enabled'] = removed_action['enabled'].value
-    action = actions_.add(actions_root, action_dict)
-    actions_.reorder(actions_root, action.name, index)
-
-
-def _remove_actions(actions_list, actions_root, action_prefix):
-  for action in actions_list:
-    if action.name.startswith(action_prefix):
-      actions_.remove(actions_root, action.name)
-
-
-def _rename_generic_setting_in_actions(actions_list, actions, orig_name, new_name):
-  for action in actions_list:
-    if orig_name in action:
-      if new_name in action:
-        action[new_name].set_value(action[orig_name].value)
-      else:
-        action.add([
-          {
-            'type': pg.SettingTypes.generic,
-            'name': new_name,
-            'default_value': action[orig_name].value,
-            'gui_type': None,
-          },
-        ])
-      
-      action.remove([orig_name])
-  
-  for added_data_dict in actions['_added_data'].value:
-    if orig_name in added_data_dict:
-      added_data_dict[new_name] = added_data_dict[orig_name]
-      del added_data_dict[orig_name]
-  
-  added_data_values_keys_to_rename = [
-    key for key in actions['_added_data_values'].value
-    if key.endswith(pg.setting.SETTING_PATH_SEPARATOR + orig_name)
-  ]
-  for key in added_data_values_keys_to_rename:
-    new_key = re.sub(
-      pg.setting.SETTING_PATH_SEPARATOR + orig_name + r'$',
-      pg.setting.SETTING_PATH_SEPARATOR + new_name,
-      key)
-    actions['_added_data_values'].value[new_key] = actions['_added_data_values'].value[key]
-    del actions['_added_data_values'].value[key]
-
-
-def _get_action_settings(settings):
-  return [
-    setting for setting in settings.walk()
-    if isinstance(setting, pg.setting.Setting) and 'action' in setting.parent.tags
-  ]
-
-
-def _get_actions(settings):
-  return [
-    setting for setting in settings.walk(include_groups=True)
-    if isinstance(setting, pg.setting.Group) and 'action' in setting.tags
-  ]
-
-
-def _is_fresh_start():
-  return not pg.config.PERSISTENT_SOURCE.has_data()
-
-
-def _save_plugin_version(settings):
-  settings['main/plugin_version'].reset()
-  pg.setting.Persistor.save(
-    [settings['main/plugin_version']], [pg.config.PERSISTENT_SOURCE])
-
-
-def _try_remove_file(filepath):
-  try:
-    os.remove(filepath)
-  except Exception:
-    pass
 
 
 def _remove_obsolete_pygimplib_files_3_3_2():
