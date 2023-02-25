@@ -174,8 +174,7 @@ class TestItem(unittest.TestCase):
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.pdb', new=stubs_gimp.PdbStub())
   def setUp(self):
-    self.item = pgitemtree._Item(
-      stubs_gimp.LayerStub('main-background.jpg'))
+    self.item = pgitemtree._Item(stubs_gimp.LayerStub('main-background.jpg'))
   
   def test_str(self):
     self.assertEqual(str(self.item), '<_Item "main-background.jpg">')
@@ -247,3 +246,33 @@ class TestItem(unittest.TestCase):
     
     item = pgitemtree._Item(layer, tags_source_name=item_tags_source_name)
     self.assertFalse(item.tags)
+  
+  @mock.patch(
+    pgutils.get_pygimplib_module_path() + '.itemtree.gimp',
+    new=stubs_gimp.GimpModuleStub())
+  def test_initial_tags_for_item_as_folder(self):
+    item_tags_source_name = 'test'
+    folder_tags_source_name = item_tags_source_name + '_' + pgitemtree.ItemTree.FOLDER_KEY
+    
+    layer = stubs_gimp.LayerStub('layer')
+    layer.parasite_attach(
+      stubs_gimp.ParasiteStub(folder_tags_source_name, 0, pickle.dumps(set(['background']))))
+    
+    item = pgitemtree._Item(layer, tags_source_name=item_tags_source_name, is_folder=True)
+    self.assertEqual(item.tags_source_name, folder_tags_source_name)
+    self.assertIn('background', item.tags)
+  
+  @mock.patch(
+    pgutils.get_pygimplib_module_path() + '.itemtree.gimp',
+    new=stubs_gimp.GimpModuleStub())
+  def test_initial_tags_for_item_as_folder_unrecognized_source_name(self):
+    item_tags_source_name = 'test'
+    folder_tags_source_name = item_tags_source_name + '_' + pgitemtree.ItemTree.FOLDER_KEY
+    
+    layer = stubs_gimp.LayerStub('layer')
+    layer.parasite_attach(
+      stubs_gimp.ParasiteStub(item_tags_source_name, 0, pickle.dumps(set(['background']))))
+    
+    item = pgitemtree._Item(layer, tags_source_name=item_tags_source_name, is_folder=True)
+    self.assertEqual(item.tags_source_name, folder_tags_source_name)
+    self.assertNotIn('background', item.tags)

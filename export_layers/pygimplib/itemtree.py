@@ -347,6 +347,9 @@ class _Item(object):
     self._orig_children = self._children
     
     self._tags_source_name = tags_source_name if tags_source_name else 'tags'
+    if self._is_folder:
+      self._tags_source_name += '_' + ItemTree.FOLDER_KEY
+    
     self._tags = self._load_tags()
   
   @property
