@@ -320,7 +320,8 @@ class _Item(object):
     `tags_source_name` attribute.
   
   * `tags_source_name` - Name of the persistent source for the `tags` attribute.
-    Defaults to `'tags'` if `None`.
+    Defaults to `'tags'` if `None`. If `type` is `FOLDER`, `'_folder'` is
+    appended to `tags_source_name`.
   """
   
   _ITEM_TYPES = ITEM, GROUP, FOLDER = (0, 1, 2)
