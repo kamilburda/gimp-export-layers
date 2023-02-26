@@ -444,8 +444,6 @@ def _fix_element_paths_in_parasites_3_3_5():
 
 def _fix_element_paths_in_parasites_3_4():
   _fix_element_paths_in_parasites([
-    (b'builtin_constraints\nis_nonempty_group',
-     b'builtin_constraints\nis_group'),
     (b'builtin_constraints\nis_empty_group',
      b'export_layers.pygimplib.utils\nempty_func'),
   ])

@@ -57,7 +57,7 @@ def remove_folder_hierarchy_from_item(exporter):
   item = exporter.current_item
 
   item.parents = []
-  item.children = None if item.type == item.ITEM else []
+  item.children = []
 
 
 def insert_background_layer(exporter, tag):

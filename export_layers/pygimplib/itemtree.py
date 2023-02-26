@@ -173,7 +173,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
       if not with_folders and item.type == item.FOLDER:
         should_yield_item = False
       
-      if not with_empty_groups and (item.type == item.GROUP and not item.children):
+      if (not with_empty_groups
+          and (item.type == item.GROUP and not pdb.gimp_item_get_children(item.raw)[1])):
         should_yield_item = False
       
       if should_yield_item:
@@ -195,44 +196,43 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
   
   def _build_tree(self):
-    child_raw_items = self._get_children_from_image(self._image)
-    child_items = [_Item(raw_item, [], None, self._name) for raw_item in child_raw_items]
+    child_items = []
+    for raw_item in self._get_children_from_image(self._image):
+      if self._is_group(raw_item):
+        child_items.append(_Item(raw_item, _Item.FOLDER, [], [], self._name))
+        child_items.append(_Item(raw_item, _Item.GROUP, [], [], self._name))
+      else:
+        child_items.append(_Item(raw_item, _Item.ITEM, [], [], self._name))
     
     item_tree = child_items
     
     while item_tree:
       item = item_tree.pop(0)
       
-      if self._is_group(item.raw):
-        child_raw_items = self._get_children_from_raw_item(item.raw)
-      else:
-        child_raw_items = None
-      
-      if child_raw_items is not None:
-        folder_item = _Item(
-          item.raw, list(item.parents), item.children, self._name, is_folder=True)
+      if item.type == item.FOLDER:
+        self._itemtree[(item.raw.ID, self.FOLDER_KEY)] = item
+        self._itemtree_names[(item.orig_name, self.FOLDER_KEY)] = item
         
-        self._itemtree[(folder_item.raw.ID, self.FOLDER_KEY)] = folder_item
-        self._itemtree_names[(folder_item.orig_name, self.FOLDER_KEY)] = folder_item
-      
-      self._itemtree[item.raw.ID] = item
-      self._itemtree_names[item.orig_name] = item
-      
-      if child_raw_items is not None:
         parents_for_child = list(item.parents)
-        parents_for_child.append(folder_item)
+        parents_for_child.append(item)
         
-        child_items = [
-          _Item(raw_item, parents_for_child, None, self._name) for raw_item in child_raw_items]
+        child_items = []
+        for raw_item in self._get_children_from_raw_item(item.raw):
+          if self._is_group(raw_item):
+            child_items.append(_Item(raw_item, _Item.FOLDER, parents_for_child, [], self._name))
+            child_items.append(_Item(raw_item, _Item.GROUP, parents_for_child, [], self._name))
+          else:
+            child_items.append(_Item(raw_item, _Item.ITEM, parents_for_child, [], self._name))
         
         # We break the convention here and access private attributes from `_Item`.
         item._orig_children = child_items
         item._children = child_items
-        folder_item._orig_children = child_items
-        folder_item._children = child_items
         
         for child_item in reversed(child_items):
           item_tree.insert(0, child_item)
+      else:
+        self._itemtree[item.raw.ID] = item
+        self._itemtree_names[item.orig_name] = item
   
   @abc.abstractmethod
   def _get_children_from_image(self, image):
@@ -305,8 +305,9 @@ class _Item(object):
   
   * `type` (read-only) - Item type - one of the following:
       * `ITEM` - regular item
-      * `GROUP` - item group (contains children, but acts as an item)
-      * `FOLDER` - contains children
+      * `GROUP` - item group (item whose raw `gimp.Item` is a group with
+        children; this `_Item` has no children and acts as a regular item)
+      * `FOLDER` - item containing children (raw item is a group with children)
   
   * `path_visible` (read-only) - Visibility of all item's parents and this
     item. If all items are visible, `path_visible` is `True`. If at least one
@@ -328,20 +329,18 @@ class _Item(object):
   _ITEM_TYPES = ITEM, GROUP, FOLDER = (0, 1, 2)
   
   def __init__(
-        self, raw_item, parents=None, children=None, tags_source_name=None, is_folder=False):
+        self, raw_item, item_type,
+        parents=None, children=None, tags_source_name=None):
     if raw_item is None:
       raise TypeError('item cannot be None')
     
     self._raw_item = raw_item
+    self._type = item_type
     self._parents = parents if parents is not None else []
-    self._children = children
-    self._is_folder = is_folder
+    self._children = children if children is not None else []
     
     self.name = pgutils.safe_decode_gimp(raw_item.name)
     
-    # These attributes are lazily initialized since children and parents are
-    # dynamically modified while constructing the item tree.
-    self._type = None
     self._path_visible = None
     
     self._orig_name = self.name
@@ -349,7 +348,7 @@ class _Item(object):
     self._orig_children = self._children
     
     self._tags_source_name = tags_source_name if tags_source_name else 'tags'
-    if self._is_folder:
+    if self._type == self.FOLDER:
       self._tags_source_name += '_' + ItemTree.FOLDER_KEY
     
     self._tags = self._load_tags()
@@ -384,15 +383,6 @@ class _Item(object):
   
   @property
   def type(self):
-    if self._type is None:
-      if self._is_folder:
-        self._type = self.FOLDER
-      else:
-        if self._children is None:
-          self._type = self.ITEM
-        else:
-          self._type = self.GROUP
-    
     return self._type
   
   @property

@@ -70,25 +70,34 @@ class TestLayerTree(unittest.TestCase):
       ('Corners',
        self.FOLDER,
        [],
-       ['top-left-corner', 'top-right-corner', 'top-left-corner:', 'top-left-corner::']),
-      ('Corners',
-       self.GROUP,
-       [],
-       ['top-left-corner', 'top-right-corner', 'top-left-corner:', 'top-left-corner::']),
-      ('top-left-corner', self.ITEM, ['Corners'], None),
-      ('top-right-corner', self.ITEM, ['Corners'], None),
-      ('top-left-corner:', self.FOLDER, ['Corners'], []),
-      ('top-left-corner:', self.GROUP, ['Corners'], []),
+       [('top-left-corner', self.ITEM),
+        ('top-right-corner', self.ITEM),
+        ('top-left-corner:', self.FOLDER),
+        ('top-left-corner:', self.GROUP),
+        ('top-left-corner::', self.FOLDER),
+        ('top-left-corner::', self.GROUP)]),
+      ('top-left-corner', self.ITEM, [('Corners', self.FOLDER)], []),
+      ('top-right-corner', self.ITEM, [('Corners', self.FOLDER)], []),
+      ('top-left-corner:', self.FOLDER, [('Corners', self.FOLDER)], []),
+      ('top-left-corner:', self.GROUP, [('Corners', self.FOLDER)], []),
       ('top-left-corner::',
-       self.FOLDER, ['Corners'], ['bottom-right-corner', 'bottom-left-corner']),
-      ('top-left-corner::',
-       self.GROUP, ['Corners'], ['bottom-right-corner', 'bottom-left-corner']),
-      ('bottom-right-corner', self.ITEM, ['Corners', 'top-left-corner::'], None),
-      ('bottom-left-corner', self.ITEM, ['Corners', 'top-left-corner::'], None),
-      ('Frames', self.FOLDER, [], ['top-frame']),
-      ('Frames', self.GROUP, [], ['top-frame']),
-      ('top-frame', self.ITEM, ['Frames'], None),
-      ('main-background.jpg', self.ITEM, [], None),
+       self.FOLDER,
+       [('Corners', self.FOLDER)],
+       [('bottom-right-corner', self.ITEM), ('bottom-left-corner', self.ITEM)]),
+      ('bottom-right-corner',
+       self.ITEM,
+       [('Corners', self.FOLDER), ('top-left-corner::', self.FOLDER)],
+       []),
+      ('bottom-left-corner',
+       self.ITEM,
+       [('Corners', self.FOLDER), ('top-left-corner::', self.FOLDER)],
+       []),
+      ('top-left-corner::', self.GROUP, [('Corners', self.FOLDER)], []),
+      ('Corners', self.GROUP, [], []),
+      ('Frames', self.FOLDER, [], [('top-frame', self.ITEM)]),
+      ('top-frame', self.ITEM, [('Frames', self.FOLDER)], []),
+      ('Frames', self.GROUP, [], []),
+      ('main-background.jpg', self.ITEM, [], []),
       ('Overlay', self.FOLDER, [], []),
       ('Overlay', self.GROUP, [], []),
     ]
@@ -102,16 +111,16 @@ class TestLayerTree(unittest.TestCase):
       parents = properties[2]
       children = properties[3]
       
-      self.assertListEqual([parent.orig_name for parent in item.parents], parents)
-      if children is not None:
-        self.assertListEqual([child.orig_name for child in item.children], children)
-      else:
-        self.assertIsNone(item.children)
+      for (expected_parent_name, expected_parent_type), parent in zip(parents, item.parents):
+        self.assertEqual(parent.orig_name, expected_parent_name)
+        self.assertEqual(parent.type, expected_parent_type)
+      
+      for (expected_child_name, expected_child_type), child in zip(children, item.children):
+        self.assertEqual(child.orig_name, expected_child_name)
+        self.assertEqual(child.type, expected_child_type)
       
       self.assertEqual(item.parents, list(item.orig_parents))
-      self.assertEqual(
-        item.children,
-        list(item.orig_children) if item.orig_children is not None else None)
+      self.assertEqual(item.children, list(item.orig_children))
   
   def test_iter_with_different_item_types_excluded(self):
     limited_item_properties = [properties[:2] for properties in self.item_properties]
@@ -174,7 +183,10 @@ class TestItem(unittest.TestCase):
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.pdb', new=stubs_gimp.PdbStub())
   def setUp(self):
-    self.item = pgitemtree._Item(stubs_gimp.LayerStub('main-background.jpg'))
+    self.item = pgitemtree._Item(
+      stubs_gimp.LayerStub('main-background.jpg'), pgitemtree._Item.ITEM)
+    
+    self.FOLDER_KEY = pgitemtree.ItemTree.FOLDER_KEY
   
   def test_str(self):
     self.assertEqual(str(self.item), '<_Item "main-background.jpg">')
@@ -231,7 +243,7 @@ class TestItem(unittest.TestCase):
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(item_tags_source_name, 0, pickle.dumps(set(['background']))))
     
-    item = pgitemtree._Item(layer, tags_source_name=item_tags_source_name)
+    item = pgitemtree._Item(layer, pgitemtree._Item.ITEM, tags_source_name=item_tags_source_name)
     self.assertIn('background', item.tags)
   
   @mock.patch(
@@ -244,7 +256,7 @@ class TestItem(unittest.TestCase):
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(item_tags_source_name, 0, 'invalid_data'))
     
-    item = pgitemtree._Item(layer, tags_source_name=item_tags_source_name)
+    item = pgitemtree._Item(layer, pgitemtree._Item.ITEM, tags_source_name=item_tags_source_name)
     self.assertFalse(item.tags)
   
   @mock.patch(
@@ -252,13 +264,13 @@ class TestItem(unittest.TestCase):
     new=stubs_gimp.GimpModuleStub())
   def test_initial_tags_for_item_as_folder(self):
     item_tags_source_name = 'test'
-    folder_tags_source_name = item_tags_source_name + '_' + pgitemtree.ItemTree.FOLDER_KEY
+    folder_tags_source_name = item_tags_source_name + '_' + self.FOLDER_KEY
     
     layer = stubs_gimp.LayerStub('layer')
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(folder_tags_source_name, 0, pickle.dumps(set(['background']))))
     
-    item = pgitemtree._Item(layer, tags_source_name=item_tags_source_name, is_folder=True)
+    item = pgitemtree._Item(layer, pgitemtree._Item.FOLDER, tags_source_name=item_tags_source_name)
     self.assertEqual(item.tags_source_name, folder_tags_source_name)
     self.assertIn('background', item.tags)
   
@@ -267,12 +279,12 @@ class TestItem(unittest.TestCase):
     new=stubs_gimp.GimpModuleStub())
   def test_initial_tags_for_item_as_folder_unrecognized_source_name(self):
     item_tags_source_name = 'test'
-    folder_tags_source_name = item_tags_source_name + '_' + pgitemtree.ItemTree.FOLDER_KEY
+    folder_tags_source_name = item_tags_source_name + '_' + self.FOLDER_KEY
     
     layer = stubs_gimp.LayerStub('layer')
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(item_tags_source_name, 0, pickle.dumps(set(['background']))))
     
-    item = pgitemtree._Item(layer, tags_source_name=item_tags_source_name, is_folder=True)
+    item = pgitemtree._Item(layer, pgitemtree._Item.FOLDER, tags_source_name=item_tags_source_name)
     self.assertEqual(item.tags_source_name, folder_tags_source_name)
     self.assertNotIn('background', item.tags)

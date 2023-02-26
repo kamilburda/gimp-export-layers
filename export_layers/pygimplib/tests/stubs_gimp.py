@@ -49,6 +49,10 @@ class PdbStub(object):
   @staticmethod
   def gimp_item_set_visible(item, visible):
     item.visible = visible
+  
+  @staticmethod
+  def gimp_item_get_children(item):
+    return len(item.children), item.children
 
 
 class PdbProcedureStub(object):

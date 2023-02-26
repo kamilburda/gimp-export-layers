@@ -58,6 +58,12 @@ class TestUniquify(unittest.TestCase):
     image = utils_itemtree.parse_layers(items_string)
     self.item_tree = pg.itemtree.LayerTree(image)
   
+  @mock.patch(
+    pg.utils.get_pygimplib_module_path() + '.itemtree.pdb',
+    new=stubs_gimp.PdbStub())
+  @mock.patch(
+    pg.utils.get_pygimplib_module_path() + '.itemtree.gimp.GroupLayer',
+    new=stubs_gimp.LayerGroupStub)
   def test_uniquify(self):
     uniquified_names = collections.OrderedDict([
       (('Corners', 'folder'), ['Corners']),
@@ -95,6 +101,12 @@ class TestUniquify(unittest.TestCase):
     
     self._compare_uniquified_names(self.item_tree, uniquified_names)
   
+  @mock.patch(
+    pg.utils.get_pygimplib_module_path() + '.itemtree.pdb',
+    new=stubs_gimp.PdbStub())
+  @mock.patch(
+    pg.utils.get_pygimplib_module_path() + '.itemtree.gimp.GroupLayer',
+    new=stubs_gimp.LayerGroupStub)
   def test_uniquify_with_custom_position(self):
     def _get_file_extension_start_position(str_):
       position = str_.rfind('.')
@@ -120,6 +132,12 @@ class TestUniquify(unittest.TestCase):
     
     self._compare_uniquified_names(self.item_tree, names_to_uniquify)
   
+  @mock.patch(
+    pg.utils.get_pygimplib_module_path() + '.itemtree.pdb',
+    new=stubs_gimp.PdbStub())
+  @mock.patch(
+    pg.utils.get_pygimplib_module_path() + '.itemtree.gimp.GroupLayer',
+    new=stubs_gimp.LayerGroupStub)
   def test_uniquify_does_not_modify_already_passed_items(self):
     names_to_uniquify = collections.OrderedDict([
       ('main-background.jpg', ['main-background.jpg']),
@@ -140,6 +158,12 @@ class TestUniquify(unittest.TestCase):
     
     self._compare_uniquified_names(self.item_tree, names_to_uniquify)
   
+  @mock.patch(
+    pg.utils.get_pygimplib_module_path() + '.itemtree.pdb',
+    new=stubs_gimp.PdbStub())
+  @mock.patch(
+    pg.utils.get_pygimplib_module_path() + '.itemtree.gimp.GroupLayer',
+    new=stubs_gimp.LayerGroupStub)
   def test_reset(self):
     names_to_uniquify = collections.OrderedDict([
       ('main-background.jpg', ['main-background.jpg']),

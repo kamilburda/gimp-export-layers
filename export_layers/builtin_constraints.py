@@ -7,6 +7,8 @@ from future.builtins import *
 
 import collections
 
+from gimp import pdb
+
 from export_layers import pygimplib as pg
 
 
@@ -17,8 +19,8 @@ def is_layer(item):
   return item.type == item.ITEM
 
 
-def is_group(item):
-  return item.type == item.GROUP
+def is_nonempty_group(item):
+  return item.type == item.GROUP and pdb.gimp_item_get_children(item.raw)[1]
 
 
 def is_path_visible(item):
@@ -64,7 +66,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
   {
     'name': 'include_layer_groups',
     'type': 'constraint',
-    'function': is_group,
+    'function': is_nonempty_group,
     'display_name': _('Include layer groups'),
     'subfilter': 'layer_types',
     'action_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
