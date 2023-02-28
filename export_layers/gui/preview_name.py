@@ -58,12 +58,14 @@ class ExportNamePreview(preview_base_.ExportPreview):
     _COLUMN_ICON_TAG_VISIBLE,
     _COLUMN_ITEM_NAME_SENSITIVE,
     _COLUMN_ITEM_NAME,
-    _COLUMN_ITEM_ID) = (
+    _COLUMN_ITEM_ID,
+    _COLUMN_ITEM_TYPE) = (
     [0, gtk.gdk.Pixbuf],
     [1, gobject.TYPE_BOOLEAN],
     [2, gobject.TYPE_BOOLEAN],
     [3, gobject.TYPE_STRING],
-    [4, gobject.TYPE_INT])
+    [4, gobject.TYPE_INT],
+    [5, gobject.TYPE_INT])
   
   def __init__(
         self,
@@ -86,6 +88,8 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self._is_item_in_selected_items_rule = None
     self._selected_items_filter_rules = []
     
+    # key: `_Item.raw.ID` or (`_Item.raw.ID`, 'folder') instance
+    # value: `gtk.TreeIter` instance
     self._tree_iters = collections.defaultdict(pg.utils.return_none_func)
     
     self._row_expand_collapse_interactive = True
@@ -168,14 +172,14 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self.emit('preview-selection-changed')
   
   def get_items_from_selected_rows(self):
-    return [self._exporter.item_tree[item_id]
-            for item_id in self._get_item_ids_in_current_selection()]
+    return [self._exporter.item_tree[item_key]
+            for item_key in self._get_keys_from_current_selection()]
   
   def get_item_from_cursor(self):
     tree_path, unused_ = self._tree_view.get_cursor()
     if tree_path is not None:
-      item_id = self._get_item_id(self._tree_model.get_iter(tree_path))
-      return self._exporter.item_tree[item_id]
+      item_key = self._get_key_from_tree_iter(self._tree_model.get_iter(tree_path))
+      return self._exporter.item_tree[item_key]
     else:
       return None
   
@@ -294,7 +298,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self._exporter.item_tree.is_filtered = False
     
     used_tags = set()
-    for item in self._exporter.item_tree:
+    for item in self._exporter.item_tree.iter():
       for tag in item.tags:
         used_tags.add(tag)
         if tag not in self._tags_menu_items:
@@ -347,7 +351,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _on_tree_view_right_button_press_event(self, tree_view, event):
     if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
-      item_ids = []
+      item_keys = []
       stop_event_propagation = False
       
       # Get the current selection. We cannot use `TreeSelection.get_selection()`
@@ -356,23 +360,22 @@ class ExportNamePreview(preview_base_.ExportPreview):
       
       if (selection_at_pos is not None
           and self._tree_view.get_selection().count_selected_rows() > 1):
-        item_ids = self._get_item_ids_in_current_selection()
+        item_keys = self._get_keys_from_current_selection()
         stop_event_propagation = True
       else:
         if selection_at_pos is not None:
           tree_iter = self._tree_model.get_iter(selection_at_pos[0])
-          item_ids = [self._get_item_id(tree_iter)]
+          item_keys = [self._get_key_from_tree_iter(tree_iter)]
       
       self._toggle_tag_interactive = False
       
-      items = [self._exporter.item_tree[item_id] for item_id in item_ids]
+      items = [self._exporter.item_tree[item_key] for item_key in item_keys]
       for tag, tags_menu_item in self._tags_menu_items.items():
-        tags_menu_item.set_active(
-          all(tag in item.tags for item in items))
+        tags_menu_item.set_active(all(tag in item.tags for item in items))
       
       self._toggle_tag_interactive = True
       
-      if len(item_ids) >= 1:
+      if len(item_keys) >= 1:
         self._tags_menu.popup(None, None, None, event.button, event.time)
         
         toplevel_window = pg.gui.get_toplevel_window(self)
@@ -385,8 +388,8 @@ class ExportNamePreview(preview_base_.ExportPreview):
     if self._toggle_tag_interactive:
       pdb.gimp_image_undo_group_start(self._exporter.image)
       
-      for item_id in self._get_item_ids_in_current_selection():
-        item = self._exporter.item_tree[item_id]
+      for item_key in self._get_keys_from_current_selection():
+        item = self._exporter.item_tree[item_key]
         
         if tags_menu_item.get_active():
           item.add_tag(tag)
@@ -474,14 +477,14 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _on_tree_view_row_collapsed(self, tree_view, tree_iter, tree_path):
     if self._row_expand_collapse_interactive:
-      self._collapsed_items.add(self._get_item_id(tree_iter))
+      self._collapsed_items.add(self._get_key_from_tree_iter(tree_iter))
       self._tree_view.columns_autosize()
   
   def _on_tree_view_row_expanded(self, tree_view, tree_iter, tree_path):
     if self._row_expand_collapse_interactive:
-      item_id = self._get_item_id(tree_iter)
-      if item_id in self._collapsed_items:
-        self._collapsed_items.remove(item_id)
+      item_key = self._get_key_from_tree_iter(tree_iter)
+      if item_key in self._collapsed_items:
+        self._collapsed_items.remove(item_key)
       
       self._set_expanded_items(tree_path)
       
@@ -490,21 +493,33 @@ class ExportNamePreview(preview_base_.ExportPreview):
   def _on_tree_selection_changed(self, tree_selection):
     if not self._clearing_preview and self._row_select_interactive:
       previous_selected_items = self._selected_items
-      self._selected_items = self._get_item_ids_in_current_selection()
+      self._selected_items = self._get_keys_from_current_selection()
       
       self.emit('preview-selection-changed')
       
       if self.is_filtering and self._selected_items != previous_selected_items:
         self.update(update_existing_contents_only=True)
   
-  def _get_item_ids_in_current_selection(self):
+  def _get_keys_from_current_selection(self):
     unused_, tree_paths = self._tree_view.get_selection().get_selected_rows()
     return [
-      self._get_item_id(self._tree_model.get_iter(tree_path))
+      self._get_key_from_tree_iter(self._tree_model.get_iter(tree_path))
       for tree_path in tree_paths]
   
-  def _get_item_id(self, tree_iter):
-    return self._tree_model.get_value(tree_iter, column=self._COLUMN_ITEM_ID[0])
+  def _get_key(self, item):
+    if item.type != item.FOLDER:
+      return item.raw.ID
+    else:
+      return (item.raw.ID, pg.itemtree.ItemTree.FOLDER_KEY)
+  
+  def _get_key_from_tree_iter(self, tree_iter):
+    item_id = self._tree_model.get_value(tree_iter, column=self._COLUMN_ITEM_ID[0])
+    item_type = self._tree_model.get_value(tree_iter, column=self._COLUMN_ITEM_TYPE[0])
+    
+    if item_type != pg.itemtree._Item.FOLDER:
+      return item_id
+    else:
+      return (item_id, pg.itemtree.ItemTree.FOLDER_KEY)
   
   def _process_items(self, reset_items=False):
     if not reset_items:
@@ -524,18 +539,26 @@ class ExportNamePreview(preview_base_.ExportPreview):
       is_preview=True)
   
   def _update_items(self):
+    updated_parents = set()
+    
     for item in self._exporter.item_tree:
-      self._update_parent_items(item)
+      # Explicitly handle parent folders as `ItemTree.iter()` does not yield
+      # folders not matching filters (e.g. because folders do not match the
+      # "is item" filter).
+      self._update_parent_items(item, updated_parents)
       self._update_item(item)
   
   def _insert_items(self):
     for item in self._exporter.item_tree:
+      # Explicitly handle parent folders as `ItemTree.iter()` does not yield
+      # folders not matching filters (e.g. because folders do not match the
+      # "is item" filter).
       self._insert_parent_items(item)
       self._insert_item(item)
   
   def _insert_item(self, item):
     if item.parent:
-      parent_tree_iter = self._tree_iters[item.parent.raw.ID]
+      parent_tree_iter = self._tree_iters[self._get_key(item.parent)]
     else:
       parent_tree_iter = None
     
@@ -545,14 +568,16 @@ class ExportNamePreview(preview_base_.ExportPreview):
        bool(item.tags),
        True,
        pg.utils.safe_encode_gtk(item.name),
-       item.raw.ID])
-    self._tree_iters[item.raw.ID] = tree_iter
+       item.raw.ID,
+       item.type])
+    
+    self._tree_iters[self._get_key(item)] = tree_iter
     
     return tree_iter
   
   def _update_item(self, item):
     self._tree_model.set(
-      self._tree_iters[item.raw.ID],
+      self._tree_iters[self._get_key(item)],
       self._COLUMN_ICON_TAG_VISIBLE[0],
       bool(item.tags),
       self._COLUMN_ITEM_NAME_SENSITIVE[0],
@@ -562,12 +587,14 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _insert_parent_items(self, item):
     for parent in item.parents:
-      if not self._tree_iters[parent.raw.ID]:
+      if not self._tree_iters[self._get_key(parent)]:
         self._insert_item(parent)
   
-  def _update_parent_items(self, item):
+  def _update_parent_items(self, item, updated_parents):
     for parent in item.parents:
-      self._update_item(parent)
+      if parent not in updated_parents:
+        self._update_item(parent)
+        updated_parents.add(parent)
   
   def _enable_filtered_items(self, enabled):
     if self.is_filtering:
@@ -593,31 +620,34 @@ class ExportNamePreview(preview_base_.ExportPreview):
     if self.is_filtering:
       self._set_items_sensitive(self._exporter.item_tree, False)
       self._set_items_sensitive(
-        [self._exporter.item_tree[item_id] for item_id in self._selected_items],
-        True)
+        [self._exporter.item_tree[item_key] for item_key in self._selected_items], True)
   
   def _get_item_sensitive(self, item):
     return self._tree_model.get_value(
-      self._tree_iters[item.raw.ID], self._COLUMN_ITEM_NAME_SENSITIVE[0])
+      self._tree_iters[self._get_key(item)], self._COLUMN_ITEM_NAME_SENSITIVE[0])
+  
+  def _set_items_sensitive(self, items, sensitive):
+    processed_parents = set()
+    for item in items:
+      self._set_item_sensitive(item, sensitive)
+      self._set_parent_items_sensitive(item, processed_parents)
   
   def _set_item_sensitive(self, item, sensitive):
-    if self._tree_iters[item.raw.ID] is not None:
+    if self._get_key(item) in self._tree_iters:
       self._tree_model.set_value(
-        self._tree_iters[item.raw.ID],
+        self._tree_iters[self._get_key(item)],
         self._COLUMN_ITEM_NAME_SENSITIVE[0],
         sensitive)
   
-  def _set_parent_items_sensitive(self, item):
+  def _set_parent_items_sensitive(self, item, processed_parents):
     for parent in reversed(list(item.parents)):
-      parent_sensitive = any(
-        self._get_item_sensitive(child) for child in parent.children
-        if child.raw.ID in self._tree_iters)
-      self._set_item_sensitive(parent, parent_sensitive)
-  
-  def _set_items_sensitive(self, items, sensitive):
-    for item in items:
-      self._set_item_sensitive(item, sensitive)
-      self._set_parent_items_sensitive(item)
+      if parent not in processed_parents:
+        parent_sensitive = any(
+          self._get_item_sensitive(child) for child in parent.children
+          if self._get_key(child) in self._tree_iters)
+        self._set_item_sensitive(parent, parent_sensitive)
+        
+        processed_parents.add(parent)
   
   def _get_icon_from_item(self, item):
     if item.type == item.ITEM:
@@ -645,9 +675,9 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     self._remove_no_longer_valid_collapsed_items()
     
-    for item_id in self._collapsed_items:
-      if item_id in self._tree_iters:
-        item_tree_iter = self._tree_iters[item_id]
+    for item_key in self._collapsed_items:
+      if item_key in self._tree_iters:
+        item_tree_iter = self._tree_iters[item_key]
         if item_tree_iter is None:
           continue
         
@@ -663,18 +693,17 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     self._exporter.item_tree.is_filtered = False
     self._collapsed_items = set(
-      [collapsed_item for collapsed_item in self._collapsed_items
-       if collapsed_item in self._exporter.item_tree])
+      [item_key for item_key in self._collapsed_items if item_key in self._exporter.item_tree])
     self._exporter.item_tree.is_filtered = True
   
   def _set_selection(self):
     self._row_select_interactive = False
     
     self._selected_items = [
-      item for item in self._selected_items if item in self._tree_iters]
+      item_key for item_key in self._selected_items if item_key in self._tree_iters]
     
-    for item in self._selected_items:
-      tree_iter = self._tree_iters[item]
+    for item_key in self._selected_items:
+      tree_iter = self._tree_iters[item_key]
       if tree_iter is not None:
         self._tree_view.get_selection().select_iter(tree_iter)
     
@@ -687,8 +716,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
   def _set_cursor(self, previous_cursor=None):
     self._row_select_interactive = False
     
-    if (previous_cursor is not None
-        and self._tree_model.get_iter(previous_cursor) is not None):
+    if previous_cursor is not None and self._tree_model.get_iter(previous_cursor) is not None:
       self._tree_view.set_cursor(previous_cursor)
     
     self._row_select_interactive = True

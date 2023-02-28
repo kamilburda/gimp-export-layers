@@ -1,6 +1,7 @@
 Upcoming
 ========
 
+* Layer groups as images and as folders are now displayed separately in the preview.
 * Removed "Include empty layer groups" constraint. Empty folders are no longer created.
 
 
