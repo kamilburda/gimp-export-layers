@@ -22,6 +22,14 @@ from . import objectfilter as pgobjectfilter
 from . import utils as pgutils
 
 
+TYPE_ITEM, TYPE_GROUP, TYPE_FOLDER = (0, 1, 2)
+
+FOLDER_KEY = 'folder'
+"""Key used to access items as folders in `ItemTree` via `__getitem__()`.
+See `ItemTree.__getitem__()` for more information.
+"""
+
+
 @future.utils.python_2_unicode_compatible
 class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
   """Interface to store `gimp.Item` objects in a tree-like structure.
@@ -61,11 +69,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   * `filter` - `ObjectFilter` instance that allows filtering items based on
     rules.
-  """
-  
-  FOLDER_KEY = 'folder'
-  """Key used to access items as folders in the tree via `__getitem__()`.
-  See `__getitem__()` for more information.
   """
   
   def __init__(
@@ -170,11 +173,11 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     for item in self._itemtree.values():
       should_yield_item = True
       
-      if not with_folders and item.type == item.FOLDER:
+      if not with_folders and item.type == TYPE_FOLDER:
         should_yield_item = False
       
       if (not with_empty_groups
-          and (item.type == item.GROUP and not pdb.gimp_item_get_children(item.raw)[1])):
+          and (item.type == TYPE_GROUP and not pdb.gimp_item_get_children(item.raw)[1])):
         should_yield_item = False
       
       if should_yield_item:
@@ -199,19 +202,19 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     child_items = []
     for raw_item in self._get_children_from_image(self._image):
       if self._is_group(raw_item):
-        child_items.append(_Item(raw_item, _Item.FOLDER, [], [], self._name))
-        child_items.append(_Item(raw_item, _Item.GROUP, [], [], self._name))
+        child_items.append(_Item(raw_item, TYPE_FOLDER, [], [], self._name))
+        child_items.append(_Item(raw_item, TYPE_GROUP, [], [], self._name))
       else:
-        child_items.append(_Item(raw_item, _Item.ITEM, [], [], self._name))
+        child_items.append(_Item(raw_item, TYPE_ITEM, [], [], self._name))
     
     item_tree = child_items
     
     while item_tree:
       item = item_tree.pop(0)
       
-      if item.type == item.FOLDER:
-        self._itemtree[(item.raw.ID, self.FOLDER_KEY)] = item
-        self._itemtree_names[(item.orig_name, self.FOLDER_KEY)] = item
+      if item.type == TYPE_FOLDER:
+        self._itemtree[(item.raw.ID, FOLDER_KEY)] = item
+        self._itemtree_names[(item.orig_name, FOLDER_KEY)] = item
         
         parents_for_child = list(item.parents)
         parents_for_child.append(item)
@@ -219,10 +222,10 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
         child_items = []
         for raw_item in self._get_children_from_raw_item(item.raw):
           if self._is_group(raw_item):
-            child_items.append(_Item(raw_item, _Item.FOLDER, parents_for_child, [], self._name))
-            child_items.append(_Item(raw_item, _Item.GROUP, parents_for_child, [], self._name))
+            child_items.append(_Item(raw_item, TYPE_FOLDER, parents_for_child, [], self._name))
+            child_items.append(_Item(raw_item, TYPE_GROUP, parents_for_child, [], self._name))
           else:
-            child_items.append(_Item(raw_item, _Item.ITEM, parents_for_child, [], self._name))
+            child_items.append(_Item(raw_item, TYPE_ITEM, parents_for_child, [], self._name))
         
         # We break the convention here and access private attributes from `_Item`.
         item._orig_children = child_items
@@ -326,8 +329,6 @@ class _Item(object):
     appended to `tags_source_name`.
   """
   
-  _ITEM_TYPES = ITEM, GROUP, FOLDER = (0, 1, 2)
-  
   def __init__(
         self, raw_item, item_type,
         parents=None, children=None, tags_source_name=None):
@@ -348,8 +349,8 @@ class _Item(object):
     self._orig_children = self._children
     
     self._tags_source_name = tags_source_name if tags_source_name else 'tags'
-    if self._type == self.FOLDER:
-      self._tags_source_name += '_' + ItemTree.FOLDER_KEY
+    if self._type == TYPE_FOLDER:
+      self._tags_source_name += '_' + FOLDER_KEY
     
     self._tags = self._load_tags()
   

@@ -190,7 +190,7 @@ class TestRenameWithNumberField(unittest.TestCase):
   ])
   def test_rename(self, test_case_name_suffix, pattern, expected_layer_names_str):
     layer_tree = pg.itemtree.LayerTree(self.image, is_filtered=True)
-    layer_tree.filter.add(lambda item: item.type == item.ITEM)
+    layer_tree.filter.add(lambda item: item.type == pg.itemtree.TYPE_ITEM)
     
     exporter_mock = mock.Mock()
     exporter_mock.item_tree = layer_tree

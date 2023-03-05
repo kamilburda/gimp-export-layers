@@ -62,9 +62,9 @@ class TestLayerTree(unittest.TestCase):
     image = utils_itemtree.parse_layers(items_string)
     self.item_tree = pgitemtree.LayerTree(image)
     
-    self.ITEM = pgitemtree._Item.ITEM
-    self.GROUP = pgitemtree._Item.GROUP
-    self.FOLDER = pgitemtree._Item.FOLDER
+    self.ITEM = pgitemtree.TYPE_ITEM
+    self.GROUP = pgitemtree.TYPE_GROUP
+    self.FOLDER = pgitemtree.TYPE_FOLDER
     
     self.item_properties = [
       ('Corners',
@@ -128,19 +128,19 @@ class TestLayerTree(unittest.TestCase):
     item_properties_without_empty_groups = list(limited_item_properties)
     del item_properties_without_empty_groups[
       item_properties_without_empty_groups.index(
-        ('Overlay', pgitemtree._Item.FOLDER)) + 1]
+        ('Overlay', self.FOLDER)) + 1]
     del item_properties_without_empty_groups[
       item_properties_without_empty_groups.index(
-        ('top-left-corner:', pgitemtree._Item.FOLDER)) + 1]
+        ('top-left-corner:', self.FOLDER)) + 1]
     
     item_properties_without_folders_and_empty_groups = [
       (name, type_) for name, type_ in limited_item_properties if type_ != self.FOLDER]
     del item_properties_without_folders_and_empty_groups[
       item_properties_without_folders_and_empty_groups.index(
-        ('Overlay', pgitemtree._Item.GROUP))]
+        ('Overlay', self.GROUP))]
     del item_properties_without_folders_and_empty_groups[
       item_properties_without_folders_and_empty_groups.index(
-        ('top-left-corner:', pgitemtree._Item.GROUP))]
+        ('top-left-corner:', self.GROUP))]
     
     for item, (item_name, item_type) in zip(
           self.item_tree.iter(with_empty_groups=True), limited_item_properties):
@@ -171,7 +171,7 @@ class TestLayerTree(unittest.TestCase):
     self.assertEqual(len(self.item_tree), 9)
     
     self.item_tree.is_filtered = True
-    self.item_tree.filter.add(lambda item: item.type == item.ITEM)
+    self.item_tree.filter.add(lambda item: item.type == self.ITEM)
     
     self.assertEqual(len(self.item_tree), 6)
 
@@ -183,10 +183,12 @@ class TestItem(unittest.TestCase):
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.pdb', new=stubs_gimp.PdbStub())
   def setUp(self):
-    self.item = pgitemtree._Item(
-      stubs_gimp.LayerStub('main-background.jpg'), pgitemtree._Item.ITEM)
+    self.ITEM = pgitemtree.TYPE_ITEM
+    self.GROUP = pgitemtree.TYPE_GROUP
+    self.FOLDER = pgitemtree.TYPE_FOLDER
     
-    self.FOLDER_KEY = pgitemtree.ItemTree.FOLDER_KEY
+    self.item = pgitemtree._Item(
+      stubs_gimp.LayerStub('main-background.jpg'), self.ITEM)
   
   def test_str(self):
     self.assertEqual(str(self.item), '<_Item "main-background.jpg">')
@@ -243,7 +245,7 @@ class TestItem(unittest.TestCase):
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(item_tags_source_name, 0, pickle.dumps(set(['background']))))
     
-    item = pgitemtree._Item(layer, pgitemtree._Item.ITEM, tags_source_name=item_tags_source_name)
+    item = pgitemtree._Item(layer, self.ITEM, tags_source_name=item_tags_source_name)
     self.assertIn('background', item.tags)
   
   @mock.patch(
@@ -256,7 +258,7 @@ class TestItem(unittest.TestCase):
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(item_tags_source_name, 0, 'invalid_data'))
     
-    item = pgitemtree._Item(layer, pgitemtree._Item.ITEM, tags_source_name=item_tags_source_name)
+    item = pgitemtree._Item(layer, self.ITEM, tags_source_name=item_tags_source_name)
     self.assertFalse(item.tags)
   
   @mock.patch(
@@ -264,13 +266,13 @@ class TestItem(unittest.TestCase):
     new=stubs_gimp.GimpModuleStub())
   def test_initial_tags_for_item_as_folder(self):
     item_tags_source_name = 'test'
-    folder_tags_source_name = item_tags_source_name + '_' + self.FOLDER_KEY
+    folder_tags_source_name = item_tags_source_name + '_' + pgitemtree.FOLDER_KEY
     
     layer = stubs_gimp.LayerStub('layer')
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(folder_tags_source_name, 0, pickle.dumps(set(['background']))))
     
-    item = pgitemtree._Item(layer, pgitemtree._Item.FOLDER, tags_source_name=item_tags_source_name)
+    item = pgitemtree._Item(layer, self.FOLDER, tags_source_name=item_tags_source_name)
     self.assertEqual(item.tags_source_name, folder_tags_source_name)
     self.assertIn('background', item.tags)
   
@@ -279,12 +281,12 @@ class TestItem(unittest.TestCase):
     new=stubs_gimp.GimpModuleStub())
   def test_initial_tags_for_item_as_folder_unrecognized_source_name(self):
     item_tags_source_name = 'test'
-    folder_tags_source_name = item_tags_source_name + '_' + self.FOLDER_KEY
+    folder_tags_source_name = item_tags_source_name + '_' + pgitemtree.FOLDER_KEY
     
     layer = stubs_gimp.LayerStub('layer')
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(item_tags_source_name, 0, pickle.dumps(set(['background']))))
     
-    item = pgitemtree._Item(layer, pgitemtree._Item.FOLDER, tags_source_name=item_tags_source_name)
+    item = pgitemtree._Item(layer, self.FOLDER, tags_source_name=item_tags_source_name)
     self.assertEqual(item.tags_source_name, folder_tags_source_name)
     self.assertNotIn('background', item.tags)

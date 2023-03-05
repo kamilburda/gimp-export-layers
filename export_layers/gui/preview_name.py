@@ -507,19 +507,19 @@ class ExportNamePreview(preview_base_.ExportPreview):
       for tree_path in tree_paths]
   
   def _get_key(self, item):
-    if item.type != item.FOLDER:
+    if item.type != pg.itemtree.TYPE_FOLDER:
       return item.raw.ID
     else:
-      return (item.raw.ID, pg.itemtree.ItemTree.FOLDER_KEY)
+      return (item.raw.ID, pg.itemtree.FOLDER_KEY)
   
   def _get_key_from_tree_iter(self, tree_iter):
     item_id = self._tree_model.get_value(tree_iter, column=self._COLUMN_ITEM_ID[0])
     item_type = self._tree_model.get_value(tree_iter, column=self._COLUMN_ITEM_TYPE[0])
     
-    if item_type != pg.itemtree._Item.FOLDER:
+    if item_type != pg.itemtree.TYPE_FOLDER:
       return item_id
     else:
-      return (item_id, pg.itemtree.ItemTree.FOLDER_KEY)
+      return (item_id, pg.itemtree.FOLDER_KEY)
   
   def _process_items(self, reset_items=False):
     if not reset_items:
@@ -650,11 +650,11 @@ class ExportNamePreview(preview_base_.ExportPreview):
         processed_parents.add(parent)
   
   def _get_icon_from_item(self, item):
-    if item.type == item.ITEM:
+    if item.type == pg.itemtree.TYPE_ITEM:
       return self._icons['item']
-    elif item.type == item.GROUP:
+    elif item.type == pg.itemtree.TYPE_GROUP:
       return self._icons['group']
-    elif item.type == item.FOLDER:
+    elif item.type == pg.itemtree.TYPE_FOLDER:
       return self._icons['folder']
     else:
       return None

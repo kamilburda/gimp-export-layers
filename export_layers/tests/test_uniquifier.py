@@ -125,7 +125,7 @@ class TestUniquify(unittest.TestCase):
       item = self.item_tree[item_name]
       
       self._preprocess_name(item)
-      if item.type == item.FOLDER:
+      if item.type == pg.itemtree.TYPE_FOLDER:
         self.uniquifier.uniquify(item)
       else:
         self.uniquifier.uniquify(item, position=_get_file_extension_start_position(item.name))

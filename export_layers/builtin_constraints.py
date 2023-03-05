@@ -16,11 +16,11 @@ CONSTRAINTS_LAYER_TYPES_GROUP = 'constraints_layer_types'
 
 
 def is_layer(item):
-  return item.type == item.ITEM
+  return item.type == pg.itemtree.TYPE_ITEM
 
 
 def is_nonempty_group(item):
-  return item.type == item.GROUP and pdb.gimp_item_get_children(item.raw)[1]
+  return item.type == pg.itemtree.TYPE_GROUP and pdb.gimp_item_get_children(item.raw)[1]
 
 
 def is_path_visible(item):
