@@ -498,7 +498,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
       self.emit('preview-selection-changed')
       
       if self.is_filtering and self._selected_items != previous_selected_items:
-        self.update(update_existing_contents_only=True)
+        self.update()
   
   def _get_keys_from_current_selection(self):
     unused_, tree_paths = self._tree_view.get_selection().get_selected_rows()
