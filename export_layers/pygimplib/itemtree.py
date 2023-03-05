@@ -307,10 +307,11 @@ class _Item(object):
     If this object has no parent, return `None`.
   
   * `type` (read-only) - Item type - one of the following:
-      * `ITEM` - regular item
-      * `GROUP` - item group (item whose raw `gimp.Item` is a group with
+      * `TYPE_ITEM` - regular item
+      * `TYPE_GROUP` - item group (item whose raw `gimp.Item` is a group with
         children; this `_Item` has no children and acts as a regular item)
-      * `FOLDER` - item containing children (raw item is a group with children)
+      * `TYPE_FOLDER` - item containing children (raw item is a group with
+        children)
   
   * `path_visible` (read-only) - Visibility of all item's parents and this
     item. If all items are visible, `path_visible` is `True`. If at least one
