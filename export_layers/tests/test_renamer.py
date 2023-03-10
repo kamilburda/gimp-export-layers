@@ -189,7 +189,7 @@ class TestRenameWithNumberField(unittest.TestCase):
      """),
   ])
   def test_rename(self, test_case_name_suffix, pattern, expected_layer_names_str):
-    layer_tree = pg.itemtree.LayerTree(self.image, is_filtered=True)
+    layer_tree = pg.itemtree.LayerTree(self.image)
     layer_tree.filter.add(lambda item: item.type == pg.itemtree.TYPE_ITEM)
     
     exporter_mock = mock.Mock()
@@ -202,11 +202,9 @@ class TestRenameWithNumberField(unittest.TestCase):
       exporter_mock.current_item = item
       item.name = layer_name_renamer.rename(exporter_mock)
     
-    layer_tree.is_filtered = False
-    
     expected_layer_tree = (
       pg.itemtree.LayerTree(utils_itemtree.parse_layers(expected_layer_names_str)))
     
     self.assertListEqual(
-      [renamed_item.name for renamed_item in layer_tree],
+      [renamed_item.name for renamed_item in layer_tree.iter(with_folders=False, filtered=False)],
       [expected_item.name for expected_item in expected_layer_tree])

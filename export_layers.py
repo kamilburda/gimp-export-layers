@@ -45,7 +45,7 @@ def plug_in_export_layers(run_mode, image, *args):
   SETTINGS['special/run_mode'].set_value(run_mode)
   SETTINGS['special/image'].set_value(image)
   
-  layer_tree = pg.itemtree.LayerTree(image, name=pg.config.SOURCE_NAME, is_filtered=True)
+  layer_tree = pg.itemtree.LayerTree(image, name=pg.config.SOURCE_NAME)
   _setup_settings_additional(SETTINGS, layer_tree)
   
   status = update.update(SETTINGS, run_mode == gimpenums.RUN_INTERACTIVE)
@@ -73,7 +73,7 @@ def plug_in_export_layers(run_mode, image, *args):
   parameters=[SETTINGS['special']]
 )
 def plug_in_export_layers_repeat(run_mode, image):
-  layer_tree = pg.itemtree.LayerTree(image, name=pg.config.SOURCE_NAME, is_filtered=True)
+  layer_tree = pg.itemtree.LayerTree(image, name=pg.config.SOURCE_NAME)
   _setup_settings_additional(SETTINGS, layer_tree)
   
   status = update.update(SETTINGS, run_mode == gimpenums.RUN_INTERACTIVE)

@@ -437,8 +437,7 @@ class LayerExporter(object):
     if item_tree is not None:
       self._item_tree = item_tree
     else:
-      self._item_tree = pg.itemtree.LayerTree(
-        self.image, name=pg.config.SOURCE_NAME, is_filtered=True)
+      self._item_tree = pg.itemtree.LayerTree(self.image, name=pg.config.SOURCE_NAME)
     
     self._keep_image_copy = keep_image_copy
     self._is_preview = is_preview

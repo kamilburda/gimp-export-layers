@@ -295,17 +295,13 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self._tags_menu.show_all()
   
   def _update_available_tags(self):
-    self._exporter.item_tree.is_filtered = False
-    
     used_tags = set()
-    for item in self._exporter.item_tree.iter():
+    for item in self._exporter.item_tree.iter(filtered=False):
       for tag in item.tags:
         used_tags.add(tag)
         if tag not in self._tags_menu_items:
           self._add_tag_menu_item(tag, tag)
           self._add_remove_tag_menu_item(tag, tag)
-    
-    self._exporter.item_tree.is_filtered = True
     
     for tag, menu_item in self._tags_remove_submenu_items.items():
       menu_item.set_sensitive(tag not in used_tags)
@@ -691,10 +687,8 @@ class ExportNamePreview(preview_base_.ExportPreview):
     if self._exporter.item_tree is None:
       return
     
-    self._exporter.item_tree.is_filtered = False
     self._collapsed_items = set(
       [item_key for item_key in self._collapsed_items if item_key in self._exporter.item_tree])
-    self._exporter.item_tree.is_filtered = True
   
   def _set_selection(self):
     self._row_select_interactive = False

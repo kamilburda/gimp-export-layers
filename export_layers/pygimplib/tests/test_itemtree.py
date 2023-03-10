@@ -170,7 +170,6 @@ class TestLayerTree(unittest.TestCase):
     
     self.assertEqual(len(self.item_tree), 9)
     
-    self.item_tree.is_filtered = True
     self.item_tree.filter.add(lambda item: item.type == self.ITEM)
     
     self.assertEqual(len(self.item_tree), 6)

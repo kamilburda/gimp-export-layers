@@ -75,7 +75,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
         self,
         image,
         name=None,
-        is_filtered=False,
+        is_filtered=True,
         filter_match_type=pgobjectfilter.ObjectFilter.MATCH_ALL):
     self._image = image
     self._name = name
@@ -152,11 +152,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     return self.iter(with_folders=False, with_empty_groups=False)
   
-  def iter(self, with_folders=True, with_empty_groups=False):
+  def iter(self, with_folders=True, with_empty_groups=False, filtered=True):
     """Iterates over items, optionally including folders and empty item groups.
-    
-    If the `is_filtered` attribute is `False`, iterate over all items. If
-    `is_filtered` is `True`, iterate only over items that match the filter.
     
     Parameters:
     
@@ -165,6 +162,10 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     * `with_empty_groups` - If `True`, include empty item groups. Empty item
       groups as folders are still yielded if `with_folders` is `True`.
+    
+    * `filtered` - If `True` and `is_filtered` attribute is also `True`, iterate
+      only over items matching the filter. Set this to `False` if you need to
+      iterate over all items.
     
     Yields:
     
@@ -181,7 +182,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
         should_yield_item = False
       
       if should_yield_item:
-        if self.is_filtered and not self.filter.is_match(item):
+        if (filtered and self.is_filtered) and not self.filter.is_match(item):
           should_yield_item = False
       
       if should_yield_item:
