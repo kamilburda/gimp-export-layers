@@ -115,7 +115,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     To access an item group as a folder, pass a tuple `(ID or name, 'folder')`.
     For example:
         
-        item_tree[4, 'folder']
+        item_tree['Frames', 'folder']
     """
     try:
       return self._itemtree[id_or_name]
