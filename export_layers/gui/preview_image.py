@@ -332,9 +332,6 @@ class ExportImagePreview(preview_base_.ExportPreview):
     return raw_item_preview_pixbuf
   
   def _get_image_preview(self):
-    item_tree = self._exporter.item_tree
-    item_tree_filter = item_tree.filter if item_tree is not None else None
-    
     only_selected_item_constraint_id = self._exporter.add_constraint(
       builtin_constraints.is_item_in_selected_items,
       groups=[actions.DEFAULT_CONSTRAINTS_GROUP],
@@ -343,7 +340,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     try:
       image_preview = self._exporter.export(
         processing_groups=['item_contents'],
-        item_tree=item_tree,
+        item_tree=self._exporter.item_tree,
         keep_image_copy=True,
         is_preview=True)
     except Exception:
@@ -353,9 +350,6 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     self._exporter.remove_action(
       only_selected_item_constraint_id, [actions.DEFAULT_CONSTRAINTS_GROUP])
-    
-    if item_tree_filter is not None:
-      self._exporter.item_tree.filter = item_tree_filter
     
     return image_preview
   
