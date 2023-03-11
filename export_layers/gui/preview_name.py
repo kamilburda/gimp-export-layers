@@ -17,8 +17,6 @@ from gimp import pdb
 
 from export_layers import pygimplib as pg
 
-from export_layers import builtin_constraints
-
 from export_layers.gui import preview_base as preview_base_
 
 
@@ -85,8 +83,6 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self._available_tags_setting = available_tags_setting
     
     self.is_filtering = False
-    self._is_item_in_selected_items_rule = None
-    self._selected_items_filter_rules = []
     
     # key: `_Item.raw.ID` or (`_Item.raw.ID`, 'folder') instance
     # value: `gtk.TreeIter` instance
@@ -128,18 +124,16 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     self._process_items(reset_items=reset_items)
     
-    self._enable_filtered_items(enabled=True)
+    items = self._get_items_to_process()
     
     if not update_existing_contents_only:
-      self._insert_items()
+      self._insert_items(items)
       self._set_expanded_items()
     else:
-      self._update_items()
+      self._update_items(items)
     
     self._set_selection()
-    self._set_item_tree_sensitive_for_selected()
-    
-    self._enable_filtered_items(enabled=False)
+    self._set_item_tree_sensitive_for_selected(items)
     
     self._update_available_tags()
     
@@ -517,6 +511,13 @@ class ExportNamePreview(preview_base_.ExportPreview):
     else:
       return (item_id, pg.itemtree.FOLDER_KEY)
   
+  def _get_items_to_process(self):
+    if self.is_filtering:
+      with self._exporter.item_tree.filter.remove_temp(name=self._selected_items_filter_name):
+        return list(self._exporter.item_tree)
+    else:
+      return list(self._exporter.item_tree)
+  
   def _process_items(self, reset_items=False):
     if not reset_items:
       if self._initial_item_tree is not None:
@@ -534,22 +535,16 @@ class ExportNamePreview(preview_base_.ExportPreview):
       item_tree=item_tree,
       is_preview=True)
   
-  def _update_items(self):
+  def _update_items(self, items):
     updated_parents = set()
-    
-    for item in self._exporter.item_tree:
-      # Explicitly handle parent folders as `ItemTree.iter()` does not yield
-      # folders not matching filters (e.g. because folders do not match the
-      # "is item" filter).
+    for item in items:
       self._update_parent_items(item, updated_parents)
       self._update_item(item)
   
-  def _insert_items(self):
-    for item in self._exporter.item_tree:
-      # Explicitly handle parent folders as `ItemTree.iter()` does not yield
-      # folders not matching filters (e.g. because folders do not match the
-      # "is item" filter).
-      self._insert_parent_items(item)
+  def _insert_items(self, items):
+    inserted_parents = set()
+    for item in items:
+      self._insert_parent_items(item, inserted_parents)
       self._insert_item(item)
   
   def _insert_item(self, item):
@@ -581,10 +576,11 @@ class ExportNamePreview(preview_base_.ExportPreview):
       self._COLUMN_ITEM_NAME[0],
       pg.utils.safe_encode_gtk(item.name))
   
-  def _insert_parent_items(self, item):
+  def _insert_parent_items(self, item, inserted_parents):
     for parent in item.parents:
-      if not self._tree_iters[self._get_key(parent)]:
+      if parent not in inserted_parents:
         self._insert_item(parent)
+        inserted_parents.add(parent)
   
   def _update_parent_items(self, item, updated_parents):
     for parent in item.parents:
@@ -592,29 +588,9 @@ class ExportNamePreview(preview_base_.ExportPreview):
         self._update_item(parent)
         updated_parents.add(parent)
   
-  def _enable_filtered_items(self, enabled):
+  def _set_item_tree_sensitive_for_selected(self, items):
     if self.is_filtering:
-      if not enabled:
-        self._is_item_in_selected_items_rule = self._exporter.item_tree.filter.add(
-          builtin_constraints.is_item_in_selected_items,
-          [self._selected_items])
-        
-        for rule in self._selected_items_filter_rules:
-          self._exporter.item_tree.filter.add(
-            rule.function,
-            rule.args,
-            rule.kwargs,
-            name=self._selected_items_filter_name)
-      else:
-        self._selected_items_filter_rules, unused_ = (
-          self._exporter.item_tree.filter.remove(name=self._selected_items_filter_name))
-        
-        if self._is_item_in_selected_items_rule is not None:
-          self._exporter.item_tree.filter.remove(self._is_item_in_selected_items_rule.id)
-  
-  def _set_item_tree_sensitive_for_selected(self):
-    if self.is_filtering:
-      self._set_items_sensitive(self._exporter.item_tree, False)
+      self._set_items_sensitive(items, False)
       self._set_items_sensitive(
         [self._exporter.item_tree[item_key] for item_key in self._selected_items], True)
   
