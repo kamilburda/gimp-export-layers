@@ -188,6 +188,18 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
       if should_yield_item:
         yield item
   
+  def iter_all(self):
+    """Iterates over all items.
+    
+    This is equivalent to `iter(with_folders=True, with_empty_groups=True,
+    filtered=False)`.
+    
+    Yields:
+    
+    * `item` - The current `_Item` object.
+    """
+    return self.iter(with_folders=True, with_empty_groups=True, filtered=False)
+  
   def reset_filter(self):
     """Resets the filter, creating a new empty `ObjectFilter`."""
     self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
