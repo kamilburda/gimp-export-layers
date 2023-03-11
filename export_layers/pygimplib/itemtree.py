@@ -319,10 +319,6 @@ class _Item(object):
       * `TYPE_FOLDER` - item containing children (raw item is a group with
         children)
   
-  * `path_visible` (read-only) - Visibility of all item's parents and this
-    item. If all items are visible, `path_visible` is `True`. If at least one
-    of these items is invisible, `path_visible` is `False`.
-  
   * `orig_name` (read-only) - Original `gimp.Item.name` as a string.
   
   * `tags` - Set of arbitrary strings attached to the item. Tags can be used for
@@ -348,8 +344,6 @@ class _Item(object):
     self._children = children if children is not None else []
     
     self.name = pgutils.safe_decode_gimp(raw_item.name)
-    
-    self._path_visible = None
     
     self._orig_name = self.name
     self._orig_parents = self._parents
@@ -392,13 +386,6 @@ class _Item(object):
   @property
   def type(self):
     return self._type
-  
-  @property
-  def path_visible(self):
-    if self._path_visible is None:
-      self._path_visible = self._get_path_visibility()
-    
-    return self._path_visible
   
   @property
   def orig_name(self):
@@ -454,20 +441,6 @@ class _Item(object):
     self._tags.remove(tag)
     
     self._save_tags()
-  
-  def _get_path_visibility(self):
-    """Returns `True` if this item and all of its parents are visible, `False`
-    otherwise.
-    """
-    path_visible = True
-    if not self._raw_item.visible:
-      path_visible = False
-    else:
-      for parent in self._parents:
-        if not parent.raw.visible:
-          path_visible = False
-          break
-    return path_visible
   
   def _save_tags(self):
     """Saves tags persistently to the item."""

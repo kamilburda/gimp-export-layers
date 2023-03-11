@@ -24,7 +24,16 @@ def is_nonempty_group(item):
 
 
 def is_path_visible(item):
-  return item.path_visible
+  path_visible = True
+  if not item.raw.visible:
+    path_visible = False
+  else:
+    for parent in item.parents:
+      if not parent.raw.visible:
+        path_visible = False
+        break
+  
+  return path_visible
 
 
 def is_top_level(item):
