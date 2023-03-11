@@ -436,6 +436,7 @@ class LayerExporter(object):
     
     if item_tree is not None:
       self._item_tree = item_tree
+      self._reset_item_attributes()
     else:
       self._item_tree = pg.itemtree.LayerTree(self.image, name=pg.config.SOURCE_NAME)
     
@@ -516,11 +517,15 @@ class LayerExporter(object):
         for function in functions:
           setattr(self, function.__name__, pg.utils.empty_func)
   
+  def _reset_item_attributes(self):
+    for item in self._item_tree.iter_all():
+      item.name = item.orig_name
+      item.parents = list(item.orig_parents)
+      item.children = list(item.orig_children)
+  
   def _preprocess_items(self):
     if self._item_tree.filter:
       self._item_tree.reset_filter()
-    
-    self._reset_parents_in_items()
     
     self._set_constraints()
     
@@ -534,11 +539,6 @@ class LayerExporter(object):
           self._use_another_image_copy = True
         elif num_items < 1:
           self._keep_image_copy = False
-  
-  def _reset_parents_in_items(self):
-    for item in self._item_tree:
-      item.parents = list(item.orig_parents)
-      item.children = list(item.orig_children)
   
   def _set_constraints(self):
     self._layer_types_filter = pg.objectfilter.ObjectFilter(
