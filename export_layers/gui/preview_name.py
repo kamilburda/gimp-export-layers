@@ -525,7 +525,9 @@ class ExportNamePreview(preview_base_.ExportPreview):
         self._initial_item_tree = None
       else:
         if self._exporter.item_tree is not None:
-          self._exporter.item_tree.reset_all_names()
+          for item in self._exporter.item_tree.iter(
+                with_folders=True, with_empty_groups=True, filtered=False):
+            item.name = item.orig_name
         item_tree = self._exporter.item_tree
     else:
       item_tree = None

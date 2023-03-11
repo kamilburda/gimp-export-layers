@@ -188,13 +188,6 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
       if should_yield_item:
         yield item
   
-  def reset_all_names(self):
-    """Resets the `name` attribute of all `_Item` instances, regardless of item
-    filtering.
-    """
-    for item in self._itemtree.values():
-      item.name = item.orig_name
-  
   def reset_filter(self):
     """Resets the filter, creating a new empty `ObjectFilter`."""
     self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
