@@ -198,7 +198,8 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     * `item` - The current `_Item` object.
     """
-    return self.iter(with_folders=True, with_empty_groups=True, filtered=False)
+    for item in self._itemtree.values():
+      yield item
   
   def reset_filter(self):
     """Resets the filter, creating a new empty `ObjectFilter`."""
