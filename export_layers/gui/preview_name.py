@@ -71,7 +71,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
         initial_item_tree=None,
         collapsed_items=None,
         selected_items=None,
-        selected_items_filter_name='only_selected_items',
+        selected_items_filter_name='selected_in_preview',
         available_tags_setting=None):
     super().__init__()
     

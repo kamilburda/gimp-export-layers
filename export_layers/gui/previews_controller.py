@@ -22,7 +22,7 @@ class ExportPreviewsController(object):
     self._settings = settings
     self._image = image
     
-    self._only_selected_items_constraints = {}
+    self._selected_in_preview_constraints = {}
     self._custom_actions = {}
     self._is_initial_selection_set = False
     
@@ -176,31 +176,31 @@ class ExportPreviewsController(object):
       'after-reset', _clear_image_preview)
   
   def _connect_toggle_name_preview_filtering(self):
-    def _after_add_only_selected_items(constraints, constraint, orig_constraint_dict):
+    def _after_add_selected_in_preview(constraints, constraint, orig_constraint_dict):
       if constraint['orig_name'].value == 'selected_in_preview':
-        self._only_selected_items_constraints[constraint.name] = constraint
+        self._selected_in_preview_constraints[constraint.name] = constraint
         
         _on_enabled_changed(constraint['enabled'])
         constraint['enabled'].connect_event('value-changed', _on_enabled_changed)
     
-    def _before_remove_only_selected_items(constraints, constraint):
-      if constraint.name in self._only_selected_items_constraints:
-        del self._only_selected_items_constraints[constraint.name]
+    def _before_remove_selected_in_preview(constraints, constraint):
+      if constraint.name in self._selected_in_preview_constraints:
+        del self._selected_in_preview_constraints[constraint.name]
     
     def _before_clear_constraints(constraints):
-      self._only_selected_items_constraints = {}
+      self._selected_in_preview_constraints = {}
       self._name_preview.is_filtering = False
     
     def _on_enabled_changed(constraint_enabled):
       self._name_preview.is_filtering = (
         any(constraint['enabled'].value
-            for constraint in self._only_selected_items_constraints.values()))
+            for constraint in self._selected_in_preview_constraints.values()))
     
     self._settings['main/constraints'].connect_event(
-      'after-add-action', _after_add_only_selected_items)
+      'after-add-action', _after_add_selected_in_preview)
     
     self._settings['main/constraints'].connect_event(
-      'before-remove-action', _before_remove_only_selected_items)
+      'before-remove-action', _before_remove_selected_in_preview)
     
     self._settings['main/constraints'].connect_event(
       'before-clear-actions', _before_clear_constraints)
