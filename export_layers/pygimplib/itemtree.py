@@ -297,10 +297,10 @@ class _Item(object):
   
   * `item` (read-only) - `gimp.Item` object.
   
-  * `parents` (read-only) - List of `_Item` parents for this item, sorted from
-    the topmost parent to the bottommost (immediate) parent.
+  * `parents` - List of `_Item` parents for this item, sorted from the topmost
+    parent to the bottommost (immediate) parent.
   
-  * `children` (read-only) - List of `_Item` children for this item.
+  * `children` - List of `_Item` children for this item.
   
   * `name` - Item name as a string, initially equal to `orig_name`. Modify this
      attribute instead of `gimp.Item.name` to avoid modifying the original item.
@@ -319,7 +319,12 @@ class _Item(object):
       * `TYPE_FOLDER` - item containing children (raw item is a group with
         children)
   
-  * `orig_name` (read-only) - Original `gimp.Item.name` as a string.
+  * `orig_name` (read-only) - Original `gimp.Item.name` as a string. This
+    attribute may be used to access `_Item`s in `ItemTree`.
+  
+  * `orig_parents` (read-only) - Initial `parents` of this item.
+  
+  * `orig_children` (read-only) - Initial `children` of this item.
   
   * `tags` - Set of arbitrary strings attached to the item. Tags can be used for
     a variety of purposes, such as special handling of items with specific tags.
