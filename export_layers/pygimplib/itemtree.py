@@ -233,9 +233,9 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
           else:
             child_items.append(_Item(raw_item, TYPE_ITEM, parents_for_child, [], self._name))
         
-        # We break the convention here and access private attributes from `_Item`.
+        # We break the convention here and access a private attribute from `_Item`.
         item._orig_children = child_items
-        item._children = child_items
+        item.children = child_items
         
         for child_item in reversed(child_items):
           item_tree.insert(0, child_item)
@@ -332,9 +332,7 @@ class _Item(object):
     appended to `tags_source_name`.
   """
   
-  def __init__(
-        self, raw_item, item_type,
-        parents=None, children=None, tags_source_name=None):
+  def __init__(self, raw_item, item_type, parents=None, children=None, tags_source_name=None):
     if raw_item is None:
       raise TypeError('item cannot be None')
     
@@ -393,14 +391,17 @@ class _Item(object):
   
   @property
   def orig_parents(self):
-    return iter(self._orig_parents)
+    if self._orig_parents is not None:
+      return iter(self._orig_parents)
+    else:
+      return iter([])
   
   @property
   def orig_children(self):
     if self._orig_children is not None:
       return iter(self._orig_children)
     else:
-      return None
+      return iter([])
   
   @property
   def tags(self):
