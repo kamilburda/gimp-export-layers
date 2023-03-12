@@ -63,7 +63,6 @@ test_constraints = [
     'function': pg.utils.empty_func,
     'enabled': True,
     'display_name': 'Only layers',
-    'subfilter': 'layer_types',
   },
   {
     'name': 'only_visible_layers',
@@ -133,7 +132,6 @@ class TestCreateActions(unittest.TestCase):
      ['action', 'constraint'],
      {
        'action_groups': [actions.DEFAULT_CONSTRAINTS_GROUP],
-       'subfilter': 'layer_types',
      }),
   ])
   def test_create_initial_actions_are_added(

@@ -101,7 +101,6 @@ Tagged layers in built-in actions
 Preview
 * layer names
   * layers are organized in folder structure, names are properly uniquified
-  * "Include..." constraints
   * tags
     * assign tag to layer
     * add tag

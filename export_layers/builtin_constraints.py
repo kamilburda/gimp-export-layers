@@ -12,9 +12,6 @@ from gimp import pdb
 from export_layers import pygimplib as pg
 
 
-CONSTRAINTS_LAYER_TYPES_GROUP = 'constraints_layer_types'
-
-
 def is_layer(item):
   return item.type == pg.itemtree.TYPE_ITEM
 
@@ -65,20 +62,16 @@ def is_item_in_selected_items(item, selected_layers):
 
 _BUILTIN_CONSTRAINTS_LIST = [
   {
-    'name': 'include_layers',
+    'name': 'only_layers',
     'type': 'constraint',
     'function': is_layer,
-    'display_name': _('Include layers'),
-    'subfilter': 'layer_types',
-    'action_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
+    'display_name': _('Only layers'),
   },
   {
-    'name': 'include_layer_groups',
+    'name': 'only_layer_groups',
     'type': 'constraint',
     'function': is_nonempty_group,
-    'display_name': _('Include layer groups'),
-    'subfilter': 'layer_types',
-    'action_groups': [CONSTRAINTS_LAYER_TYPES_GROUP],
+    'display_name': _('Only layer groups'),
   },
   {
     'name': 'only_visible_layers',
