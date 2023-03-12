@@ -31,7 +31,7 @@ class TestSessionSource(unittest.TestCase):
   
   def test_write(self, mock_session_source):
     self.settings['file_extension'].set_value('png')
-    self.settings['only_visible_layers'].set_value(True)
+    self.settings['flatten'].set_value(True)
     
     self.source.write(self.settings)
     
@@ -41,32 +41,32 @@ class TestSessionSource(unittest.TestCase):
       'png')
     self.assertEqual(
       sources_.gimpshelf.shelf[self.source_name][
-        self.settings['only_visible_layers'].get_path('root')],
+        self.settings['flatten'].get_path('root')],
       True)
   
   def test_write_multiple_settings_separately(self, mock_session_source):
     self.settings['file_extension'].set_value('jpg')
     self.source.write([self.settings['file_extension']])
-    self.settings['only_visible_layers'].set_value(True)
+    self.settings['flatten'].set_value(True)
     
-    self.source.write([self.settings['only_visible_layers']])
+    self.source.write([self.settings['flatten']])
     self.source.read([self.settings['file_extension']])
-    self.source.read([self.settings['only_visible_layers']])
+    self.source.read([self.settings['flatten']])
     
     self.assertEqual(self.settings['file_extension'].value, 'jpg')
-    self.assertEqual(self.settings['only_visible_layers'].value, True)
+    self.assertEqual(self.settings['flatten'].value, True)
   
   def test_read(self, mock_session_source):
     data = {}
     data[self.settings['file_extension'].get_path('root')] = 'png'
-    data[self.settings['only_visible_layers'].get_path('root')] = True
+    data[self.settings['flatten'].get_path('root')] = True
     sources_.gimpshelf.shelf[self.source_name] = data
     
     self.source.read(
-      [self.settings['file_extension'], self.settings['only_visible_layers']])
+      [self.settings['file_extension'], self.settings['flatten']])
     
     self.assertEqual(self.settings['file_extension'].value, 'png')
-    self.assertEqual(self.settings['only_visible_layers'].value, True)
+    self.assertEqual(self.settings['flatten'].value, True)
   
   def test_read_settings_not_found(self, mock_session_source):
     self.source.write([self.settings['file_extension']])
@@ -121,25 +121,25 @@ class TestPersistentSource(unittest.TestCase):
   
   def test_write_read(self, mock_persistent_source):
     self.settings['file_extension'].set_value('jpg')
-    self.settings['only_visible_layers'].set_value(True)
+    self.settings['flatten'].set_value(True)
     
     self.source.write(self.settings)
     self.source.read(self.settings)
     
     self.assertEqual(self.settings['file_extension'].value, 'jpg')
-    self.assertEqual(self.settings['only_visible_layers'].value, True)
+    self.assertEqual(self.settings['flatten'].value, True)
   
   def test_write_multiple_settings_separately(self, mock_persistent_source):
     self.settings['file_extension'].set_value('jpg')
     self.source.write([self.settings['file_extension']])
-    self.settings['only_visible_layers'].set_value(True)
+    self.settings['flatten'].set_value(True)
     
-    self.source.write([self.settings['only_visible_layers']])
+    self.source.write([self.settings['flatten']])
     self.source.read([self.settings['file_extension']])
-    self.source.read([self.settings['only_visible_layers']])
+    self.source.read([self.settings['flatten']])
     
     self.assertEqual(self.settings['file_extension'].value, 'jpg')
-    self.assertEqual(self.settings['only_visible_layers'].value, True)
+    self.assertEqual(self.settings['flatten'].value, True)
   
   def test_write_read_same_setting_name_in_different_groups(self, mock_persistent_source):
     settings = stubs_group.create_test_settings_hierarchical()
@@ -235,7 +235,7 @@ class TestSourceReadWriteDict(unittest.TestCase):
       data_dict,
       {
         'file_extension': self.settings['file_extension'].value,
-        'only_visible_layers': self.settings['only_visible_layers'].value,
+        'flatten': self.settings['flatten'].value,
         'overwrite_mode': self.settings['overwrite_mode'].value,
       })
   
@@ -245,20 +245,20 @@ class TestSourceReadWriteDict(unittest.TestCase):
   def _test_write_dict(self, source):
     data_dict = {
       'file_extension': self.settings['file_extension'].default_value,
-      'only_visible_layers': self.settings['only_visible_layers'].default_value,
+      'flatten': self.settings['flatten'].default_value,
     }
     
     self.settings['file_extension'].set_value('jpg')
-    self.settings['only_visible_layers'].set_value(True)
+    self.settings['flatten'].set_value(True)
     
     source.write_dict(data_dict)
     
     source.read(
-      [self.settings['file_extension'], self.settings['only_visible_layers']])
+      [self.settings['file_extension'], self.settings['flatten']])
     
     self.assertEqual(
       self.settings['file_extension'].value,
       self.settings['file_extension'].default_value)
     self.assertEqual(
-      self.settings['only_visible_layers'].value,
-      self.settings['only_visible_layers'].default_value)
+      self.settings['flatten'].value,
+      self.settings['flatten'].default_value)

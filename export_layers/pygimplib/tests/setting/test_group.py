@@ -122,7 +122,7 @@ class TestGroupAddFromDict(unittest.TestCase):
     settings.add([
       {
        'type': settings_.SettingTypes.boolean,
-       'name': 'only_visible_layers',
+       'name': 'flatten',
        'default_value': False,
       },
       {
@@ -132,7 +132,7 @@ class TestGroupAddFromDict(unittest.TestCase):
       }
     ])
     
-    self.assertEqual(settings['only_visible_layers'].pdb_type, None)
+    self.assertEqual(settings['flatten'].pdb_type, None)
     self.assertEqual(settings['use_layer_size'].pdb_type, None)
   
   def test_add_with_group_level_attributes_overridden_by_setting_attributes(self):
@@ -140,7 +140,7 @@ class TestGroupAddFromDict(unittest.TestCase):
     settings.add([
       {
        'type': settings_.SettingTypes.boolean,
-       'name': 'only_visible_layers',
+       'name': 'flatten',
        'default_value': False,
       },
       {
@@ -151,7 +151,7 @@ class TestGroupAddFromDict(unittest.TestCase):
       }
     ])
     
-    self.assertEqual(settings['only_visible_layers'].pdb_type, None)
+    self.assertEqual(settings['flatten'].pdb_type, None)
     self.assertEqual(
       settings['use_layer_size'].pdb_type, settings_.SettingPdbTypes.int16)
   
@@ -173,16 +173,16 @@ class TestGroupAddFromDict(unittest.TestCase):
     settings.add([
       {
        'type': settings_.SettingTypes.boolean,
-       'name': 'only_visible_layers',
+       'name': 'flatten',
        'default_value': False,
       },
       additional_settings
     ])
     
-    self.assertEqual(settings['only_visible_layers'].pdb_type, None)
+    self.assertEqual(settings['flatten'].pdb_type, None)
     self.assertEqual(
       settings['additional/use_layer_size'].pdb_type, settings_.SettingPdbTypes.int16)
-    self.assertEqual(settings['only_visible_layers'].display_name, 'Setting name')
+    self.assertEqual(settings['flatten'].display_name, 'Setting name')
     self.assertEqual(settings['additional/use_layer_size'].display_name, 'Use layer size')
 
 
@@ -349,8 +349,8 @@ class TestGroup(unittest.TestCase):
       setting_names_and_values['file_extension'],
       self.settings['file_extension'].default_value)
     self.assertEqual(
-      setting_names_and_values['only_visible_layers'],
-      self.settings['only_visible_layers'].default_value)
+      setting_names_and_values['flatten'],
+      self.settings['flatten'].default_value)
     self.assertEqual(
       setting_names_and_values['overwrite_mode'],
       self.settings['overwrite_mode'].default_value)
@@ -358,11 +358,11 @@ class TestGroup(unittest.TestCase):
   def test_set_values(self):
     self.settings.set_values({
       'file_extension': 'jpg',
-      'only_visible_layers': True
+      'flatten': True
     })
     
     self.assertEqual(self.settings['file_extension'].value, 'jpg')
-    self.assertEqual(self.settings['only_visible_layers'].value, True)
+    self.assertEqual(self.settings['flatten'].value, True)
   
   def test_set_values_nonexistent_setting(self):
     with self.assertRaises(KeyError):
@@ -371,9 +371,9 @@ class TestGroup(unittest.TestCase):
       })
   
   def test_remove_settings(self):
-    self.settings.remove(['file_extension', 'only_visible_layers'])
+    self.settings.remove(['file_extension', 'flatten'])
     self.assertNotIn('file_extension', self.settings)
-    self.assertNotIn('only_visible_layers', self.settings)
+    self.assertNotIn('flatten', self.settings)
     self.assertIn('overwrite_mode', self.settings)
   
   def test_remove_setting_from_group_and_then_group(self):
@@ -401,7 +401,7 @@ class TestGroup(unittest.TestCase):
       ['ignore_reset', 'ignore_apply_gui_value_to_setting'])
     
     self.settings['file_extension'].set_value('gif')
-    self.settings['only_visible_layers'].set_value(True)
+    self.settings['flatten'].set_value(True)
     self.settings['overwrite_mode'].set_item('skip')
     self.settings['special/first_plugin_run'].set_value(True)
     
@@ -412,8 +412,8 @@ class TestGroup(unittest.TestCase):
       self.settings['overwrite_mode'].value,
       self.settings['overwrite_mode'].items['skip'])
     self.assertEqual(
-      self.settings['only_visible_layers'].value,
-      self.settings['only_visible_layers'].default_value)
+      self.settings['flatten'].value,
+      self.settings['flatten'].default_value)
     self.assertEqual(
       self.settings['special/first_plugin_run'].value,
       self.settings['special/first_plugin_run'].default_value)
@@ -440,8 +440,8 @@ class TestGroupHierarchical(unittest.TestCase):
     self.assertEqual(
       self.settings['main/file_extension'], self.settings['main']['file_extension'])
     self.assertEqual(
-      self.settings['advanced/only_visible_layers'],
-      self.settings['advanced']['only_visible_layers'])
+      self.settings['advanced/flatten'],
+      self.settings['advanced']['flatten'])
     self.assertEqual(
       self.settings['advanced/overwrite_mode'],
       self.settings['advanced']['overwrite_mode'])
@@ -474,8 +474,8 @@ class TestGroupHierarchical(unittest.TestCase):
       setting_names_and_values['main/file_extension'],
       self.settings['main/file_extension'].default_value)
     self.assertEqual(
-      setting_names_and_values['advanced/only_visible_layers'],
-      self.settings['advanced/only_visible_layers'].default_value)
+      setting_names_and_values['advanced/flatten'],
+      self.settings['advanced/flatten'].default_value)
     self.assertEqual(
       setting_names_and_values['advanced/overwrite_mode'],
       self.settings['advanced/overwrite_mode'].default_value)
@@ -488,7 +488,7 @@ class TestGroupHierarchical(unittest.TestCase):
     walked_settings = list(self.settings.walk())
     
     self.assertIn(self.settings['main/file_extension'], walked_settings)
-    self.assertIn(self.settings['advanced/only_visible_layers'], walked_settings)
+    self.assertIn(self.settings['advanced/flatten'], walked_settings)
     self.assertIn(self.settings['advanced/overwrite_mode'], walked_settings)
   
   def test_walk_ignore_settings_with_tag(self):
@@ -500,7 +500,7 @@ class TestGroupHierarchical(unittest.TestCase):
       include_setting_func=lambda setting: 'ignore_reset' not in setting.tags))
     
     self.assertNotIn(self.settings['main/file_extension'], walked_settings)
-    self.assertIn(self.settings['advanced/only_visible_layers'], walked_settings)
+    self.assertIn(self.settings['advanced/flatten'], walked_settings)
     self.assertNotIn(self.settings['advanced/overwrite_mode'], walked_settings)
   
   def test_walk_ignore_settings_in_group_with_tag(self):
@@ -510,7 +510,7 @@ class TestGroupHierarchical(unittest.TestCase):
       include_setting_func=lambda setting: 'ignore_reset' not in setting.tags))
     
     self.assertIn(self.settings['main/file_extension'], walked_settings)
-    self.assertNotIn(self.settings['advanced/only_visible_layers'], walked_settings)
+    self.assertNotIn(self.settings['advanced/flatten'], walked_settings)
     self.assertNotIn(self.settings['advanced/overwrite_mode'], walked_settings)
   
   def test_walk_include_groups(self):
@@ -519,7 +519,7 @@ class TestGroupHierarchical(unittest.TestCase):
     self.assertIn(self.settings['main'], walked_settings)
     self.assertIn(self.settings['main/file_extension'], walked_settings)
     self.assertIn(self.settings['advanced'], walked_settings)
-    self.assertIn(self.settings['advanced/only_visible_layers'], walked_settings)
+    self.assertIn(self.settings['advanced/flatten'], walked_settings)
     self.assertIn(self.settings['advanced/overwrite_mode'], walked_settings)
     self.assertNotIn(self.settings, walked_settings)
   
@@ -534,7 +534,7 @@ class TestGroupHierarchical(unittest.TestCase):
     self.assertIn(self.settings['main'], walked_settings)
     self.assertIn(self.settings['main/file_extension'], walked_settings)
     self.assertNotIn(self.settings['advanced'], walked_settings)
-    self.assertNotIn(self.settings['advanced/only_visible_layers'], walked_settings)
+    self.assertNotIn(self.settings['advanced/flatten'], walked_settings)
     self.assertNotIn(self.settings['advanced/overwrite_mode'], walked_settings)
   
   def test_walk_include_if_parent_skipped(self):
@@ -548,7 +548,7 @@ class TestGroupHierarchical(unittest.TestCase):
     self.assertNotIn(self.settings['main'], walked_settings)
     self.assertIn(self.settings['main/file_extension'], walked_settings)
     self.assertNotIn(self.settings['advanced'], walked_settings)
-    self.assertIn(self.settings['advanced/only_visible_layers'], walked_settings)
+    self.assertIn(self.settings['advanced/flatten'], walked_settings)
     self.assertIn(self.settings['advanced/overwrite_mode'], walked_settings)
   
   def test_walk_include_if_parent_skipped_and_include_groups(self):
@@ -563,7 +563,7 @@ class TestGroupHierarchical(unittest.TestCase):
     self.assertIn(self.settings['main'], walked_settings)
     self.assertIn(self.settings['main/file_extension'], walked_settings)
     self.assertNotIn(self.settings['advanced'], walked_settings)
-    self.assertIn(self.settings['advanced/only_visible_layers'], walked_settings)
+    self.assertIn(self.settings['advanced/flatten'], walked_settings)
     self.assertIn(self.settings['advanced/overwrite_mode'], walked_settings)
   
   def test_walk_with_callbacks(self):
@@ -575,7 +575,7 @@ class TestGroupHierarchical(unittest.TestCase):
     self.assertEqual(
       walked_settings,
       ['main', 'file_extension', 'main_end',
-       'advanced', 'only_visible_layers', 'overwrite_mode', 'advanced_end'])
+       'advanced', 'flatten', 'overwrite_mode', 'advanced_end'])
   
   def test_walk_with_callbacks_and_ignore_settings(self):
     self.settings['main'].tags.add('ignore_reset')
@@ -589,7 +589,7 @@ class TestGroupHierarchical(unittest.TestCase):
           walk_callbacks=walk_callbacks):
       pass
     
-    self.assertEqual(walked_settings, ['advanced', 'only_visible_layers', 'advanced_end'])
+    self.assertEqual(walked_settings, ['advanced', 'flatten', 'advanced_end'])
   
   def test_walk_with_callbacks_empty_group(self):
     self.settings['main'].remove(['file_extension'])
@@ -602,7 +602,7 @@ class TestGroupHierarchical(unittest.TestCase):
     self.assertEqual(
       walked_settings,
       ['main', 'main_end',
-       'advanced', 'only_visible_layers', 'overwrite_mode', 'advanced_end'])
+       'advanced', 'flatten', 'overwrite_mode', 'advanced_end'])
   
   @staticmethod
   def _get_test_data_for_walking_group():
@@ -639,18 +639,18 @@ class TestGroupLoadSave(unittest.TestCase):
     
     settings.load()
     self.assertEqual(mock_load.call_count, 1)
-    self.assertEqual([settings['only_visible_layers']], mock_load.call_args[0][0])
+    self.assertEqual([settings['flatten']], mock_load.call_args[0][0])
     
     settings.save()
     self.assertEqual(mock_save.call_count, 1)
-    self.assertEqual([settings['only_visible_layers']], mock_save.call_args[0][0])
+    self.assertEqual([settings['flatten']], mock_save.call_args[0][0])
   
   @parameterized.parameterized.expand([
     ('default_sources',
      None,
      3,
      [['main/file_extension'],
-      ['advanced/only_visible_layers'],
+      ['advanced/flatten'],
       ['advanced/use_layer_size']],
      [('session_source', 'persistent_source'),
       ('persistent_source', 'session_source'),
@@ -659,13 +659,13 @@ class TestGroupLoadSave(unittest.TestCase):
     ('session_source_only',
      ['session_source'],
      1,
-     [['main/file_extension', 'advanced/only_visible_layers', 'advanced/use_layer_size']],
+     [['main/file_extension', 'advanced/flatten', 'advanced/use_layer_size']],
      [('session_source',)]),
     
     ('persistent_source_only',
      ['persistent_source'],
      1,
-     [['main/file_extension', 'advanced/only_visible_layers']],
+     [['main/file_extension', 'advanced/flatten']],
      [('persistent_source',)]),
   ])
   def test_load_save_setting_sources_in_group_and_in_settings(
@@ -767,7 +767,7 @@ class TestGroupGui(unittest.TestCase):
       },
       {
         'type': stubs_setting.SettingWithGuiStub,
-        'name': 'only_visible_layers',
+        'name': 'flatten',
         'default_value': False,
       },
     ])
@@ -782,21 +782,21 @@ class TestGroupGui(unittest.TestCase):
       type(self.settings['file_extension'].gui.element),
       stubs_setting.CheckButtonStub)
     self.assertIs(
-      type(self.settings['only_visible_layers'].gui),
+      type(self.settings['flatten'].gui),
       stubs_setting.CheckButtonPresenterStub)
     self.assertIs(
-      type(self.settings['only_visible_layers'].gui.element),
+      type(self.settings['flatten'].gui.element),
       stubs_setting.CheckButtonStub)
 
   def test_initialize_gui_ignores_specified_settings(self):
-    self.settings['only_visible_layers'].tags.add('ignore_initialize_gui')
+    self.settings['flatten'].tags.add('ignore_initialize_gui')
     self.settings.initialize_gui()
     
     self.assertIs(
       type(self.settings['file_extension'].gui),
       stubs_setting.CheckButtonPresenterStub)
     self.assertIs(
-      type(self.settings['only_visible_layers'].gui),
+      type(self.settings['flatten'].gui),
       presenter_.NullPresenter)
   
   def test_initialize_gui_with_custom_gui(self):
@@ -814,24 +814,22 @@ class TestGroupGui(unittest.TestCase):
     # the initial GUI element value.
     self.assertEqual(file_extension_widget.value, 'bmp')
     self.assertIs(
-      type(self.settings['only_visible_layers'].gui),
+      type(self.settings['flatten'].gui),
       stubs_setting.CheckButtonPresenterStub)
     self.assertIs(
-      type(self.settings['only_visible_layers'].gui.element),
+      type(self.settings['flatten'].gui.element),
       stubs_setting.CheckButtonStub)
   
   def test_apply_gui_values_to_settings(self):
     file_extension_widget = stubs_setting.GuiWidgetStub(None)
-    only_visible_layers_widget = stubs_setting.GuiWidgetStub(None)
-    self.settings['file_extension'].set_gui(
-      stubs_setting.PresenterStub, file_extension_widget)
-    self.settings['only_visible_layers'].set_gui(
-      stubs_setting.PresenterStub, only_visible_layers_widget)
+    flatten_widget = stubs_setting.GuiWidgetStub(None)
+    self.settings['file_extension'].set_gui(stubs_setting.PresenterStub, file_extension_widget)
+    self.settings['flatten'].set_gui(stubs_setting.PresenterStub, flatten_widget)
     
     file_extension_widget.set_value('gif')
-    only_visible_layers_widget.set_value(True)
+    flatten_widget.set_value(True)
     
     self.settings.apply_gui_values_to_settings()
     
     self.assertEqual(self.settings['file_extension'].value, 'gif')
-    self.assertEqual(self.settings['only_visible_layers'].value, True)
+    self.assertEqual(self.settings['flatten'].value, True)

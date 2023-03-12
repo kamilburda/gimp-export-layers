@@ -68,7 +68,7 @@ class TestSettingEventsMixin(unittest.TestCase):
   
   def setUp(self):
     self.file_extension = stubs_setting.SettingStub('file_extension', 'png')
-    self.only_visible = settings_.BoolSetting('only_visible_layers', False)
+    self.flatten = settings_.BoolSetting('flatten', False)
   
   def test_connect_event_argument_is_not_callable(self):
     with self.assertRaises(TypeError):
@@ -79,32 +79,28 @@ class TestSettingEventsMixin(unittest.TestCase):
     
     event_ids.add(self.file_extension.connect_event('test-event', lambda *args: None))
     event_ids.add(self.file_extension.connect_event('test-event', lambda *args: None))
-    event_ids.add(self.only_visible.connect_event('test-event', lambda *args: None))
+    event_ids.add(self.flatten.connect_event('test-event', lambda *args: None))
     
     self.assertEqual(len(event_ids), 3)
   
   def test_invoke_event(self):
-    self.only_visible.set_value(True)
+    self.flatten.set_value(True)
     self.file_extension.connect_event(
-      'test-event',
-      stubs_setting.on_file_extension_changed,
-      self.only_visible)
+      'test-event', stubs_setting.on_file_extension_changed, self.flatten)
     
     self.file_extension.invoke_event('test-event')
     
     self.assertEqual(self.file_extension.value, 'png')
-    self.assertFalse(self.only_visible.value)
+    self.assertFalse(self.flatten.value)
   
   def test_invoke_event_with_arguments(self):
-    self.only_visible.set_value(True)
-    self.file_extension.connect_event(
-      'test-event',
-      stubs_setting.on_file_extension_changed)
+    self.flatten.set_value(True)
+    self.file_extension.connect_event('test-event', stubs_setting.on_file_extension_changed)
     
-    self.file_extension.invoke_event('test-event', self.only_visible)
+    self.file_extension.invoke_event('test-event', self.flatten)
     
     self.assertEqual(self.file_extension.value, 'png')
-    self.assertFalse(self.only_visible.value)
+    self.assertFalse(self.flatten.value)
   
   def test_connect_event_with_keyword_arguments(self):
     use_layer_size = settings_.BoolSetting('use_layer_size', False)
@@ -145,9 +141,7 @@ class TestSettingEventsMixin(unittest.TestCase):
   
   def test_connect_event_multiple_events_on_single_setting(self):
     self.file_extension.connect_event(
-      'test-event',
-      stubs_setting.on_file_extension_changed,
-      self.only_visible)
+      'test-event', stubs_setting.on_file_extension_changed, self.flatten)
     
     use_layer_size = settings_.BoolSetting('use_layer_size', False)
     self.file_extension.connect_event(
@@ -159,28 +153,23 @@ class TestSettingEventsMixin(unittest.TestCase):
     self.file_extension.invoke_event('test-event')
     
     self.assertEqual(self.file_extension.value, 'jpg')
-    self.assertTrue(self.only_visible.value)
+    self.assertTrue(self.flatten.value)
     self.assertFalse(use_layer_size.gui.get_visible())
   
   def test_remove_event(self):
     event_id = self.file_extension.connect_event(
-      'test-event',
-      stubs_setting.on_file_extension_changed,
-      self.only_visible)
+      'test-event', stubs_setting.on_file_extension_changed, self.flatten)
     
     self.file_extension.remove_event(event_id)
     self.file_extension.set_value('jpg')
     self.file_extension.invoke_event('test-event')
     
-    self.assertEqual(
-      self.only_visible.value, self.only_visible.default_value)
-    self.assertTrue(self.only_visible.gui.get_sensitive())
+    self.assertEqual(self.flatten.value, self.flatten.default_value)
+    self.assertTrue(self.flatten.gui.get_sensitive())
   
   def test_remove_event_with_id_non_last_event(self):
     event_id = self.file_extension.connect_event(
-      'test-event',
-      stubs_setting.on_file_extension_changed,
-      self.only_visible)
+      'test-event', stubs_setting.on_file_extension_changed, self.flatten)
     
     use_layer_size = settings_.BoolSetting('use_layer_size', False)
     self.file_extension.connect_event(
@@ -192,7 +181,7 @@ class TestSettingEventsMixin(unittest.TestCase):
     self.file_extension.set_value('jpg')
     self.file_extension.invoke_event('test-event')
     
-    self.assertFalse(self.only_visible.value)
+    self.assertFalse(self.flatten.value)
     self.assertFalse(use_layer_size.gui.get_visible())
   
   def test_remove_event_invalid_id_raises_error(self):
@@ -201,9 +190,7 @@ class TestSettingEventsMixin(unittest.TestCase):
   
   def test_has_event(self):
     event_id = self.file_extension.connect_event(
-      'test-event',
-      stubs_setting.on_file_extension_changed,
-      self.only_visible)
+      'test-event', stubs_setting.on_file_extension_changed, self.flatten)
     
     self.assertTrue(self.file_extension.has_event(event_id))
     
@@ -215,19 +202,17 @@ class TestSettingEventsMixin(unittest.TestCase):
   
   def test_set_event_enabled(self):
     event_id = self.file_extension.connect_event(
-      'test-event',
-      stubs_setting.on_file_extension_changed,
-      self.only_visible)
+      'test-event', stubs_setting.on_file_extension_changed, self.flatten)
     
     self.file_extension.set_event_enabled(event_id, False)
     self.file_extension.set_value('jpg')
     self.file_extension.invoke_event('test-event')
-    self.assertFalse(self.only_visible.value)
+    self.assertFalse(self.flatten.value)
     
     self.file_extension.set_event_enabled(event_id, True)
     self.file_extension.set_value('jpg')
     self.file_extension.invoke_event('test-event')
-    self.assertTrue(self.only_visible.value)
+    self.assertTrue(self.flatten.value)
   
   def test_set_event_enabled_invalid_event_raises_error(self):
     with self.assertRaises(ValueError):

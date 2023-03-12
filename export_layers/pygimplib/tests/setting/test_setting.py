@@ -244,23 +244,19 @@ class TestSettingEvents(unittest.TestCase):
   
   def setUp(self):
     self.setting = stubs_setting.SettingStub('file_extension', 'png')
-    self.only_visible_layers = settings_.BoolSetting('only_visible_layers', False)
+    self.flatten = settings_.BoolSetting('flatten', False)
   
   def test_connect_value_changed_event(self):
     self.setting.connect_event(
-      'value-changed',
-      stubs_setting.on_file_extension_changed,
-      self.only_visible_layers)
+      'value-changed', stubs_setting.on_file_extension_changed, self.flatten)
     
     self.setting.set_value('jpg')
-    self.assertEqual(self.only_visible_layers.value, True)
-    self.assertFalse(self.only_visible_layers.gui.get_sensitive())
+    self.assertEqual(self.flatten.value, True)
+    self.assertFalse(self.flatten.gui.get_sensitive())
   
   def test_connect_value_changed_event_nested(self):
     self.setting.connect_event(
-      'value-changed',
-      stubs_setting.on_file_extension_changed,
-      self.only_visible_layers)
+      'value-changed', stubs_setting.on_file_extension_changed, self.flatten)
     
     use_layer_size = settings_.BoolSetting('use_layer_size', False)
     use_layer_size.connect_event(
@@ -269,20 +265,17 @@ class TestSettingEvents(unittest.TestCase):
     use_layer_size.set_value(True)
     
     self.assertEqual(self.setting.value, 'jpg')
-    self.assertEqual(self.only_visible_layers.value, True)
-    self.assertFalse(self.only_visible_layers.gui.get_sensitive())
+    self.assertEqual(self.flatten.value, True)
+    self.assertFalse(self.flatten.gui.get_sensitive())
   
   def test_reset_triggers_value_changed_event(self):
     self.setting.connect_event(
-      'value-changed',
-      stubs_setting.on_file_extension_changed,
-      self.only_visible_layers)
+      'value-changed', stubs_setting.on_file_extension_changed, self.flatten)
     
     self.setting.set_value('jpg')
     self.setting.reset()
-    self.assertEqual(
-      self.only_visible_layers.value, self.only_visible_layers.default_value)
-    self.assertTrue(self.only_visible_layers.gui.get_sensitive())
+    self.assertEqual(self.flatten.value, self.flatten.default_value)
+    self.assertTrue(self.flatten.gui.get_sensitive())
 
 
 @mock.patch(
@@ -295,32 +288,30 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     new=stubs_gimp.ShelfStub())
   def setUp(self):
     self.setting = stubs_setting.SettingWithGuiStub('file_extension', 'png')
-    self.only_visible_layers = settings_.BoolSetting('only_visible_layers', False)
+    self.flatten = settings_.BoolSetting('flatten', False)
     self.session_source = sources_.SessionSource('')
   
   def test_before_load_event(self, mock_session_source):
-    persistor_.Persistor.save(
-      [self.setting, self.only_visible_layers], [self.session_source])
+    persistor_.Persistor.save([self.setting, self.flatten], [self.session_source])
     self.setting.set_value('gif')
     
     self.setting.connect_event(
-      'before-load', stubs_setting.on_file_extension_changed, self.only_visible_layers)
+      'before-load', stubs_setting.on_file_extension_changed, self.flatten)
     persistor_.Persistor.load([self.setting], [self.session_source])
     
     self.assertEqual(self.setting.value, 'png')
-    self.assertEqual(self.only_visible_layers.value, True)
+    self.assertEqual(self.flatten.value, True)
   
   def test_after_load_event(self, mock_session_source):
-    self.only_visible_layers.set_value(True)
-    persistor_.Persistor.save(
-      [self.setting, self.only_visible_layers], [self.session_source])
+    self.flatten.set_value(True)
+    persistor_.Persistor.save([self.setting, self.flatten], [self.session_source])
     
     self.setting.connect_event(
-      'after-load', stubs_setting.on_file_extension_changed, self.only_visible_layers)
+      'after-load', stubs_setting.on_file_extension_changed, self.flatten)
     persistor_.Persistor.load([self.setting], [self.session_source])
     
     self.assertEqual(self.setting.value, 'png')
-    self.assertEqual(self.only_visible_layers.value, False)
+    self.assertEqual(self.flatten.value, False)
   
   def test_after_load_event_not_all_settings_found_invoke_for_all_settings(
         self, mock_session_source):
@@ -328,20 +319,18 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     persistor_.Persistor.save([self.setting], [self.session_source])
     
     self.setting.connect_event(
-      'after-load', stubs_setting.on_file_extension_changed, self.only_visible_layers)
-    persistor_.Persistor.load(
-      [self.setting, self.only_visible_layers], [self.session_source])
+      'after-load', stubs_setting.on_file_extension_changed, self.flatten)
+    persistor_.Persistor.load([self.setting, self.flatten], [self.session_source])
     
     self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.only_visible_layers.value, True)
+    self.assertEqual(self.flatten.value, True)
   
   def test_after_load_event_read_fail(self, mock_session_source):
-    self.only_visible_layers.set_value(True)
-    persistor_.Persistor.save(
-      [self.setting, self.only_visible_layers], [self.session_source])
+    self.flatten.set_value(True)
+    persistor_.Persistor.save([self.setting, self.flatten], [self.session_source])
     
     self.setting.connect_event(
-      'after-load', stubs_setting.on_file_extension_changed, self.only_visible_layers)
+      'after-load', stubs_setting.on_file_extension_changed, self.flatten)
     
     with mock.patch(
            pgutils.get_pygimplib_module_path()
@@ -350,46 +339,42 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
       persistor_.Persistor.load([self.setting], [self.session_source])
     
     self.assertEqual(self.setting.value, 'png')
-    self.assertEqual(self.only_visible_layers.value, True)
+    self.assertEqual(self.flatten.value, True)
   
   def test_before_save_event(self, mock_session_source):
     self.setting.set_value('gif')
     
     self.setting.connect_event(
-      'before-save', stubs_setting.on_file_extension_changed, self.only_visible_layers)
-    persistor_.Persistor.save(
-      [self.setting, self.only_visible_layers], [self.session_source])
+      'before-save', stubs_setting.on_file_extension_changed, self.flatten)
+    persistor_.Persistor.save([self.setting, self.flatten], [self.session_source])
     
     self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.only_visible_layers.value, True)
+    self.assertEqual(self.flatten.value, True)
     
-    persistor_.Persistor.load(
-      [self.setting, self.only_visible_layers], [self.session_source])
+    persistor_.Persistor.load([self.setting, self.flatten], [self.session_source])
     
     self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.only_visible_layers.value, True)
+    self.assertEqual(self.flatten.value, True)
   
   def test_after_save_event(self, mock_session_source):
     self.setting.set_value('gif')
     
     self.setting.connect_event(
-      'after-save', stubs_setting.on_file_extension_changed, self.only_visible_layers)
-    persistor_.Persistor.save(
-      [self.setting, self.only_visible_layers], [self.session_source])
+      'after-save', stubs_setting.on_file_extension_changed, self.flatten)
+    persistor_.Persistor.save([self.setting, self.flatten], [self.session_source])
     
     self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.only_visible_layers.value, True)
+    self.assertEqual(self.flatten.value, True)
     
-    persistor_.Persistor.load(
-      [self.setting, self.only_visible_layers], [self.session_source])
+    persistor_.Persistor.load([self.setting, self.flatten], [self.session_source])
     
     self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.only_visible_layers.value, False)
+    self.assertEqual(self.flatten.value, False)
   
   def test_after_save_event_write_fail(self, mock_session_source):
     self.setting.set_value('gif')
     self.setting.connect_event(
-      'after-save', stubs_setting.on_file_extension_changed, self.only_visible_layers)
+      'after-save', stubs_setting.on_file_extension_changed, self.flatten)
     
     with mock.patch(
            pgutils.get_pygimplib_module_path()
@@ -397,7 +382,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
       temp_mock_session_source.__setitem__.side_effect = sources_.SourceWriteError
       persistor_.Persistor.save([self.setting], [self.session_source])
     
-    self.assertEqual(self.only_visible_layers.value, False)
+    self.assertEqual(self.flatten.value, False)
 
 
 class TestSettingGui(unittest.TestCase):
@@ -428,14 +413,14 @@ class TestSettingGui(unittest.TestCase):
   
   def test_setting_gui_type(self):
     setting = stubs_setting.SettingWithGuiStub(
-      'only_visible_layers', False, gui_type=stubs_setting.CheckButtonPresenterStub)
+      'flatten', False, gui_type=stubs_setting.CheckButtonPresenterStub)
     setting.set_gui()
     self.assertIs(type(setting.gui), stubs_setting.CheckButtonPresenterStub)
     self.assertIs(type(setting.gui.element), stubs_setting.CheckButtonStub)
   
   def test_setting_different_gui_type(self):
     setting = stubs_setting.SettingWithGuiStub(
-      'only_visible_layers', False, gui_type=stubs_setting.PresenterStub)
+      'flatten', False, gui_type=stubs_setting.PresenterStub)
     setting.set_gui()
     self.assertIs(type(setting.gui), stubs_setting.PresenterStub)
     self.assertIs(type(setting.gui.element), stubs_setting.GuiWidgetStub)
@@ -443,28 +428,28 @@ class TestSettingGui(unittest.TestCase):
   def test_setting_invalid_gui_type_raise_error(self):
     with self.assertRaises(ValueError):
       stubs_setting.SettingWithGuiStub(
-        'only_visible_layers',
+        'flatten',
         False,
         gui_type=stubs_setting.YesNoToggleButtonPresenterStub)
   
   def test_setting_null_gui_type(self):
     setting = stubs_setting.SettingWithGuiStub(
-      'only_visible_layers', False, gui_type=settings_.SettingGuiTypes.none)
+      'flatten', False, gui_type=settings_.SettingGuiTypes.none)
     setting.set_gui()
     self.assertIs(type(setting.gui), settings_.SettingGuiTypes.none)
   
   def test_set_gui_gui_type_is_specified_gui_element_is_none_raise_error(self):
-    setting = stubs_setting.SettingWithGuiStub('only_visible_layers', False)
+    setting = stubs_setting.SettingWithGuiStub('flatten', False)
     with self.assertRaises(ValueError):
       setting.set_gui(gui_type=stubs_setting.CheckButtonPresenterStub)
   
   def test_set_gui_gui_type_is_none_gui_element_is_specified_raise_error(self):
-    setting = stubs_setting.SettingWithGuiStub('only_visible_layers', False)
+    setting = stubs_setting.SettingWithGuiStub('flatten', False)
     with self.assertRaises(ValueError):
       setting.set_gui(gui_element=stubs_setting.GuiWidgetStub)
   
   def test_set_gui_manual_gui_type(self):
-    setting = stubs_setting.SettingWithGuiStub('only_visible_layers', False)
+    setting = stubs_setting.SettingWithGuiStub('flatten', False)
     setting.set_gui(
       gui_type=stubs_setting.YesNoToggleButtonPresenterStub,
       gui_element=stubs_setting.GuiWidgetStub(None))
@@ -473,7 +458,7 @@ class TestSettingGui(unittest.TestCase):
   
   def test_set_gui_gui_element_is_none_presenter_has_no_wrapper_raise_error(self):
     setting = stubs_setting.SettingWithGuiStub(
-      'only_visible_layers',
+      'flatten',
       False,
       gui_type=stubs_setting.PresenterWithoutGuiElementCreationStub)
     with self.assertRaises(ValueError):
@@ -497,14 +482,13 @@ class TestSettingGui(unittest.TestCase):
     self.setting.set_gui(
       stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
     
-    only_visible_layers = settings_.BoolSetting('only_visible_layers', False)
-    self.setting.connect_event(
-      'value-changed', stubs_setting.on_file_extension_changed, only_visible_layers)
+    flatten = settings_.BoolSetting('flatten', False)
+    self.setting.connect_event('value-changed', stubs_setting.on_file_extension_changed, flatten)
     
     self.widget.set_value('jpg')
     self.assertEqual(self.setting.value, 'jpg')
-    self.assertEqual(only_visible_layers.value, True)
-    self.assertFalse(only_visible_layers.gui.get_sensitive())
+    self.assertEqual(flatten.value, True)
+    self.assertFalse(flatten.gui.get_sensitive())
   
   def test_reset_updates_gui(self):
     self.setting.set_gui(stubs_setting.PresenterStub, self.widget)
@@ -588,9 +572,8 @@ class TestSettingGui(unittest.TestCase):
 class TestBoolSetting(unittest.TestCase):
   
   def test_description_from_display_name(self):
-    setting = settings_.BoolSetting(
-      'only_visible_layers', False, display_name='_Only visible layers')
-    self.assertEqual(setting.description, 'Only visible layers?')
+    setting = settings_.BoolSetting('flatten', False, display_name='_Flatten')
+    self.assertEqual(setting.description, 'Flatten?')
 
 
 class TestIntSetting(unittest.TestCase):

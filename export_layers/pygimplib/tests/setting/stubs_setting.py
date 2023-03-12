@@ -119,13 +119,13 @@ class SettingWithGuiStub(SettingStub):
     PresenterWithoutGuiElementCreationStub]
 
 
-def on_file_extension_changed(file_extension, only_visible_layers):
+def on_file_extension_changed(file_extension, flatten):
   if file_extension.value == 'png':
-    only_visible_layers.set_value(False)
-    only_visible_layers.gui.set_sensitive(True)
+    flatten.set_value(False)
+    flatten.gui.set_sensitive(True)
   else:
-    only_visible_layers.set_value(True)
-    only_visible_layers.gui.set_sensitive(False)
+    flatten.set_value(True)
+    flatten.gui.set_sensitive(False)
 
 
 def on_file_extension_changed_with_use_layer_size(file_extension, use_layer_size):

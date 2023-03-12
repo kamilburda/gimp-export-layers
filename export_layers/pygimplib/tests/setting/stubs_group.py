@@ -20,9 +20,9 @@ def create_test_settings():
     },
     {
       'type': settings_.SettingTypes.boolean,
-      'name': 'only_visible_layers',
+      'name': 'flatten',
       'default_value': False,
-      'display_name': 'Only visible layers',
+      'display_name': 'Flatten',
       'setting_sources': [object()]
     },
     {
@@ -57,9 +57,9 @@ def create_test_settings_hierarchical():
   advanced_settings.add([
     {
       'type': settings_.SettingTypes.boolean,
-      'name': 'only_visible_layers',
+      'name': 'flatten',
       'default_value': False,
-      'display_name': 'Only visible layers',
+      'display_name': 'Flatten',
     },
     {
       'type': settings_.SettingTypes.enumerated,
@@ -100,7 +100,7 @@ def create_test_settings_load_save():
   advanced_settings.add([
     {
       'type': settings_.SettingTypes.boolean,
-      'name': 'only_visible_layers',
+      'name': 'flatten',
       'default_value': False,
       'setting_sources': [dummy_persistent_source, dummy_session_source]
     },
