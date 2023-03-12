@@ -657,10 +657,9 @@ class ExportLayersDialog(object):
     self._name_preview = preview_name_.ExportNamePreview(
       self._exporter_for_previews,
       self._initial_layer_tree,
-      self._settings['gui_session/name_preview_layers_collapsed_state'].value[
-        self._image.ID],
+      self._settings['gui_session/name_preview_layers_collapsed_state'].value[self._image.ID],
       self._settings['main/selected_layers'].value[self._image.ID],
-      'only_selected_layers',
+      'selected_in_preview',
       self._settings['main/available_tags'])
     
     self._image_preview = preview_image_.ExportImagePreview(

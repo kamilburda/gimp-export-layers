@@ -177,7 +177,7 @@ class ExportPreviewsController(object):
   
   def _connect_toggle_name_preview_filtering(self):
     def _after_add_only_selected_items(constraints, constraint, orig_constraint_dict):
-      if constraint['orig_name'].value == 'only_selected_layers':
+      if constraint['orig_name'].value == 'selected_in_preview':
         self._only_selected_items_constraints[constraint.name] = constraint
         
         _on_enabled_changed(constraint['enabled'])

@@ -85,7 +85,6 @@ Setting persistence
 Built-in actions
 * procedures
 * constraints
-  * Only visible layers - visible layers with invisible parents must also be ignored
 
 Custom actions
 * add
@@ -105,7 +104,7 @@ Preview
     * assign tag to layer
     * add tag
     * remove tag
-  * selected and not selected layers for the "Only layers selected in preview" constraint
+  * selected and not selected layers for the "Selected in preview" constraint
 * image
   * properly scaled image and procedures applied on the image
     * e.g. paintbrush coordinates must be made relative to the previewed image

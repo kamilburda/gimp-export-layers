@@ -23,6 +23,7 @@ import gimpenums
 from export_layers import pygimplib as pg
 
 from export_layers import actions as actions_
+from export_layers import builtin_constraints
 from export_layers import builtin_procedures
 from export_layers.gui import messages
 
@@ -198,9 +199,14 @@ def _refresh_actions(
 
 
 def _remove_actions(actions_list, actions_root, action_prefix):
+  removed_actions = []
+  
   for action in actions_list:
     if action.name.startswith(action_prefix):
       actions_.remove(actions_root, action.name)
+      removed_actions.append(action)
+  
+  return removed_actions
 
 
 def _rename_generic_setting_in_actions(actions_list, actions, orig_name, new_name):
@@ -364,7 +370,69 @@ def _update_to_3_4(settings):
   
   constraints = _get_actions(settings['main/constraints'])
   
+  removed_include_layers = _remove_actions(
+    constraints, settings['main/constraints'], 'include_layers')
+  removed_include_layer_groups = _remove_actions(
+    constraints, settings['main/constraints'], 'include_layer_groups')
   _remove_actions(constraints, settings['main/constraints'], 'include_empty_layer_groups')
+  
+  if (not removed_include_layers
+      or (removed_include_layers and not removed_include_layers[0]['enabled'].value)):
+    actions_.add(
+      settings['main/constraints'], builtin_constraints.BUILTIN_CONSTRAINTS['layer_groups'])
+  
+  if (not removed_include_layer_groups
+      or (removed_include_layer_groups and not removed_include_layer_groups[0]['enabled'].value)):
+    actions_.add(
+      settings['main/constraints'], builtin_constraints.BUILTIN_CONSTRAINTS['layers'])
+  
+  _refresh_actions(
+    constraints,
+    settings['main/constraints'],
+    'only_visible_layers',
+    'visible',
+    builtin_constraints.BUILTIN_CONSTRAINTS,
+  )
+  
+  _refresh_actions(
+    constraints,
+    settings['main/constraints'],
+    'only_toplevel_layers',
+    'top_level',
+    builtin_constraints.BUILTIN_CONSTRAINTS,
+  )
+  
+  _refresh_actions(
+    constraints,
+    settings['main/constraints'],
+    'only_layers_with_tags',
+    'with_tags',
+    builtin_constraints.BUILTIN_CONSTRAINTS,
+  )
+  
+  _refresh_actions(
+    constraints,
+    settings['main/constraints'],
+    'only_layers_without_tags',
+    'without_tags',
+    builtin_constraints.BUILTIN_CONSTRAINTS,
+  )
+  
+  _refresh_actions(
+    constraints,
+    settings['main/constraints'],
+    'only_layers_matching_file_extension',
+    'matching_file_extension',
+    builtin_constraints.BUILTIN_CONSTRAINTS,
+  )
+  
+  _refresh_actions(
+    constraints,
+    settings['main/constraints'],
+    'only_selected_layers',
+    'selected_in_preview',
+    builtin_constraints.BUILTIN_CONSTRAINTS,
+  )
   
   settings['main/constraints'].save()
   actions_.clear(settings['main/constraints'])

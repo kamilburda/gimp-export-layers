@@ -58,18 +58,18 @@ test_procedures = [
 
 test_constraints = [
   {
-    'name': 'only_layers',
+    'name': 'layers',
     'type': 'constraint',
     'function': pg.utils.empty_func,
     'enabled': True,
-    'display_name': 'Only layers',
+    'display_name': 'Layers',
   },
   {
-    'name': 'only_visible_layers',
+    'name': 'visible',
     'type': 'constraint',
     'function': pg.utils.empty_func,
     'enabled': False,
-    'display_name': 'Only visible layers',
+    'display_name': 'Visible',
   },
 ]
 
@@ -115,20 +115,10 @@ class TestCreateActions(unittest.TestCase):
      ['action', 'procedure'],
      {'action_groups': ['basic']}),
     
-    ('constraint_with_default_subfilter',
+    ('constraint',
      'constraints',
      test_constraints,
-     'only_visible_layers',
-     ['action', 'constraint'],
-     {
-       'action_groups': [actions.DEFAULT_CONSTRAINTS_GROUP],
-       'subfilter': None
-     }),
-    
-    ('constraint_with_custom_subfilter',
-     'constraints',
-     test_constraints,
-     'only_layers',
+     'visible',
      ['action', 'constraint'],
      {
        'action_groups': [actions.DEFAULT_CONSTRAINTS_GROUP],
@@ -433,8 +423,8 @@ class TestWalkActions(unittest.TestCase):
      ['autocrop',
       'autocrop_background',
       'autocrop_foreground',
-      'only_layers',
-      'only_visible_layers']),
+      'layers',
+      'visible']),
     
     ('specific_type_entire_actions',
      'procedure',
@@ -449,8 +439,8 @@ class TestWalkActions(unittest.TestCase):
      ['autocrop/enabled',
       'autocrop_background/enabled',
       'autocrop_foreground/enabled',
-      'only_layers/enabled',
-      'only_visible_layers/enabled']),
+      'layers/enabled',
+      'visible/enabled']),
     
     ('specific_types_specific_setting',
      'procedure',

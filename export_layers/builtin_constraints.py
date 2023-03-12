@@ -62,32 +62,32 @@ def is_item_in_selected_items(item, selected_layers):
 
 _BUILTIN_CONSTRAINTS_LIST = [
   {
-    'name': 'only_layers',
+    'name': 'layers',
     'type': 'constraint',
     'function': is_layer,
-    'display_name': _('Only layers'),
+    'display_name': _('Layers'),
   },
   {
-    'name': 'only_layer_groups',
+    'name': 'layer_groups',
     'type': 'constraint',
     'function': is_nonempty_group,
-    'display_name': _('Only layer groups'),
+    'display_name': _('Layer groups'),
   },
   {
-    'name': 'only_visible_layers',
+    'name': 'visible',
     'type': 'constraint',
     'function': is_path_visible,
     'enabled': False,
-    'display_name': _('Only visible layers'),
+    'display_name': _('Visible'),
   },
   {
-    'name': 'only_toplevel_layers',
+    'name': 'top_level',
     'type': 'constraint',
     'function': is_top_level,
-    'display_name': _('Only top-level layers'),
+    'display_name': _('Top-level'),
   },
   {
-    'name': 'only_layers_with_tags',
+    'name': 'with_tags',
     'type': 'constraint',
     'function': has_tags,
     'arguments': [
@@ -98,10 +98,10 @@ _BUILTIN_CONSTRAINTS_LIST = [
         'default_value': (),
       },
     ],
-    'display_name': _('Only layers with tags'),
+    'display_name': _('With tags'),
   },
   {
-    'name': 'only_layers_without_tags',
+    'name': 'without_tags',
     'type': 'constraint',
     'function': has_no_tags,
     'arguments': [
@@ -112,16 +112,16 @@ _BUILTIN_CONSTRAINTS_LIST = [
         'default_value': (),
       },
     ],
-    'display_name': _('Only layers without tags'),
+    'display_name': _('Without tags'),
   },
   {
-    'name': 'only_layers_matching_file_extension',
+    'name': 'matching_file_extension',
     'type': 'constraint',
     'function': has_matching_default_file_extension,
-    'display_name': _('Only layers matching file extension'),
+    'display_name': _('Matching file extension'),
   },
   {
-    'name': 'only_selected_layers',
+    'name': 'selected_in_preview',
     'type': 'constraint',
     'function': is_item_in_selected_items,
     'arguments': [
@@ -132,7 +132,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
         'gui_type': None,
       },
     ],
-    'display_name': _('Only layers selected in preview'),
+    'display_name': _('Selected in preview'),
   },
 ]
 

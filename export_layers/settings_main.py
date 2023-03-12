@@ -145,8 +145,8 @@ def create_settings():
   settings['main'].add([actions.create(
     name='constraints',
     initial_actions=[
-      builtin_constraints.BUILTIN_CONSTRAINTS['only_layers'],
-      builtin_constraints.BUILTIN_CONSTRAINTS['only_visible_layers']]),
+      builtin_constraints.BUILTIN_CONSTRAINTS['layers'],
+      builtin_constraints.BUILTIN_CONSTRAINTS['visible']]),
   ])
   
   settings['main/procedures'].connect_event(
@@ -174,7 +174,7 @@ def _on_after_add_constraint(
       orig_constraint_dict,
       selected_items_setting,
       image_setting):
-  if orig_constraint_dict['name'] == 'only_selected_layers':
+  if orig_constraint_dict['name'] == 'selected_in_preview':
     constraint['arguments/selected_layers'].gui.set_visible(False)
     _sync_selected_items_and_only_selected_items_constraint(
       selected_items_setting, constraint, image_setting)
