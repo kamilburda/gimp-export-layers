@@ -517,9 +517,7 @@ class LayerExporter(object):
   
   def _reset_item_attributes(self):
     for item in self._item_tree.iter_all():
-      item.name = item.orig_name
-      item.parents = list(item.orig_parents)
-      item.children = list(item.orig_children)
+      item.reset()
   
   def _preprocess_items(self):
     if self._item_tree.filter:

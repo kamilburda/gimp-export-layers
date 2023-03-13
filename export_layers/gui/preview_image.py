@@ -332,13 +332,17 @@ class ExportImagePreview(preview_base_.ExportPreview):
     return raw_item_preview_pixbuf
   
   def _get_image_preview(self):
-    # The image preview is only responsible for processing the contents, not the
-    # item's name. However, since both the name and the image preview share the
-    # same `ItemTree` and `Exporter.export()` resets item attributes before
-    # export, the item name also gets reset. We therefore need to restore item
-    # attributes to the state before `Exporter.export()` once it is finished.
-    orig_item_attributes = [
-      (item.name, item.parents, item.children) for item in self._exporter.item_tree.iter_all()]
+    # The processing requires items in their original state as some procedures
+    # might depend on their values, which would otherwise produce an image that
+    # would not correspond to the real export. We therefore reset items.
+    # Also, we need to restore the items' state once the processing is finished
+    # so that proper names are displayed in the image preview - the same ones as
+    # produced by the name preview, since we assume here that the image preview
+    # is updated after the name preview.
+    if self._exporter.item_tree is not None:
+      for item in self._exporter.item_tree.iter_all():
+        item.save_state()
+        item.reset()
     
     only_selected_item_constraint_id = self._exporter.add_constraint(
       builtin_constraints.is_item_in_selected_items,
@@ -359,11 +363,9 @@ class ExportImagePreview(preview_base_.ExportPreview):
     self._exporter.remove_action(
       only_selected_item_constraint_id, [actions.DEFAULT_CONSTRAINTS_GROUP])
     
-    for (name, parents, children), item in zip(
-          orig_item_attributes, self._exporter.item_tree.iter_all()):
-      item.name = name
-      item.parents = parents
-      item.children = children
+    if self._exporter.item_tree is not None:
+      for item in self._exporter.item_tree.iter_all():
+        item.restore_state()
     
     return image_preview
   

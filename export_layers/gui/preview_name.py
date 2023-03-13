@@ -528,6 +528,12 @@ class ExportNamePreview(preview_base_.ExportPreview):
     else:
       item_tree = None
     
+    if item_tree is not None:
+      # We need to reset item attributes explicitly before processing since
+      # existing item trees are not automatically refreshed.
+      for item in item_tree.iter_all():
+        item.reset()
+    
     self._exporter.export(
       processing_groups=['item_name', 'item_name_for_preview'],
       item_tree=item_tree,
