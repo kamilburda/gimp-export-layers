@@ -327,6 +327,8 @@ class _Item(object):
   
   * `orig_children` (read-only) - Initial `children` of this item.
   
+  * `orig_tags` (read-only) - Initial `tags` of this item.
+  
   * `tags` - Set of arbitrary strings attached to the item. Tags can be used for
     a variety of purposes, such as special handling of items with specific tags.
     Tags are stored persistently in the `gimp.Item` object (`item` attribute) as
@@ -349,19 +351,29 @@ class _Item(object):
     
     self.name = pgutils.safe_decode_gimp(raw_item.name)
     
-    self._orig_name = self.name
-    self._orig_parents = self._parents
-    self._orig_children = self._children
-    
     self._tags_source_name = tags_source_name if tags_source_name else 'tags'
     if self._type == TYPE_FOLDER:
       self._tags_source_name += '_' + FOLDER_KEY
     
     self._tags = self._load_tags()
+    
+    self._orig_name = self.name
+    self._orig_parents = self._parents
+    self._orig_children = self._children
+    self._orig_tags = set(self._tags)
+    
+    self._item_attributes = ['name', '_parents', '_children', '_tags']
+    
+    self._saved_state = {}
+    self.save_state()
   
   @property
   def raw(self):
     return self._raw_item
+  
+  @property
+  def type(self):
+    return self._type
   
   @property
   def parents(self):
@@ -388,28 +400,6 @@ class _Item(object):
     return self._parents[-1] if self._parents else None
   
   @property
-  def type(self):
-    return self._type
-  
-  @property
-  def orig_name(self):
-    return self._orig_name
-  
-  @property
-  def orig_parents(self):
-    if self._orig_parents is not None:
-      return iter(self._orig_parents)
-    else:
-      return iter([])
-  
-  @property
-  def orig_children(self):
-    if self._orig_children is not None:
-      return iter(self._orig_children)
-    else:
-      return iter([])
-  
-  @property
   def tags(self):
     return self._tags
   
@@ -417,12 +407,54 @@ class _Item(object):
   def tags_source_name(self):
     return self._tags_source_name
   
+  @property
+  def orig_name(self):
+    return self._orig_name
+  
+  @property
+  def orig_parents(self):
+    return iter(self._orig_parents)
+  
+  @property
+  def orig_children(self):
+    return iter(self._orig_children)
+  
+  @property
+  def orig_tags(self):
+    return iter(self._orig_tags)
+  
   def __str__(self):
     return pgutils.stringify_object(self, self.orig_name)
   
   def __repr__(self):
     return pgutils.reprify_object(
       self, ' '.join([self.orig_name, str(type(self.raw))]))
+  
+  def save_state(self):
+    """Saves the current values of item's attributes that can be modified."""
+    self._saved_state = {
+      attr_name: getattr(self, attr_name) for attr_name in self._item_attributes}
+  
+  def restore_state(self):
+    """Sets the values of item's attributes to the values from the last call to
+    `save_state()`.
+    
+    If `save_state()` was never called, this effectively resets the item's
+    attributes to its initial values (i.e. is equivalent to calling `reset()`).
+    """
+    for attr_name, attr_value in self._saved_state.items():
+      setattr(self, attr_name, attr_value)
+  
+  def reset(self, tags=False):
+    """Resets the item's attributes to the values upon its instantiation.
+    
+    Is `tags` is `True`, also reset tags.
+    """
+    self.name = self._orig_name
+    self._parents = list(self._orig_parents)
+    self._children = list(self._orig_children)
+    if tags:
+      self._tags = set(self._orig_tags)
   
   def add_tag(self, tag):
     """Adds the specified tag to the item.
