@@ -103,9 +103,6 @@ class ExportImagePreview(preview_base_.ExportPreview):
     self._preview_alpha_check_color_first, self._preview_alpha_check_color_second = (
       int(hex(shade)[2:] * 4, 16) for shade in gimp.checks_get_shades(gimp.check_type()))
     
-    self._placeholder_image_size = gtk.icon_size_lookup(
-      self._placeholder_image.get_property('icon-size'))
-    
     self.connect('size-allocate', self._on_size_allocate)
     self._preview_image.connect('size-allocate', self._on_preview_image_size_allocate)
     
@@ -142,19 +139,27 @@ class ExportImagePreview(preview_base_.ExportPreview):
       self.clear()
       return
     
-    self._is_updating = True
-    
     self._placeholder_image.hide()
-    self._preview_image.show()
-    self._set_item_name_label(self.item.name)
     
-    if self._is_preview_image_allocated_size:
-      self._set_contents()
+    if self.item.type != pg.itemtree.TYPE_FOLDER:
+      self._is_updating = True
+      
+      self._folder_image.hide()
+      self._preview_image.show()
+      self._set_item_name_label(self.item.name)
+      
+      if self._is_preview_image_allocated_size:
+        self._set_contents()
+    else:
+      self._preview_image.hide()
+      self._show_folder_image()
+      self._set_item_name_label(self.item.name)
   
   def clear(self, use_item_name=False):
     self.item = None
     self._preview_image.clear()
     self._preview_image.hide()
+    self._folder_image.hide()
     self._show_placeholder_image(use_item_name)
   
   def resize(self, update_when_larger_than_image_size=False):
@@ -278,9 +283,12 @@ class ExportImagePreview(preview_base_.ExportPreview):
     self._preview_image.set_no_show_all(True)
     
     self._placeholder_image = gtk.Image()
-    self._placeholder_image.set_from_stock(
-      gtk.STOCK_DIALOG_QUESTION, gtk.ICON_SIZE_DIALOG)
+    self._placeholder_image.set_from_stock(gtk.STOCK_DIALOG_QUESTION, gtk.ICON_SIZE_DIALOG)
     self._placeholder_image.set_no_show_all(True)
+    
+    self._folder_image = gtk.Image()
+    self._folder_image.set_from_stock(gtk.STOCK_DIRECTORY, gtk.ICON_SIZE_DIALOG)
+    self._folder_image.set_no_show_all(True)
     
     self._label_item_name = gtk.Label()
     self._label_item_name.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
@@ -291,7 +299,16 @@ class ExportImagePreview(preview_base_.ExportPreview):
     self.pack_start(self._hbox_buttons, expand=False, fill=False)
     self.pack_start(self._preview_image, expand=True, fill=True)
     self.pack_start(self._placeholder_image, expand=True, fill=True)
+    self.pack_start(self._folder_image, expand=True, fill=True)
     self.pack_start(self._label_item_name, expand=False, fill=False)
+    
+    self._placeholder_image_size = gtk.icon_size_lookup(
+      self._placeholder_image.get_property('icon-size'))
+    self._folder_image_size = gtk.icon_size_lookup(
+      self._folder_image.get_property('icon-size'))
+    
+    self._current_placeholder_image = self._placeholder_image
+    self._current_placeholder_image_size = self._placeholder_image_size
         
     self._show_placeholder_image()
   
@@ -489,11 +506,11 @@ class ExportImagePreview(preview_base_.ExportPreview):
         - self._WIDGET_SPACING
         - self._BORDER_WIDTH * 2)
       
-      if (preview_widget_allocated_width < self._placeholder_image_size[0]
-          or preview_widget_allocated_height < self._placeholder_image_size[1]):
-        self._placeholder_image.hide()
+      if (preview_widget_allocated_width < self._current_placeholder_image_size[0]
+          or preview_widget_allocated_height < self._current_placeholder_image_size[1]):
+        self._current_placeholder_image.hide()
       else:
-        self._placeholder_image.show()
+        self._current_placeholder_image.show()
   
   def _on_preview_image_size_allocate(self, image, allocation):
     if not self._is_preview_image_allocated_size:
@@ -501,9 +518,19 @@ class ExportImagePreview(preview_base_.ExportPreview):
       self._is_preview_image_allocated_size = True
   
   def _show_placeholder_image(self, use_item_name=False):
+    self._current_placeholder_image = self._placeholder_image
+    self._current_placeholder_image_size = self._placeholder_image_size
+    
     self._placeholder_image.show()
+    
     if not use_item_name:
       self._set_item_name_label(_('No selection'))
+  
+  def _show_folder_image(self):
+    self._current_placeholder_image = self._folder_image
+    self._current_placeholder_image_size = self._folder_image_size
+    
+    self._folder_image.show()
   
   def _set_item_name_label(self, item_name):
     self._label_item_name.set_markup(

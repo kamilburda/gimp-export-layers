@@ -325,7 +325,8 @@ class ExportPreviewsController(object):
     item_from_cursor = self._name_preview.get_item_from_cursor()
     if item_from_cursor is not None:
       if (self._image_preview.item is None
-          or item_from_cursor.raw.ID != self._image_preview.item.raw.ID):
+          or item_from_cursor.raw.ID != self._image_preview.item.raw.ID
+          or item_from_cursor.type != self._image_preview.item.type):
         self._image_preview.item = item_from_cursor
         self._image_preview.update()
     else:
