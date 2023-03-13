@@ -205,6 +205,46 @@ class TestItem(unittest.TestCase):
       ),
     )
   
+  def test_reset_without_tags(self):
+    self.item.name = 'main'
+    self.item.parents = ['one', 'two']
+    self.item.children = ['three', 'four']
+    self.item.tags.add('five')
+    
+    self.item.reset()
+    
+    self.assertEqual(self.item.name, 'main-background.jpg')
+    self.assertEqual(self.item.parents, [])
+    self.assertEqual(self.item.children, [])
+    self.assertEqual(self.item.tags, set(['five']))
+  
+  def test_reset_with_tags(self):
+    self.item.name = 'main'
+    self.item.parents = ['one', 'two']
+    self.item.children = ['three', 'four']
+    
+    self.item.reset(tags=True)
+    
+    self.assertEqual(self.item.name, 'main-background.jpg')
+    self.assertEqual(self.item.parents, [])
+    self.assertEqual(self.item.children, [])
+    self.assertEqual(self.item.tags, set([]))
+  
+  def test_save_and_restore_state(self):
+    self.item.name = 'main'
+    self.item.parents = ['one', 'two']
+    self.item.children = ['three', 'four']
+    self.item.tags.add('five')
+    
+    self.item.save_state()
+    self.item.reset(tags=True)
+    self.item.restore_state()
+    
+    self.assertEqual(self.item.name, 'main')
+    self.assertEqual(self.item.parents, ['one', 'two'])
+    self.assertEqual(self.item.children, ['three', 'four'])
+    self.assertEqual(self.item.tags, set(['five']))
+  
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.itemtree.gimp',
     new=stubs_gimp.GimpModuleStub())
