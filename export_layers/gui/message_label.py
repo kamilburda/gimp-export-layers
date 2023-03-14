@@ -67,9 +67,6 @@ class MessageLabel(gtk.HBox):
     ellipsize the label and display a button that displays a popup containing
     the full text when clicked. Only the first line is displayed in the label.
     
-    If `message_type` is `gtk.MESSAGE_ERROR`, use the red font color.
-    For other message types, use the font color assigned by the current theme.
-    
     If `clear_delay` is not `None` and `message_type` is not
     `gtk.MESSAGE_ERROR`, make the message automatically disappear after the
     specified delay in milliseconds. The timer is stopped if the popup is
@@ -93,15 +90,12 @@ class MessageLabel(gtk.HBox):
     self._message_type = message_type
     self._clear_delay = clear_delay
     
+    self._label_message.set_markup(
+      '<b>{}</b>'.format(gobject.markup_escape_text(pg.utils.safe_encode_gtk(self._label_text))))
+    
     if message_type == gtk.MESSAGE_ERROR:
-      self._label_message.set_markup(
-        '<span foreground="red"><b>{}</b></span>'.format(gobject.markup_escape_text(
-          pg.utils.safe_encode_gtk(self._label_text))))
       self._timeout_remove_strict(self._clear_delay, self.set_text)
     else:
-      self._label_message.set_markup(
-        '<b>{}</b>'.format(gobject.markup_escape_text(
-          pg.utils.safe_encode_gtk(self._label_text))))
       self._timeout_add_strict(self._clear_delay, self.set_text, None)
   
   def _init_gui(self):
