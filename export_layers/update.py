@@ -186,6 +186,7 @@ def replace_field_arguments_in_pattern(
 def _refresh_actions(
       actions_list, actions_root, old_action_prefix, new_action_prefix, builtin_actions_dict):
   removed_actions = []
+  
   for index, action in enumerate(actions_list):
     if action.name.startswith(old_action_prefix):
       removed_actions.append((index, action))
@@ -196,6 +197,8 @@ def _refresh_actions(
     action_dict['enabled'] = removed_action['enabled'].value
     action = actions_.add(actions_root, action_dict)
     actions_.reorder(actions_root, action.name, index)
+  
+  return removed_actions
 
 
 def _remove_actions(actions_list, actions_root, action_prefix):
@@ -366,6 +369,21 @@ def _update_to_3_3_5(settings):
 
 
 def _update_to_3_4(settings):
+  settings['main/procedures'].load()
+  
+  procedures = _get_actions(settings['main/procedures'])
+  
+  _refresh_actions(
+    procedures,
+    settings['main/procedures'],
+    'rename_layer',
+    'rename_layer',
+    builtin_procedures.BUILTIN_PROCEDURES,
+  )
+  
+  settings['main/procedures'].save()
+  actions_.clear(settings['main/procedures'])
+  
   settings['main/constraints'].load()
   
   constraints = _get_actions(settings['main/constraints'])

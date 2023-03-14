@@ -76,18 +76,21 @@ def inherit_transparency_from_layer_groups(exporter):
   exporter.current_raw_item.opacity = new_layer_opacity * 100.0
 
 
-def rename_layer(exporter, pattern, rename_groups=False):
+def rename_layer(exporter, pattern, rename_layers=True, rename_folders=False):
   renamer = renamer_.LayerNameRenamer(pattern)
   
-  renamed_groups = set()
+  renamed_parents = set()
   
   while True:
-    exporter.current_item.name = renamer.rename(exporter)
-    if rename_groups:
+    if rename_layers:
+      exporter.current_item.name = renamer.rename(exporter)
+    
+    if rename_folders:
       for parent in exporter.current_item.parents:
-        if parent not in renamed_groups:
+        if parent not in renamed_parents:
           parent.name = renamer.rename(exporter, item=parent)
-          renamed_groups.add(parent)
+          renamed_parents.add(parent)
+    
     unused_ = yield
 
 
@@ -240,9 +243,16 @@ _BUILTIN_PROCEDURES_LIST = [
       },
       {
         'type': pg.SettingTypes.boolean,
-        'name': 'rename_groups',
+        'name': 'rename_layers',
+        'default_value': True,
+        'display_name': _('Rename layers'),
+        'gui_type': pg.SettingGuiTypes.check_button_no_text,
+      },
+      {
+        'type': pg.SettingTypes.boolean,
+        'name': 'rename_folders',
         'default_value': False,
-        'display_name': _('Rename layer groups'),
+        'display_name': _('Rename folders'),
         'gui_type': pg.SettingGuiTypes.check_button_no_text,
       },
     ],
