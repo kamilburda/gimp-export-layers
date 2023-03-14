@@ -520,14 +520,15 @@ class LayerExporter(object):
     
     self._set_constraints()
     
-    self.progress_updater.num_total_tasks = len(self._item_tree)
+    num_items = len(self._item_tree)
     
     if self._keep_image_copy:
-      num_items = len(self._item_tree)
       if num_items > 1:
         self._use_another_image_copy = True
       elif num_items < 1:
         self._keep_image_copy = False
+    
+    self.progress_updater.num_total_tasks = num_items
   
   def _set_constraints(self):
     self._init_tagged_items()
