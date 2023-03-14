@@ -50,9 +50,9 @@ class TestLayerExporterInitialActions(unittest.TestCase):
     added_action_items = exporter.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
     
     # Includes built-in procedures added by default
-    self.assertEqual(len(added_action_items), 4)
+    self.assertEqual(len(added_action_items), 5)
     
-    initial_invoker = added_action_items[1]
+    initial_invoker = added_action_items[2]
     self.assertIsInstance(initial_invoker, pg.invoker.Invoker)
     
     actions_in_initial_invoker = initial_invoker.list_actions(

@@ -19,7 +19,6 @@ from export_layers import builtin_procedures
 from export_layers import builtin_constraints
 from export_layers import actions
 from export_layers import placeholders
-from export_layers import renamer
 from export_layers import uniquifier
 
 
@@ -469,7 +468,6 @@ class LayerExporter(object):
     self._current_export_status = ExportStatuses.NOT_EXPORTED_YET
     self._current_overwrite_mode = None
     
-    self._renamer = renamer.LayerNameRenamer(self.export_settings['layer_filename_pattern'].value)
     self._uniquifier = uniquifier.ItemUniquifier()
     self._processed_parent_names = set()
   
@@ -482,6 +480,8 @@ class LayerExporter(object):
       [actions.DEFAULT_PROCEDURES_GROUP],
       foreach=True)
     
+    self._add_default_rename_procedure([actions.DEFAULT_PROCEDURES_GROUP])
+    
     self._invoker.add(
       self._initial_invoker,
       self._initial_invoker.list_groups(include_empty_groups=True))
@@ -493,6 +493,8 @@ class LayerExporter(object):
       self._add_action_from_settings(constraint)
   
   def _add_name_only_actions(self):
+    self._add_default_rename_procedure([self._NAME_ONLY_ACTION_GROUP])
+    
     for procedure in actions.walk(self.export_settings['procedures']):
       self._add_action_from_settings(
         procedure, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
@@ -500,6 +502,12 @@ class LayerExporter(object):
     for constraint in actions.walk(self.export_settings['constraints']):
       self._add_action_from_settings(
         constraint, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
+  
+  def _add_default_rename_procedure(self, action_groups):
+    self._invoker.add(
+      builtin_procedures.rename_layer,
+      groups=action_groups,
+      args=[self.export_settings['layer_filename_pattern'].value])
   
   def _enable_disable_processing_groups(self, processing_groups):
     for functions in self._processing_groups.values():
@@ -664,7 +672,6 @@ class LayerExporter(object):
     return raw_item
   
   def _preprocess_item_name(self, item):
-    item.name = self._renamer.rename(self)
     self.current_file_extension = self._default_file_extension
   
   def _process_item_name_for_preview(self):
