@@ -149,9 +149,6 @@ def create_settings():
       builtin_constraints.BUILTIN_CONSTRAINTS['visible']]),
   ])
   
-  settings['main/procedures'].connect_event(
-    'after-add-action', _on_after_add_procedure, settings['main/file_extension'])
-  
   settings['main/constraints'].connect_event(
     'after-add-action',
     _on_after_add_constraint,
@@ -159,13 +156,6 @@ def create_settings():
     settings['special/image'])
   
   return settings
-
-
-def _on_after_add_procedure(
-      procedures, procedure, orig_procedure_dict, file_extension_setting):
-  if orig_procedure_dict['name'] == 'use_file_extension_in_layer_name':
-    _adjust_error_message_for_use_file_extension_in_item_name(
-      procedure, file_extension_setting)
 
 
 def _on_after_add_constraint(
@@ -178,29 +168,6 @@ def _on_after_add_constraint(
     constraint['arguments/selected_layers'].gui.set_visible(False)
     _sync_selected_items_and_only_selected_items_constraint(
       selected_items_setting, constraint, image_setting)
-
-
-def _adjust_error_message_for_use_file_extension_in_item_name(
-      procedure, file_extension_setting):
-  
-  def _on_use_file_extension_in_item_name_enabled_changed(
-        use_file_extension_in_item_name_enabled, file_extension):
-    if not use_file_extension_in_item_name_enabled.value:
-      file_extension.error_messages[pg.path.FileValidatorErrorStatuses.IS_EMPTY] = ''
-    else:
-      file_extension.error_messages[pg.path.FileValidatorErrorStatuses.IS_EMPTY] = _(
-        'You need to specify default file extension for layers with invalid '
-        'or no extension.')
-  
-  if procedure['enabled'].value:
-    # Invoke manually in case 'enabled' is True upon adding.
-    _on_use_file_extension_in_item_name_enabled_changed(
-      procedure['enabled'], file_extension_setting)
-  
-  procedure['enabled'].connect_event(
-    'value-changed',
-    _on_use_file_extension_in_item_name_enabled_changed,
-    file_extension_setting)
 
 
 def _sync_selected_items_and_only_selected_items_constraint(
