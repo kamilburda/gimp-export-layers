@@ -276,11 +276,9 @@ If this is your intention, you can always move this procedure below `Use layer s
 **Rename layer**
 
 Rename a layer according to the specified pattern.
-This procedure is identical to the text entry next to `Save as` as described in [Customizing Layer Names](#customizing-layer-names).
+This procedure overrides the pattern in the text entry next to `Save as` as described in [Customizing Layer Names](#customizing-layer-names).
 
-Additionally, this procedure allows renaming layer groups as well by enabling `Rename layer groups`.
-
-This procedure is also useful if other custom procedures modify layer names and you need to apply renaming after these procedures.
+Additionally, this procedure allows customizing whether to also rename folders (by enabling `Rename folders`) or only rename folders (by enabling `Rename folders` and disabling `Rename layers`).
 
 **Use file extension in layer name**
 
