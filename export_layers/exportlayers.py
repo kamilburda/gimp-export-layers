@@ -434,7 +434,6 @@ class LayerExporter(object):
     
     if item_tree is not None:
       self._item_tree = item_tree
-      self._reset_item_attributes()
     else:
       self._item_tree = pg.itemtree.LayerTree(self.image, name=pg.config.SOURCE_NAME)
     
@@ -514,10 +513,6 @@ class LayerExporter(object):
       if processing_group not in processing_groups:
         for function in functions:
           setattr(self, function.__name__, pg.utils.empty_func)
-  
-  def _reset_item_attributes(self):
-    for item in self._item_tree.iter_all():
-      item.reset()
   
   def _preprocess_items(self):
     if self._item_tree.filter:
