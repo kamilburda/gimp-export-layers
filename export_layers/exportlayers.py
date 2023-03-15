@@ -252,12 +252,6 @@ class LayerExporter(object):
     else:
       return None
   
-  def has_exported_item(self, raw_item):
-    """Returns `True` if the GIMP item was exported in the last export, `False`
-    otherwise.
-    """
-    return raw_item.ID in self._exported_raw_items_ids
-  
   def stop(self):
     self._should_stop = True
   
