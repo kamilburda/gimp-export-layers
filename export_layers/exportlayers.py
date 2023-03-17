@@ -26,8 +26,7 @@ _EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 0
 
 
 class LayerExporter(object):
-  """
-  This class exports layers as separate images, with the support for additional
+  """Class exporting layers as separate images, with the support for additional
   actions applied on layers (resize, rename, ...).
   
   Attributes:
@@ -264,6 +263,19 @@ class LayerExporter(object):
     Unlike `actions.add()`, procedures added by this method do not act as
     settings, i.e. they are merely functions without GUI, are not saved
     persistently and are always enabled.
+    
+    This class recognizes several action groups that are invoked at certain
+    places when `export()` is called:
+    * `'after_create_image_copy'` - invoked after creating an internal copy of
+      the original image. The image copy is used for processing each layer in a
+      non-destructive manner. Only one argument is accepted - instance of this
+      class.
+    * `'after_insert_item'` - invoked after a layer was inserted in the image
+      copy and immediately before procedures are invoked on the layer. Two
+      arguments are accepted - instance of this class and a layer.
+    * `'after_process_item'` - invoked after all procedures have been applied to
+      the layer. Only one argument is accepted - instance of this
+      class.
     """
     return self._initial_invoker.add(*args, **kwargs)
   
