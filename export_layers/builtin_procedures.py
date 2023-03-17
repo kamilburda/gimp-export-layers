@@ -13,6 +13,7 @@ import gimpenums
 
 from export_layers import pygimplib as pg
 
+from export_layers import export
 from export_layers import renamer as renamer_
 from export_layers import settings_custom
 
@@ -192,6 +193,11 @@ _BUILTIN_PROCEDURES_LIST = [
         'default_value': 'foreground',
       },
     ],
+  },
+  {
+    'name': 'export',
+    'function': export.export,
+    'display_name': _('Export'),
   },
   {
     'name': 'ignore_folder_structure',

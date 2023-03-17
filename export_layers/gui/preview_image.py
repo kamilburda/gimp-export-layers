@@ -368,10 +368,12 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     try:
       image_preview = self._exporter.export(
-        processing_groups=['item_contents'],
         item_tree=self._exporter.item_tree,
         keep_image_copy=True,
-        is_preview=True)
+        is_preview=True,
+        process_contents=True,
+        process_names=False,
+        process_export=False)
     except Exception:
       display_image_preview_failure_message(
         details=traceback.format_exc(), parent=pg.gui.get_toplevel_window(self))

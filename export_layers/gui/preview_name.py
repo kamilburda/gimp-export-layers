@@ -535,9 +535,11 @@ class ExportNamePreview(preview_base_.ExportPreview):
         item.reset()
     
     self._exporter.export(
-      processing_groups=['item_name', 'item_name_for_preview'],
       item_tree=item_tree,
-      is_preview=True)
+      is_preview=True,
+      process_contents=False,
+      process_names=True,
+      process_export=False)
   
   def _update_items(self, items):
     updated_parents = set()

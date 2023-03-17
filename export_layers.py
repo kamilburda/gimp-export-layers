@@ -23,6 +23,7 @@ from future.builtins import *
 
 import gimpenums
 
+from export_layers import export_errors
 from export_layers import exportlayers
 from export_layers import settings_main
 from export_layers import update
@@ -128,7 +129,7 @@ def _run_plugin_noninteractive(run_mode, layer_tree):
   
   try:
     exporter.export(item_tree=layer_tree)
-  except exportlayers.ExportCancelError:
+  except export_errors.ExportCancelError:
     pass
 
 

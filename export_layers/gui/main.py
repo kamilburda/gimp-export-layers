@@ -33,6 +33,7 @@ from export_layers import pygimplib as pg
 from export_layers import builtin_constraints
 from export_layers import builtin_procedures
 from export_layers import actions
+from export_layers import export_errors
 from export_layers import exportlayers
 from export_layers import renamer
 from export_layers import settings_main
@@ -805,9 +806,9 @@ class ExportLayersDialog(object):
     
     try:
       self._exporter.export()
-    except exportlayers.ExportCancelError as e:
+    except export_errors.ExportCancelError as e:
       should_quit = False
-    except exportlayers.ExportError as e:
+    except export_errors.ExportError as e:
       display_export_failure_message(e, parent=self._dialog)
       should_quit = False
     except Exception as e:
@@ -1005,9 +1006,9 @@ class ExportLayersRepeatDialog(object):
       export_context_manager_args=[self._dialog])
     try:
       self._exporter.export(item_tree=self._layer_tree)
-    except exportlayers.ExportCancelError:
+    except export_errors.ExportCancelError:
       pass
-    except exportlayers.ExportError as e:
+    except export_errors.ExportError as e:
       display_export_failure_message(e, parent=self._dialog)
     except Exception as e:
       if pdb.gimp_image_is_valid(self._image):
