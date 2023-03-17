@@ -24,6 +24,8 @@ from export_layers import placeholders
 _EXPORTER_ARG_POSITION_IN_PROCEDURES = 0
 _EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 0
 
+_NAME_ONLY_ACTION_GROUP = 'name'
+
 
 class LayerExporter(object):
   """Class exporting layers as separate images, with the support for additional
@@ -124,7 +126,6 @@ class LayerExporter(object):
     
     self._invoker = None
     self._initial_invoker = pg.invoker.Invoker()
-    self._NAME_ONLY_ACTION_GROUP = 'name'
   
   @property
   def item_tree(self):
@@ -496,17 +497,17 @@ class LayerExporter(object):
       self._add_action_from_settings(constraint)
   
   def _add_name_only_actions(self):
-    self._add_default_rename_procedure([self._NAME_ONLY_ACTION_GROUP])
+    self._add_default_rename_procedure([_NAME_ONLY_ACTION_GROUP])
     
     for procedure in actions.walk(self.export_settings['procedures']):
       self._add_action_from_settings(
-        procedure, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
+        procedure, [builtin_procedures.NAME_ONLY_TAG], [_NAME_ONLY_ACTION_GROUP])
     
-    self._add_default_export_procedure([self._NAME_ONLY_ACTION_GROUP])
+    self._add_default_export_procedure([_NAME_ONLY_ACTION_GROUP])
     
     for constraint in actions.walk(self.export_settings['constraints']):
       self._add_action_from_settings(
-        constraint, [builtin_procedures.NAME_ONLY_TAG], [self._NAME_ONLY_ACTION_GROUP])
+        constraint, [builtin_procedures.NAME_ONLY_TAG], [_NAME_ONLY_ACTION_GROUP])
   
   def _add_default_rename_procedure(self, action_groups):
     self._invoker.add(
@@ -633,7 +634,7 @@ class LayerExporter(object):
   
   def _process_item_with_name_only_actions(self):
     self._invoker.invoke(
-      [self._NAME_ONLY_ACTION_GROUP],
+      [_NAME_ONLY_ACTION_GROUP],
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
   
