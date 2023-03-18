@@ -17,7 +17,10 @@ from export_layers import exceptions
 from export_layers import uniquifier
 
 
-def export(exporter):
+def export(
+      exporter,
+      use_file_extension_in_item_name=False,
+      convert_file_extension_to_lowercase=False):
   item_uniquifier = uniquifier.ItemUniquifier()
   file_extension_properties = _FileExtensionProperties()
   processed_parent_names = set()
@@ -29,8 +32,14 @@ def export(exporter):
     exporter.current_file_extension = exporter.default_file_extension
     
     if exporter.process_names:
+      if use_file_extension_in_item_name:
+        _set_current_file_extension(exporter, file_extension_properties)
+      
+      if convert_file_extension_to_lowercase:
+        exporter.current_file_extension = exporter.current_file_extension.lower()
+      
       _process_parent_folder_names(item, item_uniquifier, processed_parent_names)
-      _process_item_name(exporter, item, item_uniquifier, False)
+      _process_item_name(exporter, item, item_uniquifier, force_default_file_extension=False)
     
     if exporter.process_export:
       raw_item_name = exporter.current_raw_item.name
@@ -44,7 +53,7 @@ def export(exporter):
       
       if export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
         if exporter.process_names:
-          _process_item_name(exporter, item, item_uniquifier, True)
+          _process_item_name(exporter, item, item_uniquifier, force_default_file_extension=True)
         
         if exporter.process_export:
           overwrite_mode, unused_ = _export_item(
@@ -57,12 +66,6 @@ def export(exporter):
         exporter.exported_raw_items.append(item.raw)
     
     unused_ = yield
-
-
-def _merge_and_resize_image(image):
-  raw_item_merged = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
-  pdb.gimp_layer_resize_to_image_size(raw_item_merged)
-  return raw_item_merged
 
 
 def _process_parent_folder_names(item, item_uniquifier, processed_parent_names):
@@ -89,6 +92,21 @@ def _process_item_name(exporter, item, item_uniquifier, force_default_file_exten
   item_uniquifier.uniquify(
     item,
     position=_get_unique_substring_position(item.name, pg.path.get_file_extension(item.name)))
+
+
+def _set_current_file_extension(exporter, file_extension_properties):
+  orig_file_extension = pg.path.get_file_extension(exporter.current_item.orig_name)
+  item_file_extension = pg.path.get_file_extension(exporter.current_item.name)
+  if (orig_file_extension
+      and orig_file_extension.lower() != item_file_extension.lower()
+      and file_extension_properties[orig_file_extension].is_valid):
+    exporter.current_file_extension = orig_file_extension
+
+
+def _merge_and_resize_image(image):
+  raw_item_merged = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
+  pdb.gimp_layer_resize_to_image_size(raw_item_merged)
+  return raw_item_merged
 
 
 def _validate_name(item):

@@ -193,10 +193,11 @@ def _refresh_actions(
       actions_.remove(actions_root, action.name)
   
   for index, removed_action in removed_actions:
-    action_dict = builtin_actions_dict[new_action_prefix]
-    action_dict['enabled'] = removed_action['enabled'].value
-    action = actions_.add(actions_root, action_dict)
-    actions_.reorder(actions_root, action.name, index)
+    if new_action_prefix in builtin_actions_dict:
+      action_dict = builtin_actions_dict[new_action_prefix]
+      action_dict['enabled'] = removed_action['enabled'].value
+      action = actions_.add(actions_root, action_dict)
+      actions_.reorder(actions_root, action.name, index)
   
   return removed_actions
 
@@ -531,6 +532,8 @@ def _fix_element_paths_in_parasites_3_3_5():
 def _fix_element_paths_in_parasites_3_4():
   _fix_element_paths_in_parasites([
     (b'builtin_constraints\nis_empty_group',
+     b'export_layers.pygimplib.utils\nempty_func'),
+    (b'builtin_procedures\nuse_file_extension_in_item_name',
      b'export_layers.pygimplib.utils\nempty_func'),
   ])
 

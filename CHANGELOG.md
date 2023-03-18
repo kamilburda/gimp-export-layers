@@ -1,6 +1,7 @@
 Upcoming
 ========
 
+* Removed the "Use file extension in layer name" procedure. The same functionality is now available in the "Export" procedure.
 * Removed "Include layers" constraint and instead added a constraint to export only layers.
 * Removed "Include layer groups" constraint and instead added a constraint to export only layer groups. 
 * Removed "Include empty layer groups" constraint without replacement. Empty folders are no longer created.

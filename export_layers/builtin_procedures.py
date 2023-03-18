@@ -103,20 +103,6 @@ def resize_to_layer_size(exporter):
   pdb.gimp_image_resize(image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
 
 
-def use_file_extension_in_item_name(exporter, convert_file_extension_to_lowercase=False):
-  item = exporter.current_item
-  
-  orig_file_extension = pg.path.get_file_extension(item.orig_name)
-  item_file_extension = pg.path.get_file_extension(item.name)
-  if (orig_file_extension
-      and orig_file_extension.lower() != item_file_extension.lower()
-      and exporter.file_extension_properties[orig_file_extension].is_valid):
-    if convert_file_extension_to_lowercase:
-      orig_file_extension = orig_file_extension.lower()
-    
-    exporter.current_file_extension = orig_file_extension
-
-
 def _insert_tagged_layer(exporter, tag, position=0):
   image = exporter.current_image
   
@@ -194,6 +180,22 @@ _BUILTIN_PROCEDURES_LIST = [
     'name': 'export',
     'function': export.export,
     'display_name': _('Export'),
+    'arguments': [
+      {
+        'type': pg.SettingTypes.boolean,
+        'name': 'use_file_extension_in_item_name',
+        'default_value': False,
+        'display_name': _('Use file extension in layer name'),
+        'gui_type': pg.SettingGuiTypes.check_button_no_text,
+      },
+      {
+        'type': pg.SettingTypes.boolean,
+        'name': 'convert_file_extension_to_lowercase',
+        'default_value': False,
+        'display_name': _('Convert file extension to lowercase'),
+        'gui_type': pg.SettingGuiTypes.check_button_no_text,
+      },
+    ],
   },
   {
     'name': 'ignore_folder_structure',
@@ -255,21 +257,6 @@ _BUILTIN_PROCEDURES_LIST = [
         'name': 'rename_folders',
         'default_value': False,
         'display_name': _('Rename folders'),
-        'gui_type': pg.SettingGuiTypes.check_button_no_text,
-      },
-    ],
-  },
-  {
-    'name': 'use_file_extension_in_layer_name',
-    'function': use_file_extension_in_item_name,
-    'display_name': _('Use file extension in layer name'),
-    'additional_tags': [NAME_ONLY_TAG],
-    'arguments': [
-      {
-        'type': pg.SettingTypes.boolean,
-        'name': 'convert_file_extension_to_lowercase',
-        'default_value': False,
-        'display_name': _('Convert file extension to lowercase'),
         'gui_type': pg.SettingGuiTypes.check_button_no_text,
       },
     ],
