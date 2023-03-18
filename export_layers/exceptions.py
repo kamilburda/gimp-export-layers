@@ -7,8 +7,20 @@ from future.builtins import *
 import future.utils
 
 
+class BatcherError(Exception):
+  pass
+
+
+class BatcherCancelError(BatcherError):
+  pass
+
+
+class InvalidPdbProcedureError(BatcherError):
+  pass
+
+
 @future.utils.python_2_unicode_compatible
-class ExportError(Exception):
+class ExportError(BatcherError):
   
   def __init__(self, message='', item_name=None, file_extension=None):
     super().__init__()
@@ -28,13 +40,5 @@ class ExportError(Exception):
     return str_
 
 
-class ExportCancelError(ExportError):
-  pass
-
-
 class InvalidOutputDirectoryError(ExportError):
-  pass
-
-
-class InvalidPdbProcedureError(ExportError):
   pass

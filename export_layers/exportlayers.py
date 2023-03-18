@@ -16,7 +16,7 @@ from export_layers import builtin_procedures
 from export_layers import builtin_constraints
 from export_layers import actions
 from export_layers import export as export_
-from export_layers import export_errors
+from export_layers import exceptions
 from export_layers import placeholders
 
 
@@ -336,7 +336,7 @@ class LayerExporter(object):
       try:
         function = pdb[pg.utils.safe_encode_gimp(action['function'].value)]
       except KeyError:
-        raise export_errors.InvalidPdbProcedureError(
+        raise exceptions.InvalidPdbProcedureError(
           'invalid PDB procedure "{}"'.format(action['function'].value))
     else:
       function = action['function'].value
@@ -566,7 +566,7 @@ class LayerExporter(object):
   def _process_items(self):
     for item in self._item_tree:
       if self._should_stop:
-        raise export_errors.ExportCancelError('export stopped by user')
+        raise exceptions.BatcherCancelError('stopped by user')
       
       self._process_item(item)
   

@@ -13,7 +13,7 @@ import gimpenums
 
 from export_layers import pygimplib as pg
 
-from export_layers import export_errors
+from export_layers import exceptions
 from export_layers import uniquifier
 
 
@@ -111,7 +111,7 @@ def _export_item(exporter, item, image, raw_item, file_extension_properties):
     _get_unique_substring_position(output_filepath, file_extension))
   
   if overwrite_mode == pg.overwrite.OverwriteModes.CANCEL:
-    raise export_errors.ExportCancelError('cancelled')
+    raise exceptions.BatcherCancelError('cancelled')
   
   if overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
     _make_dirs(exporter, os.path.dirname(output_filepath))
@@ -169,7 +169,7 @@ def _make_dirs(exporter, dirpath):
     except (IndexError, AttributeError):
       message = str(e)
     
-    raise export_errors.InvalidOutputDirectoryError(
+    raise exceptions.InvalidOutputDirectoryError(
       message, exporter.current_item.name, exporter.default_file_extension)
 
 
@@ -213,14 +213,14 @@ def _export_item_once(
     # HACK: Examining the exception message seems to be the only way to determine
     # some specific cases of export failure.
     if _was_export_canceled_by_user(str(e)):
-      raise export_errors.ExportCancelError(str(e))
+      raise exceptions.BatcherCancelError(str(e))
     elif _should_export_again_with_interactive_run_mode(str(e), run_mode):
       export_status = ExportStatuses.FORCE_INTERACTIVE
     elif _should_export_again_with_default_file_extension(exporter, file_extension):
       file_extension_properties[file_extension].is_valid = False
       export_status = ExportStatuses.USE_DEFAULT_FILE_EXTENSION
     else:
-      raise export_errors.ExportError(str(e), raw_item.name, exporter.default_file_extension)
+      raise exceptions.ExportError(str(e), raw_item.name, exporter.default_file_extension)
   else:
     export_status = ExportStatuses.EXPORT_SUCCESSFUL
   

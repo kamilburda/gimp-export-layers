@@ -14,7 +14,7 @@ from gimp import pdb
 from export_layers import pygimplib as pg
 
 from export_layers import builtin_procedures
-from export_layers import export_errors
+from export_layers import exceptions
 from export_layers import exportlayers
 from export_layers import actions
 from export_layers import settings_main
@@ -282,7 +282,7 @@ def test_export_for_all_file_formats(exporter, export_settings):
         os.path.join(orig_output_dirpath, file_extension))
       try:
         exporter.export()
-      except export_errors.ExportError:
+      except exceptions.ExportError:
         # Do not stop if one file format causes an error.
         continue
 
