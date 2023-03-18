@@ -37,7 +37,7 @@ class LayerExporter(object):
     format in which the layer is exported to cannot handle
     `gimpenums.RUN_WITH_LAST_VALS`, `gimpenums.RUN_INTERACTIVE` is used.
   
-  * `image` - GIMP image to export layers from.
+  * `image` - Input `gimp.Image` to export layers from.
   
   * `export_settings` - `setting.Group` instance containing export settings.
     This class treats them as read-only.
@@ -64,8 +64,26 @@ class LayerExporter(object):
   * `export_context_manager_args` - Additional arguments passed to
     `export_context_manager`.
   
-  * `current_item` (read-only) - An `itemtree._Item` instance being
-    currently exported.
+  * `current_item` (read-only) - An `itemtree._Item` instance currently being
+    processed.
+  
+  * `current_raw_item` - Raw item (`gimp.Layer`) currently being processed.
+  
+  * `current_image` (read-only) - The current `gimp.Image` containing layer(s)
+    being processed. This is usually a copy of `image` to avoid modifying
+    original layers.
+  
+  * `process_contents` (read-only) - See `export()`.
+  
+  * `process_export` (read-only) - See `export()`.
+  
+  * `process_names` (read-only) - See `export()`.
+  
+  * `tagged_items` - Dictionary of (tag name, `itemtree._Item`) pairs containing
+    tagged items.
+  
+  * `inserted_tagged_items` - Dictionary of (tag name, `itemtree._Item`) pairs
+    containing tagged items currently inserted in `current_image`.
   
   * `invoker` - `pygimplib.invoker.Invoker` instance to
     manage procedures and constraints applied on layers. This property is not
