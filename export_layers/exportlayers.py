@@ -172,14 +172,6 @@ class LayerExporter(object):
     return self._current_image
   
   @property
-  def current_overwrite_mode(self):
-    return self._current_overwrite_mode
-  
-  @current_overwrite_mode.setter
-  def current_overwrite_mode(self, value):
-    self._current_overwrite_mode = value
-  
-  @property
   def process_contents(self):
     return self._process_contents
   
@@ -489,8 +481,6 @@ class LayerExporter(object):
     self._current_item = None
     self._current_raw_item = None
     self._current_image = None
-    
-    self._current_overwrite_mode = None
   
   def _add_actions(self):
     self._invoker.add(

@@ -39,7 +39,7 @@ def export(exporter):
       exporter.current_image.active_layer = raw_item_merged
       exporter.current_raw_item = raw_item_merged
       
-      export_status = _export_item(
+      overwrite_mode, export_status = _export_item(
         exporter, item, image, exporter.current_raw_item, file_extension_properties)
       
       if export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
@@ -47,10 +47,10 @@ def export(exporter):
           _process_item_name(exporter, item, item_uniquifier, True)
         
         if exporter.process_export:
-          _export_item(
+          overwrite_mode, unused_ = _export_item(
             exporter, item, image, exporter.current_raw_item, file_extension_properties)
       
-      if exporter.current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
+      if overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
         file_extension_properties[pg.path.get_file_extension(item.name)].processed_count += 1
         # Append the original raw item since `exporter.current_raw_item` is
         # modified by now.
@@ -106,14 +106,14 @@ def _export_item(exporter, item, image, raw_item, file_extension_properties):
   
   exporter.progress_updater.update_text(_('Saving "{}"').format(output_filepath))
   
-  exporter.current_overwrite_mode, output_filepath = pg.overwrite.handle_overwrite(
+  overwrite_mode, output_filepath = pg.overwrite.handle_overwrite(
     output_filepath, exporter.overwrite_chooser,
     _get_unique_substring_position(output_filepath, file_extension))
   
-  if exporter.current_overwrite_mode == pg.overwrite.OverwriteModes.CANCEL:
+  if overwrite_mode == pg.overwrite.OverwriteModes.CANCEL:
     raise export_errors.ExportCancelError('cancelled')
   
-  if exporter.current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
+  if overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
     _make_dirs(exporter, os.path.dirname(output_filepath))
     
     export_status = _export_item_once_wrapper(
@@ -129,7 +129,7 @@ def _export_item(exporter, item, image, raw_item, file_extension_properties):
         gimpenums.RUN_INTERACTIVE,
         image, raw_item, output_filepath, file_extension, file_extension_properties)
   
-  return export_status
+  return overwrite_mode, export_status
 
 
 def _get_item_filepath(item, dirpath):
