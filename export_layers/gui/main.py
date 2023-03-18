@@ -34,7 +34,7 @@ from export_layers import builtin_constraints
 from export_layers import builtin_procedures
 from export_layers import actions
 from export_layers import exceptions
-from export_layers import exportlayers
+from export_layers import exporter as exporter_
 from export_layers import renamer
 from export_layers import settings_main
 from export_layers import update
@@ -278,7 +278,7 @@ class ExportLayersDialog(object):
     self._image = self._initial_layer_tree.image
     self._message_setting = None
     self._exporter = None
-    self._exporter_for_previews = exportlayers.LayerExporter(
+    self._exporter_for_previews = exporter_.LayerExporter(
       gimpenums.RUN_NONINTERACTIVE,
       self._image,
       self._settings['main'],
@@ -862,7 +862,7 @@ class ExportLayersDialog(object):
     
     progress_updater = pg.gui.GtkProgressUpdater(self._progress_bar)
     
-    self._exporter = exportlayers.LayerExporter(
+    self._exporter = exporter_.LayerExporter(
       gimpenums.RUN_INTERACTIVE,
       self._image,
       self._settings['main'],
@@ -995,7 +995,7 @@ class ExportLayersRepeatDialog(object):
       self._progress_bar, progress_updater)
     item_progress_indicator.install_progress_for_status()
     
-    self._exporter = exportlayers.LayerExporter(
+    self._exporter = exporter_.LayerExporter(
       gimpenums.RUN_WITH_LAST_VALS,
       self._image,
       self._settings['main'],

@@ -14,7 +14,7 @@ from export_layers import pygimplib as pg
 from export_layers.pygimplib.tests import stubs_gimp
 
 from export_layers import builtin_procedures
-from export_layers import exportlayers
+from export_layers import exporter as exporter_
 from export_layers import actions
 from export_layers import settings_main
 
@@ -34,7 +34,7 @@ class TestLayerExporterInitialActions(unittest.TestCase):
     settings['special/image'].set_value(self.image)
     settings['main/file_extension'].set_value('xcf')
     
-    exporter = exportlayers.LayerExporter(
+    exporter = exporter_.LayerExporter(
       settings['special/run_mode'].value,
       settings['special/image'].value,
       settings['main'])
@@ -65,7 +65,7 @@ class TestLayerExporterInitialActions(unittest.TestCase):
 class TestAddActionFromSettings(unittest.TestCase):
   
   def setUp(self):
-    self.exporter = exportlayers.LayerExporter(
+    self.exporter = exporter_.LayerExporter(
       initial_run_mode=0,
       image=mock.MagicMock(),
       export_settings=mock.MagicMock(),
@@ -111,7 +111,7 @@ class TestAddActionFromSettings(unittest.TestCase):
   def _test_add_pdb_proc_as_action(self, pdb_procedure, expected_args, expected_kwargs):
     procedure = actions.add(self.procedures, pdb_procedure)
     
-    with mock.patch('export_layers.exportlayers.pdb') as pdb_mock:
+    with mock.patch('export_layers.exporter.pdb') as pdb_mock:
       pdb_mock.__getitem__.return_value = pdb_procedure
       
       self.exporter._add_action_from_settings(procedure)

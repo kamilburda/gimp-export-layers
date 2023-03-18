@@ -15,7 +15,7 @@ from export_layers import pygimplib as pg
 
 from export_layers import builtin_procedures
 from export_layers import exceptions
-from export_layers import exportlayers
+from export_layers import exporter as exporter_
 from export_layers import actions
 from export_layers import settings_main
 
@@ -185,7 +185,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       if procedure_name in settings['main/procedures/added']:
         actions.remove(settings['main/procedures'], procedure_name)
     
-    exporter = exportlayers.LayerExporter(
+    exporter = exporter_.LayerExporter(
       settings['special/run_mode'].value,
       settings['special/image'].value,
       settings['main'])
