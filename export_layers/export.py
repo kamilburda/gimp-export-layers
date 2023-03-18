@@ -8,6 +8,7 @@ from future.builtins import *
 import collections
 import os
 
+from gimp import pdb
 import gimpenums
 
 from export_layers import pygimplib as pg
@@ -23,7 +24,6 @@ def export(exporter):
   
   while True:
     item = exporter.current_item
-    raw_item = exporter.current_raw_item
     image = exporter.current_image
     
     exporter.current_file_extension = exporter.default_file_extension
@@ -33,19 +33,33 @@ def export(exporter):
       _process_item_name(exporter, item, item_uniquifier, False)
     
     if exporter.process_export:
-      export_status = _export_item(exporter, item, image, raw_item, file_extension_properties)
+      raw_item_name = exporter.current_raw_item.name
+      raw_item_merged = _merge_and_resize_image(exporter.current_image)
+      raw_item_merged.name = raw_item_name
+      exporter.current_image.active_layer = raw_item_merged
+      exporter.current_raw_item = raw_item_merged
+      
+      export_status = _export_item(
+        exporter, item, image, exporter.current_raw_item, file_extension_properties)
       
       if export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
         if exporter.process_names:
           _process_item_name(exporter, item, item_uniquifier, True)
         
         if exporter.process_export:
-          _export_item(exporter, item, image, raw_item, file_extension_properties)
+          _export_item(
+            exporter, item, image, exporter.current_raw_item, file_extension_properties)
       
       if exporter.current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
         file_extension_properties[pg.path.get_file_extension(item.name)].processed_count += 1
     
     unused_ = yield
+
+
+def _merge_and_resize_image(image):
+  raw_item_merged = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
+  pdb.gimp_layer_resize_to_image_size(raw_item_merged)
+  return raw_item_merged
 
 
 def _process_parent_folder_names(item, item_uniquifier, processed_parent_names):
@@ -104,6 +118,7 @@ def _export_item(exporter, item, image, raw_item, file_extension_properties):
       _get_export_func(file_extension),
       _get_run_mode(exporter, file_extension, file_extension_properties),
       image, raw_item, output_filepath, file_extension, file_extension_properties)
+    
     if export_status == ExportStatuses.FORCE_INTERACTIVE:
       export_status = _export_item_once_wrapper(
         exporter,

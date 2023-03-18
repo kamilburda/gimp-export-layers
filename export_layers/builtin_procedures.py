@@ -151,10 +151,7 @@ def _insert_merged_tagged_layer(image, exporter, tag, position=0):
     second_to_last_tagged_layer_position = (
       first_tagged_layer_position + len(exporter.tagged_items[tag]) - 2)
     
-    for i in range(
-          second_to_last_tagged_layer_position,
-          first_tagged_layer_position - 1,
-          -1):
+    for i in range(second_to_last_tagged_layer_position, first_tagged_layer_position - 1, -1):
       merged_layer_for_tag = pdb.gimp_image_merge_down(
         image, image.layers[i], gimpenums.EXPAND_AS_NECESSARY)
   

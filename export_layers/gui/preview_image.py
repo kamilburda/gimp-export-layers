@@ -95,8 +95,9 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     self._resize_image_action_id = None
     self._scale_item_action_id = None
+    self._merge_image_action_id = None
     
-    self.set_scaling()
+    self.prepare_image_for_rendering()
     
     self._init_gui()
     
@@ -199,14 +200,18 @@ class ExportImagePreview(preview_base_.ExportPreview):
         self.item = item
         self._set_item_name_label(self.item.name)
   
-  def set_scaling(self, resize_image_action_groups=None, scale_item_action_groups=None):
-    """Adds actions that scale the previewed image to the size of the widget.
+  def prepare_image_for_rendering(
+        self, resize_image_action_groups=None, scale_item_action_groups=None):
+    """Adds procedures that prepare an image for rendering in the preview.
     
-    Subsequent calls to this method will remove the previously added actions.
+    Specifically, the image to be previewed is resized, scaled and later merged
+    into a single layer.
+    
+    Subsequent calls to this method will remove the previously added procedures.
     
     The optional action groups allow to customize at which point during
-    processing the scaling should be performed. By default, scaling is performed
-    at the start of the processing.
+    processing the resize and scale procedures are applied. By default, these
+    procedures are applied before applying other procedures added by the user.
     """
     if resize_image_action_groups is None:
       resize_image_action_groups = ['after_create_image_copy']
@@ -216,19 +221,18 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     self._exporter.remove_action(
       self._resize_image_action_id, groups='all', ignore_if_not_exists=True)
-    
     self._resize_image_action_id = self._exporter.add_procedure(
-      self._resize_image_for_exporter,
-      resize_image_action_groups,
-      ignore_if_exists=True)
+      self._resize_image_for_exporter, resize_image_action_groups, ignore_if_exists=True)
     
     self._exporter.remove_action(
       self._scale_item_action_id, groups='all', ignore_if_not_exists=True)
-    
     self._scale_item_action_id = self._exporter.add_procedure(
-      self._scale_item_for_exporter,
-      scale_item_action_groups,
-      ignore_if_exists=True)
+      self._scale_item_for_exporter, scale_item_action_groups, ignore_if_exists=True)
+    
+    self._exporter.remove_action(
+      self._merge_image_action_id, groups='all', ignore_if_not_exists=True)
+    self._merge_image_action_id = self._exporter.add_procedure(
+      self._merge_and_resize_image, ['after_process_item'], ignore_if_exists=True)
   
   def _set_contents(self):
     # Sanity check in case `item` changes before `'size-allocate'` is emitted.
@@ -411,6 +415,14 @@ class ExportImagePreview(preview_base_.ExportPreview):
         raw_item.offsets[1] * self._preview_scaling_factor,
         (raw_item.offsets[0] + raw_item.width) * self._preview_scaling_factor,
         (raw_item.offsets[1] + raw_item.height) * self._preview_scaling_factor)
+  
+  def _merge_and_resize_image(self, exporter):
+    raw_item_merged = pdb.gimp_image_merge_visible_layers(
+      exporter.current_image, gimpenums.EXPAND_AS_NECESSARY)
+    pdb.gimp_layer_resize_to_image_size(raw_item_merged)
+    
+    exporter.current_image.active_layer = raw_item_merged
+    exporter.current_raw_item = raw_item_merged
   
   def _get_preview_pixbuf(self, raw_item, preview_width, preview_height, preview_data):
     # The following code is largely based on the implementation of

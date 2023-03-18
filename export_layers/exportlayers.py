@@ -9,7 +9,6 @@ import collections
 import inspect
 
 from gimp import pdb
-import gimpenums
 
 from export_layers import pygimplib as pg
 
@@ -147,6 +146,10 @@ class LayerExporter(object):
   def current_raw_item(self):
     return self._current_raw_item
   
+  @current_raw_item.setter
+  def current_raw_item(self, value):
+    self._current_raw_item = value
+  
   @property
   def current_image(self):
     return self._current_image
@@ -272,8 +275,8 @@ class LayerExporter(object):
       non-destructive manner. Only one argument is accepted - instance of this
       class.
     * `'after_insert_item'` - invoked after a layer was inserted in the image
-      copy and immediately before procedures are invoked on the layer. Two
-      arguments are accepted - instance of this class and a layer.
+      copy and immediately before procedures are invoked on the layer. Only one
+      argument is accepted - instance of this class.
     * `'after_process_item'` - invoked after all procedures have been applied to
       the layer. Only one argument is accepted - instance of this
       class.
@@ -553,27 +556,26 @@ class LayerExporter(object):
       if self._should_stop:
         raise export_errors.ExportCancelError('export stopped by user')
       
-      self._current_item = item
-      
       self._process_item(item)
   
   def _process_item(self, item):
-    raw_item = item.raw
+    orig_raw_item = item.raw
     
-    self._current_raw_item = raw_item
+    self._current_item = item
+    self.current_raw_item = orig_raw_item
     
     if self._is_preview and self._process_names:
       self._process_item_with_name_only_actions()
     
     if self._process_contents:
-      raw_item_copy = self._process_item_with_actions(item, self.current_image, raw_item)
-      self._postprocess_item(self.current_image, raw_item_copy)
+      self._process_item_with_actions(item, self.current_raw_item)
+      self._postprocess_item(self.current_raw_item)
     
     self.progress_updater.update_tasks()
     
     if self._current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
-      self._exported_raw_items.append(raw_item)
-      self._exported_raw_items_ids.add(raw_item.ID)
+      self._exported_raw_items.append(orig_raw_item)
+      self._exported_raw_items_ids.add(orig_raw_item.ID)
   
   def _setup(self):
     pdb.gimp_context_push()
@@ -638,14 +640,14 @@ class LayerExporter(object):
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
   
-  def _process_item_with_actions(self, item, image, raw_item):
-    raw_item_copy = builtin_procedures.copy_and_insert_layer(image, raw_item, None, 0)
+  def _process_item_with_actions(self, item, raw_item):
+    raw_item_copy = builtin_procedures.copy_and_insert_layer(self.current_image, raw_item, None, 0)
     
-    self._current_raw_item = raw_item_copy
+    self.current_raw_item = raw_item_copy
     
     self._invoker.invoke(
       ['after_insert_item'],
-      [self, raw_item_copy],
+      [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
@@ -653,27 +655,14 @@ class LayerExporter(object):
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
-    raw_item_copy = self._merge_and_resize_layer(image, raw_item_copy)
-    image.active_layer = raw_item_copy
-    raw_item_copy.name = raw_item.name
-    
-    self._current_raw_item = raw_item_copy
-    
     self._invoker.invoke(
       ['after_process_item'],
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
-    
-    return raw_item_copy
   
-  def _merge_and_resize_layer(self, image, raw_item):
-    raw_item = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
-    pdb.gimp_layer_resize_to_image_size(raw_item)
-    return raw_item
-  
-  def _postprocess_item(self, image, raw_item):
+  def _postprocess_item(self, raw_item):
     if not self._keep_image_copy:
-      pdb.gimp_image_remove_layer(image, raw_item)
+      pdb.gimp_image_remove_layer(self.current_image, raw_item)
     else:
       if self._use_another_image_copy:
         another_raw_item_copy = pg.pdbutils.copy_and_paste_layer(
@@ -682,4 +671,4 @@ class LayerExporter(object):
         
         another_raw_item_copy.name = raw_item.name
         
-        pdb.gimp_image_remove_layer(image, raw_item)
+        pdb.gimp_image_remove_layer(self.current_image, raw_item)
