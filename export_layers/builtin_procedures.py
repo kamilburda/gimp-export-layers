@@ -180,6 +180,7 @@ _BUILTIN_PROCEDURES_LIST = [
     'name': 'export',
     'function': export.export,
     'display_name': _('Export'),
+    'additional_tags': [NAME_ONLY_TAG],
     'arguments': [
       {
         'type': pg.SettingTypes.boolean,
