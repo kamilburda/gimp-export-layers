@@ -513,13 +513,19 @@ class LayerExporter(object):
         constraint, [builtin_procedures.NAME_ONLY_TAG], [_NAME_ONLY_ACTION_GROUP])
   
   def _add_default_rename_procedure(self, action_groups):
-    self._invoker.add(
-      builtin_procedures.rename_layer,
-      groups=action_groups,
-      args=[self.export_settings['layer_filename_pattern'].value])
+    if not any(
+          procedure['orig_name'].value == 'rename_layer' and procedure['enabled'].value
+          for procedure in actions.walk(self.export_settings['procedures'])):
+      self._invoker.add(
+        builtin_procedures.rename_layer,
+        groups=action_groups,
+        args=[self.export_settings['layer_filename_pattern'].value])
   
   def _add_default_export_procedure(self, action_groups):
-    self._invoker.add(export_.export, groups=action_groups)
+    if not any(
+          procedure['orig_name'].value == 'export' and procedure['enabled'].value
+          for procedure in actions.walk(self.export_settings['procedures'])):
+      self._invoker.add(export_.export, groups=action_groups)
   
   def _preprocess_items(self):
     if self._item_tree.filter:
