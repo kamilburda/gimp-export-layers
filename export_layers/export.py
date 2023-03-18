@@ -52,6 +52,9 @@ def export(exporter):
       
       if exporter.current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
         file_extension_properties[pg.path.get_file_extension(item.name)].processed_count += 1
+        # Append the original raw item since `exporter.current_raw_item` is
+        # modified by now.
+        exporter.exported_raw_items.append(item.raw)
     
     unused_ = yield
 

@@ -119,7 +119,6 @@ class LayerExporter(object):
     self._process_names = True
     
     self._exported_raw_items = []
-    self._exported_raw_items_ids = set()
     
     self._should_stop = False
     
@@ -454,7 +453,6 @@ class LayerExporter(object):
     self._should_stop = False
     
     self._exported_raw_items = []
-    self._exported_raw_items_ids = set()
     
     self._image_copy = None
     
@@ -565,10 +563,8 @@ class LayerExporter(object):
       self._process_item(item)
   
   def _process_item(self, item):
-    orig_raw_item = item.raw
-    
     self._current_item = item
-    self.current_raw_item = orig_raw_item
+    self.current_raw_item = item.raw
     
     if self._is_preview and self._process_names:
       self._process_item_with_name_only_actions()
@@ -578,10 +574,6 @@ class LayerExporter(object):
       self._postprocess_item(self.current_raw_item)
     
     self.progress_updater.update_tasks()
-    
-    if self._current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
-      self._exported_raw_items.append(orig_raw_item)
-      self._exported_raw_items_ids.add(orig_raw_item.ID)
   
   def _setup(self):
     pdb.gimp_context_push()
