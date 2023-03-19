@@ -13,7 +13,7 @@ import gimpenums
 
 from export_layers import pygimplib as pg
 
-from export_layers import export
+from export_layers import export as export_
 from export_layers import renamer as renamer_
 from export_layers import settings_custom
 
@@ -178,7 +178,7 @@ _BUILTIN_PROCEDURES_LIST = [
   },
   {
     'name': 'export',
-    'function': export.export,
+    'function': export_.export,
     'display_name': _('Export'),
     'additional_tags': [NAME_ONLY_TAG],
     'arguments': [
@@ -189,6 +189,21 @@ _BUILTIN_PROCEDURES_LIST = [
         'display_name': _('File extension'),
         'gui_type': pg.SettingGuiTypes.file_extension_entry,
         'adjust_value': True,
+      },
+      {
+        'type': pg.SettingTypes.enumerated,
+        'name': 'export_mode',
+        'default_value': 'each_layer',
+        'items': [
+          ('each_layer', _('Each layer'), export_.ExportModes.EACH_LAYER),
+          ('each_top_level_layer_or_group',
+           _('Each top-level layer or group'),
+           export_.ExportModes.EACH_TOP_LEVEL_LAYER_OR_GROUP),
+          ('entire_image_at_once',
+           _('Entire image at once'),
+           export_.ExportModes.ENTIRE_IMAGE_AT_ONCE),
+        ],
+        'display_name': _('How to perform export'),
       },
       {
         'type': pg.SettingTypes.boolean,

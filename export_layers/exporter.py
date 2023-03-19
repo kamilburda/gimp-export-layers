@@ -64,6 +64,11 @@ class LayerExporter(object):
   * `export_context_manager_args` - Additional arguments passed to
     `export_context_manager`.
   
+  * `refresh` - Used by procedures to control whether to remove layer copies
+    once processed (`True`) or to retain them after processing (`False`).
+    Setting this to `False` allows e.g. the export procedure to export multiple
+    layers at once instead of each layer individually.
+  
   * `current_item` (read-only) - An `itemtree._Item` instance currently being
     processed.
   
@@ -116,13 +121,15 @@ class LayerExporter(object):
     
     self._item_tree = item_tree
     
-    self._is_preview = False
-    
     self.export_context_manager = (
       export_context_manager if export_context_manager is not None else pg.utils.EmptyContext)
     
     self.export_context_manager_args = (
       export_context_manager_args if export_context_manager_args is not None else [])
+    
+    self.refresh = True
+    
+    self._is_preview = False
     
     self._current_item = None
     self._current_raw_item = None
@@ -467,6 +474,8 @@ class LayerExporter(object):
     
     self.progress_updater.reset()
     
+    self.refresh = True
+    
     self._current_item = None
     self._current_raw_item = None
     self._current_image = None
@@ -523,7 +532,7 @@ class LayerExporter(object):
       self._invoker.add(
         export_.export,
         groups=action_groups,
-        args=[self.export_settings['file_extension'].value])
+        args=[self.export_settings['file_extension'].value, export_.ExportModes.EACH_LAYER])
   
   def _preprocess_items(self):
     if self._item_tree.filter:
@@ -571,7 +580,9 @@ class LayerExporter(object):
     
     if self._process_contents:
       self._process_item_with_actions(item, self.current_raw_item)
-      self._postprocess_item(self.current_raw_item)
+      
+      if self.refresh:
+        self._postprocess_item(self.current_raw_item)
     
     self.progress_updater.update_tasks()
   
@@ -639,9 +650,11 @@ class LayerExporter(object):
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
   
   def _process_item_with_actions(self, item, raw_item):
-    raw_item_copy = builtin_procedures.copy_and_insert_layer(self.current_image, raw_item, None, 0)
+    raw_item_copy = builtin_procedures.copy_and_insert_layer(
+      self.current_image, raw_item, None, len(self.current_image.layers))
     
     self.current_raw_item = raw_item_copy
+    self.current_raw_item.name = raw_item.name
     
     self._invoker.invoke(
       ['after_insert_item'],
@@ -660,7 +673,8 @@ class LayerExporter(object):
   
   def _postprocess_item(self, raw_item):
     if not self._keep_image_copy:
-      pdb.gimp_image_remove_layer(self.current_image, raw_item)
+      for layer in self.current_image.layers:
+        pdb.gimp_image_remove_layer(self.current_image, layer)
     else:
       if self._use_another_image_copy:
         another_raw_item_copy = pg.pdbutils.copy_and_paste_layer(
@@ -669,4 +683,5 @@ class LayerExporter(object):
         
         another_raw_item_copy.name = raw_item.name
         
-        pdb.gimp_image_remove_layer(self.current_image, raw_item)
+        for layer in self.current_image.layers:
+          pdb.gimp_image_remove_layer(self.current_image, layer)

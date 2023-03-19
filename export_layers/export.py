@@ -17,9 +17,19 @@ from export_layers import exceptions
 from export_layers import uniquifier
 
 
+class ExportModes(object):
+  
+  EXPORT_MODES = (
+    EACH_LAYER,
+    EACH_TOP_LEVEL_LAYER_OR_GROUP,
+    ENTIRE_IMAGE_AT_ONCE,
+  ) = 0, 1, 2
+
+
 def export(
       exporter,
       file_extension,
+      export_mode=ExportModes.EACH_LAYER,
       use_file_extension_in_item_name=False,
       convert_file_extension_to_lowercase=False):
   item_uniquifier = uniquifier.ItemUniquifier()
@@ -27,11 +37,36 @@ def export(
   processed_parent_names = set()
   default_file_extension = file_extension
   
+  num_processed_items = 0
+  previous_top_level_item = None
+  current_top_level_item = None
+  
   while True:
     item = exporter.current_item
     image = exporter.current_image
-    
     current_file_extension = default_file_extension
+    
+    if export_mode == ExportModes.ENTIRE_IMAGE_AT_ONCE:
+      if num_processed_items + 1 < len(exporter.item_tree):
+        exporter.refresh = False
+        num_processed_items += 1
+        unused_ = yield
+        continue
+    elif export_mode == ExportModes.EACH_TOP_LEVEL_LAYER_OR_GROUP:
+      if previous_top_level_item is None:
+        previous_top_level_item = item.parents[0] if item.parents else item
+      current_top_level_item = item.parents[0] if item.parents else item
+      
+      should_assemble = current_top_level_item == previous_top_level_item
+      
+      if not should_assemble:
+        previous_top_level_item = current_top_level_item
+      
+      if should_assemble and num_processed_items + 1 < len(exporter.item_tree):
+        exporter.refresh = False
+        num_processed_items += 1
+        unused_ = yield
+        continue
     
     if exporter.process_names:
       if use_file_extension_in_item_name:
@@ -47,11 +82,12 @@ def export(
         current_file_extension, default_file_extension, force_default_file_extension=False)
     
     if exporter.process_export:
-      raw_item_name = exporter.current_raw_item.name
-      raw_item_merged = _merge_and_resize_image(exporter.current_image)
-      raw_item_merged.name = raw_item_name
-      exporter.current_image.active_layer = raw_item_merged
-      exporter.current_raw_item = raw_item_merged
+      if exporter.refresh:
+        raw_item_name = exporter.current_raw_item.name
+        raw_item_merged = _merge_and_resize_image(exporter.current_image)
+        raw_item_merged.name = raw_item_name
+        exporter.current_image.active_layer = raw_item_merged
+        exporter.current_raw_item = raw_item_merged
       
       overwrite_mode, export_status = _export_item(
         exporter, item, image, exporter.current_raw_item, default_file_extension,
@@ -74,6 +110,8 @@ def export(
         # modified by now.
         exporter.exported_raw_items.append(item.raw)
     
+    exporter.refresh = True
+    num_processed_items += 1
     unused_ = yield
 
 
