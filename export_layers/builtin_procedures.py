@@ -203,7 +203,7 @@ _BUILTIN_PROCEDURES_LIST = [
            _('Entire image at once'),
            export_.ExportModes.ENTIRE_IMAGE_AT_ONCE),
         ],
-        'display_name': _('How to perform export'),
+        'display_name': _('Perform export for:'),
       },
       {
         'type': pg.SettingTypes.boolean,
