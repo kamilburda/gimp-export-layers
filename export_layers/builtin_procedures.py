@@ -183,6 +183,14 @@ _BUILTIN_PROCEDURES_LIST = [
     'additional_tags': [NAME_ONLY_TAG],
     'arguments': [
       {
+        'type': pg.SettingTypes.file_extension,
+        'name': 'file_extension',
+        'default_value': 'png',
+        'display_name': _('File extension'),
+        'gui_type': pg.SettingGuiTypes.file_extension_entry,
+        'adjust_value': True,
+      },
+      {
         'type': pg.SettingTypes.boolean,
         'name': 'use_file_extension_in_item_name',
         'default_value': False,

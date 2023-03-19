@@ -53,7 +53,9 @@ def has_matching_file_extension(item, file_extension):
 
 
 def has_matching_default_file_extension(item, exporter):
-  return pg.path.get_file_extension(item.name).lower() == exporter.default_file_extension.lower()
+  return (
+    pg.path.get_file_extension(item.name).lower()
+    == exporter.export_settings['file_extension'].value.lower())
 
 
 def is_item_in_selected_items(item, selected_layers):

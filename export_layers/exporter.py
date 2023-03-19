@@ -124,10 +124,6 @@ class LayerExporter(object):
     self.export_context_manager_args = (
       export_context_manager_args if export_context_manager_args is not None else [])
     
-    self._default_file_extension = None
-    
-    self.current_file_extension = None
-    
     self._current_item = None
     self._current_raw_item = None
     self._current_image = None
@@ -194,10 +190,6 @@ class LayerExporter(object):
   @property
   def tagged_layer_copies(self):
     return self._tagged_layer_copies
-  
-  @property
-  def default_file_extension(self):
-    return self._default_file_extension
   
   @property
   def invoker(self):
@@ -475,9 +467,6 @@ class LayerExporter(object):
     
     self.progress_updater.reset()
     
-    self._default_file_extension = self.export_settings['file_extension'].value
-    self.current_file_extension = self._default_file_extension
-    
     self._current_item = None
     self._current_raw_item = None
     self._current_image = None
@@ -531,7 +520,10 @@ class LayerExporter(object):
     if not any(
           procedure['orig_name'].value == 'export' and procedure['enabled'].value
           for procedure in actions.walk(self.export_settings['procedures'])):
-      self._invoker.add(export_.export, groups=action_groups)
+      self._invoker.add(
+        export_.export,
+        groups=action_groups,
+        args=[self.export_settings['file_extension'].value])
   
   def _preprocess_items(self):
     if self._item_tree.filter:

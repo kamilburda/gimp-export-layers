@@ -19,27 +19,32 @@ from export_layers import uniquifier
 
 def export(
       exporter,
+      file_extension,
       use_file_extension_in_item_name=False,
       convert_file_extension_to_lowercase=False):
   item_uniquifier = uniquifier.ItemUniquifier()
   file_extension_properties = _FileExtensionProperties()
   processed_parent_names = set()
+  default_file_extension = file_extension
   
   while True:
     item = exporter.current_item
     image = exporter.current_image
     
-    exporter.current_file_extension = exporter.default_file_extension
+    current_file_extension = default_file_extension
     
     if exporter.process_names:
       if use_file_extension_in_item_name:
-        _set_current_file_extension(exporter, file_extension_properties)
+        current_file_extension = _get_current_file_extension(
+          exporter, default_file_extension, file_extension_properties)
       
       if convert_file_extension_to_lowercase:
-        exporter.current_file_extension = exporter.current_file_extension.lower()
+        current_file_extension = current_file_extension.lower()
       
       _process_parent_folder_names(item, item_uniquifier, processed_parent_names)
-      _process_item_name(exporter, item, item_uniquifier, force_default_file_extension=False)
+      _process_item_name(
+        exporter, item, item_uniquifier,
+        current_file_extension, default_file_extension, force_default_file_extension=False)
     
     if exporter.process_export:
       raw_item_name = exporter.current_raw_item.name
@@ -49,15 +54,19 @@ def export(
       exporter.current_raw_item = raw_item_merged
       
       overwrite_mode, export_status = _export_item(
-        exporter, item, image, exporter.current_raw_item, file_extension_properties)
+        exporter, item, image, exporter.current_raw_item, default_file_extension,
+        file_extension_properties)
       
       if export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
         if exporter.process_names:
-          _process_item_name(exporter, item, item_uniquifier, force_default_file_extension=True)
+          _process_item_name(
+            exporter, item, item_uniquifier,
+            current_file_extension, default_file_extension, force_default_file_extension=True)
         
         if exporter.process_export:
           overwrite_mode, unused_ = _export_item(
-            exporter, item, image, exporter.current_raw_item, file_extension_properties)
+            exporter, item, image, exporter.current_raw_item, default_file_extension,
+            file_extension_properties)
       
       if overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
         file_extension_properties[pg.path.get_file_extension(item.name)].processed_count += 1
@@ -77,16 +86,18 @@ def _process_parent_folder_names(item, item_uniquifier, processed_parent_names):
       processed_parent_names.add(parent)
 
 
-def _process_item_name(exporter, item, item_uniquifier, force_default_file_extension):
+def _process_item_name(
+      exporter, item, item_uniquifier,
+      current_file_extension, default_file_extension, force_default_file_extension):
   if not force_default_file_extension:
-    if exporter.current_file_extension == exporter.default_file_extension:
-      item.name += '.' + exporter.default_file_extension
+    if current_file_extension == default_file_extension:
+      item.name += '.' + default_file_extension
     else:
       item.name = pg.path.get_filename_with_new_file_extension(
-        item.name, exporter.current_file_extension, keep_extra_trailing_periods=True)
+        item.name, current_file_extension, keep_extra_trailing_periods=True)
   else:
     item.name = pg.path.get_filename_with_new_file_extension(
-      item.name, exporter.default_file_extension, keep_extra_trailing_periods=True)
+      item.name, default_file_extension, keep_extra_trailing_periods=True)
   
   _validate_name(item)
   item_uniquifier.uniquify(
@@ -94,13 +105,15 @@ def _process_item_name(exporter, item, item_uniquifier, force_default_file_exten
     position=_get_unique_substring_position(item.name, pg.path.get_file_extension(item.name)))
 
 
-def _set_current_file_extension(exporter, file_extension_properties):
+def _get_current_file_extension(exporter, default_file_extension, file_extension_properties):
   orig_file_extension = pg.path.get_file_extension(exporter.current_item.orig_name)
   item_file_extension = pg.path.get_file_extension(exporter.current_item.name)
   if (orig_file_extension
       and orig_file_extension.lower() != item_file_extension.lower()
       and file_extension_properties[orig_file_extension].is_valid):
-    exporter.current_file_extension = orig_file_extension
+    return orig_file_extension
+  else:
+    return default_file_extension
 
 
 def _merge_and_resize_image(image):
@@ -117,7 +130,8 @@ def _get_unique_substring_position(str_, file_extension):
   return len(str_) - len('.' + file_extension)
 
 
-def _export_item(exporter, item, image, raw_item, file_extension_properties):
+def _export_item(
+      exporter, item, image, raw_item, default_file_extension, file_extension_properties):
   output_filepath = _get_item_filepath(item, exporter.export_settings['output_directory'].value)
   file_extension = pg.path.get_file_extension(item.name)
   export_status = ExportStatuses.NOT_EXPORTED_YET
@@ -132,20 +146,30 @@ def _export_item(exporter, item, image, raw_item, file_extension_properties):
     raise exceptions.BatcherCancelError('cancelled')
   
   if overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
-    _make_dirs(exporter, os.path.dirname(output_filepath))
+    _make_dirs(exporter, os.path.dirname(output_filepath), default_file_extension)
     
     export_status = _export_item_once_wrapper(
       exporter,
       _get_export_func(file_extension),
       _get_run_mode(exporter, file_extension, file_extension_properties),
-      image, raw_item, output_filepath, file_extension, file_extension_properties)
+      image,
+      raw_item,
+      output_filepath,
+      file_extension,
+      default_file_extension,
+      file_extension_properties)
     
     if export_status == ExportStatuses.FORCE_INTERACTIVE:
       export_status = _export_item_once_wrapper(
         exporter,
         _get_export_func(file_extension),
         gimpenums.RUN_INTERACTIVE,
-        image, raw_item, output_filepath, file_extension, file_extension_properties)
+        image,
+        raw_item,
+        output_filepath,
+        file_extension,
+        default_file_extension,
+        file_extension_properties)
   
   return overwrite_mode, export_status
 
@@ -176,7 +200,7 @@ def _get_item_filepath(item, dirpath):
   return os.path.join(path, item.name)
 
 
-def _make_dirs(exporter, dirpath):
+def _make_dirs(exporter, dirpath, default_file_extension):
   try:
     pg.path.make_dirs(dirpath)
   except OSError as e:
@@ -188,17 +212,17 @@ def _make_dirs(exporter, dirpath):
       message = str(e)
     
     raise exceptions.InvalidOutputDirectoryError(
-      message, exporter.current_item.name, exporter.default_file_extension)
+      message, exporter.current_item.name, default_file_extension)
 
 
 def _export_item_once_wrapper(
       exporter, export_func, run_mode, image, raw_item, output_filepath, file_extension,
-      file_extension_properties):
+      default_file_extension, file_extension_properties):
   with exporter.export_context_manager(
          run_mode, image, raw_item, output_filepath, *exporter.export_context_manager_args):
     export_status = _export_item_once(
       exporter, export_func, run_mode, image, raw_item, output_filepath, file_extension,
-      file_extension_properties)
+      default_file_extension, file_extension_properties)
   
   return export_status
 
@@ -217,7 +241,7 @@ def _get_export_func(file_extension):
 
 def _export_item_once(
       exporter, export_func, run_mode, image, raw_item, output_filepath, file_extension,
-      file_extension_properties):
+      default_file_extension, file_extension_properties):
   export_status = ExportStatuses.NOT_EXPORTED_YET
   
   try:
@@ -234,11 +258,11 @@ def _export_item_once(
       raise exceptions.BatcherCancelError(str(e))
     elif _should_export_again_with_interactive_run_mode(str(e), run_mode):
       export_status = ExportStatuses.FORCE_INTERACTIVE
-    elif _should_export_again_with_default_file_extension(exporter, file_extension):
+    elif _should_export_again_with_default_file_extension(file_extension, default_file_extension):
       file_extension_properties[file_extension].is_valid = False
       export_status = ExportStatuses.USE_DEFAULT_FILE_EXTENSION
     else:
-      raise exceptions.ExportError(str(e), raw_item.name, exporter.default_file_extension)
+      raise exceptions.ExportError(str(e), raw_item.name, default_file_extension)
   else:
     export_status = ExportStatuses.EXPORT_SUCCESSFUL
   
@@ -255,8 +279,8 @@ def _should_export_again_with_interactive_run_mode(exception_message, current_ru
     and current_run_mode in [gimpenums.RUN_WITH_LAST_VALS, gimpenums.RUN_NONINTERACTIVE])
 
 
-def _should_export_again_with_default_file_extension(exporter, file_extension):
-  return file_extension != exporter.default_file_extension
+def _should_export_again_with_default_file_extension(file_extension, default_file_extension):
+  return file_extension != default_file_extension
 
 
 class _FileExtension(object):

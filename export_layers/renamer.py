@@ -219,7 +219,7 @@ def _get_layer_name(exporter, item, field_value, file_extension_strip_mode=''):
     file_extension = pg.path.get_file_extension(item.orig_name)
     if file_extension:
       if file_extension_strip_mode == '%i':
-        if file_extension == exporter.default_file_extension:
+        if file_extension == exporter.export_settings['file_extension'].value:
           return item.name
       else:
         return item.name
