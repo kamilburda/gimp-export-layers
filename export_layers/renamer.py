@@ -18,7 +18,7 @@ from export_layers import pygimplib as pg
 from export_layers import actions
 
 
-class LayerNameRenamer(object):
+class ItemRenamer(object):
   
   def __init__(self, pattern, fields_raw=None):
     self._filename_pattern = pg.path.StringPattern(

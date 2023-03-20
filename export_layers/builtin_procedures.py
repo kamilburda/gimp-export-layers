@@ -78,7 +78,7 @@ def inherit_transparency_from_layer_groups(exporter):
 
 
 def rename_layer(exporter, pattern, rename_layers=True, rename_folders=False):
-  renamer = renamer_.LayerNameRenamer(pattern)
+  renamer = renamer_.ItemRenamer(pattern)
   
   renamed_parents = set()
   
