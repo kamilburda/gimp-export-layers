@@ -37,34 +37,21 @@ def export(
   processed_parent_names = set()
   default_file_extension = file_extension
   
-  num_processed_items = 0
-  previous_top_level_item = None
-  current_top_level_item = None
-  
   while True:
     item = exporter.current_item
     image = exporter.current_image
     current_file_extension = default_file_extension
     
     if export_mode == ExportModes.ENTIRE_IMAGE_AT_ONCE:
-      if num_processed_items + 1 < len(exporter.item_tree):
+      if exporter.item_tree.next(item, with_folders=False) is not None:
         exporter.refresh = False
-        num_processed_items += 1
         unused_ = yield
         continue
     elif export_mode == ExportModes.EACH_TOP_LEVEL_LAYER_OR_GROUP:
-      if previous_top_level_item is None:
-        previous_top_level_item = item.parents[0] if item.parents else item
-      current_top_level_item = item.parents[0] if item.parents else item
-      
-      should_assemble = current_top_level_item == previous_top_level_item
-      
-      if not should_assemble:
-        previous_top_level_item = current_top_level_item
-      
-      if should_assemble and num_processed_items + 1 < len(exporter.item_tree):
+      current_top_level_item = _get_top_level_item(item)
+      next_top_level_item = _get_top_level_item(exporter.item_tree.next(item, with_folders=False))
+      if current_top_level_item == next_top_level_item:
         exporter.refresh = False
-        num_processed_items += 1
         unused_ = yield
         continue
     
@@ -111,8 +98,14 @@ def export(
         exporter.exported_raw_items.append(item.raw)
     
     exporter.refresh = True
-    num_processed_items += 1
     unused_ = yield
+
+
+def _get_top_level_item(item):
+  if item is not None and item.parents:
+    return item.parents[0]
+  else:
+    return item
 
 
 def _process_parent_folder_names(item, item_uniquifier, processed_parent_names):
