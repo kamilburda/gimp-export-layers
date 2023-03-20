@@ -30,7 +30,7 @@ __all__ = [
 class ItemBox(gtk.ScrolledWindow):
   """
   This base class defines a scrollable box holding a vertical list of items.
-  Each item is an instance of `_ItemBoxItem` class or one of its subclasses.
+  Each item is an instance of `ItemBoxItem` class or one of its subclasses.
   """
   
   ITEM_SPACING = 4
