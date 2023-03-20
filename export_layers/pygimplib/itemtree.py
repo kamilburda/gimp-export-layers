@@ -201,6 +201,55 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     for item in self._itemtree.values():
       yield item
   
+  def prev(self, item, with_folders=True, with_empty_groups=False, filtered=True):
+    """Returns the previous item in the tree.
+    
+    Depending on the values of parameters, some items may be skipped. For the
+    description of the parameters, see `iter()`.
+    """
+    return self._prev_next(item, with_folders, with_empty_groups, filtered, 'prev')
+  
+  def next(self, item, with_folders=True, with_empty_groups=False, filtered=True):
+    """Returns the next item in the tree.
+    
+    Depending on the values of parameters, some items may be skipped. For the
+    description of the parameters, see `iter()`.
+    """
+    return self._prev_next(item, with_folders, with_empty_groups, filtered, 'next')
+  
+  def _prev_next(self, item, with_folders, with_empty_groups, filtered, adjacent_attr_name):
+    adjacent_item = item
+    
+    while True:
+      adjacent_item = getattr(adjacent_item, adjacent_attr_name)
+      
+      if adjacent_item is None:
+        break
+      
+      if with_folders:
+        if adjacent_item.type == TYPE_FOLDER:
+          break
+      else:
+        if adjacent_item.type == TYPE_FOLDER:
+          continue
+      
+      if with_empty_groups:
+        if (adjacent_item.type == TYPE_GROUP
+            and not pdb.gimp_item_get_children(adjacent_item.raw)[1]):
+          break
+      else:
+        if (adjacent_item.type == TYPE_GROUP
+            and not pdb.gimp_item_get_children(adjacent_item.raw)[1]):
+          continue
+      
+      if filtered and self.is_filtered:
+        if self.filter.is_match(adjacent_item):
+          break
+      else:
+        break
+    
+    return adjacent_item
+  
   def reset_filter(self):
     """Resets the filter, creating a new empty `ObjectFilter`."""
     self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
@@ -209,15 +258,17 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     child_items = []
     for raw_item in self._get_children_from_image(self._image):
       if self._is_group(raw_item):
-        child_items.append(_Item(raw_item, TYPE_FOLDER, [], [], self._name))
-        child_items.append(_Item(raw_item, TYPE_GROUP, [], [], self._name))
+        child_items.append(_Item(raw_item, TYPE_FOLDER, [], [], None, None, self._name))
+        child_items.append(_Item(raw_item, TYPE_GROUP, [], [], None, None, self._name))
       else:
-        child_items.append(_Item(raw_item, TYPE_ITEM, [], [], self._name))
+        child_items.append(_Item(raw_item, TYPE_ITEM, [], [], None, None, self._name))
     
     item_tree = child_items
+    item_list = []
     
     while item_tree:
       item = item_tree.pop(0)
+      item_list.append(item)
       
       if item.type == TYPE_FOLDER:
         self._itemtree[(item.raw.ID, FOLDER_KEY)] = item
@@ -229,10 +280,13 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
         child_items = []
         for raw_item in self._get_children_from_raw_item(item.raw):
           if self._is_group(raw_item):
-            child_items.append(_Item(raw_item, TYPE_FOLDER, parents_for_child, [], self._name))
-            child_items.append(_Item(raw_item, TYPE_GROUP, parents_for_child, [], self._name))
+            child_items.append(
+              _Item(raw_item, TYPE_FOLDER, parents_for_child, [], None, None, self._name))
+            child_items.append(
+              _Item(raw_item, TYPE_GROUP, parents_for_child, [], None, None, self._name))
           else:
-            child_items.append(_Item(raw_item, TYPE_ITEM, parents_for_child, [], self._name))
+            child_items.append(
+              _Item(raw_item, TYPE_ITEM, parents_for_child, [], None, None, self._name))
         
         # We break the convention here and access a private attribute from `_Item`.
         item._orig_children = child_items
@@ -243,6 +297,15 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
       else:
         self._itemtree[item.raw.ID] = item
         self._itemtree_names[item.orig_name] = item
+    
+    for i in range(1, len(item_list) - 1):
+      # We break the convention here and access private attributes from `_Item`.
+      item_list[i]._prev_item = item_list[i - 1]
+      item_list[i]._next_item = item_list[i + 1]
+    
+    if len(item_list) > 1:
+      item_list[0]._next_item = item_list[1]
+      item_list[-1]._prev_item = item_list[-2]
   
   @abc.abstractmethod
   def _get_children_from_image(self, image):
@@ -296,15 +359,19 @@ class _Item(object):
   
   Attributes:
   
-  * `item` (read-only) - `gimp.Item` object.
+  * `raw` (read-only) - Underlying `gimp.Item` object wrapped by this instance.
+  
+  * `type` (read-only) - Item type - one of the following:
+      * `TYPE_ITEM` - regular item
+      * `TYPE_GROUP` - item group (item whose raw `gimp.Item` is a group with
+        children; this `_Item` has no children and acts as a regular item)
+      * `TYPE_FOLDER` - item containing children (raw item is a group with
+        children)
   
   * `parents` - List of `_Item` parents for this item, sorted from the topmost
     parent to the bottommost (immediate) parent.
   
   * `children` - List of `_Item` children for this item.
-  
-  * `name` - Item name as a string, initially equal to `orig_name`. Modify this
-     attribute instead of `gimp.Item.name` to avoid modifying the original item.
   
   * `depth` (read-only) - Integer indicating the depth of the item in the item
     tree. 0 means the item is at the top level. The greater the depth, the lower
@@ -313,12 +380,19 @@ class _Item(object):
   * `parent` (read-only) - Immediate `_Item` parent of this object.
     If this object has no parent, return `None`.
   
-  * `type` (read-only) - Item type - one of the following:
-      * `TYPE_ITEM` - regular item
-      * `TYPE_GROUP` - item group (item whose raw `gimp.Item` is a group with
-        children; this `_Item` has no children and acts as a regular item)
-      * `TYPE_FOLDER` - item containing children (raw item is a group with
-        children)
+  * `name` - Item name as a string, initially equal to `orig_name`. Modify this
+     attribute instead of `gimp.Item.name` to avoid modifying the original item.
+  
+  * `prev` - Previous `_Item` in the `ItemTree`, or `None` if there is no
+    previous item.
+  
+  * `next` - Next `_Item` in the `ItemTree`, or `None` if there is no next item.
+  
+  * `tags` - Set of arbitrary strings attached to the item. Tags can be used for
+    a variety of purposes, such as special handling of items with specific tags.
+    Tags are stored persistently in the `gimp.Item` object (`item` attribute) as
+    parasites. The name of the parasite source is given by the
+    `tags_source_name` attribute.
   
   * `orig_name` (read-only) - Original `gimp.Item.name` as a string. This
     attribute may be used to access `_Item`s in `ItemTree`.
@@ -329,18 +403,14 @@ class _Item(object):
   
   * `orig_tags` (read-only) - Initial `tags` of this item.
   
-  * `tags` - Set of arbitrary strings attached to the item. Tags can be used for
-    a variety of purposes, such as special handling of items with specific tags.
-    Tags are stored persistently in the `gimp.Item` object (`item` attribute) as
-    parasites. The name of the parasite source is given by the
-    `tags_source_name` attribute.
-  
   * `tags_source_name` - Name of the persistent source for the `tags` attribute.
     Defaults to `'tags'` if `None`. If `type` is `FOLDER`, `'_folder'` is
     appended to `tags_source_name`.
   """
   
-  def __init__(self, raw_item, item_type, parents=None, children=None, tags_source_name=None):
+  def __init__(
+        self, raw_item, item_type, parents=None, children=None, prev_item=None, next_item=None,
+        tags_source_name=None):
     if raw_item is None:
       raise TypeError('item cannot be None')
     
@@ -348,6 +418,8 @@ class _Item(object):
     self._type = item_type
     self._parents = parents if parents is not None else []
     self._children = children if children is not None else []
+    self._prev_item = prev_item
+    self._next_item = next_item
     
     self.name = pgutils.safe_decode_gimp(raw_item.name)
     
@@ -398,6 +470,14 @@ class _Item(object):
   @property
   def parent(self):
     return self._parents[-1] if self._parents else None
+  
+  @property
+  def prev(self):
+    return self._prev_item
+  
+  @property
+  def next(self):
+    return self._next_item
   
   @property
   def tags(self):
