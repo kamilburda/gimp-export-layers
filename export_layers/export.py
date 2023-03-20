@@ -14,6 +14,7 @@ import gimpenums
 from export_layers import pygimplib as pg
 
 from export_layers import exceptions
+from export_layers import renamer as renamer_
 from export_layers import uniquifier
 
 
@@ -30,12 +31,18 @@ def export(
       exporter,
       file_extension,
       export_mode=ExportModes.EACH_LAYER,
+      single_image_filename_pattern=None,
       use_file_extension_in_item_name=False,
       convert_file_extension_to_lowercase=False):
   item_uniquifier = uniquifier.ItemUniquifier()
   file_extension_properties = _FileExtensionProperties()
   processed_parent_names = set()
   default_file_extension = file_extension
+  
+  if single_image_filename_pattern is not None:
+    renamer_for_image = renamer_.ItemRenamer(single_image_filename_pattern)
+  else:
+    renamer_for_image = None
   
   while True:
     item = exporter.current_item
@@ -49,6 +56,12 @@ def export(
         exporter.refresh = False
         unused_ = yield
         continue
+      else:
+        item_to_process = pg.itemtree.Item(item.raw, pg.itemtree.TYPE_ITEM, [], [], None, None)
+        if single_image_filename_pattern is not None:
+          item_to_process.name = renamer_for_image.rename(exporter, item_to_process)
+        else:
+          item_to_process.name = item.name
     elif export_mode == ExportModes.EACH_TOP_LEVEL_LAYER_OR_GROUP:
       current_top_level_item = _get_top_level_item(item)
       next_top_level_item = _get_top_level_item(exporter.item_tree.next(item, with_folders=False))

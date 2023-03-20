@@ -206,6 +206,13 @@ _BUILTIN_PROCEDURES_LIST = [
         'display_name': _('Perform export for:'),
       },
       {
+        'type': settings_custom.FilenamePatternSetting,
+        'name': 'single_image_filename_pattern',
+        'default_value': '[image name]',
+        'display_name': _('Image filename pattern'),
+        'gui_type': settings_custom.FilenamePatternEntryPresenter,
+      },
+      {
         'type': pg.SettingTypes.boolean,
         'name': 'use_file_extension_in_item_name',
         'default_value': False,
