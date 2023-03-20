@@ -16,6 +16,7 @@ from export_layers import pygimplib as pg
 from export_layers import actions
 from export_layers import builtin_procedures
 from export_layers import builtin_constraints
+from export_layers import export as export_
 from export_layers import settings_custom
 from export_layers.gui import settings_gui
 
@@ -149,6 +150,8 @@ def create_settings():
       builtin_constraints.BUILTIN_CONSTRAINTS['visible']]),
   ])
   
+  settings['main/procedures'].connect_event('after-add-action', _on_after_add_procedure)
+  
   settings['main/constraints'].connect_event(
     'after-add-action',
     _on_after_add_constraint,
@@ -156,6 +159,26 @@ def create_settings():
     settings['special/image'])
   
   return settings
+
+
+def _on_after_add_procedure(procedures, procedure, orig_procedure_dict):
+  if orig_procedure_dict['name'] == 'export':
+    _set_sensitive_for_image_filename_pattern_in_export(
+      procedure['arguments/export_mode'],
+      procedure['arguments/single_image_filename_pattern'])
+    
+    procedure['arguments/export_mode'].connect_event(
+      'value-changed',
+      _set_sensitive_for_image_filename_pattern_in_export,
+      procedure['arguments/single_image_filename_pattern'])
+
+
+def _set_sensitive_for_image_filename_pattern_in_export(
+      export_mode_setting, single_image_filename_pattern_setting):
+  if export_mode_setting.value == export_.ExportModes.ENTIRE_IMAGE_AT_ONCE:
+    single_image_filename_pattern_setting.gui.set_sensitive(True)
+  else:
+    single_image_filename_pattern_setting.gui.set_sensitive(False)
 
 
 def _on_after_add_constraint(
