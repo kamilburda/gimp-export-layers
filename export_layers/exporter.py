@@ -69,7 +69,7 @@ class LayerExporter(object):
     Setting this to `False` allows e.g. the export procedure to export multiple
     layers at once instead of each layer individually.
   
-  * `current_item` (read-only) - An `itemtree._Item` instance currently being
+  * `current_item` (read-only) - An `itemtree.Item` instance currently being
     processed.
   
   * `current_raw_item` - Raw item (`gimp.Layer`) currently being processed.
@@ -84,10 +84,10 @@ class LayerExporter(object):
   
   * `process_names` (read-only) - See `export()`.
   
-  * `tagged_items` - Dictionary of (tag name, `itemtree._Item`) pairs containing
+  * `tagged_items` - Dictionary of (tag name, `itemtree.Item`) pairs containing
     tagged items.
   
-  * `inserted_tagged_items` - Dictionary of (tag name, `itemtree._Item`) pairs
+  * `inserted_tagged_items` - Dictionary of (tag name, `itemtree.Item`) pairs
     containing tagged items currently inserted in `current_image`.
   
   * `invoker` - `pygimplib.invoker.Invoker` instance to

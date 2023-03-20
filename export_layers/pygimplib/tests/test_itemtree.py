@@ -258,20 +258,20 @@ class TestItem(unittest.TestCase):
     self.GROUP = pgitemtree.TYPE_GROUP
     self.FOLDER = pgitemtree.TYPE_FOLDER
     
-    self.item = pgitemtree._Item(
+    self.item = pgitemtree.Item(
       stubs_gimp.LayerStub('main-background.jpg'), self.ITEM)
   
   def test_str(self):
-    self.assertEqual(str(self.item), '<_Item "main-background.jpg">')
+    self.assertEqual(str(self.item), '<Item "main-background.jpg">')
     
     self.item.name = 'main-background'
     
-    self.assertEqual(str(self.item), '<_Item "main-background.jpg">')
+    self.assertEqual(str(self.item), '<Item "main-background.jpg">')
   
   def test_repr(self):
     self.assertEqual(
       repr(self.item),
-      '<pygimplib.itemtree._Item "main-background.jpg {}" at {}>'.format(
+      '<pygimplib.itemtree.Item "main-background.jpg {}" at {}>'.format(
         type(self.item.raw),
         hex(id(self.item)).rstrip('L'),
       ),
@@ -356,7 +356,7 @@ class TestItem(unittest.TestCase):
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(item_tags_source_name, 0, pickle.dumps(set(['background']))))
     
-    item = pgitemtree._Item(layer, self.ITEM, tags_source_name=item_tags_source_name)
+    item = pgitemtree.Item(layer, self.ITEM, tags_source_name=item_tags_source_name)
     self.assertIn('background', item.tags)
   
   @mock.patch(
@@ -369,7 +369,7 @@ class TestItem(unittest.TestCase):
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(item_tags_source_name, 0, 'invalid_data'))
     
-    item = pgitemtree._Item(layer, self.ITEM, tags_source_name=item_tags_source_name)
+    item = pgitemtree.Item(layer, self.ITEM, tags_source_name=item_tags_source_name)
     self.assertFalse(item.tags)
   
   @mock.patch(
@@ -383,7 +383,7 @@ class TestItem(unittest.TestCase):
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(folder_tags_source_name, 0, pickle.dumps(set(['background']))))
     
-    item = pgitemtree._Item(layer, self.FOLDER, tags_source_name=item_tags_source_name)
+    item = pgitemtree.Item(layer, self.FOLDER, tags_source_name=item_tags_source_name)
     self.assertEqual(item.tags_source_name, folder_tags_source_name)
     self.assertIn('background', item.tags)
   
@@ -398,6 +398,6 @@ class TestItem(unittest.TestCase):
     layer.parasite_attach(
       stubs_gimp.ParasiteStub(item_tags_source_name, 0, pickle.dumps(set(['background']))))
     
-    item = pgitemtree._Item(layer, self.FOLDER, tags_source_name=item_tags_source_name)
+    item = pgitemtree.Item(layer, self.FOLDER, tags_source_name=item_tags_source_name)
     self.assertEqual(item.tags_source_name, folder_tags_source_name)
     self.assertNotIn('background', item.tags)

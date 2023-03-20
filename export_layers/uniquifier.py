@@ -10,35 +10,35 @@ from export_layers import pygimplib as pg
 
 
 class ItemUniquifier(object):
-  """Class renaming `pygimplib.ItemTree._Item` instances to be unique under the
+  """Class renaming `pygimplib.ItemTree.Item` instances to be unique under the
   same parent.
   """
   
   def __init__(self, generator=None):
     self.generator = generator
     
-    # key: `_Item` instance (parent) or None (item tree root)
-    # value: set of `_Item` instances
+    # key: `Item` instance (parent) or None (item tree root)
+    # value: set of `Item` instances
     self._uniquified_items = {}
     
-    # key: `_Item` instance (parent) or None (item tree root)
-    # value: set of `_Item.name` strings
+    # key: `Item` instance (parent) or None (item tree root)
+    # value: set of `Item.name` strings
     self._uniquified_item_names = {}
   
   def uniquify(self, item, position=None):
-    """Renames the `_Item` instance by making it unique among all other `_Item`
-    instances under the same parent `_Item`.
+    """Renames the `Item` instance by making it unique among all other `Item`
+    instances under the same parent `Item`.
     
     To achieve uniquification, a substring in the form of `' (<number>)'` is
     inserted at the end of the item names.
     
-    Calling the method with the same `_Item` instance will have no effect as
+    Calling the method with the same `Item` instance will have no effect as
     that instance will be marked as visited. Call `reset()` to clear cache of
     items that were passed to this function.
     
     Parameters:
     
-    * `item` - `_Item` instance whose `name` attribute will be uniquified.
+    * `item` - `Item` instance whose `name` attribute will be uniquified.
     
     * `position` - Position (index) where a unique substring is inserted into
       the item's name. If `None`, insert the substring at the end of the name

@@ -84,7 +84,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
     
     self.is_filtering = False
     
-    # key: `_Item.raw.ID` or (`_Item.raw.ID`, 'folder') instance
+    # key: `Item.raw.ID` or (`Item.raw.ID`, 'folder') instance
     # value: `gtk.TreeIter` instance
     self._tree_iters = collections.defaultdict(pg.utils.return_none_func)
     

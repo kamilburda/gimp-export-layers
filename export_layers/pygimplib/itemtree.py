@@ -42,7 +42,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     * `VectorTree` for vectors (paths).
   
-  Each item in the tree is an `_Item` instance. Each item contains `gimp.Item`
+  Each item in the tree is an `Item` instance. Each item contains `gimp.Item`
   attributes and additional derived attributes.
   
   Items can be directly accessed via their ID or name. Both ID and name are
@@ -62,7 +62,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   * `name` (read-only) - Optional name of the item tree. The name is currently
     used as an identifier of the persistent source for tags in items. See
-    `_Item.tags` for more information.
+    `Item.tags` for more information.
   
   * `is_filtered` - If `True`, ignore items that do not match the filter
     (`ObjectFilter`) in this object when iterating.
@@ -86,14 +86,14 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     self.filter = pgobjectfilter.ObjectFilter(self._filter_match_type)
     
     # Contains all items in the item tree (including item groups).
-    # key: `_Item.raw.ID` or (`_Item.raw.ID`, `FOLDER_KEY`) in case of folders
-    # value: `_Item` instance
+    # key: `Item.raw.ID` or (`Item.raw.ID`, `FOLDER_KEY`) in case of folders
+    # value: `Item` instance
     self._itemtree = collections.OrderedDict()
     
     # key:
-    #  `_Item.orig_name` (derived from `_Item.raw.name`)
-    #   or (`_Item.raw.ID`, `FOLDER_KEY`) in case of folders
-    # value: `_Item` instance
+    #  `Item.orig_name` (derived from `Item.raw.name`)
+    #   or (`Item.raw.ID`, `FOLDER_KEY`) in case of folders
+    # value: `Item` instance
     self._itemtree_names = {}
     
     self._build_tree()
@@ -107,10 +107,10 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     return self._name
   
   def __getitem__(self, id_or_name):
-    """Returns an `_Item` object by its ID or original name.
+    """Returns an `Item` object by its ID or original name.
     
-    An item's ID is the `_Item.raw.ID` attribute. An item's original name is the
-    `_Item.orig_name` attribute.
+    An item's ID is the `Item.raw.ID` attribute. An item's original name is the
+    `Item.orig_name` attribute.
     
     To access an item group as a folder, pass a tuple `(ID or name, 'folder')`.
     For example:
@@ -123,9 +123,9 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
       return self._itemtree_names[id_or_name]
   
   def __contains__(self, id_or_name):
-    """Returns `True` if an `_Item` object is in the item tree, regardless of
-    filters. Return `False` otherwise. The `_Item` object is specified by its
-    `_Item.raw.ID` attribute or its `orig_name` attribute.
+    """Returns `True` if an `Item` object is in the item tree, regardless of
+    filters. Return `False` otherwise. The `Item` object is specified by its
+    `Item.raw.ID` attribute or its `orig_name` attribute.
     """
     return id_or_name in self._itemtree or id_or_name in self._itemtree_names
   
@@ -148,7 +148,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     Yields:
     
-    * `item` - The current `_Item` object.
+    * `item` - The current `Item` object.
     """
     return self.iter(with_folders=False, with_empty_groups=False)
   
@@ -169,7 +169,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     Yields:
     
-    * `item` - The current `_Item` object.
+    * `item` - The current `Item` object.
     """
     for item in self._itemtree.values():
       should_yield_item = True
@@ -196,7 +196,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     Yields:
     
-    * `item` - The current `_Item` object.
+    * `item` - The current `Item` object.
     """
     for item in self._itemtree.values():
       yield item
@@ -258,10 +258,10 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
     child_items = []
     for raw_item in self._get_children_from_image(self._image):
       if self._is_group(raw_item):
-        child_items.append(_Item(raw_item, TYPE_FOLDER, [], [], None, None, self._name))
-        child_items.append(_Item(raw_item, TYPE_GROUP, [], [], None, None, self._name))
+        child_items.append(Item(raw_item, TYPE_FOLDER, [], [], None, None, self._name))
+        child_items.append(Item(raw_item, TYPE_GROUP, [], [], None, None, self._name))
       else:
-        child_items.append(_Item(raw_item, TYPE_ITEM, [], [], None, None, self._name))
+        child_items.append(Item(raw_item, TYPE_ITEM, [], [], None, None, self._name))
     
     item_tree = child_items
     item_list = []
@@ -281,14 +281,14 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
         for raw_item in self._get_children_from_raw_item(item.raw):
           if self._is_group(raw_item):
             child_items.append(
-              _Item(raw_item, TYPE_FOLDER, parents_for_child, [], None, None, self._name))
+              Item(raw_item, TYPE_FOLDER, parents_for_child, [], None, None, self._name))
             child_items.append(
-              _Item(raw_item, TYPE_GROUP, parents_for_child, [], None, None, self._name))
+              Item(raw_item, TYPE_GROUP, parents_for_child, [], None, None, self._name))
           else:
             child_items.append(
-              _Item(raw_item, TYPE_ITEM, parents_for_child, [], None, None, self._name))
+              Item(raw_item, TYPE_ITEM, parents_for_child, [], None, None, self._name))
         
-        # We break the convention here and access a private attribute from `_Item`.
+        # We break the convention here and access a private attribute from `Item`.
         item._orig_children = child_items
         item.children = child_items
         
@@ -299,7 +299,7 @@ class ItemTree(future.utils.with_metaclass(abc.ABCMeta, object)):
         self._itemtree_names[item.orig_name] = item
     
     for i in range(1, len(item_list) - 1):
-      # We break the convention here and access private attributes from `_Item`.
+      # We break the convention here and access private attributes from `Item`.
       item_list[i]._prev_item = item_list[i - 1]
       item_list[i]._next_item = item_list[i + 1]
     
@@ -351,7 +351,7 @@ class VectorTree(ItemTree):
 
 
 @future.utils.python_2_unicode_compatible
-class _Item(object):
+class Item(object):
   """Wrapper for a `gimp.Item` object containing additional attributes.
   
   Note that the attributes will not be up to date if changes were made to the
@@ -364,29 +364,29 @@ class _Item(object):
   * `type` (read-only) - Item type - one of the following:
       * `TYPE_ITEM` - regular item
       * `TYPE_GROUP` - item group (item whose raw `gimp.Item` is a group with
-        children; this `_Item` has no children and acts as a regular item)
+        children; this `Item` has no children and acts as a regular item)
       * `TYPE_FOLDER` - item containing children (raw item is a group with
         children)
   
-  * `parents` - List of `_Item` parents for this item, sorted from the topmost
+  * `parents` - List of `Item` parents for this item, sorted from the topmost
     parent to the bottommost (immediate) parent.
   
-  * `children` - List of `_Item` children for this item.
+  * `children` - List of `Item` children for this item.
   
   * `depth` (read-only) - Integer indicating the depth of the item in the item
     tree. 0 means the item is at the top level. The greater the depth, the lower
     the item is in the item tree.
   
-  * `parent` (read-only) - Immediate `_Item` parent of this object.
+  * `parent` (read-only) - Immediate `Item` parent of this object.
     If this object has no parent, return `None`.
   
   * `name` - Item name as a string, initially equal to `orig_name`. Modify this
      attribute instead of `gimp.Item.name` to avoid modifying the original item.
   
-  * `prev` - Previous `_Item` in the `ItemTree`, or `None` if there is no
+  * `prev` - Previous `Item` in the `ItemTree`, or `None` if there is no
     previous item.
   
-  * `next` - Next `_Item` in the `ItemTree`, or `None` if there is no next item.
+  * `next` - Next `Item` in the `ItemTree`, or `None` if there is no next item.
   
   * `tags` - Set of arbitrary strings attached to the item. Tags can be used for
     a variety of purposes, such as special handling of items with specific tags.
@@ -395,7 +395,7 @@ class _Item(object):
     `tags_source_name` attribute.
   
   * `orig_name` (read-only) - Original `gimp.Item.name` as a string. This
-    attribute may be used to access `_Item`s in `ItemTree`.
+    attribute may be used to access `Item`s in `ItemTree`.
   
   * `orig_parents` (read-only) - Initial `parents` of this item.
   
