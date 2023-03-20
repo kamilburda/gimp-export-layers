@@ -13,7 +13,7 @@ from export_layers import pygimplib as pg
 from export_layers.pygimplib.tests import stubs_gimp
 from export_layers.pygimplib.tests import utils_itemtree
 
-from export_layers import renamer
+from export_layers import renamer as renamer_
 
 
 class TestNumberField(unittest.TestCase):
@@ -34,7 +34,7 @@ class TestNumberField(unittest.TestCase):
   ])
   def test_generate_number(
         self, test_case_name_suffix, initial_number, padding, expected_outputs):
-    number_generator = renamer.NumberField.generate_number(initial_number, padding)
+    number_generator = renamer_.NumberField.generate_number(initial_number, padding)
     outputs = [next(number_generator) for unused_ in range(len(expected_outputs))]
     
     self.assertListEqual(outputs, expected_outputs)
@@ -195,12 +195,11 @@ class TestRenameWithNumberField(unittest.TestCase):
     exporter_mock = mock.Mock()
     exporter_mock.item_tree = layer_tree
     
-    layer_name_renamer = renamer.ItemRenamer(
-      pattern, fields_raw=[renamer.FIELDS['^[0-9]+$']])
+    renamer = renamer_.ItemRenamer(pattern, fields_raw=[renamer_.FIELDS['^[0-9]+$']])
     
     for item in layer_tree:
       exporter_mock.current_item = item
-      item.name = layer_name_renamer.rename(exporter_mock)
+      item.name = renamer.rename(exporter_mock)
     
     expected_layer_tree = (
       pg.itemtree.LayerTree(utils_itemtree.parse_layers(expected_layer_names_str)))

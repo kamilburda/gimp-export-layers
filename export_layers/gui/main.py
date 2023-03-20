@@ -35,7 +35,7 @@ from export_layers import builtin_procedures
 from export_layers import actions
 from export_layers import exceptions
 from export_layers import exporter as exporter_
-from export_layers import renamer
+from export_layers import renamer as renamer_
 from export_layers import settings_main
 from export_layers import update
 
@@ -426,7 +426,7 @@ class ExportLayersDialog(object):
     self._dot_label.set_alignment(0.0, 1.0)
     
     self._filename_pattern_entry = pg.gui.FilenamePatternEntry(
-      renamer.get_field_descriptions(renamer.FIELDS),
+      renamer_.get_field_descriptions(renamer_.FIELDS),
       minimum_width_chars=self._FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS,
       maximum_width_chars=self._FILENAME_PATTERN_ENTRY_MAX_WIDTH_CHARS,
       default_item=self._settings['main/layer_filename_pattern'].default_value)
