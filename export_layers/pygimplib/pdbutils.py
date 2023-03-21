@@ -74,7 +74,7 @@ def create_image_from_metadata(image_to_copy_metadata_from):
     new_image.parasite_attach(
       gimp.Parasite(parasite.name, parasite.flags, parasite.data))
   
-  pdb.gimp_image_set_filename(new_image, image.name)
+  pdb.gimp_image_set_filename(new_image, image.filename)
   
   return new_image
 
