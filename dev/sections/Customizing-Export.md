@@ -265,7 +265,7 @@ For example, if a layer has 50% opacity and its parent group also has 50% opacit
 Insert layers tagged with `Background` as background for each layer.
 To set a layer as a background layer, see [Tagging Layers](#tagging-layers).
 
-Note that even background layers get exported - to prevent this behavior, enable the `Only layers without tags` constraint.
+Note that even background layers get exported - to prevent this behavior, enable the `Without tags` constraint.
 
 You may modify the tag representing the background layers by editing the procedure argument `Tag`.
 
@@ -278,7 +278,7 @@ If this is your intention, you can always move this procedure below `Use layer s
 Insert layers tagged with `Foreground` as foreground for each layer.
 To set a layer as a foreground layer, see [Tagging Layers](#tagging-layers).
 
-Note that even foreground layers get exported - to prevent this behavior, enable the `Only layers without tags` constraint.
+Note that even foreground layers get exported - to prevent this behavior, enable the `Without tags` constraint.
 
 You may modify the tag representing the foreground layers by editing the procedure argument `Tag`.
 
@@ -289,11 +289,10 @@ If this is your intention, you can always move this procedure below `Use layer s
 **Rename layer**
 
 Rename a layer according to the specified pattern.
-This procedure is identical to the text entry next to `Save as` as described in [Customizing Layer Names](#customizing-layer-names).
+This procedure uses the same text entry for patterns as the one next to `Save as` (as described in [Customizing Layer Names](#customizing-layer-names)).
+If this procedure is specified, the text entry next to `Save as` has no effect.
 
-Additionally, this procedure allows renaming layer groups as well by enabling `Rename layer groups`.
-
-This procedure is also useful if other custom procedures modify layer names and you need to apply renaming after these procedures.
+Additionally, this procedure allows customizing whether to also rename folders (by enabling `Rename folders`) or only rename folders (by enabling `Rename folders` and disabling `Rename layers`).
 
 **Use file extension in layer name**
 
@@ -342,29 +341,25 @@ Future versions will allow specifying custom constraints.
 
 ### Built-in Constraints
 
-**Include layers**
+**Layers**
 
-Export all layers that are not groups.
+Export only layers (i.e. not layer groups).
 This constraint is enabled by default.
 
-**Include layer groups**
+**Layer groups**
 
-Export all layer groups as layers.
+Export only layer groups.
 
-**Include empty layer groups**
-
-Create subfolders for empty layer groups.
-
-**Only visible layers**
+**Visible**
 
 If enabled, invisible layers will not be exported.
 Visible layers within invisible layer groups will also not be exported.
 
-**Only top-level layers**
+**Top-level**
 
 Export only layers at the top of the layer tree (i.e. do not export layers inside any layer group).
 
-**Only layers with tags**
+**With tags**
 
 Export only layers with tags.
 
@@ -375,7 +370,7 @@ Other tagged layers will be excluded.
 
 See [Tagging Layers](#tagging-layers) for information about tags.
 
-**Only layers without tags**
+**Without tags**
 
 Export only layers with no tags.
 
@@ -384,11 +379,11 @@ To ignore only specific tags, edit this constraint and add the tags for the `Tag
 
 See [Tagging Layers](#tagging-layers) for information about tags.
 
-**Only layers matching file extension**
+**Matching file extension**
 
 Export only layers having a file extension matching the extension typed in the text entry.
 
-**Only layers selected in preview**
+**Selected in preview**
 
 Export only layers selected in the preview.
 If you save settings, the selection is saved as well.
