@@ -302,15 +302,28 @@ class TestItem(unittest.TestCase):
     self.assertEqual(self.item.children, [])
     self.assertEqual(self.item.tags, set([]))
   
-  def test_save_and_restore_state(self):
+  def test_push_and_pop_state(self):
     self.item.name = 'main'
     self.item.parents = ['one', 'two']
     self.item.children = ['three', 'four']
     self.item.tags.add('five')
     
-    self.item.save_state()
+    self.item.push_state()
     self.item.reset(tags=True)
-    self.item.restore_state()
+    self.item.pop_state()
+    
+    self.assertEqual(self.item.name, 'main')
+    self.assertEqual(self.item.parents, ['one', 'two'])
+    self.assertEqual(self.item.children, ['three', 'four'])
+    self.assertEqual(self.item.tags, set(['five']))
+  
+  def test_pop_state_with_no_saved_state(self):
+    self.item.name = 'main'
+    self.item.parents = ['one', 'two']
+    self.item.children = ['three', 'four']
+    self.item.tags.add('five')
+    
+    self.item.pop_state()
     
     self.assertEqual(self.item.name, 'main')
     self.assertEqual(self.item.parents, ['one', 'two'])

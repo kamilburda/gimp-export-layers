@@ -436,8 +436,7 @@ class Item(object):
     
     self._item_attributes = ['name', '_parents', '_children', '_tags']
     
-    self._saved_state = {}
-    self.save_state()
+    self._saved_states = []
   
   @property
   def raw(self):
@@ -510,19 +509,27 @@ class Item(object):
     return pgutils.reprify_object(
       self, ' '.join([self.orig_name, str(type(self.raw))]))
   
-  def save_state(self):
-    """Saves the current values of item's attributes that can be modified."""
-    self._saved_state = {
-      attr_name: getattr(self, attr_name) for attr_name in self._item_attributes}
-  
-  def restore_state(self):
-    """Sets the values of item's attributes to the values from the last call to
-    `save_state()`.
+  def push_state(self):
+    """Saves the current values of item's attributes that can be modified.
     
-    If `save_state()` was never called, this effectively resets the item's
-    attributes to its initial values (i.e. is equivalent to calling `reset()`).
+    To restore the last saved values, call `pop_state()`.
     """
-    for attr_name, attr_value in self._saved_state.items():
+    self._saved_states.append({
+      attr_name: getattr(self, attr_name) for attr_name in self._item_attributes})
+  
+  def pop_state(self):
+    """Sets the values of item's attributes to the values from the last call to
+    `push_state()`.
+    
+    Calling `pop_state()` without any saved state (e.g. when `push_state()` has
+    never been called before) does nothing.
+    """
+    try:
+      saved_states = self._saved_states.pop()
+    except IndexError:
+      return
+    
+    for attr_name, attr_value in saved_states.items():
       setattr(self, attr_name, attr_value)
   
   def reset(self, tags=False):

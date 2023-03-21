@@ -362,7 +362,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     # is updated after the name preview.
     if self._exporter.item_tree is not None:
       for item in self._exporter.item_tree.iter_all():
-        item.save_state()
+        item.push_state()
         item.reset()
     
     only_selected_item_constraint_id = self._exporter.add_constraint(
@@ -388,7 +388,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     if self._exporter.item_tree is not None:
       for item in self._exporter.item_tree.iter_all():
-        item.restore_state()
+        item.pop_state()
     
     return image_preview
   
