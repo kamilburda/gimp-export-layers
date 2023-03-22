@@ -13,6 +13,7 @@ Upcoming
 * Layer groups as images and as folders are now displayed separately in the preview.
 * The "Rename" procedure can now optionally rename only folders (previously allowed only layers or both layers and folders, but not folders alone).
 * Fixed a crash and inconsistencies in the preview if both "Ignore folder structure" and "Only layers selected in preview" are enabled. This also adversely causes the preview to be slower upon selecting items when "Only layers selected in preview" is enabled. The drop in performance is only noticeable for hundreds of layers in an image.
+* Updated documentation with examples on how to customize the export.
 
 
 3.3.5
