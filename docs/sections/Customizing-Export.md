@@ -236,6 +236,23 @@ Note that autocrop is performed on the entire background, not on the background 
 
 Same as `Autocrop background`, but works on the foreground layers instead.
 
+**Export**
+
+Performs export with additional customization not available in the main dialog.
+
+Options:
+* *File extension*: File extension of the output image.
+  This overrides the file extension in the main dialog.
+* *Perform export for*: Whether to export each layer separately ("Each layer"), each top-level layer or layer group separately ("Each top-level layer or group"), or a single image containing all layers ("Entire image at once").
+  The latter two options provide multi-layer export. This allows exporting e.g. multi-page PDFs or animated GIFs per top-level layer group and/or with additional custom procedures applied before the export.
+* *Image filename pattern*: Filename pattern available when a single image is exported (the "Entire image at once" option is selected).
+  The text entry next to `Save as` still applies to individual layer names (since some multi-layer file formats also store layer names, e.g. TIFF or PSD).
+* *Use file extension in layer name*: If a layer has a recognized file extension, use that file extension instead of the one in the `File extension` text entry.
+* *Convert file extension to lowercase*: File extensions in layer names are converted to lowercase.
+
+When exporting each layer separately (the default), the Export procedure usually makes sense to be applied as the last procedure since procedures after Export would have no effect in this case.
+
+
 **Ignore folder structure**
 
 Export all layers to the output directory on the same level, i.e. do not create subfolders for layer groups.
@@ -280,12 +297,6 @@ This procedure uses the same text entry for patterns as the one next to `Save as
 If this procedure is specified, the text entry next to `Save as` has no effect.
 
 Additionally, this procedure allows customizing whether to also rename folders (by enabling `Rename folders`) or only rename folders (by enabling `Rename folders` and disabling `Rename layers`).
-
-**Use file extension in layer name**
-
-If a layer has a recognized file extension, use that file extension instead of the one in the `File extension` text entry.
-
-You may optionally convert file extensions in layer names to lowercase.
 
 **Use layer size**
 
