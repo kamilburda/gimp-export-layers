@@ -226,6 +226,13 @@ _BUILTIN_PROCEDURES_LIST = [
         'display_name': _('Convert file extension to lowercase'),
         'gui_type': pg.SettingGuiTypes.check_button_no_text,
       },
+      {
+        'type': pg.SettingTypes.boolean,
+        'name': 'preserve_layer_name_after_export',
+        'default_value': False,
+        'display_name': _('Preserve layer name after export'),
+        'gui_type': pg.SettingGuiTypes.check_button_no_text,
+      },
     ],
   },
   {

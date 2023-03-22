@@ -33,7 +33,8 @@ def export(
       export_mode=ExportModes.EACH_LAYER,
       single_image_filename_pattern=None,
       use_file_extension_in_item_name=False,
-      convert_file_extension_to_lowercase=False):
+      convert_file_extension_to_lowercase=False,
+      preserve_layer_name_after_export=False):
   item_uniquifier = uniquifier.ItemUniquifier()
   file_extension_properties = _FileExtensionProperties()
   processed_parent_names = set()
@@ -75,6 +76,9 @@ def export(
       else:
         exporter.refresh = True
         item_to_process = current_top_level_item
+    
+    if preserve_layer_name_after_export:
+      item_to_process.push_state()
     
     if exporter.process_names:
       if use_file_extension_in_item_name:
@@ -118,6 +122,9 @@ def export(
         # Append the original raw item since `exporter.current_raw_item` is
         # modified by now.
         exporter.exported_raw_items.append(item_to_process.raw)
+    
+    if preserve_layer_name_after_export:
+      item_to_process.pop_state()
     
     unused_ = yield
 
