@@ -384,7 +384,7 @@ class ActionBox(pg.gui.ItemBox):
   
   def _get_action_edit_dialog_title(self, item):
     if self._edit_action_text is not None:
-      return '{} {}'.format(
+      return '{}: {}'.format(
         self._edit_action_text, item.action['display_name'].value)
     else:
       return None
