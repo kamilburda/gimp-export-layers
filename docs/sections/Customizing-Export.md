@@ -247,7 +247,7 @@ Options:
   The latter two options provide multi-layer export. This allows exporting e.g. multi-page PDFs or animated GIFs per top-level layer group and/or with additional custom procedures applied before the export.
 * *Image filename pattern*: Filename pattern available when a single image is exported (the "Entire image at once" option is selected).
   The text entry next to `Save as` still applies to individual layer names (since some multi-layer file formats also store layer names, e.g. TIFF or PSD).
-* *Use file extension in layer name*: If a layer has a recognized file extension, use that file extension instead of the one in the `File extension` text entry.
+* *Use file extension in layer name*: If a layer name has a recognized file extension, use that file extension instead of the one in the `File extension` text entry.
 * *Convert file extension to lowercase*: File extensions in layer names are converted to lowercase.
 
 When exporting each layer separately (the default), the Export procedure usually makes sense to be applied as the last procedure since procedures after Export would have no effect in this case.
