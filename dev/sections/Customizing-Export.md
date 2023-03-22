@@ -77,14 +77,14 @@ Yes, you may insert any GIMP filter as a procedure:
 **I need every layer to have the same background.**
 
 1. In the preview to the right, right-click on the layer name you want to be your background.
-2. Check `Background`. A tag icon will be added next to the layer name.
+2. Check `Background`. A tag icon will be displayed next to the layer name.
 3. To add more layers as background, repeat steps 1 and 2. If you need to achieve a particular order of background layers, you need to reorder the layers in GIMP (i.e. outside the plug-in). The plug-in will sync with the changes done in GIMP.
 4. Add the "Insert background layers" procedure. You may want to reorder this procedure before "Use layer size" by dragging it above/onto "Use layer size".
 
 
-**I want to export a multi-page PDF file.**
+**I want to save the image as a multi-page PDF file.**
 
-While multi-page PDF is already possible in GIMP without any plug-ins, Export Layers allows you to apply custom procedures before the export or export each layer group (instead of the entire image).
+While multi-page PDF export is already possible in GIMP without any plug-ins, Export Layers allows you to apply custom procedures before the export or export each layer group (instead of the entire image).
 
 1. Add the "Export" procedure.
 2. Type `pdf` next to `File extension`.
