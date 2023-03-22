@@ -320,7 +320,7 @@ Options:
 * *Use file extension in layer name*: If a layer name has a recognized file extension, use that file extension instead of the one in the `File extension` text entry.
 * *Convert file extension to lowercase*: File extensions in layer names are converted to lowercase.
 
-When exporting each layer separately (the default), the Export procedure usually makes sense to be applied as the last procedure since procedures after Export would have no effect in this case.
+When exporting each layer separately (the default), the Export procedure usually makes sense to be applied as the last procedure since procedures after Export would have no effect.
 
 
 **Ignore folder structure**
