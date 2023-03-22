@@ -51,7 +51,9 @@ def export(
     
     item_to_process = item
     
-    if export_mode == ExportModes.ENTIRE_IMAGE_AT_ONCE:
+    if export_mode == ExportModes.EACH_LAYER:
+      exporter.refresh = True
+    elif export_mode == ExportModes.ENTIRE_IMAGE_AT_ONCE:
       if exporter.item_tree.next(item, with_folders=False) is not None:
         exporter.refresh = False
         unused_ = yield
@@ -71,6 +73,7 @@ def export(
         unused_ = yield
         continue
       else:
+        exporter.refresh = True
         item_to_process = current_top_level_item
     
     if exporter.process_names:
@@ -87,7 +90,7 @@ def export(
         current_file_extension, default_file_extension, force_default_file_extension=False)
     
     if exporter.process_export:
-      if exporter.refresh:
+      if exporter.refresh and export_mode == ExportModes.EACH_LAYER:
         raw_item_name = exporter.current_raw_item.name
         raw_item_merged = _merge_and_resize_image(exporter.current_image)
         raw_item_merged.name = raw_item_name
@@ -116,7 +119,6 @@ def export(
         # modified by now.
         exporter.exported_raw_items.append(item_to_process.raw)
     
-    exporter.refresh = True
     unused_ = yield
 
 
