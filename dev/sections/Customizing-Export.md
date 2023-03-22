@@ -11,19 +11,89 @@ next_doc_title: Known Issues
 * TOC
 {:toc}
 
-Introduction
-------------
+Getting Started with Customization
+----------------------------------
 
 Beyond the basic features, Export Layers allows you to:
 * customize the layer name,
-* apply additional procedures before the export (insert background, scale down, ...)
-* selecting which layers to export by applying constraints (only visible layers, ...)
+* apply additional procedures before the export (insert background, scale down, ...),
+* selecting which layers to export by applying constraints (only visible layers, ...),
+* customize export to save multi-layer images (e.g. multi-page PDFs).
 
 To enable customization, press the `Settings` button and choose `Show More Settings`.
 
 ![Dialog of Export Layers with additional customization](../images/screenshot_dialog_customizing_export.png)
 
 You may adjust the height of the bottom pane by dragging the separator above the procedures and constraints.
+
+As the amount of customization may be overwhelming at first, you may want to take a look at a few [examples](#examples) below to help you get accustomed to the plug-in's features.
+
+
+Examples
+--------
+
+**I want to export all layers using the image size, not the layer size.**
+
+Uncheck or remove the "Use layer size" procedure.
+
+
+**I want to export only visible layers.**
+
+Check the "Visible" constraint (or add one if not already).
+
+
+**I don't want to preserve folder hierarchy when exporting layers.**
+
+Add the "Ignore folder structure" procedure.
+
+
+**How do I rename the layers to form a sequence of numbers, e.g. "image001", "image002", ...?**
+
+Click on the text entry next to `Save as:` and choose `image001`, or type `image[001]` in the entry.
+
+
+**My layers contain a '.'. All characters after the '.' are replaced with the file extension. How do I prevent this?**
+
+In the text entry next to `Save as:`, type `[layer name, %e]`.
+This ensures that the resulting image name will be e.g. `some.layer.png` instead of `some.png` (the default behavior).
+
+
+**How do I export only layer groups at the top level?**
+
+1. Uncheck the "Layers" constraint.
+2. Add the "Layer groups" constraint.
+3. Add the "Top-level" constraint.
+
+
+**I want to adjust brightness in my layers before export. Can this be done?**
+
+Yes, you may insert any GIMP filter as a procedure:
+1. Select `Add Procedure...` → `Add Custom Procedure...`
+2. Find `gimp-brightness-contrast` in the procedure browser and select `Add`.
+3. Adjust the parameters as desired.
+4. Select `OK` to add the procedure.
+
+
+**I need every layer to have the same background.**
+
+1. In the preview to the right, right-click on the layer name you want to be your background.
+2. Check `Background`. A tag icon will be added next to the layer name.
+3. To add more layers as background, repeat steps 1 and 2. If you need to achieve a particular order of background layers, you need to reorder the layers in GIMP (i.e. outside the plug-in). The plug-in will sync with the changes done in GIMP.
+4. Add the "Insert background layers" procedure. You may want to reorder this procedure before "Use layer size" by dragging it above/onto "Use layer size".
+
+
+**I want to export a multi-page PDF file.**
+
+While multi-page PDF is already possible in GIMP without any plug-ins, Export Layers allows you to apply custom procedures before the export or export each layer group (instead of the entire image).
+
+1. Add the "Export" procedure.
+2. Type `pdf` next to `File extension`.
+3. Select an option in `Perform export for:`. To export a single image, select `Entire image at once`.
+4. If needed and if `Entire image at once` was selected, adjust `Image filename pattern` as seen fit.
+5. Specifically for the PDF format, you need to check `Layers as pages` when the native PDF export dialog is shown. Otherwise, only a single page will be exported.
+6. You may also want to uncheck the "Use layer size" procedure to use the image size (since PDF pages have the same dimensions), otherwise you might obtain unexpected results.
+
+Also note that if you export top-level layer groups and the first layer group contains only a single layer, the `Layers as pages` option in the PDF dialog cannot be checked, even if subsequent layer groups contain multiple layers. This is the current behavior of the PDF export in GIMP (at least in GIMP 2.10).
 
 
 Customizing Layer Names
@@ -249,6 +319,23 @@ Note that autocrop is performed on the entire background, not on the background 
 
 Same as `Autocrop background`, but works on the foreground layers instead.
 
+**Export**
+
+Performs export with additional customization not available in the main dialog.
+
+Options:
+* *File extension*: File extension of the output image.
+  This overrides the file extension in the main dialog.
+* *Perform export for*: Whether to export each layer separately ("Each layer"), each top-level layer or layer group separately ("Each top-level layer or group"), or a single image containing all layers ("Entire image at once").
+  The latter two options provide multi-layer export. This allows exporting e.g. multi-page PDFs or animated GIFs per top-level layer group and/or with additional custom procedures applied before the export.
+* *Image filename pattern*: Filename pattern available when a single image is exported (the "Entire image at once" option is selected).
+  The text entry next to `Save as` still applies to individual layer names (since some multi-layer file formats also store layer names, e.g. TIFF or PSD).
+* *Use file extension in layer name*: If a layer name has a recognized file extension, use that file extension instead of the one in the `File extension` text entry.
+* *Convert file extension to lowercase*: File extensions in layer names are converted to lowercase.
+
+When exporting each layer separately (the default), the Export procedure usually makes sense to be applied as the last procedure since procedures after Export would have no effect in this case.
+
+
 **Ignore folder structure**
 
 Export all layers to the output directory on the same level, i.e. do not create subfolders for layer groups.
@@ -293,12 +380,6 @@ This procedure uses the same text entry for patterns as the one next to `Save as
 If this procedure is specified, the text entry next to `Save as` has no effect.
 
 Additionally, this procedure allows customizing whether to also rename folders (by enabling `Rename folders`) or only rename folders (by enabling `Rename folders` and disabling `Rename layers`).
-
-**Use file extension in layer name**
-
-If a layer has a recognized file extension, use that file extension instead of the one in the `File extension` text entry.
-
-You may optionally convert file extensions in layer names to lowercase.
 
 **Use layer size**
 

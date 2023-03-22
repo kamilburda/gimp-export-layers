@@ -7,6 +7,10 @@ navbar_active_tab: docs
 Upcoming
 ========
 
+* Multi-layer image export is now available. This allows exporting e.g. multi-page PDFs or animated GIFs. While this is already possible in GIMP, this plug-in allows you to:
+  * export images with additional custom procedures applied before the export,
+  * export each top-level group as separate multi-layer images.
+* Added a new procedure named "Export" to allow multi-layer export as described above.
 * Removed the "Use file extension in layer name" procedure. The same functionality is now available in the "Export" procedure.
 * Removed "Include layers" constraint and instead added a constraint to export only layers.
 * Removed "Include layer groups" constraint and instead added a constraint to export only layer groups. 
