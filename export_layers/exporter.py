@@ -235,15 +235,14 @@ class LayerExporter(object):
     to `False` is useful to preview the processed contents of a layer without
     saving it to a file.
     """
-    self._init_attributes(
+    self._initialize(
       item_tree, keep_image_copy, is_preview,
       process_contents, process_names, process_export)
-    self._preprocess_items()
     
     exception_occurred = False
     
     if process_contents:
-      self._setup()
+      self._setup_contents()
     try:
       self._process_items()
     except Exception:
@@ -251,13 +250,10 @@ class LayerExporter(object):
       raise
     finally:
       if process_contents:
-        self._cleanup(exception_occurred)
+        self._cleanup_contents(exception_occurred)
     
     if process_contents and self._keep_image_copy:
-      if self._use_another_image_copy:
-        return self._another_image_copy
-      else:
-        return self._image_copy
+      return self._image_copy
     else:
       return None
   
@@ -440,45 +436,47 @@ class LayerExporter(object):
     
     return func_args
   
-  def _init_attributes(
+  def _initialize(
         self, item_tree, keep_image_copy, is_preview,
         process_contents, process_names, process_export):
-    self._process_contents = process_contents
-    self._process_names = process_names
-    self._process_export = process_export
-    
-    self._invoker = pg.invoker.Invoker()
-    self._add_actions()
-    self._add_name_only_actions()
-    
     if item_tree is not None:
       self._item_tree = item_tree
     else:
       self._item_tree = pg.itemtree.LayerTree(self.image, name=pg.config.SOURCE_NAME)
     
+    if self._item_tree.filter:
+      self._item_tree.reset_filter()
+    
     self._keep_image_copy = keep_image_copy
     self._is_preview = is_preview
+    self._process_contents = process_contents
+    self._process_names = process_names
+    self._process_export = process_export
+    
+    self._current_item = None
+    self._current_raw_item = None
+    self._current_image = None
+    
+    self._image_copy = None
     
     self._should_stop = False
     
+    self.refresh = True
+    
     self._exported_raw_items = []
     
-    self._image_copy = None
+    self._invoker = pg.invoker.Invoker()
+    self._add_actions()
+    self._add_name_only_actions()
     
     self._tagged_items = collections.defaultdict(list)
     self._tagged_layer_copies = collections.defaultdict(pg.utils.return_none_func)
     self._inserted_tagged_layers = collections.defaultdict(pg.utils.return_none_func)
     
-    self._use_another_image_copy = False
-    self._another_image_copy = None
+    self._set_constraints()
     
     self.progress_updater.reset()
-    
-    self.refresh = True
-    
-    self._current_item = None
-    self._current_raw_item = None
-    self._current_image = None
+    self.progress_updater.num_total_tasks = len(self._item_tree)
   
   def _add_actions(self):
     self._invoker.add(
@@ -534,22 +532,6 @@ class LayerExporter(object):
         groups=action_groups,
         args=[self.export_settings['file_extension'].value, export_.ExportModes.EACH_LAYER])
   
-  def _preprocess_items(self):
-    if self._item_tree.filter:
-      self._item_tree.reset_filter()
-    
-    self._set_constraints()
-    
-    num_items = len(self._item_tree)
-    
-    if self._keep_image_copy:
-      if num_items > 1:
-        self._use_another_image_copy = True
-      elif num_items < 1:
-        self._keep_image_copy = False
-    
-    self.progress_updater.num_total_tasks = num_items
-  
   def _set_constraints(self):
     self._init_tagged_items()
     
@@ -563,6 +545,54 @@ class LayerExporter(object):
       for item in self._item_tree:
         for tag in item.tags:
           self._tagged_items[tag].append(item)
+  
+  def _setup_contents(self):
+    pdb.gimp_context_push()
+    
+    self._image_copy = pg.pdbutils.create_image_from_metadata(self.image)
+    self._current_image = self._image_copy
+    
+    pdb.gimp_image_undo_freeze(self.current_image)
+    
+    self._invoker.invoke(
+      ['after_create_image_copy'],
+      [self],
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+    
+    if pg.config.DEBUG_IMAGE_PROCESSING:
+      self._display_id = pdb.gimp_display_new(self.current_image)
+  
+  def _cleanup_contents(self, exception_occurred=False):
+    self._copy_non_modifying_parasites(self.current_image, self.image)
+    
+    pdb.gimp_image_undo_thaw(self.current_image)
+    
+    if pg.config.DEBUG_IMAGE_PROCESSING:
+      pdb.gimp_display_delete(self._display_id)
+    
+    for tagged_layer_copy in self._tagged_layer_copies.values():
+      if tagged_layer_copy is not None:
+        pdb.gimp_item_delete(tagged_layer_copy)
+    
+    if not self._keep_image_copy or exception_occurred:
+      pg.pdbutils.try_delete_image(self.current_image)
+    
+    pdb.gimp_context_pop()
+    
+    self._current_item = None
+    self._current_raw_item = None
+    self._current_image = None
+  
+  @staticmethod
+  def _copy_non_modifying_parasites(src_image, dest_image):
+    unused_, parasite_names = pdb.gimp_image_get_parasite_list(src_image)
+    for parasite_name in parasite_names:
+      if dest_image.parasite_find(parasite_name) is None:
+        parasite = src_image.parasite_find(parasite_name)
+        # Do not attach persistent or undoable parasites to avoid modifying
+        # `dest_image`.
+        if parasite.flags == 0:
+          dest_image.parasite_attach(parasite)
   
   def _process_items(self):
     for item in self._item_tree:
@@ -582,66 +612,9 @@ class LayerExporter(object):
       self._process_item_with_actions(item, self.current_raw_item)
       
       if self.refresh:
-        self._postprocess_item(self.current_raw_item)
+        self._refresh_current_image(self.current_raw_item)
     
     self.progress_updater.update_tasks()
-  
-  def _setup(self):
-    pdb.gimp_context_push()
-    
-    self._image_copy = pg.pdbutils.create_image_from_metadata(self.image)
-    pdb.gimp_image_undo_freeze(self._image_copy)
-    
-    self._current_image = self._image_copy
-    
-    self._invoker.invoke(
-      ['after_create_image_copy'],
-      [self],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
-    
-    if self._use_another_image_copy:
-      self._another_image_copy = pg.pdbutils.create_image_from_metadata(self.current_image)
-      pdb.gimp_image_undo_freeze(self._another_image_copy)
-    
-    if pg.config.DEBUG_IMAGE_PROCESSING:
-      self._display_id = pdb.gimp_display_new(self.current_image)
-  
-  def _cleanup(self, exception_occurred=False):
-    self._copy_non_modifying_parasites(self.current_image, self.image)
-    
-    pdb.gimp_image_undo_thaw(self.current_image)
-    
-    if pg.config.DEBUG_IMAGE_PROCESSING:
-      pdb.gimp_display_delete(self._display_id)
-    
-    for tagged_layer_copy in self._tagged_layer_copies.values():
-      if tagged_layer_copy is not None:
-        pdb.gimp_item_delete(tagged_layer_copy)
-    
-    if ((not self._keep_image_copy or self._use_another_image_copy)
-        or exception_occurred):
-      pg.pdbutils.try_delete_image(self.current_image)
-      if self._use_another_image_copy:
-        pdb.gimp_image_undo_thaw(self._another_image_copy)
-        if exception_occurred:
-          pg.pdbutils.try_delete_image(self._another_image_copy)
-    
-    pdb.gimp_context_pop()
-    
-    self._current_item = None
-    self._current_raw_item = None
-    self._current_image = None
-  
-  @staticmethod
-  def _copy_non_modifying_parasites(src_image, dest_image):
-    unused_, parasite_names = pdb.gimp_image_get_parasite_list(src_image)
-    for parasite_name in parasite_names:
-      if dest_image.parasite_find(parasite_name) is None:
-        parasite = src_image.parasite_find(parasite_name)
-        # Do not attach persistent or undoable parasites to avoid modifying
-        # `dest_image`.
-        if parasite.flags == 0:
-          dest_image.parasite_attach(parasite)
   
   def _process_item_with_name_only_actions(self):
     self._invoker.invoke(
@@ -671,17 +644,7 @@ class LayerExporter(object):
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
   
-  def _postprocess_item(self, raw_item):
+  def _refresh_current_image(self, raw_item):
     if not self._keep_image_copy:
       for layer in self.current_image.layers:
         pdb.gimp_image_remove_layer(self.current_image, layer)
-    else:
-      if self._use_another_image_copy:
-        another_raw_item_copy = pg.pdbutils.copy_and_paste_layer(
-          raw_item, self._another_image_copy, None, len(self._another_image_copy.layers),
-          remove_lock_attributes=True)
-        
-        another_raw_item_copy.name = raw_item.name
-        
-        for layer in self.current_image.layers:
-          pdb.gimp_image_remove_layer(self.current_image, layer)
