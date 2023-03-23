@@ -79,7 +79,6 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'name': 'visible',
     'type': 'constraint',
     'function': is_path_visible,
-    'enabled': False,
     'display_name': _('Visible'),
   },
   {

@@ -143,11 +143,14 @@ def create_settings():
     initial_actions=[builtin_procedures.BUILTIN_PROCEDURES['use_layer_size']]),
   ])
   
+  visible_constraint_dict = dict(builtin_constraints.BUILTIN_CONSTRAINTS['visible'])
+  visible_constraint_dict['enabled'] = False
+  
   settings['main'].add([actions.create(
     name='constraints',
     initial_actions=[
       builtin_constraints.BUILTIN_CONSTRAINTS['layers'],
-      builtin_constraints.BUILTIN_CONSTRAINTS['visible']]),
+      visible_constraint_dict]),
   ])
   
   settings['main/procedures'].connect_event('after-add-action', _on_after_add_procedure)
