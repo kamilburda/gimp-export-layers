@@ -168,12 +168,10 @@ def _process_item_name(
 
 
 def _get_current_file_extension(item, default_file_extension, file_extension_properties):
-  orig_file_extension = pg.path.get_file_extension(item.orig_name)
   item_file_extension = pg.path.get_file_extension(item.name)
-  if (orig_file_extension
-      and orig_file_extension.lower() != item_file_extension.lower()
-      and file_extension_properties[orig_file_extension].is_valid):
-    return orig_file_extension
+  
+  if item_file_extension and file_extension_properties[item_file_extension].is_valid:
+    return item_file_extension
   else:
     return default_file_extension
 
