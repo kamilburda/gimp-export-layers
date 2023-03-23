@@ -75,8 +75,8 @@ While multi-page PDF export is already possible in GIMP without any plug-ins, Ex
 
 1. Add the "Export" procedure.
 2. Type `pdf` next to `File extension`.
-3. Select an option in `Perform export for:`. To export a single image, select `Entire image at once`.
-4. If needed and if `Entire image at once` was selected, adjust `Image filename pattern` as seen fit.
+3. Select an option in `Perform export:`. To export a single image, select `For the entire image at once`.
+4. If needed and if `For the entire image at once` was selected, adjust `Image filename pattern` as seen fit.
 5. Specifically for the PDF format, you need to check `Layers as pages` when the native PDF export dialog is shown. Otherwise, only a single page will be exported.
 6. You may also want to uncheck the "Use layer size" procedure to use the image size (since PDF pages have the same dimensions), otherwise you might obtain unexpected results.
 
@@ -313,7 +313,7 @@ Performs export with additional customization not available in the main dialog.
 Options:
 * *File extension*: File extension of the output image.
   This overrides the file extension in the main dialog.
-* *Perform export for*: Whether to export each layer separately ("Each layer"), each top-level layer or layer group separately ("Each top-level layer or group"), or a single image containing all layers ("Entire image at once").
+* *Perform export*: Whether to export each layer separately ("For each layer"), each top-level layer or layer group separately ("For each top-level layer or group"), or a single image containing all layers ("For the entire image at once").
   The latter two options provide multi-layer export. This allows exporting e.g. multi-page PDFs or animated GIFs per top-level layer group and/or with additional custom procedures applied before the export.
 * *Image filename pattern*: Filename pattern available when a single image is exported (the "Entire image at once" option is selected).
   The text entry next to `Save as` still applies to individual layer names (since some multi-layer file formats also store layer names, e.g. TIFF or PSD).
