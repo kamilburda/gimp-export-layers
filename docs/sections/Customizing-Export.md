@@ -66,7 +66,7 @@ Yes, you may insert any GIMP filter as a procedure:
 1. In the preview to the right, right-click on the layer name you want to be your background.
 2. Check `Background`. A tag icon will be displayed next to the layer name.
 3. To add more layers as background, repeat steps 1 and 2. If you need to achieve a particular order of background layers, you need to reorder the layers in GIMP (i.e. outside the plug-in). The plug-in will sync with the changes done in GIMP.
-4. Add the "Insert background layers" procedure. You may want to reorder this procedure before "Use layer size" by dragging it above/onto "Use layer size".
+4. Add the "Insert background layers" procedure. If needed, you may place this procedure after "Use layer size" by dragging it above/onto "Use layer size".
 
 
 **I want to save the image as a multi-page PDF file.**
@@ -145,8 +145,8 @@ Arguments:
 * `%e`: If the image has a file extension, keep the extension.
 
 Examples:
-* `[layer name]` → `Image`
-* `[layer name, %e]` → `Image.xcf`
+* `[image name]` → `Image`
+* `[image name, %e]` → `Image.xcf`
 
 **\[layer path\]**
 
@@ -167,14 +167,14 @@ Examples:
 * `[layer path]` → `Body-Hands-Left`
 * `[layer path, _]` → `Body_Hands_Left`
 * `[layer path, _, (%c)]` → `(Body)_(Hands)_(Left)`
-* `[layer name, _, (%c), %e]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
-* `[layer name, _, (%c), %i]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
-* `[layer name, _, (%c), %i]` → `Body-Hands-Left` (if the layer name is `Left.png` and the file extension is e.g. `jpg`)
+* `[layer path, _, (%c), %e]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
+* `[layer path, _, (%c), %i]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
+* `[layer path, _, (%c), %i]` → `Body-Hands-Left` (if the layer name is `Left.png` and the file extension is e.g. `jpg`)
 
 **\[replace\]**
 
 Replaces a part of the specified field with another string.
-This essentially allows to fine-tune the field.
+This essentially allows to fine-tune any field.
 Regular expressions are supported as well.
 
 Arguments:
