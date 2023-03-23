@@ -95,6 +95,9 @@ def export(
     
     if exporter.process_export:
       if exporter.refresh and export_mode == ExportModes.EACH_LAYER:
+        # Merge all layers into one for this export mode as there may be custom
+        # procedures inserting layers and some file formats may discard all but
+        # one layer.
         raw_item_name = exporter.current_raw_item.name
         raw_item_merged = _merge_and_resize_image(exporter.current_image)
         raw_item_merged.name = raw_item_name
