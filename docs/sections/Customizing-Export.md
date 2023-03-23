@@ -318,6 +318,7 @@ Options:
 * *Image filename pattern*: Filename pattern available when a single image is exported (the "Entire image at once" option is selected).
   The text entry next to `Save as` still applies to individual layer names (since some multi-layer file formats also store layer names, e.g. TIFF or PSD).
 * *Use file extension in layer name*: If a layer name has a recognized file extension, use that file extension instead of the one in the `File extension` text entry.
+  You very likely need to type `[layer name, %e]` in the text entry next to `Save as` to preserve file extensions in layer names.
 * *Convert file extension to lowercase*: File extensions in layer names are converted to lowercase.
 * *Preserve layer name after export*: If enabled, layer names will revert to the state before export (i.e. without adding a file extension to them).
   This is probably only ever useful if you want to perform export multiple times, e.g. with multiple different file formats (which is possible by adding multiple Export procedures).
