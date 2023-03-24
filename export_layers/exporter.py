@@ -541,10 +541,9 @@ class LayerExporter(object):
       additional_args_position=_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
   
   def _init_tagged_items(self):
-    with self._item_tree.filter.add_temp(builtin_constraints.has_tags):
-      for item in self._item_tree:
-        for tag in item.tags:
-          self._tagged_items[tag].append(item)
+    for item in self._item_tree.iter(with_folders=False, filtered=False):
+      for tag in item.tags:
+        self._tagged_items[tag].append(item)
   
   def _setup_contents(self):
     pdb.gimp_context_push()
