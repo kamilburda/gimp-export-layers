@@ -25,8 +25,7 @@ def set_active_and_current_layer(exporter):
   if pdb.gimp_item_is_valid(exporter.current_raw_item):
     exporter.current_image.active_layer = exporter.current_raw_item
   else:
-    if (exporter.current_image.active_layer is not None
-        and pdb.gimp_item_is_valid(exporter.current_image.active_layer)):
+    if pdb.gimp_item_is_valid(exporter.current_image.active_layer):
       # The active layer may have been set by the procedure.
       exporter.current_raw_item = exporter.current_image.active_layer
     else:
