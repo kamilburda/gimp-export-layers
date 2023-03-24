@@ -79,7 +79,7 @@ Yes, you may insert any GIMP filter as a procedure:
 1. In the preview to the right, right-click on the layer name you want to be your background.
 2. Check `Background`. A tag icon will be displayed next to the layer name.
 3. To add more layers as background, repeat steps 1 and 2. If you need to achieve a particular order of background layers, you need to reorder the layers in GIMP (i.e. outside the plug-in). The plug-in will sync with the changes done in GIMP.
-4. Add the "Insert background layers" procedure. You may want to reorder this procedure before "Use layer size" by dragging it above/onto "Use layer size".
+4. Add the "Insert background layers" procedure. If needed, you may place this procedure after "Use layer size" by dragging it above/onto "Use layer size".
 
 
 **I want to save the image as a multi-page PDF file.**
@@ -88,8 +88,8 @@ While multi-page PDF export is already possible in GIMP without any plug-ins, Ex
 
 1. Add the "Export" procedure.
 2. Type `pdf` next to `File extension`.
-3. Select an option in `Perform export for:`. To export a single image, select `Entire image at once`.
-4. If needed and if `Entire image at once` was selected, adjust `Image filename pattern` as seen fit.
+3. Select an option in `Perform export:`. To export a single image, select `For the entire image at once`.
+4. If needed and if `For the entire image at once` was selected, adjust `Image filename pattern` as seen fit.
 5. Specifically for the PDF format, you need to check `Layers as pages` when the native PDF export dialog is shown. Otherwise, only a single page will be exported.
 6. You may also want to uncheck the "Use layer size" procedure to use the image size (since PDF pages have the same dimensions), otherwise you might obtain unexpected results.
 
@@ -158,8 +158,8 @@ Arguments:
 * `%e`: If the image has a file extension, keep the extension.
 
 Examples:
-* `[layer name]` → `Image`
-* `[layer name, %e]` → `Image.xcf`
+* `[image name]` → `Image`
+* `[image name, %e]` → `Image.xcf`
 
 **\[layer path\]**
 
@@ -180,14 +180,14 @@ Examples:
 * `[layer path]` → `Body-Hands-Left`
 * `[layer path, _]` → `Body_Hands_Left`
 * `[layer path, _, (%c)]` → `(Body)_(Hands)_(Left)`
-* `[layer name, _, (%c), %e]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
-* `[layer name, _, (%c), %i]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
-* `[layer name, _, (%c), %i]` → `Body-Hands-Left` (if the layer name is `Left.png` and the file extension is e.g. `jpg`)
+* `[layer path, _, (%c), %e]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
+* `[layer path, _, (%c), %i]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
+* `[layer path, _, (%c), %i]` → `Body-Hands-Left` (if the layer name is `Left.png` and the file extension is e.g. `jpg`)
 
 **\[replace\]**
 
 Replaces a part of the specified field with another string.
-This essentially allows to fine-tune the field.
+This essentially allows to fine-tune any field.
 Regular expressions are supported as well.
 
 Arguments:
@@ -326,11 +326,12 @@ Performs export with additional customization not available in the main dialog.
 Options:
 * *File extension*: File extension of the output image.
   This overrides the file extension in the main dialog.
-* *Perform export for*: Whether to export each layer separately ("Each layer"), each top-level layer or layer group separately ("Each top-level layer or group"), or a single image containing all layers ("Entire image at once").
+* *Perform export*: Whether to export each layer separately ("For each layer"), each top-level layer or layer group separately ("For each top-level layer or group"), or a single image containing all layers ("For the entire image at once").
   The latter two options provide multi-layer export. This allows exporting e.g. multi-page PDFs or animated GIFs per top-level layer group and/or with additional custom procedures applied before the export.
 * *Image filename pattern*: Filename pattern available when a single image is exported (the "Entire image at once" option is selected).
   The text entry next to `Save as` still applies to individual layer names (since some multi-layer file formats also store layer names, e.g. TIFF or PSD).
 * *Use file extension in layer name*: If a layer name has a recognized file extension, use that file extension instead of the one in the `File extension` text entry.
+  You very likely need to type `[layer name, %e]` in the text entry next to `Save as` to preserve file extensions in layer names.
 * *Convert file extension to lowercase*: File extensions in layer names are converted to lowercase.
 * *Preserve layer name after export*: If enabled, layer names will revert to the state before export (i.e. without adding a file extension to them).
   This is probably only ever useful if you want to perform export multiple times, e.g. with multiple different file formats (which is possible by adding multiple Export procedures).

@@ -16,9 +16,12 @@ Upcoming
 * Removed "Include layer groups" constraint and instead added a constraint to export only layer groups. 
 * Removed "Include empty layer groups" constraint without replacement. Empty folders are no longer created.
 * With the above changes, all constraints now consistently only remove (filter) layers. For brevity, the names of all constraints have been shortened. For example, "Only visible layers" has been renamed to "Visible", "Only layers selected in preview" to "Selected in preview", etc.
+* The "Visible" constraint is now enabled when added. It is still added unchecked when opening the plug-in for the first time or resetting the plug-in settings.
 * Layer groups as images and as folders are now displayed separately in the preview.
 * The "Rename" procedure can now optionally rename only folders (previously allowed only layers or both layers and folders, but not folders alone).
-* Fixed a crash and inconsistencies in the preview if both "Ignore folder structure" and "Only layers selected in preview" are enabled. This also adversely causes the preview to be slower upon selecting items when "Only layers selected in preview" is enabled. The drop in performance is only noticeable for hundreds of layers in an image.
+* Fixed a crash and inconsistencies in the preview if both "Ignore folder structure" and "Selected in preview" are enabled. This also adversely causes the preview to be slower upon selecting items when "Selected in preview" is enabled. The drop in performance is only noticeable for hundreds of layers in an image.
+* Fixed export failing for some custom procedures modifying the number of layers, e.g. `gimp-image-merge-visible-layers`.
+* Updated documentation with examples on how to customize the export.
 
 
 3.3.5
