@@ -480,10 +480,10 @@ class LayerExporter(object):
   
   def _add_actions(self):
     self._invoker.add(
-      builtin_procedures.set_active_layer, [actions.DEFAULT_PROCEDURES_GROUP])
+      builtin_procedures.set_active_and_current_layer, [actions.DEFAULT_PROCEDURES_GROUP])
     
     self._invoker.add(
-      builtin_procedures.set_active_layer_after_action,
+      builtin_procedures.set_active_and_current_layer_after_action,
       [actions.DEFAULT_PROCEDURES_GROUP],
       foreach=True)
     

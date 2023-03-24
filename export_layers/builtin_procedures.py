@@ -21,15 +21,32 @@ from export_layers import settings_custom
 NAME_ONLY_TAG = 'name'
 
 
-def set_active_layer(exporter):
-  exporter.current_image.active_layer = exporter.current_raw_item
+def set_active_and_current_layer(exporter):
+  if pdb.gimp_item_is_valid(exporter.current_raw_item):
+    exporter.current_image.active_layer = exporter.current_raw_item
+  else:
+    if (exporter.current_image.active_layer is not None
+        and pdb.gimp_item_is_valid(exporter.current_image.active_layer)):
+      # The active layer may have been set by the procedure.
+      exporter.current_raw_item = exporter.current_image.active_layer
+    else:
+      if len(exporter.current_image.layers) > 0:
+        # We cannot make a good guess of what layer is the "right" one, so we
+        # resort to taking the first.
+        first_layer = exporter.current_image.layers[0]
+        exporter.current_raw_item = first_layer
+        exporter.current_image.active_layer = first_layer
+      else:
+        # There is nothing we can do. Let an exception be raised. An empty image
+        # could occur e.g. if a custom procedure removed all layers.
+        pass
 
 
-def set_active_layer_after_action(exporter):
+def set_active_and_current_layer_after_action(exporter):
   action_applied = yield
   
   if action_applied or action_applied is None:
-    set_active_layer(exporter)
+    set_active_and_current_layer(exporter)
 
 
 def copy_and_insert_layer(image, layer, parent=None, position=0, remove_lock_attributes=True):
