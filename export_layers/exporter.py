@@ -13,7 +13,6 @@ from gimp import pdb
 from export_layers import pygimplib as pg
 
 from export_layers import builtin_procedures
-from export_layers import builtin_constraints
 from export_layers import actions
 from export_layers import export as export_
 from export_layers import exceptions
@@ -274,16 +273,22 @@ class LayerExporter(object):
     
     This class recognizes several action groups that are invoked at certain
     places when `export()` is called:
-    * `'after_create_image_copy'` - invoked after creating an internal copy of
-      the original image. The image copy is used for processing each layer in a
-      non-destructive manner. Only one argument is accepted - instance of this
-      class.
-    * `'after_insert_item'` - invoked after a layer was inserted in the image
-      copy and immediately before procedures are invoked on the layer. Only one
-      argument is accepted - instance of this class.
-    * `'after_process_item'` - invoked after all procedures have been applied to
-      the layer. Only one argument is accepted - instance of this
-      class.
+    * `'before_process_items'` - invoked before starting processing the first
+      item. Only one argument is accepted - instance of this class.
+    * `'after_process_items'` - invoked after finishing processing the last
+      item. Only one argument is accepted - instance of this class.
+    * `'before_process_item'` - invoked immediately before applying procedures
+      on the layer.
+      Three arguments are accepted:
+        * instance of this class
+        * the current `pygimplib.itemtree.Item` to be processed
+        * the current GIMP item to be processed
+    * `'after_process_item'` - invoked immediately after all procedures have
+      been applied to the layer.
+      Three arguments are accepted:
+        * instance of this class
+        * the current `pygimplib.itemtree.Item` that has been processed
+        * the current GIMP item that has been processed
     """
     return self._initial_invoker.add(*args, **kwargs)
   
@@ -553,11 +558,6 @@ class LayerExporter(object):
     
     pdb.gimp_image_undo_freeze(self.current_image)
     
-    self._invoker.invoke(
-      ['after_create_image_copy'],
-      [self],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
-    
     if pg.config.DEBUG_IMAGE_PROCESSING:
       self._display_id = pdb.gimp_display_new(self.current_image)
   
@@ -594,11 +594,21 @@ class LayerExporter(object):
           dest_image.parasite_attach(parasite)
   
   def _process_items(self):
+    self._invoker.invoke(
+      ['before_process_items'],
+      [self],
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+    
     for item in self._item_tree:
       if self._should_stop:
         raise exceptions.BatcherCancelError('stopped by user')
       
       self._process_item(item)
+    
+    self._invoker.invoke(
+      ['after_process_items'],
+      [self],
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
   
   def _process_item(self, item):
     self._current_item = item
@@ -617,8 +627,18 @@ class LayerExporter(object):
   
   def _process_item_with_name_only_actions(self):
     self._invoker.invoke(
+      ['before_process_item'],
+      [self, self.current_item, self.current_raw_item],
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+    
+    self._invoker.invoke(
       [_NAME_ONLY_ACTION_GROUP],
       [self],
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+    
+    self._invoker.invoke(
+      ['after_process_item'],
+      [self, self.current_item, self.current_raw_item],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
   
   def _process_item_with_actions(self, item, raw_item):
@@ -629,8 +649,8 @@ class LayerExporter(object):
     self.current_raw_item.name = raw_item.name
     
     self._invoker.invoke(
-      ['after_insert_item'],
-      [self],
+      ['before_process_item'],
+      [self, self.current_item, self.current_raw_item],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
@@ -640,7 +660,7 @@ class LayerExporter(object):
     
     self._invoker.invoke(
       ['after_process_item'],
-      [self],
+      [self, self.current_item, self.current_raw_item],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
   
   def _refresh_current_image(self, raw_item):

@@ -145,7 +145,7 @@ def _insert_merged_tagged_layer(image, exporter, tag, position=0):
   for i, item in enumerate(exporter.tagged_items[tag]):
     layer_copy = copy_and_insert_layer(image, item.raw, None, first_tagged_layer_position + i)
     layer_copy.visible = True
-    exporter.invoker.invoke(['after_insert_item'], [exporter, layer_copy])
+    exporter.invoker.invoke(['before_process_item'], [exporter, exporter.current_item, layer_copy])
   
   if len(exporter.tagged_items[tag]) == 1:
     merged_layer_for_tag = image.layers[first_tagged_layer_position]

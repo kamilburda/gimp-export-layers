@@ -214,10 +214,10 @@ class ExportImagePreview(preview_base_.ExportPreview):
     procedures are applied before applying other procedures added by the user.
     """
     if resize_image_action_groups is None:
-      resize_image_action_groups = ['after_create_image_copy']
+      resize_image_action_groups = ['before_process_items']
     
     if scale_item_action_groups is None:
-      scale_item_action_groups = ['after_insert_item']
+      scale_item_action_groups = ['before_process_item']
     
     self._exporter.remove_action(
       self._resize_image_action_id, groups='all', ignore_if_not_exists=True)
@@ -393,6 +393,9 @@ class ExportImagePreview(preview_base_.ExportPreview):
     return image_preview
   
   def _resize_image_for_exporter(self, exporter, *args, **kwargs):
+    if not exporter.process_contents:
+      return
+    
     image = exporter.current_image
     
     pdb.gimp_image_resize(
@@ -404,7 +407,10 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_LINEAR)
   
-  def _scale_item_for_exporter(self, exporter, raw_item=None):
+  def _scale_item_for_exporter(self, exporter, item=None, raw_item=None):
+    if not exporter.process_contents:
+      return
+    
     if raw_item is None:
       raw_item = exporter.current_raw_item
     
@@ -416,7 +422,10 @@ class ExportImagePreview(preview_base_.ExportPreview):
         (raw_item.offsets[0] + raw_item.width) * self._preview_scaling_factor,
         (raw_item.offsets[1] + raw_item.height) * self._preview_scaling_factor)
   
-  def _merge_and_resize_image(self, exporter):
+  def _merge_and_resize_image(self, exporter, item=None, raw_item=None):
+    if not exporter.process_contents:
+      return
+    
     raw_item_merged = pdb.gimp_image_merge_visible_layers(
       exporter.current_image, gimpenums.EXPAND_AS_NECESSARY)
     pdb.gimp_layer_resize_to_image_size(raw_item_merged)
