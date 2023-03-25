@@ -95,7 +95,6 @@ def inherit_transparency_from_layer_groups(exporter):
 
 def rename_layer(exporter, pattern, rename_layers=True, rename_folders=False):
   renamer = renamer_.ItemRenamer(pattern)
-  
   renamed_parents = set()
   
   while True:
@@ -108,7 +107,7 @@ def rename_layer(exporter, pattern, rename_layers=True, rename_folders=False):
           parent.name = renamer.rename(exporter, item=parent)
           renamed_parents.add(parent)
     
-    unused_ = yield
+    yield
 
 
 def resize_to_layer_size(exporter):

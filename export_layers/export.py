@@ -57,7 +57,7 @@ def export(
     elif export_mode == ExportModes.ENTIRE_IMAGE_AT_ONCE:
       if exporter.item_tree.next(item, with_folders=False) is not None:
         exporter.refresh = False
-        unused_ = yield
+        yield
         continue
       else:
         item_to_process = pg.itemtree.Item(item.raw, pg.itemtree.TYPE_ITEM, [], [], None, None)
@@ -71,7 +71,7 @@ def export(
       
       if current_top_level_item == next_top_level_item:
         exporter.refresh = False
-        unused_ = yield
+        yield
         continue
       else:
         exporter.refresh = True
@@ -129,7 +129,7 @@ def export(
     if preserve_layer_name_after_export:
       item_to_process.pop_state()
     
-    unused_ = yield
+    yield
 
 
 def _get_top_level_item(item):
