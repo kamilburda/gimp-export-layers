@@ -94,8 +94,9 @@ class ExportImagePreview(preview_base_.ExportPreview):
     self._preview_scaling_factor = None
     
     self._resize_image_action_id = None
+    self._merge_items_action_id = None
     self._scale_item_action_id = None
-    self._merge_image_action_id = None
+    self._resize_item_action_id = None
     
     self.prepare_image_for_rendering()
     
@@ -225,14 +226,19 @@ class ExportImagePreview(preview_base_.ExportPreview):
       self._resize_image_for_exporter, resize_image_action_groups, ignore_if_exists=True)
     
     self._exporter.remove_action(
+      self._merge_items_action_id, groups='all', ignore_if_not_exists=True)
+    self._merge_items_action_id = self._exporter.add_procedure(
+      self._merge_items_for_exporter, ['after_process_item_contents'], ignore_if_exists=True)
+    
+    self._exporter.remove_action(
       self._scale_item_action_id, groups='all', ignore_if_not_exists=True)
     self._scale_item_action_id = self._exporter.add_procedure(
       self._scale_item_for_exporter, scale_item_action_groups, ignore_if_exists=True)
     
     self._exporter.remove_action(
-      self._merge_image_action_id, groups='all', ignore_if_not_exists=True)
-    self._merge_image_action_id = self._exporter.add_procedure(
-      self._merge_and_resize_image, ['after_process_item_contents'], ignore_if_exists=True)
+      self._resize_item_action_id, groups='all', ignore_if_not_exists=True)
+    self._resize_item_action_id = self._exporter.add_procedure(
+      self._resize_item_for_exporter, ['after_process_item_contents'], ignore_if_exists=True)
   
   def _set_contents(self):
     # Sanity check in case `item` changes before `'size-allocate'` is emitted.
@@ -404,8 +410,15 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_LINEAR)
   
+  def _merge_items_for_exporter(self, exporter, item=None, raw_item=None):
+    raw_item_merged = pdb.gimp_image_merge_visible_layers(
+      exporter.current_image, gimpenums.EXPAND_AS_NECESSARY)
+    
+    exporter.current_image.active_layer = raw_item_merged
+    exporter.current_raw_item = raw_item_merged
+    
   def _scale_item_for_exporter(self, exporter, item=None, raw_item=None):
-    if raw_item is None:
+    if raw_item is None or not pdb.gimp_item_is_valid(raw_item):
       raw_item = exporter.current_raw_item
     
     if not pdb.gimp_item_is_group(raw_item):
@@ -416,13 +429,8 @@ class ExportImagePreview(preview_base_.ExportPreview):
         (raw_item.offsets[0] + raw_item.width) * self._preview_scaling_factor,
         (raw_item.offsets[1] + raw_item.height) * self._preview_scaling_factor)
   
-  def _merge_and_resize_image(self, exporter, item=None, raw_item=None):
-    raw_item_merged = pdb.gimp_image_merge_visible_layers(
-      exporter.current_image, gimpenums.EXPAND_AS_NECESSARY)
-    pdb.gimp_layer_resize_to_image_size(raw_item_merged)
-    
-    exporter.current_image.active_layer = raw_item_merged
-    exporter.current_raw_item = raw_item_merged
+  def _resize_item_for_exporter(self, exporter, item=None, raw_item=None):
+    pdb.gimp_layer_resize_to_image_size(exporter.current_raw_item)
   
   def _get_preview_pixbuf(self, raw_item, preview_width, preview_height, preview_data):
     # The following code is largely based on the implementation of
