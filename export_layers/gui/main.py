@@ -50,8 +50,8 @@ from export_layers.gui import messages as messages_
 
 def display_export_failure_message(exception, parent=None):
   error_message = _(
-    'Sorry, but the export was unsuccessful. '
-    'You can try exporting again if you fix the issue described below.')
+    'The export was unsuccessful. '
+    'The message below may help you fix the issue.')
   error_message += '\n' + str(exception)
   
   messages_.display_message(
@@ -68,7 +68,7 @@ def display_export_failure_invalid_image_message(details, parent=None):
     parent=parent,
     message_type=gtk.MESSAGE_WARNING,
     message_markup=_(
-      'Sorry, but the export was unsuccessful. '
+      'The export was unsuccessful. '
       'Do not close the image when exporting, '
       'keep it open until the export finishes successfully.'),
     message_secondary_markup=_(
