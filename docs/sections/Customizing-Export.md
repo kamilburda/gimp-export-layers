@@ -297,15 +297,6 @@ You can add the same procedure multiple times.
 
 ### Built-in Procedures
 
-**Autocrop background**
-
-Automatically crop the background formed by layers tagged with `Background`.
-Note that autocrop is performed on the entire background, not on the background layers individually.
-
-**Autocrop foreground**
-
-Same as `Autocrop background`, but works on the foreground layers instead.
-
 **Export**
 
 Performs export with additional customization not available in the main dialog.

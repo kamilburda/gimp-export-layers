@@ -60,16 +60,6 @@ def copy_and_insert_layer(image, layer, parent=None, position=0, remove_lock_att
   return layer_copy
 
 
-def autocrop_tagged_layer(exporter, tag):
-  tagged_layer = exporter.inserted_tagged_layers[tag]
-  if tagged_layer is not None:
-    exporter.current_image.active_layer = tagged_layer
-    pdb.plug_in_autocrop_layer(exporter.current_image, tagged_layer)
-    return True
-  else:
-    return False
-
-
 def remove_folder_hierarchy_from_item(exporter):
   item = exporter.current_item
 
@@ -187,30 +177,6 @@ def _remove_locks_from_layer(layer):
 
 
 _BUILTIN_PROCEDURES_LIST = [
-  {
-    'name': 'autocrop_background',
-    'function': autocrop_tagged_layer,
-    'display_name': _('Autocrop background'),
-    'arguments': [
-      {
-        'type': pg.SettingTypes.string,
-        'name': 'tag',
-        'default_value': 'background',
-      },
-    ],
-  },
-  {
-    'name': 'autocrop_foreground',
-    'function': autocrop_tagged_layer,
-    'display_name': _('Autocrop foreground'),
-    'arguments': [
-      {
-        'type': pg.SettingTypes.string,
-        'name': 'tag',
-        'default_value': 'foreground',
-      },
-    ],
-  },
   {
     'name': 'export',
     'function': export_.export,

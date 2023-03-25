@@ -6,6 +6,7 @@ Upcoming
   * export each top-level group as separate multi-layer images.
 * Added a new procedure named "Export" to allow multi-layer export as described above.
 * Removed the "Use file extension in layer name" procedure. The same functionality is now available in the "Export" procedure.
+* Removed "Autocrop background" and "Autocrop foreground" procedures.
 * Removed "Include layers" constraint and instead added a constraint to export only layers.
 * Removed "Include layer groups" constraint and instead added a constraint to export only layer groups. 
 * Removed "Include empty layer groups" constraint without replacement. Empty folders are no longer created.

@@ -94,25 +94,6 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       expected_results_dirpath=os.path.join(
         self.expected_results_root_dirpath, 'background'))
   
-  def test_background_autocrop_background(self):
-    self.compare(
-      procedure_names_to_add={
-        'insert_background_layers': 0,
-        'autocrop_background': None},
-      expected_results_dirpath=os.path.join(
-        self.expected_results_root_dirpath, 'background'))
-  
-  def test_background_autocrop_background_use_image_size(self):
-    self.compare(
-      procedure_names_to_add={
-        'insert_background_layers': 0,
-        'autocrop_background': None},
-      procedure_names_to_remove=['use_layer_size'],
-      expected_results_dirpath=os.path.join(
-        self.expected_results_root_dirpath,
-        'background',
-        'autocrop_background-use_image_size'))
-  
   def test_foreground(self):
     layer_tree = pg.itemtree.LayerTree(self.test_image, name=pg.config.SOURCE_NAME)
     for item in layer_tree:

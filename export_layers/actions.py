@@ -481,8 +481,8 @@ def add(actions, action_dict_or_function):
   `TypeError`.
   
   The same action can be added multiple times. Each action will be
-  assigned a unique name and display name (e.g. `'autocrop'` and `'Autocrop'`
-  for the first action, `'autocrop_2'` and `'Autocrop (2)'` for the second
+  assigned a unique name and display name (e.g. `'rename'` and `'Rename'`
+  for the first action, `'rename_2'` and `'Rename (2)'` for the second
   action, and so on).
   """
   if isinstance(action_dict_or_function, dict):
