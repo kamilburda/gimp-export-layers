@@ -6,7 +6,8 @@ Upcoming
   * export each top-level group as separate multi-layer images.
 * Added a new procedure named "Export" to allow multi-layer export as described above.
 * Removed the "Use file extension in layer name" procedure. The same functionality is now available in the "Export" procedure.
-* Removed "Autocrop background" and "Autocrop foreground" procedures.
+* Procedures can now be applied to background or foreground layers instead of always the layer being exported. If a procedure provides a layer/drawable/item argument, you may now select "Background" or "Foreground" (beside "Current Layer").
+* Removed "Autocrop background" and "Autocrop foreground" procedures as the same effect can be achieved by inserting the `gimp-plugin-autocrop-layer` procedure and setting the drawable argument to "Background" or "Foreground".
 * Removed "Include layers" constraint and instead added a constraint to export only layers.
 * Removed "Include layer groups" constraint and instead added a constraint to export only layer groups. 
 * Removed "Include empty layer groups" constraint without replacement. Empty folders are no longer created.

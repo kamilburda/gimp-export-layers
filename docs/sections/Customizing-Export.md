@@ -381,8 +381,22 @@ The edit dialog allows you to edit the procedure name and the values of its argu
 
 ### Editing procedures
 
-When editing a procedure, you may adjust its arguments or expand `More options` for further customization.
-Settings under `More options` are described below.
+When editing a procedure, you may (and sometimes have to) adjust its arguments.
+GIMP PDB procedures are usually accompanied with descriptions of the entire procedure as well as its arguments.
+Hover over argument names to display tooltips describing them in more detail.
+The description for an argument often indicates the range of valid values.
+
+If a procedure contains a layer/drawable/item argument, you may select one of the following:
+* (default) "Current Layer" - applies the procedure to the currently processed layer.
+* "Background" - applies the procedure to layer placed after the current layer (i.e. the background), usually created via the "Insert background layers" procedure. Careful, if there is no such layer, the export will fail.
+* "Foreground" - applies the procedure to layer placed before the current layer (i.e. the foreground), usually created via the "Insert foreground layers" procedure. Careful, if there is no such layer, the export will fail.
+
+
+### More options
+
+When editing a procedure or a constraint, you may expand `More options` for further customization.
+Options under `More options` are described below.
+
 
 **Enable for previews**
 

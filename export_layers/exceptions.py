@@ -19,6 +19,10 @@ class InvalidPdbProcedureError(BatcherError):
   pass
 
 
+class InvalidPlaceholderError(BatcherError):
+  pass
+
+
 @future.utils.python_2_unicode_compatible
 class ExportError(BatcherError):
   

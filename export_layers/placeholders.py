@@ -16,10 +16,14 @@ The following placeholder objects are defined:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import collections
+
+from gimp import pdb
 import gimpenums
 
 from export_layers import pygimplib as pg
 
+from export_layers import exceptions
 from export_layers.gui import placeholders as gui_placeholders
 
 
@@ -45,10 +49,42 @@ def _get_current_layer(exporter):
   return exporter.current_raw_item
 
 
-_PLACEHOLDERS = {
-  'current_image': _GimpObjectPlaceholder(_('Current Image'), _get_current_image),
-  'current_layer': _GimpObjectPlaceholder(_('Current Layer'), _get_current_layer),
-}
+def _get_background_layer(exporter):
+  num_layers = len(exporter.current_image.layers)
+  
+  if num_layers > 1:
+    position = pdb.gimp_image_get_item_position(
+      exporter.current_image, exporter.current_raw_item)
+    if position == 0 or position < num_layers - 1:
+      background_layer = exporter.current_image.layers[position + 1]
+      # This is necessary for some procedures relying on the active layer, e.g.
+      # `plug-in-autocrop-layer`.
+      exporter.current_image.active_layer = background_layer
+      return background_layer
+  
+  raise exceptions.InvalidPlaceholderError('there are no background layers')
+
+
+def _get_foreground_layer(exporter):
+  if len(exporter.current_image.layers) > 1:
+    position = pdb.gimp_image_get_item_position(
+      exporter.current_image, exporter.current_raw_item)
+    if position > 0:
+      foreground_layer = exporter.current_image.layers[position - 1]
+      # This is necessary for some procedures relying on the active layer, e.g.
+      # `plug-in-autocrop-layer`.
+      exporter.current_image.active_layer = foreground_layer
+      return foreground_layer
+  
+  raise exceptions.InvalidPlaceholderError('there are no foreground layers')
+
+
+_PLACEHOLDERS = collections.OrderedDict([
+  ('current_image', _GimpObjectPlaceholder(_('Current Image'), _get_current_image)),
+  ('current_layer', _GimpObjectPlaceholder(_('Current Layer'), _get_current_layer)),
+  ('background_layer', _GimpObjectPlaceholder(_('Background'), _get_background_layer)),
+  ('foreground_layer', _GimpObjectPlaceholder(_('Foreground'), _get_foreground_layer)),
+])
 
 
 def get_replaced_arg(arg, exporter):
@@ -126,19 +162,19 @@ class PlaceholderImageSetting(PlaceholderSetting):
 class PlaceholderDrawableSetting(PlaceholderSetting):
   
   _DEFAULT_DEFAULT_VALUE = 'current_layer'
-  _ALLOWED_PLACEHOLDERS = ['current_layer']
+  _ALLOWED_PLACEHOLDERS = ['current_layer', 'background_layer', 'foreground_layer']
 
 
 class PlaceholderLayerSetting(PlaceholderSetting):
   
   _DEFAULT_DEFAULT_VALUE = 'current_layer'
-  _ALLOWED_PLACEHOLDERS = ['current_layer']
+  _ALLOWED_PLACEHOLDERS = ['current_layer', 'background_layer', 'foreground_layer']
 
 
 class PlaceholderItemSetting(PlaceholderSetting):
   
   _DEFAULT_DEFAULT_VALUE = 'current_layer'
-  _ALLOWED_PLACEHOLDERS = ['current_layer']
+  _ALLOWED_PLACEHOLDERS = ['current_layer', 'background_layer', 'foreground_layer']
 
 
 PDB_TYPES_TO_PLACEHOLDER_SETTING_TYPES_MAP = {
