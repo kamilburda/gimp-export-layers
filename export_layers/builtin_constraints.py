@@ -20,6 +20,24 @@ def is_nonempty_group(item):
   return item.type == pg.itemtree.TYPE_GROUP and pdb.gimp_item_get_children(item.raw)[1]
 
 
+def has_matching_file_extension(item, file_extension):
+  return pg.path.get_file_extension(item.name).lower() == file_extension.lower()
+
+
+def has_matching_default_file_extension(item, exporter):
+  return (
+    pg.path.get_file_extension(item.name).lower()
+    == exporter.export_settings['file_extension'].value.lower())
+
+
+def is_item_in_selected_items(item, selected_layers):
+  return item.raw.ID in selected_layers
+
+
+def is_top_level(item):
+  return item.depth == 0
+
+
 def is_path_visible(item):
   path_visible = True
   if not item.raw.visible:
@@ -33,10 +51,6 @@ def is_path_visible(item):
   return path_visible
 
 
-def is_top_level(item):
-  return item.depth == 0
-
-
 def has_tags(item, tags=None):
   if tags:
     return any(tag for tag in tags if tag in item.tags)
@@ -46,20 +60,6 @@ def has_tags(item, tags=None):
 
 def has_no_tags(item, tags=None):
   return not has_tags(item, tags)
-
-
-def has_matching_file_extension(item, file_extension):
-  return pg.path.get_file_extension(item.name).lower() == file_extension.lower()
-
-
-def has_matching_default_file_extension(item, exporter):
-  return (
-    pg.path.get_file_extension(item.name).lower()
-    == exporter.export_settings['file_extension'].value.lower())
-
-
-def is_item_in_selected_items(item, selected_layers):
-  return item.raw.ID in selected_layers
 
 
 _BUILTIN_CONSTRAINTS_LIST = [
@@ -76,16 +76,36 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'display_name': _('Layer groups'),
   },
   {
-    'name': 'visible',
+    'name': 'matching_file_extension',
     'type': 'constraint',
-    'function': is_path_visible,
-    'display_name': _('Visible'),
+    'function': has_matching_default_file_extension,
+    'display_name': _('Matching file extension'),
+  },
+  {
+    'name': 'selected_in_preview',
+    'type': 'constraint',
+    'function': is_item_in_selected_items,
+    'arguments': [
+      {
+        'type': pg.SettingTypes.generic,
+        'name': 'selected_layers',
+        'default_value': set(),
+        'gui_type': None,
+      },
+    ],
+    'display_name': _('Selected in preview'),
   },
   {
     'name': 'top_level',
     'type': 'constraint',
     'function': is_top_level,
     'display_name': _('Top-level'),
+  },
+  {
+    'name': 'visible',
+    'type': 'constraint',
+    'function': is_path_visible,
+    'display_name': _('Visible'),
   },
   {
     'name': 'with_tags',
@@ -114,26 +134,6 @@ _BUILTIN_CONSTRAINTS_LIST = [
       },
     ],
     'display_name': _('Without tags'),
-  },
-  {
-    'name': 'matching_file_extension',
-    'type': 'constraint',
-    'function': has_matching_default_file_extension,
-    'display_name': _('Matching file extension'),
-  },
-  {
-    'name': 'selected_in_preview',
-    'type': 'constraint',
-    'function': is_item_in_selected_items,
-    'arguments': [
-      {
-        'type': pg.SettingTypes.generic,
-        'name': 'selected_layers',
-        'default_value': set(),
-        'gui_type': None,
-      },
-    ],
-    'display_name': _('Selected in preview'),
   },
 ]
 

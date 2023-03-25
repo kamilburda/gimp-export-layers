@@ -67,14 +67,6 @@ def remove_folder_hierarchy_from_item(exporter):
   item.children = []
 
 
-def insert_background_layer(exporter, tag):
-  return _insert_tagged_layer(exporter, tag, position=len(exporter.current_image.layers))
-
-
-def insert_foreground_layer(exporter, tag):
-  return _insert_tagged_layer(exporter, tag, position=0)
-
-
 def inherit_transparency_from_layer_groups(exporter):
   new_layer_opacity = exporter.current_raw_item.opacity / 100.0
   for parent in exporter.current_item.parents:
@@ -83,29 +75,12 @@ def inherit_transparency_from_layer_groups(exporter):
   exporter.current_raw_item.opacity = new_layer_opacity * 100.0
 
 
-def rename_layer(exporter, pattern, rename_layers=True, rename_folders=False):
-  renamer = renamer_.ItemRenamer(pattern)
-  renamed_parents = set()
-  
-  while True:
-    if rename_layers:
-      exporter.current_item.name = renamer.rename(exporter)
-    
-    if rename_folders:
-      for parent in exporter.current_item.parents:
-        if parent not in renamed_parents:
-          parent.name = renamer.rename(exporter, item=parent)
-          renamed_parents.add(parent)
-    
-    yield
+def insert_background_layer(exporter, tag):
+  return _insert_tagged_layer(exporter, tag, position=len(exporter.current_image.layers))
 
 
-def resize_to_layer_size(exporter):
-  image = exporter.current_image
-  layer = exporter.current_raw_item
-  
-  layer_offset_x, layer_offset_y = layer.offsets
-  pdb.gimp_image_resize(image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
+def insert_foreground_layer(exporter, tag):
+  return _insert_tagged_layer(exporter, tag, position=0)
 
 
 def _insert_tagged_layer(exporter, tag, position=0):
@@ -176,6 +151,31 @@ def _remove_locks_from_layer(layer):
     pdb.gimp_layer_set_lock_alpha(layer, False)
 
 
+def rename_layer(exporter, pattern, rename_layers=True, rename_folders=False):
+  renamer = renamer_.ItemRenamer(pattern)
+  renamed_parents = set()
+  
+  while True:
+    if rename_layers:
+      exporter.current_item.name = renamer.rename(exporter)
+    
+    if rename_folders:
+      for parent in exporter.current_item.parents:
+        if parent not in renamed_parents:
+          parent.name = renamer.rename(exporter, item=parent)
+          renamed_parents.add(parent)
+    
+    yield
+
+
+def resize_to_layer_size(exporter):
+  image = exporter.current_image
+  layer = exporter.current_raw_item
+  
+  layer_offset_x, layer_offset_y = layer.offsets
+  pdb.gimp_image_resize(image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)
+
+
 _BUILTIN_PROCEDURES_LIST = [
   {
     'name': 'export',
@@ -243,6 +243,11 @@ _BUILTIN_PROCEDURES_LIST = [
     'additional_tags': [NAME_ONLY_TAG],
   },
   {
+    'name': 'inherit_transparency_from_layer_groups',
+    'function': inherit_transparency_from_layer_groups,
+    'display_name': _('Inherit transparency from layer groups'),
+  },
+  {
     'name': 'insert_background_layers',
     'function': insert_background_layer,
     'display_name': _('Insert background layers'),
@@ -265,11 +270,6 @@ _BUILTIN_PROCEDURES_LIST = [
         'default_value': 'foreground',
       },
     ],
-  },
-  {
-    'name': 'inherit_transparency_from_layer_groups',
-    'function': inherit_transparency_from_layer_groups,
-    'display_name': _('Inherit transparency from layer groups'),
   },
   {
     'name': 'rename_layer',
