@@ -78,11 +78,11 @@ def remove_folder_hierarchy_from_item(exporter):
 
 
 def insert_background_layer(exporter, tag):
-  _insert_tagged_layer(exporter, tag, position=len(exporter.current_image.layers))
+  return _insert_tagged_layer(exporter, tag, position=len(exporter.current_image.layers))
 
 
 def insert_foreground_layer(exporter, tag):
-  _insert_tagged_layer(exporter, tag, position=0)
+  return _insert_tagged_layer(exporter, tag, position=0)
 
 
 def inherit_transparency_from_layer_groups(exporter):
@@ -119,44 +119,64 @@ def resize_to_layer_size(exporter):
 
 
 def _insert_tagged_layer(exporter, tag, position=0):
-  image = exporter.current_image
+  tagged_items = [
+    item for item in exporter.item_tree.iter(with_folders=False, filtered=False)
+    if tag in item.tags]
+  merged_tagged_layer = None
+  orig_merged_tagged_layer = None
   
-  if not exporter.tagged_items[tag]:
-    return
-  
-  if exporter.tagged_layer_copies[tag] is None:
-    exporter.inserted_tagged_layers[tag] = _insert_merged_tagged_layer(
-      image, exporter, tag, position)
+  def _cleanup_tagged_layers(exporter):
+    if orig_merged_tagged_layer is not None and pdb.gimp_item_is_valid(orig_merged_tagged_layer):
+      pdb.gimp_item_delete(orig_merged_tagged_layer)
     
-    exporter.tagged_layer_copies[tag] = pdb.gimp_layer_copy(
-      exporter.inserted_tagged_layers[tag], True)
-    _remove_locks_from_layer(exporter.tagged_layer_copies[tag])
-  else:
-    exporter.inserted_tagged_layers[tag] = pdb.gimp_layer_copy(
-      exporter.tagged_layer_copies[tag], True)
-    _remove_locks_from_layer(exporter.inserted_tagged_layers[tag])
-    pdb.gimp_image_insert_layer(image, exporter.inserted_tagged_layers[tag], None, position)
+    exporter.invoker.remove(cleanup_tagged_layers_action_id, ['after_process_items_contents'])
+  
+  # We use`Invoker.add` instead of `exporter.add_procedure` since the latter
+  # would add the function only at the start of processing and we already are in
+  # the middle of processing here.
+  cleanup_tagged_layers_action_id = exporter.invoker.add(
+    _cleanup_tagged_layers, ['after_process_items_contents'])
+  
+  while True:
+    image = exporter.current_image
+    
+    if not tagged_items:
+      yield
+      continue
+    
+    if orig_merged_tagged_layer is None:
+      merged_tagged_layer = _insert_merged_tagged_layer(
+        image, exporter, tagged_items, tag, position)
+      
+      orig_merged_tagged_layer = pdb.gimp_layer_copy(merged_tagged_layer, True)
+      _remove_locks_from_layer(orig_merged_tagged_layer)
+    else:
+      merged_tagged_layer = pdb.gimp_layer_copy(orig_merged_tagged_layer, True)
+      _remove_locks_from_layer(merged_tagged_layer)
+      pdb.gimp_image_insert_layer(image, merged_tagged_layer, None, position)
+    
+    yield
 
 
-def _insert_merged_tagged_layer(image, exporter, tag, position=0):
+def _insert_merged_tagged_layer(image, exporter, tagged_items, tag, position=0):
   first_tagged_layer_position = position
   
-  for i, item in enumerate(exporter.tagged_items[tag]):
+  for i, item in enumerate(tagged_items):
     layer_copy = copy_and_insert_layer(image, item.raw, None, first_tagged_layer_position + i)
     layer_copy.visible = True
-    exporter.invoker.invoke(['before_process_item'], [exporter, exporter.current_item, layer_copy])
+    exporter.invoker.invoke(
+      ['before_process_item_contents'], [exporter, exporter.current_item, layer_copy])
   
-  if len(exporter.tagged_items[tag]) == 1:
-    merged_layer_for_tag = image.layers[first_tagged_layer_position]
+  if len(tagged_items) == 1:
+    merged_tagged_layer = image.layers[first_tagged_layer_position]
   else:
-    second_to_last_tagged_layer_position = (
-      first_tagged_layer_position + len(exporter.tagged_items[tag]) - 2)
+    second_to_last_tagged_layer_position = first_tagged_layer_position + len(tagged_items) - 2
     
     for i in range(second_to_last_tagged_layer_position, first_tagged_layer_position - 1, -1):
-      merged_layer_for_tag = pdb.gimp_image_merge_down(
+      merged_tagged_layer = pdb.gimp_image_merge_down(
         image, image.layers[i], gimpenums.EXPAND_AS_NECESSARY)
   
-  return merged_layer_for_tag
+  return merged_tagged_layer
 
 
 def _remove_locks_from_layer(layer):

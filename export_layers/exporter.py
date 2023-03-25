@@ -5,7 +5,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-import collections
 import inspect
 
 from gimp import pdb
@@ -82,12 +81,6 @@ class LayerExporter(object):
   * `process_export` (read-only) - See `export()`.
   
   * `process_names` (read-only) - See `export()`.
-  
-  * `tagged_items` - Dictionary of (tag name, `itemtree.Item`) pairs containing
-    tagged items.
-  
-  * `inserted_tagged_items` - Dictionary of (tag name, `itemtree.Item`) pairs
-    containing tagged items currently inserted in `current_image`.
   
   * `invoker` - `pygimplib.invoker.Invoker` instance to
     manage procedures and constraints applied on layers. This property is not
@@ -184,18 +177,6 @@ class LayerExporter(object):
   @property
   def process_names(self):
     return self._process_names
-  
-  @property
-  def tagged_items(self):
-    return self._tagged_items
-  
-  @property
-  def inserted_tagged_layers(self):
-    return self._inserted_tagged_layers
-  
-  @property
-  def tagged_layer_copies(self):
-    return self._tagged_layer_copies
   
   @property
   def invoker(self):
@@ -474,10 +455,6 @@ class LayerExporter(object):
     self._add_actions()
     self._add_name_only_actions()
     
-    self._tagged_items = collections.defaultdict(list)
-    self._tagged_layer_copies = collections.defaultdict(pg.utils.return_none_func)
-    self._inserted_tagged_layers = collections.defaultdict(pg.utils.return_none_func)
-    
     self._set_constraints()
     
     self.progress_updater.reset()
@@ -538,17 +515,10 @@ class LayerExporter(object):
         args=[self.export_settings['file_extension'].value, export_.ExportModes.EACH_LAYER])
   
   def _set_constraints(self):
-    self._init_tagged_items()
-    
     self._invoker.invoke(
       [actions.DEFAULT_CONSTRAINTS_GROUP],
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
-  
-  def _init_tagged_items(self):
-    for item in self._item_tree.iter(with_folders=False, filtered=False):
-      for tag in item.tags:
-        self._tagged_items[tag].append(item)
   
   def _setup_contents(self):
     pdb.gimp_context_push()
@@ -568,10 +538,6 @@ class LayerExporter(object):
     
     if pg.config.DEBUG_IMAGE_PROCESSING:
       pdb.gimp_display_delete(self._display_id)
-    
-    for tagged_layer_copy in self._tagged_layer_copies.values():
-      if tagged_layer_copy is not None:
-        pdb.gimp_item_delete(tagged_layer_copy)
     
     if not self._keep_image_copy or exception_occurred:
       pg.pdbutils.try_delete_image(self.current_image)
@@ -599,11 +565,23 @@ class LayerExporter(object):
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
+    if self.process_contents:
+      self._invoker.invoke(
+        ['before_process_items_contents'],
+        [self],
+        additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+    
     for item in self._item_tree:
       if self._should_stop:
         raise exceptions.BatcherCancelError('stopped by user')
       
       self._process_item(item)
+    
+    if self.process_contents:
+      self._invoker.invoke(
+        ['after_process_items_contents'],
+        [self],
+        additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
       ['after_process_items'],
@@ -653,10 +631,22 @@ class LayerExporter(object):
       [self, self.current_item, self.current_raw_item],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
+    if self.process_contents:
+      self._invoker.invoke(
+        ['before_process_item_contents'],
+        [self, self.current_item, self.current_raw_item],
+        additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+    
     self._invoker.invoke(
       [actions.DEFAULT_PROCEDURES_GROUP],
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+    
+    if self.process_contents:
+      self._invoker.invoke(
+        ['after_process_item_contents'],
+        [self, self.current_item, self.current_raw_item],
+        additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
       ['after_process_item'],

@@ -226,7 +226,7 @@ class ExportPreviewsController(object):
         self._image_preview.prepare_image_for_rendering()
       else:
         self._image_preview.prepare_image_for_rendering(
-          ['after_process_item'], ['after_process_item'])
+          ['after_process_item_contents'], ['after_process_item_contents'])
     
     self._settings['main/procedures'].connect_event(
       'after-add-action',
