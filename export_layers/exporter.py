@@ -241,12 +241,15 @@ class LayerExporter(object):
     self._should_stop = True
   
   def add_procedure(self, *args, **kwargs):
-    """
-    Add a procedure to be applied during `export()`. The signature is the same
-    as for `pygimplib.invoker.Invoker.add()`.
+    """Adds a procedure to be applied during `export()`.
+    
+    The signature is the same as for `pygimplib.invoker.Invoker.add()`.
     
     Procedures added by this method are placed before procedures added by
     `actions.add()`.
+    
+    Procedures are added immediately before the start of processing. Thus,
+    calling this method during processing will have no effect.
     
     Unlike `actions.add()`, procedures added by this method do not act as
     settings, i.e. they are merely functions without GUI, are not saved
@@ -256,20 +259,28 @@ class LayerExporter(object):
     places when `export()` is called:
     * `'before_process_items'` - invoked before starting processing the first
       item. Only one argument is accepted - instance of this class.
+    * `'before_process_items_contents'` - same as `'before_process_items'`, but
+      applied only if `process_contents` is `True`.
     * `'after_process_items'` - invoked after finishing processing the last
       item. Only one argument is accepted - instance of this class.
+    * `'after_process_items_contents'` - same as `'after_process_items'`, but
+      applied only if `process_contents` is `True`.
     * `'before_process_item'` - invoked immediately before applying procedures
       on the layer.
       Three arguments are accepted:
         * instance of this class
         * the current `pygimplib.itemtree.Item` to be processed
         * the current GIMP item to be processed
+    * `'before_process_item_contents'` - same as `'before_process_item'`, but
+      applied only if `process_contents` is `True`.
     * `'after_process_item'` - invoked immediately after all procedures have
       been applied to the layer.
       Three arguments are accepted:
         * instance of this class
         * the current `pygimplib.itemtree.Item` that has been processed
         * the current GIMP item that has been processed
+    * `'after_process_item_contents'` - same as `'after_process_item'`, but
+      applied only if `process_contents` is `True`.
     """
     return self._initial_invoker.add(*args, **kwargs)
   
