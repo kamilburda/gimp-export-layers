@@ -17,6 +17,7 @@ Upcoming
 * The "Rename" procedure can now optionally rename only folders (previously allowed only layers or both layers and folders, but not folders alone).
 * Fixed a crash and inconsistencies in the preview if both "Ignore folder structure" and "Selected in preview" are enabled. This also adversely causes the preview to be slower upon selecting items when "Selected in preview" is enabled. The drop in performance is only noticeable for hundreds of layers in an image.
 * Fixed export failing for some custom procedures modifying the number of layers, e.g. `gimp-image-merge-visible-layers`.
+* Fixed image preview not scaling layer groups if no custom GIMP PDB procedure is active.
 * Built-in procedures and constraints are now listed alphabetically.
 * Renamed the "Rename layer" procedure to just "Rename" for brevity.
 * Updated documentation with examples on how to customize the export.

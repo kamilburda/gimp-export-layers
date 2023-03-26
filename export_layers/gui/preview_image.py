@@ -421,13 +421,12 @@ class ExportImagePreview(preview_base_.ExportPreview):
     if raw_item is None or not pdb.gimp_item_is_valid(raw_item):
       raw_item = exporter.current_raw_item
     
-    if not pdb.gimp_item_is_group(raw_item):
-      pdb.gimp_item_transform_scale(
-        raw_item,
-        raw_item.offsets[0] * self._preview_scaling_factor,
-        raw_item.offsets[1] * self._preview_scaling_factor,
-        (raw_item.offsets[0] + raw_item.width) * self._preview_scaling_factor,
-        (raw_item.offsets[1] + raw_item.height) * self._preview_scaling_factor)
+    pdb.gimp_item_transform_scale(
+      raw_item,
+      raw_item.offsets[0] * self._preview_scaling_factor,
+      raw_item.offsets[1] * self._preview_scaling_factor,
+      (raw_item.offsets[0] + raw_item.width) * self._preview_scaling_factor,
+      (raw_item.offsets[1] + raw_item.height) * self._preview_scaling_factor)
   
   def _resize_item_for_exporter(self, exporter, item=None, raw_item=None):
     pdb.gimp_layer_resize_to_image_size(exporter.current_raw_item)
