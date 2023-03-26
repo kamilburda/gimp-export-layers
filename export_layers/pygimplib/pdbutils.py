@@ -182,7 +182,10 @@ def load_layers(filepaths, image=None, strip_file_extension=False):
   return image
 
 
-def copy_and_paste_layer(layer, image, parent=None, position=0, remove_lock_attributes=False):
+def copy_and_paste_layer(
+    layer, image, parent=None, position=0, remove_lock_attributes=False,
+    set_visible=False, merge_group=False,
+):
   """
   Copy the specified layer into the specified image, parent layer group and
   position in the group. Return the copied layer.
@@ -192,6 +195,11 @@ def copy_and_paste_layer(layer, image, parent=None, position=0, remove_lock_attr
   
   If `remove_lock_attributes` is `True`, remove all lock-related attributes
   (lock position, alpha channel, etc.) for the layer copy.
+  
+  If `set_visible` is `True`, set the layer's visible state to `True`.
+  
+  If `merge_group` is `True` and the layer is a group, merge the group into a
+  single layer.
   """
   layer_copy = pdb.gimp_layer_new_from_drawable(layer, image)
   pdb.gimp_image_insert_layer(image, layer_copy, parent, position)
@@ -201,6 +209,12 @@ def copy_and_paste_layer(layer, image, parent=None, position=0, remove_lock_attr
     if not isinstance(layer_copy, gimp.GroupLayer):
       pdb.gimp_item_set_lock_position(layer_copy, False)
       pdb.gimp_layer_set_lock_alpha(layer_copy, False)
+  
+  if set_visible:
+    pdb.gimp_item_set_visible(layer_copy, True)
+  
+  if merge_group and pdb.gimp_item_is_group(layer_copy):
+    layer_copy = merge_layer_group(layer_copy)
   
   return layer_copy
 
