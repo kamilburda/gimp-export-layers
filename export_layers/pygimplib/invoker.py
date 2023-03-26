@@ -288,7 +288,14 @@ class Invoker(object):
       if group not in self._actions:
         self._init_group(group)
       
-      for item in self._actions[group]:
+      # An action could be removed during invocation, hence create a list and
+      # later check for validity.
+      items = list(self._actions[group])
+      
+      for item in items:
+        if item not in self._actions[group]:
+          continue
+        
         if item.action_type != self._TYPE_INVOKER:
           if self._foreach_actions[group]:
             _invoke_action_with_foreach_actions(item, group)

@@ -717,6 +717,36 @@ class TestInvokerInvokeActions(InvokerTestCase):
     except Exception:
       self.fail('invoking no actions for the given group should not raise exception')
   
+  def test_invoke_while_deleting_past_or_present_action_inside_action(self):
+    def append_to_list_and_remove_action(list_, arg):
+      list_.append(arg)
+      self.invoker.remove(action_2_id, ['main'])
+    
+    test_list = []
+    self.invoker.add(append_to_list, ['main'], args=[test_list, 'one'])
+    action_2_id = self.invoker.add(
+      append_to_list_and_remove_action, ['main'], args=[test_list, 'two'])
+    self.invoker.add(append_to_list, ['main'], args=[test_list, 'three'])
+    
+    self.invoker.invoke(['main'])
+    
+    self.assertEqual(test_list, ['one', 'two', 'three'])
+  
+  def test_invoke_while_deleting_future_action_inside_action(self):
+    def append_to_list_and_remove_action(list_, arg):
+      list_.append(arg)
+      self.invoker.remove(action_3_id, ['main'])
+    
+    test_list = []
+    self.invoker.add(append_to_list, ['main'], args=[test_list, 'one'])
+    self.invoker.add(append_to_list_and_remove_action, ['main'], args=[test_list, 'two'])
+    action_3_id = self.invoker.add(append_to_list, ['main'], args=[test_list, 'three'])
+    self.invoker.add(append_to_list, ['main'], args=[test_list, 'four'])
+    
+    self.invoker.invoke(['main'])
+    
+    self.assertEqual(test_list, ['one', 'two', 'four'])
+  
   def test_invoke_with_generator(self):
     test_list = []
     
