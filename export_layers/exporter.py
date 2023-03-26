@@ -274,6 +274,12 @@ class LayerExporter(object):
         * the current GIMP item that has been processed
     * `'after_process_item_contents'` - same as `'after_process_item'`, but
       applied only if `process_contents` is `True`.
+    * `'cleanup_contents'` - invoked after processing is finished and cleanup is
+      commenced (e.g. removing temporary internal images). Use this if you
+      create temporary images or items of your own. While you may also achieve
+      the same effect with `'after_process_items_contents'`, using
+      `'cleanup_contents'` is safer as it is also invoked when an exception is
+      raised. Only one argument is accepted - instance of this class.
     """
     return self._initial_invoker.add(*args, **kwargs)
   
@@ -534,6 +540,11 @@ class LayerExporter(object):
       self._display_id = pdb.gimp_display_new(self.current_image)
   
   def _cleanup_contents(self, exception_occurred=False):
+    self._invoker.invoke(
+      ['cleanup_contents'],
+      [self],
+      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+    
     self._copy_non_modifying_parasites(self.current_image, self.image)
     
     pdb.gimp_image_undo_thaw(self.current_image)
