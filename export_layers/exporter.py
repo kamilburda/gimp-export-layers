@@ -62,11 +62,6 @@ class LayerExporter(object):
   * `export_context_manager_args` - Additional arguments passed to
     `export_context_manager`.
   
-  * `refresh` - Used by procedures to control whether to remove layer copies
-    once processed (`True`) or to retain them after processing (`False`).
-    Setting this to `False` allows e.g. the export procedure to export multiple
-    layers at once instead of each layer individually.
-  
   * `current_item` (read-only) - An `itemtree.Item` instance currently being
     processed.
   
@@ -118,8 +113,6 @@ class LayerExporter(object):
     
     self.export_context_manager_args = (
       export_context_manager_args if export_context_manager_args is not None else [])
-    
-    self.refresh = True
     
     self._is_preview = False
     
@@ -458,8 +451,6 @@ class LayerExporter(object):
     
     self._should_stop = False
     
-    self.refresh = True
-    
     self._exported_raw_items = []
     
     self._invoker = pg.invoker.Invoker()
@@ -608,9 +599,7 @@ class LayerExporter(object):
     
     if self._process_contents:
       self._process_item_with_actions(item, self.current_raw_item)
-      
-      if self.refresh:
-        self._refresh_current_image(self.current_raw_item)
+      self._refresh_current_image(self.current_raw_item)
     
     self.progress_updater.update_tasks()
   
@@ -631,8 +620,8 @@ class LayerExporter(object):
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
   
   def _process_item_with_actions(self, item, raw_item):
-    raw_item_copy = builtin_procedures.copy_and_insert_layer(
-      self.current_image, raw_item, None, len(self.current_image.layers))
+    raw_item_copy = pg.pdbutils.copy_and_paste_layer(
+      raw_item, self.current_image, None, len(self.current_image.layers), True, True)
     
     self.current_raw_item = raw_item_copy
     self.current_raw_item.name = raw_item.name

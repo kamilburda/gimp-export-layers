@@ -45,18 +45,29 @@ def export(
   else:
     renamer_for_image = None
   
+  if export_mode != ExportModes.EACH_LAYER and exporter.process_export:
+    multi_layer_image = pg.pdbutils.create_image_from_metadata(exporter.image)
+    pdb.gimp_image_undo_freeze(multi_layer_image)
+  else:
+    multi_layer_image = None
+  
   while True:
     item = exporter.current_item
-    image = exporter.current_image
     current_file_extension = default_file_extension
     
     item_to_process = item
     
-    if export_mode == ExportModes.EACH_LAYER:
-      exporter.refresh = True
-    elif export_mode == ExportModes.ENTIRE_IMAGE_AT_ONCE:
+    if multi_layer_image is None:
+      image_to_process = exporter.current_image
+    else:
+      image_to_process = multi_layer_image
+    
+    if export_mode == ExportModes.ENTIRE_IMAGE_AT_ONCE:
+      if exporter.process_export:
+        _merge_and_resize_image(exporter)
+        _copy_layer(exporter, image_to_process, item)
+      
       if exporter.item_tree.next(item, with_folders=False) is not None:
-        exporter.refresh = False
         yield
         continue
       else:
@@ -66,15 +77,17 @@ def export(
         else:
           item_to_process.name = item.name
     elif export_mode == ExportModes.EACH_TOP_LEVEL_LAYER_OR_GROUP:
+      if exporter.process_export:
+        _merge_and_resize_image(exporter)
+        _copy_layer(exporter, image_to_process, item)
+      
       current_top_level_item = _get_top_level_item(item)
       next_top_level_item = _get_top_level_item(exporter.item_tree.next(item, with_folders=False))
       
       if current_top_level_item == next_top_level_item:
-        exporter.refresh = False
         yield
         continue
       else:
-        exporter.refresh = True
         item_to_process = current_top_level_item
     
     if preserve_layer_name_after_export:
@@ -94,19 +107,12 @@ def export(
         current_file_extension, default_file_extension, force_default_file_extension=False)
     
     if exporter.process_export:
-      if exporter.refresh and export_mode == ExportModes.EACH_LAYER:
-        # Merge all layers into one for this export mode as there may be custom
-        # procedures inserting layers and some file formats may discard all but
-        # one layer.
-        raw_item_name = exporter.current_raw_item.name
-        raw_item_merged = _merge_and_resize_image(exporter.current_image)
-        raw_item_merged.name = raw_item_name
-        exporter.current_image.active_layer = raw_item_merged
-        exporter.current_raw_item = raw_item_merged
+      if export_mode == ExportModes.EACH_LAYER:
+        _merge_and_resize_image(exporter)
       
       overwrite_mode, export_status = _export_item(
-        exporter, item_to_process, image, exporter.current_raw_item, default_file_extension,
-        file_extension_properties)
+        exporter, item_to_process, image_to_process, exporter.current_raw_item,
+        default_file_extension, file_extension_properties)
       
       if export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
         if exporter.process_names:
@@ -116,8 +122,8 @@ def export(
         
         if exporter.process_export:
           overwrite_mode, unused_ = _export_item(
-            exporter, item_to_process, image, exporter.current_raw_item, default_file_extension,
-            file_extension_properties)
+            exporter, item_to_process, image_to_process, exporter.current_raw_item,
+            default_file_extension, file_extension_properties)
       
       if overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
         file_extension_properties[
@@ -128,6 +134,13 @@ def export(
     
     if preserve_layer_name_after_export:
       item_to_process.pop_state()
+    
+    if multi_layer_image is not None:
+      if exporter.item_tree.next(item, with_folders=False) is not None:
+        _refresh_multi_layer_image(multi_layer_image)
+      else:
+        pg.pdbutils.try_delete_image(multi_layer_image)
+        multi_layer_image = None
     
     yield
 
@@ -176,10 +189,30 @@ def _get_current_file_extension(item, default_file_extension, file_extension_pro
     return default_file_extension
 
 
-def _merge_and_resize_image(image):
-  raw_item_merged = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
+def _merge_and_resize_image(exporter):
+  """Merges all layers in the current image into one
+  
+  Merging is necessary for:
+  * custom procedures inserting layers (background, foreground). Some file
+    formats may discard all but one layer.
+  * multi-layer images, with each layer containing background or foreground
+    which are originally separate layers.
+  """
+  raw_item_name = exporter.current_raw_item.name
+  
+  raw_item_merged = pdb.gimp_image_merge_visible_layers(
+    exporter.current_image, gimpenums.EXPAND_AS_NECESSARY)
   pdb.gimp_layer_resize_to_image_size(raw_item_merged)
-  return raw_item_merged
+  
+  raw_item_merged.name = raw_item_name
+  exporter.current_image.active_layer = raw_item_merged
+  exporter.current_raw_item = raw_item_merged
+
+
+def _copy_layer(exporter, dest_image, item):
+  raw_item_copy = pg.pdbutils.copy_and_paste_layer(
+    exporter.current_raw_item, dest_image, None, len(dest_image.layers), True, True)
+  pdb.gimp_item_set_name(raw_item_copy, item.name)
 
 
 def _validate_name(item):
@@ -340,6 +373,11 @@ def _should_export_again_with_interactive_run_mode(exception_message, current_ru
 
 def _should_export_again_with_default_file_extension(file_extension, default_file_extension):
   return file_extension != default_file_extension
+
+
+def _refresh_multi_layer_image(image):
+  for layer in image.layers:
+    pdb.gimp_image_remove_layer(image, layer)
 
 
 class _FileExtension(object):

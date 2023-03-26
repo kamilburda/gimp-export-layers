@@ -48,18 +48,6 @@ def set_active_and_current_layer_after_action(exporter):
     set_active_and_current_layer(exporter)
 
 
-def copy_and_insert_layer(image, layer, parent=None, position=0, remove_lock_attributes=True):
-  layer_copy = pg.pdbutils.copy_and_paste_layer(
-    layer, image, parent, position, remove_lock_attributes)
-  
-  pdb.gimp_item_set_visible(layer_copy, True)
-  
-  if pdb.gimp_item_is_group(layer_copy):
-    layer_copy = pg.pdbutils.merge_layer_group(layer_copy)
-  
-  return layer_copy
-
-
 def remove_folder_hierarchy_from_item(exporter):
   item = exporter.current_item
 
@@ -127,7 +115,8 @@ def _insert_merged_tagged_layer(image, exporter, tagged_items, tag, position=0):
   first_tagged_layer_position = position
   
   for i, item in enumerate(tagged_items):
-    layer_copy = copy_and_insert_layer(image, item.raw, None, first_tagged_layer_position + i)
+    layer_copy = pg.pdbutils.copy_and_paste_layer(
+      item.raw, image, None, first_tagged_layer_position + i, True, True)
     layer_copy.visible = True
     exporter.invoker.invoke(
       ['before_process_item_contents'], [exporter, exporter.current_item, layer_copy])
