@@ -40,7 +40,7 @@ def export(
   processed_parent_names = set()
   default_file_extension = file_extension
   
-  if single_image_filename_pattern is not None:
+  if export_mode == ExportModes.ENTIRE_IMAGE_AT_ONCE and single_image_filename_pattern is not None:
     renamer_for_image = renamer_.ItemRenamer(single_image_filename_pattern)
   else:
     renamer_for_image = None
