@@ -82,13 +82,13 @@ def _insert_tagged_layer(exporter, tag, position=0):
     if orig_merged_tagged_layer is not None and pdb.gimp_item_is_valid(orig_merged_tagged_layer):
       pdb.gimp_item_delete(orig_merged_tagged_layer)
     
-    exporter.invoker.remove(cleanup_tagged_layers_action_id, ['after_process_items_contents'])
+    exporter.invoker.remove(cleanup_tagged_layers_action_id, ['cleanup_contents'])
   
   # We use`Invoker.add` instead of `exporter.add_procedure` since the latter
   # would add the function only at the start of processing and we already are in
   # the middle of processing here.
   cleanup_tagged_layers_action_id = exporter.invoker.add(
-    _cleanup_tagged_layers, ['after_process_items_contents'])
+    _cleanup_tagged_layers, ['cleanup_contents'])
   
   while True:
     image = exporter.current_image

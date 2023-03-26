@@ -48,6 +48,16 @@ def export(
   if export_mode != ExportModes.EACH_LAYER and exporter.process_export:
     multi_layer_image = pg.pdbutils.create_image_from_metadata(exporter.image)
     pdb.gimp_image_undo_freeze(multi_layer_image)
+    
+    def _delete_multi_layer_image(exporter):
+      if exporter.process_export:
+        if multi_layer_image is not None:
+          pg.pdbutils.try_delete_image(multi_layer_image)
+        
+        exporter.invoker.remove(delete_multi_layer_image_action_id, ['cleanup_contents'])
+    
+    delete_multi_layer_image_action_id = exporter.invoker.add(
+      _delete_multi_layer_image, ['cleanup_contents'])
   else:
     multi_layer_image = None
   
@@ -136,11 +146,7 @@ def export(
       item_to_process.pop_state()
     
     if multi_layer_image is not None:
-      if exporter.item_tree.next(item, with_folders=False) is not None:
-        _refresh_multi_layer_image(multi_layer_image)
-      else:
-        pg.pdbutils.try_delete_image(multi_layer_image)
-        multi_layer_image = None
+      _refresh_multi_layer_image(multi_layer_image)
     
     yield
 
