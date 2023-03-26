@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Preview widget displaying a scaled-down image to be exported."""
+"""Preview widget displaying a scaled-down image to be processed."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
@@ -47,7 +47,7 @@ def display_image_preview_failure_message(details, parent=None):
 
 class ExportImagePreview(preview_base_.ExportPreview):
   """
-  This class defines a widget displaying a preview of an image to be exported,
+  This class defines a widget displaying a preview of an image to be processed,
   including its name.
   
   Signals:

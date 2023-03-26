@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Preview widget displaying the names of items to be exported."""
+"""Preview widget displaying the names of items to be batch-processed."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
@@ -21,7 +21,7 @@ from export_layers.gui import preview_base as preview_base_
 
 
 class ExportNamePreview(preview_base_.ExportPreview):
-  """A widget displaying a preview of exported items - filenames and their
+  """A widget displaying a preview of batch-processed items - names and their
   folder structure.
   
   Additional features:

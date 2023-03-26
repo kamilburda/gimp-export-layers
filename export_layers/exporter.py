@@ -37,8 +37,8 @@ class LayerExporter(object):
   
   * `image` - Input `gimp.Image` to export layers from.
   
-  * `export_settings` - `setting.Group` instance containing export settings.
-    This class treats them as read-only.
+  * `export_settings` - `setting.Group` instance containing export settings,
+    procedures and constraints. This class treats them as read-only.
   
   * `overwrite_chooser` - `OverwriteChooser` instance that is invoked if a file
     with the same name already exists. If `None` is passed during
@@ -46,13 +46,15 @@ class LayerExporter(object):
     by default.
   
   * `progress_updater` - `ProgressUpdater` instance that indicates the number of
-    layers exported. If no progress update is desired, pass `None`.
+    layers processed so far. If no progress update is desired, pass `None`.
   
-  * `item_tree` - `ItemTree` instance containing layers to be exported.
-    Defaults to `None` if no export has been performed yet.
+  * `item_tree` - `ItemTree` instance containing layers to be processed.
+    If `None` (the default), an item tree is automatically created at the start
+    of processing.
   
   * `exported_raw_items` - List of layers that were successfully exported. Does
-    not include skipped layers (when files with the same names already exist).
+    not include layers skipped by the user (when files with the same names
+    already exist).
   
   * `export_context_manager` - Context manager that wraps exporting a single
     layer. This can be used to perform GUI updates before and after export.
@@ -184,16 +186,16 @@ class LayerExporter(object):
     `itemtree.ItemTree` instead of creating a new one. If the instance had
     filters (constraints) set, they will be reset.
     
-    A copy of the image and the layers to be exported are created so that the
-    original image and its soon-to-be exported layers are left intact. The
-    image copy is automatically destroyed after the export. To keep the image
-    copy, pass `True` to `keep_image_copy`. In that case, this method returns
-    the image copy. If an exception was raised or if no layer was exported, this
-    method returns `None` and the image copy will be destroyed.
+    A copy of the image and the layers to be processed are created so that the
+    original image and its soon-to-be processed layers are left intact. The
+    image copy is automatically destroyed once processing is done. To keep the
+    image copy, pass `True` to `keep_image_copy`. In that case, this method
+    returns the image copy. If an exception was raised or if no layer was
+    exported, this method returns `None` and the image copy will be destroyed.
     
     If `is_preview` is `True`, only procedures and constraints that are marked
     as "enabled for previews" will be applied for previews. This has no effect
-    during real export.
+    during the real processing.
     
     If `process_contents` is `True`, invoke procedures on layers. Setting this
     to `False` is useful if you require only layer names to be processed.

@@ -21,9 +21,7 @@ class ExportPreview(gtk.VBox):
     self._functions_to_invoke_at_update = []
   
   def update(self):
-    """
-    Update the export preview if update is not locked (see `lock_update()`).
-    """
+    """Updates the preview if update is not locked (see `lock_update()`)."""
     if self._update_locked:
       return True
     

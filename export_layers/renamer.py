@@ -390,7 +390,7 @@ _FIELDS_LIST = [
       [_('To continue numbering across layer groups, use %n.')],
       ['[001, %n]', '001, 002, ...'],
       [_('To use descending numbers, use %d.')],
-      [_('Suppose that the number of layers to export is 5:')],
+      [_('Suppose that the number of layers is 5:')],
       ['[000, %d]', '005, 004, ...'],
       ['[10, %d2]', '10, 09, ...'],
     ],

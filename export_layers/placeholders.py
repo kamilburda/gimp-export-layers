@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Placeholder objects replaced with real GIMP objects when calling GIMP PDB
-procedures during export.
+procedures during batch processing.
 
 The following placeholder objects are defined:
 
