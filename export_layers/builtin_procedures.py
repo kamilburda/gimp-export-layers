@@ -272,9 +272,9 @@ _BUILTIN_PROCEDURES_LIST = [
     ],
   },
   {
-    'name': 'rename_layer',
+    'name': 'rename',
     'function': rename_layer,
-    'display_name': _('Rename layer'),
+    'display_name': _('Rename'),
     'additional_tags': [NAME_ONLY_TAG],
     'arguments': [
       {

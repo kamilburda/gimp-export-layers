@@ -509,7 +509,7 @@ class LayerExporter(object):
   
   def _add_default_rename_procedure(self, action_groups):
     if not any(
-          procedure['orig_name'].value == 'rename_layer' and procedure['enabled'].value
+          procedure['orig_name'].value == 'rename' and procedure['enabled'].value
           for procedure in actions.walk(self.export_settings['procedures'])):
       self._invoker.add(
         builtin_procedures.rename_layer,

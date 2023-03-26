@@ -378,7 +378,7 @@ def _update_to_3_4(settings):
     procedures,
     settings['main/procedures'],
     'rename_layer',
-    'rename_layer',
+    'rename',
     builtin_procedures.BUILTIN_PROCEDURES,
   )
   
