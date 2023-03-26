@@ -165,7 +165,7 @@ def create_settings():
 
 
 def _on_after_add_procedure(procedures, procedure, orig_procedure_dict):
-  if orig_procedure_dict['name'] == 'export':
+  if procedure['orig_name'].value == 'export':
     _set_sensitive_for_image_filename_pattern_in_export(
       procedure['arguments/export_mode'],
       procedure['arguments/single_image_filename_pattern'])
@@ -190,7 +190,7 @@ def _on_after_add_constraint(
       orig_constraint_dict,
       selected_items_setting,
       image_setting):
-  if orig_constraint_dict['name'] == 'selected_in_preview':
+  if constraint['orig_name'].value == 'selected_in_preview':
     constraint['arguments/selected_layers'].gui.set_visible(False)
     _sync_selected_items_and_only_selected_items_constraint(
       selected_items_setting, constraint, image_setting)
