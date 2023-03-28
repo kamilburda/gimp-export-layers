@@ -228,8 +228,10 @@ def _get_layer_name(exporter, item, field_value, file_extension_strip_mode=''):
 
 
 def _get_image_name(exporter, item, field_value, keep_extension_str=''):
-  image_name = (
-    exporter.image.name if exporter.image.name is not None else _('Untitled'))
+  if exporter.current_image is not None and exporter.current_image.name is not None:
+    image_name = exporter.current_image.name
+  else:
+    image_name = _('Untitled')
   
   if keep_extension_str == '%e':
     return image_name
@@ -314,7 +316,7 @@ def _get_current_date(exporter, item, field_value, date_format='%Y-%m-%d'):
 
 
 def _get_attributes(exporter, item, field_value, pattern, measure='%px'):
-  image = exporter.image
+  image = exporter.current_image
   
   fields = {
     'iw': image.width,

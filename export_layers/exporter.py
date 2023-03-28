@@ -464,7 +464,7 @@ class LayerExporter(object):
     
     self._current_item = None
     self._current_raw_item = None
-    self._current_image = None
+    self._current_image = self.image
     
     self._image_copy = None
     
