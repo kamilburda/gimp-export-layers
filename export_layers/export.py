@@ -46,7 +46,7 @@ def export(
     renamer_for_image = None
   
   if export_mode != ExportModes.EACH_LAYER and exporter.process_export:
-    multi_layer_image = pg.pdbutils.create_image_from_metadata(exporter.image)
+    multi_layer_image = pg.pdbutils.create_image_from_metadata(exporter.input_image)
     pdb.gimp_image_undo_freeze(multi_layer_image)
     
     def _delete_multi_layer_image(exporter):

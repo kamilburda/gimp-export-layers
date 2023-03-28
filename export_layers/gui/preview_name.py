@@ -376,7 +376,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _on_tags_menu_item_toggled(self, tags_menu_item, tag):
     if self._toggle_tag_interactive:
-      pdb.gimp_image_undo_group_start(self._exporter.image)
+      pdb.gimp_image_undo_group_start(self._exporter.input_image)
       
       for item_key in self._get_keys_from_current_selection():
         item = self._exporter.item_tree[item_key]
@@ -386,7 +386,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
         else:
           item.remove_tag(tag)
       
-      pdb.gimp_image_undo_group_end(self._exporter.image)
+      pdb.gimp_image_undo_group_end(self._exporter.input_image)
       
       # Modifying just one item could result in renaming other items
       # differently, hence update the whole preview.

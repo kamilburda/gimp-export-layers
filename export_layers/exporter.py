@@ -35,7 +35,7 @@ class LayerExporter(object):
     format in which the layer is exported to cannot handle
     `gimpenums.RUN_WITH_LAST_VALS`, `gimpenums.RUN_INTERACTIVE` is used.
   
-  * `image` - Input `gimp.Image` to process layers from.
+  * `input_image` - Input `gimp.Image` to process layers from.
   
   * `export_settings` - `setting.Group` instance containing export settings,
     procedures and constraints. This class treats them as read-only.
@@ -99,7 +99,7 @@ class LayerExporter(object):
         export_context_manager_kwargs=None):
     
     self.initial_run_mode = initial_run_mode
-    self.image = image
+    self.input_image = image
     self.export_settings = export_settings
     
     self.overwrite_chooser = (
@@ -450,7 +450,7 @@ class LayerExporter(object):
     if item_tree is not None:
       self._item_tree = item_tree
     else:
-      self._item_tree = pg.itemtree.LayerTree(self.image, name=pg.config.SOURCE_NAME)
+      self._item_tree = pg.itemtree.LayerTree(self.input_image, name=pg.config.SOURCE_NAME)
     
     if self._item_tree.filter:
       self._item_tree.reset_filter()
@@ -463,7 +463,7 @@ class LayerExporter(object):
     
     self._current_item = None
     self._current_raw_item = None
-    self._current_image = self.image
+    self._current_image = self.input_image
     
     self._image_copy = None
     
@@ -543,7 +543,7 @@ class LayerExporter(object):
   def _setup_contents(self):
     pdb.gimp_context_push()
     
-    self._image_copy = pg.pdbutils.create_image_from_metadata(self.image)
+    self._image_copy = pg.pdbutils.create_image_from_metadata(self.input_image)
     self._current_image = self._image_copy
     
     pdb.gimp_image_undo_freeze(self.current_image)
@@ -557,7 +557,7 @@ class LayerExporter(object):
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
-    self._copy_non_modifying_parasites(self.current_image, self.image)
+    self._copy_non_modifying_parasites(self.current_image, self.input_image)
     
     pdb.gimp_image_undo_thaw(self.current_image)
     
