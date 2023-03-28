@@ -61,7 +61,10 @@ class LayerExporter(object):
     Required parameters: current run mode, current image, layer to export,
     output filename of the layer.
   
-  * `export_context_manager_args` - Additional arguments passed to
+  * `export_context_manager_args` - Additional positional arguments passed to
+    `export_context_manager`.
+  
+  * `export_context_manager_kwargs` - Additional keyword arguments passed to
     `export_context_manager`.
   
   * `current_item` (read-only) - An `itemtree.Item` instance currently being
@@ -93,7 +96,8 @@ class LayerExporter(object):
         progress_updater=None,
         item_tree=None,
         export_context_manager=None,
-        export_context_manager_args=None):
+        export_context_manager_args=None,
+        export_context_manager_kwargs=None):
     
     self.initial_run_mode = initial_run_mode
     self.image = image
@@ -112,9 +116,10 @@ class LayerExporter(object):
     
     self.export_context_manager = (
       export_context_manager if export_context_manager is not None else pg.utils.EmptyContext)
-    
     self.export_context_manager_args = (
       export_context_manager_args if export_context_manager_args is not None else [])
+    self.export_context_manager_kwargs = (
+      export_context_manager_kwargs if export_context_manager_kwargs is not None else {})
     
     self._is_preview = False
     
@@ -178,8 +183,14 @@ class LayerExporter(object):
     return self._invoker
   
   def export(
-        self, item_tree=None, keep_image_copy=False, is_preview=False,
-        process_contents=True, process_names=True, process_export=True):
+        self,
+        item_tree=None,
+        keep_image_copy=False,
+        is_preview=False,
+        process_contents=True,
+        process_names=True,
+        process_export=True,
+    ):
     """Batch-processes and exports layers as separate images.
     
     If `item_tree` is not `None`, use an existing instance of

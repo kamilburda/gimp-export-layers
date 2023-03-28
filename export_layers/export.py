@@ -317,7 +317,8 @@ def _export_item_once_wrapper(
       exporter, export_func, run_mode, image, raw_item, output_filepath, file_extension,
       default_file_extension, file_extension_properties):
   with exporter.export_context_manager(
-         run_mode, image, raw_item, output_filepath, *exporter.export_context_manager_args):
+         run_mode, image, raw_item, output_filepath,
+         *exporter.export_context_manager_args, **exporter.export_context_manager_kwargs):
     export_status = _export_item_once(
       exporter, export_func, run_mode, image, raw_item, output_filepath, file_extension,
       default_file_extension, file_extension_properties)
