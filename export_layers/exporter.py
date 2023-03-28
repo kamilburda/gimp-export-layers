@@ -35,15 +35,14 @@ class LayerExporter(object):
     format in which the layer is exported to cannot handle
     `gimpenums.RUN_WITH_LAST_VALS`, `gimpenums.RUN_INTERACTIVE` is used.
   
-  * `image` - Input `gimp.Image` to export layers from.
+  * `image` - Input `gimp.Image` to process layers from.
   
   * `export_settings` - `setting.Group` instance containing export settings,
     procedures and constraints. This class treats them as read-only.
   
-  * `overwrite_chooser` - `OverwriteChooser` instance that is invoked if a file
-    with the same name already exists. If `None` is passed during
-    initialization, `pygimplib.overwrite.NoninteractiveOverwriteChooser` is used
-    by default.
+  * `overwrite_chooser` - `OverwriteChooser` instance that is invoked during
+    export if a file with the same name already exists. If `None`, then
+    `pygimplib.overwrite.NoninteractiveOverwriteChooser` is used.
   
   * `progress_updater` - `ProgressUpdater` instance that indicates the number of
     layers processed so far. If no progress update is desired, pass `None`.
