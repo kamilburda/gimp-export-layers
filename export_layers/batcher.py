@@ -65,13 +65,13 @@ class Batcher(object):
     Setting this to `False` is useful if you require only layer names to be
     processed.
   
-  * `process_export` (read-only) - If `True`, process layer names before export
+  * `process_names` (read-only) - If `True`, process layer names before export
     to be suitable to save to disk (in particular to remove characters invalid
     for a file system). If `is_preview` is `True` and `process_names` is `True`,
     also invoke built-in procedures modifying item names only (e.g. renaming
     layers).
   
-  * `process_names` (read-only) - If `True`, perform export of layers. Setting
+  * `process_export` (read-only) - If `True`, perform export of layers. Setting
     this to `False` is useful to preview the processed contents of a layer
     without saving it to a file.
   
