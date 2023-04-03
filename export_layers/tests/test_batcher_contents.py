@@ -15,7 +15,7 @@ from export_layers import pygimplib as pg
 
 from export_layers import builtin_procedures
 from export_layers import exceptions
-from export_layers import exporter as exporter_
+from export_layers import batcher as batcher_
 from export_layers import actions
 from export_layers import settings_main
 
@@ -166,12 +166,12 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       if procedure_name in settings['main/procedures/added']:
         actions.remove(settings['main/procedures'], procedure_name)
     
-    exporter = exporter_.LayerExporter(
+    batcher = batcher_.Batcher(
       settings['special/run_mode'].value,
       settings['special/image'].value,
       settings['main'])
     
-    exporter.export()
+    batcher.export()
     
     for procedure_name in procedure_names_to_add:
       actions.remove(settings['main/procedures'], procedure_name)
@@ -253,16 +253,16 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
 #===============================================================================
 
 
-def test_export_for_all_file_formats(exporter, export_settings):
-  orig_output_dirpath = export_settings['output_directory'].value
+def test_export_for_all_file_formats(batcher, batch_settings):
+  orig_output_dirpath = batch_settings['output_directory'].value
   
   for file_format in pg.fileformats.file_formats:
     for file_extension in file_format.file_extensions:
-      export_settings['file_extension'].set_value(file_extension)
-      export_settings['output_directory'].set_value(
+      batch_settings['file_extension'].set_value(file_extension)
+      batch_settings['output_directory'].set_value(
         os.path.join(orig_output_dirpath, file_extension))
       try:
-        exporter.export()
+        batcher.export()
       except exceptions.ExportError:
         # Do not stop if one file format causes an error.
         continue

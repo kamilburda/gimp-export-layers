@@ -19,14 +19,14 @@ class TestGetReplacedArgsAndKwargs(unittest.TestCase):
     image = stubs_gimp.ImageStub()
     layer = stubs_gimp.LayerStub()
     
-    exporter = mock.Mock()
-    exporter.current_image = image
-    exporter.current_raw_item = layer
+    batcher = mock.Mock()
+    batcher.current_image = image
+    batcher.current_raw_item = layer
     
     args = ('current_image', 'current_layer', 'some_other_arg')
     kwargs = {'run_mode': 0, 'image': 'current_image', 'layer': 'current_layer'}
     
-    new_args, new_kwargs = placeholders.get_replaced_args_and_kwargs(args, kwargs, exporter)
+    new_args, new_kwargs = placeholders.get_replaced_args_and_kwargs(args, kwargs, batcher)
     
     self.assertTupleEqual(new_args, (image, layer, 'some_other_arg'))
     self.assertDictEqual(new_kwargs, {'run_mode': 0, 'image': image, 'layer': layer})

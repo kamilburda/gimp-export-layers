@@ -24,7 +24,7 @@ from future.builtins import *
 import gimpenums
 
 from export_layers import exceptions
-from export_layers import exporter as exporter_
+from export_layers import batcher as batcher_
 from export_layers import settings_main
 from export_layers import update
 from export_layers.gui import main as gui_main
@@ -125,10 +125,10 @@ def _run_export_layers_repeat_interactive(layer_tree):
 
 
 def _run_plugin_noninteractive(run_mode, layer_tree):
-  exporter = exporter_.LayerExporter(run_mode, layer_tree.image, SETTINGS['main'])
+  batcher = batcher_.Batcher(run_mode, layer_tree.image, SETTINGS['main'])
   
   try:
-    exporter.export(item_tree=layer_tree)
+    batcher.export(item_tree=layer_tree)
   except exceptions.BatcherCancelError:
     pass
 

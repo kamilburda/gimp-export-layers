@@ -106,7 +106,7 @@ def create(name, initial_actions=None):
   * `'enabled'` - Whether the action should be applied or not.
   * `'display_name'` - The display name (human-readable name) of the action.
   * `'action_group'` - List of groups the action belongs to, used in
-    `pygimplib.invoker.Invoker` and `exporter.LayerExporter`.
+    `pygimplib.invoker.Invoker` and `batcher.Batcher`.
   * `'orig_name'` - The original name of the action. If an action with the
     same `'name'` field (see below) was previously added, the name of the new
     action is made unique to allow lookup of both actions. Otherwise,

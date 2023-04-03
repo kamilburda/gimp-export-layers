@@ -51,7 +51,7 @@ def take_screenshots(gui, dialog, settings):
   decoration_offsets = move_dialog_to_corner(dialog, settings)
   
   gui.name_preview.set_selected_items(set([
-    gui.name_preview.exporter.item_tree['main-background'].raw.ID]))
+    gui.name_preview.batcher.item_tree['main-background'].raw.ID]))
   
   dialog.set_focus(gui.name_preview.tree_view)
   
@@ -84,7 +84,7 @@ def take_screenshots(gui, dialog, settings):
     gtk.main_iteration()
   
   gui.name_preview.set_selected_items(set([
-    gui.name_preview.exporter.item_tree['bottom-frame'].raw.ID]))
+    gui.name_preview.batcher.item_tree['bottom-frame'].raw.ID]))
   
   while gtk.events_pending():
     gtk.main_iteration()

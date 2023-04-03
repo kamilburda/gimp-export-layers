@@ -192,14 +192,14 @@ class TestRenameWithNumberField(unittest.TestCase):
     layer_tree = pg.itemtree.LayerTree(self.image)
     layer_tree.filter.add(lambda item: item.type == pg.itemtree.TYPE_ITEM)
     
-    exporter_mock = mock.Mock()
-    exporter_mock.item_tree = layer_tree
+    batcher_mock = mock.Mock()
+    batcher_mock.item_tree = layer_tree
     
     renamer = renamer_.ItemRenamer(pattern, fields_raw=[renamer_.FIELDS['^[0-9]+$']])
     
     for item in layer_tree:
-      exporter_mock.current_item = item
-      item.name = renamer.rename(exporter_mock)
+      batcher_mock.current_item = item
+      item.name = renamer.rename(batcher_mock)
     
     expected_layer_tree = (
       pg.itemtree.LayerTree(utils_itemtree.parse_layers(expected_layer_names_str)))

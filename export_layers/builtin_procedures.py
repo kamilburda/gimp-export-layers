@@ -21,77 +21,77 @@ from export_layers import settings_custom
 NAME_ONLY_TAG = 'name'
 
 
-def set_active_and_current_layer(exporter):
-  if pdb.gimp_item_is_valid(exporter.current_raw_item):
-    exporter.current_image.active_layer = exporter.current_raw_item
+def set_active_and_current_layer(batcher):
+  if pdb.gimp_item_is_valid(batcher.current_raw_item):
+    batcher.current_image.active_layer = batcher.current_raw_item
   else:
-    if pdb.gimp_item_is_valid(exporter.current_image.active_layer):
+    if pdb.gimp_item_is_valid(batcher.current_image.active_layer):
       # The active layer may have been set by the procedure.
-      exporter.current_raw_item = exporter.current_image.active_layer
+      batcher.current_raw_item = batcher.current_image.active_layer
     else:
-      if len(exporter.current_image.layers) > 0:
+      if len(batcher.current_image.layers) > 0:
         # We cannot make a good guess of what layer is the "right" one, so we
         # resort to taking the first.
-        first_layer = exporter.current_image.layers[0]
-        exporter.current_raw_item = first_layer
-        exporter.current_image.active_layer = first_layer
+        first_layer = batcher.current_image.layers[0]
+        batcher.current_raw_item = first_layer
+        batcher.current_image.active_layer = first_layer
       else:
         # There is nothing we can do. Let an exception be raised. An empty image
         # could occur e.g. if a custom procedure removed all layers.
         pass
 
 
-def set_active_and_current_layer_after_action(exporter):
+def set_active_and_current_layer_after_action(batcher):
   action_applied = yield
   
   if action_applied or action_applied is None:
-    set_active_and_current_layer(exporter)
+    set_active_and_current_layer(batcher)
 
 
-def remove_folder_hierarchy_from_item(exporter):
-  item = exporter.current_item
+def remove_folder_hierarchy_from_item(batcher):
+  item = batcher.current_item
 
   item.parents = []
   item.children = []
 
 
-def inherit_transparency_from_layer_groups(exporter):
-  new_layer_opacity = exporter.current_raw_item.opacity / 100.0
-  for parent in exporter.current_item.parents:
+def inherit_transparency_from_layer_groups(batcher):
+  new_layer_opacity = batcher.current_raw_item.opacity / 100.0
+  for parent in batcher.current_item.parents:
     new_layer_opacity = new_layer_opacity * (parent.raw.opacity / 100.0)
   
-  exporter.current_raw_item.opacity = new_layer_opacity * 100.0
+  batcher.current_raw_item.opacity = new_layer_opacity * 100.0
 
 
-def insert_background_layer(exporter, tag):
-  return _insert_tagged_layer(exporter, tag, position=len(exporter.current_image.layers))
+def insert_background_layer(batcher, tag):
+  return _insert_tagged_layer(batcher, tag, position=len(batcher.current_image.layers))
 
 
-def insert_foreground_layer(exporter, tag):
-  return _insert_tagged_layer(exporter, tag, position=0)
+def insert_foreground_layer(batcher, tag):
+  return _insert_tagged_layer(batcher, tag, position=0)
 
 
-def _insert_tagged_layer(exporter, tag, position=0):
+def _insert_tagged_layer(batcher, tag, position=0):
   tagged_items = [
-    item for item in exporter.item_tree.iter(with_folders=False, filtered=False)
+    item for item in batcher.item_tree.iter(with_folders=False, filtered=False)
     if tag in item.tags]
   merged_tagged_layer = None
   orig_merged_tagged_layer = None
   
-  def _cleanup_tagged_layers(exporter):
+  def _cleanup_tagged_layers(batcher):
     if orig_merged_tagged_layer is not None and pdb.gimp_item_is_valid(orig_merged_tagged_layer):
       pdb.gimp_item_delete(orig_merged_tagged_layer)
     
-    exporter.invoker.remove(cleanup_tagged_layers_action_id, ['cleanup_contents'])
+    batcher.invoker.remove(cleanup_tagged_layers_action_id, ['cleanup_contents'])
   
-  # We use`Invoker.add` instead of `exporter.add_procedure` since the latter
+  # We use`Invoker.add` instead of `batcher.add_procedure` since the latter
   # would add the function only at the start of processing and we already are in
   # the middle of processing here.
-  cleanup_tagged_layers_action_id = exporter.invoker.add(
+  cleanup_tagged_layers_action_id = batcher.invoker.add(
     _cleanup_tagged_layers, ['cleanup_contents'])
   
   while True:
-    image = exporter.current_image
+    image = batcher.current_image
     
     if not tagged_items:
       yield
@@ -99,7 +99,7 @@ def _insert_tagged_layer(exporter, tag, position=0):
     
     if orig_merged_tagged_layer is None:
       merged_tagged_layer = _insert_merged_tagged_layer(
-        image, exporter, tagged_items, tag, position)
+        image, batcher, tagged_items, tag, position)
       
       orig_merged_tagged_layer = pdb.gimp_layer_copy(merged_tagged_layer, True)
       _remove_locks_from_layer(orig_merged_tagged_layer)
@@ -111,15 +111,15 @@ def _insert_tagged_layer(exporter, tag, position=0):
     yield
 
 
-def _insert_merged_tagged_layer(image, exporter, tagged_items, tag, position=0):
+def _insert_merged_tagged_layer(image, batcher, tagged_items, tag, position=0):
   first_tagged_layer_position = position
   
   for i, item in enumerate(tagged_items):
     layer_copy = pg.pdbutils.copy_and_paste_layer(
       item.raw, image, None, first_tagged_layer_position + i, True, True)
     layer_copy.visible = True
-    exporter.invoker.invoke(
-      ['before_process_item_contents'], [exporter, exporter.current_item, layer_copy])
+    batcher.invoker.invoke(
+      ['before_process_item_contents'], [batcher, batcher.current_item, layer_copy])
   
   if len(tagged_items) == 1:
     merged_tagged_layer = image.layers[first_tagged_layer_position]
@@ -140,26 +140,26 @@ def _remove_locks_from_layer(layer):
     pdb.gimp_layer_set_lock_alpha(layer, False)
 
 
-def rename_layer(exporter, pattern, rename_layers=True, rename_folders=False):
+def rename_layer(batcher, pattern, rename_layers=True, rename_folders=False):
   renamer = renamer_.ItemRenamer(pattern)
   renamed_parents = set()
   
   while True:
     if rename_layers:
-      exporter.current_item.name = renamer.rename(exporter)
+      batcher.current_item.name = renamer.rename(batcher)
     
     if rename_folders:
-      for parent in exporter.current_item.parents:
+      for parent in batcher.current_item.parents:
         if parent not in renamed_parents:
-          parent.name = renamer.rename(exporter, item=parent)
+          parent.name = renamer.rename(batcher, item=parent)
           renamed_parents.add(parent)
     
     yield
 
 
-def resize_to_layer_size(exporter):
-  image = exporter.current_image
-  layer = exporter.current_raw_item
+def resize_to_layer_size(batcher):
+  image = batcher.current_image
+  layer = batcher.current_raw_item
   
   layer_offset_x, layer_offset_y = layer.offsets
   pdb.gimp_image_resize(image, layer.width, layer.height, -layer_offset_x, -layer_offset_y)

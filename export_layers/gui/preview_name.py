@@ -67,7 +67,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def __init__(
         self,
-        exporter,
+        batcher,
         initial_item_tree=None,
         collapsed_items=None,
         selected_items=None,
@@ -75,7 +75,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
         available_tags_setting=None):
     super().__init__()
     
-    self._exporter = exporter
+    self._batcher = batcher
     self._initial_item_tree = initial_item_tree
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
     self._selected_items = selected_items if selected_items is not None else []
@@ -166,20 +166,20 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self.emit('preview-selection-changed')
   
   def get_items_from_selected_rows(self):
-    return [self._exporter.item_tree[item_key]
+    return [self._batcher.item_tree[item_key]
             for item_key in self._get_keys_from_current_selection()]
   
   def get_item_from_cursor(self):
     tree_path, unused_ = self._tree_view.get_cursor()
     if tree_path is not None:
       item_key = self._get_key_from_tree_iter(self._tree_model.get_iter(tree_path))
-      return self._exporter.item_tree[item_key]
+      return self._batcher.item_tree[item_key]
     else:
       return None
   
   @property
-  def exporter(self):
-    return self._exporter
+  def batcher(self):
+    return self._batcher
   
   @property
   def tree_view(self):
@@ -290,7 +290,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _update_available_tags(self):
     used_tags = set()
-    for item in self._exporter.item_tree.iter(filtered=False):
+    for item in self._batcher.item_tree.iter(filtered=False):
       for tag in item.tags:
         used_tags.add(tag)
         if tag not in self._tags_menu_items:
@@ -359,7 +359,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
       
       self._toggle_tag_interactive = False
       
-      items = [self._exporter.item_tree[item_key] for item_key in item_keys]
+      items = [self._batcher.item_tree[item_key] for item_key in item_keys]
       for tag, tags_menu_item in self._tags_menu_items.items():
         tags_menu_item.set_active(all(tag in item.tags for item in items))
       
@@ -376,17 +376,17 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _on_tags_menu_item_toggled(self, tags_menu_item, tag):
     if self._toggle_tag_interactive:
-      pdb.gimp_image_undo_group_start(self._exporter.input_image)
+      pdb.gimp_image_undo_group_start(self._batcher.input_image)
       
       for item_key in self._get_keys_from_current_selection():
-        item = self._exporter.item_tree[item_key]
+        item = self._batcher.item_tree[item_key]
         
         if tags_menu_item.get_active():
           item.add_tag(tag)
         else:
           item.remove_tag(tag)
       
-      pdb.gimp_image_undo_group_end(self._exporter.input_image)
+      pdb.gimp_image_undo_group_end(self._batcher.input_image)
       
       # Modifying just one item could result in renaming other items
       # differently, hence update the whole preview.
@@ -513,10 +513,10 @@ class ExportNamePreview(preview_base_.ExportPreview):
   
   def _get_items_to_process(self):
     if self.is_filtering:
-      with self._exporter.item_tree.filter.remove_temp(name=self._selected_items_filter_name):
-        return list(self._exporter.item_tree)
+      with self._batcher.item_tree.filter.remove_temp(name=self._selected_items_filter_name):
+        return list(self._batcher.item_tree)
     else:
-      return list(self._exporter.item_tree)
+      return list(self._batcher.item_tree)
   
   def _process_items(self, reset_items=False):
     if not reset_items:
@@ -524,7 +524,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
         item_tree = self._initial_item_tree
         self._initial_item_tree = None
       else:
-        item_tree = self._exporter.item_tree
+        item_tree = self._batcher.item_tree
     else:
       item_tree = None
     
@@ -534,7 +534,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
       for item in item_tree.iter_all():
         item.reset()
     
-    self._exporter.export(
+    self._batcher.export(
       item_tree=item_tree,
       is_preview=True,
       process_contents=False,
@@ -598,7 +598,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
     if self.is_filtering:
       self._set_items_sensitive(items, False)
       self._set_items_sensitive(
-        [self._exporter.item_tree[item_key] for item_key in self._selected_items], True)
+        [self._batcher.item_tree[item_key] for item_key in self._selected_items], True)
   
   def _get_item_sensitive(self, item):
     return self._tree_model.get_value(
@@ -666,11 +666,11 @@ class ExportNamePreview(preview_base_.ExportPreview):
     self._row_expand_collapse_interactive = True
   
   def _remove_no_longer_valid_collapsed_items(self):
-    if self._exporter.item_tree is None:
+    if self._batcher.item_tree is None:
       return
     
     self._collapsed_items = set(
-      [item_key for item_key in self._collapsed_items if item_key in self._exporter.item_tree])
+      [item_key for item_key in self._collapsed_items if item_key in self._batcher.item_tree])
   
   def _set_selection(self):
     self._row_select_interactive = False

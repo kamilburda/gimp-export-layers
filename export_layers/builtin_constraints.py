@@ -24,10 +24,10 @@ def has_matching_file_extension(item, file_extension):
   return pg.path.get_file_extension(item.name).lower() == file_extension.lower()
 
 
-def has_matching_default_file_extension(item, exporter):
+def has_matching_default_file_extension(item, batcher):
   return (
     pg.path.get_file_extension(item.name).lower()
-    == exporter.export_settings['file_extension'].value.lower())
+    == batcher.batch_settings['file_extension'].value.lower())
 
 
 def is_item_in_selected_items(item, selected_layers):

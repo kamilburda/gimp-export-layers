@@ -25,11 +25,11 @@ class ItemRenamer(object):
       pattern=pattern,
       fields=_get_fields_and_substitute_funcs(_init_fields(fields_raw)))
   
-  def rename(self, exporter, item=None):
+  def rename(self, batcher, item=None):
     if item is None:
-      item = exporter.current_item
+      item = batcher.current_item
     
-    return self._filename_pattern.substitute(exporter, item)
+    return self._filename_pattern.substitute(batcher, item)
 
 
 def _get_fields_and_substitute_funcs(fields):
@@ -164,7 +164,7 @@ class NumberField(Field):
       yield str_i
       i += increment
   
-  def _get_number(self, exporter, item, field_value, *args):
+  def _get_number(self, batcher, item, field_value, *args):
     reset_numbering_on_parent = True
     ascending = True
     padding = None
@@ -195,13 +195,13 @@ class NumberField(Field):
         if reset_numbering_on_parent:
           if parent_item is not None:
             initial_number = len([
-              tree_item for tree_item in exporter.item_tree
+              tree_item for tree_item in batcher.item_tree
               if tree_item.depth == parent_item.depth + 1 and tree_item.parent == parent_item])
           else:
             initial_number = len(
-              [tree_item for tree_item in exporter.item_tree if tree_item.depth == 0])
+              [tree_item for tree_item in batcher.item_tree if tree_item.depth == 0])
         else:
-          initial_number = len(exporter.item_tree)
+          initial_number = len(batcher.item_tree)
       
       self._global_number_generators[field_value][parent_id] = self.generate_number(
         initial_number, padding, ascending)
@@ -214,12 +214,12 @@ class _PercentTemplate(string.Template):
   delimiter = '%'
 
 
-def _get_layer_name(exporter, item, field_value, file_extension_strip_mode=''):
+def _get_layer_name(batcher, item, field_value, file_extension_strip_mode=''):
   if file_extension_strip_mode in ['%e', '%i']:
     file_extension = pg.path.get_file_extension(item.orig_name)
     if file_extension:
       if file_extension_strip_mode == '%i':
-        if file_extension == exporter.export_settings['file_extension'].value:
+        if file_extension == batcher.batch_settings['file_extension'].value:
           return item.name
       else:
         return item.name
@@ -227,9 +227,9 @@ def _get_layer_name(exporter, item, field_value, file_extension_strip_mode=''):
   return pg.path.get_filename_root(item.name)
 
 
-def _get_image_name(exporter, item, field_value, keep_extension_str=''):
-  if exporter.current_image is not None and exporter.current_image.name is not None:
-    image_name = exporter.current_image.name
+def _get_image_name(batcher, item, field_value, keep_extension_str=''):
+  if batcher.current_image is not None and batcher.current_image.name is not None:
+    image_name = batcher.current_image.name
   else:
     image_name = _('Untitled')
   
@@ -240,7 +240,7 @@ def _get_image_name(exporter, item, field_value, keep_extension_str=''):
 
 
 def _get_layer_path(
-      exporter, item, field_value, separator='-', wrapper=None, file_extension_strip_mode=''):
+      batcher, item, field_value, separator='-', wrapper=None, file_extension_strip_mode=''):
   path_component_token = '%c'
   
   if wrapper is None:
@@ -252,12 +252,12 @@ def _get_layer_path(
       wrapper = '{}'
   
   path_components = [parent.name for parent in item.parents]
-  path_components += [_get_layer_name(exporter, item, field_value, file_extension_strip_mode)]
+  path_components += [_get_layer_name(batcher, item, field_value, file_extension_strip_mode)]
   
   return separator.join([wrapper.format(path_component) for path_component in path_components])
 
 
-def _get_tags(exporter, item, field_value, *args):
+def _get_tags(batcher, item, field_value, *args):
   tags_to_insert = []
   
   def _insert_tag(tag):
@@ -311,12 +311,12 @@ def _get_tags(exporter, item, field_value, *args):
   return tag_separator.join([tag_wrapper.format(tag) for tag in tags_to_insert])
 
 
-def _get_current_date(exporter, item, field_value, date_format='%Y-%m-%d'):
+def _get_current_date(batcher, item, field_value, date_format='%Y-%m-%d'):
   return datetime.datetime.now().strftime(date_format)
 
 
-def _get_attributes(exporter, item, field_value, pattern, measure='%px'):
-  image = exporter.current_image
+def _get_attributes(batcher, item, field_value, pattern, measure='%px'):
+  image = batcher.current_image
   
   fields = {
     'iw': image.width,
@@ -354,7 +354,7 @@ def _get_attributes(exporter, item, field_value, pattern, measure='%px'):
 
 
 def _replace(
-      exporter, item, field_value, field_to_replace_str, pattern, replacement, *count_and_flags):
+      batcher, item, field_value, field_to_replace_str, pattern, replacement, *count_and_flags):
   field_name, field_args = pg.path.StringPattern.parse_field(field_to_replace_str)
   
   try:
@@ -362,7 +362,7 @@ def _replace(
   except KeyError:
     return ''
   
-  str_to_process = field_func(exporter, item, field_name, *field_args)
+  str_to_process = field_func(batcher, item, field_name, *field_args)
   
   count = 0
   flags = 0

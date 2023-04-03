@@ -73,10 +73,10 @@ class ExportImagePreview(preview_base_.ExportPreview):
   _MAX_PREVIEW_SIZE_PIXELS = 1024
   _PREVIEW_ALPHA_CHECK_SIZE = 4
   
-  def __init__(self, exporter):
+  def __init__(self, batcher):
     super().__init__()
     
-    self._exporter = exporter
+    self._batcher = batcher
     
     self._item = None
     
@@ -186,18 +186,18 @@ class ExportImagePreview(preview_base_.ExportPreview):
   def update_item(self, raw_item_id=None):
     if raw_item_id is None:
       if (self.item is not None
-          and self._exporter.item_tree is not None
-          and self.item.raw.ID in self._exporter.item_tree):
+          and self._batcher.item_tree is not None
+          and self.item.raw.ID in self._batcher.item_tree):
         raw_item_id = self.item.raw.ID
         should_update = True
       else:
         should_update = False
     else:
-      should_update = raw_item_id in self._exporter.item_tree
+      should_update = raw_item_id in self._batcher.item_tree
     
     if should_update:
-      item = self._exporter.item_tree[raw_item_id]
-      if self._exporter.item_tree.filter.is_match(item):
+      item = self._batcher.item_tree[raw_item_id]
+      if self._batcher.item_tree.filter.is_match(item):
         self.item = item
         self._set_item_name_label(self.item.name)
   
@@ -220,25 +220,25 @@ class ExportImagePreview(preview_base_.ExportPreview):
     if scale_item_action_groups is None:
       scale_item_action_groups = ['before_process_item_contents']
     
-    self._exporter.remove_action(
+    self._batcher.remove_action(
       self._resize_image_action_id, groups='all', ignore_if_not_exists=True)
-    self._resize_image_action_id = self._exporter.add_procedure(
-      self._resize_image_for_exporter, resize_image_action_groups, ignore_if_exists=True)
+    self._resize_image_action_id = self._batcher.add_procedure(
+      self._resize_image_for_batcher, resize_image_action_groups, ignore_if_exists=True)
     
-    self._exporter.remove_action(
+    self._batcher.remove_action(
       self._merge_items_action_id, groups='all', ignore_if_not_exists=True)
-    self._merge_items_action_id = self._exporter.add_procedure(
-      self._merge_items_for_exporter, ['after_process_item_contents'], ignore_if_exists=True)
+    self._merge_items_action_id = self._batcher.add_procedure(
+      self._merge_items_for_batcher, ['after_process_item_contents'], ignore_if_exists=True)
     
-    self._exporter.remove_action(
+    self._batcher.remove_action(
       self._scale_item_action_id, groups='all', ignore_if_not_exists=True)
-    self._scale_item_action_id = self._exporter.add_procedure(
-      self._scale_item_for_exporter, scale_item_action_groups, ignore_if_exists=True)
+    self._scale_item_action_id = self._batcher.add_procedure(
+      self._scale_item_for_batcher, scale_item_action_groups, ignore_if_exists=True)
     
-    self._exporter.remove_action(
+    self._batcher.remove_action(
       self._resize_item_action_id, groups='all', ignore_if_not_exists=True)
-    self._resize_item_action_id = self._exporter.add_procedure(
-      self._resize_item_for_exporter, ['after_process_item_contents'], ignore_if_exists=True)
+    self._resize_item_action_id = self._batcher.add_procedure(
+      self._resize_item_for_batcher, ['after_process_item_contents'], ignore_if_exists=True)
   
   def _set_contents(self):
     # Sanity check in case `item` changes before `'size-allocate'` is emitted.
@@ -366,20 +366,20 @@ class ExportImagePreview(preview_base_.ExportPreview):
     # so that proper names are displayed in the image preview - the same ones as
     # produced by the name preview, since we assume here that the image preview
     # is updated after the name preview.
-    if self._exporter.item_tree is not None:
-      for item in self._exporter.item_tree.iter_all():
+    if self._batcher.item_tree is not None:
+      for item in self._batcher.item_tree.iter_all():
         item.push_state()
         item.reset()
     
-    only_selected_item_constraint_id = self._exporter.add_constraint(
+    only_selected_item_constraint_id = self._batcher.add_constraint(
       builtin_constraints.is_item_in_selected_items,
       groups=[actions.DEFAULT_CONSTRAINTS_GROUP],
       args=[[self.item.raw.ID]])
     
     try:
-      image_preview = self._exporter.export(
+      image_preview = self._batcher.export(
         keep_image_copy=True,
-        item_tree=self._exporter.item_tree,
+        item_tree=self._batcher.item_tree,
         is_preview=True,
         process_contents=True,
         process_names=False,
@@ -389,17 +389,17 @@ class ExportImagePreview(preview_base_.ExportPreview):
         details=traceback.format_exc(), parent=pg.gui.get_toplevel_window(self))
       image_preview = None
     
-    self._exporter.remove_action(
+    self._batcher.remove_action(
       only_selected_item_constraint_id, [actions.DEFAULT_CONSTRAINTS_GROUP])
     
-    if self._exporter.item_tree is not None:
-      for item in self._exporter.item_tree.iter_all():
+    if self._batcher.item_tree is not None:
+      for item in self._batcher.item_tree.iter_all():
         item.pop_state()
     
     return image_preview
   
-  def _resize_image_for_exporter(self, exporter, *args, **kwargs):
-    image = exporter.current_image
+  def _resize_image_for_batcher(self, batcher, *args, **kwargs):
+    image = batcher.current_image
     
     pdb.gimp_image_resize(
       image,
@@ -410,16 +410,16 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     pdb.gimp_context_set_interpolation(gimpenums.INTERPOLATION_LINEAR)
   
-  def _merge_items_for_exporter(self, exporter, item=None, raw_item=None):
+  def _merge_items_for_batcher(self, batcher, item=None, raw_item=None):
     raw_item_merged = pdb.gimp_image_merge_visible_layers(
-      exporter.current_image, gimpenums.EXPAND_AS_NECESSARY)
+      batcher.current_image, gimpenums.EXPAND_AS_NECESSARY)
     
-    exporter.current_image.active_layer = raw_item_merged
-    exporter.current_raw_item = raw_item_merged
+    batcher.current_image.active_layer = raw_item_merged
+    batcher.current_raw_item = raw_item_merged
     
-  def _scale_item_for_exporter(self, exporter, item=None, raw_item=None):
+  def _scale_item_for_batcher(self, batcher, item=None, raw_item=None):
     if raw_item is None or not pdb.gimp_item_is_valid(raw_item):
-      raw_item = exporter.current_raw_item
+      raw_item = batcher.current_raw_item
     
     pdb.gimp_item_transform_scale(
       raw_item,
@@ -428,8 +428,8 @@ class ExportImagePreview(preview_base_.ExportPreview):
       (raw_item.offsets[0] + raw_item.width) * self._preview_scaling_factor,
       (raw_item.offsets[1] + raw_item.height) * self._preview_scaling_factor)
   
-  def _resize_item_for_exporter(self, exporter, item=None, raw_item=None):
-    pdb.gimp_layer_resize_to_image_size(exporter.current_raw_item)
+  def _resize_item_for_batcher(self, batcher, item=None, raw_item=None):
+    pdb.gimp_layer_resize_to_image_size(batcher.current_raw_item)
   
   def _get_preview_pixbuf(self, raw_item, preview_width, preview_height, preview_data):
     # The following code is largely based on the implementation of

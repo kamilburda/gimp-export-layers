@@ -14,12 +14,12 @@ from export_layers import pygimplib as pg
 from export_layers.pygimplib.tests import stubs_gimp
 
 from export_layers import builtin_procedures
-from export_layers import exporter as exporter_
+from export_layers import batcher as batcher_
 from export_layers import actions
 from export_layers import settings_main
 
 
-class TestLayerExporterInitialActions(unittest.TestCase):
+class TestBatcherInitialActions(unittest.TestCase):
   
   @classmethod
   def setUpClass(cls):
@@ -34,7 +34,7 @@ class TestLayerExporterInitialActions(unittest.TestCase):
     settings['special/image'].set_value(self.image)
     settings['main/file_extension'].set_value('xcf')
     
-    exporter = exporter_.LayerExporter(
+    batcher = batcher_.Batcher(
       settings['special/run_mode'].value,
       settings['special/image'].value,
       settings['main'])
@@ -43,12 +43,12 @@ class TestLayerExporterInitialActions(unittest.TestCase):
       settings['main/procedures'],
       builtin_procedures.BUILTIN_PROCEDURES['insert_background_layers'])
     
-    exporter.add_procedure(pg.utils.empty_func, [actions.DEFAULT_PROCEDURES_GROUP])
+    batcher.add_procedure(pg.utils.empty_func, [actions.DEFAULT_PROCEDURES_GROUP])
     
-    exporter.export(
+    batcher.export(
       is_preview=True, process_contents=False, process_names=False, process_export=False)
     
-    added_action_items = exporter.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
+    added_action_items = batcher.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
     
     # Includes built-in procedures added by default
     self.assertEqual(len(added_action_items), 6)
@@ -65,16 +65,16 @@ class TestLayerExporterInitialActions(unittest.TestCase):
 class TestAddActionFromSettings(unittest.TestCase):
   
   def setUp(self):
-    self.exporter = exporter_.LayerExporter(
+    self.batcher = batcher_.Batcher(
       initial_run_mode=0,
       input_image=mock.MagicMock(),
-      export_settings=mock.MagicMock(),
+      batch_settings=mock.MagicMock(),
       overwrite_chooser=mock.MagicMock(),
       progress_updater=mock.MagicMock())
     
     self.invoker = pg.invoker.Invoker()
     
-    self.exporter._invoker = self.invoker
+    self.batcher._invoker = self.invoker
     
     self.procedures = actions.create('procedures')
     
@@ -92,7 +92,7 @@ class TestAddActionFromSettings(unittest.TestCase):
     procedure = actions.add(
       self.procedures, builtin_procedures.BUILTIN_PROCEDURES['insert_background_layers'])
     
-    self.exporter._add_action_from_settings(procedure)
+    self.batcher._add_action_from_settings(procedure)
     
     added_action_items = self.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
     
@@ -111,10 +111,10 @@ class TestAddActionFromSettings(unittest.TestCase):
   def _test_add_pdb_proc_as_action(self, pdb_procedure, expected_args, expected_kwargs):
     procedure = actions.add(self.procedures, pdb_procedure)
     
-    with mock.patch('export_layers.exporter.pdb') as pdb_mock:
+    with mock.patch('export_layers.batcher.pdb') as pdb_mock:
       pdb_mock.__getitem__.return_value = pdb_procedure
       
-      self.exporter._add_action_from_settings(procedure)
+      self.batcher._add_action_from_settings(procedure)
     
     added_action_items = self.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
     

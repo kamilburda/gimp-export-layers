@@ -18,13 +18,13 @@ from export_layers import exceptions
 from export_layers import placeholders
 
 
-_EXPORTER_ARG_POSITION_IN_PROCEDURES = 0
-_EXPORTER_ARG_POSITION_IN_CONSTRAINTS = 0
+_BATCHER_ARG_POSITION_IN_PROCEDURES = 0
+_BATCHER_ARG_POSITION_IN_CONSTRAINTS = 0
 
 _NAME_ONLY_ACTION_GROUP = 'name'
 
 
-class LayerExporter(object):
+class Batcher(object):
   """Class for batch-processing layers in the specified image with a sequence of
   actions (resize, rename, export, ...).
   
@@ -40,9 +40,9 @@ class LayerExporter(object):
   
   * `input_image` (read-only) - Input `gimp.Image` to process layers for.
   
-  * `export_settings` (read-only) - `setting.Group` instance containing export
-    settings, procedures and constraints. This class treats the settings as
-    read-only.
+  * `batch_settings` (read-only) - `setting.Group` instance containing
+    procedures and constraints and export settings. This class treats the
+    settings as read-only.
   
   * `overwrite_chooser` (read-only) - `OverwriteChooser` instance that is
     invoked during export if a file with the same name already exists. If
@@ -108,7 +108,7 @@ class LayerExporter(object):
         self,
         initial_run_mode,
         input_image,
-        export_settings,
+        batch_settings,
         overwrite_chooser=None,
         progress_updater=None,
         item_tree=None,
@@ -122,7 +122,7 @@ class LayerExporter(object):
     self._init_attributes(
       initial_run_mode=initial_run_mode,
       input_image=input_image,
-      export_settings=export_settings,
+      batch_settings=batch_settings,
       overwrite_chooser=overwrite_chooser,
       progress_updater=progress_updater,
       item_tree=item_tree,
@@ -155,8 +155,8 @@ class LayerExporter(object):
     return self._input_image
   
   @property
-  def export_settings(self):
-    return self._export_settings
+  def batch_settings(self):
+    return self._batch_settings
   
   @property
   def overwrite_chooser(self):
@@ -233,9 +233,9 @@ class LayerExporter(object):
     exported, this method returns `None` and the image copy will be destroyed.
     
     `**kwargs` can contain arguments that can be passed to
-    `LayerExporter.__init__()`. Arguments in `**kwargs` overwrite the
-    corresponding `LayerExporter` attributes.
-    See the attributes of `LayerExporter` for the description of these
+    `Batcher.__init__()`. Arguments in `**kwargs` overwrite the
+    corresponding `Batcher` attributes.
+    See the attributes of `Batcher` for the description of these
     arguments.
     """
     self._init_attributes(**kwargs)
@@ -395,7 +395,7 @@ class LayerExporter(object):
     return pdb_procedure.params and pdb_procedure.params[0][1] == 'run-mode'
   
   def _get_action_func_for_pdb_procedure(self, pdb_procedure):
-    def _pdb_procedure_as_action(exporter, *args, **kwargs):
+    def _pdb_procedure_as_action(batcher, *args, **kwargs):
       return pdb_procedure(*args, **kwargs)
     
     return _pdb_procedure_as_action
@@ -445,19 +445,19 @@ class LayerExporter(object):
   
   def _get_args_for_constraint_func(self, func, args):
     try:
-      exporter_arg_position = inspect.getargspec(func).args.index('exporter')
+      batcher_arg_position = inspect.getargspec(func).args.index('batcher')
     except ValueError:
-      exporter_arg_position = None
+      batcher_arg_position = None
     
-    if exporter_arg_position is not None:
+    if batcher_arg_position is not None:
       func_args = args
     else:
       if len(args) > 1:
-        exporter_arg_position = _EXPORTER_ARG_POSITION_IN_CONSTRAINTS
+        batcher_arg_position = _BATCHER_ARG_POSITION_IN_CONSTRAINTS
       else:
-        exporter_arg_position = 0
+        batcher_arg_position = 0
       
-      func_args = args[:exporter_arg_position] + args[exporter_arg_position + 1:]
+      func_args = args[:batcher_arg_position] + args[batcher_arg_position + 1:]
     
     return func_args
   
@@ -475,7 +475,7 @@ class LayerExporter(object):
     
     if self._overwrite_chooser is None:
       self._overwrite_chooser = pg.overwrite.NoninteractiveOverwriteChooser(
-        self._export_settings['overwrite_mode'].value)
+        self._batch_settings['overwrite_mode'].value)
     
     if self._progress_updater is None:
       self._progress_updater = pg.progress.ProgressUpdater(None)
@@ -534,50 +534,50 @@ class LayerExporter(object):
     
     self._add_default_rename_procedure([actions.DEFAULT_PROCEDURES_GROUP])
     
-    for procedure in actions.walk(self._export_settings['procedures']):
+    for procedure in actions.walk(self._batch_settings['procedures']):
       self._add_action_from_settings(procedure)
     
     self._add_default_export_procedure([actions.DEFAULT_PROCEDURES_GROUP])
     
-    for constraint in actions.walk(self._export_settings['constraints']):
+    for constraint in actions.walk(self._batch_settings['constraints']):
       self._add_action_from_settings(constraint)
   
   def _add_name_only_actions(self):
     self._add_default_rename_procedure([_NAME_ONLY_ACTION_GROUP])
     
-    for procedure in actions.walk(self._export_settings['procedures']):
+    for procedure in actions.walk(self._batch_settings['procedures']):
       self._add_action_from_settings(
         procedure, [builtin_procedures.NAME_ONLY_TAG], [_NAME_ONLY_ACTION_GROUP])
     
     self._add_default_export_procedure([_NAME_ONLY_ACTION_GROUP])
     
-    for constraint in actions.walk(self._export_settings['constraints']):
+    for constraint in actions.walk(self._batch_settings['constraints']):
       self._add_action_from_settings(
         constraint, [builtin_procedures.NAME_ONLY_TAG], [_NAME_ONLY_ACTION_GROUP])
   
   def _add_default_rename_procedure(self, action_groups):
     if not any(
           procedure['orig_name'].value == 'rename' and procedure['enabled'].value
-          for procedure in actions.walk(self._export_settings['procedures'])):
+          for procedure in actions.walk(self._batch_settings['procedures'])):
       self._invoker.add(
         builtin_procedures.rename_layer,
         groups=action_groups,
-        args=[self._export_settings['layer_filename_pattern'].value])
+        args=[self._batch_settings['layer_filename_pattern'].value])
   
   def _add_default_export_procedure(self, action_groups):
     if not any(
           procedure['orig_name'].value == 'export' and procedure['enabled'].value
-          for procedure in actions.walk(self._export_settings['procedures'])):
+          for procedure in actions.walk(self._batch_settings['procedures'])):
       self._invoker.add(
         export_.export,
         groups=action_groups,
-        args=[self._export_settings['file_extension'].value, export_.ExportModes.EACH_LAYER])
+        args=[self._batch_settings['file_extension'].value, export_.ExportModes.EACH_LAYER])
   
   def _set_constraints(self):
     self._invoker.invoke(
       [actions.DEFAULT_CONSTRAINTS_GROUP],
       [self],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_CONSTRAINTS)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_CONSTRAINTS)
   
   def _setup_contents(self):
     pdb.gimp_context_push()
@@ -594,7 +594,7 @@ class LayerExporter(object):
     self._invoker.invoke(
       ['cleanup_contents'],
       [self],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
     
     self._copy_non_modifying_parasites(self._current_image, self._input_image)
     
@@ -627,13 +627,13 @@ class LayerExporter(object):
     self._invoker.invoke(
       ['before_process_items'],
       [self],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
     
     if self._process_contents:
       self._invoker.invoke(
         ['before_process_items_contents'],
         [self],
-        additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+        additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
     
     for item in self._item_tree:
       if self._should_stop:
@@ -645,12 +645,12 @@ class LayerExporter(object):
       self._invoker.invoke(
         ['after_process_items_contents'],
         [self],
-        additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+        additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
       ['after_process_items'],
       [self],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
   
   def _process_item(self, item):
     self._current_item = item
@@ -669,17 +669,17 @@ class LayerExporter(object):
     self._invoker.invoke(
       ['before_process_item'],
       [self, self._current_item, self._current_raw_item],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
       [_NAME_ONLY_ACTION_GROUP],
       [self],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
       ['after_process_item'],
       [self, self._current_item, self._current_raw_item],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
   
   def _process_item_with_actions(self, item, raw_item):
     raw_item_copy = pg.pdbutils.copy_and_paste_layer(
@@ -691,29 +691,29 @@ class LayerExporter(object):
     self._invoker.invoke(
       ['before_process_item'],
       [self, self._current_item, self._current_raw_item],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
     
     if self._process_contents:
       self._invoker.invoke(
         ['before_process_item_contents'],
         [self, self._current_item, self._current_raw_item],
-        additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+        additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
       [actions.DEFAULT_PROCEDURES_GROUP],
       [self],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
     
     if self._process_contents:
       self._invoker.invoke(
         ['after_process_item_contents'],
         [self, self._current_item, self._current_raw_item],
-        additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+        additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
       ['after_process_item'],
       [self, self._current_item, self._current_raw_item],
-      additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
   
   def _refresh_current_image(self, raw_item):
     if not self._keep_image_copy:
