@@ -171,7 +171,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
       settings['special/image'].value,
       settings['main'])
     
-    batcher.export()
+    batcher.run()
     
     for procedure_name in procedure_names_to_add:
       actions.remove(settings['main/procedures'], procedure_name)
@@ -262,7 +262,7 @@ def test_export_for_all_file_formats(batcher, batch_settings):
       batch_settings['output_directory'].set_value(
         os.path.join(orig_output_dirpath, file_extension))
       try:
-        batcher.export()
+        batcher.run()
       except exceptions.ExportError:
         # Do not stop if one file format causes an error.
         continue

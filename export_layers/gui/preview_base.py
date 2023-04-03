@@ -10,7 +10,7 @@ pygtk.require('2.0')
 import gtk
 
 
-class ExportPreview(gtk.VBox):
+class Preview(gtk.VBox):
   
   def __init__(self):
     super().__init__(homogeneous=False)

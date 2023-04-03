@@ -45,7 +45,7 @@ class TestBatcherInitialActions(unittest.TestCase):
     
     batcher.add_procedure(pg.utils.empty_func, [actions.DEFAULT_PROCEDURES_GROUP])
     
-    batcher.export(
+    batcher.run(
       is_preview=True, process_contents=False, process_names=False, process_export=False)
     
     added_action_items = batcher.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)

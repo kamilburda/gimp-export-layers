@@ -45,7 +45,7 @@ def display_image_preview_failure_message(details, parent=None):
     focus_on_button=True)
 
 
-class ExportImagePreview(preview_base_.ExportPreview):
+class ImagePreview(preview_base_.Preview):
   """
   This class defines a widget displaying a preview of an image to be processed,
   including its name.
@@ -344,7 +344,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
     if raw_item_preview.mask is not None:
       raw_item_preview.remove_mask(gimpenums.MASK_APPLY)
     
-    # Recompute the size as the item may have been resized during the export.
+    # Recompute the size as the item may have been resized during processing.
     self._preview_width, self._preview_height = self._get_preview_size(
       raw_item_preview.width, raw_item_preview.height)
     
@@ -361,7 +361,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
   def _get_image_preview(self):
     # The processing requires items in their original state as some procedures
     # might depend on their values, which would otherwise produce an image that
-    # would not correspond to the real export. We therefore reset items.
+    # would not correspond to the real output. We therefore reset items.
     # Also, we need to restore the items' state once the processing is finished
     # so that proper names are displayed in the image preview - the same ones as
     # produced by the name preview, since we assume here that the image preview
@@ -377,7 +377,7 @@ class ExportImagePreview(preview_base_.ExportPreview):
       args=[[self.item.raw.ID]])
     
     try:
-      image_preview = self._batcher.export(
+      image_preview = self._batcher.run(
         keep_image_copy=True,
         item_tree=self._batcher.item_tree,
         is_preview=True,
@@ -645,4 +645,4 @@ class ExportImagePreview(preview_base_.ExportPreview):
       array.array(b'B', preview_data).tostring())
 
 
-gobject.type_register(ExportImagePreview)
+gobject.type_register(ImagePreview)

@@ -313,7 +313,7 @@ if _gimp_dependent_modules_imported:
         parameters=[
           (gimpenums.PDB_INT32, 'run-mode', 'The run mode'),
           (gimpenums.PDB_IMAGE, 'image', 'The current image'),
-          (gimpenums.PDB_STRING, 'dirpath', 'The export directory path')]
+          (gimpenums.PDB_STRING, 'dirpath', 'Output directory path')]
       )
       def plug_in_export_layers(run_mode, image, *args):
         ...

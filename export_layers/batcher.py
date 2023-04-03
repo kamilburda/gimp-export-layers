@@ -55,7 +55,7 @@ class Batcher(object):
   * `item_tree` (read-only) - `ItemTree` instance containing layers to be
     processed. If `None` (the default), an item tree is automatically created at
     the start of processing. If `item_tree` has filters (constraints) set, they
-    will be reset on each call to `export()`.
+    will be reset on each call to `run()`.
   
   * `is_preview` (read-only) - If `True`, only procedures and constraints that
     are marked as "enabled for previews" will be applied for previews. This has
@@ -101,7 +101,7 @@ class Batcher(object):
   
   * `invoker` (read-only) - `pygimplib.invoker.Invoker` instance to manage
     procedures and constraints applied on layers. This property is not `None`
-    only during `export()`.
+    only during `run()`.
   """
   
   def __init__(
@@ -222,7 +222,7 @@ class Batcher(object):
   def invoker(self):
     return self._invoker
   
-  def export(self, keep_image_copy=False, **kwargs):
+  def run(self, keep_image_copy=False, **kwargs):
     """Batch-processes and exports layers as separate images.
     
     A copy of the image and the layers to be processed are created so that the
@@ -260,10 +260,14 @@ class Batcher(object):
       return None
   
   def stop(self):
+    """Terminates batch processing prematurely.
+    
+    The termination occurs after the current item is processed completely.
+    """
     self._should_stop = True
   
   def add_procedure(self, *args, **kwargs):
-    """Adds a procedure to be applied during `export()`.
+    """Adds a procedure to be applied during `run()`.
     
     The signature is the same as for `pygimplib.invoker.Invoker.add()`.
     
@@ -278,7 +282,7 @@ class Batcher(object):
     persistently and are always enabled.
     
     This class recognizes several action groups that are invoked at certain
-    places when `export()` is called:
+    places when `run()` is called:
     * `'before_process_items'` - invoked before starting processing the first
       item. Only one argument is accepted - instance of this class.
     * `'before_process_items_contents'` - same as `'before_process_items'`, but
@@ -314,7 +318,7 @@ class Batcher(object):
   
   def add_constraint(self, func, *args, **kwargs):
     """
-    Add a constraint to be applied during `export()`. The first argument is the
+    Add a constraint to be applied during `run()`. The first argument is the
     function to act as a filter (returning `True` or `False`). The rest of the
     signature is the same as for `pygimplib.invoker.Invoker.add()`.
     
@@ -324,14 +328,14 @@ class Batcher(object):
   
   def remove_action(self, *args, **kwargs):
     """
-    Remove an action originally scheduled to be applied during `export()`.
+    Remove an action originally scheduled to be applied during `run()`.
     The signature is the same as for `pygimplib.invoker.Invoker.remove()`.
     """
     self._initial_invoker.remove(*args, **kwargs)
   
   def reorder_action(self, *args, **kwargs):
     """
-    Reorder an action to be applied during `export()`.
+    Reorder an action to be applied during `run()`.
     The signature is the same as for `pygimplib.invoker.Invoker.reorder()`.
     """
     self._initial_invoker.reorder(*args, **kwargs)

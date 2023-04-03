@@ -11,7 +11,7 @@ from export_layers import builtin_constraints
 from export_layers import builtin_procedures
 
 
-class ExportPreviewsController(object):
+class PreviewsController(object):
   
   _DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS = 50
   _DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS = 500

@@ -816,7 +816,7 @@ class TestGetActionDictAsPdbProcedure(unittest.TestCase):
     self.procedure_stub.params = tuple(
       list(self.procedure_stub.params)
       + [(gimpenums.PDB_IMAGE, 'image', 'The image'),
-         (gimpenums.PDB_LAYER, 'layer', 'The layer to export')])
+         (gimpenums.PDB_LAYER, 'layer', 'The layer to process')])
     
     action_dict = actions.get_action_dict_for_pdb_procedure(self.procedure_stub)
     

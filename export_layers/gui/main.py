@@ -48,9 +48,9 @@ from export_layers.gui import progress as progress_
 from export_layers.gui import messages as messages_
 
 
-def display_export_failure_message(exception, parent=None):
+def display_failure_message(exception, parent=None):
   error_message = _(
-    'The export was unsuccessful. '
+    'There was an error during processing. '
     'The message below may help you fix the issue.')
   error_message += '\n' + str(exception)
   
@@ -61,16 +61,16 @@ def display_export_failure_message(exception, parent=None):
     message_in_text_view=True)
 
 
-def display_export_failure_invalid_image_message(details, parent=None):
+def display_failure_invalid_image_message(details, parent=None):
   pg.gui.display_error_message(
     title=pg.config.PLUGIN_TITLE,
     app_name=pg.config.PLUGIN_TITLE,
     parent=parent,
     message_type=gtk.MESSAGE_WARNING,
     message_markup=_(
-      'The export was unsuccessful. '
-      'Do not close the image when exporting, '
-      'keep it open until the export finishes successfully.'),
+      'There was an error during processing. '
+      'Do not close the image during processing, '
+      'keep it open until the processing is finished successfully.'),
     message_secondary_markup=_(
       'If you believe this is a different error, '
       'you can help fix it by sending a report with the text '
@@ -131,7 +131,7 @@ def handle_gui_in_export(run_mode, image, layer, output_filepath, window):
       gtk.main_iteration()
 
 
-def stop_export(batcher):
+def stop_batcher(batcher):
   if batcher is not None:
     batcher.stop()
     return True
@@ -605,13 +605,13 @@ class ExportLayersDialog(object):
     
     self._hpaned_settings_and_previews.connect(
       'notify::position',
-      self._export_previews_controller.on_paned_outside_previews_notify_position)
+      self._previews_controller.on_paned_outside_previews_notify_position)
     self._vpaned_previews.connect(
       'notify::position',
-      self._export_previews_controller.on_paned_between_previews_notify_position)
+      self._previews_controller.on_paned_between_previews_notify_position)
     
-    self._export_previews_controller.connect_setting_changes_to_previews()
-    self._export_previews_controller.connect_name_preview_events()
+    self._previews_controller.connect_setting_changes_to_previews()
+    self._previews_controller.connect_name_preview_events()
     
     self._image_preview.connect('preview-updated', self._on_image_preview_updated)
   
@@ -655,7 +655,7 @@ class ExportLayersDialog(object):
     })
   
   def _init_gui_previews(self):
-    self._name_preview = preview_name_.ExportNamePreview(
+    self._name_preview = preview_name_.NamePreview(
       self._batcher_for_previews,
       self._initial_layer_tree,
       self._settings['gui_session/name_preview_layers_collapsed_state'].value[self._image.ID],
@@ -663,10 +663,10 @@ class ExportLayersDialog(object):
       'selected_in_preview',
       self._settings['main/available_tags'])
     
-    self._image_preview = preview_image_.ExportImagePreview(
+    self._image_preview = preview_image_.ImagePreview(
       self._batcher_for_previews)
     
-    self._export_previews_controller = previews_controller_.ExportPreviewsController(
+    self._previews_controller = previews_controller_.PreviewsController(
       self._name_preview, self._image_preview, self._settings, self._image)
   
   def _save_settings(self):
@@ -754,8 +754,8 @@ class ExportLayersDialog(object):
   
   def _on_dialog_key_press_event(self, dialog, event):
     if gtk.gdk.keyval_name(event.keyval) == 'Escape':
-      export_stopped = stop_export(self._batcher)
-      return export_stopped
+      stopped = stop_batcher(self._batcher)
+      return stopped
   
   def _on_button_settings_clicked(self, button):
     pg.gui.menu_popup_below_widget(self._menu_settings, button)
@@ -792,7 +792,7 @@ class ExportLayersDialog(object):
   
   @_set_settings
   def _on_button_export_clicked(self, button, lock_update_key):
-    self._setup_gui_before_export()
+    self._setup_gui_before_batch_run()
     overwrite_chooser, progress_updater = self._setup_batcher()
     
     item_progress_indicator = progress_.ItemProgressIndicator(
@@ -805,17 +805,17 @@ class ExportLayersDialog(object):
     self._image_preview.lock_update(True, lock_update_key)
     
     try:
-      self._batcher.export()
+      self._batcher.run()
     except exceptions.BatcherCancelError as e:
       should_quit = False
     except exceptions.BatcherError as e:
-      display_export_failure_message(e, parent=self._dialog)
+      display_failure_message(e, parent=self._dialog)
       should_quit = False
     except Exception as e:
       if pdb.gimp_image_is_valid(self._image):
         raise
       else:
-        display_export_failure_invalid_image_message(
+        display_failure_invalid_image_message(
           traceback.format_exc(), parent=self._dialog)
     else:
       self._settings['special/first_plugin_run'].set_value(False)
@@ -841,14 +841,14 @@ class ExportLayersDialog(object):
     if should_quit:
       gtk.main_quit()
     else:
-      self._restore_gui_after_export()
+      self._restore_gui_after_batch_run()
       progress_updater.reset()
   
-  def _setup_gui_before_export(self):
+  def _setup_gui_before_batch_run(self):
     self._display_inline_message(None)
     self._set_gui_enabled(False)
   
-  def _restore_gui_after_export(self):
+  def _restore_gui_after_batch_run(self):
     self._set_gui_enabled(True)
   
   def _setup_batcher(self):
@@ -916,7 +916,7 @@ class ExportLayersDialog(object):
     gtk.main_quit()
   
   def _on_button_stop_clicked(self, button):
-    stop_export(self._batcher)
+    stop_batcher(self._batcher)
   
   def _on_button_help_clicked(self, button):
     if os.path.isfile(pg.config.LOCAL_DOCS_PATH):
@@ -961,7 +961,7 @@ class ExportLayersRepeatDialog(object):
     
     gtk.main_iteration()
     self.show()
-    self.export_layers()
+    self.run_batcher()
   
   def _init_gui(self):
     self._dialog = gimpui.Dialog(title=pg.config.PLUGIN_TITLE, role=None)
@@ -988,7 +988,7 @@ class ExportLayersRepeatDialog(object):
     self._button_stop.connect('clicked', self._on_button_stop_clicked)
     self._dialog.connect('delete-event', self._on_dialog_delete_event)
   
-  def export_layers(self):
+  def run_batcher(self):
     progress_updater = pg.gui.GtkProgressUpdater(self._progress_bar)
     item_progress_indicator = progress_.ItemProgressIndicator(
       self._progress_bar, progress_updater)
@@ -1004,17 +1004,16 @@ class ExportLayersRepeatDialog(object):
       export_context_manager=handle_gui_in_export,
       export_context_manager_args=[self._dialog])
     try:
-      self._batcher.export(item_tree=self._layer_tree)
+      self._batcher.run(item_tree=self._layer_tree)
     except exceptions.BatcherCancelError:
       pass
     except exceptions.BatcherError as e:
-      display_export_failure_message(e, parent=self._dialog)
+      display_failure_message(e, parent=self._dialog)
     except Exception as e:
       if pdb.gimp_image_is_valid(self._image):
         raise
       else:
-        display_export_failure_invalid_image_message(
-          traceback.format_exc(), parent=self._dialog)
+        display_failure_invalid_image_message(traceback.format_exc(), parent=self._dialog)
     else:
       if not self._batcher.exported_raw_items:
         messages_.display_message(
@@ -1031,7 +1030,7 @@ class ExportLayersRepeatDialog(object):
     self._dialog.hide()
   
   def _on_button_stop_clicked(self, button):
-    stop_export(self._batcher)
+    stop_batcher(self._batcher)
   
   def _on_dialog_delete_event(self, dialog, event):
-    stop_export(self._batcher)
+    stop_batcher(self._batcher)

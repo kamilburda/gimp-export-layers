@@ -20,7 +20,7 @@ from export_layers import pygimplib as pg
 from export_layers.gui import preview_base as preview_base_
 
 
-class ExportNamePreview(preview_base_.ExportPreview):
+class NamePreview(preview_base_.Preview):
   """A widget displaying a preview of batch-processed items - names and their
   folder structure.
   
@@ -534,7 +534,7 @@ class ExportNamePreview(preview_base_.ExportPreview):
       for item in item_tree.iter_all():
         item.reset()
     
-    self._batcher.export(
+    self._batcher.run(
       item_tree=item_tree,
       is_preview=True,
       process_contents=False,
@@ -707,4 +707,4 @@ class ExportNamePreview(preview_base_.ExportPreview):
           self._tree_view.scroll_to_cell(first_selected_item_path, None, True, 0.5, 0.0)
 
 
-gobject.type_register(ExportNamePreview)
+gobject.type_register(NamePreview)

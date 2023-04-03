@@ -128,7 +128,7 @@ def _run_plugin_noninteractive(run_mode, layer_tree):
   batcher = batcher_.Batcher(run_mode, layer_tree.image, SETTINGS['main'])
   
   try:
-    batcher.export(item_tree=layer_tree)
+    batcher.run(item_tree=layer_tree)
   except exceptions.BatcherCancelError:
     pass
 
