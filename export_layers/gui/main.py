@@ -831,8 +831,7 @@ class ExportLayersDialog(object):
       self._name_preview.lock_update(False, lock_update_key)
       self._image_preview.lock_update(False, lock_update_key)
     
-    if (overwrite_chooser.overwrite_mode
-        in self._settings['main/overwrite_mode'].items.values()):
+    if overwrite_chooser.overwrite_mode in self._settings['main/overwrite_mode'].items.values():
       self._settings['main/overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
     
     self._settings['main'].save([pg.config.SESSION_SOURCE])

@@ -25,46 +25,66 @@ _NAME_ONLY_ACTION_GROUP = 'name'
 
 
 class LayerExporter(object):
-  """Class exporting layers as separate images, with the support for additional
-  actions applied on layers (resize, rename, ...).
+  """Class for batch-processing layers in the specified image with a sequence of
+  actions (resize, rename, export, ...).
   
   Attributes:
   
-  * `initial_run_mode` - The run mode to use for the first layer exported.
-    For subsequent layers, `gimpenums.RUN_WITH_LAST_VALS` is used. If the file
-    format in which the layer is exported to cannot handle
-    `gimpenums.RUN_WITH_LAST_VALS`, `gimpenums.RUN_INTERACTIVE` is used.
+  * `initial_run_mode` (read-only) - The run mode to use for the first layer.
+    For subsequent layers, `gimpenums.RUN_WITH_LAST_VALS` is used.
+    This usually has effect when exporting layers - if `initial_run_mode` is
+    `gimpenums.RUN_INTERACTIVE`, a native file format GUI is displayed for the
+    first layer and the same settings are then applied to subsequent layers.
+    If the file format in which the layer is exported to cannot handle
+    `gimpenums.RUN_WITH_LAST_VALS`, `gimpenums.RUN_INTERACTIVE` is forced.
   
-  * `input_image` - Input `gimp.Image` to process layers from.
+  * `input_image` (read-only) - Input `gimp.Image` to process layers for.
   
-  * `export_settings` - `setting.Group` instance containing export settings,
-    procedures and constraints. This class treats them as read-only.
+  * `export_settings` (read-only) - `setting.Group` instance containing export
+    settings, procedures and constraints. This class treats the settings as
+    read-only.
   
-  * `overwrite_chooser` - `OverwriteChooser` instance that is invoked during
-    export if a file with the same name already exists. If `None`, then
-    `pygimplib.overwrite.NoninteractiveOverwriteChooser` is used.
+  * `overwrite_chooser` (read-only) - `OverwriteChooser` instance that is
+    invoked during export if a file with the same name already exists. If
+    `None`, then `pygimplib.overwrite.NoninteractiveOverwriteChooser` is used.
   
-  * `progress_updater` - `ProgressUpdater` instance that indicates the number of
-    layers processed so far. If no progress update is desired, pass `None`.
+  * `progress_updater` (read-only) - `ProgressUpdater` instance that indicates
+    the number of layers processed so far. If no progress update is desired,
+    pass `None`.
   
-  * `item_tree` - `ItemTree` instance containing layers to be processed.
-    If `None` (the default), an item tree is automatically created at the start
-    of processing.
+  * `item_tree` (read-only) - `ItemTree` instance containing layers to be
+    processed. If `None` (the default), an item tree is automatically created at
+    the start of processing. If `item_tree` has filters (constraints) set, they
+    will be reset on each call to `export()`.
   
-  * `exported_raw_items` - List of layers that were successfully exported. Does
-    not include layers skipped by the user (when files with the same names
-    already exist).
+  * `is_preview` (read-only) - If `True`, only procedures and constraints that
+    are marked as "enabled for previews" will be applied for previews. This has
+    no effect during the real processing.
   
-  * `export_context_manager` - Context manager that wraps exporting a single
-    layer. This can be used to perform GUI updates before and after export.
-    Required parameters: current run mode, current image, layer to export,
-    output filename of the layer.
+  * `process_contents` (read-only) - If `True`, invoke procedures on layers.
+    Setting this to `False` is useful if you require only layer names to be
+    processed.
   
-  * `export_context_manager_args` - Additional positional arguments passed to
-    `export_context_manager`.
+  * `process_export` (read-only) - If `True`, process layer names before export
+    to be suitable to save to disk (in particular to remove characters invalid
+    for a file system). If `is_preview` is `True` and `process_names` is `True`,
+    also invoke built-in procedures modifying item names only (e.g. renaming
+    layers).
   
-  * `export_context_manager_kwargs` - Additional keyword arguments passed to
-    `export_context_manager`.
+  * `process_names` (read-only) - If `True`, perform export of layers. Setting
+    this to `False` is useful to preview the processed contents of a layer
+    without saving it to a file.
+  
+  * `export_context_manager` (read-only) - Context manager that wraps exporting
+    a single layer. This can be used to perform GUI updates before and after
+    export. Required parameters: current run mode, current image, layer to
+    export, output filename of the layer.
+  
+  * `export_context_manager_args` (read-only) - Additional positional arguments
+    passed to `export_context_manager`.
+  
+  * `export_context_manager_kwargs` (read-only) - Additional keyword arguments
+    passed to `export_context_manager`.
   
   * `current_item` (read-only) - An `itemtree.Item` instance currently being
     processed.
@@ -75,60 +95,49 @@ class LayerExporter(object):
     being processed. This is usually a copy of `image` to avoid modifying
     original layers.
   
-  * `process_contents` (read-only) - See `export()`.
+  * `exported_raw_items` (read-only) - List of layers that were successfully
+    exported. Does not include layers skipped by the user (when files with the
+    same names already exist).
   
-  * `process_export` (read-only) - See `export()`.
-  
-  * `process_names` (read-only) - See `export()`.
-  
-  * `invoker` - `pygimplib.invoker.Invoker` instance to
-    manage procedures and constraints applied on layers. This property is not
-    `None` only during `export()`.
+  * `invoker` (read-only) - `pygimplib.invoker.Invoker` instance to manage
+    procedures and constraints applied on layers. This property is not `None`
+    only during `export()`.
   """
   
   def __init__(
         self,
         initial_run_mode,
-        image,
+        input_image,
         export_settings,
         overwrite_chooser=None,
         progress_updater=None,
         item_tree=None,
+        is_preview=False,
+        process_contents=True,
+        process_names=True,
+        process_export=True,
         export_context_manager=None,
         export_context_manager_args=None,
         export_context_manager_kwargs=None):
-    
-    self.initial_run_mode = initial_run_mode
-    self.input_image = image
-    self.export_settings = export_settings
-    
-    self.overwrite_chooser = (
-      overwrite_chooser if overwrite_chooser is not None
-      else pg.overwrite.NoninteractiveOverwriteChooser(
-        self.export_settings['overwrite_mode'].value))
-    
-    self.progress_updater = (
-      progress_updater if progress_updater is not None
-      else pg.progress.ProgressUpdater(None))
-    
-    self._item_tree = item_tree
-    
-    self.export_context_manager = (
-      export_context_manager if export_context_manager is not None else pg.utils.EmptyContext)
-    self.export_context_manager_args = (
-      export_context_manager_args if export_context_manager_args is not None else [])
-    self.export_context_manager_kwargs = (
-      export_context_manager_kwargs if export_context_manager_kwargs is not None else {})
-    
-    self._is_preview = False
+    self._init_attributes(
+      initial_run_mode=initial_run_mode,
+      input_image=input_image,
+      export_settings=export_settings,
+      overwrite_chooser=overwrite_chooser,
+      progress_updater=progress_updater,
+      item_tree=item_tree,
+      is_preview=is_preview,
+      process_contents=process_contents,
+      process_names=process_names,
+      process_export=process_export,
+      export_context_manager=export_context_manager,
+      export_context_manager_args=export_context_manager_args,
+      export_context_manager_kwargs=export_context_manager_kwargs,
+    )
     
     self._current_item = None
     self._current_raw_item = None
     self._current_image = None
-    
-    self._process_contents = True
-    self._process_export = True
-    self._process_names = True
     
     self._exported_raw_items = []
     
@@ -136,6 +145,26 @@ class LayerExporter(object):
     
     self._invoker = None
     self._initial_invoker = pg.invoker.Invoker()
+  
+  @property
+  def initial_run_mode(self):
+    return self._initial_run_mode
+  
+  @property
+  def input_image(self):
+    return self._input_image
+  
+  @property
+  def export_settings(self):
+    return self._export_settings
+  
+  @property
+  def overwrite_chooser(self):
+    return self._overwrite_chooser
+  
+  @property
+  def progress_updater(self):
+    return self._progress_updater
   
   @property
   def item_tree(self):
@@ -146,8 +175,28 @@ class LayerExporter(object):
     return self._is_preview
   
   @property
-  def exported_raw_items(self):
-    return self._exported_raw_items
+  def process_contents(self):
+    return self._process_contents
+  
+  @property
+  def process_export(self):
+    return self._process_export
+  
+  @property
+  def process_names(self):
+    return self._process_names
+  
+  @property
+  def export_context_manager(self):
+    return self._export_context_manager
+  
+  @property
+  def export_context_manager_args(self):
+    return self._export_context_manager_args
+  
+  @property
+  def export_context_manager_kwargs(self):
+    return self._export_context_manager_kwargs
   
   @property
   def current_item(self):
@@ -166,35 +215,15 @@ class LayerExporter(object):
     return self._current_image
   
   @property
-  def process_contents(self):
-    return self._process_contents
-  
-  @property
-  def process_export(self):
-    return self._process_export
-  
-  @property
-  def process_names(self):
-    return self._process_names
+  def exported_raw_items(self):
+    return list(self._exported_raw_items)
   
   @property
   def invoker(self):
     return self._invoker
   
-  def export(
-        self,
-        item_tree=None,
-        keep_image_copy=False,
-        is_preview=False,
-        process_contents=True,
-        process_names=True,
-        process_export=True,
-    ):
+  def export(self, keep_image_copy=False, **kwargs):
     """Batch-processes and exports layers as separate images.
-    
-    If `item_tree` is not `None`, use an existing instance of
-    `itemtree.ItemTree` instead of creating a new one. If the instance had
-    filters (constraints) set, they will be reset.
     
     A copy of the image and the layers to be processed are created so that the
     original image and its soon-to-be processed layers are left intact. The
@@ -203,30 +232,18 @@ class LayerExporter(object):
     returns the image copy. If an exception was raised or if no layer was
     exported, this method returns `None` and the image copy will be destroyed.
     
-    If `is_preview` is `True`, only procedures and constraints that are marked
-    as "enabled for previews" will be applied for previews. This has no effect
-    during the real processing.
-    
-    If `process_contents` is `True`, invoke procedures on layers. Setting this
-    to `False` is useful if you require only layer names to be processed.
-    
-    If `process_names` is `True`, process layer names before export to
-    be suitable to save to disk (in particular to remove characters invalid for
-    a file system). If `is_preview` is `True` and `process_names` is `True`,
-    also invoke built-in procedures modifying item names only (e.g. renaming
-    layers).
-    
-    If `process_export` is `True`, perform export of layers. Setting this
-    to `False` is useful to preview the processed contents of a layer without
-    saving it to a file.
+    `**kwargs` can contain arguments that can be passed to
+    `LayerExporter.__init__()`. Arguments in `**kwargs` overwrite the
+    corresponding `LayerExporter` attributes.
+    See the attributes of `LayerExporter` for the description of these
+    arguments.
     """
-    self._initialize(
-      item_tree, keep_image_copy, is_preview,
-      process_contents, process_names, process_export)
+    self._init_attributes(**kwargs)
+    self._prepare_for_processing(self._item_tree, keep_image_copy)
     
     exception_occurred = False
     
-    if process_contents:
+    if self._process_contents:
       self._setup_contents()
     try:
       self._process_items()
@@ -234,10 +251,10 @@ class LayerExporter(object):
       exception_occurred = True
       raise
     finally:
-      if process_contents:
+      if self._process_contents:
         self._cleanup_contents(exception_occurred)
     
-    if process_contents and self._keep_image_copy:
+    if self._process_contents and self._keep_image_copy:
       return self._image_copy
     else:
       return None
@@ -372,7 +389,7 @@ class LayerExporter(object):
     if action_groups is None:
       action_groups = action['action_groups'].value
     
-    self.invoker.add(function, action_groups, function_args, function_kwargs)
+    self._invoker.add(function, action_groups, function_args, function_kwargs)
   
   def _has_run_mode_param(self, pdb_procedure):
     return pdb_procedure.params and pdb_procedure.params[0][1] == 'run-mode'
@@ -414,13 +431,13 @@ class LayerExporter(object):
         orig_func if orig_func is not None else func, args)
       
       if subfilter is None:
-        object_filter = self.item_tree.filter
+        object_filter = self._item_tree.filter
       else:
-        subfilter_ids = self.item_tree.filter.find(name=subfilter)
+        subfilter_ids = self._item_tree.filter.find(name=subfilter)
         if subfilter_ids:
-          object_filter = self.item_tree.filter[subfilter_ids[0]]
+          object_filter = self._item_tree.filter[subfilter_ids[0]]
         else:
-          object_filter = self.item_tree.filter.add(pg.objectfilter.ObjectFilter(name=subfilter))
+          object_filter = self._item_tree.filter.add(pg.objectfilter.ObjectFilter(name=subfilter))
       
       object_filter.add(func, func_args, kwargs, name=name)
     
@@ -444,26 +461,48 @@ class LayerExporter(object):
     
     return func_args
   
-  def _initialize(
-        self, item_tree, keep_image_copy, is_preview,
-        process_contents, process_names, process_export):
+  def _init_attributes(self, **kwargs):
+    init_argspec_names = set(inspect.getargspec(self.__init__).args)
+    init_argspec_names.discard('self')
+    
+    for name, value in kwargs.items():
+      if name in init_argspec_names:
+        setattr(self, '_' + name, value)
+      else:
+        raise ValueError(
+          'invalid keyword argument "{}" encountered; must be one of {}'.format(
+            name, list(init_argspec_names)))
+    
+    if self._overwrite_chooser is None:
+      self._overwrite_chooser = pg.overwrite.NoninteractiveOverwriteChooser(
+        self._export_settings['overwrite_mode'].value)
+    
+    if self._progress_updater is None:
+      self._progress_updater = pg.progress.ProgressUpdater(None)
+    
+    if self._export_context_manager is None:
+      self._export_context_manager = pg.utils.EmptyContext
+    
+    if self._export_context_manager_args is None:
+      self._export_context_manager_args = ()
+    
+    if self._export_context_manager_kwargs is None:
+      self._export_context_manager_kwargs = {}
+  
+  def _prepare_for_processing(self, item_tree, keep_image_copy):
     if item_tree is not None:
       self._item_tree = item_tree
     else:
-      self._item_tree = pg.itemtree.LayerTree(self.input_image, name=pg.config.SOURCE_NAME)
+      self._item_tree = pg.itemtree.LayerTree(self._input_image, name=pg.config.SOURCE_NAME)
     
     if self._item_tree.filter:
       self._item_tree.reset_filter()
     
     self._keep_image_copy = keep_image_copy
-    self._is_preview = is_preview
-    self._process_contents = process_contents
-    self._process_names = process_names
-    self._process_export = process_export
     
     self._current_item = None
     self._current_raw_item = None
-    self._current_image = self.input_image
+    self._current_image = self._input_image
     
     self._image_copy = None
     
@@ -477,8 +516,8 @@ class LayerExporter(object):
     
     self._set_constraints()
     
-    self.progress_updater.reset()
-    self.progress_updater.num_total_tasks = len(self._item_tree)
+    self._progress_updater.reset()
+    self._progress_updater.num_total_tasks = len(self._item_tree)
   
   def _add_actions(self):
     self._invoker.add(
@@ -495,44 +534,44 @@ class LayerExporter(object):
     
     self._add_default_rename_procedure([actions.DEFAULT_PROCEDURES_GROUP])
     
-    for procedure in actions.walk(self.export_settings['procedures']):
+    for procedure in actions.walk(self._export_settings['procedures']):
       self._add_action_from_settings(procedure)
     
     self._add_default_export_procedure([actions.DEFAULT_PROCEDURES_GROUP])
     
-    for constraint in actions.walk(self.export_settings['constraints']):
+    for constraint in actions.walk(self._export_settings['constraints']):
       self._add_action_from_settings(constraint)
   
   def _add_name_only_actions(self):
     self._add_default_rename_procedure([_NAME_ONLY_ACTION_GROUP])
     
-    for procedure in actions.walk(self.export_settings['procedures']):
+    for procedure in actions.walk(self._export_settings['procedures']):
       self._add_action_from_settings(
         procedure, [builtin_procedures.NAME_ONLY_TAG], [_NAME_ONLY_ACTION_GROUP])
     
     self._add_default_export_procedure([_NAME_ONLY_ACTION_GROUP])
     
-    for constraint in actions.walk(self.export_settings['constraints']):
+    for constraint in actions.walk(self._export_settings['constraints']):
       self._add_action_from_settings(
         constraint, [builtin_procedures.NAME_ONLY_TAG], [_NAME_ONLY_ACTION_GROUP])
   
   def _add_default_rename_procedure(self, action_groups):
     if not any(
           procedure['orig_name'].value == 'rename' and procedure['enabled'].value
-          for procedure in actions.walk(self.export_settings['procedures'])):
+          for procedure in actions.walk(self._export_settings['procedures'])):
       self._invoker.add(
         builtin_procedures.rename_layer,
         groups=action_groups,
-        args=[self.export_settings['layer_filename_pattern'].value])
+        args=[self._export_settings['layer_filename_pattern'].value])
   
   def _add_default_export_procedure(self, action_groups):
     if not any(
           procedure['orig_name'].value == 'export' and procedure['enabled'].value
-          for procedure in actions.walk(self.export_settings['procedures'])):
+          for procedure in actions.walk(self._export_settings['procedures'])):
       self._invoker.add(
         export_.export,
         groups=action_groups,
-        args=[self.export_settings['file_extension'].value, export_.ExportModes.EACH_LAYER])
+        args=[self._export_settings['file_extension'].value, export_.ExportModes.EACH_LAYER])
   
   def _set_constraints(self):
     self._invoker.invoke(
@@ -543,13 +582,13 @@ class LayerExporter(object):
   def _setup_contents(self):
     pdb.gimp_context_push()
     
-    self._image_copy = pg.pdbutils.create_image_from_metadata(self.input_image)
+    self._image_copy = pg.pdbutils.create_image_from_metadata(self._input_image)
     self._current_image = self._image_copy
     
-    pdb.gimp_image_undo_freeze(self.current_image)
+    pdb.gimp_image_undo_freeze(self._current_image)
     
     if pg.config.DEBUG_IMAGE_PROCESSING:
-      self._display_id = pdb.gimp_display_new(self.current_image)
+      self._display_id = pdb.gimp_display_new(self._current_image)
   
   def _cleanup_contents(self, exception_occurred=False):
     self._invoker.invoke(
@@ -557,15 +596,15 @@ class LayerExporter(object):
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
-    self._copy_non_modifying_parasites(self.current_image, self.input_image)
+    self._copy_non_modifying_parasites(self._current_image, self._input_image)
     
-    pdb.gimp_image_undo_thaw(self.current_image)
+    pdb.gimp_image_undo_thaw(self._current_image)
     
     if pg.config.DEBUG_IMAGE_PROCESSING:
       pdb.gimp_display_delete(self._display_id)
     
     if not self._keep_image_copy or exception_occurred:
-      pg.pdbutils.try_delete_image(self.current_image)
+      pg.pdbutils.try_delete_image(self._current_image)
     
     pdb.gimp_context_pop()
     
@@ -590,7 +629,7 @@ class LayerExporter(object):
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
-    if self.process_contents:
+    if self._process_contents:
       self._invoker.invoke(
         ['before_process_items_contents'],
         [self],
@@ -602,7 +641,7 @@ class LayerExporter(object):
       
       self._process_item(item)
     
-    if self.process_contents:
+    if self._process_contents:
       self._invoker.invoke(
         ['after_process_items_contents'],
         [self],
@@ -615,21 +654,21 @@ class LayerExporter(object):
   
   def _process_item(self, item):
     self._current_item = item
-    self.current_raw_item = item.raw
+    self._current_raw_item = item.raw
     
     if self._is_preview and self._process_names:
       self._process_item_with_name_only_actions()
     
     if self._process_contents:
-      self._process_item_with_actions(item, self.current_raw_item)
-      self._refresh_current_image(self.current_raw_item)
+      self._process_item_with_actions(item, self._current_raw_item)
+      self._refresh_current_image(self._current_raw_item)
     
-    self.progress_updater.update_tasks()
+    self._progress_updater.update_tasks()
   
   def _process_item_with_name_only_actions(self):
     self._invoker.invoke(
       ['before_process_item'],
-      [self, self.current_item, self.current_raw_item],
+      [self, self._current_item, self._current_raw_item],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
@@ -639,25 +678,25 @@ class LayerExporter(object):
     
     self._invoker.invoke(
       ['after_process_item'],
-      [self, self.current_item, self.current_raw_item],
+      [self, self._current_item, self._current_raw_item],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
   
   def _process_item_with_actions(self, item, raw_item):
     raw_item_copy = pg.pdbutils.copy_and_paste_layer(
-      raw_item, self.current_image, None, len(self.current_image.layers), True, True)
+      raw_item, self._current_image, None, len(self._current_image.layers), True, True)
     
-    self.current_raw_item = raw_item_copy
-    self.current_raw_item.name = raw_item.name
+    self._current_raw_item = raw_item_copy
+    self._current_raw_item.name = raw_item.name
     
     self._invoker.invoke(
       ['before_process_item'],
-      [self, self.current_item, self.current_raw_item],
+      [self, self._current_item, self._current_raw_item],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
-    if self.process_contents:
+    if self._process_contents:
       self._invoker.invoke(
         ['before_process_item_contents'],
-        [self, self.current_item, self.current_raw_item],
+        [self, self._current_item, self._current_raw_item],
         additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
@@ -665,18 +704,18 @@ class LayerExporter(object):
       [self],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
-    if self.process_contents:
+    if self._process_contents:
       self._invoker.invoke(
         ['after_process_item_contents'],
-        [self, self.current_item, self.current_raw_item],
+        [self, self._current_item, self._current_raw_item],
         additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
     
     self._invoker.invoke(
       ['after_process_item'],
-      [self, self.current_item, self.current_raw_item],
+      [self, self._current_item, self._current_raw_item],
       additional_args_position=_EXPORTER_ARG_POSITION_IN_PROCEDURES)
   
   def _refresh_current_image(self, raw_item):
     if not self._keep_image_copy:
-      for layer in self.current_image.layers:
-        pdb.gimp_image_remove_layer(self.current_image, layer)
+      for layer in self._current_image.layers:
+        pdb.gimp_image_remove_layer(self._current_image, layer)

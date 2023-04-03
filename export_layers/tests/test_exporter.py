@@ -67,7 +67,7 @@ class TestAddActionFromSettings(unittest.TestCase):
   def setUp(self):
     self.exporter = exporter_.LayerExporter(
       initial_run_mode=0,
-      image=mock.MagicMock(),
+      input_image=mock.MagicMock(),
       export_settings=mock.MagicMock(),
       overwrite_chooser=mock.MagicMock(),
       progress_updater=mock.MagicMock())

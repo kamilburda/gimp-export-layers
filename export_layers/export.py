@@ -140,7 +140,7 @@ def export(
           pg.path.get_file_extension(item_to_process.name)].processed_count += 1
         # Append the original raw item since `exporter.current_raw_item` is
         # modified by now.
-        exporter.exported_raw_items.append(item_to_process.raw)
+        exporter._exported_raw_items.append(item_to_process.raw)
     
     if preserve_layer_name_after_export:
       item_to_process.pop_state()

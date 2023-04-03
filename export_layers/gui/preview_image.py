@@ -378,8 +378,8 @@ class ExportImagePreview(preview_base_.ExportPreview):
     
     try:
       image_preview = self._exporter.export(
-        item_tree=self._exporter.item_tree,
         keep_image_copy=True,
+        item_tree=self._exporter.item_tree,
         is_preview=True,
         process_contents=True,
         process_names=False,
