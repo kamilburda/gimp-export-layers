@@ -317,25 +317,26 @@ class Batcher(object):
     return self._initial_invoker.add(*args, **kwargs)
   
   def add_constraint(self, func, *args, **kwargs):
-    """
-    Add a constraint to be applied during `run()`. The first argument is the
-    function to act as a filter (returning `True` or `False`). The rest of the
-    signature is the same as for `pygimplib.invoker.Invoker.add()`.
+    """Adds a constraint to be applied during `run()`.
+    
+    The first argument is the function to act as a filter (returning `True` or
+    `False`). The rest of the signature is the same as for
+    `pygimplib.invoker.Invoker.add()`.
     
     For more information, see `add_procedure()`.
     """
     return self._initial_invoker.add(self._get_constraint_func(func), *args, **kwargs)
   
   def remove_action(self, *args, **kwargs):
-    """
-    Remove an action originally scheduled to be applied during `run()`.
+    """Removes an action originally scheduled to be applied during `run()`.
+    
     The signature is the same as for `pygimplib.invoker.Invoker.remove()`.
     """
     self._initial_invoker.remove(*args, **kwargs)
   
   def reorder_action(self, *args, **kwargs):
-    """
-    Reorder an action to be applied during `run()`.
+    """Reorders an action to be applied during `run()`.
+    
     The signature is the same as for `pygimplib.invoker.Invoker.reorder()`.
     """
     self._initial_invoker.reorder(*args, **kwargs)
