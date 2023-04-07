@@ -531,7 +531,7 @@ class ExportLayersDialog(object):
     self._button_settings.add(self._hbox_button_settings)
     
     self._menu_item_show_more_settings = gtk.CheckMenuItem(_('Show More Settings'))
-    self._menu_item_edit_mode = gtk.CheckMenuItem(_('In-place batch editing'))
+    self._menu_item_edit_mode = gtk.CheckMenuItem(_('In-place Batch Editing'))
     self._menu_item_save_settings = gtk.MenuItem(_('Save Settings'))
     self._menu_item_reset_settings = gtk.MenuItem(_('Reset settings'))
     
@@ -742,6 +742,8 @@ class ExportLayersDialog(object):
     if self._menu_item_edit_mode.get_active():
       self._settings['gui/show_more_settings'].set_value(True)
       
+      self._folder_chooser.set_sensitive(False)
+      self._folder_chooser_label.set_sensitive(False)
       self._file_extension_label.set_sensitive(False)
       self._file_extension_entry.set_sensitive(False)
       self._save_as_label.set_sensitive(False)
@@ -751,6 +753,8 @@ class ExportLayersDialog(object):
       self._button_run.set_label(_('Run'))
       self._button_close.set_label(_('Close'))
     else:
+      self._folder_chooser.set_sensitive(True)
+      self._folder_chooser_label.set_sensitive(True)
       self._file_extension_label.set_sensitive(True)
       self._file_extension_entry.set_sensitive(True)
       self._save_as_label.set_sensitive(True)
