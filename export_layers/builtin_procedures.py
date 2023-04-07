@@ -64,14 +64,14 @@ def inherit_transparency_from_layer_groups(batcher):
 
 
 def insert_background_layer(batcher, tag):
-  return _insert_tagged_layer(batcher, tag, position=len(batcher.current_image.layers))
+  return _insert_tagged_layer(batcher, tag, 'after')
 
 
 def insert_foreground_layer(batcher, tag):
-  return _insert_tagged_layer(batcher, tag, position=0)
+  return _insert_tagged_layer(batcher, tag, 'before')
 
 
-def _insert_tagged_layer(batcher, tag, position=0):
+def _insert_tagged_layer(batcher, tag, insert_mode):
   tagged_items = [
     item for item in batcher.item_tree.iter(with_folders=False, filtered=False)
     if tag in item.tags]
@@ -92,6 +92,11 @@ def _insert_tagged_layer(batcher, tag, position=0):
   
   while True:
     image = batcher.current_image
+    current_parent = batcher.current_raw_item.parent
+      
+    position = pdb.gimp_image_get_item_position(image, batcher.current_raw_item)
+    if insert_mode == 'after':
+      position += 1
     
     if not tagged_items:
       yield
@@ -99,36 +104,42 @@ def _insert_tagged_layer(batcher, tag, position=0):
     
     if orig_merged_tagged_layer is None:
       merged_tagged_layer = _insert_merged_tagged_layer(
-        batcher, image, tagged_items, tag, position)
+        batcher, image, tagged_items, tag, current_parent, position)
       
       orig_merged_tagged_layer = pdb.gimp_layer_copy(merged_tagged_layer, True)
       _remove_locks_from_layer(orig_merged_tagged_layer)
     else:
       merged_tagged_layer = pdb.gimp_layer_copy(orig_merged_tagged_layer, True)
       _remove_locks_from_layer(merged_tagged_layer)
-      pdb.gimp_image_insert_layer(image, merged_tagged_layer, None, position)
+      pdb.gimp_image_insert_layer(image, merged_tagged_layer, current_parent, position)
     
     yield
 
 
-def _insert_merged_tagged_layer(batcher, image, tagged_items, tag, position=0):
+def _insert_merged_tagged_layer(batcher, image, tagged_items, tag, parent, position):
   first_tagged_layer_position = position
   
   for i, item in enumerate(tagged_items):
     layer_copy = pg.pdbutils.copy_and_paste_layer(
-      item.raw, image, None, first_tagged_layer_position + i, True, True)
+      item.raw, image, parent, first_tagged_layer_position + i, True, True)
     layer_copy.visible = True
+    
     batcher.invoker.invoke(
       ['before_process_item_contents'], [batcher, batcher.current_item, layer_copy])
+
+  if parent is None:
+    children = image.layers
+  else:
+    children = parent.children
   
   if len(tagged_items) == 1:
-    merged_tagged_layer = image.layers[first_tagged_layer_position]
+    merged_tagged_layer = children[first_tagged_layer_position]
   else:
     second_to_last_tagged_layer_position = first_tagged_layer_position + len(tagged_items) - 2
     
     for i in range(second_to_last_tagged_layer_position, first_tagged_layer_position - 1, -1):
       merged_tagged_layer = pdb.gimp_image_merge_down(
-        image, image.layers[i], gimpenums.EXPAND_AS_NECESSARY)
+        image, children[i], gimpenums.EXPAND_AS_NECESSARY)
   
   return merged_tagged_layer
 
