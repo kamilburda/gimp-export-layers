@@ -505,12 +505,12 @@ class ExportLayersDialog(object):
     self._hpaned_settings_and_previews.pack2(
       self._frame_previews, resize=True, shrink=True)
     
-    self._button_export = self._dialog.add_button(_('_Export'), gtk.RESPONSE_OK)
-    self._button_export.set_flags(gtk.CAN_DEFAULT)
-    self._button_export.hide()
+    self._button_run = self._dialog.add_button(_('_Export'), gtk.RESPONSE_OK)
+    self._button_run.set_flags(gtk.CAN_DEFAULT)
+    self._button_run.hide()
     
-    self._button_cancel = self._dialog.add_button(_('_Cancel'), gtk.RESPONSE_CANCEL)
-    self._button_cancel.hide()
+    self._button_close = self._dialog.add_button(_('_Cancel'), gtk.RESPONSE_CANCEL)
+    self._button_close.hide()
     
     self._dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
     
@@ -531,11 +531,13 @@ class ExportLayersDialog(object):
     self._button_settings.add(self._hbox_button_settings)
     
     self._menu_item_show_more_settings = gtk.CheckMenuItem(_('Show More Settings'))
+    self._menu_item_edit_mode = gtk.CheckMenuItem(_('In-place batch editing'))
     self._menu_item_save_settings = gtk.MenuItem(_('Save Settings'))
     self._menu_item_reset_settings = gtk.MenuItem(_('Reset settings'))
     
     self._menu_settings = gtk.Menu()
     self._menu_settings.append(self._menu_item_show_more_settings)
+    self._menu_settings.append(self._menu_item_edit_mode)
     self._menu_settings.append(self._menu_item_save_settings)
     self._menu_settings.append(self._menu_item_reset_settings)
     self._menu_settings.show_all()
@@ -570,8 +572,8 @@ class ExportLayersDialog(object):
     self._box_procedures.connect(
       'action-box-item-added', self._on_box_procedures_item_added)
     
-    self._button_export.connect('clicked', self._on_button_export_clicked, 'exporting')
-    self._button_cancel.connect('clicked', self._on_button_cancel_clicked)
+    self._button_run.connect('clicked', self._on_button_run_clicked, 'processing')
+    self._button_close.connect('clicked', self._on_button_close_clicked)
     self._button_stop.connect('clicked', self._on_button_stop_clicked)
     
     if _webbrowser_module_found:
@@ -580,6 +582,8 @@ class ExportLayersDialog(object):
     self._button_settings.connect('clicked', self._on_button_settings_clicked)
     self._menu_item_show_more_settings.connect(
       'toggled', self._on_menu_item_show_more_settings_toggled)
+    self._menu_item_edit_mode.connect(
+      'toggled', self._on_menu_item_edit_mode_toggled)
     self._menu_item_save_settings.connect('activate', self._on_save_settings_activate)
     self._menu_item_reset_settings.connect('activate', self._on_reset_settings_activate)
     
@@ -621,9 +625,10 @@ class ExportLayersDialog(object):
     
     self._dialog.vbox.show_all()
     self._show_hide_more_settings()
+    self._update_gui_for_edit_mode(update_name_preview=False)
     
     self._dialog.set_focus(self._file_extension_entry)
-    self._button_export.grab_default()
+    self._button_run.grab_default()
     # Place the cursor at the end of the text entry.
     self._file_extension_entry.set_position(-1)
     
@@ -641,6 +646,8 @@ class ExportLayersDialog(object):
         pg.setting.SettingGuiTypes.window_size, self._dialog],
       'gui/show_more_settings': [
         pg.setting.SettingGuiTypes.check_menu_item, self._menu_item_show_more_settings],
+      'main/edit_mode': [
+        pg.setting.SettingGuiTypes.check_menu_item, self._menu_item_edit_mode],
       'gui/paned_outside_previews_position': [
         pg.setting.SettingGuiTypes.paned_position, self._hpaned_settings_and_previews],
       'gui/paned_between_previews_position': [
@@ -728,6 +735,34 @@ class ExportLayersDialog(object):
       self._dot_label.hide()
       self._filename_pattern_entry.hide()
   
+  def _on_menu_item_edit_mode_toggled(self, menu_item):
+    self._update_gui_for_edit_mode()
+  
+  def _update_gui_for_edit_mode(self, update_name_preview=True):
+    if self._menu_item_edit_mode.get_active():
+      self._settings['gui/show_more_settings'].set_value(True)
+      
+      self._file_extension_label.set_sensitive(False)
+      self._file_extension_entry.set_sensitive(False)
+      self._save_as_label.set_sensitive(False)
+      self._dot_label.set_sensitive(False)
+      self._filename_pattern_entry.set_sensitive(False)
+      
+      self._button_run.set_label(_('Run'))
+      self._button_close.set_label(_('Close'))
+    else:
+      self._file_extension_label.set_sensitive(True)
+      self._file_extension_entry.set_sensitive(True)
+      self._save_as_label.set_sensitive(True)
+      self._dot_label.set_sensitive(True)
+      self._filename_pattern_entry.set_sensitive(True)
+      
+      self._button_run.set_label(_('Export'))
+      self._button_close.set_label(_('Cancel'))
+    
+    if update_name_preview:
+      self._name_preview.update()
+  
   def _on_dialog_notify_is_active(self, dialog, property_spec):
     if not pdb.gimp_image_is_valid(self._image):
       gtk.main_quit()
@@ -791,9 +826,9 @@ class ExportLayersDialog(object):
       self._display_inline_message(_('Settings reset.'), gtk.MESSAGE_INFO)
   
   @_set_settings
-  def _on_button_export_clicked(self, button, lock_update_key):
+  def _on_button_run_clicked(self, button, lock_update_key):
     self._setup_gui_before_batch_run()
-    overwrite_chooser, progress_updater = self._setup_batcher()
+    self._batcher, overwrite_chooser, progress_updater = self._setup_batcher()
     
     item_progress_indicator = progress_.ItemProgressIndicator(
       self._progress_bar, progress_updater)
@@ -821,15 +856,21 @@ class ExportLayersDialog(object):
       self._settings['special/first_plugin_run'].set_value(False)
       self._settings['special/first_plugin_run'].save()
       
-      if not self._batcher.exported_raw_items:
+      if self._settings['main/edit_mode'].value or not self._batcher.exported_raw_items:
+        should_quit = False
+      
+      if not self._settings['main/edit_mode'].value and not self._batcher.exported_raw_items:
         messages_.display_message(
           _('No layers were exported.'), gtk.MESSAGE_INFO, parent=self._dialog)
-        should_quit = False
     finally:
       item_progress_indicator.uninstall_progress_for_status()
       self._batcher = None
       self._name_preview.lock_update(False, lock_update_key)
       self._image_preview.lock_update(False, lock_update_key)
+      
+      if self._settings['main/edit_mode'].value:
+        self._image_preview.update()
+        self._name_preview.update()
     
     if overwrite_chooser.overwrite_mode in self._settings['main/overwrite_mode'].items.values():
       self._settings['main/overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
@@ -861,7 +902,7 @@ class ExportLayersDialog(object):
     
     progress_updater = pg.gui.GtkProgressUpdater(self._progress_bar)
     
-    self._batcher = batcher_.Batcher(
+    batcher = batcher_.Batcher(
       gimpenums.RUN_INTERACTIVE,
       self._image,
       self._settings['main'],
@@ -870,7 +911,7 @@ class ExportLayersDialog(object):
       export_context_manager=handle_gui_in_export,
       export_context_manager_args=[self._dialog])
     
-    return overwrite_chooser, progress_updater
+    return batcher, overwrite_chooser, progress_updater
   
   def _get_overwrite_dialog_items(self):
     return list(zip(
@@ -880,7 +921,7 @@ class ExportLayersDialog(object):
   def _set_gui_enabled(self, enabled):
     self._progress_bar.set_visible(not enabled)
     self._button_stop.set_visible(not enabled)
-    self._button_cancel.set_visible(enabled)
+    self._button_close.set_visible(enabled)
     
     for child in self._dialog.vbox:
       if child not in (self._dialog.action_area, self._progress_bar):
@@ -912,7 +953,7 @@ class ExportLayersDialog(object):
   def _on_dialog_delete_event(self, dialog, event):
     gtk.main_quit()
   
-  def _on_button_cancel_clicked(self, button):
+  def _on_button_close_clicked(self, button):
     gtk.main_quit()
   
   def _on_button_stop_clicked(self, button):
@@ -1015,7 +1056,7 @@ class ExportLayersRepeatDialog(object):
       else:
         display_failure_invalid_image_message(traceback.format_exc(), parent=self._dialog)
     else:
-      if not self._batcher.exported_raw_items:
+      if not self._settings['main/edit_mode'].value and not self._batcher.exported_raw_items:
         messages_.display_message(
           _('No layers were exported.'), gtk.MESSAGE_INFO, parent=self._dialog)
     finally:

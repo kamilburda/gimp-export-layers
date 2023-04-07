@@ -128,6 +128,13 @@ def create_settings():
       'gui_type': None,
     },
     {
+      'type': pg.SettingTypes.boolean,
+      'name': 'edit_mode',
+      'default_value': False,
+      'pdb_type': None,
+      'gui_type': None,
+    },
+    {
       'type': pg.SettingTypes.generic,
       'name': 'plugin_version',
       'default_value': pg.config.PLUGIN_VERSION,

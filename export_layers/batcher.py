@@ -139,6 +139,8 @@ class Batcher(object):
     self._current_raw_item = None
     self._current_image = None
     
+    self._orig_active_layer = None
+    
     self._exported_raw_items = []
     
     self._should_stop = False
@@ -510,6 +512,7 @@ class Batcher(object):
     self._current_image = self._input_image
     
     self._image_copy = None
+    self._orig_active_layer = None
     
     self._should_stop = False
     
@@ -561,18 +564,20 @@ class Batcher(object):
         constraint, [builtin_procedures.NAME_ONLY_TAG], [_NAME_ONLY_ACTION_GROUP])
   
   def _add_default_rename_procedure(self, action_groups):
-    if not any(
+    if (not self._batch_settings['edit_mode'].value
+        and not any(
           procedure['orig_name'].value == 'rename' and procedure['enabled'].value
-          for procedure in actions.walk(self._batch_settings['procedures'])):
+          for procedure in actions.walk(self._batch_settings['procedures']))):
       self._invoker.add(
         builtin_procedures.rename_layer,
         groups=action_groups,
         args=[self._batch_settings['layer_filename_pattern'].value])
   
   def _add_default_export_procedure(self, action_groups):
-    if not any(
+    if (not self._batch_settings['edit_mode'].value
+        and not any(
           procedure['orig_name'].value == 'export' and procedure['enabled'].value
-          for procedure in actions.walk(self._batch_settings['procedures'])):
+          for procedure in actions.walk(self._batch_settings['procedures']))):
       self._invoker.add(
         export_.export,
         groups=action_groups,
@@ -587,13 +592,19 @@ class Batcher(object):
   def _setup_contents(self):
     pdb.gimp_context_push()
     
-    self._image_copy = pg.pdbutils.create_image_from_metadata(self._input_image)
-    self._current_image = self._image_copy
+    if not self._batch_settings['edit_mode'].value or self._is_preview:
+      self._image_copy = pg.pdbutils.create_image_from_metadata(self._input_image)
+      self._current_image = self._image_copy
+      
+      pdb.gimp_image_undo_freeze(self._current_image)
+      
+      if pg.config.DEBUG_IMAGE_PROCESSING:
+        self._display_id = pdb.gimp_display_new(self._current_image)
+    else:
+      self._current_image = self._input_image
+      pdb.gimp_image_undo_group_start(self._current_image)
     
-    pdb.gimp_image_undo_freeze(self._current_image)
-    
-    if pg.config.DEBUG_IMAGE_PROCESSING:
-      self._display_id = pdb.gimp_display_new(self._current_image)
+    self._orig_active_layer = self._current_image.active_layer
   
   def _cleanup_contents(self, exception_occurred=False):
     self._invoker.invoke(
@@ -601,15 +612,21 @@ class Batcher(object):
       [self],
       additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
     
-    self._copy_non_modifying_parasites(self._current_image, self._input_image)
-    
-    pdb.gimp_image_undo_thaw(self._current_image)
-    
-    if pg.config.DEBUG_IMAGE_PROCESSING:
-      pdb.gimp_display_delete(self._display_id)
-    
-    if not self._keep_image_copy or exception_occurred:
-      pg.pdbutils.try_delete_image(self._current_image)
+    if not self._batch_settings['edit_mode'].value or self._is_preview:
+      self._copy_non_modifying_parasites(self._current_image, self._input_image)
+      
+      pdb.gimp_image_undo_thaw(self._current_image)
+      
+      if pg.config.DEBUG_IMAGE_PROCESSING:
+        pdb.gimp_display_delete(self._display_id)
+      
+      if not self._keep_image_copy or exception_occurred:
+        pg.pdbutils.try_delete_image(self._current_image)
+    else:
+      if pdb.gimp_item_is_valid(self._orig_active_layer):
+        self._current_image.active_layer = self._orig_active_layer
+      pdb.gimp_image_undo_group_end(self._current_image)
+      pdb.gimp_displays_flush()
     
     pdb.gimp_context_pop()
     
@@ -643,6 +660,9 @@ class Batcher(object):
     for item in self._item_tree:
       if self._should_stop:
         raise exceptions.BatcherCancelError('stopped by user')
+      
+      if self._batch_settings['edit_mode'].value:
+        self._progress_updater.update_text(_('Processing "{}"').format(item.orig_name))
       
       self._process_item(item)
     
@@ -687,11 +707,12 @@ class Batcher(object):
       additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
   
   def _process_item_with_actions(self, item, raw_item):
-    raw_item_copy = pg.pdbutils.copy_and_paste_layer(
-      raw_item, self._current_image, None, len(self._current_image.layers), True, True)
-    
-    self._current_raw_item = raw_item_copy
-    self._current_raw_item.name = raw_item.name
+    if not self._batch_settings['edit_mode'].value or self._is_preview:
+      raw_item_copy = pg.pdbutils.copy_and_paste_layer(
+        raw_item, self._current_image, None, len(self._current_image.layers), True, True)
+      
+      self._current_raw_item = raw_item_copy
+      self._current_raw_item.name = raw_item.name
     
     self._invoker.invoke(
       ['before_process_item'],
@@ -721,6 +742,6 @@ class Batcher(object):
       additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
   
   def _refresh_current_image(self, raw_item):
-    if not self._keep_image_copy:
+    if not self._batch_settings['edit_mode'].value and not self._keep_image_copy:
       for layer in self._current_image.layers:
         pdb.gimp_image_remove_layer(self._current_image, layer)

@@ -99,7 +99,7 @@ def _insert_tagged_layer(batcher, tag, position=0):
     
     if orig_merged_tagged_layer is None:
       merged_tagged_layer = _insert_merged_tagged_layer(
-        image, batcher, tagged_items, tag, position)
+        batcher, image, tagged_items, tag, position)
       
       orig_merged_tagged_layer = pdb.gimp_layer_copy(merged_tagged_layer, True)
       _remove_locks_from_layer(orig_merged_tagged_layer)
@@ -111,7 +111,7 @@ def _insert_tagged_layer(batcher, tag, position=0):
     yield
 
 
-def _insert_merged_tagged_layer(image, batcher, tagged_items, tag, position=0):
+def _insert_merged_tagged_layer(batcher, image, tagged_items, tag, position=0):
   first_tagged_layer_position = position
   
   for i, item in enumerate(tagged_items):
