@@ -9,15 +9,19 @@ New features:
 * Procedures can now be applied to background or foreground layers instead of always the layer being exported. If a procedure provides a layer/drawable/item argument, you may now select "Background" or "Foreground" (beside "Current Layer").
 * The "Rename" procedure can now optionally rename only folders (previously allowed only layers or both layers and folders, but not folders alone).
 
-Other changes:
+Changes to procedures:
 * Removed the "Use file extension in layer name" procedure. The same functionality is now available in the "Export" procedure.
 * Removed the "Autocrop background" and "Autocrop foreground" procedures as the same effect can be achieved by inserting the `gimp-plugin-autocrop-layer` procedure and setting the drawable argument to "Background" or "Foreground", respectively.
+* Renamed the "Rename layer" procedure to just "Rename" for brevity.
+
+Changes to constraints:
 * Removed the "Include layers" constraint and instead added a constraint to export only layers.
 * Removed the "Include layer groups" constraint and instead added a constraint to export only layer groups. 
 * Removed the "Include empty layer groups" constraint without replacement. Empty folders are no longer created.
 * With the above changes, all constraints now consistently only remove (filter) layers. For brevity, the names of all constraints have been shortened. For example, "Only visible layers" has been renamed to "Visible", "Only layers selected in preview" to "Selected in preview", etc.
-* Renamed the "Rename layer" procedure to just "Rename" for brevity.
 * The "Visible" constraint is now enabled when added. It is still added unchecked when opening the plug-in for the first time or resetting the plug-in settings.
+
+Other changes:
 * Layer groups as images and as folders are now displayed separately in the preview.
 * Built-in procedures and constraints are now listed alphabetically.
 * Updated documentation with examples on how to customize the export.
