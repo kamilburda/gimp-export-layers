@@ -2,7 +2,8 @@ Upcoming
 ========
 
 New features:
-* Multi-layer image export is now available. This allows exporting e.g. multi-page PDFs or animated GIFs. While this is already possible in GIMP, Export Layers allows you to:
+* In-place batch editing of layers is now available. Procedures can now be applied directly to the layers without exporting them. This option is available by checking "In-place batch editing" under the "Settings" button.
+* Added the option to export multi-layer images, e.g. multi-page PDFs or animated GIFs. While this is already possible in GIMP, Export Layers allows you to:
   * export images with additional custom procedures applied before the export,
   * export each top-level group as separate multi-layer images.
 * Added a new procedure named "Export" to allow multi-layer export as described above.
