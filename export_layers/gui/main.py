@@ -742,24 +742,12 @@ class ExportLayersDialog(object):
     if self._menu_item_edit_mode.get_active():
       self._settings['gui/show_more_settings'].set_value(True)
       
-      self._folder_chooser.set_sensitive(False)
-      self._folder_chooser_label.set_sensitive(False)
-      self._file_extension_label.set_sensitive(False)
-      self._file_extension_entry.set_sensitive(False)
-      self._save_as_label.set_sensitive(False)
-      self._dot_label.set_sensitive(False)
-      self._filename_pattern_entry.set_sensitive(False)
+      self._vbox_chooser_and_settings.hide()
       
       self._button_run.set_label(_('Run'))
       self._button_close.set_label(_('Close'))
     else:
-      self._folder_chooser.set_sensitive(True)
-      self._folder_chooser_label.set_sensitive(True)
-      self._file_extension_label.set_sensitive(True)
-      self._file_extension_entry.set_sensitive(True)
-      self._save_as_label.set_sensitive(True)
-      self._dot_label.set_sensitive(True)
-      self._filename_pattern_entry.set_sensitive(True)
+      self._vbox_chooser_and_settings.show()
       
       self._button_run.set_label(_('Export'))
       self._button_close.set_label(_('Cancel'))
