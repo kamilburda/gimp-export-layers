@@ -732,6 +732,8 @@ class ExportLayersDialog(object):
       self._dot_label.show()
       self._filename_pattern_entry.show()
     else:
+      self._settings['main/edit_mode'].set_value(False)
+      
       self._vbox_actions_and_message_for_edit_mode.hide()
       
       self._file_extension_label.show()
