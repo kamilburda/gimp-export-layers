@@ -486,6 +486,10 @@ class ExportLayersDialog(object):
     self._hbox_actions.pack_start(self._box_procedures, expand=True, fill=True)
     self._hbox_actions.pack_start(self._box_constraints, expand=True, fill=True)
     
+    self._vbox_actions_and_message_for_edit_mode = gtk.VBox(homogeneous=False)
+    self._vbox_actions_and_message_for_edit_mode.pack_start(
+      self._hbox_actions, expand=True, fill=True)
+    
     self._vbox_chooser_and_settings = gtk.VBox()
     self._vbox_chooser_and_settings.set_spacing(self._DIALOG_VBOX_SPACING)
     self._vbox_chooser_and_settings.pack_start(
@@ -497,7 +501,7 @@ class ExportLayersDialog(object):
     self._vpaned_chooser_and_actions.pack1(
       self._vbox_chooser_and_settings, resize=True, shrink=False)
     self._vpaned_chooser_and_actions.pack2(
-      self._hbox_actions, resize=False, shrink=True)
+      self._vbox_actions_and_message_for_edit_mode, resize=False, shrink=True)
     
     self._hpaned_settings_and_previews = gtk.HPaned()
     self._hpaned_settings_and_previews.pack1(
@@ -721,14 +725,14 @@ class ExportLayersDialog(object):
   
   def _show_hide_more_settings(self):
     if self._menu_item_show_more_settings.get_active():
-      self._hbox_actions.show()
+      self._vbox_actions_and_message_for_edit_mode.show()
       
       self._file_extension_label.hide()
       self._save_as_label.show()
       self._dot_label.show()
       self._filename_pattern_entry.show()
     else:
-      self._hbox_actions.hide()
+      self._vbox_actions_and_message_for_edit_mode.hide()
       
       self._file_extension_label.show()
       self._save_as_label.hide()
@@ -743,10 +747,15 @@ class ExportLayersDialog(object):
       self._settings['gui/show_more_settings'].set_value(True)
       
       self._vbox_chooser_and_settings.hide()
+      self._hbox_export_name_and_message.remove(self._label_message)
+      self._vbox_actions_and_message_for_edit_mode.pack_start(
+        self._label_message, expand=False, fill=False)
       
       self._button_run.set_label(_('Run'))
       self._button_close.set_label(_('Close'))
     else:
+      self._vbox_actions_and_message_for_edit_mode.remove(self._label_message)
+      self._hbox_export_name_and_message.pack_start(self._label_message, expand=True, fill=True)
       self._vbox_chooser_and_settings.show()
       
       self._button_run.set_label(_('Export'))
