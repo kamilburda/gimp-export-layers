@@ -5,7 +5,7 @@ baseurl: "/gimp-export-layers"
 url: "https://kamilburda.github.io"
 repository: "kamilburda/gimp-export-layers"
 github_username: "Kamil Burda"
-copyright_years: "2013-2022"
+copyright_years: "2013-2023"
 
 plugin_name: "export_layers"
 plugin_version: "3.3.5"
