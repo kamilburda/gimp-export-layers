@@ -30,6 +30,7 @@ _
 test_setting_gui.test_array_settings_and_gui()
 
 
+sys.path.append(os.path.join(plugin_dirpath, 'utils'))
 import make_screenshots
 import preprocess_document_contents
 import sync_docs
