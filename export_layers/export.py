@@ -196,7 +196,7 @@ def _get_current_file_extension(item, default_file_extension, file_extension_pro
 
 
 def _merge_and_resize_image(batcher):
-  """Merges all layers in the current image into one
+  """Merges all layers in the current image into one.
   
   Merging is necessary for:
   * custom procedures inserting layers (background, foreground). Some file
