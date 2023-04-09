@@ -40,6 +40,7 @@ else:
 SCREENSHOTS_DIRPATH = os.path.join(PLUGINS_DIRPATH, 'docs', 'images')
 SCREENSHOT_DIALOG_BASIC_USAGE_FILENAME = 'screenshot_dialog_basic_usage.png'
 SCREENSHOT_DIALOG_CUSTOMIZING_EXPORT_FILENAME = 'screenshot_dialog_customizing_export.png'
+SCREENSHOT_DIALOG_BATCH_EDITING_FILENAME = 'screenshot_dialog_batch_editing.png'
 
 
 def take_screenshots(gui, dialog, settings):
@@ -97,6 +98,17 @@ def take_screenshots(gui, dialog, settings):
   take_and_process_screenshot(
     SCREENSHOTS_DIRPATH,
     SCREENSHOT_DIALOG_CUSTOMIZING_EXPORT_FILENAME,
+    settings,
+    decoration_offsets)
+  
+  settings['main/edit_mode'].set_value(True)
+  
+  while gtk.events_pending():
+    gtk.main_iteration()
+  
+  take_and_process_screenshot(
+    SCREENSHOTS_DIRPATH,
+    SCREENSHOT_DIALOG_BATCH_EDITING_FILENAME,
     settings,
     decoration_offsets)
   
