@@ -53,7 +53,10 @@ def take_screenshots(gui, dialog, settings):
   gui.name_preview.set_selected_items(set([
     gui.name_preview.batcher.item_tree['main-background'].raw.ID]))
   
-  dialog.set_focus(gui.name_preview.tree_view)
+  while gtk.events_pending():
+    gtk.main_iteration()
+  
+  dialog.set_focus(None)
   
   while gtk.events_pending():
     gtk.main_iteration()
@@ -85,6 +88,8 @@ def take_screenshots(gui, dialog, settings):
   
   gui.name_preview.set_selected_items(set([
     gui.name_preview.batcher.item_tree['bottom-frame'].raw.ID]))
+  
+  dialog.set_focus(None)
   
   while gtk.events_pending():
     gtk.main_iteration()
