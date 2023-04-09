@@ -66,7 +66,10 @@ def take_screenshots(gui, dialog, settings):
     SCREENSHOTS_DIRPATH,
     SCREENSHOT_DIALOG_BASIC_USAGE_FILENAME,
     settings,
-    decoration_offsets)
+    decoration_offsets,
+    gui,
+    blur_folders=True,
+  )
   
   settings['gui/show_more_settings'].set_value(True)
   
@@ -99,7 +102,10 @@ def take_screenshots(gui, dialog, settings):
     SCREENSHOTS_DIRPATH,
     SCREENSHOT_DIALOG_CUSTOMIZING_EXPORT_FILENAME,
     settings,
-    decoration_offsets)
+    decoration_offsets,
+    gui,
+    blur_folders=True,
+  )
   
   settings['main/edit_mode'].set_value(True)
   
@@ -110,17 +116,22 @@ def take_screenshots(gui, dialog, settings):
     SCREENSHOTS_DIRPATH,
     SCREENSHOT_DIALOG_BATCH_EDITING_FILENAME,
     settings,
-    decoration_offsets)
+    decoration_offsets,
+    gui,
+  )
   
   gtk.main_quit()
   
 
 def take_and_process_screenshot(
-      screenshots_dirpath, filename, settings, decoration_offsets):
+      screenshots_dirpath, filename, settings, decoration_offsets, gui, blur_folders=False):
   #HACK: Wait a while until the window is fully shown.
   time.sleep(1)
   
   screenshot_image = take_screenshot()
+  
+  if blur_folders:
+    blur_folder_chooser(screenshot_image, gui, decoration_offsets)
   
   crop_to_dialog(screenshot_image, settings, decoration_offsets)
   
@@ -131,7 +142,22 @@ def take_and_process_screenshot(
     filename)
   
   pdb.gimp_image_delete(screenshot_image)
+
+
+def blur_folder_chooser(image, gui, decoration_offsets):
+  scrolled_window = (gui.folder_chooser
+    .get_children()[0]
+    .get_children()[0].get_children()[1]
+    .get_children()[0].get_children()[0])
+  folder_chooser_left_pane = scrolled_window.get_children()[0]
   
+  selection_to_blur = folder_chooser_left_pane.get_allocation()
+  selection_to_blur.y += decoration_offsets[1]
+  
+  pdb.gimp_image_select_rectangle(image, 0, *selection_to_blur)
+  pdb.plug_in_gauss(image, image.active_layer, 25, 25, 0)
+  pdb.gimp_selection_none(image)
+
 
 def take_screenshot():
   return pdb.plug_in_screenshot(1, -1, 0, 0, 0, 0)
