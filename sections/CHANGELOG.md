@@ -7,21 +7,36 @@ navbar_active_tab: docs
 Upcoming
 ========
 
-* Multi-layer image export is now available. This allows exporting e.g. multi-page PDFs or animated GIFs. While this is already possible in GIMP, this plug-in allows you to:
+New features:
+* In-place batch editing of layers is now available. Procedures can now be applied directly to the layers without exporting them. This option is available by checking "In-place batch editing" under the "Settings" button.
+* Added the option to export multi-layer images, e.g. multi-page PDFs or animated GIFs. While this is already possible in GIMP, Export Layers allows you to:
   * export images with additional custom procedures applied before the export,
   * export each top-level group as separate multi-layer images.
 * Added a new procedure named "Export" to allow multi-layer export as described above.
+* Procedures can now be applied to background or foreground layers instead of always the layer being exported. If a procedure provides a layer/drawable/item argument, you may now select "Background" or "Foreground" (beside "Current Layer").
+* The "Rename" procedure can now optionally rename only folders (previously allowed only layers or both layers and folders, but not folders alone).
+
+Changes to procedures:
 * Removed the "Use file extension in layer name" procedure. The same functionality is now available in the "Export" procedure.
-* Removed "Include layers" constraint and instead added a constraint to export only layers.
-* Removed "Include layer groups" constraint and instead added a constraint to export only layer groups. 
-* Removed "Include empty layer groups" constraint without replacement. Empty folders are no longer created.
+* Removed the "Autocrop background" and "Autocrop foreground" procedures as the same effect can be achieved by inserting the `gimp-plugin-autocrop-layer` procedure and setting the drawable argument to "Background" or "Foreground", respectively.
+* Renamed the "Rename layer" procedure to just "Rename" for brevity.
+
+Changes to constraints:
+* Removed the "Include layers" constraint and instead added a constraint to export only layers.
+* Removed the "Include layer groups" constraint and instead added a constraint to export only layer groups. 
+* Removed the "Include empty layer groups" constraint without replacement. Empty folders are no longer created.
 * With the above changes, all constraints now consistently only remove (filter) layers. For brevity, the names of all constraints have been shortened. For example, "Only visible layers" has been renamed to "Visible", "Only layers selected in preview" to "Selected in preview", etc.
 * The "Visible" constraint is now enabled when added. It is still added unchecked when opening the plug-in for the first time or resetting the plug-in settings.
+
+Other changes:
 * Layer groups as images and as folders are now displayed separately in the preview.
-* The "Rename" procedure can now optionally rename only folders (previously allowed only layers or both layers and folders, but not folders alone).
-* Fixed a crash and inconsistencies in the preview if both "Ignore folder structure" and "Selected in preview" are enabled. This also adversely causes the preview to be slower upon selecting items when "Selected in preview" is enabled. The drop in performance is only noticeable for hundreds of layers in an image.
-* Fixed export failing for some custom procedures modifying the number of layers, e.g. `gimp-image-merge-visible-layers`.
+* Built-in procedures and constraints are now listed alphabetically.
 * Updated documentation with examples on how to customize the export.
+
+Bug fixes:
+* Fixed a crash and inconsistencies in the preview if both "Ignore folder structure" and "Selected in preview" are enabled. This also adversely causes the preview to be slower upon selecting items when "Selected in preview" is enabled. The drop in performance is only noticeable for hundreds of layers in an image.
+* Fixed image preview not scaling layer groups if no custom GIMP PDB procedure is active.
+* Fixed export failing for some custom procedures modifying the number of layers, e.g. `gimp-image-merge-visible-layers`.
 
 
 3.3.5
