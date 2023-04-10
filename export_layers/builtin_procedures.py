@@ -48,6 +48,44 @@ def set_active_and_current_layer_after_action(batcher):
     set_active_and_current_layer(batcher)
 
 
+def remove_locks_before_action_restore_locks_after_action(batcher):
+  # We assume `edit_mode` is True, we can therefore safely use `Item.raw`
+  # instead of `current_raw_item`. We need to use `Item.raw` for parents as
+  # well.
+  item = batcher.current_item
+  is_item_group = isinstance(item.raw, gimp.GroupLayer)
+  locks_content = {}
+  
+  for item_or_parent in [item] + item.parents:
+    locks_content[item_or_parent] = pdb.gimp_item_get_lock_content(item_or_parent.raw)
+  if not is_item_group:
+    lock_position = pdb.gimp_item_get_lock_position(item.raw)
+    lock_alpha = pdb.gimp_layer_get_lock_alpha(item.raw)
+  else:
+    lock_position = None
+    lock_alpha = None
+  
+  for item_or_parent, lock_content in locks_content.items():
+    if lock_content:
+      pdb.gimp_item_set_lock_content(item_or_parent.raw, False)
+  if not is_item_group:
+    if lock_position:
+      pdb.gimp_item_set_lock_position(item.raw, False)
+    if lock_alpha:
+      pdb.gimp_layer_set_lock_alpha(item.raw, False)
+  
+  yield
+  
+  for item_or_parent, lock_content in locks_content.items():
+    if lock_content:
+      pdb.gimp_item_set_lock_content(item_or_parent.raw, lock_content)
+  if not is_item_group:
+    if lock_position:
+      pdb.gimp_item_set_lock_position(item.raw, lock_position)
+    if lock_alpha:
+      pdb.gimp_layer_set_lock_alpha(item.raw, lock_alpha)
+
+
 def remove_folder_hierarchy_from_item(batcher):
   item = batcher.current_item
 
