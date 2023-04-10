@@ -119,7 +119,7 @@ file_formats = _create_file_formats([
    'file_extensions': ['xhtml']},
   {'description': 'DDS image',
    'file_extensions': ['dds']},
-  {'description': 'Digital Imaging and Communications in Medicine image',
+  {'description': 'DICOM image',
    'file_extensions': ['dcm', 'dicom']},
   {'description': 'Encapsulated PostScript image',
    'file_extensions': ['eps']},
