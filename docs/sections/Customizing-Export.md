@@ -7,7 +7,7 @@ Beyond the basic features, Export Layers allows you to:
 * selecting which layers to export by applying constraints (only visible layers, ...),
 * customize export to save multi-layer images (e.g. multi-page PDFs).
 
-To enable customization, press the `Settings` button and choose `Show More Settings`.
+To enable customization, press the `Settings` button and select `Show More Settings`.
 
 ![Dialog of Export Layers with additional customization](../images/screenshot_dialog_customizing_export.png)
 
