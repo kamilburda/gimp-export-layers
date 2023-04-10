@@ -219,7 +219,7 @@ def _get_layer_name(batcher, item, field_value, file_extension_strip_mode=''):
     file_extension = pg.path.get_file_extension(item.orig_name)
     if file_extension:
       if file_extension_strip_mode == '%i':
-        if file_extension == batcher.batch_settings['file_extension'].value:
+        if file_extension == batcher.file_extension:
           return item.name
       else:
         return item.name

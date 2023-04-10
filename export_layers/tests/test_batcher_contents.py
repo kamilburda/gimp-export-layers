@@ -13,11 +13,12 @@ from gimp import pdb
 
 from export_layers import pygimplib as pg
 
+from export_layers import actions
+from export_layers import batcher as batcher_
 from export_layers import builtin_procedures
 from export_layers import exceptions
-from export_layers import batcher as batcher_
-from export_layers import actions
 from export_layers import settings_main
+from export_layers import utils as utils_
 
 
 _CURRENT_MODULE_DIRPATH = os.path.dirname(pg.utils.get_current_module_filepath())
@@ -169,9 +170,11 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
     batcher = batcher_.Batcher(
       settings['special/run_mode'].value,
       settings['special/image'].value,
-      settings['main'])
+      settings['main/procedures'],
+      settings['main/constraints'],
+    )
     
-    batcher.run()
+    batcher.run(**utils_.get_settings_for_batcher(settings['main']))
     
     for procedure_name in procedure_names_to_add:
       actions.remove(settings['main/procedures'], procedure_name)
@@ -253,16 +256,14 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
 #===============================================================================
 
 
-def test_export_for_all_file_formats(batcher, batch_settings):
-  orig_output_dirpath = batch_settings['output_directory'].value
-  
+def test_export_for_all_file_formats(batcher, settings, output_dirpath, file_extension):
   for file_format in pg.fileformats.file_formats:
     for file_extension in file_format.file_extensions:
-      batch_settings['file_extension'].set_value(file_extension)
-      batch_settings['output_directory'].set_value(
-        os.path.join(orig_output_dirpath, file_extension))
       try:
-        batcher.run()
+        batcher.run(
+          output_directory=os.path.join(output_dirpath, file_extension),
+          file_extension=file_extension,
+          **utils_.get_settings_for_batcher(settings['main']))
       except exceptions.ExportError:
         # Do not stop if one file format causes an error.
         continue

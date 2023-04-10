@@ -231,7 +231,7 @@ def _get_unique_substring_position(str_, file_extension):
 
 def _export_item(
       batcher, item, image, raw_item, default_file_extension, file_extension_properties):
-  output_filepath = _get_item_filepath(item, batcher.batch_settings['output_directory'].value)
+  output_filepath = _get_item_filepath(item, batcher.output_directory)
   file_extension = pg.path.get_file_extension(item.name)
   export_status = ExportStatuses.NOT_EXPORTED_YET
   

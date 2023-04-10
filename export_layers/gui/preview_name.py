@@ -17,6 +17,7 @@ from gimp import pdb
 
 from export_layers import pygimplib as pg
 
+from export_layers import utils as utils_
 from export_layers.gui import preview_base as preview_base_
 
 
@@ -68,6 +69,7 @@ class NamePreview(preview_base_.Preview):
   def __init__(
         self,
         batcher,
+        settings,
         initial_item_tree=None,
         collapsed_items=None,
         selected_items=None,
@@ -76,6 +78,7 @@ class NamePreview(preview_base_.Preview):
     super().__init__()
     
     self._batcher = batcher
+    self._settings = settings
     self._initial_item_tree = initial_item_tree
     self._collapsed_items = collapsed_items if collapsed_items is not None else set()
     self._selected_items = selected_items if selected_items is not None else []
@@ -539,7 +542,8 @@ class NamePreview(preview_base_.Preview):
       is_preview=True,
       process_contents=False,
       process_names=True,
-      process_export=False)
+      process_export=False,
+      **utils_.get_settings_for_batcher(self._settings['main']))
   
   def _update_items(self, items):
     updated_parents = set()

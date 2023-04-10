@@ -30,14 +30,15 @@ import gimpui
 
 from export_layers import pygimplib as pg
 
+from export_layers import actions
+from export_layers import batcher as batcher_
 from export_layers import builtin_constraints
 from export_layers import builtin_procedures
-from export_layers import actions
 from export_layers import exceptions
-from export_layers import batcher as batcher_
 from export_layers import renamer as renamer_
 from export_layers import settings_main
 from export_layers import update
+from export_layers import utils as utils_
 
 from export_layers.gui import message_label as message_label_
 from export_layers.gui import actions as actions_
@@ -281,7 +282,8 @@ class ExportLayersDialog(object):
     self._batcher_for_previews = batcher_.Batcher(
       gimpenums.RUN_NONINTERACTIVE,
       self._image,
-      self._settings['main'],
+      self._settings['main/procedures'],
+      self._settings['main/constraints'],
       overwrite_chooser=pg.overwrite.NoninteractiveOverwriteChooser(
         self._settings['main/overwrite_mode'].items['replace']),
       item_tree=self._initial_layer_tree)
@@ -672,6 +674,7 @@ class ExportLayersDialog(object):
   def _init_gui_previews(self):
     self._name_preview = preview_name_.NamePreview(
       self._batcher_for_previews,
+      self._settings,
       self._initial_layer_tree,
       self._settings['gui_session/name_preview_layers_collapsed_state'].value[self._image.ID],
       self._settings['main/selected_layers'].value[self._image.ID],
@@ -679,7 +682,7 @@ class ExportLayersDialog(object):
       self._settings['main/available_tags'])
     
     self._image_preview = preview_image_.ImagePreview(
-      self._batcher_for_previews)
+      self._batcher_for_previews, self._settings)
     
     self._previews_controller = previews_controller_.PreviewsController(
       self._name_preview, self._image_preview, self._settings, self._image)
@@ -847,7 +850,7 @@ class ExportLayersDialog(object):
     self._image_preview.lock_update(True, lock_update_key)
     
     try:
-      self._batcher.run()
+      self._batcher.run(**utils_.get_settings_for_batcher(self._settings['main']))
     except exceptions.BatcherCancelError as e:
       should_quit = False
     except exceptions.BatcherError as e:
@@ -912,9 +915,10 @@ class ExportLayersDialog(object):
     batcher = batcher_.Batcher(
       gimpenums.RUN_INTERACTIVE,
       self._image,
-      self._settings['main'],
-      overwrite_chooser,
-      progress_updater,
+      self._settings['main/procedures'],
+      self._settings['main/constraints'],
+      overwrite_chooser=overwrite_chooser,
+      progress_updater=progress_updater,
       export_context_manager=handle_gui_in_export,
       export_context_manager_args=[self._dialog])
     
@@ -1045,14 +1049,17 @@ class ExportLayersRepeatDialog(object):
     self._batcher = batcher_.Batcher(
       gimpenums.RUN_WITH_LAST_VALS,
       self._image,
-      self._settings['main'],
-      pg.overwrite.NoninteractiveOverwriteChooser(
+      self._settings['main/procedures'],
+      self._settings['main/constraints'],
+      overwrite_chooser=pg.overwrite.NoninteractiveOverwriteChooser(
         self._settings['main/overwrite_mode'].value),
-      progress_updater,
+      progress_updater=progress_updater,
       export_context_manager=handle_gui_in_export,
       export_context_manager_args=[self._dialog])
     try:
-      self._batcher.run(item_tree=self._layer_tree)
+      self._batcher.run(
+        item_tree=self._layer_tree,
+        **utils_.get_settings_for_batcher(self._settings['main']))
     except exceptions.BatcherCancelError:
       pass
     except exceptions.BatcherError as e:

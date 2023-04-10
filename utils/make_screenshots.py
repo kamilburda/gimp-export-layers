@@ -19,9 +19,9 @@ import gtk
 import gimp
 from gimp import pdb
 
-from export_layers import builtin_procedures
-from export_layers import builtin_constraints
 from export_layers import actions
+from export_layers import builtin_constraints
+from export_layers import builtin_procedures
 from export_layers import settings_main
 from export_layers.gui import main as gui_main
 

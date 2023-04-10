@@ -13,10 +13,11 @@ from export_layers import pygimplib as pg
 
 from export_layers.pygimplib.tests import stubs_gimp
 
-from export_layers import builtin_procedures
-from export_layers import batcher as batcher_
 from export_layers import actions
+from export_layers import batcher as batcher_
+from export_layers import builtin_procedures
 from export_layers import settings_main
+from export_layers import utils as utils_
 
 
 class TestBatcherInitialActions(unittest.TestCase):
@@ -37,7 +38,9 @@ class TestBatcherInitialActions(unittest.TestCase):
     batcher = batcher_.Batcher(
       settings['special/run_mode'].value,
       settings['special/image'].value,
-      settings['main'])
+      settings['main/procedures'],
+      settings['main/constraints'],
+    )
     
     actions.add(
       settings['main/procedures'],
@@ -46,7 +49,8 @@ class TestBatcherInitialActions(unittest.TestCase):
     batcher.add_procedure(pg.utils.empty_func, [actions.DEFAULT_PROCEDURES_GROUP])
     
     batcher.run(
-      is_preview=True, process_contents=False, process_names=False, process_export=False)
+      is_preview=True, process_contents=False, process_names=False, process_export=False,
+      **utils_.get_settings_for_batcher(settings['main']))
     
     added_action_items = batcher.invoker.list_actions(group=actions.DEFAULT_PROCEDURES_GROUP)
     
@@ -68,7 +72,8 @@ class TestAddActionFromSettings(unittest.TestCase):
     self.batcher = batcher_.Batcher(
       initial_run_mode=0,
       input_image=mock.MagicMock(),
-      batch_settings=mock.MagicMock(),
+      procedures=mock.MagicMock(),
+      constraints=mock.MagicMock(),
       overwrite_chooser=mock.MagicMock(),
       progress_updater=mock.MagicMock())
     

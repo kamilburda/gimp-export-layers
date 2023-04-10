@@ -21,8 +21,9 @@ import gimpenums
 
 from export_layers import pygimplib as pg
 
-from export_layers import builtin_constraints
 from export_layers import actions
+from export_layers import builtin_constraints
+from export_layers import utils as utils_
 
 from export_layers.gui import preview_base as preview_base_
 
@@ -73,10 +74,11 @@ class ImagePreview(preview_base_.Preview):
   _MAX_PREVIEW_SIZE_PIXELS = 1024
   _PREVIEW_ALPHA_CHECK_SIZE = 4
   
-  def __init__(self, batcher):
+  def __init__(self, batcher, settings):
     super().__init__()
     
     self._batcher = batcher
+    self._settings = settings
     
     self._item = None
     
@@ -383,7 +385,8 @@ class ImagePreview(preview_base_.Preview):
         is_preview=True,
         process_contents=True,
         process_names=False,
-        process_export=False)
+        process_export=False,
+        **utils_.get_settings_for_batcher(self._settings['main']))
     except Exception:
       display_image_preview_failure_message(
         details=traceback.format_exc(), parent=pg.gui.get_toplevel_window(self))

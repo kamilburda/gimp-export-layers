@@ -23,10 +23,11 @@ from future.builtins import *
 
 import gimpenums
 
-from export_layers import exceptions
 from export_layers import batcher as batcher_
+from export_layers import exceptions
 from export_layers import settings_main
 from export_layers import update
+from export_layers import utils as utils_
 from export_layers.gui import main as gui_main
 
 
@@ -125,10 +126,11 @@ def _run_export_layers_repeat_interactive(layer_tree):
 
 
 def _run_plugin_noninteractive(run_mode, layer_tree):
-  batcher = batcher_.Batcher(run_mode, layer_tree.image, SETTINGS['main'])
+  batcher = batcher_.Batcher(
+    run_mode, layer_tree.image, SETTINGS['main/procedures'], SETTINGS['main/constraints'])
   
   try:
-    batcher.run(item_tree=layer_tree)
+    batcher.run(item_tree=layer_tree, **utils_.get_settings_for_batcher(SETTINGS['main']))
   except exceptions.BatcherCancelError:
     pass
 

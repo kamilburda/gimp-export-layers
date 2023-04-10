@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 
-"""Plug-in core - exporting layers as separate images."""
+"""Batch-processing layers and exporting layers as separate images."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
 import inspect
 
+import gimp
 from gimp import pdb
 
 from export_layers import pygimplib as pg
 
-from export_layers import builtin_procedures
 from export_layers import actions
-from export_layers import export as export_
+from export_layers import builtin_procedures
 from export_layers import exceptions
+from export_layers import export as export_
 from export_layers import placeholders
 
 
@@ -27,88 +28,19 @@ _NAME_ONLY_ACTION_GROUP = 'name'
 class Batcher(object):
   """Class for batch-processing layers in the specified image with a sequence of
   actions (resize, rename, export, ...).
-  
-  Attributes:
-  
-  * `initial_run_mode` (read-only) - The run mode to use for the first layer.
-    For subsequent layers, `gimpenums.RUN_WITH_LAST_VALS` is used.
-    This usually has effect when exporting layers - if `initial_run_mode` is
-    `gimpenums.RUN_INTERACTIVE`, a native file format GUI is displayed for the
-    first layer and the same settings are then applied to subsequent layers.
-    If the file format in which the layer is exported to cannot handle
-    `gimpenums.RUN_WITH_LAST_VALS`, `gimpenums.RUN_INTERACTIVE` is forced.
-  
-  * `input_image` (read-only) - Input `gimp.Image` to process layers for.
-  
-  * `batch_settings` (read-only) - `setting.Group` instance containing
-    procedures and constraints and export settings. This class treats the
-    settings as read-only.
-  
-  * `overwrite_chooser` (read-only) - `OverwriteChooser` instance that is
-    invoked during export if a file with the same name already exists. If
-    `None`, then `pygimplib.overwrite.NoninteractiveOverwriteChooser` is used.
-  
-  * `progress_updater` (read-only) - `ProgressUpdater` instance that indicates
-    the number of layers processed so far. If no progress update is desired,
-    pass `None`.
-  
-  * `item_tree` (read-only) - `ItemTree` instance containing layers to be
-    processed. If `None` (the default), an item tree is automatically created at
-    the start of processing. If `item_tree` has filters (constraints) set, they
-    will be reset on each call to `run()`.
-  
-  * `is_preview` (read-only) - If `True`, only procedures and constraints that
-    are marked as "enabled for previews" will be applied for previews. This has
-    no effect during the real processing.
-  
-  * `process_contents` (read-only) - If `True`, invoke procedures on layers.
-    Setting this to `False` is useful if you require only layer names to be
-    processed.
-  
-  * `process_names` (read-only) - If `True`, process layer names before export
-    to be suitable to save to disk (in particular to remove characters invalid
-    for a file system). If `is_preview` is `True` and `process_names` is `True`,
-    also invoke built-in procedures modifying item names only (e.g. renaming
-    layers).
-  
-  * `process_export` (read-only) - If `True`, perform export of layers. Setting
-    this to `False` is useful to preview the processed contents of a layer
-    without saving it to a file.
-  
-  * `export_context_manager` (read-only) - Context manager that wraps exporting
-    a single layer. This can be used to perform GUI updates before and after
-    export. Required parameters: current run mode, current image, layer to
-    export, output filename of the layer.
-  
-  * `export_context_manager_args` (read-only) - Additional positional arguments
-    passed to `export_context_manager`.
-  
-  * `export_context_manager_kwargs` (read-only) - Additional keyword arguments
-    passed to `export_context_manager`.
-  
-  * `current_item` (read-only) - An `itemtree.Item` instance currently being
-    processed.
-  
-  * `current_raw_item` - Raw item (`gimp.Layer`) currently being processed.
-  
-  * `current_image` (read-only) - The current `gimp.Image` containing layer(s)
-    being processed. This is usually a copy of `image` to avoid modifying
-    original layers.
-  
-  * `exported_raw_items` (read-only) - List of layers that were successfully
-    exported. Does not include layers skipped by the user (when files with the
-    same names already exist).
-  
-  * `invoker` (read-only) - `pygimplib.invoker.Invoker` instance to manage
-    procedures and constraints applied on layers. This property is not `None`
-    only during `run()`.
   """
   
   def __init__(
         self,
         initial_run_mode,
         input_image,
-        batch_settings,
+        procedures,
+        constraints,
+        edit_mode=False,
+        output_directory=gimp.user_directory(1),   # `Documents` directory
+        layer_filename_pattern='',
+        file_extension='png',
+        overwrite_mode=pg.overwrite.OverwriteModes.SKIP,
         overwrite_chooser=None,
         progress_updater=None,
         item_tree=None,
@@ -122,7 +54,13 @@ class Batcher(object):
     self._init_attributes(
       initial_run_mode=initial_run_mode,
       input_image=input_image,
-      batch_settings=batch_settings,
+      edit_mode=edit_mode,
+      procedures=procedures,
+      constraints=constraints,
+      output_directory=output_directory,
+      layer_filename_pattern=layer_filename_pattern,
+      file_extension=file_extension,
+      overwrite_mode=overwrite_mode,
       overwrite_chooser=overwrite_chooser,
       progress_updater=progress_updater,
       item_tree=item_tree,
@@ -150,62 +88,153 @@ class Batcher(object):
   
   @property
   def initial_run_mode(self):
+    """The run mode to use for the first layer.
+    
+    For subsequent layers, `gimpenums.RUN_WITH_LAST_VALS` is used.
+    This usually has effect when exporting layers - if `initial_run_mode` is
+    `gimpenums.RUN_INTERACTIVE`, a native file format GUI is displayed for the
+    first layer and the same settings are then applied to subsequent layers.
+    If the file format in which the layer is exported to cannot handle
+    `gimpenums.RUN_WITH_LAST_VALS`, `gimpenums.RUN_INTERACTIVE` is forced.
+    """
     return self._initial_run_mode
   
   @property
   def input_image(self):
+    """Input `gimp.Image` to process layers for."""
     return self._input_image
   
   @property
-  def batch_settings(self):
-    return self._batch_settings
+  def edit_mode(self):
+    """If `True`, batch-edit layers directly in `input_image`. If `False`,
+    batch-process and export layers.
+    """
+    return self._edit_mode
+  
+  @property
+  def procedures(self):
+    """`setting.Group` instance containing procedures."""
+    return self._procedures
+  
+  @property
+  def constraints(self):
+    """`setting.Group` instance containing constraints.."""
+    return self._constraints
+  
+  @property
+  def output_directory(self):
+    """Output directory path to save exported layers to."""
+    return self._output_directory
+  
+  @property
+  def layer_filename_pattern(self):
+    """Filename pattern for layers to be exported."""
+    return self._layer_filename_pattern
+  
+  @property
+  def file_extension(self):
+    """Filename extension for layers to be exported."""
+    return self._file_extension
+  
+  @property
+  def overwrite_mode(self):
+    """One of the `pygimplib.overwrite.OverwriteModes` values indicating how to
+    handle files with the same name."""
+    return self._overwrite_mode
   
   @property
   def overwrite_chooser(self):
+    """`pygimplib.overwrite.OverwriteChooser` instance that is invoked during
+    export if a file with the same name already exists.
+    
+    If `None`, then `pygimplib.overwrite.NoninteractiveOverwriteChooser` is
+    used.
+    """
     return self._overwrite_chooser
   
   @property
   def progress_updater(self):
+    """`pygimplib.progres.ProgressUpdater` instance indicating the number of
+    layers processed so far.
+    
+    If no progress update is desired, pass `None`.
+    """
     return self._progress_updater
   
   @property
   def item_tree(self):
+    """`pygimplib.itemtree.ItemTree` instance containing layers to be processed.
+    
+    If `None` (the default), an item tree is automatically created at the start
+    of processing. If `item_tree` has filters (constraints) set, they will be
+    reset on each call to `run()`.
+    """
     return self._item_tree
   
   @property
   def is_preview(self):
+    """If `True`, only procedures and constraints that are marked as
+    "enabled for previews" will be applied for previews. If `False`, this
+    property has no effect (and effectively allows performing real processing).
+    """
     return self._is_preview
   
   @property
   def process_contents(self):
+    """If `True`, invoke procedures on layers.
+    
+    Setting this to `False` is useful if you require only layer names to be
+    processed.
+    """
     return self._process_contents
   
   @property
-  def process_export(self):
-    return self._process_export
-  
-  @property
   def process_names(self):
+    """If `True`, process layer names before export to be suitable to save to
+    disk (in particular to remove characters invalid for a file system).
+    
+    If `is_preview` is `True` and `process_names` is `True`, also invoke
+    built-in procedures modifying item names only (e.g. renaming layers).
+    """
     return self._process_names
   
   @property
+  def process_export(self):
+    """If `True`, perform export of layers.
+    
+    Setting this to `False` is useful to preview the processed contents of a
+    layer without saving it to a file.
+    """
+    return self._process_export
+  
+  @property
   def export_context_manager(self):
+    """Context manager that wraps exporting a single layer.
+    
+    This can be used to perform GUI updates before and after export.
+    Required parameters: current run mode, current image, layer to export,
+    output filename of the layer.
+    """
     return self._export_context_manager
   
   @property
   def export_context_manager_args(self):
+    """Additional positional arguments passed to `export_context_manager`."""
     return self._export_context_manager_args
   
   @property
   def export_context_manager_kwargs(self):
+    """Additional keyword arguments passed to `export_context_manager`."""
     return self._export_context_manager_kwargs
   
   @property
   def current_item(self):
+    """A `pygimplib.itemtree.Item` instance currently being processed."""
     return self._current_item
   
   @property
   def current_raw_item(self):
+    """Raw item (`gimp.Layer`) currently being processed."""
     return self._current_raw_item
   
   @current_raw_item.setter
@@ -214,14 +243,31 @@ class Batcher(object):
   
   @property
   def current_image(self):
+    """The current `gimp.Image` containing layer(s) being processed.
+    
+    If `edit_mode` is `True`, this is equivalent to `input_image`.
+    
+    If `edit_mode` is `False`, this is a copy of `input_image` to avoid
+    modifying original layers.
+    """
     return self._current_image
   
   @property
   def exported_raw_items(self):
+    """List of layers that were successfully exported.
+    
+    Does not include layers skipped by the user (when files with the same names
+    already exist).
+    """
     return list(self._exported_raw_items)
   
   @property
   def invoker(self):
+    """`pygimplib.invoker.Invoker` instance to manage procedures and constraints
+    applied on layers.
+    
+    This property is reset on each call of `run()`.
+    """
     return self._invoker
   
   def run(self, keep_image_copy=False, **kwargs):
@@ -234,11 +280,9 @@ class Batcher(object):
     returns the image copy. If an exception was raised or if no layer was
     exported, this method returns `None` and the image copy will be destroyed.
     
-    `**kwargs` can contain arguments that can be passed to
-    `Batcher.__init__()`. Arguments in `**kwargs` overwrite the
-    corresponding `Batcher` attributes.
-    See the attributes of `Batcher` for the description of these
-    arguments.
+    `**kwargs` can contain arguments that can be passed to `Batcher.__init__()`.
+    Arguments in `**kwargs` overwrite the corresponding `Batcher` properties.
+    See the properties for details.
     """
     self._init_attributes(**kwargs)
     self._prepare_for_processing(self._item_tree, keep_image_copy)
@@ -482,7 +526,7 @@ class Batcher(object):
     
     if self._overwrite_chooser is None:
       self._overwrite_chooser = pg.overwrite.NoninteractiveOverwriteChooser(
-        self._batch_settings['overwrite_mode'].value)
+        self._overwrite_mode)
     
     if self._progress_updater is None:
       self._progress_updater = pg.progress.ProgressUpdater(None)
@@ -542,46 +586,46 @@ class Batcher(object):
     
     self._add_default_rename_procedure([actions.DEFAULT_PROCEDURES_GROUP])
     
-    for procedure in actions.walk(self._batch_settings['procedures']):
+    for procedure in actions.walk(self._procedures):
       self._add_action_from_settings(procedure)
     
     self._add_default_export_procedure([actions.DEFAULT_PROCEDURES_GROUP])
     
-    for constraint in actions.walk(self._batch_settings['constraints']):
+    for constraint in actions.walk(self._constraints):
       self._add_action_from_settings(constraint)
   
   def _add_name_only_actions(self):
     self._add_default_rename_procedure([_NAME_ONLY_ACTION_GROUP])
     
-    for procedure in actions.walk(self._batch_settings['procedures']):
+    for procedure in actions.walk(self._procedures):
       self._add_action_from_settings(
         procedure, [builtin_procedures.NAME_ONLY_TAG], [_NAME_ONLY_ACTION_GROUP])
     
     self._add_default_export_procedure([_NAME_ONLY_ACTION_GROUP])
     
-    for constraint in actions.walk(self._batch_settings['constraints']):
+    for constraint in actions.walk(self._constraints):
       self._add_action_from_settings(
         constraint, [builtin_procedures.NAME_ONLY_TAG], [_NAME_ONLY_ACTION_GROUP])
   
   def _add_default_rename_procedure(self, action_groups):
-    if (not self._batch_settings['edit_mode'].value
+    if (not self._edit_mode
         and not any(
           procedure['orig_name'].value == 'rename' and procedure['enabled'].value
-          for procedure in actions.walk(self._batch_settings['procedures']))):
+          for procedure in actions.walk(self._procedures))):
       self._invoker.add(
         builtin_procedures.rename_layer,
         groups=action_groups,
-        args=[self._batch_settings['layer_filename_pattern'].value])
+        args=[self._layer_filename_pattern])
   
   def _add_default_export_procedure(self, action_groups):
-    if (not self._batch_settings['edit_mode'].value
+    if (not self._edit_mode
         and not any(
           procedure['orig_name'].value == 'export' and procedure['enabled'].value
-          for procedure in actions.walk(self._batch_settings['procedures']))):
+          for procedure in actions.walk(self._procedures))):
       self._invoker.add(
         export_.export,
         groups=action_groups,
-        args=[self._batch_settings['file_extension'].value, export_.ExportModes.EACH_LAYER])
+        args=[self._file_extension, export_.ExportModes.EACH_LAYER])
   
   def _set_constraints(self):
     self._invoker.invoke(
@@ -592,7 +636,7 @@ class Batcher(object):
   def _setup_contents(self):
     pdb.gimp_context_push()
     
-    if not self._batch_settings['edit_mode'].value or self._is_preview:
+    if not self._edit_mode or self._is_preview:
       self._image_copy = pg.pdbutils.create_image_from_metadata(self._input_image)
       self._current_image = self._image_copy
       
@@ -612,7 +656,7 @@ class Batcher(object):
       [self],
       additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
     
-    if not self._batch_settings['edit_mode'].value or self._is_preview:
+    if not self._edit_mode or self._is_preview:
       self._copy_non_modifying_parasites(self._current_image, self._input_image)
       
       pdb.gimp_image_undo_thaw(self._current_image)
@@ -661,7 +705,7 @@ class Batcher(object):
       if self._should_stop:
         raise exceptions.BatcherCancelError('stopped by user')
       
-      if self._batch_settings['edit_mode'].value:
+      if self._edit_mode:
         self._progress_updater.update_text(_('Processing "{}"').format(item.orig_name))
       
       self._process_item(item)
@@ -707,7 +751,7 @@ class Batcher(object):
       additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
   
   def _process_item_with_actions(self, item, raw_item):
-    if not self._batch_settings['edit_mode'].value or self._is_preview:
+    if not self._edit_mode or self._is_preview:
       raw_item_copy = pg.pdbutils.copy_and_paste_layer(
         raw_item, self._current_image, None, len(self._current_image.layers), True, True)
       
@@ -742,6 +786,6 @@ class Batcher(object):
       additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
   
   def _refresh_current_image(self, raw_item):
-    if not self._batch_settings['edit_mode'].value and not self._keep_image_copy:
+    if not self._edit_mode and not self._keep_image_copy:
       for layer in self._current_image.layers:
         pdb.gimp_image_remove_layer(self._current_image, layer)

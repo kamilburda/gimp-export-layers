@@ -14,8 +14,8 @@ import gimpenums
 from export_layers import pygimplib as pg
 
 from export_layers import actions
-from export_layers import builtin_procedures
 from export_layers import builtin_constraints
+from export_layers import builtin_procedures
 from export_layers import export as export_
 from export_layers import settings_custom
 from export_layers.gui import settings_gui

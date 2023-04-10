@@ -25,9 +25,7 @@ def has_matching_file_extension(item, file_extension):
 
 
 def has_matching_default_file_extension(item, batcher):
-  return (
-    pg.path.get_file_extension(item.name).lower()
-    == batcher.batch_settings['file_extension'].value.lower())
+  return pg.path.get_file_extension(item.name).lower() == batcher.file_extension.lower()
 
 
 def is_item_in_selected_items(item, selected_layers):
