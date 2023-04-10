@@ -4,8 +4,11 @@ docs/gh-pages/dev/images/download_icon.svg
 docs/images/logo.svg
 docs/gh-pages/dev/images/logo.svg
 
-docs/images/screenshot_dialog_customizing_export.png
-docs/gh-pages/dev/images/screenshot_dialog_customizing_export.png
-
 docs/images/screenshot_dialog_basic_usage.png
 docs/gh-pages/dev/images/screenshot_dialog_basic_usage.png
+
+docs/images/screenshot_dialog_batch_editing.png
+docs/gh-pages/dev/images/screenshot_dialog_batch_editing.png
+
+docs/images/screenshot_dialog_customizing_export.png
+docs/gh-pages/dev/images/screenshot_dialog_customizing_export.png
