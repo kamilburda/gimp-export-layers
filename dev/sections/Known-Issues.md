@@ -2,8 +2,8 @@
 layout: docs_page
 title: Known Issues
 navbar_active_tab: docs
-previous_doc_filename: Customizing-Export.html
-previous_doc_title: Customizing Export
+previous_doc_filename: Batch-Editing.html
+previous_doc_title: Batch Editing
 ---
 
 
