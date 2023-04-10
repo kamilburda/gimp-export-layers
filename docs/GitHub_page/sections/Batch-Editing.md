@@ -8,7 +8,4 @@ next_doc_filename: Known-Issues.html
 next_doc_title: Known Issues
 ---
 
-* TOC
-{:toc}
-
 {% include-section '../../sections/Batch-Editing.md' %}
