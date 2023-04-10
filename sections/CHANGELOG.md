@@ -31,6 +31,7 @@ Changes to constraints:
 Other changes:
 * Layer groups as images and as folders are now displayed separately in the preview.
 * Built-in procedures and constraints are now listed alphabetically.
+* Shortened the name of the DICOM file format. As a result, the file format popup is now much shorter and thus more compact.
 * Updated documentation with examples on how to customize the export.
 
 Bug fixes:
