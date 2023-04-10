@@ -5,12 +5,17 @@ procedures during batch processing.
 
 The following placeholder objects are defined:
 
-* `PLACEHOLDERS['current_image']` - Represents the image currently being
-  processed.
+* `PLACEHOLDERS['current_image']` - The image currently being processed.
 
-* `PLACEHOLDERS['current_layer']` - Represents the layer currently being
-  processed in the current image. This placeholder is currently also used for
-  PDB procedures containing `gimp.Drawable` or `gimp.Item` parameters.
+* `PLACEHOLDERS['current_layer']` - The layer currently being processed in the
+  current image. This placeholder is used for PDB procedures containing
+  `gimp.Layer`, `gimp.Drawable` or `gimp.Item` parameters.
+
+* `PLACEHOLDERS['background_layer']` - The layer positioned immediately after
+  the currently processed layer.
+
+* `PLACEHOLDERS['foreground_layer']` - The layer positioned immediately before
+  the currently processed layer.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -88,9 +93,8 @@ _PLACEHOLDERS = collections.OrderedDict([
 
 
 def get_replaced_arg(arg, batcher):
-  """
-  If `arg` is a placeholder object, return a real object replacing the
-  placeholder. Otherwise, return `arg`.
+  """If `arg` is a placeholder object, returns a real object replacing the
+  placeholder. Otherwise, `arg` is returned.
   
   Arguments after `args` are required arguments for actions and are used to
   determine the real object that replaces the placeholder.
@@ -104,8 +108,7 @@ def get_replaced_arg(arg, batcher):
 
 
 def get_replaced_args_and_kwargs(func_args, func_kwargs, batcher):
-  """
-  Return arguments and keyword arguments for a function whose placeholder
+  """Returns arguments and keyword arguments for a function whose placeholder
   objects are replaced with real objects.
   
   Arguments after `func_kwargs` are required arguments for actions and are
@@ -130,15 +133,13 @@ class PlaceholderSetting(pg.setting.Setting):
   
   @classmethod
   def get_allowed_placeholder_names(cls):
-    """
-    Return a list of allowed names of placeholders for this setting class.
+    """Returns a list of allowed names of placeholders for this setting class.
     """
     return list(cls._ALLOWED_PLACEHOLDERS)
   
   @classmethod
   def get_allowed_placeholders(cls):
-    """
-    Return a list of allowed placeholder objects for this setting class.
+    """Returns a list of allowed placeholder objects for this setting class.
     """
     return [
       placeholder for placeholder_name, placeholder in _PLACEHOLDERS.items()
