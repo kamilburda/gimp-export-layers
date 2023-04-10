@@ -1,6 +1,6 @@
 ---
 layout: docs_page
-title: Customizing Export
+title: Batch Editing
 navbar_active_tab: docs
 previous_doc_filename: Customizing-Export.html
 previous_doc_title: Customizing Export
