@@ -1571,7 +1571,8 @@ class DirpathSetting(ValidatableStringSetting):
   * `''`
   """
   
-  _ALLOWED_GUI_TYPES = [SettingGuiTypes.folder_chooser]
+  _ALLOWED_GUI_TYPES = [
+    SettingGuiTypes.folder_chooser_widget, SettingGuiTypes.folder_chooser_button]
   _EMPTY_VALUES = [None, '']
   
   def __init__(self, name, **kwargs):

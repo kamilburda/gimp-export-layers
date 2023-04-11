@@ -39,7 +39,7 @@ __all__ = [
   'ParasiteBoxPresenter',
   'GtkDisplaySpinButtonPresenter',
   'ExtendedEntryPresenter',
-  'GtkFolderChooserPresenter',
+  'GtkFolderChooserWidgetPresenter',
   'GimpUiBrushSelectButtonPresenter',
   'GimpUiFontSelectButtonPresenter',
   'GimpUiGradientSelectButtonPresenter',
@@ -502,10 +502,9 @@ class FileExtensionEntryPresenter(ExtendedEntryPresenter):
     return pggui.FileExtensionEntry()
 
 
-class GtkFolderChooserPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gtk.FileChooserWidget` elements
-  used as folder choosers.
+class GtkFolderChooserWidgetPresenter(GtkPresenter):
+  """`Presenter` subclass for `gtk.FileChooserWidget` elements used as folder
+  choosers.
   
   Value: Current folder.
   """
@@ -539,6 +538,30 @@ class GtkFolderChooserPresenter(GtkPresenter):
   
   def _is_location_entry_active(self):
     return self._location_toggle_button.get_active()
+
+
+class GtkFolderChooserButtonPresenter(GtkPresenter):
+  """`Presenter` subclass for `gtk.FileChooserButton` elements used as folder
+  choosers.
+  
+  Value: Current folder.
+  """
+
+  def _create_gui_element(self, setting):
+    button = gtk.FileChooserButton(title=setting.display_name)
+    button.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+    return button
+  
+  def _get_value(self):
+    dirpath = self._element.get_filename()
+    
+    if dirpath is not None:
+      return pgutils.safe_decode_gtk(dirpath)
+    else:
+      return None
+  
+  def _set_value(self, dirpath):
+    self._element.set_current_folder(pgutils.safe_encode_gtk(dirpath))
 
 
 class GimpUiBrushSelectButtonPresenter(GtkPresenter):
@@ -843,7 +866,8 @@ class SettingGuiTypes(object):
   expander = GtkExpanderPresenter
   combo_box = GimpUiIntComboBoxPresenter
   text_entry = GtkEntryPresenter
-  folder_chooser = GtkFolderChooserPresenter
+  folder_chooser_button = GtkFolderChooserButtonPresenter
+  folder_chooser_widget = GtkFolderChooserWidgetPresenter
   
   image_combo_box = GimpUiImageComboBoxPresenter
   item_combo_box = GimpItemComboBoxPresenter
