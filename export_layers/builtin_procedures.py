@@ -225,6 +225,13 @@ _BUILTIN_PROCEDURES_LIST = [
     'additional_tags': [NAME_ONLY_TAG],
     'arguments': [
       {
+        'type': pg.SettingTypes.directory,
+        'name': 'output_directory',
+        'default_value': gimp.user_directory(1),  # `Documents` directory
+        'display_name': _('Output folder'),
+        'gui_type': pg.setting.SettingGuiTypes.folder_chooser_button,
+      },
+      {
         'type': pg.SettingTypes.file_extension,
         'name': 'file_extension',
         'default_value': 'png',

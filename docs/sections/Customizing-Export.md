@@ -302,7 +302,9 @@ You can add the same procedure multiple times.
 Performs export with additional customization not available in the main dialog.
 
 Options:
-* *File extension*: File extension of the output image.
+* *Output folder*: Folder to save the output image(s).
+  When this procedure is added, the output folder is set to the folder displayed in the main dialog upon the plug-in startup.
+* *File extension*: File extension of the output image(s).
   This overrides the file extension in the main dialog.
 * *Perform export*: Whether to export each layer separately ("For each layer"), each top-level layer or layer group separately ("For each top-level layer or group"), or a single image containing all layers ("For the entire image at once").
   The latter two options provide multi-layer export. This allows exporting e.g. multi-page PDFs or animated GIFs per top-level layer group and/or with additional custom procedures applied before the export.

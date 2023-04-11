@@ -77,7 +77,7 @@ def create_settings():
     {
       'type': pg.SettingTypes.string,
       'name': 'output_directory',
-      'default_value': gimp.user_directory(1),   # `Documents` directory
+      'default_value': gimp.user_directory(1),  # `Documents` directory
       'display_name': _('Output directory'),
       'gui_type': None,
       'tags': ['ignore_reset'],
@@ -160,7 +160,8 @@ def create_settings():
       visible_constraint_dict]),
   ])
   
-  settings['main/procedures'].connect_event('after-add-action', _on_after_add_procedure)
+  settings['main/procedures'].connect_event(
+    'after-add-action', _on_after_add_procedure, settings['main'])
   
   settings['main/constraints'].connect_event(
     'after-add-action',
@@ -171,8 +172,12 @@ def create_settings():
   return settings
 
 
-def _on_after_add_procedure(procedures, procedure, orig_procedure_dict):
+def _on_after_add_procedure(procedures, procedure, orig_procedure_dict, main_settings):
   if procedure['orig_name'].value == 'export':
+    _set_initial_output_directory_in_export(
+      procedure['arguments/output_directory'],
+      main_settings['output_directory'])
+    
     _set_sensitive_for_image_filename_pattern_in_export(
       procedure['arguments/export_mode'],
       procedure['arguments/single_image_filename_pattern'])
@@ -181,6 +186,14 @@ def _on_after_add_procedure(procedures, procedure, orig_procedure_dict):
       'value-changed',
       _set_sensitive_for_image_filename_pattern_in_export,
       procedure['arguments/single_image_filename_pattern'])
+
+
+def _set_initial_output_directory_in_export(
+      export_output_directory_setting, output_directory_setting):
+  # The check avoids plug-in failing to display the GUI due to an invalid
+  # directory.
+  if output_directory_setting.value:
+    export_output_directory_setting.set_value(output_directory_setting.value)
 
 
 def _set_sensitive_for_image_filename_pattern_in_export(

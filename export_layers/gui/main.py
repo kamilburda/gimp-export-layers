@@ -668,7 +668,7 @@ class ExportLayersDialog(object):
         pg.setting.SettingGuiTypes.check_menu_item,
         self._image_preview.menu_item_update_automatically],
       'gui_session/current_directory': [
-        pg.setting.SettingGuiTypes.folder_chooser, self._folder_chooser],
+        pg.setting.SettingGuiTypes.folder_chooser_widget, self._folder_chooser],
     })
   
   def _init_gui_previews(self):

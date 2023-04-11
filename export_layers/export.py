@@ -8,6 +8,7 @@ from future.builtins import *
 import collections
 import os
 
+import gimp
 from gimp import pdb
 import gimpenums
 
@@ -29,7 +30,8 @@ class ExportModes(object):
 
 def export(
       batcher,
-      file_extension,
+      output_directory=gimp.user_directory(1),  # `Documents` directory
+      file_extension='png',
       export_mode=ExportModes.EACH_LAYER,
       single_image_filename_pattern=None,
       use_file_extension_in_item_name=False,
@@ -122,7 +124,7 @@ def export(
       
       overwrite_mode, export_status = _export_item(
         batcher, item_to_process, image_to_process, batcher.current_raw_item,
-        default_file_extension, file_extension_properties)
+        output_directory, default_file_extension, file_extension_properties)
       
       if export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
         if batcher.process_names:
@@ -133,7 +135,7 @@ def export(
         if batcher.process_export:
           overwrite_mode, unused_ = _export_item(
             batcher, item_to_process, image_to_process, batcher.current_raw_item,
-            default_file_extension, file_extension_properties)
+            output_directory, default_file_extension, file_extension_properties)
       
       if overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
         file_extension_properties[
@@ -230,8 +232,9 @@ def _get_unique_substring_position(str_, file_extension):
 
 
 def _export_item(
-      batcher, item, image, raw_item, default_file_extension, file_extension_properties):
-  output_filepath = _get_item_filepath(item, batcher.output_directory)
+      batcher, item, image, raw_item,
+      output_directory, default_file_extension, file_extension_properties):
+  output_filepath = _get_item_filepath(item, output_directory)
   file_extension = pg.path.get_file_extension(item.name)
   export_status = ExportStatuses.NOT_EXPORTED_YET
   

@@ -37,7 +37,7 @@ class Batcher(object):
         procedures,
         constraints,
         edit_mode=False,
-        output_directory=gimp.user_directory(1),   # `Documents` directory
+        output_directory=gimp.user_directory(1),  # `Documents` directory
         layer_filename_pattern='',
         file_extension='png',
         overwrite_mode=pg.overwrite.OverwriteModes.SKIP,
@@ -631,7 +631,7 @@ class Batcher(object):
       self._invoker.add(
         export_.export,
         groups=action_groups,
-        args=[self._file_extension, export_.ExportModes.EACH_LAYER])
+        args=[self._output_directory, self._file_extension, export_.ExportModes.EACH_LAYER])
   
   def _set_constraints(self):
     self._invoker.invoke(
