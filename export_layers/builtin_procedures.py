@@ -36,16 +36,18 @@ def set_active_and_current_layer(batcher):
         batcher.current_raw_item = first_layer
         batcher.current_image.active_layer = first_layer
       else:
-        # There is nothing we can do. Let an exception be raised. An empty image
-        # could occur e.g. if a custom procedure removed all layers.
+        # There is nothing we can do. An exception may be raised if a procedure
+        # requires an active layer/at least one layer. An empty image could
+        # occur e.g. if all layers were removed by the previous procedures.
         pass
 
 
 def set_active_and_current_layer_after_action(batcher):
-  action_applied = yield
-  
-  if action_applied or action_applied is None:
-    set_active_and_current_layer(batcher)
+  try:
+    action_applied = yield
+  finally:
+    if action_applied or action_applied is None:
+      set_active_and_current_layer(batcher)
 
 
 def remove_locks_before_action_restore_locks_after_action(batcher):
@@ -74,16 +76,17 @@ def remove_locks_before_action_restore_locks_after_action(batcher):
     if lock_alpha:
       pdb.gimp_layer_set_lock_alpha(item.raw, False)
   
-  yield
-  
-  for item_or_parent, lock_content in locks_content.items():
-    if lock_content:
-      pdb.gimp_item_set_lock_content(item_or_parent.raw, lock_content)
-  if not is_item_group:
-    if lock_position:
-      pdb.gimp_item_set_lock_position(item.raw, lock_position)
-    if lock_alpha:
-      pdb.gimp_layer_set_lock_alpha(item.raw, lock_alpha)
+  try:
+    yield
+  finally:
+    for item_or_parent, lock_content in locks_content.items():
+      if lock_content and pdb.gimp_item_is_valid(item_or_parent.raw):
+        pdb.gimp_item_set_lock_content(item_or_parent.raw, lock_content)
+    if not is_item_group and pdb.gimp_item_is_valid(item.raw):
+      if lock_position:
+        pdb.gimp_item_set_lock_position(item.raw, lock_position)
+      if lock_alpha:
+        pdb.gimp_layer_set_lock_alpha(item.raw, lock_alpha)
 
 
 def remove_folder_hierarchy_from_item(batcher):
