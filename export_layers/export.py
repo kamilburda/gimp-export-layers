@@ -82,6 +82,7 @@ def export(
         raw_item_to_process = _copy_layer(raw_item_to_process, image_to_process, item)
       
       if batcher.item_tree.next(item, with_folders=False) is not None:
+        _refresh_image_copy_for_edit_mode(batcher, image_copy)
         yield
         continue
       else:
@@ -99,6 +100,7 @@ def export(
       next_top_level_item = _get_top_level_item(batcher.item_tree.next(item, with_folders=False))
       
       if current_top_level_item == next_top_level_item:
+        _refresh_image_copy_for_edit_mode(batcher, image_copy)
         yield
         continue
       else:
@@ -148,11 +150,10 @@ def export(
     if preserve_layer_name_after_export:
       item_to_process.pop_state()
     
-    if batcher.edit_mode and batcher.process_export:
-      _refresh_image(image_copy)
-    
     if multi_layer_image is not None:
       _refresh_image(multi_layer_image)
+    
+    _refresh_image_copy_for_edit_mode(batcher, image_copy)
     
     yield
 
@@ -397,6 +398,11 @@ def _should_export_again_with_interactive_run_mode(exception_message, current_ru
 
 def _should_export_again_with_default_file_extension(file_extension, default_file_extension):
   return file_extension != default_file_extension
+
+
+def _refresh_image_copy_for_edit_mode(batcher, image_copy):
+  if batcher.edit_mode and batcher.process_export:
+    _refresh_image(image_copy)
 
 
 def _refresh_image(image):
