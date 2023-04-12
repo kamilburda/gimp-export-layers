@@ -50,34 +50,36 @@ def export(
   if export_mode != ExportModes.EACH_LAYER and batcher.process_export:
     multi_layer_image = pg.pdbutils.create_image_from_metadata(batcher.input_image)
     pdb.gimp_image_undo_freeze(multi_layer_image)
-    
-    def _delete_multi_layer_image(batcher):
-      if batcher.process_export:
-        if multi_layer_image is not None:
-          pg.pdbutils.try_delete_image(multi_layer_image)
-        
-        batcher.invoker.remove(delete_multi_layer_image_action_id, ['cleanup_contents'])
-    
-    delete_multi_layer_image_action_id = batcher.invoker.add(
-      _delete_multi_layer_image, ['cleanup_contents'])
+    batcher.invoker.add(_delete_image_on_cleanup, ['cleanup_contents'], [multi_layer_image])
   else:
     multi_layer_image = None
+  
+  if batcher.edit_mode and batcher.process_export:
+    image_copy = pg.pdbutils.create_image_from_metadata(batcher.input_image)
+    pdb.gimp_image_undo_freeze(image_copy)
+    batcher.invoker.add(_delete_image_on_cleanup, ['cleanup_contents'], [image_copy])
+  else:
+    image_copy = batcher.current_image
   
   while True:
     item = batcher.current_item
     current_file_extension = default_file_extension
     
     item_to_process = item
+    raw_item_to_process = batcher.current_raw_item
+    
+    if batcher.edit_mode and batcher.process_export:
+      raw_item_to_process = _copy_layer(raw_item_to_process, image_copy, item)
     
     if multi_layer_image is None:
-      image_to_process = batcher.current_image
+      image_to_process = image_copy
     else:
       image_to_process = multi_layer_image
     
     if export_mode == ExportModes.ENTIRE_IMAGE_AT_ONCE:
       if batcher.process_export:
-        _merge_and_resize_image(batcher)
-        _copy_layer(batcher, image_to_process, item)
+        raw_item_to_process = _merge_and_resize_image(batcher, image_copy, raw_item_to_process)
+        raw_item_to_process = _copy_layer(raw_item_to_process, image_to_process, item)
       
       if batcher.item_tree.next(item, with_folders=False) is not None:
         yield
@@ -90,8 +92,8 @@ def export(
           item_to_process.name = item.name
     elif export_mode == ExportModes.EACH_TOP_LEVEL_LAYER_OR_GROUP:
       if batcher.process_export:
-        _merge_and_resize_image(batcher)
-        _copy_layer(batcher, image_to_process, item)
+        raw_item_to_process = _merge_and_resize_image(batcher, image_copy, raw_item_to_process)
+        raw_item_to_process = _copy_layer(raw_item_to_process, image_to_process, item)
       
       current_top_level_item = _get_top_level_item(item)
       next_top_level_item = _get_top_level_item(batcher.item_tree.next(item, with_folders=False))
@@ -120,10 +122,10 @@ def export(
     
     if batcher.process_export:
       if export_mode == ExportModes.EACH_LAYER:
-        _merge_and_resize_image(batcher)
+        raw_item_to_process = _merge_and_resize_image(batcher, image_copy, raw_item_to_process)
       
       overwrite_mode, export_status = _export_item(
-        batcher, item_to_process, image_to_process, batcher.current_raw_item,
+        batcher, item_to_process, image_to_process, raw_item_to_process,
         output_directory, default_file_extension, file_extension_properties)
       
       if export_status == ExportStatuses.USE_DEFAULT_FILE_EXTENSION:
@@ -134,23 +136,31 @@ def export(
         
         if batcher.process_export:
           overwrite_mode, unused_ = _export_item(
-            batcher, item_to_process, image_to_process, batcher.current_raw_item,
+            batcher, item_to_process, image_to_process, raw_item_to_process,
             output_directory, default_file_extension, file_extension_properties)
       
       if overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
         file_extension_properties[
           pg.path.get_file_extension(item_to_process.name)].processed_count += 1
-        # Append the original raw item since `batcher.current_raw_item` is
-        # modified by now.
+        # Append the original raw item
         batcher._exported_raw_items.append(item_to_process.raw)
     
     if preserve_layer_name_after_export:
       item_to_process.pop_state()
     
+    if batcher.edit_mode and batcher.process_export:
+      _refresh_image(image_copy)
+    
     if multi_layer_image is not None:
-      _refresh_multi_layer_image(multi_layer_image)
+      _refresh_image(multi_layer_image)
     
     yield
+
+
+def _delete_image_on_cleanup(batcher, image):
+  if batcher.process_export:
+    if image is not None:
+      pg.pdbutils.try_delete_image(image)
 
 
 def _get_top_level_item(item):
@@ -197,7 +207,7 @@ def _get_current_file_extension(item, default_file_extension, file_extension_pro
     return default_file_extension
 
 
-def _merge_and_resize_image(batcher):
+def _merge_and_resize_image(batcher, image, raw_item):
   """Merges all layers in the current image into one.
   
   Merging is necessary for:
@@ -206,22 +216,26 @@ def _merge_and_resize_image(batcher):
   * multi-layer images, with each layer containing background or foreground
     which are originally separate layers.
   """
-  raw_item_name = batcher.current_raw_item.name
+  raw_item_name = raw_item.name
   
-  raw_item_merged = pdb.gimp_image_merge_visible_layers(
-    batcher.current_image, gimpenums.EXPAND_AS_NECESSARY)
+  raw_item_merged = pdb.gimp_image_merge_visible_layers(image, gimpenums.EXPAND_AS_NECESSARY)
   pdb.gimp_layer_resize_to_image_size(raw_item_merged)
   
   raw_item_merged.name = raw_item_name
-  batcher.current_image.active_layer = raw_item_merged
-  batcher.current_raw_item = raw_item_merged
+  image.active_layer = raw_item_merged
+  
+  if not batcher.edit_mode:
+    batcher.current_raw_item = raw_item_merged
+  
+  return raw_item_merged
 
 
-def _copy_layer(batcher, dest_image, item):
+def _copy_layer(raw_item, dest_image, item):
   raw_item_copy = pg.pdbutils.copy_and_paste_layer(
-    batcher.current_raw_item, dest_image, None, len(dest_image.layers), True, True)
+    raw_item, dest_image, None, len(dest_image.layers), True, True)
   pdb.gimp_item_set_name(raw_item_copy, item.name)
-
+  
+  return raw_item_copy
 
 def _validate_name(item):
   item.name = pg.path.FilenameValidator.validate(item.name)
@@ -385,7 +399,7 @@ def _should_export_again_with_default_file_extension(file_extension, default_fil
   return file_extension != default_file_extension
 
 
-def _refresh_multi_layer_image(image):
+def _refresh_image(image):
   for layer in image.layers:
     pdb.gimp_image_remove_layer(image, layer)
 
