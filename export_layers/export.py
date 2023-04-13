@@ -150,6 +150,8 @@ def export(
     if preserve_layer_name_after_export:
       item_to_process.pop_state()
     
+    _sync_raw_item_name(batcher, item_to_process)
+    
     if multi_layer_image is not None:
       _refresh_image(multi_layer_image)
     
@@ -398,6 +400,11 @@ def _should_export_again_with_interactive_run_mode(exception_message, current_ru
 
 def _should_export_again_with_default_file_extension(file_extension, default_file_extension):
   return file_extension != default_file_extension
+
+
+def _sync_raw_item_name(batcher, item_to_process):
+  if batcher.current_item == item_to_process and batcher.process_names and not batcher.is_preview:
+    batcher.current_raw_item.name = batcher.current_item.name
 
 
 def _refresh_image_copy_for_edit_mode(batcher, image_copy):

@@ -50,6 +50,13 @@ def set_active_and_current_layer_after_action(batcher):
       set_active_and_current_layer(batcher)
 
 
+def sync_item_name_and_raw_item_name(batcher):
+  yield
+  
+  if batcher.process_names and not batcher.is_preview:
+    batcher.current_item.name = batcher.current_raw_item.name
+
+
 def remove_locks_before_action_restore_locks_after_action(batcher):
   # We assume `edit_mode` is True, we can therefore safely use `Item.raw`
   # instead of `current_raw_item`. We need to use `Item.raw` for parents as
@@ -205,6 +212,9 @@ def rename_layer(batcher, pattern, rename_layers=True, rename_folders=False):
         if parent not in renamed_parents:
           parent.name = renamer.rename(batcher, item=parent)
           renamed_parents.add(parent)
+    
+    if batcher.process_names and not batcher.is_preview:
+      batcher.current_raw_item.name = batcher.current_item.name
     
     yield
 

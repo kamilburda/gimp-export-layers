@@ -580,6 +580,11 @@ class Batcher(object):
       [actions.DEFAULT_PROCEDURES_GROUP],
       foreach=True)
     
+    self._invoker.add(
+      builtin_procedures.sync_item_name_and_raw_item_name,
+      [actions.DEFAULT_PROCEDURES_GROUP],
+      foreach=True)
+    
     if self._edit_mode:
       self._invoker.add(
         builtin_procedures.remove_locks_before_action_restore_locks_after_action,
