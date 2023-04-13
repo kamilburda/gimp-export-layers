@@ -492,7 +492,7 @@ _FIELDS_LIST = [
     'str_to_insert': '[attributes]',
     'examples_lines': [
       [_('Suppose that a layer has width, height, <i>x</i>-offset and <i>y</i>-offset\n'
-         'of 1000, 540, 0 and 40 pixels, respectively,\n'
+         'of 1000, 270, 0 and 40 pixels, respectively,\n'
          'and the image has width and height of 1000 and 500 pixels, respectively.')],
       ['[attributes, %w-%h-%x-%y]', '1000-270-0-40'],
       ['[attributes, %w-%h-%x-%y, %pc]', '1.0-0.54-0.0-0.08'],
