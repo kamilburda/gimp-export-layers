@@ -55,13 +55,19 @@ def _get_current_layer(batcher):
 
 
 def _get_background_layer(batcher):
-  num_layers = len(batcher.current_image.layers)
+  raw_item = batcher.current_raw_item
+  if raw_item.parent is None:
+    children = batcher.current_image.layers
+  else:
+    children = raw_item.parent.children
+  
+  num_layers = len(children)
   
   if num_layers > 1:
     position = pdb.gimp_image_get_item_position(
       batcher.current_image, batcher.current_raw_item)
-    if position == 0 or position < num_layers - 1:
-      background_layer = batcher.current_image.layers[position + 1]
+    if position < num_layers - 1:
+      background_layer = children[position + 1]
       # This is necessary for some procedures relying on the active layer, e.g.
       # `plug-in-autocrop-layer`.
       batcher.current_image.active_layer = background_layer
@@ -71,11 +77,19 @@ def _get_background_layer(batcher):
 
 
 def _get_foreground_layer(batcher):
-  if len(batcher.current_image.layers) > 1:
+  raw_item = batcher.current_raw_item
+  if raw_item.parent is None:
+    children = batcher.current_image.layers
+  else:
+    children = raw_item.parent.children
+  
+  num_layers = len(children)
+  
+  if num_layers > 1:
     position = pdb.gimp_image_get_item_position(
       batcher.current_image, batcher.current_raw_item)
     if position > 0:
-      foreground_layer = batcher.current_image.layers[position - 1]
+      foreground_layer = children[position - 1]
       # This is necessary for some procedures relying on the active layer, e.g.
       # `plug-in-autocrop-layer`.
       batcher.current_image.active_layer = foreground_layer
