@@ -990,9 +990,8 @@ class ExportLayersDialog(object):
   
   def _set_action_tooltips(self, action_box, skipped_actions, message):
     for box_item in action_box.items:
-      action_name = box_item.action['name'].value
-      if action_name in skipped_actions:
-        skipped_message = skipped_actions[action_name][0][1]
+      if box_item.action.name in skipped_actions:
+        skipped_message = skipped_actions[box_item.action.name][0][1]
         box_item.set_tooltip(message.format(skipped_message))
       else:
         box_item.set_tooltip(None)

@@ -506,9 +506,9 @@ class Batcher(object):
       except exceptions.SkipAction as e:
         # Log skipped actions and continue processing.
         if 'procedure' in action.tags:
-          self._skipped_procedures[action['name'].value].append((self._current_item, str(e)))
+          self._skipped_procedures[action.name].append((self._current_item, str(e)))
         if 'constraint' in action.tags:
-          self._skipped_constraints[action['name'].value].append((self._current_item, str(e)))
+          self._skipped_constraints[action.name].append((self._current_item, str(e)))
       except Exception as e:
         raise exceptions.ActionError(action, e)
     
