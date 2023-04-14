@@ -71,7 +71,7 @@ Yes, you may insert any GIMP filter as a procedure:
 
 **I want to save the image as a multi-page PDF file.**
 
-While multi-page PDF export is already possible in GIMP without any plug-ins, Export Layers allows you to apply custom procedures before the export or export each layer group (instead of the entire image).
+While multi-page PDF export is already possible in GIMP without any third-party plug-ins, Export Layers allows you to apply custom procedures before the export or export each layer group (instead of the entire image).
 
 1. Add the "Export" procedure.
 2. Type `pdf` next to `File extension`.
