@@ -101,8 +101,8 @@ def _get_foreground_layer(batcher):
 _PLACEHOLDERS = collections.OrderedDict([
   ('current_image', _GimpObjectPlaceholder(_('Current Image'), _get_current_image)),
   ('current_layer', _GimpObjectPlaceholder(_('Current Layer'), _get_current_layer)),
-  ('background_layer', _GimpObjectPlaceholder(_('Background'), _get_background_layer)),
-  ('foreground_layer', _GimpObjectPlaceholder(_('Foreground'), _get_foreground_layer)),
+  ('background_layer', _GimpObjectPlaceholder(_('Background Layer'), _get_background_layer)),
+  ('foreground_layer', _GimpObjectPlaceholder(_('Foreground Layer'), _get_foreground_layer)),
 ])
 
 
