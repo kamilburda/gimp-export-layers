@@ -5,6 +5,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import collections
 import inspect
 
 import gimp
@@ -80,6 +81,8 @@ class Batcher(object):
     self._orig_active_layer = None
     
     self._exported_raw_items = []
+    self._skipped_procedures = collections.defaultdict(list)
+    self._skipped_constraints = collections.defaultdict(list)
     
     self._should_stop = False
     
@@ -262,6 +265,24 @@ class Batcher(object):
     return list(self._exported_raw_items)
   
   @property
+  def skipped_procedures(self):
+    """Procedures that were skipped during processing.
+    
+    A skipped procedure was not applied to one or more items and causes no
+    adverse effects further during processing.
+    """
+    return dict(self._skipped_procedures)
+  
+  @property
+  def skipped_constraints(self):
+    """Constraints that were skipped during processing.
+    
+    A skipped constraint was not evaluated for one or more items and causes no
+    adverse effects further during processing.
+    """
+    return dict(self._skipped_constraints)
+  
+  @property
   def invoker(self):
     """`pygimplib.invoker.Invoker` instance to manage procedures and constraints
     applied on layers.
@@ -437,6 +458,8 @@ class Batcher(object):
     
     function = self._apply_action_only_if_enabled(function, action)
     
+    function = self._handle_exceptions_from_action(function, action)
+    
     if action_groups is None:
       action_groups = action['action_groups'].value
     
@@ -475,6 +498,21 @@ class Batcher(object):
           return False
       
       return _apply_action
+  
+  def _handle_exceptions_from_action(self, function, action):
+    def _handle_exceptions(*action_args, **action_kwargs):
+      try:
+        return function(*action_args, **action_kwargs)
+      except exceptions.SkipAction as e:
+        # Log skipped actions and continue processing.
+        if 'procedure' in action.tags:
+          self._skipped_procedures[action['name'].value].append((self._current_item, str(e)))
+        if 'constraint' in action.tags:
+          self._skipped_constraints[action['name'].value].append((self._current_item, str(e)))
+      except Exception as e:
+        raise exceptions.ActionError(action, e)
+    
+    return _handle_exceptions
   
   def _get_constraint_func(self, func, orig_func=None, name='', subfilter=None):
     def _add_func(*args, **kwargs):
@@ -561,6 +599,8 @@ class Batcher(object):
     self._should_stop = False
     
     self._exported_raw_items = []
+    self._skipped_procedures = collections.defaultdict(list)
+    self._skipped_constraints = collections.defaultdict(list)
     
     self._invoker = pg.invoker.Invoker()
     self._add_actions()

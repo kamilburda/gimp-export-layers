@@ -73,7 +73,7 @@ def _get_background_layer(batcher):
       batcher.current_image.active_layer = background_layer
       return background_layer
   
-  raise exceptions.InvalidPlaceholderError('there are no background layers')
+  raise exceptions.SkipAction(_('There are no background layers.'))
 
 
 def _get_foreground_layer(batcher):
@@ -95,7 +95,7 @@ def _get_foreground_layer(batcher):
       batcher.current_image.active_layer = foreground_layer
       return foreground_layer
   
-  raise exceptions.InvalidPlaceholderError('there are no foreground layers')
+  raise exceptions.SkipAction(_('There are no foreground layers.'))
 
 
 _PLACEHOLDERS = collections.OrderedDict([

@@ -783,6 +783,16 @@ class ExportLayersDialog(object):
       return
   
   def _on_image_preview_updated(self, preview, update_duration_seconds):
+    self._set_action_tooltips(
+      self._box_procedures,
+      self._batcher_for_previews.skipped_procedures,
+      _('This procedure is skipped. Reason: {}'))
+    
+    self._set_action_tooltips(
+      self._box_constraints,
+      self._batcher_for_previews.skipped_constraints,
+      _('This constraint is skipped. Reason: {}'))
+    
     if (self._settings[
          'gui/image_preview_automatic_update_if_below_maximum_duration'].value
         and (update_duration_seconds
@@ -977,6 +987,15 @@ class ExportLayersDialog(object):
       docs_url = pg.config.DOCS_URL
     
     webbrowser.open_new_tab(docs_url)
+  
+  def _set_action_tooltips(self, action_box, skipped_actions, message):
+    for box_item in action_box.items:
+      action_name = box_item.action['name'].value
+      if action_name in skipped_actions:
+        skipped_message = skipped_actions[action_name][0][1]
+        box_item.set_tooltip(message.format(skipped_message))
+      else:
+        box_item.set_tooltip(None)
   
   def _display_inline_message(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
     self._message_setting = setting

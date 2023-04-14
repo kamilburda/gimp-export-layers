@@ -55,6 +55,10 @@ class ItemBox(gtk.ScrolledWindow):
     self.add_with_viewport(self._vbox)
     self.get_child().set_shadow_type(gtk.SHADOW_NONE)
   
+  @property
+  def items(self):
+    return self._items
+  
   def add_item(self, item):
     self._vbox_items.pack_start(item.widget, expand=False, fill=False)
     

@@ -412,6 +412,9 @@ class _ActionBoxItem(pg.gui.ItemBoxItem):
   
   def is_being_edited(self):
     return self.action_edit_dialog is not None
+  
+  def set_tooltip(self, text):
+    self.widget.set_tooltip_text(text)
 
 
 class _ActionEditDialog(gimpui.Dialog):

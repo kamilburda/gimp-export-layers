@@ -15,11 +15,18 @@ class BatcherCancelError(BatcherError):
   pass
 
 
-class InvalidPdbProcedureError(BatcherError):
+class ActionError(BatcherError):
+  
+  def __init__(self, action, orig_exception=None):
+    self.action = action
+    self.orig_exception = orig_exception
+
+
+class SkipAction(BatcherError):
   pass
 
 
-class InvalidPlaceholderError(BatcherError):
+class InvalidPdbProcedureError(BatcherError):
   pass
 
 
