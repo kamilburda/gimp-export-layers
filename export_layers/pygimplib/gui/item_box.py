@@ -140,12 +140,19 @@ class ItemBoxItem(object):
     self._hbox = gtk.HBox(homogeneous=False)
     self._hbox.set_spacing(self._HBOX_SPACING)
     
+    self._hbox_indicator_buttons = gtk.HBox(homogeneous=False)
+    self._hbox_indicator_buttons.set_spacing(self._HBOX_BUTTONS_SPACING)
+    
+    self._event_box_indicator_buttons = gtk.EventBox()
+    self._event_box_indicator_buttons.add(self._hbox_indicator_buttons)
+    
     self._hbox_buttons = gtk.HBox(homogeneous=False)
     self._hbox_buttons.set_spacing(self._HBOX_BUTTONS_SPACING)
     
     self._event_box_buttons = gtk.EventBox()
     self._event_box_buttons.add(self._hbox_buttons)
     
+    self._hbox.pack_start(self._event_box_indicator_buttons, expand=False, fill=False)
     self._hbox.pack_start(self._item_widget, expand=True, fill=True)
     self._hbox.pack_start(self._event_box_buttons, expand=False, fill=False)
     
@@ -169,6 +176,7 @@ class ItemBoxItem(object):
     self._event_box.show_all()
     
     self._hbox_buttons.set_no_show_all(True)
+    self._hbox_indicator_buttons.set_no_show_all(True)
   
   @property
   def widget(self):
@@ -185,19 +193,25 @@ class ItemBoxItem(object):
   def remove_item_widget(self):
     self._hbox.remove(self._item_widget)
   
-  def _setup_item_button(self, item_button, icon, position=None):
-    item_button.set_relief(gtk.RELIEF_NONE)
+  def _setup_item_button(self, button, icon, position=None):
+    self._setup_button(button, icon, position, self._hbox_buttons)
+  
+  def _setup_item_indicator_button(self, button, icon, position=None):
+    self._setup_button(button, icon, position, self._hbox_indicator_buttons)
+  
+  def _setup_button(self, button, icon, position, hbox):
+    button.set_relief(gtk.RELIEF_NONE)
     
     button_icon = gtk.image_new_from_pixbuf(
-      item_button.render_icon(icon, gtk.ICON_SIZE_MENU))
+      button.render_icon(icon, gtk.ICON_SIZE_MENU))
     
-    item_button.add(button_icon)
+    button.add(button_icon)
     
-    self._hbox_buttons.pack_start(item_button, expand=False, fill=False)
+    hbox.pack_start(button, expand=False, fill=False)
     if position is not None:
-      self._hbox_buttons.reorder_child(item_button, position)
+      hbox.reorder_child(button, position)
     
-    item_button.show_all()
+    button.show_all()
   
   def _on_event_box_enter_notify_event(self, event_box, event):
     if event.detail != gtk.gdk.NOTIFY_INFERIOR:
