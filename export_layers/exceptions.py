@@ -17,9 +17,12 @@ class BatcherCancelError(BatcherError):
 
 class ActionError(BatcherError):
   
-  def __init__(self, action, orig_exception=None):
+  def __init__(self, message, action, traceback):
+    super().__init__(message)
+    
+    self.message = message
     self.action = action
-    self.orig_exception = orig_exception
+    self.traceback = traceback
 
 
 class SkipAction(BatcherError):

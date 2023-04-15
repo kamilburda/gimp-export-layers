@@ -7,6 +7,7 @@ from future.builtins import *
 
 import collections
 import inspect
+import traceback
 
 import gimp
 from gimp import pdb
@@ -510,7 +511,7 @@ class Batcher(object):
         if 'constraint' in action.tags:
           self._skipped_constraints[action.name].append((self._current_item, str(e)))
       except Exception as e:
-        raise exceptions.ActionError(action, e)
+        raise exceptions.ActionError(str(e), action, traceback.format_exc())
     
     return _handle_exceptions
   
