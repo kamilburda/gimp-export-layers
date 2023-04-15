@@ -401,6 +401,10 @@ class _ActionBoxItem(pg.gui.ItemBoxItem):
     
     self._button_edit = gtk.Button()
     self._setup_item_button(self._button_edit, gtk.STOCK_EDIT, position=0)
+    
+    self._button_warning = gtk.Button()
+    self._setup_item_indicator_button(self._button_warning, gtk.STOCK_DIALOG_WARNING, position=0)
+    self._button_warning.hide()
   
   @property
   def action(self):
@@ -409,6 +413,10 @@ class _ActionBoxItem(pg.gui.ItemBoxItem):
   @property
   def button_edit(self):
     return self._button_edit
+  
+  @property
+  def button_warning(self):
+    return self._button_warning
   
   def is_being_edited(self):
     return self.action_edit_dialog is not None

@@ -784,15 +784,17 @@ class ExportLayersDialog(object):
       return
   
   def _on_image_preview_updated(self, preview, update_duration_seconds):
-    self._set_action_tooltips(
+    self._set_action_skipped_tooltips(
       self._box_procedures,
       self._batcher_for_previews.skipped_procedures,
       _('This procedure is skipped. Reason: {}'))
     
-    self._set_action_tooltips(
+    self._set_action_skipped_tooltips(
       self._box_constraints,
       self._batcher_for_previews.skipped_constraints,
       _('This constraint is skipped. Reason: {}'))
+    
+    self._set_warning_on_actions(self._batcher_for_previews)
     
     if (self._settings[
          'gui/image_preview_automatic_update_if_below_maximum_duration'].value
@@ -885,13 +887,16 @@ class ExportLayersDialog(object):
           _('No layers were exported.'), gtk.MESSAGE_INFO, parent=self._dialog)
     finally:
       item_progress_indicator.uninstall_progress_for_status()
-      self._batcher = None
       self._name_preview.lock_update(False, lock_update_key)
       self._image_preview.lock_update(False, lock_update_key)
       
       if self._settings['main/edit_mode'].value:
         self._image_preview.update()
         self._name_preview.update()
+      
+      self._set_warning_on_actions(self._batcher)
+      
+      self._batcher = None
     
     if overwrite_chooser.overwrite_mode in self._settings['main/overwrite_mode'].items.values():
       self._settings['main/overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
@@ -908,6 +913,7 @@ class ExportLayersDialog(object):
   
   def _setup_gui_before_batch_run(self):
     self._display_inline_message(None)
+    self._reset_action_tooltips_and_indicators()
     self._set_gui_enabled(False)
   
   def _restore_gui_after_batch_run(self):
@@ -989,13 +995,35 @@ class ExportLayersDialog(object):
     
     webbrowser.open_new_tab(docs_url)
   
-  def _set_action_tooltips(self, action_box, skipped_actions, message):
+  def _set_action_skipped_tooltips(self, action_box, skipped_actions, message):
     for box_item in action_box.items:
-      if box_item.action.name in skipped_actions:
-        skipped_message = skipped_actions[box_item.action.name][0][1]
-        box_item.set_tooltip(message.format(skipped_message))
-      else:
-        box_item.set_tooltip(None)
+      if not box_item.button_warning.get_visible():
+        if box_item.action.name in skipped_actions:
+          skipped_message = skipped_actions[box_item.action.name][0][1]
+          box_item.set_tooltip(message.format(skipped_message))
+        else:
+          box_item.set_tooltip(None)
+  
+  def _set_warning_on_actions(self, batcher):
+    action_boxes = [self._box_procedures, self._box_constraints]
+    failed_actions_list = [batcher.failed_procedures, batcher.failed_constraints]
+    
+    for action_box, failed_actions in zip(action_boxes, failed_actions_list):
+      for box_item in action_box.items:
+        if box_item.action.name in failed_actions:
+          box_item.set_tooltip(failed_actions[box_item.action.name][0][1])
+          box_item.button_warning.show()
+        else:
+          box_item.button_warning.hide()
+  
+  def _reset_action_tooltips_and_indicators(self):
+    for box_item in self._box_procedures.items:
+      box_item.set_tooltip(None)
+      box_item.button_warning.hide()
+    
+    for box_item in self._box_constraints.items:
+      box_item.set_tooltip(None)
+      box_item.button_warning.hide()
   
   def _display_inline_message(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
     self._message_setting = setting

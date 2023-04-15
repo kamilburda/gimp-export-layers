@@ -84,6 +84,8 @@ class Batcher(object):
     self._exported_raw_items = []
     self._skipped_procedures = collections.defaultdict(list)
     self._skipped_constraints = collections.defaultdict(list)
+    self._failed_procedures = collections.defaultdict(list)
+    self._failed_constraints = collections.defaultdict(list)
     
     self._should_stop = False
     
@@ -282,6 +284,24 @@ class Batcher(object):
     adverse effects further during processing.
     """
     return dict(self._skipped_constraints)
+  
+  @property
+  def failed_procedures(self):
+    """Procedures that caused an error during processing.
+    
+    Failed procedures indicate a problem with the procedure parameters or
+    potentially a bug in the plug-in.
+    """
+    return dict(self._failed_procedures)
+  
+  @property
+  def failed_constraints(self):
+    """Constraints that caused an error during processing.
+    
+    Failed constraints indicate a problem with the constraint parameters or
+    potentially a bug in the plug-in.
+    """
+    return dict(self._failed_constraints)
   
   @property
   def invoker(self):
@@ -511,6 +531,12 @@ class Batcher(object):
         if 'constraint' in action.tags:
           self._skipped_constraints[action.name].append((self._current_item, str(e)))
       except Exception as e:
+        # Log failed action, but raise error as this may result in unexpected
+        # plug-in behavior.
+        if 'procedure' in action.tags:
+          self._failed_procedures[action.name].append((self._current_item, str(e)))
+        if 'constraint' in action.tags:
+          self._failed_constraints[action.name].append((self._current_item, str(e)))
         raise exceptions.ActionError(str(e), action, traceback.format_exc())
     
     return _handle_exceptions
@@ -602,6 +628,8 @@ class Batcher(object):
     self._exported_raw_items = []
     self._skipped_procedures = collections.defaultdict(list)
     self._skipped_constraints = collections.defaultdict(list)
+    self._failed_procedures = collections.defaultdict(list)
+    self._failed_constraints = collections.defaultdict(list)
     
     self._invoker = pg.invoker.Invoker()
     self._add_actions()
