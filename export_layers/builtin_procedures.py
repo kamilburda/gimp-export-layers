@@ -167,7 +167,7 @@ def _insert_merged_tagged_layer(batcher, image, tagged_items, tag, parent, posit
   
   for i, item in enumerate(tagged_items):
     layer_copy = pg.pdbutils.copy_and_paste_layer(
-      item.raw, image, parent, first_tagged_layer_position + i, True, True)
+      item.raw, image, parent, first_tagged_layer_position + i, True, True, True)
     layer_copy.visible = True
     
     batcher.invoker.invoke(

@@ -805,7 +805,7 @@ class Batcher(object):
   def _process_item_with_actions(self, item, raw_item):
     if not self._edit_mode or self._is_preview:
       raw_item_copy = pg.pdbutils.copy_and_paste_layer(
-        raw_item, self._current_image, None, len(self._current_image.layers), True, True)
+        raw_item, self._current_image, None, len(self._current_image.layers), True, True, True)
       
       self._current_raw_item = raw_item_copy
       self._current_raw_item.name = raw_item.name

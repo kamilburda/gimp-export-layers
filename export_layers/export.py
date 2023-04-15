@@ -235,7 +235,7 @@ def _merge_and_resize_image(batcher, image, raw_item):
 
 def _copy_layer(raw_item, dest_image, item):
   raw_item_copy = pg.pdbutils.copy_and_paste_layer(
-    raw_item, dest_image, None, len(dest_image.layers), True, True)
+    raw_item, dest_image, None, len(dest_image.layers), True, True, True)
   pdb.gimp_item_set_name(raw_item_copy, item.name)
   
   return raw_item_copy
