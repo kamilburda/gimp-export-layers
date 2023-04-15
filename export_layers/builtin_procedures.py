@@ -43,11 +43,10 @@ def set_active_and_current_layer(batcher):
 
 
 def set_active_and_current_layer_after_action(batcher):
-  try:
-    action_applied = yield
-  finally:
-    if action_applied or action_applied is None:
-      set_active_and_current_layer(batcher)
+  action_applied = yield
+  
+  if action_applied or action_applied is None:
+    set_active_and_current_layer(batcher)
 
 
 def sync_item_name_and_raw_item_name(batcher):
@@ -83,17 +82,16 @@ def remove_locks_before_action_restore_locks_after_action(batcher):
     if lock_alpha:
       pdb.gimp_layer_set_lock_alpha(item.raw, False)
   
-  try:
-    yield
-  finally:
-    for item_or_parent, lock_content in locks_content.items():
-      if lock_content and pdb.gimp_item_is_valid(item_or_parent.raw):
-        pdb.gimp_item_set_lock_content(item_or_parent.raw, lock_content)
-    if not is_item_group and pdb.gimp_item_is_valid(item.raw):
-      if lock_position:
-        pdb.gimp_item_set_lock_position(item.raw, lock_position)
-      if lock_alpha:
-        pdb.gimp_layer_set_lock_alpha(item.raw, lock_alpha)
+  yield
+  
+  for item_or_parent, lock_content in locks_content.items():
+    if lock_content and pdb.gimp_item_is_valid(item_or_parent.raw):
+      pdb.gimp_item_set_lock_content(item_or_parent.raw, lock_content)
+  if not is_item_group and pdb.gimp_item_is_valid(item.raw):
+    if lock_position:
+      pdb.gimp_item_set_lock_position(item.raw, lock_position)
+    if lock_alpha:
+      pdb.gimp_layer_set_lock_alpha(item.raw, lock_alpha)
 
 
 def remove_folder_hierarchy_from_item(batcher):
