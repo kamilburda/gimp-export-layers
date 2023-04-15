@@ -492,9 +492,13 @@ class ExportLayersDialog(object):
     self._hbox_actions.pack_start(self._box_procedures, expand=True, fill=True)
     self._hbox_actions.pack_start(self._box_constraints, expand=True, fill=True)
     
+    self._label_message_for_edit_mode = message_label_.MessageLabel()
+    
     self._vbox_actions_and_message_for_edit_mode = gtk.VBox(homogeneous=False)
     self._vbox_actions_and_message_for_edit_mode.pack_start(
       self._hbox_actions, expand=True, fill=True)
+    self._vbox_actions_and_message_for_edit_mode.pack_start(
+      self._label_message_for_edit_mode, expand=False, fill=False)
     
     self._vbox_chooser_and_settings = gtk.VBox()
     self._vbox_chooser_and_settings.set_spacing(self._DIALOG_VBOX_SPACING)
@@ -756,16 +760,13 @@ class ExportLayersDialog(object):
       self._settings['gui/show_more_settings'].set_value(True)
       
       self._vbox_chooser_and_settings.hide()
-      self._hbox_export_name_and_message.remove(self._label_message)
-      self._vbox_actions_and_message_for_edit_mode.pack_start(
-        self._label_message, expand=False, fill=False)
+      self._label_message_for_edit_mode.show()
       
       self._button_run.set_label(_('Run'))
       self._button_close.set_label(_('Close'))
     else:
-      self._vbox_actions_and_message_for_edit_mode.remove(self._label_message)
-      self._hbox_export_name_and_message.pack_start(self._label_message, expand=True, fill=True)
       self._vbox_chooser_and_settings.show()
+      self._label_message_for_edit_mode.hide()
       
       self._button_run.set_label(_('Export'))
       self._button_close.set_label(_('Cancel'))
@@ -998,8 +999,13 @@ class ExportLayersDialog(object):
   
   def _display_inline_message(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
     self._message_setting = setting
-    self._label_message.set_text(
-      text, message_type, self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS)
+    
+    if self._settings['main/edit_mode'].value:
+      label_message = self._label_message_for_edit_mode
+    else:
+      label_message = self._label_message
+    
+    label_message.set_text(text, message_type, self._DELAY_CLEAR_LABEL_MESSAGE_MILLISECONDS)
   
   def _display_inline_message_on_setting_value_error(
         self, exc_type, exc_value, exc_traceback):
