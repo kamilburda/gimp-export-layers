@@ -346,6 +346,7 @@ class ActionBox(pg.gui.ItemBox):
   
   def _on_item_button_edit_clicked(self, edit_button, item):
     if item.is_being_edited():
+      item.action_edit_dialog.present()
       return
     
     if item.action.get_value('is_pdb_procedure', False):
