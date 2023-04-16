@@ -252,8 +252,11 @@ class ActionBox(pg.gui.ItemBox):
     menu_item.connect('activate', self._on_actions_menu_item_activate, action_dict)
     self._actions_menu.append(menu_item)
   
-  def _on_actions_menu_item_activate(self, menu_item, action_dict_or_function):
-    self.add_item(action_dict_or_function)
+  def _on_actions_menu_item_activate(self, menu_item, action_dict):
+    item = self.add_item(action_dict)
+    
+    if action_dict.get('display_options_on_create', True):
+      self._display_action_edit_dialog(item)
   
   def _add_add_custom_action_to_menu_popup(self):
     menu_item = gtk.MenuItem(label=self._add_custom_action_text, use_underline=False)
@@ -313,30 +316,33 @@ class ActionBox(pg.gui.ItemBox):
         
         item = self.add_item(pdb_proc_action_dict)
         
-        action_edit_dialog = _ActionEditDialog(
-          item.action,
-          pdb_procedure,
-          title=self._get_action_edit_dialog_title(item),
-          role=pg.config.PLUGIN_NAME)
-        
-        action_edit_dialog.connect(
-          'response',
-          self._on_action_edit_dialog_for_new_action_response,
-          item)
-        
-        action_edit_dialog.show_all()
+        self._display_action_edit_dialog(item, pdb_procedure)
     
     dialog.hide()
   
-  def _on_action_edit_dialog_for_new_action_response(
-        self, dialog, response_id, item):
-    dialog.destroy()
+  def _display_action_edit_dialog(
+        self, item, pdb_procedure=None, action_values_before_dialog=None):
+    action_edit_dialog = _ActionEditDialog(
+      item.action,
+      pdb_procedure,
+      title=self._get_action_edit_dialog_title(item),
+      role=pg.config.PLUGIN_NAME)
     
-    if response_id == gtk.RESPONSE_OK:
-      item.action['arguments'].apply_gui_values_to_settings()
-      item.action['enabled'].set_value(True)
+    item.action_edit_dialog = action_edit_dialog
+    
+    if action_values_before_dialog is None:
+      action_edit_dialog.connect(
+        'response',
+        self._on_action_edit_dialog_for_new_action_response,
+        item)
     else:
-      self.remove_item(item)
+      action_edit_dialog.connect(
+        'response',
+        self._on_action_edit_dialog_for_existing_action_response,
+        item,
+        action_values_before_dialog)
+    
+    action_edit_dialog.show_all()
   
   def _on_item_button_edit_clicked(self, edit_button, item):
     if item.is_being_edited():
@@ -351,21 +357,19 @@ class ActionBox(pg.gui.ItemBox):
       setting.get_path(item.action): setting.value
       for setting in item.action.walk()}
     
-    action_edit_dialog = _ActionEditDialog(
-      item.action,
-      pdb_procedure,
-      title=self._get_action_edit_dialog_title(item),
-      role=pg.config.PLUGIN_NAME)
+    self._display_action_edit_dialog(item, pdb_procedure, action_values_before_dialog)
+  
+  def _on_action_edit_dialog_for_new_action_response(
+        self, dialog, response_id, item):
+    dialog.destroy()
     
-    item.action_edit_dialog = action_edit_dialog
+    if response_id == gtk.RESPONSE_OK:
+      item.action['arguments'].apply_gui_values_to_settings()
+      item.action['enabled'].set_value(True)
+    else:
+      self.remove_item(item)
     
-    action_edit_dialog.connect(
-      'response',
-      self._on_action_edit_dialog_for_existing_action_response,
-      item,
-      action_values_before_dialog)
-    
-    action_edit_dialog.show_all()
+    item.action_edit_dialog = None
   
   def _on_action_edit_dialog_for_existing_action_response(
         self, dialog, response_id, item, action_values_before_dialog):
