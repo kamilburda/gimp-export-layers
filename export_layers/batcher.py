@@ -839,6 +839,17 @@ class Batcher(object):
       self._current_raw_item = raw_item_copy
       self._current_raw_item.name = raw_item.name
     
+    if self._edit_mode and not self._is_preview and pdb.gimp_item_is_group(raw_item):
+      # Layer groups must be copied and inserted as layers as some procedures
+      # do not work on layer groups.
+      raw_item_copy = pg.pdbutils.copy_and_paste_layer(
+        raw_item, self._current_image, raw_item.parent,
+        pdb.gimp_image_get_item_position(self._current_image, raw_item) + 1,
+        True, True, True)
+      
+      self._current_raw_item = raw_item_copy
+      self._current_raw_item.name = raw_item.name
+    
     self._invoker.invoke(
       ['before_process_item'],
       [self, self._current_item, self._current_raw_item],
