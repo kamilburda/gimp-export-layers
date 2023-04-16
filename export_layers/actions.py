@@ -111,6 +111,14 @@ def create(name, initial_actions=None):
     same `'name'` field (see below) was previously added, the name of the new
     action is made unique to allow lookup of both actions. Otherwise,
     `'orig_name'` is equal to `'name'`.
+  * `'tags'` - Additional tags added to each action (the `setting.Group`
+    instance).
+  * `'more_options_expanded'` - If `True`, display additional options for an
+    action when editing the action interactively.
+  * `'enabled_for_previews'` - If `True`, this indicates that the action can be
+    applied in the preview.
+  * `'display_on_create'` - If `True`, display action edit dialog upon creating
+    an action interactively.
   
   Each dictionary in the `initial_actions` list may contain the following
   fields:
@@ -124,6 +132,9 @@ def create(name, initial_actions=None):
   * `'enabled'`
   * `'display_name'`
   * `'action_group'`
+  * `'tags'`
+  * `'more_options_expanded'`
+  * `'enabled_for_previews'`
   
   Depending on the specified `'type'`, the dictionary may contain additional
   fields and `create` may generate additional settings.
