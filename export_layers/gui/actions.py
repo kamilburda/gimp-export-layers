@@ -95,8 +95,7 @@ class ActionBox(pg.gui.ItemBox):
     
     self._after_add_action_event_id = self._actions.connect_event(
       'after-add-action',
-      lambda actions_, action, orig_action_dict: (
-        self._add_item_from_action(action)))
+      lambda actions_, action, orig_action_dict: self._add_item_from_action(action))
     
     self._after_reorder_action_event_id = self._actions.connect_event(
       'after-reorder-action',
@@ -145,9 +144,7 @@ class ActionBox(pg.gui.ItemBox):
       button_hbox = gtk.HBox()
       button_hbox.set_spacing(self._ADD_BUTTON_HBOX_SPACING)
       button_hbox.pack_start(
-        gtk.image_new_from_stock(gtk.STOCK_ADD, gtk.ICON_SIZE_MENU),
-        expand=False,
-        fill=False)
+        gtk.image_new_from_stock(gtk.STOCK_ADD, gtk.ICON_SIZE_MENU), expand=False, fill=False)
       
       label_add = gtk.Label(pg.utils.safe_encode_gtk(self._add_action_text))
       label_add.set_use_underline(True)
@@ -193,16 +190,14 @@ class ActionBox(pg.gui.ItemBox):
         self._on_action_item_gui_label_size_allocate,
         action['enabled'].gui.element)
   
-  def _on_action_item_gui_label_size_allocate(
-        self, item_gui_label, allocation, item_gui):
+  def _on_action_item_gui_label_size_allocate(self, item_gui_label, allocation, item_gui):
     if pg.gui.label_fits_text(item_gui_label):
       item_gui.set_tooltip_text(None)
     else:
       item_gui.set_tooltip_text(item_gui_label.get_text())
   
   def _reorder_action(self, action, new_position):
-    item = next(
-      (item_ for item_ in self._items if item_.action.name == action.name), None)
+    item = next((item_ for item_ in self._items if item_.action.name == action.name), None)
     if item is not None:
       self._reorder_item(item, new_position)
     else:
@@ -213,8 +208,7 @@ class ActionBox(pg.gui.ItemBox):
     return super().reorder_item(item, new_position)
   
   def _remove_action(self, action):
-    item = next(
-      (item_ for item_ in self._items if item_.action.name == action.name), None)
+    item = next((item_ for item_ in self._items if item_.action.name == action.name), None)
     
     if item is not None:
       self._remove_item(item)
