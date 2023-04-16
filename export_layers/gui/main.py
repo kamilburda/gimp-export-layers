@@ -771,9 +771,9 @@ class ExportLayersDialog(object):
       self._display_inline_message(
         '{}\n\n{}'.format(
           _('Disabling automatic preview update.'),
-          _('The preview takes too long to update. '
-            + 'You may turn automatic updates back on '
-            + 'from the menu above the previewed image.')),
+          _('The preview takes too long to update.'
+            ' You may turn automatic updates back on'
+            ' from the menu above the previewed image.')),
         gtk.MESSAGE_INFO)
   
   def _on_dialog_key_press_event(self, dialog, event):

@@ -111,8 +111,8 @@ class Version(object):
       
       if prerelease < self.prerelease:
         raise ValueError(
-          'the specified pre-release "{}" is lexically earlier than '
-          'the existing pre-release "{}"'.format(prerelease, self.prerelease))
+          'the specified pre-release "{}" is lexically earlier than'
+          ' the existing pre-release "{}"'.format(prerelease, self.prerelease))
     
     if not prerelease:
       prerelease = None

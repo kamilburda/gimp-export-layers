@@ -294,13 +294,13 @@ class ActionBox(pg.gui.ItemBox):
             parent=pg.gui.get_toplevel_window(self),
             message_type=gtk.MESSAGE_WARNING,
             message_markup=(
-              _('Could not add procedure "{}" because the parameter type "{}" '
-                'is not supported.').format(e.procedure_name, e.unsupported_param_type)),
+              _('Could not add procedure "{}" because the parameter type "{}"'
+                ' is not supported.').format(e.procedure_name, e.unsupported_param_type)),
             message_secondary_markup='',
             report_uri_list=pg.config.BUG_REPORT_URL_LIST,
             report_description=_(
-              'You can help fix this issue by sending a report with the text above '
-              'to one of the sites below'),
+              'You can help fix this issue by sending a report with the text above'
+              ' to one of the sites below'),
             focus_on_button=True)
           
           dialog.hide()

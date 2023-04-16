@@ -982,5 +982,5 @@ class TestInvokerInvokeWithInvoker(InvokerTestCase):
     try:
       self.invoker.add(another_invoker, ['invalid_group'])
     except Exception:
-      self.fail('adding actions from an empty group from another '
-                'Invoker instance should not raise exception')
+      self.fail('adding actions from an empty group from another'
+                ' Invoker instance should not raise exception')

@@ -687,8 +687,8 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       return pdb_type
     else:
       raise ValueError(
-        'GIMP PDB type "{}" not allowed; for the list of allowed PDB types, refer to '
-        'the documentation of the appropriate Setting class'.format(pdb_type))
+        'GIMP PDB type "{}" not allowed; for the list of allowed PDB types, refer to'
+        ' the documentation of the appropriate Setting class'.format(pdb_type))
   
   def _get_default_pdb_type(self):
     if self._ALLOWED_PDB_TYPES:

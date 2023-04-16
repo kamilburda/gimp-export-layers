@@ -229,9 +229,9 @@ class PersistentSource(Source):
       settings_from_source = pickle.loads(parasite.data)
     except Exception:
       raise SourceInvalidFormatError(
-        _('Settings for this plug-in stored in "{}" may be corrupt. '
-          'This could happen if the file was edited manually.\n'
-          'To fix this, save the settings again or reset them.').format(
+        _('Settings for this plug-in stored in "{}" may be corrupt.'
+          ' This could happen if the file was edited manually.'
+          '\nTo fix this, save the settings again or reset them.').format(
             self._parasite_filepath))
     
     return settings_from_source

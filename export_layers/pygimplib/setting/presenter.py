@@ -106,8 +106,8 @@ class Presenter(future.utils.with_metaclass(abc.ABCMeta, object)):
       
       if self._element is None:
         raise ValueError(
-          'cannot instantiate class "{}": attribute "element" is None '
-          'and this class does not support the creation of a GUI element'.format(
+          'cannot instantiate class "{}": attribute "element" is None'
+          ' and this class does not support the creation of a GUI element'.format(
             type(self).__name__))
     
     if old_presenter is not None:

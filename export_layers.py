@@ -65,8 +65,8 @@ def plug_in_export_layers(run_mode, image, *args):
 @pg.procedure(
   blurb=_('Run "{}" with the last values specified').format(pg.config.PLUGIN_TITLE),
   description=_(
-    'If the plug-in is run for the first time (i.e. no last values exist), '
-    'default values will be used.'),
+    'If the plug-in is run for the first time (i.e. no last values exist),'
+    ' default values will be used.'),
   author=pg.config.AUTHOR_NAME,
   copyright_notice=pg.config.AUTHOR_NAME,
   date=pg.config.COPYRIGHT_YEARS,

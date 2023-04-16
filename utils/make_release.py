@@ -144,13 +144,13 @@ def _check_branches_for_local_changes(release_metadata):
   if (not release_metadata.force
       and _has_active_branch_local_changes(release_metadata.repo)):
     _print_error_and_exit(
-      'Repository contains local changes. '
-      'Please remove or commit changes before proceeding.')
+      'Repository contains local changes.'
+      ' Please remove or commit changes before proceeding.')
   
   if _has_active_branch_local_changes(release_metadata.gh_pages_repo):
     _print_error_and_exit(
-      ('Repository in the "{}" branch contains local changes. '
-       'Please remove or commit changes before proceeding.').format(
+      ('Repository in the "{}" branch contains local changes.'
+       ' Please remove or commit changes before proceeding.').format(
          release_metadata.gh_pages_repo.active_branch.name))
 
 
@@ -161,8 +161,8 @@ def _has_active_branch_local_changes(repo):
 def _check_if_tag_with_new_version_already_exists(release_metadata):
   if release_metadata.repo.git.tag('-l', release_metadata.new_version):
     _print_error_and_exit(
-      ('Repository already contains tag "{}", indicating that such a version '
-       'is already released.').format(release_metadata.new_version))
+      ('Repository already contains tag "{}", indicating that such a version'
+       ' is already released.').format(release_metadata.new_version))
 
 
 def _get_next_version(release_metadata):
@@ -486,8 +486,8 @@ class _ReleaseMetadata(object):
     for name, value in kwargs.items():
       if hasattr(self, name):
         raise TypeError(
-          ('keyword argument "{}" already exists in class {}; to prevent name clashes, '
-           'rename conflicting script options').format(name, self.__class__.__name__))
+          ('keyword argument "{}" already exists in class {}; to prevent name clashes,'
+           ' rename conflicting script options').format(name, self.__class__.__name__))
       
       pg.utils.create_read_only_property(self, name, value)
   
