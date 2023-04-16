@@ -750,6 +750,8 @@ class ExportLayersDialog(object):
       return
   
   def _on_image_preview_updated(self, preview, update_duration_seconds):
+    self._set_warning_on_actions(self._batcher_for_previews)
+    
     self._set_action_skipped_tooltips(
       self._box_procedures,
       self._batcher_for_previews.skipped_procedures,
@@ -759,8 +761,6 @@ class ExportLayersDialog(object):
       self._box_constraints,
       self._batcher_for_previews.skipped_constraints,
       _('This constraint is skipped. Reason: {}'))
-    
-    self._set_warning_on_actions(self._batcher_for_previews)
     
     if (self._settings[
          'gui/image_preview_automatic_update_if_below_maximum_duration'].value
