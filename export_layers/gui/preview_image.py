@@ -23,27 +23,11 @@ from export_layers import pygimplib as pg
 
 from export_layers import actions
 from export_layers import builtin_constraints
+from export_layers import exceptions
 from export_layers import utils as utils_
 
+from export_layers.gui import messages as messages_
 from export_layers.gui import preview_base as preview_base_
-
-
-def display_image_preview_failure_message(details, parent=None):
-  pg.gui.display_error_message(
-    title=pg.config.PLUGIN_TITLE,
-    app_name=pg.config.PLUGIN_TITLE,
-    parent=parent,
-    message_type=gtk.MESSAGE_WARNING,
-    message_markup=_(
-      'There was a problem with updating the image preview.'),
-    message_secondary_markup=_(
-      'If you believe this is an error in the plug-in, you can help fix it '
-      'by sending a report with the text in the details to one of the sites below.'),
-    details=details,
-    display_details_initially=False,
-    report_uri_list=pg.config.BUG_REPORT_URL_LIST,
-    report_description='',
-    focus_on_button=True)
 
 
 class ImagePreview(preview_base_.Preview):
@@ -387,9 +371,21 @@ class ImagePreview(preview_base_.Preview):
         process_names=False,
         process_export=False,
         **utils_.get_settings_for_batcher(self._settings['main']))
-    except Exception:
-      display_image_preview_failure_message(
-        details=traceback.format_exc(), parent=pg.gui.get_toplevel_window(self))
+    except exceptions.BatcherCancelError as e:
+      pass
+    except exceptions.ActionError as e:
+      messages_.display_failure_message(
+        messages_.get_failing_action_message(e),
+        failure_message=str(e),
+        details=traceback.format_exc(),
+        parent=pg.gui.get_toplevel_window(self))
+      image_preview = None
+    except Exception as e:
+      messages_.display_failure_message(
+        _('There was a problem with updating the image preview:'),
+        failure_message=str(e),
+        details=traceback.format_exc(),
+        parent=pg.gui.get_toplevel_window(self))
       image_preview = None
     
     self._batcher.remove_action(

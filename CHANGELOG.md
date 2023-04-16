@@ -26,7 +26,10 @@ Other changes:
 * Layer groups as images and as folders are now displayed separately in the preview.
 * Built-in procedures and constraints are now listed alphabetically.
 * Shortened the name of the DICOM file format. As a result, the file format popup is now much shorter and thus more compact.
+* Reworked warning messages displayed when a procedure or constraint fails during processing or preview.
+* A procedure or constraint causing an error during processing is now also indicated in the dialog with a warning icon. Clicking on the icon displays details about the error.
 * Updated documentation with examples on how to customize the export.
+
 
 Bug fixes:
 * Fixed a crash and inconsistencies in the preview if both "Ignore folder structure" and "Selected in preview" are enabled. This also adversely causes the preview to be slower upon selecting items when "Selected in preview" is enabled. The drop in performance is only noticeable for hundreds of layers in an image.

@@ -17,6 +17,7 @@ import gimpui
 from export_layers import pygimplib as pg
 
 from export_layers import actions
+from export_layers.gui import messages as messages_
 
 
 class ActionBox(pg.gui.ItemBox):
@@ -290,7 +291,7 @@ class ActionBox(pg.gui.ItemBox):
           pdb_proc_action_dict = actions.get_action_dict_for_pdb_procedure(
             pdb_procedure)
         except actions.UnsupportedPdbProcedureError as e:
-          pg.gui.display_error_message(
+          pg.gui.display_alert_message(
             title=pg.config.PLUGIN_TITLE,
             app_name='',
             parent=pg.gui.get_toplevel_window(self),
@@ -405,6 +406,8 @@ class _ActionBoxItem(pg.gui.ItemBoxItem):
     self._button_warning = gtk.Button()
     self._setup_item_indicator_button(self._button_warning, gtk.STOCK_DIALOG_WARNING, position=0)
     self._button_warning.hide()
+    
+    self._display_warning_message_event_id = None
   
   @property
   def action(self):
@@ -414,15 +417,37 @@ class _ActionBoxItem(pg.gui.ItemBoxItem):
   def button_edit(self):
     return self._button_edit
   
-  @property
-  def button_warning(self):
-    return self._button_warning
-  
   def is_being_edited(self):
     return self.action_edit_dialog is not None
   
   def set_tooltip(self, text):
     self.widget.set_tooltip_text(text)
+  
+  def has_warning(self):
+    return self._button_warning.get_visible()
+  
+  def set_warning(self, show, main_message=None, failure_message=None, details=None, parent=None):
+    if show:
+      self.set_tooltip(failure_message)
+      if details is not None:
+        if self._display_warning_message_event_id is not None:
+          self._button_warning.disconnect(self._display_warning_message_event_id)
+        
+        self._display_warning_message_event_id = self._button_warning.connect(
+          'clicked',
+          self._on_button_warning_clicked, main_message, failure_message, details, parent)
+      
+      self._button_warning.show()
+    else:
+      self._button_warning.hide()
+      
+      self.set_tooltip(None)
+      if self._display_warning_message_event_id is not None:
+        self._button_warning.disconnect(self._display_warning_message_event_id)
+        self._display_warning_message_event_id = None
+  
+  def _on_button_warning_clicked(self, button, main_message, short_message, full_message, parent):
+    messages_.display_failure_message(main_message, short_message, full_message, parent=parent)
 
 
 class _ActionEditDialog(gimpui.Dialog):

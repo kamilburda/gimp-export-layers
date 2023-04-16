@@ -40,47 +40,13 @@ from export_layers import settings_main
 from export_layers import update
 from export_layers import utils as utils_
 
-from export_layers.gui import message_label as message_label_
 from export_layers.gui import actions as actions_
+from export_layers.gui import message_label as message_label_
+from export_layers.gui import messages as messages_
 from export_layers.gui import preview_image as preview_image_
 from export_layers.gui import preview_name as preview_name_
 from export_layers.gui import previews_controller as previews_controller_
 from export_layers.gui import progress as progress_
-from export_layers.gui import messages as messages_
-
-
-def display_failure_message(exception, parent=None):
-  error_message = _(
-    'There was an error during processing. '
-    'The message below may help you fix the issue.')
-  error_message += '\n' + str(exception)
-  
-  messages_.display_message(
-    error_message,
-    message_type=gtk.MESSAGE_WARNING,
-    parent=parent,
-    message_in_text_view=True)
-
-
-def display_failure_invalid_image_message(details, parent=None):
-  pg.gui.display_error_message(
-    title=pg.config.PLUGIN_TITLE,
-    app_name=pg.config.PLUGIN_TITLE,
-    parent=parent,
-    message_type=gtk.MESSAGE_WARNING,
-    message_markup=_(
-      'There was an error during processing. '
-      'Do not close the image during processing, '
-      'keep it open until the processing is finished successfully.'),
-    message_secondary_markup=_(
-      'If you believe this is a different error, '
-      'you can help fix it by sending a report with the text '
-      'in the details to one of the sites below.'),
-    details=details,
-    display_details_initially=False,
-    report_uri_list=pg.config.BUG_REPORT_URL_LIST,
-    report_description='',
-    focus_on_button=True)
 
 
 def display_reset_prompt(parent=None, more_settings_shown=False):
@@ -866,15 +832,21 @@ class ExportLayersDialog(object):
       self._batcher.run(**utils_.get_settings_for_batcher(self._settings['main']))
     except exceptions.BatcherCancelError as e:
       should_quit = False
+    except exceptions.ActionError as e:
+      messages_.display_failure_message(
+        messages_.get_failing_action_message(e),
+        failure_message=str(e),
+        details=traceback.format_exc(),
+        parent=self._dialog)
+      should_quit = False
     except exceptions.BatcherError as e:
-      display_failure_message(e, parent=self._dialog)
+      messages_.display_generic_failure_message(e, parent=self._dialog)
       should_quit = False
     except Exception as e:
       if pdb.gimp_image_is_valid(self._image):
         raise
       else:
-        display_failure_invalid_image_message(
-          traceback.format_exc(), parent=self._dialog)
+        messages_.display_invalid_image_failure_message(parent=self._dialog)
     else:
       self._settings['special/first_plugin_run'].set_value(False)
       self._settings['special/first_plugin_run'].save()
@@ -997,7 +969,7 @@ class ExportLayersDialog(object):
   
   def _set_action_skipped_tooltips(self, action_box, skipped_actions, message):
     for box_item in action_box.items:
-      if not box_item.button_warning.get_visible():
+      if not box_item.has_warning():
         if box_item.action.name in skipped_actions:
           skipped_message = skipped_actions[box_item.action.name][0][1]
           box_item.set_tooltip(message.format(skipped_message))
@@ -1006,24 +978,29 @@ class ExportLayersDialog(object):
   
   def _set_warning_on_actions(self, batcher):
     action_boxes = [self._box_procedures, self._box_constraints]
-    failed_actions_list = [batcher.failed_procedures, batcher.failed_constraints]
+    failed_actions_dict = [batcher.failed_procedures, batcher.failed_constraints]
     
-    for action_box, failed_actions in zip(action_boxes, failed_actions_list):
+    for action_box, failed_actions in zip(action_boxes, failed_actions_dict):
       for box_item in action_box.items:
         if box_item.action.name in failed_actions:
-          box_item.set_tooltip(failed_actions[box_item.action.name][0][1])
-          box_item.button_warning.show()
+          box_item.set_warning(
+            True,
+            messages_.get_failing_action_message(
+              (box_item.action, failed_actions[box_item.action.name][0][0])),
+            failed_actions[box_item.action.name][0][1],
+            failed_actions[box_item.action.name][0][2],
+            parent=self._dialog)
         else:
-          box_item.button_warning.hide()
+          box_item.set_warning(False)
   
   def _reset_action_tooltips_and_indicators(self):
     for box_item in self._box_procedures.items:
       box_item.set_tooltip(None)
-      box_item.button_warning.hide()
+      box_item.set_warning(False)
     
     for box_item in self._box_constraints.items:
       box_item.set_tooltip(None)
-      box_item.button_warning.hide()
+      box_item.set_warning(False)
   
   def _display_inline_message(self, text, message_type=gtk.MESSAGE_ERROR, setting=None):
     self._message_setting = setting
@@ -1115,12 +1092,12 @@ class ExportLayersRepeatDialog(object):
     except exceptions.BatcherCancelError:
       pass
     except exceptions.BatcherError as e:
-      display_failure_message(e, parent=self._dialog)
+      messages_.display_generic_failure_message(e, parent=self._dialog)
     except Exception as e:
       if pdb.gimp_image_is_valid(self._image):
         raise
       else:
-        display_failure_invalid_image_message(traceback.format_exc(), parent=self._dialog)
+        messages_.display_invalid_image_failure_message(parent=self._dialog)
     else:
       if not self._settings['main/edit_mode'].value and not self._batcher.exported_raw_items:
         messages_.display_message(

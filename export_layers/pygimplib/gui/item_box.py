@@ -170,8 +170,7 @@ class ItemBoxItem(object):
     self._is_event_box_allocated_size = False
     self._buttons_allocation = None
     self._event_box.connect('size-allocate', self._on_event_box_size_allocate)
-    self._event_box_buttons.connect(
-      'size-allocate', self._on_event_box_buttons_size_allocate)
+    self._event_box_buttons.connect('size-allocate', self._on_event_box_buttons_size_allocate)
     
     self._event_box.show_all()
     
@@ -202,9 +201,7 @@ class ItemBoxItem(object):
   def _setup_button(self, button, icon, position, hbox):
     button.set_relief(gtk.RELIEF_NONE)
     
-    button_icon = gtk.image_new_from_pixbuf(
-      button.render_icon(icon, gtk.ICON_SIZE_MENU))
-    
+    button_icon = gtk.image_new_from_pixbuf(button.render_icon(icon, gtk.ICON_SIZE_MENU))
     button.add(button_icon)
     
     hbox.pack_start(button, expand=False, fill=False)

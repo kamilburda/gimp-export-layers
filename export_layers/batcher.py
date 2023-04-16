@@ -531,13 +531,14 @@ class Batcher(object):
         if 'constraint' in action.tags:
           self._skipped_constraints[action.name].append((self._current_item, str(e)))
       except Exception as e:
+        trace = traceback.format_exc()
         # Log failed action, but raise error as this may result in unexpected
         # plug-in behavior.
         if 'procedure' in action.tags:
-          self._failed_procedures[action.name].append((self._current_item, str(e)))
+          self._failed_procedures[action.name].append((self._current_item, str(e), trace))
         if 'constraint' in action.tags:
-          self._failed_constraints[action.name].append((self._current_item, str(e)))
-        raise exceptions.ActionError(str(e), action, traceback.format_exc())
+          self._failed_constraints[action.name].append((self._current_item, str(e), trace))
+        raise exceptions.ActionError(str(e), action, self._current_item, trace)
     
     return _handle_exceptions
   

@@ -17,11 +17,12 @@ class BatcherCancelError(BatcherError):
 
 class ActionError(BatcherError):
   
-  def __init__(self, message, action, traceback):
+  def __init__(self, message, action, item, traceback):
     super().__init__(message)
     
     self.message = message
     self.action = action
+    self.item = item
     self.traceback = traceback
 
 
