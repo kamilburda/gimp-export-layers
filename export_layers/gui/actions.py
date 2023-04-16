@@ -425,6 +425,10 @@ class _ActionBoxItem(pg.gui.ItemBoxItem):
   def is_being_edited(self):
     return self.action_edit_dialog is not None
   
+  def close_edit_dialog(self):
+    if self.action_edit_dialog is not None:
+      self.action_edit_dialog.response(gtk.RESPONSE_CANCEL)
+  
   def set_tooltip(self, text):
     self.widget.set_tooltip_text(text)
   
