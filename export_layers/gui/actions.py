@@ -201,8 +201,7 @@ class ActionBox(pg.gui.ItemBox):
     if item is not None:
       self._reorder_item(item, new_position)
     else:
-      raise ValueError('action "{}" does not match any item in "{}"'.format(
-        action.name, self))
+      raise ValueError('action "{}" does not match any item in "{}"'.format(action.name, self))
   
   def _reorder_item(self, item, new_position):
     return super().reorder_item(item, new_position)
@@ -285,8 +284,7 @@ class ActionBox(pg.gui.ItemBox):
         pdb_procedure = pdb[pg.utils.safe_encode_gimp(procedure_name)]
         
         try:
-          pdb_proc_action_dict = actions.get_action_dict_for_pdb_procedure(
-            pdb_procedure)
+          pdb_proc_action_dict = actions.get_action_dict_for_pdb_procedure(pdb_procedure)
         except actions.UnsupportedPdbProcedureError as e:
           pg.gui.display_alert_message(
             title=pg.config.PLUGIN_TITLE,
