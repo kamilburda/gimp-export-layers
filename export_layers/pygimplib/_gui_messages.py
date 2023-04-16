@@ -41,7 +41,7 @@ import gobject
 import pango
 
 __all__ = [
-  'display_error_message',
+  'display_alert_message',
   'display_message',
   'add_gui_excepthook',
   'set_gui_excepthook',
@@ -53,7 +53,7 @@ __all__ = [
 ERROR_EXIT_STATUS = 1
 
 
-def display_error_message(
+def display_alert_message(
       title=None,
       app_name=None,
       parent=None,
@@ -134,31 +134,41 @@ def display_error_message(
   
   if report_description is None:
     report_description = _(
-      'You can help fix this error by sending a report with the text '
-      'in the details above to one of the following sites')
+      'You can help fix this error by sending a report with the text'
+      ' in the details above to one of the following sites')
   
   dialog = gtk.MessageDialog(parent, type=message_type, flags=flags)
   dialog.set_transient_for(parent)
   if title is not None:
     dialog.set_title(title)
   
-  dialog.set_markup(message_markup)
-  dialog.format_secondary_markup(message_secondary_markup)
+  if message_markup:
+    dialog.set_markup(message_markup)
+  if message_secondary_markup:
+    dialog.format_secondary_markup(message_secondary_markup)
   
   if details is not None:
-    expander = _get_details_expander(details, _('Details'))
+    expander = gtk.Expander()
+    expander.set_use_markup(True)
+    expander.set_label('<b>' + _('Details') + '</b>')
+    
+    vbox_details = gtk.VBox(homogeneous=False)
+    
+    details_window = _get_details_window(details)
+    vbox_details.pack_start(details_window, expand=False, fill=False)
+    
+    if report_uri_list:
+      vbox_labels_report = _get_report_link_buttons(
+        report_uri_list, report_description, _('(right-click to copy link)'))
+      vbox_details.pack_start(vbox_labels_report, expand=False, fill=False)
+    
     if display_details_initially:
       expander.set_expanded(True)
-  else:
-    expander = None
-  
-  if report_uri_list:
-    vbox_labels_report = _get_report_link_buttons(
-      report_uri_list, report_description, _('(right-click to copy link)'))
-    dialog.vbox.pack_end(vbox_labels_report, expand=False, fill=False)
-  
-  if expander is not None:
+    
+    expander.add(vbox_details)
     dialog.vbox.pack_start(expander, expand=False, fill=False)
+  else:
+    details_window = None
   
   dialog.add_button(button_stock_id, button_response_id)
   
@@ -167,10 +177,8 @@ def display_error_message(
     if button is not None:
       dialog.set_focus(button)
   else:
-    if (expander is not None
-        and expander.get_child() is not None
-        and display_details_initially):
-      dialog.set_focus(expander.get_child())
+    if details_window is not None and display_details_initially:
+      dialog.set_focus(details_window)
   
   dialog.show_all()
   response_id = dialog.run()
@@ -179,11 +187,7 @@ def display_error_message(
   return response_id
 
 
-def _get_details_expander(details_text, details_label):
-  expander = gtk.Expander()
-  expander.set_use_markup(True)
-  expander.set_label('<b>' + details_label + '</b>')
-  
+def _get_details_window(details_text):
   scrolled_window = gtk.ScrolledWindow()
   scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
   scrolled_window.set_size_request(400, 200)
@@ -201,9 +205,8 @@ def _get_details_expander(details_text, details_label):
   exception_text_view.get_buffer().set_text(details_text)
   
   scrolled_window.add(exception_text_view)
-  expander.add(scrolled_window)
   
-  return expander
+  return scrolled_window
 
 
 def _get_report_link_buttons(
@@ -221,7 +224,7 @@ def _get_report_link_buttons(
     
     label_report = gtk.Label(label_report_text)
     label_report.set_alignment(0, 0.5)
-    label_report.set_padding(3, 3)
+    label_report.set_padding(3, 6)
     label_report.set_line_wrap(True)
     label_report.set_line_wrap_mode(pango.WRAP_WORD)
     vbox_link_buttons.pack_start(label_report, expand=False, fill=False)
@@ -453,7 +456,7 @@ def _gui_excepthook_generic(
     exception_message = ''.join(
       traceback.format_exception(exc_type, exc_value, exc_traceback))
     
-    display_error_message(
+    display_alert_message(
       title=title,
       app_name=app_name,
       parent=parent,
