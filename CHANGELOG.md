@@ -14,6 +14,7 @@ Changes to procedures:
 * Removed the "Use file extension in layer name" procedure. The same functionality is now available in the "Export" procedure.
 * Removed the "Autocrop background" and "Autocrop foreground" procedures as the same effect can be achieved by inserting the `gimp-plugin-autocrop-layer` procedure and setting the drawable argument to "Background" or "Foreground", respectively.
 * Renamed the "Rename layer" procedure to just "Rename" for brevity.
+* The edit dialog for the "Rename" procedure is now displayed when added.
 
 Changes to constraints:
 * Removed the "Include layers" constraint and instead added a constraint to export only layers.
