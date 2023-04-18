@@ -607,7 +607,9 @@ class ExportLayersDialog(object):
     self._show_hide_more_settings()
     self._update_gui_for_edit_mode(update_name_preview=False)
     
-    self._dialog.set_focus(self._file_extension_entry)
+    if not self._settings['main/edit_mode'].value:
+      self._dialog.set_focus(self._file_extension_entry)
+    
     self._button_run.grab_default()
     # Place the cursor at the end of the text entry.
     self._file_extension_entry.set_position(-1)
