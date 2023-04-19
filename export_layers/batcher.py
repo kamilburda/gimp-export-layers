@@ -77,6 +77,8 @@ class Batcher(object):
     
     self._current_item = None
     self._current_raw_item = None
+    self._current_procedure = None
+    self._current_constraint = None
     self._current_image = None
     
     self._orig_active_layer = None
@@ -246,6 +248,16 @@ class Batcher(object):
   @current_raw_item.setter
   def current_raw_item(self, value):
     self._current_raw_item = value
+  
+  @property
+  def current_procedure(self):
+    """The procedure currently being applied to `current_item`."""
+    return self._current_procedure
+  
+  @property
+  def current_constraint(self):
+    """The most recent (last) constraint that was evaluated."""
+    return self._current_constraint
   
   @property
   def current_image(self):
@@ -481,6 +493,8 @@ class Batcher(object):
     
     function = self._handle_exceptions_from_action(function, action)
     
+    function = self._set_current_action(function, action)
+    
     if action_groups is None:
       action_groups = action['action_groups'].value
     
@@ -541,6 +555,19 @@ class Batcher(object):
         raise exceptions.ActionError(str(e), action, self._current_item, trace)
     
     return _handle_exceptions
+  
+  def _set_current_action(self, function, action):
+    def _set_action(*action_args, **action_kwargs):
+      if action['enabled'].value:
+        if 'procedure' in action.tags:
+          self._current_procedure = action
+        
+        if 'constraint' in action.tags:
+          self._current_constraint = action
+      
+      return function(*action_args, **action_kwargs)
+    
+    return _set_action
   
   def _get_constraint_func(self, func, orig_func=None, name='', subfilter=None):
     def _add_func(*args, **kwargs):
@@ -619,6 +646,8 @@ class Batcher(object):
     
     self._current_item = None
     self._current_raw_item = None
+    self._current_procedure = None
+    self._current_constraint = None
     self._current_image = self._input_image
     
     self._image_copy = None
