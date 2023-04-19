@@ -5,9 +5,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-from . import constants as pgconstants
-
 import inspect
+
+from . import constants as pgconstants
 
 
 class EmptyContext(object):
